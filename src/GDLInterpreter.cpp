@@ -5426,7 +5426,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"ARRAYIX_ORANGE_S",
 	"ARRAYIX_RANGE_S",
 	"ARRAYEXPR",
-	"ARRAYEXPR_FN",
+	"ARRAYEXPR_FCALL",
 	"ARRAYEXPR_MFCALL",
 	"BLOCK",
 	"BREAK",

@@ -8306,7 +8306,7 @@ void GDLParser::primary_expr() {
 									
 									//             std::cout << "***(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 2" << std::endl;
 									
-									primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYEXPR_FN,"arrayexpr_fn")))->add(antlr::RefAST(primary_expr_AST))));
+									primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYEXPR_FCALL,"arrayexpr_fcall")))->add(antlr::RefAST(primary_expr_AST))));
 									currentAST.root = primary_expr_AST;
 									if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
 										primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -9426,7 +9426,7 @@ const char* GDLParser::tokenNames[] = {
 	"ARRAYIX_ORANGE_S",
 	"ARRAYIX_RANGE_S",
 	"ARRAYEXPR",
-	"ARRAYEXPR_FN",
+	"ARRAYEXPR_FCALL",
 	"ARRAYEXPR_MFCALL",
 	"BLOCK",
 	"BREAK",

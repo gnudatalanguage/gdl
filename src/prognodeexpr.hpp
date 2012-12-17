@@ -182,6 +182,17 @@ public:
   BaseGDL* Eval();
 //   BaseGDL** LExprGrab( BaseGDL* right);  
 };
+// class ARRAYEXPR_FCALLNode: public LeafNode
+// {
+// public:
+//   ARRAYEXPR_FCALLNode( const RefDNode& refNode): LeafNode( refNode)
+//   {}
+//   BaseGDL** EvalRefCheck( BaseGDL*& rEval);
+//   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LEval();
+//   BaseGDL* Eval();
+// //   BaseGDL** LExprGrab( BaseGDL* right);  
+// };
 
 
 

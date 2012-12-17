@@ -1371,49 +1371,51 @@ arrayexpr_fn!//
 {
     std::string id_text;
     bool isVar;
+    RefDNode mark, al2AST, vaNew, vaAlt; // mark
 }   
-  	: #(aIn:ARRAYEXPR_FN 
+  	: #(aIn:ARRAYEXPR_FCALL 
             // always here: #(VAR IDENTIFIER)
             #(va:VAR id:IDENTIFIER)
             { 
+                mark = _t;
+
                 id_text=#id->getText(); 
 
                 // IsVar already tries to find the function and compile it
-                isVar = comp.IsVar( id_text);
+                isVar = comp.IsVar( id_text); // isVar == true -> VAR for sure (== false: maybe VAR nevertheless)
 
-                int i=-1;
+                int libIx = -1;
                 if( !isVar)
-                    i=LibFunIx(id_text);
+                    libIx=LibFunIx(id_text);
             }
-
             (   { isVar}? al:arrayindex_list
-            |   el:arrayindex_list_to_parameter_list[ i != -1 && libFunList[ i]->NPar() == -1]
+            |   el:arrayindex_list_to_parameter_list[ libIx != -1 && libFunList[ libIx]->NPar() == -1]
             )
             { 
-                if( !isVar)
+                if( !isVar) // can be var nevertheless
                 {   // no variable -> function call
 
                     // first search library functions
-                    int i=LibFunIx(id_text);
-                    if( i != -1)
+                    //int libIx = LibFunIx(id_text);
+                    if( libIx != -1)
                     {
                         int nParam = 0;
                         if( #el != RefDNode(antlr::nullAST))
                             nParam = #el->GetNParam();
 
-                        int libParam = libFunList[i]->NPar();
-                        int libParamMin = libFunList[i]->NParMin();
+                        int libParam = libFunList[libIx]->NPar();
+                        int libParamMin = libFunList[libIx]->NParMin();
                         if( libParam != -1 && nParam > libParam)
-                            throw GDLException(	aIn, libFunList[i]->Name() + ": Too many arguments.");
-                    if( libParam != -1 && nParam < libParamMin)
-                        throw GDLException(	aIn, libFunList[i]->Name() + ": Too few arguments.");
+                            throw GDLException(	aIn, libFunList[libIx]->Name() + ": Too many arguments.");
+                        if( libParam != -1 && nParam < libParamMin)
+                            throw GDLException(	aIn, libFunList[libIx]->Name() + ": Too few arguments.");
 
-                        #id->SetLibFun( libFunList[i]);
-                        if( libFunList[ i]->RetNew())
+                        #id->SetLibFun( libFunList[libIx]);
+                        if( libFunList[ libIx]->RetNew())
                             {
-                                if( libFunList[ i]->Name() == "N_ELEMENTS")
+                                if( libFunList[ libIx]->Name() == "N_ELEMENTS")
                                     #id->setType( FCALL_LIB_N_ELEMENTS);
-                                else if( libFunList[ i]->DirectCall())
+                                else if( libFunList[ libIx]->DirectCall())
                                         #id->setType( FCALL_LIB_DIRECT);
                                     else
                                         #id->setType( FCALL_LIB_RETNEW);
@@ -1432,16 +1434,38 @@ arrayexpr_fn!//
                     else
                     {
                         // then search user defined functions
-                        #id->setType( FCALL);
-                        i=FunIx(id_text);
-                        #id->SetFunIx(i);
+                        int funIx=FunIx(id_text);
 
-                        #arrayexpr_fn=
-                        #( id, el);
-//                        #(/*[FCALL,"fcall"],*/ id, el);
+                        // we use #id for the FCALL part
+                        #id->setType( FCALL);
+                        #id->SetFunIx(funIx);
+
+                        // remove "true" (only for commit)
+                        if( true || funIx != -1) // found -> FCALL
+                            {
+
+                                #arrayexpr_fn = #( id, el); 
+                                // #(/*[FCALL,"fcall"],*/ id, el);
+                            }
+                        else // not found -> still ambiguous
+                            {
+                                _t = mark; // rewind to parse again 
+
+                                arrayindex_list(_t);
+                                _t = _retTree;
+                                al2AST = returnAST;
+
+                                #vaNew=astFactory->create(VAR,id_text);
+                                // #va=#[VAR,id->getText()];
+                                comp.Var(#vaNew); // we declare the variable here
+
+                                #vaAlt = #([ARRAYEXPR,"arrayexpr"], vaNew, al2AST);
+
+                                #arrayexpr_fn = #( aIn, vaAlt, id, el); 
+                            }
                     }
                 }
-                else
+                else // unambiguous VAR
                 {   // variable -> arrayexpr
                     
                     // make var
