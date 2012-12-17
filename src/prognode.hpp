@@ -315,6 +315,7 @@ public:
   friend class REF_EXPRNode;
   friend class ParameterNode;
   friend class ARRAYEXPRNode;
+  friend class ARRAYEXPR_FCALLNode;
   friend class EXPRNode;
   friend class SYSVARNode;
 };

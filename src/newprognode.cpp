@@ -637,10 +637,10 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 		return new FCALLNode( refNode);
       }
-//     case GDLTokenTypes::ARRAYEXPR_FCALL:
-//       {
-// 		return new ARRAYEXPR_FCALLNode( refNode);
-//       }
+    case GDLTokenTypes::ARRAYEXPR_FCALL:
+      {
+		return new ARRAYEXPR_FCALLNode( refNode);
+      }
     case GDLTokenTypes::ARRAYEXPR_MFCALL:
       {
 		return new ARRAYEXPR_MFCALLNode( refNode);

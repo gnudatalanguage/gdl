@@ -19,6 +19,7 @@ email                : m_schellens@users.sf.net
 
 // from GDLInterpreter::l_expr
 #include <cassert>
+#include <string>
 
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
@@ -278,6 +279,38 @@ BaseGDL** VARPTRNode::LExpr( BaseGDL* right)
 LEXPR
 #undef LEXPR
 
+BaseGDL** ARRAYEXPR_FCALLNode::LExpr( BaseGDL* right)
+{
+  if( fcallNodeFunIx >= 0)
+      return fcallNode->FCALLNode::LExpr( right);
+
+  if( fcallNodeFunIx == -1)
+  {
+    try{
+      BaseGDL** res = fcallNode->FCALLNode::LExpr( right);
+      fcallNodeFunIx = fcallNode->funIx;
+      return res;
+    } catch( GDLException& ex)
+    {
+      try{
+	BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LExpr( right);
+	fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+	return res;
+      }
+      catch( GDLException& innerEx)
+      {
+	  std::string msg = "Ambiguous: " + ex.toString() +
+	  "  or: " + innerEx.toString();
+	  throw GDLException(this,msg,true,false);
+      }
+    }
+  }
+  
+  assert( fcallNodeFunIx == -2);
+
+  return arrayExprNode->ARRAYEXPRNode::LExpr( right);
+}
+  
 
 BaseGDL** ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
 	//case ARRAYEXPR_MFCALL:

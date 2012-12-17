@@ -5480,14 +5480,12 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	RefDNode va_AST = RefDNode(antlr::nullAST);
 	RefDNode id = RefDNode(antlr::nullAST);
 	RefDNode id_AST = RefDNode(antlr::nullAST);
-	RefDNode al_AST = RefDNode(antlr::nullAST);
-	RefDNode al = RefDNode(antlr::nullAST);
 	RefDNode el_AST = RefDNode(antlr::nullAST);
 	RefDNode el = RefDNode(antlr::nullAST);
 	
 	std::string id_text;
 	bool isVar;
-	RefDNode mark, al2AST, vaNew, vaAlt; // mark
+	RefDNode mark, va2, vaAlt, fn, arrayindex_listAST;
 	
 	
 	RefDNode __t153 = _t;
@@ -5519,42 +5517,26 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	
 	mark = _t;
 	
-	id_text=id_AST->getText(); 
+	id_text = id_AST->getText(); 
 	
-	// IsVar already tries to find the function and compile it
-	isVar = comp.IsVar( id_text); // isVar == true -> VAR for sure (== false: maybe VAR nevertheless)
+	// IsVar is not needed, we must emit an ARRAYEXPR_FCALL even if the variable is known
+	// (rule: Accessible functions always override variables
+	//isVar = comp.IsVar( id_text); 
+	// isVar == true -> VAR for sure 
+	// (== false: maybe VAR nevertheless)
 	
-	int libIx = -1;
-	if( !isVar)
-	libIx=LibFunIx(id_text);
+	int libIx = LibFunIx(id_text);
+	
 	
 	{
-	if (_t == RefDNode(antlr::nullAST) )
-		_t = ASTNULL;
-	if (((_t->getType() == ARRAYIX))&&( isVar)) {
-		al = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		arrayindex_list(_t);
-		_t = _retTree;
-		al_AST = returnAST;
-	}
-	else if ((_t->getType() == ARRAYIX)) {
-		el = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		arrayindex_list_to_parameter_list(_t, libIx != -1 && libFunList[ libIx]->NPar() == -1);
-		_t = _retTree;
-		el_AST = returnAST;
-	}
-	else {
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	
+	el = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
+	arrayindex_list_to_parameter_list(_t, libIx != -1 && libFunList[ libIx]->NPar() == -1);
+	_t = _retTree;
+	el_AST = returnAST;
 	}
 	arrayexpr_fn_AST = RefDNode(currentAST.root);
 	
-	if( !isVar) // can be var nevertheless
-	{   // no variable -> function call
-	
 	// first search library functions
-	//int libIx = LibFunIx(id_text);
 	if( libIx != -1)
 	{
 	int nParam = 0;
@@ -5577,63 +5559,65 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	id_AST->setType( FCALL_LIB_DIRECT);
 	else
 	id_AST->setType( FCALL_LIB_RETNEW);
-	arrayexpr_fn_AST =
-	RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	arrayexpr_fn_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
 	//                              #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
 	}
 	else
 	{
 	id_AST->setType( FCALL_LIB);
-	arrayexpr_fn_AST =
-	RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	arrayexpr_fn_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
 	//                              #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
 	}
 	}
+	// then search user defined functions
 	else
 	{
-	// then search user defined functions
-	int funIx=FunIx(id_text);
+	
+	int funIx=FunIx( id_text);
 	
 	// we use #id for the FCALL part
 	id_AST->setType( FCALL);
-	id_AST->SetFunIx(funIx);
+	id_AST->SetFunIx( funIx);
 	
-	// remove "true" (only for commit)
-	if( true || funIx != -1) // found -> FCALL
+	if( funIx != -1) // found -> FCALL
 	{
-	
 	arrayexpr_fn_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST)))); 
 	// #(/*[FCALL,"fcall"],*/ id, el);
 	}
 	else // not found -> still ambiguous
 	{
-	_t = mark; // rewind to parse again 
+	// _t = mark; // rewind to parse again 
+	arrayindex_list( mark);
+	//_t = _retTree;
+	arrayindex_listAST = returnAST;
 	
-	arrayindex_list(_t);
-	_t = _retTree;
-	al2AST = returnAST;
 	
-	vaNew=astFactory->create(VAR,id_text);
+	va2=astFactory->create( VAR, id_text);
 	// #va=#[VAR,id->getText()];
-	comp.Var(vaNew); // we declare the variable here
+	comp.Var( va2); // we declare the variable here!
+	// if IsVar() still would be used this would lead to surprising behavior: 
+	// e. g.: function_call(42) & function_call(43)  
+	// The first (42) would be an ARRAYEXPR_FCALL the 2nd (43) an ARRAYEXPR
+	// if then at runtime function "function_call" is known,
+	// it will be called only at the first appearance of the call.
+	// that's why we cannot allow unambiguous VAR here 
 	
-	vaAlt = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(vaNew))->add(antlr::RefAST(al2AST))));
+	vaAlt = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(va2))->add(antlr::RefAST(arrayindex_listAST))));
+	fn = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));    
 	
-	arrayexpr_fn_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(aIn_AST))->add(antlr::RefAST(vaAlt))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST)))); 
+	arrayexpr_fn_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(aIn_AST))->add(antlr::RefAST(vaAlt))->add(antlr::RefAST(fn)))); 
 	}
 	}
-	}
-	else // unambiguous VAR
-	{   // variable -> arrayexpr
 	
-	// make var
-	va_AST=astFactory->create(VAR,id_AST->getText());
-	//                    #va=#[VAR,id->getText()];
-	comp.Var(va_AST);	
-	
-	arrayexpr_fn_AST=
-	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(va_AST))->add(antlr::RefAST(al_AST))));
-	}
+	//                 // not valid s. a. (kept for reference): unambiguous VAR
+	//                 {   // variable -> arrayexpr                    
+	//                     // make var
+	//                     #va=astFactory->create(VAR,#id->getText());
+	// //                    #va=#[VAR,id->getText()];
+	//                     comp.Var(#va);
+	//                     #arrayexpr_fn=
+	//                     #([ARRAYEXPR,"arrayexpr"], va, al);
+	//                 }
 	
 	currentAST.root = arrayexpr_fn_AST;
 	if ( arrayexpr_fn_AST!=RefDNode(antlr::nullAST) &&

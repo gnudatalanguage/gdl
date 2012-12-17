@@ -1371,7 +1371,7 @@ arrayexpr_fn!//
 {
     std::string id_text;
     bool isVar;
-    RefDNode mark, al2AST, vaNew, vaAlt; // mark
+    RefDNode mark, va2, vaAlt, fn, arrayindex_listAST;
 }   
   	: #(aIn:ARRAYEXPR_FCALL 
             // always here: #(VAR IDENTIFIER)
@@ -1379,25 +1379,23 @@ arrayexpr_fn!//
             { 
                 mark = _t;
 
-                id_text=#id->getText(); 
+                id_text = #id->getText(); 
+                
+                // IsVar is not needed, we must emit an ARRAYEXPR_FCALL even if the variable is known
+                // (rule: Accessible functions always override variables
+                //isVar = comp.IsVar( id_text); 
+                // isVar == true -> VAR for sure 
+                // (== false: maybe VAR nevertheless)
 
-                // IsVar already tries to find the function and compile it
-                isVar = comp.IsVar( id_text); // isVar == true -> VAR for sure (== false: maybe VAR nevertheless)
+                int libIx = LibFunIx(id_text);
 
-                int libIx = -1;
-                if( !isVar)
-                    libIx=LibFunIx(id_text);
             }
-            (   { isVar}? al:arrayindex_list
-            |   el:arrayindex_list_to_parameter_list[ libIx != -1 && libFunList[ libIx]->NPar() == -1]
+            (   
+                el:arrayindex_list_to_parameter_list[ libIx != -1 && libFunList[ libIx]->NPar() == -1]
             )
             { 
-                if( !isVar) // can be var nevertheless
-                {   // no variable -> function call
-
-                    // first search library functions
-                    //int libIx = LibFunIx(id_text);
-                    if( libIx != -1)
+                // first search library functions
+                if( libIx != -1)
                     {
                         int nParam = 0;
                         if( #el != RefDNode(antlr::nullAST))
@@ -1419,63 +1417,65 @@ arrayexpr_fn!//
                                         #id->setType( FCALL_LIB_DIRECT);
                                     else
                                         #id->setType( FCALL_LIB_RETNEW);
-                                #arrayexpr_fn =
-                                #( id, el);
+                                #arrayexpr_fn = #( id, el);
 //                              #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
                             }
                         else
                             {
                                 #id->setType( FCALL_LIB);
-                                #arrayexpr_fn =
-                                #( id, el);
+                                #arrayexpr_fn = #( id, el);
 //                              #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
                             }
                     }
-                    else
+                // then search user defined functions
+                else
                     {
-                        // then search user defined functions
-                        int funIx=FunIx(id_text);
+
+                        int funIx=FunIx( id_text);
 
                         // we use #id for the FCALL part
                         #id->setType( FCALL);
-                        #id->SetFunIx(funIx);
+                        #id->SetFunIx( funIx);
 
-                        // remove "true" (only for commit)
-                        if( true || funIx != -1) // found -> FCALL
+                        if( funIx != -1) // found -> FCALL
                             {
-
                                 #arrayexpr_fn = #( id, el); 
                                 // #(/*[FCALL,"fcall"],*/ id, el);
                             }
                         else // not found -> still ambiguous
                             {
-                                _t = mark; // rewind to parse again 
+                                // _t = mark; // rewind to parse again 
+                                arrayindex_list( mark);
+                                //_t = _retTree;
+                                arrayindex_listAST = returnAST;
+                
 
-                                arrayindex_list(_t);
-                                _t = _retTree;
-                                al2AST = returnAST;
-
-                                #vaNew=astFactory->create(VAR,id_text);
+                                #va2=astFactory->create( VAR, id_text);
                                 // #va=#[VAR,id->getText()];
-                                comp.Var(#vaNew); // we declare the variable here
+                                comp.Var( #va2); // we declare the variable here!
+                                // if IsVar() still would be used this would lead to surprising behavior: 
+                                // e. g.: function_call(42) & function_call(43)  
+                                // The first (42) would be an ARRAYEXPR_FCALL the 2nd (43) an ARRAYEXPR
+                                // if then at runtime function "function_call" is known,
+                                // it will be called only at the first appearance of the call.
+                                // that's why we cannot allow unambiguous VAR here 
 
-                                #vaAlt = #([ARRAYEXPR,"arrayexpr"], vaNew, al2AST);
+                                #vaAlt = #([ARRAYEXPR,"arrayexpr"], va2, arrayindex_listAST);
+                                #fn = #( id, el);    
 
-                                #arrayexpr_fn = #( aIn, vaAlt, id, el); 
+                                #arrayexpr_fn = #( aIn, vaAlt, fn); 
                             }
                     }
-                }
-                else // unambiguous VAR
-                {   // variable -> arrayexpr
-                    
-                    // make var
-                    #va=astFactory->create(VAR,#id->getText());
-//                    #va=#[VAR,id->getText()];
-                    comp.Var(#va);	
 
-                    #arrayexpr_fn=
-                    #([ARRAYEXPR,"arrayexpr"], va, al);
-                }
+//                 // not valid s. a. (kept for reference): unambiguous VAR
+//                 {   // variable -> arrayexpr                    
+//                     // make var
+//                     #va=astFactory->create(VAR,#id->getText());
+// //                    #va=#[VAR,id->getText()];
+//                     comp.Var(#va);
+//                     #arrayexpr_fn=
+//                     #([ARRAYEXPR,"arrayexpr"], va, al);
+//                 }
             }
         )  
     ;
@@ -1614,7 +1614,7 @@ RefDNode mark;
                 }
             }
         ) 	
-  	| arrayexpr_fn // converts fo FCALL(_LIB) or ARRAYEXPR
+  	| arrayexpr_fn // converts fo FCALL(_LIB) or ARRAYEXPR_FCALL
 	| CONSTANT
 	| dummy=array_def
 	| struct_def
