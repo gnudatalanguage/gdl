@@ -166,19 +166,37 @@ private:
     else yValBis = yVal;
     //   BaseGDL *x, *y;
     {
-      DLong minEl, maxEl;
+      DLong minEl, maxEl, debug=0;
 
       xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       xStart = (*xVal)[minEl];
       if (isnan(xStart)) xStart = 1e-12;
+      if (wasBadxLog) xStart = 1e-12;
       xEnd = (*xVal)[maxEl];
       if (isnan(xEnd)) xEnd = 1.0;
+     if (wasBadxLog) {
+	xStart = 1e-20;
+	xEnd = 1.;
+      }
+
+      if (debug) cout << "X Min/Max : " << xStart << " " << xEnd << endl;
+      if (debug) cout << "xLog mode : " << xLog << endl;
 
       yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
+      if (wasBadyLog) yStart = 1e-12;
       if (isnan(yStart)) yStart = 1e-12;
       yEnd = (*yVal)[maxEl];
       if (isnan(yEnd)) yEnd = 1.0;
+      if (wasBadyLog) {
+	yStart = 1e-20;
+	yEnd = 1.;
+      }
+
+
+      if (debug) cout << "Y Min/Max : " << yStart << " " << yEnd << endl;
+      if (debug) cout << "yLog mode : " << yLog << endl;
+
     }
     return false;
   } // }}}
@@ -349,6 +367,9 @@ private:
       xintv = AutoTick(xEnd-xStart);
     } else {
       xintv = (xEnd - xStart) / xTicks;
+      // changing "xintv" has no effects in plplot in Log Mode ...
+      // http://sourceforge.net/tracker/index.php?func=detail&aid=3095515&group_id=2915&atid=202915
+      if (yLog) Warning("PLOT: XTICKS keyword not active in plplot in Log mode");
     }
     actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
 //Y
@@ -365,7 +386,14 @@ private:
       yintv = AutoTick(yEnd-yStart);
     } else {
       yintv = (yEnd - yStart) / yTicks;
+      if (yLog) Warning("PLOT: YTICKS keyword not active in plplot in Log mode");
     }
+    
+    int debug=0;
+    if (debug) cout << xOpt.c_str() << endl;
+    if (debug) cout << yOpt.c_str() << endl;
+    if (debug) cout << xintv << " "<< yintv<< endl;
+
     actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
     // reset pen thickness
     actStream->wid( 0);
