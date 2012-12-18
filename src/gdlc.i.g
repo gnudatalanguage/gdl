@@ -978,7 +978,7 @@ statement returns[ RetCode retCode]
                     !(sigControlC && interruptEnable) && 
                     (debugMode == DEBUG_CLEAR));
 
-            // commented out, because we are only a last statement
+            // commented out, because we are only at the last statement
             // if( _retTree != NULL) 
             //     last = _retTree;
 
