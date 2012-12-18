@@ -1442,7 +1442,7 @@ arrayexpr_fn!//
                                 #arrayexpr_fn = #( id, el); 
                                 // #(/*[FCALL,"fcall"],*/ id, el);
                             }
-                        else // not found -> still ambiguous
+                        else // function not found -> still ambiguous
                             {
                                 // _t = mark; // rewind to parse again 
                                 arrayindex_list( mark);
