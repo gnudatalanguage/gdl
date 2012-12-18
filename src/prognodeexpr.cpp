@@ -3238,34 +3238,38 @@ if( e1->StrictScalar())
   {
     if( fcallNodeFunIx >= 0)
 	return fcallNode->FCALLNode::EvalRefCheck( rEval);
-
-    if( fcallNodeFunIx == -1)
+    else if( fcallNodeFunIx == -2)
     {
-      try{
-	BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
-	fcallNodeFunIx = fcallNode->funIx;
-      } catch( GDLException& ex)
-      {
-	try{
-	  rEval = arrayExprNode->ARRAYEXPRNode::Eval();
-	  assert( rEval != NULL);
-// 	  if( rEval != NULL)
-	    fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-	  return NULL;
-	}
-	catch( GDLException& innerEx)
-	{
-	  string msg = "Ambiguous: " + ex.toString() +
-	  "  or: " + innerEx.toString();
-	  throw GDLException(this,msg,true,false);
-	}
-      }
+      rEval = arrayExprNode->ARRAYEXPRNode::Eval();
+      return NULL;
     }
     
-    assert( fcallNodeFunIx == -2);
+    assert( fcallNodeFunIx == -1);
 
-    rEval = arrayExprNode->ARRAYEXPRNode::Eval();
-    return NULL;
+    try{
+      BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
+      fcallNodeFunIx = fcallNode->funIx;
+    } catch( GDLException& ex)
+    {
+      // keep FCALL if already compiled (but runtime error)
+      if(fcallNode->funIx >= 0)
+      {
+	fcallNodeFunIx = fcallNode->funIx;
+	throw ex;
+      }
+      try{
+	rEval = arrayExprNode->ARRAYEXPRNode::Eval();
+	assert( rEval != NULL);
+	fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+	return NULL;
+      }
+      catch( GDLException& innerEx)
+      {
+	string msg = "Ambiguous: " + ex.toString() +
+	"  or: " + innerEx.toString();
+	throw GDLException(this,msg,true,false);
+      }
+    }
   }
   
   BaseGDL** FCALLNode::LEval()
@@ -3295,33 +3299,37 @@ if( e1->StrictScalar())
   BaseGDL** ARRAYEXPR_FCALLNode::LEval()
   {
     if( fcallNodeFunIx >= 0)
-	return fcallNode->FCALLNode::LEval();
-
-    if( fcallNodeFunIx == -1)
+      return fcallNode->FCALLNode::LEval();
+    else if( fcallNodeFunIx == -2)
     {
-      try{
-	BaseGDL** res = fcallNode->FCALLNode::LEval();
-	fcallNodeFunIx = fcallNode->funIx;
-	return res;
-      } catch( GDLException& ex)
+      return arrayExprNode->ARRAYEXPRNode::LEval();
+    }
+
+    assert( fcallNodeFunIx == -1);
+    try{
+      BaseGDL** res = fcallNode->FCALLNode::LEval();
+      fcallNodeFunIx = fcallNode->funIx;
+      return res;
+    } catch( GDLException& ex)
+    {
+      // keep FCALL if already compiled (but runtime error)
+      if(fcallNode->funIx >= 0)
       {
-	try{
-	  BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LEval();
-	  fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-	  return res;
-	}
-	catch( GDLException& innerEx)
-	{
-	  string msg = "Ambiguous: " + ex.toString() +
-	  "  or: " + innerEx.toString();
-	  throw GDLException(this,msg,true,false);
-	}
+	fcallNodeFunIx = fcallNode->funIx;
+	throw ex;
+      }
+      try{
+	BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LEval();
+	fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+	return res;
+      }
+      catch( GDLException& innerEx)
+      {
+	string msg = "Ambiguous: " + ex.toString() +
+	"  or: " + innerEx.toString();
+	throw GDLException(this,msg,true,false);
       }
     }
-    
-    assert( fcallNodeFunIx == -2);
-
-    return arrayExprNode->ARRAYEXPRNode::LEval();
   }
 
   BaseGDL* FCALLNode::Eval()
@@ -3349,32 +3357,35 @@ if( e1->StrictScalar())
   {
     if( fcallNodeFunIx >= 0)
 	return fcallNode->FCALLNode::Eval();
+    else if( fcallNodeFunIx == -2)
+	return arrayExprNode->ARRAYEXPRNode::Eval();
 
-    if( fcallNodeFunIx == -1)
+    assert( fcallNodeFunIx == -1);
+
+    try{
+      BaseGDL* res = fcallNode->FCALLNode::Eval();
+      fcallNodeFunIx = fcallNode->funIx;
+      return res;
+    } catch( GDLException& ex)
     {
-      try{
-	BaseGDL* res = fcallNode->FCALLNode::Eval();
-	fcallNodeFunIx = fcallNode->funIx;
-	return res;
-      } catch( GDLException& ex)
+      // keep FCALL if already compiled (but runtime error)
+      if(fcallNode->funIx >= 0)
       {
-	try{
-	  BaseGDL* res = arrayExprNode->ARRAYEXPRNode::Eval();
-	  fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-	  return res;
-	}
-	catch( GDLException& innerEx)
-	{
-	  string msg = "Ambiguous: " + ex.toString() +
-	  "  or: " + innerEx.toString();
-	  throw GDLException(this,msg,true,false);
-	}
+	fcallNodeFunIx = fcallNode->funIx;
+	throw ex;
+      }
+      try{
+	BaseGDL* res = arrayExprNode->ARRAYEXPRNode::Eval();
+	fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+	return res;
+      }
+      catch( GDLException& innerEx)
+      {
+	string msg = "Ambiguous: " + ex.toString() +
+	"  or: " + innerEx.toString();
+	throw GDLException(this,msg,true,false);
       }
     }
-    
-    assert( fcallNodeFunIx == -2);
-
-    return arrayExprNode->ARRAYEXPRNode::Eval();
   }
   
   

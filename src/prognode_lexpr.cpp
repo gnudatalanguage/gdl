@@ -283,32 +283,36 @@ BaseGDL** ARRAYEXPR_FCALLNode::LExpr( BaseGDL* right)
 {
   if( fcallNodeFunIx >= 0)
       return fcallNode->FCALLNode::LExpr( right);
-
-  if( fcallNodeFunIx == -1)
+  else if( fcallNodeFunIx == -2)
   {
-    try{
+    return arrayExprNode->ARRAYEXPRNode::LExpr( right);
+  }
+    
+  assert( fcallNodeFunIx == -1);
+  try{
       BaseGDL** res = fcallNode->FCALLNode::LExpr( right);
       fcallNodeFunIx = fcallNode->funIx;
       return res;
-    } catch( GDLException& ex)
+  } catch( GDLException& ex)
+  {
+    // keep FCALL if already compiled (but runtime error)
+    if(fcallNode->funIx >= 0)
     {
-      try{
-	BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LExpr( right);
-	fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-	return res;
-      }
-      catch( GDLException& innerEx)
-      {
-	  std::string msg = "Ambiguous: " + ex.toString() +
-	  "  or: " + innerEx.toString();
-	  throw GDLException(this,msg,true,false);
-      }
+      fcallNodeFunIx = fcallNode->funIx;
+      throw ex;
+    }
+    try{
+      BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LExpr( right);
+      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+      return res;
+    }
+    catch( GDLException& innerEx)
+    {
+	std::string msg = "Ambiguous: " + ex.toString() +
+	"  or: " + innerEx.toString();
+	throw GDLException(this,msg,true,false);
     }
   }
-  
-  assert( fcallNodeFunIx == -2);
-
-  return arrayExprNode->ARRAYEXPRNode::LExpr( right);
 }
   
 
