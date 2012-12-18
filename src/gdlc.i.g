@@ -978,8 +978,9 @@ statement returns[ RetCode retCode]
                     !(sigControlC && interruptEnable) && 
                     (debugMode == DEBUG_CLEAR));
 
-            if( _retTree != NULL) 
-                last = _retTree;
+            // commented out, because we are only a last statement
+            // if( _retTree != NULL) 
+            //     last = _retTree;
 
             goto afterStatement;
 }
@@ -1062,8 +1063,20 @@ statement returns[ RetCode retCode]
 #endif
                             }
                     }
-                else    
-                if( interruptEnable)
+                // else if( debugMode == DEBUG_SKIP)
+                //     {
+                //         if( last != NULL)
+                //             {
+                //                 last = last->getNextSibling();
+                //                 DebugMsg( last, "Skipped to: ");
+                //             }
+                //         else
+                //             DebugMsg( last, "Cannot SKIP fro here");
+
+                //         debugMode = DEBUG_CLEAR;
+                //         retCode = RC_OK;
+                //     }
+                else if( interruptEnable)
                 {
                     if( debugMode == DEBUG_PROCESS_STOP)
                     {

@@ -593,7 +593,6 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
   //  return CC_OK;
 }
 
-
 // execute GDL command (.run, .step, ...)
 DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 {
@@ -663,30 +662,46 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "SKIP"))
     {
-      cout << "SKIP not implemented yet." << endl;
-      return CC_OK;
+      DLong sCount;
+      if( args == "")
+      {
+	  sCount = 1;
+      }
+      else
+      {
+	const char* cStart=args.c_str();
+	char* cEnd;
+	sCount = strtol(cStart,&cEnd,10);
+	if( cEnd == cStart)
+	{
+	  cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+	  return CC_OK;
+	}
+      }
+      stepCount = sCount;
+      return CC_SKIP;
     }
   if( cmd( "STEP"))
     {
-      	    DLong sCount;
-      	    if( args == "")
-      	    {
-				sCount = 1;
-      	    }
-      	    else
-      	    {
-				const char* cStart=args.c_str();
-				char* cEnd;
-				sCount = strtol(cStart,&cEnd,10);
-				if( cEnd == cStart)
-				{
-				cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-				return CC_OK;
-				}
-      	      }
-      	      stepCount = sCount;
-			  debugMode = DEBUG_STEP;
-			  return CC_STEP;
+      DLong sCount;
+      if( args == "")
+      {
+	  sCount = 1;
+      }
+      else
+      {
+	  const char* cStart=args.c_str();
+	  char* cEnd;
+	  sCount = strtol(cStart,&cEnd,10);
+	  if( cEnd == cStart)
+	  {
+	    cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+	    return CC_OK;
+	  }
+	}
+	stepCount = sCount;
+	debugMode = DEBUG_STEP;
+	return CC_STEP;
     }
   if( cmd( "STEPOVER"))
     {
@@ -1103,28 +1118,30 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
   for (;;) {
     feclearexcept(FE_ALL_EXCEPT);
 
-//     try
-//       {
-	DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
+    DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
 
-	_retTree = retTreeSave; // on return, _retTree should be kept
+    _retTree = retTreeSave; // on return, _retTree should be kept
 
-	if( ret == CC_RETURN) return RC_RETURN;
-	if( ret == CC_CONTINUE) return RC_OK; 
-	if( ret == CC_STEP) return RC_OK;
-//       }
-//     catch( RetAllException&)
-//       {
-//  	throw;
-//       }
-    //     catch( exception& e)
-    //       {
-    // 	cerr << "InnerInterpreterLoop: Exception: " << e.what() << endl;
-    //       }
-    //     catch (...)
-    //       {	
-    // 	cerr << "InnerInterpreterLoop: Unhandled Error." << endl;
-    //       }
+    if( ret == CC_SKIP)
+    {
+      for( int s=0; s<stepCount; ++s)
+      {
+	if( _retTree == NULL)
+	  break;
+	
+	_retTree = _retTree->getNextSibling();
+      }
+      stepCount = 0;
+      retTreeSave = _retTree;
+      // we stay at the command line here
+      if( _retTree == NULL)
+	Message( "Can't continue from this point.");
+      else
+	DebugMsg( _retTree, "Skipped to: ");
+    }
+    else if( ret == CC_RETURN) return RC_RETURN;
+    else if( ret == CC_CONTINUE) return RC_OK; 
+    else if( ret == CC_STEP) return RC_OK;
   }
 }
 

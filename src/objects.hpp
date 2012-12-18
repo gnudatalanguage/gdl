@@ -70,7 +70,8 @@ enum DebugCode {
   DEBUG_STOP = 1,
   DEBUG_PROCESS_STOP = 2,
   DEBUG_STEP = 3,
-  DEBUG_STEPOVER= 4
+  DEBUG_STEPOVER= 4,
+  DEBUG_SKIP= 5
 };
 
 template< class Container> void Purge( Container& s) 

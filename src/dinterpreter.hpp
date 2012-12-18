@@ -79,6 +79,7 @@ public:
      CC_OK=0,
      CC_CONTINUE,
      CC_STEP,
+     CC_SKIP,
      CC_RETURN
    };
 
