@@ -3237,7 +3237,7 @@ if( e1->StrictScalar())
   BaseGDL** ARRAYEXPR_FCALLNode::EvalRefCheck( BaseGDL*& rEval)
   {
     if( fcallNodeFunIx >= 0)
-	return fcallNode->FCALLNode::EvalRefCheck( rEval);
+      return fcallNode->FCALLNode::EvalRefCheck( rEval);
     else if( fcallNodeFunIx == -2)
     {
       rEval = arrayExprNode->ARRAYEXPRNode::Eval();
@@ -3245,7 +3245,6 @@ if( e1->StrictScalar())
     }
     
     assert( fcallNodeFunIx == -1);
-
     try{
       BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
       fcallNodeFunIx = fcallNode->funIx;
@@ -3356,12 +3355,13 @@ if( e1->StrictScalar())
   BaseGDL* ARRAYEXPR_FCALLNode::Eval()
   {
     if( fcallNodeFunIx >= 0)
-	return fcallNode->FCALLNode::Eval();
+      return fcallNode->FCALLNode::Eval();
     else if( fcallNodeFunIx == -2)
+    {
 	return arrayExprNode->ARRAYEXPRNode::Eval();
-
+    }
+    
     assert( fcallNodeFunIx == -1);
-
     try{
       BaseGDL* res = fcallNode->FCALLNode::Eval();
       fcallNodeFunIx = fcallNode->funIx;
