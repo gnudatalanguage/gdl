@@ -2649,7 +2649,7 @@ Data_<SpDObj>* Data_<SpDObj>::XorOpS( BaseGDL* r)
 // Adds right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>
-Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
+BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -2673,12 +2673,13 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   return this;
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AddInv( BaseGDL* r)
+BaseGDL* Data_<Sp>::AddInv( BaseGDL* r)
 {
+  assert( this->Type() != GDL_OBJ); // should never be called via this
   return Add( r);
 }
 template<>
-Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
+BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -2713,19 +2714,31 @@ DStructGDL* DStructGDL::AddInv( BaseGDL* r)
   return this;
 }
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r)
+BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::Add( BaseGDL* r)
+BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
 {
+  // overload here
+  
+  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  return this;
+}
+template<>
+BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
+{
+  // overload here
+  
+  
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
+BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -2750,12 +2763,12 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   return this;
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AddInvS( BaseGDL* r)
+BaseGDL* Data_<Sp>::AddInvS( BaseGDL* r)
 {
   return AddS( r);
 }
 template<>
-Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
+BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -2791,16 +2804,20 @@ DStructGDL* DStructGDL::AddInvS( BaseGDL* r)
   return this;
 }
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
+BaseGDL* Data_<SpDPtr>::AddS( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::AddS( BaseGDL* r)
+BaseGDL* Data_<SpDObj>::AddS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
+  return Add( r);
+}
+template<>
+BaseGDL* Data_<SpDObj>::AddInvS( BaseGDL* r)
+{
+  return AddInv( r);
 }
 
 // Sub

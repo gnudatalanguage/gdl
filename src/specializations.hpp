@@ -239,9 +239,9 @@ BaseGDL* Data_<SpDComplex>::GtOp( BaseGDL* r);
 template<> 
 BaseGDL* Data_<SpDComplexDbl>::GtOp( BaseGDL* r);
 template<> 
-Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r);
+BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r);
 template<> 
-Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r);
+BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r);
 template<> 
 Data_<SpDString>* Data_<SpDString>::Sub( BaseGDL* r);
 template<> 

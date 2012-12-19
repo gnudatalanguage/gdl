@@ -218,7 +218,11 @@ public:
   {
     return guarded;
   }  
-
+  bool IsNull()
+  {
+    return guarded == NULL;
+  }
+  
   ~Guard()
   {
     delete guarded;

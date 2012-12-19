@@ -628,52 +628,6 @@ public:
 #endif
 };
 
-// {
-// public:
-// typedef BaseGDL** iterator;
-// 
-// private:
-// BaseGDL** eArr;
-// BaseGDL* buf[ExprListDefaultLength];
-// SizeT sz;
-// SizeT actLen;
-// 
-// public:
-// ExprListT(): eArr(buf), sz(0) {}
-// ~ExprListT()
-// {
-// 	BaseGDL** pEnd = &eArr[sz];
-// 	for( BaseGDL** p = &eArr[0]; p!=pEnd;++p)
-// 		delete *p;
-// 	if( eArr != buf)
-// 		delete[] eArr;
-// }
-// void push_back( BaseGDL* p)
-// {
-// 	if( sz < ExprListDefaultLength)
-// 	{
-// 		eArr[ sz++] = p;
-// 		return;
-// 	}
-// 	if( sz == ExprListDefaultLength)
-// 		actLen =ExprListDefaultLength; // only init here
-// 	if( sz == actLen)
-// 	{
-// 		actLen *= 2;
-// 		BaseGDL** newArr = new BaseGDL*[ actLen];
-// 		for( SizeT i=0; i<sz; ++i)
-// 			newArr[i] = eArr[i];
-// 		if( eArr != buf)
-// 			delete[] eArr;
-// 		eArr = newArr;
-// 	}
-// 	eArr[ sz++] = p;
-// }
-// BaseGDL* operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
-// SizeT size() const { return sz;}
-// iterator begin()  { return &eArr[0];}
-// iterator end()  { return &eArr[sz];}
-// };
 
 // ExprListT deletes all members upon own destruction
 
@@ -695,38 +649,38 @@ public:
 
 struct ForLoopInfoT
 {
-	BaseGDL*  endLoopVar; // the source for foreach as well
-	BaseGDL*  loopStepVar;
-	DLong        foreachIx;
+  BaseGDL*  endLoopVar; // the source for foreach as well
+  BaseGDL*  loopStepVar;
+  DLong     foreachIx;
 
-	ForLoopInfoT()
-	: endLoopVar(NULL)
-	, loopStepVar(NULL)
-	, foreachIx(-1)
-	{}
-	~ForLoopInfoT()
-	{
-		delete endLoopVar;
-		delete loopStepVar;
-	}
-	void Init()
-	{
-		endLoopVar = NULL;
-		loopStepVar = NULL;
-		foreachIx = -1;
-	}
-	void Clear()
-	{
-		delete endLoopVar;
-		delete loopStepVar;
-	}
-	void ClearInit()
-	{
-		delete endLoopVar;
-		delete loopStepVar;
-		endLoopVar = NULL;
-		loopStepVar = NULL;
-	}
+  ForLoopInfoT()
+  : endLoopVar(NULL)
+  , loopStepVar(NULL)
+  , foreachIx(-1)
+  {}
+  ~ForLoopInfoT()
+  {
+	  delete endLoopVar;
+	  delete loopStepVar;
+  }
+  void Init()
+  {
+	  endLoopVar = NULL;
+	  loopStepVar = NULL;
+	  foreachIx = -1;
+  }
+  void Clear()
+  {
+	  delete endLoopVar;
+	  delete loopStepVar;
+  }
+  void ClearInit()
+  {
+	  delete endLoopVar;
+	  endLoopVar = NULL;
+	  delete loopStepVar;
+	  loopStepVar = NULL;
+  }
 };
 
 // before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)

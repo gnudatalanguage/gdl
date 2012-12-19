@@ -70,8 +70,7 @@ enum DebugCode {
   DEBUG_STOP = 1,
   DEBUG_PROCESS_STOP = 2,
   DEBUG_STEP = 3,
-  DEBUG_STEPOVER= 4,
-  DEBUG_SKIP= 5
+  DEBUG_STEPOVER= 4
 };
 
 template< class Container> void Purge( Container& s) 
@@ -97,48 +96,48 @@ bool IsFun(antlr::RefToken); // used by Lexer and Parser
 bool BigEndian();
 
 template <typename T> class RefHeap {
-private:
-		T* ptr;
-		SizeT count;
-		
-	// prevent usage
-	RefHeap<T>& operator=(const RefHeap<T>& other) {	return *this;}
-	template<class newType> operator RefHeap<newType>() {return RefHeap<newType>(ptr);}
+  private:
+    T* ptr;
+    SizeT count;
+      
+    // prevent usage
+    RefHeap<T>& operator=(const RefHeap<T>& other) {	return *this;}
+    template<class newType> operator RefHeap<newType>() {return RefHeap<newType>(ptr);}
 
-		
-public:
+      
+  public:
 
-	SizeT Count() const { return count;}
-	
-	void Inc() {++count;}
-	void Add( SizeT add) {count += add;}
-	bool Dec() {return (--count==0);}
+    SizeT Count() const { return count;}
 
-	RefHeap(T* p = 0)
-	: ptr(p), count(1)
-	{}
-	
-	RefHeap( const RefHeap<T>& other)
-	: ptr( other.ptr), count( other.count) 
-	{}
-	
-	~RefHeap()
-	{}
-	
-	operator T* () const
-	{
-		return ptr;
-	}
+    void Inc() {++count;}
+    void Add( SizeT add) {count += add;}
+    bool Dec() {return (--count==0);}
 
-	T* operator->() const
-	{
-		return ptr;
-	}
+    RefHeap(T* p = 0)
+    : ptr(p), count(1)
+    {}
 
-	 T*& get()
-	{
-		return ptr;
-	}
+    RefHeap( const RefHeap<T>& other)
+    : ptr( other.ptr), count( other.count) 
+    {}
+
+    ~RefHeap()
+    {}
+
+    operator T* () const
+    {
+      return ptr;
+    }
+
+    T* operator->() const
+    {
+      return ptr;
+    }
+
+    T*& get()
+    {
+      return ptr;
+    }
 };
 
 

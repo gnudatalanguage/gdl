@@ -258,8 +258,8 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
 }
 
 // handles overloaded operators
-void BinaryExprNC::AdjustTypesNCObj(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
-				 auto_ptr<BaseGDL>& g2, BaseGDL*& e2)
+void BinaryExprNC::SetupGuards(Guard<BaseGDL>& g1, BaseGDL*& e1,
+				 Guard<BaseGDL>& g2, BaseGDL*& e2)
 {
   if( op1NC)
     {
@@ -268,7 +268,7 @@ void BinaryExprNC::AdjustTypesNCObj(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   else
     {
       e1 = op1->Eval();
-      g1.reset( e1);
+      g1.Init( e1);
     }
   if( op2NC)
     {
@@ -277,55 +277,7 @@ void BinaryExprNC::AdjustTypesNCObj(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   else
     {
       e2 = op2->Eval();
-      g2.reset( e2);
-    }
-
-  DType aTy=e1->Type();
-  DType bTy=e2->Type();
-  if( aTy == bTy) return;
-
-  // Will be checked by Convert2() function
-//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
-//     {
-//       throw GDLException( "Expressions of this type cannot be converted.");
-//     }
-
-  // Change > to >= JMG
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
-    {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1); // delete former e1
-	  return;
-	}
-
-      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
-	return; // for operator overloading, do not convert other type then
-      // convert e2 to e1
-      e2 = e2->Convert2( aTy, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
-    }
-  else
-    {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1); // delete former e1
-	  return;
-	}
-
-      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
-	return; // for operator overloading, do not convert other type then
-      // convert e1 to e2
-      e1 = e1->Convert2( bTy, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
+      g2.Init( e2);
     }
 }
 
@@ -885,34 +837,66 @@ BaseGDL* GT_OPNode::Eval()
 }
 BaseGDL* PLUSNode::Eval()
 {
-	BaseGDL* res;
-	auto_ptr<BaseGDL> e1 ( op1->Eval() );
-	auto_ptr<BaseGDL> e2 ( op2->Eval() );
-	AdjustTypes ( e1,e2 );
-	if ( e1->StrictScalar() )
-	{
-		res= e2->AddInvS ( e1.get() ); // scalar+scalar or array+scalar
-		e2.release();
-	}
-	else
-		if ( e2->StrictScalar() )
-		{
-			res= e1->AddS ( e2.get() ); // array+scalar
-			e1.release();
-		}
-		else
-			if ( e1->N_Elements() <= e2->N_Elements() )
-			{
-				res= e1->Add ( e2.get() ); // smaller_array + larger_array or same size
-				e1.release();
-			}
-			else
-			{
-				res= e2->AddInv ( e1.get() ); // smaller + larger
-				e2.release();
-			}
-	return res;
+  BaseGDL* res;
+  auto_ptr<BaseGDL> e1 ( op1->Eval() );
+  auto_ptr<BaseGDL> e2 ( op2->Eval() );
+	
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy) 
+  {
+    if( aTy == GDL_OBJ) 
+      return e1->Add( e2.get());; // operator overloading
+    
+  }
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  else if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
+      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+    {
+      e1.reset( e1.release()->Convert2( GDL_COMPLEXDBL));
+      e2.reset( e2.release()->Convert2( GDL_COMPLEXDBL));
+    }
+  // Change > to >= JMG
+  else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // convert b to a
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+	return e1->Add( e2.get());; // for operator overloading, do not convert other type then
+      e2.reset( e2.release()->Convert2( aTy));
+    }
+  else
+    {
+      // convert a to b
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+	return e2->AddInv( e1.get());; // for operator overloading, do not convert other type then
+      e1.reset( e1.release()->Convert2( bTy));
+    }
+    
+  if ( e1->StrictScalar() )
+  {
+    res= e2->AddInvS ( e1.get() ); // scalar+scalar or array+scalar
+    e2.release();
+  }
+  else
+  if ( e2->StrictScalar() )
+  {
+	  res= e1->AddS ( e2.get() ); // array+scalar
+	  e1.release();
+  }
+  else
+  if ( e1->N_Elements() <= e2->N_Elements() )
+  {
+	  res= e1->Add ( e2.get() ); // smaller_array + larger_array or same size
+	  e1.release();
+  }
+  else
+  {
+	  res= e2->AddInv ( e1.get() ); // smaller + larger
+	  e2.release();
+  }
+  return res;
 }
+
 BaseGDL* MINUSNode::Eval()
 { BaseGDL* res;
  auto_ptr<BaseGDL> e1( op1->Eval());
@@ -1563,6 +1547,9 @@ BaseGDL* PLUSNC12Node::Eval()
   DType bTy=e2->Type();
   if( aTy == bTy)
   {
+    if( aTy == GDL_OBJ) // this saves us to implement all Add...New() functions
+      return e1->Add( e2);
+    
     if ( e1->StrictScalar() )
     {
       return e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
@@ -1584,6 +1571,9 @@ BaseGDL* PLUSNC12Node::Eval()
   auto_ptr<BaseGDL> g2;
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
+      if( aTy == GDL_OBJ)
+	return e1->Add( e2);
+
       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
       if(aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
       {
@@ -1601,6 +1591,9 @@ BaseGDL* PLUSNC12Node::Eval()
     }
   else
     {
+      if( bTy == GDL_OBJ)
+	return e2->AddInv( e1);
+
       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
@@ -1683,73 +1676,126 @@ BaseGDL* PLUSNC12Node::Eval()
 }
 BaseGDL* PLUSNCNode::Eval()
 {
-	BaseGDL* res;
-	auto_ptr<BaseGDL> g1;
-	auto_ptr<BaseGDL> g2;
-	BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2 );
+  BaseGDL* res;
+  Guard<BaseGDL> g1;
+  Guard<BaseGDL> g2;
+  BaseGDL *e1, *e2; 
+  SetupGuards( g1, e1, g2, e2 );
+  
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy) 
+  {
+    if( aTy == GDL_OBJ)
+      return e1->Add( e2);
 
-	if ( e1->StrictScalar() )
+    // otherwise continue below
+  }
+  else // aTy != bTy
+  {
+    // Change > to >= JMG
+    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
 	{
-		if ( g2.get() == NULL )
-		{
-			res= e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
-		}
-		else
-		{
-			g2.release();
-			res= e2->AddInvS( e1 ); // scalar+scalar or array+scalar
-		}
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.Reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.Reset( e1); // delete former e1
 	}
-	else if ( e2->StrictScalar() )
+      else if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+	return e1->Add(e2); // for operator overloading, do not convert other type then
+      else
+      {
+	// convert e2 to e1
+	e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	g2.Reset( e2); // delete former e2
+      }
+    }
+    else
+    {
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
-		if ( g1.get() == NULL )
-			res= e1->AddSNew( e2); // array+scalar
-		else
-		{
-			g1.release();
-			res= e1->AddS( e2); // array+scalar
-		}
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.Reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.Reset( e1); // delete former e1
 	}
-	else if ( e1->N_Elements() == e2->N_Elements() )
-	{
-		if ( g1.get() != NULL )
-		{
-			g1.release();
-			return e1->Add ( e2 );
-		}
-		if ( g2.get() != NULL )
-		{
-			g2.release();
-			res = e2->AddInv ( e1 );
-			res->SetDim ( e1->Dim() );
-			return res;
-		}
-		else
-		{
-			return e1->AddNew ( e2 );
-		}
-	}
-	else if ( e1->N_Elements() < e2->N_Elements() )
-	{
-		if ( g1.get() == NULL )
-			res= e1->AddNew ( e2 ); // smaller_array + larger_array or same size
-		 else
-		 {
-			g1.release();
-			res= e1->Add ( e2 ); // smaller_array + larger_array or same size
-		}
-	}
-	else // e1->N_Elements() > e2->N_Elements() )
-	{
-		if ( g2.get() == NULL )
-			res= e2->AddInvNew( e1); // smaller + larger
-		else
-		{
-			g2.release();
-			res= e2->AddInv( e1); // smaller + larger
-		}
-	}
-	return res;
+      else if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+	return e2->AddInv( e1); // for operator overloading, do not convert other type then
+      else
+      {
+	// convert e1 to e2
+	e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	g1.Reset( e1); // delete former e1
+      }
+    }
+  } // aTy != bTy
+  
+  if ( e1->StrictScalar() )
+  {
+    if ( g2.IsNull() )
+    {
+	    res= e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
+    }
+    else
+    {
+	    g2.Release();
+	    res= e2->AddInvS( e1 ); // scalar+scalar or array+scalar
+    }
+  }
+  else if ( e2->StrictScalar() )
+  {
+    if ( g1.IsNull() )
+	    res= e1->AddSNew( e2); // array+scalar
+    else
+    {
+	    g1.Release();
+	    res= e1->AddS( e2); // array+scalar
+    }
+  }
+  else if ( e1->N_Elements() == e2->N_Elements() )
+  {
+    if ( !g1.IsNull() )
+    {
+	    g1.Release();
+	    return e1->Add ( e2 );
+    }
+    if ( !g2.IsNull() )
+    {
+	    g2.Release();
+	    res = e2->AddInv ( e1 );
+	    res->SetDim ( e1->Dim() );
+	    return res;
+    }
+    else
+    {
+	    return e1->AddNew ( e2 );
+    }
+  }
+  else if ( e1->N_Elements() < e2->N_Elements() )
+  {
+    if ( g1.IsNull() )
+	    res= e1->AddNew ( e2 ); // smaller_array + larger_array or same size
+      else
+      {
+	    g1.Release();
+	    res= e1->Add ( e2 ); // smaller_array + larger_array or same size
+    }
+  }
+  else // e1->N_Elements() > e2->N_Elements() )
+  {
+    if ( g2.IsNull() )
+	    res= e2->AddInvNew( e1); // smaller + larger
+    else
+    {
+	    g2.Release();
+	    res= e2->AddInv( e1); // smaller + larger
+    }
+  }
+  return res;
 }
 
 

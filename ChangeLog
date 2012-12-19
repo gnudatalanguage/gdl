@@ -1,7 +1,1654 @@
+GDL 0.9.3:
+2012-12-18  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/dinterpreter.cpp, src/dinterpreter.hpp, src/objects.hpp:
+	implemented .SKIP command
+
+	* src/prognodeexpr.cpp, src/GDLTreeParser.cpp, src/gdlc.tree.g, src/prognode_lexpr.cpp:
+	ARRAYEXPR_FCALL ambiguity some minor improvements
+
+2012-12-17  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLTreeParser.cpp, src/gdlc.tree.g, src/newprognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	Fixed ARRAYEXPR_FCALL ambiguity
+
+	* src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g, src/gdlc.tree.g, src/newprognode.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLParser.cpp:
+	in progress: ARRAYEXPR_FCALL ambiguity
+
+2012-12-17  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting_plot.cpp:
+	Being able managning Log. plots with negative values only (bug report 3595172).
+	Please notice PLplot is not able to manage "xtick/ytick" in plbox() when "l" option activated.
+
+2012-12-13  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.hpp, src/GDLParser.cpp, src/assocdata.hpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/gdlc.g, src/gdlc.i.g, src/overload.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/specializations.hpp, src/typedefs.hpp:
+	Added _overloadEQ and _overloadNE
+
+2012-12-11  m_schellens  <m_schellens@sf.net>
+
+	* src/overload.cpp: A bit cleanup
+
+	* src/allix.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_pro.cpp, src/dimension.hpp, src/envt.hpp, src/overload.cpp:
+	Completed GDL_OBJECT::_overloadBracketsRightSide
+
+2012-12-10  m_schellens  <m_schellens@sf.net>
+
+	* src/nullgdl.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	Changed some warning messages
+
+	* src/arrayindexlistt.hpp, src/overload.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/typedefs.hpp:
+	Corrections for bracketsLeftSideOverload. Prepared bracketsRightSideOverload.
+
+	* src/dpro.cpp, src/dpro.hpp, src/overload.cpp:
+	Changed DPro::AddPar(...) for prettier definition of internal UD subroutines
+
+	* src/basic_fun.cpp, src/default_io.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/overload.cpp, src/prognode_lexpr.cpp:
+	Added internal GDL_OBJECT::_overloadBracketsLeftSide procedure.
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/prognode.hpp, src/prognode_lexpr.cpp:
+	avoid copy or rvalue for call of internal GDL_Object::_overloadBracketsLeftSide
+
+2012-12-09  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/prognode_lexpr.cpp:
+	Completed implementation of GDL_Object::_overloadBracketsLeftSide
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/datatypes.cpp, src/dcompiler.cpp, src/dnode.hpp, src/envt.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/newprognode.cpp, src/print_tree.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.hpp:
+	fixed constant array generation for array indices (compiled already from GDLTreeParser)
+
+	* src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp:
+	InitAsOverloadIndex member functions for ArrayIndexList... classes
+
+2012-12-08  m_schellens  <m_schellens@sf.net>
+
+	* testsuite/test_stregex.pro, src/arrayindex.cpp, src/arrayindex.hpp:
+	OverloadIndexNew member functions for [C]ArrayIndex... classes
+
+	* src/GDLTreeParser.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/dcompiler.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, testsuite/test_suite.pro, src/GDLInterpreter.cpp:
+	fixed (recently changed (for overload)) array indexing
+
+	* src/dnode.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypesref.cpp, src/dcompiler.cpp, src/dcompiler.hpp, src/dinterpreter.cpp:
+	Preparation of array indices (CArrayIndex...) for object overload indexing (keep original types of indices accessible)
+
+2012-12-07  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_fun.cpp:
+	revisited MEDIAN code for dim= keyword. (TEST_NANS_IN_SORT_AND_MEDIAN and TEST_MINMAX both OK)
+
+2012-12-06  m_schellens  <m_schellens@sf.net>
+
+	* src/ofmt.cpp, src/overload.cpp: fixed binary output for LONG64
+
+	* src/overload.cpp, src/GDLInterpreter.cpp, src/dpro.hpp, src/dstructdesc.hpp, src/gdlc.i.g, src/objects.cpp, src/overload.hpp, src/prognode.cpp, src/prognode.hpp:
+	full implementation of GDL_OBJECT::_overloadIsTrue function
+
+2012-12-05  m_schellens  <m_schellens@sf.net>
+
+	* src/typedefs.hpp: removed debug setting
+
+	* src/gsl_fun.cpp, src/typedefs.hpp:
+	proper return value conversion for GDL function used by QROMB
+
+	* src/dpro.cpp, src/gsl_fun.cpp:
+	fixed memory leak in QROMB function. Bug tracker ID: 3592762
+
+	* src/GDLInterpreter.hpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.i.g, src/overload.cpp, src/prognode.cpp, src/prognode.hpp:
+	Implemented WRAPPED_FUN/PRONode (call c++ functions as GDL subroutines)
+
+2012-12-04  m_schellens  <m_schellens@sf.net>
+
+	* src/print_tree.cpp, src/basic_pro.cpp, src/dpro.cpp, src/dpro.hpp, src/libinit.cpp, src/print_tree.hpp:
+	fixed print_tree for circular ProgNodeP trees
+
+	* src/dinterpreter.cpp, src/dpro.cpp: disabled debug output for CVS
+
+	* src/dinterpreter.cpp, src/dpro.cpp, src/prognode.hpp:
+	Fixed: BREAK when loop is last statement in subroutine
+
+2012-12-02  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.cpp, src/nullgdl.hpp: rename IsNULL function
+
+	* src/GDLInterpreter.hpp, src/basic_pro_jmg.cpp, src/datatypes.cpp, src/dinterpreter.cpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/gsl_fun.cpp, src/math_fun_ng.cpp, src/nullgdl.cpp, src/nullgdl.hpp, src/specializations.hpp, src/widget.cpp:
+	implemented _overloadIsTrue
+
+2012-12-01  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLParser.cpp, src/gdlc.g, src/objects.cpp, src/objects.hpp, src/prognode.cpp:
+	made GDL_OBJECT's name a constant
+
+2012-11-30  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.cpp, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/dcompiler.cpp, src/dstructdesc.cpp, src/dstructdesc.hpp, src/gdlc.g, src/gdlexception.cpp, src/objects.cpp, src/overload.cpp, src/overload.hpp:
+	full infrastructure for operator overloading (not depoyed yet)
+
+2012-11-29  m_schellens  <m_schellens@sf.net>
+
+	* src/prognodeexpr.cpp, src/topython.cpp, src/typetraits.cpp, src/CMakeLists.txt, src/Makefile.am, src/accessdesc.hpp, src/assocdata.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/convert2.cpp, src/datatypes.cpp, src/dstructdesc.cpp, src/dstructdesc.hpp, src/envt.cpp, src/envt.hpp, src/gdlexception.cpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun_jmg.cpp, src/ncdf_var_cl.cpp, src/nullgdl.cpp, src/objects.cpp, src/overload.cpp, src/overload.hpp:
+	operator overloading (only basic definitions - not supported yet)
+
+2012-11-28  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_pro.cpp, src/libinit.cpp, src/objects.cpp:
+	Initial (unfinished) import of keyword /pref in HELP
+
+	* src/preferences.hpp, src/Makefile.am, src/preferences.cpp:
+	very preliminary (and not working) import of a way to process external text files
+	for setting variables like GDL_GR_X_HEIGHT (ToDo: SET_PREF/GET_PREF)
+
+2012-11-27  alaingdl  <alaingdl@sf.net>
+
+	* src/gdl.cpp, doc/gdl.1:
+	preparing ingesting external preference file (gdl -pref=/path/to/PrefFile)
+
+2012-11-26  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/zenity_check.pro:
+	setting !zenity.version to -1 when no Zenity found. Used in WMENU()
+
+2012-11-25  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/save.pro:
+	extending SAVE from 30 params to 100. Only limited tests done ...
+
+2012-11-21  alaingdl  <alaingdl@sf.net>
+
+	* configure.in: applying patch from Debian (0.9.2-4 fix-muldefs)
+
+	* doc/gdl.1:
+	applying patch from Debian 0.9.2-4 (hyphen-used-as-minus-sign and one typo)
+
+2012-11-21  m_schellens  <m_schellens@sf.net>
+
+	* src/io.cpp, src/io.hpp, src/objects.cpp:
+	Fixed GET_LUN bug (TEST_GET_LUN)
+
+2012-11-20  m_schellens  <m_schellens@sf.net>
+
+	* src/objects.cpp: added some struct descriptors (commented out)
+
+2012-11-20  alaingdl  <alaingdl@sf.net>
+
+	* src/libinit.cpp:
+	in DEVICE, warning keyword TRUE_COLOR (for compatibility with Pluto 4.0 code)
+
+	* src/devicex.hpp: typo: removing double declaration
+
+	* src/devicex.hpp: desactivating useless debuging "cout << "
+
+	* src/plotting_device.cpp:
+	missing WordExp() when writing SVG or PS files.
+
+	* src/magick_cl.cpp:
+	missing WordExp() in MagickPing and MagickWrite; now we can query and write in ~/ directory !
+
+2012-11-19  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am, src/pro/wmenu.pro:
+	initial import of WMENU(), with a Zenity based version (working)
+	and a text-based version (to be verified ASAP)
+
+2012-11-16  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_message.pro:
+	correcting compatibility issues with old zenity versions in DIALOG_MESSAGE
+
+2012-11-15  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_message.pro, testsuite/test_dialog_message.pro:
+	finishing refinements in DIALOG_MESSAGE and related test cases in TEST_DIALOG_MESSAGE
+
+2012-11-15  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/basic_fun_jmg.cpp, src/basic_fun_jmg.hpp, src/libinit_jmg.cpp, src/prognodeexpr.cpp:
+	fixed ROUTINE_NAMES,/FETCH (lead to crash in cmsvlib)
+
+2012-11-15  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_message.pro, src/pro/zenity_check.pro:
+	revised DIALOG_MESSAGE but not fully finished; new !zenity structure to be faster
+	and with less redundant messages when using obsolete zenity code
+
+	* testsuite/test_dialog_message.pro:
+	initial import of TEST_DIALOG_MESSAGE, interactive tests case for revisited DIALOG_MESSAG.
+
+2012-11-14  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am: stupid typo in new function name :(
+
+	* src/pro/dialog_pickfile.pro:
+	updating DIALOG_PICKFILE: large part of code moved into ZENITY_CHECK()
+
+	* src/pro/dialog_message.pro:
+	updating DIALOG_MESSAGE: large part of code moved into ZENITY_CHECK()
+
+	* src/pro/Makefile.am, src/pro/zenity_check.pro:
+	creating ZENITY_CHECK(), a function checking the availability of "zenity" in the path
+	and also checks the version. This code was common in DIALOG_PICKFILE and DIALOG_MESSAGE
+	and this should help for future maintenance and extensions
+
+2012-11-13  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/restore.pro:
+	in RESTORE, fixing feature request 3581835 and various tricks around filename
+
+2012-11-13  m_schellens  <m_schellens@sf.net>
+
+	* src/antlr/LLkParser.cpp, src/antlr/Parser.cpp, src/antlr/Parser.hpp:
+	sync
+
+2012-11-12  alaingdl  <alaingdl@sf.net>
+
+	* config.h.cmake:
+	tuning HAVE_PLPLOT_BEFORE_5994 to have success on more than Debian ;-)
+
+	* configure.in, src/plotting_xyouts.cpp:
+	tuning HAVE_PLPLOT_BEFORE_5994 to have success on latest Debian too ;-)
+
+2012-11-12  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g:
+	Line numbers in IF statements; bug tracker ID: 3579702
+
+	* testsuite/test_suite.pro, src/GDLParser.cpp, src/gdlc.g:
+	parser error with: tmp=cos(str.data(0).value); bug tracker ID: 3579499
+
+	* src/prognodeexpr.cpp, src/typedefs.hpp:
+	Fixed segfault with undefined variable; bug tracker ID: 3585392
+
+2012-11-10  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt:
+	first attempt managing recent plplot lib. with CMake ...
+
+	* src/plotting_xyouts.cpp: typo in  plotting_xyouts.cpp
+
+2012-11-09  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting_xyouts.cpp, configure.in:
+	trying to manage hidden symbols in recent Debian plplot 5.9.9-4 in XYOUTS;
+	patch 3575295 from Joanna
+
+2012-11-07  slayoo  <slayoo@sf.net>
+
+	* configure.in:
+	removing color-tests from configure.in - it causes problems, and the autotools-based install is anyhow going to be obsoleted soon...
+
+2012-11-07  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/resources.php: updating ADASS refs
+
+	* doc/www/credits.php: adding my 2 students this summer 2012
+
+	* src/antlr/LLkParser.cpp:
+	desactiviating verbose mode in interpretor "trace" !
+
+2012-11-07  slayoo  <slayoo@sf.net>
+
+	* gsl.m4: removing the gsl.m4 file
+
+	* src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, testsuite/Makefile.in, depcomp, doc/Makefile.in, install-sh, ltmain.sh, missing, mkinstalldirs, src/Makefile.in, INSTALL, Makefile.cvs, Makefile.in, aclocal.m4, config.guess, config.h.in, config.sub, configure:
+	removing autotools-generated files from the repository
+
+	* AUTHORS, doc/udg/chapters/credits.tex, doc/www/credits.php:
+	adding Gilles to the author lists
+
+2012-11-06  m_schellens  <m_schellens@sf.net>
+
+	* src/antlr/LLkParser.cpp, src/GDLParser.cpp, src/gdlc.g: nicer tracing
+
+2012-10-29  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/interp_multid.h:
+	Solved bug keyword "Missing" not working for upper side in 1D INTERPOLATE. The range for interpolation was deemed valid including the upper boundary, when in IDL thid is not the case.
+
+2012-10-18  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/str_sep.pro, testsuite/test_str_sep.pro:
+	improvment of STR_SEP, should be OK for Separator with more than one element.
+	Unfinished for pecular cases with one element.
+
+	* testsuite/test_str_sep.pro:
+	adding news cases failing with current STR_SEP code (to be updated soon ;-)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_get_lun.pro:
+	inclusion of "test_get_lun.pro" in the "make check" test suite. Currently, this test fails.
+
+2012-10-12  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	HEAP_FREE initial version
+
+2012-10-10  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_deriv.pro, src/pro/deriv.pro:
+	continuing cleaning DERIV()
+
+2012-10-09  m_schellens  <m_schellens@sf.net>
+
+	* HACKING, src/deviceps.hpp, src/gshhs.cpp, src/typedefs.hpp:
+	renamed GSLGuard to GDLGuard; redefined FILEGuard
+
+2012-10-09  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_qromo.pro, src/gsl_fun.cpp:
+	improving QROMO when diverging at one of the boundaries: switch from QAG to QAGS. General
+	case not ready, but testsuite improved ...
+
+	* src/pro/deriv.pro: better behavior, we desactivate extra checks ...
+
+2012-10-08  alaingdl  <alaingdl@sf.net>
+
+	* src/typedefs.hpp: missing <cstdio> for Ubuntu OS ...
+
+	* src/gsl_fun.cpp:
+	in QROMO, allowing paired sizes for inputs [1][N] or [N][1] should give [N]
+
+2012-10-05  m_schellens  <m_schellens@sf.net>
+
+	* src/gsl_fun.cpp, src/typedefs.hpp: Fixed several memory leaks
+
+2012-10-04  m_schellens  <m_schellens@sf.net>
+
+	* src/deviceps.hpp, src/gshhs.cpp, src/gsl_fun.cpp, src/gsl_matrix.cpp, src/math_fun.cpp, src/typedefs.hpp, CMakeModules/Findlibps.cmake:
+	removed LIBPS_LIBRARY_DIRS from CMake pslib stuff; added exception savety
+
+2012-10-03  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_nans_in_sort_and_median.pro:
+	Why this important test on MEDIAN() and SORT() with NaN wasn't in the automatic test suite ?
+	We do have a serious problem !
+
+	* testsuite/test_random.pro, testsuite/test_wait.pro:
+	typos: STOP forgot in "test_random"; wait is unaccurate on Suse :(
+
+2012-10-02  m_schellens  <m_schellens@sf.net>
+
+	* src/CFMTLexer.cpp, src/CFMTLexer.hpp, src/CFMTTokenTypes.hpp, src/CFMTTokenTypes.txt, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/format.out.g:
+	Fixed : format code; Bug ID: 3572473
+
+	* src/basic_fun.cpp, src/envt.cpp, src/envt.hpp, src/typedefs.hpp:
+	Fixed SCOPE_VARFETCH; Bug tracker ID: 3573558
+
+	* src/basegdl.hpp: include xdr.h for windows, rpc.h otherwise
+
+	* src/read.cpp: fixed READ; bug tracker ID: 3573790
+
+2012-10-02  alaingdl  <alaingdl@sf.net>
+
+	* src/basegdl.hpp:
+	reverting change in "basegdl.hpp" (bug 3573468) for #include <rpc/rpc.h>
+	(we cannot compile on OSX with #include <rpc/xdr.h>)
+
+	* src/gsl_fun.cpp:
+	two problems in RANDOM: checking when amplitude for Binonial is below 1; removing
+	regression introduced mid-july when "seed" is not set outside.
+
+	* testsuite/test_random.pro:
+	improvment in "test_random.pro": being less sensitive for small amp. in Binomial;
+	introducing new basic tests to check very basic regressions ...
+
+	* testsuite/test_wait.pro: relaxing tol. error for TEST_WAIT
+
+2012-10-01  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_scope_varfetch.pro:
+	following bug report 3573558: extended test cases for SCOPE_VARFETCH
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_ptrarr.pro:
+	initial import of "test_ptrarr.pro", related to bug report 3573202
+
+2012-10-01  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp:
+	Fixed salar array indexing (return scalar if all indices are scalar); bug tracker ID: 3573202
+
+2012-09-28  alaingdl  <alaingdl@sf.net>
+
+	* src/gtdhelper.cpp, src/gtdhelper.hpp:
+	initial import of 2 missing files for compilation under MSwin.
+
+	* CMakeModules/FindPCRE.cmake, CMakeModules/FindXdr.cmake:
+	initial import of 2 missing CMake-related files for compilation under MSwin:
+	FindPCRE.cmake FindXdr.cmake
+
+2012-09-20  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_fft_dim.pro: deeper test cases for DIM keyword in FFT
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_systime.pro, testsuite/test_wait.pro:
+	3 new tests in automatic "make check".
+
+	* testsuite/test_call_function.pro, testsuite/test_call_procedure.pro:
+	following idea in bug report 3569697, improved tests (on keyword values too) for CALL_FUNCTION and CALL_PROCEDURE
+
+2012-09-19  m_schellens  <m_schellens@sf.net>
+
+	* testsuite/test_call_function.pro, testsuite/test_call_procedure.pro, configure:
+	sync
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g:
+	New GDL_... type codes for ANTLR files
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLLexer.cpp, src/GDLTokenTypes.hpp, src/GDLTreeParserTokenTypes.hpp, src/envt.cpp, src/extrat.cpp, src/extrat.hpp:
+	Fixed keyword handling for CALL_FUNCTION and CALL_PROCEDURE (when calling user defined subroutines)
+
+	* src/extrat.cpp: Fixed behaviour of _EXTRA (bug tracker ID: 3568388)
+
+2012-09-18  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_op.cpp: better accuracy in Modulo with Double
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp:
+	recovering FILE_SEARCH for non MSwin OS
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	recovering SPAWN capability under non-MSwin OS
+
+2012-09-18  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun_gm.cpp, src/math_fun_jmg.cpp, src/math_fun_ng.cpp, src/nullgdl.cpp, src/ofmt.cpp, src/plotting.cpp, src/plotting_contour.cpp, src/plotting_map_proj.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_windows.cpp, src/read.cpp, src/semshm.cpp, src/sigfpehandler.cpp, src/sigfpehandler.hpp, src/str.cpp, CMakeLists.txt, src/CMakeLists.txt, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_pro.cpp, src/basic_pro.hpp, src/basic_pro_jmg.cpp, src/basic_pro_jmg.hpp, src/color.cpp, src/convert2.cpp, src/datatypes.cpp, src/datatypes.hpp, src/default_io.cpp, src/deviceps.hpp, src/devicewin.hpp, src/devicez.hpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/dnode.cpp, src/file.cpp, src/file.hpp, src/gdl.cpp, src/gdlgstream.hpp, src/gdljournal.cpp, src/gdlpsstream.hpp, src/gdlwidget.hpp, src/gdlwinstream.hpp, src/graphics.cpp, src/grib.cpp, src/gsl_fun.cpp, src/includefirst.hpp, src/initsysvar.cpp, src/io.cpp, src/io.hpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun_ac.cpp:
+	applied patches 2 and 3 from tracker ID 3568748 (windows compatibility)
+
+	* HACKING: remarks on exception save programming
+
+	* src/math_fun_ng.cpp, src/prognode_lexpr.cpp, src/allix.cpp: sync
+
+2012-09-18  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_extra_keywords.pro:
+	new file TEST_EXTRA_KEYWORD to test whether the _extra keywords are well managed.
+
+2012-09-18  m_schellens  <m_schellens@sf.net>
+
+	* src/dll/two.cpp, src/arrayindexlistt.hpp, src/assocdata.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_op.cpp, src/basic_op_new.cpp, src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/convert2.cpp, src/datatypes.cpp, src/datatypesref.cpp, src/default_io.cpp, src/devicex.hpp, src/dstructdesc.cpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/envt.cpp, src/envt.hpp, src/extrat.cpp, src/extrat.hpp, src/fftw.cpp, src/gdlpython.cpp, src/gdlxstream.cpp, src/gsl_fun.cpp, src/gsl_matrix.cpp, src/hdf_fun.cpp, src/magick_cl.cpp, src/math_fun.cpp, src/math_fun_ac.cpp, src/math_fun_gm.cpp, src/math_fun_jmg.cpp, src/math_fun_ng.cpp, src/math_utl.cpp, src/math_utl.hpp, src/ncdf_att_cl.cpp, src/ncdf_cl.cpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp, src/nullgdl.cpp, src/ofmt.cpp, src/plotting.cpp, src/plotting_contour.cpp, src/plotting_convert_coord.cpp, src/plotting_map_proj.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_surface.cpp, src/plotting_windows.cpp, src/plotting_xyouts.cpp, src/print.cpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/pythongdl.cpp, src/read.cpp, src/strassenmatrix.hpp, src/topython.cpp, src/typedefs.hpp, src/typetraits.cpp, src/widget.cpp, src/FMTIn.cpp, src/FMTInTokenTypes.hpp, src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTOutTokenTypes.hpp, src/FMTParser.cpp, src/FMTTokenTypes.hpp, src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLLexer.cpp, src/GDLTokenTypes.hpp, src/GDLTreeParserTokenTypes.hpp, src/accessdesc.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp:
+	applied patch 1 from tracker ID: 3568748 (rename GDL types to GDL_...)
+
+2012-09-18  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_call_function.pro, testsuite/test_call_procedure.pro:
+	adding more explicit messages when problems encoutered runnning TEST_CALL_FUNCTION and TEST_CALL_PROCEDURE
+
+	* testsuite/test_call_procedure.pro:
+	adding explicit messages when problems encoutered
+
+2012-09-16  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting.cpp:
+	applying patch 3567803 by S. Hony for histogram plot.
+
+2012-09-14  alaingdl  <alaingdl@sf.net>
+
+	* CMakeModules/FindNetCDF.cmake, CMakeModules/Findlibps.cmake, CMakeLists.txt:
+	including patch 3538449 for CMake way (better way to find external libs. NetCDF and LibPS)
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp, src/widget.hpp, NEWS:
+	applying patch 3567344: new widgets WIDGET_LIST and CW_GROUP
+
+2012-09-13  m_schellens  <m_schellens@sf.net>
+
+	* src/read.cpp:
+	skip till end of line when reading multiple parameters with READF
+
+2012-09-13  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp: fixing general case in FFT() when using GSL way only
+
+2012-09-12  m_schellens  <m_schellens@sf.net>
+
+	* src/gsl_fun.cpp: fixed memeory leak in random_template
+
+2012-09-12  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_fft.pro, testsuite/test_fft_dim.pro:
+	test cases for FFT, unfinished :(
+
+2012-09-11  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.hpp, src/basic_fun.cpp, src/envt.cpp, src/extrat.cpp, src/gsl_fun.cpp, src/nullgdl.cpp, src/nullgdl.hpp:
+	fixed several memory leaks in fft_template (gsl fft version)
+
+2012-09-09  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_fft.pro, src/gsl_fun.cpp:
+	FFT in the GSL way was not OK when input was in double
+
+	* NEWS, src/gsl_fun.cpp:
+	sorry, I put the wrong version for corrected FFT using GSL ...
+
+2012-09-07  slayoo  <slayoo@sf.net>
+
+	* src/convert2.cpp:
+	fixing overzealous error-reporting in convert2.cpp version 1.30 - see bug no. 3565657 (thanks Gilles)
+
+2012-09-07  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	various changes for FFT(): should work for DIMENSION keyword and when FFTw is not used. More test cases especially when DIM is used are needed.
+
+	* src/envt.cpp:
+	EnvT::KeywordSet() (in "envt.cpp") must behave as KEYWORD_SET() in "basic_fun.cpp".
+
+2012-09-07  gilles-duvert  <gilles-duvert@sf.net>
+
+	* testsuite/test_bug_3483402.pro:
+	add 	test_bug_3483402.pro , closes the corresponding ticket.
+
+	* testsuite/Makefile.am: added testsuite/test_bug_3483402.pro
+
+2012-09-05  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: box aspect correct with /ISOTROPIC and /[X|Y]LOG
+
+	* src/plotting_oplot.cpp: Should solve bug #3563928.
+
+2012-09-04  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	Modified support for '/ISOTROPIC' in graphic commands to align boxes more in the IDL style.
+
+	* src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_contour.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_surface.cpp:
+	Support for '/ISOTROPIC' in graphic commands.
+
+2012-08-30  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_fun.cpp, src/libinit.cpp:
+	adding keyword /Double in function COMPLEX()
+
+2012-08-18  slayoo  <slayoo@sf.net>
+
+	* src/convert2.cpp, src/dnode.cpp, testsuite/Makefile.am, testsuite/test_bug_3559291.pro:
+	fixing bug no. 3559291 (float('1.5D-1') != 0.15)
+
+2012-08-17  alaingdl  <alaingdl@sf.net>
+
+	* configure.in:
+	sorry for not updated the main "configure.in" including src/pro/envi/Makefile
+
+2012-08-16  alaingdl  <alaingdl@sf.net>
+
+	* src/devicex.hpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/libinit.cpp, src/plotting_windows.cpp, NEWS:
+	Initial import of keyword ICONIC in WSHOW. The SHOW param. is not efficient ?
+	Help welcome to fix the sub-window value when iconifying.
+
+2012-08-14  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/read_bmp.pro, src/pro/read_gif.pro, src/pro/read_image.pro, src/pro/read_jpeg.pro, src/pro/read_pict.pro, src/pro/read_png.pro, src/pro/read_tiff.pro, src/pro/read_xwd.pro, src/pro/strmatch.pro, src/pro/strsplit.pro:
+	Since now GDL enforces scalar type in FOR loop, we have to take
+	care with STRLEN when the input is a one element array.
+	All the READ_(images) procedures don't really checked whether we try to read back
+	more than one and only one file
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	fixing details in MakefileS related to new Envi sub-dir.
+
+2012-08-13  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/image_statistics.pro:
+	adding Labeled keyword to the IMAGE_STATISTICS procedure, thanks to Sixy6e
+
+2012-08-12  alaingdl  <alaingdl@sf.net>
+
+	* NEWS, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/STATUS, src/pro/UrgentNeed.txt, src/pro/rot.pro:
+	initial import of ROT, calling internal POLY_2D code
+
+	* NEWS: few updates in NEWS
+
+2012-08-11  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/write_jpeg.pro, src/pro/write_png.pro:
+	revisiting buggy WRITE_JPEG and WRITE_PNG: gray images can now be stored, but not via best pure Gray type; Order was activated for missing cases in WRITE_PNG (tested on Saturn.jpg for WRITE_JPEG and WRITE_PNG, color and Gray)
+
+2012-08-02  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/pro/mean.pro:
+	patched MEAN so it continues to work with non-arrays.
+
+2012-08-02  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/prognode.cpp, src/specializations.hpp, NEWS, README:
+	Promotion of FOR loop index variable type
+
+2012-07-25  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/prognodeexpr.cpp: Improved SCOPE_VARFETCH
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/basic_fun_jmg.cpp, src/basic_fun_jmg.hpp, src/datatypes.cpp, src/libinit.cpp, src/libinit_jmg.cpp, src/prognodeexpr.cpp:
+	Fixed SCOPE_VARFETCH
+
+2012-07-24  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/interpol.pro: detail of test version in INTERPOL, sorry
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/interpol.pro:
+	since "scope_varfetch.pro" was removed from src/pro/, we need to removed it in the Makefile.(am/in)
+
+2012-07-24  slayoo  <slayoo@sf.net>
+
+	* src/pro/scope_varfetch.pro:
+	removing GDL-written version of scope_varfetch from the repository
+
+2012-07-24  m_schellens  <m_schellens@sf.net>
+
+	* NEWS: Update NEWS
+
+	* src/gdlc.tree.g, src/libinit_jmg.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/basic_fun_jmg.cpp, src/basic_fun_jmg.hpp, configure:
+	Working trinary operator for undefined l-values. SCOPE_VARFETCH (only LEVEL keyword).
+
+2012-07-23  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	trinary operator redefined, working for r-values only. L-value support to be done
+
+	* src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/Makefile.in, src/datatypes.cpp, src/datatypesref.cpp, src/dcompiler.cpp, src/dcompiler.hpp, src/gdl.cpp, src/gdlc.tree.g, src/gsl_fun.cpp, src/gsl_matrix.cpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun_jmg.cpp, src/prognodeexpr.cpp, HACKING, NEWS, README, configure.in:
+	Proper error handling for GSL. Some minor corrections.
+
+2012-07-22  m_schellens  <m_schellens@sf.net>
+
+	* src/nullgdl.cpp, src/nullgdl.hpp: add files for \!NULL
+
+2012-07-21  m_schellens  <m_schellens@sf.net>
+
+	* src/CMakeLists.txt, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/Makefile.am, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/datalistt.hpp, src/datatypes.cpp, src/default_io.cpp, src/dnode.cpp, src/dvar.cpp, src/envt.cpp, src/extrat.hpp, src/gdlc.g, src/gdlc.tree.g, src/gdlwidget.cpp, src/grib.cpp, src/gsl_fun.cpp, src/gsl_matrix.cpp, src/hdf_pro.cpp, src/initsysvar.cpp, src/libinit.cpp, src/ncdf_att_cl.cpp, src/ncdf_cl.cpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp, src/plotting_misc.cpp, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/pythongdl.cpp, src/typedefs.hpp, src/typetraits.cpp, src/widget.cpp:
+	\!NULL sysvar (full support). Proper error handling for GSL functions (set up framework + partial implementation)
+
+2012-07-18  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp:
+	Fixed array indexing with negative scalars (introduced in last commit)
+
+2012-07-17  m_schellens  <m_schellens@sf.net>
+
+	* src/pythongdl.cpp:
+	Fixed compile error when compiled as python module.
+
+	* src/GDLTreeParser.cpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/basegdl.hpp, src/dcompiler.cpp, src/dimension.hpp, src/gdlc.tree.g, src/prognode.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	Fixed lvaue handling for parameters with trinary operator. Fixed return of scalar/single element array for array indexing.
+
+2012-07-16  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlc.i.g, src/GDLInterpreter.cpp, src/envt.cpp, src/envt.hpp, src/extrat.cpp, src/extrat.hpp:
+	Fixed keyword parameters to CALL_FUNCTION and CALL_PROCEDURE
+
+2012-07-14  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_moment.pro:
+	is this way, can work with GDL, new 8 and old IDL versions
+
+	* src/gsl_fun.cpp: typo ...
+
+	* src/gsl_fun.cpp, src/pro/moment.pro, testsuite/test_moment.pro:
+	validity of Dimension keyword is now tested ASAP in MOMENT(); visual tests for this keyword; a cout less in FZ_ROOTS ...
+
+2012-07-14  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/arrayindex.hpp, src/gdlc.i.g:
+	fixed bug with array indexing in lhs dot expressions
+
+2012-07-13  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: news in NEWS !
+
+	* src/pro/kurtosis.pro, src/pro/mean.pro, src/pro/moment.pro, src/pro/skewness.pro, src/pro/stddev.pro, src/pro/variance.pro:
+	updating MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS() to have Dim= keyword since it is now available via the MOMENT() function. (Tests needed :(
+
+2012-07-11  m_schellens  <m_schellens@sf.net>
+
+	* src/dinterpreter.cpp:
+	Fixed proper handling of _retTree in stopped subroutines
+
+2012-07-11  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_strsplit.pro:
+	adding 4 new test cases into TEST_STRSPLIT
+
+	* src/pro/strsplit.pro: STRSPLIT(): a detail in a test ...
+
+	* src/pro/strsplit.pro:
+	in STRSPLIT(), we must return strarr even with single element except for '' !
+
+2012-07-10  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp, src/convert2.cpp, src/datatypes.cpp:
+	fixed bug when copying byte to string array element, COPY_BYTE_AS_INT behaviour in Convert2 was changed
+
+2012-07-05  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp, testsuite/test_fft_dim.pro:
+	FFT( dim= ) should worked now. Test using TEST_FFT_DIM, improvment welcome !
+
+	* testsuite/test_fx_root.pro, src/gsl_fun.cpp:
+	improvments in FX_ROOT(): when x_i is a root, short-cut; pure complex code in do-loop.
+	Revisited TEST_FX_ROOT, comparison with NEWTON in simple cases.
+
+	* testsuite/test_dicom.pro:
+	limited extension of TEST_DICOM, cannot reproduce bug 3150207, but "new" bug when this test called with /version
+
+	* src/gsl_fun.cpp: in FX_ROOT, when result is a real, return a real ...
+
+2012-07-04  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/file_lines.pro:
+	correcting bugs 3175753 and 3189065 for FILE_LINES();
+	now FILE_LINES() can manage input files list;
+	but still having pbs when files name prefixed or suffixed by white spaces ...
+	(due to known hard bug 3439079 in WordExp() in "str.cpp")
+
+2012-07-02  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp, src/envt.hpp, src/gsl_fun.cpp:
+	Fixed keyword support for CALL_FUNCTION/PROCEDURE
+
+2012-07-02  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gdlwidget.cpp:
+	compilation with gcc 4.4.3 (linux) was complaining about a possible confusion on this call:
+	gdlwidget.cpp: In constructor 'GDLWidgetDropList::GDLWidgetDropList(WidgetIDT, BaseGDL*, BaseGDL*, DString, DLong, DLong)':
+	gdlwidget.cpp:629: error: call of overloaded 'wxString(wxCStrData, wxMBConvStrictUTF8&)' is ambiguous
+	/usr/local/include/wx-2.9/wx/string.h:1309: note: candidates are: wxString::wxString(const wchar_t*, const wxMBConv&)
+	/usr/local/include/wx-2.9/wx/string.h:1296: note:                 wxString::wxString(const unsigned char*, const wxMBConv&)
+	/usr/local/include/wx-2.9/wx/string.h:1283: note:                 wxString::wxString(const char*, const wxMBConv&)
+	Solved by forcing type const wchar_t*, proceed with fingers crossed.
+
+2012-06-29  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_call_function.pro, testsuite/test_call_procedure.pro:
+	adding keyword in call to CALL_FUNCTION and CALL_PROCEDURE. Both fail today :(
+
+2012-06-28  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun_jmg.cpp:
+	not clear if my pragma give better times in FINITE() !
+
+	* testsuite/test_finite.pro, src/math_fun_jmg.cpp:
+	correcting bug into FINITE(, sign=) [various OS don't behave the same].
+	should be OK on INT related and FLOAT related types, not ready for complex.
+	Extending "test_finite".
+
+2012-06-28  m_schellens  <m_schellens@sf.net>
+
+	* src/pro/Makefile.in, src/pro/dicom/Makefile.in, testsuite/Makefile.in, doc/Makefile.in, src/CMakeLists.txt, src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/basic_fun_jmg.cpp, src/fftw.cpp, Makefile.in, configure:
+	Fixed direct function call via CALL_FUNCTION
+
+2012-06-28  slayoo  <slayoo@sf.net>
+
+	* src/plotting_surface.cpp:
+	switching from plmesh to plstream::mesh in plotting_surface()
+
+2012-06-28  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: now FX_ROOT() in GDL, coded in c++ by B. Laurent.
+
+2012-06-27  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	quiet work inside FX_ROOT(). check on p0 (3 elmnts) not finished.
+
+	* testsuite/test_fx_root.pro:
+	test for FX_ROOT() : one new test on roots values
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3441031.pro, testsuite/test_call_function.pro, testsuite/test_call_procedure.pro, testsuite/test_execute.pro:
+	1/ adding 2 new tests : "test_call_procedure', "test_call_function" (now failing on intrinsic functions),
+	2/ extending "test_execute", moving "test_bug_3441031" inside "test_execute".
+	3/ adding "test_call_procedure', "test_call_function", "test_fx_root", "test_fz_roots" in Makefile
+	4/ removing "test_bug_3441031" from Makefile
+
+2012-06-27  slayoo  <slayoo@sf.net>
+
+	* src/plot3d_nr.cpp, src/Makefile.am, src/Makefile.in, src/plotting_surface.cpp:
+	removing plot3d_nr.cpp (thanks to Joel for providing instructions)
+
+2012-06-27  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_fx_root.pro: initial import of TEST_FX_ROOT
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit_ac.cpp:
+	initial import of C++ version of FX_ROOT()
+
+2012-06-20  alaingdl  <alaingdl@sf.net>
+
+	* NEWS, testsuite/Makefile.am, testsuite/Makefile.in:
+	details (update NEWS !)
+
+	* src/math_fun_jmg.cpp, src/libinit_jmg.cpp:
+	adding SIGN Keyword in FINITE ... (M. Pinter)
+
+	* src/plotting_oplot.cpp:
+	correcting a bug detected in OPLOT via "test_healpix.pro"
+
+	* testsuite/test_moment.pro: for old idl version, no DIM in MOMENT ...
+
+	* testsuite/test_finite.pro, testsuite/test_moment.pro:
+	initial import of TEST_FINITE, including new SIGN keyword tests.
+
+2012-06-19  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_moment.pro, testsuite/test_qromo.pro:
+	fixing details in test cases QROMO and MOMENT.
+
+2012-06-16  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: details in what we changed
+
+	* src/gsl_fun.cpp:
+	correcting code ... isfinite instead lot of tests ...
+
+	* src/pro/moment.pro, testsuite/test_moment.pro:
+	revisited MOMENT (new keywords, esp. DIM !)
+
+	* testsuite/test_qromo.pro:
+	update test cases for QROMO (we should now cover all the cases)
+
+	* src/gsl_fun.cpp:
+	revised version of QROMO by M. Pinter. Should cover all the cases. Good managment of NaN/Inf ...
+
+	* testsuite/test_fz_roots.pro:
+	tests cases for FZ_ROOTS (preliminary version, errors accumulation not managed !)
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit_ac.cpp, NEWS:
+	initial import of FZ_ROOTS, but works only for input polynomials with real coefs.
+	We used the same code in the GSL than the IMSL_ZEROPOLY code ...
+
+2012-06-12  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/tvscl.pro: we decided to overcome NaN problems in TVSCL.
+
+2012-05-25  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/read_png.pro:
+	with a fake extra INTERNAL_READ_PNG, pro and func do work transparently.
+
+	* src/pro/hist_equal.pro, src/libinit.cpp:
+	adding quiet /COMPILE_FULL_FILE in RESOLVE_ROUTINE; typo corrected in HIST_EQUAL.
+
+2012-05-22  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/hist_equal.pro, testsuite/test_hist_equal.pro:
+	initial import of HIST_EQUAL; associated test suite.
+
+2012-05-16  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/standardize.pro: fixing the sign pb in STANDARDIZE
+
+2012-05-14  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_standardize.pro, testsuite/test_zip.pro:
+	details in tests ...
+
+	* src/pro/hist_equal.pro: fake temporary file (sync. with SF to do)
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/STATUS:
+	I forgot to update Makefile.am in src/pro with new files HIST_EQUAL and STANDARDIZE
+
+	* testsuite/test_zip.pro:
+	revised TEST_ZIP because "stat" options are various ...
+
+2012-05-12  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in:
+	adding "test_standardize" in testsuite
+
+	* testsuite/test_standardize.pro, src/pro/standardize.pro, NEWS:
+	initial import of STANDARDIZE and related test file
+
+2012-05-10  alaingdl  <alaingdl@sf.net>
+
+	* configure.in:
+	Only in classic "configure" way, you can choice between ImageMagick (--with-Magick, default) or GraphicsMagick (--with-GraphicsMagick, off by default,
+	if you used it, please desactivate IM via : --without-Magick). Both ways should give same results on PNG and JPEG.
+
+	* src/magick_cl.cpp:
+	QUERY_IMAGE should now be OK for ALL JPEG and PNG, please report problems,
+	with link to images giving problems !
+
+	* configure.in:
+	adding --with-GraphicsMagick=DIR as an alternative to ImageMagick. Tested on Ubuntu 10.04 with success.
+
+	* testsuite/test_read_standard_images.pro, src/magick_cl.cpp:
+	extended test suite for PNG and JPEG formats. Useful comments in magick wrapper for later work ...
+
+2012-05-08  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/_news.inc.php, src/pro/smooth.pro, testsuite/test_smooth.pro:
+	SMOOTH: revised faster algo for 2D smooth; test_smooth.pro updated too.
+
+2012-04-30  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/_news.inc.php, doc/www/resources.php:
+	correcting broken links to ADASS 2011 paper
+
+2012-04-13  gilles-duvert  <gilles-duvert@sf.net>
+
+	* INSTALL:
+	Reverted to version 1.21 by Slayoo + a small addendum on libtool problems that I encounter often...
+
+	* testsuite/test_random.pro: more precise "verbose" mode.
+	test fails randomly, which is normal with random numbers ;^))
+
+	* testsuite/test_congrid.pro:
+	test fails on byte arrays, but this is due to the conversion from double to byte by gdl basics, not by interpolate. This shoudl be investigated separately. I've changed the byte arrays to double by default, keeping byte as an option
+
+2012-04-13  alaingdl  <alaingdl@sf.net>
+
+	* src/interp_multid.h:
+	adding a missing file for revised version of INTERPOLATE
+
+2012-04-13  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gsl_fun.cpp, src/libinit_jmg.cpp:
+	I more or less rewrote INTERPOLATE to support all documented (and some undocumented) features. I added a gsl-like handling of multi-D interpolation (which could be ported easily to gsl), but gsl does not have the same parametric cubic convolution as we want, and does not know about missing values, hence the necessity to overload its basic methods and structures.
+	I added the /NEAREST_NEIGHBOUR option in the list of INTERPOLATE options since it makes for a very simple CONGRID procedure, and could be possibly of use elsewhere.
+
+	* src/pro/congrid.pro:
+	supports all options now that interpolate has the /nearest_neighbour option.
+
+	* src/basic_fun.cpp: small typo
+
+2012-03-20  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/extrat.cpp:
+	It looks to me that if a kw is in the "warnkey" list it should be considered as valid kw for the "_STRICT_EXTRA" kw passing mechanism.
+
+	* src/libinit.cpp:
+	added several keywords to the "warnKey" list of axis, surface and contour. These keywords are to be really supported at some point but it is possible to ignore thme and still have correct outputs, in particular with procedures like the coyotegraphics where *all* the possible keywords are used, even with default values.
+
+2012-03-17  alaingdl  <alaingdl@sf.net>
+
+	* src/devicex.hpp:
+	TVRD: beeing able to manage x0, y0, Nx, Ny parameters; no check made :(
+	maybe mirroring effect pending
+
+2012-03-15  alaingdl  <alaingdl@sf.net>
+
+	* src/devicex.hpp, src/pro/loadct.pro:
+	better managment for color tables in LOADCT (good resultS around Coyote lib.)
+
+2012-03-13  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting_erase.cpp:
+	ERASE: working version for Decompose == 0 or 1
+
+	* src/libinit.cpp, src/plotting_erase.cpp, NEWS:
+	color keyword or parameter for ERASE (maybe not OK when not in /decomposed). Now default !p.background is also take into account. Preparing support for Coyote Lib.
+
+2012-03-06  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_image_statistics.pro:
+	easy switch introducing fake error in this script.
+
+2012-03-05  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp, src/plotting.hpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp:
+	Corrected regression introduced in previous version: while that version was correctly supporting the MIN_VALUE and MAX_VALUE keywords for PLOT and OPLOT when they were present, it was forcing these values even in the absence of the keywords, and even worse, for the PLOTS command.
+
+2012-03-05  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_interpol.pro, src/pro/interpol.pro:
+	bug corrected in INTERPOL; better testsuite for this function.
+
+2012-02-28  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/findex.pro, src/pro/interpol.pro:
+	INTERPOL.pro: temporary solution for bug 3495104. Not the final answer ...
+
+2012-02-21  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_bug_3441031.pro:
+	no blocking version of the test. This test was generating a crash before mid-Nov. 2011.
+
+2012-02-21  slayoo  <slayoo@sf.net>
+
+	* testsuite/test_bug_3152892.pro: commiting a forgotten file
+
+2012-02-20  slayoo  <slayoo@sf.net>
+
+	* testsuite/test_bug_3488003.pro, testsuite/Makefile.am:
+	adding test routine for bug no. 3488003
+
+	* doc/www/_news.inc.php: website update (Ubutnu package)
+
+2012-02-20  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp:
+	fixed an indexing issue (bug ID 3488003)
+
+	* src/Makefile.in, src/gdlwidget.cpp, src/math_fun_jmg.cpp, src/widget.cpp, testsuite/Makefile.in, configure:
+	corrected EXECUTE like calls to fit new stack handling
+
+2012-02-19  slayoo  <slayoo@sf.net>
+
+	* CMakeLists.txt, configure.in:
+	adding a warning about the planned move from Autotools to CMake to configure.in
+
+2012-02-16  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/devicex.hpp: solves bug 3477639
+
+	* src/devicex.hpp: solves bug 3485528 and possibly 3434849.
+
+2012-02-15  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/write_image.pro: initial version of WRITE_IMAGE
+
+	* src/pro/write_image.pro, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/read_image.pro, src/pro/read_png.pro:
+	initial import of READ_IMAGE(). WRITE_IMAGE to be add later.
+
+2012-02-13  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_ludc_lusol.pro:
+	in LUDC and LUSOL, we can now testing Float and Double.
+
+	* src/gsl_matrix.cpp, src/libinit_ac.cpp:
+	for DETERM, LUDL, LUSOL, extension to "any" input types (not only double).
+	Details may not be fully fixed (exception catching, keywords ...) Help welcome.
+
+2012-02-10  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_congrid.pro:
+	adding a self consistant test (which is not working now !)
+
+2012-02-08  slayoo  <slayoo@sf.net>
+
+	* CMakeLists.txt, configure.in:
+	adding Fedora package name hints to CMakeLists.txt and configure.in
+
+2012-02-07  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/read_jpeg.pro: typo ...
+
+	* src/pro/read_jpeg.pro, src/pro/read_png.pro:
+	testing agreement of formats before efective reading
+
+	* src/pro/read_jpeg.pro, src/pro/read_png.pro, src/magick_cl.cpp:
+	improved reading of JPEG (gray + colors) and PNG files (1,2,3 & 4 channels)
+
+	* src/plotting_misc.cpp:
+	when TVLCT applyed, we have to upgrade the color table (check OK on X)
+
+2012-02-06  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_read_standard_images.pro: more reliable behavior
+
+	* testsuite/test_tvlct.pro: direct switch into TrueColor mode
+
+	* testsuite/test_read_standard_images.pro, testsuite/test_tvlct.pro:
+	initial import of two tests : reading 2 JPEG and 4 PNG as basic cases; verifying TVLCT is working ...
+
+2012-02-03  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_matrix.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_trisol.pro, NEWS:
+	better version for TRISOL (any input types); TEST_TRISOL self-consistant.
+
+	* testsuite/test_congrid.pro:
+	in such a way, can be tested on both ways ...
+
+	* src/devicex.hpp, src/plotting_windows.cpp:
+	correcting Window, xpos= , ypos= (bug 3482821)
+
+2012-02-02  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_matrix.cpp, src/gsl_matrix.hpp, src/libinit_ac.cpp:
+	initial import of a working draft for TRISOL only for inputs in Double. To be extend to any types.
+
+	* src/pro/read_png.pro:
+	coorecting order when reading PNG. Tested on various files with success.
+
+2012-01-30  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp:
+	Silently takes care of different sizes in X and Y dimensions for PLOT, PLOTS and OPLOT.
+	test, e.g.:
+	plot,findgen(1000),findgen(100)*5,/POL
+	oplot,findgen(1000),findgen(10)*5,/POL,psym=4
+
+2012-01-28  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting.cpp:
+	{X|Y}range keyword in type double should be managed ...
+
+	* src/pro/read_jpeg.pro:
+	correction in READ_JPEG when GrayScale, bug report 3471918
+
+2012-01-27  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am:
+	in src/pro/Makefile.am, *.pro list must be alphabeticaly ordered
+
+2012-01-27  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp:
+	Better support of the Log options (and values in CRANGE).
+	PLOTS can now plot outside box in DATA mode.
+	Cursor give correct data values even in log plots.
+	valmin, valmax are handled at plot level, not at box limits.
+	passes all the graphic tests.
+	Removed temporarily support for 'clip" , to be continued.
+	axis: changes only to follow changes in a function call arguments.
+
+	* src/plotting_contour.cpp, src/plotting_cursor.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp:
+	Better support of the Log options (and values in CRANGE).
+	PLOTS can now plot outside box in DATA mode.
+	Cursor give correct data values even in log plots.
+	valmin, valmax are handled at plot level, not at box limits.
+	passes all the graphic tests.
+	Removed temporarily support for 'clip" , to be continued.
+	Polyfill and surface: changes only to follow changes in a function call arguments.
+
+2012-01-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gdlxstream.cpp:
+	It seems to me that this small patch mimics better the *DL behaviour and its doc (?)
+
+	* testsuite/test_plotting_ranges.pro:
+	updated test to sync with new capability, CRANGE OK in /YLOG mode
+
+2012-01-25  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: changed pow(x,10) in pow(10,x)
+
+2012-01-25  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting.cpp:
+	hum, better way to have the !X.type info at the right places for get/set !{xyz}.crange
+
+	* src/plotting.cpp:
+	small change for !X.CRange (!Y.crange and !Z.crange too !) to manage Log. plots.
+
+2012-01-24  gilles-duvert  <gilles-duvert@sf.net>
+
+	* INSTALL:
+	Added a comment about how to update aclocal to local version of libtool if there is a problem.
+	Tested on Mandriva Linux, your mileage may vary.
+
+2012-01-24  alaingdl  <alaingdl@sf.net>
+
+	* doc/udg/README.txt:
+	initial import of an HowTo to help compiling the documentation.
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/get_login_info.pro:
+	initial import of GET_LOGIN_INFO
+
+	* testsuite/test_congrid.pro:
+	TEST_CONGRID now needs ImageMagick, we have to exist if not linked to.
+
+	* testsuite/test_read_jpeg.pro:
+	missing factor parameter when screen too small
+
+	* testsuite/test_diag_matrix.pro:
+	initial import of TEST_DIAG_MATRIX. This test is not really self-testing :(
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/diag_matrix.pro, src/pro/la_invert.pro:
+	initial import of DIAG_MATRIX and LA_INVERT (both need by iCosmo)
+
+2012-01-23  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.cpp: fixed assoc var with one index
+
+	* src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/gsl_fun.cpp:
+	fixed assoc var with one index (ArrayIndexListOneT)
+
+2012-01-23  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting_oplot.cpp: same typo in OPLOT
+
+	* src/plotting_plot.cpp:
+	correcting a typo in PLOT, simplest case broken (plot, indgen(10))
+
+2012-01-23  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_xyouts.cpp:
+	Corrected bugs that prevented correct positioning of datapoints (lines, psyms...) with commands PLOTS, XYOUTS and OPLOT when PLOT was done with /[X|Y]LOG.
+
+	Added support for NSUM=xxx and /POLAR options used in PLOT, OPLOT.
+
+	Treatment for DATAMIN,DATAMAX and CLIP is not OK however. needs some more changes.
+
+	Debugged the /NORMAL, /DEVICE and /CONTINUE option of PLOTS. Should be OK even for some (not all) cases when  !P.MULTI is not 0.
+
+	Added SIZE=xxx undocumented option as a replacement for CHARSIZE for the XYOUTS command (support for several legacy procedures).
+
+	* testsuite/test_poly2d.pro:
+	changed missing value to 128 to better show the influence of the "missing=xxx" keyword.
+	Also, serves as test of my ability to commit patches...
+
+2012-01-22  alaingdl  <alaingdl@sf.net>
+
+	* NEWS, src/gsl_fun.cpp, src/libinit_ac.cpp, testsuite/test_qromo.pro:
+	small improvments in QROMO (but not finished at all)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_qromb.pro, testsuite/test_qromo.pro:
+	initial import of TEST_QROMB and TEST_QROMO. To be expanded ...
+
+2012-01-21  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	NEWTON mus accepted "singleton" too; temporary change in QROMO for ]a,b[ range (to be generalize ASAP)
+
+2012-01-20  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit_ac.cpp:
+	QROMO: initial import of limited version only for range [a,+inf]; help welcome.
+
+	* src/gsl_fun.cpp:
+	QROMB: better managment of inputs (vectors, matrix); IDL doc. is wrong for that ([1],[8]) return [8], not [1]
+
+2012-01-12  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: update
+
+	* src/libinit_ac.cpp: introducing QSIMP, using QROMB ...
+
+	* src/gsl_fun.cpp: managing arrays in QROMB
+
+2012-01-10  alaingdl  <alaingdl@sf.net>
+
+	* NEWS, src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit_ac.cpp:
+	initial import for QROMB, not ready for arrays.
+
+2012-01-07  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/arrayindex.cpp: Fixed bug ID 3464519
+
+2012-01-05  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_random.pro:
+	initial import of TEST_RANDOM, very basic tests to check consistancy of basic computations (gamma and binomial cases)
+
+	* NEWS: details in NEWS ...
+
+	* src/gsl_fun.cpp:
+	in RANDOM(N/U): now, Binomial keyword works; serious rewriting; conflicting keywords detected.
+
+2012-01-04  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	in RANDOM(U/N), better managment of GAMMA values (exit if <= 0.; put to 1 if 0.0 < Gamma < 1.0)
+
+2012-01-03  slayoo  <slayoo@sf.net>
+
+	* src/deviceps.hpp: TV/PostScript: plplot compatibility fix
+
+	* doc/udg/examples/obj_class_1/obj_class_1.out.txt, doc/udg/routines/appleman.pro.tex, doc/udg/examples/call_external_0/call_external_0.pro, doc/udg/examples/file_lines_0/file_lines_0.out.txt, doc/udg/examples/h5_get_libversion_0/h5_get_libversion_0.out.txt, doc/udg/diag/broken-references, doc/udg/chapters/credits.tex, doc/udg/gdl.tex, doc/udg/makeall:
+	doc/udg update
+
+2012-01-03  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt: correcting typo in CMakeLists.txt
+
+2012-01-02  slayoo  <slayoo@sf.net>
+
+	* CMakeLists.txt, CMakeModules/FindNumpy.cmake:
+	CMake: working version of PYTHONDIR and PYTHONVERSION support
+
+	* doc/gdl.1: manpage updae
+
+	* src/deviceps.hpp, src/dinterpreter.cpp, src/gdlgstream.hpp, src/libinit_jmg.cpp, src/pro/appleman.pro, src/typedefs.hpp:
+	misc cleanups
+
+2012-01-02  alaingdl  <alaingdl@sf.net>
+
+	* src/gdlgstream.hpp:
+	correcting bug introduced by Sylwester to have X11 plots ...
+
+2011-12-31  slayoo  <slayoo@sf.net>
+
+	* config.h.cmake: fixing CMake support for PSlib
+
+2011-12-30  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun_jmg.cpp: removing comment in POLY_2D
+
+	* src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	managing keyword Missing for POLY_2D [patch from G. Duvert] (see TEST_POLY2D_NEW in testsuite/test_poly2d.pro). When no missing value, case of <<extrapolation>> [sic] is still pending ...
+
+	* testsuite/test_get_kbrd.pro:
+	hum, I forgot to manage "wait" keyword in third case ...
+
+	* testsuite/test_get_kbrd.pro:
+	initial import of TEST_GET_KBRD. 3 main cases are tested.
+
+	* src/basic_fun.cpp:
+	in GET_KBRD(), better managment of GET_KBRD(0) (see testsuite/test_get_kbrd.pro) [should be retest on OSX]
+
+	* src/pro/identity.pro: in IDENTITY, bug corrected when N=1
+
+	* src/pro/appleman.pro:
+	small changes, one in order to have return of the array without internal TV
+
+	* testsuite/test_congrid.pro, testsuite/test_postscript.pro, testsuite/test_ps_decomposed.pro:
+	various minor bugs corrections and few extensions (TEST_POSTSCRIPT_APPLEMAN ;-)
+
+2011-12-29  slayoo  <slayoo@sf.net>
+
+	* src/deviceps.hpp: PostScript: fixing a memory leak in TV
+
+2011-12-28  slayoo  <slayoo@sf.net>
+
+	* src/deviceps.hpp, src/devicez.hpp, src/graphics.cpp:
+	TV: a draft of PostScript support (tracker items 3460150 and 3110007)
+
+	* src/gdlgstream.hpp, src/gdlpsstream.hpp:
+	gdlpsstream.hpp: correcting typo (ps-ttf -> psttf)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3453775.pro:
+	adding a test for bug no. 3453775
+
+	* doc/www/resources.php:
+	doc/www: adding a link in the resources section
+
+2011-12-27  slayoo  <slayoo@sf.net>
+
+	* doc/www/images/Colourise.css, doc/www/_header.inc.php, doc/www/_news.inc.php:
+	doc/www: website update
+
+2011-12-21  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_congrid.pro:
+	initial import of TEST_CONGRID. maybe not needed in "make check" as long as we don't have null test
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/bilinear.pro, src/pro/congrid.pro, NEWS:
+	initial import of CONGRID and BILINEAR (both in GDL syntax, in src/pro), thanks to G. Duvert
+
+2011-12-16  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	a bug corrected in INTERPOLATE (patch by G. Duvert); we still do not have a good testsuite for INTERPOLATE.
+
+2011-12-15  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_poly2d.pro:
+	revisiting TEST_POLY2D. more simple way to show few problems in POLY_2D
+
+2011-12-14  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun_jmg.cpp: Adapt ROUTINE_NAMES to new callstack layout
+
+2011-12-13  alaingdl  <alaingdl@sf.net>
+
+	* src/CMakeLists.txt, src/gsl_matrix.hpp:
+	adding new files (gsl_matrix.hpp and gsl_matrix.cpp) in CMakeLists.txt
+
+2011-12-13  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.cpp, src/prognode.hpp:
+	Fixed break with breakTarget == NULL. Bug ID 3454317
+
+2011-12-09  alaingdl  <alaingdl@sf.net>
+
+	* NEWS, src/gsl_matrix.cpp, src/gsl_matrix.hpp, src/libinit_ac.cpp:
+	initial import of DETERM(), only for type DOUBLE (help welcome)
+
+	* src/gsl_matrix.cpp, NEWS: alignment bug in LUDC
+
+	* testsuite/test_ludc_lusol.pro: details in TEST_LUDC_LUSOL
+
+	* testsuite/Makefile.am, testsuite/test_ludc_lusol.pro:
+	typo corrected in TEST_LUDC_LUSOL
+
+	* src/Makefile.am, src/Makefile.in, src/gsl_matrix.cpp, src/gsl_matrix.hpp, src/libinit_ac.cpp:
+	initial import of C++ LUDC and LUSOL (based on GDL). Work BUT only on DOUBLE ... Help needed.
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/ludc.pro:
+	removing the fake LUDC, to be remplace by a draft of LUDC/LUSOL pair in C++
+
+	* testsuite/test_ludc_lusol.pro:
+	initial import for TEST_LUDC_LUSOL tests (very preliminary).
+
+	* src/plotting.cpp:
+	patch by G. Duvert correcting in USERSYM behavior of !P.CHARSIZE, !P.SYMSIZE, /CHARSIZE= and /SYMSIZE=
+
+2011-12-08  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/specializations.hpp, src/typedefs.hpp:
+	Fixed SHIFT(a,0). Bug ID 3453775
+
+2011-12-07  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp: Fixed EnvBaseT::Caller()
+
+2011-12-06  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: upgrade of NEWS
+
+	* src/gsl_fun.cpp, src/libinit_jmg.cpp:
+	new keyword /nan added to HISTOGRAM. It is not fully finished/tested but working in basic cases.
+
+	* testsuite/test_histo.pro:
+	upgrade of TEST_HISTO for to be introduced new keyword /Nan
+
+2011-12-05  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/prognodeexpr.cpp:
+	fixed wrong delete in lib::execute function
+
+	* src/gdlwidget.cpp: corrected callstack handling
+
+2011-12-05  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	missing two new files (READ_GIF and WRITE_GIF) in Makefile*
+
+2011-12-03  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.hpp, src/basic_fun.cpp, src/envt.hpp, src/gdlc.i.g, src/print.cpp, src/prognodeexpr.cpp:
+	EnvStackT now with EnvUDT instead EnvBaseT
+
+	* src/basic_pro.cpp, src/envt.cpp, src/envt.hpp, src/gsl_fun.cpp, src/prognode.cpp, src/prognodeexpr.cpp, src/basic_fun.cpp:
+	EnvT for library functions is no longer pushed onto the call stack. Fix for random_fun binominalKey
+
+2011-11-30  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	code like RANDOMN(seed,10, BINOMIAL=[3,.5]) is wrong ... (should return int-like values)
+
+	* src/pro/read_gif.pro, src/pro/write_gif.pro:
+	initial inclusion of READ_GIF and WRITE_GIF. Very limited functionalities but OK to read and write GIF derivated from testsuite/Saturn.jpg (256 colors)
+
+	* src/pro/read_jpeg.pro: typo in READ_JPEG
+
+2011-11-30  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/gdlc.i.g, src/str.cpp, src/str.hpp:
+	Faster STRUPCASE and STRLOWCASE
+
+2011-11-29  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_str_functions.pro:
+	testing also /reverse_offset in STRMID (test is not perfect)
+
+	* src/libinit.cpp:
+	reverting typo in "libinit.cpp" for keyword /rever in STRMID()
+
+2011-11-28  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting.cpp, testsuite/test_usersym.pro:
+	correcting bug related to USERSYM: beeing able to manage 1 or 2 points only on plot
+
+2011-11-25  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlc.i.g, src/GDLInterpreter.cpp: sync
+
+2011-11-25  slayoo  <slayoo@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3441031.pro:
+	adding test_bug_3441031.pro
+
+2011-11-25  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/prognodeexpr.cpp, src/arrayindexlistnoassoct.hpp, src/gdlc.i.g, src/libinit.cpp:
+	Fixed bug ID 3441031
+
+2011-11-24  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp: insert some assert macros
+
+	* src/math_fun.cpp: optimization for IMAGINARY and CONJ
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/envt.hpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp:
+	direct call for several functions
+
+	* src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp:
+	direct call EXP function
+
+2011-11-22  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/usersym.pro:
+	since a working C++ code for USERSYM was added today, the fake "usersym.pro" can be removed !
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	STRMATCH was added in CVS, USERSYM was moved as a C++ code.
+
+	* src/initsysvar.cpp, src/initsysvar.hpp, src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_oplot.cpp:
+	initial import for USERSYM procedure, thanks to a contribution by Gilles Duvert
+
+2011-11-22  slayoo  <slayoo@sf.net>
+
+	* src/pro/strmatch.pro, testsuite/test_strmatch.pro:
+	STRMATCH: yet another improvement
+
+	* src/pro/strmatch.pro, testsuite/test_strmatch.pro:
+	STRMATCH: improvement
+
+	* src/pro/strmatch.pro, testsuite/Makefile.am, testsuite/test_strmatch.pro:
+	STRMATCH: initial import
+
+2011-11-20  m_schellens  <m_schellens@sf.net>
+
+	* src/str.cpp: removed escaping of space in WordExp function
+
+	* src/devicex.hpp: fixed bug ID 3438651
+
+2011-11-18  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp:
+	direct call API for more library functions
+
+	* src/objects.cpp, src/str.cpp:
+	changed WordExp: esc only non escaped blanks
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dpro.cpp, src/dpro.hpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, src/prognodeexpr.cpp:
+	faster ALOG ALOG10 N_ELEMENTS
+
+2011-11-16  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_mpfit.pro: managing multiple occurences in TEST_MPFIT
+
+2011-11-16  slayoo  <slayoo@sf.net>
+
+	* doc/www/faq.php: doc/www: a new faq item
+
+	* src/gshhs.cpp: MAP_CONTINENTS: fixing argument number check
+
+	* doc/www/resources.php:
+	doc/www: resources.php: adding a link to Alain's ADASS XXI talk
+
+	* doc/www/_news.inc.php: doc/www: news updates
+
+2011-11-16  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	fixing files list in Makefile*
+
+	* testsuite/test_file_copy.pro, testsuite/test_file_delete.pro:
+	limited updates preparing next better tests ...
+
+	* src/pro/usersym.pro:
+	initial import of a fake USERSYM to avoid stopping codes just because we don't know how to write USERSYM
+
+	* src/pro/read_ascii.pro, src/pro/read_jpeg.pro, src/pro/read_png.pro, src/pro/read_xwd.pro:
+	better managment when we try to read a directory when a real file is expected.
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test-read_ascii.pro, testsuite/test_image_statistics.pro:
+	initial import of TEST_IMAGE_STATISTICS; correction in TEST-READ_ASCII to be able to go to the end.
+
+2011-11-15  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/dpro.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.g, src/gdlc.tree.g, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp:
+	direct calls for lib functions
+
+2011-11-15  slayoo  <slayoo@sf.net>
+
+	* doc/www/_news.inc.php: www: typo fix
+
+2011-11-15  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_fun.cpp, src/gdlc.g, src/gdlc.tree.g, src/newprognode.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	FCALL_N_ELEMENTSNode
+
+2011-11-15  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/image_statistics.pro: hum, we need to use /double ...
+
+	* src/pro/image_statistics.pro:
+	type conversion for 3 outputs of IMAGE_STATISTICS
+
+2011-11-15  slayoo  <slayoo@sf.net>
+
+	* doc/www/_news.inc.php: www: Macports port news (0.9.2)
+
+2011-11-14  slayoo  <slayoo@sf.net>
+
+	* doc/www/_news.inc.php: www: ArchLinux package news (0.9.2)
+
+2011-11-14  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	adding IMAGE_STATISTICS.pro in Makefile files
+
+2011-11-14  m_schellens  <m_schellens@sf.net>
+
+	* src/getas.cpp: com,ented out typename
+
+	* src/getas.cpp: add file
+
+	* src/arrayindex.cpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/convert2.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/newprognode.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	faster 2D indexing
+
+2011-11-13  slayoo  <slayoo@sf.net>
+
+	* doc/www/_news.inc.php: www: Fedora 0.9.2 package info
+
+	* doc/www/_news.inc.php: www: FreeBSD 0.9.2 port info
+
+2011-11-12  slayoo  <slayoo@sf.net>
+
+	* doc/www/_header.inc.php, doc/www/faq.php: www: adding FAQ page
+
+2011-11-10  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/image_statistics.pro:
+	initial import of IAMGE_STATISTICS procedure, coded in GDL syntax. 4 keywords are missing
+
+2011-11-09  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_read_jpeg.pro: adding a call to READ_JPEG, /Gray
+
+	* src/pro/read_jpeg.pro:
+	/Gray should work now in READ_JPEG (tested on testsuite/Saturn.jpg)
+
+	* src/magick_cl.cpp:
+	MAGICK_QUANTIZE don't need 2 mandatory arg.; small code factoring; order changed for lisibility
+
+2011-11-09  slayoo  <slayoo@sf.net>
+
+	* doc/www/_news.inc.php: www: news about 0.9.2 release and ADASS XXI
+
+2011-11-09  m_schellens  <m_schellens@sf.net>
+
+	* CMakeLists.txt, configure, configure.in: GDL 0.9.2 CVS
+
+
+
+
+
+
 GDL 0.9.2:
 2011-11-08  m_schellens  <m_schellens@sf.net>
 
-	* src/str.cpp: release
+	* configure, configure.in, src/typedefs.hpp, ChangeLog, NEWS, src/str.cpp:
+	release
 
 2011-11-08  alaingdl  <alaingdl@sf.net>
 

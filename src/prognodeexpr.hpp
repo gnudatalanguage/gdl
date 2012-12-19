@@ -61,8 +61,8 @@ public:
   void AdjustTypesNC( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
 		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
   // for overloaded operators 
-  void AdjustTypesNCObj( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
-		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
+  void SetupGuards( Guard<BaseGDL>& g1, BaseGDL*& e1,
+		    Guard<BaseGDL>& g2, BaseGDL*& e2);
   void AdjustTypesNCNull( Guard<BaseGDL>& g1, BaseGDL*& e1, 
 		      Guard<BaseGDL>& g2, BaseGDL*& e2);
 
