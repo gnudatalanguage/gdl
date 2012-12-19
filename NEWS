@@ -564,7 +564,7 @@
 	   - keyword ISOTROPIC in PLOT, CONTOUR
            - new widget features incl. WIDGET_LIST and CW_GROUP
            - various fix in FFT: DIM keyword, memory leak when using GSL
-	   - some overloaded operators (_overloadIsTrue, 
+	   - some overloaded operators (_overloadIsTrue, _overloadPlus,
 	     _overloadBracketsLeftSide, _overloadBracketsRightSide, 
 	     _overloadEQ, _overloadNE)
 	   - .SKIP command

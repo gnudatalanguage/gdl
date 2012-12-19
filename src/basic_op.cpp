@@ -2719,24 +2719,201 @@ BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
+
+
 template<>
 BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
 {
   // overload here
+  Data_* self;
+  DFun* plusOverload;
   
+  ProgNodeP callingNode = interpreter->GetRetTree();
+
+  if( !Scalar())
+  {
+    if( r->Type() == GDL_OBJ && r->Scalar())
+    {
+      self = static_cast<Data_*>( r);
+      plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+      if( plusOverload == NULL)
+      {
+	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+      }
+    }
+    else
+      {
+	throw GDLException( callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
+      }
+  }
+  else
+  {
+    // Scalar()
+    self = static_cast<Data_*>( this);
+    plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+    if( plusOverload == NULL)
+    {
+      if( r->Type() == GDL_OBJ && r->Scalar())
+      {
+	self = static_cast<Data_*>( r);
+	plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+	if( plusOverload == NULL)
+	{
+	  throw GDLException(callingNode,"Cannot apply not overloaded operator to datatype OBJECT.",true, false);  
+	} 
+      }
+      else
+      {
+	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+      }
+    }
+  }
+
+  assert( self->Scalar());
+  assert( plusOverload != NULL);
+
+  // hidden SELF is counted as well
+  int nParSub = plusOverload->NPar();
+  assert( nParSub >= 1); // SELF
+  if( nParSub < 3) // (SELF), LEFT, RIGHT
+  {
+    throw GDLException( callingNode, plusOverload->ObjectName() +
+		    ": Incorrect number of arguments.",
+		    false, false);
+  }
+  EnvUDT* newEnv;
+  Guard<BaseGDL> selfGuard;
+  BaseGDL* thisP;
+  // Dup() here is not optimal
+  // avoid at least for internal overload routines (which do/must not change SELF or r)
+  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();  
+  if( internalDSubUD)  
+  {
+    thisP = this;
+    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    newEnv->SetNextParUnchecked( &thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
+    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+  }
+  else
+  {
+    self = self->Dup();
+    selfGuard.Init( self);
+    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    newEnv->SetNextParUnchecked( this->Dup()); // LEFT  parameter, as value
+    newEnv->SetNextParUnchecked( r->Dup()); // RIGHT parameter, as value
+  }
+
   
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(interpreter->CallStack());
+
+  interpreter->CallStack().push_back( newEnv); 
+  
+  // make the call
+  BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  if( !internalDSubUD && self != selfGuard.Get())
+  {
+    // always put out warning first, in case of a later crash
+    Warning( "WARNING: " + plusOverload->ObjectName() + 
+	  ": Assignment to SELF detected (GDL session still ok).");
+    // assignment to SELF -> self was deleted and points to new variable
+    // which it owns
+    selfGuard.Release();
+    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+      selfGuard.Reset(self);
+  }
+  return res;
 }
+// difference from above: Order of parameters in call
 template<>
 BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
 {
+  if( r->Type() == GDL_OBJ && r->Scalar())
+  {
+    return r->Add( this); // for right order of parameters
+  }
+    
   // overload here
+  Data_* self;
+  DFun* plusOverload;
   
+  ProgNodeP callingNode = interpreter->GetRetTree();
+
+  if( !Scalar())
+  {
+    throw GDLException( callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
+  }
+  else
+  {
+    // Scalar()
+    self = static_cast<Data_*>( this);
+    plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+    if( plusOverload == NULL)
+    {
+	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+    }
+  }
+
+  assert( self->Scalar());
+  assert( plusOverload != NULL);
+
+  // hidden SELF is counted as well
+  int nParSub = plusOverload->NPar();
+  assert( nParSub >= 1); // SELF
+  if( nParSub < 3) // (SELF), LEFT, RIGHT
+  {
+    throw GDLException( callingNode, plusOverload->ObjectName() +
+		    ": Incorrect number of arguments.",
+		    false, false);
+  }
+  EnvUDT* newEnv;
+  Guard<BaseGDL> selfGuard;
+  BaseGDL* thisP;
+  // Dup() here is not optimal
+  // avoid at least for internal overload routines (which do/must not change SELF or r)
+  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();  
+  if( internalDSubUD)  
+  {
+    thisP = this;
+    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    // order different to Add
+    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+    newEnv->SetNextParUnchecked( &thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
+  }
+  else
+  {
+    self = self->Dup();
+    selfGuard.Init( self);
+    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    // order different to Add
+    newEnv->SetNextParUnchecked( r->Dup()); // RIGHT parameter, as value
+    newEnv->SetNextParUnchecked( this->Dup()); // LEFT  parameter, as value
+  }
+
   
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(interpreter->CallStack());
+
+  interpreter->CallStack().push_back( newEnv); 
+  
+  // make the call
+  BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  if( !internalDSubUD && self != selfGuard.Get())
+  {
+    // always put out warning first, in case of a later crash
+    Warning( "WARNING: " + plusOverload->ObjectName() + 
+	  ": Assignment to SELF detected (GDL session still ok).");
+    // assignment to SELF -> self was deleted and points to new variable
+    // which it owns
+    selfGuard.Release();
+    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+      selfGuard.Reset(self);
+  }
+  return res;
 }
+
 template<class Sp>
 BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 {

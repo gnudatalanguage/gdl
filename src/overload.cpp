@@ -463,4 +463,11 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadNE);
 //   gdlObjectDesc->SetOperator(OONE,_overloadNE);
 
+  DFun *_overloadPlus = new DFun("_OVERLOADPLUS",GDL_OBJECT_NAME,"*INTERNAL*");
+  _overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
+  WRAPPED_FUNNode *tree6 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadReportIllegalOperation);
+  _overloadPlus->SetTree( tree6);
+  gdlObjectDesc->FunList().push_back(_overloadPlus);
+//   gdlObjectDesc->SetOperator(OOPLUS,_overloadPlus);
+
 }

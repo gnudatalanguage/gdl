@@ -1131,6 +1131,8 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
 	
 	_retTree = _retTree->getNextSibling();
       }
+//       cout << ".SKIP " << stepCount << "   " << _retTree << endl;
+
       stepCount = 0;
       retTreeSave = _retTree;
       // we stay at the command line here
@@ -1421,11 +1423,15 @@ historyIntialized = true;
 	  {
 	    DInterpreter::CommandCode ret=ExecuteLine();
 
-		// stop steppig when at main level
-		stepCount = 0;
-		debugMode = DEBUG_CLEAR;
+	    // stop steppig when at main level
+	    stepCount = 0;
+	    debugMode = DEBUG_CLEAR;
 
-	    if( ret == CC_CONTINUE)
+	    if( ret == CC_SKIP)
+	    {
+	      Message( "Can't continue from this point.");
+	    }		    
+	    else if( ret == CC_CONTINUE)
 	      {
 		if( static_cast<DSubUD*>
 		    (callStack.back()->GetPro())->GetTree() != NULL)

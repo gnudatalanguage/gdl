@@ -845,7 +845,7 @@ BaseGDL* PLUSNode::Eval()
   DType bTy=e2->Type();
   if( aTy == bTy) 
   {
-    if( aTy == GDL_OBJ) 
+    if( aTy == GDL_OBJ) // we MUST do this here (correct guard handling)
       return e1->Add( e2.get());; // operator overloading
     
   }
@@ -1547,8 +1547,10 @@ BaseGDL* PLUSNC12Node::Eval()
   DType bTy=e2->Type();
   if( aTy == bTy)
   {
-    if( aTy == GDL_OBJ) // this saves us to implement all Add...New() functions
-      return e1->Add( e2);
+    // as all Add...New() functions are implemented for GDL_OBJ, we can save the if(...) here
+    // (as there are no guards up to here)
+    //     if( aTy == GDL_OBJ) // this saves us to implement all Add...New() functions
+    //       return e1->Add( e2);
     
     if ( e1->StrictScalar() )
     {
@@ -1686,7 +1688,7 @@ BaseGDL* PLUSNCNode::Eval()
   DType bTy=e2->Type();
   if( aTy == bTy) 
   {
-    if( aTy == GDL_OBJ)
+    if( aTy == GDL_OBJ) // we MUST do this here (correct guard handling)
       return e1->Add( e2);
 
     // otherwise continue below
