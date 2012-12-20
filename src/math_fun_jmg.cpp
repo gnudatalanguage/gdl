@@ -434,12 +434,16 @@ namespace lib {
     DLong flag_print=0, flag_noclear=0, flag_clear=1;
 
     DLong value=0;
-    static DLong cumul_value;
+    static DLong cumul_value; // auto init to 0
     DLong mask=255;
 
     //
-    flag_print=e->KeywordSet( "PRINT");
-    flag_noclear=e->KeywordSet( "NOCLEAR");
+    static int printKwIx = e->KeywordIx("PRINT");
+    static int noClearKwIx = e->KeywordIx("NOCLEAR");
+    static int maskKwIx = e->KeywordIx("MASK");
+
+    flag_print = e->KeywordSet( printKwIx);
+    flag_noclear = e->KeywordSet( noClearKwIx);
     //
     // if Params are provides (first: print, second: noclear)
     // they do overwrite the same provided by Keyword
@@ -453,15 +457,15 @@ namespace lib {
     
     if (flag_noclear > 0) flag_clear=0;
     
-    int debug=0;
+    const int debug=0;
     if (debug) {
       cout << "Flag Print  : " << flag_print << endl;
       cout << "Flag NoClear: " << flag_noclear << endl;
       cout << "Flag Clear: " << flag_clear << endl;
     }
 
-    if( e->KeywordSet( "MASK"))
-      e->AssureLongScalarKWIfPresent( "MASK", mask);	
+    if( e->KeywordSet( maskKwIx))
+      e->AssureLongScalarKWIfPresent( maskKwIx, mask);	
 
     if (mask & 16) {
       if (fetestexcept(FE_DIVBYZERO)) {
@@ -511,7 +515,7 @@ namespace lib {
     
     if (flag_noclear) {
        if (debug) cout << "noclear == 1" << endl;
-      cumul_value=cumul_value+value;
+      cumul_value |= value;
       value=cumul_value;
     } else {
        if (debug) cout << "noclear == 0" << endl;
@@ -522,7 +526,7 @@ namespace lib {
       cout << "cumul_value " <<cumul_value<< endl;
     }
 
-    return new DLongGDL( value );
+    return new DLongGDL( value);
   }
 
 
