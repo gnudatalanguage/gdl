@@ -493,10 +493,11 @@ namespace lib {
       }
     }
 
-    if (mask & 128 && value == 0) {
+    
+    if (mask & 128) {// && value == 0) {
       if (fetestexcept(FE_INVALID)) {
 	value = value | 128;
-	if ( flag_print)
+	if ( flag_print) // avoid double message
 	  cout << 
 	    "% Program caused arithmetic error: Floating illegal operand" << endl;
 	if ( flag_clear) feclearexcept(FE_INVALID); 
