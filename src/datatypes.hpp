@@ -264,8 +264,8 @@ static	void operator delete( void *ptr);
   BaseGDL* AddInv( BaseGDL* r);
 //   Data_*   AddNew( BaseGDL* r);
 //   Data_*   AddInvNew( BaseGDL* r);
-  Data_*   Sub( BaseGDL* r);
-  Data_*   SubInv( BaseGDL* r);
+  BaseGDL*   Sub( BaseGDL* r);
+  BaseGDL*   SubInv( BaseGDL* r);
   Data_*   GtMark( BaseGDL* r);
   Data_*   LtMark( BaseGDL* r);
   Data_*   Mult( BaseGDL* r);
@@ -317,8 +317,8 @@ static	void operator delete( void *ptr);
 //   Data_* GtOpNew( BaseGDL* r);
   BaseGDL* AddNew( BaseGDL* r);      // implemented
   BaseGDL* AddInvNew( BaseGDL* r);      // implemented
-  Data_* SubNew( BaseGDL* r);
-  Data_* SubInvNew( BaseGDL* r);
+  BaseGDL* SubNew( BaseGDL* r);
+  BaseGDL* SubInvNew( BaseGDL* r);
   Data_* LtMarkNew( BaseGDL* r);
   Data_* GtMarkNew( BaseGDL* r);
   Data_* MultNew( BaseGDL* r);   // implemented
@@ -338,8 +338,8 @@ static	void operator delete( void *ptr);
   Data_* XorOpSNew( BaseGDL* r);
   BaseGDL* AddSNew( BaseGDL* r);         // implemented
   BaseGDL* AddInvSNew( BaseGDL* r);    // implemented
-  Data_* SubSNew( BaseGDL* r);
-  Data_* SubInvSNew( BaseGDL* r);
+  BaseGDL* SubSNew( BaseGDL* r);
+  BaseGDL* SubInvSNew( BaseGDL* r);
   Data_* LtMarkSNew( BaseGDL* r);
   Data_* GtMarkSNew( BaseGDL* r);
   Data_* MultSNew( BaseGDL* r);      // implemented

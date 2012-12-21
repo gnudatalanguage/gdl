@@ -243,13 +243,13 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r);
 template<> 
 BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r);
 template<> 
-Data_<SpDString>* Data_<SpDString>::Sub( BaseGDL* r);
+BaseGDL* Data_<SpDString>::Sub( BaseGDL* r);
 template<> 
-Data_<SpDString>* Data_<SpDString>::SubInv( BaseGDL* r);
+BaseGDL* Data_<SpDString>::SubInv( BaseGDL* r);
 template<> 
-Data_<SpDPtr>* Data_<SpDPtr>::Sub( BaseGDL* r);
+BaseGDL* Data_<SpDPtr>::Sub( BaseGDL* r);
 template<> 
-Data_<SpDPtr>* Data_<SpDPtr>::SubInv( BaseGDL* r);
+BaseGDL* Data_<SpDPtr>::SubInv( BaseGDL* r);
 template<> 
 Data_<SpDString>* Data_<SpDString>::LtMark( BaseGDL* r);
 template<> 
