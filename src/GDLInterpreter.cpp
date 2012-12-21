@@ -2214,7 +2214,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	
 	ArrayIndexListT* aL;
 	BaseGDL**        rP;
-	DStructGDL*      structR;
+	//DStructGDL*      structR;
 	ArrayIndexListGuard guard;
 		
 		if( _t->getType() == ARRAYEXPR)
@@ -2226,8 +2226,9 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 			_retTree = _t->getNextSibling();
 	
 			// check here for object and get struct
-			structR=dynamic_cast<DStructGDL*>(*rP);
-			if( structR == NULL)
+	//		structR=dynamic_cast<DStructGDL*>(*rP);
+	//		if( structR == NULL)
+			if( (*rP)->Type() != GDL_STRUCT)
 	{
 	bool isObj = callStack.back()->IsObject();
 	if( isObj)
@@ -2245,6 +2246,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	}
 			else 
 	{
+	DStructGDL* structR=static_cast<DStructGDL*>(*rP);
 	if( (*rP)->IsAssoc())
 	throw GDLException( _t, "File expression not allowed "
 	"in this context: "+Name(*rP),true,false);
@@ -2267,8 +2269,9 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 			//_t = _retTree; _retTree set ok
 	
 			// check here for object and get struct
-			structR = dynamic_cast<DStructGDL*>(*rP);
-			if( structR == NULL)
+			//structR = dynamic_cast<DStructGDL*>(*rP);
+			//if( structR == NULL)
+			if( (*rP)->Type() != GDL_STRUCT)
 	{
 	bool isObj = callStack.back()->IsObject();
 	if( isObj) // member access to object?
@@ -2286,6 +2289,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	}
 			else
 	{
+	DStructGDL* structR=static_cast<DStructGDL*>(*rP);
 	if( (*rP)->IsAssoc())
 	{
 	throw GDLException( _t, "File expression not allowed "
