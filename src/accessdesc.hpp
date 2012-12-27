@@ -33,8 +33,11 @@
 class DotAccessDescT
 {
 private:
+//   SizeT                         targetDepth;
+  bool                          propertyAccess;
+  DString                       propertyName;
   BaseGDL*                      top;
-  std::vector<DStructGDL*>      dStruct; // structures
+  std::vector<DStructGDL*>	dStruct; // structures
   std::vector<SizeT>            tag;     // tag index
   std::vector<ArrayIndexListT*> ix;      // array index
 
@@ -298,40 +301,43 @@ private:
     SizeT d;
     for( d=0; d<nDot; ++d)
       {
-		if( ix[d] == NULL)
-		{ // loop over all elements
-			if( dStruct[d]->N_Elements() > 1)
-				dim >> dStruct[d]->Dim();
-		}
-		else
-		{
-			ix[d]->SetVariable( dStruct[d]);
-			if( ix[d]->N_Elements() > 1)
-				dim >> ix[d]->GetDim();
-		}
+	  if( ix[d] == NULL)
+	  { // loop over all elements
+		  if( dStruct[d]->N_Elements() > 1)
+			  dim >> dStruct[d]->Dim();
+	  }
+	  else
+	  {
+		  ix[d]->SetVariable( dStruct[d]);
+		  if( ix[d]->N_Elements() > 1)
+			  dim >> ix[d]->GetDim();
+	  }
       }
-	//     dimension topDim;
-		if( ix[d] == NULL)
-		{ // loop over all elements
-	// 	topDim=top->Dim();
-	// 	dim >> topDim;
-			dim >> top->Dim();
-		}
-		else
-		{
-			ix[d]->SetVariable( top);
-	// 	topDim=ix[d]->GetDim();
-	// 	dim >> topDim;
-			dim >> ix[d]->GetDim();
-		}
+//     dimension topDim;
+    if( ix[d] == NULL)
+    { // loop over all elements
+// 	topDim=top->Dim();
+// 	dim >> topDim;
+	dim >> top->Dim();
+    }
+    else
+    {
+	ix[d]->SetVariable( top);
+// 	topDim=ix[d]->GetDim();
+// 	dim >> topDim;
+	dim >> ix[d]->GetDim();
+    }
   }
+  
+private:
+  DotAccessDescT() {} 
 
 public:
   DotAccessDescT( SizeT depth): 
-    top(NULL), dStruct(), tag(), ix(), dim(), owner(false)
+    propertyAccess(false), top(NULL), dStruct(), tag(), ix(), dim(), owner(false)
   {  
-    dStruct.reserve( depth-1);
-    tag.reserve( depth-1);
+    dStruct.reserve( depth);//-1);
+    tag.reserve( depth);//-1);
     ix.reserve( depth);
   }
 
@@ -352,20 +358,21 @@ public:
   { return owner;}
 
   // resloves (structure hierarchy described by) this to BaseGDL
-  BaseGDL* Resolve()
+  BaseGDL* ADResolve()
   {
     SetupDim();
 
     BaseGDL* newData;
-    // no zeroing, here the new variable is created TODO: zero only for GDL_PTR and GDL_OBJ
+    // no zeroing, here the new variable is created 
+    // zero only for GDL_PTR and GDL_OBJ (refcounting)
     if( top->Type() == GDL_PTR || top->Type() == GDL_OBJ)
-		newData=top->New( dim);//, BaseGDL::NOZERO);
+      newData=top->New( dim);//, BaseGDL::NOZERO);
     else
-		newData=top->New( dim, BaseGDL::NOZERO);
+      newData=top->New( dim, BaseGDL::NOZERO);
 
     rOffset=0; // crucial line, only with rOffset == 0 var is set
  
-   if( ix.back() == NULL) 
+    if( ix.back() == NULL) 
       rStride=top->N_Elements();
     else
       rStride=ix.back()->N_Elements();
@@ -376,7 +383,7 @@ public:
   }
 
   // assigns r to (structure hierarchy described by) this
-  void Assign( BaseGDL* r)
+  void ADAssign( BaseGDL* r)
   {
     SetupDim();
 
@@ -481,30 +488,46 @@ public:
     return dStruct.back();
   }
 
-  void Root( DStructGDL* s, ArrayIndexListT* ix_=NULL) // root
+  void ADRoot( DStructGDL* s, ArrayIndexListT* ix_=NULL) // root
   {
 //     if( s->IsAssoc())
 //       throw GDLException(NULL,"File expression not allowed in this context.",true,false);
+    propertyAccess = false;
     dStruct.push_back(s);
     ix.push_back(ix_); 
   }
 
-  void Add( const std::string& tagName) // tags
+  void ADAdd( const std::string& tagName) // tags
   {
-   if( dStruct.back() == NULL)
-       throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
-
+    if( dStruct.back() == NULL)
+    {
+      // Note: as this is the fail condition, this handling won't slow down normal operation
+//       if( top->Type() == GDL_OBJ) // we must keep "top" as the resolve will be done with this.
+//       {
+// 	// must only have one time property access
+// 	if( propertyAccess)
+// 	{
+// 	  throw GDLException(NULL,"Cannot access tag: "+ tagName+" [of property: "+propertyName+"].",true,false);
+// 	}
+// 	propertyName = tagName;
+// 	propertyAccess = true;
+// 	return; // no further change
+// 	// hence "Add( SizeT)" will fail next time as well -> no further action here
+//       }
+      throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
+    }
+   
     int t=dStruct.back()->Desc()->TagIndex( tagName);
     if( t == -1) 
       throw GDLException(NULL,"Tag name: "+tagName+" is undefined for STRUCT.",true,false);
     
     // call SizeT version
     SizeT tagIx=static_cast<SizeT>(t);
-    Add( tagIx);
+    ADAdd( tagIx);
   }
 
 
-  void Add( SizeT tagN) // tags
+  void ADAdd( SizeT tagN) // tags
   {
     DStructGDL* actTop=dStruct.back();
 
@@ -522,7 +545,11 @@ public:
     top=actTop->GetTag( tagN, 0);
 
     // push struct onto struct stack
-    DStructGDL* newTop=dynamic_cast<DStructGDL*>(top);
+    DStructGDL* newTop;
+    if( top->Type() == GDL_STRUCT)
+      newTop = static_cast<DStructGDL*>(top);
+    else
+      newTop = NULL;
 
     //    if( newTop != NULL) dStruct.push_back( newTop);
     dStruct.push_back( newTop);
@@ -530,8 +557,10 @@ public:
     tag.push_back(tagN);
   }
 
-  void AddIx( ArrayIndexListT* ix_) // tags
+  void ADAddIx( ArrayIndexListT* ix_) // tags
   {
+    if( propertyAccess && ix_ != NULL)
+	  throw GDLException(NULL,"Property must not be indexed: "+propertyName+".",true,false);      
     ix.push_back(ix_); 
   }
 

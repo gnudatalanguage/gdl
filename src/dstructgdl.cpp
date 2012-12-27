@@ -916,10 +916,10 @@ void DStructGDL::CatInsert( const DStructGDL* srcArr, const SizeT atDim, SizeT& 
 BaseGDL* DStructGDL::Get( SizeT tag)
 {
   DotAccessDescT aD( 2); // like a.b (=2 levels)
-  aD.Root( this);  // set root, implicit no index
-  aD.Add( tag);    // tag to extract
-  aD.AddIx( NULL); // no index -> ALL
+  aD.ADRoot( this);  // set root, implicit no index
+  aD.ADAdd( tag);    // tag to extract
+  aD.ADAddIx( NULL); // no index -> ALL
   
-  return aD.Resolve();
+  return aD.ADResolve();
 }
 

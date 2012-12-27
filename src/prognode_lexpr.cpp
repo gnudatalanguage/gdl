@@ -348,7 +348,7 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	// 	break;
 	//       }
 	}
-	aD->Assign( right);
+	aD->ADAssign( right);
 	//res=NULL;
 	//SetRetTree( tIn->getNextSibling());
 	return NULL;

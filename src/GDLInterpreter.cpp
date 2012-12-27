@@ -2197,7 +2197,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	if( dec_inc == DEC) aD->Dec(); //*** aD->Assign( dec_inc);
 	else if( dec_inc == INC) aD->Inc();
 	//                
-	res=aD->Resolve();
+	res=aD->ADResolve();
 	
 	if( dec_inc == POSTDEC) aD->Dec();
 	else if( dec_inc == POSTINC) aD->Inc();
@@ -2235,7 +2235,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	{
 	DStructGDL* oStruct = ObjectStructCheckAccess( *rP, _t);
 	// oStruct cannot be "Assoc_"
-	aD->Root( oStruct, guard.release()); 
+	aD->ADRoot( oStruct, guard.release()); 
 	}
 	else
 	{
@@ -2250,7 +2250,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	if( (*rP)->IsAssoc())
 	throw GDLException( _t, "File expression not allowed "
 	"in this context: "+Name(*rP),true,false);
-	aD->Root( structR, guard.release() /* aL */); 
+	aD->ADRoot( structR, guard.release() /* aL */); 
 	}
 		}
 	else
@@ -2278,7 +2278,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	{
 	DStructGDL* oStruct = ObjectStructCheckAccess( *rP, _t);
 	// oStruct cannot be "Assoc_"
-	aD->Root( oStruct); 
+	aD->ADRoot( oStruct); 
 	}
 	else
 	{
@@ -2295,7 +2295,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	throw GDLException( _t, "File expression not allowed "
 	"in this context: "+Name(*rP),true,false);
 	}
-	aD->Root(structR); 
+	aD->ADRoot(structR); 
 	}
 		}
 	return;
@@ -2357,7 +2357,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 			_t = _retTree;
 			aL=arrayindex_list(_t);
 			_t = _retTree;
-			aD->AddIx(aL);
+			aD->ADAddIx(aL);
 			_retTree = tIn->getNextSibling();
 		}
 	else
@@ -2366,7 +2366,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		{
 			tag_expr(_t, aD);
 			//_t = _retTree;
-			aD->AddIx(NULL);
+			aD->ADAddIx(NULL);
 		}
 		//_retTree = _t;
 	return;
@@ -2385,7 +2385,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
-		aD->AddIx(aL);
+		aD->ADAddIx(aL);
 		_t = __t75;
 		_t = _t->getNextSibling();
 		break;
@@ -2395,7 +2395,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	{
 		tag_expr(_t, aD);
 		_t = _retTree;
-		aD->AddIx(NULL);
+		aD->ADAddIx(NULL);
 		break;
 	}
 	default:
@@ -4123,7 +4123,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	"Struct expression not allowed in this context.",
 	true,false);
 	
-	aD->Assign( right);
+	aD->ADAssign( right);
 	
 	res=NULL;
 	
@@ -4155,7 +4155,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			if( ret < 1) // this is a return code, not the index
 	throw GDLException( tIn, "Expression must be a scalar"
 	" >= 0 in this context: "+Name(e),true,false);
-			aD->Add( tagIx);
+			aD->ADAdd( tagIx);
 	
 			_retTree = tIn->getNextSibling();
 		}
@@ -4165,7 +4165,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 	assert( _t->getType() == IDENTIFIER);
 			std::string tagName=_t->getText();
 	
-			aD->Add( tagName);
+			aD->ADAdd( tagName);
 	
 			_retTree = _t->getNextSibling();		
 		}
@@ -4192,7 +4192,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 		throw GDLException( _t, "Expression must be a scalar"
 		" >= 0 in this context: "+Name(e),true,false);
 		
-		aD->Add( tagIx);
+		aD->ADAdd( tagIx);
 		
 		_t = __t73;
 		_t = _t->getNextSibling();
@@ -4205,7 +4205,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 		_t = _t->getNextSibling();
 		
 		std::string tagName=i->getText();
-		aD->Add( tagName);
+		aD->ADAdd( tagName);
 		
 		break;
 	}
@@ -4316,11 +4316,9 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 ) {
 	ProgNodeP r_dot_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	ArrayIndexListT* aL;
 	BaseGDL*         r;
-	DStructGDL*      structR;
+	ArrayIndexListT* aL;
 	ArrayIndexListGuard guard;
-	bool isObj = callStack.back()->IsObject();
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -4341,9 +4339,16 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		_t = _t->getNextSibling();
 		
 		// check here for object and get struct
-		structR=dynamic_cast<DStructGDL*>(r);
-		if( structR == NULL)
+		if( r->Type() != GDL_STRUCT)
 		{
+		// if( r->Type() != GDL_OBJ)
+		//     {
+		//         // check for Get/SetProperty
+		//         throw GDLException( _t, "Expression must be a"
+		//                             " STRUCT in this context: "+
+		//                             Name(r),true,false);
+		//     }
+		bool isObj = callStack.back()->IsObject();
 		if( isObj)
 		{
 		DStructGDL* oStruct = ObjectStructCheckAccess( r, _t);
@@ -4353,8 +4358,8 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		if( aD->IsOwner()) delete r; 
 		aD->SetOwner( false); // object struct, not owned
 		
-		aD->Root( oStruct, guard.release()); 
-		//                    aD->Root( obj); 
+		aD->ADRoot( oStruct, guard.release()); 
+		//                    aD->ADRoot( obj); 
 		
 		//                     BaseGDL* obj = r->Index( aL);
 		//                     auto_ptr<BaseGDL> objGuard( obj); // new object -> guard
@@ -4364,7 +4369,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		//                     // oStruct cannot be "Assoc_"
 		//                     if( aD->IsOwner()) delete r; 
 		//                     aD->SetOwner( false); // object structs are never owned
-		//                     aD->Root( oStruct); 
+		//                     aD->ADRoot( oStruct); 
 		}
 		else
 		{
@@ -4378,7 +4383,8 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		throw GDLException( _t, "File expression not allowed "
 		"in this context: "+Name(r),true,false);
 		
-		aD->Root( structR, guard.release()); 
+		DStructGDL* structR=static_cast<DStructGDL*>(r);
+		aD->ADRoot( structR, guard.release()); 
 		}
 		
 		break;
@@ -4392,17 +4398,19 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		_t = _retTree;
 		
 		// check here for object and get struct
-		structR = dynamic_cast<DStructGDL*>(r);
-		if( structR == NULL)
+		// structR = dynamic_cast<DStructGDL*>(r);
+		// if( structR == NULL)
+		if( r->Type() != GDL_STRUCT)
 		{
-		if( isObj) // memeber access to object?
+		bool isObj = callStack.back()->IsObject();
+		if( isObj) // member access to object?
 		{
 		DStructGDL* oStruct = ObjectStructCheckAccess( r, _t);
 		
 		// oStruct cannot be "Assoc_"
 		if( aD->IsOwner()) delete r;
 		aD->SetOwner( false); // object structs are never owned
-		aD->Root( oStruct); 
+		aD->ADRoot( oStruct); 
 		}
 		else
 		{
@@ -4418,7 +4426,8 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		"in this context: "+Name(r),true,false);
 		}
 		
-		aD->Root(structR); 
+		DStructGDL* structR=static_cast<DStructGDL*>(r);
+		aD->ADRoot(structR); 
 		}
 		
 		break;
@@ -5008,7 +5017,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	"Struct expression not allowed in this context.",
 	true,false);
 	
-	aD->Assign( right);
+	aD->ADAssign( right);
 	
 	res=NULL;
 	

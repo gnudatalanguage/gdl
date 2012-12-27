@@ -3592,7 +3592,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     ProgNode::interpreter->tag_array_expr(_t, aD.get());
     _t = _t->getNextSibling();
     }
-    rEval= aD->Resolve();
+    rEval= aD->ADResolve();
     return NULL;  // always r-value
   }
   
@@ -3687,7 +3687,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     ProgNode::interpreter->tag_array_expr(_t, aD.get());
     _t = _t->getNextSibling();
     }
-    res= aD->Resolve();
+    res= aD->ADResolve();
     
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
@@ -3775,7 +3775,7 @@ BaseGDL* DOTNode::Eval()
 		    if( aD.IsOwner()) delete r;
 		    aD.SetOwner( false); // object struct, not owned
 
-		    aD.Root( oStruct, guard.release());
+		    aD.ADRoot( oStruct, guard.release());
 	    }
 	    else
 	    {
@@ -3790,7 +3790,7 @@ BaseGDL* DOTNode::Eval()
 	    "in this context: "+interpreter->Name(r),true,false);
 
 	    DStructGDL* structR = static_cast<DStructGDL*>(r);
-	    aD.Root( structR, guard.release());
+	    aD.ADRoot( structR, guard.release());
     }
   }
   else
@@ -3816,7 +3816,7 @@ BaseGDL* DOTNode::Eval()
 			  // oStruct cannot be "Assoc_"
 			  if( aD.IsOwner()) delete r;
 			  aD.SetOwner( false); // object structs are never owned
-			  aD.Root( oStruct);
+			  aD.ADRoot( oStruct);
 		  }
 		  else
 		  {
@@ -3832,7 +3832,7 @@ BaseGDL* DOTNode::Eval()
 			  "in this context: "+interpreter->Name(r),true,false);
 		  }
 		  DStructGDL* structR = static_cast<DStructGDL*>(r);
-		  aD.Root(structR);
+		  aD.ADRoot(structR);
 	  }
   }
 /////////
@@ -3841,7 +3841,7 @@ BaseGDL* DOTNode::Eval()
 	  interpreter->tag_array_expr(_t, &aD); // nDot times
 	  _t = interpreter->GetRetTree();
   }
-  return aD.Resolve();
+  return aD.ADResolve();
 } // DOTNode::Eval
   
 BaseGDL* ARRAYEXPRNode::Eval()
