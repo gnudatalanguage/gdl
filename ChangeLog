@@ -1,4 +1,38 @@
 GDL 0.9.3:
+2012-12-27  m_schellens  <m_schellens@sf.net>
+
+	* CMakeLists.txt, configure.in, src/GDLInterpreter.cpp, src/accessdesc.hpp, src/dstructgdl.cpp, src/gdlc.i.g, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	GDL 0.9.3
+
+2012-12-21  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlc.i.g, src/GDLInterpreter.cpp: replaced dynamic_cast
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/datatypes.hpp, src/overload.cpp, src/prognodeexpr.cpp, src/specializations.hpp:
+	Added _overloadMinus for GDL_OBJECT
+
+2012-12-20  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun_jmg.cpp: slight improvements for check_math_fun
+
+	* src/math_fun_jmg.cpp: Fixed CHECK_MATH; bug tracker ID: 3597463
+
+2012-12-19  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/datatypes.hpp, src/dinterpreter.cpp, src/overload.cpp, src/prognodeexpr.cpp, NEWS:
+	completed _overloadPlus
+
+	* src/datatypes.hpp, src/objects.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/specializations.hpp, src/typedefs.hpp, ChangeLog, NEWS, src/basegdl.hpp, src/basic_op.cpp:
+	preparations for _overloadPlus
+
+2012-12-18  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/dinterpreter.cpp, src/dinterpreter.hpp, src/objects.hpp:
+	implemented .SKIP command
+
+	* src/prognodeexpr.cpp, src/GDLTreeParser.cpp, src/gdlc.tree.g, src/prognode_lexpr.cpp:
+	ARRAYEXPR_FCALL ambiguity some minor improvements
+
 2012-12-18  m_schellens  <m_schellens@sf.net>
 
 	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/dinterpreter.cpp, src/dinterpreter.hpp, src/objects.hpp:

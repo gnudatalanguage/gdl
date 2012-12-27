@@ -1,4 +1,4 @@
-AC_INIT(gdl, 0.9.3)
+AC_INIT(gdl, 0.9.3 CVS)
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl == Configuration (of the configure script)  ============
