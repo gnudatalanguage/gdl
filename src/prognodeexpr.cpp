@@ -3762,36 +3762,7 @@ BaseGDL* DOTNode::Eval()
     // check here for object and get struct
     //structR=dynamic_cast<DStructGDL*>(r);
     // this is much faster than a dynamic_cast
-    if( r->Type() != GDL_STRUCT)
-// 		else
-// 			structR = NULL;
-// 		if( structR == NULL)
-    {
-	    bool isObj = interpreter->CallStackBack()->IsObject();
-	    if( isObj)
-	    {
-		    DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, tIn);
-
-		    if( aD.IsOwner()) delete r;
-		    aD.SetOwner( false); // object struct, not owned
-
-		    aD.ADRoot( oStruct, guard.release());
-	    }
-	    else
-	    {
-		    throw GDLException( tIn, "Expression must be a"
-		    " STRUCT in this context: "+interpreter->Name(r),true,false);
-	    }
-    }
-    else
-    {
-	    if( r->IsAssoc())
-	    throw GDLException( tIn, "File expression not allowed "
-	    "in this context: "+interpreter->Name(r),true,false);
-
-	    DStructGDL* structR = static_cast<DStructGDL*>(r);
-	    aD.ADRoot( structR, guard.release());
-    }
+    interpreter->SetRootR( tIn, &aD, r, aL);
   }
   else
 // 	case EXPR:
@@ -3799,41 +3770,10 @@ BaseGDL* DOTNode::Eval()
 // 	case VAR:
 // 	case VARPTR:
   {
-	  r=interpreter->r_dot_indexable_expr(_t, &aD);
-	  _t = interpreter->GetRetTree();
+    r=interpreter->r_dot_indexable_expr(_t, &aD);
+    _t = interpreter->GetRetTree();
 
-	  // check here for object and get struct
-	  // this is much faster than a dynamic_cast
-	  if( r->Type() != GDL_STRUCT)
-// 		else
-// 			structR = NULL;
-// 		if( structR == NULL)
-	  {
-		  bool isObj = interpreter->CallStackBack()->IsObject();
-		  if( isObj) // memeber access to object?
-		  {
-			  DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, _t);
-			  // oStruct cannot be "Assoc_"
-			  if( aD.IsOwner()) delete r;
-			  aD.SetOwner( false); // object structs are never owned
-			  aD.ADRoot( oStruct);
-		  }
-		  else
-		  {
-			  throw GDLException( _t, "Expression must be a"
-			  " STRUCT in this context: "+interpreter->Name(r),true,false);
-		  }
-	  }
-	  else
-	  {
-		  if( r->IsAssoc())
-		  {
-			  throw GDLException( _t, "File expression not allowed "
-			  "in this context: "+interpreter->Name(r),true,false);
-		  }
-		  DStructGDL* structR = static_cast<DStructGDL*>(r);
-		  aD.ADRoot(structR);
-	  }
+    interpreter->SetRootR( _t, &aD, r, NULL);
   }
 /////////
 

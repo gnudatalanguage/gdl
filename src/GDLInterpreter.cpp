@@ -2214,44 +2214,15 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	
 	ArrayIndexListT* aL;
 	BaseGDL**        rP;
-	//DStructGDL*      structR;
-	ArrayIndexListGuard guard;
 		
 		if( _t->getType() == ARRAYEXPR)
 		{
 			rP=l_indexable_expr(_t->getFirstChild());
 			aL=arrayindex_list(_retTree);
-			guard.reset(aL);
 	
 			_retTree = _t->getNextSibling();
 	
-			// check here for object and get struct
-	//		structR=dynamic_cast<DStructGDL*>(*rP);
-	//		if( structR == NULL)
-			if( (*rP)->Type() != GDL_STRUCT)
-	{
-	bool isObj = callStack.back()->IsObject();
-	if( isObj)
-	{
-	DStructGDL* oStruct = ObjectStructCheckAccess( *rP, _t);
-	// oStruct cannot be "Assoc_"
-	aD->ADRoot( oStruct, guard.release()); 
-	}
-	else
-	{
-	throw GDLException( _t, "Expression must be a"
-	" STRUCT in this context: "+Name(*rP),
-	true,false);
-	}
-	}
-			else 
-	{
-	DStructGDL* structR=static_cast<DStructGDL*>(*rP);
-	if( (*rP)->IsAssoc())
-	throw GDLException( _t, "File expression not allowed "
-	"in this context: "+Name(*rP),true,false);
-	aD->ADRoot( structR, guard.release() /* aL */); 
-	}
+	SetRootL( _t, aD, *rP, aL); 
 		}
 	else
 		// case ARRAYEXPR_MFCALL:
@@ -2266,37 +2237,8 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		// case VARPTR:
 		{
 			rP=l_indexable_expr(_t);
-			//_t = _retTree; _retTree set ok
 	
-			// check here for object and get struct
-			//structR = dynamic_cast<DStructGDL*>(*rP);
-			//if( structR == NULL)
-			if( (*rP)->Type() != GDL_STRUCT)
-	{
-	bool isObj = callStack.back()->IsObject();
-	if( isObj) // member access to object?
-	{
-	DStructGDL* oStruct = ObjectStructCheckAccess( *rP, _t);
-	// oStruct cannot be "Assoc_"
-	aD->ADRoot( oStruct); 
-	}
-	else
-	{
-	throw GDLException( _t, "Expression must be a"
-	" STRUCT in this context: "+Name(*rP),
-	true,false);
-	}
-	}
-			else
-	{
-	DStructGDL* structR=static_cast<DStructGDL*>(*rP);
-	if( (*rP)->IsAssoc())
-	{
-	throw GDLException( _t, "File expression not allowed "
-	"in this context: "+Name(*rP),true,false);
-	}
-	aD->ADRoot(structR); 
-	}
+	SetRootL( _t, aD, *rP, NULL); 
 		}
 	return;
 	//	_retTree = _t;
@@ -2385,7 +2327,6 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
-		aD->ADAddIx(aL);
 		_t = __t75;
 		_t = _t->getNextSibling();
 		break;
@@ -2395,7 +2336,6 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	{
 		tag_expr(_t, aD);
 		_t = _retTree;
-		aD->ADAddIx(NULL);
 		break;
 	}
 	default:
@@ -4183,17 +4123,6 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 		_t = _t->getFirstChild();
 		e=expr(_t);
 		_t = _retTree;
-		
-		auto_ptr<BaseGDL> e_guard(e);
-		
-		SizeT tagIx;
-		int ret=e->Scalar2index(tagIx);
-		if( ret < 1) // this is a return code, not the index
-		throw GDLException( _t, "Expression must be a scalar"
-		" >= 0 in this context: "+Name(e),true,false);
-		
-		aD->ADAdd( tagIx);
-		
 		_t = __t73;
 		_t = _t->getNextSibling();
 		break;
@@ -4203,10 +4132,6 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 		i = _t;
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
-		
-		std::string tagName=i->getText();
-		aD->ADAdd( tagName);
-		
 		break;
 	}
 	default:
@@ -4318,7 +4243,6 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	
 	BaseGDL*         r;
 	ArrayIndexListT* aL;
-	ArrayIndexListGuard guard;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -4334,58 +4258,11 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
-		guard.reset(aL);
 		_t = __t79;
 		_t = _t->getNextSibling();
 		
 		// check here for object and get struct
-		if( r->Type() != GDL_STRUCT)
-		{
-		// if( r->Type() != GDL_OBJ)
-		//     {
-		//         // check for Get/SetProperty
-		//         throw GDLException( _t, "Expression must be a"
-		//                             " STRUCT in this context: "+
-		//                             Name(r),true,false);
-		//     }
-		bool isObj = callStack.back()->IsObject();
-		if( isObj)
-		{
-		DStructGDL* oStruct = ObjectStructCheckAccess( r, _t);
-		
-		//                    DStructGDL* obj = oStruct->Index( aL);
-		
-		if( aD->IsOwner()) delete r; 
-		aD->SetOwner( false); // object struct, not owned
-		
-		aD->ADRoot( oStruct, guard.release()); 
-		//                    aD->ADRoot( obj); 
-		
-		//                     BaseGDL* obj = r->Index( aL);
-		//                     auto_ptr<BaseGDL> objGuard( obj); // new object -> guard
-		
-		//                     DStructGDL* oStruct = ObjectStructCheckAccess( obj, _t);
-		
-		//                     // oStruct cannot be "Assoc_"
-		//                     if( aD->IsOwner()) delete r; 
-		//                     aD->SetOwner( false); // object structs are never owned
-		//                     aD->ADRoot( oStruct); 
-		}
-		else
-		{
-		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(r),true,false);
-		}
-		}
-		else
-		{
-		if( r->IsAssoc())
-		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(r),true,false);
-		
-		DStructGDL* structR=static_cast<DStructGDL*>(r);
-		aD->ADRoot( structR, guard.release()); 
-		}
+		SetRootR( _t, aD, r, aL); 
 		
 		break;
 	}
@@ -4398,37 +4275,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		_t = _retTree;
 		
 		// check here for object and get struct
-		// structR = dynamic_cast<DStructGDL*>(r);
-		// if( structR == NULL)
-		if( r->Type() != GDL_STRUCT)
-		{
-		bool isObj = callStack.back()->IsObject();
-		if( isObj) // member access to object?
-		{
-		DStructGDL* oStruct = ObjectStructCheckAccess( r, _t);
-		
-		// oStruct cannot be "Assoc_"
-		if( aD->IsOwner()) delete r;
-		aD->SetOwner( false); // object structs are never owned
-		aD->ADRoot( oStruct); 
-		}
-		else
-		{
-		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(r),true,false);
-		}
-		}
-		else
-		{
-		if( r->IsAssoc())
-		{
-		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(r),true,false);
-		}
-		
-		DStructGDL* structR=static_cast<DStructGDL*>(r);
-		aD->ADRoot(structR); 
-		}
+		SetRootR( _t, aD, r, NULL); 
 		
 		break;
 	}

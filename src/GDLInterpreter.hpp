@@ -592,6 +592,83 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         return "<(ptr to undefined expression not found on the heap)>";
     }
 
+    void SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL) 
+    { 
+
+		if( r->Type() == GDL_STRUCT)
+            {
+                if( r->IsAssoc())
+                    {
+                        ArrayIndexListGuard guard( aL);
+                        throw GDLException( tt, "File expression not allowed "
+                                            "in this context: "+Name(r),true,false);
+                    }
+                DStructGDL* structR=static_cast<DStructGDL*>(r);
+                aD->ADRoot(structR, aL); 
+            }
+		else
+            {
+                ArrayIndexListGuard guard( aL);
+                bool isObj = callStack.back()->IsObject();
+                if( isObj) // member access to object?
+                    {
+                        DStructGDL* oStruct = ObjectStructCheckAccess( r, tt);
+                        // oStruct cannot be "Assoc_"
+                        aD->ADRoot( oStruct, guard.release()); 
+                    }
+                else
+                    {
+                        throw GDLException( tt, "Expression must be a"
+                                            " STRUCT in this context: "+Name(r),
+                                            true,false);
+                    }
+            }
+    }
+
+    void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL) 
+    { 
+        // check here for object and get struct
+        if( r->Type() == GDL_STRUCT)
+            {
+                if( r->IsAssoc())
+                    {
+                        ArrayIndexListGuard guard( aL);
+                        throw GDLException( tt, "File expression not allowed "
+                                            "in this context: "+Name(r),true,false);
+                    }
+                DStructGDL* structR=static_cast<DStructGDL*>(r);
+                aD->ADRoot( structR, aL); 
+            }
+        else
+            {
+                ArrayIndexListGuard guard( aL);
+                // if( r->Type() != GDL_OBJ)
+                //     {
+                //         // check for Get/SetProperty
+                //         throw GDLException( _t, "Expression must be a"
+                //                             " STRUCT in this context: "+
+                //                             Name(r),true,false);
+                //     }
+                bool isObj = callStack.back()->IsObject();
+                if( isObj)
+                    {
+                        DStructGDL* oStruct = ObjectStructCheckAccess( r, tt);
+                        
+                        if( aD->IsOwner()) delete r; 
+                        aD->SetOwner( false); // object struct, not owned
+                        
+                        aD->ADRoot( oStruct, guard.release()); 
+                    }
+                else
+                    {
+                        throw GDLException( tt, "Expression must be a"
+                                            " STRUCT in this context: "+Name(r),true,false);
+                    }
+            }
+    }
+
+
+
     // compiler (lexer, parser, treeparser) def in dinterpreter.cpp
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 

@@ -300,32 +300,32 @@ private:
     SizeT nDot=tag.size();
     SizeT d;
     for( d=0; d<nDot; ++d)
-      {
-	  if( ix[d] == NULL)
-	  { // loop over all elements
-		  if( dStruct[d]->N_Elements() > 1)
-			  dim >> dStruct[d]->Dim();
-	  }
-	  else
-	  {
-		  ix[d]->SetVariable( dStruct[d]);
-		  if( ix[d]->N_Elements() > 1)
-			  dim >> ix[d]->GetDim();
-	  }
+    {
+      if( ix[d] == NULL)
+      { // loop over all elements
+	if( dStruct[d]->N_Elements() > 1)
+		dim >> dStruct[d]->Dim();
       }
-//     dimension topDim;
+      else
+      {
+	ix[d]->SetVariable( dStruct[d]);
+	if( ix[d]->N_Elements() > 1)
+		dim >> ix[d]->GetDim();
+      }
+    }
+    //     dimension topDim;
     if( ix[d] == NULL)
     { // loop over all elements
-// 	topDim=top->Dim();
-// 	dim >> topDim;
-	dim >> top->Dim();
+    // 	topDim=top->Dim();
+    // 	dim >> topDim;
+	    dim >> top->Dim();
     }
     else
     {
-	ix[d]->SetVariable( top);
-// 	topDim=ix[d]->GetDim();
-// 	dim >> topDim;
-	dim >> ix[d]->GetDim();
+	    ix[d]->SetVariable( top);
+    // 	topDim=ix[d]->GetDim();
+    // 	dim >> topDim;
+	    dim >> ix[d]->GetDim();
     }
   }
   
@@ -364,7 +364,7 @@ public:
 
     BaseGDL* newData;
     // no zeroing, here the new variable is created 
-    // zero only for GDL_PTR and GDL_OBJ (refcounting)
+    // zero only for GDL_PTR and GDL_OBJ (because of ref counting)
     if( top->Type() == GDL_PTR || top->Type() == GDL_OBJ)
       newData=top->New( dim);//, BaseGDL::NOZERO);
     else
@@ -519,8 +519,11 @@ public:
    
     int t=dStruct.back()->Desc()->TagIndex( tagName);
     if( t == -1) 
+    {
+      // TODO: Check for call to Get/SetProperty
+      
       throw GDLException(NULL,"Tag name: "+tagName+" is undefined for STRUCT.",true,false);
-    
+    }
     // call SizeT version
     SizeT tagIx=static_cast<SizeT>(t);
     ADAdd( tagIx);
@@ -542,18 +545,21 @@ public:
     if( tagN >= nTags)
       throw GDLException(NULL,"Invalid tag number.",true,false);
 
+    // TODO: Insert object struct for Get/SetProperty
+    // tagN == -1 (change type to int)?
+      
     top=actTop->GetTag( tagN, 0);
 
     // push struct onto struct stack
-    DStructGDL* newTop;
     if( top->Type() == GDL_STRUCT)
-      newTop = static_cast<DStructGDL*>(top);
+    {
+      DStructGDL* newTop=static_cast<DStructGDL*>(top);
+      dStruct.push_back( newTop);
+    }
     else
-      newTop = NULL;
-
-    //    if( newTop != NULL) dStruct.push_back( newTop);
-    dStruct.push_back( newTop);
-
+    {
+      dStruct.push_back( NULL);      
+    }
     tag.push_back(tagN);
   }
 
