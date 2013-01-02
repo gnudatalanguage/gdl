@@ -3,14 +3,16 @@
 <h2><a href="index.html">Frequently Asked Questions</a></h2>
 
 <h3>Installation and portability issues</h3>
-  <ul>
-    <li>
-      <a>Is it possible to run GDL on Windows?</a>
-      <br />
-      Yes. 
-      It's possible to compile GDL under Cygwin or e.g. to run GDL under the coLinux platform.
-      Due to lack of Windows developer- or user-base there is virtually no
-      testing done on Windows, though. Help welcome!
+<ul>
+<li>
+<a>Is it possible to run GDL on MS-Windows?</a>
+<br>Yes.
+<br>Solution 1: It's possible to compile GDL under Cygwin or e.g. to run GDL under the coLinux platform.
+<br>Solution 2: since GDL 0.9.3, GDL should be compilable under MS-windows thanks to <a>Jeong Bin Park</a>
+Please follow the <a href="http://cyfinity.egloos.com/1727847">instructions described here</a>.
+Feedback realy welcome. Please notice SPAWN functionnalities currently not working, which explain large
+number of FAIL in testsuite.
+<br>N.B.: Due to lack of Windows developer- or user-base there is virtually no testing done on Windows, though. Help welcome!
     </li>
   </ul>
 
@@ -22,7 +24,7 @@
       No. 
       GDL is free/libre/open-source software. 
       The distinction between a developers' (costly) version and a users' (free) version is not applicable.
-      Any user if free to use the full power of GDL.
+      Any user is free to use the full power of GDL.
     </li>
     <li>
       <a>Is there a way to save/distribute pre-compiled GDL routines (as&nbsp;.sav&nbsp;files in IDL)?</a>

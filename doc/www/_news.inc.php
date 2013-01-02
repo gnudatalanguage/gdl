@@ -1,3 +1,12 @@
+<h2>GDL 0.9.3 released</h2>
+<p>
+  2013-01-01: FreeBSD port updated<br />
+  2012-12-28: ArchLinux package updated<br />
+  2012-12-28: Fedora package updated<br />
+  2012-12-27: GDL 0.9.3 source tarball released.<br />
+  <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.3/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>
+</p>
+
 <h2>GDL 0.9.2 released</h2>
 <p>
   2012-02-20: Ubuntu package updated<br />
