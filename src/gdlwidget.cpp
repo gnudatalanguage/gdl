@@ -651,7 +651,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
 		}
 
 		// define grid object
-		wxFlexGridSizer *buttonSizer = new wxFlexGridSizer( rows, cols );
+		wxFlexGridSizer *buttonSizer = new wxFlexGridSizer( (int)rows, (int) cols, 0, 0 );
 		switch(mode)
 			{
 			case NORMAL:
