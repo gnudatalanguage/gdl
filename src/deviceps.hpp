@@ -49,12 +49,12 @@ class DevicePS: public Graphics
   bool             encapsulated;
   float	           scale;
 
-  static const int dpi = 72;
 #ifdef _MSC_VER
 #define cm2in (.01 / GSL_CONST_MKSA_INCH); // This is not good, but works
 #else
   static const float cm2in = .01 / GSL_CONST_MKSA_INCH;
 #endif
+  static const PLFLT dpi = 72.0 ; //in dpi;
 
   void InitStream()
   {
@@ -66,56 +66,64 @@ class DevicePS: public Graphics
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-
-    actStream = new GDLPSStream( nx, ny, SysVar::GetPFont(), encapsulated);
+    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color);
 
     actStream->sfnam( fileName.c_str());
 
     // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
-    actStream->spage(dpi, dpi, 540, 720, 0, 0);
+    actStream->spage(dpi, dpi, 540, 720, 32, 32); //plplot default: portrait!
 
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
-//     char as[32];
-//     sprintf(as, "%f", XPageSize / YPageSize);
-//     actStream->SETOPT( "a", as);
-    std::string as = i2s( XPageSize / YPageSize);
-    actStream->SETOPT( "a", as.c_str());
+    PLFLT pageRatio=YPageSize/XPageSize;
+      std::string as = i2s( pageRatio);
+      actStream->SETOPT( "a", as.c_str());
 
     // plot orientation
-    actStream->sori(orient_portrait ? 1 : 2);
+    actStream->sdiori(orient_portrait ? 90.0 : 0.0);
 
     // no pause on destruction
     actStream->spause( false);
 
     // extended fonts
     actStream->fontld( 1);
-
-    // set color map
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    //    actStream->scmap0( r, g, b, ctSize); 
-    actStream->scmap1( r, g, b, ctSize); 
-    actStream->scolbg(255,255,255); // white background
-
+    
+    actStream->SETOPT( "drvopt","text=0");
     // default: black+white (IDL behaviour)
-    //actStream->scolor( color); // has no effect
-    if (color == 0) 
-      actStream->SETOPT( "drvopt","text=0,color=0"); 
-    else 
-      actStream->SETOPT( "drvopt","text=0,color=1");
-    color=0;
+    if (color == 0)
+    {
+//      actStream->SETOPT( "drvopt","text=0,color=0");
+////      actStream->scolor(0); // has no effect
+    }
+    else
+    {
+      actStream->SETOPT( "drvopt","color=1");
+          // set color map
+        PLINT r[ctSize], g[ctSize], b[ctSize];
+        actCT.Get( r, g, b);
+//        actStream->scmap0( r, g, b, ctSize);
+        actStream->scmap1( r, g, b, ctSize);
+        actStream->scolbg(255,255,255); // white background
+    }
 
     actStream->Init();
     
+    // need to be called initially. permit to fix things
+    actStream->ssub(1,1);
+    actStream->adv(0);
     // load font
     actStream->font( 1);
+    actStream->vpor(0,1,0,1);
+    actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
+   //in case these are not initalized, here is a good place to do it.
+    if (actStream->updatePageInfo()==true)
+    {
+        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    //    (*pMulti)[ 0] = 0;
-    actStream->adv(0);
+    }
   }
     
 private:
@@ -163,6 +171,27 @@ private:
       tmp = (login == NULL ? "?" : login) + string("@") + uts.nodename;
       PS_set_info(ps, "Author", tmp.c_str());
     }
+    //bug: PSLIB does not return the correct boundingbox, it forgets offx and offy. Try to get it
+    //back (using pslib own code!)!
+        char *bb;
+        FILE *feps;
+        char buffer[1024]; //largely sufficient
+        int nbytes;
+        feps=fopen(fileName.c_str(), "r");
+        nbytes=fread(buffer,sizeof(char),1023,feps);
+        fclose(feps);
+        buffer[1023]=0;
+	bb = strstr(buffer, "%%BoundingBox:");
+        float offx, offy, width, height;
+	if(bb) {
+            bb += 15;
+            sscanf(bb, "%f %f %f %f", &offx, &offy, &width, &height);
+	} else {
+            offx=0;
+            offy=0;
+            width=500;
+            height=500; //silly values, will be replaced afterwards hopefully.
+        }
 
     // TODO
     //psfont = PS_findfont(ps, "Helvetica", "", 0); 
@@ -178,12 +207,12 @@ private:
           goto cleanup;
         }
 
-        float scl = orient_portrait
-          ? (XPageSize * cm2in * dpi) / (PS_get_value(ps, "imagewidth", (float) psimage))
-          : (YPageSize * cm2in * dpi) / (PS_get_value(ps, "imagewidth", (float) psimage));
+        float scl = !orient_portrait
+          ? ((XPageSize-XOffset) * cm2in * dpi ) / (PS_get_value(ps, "imagewidth", (float) psimage))
+          : ((YPageSize-YOffset) * cm2in * dpi) / (PS_get_value(ps, "imageheight", (float) psimage));
         PS_place_image(ps, psimage, 
-          XOffset * cm2in * dpi,
-          YOffset * cm2in * dpi, 
+          (XOffset * cm2in * dpi)-offx,
+          (YOffset * cm2in * dpi)-offy,
           scale * scl
         );
         PS_close_image(ps, psimage); 
@@ -228,7 +257,8 @@ private:
 
 public:
   DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), color(0), 
-    decomposed( 0), encapsulated(false), scale(1.)
+    decomposed( 0), encapsulated(false), scale(1.), XPageSize(21.0), YPageSize(29.7),
+    XOffset(0.0),YOffset(0.0)
   {
     name = "PS";
 
@@ -239,22 +269,22 @@ public:
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( 17780)); 
-    dStruct->InitTag("Y_SIZE",     DLongGDL( 12700)); 
-    dStruct->InitTag("X_VSIZE",    DLongGDL( 640)); 
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( 512)); 
-    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); 
+    dStruct->InitTag("X_SIZE",     DLongGDL( 29700)); //29700/1000=29.7 cm
+    dStruct->InitTag("Y_SIZE",     DLongGDL( 21000));
+    dStruct->InitTag("X_VSIZE",    DLongGDL( 29700));
+    dStruct->InitTag("Y_VSIZE",    DLongGDL( 21000));
+    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 360));
+    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 360));
+    dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); //1000 pix/cm
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 1000.0)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
-    dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
+    dStruct->InitTag("FILL_DIST",  DLongGDL( 1));
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
     dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
     dStruct->InitTag("ORIGIN",     origin); 
-    dStruct->InitTag("ZOOM",       zoom); 
+    dStruct->InitTag("ZOOM",       zoom);
 
     SetPortrait();
 
@@ -325,6 +355,10 @@ public:
       = DLong(floor(0.5+
         xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
       ));
+   (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_VSIZE"))))[0]
+      = DLong(floor(0.5+
+        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+      ));
     return true;
   }
 
@@ -335,32 +369,36 @@ public:
       = DLong(floor(0.5+
         ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
       ));
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_VSIZE"))))[0]
+      = DLong(floor(0.5+
+        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+      ));
     return true;
   }
 
-  bool SetColor()
+  bool SetColor(const long hascolor)
   {
-    color=1;
+    if (hascolor==1) color=1; else color=0;
     return true;
   }
 
   bool SetPortrait()
   {
     orient_portrait = true;
-    XPageSize = 7 * 100. * GSL_CONST_MKSA_INCH;
-    YPageSize = 5 * 100. * GSL_CONST_MKSA_INCH; 
-    XOffset = .75 * 100. * GSL_CONST_MKSA_INCH; 
-    YOffset = 3 * 100. * GSL_CONST_MKSA_INCH; // TODO: this is different from IDL docs
+//    XPageSize = 7 * 100. * GSL_CONST_MKSA_INCH;
+//    YPageSize = 5 * 100. * GSL_CONST_MKSA_INCH;
+//    XOffset = .75 * 100. * GSL_CONST_MKSA_INCH;
+//    YOffset = 3 * 100. * GSL_CONST_MKSA_INCH; // TODO: this is different from IDL docs
     return true;
   }
 
   bool SetLandscape()
   {
     orient_portrait = false;
-    XPageSize = 10 * 100. * GSL_CONST_MKSA_INCH; 
-    YPageSize = 7 * 100. * GSL_CONST_MKSA_INCH; 
-    XOffset = .5 * 100. * GSL_CONST_MKSA_INCH; 
-    YOffset = .75 * 100. * GSL_CONST_MKSA_INCH;
+//    XPageSize = 10 * 100. * GSL_CONST_MKSA_INCH;
+//    YPageSize = 7 * 100. * GSL_CONST_MKSA_INCH;
+//    XOffset = .5 * 100. * GSL_CONST_MKSA_INCH;
+//    YOffset = .75 * 100. * GSL_CONST_MKSA_INCH;
     return true;
   }
 
@@ -404,8 +442,8 @@ public:
     DDouble xmin, ymin;
     {
       DDouble null;
-      lib::get_axis_crange("X", xmin, null);
-      lib::get_axis_crange("Y", ymin, null);
+      lib::gdlGetCurrentAxisRange("X", xmin, null);
+      lib::gdlGetCurrentAxisRange("Y", ymin, null);
     }
     if (nParam == 2) {
       e->AssureLongScalarPar( 1, pos);
