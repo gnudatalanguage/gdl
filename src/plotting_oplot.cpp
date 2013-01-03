@@ -39,8 +39,6 @@ namespace lib {
        // e->Throw( "Sorry, POLAR keyword not ready");
       }
 
-      DDoubleGDL *yValBis, *xValBis;
-      auto_ptr<BaseGDL> xvalBis_guard, yvalBis_guard;
       //test and transform eventually if POLAR and/or NSUM!
       if( nParam() == 1)
       {
@@ -128,23 +126,21 @@ namespace lib {
       }
     }
 
-  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  private: void old_body( EnvT* e, GDLGStream* actStream) 
   {
-    bool valid;
-    valid=true;
     DLong psym;
 
     // get ![XY].CRANGE
     DDouble xStart, xEnd, yStart, yEnd;
-    get_axis_crange("X", xStart, xEnd);
-    get_axis_crange("Y", yStart, yEnd);
+    gdlGetCurrentAxisRange("X", xStart, xEnd);
+    gdlGetCurrentAxisRange("Y", yStart, yEnd);
     DDouble minVal, maxVal;
     bool doMinMax;
 
     bool xLog;
     bool yLog;
-    get_axis_type("X", xLog);
-    get_axis_type("Y", yLog);
+    gdlGetAxisType("X", xLog);
+    gdlGetAxisType("Y", yLog);
 
     if ((yStart == yEnd) || (xStart == xEnd))
     {
@@ -157,9 +153,6 @@ namespace lib {
         Message("OPLOT: !X.CRANGE ERROR, setting to [0,1]");
       xStart = 0; //xVal->min();
       xEnd = 1; //xVal->max();
-
-      set_axis_crange("X", xStart, xEnd, xLog);
-      set_axis_crange("Y", yStart, yEnd, yLog);
     }
     
     //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
@@ -172,45 +165,39 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
-    // CLIPPING
-    DDoubleGDL* clippingD=NULL;
-    DLong noclip=0;
-    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
-    if(noclip == 0)
-      {
-	static int clippingix = e->KeywordIx( "CLIP"); 
-	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-      }
-    
-    // start drawing. Graphic Keywords accepted:CLIP(NO), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
-    //                                          PSYM(YES), SYMSIZE(YES), T3D(NO), ZVALUE(NO)
-    gkw_background(e, actStream, false);
-    gkw_color(e, actStream);
-    //    gkw_noerase(e, actStream, true);
-    gkw_psym(e, psym);
-    DFloat charsize;
-    gkw_charsize(e,actStream, charsize, false); //set !P.CHARSIZE
-    gkw_thick(e, actStream);
-    gkw_symsize(e, actStream);
-    gkw_linestyle(e, actStream);
+    int noclipvalue=0;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclipvalue);
+    // Clipping is enabled by default for OPLOT.
+    // make all clipping computations BEFORE setting graphic properties (color, size)
+    bool doClip=(e->KeywordSet("CLIP")||noclipvalue==1);
+    bool stopClip=false;
+    if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
 
-    // plot the data
-    if(valid) //invalid is not yet possible. Could be done by a severe clipping for example.
-      valid=draw_polyline(e, actStream, 
-			  xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog,
-			  psym, FALSE);
+    // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
+    //                                          PSYM(YES), SYMSIZE(YES), T3D(NO), ZVALUE(NO)
+    gdlSetGraphicsBackgroundColorFromKw(e, actStream, false);
+    gdlSetGraphicsForegroundColorFromKw(e, actStream);
+    gdlGetPsym(e, psym);
+    gdlSetPenThickness(e, actStream);
+    gdlSetSymsize(e, actStream);
+    gdlSetLineStyle(e, actStream);
+
+
+      // TODO: handle "valid"!
+    bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
+    if (stopClip) stopClipping(actStream);
 
 
     actStream->lsty(1);//reset linestyle
-  } // }}}
+  } 
 
-    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) 
     {
-    } // }}}
+    } 
 
-    private: void post_call(EnvT* e, GDLGStream* actStream) // {{{
+    private: void post_call(EnvT* e, GDLGStream* actStream)
     {
-    } // }}}
+    } 
 
   }; // oplot_call class 
 
