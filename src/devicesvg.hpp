@@ -65,12 +65,20 @@ class DeviceSVG : public Graphics
 
     actStream->Init();
     
+    // need to be called initially. permit to fix things
+    actStream->ssub(1,1);
+    actStream->adv(0);
     // load font
     actStream->font( 1);
+    actStream->vpor(0,1,0,1);
+    actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
+   //in case these are not initalized, here is a good place to do it.
+    if (actStream->updatePageInfo()==true)
+    {
+        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    //    (*pMulti)[ 0] = 0;
-    actStream->adv(0);
+    }
   }
 
 public:
