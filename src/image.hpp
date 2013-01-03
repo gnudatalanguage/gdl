@@ -19,7 +19,6 @@
 #define IMAGE_HPP_
 
 #include <plplot/plstream.h>
-#include <plplot/plplotP.h>
 
 #include "envt.hpp"
 
