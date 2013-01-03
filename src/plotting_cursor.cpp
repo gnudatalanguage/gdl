@@ -163,15 +163,15 @@ void cursor(EnvT* e){
 
   if (debug)
   {
-    // plg->text();
+    //plg->text();
     cout << "mouse button : " << gin.button << endl;
     cout << "keysym : " << gin.keysym << endl;
     //plg->gra();
-    /* if (gin.keysym < 0xFF && isprint(gin.keysym))
+   if (gin.keysym < 0xFF && isprint(gin.keysym))
    cout << "wx = " << gin.wX << ", wy = " << gin.wY <<
    ", dx = " << gin.dX << ",  dy = " << gin.dY <<
    ",  c = '" << gin.keysym << "'" << endl;
-   plg->gra(); */
+   //plg->gra();
   }
 
   if (e->KeywordSet("DEVICE"))
@@ -207,7 +207,7 @@ void cursor(EnvT* e){
       {
 #endif
 
-        getWorldCoordinatesFromPLPLOT(plg, (DDouble)gin.dX, (DDouble)gin.dY, &tempx, &tempy);
+        plg->NormToWorld((DDouble)gin.dX, (DDouble)gin.dY, tempx, tempy);
 #ifdef USE_LIBPROJ4
       }
       else
@@ -217,15 +217,15 @@ void cursor(EnvT* e){
         XYTYPE idata, idataN;
         idataN.x = gin.dX;
         idataN.y = gin.dY;
-        getWorldCoordinatesFromPLPLOT(plg, idataN.x, idataN.y, &idata.x, &idata.y);
+        plg->NormToWorld(idataN.x, idataN.y, idata.x, idata.y);
         LPTYPE odata = PJ_INV(idata, ref);
         tempx = odata.lam * RAD_TO_DEG;
         tempy = odata.phi * RAD_TO_DEG;
       }
 #endif
       bool xLog, yLog;
-      get_axis_type("X", xLog);
-      get_axis_type("Y", yLog);
+      gdlGetAxisType("X", xLog);
+      gdlGetAxisType("Y", yLog);
       if(xLog) tempx=pow(10,tempx);
       if(yLog) tempy=pow(10,tempy);
       x = new DDoubleGDL(tempx);
@@ -242,7 +242,7 @@ void cursor(EnvT* e){
     static unsigned xMouseTag = Struct->Desc()->TagIndex("X");
     (*static_cast<DLongGDL*>(Struct->GetTag(xMouseTag)))[0] = gin.pX;
     static unsigned yMouseTag = Struct->Desc()->TagIndex("Y");
-    (*static_cast<DLongGDL*>(Struct->GetTag(yMouseTag)))[0] = gin.pY;
+    (*static_cast<DLongGDL*>(Struct->GetTag(yMouseTag)))[0] =  plg->yPageSize()-gin.pY;
     static unsigned ButtonMouseTag = Struct->Desc()->TagIndex("BUTTON");
     if (gin.button == 3) gin.button = 4; // 4 values only (0,1,2,4)
     (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0] = gin.button;

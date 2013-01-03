@@ -66,7 +66,7 @@ namespace lib {
     if (!mapSet) 
       e->Throw("Map transform not established (MAP_SET).");
 
-    gkw_color(e, actStream);
+    gdlSetGraphicsForegroundColorFromKw(e, actStream);
 
     actStream->NoSub();
 
