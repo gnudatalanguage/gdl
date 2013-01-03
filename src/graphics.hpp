@@ -174,7 +174,7 @@ public:
   virtual DLong GetDecomposed()                       { return -1;}
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}
-  virtual bool SetColor()                             { return false;}
+  virtual bool SetColor(const long color=0)           { return false;}
   virtual bool SetScale(const float)                  { return false;}
   virtual bool SetXOffset(const float)                { return false;}
   virtual bool SetYOffset(const float)                { return false;}
