@@ -25,7 +25,6 @@
 #include <vector>
 #include <cstring>
 
-//#include <plplot/plstream.h>
 #include <plplot/plplotP.h>
 #include <plplot/drivers.h>
 
@@ -424,7 +423,7 @@ public:
     PLFLT xp; PLFLT yp; 
     PLINT xleng; PLINT yleng;
     PLINT xoff; PLINT yoff;
-    winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
+    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
 
     int debug=0;
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
@@ -434,12 +433,13 @@ public:
 
     xleng = xSize;
     yleng = ySize;
-    xoff  = xPos;
-    yoff  = yMaxSize-(yPos+ySize);
+    xoff  = xPos==0?xMaxSize-xSize:xPos;
+    yoff  = yPos==0?yPos:yMaxSize-(yPos+ySize);
     if (yoff <= 0) yoff=1;
     
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
-
+    xp=max(xp,1.0);
+    yp=max(yp,1.0);
     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
     // no pause on win destruction
@@ -468,15 +468,20 @@ public:
 
     winList[ wIx]->Init();
     
+    // need to be called initially. permit to fix things
+    winList[ wIx]->ssub(1,1);
+    winList[ wIx]->adv(0);
     // load font
     winList[ wIx]->font( 1);
+    winList[ wIx]->vpor(0,1,0,1);
+    winList[ wIx]->wind(0,1,0,1);
     winList[ wIx]->DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (winList[ wIx]->updatePageInfo()==true)
+    {
+        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    //    (*pMulti)[ 0] = nx*ny;
-
-    // need to be called initially
-    winList[ wIx]->adv(0);
-
+    }
     // sets actWin and updates !D
     SetActWin( wIx);
 
