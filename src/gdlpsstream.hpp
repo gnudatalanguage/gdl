@@ -27,11 +27,11 @@ private:
   int page;
   bool encapsulated;
 public:
-  GDLPSStream( int nx, int ny, int pfont, bool encaps):
+  GDLPSStream( int nx, int ny, int pfont, bool encaps, int color):
 #ifdef _MSC_VER
-    GDLGStream( nx, ny, pfont == 1 ? "psttf" : "ps")
+    GDLGStream( nx, ny, /*pfont == 1 ? "psttf" :*/ (color==0)?"ps":"psc")
 #else
-    GDLGStream::GDLGStream( nx, ny, pfont == 1 ? "psttf" : "ps")
+    GDLGStream::GDLGStream( nx, ny, /*pfont == 1 ? "psttf" :*/(color==0)?"ps":"psc")
 #endif
   {
     encapsulated = encaps;
