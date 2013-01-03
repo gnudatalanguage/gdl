@@ -20,865 +20,720 @@
 #include "math_utl.hpp"
 
 #ifdef _MSC_VER
-#define isinf !_finite
+#  define isinf !_finite
 #endif
 
-namespace lib {
+#define LABELOFFSET 0.003
+#define LABELSPACING 0.25
+
+namespace lib
+{
 
   using namespace std;
 
-  struct mypltr_passinfo // {{{
+// shared parameter
+  static bool xLog;
+  static bool yLog;
+
+  void myfill( PLINT n, const PLFLT *x, const PLFLT *y )
   {
-    PLFLT spa[4];
-#ifdef USE_LIBPROJ4
-    PLFLT sx[2], sy[2];
-    LPTYPE* idata;
-    XYTYPE* odata; 
-    PROJTYPE* ref; 
-    DDouble d_nan;
-    bool mapSet;
-#endif
-    bool xLog;
-    bool yLog;
-  }; // }}}
-
-  void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data) // {{{
-  {
-    PLFLT tr[6]={0.0,0.0,0.0,0.0,0.0,0.0};
-    struct mypltr_passinfo *ptr = (mypltr_passinfo* )pltr_data;
-
-    tr[0] = ptr->spa[0];
-    tr[4] = ptr->spa[1];
-    tr[2] = ptr->spa[2];
-    //    tr[5] = ptr->spa[4];
-    tr[5] = ptr->spa[3];
-
-    // conversion from array indices to data coord
-    x = tr[0] * x + tr[2];
-    y = tr[4] * y + tr[5];
-    
-    // conversion from lon / lat to projected values (in normal coordinates)
-#ifdef USE_LIBPROJ4
-    if (ptr->mapSet)
+    static int count=0;
+    count++;
+    for (SizeT i=0; i<n; ++i)
     {
-      // Convert from lon/lat in degrees to radians
-      ptr->idata->lam = x * DEG_TO_RAD;
-      ptr->idata->phi = y * DEG_TO_RAD;
-      
-      // Convert from lon/lat in radians to data coord
-      *ptr->odata = PJ_FWD(*ptr->idata, ptr->ref);
-      x = ptr->odata->x;
-      y = ptr->odata->y;
-
-      // handling inf points (not sure if this is needed?)
-      if (!isfinite(x) || !isfinite(y)) x = y = ptr->d_nan;
+     fprintf(stderr,"%d %f %f\n",count, x[i],y[i]);
     }
-#endif
+  }
 
-    // assignment to pointers passed in arguments
-    *tx = ptr->xLog ? log10(x) : x;
-    *ty = ptr->yLog ? log10(y) : y;
-  } // }}}
-
-  class contour_call : public plotting_routine_call
+  PLINT doIt( PLFLT x, PLFLT y )
   {
+    if (xLog && x<=0 ) return 0;
+    if (yLog && y<=0 ) return 0;
+    return 1;
+  }
+
+  class contour_call: public plotting_routine_call
+  {
+
     DDoubleGDL *zVal, *yVal, *xVal;
     auto_ptr<BaseGDL> xval_guard, yval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
-    bool xLog, yLog, zLog;
-    bool overplot;
-
-    private: bool handle_args( EnvT* e) // {{{
+    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
+    bool zLog, isLog;
+    bool overplot, nodata;
+    DLongGDL *colors,*thick,*labels,*style;
+    auto_ptr<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
+    DFloatGDL *spacing,*orientation;
+    auto_ptr<BaseGDL> spacing_guard,orientation_guard;
+  private:
+    bool handle_args (EnvT* e) // {{{
     {
-      if( nParam() == 1)
+      if ( nParam ( )==1 )
       {
-	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
+        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
 
-	zVal = static_cast<DDoubleGDL*>
-	  (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	p0_guard.reset( p0); // delete upon exit
+        zVal=static_cast<DDoubleGDL*>
+        ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        p0_guard.reset ( p0 ); // delete upon exit
 
-	xEl = zVal->Dim(1);
-	yEl = zVal->Dim(0);
+        xEl=zVal->Dim ( 1 );
+        yEl=zVal->Dim ( 0 );
 
-	if(zVal->Rank() != 2)
-	  e->Throw(  "Array must have 2 dimensions: "
-			      +e->GetParString(0));
+        if ( zVal->Rank ( )!=2 )
+          e->Throw ( "Array must have 2 dimensions: "
+                     +e->GetParString ( 0 ) );
 
-	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-	xval_guard.reset( xVal); // delete upon exit
-	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	yval_guard.reset( yVal); // delete upon exit
-      } 
-      else if ( nParam() == 2 || nParam() > 3) 
-      {
-        e->Throw( "Incorrect number of arguments.");
-      } 
-      else 
-      {
-	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
-	zVal = static_cast<DDoubleGDL*>
-	  (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	p0_guard.reset( p0); // delete upon exit
-
-	if(zVal->Dim(0) == 1)
-	  e->Throw( "Array must have 2 dimensions: "
-			      +e->GetParString(0));
-
-	xVal = e->GetParAs< DDoubleGDL>( 1);
-	yVal = e->GetParAs< DDoubleGDL>( 2);
-
-	if (xVal->Rank() > 2)
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-
-	if (yVal->Rank() > 2)
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-
-	if (xVal->Rank() == 1) {
-	  xEl = xVal->Dim(0);
-
-	  if(xEl != zVal->Dim(1))
-	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (yVal->Rank() == 1) {
-	  yEl = yVal->Dim(0);
-
-	  if(yEl != zVal->Dim(0))
-	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (xVal->Rank() == 2) {
-	  if((xVal->Dim(0) != zVal->Dim(1)) && (xVal->Dim(1) != zVal->Dim(0)))
-	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (yVal->Rank() == 2) {
-	  if((yVal->Dim(0) != zVal->Dim(1)) && (yVal->Dim(1) != zVal->Dim(0)))
-	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
-	}
+        xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
+        xval_guard.reset ( xVal ); // delete upon exit
+        yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
+        yval_guard.reset ( yVal ); // delete upon exit
       }
-      static int overplotKW = e->KeywordIx("OVERPLOT");
-      overplot = e->KeywordSet( overplotKW);
-    
-      return overplot;
+      else if ( nParam ( )==2||nParam ( )>3 )
+      {
+        e->Throw ( "Incorrect number of arguments." );
+      }
+      else
+      {
+        //we should chek differently for presence of IRREGULAR KW however this one is not yet supported.
+        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
+        zVal=static_cast<DDoubleGDL*>
+        ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        p0_guard.reset ( p0 ); // delete upon exit
+
+        if ( zVal->Dim ( 0 )==1 )
+          e->Throw ( "Array must have 2 dimensions: "
+                     +e->GetParString ( 0 ) );
+
+        xVal=e->GetParAs< DDoubleGDL>( 1 );
+        yVal=e->GetParAs< DDoubleGDL>( 2 );
+
+        if ( xVal->Rank ( )>2 )
+          e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+
+        if ( yVal->Rank ( )>2 )
+          e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        if ( xVal->Rank ( )==0 || yVal->Rank ( )==0 ) e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+
+        if ( xVal->Rank ( )==1 )
+        {
+          xEl=xVal->Dim ( 0 );
+
+          if ( xEl!=zVal->Dim ( 1 ) )
+            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        }
+
+        if ( yVal->Rank ( )==1 )
+        {
+          yEl=yVal->Dim ( 0 );
+
+          if ( yEl!=zVal->Dim ( 0 ) )
+            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        }
+
+        if ( xVal->Rank ( )==2 )
+        {
+          xEl=xVal->Dim ( 0 );
+          if ( ( xVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( xVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
+            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        }
+
+        if ( yVal->Rank ( )==2 )
+        {
+          yEl=yVal->Dim ( 1 );
+          if ( ( yVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( yVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
+            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        }
+      }
+
+      GetMinMaxVal ( xVal, &xStart, &xEnd );
+      GetMinMaxVal ( yVal, &yStart, &yEnd );
+      //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
+      DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
+      bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
+      bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
+      if(setx && sety)
+      {
+        xStart=xAxisStart;
+        xEnd=xAxisEnd;
+        yStart=yAxisStart;
+        yEnd=yAxisEnd;
+      }
+      else if (sety)
+      {
+        yStart=yAxisStart;
+        yEnd=yAxisEnd;
+        //must compute min-max for other axis!
+        {
+          gdlDoRangeExtrema(yVal,xVal,xStart,xEnd,yStart,yEnd);
+        }
+      }
+      else if (setx)
+      {
+        xStart=xAxisStart;
+        xEnd=xAxisEnd;
+        //must compute min-max for other axis!
+        {
+          gdlDoRangeExtrema(xVal,yVal,yStart,yEnd,xStart,xEnd);
+        }
+      }
+  #undef UNDEF_RANGE_VALUE
+      // z range
+      datamax=0.0;
+      datamin=0.0;
+      GetMinMaxVal ( zVal, &datamin, &datamax );
+      zStart=datamin;
+      zEnd=datamax;
+      gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
+
+        return false;
     } // }}}
 
-  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
-  {
-    // !P 
-    DLong p_background, p_noErase, p_color, p_psym, p_linestyle;
-    DFloat p_symsize, p_charsize, p_thick, p_ticklen; 
-    DString p_title, p_subTitle; 
-    
-    GetPData( p_background,
-	      p_noErase, p_color, p_psym, p_linestyle,
-	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle, p_ticklen);
+  private:
 
-    // !X, !Y, !Z (also used below)
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    static DStructGDL* zStruct = SysVar::Z();
-    DLong xStyle, yStyle, zStyle;
-    DString xTitle, yTitle, zTitle;
-    DFloat x_CharSize, y_CharSize, z_CharSize;
-    DFloat xMarginL; 
-    DFloat xMarginR; 
-    DFloat yMarginB; 
-    DFloat yMarginF; 
-    DFloat zMarginB; 
-    DFloat zMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    DFloat zTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginF,
-		 yTicklen);
-    GetAxisData( zStruct, zStyle, zTitle, z_CharSize, zMarginB, zMarginT,
-		 zTicklen);
+    void old_body (EnvT* e, GDLGStream* actStream) // {{{
+    {
+      // we need to define the NaN value
+      static DStructGDL *Values=SysVar::Values ( );
+      static DDouble d_nan=( *static_cast<DDoubleGDL*> ( Values->GetTag ( Values->Desc ( )->TagIndex ( "D_NAN" ), 0 ) ) )[0];
+      static DDouble minmin=gdlAbsoluteMinValueDouble();
 
-    // [XY]STYLE
-    e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
-    e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
-    e->AssureLongScalarKWIfPresent( "ZSTYLE", zStyle);
-
-    // TITLE
-    DString title = p_title;
-    DString subTitle = p_subTitle;
-    e->AssureStringScalarKWIfPresent( "TITLE", title);
-    e->AssureStringScalarKWIfPresent( "SUBTITLE", subTitle);
-
-    // AXIS TITLE
-    e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
-    e->AssureStringScalarKWIfPresent( "YTITLE", yTitle);
-    e->AssureStringScalarKWIfPresent( "ZTITLE", zTitle);
-
-    // MARGIN (in characters)
-    static int xMarginEnvIx = e->KeywordIx( "XMARGIN"); 
-    static int yMarginEnvIx = e->KeywordIx( "YMARGIN"); 
-    static int zMarginEnvIx = e->KeywordIx( "ZMARGIN"); 
-    BaseGDL* xMargin = e->GetKW( xMarginEnvIx);
-    BaseGDL* yMargin = e->GetKW( yMarginEnvIx);
-    BaseGDL* zMargin = e->GetKW( zMarginEnvIx);
-    if( xMargin != NULL)
-      {
-	if( xMargin->N_Elements() > 2)
-	  e->Throw( "Keyword array parameter XMARGIN"
-		    " must have from 1 to 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* xMarginFl = static_cast<DFloatGDL*>
-	  ( xMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( xMarginFl);
-	xMarginL = (*xMarginFl)[0];
-	if( xMarginFl->N_Elements() > 1)
-	  xMarginR = (*xMarginFl)[1];
-      }
-    if( yMargin != NULL)
-      {
-	if( yMargin->N_Elements() > 2)
-	  e->Throw( "Keyword array parameter YMARGIN"
-		    " must have from 1 to 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* yMarginFl = static_cast<DFloatGDL*>
-	  ( yMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( yMarginFl);
-	yMarginB = (*yMarginFl)[0];
-	if( yMarginFl->N_Elements() > 1)
-	  yMarginF = (*yMarginFl)[1];
-      }
-    if( zMargin != NULL)
-      {
-	if( zMargin->N_Elements() > 2)
-	  e->Throw( "Keyword array parameter ZMARGIN"
-		    " must have from 1 to 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* zMarginFl = static_cast<DFloatGDL*>
-	  ( zMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( zMarginFl);
-	zMarginB = (*zMarginFl)[0];
-	if( zMarginFl->N_Elements() > 1)
-	  zMarginT = (*zMarginFl)[1];
-      }
-
-    // x and y and z range
-    GetMinMaxVal( xVal, &xStart, &xEnd);
-    GetMinMaxVal( yVal, &yStart, &yEnd);
-    GetMinMaxVal( zVal, &zStart, &zEnd);
-    
-    xLog = e->KeywordSet( "XLOG");
-    yLog = e->KeywordSet( "YLOG");
-    zLog = e->KeywordSet( "ZLOG");
-
-    if ((xStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(xStart, xEnd, false, xLog );
-    }
-
-    if ((yStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(yStart, yEnd, false, yLog );
-    }
-    
-    if ((zStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(zStart, zEnd, false, zLog );
-    }
-
-    //[x|y|z]range keyword
-    static int zRangeEnvIx = e->KeywordIx("ZRANGE");
-    static int yRangeEnvIx = e->KeywordIx("YRANGE");
-    static int xRangeEnvIx = e->KeywordIx("XRANGE");
-    BaseGDL* xRange = e->GetKW( xRangeEnvIx);
-    BaseGDL* yRange = e->GetKW( yRangeEnvIx);
-    BaseGDL* zRange = e->GetKW( zRangeEnvIx);
-    
-    if(xRange != NULL) 
-      {
-	if(xRange->N_Elements() != 2)
-	  e->Throw("Keyword array parameter XRANGE"
-		   " must have 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
-	  ( xRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( xRangeF);
-	xStart = (*xRangeF)[0];
-	xEnd = (*xRangeF)[1];
-      }
-
-    if(yRange != NULL)
-      {
-	if(yRange->N_Elements() != 2)
-	  e->Throw("Keyword array parameter YRANGE"
-		   " must have 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
-	  ( yRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( yRangeF);
-	yStart = (*yRangeF)[0];
-	yEnd = (*yRangeF)[1];
-      }
-    if(zRange != NULL)
-      {
-	if(zRange->N_Elements() != 2)
-	  e->Throw("Keyword array parameter ZRANGE"
-		   " must have 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* zRangeF = static_cast<DFloatGDL*>
-	  ( zRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	guard.reset( zRangeF);
-	zStart = (*zRangeF)[0];
-	zEnd = (*zRangeF)[1];
-      }
-
-    bool mapSet = false;
+      //projection: would work only with 2D X and Y.
+      bool mapSet=false;
 #ifdef USE_LIBPROJ4
-    get_mapset(mapSet);
+      static LPTYPE idata;
+      static XYTYPE odata;
+      static PROJTYPE* ref;
+      get_mapset ( mapSet );
+      if ( mapSet )
+      {
+        ref=map_init ( );
+        if ( ref==NULL ) e->Throw ( "Projection initialization failed." );
+      }
 #endif
-
-    DDouble minVal = zStart;
-    DDouble maxVal = zEnd;
-    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
-    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
-
-    // AC july 2008 please remember that data sweep out by that
-    // are really processed like MISSING data (NaN ...)
-    if (minVal > zStart) cout << "This MIN_VALUE is not ready, sorry. Help welcome." <<endl;
-    if (maxVal < zEnd) cout << "This MAX_VALUE is not ready, sorry. Help welcome." <<endl;
-    //cout << "MIN_VALUE" << minVal << endl;
-    //cout << "MAX_VALUE" << maxVal << endl;
-
-    //ISOTROPIC
-    DLong iso=0;
-    e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
-
-    DLong xTicks=0, yTicks=0, zTicks=0;
-    e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
-    e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
-    e->AssureLongScalarKWIfPresent( "ZTICKS", zTicks);
-
-    DLong xMinor=0, yMinor=0, zMinor=0; 
-    e->AssureLongScalarKWIfPresent( "XMINOR", xMinor);
-    e->AssureLongScalarKWIfPresent( "YMINOR", yMinor);
-    e->AssureLongScalarKWIfPresent( "ZMINOR", zMinor);
-
-    DString xTickformat, yTickformat, zTickformat;
-    e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
-    e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
-    e->AssureStringScalarKWIfPresent( "ZTICKFORMAT", zTickformat);
-
-    if( xLog && xStart <= 0.0)
-      Warning( "CONTOUR: Infinite x plot range.");
-    if( yLog && yStart <= 0.0)
-      Warning( "CONTOUR: Infinite y plot range.");
-    if( zLog && zStart <= 0.0)
-      Warning( "CONTOUR: Infinite z plot range.");
-
-    DDouble ticklen = p_ticklen;
-    e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
-						 
-    DLong noErase = p_noErase;
-    if( e->KeywordSet( "NOERASE")) noErase = 1;
-    
-    // POSITION
-    PLFLT xScale = 1.0;
-    PLFLT yScale = 1.0;
-    //    PLFLT scale = 1.0;
-    static int positionIx = e->KeywordIx( "POSITION"); 
-    DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
-    if (pos == NULL) pos = (DFloatGDL*) 0xF;
-    /*
-    PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
-    if( pos != NULL)
+     //NODATA
+      int nodataIx = e->KeywordIx( "NODATA");
+      nodata=e->KeywordSet(nodataIx);
+      //We could RECORD PATH this way. Not developed since PATH_INFO seems not to be used
+      bool recordPath;
+      int pathinfoIx = e->KeywordIx( "PATH_INFO");
+      int pathxyIx= e->KeywordIx( "PATH_XY");
+      recordPath=(e->KeywordSet(pathinfoIx)||e->KeywordSet(pathxyIx));
+      if (recordPath)
       {
-      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
-	position[ i] = (*pos)[ i];
-
-      xScale = position[2]-position[0];
-      yScale = position[3]-position[1];
-      //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
+        Warning( "PATH_INFO, PATH_XY not yet supported, (FIXME)");
+        recordPath=false;
       }
-    */
 
-    // CHARSIZE
-    DDouble charsize = p_charsize;
-    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
-    if( charsize <= 0.0) charsize = 1.0;
-    //    charsize *= scale;
+      //ISOTROPIC
+      DLong iso=0;
+      e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
 
-    // AXIS CHARSIZE
-    DDouble xCharSize = x_CharSize;
-    e->AssureDoubleScalarKWIfPresent( "XCHARSIZE", xCharSize);
-    if( xCharSize <= 0.0) xCharSize = 1.0;
+      // [XY]STYLE
+      DLong xStyle=0, yStyle=0, zStyle=0; ;
+      gdlGetDesiredAxisStyle(e, "X", xStyle);
+      gdlGetDesiredAxisStyle(e, "Y", yStyle);
+      gdlGetDesiredAxisStyle(e, "Z", zStyle);
 
-    DDouble yCharSize = y_CharSize;
-    e->AssureDoubleScalarKWIfPresent( "YCHARSIZE", yCharSize);
-    if( yCharSize <= 0.0) yCharSize = 1.0;
-    //    yCharSize *= scale;
+//      // AXIS TITLE
+//      DString xTitle, yTitle, zTitle;
+//      gdlGetDesiredAxisTitle(e, "X", xTitle);
+//      gdlGetDesiredAxisTitle(e, "Y", yTitle);
+//      gdlGetDesiredAxisTitle(e, "Z", zTitle);
+//
+      // MARGIN
+      DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
+      gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
+      gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
+      gdlGetDesiredAxisMargin(e, "Z", zMarginF, zMarginB);
 
-    DDouble zCharSize = z_CharSize;
-    e->AssureDoubleScalarKWIfPresent( "ZCHARSIZE", zCharSize);
-    if( zCharSize <= 0.0) zCharSize = 1.0;
+      xLog=e->KeywordSet ( "XLOG" );
+      yLog=e->KeywordSet ( "YLOG" );
+      if (xLog || yLog) isLog=true; else isLog=false;
+      zLog=e->KeywordSet ( "ZLOG" );
 
-
-    // THICK
-    DFloat thick = p_thick;
-    e->AssureFloatScalarKWIfPresent( "THICK", thick);
-
-   // CHARTHICK (thickness of "char")
-    PLINT charthick=1;
-
-    DDouble *sx, *sy;
-    DFloat *wx, *wy;
-    GetSFromPlotStructs(&sx, &sy);
-    GetWFromPlotStructs(&wx, &wy);
-
-    // mapping only in OVERPLOT mode
-    if (!overplot) set_mapset(0);
-
-    if (overplot) 
-    {
-      //rewrite these quantities
-      if (!mapSet) 
+      if ( ( xStyle&1 )!=1 )
       {
-        get_axis_crange("X", xStart, xEnd);
-        get_axis_crange("Y", yStart, yEnd);
-      } 
-      else 
-      {
-        DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true);
+        PLFLT intv=AutoIntvAC ( xStart, xEnd, xLog );
       }
-      get_axis_margin("X",xMarginL, xMarginR);
-      get_axis_margin("Y",yMarginB, yMarginF);
-      get_axis_type("X", xLog);
-      get_axis_type("Y", yLog);
-      DFloat charsizeF;
-      gkw_charsize(e,actStream, charsizeF, false);
-      charsize=charsizeF;
-      pos = NULL;
-    }
 
-   // *** start drawing
-    gkw_background(e, actStream);  //BACKGROUND
-    gkw_color(e, actStream);       //COLOR
-
-    if (!overplot) {
-      actStream->NextPlot( !noErase);
-      if( !noErase) actStream->Clear();
-    }
-
-    // plplot stuff
-    // set the charsize (scale factor)
-    DDouble charScale = 1.0;
-    DLongGDL* pMulti = SysVar::GetPMulti();
-    if( (*pMulti)[1] > 2 || (*pMulti)[2] > 2) charScale = 0.5;
-    actStream->schr( 0.0, charsize * charScale);
-
-#if 0
-    // get subpage in mm
-    PLFLT scrXL, scrXR, scrYB, scrYF;
-    actStream->gspa( scrXL, scrXR, scrYB, scrYF); 
-    PLFLT scrX = scrXR-scrXL;
-    PLFLT scrY = scrYF-scrYB;
-#endif
-
-    // get char size in mm (default, actual)
-    PLFLT defH, actH;
-    actStream->gchr( defH, actH);
-
-    // CLIPPING
-    DDoubleGDL* clippingD=NULL;
-    DLong noclip=0;
-    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
-    if(noclip == 0)
+      if ( ( yStyle&1 )!=1 )
       {
-	static int clippingix = e->KeywordIx( "CLIP"); 
-	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+        PLFLT intv=AutoIntvAC ( yStart, yEnd, yLog );
       }
-    
-    if (!overplot || !mapSet)
-    {
+
+      bool hasMinVal=e->KeywordPresent("MIN_VALUE");
+      bool hasMaxVal=e->KeywordPresent("MAX_VALUE");
+      DDouble minVal=datamin;
+      DDouble maxVal=datamax;
+      e->AssureDoubleScalarKWIfPresent ( "MIN_VALUE", minVal );
+      e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
+
+      if ( minVal>zEnd || maxVal<zStart) nodata=true; //do not complain but do nothing.
+      if ( minVal>zStart ) zStart=minVal;
+      if ( maxVal<zEnd ) zEnd=maxVal;
+
+      // then only apply expansion  of axes:
+      if ( ( zStyle&1 )!=1 )
+      {
+        PLFLT intv=AutoIntvAC ( zStart, zEnd, zLog );
+      }
+      //OVERPLOT: get stored range values instead to use them!
+      static int overplotKW=e->KeywordIx ( "OVERPLOT" );
+      overplot=e->KeywordSet(overplotKW);
+      if (overplot) //retrieve information in case they are not in the command line ans apply
+                    // some computation (alas)!
+      {
+        gdlGetAxisType("X", xLog);
+        gdlGetAxisType("Y", yLog);
+        gdlGetAxisType("Z", zLog);
+        gdlGetCurrentAxisRange("X", xStart, xEnd);
+        gdlGetCurrentAxisRange("Y", yStart, yEnd);
+        gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
+        if ( ( xStyle&1 )!=1 )
+        {
+          PLFLT intv=AutoIntvAC ( xStart, xEnd, xLog );
+        }
+
+        if ( ( yStyle&1 )!=1 )
+        {
+          PLFLT intv=AutoIntvAC ( yStart, yEnd, yLog );
+        }
+
+      }
+      //start a plot
+      if(!overplot) gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
+
       // viewport and world coordinates
-      bool okVPWC = SetVP_WC( e, actStream, overplot?NULL:pos, clippingD,
-                            xLog, yLog,
-                            xMarginL, xMarginR, yMarginB, yMarginF,
-                            xStart, xEnd, yStart, yEnd, iso);
-      if( !okVPWC) return;
-    } else {
-      // not using SetVP_WC as it seem to always select full window for plotting (FIXME)
-      actStream->NoSub();
-      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-      actStream->wind( xStart, xEnd, yStart, yEnd);
-    }
+      // use POSITION
+      int positionIx = e->KeywordIx( "POSITION");
+      DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+      if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
+      // set the PLOT charsize before computing box, see plot command.
+      gdlSetPlotCharsize(e, actStream);
+      if ( !overplot ) if ( gdlSetViewPortAndWorldCoordinates(e, actStream, boxPosition,
+        xLog, yLog,
+        xMarginL, xMarginR, yMarginB, yMarginT,
+        xStart, xEnd, yStart, yEnd, iso)==FALSE ) return; //no good: should catch an exception to get out of this mess.
 
-    // managing the levels list OR the nlevels value
+      gdlSetPlotCharthick(e,actStream); //impossible with plplot to draw labels without axes, so both will have same thickness.
 
-    PLINT nlevel;
-    PLFLT *clevel;
-    ArrayGuard<PLFLT> clevel_guard;
+      if ( xLog && xStart<=0.0 ) Warning ( "CONTOUR: Infinite x plot range." );
+      if ( yLog && yStart<=0.0 ) Warning ( "CONTOUR: Infinite y plot range." );
+      if ( zLog && zStart<=0.0 ) Warning ( "CONTOUR: Infinite z plot range." );
 
-    // we need to define the NaN value
-    static DStructGDL *Values =  SysVar::Values();       
-    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; 
-    
-    static int levelsix = e->KeywordIx( "LEVELS"); 
+      // labeling
+      // initiated by /FOLLOW.
+      // C_ANNOTATION=vector of strings:  strings replace the default numerical values. Implies FOLLOW. Impossible with PLPLOT!
+      // C_CHARSIZE. IDL doc false: c_charsize independent from /CHARSIZE. Charsize should be 3/4 size of AXIS LABELS,
+      // but in fact c_charsize is independent from all [XYZ]charsize setups. Implies FOLLOW.
+      // C_CHARTHICK Implies FOLLOW.
+      // C_COLORS=vector, (eventually converted to integer), give color index. repated if less than contours.
+      // C_LABELS=vector of 0 and 1 (float, double, int) . Implies FOLLOW.
+      // C_LINESTYLE =vector of linestyles. Defaults to !P.LINESTYLE
+      // C_ORIENTATION = vector of angles of lines to  FILL (needs FILL KW) .
+      // C_SPACING= vector of spacing in CENTIMETRES of lines to  FILL (needs FILL KW) .
+      // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
+      // C_THICK=vector of thickness. repated if less than contours. defaults to !P.THICK or THICK
 
-    BaseGDL* b_levels=e->GetKW(levelsix);
-    if(b_levels != NULL) {
-      DDoubleGDL* d_levels = e->GetKWAs<DDoubleGDL>( levelsix);
-      nlevel = d_levels->N_Elements();
-      clevel = (PLFLT *) &(*d_levels)[0];
-      // are the levels ordered ?
-      for ( SizeT i=1; i<nlevel; i++) {
-	if (clevel[i] <= clevel[i-1]) 
-	  e->Throw( "Contour levels must be in increasing order.");
-      }      
-    } else {
-      PLFLT zintv;
-      // Jo: added keyword NLEVELS
-      if (e->KeywordSet( "NLEVELS")) {
-        DLong l_nlevel = nlevel; // GCC 3.4.4 needs that
-      	e->AssureLongScalarKWIfPresent( "NLEVELS", l_nlevel);
-        nlevel = l_nlevel;
-	if (nlevel <= 0) nlevel= 2;  // AC: mimication of IDL
+      bool label=( e->KeywordSet ( "FOLLOW" ) || e->KeywordSet ( "C_CHARSIZE" ) || e->KeywordSet("C_CHARTHICK") || e->KeywordSet("C_LABELS") );
+      bool fill=( e->KeywordSet("FILL") || e->KeywordSet ("C_SPACING") || e->KeywordSet ("C_ORIENTATION") );
+      if (fill) label=false; //mutually exclusive
+      if (recordPath) {fill=true;}
 
-        // cokhavim: IDL does this...
-        zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
-        // ... but I think this is better:
-        // if (e->KeywordSet( "FILL")) zintv = (PLFLT) ((zEnd - zStart) / (nlevel));
-        // else zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+      // managing the levels list OR the nlevels value
+      // LEVELS=vector_of_values_in_increasing_order
+      // NLEVELS=[1..60]
+      PLINT nlevel;
+      PLFLT *clevel;
+      ArrayGuard<PLFLT> clevel_guard;
+      static int levelsix=e->KeywordIx ( "LEVELS" );
+      BaseGDL* b_levels=e->GetKW ( levelsix );
+      if ( b_levels!=NULL )
+      {
+        DDoubleGDL* d_levels=e->GetKWAs<DDoubleGDL>( levelsix );
+        nlevel=d_levels-> N_Elements ( );
+        clevel=( PLFLT * ) &( *d_levels )[0];
+        // are the levels ordered ?
+        for ( SizeT i=1; i<nlevel; i++ )
+        {
+          if ( clevel[i]<=clevel[i-1] )
+            e->Throw ( "Contour levels must be in increasing order." );
+        }
+      }
+      else
+      {
+        PLFLT zintv;
+        // Jo: added keyword NLEVELS
+        if ( e->KeywordSet ( "NLEVELS" ) )
+        {
+          DLong l_nlevel=nlevel; // GCC 3.4.4 needs that
+          e->AssureLongScalarKWIfPresent ( "NLEVELS", l_nlevel );
+          nlevel=l_nlevel;
+          if ( nlevel<0) nlevel=2; //as IDL 
+          if (nlevel==0) nlevel=3; //idem
 
-        // SA: this indeed seems better in some cases; however, it makes calls
-        //     with and without the /FILL keyword behave differently. As a result,
-        //     when overlaing contours over a filled contour, the contours do not match, e.g.:
-        //     a=dist(7) & contour,a,/fill,nl=5 & contour,a,/over,/foll,nl=5
+          // cokhavim: IDL does this...
+          zintv=(PLFLT) ( ( zEnd-zStart )/( nlevel+1 ) );
+          //gd: we can support ZLOG as well:
+          if (zLog) zintv=(PLFLT) ( ( log10(zEnd)-log10(zStart )) / ( nlevel+1 ) );
 
-      } else {
-	zintv = AutoTick(zEnd - zStart);
-	nlevel = (PLINT) floor((zEnd - zStart) / zintv);
-        // SA: sanity check to prevent segfaults, e.g. with solely non-finite values 
-        if (zintv == 0 || nlevel < 0) nlevel = 0; 
+        }
+        else
+        {
+          zintv=AutoTick ( zEnd-zStart ); if (zLog) zintv=AutoTick ( log10(zEnd)-log10(zStart) );
+          nlevel=(PLINT) floor ( ( zEnd-zStart )/zintv ); if (zLog) nlevel=(PLINT) floor ( ( log10(zEnd)-log10(zStart) )/zintv );
+          // SA: sanity check to prevent segfaults, e.g. with solely non-finite values
+          if ( zintv==0||nlevel<0 ) nlevel=0;
+        }
+
+        if (fill)
+        {
+          nlevel=nlevel+1;
+        }
+        clevel=new PLFLT[nlevel]; 
+        clevel_guard.Reset ( clevel );
+        //IDL does this:
+        for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
+        if (zLog) for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = pow(10.0,(log10(zStart)+zintv*i));
       }
 
-
-//       clevel = new PLFLT[nlevel+1];
-//       clevel_guard.Reset( clevel);
-//       // Jo: fixed clevel to account for non-zero zMin
-//       for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * (i-1) + zStart;
-//       //for( SizeT i=0; i<=nlevel; i++) clevel[i] = zintv * i + zStart;
-DDouble offset=0.;
-if (e->KeywordSet( "FILL")) { nlevel = nlevel + 1; offset=zintv;}
-clevel = new PLFLT[nlevel];
-clevel_guard.Reset( clevel);
-//IDL does this:
-// for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
-//but I think this is better:
-for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
-clevel[nlevel-1]=zEnd; //make this explicit
-
-    }
-    
-//     // Jo: added keyword FILL
-
-    PLINT  &nlevel_fill = nlevel;
-    PLFLT* &clevel_fill = clevel;
-
-//     PLFLT *clevel_fill;
-//     ArrayGuard<PLFLT> clevel_fill_guard;
-//     PLINT nlevel_fill;
-//     if (e->KeywordSet( "FILL")) {
-//       // To ensure that the highest level is filled, define a new
-//       // clevel to include highest value of z:   
-//       // modif by AC to manage the exception (nlevel=1)
-//       if (nlevel > 1) {
-// 	nlevel_fill=nlevel+1;
-// 	clevel_fill = new PLFLT[nlevel_fill];
-// 	clevel_fill_guard.Reset( clevel_fill);
-// 	clevel_fill[nlevel_fill-1] = clevel[nlevel - 1] < zEnd ? zEnd : clevel[nlevel - 1] + 1.;
-// 	for( SizeT i=0; i<nlevel; i++) clevel_fill[i] = clevel[i];
-//       } else {
-// 	nlevel_fill=3;
-// 	clevel_fill = new PLFLT[nlevel_fill];
-// 	clevel_fill_guard.Reset( clevel_fill);
-//         clevel_fill[0] = clevel[0] > zStart ? zStart : clevel[0] - 1.;
-//         clevel_fill[1] = clevel[0];
-//         clevel_fill[2] = clevel[0] < zEnd ? zEnd : clevel[0] + 1.;
-//       }
-      
-//     }
-
-//     // levels outside limits are changed ...
-//     for (SizeT i=0; i<=nlevel; i++) {
-//       if (clevel[i] < zStart) clevel[i]=zStart;
-//       if (clevel[i] > zEnd) clevel[i]=zEnd;
-//     }
-
-    // pen thickness for plot
-    actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
-
-    // labeling
-    bool label = false;
-    if (e->KeywordSet("FOLLOW") || e->KeywordSet("C_CHARSIZE")) label = true;
-    // TODO: if (e->KeywordSet("C_ANNOTATION") || e->KeywordSet("C_CHARTHICK") || e->KeywordSet("C_LABELS")) label = true;  
-    if (e->KeywordSet("FILL")) label = false;
-    if (label)
-    { 
+      // set label params always since they are not forgotten by plplot.'label' tells if they should be used.
       // IDL default: 3/4 of the axis charsize (CHARSIZE keyword or !P.CHARSIZE)
       // PlPlot default: .3
-      DFloat label_size = .75 * charsize;
-      if (e->KeywordSet("C_CHARSIZE")) e->AssureFloatScalarKWIfPresent("C_CHARSIZE", label_size);
-      //usage: setcontlabelparam(PLFLT offset, PLFLT size, PLFLT spacing, PLINT active);
-      actStream->setcontlabelparam(0.0, (PLFLT)label_size, .3, true);
-    }
+      // should be: DFloat label_size=.75*actStream->charScale(); however IDL doc false.
+      DFloat label_size=0.9; //IDL behaviour, IDL doc false.
+      if ( e->KeywordSet ( "C_CHARSIZE" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARSIZE", label_size );
+      actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, (PLINT)label );
+      actStream->setcontlabelformat (3, 3 );
 
-#ifdef USE_LIBPROJ4
-    static LPTYPE idata;
-    static XYTYPE odata;
-    static PROJTYPE* ref;
-    if (mapSet)
-    {
-      ref = map_init();
-      if ( ref == NULL) e->Throw( "Projection initialization failed.");
-    }
-#endif
-
-    // starting plotting the data
-    struct mypltr_passinfo passinfo;
-
-    static int c_colorsIx = e->KeywordIx("C_COLORS");
-    static int c_linestyleIx = e->KeywordIx("C_LINESTYLE");
-    // 1 DIM X & Y
-    if (xVal->Rank() == 1 && yVal->Rank() == 1) 
-    {
-      PLFLT spa[4];
-      
-      // don't forgot we have to use the real limits, not the adjusted ones
-      DDouble xMin, xMax, yMin, yMax;
-      GetMinMaxVal( xVal, &xMin, &xMax);
-      GetMinMaxVal( yVal, &yMin, &yMax);
- 
-      passinfo.spa[0] = (xMax - xMin) / (xEl - 1);
-      passinfo.spa[1] = (yMax - yMin) / (yEl - 1);
-      passinfo.spa[2] = xMin;
-      passinfo.spa[3] = yMin;
-      passinfo.xLog = xLog;
-      passinfo.yLog = yLog;
-
-#ifdef USE_LIBPROJ4
-      passinfo.mapSet = mapSet;
-      if (mapSet) // which imposes overplotting
+      // PLOT ONLY IF NODATA=0
+      if (!nodata)
       {
-        passinfo.idata = &idata;
-        passinfo.odata = &odata;
-        passinfo.ref = ref;
-        passinfo.d_nan = d_nan;
-
-        passinfo.sx[0] = sx[0];
-        passinfo.sx[1] = sx[1];
-        passinfo.sy[0] = sy[0];
-        passinfo.sy[1] = sy[1];
-      }
-#endif
-
-      PLFLT** z = new PLFLT*[xEl];
-      for( SizeT i=0; i<xEl; i++) 
-      {
-        z[i] = &(*zVal)[i*yEl];
-      }
-      
-      // plplot knows how to manage NaN but not Infinity ...
-      // we remplace Infinity by Nan
-      for( SizeT i=0; i<xEl*yEl; i++) 
-      {
-	if (isinf((*zVal)[i])) (*z)[i]= d_nan;
-      }
-      // a draft for MaxVal ...
-      //      if (maxVal < zEnd) {
-      //;	for( SizeT i=0; i<xEl*yEl; i++) {
-      //if ((*zVal)[i] > maxVal) (*z)[i]= d_nan;
-      //	}
-      //}
-      
-      //      gkw_linestyle(e, actStream);
-      //actStream->lsty(2);
-      //
-      // AC 18 juin 2007 LineStyle and contour
-      // NOT READY NOW
-      // here we plot the axis 
-      // actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-      //		      clevel, 0, mypltr, static_cast<void*>( spa));
-      // we recover the linestyle if a !p.linestyle does exist
-      //gkw_linestyle_c(e, actStream, TRUE);
-
-
-      if (e->KeywordSet( "FILL")) {
-	// the "clevel_fill, nlevel_fill" have been computed before
-        actStream->shades(z, xEl, yEl, NULL, xStart, xEnd, yStart, yEnd,
- 			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
-                          mapSet, mypltr, static_cast<void*>(&passinfo));
-	
-	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
-	// Redraw the axes just in case the filling overlaps them
-	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
-	// pen thickness for axis
-	actStream->wid(charthick);
-      } else {
-        if (e->GetKW(c_colorsIx) != NULL)
+        //use of intermediate map for correct handling of blanking values and nans. We take advantage of the fact that
+        //this program makes either filled regions with plshades() [but plshades hates Nans!] or contours with plcont,
+        //which needs Nans to avoid blanked regions. The idea is to mark unwanted regions with Nans for plcont, and
+        //with a blanking value (minmin) for plshade. Eventually one could use a zdefined() function testing on top of it.
+        PLFLT ** map;
+        actStream->Alloc2dGrid( &map, xEl, yEl);
+        for ( SizeT i=0, k=0; i<xEl; i++ )
         {
-          DLongGDL *colors = e->GetKWAs<DLongGDL>(c_colorsIx);
-          for (SizeT i = 0; i < nlevel; ++i) 
-          { 
-            actStream->Color((*colors)[i % colors->N_Elements()], true, 2);
-            actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1, mypltr, static_cast<void*>(&passinfo));
+          for ( SizeT j=0; j<yEl; j++)
+          {
+            PLFLT v=( *zVal )[k++];
+            if ( !isfinite(v) ) v=(fill)?minmin:d_nan; //note: nan regions could eventually be filled.
+            if ( hasMinVal && v < minVal) v=(fill)?minmin:d_nan; 
+            if ( hasMaxVal && v > maxVal) v=(fill)?minmin:d_nan;
+            map[i][j] = v;
           }
+        }
+        // provision for 2 types of grids.
+        PLcGrid cgrid1; // X and Y independent deformation
+        PLFLT* xg1;
+        PLFLT* yg1;
+        PLcGrid2 cgrid2; // Dependent X Y (e.g., rotation)
+        bool tidyGrid1WorldData=false;
+        bool tidyGrid2WorldData=false;
+        bool oneDim=true;
+        // the Grids:
+        // 1 DIM X & Y
+        if ( xVal->Rank ( )==1&&yVal->Rank ( )==1 )
+        {
+          oneDim=true;
+          xg1 = new PLFLT[xEl];
+          yg1 = new PLFLT[yEl];
+          cgrid1.xg = xg1;
+          cgrid1.yg = yg1;
+          cgrid1.nx = xEl;
+          cgrid1.ny = yEl;
+          for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
+          for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
+          //apply plot options transformations:
+          if (xLog) for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):1E-12;  // #define EXTENDED_DEFAULT_LOGRANGE 12
+          if (yLog) for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
+          tidyGrid1WorldData=true;
+        }
+        else //if ( xVal->Rank ( )==2&&yVal->Rank ( )==2 )
+        {
+          oneDim=false;
+
+          actStream->Alloc2dGrid ( &cgrid2.xg, xEl, yEl );
+          actStream->Alloc2dGrid ( &cgrid2.yg, xEl, yEl );
+          tidyGrid2WorldData=true;
+          cgrid2.nx=xEl;
+          cgrid2.ny=yEl;
+          DDouble z;
+          //create 2D grid
+          for ( SizeT i=0; i<xEl; i++ )
+          {
+            for ( SizeT j=0; j<yEl; j++ )
+            {
+              cgrid2.xg[i][j]=(*xVal)[j*( xEl )+i];
+              cgrid2.yg[i][j]=(*yVal)[j*( xEl )+i];
+            }
+          }
+          //apply projection transformations:
+#ifdef USE_LIBPROJ4
+          if ( mapSet )
+          {
+            for ( SizeT i=0; i<xEl; i++ )
+            {
+              for ( SizeT j=0; j<yEl; j++ )
+              {
+                idata.lam= cgrid2.xg[i][j] * DEG_TO_RAD;
+                idata.phi= cgrid2.yg[i][j] * DEG_TO_RAD;
+                odata=PJ_FWD ( idata, ref );
+                cgrid2.xg[i][j]=odata.x;
+                cgrid2.yg[i][j]=odata.y;
+              }
+            }
+          }
+#endif
+          //apply plot options transformations:
+          if (xLog) for ( SizeT i=0; i<xEl; i++ ) for ( SizeT j=0; j<yEl; j++ )
+          {
+            cgrid2.xg[i][j]=(cgrid2.xg[i][j]>0)?log10(cgrid2.xg[i][j]):1E-12;
+          }
+          if (yLog) for ( SizeT i=0; i<xEl; i++ ) for ( SizeT j=0; j<yEl; j++ )
+          {
+            cgrid2.yg[i][j]=(cgrid2.yg[i][j]>0)?log10(cgrid2.yg[i][j]):1E-12;
+          }
+        }
+
+        // Graphic options
+        // C_COLORS=vector, (eventually converted to integer), give color index. repated if less than contours.
+        // C_LABELS=vector of 0 and 1 (float, double, int) . Implies FOLLOW.
+        // C_LINESTYLE =vector of linestyles. Defaults to !P.LINESTYLE
+        // C_THICK=vector of thickness. repated if less than contours. defaults to !P.THICK or THICK
+        int c_colorsIx=e->KeywordIx ( "C_COLORS" ); bool docolors=false;
+        int c_linestyleIx=e->KeywordIx ( "C_LINESTYLE" ); bool dostyle=false;
+        int c_thickIx=e->KeywordIx ( "C_THICK" ); bool dothick=false;
+        int c_labelsIx=e->KeywordIx ( "C_LABELS" ); bool dolabels=false;
+        int c_orientationIx=e->KeywordIx ( "C_ORIENTATION" ); bool doori=false;
+        int c_spacingIx=e->KeywordIx ( "C_SPACING" ); bool dospacing=false;
+        if ( e->GetKW ( c_colorsIx )!=NULL )
+        {
+          colors=e->GetKWAs<DLongGDL>( c_colorsIx ); docolors=true;
+        }
+        if ( e->GetKW ( c_thickIx )!=NULL )
+        {
+          thick=e->GetKWAs<DLongGDL>( c_thickIx ); dothick=true;
+        }
+        if ( e->GetKW ( c_labelsIx )!=NULL )
+        {
+          labels=e->GetKWAs<DLongGDL>( c_labelsIx ); dolabels=true;
+        }
+        else //every other level
+        {
+          labels=new DLongGDL  ( dimension (2), BaseGDL::ZERO );
+          labels_guard.reset ( labels);
+          (*labels)[0]=1;(*labels)[1]=0;
+          if (label) dolabels=true; //yes!
+        }
+        if ( e->GetKW ( c_linestyleIx )!=NULL )
+        {
+          style=e->GetKWAs<DLongGDL>( c_linestyleIx ); dostyle=true;
+        }
+        if ( e->GetKW ( c_orientationIx )!=NULL )
+        {
+          orientation=e->GetKWAs<DFloatGDL>( c_orientationIx ); doori=true;
         }
         else
         {
-          actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, clevel, nlevel, mypltr, static_cast<void*>(&passinfo));
+          orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
+          orientation_guard.reset ( orientation);
+          (*orientation)[0]=0;
         }
-      }
-      delete[] z;
-    }
-    else if (xVal->Rank() == 2 && yVal->Rank() == 2) 
-    {
-      // FIXME: mapping not supported here yet
-      
-      PLcGrid2 cgrid2;
-      actStream->Alloc2dGrid(&cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
-      actStream->Alloc2dGrid(&cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
-      cgrid2.nx = xVal->Dim(0);
-      cgrid2.ny = xVal->Dim(1);
-
-      for( SizeT i=0; i<xVal->Dim(0); i++) {
-	for( SizeT j=0; j<xVal->Dim(1); j++) {
- 	  cgrid2.xg[i][j] = (*xVal)[j*(xVal->Dim(0))+i];
-	  cgrid2.yg[i][j] = (*yVal)[j*(xVal->Dim(0))+i];
-	}
-      }
-
-      PLFLT** z = new PLFLT*[xVal->Dim(0)];
-      for( SizeT i=0; i<xVal->Dim(0); i++) z[i] = &(*zVal)[i*xVal->Dim(1)];
-
-      for( SizeT i=0; i<xVal->Dim(0)*xVal->Dim(1); i++) {
-	if (isinf((*zVal)[i])) (*z)[i]= d_nan;
-      }
-
-      if (e->KeywordSet( "FILL")) {
-	// the "clevel_fill, nlevel_fill" have been computed before
-        actStream->shades(z, xVal->Dim(0), xVal->Dim(1), 
-			  NULL, xStart, xEnd, yStart, yEnd,
- 			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
-			  false, plstream::tr2, (void *) &cgrid2 );
-
-	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
-	// Redraw the axes just in case the filling overlaps them
-	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
-	// pen thickness for axis
-	actStream->wid(charthick);
-      } else {	      
-        if (e->GetKW(c_colorsIx) != NULL)
+        if ( e->GetKW ( c_spacingIx )!=NULL )
         {
-          DLongGDL *colors = e->GetKWAs<DLongGDL>(c_colorsIx);
-          for (SizeT i = 0; i < nlevel; ++i) 
-          { 
-            actStream->Color((*colors)[i % colors->N_Elements()], true, 2);
-	    actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 1, xVal->Dim(0), 1, xVal->Dim(1), &(clevel[i]), 1, plstream::tr2, (void *) &cgrid2);
-          }
+          spacing=e->GetKWAs<DFloatGDL>( c_spacingIx ); dospacing=true;
         }
         else
         {
-	  actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel, plstream::tr2, (void *) &cgrid2);
+          spacing=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
+          spacing_guard.reset (spacing);
+          (*spacing)[0]=0.25;
         }
+        bool hachures=(dospacing || doori);
+
+        // Important: make all clipping computations BEFORE setting graphic properties (color, size)
+        bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));
+        bool stopClip=false;
+        if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
+
+        if (fill)
+        {
+          if (hachures)
+          {
+            PLINT ori;
+            PLINT spa;
+            actStream->psty(1);
+            // C_ORIENTATION = vector of angles of lines to  FILL (needs FILL KW) .
+            // C_SPACING= vector of spacing in CENTIMETRES of lines to  FILL (needs FILL KW) .
+            // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
+            for ( SizeT i=0; i<nlevel-1; ++i )
+            {
+              ori=floor(10.0*(*orientation)[i%orientation->N_Elements()]);
+              spa=floor(10000*(*spacing)[i%spacing->N_Elements()]);
+              actStream->pat(1,&ori,&spa);
+
+              if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], true, 2 );
+              if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+              if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
+                actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
+                clevel[i], clevel[i+1],
+                0, 2, 1,  /* we should use the colormap here, not with ->Color above . Idem for width.*/
+                0,0,0,0,
+                (recordPath)?(myfill):(plstream::fill), (oneDim),  //example of possible use of recordpath.
+                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+            }
+            actStream->psty(0);
+            if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+            if (dothick) gdlSetPenThickness(e, actStream);
+            if (dostyle) gdlLineStyle(actStream, 0);
+          }
+          else
+          {
+            //useful?
+            gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+            // note that plshade is not protected against 1 level (color formula is
+            // "shade_color = color_min + i / (PLFLT) ( nlevel - 2 ) * color_range;"
+            // meaning that nlevel must be >2 for plshade!)
+            if (nlevel>2)
+            {
+              actStream->shades( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
+                                clevel, nlevel, 1, 0, 0, plstream::fill, (oneDim),
+                                (oneDim)?(plstream::tr1):(plstream::tr2),
+                                (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+            }
+            else
+            {
+              actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
+              xStart, xEnd, yStart, yEnd,
+              clevel[0], clevel[1],
+              1, 0.5, 1,     /* we should use the colormap here, not with ->Color above . Idem for width.*/
+              0,0,0,0,
+              plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
+              (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+            }
+            //useful?
+            gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //needs to be called again or else PS files look wrong
+          }
+        }
+        else
+        { 
+          //useful?
+          gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+          gdlSetPenThickness(e, actStream); 
+          gdlSetPlotCharsize(e, actStream);
+          for ( SizeT i=0; i<nlevel; ++i )
+          {
+            if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], true, 2 );
+            if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+            if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
+            if (dolabels) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING,
+                                                        (PLINT)(*labels)[i%labels->N_Elements()] );
+            actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1, (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+          }
+          if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+          if (dothick) gdlSetPenThickness(e, actStream);
+          if (dostyle) gdlLineStyle(actStream, 0);
+        }
+        if (tidyGrid2WorldData)
+        {
+          actStream->Free2dGrid ( cgrid2.xg, xEl, yEl );
+          actStream->Free2dGrid ( cgrid2.yg, xEl, yEl );
+        }
+        if (tidyGrid1WorldData)
+        {
+          delete[] xg1;
+          delete[] yg1;
+        }
+
+        if (stopClip) stopClipping(actStream);
+        actStream->Free2dGrid(map, xEl, yEl);
       }
-      actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
-      actStream->Free2dGrid(cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
-
-      // AC june 07 : symetry for the previous case
-      delete[] z;
-    }
-
-    //Draw axes after the data because /fill could potentially overlap the axes.
-    //... if keyword "OVERPLOT" is not set
-    if (!overplot) 
-    {
-      gkw_background(e, actStream);  //BACKGROUND
-      gkw_color(e, actStream);       //COLOR
-
-      // pen thickness for axis
-      actStream->wid( 0);
-
-      // axis
-      string xOpt = "bcnst";
-      string yOpt = "bcnstv";
-
-      DString xTickformat, yTickformat;
-      e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
-      e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
-      AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
-
-      // axis titles
-      actStream->schr( 0.0, actH/defH * xCharSize);
-      actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
-
-      // the axis (separate for x and y axis because of charsize)
-      PLFLT xintv;
-      if (xTicks == 0) {
-        xintv = AutoTick(xEnd-xStart);
-      } else {
-        xintv = (xEnd - xStart) / xTicks;
+      //finished? Store Zrange and Loginess unless we are overplot:
+      if ( !overplot )
+      {
+       gdlStoreAxisCRANGE("Z", zStart, zEnd, zLog);
+       gdlStoreAxisType("Z",zLog);
       }
-      //Draw axis if keyword "OVERPLOT" is not set
-      actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-      actStream->schr( 0.0, actH/defH * yCharSize);
-      actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
 
-      // the axis (separate for x and y axis because of charsize)
-      PLFLT yintv;
-      if (yTicks == 0) {
-        yintv = AutoTick(yEnd-yStart);
-      } else {
-        yintv = (yEnd - yStart) / yTicks;
+
+      //Draw axes after the data because /fill could potentially overlap the axes.
+      //... if keyword "OVERPLOT" is not set
+      if ( !overplot ) //onlyplace where tick etc is relevant!
+      {
+//        DLong xTicks=0, yTicks=0, zTicks=0;
+//        e->AssureLongScalarKWIfPresent ( "XTICKS", xTicks );
+//        e->AssureLongScalarKWIfPresent ( "YTICKS", yTicks );
+//        e->AssureLongScalarKWIfPresent ( "ZTICKS", zTicks );
+//
+//        DLong xMinor=0, yMinor=0, zMinor=0;
+//        e->AssureLongScalarKWIfPresent ( "XMINOR", xMinor );
+//        e->AssureLongScalarKWIfPresent ( "YMINOR", yMinor );
+//        e->AssureLongScalarKWIfPresent ( "ZMINOR", zMinor );
+//
+//        DString xTickformat, yTickformat, zTickformat;
+//        e->AssureStringScalarKWIfPresent ( "XTICKFORMAT", xTickformat );
+//        e->AssureStringScalarKWIfPresent ( "YTICKFORMAT", yTickformat );
+//        e->AssureStringScalarKWIfPresent ( "ZTICKFORMAT", zTickformat );
+//
+        //still unused!!!
+//        DDouble ticklen=p.ticklen;
+//        e->AssureDoubleScalarKWIfPresent ( "TICKLEN", ticklen );
+//        DFloat xTicklen, yTicklen;
+//        e->AssureFloatScalarKWIfPresent( "XTICKLEN", xTicklen);
+//        e->AssureFloatScalarKWIfPresent( "YTICKLEN", yTicklen);
+
+        gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
+        gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
+
+//        // axis //we should write first box without labels with x.thick, then labels only...
+//        string xOpt="bcnst"; //or is it "string xOpt="bc", yOpt="bc";" ????
+//        string yOpt="bcnstv";
+//        AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
+//
+//        //X
+//        gdlSetAxisCharsize(e, actStream, "X");
+//        //X title as text
+//        actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+//        // the axis (separate for x and y axis because of charsize)
+//
+//        actStream->box( xOpt.c_str(), gdlComputeTickInterval(e, "X", xStart, xEnd, xLog), xMinor, "", 0.0, 0);
+//        //Y title
+//        gdlSetAxisCharsize(e, actStream, "Y");
+//        //Y title as text
+//        actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+//        // the axis (separate for x and y axis because of charsize)
+//        actStream->box( "", 0.0, 0, yOpt.c_str(), gdlComputeTickInterval(e, "Y", yStart, yEnd, yLog), yMinor);
+          gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+//
+////         title and sub title
+//        gdlWriteTitleAndSubtitle(e, actStream);
       }
-      actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+    } 
 
-      // title and sub title
-      actStream->schr( 0.0, 1.25*actH/defH);
-      actStream->mtex("t",1.25,0.5,0.5,title.c_str());
-      actStream->schr( 0.0, actH/defH); // charsize is reset here
-      actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
+  private:
 
-    }
-  } // }}}
-
-    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    void call_plplot (EnvT* e, GDLGStream* actStream) 
     {
-    } // }}}
+    } 
 
-    private: virtual void post_call(EnvT*, GDLGStream* actStream) // {{{
+  private:
+
+    virtual void post_call (EnvT*, GDLGStream* actStream) 
     {
-      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-
       actStream->lsty(1);//reset linestyle
-
-      if (!overplot)
-      {
-        // set ![XY].CRANGE
-        set_axis_crange("X", xStart, xEnd, xLog);
-        set_axis_crange("Y", yStart, yEnd, yLog);
-
-        //set ![x|y].type
-        set_axis_type("X",xLog);
-        set_axis_type("Y",yLog);
-      }
-    } // }}}
+      actStream->sizeChar(1.0);
+    } 
 
   }; // contour_call class
 
-  void contour(EnvT* e)
+  void contour (EnvT* e)
   {
     contour_call contour;
-    contour.call(e, 1);
+    contour.call ( e, 1 );
   }
-  
+
 } // namespace
