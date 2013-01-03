@@ -103,12 +103,15 @@ void GDLGStream::DefaultCharSize()
     SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
   ))[0];
 
-  if (name == "X") plstream::schr( 1.5, 1.0);
-  else if (name == "PS") plstream::schr( 3.5, 1.0);
-  else plstream::schr( 0, 1.0);
+  if (name == "PS" || name=="SVG") schr( 3.5, 1.0);
+  else schr(1.5, 1.0);
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_CH_SIZE"), 0)))[0]=
+  theCurrentChar.dsx;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_CH_SIZE"), 0)))[0]=
+  theCurrentChar.dsy;
 }
 
-void GDLGStream::NextPlot( bool erase)
+void GDLGStream::NextPlot( bool erase )
 {
   DLongGDL* pMulti = SysVar::GetPMulti();
 
@@ -121,65 +124,81 @@ void GDLGStream::NextPlot( bool erase)
   nx = (nx>0)?nx:1;
   ny = (ny>0)?ny:1;
   nz = (nz>0)?nz:1;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NextPlot(erase=%d)\n",erase);
+  // set subpage numbers in X and Y
+//  plstream::ssub( nx, ny ); // ssub does not change charsize it seems
+  ssub( nx, ny ); 
 
-  plstream::ssub( nx, ny); // changes charsize
-
-  if( (*pMulti)[ 0] <= 0 || (*pMulti)[ 0] == nx*ny)
-    //  if( (*pMulti)[ 0] <= 0)
+  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
+    //  if( (*pMulti)[0] <= 0)
+  {
+    if( erase )
     {
-      if( erase)
-	{
-	  eop();           // overridden (for Z-buffer)  
-	  plstream::bop(); // changes charsize
-	}
-
-      plstream::adv(1);
-      (*pMulti)[ 0] = nx*ny*nz-1;
+      eop();           // overridden (for Z-buffer)
+      plstream::bop(); // changes charsize
     }
+
+//    plstream::adv(1); //advance to first subpage
+    adv(1); //advance to first subpage
+    (*pMulti)[0] = nx*ny*nz-1; //set PMULTI[0] to this page
+  }
   else
+  {
+    DLong pMod = (*pMulti)[0] % (nx*ny);
+    if( dir == 0 )
     {
-      DLong pMod = (*pMulti)[ 0] % (nx*ny);
-      if( dir == 0)
-      {
-	plstream::adv(nx*ny - pMod + 1);
-      }
-      else
-	{
-	  int p = nx*ny - pMod;
-	  int pp = p*nx % (nx*ny) + p/ny + 1;
-	  plstream::adv(pp);
-	}
-
-      if( erase) 
-      {
-        --(*pMulti)[ 0];
-      }
+//      plstream::adv(nx*ny - pMod + 1);
+      adv(nx*ny - pMod + 1);
     }
-
-  // restore charsize
-  DefaultCharSize();
+    else
+    {
+      int p = nx*ny - pMod;
+      int pp = p*nx % (nx*ny) + p/ny + 1;
+//      plstream::adv(pp);
+      adv(pp);
+    }
+    if( erase )
+    {
+      --(*pMulti)[0];
+    }
+  }
+  // restore charsize to default for newpage
+  sizeChar(1.0);
 }
 
 void GDLGStream::NoSub()
 {
-  plstream::ssub( 1, 1); // changes charsize
-  plstream::adv( 0);
-  DefaultCharSize();
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NoSub()\n");
+  ssub( 1, 1); // changes charsize ?
+//plstream::adv( 0);
+  adv( 0);
+//  DefaultCharSize();
 }
 
-// default is a wrapper for gpage()
+// default is a wrapper for gpage(). Is overriden by, e.g., X driver.
 void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 {
-  
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::GetGeometry()\n");
   PLFLT xp; PLFLT yp; 
   PLINT xleng; PLINT yleng;
   PLINT plxoff; PLINT plyoff;
-  gpage( xp, yp, xleng, yleng, plxoff, plyoff);
+  plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff); //for X-Window, wrapper give sizes from X11, not plplot which seems bugged.
   
   xSize = xleng;
   ySize = yleng;
   xoff = plxoff;
   yoff = plyoff;
+  if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
+  {
+    PLFLT xmin,xmax,ymin,ymax;
+    plstream::gspa(xmin,xmax,ymin,ymax); //subpage in mm
+    xSize=min(1.0,xmax-xmin);
+    ySize=min(1.0,ymax-ymin);
+    xoff=0.0;
+    yoff=0.0;
+  }
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%d %d %d %d)\n", xSize, ySize, xoff, yoff);
+
 }
 
 // SA: embedded font attributes handling (IDL to plPlot syntax translation)
@@ -759,4 +778,75 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                        const char *text)
 {
   plptex(x,y,dx,dy,just,TranslateFormatCodes(text));
+}
+
+void GDLGStream::schr( PLFLT def, PLFLT scale )
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(%f,%f)\n",def,scale);
+  plstream::schr(def, scale);
+  CurrentCharSize(scale);
+}
+
+void GDLGStream::sizeChar( PLFLT scale )
+{
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
+  plstream::schr(theDefaultChar.mmsy, scale);
+//  plstream::schr(0, scale);
+  CurrentCharSize(scale);
+}
+
+void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
+  plstream::vpor(xmin, xmax, ymin, ymax);
+  theBox.nx1=xmin;
+  theBox.nx2=xmax;
+  theBox.ny1=ymin;
+  theBox.ny2=ymax;
+  PLFLT x1,x2,y1,y2;
+  plstream::gvpd(x1,x2,y1,y2); //retrieve NORMALIZED DEVICE coordinates of viewport
+  theBox.ndx1=x1;
+  theBox.ndx2=x2;
+  theBox.ndy1=y1;
+  theBox.ndy2=y2;
+  theBox.ondx=x1;
+  theBox.ondy=y1;
+  theBox.sndx=x2-x1;
+  theBox.sndy=y2-y1;
+
+  theBox.initialized=true;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);
+  syncPageInfo();
+}
+
+void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);
+  plstream::wind(xmin, xmax, ymin, ymax);
+  theBox.wx1=xmin;
+  theBox.wx2=xmax;
+  theBox.wy1=ymin;
+  theBox.wy2=ymax;
+  updateBoxDeviceCoords();
+  UpdateCurrentCharWorldSize();
+}
+
+void GDLGStream::ssub(PLINT nx, PLINT ny)
+{
+  plstream::ssub( nx, ny ); // does not appear to change charsize.
+  // set subpage numbers in X and Y
+  thePage.nbPages=nx*ny;
+  thePage.nx=nx;
+  thePage.ny=ny;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"ssub() %dx%d pages\n",nx,ny);
+  thePage.curPage=1;
+  syncPageInfo();
+}
+
+void GDLGStream::adv(PLINT page)
+{
+  plstream::adv(page);
+  if (page==0) {thePage.curPage++;} else {thePage.curPage=page;}
+  if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
 }

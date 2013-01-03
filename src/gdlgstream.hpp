@@ -18,6 +18,9 @@
 #ifndef GDLGSTREAM_HPP_
 #define GDLGSTREAM_HPP_
 
+//debug aid. Put to 1 to debug
+#define GDL_DEBUG_PLSTREAM 0
+
 #include <plplot/plstream.h>
 #include <plplot/plstrm.h>
 #ifndef HAVE_X
@@ -34,14 +37,111 @@
 #include <algorithm>
 #endif
 
+#define MMTOINCH 0.03937
+
 using namespace std;
+
+// Graphic Structures:
+  typedef struct _P_GRAPHICS {
+    DLong background;
+    DFloat charSize;
+    DFloat charThick;
+    DLong clip[6];
+    DLong color;
+    DLong font;
+    DLong lineStyle;
+    DLong multi[5];
+    DLong noClip;
+    DLong noErase;
+    DLong nsum;
+    DFloat position[4];
+    DLong psym;
+    DFloat region[4];
+    DString subTitle;
+    DFloat symSize;
+    DDouble t[4][4];
+    DLong t3d;
+    DFloat thick;
+    DString title;
+    DFloat ticklen;
+    DLong channel;
+  } pstruct ;
+
+  typedef struct GDL_BOX {
+    bool initialized;
+    PLFLT wx1; //world coord of x min
+    PLFLT wx2;
+    PLFLT wy1;
+    PLFLT wy2;
+    PLFLT nx1; //normalized position in subpage
+    PLFLT nx2;
+    PLFLT ny1;
+    PLFLT ny2;
+    PLFLT ndx1; //normalized device position
+    PLFLT ndx2;
+    PLFLT ndy1;
+    PLFLT ndy2;
+    PLFLT ondx; //offset x of box in device coords
+    PLFLT ondy; // in y
+    PLFLT sndx; //size of box, x , device
+    PLFLT sndy;
+    PLFLT dx1; //position in device coords (e.g. pixels)
+    PLFLT dx2;
+    PLFLT dy1;
+    PLFLT dy2;
+    PLFLT pageWorldCoordinates[4];
+    PLFLT subPageWorldCoordinates[4];
+  } gdlbox ;
+
+  typedef struct GDL_SUBPAGE {
+    PLFLT dxsize; //subpage x size device units
+    PLFLT dysize; //subpage y size device units
+    PLFLT dxoff; // subpage x offset
+    PLFLT dyoff; // subpage y offset
+  } gdlsubpage ;
+
+  typedef struct GDL_PAGE {
+    PLFLT xdpmm; // x resolution Dots per mm
+    PLFLT ydpmm; // y resolution Dots per mm
+    PLFLT length; //x length (device coordinates)
+    PLFLT height; //y lenght
+    PLFLT plxoff; // x offset
+    PLFLT plyoff; // y iffset
+    PLFLT xsizemm; // size in mm, x
+    PLFLT ysizemm;
+    PLINT curPage; //current Page
+    PLINT nbPages; //nx*ny
+    PLINT nx;
+    PLINT ny;
+    gdlsubpage subpage;
+  } gdlpage ;
+
+  typedef struct GDL_CHARINFO {
+    PLFLT scale;
+    PLFLT ndsx; // size of char in normalized device units, x direction
+    PLFLT ndsy; // idem y
+    PLFLT dsx; // size of char in device units, x direction
+    PLFLT dsy; // idem y
+    DDouble mmsx; //in mm
+    DDouble mmsy; //
+    PLFLT wsx;  //in current world coordinates
+    PLFLT wsy;
+  } gdlCharInfo;
 
 class GDLGStream: public plstream
 {
   void init(); // prevent plstream::init from being called directly
-	
+private:
+    gdlpage pageLayout;
+    gdlbox boxLayout;
+    
 protected:
   bool valid;
+  gdlCharInfo theCurrentChar;
+  gdlCharInfo theDefaultChar;
+  int gdlDefaultCharInitialized;
+  gdlbox theBox;
+  gdlpage thePage;
 
 public:
   GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
@@ -49,6 +149,9 @@ public:
   {
     if (!checkPlplotDriver(driver))
       ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
+    gdlDefaultCharInitialized=0;
+    thePage.nbPages=0;
+    theBox.initialized=false;
   }
 
   virtual ~GDLGStream()
@@ -126,7 +229,222 @@ public:
   virtual void Clear( DLong bColor)          {}
 
   bool Valid() { return valid;}
+  bool validWorldBox()
+  {
+      if( theBox.wx1==0&&theBox.wx2==0 || theBox.wy1==0&&theBox.wy2==0 ) return false; else return true;
+  }
+  bool validNormdBox()
+  {
+      if( theBox.nx1==0&&theBox.nx2==0 || theBox.ny1==0&&theBox.ny2==0 ) return false; else return true;
+  }
+  inline PLFLT charScale(){return theCurrentChar.scale;}
+  inline PLFLT nCharLength(){return theCurrentChar.ndsx;}
+  inline PLFLT nCharHeight(){return theCurrentChar.ndsy;}
+  inline PLFLT dCharLength(){return theCurrentChar.dsx;}
+  inline PLFLT dCharHeight(){return theCurrentChar.dsy;}
+  inline PLFLT wCharLength(){return theCurrentChar.wsx;}
+  inline PLFLT wCharHeight(){return theCurrentChar.wsy;}
+  inline DDouble mmCharLength(){return theCurrentChar.mmsx;}
+  inline DDouble mmCharHeight(){return theCurrentChar.mmsy;}
+  inline PLFLT xResolution(){return thePage.xdpmm;}
+  inline PLFLT yResolution(){return thePage.ydpmm;}
+  inline PLFLT mmxPageSize(){return thePage.xsizemm;} //size in mm
+  inline PLFLT mmyPageSize(){return thePage.ysizemm;}
+  inline PLFLT boxnXSize(){return theBox.sndx;}
+  inline PLFLT boxnYSize(){return theBox.sndy;}
+  inline PLFLT xPageSize(){return thePage.length;} //size in units
+  inline PLFLT yPageSize(){return thePage.height;}
+  inline PLFLT xSubPageSize(){return thePage.subpage.dxsize;} //size in units
+  inline PLFLT ySubPageSize(){return thePage.subpage.dysize;}
 
+  void  pageWorldCoordinates(PLFLT &wxmin, PLFLT &wxmax, PLFLT &wymin, PLFLT &wymax)
+  {
+      wxmin=theBox.pageWorldCoordinates[0];
+      wxmax=theBox.pageWorldCoordinates[1];
+      wymin=theBox.pageWorldCoordinates[2];
+      wymax=theBox.pageWorldCoordinates[3];
+  }
+  void  subPageWorldCoordinates(PLFLT &wxmin, PLFLT &wxmax, PLFLT &wymin, PLFLT &wymax)
+  {
+      wxmin=theBox.subPageWorldCoordinates[0];
+      wxmax=theBox.subPageWorldCoordinates[1];
+      wymin=theBox.subPageWorldCoordinates[2];
+      wymax=theBox.subPageWorldCoordinates[3];
+  }
+  void  boxDeviceCoordinates(PLFLT &wxmin, PLFLT &wxmax, PLFLT &wymin, PLFLT &wymax)
+  {
+      wxmin=theBox.dx1;
+      wxmax=theBox.dx2;
+      wymin=theBox.dy1;
+      wymax=theBox.dy2;
+  }
+  PLFLT  boxAspectDevice(){return (theBox.dy2-theBox.dy1)/(theBox.dx2-theBox.dx1);}
+  PLFLT  boxAspectWorld(){return (theBox.wy2-theBox.wy1)/(theBox.wx2-theBox.wx1);}
+
+  void SaveLayout()
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SaveLayout():\n");
+    pageLayout.nbPages=thePage.nbPages;
+    pageLayout.nx=thePage.nx;
+    pageLayout.ny=thePage.ny;
+    pageLayout.curPage=thePage.curPage;
+    pageLayout.length=thePage.length;
+    pageLayout.height=thePage.height;
+    pageLayout.xsizemm=thePage.xsizemm;
+    pageLayout.ysizemm=thePage.ysizemm;
+    pageLayout.plxoff=thePage.plxoff;
+    pageLayout.plyoff=thePage.plyoff;
+
+    boxLayout.nx1=theBox.nx1;
+    boxLayout.nx2=theBox.nx2;
+    boxLayout.ny1=theBox.ny1;
+    boxLayout.ny2=theBox.ny2;
+    boxLayout.ndx1=theBox.ndx1;
+    boxLayout.ndx2=theBox.ndx2;
+    boxLayout.ndy1=theBox.ndy1;
+    boxLayout.ndy2=theBox.ndy2;
+    boxLayout.ondx=theBox.ondx;
+    boxLayout.ondy=theBox.ondy;
+    boxLayout.sndx=theBox.sndx;
+    boxLayout.sndy=theBox.sndy;
+    boxLayout.dx1=theBox.dx1;
+    boxLayout.dx2=theBox.dx2;
+    boxLayout.dy1=theBox.dy1;
+    boxLayout.dy2=theBox.dy2;
+    boxLayout.wx1=theBox.wx1;
+    boxLayout.wx2=theBox.wx2;
+    boxLayout.wy1=theBox.wy1;
+    boxLayout.wy2=theBox.wy2;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"saving box [%f,%f,%f,%f] at [%f,%f,%f,%f] in subpage %d of %dx%d (device coords [%f,%f,%f,%f]\n",boxLayout.wx1,boxLayout.wy1,boxLayout.wx2,boxLayout.wy2,boxLayout.nx1,boxLayout.ny1,boxLayout.nx2,boxLayout.ny2,pageLayout.curPage,pageLayout.nx,pageLayout.ny,boxLayout.dx1,boxLayout.dy1,boxLayout.dx2,boxLayout.dy2);
+  }
+
+  void RestoreLayout()
+  {
+      ssub(pageLayout.nx,pageLayout.ny);
+      adv(pageLayout.curPage);
+      vpor(boxLayout.nx1,boxLayout.nx2,boxLayout.ny1,boxLayout.ny2);
+      wind(boxLayout.wx1,boxLayout.wx2,boxLayout.wy1,boxLayout.wy2);
+  }
+
+  void OnePageSaveLayout()
+  {
+      SaveLayout();
+      NoSub();
+  }
+
+  bool updatePageInfo()
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updatePageInfo():\n");
+    if (thePage.nbPages==0) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            FAILED\n");return false;}
+    long xsize,ysize,xoff,yoff;
+    GetGeometry(xsize,ysize,xoff,yoff);
+    thePage.length=xsize;
+    thePage.height=ysize;
+    thePage.plxoff=xoff;
+    thePage.plyoff=yoff;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f device units.\n",thePage.length, thePage.height);
+    return true;
+  }
+  
+  inline void NormToDevice(PLFLT normx, PLFLT normy, PLFLT &devx, PLFLT &devy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NormToDevice()\n");
+    devx=normx*thePage.subpage.dxsize+thePage.subpage.dxoff;
+    devy=normy*thePage.subpage.dysize+thePage.subpage.dyoff;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"        input [%f,%f] output [%f,%f]\n", normx, normy, devx, devy);
+  }
+
+  inline void NormedDeviceToDevice(PLFLT normx, PLFLT normy, PLFLT &devx, PLFLT &devy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NormedDeviceToDevice()\n");
+    devx=normx*thePage.length;
+    devy=normy*thePage.height;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         input [%f,%f] output [%f,%f]\n", normx, normy, devx, devy);
+  }
+
+  inline void DeviceToNorm(PLFLT devx, PLFLT devy, PLFLT &normx, PLFLT &normy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"DeviceToNorm()\n");
+    normx=(devx-thePage.subpage.dxoff)/thePage.subpage.dxsize;
+    normy=(devy-thePage.subpage.dyoff)/thePage.subpage.dysize;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          input [%f,%f] output [%f,%f]\n", devx, devy, normx, normy);
+  }
+  inline void DeviceToNormedDevice(PLFLT devx, PLFLT devy, PLFLT &normx, PLFLT &normy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"DeviceToNormedDevice()\n");
+    normx=devx/thePage.length;
+    normy=devy/thePage.height;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          input [%f,%f] output [%f,%f]\n", devx, devy, normx, normy);
+  }
+  inline void NormToWorld(PLFLT normx, PLFLT normy, PLFLT &worldx, PLFLT &worldy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NormToWorld()\n");
+    DDouble s1,s2;
+    s1=(theBox.wx2-theBox.wx1)/(theBox.nx2-theBox.nx1);
+    s2=theBox.wx1;
+    worldx=s1*(normx-theBox.nx1)+s2;
+    s1=(theBox.wy2-theBox.wy1)/(theBox.ny2-theBox.ny1);
+    s2=theBox.wy1;
+    worldy=s1*(normy-theBox.ny1)+s2;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         input [%f,%f] output [%f,%f]\n", normx, normy, worldx, worldy);
+  }
+
+  inline void NormedDeviceToWorld(PLFLT normx, PLFLT normy, PLFLT &worldx, PLFLT &worldy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NormedDeviceToWorld()\n");
+    DDouble s1,s2;
+    s1=(theBox.wx2-theBox.wx1)/(theBox.ndx2-theBox.ndx1);
+    s2=theBox.wx1;
+    worldx=s1*(normx-theBox.ndx1)+s2;
+    s1=(theBox.wy2-theBox.wy1)/(theBox.ndy2-theBox.ndy1);
+    s2=theBox.wy1;
+    worldy=s1*(normy-theBox.ndy1)+s2;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          input [%f,%f] (nd) output [%f,%f] (w)\n", normx, normy, worldx, worldy);
+  }
+
+  inline void WorldToNorm(PLFLT worldx, PLFLT worldy, PLFLT &normx, PLFLT &normy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"WorldToNormedDevice()\n");
+    DDouble s1,s2;
+    s1=(theBox.nx2-theBox.nx1)/(theBox.wx2-theBox.wx1);
+    s2=theBox.nx1;
+    normx=s1*(worldx-theBox.wx1)+s2;
+    s1=(theBox.ny2-theBox.ny1)/(theBox.wy2-theBox.wy1);
+    s2=theBox.ny1;
+    normy=s1*(worldy-theBox.wy1)+s2;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     input [%f,%f] output [%f,%f]\n", worldx, worldy, normx, normy);
+  }
+
+  inline void WorldToNormedDevice(PLFLT worldx, PLFLT worldy, PLFLT &normx, PLFLT &normy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"WorldToNormedDevice()\n");
+    DDouble s1,s2;
+    s1=(theBox.ndx2-theBox.ndx1)/(theBox.wx2-theBox.wx1);
+    s2=theBox.ndx1;
+    normx=s1*(worldx-theBox.wx1)+s2;
+    s1=(theBox.ndy2-theBox.ndy1)/(theBox.wy2-theBox.wy1);
+    s2=theBox.ndy1;
+    normy=s1*(worldy-theBox.wy1)+s2;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    input [%f,%f](w) output [%f,%f](nd)\n", worldx, worldy, normx, normy);
+  }
+
+
+  inline void DeviceToWorld(PLFLT devx, PLFLT devy, PLFLT &worldx, PLFLT &worldy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"DeviceToWorld()\n");
+    PLFLT normx, normy;
+    DeviceToNormedDevice(devx, devy, normx, normy);
+    NormedDeviceToWorld(normx, normy, worldx, worldy);
+  }
+
+  inline void WorldToDevice(PLFLT worldx, PLFLT worldy, PLFLT &devx, PLFLT &devy)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"WorldToDevice()\n");
+    PLFLT normx, normy;
+    WorldToNormedDevice(worldx, worldy, normx, normy);
+    NormedDeviceToDevice(normx, normy,  devx, devy);
+  }
+  
   //  void Clear();
   void Color( ULong c, DLong decomposed=0, UInt ix=1);
   void Background( ULong c, DLong decomposed=0);
@@ -136,6 +454,79 @@ public:
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
 
+  void CurrentCharSize(PLFLT scale)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"CurrentCharsize()\n");
+    if (gdlDefaultCharInitialized==0)
+    {
+        if (updatePageInfo()==true)
+        {
+        GetPlplotDefaultCharSize();
+        }
+    }
+    theCurrentChar.scale=scale;
+    theCurrentChar.ndsx=scale*theDefaultChar.ndsx;
+    theCurrentChar.ndsy=scale*theDefaultChar.ndsy;
+    theCurrentChar.dsx=scale*theDefaultChar.dsx;
+    theCurrentChar.dsy=scale*theDefaultChar.dsy;
+    theCurrentChar.mmsx=scale*theDefaultChar.mmsx;
+    theCurrentChar.mmsy=scale*theDefaultChar.mmsy;
+    theCurrentChar.wsx=scale*theDefaultChar.wsx;
+    theCurrentChar.wsy=scale*theDefaultChar.wsy;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            sized by %f is %fx%f mm or %fx%f device or %fx%f world\n",scale,theCurrentChar.mmsx,theCurrentChar.mmsy,theCurrentChar.dsx,theCurrentChar.dsy,theCurrentChar.wsx, theCurrentChar.wsy);
+  }
+
+  void UpdateCurrentCharWorldSize()
+  {
+    PLFLT x,y,dx,dy;
+    DeviceToWorld(0,0,x,y);
+    DeviceToWorld(theDefaultChar.dsx,theDefaultChar.dsy, dx, dy);
+    theDefaultChar.wsx=abs(dx-x);
+    theDefaultChar.wsy=abs(dy-y);
+    theCurrentChar.wsx=theCurrentChar.scale*theDefaultChar.wsx;
+    theCurrentChar.wsy=theCurrentChar.scale*theDefaultChar.wsy;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"UpdateCurrentCharWorldSize(%f,%f)\n",
+                                    theCurrentChar.wsx,theCurrentChar.wsy);
+  }
+  
+  void GetPlplotDefaultCharSize()
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetPlPlotDefaultCharsize()\n");
+    if (thePage.nbPages==0)   {return;}
+    //dimensions in normalized, device and millimetres
+    if (gdlDefaultCharInitialized==1) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     Already initialized\n"); return;}
+
+    PLFLT nxmin, nxmax, nymin, nymax, wxmin, wxmax, wymin, wymax;
+    plstream::gvpd(nxmin, nxmax, nymin, nymax); //save norm of current box
+    if((nxmin==0.0&&nxmax==0.0)||(nymin==0.0&&nymax==0.0)) //if not initialized, set normalized mode
+    {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          Warning: initializing viewport\n");
+      plstream::vpor(0, 1, 0, 1);
+      plstream::gvpd(nxmin, nxmax, nymin, nymax);
+      plstream::wind(0.0,1.0,0.0,1.0);
+    }
+    plstream::gvpw(wxmin, wxmax, wymin, wymax); //save world of current box
+    PLFLT vpXmin, vpXmax, vpYmin, vpYmax;
+    PLFLT vpXmin2, vpXmax2, vpYmin2, vpYmax2;
+    plstream::vpor(0, 1, 0, 1);
+    plstream::wind(0.0,1.0,0.0,1.0);
+    plstream::gvpd(vpXmin, vpXmax, vpYmin, vpYmax);
+    plstream::vsta();
+    plstream::gvpd(vpXmin2, vpXmax2, vpYmin2, vpYmax2);
+    theDefaultChar.ndsx=0.5*((vpXmin2-vpXmin)/8.0+(vpXmax-vpXmax2)/5.0);
+    theDefaultChar.ndsy=0.5*((vpYmin2-vpYmin)/5.0+(vpYmax-vpYmax2)/5.0);
+    theDefaultChar.dsx=0.5*((vpXmin2-vpXmin)/8.0+(vpXmax-vpXmax2)/5.0)*thePage.length;
+    theDefaultChar.dsy=0.5*((vpYmin2-vpYmin)/5.0+(vpYmax-vpYmax2)/5.0)*thePage.height;
+    plstream::vpor(nxmin, nxmax, nymin, nymax); //restore norm of current box
+    plstream::wind(wxmin, wxmax, wymin, wymax); //restore world of current box
+    PLFLT defhmm, scalhmm;
+    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+    theDefaultChar.mmsy=scalhmm;
+    theDefaultChar.mmsx=theDefaultChar.ndsx/theDefaultChar.ndsy*scalhmm;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(mm)\n",theDefaultChar.mmsx,theDefaultChar.mmsy);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(norm)\n",theDefaultChar.ndsx,theDefaultChar.ndsy);
+    gdlDefaultCharInitialized=1;
+  }
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
   const char * TranslateFormatCodes(const char *text);
@@ -143,7 +534,72 @@ public:
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text);
+  void schr( PLFLT def, PLFLT scale );
+  void sizeChar(PLFLT scale);
+  void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
+//  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
+  void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
+  void ssub( PLINT nx, PLINT ny);
+  void adv(PLINT page);
+  void gpage(PLFLT& xp, PLFLT& yp, PLINT& xleng, PLINT& yleng,
+                PLINT& xoff, PLINT& yoff)
+  {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"gpage()\n",xp,yp);
+    if(updatePageInfo()==true)
+    {
+        xp=thePage.xdpmm/MMTOINCH;
+        yp=thePage.ydpmm/MMTOINCH;
+        xleng=(PLINT)thePage.length;
+        yleng=(PLINT)thePage.height;
+        xoff=(PLINT)thePage.plxoff;
+        yoff=(PLINT)thePage.plyoff;
+    }
+  }
 
+  inline void syncPageInfo()
+  {
+      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SyncPageInfo()\n");
+      PLINT level;
+      plstream::glevel(level);
+      if (level>1 && thePage.nbPages!=0) //we need to have a vpor defined, and a page!
+      {
+        PLFLT bxsize_mm, bysize_mm, offx_mm, offy_mm;
+        PLFLT xmin,ymin,xmax,ymax;
+        plstream::gspa(xmin,xmax,ymin,ymax); //subpage in mm
+        bxsize_mm=xmax-xmin;
+        bysize_mm=ymax-ymin;
+        offx_mm=xmin;
+        offy_mm=ymin;
+        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         gspa returned size[%f,%f] at offset [%f,%f] (mm) for subpage %d of %dx%d subpages\n",bxsize_mm,bysize_mm,offx_mm,offy_mm,thePage.curPage,thePage.nx,thePage.ny);
+        //we can derive the dpm in x and y which converts mm to device coords:
+        thePage.xdpmm=abs(thePage.length/(thePage.nx*bxsize_mm));
+        thePage.ydpmm=abs(thePage.height/(thePage.ny*bysize_mm));
+        //and the page width and height in mm:
+        thePage.xsizemm=thePage.length/thePage.xdpmm;
+        thePage.ysizemm=thePage.height/thePage.ydpmm;
+        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         device resolution [%f,%f]mm^-1, device size [%f,%f], [%f,%f] mm\n",
+                thePage.xdpmm,thePage.ydpmm,thePage.length,thePage.height,thePage.xsizemm,thePage.ysizemm);
+        thePage.subpage.dxoff=offx_mm*thePage.xdpmm;
+        thePage.subpage.dyoff=offy_mm*thePage.ydpmm;
+        thePage.subpage.dxsize=bxsize_mm*thePage.xdpmm;
+        thePage.subpage.dysize=bysize_mm*thePage.ydpmm;
+        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         subpage is %fx%f at [%f,%f] device units\n",
+                thePage.subpage.dxsize,thePage.subpage.dysize,thePage.subpage.dxoff,thePage.subpage.dyoff);
+
+      } else         if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"       WARNING: not initalized\n");
+  }
+
+  inline void updateBoxDeviceCoords()
+  {
+      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updateBoxDeviceCoords()\n");
+    // world coordinates of current subpage boundaries and page boundaries
+    NormedDeviceToWorld(0.0, 0.0,theBox.pageWorldCoordinates[0],theBox.pageWorldCoordinates[2]);
+    NormedDeviceToWorld(1.0, 1.0,theBox.pageWorldCoordinates[1],theBox.pageWorldCoordinates[3]);
+    NormToWorld(0.0, 0.0,theBox.subPageWorldCoordinates[0],theBox.subPageWorldCoordinates[2]);
+    NormToWorld(1.0, 1.0,theBox.subPageWorldCoordinates[1],theBox.subPageWorldCoordinates[3]);
+    NormToDevice(theBox.nx1,theBox.ny1,theBox.dx1,theBox.dy1);
+    NormToDevice(theBox.nx2,theBox.ny2,theBox.dx2,theBox.dy2);
+  }
 };
 
 #endif
