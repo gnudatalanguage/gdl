@@ -237,16 +237,20 @@ public:
     winList[ wIx]->scmap1( r, g, b, ctSize); 
 
     winList[ wIx]->Init();
-    
+    // need to be called initially. permit to fix things
+    winList[ wIx]->ssub(1,1);
+    winList[ wIx]->adv(0);
     // load font
     winList[ wIx]->font( 1);
-    //actStream->DefaultCharSize();
+    winList[ wIx]->vpor(0,1,0,1);
+    winList[ wIx]->wind(0,1,0,1);
+//    winList[ wIx]->DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (winList[ wIx]->updatePageInfo()==true)
+    {
+        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    //    (*pMulti)[ 0] = nx*ny;
-
-    // need to be called initially
-    winList[ wIx]->adv(0);
-
+    }
     // sets actWin and updates !D
     SetActWin( wIx);
 
