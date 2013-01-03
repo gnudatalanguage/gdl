@@ -130,10 +130,11 @@ void GDLXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   PLFLT xp; PLFLT yp; 
   PLINT xleng; PLINT yleng;
   PLINT plxoff; PLINT plyoff;
-  gpage( xp, yp, xleng, yleng, plxoff, plyoff);
+  plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff);
 
   xoff = plxoff;
   yoff = plyoff;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLXStream::GetGeometry(%d %d %d %d)\n", xSize, ySize, xoff, yoff);
 }
 
 // plplot 5.3 does not provide the clear function for c++
