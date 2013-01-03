@@ -17,10 +17,35 @@
 
 #ifndef PLOTTING_HPP_
 #define PLOTTING_HPP_
+#define gdlPlot_Min(a, b) ((a) < (b) ? (a) : (b))
+#define gdlPlot_Max(a, b) ((a) > (b) ? (a) : (b))
 
 #include "envt.hpp"
 #include "graphics.hpp"
 #include "initsysvar.hpp"
+
+  struct GDL_TICKNAMEDATA
+  {
+    SizeT counter;
+    SizeT nTickName;
+    DStringGDL* TickName;
+  };
+
+  struct GDL_MULTIAXISTICKDATA
+  {
+    SizeT counter;
+    int what;
+    SizeT nTickFormat;
+    DDouble axismin;
+    DDouble axismax;
+    DStringGDL* TickFormat;
+    SizeT nTickUnits;
+    DStringGDL* TickUnits;
+  };
+
+#define GDL_NONE -1
+#define GDL_TICKFORMAT 0
+#define GDL_TICKUNITS 1
 
 namespace lib {
 
@@ -93,69 +118,83 @@ namespace lib {
       post_call(e, actStream);
     } // }}}
   };
-
+  template <typename T>
+  void gdlDoRangeExtrema(T* xVal, T* yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=FALSE, DDouble minVal=0, DDouble maxVal=0);
   template <typename T> 
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
              DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, 
 		     DLong psym=0, bool append=FALSE);
-  
-  void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end);
-
+  DDouble gdlEpsDouble();
+  DDouble gdlAbsoluteMinValueDouble();
+  //protect from (inverted, strange) axis log values
+  void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log);
   //set the background color
-  void gkw_background(EnvT * e, GDLGStream * a,bool kw=true);
+  void gdlSetGraphicsBackgroundColorFromKw(EnvT * e, GDLGStream * a,bool kw=true);
   //set the foreground color
-  void gkw_color(EnvT * e, GDLGStream * a);
-  //set the noerase flag
-  void gkw_noerase(EnvT * e, GDLGStream * a,bool noe=0);
+  void gdlSetGraphicsForegroundColorFromKw(EnvT * e, GDLGStream * a);
+  //advance to next plot unless the noerase flag is set
+  void gdlNextPlotHandlingNoEraseOption(EnvT * e, GDLGStream * a,bool noe=0);
   //set the symbol shape
-  void gkw_psym(EnvT *e, DLong &psym);
+  void gdlGetPsym(EnvT *e, DLong &psym);
   //set the symbol size
-  void gkw_symsize(EnvT * e, GDLGStream * a);
-  //set the character size, special version authorizing 'SIZE' keyword
-  void gkw_charsize_xyouts(EnvT * e, GDLGStream * a, DFloat& charsize);
-  //set the character size
-  void gkw_charsize(EnvT * e, GDLGStream * a, DFloat& charsize, bool kw=true);
+  void gdlSetSymsize(EnvT * e, GDLGStream * a);
+  //set the PLOT character size (including MULTI subscaling)
+  void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, bool accept_sizeKw=false);
+  //set the PLOT Char Thickness
+  void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
   //set the line thickness
-  void gkw_thick(EnvT * e, GDLGStream * a);
+  void gdlSetPenThickness(EnvT * e, GDLGStream * a);
   //set the linestyle
-  void gkw_linestyle(EnvT * e, GDLGStream * a);
+  void gdlLineStyle(GDLGStream *a, DLong style);
+  void gdlSetLineStyle(EnvT * e, GDLGStream * a);
+  //set axis linewidth
+  void gdlSetAxisThickness(EnvT *e, GDLGStream *a, string axis);
   //title
-  void gkw_title(EnvT* e, GDLGStream *a, PLFLT ad);
+  void gdlWriteTitleAndSubtitle(EnvT* e, GDLGStream *a);
   //set the !axis.crange vector
-  void set_axis_crange(string axis, DDouble Start, DDouble End, bool log);
-  //get the !axis.crange vector
-  void get_axis_crange(string axis, DDouble &Start, DDouble &End);
-  void get_axis_margin(string axis, DFloat &low, DFloat &high);
-  //axis_type
-  void get_axis_type(string axis, bool &log);
-  void set_axis_type(string axis, bool type);
+  void gdlStoreAxisCRANGE(string axis, DDouble Start, DDouble End, bool log);
+  //set the !axis.s vector
+  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, string axis, DDouble Start, DDouble End, bool log=false);
 
   // mapset
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);
 
-  void gkw_axis_charsize(EnvT* e, string axis, DFloat &charsize);
-
-  void gkw_axis_style(EnvT *e, string axis,DLong &style);
-  void gkw_axis_title(EnvT *e, string axis,DString &title);
-  void gkw_axis_range(EnvT *e, string axis,
-		      DDouble &start, DDouble &end, DLong & ynozero);
+  //axis_type
+  void gdlGetAxisType(string axis, bool &log);
+  //get the !axis.crange vector
+  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End);
+  void gdlGetDesiredAxisMargin(EnvT *e, string axis,DFloat &start, DFloat &end);
+  void gdlGetDesiredAxisCharsize(EnvT* e, string axis, DFloat &charsize);
+  void gdlGetDesiredAxisStyle(EnvT *e, string axis,DLong &style);
+  void gdlGetDesiredAxisTitle(EnvT *e, string axis,DString &title);
+  bool gdlGetDesiredAxisRange(EnvT *e, string axis,
+		      DDouble &start, DDouble &end);
+  //set the axis 'axis' charsize (including MULTI subscaling)
+  void gdlSetAxisCharsize(EnvT *e, GDLGStream *a, string axis);
+  void gdlStoreAxisType(string axis, bool type);
 
   void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
 
+  //length and height of a char in normalized coords, using trick
+  void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy);
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
-  void getWorldCoordinatesFromPLPLOT(GDLGStream *a, DDouble nx, DDouble ny, DDouble *wx, DDouble *wy);
+  bool startClipping(EnvT *e, GDLGStream *a, bool UsePClip);
+  void stopClipping(GDLGStream *a);
+  void gdlStoreCLIP(DLongGDL* clipBox);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
 
-  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero, bool log = false);
+  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, bool log = false);
   PLFLT AutoTick(DDouble x);
+  PLFLT gdlComputeTickInterval(EnvT *e, string axis, DDouble &min, DDouble &max, bool log);
+  bool gdlYaxisNoZero(EnvT* e);
   void AdjustAxisOpts(string& xOpt, string& yOpt,
     DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
     string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
-  bool SetVP_WC( EnvT* e, GDLGStream* actStream, DFloatGDL* pos, DDoubleGDL* clippingD, bool xLog, bool yLog,
+  bool gdlSetViewPortAndWorldCoordinates( EnvT* e, GDLGStream* actStream, DFloatGDL* plotPosition, bool xLog, bool yLog,
                  DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
                  DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal, DLong iso);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
@@ -168,14 +207,14 @@ namespace lib {
                  DLong& p_linestyle,
                  DFloat& p_symsize, DFloat& p_charsize, DFloat& p_thick,
                  DString& p_title, DString& p_subTitle, DFloat& p_ticklen);
+  void GetPData2 (pstruct& p);
     void CheckMargin( EnvT* e, GDLGStream* actStream,
                     DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT,
                     PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
-    void Clipping( DDoubleGDL* clippingD, 
-                 DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
     void handle_pmulti_position(EnvT *e, GDLGStream *a);
     void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
-
+     bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode=0);
+    bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
 } // namespace
 
 #endif
