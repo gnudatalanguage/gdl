@@ -316,7 +316,9 @@ namespace lib {
       BaseGDL* colorKW = e->GetKW( colorIx);
       if( colorKW != NULL)
       {
-        bool success = actDevice->SetColor();
+        DLong colorValue;
+        e->AssureLongScalarKW( colorIx, colorValue);
+        bool success = actDevice->SetColor(colorValue);
         if( !success) e->Throw( "Current device does not support keyword COLOR.");
       } 
     }
