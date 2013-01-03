@@ -661,7 +661,8 @@ public:
   // this one together with a static int holding the index is faster
   // (after the first call)
   bool KeywordSet( SizeT ix);
-
+  // GD added -- possibly very wrong?
+  bool KeywordPresent( const std::string& kw);
   bool KeywordPresent( SizeT ix)
   { return EnvBaseT::KeywordPresent( ix);}
 

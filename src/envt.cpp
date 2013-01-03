@@ -1103,6 +1103,12 @@ int EnvT::KeywordIx( const std::string& k)
   return pro->FindKey( k);
 }
 
+bool EnvT::KeywordPresent( const std::string& kw)
+{
+  int ix = KeywordIx( kw);
+  return (env[ix] != NULL);
+}
+
 const string EnvBaseT::GetString( SizeT ix)
   {
     const string unnamed("<INTERNAL_VAR>");
