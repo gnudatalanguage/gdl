@@ -35,6 +35,8 @@ namespace lib
   static bool xLog;
   static bool yLog;
 
+  // a possible implementation of path_recording. However, using our
+  // own contouring function could be easier.
   void myfill( PLINT n, const PLFLT *x, const PLFLT *y )
   {
     static int count=0;
@@ -579,12 +581,13 @@ namespace lib
               if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], true, 2 );
               if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
-                actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
-                clevel[i], clevel[i+1],
-                0, 2, 1,  /* we should use the colormap here, not with ->Color above . Idem for width.*/
-                0,0,0,0,
-                (recordPath)?(myfill):(plstream::fill), (oneDim),  //example of possible use of recordpath.
-                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+              actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
+              clevel[i], clevel[i+1],
+              0, 2, 1,  /* we should use the colormap here, not with ->Color above . Idem for width.*/
+              0,0,0,0,
+              /*(recordPath)?(myfill):*/
+                  (plstream::fill), (oneDim),  //example of possible use of recordpath.
+              (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
             actStream->psty(0);
             if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
