@@ -1649,7 +1649,7 @@ namespace lib
 
     // if the LINESTYLE keyword is present, the value will be change
     DLong temp_linestyle=-1111;
-    e->AssureLongScalarKWIfPresent("LINESTYLE", temp_linestyle);
+    if (e->KeywordSet("LINESTYLE")) e->AssureLongScalarKWIfPresent("LINESTYLE", temp_linestyle);
 
     bool debug=false;
     if ( debug )
