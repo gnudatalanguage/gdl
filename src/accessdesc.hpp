@@ -514,7 +514,11 @@ public:
 // 	return; // no further change
 // 	// hence "Add( SizeT)" will fail next time as well -> no further action here
 //       }
-      throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
+      assert( top != NULL);
+      if( top->Type() == GDL_OBJ) 
+	throw GDLException(NULL,"Nested structure references are not allowed with objects. Consider using parentheses: "+tagName);
+      else 
+	throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
     }
    
     int t=dStruct.back()->Desc()->TagIndex( tagName);

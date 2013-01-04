@@ -113,14 +113,14 @@ RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
   return static_cast<DInterpreter*>( this)->InnerInterpreterLoop(lineOffset);
 }
 
-DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
+DStructGDL* GDLInterpreter::ObjectStruct( DObjGDL* self, ProgNodeP mp)
 {
-  DType selfType = self->Type();
-  if( selfType != GDL_OBJ) 
-    throw GDLException( mp, "Object reference type"
-			" required in this context: "+Name(self));
+//   DType selfType = self->Type();
+//   if( selfType != GDL_OBJ) 
+//     throw GDLException( mp, "Object reference type"
+// 			" required in this context: "+Name(self));
 
-  DObjGDL* obj=static_cast<DObjGDL*>(self);
+  DObjGDL* obj=self;//static_cast<DObjGDL*>(self);
 
   SizeT o;
   if( !obj->Scalar( o))
@@ -143,21 +143,35 @@ DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
   return oStructGDL;
 }
 
-DStructGDL* GDLInterpreter::ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp)
-{
-  DStructGDL* oStruct = ObjectStruct( self, mp);
-  
-  // check accessibility
-  DStructDesc* desc = oStruct->Desc();
-  if( !desc->IsParent( callStack.back()->GetPro()->Object()))
-    {
-      throw GDLException( mp, "Object of type "+desc->Name()+
-			  " is not accessible within "+
-			  callStack.back()->GetProName() + ": "+Name(self));
-    }
-  
-  return oStruct;
-}
+// DStructDesc* GDLInterpreter::GDLObjectDesc( DStructGDL* oStruct, ProgNodeP mp)
+// {
+//   //DStructGDL* oStruct = ObjectStruct( self, mp);
+//   
+//   // check accessibility
+//   DStructDesc* desc = oStruct->Desc();
+//   if( !desc->IsParent( GDL_OBJECT_NAME))
+//     {
+//       return NULL;
+//     }
+//   
+//   return desc;
+// }
+// 
+// void GDLInterpreter::ObjectStructCheckAccess( DStructGDL* oStruct, ProgNodeP mp)
+// {
+//   //DStructGDL* oStruct = ObjectStruct( self, mp);
+//   
+//   // check accessibility
+//   DStructDesc* desc = oStruct->Desc();
+//   if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+//     {
+//       throw GDLException( mp, "Object of type "+desc->Name()+
+// 			  " is not accessible within "+
+// 			  callStack.back()->GetProName() + ": "+Name(self));
+//     }
+//   
+//   //return oStruct;
+// }
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
 bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 

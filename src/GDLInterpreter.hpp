@@ -116,8 +116,9 @@ public:
     static int GetFunIx( const std::string& subName);
     static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
-    DStructGDL* ObjectStruct( BaseGDL* self, ProgNodeP mp);
-    DStructGDL* ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp);
+    DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
+    // DStructGDL* ObjectStructCheckAccess( DObjGDL* self, ProgNodeP mp);
+    // DStructDesc* GDLObjectDesc( DObjGDL* self, ProgNodeP mp);
 
     // code in: dinterpreter.cpp
     static void SetFunIx( ProgNodeP f); // triggers read/compile
@@ -594,7 +595,6 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
 
     void SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL) 
     { 
-
 		if( r->Type() == GDL_STRUCT)
             {
                 if( r->IsAssoc())
@@ -608,11 +608,37 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             }
 		else
             {
+                if( r->Type() != GDL_OBJ)
+                    {
+                        throw GDLException( tt, "Expression must be a"
+                                            " STRUCT in this context: "+Name(r),
+                                            true,false);
+                    }
+
                 ArrayIndexListGuard guard( aL);
+
+                DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
+                DStructDesc* desc = oStruct->Desc();
+
+                if( desc->IsParent( GDL_OBJECT_NAME))
+                    {
+                        // call SetProperty
+                        //return;
+                    }
+
                 bool isObj = callStack.back()->IsObject();
                 if( isObj) // member access to object?
                     {
-                        DStructGDL* oStruct = ObjectStructCheckAccess( r, tt);
+                        if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+                            {
+                                throw GDLException( tt, "Object of type "+desc->Name()+
+                                                    " is not accessible within "+
+                                                    callStack.back()->GetProName() + 
+                                                    ": "+Name(r));
+                            }
+                        // DStructGDL* oStruct = 
+                        //        ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+
                         // oStruct cannot be "Assoc_"
                         aD->ADRoot( oStruct, guard.release()); 
                     }
@@ -641,19 +667,37 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             }
         else
             {
+                if( r->Type() != GDL_OBJ)
+                    {
+                        throw GDLException( tt, "Expression must be a"
+                                            " STRUCT in this context: "+Name(r),
+                                            true,false);
+                    }
+
                 ArrayIndexListGuard guard( aL);
-                // if( r->Type() != GDL_OBJ)
-                //     {
-                //         // check for Get/SetProperty
-                //         throw GDLException( _t, "Expression must be a"
-                //                             " STRUCT in this context: "+
-                //                             Name(r),true,false);
-                //     }
+
+                DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
+                DStructDesc* desc = oStruct->Desc();
+
+                if( desc->IsParent( GDL_OBJECT_NAME))
+                    {
+                        // call GetProperty
+                        //return;
+                    }
+
                 bool isObj = callStack.back()->IsObject();
                 if( isObj)
                     {
-                        DStructGDL* oStruct = ObjectStructCheckAccess( r, tt);
-                        
+                        if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+                            {
+                                throw GDLException( tt, "Object of type "+desc->Name()+
+                                                    " is not accessible within "+
+                                                    callStack.back()->GetProName() + 
+                                                    ": "+Name(r));
+                            }
+                        // DStructGDL* oStruct = 
+                        //     ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+
                         if( aD->IsOwner()) delete r; 
                         aD->SetOwner( false); // object struct, not owned
                         

@@ -3570,8 +3570,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     ProgNode::interpreter->CallStack().push_back(newEnv);
     
     // make the call
-    rEval=
-	    ProgNode::interpreter->
+    rEval= ProgNode::interpreter->
 		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
     return res; // NULL ok, rEval set properly    
