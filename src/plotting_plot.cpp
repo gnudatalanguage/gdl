@@ -169,15 +169,17 @@ private:
       DLong minEl, maxEl;
       xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       xStart = (*xVal)[minEl];
-      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
       xEnd = (*xVal)[maxEl];
+      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
       if (isnan(xEnd)) xEnd = 1.0;
+      if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
       yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
-      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
       yEnd = (*yVal)[maxEl];
+      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
       if (isnan(yEnd)) yEnd = 1.0;
+      if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
     }
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
     minVal = yStart; //to give a reasonable value...
