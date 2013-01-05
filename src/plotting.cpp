@@ -808,6 +808,19 @@ namespace lib
     //cout << "VP wind: "<<xStart<<" "<<xEnd<<" "<<yStart<<" "<<yEnd<<endl;
     //printf("data lim (setv): %f %f %f %f\n", xStart, xEnd, yStart, yEnd);
     // set world coordinates
+    //protection against silly coordinates
+    if (xStart==xEnd)
+    {
+      Message(e->GetProName()+"Coordinate system in error, please report to authors.");
+      xStart=0.0;
+      xEnd=1.0;
+    }
+    if (yStart==yEnd)
+    {
+      Message(e->GetProName()+"Coordinate system in error, please report to authors.");
+      yStart=0.0;
+      yEnd=1.0;
+    }
     actStream->wind(xStart, xEnd, yStart, yEnd);
     //       cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //        cout << "yStart " << yStart << "  yEnd "<<yEnd<<endl;
