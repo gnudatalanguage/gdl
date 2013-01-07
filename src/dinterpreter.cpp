@@ -143,6 +143,168 @@ DStructGDL* GDLInterpreter::ObjectStruct( DObjGDL* self, ProgNodeP mp)
   return oStructGDL;
 }
 
+void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL) 
+{ 
+  if( r->Type() == GDL_STRUCT)
+  {
+      if( r->IsAssoc())
+	  {
+	      ArrayIndexListGuard guard( aL);
+	      throw GDLException( tt, "File expression not allowed "
+				  "in this context: "+Name(r),true,false);
+	  }
+      DStructGDL* structR=static_cast<DStructGDL*>(r);
+      aD->ADRoot(structR, aL); 
+  }
+  else
+  {
+      if( r->Type() != GDL_OBJ)
+	  {
+	      throw GDLException( tt, "Expression must be a"
+				  " STRUCT in this context: "+Name(r),
+				  true,false);
+	  }
+
+      ArrayIndexListGuard guard( aL);
+
+      DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
+      DStructDesc* desc = oStruct->Desc();
+
+      bool isObj = callStack.back()->IsObject();
+
+      if( desc->IsParent( GDL_OBJECT_NAME))
+	  {
+	    SizeT sss = 0;
+	    SizeT ooo = 0;
+	    if( isObj)
+	    {
+	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
+
+	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+
+	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
+
+	      if( !static_cast<DObjGDL*>(self)->Scalar( sss))
+		  throw GDLException( tt, "Internal error: SELF Object reference"
+				    " must be scalar in this context: "+Name(self));
+
+	      assert( sss != 0);
+	    }
+
+	    if( !isObj || (sss != ooo))
+	    {
+	      // call SetProperty
+		  throw GDLException( tt, "Calling SetProperty not yet implemented: "+Name(r));
+	      //return;
+	    }
+	  }
+
+      if( isObj) // member access to object?
+	  {
+	      if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+		  {
+		      throw GDLException( tt, "Object of type "+desc->Name()+
+					  " is not accessible within "+
+					  callStack.back()->GetProName() + 
+					  ": "+Name(r));
+		  }
+	      // DStructGDL* oStruct = 
+	      //        ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+
+	      // oStruct cannot be "Assoc_"
+	      aD->ADRoot( oStruct, guard.release()); 
+	  }
+      else
+	  {
+	      throw GDLException( tt, "Expression must be a"
+				  " STRUCT in this context: "+Name(r),
+				  true,false);
+	  }
+  }
+}
+
+void GDLInterpreter::SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL) 
+{ 
+// check here for object and get struct
+if( r->Type() == GDL_STRUCT)
+  {
+      if( r->IsAssoc())
+	  {
+	      ArrayIndexListGuard guard( aL);
+	      throw GDLException( tt, "File expression not allowed "
+				  "in this context: "+Name(r),true,false);
+	  }
+      DStructGDL* structR=static_cast<DStructGDL*>(r);
+      aD->ADRoot( structR, aL); 
+  }
+else
+  {
+      if( r->Type() != GDL_OBJ)
+	  {
+	      throw GDLException( tt, "Expression must be a"
+				  " STRUCT in this context: "+Name(r),
+				  true,false);
+	  }
+
+      ArrayIndexListGuard guard( aL);
+
+      DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
+      DStructDesc* desc = oStruct->Desc();
+
+      bool isObj = callStack.back()->IsObject();
+
+      if( desc->IsParent( GDL_OBJECT_NAME))
+	  {
+	    SizeT sss = 0;
+	    SizeT ooo = 0;
+	    if( isObj)
+	    {
+	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
+
+	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+
+	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
+
+	      if( !static_cast<DObjGDL*>(self)->Scalar( sss))
+		  throw GDLException( tt, "Internal error: SELF Object reference"
+				    " must be scalar in this context: "+Name(self));
+
+	      assert( sss != 0);
+	    }
+
+	    if( !isObj || (sss != ooo))
+	    {
+	      // call GetProperty
+		  throw GDLException( tt, "Calling GetProperty not yet implemented: "+Name(r));
+	      //return;
+	    }
+	  }
+
+      if( isObj)
+	  {
+	      if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+		  {
+		      throw GDLException( tt, "Object of type "+desc->Name()+
+					  " is not accessible within "+
+					  callStack.back()->GetProName() + 
+					  ": "+Name(r));
+		  }
+	      // DStructGDL* oStruct = 
+	      //     ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+
+	      if( aD->IsOwner()) delete r; 
+	      aD->SetOwner( false); // object struct, not owned
+	      
+	      aD->ADRoot( oStruct, guard.release()); 
+	  }
+      else
+	  {
+	      throw GDLException( tt, "Expression must be a"
+				  " STRUCT in this context: "+Name(r),true,false);
+	  }
+  }
+}
+
 // DStructDesc* GDLInterpreter::GDLObjectDesc( DStructGDL* oStruct, ProgNodeP mp)
 // {
 //   //DStructGDL* oStruct = ObjectStruct( self, mp);

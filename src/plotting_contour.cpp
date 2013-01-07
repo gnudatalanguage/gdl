@@ -35,6 +35,7 @@ namespace lib
   static bool xLog;
   static bool yLog;
 
+//  void myfill( PLINT n, PLFLT *x, PLFLT *y )
   // a possible implementation of path_recording. However, using our
   // own contouring function could be easier.
   void myfill( PLINT n, const PLFLT *x, const PLFLT *y )
