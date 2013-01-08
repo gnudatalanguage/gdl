@@ -1254,8 +1254,11 @@ namespace lib
         y=odata.y;
       }
 #endif
-      isBad=(!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
-      if ( doMinMax ) isBad=(isBad||(y<minVal)||(y>maxVal));
+      //note: here y is in minVal maxVal
+      if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
+      if ( xLog ) x=log10(x);
+      if ( yLog ) y=log10(y);
+      isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
       if ( isBad )
       {
         reset=1;
@@ -1296,7 +1299,7 @@ namespace lib
       }
 
 #ifdef USE_LIBPROJ4
-      if ( mapSet&& !e->KeywordSet("NORMAL") )
+      if ( mapSet&& !e->KeywordSet("NORMAL") ) //IS BROKEN FOR X/YLOG !!!!!!
       {
         if ( i>0 ) //;&& (i_buff >0))
         {
@@ -1319,12 +1322,6 @@ namespace lib
         }
       }
 #endif
-      //note: here y is in minVal maxVal
-      if ( xLog ) if ( x<=0.0 ) continue;
-        else x=log10(x);
-      if ( yLog ) if ( y<=0.0 ) continue;
-        else y=log10(y);
-
       x_buff[i_buff]=x;
       y_buff[i_buff]=y;
       i_buff=i_buff+1;
