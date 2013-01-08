@@ -1,8 +1,10 @@
 <h2>GDL 0.9.3 released</h2>
 <p>
-  2013-01-01: FreeBSD port updated<br />
-  2012-12-28: ArchLinux package updated<br />
-  2012-12-28: Fedora package updated<br />
+  2013-01-05: <a href="http://packages.debian.org/experimental/gnudatalanguage">Debian port updated</a><br />
+  2013-01-02: <a href="http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/dev-lang/gdl/">Gentoo port updated</a><br />
+  2013-01-01: <a href="http://www.freshports.org/science/gnudatalanguage/">FreeBSD port updated</a><br />
+  2012-12-28: <a href="https://aur.archlinux.org/packages.php?ID=2493">ArchLinux package updated</a><br />
+  2012-12-28: <a href="http://www.rpmfind.net/linux/rpm2html/search.php?query=config(gdl)">Fedora package updated</a><br />
   2012-12-27: GDL 0.9.3 source tarball released.<br />
   <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.3/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>
 </p>
