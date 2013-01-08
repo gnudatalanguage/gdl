@@ -423,6 +423,9 @@ public:
 
   DLong GetOnError() const { return onError;}
 
+  ProgNodeP GetCatchNode() const { return catchNode;} 
+  BaseGDL** GetCatchVar() const { return catchVar;} 
+
   SizeT NJump() const { return nJump;}
   int   LastJump() const { return lastJump;}
   ProgNodeP GotoTarget( int ix)

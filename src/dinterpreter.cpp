@@ -275,8 +275,10 @@ else
 	    if( !isObj || (sss != ooo))
 	    {
 	      // call GetProperty
-		  throw GDLException( tt, "Calling GetProperty not yet implemented: "+Name(r));
-	      //return;
+	      throw GDLException( tt, "Calling GetProperty not yet implemented: "+Name(r));
+
+	      //aD->ADRootGetProperty( oStruct, guard.release()); 
+	      return;
 	    }
 	  }
 

@@ -197,7 +197,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
     xoff=0.0;
     yoff=0.0;
   }
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%d %d %d %d)\n", xSize, ySize, xoff, yoff);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
 
 }
 

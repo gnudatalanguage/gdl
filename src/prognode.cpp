@@ -1105,7 +1105,7 @@ RetCode  PCALL_LIBNode::Run()
 {
 //   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
 //   StackGuard<EnvStackT> guard( ProgNode::interpreter->CallStack());
-  BaseGDL *self;
+//  BaseGDL *self;
 	
   // 		match(antlr::RefAST(_t),PCALL_LIB);
   ProgNodeP _t = this->getFirstChild();
@@ -1113,7 +1113,7 @@ RetCode  PCALL_LIBNode::Run()
   // 		match(antlr::RefAST(_t),IDENTIFIER);
   _t = _t->getNextSibling();
 		
-  EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
+  EnvT* newEnv=new EnvT( this, pl->libPro);//libProList[pl->proIx]);
 		
   ProgNode::interpreter->parameter_def_nocheck(_t, newEnv);
   auto_ptr<EnvT> guardEnv( newEnv);

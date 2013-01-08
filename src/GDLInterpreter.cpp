@@ -442,6 +442,17 @@ GDLInterpreter::GDLInterpreter()
 		}
 		}
 		
+		// handle CATCH
+		ProgNodeP catchNode = callStack.back()->GetCatchNode();
+		if( catchNode != NULL)
+		{
+		BaseGDL** catchVar = callStack.back()->GetCatchVar();
+		GDLDelete(*catchVar);
+		*catchVar = new DLongGDL( -1);
+		_retTree = catchNode;
+		return RC_OK;
+		}
+		
 		EnvUDT* targetEnv = e.GetTargetEnv();
 		if( targetEnv == NULL)
 		{
