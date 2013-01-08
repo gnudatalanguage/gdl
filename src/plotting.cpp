@@ -698,18 +698,18 @@ namespace lib
     {
       PLFLT normx;
       PLFLT normy;
-      actStream->DeviceToNorm(positionP[0], positionP[1], normx, normy);
+      actStream->DeviceToNormedDevice(positionP[0], positionP[1], normx, normy);
       positionP[0]=normx;
       positionP[1]=normy;
-      actStream->DeviceToNorm(positionP[2], positionP[3], normx, normy);
+      actStream->DeviceToNormedDevice(positionP[2], positionP[3], normx, normy);
       positionP[2]=normx;
       positionP[3]=normy;
       if ( plotPosition!=NULL && plotPosition!=(DFloatGDL*)0xF )
       {
-        actStream->DeviceToNorm(position[0], position[1], normx, normy);
+        actStream->DeviceToNormedDevice(position[0], position[1], normx, normy);
         position[0]=normx;
         position[1]=normy;
-        actStream->DeviceToNorm(position[2], position[3], normx, normy);
+        actStream->DeviceToNormedDevice(position[2], position[3], normx, normy);
         position[2]=normx;
         position[3]=normy;
       }
