@@ -33,14 +33,18 @@ class GDLException: public antlr::ANTLRException
 {
   static DInterpreter* interpreter;
 
-std::string msg;
+  std::string msg;
 
   RefDNode  errorNode;
   ProgNodeP errorNodeP;
+  DLong     errorCode;
   SizeT line;
   SizeT col;
   bool prefix;
-
+protected:
+  bool ioException;
+ 
+private:  
   EnvUDT* targetEnv; // where to stop (depending on ON_ERROR)
 
 public:
@@ -54,7 +58,17 @@ public:
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
+		  errorCode(-1),
 		  line( 0), col( 0), prefix( true),
+		  ioException( false),
+		  targetEnv( NULL)
+  {}
+  GDLException( DLong eC): ANTLRException(), 
+    errorNode(static_cast<RefDNode>(antlr::nullAST)),
+		  errorNodeP( NULL),
+		  errorCode(eC),
+		  line( 0), col( 0), prefix( true),
+		  ioException( false),
 		  targetEnv( NULL)
   {}
   GDLException(const std::string& s, bool pre = true, bool decorate=true);
@@ -62,13 +76,19 @@ public:
   GDLException(const ProgNodeP eN, const std::string& s, bool decorate=true, bool overWriteNode=true);
   GDLException(SizeT l, SizeT c, const std::string& s);
 
+  GDLException(DLong eC, const std::string& s, bool pre = true, bool decorate=true);
+  GDLException(DLong eC, const RefDNode eN, const std::string& s);
+  GDLException(DLong eC, const ProgNodeP eN, const std::string& s, bool decorate=true, bool overWriteNode=true);
+  GDLException(DLong eC, SizeT l, SizeT c, const std::string& s);
+
   ~GDLException() throw() {}
 
-std::string toString() const
-	{
-		return msg;
-	}
-
+  DLong ErrorCode() const { return errorCode;}
+  
+  std::string toString() const
+  {
+	  return msg;
+  }
 
   SizeT getLine() const 
   { 
@@ -104,6 +124,8 @@ std::string toString() const
   {
     return targetEnv;
   }
+
+  bool IsIOException() const { return ioException;}
 };
 
 // for ON_IOERROR
@@ -112,16 +134,15 @@ class GDLIOException: public GDLException
 public:
   GDLIOException(): 
     GDLException()
-  {}
+  { ioException = true;}
 
   GDLIOException(const std::string& s, bool pre = true):
     GDLException( s, pre)
-  {}
+  { ioException = true;}
     
   GDLIOException(const ProgNodeP eN, const std::string& s):
     GDLException( eN, s)
-  {}
-
+  { ioException = true;}
 };
 
 // warnings ignore !QUIET

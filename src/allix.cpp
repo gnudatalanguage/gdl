@@ -60,7 +60,7 @@ SizeT AllIxIndicesStrictT::operator[]( SizeT i) const
 assert( upperSet);
 SizeT index = ref->GetAsIndexStrict( i);
 if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
+	throw GDLException(-1,NULL,"Array used to subscript array "
 			   "contains out of range subscript (at index: "+i2s(i)+").",true,false);
 return index;
 }
@@ -71,7 +71,7 @@ assert( upperSet);
 seqIx = 0;
 SizeT index = ref->GetAsIndexStrict( 0);
 if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
+	throw GDLException(-1,NULL,"Array used to subscript array "
 			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
 return index;
 }
@@ -81,7 +81,7 @@ SizeT AllIxIndicesStrictT::SeqAccess()
 assert( upperSet);
 SizeT index = ref->GetAsIndexStrict( ++seqIx);
 if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
+	throw GDLException(-1,NULL,"Array used to subscript array "
 			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
 return index;
 }

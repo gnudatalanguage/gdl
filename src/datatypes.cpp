@@ -5279,7 +5279,7 @@ template<>
 SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
 }	
@@ -5294,7 +5294,7 @@ template<>
 SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
 }	
@@ -5309,7 +5309,7 @@ template<>
 SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
 }	
@@ -5324,7 +5324,7 @@ template<>
 SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] <= -1.0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( (*this)[i] <= 0.0)
     return 0;
@@ -5341,7 +5341,7 @@ template<>
 SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] <= -1.0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( (*this)[i] <= 0.0)
     return 0;
@@ -5374,7 +5374,7 @@ SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
       return 0;
     }
   if( l < 0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript.",true,false);
   return l;
 }	
@@ -5390,7 +5390,7 @@ template<>
 SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
 {
   if( real((*this)[i]) <= -1.0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( real((*this)[i]) <= 0.0)
     return 0;
@@ -5407,7 +5407,7 @@ template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
 {
   if( real((*this)[i]) <= -1.0)
-    throw GDLException(NULL,"Array used to subscript array "
+    throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( real((*this)[i]) <= 0.0)
     return 0;

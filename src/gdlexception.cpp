@@ -37,12 +37,40 @@ if(interpreter!=NULL && interpreter->CallStack().size()>0)
 return "";
 }
 
+GDLException::GDLException(DLong eC, const string& s, bool pre, bool decorate): 
+  ANTLRException(s),
+  errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( NULL),
+  errorCode(eC),
+  line( 0), col( 0), prefix( pre),
+  ioException( false),
+  targetEnv( NULL)
+{
+if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0) 
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  errorNodeP = e->CallingNode();
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+}
+else
+{
+  msg = s;
+}
+  // note: This is for cases, when form a destructor is thrown
+  // in these cases, program aborts
+#ifdef GDL_DEBUG
+   cerr << s << endl;
+#endif
+}
 GDLException::GDLException(const string& s, bool pre, bool decorate): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( NULL),
+  errorCode(-1),
   line( 0), col( 0), prefix( pre),
-		  targetEnv( NULL)
+  ioException( false),
+  targetEnv( NULL)
 {
 if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -66,8 +94,34 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   ANTLRException(s), 
   errorNode(eN),
   errorNodeP( NULL),
+  errorCode(-1),
   line( 0), col( 0), prefix( true),
-		  targetEnv( NULL)
+  ioException( false),
+  targetEnv( NULL)
+{
+if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  errorNodeP = e->CallingNode();
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+}
+else
+{
+  msg = s;
+}
+#ifdef GDL_DEBUG
+   cerr << s << endl;
+#endif
+}
+GDLException::GDLException(DLong eC, const RefDNode eN, const string& s): 
+  ANTLRException(s), 
+  errorNode(eN),
+  errorNodeP( NULL),
+  errorCode(eC),
+  line( 0), col( 0), prefix( true),
+  ioException( false),
+  targetEnv( NULL)
 {
 if(interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -89,8 +143,10 @@ GDLException::GDLException(const ProgNodeP eN, const string& s, bool decorate, b
   ANTLRException(s), 
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( eN),
+  errorCode(-1),
   line( 0), col( 0), prefix( true),
-		  targetEnv( NULL)
+  ioException( false),
+  targetEnv( NULL)
 {
 if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -111,25 +167,78 @@ else
    cerr << s << endl;
 #endif
 }
+GDLException::GDLException(DLong eC, const ProgNodeP eN, const string& s, bool decorate, bool overWriteNode): 
+  ANTLRException(s), 
+  errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( eN),
+  errorCode(eC),
+  line( 0), col( 0), prefix( true),
+  ioException( false),
+  targetEnv( NULL)
+{
+  if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
+  {
+    EnvBaseT* e = interpreter->CallStack().back();
+    errorNodeP = e->CallingNode();
+  }
+  if( decorate && interpreter!=NULL && interpreter->CallStack().size()>0)
+  {
+    EnvBaseT* e = interpreter->CallStack().back();
+    msg = e->GetProName();
+    if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  }
+  else
+  {
+    msg = s;
+  }
+#ifdef GDL_DEBUG
+   cerr << s << endl;
+#endif
+}
 
 GDLException::GDLException(SizeT l, SizeT c, const string& s): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( NULL),
+  errorCode(-1),
   line( l), col( c), prefix( true),
-		  targetEnv( NULL)
+  ioException( false),
+  targetEnv( NULL)
 {
-if(interpreter!=NULL && interpreter->CallStack().size()>0) 
-{
-  EnvBaseT* e = interpreter->CallStack().back();
-  errorNodeP = e->CallingNode();
-  msg = e->GetProName();
-  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+  {
+    EnvBaseT* e = interpreter->CallStack().back();
+    errorNodeP = e->CallingNode();
+    msg = e->GetProName();
+    if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  }
+  else
+  {
+    msg = s;
+  }
+#ifdef GDL_DEBUG
+   cerr << s << endl;
+#endif
 }
-else
+GDLException::GDLException(DLong eC, SizeT l, SizeT c, const string& s): 
+  ANTLRException(s),
+  errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( NULL),
+  errorCode(eC),
+  line( l), col( c), prefix( true),
+  targetEnv( NULL)
 {
-  msg = s;
-}
+  if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+  {
+    EnvBaseT* e = interpreter->CallStack().back();
+    errorNodeP = e->CallingNode();
+    msg = e->GetProName();
+    if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  }
+  else
+  {
+    msg = s;
+  }
 #ifdef GDL_DEBUG
    cerr << s << endl;
 #endif

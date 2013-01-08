@@ -391,7 +391,7 @@ public:
     SizeT rRank=r->Rank();
 
 //     if( rRank > lRank)
-//       throw GDLException(NULL,"Conflicting data structures (rank).",true,false);
+//       throw GDLException(-1,NULL,"Conflicting data structures (rank).",true,false);
 
     SizeT topRank=top->Rank();
 
@@ -408,7 +408,7 @@ public:
       {
 	 // IDL seems to allow a maximum of one rank more for the r-value
 // 	if( rRank > (topRank+1))
-// 	  throw GDLException(NULL,"Conflicting data structures (top-rank).",true,false);
+// 	  throw GDLException(-1,NULL,"Conflicting data structures (top-rank).",true,false);
 
 	// inplace copy to every instance of top
 	// just loop over all top elements and insert (at appropriate indices)
@@ -431,7 +431,7 @@ public:
 	// all dimensions must match here
 	for( SizeT i=0; i<rRank; i++)
 	  if( dim[i] != r->Dim(i))
-	    throw GDLException(NULL,"Conflicting data structures (dim).",true,false);
+	    throw GDLException(-1,NULL,"Conflicting data structures (dim).",true,false);
 
 	// copy only topRank dimensions each time (topElem elements)
 	// topRank is the dim to start the outer loop with
@@ -491,7 +491,7 @@ public:
   void ADRoot( DStructGDL* s, ArrayIndexListT* ix_=NULL) // root
   {
 //     if( s->IsAssoc())
-//       throw GDLException(NULL,"File expression not allowed in this context.",true,false);
+//       throw GDLException(-1,NULL,"File expression not allowed in this context.",true,false);
     propertyAccess = false;
     dStruct.push_back(s);
     ix.push_back(ix_); 
@@ -507,7 +507,7 @@ public:
 // 	// must only have one time property access
 // 	if( propertyAccess)
 // 	{
-// 	  throw GDLException(NULL,"Cannot access tag: "+ tagName+" [of property: "+propertyName+"].",true,false);
+// 	  throw GDLException(-1,NULL,"Cannot access tag: "+ tagName+" [of property: "+propertyName+"].",true,false);
 // 	}
 // 	propertyName = tagName;
 // 	propertyAccess = true;
@@ -516,9 +516,9 @@ public:
 //       }
       assert( top != NULL);
       if( top->Type() == GDL_OBJ) 
-	throw GDLException(NULL,"Nested structure references are not allowed with objects. Consider using parentheses: "+tagName);
+	throw GDLException(-1,NULL,"Nested structure references are not allowed with objects. Consider using parentheses: "+tagName);
       else 
-	throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
+	throw GDLException(-1,NULL,"Left side of a tag must be a STRUCT: "+tagName);
     }
    
     int t=dStruct.back()->Desc()->TagIndex( tagName);
@@ -526,7 +526,7 @@ public:
     {
       // TODO: Check for call to Get/SetProperty
       
-      throw GDLException(NULL,"Tag name: "+tagName+" is undefined for STRUCT.",true,false);
+      throw GDLException(-1,NULL,"Tag name: "+tagName+" is undefined for STRUCT.",true,false);
     }
     // call SizeT version
     SizeT tagIx=static_cast<SizeT>(t);
@@ -539,15 +539,15 @@ public:
     DStructGDL* actTop=dStruct.back();
 
     if( actTop == NULL)
-      throw GDLException(NULL,"Expression must be a STRUCT in this context.",true,false);
+      throw GDLException(-1,NULL,"Expression must be a STRUCT in this context.",true,false);
     
     if( actTop->N_Elements() == 0) // maybe not needed
-      throw GDLException(NULL,"Error struct data empty.",true,false);
+      throw GDLException(-1,NULL,"Error struct data empty.",true,false);
     
     SizeT nTags=actTop->Desc()->NTags();
     
     if( tagN >= nTags)
-      throw GDLException(NULL,"Invalid tag number.",true,false);
+      throw GDLException(-1,NULL,"Invalid tag number.",true,false);
 
     // TODO: Insert object struct for Get/SetProperty
     // tagN == -1 (change type to int)?
@@ -570,7 +570,7 @@ public:
   void ADAddIx( ArrayIndexListT* ix_) // tags
   {
     if( propertyAccess && ix_ != NULL)
-	  throw GDLException(NULL,"Property must not be indexed: "+propertyName+".",true,false);      
+	  throw GDLException(-1,NULL,"Property must not be indexed: "+propertyName+".",true,false);      
     ix.push_back(ix_); 
   }
 

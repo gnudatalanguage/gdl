@@ -1827,8 +1827,6 @@ TRACEOMP( __FILE__, __LINE__)
   {
     SizeT nParam = e->NParam();
 
-    if( nParam == 0) return;
-
     static int continueIx = e->KeywordIx( "CONTINUE");
     static int infoIx = e->KeywordIx( "INFORMATIONAL");
     static int ioerrorIx = e->KeywordIx( "IOERROR");
@@ -1844,6 +1842,33 @@ TRACEOMP( __FILE__, __LINE__)
     bool noprefix = e->KeywordSet( noprefixIx);
     bool noprint = e->KeywordSet( noprintIx);
     bool reset = e->KeywordSet( resetIx);
+
+    if( reset)
+    {
+      DStructGDL* errorState = SysVar::Error_State();
+      static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
+      static unsigned blockTag = errorState->Desc()->TagIndex( "BLOCK");
+      static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+      static unsigned rangeTag = errorState->Desc()->TagIndex( "RANGE");
+      static unsigned sys_code_typeTag = errorState->Desc()->TagIndex( "SYS_CODE_TYPE");
+      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+      static unsigned sys_msgTag = errorState->Desc()->TagIndex( "SYS_MSG");
+      static unsigned msg_prefixTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
+
+      (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = "IDL_M_SUCCESS";
+      (*static_cast<DStringGDL*>( errorState->GetTag( blockTag)))[0] = "IDL_MBLK_CORE";
+      (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
+      (*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[0] = 0;
+      (*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[1] = 0;
+      (*static_cast<DStringGDL*>( errorState->GetTag( sys_code_typeTag)))[0] = "";
+      (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = "";
+      (*static_cast<DStringGDL*>( errorState->GetTag( sys_msgTag)))[0] = "";
+      (*static_cast<DStringGDL*>( errorState->GetTag( msg_prefixTag)))[0] = "% ";
+      
+      SysVar::SetErr_String( "");     
+    }
+    
+    if( nParam == 0) return;
 
     DString msg;
     e->AssureScalarPar<DStringGDL>( 0, msg);

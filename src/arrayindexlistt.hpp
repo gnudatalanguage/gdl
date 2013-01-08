@@ -45,19 +45,19 @@ public:
 
   virtual void InitAsOverloadIndex( IxExprListT& ixIn, IxExprListT* cleanupIx, IxExprListT& ixOut) 
   { 
-    throw GDLException( NULL,"Internal error: ArrayIndexListT::InitAsOverladIndex( IxExprListT& ixInOut) called.",true,false);    
+    throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::InitAsOverladIndex( IxExprListT& ixInOut) called.",true,false);    
   }
   virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) 
   { 
     assert( 0);
-    throw GDLException( NULL,"Internal error: ArrayIndexListT::Init( IxExprListT& ix, IxExprListT* cleanupIx) called.",true,false);    
+    throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::Init( IxExprListT& ix, IxExprListT* cleanupIx) called.",true,false);    
   }
   virtual void Init() {}
   
    virtual bool ToAssocIndex( SizeT& lastIx) 
    { 
     assert( 0);       
-    throw GDLException( NULL,"Internal error: ArrayIndexListT::ToAssocIndex( SizeT& lastIx) called.",true,false);
+    throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::ToAssocIndex( SizeT& lastIx) called.",true,false);
    }
 //  virtual bool ToAssocIndex( RangeT& lastIx) = 0;
 
@@ -188,10 +188,10 @@ public:
     // cannot be ArrayIndexScalar[VP] ix->Init();
     RangeT lastValIx;
     if( !ix->Scalar( lastValIx))
-      throw GDLException( NULL,"Record number must be a scalar in this context.",true,false);
+      throw GDLException( -1, NULL,"Record number must be a scalar in this context.",true,false);
 
     if( lastValIx < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+      throw GDLException( -1, NULL,"Record number must be a scalar > 0 in this context.",true,false);
 
     lastIx = lastValIx;
     return true;
@@ -535,7 +535,7 @@ public:
   {
     sInit = varPtr->Data()->LoopIndex();
     if( sInit < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+      throw GDLException( -1, NULL,"Record number must be a scalar > 0 in this context.",true,false);
     s = sInit;
     lastIx = s;
     return true;
@@ -553,9 +553,9 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
-      throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
+      throw GDLException(-1, NULL,"Scalar subscript out of range [>].1",true,false);
     if( s < 0)
-      throw GDLException(NULL,"Scalar subscript out of range [<].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript out of range [<].1",true,false);
   }
   
   // structure of indexed expression
@@ -600,7 +600,7 @@ public:
       {
 	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
-	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
+	  throw GDLException(-1,NULL,"Scalar subscript out of range [>].2",true,false);
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -714,7 +714,7 @@ public:
   bool ToAssocIndex( SizeT& lastIx)
   {
     if( sInit < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);      
+      throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context.",true,false);      
     lastIx = sInit;
     return true;
   }
@@ -727,9 +727,9 @@ public:
       s = sInit + var->Size();
     // for assoc variables last index is the record
     if( s < 0)
-      throw GDLException(NULL,"Scalar subscript out of range [<].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript out of range [<].1",true,false);
     if( s >= var->Size())
-      throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript out of range [>].1",true,false);
   }
 
   // returns one dim long ix in case of one element array index
@@ -752,9 +752,9 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-	  throw GDLException(NULL,"Scalar subscript out of range [<].2",true,false);
+	  throw GDLException(-1,NULL,"Scalar subscript out of range [<].2",true,false);
 	if( s >= var->Size())
-	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
+	  throw GDLException(-1,NULL,"Scalar subscript out of range [>].2",true,false);
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -782,11 +782,11 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-		throw GDLException(NULL,"Scalar subscript out of range [<].3",true,false);
+		throw GDLException(-1,NULL,"Scalar subscript out of range [<].3",true,false);
 	if( s >= var->Size())
 	{
 // 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-		throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
+		throw GDLException(-1,NULL,"Scalar subscript out of range [>].3",true,false);
 	}
 	
 	return var->NewIx( s);
@@ -879,7 +879,7 @@ public:
     assert( ixList.size() > 1); // must be, from compiler
     
     if( ix->size() > MAXRANK)
-      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
+      throw GDLException(-1,NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -941,7 +941,7 @@ public:
     ixListEnd->Scalar( lastIxVal); // always scalar
 
     if( lastIxVal < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+      throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context.",true,false);
     
     lastIx = lastIxVal;
     return false; // multi dim
@@ -1209,7 +1209,7 @@ public:
     assert( ix->size() != 0); // must be, from compiler
 
     if( ixList.size() > MAXRANK)
-      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
+      throw GDLException(-1,NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ix->size(); ++i)
@@ -1326,10 +1326,10 @@ public:
     
     RangeT lastValIx;
     if( !ixListEndTmp->Scalar( lastValIx))
-      throw GDLException(NULL ,"Record number must be a scalar in this context.",true,false);
+      throw GDLException(-1, NULL ,"Record number must be a scalar in this context.",true,false);
 
     if( lastValIx < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+      throw GDLException(-1, NULL,"Record number must be a scalar > 0 in this context.",true,false);
 
     lastIx = lastValIx;
    
@@ -1463,7 +1463,7 @@ public:
 	      {
 		SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 		if( nIter != nIx)
-			throw GDLException(NULL, "All array subscripts must be of same size.", true, false);
+			throw GDLException(-1,NULL, "All array subscripts must be of same size.", true, false);
 	      }
 
       // in this case, having more index dimensions does not matter
@@ -1738,7 +1738,7 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
     assert( ix->size() != 0); // must be, from compiler
 
     if( ixList.size() > MAXRANK)
-      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
+      throw GDLException(-1,NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ix->size(); ++i)
@@ -1976,7 +1976,7 @@ public:
     assert( ix->size() != 0); // must be, from compiler
 
     if( ixList.size() > MAXRANK)
-      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
+      throw GDLException(-1,NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ix->size(); ++i)
@@ -2066,7 +2066,7 @@ public:
 			{
 				SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 				if( nIter != nIx)
-					throw GDLException(NULL, "All array subscripts must be of same size.", true, false);
+					throw GDLException(-1,NULL, "All array subscripts must be of same size.", true, false);
 			}
 
 		// in this case, having more index dimensions does not matter

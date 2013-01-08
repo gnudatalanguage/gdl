@@ -271,7 +271,7 @@ bool ArrayIndexListOneScalarT::ToAssocIndex( SizeT& lastIx)
   {
     sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
     if( sInit < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);      
+      throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context.",true,false);      
     lastIx = sInit;
     return true;
   }

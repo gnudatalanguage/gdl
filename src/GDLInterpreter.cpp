@@ -428,8 +428,9 @@ GDLInterpreter::GDLInterpreter()
 		// .CONTINUE does not work)
 		_retTree = last; 
 		
-		if( dynamic_cast< GDLIOException*>( &e) != NULL)
+		if( e.IsIOException())
 		{
+		assert( dynamic_cast< GDLIOException*>( &e) != NULL);
 		// set the jump target - also logs the jump
 		ProgNodeP onIOErr = 
 		static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -448,7 +449,7 @@ GDLInterpreter::GDLInterpreter()
 		{
 		BaseGDL** catchVar = callStack.back()->GetCatchVar();
 		GDLDelete(*catchVar);
-		*catchVar = new DLongGDL( -1);
+		*catchVar = new DLongGDL( e.ErrorCode());
 		_retTree = catchNode;
 		return RC_OK;
 		}
