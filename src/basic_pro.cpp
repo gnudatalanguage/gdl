@@ -1218,14 +1218,14 @@ namespace lib {
 	" Unit: "+i2s( lun)+", File: "+fileUnits[ lun-1].Name();
       
       if( !errorKeyword)
-	throw GDLIOException( e->CallingNode(), errorMsg);
+	throw GDLIOException( ex.ErrorCode(), e->CallingNode(), errorMsg);
       
       BaseGDL** err = &e->GetKW( errorIx);
       
-      GDLDelete((*err)); 
+      GDLDelete(*err); 
 //    if( *err != e->Caller()->Object()) delete (*err); 
       
-      *err = new DLongGDL( 1);
+      *err = new DLongGDL( ex.ErrorCode());
       return;
     }
 

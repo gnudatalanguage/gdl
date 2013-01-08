@@ -281,7 +281,7 @@ void AnyStream::Open(const std::string& name_,
 	  {
 	    delete fStream;
 	    fStream = NULL;
-	    throw GDLIOException("Error opening file.");
+	    throw GDLIOException(-265,"Error opening file.");
 	  }
       }
   }

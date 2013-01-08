@@ -143,6 +143,18 @@ public:
   GDLIOException(const ProgNodeP eN, const std::string& s):
     GDLException( eN, s)
   { ioException = true;}
+
+  GDLIOException(DLong eC): 
+    GDLException(eC)
+  { ioException = true;}
+
+  GDLIOException(DLong eC,const std::string& s, bool pre = true):
+    GDLException( eC, s, pre)
+  { ioException = true;}
+    
+  GDLIOException(DLong eC,const ProgNodeP eN, const std::string& s):
+    GDLException( eC, eN, s)
+  { ioException = true;}
 };
 
 // warnings ignore !QUIET
