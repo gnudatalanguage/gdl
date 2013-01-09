@@ -429,8 +429,7 @@ GDLInterpreter::GDLInterpreter()
 		_retTree = last; 
 		
 		// set !ERROR_STATE sys var 
-		DStructGDL* errorState = SysVar::Error_State();
-		
+		static DStructGDL* errorState = SysVar::Error_State();
 		static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
 		static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
 		static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
@@ -443,6 +442,7 @@ GDLInterpreter::GDLInterpreter()
 		static_cast<EnvUDT*>(callStack.back())->GetIOError();
 		if( onIOErr != NULL)
 		{
+		DStructGDL* errorState = SysVar::Error_State();
 		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
 		"IDL_M_FAILURE";
 		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
@@ -461,6 +461,7 @@ GDLInterpreter::GDLInterpreter()
 		ProgNodeP catchNode = callStack.back()->GetCatchNode();
 		if( catchNode != NULL)
 		{
+		DStructGDL* errorState = SysVar::Error_State();
 		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
 		"IDL_M_FAILURE";
 		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
@@ -483,6 +484,7 @@ GDLInterpreter::GDLInterpreter()
 		// initial exception, set target env
 		
 		// set !ERROR_STATE here
+		DStructGDL* errorState = SysVar::Error_State();
 		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
 		"IDL_M_FAILURE";
 		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
