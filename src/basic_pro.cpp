@@ -1866,6 +1866,7 @@ TRACEOMP( __FILE__, __LINE__)
       (*static_cast<DStringGDL*>( errorState->GetTag( msg_prefixTag)))[0] = "% ";
       
       SysVar::SetErr_String( "");     
+      SysVar::SetErrError( 0);
     }
     
     if( nParam == 0) return;
@@ -1879,10 +1880,13 @@ TRACEOMP( __FILE__, __LINE__)
     if( !info)
       {
 	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+	(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
 	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
 	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
 	
 	SysVar::SetErr_String( msg);
+	SysVar::SetErrError( -1);
       }
 	
     if( noprint)

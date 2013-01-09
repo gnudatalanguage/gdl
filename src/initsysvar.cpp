@@ -180,6 +180,13 @@ namespace SysVar
     DVar& eSSysVar = *sysVarList[ err_stringIx];
     static_cast<DStringGDL&>(*eSSysVar.Data())[0] = eS;
   }
+  void SetErrError( DLong eC)
+  {
+    DVar& errSysVar = *sysVarList[ errIx];
+    DVar& errorSysVar = *sysVarList[ errorIx];
+    static_cast<DLongGDL&>(*errSysVar.Data())[0] = eC;
+    static_cast<DLongGDL&>(*errorSysVar.Data())[0] = eC;
+  }
 
   DStructGDL* P()
   {

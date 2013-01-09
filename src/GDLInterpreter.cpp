@@ -428,6 +428,23 @@ GDLInterpreter::GDLInterpreter()
 		// .CONTINUE does not work)
 		_retTree = last; 
 		
+		// set !ERROR_STATE sys var 
+		DStructGDL* errorState = SysVar::Error_State();
+		
+		static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
+		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+		"IDL_M_FAILURE";
+		
+		static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+		e.ErrorCode();
+		SysVar::SetErrError( e.ErrorCode());
+		
+		static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+		(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+		e.getMessage();
+		SysVar::SetErr_String( e.getMessage());
+		
 		if( e.IsIOException())
 		{
 		assert( dynamic_cast< GDLIOException*>( &e) != NULL);

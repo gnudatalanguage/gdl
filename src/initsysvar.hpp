@@ -54,6 +54,7 @@ namespace SysVar
   DString MsgPrefix();
 
   void SetErr_String( const DString& eS);
+  void SetErrError( DLong eC);
 
   // set !C
   void SetC( DLong newC);
