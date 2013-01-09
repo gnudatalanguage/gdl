@@ -1110,10 +1110,10 @@ statement returns[ RetCode retCode]
         _retTree = last; 
 
         // set !ERROR_STATE sys var 
-        static DStructGDL* errorState = SysVar::Error_State();
-        static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
-        static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-        static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+        static DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();
+        static unsigned nameTag = errorStateDesc->TagIndex( "NAME");
+        static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
+        static unsigned msgTag = errorStateDesc->TagIndex( "MSG");
 
         if( e.IsIOException())
             {
