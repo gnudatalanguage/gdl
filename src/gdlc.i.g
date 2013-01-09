@@ -1113,18 +1113,8 @@ statement returns[ RetCode retCode]
         DStructGDL* errorState = SysVar::Error_State();
 
         static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
-        (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
-            "IDL_M_FAILURE";
-
         static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-        (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
-            e.ErrorCode();
-        SysVar::SetErrError( e.ErrorCode());
-
         static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-        (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
-            e.getMessage();
-        SysVar::SetErr_String( e.getMessage());
 
         if( e.IsIOException())
             {
@@ -1134,7 +1124,14 @@ statement returns[ RetCode retCode]
                     static_cast<EnvUDT*>(callStack.back())->GetIOError();
                 if( onIOErr != NULL)
                     {
-                        SysVar::SetErr_String( e.getMessage());
+        (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+            "IDL_M_FAILURE";
+        (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+            e.ErrorCode();
+        SysVar::SetErrError( e.ErrorCode());
+        (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+            e.getMessage();
+        SysVar::SetErr_String( e.getMessage());
 
                         _retTree = onIOErr;
                         return RC_OK;
@@ -1145,6 +1142,15 @@ statement returns[ RetCode retCode]
         ProgNodeP catchNode = callStack.back()->GetCatchNode();
         if( catchNode != NULL)
             {
+        (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+            "IDL_M_FAILURE";
+        (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+            e.ErrorCode();
+        SysVar::SetErrError( e.ErrorCode());
+        (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+            e.getMessage();
+        SysVar::SetErr_String( e.getMessage());
+
                 BaseGDL** catchVar = callStack.back()->GetCatchVar();
                 GDLDelete(*catchVar);
                 *catchVar = new DLongGDL( e.ErrorCode());
@@ -1156,6 +1162,17 @@ statement returns[ RetCode retCode]
         if( targetEnv == NULL)
         {
             // initial exception, set target env
+            
+        // set !ERROR_STATE here
+        (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+            "IDL_M_FAILURE";
+        (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+            e.ErrorCode();
+        SysVar::SetErrError( e.ErrorCode());
+        (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+            e.getMessage();
+        SysVar::SetErr_String( e.getMessage());
+
             // look if ON_ERROR is set somewhere
             for( EnvStackT::reverse_iterator i = callStack.rbegin();
                 i != callStack.rend(); ++i)
