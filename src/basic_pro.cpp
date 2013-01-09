@@ -2027,47 +2027,6 @@ TRACEOMP( __FILE__, __LINE__)
 	  swapSz = 4;
 
  	byteorderDo( e, par, swapSz, p);
-
-/*	if( par->Type() == GDL_STRING)
-	  e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == GDL_OBJ)
-	  e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == GDL_PTR)
-	  e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == GDL_STRUCT)
-	{
-		if( static_cast<DStructGDL*>( par)->Desc()->ContainsStringPtrObject())
-		  e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));		    
-
-		if( par->N_Elements() == 1)
-			{
-				DStructGDL* dS = static_cast<DStructGDL*>(par);
-				for( SizeT t=0; t<dS->NTags(); ++t)
-				{
-					BaseGDL* actTag = dS->GetTag( t);
-				}
-			}
-	}
-	//  e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
-	
-	SizeT nBytes = par->NBytes();
-	if( nBytes % swapSz != 0)
-	  e->Throw( "Operand's size must be a multiple of swap "
-		    "datum size: " + e->GetParString(p));		    
-	    
-	SizeT nSwap = nBytes / swapSz;
-
-	char* addr = static_cast<char*>(par->DataAddr());
-
-	for( SizeT i=0; i<nSwap; ++i)
-	  {
-	    for( SizeT s=0; s < (swapSz/2); ++s)
-	      {
-		char tmp = *(addr+i*swapSz+s);
-		*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
-		*(addr+i*swapSz+swapSz-1-s) = tmp;
-	      }
-	  }*/
       }
   }
 
