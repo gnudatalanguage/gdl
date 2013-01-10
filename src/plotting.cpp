@@ -19,11 +19,14 @@
 
 #include <memory>
 
+#include <string>
+#include <fstream>
+#include "envt.hpp"
+#include "dinterpreter.hpp"
 // PLplot is used for direct graphics
 #include <plplot/plstream.h>
 
 #include "initsysvar.hpp"
-#include "envt.hpp"
 #include "graphics.hpp"
 #include "plotting.hpp"
 #include "math_utl.hpp"
@@ -2253,13 +2256,20 @@ namespace lib
     Second = F * 86400;
   }
 
-  void gdlMultiAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
+    static SizeT internalIndex=0;
+    static DLong lastUnits=0;
     string Month;
     PLINT Day , Year , Hour , Minute;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )data;
-    if (ptr->what==GDL_TICKFORMAT)
+    if (ptr->counter != lastUnits)
+    {
+      lastUnits=ptr->counter;
+      internalIndex=0;
+    }
+    if (ptr->what==GDL_TICKFORMAT || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter < ptr->nTickFormat) )
     {
       if (ptr->counter > ptr->nTickFormat-1)
       {
@@ -2267,7 +2277,52 @@ namespace lib
       }
       else
       {
-        snprintf( label, length, ((*ptr->TickFormat)[ptr->counter]).c_str(), value );
+        if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
+        { //internal format, call internal func "STRING"
+          EnvT *e=ptr->e;
+          static int stringIx = LibFunIx("STRING");
+          assert( stringIx >= 0);
+          EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
+          auto_ptr<EnvT> guard( newEnv);
+          // add parameters
+          newEnv->SetNextPar( new DDoubleGDL(value));
+          newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
+          // make the call
+          BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+          strcpy(label,(*static_cast<DStringGDL*>(res))[0].c_str()); 
+        }
+        else if (((*ptr->TickFormat)[ptr->counter]).substr(0,10) == "LABEL_DATE")
+        { //special internal format, TBD
+          fprintf(stderr,"unsupported LABEL_DATE for TICKFORMAT (FIXME)\n");
+        }
+        else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
+          //    else pass also Level(int)
+          // Thanks to Marc for code snippet!
+        {
+          EnvT *e=ptr->e;
+          DString callF=(*ptr->TickFormat)[ptr->counter];
+          // this is a function name -> convert to UPPERCASE
+          callF = StrUpCase( callF);
+          	//  Search in user proc and function
+          SizeT funIx = GDLInterpreter::GetFunIx( callF);
+
+          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
+          auto_ptr< EnvUDT> guard( newEnv);
+          // add parameters
+          newEnv->SetNextPar( new DLongGDL(axis));
+          newEnv->SetNextPar( new DLongGDL(internalIndex));
+          newEnv->SetNextPar( new DDoubleGDL(value));
+          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter));
+          // guard *before* pushing new env
+          StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
+          e->Interpreter()->CallStack().push_back(newEnv);
+          guard.release();
+
+          BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree()); 
+          // we are the owner of the returned value
+          Guard<BaseGDL> retGuard( retValGDL);
+          strcpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str()); 
+        }
       }
     }
     else if (ptr->what==GDL_TICKUNITS)
@@ -2278,21 +2333,22 @@ namespace lib
       }
       else
       {
+        DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
         DDouble range=abs(ptr->axismax-ptr->axismin);
         tickformat_date(value, Month , Day , Year , Hour , Minute, Second);
-        if ((((*ptr->TickUnits)[ptr->counter]).substr(0,4))=="Year")
+        if (what.substr(0,4)=="YEAR")
           snprintf( label, length, "%d", Year);
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,5))=="Month")
+        else if (what.substr(0,5)=="MONTH")
           snprintf( label, length, "%s", Month.c_str());
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,3))=="Day")
+        else if (what.substr(0,3)=="DAY")
           snprintf( label, length, "%d", Day);
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,4))=="Hour")
+        else if (what.substr(0,4)=="HOUR")
           snprintf( label, length, "%d", Hour);
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,6))=="Minute")
+        else if (what.substr(0,6)=="MINUTE")
           snprintf( label, length, "%d", Minute);
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,6))=="Second")
+        else if (what.substr(0,6)=="SECOND")
           snprintf( label, length, "%f", Second);
-        else if ((((*ptr->TickUnits)[ptr->counter]).substr(0,4))=="Time")
+        else if (what.substr(0,4)=="TIME")
         {
           if(range>=366) snprintf( label, length, "%d", Year);
           else if(range>=32) snprintf( label, length, "%s", Month.c_str());
@@ -2304,6 +2360,7 @@ namespace lib
         else snprintf( label, length, "%g", value );
       }
     }
+    internalIndex++;
   }
 
   void gdlSingleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
@@ -2325,6 +2382,7 @@ namespace lib
     static GDL_TICKNAMEDATA data;
     static GDL_MULTIAXISTICKDATA muaxdata;
     data.nTickName=0;
+    muaxdata.e=e;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
@@ -2413,6 +2471,12 @@ namespace lib
       {
         muaxdata.counter=0;
         muaxdata.what=GDL_TICKUNITS;
+        if (TickFormat->NBytes()>0)
+        {
+          muaxdata.what=GDL_TICKFORMAT_AND_UNITS;
+          muaxdata.TickFormat=TickFormat;
+          muaxdata.nTickFormat=TickFormat->N_Elements();
+        }
         muaxdata.TickUnits=TickUnits;
         muaxdata.nTickUnits=TickUnits->N_Elements();
 #if (HAVE_PLPLOT_BEFORE_5994)
@@ -2447,28 +2511,22 @@ namespace lib
         a->slabelfunc( NULL, NULL );
 #endif
       }
-      else if (TickFormat->NBytes()>0)
+      else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value teken into account
       {
-#if 0
-        //not yet ready...
         muaxdata.counter=0;
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
-        muaxdata.nTickFormat=TickFormat->N_Elements();
+        muaxdata.nTickFormat=1;
 #if (HAVE_PLPLOT_BEFORE_5994)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
-        for (SizeT i=0; i< muaxdata.nTickFormat; ++i)
-        {
-          if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0.0);
-          else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
-          muaxdata.counter++;
-        }
+        if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0.0);
+        else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        
 #if (HAVE_PLPLOT_BEFORE_5994)        
         a->slabelfunc( NULL, NULL );
-#endif
 #endif
       }
       else

@@ -33,6 +33,7 @@
 
   struct GDL_MULTIAXISTICKDATA
   {
+    EnvT *e;
     SizeT counter;
     int what;
     SizeT nTickFormat;
@@ -46,6 +47,7 @@
 #define GDL_NONE -1
 #define GDL_TICKFORMAT 0
 #define GDL_TICKUNITS 1
+#define GDL_TICKFORMAT_AND_UNITS 2
 
 namespace lib {
 
