@@ -22,7 +22,7 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib {
 }
-
