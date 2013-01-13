@@ -132,7 +132,7 @@ endif else begin
         ;;
         if KEYWORD_SET(show_path) then begin
            MESSAGE, /continue, 'Your current path where Zenity is searched in is : '
-           print, TRANSPOSE(STRSPLIT(GETENV('PATH'), ':',/extract)
+           print, TRANSPOSE(STRSPLIT(GETENV('PATH'), ':',/extract))
         endif else begin
            MESSAGE, /continue, 'zen=ZENITY_CHECK(/show_path) to see the researched paths'
         endelse

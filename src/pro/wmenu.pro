@@ -216,7 +216,7 @@ answers_strcompress=STRCOMPRESS(answers_str,/remove_all)
 ;
 list_flag=REPLICATE('  ', nbp_local)
 if (flag_init EQ 1) then list_flag(init)='* '
-print, transpose(list_flag+answers_str+' | '+local_choice)
+print, TRANSPOSE(list_flag+answers_str+' | '+local_choice)
 ;
 if KEYWORD_SET(test) then stop
 ;
