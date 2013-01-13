@@ -180,6 +180,10 @@ zenity=ZENITY_CHECK( zenity_name=zenity_name,  zenity_path=zenity_path, $
                      zenity_version=zenity_version, $
                      help=help, test=test, debug=debug, verbose=verbose)
 ;
+if (!zenity.version LT 0) then begin
+   return, ''
+endif
+;
 ; Check default_extension
 if KEYWORD_SET(default_extension) then default_extension=STRING(default_extension[0])
 ;

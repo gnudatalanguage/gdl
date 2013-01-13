@@ -1,8 +1,8 @@
 ;+
 ; NAME:     WMENU
 ;
-; PURPOSE: This a emulation of the famous X11 WMENU (obsolete
-; routine). We provide a Zenity-based version but also a text-based version.
+; PURPOSE: This a emulation of the famous X11 WMENU (obsolete routine).
+; We provide a Zenity-based version but also a text-based version.
 ;
 ; Credits: with some idea form EMENU (from SolarSoft (Soho, Nasa))
 ;
@@ -52,7 +52,7 @@
 ;  - 25-JAN-2006 : created by Alain Coulais
 ;  - 09-FEB-2006 : various debugging (WHERE does not work with STRINGs!)
 ;  - 13-FEB-2006 : title is a index, not a string !
-;  - 19-NOV-2012 : Zenity-based version
+;  - 19-NOV-2012 : Zenity-based version, pushed in the public CVS
 ;-
 ; LICENCE:
 ; Copyright (C) 2006-2012, Alain Coulais
@@ -265,7 +265,7 @@ end
 ; --------------------------------------------------
 ;
 function WMENU_ZENITY, list_of_choice, title=title, init=init, $
-                       strict=strict, test=test, help=help
+                       strict=strict, test=test, help=help, debug=debug
 ;
 zenity=!zenity.name
 ;
@@ -287,17 +287,19 @@ reform_list_of_choice=''
 for ii=0, N_ELEMENTS(list_of_choice)-1 do begin
     reform_list_of_choice=reform_list_of_choice+' "'+Str_list_of_choice[ii]+'"'
 endfor
-
+;
 command=zenity+cmd_title+cmd_text+cmd_column_text
 command=command+' --list '+reform_list_of_choice
 ;
-help, command
+if KEYWORD_SET(debug) then HELP, command
 ;
-spawn, command, result, error
-
-print, error
-print, result
-
+SPAWN, command, result, error
+;
+if KEYWORD_SET(debug) then begin
+   print, 'SPAWN returned error  : ', error
+   print, 'SPAWN returned result : ', result
+endif
+;
 indice=WHERE(result EQ Str_list_of_choice)
 
 indice2=STRPOS(Str_list_of_choice, result)
@@ -307,22 +309,21 @@ if (nb_OK GT 1) then begin
     print, 'Warning, More than one entry found'
 endif
 indice=OK[0]
-
+;
 return, indice
-
+;
 end
-
-
+;
 ; --------------------------------------------------
 ;
 function WMENU, list_of_choice, title=title, init=init, $
-                test=test, help=help
+                test=test, help=help, debug=debug
 ;
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
     print, 'function WMENU, list_of_choice, title=title, init=init, $'
-    print, '                test=test, help=help'
+    print, '                test=test, help=help, debug=debug'
     return, -1
 end
 ;
@@ -347,9 +348,11 @@ if ~preset_zenity then begin
 endif
 ;
 if (!zenity.version LT 0) then begin
-    resu=WMENU_TEXT(list_of_choice, title=title, init=init, test=test, help=help)
+    resu=WMENU_TEXT(list_of_choice, title=title, init=init, $
+                    test=test, help=help)
 endif else begin
-    resu=WMENU_ZENITY(list_of_choice, title=title, init=init, test=test, help=help)
+    resu=WMENU_ZENITY(list_of_choice, title=title, init=init, $
+                      test=test, help=help, debug=debug)
 endelse
 ;
 if KEYWORD_SET(help) then STOP
