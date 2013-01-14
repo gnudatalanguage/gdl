@@ -1503,7 +1503,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 	{
 #pragma omp for 
-	  for( int colA=0; colA < nCol; colA++)   // res dim 0
+	  for( SizeT colA=0; colA < nCol; colA++)   // res dim 0
 	    for( SizeT rowB=0; rowB < nRow; rowB++) // res dim 1
 	      (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
 	}
@@ -1624,7 +1624,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
 		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, rowBnCol += nCol) // res dim 1
 		      {
@@ -1641,7 +1641,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
 		    for( SizeT rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA];
@@ -1660,7 +1660,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
 		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, ++rowBnCol) // res dim 1
 		      {
@@ -1677,7 +1677,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
 		    for( SizeT rIx=0; rIx < nRow; ++rIx) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rIx + colA * nRow];
