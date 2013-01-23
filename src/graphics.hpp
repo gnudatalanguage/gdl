@@ -172,6 +172,11 @@ public:
   virtual bool SetFileName( const std::string& f)     { return false;}
   virtual bool  Decomposed( bool value)               { return false;}
   virtual DLong GetDecomposed()                       { return -1;}
+  virtual bool  SetGraphicsFunction( DLong value)     { return false;}
+  virtual DLong GetGraphicsFunction()                 { return -1;}
+  virtual bool CursorStandard( int value)             { return false;}
+  virtual bool CursorCrosshair()                      { return false;}
+  virtual bool UnsetFocus()                           { return false;}
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}
   virtual bool SetColor(const long color=0)           { return false;}

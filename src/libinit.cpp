@@ -495,18 +495,26 @@ void LibInit()
   const string tvlctKey[]={"GET","HLS","HSV",KLISTEND};
   new DLibPro(lib::tvlct,string("TVLCT"),4,tvlctKey);
 
+  const string tvcrsKey[]={"DATA","DEVICE","NORMAL",KLISTEND};
+  const string tvcrsWarnKey[]={"CENTIMETERS","INCHES","HIDE_CURSOR","T3D","Z",KLISTEND};
+  new DLibPro(lib::tvcrs,string("TVCRS"),2,tvcrsKey,tvcrsWarnKey);
+
+  new DLibPro(lib::empty,string("EMPTY"),-1);
+  
   const string deviceKey[]=
     {
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
       "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
       "SET_CHARACTER_SIZE","GET_VISUAL_DEPTH","XSIZE","YSIZE",
       "COLOR","GET_SCREEN_SIZE","INCHES","WINDOW_STATE","SCALE_FACTOR", 
-      "XOFFSET", "YOFFSET", "ENCAPSULATED", KLISTEND
+      "XOFFSET", "YOFFSET", "ENCAPSULATED", "GET_GRAPHICS_FUNCTION", 
+      "SET_GRAPHICS_FUNCTION", "CURSOR_STANDARD", "CURSOR_ORIGINAL",
+      "CURSOR_CROSSHAIR",KLISTEND
     };
   const string deviceWarnKey[] = {"RETAIN", "SET_FONT", "HELVETICA", 
     "AVANTGARDE", "BKMAN", "COURIER", "PALATINO", 
     "SCHOOLBOOK", "TIMES", "ZAPFCHANCERY", "ZAPFDINGBATS", "BITS_PER_PIXEL", 
-    "ITALIC", "BOLD", "TRUE_COLOR", KLISTEND};
+    "ITALIC", "BOLD", "TRUE_COLOR", "CURSOR_IMAGE","CURSOR_MASK","CURSOR_XY", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string usersymKey[]= 

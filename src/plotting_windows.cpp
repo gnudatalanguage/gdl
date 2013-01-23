@@ -89,7 +89,9 @@ namespace lib {
     bool success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
       e->Throw(  "Unable to create window.");
-  }
+    success = actDevice->CursorCrosshair();
+    success = actDevice->UnsetFocus();
+ }
 
   void wset( EnvT* e)
   {

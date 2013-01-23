@@ -53,6 +53,9 @@ public:
   void Lower();
   void Iconic();
   void DeIconic();
+  bool GetGin(PLGraphicsIn *gin, int mode);
+  void WarpPointer(DLong x, DLong y);
+  void Flush();
 };
 
 #endif

@@ -25,7 +25,6 @@
 #include <vector>
 #include <cstring>
 
-#include <plplot/plplotP.h>
 #include <plplot/drivers.h>
 
 #include "gdlxstream.hpp"
@@ -54,12 +53,11 @@ class DeviceX: public Graphics
   int decomposed; // false -> use color table
 
 
-  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
+  void plimage_gdl(PLStream* pls, unsigned char *idata, PLINT nx, PLINT ny, 
 		   DLong tru, DLong chan)
   {
-    PLINT ix, iy, xm, ym;
-
-    XwDev *dev = (XwDev *) plsc->dev;
+    PLINT ix, iy;
+    XwDev *dev = (XwDev *) pls->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL, *ximg_pixmap = NULL;
 
@@ -67,13 +65,14 @@ class DeviceX: public Graphics
 
     int (*oldErrorHandler)(Display*, XErrorEvent*);
 
-    if (plsc->level < 3) {
-      plabort("plimage: window must be set up first");
+    //the following 2 tests cannot happen i think. I keep them for safety.
+    if (pls->level < 3) {
+      std::cerr<<"plimage: window must be set up first"<<std::endl; //plabort() not available anymore!
       return ;
     }
 
     if (nx <= 0 || ny <= 0) {
-      plabort("plimage: nx and ny must be positive");
+      std::cerr<<"plimage: nx and ny must be positive"<<std::endl;
       return;
     }
 
@@ -113,16 +112,19 @@ class DeviceX: public Graphics
 
       ncolors = 256;
 
-#if PL_RGB_COLOR == -1
-      free_mem(xwd->cmap1);
-      xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof(XColor));
-#endif
+//#if PL_RGB_COLOR == -1 //was (always?) set by plplotP.h which we do not use anymore. 
+      if (xwd->ncol1 != ncolors)
+      {
+        free_mem(xwd->cmap1);
+        xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof(XColor));
+      }
+//#endif
 
       for( SizeT i = 0; i < ncolors; i++ ) {
 
-	xwd->cmap1[i].red   = ToXColor(plsc->cmap1[i].r);
-	xwd->cmap1[i].green = ToXColor(plsc->cmap1[i].g);
-	xwd->cmap1[i].blue  = ToXColor(plsc->cmap1[i].b);
+	xwd->cmap1[i].red   = ToXColor(pls->cmap1[i].r);
+	xwd->cmap1[i].green = ToXColor(pls->cmap1[i].g);
+	xwd->cmap1[i].blue  = ToXColor(pls->cmap1[i].b);
 	xwd->cmap1[i].flags = DoRed | DoGreen | DoBlue;
 	
 	if ( XAllocColor( xwd->display, xwd->map, &xwd->cmap1[i]) == 0)
@@ -131,8 +133,8 @@ class DeviceX: public Graphics
       xwd->ncol1 = ncolors;
     }
 
-    PLINT xoff = (PLINT) (plsc->wpxoff/32767 * dev->width  + 1);
-    PLINT yoff = (PLINT) (plsc->wpyoff/24575 * dev->height + 1);
+    PLINT xoff = (PLINT) (pls->wpxoff/32767 * dev->width  + 1);
+    PLINT yoff = (PLINT) (pls->wpyoff/24575 * dev->height + 1);
     PLINT kx, ky;
 
     XColor curcolor;
@@ -232,7 +234,8 @@ SizeT nOp = kxLimit * kyLimit;
       {
 	long xsize,ysize,xoff,yoff;
 	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
-
+    PLStream* pls;
+    plgpls( &pls);
 	// window size and pos
 // 	PLFLT xp; PLFLT yp; 
 // 	PLINT xleng; PLINT yleng;
@@ -245,7 +248,7 @@ SizeT nOp = kxLimit * kyLimit;
 
         // number of colors (based on the color depth from PLPlot)
         (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 
-          1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(plsc->dev))->xwd))->depth));
+          1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
       }	
 
     // window number
@@ -608,6 +611,87 @@ public:
     if( decomposed) return 1;
     return 0;
   }
+  
+  int OperateCG(XGCValues *gcValues, unsigned long valuemask, bool write) 
+  {
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL || dev->xwd == NULL)
+    {
+      Graphics* actDevice = Graphics::GetDevice();
+      GDLGStream* newStream = actDevice->GetStream();
+      plgpls( &pls);
+      dev = (XwDev *) pls->dev;
+      if( dev == NULL) 
+      {
+        std::cerr<<"Device not open."<<std::endl;
+        return 0;
+      }
+    }
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    if (write)
+    {
+      XChangeGC(xwd->display, dev->gc, valuemask, gcValues);
+    }
+    else
+    {
+      XGetGCValues(xwd->display, dev->gc, valuemask, gcValues);
+    }
+    return 1;
+  }
+  bool SetGraphicsFunction( DLong value)                
+  { 
+    XGCValues gcValues;
+    gcValues.function   = max(0,min(value,15));
+    if (OperateCG(&gcValues, GCFunction, true)) return true;
+    else return false;
+  }
+  DLong GetGraphicsFunction()                
+  {
+    XGCValues gcValues;
+    if (OperateCG(&gcValues, GCFunction, false)) return (DLong)gcValues.function;
+    else return -1;
+  }
+  bool CursorStandard(int cursorNumber)
+  {
+    PLStream* pls;
+    plgpls( &pls);
+    int num=max(0,min(XC_num_glyphs-1,cursorNumber));
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL || dev->xwd == NULL)
+    {
+      Graphics* actDevice = Graphics::GetDevice();
+      GDLGStream* newStream = actDevice->GetStream();
+      plgpls( &pls);
+      dev = (XwDev *) pls->dev;
+      if( dev == NULL)
+      {
+        std::cerr<<"Device not open."<<std::endl;
+        return 0;
+      }
+    }
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XDefineCursor(xwd->display,dev->window,XCreateFontCursor(xwd->display,num));
+    return true;
+  }
+  bool CursorCrosshair()
+  {
+    return CursorStandard(XC_crosshair);
+  }
+  bool UnsetFocus()
+  {
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XWMHints gestw;
+    gestw.input = FALSE;
+    gestw.flags = InputHint;
+    XSetWMHints(xwd->display, dev->window, &gestw);
+    return true;
+  }
 
   int MaxWin() { ProcessDeleted(); return winList.size();}
   int ActWin() { ProcessDeleted(); return actWin;}
@@ -626,13 +710,15 @@ public:
     //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
     //as soon as part of the window is obscured.
     int (*oldErrorHandler)(Display*, XErrorEvent*);
-
-    XwDev *dev = (XwDev *) plsc->dev;
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
     {
       GDLGStream* newStream = actDevice->GetStream();
       //already done: newStream->Init();
-      dev = (XwDev *) plsc->dev;
+      plgpls( &pls);
+      dev = (XwDev *) pls->dev;
       if( dev == NULL) e->Throw( "Device not open.");
     }
 
@@ -817,6 +903,7 @@ public:
     //    Graphics* actDevice = Graphics::GetDevice();
 
     SizeT nParam=e->NParam( 1); 
+    PLStream* pls;
 
     GDLGStream* actStream = GetStream();
     if( actStream == NULL)
@@ -827,8 +914,8 @@ public:
 
     //    actStream->NextPlot( false);
     actStream->NoSub();
-
-    XwDev *dev = (XwDev *) plsc->dev;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
 
     int xSize, ySize, xPos, yPos;
@@ -950,7 +1037,7 @@ public:
 
     std::auto_ptr<BaseGDL> chan_guard;
     if (channel == 0) {
-      plimage_gdl(&(*p0B)[0], width, height, tru, channel);
+      plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);
     } else if (rank == 3) {
       // Rank == 3 w/channel
       SizeT dims[2];
@@ -962,11 +1049,11 @@ public:
 	(*p0B_chan)[i/3] = (*p0B)[i];
       }
       // Send just single channel
-      plimage_gdl(&(*p0B_chan)[0], width, height, tru, channel);
+      plimage_gdl(pls, &(*p0B_chan)[0], width, height, tru, channel);
       chan_guard.reset( p0B_chan); // delete upon exit
     } else if (rank == 2) {
       // Rank = 2 w/channel
-      plimage_gdl(&(*p0B)[0], width, height, tru, channel);
+      plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);
     }
   }
 

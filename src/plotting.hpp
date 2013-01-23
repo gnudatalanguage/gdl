@@ -75,6 +75,8 @@ namespace lib {
   BaseGDL* get_screen_size( EnvT* e);
   void device( EnvT* e);
   void cursor( EnvT* e);
+  void tvcrs( EnvT* e);
+  void empty(EnvT* e);
 
   // Map stuff
   BaseGDL* map_proj_forward_fun( EnvT* e);

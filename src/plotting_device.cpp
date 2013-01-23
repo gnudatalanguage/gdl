@@ -151,7 +151,64 @@ namespace lib {
       }
     }
     // }}}
-
+    // GET_GRAPHICS_FUNCTION
+    {
+      static int get_graphicsFunctionIx = e->KeywordIx( "GET_GRAPHICS_FUNCTION");
+      if( e->KeywordPresent( get_graphicsFunctionIx)) 
+      {
+        DLong value = actDevice->GetGraphicsFunction();
+        if(value == -1)
+          e->Throw( "Current device does not support keyword GET_GRAPHICS_FUNCTION.");
+        else 
+          e->SetKW( get_graphicsFunctionIx, new DLongGDL( value));
+      }
+    }
+    // SET_GRAPHICS_FUNCTION
+    {
+      static int set_graphicsFunctionIx = e->KeywordIx( "SET_GRAPHICS_FUNCTION");
+      BaseGDL* set_gfunction = e->GetKW( set_graphicsFunctionIx);
+      if( set_gfunction != NULL)
+      {
+        DLongGDL* gfunction = e->GetKWAs<DLongGDL>( set_graphicsFunctionIx);
+        bool success = actDevice->SetGraphicsFunction((*gfunction)[0]);
+        if( !success)
+          e->Throw( "Current device does not support keyword SET_GRAPHICS_FUNCTION.");
+      }
+    }
+    // CURSOR_STANDARD
+    {
+      static int cursorStandardIx = e->KeywordIx( "CURSOR_STANDARD");
+      BaseGDL* res = e->GetKW( cursorStandardIx);
+      if( res != NULL)
+      {
+        DLongGDL* val = e->GetKWAs<DLongGDL>( cursorStandardIx);
+        bool success = actDevice->CursorStandard((*val)[0]);
+        if( !success)
+          e->Throw( "Current device does not support keyword CURSOR_STANDARD.");
+      }
+    }
+    // CURSOR_CROSSHAIR
+    {
+      static int valIx = e->KeywordIx( "CURSOR_CROSSHAIR");
+      BaseGDL* res = e->GetKW( valIx);
+      if( res != NULL)
+      {
+        bool success = actDevice->CursorCrosshair();
+        if( !success)
+          e->Throw( "Current device does not support keyword CURSOR_CROSSHAIR.");
+      }
+    }
+    // CURSOR_ORIGINAL (WARNING: SAME CODE AS  CURSOR_CROSSHAIR!)
+    {
+      static int valIx = e->KeywordIx( "CURSOR_ORIGINAL");
+      BaseGDL* res = e->GetKW( valIx);
+      if( res != NULL)
+      {
+        bool success = actDevice->CursorCrosshair();
+        if( !success)
+          e->Throw( "Current device does not support keyword CURSOR_ORIGINAL.");
+      }
+    }
     // GET_VISUAL_DEPTH {{{
     {
       static int get_visual_depthIx = e->KeywordIx( "GET_VISUAL_DEPTH");

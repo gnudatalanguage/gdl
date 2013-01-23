@@ -225,6 +225,9 @@ public:
   virtual void Lower()        {}
   virtual void Iconic()        {}
   virtual void DeIconic()        {}
+  virtual bool GetGin(PLGraphicsIn *gin, int mode) {}
+  virtual void WarpPointer(DLong x, DLong y){}
+  virtual void Flush() {}
   virtual void Clear()         {}
   virtual void Clear( DLong bColor)          {}
 
