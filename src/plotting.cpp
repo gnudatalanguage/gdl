@@ -2456,14 +2456,14 @@ namespace lib
         data.counter=0;
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
-#if (HAVE_PLPLOT_BEFORE_5994)
+#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlSingleAxisTickFunc, &data );
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0.0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
-#if (HAVE_PLPLOT_BEFORE_5994)
+#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
 #endif
       }
@@ -2479,7 +2479,7 @@ namespace lib
         }
         muaxdata.TickUnits=TickUnits;
         muaxdata.nTickUnits=TickUnits->N_Elements();
-#if (HAVE_PLPLOT_BEFORE_5994)
+#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
 #endif
@@ -2507,7 +2507,7 @@ namespace lib
           a->plstream::wind(xun,xdeux,xtrois,xquatre);
           muaxdata.counter++;
         }
-#if (HAVE_PLPLOT_BEFORE_5994)
+#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
 #endif
       }
@@ -2517,7 +2517,7 @@ namespace lib
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
         muaxdata.nTickFormat=1;
-#if (HAVE_PLPLOT_BEFORE_5994)
+#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
 #endif
@@ -2525,7 +2525,7 @@ namespace lib
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0.0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         
-#if (HAVE_PLPLOT_BEFORE_5994)        
+#if (HAVE_PLPLOT_SLABELFUNC)        
         a->slabelfunc( NULL, NULL );
 #endif
       }
