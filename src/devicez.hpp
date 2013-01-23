@@ -323,8 +323,8 @@ public:
       }
     }
 
-    //    actStream->vpor( 0, 1.0, 0, 1.0);
-    // actStream->wind( 1-xLL, xsize-xLL, 1-yLL, ysize-yLL);
+    actStream->vpor( 0, 1.0, 0, 1.0);
+    actStream->wind( 1-xLL, xsize-xLL, 1-yLL, ysize-yLL);
 
     DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     SizeT rank = p0B->Rank();
