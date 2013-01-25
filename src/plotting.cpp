@@ -2425,7 +2425,7 @@ namespace lib
     if (axis=="X") baseTickLen=a->mmyPageSize()*(a->boxnYSize());
     if (axis=="Y") baseTickLen=a->mmxPageSize()*(a->boxnXSize());
 
-    if ( (Style&4)!=4 )
+    if ( (Style&4)!=4 ) //if we write the axis...
     {
       if (TickInterval==0)
       {
@@ -2449,9 +2449,12 @@ namespace lib
         else if (axis=="Y") a->mtex("r",5.0,0.5,0.5,Title.c_str());
       }
       //axis, 1st time: labels
-      Opt="vx";
+      Opt="tvx";// the x option is in plplot 5.9.8 but not before. It permits
+                // to avoid writing tick marks here (they will be written after)
+                // I hope old plplots were clever enough to ignore 'x'
+                // if they did not understand 'x'
       if ( Log ) Opt+="l";
-      if (TickName->NBytes()>0)
+      if (TickName->NBytes()>0) // /TICKNAME=[array]
       {
         data.counter=0;
         data.TickName=TickName;
@@ -2467,11 +2470,11 @@ namespace lib
         a->slabelfunc( NULL, NULL );
 #endif
       }
-      else if (TickUnits->NBytes()>0)
+      else if (TickUnits->NBytes()>0) // /TICKUNITS=[several types of axes written below each other]
       {
         muaxdata.counter=0;
         muaxdata.what=GDL_TICKUNITS;
-        if (TickFormat->NBytes()>0)
+        if (TickFormat->NBytes()>0)  // with also TICKFORMAT option..
         {
           muaxdata.what=GDL_TICKFORMAT_AND_UNITS;
           muaxdata.TickFormat=TickFormat;
@@ -2484,7 +2487,7 @@ namespace lib
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
-        for (SizeT i=0; i< muaxdata.nTickUnits; ++i)
+        for (SizeT i=0; i< muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
         {
           PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
           a->plstream::gvpd(un,deux,trois,quatre);
@@ -2511,7 +2514,7 @@ namespace lib
         a->slabelfunc( NULL, NULL );
 #endif
       }
-      else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value teken into account
+      else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
       {
         muaxdata.counter=0;
         muaxdata.what=GDL_TICKFORMAT;
