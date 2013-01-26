@@ -286,13 +286,16 @@ else(PLPLOT_FOUND)
         "(suitable Fedora package: plplot-devel)")
 endif(PLPLOT_FOUND)
 
-check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-if(HAVE_PLPLOT_SLABELFUNC)
-else(HAVE_PLPLOT_SLABELFUNC)
-  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
-    "you should upgrade to plplot version > 5.9.6")
-endif(HAVE_PLPLOT_SLABELFUNC)
-
+if(PLPLOT_FOUND)
+	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+	if(HAVE_PLPLOT_SLABELFUNC)
+	  set(HAVE_PLPLOT_SLABELFUNC 1)
+	else(HAVE_PLPLOT_SLABELFUNC)
+	  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
+	    "you should upgrade to plplot version > 5.9.6")
+	endif(HAVE_PLPLOT_SLABELFUNC)
+endif(PLPLOT_FOUND)
+	
 if(MAGICK) # support Magick
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
 	if(HAVE_PLGETDRVDIR)
