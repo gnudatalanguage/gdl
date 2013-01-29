@@ -3740,6 +3740,9 @@ BaseGDL* DOTNode::Eval()
   //interpreter->r_dot_array_expr(_t, &aD);
   // r_dot_array_expr /////////////////////
   BaseGDL*         r;
+
+  // clears aL when destroyed
+  ArrayIndexListGuard guard; 
   
   if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
   {
@@ -3753,7 +3756,6 @@ BaseGDL* DOTNode::Eval()
 
     ArrayIndexListT* aL=interpreter->arrayindex_list(_t);
 
-    ArrayIndexListGuard guard;
     guard.reset(aL);
 
     _t = tIn->getNextSibling();

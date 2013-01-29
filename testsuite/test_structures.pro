@@ -49,9 +49,9 @@ if (ARRAY_EQUAL(tab, 1.*[7,8,9]) NE 1) then begin
 endif
 ;
 if (nb_errors GT 0) then begin
-    MESSAGE, STRING(nb_errors)+' Errors founded', /continue
+    MESSAGE, STRING(nb_errors)+' Errors found', /continue
 endif else begin
-    MESSAGE, ' No Errors founded', /continue
+    MESSAGE, ' No Errors found', /continue
 endelse
 ;
 if KEYWORD_SET(test) then STOP
