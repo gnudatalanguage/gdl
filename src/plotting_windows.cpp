@@ -91,6 +91,14 @@ namespace lib {
       e->Throw(  "Unable to create window.");
     success = actDevice->CursorCrosshair();
     success = actDevice->UnsetFocus();
+    bool doretain=true;
+    if( e->KeywordPresent( 3)) // RETAIN
+    {
+      DLong retainType;
+      e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
+      if (retainType=0) doretain=false;
+    }
+    success = actDevice->EnableBackingStore(doretain);
  }
 
   void wset( EnvT* e)

@@ -692,6 +692,26 @@ public:
     XSetWMHints(xwd->display, dev->window, &gestw);
     return true;
   }
+  bool EnableBackingStore(bool enable)
+   {
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+ 	XSetWindowAttributes attr;
+    if (enable)
+    {
+	 attr.backing_store = Always;
+    }
+    else
+    {
+	 attr.backing_store = NotUseful;
+    }
+    XChangeWindowAttributes(xwd->display, dev->window,CWBackingStore,&attr);
+    return true;
+  }
+
 
   int MaxWin() { ProcessDeleted(); return winList.size();}
   int ActWin() { ProcessDeleted(); return actWin;}
