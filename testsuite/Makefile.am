@@ -123,6 +123,7 @@ TESTS = \
   test_stregex.pro \
   test_strmatch.pro \
   test_strsplit.pro \
+  test_structures.pro \
   test_suite.pro \
   test_systime.pro \
   test_trisol.pro \
