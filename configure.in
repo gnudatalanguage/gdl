@@ -507,7 +507,7 @@ AC_ARG_WITH(eigen,
 
 if test "x$with_eigen" != "xno"; then
    AC_DEFINE([USE_EIGEN], [1], [Define if you want to use Eigen lib.])
-	 INCLUDES="$INCLUDES -I$with_eigen/include"
+	 INCLUDES="$INCLUDES -I$with_eigen"
 fi
 
 dnl == netCDF ==============================================
@@ -1216,7 +1216,7 @@ echo "
     then echo 'no'; else echo yes; fi`
   GraphicsMagick:      `if test no = $with_GraphicsMagick;
     then echo 'no'; else echo yes; fi`
-  Eigen:              `if test no = $with_eigen;
+  Eigen:               `if test no = $with_eigen;
     then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;
     then echo 'no'; else echo yes; fi`
