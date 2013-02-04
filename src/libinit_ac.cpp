@@ -68,8 +68,6 @@ void LibInit_ac()
   const string fx_rootKey[]={"DOUBLE","ITMAX","STOP","TOL",KLISTEND};
   new DLibFun(lib::fx_root_fun,string("FX_ROOT"),2,fx_rootKey);
   
-
-
 #endif
   
   const string spl1Key[]={"YP0","YPN_1","DOUBLE","HELP",KLISTEND};
@@ -83,6 +81,10 @@ void LibInit_ac()
   new DLibFun(lib::sobel_fun,string("SOBEL"),1,sobelKey);
   const string prewittKey[]={"HELP",KLISTEND};
   new DLibFun(lib::prewitt_fun,string("PREWITT"),1,prewittKey);
+
+  // a draft of "fast" matrix multiplication using exteranl Eigen Lib.
+  const string matmulKey[]={"HELP",KLISTEND};
+  new DLibFun(lib::matmul_fun,string("MATMUL"),2,matmulKey);
 
 }
 

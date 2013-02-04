@@ -6,11 +6,6 @@
     email                : alaingdl@users.sourceforge.net
 
 ****************************************************************************/
-
-
-
-
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -734,6 +729,72 @@ namespace lib {
     e->Throw( "sorry, PREWITT not ready.");
     return NULL;
   }
+
+  // AC 04-Feb-2013 : an experimental Fast Matrix Multiplication code
+  // require to be compiled with the Eigen Lib 
+  // (succesfully tested with Eigen 3.2 and gcc 4.1, 
+  // as fast as IDL 8 on M#transpose(M), with M=[400,60000] matrix multiply.)
+#if defined(USE_EIGEN)
+  
+  BaseGDL* matmul_fun( EnvT* e){
+    
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    if( p0->Rank() != 2)
+      e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
+
+    DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);
+    if( p1->Rank() != 2)
+      e->Throw( "Array must have 2 dimensions: "+ e->GetParString(1));
+
+    long NbCol0, NbRow0, NbCol1, NbRow1;
+    
+    NbCol0=p0->Dim(0);
+    NbRow0=p0->Dim(1);
+    MatrixXd m0 (NbCol0,NbRow0);
+    for (SizeT i=0; i<NbCol0; i++) 
+      for (SizeT j=0; j<NbRow0; j++)
+	m0(i,j)=(*p0)[j*NbCol0+i];
+
+    NbCol1=p1->Dim(0);
+    NbRow1=p1->Dim(1);
+    MatrixXd m1 (NbCol1,NbRow1);
+    for (SizeT i=0; i<NbCol1; i++) 
+      for (SizeT j=0; j<NbRow1; j++)
+	m1(i,j)=(*p1)[j*NbCol1+i];
+
+    if (NbRow0 != NbCol1)
+      e->Throw( "Incompatible dimensions [m,n]#[n,o] expected ");
+
+    int debug=0;
+    if (debug) {
+      cout << "NbCol0, NbRow0 : "<< NbCol0 << " " << NbRow0 << endl;
+      cout << "NbCol1, NbRow1 : "<< NbCol1 << " " << NbRow1 << endl;
+    }
+
+    MatrixXd tmp_res (NbCol0,NbRow1);
+      
+    //cout << m0 << endl;
+
+    tmp_res=m0*m1;
+
+    dimension dim(NbCol0,NbRow1);
+    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+
+    for (SizeT i=0; i<NbCol0; i++) 
+      for (SizeT j=0; j<NbRow1; j++)
+	(*res)[j*NbCol0+i] = tmp_res(i,j);
+    
+    
+    return res;
+  }
+  
+#else
+  BaseGDL* matmul_fun( EnvT* e){
+    e->Throw( "sorry, MATMUL not ready. GDL must be compiled with Eigen lib.");
+    return NULL;
+  }
+  
+#endif
 
 } // namespace
 

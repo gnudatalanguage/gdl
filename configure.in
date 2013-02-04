@@ -16,6 +16,7 @@ if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
 if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=no;      fi
+if test "x$with_eigen"       = "x"; then with_eigen=no;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
@@ -495,6 +496,18 @@ if test "x$with_GraphicsMagick" != "xno"; then
       ])
     ]
   )
+fi
+
+dnl == Eigen =================================================
+dnl ========================================================
+
+AC_ARG_WITH(eigen,	
+	[  --with-eigen=DIR       specify the Eigen package ((with optional path DIR) ],
+	[with_eigen="$withval" ])
+
+if test "x$with_eigen" != "xno"; then
+   AC_DEFINE([USE_EIGEN], [1], [Define if you want to use Eigen lib.])
+	 INCLUDES="$INCLUDES -I$with_eigen/include"
 fi
 
 dnl == netCDF ==============================================
@@ -1202,6 +1215,8 @@ echo "
   Magick:              `if test no = $with_Magick;
     then echo 'no'; else echo yes; fi`
   GraphicsMagick:      `if test no = $with_GraphicsMagick;
+    then echo 'no'; else echo yes; fi`
+  Eigen:              `if test no = $with_eigen;
     then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;
     then echo 'no'; else echo yes; fi`

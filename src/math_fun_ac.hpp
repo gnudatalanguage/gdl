@@ -18,6 +18,11 @@
 #include "datatypes.hpp"
 #include "envt.hpp"
 
+#if defined(USE_EIGEN)
+#include <Eigen/Dense>
+using namespace Eigen;
+#endif
+
 namespace lib {
 
   BaseGDL* beseli_fun( EnvT* e);
@@ -31,6 +36,7 @@ namespace lib {
   BaseGDL* sobel_fun( EnvT* e);
   BaseGDL* roberts_fun( EnvT* e);
   BaseGDL* prewitt_fun( EnvT* e);
+  BaseGDL* matmul_fun( EnvT* e);
 
 } // namespace
 
