@@ -278,8 +278,13 @@ namespace lib {
 	      sourceFiles.push_back(proFile);
 	}
 	// sourceFiles now contains a uniqe list of all file names.
+	sort( sourceFiles.begin(), sourceFiles.end());
+
+      	SizeT nSourceFiles = sourceFiles.size();
+	cout << "Source files (" << nSourceFiles <<"):" << endl;
+	for( SizeT i = 0; i<nSourceFiles; ++i)
+	  cout << sourceFiles[ i] << endl;
     }
-    
     
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent( callsKWIx);
