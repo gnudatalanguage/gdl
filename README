@@ -101,6 +101,7 @@ GRIB API      http://www.ecmwf.int/products/data/software/grib_api.html
 GSHHS         (consult the MAP_INSTALL file)
 wxWidgets     http://www.wxwidgets.org/
 pslib         http://pslib.sourceforge.net/
+Eigen         http://eigen.tuxfamily.org
 
 Only with python:
 numpy          http://numpy.scipy.org/
@@ -119,6 +120,8 @@ Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
 If installed, the SAVE and RESTORE commands (data only) are
 available through wrapper routines. You get CMSVLIB here: 
 http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz
+You must add yourself the CMSVLIB path in the GDL_PATH.
+CMSVLIB provides a test suite: please run CMSV_TEST.
 
 At least g++ 3.2 (or a similar C++ standard conforming
 compiler) is needed for compiling GDL.
@@ -144,7 +147,7 @@ With this option, plplot down to 5.3 should work.
 A possible problem was reported:
 On opening more than one window, plplot causes a segmentation fault
 if GDL is compiled with ImageMagick. This happens if plplot uses 
-dynamic drivers .
+dynamic drivers.
 The current solution is to disable dynamic drivers for plplot
 (-DENABLE_DYNDRIVERS=OFF option for cmake).
 Current ubuntu/debian distributions are using dynamic drivers, so plplot
@@ -272,11 +275,18 @@ GDL supports unit converion in IMSL_CONSTANT using the UDUNITS-2
 library (http://www.unidata.ucar.edu/software/udunits/)
 If you want to use it, use --with-udunits=DIR
 
-GDL supports the GRIB file format - see README_GRIB
+GDL supports the GRIB file format - see README_GRIB (optional)
 
-GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL
+GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
 
-GDL uses pslib for fine-tuning PostScript output.
+GDL uses pslib for fine-tuning PostScript output. (optional)
+
+GDL uses Eigen for fast matrix multiplication. (optional)
+The simpliest way to compile with it is to copy all the header files
+under sub-directory src/Eigen. Another solution is to provide full path
+to the include files (e.g. --with-eigen=/home/toto/Eigen3.1.4/include/eigen3/
+in that case Eigen would have been prepared using:
+cmake . -DCMAKE_INSTALL_PREFIX=/home/toto/Eigen3.1.4/ )
 
 GDL 0.9 was developed using ANTLR 2.7.6,   
 but unless you want to change the grammar (*.g files) you don't need

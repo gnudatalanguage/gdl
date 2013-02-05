@@ -568,3 +568,7 @@
 	     _overloadPlus, _overloadMinus, _overloadBracketsLeftSide,
 	     _overloadBracketsRightSide, _overloadEQ, _overloadNE)
 	   - support for .SKIP [NSteps] command
+
+0.9.4:
+           - large change in various graphic/plotting keywords.
+           - when compiled with Eigen3 library, significant speed improvment in MATRIX_MULTIPLY() (not available now for # operator), expecialy on multi-cores.
