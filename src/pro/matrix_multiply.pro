@@ -5,26 +5,56 @@
 ;
 ; AUTHOR: Philippe Prugniel 2008/02/29
 ;
-; Copyright (C) 2008, 
+; Modifications:
+; 05-Feb-2013: when GDL is compiled with Eigen Lib., we use internal
+;              fast MATMUL function. It is not ready for Complex/DoubleComplex
+;
+; Copyright (C) 2008, 2013.
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
 ; (at your option) any later version.
 ; 
 ;-----------------------------------------------------------------------------
-function matrix_multiply, a, b, ATRANSPOSE=atr, BTRANSPOSE=btr
-  on_error, 2
-
-  IF (N_PARAMS() NE 2) THEN BEGIN
-    message, 'Incorrect number of arguments.'
-  ENDIF
+function MATRIX_MULTIPLY, a, b, ATRANSPOSE=atr, BTRANSPOSE=btr, $
+                          help=help, debug=debug
 ;
-  case (1) of
-    keyword_set(atr) and not keyword_set(btr): return, transpose(a) # b
-    keyword_set(btr) and not keyword_set(atr): return, a # transpose(b)
-    keyword_set(atr) and keyword_set(btr): return, transpose(a) # transpose(b)
-    else : return, a # b
-  endcase
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, 'function MATRIX_MULTIPLY, a, b, ATRANSPOSE=atr, BTRANSPOSE=btr, $'
+    print, '                          help=help, debug=debug'
+    return, -1
+endif
+;
+IF (N_PARAMS() NE 2) THEN BEGIN
+    MESSAGE, 'Incorrect number of arguments.'
+ENDIF
+;
+; "type" will be 1 if GDL compiled with Eigen, 0
+; !matmul_quiet to avoid repeating internal message if no Eigen around ...
+;
+DEFSYSV, "!matmul_quiet", exist=quiet
+if ~quiet then begin
+    type=MATMUL(/available, quiet=quiet)
+    DEFSYSV, "!matmul_quiet", 1, 1
+endif else begin
+    type=MATMUL(/available,/quiet)
+endelse
+;
+if (SIZE(a,/type) EQ 6) OR (SIZE(a,/type) EQ 9) then type=0
+if (SIZE(b,/type) EQ 6) OR (SIZE(b,/type) EQ 9) then type=0
+;
+if (type EQ 0) then begin
+    case (1) of
+        KEYWORD_SET(atr) and not KEYWORD_SET(btr): return, TRANSPOSE(a) # b
+        KEYWORD_SET(btr) and not KEYWORD_SET(atr): return, a # TRANSPOSE(b)
+        KEYWORD_SET(atr) and KEYWORD_SET(btr): return, TRANSPOSE(a) # TRANSPOSE(b)
+        else : return, a # b
+    endcase
+endif else begin
+    return, MATMUL(a, b, ATRANSPOSE=atr, BTRANSPOSE=btr, debug=debug)
+endelse
 ;
 end
 

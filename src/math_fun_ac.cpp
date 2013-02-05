@@ -737,59 +737,132 @@ namespace lib {
 #if defined(USE_EIGEN)
   
   BaseGDL* matmul_fun( EnvT* e){
+
+    if (e->KeywordSet("AVAILABLE")) return new DLongGDL(1);
     
+    if (e->GetParDefined(0)->Type() == GDL_STRING)
+      e->Throw( "Array Type cannot be STRING here: "+ e->GetParString(0));
+    if (e->GetParDefined(1)->Type() == GDL_STRING)
+      e->Throw( "Array Type cannot be STRING here: "+ e->GetParString(1));
+    if (e->GetParDefined(0)->Type() == GDL_STRUCT)
+      e->Throw( "Array Type cannot be a STRUCTURE here: "+ e->GetParString(0));
+    if (e->GetParDefined(1)->Type() == GDL_STRUCT)
+      e->Throw( "Array Type cannot be STRUCTURE here: "+ e->GetParString(1));
+    
+    int debug=0;
+    if (e->KeywordSet("DEBUG") || (debug == 1)) {
+      cout << "Rank Matrix A : "<< e->GetParDefined(0)->Rank() << endl;
+      cout << "Dim Matrix A : " << e->GetParDefined(0)->Dim() << endl;
+      cout << "Rank Matrix B : "<< e->GetParDefined(1)->Rank() << endl;
+      cout << "Dim Matrix B : " << e->GetParDefined(1)->Dim() << endl;
+    }
+
+    if (e->GetParDefined(0)->Rank() > 2)
+      e->Throw( "Array must have 1 or 2 dimensions: "+ e->GetParString(0));
+    if (e->GetParDefined(1)->Rank() > 2)
+      e->Throw( "Array must have 1 or 2 dimensions: "+ e->GetParString(1));
+    
+    if ((e->GetParDefined(0)->Type() == GDL_COMPLEX) || (e->GetParDefined(0)->Type() == GDL_COMPLEXDBL))
+      e->Throw( "We are not ready here for COMPLEX type, plese use # operator: "+ e->GetParString(0));
+    if ((e->GetParDefined(1)->Type() == GDL_COMPLEX) || (e->GetParDefined(1)->Type() == GDL_COMPLEXDBL))
+      e->Throw( "We are not ready here for COMPLEX type, plese use # operator: "+ e->GetParString(1));
+
     DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-    if( p0->Rank() != 2)
-      e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
-
     DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);
-    if( p1->Rank() != 2)
-      e->Throw( "Array must have 2 dimensions: "+ e->GetParString(1));
-
-    long NbCol0, NbRow0, NbCol1, NbRow1;
     
-    NbCol0=p0->Dim(0);
-    NbRow0=p0->Dim(1);
+    long NbCol0, NbRow0, NbCol1, NbRow1, tmp_permut;
+
+    if (e->GetParDefined(0)->Rank() == 2) {
+      NbCol0=p0->Dim(0);
+      NbRow0=p0->Dim(1);
+    } else {
+      NbCol0=p0->Dim(0);
+      NbRow0=1;
+    }
+    if (e->KeywordSet("ATRANSPOSE")) {
+      tmp_permut=NbCol0;
+      NbCol0=NbRow0;
+      NbRow0=tmp_permut;
+    } 
+    //    cout << "NbCol0, NbRow0 : "<< NbCol0 << " " << NbRow0 << endl;
     MatrixXd m0 (NbCol0,NbRow0);
-    for (SizeT i=0; i<NbCol0; i++) 
-      for (SizeT j=0; j<NbRow0; j++)
-	m0(i,j)=(*p0)[j*NbCol0+i];
 
-    NbCol1=p1->Dim(0);
-    NbRow1=p1->Dim(1);
+    if (e->KeywordSet("ATRANSPOSE")) {
+      for (SizeT j=0; j<NbRow0; j++) 
+	for (SizeT i=0; i<NbCol0; i++)
+	  m0(i,j)=(*p0)[i*NbRow0+j];
+    }else {
+      for (SizeT i=0; i<NbCol0; i++) 
+	for (SizeT j=0; j<NbRow0; j++)
+	  m0(i,j)=(*p0)[j*NbCol0+i];
+    }
+
+    //    cout << m0 << endl;
+
+    if (e->GetParDefined(1)->Rank() == 2) {
+      NbCol1=p1->Dim(0);
+      NbRow1=p1->Dim(1);
+    } else {
+      NbCol1=p1->Dim(0);
+      NbRow1=1;
+    }
+    if (e->KeywordSet("BTRANSPOSE")) {
+      tmp_permut=NbCol1;
+      NbCol1=NbRow1;
+      NbRow1=tmp_permut;
+    } 
+
     MatrixXd m1 (NbCol1,NbRow1);
-    for (SizeT i=0; i<NbCol1; i++) 
-      for (SizeT j=0; j<NbRow1; j++)
-	m1(i,j)=(*p1)[j*NbCol1+i];
 
+    if (e->KeywordSet("BTRANSPOSE")) {
+      for (SizeT j=0; j<NbRow1; j++) 
+	for (SizeT i=0; i<NbCol1; i++)
+	  m1(i,j)=(*p1)[i*NbRow1+j];
+    } else {
+      for (SizeT i=0; i<NbCol1; i++) 
+	for (SizeT j=0; j<NbRow1; j++)
+	  m1(i,j)=(*p1)[j*NbCol1+i];
+    }
     if (NbRow0 != NbCol1)
       e->Throw( "Incompatible dimensions [m,n]#[n,o] expected ");
 
-    int debug=0;
-    if (debug) {
+    if (e->KeywordSet("DEBUG") || (debug == 1)) {
       cout << "NbCol0, NbRow0 : "<< NbCol0 << " " << NbRow0 << endl;
       cout << "NbCol1, NbRow1 : "<< NbCol1 << " " << NbRow1 << endl;
+      //cout << m0 << endl;
     }
 
     MatrixXd tmp_res (NbCol0,NbRow1);
-      
-    //cout << m0 << endl;
-
     tmp_res=m0*m1;
 
     dimension dim(NbCol0,NbRow1);
-    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 
-    for (SizeT i=0; i<NbCol0; i++) 
-      for (SizeT j=0; j<NbRow1; j++)
-	(*res)[j*NbCol0+i] = tmp_res(i,j);
-    
-    
-    return res;
+    if ((e->GetParDefined(0)->Type() == GDL_DOUBLE) || (e->GetParDefined(1)->Type() == GDL_DOUBLE)) {
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      for (SizeT i=0; i<NbCol0; i++) 
+	for (SizeT j=0; j<NbRow1; j++)
+	  (*res)[j*NbCol0+i] = tmp_res(i,j);
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+      for (SizeT i=0; i<NbCol0; i++) 
+	for (SizeT j=0; j<NbRow1; j++)
+	  (*res)[j*NbCol0+i] = tmp_res(i,j);      
+      return res;
+    }
   }
   
 #else
   BaseGDL* matmul_fun( EnvT* e){
+    
+    if (e->KeywordSet("AVAILABLE")) {
+      if (!e->KeywordSet("QUIET")) {
+	Message(e->GetProName()+": GDL was compiled without Eigen Lib. support.");
+	Message(e->GetProName()+": This Lib. provides fast algo. for MATRIX_MULTIPLY() function");
+      }
+      return new DLongGDL(0);
+    }
+    
     e->Throw( "sorry, MATMUL not ready. GDL must be compiled with Eigen lib.");
     return NULL;
   }
