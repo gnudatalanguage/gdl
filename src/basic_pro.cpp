@@ -241,6 +241,46 @@ namespace lib {
   {
     bool kw = false;
 
+    static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
+    bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
+    if( sourceFilesKW)
+    {
+	deque<string> sourceFiles;
+
+	for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
+	{
+	    string funFile = (*i)->GetFilename();
+	    bool alreadyInList = false;
+	    for(deque<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
+	    {
+		if( funFile == *i2)
+		{
+		  alreadyInList = true;
+		  break;
+		}
+	    }
+	    if( !alreadyInList)
+	      sourceFiles.push_back(funFile);
+	}
+	for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
+	{
+	    string proFile = (*i)->GetFilename();
+	    bool alreadyInList = false;
+	    for(deque<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
+	    {
+		if( proFile == *i2)
+		{
+		  alreadyInList = true;
+		  break;
+		}
+	    }
+	    if( !alreadyInList)
+	      sourceFiles.push_back(proFile);
+	}
+	// sourceFiles now contains a uniqe list of all file names.
+    }
+    
+    
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent( callsKWIx);
     if( callsKW)
@@ -325,7 +365,7 @@ namespace lib {
       }
 
     // internal library functions
-    bool kwLibInternal = e->KeywordSet( "LIB_GDL_INTERNAL"); 
+    bool kwLibInternal = e->KeywordSet( "INTERNAL_LIB_GDL"); 
     if( kwLibInternal)
       {
 	kw = true;
