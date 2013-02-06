@@ -69,7 +69,7 @@ namespace lib
     DFloatGDL *spacing,*orientation;
     auto_ptr<BaseGDL> spacing_guard,orientation_guard;
   private:
-    bool handle_args (EnvT* e) // {{{
+    bool handle_args (EnvT* e)
     {
       if ( nParam ( )==1 )
       {
@@ -189,7 +189,7 @@ namespace lib
       gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
 
         return false;
-    } // }}}
+    } 
 
   private:
 
@@ -237,12 +237,6 @@ namespace lib
       gdlGetDesiredAxisStyle(e, "Y", yStyle);
       gdlGetDesiredAxisStyle(e, "Z", zStyle);
 
-//      // AXIS TITLE
-//      DString xTitle, yTitle, zTitle;
-//      gdlGetDesiredAxisTitle(e, "X", xTitle);
-//      gdlGetDesiredAxisTitle(e, "Y", yTitle);
-//      gdlGetDesiredAxisTitle(e, "Z", zTitle);
-//
       // MARGIN
       DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
       gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
@@ -304,8 +298,12 @@ namespace lib
 
       }
       //start a plot
-      if(!overplot) gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
-
+      if(!overplot)
+      {
+          // background BEFORE next plot since it is the only place plplot may redraw the background...
+          gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
+          gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
+      }
       // viewport and world coordinates
       // use POSITION
       int positionIx = e->KeywordIx( "POSITION");
@@ -668,53 +666,8 @@ namespace lib
       //... if keyword "OVERPLOT" is not set
       if ( !overplot ) //onlyplace where tick etc is relevant!
       {
-//        DLong xTicks=0, yTicks=0, zTicks=0;
-//        e->AssureLongScalarKWIfPresent ( "XTICKS", xTicks );
-//        e->AssureLongScalarKWIfPresent ( "YTICKS", yTicks );
-//        e->AssureLongScalarKWIfPresent ( "ZTICKS", zTicks );
-//
-//        DLong xMinor=0, yMinor=0, zMinor=0;
-//        e->AssureLongScalarKWIfPresent ( "XMINOR", xMinor );
-//        e->AssureLongScalarKWIfPresent ( "YMINOR", yMinor );
-//        e->AssureLongScalarKWIfPresent ( "ZMINOR", zMinor );
-//
-//        DString xTickformat, yTickformat, zTickformat;
-//        e->AssureStringScalarKWIfPresent ( "XTICKFORMAT", xTickformat );
-//        e->AssureStringScalarKWIfPresent ( "YTICKFORMAT", yTickformat );
-//        e->AssureStringScalarKWIfPresent ( "ZTICKFORMAT", zTickformat );
-//
-        //still unused!!!
-//        DDouble ticklen=p.ticklen;
-//        e->AssureDoubleScalarKWIfPresent ( "TICKLEN", ticklen );
-//        DFloat xTicklen, yTicklen;
-//        e->AssureFloatScalarKWIfPresent( "XTICKLEN", xTicklen);
-//        e->AssureFloatScalarKWIfPresent( "YTICKLEN", yTicklen);
-
-        gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
         gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
-
-//        // axis //we should write first box without labels with x.thick, then labels only...
-//        string xOpt="bcnst"; //or is it "string xOpt="bc", yOpt="bc";" ????
-//        string yOpt="bcnstv";
-//        AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
-//
-//        //X
-//        gdlSetAxisCharsize(e, actStream, "X");
-//        //X title as text
-//        actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
-//        // the axis (separate for x and y axis because of charsize)
-//
-//        actStream->box( xOpt.c_str(), gdlComputeTickInterval(e, "X", xStart, xEnd, xLog), xMinor, "", 0.0, 0);
-//        //Y title
-//        gdlSetAxisCharsize(e, actStream, "Y");
-//        //Y title as text
-//        actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
-//        // the axis (separate for x and y axis because of charsize)
-//        actStream->box( "", 0.0, 0, yOpt.c_str(), gdlComputeTickInterval(e, "Y", yStart, yEnd, yLog), yMinor);
-          gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-//
-////         title and sub title
-//        gdlWriteTitleAndSubtitle(e, actStream);
+        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       }
     } 
 

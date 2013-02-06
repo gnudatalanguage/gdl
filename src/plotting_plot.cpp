@@ -232,7 +232,9 @@ private:
 
   private: void old_body( EnvT* e, GDLGStream* actStream) 
   {
-    //start a plot
+    // background BEFORE next plot since it is the only place plplot may redraw the background...
+    gdlSetGraphicsBackgroundColorFromKw(e, actStream);
+   //start a plot
     gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
 
     // *** start drawing. Graphic Keywords accepted: BACKGROUND, CHARSIZE, CHARTHICK, CLIP, COLOR, DATA, 
@@ -271,9 +273,6 @@ private:
 			    xLog, yLog,
 			    xMarginL, xMarginR, yMarginB, yMarginT,
 			    xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
-    // background...
-
-    gdlSetGraphicsBackgroundColorFromKw(e, actStream);
     //current pen color...
     gdlSetGraphicsForegroundColorFromKw(e, actStream);
     gdlSetPlotCharthick(e,actStream); 
