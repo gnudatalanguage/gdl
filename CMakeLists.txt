@@ -50,7 +50,7 @@ set(WXWIDGETSDIR "" CACHE PATH "Specify WxWidgets directory tree")
 set(UDUNITS OFF CACHE BOOL "Enable UDUNITS-2 ?")
 set(UDUNITSDIR "" CACHE PATH "Specify the UDUNITS-2 directory tree")
 
-set(EIGEN3 OFF CACHE BOOL "Enable Eigen3 ?")
+set(EIGEN3 ON CACHE BOOL "Enable Eigen3 ?")
 set(EIGEN3DIR "" CACHE PATH "Specify the Eigen3 directory tree")
 
 set(PSLIB ON CACHE BOOL "Enable pslib ?")

@@ -16,7 +16,7 @@ if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
 if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=no;      fi
-if test "x$with_eigen"       = "x"; then with_eigen=no;      fi
+if test "x$with_eigen3"       = "x"; then with_eigen3=auto;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
@@ -498,18 +498,26 @@ if test "x$with_GraphicsMagick" != "xno"; then
   )
 fi
 
-dnl == Eigen =================================================
+dnl == Eigen3 =================================================
 dnl ========================================================
 
-AC_ARG_WITH(eigen,	
-	[  --with-eigen=DIR       specify the Eigen package ((with optional path DIR) ],
-	[with_eigen="$withval" ])
+if test "x$with_eigen3" = "xauto"; then
+   AC_CHECK_FILE("/usr/include/eigen3/signature_of_eigen3_matrix_library",
+   	[with_eigen3=yes], [with_eigen3=no])
+   if test "x$with_eigen3" = "xyes"; then
+     AC_DEFINE([USE_EIGEN], [1], [Define if you want to use Eigen lib.])
+     INCLUDES="$INCLUDES -I/usr/include/eigen3/"
+   fi
+else
+  AC_ARG_WITH(eigen3,	
+ 	[  --with-eigen3=DIR       specify the Eigen3 package ((with optional path DIR) ],
+ 	[with_eigen3="$withval" ])
 
-if test "x$with_eigen" != "xno"; then
-   AC_DEFINE([USE_EIGEN], [1], [Define if you want to use Eigen lib.])
-	 INCLUDES="$INCLUDES -I$with_eigen"
+  if test "x$with_eigen3" != "xno"; then
+    AC_DEFINE([USE_EIGEN], [1], [Define if you want to use Eigen lib.])
+    	 INCLUDES="$INCLUDES -I$with_eigen3"
+  fi
 fi
-
 dnl == netCDF ==============================================
 dnl ========================================================
 
