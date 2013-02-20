@@ -104,14 +104,13 @@ endif else if ~KEYWORD_SET(spline) then begin
 endif
 ;
 if KEYWORD_SET(spline) then begin
-    ;;
-    if ((N_ELEMENTS(p0) LT 4) OR (N_ELEMENTS(p1) LT 4)) then $
-      MESSAGE, 'as least 4 input points need !'
-    ;; spline case
-    if N_PARAMS() eq 2 then begin
+   if (N_ELEMENTS(p0) LT 4) then MESSAGE, 'as least 4 input points need !'
+   ;; spline case
+   if N_PARAMS() eq 2 then begin
         x = FINDGEN(N_ELEMENTS(p0))
         y = SPL_INTERP(x, p0, SPL_INIT(x, p0), ind)
     endif else begin
+       if (N_ELEMENTS(p1) LT 4) then MESSAGE, 'as least 4 input points need !'
         y = SPL_INTERP(p1, p0, SPL_INIT(p1, p0), p2)
     endelse
     result=FIX(TEMPORARY(y), type=SIZE(p0, /type))
