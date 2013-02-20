@@ -2,6 +2,7 @@
 ; AC 01-Jun-2007
 ; SA 30-Aug-2009 (TEST_HISTO_BASIC)
 ; AC 06-Dec-2011 (adding TEST_HISTO_NAN)
+; AC 20-Feb-2013 (adding TEST_HISTO_UNITY_BIN)
 ;
 pro TEST_HISTO_RANDOMU, nbp=nbp, nan=nan
 ;
@@ -18,7 +19,7 @@ end
 ;
 ; based on a IDL example
 ;
-pro TEST_GAUSS_HISTO, test=test
+pro TEST_HISTO_GAUSS, test=test
 ;
 ; Two-hundred values ranging from -5 to 4.95:  
 X = FINDGEN(200) / 20. - 5.  
@@ -117,6 +118,47 @@ if KEYWORD_SET(all) then begin
 endif
 ;
 end
-
-
+;
+; see bug report 3602623
+; http://sourceforge.net/tracker/?func=detail&aid=3602623&group_id=97659&atid=618683
+;
+; TBC: the effect seems to be different on 32b and 64b machines ...
+;
+pro TEST_HISTO_UNITY_BIN, nbp, display=display, test=test, help=help
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_HISTO_UNITY_BIN, nbp, display=display, test=test, help=help'
+   return
+endif 
+;
+if (N_PARAMS()) EQ 0 then nbp=13000
+;
+; if 13000 points, we create a shawtooth with 10 points in each unity bin ...
+ramp=LINDGEN(nbp) mod 1300
+;
+h1 = HISTOGRAM(ramp, bin=1)
+h2 = HISTOGRAM(ramp)
+;
+diff=TOTAL(ABS(h2 - h1))
+;
+if (diff GT 0.0) then begin
+   MESSAGE, 'error !', /continue
+endif
+;
+if KEYWORD_SET(display) then begin
+   plot, h1, yrange=[-1, 21], /ystyle
+   oplot, h2, psym=2
+endif 
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ------------------------------------------------------------------
+;
+pro TEST_HISTO
+;
+TEST_HISTO_UNITY_BIN
+;
+end
 
