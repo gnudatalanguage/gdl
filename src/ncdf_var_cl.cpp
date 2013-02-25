@@ -962,7 +962,7 @@ else if(var_type == NC_LONG)
       }
     }
 
-    int total = 1;
+    long total = 1;
 	  
     if (e->GetKW(0) != NULL)
     {
