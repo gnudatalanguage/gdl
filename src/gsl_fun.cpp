@@ -1350,6 +1350,22 @@ namespace lib {
   }
 #endif
 
+  // Alain C., 26 February 2013
+  // this is a temporary workaround of an in accuracy in the GSL (up to 1.15)
+  // when working on 64b version and integer bin size ...
+  // GDL bug report 618683
+  // http://sourceforge.net/tracker/?func=detail&aid=3602623&group_id=97659&atid=618683
+  // GSL bug report thread 
+  // http://lists.gnu.org/archive/html/bug-gsl/2013-02/msg00006.html
+
+  static void gdl_make_uniform (gsl_histogram * h, size_t n, double xmin, double xmax)
+  {
+    size_t i;
+    for (i = 0; i <= n; i++)
+      h->range[i] = xmin +  (double) i * (xmax-xmin)/((double) n);
+  }
+
+
   BaseGDL* histogram_fun( EnvT* e)
   {
     double a;
@@ -1501,6 +1517,9 @@ namespace lib {
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
     GDLGuard<gsl_histogram> hhGuard( hh, gsl_histogram_free);
     gsl_histogram_set_ranges_uniform( hh, a, b);
+
+    // temporary revisited computation of bin values ...
+    gdl_make_uniform (hh, hh->n, a, b);
 
     // Set maxVal from keyword if present
     if (maxKW != NULL) e->AssureDoubleScalarKW(e->KeywordIx("MAX"), maxVal);
