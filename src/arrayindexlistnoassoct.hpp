@@ -1577,30 +1577,31 @@ public:
     const dimension& varDim  = var->Dim();
     SizeT            varRank = varDim.Rank();
 
+    varStride = var->Dim().Stride();
+
     if( accessType == ALLINDEXED)
     {
+      baseIx = 0;
+      
       nIx=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
       assert( nIx > 1);
-      for( SizeT i=1; i<acRank; ++i)
-	      {
-		SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-		if( nIter != nIx)
-			throw GDLException(-1,NULL, "All array subscripts must be of same size.", true, false);
-	      }
 
+      for( SizeT i=1; i<acRank; ++i)
+      {
+	  SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+	  if( nIter != nIx)
+		  throw GDLException(-1,NULL, "All array subscripts must be of same size.", true, false);	
+      }
       // in this case, having more index dimensions does not matter
       // indices are used only upto variables rank
       // ok as we set acRank here
       if( varRank < acRank) 
 	acRank = varRank;
-
-      varStride = var->Dim().Stride();
-// 		varDim.Stride( varStride,acRank); // copy variables stride into varStride
+      //varDim.Stride( varStride,acRank); // copy variables stride into varStride
       return;
     }
     
     // NORMAL
-    varStride = var->Dim().Stride();
     //     varDim.Stride( varStride,acRank); // copy variables stride into varStride
     assert( varStride[0] == 1);
 

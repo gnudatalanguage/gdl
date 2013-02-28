@@ -343,7 +343,7 @@ void resize( SizeT s)
 		return;
     }
     // this should never happen (or only in extreme rarely cases)
-    // hence the performance will go down
+    // the performance will go down
     // s > defaultLength
     T* newArr = new T[ s]; // ctor called
 	if( eArr != reinterpret_cast<T*>(buf))

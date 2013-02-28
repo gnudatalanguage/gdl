@@ -2598,7 +2598,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
   DLongGDL* right=static_cast<DLongGDL*>(r);
 
   ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements(); Data_* res = NewResult();
+  ULong nEl=N_Elements();
   assert( rEl);
   assert( nEl);
   if( r->StrictScalar())
