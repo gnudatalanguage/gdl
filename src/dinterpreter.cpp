@@ -961,7 +961,6 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       } else {
 	line="online_help";
       }
-      return CC_OK;
     }
   
   // shell command
