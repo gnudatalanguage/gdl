@@ -954,9 +954,6 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     {
       // later, we will have to check whether we have X11/Display or not
       // on some computing nodes on supercomputers, this is de-activated.
-      cout << ( line.substr(1)).length() << endl;
-      cout << ">>" << line.substr(1) << "<<" << endl;
-
       if (line.substr(1).length() > 0) {
 	line=line.substr(1);
 	StrTrim(line);
