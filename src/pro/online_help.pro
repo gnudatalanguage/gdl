@@ -1,7 +1,44 @@
 ;+
-; AC, 01-March-2013
 ;
-; This code is under GNU GPL v2 or later.
+; NAME:
+;
+; PURPOSE:
+;
+; CATEGORY: documentation
+;
+; CALLING SEQUENCE:  ( ? or ONLINE_HELP ) or ( ?fft or ONLINE_HELP, 'fft')
+;
+; INPUTS:
+;
+; OPTIONAL INPUTS: name of a procedure, function or code
+;
+; KEYWORD PARAMETERS:
+;
+; OUTPUTS:
+;
+; OPTIONAL OUTPUTS: none
+;
+; COMMON BLOCKS: none
+;
+; SIDE EFFECTS: may or not succeed to start a WEB browser.
+;
+; RESTRICTIONS:
+;
+; 1/ except if a copy of the "GDL.pdf" is locally available
+; and in the !path, an internet connection is mandatory ...
+;
+; 2/ the result is very sensitive to the version of the WEB browser
+; and which plugings (and pluging versions) are available.
+;
+; PROCEDURE: straitforward
+;
+; EXAMPLE:  ONLINE_HELP, 'fft', browser='midori'
+;
+; MODIFICATION HISTORY:
+; -- 01-March-2013: creation by Alain Coulais, 
+; 
+; LICENCE: This code is under GNU GPL v2 or later.
+;
 ;
 ; Very preliminary concept. the goal is to link to internal pages of 
 ; the PDF file "gdl.pdf" (eventually downloaded if not found)
@@ -16,18 +53,20 @@
 ; readers (evince, xpdf) but is is supposed to be OK with "pdf.js"
 ; pluging in Firefox https://github.com/mozilla/pdf.js/issues/1875
 ;
-; Initial version by Alain Coulais
+; We have to consider to have local HTML version of the documentation.
 ;
 ;-
 pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, nokey=nokey, $
-                 book=book, exelis=exelis, browser=browser, $
+                 book=book, browser=browser, $
                  path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
                  test=test, debug=debug, help=help, verbose=verbose
+;
+ON_ERRORS, 2
 ;
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, , nokey=nokey, $'
+    print, 'pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, nokey=nokey, $'
     print, '                 book=book, browser=browser, $'
     print, '                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $'
     print, '                 test=test, debug=debug, help=help, verbose=verbose'
@@ -36,6 +75,15 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 if N_PARAMS() EQ 0 then name=''
+;
+if N_PARAMS() EQ 1 then name=STRCOMPRESS(name,/remove_all)
+;
+; do we have access to X11 ??
+;
+status=EXECUTE('xy=GET_SCREEN_SIZE()')
+if (status EQ 0) then begin
+   MESSAGE, 'Since we are unable to connect to X Windows display, no ONLINE HELP'
+endif
 ;
 if KEYWORD_SET(book) then begin
     MESSAGE, /continue, 'This option is not available'
@@ -112,16 +160,18 @@ link3=''
 if ~KEYWORD_SET(nokey) then begin
     path2key='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
     ;;
-if (STRLEN(name) GT 0) then begin
-    ;; is it a .PRO file ??
-    pro_file=FILE_WHICH(name+'.pro')
-    if STRLEN(pro_file) GT 0 then begin
-        link3='file://'+pro_file+space
-        link3=link3+path2key+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
+    if (STRLEN(name) GT 0) then begin
+       ;; is it a .PRO file ??
+       pro_file=FILE_WHICH(name+'.pro')
+       if STRLEN(pro_file) GT 0 then begin
+          link3='file://'+pro_file+space
+          link3=link3+path2key+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
+       endif else begin
+          link3=path2key+'known_keywords.html#GDL_'+STRUPCASE(name)
+       endelse
     endif else begin
-        link3=path2key+'known_keywords.html#GDL_'+STRUPCASE(name)
+       link3=path2key+'Matrice_IDLvsGDL.html'
     endelse
-endif
 endif
 ;
 ; line by line the command used by browser
