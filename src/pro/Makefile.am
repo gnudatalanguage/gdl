@@ -12,6 +12,7 @@ prolib_DATA = \
   dialog_message.pro \
   dialog_pickfile.pro \
   dist.pro \
+  doc_library.pro \
   escape_special_char.pro \
   factorial.pro \
   file_basename.pro \
@@ -47,6 +48,7 @@ prolib_DATA = \
   meanabsdev.pro \
   moment.pro \
   norm.pro \
+  online_help.pro \
   path_sep.pro \
   ploterr.pro \
   poly.pro \
