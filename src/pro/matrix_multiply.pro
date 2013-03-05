@@ -8,7 +8,8 @@
 ; Modifications:
 ; 05-Feb-2013: when GDL is compiled with Eigen Lib., we use internal
 ;              fast MATMUL function. It is not ready for Complex/DoubleComplex
-;
+; 01-Mar-2013: with Eigen Lib, matmul function is OK with complex values, removed
+; some code
 ; Copyright (C) 2008, 2013.
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -41,10 +42,7 @@ if ~quiet then begin
 endif else begin
     type=MATMUL(/available,/quiet)
 endelse
-;
-if (SIZE(a,/type) EQ 6) OR (SIZE(a,/type) EQ 9) then type=0
-if (SIZE(b,/type) EQ 6) OR (SIZE(b,/type) EQ 9) then type=0
-;
+
 if (type EQ 0) then begin
     case (1) of
         KEYWORD_SET(atr) and not KEYWORD_SET(btr): return, TRANSPOSE(a) # b
