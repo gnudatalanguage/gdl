@@ -1,20 +1,21 @@
 ;+
 ;
-; NAME:
+; NAME:   ONLINE_HELP
 ;
-; PURPOSE:
+; PURPOSE: accessing the documentation, the general one or for a given
+;          procedure of function (intrinsic or not)
 ;
 ; CATEGORY: documentation
 ;
 ; CALLING SEQUENCE:  ( ? or ONLINE_HELP ) or ( ?fft or ONLINE_HELP, 'fft')
 ;
-; INPUTS:
+; INPUTS: no mandatory ones
 ;
 ; OPTIONAL INPUTS: name of a procedure, function or code
 ;
 ; KEYWORD PARAMETERS:
 ;
-; OUTPUTS:
+; OUTPUTS: none
 ;
 ; OPTIONAL OUTPUTS: none
 ;
@@ -61,7 +62,7 @@ pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, nokey=nokey, $
                  path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
                  test=test, debug=debug, help=help, verbose=verbose
 ;
-ON_ERRORS, 2
+ON_ERROR, 2
 ;
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
@@ -93,6 +94,15 @@ endif
 ; this code was tested with konqueror, midori and firefox
 ;
 if ~KEYWORD_SET(browser) then browser='firefox'
+;
+; on some GNU/Linux systems, a BROWSER is defined ...
+default_browser=GETENV('BROWSER')
+if (STRLEN(default_browser) GT 0) then browser=default_browser
+;
+; on OSX, it seems to be better to use "open" but this is not
+; working over ssh -X connection ... (suggestion welcome !)
+;
+if (!version.os GE 'darwin') then browser='open'
 ;
 SPAWN, 'which '+browser, ok, error
 ;
