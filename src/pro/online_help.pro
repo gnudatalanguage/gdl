@@ -80,6 +80,8 @@ if N_PARAMS() EQ 0 then name=''
 if N_PARAMS() EQ 1 then name=STRCOMPRESS(name,/remove_all)
 ;
 ; do we have access to X11 ??
+; (we may consider using Lynx (tested succesfully) but is it really
+; useful ?)
 ;
 status=EXECUTE('xy=GET_SCREEN_SIZE()')
 if (status EQ 0) then begin
@@ -90,19 +92,24 @@ if KEYWORD_SET(book) then begin
     MESSAGE, /continue, 'This option is not available'
 endif
 ;
-; setting a default browser
+; setting a default browser if not provided
 ; this code was tested with konqueror, midori and firefox
 ;
-if ~KEYWORD_SET(browser) then browser='firefox'
+if ~KEYWORD_SET(browser) then begin
+   ;; classical default !
+   browser='firefox'
+   ;;
+   ;; on some GNU/Linux systems, a BROWSER is defined ...
+   default_browser=GETENV('BROWSER')
+   if (STRLEN(default_browser) GT 0) then browser=default_browser
+   ;;
+   ;; on OSX, it seems to be better to use "open" but this is not
+   ;; working over ssh -X connection ... (suggestion welcome !)
+   ;;
+   if (!version.os EQ 'darwin') then browser='open'
+endif
 ;
-; on some GNU/Linux systems, a BROWSER is defined ...
-default_browser=GETENV('BROWSER')
-if (STRLEN(default_browser) GT 0) then browser=default_browser
-;
-; on OSX, it seems to be better to use "open" but this is not
-; working over ssh -X connection ... (suggestion welcome !)
-;
-if (!version.os GE 'darwin') then browser='open'
+; we check if the default or selected brower is in the path
 ;
 SPAWN, 'which '+browser, ok, error
 ;
