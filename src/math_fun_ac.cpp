@@ -744,25 +744,17 @@ namespace lib {
 
     BaseGDL* par0 = e->GetParDefined(0);
     BaseGDL* par1 = e->GetParDefined(1);
-    
+
     DType type0 = par0->Type();
     DType type1 = par1->Type();
-    if( !NumericType(type0))
-      e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(0));
-    if( !NumericType(type1))
-      e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(1));
-//     if (par0->Type() == GDL_STRING)
-//       e->Throw("Array Type cannot be STRING here: " + e->GetParString(0));
-//     if (par1->Type() == GDL_STRING)
-//       e->Throw("Array Type cannot be STRING here: " + e->GetParString(1));
-//     if (par0->Type() == GDL_STRUCT)
-//       e->Throw("Array Type cannot be a STRUCTURE here: " + e->GetParString(0));
-//     if (par1->Type() == GDL_STRUCT)
-//       e->Throw("Array Type cannot be STRUCTURE here: " + e->GetParString(1));
+    if (!NumericType(type0))
+      e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(0));
+    if (!NumericType(type1))
+      e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(1));
 
-    int debug=0;
+    int debug = 0;
     static int debugIx = e->KeywordIx("DEBUG");
-    if (e->KeywordSet(debugIx)|| debug==1)
+    if (e->KeywordSet(debugIx) || debug == 1)
     {
       cout << "Rank Matrix A : " << par0->Rank() << endl;
       cout << "Dim Matrix A : " << par0->Dim() << endl;
@@ -777,21 +769,22 @@ namespace lib {
     if (rank1 > 2)
       e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
 
-   DDoubleGDL *p0,*p1;
-   DComplexGDL *cp0,*cp1;
-   DComplexDblGDL *dcp0,*dcp1;
-   int Type;
-   long NbCol0, NbRow0, NbCol1, NbRow1, NbCol2, NbRow2;
-   static int atIx = e->KeywordIx("ATRANSPOSE");
-   static int btIx = e->KeywordIx("BTRANSPOSE");
-   bool at=e->KeywordSet(atIx);
-   bool bt=e->KeywordSet(btIx);
-   bool bad;
-   if  (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL)
-   {
-     dcp0 = e->GetParAs<DComplexDblGDL > (0);
-     dcp1 = e->GetParAs<DComplexDblGDL > (1);
-     Type = GDL_COMPLEXDBL;
+    DFloatGDL *pf0, *pf1;
+    DDoubleGDL *p0, *p1;
+    DComplexGDL *cp0, *cp1;
+    DComplexDblGDL *dcp0, *dcp1;
+    int Type;
+    long NbCol0, NbRow0, NbCol1, NbRow1, NbCol2, NbRow2;
+    static int atIx = e->KeywordIx("ATRANSPOSE");
+    static int btIx = e->KeywordIx("BTRANSPOSE");
+    bool at = e->KeywordSet(atIx);
+    bool bt = e->KeywordSet(btIx);
+    bool bad;
+    if (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL)
+    {
+      dcp0 = e->GetParAs<DComplexDblGDL > (0);
+      dcp1 = e->GetParAs<DComplexDblGDL > (1);
+      Type = GDL_COMPLEXDBL;
       if (rank0 == 2)
       {
         NbCol0 = dcp0->Dim(0);
@@ -807,23 +800,21 @@ namespace lib {
         NbRow1 = dcp1->Dim(1);
       } else
       {
-        if(rank0 == 1 && !at && !bt)
+        if (rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = dcp1->Dim(0);
+        } else
+        {
+          NbCol1 = dcp1->Dim(0);
+          NbRow1 = 1;
         }
-        else
-	{
-	  NbCol1 = dcp1->Dim(0);
-	  NbRow1 = 1;	  
-	}
       }
-   }
-   else if (type0 == GDL_COMPLEX || type1 == GDL_COMPLEX)
-   {
-     cp0 = e->GetParAs<DComplexGDL > (0);
-     cp1 = e->GetParAs<DComplexGDL > (1);
-     Type = GDL_COMPLEX;
+    } else if (type0 == GDL_COMPLEX || type1 == GDL_COMPLEX)
+    {
+      cp0 = e->GetParAs<DComplexGDL > (0);
+      cp1 = e->GetParAs<DComplexGDL > (1);
+      Type = GDL_COMPLEX;
       if (rank0 == 2)
       {
         NbCol0 = cp0->Dim(0);
@@ -839,23 +830,21 @@ namespace lib {
         NbRow1 = cp1->Dim(1);
       } else
       {
-        if(rank0 == 1 && !at && !bt)
+        if (rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = cp1->Dim(0);
+        } else
+        {
+          NbCol1 = cp1->Dim(0);
+          NbRow1 = 1;
         }
-        else
-	{
-	  NbCol1 = cp1->Dim(0);
-	  NbRow1 = 1;	  
-	}
       }
-   }
-   else //all others
-   {
-     p0 = e->GetParAs<DDoubleGDL > (0);
-     p1 = e->GetParAs<DDoubleGDL > (1);
-     Type = GDL_DOUBLE;
+    } else if (type0 == GDL_DOUBLE || type1 == GDL_DOUBLE)
+    {
+      p0 = e->GetParAs<DDoubleGDL > (0);
+      p1 = e->GetParAs<DDoubleGDL > (1);
+      Type = GDL_DOUBLE;
       if (rank0 == 2)
       {
         NbCol0 = p0->Dim(0);
@@ -871,134 +860,165 @@ namespace lib {
         NbRow1 = p1->Dim(1);
       } else
       {
-        if(rank0 == 1 && !at && !bt)
+        if (rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = p1->Dim(0);
+        } else
+        {
+          NbCol1 = p1->Dim(0);
+          NbRow1 = 1;
         }
-        else
-	{
-	  NbCol1 = p1->Dim(0);
-	  NbRow1 = 1;	  
-	}
       }
-   }
+    } else //all other cases: FLOAT!
+    {
+      pf0 = e->GetParAs<DFloatGDL > (0);
+      pf1 = e->GetParAs<DFloatGDL > (1);
+      Type = GDL_FLOAT;
+      if (rank0 == 2)
+      {
+        NbCol0 = pf0->Dim(0);
+        NbRow0 = pf0->Dim(1);
+      } else
+      {
+        NbCol0 = pf0->Dim(0);
+        NbRow0 = 1;
+      }
+      if (rank1 == 2)
+      {
+        NbCol1 = pf1->Dim(0);
+        NbRow1 = pf1->Dim(1);
+      } else
+      {
+        if (rank0 == 1 && !at && !bt)
+        {
+          NbCol1 = 1;
+          NbRow1 = pf1->Dim(0);
+        } else
+        {
+          NbCol1 = pf1->Dim(0);
+          NbRow1 = 1;
+        }
+      }
+    }
     //check consistency:
-    bad=( (at&&bt)  &&(NbCol0 != NbRow1) || 
-          (at&&!bt) &&(NbCol0 != NbCol1) ||
-          (!at&&bt) &&(NbRow0 != NbRow1) ||
-          (!at&&!bt)&&(NbRow0 != NbCol1) );
+    bad = ((at && bt) && (NbCol0 != NbRow1) ||
+        (at && !bt) && (NbCol0 != NbCol1) ||
+        (!at && bt) && (NbRow0 != NbRow1) ||
+        (!at && !bt) && (NbRow0 != NbCol1));
     if (bad)
     {
-      e->Throw("Operands of matrix multiply have incompatible dimensions: "+e->GetParString(0)+", "+e->GetParString(1)+".");
+      e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
     }
 
-    switch(Type)
-    {
+    switch (Type) {
       case GDL_COMPLEXDBL:
       { //avoid CASE crosses !
-        MatrixXcd m0(NbCol0, NbRow0);
-        memcpy(&m0(0, 0), &(*dcp0)[0], NbCol0 * NbRow0 * sizeof ((*dcp0)[0]));
-
-        MatrixXcd m1(NbCol1, NbRow1);
-        memcpy(&m1(0, 0), &(*dcp1)[0], NbCol1 * NbRow1 * sizeof ((*dcp1)[0]));
+        //        MatrixXcd m0(NbCol0, NbRow0);
+        //        memcpy(&m0(0, 0), &(*dcp0)[0], NbCol0 * NbRow0 * sizeof ((*dcp0)[0]));
+        //fastest: directly pass adresses in Map structure of good type!
+        Map<MatrixXcd> m0(&(*dcp0)[0], NbCol0, NbRow0);
+        //        MatrixXcd m1(NbCol1, NbRow1);
+        //        memcpy(&m1(0, 0), &(*dcp1)[0], NbCol1 * NbRow1 * sizeof ((*dcp1)[0]));
+        Map<MatrixXcd> m1(&(*dcp1)[0], NbCol1, NbRow1);
 
         NbCol2 = (at) ? NbRow0 : NbCol0;
         NbRow2 = (bt) ? NbCol1 : NbRow1;
-        MatrixXcd tmp_res(NbCol2, NbRow2);
-        if (at && bt)
-        {
-          tmp_res = m0.transpose() * m1.transpose();
-        } else if (bt)
-        {
-          tmp_res = m0 * m1.transpose();
-        } else if (at)
-        {
-          tmp_res = m0.transpose() * m1;
-        } else
-        {
-          tmp_res = m0*m1;
-        }
         dimension dim(NbCol2, NbRow2);
 
         DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
-        memcpy(&(*res)[0], &tmp_res(0, 0), NbCol2 * NbRow2 * sizeof (tmp_res(0,0)));
+        //MatrixXcd m2(NbCol2, NbRow2);
+        Map<MatrixXcd> m2(&(*res)[0], NbCol2, NbRow2);
+        if (at && bt)
+        {
+          m2 = m0.transpose() * m1.transpose();
+        } else if (bt)
+        {
+          m2 = m0 * m1.transpose();
+        } else if (at)
+        {
+          m2 = m0.transpose() * m1;
+        } else
+        {
+          m2 = m0*m1;
+        }
+
+        //        memcpy(&(*res)[0], &m2(0, 0), NbCol2 * NbRow2 * sizeof (m2(0,0)));
         return res;
       }
       case GDL_COMPLEX:
       {
-        MatrixXcf m0(NbCol0, NbRow0);
-        memcpy(&m0(0, 0), &(*cp0)[0], NbCol0 * NbRow0 * sizeof ((*cp0)[0]));
+        //        MatrixXcf m0(NbCol0, NbRow0);
+        //        memcpy(&m0(0, 0), &(*cp0)[0], NbCol0 * NbRow0 * sizeof ((*cp0)[0]));
+        Map<MatrixXcf> m0(&(*cp0)[0], NbCol0, NbRow0);
 
-        MatrixXcf m1(NbCol1, NbRow1);
-        memcpy(&m1(0, 0), &(*cp1)[0], NbCol1 * NbRow1 * sizeof ((*cp1)[0]));
+        //        MatrixXcf m1(NbCol1, NbRow1);
+        //        memcpy(&m1(0, 0), &(*cp1)[0], NbCol1 * NbRow1 * sizeof ((*cp1)[0]));
+        Map<MatrixXcf> m1(&(*cp1)[0], NbCol1, NbRow1);
 
         NbCol2 = (at) ? NbRow0 : NbCol0;
         NbRow2 = (bt) ? NbCol1 : NbRow1;
-        MatrixXcf tmp_res(NbCol2, NbRow2);
-        if (at && bt)
-        {
-          tmp_res = m0.transpose() * m1.transpose();
-        } else if (bt)
-        {
-          tmp_res = m0 * m1.transpose();
-        } else if (at)
-        {
-          tmp_res = m0.transpose() * m1;
-        } else
-        {
-          tmp_res = m0*m1;
-        }
         dimension dim(NbCol2, NbRow2);
 
         DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
-        memcpy(&(*res)[0], &tmp_res(0, 0), NbCol2 * NbRow2 * sizeof (tmp_res(0,0)));
+        //        MatrixXcf m2(NbCol2, NbRow2);
+        Map<MatrixXcf> m2(&(*res)[0], NbCol2, NbRow2);
+        if (at && bt)
+        {
+          m2 = m0.transpose() * m1.transpose();
+        } else if (bt)
+        {
+          m2 = m0 * m1.transpose();
+        } else if (at)
+        {
+          m2 = m0.transpose() * m1;
+        } else
+        {
+          m2 = m0*m1;
+        }
+        //       memcpy(&(*res)[0], &m2(0, 0), NbCol2 * NbRow2 * sizeof (m2(0,0)));
         return res;
       }
       case GDL_DOUBLE:
       {
-        MatrixXd m0(NbCol0, NbRow0);
-        memcpy(&m0(0,0),&(*p0)[0],NbCol0*NbRow0*sizeof((*p0)[0]));
+        //        MatrixXd m0(NbCol0, NbRow0);
+        //        memcpy(&m0(0,0),&(*p0)[0],NbCol0*NbRow0*sizeof((*p0)[0]));
+        Map<MatrixXd> m0(&(*p0)[0], NbCol0, NbRow0);
 
-        MatrixXd m1(NbCol1, NbRow1);
-        memcpy(&m1(0,0),&(*p1)[0],NbCol1*NbRow1*sizeof((*p1)[0]));
+        //        MatrixXd m1(NbCol1, NbRow1);
+        //        memcpy(&m1(0,0),&(*p1)[0],NbCol1*NbRow1*sizeof((*p1)[0]));
+        Map<MatrixXd> m1(&(*p1)[0], NbCol1, NbRow1);
 
-        NbCol2=(at)?NbRow0:NbCol0;
-        NbRow2=(bt)?NbCol1:NbRow1;
-        MatrixXd tmp_res(NbCol2, NbRow2);
-        if (at && bt)
-        {
-          tmp_res = m0.transpose()*m1.transpose();
-        }
-        else if (bt)
-        {
-          tmp_res = m0*m1.transpose();
-        }
-        else if (at)
-        {
-          tmp_res = m0.transpose()*m1;
-        }
-        else
-        {
-          tmp_res = m0*m1;
-        }
-
+        NbCol2 = (at) ? NbRow0 : NbCol0;
+        NbRow2 = (bt) ? NbCol1 : NbRow1;
         dimension dim(NbCol2, NbRow2);
-
-        if ((type0 == GDL_DOUBLE) || (type1 == GDL_DOUBLE))
-        {
-          DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-          memcpy(&(*res)[0], &tmp_res(0, 0), NbCol2 * NbRow2 * sizeof (tmp_res(0,0)));
-          return res;
-        } else //convert painfully back to floats...
-        {
-          DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-          for (SizeT i = 0; i < NbCol2; i++)
-            for (SizeT j = 0; j < NbRow2; j++)
-              (*res)[j * NbCol2 + i] = tmp_res(i, j);
-          return res;
-        }
+        DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+          //          MatrixXd m2(NbCol2, NbRow2);
+        Map<MatrixXd> m2(&(*res)[0], NbCol2, NbRow2);
+        if (at && bt) m2 = m0.transpose() * m1.transpose();
+        else if (bt) m2 = m0 * m1.transpose();
+        else if (at) m2 = m0.transpose() * m1;
+        else m2 = m0*m1;
+        return res;
       }
+      case GDL_FLOAT:
+      {
+        Map<MatrixXf> m0(&(*pf0)[0], NbCol0, NbRow0);
+        Map<MatrixXf> m1(&(*pf1)[0], NbCol1, NbRow1);
+        NbCol2 = (at) ? NbRow0 : NbCol0;
+        NbRow2 = (bt) ? NbCol1 : NbRow1;
+        dimension dim(NbCol2, NbRow2);
+        DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+        //          MatrixXf m2(NbCol2, NbRow2);
+        Map<MatrixXf> m2(&(*res)[0], NbCol2, NbRow2);
+        if (at && bt) m2 = m0.transpose() * m1.transpose();
+        else if (bt) m2 = m0 * m1.transpose();
+        else if (at) m2 = m0.transpose() * m1;
+        else m2 = m0*m1;
+        return res;
+      }
+      default: //should never happen!
+      e->Throw("Internal GDL error, Please report");
     }
   }
   
