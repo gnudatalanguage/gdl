@@ -739,29 +739,40 @@ namespace lib {
   BaseGDL* matmul_fun(EnvT* e)
   {
 
-    if (e->KeywordSet("AVAILABLE")) return new DLongGDL(1);
+    static int avIx = e->KeywordIx("AVAILABLE");
+    if (e->KeywordSet(avIx)) return new DLongGDL(1);
 
-    if (e->GetParDefined(0)->Type() == GDL_STRING)
-      e->Throw("Array Type cannot be STRING here: " + e->GetParString(0));
-    if (e->GetParDefined(1)->Type() == GDL_STRING)
-      e->Throw("Array Type cannot be STRING here: " + e->GetParString(1));
-    if (e->GetParDefined(0)->Type() == GDL_STRUCT)
-      e->Throw("Array Type cannot be a STRUCTURE here: " + e->GetParString(0));
-    if (e->GetParDefined(1)->Type() == GDL_STRUCT)
-      e->Throw("Array Type cannot be STRUCTURE here: " + e->GetParString(1));
+    BaseGDL* par0 = e->GetParDefined(0);
+    BaseGDL* par1 = e->GetParDefined(1);
+    
+    if( !NumericType(par0->Type()))
+      e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(0));
+    if( !NumericType(par1->Type()))
+      e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(1));
+//     if (par0->Type() == GDL_STRING)
+//       e->Throw("Array Type cannot be STRING here: " + e->GetParString(0));
+//     if (par1->Type() == GDL_STRING)
+//       e->Throw("Array Type cannot be STRING here: " + e->GetParString(1));
+//     if (par0->Type() == GDL_STRUCT)
+//       e->Throw("Array Type cannot be a STRUCTURE here: " + e->GetParString(0));
+//     if (par1->Type() == GDL_STRUCT)
+//       e->Throw("Array Type cannot be STRUCTURE here: " + e->GetParString(1));
 
     int debug=0;
-    if (e->KeywordSet("DEBUG")|| debug==1)
+    static int debugIx = e->KeywordIx("DEBUG");
+    if (e->KeywordSet(debugIx)|| debug==1)
     {
-      cout << "Rank Matrix A : " << e->GetParDefined(0)->Rank() << endl;
-      cout << "Dim Matrix A : " << e->GetParDefined(0)->Dim() << endl;
-      cout << "Rank Matrix B : " << e->GetParDefined(1)->Rank() << endl;
-      cout << "Dim Matrix B : " << e->GetParDefined(1)->Dim() << endl;
+      cout << "Rank Matrix A : " << par0->Rank() << endl;
+      cout << "Dim Matrix A : " << par0->Dim() << endl;
+      cout << "Rank Matrix B : " << par1->Rank() << endl;
+      cout << "Dim Matrix B : " << par1->Dim() << endl;
     }
 
-    if (e->GetParDefined(0)->Rank() > 2)
+    SizeT rank0 = par0->Rank();
+    SizeT rank1 = par1->Rank();
+    if (rank0 > 2)
       e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
-    if (e->GetParDefined(1)->Rank() > 2)
+    if (rank1 > 2)
       e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
 
    DDoubleGDL *p0,*p1;
@@ -769,15 +780,17 @@ namespace lib {
    DComplexDblGDL *dcp0,*dcp1;
    int Type;
    long NbCol0, NbRow0, NbCol1, NbRow1, NbCol2, NbRow2;
-   bool at=e->KeywordSet("ATRANSPOSE");
-   bool bt=e->KeywordSet("BTRANSPOSE");
+   static int atIx = e->KeywordIx("ATRANSPOSE");
+   static int btIx = e->KeywordIx("BTRANSPOSE");
+   bool at=e->KeywordSet(atIx);
+   bool bt=e->KeywordSet(btIx);
    bool bad;
-   if  (e->GetParDefined(0)->Type() == GDL_COMPLEXDBL || e->GetParDefined(1)->Type() == GDL_COMPLEXDBL)
+   if  (par0->Type() == GDL_COMPLEXDBL || par1->Type() == GDL_COMPLEXDBL)
    {
      dcp0 = e->GetParAs<DComplexDblGDL > (0);
      dcp1 = e->GetParAs<DComplexDblGDL > (1);
      Type = GDL_COMPLEXDBL;
-      if (e->GetParDefined(0)->Rank() == 2)
+      if (rank0 == 2)
       {
         NbCol0 = dcp0->Dim(0);
         NbRow0 = dcp0->Dim(1);
@@ -786,27 +799,30 @@ namespace lib {
         NbCol0 = dcp0->Dim(0);
         NbRow0 = 1;
       }
-      if (e->GetParDefined(1)->Rank() == 2)
+      if (rank1 == 2)
       {
         NbCol1 = dcp1->Dim(0);
         NbRow1 = dcp1->Dim(1);
       } else
       {
-        NbCol1 = dcp1->Dim(0);
-        NbRow1 = 1;
-        if(e->GetParDefined(0)->Rank() == 1 && !at && !bt)
+        if(rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = dcp1->Dim(0);
         }
+        else
+	{
+	  NbCol1 = dcp1->Dim(0);
+	  NbRow1 = 1;	  
+	}
       }
    }
-   else if (e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(1)->Type() == GDL_COMPLEX)
+   else if (par0->Type() == GDL_COMPLEX || par1->Type() == GDL_COMPLEX)
    {
      cp0 = e->GetParAs<DComplexGDL > (0);
      cp1 = e->GetParAs<DComplexGDL > (1);
      Type = GDL_COMPLEX;
-      if (e->GetParDefined(0)->Rank() == 2)
+      if (rank0 == 2)
       {
         NbCol0 = cp0->Dim(0);
         NbRow0 = cp0->Dim(1);
@@ -815,19 +831,22 @@ namespace lib {
         NbCol0 = cp0->Dim(0);
         NbRow0 = 1;
       }
-      if (e->GetParDefined(1)->Rank() == 2)
+      if (rank1 == 2)
       {
         NbCol1 = cp1->Dim(0);
         NbRow1 = cp1->Dim(1);
       } else
       {
-        NbCol1 = cp1->Dim(0);
-        NbRow1 = 1;
-        if(e->GetParDefined(0)->Rank() == 1 && !at && !bt)
+        if(rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = cp1->Dim(0);
         }
+        else
+	{
+	  NbCol1 = cp1->Dim(0);
+	  NbRow1 = 1;	  
+	}
       }
    }
    else //all others
@@ -835,7 +854,7 @@ namespace lib {
      p0 = e->GetParAs<DDoubleGDL > (0);
      p1 = e->GetParAs<DDoubleGDL > (1);
      Type = GDL_DOUBLE;
-      if (e->GetParDefined(0)->Rank() == 2)
+      if (rank0 == 2)
       {
         NbCol0 = p0->Dim(0);
         NbRow0 = p0->Dim(1);
@@ -844,19 +863,22 @@ namespace lib {
         NbCol0 = p0->Dim(0);
         NbRow0 = 1;
       }
-      if (e->GetParDefined(1)->Rank() == 2)
+      if (rank1 == 2)
       {
         NbCol1 = p1->Dim(0);
         NbRow1 = p1->Dim(1);
       } else
       {
-        NbCol1 = p1->Dim(0);
-        NbRow1 = 1;
-        if(e->GetParDefined(0)->Rank() == 1 && !at && !bt)
+        if(rank0 == 1 && !at && !bt)
         {
           NbCol1 = 1;
           NbRow1 = p1->Dim(0);
         }
+        else
+	{
+	  NbCol1 = p1->Dim(0);
+	  NbRow1 = 1;	  
+	}
       }
    }
     //check consistency:
@@ -961,7 +983,7 @@ namespace lib {
 
         dimension dim(NbCol2, NbRow2);
 
-        if ((e->GetParDefined(0)->Type() == GDL_DOUBLE) || (e->GetParDefined(1)->Type() == GDL_DOUBLE))
+        if ((par0->Type() == GDL_DOUBLE) || (par1->Type() == GDL_DOUBLE))
         {
           DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*res)[0], &tmp_res(0, 0), NbCol2 * NbRow2 * sizeof (tmp_res(0,0)));
