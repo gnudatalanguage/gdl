@@ -745,9 +745,11 @@ namespace lib {
     BaseGDL* par0 = e->GetParDefined(0);
     BaseGDL* par1 = e->GetParDefined(1);
     
-    if( !NumericType(par0->Type()))
+    DType type0 = par0->Type();
+    DType type1 = par1->Type();
+    if( !NumericType(type0))
       e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(0));
-    if( !NumericType(par1->Type()))
+    if( !NumericType(type1))
       e->Throw("Array type cannot be "+par0->TypeStr()+" here: " + e->GetParString(1));
 //     if (par0->Type() == GDL_STRING)
 //       e->Throw("Array Type cannot be STRING here: " + e->GetParString(0));
@@ -785,7 +787,7 @@ namespace lib {
    bool at=e->KeywordSet(atIx);
    bool bt=e->KeywordSet(btIx);
    bool bad;
-   if  (par0->Type() == GDL_COMPLEXDBL || par1->Type() == GDL_COMPLEXDBL)
+   if  (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL)
    {
      dcp0 = e->GetParAs<DComplexDblGDL > (0);
      dcp1 = e->GetParAs<DComplexDblGDL > (1);
@@ -817,7 +819,7 @@ namespace lib {
 	}
       }
    }
-   else if (par0->Type() == GDL_COMPLEX || par1->Type() == GDL_COMPLEX)
+   else if (type0 == GDL_COMPLEX || type1 == GDL_COMPLEX)
    {
      cp0 = e->GetParAs<DComplexGDL > (0);
      cp1 = e->GetParAs<DComplexGDL > (1);
@@ -983,7 +985,7 @@ namespace lib {
 
         dimension dim(NbCol2, NbRow2);
 
-        if ((par0->Type() == GDL_DOUBLE) || (par1->Type() == GDL_DOUBLE))
+        if ((type0 == GDL_DOUBLE) || (type1 == GDL_DOUBLE))
         {
           DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*res)[0], &tmp_res(0, 0), NbCol2 * NbRow2 * sizeof (tmp_res(0,0)));
