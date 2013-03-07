@@ -421,7 +421,7 @@ public:
   if( buf != Scalar()) 
       Eigen::internal::aligned_delete( buf, sz);
 #else
-  if( buf != scalar) 
+  if( buf != Scalar()) 
       delete[] buf; // buf == NULL also possible
 #endif
   }
