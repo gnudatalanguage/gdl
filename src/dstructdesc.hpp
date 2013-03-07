@@ -18,6 +18,8 @@
 #ifndef DSTRUCTDESC_HPP_
 #define DSTRUCTDESC_HPP_
 
+#include "includefirst.hpp" // USE_EIGEN3
+
 #include <vector>
 #include <deque>
 #include <string>
@@ -43,11 +45,16 @@ protected:
   // and DStringGDL (considers actual string sizes)
   SizeT nBytes = tags.back()->NBytes();
 
-  // alignment
-  const int sizeOfPtr = sizeof( char*);
-  SizeT exceed = nBytes % sizeOfPtr;
+  // alignment 
+#ifdef USE_EIGEN3
+  assert( sizeof( char*) <= 16); 
+  const int alignmentInBytes = 16; // set to multiple of 16 >= sizeof( char*)
+#else
+  const int alignmentInBytes = sizeof( char*);
+#endif
+  SizeT exceed = nBytes % alignmentInBytes;
   if( exceed > 0)
-	nBytes += sizeOfPtr - exceed;
+	nBytes += alignmentInBytes - exceed;
 
   // valid tagOffset (used by NBytes())
   tagOffset.push_back( tagOffset.back() + nBytes);

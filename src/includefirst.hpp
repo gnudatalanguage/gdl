@@ -24,10 +24,6 @@
 //#else
 //#error "config.h required. Compile with -DHAVE_CONFIG_H"
 //#endif
-#if defined(USE_EIGEN)
-#include <Eigen/Core>
-#endif
-
 #ifdef _MSC_VER
 #define NOMINMAX
 #endif
@@ -59,6 +55,10 @@
 #undef GDL_NOT_HAVE_READLINE
 
 //#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#endif
+
+#if defined(USE_EIGEN)
+#include <Eigen/Core>
 #endif
 
 #if defined(__sun__)

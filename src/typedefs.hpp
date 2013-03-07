@@ -375,29 +375,29 @@ private:
 	typedef T Ty;
 
 #ifdef USE_EIGEN  
-  char scalarBuf[ smallArraySize * sizeof(Ty) + 16];
-  Ty* Scalar()
-  {
-    return reinterpret_cast<Ty*>((reinterpret_cast<size_t>(scalarBuf) & ~(size_t(15))) + 16);
-  }
+  EIGEN_ALIGN16 char scalarBuf[ smallArraySize * sizeof(Ty) + 16];
+//   Ty* Scalar()
+//   {
+//     return reinterpret_cast<Ty*>((reinterpret_cast<size_t>(scalarBuf) & ~(size_t(15))) + 16);
+//   }
 #else
   char scalarBuf[ smallArraySize * sizeof(Ty)];
-  Ty* Scalar()
-  {
-    return reinterpret_cast<Ty*>(scalarBuf) );
-  }
 //   Ty scalarBuf[ smallArraySize];
 //   Ty* Scalar() { return scalarBuf;}
 #endif
+  Ty* Scalar()
+  {
+    return reinterpret_cast<Ty*>(scalarBuf);
+  }
 
 #ifdef GDLARRAY_CACHE
 		
 	static SizeT cacheSize;
-	static T* cache;
-	static T* Cached( SizeT newSize);
+	static Ty* cache;
+	static Ty* Cached( SizeT newSize);
 #endif
 		
-	T*    buf;
+	Ty*    buf;
 	SizeT sz;
 
 public:
@@ -405,15 +405,27 @@ public:
   
 #ifndef GDLARRAY_CACHE
 
-  T* New( SizeT s)
+  Ty* New( SizeT s)
   {
-#ifdef USE_EIGEN  
-    return static_cast<T*>(Eigen::internal::aligned_malloc( sizeof(T) * s));
+#ifdef USE_EIGEN 
+    return Eigen::internal::aligned_new<Ty>( s);
+    //return static_cast<T*>(Eigen::internal::aligned_malloc( sizeof(T) * s));
 #else
     return new T[ s];
 #endif
   }
     
+  ~GDLArray() throw()
+  {
+#ifdef USE_EIGEN  
+  if( buf != Scalar()) 
+      Eigen::internal::aligned_delete( buf, sz);
+#else
+  if( buf != scalar) 
+      delete[] buf; // buf == NULL also possible
+#endif
+  }
+
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
     try {
@@ -465,17 +477,6 @@ public:
 //       buf[ i] = arr[ i];
 
 // }
-  }
-
-  ~GDLArray() throw()
-  {
-#ifdef USE_EIGEN  
-  if( buf != Scalar()) 
-      Eigen::internal::aligned_free( buf);
-#else
-  if( buf != scalar) 
-      delete[] buf; // buf == NULL also possible
-#endif
   }
 
 #else
