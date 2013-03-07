@@ -43,7 +43,11 @@ private:
   
   //public:
   std::deque<BaseGDL*> typeVar;   // for accessing data
-  DataT                dd;        // the data
+#ifdef USE_EIGEN  
+  EIGEN_ALIGN16 DataT        dd; // the data
+#else
+  DataT                      dd; // the data
+#endif
     
   void InitTypeVar( SizeT t)
   {
