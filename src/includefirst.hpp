@@ -24,6 +24,9 @@
 //#else
 //#error "config.h required. Compile with -DHAVE_CONFIG_H"
 //#endif
+#if defined(USE_EIGEN)
+#include <Eigen/Core>
+#endif
 
 #ifdef _MSC_VER
 #define NOMINMAX

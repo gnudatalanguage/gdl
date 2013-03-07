@@ -47,6 +47,7 @@
 
 */
 
+
 #define GM_EPS   1.0e-6
 #define GM_ITER  50
 #define GM_TINY  1.0e-18
@@ -158,6 +159,7 @@
 #endif
 
 using namespace std;
+using namespace Eigen; // does not hurt
 
 namespace lib {
 

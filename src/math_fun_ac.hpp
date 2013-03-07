@@ -20,7 +20,7 @@
 
 #if defined(USE_EIGEN)
 #include <Eigen/Dense>
-using namespace Eigen;
+//using namespace Eigen; // never in header files!
 #endif
 
 namespace lib {

@@ -65,6 +65,7 @@
 
 #ifdef GDL_CVS_VERSION
 #include <iostream>
+#include "gdlc.i.g"
 #endif
 
 //#define TRACE_OMP_CALLS
@@ -373,6 +374,22 @@ private:
 		
 	typedef T Ty;
 
+#ifdef USE_EIGEN  
+  char scalarBuf[ smallArraySize * sizeof(Ty) + 16];
+  Ty* Scalar()
+  {
+    return reinterpret_cast<Ty*>((reinterpret_cast<size_t>(scalarBuf) & ~(size_t(15))) + 16);
+  }
+#else
+  char scalarBuf[ smallArraySize * sizeof(Ty)];
+  Ty* Scalar()
+  {
+    return reinterpret_cast<Ty*>(scalarBuf) );
+  }
+//   Ty scalarBuf[ smallArraySize];
+//   Ty* Scalar() { return scalarBuf;}
+#endif
+
 #ifdef GDLARRAY_CACHE
 		
 	static SizeT cacheSize;
@@ -380,7 +397,6 @@ private:
 	static T* Cached( SizeT newSize);
 #endif
 		
-	T scalar[ smallArraySize];
 	T*    buf;
 	SizeT sz;
 
@@ -389,10 +405,19 @@ public:
   
 #ifndef GDLARRAY_CACHE
 
+  T* New( SizeT s)
+  {
+#ifdef USE_EIGEN  
+    return static_cast<T*>(Eigen::internal::aligned_malloc( sizeof(T) * s));
+#else
+    return new T[ s];
+#endif
+  }
+    
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
     try {
-		buf = (cp.size() > smallArraySize) ? new T[ cp.size()] : scalar;
+	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : Scalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
@@ -407,14 +432,14 @@ public:
   GDLArray( SizeT s, bool b) : sz( s)
   {
 	  try {
-		buf = (s > smallArraySize) ? new T[ s] : scalar;
+		buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : Scalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
   }
   
   GDLArray( T val, SizeT s) : sz( s)
   {
 	  try {
-	    buf = (s > smallArraySize) ? new T[ s] : scalar;
+	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : Scalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
@@ -428,7 +453,7 @@ public:
   {
 	try
 	{
-		buf = ( s > smallArraySize ) ? new T[ s]: scalar;
+		buf = ( s > smallArraySize ) ? New(s) /*T[ s]*/: Scalar();
 	}
 	catch ( std::bad_alloc& ) { ThrowGDLException ( "Array requires more memory than available" ); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
@@ -444,9 +469,15 @@ public:
 
   ~GDLArray() throw()
   {
+#ifdef USE_EIGEN  
+  if( buf != Scalar()) 
+      Eigen::internal::aligned_free( buf);
+#else
   if( buf != scalar) 
-      	delete[] buf; // buf == NULL also possible
+      delete[] buf; // buf == NULL also possible
+#endif
   }
+
 #else
 
   // use definition in datatypes.cpp
@@ -460,8 +491,11 @@ public:
   
 
 
-  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ buf( scalar), sz( 1)
-  { scalar[0] = s;}
+  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ sz( 1)
+  { 
+    buf = Scalar();
+    buf[0] = s;    
+  }
 
   T& operator[]( SizeT ix) throw()
   {
@@ -494,34 +528,34 @@ GDLArray& operator= ( const GDLArray& right )
 // 		ThrowGDLException ( "GDLArray::operator= operands have not same size (this: " + i2s ( sz ) +", right: " + i2s ( right.size() ) + ")");
 
     assert( this != &right);
-	assert( sz == right.size());
+    assert( sz == right.size());
 //   	if ( &right != this )
-       {
+    {
 // 		if ( sz == right.size() )
-		{
-			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-			{
-			#pragma omp for*/
-			for ( SizeT i=0; i<sz; ++i )
-				buf[ i] = right.buf[ i];
-			return *this;
+      {
+	      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+	      {
+	      #pragma omp for*/
+	      for ( SizeT i=0; i<sz; ++i )
+		      buf[ i] = right.buf[ i];
+	      return *this;
 // }
-		}
+      }
 // 		else
-		{
-			if ( buf != scalar )
-				delete[] buf;
-			sz = right.size();
-			buf = ( sz>smallArraySize ) ? new T[ sz] : scalar;
-			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-			{
-			#pragma omp for*/
-			for ( SizeT i=0; i<sz; ++i )
-				buf[ i] = right.buf[ i];
-			return *this;
-		}
-		}
-	//       }
+      {
+	      if ( buf != Scalar() )
+		      delete[] buf;
+	      sz = right.size();
+	      buf = ( sz>smallArraySize ) ? New(sz) /*T[ sz]*/ : Scalar();
+	      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+	      {
+	      #pragma omp for*/
+	      for ( SizeT i=0; i<sz; ++i )
+		      buf[ i] = right.buf[ i];
+	      return *this;
+      }
+      }
+//       }
 }
 
   GDLArray& operator+=( const GDLArray& right) throw()
@@ -616,7 +650,7 @@ void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string
 	{
 		try
 		{
-			buf = new T[ newSz];
+			buf = New(newSz) /*new T[ newSz]*/;
 		}
 		catch ( std::bad_alloc& )
 		{
@@ -627,7 +661,7 @@ void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string
 	{
 // default constructed instances have buf == NULL and size == 0
 // make sure buf is set corectly if such instances are resized
-		buf = scalar;
+		buf = Scalar();
 	}
 	sz = newSz;
 // 	assert ( newSz > sz );
@@ -677,19 +711,45 @@ void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string
 }; // GDLArray
 
 template<>
+inline DString* GDLArray<DString>::Scalar()
+{
+  assert( sz <= smallArraySize);
+  DString* b = reinterpret_cast<DString*>(scalarBuf); 
+  for( int i = 0; i<sz; ++i) 
+    new (&(b[ i])) DString();
+  return b;
+}
+
+template<>
+inline GDLArray<DString>::~GDLArray() throw()
+  {
+  if( buf != reinterpret_cast<DString*>(scalarBuf)) 
+    delete[] buf; // buf == NULL also possible
+  else
+    for( int i = 0; i<sz; ++i) 
+      buf[i].~DString();
+  }
+
+template<>
+inline DString* GDLArray<DString>::New( SizeT s)
+  {
+    return new DString[ s];
+  }
+  
+template<>
 inline void GDLArray<DString>::InitFrom( const GDLArray& right )
 {
-	assert( &right != this);
- 	assert ( sz == right.size() );
-	for ( SizeT i=0; i<sz; ++i )
-		buf[ i] = right.buf[ i];
+  assert( &right != this);
+  assert ( sz == right.size() );
+  for ( SizeT i=0; i<sz; ++i )
+	buf[ i] = right.buf[ i];
 }
 
 template<>
 inline GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
   {
     try {
-		buf = (cp.size() > smallArraySize) ? new Ty[ cp.size()] : scalar;
+		buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : Scalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
@@ -703,7 +763,7 @@ template<>
 inline GDLArray<DString>::GDLArray( const Ty* arr, SizeT s) : sz( s)
   {
     try {
-    buf = (s > smallArraySize) ? new Ty[ s]: scalar;
+    buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: Scalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
