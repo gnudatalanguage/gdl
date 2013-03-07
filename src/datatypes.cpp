@@ -248,22 +248,20 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 
   const size_t newSize = multiAlloc - 1;
 
+  freeList.resize( newSize);
+
 #ifdef USE_EIGEN  
+  // we need this allocation here as well (as in typedefs.hpp), because GDLArray needs to be aligned
   const int alignmentInBytes = 16; // set to multiple of 16 >= sizeof( char*)
   const size_t realSizeOfType = sizeof( Data_);
   const SizeT exceed = realSizeOfType % alignmentInBytes;
   const size_t sizeOfType = realSizeOfType + (alignmentInBytes - exceed);
+  char* res = static_cast< char*>( Eigen::internal::aligned_malloc( sizeOfType * multiAlloc)); // one more than newSize
 #else
   const size_t sizeOfType = sizeof( Data_);
+  char* res = static_cast< char*>( malloc( sizeOfType * multiAlloc)); // one more than newSize
 #endif
   
-  freeList.resize( newSize);
-// #ifdef USE_EIGEN  
-//   // we need this allocation here as well (as in typedefs.hpp), because GDLArray needs to be aligned
-//   char* res = static_cast< char*>( Eigen::internal::aligned_malloc( sizeof( Data_) * multiAlloc)); // one more than newSize
-// #else
-  char* res = static_cast< char*>( malloc( sizeOfType * multiAlloc)); // one more than newSize
-// #endif
   for( size_t i=0; i<newSize; ++i)
     {
       freeList[ i] = res;

@@ -53,8 +53,12 @@ private:
 #endif
 
   typedef typename Sp::DataT DataT;
+#ifdef USE_EIGEN  
+  EIGEN_ALIGN16 DataT        dd; // the data
+#else
   DataT                      dd; // the data
-
+#endif
+ 
 public:
 	// memory management optimization
 static std::deque< void*> freeList;
