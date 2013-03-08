@@ -752,7 +752,7 @@ namespace lib {
     if (!NumericType(type0))
       e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(0));
     if (!NumericType(type1))
-      e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(1));
+      e->Throw("Array type cannot be " + par1->TypeStr() + " here: " + e->GetParString(1));
 
     int debug = 0;
     static int debugIx = e->KeywordIx("DEBUG");
