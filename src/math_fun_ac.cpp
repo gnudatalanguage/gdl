@@ -754,7 +754,7 @@ namespace lib {
     if (!NumericType(type1))
       e->Throw("Array type cannot be " + par1->TypeStr() + " here: " + e->GetParString(1));
 
-    int debug = 0;
+    const int debug = 0;
     static int debugIx = e->KeywordIx("DEBUG");
     if (e->KeywordSet(debugIx) || debug == 1)
       {
@@ -825,41 +825,53 @@ namespace lib {
 	  NbRow2 = (bt) ? NbCol1 : NbRow1;
 	  dimension dim(NbCol2, NbRow2);
 
-	  DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
-	  //MatrixXcd m2(NbCol2, NbRow2);
-	  Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	  if (at && bt)
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	      //MatrixXcd m2(NbCol2, NbRow2);
+	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0.transpose() * m1.transpose();
+	      return res;
 	    } else if (bt)
 	    {
 	      if( /*(!at &&  bt) &&*/ (NbRow0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	      //MatrixXcd m2(NbCol2, NbRow2);
+	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0 * m1.transpose();
+	      return res;
 	    } else if (at)
 	    {
 	      if( /*(at && !bt) &&*/ (NbCol0 != NbCol1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	      //MatrixXcd m2(NbCol2, NbRow2);
+	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0.transpose() * m1;
+	      return res;
 	    } else
 	    {
 	      if( /*(!at && !bt) &&*/ (NbRow0 != NbCol1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	      //MatrixXcd m2(NbCol2, NbRow2);
+	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0*m1;
+	      return res;
 	    }
 
 	  //        memcpy(&(*res)[0], &m2(0, 0), NbCol2 * NbRow2 * sizeof (m2(0,0)));
-	  return res;
 	}
       } else if (type0 == GDL_COMPLEX || type1 == GDL_COMPLEX)
       {
@@ -905,40 +917,52 @@ namespace lib {
 	  NbRow2 = (bt) ? NbCol1 : NbRow1;
 	  dimension dim(NbCol2, NbRow2);
 
-	  DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
-	  //        MatrixXcf m2(NbCol2, NbRow2);
-	  Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	  if (at && bt)
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	      //        MatrixXcf m2(NbCol2, NbRow2);
+	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0.transpose() * m1.transpose();
+	      return res;
 	    } else if (bt)
 	    {
 	      if(  /*(!at &&  bt) &&*/ (NbRow0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	      //        MatrixXcf m2(NbCol2, NbRow2);
+	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0 * m1.transpose();
+	      return res;
 	    } else if (at)
 	    {
 	      if(  /*(at && !bt) &&*/ (NbCol0 != NbCol1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	      //        MatrixXcf m2(NbCol2, NbRow2);
+	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0.transpose() * m1;
+	      return res;
 	    } else
 	    {
 	      if( /*(!at && !bt) &&*/ (NbRow0 != NbCol1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	      //        MatrixXcf m2(NbCol2, NbRow2);
+	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0*m1;
+	      return res;
 	    }
 	  //       memcpy(&(*res)[0], &m2(0, 0), NbCol2 * NbRow2 * sizeof (m2(0,0)));
-	  return res;
 	}
       } else if (type0 == GDL_DOUBLE || type1 == GDL_DOUBLE)
       {
@@ -983,35 +1007,51 @@ namespace lib {
 	  NbCol2 = (at) ? NbRow0 : NbCol0;
 	  NbRow2 = (bt) ? NbCol1 : NbRow1;
 	  dimension dim(NbCol2, NbRow2);
-	  DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-          //          MatrixXd m2(NbCol2, NbRow2);
-	  Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	  if (at && bt) 
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
-	      m2 = m0.transpose() * m1.transpose();}
+	      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	      //          MatrixXd m2(NbCol2, NbRow2);
+	      Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	      m2 = m0.transpose() * m1.transpose();
+	      return res;
+	    }
 	  else if (bt) {
 	    if( /*(!at &&  bt) &&*/ (NbRow0 != NbRow1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
-	    m2 = m0 * m1.transpose();}
+	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXd m2(NbCol2, NbRow2);
+	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	    m2 = m0 * m1.transpose();	  
+	    return res;
+	  }
 	  else if (at) {
 	    if(  /*(at && !bt) &&*/ (NbCol0 != NbCol1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
-	    m2 = m0.transpose() * m1;}
+	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXd m2(NbCol2, NbRow2);
+	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	    m2 = m0.transpose() * m1;
+	    return res;
+	  }
 	  else {
 	    if( /*(!at && !bt) &&*/ (NbRow0 != NbCol1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
-	    m2 = m0*m1;}
-	  return res;
+	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXd m2(NbCol2, NbRow2);
+	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	    m2 = m0*m1;
+	    return res;
+	  }
 	}
       } else //all other cases: FLOAT!
       {
@@ -1050,38 +1090,50 @@ namespace lib {
 	  NbCol2 = (at) ? NbRow0 : NbCol0;
 	  NbRow2 = (bt) ? NbCol1 : NbRow1;
 	  dimension dim(NbCol2, NbRow2);
-	  DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-	  //          MatrixXf m2(NbCol2, NbRow2);
-	  Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	  if (at && bt) {
 	    if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXf m2(NbCol2, NbRow2);
+	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	    m2 = m0.transpose() * m1.transpose();
+	    return res;
 	  }
 	  else if (bt) {
 	    if(  /*(!at &&  bt) &&*/ (NbRow0 != NbRow1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXf m2(NbCol2, NbRow2);
+	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	    m2 = m0 * m1.transpose();
+	    return res;
 	  }
 	  else if (at) {
 	    if(  /*(at && !bt) &&*/ (NbCol0 != NbCol1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXf m2(NbCol2, NbRow2);
+	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	    m2 = m0.transpose() * m1;
+	    return res;
 	  }
 	  else {
 	    if(  /*(!at && !bt) &&*/ (NbRow0 != NbCol1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	    //          MatrixXf m2(NbCol2, NbRow2);
+	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	    m2 = m0*m1;
+	    return res;
 	  }
-	  return res;
 	}
       }
   }
