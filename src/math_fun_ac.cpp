@@ -159,7 +159,10 @@
 #endif
 
 using namespace std;
-using namespace Eigen; // does not hurt
+
+#if defined(USE_EIGEN)
+using namespace Eigen;
+#endif
 
 namespace lib {
 
