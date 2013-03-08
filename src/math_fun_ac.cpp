@@ -821,16 +821,16 @@ namespace lib {
 	  //        memcpy(&m1(0, 0), &(*dcp1)[0], NbCol1 * NbRow1 * sizeof ((*dcp1)[0]));
 	  Map<MatrixXcd,Aligned> m1(&(*dcp1)[0], NbCol1, NbRow1);
 
-	  NbCol2 = (at) ? NbRow0 : NbCol0;
-	  NbRow2 = (bt) ? NbCol1 : NbRow1;
-	  dimension dim(NbCol2, NbRow2);
-
 	  if (at && bt)
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbRow0 ;// NbCol0;
+	      NbRow2 = NbCol1 ;// NbRow1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
 	      //MatrixXcd m2(NbCol2, NbRow2);
 	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -842,6 +842,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbCol0;
+	      NbRow2 = NbCol1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
 	      //MatrixXcd m2(NbCol2, NbRow2);
 	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -853,6 +857,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbRow0;
+	      NbRow2 = NbRow1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
 	      //MatrixXcd m2(NbCol2, NbRow2);
 	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -864,6 +872,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbCol0;
+	      NbRow2 = NbRow1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
 	      //MatrixXcd m2(NbCol2, NbRow2);
 	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -913,16 +925,16 @@ namespace lib {
 	  //        memcpy(&m1(0, 0), &(*cp1)[0], NbCol1 * NbRow1 * sizeof ((*cp1)[0]));
 	  Map<MatrixXcf,Aligned> m1(&(*cp1)[0], NbCol1, NbRow1);
 
-	  NbCol2 = (at) ? NbRow0 : NbCol0;
-	  NbRow2 = (bt) ? NbCol1 : NbRow1;
-	  dimension dim(NbCol2, NbRow2);
-
 	  if (at && bt)
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbRow0;
+	      NbRow2 = NbCol1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
 	      //        MatrixXcf m2(NbCol2, NbRow2);
 	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -934,6 +946,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbCol0;
+	      NbRow2 = NbCol1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
 	      //        MatrixXcf m2(NbCol2, NbRow2);
 	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -945,6 +961,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbRow0;
+	      NbRow2 = NbRow1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
 	      //        MatrixXcf m2(NbCol2, NbRow2);
 	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -956,6 +976,10 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbCol0;
+	      NbRow2 = NbRow1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
 	      //        MatrixXcf m2(NbCol2, NbRow2);
 	      Map<MatrixXcf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1004,15 +1028,16 @@ namespace lib {
 	  //        memcpy(&m1(0,0),&(*p1)[0],NbCol1*NbRow1*sizeof((*p1)[0]));
 	  Map<MatrixXd,Aligned> m1(&(*p1)[0], NbCol1, NbRow1);
 
-	  NbCol2 = (at) ? NbRow0 : NbCol0;
-	  NbRow2 = (bt) ? NbCol1 : NbRow1;
-	  dimension dim(NbCol2, NbRow2);
 	  if (at && bt) 
 	    {
 	      if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
+	      NbCol2 = NbRow0;
+	      NbRow2 = NbCol1;
+	      dimension dim(NbCol2, NbRow2);
+
 	      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	      //          MatrixXd m2(NbCol2, NbRow2);
 	      Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1024,6 +1049,10 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbCol0;
+	    NbRow2 = NbCol1;
+	    dimension dim(NbCol2, NbRow2);
+
 	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXd m2(NbCol2, NbRow2);
 	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1035,6 +1064,10 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbRow0;
+	    NbRow2 = NbRow1;
+	    dimension dim(NbCol2, NbRow2);
+
 	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXd m2(NbCol2, NbRow2);
 	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1046,6 +1079,10 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbCol0;
+	    NbRow2 = NbRow1;
+	    dimension dim(NbCol2, NbRow2);
+
 	    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXd m2(NbCol2, NbRow2);
 	    Map<MatrixXd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1087,14 +1124,14 @@ namespace lib {
 	{
 	  Map<MatrixXf,Aligned> m0(&(*pf0)[0], NbCol0, NbRow0);
 	  Map<MatrixXf,Aligned> m1(&(*pf1)[0], NbCol1, NbRow1);
-	  NbCol2 = (at) ? NbRow0 : NbCol0;
-	  NbRow2 = (bt) ? NbCol1 : NbRow1;
-	  dimension dim(NbCol2, NbRow2);
 	  if (at && bt) {
 	    if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbRow0;
+	    NbRow2 = NbCol1;
+	    dimension dim(NbCol2, NbRow2);
 	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXf m2(NbCol2, NbRow2);
 	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1106,6 +1143,9 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbCol0;
+	    NbRow2 = NbCol1;
+	    dimension dim(NbCol2, NbRow2);
 	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXf m2(NbCol2, NbRow2);
 	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1117,6 +1157,9 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbRow0;
+	    NbRow2 = NbRow1;
+	    dimension dim(NbCol2, NbRow2);
 	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXf m2(NbCol2, NbRow2);
 	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
@@ -1128,6 +1171,9 @@ namespace lib {
 	      {
 		e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 	      }
+	    NbCol2 = NbCol0;
+	    NbRow2 = NbRow1;
+	    dimension dim(NbCol2, NbRow2);
 	    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 	    //          MatrixXf m2(NbCol2, NbRow2);
 	    Map<MatrixXf,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
