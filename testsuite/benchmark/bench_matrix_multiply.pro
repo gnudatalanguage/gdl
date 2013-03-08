@@ -5,10 +5,17 @@
 ; the 4 computations after are using MATRIX_MULTIPLY() function,
 ; eventualy calling Eigen3 code (a message will be issued if not)
 ;
-pro BENCH_MATRIX_MULTPLY, n1, n2, n3, help=help, test=test
+pro BENCH_MATRIX_MULTIPLY, n1, n2, n3, $
+                           small=small, medium=medium, double=double, $
+                           complex=complex, dblecomplex=dblecomplex, $
+                           output_type=output_type, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro BENCH_MATRIX_MULTPLY, n1, n2, n3, help=help, test=test'
+    print, 'pro BENCH_MATRIX_MULTPLY, n1, n2, n3, '
+    print, '                   small=small, medium=medium, double=double, $'
+    print, '                   complex=complex, dblecomplex=dblecomplex, $'
+    print, '                   output_type=output_type, help=help, test=test'
+    return
 endif
 ;
 DEFSYSV, '!gdl', exist=it_is_GDL
@@ -40,18 +47,50 @@ if N_PARAMS() EQ 2 then begin
     rowB=n2
 endif
 if N_PARAMS() EQ 3 then begin
-    colA=n1
-    rowA=n2
-    rowB=n3
+   colA=n1
+   rowA=n2
+   rowB=n3
+endif
+;
+if KEYWORD_SET(medium) then begin
+   colA=colA/2
+   rowA=rowA/2
+   rowB=rowB/2
+endif
+;
+if KEYWORD_SET(small) then begin
+   colA=colA/4
+   rowA=rowA/4
+   rowB=rowB/4
 endif
 ;
 colB=rowA
 ;
-a=RANDOMU(seed, colA, rowA)
-b=RANDOMU(seed, colB, rowB)
-
+known_type=0
+if KEYWORD_SET(dblecomplex) then begin
+   a=DCOMPLEXARR(colA ,rowA)
+   b=DCOMPLEXARR(colB ,rowB)
+   known_type=1
+endif
+if KEYWORD_SET(complex) then begin
+   a=COMPLEXARR(colA ,rowA)
+   b=COMPLEXARR(colB ,rowB)
+   known_type=1
+endif
+if KEYWORD_SET(double) then begin
+   a=RANDOMU(seed, colA, rowA, /DOUBLE)
+   b=RANDOMU(seed, colB, rowB, /DOUBLE)
+   known_type=1
+endif
+if (known_type EQ 0) then begin
+   a=RANDOMU(seed, colA, rowA)
+   b=RANDOMU(seed, colB, rowB)
+endif
+;
 b_t=TRANSPOSE(b)
 a_t=TRANSPOSE(a)
+;
+HELP, a, b
 ;
 txt='Matrix size are : [' +STRING(colA)+','+STRING(rowA)
 txt=txt+'] # ['+STRING(colB)+','+STRING(rowB)+']'
@@ -67,5 +106,16 @@ t0=SYSTIME(1) & z=MATRIX_MULTIPLY(a,b_t,/bt) & print, txt+'a#bT :', SYSTIME(1)-t
 t0=SYSTIME(1) & z=MATRIX_MULTIPLY(a_t,b_t,/at,/bt) & print, txt+'aT#bT:', SYSTIME(1)-t0
 ;
 if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ------------------------------
+;
+pro BENCH_MATRIX_MULTIPLY_ALL, small=small
+;
+BENCH_MATRIX_MULTIPLY
+BENCH_MATRIX_MULTIPLY, /double
+BENCH_MATRIX_MULTIPLY, /complex
+BENCH_MATRIX_MULTIPLY, /dblecomplex
 ;
 end
