@@ -410,6 +410,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
 BaseGDL* _GDL_OBJECT_OverloadReportIllegalOperation( EnvUDT* e)
 {
   ThrowFromInternalUDSub( e, "Operation illegal with object reference types.");
+  return 0;
 }
 
 // set up the _overload... subroutines for GDL_OBJECT

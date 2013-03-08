@@ -78,10 +78,10 @@ public:
   virtual void Init( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false);}
 
   virtual bool IsRange() { return false;} // default for non-ranges
-  virtual BaseGDL* OverloadIndexNew() { assert( false);}
-  virtual BaseGDL* OverloadIndexNew( BaseGDL*) { assert( false);}
-  virtual BaseGDL* OverloadIndexNew( BaseGDL*, BaseGDL*) { assert( false);}
-  virtual BaseGDL* OverloadIndexNew( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false);}
+  virtual BaseGDL* OverloadIndexNew() { assert( false); return 0;}
+  virtual BaseGDL* OverloadIndexNew( BaseGDL*) { assert( false); return 0;}
+  virtual BaseGDL* OverloadIndexNew( BaseGDL*, BaseGDL*) { assert( false); return 0;}
+  virtual BaseGDL* OverloadIndexNew( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false); return 0;}
 
   virtual void Clear() {}
   virtual ~ArrayIndexT() {}

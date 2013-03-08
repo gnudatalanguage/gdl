@@ -51,10 +51,11 @@ class DevicePS: public Graphics
 
 #ifdef _MSC_VER
 #define cm2in (.01 / GSL_CONST_MKSA_INCH); // This is not good, but works
+#define dpi 72.0 //in dpi;
 #else
   static const float cm2in = .01 / GSL_CONST_MKSA_INCH;
-#endif
   static const PLFLT dpi = 72.0 ; //in dpi;
+#endif
 
   void InitStream()
   {

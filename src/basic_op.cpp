@@ -1503,8 +1503,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 	{
 #pragma omp for 
-	  for( SizeT colA=0; colA < nCol; colA++)   // res dim 0
-	    for( SizeT rowB=0; rowB < nRow; rowB++) // res dim 1
+	  for( int colA=0; colA < nCol; colA++)   // res dim 0
+	    for( int rowB=0; rowB < nRow; rowB++) // res dim 1
 	      (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
 	}
     }
@@ -1624,13 +1624,13 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
+		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		    for( int rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, rowBnCol += nCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( SizeT i=0; i < nColEl; ++i)
+			for( int i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 		      }
 		}
@@ -1641,12 +1641,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-		    for( SizeT rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
+		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		    for( int rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( SizeT i=0; i < nColEl; ++i)
+			for( int i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
 		      }
 		}
@@ -1660,13 +1660,13 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
+		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		    for( int rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, ++rowBnCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( SizeT i=0; i < nColEl; ++i)
+			for( int i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 		      }
 		}
@@ -1677,12 +1677,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-		    for( SizeT rIx=0; rIx < nRow; ++rIx) // res dim 1
+		  for( int colA=0; colA < nCol; ++colA) // res dim 0
+		    for( int rIx=0; rIx < nRow; ++rIx) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rIx + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( SizeT i=0; i < nColEl; ++i)
+			for( int i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
 		      }
 		}

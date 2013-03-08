@@ -32,8 +32,7 @@
 #include "math_utl.hpp"
 
 #ifdef _MSC_VER
-#  define isfinite _finite
-#  define isnan _isnan
+#define snprintf _snprintf
 #endif
 
 namespace lib
@@ -95,7 +94,7 @@ namespace lib
     }
   }
 
-  template <typename T> void gdlDoRangeExtrema(T* xVal, T* yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=false, DDouble minVal=0, DDouble maxVal=0)
+  template <typename T> void gdlDoRangeExtrema(T* xVal, T* yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
   {
     DDouble valx, valy;
     SizeT i,k;
@@ -1405,7 +1404,7 @@ namespace lib
 #define GDL_PLPLOT_INDEX_WHITE 15
   void gdlSetGraphicsForegroundColorFromKw(EnvT *e, GDLGStream *a)
   {
-    static uint colorindex=1;
+    static unsigned int colorindex=1;
     static long value[GDL_PLPLOT_MAX_SIMPLE_COLORS];
     static int maxindex=2;
     static bool notDone=1;
@@ -2592,7 +2591,7 @@ namespace lib
       a->wid(1);
       a->sizeChar(1.0);
     }
-
+	return 0;
   }
   bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog)
   {

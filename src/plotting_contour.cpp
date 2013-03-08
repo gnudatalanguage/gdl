@@ -19,10 +19,6 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
-#ifdef _MSC_VER
-#  define isinf !_finite
-#endif
-
 #define LABELOFFSET 0.003
 #define LABELSPACING 0.25
 

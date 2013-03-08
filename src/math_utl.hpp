@@ -73,6 +73,12 @@ extern "C" {
 #define COMPLEX2 GDL_COMPLEX
 #endif
 
+#ifdef _MSC_VER
+#  define isinf !_finite
+#  define isfinite _finite
+#  define isnan _isnan
+#endif
+
 } // namespace
 
 #endif

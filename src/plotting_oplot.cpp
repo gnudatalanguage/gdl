@@ -124,6 +124,7 @@ namespace lib {
           }
         }
       }
+	  return 0;
     }
 
   private: void old_body( EnvT* e, GDLGStream* actStream) 
