@@ -771,7 +771,10 @@ namespace lib {
     static int btIx = e->KeywordIx("BTRANSPOSE");
     bool at = e->KeywordSet(atIx);
     bool bt = e->KeywordSet(btIx);
-    if (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL)
+    if ( (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL) ||
+	 (type0 == GDL_COMPLEX    && type1 == GDL_DOUBLE    ) ||
+	 (type0 == GDL_DOUBLE     && type1 == GDL_COMPLEX   ) )
+    )
       {
 	DComplexDblGDL* dcp0 = e->GetParAs<DComplexDblGDL > (0);
 	DComplexDblGDL* dcp1 = e->GetParAs<DComplexDblGDL > (1);
@@ -832,8 +835,10 @@ namespace lib {
 	      NbCol2 = NbRow0 ;// NbCol0;
 	      NbRow2 = NbCol1 ;// NbRow1;
 	      dimension dim(NbCol2, NbRow2);
-
+	      
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	      // no guarding necessary: eigen only throws on memory allocation
+
 	      //MatrixXcd m2(NbCol2, NbRow2);
 	      Map<MatrixXcd,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
 	      m2 = m0.transpose() * m1.transpose();
