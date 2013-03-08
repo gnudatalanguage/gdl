@@ -766,13 +766,12 @@ namespace lib {
     // 	cout << "Dim Matrix B : " << par1->Dim() << endl;
     //       }
 
-    //     int Type;
-    long NbCol0, NbRow0, NbCol1, NbRow1;//, NbCol2, NbRow2;
     static int atIx = e->KeywordIx("ATRANSPOSE");
     static int btIx = e->KeywordIx("BTRANSPOSE");
     bool at = e->KeywordSet(atIx);
     bool bt = e->KeywordSet(btIx);
 
+    long NbCol0, NbRow0, NbCol1, NbRow1;//, NbCol2, NbRow2;
     SizeT rank0 = par0->Rank();
     if (rank0 == 2)
       {
@@ -835,8 +834,8 @@ namespace lib {
 		{
 		  e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
 		}
-	      long& NbCol2 = NbRow0 ;// NbCol0;
-	      long& NbRow2 = NbCol1 ;// NbRow1;
+	      long& NbCol2 = NbRow0 ;
+	      long& NbRow2 = NbCol1 ;
 	      dimension dim(NbCol2, NbRow2);
 	      
 	      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
