@@ -675,8 +675,11 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
       (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
   else if ( oMode == BIN)
     for( SizeT i=offs; i<endEl; ++i)
+#ifdef _MSC_VER
       (*os) << binstr((int)(*this)[ i], w);
-//       (*os) << binstr((std::bitset<32>)i, w);
+#else
+      (*os) << binstr((*this)[ i], w);
+#endif
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
@@ -710,11 +713,15 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   else if ( oMode == BIN)
     for( SizeT i=offs; i<endEl; ++i)
     {
-//       if (w > 32) 
-// 	(*os) << binstr((std::bitset<32>)i >> 32, w - 32);
-//       (*os) << binstr((std::bitset<32>)i, w <= 32 ? w : 32);
-      if (w > 32) (*os) << binstr((int)(*this)[ i] >> 32, w - 32);
+#ifdef _MSC_VER
+      if (w > 32)
+	(*os) << binstr((int)(*this)[ i] >> 32, w - 32);
       (*os) << binstr((int)(*this)[ i], w <= 32 ? w : 32);
+#else
+      if (w > 32) 
+	(*os) << binstr((*this)[ i] >> 32, w - 32);
+      (*os) << binstr((*this)[ i], w <= 32 ? w : 32);
+#endif
     }
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
