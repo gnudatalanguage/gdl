@@ -740,7 +740,6 @@ namespace lib {
 
   BaseGDL* matmul_fun(EnvT* e)
   {
-
     static int avIx = e->KeywordIx("AVAILABLE");
     if (e->KeywordSet(avIx)) return new DLongGDL(1);
 
@@ -748,33 +747,24 @@ namespace lib {
     BaseGDL* par1 = e->GetParDefined(1);
 
     DType type0 = par0->Type();
-    DType type1 = par1->Type();
     if (!NumericType(type0))
       e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(0));
+    DType type1 = par1->Type();
     if (!NumericType(type1))
       e->Throw("Array type cannot be " + par1->TypeStr() + " here: " + e->GetParString(1));
 
-    const int debug = 0;
-    static int debugIx = e->KeywordIx("DEBUG");
-    if (e->KeywordSet(debugIx) || debug == 1)
-      {
-	cout << "Rank Matrix A : " << par0->Rank() << endl;
-	cout << "Dim Matrix A : " << par0->Dim() << endl;
-	cout << "Rank Matrix B : " << par1->Rank() << endl;
-	cout << "Dim Matrix B : " << par1->Dim() << endl;
-      }
+    //     const int debug = 0;
+    //     static int debugIx = e->KeywordIx("DEBUG");
+    //     if (e->KeywordSet(debugIx) || debug == 1)
+    //       {
+    // 	cout << "Rank Matrix A : " << par0->Rank() << endl;
+    // 	cout << "Dim Matrix A : " << par0->Dim() << endl;
+    // 	cout << "Rank Matrix B : " << par1->Rank() << endl;
+    // 	cout << "Dim Matrix B : " << par1->Dim() << endl;
+    //       }
 
     SizeT rank0 = par0->Rank();
     SizeT rank1 = par1->Rank();
-    if (rank0 > 2)
-      e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
-    if (rank1 > 2)
-      e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
-
-    DFloatGDL *pf0, *pf1;
-    DDoubleGDL *p0, *p1;
-    DComplexGDL *cp0, *cp1;
-    DComplexDblGDL *dcp0, *dcp1;
     //     int Type;
     long NbCol0, NbRow0, NbCol1, NbRow1, NbCol2, NbRow2;
     static int atIx = e->KeywordIx("ATRANSPOSE");
@@ -783,23 +773,35 @@ namespace lib {
     bool bt = e->KeywordSet(btIx);
     if (type0 == GDL_COMPLEXDBL || type1 == GDL_COMPLEXDBL)
       {
-	dcp0 = e->GetParAs<DComplexDblGDL > (0);
-	dcp1 = e->GetParAs<DComplexDblGDL > (1);
+	DComplexDblGDL* dcp0 = e->GetParAs<DComplexDblGDL > (0);
+	DComplexDblGDL* dcp1 = e->GetParAs<DComplexDblGDL > (1);
 	//       Type = GDL_COMPLEXDBL;
 	if (rank0 == 2)
 	  {
 	    NbCol0 = dcp0->Dim(0);
 	    NbRow0 = dcp0->Dim(1);
-	  } else
+	  } 
+	else     if (rank0 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
+	  }
+	else
 	  {
 	    NbCol0 = dcp0->Dim(0);
 	    NbRow0 = 1;
 	  }
+	  
 	if (rank1 == 2)
 	  {
 	    NbCol1 = dcp1->Dim(0);
 	    NbRow1 = dcp1->Dim(1);
-	  } else
+	  } 
+	else     if (rank1 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
+	  }
+	else
+
 	  {
 	    if (rank0 == 1 && !at && !bt)
 	      {
@@ -887,23 +889,34 @@ namespace lib {
 	}
       } else if (type0 == GDL_COMPLEX || type1 == GDL_COMPLEX)
       {
-	cp0 = e->GetParAs<DComplexGDL > (0);
-	cp1 = e->GetParAs<DComplexGDL > (1);
+	DComplexGDL *cp0 = e->GetParAs<DComplexGDL > (0);
+	DComplexGDL *cp1 = e->GetParAs<DComplexGDL > (1);
 	//       Type = GDL_COMPLEX;
 	if (rank0 == 2)
 	  {
 	    NbCol0 = cp0->Dim(0);
 	    NbRow0 = cp0->Dim(1);
-	  } else
+	  } 
+	else     if (rank0 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
+	  }
+	else
 	  {
 	    NbCol0 = cp0->Dim(0);
 	    NbRow0 = 1;
 	  }
+	  
 	if (rank1 == 2)
 	  {
 	    NbCol1 = cp1->Dim(0);
 	    NbRow1 = cp1->Dim(1);
-	  } else
+	  } 
+	else     if (rank1 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
+	  }
+	else
 	  {
 	    if (rank0 == 1 && !at && !bt)
 	      {
@@ -990,23 +1003,34 @@ namespace lib {
 	}
       } else if (type0 == GDL_DOUBLE || type1 == GDL_DOUBLE)
       {
-	p0 = e->GetParAs<DDoubleGDL > (0);
-	p1 = e->GetParAs<DDoubleGDL > (1);
+	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL > (0);
+	DDoubleGDL* p1 = e->GetParAs<DDoubleGDL > (1);
 	//       Type = GDL_DOUBLE;
 	if (rank0 == 2)
 	  {
 	    NbCol0 = p0->Dim(0);
 	    NbRow0 = p0->Dim(1);
-	  } else
+	  } 
+	else     if (rank0 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
+	  }
+	else
 	  {
 	    NbCol0 = p0->Dim(0);
 	    NbRow0 = 1;
 	  }
+
 	if (rank1 == 2)
 	  {
 	    NbCol1 = p1->Dim(0);
 	    NbRow1 = p1->Dim(1);
-	  } else
+	  } 
+	else     if (rank1 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
+	  }
+	else
 	  {
 	    if (rank0 == 1 && !at && !bt)
 	      {
@@ -1092,23 +1116,34 @@ namespace lib {
 	}
       } else //all other cases: FLOAT!
       {
-	pf0 = e->GetParAs<DFloatGDL > (0);
-	pf1 = e->GetParAs<DFloatGDL > (1);
+	DFloatGDL* pf0 = e->GetParAs<DFloatGDL > (0);
+	DFloatGDL* pf1 = e->GetParAs<DFloatGDL > (1);
 	//       Type = GDL_FLOAT;
 	if (rank0 == 2)
 	  {
 	    NbCol0 = pf0->Dim(0);
 	    NbRow0 = pf0->Dim(1);
-	  } else
+	  } 
+	else if (rank0 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
+	  }
+	else
 	  {
 	    NbCol0 = pf0->Dim(0);
 	    NbRow0 = 1;
 	  }
+	  
 	if (rank1 == 2)
 	  {
 	    NbCol1 = pf1->Dim(0);
 	    NbRow1 = pf1->Dim(1);
-	  } else
+	  } 
+	else     if (rank1 > 2)
+	  {
+	    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
+	  }
+	else
 	  {
 	    if (rank0 == 1 && !at && !bt)
 	      {
