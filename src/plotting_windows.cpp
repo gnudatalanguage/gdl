@@ -92,9 +92,10 @@ namespace lib {
     success = actDevice->CursorCrosshair();
     success = actDevice->UnsetFocus();
     bool doretain=true;
+    DLong retainType ; //=Graphics::getRetain();
+//    if (retainType=0) doretain=false;
     if( e->KeywordPresent( 3)) // RETAIN
     {
-      DLong retainType;
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
       if (retainType=0) doretain=false;
     }

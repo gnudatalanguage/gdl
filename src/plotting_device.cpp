@@ -187,7 +187,19 @@ namespace lib {
           e->Throw( "Current device does not support keyword CURSOR_STANDARD.");
       }
     }
-    // CURSOR_CROSSHAIR
+    // RETAIN
+    {
+      static int valIx = e->KeywordIx( "RETAIN");
+      BaseGDL* res = e->GetKW( valIx);
+      if( res != NULL)
+      {
+        DLongGDL* val = e->GetKWAs<DLongGDL>( valIx);
+        bool success = actDevice->EnableBackingStore((*val)[0]);
+        if( !success)
+          e->Throw( "Current device does not support keyword RETAIN.");
+      }
+    }
+     // CURSOR_CROSSHAIR
     {
       static int valIx = e->KeywordIx( "CURSOR_CROSSHAIR");
       BaseGDL* res = e->GetKW( valIx);
