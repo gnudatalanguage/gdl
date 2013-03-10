@@ -972,10 +972,10 @@ BaseGDL* Data_<Sp>::AddNew( BaseGDL* r)
 
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 + m1;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis + mRight;
 	return res;
 #else
     
@@ -1067,9 +1067,9 @@ BaseGDL* Data_<Sp>::AddSNew( BaseGDL* r)
   Ty s = (*right)[0];
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 + s;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis + s;
 	return res;
 #else
     
@@ -1167,9 +1167,9 @@ BaseGDL* Data_<Sp>::SubNew( BaseGDL* r)
     {
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 - s;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis - s;
 	return res;
 #else
       TRACEOMP( __FILE__, __LINE__)
@@ -1187,10 +1187,10 @@ BaseGDL* Data_<Sp>::SubNew( BaseGDL* r)
     {
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 - m1;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis - mRight;
 	return res;
 #else
       TRACEOMP( __FILE__, __LINE__)
@@ -1222,10 +1222,10 @@ BaseGDL* Data_<Sp>::SubInvNew( BaseGDL* r)
     }
 #ifdef USE_EIGEN
 
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-  m2 = m1 - m0;
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+  mRes = mRight - mThis;
   return res;
 #else
   TRACEOMP( __FILE__, __LINE__)
@@ -1303,9 +1303,9 @@ BaseGDL* Data_<Sp>::SubSNew( BaseGDL* r)
   Ty s = (*right)[0];
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 - s;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis - s;
 	return res;
 #else
   
@@ -1341,9 +1341,9 @@ BaseGDL* Data_<Sp>::SubInvSNew( BaseGDL* r)
   //  dd = s - dd;
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = s - m0;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = s - mThis;
 	return res;
 #else
   TRACEOMP( __FILE__, __LINE__)
@@ -1677,10 +1677,10 @@ Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r)
     }
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 * m1;
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis * mRight;
 	return res;
 #else
   TRACEOMP( __FILE__, __LINE__)
@@ -1737,9 +1737,9 @@ Data_<Sp>* Data_<Sp>::MultSNew( BaseGDL* r )
   Ty s = ( *right ) [0];
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-	m2 = m0 * s;
+	Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+	mRes = mThis * s;
 	return res;
 #else
   TRACEOMP ( __FILE__, __LINE__ )

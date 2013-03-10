@@ -2669,6 +2669,13 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
       (*this)[0] += (*right)[0];
       return this;
     }
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+	mThis += mRight;
+	return this;
+#else
 
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -2678,12 +2685,14 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	(*this)[i] += (*right)[i];
     }  //C delete right;
   return this;
+#endif
+  
 }
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInv( BaseGDL* r)
 {
   assert( this->Type() != GDL_OBJ); // should never be called via this
-  return Add( r);
+  return Add( r); // this needs to be modified
 }
 template<>
 BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
@@ -2935,6 +2944,12 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   //  dd += s;
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+	mThis += s;
+	return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -2943,6 +2958,8 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 	(*this)[i] += s;
     }  //C delete right;
   return this;
+#endif
+  
 }
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInvS( BaseGDL* r)
@@ -2964,6 +2981,12 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
     }
   Ty s = (*right)[0];
   // right->Scalar(s);
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+	mThis = s + mThis;
+	return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -2972,6 +2995,8 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 	(*this)[i] = s + (*this)[i];
     }  //C delete right;
   return this;
+#endif
+  
 }
 
 // invalid types
@@ -3014,6 +3039,19 @@ BaseGDL* Data_<Sp>::Sub( BaseGDL* r)
   assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+      (*this)[0] -= (*right)[0];
+      return this;
+    }
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  mThis -= mRight;
+  return this;
+#else
+
   if( nEl == rEl)
     dd -= right->dd;
   else
@@ -3026,6 +3064,8 @@ BaseGDL* Data_<Sp>::Sub( BaseGDL* r)
 	    (*this)[i] -= (*right)[i];
 	}}  //C delete right;
   return this;
+#endif
+  
 }
 // inverse substraction: left=right-left
 template<class Sp>
@@ -3046,6 +3086,13 @@ BaseGDL* Data_<Sp>::SubInv( BaseGDL* r)
       (*this)[0] = (*right)[0] - (*this)[0];
       return this;
     }
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  mThis = mRight - mThis;
+  return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -3054,6 +3101,8 @@ BaseGDL* Data_<Sp>::SubInv( BaseGDL* r)
 	(*this)[i] = (*right)[i] - (*this)[i];
     }  //C delete right;
   return this;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::Sub( BaseGDL* r)
@@ -3297,6 +3346,12 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //  dd -= s;
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+	mThis -= s;
+	return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -3305,6 +3360,8 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
 	(*this)[i] -= s;
     }  //C delete right;
   return this;
+#endif
+  
 }
 // inverse substraction: left=right-left
 template<class Sp>
@@ -3324,6 +3381,12 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //  dd = s - dd;
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+	mThis = s - mThis;
+	return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -3332,6 +3395,8 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
 	(*this)[i] = s - (*this)[i];
     }  //C delete right;
   return this;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::SubS( BaseGDL* r)
@@ -3645,6 +3710,13 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
       (*this)[0] *= (*right)[0];
       return this;
     }
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  mThis *= mRight;
+  return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -3653,6 +3725,8 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
 	(*this)[i] *= (*right)[i];
     }  //C delete right;
   return this;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::Mult( BaseGDL* r)
@@ -3694,6 +3768,12 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   //  dd *= s;
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
+  mThis *= s;
+  return this;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -3702,6 +3782,8 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
 	(*this)[i] *= s;
     }  //C delete right;
   return this;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::MultS( BaseGDL* r)

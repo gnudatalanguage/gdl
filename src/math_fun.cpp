@@ -223,7 +223,7 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
-// eigen seems to be no faster here
+// eigen is not faster here
 // #ifdef USE_EIGEN
 // 
 //   Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*p0C)[0], nEl);
