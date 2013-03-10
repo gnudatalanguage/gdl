@@ -375,7 +375,7 @@ private:
 	typedef T Ty;
 
 #ifdef USE_EIGEN  
-  EIGEN_ALIGN16 char scalarBuf[ smallArraySize * sizeof(Ty) + 16];
+  EIGEN_ALIGN16 char scalarBuf[ smallArraySize * sizeof(Ty)];
 //   Ty* Scalar()
 //   {
 //     return reinterpret_cast<Ty*>((reinterpret_cast<size_t>(scalarBuf) & ~(size_t(15))) + 16);
