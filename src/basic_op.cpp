@@ -1467,7 +1467,7 @@ BaseGDL* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
   return NULL;
 }
 // MatrixOp
-// returns *this # *r, //C deletes itself and right
+// returns *this # *r, //C does not delete itself and right
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen)
 {
@@ -2645,7 +2645,14 @@ Data_<SpDObj>* Data_<SpDObj>::XorOpS( BaseGDL* r)
   return this;
 }
 
+
+
+// ************************
 // Add
+// ************************
+
+// also see Add...New operators (in basic_op_new.cpp)
+
 // Adds right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>

@@ -970,6 +970,15 @@ BaseGDL* Data_<Sp>::AddNew( BaseGDL* r)
       return res;
     }
 
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 + m1;
+	return res;
+#else
+    
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -978,6 +987,7 @@ BaseGDL* Data_<Sp>::AddNew( BaseGDL* r)
 	(*res)[i] = (*this)[i] + (*right)[i];
     }  //C delete right;
   return res;
+#endif
 }
 
 template<class Sp>
@@ -1055,6 +1065,14 @@ BaseGDL* Data_<Sp>::AddSNew( BaseGDL* r)
       return res;
     }
   Ty s = (*right)[0];
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 + s;
+	return res;
+#else
+    
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1063,6 +1081,8 @@ BaseGDL* Data_<Sp>::AddSNew( BaseGDL* r)
 	(*res)[i] = (*this)[i] + s;
     }  //C delete right;
   return res;
+#endif
+  
 }
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInvSNew( BaseGDL* r)
@@ -1145,6 +1165,13 @@ BaseGDL* Data_<Sp>::SubNew( BaseGDL* r)
   Ty s;
   if( right->StrictScalar(s)) 
     {
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 - s;
+	return res;
+#else
       TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1152,9 +1179,20 @@ BaseGDL* Data_<Sp>::SubNew( BaseGDL* r)
 	  for( int i=0; i < nEl; ++i)
 	    (*res)[i] = (*this)[i] - s;
 	}
+  return res;
+#endif
+      
     }
   else 
     {
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 - m1;
+	return res;
+#else
       TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1162,8 +1200,9 @@ BaseGDL* Data_<Sp>::SubNew( BaseGDL* r)
 	  for( int i=0; i < nEl; ++i)
 	    (*res)[i] = (*this)[i] - (*right)[i];
 	}
-    }
   return res;
+#endif
+    }
 }
 // inverse substraction: left=right-left
 template<class Sp>
@@ -1181,6 +1220,14 @@ BaseGDL* Data_<Sp>::SubInvNew( BaseGDL* r)
       (*res)[0] = (*right)[0] - (*this)[0];
       return res;
     }
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+  m2 = m1 - m0;
+  return res;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1189,6 +1236,7 @@ BaseGDL* Data_<Sp>::SubInvNew( BaseGDL* r)
 	(*res)[i] = (*right)[i] - (*this)[i];
     }  
   return res;
+#endif  
 }
 // invalid types
 DStructGDL* DStructGDL::SubNew( BaseGDL* r)
@@ -1253,6 +1301,13 @@ BaseGDL* Data_<Sp>::SubSNew( BaseGDL* r)
     }
   
   Ty s = (*right)[0];
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 - s;
+	return res;
+#else
   
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -1262,6 +1317,8 @@ BaseGDL* Data_<Sp>::SubSNew( BaseGDL* r)
 	(*res)[i] = (*this)[i] - s;
     }
   return res;
+#endif
+  
 }
 // inverse substraction: left=right-left
 template<class Sp>
@@ -1282,6 +1339,13 @@ BaseGDL* Data_<Sp>::SubInvSNew( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //  dd = s - dd;
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = s - m0;
+	return res;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1290,6 +1354,8 @@ BaseGDL* Data_<Sp>::SubInvSNew( BaseGDL* r)
 	(*res)[i] = s - (*this)[i];
     }
   return res;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::SubSNew( BaseGDL* r)
@@ -1609,6 +1675,14 @@ Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r)
       (*res)[0] = (*this)[0] * (*right)[0];
       return res;
     }
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*right)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 * m1;
+	return res;
+#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1617,6 +1691,8 @@ Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r)
 	(*res)[i] = (*this)[i] * (*right)[i];
     }  //C delete right;
   return res;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::MultNew( BaseGDL* r)
@@ -1659,6 +1735,13 @@ Data_<Sp>* Data_<Sp>::MultSNew( BaseGDL* r )
       return res;
     }
   Ty s = ( *right ) [0];
+#ifdef USE_EIGEN
+
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m0(&(*this)[0], nEl);
+        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+	m2 = m0 * s;
+	return res;
+#else
   TRACEOMP ( __FILE__, __LINE__ )
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1667,6 +1750,8 @@ Data_<Sp>* Data_<Sp>::MultSNew( BaseGDL* r )
 	(*res ) [i] = (*this )[i] * s;
     }
   return res;
+#endif
+  
 }
 // invalid types
 DStructGDL* DStructGDL::MultSNew( BaseGDL* r)

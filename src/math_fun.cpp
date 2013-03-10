@@ -223,6 +223,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+// eigen seems to be no faster here
+// #ifdef USE_EIGEN
+// 
+//   Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*p0C)[0], nEl);
+//   Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
+//   m2 = m1.sin();
+//   return res;
+// #else
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -233,6 +241,8 @@ TRACEOMP( __FILE__, __LINE__)
 	}
     }
     return res;
+// #endif
+    
   }
 
   BaseGDL* sin_fun( BaseGDL* p0, bool isReference)
