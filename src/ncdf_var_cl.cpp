@@ -57,27 +57,10 @@ namespace lib {
   
   void exceed_message(const char * name,int index, int set)
   {
-    int mema=3;
     string mess;
     mess=name;
-    mess+="Limit exceeded on index ";
-    char * n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", index) >= sizeof n)
-      {   delete n; mema++; n=new char(mema);
-      }
-    mess+=n;
-    delete n;
-    
-    mess+=", setting to ";
-    mema=3;
-    n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", set) >= sizeof n)
-      {
-	delete n;mema++; n=new char(mema);
-      }
-    mess+=n;
-    delete n;
-    mess+=".";
+    mess+="Limit exceeded on index "+i2s(index);
+    mess+=", setting to "+i2s(set)+".";
     Message(mess);
 
   }
@@ -87,28 +70,14 @@ namespace lib {
     int mema=3;
     string mess;
     mess=name;
-    mess+="Value of index";
-    char * n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", index) >= sizeof n)
-      {   delete n; mema++; n=new char(mema);
-      }
-    mess+=n;
-    delete n;
+    mess+="Value of index "+i2s(index)
     if(set > 0) 
       mess+=" is negative or zero, setting to ";
     else if(set == 0) 
       mess+=" is negative , setting to ";
     else
       mess+=" INTERNAL ERROR NCDF_VAR_CL.CPP negzero_message";
-    
-    mema=3;
-    n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", set) >= sizeof n)
-      {
-	delete n;mema++; n=new char(mema);
-      }
-    mess+=n;
-    delete n;
+    mess+=i2s(set);
     mess+=".";
     Message(mess);
 
@@ -660,22 +629,9 @@ else if(var_type == NC_LONG)
               int mema=3;
               string mess;
               mess = "NCDF_VARGET: Requested read is larget than data in dimension ";
-              char * n=new char(mema);
-              while (snprintf(n, sizeof n, "%d", i) >= sizeof n)
-              {
-                delete n; mema++; n=new char(mema);
-              }
-              mess+=n;
-              delete n;
+              mess+=i2s(i);
               mess+=". Reducing COUNT to ";
-              mema=3;
-              n=new char[3];
-              while (snprintf(n, sizeof n, "%d",  cou[trans[i]]) >= sizeof n)
-              { 
-                delete n; mema++; n=new char(mema);
-              }
-              mess+=n;
-              delete n;
+              mess+=i2s(cou[trans[i]]);
               mess+=".";
               Message(mess);
             }	

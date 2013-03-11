@@ -55,30 +55,7 @@ namespace lib {
   unsigned int gValid[40];
   unsigned int gCount=0;
 
-  string GDLutos(unsigned int i)
-  {
-    int mema=3;
-    char *n=new char(mema);
-    while (snprintf(n, sizeof n, "%u", i) >= sizeof n)
-      {			delete n;mema++; n=new char(mema);   }
-    string s=n;
-    delete n;
-    return s;
-  }
-
   
-  string GDLitos(int i)
-  {
-    int mema=3;
-    char *n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", i) >= sizeof n)
-      {			delete n;mema++; n=new char(mema);   }
-    string s=n;
-    delete n;
-    return s;
-  }
-
-
   void magick_setup()
   {
     int i;
@@ -564,7 +541,7 @@ namespace lib {
 	    else 
 	      {
 		string s="MAGICK_READ: RGB order type not supported (";
-		s+=GDLutos(rgb);
+		s+=i2s(rgb);
 		s+="), using BGR ordering.";
 		Message(s);		
 		map="BGR";
@@ -659,7 +636,7 @@ namespace lib {
 		else
 		{
 		  string s="MAGICK_WRITE: RGB order type not supported (";
-		  s+=GDLutos(rgb);
+		  s+=i2s(rgb);
 		  s+="), using BGR ordering.";
 		  Message(s);		
 		  map="BGR";

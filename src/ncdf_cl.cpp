@@ -260,17 +260,8 @@ namespace lib {
 	else 
 	  {
 	  /*unknown error*/
-	    int mema=3;
-	    char *n=new char(mema);
-	    while (snprintf(n, sizeof n, "%d", status) >= sizeof n)
-	      {			delete n;mema++; n=new char(mema);   }
-
 	    error+=nc_strerror(status);
-	    error+=" (NC_ERROR=";
-	    error+=n;
-	    delete n;
-	    error+=")";
-	    
+	    error+=" (NC_ERROR="+i2s(status)+")";
 	  }
 
 	e->Throw(error);
