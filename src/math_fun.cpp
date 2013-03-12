@@ -235,7 +235,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = sin((*p0C)[ i]); 
 	}
@@ -275,7 +275,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = sin((*res)[ i]); 
 	    }
@@ -294,7 +294,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = cos((*p0C)[ i]); 
 	}
@@ -336,7 +336,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = cos((*res)[ i]); 
 	    }
@@ -355,7 +355,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = tan((*p0C)[ i]); 
 	}
@@ -374,7 +374,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = tan(static_cast<DComplexDbl>((*p0C)[ i]));
 	}
@@ -416,7 +416,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = tan((*res)[ i]); 
 	    }
@@ -435,7 +435,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = sinh((*p0C)[ i]); 
 	}
@@ -477,7 +477,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = sinh((*res)[ i]); 
 	    }
@@ -496,7 +496,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = cosh((*p0C)[ i]); 
 	}
@@ -538,7 +538,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = cosh((*res)[ i]); 
 	    }
@@ -557,7 +557,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = tanh((*p0C)[ i]); 
 	}
@@ -599,7 +599,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = tanh((*res)[ i]); 
 	    }
@@ -633,7 +633,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = asin((*p0D)[ i]); 
 	    }
@@ -648,7 +648,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = asin((*p0F)[ i]); 
 	    }
@@ -663,7 +663,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = asin((*res)[ i]); 
 	    }
@@ -697,7 +697,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = acos((*p0D)[ i]); 
 	    }
@@ -712,7 +712,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = acos((*p0F)[ i]); 
 	    }
@@ -726,7 +726,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = acos((*res)[ i]); 
 	    }
@@ -911,7 +911,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		{
 		  DComplex& C = (*p0C)[ i];
 		  (*res)[ i] = (float)atan2((double)C.imag(), (double)C.real());
@@ -927,7 +927,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i) (
+	      for( OMPInt i=0; i<nEl; ++i) (
 			*res)[ i] = atanC((*p0C)[ i]);
 	    }
 	    return res;
@@ -940,7 +940,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	       for( int i=0; i<nEl; ++i)
+	       for( OMPInt i=0; i<nEl; ++i)
 	      	      {
 	      		DComplexDbl& C = (*p0C)[ i];
 	      		(*res)[ i] = atan2( C.imag(), C.real());
@@ -956,7 +956,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 			(*res)[ i] = atanC((*p0C)[ i]);
 	    }
 	    return res;
@@ -969,7 +969,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		{
 		  (*res)[ i] = atan((*p0D)[ i]); 
 		}
@@ -984,7 +984,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		{
 		  (*res)[ i] = atan((*p0F)[ i]); 
 		}
@@ -999,7 +999,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		{
 		  (*res)[ i] = atan((*res)[ i]); 
 		}
@@ -1092,7 +1092,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma intel omp forthis
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = sqrt((*p0C)[ i]); 
 	}
@@ -1109,7 +1109,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*p0C)[ i] = sqrt((*p0C)[ i]); 
 	}
@@ -1152,7 +1152,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = sqrt( (*res)[ i]); 
 	    }
@@ -1172,7 +1172,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = abs((*p0C)[ i]); 
 	}
@@ -1201,7 +1201,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      // 	    DComplex& C = (*p0C)[ i];
 	      // 	    float Creal = C.real(), Cimag = C.imag();
@@ -1220,7 +1220,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      // 	    DComplexDbl& C = (*p0C)[ i];
 	      // 	    double Creal = C.real(), Cimag = C.imag();
@@ -1269,7 +1269,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = abs( (*res)[ i]); 
 	}
@@ -1291,7 +1291,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = static_cast<DLong64>( round((*p0C)[ i])); 
 	  }
@@ -1303,7 +1303,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = static_cast<DLong>( round((*p0C)[ i])); 
 	  }
@@ -1338,7 +1338,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) round(C.real());
@@ -1351,7 +1351,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (int) round(C.real());
@@ -1372,7 +1372,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) round(C.real());
@@ -1385,7 +1385,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (int) round(C.real());
@@ -1421,7 +1421,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = (int) round((double) (*p0F)[ i]); 
 	    }
@@ -1443,7 +1443,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (DLong64) ceil((*p0C)[ i]); 
 	  }
@@ -1455,7 +1455,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (int) ceil((*p0C)[ i]); 
 	  }
@@ -1489,7 +1489,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) ceil(C.real());
@@ -1502,7 +1502,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (int) ceil(C.real());
@@ -1523,7 +1523,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) ceil(C.real());
@@ -1536,7 +1536,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (int) ceil(C.real());
@@ -1572,7 +1572,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = (int) ceil((double) (*p0F)[ i]); 
 	    }
@@ -1594,7 +1594,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (DLong64) floor((*p0C)[ i]); 
 	  }
@@ -1606,7 +1606,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (int) floor((*p0C)[ i]); 
 	  }
@@ -1640,7 +1640,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) floor(C.real());
@@ -1653,7 +1653,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (int) floor(C.real());
@@ -1674,7 +1674,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (DLong64) floor(C.real());
@@ -1687,7 +1687,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
 #pragma omp for
-	    for( int i=0; i<nEl; ++i)
+	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = (int) floor(C.real());
@@ -1723,7 +1723,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[ i] = (int) floor((double) (*p0F)[ i]); 
 	    }
@@ -1751,7 +1751,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = DComplex( (*p0C)[i].real(), -(*p0C)[i].imag());
 	    }
@@ -1766,7 +1766,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = DComplexDbl( (*p0C)[i].real(), -(*p0C)[i].imag());
 	    }
@@ -1865,7 +1865,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    (*res)[ i] = exp( (*c0)[ i]);
 	}
 	return res;
@@ -1878,7 +1878,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    (*res)[ i] = exp( (*c0)[ i]);
 	}
 	return res;
@@ -1891,7 +1891,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    (*res)[ i] = exp( (*c0)[ i]);
 	}
 	return res;
@@ -1904,7 +1904,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    (*res)[ i] = exp( (*c0)[ i]);
 	}
 	return res;
@@ -1924,7 +1924,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i<nEl; ++i)
+	  for( OMPInt i=0; i<nEl; ++i)
 	    (*res)[ i] = exp( (*res)[ i]);
 	}	
 	return res;
@@ -2043,7 +2043,7 @@ TRACEOMP( __FILE__, __LINE__)
     DDouble k = (*kval)[0];
     DInt n = (*nval)[0];
     SizeT nEx = xvals->N_Elements();
-    int count;
+    OMPInt count;
     
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEx))

@@ -66,7 +66,7 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
 	{
 	  //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
-	  for( int ix=i; ix < nEl; ++ix)
+	  for( OMPInt ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
 		{
 		if( (*right)[ix] == this->zero)
@@ -106,7 +106,7 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
 	{
 	  //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
-	  for( int ix=i; ix < nEl; ++ix)
+	  for( OMPInt ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
 		{
 		if( (*this)[ix] == this->zero)

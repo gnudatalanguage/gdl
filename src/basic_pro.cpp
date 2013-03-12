@@ -1754,7 +1754,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
 	StrPut((*dest)[ i], source, pos);
 }
   }

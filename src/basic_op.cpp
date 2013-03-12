@@ -60,7 +60,7 @@ Data_<Sp>* Data_<Sp>::NotOp()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = ~(*this)[i];
     }  return this;
 }
@@ -81,7 +81,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::NotOp()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = ((*this)[i] == 0.0f)? 1.0f : 0.0f;
     }  return this;
 }
@@ -100,7 +100,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = ((*this)[i] == 0.0)? 1.0 : 0.0;
     }  return this;
 }
@@ -158,7 +158,7 @@ BaseGDL* Data_<Sp>::UMinus()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = -(*this)[i];
     }  return this;
 }
@@ -210,7 +210,7 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i] == 0)? 1 : 0;
     }  return res;
 }
@@ -231,7 +231,7 @@ Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i] == 0.0f)? 1 : 0;
     }  return res;
 }
@@ -252,7 +252,7 @@ Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i] == 0.0)? 1 : 0;
     }  return res;
 }
@@ -272,7 +272,7 @@ Data_<SpDByte>* Data_<SpDString>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i] == "")? 1 : 0;
     }  return res;
 }
@@ -292,7 +292,7 @@ Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
     }  return res;
 }
@@ -312,7 +312,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
     }  return res;
 }
@@ -334,7 +334,7 @@ void Data_<Sp>::Dec()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i]--;
     }}
 template<class Sp>
@@ -352,7 +352,7 @@ void Data_<Sp>::Inc()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i]++;
     }}
 // float
@@ -372,7 +372,7 @@ void Data_<SpDFloat>::Dec()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] -= 1.0;
     }}
 template<>
@@ -391,7 +391,7 @@ void Data_<SpDFloat>::Inc()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] += 1.0;
     }}
 // double
@@ -411,7 +411,7 @@ void Data_<SpDDouble>::Dec()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] -= 1.0;
     }}
 template<>
@@ -430,7 +430,7 @@ void Data_<SpDDouble>::Inc()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] += 1.0;
     }}
 // complex
@@ -450,7 +450,7 @@ void Data_<SpDComplex>::Dec()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] -= 1.0;
     }}
 template<>
@@ -469,7 +469,7 @@ void Data_<SpDComplex>::Inc()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] += 1.0;
     }}
 template<>
@@ -488,7 +488,7 @@ void Data_<SpDComplexDbl>::Dec()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] -= 1.0;
     }}
 template<>
@@ -507,7 +507,7 @@ void Data_<SpDComplexDbl>::Inc()
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] += 1.0;
     }}
 // forbidden types
@@ -576,7 +576,7 @@ BaseGDL* Data_<Sp>::EqOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] == s);
 	}    }
   else if( StrictScalar(s)) 
@@ -591,7 +591,7 @@ BaseGDL* Data_<Sp>::EqOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == s);
 	}    }
   else if( rEl < nEl) 
@@ -601,7 +601,7 @@ BaseGDL* Data_<Sp>::EqOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -616,7 +616,7 @@ BaseGDL* Data_<Sp>::EqOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*this)[i]);
 	}    }
   //C delete right;
@@ -731,7 +731,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] == s);
 	}    }
   else if( StrictScalar(s)) 
@@ -746,7 +746,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == s);
 	}    }
   else if( rEl < nEl) 
@@ -756,7 +756,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -771,7 +771,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*this)[i]);
 	}    }
   //C delete right;
@@ -826,7 +826,7 @@ BaseGDL* Data_<Sp>::NeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] != s);
 	}    }
   else if( StrictScalar(s)) 
@@ -841,7 +841,7 @@ BaseGDL* Data_<Sp>::NeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != s);
 	}    }
   else if( rEl < nEl) 
@@ -851,7 +851,7 @@ BaseGDL* Data_<Sp>::NeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -866,7 +866,7 @@ BaseGDL* Data_<Sp>::NeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*this)[i]);
 	}    }
   //C delete right;
@@ -981,7 +981,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] != s);
 	}    }
   else if( StrictScalar(s)) 
@@ -996,7 +996,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != s);
 	}    }
   else if( rEl < nEl) 
@@ -1006,7 +1006,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -1021,7 +1021,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*this)[i]);
 	}    }
   //C delete right;
@@ -1076,7 +1076,7 @@ BaseGDL* Data_<Sp>::LeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] <= s);
 	}    }
   else if( StrictScalar(s)) 
@@ -1091,7 +1091,7 @@ BaseGDL* Data_<Sp>::LeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] >= s);
 	}    }
   else if( rEl < nEl) 
@@ -1101,7 +1101,7 @@ BaseGDL* Data_<Sp>::LeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] >= (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -1116,7 +1116,7 @@ BaseGDL* Data_<Sp>::LeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] >= (*this)[i]);
 	}    }
   //C delete right;
@@ -1182,7 +1182,7 @@ BaseGDL* Data_<Sp>::LtOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] < s);
 	}    }
   else if( StrictScalar(s)) 
@@ -1197,7 +1197,7 @@ BaseGDL* Data_<Sp>::LtOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] > s);
 	}    }
   else if( rEl < nEl) 
@@ -1207,7 +1207,7 @@ BaseGDL* Data_<Sp>::LtOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] > (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -1222,7 +1222,7 @@ BaseGDL* Data_<Sp>::LtOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] > (*this)[i]);
 	}    }
   //C delete right;
@@ -1288,7 +1288,7 @@ BaseGDL* Data_<Sp>::GeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] >= s);
 	}    }
   else if( StrictScalar(s)) 
@@ -1303,7 +1303,7 @@ BaseGDL* Data_<Sp>::GeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] <= s);
 	}    }
   else if( rEl < nEl) 
@@ -1313,7 +1313,7 @@ BaseGDL* Data_<Sp>::GeOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] <= (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -1328,7 +1328,7 @@ BaseGDL* Data_<Sp>::GeOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] <= (*this)[i]);
 	}    }
   //C delete right;
@@ -1394,7 +1394,7 @@ BaseGDL* Data_<Sp>::GtOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*this)[i] > s);
 	}    }
   else if( StrictScalar(s)) 
@@ -1409,7 +1409,7 @@ BaseGDL* Data_<Sp>::GtOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] < s);
 	}    }
   else if( rEl < nEl) 
@@ -1419,7 +1419,7 @@ BaseGDL* Data_<Sp>::GtOp( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] < (*this)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -1434,7 +1434,7 @@ BaseGDL* Data_<Sp>::GtOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] < (*this)[i]);
 	}    }
   //C delete right;
@@ -1508,8 +1508,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 	{
 #pragma omp for 
-	  for( int colA=0; colA < nCol; colA++)   // res dim 0
-	    for( int rowB=0; rowB < nRow; rowB++) // res dim 1
+	  for( OMPInt colA=0; colA < nCol; colA++)   // res dim 0
+	    for( OMPInt rowB=0; rowB < nRow; rowB++) // res dim 1
 	      (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
 	}
     }
@@ -1629,13 +1629,13 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
-		    for( int rIx=0, rowBnCol=0; rIx < rIxEnd;
+		  for( OMPInt colA=0; colA < nCol; ++colA) // res dim 0
+		    for( OMPInt rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, rowBnCol += nCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( int i=0; i < nColEl; ++i)
+			for( OMPInt i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 		      }
 		}
@@ -1646,12 +1646,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
-		    for( int rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
+		  for( OMPInt colA=0; colA < nCol; ++colA) // res dim 0
+		    for( OMPInt rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( int i=0; i < nColEl; ++i)
+			for( OMPInt i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
 		      }
 		}
@@ -1665,13 +1665,13 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
-		    for( int rIx=0, rowBnCol=0; rIx < rIxEnd;
+		  for( OMPInt colA=0; colA < nCol; ++colA) // res dim 0
+		    for( OMPInt rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, ++rowBnCol) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rowBnCol + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( int i=0; i < nColEl; ++i)
+			for( OMPInt i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 		      }
 		}
@@ -1682,12 +1682,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 		{
 #pragma omp for
-		  for( int colA=0; colA < nCol; ++colA) // res dim 0
-		    for( int rIx=0; rIx < nRow; ++rIx) // res dim 1
+		  for( OMPInt colA=0; colA < nCol; ++colA) // res dim 0
+		    for( OMPInt rIx=0; rIx < nRow; ++rIx) // res dim 1
 		      {
 			Ty& resEl = (*res)[ rIx + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-			for( int i=0; i < nColEl; ++i)
+			for( OMPInt i=0; i < nColEl; ++i)
 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
 		      }
 		}
@@ -1756,7 +1756,7 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = (*this)[i] & (*right)[i]; // & Ty(1);
     }  //C delete right;
   return this;
@@ -1786,7 +1786,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*right)[i] == zero) (*this)[i]=zero;
       //     if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
     }  //C delete right;
@@ -1810,7 +1810,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] != zero) (*this)[i] = (*right)[i];
     }  //C delete right;
   return this;
@@ -1834,7 +1834,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*right)[i] == zero) (*this)[i]=zero;
       //     if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
     }  //C delete right;
@@ -1858,7 +1858,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] != zero) (*this)[i] = (*right)[i];
     }  //C delete right;
   return this;
@@ -1950,7 +1950,7 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] &= s;
     }
   return this;
@@ -2013,7 +2013,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    if( (*this)[i] != zero) (*this)[i] = s;
 	}}
   return this;
@@ -2069,7 +2069,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    if( (*this)[i] != zero) (*this)[i] = s;
 	}}
   return this;
@@ -2152,7 +2152,7 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = (*this)[i] | (*right)[i]; // | Ty(1);
     }
   //C delete right;
@@ -2184,7 +2184,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] == zero) (*this)[i]=(*right)[i];
     }  //C delete right;
   return this;
@@ -2208,7 +2208,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*right)[i] != zero) (*this)[i] = (*right)[i];
     }  //C delete right;
   return this;
@@ -2233,7 +2233,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] == zero) (*this)[i]= (*right)[i];
     }  //C delete right;
   return this;
@@ -2257,7 +2257,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*right)[i] != zero) (*this)[i] = (*right)[i];
     }  //C delete right;
   return this;
@@ -2327,7 +2327,7 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = (*this)[i] | s;
     }  //C delete right;
   return this;
@@ -2360,7 +2360,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    if( (*this)[i] == zero) (*this)[i] = s;
 	}}  //C delete right;
   return this;
@@ -2400,7 +2400,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    if( (*this)[i] == zero) (*this)[i] = s;
 	}}  //C delete right;
   return this;
@@ -2434,7 +2434,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    if( (*this)[i] != zero) (*this)[i] = s;
 	}}  //C delete right;
   return this;
@@ -2510,7 +2510,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i < nEl; ++i)
+	      for( OMPInt i=0; i < nEl; ++i)
 		(*this)[i] ^= s;
 	    }}
     }
@@ -2520,7 +2520,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*this)[i] ^= (*right)[i];
 	}    }
   //C delete right;
@@ -2592,7 +2592,7 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] ^= s;
       //     (*this)[i] = (*this)[i] ^ s;
     }  //C delete right;
@@ -2672,7 +2672,7 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] > (*right)[i]) (*this)[i]=(*right)[i];
     }  //C delete right;
   return this;
@@ -2731,7 +2731,7 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] > s) (*this)[i]=s;
     }  //C delete right;
   return this;
@@ -2794,7 +2794,7 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] < (*right)[i]) (*this)[i]=(*right)[i];
     }  //C delete right;
   return this;
@@ -2854,7 +2854,7 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	if( (*this)[i] < s) (*this)[i]=s;
     }  //C delete right;
   return this;
@@ -2925,7 +2925,7 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
 	{
 	  //       bool zeroEncountered = false;
 #pragma omp for
-	  for( int ix=i; ix < nEl; ++ix)
+	  for( OMPInt ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
 		{
 		if( (*right)[i] == this->zero)
@@ -2970,7 +2970,7 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
 	{
 	  //       bool zeroEncountered = false;
 #pragma omp for
-	  for( int ix=i; ix < nEl; ++ix)
+	  for( OMPInt ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
 		{
 		if( (*this)[ix] == this->zero)
@@ -3009,7 +3009,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = Modulo((*this)[i],(*right)[i]);
     }  //C delete right;
   return this;
@@ -3029,7 +3029,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = Modulo((*right)[i],(*this)[i]);
     }  //C delete right;
   return this;
@@ -3056,7 +3056,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = DModulo((*this)[i],(*right)[i]);
     }  //C delete right;
   return this;
@@ -3076,7 +3076,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = DModulo((*right)[i],(*this)[i]);
     }  //C delete right;
   return this;
@@ -3240,7 +3240,7 @@ Data_<Sp>* Data_<Sp>::ModInvS( BaseGDL* r)
 #pragma omp for
 	  //       bool zeroEncountered = false;
 	  // right->Scalar(s); 
-	  for( int ix=i; ix < nEl; ++ix)
+	  for( OMPInt ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
 		{
 		if( (*this)[ix] == this->zero)
@@ -3272,7 +3272,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = Modulo((*this)[i],s);
     }  //C delete right;
   return this;
@@ -3292,7 +3292,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = Modulo(s,(*this)[i]);
     }  //C delete right;
   return this;
@@ -3310,7 +3310,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = DModulo((*this)[i],s);
     }  //C delete right;
   return this;
@@ -3329,7 +3329,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = DModulo(s,(*this)[i]);
     }  //C delete right;
   return this;
@@ -3449,7 +3449,7 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*this)[i], (*right)[i]); // valarray
     }  //C delete right;
   return this;
@@ -3472,7 +3472,7 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*right)[i], (*this)[i]);
     }  //C delete right;
   return this;
@@ -3498,7 +3498,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
-	for( int i=0; i < nEl; ++i)
+	for( OMPInt i=0; i < nEl; ++i)
 	  (*this)[i] = pow( (*this)[i], (*right)[i]);
       }    }
   return this;
@@ -3533,7 +3533,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*this)[i] = pow( (*this)[i], r0);
 	}      return this;
     }
@@ -3545,7 +3545,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[ i] = pow( s0, (*right)[ i]);
 	}      return res;
     }
@@ -3555,7 +3555,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*this)[i] = pow( (*this)[i], (*right)[i]);
 	}      return this;
     }
@@ -3566,7 +3566,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = pow( (*this)[i], (*right)[i]);
 	}      return res;
     }
@@ -3588,7 +3588,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*this)[i] = pow( (*this)[i], r0);
 	}      return this;
     }
@@ -3600,7 +3600,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[ i] = pow( s0, (*right)[ i]);
 	}      return res;
     }
@@ -3610,7 +3610,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*this)[i] = pow( (*this)[i], (*right)[i]);
 	}      return this;
     }
@@ -3621,7 +3621,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = pow( (*this)[i], (*right)[i]);
 	}      return res;
     }
@@ -3646,7 +3646,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*right)[i], (*this)[i]);
     }  //C delete right;
   return this;
@@ -3671,7 +3671,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*this)[i], (*right)[i]);
     }  //C delete right;
   return this;
@@ -3696,7 +3696,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*right)[i], (*this)[i]);
     }  //C delete right;
   return this;
@@ -3725,7 +3725,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -3744,7 +3744,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -3754,7 +3754,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -3767,7 +3767,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -3789,7 +3789,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -3808,7 +3808,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -3818,7 +3818,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -3831,7 +3831,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -3859,7 +3859,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*this)[i], (*right)[i]);
     }
 #endif
@@ -3890,7 +3890,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*right)[i], (*this)[i]);
 #endif
     }  //C delete right;
@@ -3920,7 +3920,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -3939,7 +3939,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -3949,7 +3949,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -3962,7 +3962,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -3986,7 +3986,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -4005,7 +4005,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -4015,7 +4015,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -4028,7 +4028,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -4056,7 +4056,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*this)[i], (*right)[i]);
     }
 #endif
@@ -4087,7 +4087,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*right)[i], (*this)[i]);
     }
 #endif
@@ -4156,7 +4156,7 @@ Data_<Sp>* Data_<Sp>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( (*this)[i], s); 
     }
   //C delete right;
@@ -4178,7 +4178,7 @@ Data_<Sp>* Data_<Sp>::PowInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] = pow( s, (*this)[i]);
     }  //C delete right;
   return this;
@@ -4197,7 +4197,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)	
+      for( OMPInt i=0; i<nEl; ++i)	
 	dd[ i] = pow( dd[ i], s); // valarray
     }  //C delete right;
   return this;
@@ -4216,7 +4216,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)	
+      for( OMPInt i=0; i<nEl; ++i)	
 	dd[ i] = pow( s, dd[ i]); // valarray
     }  //C delete right;
   return this;
@@ -4235,7 +4235,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)	
+      for( OMPInt i=0; i<nEl; ++i)	
 	dd[ i] = pow( dd[ i], s); // valarray
     }  //C delete right;
   return this;
@@ -4254,7 +4254,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)	
+      for( OMPInt i=0; i<nEl; ++i)	
 	dd[ i] = pow( s, dd[ i]); // valarray
     }  //C delete right;
   return this;
@@ -4283,7 +4283,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -4302,7 +4302,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -4312,7 +4312,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -4325,7 +4325,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -4347,7 +4347,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -4366,7 +4366,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -4376,7 +4376,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -4389,7 +4389,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -4410,7 +4410,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	(*this)[ i] = pow( (*this)[ i], s);
     }
   //#else
@@ -4438,7 +4438,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	(*this)[ i] = pow( s, (*this)[ i]);
     }
   //#else
@@ -4471,7 +4471,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -4490,7 +4490,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -4500,7 +4500,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -4513,7 +4513,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -4537,7 +4537,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	    {
 #pragma omp for
-	      for( int i=0; i<nEl; ++i)
+	      for( OMPInt i=0; i<nEl; ++i)
 		(*this)[ i] = pow( (*this)[ i], s);
 	    }	  //C delete right;
 	  return this;
@@ -4556,7 +4556,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		    {
 #pragma omp for
-		      for( int i=0; i<rEl; ++i)
+		      for( OMPInt i=0; i<rEl; ++i)
 			(*res)[ i] = pow( s, (*right)[ i]);
 		    }		  //C delete right;
 		  return res;
@@ -4566,7 +4566,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 		{
 #pragma omp for
-		  for( int i=0; i<nEl; ++i)
+		  for( OMPInt i=0; i<nEl; ++i)
 		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      return this;
@@ -4579,7 +4579,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 		{
 #pragma omp for
-		  for( int i=0; i<rEl; ++i)
+		  for( OMPInt i=0; i<rEl; ++i)
 		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 		}	      //C delete right;
 	      //C delete this;
@@ -4600,7 +4600,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	(*this)[ i] = pow( (*this)[ i], s);
     }
   //#else
@@ -4625,7 +4625,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	(*this)[ i] = pow( s, (*this)[ i]);
     }
   //#else

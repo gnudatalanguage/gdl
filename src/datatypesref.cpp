@@ -31,7 +31,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::New( const dimension& dim_, BaseGDL::InitType noZe
       /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 	#pragma omp for*/
-      for( int i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+      for( OMPInt i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       //}
       GDLInterpreter::AddRef((*this)[ 0], nEl);
       
@@ -51,7 +51,7 @@ Data_<SpDObj>* Data_<SpDObj>::New( const dimension& dim_, BaseGDL::InitType noZe
       /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 	#pragma omp for*/
-      for( int i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+      for( OMPInt i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       //}
       GDLInterpreter::AddRefObj((*this)[ 0], nEl);
       

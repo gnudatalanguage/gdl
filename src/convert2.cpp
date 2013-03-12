@@ -447,7 +447,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],8);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -617,7 +617,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],8);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -790,7 +790,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -963,7 +963,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1034,7 +1034,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
 	  (*dest)[i]=Real2DByte<float>((*this)[i]); 
 }	//(*dest)[i]=Real2DByte((*this)[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1055,7 +1055,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1096,7 +1096,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1139,7 +1139,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1187,7 +1187,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=float2string((*this)[i]);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1259,7 +1259,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
 	  (*dest)[i]=Real2DByte<double>((*this)[i]); 
 	  //(*dest)[i]=Double2DByte((*this)[i]); 
 }
@@ -1282,7 +1282,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1325,7 +1325,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1368,7 +1368,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1416,7 +1416,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=double2string((*this)[i]);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1502,7 +1502,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
 	  {
 	    SizeT basePtr = i*maxLen;
 
@@ -1521,7 +1521,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1550,7 +1550,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1579,7 +1579,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1608,7 +1608,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1637,7 +1637,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1666,7 +1666,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1695,7 +1695,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1724,7 +1724,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
 	    char* cEnd;
@@ -1754,7 +1754,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1784,7 +1784,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1846,7 +1846,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2DByte<float>(real((*this)[i])); 
 }	//(*dest)[i]=Real2DByte(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1868,7 +1868,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-    	for( int i=0; i < nEl; ++i)
+    	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1911,7 +1911,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1954,7 +1954,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2030,7 +2030,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2090,7 +2090,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2DByte<double>(real((*this)[i])); 
 }      	  //(*dest)[i]=Double2DByte(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2112,7 +2112,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2155,7 +2155,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2198,7 +2198,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 }
@@ -2274,7 +2274,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2445,7 +2445,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],22);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -2617,7 +2617,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( int i=0; i < nEl; ++i)
+      	for( OMPInt i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],22);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;

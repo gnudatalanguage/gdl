@@ -1729,7 +1729,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-      for( int i=0; i<nEl; ++i)
+      for( OMPInt i=0; i<nEl; ++i)
 	{
 	  unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
 	  if( first == (*p0S)[ i].npos)
@@ -1750,7 +1750,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	{
 	  unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
 	  if( first == (*p0S)[ i].npos)
@@ -1770,7 +1770,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-	for( int i=0; i<nEl; ++i)
+	for( OMPInt i=0; i<nEl; ++i)
 	{
 	  unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
 	  if( last == (*p0S)[ i].npos)
@@ -1802,7 +1802,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
       {
 	(*res)[ i] = StrCompress((*p0S)[ i], removeAll);
       }
@@ -1850,7 +1850,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
 {
 #pragma omp for
-    for( long i=0; i<nSrcStr; ++i)
+    for( OMPInt i=0; i<nSrcStr; ++i)
       {
 	(*res)[ i] = StrPos((*p0S)[ i], searchString, pos, 
 			    reverseOffset, reverseSearch);
@@ -1918,7 +1918,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
 {
 #pragma omp for
-    for( long i=0; i<nSrcStr; ++i)
+    for( OMPInt i=0; i<nSrcStr; ++i)
       {
 		for( long ii=0; ii<stride; ++ii)
 		{
@@ -1972,7 +1972,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
       {
 		StrLowCaseInplace((*p0S)[ i]);
       }
@@ -1984,7 +1984,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
       {
 		(*res)[ i] = StrLowCase((*p0S)[ i]);
       }
@@ -2030,7 +2030,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
       {
 		StrUpCaseInplace((*p0S)[ i]);
       }
@@ -2042,7 +2042,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
-    for( int i=0; i<nEl; ++i)
+    for( OMPInt i=0; i<nEl; ++i)
       {
 		(*res)[ i] = StrUpCase((*p0S)[ i]);
       }
@@ -2261,7 +2261,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for
-    for ( int i=0; i<nEl; ++i)
+    for ( OMPInt i=0; i<nEl; ++i)
       {
 	AddOmitNaN(sum, (*src)[ i]);
       }
@@ -2781,7 +2781,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for reduction(*:sum)
-	for ( int i=0; i<nEl; ++i)
+	for ( OMPInt i=0; i<nEl; ++i)
 		{
 		sum *= (*src)[ i];
 		}
@@ -2793,7 +2793,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for reduction(*:sum)
-	for ( int i=0; i<nEl; ++i)
+	for ( OMPInt i=0; i<nEl; ++i)
 		{
 		MultOmitNaN( sum, (*src)[ i]);
 		}

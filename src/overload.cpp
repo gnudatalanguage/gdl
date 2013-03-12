@@ -270,7 +270,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*left)[i] == s);
 	}    }
   else if( left->StrictScalar(s)) 
@@ -285,7 +285,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == s);
 	}    }
   else if( rEl < nEl) 
@@ -295,7 +295,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*left)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -310,7 +310,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] == (*left)[i]);
 	}    }
   return res;
@@ -358,7 +358,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*left)[i] != s);
 	}    }
   else if( left->StrictScalar(s)) 
@@ -373,7 +373,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != s);
 	}    }
   else if( rEl < nEl) 
@@ -383,7 +383,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 	{
 #pragma omp for
-	  for( int i=0; i < rEl; ++i)
+	  for( OMPInt i=0; i < rEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*left)[i]);
 	}    }
   else // ( rEl >= nEl)
@@ -398,7 +398,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
-	  for( int i=0; i < nEl; ++i)
+	  for( OMPInt i=0; i < nEl; ++i)
 	    (*res)[i] = ((*right)[i] != (*left)[i]);
 	}    }
   return res;

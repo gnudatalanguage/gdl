@@ -64,7 +64,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] *= (*right)[i];
     }  //C delete right;
   return this;
@@ -121,7 +121,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
-      for( int i=0; i < nEl; ++i)
+      for( OMPInt i=0; i < nEl; ++i)
 	(*this)[i] *= s;
     }  //C delete right;
   return this;
