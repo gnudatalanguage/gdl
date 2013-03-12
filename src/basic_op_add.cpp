@@ -350,6 +350,32 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 #endif
   
 }
+template<>
+BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong nEl=N_Elements();
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+      (*this)[0] += (*right)[0];
+      return this;
+    }
+  Ty s = (*right)[0];
+  // right->Scalar(s);
+  //  dd += s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( OMPInt i=0; i < nEl; ++i)
+	(*this)[i] += s;
+    }  //C delete right;
+  return this;
+}
+
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInvS( BaseGDL* r)
 {
