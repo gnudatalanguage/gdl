@@ -17,6 +17,7 @@
 
 header "pre_include_cpp" {
 #include "includefirst.hpp"
+#include <cstdlib>
 }
 
 header {

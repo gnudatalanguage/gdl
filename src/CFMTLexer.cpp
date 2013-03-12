@@ -1,6 +1,7 @@
 /* $ANTLR 2.7.7 (20110618): "cformat.g" -> "CFMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
+#include <cstdlib>
 
 #include "CFMTLexer.hpp"
 #include <antlr/CharBuffer.hpp>
