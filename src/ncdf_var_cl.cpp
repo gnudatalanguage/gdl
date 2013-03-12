@@ -70,7 +70,7 @@ namespace lib {
     int mema=3;
     string mess;
     mess=name;
-    mess+="Value of index "+i2s(index)
+    mess+="Value of index "+i2s(index);
     if(set > 0) 
       mess+=" is negative or zero, setting to ";
     else if(set == 0) 
