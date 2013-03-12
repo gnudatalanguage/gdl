@@ -368,8 +368,8 @@ void resize( SizeT s)
 // T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
 T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
 SizeT size() const { return sz;}
-iterator begin()  { return &eArr[0];}
-iterator end()  { return &eArr[sz];}
+iterator begin() const { return &eArr[0];}
+iterator end() const { return &eArr[sz];}
 bool empty() const { return sz == 0;}
 T& front() { return eArr[0];}
 const T& front() const { return eArr[0];}
