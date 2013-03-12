@@ -370,12 +370,6 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
     }
   Ty s = (*right)[0];
   // right->Scalar(s);
-#ifdef USE_EIGEN
-
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
-	mThis = s + mThis;
-	return this;
-#else
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -384,7 +378,6 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 	(*this)[i] = s + (*this)[i];
     }  //C delete right;
   return this;
-#endif
   
 }
 
