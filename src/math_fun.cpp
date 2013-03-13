@@ -1088,6 +1088,14 @@ BaseGDL* alog10_fun( BaseGDL* p0, bool isReference)
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
+  Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+  mRes = mP0C.sqrt();
+  return res;
+#else
+
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1098,6 +1106,8 @@ TRACEOMP( __FILE__, __LINE__)
 	}
     }
     return res;
+#endif
+    
   }
 
   template< typename T>
@@ -1105,6 +1115,12 @@ TRACEOMP( __FILE__, __LINE__)
   {
     T* p0C = static_cast<T*>( p0);
     SizeT nEl = p0->N_Elements();
+#ifdef USE_EIGEN
+
+  Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
+  mP0C = mP0C.sqrt();
+  return p0C;
+#else
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
@@ -1115,6 +1131,7 @@ TRACEOMP( __FILE__, __LINE__)
 	}
     }
     return p0C;
+#endif
   }
 
   BaseGDL* sqrt_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
@@ -1122,45 +1139,52 @@ TRACEOMP( __FILE__, __LINE__)
     assert( p0 != NULL);
     assert( p0->N_Elements() > 0);
     
+    DType p0Type = p0->Type();  
     if( isReference)
     {
-    if( p0->Type() == GDL_COMPLEX)
+    if( p0Type == GDL_COMPLEX)
       return sqrt_fun_template< DComplexGDL>( p0);
-    else if( p0->Type() == GDL_COMPLEXDBL)
+    else if( p0Type == GDL_COMPLEXDBL)
       return sqrt_fun_template< DComplexDblGDL>( p0);
-    else if( p0->Type() == GDL_DOUBLE)
+    else if( p0Type == GDL_DOUBLE)
       return sqrt_fun_template< DDoubleGDL>( p0);
-    else if( p0->Type() == GDL_FLOAT)
+    else if( p0Type == GDL_FLOAT)
       return sqrt_fun_template< DFloatGDL>( p0);
     }
     else
     {
-    if( p0->Type() == GDL_COMPLEX)
+    if( p0Type == GDL_COMPLEX)
       return sqrt_fun_template_grab< DComplexGDL>( p0);
-    else if( p0->Type() == GDL_COMPLEXDBL)
+    else if( p0Type == GDL_COMPLEXDBL)
       return sqrt_fun_template_grab< DComplexDblGDL>( p0);
-    else if( p0->Type() == GDL_DOUBLE)
+    else if( p0Type == GDL_DOUBLE)
       return sqrt_fun_template_grab< DDoubleGDL>( p0);
-    else if( p0->Type() == GDL_FLOAT)
+    else if( p0Type == GDL_FLOAT)
       return sqrt_fun_template_grab< DFloatGDL>( p0);
     } 
-      {
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	SizeT nEl = p0->N_Elements();
+    {
+      DFloatGDL* res = static_cast<DFloatGDL*>
+	(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
+      SizeT nEl = p0->N_Elements();
+#ifdef USE_EIGEN
+
+      Eigen::Map<Eigen::Array<DFloat,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+      mRes = mRes.sqrt();
+      return res;
+#else
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
+      {
 #pragma omp for
-	  for( OMPInt i=0; i<nEl; ++i)
-	    {
-	      (*res)[ i] = sqrt( (*res)[ i]); 
-	    }
-	}
-	return res;
+	for( OMPInt i=0; i<nEl; ++i)
+	  {
+	    (*res)[ i] = sqrt( (*res)[ i]); 
+	  }
       }
+      return res;
+#endif  
+    }
   }
-
 
   template< typename T>
   BaseGDL* abs_fun_template( BaseGDL* p0)
