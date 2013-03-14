@@ -1414,6 +1414,10 @@ namespace lib {
   
   
 #else
+  BaseGDL* matmulold_fun( EnvT* e){
+    e->Throw( "to be removed"};
+    return NULL;  }
+  
   BaseGDL* matmul_fun( EnvT* e){
     
     if (e->KeywordSet("AVAILABLE")) {
