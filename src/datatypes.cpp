@@ -1786,13 +1786,26 @@ void Data_<Sp>::Clear()
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+  for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }//}
 
 // first time initialization (construction)
 template< class Sp>
 void Data_<Sp>::Construct() 
-{}
+{
+  const bool isPOD = Sp::IS_POD; 
+  
+  // do nothing for POD
+  if( !isPOD)
+  {
+  SizeT nEl = dd.size(); 
+  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
+  for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
+  }
+}
 template<>
 void Data_<SpDPtr>::Construct() 
 {
@@ -1801,7 +1814,7 @@ void Data_<SpDPtr>::Construct()
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) dd[ i] = 0;
+  for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
 }//}
 template<>
 void Data_<SpDObj>::Construct()
@@ -1811,81 +1824,101 @@ void Data_<SpDObj>::Construct()
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) dd[ i] = 0;
+  for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
 }//}
-// non POD - use placement new
-template<>
-void Data_< SpDString>::Construct() 
-{ 
-  SizeT nEl = dd.size(); 
-  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
-}//}
-template<>
-void Data_< SpDComplex>::Construct() 
-{ 
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-}//}
-template<>
-void Data_< SpDComplexDbl>::Construct() 
-{ 
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-}//}
+// // non POD - use placement new
+// template<>
+// void Data_< SpDString>::Construct() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
+// }//}
+// template<>
+// void Data_< SpDComplex>::Construct() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+// }//}
+// template<>
+// void Data_< SpDComplexDbl>::Construct() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+// }//}
 
 // construction and initalization to zero
 template< class Sp>
 void Data_<Sp>::ConstructTo0() 
 { 
+  if( Sp::IS_POD)
+  {
   SizeT nEl = dd.size(); 
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
-}//}
-// non POD - use placement new
-template<>
-void Data_< SpDString>::ConstructTo0() 
-{ 
+  for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+  }
+  else
+  {
   SizeT nEl = dd.size(); 
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( Sp::zero);
+  }
 }//}
-template<>
-void Data_< SpDComplex>::ConstructTo0() 
-{ 
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-}//}
-template<>
-void Data_< SpDComplexDbl>::ConstructTo0() 
-{ 
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-}//}
+// // non POD - use placement new
+// template<>
+// void Data_< SpDString>::ConstructTo0() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+// }//}
+// template<>
+// void Data_< SpDComplex>::ConstructTo0() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+// }//}
+// template<>
+// void Data_< SpDComplexDbl>::ConstructTo0() 
+// { 
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+// }//}
 
 template< class Sp>
 void Data_<Sp>::Destruct() 
 { 
   // no destruction for POD
+  if( !Sp::IS_POD)
+  {
+  SizeT nEl = dd.size(); 
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
+  for( SizeT i = 0; i<nEl; ++i) 
+    (*this)[ i].~Ty();    
+  }
 }
 template<>
 void Data_< SpDPtr>::Destruct()
@@ -1897,36 +1930,36 @@ void Data_< SpDObj>::Destruct()
 {
   GDLInterpreter::DecRefObj( this);
 }
-template<>
-void Data_< SpDString>::Destruct() 
-{
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) 
-    (*this)[ i].~DString();
-}//}
-template<>
-void Data_< SpDComplex>::Destruct() 
-{
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) 
-    (*this)[ i].~DComplex();
-}//}
-template<>
-void Data_< SpDComplexDbl>::Destruct() 
-{
-  SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i = 0; i<nEl; ++i) 
-    (*this)[ i].~DComplexDbl();
-}//}
+// template<>
+// void Data_< SpDString>::Destruct() 
+// {
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) 
+//     (*this)[ i].~DString();
+// }//}
+// template<>
+// void Data_< SpDComplex>::Destruct() 
+// {
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) 
+//     (*this)[ i].~DComplex();
+// }//}
+// template<>
+// void Data_< SpDComplexDbl>::Destruct() 
+// {
+//   SizeT nEl = dd.size(); 
+//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//     {
+//     #pragma omp for*/
+//   for( SizeT i = 0; i<nEl; ++i) 
+//     (*this)[ i].~DComplexDbl();
+// }//}
 
 template< class Sp>
 BaseGDL* Data_<Sp>::SetBuffer( const void* b)

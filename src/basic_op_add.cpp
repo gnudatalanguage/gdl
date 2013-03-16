@@ -47,6 +47,8 @@
 template<class Sp>
 BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 {
+  
+  
   Data_* right=static_cast<Data_*>(r);
 
   // ULong rEl=right->N_Elements();

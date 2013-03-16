@@ -48,10 +48,18 @@ struct SpDByte: public BaseGDL
   static const std::string str; 
   static const DByte zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -80,10 +88,18 @@ struct SpDInt: public BaseGDL
   static const std::string str; 
   static const DInt zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -112,10 +128,18 @@ struct SpDUInt: public BaseGDL
   static const std::string str; 
   static const DUInt zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -144,10 +168,18 @@ struct SpDLong: public BaseGDL
   static const std::string str; 
   static const DLong  zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -176,10 +208,18 @@ struct SpDULong: public BaseGDL
   static const std::string str; 
   static const DULong zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -208,10 +248,18 @@ struct SpDLong64: public BaseGDL
   static const std::string str; 
   static const DLong64  zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -240,10 +288,18 @@ struct SpDULong64: public BaseGDL
   static const std::string str; 
   static const DULong64 zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = true;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -272,10 +328,18 @@ struct SpDFloat: public BaseGDL
   static const std::string str; 
   static const DFloat zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -304,10 +368,19 @@ struct SpDDouble: public BaseGDL
   static const std::string str; 
   static const DDouble zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = true;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -336,10 +409,18 @@ struct SpDString: public BaseGDL
   static const std::string str; 
   static const Ty       zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = false;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = false;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -390,10 +471,19 @@ public:
   static const std::string str; 
   static const Ty     zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = false;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = false;
+  static const bool IS_CONVERTABLE = false;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -423,10 +513,18 @@ struct SpDPtr: public BaseGDL
   static const std::string str; 
   static const Ty       zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = false;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = false; // due to ref counting
+  static const bool IS_CONVERTABLE = false;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -456,10 +554,18 @@ struct SpDObj: public BaseGDL
   static const std::string str; 
   static const Ty       zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = false;
+  static const bool IS_NUMERIC = false;
+  static const bool IS_COMPLEX = false;
+  static const bool IS_POD = false; // due to ref counting
+  static const bool IS_CONVERTABLE = false;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -488,10 +594,19 @@ struct SpDComplex: public BaseGDL
   static const std::string str; 
   static const DComplex zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = true;
+  static const bool IS_POD = false;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -520,10 +635,19 @@ struct SpDComplexDbl: public BaseGDL
   static const std::string str; 
   static const DComplexDbl zero;
 
-  static const bool IS_INTEGER;
-  static const bool IS_SIGNED;
-  static const bool IS_NUMERIC;
-  static const bool IS_COMPLEX;
+//   static const bool IS_INTEGER;
+//   static const bool IS_SIGNED;
+//   static const bool IS_NUMERIC;
+//   static const bool IS_COMPLEX;
+//   static const bool IS_POD;
+//   static const bool IS_CONVERTABLE;
+
+  static const bool IS_INTEGER = false;
+  static const bool IS_SIGNED = true;
+  static const bool IS_NUMERIC = true;
+  static const bool IS_COMPLEX = true;
+  static const bool IS_POD = false;
+  static const bool IS_CONVERTABLE = true;
 
   DType   Type()    const;
   const std::string& TypeStr() const;

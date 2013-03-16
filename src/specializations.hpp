@@ -644,27 +644,35 @@ OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 
 
+// template<>
+// void Data_< SpDString>::Construct(); 
+// template<>
+// void Data_< SpDComplex>::Construct(); 
+// template<>
+// void Data_< SpDComplexDbl>::Construct(); 
 template<>
-void Data_< SpDString>::Construct(); 
+void Data_< SpDPtr>::Construct(); 
 template<>
-void Data_< SpDComplex>::Construct(); 
+void Data_< SpDObj>::Construct(); 
+// template<>
+// void Data_< SpDString>::ConstructTo0(); 
+// template<>
+// void Data_< SpDComplex>::ConstructTo0(); 
+// template<>
+// void Data_< SpDComplexDbl>::ConstructTo0(); 
+// template<>
+// void Data_< SpDString>::Destruct(); 
+// template<>
+// void Data_< SpDComplex>::Destruct(); 
+// template<>
+// void Data_< SpDComplexDbl>::Destruct(); 
 template<>
-void Data_< SpDComplexDbl>::Construct(); 
+void Data_< SpDPtr>::Destruct(); 
 template<>
-void Data_< SpDString>::ConstructTo0(); 
-template<>
-void Data_< SpDComplex>::ConstructTo0(); 
-template<>
-void Data_< SpDComplexDbl>::ConstructTo0(); 
-template<>
-void Data_< SpDString>::Destruct(); 
-template<>
-void Data_< SpDComplex>::Destruct(); 
-template<>
-void Data_< SpDComplexDbl>::Destruct(); 
+void Data_< SpDObj>::Destruct(); 
 
 // GetAsIndex/GetAsIndexStrict
-template<>
+  template<>
 SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const;
 template<>
 SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const;

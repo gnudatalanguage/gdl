@@ -63,6 +63,22 @@ enum DType {  // Object types (IDL type numbers)
   GDL_ULONG,      // 13 unsigned long int
   GDL_LONG64,     // 14 64 bit integer
   GDL_ULONG64     // 15 unsigned 64 bit integer
+
+  // not yet implemented
+  , GDL_LONG128  // 128 bit integer
+  , GDL_ULONG128 // unsigned 128 bit integer
+  
+  , GDL_LONGABI // arbitrary length int
+  //, GDL_ULONGABI // arbitrary length unsigned int (pointless)
+  
+  , GDL_QUAD // quad precision float (80 or 128bit)
+  , GDL_COMPLEXQD // Complex quad
+
+  , GDL_ARBITRARY // arbitrary precision float
+  , GDL_COMPLEXAR // Complex arbitrary
+
+  , GDL_RATIONAL // arbitrary length rational
+  , GDL_COMPLEXRAT // Complex arbitrary length rational
 };
 
 // order of conversion precedence if two types are the same,
@@ -74,17 +90,38 @@ const int DTypeOrder[]={
   4, 	//GDL_LONG,	
   8, 	//GDL_FLOAT,	
   9, 	//GDL_DOUBLE,	
-  10, 	//GDL_COMPLEX,	
+  20, 	//GDL_COMPLEX,	
   1, 	//GDL_STRING,	
   101, 	//GDL_STRUCT,	
-  11, 	//GDL_COMPLEXDBL,	
+  21, 	//GDL_COMPLEXDBL,	
   102, 	//GDL_PTR,		
   103, 	//GDL_OBJ, // must be highest number (see AdjustTypes... functions)
   3, 	//GDL_UINT,	
   4, 	//GDL_ULONG,
   5, 	//GDL_LONG64,
   5 	//GDL_ULONG64
+  
+  // not yet implemented
+  ,6  //   , GDL_LONG128  // 128 bit integer
+  ,6  //   , GDL_ULONG128 // unsigned 128 bit integer
+    //   
+  ,7  //   , GDL_LONGAB // arbitrary length int
+  // ,7  //   , GDL_ULONGAR // arbitrary length unsigned int (pointless)
+    //   
+  ,10  //   , GDL_QUAD // quad precision float (80 or 128bit)
+  ,22  //   , GDL_COMPLEXQD // Complex quad
+    // 
+  ,11  //   , GDL_ARBITRARY // arbitrary precision float
+  ,23  //   , GDL_COMPLEXAR // Complex arbitrary
+    // 
+  ,12  //   , GDL_RATIONAL // arbitrary length rational
+  ,24  //   , GDL_COMPLEXRAT // Complex arbitrary length rational
 };	
+
+
+
+namespace gdl_type_lookup {
+
 const bool IsConvertableType[]={
   false, 	//GDL_UNDEF
   true, 	//GDL_BYTE
@@ -176,14 +213,17 @@ const bool IsNonPODType[]={
   false 	//GDL_ULONG64
 };	
 
+  
+} //namespace gdl_type_lookup 
+
 inline bool NonPODType( DType t)
 {
-  return IsNonPODType[ t];
+  return gdl_type_lookup::IsNonPODType[ t];
 //   return (t == GDL_COMPLEX) || (t == GDL_COMPLEXDBL) || (t == GDL_STRING) || (t == GDL_STRUCT);
 }
 inline bool IntType( DType t)
 {
-  return IsIntType[ t];
+  return gdl_type_lookup::IsIntType[ t];
 //   int o = DTypeOrder[ t];
 //   return (o >= 2 && o <= 5);
 }
@@ -193,7 +233,7 @@ inline bool FloatType( DType t)
 }
 inline bool RealType( DType t) // Float or Int
 {
-  return IsRealType[ t];
+  return gdl_type_lookup::IsRealType[ t];
 //   int o = DTypeOrder[ t];
 //   return (o >= 2 && o <= 9);
 }
@@ -203,13 +243,13 @@ inline bool ComplexType( DType t)
 }
 inline bool NumericType( DType t) // Float or Int or Complex
 {
-  return IsNumericType[ t];
+  return gdl_type_lookup::IsNumericType[ t];
 //   int o = DTypeOrder[ t];
 //   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
-  return IsConvertableType[ t];
+  return gdl_type_lookup::IsConvertableType[ t];
 //   int o = DTypeOrder[ t];
 //   return (o >= 1 && o <= 11);
 }

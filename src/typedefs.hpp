@@ -58,15 +58,20 @@
 #include <cassert>
 // #include <cstdio>
 
-// undef for releases (should not give diagnostics)
-// define for the CVS (where the default sizes can easily be adjusted)
-//#define GDL_CVS_VERSION
-#undef GDL_CVS_VERSION
+#undef USE_MPFR
 
-#ifdef GDL_CVS_VERSION
-#include <iostream>
-#include "gdlc.i.g"
+#ifdef USE_MPFR
+#include "mpreal.h"
 #endif
+
+// // undef for releases (should not give diagnostics)
+// // define for the CVS (where the default sizes can easily be adjusted)
+// #define GDL_CVS_VERSION
+// //#undef GDL_CVS_VERSION
+// // ?
+// #ifdef GDL_CVS_VERSION
+// #include <iostream>
+// #endif
 
 //#define TRACE_OMP_CALLS
 #undef TRACE_OMP_CALLS
@@ -112,12 +117,23 @@ typedef unsigned char          DByte;
 #ifdef _MSC_VER
 typedef __int64               DLong64;
 typedef unsigned __int64      DULong64;
+
 #else
 //typedef long int               DLong64;
 //typedef unsigned long int      DULong64;
 typedef long long int          DLong64;
 typedef unsigned long long int DULong64;
 #endif
+
+#ifdef USE_MPFR
+
+typedef __int128               DLong128;
+typedef unsigned __int128      DULong128;
+
+typedef mpfr::mpreal               DArbitrary;
+typedef std::complex<DArbitrary>   DComplexAbi;
+#endif
+
 
 typedef short                  DInt;
 typedef unsigned short         DUInt;
@@ -128,8 +144,8 @@ typedef double                 DDouble;
 typedef std::string            DString;
 typedef SizeT                  DPtr; // ptr to heap
 typedef DPtr                   DObj; // ptr to object heap
-typedef std::complex<float>    DComplex;
-typedef std::complex<double>   DComplexDbl;
+typedef std::complex<DFloat>   DComplex;
+typedef std::complex<DDouble>  DComplexDbl;
 
 
 // list of identifiers (used in several places)

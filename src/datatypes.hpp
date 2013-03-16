@@ -145,7 +145,7 @@ static	void operator delete( void *ptr);
   void Clear();
   void Construct();     // construction (for DStructGDL)
   void ConstructTo0();  // construction (for DStructGDL)
-  void Destruct(); // destruction (for DStructGDL)
+  void Destruct();      // destruction (for DStructGDL)
 
   BaseGDL* SetBuffer( const void* b);
   void SetBufferSize( SizeT s);
