@@ -128,9 +128,10 @@ void GDLGStream::NextPlot( bool erase )
   // set subpage numbers in X and Y
 //  plstream::ssub( nx, ny ); // ssub does not change charsize it seems
   ssub( nx, ny ); 
+  DLong pMod = (*pMulti)[0] % (nx*ny);
 
-  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
-    //  if( (*pMulti)[0] <= 0)
+//  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
+  if( pMod == 0 ) // clear and restart to first subpage
   {
     if( erase )
     {
@@ -144,7 +145,6 @@ void GDLGStream::NextPlot( bool erase )
   }
   else
   {
-    DLong pMod = (*pMulti)[0] % (nx*ny);
     if( dir == 0 )
     {
 //      plstream::adv(nx*ny - pMod + 1);
