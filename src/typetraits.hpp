@@ -25,6 +25,7 @@
 
 #include "basegdl.hpp"
 #include "dstructdesc.hpp"
+#include "gdlarray.hpp"
 
 // define type parameterization here
 struct SpDByte: public BaseGDL
@@ -35,9 +36,6 @@ struct SpDByte: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DByte Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -61,6 +59,9 @@ struct SpDByte: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DByte Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -75,9 +76,6 @@ struct SpDInt: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DInt Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -101,6 +99,9 @@ struct SpDInt: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DInt Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -115,9 +116,6 @@ struct SpDUInt: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DUInt Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -141,6 +139,9 @@ struct SpDUInt: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DUInt Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -155,9 +156,6 @@ struct SpDLong: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DLong Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -181,6 +179,9 @@ struct SpDLong: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DLong Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -195,9 +196,6 @@ struct SpDULong: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DULong Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -221,6 +219,9 @@ struct SpDULong: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DULong Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -235,9 +236,6 @@ struct SpDLong64: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DLong64 Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -261,6 +259,9 @@ struct SpDLong64: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DLong64 Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -275,9 +276,6 @@ struct SpDULong64: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DULong64 Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -301,6 +299,9 @@ struct SpDULong64: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DULong64 Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -315,9 +316,6 @@ struct SpDFloat: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DFloat Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -341,6 +339,9 @@ struct SpDFloat: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DFloat Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -355,9 +356,6 @@ struct SpDDouble: public BaseGDL
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
-
-  typedef DDouble Ty;
-  typedef GDLArray<Ty>    DataT;
 
   SizeT NBytes() const
   {
@@ -382,6 +380,9 @@ struct SpDDouble: public BaseGDL
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
 
+  typedef DDouble Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -397,17 +398,10 @@ struct SpDString: public BaseGDL
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef DString Ty;
-  typedef GDLArray<Ty>    DataT;
-
   SizeT NBytes() const
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-  static const DType    t;
-  static const std::string str; 
-  static const Ty       zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -421,6 +415,13 @@ struct SpDString: public BaseGDL
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;
+
+  typedef DString Ty;
+  typedef GDLArray<Ty,IS_POD>    DataT;
+
+  static const DType    t;
+  static const std::string str; 
+  static const Ty       zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -459,17 +460,10 @@ public:
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef char Ty;
-  typedef GDLArray<Ty> DataT;
-
   SizeT NBytes() const
   {
     return ( this->N_Elements() * desc->NBytes());
   }
-
-  static const DType  t;
-  static const std::string str; 
-  static const Ty     zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -484,6 +478,13 @@ public:
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = false;
+
+  typedef char Ty;
+  typedef GDLArray<Ty,true> DataT; // we are using char here
+
+  static const DType  t;
+  static const std::string str; 
+  static const Ty     zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -501,17 +502,10 @@ struct SpDPtr: public BaseGDL
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef DPtr Ty;
-  typedef GDLArray<Ty>    DataT;
-
   SizeT NBytes() const
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-  static const DType    t;
-  static const std::string str; 
-  static const Ty       zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -525,6 +519,13 @@ struct SpDPtr: public BaseGDL
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false; // due to ref counting
   static const bool IS_CONVERTABLE = false;
+
+  typedef DPtr Ty;
+  typedef GDLArray<Ty,true>    DataT; // on this level, DPtr is POD
+
+  static const DType    t;
+  static const std::string str; 
+  static const Ty       zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -542,17 +543,10 @@ struct SpDObj: public BaseGDL
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef DObj Ty;
-  typedef GDLArray<Ty>    DataT;
-
   SizeT NBytes() const
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-  static const DType    t;
-  static const std::string str; 
-  static const Ty       zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -566,6 +560,13 @@ struct SpDObj: public BaseGDL
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false; // due to ref counting
   static const bool IS_CONVERTABLE = false;
+
+  typedef DObj Ty;
+  typedef GDLArray<Ty, true>    DataT; // on this level, DObj is POD
+
+  static const DType    t;
+  static const std::string str; 
+  static const Ty       zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -582,17 +583,10 @@ struct SpDComplex: public BaseGDL
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef DComplex Ty;
-  typedef GDLArray<Ty>    DataT;
-
   SizeT NBytes() const
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-  static const DType  t;
-  static const std::string str; 
-  static const DComplex zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -607,6 +601,13 @@ struct SpDComplex: public BaseGDL
   static const bool IS_COMPLEX = true;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;
+
+  typedef DComplex Ty;
+  typedef GDLArray<Ty, TreatPODComplexAsPOD>    DataT; // ATTENTION: srictly complex is non-pod
+
+  static const DType  t;
+  static const std::string str; 
+  static const DComplex zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -623,17 +624,10 @@ struct SpDComplexDbl: public BaseGDL
   BaseGDL* GetInstance() const;
   BaseGDL* GetEmptyInstance() const;
 
-  typedef DComplexDbl Ty;
-  typedef GDLArray<Ty>    DataT;
-
   SizeT NBytes() const
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-  static const DType  t;
-  static const std::string str; 
-  static const DComplexDbl zero;
 
 //   static const bool IS_INTEGER;
 //   static const bool IS_SIGNED;
@@ -648,6 +642,13 @@ struct SpDComplexDbl: public BaseGDL
   static const bool IS_COMPLEX = true;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;
+
+  typedef DComplexDbl Ty;
+  typedef GDLArray<Ty, TreatPODComplexAsPOD>    DataT; // ATTENTION: srictly complex is non-pod
+
+  static const DType  t;
+  static const std::string str; 
+  static const DComplexDbl zero;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
