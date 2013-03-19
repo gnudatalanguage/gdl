@@ -85,7 +85,6 @@ void LibInit_ac()
   // a draft of "fast" matrix multiplication using exteranl Eigen Lib.
   const string matmulKey[]={"ATRANSPOSE","BTRANSPOSE","DEBUG","HELP","AVAILABLE","QUIET",KLISTEND};
   new DLibFun(lib::matmul_fun,string("MATMUL"),2,matmulKey);
-  new DLibFun(lib::matmulold_fun,string("MATMULOLD"),2,matmulKey);
 
 }
 

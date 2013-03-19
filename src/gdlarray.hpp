@@ -63,34 +63,30 @@ private:
 
 #ifdef GDLARRAY_CACHE
 #error "GDLARRAY_CACHE defined"
-	static SizeT cacheSize;
-	static Ty* cache;
-	static Ty* Cached( SizeT newSize);
+  static SizeT cacheSize;
+  static Ty* cache;
+  static Ty* Cached( SizeT newSize);
 #endif
-		
-	Ty*    buf;
-	SizeT sz;
-
-public:
-  	GDLArray() throw() : buf( NULL), sz( 0) {}
   
-#ifndef GDLARRAY_CACHE
+  Ty*   buf;
+  SizeT sz;
 
   Ty* New( SizeT s)
   {
 // better align all data, also POD    
-//     if( IsPOD)
-//     {
+// as compound types might benefit from it as well
 #ifdef USE_EIGEN 
     return Eigen::internal::aligned_new<Ty>( s);
 #else
     return new Ty[ s];
 #endif
-//     }
-//     else // non-pod
-//       return new Ty[ s];
   }
     
+public:
+  GDLArray() throw() : buf( NULL), sz( 0) {}
+  
+#ifndef GDLARRAY_CACHE
+
   ~GDLArray() throw()
   {
   if( IsPOD)
@@ -192,12 +188,20 @@ public:
 
 #endif // GDLARRAY_CACHE
   
-
-
-  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ sz( 1)
+  // scalar
+  explicit GDLArray( const T& s) throw() : sz( 1)
   { 
-    buf = InitScalar();
-    buf[0] = s;    
+    if( IsPOD)
+    {
+      buf = reinterpret_cast<Ty*>(scalarBuf);
+      buf[0] = s;    
+    }
+    else
+    {
+      Ty* b = reinterpret_cast<Ty*>(scalarBuf); 
+      new (&(b[ 0])) Ty( s);
+      buf = b;
+    }
   }
 
   T& operator[]( SizeT ix) throw()
@@ -217,16 +221,14 @@ public:
 // only used (indirect) by DStructGDL::DStructGDL(const DStructGDL& d_)
 void InitFrom( const GDLArray& right )
 {
+  assert( &right != this);
+  assert ( sz == right.size() );
   if( IsPOD)
   {
-    assert( &right != this);
-    assert ( sz == right.size() );
-    std::memcpy(buf,right.buf,sz*sizeof(T));
+    std::memcpy(buf,right.buf,sz*sizeof(Ty));
   }
   else
   {
-    assert( &right != this);
-    assert ( sz == right.size() );
     for ( SizeT i=0; i<sz; ++i )
 	buf[ i] = right.buf[ i];
   }    
@@ -234,25 +236,33 @@ void InitFrom( const GDLArray& right )
 
 GDLArray& operator= ( const GDLArray& right )
 {
-    assert( this != &right);
-    assert( sz == right.size());
+  assert( this != &right);
+  assert( sz == right.size());
+  if( IsPOD)
+  {
+    std::memcpy(buf,right.buf,sz*sizeof(Ty));
+  }
+  else
+  {
     for ( SizeT i=0; i<sz; ++i )
-	    buf[ i] = right.buf[ i];
+      buf[ i] = right.buf[ i];
     return *this;
+  }
 }
 
-//   GDLArray& operator+=( const GDLArray& right) throw()
-//   {
-//     for( SizeT i=0; i<sz; ++i)
-//       buf[ i] += right.buf[ i];
-//     return *this;
-//   }
-//   GDLArray& operator-=( const GDLArray& right) throw()
-//   {
-//     for( SizeT i=0; i<sz; ++i)
-//       buf[ i] -= right.buf[ i];
-//     return *this;
-//   }
+  GDLArray& operator+=( const GDLArray& right) throw()
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] += right.buf[ i];
+    return *this;
+  }
+  GDLArray& operator-=( const GDLArray& right) throw()
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] -= right.buf[ i];
+    return *this;
+  }
+
   GDLArray& operator+=( const T& right) throw()
   {
     for( SizeT i=0; i<sz; ++i)
@@ -286,25 +296,25 @@ GDLArray& operator= ( const GDLArray& right )
 
   void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string& name_) (dstructgdl.cpp)
   {
-	  assert ( sz == 0);
-	  if ( newSz > smallArraySize )
-	  {
-		  try
-		  {
-			  buf = New(newSz) /*new T[ newSz]*/;
-		  }
-		  catch ( std::bad_alloc& )
-		  {
-			  ThrowGDLException ( "Array requires more memory than available" );
-		  }
-	  }
-	  else
-	  {
-		  // default constructed instances have buf == NULL and size == 0
-		  // make sure buf is set corectly if such instances are resized
-		  buf = InitScalar();
-	  }
-	  sz = newSz;
+    assert ( sz == 0);
+    sz = newSz;
+    if ( sz > smallArraySize )
+    {
+      try
+      {
+	buf = New(sz) /*new T[ newSz]*/;
+      }
+      catch ( std::bad_alloc& )
+      {
+	ThrowGDLException ( "Array requires more memory than available" );
+      }
+    }
+    else
+    {
+      // default constructed instances have buf == NULL and size == 0
+      // make sure buf is set corectly if such instances are resized
+      buf = InitScalar();
+    }
   }
   
 }; // GDLArray
