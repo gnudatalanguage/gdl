@@ -55,6 +55,7 @@ struct SpDByte: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -95,6 +96,7 @@ struct SpDInt: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -135,6 +137,7 @@ struct SpDUInt: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -175,6 +178,7 @@ struct SpDLong: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -215,6 +219,7 @@ struct SpDULong: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -255,6 +260,7 @@ struct SpDLong64: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -295,6 +301,7 @@ struct SpDULong64: public BaseGDL
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -335,6 +342,7 @@ struct SpDFloat: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = true;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -376,6 +384,7 @@ struct SpDDouble: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = true;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = true;
   static const bool IS_CONVERTABLE = true;
@@ -412,6 +421,7 @@ struct SpDString: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;
@@ -475,6 +485,7 @@ public:
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = false;
@@ -516,6 +527,7 @@ struct SpDPtr: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false; // due to ref counting
   static const bool IS_CONVERTABLE = false;
@@ -557,6 +569,7 @@ struct SpDObj: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = false;
   static const bool IS_POD = false; // due to ref counting
   static const bool IS_CONVERTABLE = false;
@@ -598,6 +611,7 @@ struct SpDComplex: public BaseGDL
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = true;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;
@@ -636,9 +650,10 @@ struct SpDComplexDbl: public BaseGDL
 //   static const bool IS_POD;
 //   static const bool IS_CONVERTABLE;
 
-  static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
+  static const bool IS_INTEGER = false;
+  static const bool IS_FLOAT = false;
   static const bool IS_COMPLEX = true;
   static const bool IS_POD = false;
   static const bool IS_CONVERTABLE = true;

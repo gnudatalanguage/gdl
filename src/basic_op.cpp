@@ -58,11 +58,12 @@ Data_<Sp>* Data_<Sp>::NotOp()
   //  if( !nEl) throw GDLException("Variable is undefined.");  
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
+  {
 #pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = ~(*this)[i];
-    }  return this;
+    for( OMPInt i=0; i < nEl; ++i)
+      (*this)[i] = ~(*this)[i];
+  }  
+  return this;
 }
 // others
 template<>
@@ -124,19 +125,19 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::NotOp()
 }
 DStructGDL* DStructGDL::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 

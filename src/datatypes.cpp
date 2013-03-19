@@ -1793,8 +1793,7 @@ void Data_<Sp>::Clear()
 template< class Sp>
 void Data_<Sp>::Construct() 
 {
-  const bool isPOD = Sp::IS_POD; 
-  
+  const bool isPOD = Sp::IS_POD;   
   // do nothing for POD
   if( !isPOD)
   {

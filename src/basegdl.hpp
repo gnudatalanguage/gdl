@@ -71,11 +71,11 @@ enum DType {  // Object types (IDL type numbers)
   , GDL_LONGABI // arbitrary length int
   //, GDL_ULONGABI // arbitrary length unsigned int (pointless)
   
-  , GDL_QUAD // quad precision float (80 or 128bit)
-  , GDL_COMPLEXQD // Complex quad
+  , GDL_LDOUBLE // long double  precision float (80 or 128bit)
+  , GDL_COMPLEXLDBL // Complex long double
 
   , GDL_ARBITRARY // arbitrary precision float
-  , GDL_COMPLEXAR // Complex arbitrary
+  , GDL_COMPLEXABI // Complex arbitrary
 
   , GDL_RATIONAL // arbitrary length rational
   , GDL_COMPLEXRAT // Complex arbitrary length rational

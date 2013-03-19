@@ -115,14 +115,14 @@ protected:
   // N=size(key)
   // K=size(var)-nPar-N
   IDList              key;    // keyword names (IDList: typedefs.hpp)
-                              // (KEYWORD_NAME=keyword_value)
+			      // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
   ExtraType           extra;
   int                 extraIx; // index of extra keyword
 
-  IDList  warnKey;    // keyword names to accept but warn
+  IDList              warnKey;    // keyword names to accept but warn
   // (IDList: typedefs.hpp)
 
 public:

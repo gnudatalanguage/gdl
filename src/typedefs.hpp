@@ -130,8 +130,11 @@ typedef unsigned long long int DULong64;
 typedef __int128               DLong128;
 typedef unsigned __int128      DULong128;
 
-typedef mpfr::mpreal               DArbitrary;
-typedef std::complex<DArbitrary>   DComplexAbi;
+typedef long double            DLDouble;
+typedef std::complex<DLDouble> DComplexLDbl;
+
+
+typedef mpfr::mpreal           DArbitrary;
 #endif
 
 
@@ -146,7 +149,6 @@ typedef SizeT                  DPtr; // ptr to heap
 typedef DPtr                   DObj; // ptr to object heap
 typedef std::complex<DFloat>   DComplex;
 typedef std::complex<DDouble>  DComplexDbl;
-
 
 // list of identifiers (used in several places)
 typedef std::deque<std::string>       IDList;
