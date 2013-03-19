@@ -45,7 +45,7 @@ private:
   char scalarBuf[ smallArraySize * sizeof(Ty)];
 #endif
   
-  Ty* Scalar()
+  Ty* InitScalar()
   {
     assert( sz <= smallArraySize);
     if( IsPOD)
@@ -96,21 +96,29 @@ public:
   if( IsPOD)
     {
 #ifdef USE_EIGEN  
-    if( buf != Scalar()) 
+    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
 	Eigen::internal::aligned_delete( buf, sz);
 #else
-    if( buf != Scalar()) 
+    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
 	delete[] buf; // buf == NULL also possible
 #endif
     // no cleanup of "buf" here
     }
   else
     {
+#ifdef USE_EIGEN  
     if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
-      delete[] buf; // buf == NULL also possible
+	Eigen::internal::aligned_delete( buf, sz);
     else
       for( int i = 0; i<sz; ++i) 
 	buf[i].~Ty();
+#else
+    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
+	delete[] buf; // buf == NULL also possible
+    else
+      for( int i = 0; i<sz; ++i) 
+	buf[i].~Ty();
+#endif
     }
   }
 
@@ -119,7 +127,7 @@ public:
     if( IsPOD)
     {
     try {
-	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : Scalar();
+	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 
     std::memcpy(buf,cp.buf,sz*sizeof(T));
@@ -127,7 +135,7 @@ public:
     else
     {
       try {
-	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : Scalar();
+	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
      for( SizeT i=0; i<sz; ++i)
        buf[ i] = cp.buf[ i];
@@ -137,14 +145,14 @@ public:
   GDLArray( SizeT s, bool dummy) : sz( s)
   {
     try {
-      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : Scalar();
+      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
   }
   
   GDLArray( T val, SizeT s) : sz( s)
   {
     try {
-	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : Scalar();
+	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 
     for( SizeT i=0; i<sz; ++i)
@@ -157,7 +165,7 @@ public:
     {
       try
       {
-	      buf = ( s > smallArraySize ) ? New(s) /*T[ s]*/: Scalar();
+	      buf = ( s > smallArraySize ) ? New(s) /*T[ s]*/: InitScalar();
       }
       catch ( std::bad_alloc& ) { ThrowGDLException ( "Array requires more memory than available" ); }
 
@@ -166,7 +174,7 @@ public:
     else
     {    
       try {
-	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: Scalar();
+	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
       for( SizeT i=0; i<sz; ++i)
 	buf[ i] = arr[ i];
@@ -188,7 +196,7 @@ public:
 
   explicit GDLArray( const T& s) throw() : /*scalar( s),*/ sz( 1)
   { 
-    buf = Scalar();
+    buf = InitScalar();
     buf[0] = s;    
   }
 
@@ -276,29 +284,28 @@ GDLArray& operator= ( const GDLArray& right )
     return sz;
   }
 
-void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string& name_) (dstructgdl.cpp)
-{
-	assert ( sz == 0);
-	if ( newSz > smallArraySize )
-	{
-		try
-		{
-			buf = New(newSz) /*new T[ newSz]*/;
-		}
-		catch ( std::bad_alloc& )
-		{
-			ThrowGDLException ( "Array requires more memory than available" );
-		}
-	}
-	else
-	{
-		// default constructed instances have buf == NULL and size == 0
-		// make sure buf is set corectly if such instances are resized
-		buf = Scalar();
-	}
-	sz = newSz;
-}
-
+  void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string& name_) (dstructgdl.cpp)
+  {
+	  assert ( sz == 0);
+	  if ( newSz > smallArraySize )
+	  {
+		  try
+		  {
+			  buf = New(newSz) /*new T[ newSz]*/;
+		  }
+		  catch ( std::bad_alloc& )
+		  {
+			  ThrowGDLException ( "Array requires more memory than available" );
+		  }
+	  }
+	  else
+	  {
+		  // default constructed instances have buf == NULL and size == 0
+		  // make sure buf is set corectly if such instances are resized
+		  buf = InitScalar();
+	  }
+	  sz = newSz;
+  }
   
 }; // GDLArray
 
