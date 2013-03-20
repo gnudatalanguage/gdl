@@ -733,7 +733,45 @@ namespace lib {
     }
   }
 
+// see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
+#ifdef PL_HAVE_QHULL
+  void triangulate ( EnvT* e)
+  {
+    DDoubleGDL *yVal, *xVal;
+    int npts;
+    SizeT nParam=e->NParam();
+    if( nParam < 3)
+    {
+      e->Throw("Incorrect number of arguments.");
+    }
+    yVal = e->GetParAs< DDoubleGDL > (0);
+    if (yVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+    npts=yVal->N_Elements();
+    xVal = e->GetParAs< DDoubleGDL > (1);
+    if (xVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+    if (xVal->N_Elements()!=npts) e->Throw("X & Y arrays must have same number of points.");
+    e->Throw("Writing in progress.");
+  }
+  void qhull ( EnvT* e)
+  {
+    e->Throw("Writing in progress.");
+  }
 
+  void grid_input (EnvT* e)
+  {
+    e->Throw("Writing in progress.");
+  }
+
+  BaseGDL* qgrid3_fun ( EnvT* e)
+  {
+    e->Throw("Writing in progress.");
+  }
+  BaseGDL* sph_scat_fun ( EnvT* e)
+  {
+    e->Throw("Writing in progress.");
+  }
+
+#endif
   BaseGDL* trigrid_fun( EnvT* e)
   {
     //   Compute plane parameters A,B,C given 3 points on plane.
