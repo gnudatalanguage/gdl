@@ -4956,6 +4956,7 @@ BaseGDL* transpose( EnvT* e)
     DLong topL=255;
     if( e->GetKW( topIx) != NULL)
       e->AssureLongScalarKW( topIx, topL);
+    if (topL > 255) topL=255; // Bug corrected!
     DByte top = static_cast<DByte>(topL);
     DDouble dTop = static_cast<DDouble>(top);
 
@@ -5012,7 +5013,7 @@ BaseGDL* transpose( EnvT* e)
           // SA (?): here floor is used (instead of round) to simulate IDL behaviour
           else (*dRes)[ i] = floor((d - min) / (max-min) * (dTop + .9999));
         }
-      }
+    }
 
     return dRes->Convert2( GDL_BYTE);
   } 
