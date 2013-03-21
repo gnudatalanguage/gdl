@@ -923,3 +923,523 @@ BaseGDL* DStructGDL::Get( SizeT tag)
   return aD.ADResolve();
 }
 
+// basic_op_add.cpp
+DStructGDL* DStructGDL::Add( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+// basic_op_sub.cpp
+DStructGDL* DStructGDL::Sub( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::SubInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::SubS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::SubInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+// datatypes.cpp
+int DStructGDL::Scalar2index( SizeT& st) const
+{
+  throw GDLException("STRUCT expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+int DStructGDL::Scalar2RangeT( RangeT& st) const
+{
+  throw GDLException("STRUCT expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+RangeT DStructGDL::LoopIndex() const
+{
+  throw GDLException("STRUCT expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+int DStructGDL::Sgn() // -1,0,1
+{
+  throw GDLException("Struct expression not allowed in this context.");
+  return 0;
+} 
+
+bool DStructGDL::EqualNoDelete( const BaseGDL* r) const
+{
+  throw GDLException("Struct expression not allowed in this context.");
+  return false;
+}
+
+void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
+			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			 SizeT start, SizeT stop, SizeT step, DLong valIx)
+{
+  throw GDLException("Struct expression not allowed in this context.");
+}
+
+
+// basic_op_mult.cpp
+DStructGDL* DStructGDL::Mult( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::MultS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+// basic_op_div.cpp
+DStructGDL* DStructGDL::Div( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::DivInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::DivS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::DivInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+// basic_op_new.cpp
+DStructGDL* DStructGDL::AndOpNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::AndOpInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::AndOpSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::AndOpInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::OrOpNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::OrOpInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+
+DStructGDL* DStructGDL::OrOpSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::OrOpInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::XorOpNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::XorOpSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::AddNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::AddInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::AddSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::AddInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::SubNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::SubInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::SubSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::SubInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::LtMarkNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::LtMarkSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+
+DStructGDL* DStructGDL::GtMarkNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::GtMarkSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+
+DStructGDL* DStructGDL::MultNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+
+DStructGDL* DStructGDL::MultSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::DivNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::DivInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::DivSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::DivInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::ModNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::ModInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::ModSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::ModInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::PowIntNew( BaseGDL* r)
+{
+  assert( 0);
+  throw GDLException("Internal error: DStructGDL::PowIntNew called.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::PowNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::PowInvNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::PowSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+DStructGDL* DStructGDL::PowInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+
+// basic_op.cpp
+DStructGDL* DStructGDL::NotOp()
+{
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
+  return this;
+}
+
+BaseGDL* DStructGDL::UMinus()
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+BaseGDL* DStructGDL::EqOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+BaseGDL* DStructGDL::NeOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+BaseGDL* DStructGDL::LeOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+BaseGDL* DStructGDL::LtOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+BaseGDL* DStructGDL::GeOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+BaseGDL* DStructGDL::GtOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::MatrixOp( BaseGDL* r, bool t, bool tr, bool s)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return NULL;
+}
+
+DStructGDL* DStructGDL::AndOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+DStructGDL* DStructGDL::AndOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AndOpInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+DStructGDL* DStructGDL::OrOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::OrOpInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+DStructGDL* DStructGDL::OrOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::OrOpInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+
+DStructGDL* DStructGDL::XorOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+
+
+DStructGDL* DStructGDL::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+DStructGDL* DStructGDL::LtMark( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+DStructGDL* DStructGDL::LtMarkS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+DStructGDL* DStructGDL::GtMark( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+DStructGDL* DStructGDL::GtMarkS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+DStructGDL* DStructGDL::Mod( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::ModInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+DStructGDL* DStructGDL::ModS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::ModInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+DStructGDL* DStructGDL::PowInt( BaseGDL* r)
+{
+  assert( 0);
+  return this;
+}
+
+DStructGDL* DStructGDL::PowS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::PowInvS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::Pow( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::PowInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+
+
+
+

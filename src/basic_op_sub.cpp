@@ -114,16 +114,6 @@ BaseGDL* Data_<Sp>::SubInv( BaseGDL* r)
   
 }
 // invalid types
-DStructGDL* DStructGDL::Sub( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::SubInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 BaseGDL* Data_<SpDString>::Sub( BaseGDL* r)
 {
@@ -408,16 +398,6 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
   
 }
 // invalid types
-DStructGDL* DStructGDL::SubS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::SubInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::SubS( BaseGDL* r)
 {

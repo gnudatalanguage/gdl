@@ -72,11 +72,6 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   
 }
 // invalid types
-DStructGDL* DStructGDL::Mult( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::Mult( BaseGDL* r)
 {
@@ -129,11 +124,6 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   
 }
 // invalid types
-DStructGDL* DStructGDL::MultS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::MultS( BaseGDL* r)
 {

@@ -1793,6 +1793,9 @@ void Data_<Sp>::Clear()
 template< class Sp>
 void Data_<Sp>::Construct() 
 {
+  // note that this is not possible in cases where an operation 
+  // (here: 'new' which is ok) isn't defined for any POD
+  // (although this code never executes and should be optimized away anyway)
   const bool isPOD = Sp::IS_POD;   
   // do nothing for POD
   if( !isPOD)
@@ -1988,7 +1991,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
       /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 	#pragma omp for*/
-      for( int i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       //}
       return res;
     }
@@ -2213,16 +2216,6 @@ int Data_<SpDString>::Scalar2RangeT( RangeT& st) const
   return 1;
 }
 
-int DStructGDL::Scalar2index( SizeT& st) const
-{
-  throw GDLException("STRUCT expression not allowed in this context.");
-  return 0; // get rid of warning
-}
-int DStructGDL::Scalar2RangeT( RangeT& st) const
-{
-  throw GDLException("STRUCT expression not allowed in this context.");
-  return 0; // get rid of warning
-}
 
 template<> 
 int Data_<SpDPtr>::Scalar2index( SizeT& st) const
@@ -2320,11 +2313,6 @@ RangeT Data_<SpDString>::LoopIndex() const
       return 0;
     }
   return ix;
-}
-RangeT DStructGDL::LoopIndex() const
-{
-  throw GDLException("STRUCT expression not allowed in this context.");
-  return 0; // get rid of warning
 }
 
 template<> 
@@ -2508,12 +2496,6 @@ int Data_<SpDComplexDbl>::Sgn() // -1,0,1
   return 0;
 } 
 
-int DStructGDL::Sgn() // -1,0,1
-{
-  throw GDLException("Struct expression not allowed in this context.");
-  return 0;
-} 
-
 template<>
 int Data_<SpDPtr>::Sgn() // -1,0,1
 {
@@ -2604,12 +2586,6 @@ bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
 bool DStructGDL::Equal( BaseGDL* r) const
 {
   GDLDelete(r);
-  throw GDLException("Struct expression not allowed in this context.");
-  return false;
-}
-
-bool DStructGDL::EqualNoDelete( const BaseGDL* r) const
-{
   throw GDLException("Struct expression not allowed in this context.");
   return false;
 }
@@ -4588,12 +4564,6 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 
 }
 
-void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
-			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
-			 SizeT start, SizeT stop, SizeT step, DLong valIx)
-{
-  throw GDLException("Struct expression not allowed in this context.");
-}
 
 template<>
 BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 

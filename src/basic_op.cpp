@@ -108,7 +108,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
 template<>
 Data_<SpDString>* Data_<SpDString>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
@@ -119,11 +119,6 @@ Data_<SpDComplex>* Data_<SpDComplex>::NotOp()
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::NotOp()
-{
-  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::NotOp()
 {
   throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
@@ -172,11 +167,6 @@ BaseGDL* Data_<SpDString>::UMinus()
   Data_<SpDFloat>* newThis=static_cast<Data_<SpDFloat>*>(this->Convert2( GDL_FLOAT));
   //  this is deleted by convert2!!! 
   return static_cast<BaseGDL*>( newThis->UMinus());
-}
-BaseGDL* DStructGDL::UMinus()
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
 }
 template<>
 BaseGDL* Data_<SpDPtr>::UMinus()
@@ -780,11 +770,6 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
   return res;
 }
 // invalid types
-BaseGDL* DStructGDL::EqOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 // template<>
 // Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r)
 // {
@@ -1031,11 +1016,6 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 }
 
 // invalid types
-BaseGDL* DStructGDL::NeOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 // template<>
 // Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r)
 // {
@@ -1125,11 +1105,6 @@ BaseGDL* Data_<Sp>::LeOp( BaseGDL* r)
   return res;
 }
 // invalid types
-BaseGDL* DStructGDL::LeOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 template<>
 BaseGDL* Data_<SpDPtr>::LeOp( BaseGDL* r)
 {
@@ -1231,11 +1206,6 @@ BaseGDL* Data_<Sp>::LtOp( BaseGDL* r)
   return res;
 }
 // invalid types
-BaseGDL* DStructGDL::LtOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 template<>
 BaseGDL* Data_<SpDPtr>::LtOp( BaseGDL* r)
 {
@@ -1337,11 +1307,6 @@ BaseGDL* Data_<Sp>::GeOp( BaseGDL* r)
   return res;
 }
 // invalid types
-BaseGDL* DStructGDL::GeOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 template<>
 BaseGDL* Data_<SpDPtr>::GeOp( BaseGDL* r)
 {
@@ -1443,11 +1408,6 @@ BaseGDL* Data_<Sp>::GtOp( BaseGDL* r)
   return res;
 }
 // invalid types
-BaseGDL* DStructGDL::GtOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 template<>
 BaseGDL* Data_<SpDPtr>::GtOp( BaseGDL* r)
 {
@@ -1707,11 +1667,6 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 
 
 // invalid types
-DStructGDL* DStructGDL::MatrixOp( BaseGDL* r, bool t, bool tr, bool s)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return NULL;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
 {
@@ -1865,22 +1820,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::AndOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-// template<>
-// DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
-// {
-//  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-//  return this;
-// }
 template<>
 Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r)
 {
@@ -2076,22 +2015,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::AndOpS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::AndOpInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-// template<>
-// DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
-// {
-//  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-//  return this;
-// }
 template<>
 Data_<SpDString>* Data_<SpDString>::AndOpS( BaseGDL* r)
 {
@@ -2264,16 +2187,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::OrOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::OrOpInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::OrOp( BaseGDL* r)
 {
@@ -2441,16 +2354,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::OrOpS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::OrOpInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::OrOpS( BaseGDL* r)
 {
@@ -2540,11 +2443,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::XorOp( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype DOUBLE.",true,false);  
   return this;
 }
-DStructGDL* DStructGDL::XorOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::XorOp( BaseGDL* r)
 {
@@ -2615,11 +2513,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::XorOpS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::XorOpS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::XorOpS( BaseGDL* r)
 {
@@ -2679,11 +2572,6 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::LtMark( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMark( BaseGDL* r)
 {
@@ -2738,11 +2626,6 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::LtMarkS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMarkS( BaseGDL* r)
 {
@@ -2801,11 +2684,6 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::GtMark( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::GtMark( BaseGDL* r)
 {
@@ -2861,11 +2739,6 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::GtMarkS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::GtMarkS( BaseGDL* r)
 {
@@ -3083,16 +2956,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::Mod( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::ModInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::Mod( BaseGDL* r)
 {
@@ -3336,16 +3199,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::ModS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::ModInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::ModS( BaseGDL* r)
 
@@ -3508,11 +3361,6 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
 // PowInt and PowIntNew can only be called for GDL_FLOAT and GDL_DOUBLE
 template<class Sp>
 Data_<Sp>* Data_<Sp>::PowInt( BaseGDL* r)
-{
-  assert( 0);
-  return this;
-}
-DStructGDL* DStructGDL::PowInt( BaseGDL* r)
 {
   assert( 0);
   return this;
@@ -4096,16 +3944,6 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::Pow( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::PowInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::Pow( BaseGDL* r)
 {
@@ -4464,7 +4302,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 
       DDouble s;
 
-      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // note: changes here have to be reflected in POWNCNode::Eval() (prognodeexpr.cpp)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
@@ -4636,16 +4474,6 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
   return this;
 }
 // invalid types
-DStructGDL* DStructGDL::PowS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::PowInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::PowS( BaseGDL* r)
 {

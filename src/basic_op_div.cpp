@@ -125,16 +125,6 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
     }
 }
 // invalid types
-DStructGDL* DStructGDL::Div( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::DivInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::Div( BaseGDL* r)
 {
@@ -260,16 +250,6 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
     }
 }
 // invalid types
-DStructGDL* DStructGDL::DivS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::DivInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDString>* Data_<SpDString>::DivS( BaseGDL* r)
 {
