@@ -28,7 +28,7 @@ namespace lib
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     bool xLog, yLog, zLog;
     DDoubleGDL *zVal, *yVal, *xVal;
-    auto_ptr<BaseGDL> xval_guard, yval_guard;
+    Guard<BaseGDL> xval_guard, yval_guard;
     SizeT xEl, yEl, zEl;
 
   private:
@@ -40,9 +40,9 @@ namespace lib
         e->Throw("Incorrect number of arguments.");
 
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL);
-      auto_ptr<BaseGDL> p0_guard;
+      Guard<BaseGDL> p0_guard;
       zVal=static_cast<DDoubleGDL*>(p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      p0_guard.reset(p0); // delete upon exit
+      p0_guard.Reset(p0); // delete upon exit
 
       if ( zVal->Dim(0)==1 )
         e->Throw("Array must have 2 dimensions:"+e->GetParString(0));
@@ -52,9 +52,9 @@ namespace lib
       if ( nParam()==1 )
       {
         xVal=new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
-        xval_guard.reset(xVal); // delete upon exit
+        xval_guard.Reset(xVal); // delete upon exit
         yVal=new DDoubleGDL(dimension(yEl), BaseGDL::INDGEN);
-        yval_guard.reset(yVal); // delete upon exit
+        yval_guard.Reset(yVal); // delete upon exit
       }
 
       if ( nParam()==3 )
@@ -150,10 +150,10 @@ namespace lib
         if ( xMargin->N_Elements()>2 )
           e->Throw("Keyword array parameter XMARGIN"
                    " must have from 1 to 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* xMarginFl=static_cast<DFloatGDL*>
         (xMargin->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(xMarginFl);
+        guard.Reset(xMarginFl);
         xMarginL=(*xMarginFl)[0];
         if ( xMarginFl->N_Elements()>1 )
           xMarginR=(*xMarginFl)[1];
@@ -163,10 +163,10 @@ namespace lib
         if ( yMargin->N_Elements()>2 )
           e->Throw("Keyword array parameter YMARGIN"
                    " must have from 1 to 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* yMarginFl=static_cast<DFloatGDL*>
         (yMargin->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(yMarginFl);
+        guard.Reset(yMarginFl);
         yMarginB=(*yMarginFl)[0];
         if ( yMarginFl->N_Elements()>1 )
           yMarginF=(*yMarginFl)[1];
@@ -176,10 +176,10 @@ namespace lib
         if ( zMargin->N_Elements()>2 )
           e->Throw("Keyword array parameter ZMARGIN"
                    " must have from 1 to 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* zMarginFl=static_cast<DFloatGDL*>
         (zMargin->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(zMarginFl);
+        guard.Reset(zMarginFl);
         zMarginB=(*zMarginFl)[0];
         if ( zMarginFl->N_Elements()>1 )
           zMarginT=(*zMarginFl)[1];
@@ -222,10 +222,10 @@ namespace lib
         if ( xRange->N_Elements()!=2 )
           e->Throw("Keyword array parameter XRANGE"
                    " must have 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* xRangeF=static_cast<DFloatGDL*>
         (xRange->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(xRangeF);
+        guard.Reset(xRangeF);
         xStart=(*xRangeF)[0];
         xEnd=(*xRangeF)[1];
       }
@@ -235,10 +235,10 @@ namespace lib
         if ( yRange->N_Elements()!=2 )
           e->Throw("Keyword array parameter YRANGE"
                    " must have 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* yRangeF=static_cast<DFloatGDL*>
         (yRange->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(yRangeF);
+        guard.Reset(yRangeF);
         yStart=(*yRangeF)[0];
         yEnd=(*yRangeF)[1];
       }
@@ -247,10 +247,10 @@ namespace lib
         if ( zRange->N_Elements()!=2 )
           e->Throw("Keyword array parameter ZRANGE"
                    " must have 2 elements.");
-        auto_ptr<DFloatGDL> guard;
+        Guard<DFloatGDL> guard;
         DFloatGDL* zRangeF=static_cast<DFloatGDL*>
         (zRange->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        guard.reset(zRangeF);
+        guard.Reset(zRangeF);
         zStart=(*zRangeF)[0];
         zEnd=(*zRangeF)[1];
       }

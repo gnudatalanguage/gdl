@@ -778,7 +778,7 @@ public:
   BaseGDL* OverloadIndexNew( BaseGDL* s_) 
   {
     Init( s_);
-    DLong arr[3] = {sInit,-1,1};
+    DLong arr[3] = {static_cast<DLong>(sInit),-1,1};
     return new DLongGDL( arr, 3);
   }
   
@@ -848,7 +848,7 @@ public:
 
   BaseGDL* OverloadIndexNew()
   {
-    DLong arr[3] = {sInit,-1,1};
+    DLong arr[3] = {static_cast<DLong>(sInit),-1,1};
     return new DLongGDL( arr, 3);
   }
 
@@ -888,7 +888,7 @@ public:
   BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* e_) 
   {
     Init( s_, e_);
-    DLong arr[3] = {sInit,eInit,1};
+    DLong arr[3] = {static_cast<DLong>(sInit),static_cast<DLong>(eInit),1};
     return new DLongGDL( arr, 3);
   }
 
@@ -983,7 +983,7 @@ public:
 
   BaseGDL* OverloadIndexNew()
   {
-    DLong arr[3] = {sInit,eInit,1};
+    DLong arr[3] = {static_cast<DLong>(sInit),static_cast<DLong>(eInit),1};
     return new DLongGDL( arr, 3);
   }
 
@@ -1026,7 +1026,7 @@ public:
   BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* stride_) 
   {
     Init( s_, stride_);
-    DLong arr[3] = {sInit,-1,stride};
+    DLong arr[3] = {static_cast<DLong>(sInit),-1,static_cast<DLong>(stride)};
     return new DLongGDL( arr, 3);
   }
 
@@ -1114,7 +1114,7 @@ public:
 
   BaseGDL* OverloadIndexNew()
   {
-    DLong arr[3] = {sInit,-1,stride};
+    DLong arr[3] = {static_cast<DLong>(sInit),-1,static_cast<DLong>(stride)};
     return new DLongGDL( arr, 3);
   }
 
@@ -1166,7 +1166,7 @@ public:
   BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* e_, BaseGDL* stride_)
   {
     Init( s_, e_, stride_);
-    DLong arr[3] = {sInit,eInit,stride};
+    DLong arr[3] = {static_cast<DLong>(sInit),static_cast<DLong>(eInit),static_cast<DLong>(stride)};
     return new DLongGDL( arr, 3);
   }
 
@@ -1281,7 +1281,7 @@ public:
 
   BaseGDL* OverloadIndexNew()
   {
-    DLong arr[3] = {sInit,eInit,stride};
+    DLong arr[3] = {static_cast<DLong>(sInit),static_cast<DLong>(eInit),static_cast<DLong>(stride)};
     return new DLongGDL( arr, 3);
   }
 

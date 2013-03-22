@@ -1313,7 +1313,7 @@ l_deref returns [BaseGDL** res]
 
     assert( actEnv != NULL);
 
-    auto_ptr<BaseGDL> e1_guard;
+    Guard<BaseGDL> e1_guard;
     BaseGDL* e1;
     ProgNodeP evalExpr = _t->getFirstChild();
     if( NonCopyNode( evalExpr->getType()))
@@ -1330,7 +1330,7 @@ l_deref returns [BaseGDL** res]
             if( !callStack.back()->Contains( e1)) 
                 {
                     //                if( actEnv != NULL)
-                    actEnv->Guard( e1); 
+                    actEnv->DeleteAtExit( e1); 
                     //                else
                     //                    e1_guard.reset( e1);
                 }
@@ -1340,7 +1340,7 @@ l_deref returns [BaseGDL** res]
             e1 = evalExpr->Eval();
 
             //      if( actEnv != NULL)
-            actEnv->Guard( e1); 
+            actEnv->DeleteAtExit( e1); 
             //      else
             //          e1_guard.reset(e1);
         }
@@ -1384,7 +1384,7 @@ l_ret_expr returns [BaseGDL** res]
     : res=l_deref
     | #(QUESTION e1=expr
             { 
-                auto_ptr<BaseGDL> e1_guard(e1);
+                Guard<BaseGDL> e1_guard(e1);
                 if( e1->True())
                 {
                     res=l_ret_expr(_t);
@@ -1421,16 +1421,16 @@ l_ret_expr returns [BaseGDL** res]
     | // here ASSIGN and ASSIGN_REPLACE are identical
       #(ASSIGN // can it occur at all?
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
             ( e1=tmp_expr
                 {
-                    r_guard.reset( e1);
+                    r_guard.Init( e1);
                 }
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.Init( e1);
                 }
             )
             res=l_ret_expr
@@ -1445,16 +1445,16 @@ l_ret_expr returns [BaseGDL** res]
         )
     | #(ASSIGN_ARRAYEXPR_MFCALL // here as return value of l_function
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
             ( e1=tmp_expr
                 {
-                    r_guard.reset( e1);
+                    r_guard.Init( e1);
                 }
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.Init( e1);
                 }
             )
             res=l_arrayexpr_mfcall_as_mfcall
@@ -1469,16 +1469,16 @@ l_ret_expr returns [BaseGDL** res]
         )
     | #(ASSIGN_REPLACE 
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
             ( e1=tmp_expr
                 {
-                    r_guard.reset( e1);
+                    r_guard.Init( e1);
                 }
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.Init( e1);
                 }
             )
             res=l_ret_expr
@@ -1621,31 +1621,31 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
     : #(dot:DOT 
             { 
                 SizeT nDot=dot->nDot;
-                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+                Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
             } 
-            l_dot_array_expr[ aD.get()] 
-            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
+            l_dot_array_expr[ aD.Get()] 
+            (tag_array_expr[ aD.Get()] /* nDot times*/ )+ 
         )         
         {
             if( dec_inc == DECSTATEMENT) 
             {
-                aD->Dec(); 
+                aD.Get()->Dec(); 
                 res = NULL;
             }
             else if( dec_inc == INCSTATEMENT)
             {
-                aD->Inc();
+                aD.Get()->Inc();
                 res = NULL;
             }
             else
             {
-                if( dec_inc == DEC) aD->Dec(); //*** aD->Assign( dec_inc);
-                else if( dec_inc == INC) aD->Inc();
+                if( dec_inc == DEC) aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+                else if( dec_inc == INC) aD.Get()->Inc();
 //                
-                res=aD->ADResolve();
+                res=aD.Get()->ADResolve();
                 
-                if( dec_inc == POSTDEC) aD->Dec();
-                else if( dec_inc == POSTINC) aD->Inc();
+                if( dec_inc == POSTDEC) aD.Get()->Dec();
+                else if( dec_inc == POSTINC) aD.Get()->Inc();
             }
         }
     ;
@@ -1658,7 +1658,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 }
     : #(QUESTION e1=expr
             { 
-                auto_ptr<BaseGDL> e1_guard(e1);
+                Guard<BaseGDL> e1_guard(e1);
 
                 if( e1->True())
                 {
@@ -1673,7 +1673,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         ) // trinary operator
     | #(ASSIGN 
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
 //             ( e1=tmp_expr
 //                 {
@@ -1686,11 +1686,11 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 //                 }
 //             )
             ( e1=indexable_expr
-            | e1=indexable_tmp_expr { r_guard.reset( e1);}
+            | e1=indexable_tmp_expr { r_guard.Init( e1);}
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1); // guard if no global data
+                        r_guard.Init( e1); // guard if no global data
                 }
             )
             { 
@@ -1706,14 +1706,14 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         )
     | #(ASSIGN_ARRAYEXPR_MFCALL
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
             ( e1=indexable_expr
-            | e1=indexable_tmp_expr { r_guard.reset( e1);}
+            | e1=indexable_tmp_expr { r_guard.Init( e1);}
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1); // guard if no global data
+                        r_guard.Init( e1); // guard if no global data
                 }
             )
             { 
@@ -1731,7 +1731,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                     {
                         delete *tmp;
 
-                        if( r_guard.get() == e1)
+                        if( r_guard.Get() == e1)
                             *tmp = r_guard.release();
                         else          
                             *tmp = e1->Dup();
@@ -1757,16 +1757,16 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         )
     | #(ASSIGN_REPLACE 
             { 
-                auto_ptr<BaseGDL> r_guard;
+                Guard<BaseGDL> r_guard;
             } 
             ( e1=tmp_expr
                 {
-                    r_guard.reset( e1);
+                    r_guard.Init( e1);
                 }
             | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.Init( e1);
                 }
             )
             { 
@@ -1785,7 +1785,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             {
                 delete *tmp;
 
-                if( r_guard.get() == e1)
+                if( r_guard.Get() == e1)
                   *tmp = r_guard.release();
                 else  
                   *tmp = e1->Dup();
@@ -1807,7 +1807,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         //BaseGDL** e = l_arrayexpr_mfcall_as_mfcall( _t);
         self=expr mp2:IDENTIFIER
         {  
-                auto_ptr<BaseGDL> self_guard(self);
+                Guard<BaseGDL> self_guard(self);
         
                 EnvUDT* newEnv;
 
@@ -1971,7 +1971,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
   //     _t = _t->getFirstChild();
   //     e1=expr(_t);
   //     _t = _retTree;
-  //     auto_ptr<BaseGDL> e1_guard(e1);
+  //     Guard<BaseGDL> e1_guard(e1);
   //     if( e1->True())
   //     {
   //         res=l_expr(_t, right);
@@ -2020,7 +2020,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
   //     res=l_sys_var(_t);
   //     // _t = _retTree; // ok
       
-  //     auto_ptr<BaseGDL> conv_guard; //( rConv);
+  //     Guard<BaseGDL> conv_guard; //( rConv);
   //     BaseGDL* rConv = right;
   //     if( !(*res)->EqType( right))
   //     {
@@ -2078,7 +2078,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
   //       _t = _t->getFirstChild();
         
   //       SizeT nDot = tIn->nDot;
-  //       auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+  //       Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
         
   //       l_dot_array_expr(_t, aD.get());
   //       _t = _retTree;
@@ -2556,7 +2556,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 		_t = _t->getFirstChild();
 		e=expr(_t);
 		
-		auto_ptr<BaseGDL> e_guard(e);
+		Guard<BaseGDL> e_guard(e);
 		
 		SizeT tagIx;
 		int ret=e->Scalar2index(tagIx);
@@ -2581,7 +2581,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 }
     : #(EXPR e=expr
             // {
-            //     auto_ptr<BaseGDL> e_guard(e);
+            //     Guard<BaseGDL> e_guard(e);
                 
             //     SizeT tagIx;
             //     int ret=e->Scalar2index(tagIx);
@@ -3106,7 +3106,7 @@ l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
         self=expr mp2:IDENTIFIER
 
         {  
-            auto_ptr<BaseGDL> self_guard(self);
+            Guard<BaseGDL> self_guard(self);
         
             try {
                 newEnv=new EnvUDT( self, mp2, "", true);
@@ -3137,10 +3137,10 @@ l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
         #(dot:DOT  // struct assignment
             { 
                 SizeT nDot=dot->nDot;
-                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+                Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
             } 
-            l_dot_array_expr[ aD.get()] 
-            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
+            l_dot_array_expr[ aD.Get()] 
+            (tag_array_expr[ aD.Get()] /* nDot times*/ )+ 
         )
         {
             if( right == NULL)
@@ -3148,7 +3148,7 @@ l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
                                 "Struct expression not allowed in this context.",
                                 true,false);
             
-            aD->ADAssign( right);
+            aD.Get()->ADAssign( right);
 
             res=NULL;
 
@@ -3164,10 +3164,10 @@ l_arrayexpr_mfcall_as_arrayexpr [BaseGDL* right] returns [BaseGDL** res]
             #(dot:DOT  // struct assignment
             { 
                 SizeT nDot=dot->nDot;
-                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+                Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
             } 
-            l_dot_array_expr[ aD.get()] 
-            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
+            l_dot_array_expr[ aD.Get()] 
+            (tag_array_expr[ aD.Get()] /* nDot times*/ )+ 
             )         
         )
         {
@@ -3176,7 +3176,7 @@ l_arrayexpr_mfcall_as_arrayexpr [BaseGDL* right] returns [BaseGDL** res]
                                 "Struct expression not allowed in this context.",
                                 true,false);
             
-            aD->ADAssign( right);
+            aD.Get()->ADAssign( right);
 
             res=NULL;
         }
@@ -3197,7 +3197,7 @@ l_arrayexpr_mfcall_as_mfcall returns[ BaseGDL** res]
  
                 self=expr mp2:IDENTIFIER
                 {  
-                    auto_ptr<BaseGDL> self_guard(self);
+                    Guard<BaseGDL> self_guard(self);
                     
                     newEnv=new EnvUDT( self, mp2, "", true);
 
@@ -3251,7 +3251,7 @@ l_function_call returns[ BaseGDL** res]
 // needed because N_ELEMENTS must handle undefined variables different
 parameter_def_n_elements [EnvBaseT* actEnv] 
 {
-    auto_ptr<EnvBaseT> guard(actEnv); 
+    Guard<EnvBaseT> guard(actEnv); 
     _retTree = _t;
 //     bool interruptEnableIn = interruptEnable;
     if( _retTree != NULL)
@@ -3322,7 +3322,7 @@ parameter_def_n_elements [EnvBaseT* actEnv]
 parameter_def [EnvBaseT* actEnv] 
 {
     // as actEnv is not on the stack guard it here
-    auto_ptr<EnvBaseT> guard(actEnv); 
+    Guard<EnvBaseT> guard(actEnv); 
 
     EnvBaseT* callerEnv = callStack.back();
     EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
@@ -3387,7 +3387,7 @@ parameter_def [EnvBaseT* actEnv]
 // for library subroutines, their number of parameters is already checked in the compiler
 parameter_def_nocheck [EnvBaseT* actEnv] 
 {
-    auto_ptr<EnvBaseT> guard(actEnv); 
+    Guard<EnvBaseT> guard(actEnv); 
 
     EnvBaseT* callerEnv = callStack.back();
     EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();

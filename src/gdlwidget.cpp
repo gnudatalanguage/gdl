@@ -927,7 +927,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
     DSub *sub =  proList[ proIx];
 //     EnvUDT* e;
 //     e = new EnvUDT( NULL, sub);
-//     std::auto_ptr< EnvUDT> e_guard( e);
+//     Guard< EnvUDT> e_guard( e);
 //     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
 //     GDLInterpreter::CallStack().push_back( e);
 
@@ -969,7 +969,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
     trAST = treeParser.getAST();
 
     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    std::auto_ptr< ProgNode> progAST_guard( progAST);
+    Guard< ProgNode> progAST_guard( progAST);
 
     // necessary for correct FOR loop handling
     assert( dynamic_cast<EnvUDT*>(caller) != NULL);

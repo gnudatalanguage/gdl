@@ -134,20 +134,20 @@ BaseGDL* ASSIGNNode::Eval()
 {
     ProgNodeP _t = this->getFirstChild();
 
-    auto_ptr<BaseGDL> r_guard;
+    Guard<BaseGDL> r_guard;
 	BaseGDL* res;
     if( _t->getType() == GDLTokenTypes::FCALL_LIB)
         {
             res=interpreter->lib_function_call(_t);
             _t = interpreter->GetRetTree();
             if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.reset( res);
+                r_guard.Reset( res);
         }
     else
         {
             res=interpreter->tmp_expr(_t);
             _t = interpreter->GetRetTree();
-            r_guard.reset( res);
+            r_guard.Reset( res);
         }
 
     BaseGDL** l=_t->LExpr( res); //l_expr(_t, res);
@@ -162,7 +162,7 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 {
     ProgNodeP _t = this->getFirstChild();
 
-    auto_ptr<BaseGDL> r_guard;
+    Guard<BaseGDL> r_guard;
 
 	BaseGDL* res;
     if( _t->getType() == GDLTokenTypes::FCALL_LIB)
@@ -170,13 +170,13 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
             res=interpreter->lib_function_call(_t);
             _t = interpreter->GetRetTree();
             if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.reset( res);
+                r_guard.Reset( res);
         }
     else
         {
             res=interpreter->tmp_expr(_t);
             _t = interpreter->GetRetTree();
-            r_guard.reset( res);
+            r_guard.Reset( res);
         }
 
     ProgNodeP mark = _t;
@@ -220,7 +220,7 @@ BaseGDL* ASSIGN_REPLACENode::Eval()
 {
     ProgNodeP _t = this->getFirstChild();
 
-    auto_ptr<BaseGDL> r_guard;
+    Guard<BaseGDL> r_guard;
 
 	BaseGDL* res;
     if( _t->getType() == GDLTokenTypes::FCALL_LIB)
@@ -228,13 +228,13 @@ BaseGDL* ASSIGN_REPLACENode::Eval()
             res=interpreter->lib_function_call(_t);
             _t = interpreter->GetRetTree();
             if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.reset( res);
+                r_guard.Reset( res);
         }
     else
         {
             res=interpreter->tmp_expr(_t);
             _t = interpreter->GetRetTree();
-            r_guard.reset( res);
+            r_guard.Reset( res);
         }
 
     BaseGDL** l=_t->LEval();
@@ -361,7 +361,7 @@ BaseGDL* STRUCNode::Eval()
   // instance takes care of nStructDesc since it is unnamed
   //     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
   DStructGDL* instance = new DStructGDL( nStructDesc);
-  auto_ptr<DStructGDL> instance_guard(instance);
+  Guard<DStructGDL> instance_guard(instance);
 	
   ProgNodeP rTree = this->getNextSibling();
   // 	match(antlr::RefAST(_t),STRUC);
@@ -394,7 +394,7 @@ BaseGDL* NSTRUCNode::Eval()
   ProgNodeP ii = NULL;
 	
   DStructDesc*          nStructDesc;
-  auto_ptr<DStructDesc> nStructDescGuard;
+  Guard<DStructDesc> nStructDescGuard;
   BaseGDL* e;
   BaseGDL* ee;
 	
@@ -420,7 +420,7 @@ BaseGDL* NSTRUCNode::Eval()
       nStructDesc= new DStructDesc( id->getText());
 	
       // guard it
-      nStructDescGuard.reset( nStructDesc); 
+      nStructDescGuard.Reset( nStructDesc); 
     } 
   else
     {   // NTags() == 0
@@ -433,7 +433,7 @@ BaseGDL* NSTRUCNode::Eval()
   //                                                       dimension(1)); 
   DStructGDL* instance= new DStructGDL( nStructDesc);
 	
-  auto_ptr<DStructGDL> instance_guard(instance);
+  Guard<DStructGDL> instance_guard(instance);
 	
   while( _t != NULL) 
     {
@@ -879,7 +879,7 @@ RetCode  ASSIGNNode::Run()
 {
   BaseGDL*  r;
   BaseGDL** l;
-  auto_ptr<BaseGDL> r_guard;
+  Guard<BaseGDL> r_guard;
 	
   //     match(antlr::RefAST(_t),ASSIGN);
   ProgNodeP _t = this->getFirstChild();
@@ -894,7 +894,7 @@ RetCode  ASSIGNNode::Run()
       r=ProgNode::interpreter->lib_function_call(_t);
       _t = ProgNode::interpreter->_retTree;		      
       if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
- 	r_guard.reset( r); // guard if no global data
+ 	r_guard.Reset( r); // guard if no global data
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
   else
@@ -902,7 +902,7 @@ RetCode  ASSIGNNode::Run()
       r=_t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
       _t = _t->getNextSibling();
 //       _t = ProgNode::interpreter->_retTree;
-      r_guard.reset( r);
+      r_guard.Reset( r);
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
 //     switch ( _t->getType()) {
@@ -922,7 +922,7 @@ RetCode  ASSIGNNode::Run()
 // 	_t = ProgNode::interpreter->_retTree;
 // 			
 // 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-// 	  r_guard.reset( r); // guard if no global data
+// 	  r_guard.Reset( r); // guard if no global data
 // 			
 // 	break;
 //       }
@@ -930,7 +930,7 @@ RetCode  ASSIGNNode::Run()
 //       {
 // 	r=ProgNode::interpreter->indexable_tmp_expr(_t);
 // 	_t = ProgNode::interpreter->_retTree;
-// 	r_guard.reset( r);
+// 	r_guard.Reset( r);
 // 	break;
 //       }
 //     }//switch
@@ -946,7 +946,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 {
   BaseGDL*  r;
   BaseGDL** l;
-  auto_ptr<BaseGDL> r_guard;
+  Guard<BaseGDL> r_guard;
 
   //match(antlr::RefAST(_t),ASSIGN_REPLACE);
   ProgNodeP _t = this->getFirstChild();
@@ -962,7 +962,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 	_t = ProgNode::interpreter->_retTree;
 	
 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-		r_guard.reset( r);
+		r_guard.Reset( r);
 			
       }
     else
@@ -978,7 +978,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 	  r= _t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
 	  _t = _t->getNextSibling();
 // 	  _t = ProgNode::interpreter->_retTree;
-	  r_guard.reset( r);
+	  r_guard.Reset( r);
 	}
 
 // 	switch ( _t->getType()) {
@@ -996,7 +996,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 // 	  {
 // 	    r=ProgNode::interpreter->indexable_tmp_expr(_t);
 // 	    _t = ProgNode::interpreter->_retTree;
-// 	    r_guard.reset( r);
+// 	    r_guard.Reset( r);
 // 	    break;
 // 	  }
 // 	}//switch
@@ -1042,7 +1042,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 RetCode  ASSIGN_REPLACENode::Run()
 {
   BaseGDL*  r;
-  auto_ptr<BaseGDL> r_guard;
+  Guard<BaseGDL> r_guard;
 
   //match(antlr::RefAST(_t),ASSIGN_REPLACE);
   ProgNodeP _t = this->getFirstChild();
@@ -1052,17 +1052,17 @@ RetCode  ASSIGN_REPLACENode::Run()
 // 	r=_t->Eval();//different: ProgNode::interpreter->lib_function_call(_t);
 // 	_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
 // 	assert(_t != NULL);
-// 	r_guard.reset( r);
+// 	r_guard.Reset( r);
 // // 	if( !ProgNode::interpreter->callStack.back()->Contains( r))
-// // 		r_guard.reset( r);
+// // 		r_guard.Reset( r);
 // // 	else
-// // 		r_guard.reset( r->Dup());
+// // 		r_guard.Reset( r->Dup());
 //       }
 //     else
       {
 	//r=ProgNode::interpreter->tmp_expr(_t);
  	r = _t->Eval();
-	r_guard.reset( r);
+	r_guard.Reset( r);
  	_t = _t->getNextSibling();
 	assert(_t != NULL);
       }
@@ -1116,7 +1116,7 @@ RetCode  PCALL_LIBNode::Run()
   EnvT* newEnv=new EnvT( this, pl->libPro);//libProList[pl->proIx]);
 		
   ProgNode::interpreter->parameter_def_nocheck(_t, newEnv);
-  auto_ptr<EnvT> guardEnv( newEnv);
+  Guard<EnvT> guardEnv( newEnv);
 
   //   _t = _retTree;
   //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
@@ -1149,7 +1149,7 @@ RetCode  MPCALLNode::Run()
   // 			match(antlr::RefAST(_t),IDENTIFIER);
   _t = _t->getNextSibling();
 			
-  auto_ptr<BaseGDL> self_guard(self);
+  Guard<BaseGDL> self_guard(self);
 			
   newEnv=new EnvUDT( mp, self);
 			
@@ -1191,7 +1191,7 @@ RetCode  MPCALL_PARENTNode::Run()
   // 			match(antlr::RefAST(_t),IDENTIFIER);
   _t = _t->getNextSibling();
 			
-  auto_ptr<BaseGDL> self_guard(self);
+  Guard<BaseGDL> self_guard(self);
 			
   newEnv = new EnvUDT( pp, self, parent->getText());
 			
@@ -1302,7 +1302,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   
   BaseGDL* s=this->GetFirstChild()->Eval(); 
 //   BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
-  auto_ptr<BaseGDL> s_guard(s);
+  Guard<BaseGDL> s_guard(s);
   
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->GetNextSibling()->Eval();
@@ -1313,7 +1313,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
     {
       BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
-      s_guard.reset( sPromote);
+      s_guard.Reset( sPromote);
     }
   
   // ASSIGNMENT used here also
@@ -1383,7 +1383,7 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
 
   BaseGDL* s=this->GetFirstChild()->Eval(); 
 //  BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
-  auto_ptr<BaseGDL> s_guard(s);
+  Guard<BaseGDL> s_guard(s);
 
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->GetNextSibling()->Eval();
@@ -1398,7 +1398,7 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
   if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
     {
       BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
-      s_guard.reset( sPromote);
+      s_guard.Reset( sPromote);
       assert( loopInfo.loopStepVar->Type() == s_guard.get()->Type());
     }
 
@@ -1625,8 +1625,8 @@ RetCode   REPEATNode::Run()
 
 RetCode   REPEAT_LOOPNode::Run()
 {
-  auto_ptr<BaseGDL> eVal( this->GetFirstChild()->Eval());
-//  auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr(this->GetFirstChild()));
+  Guard<BaseGDL> eVal( this->GetFirstChild()->Eval());
+//  Guard<BaseGDL> eVal( ProgNode::interpreter->expr(this->GetFirstChild()));
   if( eVal.get()->False())
   {
   ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());     // 1st loop statement
@@ -1643,7 +1643,7 @@ RetCode   REPEAT_LOOPNode::Run()
 
 RetCode   WHILENode::Run()
 {
-  auto_ptr<BaseGDL> e1_guard;
+  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
@@ -1653,9 +1653,9 @@ RetCode   WHILENode::Run()
   else
   {
     e1 = evalExpr->Eval();
-    e1_guard.reset(e1);
+    e1_guard.Reset(e1);
   }
-// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+// 	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
   if( e1->True()) 
   {
     ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
@@ -1673,7 +1673,7 @@ RetCode   WHILENode::Run()
 
 RetCode   IFNode::Run()
  {
-  auto_ptr<BaseGDL> e1_guard;
+  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
@@ -1683,9 +1683,9 @@ RetCode   IFNode::Run()
   else
   {
 	e1 = evalExpr->Eval();
-    e1_guard.reset(e1);
+    e1_guard.Reset(e1);
   }
-//	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+//	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
 	if( e1->True()) 
 	{
 		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
@@ -1699,7 +1699,7 @@ RetCode   IFNode::Run()
 
 RetCode   IF_ELSENode::Run()
 {	
-  auto_ptr<BaseGDL> e1_guard;
+  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
@@ -1709,9 +1709,9 @@ RetCode   IF_ELSENode::Run()
   else
   {
 	e1 = evalExpr->Eval();
-	e1_guard.reset(e1);
+	e1_guard.Reset(e1);
   }
-// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+// 	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
   if( e1->True()) 
   {
 	  ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling()->GetFirstChild());
@@ -1727,7 +1727,7 @@ RetCode   IF_ELSENode::Run()
 
 RetCode   CASENode::Run()
 {
-  auto_ptr<BaseGDL> e1_guard;
+  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
@@ -1737,10 +1737,10 @@ RetCode   CASENode::Run()
   else
   {
 	e1 = evalExpr->Eval();
-    e1_guard.reset(e1);
+    e1_guard.Reset(e1);
   }
 
-// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+// 	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
   	if( !e1->Scalar())
 		throw GDLException( this->GetFirstChild(), "Expression must be a"
 			" scalar in this context: "+ProgNode::interpreter->Name(e1),true,false);
@@ -1767,7 +1767,7 @@ RetCode   CASENode::Run()
 		{
 			ProgNodeP ex = b->GetFirstChild();  // EXPR
 							
-			auto_ptr<BaseGDL> ee_guard;
+			Guard<BaseGDL> ee_guard;
 			BaseGDL* ee;
 			if( NonCopyNode( ex->getType()))
 				{
@@ -1776,10 +1776,10 @@ RetCode   CASENode::Run()
 			else
 				{
 					ee = ex->Eval();
-					ee_guard.reset(ee);
+					ee_guard.Reset(ee);
 				}
 // 			BaseGDL* ee=ProgNode::interpreter->expr(ex);
-			// auto_ptr<BaseGDL> ee_guard(ee);
+			// Guard<BaseGDL> ee_guard(ee);
 			bool equalexpr=e1->EqualNoDelete(ee); // Equal deletes ee
 		
 			if( equalexpr)
@@ -1808,7 +1808,7 @@ RetCode   CASENode::Run()
 
 RetCode   SWITCHNode::Run()
 {
-  auto_ptr<BaseGDL> e1_guard;
+  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
@@ -1818,10 +1818,10 @@ RetCode   SWITCHNode::Run()
   else
   {
 	e1 = evalExpr->Eval();
-    e1_guard.reset(e1);
+    e1_guard.Reset(e1);
   }
 
-// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+// 	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
  	if( !e1->Scalar())
 	throw GDLException( this->GetFirstChild(), "Expression must be a"
 	" scalar in this context: "+ProgNode::interpreter->Name(e1),true,false);
@@ -1849,7 +1849,7 @@ RetCode   SWITCHNode::Run()
 				
 				if( !hook)
 				{
-					auto_ptr<BaseGDL> ee_guard;
+					Guard<BaseGDL> ee_guard;
 					BaseGDL* ee;
 					if( NonCopyNode( ex->getType()))
 					{
@@ -1858,10 +1858,10 @@ RetCode   SWITCHNode::Run()
 					else
 					{
 						ee = ex->Eval();
-						ee_guard.reset(ee);
+						ee_guard.Reset(ee);
 					}
 // 					BaseGDL* ee=ProgNode::interpreter->expr(ex);
-					// auto_ptr<BaseGDL> ee_guard(ee);
+					// Guard<BaseGDL> ee_guard(ee);
 					hook=e1->EqualNoDelete(ee); // Equal deletes ee
 				}
 				

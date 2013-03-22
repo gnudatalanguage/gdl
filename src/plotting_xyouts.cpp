@@ -35,7 +35,7 @@ namespace lib
     PLFLT currentBoxXmin, currentBoxXmax, currentBoxYmin, currentBoxYmax, currentBoxZmin, currentBoxZmax;
     PLFLT vpXmin, vpXmax, vpYmin, vpYmax;
     DDoubleGDL* yVal, *xVal;
-    auto_ptr<DDoubleGDL> xval_guard, yval_guard;
+    Guard<DDoubleGDL> xval_guard, yval_guard;
     DStringGDL* strVal;
     SizeT xEl, yEl, strEl;
     bool xLog, yLog, zLog;
@@ -46,7 +46,7 @@ namespace lib
     DLong minEl;
     DLongGDL *color;
     DFloatGDL *spacing,*orientation,*charthick,*alignement,*size;
-    auto_ptr<BaseGDL> color_guard, chartick_guard, alignement_guard, orientation_guard,size_guard;
+    Guard<BaseGDL> color_guard, chartick_guard, alignement_guard, orientation_guard,size_guard;
 
   private:
 
@@ -59,8 +59,8 @@ namespace lib
         //string only...
         xVal=new DDoubleGDL(1, BaseGDL::ZERO);
         yVal=new DDoubleGDL(1, BaseGDL::ZERO);
-        xval_guard.reset(xVal); // delete upon exit
-        yval_guard.reset(yVal); // delete upon exit
+        xval_guard.Reset(xVal); // delete upon exit
+        yval_guard.Reset(yVal); // delete upon exit
         xEl=yEl=xVal->N_Elements();
         strVal=e->GetParAs<DStringGDL>(0);
         strEl=strVal->N_Elements();
@@ -242,7 +242,7 @@ namespace lib
         else  //for security in future conditional evaluation...
         {
           size=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          size_guard.reset ( size);
+          size_guard.Init ( size);
           (*size)[0]=1.0;
         }
         int orientationIx=e->KeywordIx ( "ORIENTATION" );
@@ -253,7 +253,7 @@ namespace lib
         else
         {
           orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          orientation_guard.reset ( orientation);
+          orientation_guard.Init ( orientation);
           (*orientation)[0]=0;
         }
         int alignIx=e->KeywordIx ( "ALIGNMENT" );
@@ -264,7 +264,7 @@ namespace lib
         else
         {
           alignement=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          alignement_guard.reset (alignement);
+          alignement_guard.Init (alignement);
           (*alignement)[0]=0;
         }
 

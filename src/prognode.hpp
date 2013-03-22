@@ -86,11 +86,11 @@ protected:
   ProgNodeP down;
   ProgNodeP right;
 
-  static void AdjustTypes(std::auto_ptr<BaseGDL>& a, 
-			  std::auto_ptr<BaseGDL>& b);
+  static void AdjustTypes(Guard<BaseGDL>& a, 
+			  Guard<BaseGDL>& b);
   // for overloaded operators
-  static void AdjustTypesObj(std::auto_ptr<BaseGDL>& a, 
-			  std::auto_ptr<BaseGDL>& b);
+  static void AdjustTypesObj(Guard<BaseGDL>& a, 
+			  Guard<BaseGDL>& b);
 
   BaseGDL*   cData;           // constant data
   DVar*      var;             // ptr to variable 

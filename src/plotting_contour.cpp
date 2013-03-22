@@ -55,15 +55,15 @@ namespace lib
   {
 
     DDoubleGDL *zVal, *yVal, *xVal;
-    auto_ptr<BaseGDL> xval_guard, yval_guard, p0_guard;
+    Guard<BaseGDL> xval_guard, yval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool zLog, isLog;
     bool overplot, nodata;
     DLongGDL *colors,*thick,*labels,*style;
-    auto_ptr<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
+    Guard<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
     DFloatGDL *spacing,*orientation;
-    auto_ptr<BaseGDL> spacing_guard,orientation_guard;
+    Guard<BaseGDL> spacing_guard,orientation_guard;
   private:
     bool handle_args (EnvT* e)
     {
@@ -73,7 +73,7 @@ namespace lib
 
         zVal=static_cast<DDoubleGDL*>
         ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        p0_guard.reset ( p0 ); // delete upon exit
+        p0_guard.Init ( p0 ); // delete upon exit
 
         xEl=zVal->Dim ( 1 );
         yEl=zVal->Dim ( 0 );
@@ -83,9 +83,9 @@ namespace lib
                      +e->GetParString ( 0 ) );
 
         xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
-        xval_guard.reset ( xVal ); // delete upon exit
+        xval_guard.Init ( xVal ); // delete upon exit
         yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
-        yval_guard.reset ( yVal ); // delete upon exit
+        yval_guard.Init ( yVal ); // delete upon exit
       }
       else if ( nParam ( )==2||nParam ( )>3 )
       {
@@ -97,7 +97,7 @@ namespace lib
         BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
         zVal=static_cast<DDoubleGDL*>
         ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        p0_guard.reset ( p0 ); // delete upon exit
+        p0_guard.Init( p0 ); // delete upon exit
 
         if ( zVal->Dim ( 0 )==1 )
           e->Throw ( "Array must have 2 dimensions: "
@@ -522,7 +522,7 @@ namespace lib
         else //every other level
         {
           labels=new DLongGDL  ( dimension (2), BaseGDL::ZERO );
-          labels_guard.reset ( labels);
+          labels_guard.Init( labels);
           (*labels)[0]=1;(*labels)[1]=0;
           if (label) dolabels=true; //yes!
         }
@@ -537,7 +537,7 @@ namespace lib
         else
         {
           orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          orientation_guard.reset ( orientation);
+          orientation_guard.Init( orientation);
           (*orientation)[0]=0;
         }
         if ( e->GetKW ( c_spacingIx )!=NULL )
@@ -547,7 +547,7 @@ namespace lib
         else
         {
           spacing=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          spacing_guard.reset (spacing);
+          spacing_guard.Init(spacing);
           (*spacing)[0]=0.25;
         }
         bool hachures=(dospacing || doori);

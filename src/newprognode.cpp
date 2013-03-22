@@ -359,7 +359,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	{
 	  if( !newNode->ConstantExpr()) return newNode;
 
-	  auto_ptr<ProgNode> guard( newNode);
+	  Guard<ProgNode> guard( newNode);
 
 	  BaseGDL* cData = newNode->Eval();
 
@@ -373,7 +373,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	{
 	  if( !newUnary->ConstantExpr()) return newUnary;
 
-	  auto_ptr<ProgNode> guard( newUnary);
+	  Guard<ProgNode> guard( newUnary);
 
 	  BaseGDL* cData = newUnary->Eval();
 
@@ -540,7 +540,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	{
 	  if( !newNode->ConstantExpr()) return newNode;
 
-	  auto_ptr<ProgNode> guard( newNode);
+	  Guard<ProgNode> guard( newNode);
 
 	  BaseGDL* cData = newNode->Eval();
 
@@ -554,7 +554,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	{
 	  if( !newUnary->ConstantExpr()) return newUnary;
 
-	  auto_ptr<ProgNode> guard( newUnary);
+	  Guard<ProgNode> guard( newUnary);
 
 	  BaseGDL* cData = newUnary->Eval();
 
@@ -576,7 +576,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
 	    || !ConstantPar( c->getFirstChild())) return c;
 
-	auto_ptr< ProgNode> guard( c);
+	Guard< ProgNode> guard( c);
 
 	BaseGDL* cData = c->Eval();
 
@@ -593,7 +593,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	if( !static_cast<DLibFunDirect*>(c->libFun)->RetConstant()
 	    || !ConstantPar( c->getFirstChild())) return c;
 
-	auto_ptr< ProgNode> guard( c);
+	Guard< ProgNode> guard( c);
 
 	BaseGDL* cData = c->Eval();
 
@@ -610,7 +610,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
 	    || !ConstantPar( c->getFirstChild())) return c;
 
-	auto_ptr< ProgNode> guard( c);
+	Guard< ProgNode> guard( c);
 
 	BaseGDL* cData = c->Eval();
 
@@ -698,7 +698,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	ARRAYDEFNode* c = new ARRAYDEFNode( refNode);
 	if( !c->ConstantArray()) return c;
 
-	auto_ptr< ARRAYDEFNode> guard( c);
+	Guard< ARRAYDEFNode> guard( c);
 
 	BaseGDL* cData = c->Eval();
 
@@ -723,7 +723,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 //   cout << endl;
 	assert( c->ConstantArray());
 
-	auto_ptr< ProgNode> guard( c);
+	Guard< ProgNode> guard( c);
 
 	BaseGDL* cData = c->Eval();
 
@@ -741,7 +741,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 // 	refNode->setNextSibling(antlr::nullAST);
 
 // 	ProgNodeP c = new ARRAYDEFNode( refNode);
-// 	auto_ptr< ProgNode> guard( c);
+// 	Guard< ProgNode> guard( c);
 // 	//c->setType(  GDLTokenTypes::ARRAYDEF);
 
 // 	// evaluate constant
@@ -963,7 +963,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);//->GetFirstChild());
       return firstChild;
 
-// 		  auto_ptr<ProgNode> guard(nn);
+// 		  Guard<ProgNode> guard(nn);
 // 		  return nn->StealFirstChild();
     }
     case GDLTokenTypes::REF_EXPR_VN:
@@ -978,7 +978,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);//->GetFirstChild());
       return firstChild;
 
-// 		  auto_ptr<ProgNode> guard(nn);
+// 		  Guard<ProgNode> guard(nn);
 // 		  return nn->StealFirstChild();
     }
     case GDLTokenTypes::KEYDEF_REF_CHECK:
@@ -1004,7 +1004,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);
       return firstChild;
 
-// 		  auto_ptr<ProgNode> guard(nn);
+// 		  Guard<ProgNode> guard(nn);
 // 		  ProgNodeP firstChild = nn->StealFirstChild();
 // 		  firstChild->SetNextSibling( nn->StealNextSibling());
 // 		  return firstChild;
@@ -1021,7 +1021,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);
       return firstChild;
 
-// 		  auto_ptr<ProgNode> guard(nn);
+// 		  Guard<ProgNode> guard(nn);
 // 		  ProgNodeP firstChild = nn->StealFirstChild();
 // 		  firstChild->SetNextSibling( nn->StealNextSibling());
 // 		  return firstChild;

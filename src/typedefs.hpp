@@ -230,14 +230,36 @@ public:
     delete guarded;
     guarded = newGuarded;
   }  
+  // for compatibiltiy with replaced auto_ptr
+  void reset( T* newGuarded)
+  {
+    delete guarded;
+    guarded = newGuarded;
+  }  
   void Release()
   {
     guarded = NULL;
+  }  
+  T* release()
+  {
+    T* g = guarded;
+    guarded = NULL;
+    return g;
   }  
   T* Get()
   {
     return guarded;
   }  
+  // for compatibiltiy with replaced auto_ptr
+  T* get()
+  {
+    return guarded;
+  }  
+  // for compatibiltiy with replaced auto_ptr
+  T* operator->()
+  {
+    return guarded;
+  }
   bool IsNull()
   {
     return guarded == NULL;

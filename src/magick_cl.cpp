@@ -1046,15 +1046,15 @@ SizeT nEl = columns*rows;
     BaseGDL* GDLCol=e->GetParDefined(1);
     DByteGDL * Red=static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Red);
-    auto_ptr<BaseGDL> r_guard( Red);
+    Guard<BaseGDL> r_guard( Red);
     GDLCol=e->GetParDefined(2);
     DByteGDL * Green=static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Green);
-    auto_ptr<BaseGDL> g_guard( Green);
+    Guard<BaseGDL> g_guard( Green);
     GDLCol=e->GetParDefined(3);
     DByteGDL *Blue= static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Blue);
-    auto_ptr<BaseGDL> b_guard( Blue);
+    Guard<BaseGDL> b_guard( Blue);
 
     if(Red->N_Elements() == Green->N_Elements() && 
        Red->N_Elements() == Blue->N_Elements())

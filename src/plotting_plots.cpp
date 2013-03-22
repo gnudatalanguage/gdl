@@ -28,7 +28,7 @@ namespace lib
   {
 
     DDoubleGDL *xVal, *yVal, *zVal;
-    auto_ptr<BaseGDL> xval_guard, yval_guard;
+    Guard<BaseGDL> xval_guard, yval_guard;
     DLong psym;
     bool xLog, yLog, zLog;
     SizeT xEl, yEl, zEl;
@@ -56,11 +56,11 @@ namespace lib
 
         xEl=p0->N_Elements()/p0->Dim(0);
         xVal=new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-        xval_guard.reset(xVal); // delete upon exit
+        xval_guard.Reset(xVal); // delete upon exit
 
         yEl=p0->N_Elements()/p0->Dim(0);
         yVal=new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-        yval_guard.reset(yVal); // delete upon exit
+        yval_guard.Reset(yVal); // delete upon exit
 
         for ( SizeT i=0; i<xEl; i++ )
         {

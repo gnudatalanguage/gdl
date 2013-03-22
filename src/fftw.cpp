@@ -176,11 +176,11 @@ TRACEOMP( __FILE__, __LINE__)
 
       DComplexDblGDL *p0C;
 
-      auto_ptr<BaseGDL> guard_p0C;
+      Guard<BaseGDL> guard_p0C;
 
       if( p0->Type() != GDL_COMPLEXDBL) {
 	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
-        guard_p0C.reset(p0C); 
+        guard_p0C.Init(p0C); 
       } else
       {
 	  if( overwrite)
@@ -209,7 +209,7 @@ TRACEOMP( __FILE__, __LINE__)
 
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
-      auto_ptr<BaseGDL> guard_p0C( p0C); 
+      Guard<BaseGDL> guard_p0C( p0C); 
       return fftw_template< DComplexGDL> (p0C, nEl, dbl, overwrite, direct);
 
     }

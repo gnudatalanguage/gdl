@@ -955,7 +955,7 @@ public:
     //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     DByteGDL* p0B;
     p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));
-    e->Guard( p0B);
+    e->DeleteAtExit( p0B);
     
     int width, height;
     DLong tru=0;
@@ -1055,7 +1055,7 @@ public:
     if (channel < 0 || channel > 3)
       e->Throw("Value of Channel is out of allowed range.");
 
-    std::auto_ptr<BaseGDL> chan_guard;
+    Guard<BaseGDL> chan_guard;
     if (channel == 0) {
       plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);
     } else if (rank == 3) {
@@ -1070,7 +1070,7 @@ public:
       }
       // Send just single channel
       plimage_gdl(pls, &(*p0B_chan)[0], width, height, tru, channel);
-      chan_guard.reset( p0B_chan); // delete upon exit
+      chan_guard.Init( p0B_chan); // delete upon exit
     } else if (rank == 2) {
       // Rank = 2 w/channel
       plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);

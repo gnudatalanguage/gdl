@@ -201,7 +201,7 @@ namespace lib {
     // GDL magick (based on the Python interface code)
     static int printIx = LibProIx("PRINT");
     EnvT* env = new EnvT(NULL, libProList[printIx]);
-    auto_ptr<EnvT> env_guard(env);
+    Guard<EnvT> env_guard(env);
     BaseGDL* par;
     env->SetNextPar(&par);
 

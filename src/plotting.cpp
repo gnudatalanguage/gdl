@@ -103,9 +103,9 @@ namespace lib
     for (i=0,k=0 ; i<n ; ++i)
     {
        valx=(*xVal)[i];
-       if (isnan(valx)) break;
+       if (std::isnan(valx)) break;
        valy=(*yVal)[i];
-       if (isnan(valy)) break;
+       if (std::isnan(valy)) break;
        if(valx<xmin || valx>xmax) break;
        if (doMinMax &&(valy<minVal || valy>maxVal)) break;
        if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}
@@ -839,8 +839,8 @@ namespace lib
     gdlStoreAxisSandWINDOW(actStream, "X", xStart, xEnd, FALSE);//already in log here if relevant!
     gdlStoreAxisSandWINDOW(actStream, "Y", yStart, yEnd, FALSE);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
-    auto_ptr<BaseGDL> clipbox_guard;
-    DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.reset(clipBox);
+    Guard<BaseGDL> clipbox_guard;
+    DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
     PLFLT xmin, xmax, ymin, ymax, x,y;
     actStream->gvpd(xmin, xmax, ymin, ymax);
 
@@ -1260,7 +1260,7 @@ namespace lib
       if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
       if ( xLog ) x=log10(x);
       if ( yLog ) y=log10(y);
-      isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
+      isBad=(isBad||!isfinite(x)|| !isfinite(y)||std::isnan(x)||std::isnan(y));
       if ( isBad )
       {
         reset=1;
@@ -1917,10 +1917,10 @@ namespace lib
       if ( Margin->N_Elements()>2 )
         e->Throw("Keyword array parameter "+MarginName+
                  " must have from 1 to 2 elements.");
-      auto_ptr<DFloatGDL> guard;
+      Guard<DFloatGDL> guard;
       DFloatGDL* MarginF=static_cast<DFloatGDL*>
       (Margin->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      guard.reset(MarginF);
+      guard.Reset(MarginF);
       start=(*MarginF)[0];
       if ( MarginF->N_Elements()>1 )
         end=(*MarginF)[1];
@@ -1973,9 +1973,9 @@ namespace lib
       if ( Range->N_Elements()!=2 )
         e->Throw("Keyword array parameter "+RangeName+
                  " must have 2 elements.");
-      auto_ptr<DDoubleGDL> guard;
+      Guard<DDoubleGDL> guard;
       DDoubleGDL* RangeF=static_cast<DDoubleGDL*>(Range->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      guard.reset(RangeF);
+      guard.Reset(RangeF);
       start=(*RangeF)[0];
       end=(*RangeF)[1];
       set=TRUE;
@@ -2282,7 +2282,7 @@ namespace lib
           static int stringIx = LibFunIx("STRING");
           assert( stringIx >= 0);
           EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
-          auto_ptr<EnvT> guard( newEnv);
+          Guard<EnvT> guard( newEnv);
           // add parameters
           newEnv->SetNextPar( new DDoubleGDL(value));
           newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
@@ -2306,7 +2306,7 @@ namespace lib
           SizeT funIx = GDLInterpreter::GetFunIx( callF);
 
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
-          auto_ptr< EnvUDT> guard( newEnv);
+          Guard< EnvUDT> guard( newEnv);
           // add parameters
           newEnv->SetNextPar( new DLongGDL(axis));
           newEnv->SetNextPar( new DLongGDL(internalIndex));
@@ -2605,7 +2605,7 @@ namespace lib
   void usersym(EnvT *e)
   {
     DFloatGDL *xyVal, *xVal, *yVal;
-    auto_ptr<BaseGDL> p0_guard;
+    Guard<BaseGDL> p0_guard;
     DLong n;
     DInt do_fill;
     DFloat *x, *y;
@@ -2617,7 +2617,7 @@ namespace lib
 
       xyVal=static_cast<DFloatGDL*>
       (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      p0_guard.reset(p0); // delete upon exit
+      p0_guard.Reset(p0); // delete upon exit
 
       if ( xyVal->Rank()!=2||xyVal->Dim(1)!=2 )
         e->Throw(e->GetParString(0)+" must be a 2-dim array of type [2,N] in this context.");

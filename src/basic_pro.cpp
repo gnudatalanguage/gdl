@@ -1077,7 +1077,7 @@ namespace lib {
 	// make the call
 // 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
 	EnvT* newEnv = e->NewEnv( libProList[ proIx], 1);
-	auto_ptr<EnvT> guard( newEnv);
+	Guard<EnvT> guard( newEnv);
 	static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
       }
     else
@@ -2503,7 +2503,7 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
 
 // 	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
-// 	auto_ptr< ArrayIndexVectorT> ixList_guard( ixList);
+// 	Guard< ArrayIndexVectorT> ixList_guard( ixList);
 	ArrayIndexVectorT ixList; 
 // 	BaseGDL* loc1 = p3->Dup();
 // 	loc1->SetDim (dimension( loc1->N_Elements()));
@@ -2517,7 +2517,7 @@ TRACEOMP( __FILE__, __LINE__)
 	    ixList.push_back( new CArrayIndexScalar( (*p3)[ i]));//p3->NewIx(i)));
 	ArrayIndexListT* ixL;
 	MakeArrayIndex( &ixList, &ixL);
-	auto_ptr< ArrayIndexListT> ixL_guard( ixL);
+	Guard< ArrayIndexListT> ixL_guard( ixL);
 	ixL->AssignAt( p0, p1);
 	return;
       }

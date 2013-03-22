@@ -234,7 +234,7 @@ namespace lib {
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	DComplexGDL* res = new DComplexGDL( p0C->Dim(), BaseGDL::NOZERO);
-	auto_ptr<DComplexGDL> resGuard( res);
+	Guard<DComplexGDL> resGuard( res);
 
 	float f32_2[2];
 	double f64_2[2];
@@ -285,7 +285,7 @@ namespace lib {
       {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	DComplexDblGDL* res = new DComplexDblGDL( p0C->Dim(), BaseGDL::NOZERO);
-	auto_ptr<DComplexDblGDL> resGuard( res);
+	Guard<DComplexDblGDL> resGuard( res);
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
@@ -320,7 +320,7 @@ namespace lib {
       {
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
-	auto_ptr<DDoubleGDL> resGuard( res);
+	Guard<DDoubleGDL> resGuard( res);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
 	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
@@ -368,11 +368,11 @@ namespace lib {
 	//	if (p0->Type() == STRING) {
 	DFloatGDL* p0SS = static_cast<DFloatGDL*>
 	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	auto_ptr<DFloatGDL> p0SSGuard( p0SS);
+	Guard<DFloatGDL> p0SSGuard( p0SS);
 	//}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
-	auto_ptr<DFloatGDL> resGuard( res);
+	Guard<DFloatGDL> resGuard( res);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
 	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
@@ -630,23 +630,23 @@ namespace lib {
     
     T* res;
     T* tabtemp=new T(p0->Dim());
-    auto_ptr<T> tabtempGuard( tabtemp);
+    Guard<T> tabtempGuard( tabtemp);
 
-    auto_ptr<T> resGuard;
+    Guard<T> resGuard;
     if (overwrite == 0)
       {
 	res = new T( p0->Dim(), BaseGDL::ZERO);
-	resGuard.reset( res);
+	resGuard.Reset( res);
       } 
     else
       res = (T*) p0;
     
     DComplexGDL* tabfft = new DComplexGDL(p0->Dim());
-    auto_ptr<DComplexGDL> tabfftGuard( tabfft);
+    Guard<DComplexGDL> tabfftGuard( tabfft);
     
     DComplexGDL* p0C = static_cast<DComplexGDL*>
       (p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
-    auto_ptr<DComplexGDL> p0CGuard( p0C);
+    Guard<DComplexGDL> p0CGuard( p0C);
       
     int dec=0;
     int temp=0;
@@ -944,7 +944,7 @@ namespace lib {
       overwrite = 0;
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
-      auto_ptr<BaseGDL> guard_p0C( p0C); 
+      Guard<BaseGDL> guard_p0C( p0C); 
       return fft_template< DComplexGDL> (p0C, nEl, dbl, overwrite, 
 					 direct,dimension); 
 
@@ -1408,11 +1408,11 @@ namespace lib {
       e->Throw( "Conflicting keywords.");
 
     DDoubleGDL *p0D = dynamic_cast<DDoubleGDL*>(p0);
-    auto_ptr<BaseGDL> guard;
+    Guard<BaseGDL> guard;
     if( p0D == NULL)
       {
 	p0D = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard.reset( p0D);
+	guard.Reset( p0D);
       }
 
     // get min max
@@ -1430,7 +1430,7 @@ namespace lib {
       maxVal = minVal;
       for( SizeT i=1; i<nEl; ++i) {
 	if (!isfinite((*p0D)[i])) {
-	  if (!isnan((*p0D)[i])) {
+	  if (!std::isnan((*p0D)[i])) {
 	    e->Throw("Array has too many elements (Infinite value encoutered).");
 	  };
 	}
@@ -2088,10 +2088,10 @@ namespace lib {
     DDoubleGDL* p1D;
     DDoubleGDL* p2D;
     DDoubleGDL* p3D;
-    auto_ptr<BaseGDL> guard0;
-    auto_ptr<BaseGDL> guard1;
-    auto_ptr<BaseGDL> guard2;
-    auto_ptr<BaseGDL> guard3;
+    Guard<BaseGDL> guard0;
+    Guard<BaseGDL> guard1;
+    Guard<BaseGDL> guard2;
+    Guard<BaseGDL> guard3;
 
     if (nParam < 2) e->Throw("Incorrect number of arguments.");
 
@@ -2103,7 +2103,7 @@ namespace lib {
     else
       {
 	p0D = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard0.reset(p0D);
+	guard0.Init(p0D);
       }
 
     BaseGDL* p1 = e->GetParDefined(1);
@@ -2111,7 +2111,7 @@ namespace lib {
     else
       {
 	p1D = static_cast<DDoubleGDL*>(p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard1.reset(p1D);
+	guard1.Init(p1D);
       }
 
     BaseGDL* p2 = NULL;
@@ -2121,7 +2121,7 @@ namespace lib {
       else
 	{
 	  p2D = static_cast<DDoubleGDL*>(p2->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	  guard2.reset(p2D);
+	  guard2.Init(p2D);
 	}
     }
 
@@ -2132,7 +2132,7 @@ namespace lib {
       else
 	{
 	  p3D = static_cast<DDoubleGDL*>(p3->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	  guard3.reset(p3D);
+	  guard3.Init(p3D);
 	}
     }
 
@@ -2274,13 +2274,13 @@ namespace lib {
 	gsl_linalg_hermtd_decomp (mat, tau);
 	gsl_linalg_hermtd_unpack (mat, tau, Q, diag, subdiag);
 
-	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	SizeT dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Co = &e->GetPar( 0);
 	GDLDelete((*p0Co));
 	*p0Co = new DComplexGDL(dim0, BaseGDL::NOZERO);
 
-	DLong n = p0->Dim(0);
+	SizeT n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1F = &e->GetPar( 1);
 	GDLDelete((*p1F));
@@ -2339,13 +2339,13 @@ namespace lib {
 	gsl_linalg_hermtd_decomp (mat, tau);
 	gsl_linalg_hermtd_unpack (mat, tau, Q, diag, subdiag);
 
-	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	SizeT dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Co = &e->GetPar( 0);
 	GDLDelete((*p0Co));
 	*p0Co = new DComplexDblGDL(dim0, BaseGDL::NOZERO);
 
-	DLong n = p0->Dim(0);
+	SizeT n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1D = &e->GetPar( 1);
 	GDLDelete((*p1D));
@@ -2390,13 +2390,13 @@ namespace lib {
 	gsl_linalg_symmtd_decomp (mat, tau);
 	gsl_linalg_symmtd_unpack (mat, tau, Q, diag, subdiag);
 
-	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	SizeT dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Do = &e->GetPar( 0);
 	GDLDelete((*p0Do));
 	*p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);
 
-	DLong n = p0->Dim(0);
+	SizeT n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1D = &e->GetPar( 1);
 	GDLDelete((*p1D));
@@ -2461,13 +2461,13 @@ namespace lib {
 	gsl_linalg_symmtd_decomp (mat, tau);
 	gsl_linalg_symmtd_unpack (mat, tau, Q, diag, subdiag);
 
-	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	SizeT dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Fo = &e->GetPar( 0);
 	GDLDelete((*p0Fo));
 	*p0Fo = new DFloatGDL(dim0, BaseGDL::NOZERO);
 
-	DLong n = p0->Dim(0);
+	SizeT n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1F = &e->GetPar( 1);
 	GDLDelete((*p1F));
@@ -2533,7 +2533,7 @@ namespace lib {
 					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
-    auto_ptr<BaseGDL> res_guard(res);
+    Guard<BaseGDL> res_guard(res);
     // sanity checks
     //   if (res->Rank() != 1 || res->N_Elements() != x->size) 
     //AC for iCosmo
@@ -2558,8 +2558,8 @@ namespace lib {
     if (res != dres)
       {
 	// prevent 'res' from being deleted again
-	res_guard.release();
-	res_guard.reset (dres);
+	res_guard.Release();
+	res_guard.Init(dres);
       }
     // copying from GDL to GSL
     for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
@@ -2609,7 +2609,7 @@ namespace lib {
     //AC for iCosmo
     //if (p0->Rank() != 1) e->Throw("the first argument is expected to be a vector");
     BaseGDL* par = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par_guard(par);
+    Guard<BaseGDL> par_guard(par);
 
     // 2-nd argument : name of user function defining the system
     DString fun;
@@ -2751,12 +2751,12 @@ namespace lib {
     // 2-nd argument : initial bound
     BaseGDL* p1 = e->GetParDefined(1);
     BaseGDL* par1 = p1->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par1_guard(par1);
+    Guard<BaseGDL> par1_guard(par1);
 
     // 3-th argument : final bound
     BaseGDL* p2 = e->GetParDefined(2);
     BaseGDL* par2 = p2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par2_guard(par2);
+    Guard<BaseGDL> par2_guard(par2);
 
     // 1-st argument : name of user function defining the system
     DString fun;
@@ -2863,7 +2863,7 @@ namespace lib {
     BaseGDL* par1 = NULL;
     p1 = e->GetParDefined(1);
     par1 = p1->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par1_guard(par1);
+    Guard<BaseGDL> par1_guard(par1);
 
     BaseGDL* p2 = NULL;
     BaseGDL* par2 = NULL;
@@ -2872,7 +2872,7 @@ namespace lib {
 	// 3-th argument : final bound
 	p2 = e->GetParDefined(2);
 	par2 = p2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-	auto_ptr<BaseGDL> par2_guard(par2);
+	Guard<BaseGDL> par2_guard(par2);
       }
 
     // 1-st argument : name of user function defining the system
@@ -3113,7 +3113,7 @@ namespace lib {
     BaseGDL* p0 = e->GetNumericArrayParDefined(0);
     DComplexDblGDL* init = e->GetParAs<DComplexDblGDL>(0);
     BaseGDL* par0 = p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par0_guard(par0);
+    Guard<BaseGDL> par0_guard(par0);
 
     if (init->N_Elements() != 3)
       {
@@ -3643,8 +3643,8 @@ namespace lib {
 							    ? BaseGDL::CONVERT
 							    : BaseGDL::COPY
 							    ));
-    auto_ptr<DDoubleGDL> ret_guard;
-    if (ret != p0) ret_guard.reset(ret);
+    Guard<DDoubleGDL> ret_guard;
+    if (ret != p0) ret_guard.Reset(ret);
 
     // GSL error handling
     gsl_error_handler_t* old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
@@ -3862,7 +3862,7 @@ namespace lib {
       if (dbl) res = new DComplexDblGDL(dim);
       else res = new DComplexGDL(dim);
     }
-    auto_ptr<BaseGDL> res_guard(res);
+    Guard<BaseGDL> res_guard(res);
 
     // computing the result 
     if (dbl) 

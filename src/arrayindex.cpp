@@ -345,7 +345,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace
       }
@@ -377,7 +377,7 @@ void ArrayIndexListOneScalarNoAssocT::AssignAt( BaseGDL* var, BaseGDL* right)
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace
       }

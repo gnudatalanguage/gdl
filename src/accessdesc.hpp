@@ -418,7 +418,7 @@ public:
 	if( r->Type() != top->Type())
 	  {
 	    BaseGDL* rConv = r->Convert2( top->Type(), BaseGDL::COPY);
-	    std::auto_ptr<BaseGDL> conv_guard( rConv);
+	    Guard<BaseGDL> conv_guard( rConv);
 
 	    DoAssign( dStruct[0], rConv);
 	  }
@@ -445,7 +445,7 @@ public:
 	if( r->Type() != top->Type())
 	  {
 	    BaseGDL* rConv = r->Convert2( top->Type(), BaseGDL::COPY);
-	    std::auto_ptr<BaseGDL> conv_guard( rConv);
+	    Guard<BaseGDL> conv_guard( rConv);
 
 	    DoAssign( dStruct[0], rConv);
 	  }

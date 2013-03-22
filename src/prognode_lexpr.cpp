@@ -55,7 +55,7 @@ BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 	ProgNodeP _t = this->getFirstChild();
 	BaseGDL*       e1=interpreter->expr(_t);
 	_t = interpreter->GetRetTree();
-	std::auto_ptr<BaseGDL> e1_guard(e1);
+	Guard<BaseGDL> e1_guard(e1);
 	if( e1->True())
 	{
 	return _t->LExpr( right); //l_expr(_t, right);
@@ -198,12 +198,12 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 		true,false);
 
 	BaseGDL** res=this->LEval(); //l_sys_var(this);
-	std::auto_ptr<BaseGDL> conv_guard; //( rConv);
+	Guard<BaseGDL> conv_guard; //( rConv);
 	BaseGDL* rConv = right;
 	if( !(*res)->EqType( right))
 	{
 		rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-		conv_guard.reset( rConv);
+		conv_guard.Reset( rConv);
 	}
 	if( right->N_Elements() != 1 && ((*res)->N_Elements() != right->N_Elements()))
 	{
@@ -333,7 +333,7 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	ProgNodeP _t = this->getFirstChild();
 
 	//SizeT nDot = tIn->nDot;
-	std::auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 
 	interpreter->l_dot_array_expr(_t, aD.get());
 	_t = interpreter->GetRetTree();

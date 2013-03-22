@@ -41,11 +41,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
-				  __isnand ( x ) :			\
-				  ( sizeof ( x ) == sizeof( float) ) ?	\
-				  __isnanf ( x ) :			\
-				  __isnan  ( x ) )
+// #define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
+// 				  __isnand ( x ) :			\
+// 				  ( sizeof ( x ) == sizeof( float) ) ?	\
+// 				  __isnanf ( x ) :			\
+// 				  __isnan  ( x ) )
+namespace std {
+
+  template <typename T>
+  bool isnan( T x) { return ( ( sizeof ( x ) == sizeof(double) ) ?  
+				  __isnand ( x ) :			
+				  ( sizeof ( x ) == sizeof( float) ) ?	
+				  __isnanf ( x ) :			
+				  __isnan  ( x ) );}
+}
 #ifdef __cplusplus
 }
 #endif
@@ -54,6 +63,16 @@ extern "C" {
 #ifdef _MSC_VER
 #define isfinite _finite
 #endif
+
+namespace mystd {
+
+  template <typename T>
+  bool isnan( T x) { return ( ( sizeof ( x ) == sizeof(double) ) ?  
+				  __isnand ( x ) :			
+				  ( sizeof ( x ) == sizeof( float) ) ?	
+				  __isnanf ( x ) :			
+				  __isnan  ( x ) );}
+}
 
 using namespace std;
 
@@ -1396,7 +1415,7 @@ void Data_<Sp>::Reverse( DLong dim)
 {
   // SA: based on total_over_dim_template()
   //   static Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
-  //auto_ptr<Data_> tmp_guard(tmp);
+  //Guard<Data_> tmp_guard(tmp);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim); 
   SizeT outerStride = this->dim.Stride(dim + 1);
@@ -1423,7 +1442,7 @@ BaseGDL* Data_<Sp>::DupReverse( DLong dim)
 {
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
-  auto_ptr<Data_> res_guard(res);
+  Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim); 
   SizeT outerStride = this->dim.Stride(dim + 1);
@@ -1451,7 +1470,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim)
 {
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
-  auto_ptr<Data_> res_guard(res);
+  Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim); 
   SizeT outerStride = this->dim.Stride(dim + 1);
@@ -1479,7 +1498,7 @@ BaseGDL* Data_<SpDObj>::DupReverse( DLong dim)
 {
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
-  auto_ptr<Data_> res_guard(res);
+  Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim); 
   SizeT outerStride = this->dim.Stride(dim + 1);
@@ -2853,7 +2872,7 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 	{
 	  Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
 	  //      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
-	  auto_ptr<Data_> conv_guard( rConv);
+	  Guard<Data_> conv_guard( rConv);
 	  (*this)[ix] = (*rConv)[0];
 	}
       else
@@ -2865,7 +2884,7 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
     {
       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
       //       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
-      auto_ptr<Data_> conv_guard( rConv);
+      Guard<Data_> conv_guard( rConv);
       (*this)[ixR] = (*rConv)[0];
     }
   else
@@ -4070,7 +4089,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4080,7 +4099,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
         
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+	  if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
         if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       }
@@ -4102,7 +4121,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4112,7 +4131,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
    
       for (i = i_min; i < stop; i+= step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+	  if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
 	if ((*this)[i] < minV) minV = (*this)[minEl = i];
       }
@@ -4134,7 +4153,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
     i = start;
     int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+      if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
       if (i + step >= stop) flag = 0;
       i += step;
     }
@@ -4144,7 +4163,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
 
   for (i = i_min; i < stop; i+= step) {
     if (omitNaN){
-      if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+      if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
     if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
     else if( (*this)[i] < minV) minV = (*this)[minEl = i];
@@ -4183,7 +4202,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4193,7 +4212,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
         
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+	  if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
 	if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       }
@@ -4215,7 +4234,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4225,7 +4244,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
    
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+	  if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
 	if ((*this)[i] < minV) minV = (*this)[minEl = i];
       }
@@ -4247,7 +4266,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
     i = start;
     int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+      if (!std::isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
       if (i + step >= stop) flag = 0;
       i += step;
     }
@@ -4257,7 +4276,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
 
   for (i = i_min; i < stop; i+= step) {
     if (omitNaN){
-      if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
+      if (std::isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
     if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
     else if( (*this)[i] < minV) minV = (*this)[minEl = i];
@@ -4356,7 +4375,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4366,7 +4385,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
         
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+	  if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
 	if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
       }
@@ -4388,7 +4407,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4398,7 +4417,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
    
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+	  if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
 	if ((*this)[i].real() < minV) minV = (*this)[minEl = i].real();
       }
@@ -4420,7 +4439,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
     i = start;
     int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+      if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
       if (i + step >= stop) flag = 0;
       i += step;
     }
@@ -4430,7 +4449,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 
   for (i = i_min; i < stop; i += step) {
     if (omitNaN){
-      if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+      if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
     if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
     else if( (*this)[i].real() < minV) minV = (*this)[minEl = i].real();
@@ -4469,7 +4488,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4479,7 +4498,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
         
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+	  if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
 	if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
       }
@@ -4501,7 +4520,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	i = start;
 	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
 	  if (i + step >= stop) flag = 0;
 	  i += step;
 	}
@@ -4511,7 +4530,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
    
       for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
-	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+	  if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
 	if ((*this)[i].real() < minV) minV = (*this)[minEl = i].real();
       }
@@ -4533,7 +4552,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
     i = start;
     int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+      if (!std::isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
       if (i + step >= stop) flag = 0;
       i += step;
     }
@@ -4543,7 +4562,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 
   for (i = i_min; i < stop; i += step) {
     if (omitNaN){
-      if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
+      if (std::isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
     if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
     else if( (*this)[i].real() < minV) minV = (*this)[minEl = i].real();
@@ -5143,11 +5162,11 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 {
   Data_* srcT = dynamic_cast<Data_*>( src);
 
-  auto_ptr< Data_> srcTGuard;
+  Guard< Data_> srcTGuard;
   if( srcT == NULL) 
     {
       srcT = static_cast<Data_*>( src->Convert2( Data_::t, BaseGDL::COPY));
-      srcTGuard.reset( srcT);
+      srcTGuard.Reset( srcT);
     }
 
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -5242,7 +5261,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
   SizeT nElem = ix->N_Elements();
 
   Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
-  auto_ptr<Data_> guard( res);
+  Guard<Data_> guard( res);
 
   SizeT upper = dd.size() - 1;
   Ty    upperVal = (*this)[ upper];

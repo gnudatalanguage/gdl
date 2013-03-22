@@ -750,7 +750,6 @@ endif(WIN32 AND NOT CYGWIN)
 # AC, 12-oct-2011, solved by Marc 
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
-
 #
 if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
 	set(FLAGS ${CMAKE_CXX_FLAGS})
@@ -763,6 +762,8 @@ elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
 elseif(CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
 	set(FLAGS ${CMAKE_CXX_FLAGS_MINSIZEREL})
 endif(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
+
+
 message(STATUS
 "Summary
 

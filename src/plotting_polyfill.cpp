@@ -159,7 +159,7 @@ namespace lib
       DDouble minVal=yStart, maxVal=yEnd;
 
       // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
-      if ( xEnd-xStart==0||yEnd-yStart==0||isnan(xStart)||isnan(yStart) )
+      if ( xEnd-xStart==0||yEnd-yStart==0||std::isnan(xStart)||std::isnan(yStart) )
       {
         actStream->wind(0, 1, 0, 1);
       }

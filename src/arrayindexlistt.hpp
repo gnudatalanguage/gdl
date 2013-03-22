@@ -319,7 +319,7 @@ public:
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace
       }
@@ -613,7 +613,7 @@ public:
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace
       }
@@ -767,7 +767,7 @@ public:
     else
       {
 		BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-		std::auto_ptr<BaseGDL> conv_guard( rConv);
+		Guard<BaseGDL> conv_guard( rConv);
 	
 		var->AssignAt( rConv, this); // assigns inplace
       }
@@ -1047,7 +1047,7 @@ public:
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace (not only scalar)
       }
@@ -1668,7 +1668,7 @@ public:
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	Guard<BaseGDL> conv_guard( rConv);
 	
 	var->AssignAt( rConv, this); // assigns inplace
       }

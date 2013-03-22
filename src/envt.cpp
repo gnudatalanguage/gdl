@@ -19,12 +19,12 @@
 
 #include <iomanip>
 
+#include "envt.hpp"
 #include "objects.hpp"
 #include "dinterpreter.hpp"
-#include "envt.hpp"
 #include "basic_pro.hpp"
 
-#include <assert.h> // always as last
+#include <cassert> // always as last
 
 using namespace std;
 
@@ -427,6 +427,7 @@ void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 	  }
 }
 
+typedef std::vector<DObj> VectorDObj;
 void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 {
   // within CLEANUP method HEAP_GC could be called again
@@ -484,8 +485,8 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
     if( doObj)
       {
 	std::vector<DObj>* heap = interpreter->GetAllObjHeapSTL();
-	auto_ptr< std::vector<DObj> > heap_guard( heap);
-	    SizeT nH = heap->size();//N_Elements();
+	Guard< std::vector<DObj> > heap_guard( heap);
+	SizeT nH = heap->size();//N_Elements();
 	if( nH > 0 && (*heap)[0] != 0)
 	  {
 	    for( SizeT h=0; h<nH; ++h)
@@ -512,7 +513,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
     if( doPtr)
       {
 	std::vector<DPtr>* heap = interpreter->GetAllHeapSTL();
-	auto_ptr< std::vector<DPtr> > heap_guard( heap);
+	Guard< std::vector<DPtr> > heap_guard( heap);
 	    SizeT nH = heap->size();
 	if( nH > 0 && (*heap)[0] != 0)
 	  {
@@ -581,7 +582,7 @@ void EnvBaseT::ObjCleanup( DObj actID)
 		  if( objCLEANUP != NULL)
 		  {
 		    BaseGDL* actObjGDL = new DObjGDL( actID);
-		    auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
+		    Guard<BaseGDL> actObjGDL_guard( actObjGDL);
 		    GDLInterpreter::IncRefObj( actID); // set refcount to 1
 	    
 		    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
@@ -635,7 +636,7 @@ void EnvT::ObjCleanup( DObj actID)
 			if( objCLEANUP != NULL)
 				{
 				BaseGDL* actObjGDL = new DObjGDL( actID);
-				auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
+				Guard<BaseGDL> actObjGDL_guard( actObjGDL);
 				GDLInterpreter::IncRefObj( actID);
 			
 				PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
@@ -1402,7 +1403,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
   DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
-  auto_ptr<DLong64GDL> guard_lp( lp);
+  Guard<DLong64GDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
@@ -1411,7 +1412,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
   DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
-  auto_ptr<DLongGDL> guard_lp( lp);
+  Guard<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
@@ -1452,7 +1453,7 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
   
   DLongGDL* lp= static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
   
-  auto_ptr<DLongGDL> guard_lp( lp);
+  Guard<DLongGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
@@ -1463,7 +1464,7 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
   DDoubleGDL* lp = static_cast<DDoubleGDL*>(p->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-  auto_ptr<DDoubleGDL> guard_lp( lp);
+  Guard<DDoubleGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
@@ -1494,7 +1495,7 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
   
   DDoubleGDL* lp= static_cast<DDoubleGDL*>(p->Convert2( GDL_DOUBLE, BaseGDL::COPY));
   
-  auto_ptr<DDoubleGDL> guard_lp( lp);
+  Guard<DDoubleGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
@@ -1506,7 +1507,7 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
   DFloatGDL* lp = static_cast<DFloatGDL*>(p->Convert2( GDL_FLOAT, BaseGDL::COPY));
-  auto_ptr<DFloatGDL> guard_lp( lp);
+  Guard<DFloatGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
@@ -1537,7 +1538,7 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
   
   DFloatGDL* lp= static_cast<DFloatGDL*>(p->Convert2( GDL_FLOAT, BaseGDL::COPY));
   
-  auto_ptr<DFloatGDL> guard_lp( lp);
+  Guard<DFloatGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
@@ -1549,7 +1550,7 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
   DStringGDL* lp = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
-  auto_ptr<DStringGDL> guard_lp( lp);
+  Guard<DStringGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
@@ -1578,7 +1579,7 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
     Throw("Expression undefined: "+GetString(eIx));
   
   DStringGDL* lp= static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
-  auto_ptr<DStringGDL> guard_lp( lp);
+  Guard<DStringGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
@@ -1588,7 +1589,7 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 void EnvT::SetKW( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released
-  auto_ptr<BaseGDL> guard( newVal);
+  Guard<BaseGDL> guard( newVal);
   AssureGlobalKW( ix);
   GDLDelete(GetKW( ix));
   GetKW( ix) = guard.release();
@@ -1596,7 +1597,7 @@ void EnvT::SetKW( SizeT ix, BaseGDL* newVal)
 void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released
-  auto_ptr<BaseGDL> guard( newVal);
+  Guard<BaseGDL> guard( newVal);
   AssureGlobalPar( ix);
   GDLDelete(GetPar( ix));
   GetPar( ix) = guard.release();

@@ -97,7 +97,7 @@ namespace lib {
     }
     
     // copying over p0 the updated matrix	
-    DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+    SizeT dims[2] = {p0->Dim(0), p0->Dim(0)};
     dimension dim0(dims, (SizeT) 2);
 
     BaseGDL** p0Do = &e->GetPar( 0);
@@ -116,7 +116,7 @@ namespace lib {
     // { p0->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
 
     // copying over p1 the permutation vector
-    DLong n = p0->Dim(0);
+    SizeT n = p0->Dim(0);
     dimension dim1(&n, (SizeT) 1);
     BaseGDL** p1D = &e->GetPar( 1);
     GDLDelete((*p1D));

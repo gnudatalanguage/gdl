@@ -720,7 +720,7 @@ else if(var_type == NC_LONG)
       {
 	v=e->GetParDefined(2);
 	DIntGDL* dim_in=static_cast<DIntGDL*>(v->Convert2(GDL_INT, BaseGDL::COPY));
-	auto_ptr<DIntGDL> dim_in_guard( dim_in);
+	Guard<DIntGDL> dim_in_guard( dim_in);
 	var_ndims=dim_in->N_Elements();
 	if(var_ndims > NC_MAX_VAR_DIMS)
 	  {
@@ -998,7 +998,7 @@ else if(var_type == NC_LONG)
       case GDL_ULONG64 :
       {
         BaseGDL* val;
-        auto_ptr<BaseGDL> val_guard(val);
+        Guard<BaseGDL> val_guard(val);
         switch (var_type) 
         {
           case NC_BYTE :   // 8-bit signed integer

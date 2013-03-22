@@ -33,7 +33,7 @@ namespace lib {
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
     bool doMinMax;
     bool xLog, yLog, wasBadxLog, wasBadyLog;
-    auto_ptr<BaseGDL> xval_guard,yval_guard,xtemp_guard;
+    Guard<BaseGDL> xval_guard,yval_guard,xtemp_guard;
     DLong iso;
 
 private:
@@ -49,7 +49,7 @@ private:
     }
 
     DDoubleGDL *yValBis, *xValBis;
-    auto_ptr<BaseGDL> xvalBis_guard, yvalBis_guard;
+    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
     //test and transform eventually if POLAR and/or NSUM!
     if (nParam() == 1)
     {
@@ -59,7 +59,7 @@ private:
       yEl=yTemp->N_Elements();
       xEl=yEl;
       xTemp = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
-      xtemp_guard.reset(xTemp); // delete upon exit
+      xtemp_guard.Reset(xTemp); // delete upon exit
     }
     else
     {
@@ -89,9 +89,9 @@ private:
       if (polar)
       {
         xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-        xval_guard.reset(xVal); // delete upon exit
+        xval_guard.Reset(xVal); // delete upon exit
         yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-        yval_guard.reset(yVal); // delete upon exit
+        yval_guard.Reset(yVal); // delete upon exit
         for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
         for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
       }
@@ -107,9 +107,9 @@ private:
       int i, j, k;
       DLong size = (DLong)xEl / nsum;
       xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
-      xval_guard.reset(xVal); // delete upon exit
+      xval_guard.Reset(xVal); // delete upon exit
       yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
-      yval_guard.reset(yVal); // delete upon exit
+      yval_guard.Reset(yVal); // delete upon exit
       for (i = 0, k = 0; i < size; i++)
       {
         (*xVal)[i] = 0.0;
@@ -149,7 +149,7 @@ private:
       xVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
       xValBis = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-      xvalBis_guard.reset(xValBis); // delete upon exit
+      xvalBis_guard.Reset(xValBis); // delete upon exit
       for (int i = 0; i < xEl; i++) (*xValBis)[i] = log10((*xVal)[i]);
     }
     else xValBis = xVal;
@@ -159,7 +159,7 @@ private:
       yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
       yValBis = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-      yvalBis_guard.reset(yValBis); // delete upon exit
+      yvalBis_guard.Reset(yValBis); // delete upon exit
       for (int i = 0; i < yEl; i++) (*yValBis)[i] = log10((*yVal)[i]);
     }
     else yValBis = yVal;
@@ -170,15 +170,15 @@ private:
       xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       xStart = (*xVal)[minEl];
       xEnd = (*xVal)[maxEl];
-      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
-      if (isnan(xEnd)) xEnd = 1.0;
+      if (std::isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
+      if (std::isnan(xEnd)) xEnd = 1.0;
       if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
       yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
       yEnd = (*yVal)[maxEl];
-      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
-      if (isnan(yEnd)) yEnd = 1.0;
+      if (std::isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
+      if (std::isnan(yEnd)) yEnd = 1.0;
       if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
     }
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)

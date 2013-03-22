@@ -835,7 +835,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 	assert( actEnv != NULL);
 	
-	auto_ptr<BaseGDL> e1_guard;
+	Guard<BaseGDL> e1_guard;
 	BaseGDL* e1;
 	ProgNodeP evalExpr = _t->getFirstChild();
 	if( NonCopyNode( evalExpr->getType()))
@@ -852,7 +852,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	if( !callStack.back()->Contains( e1)) 
 	{
 	//                if( actEnv != NULL)
-	actEnv->Guard( e1); 
+	actEnv->DeleteAtExit( e1); 
 	//                else
 	//                    e1_guard.reset( e1);
 	}
@@ -862,7 +862,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	e1 = evalExpr->Eval();
 	
 	//      if( actEnv != NULL)
-	actEnv->Guard( e1); 
+	actEnv->DeleteAtExit( e1); 
 	//      else
 	//          e1_guard.reset(e1);
 	}
@@ -930,7 +930,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		e1=expr(_t);
 		_t = _retTree;
 		
-		auto_ptr<BaseGDL> e1_guard(e1);
+		Guard<BaseGDL> e1_guard(e1);
 		if( e1->True())
 		{
 		res=l_ret_expr(_t);
@@ -998,7 +998,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -1033,7 +1033,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			e1=tmp_expr(_t);
 			_t = _retTree;
 			
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1043,7 +1043,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1074,7 +1074,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -1109,7 +1109,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			e1=tmp_expr(_t);
 			_t = _retTree;
 			
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1119,7 +1119,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1150,7 +1150,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -1185,7 +1185,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			e1=tmp_expr(_t);
 			_t = _retTree;
 			
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1195,7 +1195,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -1398,7 +1398,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	auto_ptr<BaseGDL> self_guard(self);
+	Guard<BaseGDL> self_guard(self);
 	
 	newEnv=new EnvUDT( self, mp2, "", true);
 	
@@ -2206,9 +2206,9 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	_t = _t->getFirstChild();
 	
 	SizeT nDot=dot->nDot;
-	auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 	
-	l_dot_array_expr(_t, aD.get());
+	l_dot_array_expr(_t, aD.Get());
 	_t = _retTree;
 	{ // ( ... )+
 	int _cnt37=0;
@@ -2216,7 +2216,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_t->getType() == ARRAYEXPR || _t->getType() == EXPR || _t->getType() == IDENTIFIER)) {
-			tag_array_expr(_t, aD.get());
+			tag_array_expr(_t, aD.Get());
 			_t = _retTree;
 		}
 		else {
@@ -2232,23 +2232,23 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	
 	if( dec_inc == DECSTATEMENT) 
 	{
-	aD->Dec(); 
+	aD.Get()->Dec(); 
 	res = NULL;
 	}
 	else if( dec_inc == INCSTATEMENT)
 	{
-	aD->Inc();
+	aD.Get()->Inc();
 	res = NULL;
 	}
 	else
 	{
-	if( dec_inc == DEC) aD->Dec(); //*** aD->Assign( dec_inc);
-	else if( dec_inc == INC) aD->Inc();
+	if( dec_inc == DEC) aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+	else if( dec_inc == INC) aD.Get()->Inc();
 	//                
-	res=aD->ADResolve();
+	res=aD.Get()->ADResolve();
 	
-	if( dec_inc == POSTDEC) aD->Dec();
-	else if( dec_inc == POSTINC) aD->Inc();
+	if( dec_inc == POSTDEC) aD.Get()->Dec();
+	else if( dec_inc == POSTINC) aD.Get()->Inc();
 	}
 	
 	_retTree = _t;
@@ -2417,7 +2417,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		e1=expr(_t);
 		_t = _retTree;
 		
-		auto_ptr<BaseGDL> e1_guard(e1);
+		Guard<BaseGDL> e1_guard(e1);
 		
 		if( e1->True())
 		{
@@ -2440,7 +2440,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -2479,7 +2479,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		{
 			e1=indexable_tmp_expr(_t);
 			_t = _retTree;
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			break;
 		}
 		case FCALL_LIB:
@@ -2488,7 +2488,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1); // guard if no global data
+			r_guard.Init( e1); // guard if no global data
 			
 			break;
 		}
@@ -2521,7 +2521,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -2560,7 +2560,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		{
 			e1=indexable_tmp_expr(_t);
 			_t = _retTree;
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			break;
 		}
 		case FCALL_LIB:
@@ -2569,7 +2569,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1); // guard if no global data
+			r_guard.Init( e1); // guard if no global data
 			
 			break;
 		}
@@ -2594,7 +2594,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		{
 		delete *tmp;
 		
-		if( r_guard.get() == e1)
+		if( r_guard.Get() == e1)
 		*tmp = r_guard.release();
 		else          
 		*tmp = e1->Dup();
@@ -2628,7 +2628,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
-		auto_ptr<BaseGDL> r_guard;
+		Guard<BaseGDL> r_guard;
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -2663,7 +2663,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			e1=tmp_expr(_t);
 			_t = _retTree;
 			
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -2673,7 +2673,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
-			r_guard.reset( e1);
+			r_guard.Init( e1);
 			
 			break;
 		}
@@ -2725,7 +2725,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		{
 		delete *tmp;
 		
-		if( r_guard.get() == e1)
+		if( r_guard.Get() == e1)
 		*tmp = r_guard.release();
 		else  
 		*tmp = e1->Dup();
@@ -2772,7 +2772,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		auto_ptr<BaseGDL> self_guard(self);
+		Guard<BaseGDL> self_guard(self);
 		
 		EnvUDT* newEnv;
 		
@@ -3105,7 +3105,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	//     _t = _t->getFirstChild();
 	//     e1=expr(_t);
 	//     _t = _retTree;
-	//     auto_ptr<BaseGDL> e1_guard(e1);
+	//     Guard<BaseGDL> e1_guard(e1);
 	//     if( e1->True())
 	//     {
 	//         res=l_expr(_t, right);
@@ -3154,7 +3154,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	//     res=l_sys_var(_t);
 	//     // _t = _retTree; // ok
 	
-	//     auto_ptr<BaseGDL> conv_guard; //( rConv);
+	//     Guard<BaseGDL> conv_guard; //( rConv);
 	//     BaseGDL* rConv = right;
 	//     if( !(*res)->EqType( right))
 	//     {
@@ -3212,7 +3212,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	//       _t = _t->getFirstChild();
 	
 	//       SizeT nDot = tIn->nDot;
-	//       auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	//       Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 	
 	//       l_dot_array_expr(_t, aD.get());
 	//       _t = _retTree;
@@ -3855,7 +3855,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	// as actEnv is not on the stack guard it here
-	auto_ptr<EnvBaseT> guard(actEnv); 
+	Guard<EnvBaseT> guard(actEnv); 
 	
 	EnvBaseT* callerEnv = callStack.back();
 	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
@@ -4047,7 +4047,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	auto_ptr<BaseGDL> self_guard(self);
+	Guard<BaseGDL> self_guard(self);
 	
 	try {
 	newEnv=new EnvUDT( self, mp2, "", true);
@@ -4082,9 +4082,9 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	_t = _t->getFirstChild();
 	
 	SizeT nDot=dot->nDot;
-	auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 	
-	l_dot_array_expr(_t, aD.get());
+	l_dot_array_expr(_t, aD.Get());
 	_t = _retTree;
 	{ // ( ... )+
 	int _cnt119=0;
@@ -4092,7 +4092,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_t->getType() == ARRAYEXPR || _t->getType() == EXPR || _t->getType() == IDENTIFIER)) {
-			tag_array_expr(_t, aD.get());
+			tag_array_expr(_t, aD.Get());
 			_t = _retTree;
 		}
 		else {
@@ -4111,7 +4111,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	"Struct expression not allowed in this context.",
 	true,false);
 	
-	aD->ADAssign( right);
+	aD.Get()->ADAssign( right);
 	
 	res=NULL;
 	
@@ -4136,7 +4136,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			_t = _t->getFirstChild();
 			e=expr(_t);
 			
-			auto_ptr<BaseGDL> e_guard(e);
+			Guard<BaseGDL> e_guard(e);
 			
 			SizeT tagIx;
 			int ret=e->Scalar2index(tagIx);
@@ -4881,9 +4881,9 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	_t = _t->getFirstChild();
 	
 	SizeT nDot=dot->nDot;
-	auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 	
-	l_dot_array_expr(_t, aD.get());
+	l_dot_array_expr(_t, aD.Get());
 	_t = _retTree;
 	{ // ( ... )+
 	int _cnt124=0;
@@ -4891,7 +4891,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_t->getType() == ARRAYEXPR || _t->getType() == EXPR || _t->getType() == IDENTIFIER)) {
-			tag_array_expr(_t, aD.get());
+			tag_array_expr(_t, aD.Get());
 			_t = _retTree;
 		}
 		else {
@@ -4912,7 +4912,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	"Struct expression not allowed in this context.",
 	true,false);
 	
-	aD->ADAssign( right);
+	aD.Get()->ADAssign( right);
 	
 	res=NULL;
 	
@@ -4925,7 +4925,7 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 ) {
 	ProgNodeP parameter_def_n_elements_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	auto_ptr<EnvBaseT> guard(actEnv); 
+	Guard<EnvBaseT> guard(actEnv); 
 	_retTree = _t;
 	//     bool interruptEnableIn = interruptEnable;
 	if( _retTree != NULL)
@@ -5006,7 +5006,7 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 ) {
 	ProgNodeP parameter_def_nocheck_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	auto_ptr<EnvBaseT> guard(actEnv); 
+	Guard<EnvBaseT> guard(actEnv); 
 	
 	EnvBaseT* callerEnv = callStack.back();
 	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();

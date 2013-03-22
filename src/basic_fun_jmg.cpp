@@ -329,7 +329,7 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( typeIx, type);
 
     DLongGDL* dimKey=NULL;
-    auto_ptr<DLongGDL> dimKey_guard;
+    Guard<DLongGDL> dimKey_guard;
 
     static int sizeix = e->KeywordIx( "SIZE"); 
     static int dimensionix = e->KeywordIx( "DIMENSION"); 
@@ -344,7 +344,7 @@ namespace lib {
 	  {
 	    dimension dim(l_dimension->N_Elements(),1);
 	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
-	    dimKey_guard.reset( dimKey); //e->Guard( dimKey);
+	    dimKey_guard.Reset( dimKey); //e->Guard( dimKey);
 	    for (int i=0;i<l_dimension->N_Elements();++i)
 	      (*dimKey)[i]=(*l_dimension)[i];
 	  }
@@ -361,7 +361,7 @@ namespace lib {
 	  {
 	    dimension dim((*l_size)[0],1);
 	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
-	    dimKey_guard.reset( dimKey); //e->Guard( dimKey);
+	    dimKey_guard.Reset( dimKey); //e->Guard( dimKey);
 	    //	    e->Guard( dimKey);
 	    for (int i=1;i<=(*l_size)[0];++i)
 	      (*dimKey)[i-1]=(*l_size)[i];
@@ -387,7 +387,7 @@ namespace lib {
 
     static int valueix = e->KeywordIx( "VALUE"); 
     BaseGDL* value = e->GetKW( valueix);
-    auto_ptr<BaseGDL> value_guard;
+    Guard<BaseGDL> value_guard;
     if( value != NULL)
       {
 	if( !value->Scalar())
@@ -398,7 +398,7 @@ namespace lib {
 	else
 	  {
 	    value = value->Convert2( static_cast<DType>(type), BaseGDL::COPY);
-	    value_guard.reset(value);//e->Guard( value);
+	    value_guard.Reset(value);//e->Guard( value);
 	  }
       }
 

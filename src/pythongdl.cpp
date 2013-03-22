@@ -375,7 +375,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
     else
       e = new EnvUDT( NULL, sub);
 
-    auto_ptr< EnvBaseT> e_guard( e);
+    Guard< EnvBaseT> e_guard( e);
 
     // copy arguments
     success = CopyArgFromPython( parRef, kwRef, *e, argTuple, kwDict);
@@ -391,7 +391,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
     }
     
     BaseGDL* retValGDL = NULL;
-    auto_ptr<BaseGDL> retValGDL_guard;
+    Guard<BaseGDL> retValGDL_guard;
     if( functionCall)
       {
 	if( libCall) 
@@ -401,7 +401,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 	  retValGDL = interpreter->call_fun(static_cast<DSubUD*>
 					    (static_cast<EnvUDT*>(e)
 					     ->GetPro())->GetTree());
-	retValGDL_guard.reset( retValGDL);
+	retValGDL_guard.Reset( retValGDL);
       }
     else
       {

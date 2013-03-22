@@ -197,9 +197,9 @@ namespace lib {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
        if (kwNaN)
-         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = std::isnan((*src)[ i]);
        else if (kwInfinity)
-         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = std::isinf((*src)[ i]);
        else
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
        return res;
@@ -215,10 +215,10 @@ namespace lib {
        SizeT nEl = src->N_Elements();
        if (kwNaN)
          for ( SizeT i=0; i<nEl; ++i) 
-     	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
+     	    (*res)[ i] = std::isnan((*src)[ i].real()) || std::isnan((*src)[ i].imag());
        else if (kwInfinity)
          for ( SizeT i=0; i<nEl; ++i)
-           (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
+           (*res)[ i] = std::isinf((*src)[ i].real()) || std::isinf((*src)[ i].imag());
        else
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isfinite((*src)[ i].real()) && 
@@ -250,12 +250,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (std::isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (std::isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
 	 return res;	 
@@ -264,12 +264,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (std::isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (std::isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
 	 return res;
@@ -288,10 +288,10 @@ namespace lib {
        for ( SizeT i=0; i<nEl; ++i)
 	 {
 	   (*res)[i]=0;
-	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
-	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
-	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
-	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
+	   if      ((kwInfinity && std::isinf((*src)[ i].real()) || kwNaN && std::isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && std::isinf((*src)[ i].imag()) || kwNaN && std::isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && std::isinf((*src)[ i].real()) || kwNaN && std::isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
+	   else if ((kwInfinity && std::isinf((*src)[ i].imag()) || kwNaN && std::isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
 	 }
        return res;
      }
@@ -309,7 +309,7 @@ namespace lib {
      e->NParam( 1);
 
      BaseGDL* p0     = e->GetParDefined( 0);
-     auto_ptr<BaseGDL> guard;
+     Guard<BaseGDL> guard;
 
      static int nanIx = e->KeywordIx( "NAN");
      bool kwNaN      = e->KeywordSet( nanIx);
@@ -348,7 +348,7 @@ namespace lib {
 	     {
 	       DFloatGDL* p0F = 
 		 static_cast<DFloatGDL*>(p0->Convert2(GDL_FLOAT,BaseGDL::COPY));
-	       guard.reset( p0F);
+	       guard.Reset( p0F);
 	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
 	     }
 	   case GDL_STRUCT:
@@ -396,7 +396,7 @@ namespace lib {
 	     {
 	       DFloatGDL* p0F = 
 		 static_cast<DFloatGDL*>(p0->Convert2(GDL_FLOAT,BaseGDL::COPY));
-	       guard.reset( p0F);
+	       guard.Reset( p0F);
 	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity, kwSign);
 	     }
 	   case GDL_STRUCT:
@@ -931,10 +931,10 @@ namespace lib {
 	if(Map->N_Elements() != 4)
 	  e->Throw("Keyword array parameter MAP"
 		   "must have 4 elements.");
-	auto_ptr<DDoubleGDL> guard;
+	Guard<DDoubleGDL> guard;
 	DDoubleGDL* mapD = static_cast<DDoubleGDL*>
 	  ( Map->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard.reset( mapD);
+	guard.Reset( mapD);
 	xvsx[0] = (*mapD)[0];
 	xvsx[1] = (*mapD)[1];
 	yvsy[0] = (*mapD)[2];
@@ -1949,7 +1949,7 @@ void image_del(image_t * d)
     treeParser.interactive(theAST);
     trAST = treeParser.getAST();
     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    auto_ptr< ProgNode> progAST_guard( progAST);
+    Guard< ProgNode> progAST_guard( progAST);
 
 	// Marc: necessary for correct FOR loop handling
 	assert( dynamic_cast<EnvUDT*>(caller) != NULL);

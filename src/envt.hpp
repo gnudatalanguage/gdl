@@ -62,7 +62,7 @@ public:
   // upon library routines exit (normal or on error)
   // elimates the need of auto_ptr and in some places later destruction is needed
   
-  void Guard( BaseGDL* toGuard)
+  void DeleteAtExit( BaseGDL* toGuard)
     {
 // 		if( toDestroy == NULL)
 // 			toDestroy = new ContainerT();
@@ -591,7 +591,7 @@ public:
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    this->Guard( res);
+    this->DeleteAtExit( res);
     return res;
   }
   // same as before for keywords
@@ -606,7 +606,7 @@ public:
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    this->Guard( res);
+    this->DeleteAtExit( res);
     return res;
   }
 
@@ -621,7 +621,7 @@ public:
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    this->Guard( res);
+    this->DeleteAtExit( res);
     return res;
   }
   // same as before for keywords
@@ -635,7 +635,7 @@ public:
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    this->Guard( res);
+    this->DeleteAtExit( res);
     return res;
   }
 

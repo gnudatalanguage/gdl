@@ -26,7 +26,7 @@ namespace lib {
   {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl;
-    auto_ptr<BaseGDL> xval_guard,yval_guard,xtempval_guard;
+    Guard<BaseGDL> xval_guard,yval_guard,xtempval_guard;
 
     private: bool handle_args( EnvT* e) // {{{
     {
@@ -48,7 +48,7 @@ namespace lib {
         yEl=yTemp->N_Elements();
         xEl=yEl;
         xTemp = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-        xtempval_guard.reset( xTemp); // delete upon exit
+        xtempval_guard.Reset( xTemp); // delete upon exit
       }
       else
       {
@@ -78,9 +78,9 @@ namespace lib {
         if (polar)
         {
           xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-          xval_guard.reset(xVal); // delete upon exit
+          xval_guard.Reset(xVal); // delete upon exit
           yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-          yval_guard.reset(yVal); // delete upon exit
+          yval_guard.Reset(yVal); // delete upon exit
           for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
           for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
         }
@@ -96,9 +96,9 @@ namespace lib {
         int i, j, k;
         DLong size = xEl / nsum;
         xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
-        xval_guard.reset(xVal); // delete upon exit
+        xval_guard.Reset(xVal); // delete upon exit
         yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
-        yval_guard.reset(yVal); // delete upon exit
+        yval_guard.Reset(yVal); // delete upon exit
         for (i = 0, k = 0; i < size; i++)
         {
           (*xVal)[i] = 0.0;

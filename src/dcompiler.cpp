@@ -410,7 +410,7 @@ BaseGDL* DCompiler::ConstantIndex( RefDNode n)
 
     // must be compiled here
     ARRAYDEFNode* c = new ARRAYDEFNode( n);
-    auto_ptr< ARRAYDEFNode> guard( c);
+    Guard< ARRAYDEFNode> guard( c);
     assert( c->ConstantArray());
 
 //   cout << "ProgNodeP:" << endl;

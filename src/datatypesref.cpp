@@ -1159,11 +1159,11 @@ void Data_<SpDPtr>::Assign( BaseGDL* src, SizeT nEl)
 {
   Data_* srcT = dynamic_cast<Data_*>( src);
 
-  auto_ptr< Data_> srcTGuard;
+  Guard< Data_> srcTGuard;
   if( srcT == NULL)
     {
       srcT = static_cast<Data_*>( src->Convert2( Data_::t, BaseGDL::COPY));
-      srcTGuard.reset( srcT);
+      srcTGuard.Reset( srcT);
     }
 
   //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -1184,11 +1184,11 @@ void Data_<SpDObj>::Assign( BaseGDL* src, SizeT nEl)
 {
   Data_* srcT = dynamic_cast<Data_*>( src);
 
-  auto_ptr< Data_> srcTGuard;
+  Guard< Data_> srcTGuard;
   if( srcT == NULL)
     {
       srcT = static_cast<Data_*>( src->Convert2( Data_::t, BaseGDL::COPY));
-      srcTGuard.reset( srcT);
+      srcTGuard.Reset( srcT);
     }
 
   //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -1459,7 +1459,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIx( BaseGDL* ix, bool strict)
   SizeT nElem = ix->N_Elements();
 
   Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
-  auto_ptr<Data_> guard( res);
+  Guard<Data_> guard( res);
 
   SizeT upper = dd.size() - 1;
   Ty    upperVal = (*this)[ upper];
@@ -1497,7 +1497,7 @@ Data_<SpDObj>* Data_<SpDObj>::NewIx( BaseGDL* ix, bool strict)
   SizeT nElem = ix->N_Elements();
 
   Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
-  auto_ptr<Data_> guard( res);
+  Guard<Data_> guard( res);
 
   SizeT upper = dd.size() - 1;
   Ty    upperVal = (*this)[ upper];

@@ -45,7 +45,7 @@ namespace lib {
     treeParser.interactive(theAST);
     trAST = treeParser.getAST();
     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    auto_ptr< ProgNode> progAST_guard( progAST);
+    Guard< ProgNode> progAST_guard( progAST);
 
     // necessary for correct FOR loop handling
     assert( dynamic_cast<EnvUDT*>(caller) != NULL);
@@ -822,7 +822,7 @@ namespace lib {
       trAST = treeParser.getAST();
 
       ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-      auto_ptr< ProgNode> progAST_guard( progAST);
+      Guard< ProgNode> progAST_guard( progAST);
 
       // necessary for correct FOR loop handling
       assert( dynamic_cast<EnvUDT*>(caller) != NULL);

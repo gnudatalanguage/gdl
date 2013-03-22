@@ -569,17 +569,17 @@ namespace lib {
       }
     }
 
-    auto_ptr<BaseGDL> U_guard;
+    Guard<BaseGDL> U_guard;
     DDoubleGDL* U;
     U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
-    U_guard.reset(U); // delete upon exit
+    U_guard.Reset(U); // delete upon exit
     
     // may be we will have to check the size of these arrays ?
 
     BaseGDL* Yderiv0=e->GetKW(e->KeywordIx("YP0"));
     DDoubleGDL* YP0;
 
-    if(Yderiv0 !=NULL && !isinf((*(YP0=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YP0"))))[0] )){ 
+    if(Yderiv0 !=NULL && !std::isinf((*(YP0=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YP0"))))[0] )){ 
       // first derivative at the point X0 is defined and different to Inf
       (*res)[0]=-0.5;
       (*U)[0] = ( 3. / ((*Xpos)[1]-(*Xpos)[0])) * (((*Ypos)[1]-(*Ypos)[0]) / 
@@ -612,7 +612,7 @@ namespace lib {
     BaseGDL* YderivN=e->GetKW(e->KeywordIx("YPN_1"));
     DDoubleGDL* YPN;
 
-    if(YderivN !=NULL && !isinf((*(YPN=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YPN_1"))))[0] )){ 
+    if(YderivN !=NULL && !std::isinf((*(YPN=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YPN_1"))))[0] )){ 
       // first derivative at the point XN-1 is defined and different to Inf 
       (*res)[nElpXpos-1] =0.;
       qn=0.5;

@@ -299,7 +299,7 @@ namespace lib {
       throw GDLException( e->CallingNode(), "Parameter undefined: "+
 			  e->GetParString(0));
   
-    //  auto_ptr<DStringGDL> guard;
+    //  Guard<DStringGDL> guard;
     stringstream is;
 
     DStringGDL* iStr = dynamic_cast<DStringGDL*>(p);

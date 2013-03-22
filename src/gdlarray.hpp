@@ -122,19 +122,19 @@ public:
   {
     if( IsPOD)
     {
-    try {
-	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : InitScalar();
-    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+      try {
+	  buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : InitScalar();
+      } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 
-    std::memcpy(buf,cp.buf,sz*sizeof(T));
+      std::memcpy(buf,cp.buf,sz*sizeof(T));
     }
     else
     {
       try {
 	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-     for( SizeT i=0; i<sz; ++i)
-       buf[ i] = cp.buf[ i];
+      for( SizeT i=0; i<sz; ++i)
+	buf[ i] = cp.buf[ i];
     }
   }
 

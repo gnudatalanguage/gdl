@@ -751,8 +751,9 @@ TRACEOMP( __FILE__, __LINE__)
   inline C atanC(const C& c1, const C& c2)
   {
     const C i(0.0,1.0);
-    const C one(1.0,0.0);
-    return -i * log((c2 + i * c1) / sqrt(pow(c2, 2) + pow(c1, 2)));
+    //const C one(1.0,0.0);
+//     return -i * log((c2 + i * c1) / (sqrt(pow(c2, 2) + pow(c1, 2))));
+    return -i * log((c2 + i * c1) / sqrt((c2 * c2) + (c1 * c1)));
   }
 
   BaseGDL* atan_fun( EnvT* e)
@@ -794,13 +795,13 @@ TRACEOMP( __FILE__, __LINE__)
 
 	if( t == GDL_COMPLEX)
 	  {
-	    auto_ptr< DComplexGDL> guard0;
-	    auto_ptr< DComplexGDL> guard1;
+	    Guard< DComplexGDL> guard0;
+	    Guard< DComplexGDL> guard1;
 
 	    DComplexGDL* p0F = static_cast<DComplexGDL*>(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
-	    guard0.reset( p0F);
+	    guard0.Init( p0F);
 	    DComplexGDL* p1F = static_cast<DComplexGDL*>(p1->Convert2( GDL_COMPLEX, BaseGDL::COPY));
-	    guard1.reset( p1F);
+	    guard1.Init( p1F);
 	      
 	    DComplexGDL* res = new DComplexGDL( dim, BaseGDL::NOZERO);
 	    for (i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0F)[*i0], (*p1F)[*i1]); 
@@ -808,13 +809,13 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
 	else if( t == GDL_COMPLEXDBL)
 	  {
-	    auto_ptr< DComplexDblGDL> guard0;
-	    auto_ptr< DComplexDblGDL> guard1;
+	    Guard< DComplexDblGDL> guard0;
+	    Guard< DComplexDblGDL> guard1;
 
 	    DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
-	    guard0.reset( p0F);
+	    guard0.Init( p0F);
 	    DComplexDblGDL* p1F = static_cast<DComplexDblGDL*>(p1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
-	    guard1.reset( p1F);
+	    guard1.Init( p1F);
 	      
 	    DComplexDblGDL* res = new DComplexDblGDL( dim, BaseGDL::NOZERO);
 	    for (i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0F)[*i0], (*p1F)[*i1]); 
@@ -822,13 +823,13 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
 	else if( t == GDL_DOUBLE)
 	  {
-	    auto_ptr< DDoubleGDL> guard;
+	    Guard< DDoubleGDL> guard;
 	    
 	    DDoubleGDL* p0D;
 	    if( p0->Type() != GDL_DOUBLE)
 	      {
 		p0D =  static_cast<DDoubleGDL*>( p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-		guard.reset( p0D);
+		guard.Reset( p0D);
 	      }
 	    else
 	      {
@@ -839,7 +840,7 @@ TRACEOMP( __FILE__, __LINE__)
 	    if( p1->Type() != GDL_DOUBLE)
 	      {
 		p1D =  static_cast<DDoubleGDL*>( p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-		guard.reset( p1D);
+		guard.Reset( p1D);
 	      }
 	    else
 	      {
@@ -852,13 +853,13 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
 	else if( t == GDL_FLOAT)
 	  {
-	    auto_ptr< DFloatGDL> guard;
+	    Guard< DFloatGDL> guard;
 	    
 	    DFloatGDL* p0F;
 	    if( p0->Type() != GDL_FLOAT)
 	      {
 		p0F =  static_cast<DFloatGDL*>( p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-		guard.reset( p0F);
+		guard.Reset( p0F);
 	      }
 	    else
 	      {
@@ -869,7 +870,7 @@ TRACEOMP( __FILE__, __LINE__)
 	    if( p1->Type() != GDL_FLOAT)
 	      {
 		p1F =  static_cast<DFloatGDL*>( p1->Convert2( GDL_FLOAT, BaseGDL::COPY));
-		guard.reset( p1F);
+		guard.Reset( p1F);
 	      }
 	    else
 	      {
@@ -883,13 +884,13 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
 	else 
 	  {
-	    auto_ptr< DFloatGDL> guard0;
-	    auto_ptr< DFloatGDL> guard1;
+	    Guard< DFloatGDL> guard0;
+	    Guard< DFloatGDL> guard1;
 
 	    DFloatGDL* p0F = static_cast<DFloatGDL*>(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	    guard0.reset( p0F);
+	    guard0.Init( p0F);
 	    DFloatGDL* p1F = static_cast<DFloatGDL*>(p1->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	    guard1.reset( p1F);
+	    guard1.Init( p1F);
 	      
 	    DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
 	    for (i = 0; i < nElMin; ++i) 
@@ -2051,7 +2052,7 @@ TRACEOMP( __FILE__, __LINE__)
       e->Throw("Argument N must be greater than or equal to zero.");
     
     DDoubleGDL* kval;
-    auto_ptr<DDoubleGDL> kval_guard;
+    Guard<DDoubleGDL> kval_guard;
     if (nParam>2) {
       kval = e->GetParAs<DDoubleGDL>(2);
       if(kval->N_Elements() != 1)
@@ -2060,7 +2061,7 @@ TRACEOMP( __FILE__, __LINE__)
         e->Throw("Argument K must be greater than or equal to zero.");
     } else {
       kval = new DDoubleGDL(0);
-      kval_guard.reset(kval);
+      kval_guard.Reset(kval);
     }
 
     DDoubleGDL* res = new DDoubleGDL(xvals->Dim(),BaseGDL::NOZERO);
