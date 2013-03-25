@@ -28,7 +28,8 @@
 //#include <complex>
 #include <deque>
 
-#include <type_traits>
+// TBC: not used c++11
+// #include <type_traits>
 
 #include "typedefs.hpp"
 #include "basegdl.hpp"
