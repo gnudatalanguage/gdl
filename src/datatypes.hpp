@@ -242,7 +242,7 @@ static	void operator delete( void *ptr);
   std::istream& FromStream(std::istream& i);
  
   // used by the interpreter
-  int Scalar2index( SizeT& st) const;
+  int Scalar2Index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
   RangeT LoopIndex() const;
 

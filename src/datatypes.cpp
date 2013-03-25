@@ -2125,7 +2125,7 @@ template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
 // }
 
 
-// Scalar2index
+// Scalar2Index
 // used by the interpreter
 // -2  < 0 array
 // -1  < 0 scalar
@@ -2133,7 +2133,7 @@ template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
 // 1   scalar
 // 2   one-element array
 template<class Sp> 
-int Data_<Sp>::Scalar2index( SizeT& st) const
+int Data_<Sp>::Scalar2Index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
 
@@ -2167,7 +2167,7 @@ int Data_<Sp>::Scalar2RangeT( RangeT& st) const
 }
 
 template<> 
-int Data_<SpDComplex>::Scalar2index( SizeT& st) const
+int Data_<SpDComplex>::Scalar2Index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
   float r=real((*this)[0]);
@@ -2188,7 +2188,7 @@ int Data_<SpDComplex>::Scalar2RangeT( RangeT& st) const
 }
 
 template<>
-int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const
+int Data_<SpDComplexDbl>::Scalar2Index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
   double r=real((*this)[0]);
@@ -2210,7 +2210,7 @@ int Data_<SpDComplexDbl>::Scalar2RangeT( RangeT& st) const
 
 
 template<> 
-int Data_<SpDString>::Scalar2index( SizeT& st) const
+int Data_<SpDString>::Scalar2Index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
 
@@ -2252,7 +2252,7 @@ int Data_<SpDString>::Scalar2RangeT( RangeT& st) const
 
 
 template<> 
-int Data_<SpDPtr>::Scalar2index( SizeT& st) const
+int Data_<SpDPtr>::Scalar2Index( SizeT& st) const
 {
   throw GDLException("PTR expression not allowed in this context.");
   return 0; // get rid of warning
@@ -2265,7 +2265,7 @@ int Data_<SpDPtr>::Scalar2RangeT( RangeT& st) const
 }
 
 template<> 
-int Data_<SpDObj>::Scalar2index( SizeT& st) const
+int Data_<SpDObj>::Scalar2Index( SizeT& st) const
 {
   throw GDLException("Object expression not allowed in this context.");
   return 0; // get rid of warning

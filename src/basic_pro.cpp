@@ -2473,7 +2473,7 @@ TRACEOMP( __FILE__, __LINE__)
 		    e->GetParString(2));
 	
 	SizeT d1;
-	int ret = p2->Scalar2index( d1);
+	int ret = p2->Scalar2Index( d1);
 	if( d1 < 1 || d1 > p0->Rank())
 	  e->Throw( "D1 (3rd) argument is out of range: "+
 		    e->GetParString(2));
@@ -2494,7 +2494,7 @@ TRACEOMP( __FILE__, __LINE__)
 	    if( !p4->StrictScalar())
 	      e->Throw( "Expression must be a scalar in this context: "+
 		        e->GetParString(4));
-	    ret = p4->Scalar2index( d2);
+	    ret = p4->Scalar2Index( d2);
 	    if( d2 < 1 || d2 > p0->Rank())
 	      e->Throw( "D5 (5th) argument is out of range: "+
 		        e->GetParString(4));

@@ -2559,7 +2559,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 		Guard<BaseGDL> e_guard(e);
 		
 		SizeT tagIx;
-		int ret=e->Scalar2index(tagIx);
+		int ret=e->Scalar2Index(tagIx);
 		if( ret < 1) // this is a return code, not the index
             throw GDLException( tIn, "Expression must be a scalar"
                                 " >= 0 in this context: "+Name(e),true,false);

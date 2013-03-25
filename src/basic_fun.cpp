@@ -103,7 +103,7 @@ namespace lib {
       BaseGDL* par = e->GetParDefined( pOffs); 
  	
       SizeT newDim;
-      int ret = par->Scalar2index( newDim);
+      int ret = par->Scalar2Index( newDim);
 
       if (ret < 0) throw GDLException(BadDims);
 
@@ -135,7 +135,7 @@ namespace lib {
 	BaseGDL* par=e->GetParDefined( i);
 
 	SizeT newDim;
-	int ret=par->Scalar2index( newDim);
+	int ret=par->Scalar2Index( newDim);
 	if( ret < 1 || newDim == 0) throw GDLException(BadDims);
 	dim << newDim;
       }

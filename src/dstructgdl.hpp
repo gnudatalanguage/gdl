@@ -440,7 +440,7 @@ public:
   // members
   // used by the interpreter
   // throws (datatypes.cpp)
-  int Scalar2index( SizeT& st) const;
+  int Scalar2Index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
   RangeT LoopIndex() const;
 

@@ -393,15 +393,15 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::min() const;
 template<> 
 Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const;*/
 template<> 
-int Data_<SpDComplex>::Scalar2index( SizeT& st) const;
+int Data_<SpDComplex>::Scalar2Index( SizeT& st) const;
 template<>  
-int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const;
+int Data_<SpDComplexDbl>::Scalar2Index( SizeT& st) const;
 template<>  
-int Data_<SpDString>::Scalar2index( SizeT& st) const;
+int Data_<SpDString>::Scalar2Index( SizeT& st) const;
 template<>  
-int Data_<SpDPtr>::Scalar2index( SizeT& st) const;
+int Data_<SpDPtr>::Scalar2Index( SizeT& st) const;
 template<>  
-int Data_<SpDObj>::Scalar2index( SizeT& st) const;
+int Data_<SpDObj>::Scalar2Index( SizeT& st) const;
 template<> 
 bool Data_<SpDFloat>::True();
 template<> 

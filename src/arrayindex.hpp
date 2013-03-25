@@ -1066,12 +1066,12 @@ public:
 // 			" form low:high must be >= 0, < size, with low <= high.",true,false);
 //       }
     // stride
-    retMsg=stride_->Scalar2index( stride);
+    retMsg=stride_->Scalar2Index( stride);
     if( retMsg == 0) // index empty or array
       {
 			if( stride_->N_Elements() == 0)
 			throw
-				GDLException(  "Internal error: Scalar2index:"
+				GDLException(  "Internal error: Scalar2Index:"
 					" stride index empty",true,false);
 			else
 			throw
@@ -1218,12 +1218,12 @@ public:
       }
                             
     // stride
-    retMsg=stride_->Scalar2index(stride);
+    retMsg=stride_->Scalar2Index(stride);
     if( retMsg == 0) // index empty or array
       {
 	if( stride_->N_Elements() == 0)
 	  throw 
-	    GDLException(  "Internal error: Scalar2index:"
+	    GDLException(  "Internal error: Scalar2Index:"
 			  " stride index empty",true,false); 
 	else
 	  throw 

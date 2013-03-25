@@ -968,7 +968,7 @@ DStructGDL* DStructGDL::SubInvS( BaseGDL* r)
 
 
 // datatypes.cpp
-int DStructGDL::Scalar2index( SizeT& st) const
+int DStructGDL::Scalar2Index( SizeT& st) const
 {
   throw GDLException("STRUCT expression not allowed in this context.");
   return 0; // get rid of warning

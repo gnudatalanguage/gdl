@@ -134,7 +134,7 @@ static	void operator delete( void *ptr);
     throw GDLException("Assoc_::GetInstance(...) called.");
   }
 
-  int Scalar2index(SizeT& ret) const 
+  int Scalar2Index(SizeT& ret) const 
   { 
     throw GDLException("File expression not allowed in this context.");
   }

@@ -202,7 +202,7 @@ void BaseGDL::SetBufferSize( SizeT s)
   throw GDLException("BaseGDL::SetBufferSize called.");
 }
 
-int BaseGDL::Scalar2index(SizeT& ret) const 
+int BaseGDL::Scalar2Index(SizeT& ret) const 
 { 
   throw GDLException("Operation not defined for UNDEF 1.");
 }

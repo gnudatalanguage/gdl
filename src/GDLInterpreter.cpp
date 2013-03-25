@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20110618): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.7 (20120518): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -4139,7 +4139,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			Guard<BaseGDL> e_guard(e);
 			
 			SizeT tagIx;
-			int ret=e->Scalar2index(tagIx);
+			int ret=e->Scalar2Index(tagIx);
 			if( ret < 1) // this is a return code, not the index
 	throw GDLException( tIn, "Expression must be a scalar"
 	" >= 0 in this context: "+Name(e),true,false);

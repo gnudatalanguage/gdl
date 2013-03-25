@@ -204,7 +204,7 @@ void NullGDL::SetBufferSize( SizeT s)
   throw GDLException("NullGDL::SetBufferSize called.");
 }
 
-int NullGDL::Scalar2index(SizeT& ret) const 
+int NullGDL::Scalar2Index(SizeT& ret) const 
 { 
   throw GDLException("Operation not defined for !NULL 1.");
 }

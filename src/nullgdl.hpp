@@ -124,7 +124,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ BaseGDL* GetEmptyInstance() const;
   /*virtual*/ BaseGDL* SetBuffer( const void* b);
   /*virtual*/ void     SetBufferSize( SizeT s);
-  /*virtual*/ int Scalar2index(SizeT& ret) const;
+  /*virtual*/ int Scalar2Index(SizeT& ret) const;
   /*virtual*/ int Scalar2RangeT(RangeT& ret) const;
   /*virtual*/ SizeT GetAsIndex( SizeT i) const;
   /*virtual*/ SizeT GetAsIndexStrict( SizeT i) const;
