@@ -63,6 +63,15 @@ struct SpDByte: public BaseGDL
   typedef DByte Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -104,6 +113,15 @@ struct SpDInt: public BaseGDL
   typedef DInt Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -144,6 +162,16 @@ struct SpDUInt: public BaseGDL
 
   typedef DUInt Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
+
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -186,6 +214,16 @@ struct SpDLong: public BaseGDL
   typedef DLong Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -226,6 +264,16 @@ struct SpDULong: public BaseGDL
 
   typedef DULong Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
+
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -268,6 +316,16 @@ struct SpDLong64: public BaseGDL
   typedef DLong64 Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -308,6 +366,16 @@ struct SpDULong64: public BaseGDL
 
   typedef DULong64 Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
+
+  template <typename ReturnType>
+  struct IfInteger { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -350,6 +418,15 @@ struct SpDFloat: public BaseGDL
   typedef DFloat Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+ 
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -392,6 +469,15 @@ struct SpDDouble: public BaseGDL
   typedef DDouble Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther {};
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -432,6 +518,15 @@ struct SpDString: public BaseGDL
   static const DType    t;
   static const std::string str; 
   static const Ty       zero;
+
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther { typedef ReturnType type; };
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -535,6 +630,15 @@ struct SpDPtr: public BaseGDL
   typedef DPtr Ty;
   typedef GDLArray<Ty,true>    DataT; // on this level, DPtr is POD
 
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther { typedef ReturnType type; };
+
   static const DType    t;
   static const std::string str; 
   static const Ty       zero;
@@ -576,6 +680,15 @@ struct SpDObj: public BaseGDL
 
   typedef DObj Ty;
   typedef GDLArray<Ty, true>    DataT; // on this level, DObj is POD
+
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex {};
+  template <typename ReturnType>
+  struct IfOther { typedef ReturnType type; };
 
   static const DType    t;
   static const std::string str; 
@@ -619,6 +732,15 @@ struct SpDComplex: public BaseGDL
   typedef DComplex Ty;
   typedef GDLArray<Ty, TreatPODComplexAsPOD>    DataT; // ATTENTION: srictly complex is non-pod
 
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfOther {};
+
   static const DType  t;
   static const std::string str; 
   static const DComplex zero;
@@ -660,6 +782,15 @@ struct SpDComplexDbl: public BaseGDL
 
   typedef DComplexDbl Ty;
   typedef GDLArray<Ty, TreatPODComplexAsPOD>    DataT; // ATTENTION: srictly complex is non-pod
+
+  template <typename ReturnType>
+  struct IfInteger {};
+  template <typename ReturnType>
+  struct IfFloat {};
+  template <typename ReturnType>
+  struct IfComplex { typedef ReturnType type; };
+  template <typename ReturnType>
+  struct IfOther {};
 
   static const DType  t;
   static const std::string str; 

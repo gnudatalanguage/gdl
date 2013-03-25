@@ -31,13 +31,19 @@ using namespace std;
 bool* GetNonCopyNodeLookupArray()
 {
 static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
-for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
-	nonCopyNodeLookupArray[ i] = false;
-nonCopyNodeLookupArray[ GDLTokenTypes::VAR] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::VARPTR] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::DEREF] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
+static bool doInit = true;
+if( doInit)
+{
+  for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
+	  nonCopyNodeLookupArray[ i] = false;
+  nonCopyNodeLookupArray[ GDLTokenTypes::VAR] = true;
+  nonCopyNodeLookupArray[ GDLTokenTypes::VARPTR] = true;
+  nonCopyNodeLookupArray[ GDLTokenTypes::DEREF] = true;
+  nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
+  nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
+
+  doInit = true;
+}
 return nonCopyNodeLookupArray;
 }
 

@@ -28,7 +28,6 @@
 //#include <complex>
 #include <deque>
 
-// TBC: not used c++11
 // #include <type_traits>
 
 #include "typedefs.hpp"
@@ -79,19 +78,14 @@ const size_t multiAlloc = 256;
 // 
 // // some shortcuts
 // // works only on g++ 4.7 and later
-// // template <typename T>
-// // using IfInteger = typename std::enable_if<is_integer<T>::value>::type;
-// // template <typename T>
-// // using IfFloat = typename std::enable_if<is_float<T>::value>::type;
-// // template <typename T>
-// // using IfComplex = typename std::enable_if<is_complex<T>::value>::type;
-// // template <typename T>
-// // using IfOther = typename std::enable_if<is_other<T>::value>::type;
-// 
-// #define IfInteger(T)  typename std::enable_if<is_integer<T>::value>::type;
-// #define IfFloat(T) typename std::enable_if<is_float<T>::value>::type;
-// #define IfComplex(T) typename std::enable_if<is_complex<T>::value>::type;
-// #define IfOther(T) typename std::enable_if<is_other<T>::value>::type;
+// template <typename T>
+// using IfInteger = typename std::enable_if<is_integer<T>::value>::type;
+// template <typename T>
+// using IfFloat = typename std::enable_if<is_float<T>::value>::type;
+// template <typename T>
+// using IfComplex = typename std::enable_if<is_complex<T>::value>::type;
+// template <typename T>
+// using IfOther = typename std::enable_if<is_other<T>::value>::type;
 
 
 template<class Sp>
@@ -113,7 +107,43 @@ private:
 #else
   DataT                      dd; // the data
 #endif
- 
+
+public:
+
+void TestTemplateGrouping();
+
+
+
+public:
+
+// template< typename U = Data_<Sp> >  
+// template< typename U = Sp >  
+// typename std::enable_if<is_integer<typename U::Ty>::value, typename U::Ty>::type 
+// Test1();
+// template< typename U = Sp >  
+// typename std::enable_if<is_float<typename U::Ty>::value, typename U::Ty>::type 
+// Test1();
+// template< typename U = Sp >  
+// typename std::enable_if<is_complex<typename U::Ty>::value, typename U::Ty>::type 
+// Test1();
+// template< typename U = Sp >  
+// typename std::enable_if<is_other<typename U::Ty>::value, typename U::Ty>::type 
+// Test1();
+
+template< typename U = Sp >  
+typename U::template IfInteger<bool>::type 
+Test2();
+template< typename U = Sp >  
+typename U::template IfFloat<bool>::type 
+Test2();
+template< typename U = Sp >  
+typename U::template IfComplex<bool>::type 
+Test2();
+template< typename U = Sp >  
+typename U::template IfOther<bool>::type 
+Test2();
+
+
 public:
 	// memory management optimization
 static std::deque< void*> freeList;

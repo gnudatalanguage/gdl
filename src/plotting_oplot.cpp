@@ -86,7 +86,7 @@ namespace lib {
         }
         else
         { //careful about previously set autopointers!
-          if (nParam() == 1) xval_guard = xtempval_guard;
+          if (nParam() == 1) xval_guard.Init( xtempval_guard.release());
           xVal = xTemp;
           yVal = yTemp;
         }

@@ -117,6 +117,20 @@ using namespace std;
 #define isinfinite _isinfinite
 #endif
 
+
+#define TESTTG
+#ifdef TESTTG
+
+#include "test_template_grouping.cpp"
+template<class Sp>
+void Data_<Sp>::TestTemplateGrouping()              
+{ 
+//   Ty ty = Test1();
+  bool b = Test2();
+}
+
+#endif
+
 template<class Sp>
 deque< void*> Data_<Sp>::freeList;
 
@@ -519,6 +533,7 @@ Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
 //   }
 
 
+  
 template<class Sp>
 BaseGDL* Data_<Sp>::Log()              
 { 

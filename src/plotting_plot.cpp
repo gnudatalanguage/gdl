@@ -97,7 +97,7 @@ private:
       }
       else
       { //careful about previously set autopointers!
-        if (nParam() == 1) xval_guard = xtemp_guard;
+        if (nParam() == 1) xval_guard.Init( xtemp_guard.release());
         xVal = xTemp;
         yVal = yTemp;
       }

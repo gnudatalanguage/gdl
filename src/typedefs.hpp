@@ -214,6 +214,16 @@ class Guard
 private:
   T*      guarded;
   
+  Guard& operator=( Guard& r)
+  {
+    if( &r == this) return;
+    delete guarded;
+    guarded = r.guarded;
+    r.guarded = NULL;
+    return *this;
+  }
+  
+
 public:
   Guard(): guarded( NULL)
   {}
@@ -246,21 +256,21 @@ public:
     guarded = NULL;
     return g;
   }  
-  T* Get()
+  T* Get() const
   {
     return guarded;
   }  
   // for compatibiltiy with replaced auto_ptr
-  T* get()
+  T* get() const
   {
     return guarded;
   }  
   // for compatibiltiy with replaced auto_ptr
-  T* operator->()
+  T* operator->() const
   {
     return guarded;
   }
-  bool IsNull()
+  bool IsNull() const
   {
     return guarded == NULL;
   }
