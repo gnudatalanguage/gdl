@@ -638,7 +638,7 @@ public:
 
   
   //  virtual BaseGDL* PowInvNew( BaseGDL* r);
-  virtual BaseGDL* MatrixOp( BaseGDL* r, bool rtranspose = false, bool transposeResult =false, bool strassen = false);
+  virtual BaseGDL* MatrixOp( BaseGDL* r, bool atranspose=false, bool btranspose=false);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   virtual void AssignAt( BaseGDL* srcIn);

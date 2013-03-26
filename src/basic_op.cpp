@@ -31,10 +31,14 @@
 #include <omp.h>
 #endif
 
-#include "strassenmatrix.hpp"
+// #include "strassenmatrix.hpp"
 #include "typetraits.hpp"
 
 using namespace std;
+
+#if defined(USE_EIGEN)
+using namespace Eigen;
+#endif
 
 #include "basic_op_add.cpp"
 #include "basic_op_sub.cpp"
@@ -1432,11 +1436,156 @@ BaseGDL* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
+
+//#undef USE_EIGEN
 // MatrixOp
 // returns *this # *r, //C does not delete itself and right
 template<class Sp>
-Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen)
+Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
+#ifdef USE_EIGEN
+    bool& at = atranspose;
+    bool& bt = btranspose;
+
+    Data_*  par1 = static_cast<Data_*>(r);
+
+    long NbCol0, NbRow0, NbCol1, NbRow1;//, NbCol2, NbRow2;
+    SizeT rank0 = this->Rank();
+    SizeT rank1 = par1->Rank();
+    if (rank0 == 2)
+      {
+	NbCol0 = this->Dim(0);
+	NbRow0 = this->Dim(1);
+      } 
+    else if (rank0 > 2)
+      {
+	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
+      }
+    else // rank 0 or 1
+      {
+	// special case, 2 vectors, use bt (if not at set)
+	if( rank1 <= 1)
+	{
+  	    NbCol0 = this->Dim(0);
+	    if( NbCol0 == 0) NbCol0=1;
+	    NbRow0 = 1;
+
+	    if( !at)
+	      bt = true;
+	  
+	}
+	else //if( rank1 == 2) (will raise error if > 2, s. b. 
+	{
+	  // a is changed to col or row vector
+	  if( !at && !bt)
+	  {
+	      if( this->Dim(0) == par1->Dim(0))
+	      {
+		NbCol0 = 1;
+		NbRow0 = this->Dim(0);
+		if( NbRow0 == 0) NbRow0=1;
+	      }
+	      else
+	      {
+		NbCol0 = this->Dim(0);
+		if( NbCol0 == 0) NbCol0=1;
+		NbRow0 = 1;	  
+	      }
+	  }
+	  else
+	  {
+	    NbCol0 = this->Dim(0);
+	    if( NbCol0 == 0) NbCol0=1;
+	    NbRow0 = 1;	  
+	  }
+	}
+      }
+      
+    if (rank1 == 2)
+      {
+	NbCol1 = par1->Dim(0);
+	NbRow1 = par1->Dim(1);
+      } 
+    else if (rank1 > 2)
+      {
+	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
+      }
+    else
+      {
+	NbCol1 = par1->Dim(0);
+	NbRow1 = 1;
+      }
+
+    Map<Matrix<Ty,-1,-1>,Aligned> m0(&(*this)[0], NbCol0, NbRow0);
+    Map<Matrix<Ty,-1,-1>,Aligned> m1(&(*par1)[0], NbCol1, NbRow1);
+
+    if (at && bt)
+      {
+	if(  /*(at &&  bt) &&*/ (NbCol0 != NbRow1))
+	  {
+	    throw GDLException("Operands of matrix multiply have incompatible dimensions.atbt",true,false);  
+// 	    e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
+	  }
+	long& NbCol2 = NbRow0 ;
+	long& NbRow2 = NbCol1 ;
+	dimension dim(NbCol2, NbRow2);
+	
+	Data_* res = new Data_(dim, BaseGDL::NOZERO);
+	// no guarding necessary: eigen only throws on memory allocation
+
+	Map<Matrix<Ty,-1,-1>,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	m2.noalias() = m0.transpose() * m1.transpose();
+	return res;
+      } 
+    else if (bt)
+      {
+	if( /*(!at &&  bt) &&*/ (NbRow0 != NbRow1))
+	  {
+	    throw GDLException("Operands of matrix multiply have incompatible dimensions.bt",true,false);  
+// 	    e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
+	  }
+	long& NbCol2 = NbCol0;
+	long& NbRow2 = NbCol1;
+	dimension dim(NbCol2, NbRow2);
+
+	Data_* res = new Data_(dim, BaseGDL::NOZERO);
+	Map<Matrix<Ty,-1,-1>,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	m2.noalias() = m0 * m1.transpose();
+	return res;
+      } else if (at)
+      {
+	if( /*(at && !bt) &&*/ (NbCol0 != NbCol1))
+	  {
+	    throw GDLException("Operands of matrix multiply have incompatible dimensions.at",true,false);  
+// 	    e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
+	  }
+	long& NbCol2 = NbRow0;
+	long& NbRow2 = NbRow1;
+	dimension dim(NbCol2, NbRow2);
+
+	Data_* res = new Data_(dim, BaseGDL::NOZERO);
+	Map<Matrix<Ty,-1,-1>,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	m2.noalias() = m0.transpose() * m1;
+	return res;
+      } else
+      {
+	if( /*(!at && !bt) &&*/ (NbRow0 != NbCol1))
+	  {
+	    throw GDLException("Operands of matrix multiply have incompatible dimensions._",true,false);  
+// 	    e->Throw("Operands of matrix multiply have incompatible dimensions: " + e->GetParString(0) + ", " + e->GetParString(1) + ".");
+	  }
+	long& NbCol2 = NbCol0;
+	long& NbRow2 = NbRow1;
+	dimension dim(NbCol2, NbRow2);
+
+	Data_* res = new Data_(dim, BaseGDL::NOZERO);
+	Map<Matrix<Ty,-1,-1>,Aligned> m2(&(*res)[0], NbCol2, NbRow2);
+	m2.noalias() = m0*m1;
+	return res;
+      }
+
+#else
+
   Data_* right=static_cast<Data_*>(r);
 
   //   ULong rEl=right->N_Elements();
@@ -1444,7 +1593,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
   //   assert( rEl);
   //   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-
+  
   Data_* res;
 
   if( this->dim.Rank() <= 1 && right->dim.Rank() <= 1)
@@ -1480,70 +1629,87 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
       // [n] # [n,m] -> [1,m] ([n] -> [1,n])
 
       // right op 1st
-      SizeT nRow=transpose ? right->dim[0] : right->dim[1];
+      SizeT nRow=btranspose ? right->dim[0] : right->dim[1];
       if( nRow == 0) nRow=1;
 
       // loop dim
-      SizeT nRowEl=transpose ? right->dim[1] : right->dim[0];
+      SizeT nRowEl=btranspose ? right->dim[1] : right->dim[0];
       if( nRowEl == 0) nRowEl=1;
 
       // result dim
       SizeT nCol, nColEl;
-      if( this->dim.Rank() <= 1)
-	{
-	  nColEl=this->dim[0];
-	  if( nColEl == 0) // scalar
-	    {
-	      nColEl=1;
-	      nCol  =1;
-	    }
-	  else if( nRowEl == 1)
-	    {
-	      nCol   = nColEl;
-	      nColEl = 1;
-	    }
-	  else
-	    {
-	      nCol = 1;
-	    }
-	}
+      if( !atranspose)
+      {
+	if( this->dim.Rank() <= 1)
+	  {
+	    nColEl=this->dim[0];
+	    if( nColEl == 0) // scalar
+	      {
+		nColEl=1;
+		nCol  =1;
+	      }
+	    else if( nRowEl == 1)
+	      {
+		nCol   = nColEl;
+		nColEl = 1;
+	      }
+	    else
+	      {
+		nCol = 1;
+	      }
+	  }
+	else
+	  { 
+	    nCol=this->dim[0];
+	    nColEl=this->dim[1];
+	    assert( nColEl > 0); // rank is two -> cannot be zero
+	    //	  if( nColEl == 0) nColEl=1;
+	  }
+      }
       else
-	{ 
-	  nCol=this->dim[0];
-	  nColEl=this->dim[1];
-	  assert( nColEl > 0); // rank is two -> cannot be zero
-	  //	  if( nColEl == 0) nColEl=1;
-	}
-      
-      //       cout << "nColEl, nRowEl: " << nColEl << " " << nRowEl << endl;
-      //       cout << "nCol, nRow:     " << nCol << " " << nRow << endl;
-
-      //      SizeT nRowEl=right->dim[0];
+      {
+	if( this->dim.Rank() <= 1)
+	  {
+	    nColEl=this->dim[0];
+	    if( nColEl == 0) // scalar
+	      {
+		nColEl=1;
+		nCol  =1;
+	      }
+	    else if( nRowEl == 1)
+	      {
+		nCol   = nColEl;
+		nColEl = 1;
+	      }
+	    else
+	      {
+		nCol = 1;
+	      }
+	  }
+	else
+	  { 
+	    nCol=this->dim[1];
+	    nColEl=this->dim[0];
+	    assert( nColEl > 0); // rank is two -> cannot be zero
+	    //	  if( nColEl == 0) nColEl=1;
+	  }
+      }
+	
       if( nColEl != nRowEl)
 	throw GDLException("Operands of matrix multiply have"
 			   " incompatible dimensions.",true,false);  
 
-      if( transposeResult)
-	{
-	  if( nCol > 1)
-	    res=New(dimension( nRow, nCol),BaseGDL::NOZERO);
-	  else
-	    res=New(dimension(nRow),BaseGDL::NOZERO);
-	}
+      if( nRow > 1)
+	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
       else
-	{
-	  if( nRow > 1)
-	    res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
-	  else
-	    res=New(dimension(nCol),BaseGDL::NOZERO);
-	}
+	res=New(dimension(nCol),BaseGDL::NOZERO);
      
       SizeT rIxEnd = nRow * nColEl;
       //#ifdef _OPENMP 
       SizeT nOp = rIxEnd * nCol;
 
 #ifdef USE_STRASSEN_MATRIXMULTIPLICATION
-      if( !transpose && !transposeResult && strassen)
+      if( !btranspose && !atranspose && strassen)
 	//if( nOp > 1000000)
 	{
 	  SizeT maxDim;
@@ -1560,8 +1726,6 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 	    SizeT mSz = 2;
 	    while (mSz < maxDim) mSz <<= 1;
 
-	    // 	      Ty* buf = new Ty[ 3 * mSz * mSz];
-
 	    SM1<Ty>( mSz, nCol, nColEl, nRow,
 		     static_cast<Ty*>(right->DataAddr()),
 		     static_cast<Ty*>(this->DataAddr()),
@@ -1574,17 +1738,9 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 	}
 #endif
 
-      //  for( SizeT j=0; j < nCol; ++j) // res dim 0
-      // 	for( SizeT i=0; i < rIxEnd; i++) // res dim 1
-      // 	    for( SizeT k=0; k < nColEl; ++k)
-      // 	       (*res)[ (i * nCol) + j] += (*right)[ (i*nColEl)+k] * (*this)[ k*nCol+j];
-
-
-      //#endif
-
-      if( !transposeResult) // normal
+      if( !atranspose) // normal
 	{
-	  if( !transpose) // normal
+	  if( !btranspose) // normal
 	    {
 	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
@@ -1618,9 +1774,9 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 		}
 	    }
 	}
-      else // transposeResult
+      else // atranspose
 	{
-	  if( !transpose) // normal
+	  if( !btranspose) // normal
 	    {
 	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
@@ -1630,10 +1786,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 		    for( OMPInt rIx=0, rowBnCol=0; rIx < rIxEnd;
 			 rIx += nColEl, ++rowBnCol) // res dim 1
 		      {
-			Ty& resEl = (*res)[ rowBnCol + colA * nRow];
+			Ty& resEl = (*res)[ rowBnCol * nCol + colA];
+// 			Ty& resEl = (*res)[ rowBnCol + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
 			for( OMPInt i=0; i < nColEl; ++i)
-			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
+			  resEl += (*this)[ i+colA*nColEl] * (*right)[ rIx+i];
+// 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 		      }
 		}
 	    }
@@ -1646,10 +1804,12 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 		  for( OMPInt colA=0; colA < nCol; ++colA) // res dim 0
 		    for( OMPInt rIx=0; rIx < nRow; ++rIx) // res dim 1
 		      {
-			Ty& resEl = (*res)[ rIx + colA * nRow];
+			Ty& resEl = (*res)[ rIx *nCol + colA];
+// 			Ty& resEl = (*res)[ rIx + colA * nRow];
 			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
 			for( OMPInt i=0; i < nColEl; ++i)
-			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
+			  resEl += (*this)[ i+colA*nColEl] * (*right)[ rIx + i * nRow];
+// 			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
 		      }
 		}
 	    }
@@ -1657,9 +1817,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 
 
     }
-  //C delete right;
-  //C delete this;
   return res;
+#endif // #elseif USE_EIGEN 
 }
 
 
@@ -1668,19 +1827,19 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 
 // invalid types
 template<>
-Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
+Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
   throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
+Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
+Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;

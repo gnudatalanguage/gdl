@@ -1295,7 +1295,7 @@ BaseGDL* DStructGDL::GtOp( BaseGDL* r)
   return NULL;
 }
 
-DStructGDL* DStructGDL::MatrixOp( BaseGDL* r, bool t, bool tr, bool s)
+DStructGDL* DStructGDL::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;

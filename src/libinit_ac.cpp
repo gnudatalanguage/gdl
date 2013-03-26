@@ -82,9 +82,8 @@ void LibInit_ac()
   const string prewittKey[]={"HELP",KLISTEND};
   new DLibFun(lib::prewitt_fun,string("PREWITT"),1,prewittKey);
 
-  // a draft of "fast" matrix multiplication using exteranl Eigen Lib.
-  const string matmulKey[]={"ATRANSPOSE","BTRANSPOSE","DEBUG","HELP","AVAILABLE","QUIET",KLISTEND};
-  new DLibFun(lib::matmul_fun,string("MATMUL"),2,matmulKey);
+  const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
+  new DLibFun(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);
 
 }
 

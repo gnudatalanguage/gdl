@@ -29,7 +29,6 @@
 #include <deque>
 
 // #include <type_traits>
-
 #include "typedefs.hpp"
 #include "basegdl.hpp"
 #include "typetraits.hpp"
@@ -41,51 +40,6 @@
 
 const size_t multiAlloc = 256;
 
-// template< class T >
-// struct is_integer : std::integral_constant<
-//    bool,
-//    std::is_same<DByte, typename std::remove_cv<T>::type>::value  || // obtains the type T without const or volatile qualification.
-//    std::is_same<DInt, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DUInt, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DLong, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DULong, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DLong64, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DULong64, typename std::remove_cv<T>::type>::value
-//   > {};
-// 
-// template< class T >
-// struct is_float : std::integral_constant<
-//    bool,
-//    std::is_same<DFloat, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DDouble, typename std::remove_cv<T>::type>::value
-//   > {};
-// 
-// template< class T >
-// struct is_complex : std::integral_constant<
-//    bool,
-//    std::is_same<DComplex, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DComplexDbl, typename std::remove_cv<T>::type>::value
-//   > {};
-// 
-// // a "default type" can be anything except a floating-point type
-// template< class T >
-// struct is_other : std::integral_constant<
-//    bool,
-//    std::is_same<DString, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DPtr, typename std::remove_cv<T>::type>::value  ||
-//    std::is_same<DObj, typename std::remove_cv<T>::type>::value
-//  > {};
-// 
-// // some shortcuts
-// // works only on g++ 4.7 and later
-// template <typename T>
-// using IfInteger = typename std::enable_if<is_integer<T>::value>::type;
-// template <typename T>
-// using IfFloat = typename std::enable_if<is_float<T>::value>::type;
-// template <typename T>
-// using IfComplex = typename std::enable_if<is_complex<T>::value>::type;
-// template <typename T>
-// using IfOther = typename std::enable_if<is_other<T>::value>::type;
 
 
 template<class Sp>
@@ -110,25 +64,12 @@ private:
 
 public:
 
+//#define TESTTG // TEST TEMPLATE GROUPING
+
+#ifdef TESTTG
+
 void TestTemplateGrouping();
 
-
-
-public:
-
-// template< typename U = Data_<Sp> >  
-// template< typename U = Sp >  
-// typename std::enable_if<is_integer<typename U::Ty>::value, typename U::Ty>::type 
-// Test1();
-// template< typename U = Sp >  
-// typename std::enable_if<is_float<typename U::Ty>::value, typename U::Ty>::type 
-// Test1();
-// template< typename U = Sp >  
-// typename std::enable_if<is_complex<typename U::Ty>::value, typename U::Ty>::type 
-// Test1();
-// template< typename U = Sp >  
-// typename std::enable_if<is_other<typename U::Ty>::value, typename U::Ty>::type 
-// Test1();
 
 template< typename U = Sp >  
 typename U::template IfInteger<bool>::type 
@@ -142,6 +83,8 @@ Test2();
 template< typename U = Sp >  
 typename U::template IfOther<bool>::type 
 Test2();
+
+#endif
 
 
 public:
@@ -367,7 +310,7 @@ static	void operator delete( void *ptr);
   Data_*   PowInv( BaseGDL* r);
   Data_*   PowInt( BaseGDL* r);      
 //   Data_*   PowIntNew( BaseGDL* r);   
-  Data_*   MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen);
+  Data_*   MatrixOp( BaseGDL* r, bool atranspose, bool btranspose);
 
   // operators with scalar
   Data_*   AndOpS( BaseGDL* r);

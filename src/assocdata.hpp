@@ -346,7 +346,7 @@ static	void operator delete( void *ptr);
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Parent_* MatrixOp( BaseGDL* r)   
+  Parent_* MatrixOp( BaseGDL* r, bool, bool)   
   {
     throw GDLException("File expression not allowed in this context.");
   }

@@ -499,7 +499,7 @@ BaseGDL* NullGDL::PowInt( BaseGDL* r)
   throw GDLException("Operation not defined for !NULL 170.");
 }
 
-BaseGDL* NullGDL::MatrixOp( BaseGDL* r, bool rtranspose, bool transposeResult, bool strassen)
+BaseGDL* NullGDL::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
   throw GDLException("Operation not defined for !NULL 18.");
 }

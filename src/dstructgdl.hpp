@@ -569,7 +569,7 @@ DStructGDL* NewResult() const
   DStructGDL*   Pow( BaseGDL* r);
   DStructGDL*   PowInv( BaseGDL* r);
   DStructGDL*   PowInt( BaseGDL* r);
-  DStructGDL*   MatrixOp( BaseGDL* r,bool,bool,bool);
+  DStructGDL*   MatrixOp( BaseGDL* r, bool atranspose, bool btranspose);
 
 
   DStructGDL*   AndOpS( BaseGDL* r);
