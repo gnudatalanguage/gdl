@@ -108,8 +108,8 @@ const int DTypeOrder[]={
   ,7  //   , GDL_LONGAB // arbitrary length int
   // ,7  //   , GDL_ULONGAR // arbitrary length unsigned int (pointless)
     //   
-  ,10  //   , GDL_QUAD // quad precision float (80 or 128bit)
-  ,22  //   , GDL_COMPLEXQD // Complex quad
+  ,10  //   , GDL_LDOUBLE // quad precision float (80 or 128bit)
+  ,22  //   , GDL_COMPLEXLDBL // Complex quad
     // 
   ,11  //   , GDL_ARBITRARY // arbitrary precision float
   ,23  //   , GDL_COMPLEXAR // Complex arbitrary
@@ -119,6 +119,15 @@ const int DTypeOrder[]={
 };	
 
 
+inline DType PromoteMatrixOperands( DType aTy, DType bTy)
+{
+  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+    return GDL_LONG;
+  else if( maxTy == GDL_UINT)
+    return GDL_ULONG;
+  return maxTy;
+}
 
 namespace gdl_type_lookup {
 

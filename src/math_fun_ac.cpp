@@ -766,33 +766,31 @@ namespace lib {
     Guard<BaseGDL> aGuard;
     BaseGDL* b = par1;   
     Guard<BaseGDL> bGuard;
-    if( aTy != bTy)
+
+    // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+    if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
+      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-	  (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+      a = par0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+      aGuard.Init( a);
+      b = par1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+      bGuard.Init( b);
+    }
+    else
+    {
+      DType cTy = PromoteMatrixOperands( aTy, bTy);
+
+      if( aTy != cTy)
 	{
-	  a = par0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  a = par0->Convert2( cTy, BaseGDL::COPY);
 	  aGuard.Init( a);
-	  b = par1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	}
+      if( bTy != cTy)
+	{
+	  b = par1->Convert2( cTy, BaseGDL::COPY);
 	  bGuard.Init( b);
 	}
-      else
-      {
-	if( DTypeOrder[aTy] >= DTypeOrder[bTy])
-	  {
-	    // convert b to a
-	    b = par1->Convert2( aTy, BaseGDL::COPY);
-	    bGuard.Init( b);
-	  }
-	else
-	  {
-	    // convert a to b
-	    a = par0->Convert2( bTy, BaseGDL::COPY);
-	    aGuard.Init( a);
-	  }
-      }
-    } 
+    }
     
     // might use eigen3
     return a->MatrixOp( b, at, bt);

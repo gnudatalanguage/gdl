@@ -1444,8 +1444,8 @@ template<class Sp>
 Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
 #ifdef USE_EIGEN
-    bool& at = atranspose;
-    bool& bt = btranspose;
+    bool at = atranspose;
+    bool bt = btranspose;
 
     Data_*  par1 = static_cast<Data_*>(r);
 
@@ -1461,44 +1461,11 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
       {
 	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
       }
-    else // rank 0 or 1
+    else // rank0 0 or 1
       {
-	// special case, 2 vectors, use bt (if not at set)
-	if( rank1 <= 1)
-	{
-  	    NbCol0 = this->Dim(0);
-	    if( NbCol0 == 0) NbCol0=1;
-	    NbRow0 = 1;
-
-	    if( !at)
-	      bt = true;
-	  
-	}
-	else //if( rank1 == 2) (will raise error if > 2, s. b. 
-	{
-	  // a is changed to col or row vector
-	  if( !at && !bt)
-	  {
-	      if( this->Dim(0) == par1->Dim(0))
-	      {
-		NbCol0 = 1;
-		NbRow0 = this->Dim(0);
-		if( NbRow0 == 0) NbRow0=1;
-	      }
-	      else
-	      {
-		NbCol0 = this->Dim(0);
-		if( NbCol0 == 0) NbCol0=1;
-		NbRow0 = 1;	  
-	      }
-	  }
-	  else
-	  {
-	    NbCol0 = this->Dim(0);
-	    if( NbCol0 == 0) NbCol0=1;
-	    NbRow0 = 1;	  
-	  }
-	}
+	NbCol0 = this->Dim(0);
+	if( NbCol0 == 0) NbCol0=1;
+	NbRow0 = 1;
       }
       
     if (rank1 == 2)
@@ -1510,12 +1477,37 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
       {
 	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
       }
-    else
+    else // rank1 0 or 1
       {
 	NbCol1 = par1->Dim(0);
+	if( NbCol1 == 0) NbCol1=1;
 	NbRow1 = 1;
       }
+    // NbCol0, NbRow0, NbCol1, NbRow1 are properly set now
 
+    // vector cases (possible degeneration)
+    if( rank0 <= 1 || rank1 <=1)  
+    {
+      if( rank0 <= 1 && rank1 <=1)  
+      {
+	// [NbCol0,1]#[NbCol1,1] -> just transpose b (if a is not transposed)
+	if( !at) // && !bt
+	  bt = true;
+      } 
+      else if( rank0 <= 1) // rank1 == 2
+      {
+	// [NbCol0,1]#[NbCol1,NbRow1]
+	if( !at && (!bt && NbCol1 != 1) || (bt && NbRow1 != 1))
+	  at = true;
+      }
+      else // if( rank1 <= 1) // rank0 == 2
+      {
+	// [NbCol0,NbRow0]#[NbCol1,1]
+	if( !bt && (!at && NbRow0 == 1) || (at && NbCol0 == 1))
+	  bt = true;
+      } 
+    } 
+    
     Map<Matrix<Ty,-1,-1>,Aligned> m0(&(*this)[0], NbCol0, NbRow0);
     Map<Matrix<Ty,-1,-1>,Aligned> m1(&(*par1)[0], NbCol1, NbRow1);
 

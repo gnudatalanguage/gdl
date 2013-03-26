@@ -1054,14 +1054,16 @@ BaseGDL* MATRIX_OP1Node::Eval()
   Guard<BaseGDL> e2( op2->Eval());
   DType aTy=e1->Type();
   DType bTy=e2->Type();
-  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+  
+//   DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+//   DType cTy=maxTy;
+//   if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+//     cTy=GDL_LONG;
+//   else if( maxTy == GDL_UINT)
+//     cTy=GDL_ULONG;
 
-  DType cTy=maxTy;
-  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
-    cTy=GDL_LONG;
-  else if( maxTy == GDL_UINT)
-    cTy=GDL_ULONG;
-
+  DType cTy = PromoteMatrixOperands( aTy, bTy);
+  
   if( aTy != cTy)
     e1.reset( e1.release()->Convert2( cTy));
 
@@ -1075,14 +1077,16 @@ BaseGDL* MATRIX_OP2Node::Eval()
   Guard<BaseGDL> e2( op2->Eval());
   DType aTy=e1->Type();
   DType bTy=e2->Type();
-  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
 
-  DType cTy=maxTy;
-  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
-    cTy=GDL_LONG;
-  else if( maxTy == GDL_UINT)
-    cTy=GDL_ULONG;
+//   DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+//   DType cTy=maxTy;
+//   if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+//     cTy=GDL_LONG;
+//   else if( maxTy == GDL_UINT)
+//     cTy=GDL_ULONG;
 
+  DType cTy = PromoteMatrixOperands( aTy, bTy);
+  
   if( aTy != cTy) 
     e1.reset( e1.release()->Convert2( cTy));
 
@@ -2409,17 +2413,17 @@ BaseGDL* MATRIX_OP1NCNode::Eval()
    }
  DType aTy=e1->Type();
  DType bTy=e2->Type();
- DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
- if( maxTy > 100)
-   {
-     throw GDLException( "Expressions of this type cannot be converted.");
-   }
-
- DType cTy=maxTy;
- if( maxTy == GDL_BYTE || maxTy == GDL_INT)
-   cTy=GDL_LONG;
- else if( maxTy == GDL_UINT)
-   cTy=GDL_ULONG;
+//  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+//  if( maxTy > 100)
+//    {
+//      throw GDLException( "Expressions of this type cannot be converted.");
+//    }
+//  DType cTy=maxTy;
+//  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+//    cTy=GDL_LONG;
+//  else if( maxTy == GDL_UINT)
+//    cTy=GDL_ULONG;
+ DType cTy = PromoteMatrixOperands( aTy, bTy);
 
  if( aTy != cTy)
    {
@@ -2461,17 +2465,18 @@ BaseGDL* MATRIX_OP2NCNode::Eval()
    }
  DType aTy=e1->Type();
  DType bTy=e2->Type();
- DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
- if( maxTy > 100)
-   {
-     throw GDLException( "Expressions of this type cannot be converted.");
-   }
+//  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+//  if( maxTy > 100)
+//    {
+//      throw GDLException( "Expressions of this type cannot be converted.");
+//    }
+//  DType cTy=maxTy;
+//  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+//    cTy=GDL_LONG;
+//  else if( maxTy == GDL_UINT)
+//    cTy=GDL_ULONG;
 
- DType cTy=maxTy;
- if( maxTy == GDL_BYTE || maxTy == GDL_INT)
-   cTy=GDL_LONG;
- else if( maxTy == GDL_UINT)
-   cTy=GDL_ULONG;
+ DType cTy = PromoteMatrixOperands( aTy, bTy);
 
  if( aTy != cTy)
    {

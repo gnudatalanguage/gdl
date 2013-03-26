@@ -360,7 +360,7 @@ template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
-//  this->dim.Purge();
+  this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
     {
