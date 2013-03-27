@@ -64,7 +64,7 @@ private:
 
 public:
 
-//#define TESTTG // TEST TEMPLATE GROUPING
+#define TESTTG // TEST TEMPLATE GROUPING
 
 #ifdef TESTTG
 
