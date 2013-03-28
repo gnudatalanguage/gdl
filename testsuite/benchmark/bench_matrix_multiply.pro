@@ -18,16 +18,20 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
-DEFSYSV, '!gdl', exist=it_is_GDL
+; Note by AC 28 March 2013
+; obsoleting code, we don't remove if we have to go back to test
+; related to Eigen3 internal use ...
 ;
-if (it_is_GDL) then begin
-    having_eigen3=EXECUTE("type=MATMUL(/available, quiet=quiet)")
-    if (having_eigen3 EQ 0) then begin
-        print, 'You are trying testing new capabilities (Eigen3 usage)'
-        print, 'on a too OLD GDL version ! Please make tests on CVS version !'
-        return
-    endif
-endif
+;DEFSYSV, '!gdl', exist=it_is_GDL
+;
+; if (it_is_GDL) then begin
+;     having_eigen3=EXECUTE("type=MATMUL(/available, quiet=quiet)")
+;     if (having_eigen3 EQ 0) then begin
+;         print, 'You are trying testing new capabilities (Eigen3 usage)'
+;         print, 'on a too OLD GDL version ! Please make tests on CVS version !'
+;         return
+;     endif
+; endif
 ;
 if N_PARAMS() EQ 0 then begin
     colA=1000
