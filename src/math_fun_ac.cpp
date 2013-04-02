@@ -768,12 +768,12 @@ namespace lib {
     Guard<BaseGDL> bGuard;
 
     // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-    if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      a = par0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+      a = par0->Convert2( cxTy, BaseGDL::COPY);
       aGuard.Init( a);
-      b = par1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+      b = par1->Convert2( cxTy, BaseGDL::COPY);
       bGuard.Init( b);
     }
     else

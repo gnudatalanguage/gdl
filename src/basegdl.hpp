@@ -129,6 +129,14 @@ inline DType PromoteMatrixOperands( DType aTy, DType bTy)
   return maxTy;
 }
 
+inline DType PromoteComplexOperand( DType aTy, DType bTy)
+{
+  if((aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
+     (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE) )
+    return GDL_COMPLEXDBL;
+  return GDL_UNDEF;
+}
+
 namespace gdl_type_lookup {
 
 const bool IsConvertableType[]={

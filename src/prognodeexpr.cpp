@@ -128,11 +128,11 @@ void ProgNode::AdjustTypes(Guard<BaseGDL>& a, Guard<BaseGDL>& b)
 //     }
   
   // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      a.reset( a.release()->Convert2( GDL_COMPLEXDBL));
-      b.reset( b.release()->Convert2( GDL_COMPLEXDBL));
+      a.reset( a.release()->Convert2( cxTy));
+      b.reset( b.release()->Convert2( cxTy));
       return;
     }
 
@@ -164,11 +164,11 @@ void ProgNode::AdjustTypesObj(Guard<BaseGDL>& a, Guard<BaseGDL>& b)
 //     }
   
   // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      a.reset( a.release()->Convert2( GDL_COMPLEXDBL));
-      b.reset( b.release()->Convert2( GDL_COMPLEXDBL));
+      a.reset( a.release()->Convert2( cxTy));
+      b.reset( b.release()->Convert2( cxTy));
       return;
     }
 
@@ -221,19 +221,28 @@ void BinaryExprNC::AdjustTypesNC(Guard<BaseGDL>& g1, BaseGDL*& e1,
 //     {
 //       throw GDLException( "Expressions of this type cannot be converted.");
 //     }
-
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
+    {
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
+	  g2.reset( e2); // delete former e2
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
+	  g1.reset( e1); // delete former e1
+	  return;      
+    }
+    
   // Change > to >= JMG
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1); // delete former e1
-	  return;
-	}
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1); // delete former e1
+// 	  return;
+// 	}
 
       // convert e2 to e1
       e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -241,15 +250,15 @@ void BinaryExprNC::AdjustTypesNC(Guard<BaseGDL>& g1, BaseGDL*& e1,
     }
   else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1); // delete former e1
-	  return;
-	}
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1); // delete former e1
+// 	  return;
+// 	}
 
       // convert e1 to e2
       e1 = e1->Convert2( bTy, BaseGDL::COPY);
@@ -342,17 +351,27 @@ void BinaryExprNC::AdjustTypesNCNull(Guard<BaseGDL>& g1, BaseGDL*& e1,
 //     }
 
   // Change > to >= JMG
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
 	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
 	  g1.Reset( e1); // delete former e1
 	  return;
-	}
+    }
+    
+    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	  return;
+// 	}
 
       // no conversion because of operator overloads
       if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
@@ -364,15 +383,15 @@ void BinaryExprNC::AdjustTypesNCNull(Guard<BaseGDL>& g1, BaseGDL*& e1,
     }
   else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.Reset( e1); // delete former e1
-	  return;
-	}
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	  return;
+// 	}
 
       // no conversion because of operator overloads
       if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
@@ -850,11 +869,13 @@ BaseGDL* PLUSNode::Eval()
     
   }
       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  else if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+  else 
+  {
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      e1.reset( e1.release()->Convert2( GDL_COMPLEXDBL));
-      e2.reset( e2.release()->Convert2( GDL_COMPLEXDBL));
+      e1.reset( e1.release()->Convert2( cxTy));
+      e2.reset( e2.release()->Convert2( cxTy));
     }
   // Change > to >= JMG
   else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
@@ -871,7 +892,8 @@ BaseGDL* PLUSNode::Eval()
 	return e2->AddInv( e1.get());; // for operator overloading, do not convert other type then
       e1.reset( e1.release()->Convert2( bTy));
     }
-    
+  }
+  
   if ( e1->StrictScalar() )
   {
     res= e2->AddInvS ( e1.get() ); // scalar+scalar or array+scalar
@@ -913,11 +935,13 @@ BaseGDL* MINUSNode::Eval()
     
   }
       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  else if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
-      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+  else 
+  {
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      e1.reset( e1.release()->Convert2( GDL_COMPLEXDBL));
-      e2.reset( e2.release()->Convert2( GDL_COMPLEXDBL));
+      e1.reset( e1.release()->Convert2( cxTy));
+      e2.reset( e2.release()->Convert2( cxTy));
     }
   // Change > to >= JMG
   else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
@@ -934,7 +958,7 @@ BaseGDL* MINUSNode::Eval()
 	return e2->SubInv( e1.get());; // for operator overloading, do not convert other type then
       e1.reset( e1.release()->Convert2( bTy));
     }
- 
+  }
  if( e1->StrictScalar())
    {
      res= e2->SubInvS(e1.get()); // scalar+scalar or array+scalar
@@ -1608,20 +1632,28 @@ BaseGDL* PLUSNC12Node::Eval()
   }
   Guard<BaseGDL> g1;
   Guard<BaseGDL> g2;
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+  DType cxTy = PromoteComplexOperand( aTy, bTy);
+  if( cxTy != GDL_UNDEF)
+  {
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
+	  g1.reset( e1);
+     }
+  else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
       if( aTy == GDL_OBJ)
 	return e1->Add( e2);
 
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if(aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
-      {
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-      }
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if(aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
+//       {
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+//       }
+//       else
       {
 	// convert e2 to e1
 	e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -1634,14 +1666,14 @@ BaseGDL* PLUSNC12Node::Eval()
 	return e2->AddInv( e1);
 
       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-	}
-      else
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+// 	}
+//       else
 	{// convert e1 to e2
 	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
 	    g1.reset( e1);
@@ -1732,18 +1764,27 @@ BaseGDL* PLUSNCNode::Eval()
   }
   else // aTy != bTy
   {
-    // Change > to >= JMG
-    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
 	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
 	  g1.Reset( e1); // delete former e1
-	}
-      else if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+    }
+    // Change > to >= JMG
+    else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	}
+//       else 
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
 	return e1->Add(e2); // for operator overloading, do not convert other type then
       else
       {
@@ -1754,15 +1795,16 @@ BaseGDL* PLUSNCNode::Eval()
     }
     else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.Reset( e1); // delete former e1
-	}
-      else if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	}
+//       else 
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
 	return e2->AddInv( e1); // for operator overloading, do not convert other type then
       else
       {
@@ -1871,20 +1913,29 @@ BaseGDL* MINUSNC12Node::Eval()
 
   Guard<BaseGDL> g1;
   Guard<BaseGDL> g2;
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+
+  DType cxTy = PromoteComplexOperand( aTy, bTy);
+  if( cxTy != GDL_UNDEF)
+    {
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
+	  g1.reset( e1);
+    }
+  else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
       if( aTy == GDL_OBJ)
 	return e1->Sub( e2);
 
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
-      {
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-      }
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
+//       {
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+//       }
+//       else
       {
 	// convert e2 to e1
 	e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -1896,15 +1947,15 @@ BaseGDL* MINUSNC12Node::Eval()
       if( bTy == GDL_OBJ)
 	return e2->SubInv( e1);
       
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-	}
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+// 	}
+//       else
 	{// convert e1 to e2
 	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
 	    g1.reset( e1);
@@ -1980,18 +2031,27 @@ BaseGDL* MINUSNCNode::Eval()
   }
   else // aTy != bTy
   {
-    // Change > to >= JMG
-    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    DType cxTy = PromoteComplexOperand( aTy, bTy);
+    if( cxTy != GDL_UNDEF)
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( cxTy, BaseGDL::COPY);
 	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( cxTy, BaseGDL::COPY);
 	  g1.Reset( e1); // delete former e1
-	}
-      else if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+      
+    }    // Change > to >= JMG
+    else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	}
+//       else 
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
 	return e1->Sub(e2); // for operator overloading, do not convert other type then
       else
       {
@@ -2002,15 +2062,16 @@ BaseGDL* MINUSNCNode::Eval()
     }
     else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.Reset( e2); // delete former e2
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.Reset( e1); // delete former e1
-	}
-      else if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.Reset( e2); // delete former e2
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.Reset( e1); // delete former e1
+// 	}
+//       else 
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
 	return e2->SubInv( e1); // for operator overloading, do not convert other type then
       else
       {
@@ -2200,17 +2261,26 @@ BaseGDL* ASTERIXNC12Node::Eval()
   
   Guard<BaseGDL> g1;
   Guard<BaseGDL> g2;
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+
+  DType cxTy = PromoteComplexOperand( aTy, bTy);
+  if( cxTy != GDL_UNDEF)
+  {
+      e2 = e2->Convert2( cxTy, BaseGDL::COPY);
+      g2.reset( e2);
+      e1 = e1->Convert2( cxTy, BaseGDL::COPY);
+      g1.reset( e1);
+  }
+  else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
-      {
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-      }
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
+//       {
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+//       }
+//       else
       {
 	// convert e2 to e1
 	e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -2219,15 +2289,15 @@ BaseGDL* ASTERIXNC12Node::Eval()
     }
   else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-	}
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+// 	}
+//       else
 	{// convert e1 to e2
 	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
 	    g1.reset( e1);
@@ -2518,20 +2588,28 @@ BaseGDL* SLASHNC12Node::Eval()
       return e2->DivInvNew( e1); // smaller + larger
     }
   }
-
   Guard<BaseGDL> g1;
   Guard<BaseGDL> g2;
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+
+  DType cxTy = PromoteComplexOperand( aTy, bTy);
+  if( cxTy != GDL_UNDEF)
+  {
+	e2 = e2->Convert2( cxTy, BaseGDL::COPY);
+	g2.reset( e2);
+	e1 = e1->Convert2( cxTy, BaseGDL::COPY);
+	g1.reset( e1);    
+  }
+  else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
-      {
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-      }
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
+//       {
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+//       }
+//       else
       {
 	// convert e2 to e1
 	e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -2540,15 +2618,15 @@ BaseGDL* SLASHNC12Node::Eval()
     }
   else
     {
-      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-	{
-	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g2.reset( e2);
-	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	  g1.reset( e1);
-	}
-      else
+//       // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+//       if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+// 	{
+// 	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g2.reset( e2);
+// 	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+// 	  g1.reset( e1);
+// 	}
+//       else
 	{// convert e1 to e2
 	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
 	    g1.reset( e1);
