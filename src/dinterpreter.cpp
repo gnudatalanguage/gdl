@@ -1007,7 +1007,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     int lCNum = 0;
     for(;;) 
       {
-	lexer.Init( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+	lexer.Reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
 	try {
 	  // works, but ugly -> depends from parser detecting an error
 	  // (which it always will due to missing END_U token in case of LC)
