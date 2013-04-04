@@ -737,43 +737,41 @@ namespace lib {
 
   BaseGDL* matrix_multiply( EnvT* e)
   {
-    BaseGDL* par0 = e->GetParDefined(0);
-    BaseGDL* par1 = e->GetParDefined(1);
+    BaseGDL* a = e->GetParDefined(0);
+    BaseGDL* b = e->GetParDefined(1);
 
-    DType aTy = par0->Type();
+    DType aTy = a->Type();
     if (!NumericType(aTy))
-      e->Throw("Array type cannot be " + par0->TypeStr() + " here: " + e->GetParString(0));
-    DType bTy = par1->Type();
+      e->Throw("Array type cannot be " + a->TypeStr() + " here: " + e->GetParString(0));
+    DType bTy = b->Type();
     if (!NumericType(bTy))
-      e->Throw("Array type cannot be " + par1->TypeStr() + " here: " + e->GetParString(1));
+      e->Throw("Array type cannot be " + b->TypeStr() + " here: " + e->GetParString(1));
 
     static int atIx = e->KeywordIx("ATRANSPOSE");
     static int btIx = e->KeywordIx("BTRANSPOSE");
     bool at = e->KeywordSet(atIx);
     bool bt = e->KeywordSet(btIx);
 
-    if (par0->Rank() > 2)
+    if (a->Rank() > 2)
       {
 	e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
       }
-    if (par1->Rank() > 2)
+    if (b->Rank() > 2)
       {
 	e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
       }
 
     // code from ProgNode::AdjustTypes()
-    BaseGDL* a = par0;   
     Guard<BaseGDL> aGuard;
-    BaseGDL* b = par1;   
     Guard<BaseGDL> bGuard;
 
     // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
     DType cxTy = PromoteComplexOperand( aTy, bTy);
     if( cxTy != GDL_UNDEF)
     {
-      a = par0->Convert2( cxTy, BaseGDL::COPY);
+      a = a->Convert2( cxTy, BaseGDL::COPY);
       aGuard.Init( a);
-      b = par1->Convert2( cxTy, BaseGDL::COPY);
+      b = b->Convert2( cxTy, BaseGDL::COPY);
       bGuard.Init( b);
     }
     else
@@ -782,12 +780,12 @@ namespace lib {
 
       if( aTy != cTy)
 	{
-	  a = par0->Convert2( cTy, BaseGDL::COPY);
+	  a = a->Convert2( cTy, BaseGDL::COPY);
 	  aGuard.Init( a);
 	}
       if( bTy != cTy)
 	{
-	  b = par1->Convert2( cTy, BaseGDL::COPY);
+	  b = b->Convert2( cTy, BaseGDL::COPY);
 	  bGuard.Init( b);
 	}
     }

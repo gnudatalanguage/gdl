@@ -38,9 +38,24 @@
 #pragma interface
 #endif
 
+
+// save some typing. Declares function "fName" for all four groups (with return type "retType")
+#define GDL_DECLARE_FUNCTION( retType, fName, ... ) \
+template< typename U = Sp > typename U::template IfInteger< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfFloat< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfComplex< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfOther< retType >::type fName( __VA_ARGS__)
+
+// for each group we need one definition
+// usage: GDL_DEFINE_INTEGER_FUNCTION(retType) fName( arg list) { definition}
+#define GDL_DEFINE_INTEGER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfInteger< retType >::type Data_<Sp>::
+#define GDL_DEFINE_FLOAT_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfFloat< retType >::type Data_<Sp>::
+#define GDL_DEFINE_COMPLEX_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfComplex< retType >::type Data_<Sp>::
+#define GDL_DEFINE_OTHER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfOther< retType >::type Data_<Sp>::
+
+
+
 const size_t multiAlloc = 256;
-
-
 
 template<class Sp>
 class Data_: public Sp
@@ -70,19 +85,24 @@ public:
 
 void TestTemplateGrouping();
 
+// #define GDL_TEMPLATE_Integer( retType ) template< typename U = Sp > typename U::template IfInteger< retType >::type 
+// #define GDL_TEMPLATE_IntegerDef( retType ) template<typename Sp>template< typename U> typename U::template IfInteger< retType >::type Data_<Sp>::
 
-template< typename U = Sp >  
-typename U::template IfInteger<bool>::type 
-Test2();
-template< typename U = Sp >  
-typename U::template IfFloat<bool>::type 
-Test2();
-template< typename U = Sp >  
-typename U::template IfComplex<bool>::type 
-Test2();
-template< typename U = Sp >  
-typename U::template IfOther<bool>::type 
-Test2();
+
+GDL_DECLARE_FUNCTION(bool,Test2);
+
+// template< typename U = Sp >  
+//typename U::template IfInteger<bool>::type 
+// GDL_TEMPLATE_Integer(bool) Test2();
+// template< typename U = Sp >  
+// typename U::template IfFloat<bool>::type 
+// Test2();
+// template< typename U = Sp >  
+// typename U::template IfComplex<bool>::type 
+// Test2();
+// template< typename U = Sp >  
+// typename U::template IfOther<bool>::type 
+// Test2();
 
 #endif
 
@@ -458,6 +478,9 @@ private:
   // assumes that everything is checked (see CatInfo)
   void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);
 };
+
+// only to be used here
+#undef GDL_DECLARE_FUNCTION
 
 // template<> Data_<SpDPtr>::Data_(const Ty& d_);
 // template<> Data_<SpDObj>::Data_(const Ty& d_);
