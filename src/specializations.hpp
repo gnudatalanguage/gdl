@@ -67,22 +67,24 @@ template<>
 void Data_<SpDPtr>::Inc();
 template<> 
 void Data_<SpDObj>::Inc();
-template<> 
-Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r);
 template<> 
 Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r);
-template<> 
-Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r);
 template<> 
 Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r);
-template<> 
-Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r);
-template<> 
-Data_<SpDComplex>* Data_<SpDComplex>::AndOp( BaseGDL* r);
-template<> 
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOp( BaseGDL* r);
-template<> 
-Data_<SpDPtr>* Data_<SpDPtr>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDComplex>* Data_<SpDComplex>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDPtr>* Data_<SpDPtr>::AndOp( BaseGDL* r);
+// template<> 
+// Data_<SpDObj>* Data_<SpDObj>::AndOp( BaseGDL* r);
 template<> 
 Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r);
 template<> 

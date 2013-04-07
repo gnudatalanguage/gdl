@@ -1845,6 +1845,7 @@ Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r, bool atranspose, bool btrans
 // for integers
 template<class Sp>
 Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
+// GDL_DEFINE_INTEGER_FUNCTION( Data_<Sp>*) AndOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -1922,7 +1923,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
     }  //C delete right;
   return this;
 }
-// for doubles
+// // for doubles
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
 {
@@ -1971,12 +1972,11 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
   return this;
 }
 // invalid types
-template<>
-Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
-  return this;
-}
+// GDL_DEFINE_COMPLEX_FUNCTION( Data_<Sp>*) AndOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype "+Sp::str+".",true,false);  
+//   return this;
+// }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::AndOp( BaseGDL* r)
 {
@@ -1985,6 +1985,17 @@ Data_<SpDComplex>* Data_<SpDComplex>::AndOp( BaseGDL* r)
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOp( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
+  return this;
+}
+// GDL_DEFINE_OTHER_FUNCTION( Data_<Sp>*) AndOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype "+Sp::str+".",true,false);  
+//   return this;
+// }
+template<>
+Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
@@ -2014,9 +2025,9 @@ Data_<SpDObj>* Data_<SpDObj>::AndOp( BaseGDL* r)
   return this;
 }
 // template<>
-// Data_<SpDPtr>* Data_<SpDPtr>::AndOpInv( BaseGDL* r)
+// Data_<SpDObj>* Data_<SpDObj>::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+//  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
 //  return this;
 // }
 template<class Sp>

@@ -39,13 +39,6 @@
 #endif
 
 
-// save some typing. Declares function "fName" for all four groups (with return type "retType")
-#define GDL_DECLARE_FUNCTION( retType, fName, ... ) \
-template< typename U = Sp > typename U::template IfInteger< retType >::type fName( __VA_ARGS__); \
-template< typename U = Sp > typename U::template IfFloat< retType >::type fName( __VA_ARGS__); \
-template< typename U = Sp > typename U::template IfComplex< retType >::type fName( __VA_ARGS__); \
-template< typename U = Sp > typename U::template IfOther< retType >::type fName( __VA_ARGS__)
-
 // for each group we need one definition
 // usage: GDL_DEFINE_INTEGER_FUNCTION(retType) fName( arg list) { definition}
 #define GDL_DEFINE_INTEGER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfInteger< retType >::type Data_<Sp>::
@@ -53,13 +46,20 @@ template< typename U = Sp > typename U::template IfOther< retType >::type fName(
 #define GDL_DEFINE_COMPLEX_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfComplex< retType >::type Data_<Sp>::
 #define GDL_DEFINE_OTHER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfOther< retType >::type Data_<Sp>::
 
-
-
 const size_t multiAlloc = 256;
 
 template<class Sp>
 class Data_: public Sp
 {
+
+// save some typing. Declares function "fName" for all four groups (with return type "retType")
+#define GDL_DECLARE_FUNCTION( retType, fName, ... ) \
+template< typename U = Sp > typename U::template IfInteger< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfFloat< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfComplex< retType >::type fName( __VA_ARGS__); \
+template< typename U = Sp > typename U::template IfOther< retType >::type fName( __VA_ARGS__)
+
+
 public:
   typedef typename Sp::Ty    Ty;
   typedef Sp                 Traits;
@@ -79,7 +79,7 @@ private:
 
 public:
 
-#define TESTTG // TEST TEMPLATE GROUPING
+// #define TESTTG // TEST TEMPLATE GROUPING
 
 #ifdef TESTTG
 
@@ -307,13 +307,23 @@ static	void operator delete( void *ptr);
   // operators
   BaseGDL* UMinus(); // UMinus for SpDString returns float
   Data_*   NotOp();
+// GDL_DECLARE_FUNCTION( Data_*, AndOp, BaseGDL* r);
   Data_*   AndOp( BaseGDL* r);
   Data_*   AndOpInv( BaseGDL* r);
   Data_*   OrOp( BaseGDL* r);
   Data_*   OrOpInv( BaseGDL* r);
   Data_*   XorOp( BaseGDL* r);
+
   BaseGDL* Add( BaseGDL* r);
   BaseGDL* AddInv( BaseGDL* r);
+  BaseGDL* AddS( BaseGDL* r);
+  BaseGDL* AddInvS( BaseGDL* r);
+
+  BaseGDL* AddNew( BaseGDL* r);      // implemented
+  BaseGDL* AddInvNew( BaseGDL* r);      // implemented
+  BaseGDL* AddSNew( BaseGDL* r);         // implemented
+  BaseGDL* AddInvSNew( BaseGDL* r);    // implemented
+
 //   Data_*   AddNew( BaseGDL* r);
 //   Data_*   AddInvNew( BaseGDL* r);
   BaseGDL*   Sub( BaseGDL* r);
@@ -330,6 +340,7 @@ static	void operator delete( void *ptr);
   Data_*   PowInv( BaseGDL* r);
   Data_*   PowInt( BaseGDL* r);      
 //   Data_*   PowIntNew( BaseGDL* r);   
+  
   Data_*   MatrixOp( BaseGDL* r, bool atranspose, bool btranspose);
 
   // operators with scalar
@@ -338,8 +349,6 @@ static	void operator delete( void *ptr);
   Data_*   OrOpS( BaseGDL* r);
   Data_*   OrOpInvS( BaseGDL* r);
   Data_*   XorOpS( BaseGDL* r);
-  BaseGDL*   AddS( BaseGDL* r);
-  BaseGDL*   AddInvS( BaseGDL* r);
 //   Data_*   AddSNew( BaseGDL* r);
 //   Data_*   AddInvSNew( BaseGDL* r);
   Data_*   SubS( BaseGDL* r);
@@ -367,8 +376,6 @@ static	void operator delete( void *ptr);
 //   Data_* GeOpNew( BaseGDL* r);
 //   Data_* LtOpNew( BaseGDL* r);
 //   Data_* GtOpNew( BaseGDL* r);
-  BaseGDL* AddNew( BaseGDL* r);      // implemented
-  BaseGDL* AddInvNew( BaseGDL* r);      // implemented
   BaseGDL* SubNew( BaseGDL* r);
   BaseGDL* SubInvNew( BaseGDL* r);
   Data_* LtMarkNew( BaseGDL* r);
@@ -388,8 +395,6 @@ static	void operator delete( void *ptr);
   Data_* OrOpSNew( BaseGDL* r);
   Data_* OrOpInvSNew( BaseGDL* r);
   Data_* XorOpSNew( BaseGDL* r);
-  BaseGDL* AddSNew( BaseGDL* r);         // implemented
-  BaseGDL* AddInvSNew( BaseGDL* r);    // implemented
   BaseGDL* SubSNew( BaseGDL* r);
   BaseGDL* SubInvSNew( BaseGDL* r);
   Data_* LtMarkSNew( BaseGDL* r);
@@ -477,10 +482,11 @@ private:
   // used for concatenation, called from CatArray
   // assumes that everything is checked (see CatInfo)
   void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);
-};
 
-// only to be used here
+  // only to be used here
 #undef GDL_DECLARE_FUNCTION
+
+};
 
 // template<> Data_<SpDPtr>::Data_(const Ty& d_);
 // template<> Data_<SpDObj>::Data_(const Ty& d_);
