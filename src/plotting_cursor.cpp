@@ -263,6 +263,9 @@ void cursor(EnvT* e){
   }
 
   // we update the !Mouse structure (4 fields, only 3 managed up to now)
+  // found on the web:
+  //"Information about which mouse button has been used (if) any is stored in the !err variable. A value of 1 corresponds to the left, 2 to middle and 4 to the right button."
+  //!err is obsolete but still working:
   DStructGDL* Struct = SysVar::Mouse();
   if (Struct != NULL)
   {
@@ -274,6 +277,8 @@ void cursor(EnvT* e){
     if (gin.button == 3) gin.button = 4; // 4 values only (0,1,2,4)
     (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0] = gin.button;
   }
+  DVar *err=FindInVarList(sysVarList, "ERR");
+  (static_cast<DLongGDL*>(err->Data()))[0]=  gin.button;
 }
 
 } // namespace
