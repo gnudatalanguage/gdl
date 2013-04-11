@@ -541,6 +541,8 @@ namespace lib
                     (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
     e->AssureFloatScalarKWIfPresent("SYMSIZE", symsize);
     if ( symsize<=0.0 ) symsize=1.0;
+    
+    a->updatePageInfo(); a->UpdateCurrentCharWorldSize();
 
     UsymConvX=(0.5*symsize*(a->wCharLength()/a->charScale())); //be dependent only on symsize!
     UsymConvY=(0.5*symsize*(a->wCharHeight()/a->charScale()));
