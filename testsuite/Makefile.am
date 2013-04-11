@@ -90,6 +90,7 @@ TESTS = \
   test_interpol.pro \
   test_interpolate_missing.pro \
   test_ludc_lusol.pro \
+  test_matrix_multiply.pro \
   test_memory.pro \
   test_moment.pro \
   test_mpfit.pro \
