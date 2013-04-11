@@ -638,7 +638,7 @@ void LibInit()
      // 12
      "NORMAL",    "POSITION",     "SUBTITLE",
      // 15
-     "T3D",     "THICK",    "TICKLEN", 
+     "THICK",    "TICKLEN", 
      // 18
      "TITLE",
      // 19
@@ -672,16 +672,17 @@ void LibInit()
      // 69
      "ZTITLE",
      // 70
-     "ZVALUE", 
+
 
      // SURFACE keywords
      // 73
-     "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", "XLOG", "YLOG", "ZLOG", KLISTEND
+     "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", "XLOG", "YLOG", "ZLOG",
+     "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY",
+     "SKIRT", KLISTEND
     };
   const string surfaceWarnKey[]=
   {
-    "SAVE", "BOTTOM", "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY",
-    "SHADES", "SKIRT", "ZAXIS", "LEGO", KLISTEND
+    "SHADES", "SAVE", "ZAXIS",  "BOTTOM",  "LEGO", "T3D", "ZVALUE", KLISTEND
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
