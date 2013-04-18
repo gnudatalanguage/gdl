@@ -13,7 +13,11 @@
 ;
 ; OPTIONAL INPUTS: name of a procedure, function or code
 ;
-; KEYWORD PARAMETERS:
+; KEYWORD PARAMETERS: 
+;   original ones: book=, context=, full_path=, title=
+;   extensions : nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $
+;                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
+;                 test=test, debug=debug, help=help, verbose=verbose 
 ;
 ; OUTPUTS: none
 ;
@@ -37,6 +41,7 @@
 ;
 ; MODIFICATION HISTORY:
 ; -- 01-March-2013: creation by Alain Coulais, 
+; -- 18-April-2013: managing the book= keyword, with/out /full_path
 ; 
 ; LICENCE: This code is under GNU GPL v2 or later.
 ;
@@ -56,9 +61,12 @@
 ;
 ; We have to consider to have local HTML version of the documentation.
 ;
+; It seems that recent Firefox browsers can be call passing --new-tab
+; / --new-win
+;
 ;-
-pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, nokey=nokey, $
-                 book=book, browser=browser, $
+pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $
+                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $
                  path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
                  test=test, debug=debug, help=help, verbose=verbose
 ;
@@ -67,8 +75,8 @@ ON_ERROR, 2
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro ONLINE_HELP, name, nopdf=nopdf, nohtml=nohtml, nokey=nokey, $'
-    print, '                 book=book, browser=browser, $'
+    print, 'pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $'
+    print, '                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $'
     print, '                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $'
     print, '                 test=test, debug=debug, help=help, verbose=verbose'
     print, ''
@@ -88,8 +96,8 @@ if (status EQ 0) then begin
    MESSAGE, 'Since we are unable to connect to X Windows display, no ONLINE HELP'
 endif
 ;
-if KEYWORD_SET(book) then begin
-    MESSAGE, /continue, 'This option is not available'
+if KEYWORD_SET(context) then begin
+    MESSAGE, /continue, 'This option (only MSwin) is not available'
 endif
 ;
 ; setting a default browser if not provided
@@ -120,6 +128,45 @@ endif
 ;
 space=' '
 background=' &'
+;
+if KEYWORD_SET(book) then begin
+    ;;
+    ;; when the document is a PDF file, we try to use a PDF viewer
+    ;;
+    idx_suffixe=STRPOS(book, '.', /reverse_search)
+    ;; when the suffixe is not found we keed "browser"
+    if (idx_suffixe GE 0) then begin
+        suffixe=STRMID(book, idx_suffixe+1)
+        if STRLOWCASE(suffixe) EQ 'pdf' then begin
+            ;; don't hesitate to complete this list
+            list_of_pdf_viewers=['xpdf','evince','acroread']
+            ;; if we don't locate a PDF viewer, we will use the default (web) Brower
+            for ii=0, N_ELEMENTS(list_of_pdf_viewers)-1 do begin
+                SPAWN, 'which '+list_of_pdf_viewers[ii], ok, error
+                if (STRLEN(ok) NE 0) then begin
+                    browser=list_of_pdf_viewers[ii]
+                    break
+                endif
+            endfor
+        endif
+    endif
+    if ~KEYWORD_SET(full_path) then begin
+        ;;message, /continue, 'ToDo : managing !HELP_PATH'
+        DEFSYSV, '!HELP_PATH', exist=exist
+        if exist then begin
+            book=FILE_WHICH(!HELP_PATH,book)
+            if (STRLEN(book) EQ 0) then MESSAGE, 'no file found, please check !HELP_PATH and book name'
+        endif else begin
+            ;; falling back to standard multi-tab help
+            MESSAGE, /continue, '!HELP_PATH not set !'
+        endelse
+    endif
+    ;; we have to check whether the file exist or not !!
+    if FILE_TEST(book) then begin
+        command=browser+space+book+background
+        goto, execute_command
+    endif
+endif
 ;
 ; link to IDL exelis in-line documentation
 ;
@@ -154,7 +201,7 @@ if ~KEYWORD_SET(nopdf) then begin
             if STRLEN(res) GT 0 then script='curl -O '
         endelse
         if (STRLEN(script) GT 0) then begin
-            SPAWN, script+path2pdf+'gdl.pdf', ok, pb            
+            SPAWN, script+path2pdf+'gdl.pdf', ok, pb
         endif
         local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
     endif
@@ -200,6 +247,8 @@ if keyword_set(verbose) then begin
 endif
 ;
 command=browser+space+link1+space+link2+space+link3+background
+;
+execute_command:
 ;
 if KEYWORD_SET(debug) then begin
     print, command
