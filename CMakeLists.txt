@@ -59,8 +59,13 @@ set(PSLIBDIR "" CACHE PATH "Specify the pslib directory tree")
 set(GRIB OFF CACHE BOOL "Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "Specifiy the GRIB directory tree")
 
-set(MAGICK ON CACHE BOOL "Enable Magick ?")
+
+set(MAGICK ON CACHE BOOL "Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "Specifiy the ImageMagick directory tree")
+
+# GraphicsMagick is a good alternative to ImageMagick
+set(GRAPHICSMAGICK OFF CACHE BOOL "Enable GraphicsMagick ?")
+set(GRAPHICSMAGICKDIR "" CACHE PATH "Specify the GraphicsMagick directory tree")
 
 set(NETCDF ON CACHE BOOL "Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "Specifiy the netCDF directory tree")
@@ -299,6 +304,30 @@ if(PLPLOT_FOUND)
 	endif(HAVE_PLPLOT_SLABELFUNC)
 endif(PLPLOT_FOUND)
 	
+# GRAPHICSMAGICK is an alternative to the classical ImageMagick Lib.
+#
+# -DGRAPHICSMAGICK=ON|OFF
+# -DGRAPHICSMAGICKDIR=DIR
+if(GRAPHICSMAGICK)
+	set(CMAKE_PREFIX_PATH ${GRAPHICSMAGICKDIR})
+	find_package(GraphicsMagick QUIET)
+	set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
+	if(GRAPHICSMAGICK_FOUND)
+		include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})	
+		set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})		
+	else(GRAPHICSMAGICK_FOUND)
+		message(FATAL_ERROR "GRAPHICSMAGICK is required but was not found.\n"
+		"Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.\n"
+		"Use -DGRAPHICSMAGICK=OFF to not use it.\n"
+                "(suitable Fedora package: graphicsmagick-devel"
+		"   Debian/Ubuntu package: libgraphicsmagick++1-devel)")
+	endif(GRAPHICSMAGICK_FOUND)
+endif(GRAPHICSMAGICK)
+
+if(GRAPHICSMAGICK_FOUND)
+	set(MAGICK OFF)
+endif(GRAPHICSMAGICK_FOUND)
+
 if(MAGICK) # support Magick
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
 	if(HAVE_PLGETDRVDIR)
@@ -798,6 +827,7 @@ module(MPICH     "MPICH      ")
 module(PYTHON    "Python     ")
 module(UDUNITS   "UDUNITS-2  ")
 module(EIGEN3    "EIGEN3     ")
+module(GRAPHICSMAGICK "GRAPHICSMAGICK")
 module(GRIB      "GRIB       ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
