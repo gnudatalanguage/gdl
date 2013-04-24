@@ -64,7 +64,7 @@ set(MAGICK ON CACHE BOOL "Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "Specifiy the ImageMagick directory tree")
 
 # GraphicsMagick is a good alternative to ImageMagick
-set(GRAPHICSMAGICK OFF CACHE BOOL "Enable GraphicsMagick ?")
+set(GRAPHICSMAGICK ON CACHE BOOL "Enable GraphicsMagick ?")
 set(GRAPHICSMAGICKDIR "" CACHE PATH "Specify the GraphicsMagick directory tree")
 
 set(NETCDF ON CACHE BOOL "Enable NetCDF ?")
@@ -309,6 +309,10 @@ endif(PLPLOT_FOUND)
 # -DGRAPHICSMAGICK=ON|OFF
 # -DGRAPHICSMAGICKDIR=DIR
 if(GRAPHICSMAGICK)
+	if (MAGICK_FOUND)
+	   message("We prefer to use GraphicsMagick than ImageMagick")
+	   set(MAGICK off)
+	endif(MAGICK_FOUND)
 	set(CMAKE_PREFIX_PATH ${GRAPHICSMAGICKDIR})
 	find_package(GraphicsMagick QUIET)
 	set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
@@ -319,7 +323,7 @@ if(GRAPHICSMAGICK)
 		message(FATAL_ERROR "GRAPHICSMAGICK is required but was not found.\n"
 		"Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.\n"
 		"Use -DGRAPHICSMAGICK=OFF to not use it.\n"
-                "(suitable Fedora package: graphicsmagick-devel"
+                "(suitable Fedora package: GraphicsMagick-c++-devel"
 		"   Debian/Ubuntu package: libgraphicsmagick++1-devel)")
 	endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
