@@ -83,7 +83,7 @@ class DevicePS: public Graphics
       actStream->SETOPT( "a", as.c_str());
 
     // plot orientation
-    actStream->sdiori(orient_portrait ? 90.0 : 0.0);
+    actStream->sdiori(orient_portrait ? 1.0 : 0.0);
 
     // no pause on destruction
     actStream->spause( false);
@@ -95,7 +95,7 @@ class DevicePS: public Graphics
     // default: black+white (IDL behaviour)
     if (color == 0)
     {
-//      actStream->SETOPT( "drvopt","text=0,color=0");
+      actStream->SETOPT( "drvopt","text=0,color=0");
 ////      actStream->scolor(0); // has no effect
     }
     else
