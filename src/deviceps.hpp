@@ -16,12 +16,15 @@
  ***************************************************************************/
 
 #ifndef DEVICEPS_HPP_
-#  define DEVICEPS_HPP_
+#define DEVICEPS_HPP_
 
-#  include "gdlpsstream.hpp"
-#  include "plotting.hpp" // get_axis_crange for TV()
-#  include "initsysvar.hpp"
-#  include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
+#include "gdlpsstream.hpp"
+#include "plotting.hpp" // get_axis_crange for TV()
+#include "initsysvar.hpp"
+#include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
+
+#include "objects.hpp"
+
 
 #  ifdef USE_PSLIB
 #    include <stdio.h> // tmpnam
@@ -57,6 +60,8 @@ class DevicePS: public Graphics
   bool             encapsulated;
   float	           scale;
 
+  GDLStream  *psUnit;
+
   void InitStream()
   {
     delete actStream;
@@ -71,7 +76,13 @@ class DevicePS: public Graphics
 
     actStream->sfnam( fileName.c_str());
 
-    (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=100;
+    // trying to solve bug report 3611898
+    // AC 29-Avril-2013: the way I found to link GDLPSStream* and GDLStream*
+    DLong lun=GetLUN();
+    psUnit = &fileUnits[ lun-1];
+    psUnit->Open(fileName,fstream::out,false,false,false,
+		 defaultStreamWidth,false,false);
+    (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=lun;
 
     // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
@@ -332,7 +343,13 @@ public:
 
   bool CloseFile()
   {
+
+    // trying to solve bug report 3611898
+    // this is needed to decrement Lun number ...
     (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=0;
+    psUnit->Close();
+    psUnit->Free();
+    psUnit=NULL;
 
     if (actStream != NULL)
     {
