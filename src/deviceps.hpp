@@ -71,6 +71,8 @@ class DevicePS: public Graphics
 
     actStream->sfnam( fileName.c_str());
 
+    (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=100;
+
     // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
     actStream->spage(dpi, dpi, 540, 720, 32, 32); //plplot default: portrait!
@@ -79,12 +81,14 @@ class DevicePS: public Graphics
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
     PLFLT pageRatio=YPageSize/XPageSize;
-      std::string as = i2s( pageRatio);
-      actStream->SETOPT( "a", as.c_str());
-
+    std::string as = i2s( pageRatio);
+    actStream->SETOPT( "a", as.c_str());
+    
     // plot orientation
+    //std::cout  << "orientation : " << orient_portrait<< std::endl;
+    
     actStream->sdiori(orient_portrait ? 1.0 : 0.0);
-
+    
     // no pause on destruction
     actStream->spause( false);
 
@@ -328,6 +332,8 @@ public:
 
   bool CloseFile()
   {
+    (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=0;
+
     if (actStream != NULL)
     {
       delete actStream;
