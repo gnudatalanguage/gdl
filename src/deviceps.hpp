@@ -91,7 +91,9 @@ class DevicePS: public Graphics
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
-    PLFLT pageRatio=YPageSize/XPageSize;
+
+    // patch 3611949 by Joanna, 29 Avril 2013
+    PLFLT pageRatio=XPageSize/YPageSize;
     std::string as = i2s( pageRatio);
     actStream->SETOPT( "a", as.c_str());
     
