@@ -113,7 +113,6 @@ class DevicePS: public Graphics
     if (color == 0)
     {
       actStream->SETOPT( "drvopt","text=0,color=0");
-////      actStream->scolor(0); // has no effect
     }
     else
     {
@@ -123,7 +122,8 @@ class DevicePS: public Graphics
         actCT.Get( r, g, b);
 //        actStream->scmap0( r, g, b, ctSize);
         actStream->scmap1( r, g, b, ctSize);
-        actStream->scolbg(255,255,255); // white background
+        actStream->scolbg(r[0],g[0],b[0]); // start with current background
+//        actStream->scolbg(255,255,255); // start with a white background
     }
 
     actStream->Init();
@@ -436,7 +436,6 @@ public:
 
   bool SetEncapsulated(bool val)
   {
-    // TODO ?: change XPageSize, YPageSize, XOffset, YOffset
     encapsulated = val;
     return true;
   }
