@@ -47,9 +47,9 @@ namespace lib
       if ( device=="PS" )
       {
         static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=255;
+        (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=0;
          static unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0;
+        (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=255;
       }
     }
     else
