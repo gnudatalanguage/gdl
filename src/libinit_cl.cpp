@@ -205,7 +205,7 @@ void LibInit_cl()
 
   // SA: support fot query/ping routines
   const string magick_pingKey[] = {"INFO", "CHANNELS", "DIMENSIONS", "HAS_PALETTE", "IMAGE_INDEX",
-    "NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE"};
+    "NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE",KLISTEND};
   new DLibFun(lib::magick_ping, string("MAGICK_PING"), 2, magick_pingKey);
 
   // see bug no. 3376577
