@@ -100,7 +100,7 @@ class DevicePS: public Graphics
     // plot orientation
     //std::cout  << "orientation : " << orient_portrait<< std::endl;
     
-    actStream->sdiori(orient_portrait ? 1.0 : 0.0);
+    actStream->sdiori(orient_portrait ? 1 : 2);
     
     // no pause on destruction
     actStream->spause( false);
@@ -108,7 +108,6 @@ class DevicePS: public Graphics
     // extended fonts
     actStream->fontld( 1);
     
-    actStream->SETOPT( "drvopt","text=0");
     // default: black+white (IDL behaviour)
     if (color == 0)
     {
@@ -116,14 +115,12 @@ class DevicePS: public Graphics
     }
     else
     {
-      actStream->SETOPT( "drvopt","color=1");
-          // set color map
-        PLINT r[ctSize], g[ctSize], b[ctSize];
-        actCT.Get( r, g, b);
-//        actStream->scmap0( r, g, b, ctSize);
-        actStream->scmap1( r, g, b, ctSize);
-        actStream->scolbg(r[0],g[0],b[0]); // start with current background
-//        actStream->scolbg(255,255,255); // start with a white background
+      actStream->SETOPT( "drvopt","text=0,color=1"); //need to pass all options with the same 'setopt' command.
+    // set color map
+      PLINT r[ctSize], g[ctSize], b[ctSize];
+      actCT.Get( r, g, b);
+      actStream->scmap1( r, g, b, ctSize);
+      actStream->scolbg(255,255,255); // start with a white background
     }
 
     actStream->Init();
@@ -149,7 +146,7 @@ private:
   {
 #  ifndef USE_PSLIB
     Warning("Warning: pslib support is mandatory for the PostScript driver to handle the following");
-    Warning("         keywords: [X,Y]SIZE, [X,Y]OFFSET, SCALE_FACTOR, LANDSCAPE, PORTRAIT, ENCAPSULATED");
+    Warning("         keywords:  [X,Y]OFFSET, SCALE_FACTOR, ENCAPSULATED");
 #  else
     PSDoc *ps = PS_new(); 
     GDLGuard<PSDoc> psGuard( ps, PS_delete);
@@ -215,8 +212,19 @@ private:
     //psfont = PS_findfont(ps, "Helvetica", "", 0); 
     //PS_setfont(ps, psfont, 8.0); 
 
+      char bbstr [20], offstr [20];
+      int bbXSize, bbYSize;
     {
-      PS_begin_page(ps, XPageSize * cm2in * dpi, YPageSize * cm2in * dpi);
+
+      int bbXoff = XOffset*cm2in*dpi;
+      int bbYoff = YOffset*cm2in*dpi;
+      bbXSize = orient_portrait ? bbXoff + XPageSize*cm2in*dpi*scale : bbXoff + YPageSize*cm2in*dpi*scale;
+      bbYSize = orient_portrait ? bbYoff + YPageSize*cm2in*dpi*scale : bbYoff + XPageSize*cm2in*dpi*scale;
+      sprintf(bbstr,"%i %i %i %i",bbXoff,bbYoff,bbXSize,bbYSize);
+      sprintf(offstr,"%i %i",bbXoff,bbYoff);
+    
+      PS_set_info(ps,"BoundingBox",bbstr);
+      PS_begin_page(ps, bbXSize, bbYSize);
       {
         int psimage = PS_open_image_file(ps, "eps", fileName.c_str(), NULL, 0);
         if (psimage == 0)
@@ -224,14 +232,14 @@ private:
           Warning("Warning: pslib failed to load plPlot output file.");
           goto cleanup;
         }
-
-        float scl = !orient_portrait
-          ? ((XPageSize-XOffset) * cm2in * dpi ) / (PS_get_value(ps, "imagewidth", (float) psimage))
-          : ((YPageSize-YOffset) * cm2in * dpi) / (PS_get_value(ps, "imageheight", (float) psimage));
+	
+        float scl = 0.98*min((bbXSize-bbXoff) / (width-offx), (bbYSize-bbYoff) / (height-offy) );
+	int margx = ((bbXSize-bbXoff) - scl*(width-offx))/2;
+	int margy = ((bbYSize-bbYoff) - scl*(height-offy))/2;
         PS_place_image(ps, psimage, 
-          (XOffset * cm2in * dpi)-offx,
-          (YOffset * cm2in * dpi)-offy,
-          scale * scl
+		       bbXoff-offx*scl + margx,
+		       bbYoff-offy*scl + margy,
+		       scl
         );
         PS_close_image(ps, psimage); 
       }
@@ -239,7 +247,7 @@ private:
       PS_close(ps);
     }
     
-    // write contents to fileName
+    // Replace PageBoundingBox and CropBox and write contents to fileName
     {
       rewind(fp);
       FILE *fp_plplot = fopen(fileName.c_str(), "w");
@@ -249,12 +257,50 @@ private:
         Warning("Warning: failed to open plPlot-generated file");
         goto cleanup;
       }
-      const size_t buflen=4096;
-      unsigned char buff[buflen];
+
+      // When multiple pages are supported, PageBoundingBox and the cropbox
+      // will appear more than once. Then this section will need to be redone.
+
+      // Edit: change the two 0's after the PageBoundingBox
+      string pbstr=string("%%PageBoundingBox: ")+offstr;
+      // edits will be in the first 12288 bytes; add the length of offstr-3
+      const size_t buflen=12288 + pbstr.length()-22;
+      //const size_t buflen=4096;
+      char buff[buflen];
+
+      //do the first read:
+      size_t cnt = fread(&buff, 1, 12288, fp);
+      string sbuff;
+      sbuff = string(buff);
+
+      // find the PageBoundingBox statement
+      size_t pos = sbuff.find("%%PageBoundingBox: 0 0");
+      if (pos != string::npos) {
+	sbuff.replace(pos,22,pbstr); // will change the size of sbuff by offstr-3
+	cnt = cnt + pbstr.length()-22;
+      }
+
+      // PSlib outputs pdfmarks which resize the PDF to the size of the boundingbox
+      // this is nice, but not IDL behaviour (and anyway, the two 0's are wrong)
+      char mychar[60];
+      sprintf(mychar,"[ /CropBox [0 0 %i.00 %i.00] /PAGE pdfmark",bbXSize,bbYSize);
+      string pdfstr=string(mychar); 
+      string pdfrepl(pdfstr.length(),' ');
+      pos = sbuff.find(pdfstr);
+      if (pos != string::npos) {sbuff.replace(pos,pdfstr.length(),pdfrepl);} // will not change size of sbuff
+
+      // write the first buflen to file
+      strcpy(buff,sbuff.c_str());
+      if (fwrite(&buff, 1, buflen, fp_plplot) < buflen)
+        {
+          Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
+        }
+
+      // read the rest of fp and write to file
       while (true)
       {
-        size_t cnt = fread(&buff, 1, buflen, fp);
-        if (!cnt) break;
+       cnt = fread(&buff, 1, buflen, fp);
+         if (!cnt) break;
         if (fwrite(&buff, 1, cnt, fp_plplot) < cnt)
         {
           Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
@@ -275,7 +321,7 @@ private:
 
 public:
   DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), color(0), 
-    decomposed( 0), encapsulated(false), scale(1.), XPageSize(21.0), YPageSize(29.7),
+    decomposed( 0), encapsulated(false), scale(1.), XPageSize(17.78), YPageSize(12.7),
     XOffset(0.0),YOffset(0.0)
   {
     name = "PS";
@@ -287,10 +333,10 @@ public:
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( 29700)); //29700/1000=29.7 cm
-    dStruct->InitTag("Y_SIZE",     DLongGDL( 21000));
-    dStruct->InitTag("X_VSIZE",    DLongGDL( 29700));
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( 21000));
+    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*1000)); //29700/1000=29.7 cm
+    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*1000));
+    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*1000));
+    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*1000));
     dStruct->InitTag("X_CH_SIZE",  DLongGDL( 360));
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 360));
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); //1000 pix/cm
