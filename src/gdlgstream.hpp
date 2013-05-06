@@ -450,7 +450,7 @@ public:
   
   //  void Clear();
   void Color( ULong c, DLong decomposed=0, UInt ix=1);
-  virtual void Background( ULong c, DLong decomposed=0);
+  void Background( ULong c, DLong decomposed=0);
 
   void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots

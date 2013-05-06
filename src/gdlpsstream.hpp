@@ -43,9 +43,6 @@ public:
   void eop();
 
   void Init();
-  //overload Background to 1) set background and 2) clear to have the same behaviour
-  //as for device='x'.
-  void Background( ULong c, DLong decomposed);
 
 };
 

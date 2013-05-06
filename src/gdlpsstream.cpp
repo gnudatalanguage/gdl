@@ -47,22 +47,3 @@ void GDLPSStream::eop()
    }
    page++;
 };
-  //overload Background to 1) set background and 2) clear to have the same behaviour
-  //as for device='x'.
-  void GDLPSStream::Background( ULong c, DLong decomposed)
-  {
-    DByte r,g,b;
-    if (decomposed == 0) c = c & 0x0000FF;
-
-    if( c < ctSize && decomposed == 0)
-      {
-        Graphics::GetCT()->Get( c, r, g, b);
-      }
-    else {
-        r = c & 0xFF;
-        g = (c >> 8)  & 0xFF;
-        b = (c >> 16) & 0xFF;
-      }
-     plstream::scolbg( r, g, b);
-     plstream::clear();  //only this is added...
-  }
