@@ -244,8 +244,8 @@ if data_start ne 0 then begin
       MESSAGE, 'DATA_START value >= data length (' $
                + STRTRIM(STRING(data_start), 2) + ' >= ' $
                + STRTRIM(STRING(N_ELEMENTS(text)),2) + ')' 
-      text = text[data_start:*]
    endif
+   text = text[data_start:*]
 endif
 ;
 ;-----------------
