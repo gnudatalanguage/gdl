@@ -406,18 +406,18 @@ if(NETCDF)
 	find_package(NetCDF QUIET)
 	if(NETCDF_FOUND)
 		set(CMAKE_REQUIRED_INCLUDES ${NETCDF_INCLUDE_DIRS})
-		check_include_file_cxx(netcdfcpp.h HAVE_NETCDFCPP_H)
-		if(HAVE_NETCDFCPP_H)
+		check_include_file_cxx(netcdf.h HAVE_NETCDF_H)
+		if(HAVE_NETCDF_H)
 			set(LIBRARIES ${LIBRARIES} ${NETCDF_LIBRARIES})
 			set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${NETCDF_LIBRARY_DIRS})
 			include_directories(${NETCDF_INCLUDE_DIRS})
 			set(USE_NETCDF 1)
-		else(HAVE_NETCDFCPP_H)
+		else(HAVE_NETCDF_H)
 			message(FATAL_ERROR "NetCDF installation seems not to be usable.\n"
 			"This suggests a conflicting netCDF-HDF4 installation e.g.\n"
 			"- Uninstalling HDF4 after installation of NetCDF.\n"
 			"- Installing NetCDF before HDF4.")
-		endif(HAVE_NETCDFCPP_H)
+		endif(HAVE_NETCDF_H)
 		set(CMAKE_REQUIRED_INCLUDES)
 	else(NETCDF_FOUND)
 		message(FATAL_ERROR "NetCDF version 3.5.1 or later is required but was not found.\n"

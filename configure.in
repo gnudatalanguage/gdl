@@ -562,8 +562,8 @@ if test "x$with_netcdf" != "xno"; then
     exit -1
     ])
 
-  AC_CHECK_HEADERS("netcdfcpp.h", [], [
-    AC_CHECK_HEADERS("$ncdfincdir/netcdfcpp.h", [], [
+  AC_CHECK_HEADERS("netcdf.h", [], [
+    AC_CHECK_HEADERS("$ncdfincdir/netcdf.h", [], [
       echo ""
       echo "Error! netCDF installation seems not to be usable"
       echo "       This suggests a conflicting netCDF-HDF4 installation, e.g."

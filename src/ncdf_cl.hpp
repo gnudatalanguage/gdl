@@ -18,7 +18,7 @@
 #ifndef NCDF_HPP_CL_
 #define NCDF_HPP_CL_
 
-#include <netcdfcpp.h>
+#include <netcdf.h>
 #include <string>
 
 namespace lib {
