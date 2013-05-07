@@ -1505,6 +1505,7 @@ assign_expr
 //     : (IDENTIFIER^ arrayindex_list) 
 // 	;
 
+// only used for production in primary_expr
 arrayexpr_mfcall!
 {
     RefDNode dot;
