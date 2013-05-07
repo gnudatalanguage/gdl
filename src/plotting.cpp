@@ -39,6 +39,8 @@ namespace lib
 {
 
   using namespace std;
+//  using std::isinf;
+  using std::isnan;
   
 //static values
   static DDouble savedPointX=0.0;
@@ -103,9 +105,9 @@ namespace lib
     for (i=0,k=0 ; i<n ; ++i)
     {
        valx=(*xVal)[i];
-       if (std::isnan(valx)) break;
+       if (isnan(valx)) break;
        valy=(*yVal)[i];
-       if (std::isnan(valy)) break;
+       if (isnan(valy)) break;
        if(valx<xmin || valx>xmax) break;
        if (doMinMax &&(valy<minVal || valy>maxVal)) break;
        if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}
@@ -1262,7 +1264,7 @@ namespace lib
       if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
       if ( xLog ) x=log10(x);
       if ( yLog ) y=log10(y);
-      isBad=(isBad||!isfinite(x)|| !isfinite(y)||std::isnan(x)||std::isnan(y));
+      isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
       if ( isBad )
       {
         reset=1;

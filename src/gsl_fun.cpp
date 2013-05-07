@@ -102,6 +102,7 @@
 namespace lib {
 
   using namespace std;
+  using std::isnan;
 
   const int szdbl=sizeof(double);
   const int szflt=sizeof(float);
@@ -1430,7 +1431,7 @@ namespace lib {
       maxVal = minVal;
       for( SizeT i=1; i<nEl; ++i) {
 	if (!isfinite((*p0D)[i])) {
-	  if (!std::isnan((*p0D)[i])) {
+	  if (!isnan((*p0D)[i])) {
 	    e->Throw("Array has too many elements (Infinite value encoutered).");
 	  };
 	}

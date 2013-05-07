@@ -48,9 +48,11 @@
 #define signbit(d) (d < 0.0)? 1:0
 #endif
 
-using namespace std;
-
 namespace lib {
+
+  using namespace std;
+  using std::isinf;
+  using std::isnan;
 
   BaseGDL* machar_fun( EnvT* e)
   {
@@ -197,9 +199,9 @@ namespace lib {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
        if (kwNaN)
-         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = std::isnan((*src)[ i]);
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
        else if (kwInfinity)
-         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = std::isinf((*src)[ i]);
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
        else
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
        return res;
@@ -215,10 +217,10 @@ namespace lib {
        SizeT nEl = src->N_Elements();
        if (kwNaN)
          for ( SizeT i=0; i<nEl; ++i) 
-     	    (*res)[ i] = std::isnan((*src)[ i].real()) || std::isnan((*src)[ i].imag());
+     	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
        else if (kwInfinity)
          for ( SizeT i=0; i<nEl; ++i)
-           (*res)[ i] = std::isinf((*src)[ i].real()) || std::isinf((*src)[ i].imag());
+           (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
        else
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isfinite((*src)[ i].real()) && 
@@ -250,12 +252,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (std::isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (std::isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
 	 return res;	 
@@ -264,12 +266,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (std::isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (std::isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
 	 return res;
@@ -288,10 +290,10 @@ namespace lib {
        for ( SizeT i=0; i<nEl; ++i)
 	 {
 	   (*res)[i]=0;
-	   if      ((kwInfinity && std::isinf((*src)[ i].real()) || kwNaN && std::isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
-	   else if ((kwInfinity && std::isinf((*src)[ i].imag()) || kwNaN && std::isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
-	   else if ((kwInfinity && std::isinf((*src)[ i].real()) || kwNaN && std::isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
-	   else if ((kwInfinity && std::isinf((*src)[ i].imag()) || kwNaN && std::isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
+	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
 	 }
        return res;
      }

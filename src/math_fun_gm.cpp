@@ -194,10 +194,11 @@
 #define isfinite _finite
 #endif
 
-using namespace std;
-
 namespace lib
 {
+using namespace std;
+using std::isnan;
+
   double gm_expint(int n, double x);
   double gm_lentz(double a[], double b[], double tiny, int n, double eps);
 
@@ -212,7 +213,7 @@ namespace lib
             (*res)[c] = 1.0;
         else if ((*p0)[c] == -d_infinity)
             (*res)[c] = -1.0;
-        else if (std::isnan((*p0)[c]) == 1)
+        else if (isnan((*p0)[c]) == 1)
             (*res)[c] = d_nan;
         else
             (*res)[c] = gsl_sf_erf((*p0)[c]);
@@ -240,7 +241,7 @@ namespace lib
             (*res)[c] = 1.0;
         else if ((*p0)[c] == -d_infinity)
             (*res)[c] = 0.0;
-        else if (std::isnan((*p0)[c]) == 1)
+        else if (isnan((*p0)[c]) == 1)
             (*res)[c] = d_nan;
         else
             (*res)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
@@ -260,7 +261,7 @@ namespace lib
             (*res)[c] = 0.0;
         else if ((*p0)[c] == -d_infinity)
             (*res)[c] = 2.0;
-        else if (std::isnan((*p0)[c]) == 1)
+        else if (isnan((*p0)[c]) == 1)
             (*res)[c] = d_nan;
         else
             (*res)[c] = gsl_sf_erfc((*p0)[c]);
@@ -277,7 +278,7 @@ namespace lib
     for (SizeT c = 0; c < nElp0; ++c)
         if (((*p0)[c] == 0.0) || (((*p0)[c] < 0.0) && ((int)(*p0)[c] == (*p0)[c])) || (*p0)[c] >= GSL_SF_GAMMA_XMAX)
             (*res)[c] = d_infinity;
-        else if (std::isnan((*p0)[c]) == 1 || (*p0)[c] == -d_infinity)
+        else if (isnan((*p0)[c]) == 1 || (*p0)[c] == -d_infinity)
             (*res)[c] = d_nan;
         else
             (*res)[c] = gsl_sf_gamma((*p0)[c]);
@@ -293,7 +294,7 @@ namespace lib
     for (SizeT c = 0; c < nElp0; ++c)
         if ((*p0)[c] == 0.0 || (*p0)[c] < 0.0)
             (*res)[c] = d_infinity;
-        else if (std::isnan((*p0)[c]))
+        else if (isnan((*p0)[c]))
             (*res)[c] = d_nan;
         else
             (*res)[c] = gsl_sf_lngamma((*p0)[c]);
@@ -342,7 +343,7 @@ namespace lib
         for (SizeT c = 0; c < nElp; ++c)
             if ((*p0)[0] == d_infinity && (*p1)[c] == d_infinity)
                 (*res)[c] = 1.0;
-            else if (std::isnan((*p0)[0]) == 1 || std::isnan((*p1)[c]))
+            else if (isnan((*p0)[0]) == 1 || isnan((*p1)[c]))
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gsl_sf_gamma_inc_P((*p0)[0], (*p1)[c]);
@@ -350,7 +351,7 @@ namespace lib
         for (SizeT c = 0; c < nElp; ++c)
             if ((*p0)[c] == d_infinity && (*p1)[0] == d_infinity)
                 (*res)[c] = 1.0;
-            else if (std::isnan((*p0)[c]) == 1 || std::isnan((*p1)[0]))
+            else if (isnan((*p0)[c]) == 1 || isnan((*p1)[0]))
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gsl_sf_gamma_inc_P((*p0)[c], (*p1)[0]);
@@ -358,7 +359,7 @@ namespace lib
         for (SizeT c = 0; c < nElp; ++c)
             if ((*p0)[c] == d_infinity && (*p1)[c] == d_infinity)
                 (*res)[c] = 1.0;
-            else if (std::isnan((*p0)[c]) == 1 || std::isnan((*p1)[c]))
+            else if (isnan((*p0)[c]) == 1 || isnan((*p1)[c]))
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gsl_sf_gamma_inc_P((*p0)[c], (*p1)[c]);
@@ -473,7 +474,7 @@ namespace lib
         {
             if ((*p1)[c] == d_infinity)
                 (*res)[c] = 0.0;
-            else if (std::isnan((*p0)[0]) == 1 || std::isnan((*p1)[c]) == 1 || (*p1)[c] < 0.0)
+            else if (isnan((*p0)[0]) == 1 || isnan((*p1)[c]) == 1 || (*p1)[c] < 0.0)
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gm_expint((*p0)[0], (*p1)[c]);
@@ -485,7 +486,7 @@ namespace lib
         {
             if ((*p1)[0] == d_infinity)
                 (*res)[c] = 0.0;
-            else if (std::isnan((*p0)[c]) == 1 || std::isnan((*p1)[0]) == 1 || (*p1)[0] < 0.0)
+            else if (isnan((*p0)[c]) == 1 || isnan((*p1)[0]) == 1 || (*p1)[0] < 0.0)
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gm_expint((*p0)[c], (*p1)[0]);
@@ -497,7 +498,7 @@ namespace lib
         {
             if ((*p1)[c] == d_infinity)
                 (*res)[c] = 0.0;
-            else if (std::isnan((*p0)[c]) == 1 || std::isnan((*p1)[c]) == 1 || (*p1)[c] < 0.0)
+            else if (isnan((*p0)[c]) == 1 || isnan((*p1)[c]) == 1 || (*p1)[c] < 0.0)
                 (*res)[c] = d_nan;
             else
                 (*res)[c] = gm_expint((*p0)[c], (*p1)[c]);

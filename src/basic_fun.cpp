@@ -83,7 +83,8 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 
 namespace lib {
 
-  using namespace std;
+//  using namespace std;
+  using std::isnan;
   using namespace antlr;
 
   // assumes all parameters from pOffs till end are dim
@@ -3692,7 +3693,7 @@ BaseGDL* transpose( EnvT* e)
 		DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i)
 		{
-			if( std::isnan((*p0F)[ i]) )//|| !isfinite((*p0F)[ i]))
+			if( isnan((*p0F)[ i]) )//|| !isfinite((*p0F)[ i]))
 				{
 					--nanIx;
 					(*res)[i] = (*res)[nanIx];
@@ -3713,7 +3714,7 @@ BaseGDL* transpose( EnvT* e)
 		DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i)
 		{
-			if( std::isnan((*p0F)[ i]))// || !isfinite((*p0F)[ i]))
+			if( isnan((*p0F)[ i]))// || !isfinite((*p0F)[ i]))
 				{
 					--nanIx;
 					(*res)[i] = (*res)[nanIx];
@@ -3726,8 +3727,8 @@ BaseGDL* transpose( EnvT* e)
 		DComplexGDL* p0F = static_cast<DComplexGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i)
 		{
-			if( std::isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-			     std::isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+			if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
+			     isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
 				{
 					--nanIx;
 					(*res)[i] = (*res)[nanIx];
@@ -3740,8 +3741,8 @@ BaseGDL* transpose( EnvT* e)
 		DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i)
 		{
-			if( std::isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-			     std::isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+			if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
+			     isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
 				{
 					--nanIx;
 					(*res)[i] = (*res)[nanIx];
@@ -3889,7 +3890,7 @@ BaseGDL* transpose( EnvT* e)
 	    if (p0->Type() == GDL_DOUBLE) {
 	      DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
 	      for( DLong i=nEl-1; i >= 0; --i) {
-		if( std::isnan((*p0F)[i])) {
+		if( isnan((*p0F)[i])) {
 		  --nanIx;
 		  hh[i] = hh[nanIx];
 		  hh[ nanIx] = i;
@@ -3900,7 +3901,7 @@ BaseGDL* transpose( EnvT* e)
 	    if (p0->Type() == GDL_FLOAT) {
 	      DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
 	      for( DLong i=nEl-1; i >= 0; --i) {
-		if( std::isnan((*p0F)[i])) {
+		if( isnan((*p0F)[i])) {
 		  --nanIx;
 		  hh[i] = hh[nanIx];
 		  hh[ nanIx] = i;
@@ -3928,7 +3929,7 @@ BaseGDL* transpose( EnvT* e)
 		DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i) {
 		  jj=start + i * accumStride;
-		  if( std::isnan((*p0F)[ jj]) ) {
+		  if( isnan((*p0F)[ jj]) ) {
 		    --nanIx;
 		    hh[i] = hh[nanIx];
 		    hh[ nanIx] = i;
@@ -3941,7 +3942,7 @@ BaseGDL* transpose( EnvT* e)
 		DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
 		for( DLong i=nEl-1; i >= 0; --i) {
 		  jj=start + i * accumStride;
-		  if( std::isnan((*p0F)[ jj]) ) {
+		  if( isnan((*p0F)[ jj]) ) {
 		    --nanIx;
 		    hh[i] = hh[nanIx];
 		    hh[ nanIx] = i;

@@ -25,6 +25,8 @@
 namespace lib {
 
   using namespace std;
+//  using std::isinf;
+  using std::isnan;
 
   class plot_call : public plotting_routine_call 
   {
@@ -170,15 +172,15 @@ private:
       xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       xStart = (*xVal)[minEl];
       xEnd = (*xVal)[maxEl];
-      if (std::isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
-      if (std::isnan(xEnd)) xEnd = 1.0;
+      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
+      if (isnan(xEnd)) xEnd = 1.0;
       if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
       yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
       yEnd = (*yVal)[maxEl];
-      if (std::isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
-      if (std::isnan(yEnd)) yEnd = 1.0;
+      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
+      if (isnan(yEnd)) yEnd = 1.0;
       if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
     }
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
