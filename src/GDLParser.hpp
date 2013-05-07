@@ -194,6 +194,7 @@ public:
 	public: void deref_dot_expr();
 	public: bool  member_function_call();
 	public: void member_function_call_dot();
+	public: void arrayexpr_mfcall();
 	public: void primary_expr();
 	public: void decinc_expr();
 	public: void exponential_expr();

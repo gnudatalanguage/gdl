@@ -538,8 +538,21 @@ pro struct_test
   a = {a0, var1: 0, var2: 0.0d0}
   b = {a0, '0L', ' 1.0'}
 
-  print,'STRUCT: OK'
+; bug tracker ID: 3612104
+  a=ptrarr(1)
+  a(0)=ptr_new('a')
+  s={a:a}
+  ss={sst:s}
+  if *s.a(0) ne 'a' then begin
+    message, '***STRUCT: ERROR12', /conti
+    exit, status=1
+  endif
+  if *ss.sst.a(0) ne 'a' then begin
+    message, '***STRUCT: ERROR13', /conti
+    exit, status=1
+  endif 
 
+  print,'STRUCT: OK'
 end
 
 pro multi,a,b,c
