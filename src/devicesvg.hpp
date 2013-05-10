@@ -55,11 +55,11 @@ class DeviceSVG : public Graphics
     // we want color
     actStream->scolor( 1);
 
-    // set color map
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    //    actStream->scmap0( r, g, b, ctSize); 
-    actStream->scmap1( r, g, b, ctSize); 
+    // avoid to set color map 0 -- makes plplot very slow (?)
+//    PLINT r[ctSize], g[ctSize], b[ctSize];
+//    actCT.Get( r, g, b);
+//    actStream->scmap0( r, g, b, ctSize);
+//    actStream->scmap1( r, g, b, ctSize);
 
     actStream->SETOPT( "drvopt","text_clipping=1"); // clear drvopt
 

@@ -108,6 +108,11 @@ class DevicePS: public Graphics
     // extended fonts
     actStream->fontld( 1);
     
+    // avoid to set color map 0 -- makes plplot very slow (?)
+//    PLINT r[ctSize], g[ctSize], b[ctSize];
+//    actCT.Get( r, g, b);
+//    actStream->scmap0( r, g, b, ctSize);
+//    actStream->scmap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
     if (color == 0)
     {
@@ -116,12 +121,8 @@ class DevicePS: public Graphics
     else
     {
       actStream->SETOPT( "drvopt","text=0,color=1"); //need to pass all options with the same 'setopt' command.
-    // set color map
-      PLINT r[ctSize], g[ctSize], b[ctSize];
-      actCT.Get( r, g, b);
-      actStream->scmap1( r, g, b, ctSize);
-      actStream->scolbg(255,255,255); // start with a white background
     }
+    actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();
     

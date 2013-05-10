@@ -463,11 +463,11 @@ public:
     // we use our own window handling
     winList[ wIx]->SETOPT( "drvopt","usepth=0");
 
-    // set color map
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    //    winList[ wIx]->scmap0( r, g, b, ctSize); 
-    winList[ wIx]->scmap1( r, g, b, ctSize); 
+    // avoid to set color map 0 -- makes plplot very slow (?)
+//    PLINT r[ctSize], g[ctSize], b[ctSize];
+//    actCT.Get( r, g, b);
+//    winList[ wIx]->scmap0( r, g, b, ctSize);
+//    winList[ wIx]->scmap1( r, g, b, ctSize);
 
     winList[ wIx]->Init();
     
