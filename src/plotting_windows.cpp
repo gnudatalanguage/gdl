@@ -130,6 +130,9 @@ namespace lib {
 	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, 0, 0);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
+        success = actDevice->CursorCrosshair();
+        success = actDevice->UnsetFocus();
+        //FIXME: ADD support for RETAIN (BackingSTORE))
 	    return;
 	  }
       }
