@@ -20,6 +20,42 @@
 #define gdlPlot_Min(a, b) ((a) < (b) ? (a) : (b))
 #define gdlPlot_Max(a, b) ((a) > (b) ? (a) : (b))
 
+//To debug Affine 3D homogenous projections matrices.
+//IDL define a matrix as  M[ncol,mrow] and print as such. However col_major and
+//row_major refer to the math notation M[row,col] where row=dim(0) and col=dim(1).
+//Matrices are stored COL Major in IDL/Fortran and ROW Major in C,C++ etc.
+//so element at (i,j) is computed as  (j*dim0 + i) for ColMajor/IDL
+//and (i*dim1 + j) for RowMajor/C
+
+#define TRACEMATRIX_C(var__)\
+      {int dim0__=(var__)->Dim(0), dim1__=(var__)->Dim(1);\
+        fprintf(stderr,"c matrix[%d,%d]\n",dim0__,dim1__);\
+        for (int row=0; row < dim0__ ; row++)\
+        {\
+          for (int col=0; col < dim1__-1; col++)\
+          {\
+            fprintf(stderr,"%g, ",(*var__)[row*dim1__ + col]);\
+          }\
+          fprintf(stderr,"%g\n",(*var__)[row*dim1__ + dim1__ -1]);\
+        }\
+        fprintf(stderr,"\n");\
+      }
+//The following abbrevs should output the C matrix as IDL would do (ie,transposed):
+#define TRACEMATRIX_IDL(var__)\
+      {int dim0__=(var__)->Dim(0), dim1__=(var__)->Dim(1);\
+        fprintf(stderr,"idl matrix[%d,%d]\n[",dim0__,dim1__);\
+        for (int col=0; col < dim1__; col++)\
+        {\
+          fprintf(stderr,"[");\
+          for (int row=0; row < dim0__; row++)\
+          {\
+            fprintf(stderr,"%g",(*var__)[row*dim1__ + col]);\
+            if (row<dim0__-1) fprintf(stderr," ,"); \
+            else if (col<dim1__-1) fprintf(stderr," ],$\n"); else fprintf(stderr," ]]\n") ;\
+          }\
+        }\
+      }
+
 #include "envt.hpp"
 #include "graphics.hpp"
 #include "initsysvar.hpp"
@@ -44,6 +80,40 @@
     DStringGDL* TickUnits;
   };
 
+  struct GDL_3DTRANSFORMDATA
+  {
+    DDoubleGDL* Matrix;
+    DDouble zValue;
+    int* code;
+    DDouble x0;
+    DDouble xs;
+    DDouble y0;
+    DDouble ys;
+    DDouble z0;
+    DDouble zs;
+    bool xlog;
+    bool ylog;
+    bool zlog;
+  };
+
+  static GDL_3DTRANSFORMDATA Data3d;
+
+  static int code012[3] = {0, 1, 2};
+  static int code102[3] = {1, 0, 2};
+  static int code120[3] = {1, 2, 0};
+  static int code210[3] = {2, 1, 0};
+  static int code201[3] = {2, 0, 1};
+  static int code021[3] = {0, 2, 1};
+
+  enum ORIENTATION3D
+  {
+    NORMAL=0,
+    XY,
+    XZ,
+    YZ,
+    XZYZ,
+    XZXY
+  };
 #define GDL_NONE -1
 #define GDL_TICKFORMAT 0
 #define GDL_TICKUNITS 1
@@ -58,11 +128,13 @@ namespace lib {
   void oplot( EnvT* e);
   void plots( EnvT* e);
   void surface( EnvT* e);
+  void shade_surf( EnvT* e);
   void contour( EnvT* e);
   void xyouts( EnvT* e);
   void axis( EnvT* e);
   void polyfill( EnvT* e);
   void usersym( EnvT* e);
+  void set_shading( EnvT* e);
 
   // other plotting routines
   void erase( EnvT* e);
@@ -84,7 +156,41 @@ namespace lib {
 
   BaseGDL* convert_coord( EnvT* e);
 
+  //3D conversions
+  void SelfTranspose3d(DDoubleGDL* me);
+  void SelfReset3d(DDoubleGDL* me);
+  void SelfTranslate3d(DDoubleGDL* me, DDouble *trans);
+  void SelfScale3d(DDoubleGDL* me, DDouble *scale);
+  void SelfRotate3d(DDoubleGDL* me, DDouble *rot);
+  void SelfPerspective3d(DDoubleGDL* me, DDouble zdist);
+  void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
+  void SelfExch3d(DDoubleGDL* me, DLong code);
+  void gdl3dTo2dTransformContour(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void gdlProject3dCoordinatesIn2d( DDoubleGDL* Matrix, DDoubleGDL *xVal, DDouble *sx,
+                                    DDoubleGDL *yVal, DDouble *sy, DDoubleGDL* zVal,
+                                    DDouble *sz, DDoubleGDL *xValou, DDoubleGDL *yValou);
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble scale=1.0);
+  DDoubleGDL* gdlConvertT3DMatrixToPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt, DDouble &ay, DDouble &scale, ORIENTATION3D &code);
+  DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix=NULL);
+  DDoubleGDL* gdlGetT3DMatrix();
+  void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
+                            DDoubleGDL* xValou, DDoubleGDL *yValou, DDoubleGDL *zValou);
+  void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, 
+                               DDoubleGDL* zVal, DDoubleGDL *xValou, DDoubleGDL *yValou, int* code);
+  bool gdlSet3DViewPortAndWorldCoordinates( EnvT* e, GDLGStream* actStream, DDoubleGDL* Matrix,
+  bool xLog, bool yLog, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, DDouble zStart=0.0, DDouble zEnd=1.0, bool zLog=false);
+  void scale3_pro(EnvT* e);
+  void t3d_pro( EnvT* e);
+  bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0 );
+  bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd,
+        DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog,bool doSpecialAxisPlacement=0);
+
   //helper functions / classes
+  inline void logifyGDLDouble(DDoubleGDL* x)
+  {
+    for (SizeT i=0; i<x->N_Elements(); ++i) (*x)[i]=log10((*x)[i]);
+  }
 
   class plotting_routine_call
   {
@@ -128,15 +234,18 @@ namespace lib {
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
              DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, 
-		     DLong psym=0, bool append=FALSE);
+		     DLong psym=0, bool append=FALSE, DLongGDL *color=NULL);
   DDouble gdlEpsDouble();
   DDouble gdlAbsoluteMinValueDouble();
+  DDouble gdlAbsoluteMaxValueDouble();
   //protect from (inverted, strange) axis log values
   void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log);
   //set the background color
   void gdlSetGraphicsBackgroundColorFromKw(EnvT * e, GDLGStream * a,bool kw=true);
+  //set The background color as foreground ()
+  void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   //set the foreground color
-  void gdlSetGraphicsForegroundColorFromKw(EnvT * e, GDLGStream * a);
+  void gdlSetGraphicsForegroundColorFromKw(EnvT * e, GDLGStream * a, string otherColorKw="");
   //advance to next plot unless the noerase flag is set
   void gdlNextPlotHandlingNoEraseOption(EnvT * e, GDLGStream * a,bool noe=0);
   //set the symbol shape
@@ -179,11 +288,9 @@ namespace lib {
   void gdlSetAxisCharsize(EnvT *e, GDLGStream *a, string axis);
   void gdlStoreAxisType(string axis, bool type);
 
-  void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
-
   //length and height of a char in normalized coords, using trick
   void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy);
-  void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
+  void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz=NULL);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
   bool startClipping(EnvT *e, GDLGStream *a, bool UsePClip);
   void stopClipping(GDLGStream *a);
@@ -198,9 +305,10 @@ namespace lib {
   void AdjustAxisOpts(string& xOpt, string& yOpt,
     DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
     string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
-  bool gdlSetViewPortAndWorldCoordinates( EnvT* e, GDLGStream* actStream, DFloatGDL* plotPosition, bool xLog, bool yLog,
-                 DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
+  bool gdlSetViewPortAndWorldCoordinates( EnvT* e, GDLGStream* actStream, DFloatGDL* boxPosition, bool xLog, bool yLog,
+                 DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT,
                  DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal, DLong iso);
+;
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
   void GetAxisData( DStructGDL* xStruct,
                     DLong& style, DString& title, DFloat& charSize,
@@ -217,8 +325,9 @@ namespace lib {
                     PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
     void handle_pmulti_position(EnvT *e, GDLGStream *a);
     void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
-     bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode=0);
+    bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode=0);
     bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
+
 } // namespace
 
 #endif

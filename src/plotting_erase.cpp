@@ -76,13 +76,8 @@ namespace lib {
 	  if (bColor < 0)   bColor = 0;
 	}
 
-      // Get decomposed value
-      Graphics* actDevice = Graphics::GetDevice();
-      DLong decomposed = actDevice->GetDecomposed();
-      if (decomposed != 0 && decomposed != 1) {decomposed=0;}
-
-      actStream->Background( bColor, decomposed);
-      actStream->Clear();      
+    actStream->Background( bColor);
+    actStream->Clear();      
     }
 
     private: virtual void post_call(EnvT*, GDLGStream*) // {{{

@@ -32,14 +32,24 @@ namespace lib {
 
   private: void old_body( EnvT* e, GDLGStream* actStream) 
   { 
+    bool doT3d, real3d;
+    DDouble zValue;
+    //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+    static int zvIx = e->KeywordIx( "Z");
+    zValue=0.0;
+    e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+    //T3D
+    static int t3dIx = e->KeywordIx( "T3D");
+    doT3d=e->KeywordSet(t3dIx);
 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
 
-    bool xAxis=false, yAxis=false; 
+    bool xAxis=false, yAxis=false, zAxis=false;
     static int xaxisIx = e->KeywordIx( "XAXIS");
     static int yaxisIx = e->KeywordIx( "YAXIS");
+    static int zaxisIx = e->KeywordIx( "ZAXIS");
     
-    PLINT xaxis_value, yaxis_value; 
+    PLINT xaxis_value, yaxis_value, zaxis_value;
     bool standardNumPos;
     //IDL behaviour for XAXIS and YAXIS and ZAXIS options: only one option is considered, and ZAXIS above YAXIS above XAXIS
     if( (e->GetKW( xaxisIx) != NULL) ) {
@@ -52,7 +62,11 @@ namespace lib {
       e->AssureLongScalarKWIfPresent( "YAXIS", yaxis_value);
       if (yaxis_value == 0) {standardNumPos = true;} else {standardNumPos = false;}
     }
-    if( (e->GetKW( xaxisIx) == NULL) & (e->GetKW( yaxisIx) == NULL ) )  {
+    if( e->GetKW( zaxisIx) != NULL) {
+      zAxis = true; xAxis = false; yAxis=false; // like in IDL, zaxis overrides all
+      e->AssureLongScalarKWIfPresent( "ZAXIS", zaxis_value);
+    }
+    if( (e->GetKW( xaxisIx) == NULL) && (e->GetKW( yaxisIx) == NULL )  && ((e->GetKW( zaxisIx) == NULL )||!doT3d))  {
       xAxis = true; standardNumPos = true; 
     }
     
@@ -61,13 +75,15 @@ namespace lib {
     gdlGetDesiredAxisMargin(e, "Y",yMarginB, yMarginT);
 
     // will handle axis logness..
-    bool xLog, yLog;
+    bool xLog, yLog, zLog;
     // is current box log or not?
-    bool xAxisWasLog,yAxisWasLog;
+    bool xAxisWasLog, yAxisWasLog, zAxisWasLog;
     gdlGetAxisType("X", xAxisWasLog);
     gdlGetAxisType("Y", yAxisWasLog);
+    gdlGetAxisType("Z", zAxisWasLog);
     xLog=xAxisWasLog;
     yLog=yAxisWasLog; //by default logness is similar until another option is set
+    zLog=zAxisWasLog;
 
     enum
     {
@@ -141,7 +157,7 @@ namespace lib {
     gdlSetGraphicsForegroundColorFromKw(e, actStream);       //COLOR
     //    contrary to the documentation axis does not erase the plot (fortunately!)
     //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
-    gdlSetPlotCharthick(e,actStream); //impossible with plplot to draw labels without axes, so both will have same thickness.
+    gdlSetPlotCharthick(e,actStream); 
     gdlSetPlotCharsize(e, actStream);    //CHARSIZE
 
     PLFLT vpXL, vpXR, vpYB, vpYT; //define new viewport in relative units

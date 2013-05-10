@@ -34,10 +34,10 @@ namespace lib
   {
     PLFLT currentBoxXmin, currentBoxXmax, currentBoxYmin, currentBoxYmax, currentBoxZmin, currentBoxZmax;
     PLFLT vpXmin, vpXmax, vpYmin, vpYmax;
-    DDoubleGDL* yVal, *xVal;
-    Guard<DDoubleGDL> xval_guard, yval_guard;
+    DDoubleGDL* yVal, *xVal, *zVal;
+    Guard<DDoubleGDL> xval_guard, yval_guard, zval_guard;
     DStringGDL* strVal;
-    SizeT xEl, yEl, strEl;
+    SizeT xEl, yEl, zEl, strEl;
     bool xLog, yLog, zLog;
     bool doClip, restoreClipBox;
     PLFLT savebox[4];
@@ -46,24 +46,36 @@ namespace lib
     DLong minEl;
     DLongGDL *color;
     DFloatGDL *spacing,*orientation,*charthick,*alignement,*size;
-    Guard<BaseGDL> color_guard, chartick_guard, alignement_guard, orientation_guard,size_guard;
-
+    Guard<BaseGDL> alignement_guard, orientation_guard,size_guard;
+    bool doT3d;
+    DDoubleGDL* t3dMatrix;
+    Guard<BaseGDL> t3dMatrix_guard;
+    DDoubleGDL *xValou;
+    DDoubleGDL *yValou;
+    Guard<BaseGDL> xvalou_guard, yvalou_guard;
   private:
 
     bool handle_args(EnvT* e)
     {
-      // KEYWORDS are: CLIP(YES), COLOR(NO!), DATA(YES) , DEVICE(YES) ,
-      // NORMAL(YES) , FONT(NO), ORIENTATION(YES), /NOCLIP(YES), T3D(NO), Z(NO)
+      // KEYWORDS are: CLIP(YES), COLOR(YES), DATA(YES) , DEVICE(YES) ,
+      // NORMAL(YES) , FONT(NO), ORIENTATION(YES), /NOCLIP(YES), T3D(YES), Z(YES)
+      static int zvIx = e->KeywordIx( "Z");
+      DDouble zValue=0.0;
+      e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+
       if ( nParam()==1 )
       {
         //string only...
         xVal=new DDoubleGDL(1, BaseGDL::ZERO);
-        yVal=new DDoubleGDL(1, BaseGDL::ZERO);
         xval_guard.Reset(xVal); // delete upon exit
+        yVal=new DDoubleGDL(1, BaseGDL::ZERO);
         yval_guard.Reset(yVal); // delete upon exit
         xEl=yEl=xVal->N_Elements();
         strVal=e->GetParAs<DStringGDL>(0);
         strEl=strVal->N_Elements();
+        zVal=new DDoubleGDL(1);
+        zval_guard.Reset(zVal); // delete upon exit
+        (*zVal)[0]=zValue;
       }
       else if ( nParam()==3 )
       {
@@ -73,6 +85,11 @@ namespace lib
         yEl=yVal->N_Elements();
         strVal=e->GetParAs<DStringGDL>(2);
         strEl=strVal->N_Elements();
+         //z will be set at Zero unless Z=value is given
+        zEl=xEl;
+        zVal=new DDoubleGDL(dimension(zEl));
+        zval_guard.Reset(zVal); // delete upon exit
+        for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
       }
       else
       {
@@ -81,7 +98,7 @@ namespace lib
       }
       //align x y text sizes...
       minEl=(xEl<yEl)?xEl:yEl;
-      minEl=(minEl<strEl)?minEl:strEl;
+//      minEl=(minEl<strEl)?minEl:strEl;
 
       return true;
     }
@@ -103,6 +120,11 @@ namespace lib
     {
       int clippingix=e->KeywordIx("CLIP");
       DFloatGDL* clipBox=NULL;
+
+
+      //T3D
+      static int t3dIx = e->KeywordIx( "T3D");
+      doT3d=e->KeywordSet(t3dIx);
 
       //if string only, fill empty Xval Yval with current value:
       if ( nParam()==1 )
@@ -224,49 +246,49 @@ namespace lib
       aspectw=actStream->boxAspectWorld();
       aspectd=actStream->boxAspectDevice();
 
-        int colorIx=e->KeywordIx ( "COLOR" ); bool docolor=false;
-        int charthickIx=e->KeywordIx ( "CHARTHICK" ); bool docharthick=false;
-        int charsizeIx=e->KeywordIx ( "CHARSIZE" ); bool docharsize=false;
-        if ( e->GetKW ( colorIx )!=NULL )
-        {
-          color=e->GetKWAs<DLongGDL>( colorIx ); docolor=true;
-        }
-        if ( e->GetKW ( charthickIx )!=NULL )
-        {
-          charthick=e->GetKWAs<DFloatGDL>( charthickIx ); docharthick=true;
-        }
-        if ( e->GetKW ( charsizeIx )!=NULL )
-        {
-          size=e->GetKWAs<DFloatGDL>( charsizeIx ); docharsize=true;
-        }
-        else  //for security in future conditional evaluation...
-        {
-          size=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          size_guard.Init ( size);
-          (*size)[0]=1.0;
-        }
-        int orientationIx=e->KeywordIx ( "ORIENTATION" );
-        if ( e->GetKW ( orientationIx )!=NULL )
-        {
-          orientation=e->GetKWAs<DFloatGDL>( orientationIx ); 
-        }
-        else
-        {
-          orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          orientation_guard.Init ( orientation);
-          (*orientation)[0]=0;
-        }
-        int alignIx=e->KeywordIx ( "ALIGNMENT" );
-        if ( e->GetKW ( alignIx )!=NULL )
-        {
-          alignement=e->GetKWAs<DFloatGDL>( alignIx );
-        }
-        else
-        {
-          alignement=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-          alignement_guard.Init (alignement);
-          (*alignement)[0]=0;
-        }
+      int colorIx=e->KeywordIx ( "COLOR" ); bool docolor=false;
+      int charthickIx=e->KeywordIx ( "CHARTHICK" ); bool docharthick=false;
+      int charsizeIx=e->KeywordIx ( "CHARSIZE" ); bool docharsize=false;
+      if ( e->GetKW ( colorIx )!=NULL )
+      {
+        color=e->GetKWAs<DLongGDL>( colorIx ); docolor=true;
+      }
+      if ( e->GetKW ( charthickIx )!=NULL )
+      {
+        charthick=e->GetKWAs<DFloatGDL>( charthickIx ); docharthick=true;
+      }
+      if ( e->GetKW ( charsizeIx )!=NULL )
+      {
+        size=e->GetKWAs<DFloatGDL>( charsizeIx ); docharsize=true;
+      }
+      else  //for security in future conditional evaluation...
+      {
+        size=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
+        size_guard.Init ( size);
+        (*size)[0]=1.0;
+      }
+      int orientationIx=e->KeywordIx ( "ORIENTATION" );
+      if ( e->GetKW ( orientationIx )!=NULL )
+      {
+        orientation=e->GetKWAs<DFloatGDL>( orientationIx ); 
+      }
+      else
+      {
+        orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
+        orientation_guard.Init ( orientation);
+        (*orientation)[0]=0;
+      }
+      int alignIx=e->KeywordIx ( "ALIGNMENT" );
+      if ( e->GetKW ( alignIx )!=NULL )
+      {
+        alignement=e->GetKWAs<DFloatGDL>( alignIx );
+      }
+      else
+      {
+        alignement=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
+        alignement_guard.Init (alignement);
+        (*alignement)[0]=0;
+      }
 
 
       // make all clipping computations BEFORE setting graphic properties (color, size)
@@ -278,11 +300,30 @@ namespace lib
       gdlSetPlotCharthick(e, actStream);
       gdlSetPlotCharsize(e, actStream, true); //accept SIZE kw!
 
-      for ( int i=0; i<minEl; ++i )
+      if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
+      {
+        DDoubleGDL* t3dMatrix=gdlGetT3DMatrix(); //the original one
+        t3dMatrix_guard.Reset(t3dMatrix);
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs(&sx, &sy, &sz);
+        xValou=new DDoubleGDL(dimension(xEl));
+        yValou=new DDoubleGDL(dimension(yEl));
+        Guard<BaseGDL> xval_guard, yval_guard;
+        xval_guard.reset(xValou);
+        yval_guard.reset(yValou);
+        gdlProject3dCoordinatesIn2d(t3dMatrix, xVal, sx, yVal, sy, zVal, sz, xValou, yValou);
+        xVal=xValou;
+        yVal=yValou;
+      }
+      // Get decomposed value for colors
+      DLong decomposed=Graphics::GetDevice()->GetDecomposed();
+
+      for ( SizeT i=0; i<minEl; ++i )
       {
         x=static_cast<PLFLT>((*xVal)[i]);
         y=static_cast<PLFLT>((*yVal)[i]);
 
+        //following obviously wrong if T3D...
 #ifdef USE_LIBPROJ4
         if ( mapSet&& coordinateSystem==DATA )
         {
@@ -304,7 +345,7 @@ namespace lib
 
         //plot!
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
-        if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], true, 2 );
+        if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
         if (docharthick) actStream->wid ( ( *charthick )[i%charthick->N_Elements ( )]);
         PLFLT ori=(( *orientation )[i%orientation->N_Elements ( )]) * DEGTORAD;
         PLFLT cosOri=cos(ori);
@@ -316,7 +357,7 @@ namespace lib
         chsize=actStream->dCharHeight()*0.5;
         actStream->WorldToDevice(x, y, dx, dy); //nx ny in relative coords
         actStream->DeviceToWorld(dx-chsize*sinOri,dy+chsize*cosOri,dispx,dispy);
-        string out=(*strVal)[i];
+        string out=(*strVal)[i%strVal->N_Elements ( )];
         actStream->ptex(dispx, dispy, cosOri, sinOri*aspectw/aspectd, align, out.c_str());
         if ( i==minEl-1 )
         {
@@ -325,9 +366,6 @@ namespace lib
           //save last position
           actStream->DeviceToWorld(dx+(1.0-align)*dWidth*cosOri,dy+(1.0-align)*dWidth*sinOri,dispx,dispy);
           actStream->WorldToDevice(dispx, dispy, lastTextPosX, lastTextPosY);
-//          width/=actStream->xPageSize(); //normed value
-//          lastTextPosX=nx+(1.0-alignment)*width*cos(orientation*DEGTORAD); //normalized
-//          lastTextPosY=ny+(1.0-alignment)*width*sin(orientation*DEGTORAD);
         }
       }
       if (stopClip) stopClipping(actStream);

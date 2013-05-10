@@ -19,74 +19,40 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
-#define TRACEMATRIX_ROWMAJOR(var__,mrows__,ncolumns__)\
-      {\
-        fprintf(stderr,"row-major matrix[%d,%d]\n",mrows__,ncolumns__);\
-      for (int row=0; row < mrows__; row++)\
-      {\
-        for (int col=0; col < ncolumns__ ; col++)\
-        {\
-          fprintf(stderr,"%lf, ",var__[col*mrows__ + row]);\
-        }\
-        fprintf(stderr,"\n");\
-      }\
-        fprintf(stderr,"\n");\
-       }
-
-#define TRACEMATRIX_COLMAJOR(var__,mrows__,ncolumns__)\
-      {\
-        fprintf(stderr,"col-major matrix[%d,%d]\n",mrows__,ncolumns__);\
-      for (int row=0; row < mrows__; row++)\
-      {\
-        for (int col=0; col < ncolumns__ ; col++)\
-        {\
-          fprintf(stderr,"%lf, ",var__[row*ncolumns__ + col]);\
-        }\
-        fprintf(stderr,"\n");\
-      }\
-        fprintf(stderr,"\n");\
-       }
-
 namespace lib
 {
-  //TBD:
-  //LINESTYLE THICK & [XYZ]THICK TICKLEN XYZCHARSIZE XYGRIDSTYLE(TICKLEN=1)
-  //XYZMINOR XYZTICKFORMAT, INTERVAL, LAYOUT, LEN, NAME, TICKS, TICKUNITS, TICKV, TICK_GET
+
   //XRANGE etc behaviour not as IDL (in some ways, better!)
-  //XYZ STYLE: remove axes if style=4 etc
-  //ZVALUE and T3D, SAVE
-  //BOTTOM (color) easy..
-  //SAVE for T3D
-  //SHADES (impossible!)
-  //LEGO (idem!)
-  //ZAXIS=[1,2,3,4] difficult!
+  //TBD: LEGO
 
   using namespace std;
 
 // shared parameter
   static bool xLog;
   static bool yLog;
+  static bool zLog;
 
   class surface_call: public plotting_routine_call
   {
-
     DDoubleGDL *zVal, *yVal, *xVal;
     Guard<BaseGDL> xval_guard, yval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
-    bool zLog, isLog;
     bool nodata;
-//    DLongGDL *colors,*thick,*labels,*style;
-//    Guard<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
-//    DFloatGDL *spacing,*orientation;
- //   Guard<BaseGDL> spacing_guard,orientation_guard;
+    ORIENTATION3D axisExchangeCode;
   private:
     bool handle_args (EnvT* e)
     {
+      xLog=e->KeywordSet ( "XLOG" );
+      yLog=e->KeywordSet ( "YLOG" );
+      zLog=e->KeywordSet ( "ZLOG" );
       if ( nParam ( )==1 )
       {
-        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
+        if ( (e->GetNumericArrayParDefined ( 0 ))->Rank ( )!=2 )
+          e->Throw ( "Array must have 2 dimensions: "
+                     +e->GetParString ( 0 ) );
 
+        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
         zVal=static_cast<DDoubleGDL*>
         ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
         p0_guard.reset ( p0 ); // delete upon exit
@@ -100,8 +66,10 @@ namespace lib
 
         xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
         xval_guard.reset ( xVal ); // delete upon exit
+        if (xLog) xVal->Inc();
         yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
         yval_guard.reset ( yVal ); // delete upon exit
+        if (yLog) yVal->Inc();
       }
       else if ( nParam ( )==2||nParam ( )>3 )
       {
@@ -193,15 +161,7 @@ namespace lib
 
     void old_body (EnvT* e, GDLGStream* actStream) // {{{
     {
-      // we need to define the NaN value
-      static DStructGDL *Values=SysVar::Values ( );
-      static DDouble d_nan=( *static_cast<DDoubleGDL*> ( Values->GetTag ( Values->Desc ( )->TagIndex ( "D_NAN" ), 0 ) ) )[0];
-      static DDouble minmin=gdlAbsoluteMinValueDouble();
-      // To enable a very dirty trick if X11 and /LOWER option
-      Graphics* actDevice = Graphics::GetDevice();
-      DLong currentGraphicsFunction = actDevice->GetGraphicsFunction();
-      bool no_lower=(currentGraphicsFunction==-1);
-      //projection: would work only with 2D X and Y. Not supported here
+     //projection: would work only with 2D X and Y. Not supported here
       bool mapSet=false;
 #ifdef USE_LIBPROJ4
       static LPTYPE idata;
@@ -216,9 +176,25 @@ namespace lib
         Warning ( "SURFACE: Projection is set, but not taken into account (ony 1d X and Y) (FIX plplot first!)." );
       }
 #endif
-     //NODATA
-      int nodataIx = e->KeywordIx( "NODATA");
+      //T3D
+      static int t3dIx = e->KeywordIx( "T3D");
+      bool doT3d=e->KeywordSet(t3dIx);
+      //ZVALUE
+      static int zvIx = e->KeywordIx( "ZVALUE");
+      DDouble zValue=0.0;
+      e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+      zValue=min(zValue,0.999999); //to avoid problems with plplot
+      //SAVE
+      static int savet3dIx = e->KeywordIx( "SAVE");
+      bool saveT3d=e->KeywordSet(savet3dIx);
+      //NODATA
+      static int nodataIx = e->KeywordIx( "NODATA");
       nodata=e->KeywordSet(nodataIx);
+      //SHADES
+      static int shadesIx = e->KeywordIx( "SHADES");
+      BaseGDL* shadevalues=e->GetKW ( shadesIx );
+      bool doShade=(shadevalues != NULL); //... But 3d mesh will be colorized anyway!
+      if (doShade) Warning ( "SHADE_SURF: Using Fixed (Z linear) Shade Values Only (FIXME)." );
 
       // [XYZ]STYLE
       DLong xStyle=0, yStyle=0, zStyle=0; ;
@@ -226,16 +202,20 @@ namespace lib
       gdlGetDesiredAxisStyle(e, "Y", yStyle);
       gdlGetDesiredAxisStyle(e, "Z", zStyle);
 
-      // [XYZ]MARGIN
-      DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
-      gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
-      gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-      gdlGetDesiredAxisMargin(e, "Z", zMarginF, zMarginB);
+      //check here since after AutoIntvAC values will be good but arrays passed
+      //to plplot will be bad...
+      if ( xLog && xStart<=0.0 )
+      {
+        Warning ( "SURFACE: Infinite x plot range." );
+        nodata=true;
+      }
+      if ( yLog && yStart<=0.0 )
+      {
+        Warning ( "SURFACE: Infinite y plot range." );
+        nodata=true;
+      }
+      if ( zLog && zStart<=0.0 ) Warning ( "SURFACE: Infinite z plot range." );
 
-      xLog=e->KeywordSet ( "XLOG" );
-      yLog=e->KeywordSet ( "YLOG" );
-      if (xLog || yLog) isLog=true; else isLog=false;
-      zLog=e->KeywordSet ( "ZLOG" );
 
       if ( ( xStyle&1 )!=1 )
       {
@@ -261,121 +241,66 @@ namespace lib
       {
         PLFLT intv=AutoIntvAC ( zStart, zEnd, zLog );
       }
-      //start a plot
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
 
-      // viewport and world coordinates
-      // use POSITION
-      int positionIx = e->KeywordIx( "POSITION");
-      DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
-      if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
-      // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
 
+      // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
+      // or absent and we have to compute !P.T from az and alt.
+
       PLFLT alt=30.0;
+      PLFLT az=30.0;
+      //set az and ax (alt)
       DFloat alt_change=alt;
       e->AssureFloatScalarKWIfPresent("AX", alt_change);
       alt=alt_change;
 
       alt=fmod(alt,360.0); //restrict between 0 and 90 for plplot!
-      if (alt > 90)
+      if (alt > 90.0 || alt < 0.0)
       {
         e->Throw ( "SURFACE: AX restricted to [0-90] range by plplot (fix plplot!)" );
       }
-//      DDoubleGDL* Test=(new DDoubleGDL(dimension(4,8),BaseGDL::INDGEN));
-//      TRACEMATRIX_ROWMAJOR((*Test),Test->Dim(0),Test->Dim(1))
-
-      PLFLT az=30.0;
       DFloat az_change=az;
       e->AssureFloatScalarKWIfPresent("AZ", az_change);
       az=az_change;
 
-      DDouble zoom=0.9;
-      DLongGDL* pMulti=SysVar::GetPMulti();
-      if ( (*pMulti)[1]>2||(*pMulti)[2]>2 ) zoom*=0.9; //better for multiboxes
-
-      //compute size of 1,1,1 box centered at [0.5,0.5,0] projected at ax,az using internal GDL maths!
-      //The box
-      static DDouble v[32]=
+      //now we are in plplot different kind of 3d
+      DDoubleGDL* plplot3d;
+      DDouble ay, scale; //not useful at this time
+      if (doT3d) //convert to this world...
       {
-        0,0,0,1,
-        1,0,0,1,
-        0,1,0,1,
-        1,1,0,1,
-        0,0,1,1,
-        1,0,1,1,
-        0,1,1,1,
-        1,1,1,1,
-      };
-      DDoubleGDL* V=(new DDoubleGDL(dimension(4,8),BaseGDL::NOZERO));
-      memcpy(V->DataAddr(),v,8*4*sizeof(double));
-//      cout<<"Box"<<endl;
-//      TRACEMATRIX_ROWMAJOR((*V),V->Dim(0),V->Dim(1))
-      //Deplact at [0.5,0.5,0]
-      DDouble depla[16]={1,0,0,-0.5, 0,1,0,-0.5, 0,0,1,0, 0,0,0,1};
-      DDoubleGDL* Depla=(new DDoubleGDL(dimension(4,4),BaseGDL::NOZERO));
-      memcpy(Depla->DataAddr(),depla,16*sizeof(double));
-//      cout<<"Depla"<<endl;
-//      TRACEMATRIX_ROWMAJOR((*Depla),Depla->Dim(0),Depla->Dim(1))
 
-      DDoubleGDL* pV=Depla->MatrixOp(V, true, false);
-//      cout<<"After deplacement"<<endl;
-//      TRACEMATRIX_ROWMAJOR((*pV),pV->Dim(0),pV->Dim(1))
-
-      double cz=cos(az*DEGTORAD);
-      double sz=sin(az*DEGTORAD);
-      DDouble matz[16]={cz,-sz,0,0, sz,cz,0,0, 0,0,1,0, 0,0,0,1};
-      DDoubleGDL* Matz=(new DDoubleGDL(dimension(4,4),BaseGDL::NOZERO));
-      memcpy(Matz->DataAddr(),matz,16*sizeof(double));
-//      cout<<"After z rotation"<<endl;
-      pV=Matz->MatrixOp( pV, true, false);
-//      TRACEMATRIX_ROWMAJOR((*pV),pV->Dim(0),pV->Dim(1))
-
-      double cx=cos(alt*DEGTORAD);
-      double sx=sin(alt*DEGTORAD);
-      DDouble matx[16]={1,0,0,0, 0,sx,cx,0, 0,-cx,sx,0, 0,0,0,1};
-      DDoubleGDL* Matx=(new DDoubleGDL(dimension(4,4),BaseGDL::NOZERO));
-      memcpy(Matx->DataAddr(),matx,16*sizeof(double));
-//      cout<<"x rotation Matrix"<<endl;
-//      TRACEMATRIX_ROWMAJOR(( *Matx ),Matx->Dim(0),Matx->Dim(1))
-//      cout<<"After x rotation"<<endl;
-      pV=Matx->MatrixOp( pV, true, false);
-//      TRACEMATRIX_ROWMAJOR((*pV),pV->Dim(0),pV->Dim(1))
-
-
-      DDouble xmin,xmax,ymin,ymax;
-      DLong iMin,iMax;
-      pV->MinMax(&iMin,&iMax,NULL,NULL,false,0,0,4);
-      xmin=(*pV)[iMin];
-      xmax=(*pV)[iMax];
-      pV->MinMax(&iMin,&iMax,NULL,NULL,false,1,0,4);
-      ymin=(*pV)[iMin];
-      ymax=(*pV)[iMax];
-
-      if ( gdlSetViewPortAndWorldCoordinates(e, actStream, boxPosition,
-      false, false,
-      xMarginL, xMarginR, yMarginB, yMarginT,
-      xmin, xmax, ymin, ymax, false)==FALSE ) return; //no good: should catch an exception to get out of this mess.
-
-      gdlSetPlotCharthick(e,actStream); //impossible with plplot to draw labels without axes, so both will have same thickness.
-
-      if ( xLog && xStart<=0.0 )
-      {
-        Warning ( "SURFACE: Infinite x plot range." );
-        nodata=true;
+        plplot3d=gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        if (plplot3d == NULL)
+        {
+          e->Throw ( "SURFACE: Illegal 3D transformation." );
+        }
       }
-      if ( yLog && yStart<=0.0 )
+      else //make the transformation ourselves
       {
-        Warning ( "SURFACE: Infinite y plot range." );
-        nodata=true;
+        scale=1/sqrt(3);
+        //Compute transformation matrix with plplot conventions:
+        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale);
+        // save !P.T if asked to...
+        if (saveT3d) //will use ax and az values...
+        {
+          DDoubleGDL* t3dMatrix=plplot3d->Dup();
+          SelfTranspose3d(t3dMatrix);
+          static DStructGDL* pStruct=SysVar::P();
+          static unsigned tTag=pStruct->Desc()->TagIndex("T");
+          for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i]=(*t3dMatrix)[i];
+          GDLDelete(t3dMatrix);
+        }
       }
-      if ( zLog && zStart<=0.0 ) Warning ( "SURFACE: Infinite z plot range." );
 
-      //Draw axes
-      gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
+      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
+        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return;
+
+      gdlSetPlotCharthick(e,actStream);
+
 
       if (xLog) xStart=log10(xStart);
       if (yLog) yStart=log10(yStart);
@@ -384,32 +309,19 @@ namespace lib
       if (yLog) yEnd=log10(yEnd);
       if (zLog) zEnd=log10(zEnd);
 
-      //We unzoom a little to have the axis seen and make the box...
-      actStream->w3d(zoom,zoom,zoom,
+       actStream->w3d(scale,scale,scale*(1.0-zValue),
                      xStart, xEnd, yStart, yEnd, zStart, zEnd,
                      alt, az);
-      // title and sub title
-     gdlWriteTitleAndSubtitle(e, actStream);
-
-     DString xTitle,yTitle,zTitle;
-     gdlGetDesiredAxisTitle(e, "X", xTitle);
-     gdlGetDesiredAxisTitle(e, "Y", yTitle);
-     gdlGetDesiredAxisTitle(e, "Z", zTitle);
-     string xs,ys,zs;
-     xs=ys=zs="bnstu";
-     if (xLog) xs+="l";
-     if (yLog) ys+="l";
-     if (zLog) zs+="l";
-     actStream->box3(xs.c_str(), xTitle.c_str(), 0.0, 0,
-                      ys.c_str(), yTitle.c_str(), 0.0, 0,
-                      zs.c_str(), zTitle.c_str(), 0.0, 4);
 
 
-      bool up,low;
-      up=e->KeywordSet ( "UPPER_ONLY" );
-      low=e->KeywordSet ( "LOWER_ONLY" );
-      if (low && no_lower) Warning ("LOWER_ONLY option not supported on this device - (fix in plplot library needed)");
+      bool up=e->KeywordSet ( "UPPER_ONLY" );
+      bool low=e->KeywordSet ( "LOWER_ONLY" );
       if (up && low) nodata=true; //IDL behaviour
+
+      DLong bottomColorIndex=-1;
+      e->AssureLongScalarKWIfPresent("BOTTOM", bottomColorIndex);
+
+      //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0
       if (!nodata)
       {
@@ -464,29 +376,48 @@ namespace lib
 
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
-        PLINT meshOpt=DRAW_LINEXY;
+        PLINT meshOpt;
+        meshOpt=DRAW_LINEXY;
         if (e->KeywordSet ( "HORIZONTAL" )) meshOpt=DRAW_LINEX;
         if (e->KeywordSet ( "SKIRT" )) meshOpt+=DRAW_SIDES;
         //mesh plots both sides, so use it when UPPER_ONLY is not set.
-        //if UPPER_ONLY is set, use plot3d
-        //if LOWER_ONLY is set, use mesh and remove by plot3d!
+        //if UPPER_ONLY is set, use plot3d/plot3dc
+        //if LOWER_ONLY is set, use mesh/meshc and remove by plot3d!
+        //in not up not low: mesh since mesh plots both sides
         if (up)
         {
-          actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+          if (doShade)
+            actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+          else
+            actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
         }
-        else if (low && !no_lower)
+        else //mesh (both sides) but contains 'low' (remove top) and/or bottom
         {
-          actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
-          actDevice->SetGraphicsFunction(0); //TRICK !!!!!
-          if (e->KeywordSet ( "SKIRT" )) meshOpt-=DRAW_SIDES;
-          actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
-          actDevice->SetGraphicsFunction(currentGraphicsFunction);
+           if (bottomColorIndex!=-1)
+           {
+             gdlSetGraphicsForegroundColorFromKw ( e, actStream, "BOTTOM" );
+             actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+             gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+             if (!low) //redraw top with top color
+             {
+               if (doShade) actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+               else actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+             }
+           }
+           else
+           {
+             if (doShade) actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+             else actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+           }
+           //redraw upper part with background color to remove it... Not 100% satisfying though.
+           if (low)
+           {
+            if (e->KeywordSet ( "SKIRT" )) meshOpt-=DRAW_SIDES;
+            gdlSetGraphicsPenColorToBackground(actStream);
+            actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+            gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+           }
         }
-        else
-        {
-          actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
-        }
-
 
         if (stopClip) stopClipping(actStream);
 //Clean alllocated data struct
@@ -494,11 +425,9 @@ namespace lib
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
       }
-      //finished? Store Zrange and Loginess 
-      gdlStoreAxisCRANGE("Z", zStart, zEnd, zLog);
-      gdlStoreAxisType("Z",zLog);
-      
-
+      //Draw axes with normal color!
+      gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
+      gdlBox3(e, actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd, xLog, yLog, zLog, true);
     } 
 
   private:
@@ -522,5 +451,4 @@ namespace lib
     surface_call surface;
     surface.call(e, 1);
   }
-
 } // namespace

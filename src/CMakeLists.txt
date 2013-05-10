@@ -199,6 +199,7 @@ plotting_oplot.cpp
 plotting_plot.cpp
 plotting_plots.cpp
 plotting_polyfill.cpp
+plotting_shade_surf.cpp
 plotting_surface.cpp
 plotting_windows.cpp
 plotting_xyouts.cpp

@@ -24,19 +24,29 @@ namespace lib {
 
   class oplot_call : public plotting_routine_call 
   {
-    DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
-    SizeT xEl, yEl;
-    Guard<BaseGDL> xval_guard,yval_guard,xtempval_guard;
+    DDoubleGDL *yVal, *xVal, *zVal, *xTemp, *yTemp;
+    SizeT xEl, yEl, zEl;
+    Guard<BaseGDL> xval_guard,yval_guard, zval_guard, xtempval_guard;
+    bool doT3d;
+    DDouble zValue;
 
     private: bool handle_args( EnvT* e) // {{{
     {
+      //T3D?
+      static int t3dIx = e->KeywordIx( "T3D");
+      doT3d=e->KeywordSet(t3dIx);
+
+      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      zValue=0.0;
+      static int zvIx = e->KeywordIx( "ZVALUE");
+      e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+
       bool polar=FALSE;
       DLong nsum=1;
       e->AssureLongScalarKWIfPresent( "NSUM", nsum);
       if ( e->KeywordSet( "POLAR"))
       {
         polar=TRUE;
-       // e->Throw( "Sorry, POLAR keyword not ready");
       }
 
       //test and transform eventually if POLAR and/or NSUM!
@@ -124,6 +134,14 @@ namespace lib {
           }
         }
       }
+      if (doT3d)
+      {
+        //make zVal
+        zEl=xVal->N_Elements();
+        zVal=new DDoubleGDL(dimension(zEl), BaseGDL::NOZERO);
+        zval_guard.Reset(zVal); // delete upon exit
+        for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
+      }
 	  return 0;
     }
 
@@ -175,21 +193,83 @@ namespace lib {
     if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
 
     // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
-    //                                          PSYM(YES), SYMSIZE(YES), T3D(NO), ZVALUE(NO)
-    gdlSetGraphicsBackgroundColorFromKw(e, actStream, false);
+    //                                          PSYM(YES), SYMSIZE(YES), T3D(YES), ZVALUE(YES)
     gdlSetGraphicsForegroundColorFromKw(e, actStream);
     gdlGetPsym(e, psym);
     gdlSetPenThickness(e, actStream);
     gdlSetSymsize(e, actStream);
     gdlSetLineStyle(e, actStream);
 
+    static DDouble x0,y0,xs,ys; //conversion to normalized coords
+    x0=(xLog)?-log10(xStart):-xStart;
+    y0=(yLog)?-log10(yStart):-yStart;
+    xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+    ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+
+    if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
+    {
+      DDoubleGDL* plplot3d;
+      DDouble az, alt, ay, scale;
+      ORIENTATION3D axisExchangeCode;
+
+      plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+      if (plplot3d == NULL)
+      {
+        e->Throw("Illegal 3D transformation. (FIXME)");
+      }
+      Data3d.zValue = zValue;
+      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
+        switch (axisExchangeCode) {
+          case NORMAL: //X->X Y->Y plane XY
+            Data3d.x0=x0;
+            Data3d.y0=y0;
+            Data3d.xs=xs;
+            Data3d.ys=ys;
+            Data3d.code = code012;
+            break;
+          case XY: // X->Y Y->X plane XY
+            Data3d.x0=0;
+            Data3d.y0=x0;
+            Data3d.xs=ys;
+            Data3d.ys=xs;
+            Data3d.code = code102;
+            break;
+          case XZ: // Y->Y X->Z plane YZ
+            Data3d.x0=x0;
+            Data3d.y0=y0;
+            Data3d.xs=xs;
+            Data3d.ys=ys;
+            Data3d.code = code210;
+            break;
+          case YZ: // X->X Y->Z plane XZ
+            Data3d.x0=x0;
+            Data3d.y0=y0;
+            Data3d.xs=xs;
+            Data3d.ys=ys;
+            Data3d.code = code021;
+            break;
+          case XZXY: //X->Y Y->Z plane YZ
+            Data3d.x0=x0;
+            Data3d.y0=y0;
+            Data3d.xs=xs;
+            Data3d.ys=ys;
+            Data3d.code = code120;
+            break;
+          case XZYZ: //X->Z Y->X plane XZ
+            Data3d.x0=x0;
+            Data3d.y0=y0;
+            Data3d.xs=xs;
+            Data3d.ys=ys;
+            Data3d.code = code201;
+            break;
+        }
+
+        actStream->stransform(gdl3dTo2dTransform, &Data3d);
+    }
 
       // TODO: handle "valid"!
     bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
     if (stopClip) stopClipping(actStream);
-
-
-    actStream->lsty(1);//reset linestyle
   } 
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) 
@@ -198,6 +278,9 @@ namespace lib {
 
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
+     if (doT3d) actStream->stransform(NULL,NULL);
+      actStream->lsty(1);//reset linestyle
+      actStream->sizeChar(1.0);
     } 
 
   }; // oplot_call class 
