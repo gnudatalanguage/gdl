@@ -65,6 +65,33 @@ namespace lib
   static DFloat sym7y[5]= {1,-1,0,-1,1}; //x
   DLong syml[7]={5,11,2,5,4,5,5};
 
+  struct GDL_TICKDATA
+  {
+    bool isLog;
+  };
+
+  struct GDL_TICKNAMEDATA
+  {
+    SizeT counter;
+    SizeT nTickName;
+    DStringGDL* TickName;
+    bool isLog;
+  };
+
+  struct GDL_MULTIAXISTICKDATA
+  {
+    EnvT *e;
+    SizeT counter;
+    int what;
+    SizeT nTickFormat;
+    DDouble axismin;
+    DDouble axismax;
+    DStringGDL* TickFormat;
+    SizeT nTickUnits;
+    DStringGDL* TickUnits;
+    bool isLog;
+  };
+
   // local helper function
   DDouble gdlEpsDouble()
   {
@@ -2519,14 +2546,63 @@ namespace lib
     Second = F * 86400;
   }
 
+  void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
+  {
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
+    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
+    static string specialfmt="10#u%d#d";
+    static string specialfmtlog="10#u%s#d";
+    PLFLT z;
+    int ns;
+    char *i;
+    static char test[20];
+    int sgn=(value<0)?-1:1;
+    if (sgn*value<gdlEpsDouble()) {snprintf(label, length, "0",value); return;}
+    int e=floor(log10(value*sgn));
+    if (!(e==e)||(e<4 && e>-4)) 
+    {
+      snprintf(test, length, "%f",value);
+      ns=strlen(test);
+      i=rindex(test,'0');
+      while (i==(test+ns-1)) //remove trailing zeros...
+      {
+          *i='\0';
+        i=rindex(test,'0');
+        ns--;
+      }
+      i=rindex(test,'.'); //remove trailing '.'
+      if (i==(test+ns-1)) {*i='\0'; ns--;}
+      if (ptr->isLog) snprintf( label, length, specialfmtlog.c_str(),test);
+      else
+      strncpy(label, test, length);
+    }
+    else
+    {
+      z=value*sgn/pow(10,e);
+      snprintf(test,20,"%7.6f",z);
+      ns=strlen(test);
+      i=rindex(test,'0');
+      while (i==(test+ns-1))
+      {
+          *i='\0';
+        i=rindex(test,'0');
+        ns--;
+      }
+      ns-=2;ns=(ns>6)?6:ns;
+      if (floor(sgn*z)==1 && ns==0) snprintf( label, length, specialfmt.c_str(),e); else snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
+    }
+  }
+
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
+    static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
     static DLong lastUnits=0;
     string Month;
     PLINT Day , Year , Hour , Minute;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )data;
+    tdata.isLog=ptr->isLog;
     if (ptr->counter != lastUnits)
     {
       lastUnits=ptr->counter;
@@ -2536,7 +2612,8 @@ namespace lib
     {
       if (ptr->counter > ptr->nTickFormat-1)
       {
-        snprintf( label, length, "%f", value );
+        doOurOwnFormat(axis, value, label, length, &tdata);
+//        snprintf( label, length, "%f", value );
       }
       else
       {
@@ -2592,7 +2669,8 @@ namespace lib
     {
       if (ptr->counter > ptr->nTickUnits-1)
       {
-        snprintf( label, length, "%f", value );
+        doOurOwnFormat(axis, value, label, length, &tdata);
+//        snprintf( label, length, "%f", value );
       }
       else
       {
@@ -2628,10 +2706,12 @@ namespace lib
 
   void gdlSingleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
+    static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
+    tdata.isLog=ptr->isLog;
     if (ptr->counter > ptr->nTickName-1)
     {
-      snprintf( label, length, "%f", value );
+      doOurOwnFormat(axis, value, label, length, &tdata);
     }
     else
     {
@@ -2644,6 +2724,10 @@ namespace lib
   {
     static GDL_TICKNAMEDATA data;
     static GDL_MULTIAXISTICKDATA muaxdata;
+
+    static GDL_TICKDATA tdata;
+    tdata.isLog=Log;
+
     data.nTickName=0;
     muaxdata.e=e;
     muaxdata.what=GDL_NONE;
@@ -2797,9 +2881,16 @@ namespace lib
       }
       else
       {
+#if (HAVE_PLPLOT_SLABELFUNC)
+        a->slabelfunc( doOurOwnFormat, &tdata );
+        Opt+="o";
+#endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+#if (HAVE_PLPLOT_SLABELFUNC)
+        a->slabelfunc( NULL, NULL );
+#endif
       }
       
       if (TickLayout==0)
