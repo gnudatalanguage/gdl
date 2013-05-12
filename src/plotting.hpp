@@ -60,26 +60,6 @@
 #include "graphics.hpp"
 #include "initsysvar.hpp"
 
-  struct GDL_TICKNAMEDATA
-  {
-    SizeT counter;
-    SizeT nTickName;
-    DStringGDL* TickName;
-  };
-
-  struct GDL_MULTIAXISTICKDATA
-  {
-    EnvT *e;
-    SizeT counter;
-    int what;
-    SizeT nTickFormat;
-    DDouble axismin;
-    DDouble axismax;
-    DStringGDL* TickFormat;
-    SizeT nTickUnits;
-    DStringGDL* TickUnits;
-  };
-
   struct GDL_3DTRANSFORMDATA
   {
     DDoubleGDL* Matrix;
