@@ -362,6 +362,9 @@ namespace lib
         if ( i==minEl-1 )
         {
           width=(out.length())*actStream->nCharLength(); //normalized for /WIDTH= option
+          //unfortunately width of characters are variable and CharLength() is fixed, so 'width' will be false
+          //except for some characters like 'X'. To be solved by having plgpls() returning the current PLStream
+          //structure available and using curry,curry.
           PLFLT dWidth=(out.length())*actStream->dCharLength(); //device for internal repositioning
           //save last position
           actStream->DeviceToWorld(dx+(1.0-align)*dWidth*cosOri,dy+(1.0-align)*dWidth*sinOri,dispx,dispy);
@@ -373,6 +376,7 @@ namespace lib
       if ( kwWidth )
       {
         // width is in "normalized coordinates"
+        Warning("XYOUTS: returned string width may be inaccurate (FIXME)");
         e->SetKW(widthIx, new DFloatGDL(width));
       }
     } 
