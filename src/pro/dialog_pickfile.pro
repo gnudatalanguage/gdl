@@ -116,6 +116,10 @@
 ; 14-NOV-2012: - large part of code, common with DIALOG_MESSAGE,
 ;                related to Zenity, moved into ZENITY_CHECK()
 ;
+; 14-May-2013: - correcting "bug" 3612324: must start in current directory when
+;              no path given. This problem appears due to change in
+;              Zenity in Gnome3 (e.g. : http://www.kirsle.net/blog/kirsle/zenity-and-gnome-3)
+;
 ;-
 ;
 ; This function try to reproduce the IDL's DIALOG_PICKFILE behavior using "zenity".
@@ -141,8 +145,8 @@
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2010, Maxime Lenoir (main author) and Alain Coulais
-; (idea, contact)
+; Copyright (C) 2010, Maxime Lenoir (main author) and Alain Coulais (idea, contact)
+;
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -209,14 +213,24 @@ if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
 ; if path and file are set, then initial = path/file if exists, path otherwise (or current working directory if invalid path)
 ; if file is set, initial = file
 ; Zenity can't initialy select a non-exising file/directory
+;
+; in gnome3, by default, Zenity (eg: 3.4.0 in Ubuntu 12.04)
+; uses value storing in ~/.recently-used
+; for the path. We must set it up now :(  
+; (no side effects found up to now with older versions of Zenity)
+;
 start=''
 if KEYWORD_SET(path) then begin
-    path=STRING(path[0])
-    start+=path+path_sep()
-endif
-
+   path=STRING(path[0])
+   start+=path+path_sep()
+endif else begin
+   CD, current=current
+   path=current
+   start+=current+path_sep()
+end
+;
 if KEYWORD_SET(file) then file=STRING(file[0])
-
+;
 if start ne '' then begin
    if KEYWORD_SET(file) && FILE_TEST(start+file) then begin
       cmd+='--filename="'+start+file+'" ' 
