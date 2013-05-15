@@ -7,6 +7,11 @@ How to compile the documentation ?
 0/ You must have compiled GDL before
 
 1/ You must collect some external files before:
+-- forloop.sty
+http://www.ctan.org/tex-archive/macros/latex/contrib/forloop
+
+-- stringstrings.sty
+http://www.ctan.org/tex-archive/macros/latex/contrib/stringstrings
 
 -- pdfdraftcopy.sty  
 see http://sarovar.org/projects/pdfdraftcopy/
@@ -19,6 +24,7 @@ see http://ctan.org/pkg/nnfootnote/
 -- copernicus.bst
 see http://publications.copernicus.org/
 (wget http://publications.copernicus.org/Copernicus.bst)
+note: you need to rename it "copernicus.bst"
 
 -- Perl Script authorindex
 see http://mirrors.ctan.org/indexing/authorindex/
