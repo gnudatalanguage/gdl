@@ -302,6 +302,12 @@ if(PLPLOT_FOUND)
 	  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
 	    "you should upgrade to plplot version > 5.9.6")
 	endif(HAVE_PLPLOT_SLABELFUNC)
+	check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
+	if(PLPLOT_PRIVATE_NOT_HIDDEN)
+	  set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
+	else(PLPLOT_PRIVATE_NOT_HIDDEN)
+	  message(STATUS "Using a plplot library without private functions - workarounds will be used.")
+	endif(PLPLOT_PRIVATE_NOT_HIDDEN)
 endif(PLPLOT_FOUND)
 	
 # GRAPHICSMAGICK is an alternative to the classical ImageMagick Lib.

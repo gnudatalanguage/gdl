@@ -53,6 +53,7 @@ namespace lib
     DDoubleGDL *xValou;
     DDoubleGDL *yValou;
     Guard<BaseGDL> xvalou_guard, yvalou_guard;
+    bool singleArg;
   private:
 
     bool handle_args(EnvT* e)
@@ -62,9 +63,10 @@ namespace lib
       static int zvIx = e->KeywordIx( "Z");
       DDouble zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-
+      singleArg=false;
       if ( nParam()==1 )
       {
+        singleArg=true;
         //string only...
         xVal=new DDoubleGDL(1, BaseGDL::ZERO);
         xval_guard.Reset(xVal); // delete upon exit
@@ -76,6 +78,7 @@ namespace lib
         zVal=new DDoubleGDL(1);
         zval_guard.Reset(zVal); // delete upon exit
         (*zVal)[0]=zValue;
+        minEl=strEl; //in this case only
       }
       else if ( nParam()==3 )
       {
@@ -90,25 +93,18 @@ namespace lib
         zVal=new DDoubleGDL(dimension(zEl));
         zval_guard.Reset(zVal); // delete upon exit
         for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
+        minEl=(xEl<yEl)?xEl:yEl;
+        minEl=(minEl<strEl)?minEl:strEl;
       }
       else
       {
         e->Throw("Not enough parameters. Either 1 parameter or 3 "
                  "parameters valid.");
       }
-      //align x y text sizes...
-      minEl=(xEl<yEl)?xEl:yEl;
-//      minEl=(minEl<strEl)?minEl:strEl;
-
       return true;
     }
 
   private:
-    void saveTextPos(GDLGStream *a, DDouble wx, DDouble wy)
-    {
-      a->WorldToDevice(wx, wy, lastTextPosX, lastTextPosY);
-      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"saveTextPos: Saved norm: %lf %lf\n",lastTextPosX,lastTextPosY);
-    }
 
     void getTextPos(GDLGStream *a, DDouble &wx, DDouble &wy)
     {
@@ -126,14 +122,7 @@ namespace lib
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=e->KeywordSet(t3dIx);
 
-      //if string only, fill empty Xval Yval with current value:
-      if ( nParam()==1 )
-      {
-        DDouble s,t;
-        getTextPos(actStream, s, t);
-        (*xVal)[0]=s;
-        (*yVal)[0]=t;
-      }
+
       // WIDTH keyword (read, write)
       static int widthIx=e->KeywordIx("WIDTH");
       kwWidth=e->KeywordPresent(widthIx);
@@ -320,8 +309,16 @@ namespace lib
 
       for ( SizeT i=0; i<minEl; ++i )
       {
-        x=static_cast<PLFLT>((*xVal)[i]);
-        y=static_cast<PLFLT>((*yVal)[i]);
+        //if string only, fill empty Xval Yval with current value:
+        if ( nParam()==1 )
+        {
+          DDouble s,t;
+          getTextPos(actStream, s, t);
+          (*xVal)[0]=s;
+          (*yVal)[0]=t;
+        }
+        x=static_cast<PLFLT>((*xVal)[i%xVal->N_Elements ( )]); //insure even 1 parameter, string array
+        y=static_cast<PLFLT>((*yVal)[i%xVal->N_Elements ( )]);
 
         //following obviously wrong if T3D...
 #ifdef USE_LIBPROJ4
@@ -355,19 +352,20 @@ namespace lib
         // displacement due to offset (reference in IDL is baseline,
         // in plplot it's the half-height) is best computed in device coords
         chsize=actStream->dCharHeight()*0.5;
-        actStream->WorldToDevice(x, y, dx, dy); //nx ny in relative coords
+        actStream->WorldToDevice(x, y, dx, dy);
         actStream->DeviceToWorld(dx-chsize*sinOri,dy+chsize*cosOri,dispx,dispy);
         string out=(*strVal)[i%strVal->N_Elements ( )];
         actStream->ptex(dispx, dispy, cosOri, sinOri*aspectw/aspectd, align, out.c_str());
-        if ( i==minEl-1 )
+
+        if (singleArg || (i==minEl-1 ) ) //then x and y are not given and whatever the number of strings, are retrieved
+                       // from lastTextPos. We must thus rememeber lastTextPos.
         {
-          width=(out.length())*actStream->nCharLength(); //normalized for /WIDTH= option
-          //unfortunately width of characters are variable and CharLength() is fixed, so 'width' will be false
-          //except for some characters like 'X'. To be solved by having plgpls() returning the current PLStream
-          //structure available and using curry,curry.
-          PLFLT dWidth=(out.length())*actStream->dCharLength(); //device for internal repositioning
-          //save last position
-          actStream->DeviceToWorld(dx+(1.0-align)*dWidth*cosOri,dy+(1.0-align)*dWidth*sinOri,dispx,dispy);
+          width=actStream->gdlGetmmStringLength(out.c_str()); //in mm
+          //we want normed size:
+          width=actStream->m2dx(width);
+          //save position - compute must be in DEVICE coords, or in normed*aspect!
+          actStream->WorldToNormedDevice(x, y, dx, dy); //normed
+          actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOri,dy+(1.0-align)*width*sinOri*aspectw/aspectd,dispx,dispy);
           actStream->WorldToDevice(dispx, dispy, lastTextPosX, lastTextPosY);
         }
       }
