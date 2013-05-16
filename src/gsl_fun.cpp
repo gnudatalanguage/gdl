@@ -134,6 +134,8 @@ namespace lib {
     gsl_set_error_handler( GDLGenericGSLErrorHandler);
   }
   
+ 
+
   BaseGDL* invert_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -149,9 +151,10 @@ namespace lib {
     BaseGDL* p0 = e->GetParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
+
     if( nEl == 0)
       e->Throw( "Variable is undefined: " + e->GetParString(0));
-  
+    
     if (p0->Rank() > 2)
       e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     
@@ -200,7 +203,7 @@ namespace lib {
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
-      if( p0->Type() == GDL_DOUBLE) {
+      if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE")) {
 	DDoubleGDL* res = static_cast<DDoubleGDL*>
 	  (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
 	if ((*res)[0] == 0.0) {
@@ -317,9 +320,14 @@ namespace lib {
 	resGuard.release();
 	return res;
       }
-    else if( p0->Type() == GDL_DOUBLE)
+    else if (( p0->Type() == GDL_DOUBLE) ||  e->KeywordSet("DOUBLE"))
       {
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+
+	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+	  (p0->Convert2(GDL_DOUBLE,BaseGDL::COPY));
+
+
+	//	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
 	Guard<DDoubleGDL> resGuard( res);
 
