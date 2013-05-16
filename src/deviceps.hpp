@@ -109,10 +109,10 @@ class DevicePS: public Graphics
     actStream->fontld( 1);
     
     // avoid to set color map 0 -- makes plplot very slow (?)
-//    PLINT r[ctSize], g[ctSize], b[ctSize];
-//    actCT.Get( r, g, b);
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    actCT.Get( r, g, b);
 //    actStream->scmap0( r, g, b, ctSize);
-//    actStream->scmap1( r, g, b, ctSize);
+    actStream->scmap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
     if (color == 0)
     {
