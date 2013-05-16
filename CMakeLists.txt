@@ -308,6 +308,12 @@ if(PLPLOT_FOUND)
 	else(PLPLOT_PRIVATE_NOT_HIDDEN)
 	  message(STATUS "Using a plplot library without private functions - workarounds will be used.")
 	endif(PLPLOT_PRIVATE_NOT_HIDDEN)
+	check_library_exists("${PLPLOT_LIBRARIES}" c_pllegend "" PLPLOT_HAS_LEGEND)
+	if(PLPLOT_HAS_LEGEND)
+	  set(PLPLOT_HAS_LEGEND 1)
+	else(PLPLOT_HAS_LEGEND)
+	  message(STATUS "Your plplot lib is too old for some gdl functions, please upgrade.")
+	endif(PLPLOT_HAS_LEGEND)
 endif(PLPLOT_FOUND)
 	
 # GRAPHICSMAGICK is an alternative to the classical ImageMagick Lib.
