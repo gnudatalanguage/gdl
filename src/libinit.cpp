@@ -97,7 +97,7 @@ void LibInit()
   new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  "PARAMETERS", KLISTEND};
+				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
 #ifndef _MSC_VER
