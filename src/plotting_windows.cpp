@@ -61,7 +61,7 @@ namespace lib {
 	title = "GDL "+i2s( wIx);
       }
 
-    DLong xPos=0, yPos=0;
+    DLong xPos=-1, yPos=-1;
     e->AssureLongScalarKWIfPresent( "XPOS", xPos);
     e->AssureLongScalarKWIfPresent( "YPOS", yPos);
 
@@ -80,8 +80,7 @@ namespace lib {
       cout << "xPos/yPos   :"<<  xPos << " " << yPos << endl;
       cout << "xSize/ySize :"<<  xSize << " " << ySize << endl;
     }
-
-    if( xSize <= 0 || ySize <= 0 || xPos < 0 || yPos < 0)
+    if( xSize <= 0 || ySize <= 0 || xPos < -1 || yPos < -1)
       e->Throw(  "Unable to create window "
 		 "(BadValue (integer parameter out of range for "
 		 "operation)).");
@@ -127,7 +126,7 @@ namespace lib {
                 xSize = 640;
                 ySize = 512;
             #endif
-	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, 0, 0);
+	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, -1, -1);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
         success = actDevice->CursorCrosshair();

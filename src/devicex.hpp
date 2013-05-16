@@ -436,8 +436,20 @@ public:
 
     xleng = xSize;
     yleng = ySize;
-    xoff  = xPos==0?xMaxSize-xSize:xPos;
-    yoff  = yPos==0?yPos:yMaxSize-(yPos+ySize);
+
+    bool noPos=(xPos==-1 && yPos==-1);
+    xPos=max(0,xPos);
+    yPos=max(0,yPos);
+    static PLINT Quadx[4]={xMaxSize-xSize,0,0,xMaxSize-xSize};
+    static PLINT Quady[4]={0,0,yMaxSize-ySize,yMaxSize-ySize};
+    if (noPos)
+    { //no init given, use 4 quadrants:
+        xoff = Quadx[wIx%4];
+        yoff = Quady[wIx%4];
+    } else {
+      xoff  = xPos==0?xMaxSize-xSize:xPos;
+      yoff  = yPos==0?yPos:yMaxSize-(yPos+ySize);
+    }
     if (yoff <= 0) yoff=1;
     
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
@@ -569,7 +581,7 @@ public:
 	DString title = "GDL 0";
         DLong xSize, ySize;
         DefaultXYSize(&xSize, &ySize);
-	bool success = WOpen( 0, title, xSize, ySize, 0, 0);
+	bool success = WOpen( 0, title, xSize, ySize, -1, -1);
 	if( !success)
 	  return NULL;
 	if( actWin == -1)
