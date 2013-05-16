@@ -374,7 +374,6 @@ namespace lib
       if ( kwWidth )
       {
         // width is in "normalized coordinates"
-        Warning("XYOUTS: returned string width may be inaccurate (FIXME)");
         e->SetKW(widthIx, new DFloatGDL(width));
       }
     } 
