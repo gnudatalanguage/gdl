@@ -5475,8 +5475,8 @@ BaseGDL* transpose( EnvT* e)
       bool found=false;
 
       //      SizeT n = funList.size();
-      cout << funList.size() << endl;
-      cout << proList.size() << endl;
+      //cout << funList.size() << endl;
+      //cout << proList.size() << endl;
 
       // looking in the compiled functions (if /function keyword provided)
       // or in the compiled procedures
