@@ -2555,7 +2555,7 @@ namespace lib
     PLFLT z;
     int ns;
     char *i;
-    static char test[20];
+    char *test=(char*)calloc(2*length, sizeof(char)); //be safe
     int sgn=(value<0)?-1:1;
     if (sgn*value<gdlEpsDouble()) {snprintf(label, length, "0",value); return;}
     int e=floor(log10(value*sgn));
@@ -2591,6 +2591,7 @@ namespace lib
       ns-=2;ns=(ns>6)?6:ns;
       if (floor(sgn*z)==1 && ns==0) snprintf( label, length, specialfmt.c_str(),e); else snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
     }
+    free(test);
   }
 
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
