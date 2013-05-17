@@ -52,7 +52,7 @@ cpp_hpp_files = overload.hpp overload.cpp nullgdl.hpp nullgdl.cpp allix.hpp alli
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \
                 plotting_windows.cpp plotting_convert_coord.cpp plotting_map_proj.cpp plotting_misc.cpp \
-                plotting_erase.cpp semshm.cpp
+                plotting_erase.cpp plotting_shade_surf.cpp semshm.cpp
 # Makefile.am Makefile.in 
 
 
