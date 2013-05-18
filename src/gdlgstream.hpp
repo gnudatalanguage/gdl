@@ -411,7 +411,7 @@ public:
     pllegend (&legend_width , &legend_height ,
             PL_LEGEND_NONE,
             PL_POSITION_VIEWPORT|PL_POSITION_TOP|PL_POSITION_OUTSIDE,
-            0.0 , -0.1 , plot_width ,
+	    1.0 , -0.1 , plot_width , //moved the position farther away since it shows up in postscripts; 
             0 , 0 , 1 ,
             1 , 1 ,
             1 , opt_array ,
