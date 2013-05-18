@@ -86,7 +86,7 @@ class DevicePS: public Graphics
 
     // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
-    actStream->spage(dpi, dpi, 540, 720, 32, 32); //plplot default: portrait!
+    actStream->spage(dpi, dpi, 540, 720, 0, 0); //plplot default: portrait!
 
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
@@ -320,6 +320,126 @@ private:
 #  endif
   }
 
+private:
+  void epsHacks()
+  {
+    // using namespace std;
+    //PLPLOT outputs a strange boundingbox; this hack directly edits the eps file.  
+    //if the plplot bug ever gets fixed, this hack won't be needed.
+    char *bb;
+    FILE *feps;
+    size_t buflen=2048;//largely sufficient
+    char buffer[buflen]; 
+    int cnt;
+    ifstream myfile (fileName.c_str());
+    feps=fopen(fileName.c_str(), "r");
+    cnt=fread(buffer,sizeof(char),buflen,feps);
+
+    //read original boundingbox
+    bb = strstr(buffer, "%%BoundingBox:");
+    int offx, offy, width, height;
+    bb += 15;
+    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
+    float hsize = XPageSize*cm2in*dpi*scale, vsize = YPageSize*cm2in*dpi*scale;
+    float newwidth = (width - offx), newheight = (height - offy);
+    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
+    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
+    hscale = min(hscale,vscale)*0.98;
+    vscale = hscale;
+    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
+    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
+
+    //replace with a more sensible boundingbox
+    string sbuff = string(buffer);
+    stringstream searchstr,replstr;
+    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
+    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
+    size_t pos = sbuff.find(searchstr.str());
+    int extralen;
+    if (pos != string::npos) {
+      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+      extralen = replstr.str().length()-searchstr.str().length();
+    }
+
+    //replace values of hscale, vscale
+    searchstr.str("");
+    searchstr << "{hs 3600 div} def" << endl << "/YScale" << endl << "   {vs 2700 div} def";
+    replstr.str("");
+    replstr << hscale << " def" << endl << "/YScale" << endl << "   " << vscale << " def";
+    pos = sbuff.find(searchstr.str());
+    if (pos != string::npos) {
+      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+      extralen = extralen + replstr.str().length()-searchstr.str().length();
+    }
+
+    //replace the values of hoffset and voffset
+    searchstr.str("");
+    searchstr << "0 @hoffset" << endl << "0 @voffset";
+    replstr.str("");
+    replstr << floor(hoff+0.5) << " " << "@hoffset" << endl << floor(voff+0.5) << " " << "@voffset";
+    pos = sbuff.find(searchstr.str());
+    if (pos != string::npos) {
+      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+      extralen = extralen + replstr.str().length()-searchstr.str().length();
+    }
+
+    //add landscape
+    if (!orient_portrait) {
+    searchstr.str("%%Page: 1 1");
+    replstr.str("");
+    replstr << "%%Page: 1 1" << endl << "%%PageOrientation: Landscape" << endl;
+    pos = sbuff.find(searchstr.str());
+    if (pos != string::npos) {
+      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+      extralen = extralen + replstr.str().length()-searchstr.str().length();
+    }
+    }
+
+    //open temp file
+    FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
+    FILEGuard fpGuard( fp, fclose);
+    if (fp == NULL) { 
+      Warning("Warning: failed to create temporary PostScript file."); 
+      return;
+    }
+
+    // write the first buflen to temp file
+    char buffer2[buflen + extralen];
+    strcpy(buffer2,sbuff.c_str());
+    fwrite(&buffer2, 1, buflen+extralen, fp); 
+
+    // read the rest of feps and write to temp file
+    while (true)
+      {
+    	cnt = fread(&buffer, 1, buflen, feps);
+    	if (!cnt) break;
+        if (fwrite(&buffer, 1, cnt, fp) < cnt)
+    	  {
+    	    Warning("Warning: failed to write to temporary file");
+    	  }
+      }
+    fclose(feps);
+
+    // copy temp file to fileName
+    rewind(fp);
+    FILE *fp_plplot = fopen(fileName.c_str(), "w");
+    FILEGuard fp_plplotGuard( fp_plplot, fclose);
+    if (fp_plplot == NULL) {
+      Warning("Warning: failed to open plPlot-generated file");
+      return;
+    }
+    while (true)
+      {
+    	cnt = fread(&buffer, 1, buflen, fp);
+    	if (!cnt) break;
+        if (fwrite(&buffer, 1, cnt, fp_plplot) < cnt)
+    	  {
+    	    Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
+    	  }
+      }
+
+  }
+
 public:
   DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), color(0), 
     decomposed( 0), encapsulated(false), scale(1.), XPageSize(17.78), YPageSize(12.7),
@@ -404,7 +524,7 @@ public:
     {
       delete actStream;
       actStream = NULL;
-      if (!encapsulated) pslibHacks(); // needs to be called after the plPlot-generated file is closed
+      if (!encapsulated) pslibHacks(); else epsHacks(); // needs to be called after the plPlot-generated file is closed
     }
     return true;
   }
