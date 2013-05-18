@@ -184,10 +184,22 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   PLINT plxoff; PLINT plyoff;
   plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff); //for X-Window, wrapper give sizes from X11, not plplot which seems bugged.
   
-  xSize = xleng;
-  ySize = yleng;
-  xoff = plxoff;
-  yoff = plyoff;
+//since the page sizes for PS and EPS images are processed by GDL after plplot finishes 
+//its work, gpage will not output correct sizes 
+  DString name = (*static_cast<DStringGDL*>(
+    SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
+  ))[0];
+  if (name == "PS") { 
+    xSize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
+    ySize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
+    xoff = 0;
+    yoff = 0;
+  } else {
+    xSize = xleng;
+    ySize = yleng;
+    xoff = plxoff;
+    yoff = plyoff;
+  }
   if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
   {
     PLFLT xmin,xmax,ymin,ymax;
