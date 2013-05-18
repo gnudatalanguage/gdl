@@ -668,7 +668,7 @@ namespace lib
     xMR=xMarginR*scl;
     scl=actStream->dCharHeight()/actStream->ySubPageSize(); //current char length/subpage size
     yMB=(yMarginB+1.85)*scl;
-    yMT=(yMarginT+1)*scl;
+    yMT=(yMarginT+1.85)*scl; //to allow subscripts and superscripts (as in IDL)
 
     if ( xML+xMR>=1.0 )
     {
@@ -1988,7 +1988,7 @@ namespace lib
       e->AssureStringScalarKWIfPresent("TITLE", title);
       gdlSetPlotCharthick(e, a);
       a->sizeChar(1.25*a->charScale());
-      a->mtex("t", 1.25, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
+      a->mtex("t", 1.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
       a->sizeChar(a->charScale()/1.25);
     }
     if (!subTitle.empty()) 
