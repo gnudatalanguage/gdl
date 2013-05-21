@@ -240,6 +240,16 @@ namespace lib {
   void help( EnvT* e)
   {
     bool kw = false;
+//if LAST_MESSAGE is present, it is the only otput. All other kw are ignored.
+    static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
+    bool lastmKW = e->KeywordPresent( lastmKWIx);
+    if( lastmKW)
+    {
+      DStructGDL* errorState = SysVar::Error_State();
+      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+      cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
+      return;
+    }
 
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
@@ -1879,6 +1889,7 @@ TRACEOMP( __FILE__, __LINE__)
     static int noprefixIx = e->KeywordIx( "NOPREFIX");
     static int noprintIx = e->KeywordIx( "NOPRINT");
     static int resetIx = e->KeywordIx( "RESET");
+    static int reissueIx = e->KeywordIx( "REISSUE_LAST");
 
     bool continueKW = e->KeywordSet( continueIx);
     bool info = e->KeywordSet( infoIx);
@@ -1887,6 +1898,7 @@ TRACEOMP( __FILE__, __LINE__)
     bool noprefix = e->KeywordSet( noprefixIx);
     bool noprint = e->KeywordSet( noprintIx);
     bool reset = e->KeywordSet( resetIx);
+    bool reissue = e->KeywordSet( reissueIx);
 
     if( reset)
     {
@@ -1914,6 +1926,14 @@ TRACEOMP( __FILE__, __LINE__)
       SysVar::SetErrError( 0);
     }
     
+    if( reissue )
+    {
+      DStructGDL* errorState = SysVar::Error_State();
+      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+      if( !info || (SysVar::Quiet() == 0)) cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
+      return;
+    }
+
     if( nParam == 0) return;
 
     DString msg;
@@ -1923,17 +1943,17 @@ TRACEOMP( __FILE__, __LINE__)
       msg = e->Caller()->GetProName() + ": " + msg;
 
     if( !info)
-      {
-	DStructGDL* errorState = SysVar::Error_State();
-	static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-	(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
-	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
-	
-	SysVar::SetErr_String( msg);
-	SysVar::SetErrError( -1);
-      }
-	
+    {
+      DStructGDL* errorState = SysVar::Error_State();
+      static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+      (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
+      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+      (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
+
+      SysVar::SetErr_String( msg);
+      SysVar::SetErrError( -1);
+    }
+
     if( noprint)
       msg = "";
     

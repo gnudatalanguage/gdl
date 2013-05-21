@@ -155,8 +155,9 @@ void LibInit()
 
   const string messageKey[]={"CONTINUE","INFORMATIONAL","IOERROR",
 			     "NONAME","NOPREFIX","NOPRINT",
-			     "RESET","TRACEBACK",KLISTEND};
-  new DLibPro(lib::message,string("MESSAGE"),1,messageKey);
+			     "RESET","REISSUE_LAST",KLISTEND}; //TRACEBACK IS NOT in MESSAGE but in HELP?
+  const string messageWarnKey[]={"LEVEL", "NAME", "BLOCK", KLISTEND};
+  new DLibPro(lib::message,string("MESSAGE"),1,messageKey,messageWarnKey);
   
   const string cdKey[]={"CURRENT",KLISTEND};
   new DLibPro(lib::cd_pro,string("CD"),1,cdKey);
@@ -201,8 +202,9 @@ void LibInit()
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
 			  "INFO","LIB","INTERNAL_LIB_GDL","CALLS","RECALL_COMMANDS",
-                          "MEMORY","PREFERENCES", "SOURCE_FILES", KLISTEND};
-  new DLibPro(lib::help,string("HELP"),-1,helpKey);
+                          "MEMORY","PREFERENCES", "SOURCE_FILES","LAST_MESSAGE", KLISTEND};
+  const string helpWarnKey[]={"TRACEBACK", KLISTEND};
+  new DLibPro(lib::help,string("HELP"),-1,helpKey,helpWarnKey);
 
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
     "NUM_FREE","STRUCTURE","L64",KLISTEND};
