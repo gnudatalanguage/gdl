@@ -355,6 +355,7 @@ public:
     return plstrl(string);
   }
 #else
+#if PLPLOT_HAS_LEGEND
   //use trick to extract desired value hidden in pllegend!
   PLFLT gdlGetmmStringLength(const char *string)
   {
@@ -411,7 +412,7 @@ public:
     pllegend (&legend_width , &legend_height ,
             PL_LEGEND_NONE,
             PL_POSITION_VIEWPORT|PL_POSITION_TOP|PL_POSITION_OUTSIDE,
-	    1.0 , -0.1 , plot_width , //moved the position farther away since it shows up in postscripts; 
+	        1.0 , -0.1 , plot_width , //moved the position farther away since it shows up in postscripts;
             0 , 0 , 1 ,
             1 , 1 ,
             1 , opt_array ,
@@ -426,6 +427,12 @@ public:
     tempsize=tempsize-0.8*character_width-adopted_to_subpage_x(plot_width) + adopted_to_subpage_x( 0. );
     return tempsize/x_subpage_per_mm;
   }
+#else //we are desperate at this point since the value returned will be false since fonts are proportional fonts.
+   PLFLT gdlGetmmStringLength(const char *string)
+  {
+    return (strlen(string))*theCurrentChar.mmsx;
+  }
+#endif
 #endif
 
   void  currentPhysicalPos(PLFLT &x, PLFLT &y)
