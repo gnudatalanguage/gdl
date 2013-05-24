@@ -1712,7 +1712,7 @@ namespace lib {
 
     return(res);
   }
- 
+
   DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, 
 			       DDoubleGDL* array, DDoubleGDL* x, bool use_missing,
 			       DDouble missing, DDouble gamma)
@@ -1725,13 +1725,10 @@ namespace lib {
     SizeT rankLeft = array->Rank()-1;
 
     //initialize output array with correct dimensions
-    DLong dims[MAXRANK]; // initialization does not honor MAXRANK: = {0, 0, 0, 0, 0, 0, 0, 0}
-    // sub-optimal:
-//     for( int i=0;i<MAXRANK;++i) 
-//       dims[i] = 0;
+    DLong dims[MAXRANK]; 
     SizeT i = 0;
     for (; i < rankLeft; ++i) dims[i] = array->Dim(i);
-    for (; i < MAXRANK; ++i) dims[i] = 0; // see above
+    for (; i < MAXRANK; ++i) dims[i] = 0; 
 
     SizeT resRank = rankLeft;
     SizeT chunksize;
@@ -1785,6 +1782,8 @@ namespace lib {
 	//here we use a padded temp array (1D only):
 	for (SizeT k = 0; k < nxa-1; ++k) temp[k]=(*array)[k*ninterp+iterate]; temp[nxa-1]=temp[nxa-2]; //pad!
 	gdl_interp1d_init(interpolant, xa, temp, nxa, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
+#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
+#pragma omp for
 	for (SizeT i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
@@ -1826,34 +1825,30 @@ namespace lib {
       }
 
     //initialize output array with correct dimensions
-    DLong dims[MAXRANK]; // initialization does not honor MAXRANK: = {0, 0, 0, 0, 0, 0, 0, 0}
-    // sub-optimal:
-//     for( int i=0;i<MAXRANK;++i) 
-//       dims[i] = 0;
+    DLong dims[MAXRANK]; 
     SizeT i = 0;
     for (; i < rankLeft; ++i) dims[i] = array->Dim(i);
-    for (; i < MAXRANK; ++i) dims[i] = 0; // see above
+    for (; i < MAXRANK; ++i) dims[i] = 0; 
 
     SizeT resRank = rankLeft;
     SizeT chunksize;
     if (grid)
+    {
+      dims[resRank++] = nx;
+      if (resRank > MAXRANK - 1)
+        e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+      dims[resRank++] = ny;
+      chunksize = nx*ny;
+    } else
+    {
+      for (SizeT i = 0; i < x->Rank(); ++i)
       {
-	dims[resRank++] = nx;
-	if (resRank>MAXRANK-1) 
-	  e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
-	dims[resRank++] = ny;
-	chunksize=nx*ny;
+        dims[resRank++] = x->Dim(i);
+        if (resRank > MAXRANK)
+          e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
       }
-    else
-      {
-	for (SizeT i = 0; i < x->Rank(); ++i)
-	  {
-	    dims[resRank++] = x->Dim(i); 
-	    if (resRank>MAXRANK) 
-	      e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
-	  }
-	chunksize=nx;
-      }
+      chunksize = nx;
+    }
     dimension dim((DLong *)dims, resRank);
     DDoubleGDL *res;
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);
@@ -1885,42 +1880,43 @@ namespace lib {
     double *yval = new double[chunksize];
     ArrayGuard<double> yvalGuard( yval);
     if (grid)
+    {
+      for (SizeT j = 0, count=0; j < ny; j++)
       {
-	for (SizeT i = 0, count = 0; i < nx; i++)
-	  {
-	    for (SizeT j = 0; j < ny; j++)
-	      {
-		count = INDEX_2D(i, j, nx, ny);
-		xval[count] = (*x)[i];
-		yval[count] = (*y)[j];
-	      }
-	  }
+        for (SizeT i = 0, count = 0; i < nx; i++)
+        {
+          count = INDEX_2D(i, j, nx, ny);
+          xval[count] = (*x)[i];
+          yval[count] = (*y)[j];
+        }
       }
-    else
+    } else
+    {
+      for (SizeT count = 0; count < chunksize; ++count)
       {
-	for (SizeT count=0; count < chunksize; ++count)
-	  {
-	    xval[count]=(*x)[count];
-	    yval[count]=(*y)[count];
-	  }
+        xval[count] = (*x)[count];
+        yval[count] = (*y)[count];
       }
+    }
     //construct 2d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya];
     ArrayGuard<double> tempGuard( temp);
     // Interpolate iteratively ninterp times:
     // loop could be multihreaded easily
     for (SizeT iterate = 0; iterate < ninterp; ++iterate)
+    {
+
+      for (SizeT k = 0; k < nxa * nya; ++k) temp[k] = (*array)[k * ninterp + iterate];
+      gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing ? missing_GIVEN : missing_NEAREST, missing, gamma);
+#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
+#pragma omp for
+      for (SizeT i = 0; i < chunksize; ++i)
       {
-     
-	for (SizeT k = 0; k < nxa*nya; ++k) temp[k]=(*array)[k*ninterp+iterate];
-	gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
-	for (SizeT i = 0; i < chunksize; ++i)
-	  {
-	    double x = xval[i];
-	    double y = yval[i];
-	    (*res)[i*ninterp+iterate] = gdl_interp2d_eval(interpolant, xa, ya, temp, x, y, accx, accy);
-	  }
+        double x = xval[i];
+        double y = yval[i];
+        (*res)[i * ninterp + iterate] = gdl_interp2d_eval(interpolant, xa, ya, temp, x, y, accx, accy);
       }
+    }
 
     //     gsl_interp_accel_free(accx);
     //     gsl_interp_accel_free(accy);
@@ -1957,11 +1953,12 @@ namespace lib {
       }
 
     //initialize output array with correct dimensions
-    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
-    SizeT resRank;
+    DLong dims[MAXRANK];
+    SizeT i = 0;
+    for (; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    for (; i < MAXRANK; ++i) dims[i] = 0;
+    SizeT resRank= rankLeft;
     SizeT chunksize;
-    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
-    resRank = rankLeft;
     if (grid)
       {
 	dims[resRank++] = nx;
@@ -2022,30 +2019,29 @@ namespace lib {
     double *zval = new double[chunksize];
     ArrayGuard<double> zvalGuard( zval);
     if (grid)
+    {
+      for (SizeT k = 0, count = 0; k < nz; ++k)
       {
-	for (SizeT i = 0, count = 0; i < nx; ++i)
-	  {
-	    for (SizeT j = 0; j < ny; ++j)
-	      {
-		for (SizeT k = 0; k < nz; ++k)
-		  {
-		    count = INDEX_3D(i, j, k, nx, ny, nz);
-		    xval[count] = (*x)[i];
-		    yval[count] = (*y)[j];
-		    zval[count] = (*z)[k];
-		  }
-	      }
-	  }
+        for (SizeT j = 0; j < ny; ++j)
+        {
+          for (SizeT i = 0; i < nx; ++i)
+          {
+            count = INDEX_3D(i, j, k, nx, ny, nz);
+            xval[count] = (*x)[i];
+            yval[count] = (*y)[j];
+            zval[count] = (*z)[k];
+          }
+        }
       }
-    else
+    } else
+    {
+      for (SizeT count = 0; count < chunksize; ++count)
       {
-	for (SizeT count = 0; count < chunksize; ++count)
-	  {
-	    xval[count]=(*x)[count];
-	    yval[count]=(*y)[count];
-	    zval[count]=(*z)[count];
-	  }
+        xval[count] = (*x)[count];
+        yval[count] = (*y)[count];
+        zval[count] = (*z)[count];
       }
+    }
     //construct 3d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya*nza];
     ArrayGuard<double> tempGuard( temp);
@@ -2056,6 +2052,8 @@ namespace lib {
       {
 	for (SizeT k = 0; k < nxa*nya*nza; ++k) temp[k]=(*array)[k*ninterp+iterate];
 	gdl_interp3d_init(interpolant, xa, ya, za, temp, nxa, nya, nza, use_missing?missing_GIVEN:missing_NEAREST, missing);
+#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
+#pragma omp for
 	for (SizeT i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];

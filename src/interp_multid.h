@@ -22,20 +22,20 @@ extern "C" {
   }
 
   /* convolutions available */
-  double linConv(double d, double x0, double x1) {
+  inline double linConv(double d, double x0, double x1) {
     return (1. - d)*x0 + d*x1;
   }
 //idem cubConvParam but with param=-1.0 - replaced by cubConv Below
 //  double cubConv(double d, double x0, double x1, double x2, double x3) {
 //    return (-x0 + x1 - x2 + x3)*pow(d, 3) +(2 * x0 - 2 * x1 + x2 - x3) * pow(d, 2) + (-x0 + x2) * d + x1;
 //  }
-
-  double cubConv(double d, double x0, double x1, double x2, double x3) {
+// without inlining, speed x 2; without use of pow(), speed x10!
+  inline double cubConv(double d, double x0, double x1, double x2, double x3) {
     double g=gdl_cubic_gamma;
-    return ((g + 2) * pow(d, 3) - (g + 3) * pow(d, 2) + 1)*x1 +
-        ((g + 2) * pow((1 - d), 3) - (g + 3) * pow((1 - d), 2) + 1) * x2 +
-        (g * pow((1 + d), 3) -5 * g * pow((1 + d), 2) + 8 * g * (1 + d) - 4 * g) * x0 +
-        (g * pow((2 - d), 3) -5 * g * pow((2 - d), 2) + 8 * g * (2 - d) - 4 * g) * x3;
+    return ((g + 2) * d*d*d - (g + 3) * d*d + 1)*x1 +
+        ((g + 2) * (1 - d)*(1-d)*(1-d) - (g + 3) * (1 - d)*(1-d) + 1) * x2 +
+        (g * (1 + d)*(1+d)*(1+d) -5 * g * (1 + d)*(1+d) + 8 * g * (1 + d) - 4 * g) * x0 +
+        (g * (2 - d)*(2-d)*(2-d) -5 * g * (2 - d)*(2-d) + 8 * g * (2 - d) - 4 * g) * x3;
   }
 
   /* 1D */
@@ -268,7 +268,7 @@ extern "C" {
 #define INDEX_2D(xi, yi, xsize, ysize) (yi) * (xsize) + (xi)
   /* row-major index (C, C++) */
 
-  /* #define INDEX_2D(xi, yi, xsize, ysize) (xi) * (ysize) + (yi)  */
+//#define INDEX_2D(xi, yi, xsize, ysize) (xi) * (ysize) + (yi)
 
   typedef struct {
     const char* name;

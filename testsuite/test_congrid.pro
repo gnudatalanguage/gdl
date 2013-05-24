@@ -110,21 +110,21 @@ TV, gray_image
 ;
 nbpX=ndims[0]*2
 nbpY=ROUND(ndims[1]*1.5)
-big_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, /CUB)
+big_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, CUB=0.5)
 ;
 WINDOW, 1, XSIZE=nbpX, YSIZE=nbpY
 TV, big_image
 ;
 nbpX=ndims[0]/2
 nbpY=ndims[1]/2
-small_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, /CUB)
+small_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, CUB=0.5)
 ;
 WINDOW, 2, XSIZE=nbpX, YSIZE=nbpY
 TV, small_image
 ;
 nbpX=ndims[0]/4
 nbpY=ndims[1]/2
-small_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, /CUB)
+small_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, CUB=0.5)
 ;
 WINDOW, 3, XSIZE=nbpX, YSIZE=nbpY
 TV, small_image
