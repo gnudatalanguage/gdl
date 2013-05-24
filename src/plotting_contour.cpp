@@ -685,7 +685,9 @@ namespace lib
         if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
 
         if (fill) {
-          PLFLT colorindex_table_0_color=2;
+          const PLINT COLORTABLE0 = 0;
+          const PLINT COLORTABLE1 = 1;
+          const PLFLT colorindex_table_0_color=2;
           PLFLT colorindex_table_1_color=0;
           if (hachures) {
             PLINT ori;
@@ -709,9 +711,9 @@ namespace lib
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
-              0, colorindex_table_0_color, 1, //colorindex is an int passed as a double in case map0
+              COLORTABLE0, colorindex_table_0_color, 1, //colorindex is an int passed as a double in case map0
               0,0,0,0,
-              (plstream::fill), (oneDim),  //example of possible use of recordpath.
+              (plstream::fill), (oneDim),
               (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
             actStream->psty(0);
@@ -720,17 +722,31 @@ namespace lib
             if (dostyle) gdlLineStyle(actStream, 0);
           }
           else  if (doT3d & !hasZvalue) {
-            for ( SizeT i=0; i<nlevel-1; ++i ) {
+            for ( SizeT i=0; i<nlevel; ++i ) {
                 Data3d.zValue=clevel[i]/(zEnd-zStart);
-                colorindex_table_1_color=(PLFLT)i/PLFLT(nlevel-1);
+                colorindex_table_1_color=(PLFLT)(i+1)/PLFLT(nlevel);
                 actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
-                actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
-                xStart, xEnd, yStart, yEnd,
-                clevel[i], clevel[nlevel-1],
-                1, colorindex_table_1_color, 1,   //colorindex is a double [0.0..1.0] in case map1
-                0,0,0,0,
-                plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
-                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+                if (docolors)
+                {
+                  actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+                  actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
+                  xStart, xEnd, yStart, yEnd,
+                  clevel[i], maxmax, //clevel[nlevel-1],
+                  COLORTABLE0, colorindex_table_0_color, 1,
+                  0,0,0,0,
+                  plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
+                  (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+                }
+                else
+                {
+                  actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
+                  xStart, xEnd, yStart, yEnd,
+                  clevel[i], maxmax, //clevel[nlevel-1],
+                  COLORTABLE1, colorindex_table_1_color, 1,   //colorindex is a double [0.0..1.0] in case map1
+                  0,0,0,0,
+                  plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
+                  (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+                }
              }
             if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
           }
@@ -739,22 +755,25 @@ namespace lib
             gdlSetGraphicsForegroundColorFromKw ( e, actStream );
             // note that plshade is not protected against 1 level (color formula is
             // "shade_color = color_min + i / (PLFLT) ( nlevel - 2 ) * color_range;"
-            // meaning that nlevel must be >2 for plshade!)
-            if (nlevel>2) {
+            // meaning that nlevel must be >=2 for plshade!)
+            if (nlevel>2 && !(docolors)) {
               actStream->shades( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
                                 clevel, nlevel, 1, 0, 0, plstream::fill, (oneDim),
                                 (oneDim)?(plstream::tr1):(plstream::tr2),
                                 (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
-            else  {
-              colorindex_table_1_color=0.5;
-              actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
-              xStart, xEnd, yStart, yEnd,
-              clevel[0], clevel[1],
-              1,  colorindex_table_1_color , 1,
-              0,0,0,0,
-              plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
-              (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+            else {
+              for ( SizeT i=0; i<nlevel; ++i ) 
+              {
+                if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+                actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
+                xStart, xEnd, yStart, yEnd,
+                clevel[i], maxmax,
+                COLORTABLE0,  colorindex_table_0_color , 1,
+                0,0,0,0,
+                plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
+                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+              }
             }
             //useful?
             gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //needs to be called again or else PS files look wrong
