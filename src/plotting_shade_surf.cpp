@@ -33,11 +33,12 @@ namespace lib
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool nodata;
-    ORIENTATION3D axisExchangeCode;
+    bool setZrange;
     bool xLog;
     bool yLog;
     bool zLog;
-  private:
+    ORIENTATION3D axisExchangeCode;
+ private:
     bool handle_args (EnvT* e)
     {
       xLog=e->KeywordSet ( "XLOG" );
@@ -147,7 +148,7 @@ namespace lib
       GetMinMaxVal ( zVal, &datamin, &datamax );
       zStart=datamin;
       zEnd=datamax;
-      gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
+      setZrange = gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
 
         return false;
     } 
@@ -213,6 +214,10 @@ namespace lib
       e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
 
       if ( minVal>zEnd || maxVal<zStart) nodata=true; //do not complain but do nothing.
+      if (!setZrange) {
+        zStart=max(minVal,zStart);
+        zEnd=min(zEnd,maxVal);
+      }
 
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )

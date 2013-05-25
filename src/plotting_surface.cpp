@@ -28,10 +28,6 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static bool xLog;
-  static bool yLog;
-  static bool zLog;
-
   class surface_call: public plotting_routine_call
   {
     DDoubleGDL *zVal, *yVal, *xVal;
@@ -39,6 +35,10 @@ namespace lib
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool nodata;
+    bool setZrange;
+    bool xLog;
+    bool yLog;
+    bool zLog;
     ORIENTATION3D axisExchangeCode;
   private:
     bool handle_args (EnvT* e)
@@ -150,7 +150,7 @@ namespace lib
       GetMinMaxVal ( zVal, &datamin, &datamax );
       zStart=datamin;
       zEnd=datamax;
-      gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
+      setZrange = gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
 
         return false;
     } 
@@ -235,6 +235,10 @@ namespace lib
       e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
 
       if ( minVal>zEnd || maxVal<zStart) nodata=true; //do not complain but do nothing.
+      if (!setZrange) {
+        zStart=max(minVal,zStart);
+        zEnd=min(zEnd,maxVal);
+      }
 
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )
