@@ -55,6 +55,7 @@ namespace lib
     Guard<BaseGDL> spacing_guard,orientation_guard;
     bool doT3d;
     bool irregular;
+    bool setZrange;
 
     //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
     //disentangle positive and negative contours with their rotation signature.
@@ -202,7 +203,7 @@ namespace lib
       GetMinMaxVal ( zVal, &datamin, &datamax );
       zStart=datamin;
       zEnd=datamax;
-      gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
+      setZrange = gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
 
       return false;
     }
@@ -329,9 +330,10 @@ namespace lib
       xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
       ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
 
-      //optimization below?
-      if ( minVal>zEnd || maxVal<zStart) nodata=true; //do not complain but do nothing.
-
+      if (!setZrange) {
+        zStart=max(minVal,zStart);
+        zEnd=min(zEnd,maxVal);
+      }
       if(!overplot) {
         // background BEFORE next plot since it is the only place plplot may redraw the background...
         gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND

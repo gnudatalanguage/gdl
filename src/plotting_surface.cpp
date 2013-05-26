@@ -234,7 +234,6 @@ namespace lib
       e->AssureDoubleScalarKWIfPresent ( "MIN_VALUE", minVal );
       e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
 
-      if ( minVal>zEnd || maxVal<zStart) nodata=true; //do not complain but do nothing.
       if (!setZrange) {
         zStart=max(minVal,zStart);
         zEnd=min(zEnd,maxVal);
