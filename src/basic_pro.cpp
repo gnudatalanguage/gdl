@@ -80,6 +80,9 @@ namespace lib {
     static int vectorEableIx = e->KeywordIx( "VECTOR_ENABLE");
 
     bool reset = e->KeywordSet( resetIx);
+    bool restore = e->KeywordSet( restoreIx);
+    if ((reset) && (restore)) e->Throw("Conflicting keywords.");
+
     bool vectorEnable = e->KeywordSet( vectorEableIx);
 
     DLong locCpuTPOOL_NTHREADS=CpuTPOOL_NTHREADS;
