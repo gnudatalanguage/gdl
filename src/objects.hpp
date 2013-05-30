@@ -95,6 +95,8 @@ bool IsFun(antlr::RefToken); // used by Lexer and Parser
 
 bool BigEndian();
 
+int get_suggested_omp_num_threads();
+
 template <typename T> class RefHeap {
   private:
     T* ptr;

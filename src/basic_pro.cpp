@@ -85,55 +85,65 @@ namespace lib {
 
     bool vectorEnable = e->KeywordSet( vectorEableIx);
 
+    DLong NbCOREs=1;
+#ifdef _OPENMP
+    NbCOREs=omp_get_num_procs();
+#endif
+
     DLong locCpuTPOOL_NTHREADS=CpuTPOOL_NTHREADS;
     DLong locCpuTPOOL_MIN_ELTS=CpuTPOOL_MIN_ELTS;
     DLong locCpuTPOOL_MAX_ELTS=CpuTPOOL_MAX_ELTS;
 
+    // reading the Tag Index of the variable parts in !CPU
     DStructGDL* cpu = SysVar::Cpu();
-
     static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
     static unsigned TPOOL_MIN_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MIN_ELTS");
     static unsigned TPOOL_MAX_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MAX_ELTS");
 
     if( reset)
-	{
-#ifdef _OPENMP
-        locCpuTPOOL_NTHREADS = omp_get_num_procs();
-#endif
+      {
+	locCpuTPOOL_NTHREADS = NbCOREs;
         locCpuTPOOL_MIN_ELTS = DefaultTPOOL_MIN_ELTS;
         locCpuTPOOL_MAX_ELTS = DefaultTPOOL_MAX_ELTS;
-	}
+      }
     else if( e->KeywordPresent( restoreIx))
-	{
+      {
 	DStructGDL* restoreCpu = e->GetKWAs<DStructGDL>( restoreIx);
-
+	
 	if( restoreCpu->Desc() != cpu->Desc())
-		e->Throw("RESTORE must be set to an instance with the same struct layout as {!CPU}");
-
+	  e->Throw("RESTORE must be set to an instance with the same struct layout as {!CPU}");
+	
         locCpuTPOOL_NTHREADS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( NTHREADSTag, 0))))[0];
         locCpuTPOOL_MIN_ELTS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MIN_ELTSTag, 0))))[0];
         locCpuTPOOL_MAX_ELTS= (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
-	}
+      }
     else
-	{
-		if( e->KeywordPresent(nThreadsIx))
-		{
-		e->AssureLongScalarKW(nThreadsIx, locCpuTPOOL_NTHREADS);
-		}
-		if( e->KeywordPresent(min_eltsIx))
-		{
-		e->AssureLongScalarKW(min_eltsIx, locCpuTPOOL_MIN_ELTS);
-		}
-		if( e->KeywordPresent(max_eltsIx))
-		{
-		e->AssureLongScalarKW(max_eltsIx, locCpuTPOOL_MAX_ELTS);
-		}
-	}
+      {
+	if( e->KeywordPresent(nThreadsIx))
+	  {
+	    e->AssureLongScalarKW(nThreadsIx, locCpuTPOOL_NTHREADS);
+	  }
+	if( e->KeywordPresent(min_eltsIx))
+	  {
+	    e->AssureLongScalarKW(min_eltsIx, locCpuTPOOL_MIN_ELTS);
+	  }
+	if( e->KeywordPresent(max_eltsIx))
+	  {
+	    e->AssureLongScalarKW(max_eltsIx, locCpuTPOOL_MAX_ELTS);
+	  }
+      }
 
-	// update here all together in case of error
-
+    // update here all together in case of error
+    
 #ifdef _OPENMP
-    CpuTPOOL_NTHREADS=locCpuTPOOL_NTHREADS;
+    //cout <<locCpuTPOOL_NTHREADS << " " << CpuTPOOL_NTHREADS << endl;
+    if (locCpuTPOOL_NTHREADS > 0) {
+      CpuTPOOL_NTHREADS=locCpuTPOOL_NTHREADS;
+    } else {
+      CpuTPOOL_NTHREADS=NbCOREs;
+    }
+    if (CpuTPOOL_NTHREADS > NbCOREs)
+      Warning("CPU : Warning: Using more threads ("+i2s(CpuTPOOL_NTHREADS)+") than the number of CPUs in the system ("+i2s(NbCOREs)+") will degrade performance.");
 #else
     CpuTPOOL_NTHREADS=1;
 #endif

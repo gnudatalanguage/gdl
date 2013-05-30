@@ -70,6 +70,32 @@ namespace lib {
 void SetGDLGenericGSLErrorHandler(); // defined in gsl_fun.cpp
 }
 
+// Nodar and Alain, May 2013: we try to optimize the value for CpuTPOOL_NTHREADS
+// if *valid* external value for OMP_NUM_THREADS (0 < OMP_NUM_THREADS < nb_cores) we used it
+// if not provided, we try to estimate a value looking at the average load
+
+void InitOpenMP() {
+#ifdef _OPENMP
+  int suggested_num_threads, omp_num_core;  
+  suggested_num_threads=get_suggested_omp_num_threads();
+  omp_num_core=omp_get_num_procs();
+
+  //  cout << "estimated Threads :" << suggested_num_threads << endl;
+
+  // we update iff needed (by default, "omp_num_threads" is initialiazed to "omp_num_core"
+  if ((suggested_num_threads > 0) && (suggested_num_threads < omp_num_core)) {
+
+    // update of !cpu.TPOOL_NTHREADS
+    DStructGDL* cpu = SysVar::Cpu();
+    static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
+    (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] =suggested_num_threads;
+
+    // effective gloabl change of num of treads using omp_set_num_threads()
+    omp_set_num_threads(suggested_num_threads);
+  }
+#endif
+}
+
 void AtExit()
 {
 //   cerr << "AtExit()" << endl;
@@ -237,6 +263,9 @@ int main(int argc, char *argv[])
   }
 
   InitGDL();
+
+  // must be after !cpu initialisation
+  InitOpenMP();
 
   if( isatty(0) && !quiet) StartupMessage();
 
