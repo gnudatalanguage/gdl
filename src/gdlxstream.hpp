@@ -56,6 +56,9 @@ public:
   bool GetGin(PLGraphicsIn *gin, int mode);
   void WarpPointer(DLong x, DLong y);
   void Flush();
+  void setDoubleBuffering();
+  void unSetDoubleBuffering();
+  bool hasDoubleBuffering();
 };
 
 #endif

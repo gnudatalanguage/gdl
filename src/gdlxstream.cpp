@@ -224,6 +224,22 @@ void GDLXStream::WarpPointer(DLong x, DLong y)
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XWarpPointer( xwd->display, dev->window, None, 0, 0, 0, 0, x, y );
 }
+void GDLXStream::setDoubleBuffering()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  dev->write_to_window = 0;
+  pls->db = 1;
+}
+void GDLXStream::unSetDoubleBuffering()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  dev->write_to_window = 1;
+  pls->db = 0;
+}
+bool GDLXStream::hasDoubleBuffering()
+{
+  return true;
+}
 bool GDLXStream::GetGin( PLGraphicsIn *gin, int mode)
 {
   bool status=true;

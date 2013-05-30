@@ -166,12 +166,6 @@ namespace lib {
   bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd,
         DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog,bool doSpecialAxisPlacement=0);
 
-  //helper functions / classes
-  inline void logifyGDLDouble(DDoubleGDL* x)
-  {
-    for (SizeT i=0; i<x->N_Elements(); ++i) (*x)[i]=log10((*x)[i]);
-  }
-
   class plotting_routine_call
   {
     // ensure execution of child-class destructors
@@ -180,6 +174,7 @@ namespace lib {
     // private fields
     private: SizeT _nParam;
     private: bool overplot;
+    private: bool isDB;
 
     // common helper methods
     protected: inline SizeT nParam() { return _nParam; }
@@ -199,13 +194,14 @@ namespace lib {
 
       GDLGStream* actStream = Graphics::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
-
+      isDB = actStream->hasDoubleBuffering();
+      if (isDB) actStream->setDoubleBuffering();
       old_body(e, actStream); // TODO: to be removed!
       call_plplot(e, actStream);
 
-      actStream->flush();
-
       post_call(e, actStream);
+      if (isDB) actStream->eop(); else actStream->flush();
+      if(isDB) actStream->unSetDoubleBuffering();
     } // }}}
   };
   template <typename T>

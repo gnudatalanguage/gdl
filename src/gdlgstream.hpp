@@ -226,7 +226,9 @@ public:
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 
   virtual void eop()          { plstream::eop();}
-
+  virtual void setDoubleBuffering() {}
+  virtual void unSetDoubleBuffering() {}
+  virtual bool hasDoubleBuffering() {return false;}
   virtual void Raise()         {}
   virtual void Lower()        {}
   virtual void Iconic()        {}
