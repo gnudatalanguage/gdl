@@ -145,8 +145,10 @@ void GDLXStream::Clear()
   //  RGB_HLS( a,b,c,&d,&e,&f);
   char dummy;
   gesc( &dummy);
-
-  ::c_plclear();
+// this mimics better the *DL behaviour.
+  ::c_plbop();
+  //plclear clears only the current subpage.
+//  ::c_plclear();
 }
 
 void GDLXStream::Clear( DLong bColor)
@@ -176,6 +178,7 @@ void GDLXStream::Clear( DLong bColor)
   ::c_plbop();
   plscolbg (r1, g1, b1);
 
+//plclear clears only the current subpage.
 //  ::c_plclear();
 //
 //  plscolbg (r0, g0, b0);
@@ -195,15 +198,11 @@ void GDLXStream::Lower()
   XLowerWindow(dev->xwd->display, dev->window);
 }
 
-// note by AC on 2012-Aug-16    Help/suggestions welcome
-// I don't know how to find the sub-window number (third parametre
-// in call XIconifyWindow())
-
 void GDLXStream::Iconic()
 {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  XIconifyWindow(dev->xwd->display, dev->window,0);
+  XIconifyWindow(xwd->display, dev->window,xwd->screen);
 }
 
 void GDLXStream::DeIconic()
@@ -222,7 +221,7 @@ void GDLXStream::WarpPointer(DLong x, DLong y)
 {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  XWarpPointer( xwd->display, dev->window, None, 0, 0, 0, 0, x, y );
+  XWarpPointer( xwd->display, None, dev->window, 0, 0, 0, 0, x, dev->height-y );
 }
 void GDLXStream::setDoubleBuffering()
 {
