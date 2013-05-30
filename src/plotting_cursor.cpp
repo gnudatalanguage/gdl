@@ -70,17 +70,8 @@ void tvcrs( EnvT* e)
 
   PLFLT ix,iy;
 
-  if (e->KeywordSet("DEVICE"))
+  if (e->KeywordSet("DATA")) // /DATA
   {
-    ix=(*x)[0];
-    iy=(*y)[0];
-  }
-  else if (e->KeywordSet("NORMAL"))
-  {
-    plg->NormToDevice((*x)[0],(*y)[0],ix,iy);
-  }
-  else // /DATA
-  { 
     DDouble tempx,tempy;
     tempx=(*x)[0];
     tempy=(*y)[0];
@@ -105,6 +96,15 @@ void tvcrs( EnvT* e)
     if(xLog) tempx=pow(10,tempx);
     if(yLog) tempy=pow(10,tempy);
     plg->WorldToDevice(tempx,tempy,ix,iy);
+  }
+  else if (e->KeywordSet("NORMAL"))
+  {
+    plg->NormedDeviceToDevice((*x)[0],(*y)[0],ix,iy);
+  }
+  else // (e->KeywordSet("DEVICE"))
+  {
+    ix=(*x)[0];
+    iy=(*y)[0];
   }
   plg->WarpPointer(ix,iy);
 }
