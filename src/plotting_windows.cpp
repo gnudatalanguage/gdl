@@ -154,6 +154,7 @@ namespace lib {
     // On the system I tested (Ubuntu 10.4), I was not able to have
     // the expected SHOW behavior, with IDL 7.0 and GDL :(
     // Help/suggestions welcome
+    // works for me (GD) on mandriva 2010.2
     bool show = true;
     if (nParam == 2) { 
       DIntGDL *showval = e->GetParAs<DIntGDL>(1);
@@ -164,12 +165,13 @@ namespace lib {
     // I don't know how to find the sub-window number (third parametre
     // in call XIconifyWindow())
     // Help/suggestions welcome
+    //GD: it is not a sub-window, but a screen number: xwd->screen, but that does not make window iconic any better!
 
     bool iconic = false;
     if( e->KeywordSet("ICONIC")) iconic=true;
 
     if (!actDevice->WShow( wIx, show, iconic)) 
-      e->Throw( "Window is closed and unavailable.");
+      e->Throw( "Window number "+i2s(wIx)+" out of range or no more windows.");
   }
 
   void wdelete( EnvT* e)
