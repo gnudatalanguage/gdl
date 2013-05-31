@@ -75,7 +75,8 @@ namespace lib {
   image_t * image_warp(SizeT, SizeT, SizeT, SizeT, DType, void*, 
 		       char *kernel_type,
 		       DDouble *param, poly2d *poly_u, poly2d *poly_v, 
-		       DLong interp, DDouble cubic, DLong warpType, DDouble initvalue);
+		       DLong interp, DDouble cubic, DLong warpType, DDouble initvalue,
+               bool doMissing);
 
   image_t * image_new(int size_x, int size_y, DDouble initvalue);
   void image_del(image_t *d);

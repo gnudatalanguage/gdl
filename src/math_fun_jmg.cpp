@@ -1232,7 +1232,8 @@ namespace lib {
     }
 
     DDouble missing=0.0;
-    if( e->KeywordSet( "MISSING")) {
+    bool doMissing=( e->KeywordSet( "MISSING"));
+    if(doMissing) {
       e->AssureDoubleScalarKWIfPresent( "MISSING", missing);	
     }
 
@@ -1331,7 +1332,7 @@ namespace lib {
 	warped = image_warp(p0->Dim(1), p0->Dim(0), nRow, nCol, p0->Type(), 
 			    p0->DataAddr(), kernel_name,
 			    lineartrans, poly_v, poly_u,
-			    interp, cubic, LINEAR, missing);
+			    interp, cubic, LINEAR, missing, doMissing);
       }
     } else {
       // Polynomial
@@ -1362,7 +1363,7 @@ namespace lib {
       warped = image_warp(p0->Dim(1), p0->Dim(0), nRow, nCol, p0->Type(), 
 			  p0->DataAddr(), kernel_name, 
 			  lineartrans, poly_v, poly_u, 
-			  interp, cubic, GENERIC, missing);
+			  interp, cubic, GENERIC, missing, doMissing);
 
       if (poly_u->px != NULL) free(poly_u->px);
       if (poly_u->py != NULL) free(poly_u->py);
@@ -1617,266 +1618,320 @@ double * generate_interpolation_kernel(char * kernel_type, DDouble cubic)
  */
 /*--------------------------------------------------------------------------*/
 
-image_t * image_warp (
-		     SizeT  lx,		     
-		     SizeT  ly,		     
-		     SizeT  lx_out,		     
-		     SizeT  ly_out,		     
-		     DType  type,		     
-		     void*  data,		     
-		     char		*	kernel_type,
-		     DDouble *param,
-		     poly2d		*	poly_u,
-		     poly2d		*	poly_v,
-		     DLong interp,
-		     DDouble cubic,
-		     DLong warpType,
-                     DDouble initvalue)
-{
-    image_t    *	image_out ;
-    int         	i, j, k ;
-    double       	cur ;
-    double       	neighbors[16] ;
-    double       	rsc[8],
-					sumrs ;
-    double       	x, y ;
-    int     		px, py ;
-    int     		pos ;
-    int         	tabx, taby ;
-    double      *	kernel=NULL ;
-    int		      	leaps[16] ;
+  image_t * image_warp(
+      SizeT lx,
+      SizeT ly,
+      SizeT lx_out,
+      SizeT ly_out,
+      DType type,
+      void* data,
+      char * kernel_type,
+      DDouble *param,
+      poly2d * poly_u,
+      poly2d * poly_v,
+      DLong interp,
+      DDouble cubic,
+      DLong warpType,
+      DDouble initvalue,
+      bool doMissing) {
+    image_t * image_out;
+    int i, j, k;
+    double cur;
+    double neighbors[16];
+    double rsc[8],
+        sumrs;
+    double x, y;
+    int px, py;
+    int pos;
+    int tabx, taby;
+    double * kernel = NULL;
+    int leaps[16];
 
     DByte data_b;
     DInt data_i;
-    DUInt data_ui; 
+    DUInt data_ui;
     DLong data_l;
-    DULong data_ul; 
+    DULong data_ul;
     DLong64 data_l64;
-    DULong64 data_ul64; 
+    DULong64 data_ul64;
     float data_f;
     double data_d;
     char *ptr = (char *) data;
 
     /* Generate linear interpolation kernel if necessary */
     if (interp == 1) {
-      kernel = generate_interpolation_kernel(kernel_type, (double) 0.0) ;
+      kernel = generate_interpolation_kernel(kernel_type, (double) 0.0);
       if (kernel == NULL) {
-	//        e_error("cannot generate kernel: aborting resampling") ;
-        return NULL ;
+        //        e_error("cannot generate kernel: aborting resampling") ;
+        return NULL;
       }
     }
 
     /* Generate cubic interpolation kernel if necessary */
     if (interp == 2) {
-      kernel = generate_interpolation_kernel(kernel_type, cubic) ;
+      kernel = generate_interpolation_kernel(kernel_type, cubic);
       if (kernel == NULL) {
-	//        e_error("cannot generate kernel: aborting resampling") ;
-        return NULL ;
+        //        e_error("cannot generate kernel: aborting resampling") ;
+        return NULL;
       }
     }
 
-    image_out = image_new(lx_out, ly_out, initvalue) ;
+    image_out = image_new(lx_out, ly_out, initvalue);
 
     /* Pre compute leaps for 16 closest neighbors positions */
 
-    leaps[0] = -1 - lx ;
-    leaps[1] =    - lx ;
-    leaps[2] =  1 - lx ;
-    leaps[3] =  2 - lx ;
+    leaps[0] = -1 - lx;
+    leaps[1] = -lx;
+    leaps[2] = 1 - lx;
+    leaps[3] = 2 - lx;
 
-    leaps[4] = -1 ;
-    leaps[5] =  0 ;
-    leaps[6] =  1 ;
-    leaps[7] =  2 ;
+    leaps[4] = -1;
+    leaps[5] = 0;
+    leaps[6] = 1;
+    leaps[7] = 2;
 
-    leaps[8] = -1 + lx ;
-    leaps[9] =      lx ;
-    leaps[10]=  1 + lx ;
-    leaps[11]=  2 + lx ;
+    leaps[8] = -1 + lx;
+    leaps[9] = lx;
+    leaps[10] = 1 + lx;
+    leaps[11] = 2 + lx;
 
-    leaps[12]= -1 + 2*lx ;
-    leaps[13]=      2*lx ;
-    leaps[14]=  1 + 2*lx ;
-    leaps[15]=  2 + 2*lx ;
+    leaps[12] = -1 + 2 * lx;
+    leaps[13] = 2 * lx;
+    leaps[14] = 1 + 2 * lx;
+    leaps[15] = 2 + 2 * lx;
 
-    for (k=0 ; k<16 ; k++) neighbors[k] = 0;
+    for (k = 0; k < 16; k++) neighbors[k] = 0;
 
     /* Double loop on the output image  */
-    for (j=0 ; j < ly_out ; j++) {
-        for (i=0 ; i< lx_out ; i++) {
-            /* Compute the original source for this pixel   */
+    for (j = 0; j < ly_out; j++) {
+      for (i = 0; i < lx_out; i++) {
+        /* Compute the original source for this pixel   */
 
-	  if (warpType == LINEAR) {
-	    x = param[0] * (double)i + param[1] * (double)j + param[2]; 
-	    y = param[3] * (double)i + param[4] * (double)j + param[5]; 
-	  } else {
-	    x = poly2d_compute(poly_u, (double)i, (double)j);
-	    y = poly2d_compute(poly_v, (double)i, (double)j);
-	  }
-
-	  /* Which is the closest integer positioned neighbor?    */
-	  px = (int)x ;
-	  py = (int)y ;
-
-	  if ((px < 1) ||
-	      (px > (lx-1)) ||
-	      (py < 1) ||
-	      (py > (ly-1)))
-          {
-          //already initialised to 'missing' value. No need to put zero here.
-          //	    image_out->data[i+j*lx_out] = (pixelvalue)0.0 ;
-          }
-	  else {
-	    /* Now feed the positions for the closest 16 neighbors  */
-	    pos = px + py * lx ;
-	    for (k=0 ; k<16 ; k++) {
-
-	      if (interp == 0 && k != 5) continue;
-
-	      int row = (pos+leaps[k]) / lx;
-	      int col = (pos+leaps[k]) - row*lx;
-	      if (type == GDL_BYTE) {
-		memcpy(&data_b, &ptr[sizeof(char)*(col*ly+row)], 
-		       sizeof(char));
-		neighbors[k] = (double) data_b;
-	      } 
-	      if (type == GDL_INT) {
-		memcpy(&data_i, &ptr[sizeof(DInt)*(col*ly+row)], 
-		       sizeof(DInt));
-		neighbors[k] = (double) data_i;
-	      } 
-	      if (type == GDL_UINT) {
-		memcpy(&data_ui, &ptr[sizeof(DUInt)*(col*ly+row)], 
-		       sizeof(DUInt));
-		neighbors[k] = (double) data_ui;
-	      } 
-	      if (type == GDL_LONG) {
-		memcpy(&data_l, &ptr[sizeof(DLong)*(col*ly+row)], 
-		       sizeof(DLong));
-		neighbors[k] = (double) data_l;
-	      } 
-	      if (type == GDL_ULONG) {
-		memcpy(&data_ul, &ptr[sizeof(DULong)*(col*ly+row)], 
-		       sizeof(DULong));
-		neighbors[k] = (double) data_ul;
-	      } 
-	      if (type == GDL_LONG64) {
-		memcpy(&data_l64, &ptr[sizeof(DLong64)*(col*ly+row)], 
-		       sizeof(DLong64));
-		neighbors[k] = (double) data_l64;
-	      } 
-	      if (type == GDL_ULONG64) {
-		memcpy(&data_ul64, &ptr[sizeof(DULong64)*(col*ly+row)], 
-		       sizeof(DULong64));
-		neighbors[k] = (double) data_ul64;
-	      } 
-	      if (type == GDL_FLOAT) {
-		memcpy(&data_f, &ptr[sizeof(float)*(col*ly+row)], 
-		       sizeof(float));
-		neighbors[k] = (double) data_f;
-	      } 
-	      if (type == GDL_DOUBLE) {
-		memcpy(&data_d, &ptr[sizeof(double)*(col*ly+row)], 
-		       sizeof(double));
-		neighbors[k] = data_d;
-	      } 
-	    }
-
-	    if (interp == 0) {
-	      image_out->data[i+j*lx_out] = (pixelvalue) neighbors[5];
-	    } else if (interp == 1) {
-	      /* Which tabulated value index shall we use?    */
-	      tabx = (int)((x - (double)px) * (double)(TABSPERPIX)) ;
-	      taby = (int)((y - (double)py) * (double)(TABSPERPIX)) ;
-	      
-	      /* Compute resampling coefficients  */
-	      /* rsc[0..3] in x, rsc[4..7] in y   */
-	      
-	      rsc[0] = kernel[TABSPERPIX + tabx] ;
-	      rsc[1] = kernel[tabx] ;
-	      rsc[2] = kernel[TABSPERPIX - tabx] ;
-	      rsc[4] = kernel[TABSPERPIX + taby] ;
-	      rsc[5] = kernel[taby] ;
-	      rsc[6] = kernel[TABSPERPIX - taby] ;
-	      
-	      sumrs = (rsc[0]+rsc[1]+rsc[2]) *
-		(rsc[4]+rsc[5]+rsc[6]) ;
-	      
-	      /* Compute interpolated pixel now   */
-	      if ((x - (double)px) < 0 && (y - (double)py) < 0) {
-		cur =   rsc[4] * (  rsc[0]*neighbors[0] +
-				    rsc[1]*neighbors[1] ) +
-		        rsc[5] * (  rsc[0]*neighbors[4] +
-			            rsc[1]*neighbors[5]);
-	      } else if ((x - (double)px) >= 0 && (y - (double)py) < 0) {
-		cur =   rsc[4] * (  rsc[1]*neighbors[1] +
-				    rsc[2]*neighbors[2] ) +
-		        rsc[5] * (  rsc[1]*neighbors[5] +
-			            rsc[2]*neighbors[6]);
-	      } else if ((x - (double)px) < 0 && (y - (double)py) >= 0) {
-		cur =   rsc[5] * (  rsc[0]*neighbors[4] +
-				    rsc[1]*neighbors[5] ) +
-		        rsc[6] * (  rsc[0]*neighbors[8] +
-			            rsc[1]*neighbors[9]);
-	      } else if ((x - (double)px) >= 0 && (y - (double)py) >= 0) {
-		cur =   rsc[5] * (  rsc[1]*neighbors[5] +
-				    rsc[2]*neighbors[6] ) +
-		        rsc[6] * (  rsc[1]*neighbors[9] +
-			            rsc[2]*neighbors[10]);
-	      }
-	      
-	      /* Affect the value to the output image */
-	      image_out->data[i+j*lx_out] = (pixelvalue)(cur/sumrs) ;
-	      /* done ! */
-	    } else {
-	      /* Which tabulated value index shall we use?    */
-	      tabx = (int)((x - (double)px) * (double)(TABSPERPIX)) ;
-	      taby = (int)((y - (double)py) * (double)(TABSPERPIX)) ;
-	      
-	      /* Compute resampling coefficients  */
-	      /* rsc[0..3] in x, rsc[4..7] in y   */
-	      
-	      rsc[0] = kernel[TABSPERPIX + tabx] ;
-	      rsc[1] = kernel[tabx] ;
-	      rsc[2] = kernel[TABSPERPIX - tabx] ;
-	      rsc[3] = kernel[2 * TABSPERPIX - tabx] ;
-	      rsc[4] = kernel[TABSPERPIX + taby] ;
-	      rsc[5] = kernel[taby] ;
-	      rsc[6] = kernel[TABSPERPIX - taby] ;
-	      rsc[7] = kernel[2 * TABSPERPIX - taby] ;
-	      
-	      sumrs = (rsc[0]+rsc[1]+rsc[2]+rsc[3]) *
-		(rsc[4]+rsc[5]+rsc[6]+rsc[7]) ;
-	      
-	      /* Compute interpolated pixel now   */
-	      cur =   rsc[4] * (  rsc[0]*neighbors[0] +
-				  rsc[1]*neighbors[1] +
-				  rsc[2]*neighbors[2] +
-				  rsc[3]*neighbors[3] ) +
-		rsc[5] * (  rsc[0]*neighbors[4] +
-			    rsc[1]*neighbors[5] +
-			    rsc[2]*neighbors[6] +
-			    rsc[3]*neighbors[7] ) +
-		rsc[6] * (  rsc[0]*neighbors[8] +
-			    rsc[1]*neighbors[9] +
-			    rsc[2]*neighbors[10] +
-			    rsc[3]*neighbors[11] ) +
-		rsc[7] * (  rsc[0]*neighbors[12] +
-			    rsc[1]*neighbors[13] +
-			    rsc[2]*neighbors[14] +
-			    rsc[3]*neighbors[15] ) ; 
-	      
-	      /* Affect the value to the output image */
-	      image_out->data[i+j*lx_out] = (pixelvalue)(cur/sumrs) ;
-	      /* done ! */
-	    }
-	  }       
+        if (warpType == LINEAR) {
+          x = param[0] * (double) i + param[1] * (double) j + param[2];
+          y = param[3] * (double) i + param[4] * (double) j + param[5];
+        } else {
+          x = poly2d_compute(poly_u, (double) i, (double) j);
+          y = poly2d_compute(poly_v, (double) i, (double) j);
         }
+
+        /* Which is the closest integer positioned neighbor?    */
+        px = (int) x;
+        py = (int) y;
+
+        if (doMissing) {
+          if ((px < 1) ||
+              (px > (lx - 1)) ||
+              (py < 1) ||
+              (py > (ly - 1))) {
+            continue; // already initialised to 'missing' value. No need to put zero here.
+          }
+        }
+        if ((px < 1) || (px > (lx - 1)) || (py < 1) || (py > (ly - 1))) {
+          if (px < 1) px = 0;
+          if (px > (lx - 1)) px = (lx - 1);
+          if (py < 1) py = 0;
+          if (py > (ly - 1)) py = (ly - 1);
+          pos = px + py * lx;
+          int row = (pos) / lx;
+          int col = (pos) - row*lx;
+          if (type == GDL_BYTE) {
+            memcpy(&data_b, &ptr[sizeof (char)*(col * ly + row)],
+                sizeof (char));
+            neighbors[5] = (double) data_b;
+          }
+          if (type == GDL_INT) {
+            memcpy(&data_i, &ptr[sizeof (DInt)*(col * ly + row)],
+                sizeof (DInt));
+            neighbors[5] = (double) data_i;
+          }
+          if (type == GDL_UINT) {
+            memcpy(&data_ui, &ptr[sizeof (DUInt)*(col * ly + row)],
+                sizeof (DUInt));
+            neighbors[5] = (double) data_ui;
+          }
+          if (type == GDL_LONG) {
+            memcpy(&data_l, &ptr[sizeof (DLong)*(col * ly + row)],
+                sizeof (DLong));
+            neighbors[5] = (double) data_l;
+          }
+          if (type == GDL_ULONG) {
+            memcpy(&data_ul, &ptr[sizeof (DULong)*(col * ly + row)],
+                sizeof (DULong));
+            neighbors[5] = (double) data_ul;
+          }
+          if (type == GDL_LONG64) {
+            memcpy(&data_l64, &ptr[sizeof (DLong64)*(col * ly + row)],
+                sizeof (DLong64));
+            neighbors[5] = (double) data_l64;
+          }
+          if (type == GDL_ULONG64) {
+            memcpy(&data_ul64, &ptr[sizeof (DULong64)*(col * ly + row)],
+                sizeof (DULong64));
+            neighbors[5] = (double) data_ul64;
+          }
+          if (type == GDL_FLOAT) {
+            memcpy(&data_f, &ptr[sizeof (float)*(col * ly + row)],
+                sizeof (float));
+            neighbors[5] = (double) data_f;
+          }
+          if (type == GDL_DOUBLE) {
+            memcpy(&data_d, &ptr[sizeof (double)*(col * ly + row)],
+                sizeof (double));
+            neighbors[5] = data_d;
+          }
+          image_out->data[i + j * lx_out] = (pixelvalue) neighbors[5];
+        } else {
+          /* Now feed the positions for the closest 16 neighbors  */
+          pos = px + py * lx;
+          for (k = 0; k < 16; k++) {
+
+            if (interp == 0 && k != 5) continue;
+
+            int row = (pos + leaps[k]) / lx;
+            int col = (pos + leaps[k]) - row*lx;
+            if (type == GDL_BYTE) {
+              memcpy(&data_b, &ptr[sizeof (char)*(col * ly + row)],
+                  sizeof (char));
+              neighbors[k] = (double) data_b;
+            }
+            if (type == GDL_INT) {
+              memcpy(&data_i, &ptr[sizeof (DInt)*(col * ly + row)],
+                  sizeof (DInt));
+              neighbors[k] = (double) data_i;
+            }
+            if (type == GDL_UINT) {
+              memcpy(&data_ui, &ptr[sizeof (DUInt)*(col * ly + row)],
+                  sizeof (DUInt));
+              neighbors[k] = (double) data_ui;
+            }
+            if (type == GDL_LONG) {
+              memcpy(&data_l, &ptr[sizeof (DLong)*(col * ly + row)],
+                  sizeof (DLong));
+              neighbors[k] = (double) data_l;
+            }
+            if (type == GDL_ULONG) {
+              memcpy(&data_ul, &ptr[sizeof (DULong)*(col * ly + row)],
+                  sizeof (DULong));
+              neighbors[k] = (double) data_ul;
+            }
+            if (type == GDL_LONG64) {
+              memcpy(&data_l64, &ptr[sizeof (DLong64)*(col * ly + row)],
+                  sizeof (DLong64));
+              neighbors[k] = (double) data_l64;
+            }
+            if (type == GDL_ULONG64) {
+              memcpy(&data_ul64, &ptr[sizeof (DULong64)*(col * ly + row)],
+                  sizeof (DULong64));
+              neighbors[k] = (double) data_ul64;
+            }
+            if (type == GDL_FLOAT) {
+              memcpy(&data_f, &ptr[sizeof (float)*(col * ly + row)],
+                  sizeof (float));
+              neighbors[k] = (double) data_f;
+            }
+            if (type == GDL_DOUBLE) {
+              memcpy(&data_d, &ptr[sizeof (double)*(col * ly + row)],
+                  sizeof (double));
+              neighbors[k] = data_d;
+            }
+          }
+
+          if (interp == 0) {
+            image_out->data[i + j * lx_out] = (pixelvalue) neighbors[5];
+          } else if (interp == 1) {
+            /* Which tabulated value index shall we use?    */
+            tabx = (int) ((x - (double) px) * (double) (TABSPERPIX));
+            taby = (int) ((y - (double) py) * (double) (TABSPERPIX));
+
+            /* Compute resampling coefficients  */
+            /* rsc[0..3] in x, rsc[4..7] in y   */
+
+            rsc[0] = kernel[TABSPERPIX + tabx];
+            rsc[1] = kernel[tabx];
+            rsc[2] = kernel[TABSPERPIX - tabx];
+            rsc[4] = kernel[TABSPERPIX + taby];
+            rsc[5] = kernel[taby];
+            rsc[6] = kernel[TABSPERPIX - taby];
+
+            sumrs = (rsc[0] + rsc[1] + rsc[2]) *
+                (rsc[4] + rsc[5] + rsc[6]);
+
+            /* Compute interpolated pixel now   */
+            if ((x - (double) px) < 0 && (y - (double) py) < 0) {
+              cur = rsc[4] * (rsc[0] * neighbors[0] +
+                  rsc[1] * neighbors[1]) +
+                  rsc[5] * (rsc[0] * neighbors[4] +
+                  rsc[1] * neighbors[5]);
+            } else if ((x - (double) px) >= 0 && (y - (double) py) < 0) {
+              cur = rsc[4] * (rsc[1] * neighbors[1] +
+                  rsc[2] * neighbors[2]) +
+                  rsc[5] * (rsc[1] * neighbors[5] +
+                  rsc[2] * neighbors[6]);
+            } else if ((x - (double) px) < 0 && (y - (double) py) >= 0) {
+              cur = rsc[5] * (rsc[0] * neighbors[4] +
+                  rsc[1] * neighbors[5]) +
+                  rsc[6] * (rsc[0] * neighbors[8] +
+                  rsc[1] * neighbors[9]);
+            } else if ((x - (double) px) >= 0 && (y - (double) py) >= 0) {
+              cur = rsc[5] * (rsc[1] * neighbors[5] +
+                  rsc[2] * neighbors[6]) +
+                  rsc[6] * (rsc[1] * neighbors[9] +
+                  rsc[2] * neighbors[10]);
+            }
+
+            /* Affect the value to the output image */
+            image_out->data[i + j * lx_out] = (pixelvalue) (cur / sumrs);
+            /* done ! */
+          } else {
+            /* Which tabulated value index shall we use?    */
+            tabx = (int) ((x - (double) px) * (double) (TABSPERPIX));
+            taby = (int) ((y - (double) py) * (double) (TABSPERPIX));
+
+            /* Compute resampling coefficients  */
+            /* rsc[0..3] in x, rsc[4..7] in y   */
+
+            rsc[0] = kernel[TABSPERPIX + tabx];
+            rsc[1] = kernel[tabx];
+            rsc[2] = kernel[TABSPERPIX - tabx];
+            rsc[3] = kernel[2 * TABSPERPIX - tabx];
+            rsc[4] = kernel[TABSPERPIX + taby];
+            rsc[5] = kernel[taby];
+            rsc[6] = kernel[TABSPERPIX - taby];
+            rsc[7] = kernel[2 * TABSPERPIX - taby];
+
+            sumrs = (rsc[0] + rsc[1] + rsc[2] + rsc[3]) *
+                (rsc[4] + rsc[5] + rsc[6] + rsc[7]);
+
+            /* Compute interpolated pixel now   */
+            cur = rsc[4] * (rsc[0] * neighbors[0] +
+                rsc[1] * neighbors[1] +
+                rsc[2] * neighbors[2] +
+                rsc[3] * neighbors[3]) +
+                rsc[5] * (rsc[0] * neighbors[4] +
+                rsc[1] * neighbors[5] +
+                rsc[2] * neighbors[6] +
+                rsc[3] * neighbors[7]) +
+                rsc[6] * (rsc[0] * neighbors[8] +
+                rsc[1] * neighbors[9] +
+                rsc[2] * neighbors[10] +
+                rsc[3] * neighbors[11]) +
+                rsc[7] * (rsc[0] * neighbors[12] +
+                rsc[1] * neighbors[13] +
+                rsc[2] * neighbors[14] +
+                rsc[3] * neighbors[15]);
+
+            /* Affect the value to the output image */
+            image_out->data[i + j * lx_out] = (pixelvalue) (cur / sumrs);
+            /* done ! */
+          }
+        }
+      }
     }
 
-    if (kernel != NULL) free(kernel) ;
-    return image_out ;
-}
+    if (kernel != NULL) free(kernel);
+    return image_out;
+  }
 
 
 /*-------------------------------------------------------------------------*/
