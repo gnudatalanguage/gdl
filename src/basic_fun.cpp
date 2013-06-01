@@ -3535,7 +3535,7 @@ BaseGDL* transpose( EnvT* e)
 	  e->Throw("Incorrect number of elements in permutation.");
 
 	DUInt* perm = new DUInt[rank];
-	Guard<DUInt> perm_guard( perm);
+	ArrayGuard<DUInt> perm_guard( perm);
 
 	DUIntGDL* p1L = static_cast<DUIntGDL*>
 	  (p1->Convert2( GDL_UINT, BaseGDL::COPY));

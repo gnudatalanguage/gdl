@@ -357,7 +357,7 @@ public:
     return plstrl(string);
   }
 #else
-#if PLPLOT_HAS_LEGEND
+#ifdef PLPLOT_HAS_LEGEND
   //use trick to extract desired value hidden in pllegend!
   PLFLT gdlGetmmStringLength(const char *string)
   {
