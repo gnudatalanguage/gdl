@@ -646,8 +646,10 @@ namespace lib {
 	    /*	    if(image.depth() == 8)
 		    {*/
 
-		DByteGDL * bImage=
-		  static_cast<DByteGDL*>(GDLimage->Convert2(GDL_BYTE,BaseGDL::COPY));
+		DByteGDL * bImage =
+		  static_cast<DByteGDL*>( GDLimage->Convert2(GDL_BYTE,BaseGDL::COPY));
+		Guard<DByteGDL> bImageGuard(bImage);
+		
 		image.read(columns,rows,map, CharPixel,&(*bImage)[0]);
 		/*	      }
 	    else if(image.depth() == 16)
