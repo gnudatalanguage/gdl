@@ -32,6 +32,10 @@
 
 //#include "dinterpreter.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #endif
@@ -465,7 +469,7 @@ int get_suggested_omp_num_threads() {
   //    cout<<"OMP_NUM_THREADS is not defined"<<endl;
   
   //set number of threads for appropriate OS
-  int avload,nbofproc=omp_get_num_procs();
+  int avload, nbofproc=omp_get_num_procs();
   FILE *iff;
     
 #if defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)

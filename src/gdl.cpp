@@ -43,6 +43,10 @@
 #include "sigfpehandler.hpp"
 #include "gdleventhandler.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #ifdef USE_MPI
 #  include "mpi.h"
 #endif
