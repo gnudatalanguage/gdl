@@ -2578,7 +2578,7 @@ namespace lib
     }
     else
     {
-      z=value*sgn/pow(10,e);
+      z=value*sgn/pow(10.,e);
       snprintf(test,20,"%7.6f",z);
       ns=strlen(test);
       i=rindex(test,'0');
