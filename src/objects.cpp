@@ -510,7 +510,12 @@ int get_suggested_omp_num_threads() {
       return default_num_threads;
     }
   char buffer[4];
-  fgets(buffer, sizeof(buffer), iff);
+  char* c;
+  c=fgets(buffer, sizeof(buffer), iff);
+  if(!c)
+    {
+      return default_num_threads;
+    }
   pclose(iff);
   int cout=0;
   while(buffer[count]!='\0' && buffer[count]!=' ')count++;
@@ -528,7 +533,12 @@ int get_suggested_omp_num_threads() {
   // cout << "nb Thead computed: " << nbofproc-(int)(avload+0.5) << endl;
 
   char buffer[4];
-  fgets(buffer, sizeof(buffer), iff);
+  char* c;
+  c=fgets(buffer, sizeof(buffer), iff);
+  if(!c)
+    {
+      return default_num_threads;
+    }
   pclose(iff);
   //   cout<<buffer[0]<<" "<<buffer[1]<<endl;
   avload=(buffer[0]-'0')+((buffer[2]-'0')>5?1:0);
