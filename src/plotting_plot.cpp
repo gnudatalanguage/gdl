@@ -47,7 +47,7 @@ private:
 
     //T3D ?
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=e->KeywordSet(t3dIx);
+    doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
 
     //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
     static int zvIx = e->KeywordIx( "ZVALUE");

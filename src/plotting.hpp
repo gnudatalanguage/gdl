@@ -162,10 +162,11 @@ namespace lib {
   bool xLog, bool yLog, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, DDouble zStart=0.0, DDouble zEnd=1.0, bool zLog=false);
   void scale3_pro(EnvT* e);
   void t3d_pro( EnvT* e);
-  bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0 );
+  bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0, DDouble length=0 );
   bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd,
         DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog,bool doSpecialAxisPlacement=0);
-
+  bool T3Denabled(EnvT *e);
+  
   class plotting_routine_call
   {
     // ensure execution of child-class destructors
@@ -301,7 +302,7 @@ namespace lib {
                     PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
     void handle_pmulti_position(EnvT *e, GDLGStream *a);
     void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
-    bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode=0);
+    bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode=0, DDouble length=0);
     bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
 
 } // namespace

@@ -158,7 +158,7 @@ namespace lib
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      bool doT3d=e->KeywordSet(t3dIx);
+      bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
       //ZVALUE
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
