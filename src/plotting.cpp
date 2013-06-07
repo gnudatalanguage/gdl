@@ -2365,7 +2365,7 @@ namespace lib
     if ( axis=="Z" ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
-      axisTicklayout=(*static_cast<DFloatGDL*>
+      axisTicklayout=(*static_cast<DLongGDL*>
                 (Struct->GetTag
                 (Struct->Desc()->TagIndex("TICKLAYOUT"), 0)))[0];
     }
@@ -2380,9 +2380,9 @@ namespace lib
     static DStructGDL* pStruct=SysVar::P();
     ticklen=(*static_cast<DFloatGDL*>
             (pStruct->GetTag
-            (pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0];
+            (pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]; //!P.TICKLEN, always exist, may be 0
     string ticklen_s="TICKLEN";
-    e->AssureFloatScalarKWIfPresent(ticklen_s, ticklen);
+    e->AssureFloatScalarKWIfPresent(ticklen_s, ticklen); //overwritten by TICKLEN option
 
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) Struct=SysVar::X();
@@ -2392,9 +2392,9 @@ namespace lib
     {
       static unsigned ticklenTag=Struct->Desc()->TagIndex("TICKLEN");
       DFloat axisTicklen=0.0;
-      axisTicklen=(*static_cast<DFloatGDL*>(Struct->GetTag(ticklenTag, 0)))[0];
+      axisTicklen=(*static_cast<DFloatGDL*>(Struct->GetTag(ticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
       ticklen_s=axis+"TICKLEN";
-      e->AssureFloatScalarKWIfPresent(ticklen_s, axisTicklen);
+      e->AssureFloatScalarKWIfPresent(ticklen_s, axisTicklen); //overriden by kw
       if (axisTicklen!=0.0) ticklen=axisTicklen;
     }
   }
@@ -2434,7 +2434,7 @@ namespace lib
     if ( axis=="Z" ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
-      axisTicks=(*static_cast<DFloatGDL*>
+      axisTicks=(*static_cast<DLongGDL*>
                 (Struct->GetTag
                 (Struct->Desc()->TagIndex("TICKS"), 0)))[0];
     }
@@ -2721,7 +2721,7 @@ namespace lib
     ptr->counter++;
   }
 
-  bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode)
+  bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong modifierCode, DDouble NormedLength)
   {
     static GDL_TICKNAMEDATA data;
     static GDL_MULTIAXISTICKDATA muaxdata;
@@ -2737,6 +2737,14 @@ namespace lib
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
 
+    //special values
+    PLFLT OtherAxisSizeInMm;
+    if (axis=="X") OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
+    if (axis=="Y") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
+    //special for AXIS who change the requested box size!
+    if (axis=="axisX") {axis="X"; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
+    if (axis=="axisY") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
+    
     DFloat Charsize;
     gdlGetDesiredAxisCharsize(e, axis, Charsize);
     DLong GridStyle;
@@ -2767,11 +2775,6 @@ namespace lib
     gdlGetDesiredAxisTickv(e, axis, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axis, Title);
-
-    //special values
-    PLFLT baseTickLen;
-    if (axis=="X") baseTickLen=a->mmyPageSize()*(a->boxnYSize());
-    if (axis=="Y") baseTickLen=a->mmxPageSize()*(a->boxnXSize());
 
     if ( (Style&4)!=4 ) //if we write the axis...
     {
@@ -2896,12 +2899,11 @@ namespace lib
       
       if (TickLayout==0)
       {
-        a->smaj((PLFLT)baseTickLen, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-        a->smin((PLFLT)baseTickLen/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->wid(Thick);
         //ticks or grid eventually with style and length:
-        Opt="st";
+        if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
+        if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
         switch(modifierCode)
         {
           case 2:
@@ -2913,17 +2915,15 @@ namespace lib
           case 0:
             if ( (Style&8)==8 ) Opt+="b"; else Opt+="bc";
         }
-        if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
-        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj (0.0, (PLFLT)TickLen); //relative value
-        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
+        a->smaj ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); //absolute value
+        a->smin ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); 
         if ( Log ) Opt+="l";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
         //reset ticks to default plplot value...
-        a->smaj( 3.0, 1.0 );
+        a->smaj( 3.0, 1.0 );//back to default values
         a->smin( 1.5, 1.0 );
         //reset gridstyle
         gdlLineStyle(a,0);
@@ -2959,7 +2959,7 @@ namespace lib
     return true;
   }
 
- bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode)
+ bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode, DDouble NormedLength)
   {
     //exit if nothing to do...
     string addCode="b"; //for X and Y, and some Z
@@ -2976,7 +2976,17 @@ namespace lib
     muaxdata.nTickUnits=0;
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
-
+    
+    //special values
+    PLFLT OtherAxisSizeInMm;
+    if (axis=="X") OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
+    if (axis=="Y") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
+    if (axis=="Z") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize()); //not always correct
+    //special for AXIS who change the requested box size!
+    if (axis=="axisX") {axis="X"; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
+    if (axis=="axisY") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
+    if (axis=="axisZ") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);} //not always correct
+    
     DFloat Charsize;
     gdlGetDesiredAxisCharsize(e, axis, Charsize);
     DLong GridStyle;
@@ -3007,12 +3017,6 @@ namespace lib
     gdlGetDesiredAxisTickv(e, axis, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axis, Title);
-
-    //special values
-    PLFLT baseTickLen;
-    if (axis=="X") baseTickLen=a->mmyPageSize()*(a->boxnYSize());
-    if (axis=="Y") baseTickLen=a->mmxPageSize()*(a->boxnXSize());
-    if (axis=="Z") baseTickLen=a->mmxPageSize()*(a->boxnXSize());
 
     if ( (Style&4)!=4 ) //if we write the axis...
     {
@@ -3080,19 +3084,15 @@ namespace lib
 
       if (TickLayout==0)
       {
-        a->smaj((PLFLT)baseTickLen, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-        a->smin((PLFLT)baseTickLen/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->wid(Thick);
         //ticks or grid eventually with style and length:
-        Opt=addCode+"st";
-
+        if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
-        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj (0.0, (PLFLT)TickLen); //relative value
-        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
+        a->smaj ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); //absolute value
+        a->smin ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); 
         if ( Log ) Opt+="l";
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
@@ -3128,6 +3128,13 @@ namespace lib
     return true;
   }
 
+  bool T3Denabled(EnvT *e)
+  {
+    static DStructGDL* pStruct=SysVar::P();
+    DLong ok4t3d=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("T3D"), 0)))[0];
+    if (ok4t3d==0) return false; else return true;
+  }
+  
   void usersym(EnvT *e)
   {
     DFloatGDL *xyVal, *xVal, *yVal;

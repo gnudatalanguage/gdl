@@ -40,7 +40,7 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
     //T3D
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=e->KeywordSet(t3dIx);
+    doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e));
 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
 
@@ -203,8 +203,8 @@ namespace lib {
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
     if ( xAxis )
-    {
-      gdlAxis(e, actStream, "X", xStart, xEnd, xLog, standardNumPos?1:2);
+    { //special name "axisX" needed because we artificially changed size of box
+      gdlAxis(e, actStream, "axisX", xStart, xEnd, xLog, standardNumPos?1:2, ovpSizeY);
 
       if ( e->KeywordSet("SAVE") )
       {
@@ -215,8 +215,8 @@ namespace lib {
     }
 
     if ( yAxis )
-    {
-      gdlAxis(e, actStream, "Y", yStart, yEnd, yLog, standardNumPos?1:2);
+    {//special name "axisY" needed because we artificially changed size of box
+      gdlAxis(e, actStream, "axisY", yStart, yEnd, yLog, standardNumPos?1:2, ovpSizeX);
 
       if ( e->KeywordSet("SAVE") )
       {
