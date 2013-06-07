@@ -332,11 +332,14 @@ if(GRAPHICSMAGICK)
 		include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})	
 		set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})		
 	else(GRAPHICSMAGICK_FOUND)
-		message(FATAL_ERROR "GRAPHICSMAGICK is required but was not found.\n"
-		"Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.\n"
-		"Use -DGRAPHICSMAGICK=OFF to not use it.\n"
-                "(suitable Fedora package: GraphicsMagick-c++-devel"
-		"   Debian/Ubuntu package: libgraphicsmagick++1-devel)")
+		message( STATUS
+		"GRAPHICSMAGICK is strongly suggested but was not found.
+		Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
+		Use -DGRAPHICSMAGICK=OFF to not use it.
+                (suitable Fedora package: GraphicsMagick-c++-devel
+		   Debian/Ubuntu package: libgraphicsmagick++1-devel)\n")
+		message( STATUS 
+		"Looking for ImageMagick")
 	endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
 
