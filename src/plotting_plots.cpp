@@ -48,8 +48,11 @@ namespace lib
     bool handle_args(EnvT* e) // {{{
     {
       real3d=false;
-
+      //T3D
+      static int t3dIx = e->KeywordIx( "T3D");
+      doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e)); 
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      // Then Z is useful only if (doT3d).
       static int zvIx = e->KeywordIx( "Z");
       zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
@@ -84,7 +87,7 @@ namespace lib
         if (dim0==3) for ( SizeT i=0; i<zEl; i++ ) (*zVal)[i]=(*val)[dim0*i+2];
         else for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
       }
-      else if ( nParam()==2 )
+      else if ( nParam()==2 || (nParam()==3 && !doT3d) )
       {
         xVal=e->GetParAs< DDoubleGDL>(0);
         xEl=xVal->N_Elements();
@@ -116,14 +119,21 @@ namespace lib
 
         yVal=e->GetParAs< DDoubleGDL>(1);
         yEl=yVal->N_Elements();
-        if ( !(xEl==yEl&&yEl==zEl) )
+        if ( !(xEl==yEl) )
         {
           SizeT size;
           size=min(xEl, yEl);
-          size=min(size, zEl);
           xEl=size;
           yEl=size;
-          zEl=size;
+        }
+        //if Z is passed and is 1 value, fill the array Z with this value
+        if ( !(xEl==zEl) )
+        {
+            DDouble ztemp=(*zVal)[0];
+            zEl=xEl;
+            zVal=new DDoubleGDL(dimension(xEl));
+            zval_guard.Reset(zVal); // delete upon exit
+            for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=ztemp;
         }
       }
       return false;
@@ -146,10 +156,6 @@ namespace lib
       if ( e->KeywordSet("DATA") ) coordinateSystem=DATA;
       if ( e->KeywordSet("DEVICE") ) coordinateSystem=DEVICE;
       if ( e->KeywordSet("NORMAL") ) coordinateSystem=NORMAL;
-
-      //T3D
-      static int t3dIx = e->KeywordIx( "T3D");
-      doT3d=e->KeywordSet(t3dIx);
 
       // get_axis_type
       gdlGetAxisType("X", xLog);
