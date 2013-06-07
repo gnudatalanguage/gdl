@@ -70,6 +70,8 @@ namespace lib {
 
     actStream->NoSub();
 
+    bool forget=false;
+    
     DDouble *sx, *sy; 
     GetSFromPlotStructs(&sx, &sy); 
     
@@ -191,7 +193,7 @@ namespace lib {
         char source = (src == 1) ? 'W' : 'C';        // Either WVS or CIA (WDBII) pedigree 
         if (river) source = tolower ((int)source);   // Lower case c means river-lake 
         int line = (h.area) ? 0 : 1;                 // Either Polygon (0) or Line (1) (if no area) 
-
+         
         /*
         double area = 0.1 * h.area;                  // Now im km^2 
         double f_area = 0.1 * h.area_full;           // Now im km^2 
@@ -210,19 +212,21 @@ namespace lib {
           printf ("%c %6d%8d%2d%2c%13.3f%13.3f%10.5f%10.5f%10.5f%10.5f %s %s\n", c, h.id, h.n, level, source, area, f_area, ww, ee, ss, nn, container, ancestor);
         }
         */
-
-        double lon_last, lat_last;
+        double lon_last, lat_last, olon;
         PLFLT *lons, *lats;
+        SizeT k,l;
         if (kw_fill && !line)
         {
-          lons = (PLFLT*)malloc(h.n * sizeof(PLFLT));
+          lons = (PLFLT*)malloc(h.n *2* sizeof(PLFLT));
           if (lons == NULL) 
             e->Throw("Failed to allocate memory (lons)");
-          lats = (PLFLT*)malloc(h.n * sizeof(PLFLT));
+          lats = (PLFLT*)malloc(h.n *2* sizeof(PLFLT));
           if (lats == NULL) 
             e->Throw("Failed to allocate memory (lats)");
         }
-        for (int k = 0; k < h.n; k++) 
+//        Message("in file" + files[i] + " for " + (line ? "line" : "polygon") 
+//              + i2s(h.id) + ",size " + i2s(h.n)+", level"+i2s(level));
+        for (k = 0, l=0 ; k < h.n; k++) 
         {
           struct POINT p;
           if (fread ((void *)&p, (size_t)sizeof(struct POINT), (size_t)1, fp) != 1) 
@@ -230,7 +234,6 @@ namespace lib {
             e->Throw("Error reading file" + files[i] + " for " + (line ? "line" : "polygon") 
               + i2s(h.id) + ", point " + i2s(k));
           }
-          
           if (!(line && kw_fill))
           {
             // byte order
@@ -244,7 +247,7 @@ namespace lib {
             double lon = p.x * GSHHS_SCL;
             if ((greenwich && p.x > max_east) || (h.west > 180000000)) lon -= 360.0;
             double lat = p.y * GSHHS_SCL;
-  
+             
 #ifdef USE_LIBPROJ4
             // map projection
             if (mapSet) // ... always true
@@ -256,24 +259,40 @@ namespace lib {
               lat = odata.y;
             }
 #endif
-
+            if (k != 0) {  //very crude patch --- will not avoid spurious lines & artifacts!
+                if(fabs(olon-lon) > 0.5*abs(xEnd-xStart)) forget=true;
+                olon=lon;
+            }
             // drawing line or recording data for drawing a polygon afterwards
             if (!kw_fill)
             {
-              if (k != 0) actStream->join(lon_last, lat_last, lon, lat);
+              if (k != 0) {
+                  if (forget) forget=false; else  actStream->join(lon_last, lat_last, lon, lat);
+              }
               lon_last = lon;
               lat_last = lat;
             }
             else
             {
-              lons[k] = lon;
-              lats[k] = lat;
+              if (forget) {
+                  forget=false; 
+                  if (l>2) actStream->fill(l, lons, lats); // TODO: PL_MAXPOLY is 256 :(
+                  l=0;
+                  lons[l] = lon;
+                  lats[l] = lat;
+                  l++;
+              } else
+              {
+                  lons[l] = lon;
+                  lats[l] = lat;
+                  l++;
+              }
             }
           }
         }
         if (kw_fill && !line) 
         {
-          actStream->fill(h.n, lons, lats); // TODO: PL_MAXPOLY is 256 :(
+          if (l>2) actStream->fill(l, lons, lats); // TODO: PL_MAXPOLY is 256 :(
           free(lons);
           free(lats);
         }
