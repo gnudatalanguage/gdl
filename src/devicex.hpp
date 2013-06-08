@@ -482,7 +482,9 @@ public:
     winList[ wIx]->scmap1( r, g, b, ctSize);
 
     winList[ wIx]->Init();
-    
+// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
+    bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
+    ResizeWin((UInt)xleng, (UInt) yleng);
     // need to be called initially. permit to fix things
     winList[ wIx]->ssub(1,1);
     winList[ wIx]->adv(0);
@@ -691,6 +693,17 @@ public:
   {
     return CursorStandard(XC_crosshair);
   }
+  
+  void ResizeWin(UInt width, UInt height)
+  {
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XResizeWindow(xwd->display, dev->window, width, height);
+  }
+  
   bool UnsetFocus()
   {
     PLStream* pls;
