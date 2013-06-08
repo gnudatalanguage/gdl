@@ -24,7 +24,7 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static DDouble lightSourcePos[3]={0,0,1.0};
+  static PLFLT lightSourcePos[3]={1.0E6,0.0,1.0};
 
   class shade_surf_call: public plotting_routine_call
   {
@@ -352,7 +352,8 @@ namespace lib
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
         PLINT meshOpt;
-        actStream->lightsource(lightSourcePos[0],lightSourcePos[1],lightSourcePos[2]);
+        actStream->lightsource(lightSourcePos[0]*scale*(xEnd-xStart),lightSourcePos[1]*scale*(yEnd-yStart),
+                        lightSourcePos[2]*scale*(1.0-zValue)*(zEnd-zStart));
         meshOpt=(doShade)?MAG_COLOR:0;
         if (e->KeywordSet ( "SKIRT" )) meshOpt+=DRAW_SIDES;
         actStream->surf3d(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
