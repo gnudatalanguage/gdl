@@ -736,7 +736,7 @@ public:
   }
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
-  const char * TranslateFormatCodes(const char *text);
+  bool TranslateFormatCodes(const char *text, std::string &out);
   void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,

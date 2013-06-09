@@ -214,7 +214,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 }
 
 // SA: embedded font attributes handling (IDL to plPlot syntax translation)
-const char * GDLGStream::TranslateFormatCodes(const char *in) 
+bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out) 
 {
   bool debug = false;
   static char errmsg[] = "Invalid graphtext command: ...!  ";
@@ -230,7 +230,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
   size_t len = strlen(in);
 
   // skip conversion if the string is empty
-  if (len == 0) return in;
+  if (len == 0) return false;
 
   const std::string fonts[] = {
     "#fn",      // !0  : unused
@@ -271,7 +271,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
   int curr_lev = 0; // (incremented with #u, decremented with #d)
   int curr_pos = 0; // (current position in string)
   int save_pos = 0; // (position in string used in !S/!R save/restore)
-  std::string out = std::string("");
+//  std::string out = std::string("");
 
   for (size_t i = 0; i < len; i++) {
     if (in[i] == '!' && in[i + 1] != '!')
@@ -777,19 +777,21 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
 
 retrn:
   if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
-  return out.c_str();
+  return true; 
 }
 
 void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                        const char *text)
 {
-  plstream::mtex(side,disp,pos,just,TranslateFormatCodes(text));
+  std::string out = std::string("");
+  if (TranslateFormatCodes(text,out)) plstream::mtex(side,disp,pos,just,out.c_str());
 }
 
 void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                        const char *text)
 {
-  plptex(x,y,dx,dy,just,TranslateFormatCodes(text));
+  std::string out = std::string("");
+  if (TranslateFormatCodes(text,out)) plstream::ptex(x,y,dx,dy,just,out.c_str());
 }
 
 void GDLGStream::schr( PLFLT def, PLFLT scale )
