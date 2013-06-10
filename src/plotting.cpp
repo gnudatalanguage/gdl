@@ -2899,6 +2899,8 @@ namespace lib
       
       if (TickLayout==0)
       {
+        a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
+        a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->wid(Thick);
         //ticks or grid eventually with style and length:
@@ -2915,10 +2917,11 @@ namespace lib
           case 0:
             if ( (Style&8)==8 ) Opt+="b"; else Opt+="bc";
         }
+        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); //absolute value
-        a->smin ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); 
+        a->smaj (0.0, (PLFLT)TickLen); //relative value
+        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
         if ( Log ) Opt+="l";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
@@ -3084,15 +3087,18 @@ namespace lib
 
       if (TickLayout==0)
       {
+        a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
+        a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->wid(Thick);
         //ticks or grid eventually with style and length:
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
+        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); //absolute value
-        a->smin ((PLFLT)(TickLen*OtherAxisSizeInMm),1.0); 
+        a->smaj (0.0, (PLFLT)TickLen); //relative value
+        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
         if ( Log ) Opt+="l";
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
