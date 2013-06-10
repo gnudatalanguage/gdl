@@ -315,12 +315,29 @@ AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot 
 
 dnl recent plplot (5.9.9-4) in Debian unstable version have hidden symbols
 
-AC_CHECK_LIB(plplotcxxd, plP_mmpcx, 
-     	[AC_DEFINE([HAVE_PLPLOT_BEFORE_5994], [1], [plplot 5994 library])],
+AC_CHECK_LIB(plplotcxxd,  c_plslabelfunc,
+     	[AC_DEFINE([HAVE_PLPLOT_SLABELFUNC], [1], [plplot slabel library])],
 	[
 	echo ""
-	echo "Warning ! limited features in XYOUTS in GDL due to private symbols in plplot lib ..."
-	echo ""        
+	echo "Warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported."
+	echo "you should upgrade to plplot version > 5.9.6"
+	echo ""
+	])
+
+AC_CHECK_LIB(plplotcxxd,  plstrl,
+     	[AC_DEFINE([PLPLOT_PRIVATE_NOT_HIDDEN], [1], [plplot private pb. library])],
+	[
+	echo ""
+	echo "Using a plplot library without private functions - workarounds will be used."
+	echo ""
+	])
+
+AC_CHECK_LIB(plplotcxxd, c_pllegend,
+     	[AC_DEFINE([PLPLOT_HAS_LEGEND], [1], [plplot private pb. library])],
+	[
+	echo ""
+	echo "Your plplot lib is too old for some gdl functions, please upgrade."
+	echo ""
 	])
 
 if test "x$with_Magick" != "xno"; then
