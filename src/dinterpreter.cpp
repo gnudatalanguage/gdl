@@ -645,6 +645,11 @@ void AppendExtension( string& argstr)
     }
 }
 
+DInterpreter::CommandCode DInterpreter::CmdReset()
+{
+  RetAll( RetAllException::RESET);
+}
+
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 {
   string cmdstr = command;
@@ -825,8 +830,9 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RESET_SESSION"))
     {
-      cout << "RESET_SESSION not implemented yet." << endl;
-      return CC_OK;
+      return CmdReset();
+//       cout << "RESET_SESSION not implemented yet." << endl;
+//       return CC_OK;
     }
   if( cmd( "RNEW"))
     {
@@ -1646,6 +1652,23 @@ historyIntialized = true;
     catch( RetAllException& retAllEx)
       {
 	runCmd = (retAllEx.Code() == RetAllException::RUN);
+	bool resetCmd = (retAllEx.Code() == RetAllException::RESET);
+	if( resetCmd)
+	{
+	  delete callStack.back();
+	  callStack.pop_back();
+	  assert( callStack.empty());
+	  
+	  ResetObjects();
+	  ResetHeap();
+	  
+	  InitGDL();
+
+	  // setup main level environment
+	  DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
+	  EnvUDT* mainEnv=new EnvUDT(NULL, mainPro);
+	  callStack.push_back(mainEnv);   // push main environment (necessary)
+	}
       }
     catch( exception& e)
       {

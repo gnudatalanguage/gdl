@@ -176,7 +176,7 @@ void Graphics::Init()
 
 void Graphics::DestroyDevices()
 {
-  Purge( deviceList);
+  PurgeContainer( deviceList);
   actDevice = NULL;
 }
 

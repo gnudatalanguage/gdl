@@ -133,6 +133,7 @@ return arrayIxArr[ ix];
 SizeT size() const { return sz;}
 void push_back( ArrayIndexT* aIx)
 {
+if( sz >= MAXRANK) // debug
 assert( sz < MAXRANK);
 arrayIxArr[ sz++] = aIx;
 }

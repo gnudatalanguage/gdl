@@ -73,12 +73,15 @@ enum DebugCode {
   DEBUG_STEPOVER= 4
 };
 
-template< class Container> void Purge( Container& s) 
+template< class Container> void PurgeContainer( Container& s) 
 {
   typename Container::iterator i;
   for(i = s.begin(); i != s.end(); ++i) 
-    { delete *i; *i = NULL;}
+    { delete *i;}// *i = NULL;}
+  s.clear();  
 }
+
+void InitGDL(); // defined in gdl.cpp
 
 void InitObjects();
 void ResetObjects();

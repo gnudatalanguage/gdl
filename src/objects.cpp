@@ -82,14 +82,21 @@ void ResetObjects()
 {
   Graphics::DestroyDevices();
 
-  Purge(sysVarList);
-  Purge(funList);
-  Purge(proList);
-  Purge(structList); // now deletes member subroutines (and they in turn common block references
-  // hence delete common blocks after structList
-  Purge(commonList);
-  // no purging of library
+  fileUnits.clear();
+  cerr << flush; cout << flush; clog << flush;
 
+  PurgeContainer(sysVarList);
+  PurgeContainer(funList);
+  PurgeContainer(proList);
+  PurgeContainer(structList); // now deletes member subroutines (and they in turn common block references
+  // hence delete common blocks after structList
+  PurgeContainer(commonList);
+  
+  // purge library (for .RESET_SESSION and .FULL_RESET_SESSION 
+  // (then InitGDL() can be called)
+  PurgeContainer(libFunList);
+  PurgeContainer(libProList);
+  
 #ifdef USE_PYTHON
   PythonEnd();
 #endif

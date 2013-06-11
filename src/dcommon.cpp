@@ -35,7 +35,7 @@ DCommon::DCommon(const string& n) : name(n)
 
 DCommon::~DCommon()
 {
-  Purge( var);
+  PurgeContainer( var);
 }
 
 void DCommon::AddVar(const string& v)

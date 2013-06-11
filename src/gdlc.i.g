@@ -201,8 +201,9 @@ protected:
     {
         public:
         enum ExCode {
-            NONE=0, // normal RETALL
-            RUN     // RETALL from .RUN command
+            NONE=0 // normal RETALL
+            ,RUN   // RETALL from .RUN command
+            ,RESET // RETALL from .RESET command
         };  
 
         private:
@@ -630,6 +631,21 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             (*ret)[ i++] = it->first;
         }
         return ret;
+    }
+
+
+    static void ResetHeap() // purges both heaps
+    {
+        for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
+        {
+           delete (*it).second.get();
+           heap.erase( it->first); 
+        }
+        for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
+        {
+            delete (*it).second.get();
+            objHeap.erase( it->first); 
+        }
     }
 
     // name of data

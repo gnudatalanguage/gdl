@@ -1214,8 +1214,18 @@ numeric_constant!//
 	;
 
 arrayindex_list
+{		
+    int rank = 1;
+}
 	: LSQUARE! arrayindex (COMMA! arrayindex)* RSQUARE!
-	| LBRACE! arrayindex (COMMA! arrayindex)* RBRACE!
+	| LBRACE! arrayindex 
+        ({++rank <= MAXRANK}? COMMA! arrayindex
+            // {   // this is needed here because an ARRAYEXPR_FN which 
+            //     // is a function call might have more paremeters
+            //     if( 
+            //         throw antlr::NoViableAltException(LT(1), getFilename());
+            // }
+        )* RBRACE!
 	;	
 
 all!
@@ -1605,11 +1615,17 @@ primary_expr
             }
 		| 
             // still ambiguity (arrayexpr or fcall)
-            var arrayindex_list     // array_expr_fn
+        (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
             { 
 //             std::cout << "***(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 2" << std::endl;
 
                 #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);}
+        |   // if arrayindex_list failed (due to to many indices)
+            // this must be a function call
+            formal_function_call
+			{ 
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
+            }
 // 	  		( parent=member_function_call
 // 				{ 
 //                     if( parent)
