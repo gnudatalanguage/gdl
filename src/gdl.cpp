@@ -107,6 +107,8 @@ void AtExit()
   // clean up everything
   // (for debugging memory leaks)
   ResetObjects();
+  PurgeContainer(libFunList);
+  PurgeContainer(libProList);
 }
 
 void InitGDL()

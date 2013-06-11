@@ -92,10 +92,9 @@ void ResetObjects()
   // hence delete common blocks after structList
   PurgeContainer(commonList);
   
-  // purge library (for .RESET_SESSION and .FULL_RESET_SESSION 
-  // (then InitGDL() can be called)
-  PurgeContainer(libFunList);
-  PurgeContainer(libProList);
+  // don't purge library here
+//   PurgeContainer(libFunList);
+//   PurgeContainer(libProList);
   
 #ifdef USE_PYTHON
   PythonEnd();

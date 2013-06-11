@@ -266,7 +266,9 @@ throw GDLException( str);
 
 void WarnAboutObsoleteRoutine(const string& name)
 {
-  static DStructGDL* warnStruct = SysVar::Warn();
+  // no static here due to .RESET_SESSION
+  DStructGDL* warnStruct = SysVar::Warn();
+  // this static is ok as it will evaluate always to the same value
   static unsigned obs_routinesTag = warnStruct->Desc()->TagIndex( "OBS_ROUTINES");
   if (((static_cast<DByteGDL*>( warnStruct->GetTag(obs_routinesTag, 0)))[0]).LogTrue())
     Message("Routine compiled from an obsolete library: " + name);
@@ -276,15 +278,17 @@ void WarnAboutObsoleteRoutine(const string& name)
 void WarnAboutObsoleteRoutine(const RefDNode eN, const string& name)
 {
 // TODO: journal?
-  static DStructGDL* warnStruct = SysVar::Warn();
+  // no static here due to .RESET_SESSION
+  DStructGDL* warnStruct = SysVar::Warn();
+  // this static is ok as it will evaluate always to the same value
   static unsigned obs_routinesTag = warnStruct->Desc()->TagIndex( "OBS_ROUTINES");
   if (((static_cast<DByteGDL*>( warnStruct->GetTag(obs_routinesTag, 0)))[0]).LogTrue())
   {
     GDLException* e = new GDLException(eN, 
       "Routine compiled from an obsolete library: " + name
-    );  
+    );
+    Guard<GDLException> eGuard(e);
     GDLInterpreter::ReportCompileError(*e, "");
-//                              TODO: file /\
-    delete e;
+// TODO: file 
   }
 }

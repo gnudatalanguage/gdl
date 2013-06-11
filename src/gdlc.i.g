@@ -204,6 +204,7 @@ protected:
             NONE=0 // normal RETALL
             ,RUN   // RETALL from .RUN command
             ,RESET // RETALL from .RESET command
+            ,FULL_RESET // RETALL from .FULL_RESET command
         };  
 
         private:

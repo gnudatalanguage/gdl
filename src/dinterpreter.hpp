@@ -92,6 +92,7 @@ private:
   CommandCode CmdCompile(const std::string& command);
   CommandCode CmdRun(const std::string& command);
   CommandCode CmdReset();
+  CommandCode CmdFullReset();
 
   // execute OS shell command (interactive shell if command == "") 
   static void ExecuteShellCommand(const std::string& command);

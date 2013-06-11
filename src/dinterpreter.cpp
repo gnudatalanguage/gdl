@@ -68,6 +68,8 @@ DLong                   GDLInterpreter::stepCount;
 ProgNode GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
+void LibInit(); // defined in libinit.cpp
+
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
 //  DataStackT::Init();
@@ -649,6 +651,10 @@ DInterpreter::CommandCode DInterpreter::CmdReset()
 {
   RetAll( RetAllException::RESET);
 }
+DInterpreter::CommandCode DInterpreter::CmdFullReset()
+{
+  RetAll( RetAllException::FULL_RESET);
+}
 
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 {
@@ -806,8 +812,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "FULL_RESET_SESSION"))
     {
-      cout << "FULL_RESET_SESSION not implemented yet." << endl;
-      return CC_OK;
+      return CmdFullReset();
     }
   if( cmd( "GO"))
     {
@@ -831,8 +836,6 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
   if( cmd( "RESET_SESSION"))
     {
       return CmdReset();
-//       cout << "RESET_SESSION not implemented yet." << endl;
-//       return CC_OK;
     }
   if( cmd( "RNEW"))
     {
@@ -1653,18 +1656,31 @@ historyIntialized = true;
       {
 	runCmd = (retAllEx.Code() == RetAllException::RUN);
 	bool resetCmd = (retAllEx.Code() == RetAllException::RESET);
-	if( resetCmd)
+	bool fullResetCmd = (retAllEx.Code() == RetAllException::FULL_RESET);
+	if( resetCmd || fullResetCmd)
 	{
+	  // remove $MAIN$
 	  delete callStack.back();
 	  callStack.pop_back();
 	  assert( callStack.empty());
 	  
 	  ResetObjects();
 	  ResetHeap();
+	  if( fullResetCmd)
+	  {
+	    PurgeContainer(libFunList);
+	    PurgeContainer(libProList);
+	  }
+	  // initially done in InitGDL()
+	  // initializations
+	  InitObjects();
+	  // init library functions
+	  if( fullResetCmd)
+	  {
+	      LibInit(); 
+	  }
 	  
-	  InitGDL();
-
-	  // setup main level environment
+	  // initially done in constructor: setup main level environment
 	  DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
 	  EnvUDT* mainEnv=new EnvUDT(NULL, mainPro);
 	  callStack.push_back(mainEnv);   // push main environment (necessary)

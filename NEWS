@@ -589,4 +589,6 @@
               - Added cursor-related functions TVCRS and command EMPTY. 
               - Added DEVICE options CURSOR_CROSSHAIR, CURSOR_STANDARD, CURSOR_ORIGINAL and GET/SET_GRAPHICS_FUNCTION (GXoR, GXand, etc). 
               - Disabled by default the focus in the X11 graphics windows as IDL does and repositioned WINDOWS by default to top-right of screen.
-           - when compiled with Eigen3 library, significant speed improvement in MATRIX_MULTIPLY() (not available now for # operator), especially on multi-cores.
+              - when compiled with Eigen3 library, significant speed improvement in MATRIX_MULTIPLY() (not available now for # operator), especially on multi-cores.
+	      - .RESET_SESSION and .FULL_RESET_SESSION commands
+
