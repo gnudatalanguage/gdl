@@ -196,7 +196,7 @@ namespace lib {
        else
          S=new DStringGDL("");
 
-       delete st;
+       delete[] st;
 
        return S;
       }
