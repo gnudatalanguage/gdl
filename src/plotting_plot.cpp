@@ -56,13 +56,11 @@ private:
     zValue=min(zValue,0.999999); //to avoid problems with plplot
     zValue=max(zValue,0.0);
 
-    bool polar = FALSE;
-    DLong nsum = 1;
+    // system variable !P.NSUM first
+    DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
     e->AssureLongScalarKWIfPresent("NSUM", nsum);
-    if (e->KeywordSet("POLAR"))
-    {
-      polar = TRUE;
-    }
+
+    bool polar = (e->KeywordSet("POLAR"));
 
     DDoubleGDL *yValBis, *xValBis;
     Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
