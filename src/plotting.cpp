@@ -807,6 +807,15 @@ namespace lib
     // Get !P.position default values
     static unsigned positionTag=SysVar::P()->Desc()->TagIndex("POSITION");
     for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(positionTag, 0)))[i];
+    // if needed, get !P.region
+    
+    //cout << "x: "<< positionP[0] <<" "<< positionP[2] <<", y: " << positionP[1] <<" "<< positionP[3]<<endl;
+
+    if ((positionP[0] == positionP[2]) || (positionP[1] == positionP[3])) {
+      static unsigned regionTag=SysVar::P()->Desc()->TagIndex("REGION");
+      for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(regionTag, 0)))[i];
+    }
+
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet( "DATA")) coordinateSystem=DATA;
     if ( e->KeywordSet( "DEVICE")) coordinateSystem=DEVICE;
@@ -941,11 +950,19 @@ namespace lib
     static PLFLT positionP[4]={0, 0, 0, 0};
     static PLFLT position[4]={0,0,1,1};
     DStructGDL* pStruct=SysVar::P();
-    // Get !P.position values
+    // Get !P.position values, the precedence is: keyword POSITION=, then !P.position, then !P.region
     if ( pStruct!=NULL )
     {
       static unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
       for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(positionTag, 0)))[i];
+      //      cout << "x: "<< positionP[0] <<" "<< positionP[2] <<", y: " << positionP[1] <<" "<< positionP[3]<<endl;
+
+      // When !p.position is Zero or without range, must look at !P.region
+      if ((positionP[0] == positionP[2]) || (positionP[1] == positionP[3])) {
+	static unsigned regionTag=SysVar::P()->Desc()->TagIndex("REGION");
+	for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(regionTag, 0)))[i];
+      }	
+
     }
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet( "DATA")) coordinateSystem=DATA;
@@ -1756,7 +1773,11 @@ namespace lib
     // system variable
     static DStructGDL* pStruct=SysVar::P();
     pos=static_cast<DFloatGDL*>(pStruct-> GetTag(pStruct->Desc()->TagIndex("POSITION"), 0));
-    if ( (*pos)[0]==(*pos)[2] ) pos=NULL; //ignored
+    if ( (*pos)[0]==(*pos)[2] )
+      { 
+	pos=static_cast<DFloatGDL*>(pStruct-> GetTag(pStruct->Desc()->TagIndex("REGION"), 0));
+	if ( (*pos)[0]==(*pos)[2] ) pos=NULL; //ignored
+      }
 
     // keyword
     if ( pos==NULL )
