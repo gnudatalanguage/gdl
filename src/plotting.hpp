@@ -197,6 +197,17 @@ namespace lib {
       if (actStream == NULL) e->Throw("Unable to create window.");
       isDB = actStream->hasDoubleBuffering();
       if (isDB) actStream->setDoubleBuffering();
+      DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+      if (name == "X") 
+      {       
+          actStream->updatePageInfo(); //since window size can change
+          long xsize,ysize,xoff,yoff;
+          actStream->GetGeometry(xsize,ysize,xoff,yoff);
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
+      }
       old_body(e, actStream); // TODO: to be removed!
       call_plplot(e, actStream);
 

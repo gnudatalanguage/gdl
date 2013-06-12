@@ -584,8 +584,6 @@ namespace lib
     e->AssureFloatScalarKWIfPresent("SYMSIZE", symsize);
     if ( symsize<=0.0 ) symsize=1.0;
     
-    a->updatePageInfo(); a->UpdateCurrentCharWorldSize();
-
     UsymConvX=(0.5*symsize*(a->wCharLength()/a->charScale())); //be dependent only on symsize!
     UsymConvY=(0.5*symsize*(a->wCharHeight()/a->charScale()));
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetUserSymSize(%f,%f)\n",a->wCharLength(),a->wCharHeight());
@@ -807,15 +805,6 @@ namespace lib
     // Get !P.position default values
     static unsigned positionTag=SysVar::P()->Desc()->TagIndex("POSITION");
     for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(positionTag, 0)))[i];
-    // if needed, get !P.region
-    
-    //cout << "x: "<< positionP[0] <<" "<< positionP[2] <<", y: " << positionP[1] <<" "<< positionP[3]<<endl;
-
-    if ((positionP[0] == positionP[2]) || (positionP[1] == positionP[3])) {
-      static unsigned regionTag=SysVar::P()->Desc()->TagIndex("REGION");
-      for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(regionTag, 0)))[i];
-    }
-
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet( "DATA")) coordinateSystem=DATA;
     if ( e->KeywordSet( "DEVICE")) coordinateSystem=DEVICE;
@@ -948,22 +937,33 @@ namespace lib
     static PLFLT aspect=0.0;
 
     static PLFLT positionP[4]={0, 0, 0, 0};
+    static PLFLT regionP[4]={0, 0, 0, 0};
     static PLFLT position[4]={0,0,1,1};
     DStructGDL* pStruct=SysVar::P();
-    // Get !P.position values, the precedence is: keyword POSITION=, then !P.position, then !P.region
+    // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if ( pStruct!=NULL )
     {
+      
+      static unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
+      for ( SizeT i=0; i<4; ++i ) regionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(regionTag, 0)))[i];
       static unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
       for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(positionTag, 0)))[i];
-      //      cout << "x: "<< positionP[0] <<" "<< positionP[2] <<", y: " << positionP[1] <<" "<< positionP[3]<<endl;
-
-      // When !p.position is Zero or without range, must look at !P.region
-      if ((positionP[0] == positionP[2]) || (positionP[1] == positionP[3])) {
-	static unsigned regionTag=SysVar::P()->Desc()->TagIndex("REGION");
-	for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(regionTag, 0)))[i];
-      }	
-
     }
+    if (regionP[0]!=regionP[2] && positionP[0]==positionP[2]) //if not ignored, and will be used, as 
+                //a surrogate of !P.Position:
+    {
+        //compute position removing margins
+        positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
+        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
+        positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
+        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
+    }
+    //compatibility: Position NEVER outside [0,1]:
+    positionP[0]=max(0.0,positionP[0]);
+    positionP[1]=max(0.0,positionP[1]);
+    positionP[2]=min(1.0,positionP[2]);
+    positionP[3]=min(1.0,positionP[3]);
+    
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet( "DATA")) coordinateSystem=DATA;
     if ( e->KeywordSet( "DEVICE")) coordinateSystem=DEVICE;
@@ -1770,14 +1770,10 @@ namespace lib
 
     DFloatGDL* pos=NULL;
 
-    // system variable
+    // system variable !P.REGION first
     static DStructGDL* pStruct=SysVar::P();
     pos=static_cast<DFloatGDL*>(pStruct-> GetTag(pStruct->Desc()->TagIndex("POSITION"), 0));
-    if ( (*pos)[0]==(*pos)[2] )
-      { 
-	pos=static_cast<DFloatGDL*>(pStruct-> GetTag(pStruct->Desc()->TagIndex("REGION"), 0));
-	if ( (*pos)[0]==(*pos)[2] ) pos=NULL; //ignored
-      }
+    if ( (*pos)[0]==(*pos)[2] ) pos=NULL; //ignored
 
     // keyword
     if ( pos==NULL )
@@ -2074,27 +2070,34 @@ namespace lib
     }
   }
 
-  //S to struct
+  //Stores [XYZ].WINDOW, .REGION and .S
   void gdlStoreAxisSandWINDOW(GDLGStream* actStream, string axis, DDouble Start, DDouble End, bool log)
   {
-    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, min, max;
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) {Struct=SysVar::X(); min=p_xmin, max=p_xmax;}
-    if ( axis=="Y" ) {Struct=SysVar::Y(); min=p_ymin, max=p_ymax;}
-    if ( axis=="Z" ) {Struct=SysVar::Z(); min=0, max=1;}
+    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
+    if ( axis=="Y" ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
+    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
     if ( Struct!=NULL )
     {
+      unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+      DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
+      DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
+      static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+      (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
+      (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
+
       if ( log ) {Start=log10(Start); End=log10(End);}
       static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
-      static unsigned sTag=Struct->Desc()->TagIndex("S");
-      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=min;
-      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=max;
+      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
+      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
 
+      static unsigned sTag=Struct->Desc()->TagIndex("S");
       (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-      (min*End-max*Start)/(End-Start);
+      (norm_min*End-norm_max*Start)/(End-Start);
       (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-      (max-min)/(End-Start);
+      (norm_max-norm_min)/(End-Start);
     }
   }
 
