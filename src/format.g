@@ -176,7 +176,7 @@ rep_fmt [ int repeat]
     | b:B w_d  [ #b] { #b->setRep( repeat);}
     | z:Z w_d  [ #z] { #z->setRep( repeat);}
     | zz:ZZ w_d  [ #zz] { #zz->setRep( repeat);}
-    | c:C^ RBRACE! csub LBRACE! { #c->setRep( repeat);}
+    | c:C^ LBRACE! csub RBRACE! { #c->setRep( repeat);}
     ;   
 
 csub

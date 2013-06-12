@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20110618): "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.7 (20120518): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -883,10 +883,10 @@ void FMTParser::rep_fmt(
 		c_AST = astFactory->create(c);
 		astFactory->makeASTRoot(currentAST, antlr::RefAST(c_AST));
 		match(C);
-		match(RBRACE);
+		match(LBRACE);
 		csub();
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		match(LBRACE);
+		match(RBRACE);
 		c_AST->setRep( repeat);
 		rep_fmt_AST = RefFMTNode(currentAST.root);
 		break;
@@ -928,7 +928,6 @@ void FMTParser::w_d(
 			fNode->setD( n2);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
 		case RBRACE:
 		case SLASH:
@@ -944,7 +943,6 @@ void FMTParser::w_d(
 		}
 		break;
 	}
-	case LBRACE:
 	case COMMA:
 	case RBRACE:
 	case SLASH:
@@ -1091,8 +1089,8 @@ void FMTParser::csubcode() {
 			c1_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1120,8 +1118,8 @@ void FMTParser::csubcode() {
 			c2_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1149,8 +1147,8 @@ void FMTParser::csubcode() {
 			c3_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1200,8 +1198,8 @@ void FMTParser::csubcode() {
 			c6_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1229,8 +1227,8 @@ void FMTParser::csubcode() {
 			c7_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1258,8 +1256,8 @@ void FMTParser::csubcode() {
 			c8_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1287,8 +1285,8 @@ void FMTParser::csubcode() {
 			c9_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1316,8 +1314,8 @@ void FMTParser::csubcode() {
 			c10_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1345,8 +1343,8 @@ void FMTParser::csubcode() {
 			c11_AST->setW( n1);
 			break;
 		}
-		case LBRACE:
 		case COMMA:
+		case RBRACE:
 		{
 			break;
 		}
@@ -1490,14 +1488,13 @@ void FMTParser::csubcode() {
 
 void FMTParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(77);
+	factory.setMaxNodeType(76);
 }
 const char* FMTParser::tokenNames[] = {
 	"<0>",
 	"EOF",
 	"<2>",
 	"NULL_TREE_LOOKAHEAD",
-	"ALL",
 	"CSTR",
 	"CSTR1",
 	"CSTR2",
@@ -1574,7 +1571,7 @@ const char* FMTParser::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTParser::_tokenSet_0_data_[] = { 3758096384UL, 2048UL, 16UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTParser::_tokenSet_0_data_[] = { 1879048192UL, 1024UL, 8UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA RBRACE SLASH E NUMBER 
 const antlr::BitSet FMTParser::_tokenSet_0(_tokenSet_0_data_,8);
 

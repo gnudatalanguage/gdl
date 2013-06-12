@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20110618): "format.in.g" -> "FMTIn.cpp"$ */
+/* $ANTLR 2.7.7 (20120518): "format.in.g" -> "FMTIn.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -836,7 +836,6 @@ const char* FMTIn::tokenNames[] = {
 	"EOF",
 	"<2>",
 	"NULL_TREE_LOOKAHEAD",
-	"ALL",
 	"CSTR",
 	"CSTR1",
 	"CSTR2",
@@ -913,10 +912,10 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 2214592512UL, 261631UL, 0UL, 0UL };
 // FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 2147483648UL, 4294705219UL, 7UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);
