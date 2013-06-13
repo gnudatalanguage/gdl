@@ -185,7 +185,9 @@ namespace lib {
         return new DDoubleGDL(Gregorian2Julian(tstruct));
     else 
       {
-       char *st=new char[MAX_DATE_STRING_LENGTH];
+       char st[MAX_DATE_STRING_LENGTH];
+//        char *st=new char[MAX_DATE_STRING_LENGTH];
+//        ArrayGuard<char> stGuard( st);
        const char *format="%a %h %d %T %Y";//my IDL date format.
        DStringGDL *S;
 
@@ -196,7 +198,7 @@ namespace lib {
        else
          S=new DStringGDL("");
 
-       delete[] st;
+       //delete st; should have been delete[]
 
        return S;
       }
