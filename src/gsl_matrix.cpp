@@ -38,9 +38,9 @@ namespace lib {
 
   using namespace std;
 
-  const int szdbl=sizeof(double);
-  const int szflt=sizeof(float);
-  const int szlng=sizeof(long);
+  const int szdbl=sizeof(DDouble);
+  const int szflt=sizeof(DFloat);
+  const int szlng=sizeof(DLong);
 
   void ludc_pro( EnvT* e)
   {

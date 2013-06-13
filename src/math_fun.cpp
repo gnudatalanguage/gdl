@@ -125,7 +125,7 @@ namespace lib {
 	gsl_matrix *aGSL = gsl_matrix_alloc( m, n);
 	GDLGuard<gsl_matrix> g1( aGSL, gsl_matrix_free);
 	if( !columnKW)
-	  memcpy(aGSL->data, &(*AA)[0], nEl*sizeof( double));
+	  memcpy(aGSL->data, &(*AA)[0], nEl*sizeof( DDouble));
 	else
 	  TransposeFromToGSL< DDouble, double>( &(*AA)[0], aGSL->data, AA->Dim( 0), nEl);
 
@@ -145,7 +145,7 @@ namespace lib {
 	// U
 	DDoubleGDL* U = new DDoubleGDL( AA->Dim(), BaseGDL::NOZERO);
 	if( !columnKW)
-	  memcpy( &(*U)[0], uGSL->data, nEl*sizeof( double));
+	  memcpy( &(*U)[0], uGSL->data, nEl*sizeof( DDouble));
 	else
 	  TransposeFromToGSL< double, DDouble>( uGSL->data, &(*U)[0], U->Dim( 1), nEl);
 // 	gsl_matrix_free( uGSL);
@@ -154,7 +154,7 @@ namespace lib {
 	// V
 	DDoubleGDL* V = new DDoubleGDL( dimension( n, n), BaseGDL::NOZERO);
 	if( !columnKW)
-	  memcpy( &(*V)[0], vGSL->data, n*n*sizeof( double));
+	  memcpy( &(*V)[0], vGSL->data, n*n*sizeof( DDouble));
 	else
 	  TransposeFromToGSL< double, DDouble>( vGSL->data, &(*V)[0], n, n*n);
 // 	gsl_matrix_free( vGSL);
@@ -162,7 +162,7 @@ namespace lib {
 
 	// W
 	DDoubleGDL* W = new DDoubleGDL( dimension( n), BaseGDL::NOZERO);
-	memcpy( &(*W)[0], wGSL->data, n*sizeof( double));
+	memcpy( &(*W)[0], wGSL->data, n*sizeof( DDouble));
 // 	gsl_vector_free( wGSL);
 	e->SetPar( 1, W);
       }

@@ -35,8 +35,8 @@ namespace lib {
 
   using namespace std;
 
-  static int szdbl=sizeof(double);
-  static int szflt=sizeof(float);
+//   static int szdbl=sizeof(double);
+//   static int szflt=sizeof(float);
 
   template < typename T>
   T* fftw_template(BaseGDL* p0,

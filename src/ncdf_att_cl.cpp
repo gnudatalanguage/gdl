@@ -253,7 +253,7 @@ namespace lib {
           status = nc_get_att_short(cdfid, varid, attname.c_str(), sp);
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", sp);
           temp = length == 1 ? new DIntGDL(BaseGDL::NOZERO) : new DIntGDL(dim, BaseGDL::NOZERO);
-          memcpy(&(*static_cast<DIntGDL*>(temp))[0], &(*sp), length * sizeof(short));	      
+          memcpy(&(*static_cast<DIntGDL*>(temp))[0], &(*sp), length * sizeof(DInt));	      
           delete sp;
           break;
         }
@@ -263,7 +263,7 @@ namespace lib {
           status=nc_get_att_float(cdfid, varid, attname.c_str(), fp);
           ncdf_att_handle_error(e,status,"NCDF_ATTGET",fp);
           temp = length == 1 ? new DFloatGDL(BaseGDL::NOZERO) : new DFloatGDL(dim, BaseGDL::NOZERO);
-          memcpy(&(*static_cast<DFloatGDL*>(temp))[0], &(*fp), length * sizeof(float));	      
+          memcpy(&(*static_cast<DFloatGDL*>(temp))[0], &(*fp), length * sizeof(DFloat));	      
           delete fp;
           break;
         }
@@ -273,7 +273,7 @@ namespace lib {
           status = nc_get_att_double(cdfid, varid, attname.c_str(), dp);
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", dp);
           temp = length == 1 ? new DDoubleGDL(BaseGDL::NOZERO) : new DDoubleGDL(dim, BaseGDL::NOZERO);
-          memcpy(&(*static_cast<DDoubleGDL*>(temp))[0], &(*dp), length * sizeof(double));	      	 
+          memcpy(&(*static_cast<DDoubleGDL*>(temp))[0], &(*dp), length * sizeof(DDouble));	      	 
           delete dp;
           break;
         }
@@ -283,7 +283,7 @@ namespace lib {
           status = nc_get_att_uchar(cdfid, varid, attname.c_str(), bp);
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", bp);
           temp = length == 1 ? new DByteGDL(BaseGDL::NOZERO) : new DByteGDL(dim, BaseGDL::NOZERO);
-          memcpy(&(*static_cast<DByteGDL*>(temp))[0], &(*bp), length * sizeof(unsigned char));	      	 
+          memcpy(&(*static_cast<DByteGDL*>(temp))[0], &(*bp), length * sizeof(DByte));	      	 
           delete bp;
           break;
         }
