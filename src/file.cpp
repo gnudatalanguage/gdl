@@ -419,6 +419,7 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 0, dir);
    
     WordExp( dir);
+    //	  cout<< dir<<endl;
      
 //     // expand tilde
 //     if( dir[0] == '~')
@@ -431,6 +432,7 @@ namespace lib {
 //       }
 
     int success = chdir( dir.c_str());
+    //      cout<<success<<endl;
     if( success != 0)
       e->Throw( "Unable to change current directory to: "+dir+".");
   }
@@ -1323,7 +1325,9 @@ DString makeInsensitive(const DString &s)
       for (int j=0; j<pi->N_Elements(); j++)
       {
         string tmp = (*pi)[j];
-        if (!noexpand_path) WordExp(tmp);
+	//	cout<<tmp<<"--tmp\n";
+         if (!noexpand_path) WordExp(tmp);
+	 tmp="'"+tmp+"'";
         cmd.append(" " + tmp);
       }
     }
@@ -1332,6 +1336,7 @@ DString makeInsensitive(const DString &s)
 #endif
     // SA: calling system(), mkdir and awk is surely not the most efficient way, 
     //     but copying a bunch of code from coreutils does not seem elegant either
+    //    system("echo 'hello world'");
     if (system(cmd.c_str()) != 0) e->Throw("failed to create a directory (or execute mkdir).");
   }
 
