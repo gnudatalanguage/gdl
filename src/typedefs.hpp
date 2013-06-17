@@ -281,6 +281,9 @@ public:
   }
 };
 
+
+
+
 // like auto_ptr but for arrays (delete[] is used upon destruction)
 template <class T>
 class ArrayGuard
@@ -481,23 +484,26 @@ typedef ExprListT::iterator ExprListIterT;
 //
 // GDLGuard< gsl_matrix> gsl_matrix_guard( matrix, gsl_matrix_free);
 // (of course no explicit call to the gsl-cleanup function must be done anymore)
-template< typename GSLType, typename cleanupReturnType=void>
+template< typename GSLType, typename cleanupReturnType=void, typename cleanupArgType=GSLType>
 class GDLGuard
 {
   GSLType* gslObject;
   
-  cleanupReturnType (*gslDestructor)(GSLType*);
+  // note: cleanupArgType must be GSLType, 
+  // except for free( void*) with GSLType==void* 
+  // where it must be void
+  cleanupReturnType (*gslDestructor)(cleanupArgType*);
   
   GDLGuard() {}
   
 public:
   GDLGuard( void (*d)(GSLType*)): gslObject( NULL), gslDestructor(d) {}
-  GDLGuard( GSLType* o, cleanupReturnType (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
+  GDLGuard( GSLType* o, cleanupReturnType (*d)(cleanupArgType*)): gslObject( o), gslDestructor(d) {}
   ~GDLGuard()
   {
     (*gslDestructor)( gslObject);
   }
-  void Set( GSLType* o)
+  void Init( GSLType* o)
   {
     assert( gslObject == NULL);
     gslObject = o;

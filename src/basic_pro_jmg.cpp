@@ -341,10 +341,11 @@ namespace lib {
 	e->Throw("Conflicting keywords ALL_VALUE and ALL_GDL");
     }
 
-    short* byValue = (short*) malloc( (nParam-2) * sizeof(short) );
-    if (byValue == NULL) {
-	e->Throw("Internal error allocating memory for byValue");
-    }
+//     short* byValue = (short*) malloc( (nParam-2) * sizeof(short) );
+//     if (byValue == NULL) {
+// 	e->Throw("Internal error allocating memory for byValue");
+//     }
+    vector<short> byValue(nParam-2,0);
 
     for (SizeT i=0; i<nParam-2;i++) {
 	byValue[i] = flagAllValue ? 1 : flagAllGdl ? -1 : 0;
@@ -368,11 +369,13 @@ namespace lib {
     e->AssureStringScalarPar( (SizeT)1, entry);
 
     int argc      = nParam-2;
+    // must be void** for dl... stuff
     void **argv   = (void**)malloc((nParam-2) * sizeof(void*) );
     if (argv == NULL) {
 	e->Throw("Internal error allocating memory for argv");
     }
-
+    GDLGuard<void*,void,void> argvGuard(argv, free);
+    
     // Fill argv with the parameters
 
     for(SizeT i =2; i < nParam; i++){
@@ -392,7 +395,7 @@ namespace lib {
 			     + e->GetParString(i)
 		    );
 		}
-		memcpy(argv+i-2, (void*) par->DataAddr(), par->Sizeof());
+		memcpy(argv[i-2], (void*) par->DataAddr(), par->Sizeof());
 	    }
 	    else if (pType == GDL_STRING) {
 		argv[i-2] = (void*) (*(DStringGDL*)(par))[0].c_str();
@@ -505,7 +508,8 @@ namespace lib {
 	}
     }
 
-    free(argv);
+    // now guarded. s. a.
+    //free(argv);
 
     // Return the return value
 

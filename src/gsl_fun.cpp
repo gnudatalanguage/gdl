@@ -1219,7 +1219,7 @@ namespace lib {
 	    seed0 = (*p0L)[ 0];	    
 
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
-	    rGuard.Set( r);
+	    rGuard.Init( r);
 	    gsl_rng_set (r, seed0);
 
 	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
@@ -1238,7 +1238,7 @@ namespace lib {
 	      }
 
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
-	    rGuard.Set( r);
+	    rGuard.Init( r);
 	    gsl_rng_set (r, seed0);
 
 	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
@@ -1256,7 +1256,7 @@ namespace lib {
 	seed0 = (*seed)[0];
 
 	r = gsl_rng_alloc (gsl_rng_mt19937);
-	rGuard.Set( r);
+	rGuard.Init( r);
 
 	// AC 2012/10/02  need to comment that to avoid crash when "seed" is set outside
 	// GDLGuard<gsl_rng> g1( r, gsl_rng_free);

@@ -46,7 +46,7 @@ protected:
   SizeT nBytes = tags.back()->NBytes();
 
   // alignment 
-#ifdef USE_EIGEN3
+#ifdef USE_EIGEN
   assert( sizeof( char*) <= 16); 
   const int alignmentInBytes = 16; // set to multiple of 16 >= sizeof( char*)
 #else
