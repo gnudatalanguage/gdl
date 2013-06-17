@@ -2643,6 +2643,8 @@ TRACEOMP( __FILE__, __LINE__)
     //BaseGDL** ret[nParam - 1];
     BaseGDL*** ret;
     ret = (BaseGDL***)malloc((nParam-1)*sizeof(BaseGDL**));
+    GDLGuard<BaseGDL**,void,void> retGuard( ret, free);
+    
     for (int i = nParam - 2; i >= 0; i--) if (global[i]) 
     {
       ret[i] = &e->GetPar(i + 1);
@@ -2722,7 +2724,8 @@ TRACEOMP( __FILE__, __LINE__)
       if (global[6 - 1]) 
         (*static_cast<DDoubleGDL*>(*ret[6 - 1]))[i] = F * 86400;
     }
-    free((void *)ret);
+    // now guarded. s. a.
+//     free((void *)ret);
   }
   
 } // namespace

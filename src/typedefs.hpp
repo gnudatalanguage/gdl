@@ -501,7 +501,7 @@ public:
   GDLGuard( GSLType* o, cleanupReturnType (*d)(cleanupArgType*)): gslObject( o), gslDestructor(d) {}
   ~GDLGuard()
   {
-    (*gslDestructor)( gslObject);
+    (*gslDestructor)( (cleanupArgType*)gslObject);
   }
   void Init( GSLType* o)
   {
