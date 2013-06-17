@@ -125,7 +125,7 @@ void Data_<Sp>::TestTemplateGrouping()
 #endif
 
 template<class Sp>
-deque< void*> Data_<Sp>::freeList;
+vector< void*> Data_<Sp>::freeList;
 
 #ifdef GDLARRAY_CACHE
 
@@ -274,6 +274,17 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 
   const size_t newSize = multiAlloc - 1;
 
+  static long callCount = 0;
+  ++callCount;
+  
+  // reserve space for all instances
+  // note that reserve must do an allocation
+  // this hack divides the number of those allocation
+  // (for the cost of initially larger allocation - but only for pointers)
+  const long allocDivider = 4;
+  freeList.reserve( ((callCount/allocDivider+1)*allocDivider-1)*multiAlloc);
+
+  // resize to what is needed now
   freeList.resize( newSize);
 
 #ifdef USE_EIGEN  

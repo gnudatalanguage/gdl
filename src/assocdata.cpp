@@ -26,32 +26,51 @@ using namespace std;
 
 
 template< class Parent_>
-deque< void*> Assoc_< Parent_>::freeList;
+vector< void*> Assoc_< Parent_>::freeList;
 
 template< class Parent_>
 void* Assoc_< Parent_>::operator new( size_t bytes)
 {
-	assert( bytes == sizeof( Assoc_< Parent_> ));
-	
-	if( freeList.size() > 0)
-	{
-		void* res = freeList.back();
-		freeList.pop_back();
-		return res;	
-	}
+  assert( bytes == sizeof( Assoc_< Parent_> ));
+  
+  if( freeList.size() > 0)
+  {
+    void* res = freeList.back();
+    freeList.pop_back();
+    return res;	
+  }
 
-//	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
+  const size_t newSize = multiAlloc - 1;
 
-	const size_t newSize = multiAlloc - 1;
-	freeList.resize( newSize);
-	char* res = static_cast< char*>( malloc( sizeof( Assoc_< Parent_>) * multiAlloc)); // one more than newSize
-	for( size_t i=0; i<newSize; ++i)
-	{
-		freeList[ i] = res;
-		res += sizeof( Assoc_< Parent_>);
-	} 
-	
-	return res;
+  static long callCount = 0;
+  ++callCount;
+
+  // reserve space for all instances
+  freeList.reserve( callCount*multiAlloc);
+
+  // resize to what is needed now
+  freeList.resize( newSize);
+
+#ifdef USE_EIGEN  
+  // we need this allocation here as well (as in typedefs.hpp), because GDLArray needs to be aligned
+  const int alignmentInBytes = 16; // set to multiple of 16 >= sizeof( char*)
+  const size_t realSizeOfType = sizeof( Assoc_< Parent_>);
+  const SizeT exceed = realSizeOfType % alignmentInBytes;
+  const size_t sizeOfType = realSizeOfType + (alignmentInBytes - exceed);
+  char* res = static_cast< char*>( Eigen::internal::aligned_malloc( sizeOfType * multiAlloc)); // one more than newSize
+#else
+  const size_t sizeOfType = sizeof( Assoc_< Parent_>);
+  char* res = static_cast< char*>( malloc( sizeOfType * multiAlloc)); // one more than newSize
+#endif
+  
+  for( size_t i=0; i<newSize; ++i)
+  {
+	  freeList[ i] = res;
+	  res += sizeOfType;
+  } 
+  
+  // the one more
+  return res;
 }
 
 template< class Parent_>

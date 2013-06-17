@@ -31,7 +31,7 @@ class Assoc_: public Parent_
 
 public:
 	// memory management optimization
-static std::deque< void*> freeList;
+static std::vector< void*> freeList;
 
 	// operator new and delete
 static 	void* operator new( size_t bytes);
