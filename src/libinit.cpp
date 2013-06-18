@@ -820,6 +820,7 @@ void LibInit()
   new DLibFun(lib::t_pdf,string("T_PDF"),2);
 
   new DLibPro(lib::caldat, string("CALDAT"), 7);
+  new DLibFun(lib::julday, string("JULDAY"), 6);
 
   // SA: the HYBRID key is used in imsl_zerosys.pro to switch to the modif. Powell algo. 
   const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", "HYBRID", KLISTEND };

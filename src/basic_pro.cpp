@@ -2727,5 +2727,110 @@ TRACEOMP( __FILE__, __LINE__)
     // now guarded. s. a.
 //     free((void *)ret);
   }
+
+  bool dateToJD(DDouble &jd, DLong &day, DLong &month, DLong &year, DLong &hour, DLong &minute, DDouble &second)
+  {   
+    if (year < -4716 || year > 5000000 || year==0 ) return false;
+    if (month < 1 || month > 12) return false;
+    if (day < 0 || day > 31) return false;
+    if (hour < 0 || hour > 24) return false;
+    if (minute < 0 || minute > 60) return false;
+    if (second < 0 || second > 60) return false;
+//    fprintf(stderr,"Day %d, Month %d Year %d, Hour %d Minute %d Second %f\n",
+//            day, month, year, hour, minute, second);
+    DDouble a,y,b,c;
+    DLong m;
+    y=(year>0)?year:year+1; //formula below is for *astronomical calendar* where year 0 exists.
+    // but it appears that we use here a calendar with no year 0
+    m=month;
+    b=0.0;
+    c=0.0;
+    if (month <= 2)
+    {
+      y=y-1.0;
+      m=m+12.;
+    }
+    if (y < 0)
+    {
+      c=-0.75;
+    } else {
+       if (year > 1582  ||  (year == 1582 &&  (month > 10  ||
+               (month == 10 && day > 14)))) {
+          a=floor(y/100.0);
+          b=2.0-a+floor(a/4.0);
+       } else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
+          jd= 2299161; //date does not move 
+          return true;
+       }
+    }
+    jd=ceil(365.25*y+c)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
+    (second*1.0)/86400.0+1720994.50+b;
+    return true;
+  }
   
+  BaseGDL* julday(EnvT* e)
+  {
+    if (!(e->NParam() == 3 || e->NParam() == 6)) {e->Throw("Incorrect number of arguments.");}
+
+    DLongGDL *Month, *Day, *Year, *Hour, *Minute;
+    DDoubleGDL* Second;
+    DDouble jd;
+    DLong h=12;
+    DLong m=0;
+    DDouble s=0.0;
+    SizeT nM,nD,nY,nH,nMi,nS,finalN=1,minsizePar;
+    dimension finalDim;
+    //behaviour: minimum set of dimensions of arrays. singletons expanded to dimension,
+    //keep array trace.
+    SizeT nEl,maxEl=1,minEl;
+    for (int i=0; i<e->NParam() ; ++i) {
+      nEl = e->GetPar(i)->N_Elements() ;
+      if (nEl > 1 && nEl > maxEl) {
+        maxEl=nEl;
+        finalN = maxEl;
+        finalDim = e->GetPar(i)->Dim();
+      }
+    } //first max - but we need first min:
+    minEl=maxEl;
+    for (int i=0; i<e->NParam() ; ++i) {
+      nEl = e->GetPar(i)->N_Elements() ;
+      if ( (nEl > 1) && (nEl < minEl)) {
+        minEl=nEl; 
+        finalN = minEl;
+        finalDim = e->GetPar(i)->Dim();
+      }
+    } //min not singleton
+    Month = e->GetParAs<DLongGDL>(0);
+    nM = Month->N_Elements();
+    Day = e->GetParAs<DLongGDL>(1);
+    nD = Day->N_Elements();
+    Year = e->GetParAs<DLongGDL>(2);
+    nY = Year->N_Elements();
+    if (e->NParam() == 3 ) {
+      DLongGDL *ret = new DLongGDL(finalDim, BaseGDL::NOZERO);
+      for (SizeT i=0; i< finalN; ++i) {
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],h,m,s)) {
+        (*ret)[i]=jd;
+        }
+        else e->Throw("Invalid Calendar Date input.");
+      }
+      return ret;
+    } else if (e->NParam() == 6) {
+      Hour = e->GetParAs<DLongGDL>(3);
+      nH = Hour->N_Elements();
+      Minute = e->GetParAs<DLongGDL>(4);
+      nMi = Minute->N_Elements();
+      Second = e->GetParAs<DDoubleGDL>(5);
+      nS = Second->N_Elements();
+      DDoubleGDL *ret = new DDoubleGDL(finalDim, BaseGDL::NOZERO);
+      for (SizeT i=0; i< finalN; ++i) {
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH],
+          (*Minute)[i%nMi],(*Second)[i%nS])) {
+        (*ret)[i]=jd;
+        }
+        else e->Throw("Invalid Calendar Date input.");
+      }
+      return ret;
+    }
+  }
 } // namespace
