@@ -219,7 +219,7 @@ endif else begin
    ;;
    ;; this will be dimensions for 1d kernel ([1,1,1])
    ;;
-   output_array=input_array
+   ;output_array=input_array
    for i=0,N_ELEMENTS(real_width)-1 do begin
       temp_width[i]=real_width[i]
       ;;
@@ -230,7 +230,8 @@ endif else begin
       ;;creating kernel (gate) for 1d convolution
       ;;
       norm_of_gate=TOTAL(gate)
-      output_array=CONVOL(TEMPORARY(output_array), gate, norm_of_gate, $
+;      output_array=CONVOL(TEMPORARY(output_array), gate, norm_of_gate, $
+      output_array=CONVOL(input_array, gate, norm_of_gate, $
                           EDGE_TRUNCATE=EDGE_TRUNCATE)
       ;;
       ;;convolution with 1d kernel

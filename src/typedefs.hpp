@@ -56,7 +56,7 @@
 #include <vector>
 #include <valarray>
 #include <cassert>
-// #include <cstdio>
+#include <iostream>
 
 #undef USE_MPFR
 
@@ -526,5 +526,76 @@ typedef GDLGuard< FILE, int> FILEGuard;
 //     fclose( fp);
 //   }
 // };
+
+
+class FreeListT 
+{
+  typedef void* PType;
+  PType* outerFreeList;
+  PType* freeList;
+  SizeT sz;
+  SizeT endIx;
+
+public:
+  FreeListT(): freeList(NULL), sz(0), endIx(0) {}
+  
+  SizeT size() const { return endIx;}
+  void resize( SizeT s) { endIx = s;}
+  PType pop_back() { assert(endIx > 0); return freeList[endIx--];}
+//   PType back() const { assert(endIx > 0); assert( freeList != NULL); return freeList[endIx];}
+  void push_back( PType p) { assert( endIx < (sz-1));  assert( freeList != NULL); freeList[++endIx] = p;}
+  
+  char* Init( SizeT s, char* res, SizeT sizeOfType)
+  {
+    endIx = s;
+    
+    //freeList[0] = res; // the ptr to free (not implemented)
+    for( size_t i=1; i<=endIx; ++i)
+    {
+      freeList[ i] = res;
+      res += sizeOfType;
+    } 
+    return res;
+  }  
+//   PType& operator[]( SizeT i)
+//   {
+//     return freeList[ i];
+//   }
+//   PType operator[]( SizeT i) const
+//   {
+//     return freeList[ i+1];
+//   }
+  
+  void reserve( SizeT s)
+  {
+    assert( endIx == 0);
+
+    // alloc one more
+    if( ++s == sz)
+      return;
+    
+    free( freeList);
+    freeList = (PType*) malloc( s * sizeof(PType));
+    if( freeList == NULL) // error
+    {
+      freeList = (PType*) malloc( sz * sizeof(PType));
+      if( freeList == NULL)
+      {
+	std::cerr << "% Error allocating free list. Probably already too late. Sorry.\n"
+	  "Try to save what to save and immediately exit GDL session."<<std::endl;	
+      }
+      else
+      {
+	std::cerr << "% Error allocating free list. Segmentation fault pending.\n"
+	  "Try to save what to save and immediately exit GDL session."<<std::endl;
+      }
+      return;
+    }
+    sz = s;
+  }
+  
+};
+
+//typedef std::vector< void*> FreeListT;	
 
 #endif

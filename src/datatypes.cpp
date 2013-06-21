@@ -125,7 +125,7 @@ void Data_<Sp>::TestTemplateGrouping()
 #endif
 
 template<class Sp>
-vector< void*> Data_<Sp>::freeList;
+FreeListT Data_<Sp>::freeList;
 
 #ifdef GDLARRAY_CACHE
 
@@ -267,9 +267,10 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 
   if( freeList.size() > 0)
     {
-      void* res = freeList.back();
-      freeList.pop_back();
-      return res;	
+      return freeList.pop_back();
+//       void* res = freeList.back();
+//       freeList.pop_back();
+//       return res;	
     }
 
   const size_t newSize = multiAlloc - 1;
@@ -285,7 +286,7 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
   freeList.reserve( ((callCount/allocDivider+1)*allocDivider-1)*multiAlloc);
 
   // resize to what is needed now
-  freeList.resize( newSize);
+//   freeList.resize( newSize);
 
 #ifdef USE_EIGEN  
   // we need this allocation here as well (as in typedefs.hpp), because GDLArray needs to be aligned
@@ -299,11 +300,13 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
   char* res = static_cast< char*>( malloc( sizeOfType * multiAlloc)); // one more than newSize
 #endif
   
-  for( size_t i=0; i<newSize; ++i)
-    {
-      freeList[ i] = res;
-      res += sizeOfType;
-    } 
+  res = freeList.Init( newSize, res, sizeOfType);
+//   freeList[0] = NULL;
+//   for( size_t i=1; i<=newSize; ++i)
+//     {
+//       freeList[ i] = res;
+//       res += sizeOfType;
+//     } 
 
   // the one more
   return res;

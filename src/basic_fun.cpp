@@ -456,16 +456,21 @@ namespace lib {
 	return new DByteGDL( 0);
       } 
 
+    DType pType = p->Type();
     if( e->KeywordSet( 0)) // CAST
       {
-	DLongGDL* pL = dynamic_cast<DLongGDL*>( p);
+	DLongGDL* pL;// = dynamic_cast<DLongGDL*>( p);
 	Guard<DLongGDL> pL_guard;
-	if( pL == NULL)
-	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Reset( pL);
-	  }
-	
+// 	if( pL == NULL)
+	if( pType != GDL_LONG)
+	{
+	  pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+	  pL_guard.Init( pL);
+	}
+	else
+	{
+	  pL = static_cast<DLongGDL*>(p);
+	}
 	SizeT nEl = pL->N_Elements();
 	DPtrGDL* ret = new DPtrGDL( pL->Dim()); // zero
 	GDLInterpreter* interpreter = e->Interpreter();
@@ -477,11 +482,14 @@ namespace lib {
 	return ret;
       }
 
-    DPtrGDL* pPtr = dynamic_cast<DPtrGDL*>( p);
-    if( pPtr == NULL)
+//     DPtrGDL* pPtr = dynamic_cast<DPtrGDL*>( p);
+//     if( pPtr == NULL)
+    if( pType != GDL_PTR)
       {
 	return new DByteGDL( p->Dim()); // zero
       }
+
+      DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
 
     SizeT nEl = pPtr->N_Elements();
     DByteGDL* ret = new DByteGDL( pPtr->Dim()); // zero
@@ -514,17 +522,22 @@ namespace lib {
 	return new DByteGDL( 0);
       } 
 
+    DType pType = p->Type();
     if( e->KeywordSet( 0)) // CAST
       {
-	DLongGDL* pL = dynamic_cast<DLongGDL*>( p);
+	DLongGDL* pL;// = dynamic_cast<DLongGDL*>( p);
 	Guard<DLongGDL> pL_guard;
-	if( pL == NULL)
-	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
-	    pL_guard.Reset( pL);
-	    //	    e->Guard( pL);
-	  }
-	
+// 	if( pL == NULL)
+	if( pType != GDL_LONG)
+	{
+	  pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+	  pL_guard.Init( pL);
+	  //	    e->Guard( pL);
+	}
+	else
+	{
+	  pL = static_cast<DLongGDL*>( p);
+	}
 	SizeT nEl = pL->N_Elements();
 	DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
 	GDLInterpreter* interpreter = e->Interpreter();
@@ -536,11 +549,13 @@ namespace lib {
 	return ret;
       }
 
-    DObjGDL* pObj = dynamic_cast<DObjGDL*>( p);
-    if( pObj == NULL)
+//     DObjGDL* pObj = dynamic_cast<DObjGDL*>( p);
+//     if( pObj == NULL)
+    if( pType != GDL_OBJ)
       {
 	return new DByteGDL( p->Dim()); // zero
       }
+    DObjGDL* pObj = static_cast<DObjGDL*>( p);
 
     SizeT nEl = pObj->N_Elements();
     DByteGDL* ret = new DByteGDL( pObj->Dim()); // zero
@@ -6159,8 +6174,8 @@ BaseGDL* transpose( EnvT* e)
 	SizeT nParam;
 	nParam = e->NParam(1);
 	BaseGDL* par = e->GetParDefined( 0);
-	DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
-	if (nParam != 1 || parStruct == NULL)
+// 	DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+	if (nParam != 1 || par->Type() != GDL_STRUCT)// == NULL)
 	  nParam=e->NParam(2);
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
@@ -6173,10 +6188,12 @@ BaseGDL* transpose( EnvT* e)
 	for( SizeT p=0; p<nParam;)
 	  {
 	    BaseGDL* par = e->GetParDefined( p);
-	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
-	    if( parStruct != NULL)
+// 	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+// 	    if( parStruct != NULL)
+	    if( par->Type() == GDL_STRUCT)
 	      {
 		// add struct
+		DStructGDL* parStruct = static_cast<DStructGDL*>( par);
 		if( !parStruct->Scalar())
 		  e->Throw("Expression must be a scalar in this context: "+
 			   e->GetParString( p));

@@ -106,10 +106,9 @@ GDL_DECLARE_FUNCTION(bool,Test2);
 
 #endif
 
-
 public:
 	// memory management optimization
-static std::vector< void*> freeList;
+static FreeListT freeList;
 
 	// operator new and delete
 static 	void* operator new( size_t bytes);
