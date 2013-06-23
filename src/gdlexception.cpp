@@ -44,7 +44,8 @@ GDLException::GDLException(DLong eC, const string& s, bool pre, bool decorate):
   errorCode(eC),
   line( 0), col( 0), prefix( pre),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
 if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -97,7 +98,8 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   errorCode(-1),
   line( 0), col( 0), prefix( true),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
 if(interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -121,7 +123,8 @@ GDLException::GDLException(DLong eC, const RefDNode eN, const string& s):
   errorCode(eC),
   line( 0), col( 0), prefix( true),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
 if(interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -146,7 +149,8 @@ GDLException::GDLException(const ProgNodeP eN, const string& s, bool decorate, b
   errorCode(-1),
   line( 0), col( 0), prefix( true),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
 if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -174,7 +178,8 @@ GDLException::GDLException(DLong eC, const ProgNodeP eN, const string& s, bool d
   errorCode(eC),
   line( 0), col( 0), prefix( true),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
   if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
   {
@@ -203,7 +208,8 @@ GDLException::GDLException(SizeT l, SizeT c, const string& s):
   errorCode(-1),
   line( l), col( c), prefix( true),
   ioException( false),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
   if(interpreter!=NULL && interpreter->CallStack().size()>0) 
   {
@@ -226,7 +232,8 @@ GDLException::GDLException(DLong eC, SizeT l, SizeT c, const string& s):
   errorNodeP( NULL),
   errorCode(eC),
   line( l), col( c), prefix( true),
-  targetEnv( NULL)
+  targetEnv( NULL),
+  arrayexprIndexeeFailed(false)
 {
   if(interpreter!=NULL && interpreter->CallStack().size()>0) 
   {

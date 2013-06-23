@@ -79,8 +79,16 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 
 	ArrayIndexListT* aL;
 	ArrayIndexListGuard guard;
+	BaseGDL** res;
+try{
+	res=interpreter->l_indexable_expr( this->getFirstChild());
+	  }
+  catch( GDLException& ex)
+  {
+      ex.SetArrayexprIndexeeFailed( true);
+      throw ex;
+  }
 
-	BaseGDL** res=interpreter->l_indexable_expr( this->getFirstChild());
 	if( (*res)->IsAssoc())
 	  aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling());
 	else
@@ -290,24 +298,29 @@ BaseGDL** ARRAYEXPR_FCALLNode::LExpr( BaseGDL* right)
     
   assert( fcallNodeFunIx == -1);
   try{
-      BaseGDL** res = fcallNode->FCALLNode::LExpr( right);
-      fcallNodeFunIx = fcallNode->funIx;
-      return res;
-  } catch( GDLException& ex)
+    BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LExpr( right);
+    fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+    return res;
+  }
+  catch( GDLException& ex)
   {
-    // keep FCALL if already compiled (but runtime error)
-    if(fcallNode->funIx >= 0)
+    if( !ex.GetArrayexprIndexeeFailed())
     {
-      fcallNodeFunIx = fcallNode->funIx;
+      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
       throw ex;
     }
     try{
-      BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LExpr( right);
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      return res;
-    }
+	BaseGDL** res = fcallNode->FCALLNode::LExpr( right);
+	fcallNodeFunIx = fcallNode->funIx;
+	return res;
+    }    // keep FCALL if already compiled (but runtime error)
     catch( GDLException& innerEx)
     {
+      if(fcallNode->funIx >= 0)
+      {
+	fcallNodeFunIx = fcallNode->funIx;
+	throw innerEx;
+      }
 	std::string msg = "Ambiguous: " + ex.toString() +
 	"  or: " + innerEx.toString();
 	throw GDLException(this,msg,true,false);

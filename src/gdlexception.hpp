@@ -41,6 +41,9 @@ class GDLException: public antlr::ANTLRException
   SizeT line;
   SizeT col;
   bool prefix;
+  
+  bool arrayexprIndexeeFailed;
+  
 protected:
   bool ioException;
  
@@ -55,13 +58,17 @@ public:
 
   void SetErrorNodeP( ProgNodeP p) { errorNodeP = p;}
 
+  bool GetArrayexprIndexeeFailed() const { return arrayexprIndexeeFailed;}
+  void SetArrayexprIndexeeFailed( bool b) { arrayexprIndexeeFailed = b;}
+  
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
 		  errorCode(-1),
 		  line( 0), col( 0), prefix( true),
 		  ioException( false),
-		  targetEnv( NULL)
+		  targetEnv( NULL),
+		  arrayexprIndexeeFailed(false)
   {}
   GDLException( DLong eC): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
@@ -69,7 +76,8 @@ public:
 		  errorCode(eC),
 		  line( 0), col( 0), prefix( true),
 		  ioException( false),
-		  targetEnv( NULL)
+		  targetEnv( NULL),
+		  arrayexprIndexeeFailed(false)
   {}
   GDLException(const std::string& s, bool pre = true, bool decorate=true);
   GDLException(const RefDNode eN, const std::string& s);

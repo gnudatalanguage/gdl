@@ -3484,7 +3484,12 @@ if( e1->StrictScalar())
     }
     catch( GDLException& ex)
     {
-      // then try fcall  
+     if( !ex.GetArrayexprIndexeeFailed())
+    {
+      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+      throw ex;
+    }
+     // then try fcall  
       try{
 	BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
 	fcallNodeFunIx = fcallNode->funIx;
@@ -3546,7 +3551,12 @@ if( e1->StrictScalar())
     }
     catch( GDLException& ex)
     {
-      // then try fcall
+     if( !ex.GetArrayexprIndexeeFailed())
+    {
+      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+      throw ex;
+    }
+     // then try fcall
       try {
 	BaseGDL** res = fcallNode->FCALLNode::LEval();
 	fcallNodeFunIx = fcallNode->funIx;
@@ -3608,6 +3618,14 @@ if( e1->StrictScalar())
     catch( GDLException& ex)
     {
       // then try fcall
+      // Problem here: we don't know, why arrayexpr failed
+      // if it is just because of the index, we should not 
+      // try the function here
+    if( !ex.GetArrayexprIndexeeFailed())
+    {
+      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+      throw ex;
+    }
       try{
 	BaseGDL* res = fcallNode->FCALLNode::Eval();
 	fcallNodeFunIx = fcallNode->funIx;
@@ -3892,6 +3910,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
 
   BaseGDL* r;
   Guard<BaseGDL> rGuard;
+  try{
   if( NonCopyNode(_t->getType()))
   {
       r=_t->EvalNC();
@@ -3910,7 +3929,13 @@ BaseGDL* ARRAYEXPRNode::Eval()
       r=ProgNode::interpreter->indexable_tmp_expr(_t);
       rGuard.Reset( r);  
   }
-
+  }
+  catch( GDLException& ex)
+  {
+      ex.SetArrayexprIndexeeFailed( true);
+      throw ex;
+  }
+  
   ProgNodeP ixListNode = _t->getNextSibling();
 
   if( r->Type() == GDL_OBJ && r->StrictScalar())

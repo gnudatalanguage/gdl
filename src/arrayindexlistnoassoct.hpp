@@ -709,7 +709,7 @@ public:
   bool ToAssocIndex( SizeT& lastIx)
   {
     if( sInit < 0)
-      throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context.",true,false);      
+      throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context. ("+i2s(sInit)+")",true,false);      
     lastIx = sInit;
     return true;
   }
@@ -722,9 +722,9 @@ public:
       s = sInit + var->Size();
     // for assoc variables last index is the record
     if( s < 0)
-      throw GDLException(-1,NULL,"Scalar subscript out of range [<].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript out of range [<0] ("+i2s(s)+")",true,false);
     if( s >= var->Size())
-      throw GDLException(-1,NULL,"Scalar subscript out of range [>].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript out of range [>] ("+i2s(s)+")",true,false);
   }
 
   // returns one dim long ix in case of one element array index
@@ -747,9 +747,9 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-	  throw GDLException(-1,NULL,"Scalar subscript out of range [<].4",true,false);
+	  throw GDLException(-1,NULL,"Scalar subscript out of range [<0]. ("+i2s(s)+")",true,false);
 	if( s >= var->Size())
-	  throw GDLException(-1,NULL,"Scalar subscript out of range [>].4",true,false);
+	  throw GDLException(-1,NULL,"Scalar subscript out of range [>]. ("+i2s(s)+")",true,false);
 	var->AssignAtIx( s, right); // must use COPY_BYTE_AS_INT
 	return;
       }
@@ -777,11 +777,11 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-		throw GDLException(-1,NULL,"Scalar subscript out of range [<].5",true,false);
+		throw GDLException(-1,NULL,"Scalar subscript out of range [<0]: ("+i2s(s)+")",true,false);
 	if( s >= var->Size())
 	{
 // 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-		throw GDLException(-1,NULL,"Scalar subscript out of range [>].5",true,false);
+		throw GDLException(-1,NULL,"Scalar subscript out of range [>]: ("+i2s(s)+")",true,false);
 	}
 	
 	return var->NewIx( s);
