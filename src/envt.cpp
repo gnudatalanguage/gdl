@@ -63,32 +63,42 @@ freeList.push_back( ptr);
 }
 
 // EnvUDT::new & delete 
-deque< void*> EnvUDT::freeList;
+// deque< void*> EnvUDT::freeList;
+FreeListT EnvUDT::freeList;
 const int multiAllocEnvUDT = 16;
 void* EnvUDT::operator new( size_t bytes)
 {
   assert( bytes == sizeof( EnvUDT));
   if( freeList.size() > 0)
   {
-    void* res = freeList.back();
-    freeList.pop_back();
-    return res;	
+    return freeList.pop_back();  
+//     void* res = freeList.back();
+//     freeList.pop_back();
+//     return res;	
   }
 //   cout << "*** Resize EnvUDT " << endl;
   const size_t newSize = multiAllocEnvUDT - 1;
-  freeList.resize( newSize);
-  char* res = static_cast< char*>( malloc( sizeof( EnvUDT) * multiAllocEnvUDT)); // one more than newSize
-  for( size_t i=0; i<newSize; ++i)
-  {
-    freeList[ i] = res;
-    res += sizeof( EnvUDT);
-  } 
-  // the one more
+
+  static long callCount = 0;
+  ++callCount;
+  
+  freeList.reserve( multiAllocEnvUDT * callCount);
+//   char* res = static_cast< char*>( malloc( sizeof( EnvUDT) * multiAllocEnvUDT)); // one more than newSize
+//   for( size_t i=0; i<newSize; ++i)
+//   {
+//     freeList[ i] = res;
+//     res += sizeof( EnvUDT);
+//   } 
+  const size_t sizeOfType = sizeof( EnvUDT);
+  char* res = static_cast< char*>( malloc( sizeOfType * multiAllocEnvUDT)); // one more than newSize
+  
+  res = freeList.Init( newSize, res, sizeOfType);
+ // the one more
   return res;
 }
 void EnvUDT::operator delete( void *ptr)
 {
-freeList.push_back( ptr);
+  freeList.push_back( ptr);
 }
 
 
@@ -403,12 +413,15 @@ void EnvBaseT::AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible,
 void EnvBaseT::Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible,
 		    BaseGDL* p)
 {
-  DPtrGDL* ptr = dynamic_cast< DPtrGDL*>( p);
-  AddPtr( ptrAccessible,  objAccessible, ptr);
-  DStructGDL* stru = dynamic_cast< DStructGDL*>( p);
-  AddStruct( ptrAccessible, objAccessible, stru);
-  DObjGDL* obj = dynamic_cast< DObjGDL*>( p);
-  AddObj( ptrAccessible, objAccessible, obj);
+  if( p == NULL)
+    return;
+  DType pType = p->Type();
+  if( pType == GDL_PTR)
+    AddPtr( ptrAccessible,  objAccessible, static_cast< DPtrGDL*>( p));
+  else if( pType == GDL_STRUCT)
+    AddStruct( ptrAccessible, objAccessible, static_cast< DStructGDL*>( p));
+  else if( pType == GDL_OBJ)
+    AddObj( ptrAccessible, objAccessible, static_cast< DObjGDL*>( p));
 }
 void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 {

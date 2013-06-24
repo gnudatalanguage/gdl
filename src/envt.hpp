@@ -382,7 +382,8 @@ const T& back() const { return eArr[sz-1];}
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
-static std::deque< void*> freeList;
+// static std::deque< void*> freeList;
+static FreeListT freeList;
 
 public:
 static 	void* operator new( size_t bytes);
