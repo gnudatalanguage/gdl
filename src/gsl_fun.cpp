@@ -1465,9 +1465,11 @@ namespace lib {
       e->AssureDoubleScalarKW(e->KeywordIx("MIN"), a);
     // max
     if (maxKW == NULL) 
-      {
+      {	
+	if( p0->Type() == GDL_BYTE)
+	  b = 255.0;
 	// !MAX && BINSIZE && NBINS -> determine MAX
-	if (binsizeKW != NULL && nbinsKW != NULL) 
+	else if (binsizeKW != NULL && nbinsKW != NULL) 
 	  b = a + bsize * nbins;
         // SA: !MAX && !BINSIZE && NBINS -> binsize = (max - min) / (nbins - 1)
         else if (binsizeKW == NULL && nbinsKW != NULL) 
@@ -1475,8 +1477,6 @@ namespace lib {
 	    bsize = (maxVal - minVal) / (nbins - 1);
 	    b = a + nbins * bsize;
 	  }
-	else if( p0->Type() == GDL_BYTE)
-	  b = 255.0;
 	else 
 	  b = maxVal;
       } 
