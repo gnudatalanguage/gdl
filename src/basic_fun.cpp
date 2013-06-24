@@ -6109,9 +6109,9 @@ BaseGDL* transpose( EnvT* e)
 	for( SizeT p=0; p<nParam; ++p)
 	  {
 	    BaseGDL* par = e->GetParDefined( p);
-	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
-	    if( parStruct != NULL)
+	    if( par->Type() == GDL_STRUCT)
 	      {
+		DStructGDL* parStruct = static_cast<DStructGDL*>( par);
 		// add struct
 		if( !parStruct->Scalar())
 		  e->Throw("Expression must be a scalar in this context: "+

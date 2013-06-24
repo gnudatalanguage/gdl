@@ -5182,15 +5182,18 @@ BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
 template<class Sp>
 void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 {
-  Data_* srcT = dynamic_cast<Data_*>( src);
+  Data_* srcT; // = dynamic_cast<Data_*>( src);
 
   Guard< Data_> srcTGuard;
-  if( srcT == NULL) 
+  if( src->Type() != Data_::t) 
     {
       srcT = static_cast<Data_*>( src->Convert2( Data_::t, BaseGDL::COPY));
-      srcTGuard.Reset( srcT);
+      srcTGuard.Init( srcT);
     }
-
+  else
+  {
+    srcT = static_cast<Data_*>( src);
+  }
   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
     #pragma omp for*/

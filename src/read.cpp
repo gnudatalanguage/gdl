@@ -302,10 +302,9 @@ namespace lib {
     //  Guard<DStringGDL> guard;
     stringstream is;
 
-    DStringGDL* iStr = dynamic_cast<DStringGDL*>(p);
-    if( iStr == NULL)
+    if( p->Type() != GDL_STRING)
       {
-	iStr = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
+	DStringGDL* iStr = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
 
 	SizeT nStr = iStr->N_Elements();
 	for( SizeT i = 0; i < nStr; i++)
@@ -315,6 +314,7 @@ namespace lib {
       }
     else
       {
+	DStringGDL* iStr = static_cast<DStringGDL*>(p);
 	SizeT nStr = iStr->N_Elements();
 	for( SizeT i = 0; i < nStr; i++)
 	  is << (*iStr)[ i] << '\n';

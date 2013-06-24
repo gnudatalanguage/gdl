@@ -419,12 +419,10 @@ void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 }
 void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 {
-// 	if( toDestroy == NULL)
-// 		return;
-    for( SizeT i=0; i<toDestroy.size(); ++i)
-      {
-         Add( ptrAccessible, objAccessible, toDestroy[i]);
-	  }
+  for( SizeT i=0; i<toDestroy.size(); ++i)
+    {
+	Add( ptrAccessible, objAccessible, toDestroy[i]);
+    }
 }
 
 typedef std::vector<DObj> VectorDObj;
@@ -1041,8 +1039,7 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx)
 {
   BaseGDL* p1= GetParDefined( pIx);
   
-  DObjGDL* oRef = dynamic_cast<DObjGDL*>(p1);
-  if( oRef == NULL)
+  if( p1->Type() != GDL_OBJ)
     {
       Throw( "Parameter must be an object reference"
 	     " in this context: "+
@@ -1050,6 +1047,7 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx)
     }
   else
     {
+      DObjGDL* oRef = static_cast<DObjGDL*>(p1);
       DObj objIx;
       if( !oRef->Scalar( objIx))
 	Throw( "Parameter must be a scalar in this context: "+

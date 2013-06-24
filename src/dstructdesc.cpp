@@ -159,9 +159,9 @@ void DStructDesc::AssureIdentical( DStructDesc* d)
       if( tags[i]->Type() == GDL_STRUCT)
 	{
 	  SpDStruct* castLeft= 
-	    dynamic_cast<SpDStruct*>(tags[i]);
+	    static_cast<SpDStruct*>(tags[i]);
 	  SpDStruct* castRight= 
-	    dynamic_cast<SpDStruct*>(d->tags[i]);
+	    static_cast<SpDStruct*>(d->tags[i]);
 	  DStructDesc* leftD=castLeft->Desc();
 	  DStructDesc* rightD=castRight->Desc();
 	  
@@ -203,9 +203,9 @@ bool operator==(const DStructDesc& left,
       if( left.tags[i]->Type() == GDL_STRUCT)
 	{
 	  SpDStruct* castLeft= 
-	    dynamic_cast<SpDStruct*>(left.tags[i]);
+	    static_cast<SpDStruct*>(left.tags[i]);
 	  SpDStruct* castRight= 
-	    dynamic_cast<SpDStruct*>(right.tags[i]);
+	    static_cast<SpDStruct*>(right.tags[i]);
 	  DStructDesc* leftD=castLeft->Desc();
 	  DStructDesc* rightD=castRight->Desc();
 	  

@@ -1416,14 +1416,17 @@ namespace lib {
     if( binsizeKW != NULL && nbinsKW != NULL && maxKW != NULL)
       e->Throw( "Conflicting keywords.");
 
-    DDoubleGDL *p0D = dynamic_cast<DDoubleGDL*>(p0);
+    DDoubleGDL *p0D;
     Guard<BaseGDL> guard;
-    if( p0D == NULL)
+    if( p0->Type() != GDL_DOUBLE)
       {
 	p0D = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard.Reset( p0D);
+	guard.Init( p0D);
       }
-
+    else
+    {
+      p0D = static_cast<DDoubleGDL*>(p0);
+    }
     // get min max
     // use MinMax here when NAN will be supported
 

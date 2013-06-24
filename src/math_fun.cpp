@@ -78,7 +78,7 @@ namespace lib {
     bool doubleKW = e->KeywordSet( doubleKWIx);
 
     BaseGDL* A = e->GetParDefined( 0);
-    doubleKW = doubleKW || (dynamic_cast< DDoubleGDL*>( A) != NULL) || (dynamic_cast< DComplexDblGDL*>( A) != NULL);
+    doubleKW = doubleKW || (A->Type() == GDL_DOUBLE) || (A->Type() == GDL_COMPLEXDBL);
 
     if( doubleKW)
       {

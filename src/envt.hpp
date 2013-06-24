@@ -728,10 +728,10 @@ public:
   void AssureScalarPar( SizeT pIx, typename T::Ty& scalar)
   {
     BaseGDL* p = GetParDefined( pIx);
-    T* tp= dynamic_cast<T*>(p);
-    if( tp == NULL)
+    if( p->Type() != T::t)
       Throw( "Variable must be a "+T::str+" in this context: "+
 	     GetParString(pIx));
+    T* tp= static_cast<T*>(p);
     if( !tp->Scalar( scalar))
       Throw("Variable must be a scalar in this context: "+
 	    GetParString(pIx));
@@ -743,10 +743,10 @@ public:
     BaseGDL* p = GetKW( ix);
     if( p == NULL)
       Throw("Keyword undefined: "+GetString(ix));
-    T* tp= dynamic_cast<T*>(p);
-    if( tp == NULL)
+    if( p->Type() != T::t)
       Throw("Keyword must be a "+T::str+" in this context: "+
 	    GetString(ix));
+    T* tp= static_cast<T*>(p);
     if( !tp->Scalar( scalar))
       Throw("Keyword must be a scalar in this context: "+
 	    GetString(ix));

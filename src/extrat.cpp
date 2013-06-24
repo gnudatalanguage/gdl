@@ -40,9 +40,11 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 //   EnvBaseT* callerDebug=thisEnv->Caller();
 //   DSub::ExtraType extraTypeDebug= callerDebug->pro->Extra();
 
-  DStructGDL* extraStruct= dynamic_cast<DStructGDL*>(extraVal);
-  if( extraStruct != NULL) // _EXTRA
+  if( extraVal != NULL)
+  {
+  if( extraVal->Type() == GDL_STRUCT) // _EXTRA
     {
+      DStructGDL* extraStruct= static_cast<DStructGDL*>(extraVal);
       DStructDesc* desc=extraStruct->Desc();
 
       SizeT nTag=desc->NTags();
@@ -86,9 +88,9 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
     }
   else // _REF_EXTRA
     {
-      DStringGDL* extraString= dynamic_cast<DStringGDL*>(extraVal);
-      if( extraString != NULL)
+      if( extraVal->Type() == GDL_STRING) // _EXTRA
 	{
+	  DStringGDL* extraString= static_cast<DStringGDL*>(extraVal);
 	  EnvBaseT* caller;
 	  if( callerIn == NULL)
 	    caller = thisEnv->Caller();
@@ -145,6 +147,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	    } // caller->pro->Extra() == DSub::REFEXTRA)
       	} // extraString != NULL
     }
+  }
   // all keywords are now overridden in the actual environment
   // listName/listEnv holds all _EXTRA data, which is not used by this 
   // subroutine

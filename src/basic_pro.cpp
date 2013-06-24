@@ -1066,11 +1066,11 @@ namespace lib {
     
     BaseGDL* p= e->GetParDefined( 0);
 
-    DObjGDL* op= dynamic_cast<DObjGDL*>(p);
-    if( op == NULL)
+    if( p->Type() != GDL_OBJ)
       e->Throw( "Parameter must be an object in"
 		" this context: "+
 		e->GetParString(0));
+    DObjGDL* op= static_cast<DObjGDL*>(p);
 
     SizeT nEl=op->N_Elements();
     for( SizeT i=0; i<nEl; i++)
@@ -1757,11 +1757,12 @@ namespace lib {
   {
     SizeT nParam = e->NParam( 2);
     
-    DStringGDL* dest = dynamic_cast<DStringGDL*>( e->GetParGlobal( 0));
-    if( dest == NULL)
+    BaseGDL* p0 = e->GetParGlobal( 0);
+    if( p0->Type() != GDL_STRING)
       e->Throw( "String expression required in this context: "+
 		e->GetParString(0));
-    
+    DStringGDL* dest = static_cast<DStringGDL*>( p0);
+      
     DString source;
     e->AssureStringScalarPar( 1, source);
     
@@ -1856,9 +1857,9 @@ TRACEOMP( __FILE__, __LINE__)
       e->Throw( "Conflicting definition for "+sysVarNameFull+".");
 
     // if struct -> assure equal descriptors
-    DStructGDL *oldStruct =  dynamic_cast<DStructGDL*>( oldVar);
-    if( oldStruct != NULL)
+    if( oldVar->Type() == GDL_STRUCT)
       {
+	DStructGDL *oldStruct =  static_cast<DStructGDL*>( oldVar);
 	// types are same -> static cast
 	DStructGDL *newStruct =  static_cast<DStructGDL*>( newVar);
 
@@ -2565,10 +2566,10 @@ TRACEOMP( __FILE__, __LINE__)
 //     static int no_recompileIx = e->KeywordIx( "NO_RECOMPILE");
 
 	BaseGDL* p0 = e->GetParDefined( 0);
-	DStringGDL* p0S = dynamic_cast<DStringGDL*>( p0);
-	if( p0S == NULL)
+	if( p0->Type() != GDL_STRING)
 	      e->Throw( "Expression must be a string in this context: "+
 		        e->GetParString(0));
+	DStringGDL* p0S = static_cast<DStringGDL*>( p0);
 
 	static StrArr openFiles;
 	
