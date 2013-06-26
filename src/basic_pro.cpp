@@ -19,6 +19,9 @@
 
 #include "includefirst.hpp"
 
+#include <sys/types.h>
+#include <dirent.h>
+
 #include <string>
 #include <fstream>
 #include <memory>
@@ -250,10 +253,39 @@ namespace lib {
     return recall_commands_internal();
   }
 
-  void help( EnvT* e)
+  void help_path_cached()  // showing HELP, /path_cache
   {
+    DIR *dirp;
+    struct dirent *dp;
+    const char *ProSuffix=".pro";
+    int ProSuffixLen = strlen(ProSuffix);
+    int NbProFilesInCurrentDir;
+    string tmp_fname;
+    size_t found;
+
+    StrArr path=SysVar::GDLPath();
+
+    cout << "!PATH (no cache managment in GDL, "<< path.size()  << " directories)" << endl;
+
+    for( StrArr::iterator CurrentDir=path.begin(); CurrentDir != path.end(); CurrentDir++)
+      {
+	NbProFilesInCurrentDir=0;
+	dirp = opendir((*CurrentDir).c_str());
+	while ((dp = readdir(dirp)) != NULL){
+	  tmp_fname=dp->d_name;
+	  found = tmp_fname.rfind(ProSuffix);
+	  if (found!=std::string::npos) {
+	    if ((found+ProSuffixLen) == tmp_fname.length()) NbProFilesInCurrentDir++;
+	  }
+	}
+	cout << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
+      }
+  }
+
+  void help( EnvT* e)
+  {    
     bool kw = false;
-//if LAST_MESSAGE is present, it is the only otput. All other kw are ignored.
+    //if LAST_MESSAGE is present, it is the only otput. All other kw are ignored.
     static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
     bool lastmKW = e->KeywordPresent( lastmKWIx);
     if( lastmKW)
@@ -264,18 +296,37 @@ namespace lib {
       return;
     }
 
+    static int helpKWIx = e->KeywordIx("HELP");
+    bool helpKW= e->KeywordPresent(helpKWIx);
+    if( helpKW) {
+      string inline_help[]={"Usage: "+e->GetProName()+", expr1, ..., exprN,", 
+			    "          /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
+			    "          /INTERNAL_LIB_GDL, /LAST_MESSAGE, /LIB, /MEMORY,",
+			    "          /OUTPUT, /PATH_CACHE, /PREFERENCES, /PROCEDURES,",
+			    "          /RECALL_COMMANDS, /ROUTINES, /SOURCE_FILES, /STRUCTURES,"};
+      int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	
+      e->Help(inline_help, size_of_s);
+    }
+    
+    static int pathKWIx = e->KeywordIx("PATH_CACHE");
+    bool pathKW= e->KeywordPresent(pathKWIx);
+    if( pathKW) {
+      help_path_cached();
+      return;
+    }
+    
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
     if( sourceFilesKW)
-    {
+      {
 	deque<string> sourceFiles;
-
+	
 	for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
-	{
+	  {
 	    string funFile = (*i)->GetFilename();
 	    bool alreadyInList = false;
 	    for(deque<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
-	    {
+	      {
 		if( funFile == *i2)
 		{
 		  alreadyInList = true;
@@ -2734,9 +2785,13 @@ TRACEOMP( __FILE__, __LINE__)
     if (year < -4716 || year > 5000000 || year==0 ) return false;
     if (month < 1 || month > 12) return false;
     if (day < 0 || day > 31) return false;
-    if (hour < 0 || hour > 24) return false;
-    if (minute < 0 || minute > 60) return false;
-    if (second < 0 || second > 60) return false;
+
+    // the following tests seem to be NOT active ...
+
+    // if (hour < 0 || hour > 24) return false;
+    // if (minute < 0 || minute > 60) return false;
+    // if (second < 0 || second > 60) return false;
+
 //    fprintf(stderr,"Day %d, Month %d Year %d, Hour %d Minute %d Second %f\n",
 //            day, month, year, hour, minute, second);
     DDouble a,y,b,c;
@@ -2749,7 +2804,7 @@ TRACEOMP( __FILE__, __LINE__)
     if (month <= 2)
     {
       y=y-1.0;
-      m=m+12.;
+      m=m+12;
     }
     if (y < 0)
     {
@@ -2766,12 +2821,14 @@ TRACEOMP( __FILE__, __LINE__)
     }
     jd=ceil(365.25*y+c)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
     (second*1.0)/86400.0+1720994.50+b;
+
+    cout << "jd :" << jd << endl;
     return true;
   }
   
   BaseGDL* julday(EnvT* e)
   {
-    if (!(e->NParam() == 3 || e->NParam() == 6)) {e->Throw("Incorrect number of arguments.");}
+    if ((e->NParam() < 3 || e->NParam() > 6)) {e->Throw("Incorrect number of arguments.");}
 
     DLongGDL *Month, *Day, *Year, *Hour, *Minute;
     DDoubleGDL* Second;
@@ -2807,28 +2864,47 @@ TRACEOMP( __FILE__, __LINE__)
     nD = Day->N_Elements();
     Year = e->GetParAs<DLongGDL>(2);
     nY = Year->N_Elements();
+
     if (e->NParam() == 3 ) {
       DLongGDL *ret = new DLongGDL(finalDim, BaseGDL::NOZERO);
       for (SizeT i=0; i< finalN; ++i) {
-        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],h,m,s)) {
-        (*ret)[i]=jd;
-        }
-        else e->Throw("Invalid Calendar Date input.");
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],h,m,s)) { (*ret)[i]=(long)jd;}
+	else e->Throw("Invalid Calendar Date input.");
       }
       return ret;
-    } else if (e->NParam() == 6) {
+    }
+    
+    DDoubleGDL *ret = new DDoubleGDL(finalDim, BaseGDL::NOZERO);
+    
+    if (e->NParam() >= 4) {
       Hour = e->GetParAs<DLongGDL>(3);
       nH = Hour->N_Elements();
+    }
+    if (e->NParam() == 4) {
+      for (SizeT i=0; i< finalN; ++i) {
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], m, s)) {(*ret)[i]=jd;}
+	else e->Throw("Invalid Calendar Date input.");	
+	return ret;
+      }
+    }
+
+    if (e->NParam() >= 5) {
       Minute = e->GetParAs<DLongGDL>(4);
       nMi = Minute->N_Elements();
+    }
+    if (e->NParam() == 5) {
+      for (SizeT i=0; i< finalN; ++i) {
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], (*Minute)[i%nMi], s)) (*ret)[i]=jd;
+	else e->Throw("Invalid Calendar Date input.");
+	return ret;
+      }
+    }
+    
+    if (e->NParam() == 6) {
       Second = e->GetParAs<DDoubleGDL>(5);
       nS = Second->N_Elements();
-      DDoubleGDL *ret = new DDoubleGDL(finalDim, BaseGDL::NOZERO);
       for (SizeT i=0; i< finalN; ++i) {
-        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH],
-          (*Minute)[i%nMi],(*Second)[i%nS])) {
-        (*ret)[i]=jd;
-        }
+        if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH],(*Minute)[i%nMi],(*Second)[i%nS])) {(*ret)[i]=jd;}
         else e->Throw("Invalid Calendar Date input.");
       }
       return ret;
