@@ -1488,13 +1488,14 @@ void FMTParser::csubcode() {
 
 void FMTParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(76);
+	factory.setMaxNodeType(77);
 }
 const char* FMTParser::tokenNames[] = {
 	"<0>",
 	"EOF",
 	"<2>",
 	"NULL_TREE_LOOKAHEAD",
+	"ALL",
 	"CSTR",
 	"CSTR1",
 	"CSTR2",
@@ -1571,7 +1572,7 @@ const char* FMTParser::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTParser::_tokenSet_0_data_[] = { 1879048192UL, 1024UL, 8UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTParser::_tokenSet_0_data_[] = { 3758096384UL, 2048UL, 16UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA RBRACE SLASH E NUMBER 
 const antlr::BitSet FMTParser::_tokenSet_0(_tokenSet_0_data_,8);
 

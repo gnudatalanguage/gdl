@@ -138,7 +138,7 @@ namespace lib {
     write_journal( ip->GetClearActualLine());
     write_journal_comment( e, parOffset, width);
   }
-  
+
   void print_os( ostream* os, EnvT* e, int parOffset, SizeT width)
   {
     // FORMAT keyword
@@ -149,11 +149,23 @@ namespace lib {
 
 	if( fmtString != "")
 	{
-	RefFMTNode fmtAST = GetFMTAST( fmtString);
+	  try {
+	  RefFMTNode fmtAST = GetFMTAST( fmtString);
+#ifdef GDL_DEBUG
+	  antlr::print_tree pt;
+	  cout << "Format parser output:" << endl;
+	  pt.pr_tree(static_cast<antlr::RefAST>(fmtAST));
+	  cout << "Format Parser end." << endl;
+#endif
 
-	// formatted output ignores WIDTH
-	FMTOut Formatter( fmtAST, os, e, parOffset); 
-	return;
+	  // formatted output ignores WIDTH
+	  FMTOut Formatter( fmtAST, os, e, parOffset); 
+	  return;
+	  }
+	  catch( antlr::ANTLRException& ex)
+	  {
+	    e->Throw( ex.getMessage());
+	  }
 	}
       }
     //else // default-format output

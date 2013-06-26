@@ -65,30 +65,30 @@ options {
     
 }
 
-// ALL
-//     : { format}?
-//         (
-//             (
-//                 (
-//                     CD { $setType(CD);}
-//                 |   CE { $setType(CE);}
-//                 |   CI { $setType(CI);}
-//                 |   CF { $setType(CF);}
-//                 |   CG { $setType(CG);}
-//                 |   CO { $setType(CO);}
-//                 |   CB { $setType(CB);}
-//                 |   CS { $setType(CS);}
-//                 |   CX { $setType(CX);}
-//                 |   CZ { $setType(CZ);}
-//                 ) 
-//                 { format = false;}
-//             ) 
-//         |   CNUMBER { $setType(CNUMBER);}
-//         |   CDOT { $setType(CDOT);}
-//         |   CWS  { _ttype=antlr::Token::SKIP; }
-//         )
-//     | CSTR { $setType(CSTR);}
-//     ;
+ALL
+    : { format}?
+        (
+            (
+                (
+                    CD { $setType(CD);}
+                |   CE { $setType(CE);}
+                |   CI { $setType(CI);}
+                |   CF { $setType(CF);}
+                |   CG { $setType(CG);}
+                |   CO { $setType(CO);}
+                |   CB { $setType(CB);}
+                |   CS { $setType(CS);}
+                |   CX { $setType(CX);}
+                |   CZ { $setType(CZ);}
+                ) 
+                { format = false;}
+            ) 
+        |   CNUMBER { $setType(CNUMBER);}
+        |   CDOT { $setType(CDOT);}
+        |   CWS  { _ttype=antlr::Token::SKIP; }
+        )
+    | CSTR { $setType(CSTR);}
+    ;
 
 protected
 CSTR

@@ -38,9 +38,19 @@ namespace lib {
 
   using namespace std;
   using namespace antlr;
-
+ 
+  
   BaseGDL* size( EnvT* e) 
   {
+    static int L64Ix = e->KeywordIx( "L64");
+    static int dimIx = e->KeywordIx( "DIMENSIONS");
+    static int FILE_LUNIx = e->KeywordIx( "FILE_LUN");
+    static int N_DIMENSIONSIx = e->KeywordIx( "N_DIMENSIONS");
+    static int N_ELEMENTSIx = e->KeywordIx( "N_ELEMENTS");
+    static int STRUCTUREIx = e->KeywordIx( "STRUCTURE");
+    static int TNAMEIx = e->KeywordIx( "TNAME");
+    static int TYPEIx = e->KeywordIx( "TYPE");
+
     e->NParam( 1); // might be GDL_UNDEF, but must be given
 
     // BaseGDL* p0 = e->GetParDefined( 0); //, "SIZE");
@@ -57,18 +67,16 @@ namespace lib {
     }
 
     // DIMENSIONS
-    static int dimIx = e->KeywordIx( "DIMENSIONS");
-
     if( e->KeywordSet( dimIx)) { 
       if( Rank == 0) 
-	if( e->KeywordSet(0))
+	if( e->KeywordSet(L64Ix))
 	  return new DLong64GDL( 0);
 	else
 	  return new DLongGDL( 0);
 
       dimension dim( Rank);
 
-      if( e->KeywordSet(0)) { // L64
+      if( e->KeywordSet(L64Ix)) { // L64
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
 	(*res)[0] = 0;
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i] = p0->Dim(i);
@@ -81,17 +89,17 @@ namespace lib {
       }
 
     // FILE_LUN
-    } else if( e->KeywordSet(2)) { 
+    } else if( e->KeywordSet(FILE_LUNIx)) { 
 
       e->Throw( "FILE_LUN not supported yet.");
 
     // N_DIMENSIONS
-    } else if( e->KeywordSet(3)) { 
+    } else if( e->KeywordSet(N_DIMENSIONSIx)) { 
 
       return new DLongGDL( Rank);
 
     //N_ELEMENTS
-    } else if( e->KeywordSet(4)) { 
+    } else if( e->KeywordSet(N_ELEMENTSIx)) { 
 
       if( e->KeywordSet(0))
 	return new DULongGDL( nEl);
@@ -99,7 +107,7 @@ namespace lib {
 	return new DLongGDL( nEl);
 
     // STRUCTURE
-    } else if( e->KeywordSet(5)) { 
+    } else if( e->KeywordSet(STRUCTUREIx)) { 
 
 
       DStructGDL* res = new DStructGDL( "IDL_SIZE");
@@ -141,7 +149,7 @@ namespace lib {
       //e->Throw( "STRUCTURE not supported yet.");
 
     // TNAME
-    } else if( e->KeywordSet(6)) { 
+    } else if( e->KeywordSet(TNAMEIx)) { 
 
       if( p0 == NULL)
 	return new DStringGDL( "UNDEFINED");
@@ -149,7 +157,7 @@ namespace lib {
       return new DStringGDL( p0->TypeStr());
 
     // TYPE
-    } else if( e->KeywordSet(7)) { 
+    } else if( e->KeywordSet(TYPEIx)) { 
 
       return new DLongGDL( vType );
 
@@ -157,7 +165,7 @@ namespace lib {
 
       dimension dim( 3 + Rank);
 
-      if( e->KeywordSet(0)) {
+      if( e->KeywordSet(L64Ix)) {
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
 	(*res)[ 0] = Rank;
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);

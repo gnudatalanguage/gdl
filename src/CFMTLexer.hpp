@@ -43,14 +43,7 @@ public:
 	CFMTLexer(antlr::InputBuffer& ib);
 	CFMTLexer(const antlr::LexerSharedInputState& state);
 	antlr::RefToken nextToken();
-	protected: void mCSTR(bool _createToken);
-	protected: void mCSTR1(bool _createToken);
-	protected: void mCSTR2(bool _createToken);
-	protected: void mESC(bool _createToken);
-	protected: void mOCTESC(bool _createToken);
-	protected: void mHEXESC(bool _createToken);
-	protected: void mODIGIT(bool _createToken);
-	protected: void mHDIGIT(bool _createToken);
+	public: void mALL(bool _createToken);
 	protected: void mCD(bool _createToken);
 	protected: void mCE(bool _createToken);
 	protected: void mCI(bool _createToken);
@@ -61,10 +54,18 @@ public:
 	protected: void mCS(bool _createToken);
 	protected: void mCX(bool _createToken);
 	protected: void mCZ(bool _createToken);
-	protected: void mCDOT(bool _createToken);
-	protected: void mDIGITS(bool _createToken);
 	protected: void mCNUMBER(bool _createToken);
+	protected: void mCDOT(bool _createToken);
 	protected: void mCWS(bool _createToken);
+	protected: void mCSTR(bool _createToken);
+	protected: void mCSTR1(bool _createToken);
+	protected: void mCSTR2(bool _createToken);
+	protected: void mESC(bool _createToken);
+	protected: void mOCTESC(bool _createToken);
+	protected: void mHEXESC(bool _createToken);
+	protected: void mODIGIT(bool _createToken);
+	protected: void mHDIGIT(bool _createToken);
+	protected: void mDIGITS(bool _createToken);
 private:
 	
 	static const unsigned long _tokenSet_0_data_[];
@@ -75,6 +76,8 @@ private:
 	static const antlr::BitSet _tokenSet_2;
 	static const unsigned long _tokenSet_3_data_[];
 	static const antlr::BitSet _tokenSet_3;
+	static const unsigned long _tokenSet_4_data_[];
+	static const antlr::BitSet _tokenSet_4;
 };
 
 #endif /*INC_CFMTLexer_hpp_*/

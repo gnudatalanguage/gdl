@@ -73,6 +73,9 @@ if STRLEN(str_separator) GT 1 then begin
     endif   
     ;; debug=1
     resu=''
+    if SIZE(str_input, /type) NE 7 then begin
+       str_input = byte( str_input)
+    end
     residual=STRING(str_input)
     while (STRLEN(residual) GT 0) do begin
         pos=STRPOS(residual, str_separator)
