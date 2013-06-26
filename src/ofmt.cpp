@@ -301,7 +301,115 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
 
   return tCountOut;
 }
+// C code ****************************************************
+    void j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &Year ,
+                  DLong &Hour , DLong &Minute, DDouble &Second)
+    {
+    DDouble JD,Z,F,a;
+    DLong A,B,C,D,E;
+    JD = jd + 0.5;
+    Z = floor(JD);
+    F = JD - Z;
 
+    if (Z < 2299161) A = (DLong)Z;
+    else {
+      a = (DLong) ((Z - 1867216.25) / 36524.25);
+      A = (DLong) (Z + 1 + a - (DLong)(a / 4));
+    }
+
+    B = A + 1524;
+    C = (DLong) ((B - 122.1) / 365.25);
+    D = (DLong) (365.25 * C);
+    E = (DLong) ((B - D) / 30.6001);
+
+    // month
+    iMonth = E < 14 ? E - 1 : E - 13;
+    // iday
+    iDay=B - D - (DLong)(30.6001 * E);
+
+    // year
+    Year = iMonth > 2 ? C - 4716 : C - 4715;
+    // hours
+    Hour = (DLong) (F * 24);
+    F -= (DDouble)Hour / 24;
+    // minutes
+    Minute = (DLong) (F * 1440);
+    F -= (DDouble)Minute / 1440;
+    // seconds
+    Second = F * 86400;
+  }
+
+// other
+ template<class Sp> SizeT Data_<Sp>::
+ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, 
+			int d, char f, BaseGDL::Cal_IOMode cMode)
+ {
+   DDoubleGDL* cVal = static_cast<DDoubleGDL*>
+   ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+   SizeT retVal = cVal->OFmtCal( os, offs, r, w, d, f, cMode);
+   delete cVal;
+   return retVal;
+ }
+ //double
+ template<> SizeT Data_<SpDDouble>::
+ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, 
+			int d, char f, BaseGDL::Cal_IOMode cMode)
+ {
+   static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"};
+   static string theMONTH[12]={"JAN","FEB","MAR","APR","MAY","JUN",
+      "JUL","AUG","SEP","OCT","NOV","DDEC"};
+   static string themonth[12]={"jan","feb","mar","apr","may","jun",
+      "jul","aug","sep","oct","nov","dec"};
+   static string theDAY[7]={"MON","TUE","WED","THU","FRI","SAT","SUN"};
+   static string theDay[7]={"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+   static string theday[7]={"mon","tue","wed","thu","fri","sat","sun"};
+
+   DLong iMonth, iDay , Year , Hour , Minute, dow;
+   DDouble Second;
+   
+   SizeT nTrans = ToTransfer();
+
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if( r < tCount) tCount = r;
+
+  SizeT endEl = offs + tCount;
+ 
+  SetField( w, d, 6,  16, 25);
+  for( SizeT i=offs; i<endEl; ++i)
+  {
+    j2ymdhms((*this)[ i],iMonth, iDay, Year, Hour, Minute, Second);
+    // DayOfWeek
+    dow=((DLong)((*this)[i]))%7;
+    if( cMode == CMOA) // G
+    {
+      std::cout << theMONTH[iMonth];
+    }
+    else if( cMode == CMoA) // F, D
+    {
+      std::cout << theMonth[iMonth];
+    }
+    else if ( cMode == CmoA) // E 
+    {
+      std::cout << themonth[iMonth];
+    }
+    else if ( cMode == CDWA) // E 
+    {
+      std::cout << theDAY[dow];
+    }
+    else if ( cMode == CDwA) // E 
+    {
+      std::cout <<  theDay[dow];
+    }
+    else if ( cMode == CdwA) // E 
+    {
+      std::cout << theday[dow];
+    }
+  }
+  return tCount;
+ }
+ 
 // F code ****************************************************
 // other
 template<class Sp> SizeT Data_<Sp>::

@@ -621,6 +621,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c1 = _t;
 		match(antlr::RefAST(_t),CMOA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c1->getRep();
+		int w = c1->getW();
+		int d = c1->getD();
+		int f = c1->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CMOA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CMoA:
@@ -628,6 +643,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c2 = _t;
 		match(antlr::RefAST(_t),CMoA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c2->getRep();
+		int w = c2->getW();
+		int d = c2->getD();
+		int f = c2->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CMoA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CmoA:
@@ -635,6 +665,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c3 = _t;
 		match(antlr::RefAST(_t),CmoA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c3->getRep();
+		int w = c3->getW();
+		int d = c3->getD();
+		int f = c3->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CmoA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CHI:
@@ -642,6 +687,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c4 = _t;
 		match(antlr::RefAST(_t),CHI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c4->getRep();
+		int w = c4->getW();
+		int d = c4->getD();
+		int f = c4->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CHI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case ChI:
@@ -649,6 +709,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c5 = _t;
 		match(antlr::RefAST(_t),ChI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c5->getRep();
+		int w = c5->getW();
+		int d = c5->getD();
+		int f = c5->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::ChI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CDWA:
@@ -656,6 +731,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c6 = _t;
 		match(antlr::RefAST(_t),CDWA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c6->getRep();
+		int w = c6->getW();
+		int d = c6->getD();
+		int f = c6->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CDWA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CDwA:
@@ -663,6 +753,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c7 = _t;
 		match(antlr::RefAST(_t),CDwA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c7->getRep();
+		int w = c7->getW();
+		int d = c7->getD();
+		int f = c7->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CDwA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CdwA:
@@ -670,6 +775,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c8 = _t;
 		match(antlr::RefAST(_t),CdwA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c8->getRep();
+		int w = c8->getW();
+		int d = c8->getD();
+		int f = c8->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CdwA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CAPA:
@@ -677,6 +797,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c9 = _t;
 		match(antlr::RefAST(_t),CAPA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c9->getRep();
+		int w = c9->getW();
+		int d = c9->getD();
+		int f = c9->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CAPA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CApA:
@@ -684,6 +819,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c10 = _t;
 		match(antlr::RefAST(_t),CApA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c10->getRep();
+		int w = c10->getW();
+		int d = c10->getD();
+		int f = c10->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CApA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CapA:
@@ -691,6 +841,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c11 = _t;
 		match(antlr::RefAST(_t),CapA);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c11->getRep();
+		int w = c11->getW();
+		int d = c11->getD();
+		int f = c11->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CapA);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CMOI:
@@ -698,6 +863,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c12 = _t;
 		match(antlr::RefAST(_t),CMOI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c12->getRep();
+		int w = c12->getW();
+		int d = c12->getD();
+		int f = c12->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CMOI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CDI:
@@ -705,6 +885,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c13 = _t;
 		match(antlr::RefAST(_t),CDI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c13->getRep();
+		int w = c13->getW();
+		int d = c13->getD();
+		int f = c13->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CDI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CYI:
@@ -712,6 +907,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c14 = _t;
 		match(antlr::RefAST(_t),CYI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c14->getRep();
+		int w = c14->getW();
+		int d = c14->getD();
+		int f = c14->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CYI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CMI:
@@ -719,6 +929,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c15 = _t;
 		match(antlr::RefAST(_t),CMI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c15->getRep();
+		int w = c15->getW();
+		int d = c15->getD();
+		int f = c15->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CMI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CSI:
@@ -726,6 +951,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c16 = _t;
 		match(antlr::RefAST(_t),CSI);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c16->getRep();
+		int w = c16->getW();
+		int d = c16->getD();
+		int f = c16->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CSI);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case CSF:
@@ -733,6 +973,21 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		c17 = _t;
 		match(antlr::RefAST(_t),CSF);
 		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = c17->getRep();
+		int w = c17->getW();
+		int d = c17->getD();
+		int f = c17->getFill();
+		do {
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
+		BaseGDL::CSF);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
 		break;
 	}
 	case X:

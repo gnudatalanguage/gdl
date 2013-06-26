@@ -385,6 +385,10 @@ static	void operator delete( void *ptr);
   {
     throw GDLException("File expression not allowed in this context.");
   }
+  SizeT OFmtCal( std::ostream* os, SizeT offset, SizeT num, int width)
+  {
+    throw GDLException("File expression not allowed in this context.");
+  }
   SizeT IFmtA( std::istream* os, SizeT offset, SizeT num, int width)
   {
     throw GDLException("File expression not allowed in this context.");

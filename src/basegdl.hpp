@@ -411,7 +411,27 @@ public:
     HEXL, // lower case characters
     AUTO
   };
-  
+
+  enum Cal_IOMode {
+      DEFAULT=0,
+      CMOA,
+      CMoA,
+      CmoA,
+      CMOI,
+      CDI,
+      CYI,
+      CHI,
+      ChI,
+      CMI,
+      CSI,
+      CSF,
+      CDWA,
+      CDwA,
+      CdwA,
+      CAPA,
+      CApA,
+      CapA
+  };
   // FIRST VIRTUAL FUNCTION'S GDL_OBJ FILE CONTAINS ALSO THE VTABLE
   // therefore it must be defined non-inline (g++)
   virtual ~BaseGDL(); // defined in basegdl.cpp
@@ -674,6 +694,8 @@ public:
 			int prec, char fill, IOMode oM = FIXED); 
   virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
 			int minN, char fill, BaseGDL::IOMode oM = DEC);
+  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
+			int minN, char fill, BaseGDL::Cal_IOMode oM = DEFAULT);
   virtual SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   virtual SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   virtual SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
