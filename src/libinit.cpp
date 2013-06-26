@@ -559,7 +559,7 @@ void LibInit()
       "ZTITLE", "T3D", "ZVALUE", KLISTEND
     };
   //
-  const string plotWarnKey[]= { "FONT", KLISTEND };
+  const string plotWarnKey[]= { "FONT","CHANNEL", KLISTEND };
   new DLibPro(lib::plot,string("PLOT"),2,plotKey,plotWarnKey);
 
   const string axisKey[]=
@@ -593,8 +593,8 @@ void LibInit()
     "ZTITLE",
     KLISTEND
   };
-//  const string axisWarnKey[]={KLISTEND};
-  new DLibPro(lib::axis,string("AXIS"),3,axisKey);  //,axisWarnKey);
+  const string axisWarnKey[]={"CHANNEL",KLISTEND};
+  new DLibPro(lib::axis,string("AXIS"),3,axisKey,axisWarnKey);
 
   const string oplotKey[]=
     {
@@ -607,7 +607,8 @@ void LibInit()
       "MAX_VALUE", "MIN_VALUE", "NSUM", "POLAR",
       KLISTEND
     };
-  new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey);
+  const string oplotWarnKey[]={"CHANNEL",KLISTEND};
+  new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey,oplotWarnKey);
 
   const string plotsKey[]=
     {
@@ -660,7 +661,7 @@ void LibInit()
     };
   const string shade_surfWarnKey[]=
   {
-      "IMAGE", "PIXELS",  KLISTEND
+      "IMAGE", "PIXELS", "CHANNEL", KLISTEND
   };
   new DLibPro(lib::shade_surf,string("SHADE_SURF"),3,shade_surfKey, shade_surfWarnKey);
 
@@ -720,7 +721,7 @@ void LibInit()
     };
   const string surfaceWarnKey[]=
   {
-      "LEGO", KLISTEND
+      "LEGO", "CHANNEL",KLISTEND
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
@@ -762,12 +763,13 @@ void LibInit()
     };
    // NO SUPPORT AT ALL for:,"CLOSED","DOWNHILL","IRREGULAR","PATH_DATA_COORDS","PATH_FILENAME",
    // "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE","ZAXIS"
+  // "CHANNEL" is supposed to be passed from CONTOUR, PLOT, OPLOT, SHADE_SURF etc to ERASER
    const string contourWarnKey[]=
     {
       
       "CELL_FILL","C_ANNOTATIONS","CLOSED","DOWNHILL",
       "PATH_DATA_COORDS","PATH_FILENAME",
-      "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE",KLISTEND
+      "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE","CHANNEL",KLISTEND
     };
    new DLibPro(lib::contour,string("CONTOUR"),3,contourKey,contourWarnKey);
 
