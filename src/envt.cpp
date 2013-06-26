@@ -874,6 +874,19 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 //   return string("<Expression>");
 // }
 
+
+void EnvT::Help(const std::string s_help[], int size_of_s)
+{
+  if (size_of_s == 0) 
+    throw GDLException( CallingNode(), pro->ObjectName()+": no inline doc ready");
+  else {
+    int i;
+    for (i = 0; i < size_of_s; i++)
+      Message(pro->ObjectName()+": "+s_help[i]);
+    throw GDLException( CallingNode(), pro->ObjectName()+": call to inline help");
+  }
+}
+
 void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 {
   int varIx=GetKeywordIx( k);

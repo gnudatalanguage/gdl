@@ -514,27 +514,15 @@ public:
 
   // will print the message (can be multiline) and exit
   // first usage in "math_fun_ac.cpp"
-  void Help(const std::string s_help[], int size_of_s)
-  { 
-    if (size_of_s == 0) 
-      throw GDLException( CallingNode(), pro->ObjectName()+	\
-			  ": no inline doc ready");
-    else {
-      int i;
-      for (i = 0; i < size_of_s-1; i++)
-	Message(pro->ObjectName()+": "+s_help[i]);
-      throw GDLException( CallingNode(), pro->ObjectName()+": "+s_help[i]);
-    }
-  }
-
-
+  void Help(const std::string s_help[], int size_of_s);
+ 
   // returns environment data, by value (but that by C++ reference)
   // in EnvBaseT
-//   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
+  //   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
   // it is now possible to define a niminum number of parameters for library subroutines
   // if this is done the next function can be used
-//   BaseGDL*& GetParUnchecked(SizeT i);
+  //   BaseGDL*& GetParUnchecked(SizeT i);
 
   // returns the ix'th parameter (NULL if not defined)
   BaseGDL*& GetPar( SizeT i);  
