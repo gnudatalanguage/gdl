@@ -180,11 +180,12 @@ public:
 };
 
 // Lib pro/fun ********************************************************
-class EnvT;
-
-typedef void     (*LibPro)(EnvT*);
-typedef BaseGDL* (*LibFun)(EnvT*);
-typedef BaseGDL* (*LibFunDirect)(BaseGDL* param,bool canGrab);
+// moved to prognode.hpp
+// class EnvT;
+// 
+// typedef void     (*LibPro)(EnvT*);
+// typedef BaseGDL* (*LibFun)(EnvT*);
+// typedef BaseGDL* (*LibFunDirect)(BaseGDL* param,bool canGrab);
 
 // library procedure/function (in cases both are handled the same way)
 class DLib: public DSub

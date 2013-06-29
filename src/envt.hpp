@@ -435,7 +435,7 @@ public:
     ++nJump;
     return static_cast<DSubUD*>( pro)->GotoTarget( ix);
   }
-  bool LFun() const { return lFun;} // left-function
+  bool IsLFun() const { return lFun;} // left-function
 
   void SetIOError( int targetIx) 
   { // this isn't a jump

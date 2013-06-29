@@ -30,6 +30,11 @@ enum RetCode {
   RC_ABORT, // checked as retCode >= RC_RETURN
 };
 
+class EnvT;
+typedef void     (*LibPro)(EnvT*);
+typedef BaseGDL* (*LibFun)(EnvT*);
+typedef BaseGDL* (*LibFunDirect)(BaseGDL* param,bool canGrab);
+
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
@@ -95,8 +100,10 @@ protected:
   BaseGDL*   cData;           // constant data
   DVar*      var;             // ptr to variable 
 
-  DLibFun*   libFun;
-  DLibPro*   libPro;
+  DLibFun*     libFun;
+  DLibPro*     libPro;
+  LibFun       libFunFun;
+  LibPro       libProPro;
 
   union {
     int        initInt;    // for c-i not actually used
@@ -114,8 +121,11 @@ protected:
   };
 
   void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
-
+  
   static ProgNodeP GetNULLProgNodeP(); 
+
+public:
+  int GetVarIx() const { return varIx;}
 
 private:
   // from DNode (see there)

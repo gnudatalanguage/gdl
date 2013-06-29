@@ -19,6 +19,7 @@
 #define prognodeexpr_hpp__
 
 #include "prognode.hpp"
+#include "dpro.hpp"
 
 
 class UnaryExpr: public DefaultNode
@@ -110,9 +111,13 @@ public:
 
 class FCALL_LIB_DIRECTNode: public LeafNode
 {
+  LibFunDirect libFunDirectFun;
 public:
   FCALL_LIB_DIRECTNode( const RefDNode& refNode): LeafNode( refNode)
-  {}
+  {
+    assert( this->libFun != NULL);
+    libFunDirectFun = static_cast<DLibFunDirect*>(this->libFun)->FunDirect();
+  }
   BaseGDL** LEval();
   BaseGDL* Eval();
 };

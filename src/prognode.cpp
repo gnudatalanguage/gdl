@@ -42,7 +42,7 @@ if( doInit)
   nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
   nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
 
-  doInit = true;
+  doInit = false;
 }
 return nonCopyNodeLookupArray;
 }
@@ -74,6 +74,10 @@ ProgNode::ProgNode( const RefDNode& refNode):
   labelEnd( refNode->labelEnd)
 {
   initInt = refNode->initInt;
+  if( libFun != NULL)
+    libFunFun = libFun->Fun();
+  else if( libPro != NULL)
+    libProPro = libPro->Pro();    
 }
 
 
@@ -144,16 +148,20 @@ BaseGDL* ASSIGNNode::Eval()
 	BaseGDL* res;
     if( _t->getType() == GDLTokenTypes::FCALL_LIB)
         {
-            res=interpreter->lib_function_call(_t);
-            _t = interpreter->GetRetTree();
-            if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.Reset( res);
+//             res=interpreter->lib_function_call(_t);
+//             _t = interpreter->GetRetTree();
+	  res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+	  if( !interpreter->CallStackBack()->Contains( res))
+	    r_guard.Reset( res);
+	  _t = _t->getNextSibling();
         }
     else
         {
-            res=interpreter->tmp_expr(_t);
-            _t = interpreter->GetRetTree();
+//             res=interpreter->tmp_expr(_t);
+//             _t = interpreter->GetRetTree();
+	    res = _t->Eval();
             r_guard.Reset( res);
+	    _t = _t->getNextSibling();
         }
 
     BaseGDL** l=_t->LExpr( res); //l_expr(_t, res);
@@ -173,16 +181,20 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 	BaseGDL* res;
     if( _t->getType() == GDLTokenTypes::FCALL_LIB)
         {
-            res=interpreter->lib_function_call(_t);
-            _t = interpreter->GetRetTree();
+//             res=interpreter->lib_function_call(_t);
+//             _t = interpreter->GetRetTree();
+	    res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
             if( !interpreter->CallStackBack()->Contains( res))
                 r_guard.Reset( res);
+	    _t = _t->getNextSibling();
         }
     else
         {
-            res=interpreter->tmp_expr(_t);
-            _t = interpreter->GetRetTree();
+//             res=interpreter->tmp_expr(_t);
+//             _t = interpreter->GetRetTree();
+	    res = _t->Eval();
             r_guard.Reset( res);
+	    _t = _t->getNextSibling();
         }
 
     ProgNodeP mark = _t;
@@ -224,42 +236,44 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 }
 BaseGDL* ASSIGN_REPLACENode::Eval()
 {
-    ProgNodeP _t = this->getFirstChild();
+  ProgNodeP _t = this->getFirstChild();
 
-    Guard<BaseGDL> r_guard;
+//   Guard<BaseGDL> r_guard;
+//   BaseGDL* res;
+//   if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//       {
+// //             res=interpreter->lib_function_call(_t);
+// //             _t = interpreter->GetRetTree();
+// 	  res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+// 	  _t = _t->getNextSibling();
+// 	  if( !interpreter->CallStackBack()->Contains( res))
+// 	      r_guard.Init( res);
+// 	  else if( res == (*l))
+// 	    return;
+//       }
+//   else
+//       {
+// //             res=interpreter->tmp_expr(_t);
+// //             _t = interpreter->GetRetTree();
+// 	  res = _t->Eval();
+// 	  _t = _t->getNextSibling();
+// 	  r_guard.Init( res);
+//       }
 
-	BaseGDL* res;
-    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-        {
-            res=interpreter->lib_function_call(_t);
-            _t = interpreter->GetRetTree();
-            if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.Reset( res);
-        }
-    else
-        {
-            res=interpreter->tmp_expr(_t);
-            _t = interpreter->GetRetTree();
-            r_guard.Reset( res);
-        }
+  BaseGDL* res = _t->Eval();
+  Guard<BaseGDL> r_guard( res);
 
-    BaseGDL** l=_t->LEval();
-    //_t = _t->getNextSibling();
-    //_t = _retTree;
+  _t = _t->getNextSibling();
 
-    if( res != (*l))
-    {
-      GDLDelete(*l);
-      *l = res->Dup();
+  BaseGDL** l=_t->LEval();
 
-      if( r_guard.get() == res) // owner
-      {
-		r_guard.release();
-      }
-      else
-	res = res->Dup();
-	}
-	return res;
+  GDLDelete(*l);
+
+  *l = res->Dup();
+
+   r_guard.release();
+
+   return res;
 }
 
 
@@ -289,56 +303,71 @@ BaseGDL* ARRAYDEFNode::Eval()
 			
     DType ty=e->Type();
     if( ty == GDL_UNDEF)
-      {
-	throw GDLException( _t, "Variable is undefined: "+
-			    ProgNode::interpreter->Name(e),true,false);
-      }
+    {
+      throw GDLException( _t, "Variable is undefined: "+
+			  ProgNode::interpreter->Name(e),true,false);
+    }
+
     if( cType == GDL_UNDEF) 
-      {
-	cType=ty;
-	cTypeData=e;
-      }
+    {
+// array of struct is (of course) fine
+//       if( DTypeOrder[ty] >= 100) // struct, ptr, object
+//       {
+// 	throw 
+// 	  GDLException( _t, e->TypeStr()+
+// 			" is not allowed in this context.",true,false);
+//       }
+
+      cType=ty;
+      cTypeData=e;
+    }
     else 
-      { 
-	if( cType != ty) 
-	  {
-	    if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
+    { 
+      if( cType != ty) 
+	{
+	  // update order if larger type (or types are equal)
+	  if( DTypeOrder[ty] >= DTypeOrder[cType]) 
+	    {
+	      if( DTypeOrder[ty] >= 100) // struct, ptr, object
 	      {
 		throw 
 		  GDLException( _t, e->TypeStr()+
 				" is not allowed in this context.",true,false);
 	      }
-			
-	    // update order if larger type (or types are equal)
-	    if( DTypeOrder[ty] >= DTypeOrder[cType]) 
+
+	      cType=ty;
+	      cTypeData=e;
+	    }
+	 else if( DTypeOrder[cType] >= 100) // struct, ptr, object
 	      {
-		cType=ty;
-		cTypeData=e;
-	      }
-	  }
-	if( ty == GDL_STRUCT)
-	  {
-	    // check for struct compatibility
-	    DStructDesc* newS=
-	      static_cast<DStructGDL*>(e)->Desc();
-	    DStructDesc* oldS=
-	      static_cast<DStructGDL*>(cTypeData)->Desc();
-			
-	    // *** here (*newS) != (*oldS) must be set when
-	    // unnamed structs not in struct list anymore
-	    // WRONG! This speeds up things for named structs
-	    // unnamed structs all have their own desc
-	    // and thus the next is always true for them
-	    if( newS != oldS)
-	      {
-			
-		if( (*newS) != (*oldS))
-		  throw GDLException( _t, 
-				      "Conflicting data structures: "+
-				      ProgNode::interpreter->Name(cTypeData)+", "+ProgNode::interpreter->Name(e),true,false);
-	      }
-	  }
-      }
+		throw 
+		  GDLException( _t, cTypeData->TypeStr()+
+				" is not allowed in this context.",true,false);
+	      }	    
+	}
+      if( ty == GDL_STRUCT)
+	{
+	  // check for struct compatibility
+	  DStructDesc* newS=
+	    static_cast<DStructGDL*>(e)->Desc();
+	  DStructDesc* oldS=
+	    static_cast<DStructGDL*>(cTypeData)->Desc();
+		      
+	  // *** here (*newS) != (*oldS) must be set when
+	  // unnamed structs not in struct list anymore
+	  // WRONG! This speeds up things for named structs
+	  // unnamed structs all have their own desc
+	  // and thus the next is always true for them
+	  if( newS != oldS)
+	    {
+		      
+	      if( (*newS) != (*oldS))
+		throw GDLException( _t, 
+				    "Conflicting data structures: "+
+				    ProgNode::interpreter->Name(cTypeData)+", "+ProgNode::interpreter->Name(e),true,false);
+	    }
+	}
+    }
 			
     // memorize maximum Rank
     SizeT rank=e->Rank();
@@ -374,7 +403,7 @@ BaseGDL* STRUCNode::Eval()
   ProgNodeP _t = this->getFirstChild();
   for (; _t != NULL;) {
     ProgNodeP si = _t;
-    // 			match(antlr::RefAST(_t),IDENTIFIER);
+    // match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
     BaseGDL* e=_t->Eval(); //interpreter->expr(_t);
     _t = _t->getNextSibling();
@@ -658,8 +687,10 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
-  BaseGDL* kval=ProgNode::interpreter->
-    lib_function_call(this->getFirstChild()->getNextSibling());
+  BaseGDL* kval=
+//   ProgNode::interpreter->
+//     lib_function_call(this->getFirstChild()->getNextSibling());
+    static_cast<FCALL_LIBNode*>(this->getFirstChild()->getNextSibling())->EvalFCALL_LIB(); 
 			
   BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
   if( kvalRef != NULL)
@@ -747,7 +778,8 @@ bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
     pval = p->Eval();
     return false; // pass value
   }
-  pval=ProgNode::interpreter->lib_function_call(p);
+//   pval=ProgNode::interpreter->lib_function_call(p);
+  pval = static_cast<FCALL_LIBNode*>(p)->EvalFCALL_LIB(); 
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
   return (pvalRef != NULL);
 //   if( pvalRef != NULL)
@@ -787,8 +819,8 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {  
-    BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-			  
+    BaseGDL* //pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+	pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB(); 
     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
     if( pvalRef != NULL)
       {   // pass reference
@@ -829,7 +861,8 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
-    BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+    BaseGDL* //pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+	pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB(); 
     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
     if( pvalRef != NULL)
       {   // pass reference
@@ -865,7 +898,7 @@ void ParameterVNNode::Parameter( EnvBaseT* actEnv)
 
 RetCode  WRAPPED_FUNNode::Run()
 {
-  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->CallStackBack());
   BaseGDL* res = (*this->fun)( env);
   interpreter->SetRetTree( this->getNextSibling()); // ???
   assert( ProgNode::interpreter->returnValue == NULL);
@@ -875,7 +908,7 @@ RetCode  WRAPPED_FUNNode::Run()
 }
 RetCode  WRAPPED_PRONode::Run()
 {
-  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->CallStackBack());
   (*this->pro)( env);
   interpreter->SetRetTree( this->getNextSibling()); // ???
   return RC_RETURN;
@@ -897,18 +930,20 @@ RetCode  ASSIGNNode::Run()
   }
   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
   {
-      r=ProgNode::interpreter->lib_function_call(_t);
-      _t = ProgNode::interpreter->_retTree;		      
+//       r=ProgNode::interpreter->lib_function_call(_t);
+//       _t = ProgNode::interpreter->_retTree;		      
+      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
       if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
- 	r_guard.Reset( r); // guard if no global data
+ 	r_guard.Init( r); // guard if no global data
+      _t = _t->getNextSibling();
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
   else
   {
       r=_t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
+      r_guard.Init( r);
       _t = _t->getNextSibling();
 //       _t = ProgNode::interpreter->_retTree;
-      r_guard.Reset( r);
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
 //     switch ( _t->getType()) {
@@ -960,13 +995,15 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
     // BOTH
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-	r=ProgNode::interpreter->lib_function_call(_t);
+// 	r=ProgNode::interpreter->lib_function_call(_t);
+	r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
 
 	if( r == NULL) // ROUTINE_NAMES
 		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
 
-	_t = ProgNode::interpreter->_retTree;
-	
+// 	_t = ProgNode::interpreter->_retTree;
+	_t = _t->getNextSibling();
+
 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
 		r_guard.Reset( r);
 			
@@ -1047,57 +1084,19 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 
 RetCode  ASSIGN_REPLACENode::Run()
 {
-  BaseGDL*  r;
-  Guard<BaseGDL> r_guard;
-
   //match(antlr::RefAST(_t),ASSIGN_REPLACE);
   ProgNodeP _t = this->getFirstChild();
-  {
-//     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-//       {
-// 	r=_t->Eval();//different: ProgNode::interpreter->lib_function_call(_t);
-// 	_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
-// 	assert(_t != NULL);
-// 	r_guard.Reset( r);
-// // 	if( !ProgNode::interpreter->callStack.back()->Contains( r))
-// // 		r_guard.Reset( r);
-// // 	else
-// // 		r_guard.Reset( r->Dup());
-//       }
-//     else
-      {
-	//r=ProgNode::interpreter->tmp_expr(_t);
- 	r = _t->Eval();
-	r_guard.Reset( r);
- 	_t = _t->getNextSibling();
-	assert(_t != NULL);
-      }
-  }
-//   switch ( _t->getType()) {
-//   case GDLTokenTypes::VAR:
-//   case GDLTokenTypes::VARPTR:
-//   case GDLTokenTypes::DEREF:
-//     {
-//       l=_t->LEval(); //ProgNode::interpreter->l_simple_var(_t);
-// //       _t = ProgNode::interpreter->_retTree;
-//       break;
-//     }
-//   default:
-// //   case GDLTokenTypes::FCALL:
-// //   case GDLTokenTypes::FCALL_LIB:
-// //   case GDLTokenTypes::MFCALL:
-// //   case GDLTokenTypes::MFCALL_PARENT:
-//     {
-//       l=ProgNode::interpreter->l_function_call(_t);
-// //       _t = ProgNode::interpreter->_retTree;
-//       break;
-//     }
-//   } // switch
-  
-  BaseGDL** l=_t->LEval();
 
-  if( r != (*l)) // && (*l) != NullGDL::GetSingleInstance())
-    GDLDelete(*l);
+  BaseGDL* r = _t->Eval();
+  Guard<BaseGDL> r_guard( r);
+
+  _t = _t->getNextSibling();
+  assert(_t != NULL);
+  
+  BaseGDL** l = _t->LEval();
+
+//   if( r != (*l)) // && (*l) != NullGDL::GetSingleInstance())
+  GDLDelete(*l);
   
   *l = r_guard.release();
 
@@ -1131,7 +1130,8 @@ RetCode  PCALL_LIBNode::Run()
 //   ProgNode::interpreter->callStack.push_back(newEnv);
 		
   // make the call
-  static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+//   static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+  pl->libProPro(newEnv);
 
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   //  ProgNode::interpreter->_retTree = this->getNextSibling();
@@ -1945,7 +1945,7 @@ RetCode   RETFNode::Run()
 {
 	ProgNodeP _t = this->getFirstChild();
 	assert( _t != NULL);
-	if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->LFun())
+	if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun())
 		{
 			BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
 			interpreter->SetRetTree( _t->getNextSibling()); // ???

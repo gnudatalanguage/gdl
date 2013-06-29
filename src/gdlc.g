@@ -1466,7 +1466,8 @@ deref_expr
 }
 //	: array_expr_1st (DOT array_expr_nth)*
 	: a1:array_expr_1st 
-        ((tag_access)=> nDot=tag_access
+        // ((tag_access)=> nDot=tag_access
+        ((DOT)=> nDot=tag_access
             { 
 
                 dot=#[DOT,"."];

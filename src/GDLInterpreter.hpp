@@ -846,7 +846,6 @@ public:
 	public: void parameter_def_nocheck(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);
-	public: ArrayIndexListT*  arrayindex_list_noassoc(ProgNodeP _t);
 	public: void arrayindex_list_overload(ProgNodeP _t,
 		IxExprListT& indexList
 	);

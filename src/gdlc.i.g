@@ -3458,7 +3458,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 // 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
 	
-	aL = ax->arrIxList;
+	aL = ax->arrIxList; // vs. ax->arrIxListNoAssoc
 	assert( aL != NULL);
 	
 	nExpr = aL->NParam();
@@ -3512,7 +3512,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
             )*
         )
     ;
-
+/*
 arrayindex_list_noassoc returns [ArrayIndexListT* aL]
 {
     IxExprListT      cleanupList; // for cleanup
@@ -3578,7 +3578,7 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
             )*
         )
     ;
-
+*/
 // for _overloadBracketsLeftSide/_overloadBracketsRightSide
 arrayindex_list_overload [IxExprListT& indexList]
 {
@@ -3613,7 +3613,8 @@ arrayindex_list_overload [IxExprListT& indexList]
             }
         else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
             {
-                s=lib_function_call(_t);
+                // s=lib_function_call(_t);
+                s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
                 //_t = _retTree;
                 if( !callStack.back()->Contains( s)) 
                     cleanupList.push_back( s);
