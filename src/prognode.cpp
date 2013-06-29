@@ -1364,14 +1364,14 @@ RetCode   FOR_LOOPNode::Run()
 	//(*v)->ForAdd();
 	if( (*v)->ForAddCondUp( loopInfo.endLoopVar))
 	{
-		ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
+	    ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
 // 			if( ProgNode::interpreter->_retTree == this) goto shortCut;
 	}
 	else
 	{
-		GDLDelete(loopInfo.endLoopVar);
-		loopInfo.endLoopVar = NULL;
-		ProgNode::interpreter->_retTree = this->GetNextSibling();
+	    GDLDelete(loopInfo.endLoopVar);
+	    loopInfo.endLoopVar = NULL;
+	    ProgNode::interpreter->_retTree = this->GetNextSibling();
 	}
 	return RC_OK;
 }

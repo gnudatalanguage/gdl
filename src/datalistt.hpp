@@ -30,7 +30,7 @@ struct EnvType
   void NullP() { p = NULL;}
   void NullPP() { pp = NULL;}
   
-  bool IsSet() { return (p != NULL || pp != NULL);}
+  bool IsSet() const { return (p != NULL || pp != NULL);}
 
   bool IsP() const { return p != NULL;}
   bool IsPP() const { return pp != NULL;}
@@ -44,9 +44,9 @@ struct EnvType
   BaseGDL* P() const { return p;}
   BaseGDL** PP() const { return pp;}
   BaseGDL*& PRef() { return p;}
-  BaseGDL**& PPRef() { return pp;}
+//   BaseGDL**& PPRef() { return pp;}
   BaseGDL* const& PRefConst() const { return p;}
-  BaseGDL** const& PPRefConst() const { return pp;}
+//   BaseGDL** const& PPRefConst() const { return pp;}
 
 private:
   BaseGDL* p;
@@ -310,13 +310,13 @@ public:
     return NULL;
  }
 
-  // finds the local variable pp points to
-  int FindLocal( BaseGDL** pp)
-  {
-    for( SizeT i=0; i<env.size(); i++)
-      if( &env[i].PRef() == pp) return static_cast<int>(i);
-    return -1;
-  }
+//   // finds the local variable pp points to
+//   int FindLocal( BaseGDL** pp)
+//   {
+//     for( SizeT i=0; i<env.size(); i++)
+//       if( &env[i].PRef() == pp) return static_cast<int>(i);
+//     return -1;
+//   }
 
   // finds the gloabl variable pp
   int FindGlobal( BaseGDL** pp)

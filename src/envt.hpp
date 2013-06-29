@@ -85,7 +85,7 @@ protected:
   EnvBaseT*      newEnv;
 
   // finds the local variable pp points to
-  int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
+//   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
   // used by the interperter returns the keyword index, used for UD functions
   int GetKeywordIx( const std::string& k);
 

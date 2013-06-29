@@ -49,7 +49,7 @@ void LibInit_cl()
   new DLibPro(lib::journal,string("JOURNAL"),1);
 
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
-  new DLibFun(lib::systime,string("SYSTIME"),2,systimeKey);
+  new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
     const string legendreKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::legendre,string("LEGENDRE"),3,legendreKey);

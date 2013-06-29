@@ -81,8 +81,8 @@ void LibInit_jmg()
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
 			    "BINOMIAL","POISSON","UNIFORM",KLISTEND};
-  new DLibFun(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
-  new DLibFun(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
+  new DLibFunRetNew(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
+  new DLibFunRetNew(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
 
   const string checkmathKey[]={"MASK","NOCLEAR","PRINT",KLISTEND};
   new DLibFun(lib::check_math_fun,string("CHECK_MATH"),2,checkmathKey);
@@ -100,7 +100,7 @@ void LibInit_jmg()
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
+  new DLibFunRetNew(lib::machar_fun,string("MACHAR"),0,macharKey);
 
   const string rk4Key[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
