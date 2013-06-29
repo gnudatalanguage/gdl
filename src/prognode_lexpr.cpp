@@ -208,7 +208,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
       
 // aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());  
     {
-      IxExprListT      cleanupList; // for cleanup
+//       IxExprListT      cleanupList; // for cleanup
       IxExprListT      ixExprList;
       SizeT nExpr;
       BaseGDL* s;
@@ -227,6 +227,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
       }
       else
       {
+	IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
+
 	while( true) {
 	  assert( _t != NULL);
 	  if( NonCopyNode( _t->getType()))
@@ -239,12 +241,12 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
 
 		  if( !interpreter->CallStackBack()->Contains( s)) 
-		      cleanupList.push_back( s);
+		      cleanupList->push_back( s);
 	      }				
 	  else
 	      {
 		  s=_t->Eval(); //indexable_tmp_expr(_t);
-		  cleanupList.push_back( s);
+		  cleanupList->push_back( s);
 	      }
 			  
 	  ixExprList.push_back( s);
@@ -254,7 +256,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	  _t = _t->getNextSibling();
 	}
 
-	aL->Init( ixExprList, &cleanupList);	      
+	aL->Init( ixExprList);//, &cleanupList);	      
       }
     }
   }

@@ -125,13 +125,13 @@ public:
       }
   }
   
-  void Init( IxExprListT& ix_, IxExprListT* cleanupIxIn)
+  void Init( IxExprListT& ix_)//, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix_.size() == nParam);
 
-    if( cleanupIxIn != NULL)
-      cleanupIx = *cleanupIxIn;
+//     if( cleanupIxIn != NULL)
+//       cleanupIx = *cleanupIxIn;
     
     if( nParam == 0) //return;
       {
@@ -300,7 +300,7 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
-    Init( ix_, NULL);
+    Init( ix_);//, NULL);
     if( ix->Scalar())// && ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
 //     if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
       {
@@ -1227,7 +1227,7 @@ public:
 class ArrayIndexListMultiNoAssocT: public ArrayIndexListT
 {
 private:
-	IxExprListT cleanupIx;
+  IxExprListT cleanupIx;
 
 protected:
   ArrayIndexVectorT ixList;
@@ -1271,7 +1271,7 @@ public:
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin();
 // 	 i != ixList.end(); ++i)
 //       {	delete *i;}
-	cleanupIx.Cleanup();
+    cleanupIx.Cleanup();
   }
 
   // constructor
@@ -1366,6 +1366,8 @@ public:
     cleanupIx.Cleanup();
   }
 
+  IxExprListT* GetCleanupIx() { return &cleanupIx;}
+  
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoAssocT( *this);}
 
   void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
@@ -1414,13 +1416,13 @@ public:
       }
   }
 
-  void Init( IxExprListT& ix, IxExprListT* cleanupIxIn)
+  void Init( IxExprListT& ix)//, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix.size() == nParam);
 
-    if( cleanupIxIn != NULL)
-      cleanupIx = *cleanupIxIn;
+//     if( cleanupIxIn != NULL)
+//       cleanupIx = *cleanupIxIn;
 
     SizeT pIX = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -1518,26 +1520,26 @@ public:
 
 	if( i == acRank) // counted up to acRank -> all scalar
 	{
-		accessType = ALLONE; // needed for GetDim()
-		const dimension& varDim  = var->Dim();
-		SizeT            varRank = varDim.Rank();
+	    accessType = ALLONE; // needed for GetDim()
+	    const dimension& varDim  = var->Dim();
+	    SizeT            varRank = varDim.Rank();
 
-		varStride = varDim.Stride();
-		nIterLimitGt1 = 0; // marker for BuildIx
+	    varStride = varDim.Stride();
+	    nIterLimitGt1 = 0; // marker for BuildIx
 
-		ixList[0]->NIter( (0<varRank)?varDim[0]:1);
-		assert( varStride[0] == 1);
-		baseIx = ixList[0]->GetIx0(); //  * varStride[0]; // GetS() not ok because INDEXED
+	    ixList[0]->NIter( (0<varRank)?varDim[0]:1);
+	    assert( varStride[0] == 1);
+	    baseIx = ixList[0]->GetIx0(); //  * varStride[0]; // GetS() not ok because INDEXED
 
-		// check boundary
-		for(SizeT i=1; i<acRank; ++i)
-		{
-			ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-			baseIx += ixList[i]->GetIx0() * varStride[i]; // GetS() not ok because INDEXED
-		}
+	    // check boundary
+	    for(SizeT i=1; i<acRank; ++i)
+	    {
+		    ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+		    baseIx += ixList[i]->GetIx0() * varStride[i]; // GetS() not ok because INDEXED
+	    }
 
-		nIx = 1;
-		return;			
+	    nIx = 1;
+	    return;			
 // 			accessType = ALLONE;
 // 			varStride = var->Dim().Stride();
 // 			// check boundary
@@ -1736,7 +1738,7 @@ public:
     }
     allIx = new (allIxInstance) AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
     return allIx;
-}
+  }
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt and Index functions
@@ -1769,7 +1771,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     // normal case
-    Init( ix, NULL);
+    Init( ix);//, NULL);
     SetVariable( var);
     if( nIx == 1)// && !var->IsAssoc())
     {

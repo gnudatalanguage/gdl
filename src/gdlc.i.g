@@ -3448,7 +3448,7 @@ parameter_def_nocheck [EnvBaseT* actEnv]
 
 arrayindex_list returns [ArrayIndexListT* aL]
 {
-    IxExprListT      cleanupList; // for cleanup
+    // IxExprListT      cleanupList; // for cleanup
     IxExprListT      ixExprList;
     SizeT nExpr;
     BaseGDL* s;
@@ -3460,7 +3460,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 	
 	aL = ax->arrIxList; // vs. ax->arrIxListNoAssoc
 	assert( aL != NULL);
-	
+
 	nExpr = aL->NParam();
 	if( nExpr == 0)
 	{
@@ -3470,6 +3470,8 @@ arrayindex_list returns [ArrayIndexListT* aL]
 	}
 	
 	while( true) {
+        IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
+
         assert( _t != NULL);
         if( NonCopyNode( _t->getType()))
             {
@@ -3481,13 +3483,13 @@ arrayindex_list returns [ArrayIndexListT* aL]
                 s=lib_function_call(_t);
                 //_t = _retTree;
                 if( !callStack.back()->Contains( s)) 
-                    cleanupList.push_back( s);
+                    cleanupList->push_back( s);
             }				
         else
             {
                 s=_t->Eval(); //indexable_tmp_expr(_t);
                 //_t = _retTree;
-                cleanupList.push_back( s);
+                cleanupList->push_back( s);
             }
 			
         assert( s != NULL);
@@ -3498,7 +3500,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
         _t = _t->getNextSibling();
 	}
 
-	aL->Init( ixExprList, &cleanupList);
+	aL->Init( ixExprList);//, &cleanupList);
 	
 	_retTree = ax->getNextSibling();//retTree;
 	return aL;

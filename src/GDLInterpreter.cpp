@@ -2063,7 +2063,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	ArrayIndexListT* aL;
 	ProgNodeP arrayindex_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	IxExprListT      cleanupList; // for cleanup
+	// IxExprListT      cleanupList; // for cleanup
 	IxExprListT      ixExprList;
 	SizeT nExpr;
 	BaseGDL* s;
@@ -2075,7 +2075,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		
 		aL = ax->arrIxList; // vs. ax->arrIxListNoAssoc
 		assert( aL != NULL);
-		
+	
 		nExpr = aL->NParam();
 		if( nExpr == 0)
 		{
@@ -2085,6 +2085,8 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		}
 		
 		while( true) {
+	IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
+	
 	assert( _t != NULL);
 	if( NonCopyNode( _t->getType()))
 	{
@@ -2096,13 +2098,13 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	s=lib_function_call(_t);
 	//_t = _retTree;
 	if( !callStack.back()->Contains( s)) 
-	cleanupList.push_back( s);
+	cleanupList->push_back( s);
 	}				
 	else
 	{
 	s=_t->Eval(); //indexable_tmp_expr(_t);
 	//_t = _retTree;
-	cleanupList.push_back( s);
+	cleanupList->push_back( s);
 	}
 				
 	assert( s != NULL);
@@ -2113,7 +2115,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 		}
 	
-		aL->Init( ixExprList, &cleanupList);
+		aL->Init( ixExprList);//, &cleanupList);
 		
 		_retTree = ax->getNextSibling();//retTree;
 		return aL;

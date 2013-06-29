@@ -47,11 +47,17 @@ public:
   { 
     throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::InitAsOverladIndex( IxExprListT& ixInOut) called.",true,false);    
   }
-  virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) 
+  virtual void Init( IxExprListT& ix)//, IxExprListT* cleanupIx) 
   { 
     assert( 0);
     throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::Init( IxExprListT& ix, IxExprListT* cleanupIx) called.",true,false);    
   }
+  virtual IxExprListT* GetCleanupIx()
+  { 
+    assert( 0);
+    throw GDLException( -1, NULL,"Internal error: ArrayIndexListT::GetCleanupIx() called.",true,false);    
+  }
+
   virtual void Init() {}
   
    virtual bool ToAssocIndex( SizeT& lastIx) 
@@ -107,7 +113,8 @@ private:
   char allIxInstance[ AllIxMaxSize];
   
 public:    
-  
+  IxExprListT* GetCleanupIx() { return &cleanupIx;}
+    
   ~ArrayIndexListOneT()
   {
 //     delete allIx;
@@ -152,13 +159,13 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneT( *this);}
 
-  void Init( IxExprListT& ix_, IxExprListT* cleanupIxIn)
+  void Init( IxExprListT& ix_)//, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix_.size() == nParam);
 
-    if( cleanupIxIn != NULL)
-      cleanupIx = *cleanupIxIn;
+//     if( cleanupIxIn != NULL)
+//       cleanupIx = *cleanupIxIn;
     
     if( nParam == 0) return;
     if( nParam == 1) 
@@ -328,7 +335,7 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
-    Init( ix_, NULL);
+    Init( ix_);//, NULL);
     if( !var->IsAssoc() && ix->Scalar()) //ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
       {
 	SizeT assertValue = ix->NIter( var->Size());
@@ -1164,7 +1171,8 @@ protected:
   bool indexed; // is the variable index indexed?
 
 public:    
-  
+    IxExprListT* GetCleanupIx() { return &cleanupIx;}
+
   ~ArrayIndexListMultiT()
   {
 //     delete allIx;
@@ -1276,13 +1284,13 @@ public:
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiT( *this);}
 
 
-  void Init( IxExprListT& ix, IxExprListT* cleanupIxIn)
+  void Init( IxExprListT& ix)//, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix.size() == nParam);
     	
-	if( cleanupIxIn != NULL)
-		cleanupIx = *cleanupIxIn;
+// 	if( cleanupIxIn != NULL)
+// 		cleanupIx = *cleanupIxIn;
 
     SizeT pIX = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -1678,7 +1686,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     // normal case
-    Init( ix, NULL);
+    Init( ix);//, NULL);
     SetVariable( var);
     if( nIx == 1 && !var->IsAssoc())
     {
