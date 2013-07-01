@@ -1,3 +1,8 @@
+;
+; Since First July 2013, because a C++ internal version is available
+; this file is OBSOLETING, will be removed in the future !!
+;
+;
 ;+
 ; NAME: FILE_BASENAME
 ;
@@ -73,7 +78,8 @@
 ; (at your option) any later version.
 ;-
 ;
-FUNCTION FILE_BASENAME, Path, RemoveSuffix, FOLD_CASE = fold_case, help=help
+FUNCTION FILE_BASENAME_OLD, Path, RemoveSuffix, $
+                            FOLD_CASE = fold_case, help=help
 ;
 ON_ERROR, 2
 ;

@@ -1,3 +1,7 @@
+;
+; Since First July 2013, because a C++ internal version is available
+; this file is OBSOLETING, will be removed in the future !!
+;
 ;+
 ; NAME: FILE_DIRNAME
 ;
@@ -78,7 +82,7 @@
 ; (at your option) any later version.
 ;-
 ;
-FUNCTION FILE_DIRNAME, Path, MARK_DIRECTORY = mark_directory, help=help
+FUNCTION FILE_DIRNAME_OLD, Path, MARK_DIRECTORY = mark_directory, help=help
   on_error, 2
 ;
 if KEYWORD_SET(help) then begin

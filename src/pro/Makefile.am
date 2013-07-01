@@ -15,10 +15,10 @@ prolib_DATA = \
   doc_library.pro \
   escape_special_char.pro \
   factorial.pro \
-  file_basename.pro \
+  file_basename_old.pro \
   file_copy.pro \
   file_delete.pro \
-  file_dirname.pro \
+  file_dirname_old.pro \
   file_expand_path.pro \
   file_lines.pro \
   file_which.pro \
