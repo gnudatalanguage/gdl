@@ -87,6 +87,151 @@ namespace lib {
   using std::isnan;
   using namespace antlr;
 
+  
+  BaseGDL* list_fun( EnvT* e)
+  {
+    static int kwEXTRACTIx = e->KeywordIx("EXTRACT");
+    static int kwLENGTHIx = e->KeywordIx("LENGTH");
+    static int kwNO_COPYIx = e->KeywordIx("NO_COPY");
+
+    bool kwEXTRACT = false;
+    bool kwNO_COPY = false;
+    if (e->KeywordSet(kwEXTRACTIx)){ kwEXTRACT = true;}
+    if (e->KeywordSet(kwNO_COPYIx)){ kwNO_COPY = true;}
+    
+    SizeT nParam = e->NParam();
+
+    SizeT listLength = 0;
+    DLongGDL* lengthKW = e->IfDefGetKWAs<DLongGDL>(kwLENGTHIx);
+    if( lengthKW != NULL)
+    {
+      listLength = (*lengthKW)[0];
+      if( listLength < 0)
+	listLength = 0;
+    }
+    
+    ProgNodeP cN = e->CallingNode();
+    DInterpreter* ip = e->Interpreter();
+    
+    static DString listName("LIST");
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    
+    // because of .RESET_SESSION, we cannot use static here
+    DStructDesc* listDesc=FindInStructList( structList, listName);
+    DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+
+    // here static is fine
+    static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
+    static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
+    static unsigned nListTag = listDesc->TagIndex( "NLIST");
+
+    static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+    static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+    
+    
+    assert( listDesc != NULL && listDesc->NTags() > 0);
+    assert( containerDesc != NULL && containerDesc->NTags() > 0);
+
+    DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+
+    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+
+    BaseGDL* newObj = new DObjGDL( objID); // the list object
+
+    SizeT added = 0;
+    DStructGDL* cStruct = NULL;
+    DPtr cID = 0;
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+    if( nParam > 0 || listLength > 0)
+    {
+      DStructGDL* cStructLast = NULL;
+      for( SizeT pIx=0; pIx<nParam; ++pIx)
+      {
+	BaseGDL* p = e->GetPar(pIx);
+	
+	if( kwEXTRACT && p != NULL && p->N_Elements() > 1)
+	{
+	  for( SizeT eIx=0; eIx<p->N_Elements(); ++eIx)
+	  {
+	    DPtr pID;
+
+	    pID = ip->NewHeap(1,p->NewIx(eIx));
+	    
+	    cStruct= new DStructGDL( containerDesc, dimension());
+    
+	    (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
+	    
+	    cID = ip->NewHeap(1,cStruct);
+
+	    if( cStructLast != NULL)
+	      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+	    else
+	    { // 1st element
+	      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+	    }
+	    
+	    cStructLast = cStruct;
+
+	    if( ++added == listLength)
+	      break;	    
+	  }
+	  if( kwNO_COPY)
+	  {
+	    bool stolen = e->StealLocalPar( pIx);
+	    if( !stolen) e->GetPar(pIx) = NULL;
+	    GDLDelete(p);
+	  }
+	  assert( added > 0);
+	  if( added == listLength)
+	    break;	    
+	}
+	else
+	{
+	  SizeT pID;
+
+	  if( p == NULL || kwNO_COPY)
+	  {
+	    pID = ip->NewHeap(1,p);
+	    bool stolen = e->StealLocalPar( pIx);
+	    if( !stolen) e->GetPar(pIx) = NULL;
+	  }
+	  else
+	  {
+	    pID = ip->NewHeap(1,p->Dup());
+	  }
+  
+	  cStruct= new DStructGDL( containerDesc, dimension());
+  
+	  (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
+	  
+	  cID = ip->NewHeap(1,cStruct);
+
+	  if( cStructLast != NULL)
+	    (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+	  else
+	  { // 1st element
+	    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+	  }
+	  
+	  cStructLast = cStruct;
+
+	  if( ++added == listLength)
+	    break;	    
+	}
+      }
+    }
+
+    if( cStruct != NULL)
+      (*static_cast<DPtrGDL*>( cStruct->GetTag( pNextTag, 0)))[0] = 0;
+	    
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = added;	      
+
+    return newObj;
+  }
+  
+  
+  
   // assumes all parameters from pOffs till end are dim
   void arr( EnvT* e, dimension& dim, SizeT pOffs=0)
   {

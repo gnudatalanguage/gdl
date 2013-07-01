@@ -267,13 +267,14 @@ BaseGDL* ASSIGN_REPLACENode::Eval()
 
   BaseGDL** l=_t->LEval();
 
-  GDLDelete(*l);
+  if( *l != res)
+  {
+    GDLDelete(*l);
+    *l = res;
+  }
+  r_guard.Release();
 
-  *l = res->Dup();
-
-   r_guard.release();
-
-   return res;
+  return res->Dup();
 }
 
 
@@ -1095,11 +1096,13 @@ RetCode  ASSIGN_REPLACENode::Run()
   
   BaseGDL** l = _t->LEval();
 
-//   if( r != (*l)) // && (*l) != NullGDL::GetSingleInstance())
-  GDLDelete(*l);
+  if( r != (*l)) // && (*l) != NullGDL::GetSingleInstance())
+  {
+    GDLDelete(*l);
+    *l = r;
+  }
+  r_guard.Release();
   
-  *l = r_guard.release();
-
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
 }

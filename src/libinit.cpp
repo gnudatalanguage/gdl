@@ -81,6 +81,9 @@ void LibInit()
   LibInit_ng(); 
   const char KLISTEND[] = "";
 
+  const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
+  new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
+
   const string scope_varfetchKey[]={"LEVEL", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
 

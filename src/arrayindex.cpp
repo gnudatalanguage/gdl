@@ -166,11 +166,11 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
 	
 	if( s >= var->Size())
 	  {
-	    throw GDLException("Scalar subscript out of range [>].e");
+	    throw GDLException("Scalar subscript out of range [>].e ("+i2s(s)+")");
 	  }
 	if( s < 0)
 	  {
-	    throw GDLException("Scalar subscript out of range [<].e");
+	    throw GDLException("Scalar subscript out of range [<].e ("+i2s(s)+")");
 	  }
 	    
 	return var->NewIx( s);
@@ -182,7 +182,7 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
 //     return var->Index( this);
   }
   
-void ArrayIndexListOneScalarNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+void ArrayIndexListOneScalarNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( 0 == nParam);
 
@@ -195,7 +195,7 @@ void ArrayIndexListOneScalarNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, IxE
     ixOut.push_back(oIx);
   }
 
-void ArrayIndexListOneScalarVPNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+void ArrayIndexListOneScalarVPNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( varPtr != NULL);
     assert( 0 == nParam);

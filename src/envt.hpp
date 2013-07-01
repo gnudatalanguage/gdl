@@ -64,10 +64,10 @@ public:
   
   void DeleteAtExit( BaseGDL* toGuard)
     {
-// 		if( toDestroy == NULL)
-// 			toDestroy = new ContainerT();
-		toDestroy.push_back( toGuard);
-	}
+//	if( toDestroy == NULL)
+//		toDestroy = new ContainerT();
+      toDestroy.push_back( toGuard);
+    }
 
 protected:
   // for obj cleanup

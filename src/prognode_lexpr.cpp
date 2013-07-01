@@ -580,14 +580,16 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
 {
   ProgNodeP _t = this->getFirstChild();
 
+  BaseGDL** res;
   if( _t->getType() == GDLTokenTypes::FCALL_LIB)
   {
 // 	  BaseGDL* e1=interpreter->lib_function_call(_t);
 // 	  _t = interpreter->GetRetTree();
-	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
-	  _t = _t->getNextSibling();
-	  if( !interpreter->CallStackBack()->Contains( e1))
-	    GDLDelete(e1);
+      BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+      _t = _t->getNextSibling();
+      res =_t->LEval(); //l_function_call(_t);
+      if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
+	GDLDelete(e1);
   }
   else
   {
@@ -618,9 +620,11 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   //     case QUESTION:
 
 //   BaseGDL* e1=interpreter->tmp_expr(_t);
-  BaseGDL* e1 = _t->Eval();
-  GDLDelete(e1);
-  _t =_t->getNextSibling();
+    BaseGDL* e1 = _t->Eval();
+    _t =_t->getNextSibling();
+    res =_t->LEval(); //l_function_call(_t);
+    if( *res != e1)
+      GDLDelete(e1);
   }
 
   // switch ( _t->getType()) {
@@ -644,7 +648,7 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   //     // 	  case MFCALL:
   //     // 	  case MFCALL_PARENT:
   //     {
-  BaseGDL** res=_t->LEval(); //l_function_call(_t);
+//   BaseGDL** res=_t->LEval(); //l_function_call(_t);
   //_retTree = tIn->getNextSibling();
   //_t = _retTree;
   //         break;

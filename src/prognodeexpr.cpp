@@ -595,13 +595,13 @@ BaseGDL** DEREFNode::LEval()
       
       if( !DInterpreter::CallStackBack()->Contains( e1)) 
 	{
-  	  actEnv->DeleteAtExit( e1); 
+  	  e1_guard.Init( e1); 
 	}
     }
   else
     {
       e1 = evalExpr->Eval();
-      actEnv->DeleteAtExit( e1); 
+      e1_guard.Init( e1); 
     }
 
   if( e1 == NULL || e1->Type() != GDL_PTR)

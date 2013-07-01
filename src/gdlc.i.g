@@ -3585,7 +3585,7 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
 arrayindex_list_overload [IxExprListT& indexList]
 {
     ArrayIndexListT* aL;
-    IxExprListT      cleanupList; // for cleanup
+    // IxExprListT      cleanupList; // for cleanup
     IxExprListT      ixExprList;
     SizeT nExpr;
     BaseGDL* s;
@@ -3597,14 +3597,16 @@ arrayindex_list_overload [IxExprListT& indexList]
 	
 	aL = ax->arrIxListNoAssoc;
 	assert( aL != NULL);
-	
+
 	nExpr = aL->NParam();
 	if( nExpr == 0)
 	{
-        aL->InitAsOverloadIndex( ixExprList, NULL, indexList);
+        aL->InitAsOverloadIndex( ixExprList, /* NULL,*/ indexList);
         _retTree = ax->getNextSibling();//retTree;
         return;
 	}
+	
+    IxExprListT* cleanupList = aL->GetCleanupIx();
 	
 	while( true) {
         assert( _t != NULL);
@@ -3619,13 +3621,13 @@ arrayindex_list_overload [IxExprListT& indexList]
                 s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
                 //_t = _retTree;
                 if( !callStack.back()->Contains( s)) 
-                    cleanupList.push_back( s);
+                    cleanupList->push_back( s);
             }				
         else
             {
                 s=_t->Eval(); //indexable_tmp_expr(_t);
                 //_t = _retTree;
-                cleanupList.push_back( s);
+                cleanupList->push_back( s);
             }
 			
         ixExprList.push_back( s);
@@ -3635,7 +3637,7 @@ arrayindex_list_overload [IxExprListT& indexList]
         _t = _t->getNextSibling();
 	}
 
-    aL->InitAsOverloadIndex( ixExprList, &cleanupList, indexList);
+    aL->InitAsOverloadIndex( ixExprList, /*&cleanupList,*/ indexList);
 	
 	_retTree = ax->getNextSibling();//retTree;
 	return;

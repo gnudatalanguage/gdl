@@ -127,6 +127,160 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
   *objRefP = rValue->Dup();
 }
 
+BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
+{
+  SizeT nParam = e->NParam(); // number of parameters actually given
+//   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
+  if( nParam < 3) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "Two parameters are needed: ISRANGE, SUB1 [, ...].");
+  if( nParam > 3) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
+
+  // default behavior: Exact like scalar indexing
+  BaseGDL* isRange = e->GetKW(1);
+  if( isRange == NULL)
+    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) is undefined.");
+  if( isRange->Rank() == 0)
+    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must be an array in this context: " + e->Caller()->GetString(e->GetKW(1)));
+  SizeT nIsRange = isRange->N_Elements();
+  if( nIsRange > (nParam - 2)) //- SELF and ISRANGE
+    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must have "+i2s(nParam-2)+" elements.");
+  Guard<DLongGDL> isRangeLongGuard;
+  DLongGDL* isRangeLong;
+  if( isRange->Type() == GDL_LONG)
+    isRangeLong = static_cast<DLongGDL*>( isRange);
+  else
+  {
+    try{
+      isRangeLong = static_cast<DLongGDL*>( isRange->Convert2( GDL_LONG, BaseGDL::COPY));
+    }
+    catch( GDLException& ex)
+    {
+      ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+    }
+    isRangeLongGuard.Reset( isRangeLong);
+  }
+  
+  ArrayIndexVectorT ixList;
+//   IxExprListT exprList;
+  try {
+    for( int p=0; p<nIsRange; ++p)
+    {
+      BaseGDL* parX = e->GetKW( p + 2); // implicit SELF, ISRANGE, par1..par8
+      if( parX == NULL)
+	ThrowFromInternalUDSub( e, "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( p + 2)));
+
+      DLong isRangeX = (*isRangeLong)[p];
+      if( isRangeX != 0 && isRangeX != 1)
+      {
+	ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(p)+"]) is out of allowed range.");
+      }
+      if( isRangeX == 1)
+      {
+	if( parX->N_Elements() != 3)
+	{
+	  ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( p + 2)));
+	}
+	DLongGDL* parXLong;
+	Guard<DLongGDL> parXLongGuard;
+	if( parX->Type() != GDL_LONG)
+	{
+	  try{
+	    parXLong = static_cast<DLongGDL*>( parX->Convert2( GDL_LONG, BaseGDL::COPY));
+	    parXLongGuard.Reset( parXLong);
+	  }
+	  catch( GDLException& ex)
+	  {
+	    ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+	  }
+	}
+	else
+	{
+	  parXLong = static_cast<DLongGDL*>( parX);
+	}
+	// negative end ix is fine -> CArrayIndexRangeS can handle [b:*:s] ([b,-1,s])
+	ixList.push_back(new CArrayIndexRangeS( (*parXLong)[0], (*parXLong)[1], (*parXLong)[2]));
+      }
+      else // non-range
+      {
+	// ATTENTION: These two grab c1 (all others don't)
+	// a bit unclean, but for maximum efficiency
+	if( parX->Rank() == 0)
+	  ixList.push_back( new CArrayIndexScalar( parX->Dup()));
+	else
+	  ixList.push_back( new CArrayIndexIndexed( parX->Dup()));
+      }
+    } // for
+  }
+  catch( GDLException& ex)
+  {
+    ixList.Destruct(); // ixList is not valid afterwards, but as we throw this is ok
+    throw ex;
+  }
+  
+  ArrayIndexListT* aL;
+  MakeArrayIndex( &ixList, &aL, NULL); // important to get the non-NoAssoc ArrayIndexListT
+  // because only they clean up ixList on destruction
+  Guard< ArrayIndexListT> aLGuard( aL);
+
+  
+  BaseGDL* selfP = e->GetKW( 0);
+  if( selfP->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+  if( !selfP->Scalar())
+    ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+    
+  DObjGDL* selfObj = static_cast<DObjGDL*>( selfP);
+  DObj selfID = (*selfObj)[0];
+  DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
+  
+  static DString cNodeName("GDL_CONTAINER_NODE");
+   
+  DStructDesc* listDesc= self->Desc();
+
+  // because of .RESET_SESSION, we cannot use static here
+  DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+
+  // here static is fine
+  static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
+  static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
+  static unsigned nListTag = listDesc->TagIndex( "NLIST");
+  static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+  static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+
+    
+  AllIxBaseT* allIx = aL->BuildIx();
+  
+  if( allIx->size() == 1)
+  {
+    DPtr actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
+    for( SizeT elIx = 0; elIx < allIx->operator[](0); ++elIx)
+    {
+      BaseGDL* actPHeap = e->Interpreter()->GetHeap( actP);
+      if( actPHeap->Type() != GDL_STRUCT)
+	ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");	
+      DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
+      if( actPStruct->Desc() != containerDesc)
+	ThrowFromInternalUDSub( e, "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+
+      actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
+    }
+
+    BaseGDL* actPHeap = e->Interpreter()->GetHeap( actP);
+    if( actPHeap->Type() != GDL_STRUCT)
+      ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");	
+    DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
+    if( actPStruct->Desc() != containerDesc)
+      ThrowFromInternalUDSub( e, "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+
+    actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
+    
+    return e->Interpreter()->GetHeap( actP);
+  }
+
+  ThrowFromInternalUDSub( e, "return of LIST not implemented yet.");	
+}
+
 BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
 {
 //   // debug/check
@@ -421,6 +575,10 @@ void SetupOverloadSubroutines()
 //   in call_fun eventually (in GDLInterpreter::statement) tree->Run() is called
   DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
   assert( gdlObjectDesc != NULL);
+  DStructDesc* listDesc = FindInStructList(structList, "LIST");
+  assert( listDesc != NULL);
+  
+  WRAPPED_FUNNode *tree;
   
   // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
@@ -450,6 +608,16 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
 //   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
 
+  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","LIST","*INTERNAL*");
+  DFunLIST__overloadBracketsRightSide->AddPar("ISRANGE");
+  DFunLIST__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  DFunLIST__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+  tree = new WRAPPED_FUNNode( LIST_OverloadBracketsRightSide);
+  DFunLIST__overloadBracketsRightSide->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__overloadBracketsRightSide);
+  listDesc->SetOperator(OOBracketsRightSide,DFunLIST__overloadBracketsRightSide);
+
+  
   DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"*INTERNAL*");
   _overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree4 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadEQOp);

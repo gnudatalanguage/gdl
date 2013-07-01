@@ -87,13 +87,14 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneNoAssocT( *this);}
 
-  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  IxExprListT* GetCleanupIx() { return &cleanupIx;}
+  void InitAsOverloadIndex( IxExprListT& ix_, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( allIx == NULL);
     assert( ix_.size() == nParam);
 
-    if( cleanupIxIn != NULL)
-      cleanupIx = *cleanupIxIn;
+//     if( cleanupIxIn != NULL)
+//       cleanupIx = *cleanupIxIn;
 
     DLongGDL* isRange = new DLongGDL( dimension(1, BaseGDL::NOZERO));
     ixOut.push_back(isRange);
@@ -379,7 +380,7 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarNoAssocT( *this);}
 
-  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut); 
+  void InitAsOverloadIndex( IxExprListT& ix_,  IxExprListT& ixOut); 
   
   void Init() {}
 
@@ -500,7 +501,7 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarVPNoAssocT( *this);}
 
-  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut); 
+  void InitAsOverloadIndex( IxExprListT& ix_, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut); 
 
   void Init() {}
 
@@ -665,7 +666,7 @@ public:
 //     delete (*aIV)[0];
   }    
 
-  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  void InitAsOverloadIndex( IxExprListT& ix_, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( 0 == nParam);
     assert( rawData != NULL);
@@ -887,7 +888,7 @@ public:
     nParam = 0;
   }    
 
-  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  void InitAsOverloadIndex( IxExprListT& ix, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( ix.size() == 0);
 
@@ -1095,7 +1096,7 @@ public:
     nParam = 0;
   }    
   
-  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  void InitAsOverloadIndex( IxExprListT& ix, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( ix.size() == 0);
 
@@ -1370,13 +1371,13 @@ public:
   
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoAssocT( *this);}
 
-  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  void InitAsOverloadIndex( IxExprListT& ix, /*IxExprListT* cleanupIxIn,*/ IxExprListT& ixOut) 
   { 
     assert( allIx == NULL);
     assert( ix.size() == nParam);
 
-    if( cleanupIxIn != NULL)
-      cleanupIx = *cleanupIxIn;
+//     if( cleanupIxIn != NULL)
+//       cleanupIx = *cleanupIxIn;
 
     DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::NOZERO));
     ixOut.push_back(isRange);

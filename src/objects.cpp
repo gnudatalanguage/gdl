@@ -127,23 +127,24 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdl_object);
   
-//   DStructDesc* gdlList = new DStructDesc( "LIST");
-//   gdlList->AddTag("GDL_CONTAINER_TOP", &aLong64);
-//   gdlList->AddTag("GDLCONTAINERVERSION", &aInt);
-//   gdlList->AddTag("PHEAD", &aPtrRef);
-//   gdlList->AddTag("PTAIL", &aPtrRef);
-//   gdlList->AddTag("NLIST", &aLong);
-//   gdlList->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
-//   // insert into structList
-//   structList.push_back(gdlList);
-// 
-//   DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
-//   gdlContainerNode->AddTag("PNEXT", &aPtrRef);
+  DStructDesc* gdlList = new DStructDesc( "LIST");
+  gdlList->AddTag("GDL_CONTAINER_TOP", &aLong64);
+  gdlList->AddTag("GDLCONTAINERVERSION", &aInt);
+  gdlList->AddTag("PHEAD", &aPtrRef);
+  gdlList->AddTag("PTAIL", &aPtrRef);
+  gdlList->AddTag("NLIST", &aLong);
+  gdlList->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+  // insert into structList
+  structList.push_back(gdlList);
+
+  DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
+  gdlContainerNode->AddTag("PNEXT", &aPtrRef);
+  gdlContainerNode->AddTag("PDATA", &aPtrRef);
 //   gdlContainerNode->AddTag("OOBJ", &aObjRef);
 //   gdlContainerNode->AddTag("FLAGS", &aLong);
-//   // insert into structList
-//   structList.push_back(gdlContainerNode);
-// 
+  // insert into structList
+  structList.push_back(gdlContainerNode);
+
 //   DStructDesc* gdlHash = new DStructDesc( "HASH");
 //   gdlHash->AddTag("TABLE_BITS", &aULong);
 //   gdlHash->AddTag("TABLE_SIZE", &aULong);
