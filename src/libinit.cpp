@@ -169,6 +169,13 @@ void LibInit()
 			       "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
+  const string file_basenameKey[]={"FOLD_CASE",KLISTEND};
+  new DLibFunRetNew(lib::file_basename,string("FILE_BASENAME"),2,file_basenameKey);
+
+  const string file_dirnameKey[]={"MARK_DIRECTORY",KLISTEND};
+  new DLibFunRetNew(lib::file_dirname,string("FILE_DIRNAME"),1,file_dirnameKey);
+
+
   const string file_sameKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_same,string("FILE_SAME"),2,file_sameKey);
 

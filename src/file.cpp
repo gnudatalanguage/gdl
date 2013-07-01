@@ -20,6 +20,8 @@
 #include "basegdl.hpp"
 #include "str.hpp"
 
+#include <libgen.h>
+
 //#ifdef HAVE_LIBWXWIDGETS
 
 #include "envt.hpp"
@@ -1086,6 +1088,127 @@ DString makeInsensitive(const DString &s)
     return res;
   }
 #endif
+
+
+  BaseGDL* file_basename( EnvT* e)
+  {
+
+    SizeT nParams=e->NParam( 1);
+
+    // accepting only strings as parameters
+    BaseGDL* p0 = e->GetParDefined(0);
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(p0);
+    if (p0S == NULL) e->Throw("String expression required in this context: " + e->GetParString(0));
+
+    BaseGDL* p1;
+    DStringGDL* p1S;
+    bool DoRemoveSuffix = false;
+
+    if (nParams == 2) {
+    // shall we remove a suffix ?
+      p1 = e->GetPar(1);
+      p1S = dynamic_cast<DStringGDL*>(p1);
+      //    if (p1S == NULL) e->Throw("String expression required in this context: " + e->GetParString(0));
+      if (p1S->N_Elements() == 1) {
+	if (strlen(strdup((*p1S)[0].c_str())) >0) DoRemoveSuffix=true;
+      }
+      if (p1S->N_Elements() > 1) 
+	e->Throw(" Expression must be a scalar or 1 element array in this context: " + e->GetParString(1));
+    }
+    
+    dimension resDim;
+    resDim=p0S->Dim();
+    DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
+
+    char *bname;
+    char *tmp;
+
+    for (SizeT i = 0; i < p0S->N_Elements(); i++) {
+
+      tmp=strdup((*p0S)[i].c_str());
+
+      //      cout << ">>"<<(*p0S)[i].c_str() << "<<" << endl;
+      if (strlen(tmp) > 0) {
+	bname=basename(tmp);
+	(*res)[i]=string(bname);
+      } 
+      else
+	{
+	  (*res)[i]="";
+	}
+    }
+
+    // managing suffixe
+    if (DoRemoveSuffix) {
+      
+      string suffixe=(*p1S)[0];
+      int suffLength=strlen(strdup((*p1S)[0].c_str()));
+      
+      static int fold_caseIx = e->KeywordIx( "FOLD_CASE");
+      bool fold_case = e->KeywordSet( fold_caseIx);
+      
+      if (fold_case) suffixe=StrUpCase(suffixe);
+
+      cout << "suffixe :"<< suffixe << endl;
+
+      
+      string tmp1, fin_tmp;
+      for (SizeT i = 0; i < p0S->N_Elements(); i++) {
+	tmp1=(*res)[i].c_str();
+	
+	// Strickly greater : if equal, we keep it !
+	if (tmp1.length() > suffLength) {
+	  fin_tmp=tmp1.substr(tmp1.length()-suffLength);
+	  
+	  if (fold_case) fin_tmp=StrUpCase(fin_tmp);
+	  
+	  if (fin_tmp.compare(suffixe) == 0) {
+	      (*res)[i]=tmp1.substr(0,tmp1.length()-suffLength);
+	  }	 	  
+	}
+      }
+      
+    }
+
+    return res;
+  }
+
+
+  BaseGDL* file_dirname( EnvT* e)
+  {
+    // accepting only strings as parameters
+    BaseGDL* p0 = e->GetParDefined(0);
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(p0);
+    if (p0S == NULL) e->Throw("String expression required in this context: " + e->GetParString(0));
+
+    dimension resDim;
+    resDim=p0S->Dim();
+    DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
+
+    char *dname;
+
+    for (SizeT i = 0; i < p0S->N_Elements(); i++) {
+      char *tmp;
+      tmp=strdup((*p0S)[i].c_str());
+      dname=dirname(tmp);
+      (*res)[i]=string(dname);
+
+    }
+    
+#ifdef _MSC_VER
+    string PathSeparator="\\"; //"
+#else
+    string PathSeparator="/";//"
+#endif
+    if (e->KeywordSet("MARK_DIRECTORY")) {
+      for (SizeT i = 0; i < p0S->N_Elements(); i++) {
+	(*res)[i]=(*res)[i] + PathSeparator;
+      }
+    }
+    
+    return res;
+
+}
 
   BaseGDL* file_same( EnvT* e)
   {

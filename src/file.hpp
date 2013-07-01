@@ -35,6 +35,9 @@ namespace lib {
 
   BaseGDL* file_info( EnvT* e);
 
+  BaseGDL* file_basename( EnvT* e);
+  BaseGDL* file_dirname( EnvT* e);
+
   // helper functions
   void ExpandPath( FileListT& result,
 		   const DString& dirN, 
