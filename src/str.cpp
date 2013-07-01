@@ -300,14 +300,17 @@ void WordExp( string& s)
      if( p.we_wordc > 0)
        {
 	 //	 s="";
-	 s= p.we_wordv[0];
-	  for(int i=1;i<p.we_wordc;i++)
+	 string ss= p.we_wordv[0];
+	 for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
 	    {
-	      s+=" ";
-	      s+= p.we_wordv[i];
+	      while(s[ind++]==' ') ss+=" ";
+	      //s+=" ";
+	      ss+= p.we_wordv[i];
+	      ind=s.find(" ",ind);
 	      //	      cout<<"in for\n";
 	    }
 	  // s=p.we_wordv[0];
+	 s=ss;
        }
      //     cout<<s<<"--result\n";
 #  if defined(__APPLE__)
