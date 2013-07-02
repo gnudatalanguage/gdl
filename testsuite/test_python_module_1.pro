@@ -8,7 +8,7 @@ pro test_python_module_1
     exit, status=77
   endif
 
-  if !VERSION.OS_NAME eq 'Darwin' then begin
+  if STRlowCase(!VERSION.OS_NAME) eq 'darwin' then begin
     spawn, 'otool -L GDL.so | grep Python | cut -d'' '' -f1', python
     python = file_dirname(strtrim(python, 2)) + '/bin/python'
   endif else begin

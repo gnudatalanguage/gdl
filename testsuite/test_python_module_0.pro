@@ -9,7 +9,7 @@
 
 pro test_python_module_0
 
-  image = '../src/.libs/libgdl.' + (!VERSION.OS_NAME eq 'Darwin' ? "dylib" : "so")
+  image = '../src/.libs/libgdl.' + (STRlowCASE(!VERSION.OS_NAME) eq 'darwin' ? "dylib" : "so")
   if ~file_test(image) then begin
     message, /conti, image + ' not found'
     exit, status=77

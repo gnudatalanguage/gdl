@@ -6,7 +6,7 @@ pro test_ce
     ; should be used together with test_ce.so compiled from test_ce.c
     ;-----------------------------------------------------------------------
 
-    image = './libtest_ce.' + (!VERSION.OS_NAME eq 'Darwin' ? "dylib" : "so")
+    image = './libtest_ce.' + (STRlowCase(!VERSION.OS_NAME) eq 'darwin' ? "dylib" : "so")
     if ~file_test(image) then image = '.libs/' + image
     if ~file_test(image) then begin
       message, 'library found not compiled!', /conti
