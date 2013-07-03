@@ -531,7 +531,6 @@ typedef GDLGuard< FILE, int> FILEGuard;
 class FreeListT 
 {
   typedef void* PType;
-  PType* outerFreeList;
   PType* freeList;
   SizeT sz;
   SizeT endIx;

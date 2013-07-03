@@ -662,17 +662,22 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     {
         DString msgPrefix = SysVar::MsgPrefix();
 
-        EnvStackT::reverse_iterator upEnv = callStack.rbegin();
-        //EnvStackT::reverse_iterator env = upEnv++;
-        upEnv++;
-        for(; 
-            upEnv != callStack.rend();
-            ++upEnv /*,++env*/)
+        // EnvStackT::reverse_iterator upEnv = callStack.rbegin();
+        // //EnvStackT::reverse_iterator env = upEnv++;
+        // upEnv++;
+        // for(; 
+        //     upEnv != callStack.rend();
+        //     ++upEnv /*,++env*/)
+        
+        long actIx = callStack.size() - 2;
+        for( ; actIx >= 0; --actIx)
         {
-            std::cerr << msgPrefix << std::right << std::setw( w) << "";
-            std::cerr << std::left << std::setw(16) << (*upEnv)->GetProName();
+            EnvStackT::pointer_type upEnv = callStack[ actIx]; 
 
-            std::string file = (*upEnv)->GetFilename();
+            std::cerr << msgPrefix << std::right << std::setw( w) << "";
+            std::cerr << std::left << std::setw(16) << upEnv->GetProName();
+
+            std::string file = upEnv->GetFilename();
             if( file != "")
             {              
 //                 ProgNodeP cNode= (*env)->CallingNode();
@@ -684,14 +689,13 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
 //                 {
 //                     std::cerr << std::right << std::setw(6) << "";
 //                 }                
-
 //                 ProgNodeP cNode= (*env)->CallingNode();
 //                 if( cNode != NULL && cNode->getLine() != 0)
 //                 {       
 //                     (*upEnv)->SetLineNumber( cNode->getLine());
 //                 }
 
-                int lineNumber = (*upEnv)->GetLineNumber();
+                int lineNumber = upEnv->GetLineNumber();
                 if( lineNumber != 0)
                 {       
                     std::cerr << std::right << std::setw(6) << lineNumber;

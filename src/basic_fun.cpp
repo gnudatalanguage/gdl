@@ -203,6 +203,7 @@ namespace lib {
 	  cStruct= new DStructGDL( containerDesc, dimension());
   
 	  (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
+	  // no ref counting here (and below) as heap data cannot be accessed outside object
 	  
 	  cID = ip->NewHeap(1,cStruct);
 

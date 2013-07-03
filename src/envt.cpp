@@ -485,9 +485,10 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       }
 
     EnvStackT& cS=interpreter->CallStack();
-    for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
+//     for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
+    for( long ix = cS.size()-1; ix >= 0; --ix) 
       {
-	(*r)->AddEnv( ptrAccessible, objAccessible);
+	cS[ix]->AddEnv( ptrAccessible, objAccessible);
       }
 
 	AddToDestroy( ptrAccessible, objAccessible);  
@@ -1630,7 +1631,9 @@ void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 bool EnvBaseT::Contains( BaseGDL* p) const 
 { 
   if( env.Contains( p)) return true;
-  return (static_cast<DSubUD*>(pro)->GetCommonVarPtr( p) != NULL);
+  if (static_cast<DSubUD*>(pro)->GetCommonVarPtr( p) != NULL) return true;
+  // horrible slow... but correct
+  return Interpreter()->GetPtrToHeap( p) != NULL;
 }
 
 BaseGDL** EnvBaseT::GetPtrTo( BaseGDL* p) 

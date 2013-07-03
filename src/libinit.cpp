@@ -502,7 +502,7 @@ void LibInit()
   new DLibPro(lib::set_plot,string("SET_PLOT"),1,set_plotKey);
   
   const string get_screen_sizeKey[]={"RESOLUTION",KLISTEND};
-  new DLibFun(lib::get_screen_size,string("GET_SCREEN_SIZE"),1,get_screen_sizeKey);
+  new DLibFunRetNew(lib::get_screen_size,string("GET_SCREEN_SIZE"),1,get_screen_sizeKey);
 
   const string tvlctKey[]={"GET","HLS","HSV",KLISTEND};
   new DLibPro(lib::tvlct,string("TVLCT"),4,tvlctKey);
@@ -824,12 +824,12 @@ void LibInit()
   new DLibPro(lib::erase,string("ERASE"),1, eraseKey);
   
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
-  new DLibFun(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
+  new DLibFunRetNew(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
 
-  new DLibFun(lib::gauss_pdf,string("GAUSS_PDF"),1);
-  new DLibFun(lib::gauss_cvf,string("GAUSS_CVF"),1);
+  new DLibFunRetNew(lib::gauss_pdf,string("GAUSS_PDF"),1);
+  new DLibFunRetNew(lib::gauss_cvf,string("GAUSS_CVF"),1);
 
-  new DLibFun(lib::t_pdf,string("T_PDF"),2);
+  new DLibFunRetNew(lib::t_pdf,string("T_PDF"),2);
 
   new DLibPro(lib::caldat, string("CALDAT"), 7);
   new DLibFun(lib::julday, string("JULDAY"), 6);

@@ -372,18 +372,22 @@ namespace lib {
 
 	DStringGDL* retVal = new DStringGDL( dimension( level-1), BaseGDL::NOZERO);
 	SizeT rIx = 0;
-	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
+// 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
+	for( long ix = cS.size()-2; ix >= 0; --ix)
 	  {
+	    EnvUDT** r = &cS[ ix];
 	    EnvBaseT* actEnv = *r;
 	    assert( actEnv != NULL);
 
 	    DString actString = actEnv->GetProName();
 	    DSubUD* actSub = dynamic_cast<DSubUD*>(actEnv->GetPro());
-	    if( (r+1) != cS.rend() && actSub != NULL)
+// 	    if( (r+1) != cS.rend() && actSub != NULL)
+	    if( (ix-1) >= 0 && actSub != NULL)
 	      {
 		actString += " <"+actSub->GetFilename() + "(";
-		if( (*(r-1))->CallingNode() != NULL)
-		  actString += i2s( (*(r-1))->CallingNode()->getLine(), 4);
+		EnvUDT** r_1 = &cS[ ix+1];
+		if( (*(r_1))->CallingNode() != NULL)
+		  actString += i2s( (*(r_1))->CallingNode()->getLine(), 4);
 		else
 		  actString += "   ?";
 		actString += ")>";

@@ -3173,7 +3173,10 @@ BaseGDL* POWNCNode::Eval()
     }
 //     BaseGDL* libRes = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL* libRes = this->libFunFun(newEnv);
+    // this is correct: l-value in current environment
     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
+    // wrong: would return ptr to local
+    //     BaseGDL** res = newEnv->GetPtrTo( libRes);
     if( res == NULL)
     {
       GDLDelete( libRes);
@@ -3198,6 +3201,14 @@ BaseGDL* POWNCNode::Eval()
 		
 //     BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL* res=this->libFunFun(newEnv);
+
+//     if( newEnv->Contains( res))
+//     {
+// 	// now what to do? returned input parameter
+// 	// but caller will never know
+// 	// we need another solution
+//     }
+
     // *** MUST always return a defined expression
     assert( res != NULL);
     return res;
@@ -3224,7 +3235,7 @@ BaseGDL* POWNCNode::Eval()
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
     if( callStackBack->Contains( res))
-	return res = res->Dup();
+	return res->Dup();
 
 //     static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
 //     if( scopeVarfetchPro == newEnv->GetPro())

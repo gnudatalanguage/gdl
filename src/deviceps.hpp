@@ -512,16 +512,15 @@ public:
 
   bool CloseFile()
   {
-
     // trying to solve bug report 3611898
     // this is needed to decrement Lun number ...
     (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=0;
-    psUnit->Close();
-    psUnit->Free();
-    psUnit=NULL;
-
     if (actStream != NULL)
     {
+      psUnit->Close();
+      psUnit->Free();
+      psUnit=NULL;
+
       delete actStream;
       actStream = NULL;
       if (!encapsulated) pslibHacks(); else epsHacks(); // needs to be called after the plPlot-generated file is closed

@@ -1301,7 +1301,7 @@ RetCode  INCNode::Run()
 
 RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 {
-  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStackBack());
   
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 

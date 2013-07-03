@@ -782,9 +782,59 @@ public:
   void ShiftParNumbering(int n);
 };
 
+const int defaultStackDepth = 64;
+class EnvStackT
+{
+  EnvUDT** envStackFrame;
+  EnvUDT** envStack;
+
+  SizeT top;
+  SizeT sz;
+
+public:
+  typedef SizeT size_type;
+  typedef EnvUDT* pointer_type;
+  
+  EnvStackT(): sz(defaultStackDepth), top(0) 
+  {
+    envStackFrame = new EnvUDT* [ sz+1];
+    envStack = envStackFrame + 1;
+  }
+  ~EnvStackT() { delete[] envStackFrame;}
+  
+  bool empty() const { return top == 0;}
+  
+  void push_back( EnvUDT* b) 
+  {
+    if( top >= sz)
+    {
+      if( sz >= 32768)
+	    throw GDLException("Recursion limit reached ("+i2s(sz)+").");
+
+      EnvUDT** newEnvStackFrame = new EnvUDT* [ sz + sz + 1];
+      EnvUDT** newEnvStack = newEnvStackFrame + 1;
+
+      for( SizeT i=0; i<sz; ++i)
+	newEnvStack[ i] = envStack[ i];
+
+      delete[] envStackFrame;
+      envStackFrame = newEnvStackFrame;
+      envStack = newEnvStack;
+      sz += sz;
+    }
+    envStackFrame[ ++top] = b; 
+  }
+  void pop_back() { assert(top>0); --top;}
+  EnvUDT* back() const { assert(top>0); return envStackFrame[ top];}
+  SizeT size() const { return top;}
+  EnvUDT* operator[]( SizeT ix) const { return envStack[ ix];}
+  EnvUDT*& operator[]( SizeT ix) { return envStack[ ix];}
+//   EnvUDT** begin() const { return &envStack[0];}
+//   EnvUDT** end() const { return &envStack[sz];}
+};
 
 // typedef std::deque<EnvBaseT*> EnvStackT;
-typedef std::deque<EnvUDT*> EnvStackT;
+// typedef std::deque<EnvUDT*> EnvStackT;
 
 #endif
 

@@ -495,9 +495,11 @@ GDLInterpreter::GDLInterpreter()
 		SysVar::SetErr_String( e.getMessage());
 		
 		// look if ON_ERROR is set somewhere
-		for( EnvStackT::reverse_iterator i = callStack.rbegin();
-		i != callStack.rend(); ++i)
+		// for( EnvStackT::reverse_iterator i = callStack.rbegin();
+		//     i != callStack.rend(); ++i)
+		for( long ix = callStack.size() - 1; ix>=0; --ix)
 		{
+		EnvUDT** i = &callStack[ ix];
 		DLong oE = -1;
 		EnvUDT* envUD = dynamic_cast<EnvUDT*>(*i);
 		if( envUD != NULL)
@@ -513,32 +515,40 @@ GDLInterpreter::GDLInterpreter()
 		else if( oE == 1) 
 		{
 		EnvUDT* cS_begin = 
-		static_cast<EnvUDT*>(*callStack.begin());
+		static_cast<EnvUDT*>(callStack[0]);
+		// static_cast<EnvUDT*>(*callStack.begin());
 		targetEnv = cS_begin;  
 		}
 		// 2 -> caller of routine which called ON_ERROR
 		else if( oE == 2)
 		{
 		// set to caller, handle nested
-		while( static_cast<EnvUDT*>(*(++i))->GetOnError() == 2 
-		&& i != callStack.rend());
+		while( ix > 0 && static_cast<EnvUDT*>(callStack[--ix])->GetOnError() == 2)
+		; // just set ix
 		
-		if( i == callStack.rend())
-		{
-		EnvUDT* cS_begin = 
-		static_cast<EnvUDT*>(*callStack.begin());
-		targetEnv = cS_begin;
-		}
-		else
-		{
-		EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
 		targetEnv = iUDT;
-		}
+		
+		
+		// while( static_cast<EnvUDT*>(*(++i))->GetOnError() == 2 
+		//        && i != callStack.rend());
+		// if( i == callStack.rend())
+		// {
+		//     EnvUDT* cS_begin = 
+		//     static_cast<EnvUDT*>(*callStack.begin());
+		//     targetEnv = cS_begin;
+		// }
+		// else
+		// {
+		//     EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		//     targetEnv = iUDT;
+		// }
 		}   
 		// 3 -> routine which called ON_ERROR
 		else if( oE == 3)
 		{
-		EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
+		// EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
 		targetEnv = iUDT;
 		}
 		
