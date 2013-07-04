@@ -137,7 +137,9 @@ namespace lib {
     DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
 
     BaseGDL* newObj = new DObjGDL( objID); // the list object
-
+    // we need no ref counting here as the LIST (newObj) is a regular
+    e->Interpreter()->IncRefObj( objID);
+    
     SizeT added = 0;
     DStructGDL* cStruct = NULL;
     DPtr cID = 0;

@@ -390,7 +390,7 @@ public:
 //   // if this is used, Init was NOT called before
 //   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
 //   {
-//     if( s >= var->Size())
+//     if( s >= var->N_Elements()/*var->Size()*/)
 //       throw GDLException(-1,NULL,"Scalar subscript out of range [>].h1",true,false);
 //     return var->NewIx( s);
 //   }
@@ -910,7 +910,7 @@ public:
 
   void Init( BaseGDL* s_, BaseGDL* e_)
   {
-// 	SizeT varSize = var->Size();
+// 	SizeT varSize = var->N_Elements()/*var->Size()*/;
     
     int retMsg=s_->Scalar2RangeT(sInit);
     if( retMsg == 0) // index empty or array

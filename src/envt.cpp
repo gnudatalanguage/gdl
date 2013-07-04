@@ -965,7 +965,13 @@ EnvBaseT* EnvBaseT::Caller()
 
   //if( callStack.size() <= 1) return NULL;
   // library environments are no longer on the call stack
-  assert( callStack.back() != this);
+  // but since we have WRAPPED_FUNNode it is convenient 
+//   assert( callStack.back() != this);
+  if( callStack.back() == this)
+  {
+    assert( callStack.size() >= 2);
+    return callStack[ callStack.size() - 2];
+  }
 
   return callStack.back();
   

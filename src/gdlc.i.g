@@ -1046,7 +1046,7 @@ statement returns[ RetCode retCode]
         |   CONTINUE
         |   GOTO
         |   RETF 
-        | RETP
+        |   RETP
         )
 
         // control-c and debugging
@@ -1129,6 +1129,9 @@ statement returns[ RetCode retCode]
         // (might otherwise be inside an expression in which case 
         // .CONTINUE does not work)
         _retTree = last; 
+
+        if( last->IsWrappedNode())
+            throw e; // WRAPPED_... nodes should not stop inside
 
         // set !ERROR_STATE sys var 
         static DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();

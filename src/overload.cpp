@@ -136,12 +136,37 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
   if( nParam > 3) // consider implicit SELF
     ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
+  BaseGDL* selfP = e->GetKW( 0);
+  if( selfP->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+  if( !selfP->Scalar())
+    ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+
+  DObjGDL* selfObj = static_cast<DObjGDL*>( selfP);
+  DObj selfID = (*selfObj)[0];
+  DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
+  
+
+  static DString cNodeName("GDL_CONTAINER_NODE");
+   
+  DStructDesc* listDesc= self->Desc();
+
+  // because of .RESET_SESSION, we cannot use static here
+  DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+
+  // here static is fine
+  static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
+  static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
+  static unsigned nListTag = listDesc->TagIndex( "NLIST");
+  static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+  static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+
   // default behavior: Exact like scalar indexing
   BaseGDL* isRange = e->GetKW(1);
   if( isRange == NULL)
     ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) is undefined.");
-  if( isRange->Rank() == 0)
-    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must be an array in this context: " + e->Caller()->GetString(e->GetKW(1)));
+//   if( isRange->Rank() == 0)
+//     ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must be an array in this context: " + e->Caller()->GetString(e->GetKW(1)));
   SizeT nIsRange = isRange->N_Elements();
   if( nIsRange > (nParam - 2)) //- SELF and ISRANGE
     ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must have "+i2s(nParam-2)+" elements.");
@@ -218,43 +243,36 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
     throw ex;
   }
   
+  SizeT listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];
+  
   ArrayIndexListT* aL;
   MakeArrayIndex( &ixList, &aL, NULL); // important to get the non-NoAssoc ArrayIndexListT
   // because only they clean up ixList on destruction
   Guard< ArrayIndexListT> aLGuard( aL);
 
-  
-  BaseGDL* selfP = e->GetKW( 0);
-  if( selfP->Type() != GDL_OBJ)
-    ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
-  if( !selfP->Scalar())
-    ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
-    
-  DObjGDL* selfObj = static_cast<DObjGDL*>( selfP);
-  DObj selfID = (*selfObj)[0];
-  DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
-  
-  static DString cNodeName("GDL_CONTAINER_NODE");
-   
-  DStructDesc* listDesc= self->Desc();
-
-  // because of .RESET_SESSION, we cannot use static here
-  DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
-
-  // here static is fine
-  static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
-  static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
-  static unsigned nListTag = listDesc->TagIndex( "NLIST");
-  static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
-  static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
-
-    
+  SpDLong t = SpDLong( dimension(listSize));
+  aL->SetVariable( &t);
+          
   AllIxBaseT* allIx = aL->BuildIx();
   
   if( allIx->size() == 1)
   {
     DPtr actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
-    for( SizeT elIx = 0; elIx < allIx->operator[](0); ++elIx)
+    SizeT targetIx = allIx->operator[](0);
+// already checked (IndexListT::SetVariable)
+//     if( targetIx < 0)
+//     {
+//       targetIx += listSize;
+//       if( targetIx < 0)
+//       {
+// 	ThrowFromInternalUDSub( e, "Position value too small ("+i2s(targetIx)+").");	
+//       }
+//     }
+//     if( targetIx >= listSize)
+//     {
+//       ThrowFromInternalUDSub( e, "Position value too large ("+i2s(targetIx)+").");	
+//     }
+    for( SizeT elIx = 0; elIx < targetIx; ++elIx)
     {
       BaseGDL* actPHeap = e->Interpreter()->GetHeap( actP);
       if( actPHeap->Type() != GDL_STRUCT)
@@ -275,7 +293,7 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
 
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
     
-    return e->Interpreter()->GetHeap( actP);
+    return e->Interpreter()->GetHeap( actP)->Dup();
   }
 
   ThrowFromInternalUDSub( e, "return of LIST not implemented yet.");	

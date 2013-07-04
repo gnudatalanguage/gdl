@@ -181,7 +181,7 @@ public:
     // ArrayIndexScalar[VP] are not initialized
     // they need the NIter call, but
     // for only one index they have their own ArrayIndexListT
-    nIx=ix->NIter( var->Size());
+    nIx=ix->NIter( var->N_Elements()/*var->Size()*/);
   }
   
   // structure of indexed expression
@@ -277,7 +277,7 @@ public:
   {
     // scalar case
     if( right->N_Elements() == 1 && //!var->IsAssoc() &&
-	ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
+	ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
       {
 	var->AssignAtIx( ix->GetIx0(), right);
 	return;
@@ -302,10 +302,10 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_);//, NULL);
-    if( ix->Scalar())// && ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
-//     if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
+    if( ix->Scalar())// && ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
+//     if( !var->IsAssoc() && ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
       {
-	SizeT assertValue = ix->NIter( var->Size());
+	SizeT assertValue = ix->NIter( var->N_Elements()/*var->Size()*/);
 	assert( assertValue == 1);
 
 	return var->NewIx( ix->GetIx0());
@@ -529,10 +529,10 @@ public:
     
     // for assoc variables last index is the record
 //     if( var->IsAssoc()) return;
-    if( s >= var->Size())
-      throw GDLException(-1,NULL,"Scalar subscript out of range [>].1",true,false);
+    if( s >= var->N_Elements()/*var->Size()*/)
+      throw GDLException(-1,NULL,"Scalar subscript too large.",true,false);
     if( s < 0)
-      throw GDLException(-1,NULL,"Scalar subscript out of range [<].1",true,false);
+      throw GDLException(-1,NULL,"Scalar subscript too small (<-1).",true,false);
   }
   
   // structure of indexed expression
@@ -576,7 +576,7 @@ public:
     if( right->N_Elements() == 1) // && !var->IsAssoc()) // && var->Type() != GDL_STRUCT) 
       {
 	s = varPtr->Data()->LoopIndex();
-	if( s >= var->Size())
+	if( s >= var->N_Elements()/*var->Size()*/)
 	  throw GDLException(-1,NULL,"Scalar subscript out of range [>].2",true,false);
 	var->AssignAtIx( s, right);
 	return;
@@ -720,11 +720,11 @@ public:
   {
 //     if( var->IsAssoc()) return;
     if( sInit < 0)
-      s = sInit + var->Size();
+      s = sInit + var->N_Elements()/*var->Size()*/;
     // for assoc variables last index is the record
     if( s < 0)
       throw GDLException(-1,NULL,"Scalar subscript out of range [<0] ("+i2s(s)+")",true,false);
-    if( s >= var->Size())
+    if( s >= var->N_Elements()/*var->Size()*/)
       throw GDLException(-1,NULL,"Scalar subscript out of range [>] ("+i2s(s)+")",true,false);
   }
 
@@ -746,10 +746,10 @@ public:
     if( right->N_Elements() == 1)// && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
 	if( sInit < 0)
-	  s = sInit + var->Size();
+	  s = sInit + var->N_Elements()/*var->Size()*/;
 	if( s < 0)
 	  throw GDLException(-1,NULL,"Scalar subscript out of range [<0]. ("+i2s(s)+")",true,false);
-	if( s >= var->Size())
+	if( s >= var->N_Elements()/*var->Size()*/)
 	  throw GDLException(-1,NULL,"Scalar subscript out of range [>]. ("+i2s(s)+")",true,false);
 	var->AssignAtIx( s, right); // must use COPY_BYTE_AS_INT
 	return;
@@ -776,12 +776,12 @@ public:
 //     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
 	if( sInit < 0)
-	  s = sInit + var->Size();
+	  s = sInit + var->N_Elements()/*var->Size()*/;
 	if( s < 0)
 		throw GDLException(-1,NULL,"Scalar subscript out of range [<0]: ("+i2s(s)+")",true,false);
-	if( s >= var->Size())
+	if( s >= var->N_Elements()/*var->Size()*/)
 	{
-// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
+// 	    std::cout << s << " var->N_Elements()/*var->Size()*/:" << var->N_Elements()/*var->Size()*/ << std::endl;
 		throw GDLException(-1,NULL,"Scalar subscript out of range [>]: ("+i2s(s)+")",true,false);
 	}
 	

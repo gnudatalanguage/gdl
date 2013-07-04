@@ -271,12 +271,16 @@ namespace lib {
   }
 
   // CALL_EXTERNAL by Christoph Fuchs
+#ifdef USE_EIGEN
+  SizeT defaultAlign = 16;
+#else  
   typedef struct {
     char      c;
     long long l;
   } testAlign;
   SizeT defaultAlign = (SizeT)( sizeof(testAlign)-sizeof(long long) );
-
+#endif
+  
   BaseGDL* call_external( EnvT* e)
   {
     DString image, entry;
@@ -713,6 +717,8 @@ namespace lib {
 	for (SizeT iTag=0; iTag < nTags; iTag++) {
 	    BaseGDL* member = s->GetTag(iTag);
 	    DType    pType  = member->Type();
+	    // there is probably no point transfering PTR and OBJ
+	    // but if it fits why restrict it? They should never be used though
 	    if (NumericType(pType) || pType == GDL_PTR || pType == GDL_OBJ) {
 		totalSize += member->NBytes();
 		sizeOf    =  member->Sizeof();

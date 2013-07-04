@@ -428,6 +428,9 @@ GDLInterpreter::GDLInterpreter()
 		// .CONTINUE does not work)
 		_retTree = last; 
 		
+		if( last->IsWrappedNode())
+		throw e; // WRAPPED_... nodes should not stop inside
+		
 		// set !ERROR_STATE sys var 
 		static DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();
 		static unsigned nameTag = errorStateDesc->TagIndex( "NAME");

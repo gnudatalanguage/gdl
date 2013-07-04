@@ -134,6 +134,8 @@ void InitStructs()
   gdlList->AddTag("PTAIL", &aPtrRef);
   gdlList->AddTag("NLIST", &aLong);
   gdlList->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlList->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlList);
 
@@ -142,6 +144,8 @@ void InitStructs()
   gdlContainerNode->AddTag("PDATA", &aPtrRef);
 //   gdlContainerNode->AddTag("OOBJ", &aObjRef);
 //   gdlContainerNode->AddTag("FLAGS", &aLong);
+  // use operator overloading 
+  gdlContainerNode->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlContainerNode);
 
