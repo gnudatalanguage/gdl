@@ -1,10 +1,22 @@
-pro test_bug_3057520
-  if ~ncdf_exists() then exit, status=77
-  nc = ncdf_create('/dev/null', /clobber)
-  dt = ncdf_dimdef(nc, 'T', /unlimited)
-  dx = ncdf_dimdef(nc, 'X', 1024)
-  va = ncdf_vardef(nc, 'A', [dx, dt])
-  ncdf_control, nc, /endef
-  if execute("ncdf_varput, nc, va, [1], offset=0") eq 1 then exit, status=1
-  if execute("ncdf_varput, nc, va, [1], offset=[0,0,0]") ne 1 then exit, status=1
+;
+; test related to NetCDF capabilities 
+;
+pro TEST_BUG_3057520
+;
+if ~NCDF_EXISTS() then begin
+   MESSAGE, /continue, 'GDL was compiled without NetCDF !'
+   EXIT, status=77
+endif
+;
+; creating a NetCDF file with few fields
+;
+nc = NCDF_CREATE('/dev/null', /clobber)
+dt = NCDF_DIMDEF(nc, 'T', /unlimited)
+dx = NCDF_DIMDEF(nc, 'X', 1024)
+va = NCDF_VARDEF(nc, 'A', [dx, dt])
+NCDF_CONTROL, nc, /endef
+;
+if EXECUTE("NCDF_VARPUT, nc, va, [1], offset=0") eq 1 then EXIT, status=1
+if EXECUTE("NCDF_VARPUT, nc, va, [1], offset=[0,0,0]") ne 1 then EXIT, status=1
+;
 end
