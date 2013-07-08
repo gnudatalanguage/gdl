@@ -2818,7 +2818,37 @@ namespace lib {
       }
     }  
     
-    gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
+    // Definition of JMAX
+    int pos;
+    DLong wsize =static_cast<DLong>(pow(2.0, (20-1)));
+    if(e->KeywordSet("JMAX"))
+      {
+	pos = e->KeywordIx("JMAX");
+	e->AssureLongScalarKWIfPresent(pos, wsize);
+	wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
+      }
+    
+     // eps value:
+    double eps, eps_default;
+    bool isDouble = e->KeywordSet("DOUBLE") || p1->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE;
+    if (isDouble) {eps_default=1.e-12;} else {eps_default=1.e-6;}
+    
+    if (e->KeywordSet("EPS")) {
+      pos = e->KeywordIx("EPS");
+      e->AssureDoubleScalarKWIfPresent(pos, eps);
+      if (eps < 0.0) {
+	Message(e->GetProName() + ": EPS must be positive ! Value set to Default.");
+	eps=eps_default;
+      }
+      if(!isfinite(eps)) {
+	Message(e->GetProName() + ": EPS must be finite ! Value set to Default.");
+	eps=eps_default;
+      }	
+    } else {
+      eps=eps_default;
+    }
+    
+    gsl_integration_workspace *w = gsl_integration_workspace_alloc (wsize);
     GDLGuard<gsl_integration_workspace> g1( w, gsl_integration_workspace_free);
 
     first=(*static_cast<DDoubleGDL*>(par1))[0];
@@ -2830,8 +2860,7 @@ namespace lib {
 
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
 
-      gsl_integration_qag (&F, first, last, 0, 1e-7, GSL_INTEG_GAUSS61,
-			   1000, w, &result, &error); 
+      gsl_integration_qag (&F, first, last, 0, eps, wsize, GSL_INTEG_GAUSS61, w, &result, &error); 
 
       if (debug) cout << "Result : " << result << endl;
 
@@ -2884,6 +2913,11 @@ namespace lib {
 	par2 = p2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
 	Guard<BaseGDL> par2_guard(par2);
       }
+
+    // do we need to compute/return in double ?
+    bool isDouble =  e->KeywordSet("DOUBLE") || p1->Type() == GDL_DOUBLE;
+    if (!e->KeywordSet("MIDEXP")) 
+      if (p2->Type() == GDL_DOUBLE) isDouble=true;
 
     // 1-st argument : name of user function defining the system
     DString fun;
@@ -2953,28 +2987,25 @@ namespace lib {
     }
     else res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
     
-    // eps value:
-    double eps;
+    // managing eps value:
+    double eps, eps_default;
+    if (isDouble) {eps_default=1.e-12;} else {eps_default=1.e-6;}
     int pos;
-    if(!e->KeywordSet("MIDEXP"))
-      {
-	if (e->KeywordSet("EPS"))
-	  {
-	    pos = e->KeywordIx("EPS");
-	    e->AssureDoubleScalarKWIfPresent(pos, eps);
-	    if(!isfinite(eps)) eps=1e-6;
-	  }
-	else if (e->KeywordSet("DOUBLE") || p1->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) eps = 1e-12;
-	else eps = 1e-6;
+
+    if (e->KeywordSet("EPS")) {
+      pos = e->KeywordIx("EPS");
+      e->AssureDoubleScalarKWIfPresent(pos, eps);
+      if (eps < 0.0) {
+	Message(e->GetProName() + ": EPS must be positive ! Value set to Default.");
+	eps=eps_default;
       }
-    else if  (e->KeywordSet("EPS"))
-      {
-	pos = e->KeywordIx("EPS");
-	e->AssureDoubleScalarKWIfPresent(pos, eps);
-	if(!isfinite(eps)) eps=1e-6;
-      }
-    else if ((e->KeywordSet("DOUBLE") && e->KeywordSet("MIDEXP")) || p1->Type() == GDL_DOUBLE) eps = 1e-12;
-    else eps = 1e-6;
+      if(!isfinite(eps)) {
+	Message(e->GetProName() + ": EPS must be finite ! Value set to Default.");
+	eps=eps_default;
+      }	
+    } else {
+      eps=eps_default;
+    }
 
     // Definition of JMAX
     DLong wsize =static_cast<DLong>(pow(2.0, (20-1)));
@@ -3008,7 +3039,7 @@ namespace lib {
 	       e->KeywordSet("JMAX") || e->KeywordSet("K"))
 	{
 	  gsl_integration_qag(&F, first, last, 0, eps,
-			      GSL_INTEG_GAUSS61, wsize, w, &result, &error);
+			      wsize, GSL_INTEG_GAUSS61, w, &result, &error);
 	} 
       else
 	{
@@ -3026,13 +3057,9 @@ namespace lib {
 
     //     gsl_integration_workspace_free (w);
 
-    if (!e->KeywordSet("MIDEXP"))
-      {
-	if (e->KeywordSet("DOUBLE") || p1->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) return res;
-	else return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
-      }
-    else if (e->KeywordSet("DOUBLE")  || p1->Type() == GDL_DOUBLE) return res;
+    if (isDouble)  return res;
     else return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
+
   }
 
 
