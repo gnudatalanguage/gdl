@@ -1573,7 +1573,7 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
   rl_event_hook = GDLEventHandler;
   {
     int edit_input = SysVar::Edit_Input();
-    stifle_history(edit_input == 1 || edit_input < 0 ? 20 : edit_input);
+    stifle_history(edit_input == 1 || edit_input < 0 ? 200 : edit_input);
   }
   
   // Eventually read back the ".gdl" path in user $HOME
