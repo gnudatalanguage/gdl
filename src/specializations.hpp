@@ -18,6 +18,9 @@
 
 // basic_op.cpp
 
+template<>
+SizeT Data_<SpDObj>::N_Elements() const; 
+
 template<> 
 BaseGDL* Data_<SpDObj>::EqOp( BaseGDL*);
 template<> 

@@ -337,11 +337,11 @@ public:
     return NULL;
   }
 
-  BaseGDL* Loc( SizeT ix)
+  BaseGDL* Loc( SizeT ix) const
   {
     return env[ ix].P();
   }
-  BaseGDL** Env( SizeT ix)
+  BaseGDL** Env( SizeT ix) const
   {
     return env[ ix].PP();
   }

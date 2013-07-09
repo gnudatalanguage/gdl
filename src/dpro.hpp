@@ -335,7 +335,7 @@ public:
   // add variables
   DSubUD*  AddPar(const std::string&); // add paramter
   unsigned AddVar(const std::string&); // add local variable
-  void     AddKey(const std::string&, const std::string&); // add keyword=value
+  DSubUD*  AddKey(const std::string&, const std::string&); // add keyword=value
 
   void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 

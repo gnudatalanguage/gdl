@@ -247,7 +247,7 @@ unsigned DSubUD::AddVar(const string& v)
   return var.size()-1;
 }
 
-void DSubUD::AddKey(const string& k, const string& v)
+DSubUD* DSubUD::AddKey(const string& k, const string& v)
 {
   if( k == "_REF_EXTRA")
     {
@@ -271,6 +271,7 @@ void DSubUD::AddKey(const string& k, const string& v)
     }
   key.push_front(k);
   var.push_front(v);
+  return this;
 }
 
 // must be done after the tree is converted

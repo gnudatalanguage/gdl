@@ -440,7 +440,7 @@ static	void operator delete( void *ptr);
   Data_* Index( ArrayIndexListT* ixList);
 
   // return a new type of itself
-  Data_* NewIx( SizeT ix);
+  BaseGDL* NewIx( SizeT ix);
   Data_* NewIx( BaseGDL* ix, bool strict);
   Data_* NewIx( AllIxBaseT* ix, const dimension* dIn);
   Data_* NewIxFrom( SizeT s);

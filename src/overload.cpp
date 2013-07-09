@@ -21,6 +21,8 @@
 #include "overload.hpp"
 #include "prognodeexpr.hpp"
 #include "dinterpreter.hpp"
+#include "basic_pro.hpp"
+#include "nullgdl.hpp"
 
 using namespace std;
 
@@ -293,7 +295,10 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
 
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
     
-    return e->Interpreter()->GetHeap( actP)->Dup();
+    BaseGDL* res = e->Interpreter()->GetHeap( actP);
+    if( res == NULL)
+      return NullGDL::GetSingleInstance();
+    return res->Dup();
   }
 
   ThrowFromInternalUDSub( e, "return of LIST not implemented yet.");	
@@ -626,17 +631,7 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
 //   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
 
-  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","LIST","*INTERNAL*");
-  DFunLIST__overloadBracketsRightSide->AddPar("ISRANGE");
-  DFunLIST__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  DFunLIST__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  tree = new WRAPPED_FUNNode( LIST_OverloadBracketsRightSide);
-  DFunLIST__overloadBracketsRightSide->SetTree( tree);
-  listDesc->FunList().push_back(DFunLIST__overloadBracketsRightSide);
-  listDesc->SetOperator(OOBracketsRightSide,DFunLIST__overloadBracketsRightSide);
-
-  
-  DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"*INTERNAL*");
+   DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"*INTERNAL*");
   _overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree4 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadEQOp);
   _overloadEQ->SetTree( tree4);
@@ -664,4 +659,23 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadMinus);
 //   gdlObjectDesc->SetOperator(OOMINUS,_overloadMinus);
 
+// LIST  
+  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","LIST","*INTERNAL*");
+  DFunLIST__overloadBracketsRightSide->AddPar("ISRANGE");
+  DFunLIST__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  DFunLIST__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+  tree = new WRAPPED_FUNNode( LIST_OverloadBracketsRightSide);
+  DFunLIST__overloadBracketsRightSide->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__overloadBracketsRightSide);
+  listDesc->SetOperator(OOBracketsRightSide,DFunLIST__overloadBracketsRightSide);
+// LIST::ADD
+  DPro *DProLIST__ADD = new DPro("ADD","LIST","*INTERNAL*");
+  DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
+  DProLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
+  tree2 = new WRAPPED_PRONode( lib::list__add);
+  DProLIST__ADD->SetTree( tree2);
+  listDesc->ProList().push_back(DProLIST__ADD);
+  
+  
+  
 }

@@ -89,6 +89,6 @@ public:
   void SetOperator( SizeT op, DSubUD* opSub) { operators[op] = opSub;}
 };
 
-
+void ThrowFromInternalUDSub( EnvUDT* e, const std::string& s);
 
 #endif

@@ -1232,7 +1232,7 @@ void Data_<SpDObj>::Assign( BaseGDL* src, SizeT nEl)
 
 // return a new type of itself (only for one dimensional case)
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::NewIx( SizeT ix)
+BaseGDL* Data_<SpDPtr>::NewIx( SizeT ix)
 {
   Ty b = (*this)[ ix];
   GDLInterpreter::IncRef( b);
@@ -1241,11 +1241,67 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIx( SizeT ix)
 
 // return a new type of itself (only for one dimensional case)
 template<>
-Data_<SpDObj>* Data_<SpDObj>::NewIx( SizeT ix)
+BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
 {
-  Ty b = (*this)[ ix];
-  GDLInterpreter::IncRefObj( b);
-  return new Data_( (*this)[ ix]);
+  if( !this->StrictScalar())
+  {
+    Ty b = (*this)[ ix];
+    GDLInterpreter::IncRefObj( b);
+    return new Data_( (*this)[ ix]);
+  }
+
+  DObj s = dd[0]; // is StrictScalar()
+  if( s == 0)  // no overloads for null object
+    return new Data_( 0);
+  
+  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+  if( oStructGDL == NULL) // if object not valid -> default behaviour
+    return new Data_( 0);
+  
+  DStructDesc* desc = oStructGDL->Desc();
+
+  if( desc->IsParent("LIST"))
+  {
+      static DString cNodeName("GDL_CONTAINER_NODE");
+      // because of .RESET_SESSION, we cannot use static here
+      DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+    
+      // no static here, might vary in derived object
+//       unsigned pHeadTag = desc->TagIndex( "PHEAD");
+      static unsigned pTailTag = desc->TagIndex( "PTAIL");
+
+      static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+      static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+//       unsigned nListTag = desc->TagIndex( "NLIST");
+//       SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+
+      DPtr actP = (*static_cast<DPtrGDL*>(oStructGDL->GetTag( pTailTag, 0)))[0];
+      SizeT targetIx = s;
+      for( SizeT elIx = 0; elIx < targetIx; ++elIx)
+      {
+	BaseGDL* actPHeap = BaseGDL::interpreter->GetHeap( actP);
+	if( actPHeap->Type() != GDL_STRUCT)
+	  throw GDLException( "LIST node must be a STRUCT.");	
+	DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
+	if( actPStruct->Desc() != containerDesc)
+	  throw GDLException( "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+
+	actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
+      }
+
+    BaseGDL* actPHeap = BaseGDL::interpreter->GetHeap( actP);
+    if( actPHeap->Type() != GDL_STRUCT)
+	  throw GDLException( "LIST node must be a STRUCT.");	
+    DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
+    if( actPStruct->Desc() != containerDesc)
+	  throw GDLException( "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+
+    actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
+    
+    return BaseGDL::interpreter->GetHeap( actP)->Dup();
+  }
+  
+  return new Data_( s);
 }
 
 

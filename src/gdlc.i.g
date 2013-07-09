@@ -407,7 +407,7 @@ std::cout << "<ObjHeapVar" << id << "> = " << (*it).second.Count() << std::endl;
     }
    static void DecRefObj( DObjGDL* p)
     {
-        SizeT nEl=p->N_Elements();
+        SizeT nEl=p->Size();//N_Elements();
         for( SizeT ix=0; ix < nEl; ix++)
         {
             DObj id= (*p)[ix];
@@ -484,7 +484,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     }
    static void IncRefObj( DObjGDL* p)
     {
-        SizeT nEl=p->N_Elements();
+        SizeT nEl=p->Size();//N_Elements();
         for( SizeT ix=0; ix < nEl; ix++)
         {
             DObj id= (*p)[ix];
@@ -515,12 +515,12 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         if( it == objHeap.end()) return NULL;
         return it->second.get()->Desc()->GetOperator( opIx);
     }
-    // static DStructGDL* GetObjHeapNoThrow( DObj ID)
-    // {
-    //     ObjHeapT::iterator it=objHeap.find( ID);
-    //     if( it == objHeap.end()) return NULL;
-    //     return it->second.get();
-    // }
+    static DStructGDL* GetObjHeapNoThrow( DObj ID)
+    {
+        ObjHeapT::iterator it=objHeap.find( ID);
+        if( it == objHeap.end()) return NULL;
+        return it->second.get();
+    }
 //     static DStructGDL*& GetObjHeap( DObj ID, ObjHeapT::iterator& it)
 //     {
 // //         ObjHeapT::iterator it=objHeap.find( ID);

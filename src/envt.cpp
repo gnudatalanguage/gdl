@@ -1404,6 +1404,10 @@ bool EnvT::KeywordSet( const std::string& kw)
 
 bool EnvT::KeywordSet( SizeT ix)
 {
+  return EnvBaseT::KeywordSet( ix);
+}
+bool EnvBaseT::KeywordSet( SizeT ix)
+{
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return false;
   if( !keyword->Scalar()) return true;

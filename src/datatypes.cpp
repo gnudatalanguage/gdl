@@ -1813,6 +1813,35 @@ void* Data_<Sp>::DataAddr()// SizeT elem)
 template< class Sp>
 SizeT Data_<Sp>::N_Elements() const 
 { return dd.size();}
+
+template<>
+SizeT Data_<SpDObj>::N_Elements() const 
+{ 
+  if( !this->StrictScalar())
+    return dd.size();
+  
+  DObj s = dd[0]; // is StrictScalar()
+  if( s == 0)  // no overloads for null object
+    return 1;
+  
+  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+  if( oStructGDL == NULL) // if object not valid -> default behaviour
+    return 1;
+  
+  DStructDesc* desc = oStructGDL->Desc();
+
+  if( desc->IsParent("LIST"))
+  {
+      // no static here, might vary in derived object
+      unsigned nListTag = desc->TagIndex( "NLIST");
+      SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+      return listSize;
+  }
+  
+  return 1;
+}
+
+
 template< class Sp>
 SizeT Data_<Sp>::Size() const 
 { return dd.size();}
@@ -5209,7 +5238,7 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 
 // return a new type of itself (only for one dimensional case)
 template<class Sp>
-Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
+BaseGDL* Data_<Sp>::NewIx( SizeT ix)
 {
   return new Data_( (*this)[ ix]);
 }

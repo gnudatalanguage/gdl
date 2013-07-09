@@ -86,9 +86,37 @@ protected:
 
   // finds the local variable pp points to
 //   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
+public:
   // used by the interperter returns the keyword index, used for UD functions
+  // and used by WRAPPED subroutines
   int GetKeywordIx( const std::string& k);
 
+  
+  bool StealLocalKW( SizeT ix) 
+  { 
+    if( LocalKW( ix))
+      {
+	env.Clear( ix);
+	return true;
+      }
+    return false;
+  }
+
+  bool LocalKW( SizeT ix) const
+  {
+    if( ix >= env.size()) return false;
+    return ( env.Loc( ix) != NULL);
+  }
+
+  bool GlobalKW( SizeT ix) const
+  {
+    if( ix >= env.size()) return false;
+    return ( env.Env( ix) != NULL);
+  }
+
+  bool KeywordSet( SizeT ix);
+
+protected:
   // for HEAP_GC
   static void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
 		  DStructGDL* stru);
@@ -266,12 +294,7 @@ public:
   BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
   bool KeywordPresent( SizeT ix)
   { return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
-  bool GlobalKW( SizeT ix) 
-  {
-    if( ix >= env.size()) return false;
-    return ( env.Env( ix) != NULL);
-  }
-    void SetNextParUnckeckedVarNum(BaseGDL** arg1);
+  void SetNextParUnckeckedVarNum(BaseGDL** arg1);
 
   friend class DInterpreter; // gcc 4.4 compatibility
 };
@@ -659,12 +682,13 @@ public:
   { return EnvBaseT::KeywordPresent( ix);}
 
   // local/global keyword/paramter
-  bool LocalKW( SizeT ix) 
+  bool LocalKW( SizeT ix) const
   {
-    if( ix >= env.size()) return false;
-    return ( env.Loc( ix) != NULL);
+    return EnvBaseT::LocalKW( ix);
+//     if( ix >= env.size()) return false;
+//     return ( env.Loc( ix) != NULL);
   }
-  bool GlobalKW( SizeT ix) 
+  bool GlobalKW( SizeT ix) const
   {
     return EnvBaseT::GlobalKW( ix);
   }
