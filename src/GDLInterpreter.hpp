@@ -268,6 +268,13 @@ public:
                     }
             }
     }
+    static void HeapErase( DPtr id) // for LIST
+    {
+        if( id != 0)
+            {
+              heap.erase( id); 
+            }
+    }
     static void FreeHeapDirect( DPtr id, HeapT::iterator it)
     {
         delete (*it).second.get();

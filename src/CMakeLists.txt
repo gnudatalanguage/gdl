@@ -155,6 +155,8 @@ libinit_gm.cpp
 libinit_jmg.cpp
 libinit_mes.cpp
 libinit_ng.cpp
+list.cpp
+list.hpp
 magick_cl.cpp
 magick_cl.hpp
 math_fun.cpp

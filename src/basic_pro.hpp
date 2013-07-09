@@ -20,8 +20,6 @@
 
 namespace lib {
 
-  void list__add( EnvUDT* e);
-
   
   // control !CPU settings
   void cpu( EnvT* e);

@@ -21,8 +21,9 @@
 #include "overload.hpp"
 #include "prognodeexpr.hpp"
 #include "dinterpreter.hpp"
-#include "basic_pro.hpp"
+// #include "basic_pro.hpp"
 #include "nullgdl.hpp"
+#include "list.hpp"
 
 using namespace std;
 
@@ -675,6 +676,13 @@ void SetupOverloadSubroutines()
   tree2 = new WRAPPED_PRONode( lib::list__add);
   DProLIST__ADD->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__ADD);
+ // LIST::REMOVE()
+  DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","*INTERNAL*");
+  DProLIST__ADD->AddKey("ALL","ALL");
+  DProLIST__ADD->AddPar("INDEX");
+  tree = new WRAPPED_FUNNode( lib::list__remove);
+  DFunLIST__REMOVE->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__REMOVE);
   
   
   
