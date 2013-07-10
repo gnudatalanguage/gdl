@@ -178,11 +178,9 @@ namespace lib {
   if( kwALL)
   {
     DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
-    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct, inits ref count
     BaseGDL* newObj = new DObjGDL( objID); // the list object
     Guard<BaseGDL> newObjGuard( newObj);
-    // we need ref counting here as the LIST (newObj) is a regular return value
-    e->Interpreter()->IncRefObj( objID);
     
     (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] =
     (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];	      
@@ -263,7 +261,8 @@ namespace lib {
       (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = pPredHead;    
       (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
     }
-    e->Interpreter()->HeapErase( pHead); // no delete
+    e->Interpreter()->HeapErase( pData); // no delete
+    e->Interpreter()->FreeHeap( pHead); // delete
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -292,7 +291,8 @@ namespace lib {
       (*static_cast<DPtrGDL*>( tailNode->GetTag( pNextTag, 0)))[0];        
       (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
     }
-    e->Interpreter()->HeapErase( pTail); // no delete
+    e->Interpreter()->HeapErase( pData); // no delete
+    e->Interpreter()->FreeHeap( pTail); // delete
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -314,7 +314,8 @@ namespace lib {
     (*static_cast<DPtrGDL*>( predNode->GetTag( pNextTag, 0)))[0] = 
 	(*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];
     
-    e->Interpreter()->HeapErase( pRemoveNode); // no delete
+    e->Interpreter()->HeapErase( pData); // no delete
+    e->Interpreter()->FreeHeap( pRemoveNode); // no delete
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -329,8 +330,7 @@ namespace lib {
   BaseGDL* newObj = new DObjGDL( objID); // the list object
   Guard<BaseGDL> newObjGuard( newObj);
   // we need ref counting here as the LIST (newObj) is a regular return value
-  e->Interpreter()->IncRefObj( objID);
-  
+//   e->Interpreter()->IncRefObj( objID);
   DStructGDL* cStructLast = NULL;
   DStructGDL* cStruct = NULL;
   DPtr cID = 0;
@@ -402,7 +402,7 @@ namespace lib {
     
     if( removeIndex == nList-1) // remove head
     {
-    std::cout << " Removing index: nList-1" << std::endl;
+//     std::cout << " Removing index: nList-1" << std::endl;
 
       DPtr pHead = (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];	      
       
@@ -430,11 +430,15 @@ namespace lib {
 	(*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = pPredHead;    
 	(*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
       }
+      
+      // prevent (ref-count) cleanup of next node 
+      (*static_cast<DPtrGDL*>( headNode->GetTag( pNextTag, 0)))[0] = 0;      
+      e->Interpreter()->FreeHeap( pData);
       e->Interpreter()->FreeHeap( pHead);
     }
     if( removeIndex == 0) // remove tail
     {
-    std::cout << " Removing index: zero" << std::endl;
+//     std::cout << " Removing index: zero" << std::endl;
       // implicit: nList > 1
       DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];	      
       
@@ -456,11 +460,15 @@ namespace lib {
 	(*static_cast<DPtrGDL*>( tailNode->GetTag( pNextTag, 0)))[0];        
 	(*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
       }
+
+      // prevent (ref-count) cleanup of next node 
+      (*static_cast<DPtrGDL*>( tailNode->GetTag( pNextTag, 0)))[0] = 0;      
+      e->Interpreter()->FreeHeap( pData);
       e->Interpreter()->FreeHeap( pTail);
     }
     else
     {
-    std::cout << " Removing index: " << i2s(removeIndex) << std::endl;
+//     std::cout << "  Removing index: " << i2s(removeIndex) << std::endl;
       // implicit: nList > 2
       DPtr pPredNode = GetLISTNode( e, self, removeIndex-1);
       DStructGDL* predNode = GetLISTStruct( e, pPredNode);   
@@ -468,17 +476,24 @@ namespace lib {
       DPtr pRemoveNode = (*static_cast<DPtrGDL*>( predNode->GetTag( pNextTag, 0)))[0];
       DStructGDL* removeNode = GetLISTStruct( e, pRemoveNode);   
 
-//       DPtr pData = (*static_cast<DPtrGDL*>( removeNode->GetTag( pDataTag, 0)))[0];   
+      DPtr pData = (*static_cast<DPtrGDL*>( removeNode->GetTag( pDataTag, 0)))[0];   
 //       BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
 
       (*static_cast<DPtrGDL*>( predNode->GetTag( pNextTag, 0)))[0] = 
 	  (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];
-      
+
+//     std::cout << "    Next index: " << i2s((*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0]) << std::endl;
+
+//     std::cout << "    Freeing index: " << i2s(pRemoveNode) << std::endl;
+
+      // prevent (ref-count) cleanup of next node 
+      (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0] = 0;
+      e->Interpreter()->FreeHeap( pData);
       e->Interpreter()->FreeHeap( pRemoveNode);
     }
     assert( nList >= 1);
-    --nList;
-    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList;
+    // keep LIST consistent
+    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = --nList;
   }
   
   newObjGuard.Release();
@@ -676,6 +691,7 @@ namespace lib {
   }
   
   
+  
   BaseGDL* list_fun( EnvT* e)
   {
     static int kwEXTRACTIx = e->KeywordIx("EXTRACT");
@@ -722,12 +738,10 @@ namespace lib {
 
     DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
 
-    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct, sets ref count to 1 
 
     BaseGDL* newObj = new DObjGDL( objID); // the list object
     Guard<BaseGDL> newObjGuard( newObj);
-    // we need ref counting here as the LIST (newObj) is a regular return value
-    e->Interpreter()->IncRefObj( objID);
     
     SizeT added = 0;
     DStructGDL* cStruct = NULL;
@@ -746,13 +760,13 @@ namespace lib {
 	  {
 	    DPtr pID;
 
-	    pID = ip->NewHeap(1,p->NewIx(eIx));
+	    pID = ip->NewHeap(1,p->NewIx(eIx)); // sets ref count to 1
 	    
 	    cStruct= new DStructGDL( containerDesc, dimension());
     
 	    (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
 	    
-	    cID = ip->NewHeap(1,cStruct);
+	    cID = ip->NewHeap(1,cStruct); // sets ref count to 1
 
 	    if( cStructLast != NULL)
 	      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;

@@ -307,7 +307,7 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
   BaseGDL* newObj = new DObjGDL( objID); // the list object
   Guard<BaseGDL> newObjGuard( newObj);
   // we need ref counting here as the LIST (newObj) is a regular return value
-  e->Interpreter()->IncRefObj( objID);
+//   e->Interpreter()->IncRefObj( objID);
 
   DStructGDL* cStructLast = NULL;
   DStructGDL* cStruct = NULL;
@@ -716,7 +716,7 @@ void SetupOverloadSubroutines()
   tree2 = new WRAPPED_PRONode( lib::list__add);
   DProLIST__ADD->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__ADD);
- // LIST::REMOVE()
+// LIST::REMOVE()
   DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","*INTERNAL*");
   DFunLIST__REMOVE->AddKey("ALL","ALL");
   DFunLIST__REMOVE->AddPar("INDEX");
