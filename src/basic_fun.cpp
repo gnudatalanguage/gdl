@@ -4847,7 +4847,7 @@ BaseGDL* transpose( EnvT* e)
 	    try {
 	      oStruct = e->GetObjHeap( objRef);
 	    }
-	    catch ( GDLInterpreter::HeapException)
+	    catch ( GDLInterpreter::HeapException )
 	      { // non valid object
 		if( count)
 		  e->SetKW( countIx, new DLongGDL( 0));

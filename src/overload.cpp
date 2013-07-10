@@ -302,7 +302,47 @@ BaseGDL* LIST_OverloadBracketsRightSide( EnvUDT* e)
     return res->Dup();
   }
 
-  ThrowFromInternalUDSub( e, "return of LIST not implemented yet.");	
+  DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+  DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+  BaseGDL* newObj = new DObjGDL( objID); // the list object
+  Guard<BaseGDL> newObjGuard( newObj);
+  // we need ref counting here as the LIST (newObj) is a regular return value
+  e->Interpreter()->IncRefObj( objID);
+
+  DStructGDL* cStructLast = NULL;
+  DStructGDL* cStruct = NULL;
+  DPtr cID = 0;
+  for( SizeT i=0; i<allIx->size(); ++i)
+  {
+    SizeT actIx = allIx->operator[](i);
+    DPtr pActNode = GetLISTNode( e, self, actIx);
+    DStructGDL* actNode = GetLISTStruct( e, pActNode);   
+
+    DPtr pData = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
+    BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
+    if( data != NULL) 
+      data = data->Dup();
+    DPtr dID = e->Interpreter()->NewHeap(1,data);
+    
+    cStruct = new DStructGDL( containerDesc, dimension());
+    cID = e->Interpreter()->NewHeap(1,cStruct);
+    (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = dID;
+    
+    if( cStructLast != NULL)
+      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    else
+    { // 1st element
+      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+    }
+          
+    cStructLast = cStruct;
+  }
+  
+  (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+  (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = listSize + allIx->size();      
+
+  newObjGuard.Release();
+  return newObj;
 }
 
 BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
@@ -678,8 +718,8 @@ void SetupOverloadSubroutines()
   listDesc->ProList().push_back(DProLIST__ADD);
  // LIST::REMOVE()
   DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","*INTERNAL*");
-  DProLIST__ADD->AddKey("ALL","ALL");
-  DProLIST__ADD->AddPar("INDEX");
+  DFunLIST__REMOVE->AddKey("ALL","ALL");
+  DFunLIST__REMOVE->AddPar("INDEX");
   tree = new WRAPPED_FUNNode( lib::list__remove);
   DFunLIST__REMOVE->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__REMOVE);

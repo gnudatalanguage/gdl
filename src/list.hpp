@@ -21,12 +21,16 @@
 
 // #include <envt.hpp>
 
+   // helper functions for LIST
+   DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP);
+   DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx);
+   DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e);
+
 namespace lib {
 
    void list__add( EnvUDT* e);
    BaseGDL* list__remove( EnvUDT* e);
 
-  
 }
 
 #endif
