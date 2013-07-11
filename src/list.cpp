@@ -56,7 +56,7 @@
     for(; h1Ix < h1N; ++i) hhS[ i] = h1[ h1Ix++];
     for(; h2Ix < h2N; ++i) hhS[ i] = h2[ h2Ix++];
   }
-
+  
   DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP)
   {
     static DString cNodeName("GDL_CONTAINER_NODE");
@@ -77,6 +77,29 @@
       ThrowFromInternalUDSub( e, "LIST node must be a GDL_CONTAINER_NODE STRUCT.");
 //       throw GDLException( "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
     return actPStruct;
+  }
+
+  void FreeLISTNode( EnvUDT* e, DPtr pRemoveNode, bool deleteData = true)
+  {
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+    static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+    static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+    
+    DStructGDL* removeNode = GetLISTStruct( e, pRemoveNode);
+    
+    DPtr pData = (*static_cast<DPtrGDL*>( removeNode->GetTag( pDataTag, 0)))[0];	      
+    DPtr pNext = (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];	      
+    
+    if( deleteData)
+      BaseGDL::interpreter->FreeHeap( pData); // delete
+    else
+      BaseGDL::interpreter->HeapErase( pData); // no delete
+    
+    // prevent cleanup due to ref-counting  
+    (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0] = 0;  
+      
+    BaseGDL::interpreter->FreeHeap( pRemoveNode); // delete
   }
 
   DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx)
@@ -261,8 +284,9 @@ namespace lib {
       (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = pPredHead;    
       (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
     }
-    e->Interpreter()->HeapErase( pData); // no delete
-    e->Interpreter()->FreeHeap( pHead); // delete
+//     e->Interpreter()->HeapErase( pData); // no delete
+//     e->Interpreter()->FreeHeap( pHead); // delete
+    FreeLISTNode( e, pHead, false);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -291,8 +315,9 @@ namespace lib {
       (*static_cast<DPtrGDL*>( tailNode->GetTag( pNextTag, 0)))[0];        
       (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
     }
-    e->Interpreter()->HeapErase( pData); // no delete
-    e->Interpreter()->FreeHeap( pTail); // delete
+//     e->Interpreter()->HeapErase( pData); // no delete
+//     e->Interpreter()->FreeHeap( pTail); // delete
+    FreeLISTNode( e, pTail, false);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -314,8 +339,11 @@ namespace lib {
     (*static_cast<DPtrGDL*>( predNode->GetTag( pNextTag, 0)))[0] = 
 	(*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];
     
-    e->Interpreter()->HeapErase( pData); // no delete
-    e->Interpreter()->FreeHeap( pRemoveNode); // no delete
+    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = nList - 1;
+
+//     e->Interpreter()->HeapErase( pData); // no delete
+//     e->Interpreter()->FreeHeap( pRemoveNode); // no delete
+    FreeLISTNode( e, pRemoveNode, false);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -433,8 +461,9 @@ namespace lib {
       
       // prevent (ref-count) cleanup of next node 
       (*static_cast<DPtrGDL*>( headNode->GetTag( pNextTag, 0)))[0] = 0;      
-      e->Interpreter()->FreeHeap( pData);
-      e->Interpreter()->FreeHeap( pHead);
+//       e->Interpreter()->FreeHeap( pData);
+//       e->Interpreter()->FreeHeap( pHead);
+      FreeLISTNode( e, pHead, true);
     }
     if( removeIndex == 0) // remove tail
     {
@@ -463,8 +492,9 @@ namespace lib {
 
       // prevent (ref-count) cleanup of next node 
       (*static_cast<DPtrGDL*>( tailNode->GetTag( pNextTag, 0)))[0] = 0;      
-      e->Interpreter()->FreeHeap( pData);
-      e->Interpreter()->FreeHeap( pTail);
+//       e->Interpreter()->FreeHeap( pData);
+//       e->Interpreter()->FreeHeap( pTail);
+      FreeLISTNode( e, pTail, true);
     }
     else
     {
@@ -488,8 +518,9 @@ namespace lib {
 
       // prevent (ref-count) cleanup of next node 
       (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0] = 0;
-      e->Interpreter()->FreeHeap( pData);
-      e->Interpreter()->FreeHeap( pRemoveNode);
+//       e->Interpreter()->FreeHeap( pData);
+//       e->Interpreter()->FreeHeap( pRemoveNode);
+      FreeLISTNode( e, pRemoveNode, true);
     }
     assert( nList >= 1);
     // keep LIST consistent
@@ -796,7 +827,7 @@ namespace lib {
 
 	  if( p == NULL || kwNO_COPY)
 	  {
-	    pID = ip->NewHeap(1,p);
+	    pID = ip->NewHeap(1,p); // sets ref count
 	    bool stolen = e->StealLocalPar( pIx);
 	    if( !stolen) e->GetPar(pIx) = NULL;
 	  }
@@ -808,9 +839,8 @@ namespace lib {
 	  cStruct= new DStructGDL( containerDesc, dimension());
   
 	  (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
-	  // no ref counting here (and below) as heap data cannot be accessed outside object
 	  
-	  cID = ip->NewHeap(1,cStruct);
+	  cID = ip->NewHeap(1,cStruct); // sets ref count
 
 	  if( cStructLast != NULL)
 	    (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;

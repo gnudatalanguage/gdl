@@ -297,6 +297,7 @@ public:
   void SetNextParUnckeckedVarNum(BaseGDL** arg1);
 
   friend class DInterpreter; // gcc 4.4 compatibility
+  friend class InProgressGuard;
 };
 
 

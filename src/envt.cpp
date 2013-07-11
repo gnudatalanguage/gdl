@@ -569,59 +569,75 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 
 set< DObj> EnvBaseT::inProgress;
 
+class InProgressGuard
+{
+private:
+  DObj actID;
+public:
+  InProgressGuard( DObj id): actID( id) 
+  {
+    EnvBaseT::inProgress.insert( actID);    
+  }
+  ~InProgressGuard()
+  {
+    EnvBaseT::inProgress.erase( actID);
+  }
+};
+
 // for CLEANUP calls due to reference counting
 // note: refcount is already zero for actID
 void EnvBaseT::ObjCleanup( DObj actID)
 {
-  if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
-    {
-      DStructGDL* actObj;
-      try{
-	actObj=GetObjHeap( actID);
-// 	GDLInterpreter::ObjHeapT::iterator it;
-// 	actObj=GDLInterpreter::GetObjHeap( actID, it);
-    }
-      catch( GDLInterpreter::HeapException){
-		actObj=NULL;
-      }
-	    
-    if( actObj != NULL)
-	    {
-	      try{
-		  // call CLEANUP function
-		  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
-	  
-		  if( objCLEANUP != NULL)
-		  {
-		    BaseGDL* actObjGDL = new DObjGDL( actID);
-		    Guard<BaseGDL> actObjGDL_guard( actObjGDL);
-		    GDLInterpreter::IncRefObj( actID); // set refcount to 1
-	    
-		    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
-	    
-		    inProgress.insert( actID);
-	    
-		    interpreter->call_pro( objCLEANUP->GetTree());
-	    
-		    inProgress.erase( actID);
+  if( actID == 0 || (inProgress.find( actID) != inProgress.end()))
+    return;
 
-		    EnvBaseT* callStackBack =  interpreter->CallStack().back();
-		    interpreter->CallStack().pop_back();
-		    delete callStackBack;
+  DStructGDL* actObj;
+  try{
+    actObj=GetObjHeap( actID);
+  }
+  catch( GDLInterpreter::HeapException&){
+    // not found
+    return;
+  }
+	 
+  // found actID  
+  if( actObj != NULL)
+  {
+    InProgressGuard inProgressGuard( actID); // exception save
+    
+    Guard<BaseGDL> actObjGDL_guard;
+    try{
+	// call CLEANUP function
+	DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
 
-		    FreeObjHeap( actID); // make sure actObj is freed
-		    // actObjGDL goes out of scope -> refcount is (would be) decreased
-		  }
-	      }
-	    catch( ...)
-	      {
-		FreeObjHeap( actID); // make sure actObj is freed
-		throw; // rethrow
-	      }		
-	    }
-    else		
-	FreeObjHeap( actID); // the actual freeing
+	if( objCLEANUP != NULL)
+	{
+	  BaseGDL* actObjGDL = new DObjGDL( actID);
+	  actObjGDL_guard.Init( actObjGDL);
+	  GDLInterpreter::IncRefObj( actID); // set refcount to 1
+  
+	  PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
+  
+	  interpreter->call_pro( objCLEANUP->GetTree());
+  
+	  EnvBaseT* callStackBack =  interpreter->CallStack().back();
+	  interpreter->CallStack().pop_back();
+	  delete callStackBack;
+	}
     }
+    catch( ...)
+      {
+	FreeObjHeap( actID); // make sure actObj is freed
+	throw; // rethrow
+      }		
+    // actObjGDL_guard goes out of scope -> refcount is (would be) decreased
+    FreeObjHeap( actID); 
+  }
+  else // actObj == NULL
+  {
+      Warning("Cleaning up invalid (NULL) OBJECT ID <"+i2s(actID)+">.");
+      FreeObjHeap( actID); // make sure actObj is freed
+  }
 }
 
 
