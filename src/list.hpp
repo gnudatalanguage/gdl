@@ -29,7 +29,12 @@
 namespace lib {
 
    void list__add( EnvUDT* e);
-   BaseGDL* list__remove( EnvUDT* e);
+   
+   void list__remove_pro( EnvUDT* e);
+
+   void list__reverse( EnvUDT* e);
+   
+   BaseGDL* list__remove_fun( EnvUDT* e);
 
 }
 

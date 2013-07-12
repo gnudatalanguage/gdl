@@ -157,7 +157,18 @@
   
 namespace lib {
  
-  BaseGDL* list__remove( EnvUDT* e)
+  BaseGDL* list__remove( EnvUDT* e, bool asFunction);
+
+  BaseGDL* list__remove_fun( EnvUDT* e)
+  {
+    return list__remove( e, true);
+  }
+  void list__remove_pro( EnvUDT* e)
+  {
+    list__remove( e, false);
+  }
+
+  BaseGDL* list__remove( EnvUDT* e, bool asFunction)
   {
   // see overload.cpp
   //     DFunLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
@@ -200,23 +211,37 @@ namespace lib {
 
   if( kwALL)
   {
-    DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
-    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct, inits ref count
-    BaseGDL* newObj = new DObjGDL( objID); // the list object
-    Guard<BaseGDL> newObjGuard( newObj);
-    
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] =
-    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];	      
-    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = 0;	      
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] =
-    (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];	      
-    (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = 0;	      
-    (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] =
-    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];
-    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = 0;
-    
-    newObjGuard.Release();
-    return newObj;    
+    if( asFunction)
+    {
+      DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+      DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct, inits ref count
+      BaseGDL* newObj = new DObjGDL( objID); // the list object
+      Guard<BaseGDL> newObjGuard( newObj);
+      
+      (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] =
+      (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];	      
+      (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = 0;	      
+      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] =
+      (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];	      
+      (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = 0;	      
+      (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] =
+      (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];
+      (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = 0;
+      
+      newObjGuard.Release();
+      return newObj;    
+    }
+    else
+    {
+      DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
+      // trigger ref-count delete of all elements      
+      BaseGDL::interpreter->FreeHeap( pTail); 
+      
+      (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = 0;	      
+      (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = 0;	      
+      (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = 0;
+      return NULL;      
+    }
   }
 
   DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
@@ -286,7 +311,7 @@ namespace lib {
     }
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pHead); // delete
-    FreeLISTNode( e, pHead, false);
+    FreeLISTNode( e, pHead, !asFunction);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
@@ -317,12 +342,11 @@ namespace lib {
     }
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pTail); // delete
-    FreeLISTNode( e, pTail, false);
+    FreeLISTNode( e, pTail, !asFunction);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
-    return data;
-    
+    return data;    
   }
   if( removePos != -1) // single element
   {
@@ -343,63 +367,67 @@ namespace lib {
 
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pRemoveNode); // no delete
-    FreeLISTNode( e, pRemoveNode, false);
+    FreeLISTNode( e, pRemoveNode, !asFunction);
     
     if( data == NULL)
       return NullGDL::GetSingleInstance();
-    return data;
-    
+    return data;    
   }
   
   // remove all indexed elements
   // 1st build return LIST
-  DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
-  DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
-  BaseGDL* newObj = new DObjGDL( objID); // the list object
-  Guard<BaseGDL> newObjGuard( newObj);
-  // we need ref counting here as the LIST (newObj) is a regular return value
-//   e->Interpreter()->IncRefObj( objID);
-  DStructGDL* cStructLast = NULL;
-  DStructGDL* cStruct = NULL;
-  DPtr cID = 0;
+  BaseGDL* newObj = NULL; // the list object
+  Guard<BaseGDL> newObjGuard;
   SizeT indexN_Elements = indexLong->N_Elements();
-  for( SizeT i=0; i<indexN_Elements; ++i)
+  if( asFunction)
   {
-    DLong actIx = (*indexLong)[ i];
-    if( actIx < 0)
-      actIx += nList;
-    if( actIx < 0)
-      ThrowFromInternalUDSub( e, "Index too small.");
-    if( actIx >= nList)
-      ThrowFromInternalUDSub( e, "Index out of range.");
+    DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+    newObj = new DObjGDL( objID); // the list object
+    newObjGuard.Init( newObj);
+    // we need ref counting here as the LIST (newObj) is a regular return value
+  //   e->Interpreter()->IncRefObj( objID);
+    DStructGDL* cStructLast = NULL;
+    DStructGDL* cStruct = NULL;
+    DPtr cID = 0;
+    for( SizeT i=0; i<indexN_Elements; ++i)
+    {
+      DLong actIx = (*indexLong)[ i];
+      if( actIx < 0)
+	actIx += nList;
+      if( actIx < 0)
+	ThrowFromInternalUDSub( e, "Index too small.");
+      if( actIx >= nList)
+	ThrowFromInternalUDSub( e, "Index out of range.");
+	
       
-    
-    DPtr pActNode = GetLISTNode( e, self, actIx);
-    DStructGDL* actNode = GetLISTStruct( e, pActNode);   
+      DPtr pActNode = GetLISTNode( e, self, actIx);
+      DStructGDL* actNode = GetLISTStruct( e, pActNode);   
 
-    DPtr pData = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
-    BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
-    if( data != NULL) 
-      data = data->Dup();
-    DPtr dID = e->Interpreter()->NewHeap(1,data);
-    
-    cStruct = new DStructGDL( containerDesc, dimension());
-    cID = e->Interpreter()->NewHeap(1,cStruct);
-    (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = dID;
-    
-    if( cStructLast != NULL)
-      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
-    else
-    { // 1st element
-      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+      DPtr pData = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
+      BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
+      if( data != NULL) 
+	data = data->Dup();
+      DPtr dID = e->Interpreter()->NewHeap(1,data);
+      
+      cStruct = new DStructGDL( containerDesc, dimension());
+      cID = e->Interpreter()->NewHeap(1,cStruct);
+      (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = dID;
+      
+      if( cStructLast != NULL)
+	(*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+      else
+      { // 1st element
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+      }
+	    
+      cStructLast = cStruct;
     }
-          
-    cStructLast = cStruct;
-  }
+    
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = indexN_Elements;      
+  } // if( asFunction)
   
-  (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
-  (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = indexN_Elements;      
-
   // 2nd: remove the indexed elements
   if( indexLongGuard.Get() == NULL)
   {
@@ -419,7 +447,7 @@ namespace lib {
   for( DLong i=0; i < indexN_Elements; ++i)
   {
     DLong removeIndex = hh[ i];
-    std::cout << " Removing index: " << i2s(removeIndex) << std::endl;
+//     std::cout << " Removing index: " << i2s(removeIndex) << std::endl;
     
     if( removeIndex < 0)
       removeIndex += nListStart;
@@ -530,9 +558,58 @@ namespace lib {
   newObjGuard.Release();
   return newObj;
   }
- 
+
   
   
+  void list__reverse( EnvUDT* e)
+  {
+    // no args no kwords
+    SizeT nParam = e->NParam(1); // minimum SELF
+
+    DStructGDL* self = GetSELF( e->GetKW( 0), e);
+  
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    
+    DStructDesc* listDesc= self->Desc();
+
+    // because of .RESET_SESSION, we cannot use static here
+    DStructDesc* containerDesc=FindInStructList( structList, cNodeName);
+    assert( listDesc != NULL && listDesc->NTags() > 0);
+    assert( containerDesc != NULL && containerDesc->NTags() > 0);
+
+    // here static is fine
+    static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
+    static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
+    static unsigned nListTag = listDesc->TagIndex( "NLIST");
+    static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
+    static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+    
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+
+    if( nList <= 1) // no change for empty or one-element
+      return;
+    
+    DPtr actPrevP = 0;
+    DPtr actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
+    for( SizeT elIx = 0; elIx < nList; ++elIx)
+      {
+	DStructGDL* actPStruct = GetLISTStruct(e, actP);
+
+	DPtr actPNext = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
+
+	(*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0] = actPrevP;
+	
+	actPrevP = actP;
+	
+	actP = actPNext;
+      }
+
+    // swap head and tail pointer
+    DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
+    (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] =  
+    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];	      
+    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = pTail;	      
+  }
   
   void list__add( EnvUDT* e)
   {

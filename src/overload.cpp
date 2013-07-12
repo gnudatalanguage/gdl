@@ -720,10 +720,20 @@ void SetupOverloadSubroutines()
   DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","*INTERNAL*");
   DFunLIST__REMOVE->AddKey("ALL","ALL");
   DFunLIST__REMOVE->AddPar("INDEX");
-  tree = new WRAPPED_FUNNode( lib::list__remove);
+  tree = new WRAPPED_FUNNode( lib::list__remove_fun);
   DFunLIST__REMOVE->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__REMOVE);
-  
-  
+// LIST::REMOVE PRO
+  DPro *DProLIST__REMOVE = new DPro("REMOVE","LIST","*INTERNAL*");
+  DProLIST__REMOVE->AddKey("ALL","ALL");
+  DProLIST__REMOVE->AddPar("INDEX");
+  tree2 = new WRAPPED_PRONode( lib::list__remove_pro);
+  DProLIST__REMOVE->SetTree( tree2);
+  listDesc->ProList().push_back(DProLIST__REMOVE);
+// LIST::REVERSE PRO
+  DPro *DProLIST__REVERSE = new DPro("REVERSE","LIST","*INTERNAL*");
+  tree2 = new WRAPPED_PRONode( lib::list__reverse);
+  DProLIST__REVERSE->SetTree( tree2);
+  listDesc->ProList().push_back(DProLIST__REVERSE);
   
 }
