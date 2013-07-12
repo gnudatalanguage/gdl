@@ -35,7 +35,7 @@ cpp_hpp_files = overload.hpp overload.cpp nullgdl.hpp nullgdl.cpp allix.hpp alli
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
                 math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
 		math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp \
-		ofmt.hpp \
+		list.hpp list.cpp ofmt.hpp overload.hpp  overload.cpp\
 		preferences.hpp preferences.cpp \
 		plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
