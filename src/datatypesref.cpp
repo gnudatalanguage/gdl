@@ -1270,14 +1270,13 @@ BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
 //       unsigned pHeadTag = desc->TagIndex( "PHEAD");
       static unsigned pTailTag = desc->TagIndex( "PTAIL");
 
-      static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
-      static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
+      static unsigned pNextTag = FindInStructList( structList, cNodeName)->TagIndex( "PNEXT");
+      static unsigned pDataTag = FindInStructList( structList, cNodeName)->TagIndex( "PDATA");
 //       unsigned nListTag = desc->TagIndex( "NLIST");
 //       SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
 
       DPtr actP = (*static_cast<DPtrGDL*>(oStructGDL->GetTag( pTailTag, 0)))[0];
-      SizeT targetIx = s;
-      for( SizeT elIx = 0; elIx < targetIx; ++elIx)
+      for( SizeT elIx = 0; elIx < ix; ++elIx)
       {
 	BaseGDL* actPHeap = BaseGDL::interpreter->GetHeap( actP);
 	if( actPHeap->Type() != GDL_STRUCT)
