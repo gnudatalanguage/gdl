@@ -154,6 +154,19 @@
   
 namespace lib {
 
+BaseGDL* LIST___OverloadEQOp( EnvUDT* e);
+BaseGDL* LIST___OverloadNEOp( EnvUDT* e)
+{
+  DByteGDL* result = static_cast<DByteGDL*>(LIST___OverloadEQOp( e));
+  for( SizeT i=0; i<result->N_Elements(); ++i)
+  {
+    if( (*result)[i] == 0)
+      (*result)[i] = 1;
+    else
+      (*result)[i] = 0;
+  }
+  return result;
+}
 BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
 {
   SizeT nParam = e->NParam(); // number of parameters actually given

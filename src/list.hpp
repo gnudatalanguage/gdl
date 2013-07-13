@@ -26,7 +26,8 @@ namespace lib {
    BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e);
    void LIST___OverloadBracketsLeftSide( EnvUDT* e);
    BaseGDL* LIST___OverloadPlus( EnvUDT* e);
-  BaseGDL* LIST___OverloadEQOp( EnvUDT* e);
+   BaseGDL* LIST___OverloadEQOp( EnvUDT* e);
+   BaseGDL* LIST___OverloadNEOp( EnvUDT* e);
 
    void list__add( EnvUDT* e);
    

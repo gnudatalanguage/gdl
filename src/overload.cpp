@@ -519,6 +519,13 @@ void SetupOverloadSubroutines()
   listDesc->FunList().push_back(LIST_overloadEQ);
   listDesc->SetOperator(OOEQ,LIST_overloadEQ);
 
+  DFun *LIST_overloadNE = new DFun("_OVERLOADNE","LIST","*INTERNAL*");
+  LIST_overloadNE->AddPar("LEFT")->AddPar("RIGHT");
+  tree4 = new WRAPPED_FUNNode(lib::LIST___OverloadNEOp);
+  LIST_overloadNE->SetTree( tree4);
+  listDesc->FunList().push_back(LIST_overloadNE);
+  listDesc->SetOperator(OONE,LIST_overloadNE);
+
 // LIST::ADD
   DPro *DProLIST__ADD = new DPro("ADD","LIST","*INTERNAL*");
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
