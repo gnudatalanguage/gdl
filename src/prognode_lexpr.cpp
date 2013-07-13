@@ -128,80 +128,80 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 // 		  {
 // 		    DStructDesc* desc = oStructGDL->Desc();
 // 		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(desc->GetOperator( OOBracketsLeftSide));
-	      DSubUD* bracketsLeftSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
-	      if( bracketsLeftSideOverload != NULL)
-	      {
-		bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();  
+	DSubUD* bracketsLeftSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
+	if( bracketsLeftSideOverload != NULL)
+	{
+	  bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();  
 
-		  // _overloadBracketsLeftSide
-		IxExprListT indexList;
-		interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
-		ArrayIndexListGuard guard(this->getFirstChild()->getNextSibling()->arrIxListNoAssoc);
-		
-		// hidden SELF is counted as well
-		int nParSub = bracketsLeftSideOverload->NPar();
-		assert( nParSub >= 1); // SELF
+	    // _overloadBracketsLeftSide
+	  IxExprListT indexList;
+	  interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
+	  ArrayIndexListGuard guard(this->getFirstChild()->getNextSibling()->arrIxListNoAssoc);
+	  
+	  // hidden SELF is counted as well
+	  int nParSub = bracketsLeftSideOverload->NPar();
+	  assert( nParSub >= 1); // SELF
 //  		      int indexListSizeDebug = indexList.size();
-		// indexList.size() + OBJREF + RVALUE > regular paramters w/o SELF
-		if( (indexList.size() + 2) > nParSub - 1)
-		{
-		  indexList.Cleanup();
-		  throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
-				  ": Incorrect number of arguments.",
-				  false, false);
-		}
+	  // indexList.size() + OBJREF + RVALUE > regular paramters w/o SELF
+	  if( (indexList.size() + 2) > nParSub - 1)
+	  {
+	    indexList.Cleanup();
+	    throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
+			    ": Incorrect number of arguments.",
+			    false, false);
+	  }
 
-		BaseGDL* self;
-		Guard<BaseGDL> selfGuard;
-		if( internalDSubUD)
-		{
-		  self = (*res); // internal subroutines behave well
-		}
-		else
-		{
-		  self = (*res)->Dup(); // res should be not changeable via SELF
-		  selfGuard.Reset( self);
-		}
-		
-		// adds already SELF parameter
-		EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
+	  DObjGDL* self;
+	  Guard<BaseGDL> selfGuard;
+	  if( internalDSubUD)
+	  {
+	    self = static_cast<DObjGDL*>(*res); // internal subroutines behave well
+	  }
+	  else
+	  {
+	    self = static_cast<DObjGDL*>(*res)->Dup(); // res should be not changeable via SELF
+	    selfGuard.Reset( self);
+	  }
+	  
+	  // adds already SELF parameter
+	  EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
 // 		      Guard<EnvUDT> newEnvGuard( newEnv);
-		
-		// parameters
-		newEnv->SetNextParUnchecked( res); // OBJREF  parameter
-		// Dup() here is not optimal
-		// avoid at least for internal overload routines (which do/must not change RVALUE)
-		if( internalDSubUD)  
-		  newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-		else
-		  newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
-		// pass as reference would be more efficient, but as the data might
-		// be deleted in bracketsLeftSideOverload it is not possible.
-		// BaseGDL* rightCopy = right;  
-		// newEnv->SetNextParUnchecked( &rightCopy); // RVALUE  parameter
-		for( SizeT p=0; p<indexList.size(); ++p)
-		  newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+	  
+	  // parameters
+	  newEnv->SetNextParUnchecked( res); // OBJREF  parameter
+	  // Dup() here is not optimal
+	  // avoid at least for internal overload routines (which do/must not change RVALUE)
+	  if( internalDSubUD)  
+	    newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+	  else
+	    newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
+	  // pass as reference would be more efficient, but as the data might
+	  // be deleted in bracketsLeftSideOverload it is not possible.
+	  // BaseGDL* rightCopy = right;  
+	  // newEnv->SetNextParUnchecked( &rightCopy); // RVALUE  parameter
+	  for( SizeT p=0; p<indexList.size(); ++p)
+	    newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
 
-		StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
-		interpreter->CallStack().push_back( newEnv); 
-		
-		// make the call
-		interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	  StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
+	  interpreter->CallStack().push_back( newEnv); 
+	  
+	  // make the call
+	  interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-		if( !internalDSubUD && self != selfGuard.Get())
-		{
-		  // always put out warning first, in case of a later crash
-		  Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
-			": Assignment to SELF detected (GDL session still ok).");
-		  // assignment to SELF -> self was deleted and points to new variable
-		  // which it owns
-		  selfGuard.Release();
-		  if( self != NullGDL::GetSingleInstance())
-		    selfGuard.Reset(self);
-		}
-		
-		return res;
-	      }
+	  if( !internalDSubUD && self != selfGuard.Get())
+	  {
+	    // always put out warning first, in case of a later crash
+	    Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
+		  ": Assignment to SELF detected (GDL session still ok).");
+	    // assignment to SELF -> self was deleted and points to new variable
+	    // which it owns
+	    selfGuard.Release();
+	    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+	      selfGuard.Reset(self);
+	  }
+	  
+	  return res;
+	}
 // 		  }
 // 	      }
     }

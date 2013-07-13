@@ -20,6 +20,7 @@
 #define LIST_HPP_
 
 // #include <envt.hpp>
+void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr);
 
 namespace lib {
 

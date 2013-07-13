@@ -25,6 +25,7 @@
 //#include "io.hpp"
 #include "ofmt.hpp"
 #include "gdljournal.hpp"
+#include "list.hpp"
 
 using namespace std;
 
@@ -826,17 +827,54 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   return o;
 }
 // obj
-inline void ObjHeapVarString(ostream& o, DObj obj)
+void ObjHeapVarString(ostream& o, DObj obj)
 {
   if( obj != 0)
-    o << "<ObjHeapVar" << obj << ">";
+  {
+    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( obj);
+    if( oStructGDL != NULL)
+    {
+      o << "<ObjHeapVar" << obj << "("<< oStructGDL->Desc()->Name() <<")>";      
+    }
+    else    
+      o << "<ObjHeapVar" << obj << "(*INVALID*)>";
+  }
   else
     o << "<NullObject>";
 }
 template<> 
 ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
-  SizeT nElem=N_Elements();
+  static bool recursive = false;
+  if( this->StrictScalar() && !recursive)
+  {
+    DObj s = dd[0]; // is StrictScalar()
+    if( s != 0)  // no overloads for null object
+    {
+      DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+      if( oStructGDL != NULL) // if object not valid -> default behaviour
+      {  
+	DStructDesc* desc = oStructGDL->Desc();
+
+	if( desc->IsParent("LIST"))
+	{
+	  recursive = true;
+	  try{
+	    LIST__ToStream(oStructGDL,o,w,actPosPtr);
+	    recursive = false;
+	  } catch( ...)
+	  {
+	    recursive = false;
+	    throw;
+	  }
+	  
+	  return o;
+	}
+      }
+    }
+  }
+
+  SizeT nElem=this->Size();
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 

@@ -186,33 +186,71 @@ namespace lib {
         return;
       }
     os.width(10);
-    os << par->TypeStr() << right;
-
-    if( !doIndentation) os << "= ";
 
     // Data display
     if( par->Type() == GDL_STRUCT)
       {
-        DStructGDL* s = static_cast<DStructGDL*>( par);
+	os << par->TypeStr() << right;
+	if( !doIndentation) os << "= ";
+
+	DStructGDL* s = static_cast<DStructGDL*>( par);
         os << "-> ";
         os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
 	os << " ";
       }
     else if( par->Dim( 0) == 0)
+    {
+      if (par->Type() == GDL_STRING)
       {
-        if (par->Type() == GDL_STRING)
-	  {
-            // trim string larger than 45 characters
-            DString dataString = (*static_cast<DStringGDL*>(par))[0];
-            os << "'" << StrMid( dataString,0,45,0) << "'";
-	    if( dataString.length() > 45) os << "...";
-	  }
-	else
-	  {
-            par->ToStream( os);
-	  }
-      }
+	os << par->TypeStr() << right;
+	if( !doIndentation) os << "= ";
 
+	// trim string larger than 45 characters
+	DString dataString = (*static_cast<DStringGDL*>(par))[0];
+	os << "'" << StrMid( dataString,0,45,0) << "'";
+	if( dataString.length() > 45) os << "...";
+      }
+      else if (par->Type() == GDL_OBJ && par->StrictScalar())
+      {
+	bool isList = false;
+	DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
+	if( s != 0)  // no overloads for null object
+	{
+	  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+	  if( oStructGDL != NULL) // if object not valid -> default behaviour
+	  {  
+	    DStructDesc* desc = oStructGDL->Desc();
+	    static DString listName("LIST");
+	    if( desc->IsParent(listName))
+	    {
+	      os << desc->Name();
+
+	      unsigned nListTag = desc->TagIndex( "NLIST");
+	      DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+	      os << left;
+	      os << " <ID=";
+	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
+	       
+	      isList = true;
+	    }
+	  }
+	}
+	if( !isList)
+	{	
+	  os << par->TypeStr() << right;
+	  if( !doIndentation) os << "= ";
+	  
+	  par->ToStream( os);
+	}
+      }
+      else
+      {	
+	os << par->TypeStr() << right;
+	if( !doIndentation) os << "= ";
+	
+	par->ToStream( os);
+      }
+    }
     // Dimension display
     if( par->Dim( 0) != 0) os << par->Dim();
 

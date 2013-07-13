@@ -2791,8 +2791,11 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		
 		EnvUDT* newEnv;
 		
+		DObjGDL* selfObj = NULL;
+		if( self->Type() == GDL_OBJ)
+		selfObj = static_cast<DObjGDL*>( self);
 		try {
-		newEnv=new EnvUDT( self, mp2, "", true);
+		newEnv=new EnvUDT( selfObj, mp2, "", true);
 		self_guard.release();
 		}
 		catch( GDLException& ex)

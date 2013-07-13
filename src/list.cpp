@@ -151,6 +151,35 @@
       ThrowFromInternalUDSub( e, "SELF object ID <"+i2s(selfID)+"> not found.");      
     }
   }
+
+  void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
+  {	  
+    static DString listName("LIST");
+    static DString cNodeName("GDL_CONTAINER_NODE");
+// 	  static unsigned pHeadTag = FindInStructList( structList, listName)->TagIndex( "PHEAD");
+// 	  static unsigned pTailTag = FindInStructList( structList, listName)->TagIndex( "PTAIL");
+    static unsigned nListTag = FindInStructList( structList, listName)->TagIndex( "NLIST");
+    static unsigned pNextTag = FindInStructList( structList, cNodeName)->TagIndex( "PNEXT");
+    static unsigned pDataTag = FindInStructList( structList, cNodeName)->TagIndex( "PDATA");
+    
+    SizeT nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+    DPtr pActNode = GetLISTNode( NULL, oStructGDL, 0);
+    for( SizeT i=0; i<nList; ++i)
+    {
+      DStructGDL* actNode = GetLISTStruct( NULL, pActNode);   
+      DPtr pData = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
+      BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
+
+      if( data == NULL) data = NullGDL::GetSingleInstance();
+      
+      data->ToStream( o, w, actPosPtr);
+      if( (i+1) < nList)
+	o << std::endl;
+
+      pActNode = (*static_cast<DPtrGDL*>(actNode->GetTag( pNextTag, 0)))[0];
+    }
+  }
+  
   
 namespace lib {
 
@@ -395,7 +424,6 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   }
   
 }
-  
   
   
   BaseGDL* LIST___OverloadPlus( EnvUDT* e)
@@ -725,6 +753,13 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   //->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   //->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
 
+  SizeT nParam = e->NParam(1); // number of parameters actually given
+//   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
+  if( nParam < 5) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "Four parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1.");
+  if( nParam > 5) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
+
   BaseGDL* objRef = e->GetKW(1);
   if( objRef == NULL)
   {
@@ -735,13 +770,6 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   {
     rValue = NullGDL::GetSingleInstance();
   }
-
-  SizeT nParam = e->NParam(1); // number of parameters actually given
-//   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
-  if( nParam < 5) // consider implicit SELF
-    ThrowFromInternalUDSub( e, "Four parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1.");
-  if( nParam > 5) // consider implicit SELF
-    ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
   BaseGDL* selfP = e->GetKW( 0);
   if( selfP->Type() != GDL_OBJ)
@@ -762,12 +790,12 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   static unsigned pDataTag = FindInStructList( structList, cNodeName)->TagIndex( "PDATA");
 
   // default behavior: Exact like scalar indexing
-  BaseGDL* isRange = e->GetKW(1);
+  BaseGDL* isRange = e->GetKW(3);
   if( isRange == NULL)
-    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) is undefined.");
+    ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) is undefined.");
   SizeT nIsRange = isRange->N_Elements();
   if( nIsRange > (nParam - 4)) //- SELF and ISRANGE
-    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must have "+i2s(nParam-2)+" elements.");
+    ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) must have "+i2s(nParam-4)+" elements.");
   Guard<DLongGDL> isRangeLongGuard;
   DLongGDL* isRangeLong;
   if( isRange->Type() == GDL_LONG)
@@ -855,12 +883,12 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   
   SizeT allIxSize = allIx->size();
   
-  SizeT rValueN_Elements = rValue->N_Elements();
-  if( rValueN_Elements != allIxSize && rValueN_Elements != 1)
+  SizeT rValueSize= rValue->Size();
+  if( rValueSize != allIxSize && rValueSize != 1)
     ThrowFromInternalUDSub( e, "Incorrect number of elements for Values ("+
-    i2s(allIxSize)+" NE "+i2s(rValueN_Elements)+").");
+    i2s(allIxSize)+" NE "+i2s(rValueSize)+").");
 
-  if( rValueN_Elements == 1)
+  if( rValueSize == 1)
   {
     for( SizeT i=0; i<allIxSize; ++i)
     {
