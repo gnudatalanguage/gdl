@@ -21,12 +21,12 @@
 
 // #include <envt.hpp>
 
-   // helper functions for LIST
-   DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP);
-   DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx);
-   DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e);
-
 namespace lib {
+
+   BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e);
+   void LIST___OverloadBracketsLeftSide( EnvUDT* e);
+   BaseGDL* LIST___OverloadPlus( EnvUDT* e);
+  BaseGDL* LIST___OverloadEQOp( EnvUDT* e);
 
    void list__add( EnvUDT* e);
    
@@ -35,6 +35,8 @@ namespace lib {
    void list__reverse( EnvUDT* e);
    
    BaseGDL* list__remove_fun( EnvUDT* e);
+
+   BaseGDL* list__toarray( EnvUDT* e);
 
 }
 

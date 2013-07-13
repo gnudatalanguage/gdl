@@ -3984,14 +3984,14 @@ BaseGDL* ARRAYEXPRNode::Eval()
 // 	    DStructDesc* desc = oStructGDL->Desc();
 // 
 // 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
-	    DFun* bracketsRightSideOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
+	    DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
 	    if( bracketsRightSideOverload != NULL)
 	      {
 		// _overloadBracketsRightSide
-		BaseGDL* self = rGuard.Get();
+		DObjGDL* self = static_cast<DObjGDL*>(rGuard.Get());
 		if( self == NULL)
 		{
-		  self = r->Dup(); // not set -> not owner
+		  self = static_cast<DObjGDL*>(r->Dup()); // not set -> not owner
 		  rGuard.Reset( self);
 		}
 		// we are now the proud owner of 'self'
@@ -4035,7 +4035,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
 		  // assignment to SELF -> self was deleted and points to new variable
 		  // which it owns
 		  rGuard.Release();
-		  if( self != NullGDL::GetSingleInstance())
+		  if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
 		    rGuard.Reset(self);
 		}
 

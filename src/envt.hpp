@@ -444,7 +444,7 @@ public:
 
   // for obj_new and obj_destroy
   //EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self); 
-  EnvUDT( ProgNodeP callindNode_, DSub* newPro, BaseGDL** self); 
+  EnvUDT( ProgNodeP callindNode_, DSubUD* newPro, DObjGDL** self); 
 
   DLong GetOnError() const { return onError;}
 
@@ -506,14 +506,14 @@ public:
   EnvT( ProgNodeP cN, DSub* pro_);
 
   // for obj_new and obj_destroy
-  EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
+  EnvT( EnvT* pEnv, DSub* newPro, DObjGDL** self); 
 
   void HeapGC( bool doPtr, bool doObj, bool verbose);
   void ObjCleanup( DObj actID);
 
   // used by obj_new (basic_fun.cpp)
-  EnvT* NewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
-  void PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
+  EnvT* NewEnv(  DSub* newPro, SizeT skipP, DObjGDL** newObj=NULL);
+  void PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj=NULL);
   // for exclusive use by lib::on_error
   void OnError();
   // for exclusive use by lib::catch_pro

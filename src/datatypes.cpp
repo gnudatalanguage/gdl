@@ -1785,7 +1785,7 @@ void Data_<SpDObj>::InitFrom(const BaseGDL& r)
 
 template< class Sp>
 bool Data_<Sp>::EqType( const BaseGDL* r) const 
-{ return (Sp::t == r->Type());}
+{ return (this->Type() == r->Type());}
 
 template< class Sp>
 void* Data_<Sp>::DataAddr()// SizeT elem)
@@ -2480,7 +2480,7 @@ bool Data_<SpDObj>::True()
 //   
 //   DFun* isTrueOverload = static_cast<DFun*>(desc->GetOperator( OOIsTrue));
 
-  DFun* isTrueOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( s, OOIsTrue));
+  DSubUD* isTrueOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOIsTrue));
   if( isTrueOverload == NULL) 
     return true; // not overloaded, false case for default already returned (s. a.)
   

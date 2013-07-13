@@ -121,7 +121,7 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
 {
   // overload here
   Data_* self;
-  DFun* plusOverload;
+  DSubUD* plusOverload;
   
   ProgNodeP callingNode = interpreter->GetRetTree();
 
@@ -130,7 +130,7 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
     if( r->Type() == GDL_OBJ && r->Scalar())
     {
       self = static_cast<Data_*>( r);
-      plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+      plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
       if( plusOverload == NULL)
       {
 	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
@@ -145,13 +145,13 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
   {
     // Scalar()
     self = static_cast<Data_*>( this);
-    plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+    plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
     {
       if( r->Type() == GDL_OBJ && r->Scalar())
       {
 	self = static_cast<Data_*>( r);
-	plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+	plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
 	if( plusOverload == NULL)
 	{
 	  throw GDLException(callingNode,"Cannot apply not overloaded operator to datatype OBJECT.",true, false);  
@@ -231,7 +231,7 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
     
   // overload here
   Data_* self;
-  DFun* plusOverload;
+  DSubUD* plusOverload;
   
   ProgNodeP callingNode = interpreter->GetRetTree();
 
@@ -243,7 +243,7 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
   {
     // Scalar()
     self = static_cast<Data_*>( this);
-    plusOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
+    plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
     {
 	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);

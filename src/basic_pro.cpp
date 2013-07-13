@@ -1194,7 +1194,7 @@ namespace lib {
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
 
-    e->PushNewEnvUD( method, 2, &e->GetPar( 1));
+    e->PushNewEnvUD( method, 2,(DObjGDL**) &e->GetPar( 1));
     
     // the call
     e->Interpreter()->call_pro( method->GetTree());

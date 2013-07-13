@@ -595,7 +595,7 @@ namespace lib {
 
     DObj objID= e->NewObjHeap( 1, objStruct); // owns objStruct
 
-    BaseGDL* newObj = new DObjGDL( objID); // the object
+    DObjGDL* newObj = new DObjGDL( objID); // the object
 
     try {
       // call INIT function
@@ -1349,7 +1349,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
 // // // /**/
-    e->PushNewEnvUD( method, 2, &e->GetPar( 1));
+    e->PushNewEnvUD( method, 2, (DObjGDL**) &e->GetPar( 1));
     
     // make the call
     return e->Interpreter()->call_fun( method->GetTree());

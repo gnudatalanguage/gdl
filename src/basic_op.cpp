@@ -632,7 +632,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 //   
 //       DFun* EQOverload = static_cast<DFun*>(desc->GetOperator( OOEQ));
 //       
-      DFun* EQOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OOEQ));
+      DSubUD* EQOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OOEQ));
       if( EQOverload != NULL)
       {
 	ProgNodeP callingNode = interpreter->GetRetTree();
@@ -646,7 +646,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 			  false, false);
 	}
 	EnvUDT* newEnv;
-	BaseGDL* self;
+	DObjGDL* self;
 	Guard<BaseGDL> selfGuard;
 	// Dup() here is not optimal
 	// avoid at least for internal overload routines (which do/must not change SELF or r)
@@ -655,7 +655,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 	{
 	  self = this;
 	  newEnv= new EnvUDT( callingNode, EQOverload, &self);
-	  newEnv->SetNextParUnchecked( &self); // LEFT  parameter
+	  newEnv->SetNextParUnchecked( (BaseGDL**) &self); // LEFT  parameter
 	  newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
 	}
 	else
@@ -684,7 +684,7 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 	  // assignment to SELF -> self was deleted and points to new variable
 	  // which it owns
 	  selfGuard.Release();
-	  if( self != NullGDL::GetSingleInstance())
+	  if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
 	    selfGuard.Reset(self);
 	}
 
@@ -878,7 +878,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 //   
 //       DFun* NEOverload = static_cast<DFun*>(desc->GetOperator( OONE));
 //       
-      DFun* NEOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OONE));
+      DSubUD* NEOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OONE));
       if( NEOverload != NULL)
       {
 	ProgNodeP callingNode = interpreter->GetRetTree();
@@ -892,7 +892,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 			  false, false);
 	}
 	EnvUDT* newEnv;
-	BaseGDL* self;
+	DObjGDL* self;
 	Guard<BaseGDL> selfGuard;
 	// Dup() here is not optimal
 	// avoid at least for internal overload routines (which do/must not change SELF or r)
@@ -901,7 +901,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 	{
 	  self = this;
 	  newEnv= new EnvUDT( callingNode, NEOverload, &self);
-	  newEnv->SetNextParUnchecked( &self); // LEFT  parameter
+	  newEnv->SetNextParUnchecked( (BaseGDL**)&self); // LEFT  parameter
 	  newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
 	}
 	else
@@ -930,7 +930,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 	  // assignment to SELF -> self was deleted and points to new variable
 	  // which it owns
 	  selfGuard.Release();
-	  if( self != NullGDL::GetSingleInstance())
+	  if( static_cast<BaseGDL*>( self) != NullGDL::GetSingleInstance())
 	    selfGuard.Reset(self);
 	}
 
@@ -943,7 +943,7 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
   // here r can be of any GDL type (due to operator overloading)
   if( r->Type() != GDL_OBJ)
   {
-        throw GDLException("Unable to convert variable to type object reference.",true,false);
+    throw GDLException("Unable to convert variable to type object reference.",true,false);
   }
 
   // same code as for other types from here

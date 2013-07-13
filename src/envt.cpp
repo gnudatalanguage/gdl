@@ -278,7 +278,7 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
 
 
 // for obj_new, obj_destroy, call_procedure and call_function
-EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
+EnvT::EnvT( EnvT* pEnv, DSub* newPro, DObjGDL** self):
   EnvBaseT( pEnv->callingNode, newPro)
 {
   obj = (self != NULL);
@@ -297,13 +297,13 @@ EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
 //   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
-    env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
+    env.Set( parIx++, (BaseGDL**)self); //static_cast<BaseGDL*>(oStructGDL));
 }
 
 
 
 //EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
-EnvUDT::EnvUDT( ProgNodeP callingNode_, DSub* newPro, BaseGDL** self):
+EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
 //   EnvBaseT( pEnv->CallingNode(), newPro),
   EnvBaseT( callingNode_, newPro),
   ioError(NULL), 
@@ -316,7 +316,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSub* newPro, BaseGDL** self):
 {
   obj = (self != NULL);
 
-  DSubUD* proUD=static_cast<DSubUD*>(pro);
+  DSubUD* proUD= newPro; //static_cast<DSubUD*>(pro);
   
   forLoopInfo.InitSize( proUD->NForLoops());
 
@@ -328,7 +328,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSub* newPro, BaseGDL** self):
 //   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
-    env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
+    env.Set( parIx++, (BaseGDL**)self); //static_cast<BaseGDL*>(oStructGDL));
 }
 
 
@@ -663,7 +663,7 @@ void EnvT::ObjCleanup( DObj actID)
 		
 			if( objCLEANUP != NULL)
 				{
-				BaseGDL* actObjGDL = new DObjGDL( actID);
+				DObjGDL* actObjGDL = new DObjGDL( actID);
 				Guard<BaseGDL> actObjGDL_guard( actObjGDL);
 				GDLInterpreter::IncRefObj( actID);
 			
@@ -1024,7 +1024,7 @@ void EnvBaseT::PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj)
 // and obj_destroy (basic_pro.cpp)
 // and call_function (basic_fun.cpp)
 // and call_procedure (basic_pro.cpp)
-void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
+void EnvT::PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj)
 {
   EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
@@ -1048,7 +1048,7 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 // and obj_destroy (basic_pro.cpp)
 // and call_function (basic_fun.cpp)
 // and call_procedure (basic_pro.cpp)
-EnvT* EnvT::NewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
+EnvT* EnvT::NewEnv(  DSub* newPro, SizeT skipP, DObjGDL** newObj)
 {
   EnvT* newEnv= new EnvT( this, newPro, newObj);
 

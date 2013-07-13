@@ -128,7 +128,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 // 		  {
 // 		    DStructDesc* desc = oStructGDL->Desc();
 // 		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(desc->GetOperator( OOBracketsLeftSide));
-	      DPro* bracketsLeftSideOverload = static_cast<DPro*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
+	      DSubUD* bracketsLeftSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
 	      if( bracketsLeftSideOverload != NULL)
 	      {
 		bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();  
