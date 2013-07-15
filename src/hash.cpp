@@ -27,6 +27,21 @@
   
 namespace lib {
 
-  
+  BaseGDL* hash_fun( EnvT* e)
+  {
+    static int kwNO_COPYIx = e->KeywordIx("NO_COPY");
+    bool kwNO_COPY = false;
+    if (e->KeywordSet(kwNO_COPYIx)){ kwNO_COPY = true;}
+
+    SizeT nParam = e->NParam();
+    if( nParam % 2 == 1)
+      e->Throw( "Wrong number of parameters.");
+    
+    ProgNodeP cN = e->CallingNode();
+    DInterpreter* ip = e->Interpreter();
+
+
+    
+  } 
   
 } // namespace lib
