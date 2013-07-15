@@ -520,59 +520,7 @@ BaseGDL** SYSVARNode::LEval()
 
 BaseGDL* DEREFNode::Eval()
 {
-	BaseGDL** e2=this->LEval();
-	if( *e2 == NULL)
-		throw GDLException( this, "Variable is undefined: "+
-			interpreter->Name(e2),true,false);
-	return (*e2)->Dup();
-}
-	
-BaseGDL* DEREFNode::EvalNC()
-{
-  Guard<BaseGDL> e1_guard;
-  BaseGDL* e1;
-  ProgNodeP evalExpr = this->getFirstChild();
-  if( NonCopyNode( evalExpr->getType()))
-  {
-    e1 = evalExpr->EvalNC();
-  }
-  else
-  {
-    e1 = evalExpr->Eval();
-    e1_guard.Reset(e1);
-  }
-
-  if( e1 == NULL || e1->Type() != GDL_PTR)
-    throw GDLException( this, "Pointer type required"
-			" in this context: "+interpreter->Name(e1),true,false);
-  DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
-  DPtr sc;
-  if( !ptr->Scalar(sc))
-    throw GDLException( this, "Expression must be a "
-			"scalar in this context: "+interpreter->Name(e1),true,false);
-  if( sc == 0)
-    throw GDLException( this, "Unable to dereference"
-			" NULL pointer: "+interpreter->Name(e1),true,false);
-  
-  try{
-    return interpreter->GetHeap(sc);
-  }
-  catch( GDLInterpreter::HeapException)
-    {
-      throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
-    }
-}
-
-BaseGDL** DEREFNode::EvalRefCheck( BaseGDL*& rEval)
-{
-  return this->LEval();
-}
-
-BaseGDL** DEREFNode::LEval()
-{
-//   ProgNodeP retTree = this->getNextSibling();
-
-  // use new env if set (during parameter parsing)
+    // use new env if set (during parameter parsing)
   EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
   if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
 
@@ -626,8 +574,115 @@ BaseGDL** DEREFNode::LEval()
   {
     throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
   }
+
+  if( *res == NULL)
+	  throw GDLException( this, "Variable is undefined: "+
+		  interpreter->Name(res),true,false);
+  return (*res)->Dup();
+}
+	
+BaseGDL* DEREFNode::EvalNC()
+{
+  Guard<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+    e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+    e1 = evalExpr->Eval();
+    e1_guard.Reset(e1);
+  }
+
+  if( e1 == NULL || e1->Type() != GDL_PTR)
+    throw GDLException( this, "Pointer type required"
+			" in this context: "+interpreter->Name(e1),true,false);
+  DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
+  DPtr sc;
+  if( !ptr->Scalar(sc))
+    throw GDLException( this, "Expression must be a "
+			"scalar in this context: "+interpreter->Name(e1),true,false);
+  if( sc == 0)
+    throw GDLException( this, "Unable to dereference"
+			" NULL pointer: "+interpreter->Name(e1),true,false);
   
-//   interpreter->SetRetTree( retTree);
+  try{
+    return interpreter->GetHeap(sc);
+  }
+  catch( GDLInterpreter::HeapException)
+    {
+      throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
+    }
+}
+
+BaseGDL** DEREFNode::EvalRefCheck( BaseGDL*& rEval)
+{
+  return this->LEval();
+}
+
+BaseGDL** DEREFNode::LEval()
+{
+  // use new env if set (during parameter parsing)
+  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+
+  assert( actEnv != NULL);
+
+//   Guard<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+    {
+      e1 = evalExpr->EvalNC();
+    }
+  else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
+    {
+//       e1=interpreter->lib_function_call(evalExpr);
+      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB(); 
+      // set return tree not needed
+      if( e1 == NULL) // ROUTINE_NAMES
+	      throw GDLException( evalExpr, "Undefined return value", true, false);
+      
+      if( !DInterpreter::CallStackBack()->Contains( e1)) 
+	{
+//   	  e1_guard.Init( e1); 
+	  actEnv->DeleteAtExit( e1); // we need life cycle until end of current subroutine
+	}
+    }
+  else
+    {
+      e1 = evalExpr->Eval();
+//       e1_guard.Init( e1); 
+      // in case *(ptr_new(value)), value will be destroyed due to ref counting
+      // when e1 is deleted
+      actEnv->DeleteAtExit( e1);// we need life cycle until end of current subroutine
+    }
+
+  if( e1 == NULL || e1->Type() != GDL_PTR)
+  throw GDLException( evalExpr, "Pointer type required"
+		      " in this context: "+interpreter->Name(e1),true,false);
+
+  DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
+
+  DPtr sc; 
+  if( !ptr->StrictScalar(sc))
+  throw GDLException( this, "Expression must be a "
+  "scalar in this context: "+interpreter->Name(e1),true,false);
+  if( sc == 0)
+  throw GDLException( this, "Unable to dereference"
+  " NULL pointer: "+interpreter->Name(e1),true,false);
+  
+  BaseGDL** res;
+  try{
+    res = &interpreter->GetHeap(sc);
+  }
+  catch( DInterpreter::HeapException)
+  {
+    throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
+  }
+
   return res;
 }
 
