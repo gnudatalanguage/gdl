@@ -34,6 +34,9 @@ if(child_pid == 0) {
   if (WEXITSTATUS(child_status) == 77) {
     printf(\"TEST SKIPPED\");
     exit(0);
+  } else if (WIFSIGNALED(child_status)) {
+    printf(\"TEST EXITED FROM SIGNAL %d\", WTERMSIG(child_status));
+    exit(1);
   } else {
     exit(WEXITSTATUS(child_status));
   }
