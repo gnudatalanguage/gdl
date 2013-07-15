@@ -431,7 +431,7 @@ void SetupOverloadSubroutines()
   WRAPPED_FUNNode *tree;
   
   // automatically adds "SELF" parameter (object name is != "")
-  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
+  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   WRAPPED_FUNNode *tree1 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
   _overloadIsTrue->SetTree( tree1);
 // we are NOT setting the operator to have (faster) default behavior
@@ -440,7 +440,7 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadIsTrue);
 //   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
 
-  DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
+  DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
   _overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   _overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
@@ -449,7 +449,7 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);
 //   gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
 
-  DFun *_overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
+  DFun *_overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadBracketsRightSide->AddPar("ISRANGE");
   _overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   _overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
@@ -458,28 +458,28 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
 //   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
 
-   DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"*INTERNAL*");
+   DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree4 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadEQOp);
   _overloadEQ->SetTree( tree4);
   gdlObjectDesc->FunList().push_back(_overloadEQ);
 //   gdlObjectDesc->SetOperator(OOEQ,_overloadEQ);
 
-  DFun *_overloadNE = new DFun("_OVERLOADNE",GDL_OBJECT_NAME,"*INTERNAL*");
+  DFun *_overloadNE = new DFun("_OVERLOADNE",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadNE->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree5 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadNEOp);
   _overloadNE->SetTree( tree5);
   gdlObjectDesc->FunList().push_back(_overloadNE);
 //   gdlObjectDesc->SetOperator(OONE,_overloadNE);
 
-  DFun *_overloadPlus = new DFun("_OVERLOADPLUS",GDL_OBJECT_NAME,"*INTERNAL*");
+  DFun *_overloadPlus = new DFun("_OVERLOADPLUS",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree6 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadReportIllegalOperation);
   _overloadPlus->SetTree( tree6);
   gdlObjectDesc->FunList().push_back(_overloadPlus);
 //   gdlObjectDesc->SetOperator(OOPlus,_overloadPlus);
 
-  DFun *_overloadMinus = new DFun("_OVERLOADMINUS",GDL_OBJECT_NAME,"*INTERNAL*");
+  DFun *_overloadMinus = new DFun("_OVERLOADMINUS",GDL_OBJECT_NAME,"<INTERNAL_LIBRARY>");
   _overloadMinus->AddPar("LEFT")->AddPar("RIGHT");
   WRAPPED_FUNNode *tree7 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadReportIllegalOperation);
   _overloadMinus->SetTree( tree7);
@@ -487,7 +487,7 @@ void SetupOverloadSubroutines()
 //   gdlObjectDesc->SetOperator(OOMINUS,_overloadMinus);
 
 // LIST  
-  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","LIST","*INTERNAL*");
+  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","LIST","<INTERNAL_LIBRARY>");
   DFunLIST__overloadBracketsRightSide->AddPar("ISRANGE");
   DFunLIST__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   DFunLIST__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
@@ -496,7 +496,7 @@ void SetupOverloadSubroutines()
   listDesc->FunList().push_back(DFunLIST__overloadBracketsRightSide);
   listDesc->SetOperator(OOBracketsRightSide,DFunLIST__overloadBracketsRightSide);
 
-  DPro *DFunPro_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE","LIST","*INTERNAL*");
+  DPro *DFunPro_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE","LIST","<INTERNAL_LIBRARY>");
   DFunPro_overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
   DFunPro_overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   DFunPro_overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
@@ -505,21 +505,21 @@ void SetupOverloadSubroutines()
   listDesc->ProList().push_back(DFunPro_overloadBracketsLeftSide);
   listDesc->SetOperator(OOBracketsLeftSide,DFunPro_overloadBracketsLeftSide);
 
-  DFun *LIST_overloadPlus = new DFun("_OVERLOADPLUS","LIST","*INTERNAL*");
+  DFun *LIST_overloadPlus = new DFun("_OVERLOADPLUS","LIST","<INTERNAL_LIBRARY>");
   LIST_overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
   tree6 = new WRAPPED_FUNNode(lib::LIST___OverloadPlus);
   LIST_overloadPlus->SetTree( tree6);
   listDesc->FunList().push_back(LIST_overloadPlus);
   listDesc->SetOperator(OOPlus,LIST_overloadPlus);
 
-  DFun *LIST_overloadEQ = new DFun("_OVERLOADEQ","LIST","*INTERNAL*");
+  DFun *LIST_overloadEQ = new DFun("_OVERLOADEQ","LIST","<INTERNAL_LIBRARY>");
   LIST_overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
   tree4 = new WRAPPED_FUNNode(lib::LIST___OverloadEQOp);
   LIST_overloadEQ->SetTree( tree4);
   listDesc->FunList().push_back(LIST_overloadEQ);
   listDesc->SetOperator(OOEQ,LIST_overloadEQ);
 
-  DFun *LIST_overloadNE = new DFun("_OVERLOADNE","LIST","*INTERNAL*");
+  DFun *LIST_overloadNE = new DFun("_OVERLOADNE","LIST","<INTERNAL_LIBRARY>");
   LIST_overloadNE->AddPar("LEFT")->AddPar("RIGHT");
   tree4 = new WRAPPED_FUNNode(lib::LIST___OverloadNEOp);
   LIST_overloadNE->SetTree( tree4);
@@ -527,33 +527,33 @@ void SetupOverloadSubroutines()
   listDesc->SetOperator(OONE,LIST_overloadNE);
 
 // LIST::ADD
-  DPro *DProLIST__ADD = new DPro("ADD","LIST","*INTERNAL*");
+  DPro *DProLIST__ADD = new DPro("ADD","LIST","<INTERNAL_LIBRARY>");
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
   DProLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
   tree2 = new WRAPPED_PRONode( lib::list__add);
   DProLIST__ADD->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__ADD);
 // LIST::REMOVE()
-  DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","*INTERNAL*");
+  DFun *DFunLIST__REMOVE = new DFun("REMOVE","LIST","<INTERNAL_LIBRARY>");
   DFunLIST__REMOVE->AddKey("ALL","ALL");
   DFunLIST__REMOVE->AddPar("INDEX");
   tree = new WRAPPED_FUNNode( lib::list__remove_fun);
   DFunLIST__REMOVE->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__REMOVE);
 // LIST::REMOVE PRO
-  DPro *DProLIST__REMOVE = new DPro("REMOVE","LIST","*INTERNAL*");
+  DPro *DProLIST__REMOVE = new DPro("REMOVE","LIST","<INTERNAL_LIBRARY>");
   DProLIST__REMOVE->AddKey("ALL","ALL");
   DProLIST__REMOVE->AddPar("INDEX");
   tree2 = new WRAPPED_PRONode( lib::list__remove_pro);
   DProLIST__REMOVE->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__REMOVE);
 // LIST::REVERSE PRO
-  DPro *DProLIST__REVERSE = new DPro("REVERSE","LIST","*INTERNAL*");
+  DPro *DProLIST__REVERSE = new DPro("REVERSE","LIST","<INTERNAL_LIBRARY>");
   tree2 = new WRAPPED_PRONode( lib::list__reverse);
   DProLIST__REVERSE->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__REVERSE);
 // LIST::ToArray()
-  DFun *DFunLIST__TOARRAY = new DFun("TOARRAY","LIST","*INTERNAL*");
+  DFun *DFunLIST__TOARRAY = new DFun("TOARRAY","LIST","<INTERNAL_LIBRARY>");
   DFunLIST__TOARRAY->AddKey("TYPE","TYPE");
   DFunLIST__TOARRAY->AddKey("MISSING","MISSING");
   tree = new WRAPPED_FUNNode( lib::list__toarray);

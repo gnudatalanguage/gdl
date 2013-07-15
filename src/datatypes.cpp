@@ -2161,6 +2161,106 @@ template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
 // }
 
 
+// for HASH objects
+template<class Sp> 
+DDouble Data_<Sp>::HashValue() const
+{
+  return static_cast<DDouble>((*this)[0]);
+}
+template<> 
+DDouble Data_<SpDComplex>::HashValue() const
+{
+  return real((*this)[0]);
+}
+template<> 
+DDouble Data_<SpDComplexDbl>::HashValue() const
+{
+  return real((*this)[0]);
+}
+template<> 
+DDouble Data_<SpDString>::HashValue() const
+{
+  throw GDLException("STRING expression not allowed as index. Please report.");
+  return 0; // get rid of warning
+}
+template<> 
+DDouble Data_<SpDPtr>::HashValue() const
+{
+  throw GDLException("PTR expression not allowed as index. Please report.");
+  return 0; // get rid of warning
+}
+
+template<> 
+DDouble Data_<SpDObj>::HashValue() const
+{
+  throw GDLException("Object expression not allowed as index. Please report.");
+  return 0; // get rid of warning
+}
+
+
+// -1 -> p2 is greater
+// 0  -> equal
+// 1  -> this is greater
+
+// note: this is for internal use only (for HASH objects)
+// this should not be called on non-numeric types (also for p2)
+template<class Sp> 
+int Data_<Sp>::HashCompare( BaseGDL* p2) const
+{
+  assert( dd.size() == 1);
+  assert( p2->N_Elements() == 1);
+  if( p2->Type() == GDL_STRING)
+    return 1; // strings 1st (smallest)
+  
+  assert( NumericType(p2->Type()));
+
+  if( this->IS_INTEGER)
+  {
+    if( IntType( p2->Type())) // make full use of data type
+    {
+      RangeT thisValue = this->LoopIndex();
+      RangeT p2Value = p2->LoopIndex();
+      if( thisValue == p2Value)
+	return 0;
+      if( thisValue < p2Value)
+	return -1;
+      return 1;
+    }
+  }  
+  DDouble thisValue = this->HashValue();
+  DDouble p2Value = p2->HashValue();
+  if( thisValue == p2Value)
+    return 0;
+  if( thisValue < p2Value)
+    return -1;
+  return 1;
+}
+
+template<> 
+int Data_<SpDString>::HashCompare( BaseGDL* p2) const
+{
+  assert( dd.size() == 1);
+  assert( p2->N_Elements() == 1);
+  if( p2->Type() != this->Type())
+    return -1; // strings 1st (smallest)
+  
+  Data_* p2String = static_cast<Data_*>(p2);
+  if( dd[0].length() == (*p2String)[0].length())
+  {
+    if( dd[0] == (*p2String)[0])
+      return 0;
+    if( dd[0] < (*p2String)[0])
+      return -1;
+    return 1;
+  }
+  else if( dd[0].length() < (*p2String)[0].length())
+  {
+    return -1;
+  }
+  return 1;
+}
+
+
 // Scalar2Index
 // used by the interpreter
 // -2  < 0 array
@@ -2312,6 +2412,11 @@ int Data_<SpDObj>::Scalar2RangeT( RangeT& st) const
   throw GDLException("Object expression not allowed in this context.");
   return 0; // get rid of warning
 }
+
+
+
+
+
 
 // for FOR loop *indices*
 template<class Sp> 

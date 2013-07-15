@@ -471,6 +471,8 @@ public:
   virtual SizeT NBytes() const;     // total bytes of data
   virtual SizeT ToTransfer() const; // elements to transfer
   virtual SizeT Sizeof() const;     // size of scalar data
+
+  virtual int HashCompare( BaseGDL* p2) const;
   
   virtual BaseGDL* Transpose( DUInt* perm);
   virtual BaseGDL* Rotate( DLong dir);
@@ -523,6 +525,8 @@ public:
   virtual SizeT GetAsIndex( SizeT i) const;
   virtual SizeT GetAsIndexStrict( SizeT i) const;
   virtual RangeT LoopIndex() const;
+  virtual DDouble HashValue() const;
+  
   virtual bool True();
   virtual bool False();
   virtual bool LogTrue();

@@ -129,6 +129,8 @@ class NullGDL: public BaseGDL
   /*virtual*/ SizeT GetAsIndex( SizeT i) const;
   /*virtual*/ SizeT GetAsIndexStrict( SizeT i) const;
   /*virtual*/ RangeT LoopIndex() const;
+  /*virtual*/ DDouble HashValue() const;
+  
   /*virtual*/ bool True();
   /*virtual*/ bool False();
   /*virtual*/ bool LogTrue();

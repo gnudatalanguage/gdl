@@ -228,7 +228,7 @@ namespace lib {
 	      unsigned nListTag = desc->TagIndex( "NLIST");
 	      DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
 	      os << left;
-	      os << " <ID=";
+	      os << "<ID=";
 	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
 	       
 	      isList = true;

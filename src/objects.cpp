@@ -116,7 +116,7 @@ void InitStructs()
   SpDPtr    aPtrRef;
   SpDObj    aObjRef;
 
-  // OBJECTS 
+  // OBJECTS =================================================
 
   DStructDesc* gdl_object = new DStructDesc( GDL_OBJECT_NAME);
   gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
@@ -149,23 +149,23 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdlContainerNode);
 
-//   DStructDesc* gdlHash = new DStructDesc( "HASH");
-//   gdlHash->AddTag("TABLE_BITS", &aULong);
-//   gdlHash->AddTag("TABLE_SIZE", &aULong);
-//   gdlHash->AddTag("TABLE_COUNT", &aULong);
-//   gdlHash->AddTag("TABLE_REMOVE", &aULong);
-//   gdlHash->AddTag("TABLE_FOREACH", &aULong);
-//   gdlHash->AddTag("TABLE_DATA", &aPtrRef);
-//   // insert into structList
-//   structList.push_back(gdlHash);
-// 
-//   DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
-//   gdlHashTE->AddTag("PKEY", &aPtrRef);
-//   gdlHashTE->AddTag("PVALUE", &aPtrRef);
-//   // insert into structList
-//   structList.push_back(gdlHashTE);
-//   
-//   // OBJECTS END
+  DStructDesc* gdlHash = new DStructDesc( "HASH");
+  gdlHash->AddTag("TABLE_BITS", &aULong);
+  gdlHash->AddTag("TABLE_SIZE", &aULong);
+  gdlHash->AddTag("TABLE_COUNT", &aULong);
+  gdlHash->AddTag("TABLE_REMOVE", &aULong);
+  gdlHash->AddTag("TABLE_FOREACH", &aULong);
+  gdlHash->AddTag("TABLE_DATA", &aPtrRef);
+  // insert into structList
+  structList.push_back(gdlHash);
+
+  DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
+  gdlHashTE->AddTag("PKEY", &aPtrRef);
+  gdlHashTE->AddTag("PVALUE", &aPtrRef);
+  // insert into structList
+  structList.push_back(gdlHashTE);
+  
+  // OBJECTS END =======================================================
 
   
   

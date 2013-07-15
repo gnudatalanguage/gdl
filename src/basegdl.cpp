@@ -63,7 +63,10 @@ void  BaseGDL::InitFrom(const BaseGDL& right)
 // {
 //   throw GDLException("BaseGDL::Abs() called.");
 // }
-
+int BaseGDL::HashCompare( BaseGDL*) const
+{
+  throw GDLException("BaseGDL::HashCompare( BaseGDL*) called.");
+}
 bool BaseGDL::Greater(SizeT i1, SizeT i2) const
 {
   throw GDLException("BaseGDL::Greater(SizeT,SizeT) called.");
@@ -674,6 +677,11 @@ void BaseGDL::AssignAtIx( RangeT ix, BaseGDL* srcIn)
 RangeT BaseGDL::LoopIndex() const
 { 
   throw GDLException("Operation not defined for UNDEF 29.");
+}
+
+DDouble BaseGDL::HashValue() const
+{ 
+  throw GDLException("Operation not defined for UNDEF 29a.");
 }
 
 BaseGDL* BaseGDL::Rotate( DLong dir)

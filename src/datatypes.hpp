@@ -189,6 +189,8 @@ static	void operator delete( void *ptr);
   SizeT ToTransfer() const; // IO transfer count
   SizeT Sizeof() const;
 
+  int HashCompare( BaseGDL* p2) const;
+
   void Clear();
   void Construct();     // construction (for DStructGDL)
   void ConstructTo0();  // construction (for DStructGDL)
@@ -207,6 +209,7 @@ static	void operator delete( void *ptr);
   int Scalar2Index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
   RangeT LoopIndex() const;
+  DDouble HashValue() const;
 
   // used for indexing of arrays
   SizeT GetAsIndex( SizeT i) const;

@@ -1331,52 +1331,51 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   
   if( (*v)->ForCondUp( loopInfo.endLoopVar))
   {
-	  ProgNode::interpreter->_retTree = vP->GetNextSibling();
-	  return RC_OK;
+    ProgNode::interpreter->_retTree = vP->GetNextSibling();
+    return RC_OK;
   }
   else
   {
-	  // skip if initial test fails
-	  ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
-	  return RC_OK;
+    // skip if initial test fails
+    ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+    return RC_OK;
   }
 }
 
 
 RetCode   FOR_LOOPNode::Run()
 {
-	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
-	ForLoopInfoT& loopInfo = 	callStack_back->GetForLoopInfo( this->forLoopIx);
+  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  ForLoopInfoT& loopInfo = 	callStack_back->GetForLoopInfo( this->forLoopIx);
 // 		BaseGDL* endLoopVar = 	loopInfo.endLoopVar;
-	if( loopInfo.endLoopVar == NULL)
-	{
-		// non-initialized loop (GOTO)
-		ProgNode::interpreter->_retTree = this->GetNextSibling();
-		return RC_OK;
-	}
+  if( loopInfo.endLoopVar == NULL)
+  {
+	  // non-initialized loop (GOTO)
+	  ProgNode::interpreter->_retTree = this->GetNextSibling();
+	  return RC_OK;
+  }
 
-	// // problem:
-	// // EXECUTE may call DataListT.loc.resize(), as v points to the
-	// // old sequence v might be invalidated -> segfault
-	// // note that the value (*v) is preserved by resize()
-	
-	BaseGDL** v=this->getFirstChild()->LEval();//ProgNode::interpreter->l_simple_var(this->getFirstChild());
+  // // problem:
+  // // EXECUTE may call DataListT.loc.resize(), as v points to the
+  // // old sequence v might be invalidated -> segfault
+  // // note that the value (*v) is preserved by resize()
+  
+  BaseGDL** v=this->getFirstChild()->LEval();//ProgNode::interpreter->l_simple_var(this->getFirstChild());
 
 // shortCut:;
-	
-	//(*v)->ForAdd();
-	if( (*v)->ForAddCondUp( loopInfo.endLoopVar))
-	{
-	    ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
-// 			if( ProgNode::interpreter->_retTree == this) goto shortCut;
-	}
-	else
-	{
-	    GDLDelete(loopInfo.endLoopVar);
-	    loopInfo.endLoopVar = NULL;
-	    ProgNode::interpreter->_retTree = this->GetNextSibling();
-	}
-	return RC_OK;
+  
+  if( (*v)->ForAddCondUp( loopInfo.endLoopVar))
+  {
+      ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
+//    if( ProgNode::interpreter->_retTree == this) goto shortCut;
+  }
+  else
+  {
+      GDLDelete(loopInfo.endLoopVar);
+      loopInfo.endLoopVar = NULL;
+      ProgNode::interpreter->_retTree = this->GetNextSibling();
+  }
+  return RC_OK;
 }
 
 	
@@ -1417,21 +1416,19 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
 
   if( loopInfo.loopStepVar->Sgn() == -1)
   {
-	  if( (*v)->ForCondDown( loopInfo.endLoopVar))
-	  {
-		  ProgNode::interpreter->_retTree = vP->GetNextSibling();
-		  return RC_OK;
-
-	  }
+    if( (*v)->ForCondDown( loopInfo.endLoopVar))
+    {
+	    ProgNode::interpreter->_retTree = vP->GetNextSibling();
+	    return RC_OK;
+    }
   }
   else
   {
-	  if( (*v)->ForCondUp( loopInfo.endLoopVar))
-	  {
-		  ProgNode::interpreter->_retTree = vP->GetNextSibling();
-		  return RC_OK;
-
-	  }
+    if( (*v)->ForCondUp( loopInfo.endLoopVar))
+    {
+	    ProgNode::interpreter->_retTree = vP->GetNextSibling();
+	    return RC_OK;
+    }
   }
   // skip if initial test fails
   ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
@@ -1511,37 +1508,37 @@ RetCode   FOREACHNode::Run()
 	
 RetCode   FOREACH_LOOPNode::Run()
 {
-	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
-	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
-	if( loopInfo.endLoopVar == NULL)
-	{
-	// non-initialized loop (GOTO)
-	ProgNode::interpreter->_retTree = this->GetNextSibling();
-	return RC_OK;
-	}
+  if( loopInfo.endLoopVar == NULL)
+  {
+    // non-initialized loop (GOTO)
+    ProgNode::interpreter->_retTree = this->GetNextSibling();
+    return RC_OK;
+  }
 
-	BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
-	
-	++loopInfo.foreachIx;
+  BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
 
-	SizeT nEl = loopInfo.endLoopVar->N_Elements();
+  ++loopInfo.foreachIx;
 
-	if( loopInfo.foreachIx < nEl)
-	{
-		// ASSIGNMENT used here also
-		GDLDelete((*v));
-		(*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+  SizeT nEl = loopInfo.endLoopVar->N_Elements();
 
-		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
-		return RC_OK;
-	}
+  if( loopInfo.foreachIx < nEl)
+  {
+	  // ASSIGNMENT used here also
+	  GDLDelete((*v));
+	  (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
 
-	GDLDelete(loopInfo.endLoopVar);
-	loopInfo.endLoopVar = NULL;
-	// 	loopInfo.foreachIx = -1;
-	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
-	return RC_OK;
+	  ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+	  return RC_OK;
+  }
+
+  GDLDelete(loopInfo.endLoopVar);
+  loopInfo.endLoopVar = NULL;
+  // 	loopInfo.foreachIx = -1;
+  ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+  return RC_OK;
 }
 
 
@@ -1580,41 +1577,43 @@ RetCode   FOREACH_INDEXNode::Run()
 
 RetCode   FOREACH_INDEX_LOOPNode::Run()
 {
-	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
-	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
-	if( loopInfo.endLoopVar == NULL)
-	{
-	// non-initialized loop (GOTO)
-	ProgNode::interpreter->_retTree = this->GetNextSibling();
-	return RC_OK;
-	}
+  if( loopInfo.endLoopVar == NULL)
+  {
+    // non-initialized loop (GOTO)
+    ProgNode::interpreter->_retTree = this->GetNextSibling();
+    return RC_OK;
+  }
 
-	BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
-	BaseGDL** index=this->GetFirstChild()->GetNextSibling()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild()->GetNextSibling());
-	
-	++loopInfo.foreachIx;
+  ProgNodeP thisGetFirstChildGetNextSibling = this->GetFirstChild()->GetNextSibling();
+  
+  BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
+  BaseGDL** index=thisGetFirstChildGetNextSibling->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild()->GetNextSibling());
 
-	SizeT nEl = loopInfo.endLoopVar->N_Elements();
+  ++loopInfo.foreachIx;
 
-	if( loopInfo.foreachIx < nEl)
-	{
-		// ASSIGNMENT used here also
-		GDLDelete((*v));
-		(*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+  SizeT nEl = loopInfo.endLoopVar->N_Elements();
 
-		// ASSIGNMENT used here also
-		GDLDelete((*index));
-		(*index) = new DLongGDL( loopInfo.foreachIx);
-		
-		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling()->GetNextSibling();
-		return RC_OK;
-	}
+  if( loopInfo.foreachIx < nEl)
+  {
+    // ASSIGNMENT used here also
+    GDLDelete((*v));
+    (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
 
-	GDLDelete(loopInfo.endLoopVar);
-	loopInfo.endLoopVar = NULL;
-	// 	loopInfo.foreachIx = -1;
-	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+    // ASSIGNMENT used here also
+    GDLDelete((*index));
+    (*index) = new DLongGDL( loopInfo.foreachIx);
+    
+    ProgNode::interpreter->_retTree = thisGetFirstChildGetNextSibling->GetNextSibling();
+    return RC_OK;
+  }
+
+  GDLDelete(loopInfo.endLoopVar);
+  loopInfo.endLoopVar = NULL;
+  // 	loopInfo.foreachIx = -1;
+  ProgNode::interpreter->SetRetTree( this->GetNextSibling());
   return RC_OK;
 }
 

@@ -718,6 +718,10 @@ RangeT NullGDL::LoopIndex() const
 { 
   throw GDLException("Operation not defined for !NULL 29.");
 }
+DDouble NullGDL::HashValue() const
+{ 
+  throw GDLException("Operation not defined for !NULL 29a.");
+}
 
 BaseGDL* NullGDL::Rotate( DLong dir)
 { 
