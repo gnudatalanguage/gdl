@@ -264,6 +264,12 @@ namespace lib {
 	par->ToStream( os);
       }
     }
+    else
+    {
+	os << par->TypeStr() << right;
+	if( !doIndentation) os << "= ";
+    }
+
     // Dimension display
     if( par->Dim( 0) != 0) os << par->Dim();
 

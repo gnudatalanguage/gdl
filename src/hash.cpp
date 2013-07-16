@@ -44,11 +44,18 @@ DLong HashIndex( DStructGDL* hashTable, DLong nCount, BaseGDL* key)
     if( hashCompare == 0)
       return searchIx;
     
+    if( searchIxStart == searchIxEnd)      
+    {
+	return -(searchIxStart + 1);
+    }
+
     if( hashCompare == -1) // key < hashKey[searchIx]
       searchIxEnd = searchIx;
-    else				// key > hashKey[searchIx]
+    else
+    { // key > hashKey[searchIx]
       searchIxStart = searchIx+1 ;
-    if( searchIxStart == searchIxEnd)
+    }
+    if( searchIxStart == searchIxEnd && searchIx == searchIxStart)      
     {
 	return -(searchIxStart + 1);
     }
