@@ -24,6 +24,8 @@ void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
 
 namespace lib {
 
+   BaseGDL* list_fun( EnvT* e);
+
    BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e);
    void LIST___OverloadBracketsLeftSide( EnvUDT* e);
    BaseGDL* LIST___OverloadPlus( EnvUDT* e);

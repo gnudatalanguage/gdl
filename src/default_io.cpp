@@ -26,6 +26,7 @@
 #include "ofmt.hpp"
 #include "gdljournal.hpp"
 #include "list.hpp"
+#include "hash.hpp"
 
 using namespace std;
 
@@ -861,6 +862,20 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  recursive = true;
 	  try{
 	    LIST__ToStream(oStructGDL,o,w,actPosPtr);
+	    recursive = false;
+	  } catch( ...)
+	  {
+	    recursive = false;
+	    throw;
+	  }
+	  
+	  return o;
+	}
+	if( desc->IsParent("HASH"))
+	{
+	  recursive = true;
+	  try{
+	    HASH__ToStream(oStructGDL,o,w,actPosPtr);
 	    recursive = false;
 	  } catch( ...)
 	  {

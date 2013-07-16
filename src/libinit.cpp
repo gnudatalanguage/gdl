@@ -27,6 +27,9 @@
 #include "basic_fun.hpp"
 #include "basic_pro.hpp"
 
+#include "list.hpp"
+#include "hash.hpp"
+
 #include "math_fun.hpp"
 #include "math_fun_ac.hpp"
 #include "math_fun_gm.hpp"
@@ -83,6 +86,9 @@ void LibInit()
 
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
+
+  const string hashKey[]={"NO_COPY", KLISTEND};
+  new DLibFunRetNew(lib::hash_fun,string("HASH"),-1,hashKey);
 
   const string scope_varfetchKey[]={"LEVEL", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);

@@ -1297,7 +1297,30 @@ BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
 
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
     
-    return BaseGDL::interpreter->GetHeap( actP)->Dup();
+    BaseGDL* result = BaseGDL::interpreter->GetHeap( actP);
+    if( result = NULL)
+      return NULL;
+    return result->Dup();
+  }
+  if( desc->IsParent("HASH"))
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
+    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+      
+    DPtr pHashTable = (*static_cast<DPtrGDL*>( oStructGDL->GetTag( pDataTag, 0)))[0];
+    DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( pHashTable));
+
+    DPtr pValue = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, ix)))[0];
+
+    BaseGDL* result = BaseGDL::interpreter->GetHeap( pValue);
+    if( result = NULL)
+      return NULL;
+    return result->Dup();
   }
   
   return new Data_( s);

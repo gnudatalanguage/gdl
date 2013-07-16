@@ -1837,7 +1837,14 @@ SizeT Data_<SpDObj>::N_Elements() const
       SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
       return listSize;
   }
-  
+  if( desc->IsParent("HASH"))
+  {
+      // no static here, might vary in derived object
+      unsigned nListTag = desc->TagIndex( "TABLE_COUNT");
+      SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+      return listSize;
+  }
+
   return 1;
 }
 

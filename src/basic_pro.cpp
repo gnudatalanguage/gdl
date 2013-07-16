@@ -233,6 +233,19 @@ namespace lib {
 	       
 	      isList = true;
 	    }
+	    static DString hashName("HASH");
+	    if( desc->IsParent(hashName))
+	    {
+	      os << desc->Name();
+
+	      unsigned nListTag = desc->TagIndex( "TABLE_COUNT");
+	      DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+	      os << left;
+	      os << "<ID=";
+	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
+	       
+	      isList = true;
+	    }
 	  }
 	}
 	if( !isList)

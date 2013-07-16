@@ -19,8 +19,11 @@
 #ifndef HASH_HPP_
 #define HASH_HPP_
 
+void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr);
 
 namespace lib {
+
+    BaseGDL* hash_fun( EnvT* e);
 
 
 }
