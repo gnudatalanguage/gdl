@@ -22,9 +22,8 @@
 ;        green: the Green colormap vector (for PseudoColor images)
 ;        blue : the Blue colormap vector (for PseudoColor images)
 ;
-;
 ; RESTRICTIONS:
-;         Requires ImageMagick (this is tested)
+;         Requires ImageMagick or GraphicsMagick (this is tested)
 ;
 ; PROCEDURE:
 ;         Use ImageMagick to write the data as requested
@@ -44,6 +43,11 @@
 ;  - now  /order should be active not only for 2D images !
 ;  - 2D images can be writen (but not the best way today :(
 ;  (help welcome, same problem than in WRITE_JPEG)
+; 
+;  Modifications by Alain Coulais 17-Jul-2013:
+;  -correcting bug 553 (color mixing in 2D+RBG)
+;  test case: next image must be red !!
+;  WRITE_PNG,'test.png', DIST(256), INDGEN(256), INTARR(256), INTARR(256)
 ; 
 ;-
 ; LICENCE:
@@ -133,7 +137,7 @@ if (nb_channels eq 1) then begin
    ;;
    MAGICK_WRITECOLORTABLE, mid, red, green, blue
 ;   MAGICK_WRITE, mid, reform(image,1,im_size[0],im_size[1]) ;, rgb=rgb
-   MAGICK_WRITE, mid, _image
+   MAGICK_WRITE, mid, _image, rgb=rgb
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid
