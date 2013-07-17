@@ -4092,7 +4092,7 @@ BaseGDL* transpose( EnvT* e)
 	    if ( (*p0)[ii] > max ) max = ((*p0)[ii]);
 	  }	
 		
-   	//---------------------------- END d'acquisistion des paramÃ¨tres -------------------------------------	
+   	//---------------------------- END d'acquisistion des paramÃ?tres -------------------------------------	
 
 	
 	static int evenIx = e->KeywordIx( "EVEN");
@@ -4654,7 +4654,7 @@ BaseGDL* transpose( EnvT* e)
       e->Throw( "Expression must be an array in this context: "+
 		e->GetParString(1));
     
-    if( p0->N_Elements() <= p1->N_Elements())
+    if( p0->N_Elements() < p1->N_Elements())
       e->Throw( "Incompatible dimensions for Array and Kernel.");
 
     // rank 1 for kernel works always
@@ -4665,7 +4665,7 @@ BaseGDL* transpose( EnvT* e)
 	  e->Throw( "Incompatible dimensions for Array and Kernel.");
 
 	for( SizeT r=0; r<rank; ++r)
-	  if( p0->Dim( r) <= p1->Dim( r))
+	  if( p0->Dim( r) < p1->Dim( r))
 	    e->Throw( "Incompatible dimensions for Array and Kernel.");
       }
 
@@ -4730,6 +4730,16 @@ BaseGDL* transpose( EnvT* e)
     // p0, p1 and scale have same type
     // p1 has rank of 1 or same rank as p0 with each dimension smaller than p0
     // scale is a scalar
+
+    static int biasIx = e->KeywordIx("BIAS");
+    bool statusBias = e->KeywordPresent( biasIx );
+    DLong bias=0;
+    if(statusBias)
+      e->AssureLongScalarKW( biasIx, bias);
+
+
+    if(statusBias)cout<<"bias is present: "<<bias<<endl;
+
     return p0->Convol( p1, scale, center, edgeMode);
   }
 

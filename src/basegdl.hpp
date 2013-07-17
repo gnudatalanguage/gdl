@@ -562,8 +562,8 @@ public:
   virtual BaseGDL* NewIxFromStride( SizeT s, SizeT e, SizeT stride);
 
   // library functions
-  virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-			   bool center, int edgeMode);
+  virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+			   bool center, bool normalize, int edgeMode);
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
   // for STRUCT_ASSIGN
   virtual void Assign( BaseGDL* src, SizeT nEl);

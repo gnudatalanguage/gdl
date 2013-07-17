@@ -40,6 +40,8 @@
 
 #include "gsl_fun.hpp"
 
+#include "convol.hpp"
+
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
 #endif
@@ -137,7 +139,8 @@ void LibInit()
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
-  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",KLISTEND};
+  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",
+			    "BIAS","NORMALIZE",KLISTEND};
   new DLibFunRetNew(lib::convol,string("CONVOL"),3,convolKey);
 
 #ifndef _MSC_VER

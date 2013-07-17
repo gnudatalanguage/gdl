@@ -4749,7 +4749,8 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 
 template<>
 BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   bool center, int edgeMode)
+				   BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode)
 {
   throw GDLException("String expression not allowed in this context.");
 }
@@ -4760,6 +4761,12 @@ BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
 #include "convol.cpp"
 
 #undef CONVOL_BYTE__
+
+#define CONVOL_UINT__
+
+#include "convol.cpp"
+
+#undef CONVOL_UINT__
 
 #include "convol.cpp"
 
