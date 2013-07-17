@@ -1140,9 +1140,6 @@ BaseGDL* list__toarray( EnvUDT* e)
   BaseGDL* list__remove( EnvUDT* e, bool asFunction)
   {
   // see overload.cpp
-  //     DFunLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
-  //     DFunLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
-
   static int kwALLIx = 0; 
   static int kwSELFIx = 1;
   static int kwINDEXIx = 2;

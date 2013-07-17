@@ -4740,7 +4740,9 @@ BaseGDL* transpose( EnvT* e)
 
     if(statusBias)cout<<"bias is present: "<<bias<<endl;
 
-    return p0->Convol( p1, scale, center, edgeMode);
+    // TODO: for now to be able to compile
+    return p0->Convol( p1, scale, NULL, center, false, edgeMode);
+        
   }
 
   BaseGDL* rebin_fun( EnvT* e)

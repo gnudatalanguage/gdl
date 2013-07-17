@@ -574,5 +574,28 @@ void SetupOverloadSubroutines()
   DFunHASH__overloadBracketsRightSide->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__overloadBracketsRightSide);
   hashDesc->SetOperator(OOBracketsRightSide,DFunHASH__overloadBracketsRightSide);
+
+  DPro *DProHASH_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE","HASH","<INTERNAL_LIBRARY>");
+  DProHASH_overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
+  DProHASH_overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  DProHASH_overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+  tree2 = new WRAPPED_PRONode(lib::HASH___OverloadBracketsLeftSide);
+  DProHASH_overloadBracketsLeftSide->SetTree( tree2); 
+  hashDesc->ProList().push_back(DProHASH_overloadBracketsLeftSide);
+  hashDesc->SetOperator(OOBracketsLeftSide,DProHASH_overloadBracketsLeftSide);
+// LIST::REMOVE()
+  DFun *DFunHASH__REMOVE = new DFun("REMOVE","HASH","<INTERNAL_LIBRARY>");
+  DFunHASH__REMOVE->AddKey("ALL","ALL");
+  DFunHASH__REMOVE->AddPar("INDEX");
+  tree = new WRAPPED_FUNNode( lib::hash__remove_fun);
+  DFunHASH__REMOVE->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__REMOVE);
+// LIST::REMOVE PRO
+  DPro *DProHASH__REMOVE = new DPro("REMOVE","HASH","<INTERNAL_LIBRARY>");
+  DProHASH__REMOVE->AddKey("ALL","ALL");
+  DProHASH__REMOVE->AddPar("INDEX");
+  tree2 = new WRAPPED_PRONode( lib::hash__remove_pro);
+  DProHASH__REMOVE->SetTree( tree2);
+  listDesc->ProList().push_back(DProHASH__REMOVE);
   
 }

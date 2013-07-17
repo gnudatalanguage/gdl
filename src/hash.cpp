@@ -139,6 +139,62 @@ DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
 }
   
   
+  
+BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
+{
+  static DString hashName("HASH");
+  static DString entryName("GDL_HASHTABLEENTRY");
+  static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
+  static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
+  static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
+  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
+  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+
+  // our current table
+  DPtr thisTableID = (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0];
+  DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( thisTableID));
+
+  DLong hashIndex = -1;
+  if( key == NULL) // special case - remove random
+  {
+    // remove last element
+    for( DLong h=hashTable->N_Elements()-1; h>=0; --h)
+    {
+      DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, h)))[0];
+      if( kID != 0)
+      {
+	hashIndex = kID;
+	break;
+      }
+    }
+    if( hashIndex < 0)
+      ThrowFromInternalUDSub( e, "Internal error. Please report. Random hash index not found.");
+  }
+  else
+  {
+    hashIndex = HashIndex( hashTable, key);
+    if( hashIndex < 0)
+      ThrowFromInternalUDSub( e, "Key does not exist.");
+  }
+  
+  DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, hashIndex)))[0];
+  DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, hashIndex)))[0];
+
+  BaseGDL* retValue = BaseGDL::interpreter->GetHeap( vID);
+  BaseGDL::interpreter->GetHeap( vID) = NULL;
+  
+  BaseGDL::interpreter->FreeHeap( kID);
+  BaseGDL::interpreter->FreeHeap( vID);
+
+  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, hashIndex)))[0] = 0;
+  (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, hashIndex)))[0] = 0;
+
+  --((*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0]);
+  return retValue;
+}
+  
+  
+  
 void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL* key, BaseGDL* value)
 {
   static DString hashName("HASH");
@@ -190,9 +246,9 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
     return;
   }
 
-  if( nSize <= ((nCount+1) * 10 / 9)) // grow on 90% occupation
+  if( nSize <= ((nCount+1) * 10 / 8)) // grow on 80% occupation. TODO: find optimal value
   {
-    DStructGDL* hashTable = GrowHashTable( hashStruct, hashTable, nSize * 2);
+    DStructGDL* hashTable = GrowHashTable( hashStruct, hashTable, nSize * 2); // grow to 50% occupation.  TODO: find optimal value
     nSize = (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
   }
 
@@ -259,6 +315,7 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
 }
   
   
+  
 void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
 {	  
   static DString hashName("HASH");
@@ -304,13 +361,337 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
 DLong GetInitialTableSize( DLong nEntries)
 {
   DLong initialTableSize = 4;
-  DLong minEntries = nEntries * 2; // initial min 50% filling
-  while( initialTableSize < minEntries) initialTableSize *= 2;
+  DLong minEntries = nEntries * 2; // initial min 50% filling. TODO: find optimal value
+  while( initialTableSize < minEntries) initialTableSize <<= 1; //*= 2;
   return initialTableSize;
 }
-  
+
+
+
+
+
+
 namespace lib {
 
+  BaseGDL* hash__remove( EnvUDT* e, bool asFunction);
+
+  BaseGDL* hash__remove_fun( EnvUDT* e)
+  {
+    return hash__remove( e, true);
+  }
+  void hash__remove_pro( EnvUDT* e)
+  {
+    hash__remove( e, false);
+  }
+
+  BaseGDL* hash__remove( EnvUDT* e, bool asFunction)
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
+    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+
+    // see overload.cpp
+    static int kwALLIx = 0; 
+    static int kwSELFIx = 1;
+    static int kwINDEXIx = 2;
+
+    bool kwALL = false;
+    if (e->KeywordSet(kwALLIx)){ kwALL = true;}
+
+    SizeT nParam = e->NParam(1); // minimum SELF
+
+    BaseGDL* selfP = e->GetKW( 0);
+    if( selfP->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+    if( !selfP->Scalar())
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+    DStructGDL* self = e->Interpreter()->GetObjHeap( (*static_cast<DObjGDL*>( selfP))[0]);
+
+    if( kwALL)
+    {
+      if( asFunction)
+      {
+	DLong nSize = (*static_cast<DLongGDL*>( self->GetTag( nSizeTag, 0)))[0];
+	DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+
+	DLong initialTableSize = GetInitialTableSize( 0);
+
+	// our current table
+	DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+  	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+
+	// new hash
+	DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+	DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
+	BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
+	Guard<BaseGDL> newObjGuard( newObj);
+
+	// our new hash table
+	DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+
+	// set our table to new empty table
+	(*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0] = hashTableID;
+	(*static_cast<DLongGDL*>( self->GetTag( nSizeTag, 0)))[0] = initialTableSize;
+	(*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0] = 0;
+	
+	// set our old table to new HASH
+	(*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = thisTableID;
+	(*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = nSize;
+	(*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0] = nCount;
+	
+	newObjGuard.Release();
+	return newObj;    
+      }
+      else
+      {
+	DLong initialTableSize = GetInitialTableSize( 0);
+
+	// our current table
+	DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+  	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+
+	// our new hash table
+	DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+
+	// set our table to new empty table
+	(*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0] = hashTableID;
+	(*static_cast<DLongGDL*>( self->GetTag( nSizeTag, 0)))[0] = initialTableSize;
+	(*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0] = 0;
+	
+	// trigger ref-count delete of all elements      
+	BaseGDL::interpreter->FreeHeap( thisTableID); 
+	
+	return NULL;      
+      }
+    }
+
+    BaseGDL* index = NULL;
+    if( nParam >= 2)
+      index = e->GetKW(kwINDEXIx);
+    
+    if( index == NULL)
+    {
+      BaseGDL* removedElement = RemoveFromHashTable( e, self, NULL);
+      if( !asFunction)
+      {
+	  GDLDelete( removedElement);
+	  removedElement = NULL;
+      }
+      return removedElement;
+    }
+    
+    if( index->N_Elements() == 1)
+    {
+      BaseGDL* removedElement = RemoveFromHashTable( e, self, index);
+      if( !asFunction)
+      {
+	  GDLDelete( removedElement);
+	  removedElement = NULL;
+      }
+      return removedElement;
+    }
+   
+    if( asFunction)
+    {
+      // new hash
+      DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+      DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
+      BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
+      Guard<BaseGDL> newObjGuard( newObj);
+
+      SizeT nRemove = index->N_Elements();
+
+      DLong initialTableSize = GetInitialTableSize( nRemove);
+
+      // new hash table
+      // our current table (for the descriptor)
+//       DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+//       DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+      DStructGDL* hashTable= new DStructGDL( FindInStructList( structList, entryName), dimension(initialTableSize));
+      DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+      (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = hashTableID;
+
+      (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = initialTableSize;
+//       (*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0] = 0; // already init to zero
+
+      for( SizeT r=0; r<nRemove; ++r)
+      {
+	BaseGDL* removeKey = index->NewIx( r);
+	Guard<BaseGDL> removeKeyGuard( removeKey);
+	BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
+	InsertIntoHashTable( hashStruct, hashTable, removeKeyGuard.release(), removedElement);    
+      }
+
+      newObjGuard.Release();
+      return newObj;
+    }    
+    else
+    {    
+      SizeT nRemove = index->N_Elements();
+      for( SizeT r=0; r<nRemove; ++r)
+      {
+	BaseGDL* removeKey = index->NewIx( r);
+	Guard<BaseGDL> removeKeyGuard( removeKey);
+	BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
+	GDLDelete( removedElement);
+      }
+      return NULL;
+    }
+  }
+  
+  void HASH___OverloadBracketsLeftSide( EnvUDT* e)
+  {
+    // SELF
+    //->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
+    //->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+    //->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
+    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+
+    const unsigned par1Ix = 4;
+    
+    
+    SizeT nParam = e->NParam(1); // number of parameters actually given
+    if( nParam < 5) // consider implicit SELF
+      ThrowFromInternalUDSub( e, "Four parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1.");
+    if( nParam > 5) // consider implicit SELF
+      ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
+
+    BaseGDL* objRef = e->GetKW(1);
+    if( objRef == NULL)
+    {
+      ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
+    }
+    BaseGDL* rValue = e->GetKW(2);
+    if( rValue == NULL)
+    {
+      rValue = NullGDL::GetSingleInstance();
+    }
+
+    BaseGDL* selfP = e->GetKW( 0);
+    if( selfP->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+    if( !selfP->Scalar())
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+
+    DObj selfID = (*static_cast<DObjGDL*>( selfP))[0];
+    DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
+
+    BaseGDL* isRange = e->GetKW(3);
+    if( isRange == NULL)
+      ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) is undefined.");
+    SizeT nIsRange = isRange->N_Elements();
+    if( nIsRange > (nParam - 4)) //- SELF and ISRANGE
+      ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) must have "+i2s(nParam-4)+" elements.");
+    Guard<DLongGDL> isRangeLongGuard;
+    DLongGDL* isRangeLong;
+    if( isRange->Type() == GDL_LONG)
+      isRangeLong = static_cast<DLongGDL*>( isRange);
+    else
+    {
+      try{
+	isRangeLong = static_cast<DLongGDL*>( isRange->Convert2( GDL_LONG, BaseGDL::COPY));
+      }
+      catch( GDLException& ex)
+      {
+	ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+      }
+      isRangeLongGuard.Reset( isRangeLong);
+    }
+    
+    BaseGDL* parX = e->GetKW( par1Ix); // implicit SELF, ISRANGE, par1..par8
+    if( parX == NULL)
+      ThrowFromInternalUDSub( e, "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( par1Ix)));
+
+    DLong isRangeX = (*isRangeLong)[0];
+    if( isRangeX != 0 && isRangeX != 1)
+    {
+      ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(0)+"]) is out of allowed range.");
+    }
+    if( isRangeX == 1)
+    {
+      if( parX->N_Elements() != 3)
+      {
+	ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( par1Ix)));
+      }
+      DLongGDL* parXLong;
+      Guard<DLongGDL> parXLongGuard;
+      if( parX->Type() != GDL_LONG)
+      {
+	try{
+	  parXLong = static_cast<DLongGDL*>( parX->Convert2( GDL_LONG, BaseGDL::COPY));
+	  parXLongGuard.Reset( parXLong);
+	}
+	catch( GDLException& ex)
+	{
+	  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+	}
+      }
+      else
+      {
+	parXLong = static_cast<DLongGDL*>( parX);
+      }
+      if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || (*parXLong)[2] != 1)
+	ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
+	i2s((*parXLong)[0])+":"+	i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
+	
+      ThrowFromInternalUDSub( e, "Due to compatibility, setting all [*] to one value is not allowed. "
+      "Please report if you would appreciate this functionality.");
+
+      // full access [*]
+    }
+
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+
+    // non-range (keyed)
+    SizeT par1N_Elements = parX->N_Elements();
+
+    if( par1N_Elements == 1) // single key
+    {
+	bool stolen = e->StealLocalKW( par1Ix);
+	assert( stolen); // if( !stolen) par1Ix = par1Ix->Dup();
+	InsertIntoHashTable( self, thisHashTable, parX, rValue->Dup());
+	return;
+    }
+
+    if( rValue != NULL && rValue != NullGDL::GetSingleInstance())
+    {
+      if( rValue->N_Elements() != par1N_Elements)
+      {
+	ThrowFromInternalUDSub( e, "Key and Value must have the same number of elements.");
+      }
+    }
+    
+    if( rValue != NULL && rValue != NullGDL::GetSingleInstance())
+    {
+      for( SizeT k=0; k<par1N_Elements; ++k)
+      {    
+	InsertIntoHashTable( self, thisHashTable, parX->NewIx(k), rValue->NewIx(k));    
+      }
+    }
+    else
+    {
+      for( SizeT k=0; k<par1N_Elements; ++k)
+      {    
+	InsertIntoHashTable( self, thisHashTable, parX->NewIx(k), NULL);    
+      }    
+    }
+  }
+
+  
+  
   BaseGDL* HASH___OverloadBracketsRightSide( EnvUDT* e)
   {
     static DString hashName("HASH");
@@ -401,7 +782,7 @@ namespace lib {
       }
       if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || (*parXLong)[2] != 1)
 	ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
-	i2s((*parXLong)[0])+","+	i2s((*parXLong)[1])+","+i2s((*parXLong)[2])+"]");
+	i2s((*parXLong)[0])+":"+i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
       
       // full range -> clone ===================================================
       DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
