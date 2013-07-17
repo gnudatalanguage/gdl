@@ -24,6 +24,7 @@
 // #include "basic_pro.hpp"
 #include "nullgdl.hpp"
 #include "list.hpp"
+#include "hash.hpp"
 
 using namespace std;
 
@@ -427,6 +428,8 @@ void SetupOverloadSubroutines()
   assert( gdlObjectDesc != NULL);
   DStructDesc* listDesc = FindInStructList(structList, "LIST");
   assert( listDesc != NULL);
+  DStructDesc* hashDesc = FindInStructList(structList, "HASH");
+  assert( hashDesc != NULL);
   
   WRAPPED_FUNNode *tree;
   
@@ -559,5 +562,17 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::list__toarray);
   DFunLIST__TOARRAY->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__TOARRAY);
+
+  
+  
+// HASH  
+  DFun *DFunHASH__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE","HASH","<INTERNAL_LIBRARY>");
+  DFunHASH__overloadBracketsRightSide->AddPar("ISRANGE");
+  DFunHASH__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  DFunHASH__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+  tree = new WRAPPED_FUNNode( lib::HASH___OverloadBracketsRightSide);
+  DFunHASH__overloadBracketsRightSide->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__overloadBracketsRightSide);
+  hashDesc->SetOperator(OOBracketsRightSide,DFunHASH__overloadBracketsRightSide);
   
 }

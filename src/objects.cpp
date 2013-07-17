@@ -144,8 +144,6 @@ void InitStructs()
   gdlContainerNode->AddTag("PDATA", &aPtrRef);
 //   gdlContainerNode->AddTag("OOBJ", &aObjRef);
 //   gdlContainerNode->AddTag("FLAGS", &aLong);
-  // use operator overloading 
-  gdlContainerNode->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlContainerNode);
 
@@ -156,6 +154,8 @@ void InitStructs()
   gdlHash->AddTag("TABLE_REMOVE", &aULong);
   gdlHash->AddTag("TABLE_FOREACH", &aULong);
   gdlHash->AddTag("TABLE_DATA", &aPtrRef);
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlHash->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlHash);
 

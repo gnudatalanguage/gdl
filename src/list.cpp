@@ -646,10 +646,10 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
       }
     } // for
   }
-  catch( GDLException& ex)
+  catch( ...)
   {
     ixList.Destruct(); // ixList is not valid afterwards, but as we throw this is ok
-    throw ex;
+    throw;
   }
   
   SizeT listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];

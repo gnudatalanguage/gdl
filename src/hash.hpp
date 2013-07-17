@@ -23,7 +23,9 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
 
 namespace lib {
 
-    BaseGDL* hash_fun( EnvT* e);
+  BaseGDL* HASH___OverloadBracketsRightSide( EnvUDT* e);
+
+  BaseGDL* hash_fun( EnvT* e);
 
 
 }
