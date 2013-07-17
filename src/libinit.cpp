@@ -141,7 +141,7 @@ void LibInit()
 
   const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",
 			    "BIAS","NORMALIZE",KLISTEND};
-  new DLibFunRetNew(lib::convol,string("CONVOL"),3,convolKey);
+  new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
 #ifndef _MSC_VER
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
