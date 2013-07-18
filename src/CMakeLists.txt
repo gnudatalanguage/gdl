@@ -173,6 +173,8 @@ math_fun_ng.cpp
 math_fun_ng.hpp
 math_utl.cpp
 math_utl.hpp
+matrix_cholesky.cpp
+matrix_cholesky.hpp
 mpi.cpp
 mpi.hpp
 ncdf_att_cl.cpp

@@ -63,6 +63,13 @@ namespace lib {
   BaseGDL* zeropoly(EnvT* e);
   BaseGDL* spher_harm(EnvT* e);
 
+  template< typename T1, typename T2>
+  int cp2data2_template( BaseGDL* p0, T2* data, SizeT nEl, 
+			 SizeT offset, SizeT stride_in, SizeT stride_out);
+  template< typename T>
+  int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
+			SizeT offset, SizeT stride_in, SizeT stride_out);
+
 } // namespace
 
 #endif

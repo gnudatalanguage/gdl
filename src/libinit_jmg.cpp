@@ -50,6 +50,10 @@
 #include "fftw.hpp"
 #endif
 
+#if defined(USE_EIGEN)
+#include "matrix_cholesky.hpp"
+#endif
+
 #include "gshhs.hpp"
 
 using namespace std;
@@ -68,8 +72,20 @@ void LibInit_jmg()
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
 
-#if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   const string invertKey[]={"DOUBLE",KLISTEND};
+
+#if defined(USE_EIGEN)
+  //  new DLibFun(lib::invert_fun2,string("INVERT_EIG"),2,invertKey);
+  new DLibPro(lib::choldc_pro,string("CHOLDC"),3,invertKey);
+  new DLibFun(lib::cholsol_fun,string("CHOLSOL"),4,invertKey);
+
+  const string lacholKey[]={"DOUBLE","STATUS","UPPER",KLISTEND};
+  new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),4,lacholKey);
+  new DLibFun(lib::la_cholsol_fun,string("LA_CHOLSOL"),4,lacholKey);
+#endif
+
+#if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
+  
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);
 
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION",KLISTEND};

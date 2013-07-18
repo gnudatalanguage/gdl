@@ -4754,6 +4754,35 @@ BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
 {
   throw GDLException("String expression not allowed in this context.");
 }
+template<>
+BaseGDL* Data_<SpDObj>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
+				   BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode)
+{
+  throw GDLException("Object expression not allowed in this context.");
+}
+template<>
+BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
+				   BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode)
+{
+  throw GDLException("Pointer expression not allowed in this context.");
+}
+
+template<>
+BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
+				   BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode)
+{
+  throw GDLException("ULONG expression not allowed in this context.");
+}
+template<>
+BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
+				   BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode)
+{
+  throw GDLException("ULONG64 expression not allowed in this context.");
+}
 
 #define INCLUDE_CONVOL_CPP 1
 #define CONVOL_BYTE__

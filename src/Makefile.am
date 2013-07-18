@@ -29,6 +29,7 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
 		libinit_jmg.cpp \
+		matrix_cholesky.hpp matrix_cholesky.cpp \
 		math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
