@@ -186,13 +186,15 @@ namespace lib {
         return;
       }
     os.width(10);
-
+    bool doTypeString = true;
+    
     // Data display
     if( par->Type() == GDL_STRUCT)
       {
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";
-
+	doTypeString = false;
+	
 	DStructGDL* s = static_cast<DStructGDL*>( par);
         os << "-> ";
         os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
@@ -204,6 +206,7 @@ namespace lib {
       {
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";
+	doTypeString = false;
 
 	// trim string larger than 45 characters
 	DString dataString = (*static_cast<DStringGDL*>(par))[0];
@@ -212,7 +215,6 @@ namespace lib {
       }
       else if (par->Type() == GDL_OBJ && par->StrictScalar())
       {
-	bool isList = false;
 	DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
 	if( s != 0)  // no overloads for null object
 	{
@@ -231,7 +233,7 @@ namespace lib {
 	      os << "<ID=";
 	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
 	       
-	      isList = true;
+	      doTypeString = false;
 	    }
 	    static DString hashName("HASH");
 	    if( desc->IsParent(hashName))
@@ -244,27 +246,22 @@ namespace lib {
 	      os << "<ID=";
 	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
 	       
-	      isList = true;
+	      doTypeString = false;
 	    }
 	  }
 	}
-	if( !isList)
-	{	
-	  os << par->TypeStr() << right;
-	  if( !doIndentation) os << "= ";
-	  
-	  par->ToStream( os);
-	}
       }
-      else
+      if( doTypeString)
       {	
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";
+	doTypeString = false;
 	
 	par->ToStream( os);
       }
     }
-    else
+
+    if( doTypeString)
     {
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";

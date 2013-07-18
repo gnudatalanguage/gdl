@@ -22,6 +22,8 @@
 // #include <envt.hpp>
 void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr);
 
+DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e);
+
 namespace lib {
 
    BaseGDL* list_fun( EnvT* e);

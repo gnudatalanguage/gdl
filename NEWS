@@ -570,11 +570,11 @@
 	   - support for .SKIP [NSteps] command
 
 0.9.4:
-           - when compiled with Eigen3 library, significant speed improvement in MATRIX_MULTIPLY() (and # operators), especially on multi-cores\
-. Basic loading managment included (if some core are busy).
+           - when compiled with Eigen3 library, significant speed improvement in MATRIX_MULTIPLY() (and # operators), especially on multi-cores
+	     Basic loading managment included (if some core are busy).
            - .RESET_SESSION and .FULL_RESET_SESSION commands
-           - LIST data type
-           - HASH
+           - LIST fully supported
+           - HASH 
            - CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3 (sub-optimal)
            - large change in various graphic/plotting keywords:
               - PLOT, OPLOT: All keywords supported except Z and T3D,  Correct handling of log/DATA/NORMAL/DEVICE coordinates and CLIPPING.

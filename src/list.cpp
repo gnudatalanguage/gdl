@@ -137,10 +137,11 @@
   
   DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e)
   {
+    // TODO remove this checks (SELF is set always internally)
     if( selfP == NULL || selfP->Type() != GDL_OBJ)
-      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT. Please report.");
     if( !selfP->Scalar())
-      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT. Please report.");
     DObjGDL* selfObj = static_cast<DObjGDL*>( selfP);
     DObj selfID = (*selfObj)[0];
     try {
