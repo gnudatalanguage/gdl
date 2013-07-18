@@ -1543,41 +1543,62 @@ RetCode   FOREACH_LOOPNode::Run()
 
 
 
-RetCode   FOREACH_INDEXNode::Run()
-{
-	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
-	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
-
-	ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
-	ProgNodeP indexP = vP->GetNextSibling();
-
-	BaseGDL** v=vP->LEval(); //ProgNode::interpreter->l_simple_var(vP);
-	BaseGDL** index=indexP->LEval(); //ProgNode::interpreter->l_simple_var(indexP);
-
-	GDLDelete(loopInfo.endLoopVar);
-	loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
-// 	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
-
-	loopInfo.foreachIx = 0;
-
-	// currently there are no empty arrays
-	//SizeT nEl = loopInfo.endLoopVar->N_Elements();
-
-	// ASSIGNMENT used here also
-	GDLDelete((*v));
-	(*v) = loopInfo.endLoopVar->NewIx( 0);
-	
-	// ASSIGNMENT used here also
-	GDLDelete((*index));
-	(*index) = new DLongGDL( 0);
-
-	ProgNode::interpreter->_retTree = indexP->GetNextSibling();
-	return RC_OK;
-}
-
-RetCode   FOREACH_INDEX_LOOPNode::Run()
+RetCode FOREACH_INDEXNode::Run()
 {
   EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+
+  ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
+  ProgNodeP indexP = vP->GetNextSibling();
+
+  BaseGDL** v=vP->LEval(); //ProgNode::interpreter->l_simple_var(vP);
+  BaseGDL** index=indexP->LEval(); //ProgNode::interpreter->l_simple_var(indexP);
+
+  GDLDelete(loopInfo.endLoopVar);
+  loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
+// loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+
+  loopInfo.foreachIx = 0;
+
+  // currently there are no empty arrays
+  //SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+  // ASSIGNMENT used here also
+  GDLDelete((*v));
+  (*v) = loopInfo.endLoopVar->NewIx( 0); // HASH sets here TABLE_FOREACH to key ptr
+
+  // ASSIGNMENT used here also
+  GDLDelete((*index));
+  if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+  {
+    DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+    DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+    DStructDesc* oStructDesc = oStruct->Desc();
+    if( oStructDesc->IsParent( "HASH"))
+    {
+      unsigned forEachTag = oStructDesc->TagIndex( "TABLE_FOREACH");
+      DPtr pForEach = (*static_cast<DULongGDL*>( oStruct->GetTag( forEachTag, 0)))[0];
+      // pForEach is pointer to current key
+      (*index) = GDLInterpreter::GetHeap( pForEach)->Dup();
+    }
+    else
+    {
+      // ASSIGNMENT used here also
+      (*index) = new DLongGDL( 0);
+    }
+  }
+  else
+  {
+    (*index) = new DLongGDL( 0);
+  }
+  
+  ProgNode::interpreter->_retTree = indexP->GetNextSibling();
+  return RC_OK;
+}
+
+RetCode FOREACH_INDEX_LOOPNode::Run()
+{
+  EnvUDT* callStack_back = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
   if( loopInfo.endLoopVar == NULL)
@@ -1600,11 +1621,32 @@ RetCode   FOREACH_INDEX_LOOPNode::Run()
   {
     // ASSIGNMENT used here also
     GDLDelete((*v));
-    (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+    (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx); // HASH sets here TABLE_FOREACH to key ptr
 
     // ASSIGNMENT used here also
     GDLDelete((*index));
-    (*index) = new DLongGDL( loopInfo.foreachIx);
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+	DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+	DStructDesc* oStructDesc = oStruct->Desc();
+	if( oStructDesc->IsParent( "HASH"))
+	{
+	  unsigned forEachTag = oStructDesc->TagIndex( "TABLE_FOREACH");
+	  DPtr pForEach = (*static_cast<DULongGDL*>( oStruct->GetTag( forEachTag, 0)))[0];
+	  // pForEach is pointer to current key
+	  (*index) = GDLInterpreter::GetHeap( pForEach)->Dup();
+	}
+	else
+	{
+	  // ASSIGNMENT used here also
+	  (*index) = new DLongGDL( loopInfo.foreachIx);
+	}
+    }
+    else
+    {
+      (*index) = new DLongGDL( loopInfo.foreachIx);
+    }
     
     ProgNode::interpreter->_retTree = thisGetFirstChildGetNextSibling->GetNextSibling();
     return RC_OK;

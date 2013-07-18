@@ -145,5 +145,16 @@ template <typename T> class RefHeap {
     }
 };
 
+namespace structDesc {
+ 
+  // these are used mainly in list.cpp and hash.cpp
+  // as for .RESET_SESSION the pointers change
+  // one can still use these as they get updated on every new creation in InitStructs()
+  extern DStructDesc* LIST;
+  extern DStructDesc* HASH;
+  extern DStructDesc* GDL_CONTAINER_NODE;
+  extern DStructDesc* GDL_HASHTABLEENTRY;
+  
+}
 
 #endif

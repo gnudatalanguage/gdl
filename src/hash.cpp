@@ -23,13 +23,39 @@
 #include "envt.hpp"
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
-  
+
+std::string ValidTagName( const std::string in)
+{
+  if( in.length() == 0)
+    return "_";
+  std::string result = StrUpCase( in);
+  SizeT i = 0;
+  if( result[0] >= '0' && result[0] <= '9')
+  {
+    result = "_" + result;
+    ++i;
+  }
+  else if( result[0] == '!')
+  {
+    ++i;
+  }
+  for( ; i<result.length(); ++i)
+  {
+    if( !((result[i] >= 'A' && result[i] <= 'Z') ||
+	(result[i] >= '0' && result[i] <= '9') ||
+	result[i] == '$'))
+      result[i] = '_';
+  }
+  return result;
+}
+
+
 // if not found returns -(pos +1)
 DLong HashIndex( DStructGDL* hashTable, BaseGDL* key)
 {
   static DString entryName("GDL_HASHTABLEENTRY");
-  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+  static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+  static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
   assert( key != NULL && key != NullGDL::GetSingleInstance());
   
@@ -91,11 +117,11 @@ DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
 {
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
-  static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-  static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-  static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+  static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+  static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+  static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+  static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+  static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
   
 //   DStructDesc* hashDesc = hashStruct->Desc();
 //   DStructDesc* entryDesc = hashTable->Desc();
@@ -103,7 +129,7 @@ DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
   DLong nSize = (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
   DLong nCount = (*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0];
    
-  DStructGDL* newHashTable= new DStructGDL( hashTable->Desc(), dimension(nSize));
+  DStructGDL* newHashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(nSize));
 
   // copy old table to new one, insert holes
   SizeT oldIx = 0;
@@ -144,11 +170,11 @@ BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
 {
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
-  static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-  static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-  static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+  static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+  static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+  static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+  static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+  static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
   // our current table
   DPtr thisTableID = (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0];
@@ -199,11 +225,11 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
 {
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
-  static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-  static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-  static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+  static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+  static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+  static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+  static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+  static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
   
 //   DStructDesc* hashDesc = hashStruct->Desc();
 //   DStructDesc* entryDesc = hashTable->Desc();
@@ -320,11 +346,11 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
 {	  
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
-  static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-  static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-  static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-  static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-  static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+  static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+  static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+  static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+  static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+  static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
   
   SizeT nCount = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nCountTag, 0)))[0];
   SizeT nSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nSizeTag, 0)))[0];
@@ -373,6 +399,297 @@ DLong GetInitialTableSize( DLong nEntries)
 
 namespace lib {
 
+  BaseGDL* hash__tostruct( EnvUDT* e)
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+
+    const int kwMISSINGIx = 0; // pushed 2nd
+    const int kwSKIPPEDIx = 1;
+    const int kwSELFIx = 2;
+
+    SizeT nParam = e->NParam(1); // SELF
+    
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    if( selfP->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+    if( !selfP->Scalar())
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+    DStructGDL* self = e->Interpreter()->GetObjHeap( (*static_cast<DObjGDL*>( selfP))[0]);
+
+    DPtr pHashTable = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+    DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( pHashTable));
+
+    DLong nSize = (*static_cast<DLongGDL*>( self->GetTag( nSizeTag, 0)))[0];
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+
+    BaseGDL* missing = e->GetKW( kwMISSINGIx);
+    BaseGDL** skipped = NULL;
+    if( e->GlobalKW( kwSKIPPEDIx))
+      skipped = &e->GetKW(kwSKIPPEDIx);
+    
+    static DString listName("LIST");
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
+    static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
+    static unsigned pListDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
+   
+    DStructDesc* listDesc= structDesc::LIST;
+    DStructDesc* containerDesc= structDesc::GDL_CONTAINER_NODE;
+
+    DStructGDL* listStruct = NULL;
+    BaseGDL* newObj = NULL;
+    Guard<BaseGDL> newListObjGuard;
+    if( skipped != NULL)
+    {
+      listStruct= new DStructGDL( listDesc, dimension());
+      DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+      newObj = new DObjGDL( objID); // the list object
+      newListObjGuard.Init( newObj);
+    }
+    
+    DStructDesc* nStructDesc = new DStructDesc( "$truct");
+    // instance takes care of nStructDesc since it is unnamed
+    // 	dimension dim( 1);
+    // 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+    DStructGDL* instance = new DStructGDL( nStructDesc);
+    Guard<DStructGDL> instance_guard(instance);
+
+    DStructGDL* cStructLast = NULL;
+    DStructGDL* cStruct = NULL;
+    DPtr cID = 0;
+    
+    for( SizeT el=0; el<nSize; ++el)
+    {
+      DPtr pKey = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, el)))[0];
+      if( pKey == 0)
+	continue;
+
+      DPtr pValue = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, el)))[0];
+      assert( pValue != 0);
+      
+      BaseGDL* key = BaseGDL::interpreter->GetHeap( pKey);
+      assert( key != NULL);
+
+      BaseGDL* value = BaseGDL::interpreter->GetHeap( pValue);
+      if( value == NULL || value == NullGDL::GetSingleInstance())
+      {
+	value = missing;
+      }
+      // we are not owner of value here
+      
+      bool added = false;
+      if( key->Type() == GDL_STRING && value != NULL)
+      {
+	assert( key->N_Elements() == 1);
+	DString keyString = (*static_cast<DStringGDL*>(key))[0];
+	
+	DString tagString = ValidTagName( keyString);
+	
+	if( nStructDesc->TagIndex( tagString) == -1)
+	{
+          instance->NewTag( tagString, value->Dup());
+	  added = true;
+	}	
+      }
+      
+      if( !added && listStruct != NULL) // add key to skipped
+      {
+	key = key->Dup();
+	DPtr dID = e->Interpreter()->NewHeap(1,key);
+
+	cStruct = new DStructGDL( containerDesc, dimension());
+	cID = e->Interpreter()->NewHeap(1,cStruct);
+	(*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
+      
+	if( cStructLast != NULL)
+	  (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+	else
+	{ // 1st element
+	  (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+	}
+	    
+      cStructLast = cStruct;
+      }
+    }
+
+    if( skipped != NULL)
+    {
+      GDLDelete( *skipped);
+      newListObjGuard.Release();
+      *skipped = newObj;
+    }
+
+    if( instance->NTags() == 0)
+      return NullGDL::GetSingleInstance();
+    
+    instance_guard.Release();
+    return instance;
+  }
+  
+  BaseGDL* hash__keysvalues( EnvUDT* e, bool keys);
+
+  BaseGDL* hash__values( EnvUDT* e)
+  {
+    return hash__keysvalues( e, false);
+  }
+  BaseGDL* hash__keys( EnvUDT* e)
+  {
+    return hash__keysvalues( e, true);
+  }
+  BaseGDL* hash__keysvalues( EnvUDT* e, bool doKeys)
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+
+    const int kwSELFIx = 0;
+
+    SizeT nParam = e->NParam(1); // SELF
+
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    if( selfP->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+    if( !selfP->Scalar())
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+    DStructGDL* self = e->Interpreter()->GetObjHeap( (*static_cast<DObjGDL*>( selfP))[0]);
+
+    DLong nSize = (*static_cast<DLongGDL*>( self->GetTag( nSizeTag, 0)))[0];
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+
+    static DString listName("LIST");
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
+    static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
+    static unsigned pListDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
+   
+    DStructDesc* listDesc= structDesc::LIST;
+    DStructDesc* containerDesc= structDesc::GDL_CONTAINER_NODE;
+  
+    DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct
+    BaseGDL* newObj = new DObjGDL( objID); // the list object
+    Guard<BaseGDL> newObjGuard( newObj);
+
+    DPtr pHashTable = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+    DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( pHashTable));
+
+    unsigned sourceTag;
+    if( doKeys)
+    {
+      sourceTag = pKeyTag;
+    }
+    else // do values
+    {
+      sourceTag = pValueTag;
+    }
+
+    DStructGDL* cStructLast = NULL;
+    DStructGDL* cStruct = NULL;
+    DPtr cID = 0;
+    SizeT ix = 0;
+    for( SizeT i=0; i<nCount; ++i, ++ix)
+    {
+      while( ix < nSize &&
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, ix)))[0] == 0) 
+	++ix;
+      assert( ix < nSize);  
+      
+      DPtr pSource = (*static_cast<DPtrGDL*>(hashTable->GetTag( sourceTag, ix)))[0];
+      BaseGDL* source = BaseGDL::interpreter->GetHeap( pSource);
+      assert( !doKeys || source != NULL);    
+      
+      if( source != NULL) // NULL is ok for values
+	source = source->Dup();
+      DPtr dID = e->Interpreter()->NewHeap(1,source);
+
+      cStruct = new DStructGDL( containerDesc, dimension());
+      cID = e->Interpreter()->NewHeap(1,cStruct);
+      (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
+      
+      if( cStructLast != NULL)
+	(*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+      else
+      { // 1st element
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+      }
+	    
+      cStructLast = cStruct;
+    }
+  
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = nCount;      
+
+    newObjGuard.Release();
+    return newObj;
+  }  
+    
+  BaseGDL* hash__haskey( EnvUDT* e)
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+
+    // see overload.cpp
+    const int kwSELFIx = 0;
+    const int kwKEYIx = 1;
+
+    SizeT nParam = e->NParam(2); // SELF, KEYLIST
+
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    if( selfP->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
+    if( !selfP->Scalar())
+      ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
+    DStructGDL* self = e->Interpreter()->GetObjHeap( (*static_cast<DObjGDL*>( selfP))[0]);
+   
+    BaseGDL* keyList = e->GetKW( kwKEYIx);
+    if( keyList == NULL || keyList == NullGDL::GetSingleInstance())
+      ThrowFromInternalUDSub( e, "Key must be a scalar string or number.");
+    if( keyList->Type() != GDL_STRING && !NumericType(keyList->Type()))
+      ThrowFromInternalUDSub( e, "Key must be a scalar string or number.");
+
+    if( keyList->N_Elements() == 1)
+    {
+	DLong hashIndex = HashIndex( self, keyList);
+	if( hashIndex >= 0)
+	  return new DLongGDL( 1);
+	return new DLongGDL( 0);
+    }
+    
+    SizeT keyListN_Elements = keyList->N_Elements();
+    DIntGDL* result = new DIntGDL( dimension(keyListN_Elements)); // zero
+    Guard<BaseGDL> resultGuard( result);
+    for( SizeT i=0; i<keyListN_Elements; ++i)
+    {
+	BaseGDL* key = keyList->NewIx( i);
+	Guard<BaseGDL> keyGuard( key);
+	DLong hashIndex = HashIndex( self, key);
+	if( hashIndex >= 0)
+	  (*result)[ i] = 1;
+    }
+    resultGuard.Release();
+    return result;
+  }
+
+  
   BaseGDL* hash__remove( EnvUDT* e, bool asFunction);
 
   BaseGDL* hash__remove_fun( EnvUDT* e)
@@ -388,23 +705,24 @@ namespace lib {
   {
     static DString hashName("HASH");
     static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
     // see overload.cpp
-    static int kwALLIx = 0; 
-    static int kwSELFIx = 1;
-    static int kwINDEXIx = 2;
+    const int kwALLIx = 0; 
+    const int kwSELFIx = 1;
+    const int kwINDEXIx = 2;
 
     bool kwALL = false;
     if (e->KeywordSet(kwALLIx)){ kwALL = true;}
 
     SizeT nParam = e->NParam(1); // minimum SELF
 
-    BaseGDL* selfP = e->GetKW( 0);
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    assert( selfP != NULL);
     if( selfP->Type() != GDL_OBJ)
       ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
     if( !selfP->Scalar())
@@ -425,13 +743,13 @@ namespace lib {
   	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
 
 	// new hash
-	DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+	DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
 	DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
 	BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
 	Guard<BaseGDL> newObjGuard( newObj);
 
 	// our new hash table
-	DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+	DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
 	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
 
 	// set our table to new empty table
@@ -456,7 +774,7 @@ namespace lib {
   	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
 
 	// our new hash table
-	DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+	DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
 	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
 
 	// set our table to new empty table
@@ -500,7 +818,7 @@ namespace lib {
     if( asFunction)
     {
       // new hash
-      DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+      DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
       DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
       BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
       Guard<BaseGDL> newObjGuard( newObj);
@@ -513,7 +831,7 @@ namespace lib {
       // our current table (for the descriptor)
 //       DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
 //       DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
-      DStructGDL* hashTable= new DStructGDL( FindInStructList( structList, entryName), dimension(initialTableSize));
+      DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
       DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
       (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = hashTableID;
 
@@ -553,11 +871,11 @@ namespace lib {
     //->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
     static DString hashName("HASH");
     static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
     const unsigned par1Ix = 4;
     
@@ -696,11 +1014,11 @@ namespace lib {
   {
     static DString hashName("HASH");
     static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
     const unsigned par1Ix = 2;
     
@@ -791,12 +1109,12 @@ namespace lib {
       DLong initialTableSize = GetInitialTableSize( nEntries);
     
       // new hash
-      DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+      DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
       DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
       BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
       Guard<BaseGDL> newObjGuard( newObj);
       // the return hash table
-      DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+      DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
       DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
       (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = hashTableID;
       (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = initialTableSize;
@@ -844,12 +1162,12 @@ namespace lib {
     DLong initialTableSize = GetInitialTableSize( nEntries);
   
     // new hash
-    DStructGDL* hashStruct= new DStructGDL( self->Desc(), dimension());
+    DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
     DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
     BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
     Guard<BaseGDL> newObjGuard( newObj);
     // the return hash table
-    DStructGDL* hashTable= new DStructGDL( thisHashTable->Desc(), dimension(initialTableSize));
+    DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
     DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
     (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = hashTableID;
     (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = initialTableSize;
@@ -893,15 +1211,15 @@ namespace lib {
   
     static DString hashName("HASH");
     static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = FindInStructList( structList, hashName)->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = FindInStructList( structList, entryName)->TagIndex( "PKEY");
-    static unsigned pValueTag = FindInStructList( structList, entryName)->TagIndex( "PVALUE");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
     // because of .RESET_SESSION, we cannot use static here
-    DStructDesc* hashDesc=FindInStructList( structList, hashName);
-    DStructDesc* entryDesc=FindInStructList( structList, entryName);
+    DStructDesc* hashDesc=structDesc::HASH;
+    DStructDesc* entryDesc=structDesc::GDL_HASHTABLEENTRY;
     assert( hashDesc != NULL && hashDesc->NTags() > 0);
     assert( entryDesc != NULL && entryDesc->NTags() > 0);
 
@@ -941,6 +1259,7 @@ namespace lib {
 	DStructDesc* desc = keyStruct->Desc();
 	for( SizeT t=0; t<desc->NTags(); ++t)
 	{
+// 	  DString validName = ValidTagName( desc->TagName(t));
 	  DStringGDL *structKey = new DStringGDL( desc->TagName(t));
 	  BaseGDL* structData = keyStruct->GetTag(t,0);
 	  assert(structData != NULL);

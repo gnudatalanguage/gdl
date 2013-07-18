@@ -27,8 +27,15 @@ namespace lib {
 
   void HASH___OverloadBracketsLeftSide( EnvUDT* e);
 
+  BaseGDL* hash__haskey( EnvUDT* e);
+
   BaseGDL* hash__remove_fun( EnvUDT* e);
   void hash__remove_pro( EnvUDT* e);
+
+  BaseGDL* hash__values( EnvUDT* e);
+  BaseGDL* hash__keys( EnvUDT* e);
+
+  BaseGDL* hash__tostruct( EnvUDT* e);
 
   BaseGDL* hash_fun( EnvT* e);
 

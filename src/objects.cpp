@@ -68,6 +68,14 @@ GDLFileListT  fileUnits;
 volatile bool sigControlC;
 int           debugMode;
 
+namespace structDesc {
+  // set in InitStructs()
+  DStructDesc* LIST = NULL;
+  DStructDesc* HASH = NULL;
+  DStructDesc* GDL_CONTAINER_NODE = NULL;
+  DStructDesc* GDL_HASHTABLEENTRY = NULL;
+}
+
 // for OpenMP
 DLong CpuTPOOL_NTHREADS;
 DLong CpuTPOOL_MIN_ELTS;
@@ -138,7 +146,8 @@ void InitStructs()
   gdlList->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlList);
-
+  structDesc::LIST = gdlList;
+  
   DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
   gdlContainerNode->AddTag("PNEXT", &aPtrRef);
   gdlContainerNode->AddTag("PDATA", &aPtrRef);
@@ -146,6 +155,7 @@ void InitStructs()
 //   gdlContainerNode->AddTag("FLAGS", &aLong);
   // insert into structList
   structList.push_back(gdlContainerNode);
+  structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
   DStructDesc* gdlHash = new DStructDesc( "HASH");
   gdlHash->AddTag("TABLE_BITS", &aULong);
@@ -158,12 +168,14 @@ void InitStructs()
   gdlHash->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlHash);
+  structDesc::HASH = gdlHash;
 
   DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
   gdlHashTE->AddTag("PKEY", &aPtrRef);
   gdlHashTE->AddTag("PVALUE", &aPtrRef);
   // insert into structList
   structList.push_back(gdlHashTE);
+  structDesc::GDL_HASHTABLEENTRY = gdlHashTE;
   
   // OBJECTS END =======================================================
 

@@ -738,6 +738,7 @@ struct ForLoopInfoT
   BaseGDL*  endLoopVar; // the source for foreach as well
   BaseGDL*  loopStepVar;
   DLong     foreachIx;
+//   bool      isHash; // only used in FOREACH_INDEXNode::Run() and FOREACH_INDEX_LOOPNode::Run()
 
   ForLoopInfoT()
   : endLoopVar(NULL)

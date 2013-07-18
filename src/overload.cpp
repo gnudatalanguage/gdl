@@ -596,6 +596,29 @@ void SetupOverloadSubroutines()
   DProHASH__REMOVE->AddPar("INDEX");
   tree2 = new WRAPPED_PRONode( lib::hash__remove_pro);
   DProHASH__REMOVE->SetTree( tree2);
-  listDesc->ProList().push_back(DProHASH__REMOVE);
+  hashDesc->ProList().push_back(DProHASH__REMOVE);
+// LIST::HASKEY()
+  DFun *DFunHASH__HASKEY = new DFun("HASKEY","HASH","<INTERNAL_LIBRARY>");
+  DFunHASH__HASKEY->AddPar("KEYLIST");
+  tree = new WRAPPED_FUNNode( lib::hash__haskey);
+  DFunHASH__HASKEY->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__HASKEY);
+// LIST::KEYS()
+  DFun *DFunHASH__KEYS = new DFun("KEYS","HASH","<INTERNAL_LIBRARY>");
+  tree = new WRAPPED_FUNNode( lib::hash__keys);
+  DFunHASH__KEYS->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__KEYS);
+// LIST::VALUES()
+  DFun *DFunHASH__VALUES = new DFun("VALUES","HASH","<INTERNAL_LIBRARY>");
+  tree = new WRAPPED_FUNNode( lib::hash__values);
+  DFunHASH__VALUES->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__VALUES);
+// LIST::TOSTRUCT()
+  DFun *DFunHASH__TOSTRUCT = new DFun("TOSTRUCT","HASH","<INTERNAL_LIBRARY>");
+  DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED");
+  DFunHASH__TOSTRUCT->AddKey("MISSING","MISSING");
+  tree = new WRAPPED_FUNNode( lib::hash__tostruct);
+  DFunHASH__TOSTRUCT->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__TOSTRUCT);
   
 }
