@@ -4640,6 +4640,7 @@ BaseGDL* transpose( EnvT* e)
     return new DIntGDL( 0);
   }
 
+  /*
   BaseGDL* convol( EnvT* e)
   {
     SizeT nParam=e->NParam( 2); 
@@ -4744,7 +4745,7 @@ BaseGDL* transpose( EnvT* e)
     return p0->Convol( p1, scale, NULL, center, false, edgeMode);
         
   }
-
+  */
   BaseGDL* rebin_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);

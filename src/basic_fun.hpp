@@ -121,7 +121,7 @@ namespace lib {
 
   BaseGDL* strjoin( EnvT* e);
 
-  BaseGDL* convol( EnvT* e);
+  //  BaseGDL* convol( EnvT* e);
 
   BaseGDL* rebin_fun( EnvT* e);
 
