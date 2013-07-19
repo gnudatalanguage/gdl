@@ -583,6 +583,28 @@ void SetupOverloadSubroutines()
   DProHASH_overloadBracketsLeftSide->SetTree( tree2); 
   hashDesc->ProList().push_back(DProHASH_overloadBracketsLeftSide);
   hashDesc->SetOperator(OOBracketsLeftSide,DProHASH_overloadBracketsLeftSide);
+
+  DFun *HASH_overloadPlus = new DFun("_OVERLOADPLUS","HASH","<INTERNAL_LIBRARY>");
+  HASH_overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
+  tree6 = new WRAPPED_FUNNode(lib::HASH___OverloadPlus);
+  HASH_overloadPlus->SetTree( tree6);
+  hashDesc->FunList().push_back(HASH_overloadPlus);
+  hashDesc->SetOperator(OOPlus,HASH_overloadPlus);
+ 
+  DFun *HASH_overloadEQ = new DFun("_OVERLOADEQ","HASH","<INTERNAL_LIBRARY>");
+  HASH_overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
+  tree4 = new WRAPPED_FUNNode(lib::HASH___OverloadEQOp);
+  HASH_overloadEQ->SetTree( tree4);
+  hashDesc->FunList().push_back(HASH_overloadEQ);
+  hashDesc->SetOperator(OOEQ,HASH_overloadEQ);
+
+  DFun *HASH_overloadNE = new DFun("_OVERLOADNE","HASH","<INTERNAL_LIBRARY>");
+  HASH_overloadNE->AddPar("LEFT")->AddPar("RIGHT");
+  tree4 = new WRAPPED_FUNNode(lib::HASH___OverloadNEOp);
+  HASH_overloadNE->SetTree( tree4);
+  hashDesc->FunList().push_back(HASH_overloadNE);
+  hashDesc->SetOperator(OOEQ,HASH_overloadNE);
+ 
 // LIST::REMOVE()
   DFun *DFunHASH__REMOVE = new DFun("REMOVE","HASH","<INTERNAL_LIBRARY>");
   DFunHASH__REMOVE->AddKey("ALL","ALL");

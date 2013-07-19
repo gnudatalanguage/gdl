@@ -23,6 +23,11 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
 
 namespace lib {
 
+  BaseGDL* HASH___OverloadNEOp( EnvUDT* e);
+  BaseGDL* HASH___OverloadEQOp( EnvUDT* e);
+
+  BaseGDL* HASH___OverloadPlus( EnvUDT* e);
+
   BaseGDL* HASH___OverloadBracketsRightSide( EnvUDT* e);
 
   void HASH___OverloadBracketsLeftSide( EnvUDT* e);
