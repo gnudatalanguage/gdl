@@ -570,30 +570,40 @@
 	   - support for .SKIP [NSteps] command
 
 0.9.4:
-           - when compiled with Eigen3 library, significant speed improvement in MATRIX_MULTIPLY() (and # operators), especially on multi-cores
+           - when compiled with Eigen3 library, significant speed improvement
+	     in MATRIX_MULTIPLY() (and # operators), especially on multi-cores
 	     Basic loading managment included (if some core are busy).
+           - LIST and HASH fully supported
            - .RESET_SESSION and .FULL_RESET_SESSION commands
-           - LIST fully supported
-           - HASH 
            - CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3 (sub-optimal)
            - large change in various graphic/plotting keywords:
-              - PLOT, OPLOT: All keywords supported except Z and T3D,  Correct handling of log/DATA/NORMAL/DEVICE coordinates and CLIPPING.
+              - PLOT, OPLOT: All keywords supported except Z and T3D,
+	      	Correct handling of log/DATA/NORMAL/DEVICE coordinates and CLIPPING.
               - PSYMs shapes now identical to IDL's.
               - PLOTS: idem as above, plus /CONTINUE
-              - XYOUTS: idem as above, one-argument support (XYOUTS,"string"). Enhancement wrt. reference program: color,size,angle,etc of text are vectors.
-              - CONTOUR: Support of all options except ZVALUE, ZAXIS,CELL_FILL, C_ANNOTATIONS, CLOSED, DOWNHILL, IRREGULAR, TRIANGULATION,PATH_***
-                                  Correct implementation of Z, [X,Y], i.e., contours may be skewed, rotated, etc depending on X and Y.
+              - XYOUTS: idem as above, one-argument support (XYOUTS,"string"). 
+	      	Enhancement wrt. reference program: color,size,angle,etc 
+		of text are vectors.
+              - CONTOUR: Support of all options except ZVALUE, ZAXIS,CELL_FILL, 
+	        C_ANNOTATIONS, CLOSED, DOWNHILL, IRREGULAR, TRIANGULATION,PATH_***
+               	Correct implementation of Z, [X,Y], i.e., contours may be skewed,
+		rotated, etc depending on X and Y.
                                   Better than IDL:
                                   - a new ZLOG option makes log contours as well.
                                   - C_ORIENTATION, C_SPACING are also vectors.
                                   - log axes give better results
-                                  - good contouring of Not-A-Number values in Z and MIN_VALUE/MAX_VALUE
+                                  - good contouring of Not-A-Number values in Z and 
+				    MIN_VALUE/MAX_VALUE
                                   - CLIPPING ok.
-                                    Automatic limits in some cases still different from IDL.
-              - AXIS and boxes in plots: all [XYZ]TICK[***] options supported except TICKV and a few TICKFORMAT specifics.
-              - CURSOR: full support for CURSOR command, which is interruptible by control-c and has all the options.
+                                  - Automatic limits in some cases still different from IDL.
+              - AXIS and boxes in plots: all [XYZ]TICK[***] options supported except TICKV
+	      	and a few TICKFORMAT specifics.
+              - CURSOR: full support for CURSOR command, which is interruptible by control-c 
+	      	and has all the options.
               - Added cursor-related functions TVCRS and command EMPTY. 
-              - Added DEVICE options CURSOR_CROSSHAIR, CURSOR_STANDARD, CURSOR_ORIGINAL and GET/SET_GRAPHICS_FUNCTION (GXoR, GXand, etc). 
-              - Disabled by default the focus in the X11 graphics windows as IDL does and repositioned WINDOWS by default to top-right of screen.
+              - Added DEVICE options CURSOR_CROSSHAIR, CURSOR_STANDARD, CURSOR_ORIGINAL and 
+	      	GET/SET_GRAPHICS_FUNCTION (GXoR, GXand, etc). 
+              - Disabled by default the focus in the X11 graphics windows as IDL does and 
+	      	repositioned WINDOWS by default to top-right of screen.
 
 

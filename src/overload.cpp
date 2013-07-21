@@ -603,7 +603,7 @@ void SetupOverloadSubroutines()
   tree4 = new WRAPPED_FUNNode(lib::HASH___OverloadNEOp);
   HASH_overloadNE->SetTree( tree4);
   hashDesc->FunList().push_back(HASH_overloadNE);
-  hashDesc->SetOperator(OOEQ,HASH_overloadNE);
+  hashDesc->SetOperator(OONE,HASH_overloadNE);
  
 // LIST::REMOVE()
   DFun *DFunHASH__REMOVE = new DFun("REMOVE","HASH","<INTERNAL_LIBRARY>");

@@ -452,14 +452,14 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     {
         HeapT::iterator it=heap.find( ID);
         if( it == heap.end()) 
-	  throw HeapException();
+            throw HeapException();
         return it->second.get();
     }
     static DStructGDL*& GetObjHeap( DObj ID)
     {
         ObjHeapT::iterator it=objHeap.find( ID);
         if( it == objHeap.end()) 
-	  throw HeapException();
+            throw HeapException();
         return it->second.get();
     }
 

@@ -296,17 +296,17 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
   assert( nSize == (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0]);
   DLong nCount = (*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0];
   
-  SizeT actPosPtr = 0;
-   std::cout << "inserting:  ";
-   key->ToStream( std::cout, 80, &actPosPtr);
-   std::cout << ":";
-   value->ToStream( std::cout, 80, &actPosPtr);
+//   SizeT actPosPtr = 0;
+//    std::cout << "inserting:  ";
+//    key->ToStream( std::cout, 80, &actPosPtr);
+//    std::cout << ":";
+//    value->ToStream( std::cout, 80, &actPosPtr);
   
   if( nCount == 0)
   {
     assert( nSize >= 1);
     DLong insertPos = nSize / 2;
-   std::cout << "   at " <<  i2s(insertPos) << std::endl;
+//    std::cout << "   at " <<  i2s(insertPos) << std::endl;
     DPtr pID = BaseGDL::interpreter->NewHeap(1,value);
     (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertPos)))[0] = pID;
     DPtr kID = BaseGDL::interpreter->NewHeap(1,key);
@@ -318,7 +318,7 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
   DLong hashIndex = HashIndex( hashTable, key);
   if( hashIndex >= 0) // hit -> overwrite
   {
-   std::cout << "  (ovwrt) at "<< i2s(hashIndex) <<std::endl;
+//    std::cout << "  (ovwrt) at "<< i2s(hashIndex) <<std::endl;
    
     assert( hashIndex < nSize);
     DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, hashIndex)))[0];
@@ -339,15 +339,19 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
     DLong nSize = hashTable->N_Elements();
   }
   
+//   std::cout << "  nSize = "<< i2s(nSize) <<std::endl;
+
   // new key -> insert 
   DLong insertPos = -(hashIndex + 1);
    
-   std::cout << "   try "<< i2s(insertPos) << "... ";
+//   std::cout << "   try "<< i2s(insertPos) << "... ";
 
   // make some space
   DLong nextFreeElementIx = insertPos;
   for( ; nextFreeElementIx < nSize; ++nextFreeElementIx)
   {
+    // shuffle against top
+    // insert at insertPos as old insertPos is shuffled up
     if( (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, nextFreeElementIx)))[0] == 0)
     {
       // shuffle elements away to make space for new element
@@ -360,27 +364,36 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
 	(*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
 	(*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i-1)))[0];
 
-	std::cout << i2s(i-1) << " -> " << i2s(i) << std::endl;
+// 	std::cout << i2s(i-1) << " -> " << i2s(i) << std::endl;
       }
       break;  
     }
   }
+  
   if( nextFreeElementIx >= nSize)
   {
-    nextFreeElementIx = insertPos - 1;
+    // shuffle against bottom
+    // insert at insertPos-1 as old insertPos stays at insertPos
+    --insertPos;
+    nextFreeElementIx = insertPos;
     for( ; nextFreeElementIx >= 0; --nextFreeElementIx)
     {
       if( (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, nextFreeElementIx)))[0] == 0)
       {
 	for( DLong i=nextFreeElementIx; i<insertPos; ++i)
 	{
+// 	  std::cout << i2s(i+1) << " -> " << i2s(i) << "   kID:";//std::endl;
+// 	  std::cout << (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0]; 
+// 	  std::cout << "   vID:" << (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
+// 	  std::cout << std::endl;
+
 	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0] =
 	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0];
 	  
 	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
 	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
 
-	  std::cout << i2s(i+1) << " -> " << i2s(i) << std::endl;
+// 	  std::cout << i2s(i+1) << " -> " << i2s(i) << std::endl;
 	}
 	break;
       }      
@@ -396,7 +409,7 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
   DPtr pID = BaseGDL::interpreter->NewHeap(1,value);
   (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertPos)))[0] = pID;
 
-  std::cout << "   at "<< i2s(insertPos) << "(" << i2s(kID) << "," << i2s(pID) << ")" <<std::endl;
+//   std::cout << "   at "<< i2s(insertPos) << "(" << i2s(kID) << "," << i2s(pID) << ")" <<std::endl;
 
   (*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0] = ++nCount;
 }
@@ -552,7 +565,7 @@ namespace lib {
     DObj rightID = 0;
     if( r != NULL && r->Type() == GDL_OBJ)
     {
-      DObjGDL* right = static_cast<DObjGDL*>(l);
+      DObjGDL* right = static_cast<DObjGDL*>(r);
       rightID = (*right)[0];
       if( rightID == 0)
       { // null object -> compare to !NULL
@@ -829,7 +842,7 @@ namespace lib {
     DObj rightID = 0;
     if( r != NULL && r->Type() == GDL_OBJ)
     {
-      DObjGDL* right = static_cast<DObjGDL*>(l);
+      DObjGDL* right = static_cast<DObjGDL*>(r);
       rightID = (*right)[0];
       if( rightID == 0)
       { // null object -> compare to !NULL

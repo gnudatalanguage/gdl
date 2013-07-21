@@ -878,7 +878,8 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 //   
 //       DFun* NEOverload = static_cast<DFun*>(desc->GetOperator( OONE));
 //       
-      DSubUD* NEOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OONE));
+      DSubUD* NEOverload = 
+	static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OONE));
       if( NEOverload != NULL)
       {
 	ProgNodeP callingNode = interpreter->GetRetTree();
