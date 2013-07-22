@@ -167,8 +167,9 @@ void LibInit()
 
   const string messageKey[]={"CONTINUE","INFORMATIONAL","IOERROR",
 			     "NONAME","NOPREFIX","NOPRINT",
-			     "RESET","REISSUE_LAST",KLISTEND}; //TRACEBACK IS NOT in MESSAGE but in HELP?
-  const string messageWarnKey[]={"LEVEL", "NAME", "BLOCK", KLISTEND};
+			     "RESET","REISSUE_LAST","TRACEBACK", KLISTEND}; 
+  //TRACEBACK is in MESSAGE but obsolete since 5.0. it is used widely in CMSVlib !
+  const string messageWarnKey[]={"LEVEL", "NAME", "BLOCK",KLISTEND};
   new DLibPro(lib::message,string("MESSAGE"),1,messageKey,messageWarnKey);
   
   const string cdKey[]={"CURRENT",KLISTEND};
