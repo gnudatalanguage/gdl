@@ -1687,6 +1687,17 @@ namespace lib {
 			p->Write( *os, swapEndian, compress, xdrs);
 			}
 	}
+
+    BaseGDL* p = e->GetParDefined( nParam-1);
+    SizeT cc=p->Dim(0);
+    BaseGDL** tcKW=NULL;
+    static int tcIx = e->KeywordIx( "TRANSFER_COUNT");
+    if( e->KeywordPresent( tcIx)) {
+      BaseGDL* p = e->GetParDefined( nParam-1);
+      tcKW = &e->GetKW( tcIx);
+      GDLDelete((*tcKW));
+      *tcKW= new DLongGDL(p->N_Elements());
+    }
 }
 
   void readu( EnvT* e)
@@ -1845,6 +1856,17 @@ namespace lib {
 	    recvBuf->erase(0, pos);
 	  }
 	}
+
+    BaseGDL* p = e->GetParDefined( nParam-1);
+    SizeT cc=p->Dim(0);
+    BaseGDL** tcKW=NULL;
+    static int tcIx = e->KeywordIx( "TRANSFER_COUNT");
+    if( e->KeywordPresent( tcIx)) {
+      BaseGDL* p = e->GetParDefined( nParam-1);
+      tcKW = &e->GetKW( tcIx);
+      GDLDelete((*tcKW));
+      *tcKW= new DLongGDL(p->N_Elements());
+    }
   }
 
   void on_error( EnvT* e)
