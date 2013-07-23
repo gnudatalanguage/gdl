@@ -767,8 +767,9 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   BaseGDL** objRef = &e->GetKW(1);
   if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
   {
+    if( !e->GlobalKW(1))
+       ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
     dotAccess = true;
-//       ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
   }
 
   BaseGDL* rValue = e->GetKW(2);
