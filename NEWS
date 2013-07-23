@@ -574,6 +574,11 @@
 	     in MATRIX_MULTIPLY() (and # operators), especially on multi-cores
 	     Basic loading managment included (if some core are busy).
            - LIST and HASH fully supported
+	     even left-side struct access is possible
+	     e. g.: GDL> h = HASH('key',{tag1:1,tag2:2}) & h['key'].tag1 = 3
+	     (for this, the OBJECT::_OVERLOADBRACKETSLEFTSIDE member procedure
+	     must set the OBJREF parameter to the accessed heap variable.
+	     It is signaled by passing !NULL as OBJREF in.)
            - .RESET_SESSION and .FULL_RESET_SESSION commands
            - CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3 (sub-optimal)
            - large change in various graphic/plotting keywords:

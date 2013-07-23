@@ -3927,14 +3927,105 @@ BaseGDL* DOTNode::Eval()
       _t = _t->getNextSibling();
     }
 
-    ArrayIndexListT* aL=interpreter->arrayindex_list(_t);
+    
+    bool handled = false;
+    if( !r->IsAssoc() && r->Type() == GDL_OBJ && r->StrictScalar())
+    {
+      // check for _overloadBracketsRightSide
+      DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
+//       if( s != 0)  // no overloads for null object
+//       {
+// 	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+// 	if( oStructGDL != NULL) // if object not valid -> default behaviour
+// 	  {
+// 	    DStructDesc* desc = oStructGDL->Desc();
+// 
+// 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
+      DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
+      if( bracketsRightSideOverload != NULL)
+	{
+	  // _overloadBracketsRightSide
+	  bool internalDSubUD = bracketsRightSideOverload->GetTree()->IsWrappedNode();  
 
-    guard.reset(aL);
+	  DObjGDL* self = static_cast<DObjGDL*>(r);
+	  Guard<BaseGDL> selfGuard;
+	  if( aD.IsOwner())
+	  {
+	    aD.SetOwner( false);
+	    // WE are now the proud owner of 'self'
+	    selfGuard.Init( self);
+	    // so it might be overwritten
+	  }
+	  else 
+	  {
+	    if( !internalDSubUD) // internal beahve well
+	    {
+	      self = self->Dup(); // res should be not changeable via SELF
+	      selfGuard.Init( self);
+	    }
+	  }	  
+	  
+	  
+	  IxExprListT indexList;
+	  // uses arrIxListNoAssoc
+	  interpreter->arrayindex_list_overload( _t, indexList);
+	  ArrayIndexListGuard guard(_t->arrIxListNoAssoc);
 
-    // check here for object and get struct
-    //structR=dynamic_cast<DStructGDL*>(r);
-    // this is much faster than a dynamic_cast
-    interpreter->SetRootR( this, &aD, r, aL);
+	  // hidden SELF is counted as well
+	  int nParSub = bracketsRightSideOverload->NPar();
+	  assert( nParSub >= 1); // SELF
+	  // indexList.size() > regular paramters w/o SELF
+	  if( indexList.size() > nParSub - 1)
+	  {
+	    indexList.Cleanup();
+	    throw GDLException( this, bracketsRightSideOverload->ObjectName() +
+				": Incorrect number of arguments.",
+				false, false);
+	  }
+
+	  // adds already SELF parameter
+	  EnvUDT* newEnv= new EnvUDT( this, bracketsRightSideOverload, &self);
+	  // no guarding of newEnv here (no exceptions until push_back())
+	  
+	  // parameters
+	  for( SizeT p=0; p<indexList.size(); ++p)
+	    newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+
+	  StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
+	  interpreter->CallStack().push_back( newEnv); 
+	  
+	  // make the call, return the result
+	  BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+	  if( selfGuard.Get() != NULL && self != selfGuard.Get())
+	  {
+	    // always put out warning first, in case of a later crash
+	    Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() + 
+		      ": Assignment to SELF detected (GDL session still ok).");
+	    // assignment to SELF -> self was deleted and points to new variable
+	    // which it owns
+	    selfGuard.Release();
+	    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+	      selfGuard.Reset(self);
+	  }
+
+	  aD.SetOwner( true); // aD owns res here
+	  interpreter->SetRootR( this, &aD, res, NULL);
+	  handled = true;
+	}  
+    }
+    if( !handled)
+    {
+      // regular (non-object) case
+      ArrayIndexListT* aL = interpreter->arrayindex_list(_t);
+
+      guard.reset(aL);
+
+      // check here for object and get struct
+      //structR=dynamic_cast<DStructGDL*>(r);
+      // this is much faster than a dynamic_cast
+      interpreter->SetRootR( this, &aD, r, aL);
+    }
     _t = this->getFirstChild()->getNextSibling();
   }
   else // ! ARRAYEXPR
@@ -4010,12 +4101,12 @@ BaseGDL* ARRAYEXPRNode::Eval()
       r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
 
       if( !ProgNode::interpreter->CallStack().back()->Contains( r))
-	rGuard.Reset( r); // guard if no global data	  
+	rGuard.Init( r); // guard if no global data	  
     }
     else
     {
       r=_t->Eval();
-      rGuard.Reset( r);  
+      rGuard.Init( r);  
     }
   }
   catch( GDLException& ex)

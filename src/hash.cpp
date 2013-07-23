@@ -1788,17 +1788,21 @@ namespace lib {
     if( nParam > 5) // consider implicit SELF
       ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
-    BaseGDL* objRef = e->GetKW(1);
-    if( objRef == NULL)
+    // handle DOT access
+    bool dotAccess = false;
+    
+    BaseGDL** objRef = &e->GetKW(1);
+    if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
-      ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
+      dotAccess = true;
+//       ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
     }
     BaseGDL* rValue = e->GetKW(2);
     if( rValue == NULL)
     {
       rValue = NullGDL::GetSingleInstance();
     }
-
+    
     BaseGDL* selfP = e->GetKW( 0);
     DStructGDL* self = GetSELF( selfP, e);
 
@@ -1831,7 +1835,13 @@ namespace lib {
     DLong isRangeX = (*isRangeLong)[0];
     if( isRangeX != 0 && isRangeX != 1)
     {
-      ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(0)+"]) is out of allowed range.");
+//       if( (isRangeX == 2 || isRangeX == 3) && rValue == NullGDL::GetSingleInstance())
+//       {
+// 	dotAccess = true;
+// 	isRangeX -= 2;
+//       }
+//       else
+	ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(0)+"]) is out of allowed range.");
     }
     if( isRangeX == 1)
     {
@@ -1839,6 +1849,7 @@ namespace lib {
       {
 	ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( par1Ix)));
       }
+      
       DLongGDL* parXLong;
       Guard<DLongGDL> parXLongGuard;
       if( parX->Type() != GDL_LONG)
@@ -1874,10 +1885,24 @@ namespace lib {
 
     if( par1N_Elements == 1) // single key
     {
+	if( dotAccess) // -> objRef is NULL (or !NULL)
+	{
+	  DLong hashIndex = HashIndex( thisHashTable, parX);
+	  if( hashIndex < 0)
+	    ThrowFromInternalUDSub( e, "Key not found.");
+
+	  *objRef = thisHashTable->GetTag( pValueTag, hashIndex)->Dup();
+	  return;
+	}    
+	
 	bool stolen = e->StealLocalKW( par1Ix);
-	assert( stolen); // if( !stolen) par1Ix = par1Ix->Dup();
+	if( !stolen) parX = parX->Dup(); // if called explicitely
 	InsertIntoHashTable( self, thisHashTable, parX, rValue->Dup());
 	return;
+    }
+    if( dotAccess)
+    {
+      ThrowFromInternalUDSub( e, "Only single value struct access is allowed.");
     }
 
     if( rValue != NULL && rValue != NullGDL::GetSingleInstance())

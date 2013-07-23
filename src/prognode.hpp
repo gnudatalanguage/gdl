@@ -328,6 +328,7 @@ public:
   friend class ARRAYEXPR_FCALLNode;
   friend class EXPRNode;
   friend class SYSVARNode;
+  friend class DOTNode;
 };
 
 

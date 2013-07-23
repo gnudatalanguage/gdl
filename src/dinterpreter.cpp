@@ -196,7 +196,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 	    if( !isObj || (sss != ooo))
 	    {
 	      // call SetProperty
-		  throw GDLException( tt, "Calling SetProperty not yet implemented: "+Name(r));
+	      throw GDLException( tt, "Calling SetProperty not yet implemented: "+Name(r));
 	      //return;
 	    }
 	  }

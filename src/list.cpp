@@ -761,11 +761,16 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   if( nParam > 5) // consider implicit SELF
     ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
-  BaseGDL* objRef = e->GetKW(1);
-  if( objRef == NULL)
+  // handle DOT access
+  bool dotAccess = false;
+
+  BaseGDL** objRef = &e->GetKW(1);
+  if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
   {
-    ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
+    dotAccess = true;
+//       ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");
   }
+
   BaseGDL* rValue = e->GetKW(2);
   if( rValue == NULL)
   {
@@ -884,12 +889,28 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   
   SizeT allIxSize = allIx->size();
   
+  if( dotAccess) // -> objRef is NULL (or !NULL)
+  {
+    if( rValue != NullGDL::GetSingleInstance())
+    {
+      ThrowFromInternalUDSub( e, "For struct access (OBJREF is !NULL), RVALUE must be !NULL as well.");      
+    }
+    if( allIxSize != 1)
+      ThrowFromInternalUDSub( e, "Only single value struct access is allowed.");
+
+    SizeT actIx = allIx->operator[](0);
+    DPtr pActNode = GetLISTNode( e, self, actIx);
+    DStructGDL* actNode = GetLISTStruct( e, pActNode);   
+    *objRef = actNode->GetTag( pDataTag, 0)->Dup();
+    return;
+  }
+  
   SizeT rValueSize= rValue->Size();
-  if( rValueSize != allIxSize && rValueSize != 1)
+  if( rValueSize != allIxSize && rValueSize > 1)
     ThrowFromInternalUDSub( e, "Incorrect number of elements for Values ("+
     i2s(allIxSize)+" NE "+i2s(rValueSize)+").");
 
-  if( rValueSize == 1)
+  if( rValueSize <= 1)
   {
     for( SizeT i=0; i<allIxSize; ++i)
     {
@@ -1657,7 +1678,12 @@ BaseGDL* list__toarray( EnvUDT* e)
 	GDLDelete(value);
       }
 
-      if( insertPos == -1 || insertPos == nList) // head
+      if( nList == 0) // empty LIST
+      {
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = firstID;
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      	
+      }
+      else if( insertPos == -1 || insertPos == nList) // head
       {
 	DPtr pHead = (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0];	      
 	DStructGDL* headNode = GetLISTStruct( e, pHead);  
@@ -1702,7 +1728,12 @@ BaseGDL* list__toarray( EnvUDT* e)
       (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
       cID = e->Interpreter()->NewHeap(1,cStruct);
       
-      if( insertPos == -1 || insertPos == nList) // head
+      if( nList == 0) // empty LIST
+      {
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      	
+      }
+      else if( insertPos == -1 || insertPos == nList) // head
       {
 	DPtr pHead = (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0];	      
 	DStructGDL* headNode = GetLISTStruct( e, pHead);  
