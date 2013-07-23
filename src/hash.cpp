@@ -1887,6 +1887,11 @@ namespace lib {
     {
 	if( dotAccess) // -> objRef is NULL (or !NULL)
 	{
+	  if( rValue != NullGDL::GetSingleInstance())
+	  {
+	    ThrowFromInternalUDSub( e, "For struct access (OBJREF is !NULL), RVALUE must be !NULL as well.");      
+	  }
+
 	  DLong hashIndex = HashIndex( thisHashTable, parX);
 	  if( hashIndex < 0)
 	    ThrowFromInternalUDSub( e, "Key not found.");
