@@ -160,7 +160,6 @@ if KEYWORD_SET(test) then STOP
 ;
 nbp_min=MIN([nbp_x,nbp_y,nbp_ey,nbp_ex])
 if (nbp_min LT 2) then message, 'Not enough points to plot.'
-if (nbp_min GT 100) then print, 'Warning: please wait until end of long rendering'
 ;
 ; we limit the range for all array up to "nbp_min"
 ;
@@ -172,6 +171,8 @@ if (nbp_ey GT nbp_min) then y_err=y_err[0:nbp_min-1]
 ;
 y_low=y_new-y_err
 y_hig=y_new+y_err
+; use NaN with PLOTS to go fast!
+null=replicate(!values.d_nan,nbp_min)
 ;
 ; Eventually, we have also 2 arrays for X-errors
 if (flag_x EQ 1) then begin
@@ -234,14 +235,21 @@ endif
 ; we overplot the error bars
 ;
 ; begin of basic PLOTERR feature (only on Y axis ...)
-;
-for i=0,(nbp_min-1) do PLOTS,[x_new[i], x_new[i]], [y_low[i], y_hig[i]]
+; speedup trick by GD - to be tested -
+x_new2=reform(transpose([[x_new],[x_new],[null]]),3*nbp_min)
+y_new2=reform(transpose([[y_low],[y_hig],[null]]),3*nbp_min)
+plots,x_new2,y_new2
+
+;for i=0,(nbp_min-1) do PLOTS,[x_new[i], x_new[i]], [y_low[i], y_hig[i]]
 ;
 ; end of basic PLOTERR feature
-; begin og extra PLOTERR features !
+; begin of extra PLOTERR features !
 ;
 if (flag_x EQ 1) then begin
-    for i=0,(nbp_min-1) do PLOTS,[x_low[i], x_hig[i]], [y_new[i], y_new[i]]
+   x_new3=reform(transpose([[x_low],[x_hig],[null]]),3*nbp_min)
+   y_new3=reform(transpose([[y_new],[y_new],[null]]),3*nbp_min)
+   plots,x_new3,y_new3
+;    for i=0,(nbp_min-1) do PLOTS,[x_low[i], x_hig[i]], [y_new[i], y_new[i]]
 endif 
 ;
 if KEYWORD_SET(hat) then begin
@@ -283,20 +291,26 @@ if KEYWORD_SET(hat) then begin
     ;;
     x_hatlow=x_new-x_half
     x_hathig=x_new+x_half
-    for i=0,(nbp_min-1) do begin
-        PLOTS,[x_hatlow[i], x_hathig[i]], [y_low[i], y_low[i]]
-        PLOTS,[x_hatlow[i], x_hathig[i]], [y_hig[i], y_hig[i]]
-    endfor
+    x_new4=reform(transpose([[x_hatlow],[x_hathig],[null],[x_hatlow],[x_hathig],[null]]),6*nbp_min)
+    y_new4=reform(transpose([[y_low],[y_low],[null],[y_hig],[y_hig],[null]]),6*nbp_min)
+    plots,x_new4,y_new4
+;    for i=0,(nbp_min-1) do begin
+;        PLOTS,[x_hatlow[i], x_hathig[i]], [y_low[i], y_low[i]]
+;        PLOTS,[x_hatlow[i], x_hathig[i]], [y_hig[i], y_hig[i]]
+;    endfor
     ;;
     ;; second we plot the Vertical hats of the Horizontal bars
     ;;
     if (flag_x EQ 1) then begin
         y_hatlow=y_new-y_half
         y_hathig=y_new+y_half
-        for i=0,(nbp_min-1) do begin
-            PLOTS,[x_low[i], x_low[i]], [y_hatlow[i], y_hathig[i]]
-            PLOTS,[x_hig[i], x_hig[i]], [y_hatlow[i], y_hathig[i]]
-        endfor
+        y_new5=reform(transpose([[y_hatlow],[y_hathig],[null],[y_hatlow],[y_hathig],[null]]),6*nbp_min)
+        x_new5=reform(transpose([[x_low],[x_low],[null],[x_hig],[x_hig],[null]]),6*nbp_min)
+    plots,x_new5,y_new5
+;        for i=0,(nbp_min-1) do begin
+;            PLOTS,[x_low[i], x_low[i]], [y_hatlow[i], y_hathig[i]]
+;            PLOTS,[x_hig[i], x_hig[i]], [y_hatlow[i], y_hathig[i]]
+;        endfor
     endif
 endif
 ;
