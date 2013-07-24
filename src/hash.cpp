@@ -332,11 +332,11 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
 
   if( nSize <= ((nCount+1) * 10 / 8)) // grow on 80% occupation. TODO: find optimal value
   {
-    std::cout << "   grow table "<< i2s(nSize) << " -> " << i2s(nSize * 2) << std::endl;
+//     std::cout << "   grow table "<< i2s(nSize) << " -> " << i2s(nSize * 2) << std::endl;
 
     DStructGDL* hashTable = GrowHashTable( hashStruct, hashTable, nSize * 2); // grow to 50% occupation.  TODO: find optimal value
 //     nSize = (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
-    DLong nSize = hashTable->N_Elements();
+    nSize = hashTable->N_Elements();
   }
   
 //   std::cout << "  nSize = "<< i2s(nSize) <<std::endl;

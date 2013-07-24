@@ -172,7 +172,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
       DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
       DStructDesc* desc = oStruct->Desc();
 
-      bool isObj = callStack.back()->IsObject();
+      bool isObj = callStack.back()->IsObject(); // called from member subroutine?
 
       if( desc->IsParent( GDL_OBJECT_NAME))
 	  {
@@ -241,14 +241,14 @@ if( r->Type() == GDL_STRUCT)
   }
 else
   {
+      ArrayIndexListGuard guard( aL);
+
       if( r->Type() != GDL_OBJ)
 	  {
 	      throw GDLException( tt, "Expression must be a"
 				  " STRUCT in this context: "+Name(r),
 				  true,false);
 	  }
-
-      ArrayIndexListGuard guard( aL);
 
       DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
       DStructDesc* desc = oStruct->Desc();
