@@ -114,7 +114,7 @@ DLong HashIndex( DStructGDL* hashTable, BaseGDL* key)
   }
 }
   
-// copies the keys and values  
+// copies all keys and values  
 DStructGDL* CopyHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong nSizeNew)
 {
   static DString hashName("HASH");
@@ -130,21 +130,22 @@ DStructGDL* CopyHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
  
   DLong nSize = hashTable->N_Elements();//(*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
   DLong nCount = (*static_cast<DLongGDL*>( hashStruct->GetTag( nCountTag, 0)))[0];
-   
+
+  assert( nSizeNew >= nCount);
+  
   DStructGDL* newHashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(nSizeNew));
 
   // copy old table to new one, insert holes
-  SizeT oldIx = 0;
-  for( SizeT nAdd=0; nAdd<nCount; ++nAdd)
+  SizeT nAdd = 0;
+  for( SizeT oldIx=0; oldIx<nSize; ++oldIx)
   {
-    // find next old entry
-    while( oldIx < nSize &&
-    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0) 
-      ++oldIx;
-    assert( oldIx < nSize);  
-      
+    if( (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0)
+      continue;
+
     SizeT newIx = nAdd * nSizeNew / nCount;
     assert( newIx >= nAdd);
+    
+    ++nAdd;
     
     DPtr keyP = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0];
     // create new heap copy
@@ -161,15 +162,45 @@ DStructGDL* CopyHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
     if( value != NULL)
       value = value->Dup();
     DPtr newValP = BaseGDL::interpreter->NewHeap( 1, value);    
-    (*static_cast<DPtrGDL*>(newHashTable->GetTag( pValueTag, newIx)))[0] = newValP;
-    
+    (*static_cast<DPtrGDL*>(newHashTable->GetTag( pValueTag, newIx)))[0] = newValP;    
   }
+
+//   SizeT oldIx = 0;
+//   for( SizeT nAdd=0; nAdd<nCount; ++nAdd)
+//   {
+//     // find next old entry
+//     while( oldIx < nSize &&
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0) 
+//       ++oldIx;
+//     assert( oldIx < nSize);  
+//       
+//     SizeT newIx = nAdd * nSizeNew / nCount;
+//     assert( newIx >= nAdd);
+//     
+//     DPtr keyP = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0];
+//     // create new heap copy
+//     BaseGDL* key = BaseGDL::interpreter->GetHeap( keyP);
+//     assert( key != NULL);
+//     DPtr newKeyP = BaseGDL::interpreter->NewHeap( 1, key->Dup());
+//     
+//     (*static_cast<DPtrGDL*>(newHashTable->GetTag( pKeyTag, newIx)))[0] = newKeyP;
+// 
+//     
+//     DPtr valP = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, oldIx)))[0];
+//     // create new heap copy
+//     BaseGDL* value = BaseGDL::interpreter->GetHeap( valP);
+//     if( value != NULL)
+//       value = value->Dup();
+//     DPtr newValP = BaseGDL::interpreter->NewHeap( 1, value);    
+//     (*static_cast<DPtrGDL*>(newHashTable->GetTag( pValueTag, newIx)))[0] = newValP;
+//     
+//   }
   return newHashTable;
 }
   
   
-// keeps the keys and values  
-DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong nSizeNew)
+// keeps the keys and values 
+void GrowHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, DLong nSizeNew)
 {
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
@@ -187,18 +218,19 @@ DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
    
   DStructGDL* newHashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(nSizeNew));
 
+  assert( nSizeNew > nCount);
+  
   // copy old table to new one, insert holes
-  SizeT oldIx = 0;
-  for( SizeT nAdd=0; nAdd<nCount; ++nAdd)
+  SizeT nAdd = 0;
+  for( SizeT oldIx=0; oldIx<nSize; ++oldIx)
   {
-    // find next old entry
-    while( oldIx < nSize &&
-    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0) 
-      oldIx++;
-    assert( oldIx < nSize);  
-      
-    SizeT newIx = nAdd * nSizeNew / nCount;
+    if( (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0)
+      continue;
+    
+    SizeT newIx = nAdd * nSizeNew / nCount; // +1 : keep bottom free
     assert( newIx >= nAdd);
+    
+    ++nAdd;
     
     (*static_cast<DPtrGDL*>(newHashTable->GetTag( pKeyTag, newIx)))[0] =
     (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0];          
@@ -209,16 +241,42 @@ DStructGDL* GrowHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
     (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, oldIx)))[0];
     // prevent ref-count cleanup
     (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, oldIx)))[0] = 0;
-    
   }
+  
+//   SizeT oldIx = 0;
+//   for( SizeT nAdd=0; nAdd<nCount; ++nAdd)
+//   {
+//     // find next old entry
+//     while( oldIx < nSize &&
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] == 0) 
+//       oldIx++;
+//     assert( oldIx < nSize);  
+//       
+//     SizeT newIx = nAdd * nSizeNew / nCount; // +1 : keep bottom free
+//     assert( newIx >= nAdd);
+//     
+//     (*static_cast<DPtrGDL*>(newHashTable->GetTag( pKeyTag, newIx)))[0] =
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0];          
+//     // prevent ref-count cleanup
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, oldIx)))[0] = 0;
+// 
+//     (*static_cast<DPtrGDL*>(newHashTable->GetTag( pValueTag, newIx)))[0] = 
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, oldIx)))[0];
+//     // prevent ref-count cleanup
+//     (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, oldIx)))[0] = 0;
+//     
+//   }
 
   DPtr hashTableID = (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0];
   assert( BaseGDL::interpreter->GetHeap( hashTableID) == hashTable);
   // delete old
   delete hashTable;
-  // set new
+  // set new instead
   BaseGDL::interpreter->GetHeap( hashTableID) = newHashTable;
+  // update nSize
   (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = newHashTable->N_Elements();
+  // return the new table
+  hashTable = newHashTable;
 }
   
   
@@ -277,8 +335,8 @@ BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
 }
   
   
-  
-void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL* key, BaseGDL* value)
+// must pass hashTable as reference as it might be changed (GrowHashTable)
+void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, BaseGDL* key, BaseGDL* value)
 {
   static DString hashName("HASH");
   static DString entryName("GDL_HASHTABLEENTRY");
@@ -315,6 +373,17 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
     return;
   }
   
+  // must be done here, otherwise hashIndex will be not in sync
+  if( nSize <= (nCount * 10 / 8)) // grow on 80% occupation. TODO: find optimal value
+  {
+//     std::cout << "   grow table "<< i2s(nSize) << " -> " << i2s(nSize * 2) << std::endl;
+
+    // deletes hashTable, replaces it by new one, updates nSize
+    GrowHashTable( hashStruct, hashTable, nSize * 2); // grow to 50% occupation.  TODO: find optimal value
+//     nSize = (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
+    nSize = hashTable->N_Elements();
+  }
+  
   DLong hashIndex = HashIndex( hashTable, key);
   if( hashIndex >= 0) // hit -> overwrite
   {
@@ -330,15 +399,6 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, BaseGDL
     return;
   }
 
-  if( nSize <= ((nCount+1) * 10 / 8)) // grow on 80% occupation. TODO: find optimal value
-  {
-//     std::cout << "   grow table "<< i2s(nSize) << " -> " << i2s(nSize * 2) << std::endl;
-
-    DStructGDL* hashTable = GrowHashTable( hashStruct, hashTable, nSize * 2); // grow to 50% occupation.  TODO: find optimal value
-//     nSize = (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0];
-    nSize = hashTable->N_Elements();
-  }
-  
 //   std::cout << "  nSize = "<< i2s(nSize) <<std::endl;
 
   // new key -> insert 
@@ -1571,12 +1631,15 @@ namespace lib {
     if( keyList->Type() != GDL_STRING && !NumericType(keyList->Type()))
       ThrowFromInternalUDSub( e, "Key must be a scalar string or number.");
 
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+
     if( keyList->N_Elements() == 1)
     {
-	DLong hashIndex = HashIndex( self, keyList);
-	if( hashIndex >= 0)
-	  return new DLongGDL( 1);
-	return new DLongGDL( 0);
+      DLong hashIndex = HashIndex( thisHashTable, keyList);
+      if( hashIndex >= 0)
+	return new DLongGDL( 1);
+      return new DLongGDL( 0);
     }
     
     SizeT keyListN_Elements = keyList->N_Elements();
@@ -1586,7 +1649,7 @@ namespace lib {
     {
 	BaseGDL* key = keyList->NewIx( i);
 	Guard<BaseGDL> keyGuard( key);
-	DLong hashIndex = HashIndex( self, key);
+	DLong hashIndex = HashIndex( thisHashTable, key);
 	if( hashIndex >= 0)
 	  (*result)[ i] = 1;
     }

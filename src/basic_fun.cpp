@@ -1882,16 +1882,16 @@ TRACEOMP( __FILE__, __LINE__)
 
   BaseGDL* strmid( EnvT* e)
   {
-    e->NParam( 2);//, "STRMID");
+    SizeT nParam = e->NParam( 2);//, "STRMID");
 
     bool reverse =  e->KeywordSet(0);
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DLongGDL*   p1L = e->GetParAs<DLongGDL>( 1);
 
-    BaseGDL*  p2  = e->GetPar( 2);
+//     BaseGDL*  p2  = e->GetPar( 2);
     DLongGDL* p2L = NULL;
-    if( p2 != NULL) p2L = e->GetParAs<DLongGDL>( 2);
+    if( nParam > 2) p2L = e->GetParAs<DLongGDL>( 2);
 
     DLong scVal1;
     bool sc1 = p1L->Scalar( scVal1);
@@ -1910,9 +1910,8 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	stride = p1L->Dim( 0);
 	if( stride != p2L->Dim( 0))
-	  e->Throw(
-			      "Starting offset and length arguments "
-			      "have incompatible first dimension.");	  
+	  e->Throw( "Starting offset and length arguments "
+		    "have incompatible first dimension.");	  
       }
     else
       {
@@ -1935,6 +1934,22 @@ TRACEOMP( __FILE__, __LINE__)
     SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
+    if( nSrcStr == 1)
+    {
+	// possibly this optimization is not worth the longer code (as the gain can only be a small fraction
+	// of the overall time), but then this is a very common use
+	for( long ii=0; ii<stride; ++ii)
+	{
+		SizeT destIx = ii;
+		DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
+		DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
+		if( actLen <= 0)
+			(*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
+		else	
+			(*res)[ destIx] = StrMid((*p0S)[ 0], actFirst, actLen, reverse);
+	}
+	return res;
+    }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
 {
@@ -5077,7 +5092,7 @@ BaseGDL* transpose( EnvT* e)
     bool pre0 = e->KeywordSet( pre0Ix);
 
     static int regexIx = e->KeywordIx( "REGEX");
-    bool regex = e->KeywordPresent( regexIx);
+    bool regex = e->KeywordSet( regexIx);
     char err_msg[MAX_REGEXPERR_LENGTH];
     regex_t regexp;
     

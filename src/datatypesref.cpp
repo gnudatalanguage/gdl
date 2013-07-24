@@ -1299,7 +1299,7 @@ BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
     
     BaseGDL* result = BaseGDL::interpreter->GetHeap( actP);
-    if( result = NULL)
+    if( result == NULL)
       return NullGDL::GetSingleInstance();
     return result->Dup();
   }
