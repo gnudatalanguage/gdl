@@ -3547,8 +3547,8 @@ BaseGDL* POWNCNode::Eval()
 	  fcallNodeFunIx = fcallNode->funIx;
 	  throw innerEx;
 	}
-	string msg = "Ambiguous: " + ex.toString() +
-	"  or: " + innerEx.toString();
+	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+	"  or: " + innerEx.ANTLRException::toString();
 	throw GDLException(this,msg,true,false);
       }
     }
@@ -3615,8 +3615,8 @@ BaseGDL* POWNCNode::Eval()
 	    fcallNodeFunIx = fcallNode->funIx;
 	    throw innerEx;
 	  }
-	  string msg = "Ambiguous: " + ex.toString() +
-	  "  or: " + innerEx.toString();
+	  string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+	  "  or: " + innerEx.ANTLRException::toString();
 	  throw GDLException(this,msg,true,false);
 	}
     }
@@ -3684,8 +3684,8 @@ BaseGDL* POWNCNode::Eval()
 	  fcallNodeFunIx = fcallNode->funIx;
 	  throw innerEx;
 	}
-	string msg = "Ambiguous: " + ex.toString() +
-	"  or: " + innerEx.toString();
+	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+	"  or: " + innerEx.ANTLRException::toString();
 	throw GDLException(this,msg,true,false);
       }
     }

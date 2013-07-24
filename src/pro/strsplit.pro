@@ -22,11 +22,13 @@
 ;   11-Jul-2012 : When /extract, we must return STRARR even for 1-element
 ;   14-Aug-2012 : Now GDL enforces scalar type in FOR loop ... take care
 ;   of STRLEN ! We ensure to work on pure STRING = '', not STRING = Array[1]
+;   25-Jul-2013 : After fixing STRTOK this simplified version should do.
 ;
 ; LICENCE:
 ; Copyright (C)
 ; 2004, Pierre Chanial
 ; 2010, Alain Coulais and Lea Noreskal; 2012 :AC
+; 2013, Marc Schellens
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
@@ -34,35 +36,6 @@
 ;
 ;-
 ;
-function STRMULTIPOS, str, single_char, test=test
-;
-ON_ERROR, 2
-;
-if (SIZE(str, /type) NE 7) OR (SIZE(single_char, /type) NE 7) then begin
-   MESSAGE, 'Invalid input string.'
-   return, -1
-endif
-if (STRLEN(single_char) NE 1) then begin
-   MESSAGE, 'field2 must be a Single Char'
-   return, -1
-endif
-;
-inside_str=str[0]
-;
-resu=-1
-;
-for ii=0, STRLEN(inside_str)-1 do begin
-   sub_str=STRMID(inside_str,ii,1)
-   if (sub_str EQ single_char) then resu=[resu,ii]
-endfor
-;
-if N_ELEMENTS(resu) GT 1 then resu=resu[1:*]
-;
-if KEYWORD_SET(test) then STOP
-;
-return, resu
-;
-end
 ;
 ; ----------------------------------------
 ;
@@ -138,80 +111,13 @@ endif
 ; When no Pattern is provided, default pattern is white space (' ')
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 1)) then begin
-   resu=STRTOK(local_input1, extract=extract, preserve_null=preserve_null)
+   resu=STRTOK(local_input1, extract=extract,$
+               REGEX=regex, preserve_null=preserve_null)
 endif
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
-   ;;
-   ;; AC 14-Oct-2010: may be not fully OK
-   if KEYWORD_SET(regex) then begin
-      resu=STRTOK(local_input1, local_input2, extract=extract,$
-                  REGEX=regex, preserve_null=preserve_null)
-   endif else begin
-      resu=0
-      beg=0
-      ;;
-      for ii=0, STRLEN(local_input2)-1 do begin
-         resu=[resu, STRMULTIPOS(local_input1, STRMID(local_input2, ii, 1))]
-      endfor
-      ;;
-      resu=resu[WHERE(resu GE 0)]
-      tst=resu[WHERE(resu EQ 0)]
-      resu=resu[UNIQ(resu,SORT(resu))]
-      ;;
-      if N_ELEMENTS(tst) EQ 2 then beg=1
-      ;;
-      if KEYWORD_SET(extract) then begin
-         if (beg eq 1) then resu=[0,resu]
-         if N_ELEMENTS(resu) EQ 1 then begin
-            if (beg eq 0) then begin 
-               resu=local_input1
-            endif else begin
-               resu=STRMID(local_input1, resu[0]+1)
-            endelse
-         endif else begin            
-            sresu=STRARR(N_ELEMENTS(resu))
-            if (beg eq 0) then begin 
-               sresu[0]=STRMID(local_input1, 0, resu[1])
-            endif else begin
-               sresu[0]=STRMID(local_input1, resu[0]+1, resu[1]-resu[0]-1)
-            endelse
-            
-            for ii=1, N_ELEMENTS(resu)-2 do begin
-               ;;print, resu[ii]+1,resu[ii+1]-resu[ii]-1                    
-               sresu[ii]=STRMID(local_input1, resu[ii]+1,resu[ii+1]-resu[ii]-1)
-            endfor
-            sresu[N_ELEMENTS(resu)-1]=STRMID(local_input1, resu[N_ELEMENTS(resu)-1]+1)
-            ;;stop
-            resu=sresu
-         endelse
-         ;;
-         if NOT(KEYWORD_SET(preserve_null)) then begin
-            ok=WHERE(STRLEN(resu) GT 0, nb_ok)
-            if (nb_ok GT 0) then resu=resu[ok] else resu=''
-         endif
-         ;; going back to the case /extract not set 
-      endif else begin
-         if N_ELEMENTS(resu) GT 1 then resu[1:*]=resu[1:*]+1 else resu=0
-         if (beg EQ 1) then resu[0]=resu[0]+1 
-
-         if (KEYWORD_SET(preserve_null) and (N_ELEMENTS(resu) GT 1) and (resu[0] ne 0)) then resu=[0,resu]
-
-         if NOT(KEYWORD_SET(preserve_null)) then begin
-            refresu=resu
-            resu=-1
-
-            for ii=0, N_ELEMENTS(refresu)-2 do begin
-               if ((refresu[ii+1]-refresu[ii]) ne 1) then resu=[resu,refresu[ii]]
-            endfor
-
-
-            if (refresu[N_ELEMENTS(refresu)-1] lt STRLEN(local_input1)) then resu=[resu,refresu[N_ELEMENTS(refresu)-1]]
-            if (N_ELEMENTS(resu) eq 1 ) then resu=0 else resu=resu[WHERE(resu GE 0)]
-            
-         endif
-      endelse
-   endelse
+   resu=STRTOK(local_input1, local_input2, extract=extract,$
+               REGEX=regex, preserve_null=preserve_null)
 endif
 ;
 if  ARG_PRESENT(count) then begin
