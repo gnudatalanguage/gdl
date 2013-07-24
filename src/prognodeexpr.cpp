@@ -3548,7 +3548,7 @@ BaseGDL* POWNCNode::Eval()
 	  throw innerEx;
 	}
 	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	"  or: " + innerEx.ANTLRException::toString();
+	" or: " + innerEx.ANTLRException::toString();
 	throw GDLException(this,msg,true,false);
       }
     }
@@ -3616,7 +3616,7 @@ BaseGDL* POWNCNode::Eval()
 	    throw innerEx;
 	  }
 	  string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	  "  or: " + innerEx.ANTLRException::toString();
+	  " or: " + innerEx.ANTLRException::toString();
 	  throw GDLException(this,msg,true,false);
 	}
     }
@@ -3685,7 +3685,7 @@ BaseGDL* POWNCNode::Eval()
 	  throw innerEx;
 	}
 	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	"  or: " + innerEx.ANTLRException::toString();
+	" or: " + innerEx.ANTLRException::toString();
 	throw GDLException(this,msg,true,false);
       }
     }

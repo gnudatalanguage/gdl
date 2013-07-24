@@ -399,7 +399,7 @@ BaseGDL** ARRAYEXPR_FCALLNode::LExpr( BaseGDL* right)
 	throw innerEx;
       }
 	std::string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	"  or: " + innerEx.ANTLRException::toString();
+	" or: " + innerEx.ANTLRException::toString();
 	throw GDLException(this,msg,true,false);
     }
   }
