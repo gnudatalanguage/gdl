@@ -373,13 +373,13 @@ namespace lib {
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
     if( sourceFilesKW)
       {
-	deque<string> sourceFiles;
+	vector<string> sourceFiles;
 	
 	for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
 	  {
 	    string funFile = (*i)->GetFilename();
 	    bool alreadyInList = false;
-	    for(deque<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
+	    for(vector<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
 	      {
 		if( funFile == *i2)
 		{
@@ -394,7 +394,7 @@ namespace lib {
 	{
 	    string proFile = (*i)->GetFilename();
 	    bool alreadyInList = false;
-	    for(deque<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
+	    for(vector<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
 	    {
 		if( proFile == *i2)
 		{
@@ -471,7 +471,7 @@ namespace lib {
       {
 	kw = true;
 
-	deque<DString> subList;
+	vector<DString> subList;
 	SizeT nPro = libProList.size();
 	for( SizeT i = 0; i<nPro; ++i)
 	{
@@ -507,7 +507,7 @@ namespace lib {
       {
 	kw = true;
 
-	deque<DString> subList;
+	vector<DString> subList;
 	SizeT nPro = libProList.size();
 	for( SizeT i = 0; i<nPro; ++i)
 	{
@@ -577,8 +577,8 @@ namespace lib {
     // Compiled Procedures & Functions
     DLong np = proList.size() + 1;
     DLong nf = funList.size();
-    deque<DString> pList;
-    deque<DString> fList;
+    vector<DString> pList;
+    vector<DString> fList;
 
     // If OUTPUT keyword set then set up output string array (outputKW)
     BaseGDL** outputKW = NULL;

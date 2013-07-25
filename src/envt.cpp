@@ -34,7 +34,7 @@ DInterpreter* EnvBaseT::interpreter;
 // EnvBaseT::ContainerT EnvBaseT::toDestroy;
 
 // EnvT::new & delete 
-deque< void*> EnvT::freeList;
+vector< void*> EnvT::freeList;
 const int multiAllocEnvT = 4;
 void* EnvT::operator new( size_t bytes)
 {
@@ -1353,7 +1353,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
     }
   
   // search keyword
-  IDList::iterator f=std::find_if(pro->key.begin(),
+  KeyVarListT::iterator f=std::find_if(pro->key.begin(),
 				  pro->key.end(),
 				  strAbbrefEq_k);
   if( f == pro->key.end()) 
@@ -1385,7 +1385,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
       return -1;
     }
   // continue search (for ambiguity)
-  IDList::iterator ff=std::find_if(f+1,
+  KeyVarListT::iterator ff=std::find_if(f+1,
 				   pro->key.end(),
 				   strAbbrefEq_k);
   if( ff != pro->key.end())

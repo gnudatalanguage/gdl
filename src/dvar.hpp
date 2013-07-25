@@ -49,7 +49,7 @@ public:
   }
 };
 
-typedef std::deque<DVar*>        VarListT;
+typedef std::vector<DVar*>        VarListT;
 
 class DVar_eq: public std::unary_function<DVar,bool>
 {

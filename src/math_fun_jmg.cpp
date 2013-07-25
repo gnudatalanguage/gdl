@@ -2058,7 +2058,7 @@ void image_del(image_t * d)
 
 
     // Check if GDL-code derivative function exist
-    deque<DString> fList;
+    vector<DString> fList;
     bool found = false;
     for( FunListT::iterator i=funList.begin(); i != funList.end(); i++) {
       fList.push_back((*i)->ObjectName());

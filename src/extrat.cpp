@@ -53,7 +53,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	  const string& tName=desc->TagName( t);
 	  
 	  // search keyword
-	  IDList::iterator f=find_if(pro->key.begin(),
+	  KeyVarListT::iterator f=find_if(pro->key.begin(),
 				     pro->key.end(),
 				     String_abbref_eq( tName));
       if (f != pro->key.end())
@@ -116,7 +116,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 		    { // found
 
 		      // search keyword
-		      IDList::iterator f=find_if(pro->key.begin(),
+		      KeyVarListT::iterator f=find_if(pro->key.begin(),
 						 pro->key.end(),
 						 String_abbref_eq( kName));
 		      if( f != pro->key.end())

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-deque< void*> DStructGDL::freeList;
+vector< void*> DStructGDL::freeList;
 
 void* DStructGDL::operator new( size_t bytes)
 {

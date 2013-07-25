@@ -151,11 +151,14 @@ typedef std::complex<DFloat>   DComplex;
 typedef std::complex<DDouble>  DComplexDbl;
 
 // list of identifiers (used in several places)
-typedef std::deque<std::string>       IDList;
-typedef std::deque<std::string>       StrArr;
+typedef std::vector<std::string>       IDList;
+typedef std::vector<std::string>       StrArr;
+
+// for dpro
+typedef std::deque<std::string> KeyVarListT;
 
 // used by file.cpp and in other places 
-typedef std::deque<DString>           FileListT;
+typedef std::vector<DString>           FileListT;
 
 //typedef std::valarray<SizeT>          AllIxT;
 
@@ -199,6 +202,18 @@ inline int FindInIDList(IDList& idL,const std::string& s)
 {
 //   int ix=0;
   for(IDList::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+    if( *i==s) 
+      {
+	return i - idL.begin();
+      }
+
+  return -1;
+}
+// TODO: make a template
+inline int FindInKeyVarListT(KeyVarListT& idL,const std::string& s)
+{
+//   int ix=0;
+  for(KeyVarListT::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
     if( *i==s) 
       {
 	return i - idL.begin();

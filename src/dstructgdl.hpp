@@ -42,7 +42,7 @@ private:
   typedef SpDStruct::DataT DataT;
   
   //public:
-  std::deque<BaseGDL*> typeVar;   // for accessing data
+  std::vector<BaseGDL*> typeVar;   // for accessing data
 #ifdef USE_EIGEN  
   EIGEN_ALIGN16 DataT        dd; // the data
 #else
@@ -61,7 +61,7 @@ private:
 
 public:
 
-  static std::deque< void*> freeList;
+  static std::vector< void*> freeList;
 
   // operator new and delete
   static void* operator new( size_t bytes);

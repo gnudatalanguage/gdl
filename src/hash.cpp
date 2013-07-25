@@ -304,12 +304,13 @@ BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
       DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, h)))[0];
       if( kID != 0)
       {
-	hashIndex = kID;
+	hashIndex = h;
 	break;
       }
     }
-    if( hashIndex < 0)
-      ThrowFromInternalUDSub( e, "Internal error. Please report. Random hash index not found.");
+    if( hashIndex < 0) // nothing found - ok for empty table :-)
+      return NullGDL::GetSingleInstance();
+//       ThrowFromInternalUDSub( e, "Internal error. Please report. Random hash index not found.");
   }
   else
   {

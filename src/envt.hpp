@@ -489,7 +489,7 @@ public:
 // this contains the library function API ***********************
 class EnvT: public EnvBaseT
 {
-static std::deque< void*> freeList;
+static std::vector< void*> freeList;
 
 public:
 static 	void* operator new( size_t bytes);

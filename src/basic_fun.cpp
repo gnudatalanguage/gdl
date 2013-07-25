@@ -4892,7 +4892,7 @@ BaseGDL* transpose( EnvT* e)
 	    return new DStringGDL( objDesc->Name());
 	  }
 	
-	deque< string> pNames;
+	vector< string> pNames;
 	objDesc->GetParentNames( pNames);
 
 	SizeT nNames = pNames.size();

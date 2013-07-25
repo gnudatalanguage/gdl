@@ -658,7 +658,7 @@ namespace lib {
 	DLong curlevnum = callStack.size();
 
     if (e->KeywordSet( "S_FUNCTIONS")) {
-      deque<DString> subList;
+      vector<DString> subList;
 
       SizeT nFun = libFunList.size();
       for( SizeT i = 0; i<nFun; ++i) {
@@ -679,7 +679,7 @@ namespace lib {
     }
 
     if (e->KeywordSet( "S_PROCEDURES")) {
-      deque<DString> subList;
+      vector<DString> subList;
 
       SizeT nPro = libProList.size();
       for( SizeT i = 0; i<nPro; ++i) {
@@ -859,7 +859,7 @@ namespace lib {
       DLong n = proList.size() + funList.size() + 1;
 
       // Add $MAIN$ to list
-      deque<DString> pfList;
+      vector<DString> pfList;
       pfList.push_back("$MAIN$");
 
       // Procedures

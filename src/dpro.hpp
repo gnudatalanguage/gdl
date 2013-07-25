@@ -114,7 +114,7 @@ protected:
   // par_1,..,par_nPar, var1,..,varK
   // N=size(key)
   // K=size(var)-nPar-N
-  IDList              key;    // keyword names (IDList: typedefs.hpp)
+  KeyVarListT 	      key;    // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
@@ -160,7 +160,7 @@ public:
   {
     String_abbref_eq searchKey(s);
     int ix=0;
-    for(IDList::iterator i=key.begin();
+    for(KeyVarListT::iterator i=key.begin();
 	i != key.end(); i++, ix++) if( searchKey(*i)) {
 	  return ix;
 	}
@@ -293,7 +293,7 @@ class DSubUD: public DSub
 {
   std::string         file;        // filename were procedure is defined in
 
-  IDList              var;         // keyword values, parameters, local variables
+  KeyVarListT         var;         // keyword values, parameters, local variables
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
@@ -346,7 +346,7 @@ public:
   // search for variable returns true if its found in var or common blocks
   bool Find(const std::string& n)
   {
-    IDList::iterator f=std::find(var.begin(),var.end(),n);
+    KeyVarListT::iterator f=std::find(var.begin(),var.end(),n);
     if( f != var.end()) return true;
 
     CommonBaseListT::iterator c=
@@ -416,7 +416,7 @@ public:
   // returns the variable index (-1 if not found)
   int FindVar(const std::string& s)
   {
-    return FindInIDList(var,s);
+    return FindInKeyVarListT(var,s);
   }
 
   // returns ptr to common variable (NULL if not found)
@@ -480,10 +480,10 @@ public:
 };
 
 
-typedef std::deque<DFun*> FunListT;
-typedef std::deque<DPro*> ProListT;
+typedef std::vector<DFun*> FunListT;
+typedef std::vector<DPro*> ProListT;
 
-typedef std::deque<DLibFun*> LibFunListT;
-typedef std::deque<DLibPro*> LibProListT;
+typedef std::vector<DLibFun*> LibFunListT;
+typedef std::vector<DLibPro*> LibProListT;
 
 #endif

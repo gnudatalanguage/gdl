@@ -90,8 +90,8 @@ public:
   DVar* Var(unsigned ix);
 };
 
-typedef std::deque<DCommonBase*> CommonBaseListT;
-typedef std::deque<DCommon*>     CommonListT;
+typedef std::vector<DCommonBase*> CommonBaseListT;
+typedef std::vector<DCommon*>     CommonListT;
 
 class DCommon_contains_var: public std::unary_function<DCommonBase,bool>
 {
