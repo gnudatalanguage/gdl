@@ -1451,6 +1451,11 @@ TRACEOMP( __FILE__, __LINE__)
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+      if( nEl == 1)
+      {
+	(*res)[ 0] = static_cast<DLong64>( round((*p0C)[ 0])); 
+	return res;	      
+      }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1463,6 +1468,11 @@ TRACEOMP( __FILE__, __LINE__)
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+      if( nEl == 1)
+      {
+	(*res)[ 0] = static_cast<DLong>( round((*p0C)[ 0])); 
+	return res;	      
+      }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1498,6 +1508,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+		DComplex& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) round(C.real());
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1511,6 +1527,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		  DComplex& C = (*p0C)[ 0];
+		  (*res)[ 0] = (int) round(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1532,6 +1554,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) round(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1545,6 +1573,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (int) round(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1581,6 +1615,11 @@ TRACEOMP( __FILE__, __LINE__)
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+	  if( nEl == 1)
+	  {
+	      (*res)[ 0] = (int) round((double) (*p0F)[ 0]); 
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1594,6 +1633,8 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
+  
+  
   template< typename T>
   BaseGDL* ceil_fun_template( BaseGDL* p0, bool isKWSetL64)
   {
@@ -1603,6 +1644,11 @@ TRACEOMP( __FILE__, __LINE__)
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+	    (*res)[ 0] = (DLong64) ceil((*p0C)[ 0]); 
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1615,6 +1661,11 @@ TRACEOMP( __FILE__, __LINE__)
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+	    (*res)[ 0] = (int) ceil((*p0C)[ 0]); 
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1649,6 +1700,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplex& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) ceil(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1662,6 +1719,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplex& C = (*p0C)[ 0];
+		(*res)[ 0] = (int) ceil(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1683,6 +1746,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) ceil(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1696,6 +1765,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  if( nEl == 1)
+	  {
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (int) ceil(C.real());
+	    return res;	      
+	  }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1732,6 +1807,11 @@ TRACEOMP( __FILE__, __LINE__)
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+	if( nEl == 1)
+	{
+	    (*res)[ 0] = (int) ceil((double) (*p0F)[ 0]); 
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1745,6 +1825,8 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
+  
+  
   template< typename T>
   BaseGDL* floor_fun_template( BaseGDL* p0, bool isKWSetL64)
   {
@@ -1754,6 +1836,11 @@ TRACEOMP( __FILE__, __LINE__)
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+      if( nEl == 1)
+	{
+	    (*res)[ 0] = (DLong64) floor((*p0C)[ 0]); 
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1766,6 +1853,11 @@ TRACEOMP( __FILE__, __LINE__)
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+	    (*res)[ 0] = (int) floor((*p0C)[ 0]); 
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1800,6 +1892,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+		DComplex& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) floor(C.real());
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1813,6 +1911,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+		DComplex& C = (*p0C)[ 0];
+		(*res)[ 0] = (int) floor(C.real());
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1834,6 +1938,12 @@ TRACEOMP( __FILE__, __LINE__)
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (DLong64) floor(C.real());
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1847,6 +1957,12 @@ TRACEOMP( __FILE__, __LINE__)
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+		DComplexDbl& C = (*p0C)[ 0];
+		(*res)[ 0] = (int) floor(C.real());
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	  {
@@ -1883,6 +1999,11 @@ TRACEOMP( __FILE__, __LINE__)
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+	if( nEl == 1)
+	{
+	      (*res)[ 0] = (int) floor((double) (*p0F)[ 0]); 
+	  return res;	      
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1896,6 +2017,8 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
+  
+  
   BaseGDL* conj_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     assert( p0 != NULL);
@@ -2025,6 +2148,11 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	DComplexDblGDL *c0 = static_cast< DComplexDblGDL*>( p0);
 	DComplexDblGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+	  (*res)[ 0] = exp( (*c0)[ 0]);
+	  return res;
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -2038,6 +2166,11 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	DComplexGDL *c0 = static_cast< DComplexGDL*>( p0);
 	DComplexGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+	  (*res)[ 0] = exp( (*c0)[ 0]);
+	  return res;
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -2051,6 +2184,11 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	DDoubleGDL *c0 = static_cast< DDoubleGDL*>( p0);
 	DDoubleGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+	  (*res)[ 0] = exp( (*c0)[ 0]);
+	  return res;
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -2064,6 +2202,11 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	DFloatGDL *c0 = static_cast< DFloatGDL*>( p0);
 	DFloatGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+	if( nEl == 1)
+	{
+	  (*res)[ 0] = exp( (*c0)[ 0]);
+	  return res;
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -2084,6 +2227,11 @@ TRACEOMP( __FILE__, __LINE__)
 	DFloatGDL *res = 
 	  static_cast< DFloatGDL*>( p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	
+	if( nEl == 1)
+	{
+	  (*res)[ 0] = exp( (*res)[ 0]);
+	  return res;
+	}
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
