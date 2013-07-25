@@ -269,8 +269,18 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
     {
       if(extraIx != -1) extraIx++; // update extra ix index
     }
-  key.push_front(k);
-  var.push_front(v);
+  // as we only push_front during compilation, we better use a vector here
+//   key.push_front(k);
+//   var.push_back(v);
+  // we want push_front
+  key.resize( key.size() + 1);
+  for( int i= key.size()-1; i>0; --i)
+    key[ i] = key[ i-1];
+  key[ 0] = k;
+  var.resize( var.size() + 1);
+  for( int i= var.size()-1; i>0; --i)
+    var[ i] = var[ i-1];
+  var[ 0] = v;
   return this;
 }
 

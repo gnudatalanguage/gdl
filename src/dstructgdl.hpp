@@ -19,7 +19,7 @@
 #define dstructgdl_hpp_
 
 #include <string>
-#include <deque>
+// #include <deque>
 
 #include "typedefs.hpp"
 #include "datatypes.hpp" // for friend declaration

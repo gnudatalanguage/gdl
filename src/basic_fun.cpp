@@ -1177,7 +1177,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
           e->ShiftParNumbering(-1);
 	}
 
-	deque<DString> buf;
+	vector<DString> buf;
 	while( os.good())
 	  {
 	    string line;
@@ -5096,14 +5096,14 @@ BaseGDL* transpose( EnvT* e)
     char err_msg[MAX_REGEXPERR_LENGTH];
     regex_t regexp;
     
-    deque<long> tokenStart;
-    deque<long> tokenLen;
+    vector<long> tokenStart;
+    vector<long> tokenLen;
  
     int strLen = stringIn.length();
 
     DString escape = "";
     e->AssureStringScalarKWIfPresent( "ESCAPE", escape);
-    deque<long> escList;
+    vector<long> escList;
     long pos = 0;
     while(pos != string::npos)
       {
@@ -5114,8 +5114,8 @@ BaseGDL* transpose( EnvT* e)
 	    pos += 2; // skip escaped char
 	  }
       }
-    deque<long>::iterator escBeg = escList.begin();
-    deque<long>::iterator escEnd = escList.end();
+    vector<long>::iterator escBeg = escList.begin();
+    vector<long>::iterator escEnd = escList.end();
 
     long tokB = 0;
     long tokE;
@@ -5619,7 +5619,7 @@ BaseGDL* transpose( EnvT* e)
 
     //    if( functionsKW || systemKW || nParam == 0)
     //      {
-    deque<DString> subList;
+    vector<DString> subList;
 	    
     if( functionsKW)
       {

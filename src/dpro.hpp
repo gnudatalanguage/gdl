@@ -18,7 +18,7 @@
 #ifndef DPRO_HPP_
 #define DPRO_HPP_
 
-#include <deque>
+// #include <deque>
 #include <string>
 #include <algorithm>
 #include <vector>

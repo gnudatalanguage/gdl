@@ -51,7 +51,7 @@
 #include <string>
 // #include <string.h> // memcopy
 #include <cstring> // memcopy
-#include <deque>
+// #include <deque>
 #include <complex>
 #include <vector>
 #include <valarray>
@@ -155,7 +155,7 @@ typedef std::vector<std::string>       IDList;
 typedef std::vector<std::string>       StrArr;
 
 // for dpro
-typedef std::deque<std::string> KeyVarListT;
+typedef std::vector<std::string> KeyVarListT;
 
 // used by file.cpp and in other places 
 typedef std::vector<DString>           FileListT;
