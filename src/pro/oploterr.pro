@@ -142,7 +142,7 @@ x_new=reform(transpose([[x_new],[x_new],[null]]),3*nbp_min)
 y_new=reform(transpose([[y_low],[y_hig],[null]]),3*nbp_min)
 ; overplot the error bars
 ;
-plots,x_new,y_new
+plots,x_new,y_new,noclip=0
 ;
 end
 ;
