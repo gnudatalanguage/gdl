@@ -127,10 +127,6 @@ namespace lib
       {
         yStart=yAxisStart;
         yEnd=yAxisEnd;
-        //must compute min-max for other axis!
-        {
-          gdlDoRangeExtrema(yVal,xVal,xStart,xEnd,yStart,yEnd);
-        }
       }
       else if (setx)
       {
