@@ -144,11 +144,13 @@ namespace lib
     if(n!=yVal->N_Elements()) return;
     for (i=0,k=0 ; i<n ; ++i)
     {
+       //look only in range x=[xmin,xmax]
        valx=(*xVal)[i];
        if (std::isnan(valx)) break;
+       if(valx<xmin || valx>xmax) break;
+       //min and max of y if not NaN and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
        valy=(*yVal)[i];
        if (std::isnan(valy)) break;
-       if(valx<xmin || valx>xmax) break;
        if (doMinMax &&(valy<minVal || valy>maxVal)) break;
        if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}
        k++;
