@@ -438,8 +438,8 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 
  ret:
   // free GDL parameters and keywords
-  Purge( parRef);
-  Purge( kwRef);
+  PurgeContainer( parRef);
+  PurgeContainer( kwRef);
 
   // restore old signal handlers
   PyOS_setsig(SIGINT,oldControlCHandler);
