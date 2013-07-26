@@ -573,6 +573,35 @@ bool PtrDerefEqual( DPtrGDL* l, DPtrGDL* r)
 
 namespace lib {
   
+  
+  
+  BaseGDL* HASH___OverloadIsTrue( EnvUDT* e)
+  {
+    static DString hashName("HASH");
+    static DString entryName("GDL_HASHTABLEENTRY");
+    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
+    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
+    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+
+    const int kwSELFIx = 0;
+
+    SizeT nParam = e->NParam(1); // SELF
+    
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetSELF( selfP, e);
+
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+    
+    if( nCount == 0)
+      return new DByteGDL(0);
+    else
+      return new DByteGDL(1);
+  }
+  
+  
+  
   BaseGDL* HASH___OverloadNEOp( EnvUDT* e)
   {
     static DString hashName("HASH");
@@ -2219,7 +2248,7 @@ namespace lib {
 
     DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
 
-    BaseGDL* newObj = new DObjGDL( objID); // the list object
+    BaseGDL* newObj = new DObjGDL( objID); // the hash object
     Guard<BaseGDL> newObjGuard( newObj);
 
     SizeT nEntries = nParam/2;

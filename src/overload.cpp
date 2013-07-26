@@ -529,6 +529,12 @@ void SetupOverloadSubroutines()
   listDesc->FunList().push_back(LIST_overloadNE);
   listDesc->SetOperator(OONE,LIST_overloadNE);
 
+  DFun *LIST_overloadIsTrue = new DFun("_OVERLOADISTRUE","LIST","<INTERNAL_LIBRARY>");
+  tree4 = new WRAPPED_FUNNode(lib::LIST___OverloadIsTrue);
+  LIST_overloadIsTrue->SetTree( tree4);
+  listDesc->FunList().push_back(LIST_overloadIsTrue);
+  listDesc->SetOperator(OOIsTrue,LIST_overloadIsTrue);
+ 
 // LIST::ADD
   DPro *DProLIST__ADD = new DPro("ADD","LIST","<INTERNAL_LIBRARY>");
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
@@ -604,6 +610,12 @@ void SetupOverloadSubroutines()
   HASH_overloadNE->SetTree( tree4);
   hashDesc->FunList().push_back(HASH_overloadNE);
   hashDesc->SetOperator(OONE,HASH_overloadNE);
+ 
+  DFun *HASH_overloadIsTrue = new DFun("_OVERLOADISTRUE","HASH","<INTERNAL_LIBRARY>");
+  tree4 = new WRAPPED_FUNNode(lib::HASH___OverloadIsTrue);
+  HASH_overloadIsTrue->SetTree( tree4);
+  hashDesc->FunList().push_back(HASH_overloadIsTrue);
+  hashDesc->SetOperator(OOIsTrue,HASH_overloadIsTrue);
  
 // LIST::REMOVE()
   DFun *DFunHASH__REMOVE = new DFun("REMOVE","HASH","<INTERNAL_LIBRARY>");

@@ -210,6 +210,40 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
     }  return res;
 }
 template<>
+Data_<SpDByte>* Data_<SpDObj>::LogNeg()
+{
+  if( this->Scalar())
+  {
+    DSubUD* isTrueOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( dd[0], OOIsTrue));
+    if( isTrueOverload != NULL) 
+    {
+      if( this->LogTrue())
+	return new Data_<SpDByte>( 0);
+      else 
+	return new Data_<SpDByte>( 1);
+    }
+  }
+  
+  SizeT nEl = dd.size();
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+  
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0] == 0)? 1 : 0;
+      return res;
+    }
+  
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( OMPInt i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i] == 0)? 1 : 0;
+    }  return res;
+}
+template<>
 Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
 {
   SizeT nEl = dd.size();

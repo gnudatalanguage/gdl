@@ -184,6 +184,26 @@
   
 namespace lib {
 
+  
+  BaseGDL* LIST___OverloadIsTrue( EnvUDT* e)
+  {
+    SizeT nParam = e->NParam(1); // SELF
+	
+    DStructGDL* self = GetSELF( e->GetKW( 0), e);
+
+    // here static is fine
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+  
+    if( nList == 0)
+      return new DByteGDL(0);
+    else
+      return new DByteGDL(1);
+  }
+
+  
+  
 BaseGDL* LIST___OverloadEQOp( EnvUDT* e);
 BaseGDL* LIST___OverloadNEOp( EnvUDT* e)
 {

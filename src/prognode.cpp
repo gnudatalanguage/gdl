@@ -1482,33 +1482,41 @@ RetCode   FOR_STEP_LOOPNode::Run()
 
 RetCode   FOREACHNode::Run()
 {
-	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
-	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
-	ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
+  ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
 
-	BaseGDL** v=vP->LEval(); // ProgNode::interpreter->l_simple_var(vP);
+  BaseGDL** v=vP->LEval(); // ProgNode::interpreter->l_simple_var(vP);
 
-	GDLDelete(loopInfo.endLoopVar);
-	loopInfo.endLoopVar=this->GetFirstChild()->Eval();
+  GDLDelete(loopInfo.endLoopVar);
+  loopInfo.endLoopVar=this->GetFirstChild()->Eval();
 //	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+  SizeT nEl = loopInfo.endLoopVar->N_Elements();
+  if( nEl == 0)
+  {
+    GDLDelete(loopInfo.endLoopVar);
+    loopInfo.endLoopVar = NULL;
+    ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+    return RC_OK;	  
+  }
 
-	loopInfo.foreachIx = 0;
+  loopInfo.foreachIx = 0;
 
-	// currently there are no empty arrays
-	//SizeT nEl = loopInfo.endLoopVar->N_Elements();
+  // currently there are no empty arrays
+  //SizeT nEl = loopInfo.endLoopVar->N_Elements();
 
-	// ASSIGNMENT used here also
-	GDLDelete((*v));
-	(*v) = loopInfo.endLoopVar->NewIx( 0);
+  // ASSIGNMENT used here also
+  GDLDelete((*v));
+  (*v) = loopInfo.endLoopVar->NewIx( 0);
 
-	ProgNode::interpreter->_retTree = vP->GetNextSibling();
-	return RC_OK;
+  ProgNode::interpreter->_retTree = vP->GetNextSibling();
+  return RC_OK;
 }
 	
 RetCode   FOREACH_LOOPNode::Run()
 {
-  EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+  EnvUDT* callStack_back = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
   if( loopInfo.endLoopVar == NULL)
@@ -1556,7 +1564,15 @@ RetCode FOREACH_INDEXNode::Run()
 
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
-// loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+  // loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+  SizeT nEl = loopInfo.endLoopVar->N_Elements();
+  if( nEl == 0)
+  {
+    GDLDelete(loopInfo.endLoopVar);
+    loopInfo.endLoopVar = NULL;
+    ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+    return RC_OK;	  
+  }
 
   loopInfo.foreachIx = 0;
 
@@ -1583,7 +1599,6 @@ RetCode FOREACH_INDEXNode::Run()
     }
     else
     {
-      // ASSIGNMENT used here also
       (*index) = new DLongGDL( 0);
     }
   }
@@ -1759,7 +1774,7 @@ RetCode   IF_ELSENode::Run()
   else
   {
 	e1 = evalExpr->Eval();
-	e1_guard.Reset(e1);
+	e1_guard.Init(e1);
   }
 // 	Guard<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
   if( e1->True()) 

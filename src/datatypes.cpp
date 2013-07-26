@@ -2598,10 +2598,28 @@ bool Data_<SpDObj>::True()
   
   ProgNodeP callingNode = interpreter->GetRetTree();
     
-  BaseGDL* self = this->Dup();
-  Guard<BaseGDL> selfGuard( self);
-  EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
+//   BaseGDL* self = this->Dup();
+//   Guard<BaseGDL> selfGuard( self);
+//   EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
   // no parameters
+  
+  EnvUDT* newEnv;
+  DObjGDL* self;
+  Guard<BaseGDL> selfGuard;
+  // Dup() here is not optimal
+  // avoid at least for internal overload routines (which do/must not change SELF or r)
+  bool internalDSubUD = isTrueOverload->GetTree()->IsWrappedNode();  
+  if( internalDSubUD)  
+  {
+    self = this;
+    newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
+  }
+  else
+  {
+    self = this->Dup();
+    selfGuard.Init( self);
+    newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
+  }
   
   StackGuard<EnvStackT> guard(interpreter->CallStack());
 
@@ -2610,7 +2628,7 @@ bool Data_<SpDObj>::True()
   // make the call
   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-  if( self != selfGuard.Get())
+  if( !internalDSubUD && self != selfGuard.Get())
   {
     // always put out warning first, in case of a later crash
     Warning( "WARNING: " + isTrueOverload->ObjectName() + 
@@ -2618,24 +2636,24 @@ bool Data_<SpDObj>::True()
     // assignment to SELF -> self was deleted and points to new variable
     // which it owns
     selfGuard.Release();
-    if( self != NullGDL::GetSingleInstance())
+    if( (BaseGDL*)self != NullGDL::GetSingleInstance())
       selfGuard.Reset(self);
   }
   if( NullGDL::IsNULLorNullGDL( res))
-    {
-      throw GDLException( isTrueOverload->ObjectName() + " returned an undefined value.",true,false);
-    }
+  {
+    throw GDLException( isTrueOverload->ObjectName() + " returned an undefined value.",true,false);
+  }
   
   Guard<BaseGDL> resGuard( res);
   
   // prevent recursion
   if( res->Type() == GDL_OBJ)
-    {
-      ostringstream os;
-      res->ToStream(os);
-      throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
-			  os.str(),true,false);
-    }
+  {
+    ostringstream os;
+    res->ToStream(os);
+    throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
+			 os.str(),true,false);
+  }
   
   return res->LogTrue();
 }
@@ -3927,6 +3945,8 @@ bool Data_<SpDPtr>::LogTrue()
 template<>
 bool Data_<SpDObj>::LogTrue()
 {
+  // ::_overloadIsTrue is handled in True()
+  
   return this->True();
 }
 // structs are not allowed
