@@ -786,6 +786,6 @@ void la_choldc_pro( EnvT* e)
     }
     return 0;
   }
-}
 
 #endif
+} //namespace lib
