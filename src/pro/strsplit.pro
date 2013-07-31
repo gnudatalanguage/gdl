@@ -22,7 +22,12 @@
 ;   11-Jul-2012 : When /extract, we must return STRARR even for 1-element
 ;   14-Aug-2012 : Now GDL enforces scalar type in FOR loop ... take care
 ;   of STRLEN ! We ensure to work on pure STRING = '', not STRING = Array[1]
-;   25-Jul-2013 : After fixing STRTOK this simplified version should do.
+;   25-Jul-2013 : After fixing STRTOK this simplified version should
+;   do.
+;   01-Aug-2013 : Patch for bug #554, insure LENGTH and EXTRACT are
+;   not present simultaneously, return correct length in cases such as
+;   strsplit('aaaaaaaaaaaaaaaaaaaaaa','b',leng=leng) and 
+;   strsplit('aaaaaaaaaaaaaaaaaaaaaa','a',leng=leng).
 ;
 ; LICENCE:
 ; Copyright (C)
@@ -39,7 +44,7 @@
 ;
 ; ----------------------------------------
 ;
-function STRSPLIT, input1, input2, count=count, length=length, $
+function STRSPLIT, input1, pattern, count=count, length=length, $
                    extract=extract, regex=regex, escape=escape, $
                    fold_case=fold_case, preserve_null=preserve_null, $
                    test=test, help=help
@@ -47,7 +52,7 @@ function STRSPLIT, input1, input2, count=count, length=length, $
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
-   print, 'function STRSPLIT, input1, input2, count=count, length=length, $'
+   print, 'function STRSPLIT, input1, pattern, count=count, length=length, $'
    print, '                   extract=extract, regex=regex, escape=escape, $'
    print, '                   fold_case=fold_case, preserve_null=preserve_null, $'
    print, '                   test=test, help=help'
@@ -63,7 +68,7 @@ if N_ELEMENTS(input1) GT 1 then $
    MESSAGE, 'Expression must be a scalar or 1 element array in this context: STRINGIN.'
 ;
 if (N_PARAMS() EQ 2) then begin
-   if N_ELEMENTS(input2) EQ 0 then MESSAGE, 'Variable is undefined: PATTERN.'
+   if N_ELEMENTS(pattern) EQ 0 then MESSAGE, 'Variable is undefined: PATTERN.'
 endif
 ;
 if KEYWORD_SET(escape) then begin
@@ -88,6 +93,7 @@ endif else begin
    local_input1=input1
 endelse
 ;
+if ARG_PRESENT(length) and KEYWORD_SET(extract) then MESSAGE, "Conflicting keywords."
 ; we explicitely change String [1] array into pure String.
 local_input1=local_input1[0]
 ;
@@ -100,24 +106,29 @@ if (STRLEN(local_input1) EQ 0) then begin
    if KEYWORD_SET(extract) then resu='' else resu=0
 endif
 if (N_PARAMS() EQ 2) then begin
-   if (STRLEN(input2) EQ 0) then begin
+   if (STRLEN(pattern) EQ 0) then begin
       short_cut=1
       if KEYWORD_SET(extract) then resu='' else resu=0
    endif else begin
-      local_input2=input2[0]
+      local_pattern=pattern[0]
    endelse
 endif
 ;
-; When no Pattern is provided, default pattern is white space (' ')
+; When no Pattern is provided, default pattern is white space (' ' and
+; tab)
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 1)) then begin
    resu=STRTOK(local_input1, extract=extract,$
                REGEX=regex, preserve_null=preserve_null)
+; 2nd pass for length.
+if ARG_PRESENT(length) then  temp=STRTOK(local_input1, LENGTH=length, REGEX=regex, preserve_null=preserve_null)
 endif
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
-   resu=STRTOK(local_input1, local_input2, extract=extract,$
+   resu=STRTOK(local_input1, local_pattern, extract=extract,$
                REGEX=regex, preserve_null=preserve_null)
+; 2nd pass for length.
+ if ARG_PRESENT(length) then temp=STRTOK(local_input1, local_pattern, LENGTH=length, REGEX=regex, preserve_null=preserve_null)
 endif
 ;
 if  ARG_PRESENT(count) then begin
@@ -127,8 +138,6 @@ if  ARG_PRESENT(count) then begin
       count=N_ELEMENTS(resu)
    endelse
 endif
-;
-if ARG_PRESENT(length) then length=STRLEN(resu)
 ;
 if KEYWORD_SET(test) then STOP
 ;
