@@ -110,6 +110,18 @@ if (N_ELEMENTS(ext) ne 11) then begin
    if KEYWORD_SET(verbose) then MESSAGE, 'error str extract', /continue
    nb_pbs=nb_pbs+1
 endif
+
+ext=STRSPLIT(str,'$',/preserve,len=len)
+if ARRAY_EQUAL(len,replicate(0,n_elements(str))) eq 0 then begin 
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str len+preserve', /continue
+   nb_pbs=nb_pbs+1
+endif 
+
+ext=STRSPLIT(str,'$',len=len)
+if (len ne 0) then begin 
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str len', /continue
+   nb_pbs=nb_pbs+1
+endif 
 ;
 if KEYWORD_SET(debug) then IPRINT, 'ici', indice
 ;
@@ -215,6 +227,17 @@ if ((N_ELEMENTS(ext) ne 4)) then begin
    if KEYWORD_SET(verbose) then MESSAGE, 'error str4 extract , preserve', /continue
    nb_pbs=nb_pbs+1
 endif
+tab=STRSPLIT(str4,'.',len=len)
+if ARRAY_EQUAL(len,[4,3]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 len', /continue
+   nb_pbs=nb_pbs+1
+endif
+tab=STRSPLIT(str4,'.',len=len,/preserve)
+if ARRAY_EQUAL(len,[0,0,4,3]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 len+preserve', /continue
+   nb_pbs=nb_pbs+1
+endif
+
 
 tab=STRSPLIT(str5,/preserve)
 res=LONG([0,1,3,5,7,9])
