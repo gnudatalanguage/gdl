@@ -284,6 +284,7 @@ namespace lib {
   BaseGDL* call_external( EnvT* e)
   {
     DString image, entry;
+    static std::string s;
     SizeT myAlign      = defaultAlign;
     DType myReturnType = GDL_UNDEF;
 
@@ -484,7 +485,7 @@ namespace lib {
 		      break;
 	case GDL_ULONG64: ret.d_ulong64 = ((DULong64(*)(int, void**))func)(argc, argv);
 		      break;
-	case GDL_STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv);
+	case GDL_STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv); 
 		      break;
 	default:      e->Throw("Return type not supported: " + myReturnType );
 		      break;
@@ -497,19 +498,20 @@ namespace lib {
 	while (! dlclose(handle) ) {}
 #endif
     }
-
+// necessary since struct is freed below, i do not see how??? (FIXME)
+    s=ret.d_string;
     // Copy strings and structures back to GDL, free memory
 
-    for(SizeT i = nParam-1; i >= 2; i--){
+    for (SizeT i = nParam - 1; i >= 2; i--) {
 	if (byValue[i-2] != 0) {continue;}
-	BaseGDL* par = e->GetParDefined(i);
-	SizeT pType  = par->Type();
-	if (pType == GDL_STRING) {
-	    ce_StringIDLtoGDL((EXTERN_STRING*) argv[i-2], par, 1);
-	}
-	else if (pType == GDL_STRUCT) {
-	    ce_StructIDLtoGDL( e, argv[i-2], par, 1, myAlign);
-	}
+      BaseGDL* par = e->GetParDefined(i);
+      SizeT pType = par->Type();
+      if (pType == GDL_STRING) {
+        ce_StringIDLtoGDL((EXTERN_STRING*) argv[i - 2], par, 1);
+      }
+      else if (pType == GDL_STRUCT) {
+        ce_StructIDLtoGDL(e, argv[i - 2], par, 1, myAlign);
+      }
     }
 
     // now guarded. s. a.
@@ -536,7 +538,7 @@ namespace lib {
 			break;
         case GDL_ULONG64:   return new DULong64GDL(ret.d_ulong64);
 			break;
-        case GDL_STRING:    return new DStringGDL(ret.d_string);
+        case GDL_STRING:    return new DStringGDL(s);
 			break;
     }
 	    
