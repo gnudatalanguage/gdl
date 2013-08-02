@@ -205,11 +205,7 @@ namespace lib
       }
 
       PLFLT wun, wdeux, wtrois, wquatre;
-      if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
-                                   // convert to device coords in this case
-      {
-        actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
-      }
+      actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
 
       actStream->OnePageSaveLayout(); // one page
       actStream->vpor(0, 1, 0, 1); //set full viewport
@@ -344,28 +340,37 @@ namespace lib
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
         if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
         if (docharthick) actStream->wid ( ( *charthick )[i%charthick->N_Elements ( )]);
-        PLFLT ori=(( *orientation )[i%orientation->N_Elements ( )]) * DEGTORAD;
-        PLFLT cosOri=cos(ori);
-        PLFLT sinOri=sin(ori);
+        //orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
+        PLFLT oriD=(( *orientation )[i%orientation->N_Elements ( )]); //ori DEVICE
+        PLFLT oriW=oriD; //ori WORLD
+        oriD *= DEGTORAD;
+        if ((wdeux-wun)<0) oriW=180.0-oriW;
+        if ((wquatre-wtrois)<0) oriW*=-1;
+        oriW *= DEGTORAD;
+        PLFLT cosOriD=cos(oriD);
+        PLFLT sinOriD=sin(oriD);
+        PLFLT cosOriW=cos(oriW);
+        PLFLT sinOriW=sin(oriW);
         PLFLT align=( *alignement )[i%alignement->N_Elements ( )];
+        align=max(align,0.0); align=min(align,1.0);
         PLFLT dispx,dispy, chsize, dx, dy;
         // displacement due to offset (reference in IDL is baseline,
         // in plplot it's the half-height) is best computed in device coords
         chsize=actStream->dCharHeight()*0.5;
         actStream->WorldToDevice(x, y, dx, dy);
-        actStream->DeviceToWorld(dx-chsize*sinOri,dy+chsize*cosOri,dispx,dispy);
+        actStream->DeviceToWorld(dx-chsize*sinOriD,dy+chsize*cosOriD,dispx,dispy);
         string out=(*strVal)[i%strVal->N_Elements ( )];
-        actStream->ptex(dispx, dispy, cosOri, sinOri*aspectw/aspectd, align, out.c_str());
+        actStream->ptex(dispx, dispy, cosOriW, sinOriW*aspectw/aspectd, align, out.c_str());
 
         if (singleArg || (i==minEl-1 ) ) //then x and y are not given and whatever the number of strings, are retrieved
-                       // from lastTextPos. We must thus rememeber lastTextPos.
+                       // from lastTextPos. We must thus remember lastTextPos.
         {
           width=actStream->gdlGetmmStringLength(out.c_str()); //in mm
           //we want normed size:
           width=actStream->m2dx(width);
           //save position - compute must be in DEVICE coords, or in normed*aspect!
           actStream->WorldToNormedDevice(x, y, dx, dy); //normed
-          actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOri,dy+(1.0-align)*width*sinOri*aspectw/aspectd,dispx,dispy);
+          actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOriD,dy+(1.0-align)*width*sinOriD/aspectd,dispx,dispy);
           actStream->WorldToDevice(dispx, dispy, lastTextPosX, lastTextPosY);
         }
       }
