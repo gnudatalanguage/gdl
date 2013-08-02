@@ -385,7 +385,7 @@ namespace lib
     }
 
     // general case (only negative OR negative and positive)
-    if ( cas==0 )
+    if ( cas==0 ) //rounding is not aka idl due to use of ceil and floor. TBD.
     {
       x=max-min;
       intv=AutoIntv(x);
@@ -588,6 +588,10 @@ namespace lib
     
     UsymConvX=(0.5*symsize*(a->wCharLength()/a->charScale())); //be dependent only on symsize!
     UsymConvY=(0.5*symsize*(a->wCharHeight()/a->charScale()));
+    PLFLT wun, wdeux, wtrois, wquatre; //take care of axes world orientation!
+    a->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
+    if ((wdeux-wun)<0) UsymConvX*=-1.0;
+    if ((wquatre-wtrois)<0) UsymConvY*=-1.0;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetUserSymSize(%f,%f)\n",a->wCharLength(),a->wCharHeight());
   }
 
