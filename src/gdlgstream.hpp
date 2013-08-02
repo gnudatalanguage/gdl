@@ -486,7 +486,7 @@ public:
       wymax=theBox.dy2;
   }
   PLFLT  boxAspectDevice(){return (theBox.dy2-theBox.dy1)/(theBox.dx2-theBox.dx1);}
-  PLFLT  boxAspectWorld(){return (theBox.wy2-theBox.wy1)/(theBox.wx2-theBox.wx1);}
+  PLFLT  boxAspectWorld(){return fabs(theBox.wy2-theBox.wy1)/fabs(theBox.wx2-theBox.wx1);}
 
   void SaveLayout()
   {
