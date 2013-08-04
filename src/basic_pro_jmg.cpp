@@ -271,15 +271,15 @@ namespace lib {
   }
 
   // CALL_EXTERNAL by Christoph Fuchs
-#ifdef USE_EIGEN
-  SizeT defaultAlign = 16;
-#else  
+  //AC #ifdef USE_EIGEN
+  //AC SizeT defaultAlign = 16;
+  //AC #else  
   typedef struct {
     char      c;
     long long l;
   } testAlign;
   SizeT defaultAlign = (SizeT)( sizeof(testAlign)-sizeof(long long) );
-#endif
+  //AC #endif
   
   BaseGDL* call_external( EnvT* e)
   {
