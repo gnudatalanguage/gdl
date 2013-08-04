@@ -400,7 +400,7 @@ namespace lib {
 			     + e->GetParString(i)
 		    );
 		}
-		memcpy(argv[i-2], (void*) par->DataAddr(), par->Sizeof());
+		memcpy(&argv[i-2], (void*) par->DataAddr(), par->Sizeof());
 	    }
 	    else if (pType == GDL_STRING) {
 		argv[i-2] = (void*) (*(DStringGDL*)(par))[0].c_str();
@@ -499,7 +499,7 @@ namespace lib {
 #endif
     }
 // necessary since struct is freed below, i do not see how??? (FIXME)
-    s=ret.d_string;
+    if (myReturnType == GDL_STRING) {s=ret.d_string;}
     // Copy strings and structures back to GDL, free memory
 
     for (SizeT i = nParam - 1; i >= 2; i--) {
