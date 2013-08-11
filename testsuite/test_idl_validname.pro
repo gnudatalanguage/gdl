@@ -3,6 +3,8 @@
 ;
 ; quick test for IDL_VALIDNAME function
 ;
+; Since August 2013, we have to test also input as a list
+;
 ;---------------------------------------------
 ;
 pro SMART_MESSAGE, input, expected, resu
@@ -23,12 +25,7 @@ end
 ;
 ;---------------------------------------------
 ;
-pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help
-;
-if KEYWORD_SET(help) then begin
-   print, 'pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help'
-   return
-endif
+pro TEST_IDL_VALIDNAME_SINGLE, errors_in_single, test=test, verbose=verbose
 ;
 ; we need a working STREGEX to be able to run IDL_VALIDNAME
 ;
@@ -74,16 +71,88 @@ INTERNAL_TEST, '$ 3 a b c', '_$_3_a_b_c', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '$4a b c ', '_$4a_b_c_', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '$5 a b c ', '_$5_a_b_c_', kwverb, nb_pbs, /convert_all
 ;
-print, 'This testsuite for IDL_VALIDNAME is not finished ...'
-print, 'Please contribute'
+; exemple gived by Tim, patch 66
+;
+a = '`~!@#$%^&*()_+-={} []|\";;/?.>,<123456789'
+res='_____$__________________________123456789'
+INTERNAL_TEST, a, '', kwverb, nb_pbs
+INTERNAL_TEST, a, '', kwverb, nb_pbs, /convert_spaces
+INTERNAL_TEST, a, res, kwverb, nb_pbs, /convert_all
 ;
 if (nb_pbs GT 0) then begin
-   MESSAGE,/continue, 'Number of problems detected: '+STRING(nb_pbs)
-   if ~KEYWORD_SET(test) then EXIT, status=1
+   MESSAGE, /continue, 'Number of problems detected: '+STRING(nb_pbs)
+   ;; now the EXIT code is managed at the end
+   ;; if ~KEYWORD_SET(test) then EXIT, status=1
 endif else begin
    MESSAGE, /Continue, "No problem found"
 endelse
 ;
 if KEYWORD_SET(test) then STOP
 ;
+errors_in_single=nb_pbs
+;
 end
+;
+;---------------------------------------------
+;
+pro TEST_IDL_VALIDNAME_MULTI,errors_in_multi, test=test, verbose=verbose
+;
+nb_pbs=0
+;
+input=['!a!!a', '']
+filtre=REPLICATE(1,N_ELEMENTS(input))
+;
+expected=['','']
+result=IDL_VALIDNAME(input)
+if ~ARRAY_EQUAL(STRCMP(result,expected),filtre) then begin
+   nb_pbs++
+   if KEYWORD_SET(verbose) then begin
+      print, 'pb 1 here : ', input
+   endif
+endif
+;
+expected=['!a__a','_']
+result=IDL_VALIDNAME(input,/convert_all)
+if ~ARRAY_EQUAL(STRCMP(result,expected),filtre) then begin
+   nb_pbs++
+   if KEYWORD_SET(verbose) then begin
+      print, 'pb 1 here : ', input
+   endif
+endif
+;
+if (nb_pbs GT 0) then begin
+   MESSAGE, /continue, 'Number of problems detected: '+STRING(nb_pbs)
+   ;; now the EXIT code is managed at the end
+   ;; if ~KEYWORD_SET(test) then EXIT, status=1
+endif else begin
+   MESSAGE, /Continue, "No problem found"
+endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+errors_in_multi=nb_pbs
+;
+end
+;---------------------------------------------
+;
+;
+pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_IDL_VALIDNAME, no_exit=no_exit, test=test, verbose=verbose, help=help'
+   return
+endif
+;
+print, 'This testsuite for IDL_VALIDNAME is not finished ...'
+print, 'Please contribute'
+;
+TEST_IDL_VALIDNAME_SINGLE, errors_in_single, test=test, verbose=verbose
+;
+TEST_IDL_VALIDNAME_MULTI, errors_in_multi, test=test, verbose=verbose
+;
+if ((errors_in_single GT 0) OR (errors_in_multi GT 0)) then begin
+   if ~KEYWORD_SET(no_exit) then EXIT, status=1
+endif
+;
+end
+
