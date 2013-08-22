@@ -4788,7 +4788,7 @@ BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
 {
   throw GDLException("Pointer expression not allowed in this context.");
 }
-/*
+
 template<>
 BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
 				   BaseGDL* bias,
@@ -4804,7 +4804,7 @@ BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
 {
   throw GDLException("ULONG64 expression not allowed in this context.");
 }
-*/
+
 
 #define INCLUDE_CONVOL_CPP 1
 #define CONVOL_BYTE__
