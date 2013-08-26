@@ -45,7 +45,7 @@ namespace lib
     Guard<BaseGDL> xval_guard, yval_guard, p0_guard;
     DDoubleGDL *yValTemp, *xValTemp;
     Guard<BaseGDL> xval_temp_guard, yval_temp_guard;
-    SizeT xEl, yEl, zEl;
+    SizeT xEl, yEl, zEl, ixEl, iyEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool zLog, isLog;
     bool overplot, make2dBox, make3dBox, nodata;
@@ -113,17 +113,10 @@ namespace lib
 	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
 	    if (yValTemp->N_Elements() != zVal->N_Elements() )
 	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    //x-y ranges:
-	    DDouble xmin,xmax,ymin,ymax;
-	    GetMinMaxVal ( xValTemp, &xmin, &xmax );
-	    GetMinMaxVal ( yValTemp, &ymin, &ymax );
-	    xEl=xValTemp->N_Elements()+1;
-	    yEl=yValTemp->N_Elements()+1; //all points inside
-	    xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::NOZERO );
-	    yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::NOZERO );
-	    for(SizeT i=0; i<xEl; ++i) (*xVal)[i]=xmin+(i-0.5)*(xmax-xmin)/xEl;
-	    for(SizeT i=0; i<yEl; ++i) (*yVal)[i]=ymin+(i-0.5)*(ymax-ymin)/yEl;
-
+        xEl=xValTemp->N_Elements();
+        yEl=yValTemp->N_Elements(); //all points inside
+        xVal=xValTemp;
+        yVal=yValTemp;//for the time being, will be update later
 	  }
 	else
 	  {
@@ -528,16 +521,31 @@ namespace lib
         //which needs Nans to avoid blanked regions. The idea is to mark unwanted regions with Nans for plcont, and
         //with a blanking value (minmin) for plshade. Eventually one could use a zdefined() function testing on top of it.
         PLFLT ** map;
-        actStream->Alloc2dGrid( &map, xEl, yEl);
 
         if (irregular)
         {
+          //x-y ranges:
+          DDouble xmin,xmax,ymin,ymax;
+          long xsize,ysize,xoff,yoff;        
+          actStream->GetGeometry(xsize,ysize,xoff,yoff);
+          GetMinMaxVal ( xValTemp, &xmin, &xmax );
+          GetMinMaxVal ( yValTemp, &ymin, &ymax );
+          // find a good compromize for default size of gridded map...
+          ixEl=max(51.0,2*sqrt(xEl)+1); //preferably odd
+          iyEl=max(51.0,2*sqrt(yEl)+1);
+          ixEl=ixEl<xsize?ixEl:xsize; //no more than pixels on screen!
+          iyEl=iyEl<ysize?iyEl:ysize;
+          xVal=new DDoubleGDL ( dimension ( ixEl ), BaseGDL::NOZERO );
+          yVal=new DDoubleGDL ( dimension ( iyEl ), BaseGDL::NOZERO );
+          for(SizeT i=0; i<ixEl; ++i) (*xVal)[i]=xmin+i*(xmax-xmin)/ixEl;
+          for(SizeT i=0; i<iyEl; ++i) (*yVal)[i]=ymin+i*(ymax-ymin)/iyEl;
+          actStream->Alloc2dGrid( &map, ixEl, iyEl);
           PLFLT data=0;
-          actStream->griddata(&(*xValTemp)[0],&(*yValTemp)[0],&(*zVal)[0],xEl-1,
-              &(*xVal)[0],xEl,&(*yVal)[0],yEl,map,GRID_DTLI,data);
-          for ( SizeT i=0, k=0; i<xEl; i++ )
+          actStream->griddata(&(*xValTemp)[0],&(*yValTemp)[0],&(*zVal)[0],xEl,
+              &(*xVal)[0],ixEl,&(*yVal)[0],iyEl,map,GRID_DTLI,data);
+          for ( SizeT i=0, k=0; i<ixEl; i++ )
           {
-            for ( SizeT j=0; j<yEl; j++)
+            for ( SizeT j=0; j<iyEl; j++)
             {
               PLFLT v=map[i][j];
               if ( !isfinite(v) ) v=(fill)?minmin:d_nan; //note: nan regions could eventually be filled.
@@ -546,8 +554,10 @@ namespace lib
               map[i][j] = v;
             }
           }
-
+          xEl=ixEl;
+          yEl=iyEl;
         }else{
+          actStream->Alloc2dGrid( &map, xEl, yEl);
           for ( SizeT i=0, k=0; i<xEl; i++ )
           {
             for ( SizeT j=0; j<yEl; j++)
