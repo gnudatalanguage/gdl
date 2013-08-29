@@ -1122,8 +1122,9 @@ public:
 
   static void DefaultXYSize(DLong *xSize, DLong *ySize)
   {
-    *ySize = 640;
+    *xSize = 640;
     *ySize = 512;
+    //GD: normally here we always have HAVE_X true, no? 
 #ifdef HAVE_X
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
@@ -1133,6 +1134,13 @@ public:
       XCloseDisplay(display);
     }   
 #endif
+    bool noQscreen=true;
+    string gdlQscreen=GetEnvString("GDL_GR_X_QSCREEN");
+    if( gdlQscreen == "1") noQscreen=false;
+    string gdlXsize=GetEnvString("GDL_GR_X_WIDTH");
+    if( gdlXsize != "" && noQscreen ) *xSize=atoi(gdlXsize.c_str()); 
+    string gdlYsize=GetEnvString("GDL_GR_X_HEIGHT");
+    if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
   }
   
   static void MaxXYSize(DLong *xSize, DLong *ySize)
