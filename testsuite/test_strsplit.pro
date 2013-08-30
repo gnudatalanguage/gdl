@@ -13,15 +13,17 @@
 ; -- adding test for bug 3286746 (STR_SEP)
 ; -- adding basic test for TexToIDL
 ;
+; A bug 554 about "length" was corrected in July 2013.
+;
 pro IPRINT, texte, indice
 print, texte, indice
 indice=indice+1
 end
 ;
-pro TEST_STRSPLIT, verbose=verbose, test=test, debug=debug, help=help
+pro TEST_STRSPLIT, no_exit=no_exit, verbose=verbose, test=test, debug=debug, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_STRSPLIT, verbose=verbose, test=test, debug=debug, help=help'
+   print, 'pro TEST_STRSPLIT, no_exit=no_exit, verbose=verbose, test=test, debug=debug, help=help'
    return
 endif
 ;
@@ -35,6 +37,7 @@ str3='$ch$ops &up str*ings.' ; [1,4]
 str4='../foo.txt' ; [2,7]
 str5=' t e s t '
 str6='qwerty'
+str7='aa;aaaaaaaaa;aaaaaaaaaa'  ; cf bug 554
 ;
 ; When Search Pattern is not in Input String (default Search pattern
 ; is white space ' ')
@@ -111,14 +114,14 @@ if (N_ELEMENTS(ext) ne 11) then begin
    nb_pbs=nb_pbs+1
 endif
 
-ext=STRSPLIT(str,'$',/preserve,len=len)
-if ARRAY_EQUAL(len,replicate(0,n_elements(str))) eq 0 then begin 
+ext=STRSPLIT(str,'$',/preserve,length=length)
+if ARRAY_EQUAL(length,replicate(0,STRLEN(str)+1)) eq 0 then begin 
    if KEYWORD_SET(verbose) then MESSAGE, 'error str len+preserve', /continue
    nb_pbs=nb_pbs+1
-endif 
+endif
 
-ext=STRSPLIT(str,'$',len=len)
-if (len ne 0) then begin 
+ext=STRSPLIT(str,'$',length=length)
+if (length ne 0) then begin 
    if KEYWORD_SET(verbose) then MESSAGE, 'error str len', /continue
    nb_pbs=nb_pbs+1
 endif 
@@ -227,18 +230,66 @@ if ((N_ELEMENTS(ext) ne 4)) then begin
    if KEYWORD_SET(verbose) then MESSAGE, 'error str4 extract , preserve', /continue
    nb_pbs=nb_pbs+1
 endif
-tab=STRSPLIT(str4,'.',len=len)
-if ARRAY_EQUAL(len,[4,3]) eq 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 len', /continue
+tab=STRSPLIT(str4,'.',length=length)
+if ARRAY_EQUAL(length,[4,3]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 length', /continue
    nb_pbs=nb_pbs+1
 endif
-tab=STRSPLIT(str4,'.',len=len,/preserve)
-if ARRAY_EQUAL(len,[0,0,4,3]) eq 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 len+preserve', /continue
+tab=STRSPLIT(str4,'.',length=length,/preserve)
+if ARRAY_EQUAL(length,[0,0,4,3]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str4 length+preserve', /continue
    nb_pbs=nb_pbs+1
 endif
-
-
+;
+; few tests on str7
+;
+pos=STRSPLIT(str7,';',length=length)
+if ARRAY_EQUAL(length,[2,9,10]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 length', /continue
+   nb_pbs=nb_pbs+1
+endif
+if ARRAY_EQUAL(pos,[0,3,13]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 pos', /continue
+   nb_pbs=nb_pbs+1
+endif
+;
+pos=STRSPLIT(str7,'.',length=length)
+if ARRAY_EQUAL(length,23) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 length no sep', /continue
+   nb_pbs=nb_pbs+1
+endif
+if (pos NE 0) then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 pos no sep', /continue
+   nb_pbs=nb_pbs+1
+endif
+;
+pos=STRSPLIT(str7,'a',length=length)
+if ARRAY_EQUAL(length,[1,1]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 length <<a>>', /continue
+   nb_pbs=nb_pbs+1
+endif
+if ARRAY_EQUAL(pos,[2,12]) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 pos <<a>>', /continue
+   nb_pbs=nb_pbs+1
+endif
+;
+pos=STRSPLIT(str7,'a',length=length,/preserve)
+exp_pos=LONG([INDGEN(3), INDGEN(9)+4,INDGEN(10)+14])
+exp_len=LONARR(STRLEN(str7)-1)
+exp_len[2]=1
+exp_len[2+9]=1
+;
+if ARRAY_EQUAL(pos,exp_pos) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 pos <<a>> /preserve', /continue
+   nb_pbs=nb_pbs+1
+endif
+if ARRAY_EQUAL(length,exp_len) eq 0 then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'error str7 length <<a>> /preserve', /continue
+   nb_pbs=nb_pbs+1
+endif
+;
+; tests on str5
+;
 tab=STRSPLIT(str5,/preserve)
 res=LONG([0,1,3,5,7,9])
 if (ARRAY_EQUAL(tab,res, /NO_TYPECONV) eq 0) then begin
@@ -301,14 +352,18 @@ endif else begin
    endif
 endelse
 ;
-MESSAGE, /Continue, "=============================="
+line="======================================="
+MESSAGE, /Continue, line
+MESSAGE, /Continue, " "
 mess=' errors encoutered during STRSPLIT tests'
 if (nb_pbs GT 0) then mess=STRING(nb_pbs)+mess else mess='NO'+mess
 MESSAGE, /Continue, mess
+MESSAGE, /Continue, " "
+MESSAGE, /Continue, line
 ;
 ; if /debug OR /test nodes, we don't want to exit
 if (nb_pbs GT 0) then begin
-    if ~(KEYWORD_SET(debug) or KEYWORD_SET(test)) then EXIT, status=1
+    if ~(KEYWORD_SET(debug) or KEYWORD_SET(test) or KEYWORD_SET(no_exit)) then EXIT, status=1
 endif
 ;
 if KEYWORD_SET(test) then STOP
