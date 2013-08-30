@@ -465,7 +465,7 @@ else if(var_type == NC_LONG)
       else if (var_type == NC_CHAR)
       {
         DByteGDL* temp = new DByteGDL(dim, BaseGDL::NOZERO);
-        status = nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
+        status = nc_get_var_text(cdfid, varid, (char*) &(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
         GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2) = temp;
@@ -587,7 +587,7 @@ else if(var_type == NC_LONG)
         else if (var_type == NC_CHAR)
         {
           DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
-          status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
+          status = nc_get_vara_text(cdfid, varid, off, cou, (char*) &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;
@@ -690,7 +690,7 @@ else if(var_type == NC_LONG)
         else if (var_type == NC_CHAR)
         {
           DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
-          status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          status = nc_get_vars_text(cdfid, varid, off, cou, stri, (char*) &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
