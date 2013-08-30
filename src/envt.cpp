@@ -23,6 +23,7 @@
 #include "objects.hpp"
 #include "dinterpreter.hpp"
 #include "basic_pro.hpp"
+#include "nullgdl.hpp"
 
 #include <cassert> // always as last
 
@@ -1217,8 +1218,8 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
 {
   SizeT ix = i + pro->key.size();
 
-  //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-  if( ix >= env.size() || env[ ix] == NULL) 
+  // cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
+  if( ix >= env.size() || env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
     Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
