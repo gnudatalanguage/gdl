@@ -3297,9 +3297,25 @@ TRACEOMP( __FILE__, __LINE__)
 
     SizeT nEl0 = p0->N_Elements();
     SizeT nEl1 = p1->N_Elements();
+
+    // first case : arrays with differents size (>1)
     if( nEl0 != nEl1 && nEl0 != 1 && nEl1 != 1)
       return new DByteGDL( 0);
-    
+  
+    // if one of input has only one element, it should NOt be an array
+    // ARRAY_EQUAL(1,[1,1]) True, ARRAY_EQUAL([1],[1,1]) False !!
+    if( nEl0 != nEl1) {
+      if (nEl0 == 1 && nEl1 != 1) {
+	if (!p0->StrictScalar()) return new DByteGDL( 0);
+      }
+      if (nEl0 != 1 && nEl1 == 1) {
+	if (!p1->StrictScalar()) return new DByteGDL( 0);
+      }
+    }
+
+    //cout << "pO "<< p0->Dim() << " p1 "<< p1->Dim() << endl;
+    //cout << "pO "<< p0->StrictScalar() << " p1 "<< p1->StrictScalar() << endl;
+
     Guard<BaseGDL> p0_guard;
     Guard<BaseGDL> p1_guard;
     if( p0->Type() != p1->Type())
