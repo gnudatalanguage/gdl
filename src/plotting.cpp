@@ -2586,7 +2586,7 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
-    if (sgn*value<gdlEpsDouble()) {snprintf(label, length, "0",value); return;}
+    if (sgn*value<gdlEpsDouble()) {snprintf(label, length, (ptr->isLog)?"1":"0",value); return;}
     int e=floor(log10(value*sgn));
     char *test=(char*)calloc(2*length, sizeof(char)); //be safe
     if (!(e==e)||(e<4 && e>-4)) 
