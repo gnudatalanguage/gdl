@@ -2901,7 +2901,7 @@ TRACEOMP( __FILE__, __LINE__)
     }
     jd=ceil(365.25*y+c)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
     (second*1.0)/86400.0+1720994.50+b;
-
+    if (y > 0) jd--; //for some obscure reason
     //    cout << "jd :" << jd << endl;
     return true;
   }
