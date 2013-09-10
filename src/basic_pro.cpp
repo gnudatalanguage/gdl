@@ -338,16 +338,29 @@ namespace lib {
 
   void help( EnvT* e)
   {    
+    // in order of priority
     bool kw = false;
-    //if LAST_MESSAGE is present, it is the only otput. All other kw are ignored.
     static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
     bool lastmKW = e->KeywordPresent( lastmKWIx);
+    BaseGDL** outputKW = NULL;
+    static int outputIx = e->KeywordIx( "OUTPUT");
+    bool doOutput = ( e->KeywordPresent( outputIx));
+    
+    //if LAST_MESSAGE is present, it is the only output. All other kw are ignored *EXCEPT 'output'*.
     if( lastmKW)
     {
       DStructGDL* errorState = SysVar::Error_State();
       static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-      cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
-      return;
+      if (doOutput) 
+      {    // Setup output return variable
+          outputKW = &e->GetKW( outputIx);
+          GDLDelete((*outputKW));
+          *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))->Convert2( GDL_STRING, BaseGDL::COPY));
+          return;
+      } else {
+          cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
+          return;
+      }
     }
 
     static int helpKWIx = e->KeywordIx("HELP");
@@ -581,9 +594,7 @@ namespace lib {
     vector<DString> fList;
 
     // If OUTPUT keyword set then set up output string array (outputKW)
-    BaseGDL** outputKW = NULL;
-    static int outputIx = e->KeywordIx( "OUTPUT");
-    if( e->KeywordPresent( outputIx)) {
+    if (doOutput) {
       SizeT nlines = 0;
       if (isKWSetProcedures) {
 	nlines = np + 1;
