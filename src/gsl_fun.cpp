@@ -3336,7 +3336,10 @@ namespace lib {
   BaseGDL* constant(EnvT* e)
   {
     string name;
-    bool twoparams;
+
+    bool twoparams=false;
+    if (e->NParam(1) == 2) twoparams=true;
+
     static DStructGDL *Values = SysVar::Values();
     static double nan = (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
 #ifdef USE_UDUNITS
@@ -3346,7 +3349,7 @@ namespace lib {
 #ifdef USE_UDUNITS
       DString tmpunit;
 #endif
-      if (twoparams = (e->NParam(1) == 2)) 
+      if (twoparams)
 	{
 #ifdef USE_UDUNITS
 	  e->AssureScalarPar<DStringGDL>(1, tmpunit);    
