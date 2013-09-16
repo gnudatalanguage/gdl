@@ -1507,14 +1507,13 @@ namespace lib {
     // INPUT keyword
     static int inputIx = e->KeywordIx("INPUT"); 
     DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( inputIx);
-    if (input != NULL)
+    if (input != NULL) {
       if (input->N_Elements() < nbins)
-	e->Throw( 
-		 "Expression " +e->GetString(inputIx) + 
+	e->Throw("Expression " +e->GetString(inputIx) + 
 		 " does not have enough elements.");
       else if (input->N_Elements() > nbins)
 	nbins = input->N_Elements();
- 
+    }
     // Adjust "b" if binsize specified otherwise gsl_histogram_set_ranges_uniform
     // will change bsize to (b-a)/nbins
     // SA: another case when it's needed: !MAX && !BINSIZE && NBINS
