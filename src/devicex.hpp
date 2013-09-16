@@ -935,7 +935,7 @@ public:
       perm[1] = 0;
       perm[2] = 2;
       return res->Transpose( perm);
-    } else if (tru = 3) {
+    } else if (tru == 3) {
       perm[0] = 1;
       perm[1] = 2;
       perm[2] = 0;

@@ -216,12 +216,12 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);
     
     BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
+    if( uvalue != NULL) {
       if( no_copy)
 	e->GetKW( uvalueIx) = NULL;
       else
 	uvalue = uvalue->Dup();
-    
+    }
     DString event_func = "";
     e->AssureStringScalarKWIfPresent( event_funcIx, event_func);
 

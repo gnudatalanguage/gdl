@@ -106,7 +106,7 @@ namespace lib {
     if( e->KeywordPresent( 3)) // RETAIN
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
-      if (retainType=0) doretain=false;
+      if (retainType == 0) doretain=false;
     }
     success = actDevice->EnableBackingStore(doretain);
  }

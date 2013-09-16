@@ -631,40 +631,41 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static void ReportError( GDLException& e, const std::string emsg, 
                              bool dumpStack=true)
     {
-        DString msgPrefix = SysVar::MsgPrefix();
-
-        std::cout << std::flush;
-        if( dumpStack)
-        if( e.Prefix())
-        {
-            std::cerr << msgPrefix << e.toString() << std::endl;
-            lib::write_journal_comment(msgPrefix+e.toString());
-        }
-        else
-        {
-            std::cerr << e.toString() << std::endl;
-            lib::write_journal_comment(e.toString());
-        }
-
-        std::cerr << msgPrefix << emsg << " " << 
+      DString msgPrefix = SysVar::MsgPrefix();
+      
+      std::cout << std::flush;
+      if( dumpStack) {
+	if( e.Prefix())
+	  {
+	    std::cerr << msgPrefix << e.toString() << std::endl;
+	    lib::write_journal_comment(msgPrefix+e.toString());
+	  }
+	else
+	  {
+	    std::cerr << e.toString() << std::endl;
+	    lib::write_journal_comment(e.toString());
+	  }
+      }
+      
+      std::cerr << msgPrefix << emsg << " " << 
         std::left << std::setw(16) << callStack.back()->GetProName();
-        std::string file=callStack.back()->GetFilename();
-        if( file != "")
+      std::string file=callStack.back()->GetFilename();
+      if( file != "")
         {
-            SizeT line = e.getLine();
-            if( line != 0)
+	  SizeT line = e.getLine();
+	  if( line != 0)
             {       
-                std::cerr << std::right << std::setw(6) << line;
+	      std::cerr << std::right << std::setw(6) << line;
             }
-            else
+	  else
             {
-                std::cerr << std::right << std::setw(6) << "";
+	      std::cerr << std::right << std::setw(6) << "";
             }
-            std::cerr << std::left << " " << file;
+	  std::cerr << std::left << " " << file;
         }
-        std::cerr << std::endl;
-        
-        if( dumpStack) DumpStack( emsg.size() + 1);
+      std::cerr << std::endl;
+      
+      if( dumpStack) DumpStack( emsg.size() + 1);
     }
     
     static void DumpStack( SizeT w)
