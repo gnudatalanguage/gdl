@@ -1797,7 +1797,7 @@ BaseGDL* list__toarray( EnvUDT* e)
     
     SizeT nParam = e->NParam();
 
-    SizeT listLength = 0;
+    DLong listLength = 0;
     DLongGDL* lengthKW = e->IfDefGetKWAs<DLongGDL>(kwLENGTHIx);
     if( lengthKW != NULL)
     {
