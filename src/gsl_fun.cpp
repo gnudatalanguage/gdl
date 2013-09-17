@@ -1784,8 +1784,10 @@ namespace lib {
 	//here we use a padded temp array (1D only):
 	for (SizeT k = 0; k < nxa-1; ++k) temp[k]=(*array)[k*ninterp+iterate]; temp[nxa-1]=temp[nxa-2]; //pad!
 	gdl_interp1d_init(interpolant, xa, temp, nxa, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
+#ifndef __PATHCC__
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
+#endif
 	for (SizeT i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
@@ -1910,8 +1912,10 @@ namespace lib {
 
       for (SizeT k = 0; k < nxa * nya; ++k) temp[k] = (*array)[k * ninterp + iterate];
       gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing ? missing_GIVEN : missing_NEAREST, missing, gamma);
+#ifndef __PATHCC__
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
+#endif
       for (SizeT i = 0; i < chunksize; ++i)
       {
         double x = xval[i];
@@ -2054,8 +2058,10 @@ namespace lib {
       {
 	for (SizeT k = 0; k < nxa*nya*nza; ++k) temp[k]=(*array)[k*ninterp+iterate];
 	gdl_interp3d_init(interpolant, xa, ya, za, temp, nxa, nya, nza, use_missing?missing_GIVEN:missing_NEAREST, missing);
+#ifndef __PATHCC__
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
+#endif
 	for (SizeT i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
