@@ -345,12 +345,12 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  SizeT nCp=N_Elements();
 	
 	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > (srcElem-offset))
+	  if( nCp > (srcElem-offset)) {
 	    if( offset == 0)
 	      nCp=srcElem;
 	    else
 	      throw GDLException("Source expr contains not enough elements.");
-
+	  }
 	  for( SizeT c=0; c<nCp; c++)
 	    {
 // 	      SizeT cTag= c*nTags;

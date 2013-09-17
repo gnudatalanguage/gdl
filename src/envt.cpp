@@ -1078,11 +1078,12 @@ void EnvT::AssureGlobalPar( SizeT pIx)
   
 void EnvT::AssureGlobalKW( SizeT ix)
 {
-  if( env.Env( ix) == NULL)
+  if( env.Env( ix) == NULL) {
     if( env.Loc( ix) != NULL)
       Throw( "Attempt to store into an expression.");
     else
       Throw( "Parameter must be a named variable.");
+  }
 }
 
 DStructGDL* EnvT::GetObjectPar( SizeT pIx)
