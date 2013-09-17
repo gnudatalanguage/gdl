@@ -71,15 +71,16 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
 	pos = strLen - pos - 1;
     }
 
-  if( searchStr == "") 
-    if( pos >= strLen) 
-      return strLen - 1; 
-    else 
-      {
-	if( reverseSearch && pos < 0) return 0;
-	return pos;
-      }
-  
+  if( searchStr == "")
+    {
+      if( pos >= strLen)
+	return strLen - 1; 
+      else 
+	{
+	  if( reverseSearch && pos < 0) return 0;
+	  return pos;
+	}
+    }
   if( pos < 0) return -1;
 
   string::size_type res;

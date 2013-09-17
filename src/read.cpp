@@ -203,25 +203,27 @@ namespace lib {
 	      }
 
 	    if( is == &cin && noPrompt)
-	      if( prompt != NULL)
-		{
-		  prompt->ToStream( oss);
-		  actualPrompt = oss.str();
+	      {
+		if( prompt != NULL)
+		  {
+		    prompt->ToStream( oss);
+		    actualPrompt = oss.str();
 #ifdef HAVE_LIBREADLINE
-		  cout << flush;
+		    cout << flush;
 #else
-		  cout << oss.str() << flush;
+		    cout << oss.str() << flush;
 #endif
-		}
-	      else
-		{
-		  actualPrompt = ": ";
+		  }
+		else
+		  {
+		    actualPrompt = ": ";
 #ifdef HAVE_LIBREADLINE
-		  cout << flush;
+		    cout << flush;
 #else
-		  cout << ": " << flush;
+		    cout << ": " << flush;
 #endif
-		}
+		  }
+	      }
 		
 #ifdef HAVE_LIBREADLINE
 	    if( is == &cin  && isatty(0))

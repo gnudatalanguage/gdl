@@ -71,10 +71,12 @@
       ThrowFromInternalUDSub( e, "LIST container node ID <"+i2s(actP)+"> not found.");      
     }
     if( actPHeap == NULL || actPHeap->Type() != GDL_STRUCT)
-      if( e == NULL)
-	throw GDLException( "LIST node must be a STRUCT.");
-      else
-	ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");
+      {
+	if( e == NULL)
+	  throw GDLException( "LIST node must be a STRUCT.");
+	else
+	  ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");
+      }
     DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
 //     static DString cNodeName("GDL_CONTAINER_NODE");
 //     if( actPStruct->Desc()->Name() != cNodeName) // this saves the FindInStructList
