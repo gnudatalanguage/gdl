@@ -2288,11 +2288,12 @@ int Data_<Sp>::Scalar2Index( SizeT& st) const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-  if( (*this)[0] < 0)
+  if( (*this)[0] < 0) {
     if( this->dim.Rank() != 0) 
       return -2;
     else
       return -1;
+  }
 
   st= static_cast<SizeT>((*this)[0]);
   if( this->dim.Rank() != 0) return 2;
@@ -3121,12 +3122,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	  SizeT nCp=Data_::N_Elements();
 	
 	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > (srcElem-offset))
+	  if( nCp > (srcElem-offset)) {
 	    if( offset == 0)
 	      nCp=srcElem;
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
-
+	  }
 	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 	    {
 	    #pragma omp for*/
