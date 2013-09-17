@@ -460,13 +460,14 @@ void MakeArrayIndex( ArrayIndexVectorT* ixList,
   // ArrayIndexListMultiT
   if( nIndexed == 0)
   {
-    if( arrayIndexNoAssocOut != NULL)
+    if( arrayIndexNoAssocOut != NULL) {
       if( ixList->size() == 2)
 	*arrayIndexNoAssocOut = new ArrayIndexListMultiNoneIndexedNoAssoc2DT( ixList);
       else
 	*arrayIndexNoAssocOut = new ArrayIndexListMultiNoneIndexedNoAssocT( ixList);
-//     if( arrayIndexOut != NULL)
-      *arrayIndexOut = new ArrayIndexListMultiNoneIndexedT( ixList);
+    }
+    //     if( arrayIndexOut != NULL)
+    *arrayIndexOut = new ArrayIndexListMultiNoneIndexedT( ixList);
     return;
   }	
   if( nIndexed == ixList->size())

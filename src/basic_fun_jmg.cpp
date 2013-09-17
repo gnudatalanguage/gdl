@@ -68,12 +68,12 @@ namespace lib {
 
     // DIMENSIONS
     if( e->KeywordSet( dimIx)) { 
-      if( Rank == 0) 
+      if( Rank == 0) {
 	if( e->KeywordSet(L64Ix))
 	  return new DLong64GDL( 0);
 	else
 	  return new DLongGDL( 0);
-
+      }
       dimension dim( Rank);
 
       if( e->KeywordSet(L64Ix)) { // L64
