@@ -242,11 +242,13 @@ public:
   bool Valid() { return valid;}
   bool validWorldBox()
   {
-      if( theBox.wx1==0&&theBox.wx2==0 || theBox.wy1==0&&theBox.wy2==0 ) return false; else return true;
+    if (((theBox.wx1==0) && (theBox.wx2==0)) 
+	|| ((theBox.wy1==0) && (theBox.wy2==0))) return false; else return true;
   }
   bool validNormdBox()
   {
-      if( theBox.nx1==0&&theBox.nx2==0 || theBox.ny1==0&&theBox.ny2==0 ) return false; else return true;
+    if (((theBox.nx1==0) && (theBox.nx2==0)) 
+	|| ((theBox.ny1==0) && (theBox.ny2==0))) return false; else return true;
   }
   inline PLFLT charScale(){return theCurrentChar.scale;}
   inline PLFLT nCharLength(){return theCurrentChar.ndsx;}
