@@ -101,6 +101,18 @@ Assoc_< DStructGDL>::Assoc_( int lun_, DStructGDL* assoc_, SizeT fileOffset_):
   MakeOwnDesc();
 }
 
+
+// called from help_item
+template<class Parent_>
+std::ostream& Assoc_<Parent_>::ToStream(std::ostream& o, SizeT width, SizeT* actPosPtr)
+{
+  o << "File<" << fileUnits[ lun].Name() << "> "; 
+  return o;
+//     throw GDLException("File expression not allowed in this context.");
+}
+
+
+  
 // writing 1
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy
 // assumes: ixList has this already set as variable

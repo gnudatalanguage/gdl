@@ -90,10 +90,13 @@ static	void operator delete( void *ptr);
   }
 
   //  std::ostream& ToStream(std::ostream& o)
-  std::ostream& ToStream(std::ostream& o, SizeT width = 0, SizeT* actPosPtr = NULL)
-  {
-    throw GDLException("File expression not allowed in this context.");
-  }
+  std::ostream& ToStream(std::ostream& o, SizeT width = 0, SizeT* actPosPtr = NULL);
+//   {
+//   
+//     os << "File<"+/dev/zero+"> "; 
+//     return Parent_::ToStream( o, width, actPosPtr);
+// //     throw GDLException("File expression not allowed in this context.");
+//   }
   std::istream& FromStream(std::istream& i)
   {
     throw GDLException("File expression not allowed in this context.");

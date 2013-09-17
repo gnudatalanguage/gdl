@@ -265,6 +265,8 @@ namespace lib {
     {
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";
+	if( par->IsAssoc())
+	  par->ToStream( os);
     }
 
     // Dimension display
