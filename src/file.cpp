@@ -741,11 +741,12 @@ namespace lib {
       dir = opendir( dirN.c_str());
     else
       dir = opendir( ".");
-    if( dir == NULL)
+    if( dir == NULL) {
       if( accErr)
 	throw GDLException( "FILE_SEARCH: Error opening dir: "+dirN);
       else
 	return;
+    }
 
     for(;;)
       {
@@ -780,12 +781,12 @@ namespace lib {
       }
 
     int c = closedir( dir);
-    if( c == -1)
+    if( c == -1) {
       if( accErr)
 	throw GDLException( "FILE_SEARCH: Error closing dir: "+dirN);
       else
 	return;
-
+    }
     // recursive search
     SizeT nRecur = recurDir.size();
     for( SizeT d=0; d<nRecur; ++d)
