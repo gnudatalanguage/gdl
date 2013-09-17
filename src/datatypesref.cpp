@@ -377,12 +377,12 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	  SizeT nCp=Data_::N_Elements();
 	
 	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > (srcElem-offset))
+	  if( nCp > (srcElem-offset)) {
 	    if( offset == 0)
 	      nCp=srcElem;
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
-
+	  }
 	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 	  {
 	    //#pragma omp for
@@ -513,12 +513,12 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	  SizeT nCp=Data_::N_Elements();
 	
 	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > (srcElem-offset))
+	  if( nCp > (srcElem-offset)) {
 	    if( offset == 0)
 	      nCp=srcElem;
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
-
+	  }
 	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 	  {
 	    //#pragma omp for
