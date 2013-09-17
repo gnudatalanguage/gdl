@@ -1364,13 +1364,13 @@ BaseGDL* dcomplex_fun( EnvT* e)
     bool quietCompile = false;
     if( nParam == 2)
       {
-		BaseGDL* p1 = e->GetParDefined( 1);
+	BaseGDL* p1 = e->GetParDefined( 1);
 
-		if( !p1->Scalar())
-		  e->Throw( "Expression must be scalar in this context: "+
-				      e->GetParString(1));
+	if( !p1->Scalar())
+	  e->Throw( "Expression must be scalar in this context: "+
+			      e->GetParString(1));
 
-		quietCompile = p1->True();
+	quietCompile = p1->True();
       }
 
     if (e->GetParDefined(0)->Rank() != 0)

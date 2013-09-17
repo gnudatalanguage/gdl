@@ -811,6 +811,8 @@ public:
 	    GDLException(-1,NULL,"Expression must be a scalar"
 			  " in this context.",true,false); 
       }
+//    s = sInit; // for assoc  
+
 // not with Scalar2RangeT():
 //     if( retMsg == -1) // index < 0
 //       {

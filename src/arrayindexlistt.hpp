@@ -154,7 +154,7 @@ public:
 //     allIxMulti.Clear();
     
     ix->Clear();
-	cleanupIx.Cleanup();
+    cleanupIx.Cleanup();
   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneT( *this);}
@@ -210,9 +210,11 @@ public:
     assert( allIx == NULL);
 
     // for assoc variables last index is the record
-    // we cannot return here as sInit is not yet copied to s
-    //if( var->IsAssoc()) return;
-
+    if( var->IsAssoc())
+    {
+	// note: s is copied from sIter in ArrayIndex::Init
+       return;
+    }
     // ArrayIndexScalar[VP] are not initialized
     // they need the NIter call, but
     // for only one index they have their own ArrayIndexListT
@@ -336,14 +338,18 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_);//, NULL);
-    if( !var->IsAssoc() && ix->Scalar()) //ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
+
+    if( var->IsAssoc()) // deault case
+      return var->Index( this);
+    
+    if( /*!var->IsAssoc() &&*/ ix->Scalar()) //ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
       {
 	SizeT assertValue = ix->NIter( var->N_Elements()/*var->Size()*/);
 	assert( assertValue == 1);
 
 	return var->NewIx( ix->GetIx0());
       }
-    // normal case
+    // normal case, no assoc
     SetVariable( var);
     return var->Index( this);
   }

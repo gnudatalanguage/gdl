@@ -640,7 +640,7 @@ GDLInterpreter::GDLInterpreter()
 	ValueGuard<bool> guard( interruptEnable);
 	interruptEnable = false;
 	
-		return statement_list(_t);
+	return statement_list(_t);
 	
 	
 	retCode=statement_list(_t);

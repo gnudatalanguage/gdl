@@ -557,9 +557,8 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
     return newObj;
   }
 
- 
-  
-  
+
+
 BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 {
   SizeT nParam = e->NParam(1); // number of parameters actually given
@@ -692,26 +691,28 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 
   if( allIx->size() == 1)
   {
-    DPtr actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
-    SizeT targetIx = allIx->operator[](0);
-    for( SizeT elIx = 0; elIx < targetIx; ++elIx)
-    {
-      BaseGDL* actPHeap = e->Interpreter()->GetHeap( actP);
-      if( actPHeap->Type() != GDL_STRUCT)
-	ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");	
-      DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
-      if( actPStruct->Desc() != containerDesc)
-	ThrowFromInternalUDSub( e, "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+    DLong targetIx = allIx->operator[](0);
+    if( targetIx == (listSize-1))
+      targetIx = -1;
+    DPtr actP = GetLISTNode( e, self, targetIx);
 
-      actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
-    }
-
-    BaseGDL* actPHeap = e->Interpreter()->GetHeap( actP);
-    if( actPHeap->Type() != GDL_STRUCT)
-      ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");	
-    DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
-    if( actPStruct->Desc() != containerDesc)
-      ThrowFromInternalUDSub( e, "LIST node must be a GDL_CONTAINER_NODE STRUCT.");	
+//     DPtr actP;// = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
+//     if( targetIx == (listSize-1)) // 0
+//     {
+//       actP = (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];
+//     }
+//     else
+//     {
+//       actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
+//       for( SizeT elIx = 0; elIx < targetIx; ++elIx)
+//       {
+// 	DStructGDL* actPStruct = GetStruct( e, actP);
+// 
+// 	actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
+//       }
+//     }
+//    DStructGDL* actPStruct = GetStruct( e, actP);
+    DStructGDL* actPStruct = GetLISTStruct( e, actP);   
 
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
     
@@ -735,7 +736,9 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
   DPtr cID = 0;
   for( SizeT i=0; i<allIx->size(); ++i)
   {
-    SizeT actIx = allIx->operator[](i);
+    DLong actIx = allIx->operator[](i);
+    if( actIx == (listSize-1))
+      actIx = -1;
     DPtr pActNode = GetLISTNode( e, self, actIx);
     DStructGDL* actNode = GetLISTStruct( e, pActNode);   
 
