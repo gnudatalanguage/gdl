@@ -753,7 +753,7 @@ public:
   void gpage(PLFLT& xp, PLFLT& yp, PLINT& xleng, PLINT& yleng,
                 PLINT& xoff, PLINT& yoff)
   {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"gpage()\n",xp,yp);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"gpage() [%f,%f]\n",xp,yp);
     if(updatePageInfo()==true)
     {
         xp=thePage.xdpmm/MMTOINCH;
