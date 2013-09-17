@@ -259,7 +259,7 @@ namespace lib
       }
       else //make the transformation ourselves
       {
-        scale=1/sqrt(3);
+        scale=1/sqrt(3.0);
         //Compute transformation matrix with plplot conventions:
         plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale);
         // save !P.T if asked to...

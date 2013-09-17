@@ -530,9 +530,9 @@ namespace lib
           actStream->GetGeometry(xsize,ysize,xoff,yoff);
           GetMinMaxVal ( xValTemp, &xmin, &xmax );
           GetMinMaxVal ( yValTemp, &ymin, &ymax );
-          // find a good compromize for default size of gridded map...
-          ixEl=max(51.0,2*sqrt(xEl)+1); //preferably odd
-          iyEl=max(51.0,2*sqrt(yEl)+1);
+          // find a good compromise for default size of gridded map...
+          ixEl=max(51.0,2*sqrt((double)xEl)+1); //preferably odd
+          iyEl=max(51.0,2*sqrt((double)yEl)+1);
           ixEl=ixEl<xsize?ixEl:xsize; //no more than pixels on screen!
           iyEl=iyEl<ysize?iyEl:ysize;
           xVal=new DDoubleGDL ( dimension ( ixEl ), BaseGDL::NOZERO );
