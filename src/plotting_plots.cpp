@@ -228,7 +228,7 @@ namespace lib
           bool okClipBox=true;
           for ( int i=0; i<4; ++i )
           {
-            if (!(worldbox[i]==worldbox[i])) //NaN
+            if (!isfinite(worldbox[i])) //NaN
             {
               okClipBox=false;restoreClipBox=false;doClip=false;
             }

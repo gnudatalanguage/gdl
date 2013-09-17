@@ -494,7 +494,7 @@ namespace lib {
   }
   void SelfPerspective3d(DDoubleGDL* me, DDouble zdist)
   {
-    if (!(zdist==zdist)) return; //Nan
+    if (!isfinite(zdist)) return; //Nan
     if (zdist==0.0) return;
     SizeT dim0=me->Dim(0);
     SizeT dim1=me->Dim(1);
@@ -824,7 +824,7 @@ done:
   void scale3_pro(EnvT* e)
   {
     static unsigned tTag=SysVar::P()->Desc()->TagIndex("T");
-    const double invsqrt3=1.0/sqrt(3);
+    const double invsqrt3=1.0/sqrt(3.0);
     //AX
     DDouble ax=30.0;
     e->AssureDoubleScalarKWIfPresent("AX", ax);

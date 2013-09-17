@@ -2589,7 +2589,7 @@ namespace lib
     if (sgn*value<gdlEpsDouble()) {snprintf(label, length, (ptr->isLog)?"1":"0",value); return;}
     int e=floor(log10(value*sgn));
     char *test=(char*)calloc(2*length, sizeof(char)); //be safe
-    if (!(e==e)||(e<4 && e>-4)) 
+    if (!isfinite(e)||(e<4 && e>-4)) 
     {
       snprintf(test, length, "%f",value);
       ns=strlen(test);
