@@ -61,7 +61,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
   key.resize(nKey_);
   for( SizeT k=0; k<nKey_; ++k) key[k]=keyNames[k];
 
-  if( nKey_ >= 1)
+  if( nKey_ >= 1) {
     if( keyNames[0] == "_EXTRA")
       {
 	extra = EXTRA;
@@ -72,6 +72,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
 	extra = REFEXTRA;
 	extraIx = 0;
       }
+  }
 
   SizeT nWarnKey_=0;
   if( warnKeyNames != NULL)
