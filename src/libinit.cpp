@@ -219,11 +219,11 @@ void LibInit()
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
-  const string helpKey[]={"BRIEF","CALLS","FUNCTIONS","HELP","INFO",
+  const string helpKey[]={"ALL_KEYS","BRIEF","CALLS","FUNCTIONS","HELP","INFO",
 			  "INTERNAL_LIB_GDL","LAST_MESSAGE","LIB","MEMORY",
 			  "OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES", KLISTEND};
-  const string helpWarnKey[]={"TRACEBACK", KLISTEND};
+  const string helpWarnKey[]={"FULL","TRACEBACK", KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey,helpWarnKey);
 
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",

@@ -369,14 +369,34 @@ namespace lib {
     bool helpKW= e->KeywordPresent(helpKWIx);
     if( helpKW) {
       string inline_help[]={"Usage: "+e->GetProName()+", expr1, ..., exprN,", 
-			    "          /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
+			    "          /ALL_KEYS, /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
 			    "          /INTERNAL_LIB_GDL, /LAST_MESSAGE, /LIB, /MEMORY,",
 			    "          /OUTPUT, /PATH_CACHE, /PREFERENCES, /PROCEDURES,",
 			    "          /RECALL_COMMANDS, /ROUTINES, /SOURCE_FILES, /STRUCTURES,"};
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	
       e->Help(inline_help, size_of_s);
     }
-    
+
+    if (e->KeywordSet("ALL_KEYS")) {  // obsolete keyword
+      cout << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
+      cout << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
+      cout << endl;
+      cout << "Moving in the command line :"<< endl;
+      cout << "  Ctrl-a          : going to the beginning of the line"<< endl;
+      cout << "  Ctrl-e          : going to the end of the line"<< endl;
+      cout << "  Ctrl-u          : removing from here to the beginning of the line"<< endl;
+      cout << "  Ctrl-k          : removing from here to the end of the line"<< endl;
+      cout << "  Ctrl-RightArrow : jumping one word on the right"<< endl;
+      cout << "  Ctrl-LeftArrow  : jumping one word on the left"<< endl;
+      cout << endl;
+      cout << "Moving in the history :"<< endl;
+      cout << "  HELP, /recall       : listing the whole history" << endl;
+      cout << "  Ctrl-p or UpArrow   : previous entry in history"  << endl;
+      cout << "  Ctrl-n or DownArrow : next entry in history"  << endl;
+      cout << endl;    
+      return;
+    }
+
     static int pathKWIx = e->KeywordIx("PATH_CACHE");
     bool pathKW= e->KeywordPresent(pathKWIx);
     if( pathKW) {
