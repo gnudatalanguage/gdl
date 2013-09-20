@@ -82,10 +82,10 @@ void tvcrs( EnvT* e)
     {
       PROJTYPE* ref = map_init();
       if (ref == NULL) e->Throw("Projection initialization failed.");
-      LPTYPE idata, idataN;
+      LPTYPE idataN;
       idataN.lam = tempx* RAD_TO_DEG;
       idataN.phi = tempy* RAD_TO_DEG;
-      XYTYPE odata = PJ_FWD(idata, ref);
+      XYTYPE odata = PJ_FWD(idataN, ref);
       tempx = odata.x;
       tempy = odata.y;
     }
