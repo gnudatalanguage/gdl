@@ -132,7 +132,7 @@ namespace lib {
   BaseGDL* lusol_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    int s;
+//    int s;
     
     //     if( nParam == 0)
     //       e->Throw( "Incorrect number of arguments.");
@@ -207,7 +207,7 @@ namespace lib {
     
     int debug=0;
     if (debug) {
-      cout << "permutation order: " << s << endl;
+//      cout << "permutation order: " << s << endl;
       cout << "permutation vector:";
       gsl_permutation_fprintf (stdout, p, " %u");
       cout << endl;
