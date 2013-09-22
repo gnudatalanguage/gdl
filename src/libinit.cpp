@@ -479,7 +479,7 @@ void LibInit()
   new DLibFunRetNew(lib::rotate,string("ROTATE"),2,NULL,NULL,true);
 
   const string reverseKey[] = {"OVERWRITE", KLISTEND};
-  new DLibFunRetNew(lib::reverse, string("REVERSE"), 2, reverseKey, NULL, true);
+  new DLibFun(lib::reverse, string("REVERSE"), 2, reverseKey, NULL, true);
 
 //   const string minKey[]={"MAX",KLISTEND};
 //   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
@@ -899,7 +899,7 @@ void LibInit()
   //const string hanningKey[] = {"DOUBLE", "ALPHA", KLISTEND };
   //new DLibFunRetNew(lib::hanning, string("HANNING"), 2, hanningKey);
   const string wtnKey[] = {"COLUMN", "DOUBLE", "INVERSE", "OVERWRITE", KLISTEND };
-  new DLibFunRetNew(lib::wtn, string("WTN"), 2, wtnKey);
+  new DLibFun(lib::wtn, string("WTN"), 2, wtnKey);
   const string zeropolyKey[] = {"DOUBLE", "COMPANION", "JENKINS_TRAUB", KLISTEND };
   new DLibFunRetNew(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
   const string spher_harmKey[] = {"DOUBLE", KLISTEND };

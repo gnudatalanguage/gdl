@@ -6337,12 +6337,14 @@ BaseGDL* transpose( EnvT* e)
     // IDL doc states that OVERWRITE is ignored for one- or two-dim. arrays 
     // but it seems to behave differently
     // if (p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0))
-    if (e->KeywordSet("OVERWRITE"))
+    static int overwriteIx = e->KeywordIx("OVERWRITE");
+    if (e->KeywordSet(overwriteIx))
     {
       p0->Reverse(dim-1);
       bool stolen = e->StealLocalPar( 0);
-      if( !stolen) 
+//    if( !stolen) 
 // 	e->GetPar(0) = NULL;
+      if( !stolen) 
 	e->SetPtrToReturnValue( &e->GetPar(0));
       return p0;
     }

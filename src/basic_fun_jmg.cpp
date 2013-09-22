@@ -563,8 +563,8 @@ namespace lib {
       e->Throw( "New subscripts must not change the number of elements in " 
 		+ e->GetParString( 0));
 
-
-    if (e->KeywordSet( "OVERWRITE")) {
+    static int overwriteIx = e->KeywordIx("OVERWRITE");
+    if (e->KeywordSet( overwriteIx)) {
 
       // make a copy if p0 is not global
       //      if( !e->GlobalPar( 0))

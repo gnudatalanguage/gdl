@@ -3688,14 +3688,61 @@ namespace lib {
 
     // preparing output (GSL always uses double precision and always works in-situ)
     DType inputType = p0->Type();
-    DDoubleGDL* ret = static_cast<DDoubleGDL*>(p0->Convert2(
-							    GDL_DOUBLE, 
-							    e->KeywordSet(overwriteIx) && e->StealLocalPar(0) 
-							    ? BaseGDL::CONVERT
-							    : BaseGDL::COPY
-							    ));
+    DDoubleGDL* ret;
     Guard<DDoubleGDL> ret_guard;
-    if (ret != p0) ret_guard.Reset(ret);
+    if( !e->KeywordSet(overwriteIx))
+    {
+	bool stolen = e->StealLocalPar(0);
+	if( inputType == GDL_DOUBLE &&  stolen)
+	{
+	  ret = static_cast<DDoubleGDL*>(p0);
+	  ret_guard.Init(ret);
+	}
+	else
+	{
+	  if( stolen)
+	    ret = static_cast<DDoubleGDL*>(p0->Convert2(
+							GDL_DOUBLE, 
+							BaseGDL::CONVERT
+							));
+	  else
+	    ret = static_cast<DDoubleGDL*>(p0->Convert2(
+							GDL_DOUBLE, 
+							BaseGDL::COPY
+							));
+	  ret_guard.Init(ret);
+	}      
+    }
+    else
+    {
+      bool stolen = e->StealLocalPar(0);
+      if( stolen)
+      {
+	// was local par
+	ret = static_cast<DDoubleGDL*>(p0->Convert2(
+						  GDL_DOUBLE, 
+						  BaseGDL::CONVERT
+						  ));
+	ret_guard.Init(ret);
+      }
+      else
+      {
+	assert( e->GlobalPar(0));
+	if( inputType == GDL_DOUBLE)
+	{
+	  ret = static_cast<DDoubleGDL*>(p0);
+	  e->SetPtrToReturnValue( &e->GetPar(0));	  
+	}
+	else
+	{
+	  ret = static_cast<DDoubleGDL*>(p0->Convert2(
+						    GDL_DOUBLE, 
+						    BaseGDL::COPY
+						    ));
+	  ret_guard.Init(ret);
+	}
+      }
+    }
 
     // GSL error handling
     gsl_error_handler_t* old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
