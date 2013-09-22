@@ -630,7 +630,7 @@ namespace lib {
   }
 
   template < typename T>
-  T* fft_template(BaseGDL* p0,
+  T* fft_template(EnvT* e,BaseGDL* p0,
 		  SizeT nEl, SizeT dbl, SizeT overwrite, 
 		  double direct, DLong dimension)
   {
@@ -648,7 +648,11 @@ namespace lib {
 	resGuard.Reset( res);
       } 
     else
+    {
       res = (T*) p0;
+      if( e->GlobalPar(0))
+	e->SetPtrToReturnValue(&e->GetPar(0));
+    }
     
     DComplexGDL* tabfft = new DComplexGDL(p0->Dim());
     Guard<DComplexGDL> tabfftGuard( tabfft);
@@ -918,7 +922,7 @@ namespace lib {
       // AC 10-09-2012: temporary fix
       dbl=1;
     
-      return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite,
+      return fft_template< DComplexDblGDL> (e, p0, nEl, dbl, overwrite,
 					    direct, dimension);
 
     }  
@@ -931,7 +935,7 @@ namespace lib {
 	e->StealLocalPar(0); // only steals if local par
       // 		e->StealLocalParUndefGlobal(0);
     
-      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
+      return fft_template< DComplexGDL> (e, p0, nEl, dbl, overwrite, 
 					 direct, dimension);
 
     }
@@ -944,7 +948,7 @@ namespace lib {
 
       //cout << "if 3" << endl;
       overwrite = 0;
-      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
+      return fft_template< DComplexGDL> (e, p0, nEl, dbl, overwrite, 
 					 direct, dimension);
 
     } else {
@@ -954,7 +958,7 @@ namespace lib {
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
       Guard<BaseGDL> guard_p0C( p0C); 
-      return fft_template< DComplexGDL> (p0C, nEl, dbl, overwrite, 
+      return fft_template< DComplexGDL> (e, p0C, nEl, dbl, overwrite, 
 					 direct,dimension); 
 
     }

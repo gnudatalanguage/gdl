@@ -39,7 +39,7 @@ namespace lib {
 //   static int szflt=sizeof(float);
 
   template < typename T>
-  T* fftw_template(BaseGDL* p0,
+  T* fftw_template(EnvT* e, BaseGDL* p0,
 		   SizeT nEl, SizeT dbl, SizeT overwrite, double direct)
   {
     int dim[MAXRANK];
@@ -49,8 +49,12 @@ namespace lib {
     if (overwrite == 0)
       res = new T( p0->Dim(), BaseGDL::ZERO);
     else
+    {
       res = (T*) p0;
-
+      if( e->GlobalPar(0))
+	e->SetPtrToReturnValue(&e->GetPar(0));
+    }
+    
     for( SizeT i=0; i<p0->Rank(); ++i) {
       dim[i] = (int) p0->Dim(p0->Rank()-i-1);
     }
@@ -191,7 +195,7 @@ TRACEOMP( __FILE__, __LINE__)
        p0C = (DComplexDblGDL *) p0;
 	 }
 
-      return fftw_template< DComplexDblGDL> (p0C, nEl, dbl, overwrite, direct);
+      return fftw_template< DComplexDblGDL> (e,p0C, nEl, dbl, overwrite, direct);
 
     }
     else if( p0->Type() == GDL_COMPLEX) {
@@ -201,7 +205,7 @@ TRACEOMP( __FILE__, __LINE__)
 	  	e->StealLocalPar(0);
 // 		e->StealLocalParUndefGlobal(0);
 
-      return fftw_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
+      return fftw_template< DComplexGDL> (e,p0, nEl, dbl, overwrite, direct);
 
     }
     else {
@@ -210,7 +214,7 @@ TRACEOMP( __FILE__, __LINE__)
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
       Guard<BaseGDL> guard_p0C( p0C); 
-      return fftw_template< DComplexGDL> (p0C, nEl, dbl, overwrite, direct);
+      return fftw_template< DComplexGDL> (e,p0C, nEl, dbl, overwrite, direct);
 
     }
   }
