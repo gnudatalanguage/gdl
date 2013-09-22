@@ -3296,7 +3296,7 @@ BaseGDL* POWNCNode::Eval()
     assert( res != NULL);
     //       throw GDLException( _t, "");
 
-    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
+//     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
 //     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
 //     if( callStackBack->Contains( res))
     if( newEnv->GetPtrToReturnValue() != NULL)

@@ -398,7 +398,7 @@ void EnvBaseT::AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible,
 {
   if( ptr == NULL) return;
 
-  SizeT nEl = ptr->N_Elements();
+  SizeT nEl = ptr->Size();//  N_Elements();
   for( SizeT e = 0; e<nEl; ++e)
     {
       DObj p = (*ptr)[ e];

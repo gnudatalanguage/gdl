@@ -329,7 +329,7 @@ namespace lib {
       arr( e, dim); 
       if (dim[0] == 0)
 
-	if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
+      if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
       return new DComplexDblGDL(dim);
  /*   }
     catch( GDLException& ex)
@@ -976,7 +976,11 @@ namespace lib {
 	  {
             // SA: see tracker item 3151760 
 	    BaseGDL* p0 = e->GetParDefined( 0);
-            if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) return p0;
+            if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) 
+	    {
+	      e->SetPtrToReturnValue( &e->GetPar(0));
+	      return p0;
+	    }
 	    return p0->Convert2( ComplexGDL::t, BaseGDL::COPY);
 	  }
       }
