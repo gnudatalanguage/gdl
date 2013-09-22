@@ -167,17 +167,17 @@ namespace lib {
 
 //--------------------------------------------------------------------------//
 
-  static DInterpreter* interpreter;
+//   static DInterpreter* interpreter;
 
-  void PushNewEnvRK( EnvT*e, DSub* newPro, BaseGDL** a,BaseGDL** b)
+  void PushNewEnvRK( EnvT*e, DSubUD* newPro, BaseGDL** a,BaseGDL** b)
   {
 
-    EnvUDT* newEnv= new EnvUDT( e->CallingNode(), newPro, (BaseGDL**)NULL);
+    EnvUDT* newEnv= new EnvUDT( e->CallingNode(), newPro, (DObjGDL**)NULL);
 
     newEnv->SetNextPar(a); // pass as global
     newEnv->SetNextPar(b); // pass as global
 	
-    interpreter->CallStack().push_back(newEnv);
+    e->Interpreter()->CallStack().push_back(newEnv);
 
   }
   //***********************************  RK4 FUNCTION  **************************//
@@ -330,7 +330,7 @@ namespace lib {
 	else
 	  return Yout;
       }
-	
+    assert( false);	
   }// RK4_fun
 
 }//namespace

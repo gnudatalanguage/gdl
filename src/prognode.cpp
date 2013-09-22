@@ -150,8 +150,10 @@ BaseGDL* ASSIGNNode::Eval()
         {
 //             res=interpreter->lib_function_call(_t);
 //             _t = interpreter->GetRetTree();
-	  res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
-	  if( !interpreter->CallStackBack()->Contains( res))
+	  BaseGDL** retValPtr;
+	  res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+	  if( retValPtr == NULL)
+// 	  if( !interpreter->CallStackBack()->Contains( res))
 	    r_guard.Reset( res);
 	  _t = _t->getNextSibling();
         }
@@ -183,8 +185,10 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
         {
 //             res=interpreter->lib_function_call(_t);
 //             _t = interpreter->GetRetTree();
-	    res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
-            if( !interpreter->CallStackBack()->Contains( res))
+	    BaseGDL** retValPtr;
+	    res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+	    if( retValPtr == NULL)
+//             if( !interpreter->CallStackBack()->Contains( res))
                 r_guard.Reset( res);
 	    _t = _t->getNextSibling();
         }
@@ -688,12 +692,14 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
+  BaseGDL** retValPtr;
   BaseGDL* kval=
 //   ProgNode::interpreter->
 //     lib_function_call(this->getFirstChild()->getNextSibling());
-    static_cast<FCALL_LIBNode*>(this->getFirstChild()->getNextSibling())->EvalFCALL_LIB(); 
+    static_cast<FCALL_LIBNode*>(this->getFirstChild()->getNextSibling())->EvalFCALL_LIB( retValPtr); 
 			
-  BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
+//   BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
+  BaseGDL** kvalRef = retValPtr;
   if( kvalRef != NULL)
     {   // pass reference
       actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
@@ -780,8 +786,10 @@ bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
     return false; // pass value
   }
 //   pval=ProgNode::interpreter->lib_function_call(p);
-  pval = static_cast<FCALL_LIBNode*>(p)->EvalFCALL_LIB(); 
-  BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+  BaseGDL** retValPtr;
+  pval = static_cast<FCALL_LIBNode*>(p)->EvalFCALL_LIB( retValPtr); 
+//   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+  BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
   return (pvalRef != NULL);
 //   if( pvalRef != NULL)
 //     {   // pass reference
@@ -820,9 +828,11 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {  
-    BaseGDL* //pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-	pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB(); 
-    BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+//     BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+    BaseGDL** retValPtr;
+    BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
+//     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+    BaseGDL** pvalRef = retValPtr;//interpreter->CallStackBack()->GetPtrToReturnValueNull();
     if( pvalRef != NULL)
       {   // pass reference
 	actEnv->SetNextParUnchecked( pvalRef); 
@@ -862,9 +872,11 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
-    BaseGDL* //pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-	pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB(); 
-    BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+//     pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+    BaseGDL** retValPtr;
+    BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
+//     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+    BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
     if( pvalRef != NULL)
       {   // pass reference
 	actEnv->SetNextParUncheckedVarNum( pvalRef); 
@@ -933,8 +945,10 @@ RetCode  ASSIGNNode::Run()
   {
 //       r=ProgNode::interpreter->lib_function_call(_t);
 //       _t = ProgNode::interpreter->_retTree;		      
-      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
-      if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+      BaseGDL** retValPtr;
+      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+//       if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+      if( retValPtr == NULL)
  	r_guard.Init( r); // guard if no global data
       _t = _t->getNextSibling();
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
@@ -997,7 +1011,8 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
 // 	r=ProgNode::interpreter->lib_function_call(_t);
-	r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+	BaseGDL** retValPtr;
+	r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
 
 	if( r == NULL) // ROUTINE_NAMES
 		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
@@ -1005,7 +1020,8 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 // 	_t = ProgNode::interpreter->_retTree;
 	_t = _t->getNextSibling();
 
-	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+// 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+	if( retValPtr == NULL)
 		r_guard.Reset( r);
 			
       }

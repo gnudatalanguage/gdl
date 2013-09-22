@@ -249,8 +249,8 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
   if( r->Type() != GDL_OBJ)
     ThrowFromInternalUDSub( e, "Unable to convert parameter #2 to type object reference.");
   
-  DObjGDL* left = static_cast<DObjGDL*>(left);
-  DObjGDL* right = static_cast<DObjGDL*>(right);
+  DObjGDL* left = static_cast<DObjGDL*>(l);
+  DObjGDL* right = static_cast<DObjGDL*>(r);
   
   ULong rEl=right->N_Elements();
   ULong nEl=left->N_Elements();
@@ -337,8 +337,8 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
   if( r->Type() != GDL_OBJ)
     ThrowFromInternalUDSub( e, "Unable to convert parameter #2 to type object reference.");
   
-  DObjGDL* left = static_cast<DObjGDL*>(left);
-  DObjGDL* right = static_cast<DObjGDL*>(right);
+  DObjGDL* left = static_cast<DObjGDL*>(l);
+  DObjGDL* right = static_cast<DObjGDL*>(r);
   
   ULong rEl=right->N_Elements();
   ULong nEl=left->N_Elements();

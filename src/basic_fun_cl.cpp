@@ -518,6 +518,7 @@ namespace lib {
       }
 
     }
+    assert(false);
   }
 
 

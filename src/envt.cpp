@@ -115,6 +115,7 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
   callingNode( cN),
   lineNumber( 0),
   obj(false)
+  ,ptrToReturnValue(NULL)
 //, toDestroyInitialIndex( toDestroy.size())
 {}
 
@@ -125,6 +126,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF):
   catchVar(NULL), 
   catchNode(NULL), 
   lFun( lF),
+//   lFun( false),
   nJump( 0),
   lastJump( -1)
 {
@@ -613,7 +615,7 @@ void EnvBaseT::ObjCleanup( DObj actID)
 
 	if( objCLEANUP != NULL)
 	{
-	  BaseGDL* actObjGDL = new DObjGDL( actID);
+	  DObjGDL* actObjGDL = new DObjGDL( actID);
 	  actObjGDL_guard.Init( actObjGDL);
 	  GDLInterpreter::IncRefObj( actID); // set refcount to 1
   
@@ -1002,7 +1004,7 @@ EnvBaseT* EnvBaseT::Caller()
 
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)
-void EnvBaseT::PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj)
+void EnvBaseT::PushNewEmptyEnvUD(  DSubUD* newPro, DObjGDL** newObj)
 {
   EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
@@ -1656,13 +1658,13 @@ void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
   GetPar( ix) = guard.release();
 }
 
-bool EnvBaseT::Contains( BaseGDL* p) const 
-{ 
-  if( env.Contains( p)) return true;
-  if (static_cast<DSubUD*>(pro)->GetCommonVarPtr( p) != NULL) return true;
-  // horrible slow... but correct
-  return Interpreter()->GetPtrToHeap( p) != NULL;
-}
+// bool EnvBaseT::Contains( BaseGDL* p) const 
+// { 
+//   if( env.Contains( p)) return true;
+//   if (static_cast<DSubUD*>(pro)->GetCommonVarPtr( p) != NULL) return true;
+//   // horrible slow... but correct
+//   return Interpreter()->GetPtrToHeap( p) != NULL;
+// }
 
 BaseGDL** EnvBaseT::GetPtrTo( BaseGDL* p) 
 { 

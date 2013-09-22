@@ -448,7 +448,7 @@ public:
   { return (N_Elements() == 1);}
   
   // make a duplicate on the heap
-  DStructGDL* Dup() const { return new DStructGDL(*this);}
+  BaseGDL* Dup() const { return new DStructGDL(*this);}
   
 DStructGDL* New ( const dimension& dim_,
                   BaseGDL::InitType noZero=BaseGDL::ZERO ) const

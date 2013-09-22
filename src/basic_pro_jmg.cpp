@@ -235,40 +235,40 @@ namespace lib {
     }
   }
 
-  void kwtest( EnvT* e)
-  {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
-    // here first parameter is the function name
-    // set callF to the function you want to call
-    int nParam=e->NParam();
-    if( nParam == 0)
-     e->Throw( "No function specified.");
-    DString callF;
-    e->AssureScalarPar<DStringGDL>( 0, callF);
- 
-    // this is a function name -> convert to UPPERCASE
-    callF = StrUpCase( callF);
-
-	SizeT funIx = GDLInterpreter::GetFunIx( callF);
-	
-	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
-
-	// add parameter
-	SizeT widgetID = 999;
-      
-    newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local
-
-	e->Interpreter()->CallStack().push_back( newEnv);
-	
-	// make the call
-	BaseGDL* res = e->Interpreter()->
-	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-
-	// set the keyword to the function's return value
-    static int testIx = e->KeywordIx( "TEST");
-    e->SetKW( testIx, res);
-  }
+//   void kwtest( EnvT* e)
+//   {
+//     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+// 
+//     // here first parameter is the function name
+//     // set callF to the function you want to call
+//     int nParam=e->NParam();
+//     if( nParam == 0)
+//      e->Throw( "No function specified.");
+//     DString callF;
+//     e->AssureScalarPar<DStringGDL>( 0, callF);
+//  
+//     // this is a function name -> convert to UPPERCASE
+//     callF = StrUpCase( callF);
+// 
+// 	SizeT funIx = GDLInterpreter::GetFunIx( callF);
+// 	
+// 	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
+// 
+// 	// add parameter
+// 	SizeT widgetID = 999;
+//       
+//     newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local
+// 
+// 	e->Interpreter()->CallStack().push_back( newEnv);
+// 	
+// 	// make the call
+// 	BaseGDL* res = e->Interpreter()->
+// 	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+// 
+// 	// set the keyword to the function's return value
+//     static int testIx = e->KeywordIx( "TEST");
+//     e->SetKW( testIx, res);
+//   }
 
   // CALL_EXTERNAL by Christoph Fuchs
   //AC #ifdef USE_EIGEN
@@ -435,7 +435,7 @@ namespace lib {
 #ifdef _MSC_VER
     HMODULE handle =  LoadLibrary((LPCSTR)image.c_str());
 #else
-    void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
+    void* handle =  dlopen(image.c_str(),  RTLD_NOW | RTLD_GLOBAL);
 #endif
     if (handle == NULL) {
 #ifndef _MSC_VER
@@ -487,7 +487,7 @@ namespace lib {
 		      break;
 	case GDL_STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv); 
 		      break;
-	default:      e->Throw("Return type not supported: " + myReturnType );
+	default:      e->Throw("Return type not supported: " + i2s(myReturnType) );
 		      break;
     }
 
@@ -541,7 +541,7 @@ namespace lib {
         case GDL_STRING:    return new DStringGDL(s);
 			break;
     }
-	    
+    assert( false);
   }
 
 
@@ -633,7 +633,7 @@ namespace lib {
 		    sizeOf = 8;
 		}
 		else {
-		    e->Throw("Unsupported type in structure: " + pType );
+		    e->Throw("Unsupported type in structure: " + i2s(pType) );
 		}
 		SizeT align = sizeOf < myAlign ? sizeOf : myAlign;
 		if ((SizeT)p % align) {

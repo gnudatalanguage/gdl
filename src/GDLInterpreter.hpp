@@ -239,6 +239,14 @@ public:
             std::pair<SizeT, RefBaseGDL>( heapIx++, var));
         return tmpIx;
     }
+    static void FreeObjHeapDirect( DObj id, ObjHeapT::iterator it)
+    {
+        BaseGDL* del = (*it).second.get();
+        objHeap.erase( id); 
+        delete del;
+        // delete (*it).second.get();
+        // objHeap.erase( id);
+    }
     static void FreeObjHeap( DObj id)
     {
         if( id != 0)
@@ -246,15 +254,20 @@ public:
             ObjHeapT::iterator it=objHeap.find( id);
             if  ( it != objHeap.end()) 
             { 
-                delete (*it).second.get();
-                objHeap.erase( id);
+                FreeObjHeapDirect( id, it);
+                // delete (*it).second.get();
+                // objHeap.erase( id);
             }
         }
     }
-    static void FreeObjHeapDirect( DObj id, ObjHeapT::iterator it)
+    static void FreeHeapDirect( DPtr id, HeapT::iterator it)
     {
-        delete (*it).second.get();
-        objHeap.erase( id);
+        BaseGDL* del = (*it).second.get();
+        heap.erase( id); 
+        delete del;
+        // delete (*it).second.get();
+        // // useless because of next: (*it).second.get() = NULL;
+        // heap.erase( id); 
     }
     static void FreeHeap( DPtr id)
     {
@@ -263,8 +276,9 @@ public:
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                     { 
-                        delete (*it).second.get();
-                        heap.erase( id); 
+                        FreeHeapDirect( id, it);
+                        // delete (*it).second.get();
+                        // heap.erase( id); 
                     }
             }
     }
@@ -274,12 +288,6 @@ public:
             {
               heap.erase( id); 
             }
-    }
-    static void FreeHeapDirect( DPtr id, HeapT::iterator it)
-    {
-        delete (*it).second.get();
-        // useless because of next: (*it).second.get() = NULL;
-        heap.erase( id); 
     }
 
    static void FreeHeap( DPtrGDL* p)
@@ -631,41 +639,40 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static void ReportError( GDLException& e, const std::string emsg, 
                              bool dumpStack=true)
     {
-      DString msgPrefix = SysVar::MsgPrefix();
-      
-      std::cout << std::flush;
-      if( dumpStack) {
-	if( e.Prefix())
-	  {
-	    std::cerr << msgPrefix << e.toString() << std::endl;
-	    lib::write_journal_comment(msgPrefix+e.toString());
-	  }
-	else
-	  {
-	    std::cerr << e.toString() << std::endl;
-	    lib::write_journal_comment(e.toString());
-	  }
-      }
-      
-      std::cerr << msgPrefix << emsg << " " << 
-        std::left << std::setw(16) << callStack.back()->GetProName();
-      std::string file=callStack.back()->GetFilename();
-      if( file != "")
+        DString msgPrefix = SysVar::MsgPrefix();
+
+        std::cout << std::flush;
+        if( dumpStack)
+        if( e.Prefix())
         {
-	  SizeT line = e.getLine();
-	  if( line != 0)
-            {       
-	      std::cerr << std::right << std::setw(6) << line;
-            }
-	  else
-            {
-	      std::cerr << std::right << std::setw(6) << "";
-            }
-	  std::cerr << std::left << " " << file;
+            std::cerr << msgPrefix << e.toString() << std::endl;
+            lib::write_journal_comment(msgPrefix+e.toString());
         }
-      std::cerr << std::endl;
-      
-      if( dumpStack) DumpStack( emsg.size() + 1);
+        else
+        {
+            std::cerr << e.toString() << std::endl;
+            lib::write_journal_comment(e.toString());
+        }
+
+        std::cerr << msgPrefix << emsg << " " << 
+        std::left << std::setw(16) << callStack.back()->GetProName();
+        std::string file=callStack.back()->GetFilename();
+        if( file != "")
+        {
+            SizeT line = e.getLine();
+            if( line != 0)
+            {       
+                std::cerr << std::right << std::setw(6) << line;
+            }
+            else
+            {
+                std::cerr << std::right << std::setw(6) << "";
+            }
+            std::cerr << std::left << " " << file;
+        }
+        std::cerr << std::endl;
+        
+        if( dumpStack) DumpStack( emsg.size() + 1);
     }
     
     static void DumpStack( SizeT w)

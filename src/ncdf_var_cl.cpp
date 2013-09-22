@@ -998,32 +998,37 @@ else if(var_type == NC_LONG)
       case GDL_ULONG64 :
       {
         BaseGDL* val;
-        Guard<BaseGDL> val_guard(val);
+        Guard<BaseGDL> val_guard;
         switch (var_type) 
         {
           case NC_BYTE :   // 8-bit signed integer
           case NC_SHORT :  // 16-bit signed integer
             val = v->Convert2(GDL_INT, BaseGDL::COPY);
+	    val_guard.Init(val);
             status = nc_put_vars_short(cdfid, varid, offset, count, stride,
               &((*static_cast<DIntGDL*>(val))[0])); 
             break;
           case NC_CHAR :   // 8-bit unsigned integer
             val = v->Convert2(GDL_BYTE, BaseGDL::COPY);
+	    val_guard.Init(val);
             status = nc_put_vars_uchar(cdfid, varid, offset, count, stride,
               &((*static_cast<DByteGDL*>(val))[0])); 
             break;
           case NC_INT :    // 32-bit signed integer
             val = v->Convert2(GDL_LONG, BaseGDL::COPY);
+	    val_guard.Init(val);
             status = nc_put_vars_int(cdfid, varid, offset, count, stride,
               &((*static_cast<DLongGDL*>(val))[0]));
             break;
           case NC_FLOAT :  // 32-bit floating point
             val = v->Convert2(GDL_FLOAT, BaseGDL::COPY);
+	    val_guard.Init(val);
             status = nc_put_vars_float(cdfid, varid, offset, count, stride, 
               &((*static_cast<DFloatGDL*>(val))[0]));
             break;
           case NC_DOUBLE : // 64-bit floating point
             val = v->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+	    val_guard.Init(val);
             status = nc_put_vars_double(cdfid, varid, offset, count, stride,
               &((*static_cast<DDoubleGDL*>(val))[0]));
             break;

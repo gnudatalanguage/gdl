@@ -799,16 +799,16 @@ std::streampos gzstreambuf::pubseekpos(std::streampos sp, std::ios_base::openmod
 	return -1;
 }
 
-std::streampos gzstreambuf::pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
+std::streampos gzstreambuf::pubseekoff(std::streamoff offIn, std::ios_base::seekdir way, std::ios_base::openmode which)
 {
 	if(is_open() && way!=std::ios_base::end) /* No seek with SEEK_END */
 	{
 		if((which==std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
 			(which==std::ios_base::out && this->mode & std::ios::out && /* write mode : ok if */
-			((way==std::ios_base::cur && off>=0) || /* SEEK_CUR with positive offset */
-				(way==std::ios_base::beg && static_cast<z_off_t>(off)>=gztell(this->file))))) /* or SEEK_SET which go forward */
+			((way==std::ios_base::cur && offIn>=0) || /* SEEK_CUR with positive offset */
+				(way==std::ios_base::beg && static_cast<z_off_t>(offIn)>=gztell(this->file))))) /* or SEEK_SET which go forward */
 		{
-			z_off_t off=gzseek(this->file,static_cast<z_off_t>(off),(way==std::ios_base::beg?SEEK_SET:SEEK_CUR));
+			z_off_t off=gzseek(this->file,static_cast<z_off_t>(offIn),(way==std::ios_base::beg?SEEK_SET:SEEK_CUR));
 			if(which==std::ios_base::in)
 				setg(buffer+buf4,buffer+buf4,buffer+buf4);
 			return off;

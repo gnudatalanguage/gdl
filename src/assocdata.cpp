@@ -298,7 +298,7 @@ Parent_* Assoc_<Parent_>::Index( ArrayIndexListT* ixList)
 
   if( ixEmpty)
     {
-      return Parent_::Dup();
+      return static_cast<Parent_*>(Parent_::Dup());
     }
   else
     {

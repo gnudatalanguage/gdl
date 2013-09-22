@@ -1170,6 +1170,7 @@ BaseGDL* list__toarray( EnvUDT* e)
     {
       ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
     }
+    assert(false);
   }
 
   

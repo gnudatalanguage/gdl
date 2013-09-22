@@ -56,6 +56,7 @@ namespace lib {
     *static_cast<string*>(msg) = tmp;
     free(tmp);
 #endif
+    return 0;
   }
 
   // returns a meaningful message describing last HDF5 error

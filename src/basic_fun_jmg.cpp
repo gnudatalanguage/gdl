@@ -328,6 +328,7 @@ namespace lib {
       {
 	e->Throw( ex.getMessage());
       }
+    assert(false);      
   }
 
   BaseGDL* make_array( EnvT* e)
@@ -535,7 +536,6 @@ namespace lib {
 //       e->Throw( "Parameter must be an array in this context: " 
 // 		+ e->GetParString( 0));
 
-
     SizeT Type = p0->Type();
 
     dimension dim;
@@ -575,9 +575,12 @@ namespace lib {
 	  bool success = e->StealLocalPar( 0); 
 	  //*p0P = NULL; // prevent local parameter form deletion
 	  assert( success);
+	  p0->SetDim(dim);
+	  return p0;
 	}
 
       p0->SetDim(dim);
+      e->SetPtrToReturnValue( p0P);
       return p0;
     }
 

@@ -115,6 +115,8 @@ namespace lib
       }
       return res;
     }
+    e->Throw("More than 2 parameters not handled.");
+    return NULL;
 #else
     e->Throw("GDL was compiled without support for map projections");
     return NULL;
@@ -211,6 +213,8 @@ namespace lib
       }
       return res;
     }
+    e->Throw("More than 2 parameters not handled.");
+    return NULL;
 #else
     e->Throw("GDL was compiled without support for map projections");
     return NULL;

@@ -536,12 +536,14 @@ BaseGDL* DEREFNode::Eval()
   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
     {
 //       e1=interpreter->lib_function_call(evalExpr);
-      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB(); 
+      BaseGDL** retValPtr;
+      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
       // set return tree not needed
       if( e1 == NULL) // ROUTINE_NAMES
 	      throw GDLException( evalExpr, "Undefined return value", true, false);
       
-      if( !DInterpreter::CallStackBack()->Contains( e1)) 
+//       if( !DInterpreter::CallStackBack()->Contains( e1)) 
+      if( retValPtr == NULL)
 	{
   	  e1_guard.Init( e1); 
 	}
@@ -640,12 +642,14 @@ BaseGDL** DEREFNode::LEval()
   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
     {
 //       e1=interpreter->lib_function_call(evalExpr);
-      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB(); 
+      BaseGDL** retValPtr;
+      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
       // set return tree not needed
       if( e1 == NULL) // ROUTINE_NAMES
 	      throw GDLException( evalExpr, "Undefined return value", true, false);
       
-      if( !DInterpreter::CallStackBack()->Contains( e1)) 
+//       if( !DInterpreter::CallStackBack()->Contains( e1)) 
+      if( retValPtr == NULL)
 	{
 //   	  e1_guard.Init( e1); 
 	  actEnv->DeleteAtExit( e1); // we need life cycle until end of current subroutine
@@ -3195,7 +3199,8 @@ BaseGDL* POWNCNode::Eval()
     // make the call
 //     rEval = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     rEval = this->libFunFun(newEnv);
-    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+    BaseGDL** res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly
 
   }
@@ -3229,7 +3234,8 @@ BaseGDL* POWNCNode::Eval()
 //     BaseGDL* libRes = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL* libRes = this->libFunFun(newEnv);
     // this is correct: l-value in current environment
-    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
+//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
+    BaseGDL** res = newEnv->GetPtrToReturnValue();
     // wrong: would return ptr to local
     //     BaseGDL** res = newEnv->GetPtrTo( libRes);
     if( res == NULL)
@@ -3243,8 +3249,9 @@ BaseGDL* POWNCNode::Eval()
   }
 
   // returns new or existing variable
-  BaseGDL* FCALL_LIBNode::EvalFCALL_LIB()
+  BaseGDL* FCALL_LIBNode::EvalFCALL_LIB(BaseGDL**& retValPtr)
   {
+    
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 	
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
@@ -3266,6 +3273,8 @@ BaseGDL* POWNCNode::Eval()
 
     // *** MUST always return a defined expression
     assert( res != NULL);
+//     ProgNode::interpreter->CallStackBack()->SetPtrToReturnValue( newEnv->GetPtrToReturnValueNull());
+    retValPtr = newEnv->GetPtrToReturnValue();
     return res;
   }
 
@@ -3288,8 +3297,9 @@ BaseGDL* POWNCNode::Eval()
     //       throw GDLException( _t, "");
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
-    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
-    if( callStackBack->Contains( res))
+//     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
+//     if( callStackBack->Contains( res))
+    if( newEnv->GetPtrToReturnValue() != NULL)
 	return res->Dup();
 
 //     static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
@@ -3451,8 +3461,8 @@ BaseGDL* POWNCNode::Eval()
 	ProgNode::interpreter->CallStack().push_back(newEnv);
 		
 		// make the call
-	BaseGDL**	res=ProgNode::interpreter->
-			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	BaseGDL** res=ProgNode::interpreter->
+		  call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
  	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
@@ -3538,6 +3548,7 @@ BaseGDL* POWNCNode::Eval()
       try{
 	BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
 	fcallNodeFunIx = fcallNode->funIx;
+	return res;
       }
       catch( GDLException& innerEx)
       {
@@ -3778,8 +3789,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     ProgNode::interpreter->CallStack().push_back(newEnv);
     
     // make the call
-    return ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(
-    newEnv->GetPro())->GetTree());
+    return ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
   }
     
   
@@ -4098,9 +4108,11 @@ BaseGDL* ARRAYEXPRNode::Eval()
     {
       // better than Eval(): no copying here if not necessary
       // r=ProgNode::interpreter->lib_function_call(_t);
-      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+      BaseGDL** retValPtr;
+      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
 
-      if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+//       if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+      if( retValPtr == NULL)
 	rGuard.Init( r); // guard if no global data	  
     }
     else
@@ -4213,8 +4225,10 @@ BaseGDL* ARRAYEXPRNode::Eval()
     else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
     {
 // 	s=ProgNode::interpreter->lib_function_call(_t);
-	s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
-	if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+	BaseGDL** retValPtr;
+	s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+// 	if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+	if( retValPtr == NULL)
 		  exprList.push_back( s);
 	assert(s != NULL);
     }

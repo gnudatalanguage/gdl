@@ -52,31 +52,31 @@ void LibInit_cl()
   new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
     const string legendreKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::legendre,string("LEGENDRE"),3,legendreKey);
+  new DLibFunRetNew(lib::legendre,string("LEGENDRE"),3,legendreKey);
 
-  new DLibFun(lib::gsl_exp, string("GSL_EXP"),1);
+  new DLibFunRetNew(lib::gsl_exp, string("GSL_EXP"),1);
 
-  new DLibFun(lib::ncdf_exists,string("NCDF_EXISTS"));
-  new DLibFun(lib::magick_exists,string("MAGICK_EXISTS"));
+  new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
+  new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
 
 #ifdef USE_NETCDF
   //open NetCDF
   const string ncdf_openKey[]={"WRITE","NOWRITE",KLISTEND};
-  new DLibFun(lib::ncdf_open,string("NCDF_OPEN"),1,ncdf_openKey);
+  new DLibFunRetNew(lib::ncdf_open,string("NCDF_OPEN"),1,ncdf_openKey);
 
   //create NetCDF
   const string ncdf_createKey[]={"CLOBBER","NOCLOBBER",KLISTEND};
-  new DLibFun(lib::ncdf_create,string("NCDF_CREATE"),1,ncdf_createKey);
+  new DLibFunRetNew(lib::ncdf_create,string("NCDF_CREATE"),1,ncdf_createKey);
 
   //close NetCDF
   new DLibPro(lib::ncdf_close,string("NCDF_CLOSE"),1);
 
   //reading NetCDF
   //Inquire
-  new DLibFun(lib::ncdf_inquire,string("NCDF_INQUIRE"),1);
+  new DLibFunRetNew(lib::ncdf_inquire,string("NCDF_INQUIRE"),1);
 
   //Variable Inquire
-  new DLibFun(lib::ncdf_varinq,string("NCDF_VARINQ"),2);
+  new DLibFunRetNew(lib::ncdf_varinq,string("NCDF_VARINQ"),2);
 
   //Varget 1
   const string ncdf_varget1Key[]={"OFFSET",KLISTEND};
@@ -87,18 +87,18 @@ void LibInit_cl()
   new DLibPro(lib::ncdf_varget,string("NCDF_VARGET"),3,ncdf_vargetKey);
 
   //Variable ID
-  new DLibFun(lib::ncdf_varid,string("NCDF_VARID"),2);
+  new DLibFunRetNew(lib::ncdf_varid,string("NCDF_VARID"),2);
 
 
   //Dimension Inquire
   new DLibPro(lib::ncdf_diminq,string("NCDF_DIMINQ"),4);
 
   //Dimension ID
-  new DLibFun(lib::ncdf_dimid,string("NCDF_DIMID"),2);
+  new DLibFunRetNew(lib::ncdf_dimid,string("NCDF_DIMID"),2);
 
   //Get attribute name
   const string ncdf_attnameKey[]={"GLOBAL",KLISTEND};
-  new DLibFun(lib::ncdf_attname,string("NCDF_ATTNAME"),3,ncdf_attnameKey);
+  new DLibFunRetNew(lib::ncdf_attname,string("NCDF_ATTNAME"),3,ncdf_attnameKey);
 
   //Get attribute
   const string ncdf_attgetKey[]={"GLOBAL",KLISTEND};
@@ -106,7 +106,7 @@ void LibInit_cl()
 
   //Inquire attribute (datatype, size?)
   const string ncdf_attinqKey[]={"GLOBAL",KLISTEND};
-  new DLibFun(lib::ncdf_attinq,string("NCDF_ATTINQ"),3,ncdf_attinqKey);
+  new DLibFunRetNew(lib::ncdf_attinq,string("NCDF_ATTINQ"),3,ncdf_attinqKey);
 
 
   //Control functions, define mode etc.
@@ -123,7 +123,7 @@ void LibInit_cl()
 
   //copy attribute between files
   const string ncdf_attcopyKey[]={"IN_GLOBAL","OUT_GLOBAL",KLISTEND};
-  new DLibFun(lib::ncdf_attcopy, string("NCDF_ATTCOPY"), 5,ncdf_attcopyKey);
+  new DLibFunRetNew(lib::ncdf_attcopy, string("NCDF_ATTCOPY"), 5,ncdf_attcopyKey);
 
   //delete attribute
   const string ncdf_attdelKey[]={"GLOBAL",KLISTEND};
@@ -136,7 +136,7 @@ void LibInit_cl()
 
   //define dimension
   const string ncdf_dimdefKey[]={"UNLIMITED",KLISTEND};
-  new DLibFun(lib::ncdf_dimdef, string("NCDF_DIMDEF"), 3,ncdf_dimdefKey);
+  new DLibFunRetNew(lib::ncdf_dimdef, string("NCDF_DIMDEF"), 3,ncdf_dimdefKey);
 
   //rename dimension
   new DLibPro(lib::ncdf_dimrename, string("NCDF_DIMRENAME"), 3);
@@ -144,7 +144,7 @@ void LibInit_cl()
   //define variable
   const string ncdf_vardefKey[]={"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",
 				 KLISTEND};
-  new DLibFun(lib::ncdf_vardef, string("NCDF_VARDEF"), 3,ncdf_vardefKey);
+  new DLibFunRetNew(lib::ncdf_vardef, string("NCDF_VARDEF"), 3,ncdf_vardefKey);
 
   //rename variable
   new DLibPro(lib::ncdf_varrename, string("NCDF_VARRENAME"), 3);
@@ -160,24 +160,24 @@ void LibInit_cl()
 #endif
 
 #ifdef USE_MAGICK
-  new DLibFun(lib::magick_open,string("MAGICK_OPEN"),1);
-  new DLibFun(lib::magick_create,string("MAGICK_CREATE"),3);
+  new DLibFunRetNew(lib::magick_open,string("MAGICK_OPEN"),1);
+  new DLibFunRetNew(lib::magick_create,string("MAGICK_CREATE"),3);
   new DLibPro(lib::magick_close,string("MAGICK_CLOSE"),1);
 
   const string magick_readKey[]={"RGB","SUB_RECT","MAP",KLISTEND};
-  new DLibFun(lib::magick_read,string("MAGICK_READ"),1,magick_readKey);
-  new DLibFun(lib::magick_readindexes,string("MAGICK_READINDEXES"),1);
+  new DLibFunRetNew(lib::magick_read,string("MAGICK_READ"),1,magick_readKey);
+  new DLibFunRetNew(lib::magick_readindexes,string("MAGICK_READINDEXES"),1);
   new DLibPro(lib::magick_readcolormapRGB,string("MAGICK_READCOLORMAPRGB"),4);
   const string magick_writeKey[]={"RGB",KLISTEND};
   new DLibPro(lib::magick_write,string("MAGICK_WRITE"),2,magick_writeKey);
   new DLibPro(lib::magick_writefile,string("MAGICK_WRITEFILE"),3);
 
   //attributes
-  new DLibFun(lib::magick_IndexedColor,string("MAGICK_INDEXEDCOLOR"),1);
-  new DLibFun(lib::magick_rows,string("MAGICK_ROWS"),1);
-  new DLibFun(lib::magick_columns,string("MAGICK_COLUMNS"),1);
-  new DLibFun(lib::magick_colormapsize,string("MAGICK_COLORMAPSIZE"),2);
-  new DLibFun(lib::magick_magick,string("MAGICK_MAGICK"),2);
+  new DLibFunRetNew(lib::magick_IndexedColor,string("MAGICK_INDEXEDCOLOR"),1);
+  new DLibFunRetNew(lib::magick_rows,string("MAGICK_ROWS"),1);
+  new DLibFunRetNew(lib::magick_columns,string("MAGICK_COLUMNS"),1);
+  new DLibFunRetNew(lib::magick_colormapsize,string("MAGICK_COLORMAPSIZE"),2);
+  new DLibFunRetNew(lib::magick_magick,string("MAGICK_MAGICK"),2);
   new DLibPro(lib::magick_quality,string("MAGICK_QUALITY"),2);
 
   const string magick_quantizeKey[]={"TRUECOLOR","YUV","GRAYSCALE","DITHER",KLISTEND};
@@ -206,7 +206,7 @@ void LibInit_cl()
   // SA: support fot query/ping routines
   const string magick_pingKey[] = {"INFO", "CHANNELS", "DIMENSIONS", "HAS_PALETTE", "IMAGE_INDEX",
     "NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE",KLISTEND};
-  new DLibFun(lib::magick_ping, string("MAGICK_PING"), 2, magick_pingKey);
+  new DLibFunRetNew(lib::magick_ping, string("MAGICK_PING"), 2, magick_pingKey);
 
   // see bug no. 3376577
   Magick::InitializeMagick(NULL); 

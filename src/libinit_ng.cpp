@@ -26,10 +26,10 @@ void LibInit_ng()
   const char KLISTEND[] = "";
 
   const string rk4Key[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFun(lib::rk4_fun,string("RK4"),5,rk4Key);
+  new DLibFunRetNew(lib::rk4_fun,string("RK4"),5,rk4Key);
 
   const string voigtKey[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFun(lib::voigt_fun,string("VOIGT"),2,voigtKey);
+  new DLibFunRetNew(lib::voigt_fun,string("VOIGT"),2,voigtKey);
  
 }
 

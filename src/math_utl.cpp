@@ -1387,7 +1387,7 @@ Esko G. Cate & David W. Twigg
       // Mercator
       if (map_projection == 9) {
 	strcpy(proj, "proj=merc");
-	sprintf(lat_ts, "lat_ts=%lf", 0);
+	sprintf(lat_ts, "lat_ts=%lf", 0.0);
 	parms[nparms++] = &proj[0];
 	//	parms[nparms++] = &lat_ts[0];
       }

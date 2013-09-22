@@ -63,6 +63,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     SizeT nParam = e->NParam();
 
@@ -331,6 +332,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -360,6 +362,7 @@ namespace lib {
 	{
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
 		//SizeT nParam = e->NParam();
 		DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
@@ -439,6 +442,7 @@ namespace lib {
 	{
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -480,6 +484,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -522,6 +527,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -560,6 +566,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
 #else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -593,6 +600,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL;
 #else
     SizeT nParam=e->NParam();
 
@@ -747,6 +755,7 @@ namespace lib {
   {
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL;
 #else
     SizeT nParam=e->NParam();
 

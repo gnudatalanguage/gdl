@@ -2586,7 +2586,11 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
-    if (sgn*value<gdlEpsDouble()) {snprintf(label, length, (ptr->isLog)?"1":"0",value); return;}
+    if (sgn*value<gdlEpsDouble()) 
+    {
+      snprintf(label, length, ((ptr->isLog)?"1":"0"),value); 
+      return;
+    }
     int e=floor(log10(value*sgn));
     char *test=(char*)calloc(2*length, sizeof(char)); //be safe
     if (!isfinite(e)||(e<4 && e>-4)) 
@@ -2677,7 +2681,7 @@ namespace lib
           	//  Search in user proc and function
           SizeT funIx = GDLInterpreter::GetFunIx( callF);
 
-          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
+          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
           Guard< EnvUDT> guard( newEnv);
           // add parameters
           newEnv->SetNextPar( new DLongGDL(axis));
@@ -2801,8 +2805,8 @@ namespace lib
     gdlGetDesiredAxisTicks(e, axis, Ticks);
     DStringGDL* TickUnits;
     gdlGetDesiredAxisTickUnits(e, axis, TickUnits);
-    DDoubleGDL* Tickv;
-    gdlGetDesiredAxisTickv(e, axis, Tickv);
+    DDoubleGDL Tickv;
+    gdlGetDesiredAxisTickv(e, axis, &Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axis, Title);
 

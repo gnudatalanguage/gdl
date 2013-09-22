@@ -276,6 +276,7 @@ namespace lib {
 	 }
 	 return res;
        }
+      assert( false);
      }
    };
 
@@ -1331,7 +1332,7 @@ namespace lib {
 
 	warped = image_warp(p0->Dim(1), p0->Dim(0), nRow, nCol, p0->Type(), 
 			    p0->DataAddr(), kernel_name,
-			    lineartrans, poly_v, poly_u,
+			    lineartrans, NULL, NULL, //poly_v, poly_u,
 			    interp, cubic, LINEAR, missing, doMissing);
       }
     } else {
@@ -1401,6 +1402,9 @@ namespace lib {
     } else if (p0->Type() == GDL_DOUBLE) {
       return poly_2d_fun_template< DDoubleGDL, DDouble>( nCol, nRow, warped);
     }
+    e->Throw("Unhandled type: "+i2s(p0->Type()));
+    return NULL;
+
   }
 
 

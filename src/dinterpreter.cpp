@@ -513,7 +513,7 @@ void GDLInterpreter::AdjustTypes(BaseGDL* &a, BaseGDL* &b)
   DType aTy=a->Type();
   DType bTy=b->Type();
   if( aTy == bTy) return;
-  if( aTy > 100 || bTy > 100)
+  if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100)
     {
       //exception
       throw GDLException( "Expressions of this type cannot be converted.");

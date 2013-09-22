@@ -1532,13 +1532,13 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
       else if( rank0 <= 1) // rank1 == 2
       {
 	// [NbCol0,1]#[NbCol1,NbRow1]
-	if( !at && (!bt && NbCol1 != 1) || (bt && NbRow1 != 1))
+	if( !at && ((!bt && NbCol1 != 1) || (bt && NbRow1 != 1)))
 	  at = true;
       }
       else // if( rank1 <= 1) // rank0 == 2
       {
 	// [NbCol0,NbRow0]#[NbCol1,1]
-	if( !bt && (!at && NbRow0 == 1) || (at && NbCol0 == 1))
+	if( !bt && ((!at && NbRow0 == 1) || (at && NbCol0 == 1)))
 	  bt = true;
       } 
     } 
@@ -2487,8 +2487,29 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvS( BaseGDL* r)
   // right->Scalar(s);
   if( s != zero)
     //    dd = s;
-    //C delete right;
-    return this;
+    {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = s;
+	return this;
+      }}
+  else
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] != zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+	  for( OMPInt i=0; i < nEl; ++i)
+	    if( (*this)[i] != zero) (*this)[i] = s;
+	}}  //C delete right;
+  return this;
 }
 // for doubles
 template<>

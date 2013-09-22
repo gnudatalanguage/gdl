@@ -1523,6 +1523,8 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
 
 	    SizeT src = i+sizeof(Ty)/2-1;
 
+	    // for GDL_BYTE sizeof(Ty)/2 is zero and a warning might be generated
+	    // as this is a template and nothing to swap in byte, this is ok
 	    for( SizeT dst=0; dst<sizeof(Ty)/2; dst++)
 	      cData[ src--] = swapBuf[dst];
 	  }

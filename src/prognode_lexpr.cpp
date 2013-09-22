@@ -238,9 +238,11 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	  else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
 	      {
 // 		  s = interpreter->lib_function_call(_t);
-		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+		  BaseGDL** retValPtr;
+		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
 
-		  if( !interpreter->CallStackBack()->Contains( s)) 
+// 		  if( !interpreter->CallStackBack()->Contains( s)) 
+		  if( retValPtr == NULL)
 		      cleanupList->push_back( s);
 	      }				
 	  else
@@ -436,7 +438,7 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	  if( *rP == NULL) 
 	  { // ERROR
 	      BaseGDL** res = rP;
-	      ProgNodeP _t = _t->getFirstChild();
+	      _t = _t->getFirstChild();
 	      // check not needed for SYSVAR 
 	      assert( _t->getType() != GDLTokenTypes::SYSVAR);
 	      if( _t->getType() == GDLTokenTypes::VARPTR)
@@ -633,7 +635,7 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)	
 //case ASSIGN:
 {
-  ProgNodeP _t = _t->getFirstChild();
+  ProgNodeP _t = this->getFirstChild();
   if( NonCopyNode(_t->getType()))
   {
 //     BaseGDL*       e1=interpreter->indexable_expr(_t);
@@ -645,9 +647,11 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
   {
 // 	  BaseGDL*       e1=interpreter->lib_function_call(_t);
 // 	  _t = interpreter->GetRetTree();
-	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+	  BaseGDL** retValPtr;
+	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
 	  _t = _t->getNextSibling();
-	  if( !interpreter->CallStackBack()->Contains( e1))
+// 	  if( !interpreter->CallStackBack()->Contains( e1))
+	  if( retValPtr == NULL)
 		  GDLDelete(e1); // guard if no global data
   }
   else
@@ -674,7 +678,8 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
     //       case QUESTION:
 //     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
 //     _t = interpreter->GetRetTree();
-    BaseGDL* e1 = _t->Eval(); //lib_function_call_retnew(_t);
+    BaseGDL* e1 = _t->Eval(); 
+    //lib_function_call_retnew(_t);
     GDLDelete(e1);
     _t = _t->getNextSibling();
   }
@@ -685,7 +690,7 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
 BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
 //case ASSIGN_ARRAYEXPR_MFCALL:
 {
-  ProgNodeP _t = _t->getFirstChild();
+  ProgNodeP _t = this->getFirstChild();
 
   if( NonCopyNode(_t->getType()))
   {
@@ -698,9 +703,11 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
   {
 //     BaseGDL*       e1=interpreter->lib_function_call(_t);
 //     _t = interpreter->GetRetTree();
-    BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+    BaseGDL** retValPtr;
+    BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
     _t = _t->getNextSibling();
-    if( !interpreter->CallStackBack()->Contains( e1))
+//     if( !interpreter->CallStackBack()->Contains( e1))
+    if( retValPtr == NULL)
       GDLDelete(e1); // guard if no global data
   }
   else
@@ -727,7 +734,8 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     //       case QUESTION:
 //     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
 //     _t = interpreter->GetRetTree();
-    BaseGDL* e1 = _t->Eval(); //lib_function_call_retnew(_t);
+    BaseGDL* e1 = _t->Eval(); 
+    //lib_function_call_retnew(_t);
     GDLDelete(e1);
     _t = _t->getNextSibling();
   }
@@ -770,10 +778,12 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   {
 // 	  BaseGDL* e1=interpreter->lib_function_call(_t);
 // 	  _t = interpreter->GetRetTree();
-      BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
+      BaseGDL** retValPtr;
+      BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
       _t = _t->getNextSibling();
       res =_t->LEval(); //l_function_call(_t);
-      if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
+//       if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
+      if( *res != e1 && retValPtr == NULL)
 	GDLDelete(e1);
   }
   else

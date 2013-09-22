@@ -35,31 +35,31 @@ void LibInit_gm()
 #if defined(HAVE_LIBGSL)
 
   const string erfKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::erf_fun,string("ERF"),1,erfKey);
+  new DLibFunRetNew(lib::erf_fun,string("ERF"),1,erfKey);
 
   const string errorfKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::errorf_fun,string("ERRORF"),1,errorfKey);
+  new DLibFunRetNew(lib::errorf_fun,string("ERRORF"),1,errorfKey);
 
   const string erfcKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::erfc_fun,string("ERFC"),1,erfcKey);
+  new DLibFunRetNew(lib::erfc_fun,string("ERFC"),1,erfcKey);
 
   const string gammaKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::gamma_fun,string("GAMMA"),1,gammaKey);
+  new DLibFunRetNew(lib::gamma_fun,string("GAMMA"),1,gammaKey);
 
   const string lngammaKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);
+  new DLibFunRetNew(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);
 
   const string igammaKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::igamma_fun,string("IGAMMA"),2,igammaKey);
+  new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey);
 
   const string betaKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::beta_fun,string("BETA"),2,betaKey);
+  new DLibFunRetNew(lib::beta_fun,string("BETA"),2,betaKey);
 
   const string expintKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::expint_fun,string("EXPINT"),2,expintKey);
+  new DLibFunRetNew(lib::expint_fun,string("EXPINT"),2,expintKey);
 
   const string gaussintKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::gaussint_fun,string("GAUSSINT"),1,gaussintKey);
+  new DLibFunRetNew(lib::gaussint_fun,string("GAUSSINT"),1,gaussintKey);
 
 #endif
 

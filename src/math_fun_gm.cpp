@@ -553,6 +553,7 @@ using std::isnan;
         return f;
       }
     }
+    assert(false);
   } // gm_lentz
 
   double gm_expint(int n, double x)

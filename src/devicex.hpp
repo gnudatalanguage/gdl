@@ -941,6 +941,8 @@ public:
       perm[2] = 0;
       return res->Transpose( perm);
     }
+    assert( false);
+    return NULL;
   }
 
   void TV( EnvT* e)

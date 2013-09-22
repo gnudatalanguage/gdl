@@ -70,6 +70,7 @@ public:
     }
 
 protected:
+
   // for obj cleanup
   static std::set< DObj> inProgress;
   
@@ -86,7 +87,14 @@ protected:
 
   // finds the local variable pp points to
 //   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
+private:
+    BaseGDL** ptrToReturnValue;
 public:
+
+  BaseGDL** GetPtrToReturnValueNull() { BaseGDL** p = ptrToReturnValue;ptrToReturnValue=NULL;return p;}
+  BaseGDL** GetPtrToReturnValue() const { return ptrToReturnValue;}
+  void SetPtrToReturnValue(BaseGDL** p) { ptrToReturnValue = p;}
+
   // used by the interperter returns the keyword index, used for UD functions
   // and used by WRAPPED subroutines
   int GetKeywordIx( const std::string& k);
@@ -139,8 +147,8 @@ public:
   virtual void ObjCleanup( DObj actID);
 
   // for CLEANUP calls due to reference counting
-  void PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj = NULL);
-  void PushNewEmptyEnvUDWithExtra(  DSub* newPro, BaseGDL** newObj = NULL);
+  void PushNewEmptyEnvUD(  DSubUD* newPro, DObjGDL** newObj = NULL);
+//   void PushNewEmptyEnvUDWithExtra(  DSubUD* newPro, BaseGDL** newObj = NULL);
   
   void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
   void AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
@@ -249,7 +257,7 @@ public:
   void SetKeyword( const std::string& k, BaseGDL** const val); // reference
 
   // to check if a lib function returned a variable of this env
-  bool Contains( BaseGDL* p) const;
+//   bool Contains( BaseGDL* p) const;
 
   BaseGDL** GetPtrTo( BaseGDL* p);
 
@@ -490,14 +498,13 @@ public:
 class EnvT: public EnvBaseT
 {
 static std::vector< void*> freeList;
-
+  
 public:
 static 	void* operator new( size_t bytes);
 static	void operator delete( void *ptr);
 
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
-
 public:
   ~EnvT()
   {
@@ -535,6 +542,10 @@ public:
 //   // saves some typing :-)
 //   void Throw( const std::string& s)
 //   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
+
+  // From now on all library functions which return a l-value must
+  // call SetPtrToReturnValue with the ptr to the returned value
+  void SetPtrToReturnValue(BaseGDL** p) { EnvBaseT::SetPtrToReturnValue(p);}
 
   // will print the message (can be multiline) and exit
   // first usage in "math_fun_ac.cpp"

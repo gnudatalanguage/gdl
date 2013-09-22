@@ -141,7 +141,7 @@ public:
   BaseGDL** EvalRefCheck( BaseGDL*& rEval);
   BaseGDL** LEval();
   BaseGDL* Eval();
-  BaseGDL* EvalFCALL_LIB(); // might return a non new value
+  BaseGDL* EvalFCALL_LIB( BaseGDL**& retValPtr); // might return a non new value
   BaseGDL** LExpr( BaseGDL* right);
 //   BaseGDL** LExprGrab( BaseGDL* right);  
 };

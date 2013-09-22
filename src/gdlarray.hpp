@@ -246,8 +246,8 @@ GDLArray& operator= ( const GDLArray& right )
   {
     for ( SizeT i=0; i<sz; ++i )
       buf[ i] = right.buf[ i];
-    return *this;
   }
+  return *this;
 }
 
   GDLArray& operator+=( const GDLArray& right) throw()
