@@ -515,14 +515,8 @@ namespace lib {
     return 0;
   }
 
-//   template< typename T>
-//   BaseGDL* reform_template( EnvT* e, dimension dim)
-//   {
-//     T* res = static_cast<T*>( e->GetParDefined( 0)->Dup());
-//     res->SetDim(dim);
-//     return res;
-//   }
 
+  
   BaseGDL* reform( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -531,12 +525,12 @@ namespace lib {
     BaseGDL* p0 = *p0P;
 
     SizeT nEl = p0->N_Elements();
-    SizeT Rank = p0->Rank();
+//     SizeT Rank = p0->Rank();
 //     if( Rank == 0)
 //       e->Throw( "Parameter must be an array in this context: " 
 // 		+ e->GetParString( 0));
 
-    SizeT Type = p0->Type();
+//     SizeT Type = p0->Type();
 
     dimension dim;
 
@@ -556,95 +550,39 @@ namespace lib {
       if( dim.Rank() == 0)
 	dim << 1;
       //     dim.Set(0, j);
-    } else arr( e, dim, 1);
-
+    } 
+    else 
+      arr( e, dim, 1);
 
     if (dim.NDimElements() != nEl) 
       e->Throw( "New subscripts must not change the number of elements in " 
 		+ e->GetParString( 0));
 
+    // make a copy if p0 is not global
+    //      if( !e->GlobalPar( 0))
+    //	p0 = p0->Dup();
+    // better: steal p0
+    if( !e->GlobalPar( 0))
+      {
+	bool success = e->StealLocalPar( 0); //*p0P = NULL;
+	//*p0P = NULL; // prevent local parameter form deletion
+	assert( success);
+	p0->SetDim(dim);
+	return p0;
+      }
+
     static int overwriteIx = e->KeywordIx("OVERWRITE");
-    if (e->KeywordSet( overwriteIx)) {
-
-      // make a copy if p0 is not global
-      //      if( !e->GlobalPar( 0))
-      //	p0 = p0->Dup();
-      // better: steal p0
-      if( !e->GlobalPar( 0))
-	{
-	  bool success = e->StealLocalPar( 0); 
-	  //*p0P = NULL; // prevent local parameter form deletion
-	  assert( success);
-	  p0->SetDim(dim);
-	  return p0;
-	}
-
+    if (e->KeywordSet( overwriteIx)) 
+    {
       p0->SetDim(dim);
       e->SetPtrToReturnValue( p0P);
       return p0;
     }
 
-    // steal local parmeter
-    if( !e->GlobalPar( 0))
-      {
-	bool success = e->StealLocalPar( 0); //*p0P = NULL;
-	assert( success);
-	p0->SetDim( dim);
-	return p0;
-      }
-
     // global paramter - make a copy
     BaseGDL* res = p0->Dup();
     res->SetDim(dim);
     return res;
-
-//     // GDL_BYTE
-//     if (Type == GDL_BYTE) {
-    
-//       return reform_template< DByteGDL>( e, dim);
-    
-//       //GDL_INT
-//     } else if (Type || Type == GDL_INT) {
-    
-//       return reform_template< DIntGDL>( e, dim);
-    
-//       // GDL_UINT
-//     } else if (Type == GDL_UINT) {
-    
-//       return reform_template< DUIntGDL>( e, dim);
-    
-//       // GDL_LONG
-//     } else if (Type == GDL_LONG) {
-    
-//       return reform_template< DLongGDL>( e, dim);
-    
-//       // GDL_ULONG
-//     } else if (Type == GDL_ULONG) {
-    
-//       return reform_template< DULongGDL>( e, dim);
-    
-//       // GDL_LONG64
-//     } else if (Type == GDL_LONG64) {
-    
-//       return reform_template< DLong64GDL>( e, dim);
-    
-//       // GDL_ULONG64
-//     } else if (Type == GDL_ULONG64) {
-    
-//       return reform_template< DULong64GDL>( e, dim);
-      
-//       // GDL_FLOAT
-//     } else if (Type == GDL_FLOAT) {
-    
-//       return reform_template< DFloatGDL>( e, dim);
-    
-//       // GDL_DOUBLE
-//     } else if (Type == GDL_DOUBLE) {
-    
-//       return reform_template< DDoubleGDL>( e, dim);
-    
-//     }
-    
   }
 
   
