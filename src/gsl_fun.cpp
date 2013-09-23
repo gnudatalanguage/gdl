@@ -1113,6 +1113,7 @@ namespace lib {
 	return 0;
       }
     assert(false);
+    return 0;
   }
 
   template< typename T1, typename T2>
@@ -1196,6 +1197,7 @@ namespace lib {
       return 0;
     }
     assert(false);
+    return 0;
   }
 
 

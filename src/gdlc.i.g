@@ -1372,7 +1372,7 @@ l_deref returns [BaseGDL** res]
         }
     else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
         {
-            e1=lib_function_call(evalExpr);
+            e1=lib_function_call_internal(evalExpr);
 
             if( e1 == NULL) // ROUTINE_NAMES
                 throw GDLException( evalExpr, "Undefined return value", true, false);
@@ -1448,7 +1448,7 @@ l_ret_expr returns [BaseGDL** res]
         ) // trinary operator
 //    | #(EXPR res=l_ret_expr) // does not exist anymore
     | res=l_arrayexpr_mfcall_as_mfcall
-    | res=l_function_call 
+    | res=l_function_call_internal 
         { // here a local to the actual environment could be returned
             if( callStack.back()->IsLocalKW( res))
             throw GDLException( _t, 
@@ -1478,7 +1478,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.Init( e1);
                 }
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1503,7 +1503,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.Init( e1);
                 }
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1528,7 +1528,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.Init( e1);
                 }
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1586,14 +1586,14 @@ l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
 {
     BaseGDL** e;
 }
-//     : #(EXPR e = l_expr[ NULL])                       
+//     : #(EXPR e = l_expr_internal[ NULL])                       
 //         {
 //             res = *e;
 //             if( res == NULL)
 //             throw GDLException( _t, "Variable is undefined: "+Name(e));
 //         }
-//     | e=l_function_call
-    : e=l_function_call
+//     | e=l_function_call_internal
+    : e=l_function_call_internal
         {
             res = *e;
             if( res == NULL)
@@ -1733,7 +1733,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 //                 {
 //                     r_guard.reset( e1);
 //                 }
-//             | e1=lib_function_call
+//             | e1=lib_function_call_internal
 //                 {
 //                     if( !callStack.back()->Contains( e1)) 
 //                         r_guard.reset( e1);
@@ -1741,7 +1741,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 //             )
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { r_guard.Init( e1);}
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1753,7 +1753,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 
                 BaseGDL** tmp;
             } 
-            tmp=l_expr[ e1] // assign
+            tmp=l_expr_internal[ e1] // assign
             {
                 _t = l;
             }
@@ -1765,7 +1765,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             } 
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { r_guard.Init( e1);}
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1819,7 +1819,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                 {
                     r_guard.Init( e1);
                 }
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 {
                     // if( !callStack.back()->Contains( e1)) 
                     if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -1831,9 +1831,9 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 
                 BaseGDL** tmp;
             } 
-//            tmp=l_expr[ e1] // assign
+//            tmp=l_expr_internal[ e1] // assign
             (
-              tmp=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+              tmp=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
             | tmp=l_deref           // DEREF
             | tmp=l_simple_var      // VAR, VARPTR
             )
@@ -1960,15 +1960,15 @@ l_indexable_expr returns [BaseGDL** res]
    _retTree = _t->getNextSibling();
 	return res;
 }
-    : #(EXPR res=l_expr[ NULL]) // for l_dot_array_expr
-    | res=l_function_call
+    : #(EXPR res=l_expr_internal[ NULL]) // for l_dot_array_expr
+    | res=l_function_call_internal
     | res=l_arrayexpr_mfcall_as_mfcall 
     | res=l_deref
     | res=l_defined_simple_var                         
     | res=l_sys_var 
     ;
 
-// called from l_expr
+// called from l_expr_internal
 unused_l_array_expr [BaseGDL* right] returns [BaseGDL** res]
 //{
 //    ArrayIndexListT* aL;
@@ -2015,8 +2015,8 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
     ;
 
 
-// l_expr is only used in assignment and within itself
-l_expr [BaseGDL* right] returns [BaseGDL** res]
+// l_expr_internal is only used in assignment and within itself
+l_expr_internal [BaseGDL* right] returns [BaseGDL** res]
 {
     res = _t->LExpr( right);
     SetRetTree( _t->getNextSibling());
@@ -2029,7 +2029,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
     | res=unused_l_array_expr[ right]
     | res=l_sys_var // sysvars cannot change their type
     | // can be called via QUESTION
-       ( res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+       ( res=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
        | res=l_deref           // DEREF
        | res=l_simple_var      // VAR, VARPTR
        )
@@ -2043,37 +2043,37 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             // just calculate because of side effects
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { delete e1;}
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
                 // {
                 //     if( !callStack.back()->Contains( e1)) 
                 //         delete e1; // guard if no global data
                 // }
             )
             // here the only relevant assingment is done
-            res=l_expr[ right]
+            res=l_expr_internal[ right]
         )
     | #(ASSIGN_ARRAYEXPR_MFCALL
             ( e1=indexable_expr
             | e1=indexable_tmp_expr //{ delete e1;}
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
             )
         )
     | #(ASSIGN_REPLACE //???e1=expr
             ( e1=tmp_expr
-            | e1=lib_function_call
+            | e1=lib_function_call_internal
             )
             (
-              res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+              res=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
             | res=l_deref           // DEREF
             | res=l_simple_var      // VAR, VARPTR
             )
         )
-//    | { right == NULL}? res=l_function_call
+//    | { right == NULL}? res=l_function_call_internal
     | e1=r_expr // illegal
     | CONSTANT // illegal
     ;
 
-// used in l_expr but also in parameter_def
+// used in l_expr_internal but also in parameter_def
 l_simple_var returns [BaseGDL** res]
 {
 	assert( _t != NULL);
@@ -2120,11 +2120,19 @@ l_defined_simple_var returns [BaseGDL** res]
     ;
 
 l_sys_var returns [BaseGDL** res]
-    : sysVar:SYSVAR  
-        {
-            res=sysVar->LEval();
-            _retTree = sysVar->getNextSibling();
-        }
+{
+	ProgNodeP sysVar = _t;
+	//match(antlr::RefAST(_t),SYSVAR);
+	res=sysVar->LEval();
+	_retTree = sysVar->getNextSibling();
+	return res;
+
+}
+    : SYSVAR  
+        // {
+        //     res=sysVar->LEval();
+        //     _retTree = sysVar->getNextSibling();
+        // }
     ;
 
 // right expressions **********************************************************
@@ -2220,14 +2228,13 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 
 r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 {
-    BaseGDL** e;
-
 	switch ( _t->getType()) {
 	case EXPR:
 	{
 		ProgNodeP tIn = _t;
 		_t = _t->getFirstChild();
-		res=expr(_t);
+		//res=expr(_t);
+        res = _t->Eval();
 		aD->SetOwner( true);
 		_retTree = tIn->getNextSibling();
 		break;
@@ -2235,9 +2242,9 @@ r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 	case VAR:
 	case VARPTR:
 	{
-		e=l_defined_simple_var(_t);
+		BaseGDL** v=l_defined_simple_var(_t);
 		//_t = _retTree;
-		res = *e;
+		res = *v;
 		break;
 	}
 	case SYSVAR:
@@ -2251,18 +2258,40 @@ r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 	}
 	//_retTree = _t;
 	return res;
+
+    BaseGDL** e;
 }
     : #(EXPR res=expr { aD->SetOwner( true);}) // ({tag:0}).tag should work 
-    | e=l_defined_simple_var { res = *e;}
+    | e=l_defined_simple_var 
     |   // we cant use l_sys_var here because of copy protection
         // could use sysvar and SetOwner( true), but this is quicker
-        res=sys_var_nocopy // system variables are always defined    
+        SYSVAR //res=sys_var_nocopy // system variables are always defined    
     ;
 
 r_dot_array_expr [DotAccessDescT* aD] // 1st
 {
     BaseGDL*         r;
     ArrayIndexListT* aL;
+	
+	if( _t->getType() == ARRAYEXPR)
+	{
+		//match(antlr::RefAST(_t),ARRAYEXPR);
+		r=r_dot_indexable_expr(_t->getFirstChild(), aD);
+		aL=arrayindex_list(_retTree);
+		_retTree = _t->getNextSibling();
+		
+		// check here for object and get struct
+		SetRootR( _t, aD, r, aL); 
+	}
+    else
+	{
+		r=r_dot_indexable_expr(_t, aD);
+		//_t = _retTree;
+		
+		// check here for object and get struct
+		SetRootR( _t, aD, r, NULL); 
+	}
+    return;
 }
 // NOTE: r is owned by aD or a l_... (r must not be deleted here)
     : #(ARRAYEXPR r=r_dot_indexable_expr[ aD] 
@@ -2280,7 +2309,7 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 
 // Entry function for struct access
 //#(DOT array_expr (tag_array_expr)+)                     
-dot_expr returns [BaseGDL* res]
+dot_expr_unused returns [BaseGDL* res]
 {
     res = _t->Eval();
     _retTree = _t->getNextSibling();
@@ -2297,7 +2326,7 @@ dot_expr returns [BaseGDL* res]
 // owned by caller
 indexable_tmp_expr returns [BaseGDL* res]
 {
-     res = _t->Eval(); //lib_function_call_retnew(_t);
+     res = _t->Eval(); //lib_function_call_retnew_internal(_t);
 	_retTree = _t->getNextSibling();
     return res;
 //    BaseGDL*  e1;
@@ -2361,7 +2390,7 @@ indexable_tmp_expr returns [BaseGDL* res]
   //     }
       case FCALL_LIB_RETNEW:
       {
-	      res=_t->Eval(); //lib_function_call_retnew(_t);
+	      res=_t->Eval(); //lib_function_call_retnew_internal(_t);
 	      _retTree = _t->getNextSibling();
   //	    _t = _retTree;
 	      break;
@@ -2372,11 +2401,11 @@ indexable_tmp_expr returns [BaseGDL* res]
 }
 	: #(q:QUESTION { res=q->Eval();}) // trinary operator
     | (ARRAYEXPR) //res=array_expr
-    | res=dot_expr
+    | res=dot_expr_unused
     | res=assign_expr
     | res=unused_function_call
     | res=r_expr
-    | res=lib_function_call_retnew 
+    | res=lib_function_call_retnew_internal 
     ;
 
 // not owned by caller 
@@ -2398,7 +2427,7 @@ indexable_expr returns [BaseGDL* res]
     ;
 
 
-// l_expr used as r_expr and true r_expr
+// l_expr_internal used as r_expr and true r_expr
 expr returns [BaseGDL* res]
 {
 	assert( _t != NULL);
@@ -2410,15 +2439,15 @@ expr returns [BaseGDL* res]
 EnvT*   newEnv;
 }
     : res=tmp_expr
-    | res=lib_function_call
+    | res=lib_function_call_internal
     ;    
 
 
 // check_expr returns [BaseGDL* res]
-//     : res=lib_function_call 
+//     : res=lib_function_call_internal 
 //     ;
 
-// l_expr used as r_expr and true r_expr
+// l_expr_internal used as r_expr and true r_expr
 tmp_expr returns [BaseGDL* res]
 {
  	res = _t->Eval();
@@ -2431,15 +2460,15 @@ tmp_expr returns [BaseGDL* res]
 	| #(q:QUESTION {res=q->Eval();}) // trinary operator
     | (ARRAYEXPR) //res=array_expr
 //    | res=array_expr
-    | res=dot_expr
+    | res=dot_expr_unused
     | res=assign_expr
     | res=unused_function_call
     | res=r_expr
-    | res=constant
+    | CONSTANT
         // *********
     | res=simple_var                         
     | res=sys_var 
-    | res=lib_function_call_retnew 
+    | res=lib_function_call_retnew_internal 
     ;
 
 assign_expr returns [BaseGDL* res]
@@ -2452,22 +2481,22 @@ assign_expr returns [BaseGDL* res]
 }
     : #(ASSIGN 
             ( res=tmp_expr
-            | res=lib_function_call
+            | res=lib_function_call_internal
             )
-            l=l_expr[ res]
+            l=l_expr_internal[ res]
         )
     | #(ASSIGN_ARRAYEXPR_MFCALL
             ( res=tmp_expr
-            | res=lib_function_call
+            | res=lib_function_call_internal
             )
-            l=l_expr[ res]
+            l=l_expr_internal[ res]
         )
     | #(ASSIGN_REPLACE 
             ( res=tmp_expr
-            | res=lib_function_call
+            | res=lib_function_call_internal
             )
             (
-              l=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+              l=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
             | l=l_deref           // DEREF
             | l=l_simple_var      // VAR, VARPTR
             )
@@ -2512,31 +2541,20 @@ sys_var_nocopy returns [BaseGDL* res]
     : SYSVAR 
     ;
 
-constant returns [BaseGDL* res]
-{
-    res = _t->Eval();
-	_retTree = _t->getNextSibling();
-	return res; //_t->cData->Dup(); 
-}
-  : CONSTANT
-//         {
-//             res=c->cData->Dup(); 
-//         }
-  ;
+// constant returns [BaseGDL* res]
+// {
+//     res = _t->Eval();
+// 	_retTree = _t->getNextSibling();
+// 	return res; //_t->cData->Dup(); 
+// }
+//   : CONSTANT
+// //         {
+// //             res=c->cData->Dup(); 
+// //         }
+//   ;
 
-unused_constant_nocopy returns [BaseGDL* res]
-{
-	//BaseGDL* 
-	_retTree = _t->getNextSibling();
-	return _t->cData; // no ->Dup(); 
-}
-    : c:CONSTANT
-        // {
-        //     res=c->cData; // no ->Dup(); 
-        // }
-  ;
 
-lib_function_call returns[ BaseGDL* res]
+lib_function_call_internal returns[ BaseGDL* res]
 { 
     assert( _t->getType() == FCALL_LIB);
  	BaseGDL** retValPtr;
@@ -2553,7 +2571,7 @@ lib_function_call returns[ BaseGDL* res]
         )
     ;    
 
-lib_function_call_retnew returns[ BaseGDL* res]
+lib_function_call_retnew_internal returns[ BaseGDL* res]
 { 
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
@@ -2724,7 +2742,7 @@ l_arrayexpr_mfcall_as_mfcall returns[ BaseGDL** res]
 	;	
 
 // function call can be l_values (within (#EXPR ...) only)
-l_function_call returns[ BaseGDL** res]
+l_function_call_internal returns[ BaseGDL** res]
 { 
     res = _t->LEval();
     _retTree = _t->getNextSibling();
@@ -2971,7 +2989,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
             }
         else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
             {
-                s=lib_function_call(_t);
+                s=lib_function_call_internal(_t);
                 //_t = _retTree;
                 // if( !callStack.back()->Contains( s)) 
                 if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
@@ -3000,7 +3018,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 	: #(ARRAYIX
             (
                 ( s=indexable_expr
-                | s=lib_function_call
+                | s=lib_function_call_internal
                 | s=indexable_tmp_expr
                 )
             )*
@@ -3039,7 +3057,7 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
             }
         else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
             {
-                s=lib_function_call(_t);
+                s=lib_function_call_internal(_t);
                 //_t = _retTree;
                 if( !callStack.back()->Contains( s)) 
                     cleanupList.push_back( s);
@@ -3066,7 +3084,7 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
 	: #(ARRAYIX
             (
                 ( s=indexable_expr
-                | s=lib_function_call
+                | s=lib_function_call_internal
                 | s=indexable_tmp_expr
                 )
             )*
@@ -3109,7 +3127,7 @@ arrayindex_list_overload [IxExprListT& indexList]
             }
         else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
             {
-                // s=lib_function_call(_t);
+                // s=lib_function_call_internal(_t);
                 BaseGDL** retValPtr;
                 s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
                 //_t = _retTree;
@@ -3139,7 +3157,7 @@ arrayindex_list_overload [IxExprListT& indexList]
 	: #(ARRAYIX
             (
                 ( s=indexable_expr
-                | s=lib_function_call
+                | s=lib_function_call_internal
                 | s=indexable_tmp_expr
                 )
             )*

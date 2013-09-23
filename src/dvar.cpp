@@ -37,7 +37,7 @@ DVar::~DVar()
   // we explicitely preventing the deltion to be able to flag possible
   // other destructions of !NULL (which are bugs)
   //if( d != NullGDL::GetSingleInstance()) 
-    GDLDelete(d);
+  GDLDelete(d);
 }
 
 DVar* FindInVarList(VarListT& v, const string& s)

@@ -2018,28 +2018,26 @@ RetCode      ON_IOERRORNode::Run()
 
 RetCode   RETFNode::Run()
 {
-	ProgNodeP _t = this->getFirstChild();
-	assert( _t != NULL);
-	if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun())
-		{
-			BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
-			interpreter->SetRetTree( _t->getNextSibling()); // ???
-			assert(ProgNode::interpreter->returnValue == NULL);
-// 			GDLDelete(ProgNode::interpreter->returnValue);
-			ProgNode::interpreter->returnValue=e;
-
-			GDLInterpreter::CallStack().back()->RemoveLoc( e); // steal e from local list
-		}
-	else
-		{
-			BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
-			// returnValueL is otherwise owned
-			assert(ProgNode::interpreter->returnValueL == NULL);
-			ProgNode::interpreter->returnValueL=eL;
-		}
-	//if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-	//return RC_RETURN;
-	return RC_RETURN;
+    ProgNodeP _t = this->getFirstChild();
+    assert( _t != NULL);
+    if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun())
+    {
+        BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
+        interpreter->SetRetTree( _t->getNextSibling()); // ???
+        assert(ProgNode::interpreter->returnValue == NULL);
+        ProgNode::interpreter->returnValue=e;
+        //GDLInterpreter::CallStack().back()->RemoveLoc( e); // steal e from local list
+    }
+    else
+    {
+        BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
+        // returnValueL is otherwise owned
+        assert(ProgNode::interpreter->returnValueL == NULL);
+        ProgNode::interpreter->returnValueL=eL;
+    }
+    //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+    //return RC_RETURN;
+    return RC_RETURN;
 }
 
 RetCode   RETPNode::Run()

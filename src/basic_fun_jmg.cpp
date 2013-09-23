@@ -329,6 +329,7 @@ namespace lib {
 	e->Throw( ex.getMessage());
       }
     assert(false);      
+    return NULL;
   }
 
   BaseGDL* make_array( EnvT* e)

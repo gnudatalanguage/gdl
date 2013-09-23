@@ -218,7 +218,7 @@ public:
   // checks if pp points to a local variable
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
 
-  void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
+//   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
 
   // called after parameter definition
   void ResolveExtra();
@@ -533,7 +533,7 @@ public:
 
   const std::string GetFilename() const
   {
-    static const std::string internal("<INTERNAL_LIBRARY>");
+    static const std::string internal(INTERNAL_LIBRARY_STR);
     return internal;
   }
 

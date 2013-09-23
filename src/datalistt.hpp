@@ -133,15 +133,15 @@ bool Contains( BaseGDL* p) const
     }
   return false;
 }
-void RemoveLoc( BaseGDL* p) 
-  {
-    for( SizeT i=0; i<sz; ++i)
-      if( eArr[i].P() == p) 
-	{
-	  eArr[i].NullP(); 
-	  return;
-	}
-  }
+// void RemoveLoc( BaseGDL* p) 
+//   {
+//     for( SizeT i=0; i<sz; ++i)
+//       if( eArr[i].P() == p) 
+// 	{
+// 	  eArr[i].NullP(); 
+// 	  return;
+// 	}
+//   }
 SizeT size() const { return sz;}
 iterator begin()  { return &eArr[0];}
 iterator end()  { return &eArr[sz];}
@@ -214,10 +214,10 @@ public:
     return env.Contains( p);
   }
 
-  void RemoveLoc( BaseGDL* p) 
-  {
-    env.RemoveLoc( p);
-  }
+//   void RemoveLoc( BaseGDL* p) 
+//   {
+//     env.RemoveLoc( p);
+//   }
 
   void push_back( BaseGDL* p)
   {

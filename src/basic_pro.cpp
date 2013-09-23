@@ -3023,5 +3023,6 @@ TRACEOMP( __FILE__, __LINE__)
       return ret;
     }
     assert(false);
+    return NULL;
   }
 } // namespace

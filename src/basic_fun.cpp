@@ -720,6 +720,7 @@ namespace lib {
 	e->Throw( ex.getMessage());
       }*/
       assert(false);
+      return NULL;
   }
 
   BaseGDL* uindgen( EnvT* e)
