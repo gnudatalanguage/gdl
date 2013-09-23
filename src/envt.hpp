@@ -134,6 +134,11 @@ protected:
 	       DObjGDL* obj);
   static void Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
 	    BaseGDL* p);
+  
+  // definition in list.cpp
+  static void AddLIST( DPtrListT& ptrAccessible,
+		        DPtrListT& objAccessible, DStructGDL* listStruct);
+
 
 public:
 // 	void DebugInfo()

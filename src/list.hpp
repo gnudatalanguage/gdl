@@ -28,6 +28,8 @@ namespace lib {
 
    BaseGDL* list_fun( EnvT* e);
 
+   void list__cleanup( EnvUDT* e);
+
    BaseGDL* LIST___OverloadIsTrue( EnvUDT* e);
 
    BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e);

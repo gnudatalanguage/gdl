@@ -568,6 +568,11 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::list__toarray);
   DFunLIST__TOARRAY->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__TOARRAY);
+// LIST::CLEANUP
+  DPro *DProLIST__CLEANUP = new DPro("CLEANUP","LIST","<INTERNAL_LIBRARY>");
+  tree2 = new WRAPPED_PRONode( lib::list__cleanup);
+  DProLIST__CLEANUP->SetTree( tree2);
+  listDesc->ProList().push_back(DProLIST__CLEANUP);
 
   
   
@@ -617,37 +622,37 @@ void SetupOverloadSubroutines()
   hashDesc->FunList().push_back(HASH_overloadIsTrue);
   hashDesc->SetOperator(OOIsTrue,HASH_overloadIsTrue);
  
-// LIST::REMOVE()
+// HASH::REMOVE()
   DFun *DFunHASH__REMOVE = new DFun("REMOVE","HASH","<INTERNAL_LIBRARY>");
   DFunHASH__REMOVE->AddKey("ALL","ALL");
   DFunHASH__REMOVE->AddPar("INDEX");
   tree = new WRAPPED_FUNNode( lib::hash__remove_fun);
   DFunHASH__REMOVE->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__REMOVE);
-// LIST::REMOVE PRO
+// HASH::REMOVE PRO
   DPro *DProHASH__REMOVE = new DPro("REMOVE","HASH","<INTERNAL_LIBRARY>");
   DProHASH__REMOVE->AddKey("ALL","ALL");
   DProHASH__REMOVE->AddPar("INDEX");
   tree2 = new WRAPPED_PRONode( lib::hash__remove_pro);
   DProHASH__REMOVE->SetTree( tree2);
   hashDesc->ProList().push_back(DProHASH__REMOVE);
-// LIST::HASKEY()
+// HASH::HASKEY()
   DFun *DFunHASH__HASKEY = new DFun("HASKEY","HASH","<INTERNAL_LIBRARY>");
   DFunHASH__HASKEY->AddPar("KEYLIST");
   tree = new WRAPPED_FUNNode( lib::hash__haskey);
   DFunHASH__HASKEY->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__HASKEY);
-// LIST::KEYS()
+// HASH::KEYS()
   DFun *DFunHASH__KEYS = new DFun("KEYS","HASH","<INTERNAL_LIBRARY>");
   tree = new WRAPPED_FUNNode( lib::hash__keys);
   DFunHASH__KEYS->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__KEYS);
-// LIST::VALUES()
+// HASH::VALUES()
   DFun *DFunHASH__VALUES = new DFun("VALUES","HASH","<INTERNAL_LIBRARY>");
   tree = new WRAPPED_FUNNode( lib::hash__values);
   DFunHASH__VALUES->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__VALUES);
-// LIST::TOSTRUCT()
+// HASH::TOSTRUCT()
   DFun *DFunHASH__TOSTRUCT = new DFun("TOSTRUCT","HASH","<INTERNAL_LIBRARY>");
   DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED");
   DFunHASH__TOSTRUCT->AddKey("MISSING","MISSING");

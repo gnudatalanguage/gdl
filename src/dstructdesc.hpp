@@ -229,7 +229,7 @@ public:
   // copy appropiate member subroutines from fun and pro lists
   void SetupOperators();
   
-  bool IsParent( const std::string& p)
+  bool IsParent( const std::string& p) const
   {
     if( p == name) return true;
 

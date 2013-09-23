@@ -335,6 +335,8 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
 }
 
 
+
+
 void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 			  DPtrListT& objAccessible, DStructGDL* stru)
 {
@@ -343,6 +345,13 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
   SizeT nEl = stru->N_Elements();
 
   const DStructDesc* desc = stru->Desc();
+  
+  // avoid recursion on LIST (for > 100000 list elements a segfault is generated otherwise)
+  if( desc->IsParent("LIST"))
+  {
+      AddLIST(ptrAccessible, objAccessible, stru);
+      return;
+  }
 
   SizeT nTags = desc->NTags();
   for( SizeT t=0; t<nTags; ++t)
@@ -494,7 +503,8 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 	cS[ix]->AddEnv( ptrAccessible, objAccessible);
       }
 
-	AddToDestroy( ptrAccessible, objAccessible);  
+    // add all data already set for destruction (not to be deleted now)  
+    AddToDestroy( ptrAccessible, objAccessible);  
 
     // do OBJ first as the cleanup might need the GDL_PTR be valid
     if( doObj)
