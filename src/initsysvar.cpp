@@ -395,8 +395,11 @@ namespace SysVar
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
     gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
 
-    // creating and Epoch entry in order to have a simple incremental number 
+    // creating an explicit build date in !GDL (also exist in !version)
     string MyDate= __DATE__;
+    gdlStruct->NewTag("BUILD_DATE", new DStringGDL(__DATE__)); 
+
+    // creating and Epoch entry in order to have a simple incremental number 
     int CompilationMonth =0, CompilationYear=0, CompilationDay=0;
     string SCompilationYear;
     SCompilationYear=MyDate.substr(7,4);

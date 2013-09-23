@@ -496,7 +496,7 @@ int get_suggested_omp_num_threads() {
   FILE *iff;
     
 #if defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)
-  cout<<"is MAC/*BSD"<<endl;
+  //  cout<<"is MAC/*BSD"<<endl;
   iff= popen("echo $(sysctl -n vm.loadavg|cut -d\" \" -f 3)", "r");
   if (!iff)
     {
