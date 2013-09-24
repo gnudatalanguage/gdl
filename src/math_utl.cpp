@@ -432,7 +432,8 @@ Esko G. Cate & David W. Twigg
 
 
   //**********************************************************************
-
+// special pragma to prevent optimization by the zealous compiler icc. (when optimized, loops forever on the 'while')
+#pragma optimize("", off)
   void machar_s ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, float *eps, float *epsneg, float *xmin, float *xmax ) 
@@ -864,7 +865,8 @@ Esko G. Cate & David W. Twigg
     return;
 
   }
-
+// special pragma to prevent optimization by the zealous compiler icc. (when optimized, loops forever on the 'while')
+#pragma optimize("", off) 
   void machar_d ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, double *eps, double *epsneg, double *xmin, double *xmax ) 
