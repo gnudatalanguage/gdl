@@ -692,22 +692,33 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
-  BaseGDL** retValPtr;
-  BaseGDL* kval=
-//   ProgNode::interpreter->
-//     lib_function_call(this->getFirstChild()->getNextSibling());
-    static_cast<FCALL_LIBNode*>(this->getFirstChild()->getNextSibling())->EvalFCALL_LIB( retValPtr); 
-			
-//   BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
-  BaseGDL** kvalRef = retValPtr;
-  if( kvalRef != NULL)
+    BaseGDL* rVal;
+    BaseGDL** lVal = p->EvalRefCheck( rVal);
+    if( lVal != NULL)
     {   // pass reference
-      actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
+      actEnv->SetKeyword(this->getFirstChild()->getText(), lVal); 
     }
-  else 
+    else
     {   // pass value
-      actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
+      actEnv->SetKeyword(this->getFirstChild()->getText(), rVal); 
     }
+  
+//     BaseGDL** retValPtr;
+//   BaseGDL* kval=
+// //   ProgNode::interpreter->
+// //     lib_function_call(this->getFirstChild()->getNextSibling());
+//     static_cast<FCALL_LIBNode*>(this->getFirstChild()->getNextSibling())->EvalFCALL_LIB( retValPtr); 
+// 			
+// //   BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
+//   BaseGDL** kvalRef = retValPtr;
+//   if( kvalRef != NULL)
+//     {   // pass reference
+//       actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
+//     }
+//   else 
+//     {   // pass value
+//       actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
+//     }
   }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
@@ -828,19 +839,29 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {  
-//     BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-    BaseGDL** retValPtr;
-    BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
-//     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
-    BaseGDL** pvalRef = retValPtr;//interpreter->CallStackBack()->GetPtrToReturnValueNull();
-    if( pvalRef != NULL)
-      {   // pass reference
-	actEnv->SetNextParUnchecked( pvalRef); 
-      }
-    else 
-      {   // pass value
-	actEnv->SetNextParUnchecked( pval); 
-      }
+    BaseGDL* rVal;
+    BaseGDL** lVal = p->EvalRefCheck( rVal);
+    if( lVal != NULL)
+    {   // pass reference
+      actEnv->SetNextParUnchecked( lVal); 
+    }
+    else
+    {   // pass value
+      actEnv->SetNextParUnchecked( rVal); 
+    }
+// //     BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+//     BaseGDL** retValPtr;
+//     BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
+// //     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+//     BaseGDL** pvalRef = retValPtr;//interpreter->CallStackBack()->GetPtrToReturnValueNull();
+//     if( pvalRef != NULL)
+//       {   // pass reference
+// 	actEnv->SetNextParUnchecked( pvalRef); 
+//       }
+//     else 
+//       {   // pass value
+// 	actEnv->SetNextParUnchecked( pval); 
+//       }
   }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
@@ -872,19 +893,29 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
   }
   else
   {
-//     pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-    BaseGDL** retValPtr;
-    BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
-//     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
-    BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
-    if( pvalRef != NULL)
-      {   // pass reference
-	actEnv->SetNextParUncheckedVarNum( pvalRef); 
-      }
-    else 
-      {   // pass value
-	actEnv->SetNextParUncheckedVarNum( pval); 
-      }
+    BaseGDL* rVal;
+    BaseGDL** lVal = p->EvalRefCheck( rVal);
+    if( lVal != NULL)
+    {   // pass reference
+      actEnv->SetNextParUncheckedVarNum( lVal); 
+    }
+    else
+    {   // pass value
+      actEnv->SetNextParUncheckedVarNum( rVal); 
+    }
+// //     pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+//     BaseGDL** retValPtr;
+//     BaseGDL* pval = static_cast<FCALL_LIBNode*>(this->getFirstChild())->EvalFCALL_LIB( retValPtr); 
+// //     BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+//     BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
+//     if( pvalRef != NULL)
+//       {   // pass reference
+// 	actEnv->SetNextParUncheckedVarNum( pvalRef); 
+//       }
+//     else 
+//       {   // pass value
+// 	actEnv->SetNextParUncheckedVarNum( pval); 
+//       }
   }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }

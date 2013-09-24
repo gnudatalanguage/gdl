@@ -656,43 +656,43 @@ void EnvBaseT::ObjCleanup( DObj actID)
 
 void EnvT::ObjCleanup( DObj actID)
 {
-  if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
+    if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
     {
-      DStructGDL* actObj;
-      try{
- 		actObj=GetObjHeap( actID);
+        DStructGDL* actObj;
+        try {
+            actObj=GetObjHeap( actID);
 //  		GDLInterpreter::ObjHeapT::iterator it;
 // 		actObj=GDLInterpreter::GetObjHeap( actID, it);
-      }
-      catch( GDLInterpreter::HeapException){
-		actObj=NULL;
-      }
-	    
-      if( actObj != NULL)
-		{
-			// call CLEANUP function
-			DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
-		
-			if( objCLEANUP != NULL)
-				{
-				DObjGDL* actObjGDL = new DObjGDL( actID);
-				Guard<BaseGDL> actObjGDL_guard( actObjGDL);
-				GDLInterpreter::IncRefObj( actID);
-			
-				PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
-			
-				inProgress.insert( actID);
-			
-				interpreter->call_pro( objCLEANUP->GetTree());
-			
-				inProgress.erase( actID);
+        }
+        catch( GDLInterpreter::HeapException) {
+            actObj=NULL;
+        }
 
-				delete interpreter->CallStack().back();
-				interpreter->CallStack().pop_back();
-			}
- 	
-		FreeObjHeap( actID); // the actual freeing
-		}
+        if( actObj != NULL)
+        {
+            // call CLEANUP function
+            DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+
+            if( objCLEANUP != NULL)
+            {
+                DObjGDL* actObjGDL = new DObjGDL( actID);
+                Guard<BaseGDL> actObjGDL_guard( actObjGDL);
+                GDLInterpreter::IncRefObj( actID);
+
+                PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+
+                inProgress.insert( actID);
+
+                interpreter->call_pro( objCLEANUP->GetTree());
+
+                inProgress.erase( actID);
+
+                delete interpreter->CallStack().back();
+                interpreter->CallStack().pop_back();
+            }
+
+            FreeObjHeap( actID); // the actual freeing
+        }
     }
 }
 

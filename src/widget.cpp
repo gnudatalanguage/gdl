@@ -1078,7 +1078,7 @@ namespace lib {
 	callF = StrUpCase( callF);
 
 	SizeT funIx = GDLInterpreter::GetFunIx( callF);
-	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
+	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
 
 	// add parameter
 	newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local

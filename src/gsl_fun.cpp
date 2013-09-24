@@ -2752,6 +2752,7 @@ namespace lib {
     qromb_param *p = static_cast<qromb_param*>(params);
     (*(p->arg))[0]=x;
     BaseGDL* res;
+    // marc: is this ok? call_fun will be executed within the actual (callStack.back()) environment
     res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
     
     // res can be of any type!
