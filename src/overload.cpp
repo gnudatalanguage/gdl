@@ -111,12 +111,15 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
   if( nParam < 3) // consider implicit SELF
     return; // RVALUE not given -> ignore
 
-  BaseGDL* objRef = e->GetKW(1);
-  BaseGDL** objRefP = e->GetPtrTo( objRef);
-  if( objRefP == NULL)
+//  BaseGDL** objRef = e->GetKW(1);
+//  BaseGDL** objRefP = e->GetPtrTo( objRef);
+  if( !e->GlobalKW(1))
   {
     ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) must be a passed as reference in this context.");
   }
+  BaseGDL** objRefP = &e->GetKW(1);
+  BaseGDL* objRef = *objRefP;
+
   BaseGDL* rValue = e->GetKW(2);
   if( rValue == NULL)
   {

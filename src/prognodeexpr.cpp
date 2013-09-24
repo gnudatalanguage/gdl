@@ -3322,7 +3322,7 @@ BaseGDL* POWNCNode::Eval()
     _t = _t->getNextSibling();
     //match(antlr::RefAST(_t),IDENTIFIER);
 
-    EnvUDT* newEnv=new EnvUDT( self, _t);
+    EnvUDT* newEnv=new EnvUDT( self, _t, "", EnvUDT::LRFUNCTION);
     
     self_guard.release();
     
@@ -3336,7 +3336,8 @@ BaseGDL* POWNCNode::Eval()
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
-    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+    BaseGDL** res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly
     
   }  
@@ -3355,7 +3356,7 @@ BaseGDL* POWNCNode::Eval()
 //		match(antlr::RefAST(_t),IDENTIFIER);
     _t = mp->getNextSibling();
 
-    EnvUDT* newEnv=new EnvUDT( self, mp, "", true);
+    EnvUDT* newEnv=new EnvUDT( self, mp, "", EnvUDT::LFUNCTION);
 
     self_guard.release();
 
@@ -3419,8 +3420,8 @@ BaseGDL* POWNCNode::Eval()
 // 		match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
 
-    EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText());
-    
+    EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), EnvUDT::LRFUNCTION);
+
     self_guard.release();
     
     ProgNode::interpreter->parameter_def(_t, newEnv);
@@ -3430,7 +3431,8 @@ BaseGDL* POWNCNode::Eval()
     
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+    BaseGDL** res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly    
   }
   
@@ -3451,7 +3453,7 @@ BaseGDL* POWNCNode::Eval()
 // 		match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 
-	EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), true);
+	EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), EnvUDT::LFUNCTION);
 
 	self_guard.release();
 
@@ -3506,7 +3508,7 @@ BaseGDL* POWNCNode::Eval()
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
     
-    EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
+    EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
     
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
@@ -3515,7 +3517,8 @@ BaseGDL* POWNCNode::Eval()
     
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+    BaseGDL** res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly    
   }
   
@@ -3574,7 +3577,7 @@ BaseGDL* POWNCNode::Eval()
 
     ProgNode::interpreter->SetFunIx( this);
 
-    EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], true);
+    EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LFUNCTION);
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
 
@@ -3723,7 +3726,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
 
     EnvUDT* newEnv;
     try {
-	    newEnv=new EnvUDT( self, mp2);
+	    newEnv=new EnvUDT( self, mp2, "", EnvUDT::LRFUNCTION);
 	    self_guard.release();
     }
     catch( GDLException& ex)
@@ -3739,7 +3742,8 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     // make the call
     rEval= ProgNode::interpreter->
 		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+//     res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+    res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly    
     
     tryARRAYEXPR:;
@@ -3779,7 +3783,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     
     Guard<BaseGDL> self_guard(self);
     
-    newEnv=new EnvUDT( self, mp2, "", true);
+    newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
     
     self_guard.release();
     

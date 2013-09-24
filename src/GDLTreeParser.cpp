@@ -3952,7 +3952,10 @@ void GDLTreeParser::key_parameter(RefDNode _t) {
 	{
 	int t = k_AST->getType();
 	if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
-	t == MFCALL_PARENT_LIB  || t == QUESTION //||
+	t == MFCALL_PARENT_LIB  || t == QUESTION 
+	// TODO: These are ref check as well, but parameter nodes need to know
+	//                        || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+	
 	//                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 	//                          t == MFCALL_PARENT_LIB_RETNEW //||
 	//                          t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
@@ -4028,7 +4031,10 @@ void GDLTreeParser::pos_parameter(RefDNode _t,
 	int t = e_AST->getType();
 	// Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
 	if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
-	t == MFCALL_PARENT_LIB || t == QUESTION //||
+	t == MFCALL_PARENT_LIB || t == QUESTION 
+	// TODO: These are ref check as well, but parameter nodes need to know
+	//                  || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+	
 	//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 	//                      t == MFCALL_PARENT_LIB_RETNEW
 	//                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 

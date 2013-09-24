@@ -887,9 +887,13 @@ call_fun returns[ BaseGDL* res]
 // 			if( retCode == RC_RETURN) 
 			if( retCode >= RC_RETURN) 
 			{
-			res=returnValue;
-			returnValue=NULL;
-			
+                res=returnValue;
+                returnValue=NULL;
+                if( returnValueL != NULL)
+                    {
+                        callStack.back()->SetPtrToReturnValue( returnValueL);
+                        returnValueL = NULL;
+                    }
 			break;
 			}					
 
@@ -904,7 +908,6 @@ call_fun returns[ BaseGDL* res]
 }
     : (retCode=statement
             {
-//                if( retCode == RC_RETURN) 
                 if( retCode >= RC_RETURN) 
                 {
                     res=returnValue;
@@ -933,7 +936,6 @@ call_lfun returns[ BaseGDL** res]
         retCode=statement(_t);
         _t = _retTree;
 			
-//			if( retCode == RC_RETURN) 
         if( retCode >= RC_RETURN) 
 			{
                 res=returnValueL;
@@ -1872,7 +1874,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                 if( self->Type() == GDL_OBJ)
                     selfObj = static_cast<DObjGDL*>( self);
                 try {
-                    newEnv=new EnvUDT( selfObj, mp2, "", true);
+                    newEnv=new EnvUDT( selfObj, mp2, "", EnvUDT::LFUNCTION);
                     self_guard.release();
                 }
                 catch( GDLException& ex)
@@ -2635,7 +2637,7 @@ l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
             Guard<BaseGDL> self_guard(self);
         
             try {
-                newEnv=new EnvUDT( self, mp2, "", true);
+                newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
                 self_guard.release();
             }
             catch( GDLException& ex)
@@ -2725,7 +2727,7 @@ l_arrayexpr_mfcall_as_mfcall returns[ BaseGDL** res]
                 {  
                     Guard<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvUDT( self, mp2, "", true);
+                    newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
 
                     self_guard.release();
                 }

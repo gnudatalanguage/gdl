@@ -701,9 +701,13 @@ GDLInterpreter::GDLInterpreter()
 	// 			if( retCode == RC_RETURN) 
 				if( retCode >= RC_RETURN) 
 				{
-				res=returnValue;
-				returnValue=NULL;
-				
+	res=returnValue;
+	returnValue=NULL;
+	if( returnValueL != NULL)
+	{
+	callStack.back()->SetPtrToReturnValue( returnValueL);
+	returnValueL = NULL;
+	}
 				break;
 				}					
 	
@@ -725,7 +729,6 @@ GDLInterpreter::GDLInterpreter()
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			//                if( retCode == RC_RETURN) 
 			if( retCode >= RC_RETURN) 
 			{
 			res=returnValue;
@@ -765,7 +768,6 @@ GDLInterpreter::GDLInterpreter()
 	retCode=statement(_t);
 	_t = _retTree;
 				
-	//			if( retCode == RC_RETURN) 
 	if( retCode >= RC_RETURN) 
 				{
 	res=returnValueL;
@@ -1403,7 +1405,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	
 	Guard<BaseGDL> self_guard(self);
 	
-	newEnv=new EnvUDT( self, mp2, "", true);
+	newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
 	
 	self_guard.release();
 	
@@ -2720,7 +2722,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		if( self->Type() == GDL_OBJ)
 		selfObj = static_cast<DObjGDL*>( self);
 		try {
-		newEnv=new EnvUDT( selfObj, mp2, "", true);
+		newEnv=new EnvUDT( selfObj, mp2, "", EnvUDT::LFUNCTION);
 		self_guard.release();
 		}
 		catch( GDLException& ex)
@@ -3610,7 +3612,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	Guard<BaseGDL> self_guard(self);
 	
 	try {
-	newEnv=new EnvUDT( self, mp2, "", true);
+	newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
 	self_guard.release();
 	}
 	catch( GDLException& ex)

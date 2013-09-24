@@ -426,6 +426,12 @@ public:
 static 	void* operator new( size_t bytes);
 static	void operator delete( void *ptr);
 
+enum CallContext {
+   RFUNCTION = 0
+  ,LFUNCTION
+  ,LRFUNCTION
+};
+
 private:
 ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
 // std::vector<ForLoopInfoT> forLoopInfo;
@@ -434,7 +440,7 @@ ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
   DLong             onError; // on_error setting
   BaseGDL**         catchVar;
   ProgNodeP         catchNode; 
-  bool              lFun; // assignment paramter for functions as l_value
+  CallContext       lFun; // assignment paramter for functions as l_value
   SizeT             nJump; // number of jumps in current environment
   int               lastJump; // to which label last jump went
   
@@ -445,14 +451,14 @@ public:
   void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
 
   // UD pro/fun
-  EnvUDT( ProgNodeP idN, DSub* pro_, bool lF = false);
+  EnvUDT( ProgNodeP idN, DSubUD* pro_, CallContext lF = RFUNCTION);
 
   // member procedure
   EnvUDT( ProgNodeP idN, BaseGDL* self, 
 	const std::string& parent="");
   // member function
   EnvUDT( BaseGDL* self, ProgNodeP idN, 
-	const std::string& parent="", bool lF = false);
+	const std::string& parent="", CallContext lF = RFUNCTION);
 
 
   // for obj_new and obj_destroy
@@ -472,7 +478,7 @@ public:
     ++nJump;
     return static_cast<DSubUD*>( pro)->GotoTarget( ix);
   }
-  bool IsLFun() const { return lFun;} // left-function
+  CallContext IsLFun() const { return lFun;} // left-function
 
   void SetIOError( int targetIx) 
   { // this isn't a jump

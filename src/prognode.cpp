@@ -2020,20 +2020,49 @@ RetCode   RETFNode::Run()
 {
     ProgNodeP _t = this->getFirstChild();
     assert( _t != NULL);
-    if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun())
+    EnvUDT::CallContext actualCallContext = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun();
+    if ( actualCallContext == EnvUDT::RFUNCTION)
     {
-        BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
-        interpreter->SetRetTree( _t->getNextSibling()); // ???
-        assert(ProgNode::interpreter->returnValue == NULL);
-        ProgNode::interpreter->returnValue=e;
-        //GDLInterpreter::CallStack().back()->RemoveLoc( e); // steal e from local list
+      // pure r-function
+      BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
+      interpreter->SetRetTree( _t->getNextSibling()); // ???
+
+      assert(ProgNode::interpreter->returnValue == NULL);
+      assert(ProgNode::interpreter->returnValueL == NULL);
+      ProgNode::interpreter->returnValue=e;
+      //GDLInterpreter::CallStack().back()->RemoveLoc( e); // steal e from local list
     }
-    else
+    else if ( actualCallContext == EnvUDT::LRFUNCTION)
     {
-        BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
-        // returnValueL is otherwise owned
-        assert(ProgNode::interpreter->returnValueL == NULL);
-        ProgNode::interpreter->returnValueL=eL;
+      // for RefCheck context
+      BaseGDL** eL;
+      BaseGDL*  e;
+      try {
+	eL=ProgNode::interpreter->l_ret_expr(_t);
+	assert( eL != NULL);
+	e = *eL;
+      }
+      catch(...)
+      {
+	// TODO make dedicated lr_ret_expr instead
+	eL = NULL;
+	e =_t->Eval();
+	interpreter->SetRetTree( _t->getNextSibling()); // ???
+      }
+
+      assert(ProgNode::interpreter->returnValue == NULL);
+      assert(ProgNode::interpreter->returnValueL == NULL);
+      ProgNode::interpreter->returnValueL=eL;
+      ProgNode::interpreter->returnValue=e;
+    }
+    else // EnvUDT::LFUNCTION
+    {
+      // pure l-function
+      BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
+
+      assert(ProgNode::interpreter->returnValue == NULL);
+      assert(ProgNode::interpreter->returnValueL == NULL);
+      ProgNode::interpreter->returnValueL=eL;
     }
     //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
     //return RC_RETURN;

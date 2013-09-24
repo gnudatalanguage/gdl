@@ -119,14 +119,14 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
 //, toDestroyInitialIndex( toDestroy.size())
 {}
 
-EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF): 
+EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF): 
   EnvBaseT( cN, pro_),
   ioError(NULL), 
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
   lFun( lF),
-//   lFun( false),
+//   lFun( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -174,7 +174,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( false),
+  lFun( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -224,8 +224,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
 }
 
 // member fun
-EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,  
-		ProgNodeP cN, const string& parent, bool lF): 
+EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext lF): 
   EnvBaseT( cN, NULL),
   ioError(NULL), 
   onError( -1), 
@@ -313,7 +312,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( false),
+  lFun( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -1676,11 +1675,11 @@ void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 //   return Interpreter()->GetPtrToHeap( p) != NULL;
 // }
 
-BaseGDL** EnvBaseT::GetPtrTo( BaseGDL* p) 
-{ 
-  BaseGDL** pp = env.GetPtrTo( p);
-  if( pp != NULL) return pp;
-  pp = static_cast<DSubUD*>(pro)->GetCommonVarPtr( p);
-  if( pp != NULL) return pp;
-  return GDLInterpreter::GetPtrToHeap( p);
-}
+// BaseGDL** EnvBaseT::GetPtrTo( BaseGDL* p) 
+// { 
+//   BaseGDL** pp = env.GetPtrTo( p);
+//   if( pp != NULL) return pp;
+//   pp = static_cast<DSubUD*>(pro)->GetCommonVarPtr( p);
+//   if( pp != NULL) return pp;
+//   return GDLInterpreter::GetPtrToHeap( p);
+// }
