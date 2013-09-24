@@ -43,7 +43,8 @@ number of FAIL in testsuite.
     <li>
       <a>Why does the CATCH statement not work properly in GDL?</a>
       <br />
-      It's one of very few IDL syntax elements not implemented in GDL yet.
+      It <b>was</b> one of very few IDL syntax elements not implemented in GDL till version 0.9.3.
+      Since 0.9.3 it should work as expected. Please update GDL if using an older version.
     </li>
   </ul>
 
