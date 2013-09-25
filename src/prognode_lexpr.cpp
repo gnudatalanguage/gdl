@@ -51,23 +51,41 @@ BaseGDL** ProgNode::LExpr( BaseGDL* right)
 
 BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 		//case QUESTION:
-	{
-	ProgNodeP _t = this->getFirstChild();
-	BaseGDL*       e1=interpreter->expr(_t);
-	_t = interpreter->GetRetTree();
-	Guard<BaseGDL> e1_guard(e1);
-	if( e1->True())
-	{
-	return _t->LExpr( right); //l_expr(_t, right);
-	}
-	else
-	{
-	_t=_t->GetNextSibling(); // jump over 1st expression
-	return _t->LExpr( right); //l_expr(_t, right);
-	}
-	//SetRetTree( tIn->getNextSibling());
-	//return res;
-	}
+{
+    ProgNodeP branch = this->GetBranch();
+    return branch->LExpr( right);
+    
+//     ProgNodeP _t = this->getFirstChild();
+// 
+//     Guard<BaseGDL> e1_guard;
+//     BaseGDL* e1;
+//     if( NonCopyNode( _t->getType()))
+//     {
+//         e1 = _t->EvalNC();
+//     }
+//     else
+//     {
+//         BaseGDL** ref = _t->EvalRefCheck(e1);
+//         if( ref == NULL)
+//             e1_guard.Init(e1);
+//         else
+//             e1 = *ref;
+//     }
+// // 	BaseGDL*       e1=interpreter->expr(_t);
+//     _t = _t->GetNextSibling();
+// // 	Guard<BaseGDL> e1_guard(e1);
+//     if( e1->True())
+//     {
+//         return _t->LExpr( right); //l_expr(_t, right);
+//     }
+//     else
+//     {
+//         _t=_t->GetNextSibling(); // jump over 1st expression
+//         return _t->LExpr( right); //l_expr(_t, right);
+//     }
+//     //SetRetTree( tIn->getNextSibling());
+//     //return res;
+}
 
 BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	//case ARRAYEXPR:

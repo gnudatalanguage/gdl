@@ -625,29 +625,22 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 //   _t = _t->getNextSibling();
   ProgNodeP p = this->getFirstChild()->getNextSibling();
 
-  if( p->getType() == GDLTokenTypes::QUESTION)
-  {
-    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
-    ProgNodeP branch = q->AsParameter();
-    
-    while( branch->getType() == GDLTokenTypes::QUESTION)
-    {
-      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
-      branch = qRecursive->AsParameter();
-    }
-    
-    BaseGDL* rVal;
-    BaseGDL** lVal = branch->EvalRefCheck( rVal);
-    if( lVal != NULL)
-    {   // pass reference
-      actEnv->SetKeyword(this->getFirstChild()->getText(), lVal); 
-    }
-    else
-    {   // pass value
-      actEnv->SetKeyword(this->getFirstChild()->getText(), rVal); 
-    }
-  }
-  else
+//   if( p->getType() == GDLTokenTypes::QUESTION)
+//   {
+//     ProgNodeP branch = static_cast<QUESTIONNode*>(p)->GetBranch();
+//     
+//     BaseGDL* rVal;
+//     BaseGDL** lVal = branch->EvalRefCheck( rVal);
+//     if( lVal != NULL)
+//     {   // pass reference
+//       actEnv->SetKeyword(this->getFirstChild()->getText(), lVal); 
+//     }
+//     else
+//     {   // pass value
+//       actEnv->SetKeyword(this->getFirstChild()->getText(), rVal); 
+//     }
+//   }
+//   else
   {
     BaseGDL* rVal;
     BaseGDL** lVal = p->EvalRefCheck( rVal);
@@ -745,21 +738,15 @@ bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
 {
   ProgNodeP p = this->getFirstChild();
 
-  if( p->getType() == GDLTokenTypes::QUESTION)
-  {
-    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
-    ProgNodeP branch = q->AsParameter();
-    
-    while( branch->getType() == GDLTokenTypes::QUESTION)
-    {
-      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
-      branch = qRecursive->AsParameter();
-    }
-    
-    BaseGDL** lVal = branch->EvalRefCheck( pval);
-    return (lVal != NULL);
-  }
+//   if( p->getType() == GDLTokenTypes::QUESTION)
+//   {
+//     ProgNodeP branch = static_cast<QUESTIONNode*>(p)->GetBranch();
+//     
+//     BaseGDL** lVal = branch->EvalRefCheck( pval);
+//     return (lVal != NULL);
+//   }
   BaseGDL** lVal = p->EvalRefCheck( pval);
+  ProgNode::interpreter->_retTree = this->getNextSibling(); // ?
   return (lVal != NULL);
   
 //   ProgNodeP p = this->getFirstChild();
@@ -794,30 +781,23 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 {
   ProgNodeP p = this->getFirstChild();
 
-  if( p->getType() == GDLTokenTypes::QUESTION)
-  {
-    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
-    ProgNodeP branch = q->AsParameter();
-    
-    while( branch->getType() == GDLTokenTypes::QUESTION)
-    {
-      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
-      branch = qRecursive->AsParameter();
-    }
-    
-    BaseGDL* rVal;
-    BaseGDL** lVal = branch->EvalRefCheck( rVal);
-    if( lVal != NULL)
-    {   // pass reference
-      actEnv->SetNextParUnchecked( lVal); 
-    }
-    else
-    {   // pass value
-      actEnv->SetNextParUnchecked( rVal); 
-    }
-  }
-  else
-  {  
+//   if( p->getType() == GDLTokenTypes::QUESTION)
+//   {
+//     ProgNodeP branch = static_cast<QUESTIONNode*>(p)->GetBranch();
+//     
+//     BaseGDL* rVal;
+//     BaseGDL** lVal = branch->EvalRefCheck( rVal);
+//     if( lVal != NULL)
+//     {   // pass reference
+//       actEnv->SetNextParUnchecked( lVal); 
+//     }
+//     else
+//     {   // pass value
+//       actEnv->SetNextParUnchecked( rVal); 
+//     }
+//   }
+//   else
+//   {  
     BaseGDL* rVal;
     BaseGDL** lVal = p->EvalRefCheck( rVal);
     if( lVal != NULL)
@@ -841,37 +821,30 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 //       {   // pass value
 // 	actEnv->SetNextParUnchecked( pval); 
 //       }
-  }
+//   }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
 {
   ProgNodeP p = this->getFirstChild();
 
-  if( p->getType() == GDLTokenTypes::QUESTION)
-  {
-    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
-    ProgNodeP branch = q->AsParameter();
-    
-    while( branch->getType() == GDLTokenTypes::QUESTION)
-    {
-      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
-      branch = qRecursive->AsParameter();
-    }
-    
-    BaseGDL* rVal;
-    BaseGDL** lVal = branch->EvalRefCheck( rVal);
-    if( lVal != NULL)
-    {   // pass reference
-      actEnv->SetNextParUncheckedVarNum( lVal); 
-    }
-    else
-    {   // pass value
-      actEnv->SetNextParUncheckedVarNum( rVal); 
-    }
-  }
-  else
-  {
+//   if( p->getType() == GDLTokenTypes::QUESTION)
+//   {
+//     ProgNodeP branch = static_cast<QUESTIONNode*>(p)->GetBranch();
+//     
+//     BaseGDL* rVal;
+//     BaseGDL** lVal = branch->EvalRefCheck( rVal);
+//     if( lVal != NULL)
+//     {   // pass reference
+//       actEnv->SetNextParUncheckedVarNum( lVal); 
+//     }
+//     else
+//     {   // pass value
+//       actEnv->SetNextParUncheckedVarNum( rVal); 
+//     }
+//   }
+//   else
+//   {
     BaseGDL* rVal;
     BaseGDL** lVal = p->EvalRefCheck( rVal);
     if( lVal != NULL)
@@ -895,7 +868,7 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
 //       {   // pass value
 // 	actEnv->SetNextParUncheckedVarNum( pval); 
 //       }
-  }
+//   }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 

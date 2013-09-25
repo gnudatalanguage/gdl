@@ -707,46 +707,65 @@ BaseGDL** DEREFNode::LEval()
 
 
 // trinary operator
+BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
+{
+  ProgNodeP branch = this->GetBranch();
+  return branch->EvalRefCheck( rEval);
+}  
+
 BaseGDL* QUESTIONNode::Eval()
 {
-  Guard<BaseGDL> e1_guard;
-  BaseGDL* e1;
-  if( NonCopyNode( op1->getType()))
-  {
-	e1 = op1->EvalNC();
-  }
-  else
-  {
-	e1 = op1->Eval();
-    e1_guard.Reset(e1);
-  }
-//  Guard<BaseGDL> e1( op1->Eval());
-  if( e1->True())
-    {
-      return op2->Eval(); // right->down
-    }
-  return op3->Eval(); // right->right
+  ProgNodeP branch = this->GetBranch();
+  return branch->Eval();
+  
+//   Guard<BaseGDL> e1_guard;
+//   BaseGDL* e1;
+//   if( NonCopyNode( op1->getType()))
+//   {
+// 	e1 = op1->EvalNC();
+//   }
+//   else
+//   {
+// // 	e1 = op1->Eval();
+// //      e1_guard.Init(e1);
+// 	BaseGDL** ref = op1->EvalRefCheck(e1);
+// 	if( ref == NULL)
+// 	  e1_guard.Init(e1);
+// 	else
+// 	  e1 = *ref;
+//   }
+// //  Guard<BaseGDL> e1( op1->Eval());
+//   if( e1->True())
+//     {
+//       return op2->Eval(); // right->down
+//     }
+//   return op3->Eval(); // right->right
 }
 
-ProgNodeP QUESTIONNode::AsParameter()
+ProgNodeP QUESTIONNode::GetThisBranch()
 {
-  Guard<BaseGDL> e1_guard;
-  BaseGDL* e1;
-  if( NonCopyNode( op1->getType()))
-  {
-	e1 = op1->EvalNC();
-  }
-  else
-  {
-	e1 = op1->Eval();
-    e1_guard.Reset(e1);
-  }
-//  Guard<BaseGDL> e1( op1->Eval());
-  if( e1->True())
+    Guard<BaseGDL> e1_guard;
+    BaseGDL* e1;
+    if( NonCopyNode( op1->getType()))
     {
-      return op2;
+        e1 = op1->EvalNC();
     }
-  return op3;
+    else
+    {     
+// 	e1 = op1->Eval();
+//      e1_guard.Init(e1);
+	BaseGDL** ref = op1->EvalRefCheck(e1);
+	if( ref == NULL)
+	  e1_guard.Init(e1);
+	else
+	  e1 = *ref;
+    }
+//  Guard<BaseGDL> e1( op1->Eval());
+    if( e1->True())
+    {
+        return op2;
+    }
+    return op3;
 }
 
 // unary operators
@@ -3605,6 +3624,7 @@ BaseGDL* POWNCNode::Eval()
 
   BaseGDL** ARRAYEXPR_FCALLNode::LEval()
   {
+    // already succeeded
     if( fcallNodeFunIx >= 0)
       return fcallNode->FCALLNode::LEval();
     else if( fcallNodeFunIx == -2)
@@ -3612,6 +3632,7 @@ BaseGDL* POWNCNode::Eval()
       return arrayExprNode->ARRAYEXPRNode::LEval();
     }
 
+    // both possible
     assert( fcallNodeFunIx == -1);
     // 1st try arrayexpr
     try{

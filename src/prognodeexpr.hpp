@@ -340,10 +340,23 @@ class NSTRUC_REFNode: public DefaultNode
 class QUESTIONNode: public TrinaryExpr
 { public:
   QUESTIONNode( const RefDNode& refNode): TrinaryExpr( refNode){}
+  ProgNodeP GetThisBranch(); // as parameter or keyword
   BaseGDL* Eval();
-  ProgNodeP AsParameter(); // as parameter or keyword
   BaseGDL** LExpr(BaseGDL* right);
+  BaseGDL** EvalRefCheck( BaseGDL*& rEval);
+
 //   BaseGDL** LExprGrab(BaseGDL* right);
+  ProgNodeP GetBranch() 
+  {
+    ProgNodeP branch = this->GetThisBranch();
+    while( branch->getType() == GDLTokenTypes::QUESTION)
+    {
+      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+      branch = qRecursive->GetThisBranch();
+    }
+    return branch;
+  }
+
 };
 class UMINUSNode: public UnaryExpr
 { public:
