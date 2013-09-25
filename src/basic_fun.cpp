@@ -1129,7 +1129,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
   {
     return type_fun<DDoubleGDL>( e);
   }
-  // GDL_STRING function behaves different
+  // STRING function behaves different
   BaseGDL* string_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();

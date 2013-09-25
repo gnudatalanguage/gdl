@@ -756,12 +756,10 @@ bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
       branch = qRecursive->AsParameter();
     }
     
-    BaseGDL* rVal;
-    BaseGDL** lVal = branch->EvalRefCheck( rVal);
+    BaseGDL** lVal = branch->EvalRefCheck( pval);
     return (lVal != NULL);
   }
-  BaseGDL* rVal;
-  BaseGDL** lVal = p->EvalRefCheck( rVal);
+  BaseGDL** lVal = p->EvalRefCheck( pval);
   return (lVal != NULL);
   
 //   ProgNodeP p = this->getFirstChild();
