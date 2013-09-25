@@ -533,25 +533,30 @@ BaseGDL* DEREFNode::Eval()
     {
       e1 = evalExpr->EvalNC();
     }
-  else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
-    {
-//       e1=interpreter->lib_function_call(evalExpr);
-      BaseGDL** retValPtr;
-      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
-      // set return tree not needed
-      if( e1 == NULL) // ROUTINE_NAMES
-	      throw GDLException( evalExpr, "Undefined return value", true, false);
-      
-//       if( !DInterpreter::CallStackBack()->Contains( e1)) 
-      if( retValPtr == NULL)
-	{
-  	  e1_guard.Init( e1); 
-	}
-    }
+//   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
+//     {
+// //       e1=interpreter->lib_function_call(evalExpr);
+//       BaseGDL** retValPtr;
+//       e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
+//       // set return tree not needed
+//       if( e1 == NULL) // ROUTINE_NAMES
+// 	      throw GDLException( evalExpr, "Undefined return value", true, false);
+//       
+// //       if( !DInterpreter::CallStackBack()->Contains( e1)) 
+//       if( retValPtr == NULL)
+// 	{
+//   	  e1_guard.Init( e1); 
+// 	}
+//     }
   else
     {
-      e1 = evalExpr->Eval();
-      e1_guard.Init( e1); 
+//       e1 = evalExpr->Eval();
+//       e1_guard.Init( e1); 
+      BaseGDL** ref = evalExpr->EvalRefCheck(e1);
+      if( ref == NULL)
+	  e1_guard.Init( e1); 
+      else
+	  e1 = *ref;
     }
 
   if( e1 == NULL || e1->Type() != GDL_PTR)
@@ -639,29 +644,35 @@ BaseGDL** DEREFNode::LEval()
     {
       e1 = evalExpr->EvalNC();
     }
-  else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
-    {
-//       e1=interpreter->lib_function_call(evalExpr);
-      BaseGDL** retValPtr;
-      e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
-      // set return tree not needed
-      if( e1 == NULL) // ROUTINE_NAMES
-	      throw GDLException( evalExpr, "Undefined return value", true, false);
-      
-//       if( !DInterpreter::CallStackBack()->Contains( e1)) 
-      if( retValPtr == NULL)
-	{
-//   	  e1_guard.Init( e1); 
-	  actEnv->DeleteAtExit( e1); // we need life cycle until end of current subroutine
-	}
-    }
+//   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
+//     {
+// //       e1=interpreter->lib_function_call(evalExpr);
+//       BaseGDL** retValPtr;
+//       e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
+//       // set return tree not needed
+//       if( e1 == NULL) // ROUTINE_NAMES
+// 	      throw GDLException( evalExpr, "Undefined return value", true, false);
+//       
+// //       if( !DInterpreter::CallStackBack()->Contains( e1)) 
+//       if( retValPtr == NULL)
+// 	{
+// //   	  e1_guard.Init( e1); 
+// 	  actEnv->DeleteAtExit( e1); // we need life cycle until end of current subroutine
+// 	}
+//     }
   else
     {
-      e1 = evalExpr->Eval();
-//       e1_guard.Init( e1); 
-      // in case *(ptr_new(value)), value will be destroyed due to ref counting
-      // when e1 is deleted
-      actEnv->DeleteAtExit( e1);// we need life cycle until end of current subroutine
+//       e1 = evalExpr->Eval();
+// //       e1_guard.Init( e1); 
+//       // in case *(ptr_new(value)), value will be destroyed due to ref counting
+//       // when e1 is deleted
+//       actEnv->DeleteAtExit( e1);// we need life cycle until end of current subroutine
+
+      BaseGDL** ref = evalExpr->EvalRefCheck(e1);
+      if( ref == NULL)
+	  actEnv->DeleteAtExit( e1);
+      else
+	  e1 = *ref;
     }
 
   if( e1 == NULL || e1->Type() != GDL_PTR)
@@ -3869,17 +3880,17 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 //   }
 
 BaseGDL** VARNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+{
     return this->LEval();
-  }
-  BaseGDL** VARNode::LEval()
-	{
+}
+BaseGDL** VARNode::LEval()
+{
 //   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return &ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
-	}
+    return &ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
+}
 BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
   {
-    return this->LEval();
+  return this->LEval();
   }
   BaseGDL** VARPTRNode::LEval()
 	{
@@ -3890,7 +3901,7 @@ BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
 
 BaseGDL** EXPRNode::EvalRefCheck( BaseGDL*& rEval)
   {
-    return this->LEval();
+  return this->LEval();
   }
 BaseGDL** EXPRNode::LEval()
 {
@@ -4090,180 +4101,187 @@ BaseGDL* DOTNode::Eval()
   
 BaseGDL* ARRAYEXPRNode::Eval()
 {
-  BaseGDL* res;
+    BaseGDL* res;
 
-  ExprListT        exprList; // for cleanup
-  IxExprListT      ixExprList;
-  SizeT nExpr;
-  BaseGDL* s;
+    ExprListT        exprList; // for cleanup
+    IxExprListT      ixExprList;
+    SizeT nExpr;
+    BaseGDL* s;
 
-  //	match(antlr::RefAST(_t),ARRAYEXPR);
-  ProgNodeP	_t = this->getFirstChild();
+    //	match(antlr::RefAST(_t),ARRAYEXPR);
+    ProgNodeP	_t = this->getFirstChild();
 
-  BaseGDL* r;
-  Guard<BaseGDL> rGuard;
-  try{
-    if( NonCopyNode(_t->getType()))
-    {
-      r=_t->EvalNC();
-      //r=indexable_expr(_t);
+    BaseGDL* r;
+    Guard<BaseGDL> rGuard;
+    try {
+        if( NonCopyNode(_t->getType()))
+        {
+            r=_t->EvalNC();
+            //r=indexable_expr(_t);
+        }
+//         else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//         {
+//             // better than Eval(): no copying here if not necessary
+//             // r=ProgNode::interpreter->lib_function_call(_t);
+//             BaseGDL** retValPtr;
+//             r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr);
+// 
+// //       if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+//             if( retValPtr == NULL)
+//                 rGuard.Init( r); // guard if no global data
+//         }
+        else
+        {
+//             r=_t->Eval();
+            BaseGDL** ref =_t->EvalRefCheck(r);
+            if( ref == NULL)
+		rGuard.Init( r);
+            else
+                r = *ref;
+        }
     }
-    else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+    catch( GDLException& ex)
     {
-      // better than Eval(): no copying here if not necessary
-      // r=ProgNode::interpreter->lib_function_call(_t);
-      BaseGDL** retValPtr;
-      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-
-//       if( !ProgNode::interpreter->CallStack().back()->Contains( r))
-      if( retValPtr == NULL)
-	rGuard.Init( r); // guard if no global data	  
+        ex.SetArrayexprIndexeeFailed( true);
+        throw ex;
     }
-    else
+
+    ProgNodeP ixListNode = _t->getNextSibling();
+
+    if( r->Type() == GDL_OBJ && r->StrictScalar())
     {
-      r=_t->Eval();
-      rGuard.Init( r);  
-    }
-  }
-  catch( GDLException& ex)
-  {
-      ex.SetArrayexprIndexeeFailed( true);
-      throw ex;
-  }
-  
-  ProgNodeP ixListNode = _t->getNextSibling();
+        // check for _overloadBracketsRightSide
 
-  if( r->Type() == GDL_OBJ && r->StrictScalar())
-  {
-      // check for _overloadBracketsRightSide
-      
-      DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
+        DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
 //       if( s != 0)  // no overloads for null object
 //       {
 // 	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
 // 	if( oStructGDL != NULL) // if object not valid -> default behaviour
 // 	  {
 // 	    DStructDesc* desc = oStructGDL->Desc();
-// 
+//
 // 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
-	    DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
-	    if( bracketsRightSideOverload != NULL)
-	      {
-		// _overloadBracketsRightSide
-		DObjGDL* self = static_cast<DObjGDL*>(rGuard.Get());
-		if( self == NULL)
-		{
-		  self = static_cast<DObjGDL*>(r->Dup()); // not set -> not owner
-		  rGuard.Reset( self);
-		}
-		// we are now the proud owner of 'self'
+        DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
+        if( bracketsRightSideOverload != NULL)
+        {
+            // _overloadBracketsRightSide
+            DObjGDL* self = static_cast<DObjGDL*>(rGuard.Get());
+            if( self == NULL)
+            {
+                self = static_cast<DObjGDL*>(r->Dup()); // not set -> not owner
+                rGuard.Reset( self);
+            }
+            // we are now the proud owner of 'self'
 
-		IxExprListT indexList;
-		// uses arrIxListNoAssoc
-		interpreter->arrayindex_list_overload( ixListNode, indexList);
-		ArrayIndexListGuard guard(ixListNode->arrIxListNoAssoc);
+            IxExprListT indexList;
+            // uses arrIxListNoAssoc
+            interpreter->arrayindex_list_overload( ixListNode, indexList);
+            ArrayIndexListGuard guard(ixListNode->arrIxListNoAssoc);
 
-		// hidden SELF is counted as well
-		int nParSub = bracketsRightSideOverload->NPar();
-		assert( nParSub >= 1); // SELF
-		// indexList.size() > regular paramters w/o SELF
-		if( indexList.size() > nParSub - 1)
-		{
-		  indexList.Cleanup();
-		  throw GDLException( this, bracketsRightSideOverload->ObjectName() +
-				      ": Incorrect number of arguments.",
-				      false, false);
-		}
+            // hidden SELF is counted as well
+            int nParSub = bracketsRightSideOverload->NPar();
+            assert( nParSub >= 1); // SELF
+            // indexList.size() > regular paramters w/o SELF
+            if( indexList.size() > nParSub - 1)
+            {
+                indexList.Cleanup();
+                throw GDLException( this, bracketsRightSideOverload->ObjectName() +
+                                    ": Incorrect number of arguments.",
+                                    false, false);
+            }
 
-		// adds already SELF parameter
-		EnvUDT* newEnv= new EnvUDT( this, bracketsRightSideOverload, &self);
-		// no guarding of newEnv here (no exceptions until push_back())
-		
-		// parameters
-		for( SizeT p=0; p<indexList.size(); ++p)
-		  newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+            // adds already SELF parameter
+            EnvUDT* newEnv= new EnvUDT( this, bracketsRightSideOverload, &self);
+            // no guarding of newEnv here (no exceptions until push_back())
 
-		StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
-		interpreter->CallStack().push_back( newEnv); 
-		
-		// make the call, return the result
-		BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+            // parameters
+            for( SizeT p=0; p<indexList.size(); ++p)
+                newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
 
-		if( self != rGuard.Get())
-		{
-		  // always put out warning first, in case of a later crash
-		  Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() + 
-			   ": Assignment to SELF detected (GDL session still ok).");
-		  // assignment to SELF -> self was deleted and points to new variable
-		  // which it owns
-		  rGuard.Release();
-		  if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
-		    rGuard.Reset(self);
-		}
+            StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
+            interpreter->CallStack().push_back( newEnv);
 
-		return res;
-	      }
+            // make the call, return the result
+            BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+            if( self != rGuard.Get())
+            {
+                // always put out warning first, in case of a later crash
+                Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() +
+                         ": Assignment to SELF detected (GDL session still ok).");
+                // assignment to SELF -> self was deleted and points to new variable
+                // which it owns
+                rGuard.Release();
+                if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+                    rGuard.Reset(self);
+            }
+
+            return res;
+        }
 // 	  }
 //       }
-  }
-  
-  // first use NoAssoc case
-  ArrayIndexListT* aL = ixListNode->arrIxListNoAssoc;
-  assert( aL != NULL);
-  nExpr = aL->NParam();
-	  
-  _t = ixListNode->getFirstChild();
-	  
-  if( nExpr == 0)
-  {
-    goto empty;
-  }
-	  
-  while( true)
-  {
-    if( NonCopyNode(_t->getType()))
-    {
-	s=_t->EvalNC();//indexable_expr(_t);
-	assert(s != NULL);
     }
-    else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+
+    // first use NoAssoc case
+    ArrayIndexListT* aL = ixListNode->arrIxListNoAssoc;
+    assert( aL != NULL);
+    nExpr = aL->NParam();
+
+    _t = ixListNode->getFirstChild();
+
+    if( nExpr == 0)
     {
-// 	s=ProgNode::interpreter->lib_function_call(_t);
-	BaseGDL** retValPtr;
-	s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-// 	if( !ProgNode::interpreter->CallStack().back()->Contains( s))
-	if( retValPtr == NULL)
-		  exprList.push_back( s);
-	assert(s != NULL);
+        goto empty;
+    }
+
+    while( true)
+    {
+        if( NonCopyNode(_t->getType()))
+        {
+            s=_t->EvalNC();//indexable_expr(_t);
+            assert(s != NULL);
+        }
+//     else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//     {
+// // 	s=ProgNode::interpreter->lib_function_call(_t);
+// 	BaseGDL** retValPtr;
+// 	s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr);
+// // 	if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+// 	if( retValPtr == NULL)
+// 		  exprList.push_back( s);
+// 	assert(s != NULL);
+//     }
+        else
+        {
+            BaseGDL** ref =_t->EvalRefCheck(s); //ProgNode::interpreter->indexable_tmp_expr(_t);
+            if( ref == NULL)
+                exprList.push_back( s);
+            else
+                s = *ref;
+            assert(s != NULL);
+        }
+
+        ixExprList.push_back( s);
+        if( ixExprList.size() == nExpr)
+            break; // while( true) -> finish
+
+        _t = _t->getNextSibling(); // set to next index
+    } // while( true)
+
+empty:
+
+    if( r->IsAssoc())
+    {
+        ArrayIndexListT* aLAssoc = ixListNode->arrIxList;
+        assert( aLAssoc != NULL);
+        ArrayIndexListGuard guardAssoc(aLAssoc);
+        return aLAssoc->Index( r, ixExprList);
     }
     else
     {
-	s=_t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
-	exprList.push_back( s);
-	assert(s != NULL);
+        ArrayIndexListGuard guard(aL);
+        return aL->Index( r, ixExprList);
     }
-
-    ixExprList.push_back( s);
-    if( ixExprList.size() == nExpr)
-      break; // for -> finish
-
-    _t = _t->getNextSibling(); // set to next index
-  } // for
-
-  empty:
-
-  if( r->IsAssoc())
-  {
-    ArrayIndexListT* aLAssoc = ixListNode->arrIxList;
-    assert( aLAssoc != NULL);
-    ArrayIndexListGuard guardAssoc(aLAssoc);
-    return aLAssoc->Index( r, ixExprList);	  
-  }
-  else
-  {
-    ArrayIndexListGuard guard(aL);
-    return aL->Index( r, ixExprList);
-  }
-  assert( false);
-  return NULL;
+    assert( false);
+    return NULL;
 }

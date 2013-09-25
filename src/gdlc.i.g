@@ -3127,21 +3127,24 @@ arrayindex_list_overload [IxExprListT& indexList]
                 s= _t->EvalNCNull(); // in this case (overload) NULL is ok
                 //_t = _retTree;
             }
-        else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-            {
-                // s=lib_function_call_internal(_t);
-                BaseGDL** retValPtr;
-                s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
-                //_t = _retTree;
-                // if( !callStack.back()->Contains( s)) 
-                if( retValPtr == NULL) 
-                    cleanupList->push_back( s);
-            }				
+         // else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+         //     {
+         //         // s=lib_function_call_internal(_t);
+         //         BaseGDL** retValPtr;
+         //         s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
+         //         //_t = _retTree;
+         //         // if( !callStack.back()->Contains( s)) 
+         //         if( retValPtr == NULL) 
+         //             cleanupList->push_back( s);
+         //     }				
         else
             {
-                s=_t->Eval(); //indexable_tmp_expr(_t);
+                BaseGDL** ref=_t->EvalRefCheck( s); //indexable_tmp_expr(_t);
                 //_t = _retTree;
-                cleanupList->push_back( s);
+                if( ref == NULL)
+		  cleanupList->push_back( s);
+		else
+		  s = *ref;
             }
 			
         ixExprList.push_back( s);

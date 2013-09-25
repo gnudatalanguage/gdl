@@ -144,100 +144,57 @@ BaseGDL* ASSIGNNode::Eval()
 {
     ProgNodeP _t = this->getFirstChild();
 
-    Guard<BaseGDL> r_guard;
-	BaseGDL* res;
-    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-        {
-//             res=interpreter->lib_function_call(_t);
-//             _t = interpreter->GetRetTree();
-	  BaseGDL** retValPtr;
-	  res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-	  if( retValPtr == NULL)
-// 	  if( !interpreter->CallStackBack()->Contains( res))
-	    r_guard.Reset( res);
-	  _t = _t->getNextSibling();
-        }
-    else
-        {
-//             res=interpreter->tmp_expr(_t);
-//             _t = interpreter->GetRetTree();
-	    res = _t->Eval();
-            r_guard.Reset( res);
-	    _t = _t->getNextSibling();
-        }
+    BaseGDL* res = _t->Eval();
+    Guard<BaseGDL> r_guard( res);
 
-    BaseGDL** l=_t->LExpr( res); //l_expr(_t, res);
-    //_t = _retTree;
-    if( r_guard.get() == res) // owner
-      r_guard.release();
-    else
-      res = res->Dup();
+    BaseGDL** l=_t->getNextSibling()->LExpr( res); //l_expr(_t, res);
+
+    r_guard.release();
     return res;
 }
 BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 {
     ProgNodeP _t = this->getFirstChild();
 
-    Guard<BaseGDL> r_guard;
+    BaseGDL* res = _t->Eval();
+    Guard<BaseGDL> r_guard( res);
 
-	BaseGDL* res;
-    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-        {
-//             res=interpreter->lib_function_call(_t);
-//             _t = interpreter->GetRetTree();
-	    BaseGDL** retValPtr;
-	    res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-	    if( retValPtr == NULL)
-//             if( !interpreter->CallStackBack()->Contains( res))
-                r_guard.Reset( res);
-	    _t = _t->getNextSibling();
-        }
-    else
-        {
-//             res=interpreter->tmp_expr(_t);
-//             _t = interpreter->GetRetTree();
-	    res = _t->Eval();
-            r_guard.Reset( res);
-	    _t = _t->getNextSibling();
-        }
-
-    ProgNodeP mark = _t;
+    ProgNodeP mark = _t->getNextSibling();
     // try MFCALL
     try
-	{
-	  BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_mfcall( mark);
+    {
+        BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_mfcall( mark);
 
-	  if( res != (*l))
-	    {
-	      GDLDelete(*l);
-	      *l = res->Dup();
-
-	      if( r_guard.get() == res) // owner
-		  {
-		      r_guard.release();
-		  }
-	      else
-			  res = res->Dup();
-	    }
-	}
+        if( res != (*l))
+        {
+            GDLDelete(*l);
+            *l = res->Dup();
+//             if( r_guard.get() == res) // owner
+//                 r_guard.release();
+//             else
+//                 res = res->Dup();
+        }
+    }
     catch( GDLException& ex)
-	{
-	  // try ARRAYEXPR
-	  try
-	    {
-		    BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_arrayexpr(mark, res);
-		    if( r_guard.get() == res) // owner
-				r_guard.release();
-		    else
-			res = res->Dup();
-	    }
-	  catch( GDLException& ex2)
-	    {
-		throw GDLException(ex.toString() + " or "+ex2.toString());
-	    }
-	}
-	return res;
+    {
+        // try ARRAYEXPR
+        try
+        {
+            BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_arrayexpr(mark, res);
+//             if( r_guard.get() == res) // owner
+//                 r_guard.release();
+//             else
+//                 res = res->Dup();
+        }
+        catch( GDLException& ex2)
+        {
+            throw GDLException(ex.toString() + " or "+ex2.toString());
+        }
+    }
+    r_guard.release();
+    return res;
 }
+
 BaseGDL* ASSIGN_REPLACENode::Eval()
 {
   ProgNodeP _t = this->getFirstChild();
@@ -787,21 +744,45 @@ void REF_EXPRVNNode::Parameter( EnvBaseT* actEnv)
 bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
 {
   ProgNodeP p = this->getFirstChild();
+
   if( p->getType() == GDLTokenTypes::QUESTION)
   {
-    // for the trinary operator we just use pass by value which should be ok, 
-    // as direct functions cannot modify their (single) parameter anyway.
-    // LEval might save a copy operation here, but considering that direct functions are
-    // probably very seldom called with the trinary operator we leave it like this for now. 
-    pval = p->Eval();
-    return false; // pass value
+    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
+    ProgNodeP branch = q->AsParameter();
+    
+    while( branch->getType() == GDLTokenTypes::QUESTION)
+    {
+      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+      branch = qRecursive->AsParameter();
+    }
+    
+    BaseGDL* rVal;
+    BaseGDL** lVal = branch->EvalRefCheck( rVal);
+    return (lVal != NULL);
   }
-//   pval=ProgNode::interpreter->lib_function_call(p);
-  BaseGDL** retValPtr;
-  pval = static_cast<FCALL_LIBNode*>(p)->EvalFCALL_LIB( retValPtr); 
-//   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
-  BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
-  return (pvalRef != NULL);
+  BaseGDL* rVal;
+  BaseGDL** lVal = p->EvalRefCheck( rVal);
+  return (lVal != NULL);
+  
+//   ProgNodeP p = this->getFirstChild();
+//   if( p->getType() == GDLTokenTypes::QUESTION)
+//   {
+//     // for the trinary operator we just use pass by value which should be ok, 
+//     // as direct functions cannot modify their (single) parameter anyway.
+//     // LEval might save a copy operation here, but considering that direct functions are
+//     // probably very seldom called with the trinary operator we leave it like this for now. 
+//     pval = p->Eval();
+//     return false; // pass value
+//   }
+//   BaseGDL* rVal;
+//   BaseGDL** lVal = p->EvalRefCheck( rVal);
+//   return (lVal != NULL);
+// //   pval=ProgNode::interpreter->lib_function_call(p);
+//   BaseGDL** retValPtr;
+//   pval = static_cast<FCALL_LIBNode*>(p)->EvalFCALL_LIB( retValPtr); 
+// //   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+//   BaseGDL** pvalRef = retValPtr;//ProgNode::interpreter->callStack.back()->GetPtrToReturnValueNull();
+//   return (pvalRef != NULL);
 //   if( pvalRef != NULL)
 //     {   // pass reference
 //       return true;
@@ -972,24 +953,30 @@ RetCode  ASSIGNNode::Run()
       _t = _t->getNextSibling();
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
-  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-  {
-//       r=ProgNode::interpreter->lib_function_call(_t);
-//       _t = ProgNode::interpreter->_retTree;		      
-      BaseGDL** retValPtr;
-      r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-//       if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-      if( retValPtr == NULL)
- 	r_guard.Init( r); // guard if no global data
-      _t = _t->getNextSibling();
-      l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
-  }
+//   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//   {
+// //       r=ProgNode::interpreter->lib_function_call(_t);
+// //       _t = ProgNode::interpreter->_retTree;		      
+//       BaseGDL** retValPtr;
+//       r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+// //       if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+//       if( retValPtr == NULL)
+//  	r_guard.Init( r); // guard if no global data
+//       _t = _t->getNextSibling();
+//       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
+//   }
   else
   {
-      r=_t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
-      r_guard.Init( r);
+      BaseGDL** ref = _t->EvalRefCheck(r); //ProgNode::interpreter->indexable_tmp_expr(_t);
+      if( ref == NULL)
+      {
+	r_guard.Init( r);
+      }
+      else
+      {
+	  r = *ref;
+      }
       _t = _t->getNextSibling();
-//       _t = ProgNode::interpreter->_retTree;
       l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
   }
 //     switch ( _t->getType()) {
@@ -1039,24 +1026,24 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
   ProgNodeP _t = this->getFirstChild();
   {
     // BOTH
-    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-      {
-// 	r=ProgNode::interpreter->lib_function_call(_t);
-	BaseGDL** retValPtr;
-	r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-
-	if( r == NULL) // ROUTINE_NAMES
-		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
-
-// 	_t = ProgNode::interpreter->_retTree;
-	_t = _t->getNextSibling();
-
-// 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-	if( retValPtr == NULL)
-		r_guard.Reset( r);
-			
-      }
-    else
+//     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+//       {
+// // 	r=ProgNode::interpreter->lib_function_call(_t);
+// 	BaseGDL** retValPtr;
+// 	r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+// 
+// 	if( r == NULL) // ROUTINE_NAMES
+// 		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
+// 
+// // 	_t = ProgNode::interpreter->_retTree;
+// 	_t = _t->getNextSibling();
+// 
+// // 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+// 	if( retValPtr == NULL)
+// 		r_guard.Reset( r);
+// 			
+//       }
+//     else
       {
 	// ASSIGN
 	if( NonCopyNode(_t->getType()))
@@ -1066,31 +1053,19 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 	}
 	else
 	{
-	  r= _t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
+	  BaseGDL** ref = _t->EvalRefCheck( r); //ProgNode::interpreter->indexable_tmp_expr(_t);
+	  if( ref == NULL)
+	  {
+	    r_guard.Reset( r);
+	  }
+	  else
+	  {
+	      r = *ref;
+	  }
 	  _t = _t->getNextSibling();
 // 	  _t = ProgNode::interpreter->_retTree;
-	  r_guard.Reset( r);
 	}
 
-// 	switch ( _t->getType()) {
-// 	  case GDLTokenTypes::CONSTANT:
-// 	  case GDLTokenTypes::DEREF:
-// 	  case GDLTokenTypes::SYSVAR:
-// 	  case GDLTokenTypes:: VAR:
-// 	  case GDLTokenTypes::VARPTR:
-// 	  {
-// 	    r= ProgNode::interpreter->indexable_expr(_t);
-// 	    _t = ProgNode::interpreter->_retTree;
-// 	    break;
-// 	  }
-// 	  default:
-// 	  {
-// 	    r=ProgNode::interpreter->indexable_tmp_expr(_t);
-// 	    _t = ProgNode::interpreter->_retTree;
-// 	    r_guard.Reset( r);
-// 	    break;
-// 	  }
-// 	}//switch
     }
   }
 

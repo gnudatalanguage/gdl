@@ -235,20 +235,26 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	      {
 		  s= _t->EvalNC(); //indexable_expr(_t);
 	      }
-	  else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-	      {
-// 		  s = interpreter->lib_function_call(_t);
-		  BaseGDL** retValPtr;
-		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
-
-// 		  if( !interpreter->CallStackBack()->Contains( s)) 
-		  if( retValPtr == NULL)
-		      cleanupList->push_back( s);
-	      }				
+// 	  else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+// 	      {
+// // 		  s = interpreter->lib_function_call(_t);
+// 		  BaseGDL** retValPtr;
+// 		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
+// 
+// // 		  if( !interpreter->CallStackBack()->Contains( s)) 
+// 		  if( retValPtr == NULL)
+// 		      cleanupList->push_back( s);
+// 	      }				
 	  else
 	      {
-		  s=_t->Eval(); //indexable_tmp_expr(_t);
-		  cleanupList->push_back( s);
+		BaseGDL** ref =_t->EvalRefCheck(s);
+		if( ref == NULL)
+		    cleanupList->push_back( s);
+		else
+		    s = *ref;
+		
+// 		  s=_t->Eval(); //indexable_tmp_expr(_t);
+// 		  cleanupList->push_back( s);
 	      }
 			  
 	  ixExprList.push_back( s);
@@ -643,17 +649,17 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
     BaseGDL* e1 = _t->EvalNC();
     _t = _t->getNextSibling();    	  
   }
-  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-  {
-// 	  BaseGDL*       e1=interpreter->lib_function_call(_t);
-// 	  _t = interpreter->GetRetTree();
-	  BaseGDL** retValPtr;
-	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-	  _t = _t->getNextSibling();
-// 	  if( !interpreter->CallStackBack()->Contains( e1))
-	  if( retValPtr == NULL)
-		  GDLDelete(e1); // guard if no global data
-  }
+//   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//   {
+// // 	  BaseGDL*       e1=interpreter->lib_function_call(_t);
+// // 	  _t = interpreter->GetRetTree();
+// 	  BaseGDL** retValPtr;
+// 	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+// 	  _t = _t->getNextSibling();
+// // 	  if( !interpreter->CallStackBack()->Contains( e1))
+// 	  if( retValPtr == NULL)
+// 	    GDLDelete(e1); // guard if no global data
+//   }
   else
   {
     //       case ASSIGN:
@@ -678,9 +684,13 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
     //       case QUESTION:
 //     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
 //     _t = interpreter->GetRetTree();
-    BaseGDL* e1 = _t->Eval(); 
-    //lib_function_call_retnew(_t);
-    GDLDelete(e1);
+//     BaseGDL* e1 = _t->Eval(); 
+//     //lib_function_call_retnew(_t);
+//     GDLDelete(e1);
+    BaseGDL* e1;
+    BaseGDL** ref =_t->EvalRefCheck(e1);
+    if( ref == NULL)
+      GDLDelete(e1);
     _t = _t->getNextSibling();
   }
   //SetRetTree( tIn->getNextSibling());
@@ -699,17 +709,17 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     BaseGDL* e1 = _t->EvalNC();
     _t = _t->getNextSibling();    
   }
-  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-  {
-//     BaseGDL*       e1=interpreter->lib_function_call(_t);
-//     _t = interpreter->GetRetTree();
-    BaseGDL** retValPtr;
-    BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-    _t = _t->getNextSibling();
-//     if( !interpreter->CallStackBack()->Contains( e1))
-    if( retValPtr == NULL)
-      GDLDelete(e1); // guard if no global data
-  }
+//   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//   {
+// //     BaseGDL*       e1=interpreter->lib_function_call(_t);
+// //     _t = interpreter->GetRetTree();
+//     BaseGDL** retValPtr;
+//     BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+//     _t = _t->getNextSibling();
+// //     if( !interpreter->CallStackBack()->Contains( e1))
+//     if( retValPtr == NULL)
+//       GDLDelete(e1); // guard if no global data
+//   }
   else
   {
     //       case ASSIGN:
@@ -734,9 +744,13 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     //       case QUESTION:
 //     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
 //     _t = interpreter->GetRetTree();
-    BaseGDL* e1 = _t->Eval(); 
-    //lib_function_call_retnew(_t);
-    GDLDelete(e1);
+    BaseGDL* e1;
+    BaseGDL** ref =_t->EvalRefCheck(e1);
+    if( ref == NULL)
+      GDLDelete(e1);
+//     BaseGDL* e1 = _t->Eval(); 
+//     //lib_function_call_retnew(_t);
+//     GDLDelete(e1);
     _t = _t->getNextSibling();
   }
   ProgNodeP l = _t;
@@ -774,19 +788,19 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   ProgNodeP _t = this->getFirstChild();
 
   BaseGDL** res;
-  if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-  {
-// 	  BaseGDL* e1=interpreter->lib_function_call(_t);
-// 	  _t = interpreter->GetRetTree();
-      BaseGDL** retValPtr;
-      BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-      _t = _t->getNextSibling();
-      res =_t->LEval(); //l_function_call(_t);
-//       if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
-      if( *res != e1 && retValPtr == NULL)
-	GDLDelete(e1);
-  }
-  else
+//   if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+//   {
+// // 	  BaseGDL* e1=interpreter->lib_function_call(_t);
+// // 	  _t = interpreter->GetRetTree();
+//       BaseGDL** retValPtr;
+//       BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
+//       _t = _t->getNextSibling();
+//       res =_t->LEval(); //l_function_call(_t);
+// //       if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
+//       if( *res != e1 && retValPtr == NULL)
+// 	GDLDelete(e1);
+//   }
+//   else
   {
   //     case ASSIGN:
   //     case ASSIGN_REPLACE:
@@ -815,11 +829,22 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   //     case QUESTION:
 
 //   BaseGDL* e1=interpreter->tmp_expr(_t);
-    BaseGDL* e1 = _t->Eval();
+    BaseGDL* e1;
+    BaseGDL** ref =_t->EvalRefCheck(e1);
+    if( ref != NULL)
+	e1 = *ref;
+
     _t =_t->getNextSibling();
+
     res =_t->LEval(); //l_function_call(_t);
-    if( *res != e1)
+    if( *res != e1 && ref == NULL) 
       GDLDelete(e1);
+
+//     BaseGDL* e1 = _t->Eval();
+//     _t =_t->getNextSibling();
+//     res =_t->LEval(); //l_function_call(_t);
+//     if( *res != e1)
+//       GDLDelete(e1);
   }
 
   // switch ( _t->getType()) {

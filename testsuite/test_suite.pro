@@ -317,6 +317,20 @@ pro goto_test
 
 end
 
+function fff,x
+return,(x)
+end
+pro callee,a,b
+a=1
+b=1
+end
+pro rett_test
+p=ptr_new(0)
+a=0
+callee,fff(*p),fff(((a)))
+if a eq 0 or *p eq 0 then print,"RETT_TEST: l-value parameter ret FAILED."
+end
+
 function ret99
   return,99b
 end
@@ -354,6 +368,8 @@ function retOverwriteExpression
 end
 
 pro ret_test
+
+  rett_test
 
   if ret99() ne 99.0 then begin
     message, '***RET: ERROR1', /conti

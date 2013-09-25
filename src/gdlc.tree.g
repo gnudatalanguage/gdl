@@ -729,7 +729,7 @@ key_parameter!//
                         || t == MFCALL_PARENT_LIB  
                         || t == QUESTION 
 // TODO: These are ref check as well, but parameter nodes need to know
-//                        || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+                        || t == FCALL || t == MFCALL || t == MFCALL_PARENT
 
 //                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 //                          t == MFCALL_PARENT_LIB_RETNEW //||
@@ -786,7 +786,7 @@ pos_parameter! [bool varNum] // varNum: is variable number of parameters subrout
                     || t == MFCALL_PARENT_LIB 
                     || t == QUESTION 
 // TODO: These are ref check as well, but parameter nodes need to know
-//                  || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+                    || t == FCALL || t == MFCALL || t == MFCALL_PARENT
 
 //                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 //                      t == MFCALL_PARENT_LIB_RETNEW
