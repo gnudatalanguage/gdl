@@ -566,15 +566,15 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         }
         return 0;
     }
-    static BaseGDL** GetPtrToHeap( BaseGDL* p)
-    {
-        for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
-        {
-            if( it->second.get() == p)
-                return &it->second.get();
-        }
-        return NULL;
-    }
+    // static BaseGDL** GetPtrToHeap( BaseGDL* p)
+    // {
+    //     for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
+    //     {
+    //         if( it->second.get() == p)
+    //             return &it->second.get();
+    //     }
+    //     return NULL;
+    // }
     static DPtrGDL* GetAllHeap()
     {
         SizeT nEl = heap.size();

@@ -264,7 +264,7 @@ public:
   // to check if a lib function returned a variable of this env
 //   bool Contains( BaseGDL* p) const;
 
-  BaseGDL** GetPtrTo( BaseGDL* p);
+//   BaseGDL** GetPtrTo( BaseGDL* p);
 
   DInterpreter* Interpreter() const { return interpreter;}
 
@@ -440,7 +440,7 @@ ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
   DLong             onError; // on_error setting
   BaseGDL**         catchVar;
   ProgNodeP         catchNode; 
-  CallContext       lFun; // assignment paramter for functions as l_value
+  CallContext       callContext; // assignment paramter for functions as l_value
   SizeT             nJump; // number of jumps in current environment
   int               lastJump; // to which label last jump went
   
@@ -478,7 +478,7 @@ public:
     ++nJump;
     return static_cast<DSubUD*>( pro)->GotoTarget( ix);
   }
-  CallContext IsLFun() const { return lFun;} // left-function
+  CallContext GetCallContext() const { return callContext;} // left-function
 
   void SetIOError( int targetIx) 
   { // this isn't a jump

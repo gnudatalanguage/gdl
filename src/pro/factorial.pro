@@ -66,7 +66,7 @@ endif else begin
    if (integer) then begin
       if (N_ELEMENTS(input) EQ 1) then begin
          result=1.0D
-         for i=2, input do result=result*i
+         for i=2, input[0] do result=result*i
       endif else begin
          dims=SIZE(input,/dim)
          result=DBLARR(dims,/nozero)

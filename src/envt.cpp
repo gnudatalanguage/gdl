@@ -125,8 +125,8 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF):
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( lF),
-//   lFun( RFUNCTION),
+  callContext( lF),
+//   callContext( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -174,7 +174,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( RFUNCTION),
+  callContext( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -230,7 +230,7 @@ EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext l
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( lF),
+  callContext( lF),
   nJump( 0),
   lastJump( -1)
 {
@@ -312,7 +312,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
   onError( -1), 
   catchVar(NULL), 
   catchNode(NULL), 
-  lFun( RFUNCTION),
+  callContext( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {

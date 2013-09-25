@@ -2024,7 +2024,7 @@ RetCode   RETFNode::Run()
 {
     ProgNodeP _t = this->getFirstChild();
     assert( _t != NULL);
-    EnvUDT::CallContext actualCallContext = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->IsLFun();
+    EnvUDT::CallContext actualCallContext = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->GetCallContext();
     if ( actualCallContext == EnvUDT::RFUNCTION)
     {
       // pure r-function
@@ -2041,23 +2041,32 @@ RetCode   RETFNode::Run()
       // for RefCheck context
       BaseGDL** eL;
       BaseGDL*  e;
-      try {
-	eL=ProgNode::interpreter->l_ret_expr(_t);
-	assert( eL != NULL);
+      eL =_t->EvalRefCheck( e);
+      interpreter->SetRetTree( _t->getNextSibling());
+      if( eL != NULL)
 	e = *eL;
-      }
-      catch(...)
-      {
-	// TODO make dedicated lr_ret_expr instead
-	eL = NULL;
-	e =_t->Eval();
-	interpreter->SetRetTree( _t->getNextSibling()); // ???
-      }
-
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);
       ProgNode::interpreter->returnValueL=eL;
       ProgNode::interpreter->returnValue=e;
+//       BaseGDL** eL;
+//       BaseGDL*  e;
+//       try {
+// 	eL=ProgNode::interpreter->l_ret_expr(_t);
+// 	assert( eL != NULL);
+// 	e = *eL;
+//       }
+//       catch(...)
+//       {
+// 	// TODO make dedicated lr_ret_expr instead
+// 	eL = NULL;
+// 	e =_t->Eval();
+// 	interpreter->SetRetTree( _t->getNextSibling()); // ???
+//       }
+//       assert(ProgNode::interpreter->returnValue == NULL);
+//       assert(ProgNode::interpreter->returnValueL == NULL);
+//       ProgNode::interpreter->returnValueL=eL;
+//       ProgNode::interpreter->returnValue=e;
     }
     else // EnvUDT::LFUNCTION
     {
