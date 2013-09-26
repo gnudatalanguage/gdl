@@ -3369,7 +3369,6 @@ BaseGDL* POWNCNode::Eval()
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly
-    
   }  
   
   BaseGDL** MFCALLNode::LEval()
