@@ -1,3 +1,1498 @@
+GDL 0.9.4:
+2013-09-26  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.cpp, src/prognodeexpr.cpp, src/basic_fun.cpp, src/envt.hpp:
+	fixed return by reference for return of local variables
+
+	* src/basic_fun.cpp, src/dcompiler.cpp, src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp:
+	fixed reference parameters with ++ -- r+
+
+2013-09-25  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	trinary operator optimizations
+
+	* src/pro/str_sep.pro: working STR_SEP
+
+	* src/pro/factorial.pro, src/GDLInterpreter.hpp, src/envt.cpp, src/envt.hpp, src/gdlarray.hpp, src/gdlc.i.g, src/prognode.cpp:
+	ref check function return value
+
+	* src/basic_fun.cpp, src/prognode.cpp:
+	fixed ParameterDirect (wrong return reference set)
+
+	* testsuite/test_suite.pro, src/GDLTreeParser.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp:
+	fixed pass by reference for functions as parameters
+
+2013-09-24  slayoo  <slayoo@sf.net>
+
+	* doc/www/faq.php: updating FAQ entry on CATCH
+
+2013-09-24  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/math_utl.cpp:
+	functions machar_[s,d] must not be optimized by clever compilers such as icc -- will then loop forever... Perhaps should be revised...
+
+	* src/math_fun_jmg.cpp: permits to compile with icc
+
+2013-09-24  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp, src/gsl_fun.cpp, src/prognode.cpp, src/widget.cpp:
+	fixed widget.cpp
+
+	* src/GDLTreeParser.cpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/overload.cpp, src/prognode.cpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp:
+	sync
+
+2013-09-23  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.hpp, src/gdlc.i.g, src/gsl_fun.cpp, src/list.cpp, src/math_fun_gm.cpp, src/overload.cpp, src/prognode.cpp, src/typedefs.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/datalistt.hpp, src/dvar.cpp:
+	small optimizations
+
+2013-09-23  alaingdl  <alaingdl@sf.net>
+
+	* src/initsysvar.cpp: correcting typo in "initsysvar.cpp"
+
+	* src/initsysvar.cpp, src/objects.cpp:
+	removing a comment; adding a "bluid_date" in !GDL
+
+2013-09-23  m_schellens  <m_schellens@sf.net>
+
+	* src/dstructdesc.hpp, src/envt.cpp, src/envt.hpp, src/list.cpp, src/list.hpp, src/overload.cpp:
+	Made LIST HEAP_GC friendly
+
+2013-09-22  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun_jmg.cpp: small changes relating to OVERWRITE keywords
+
+	* src/basic_fun.cpp, src/basic_fun_jmg.cpp, src/gsl_fun.cpp, src/libinit.cpp:
+	Fixes for changed API for library functions: left-return values must be explicitely set
+
+	* src/fftw.cpp, src/gsl_fun.cpp, src/libinit_jmg.cpp, src/basic_fun.cpp, src/envt.cpp, src/prognodeexpr.cpp:
+	fixed regression test_bug_3152899
+
+	* src/default_io.cpp, src/devicex.hpp, src/dinterpreter.cpp, src/dstructgdl.hpp, src/envt.cpp, src/envt.hpp, src/gdlarray.hpp, src/gdlc.i.g, src/gsl_fun.cpp, src/hdf5_fun.cpp, src/io.cpp, src/libinit.cpp, src/libinit_ac.cpp, src/libinit_cl.cpp, src/libinit_gm.cpp, src/libinit_jmg.cpp, src/libinit_mes.cpp, src/libinit_ng.cpp, src/list.cpp, src/math_fun_gm.cpp, src/math_fun_jmg.cpp, src/math_fun_ng.cpp, src/math_utl.cpp, src/ncdf_var_cl.cpp, src/overload.cpp, src/plotting.cpp, src/plotting_map_proj.cpp, src/prognode.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/widget.cpp, src/GDLInterpreter.hpp, src/assocdata.cpp, src/assocdata.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_op.cpp, src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/GDLInterpreter.cpp:
+	Changed API for library functions: left-return values must be explicitely set
+
+2013-09-20  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gsl_matrix.cpp:
+	apparently the permutation order 's' is not used here.
+
+	* src/plotting_cursor.cpp:
+	variable "idata" was used before its value was set...
+
+2013-09-19  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_bug_3104326.pro:
+	revisiting this test to check 3 important points when Execution is halted
+	(line number in file, path to the file, name of the pro/func)
+
+	* src/basic_pro.cpp, src/libinit.cpp:
+	adding (obsolete) keyword /All_Keys to HELP procedure, with few useful examples.
+
+2013-09-17  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/getas.cpp, src/hash.cpp, src/hash.hpp, src/list.hpp, src/matrix_cholesky.cpp, src/overload.cpp:
+	added linefeed at end of file -- was generating warnings for some compilers.
+
+	* src/gsl_fun.cpp: patch to stop ekopath's 'pathcc' compiler error.
+
+	* src/math_fun_gm.cpp, src/plotting_contour.cpp, src/plotting_shade_surf.cpp, src/plotting_surface.cpp, src/antlr/ASTFactory.hpp:
+	support for ekopath's 'pathcc' compiler
+
+	* src/plotting.cpp, src/plotting_convert_coord.cpp, src/plotting_plots.cpp, src/plotting_xyouts.cpp:
+	removed simple nan-test that apparently is 'optimized' by compilers
+
+2013-09-17  m_schellens  <m_schellens@sf.net>
+
+	* src/assocdata.cpp, src/assocdata.hpp, src/basic_pro.cpp:
+	fixed bug #557
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/list.cpp, src/GDLInterpreter.cpp:
+	fixed bug emerging from test_bug_3300626
+
+2013-09-17  alaingdl  <alaingdl@sf.net>
+
+	* src/gdlgstream.hpp: fixing warning format in a "fprintf"
+
+	* src/dstructgdl.cpp, src/envt.cpp:
+	continuing cleaning code using CLang options (here dangling Else)
+
+	* src/file.cpp:
+	continuing cleaning code using CLang options (here 2x dangling Else)
+
+	* src/dpro.cpp:
+	continuing cleaning code using CLang options (here dangling Else)
+
+	* src/datatypesref.cpp:
+	continuing cleaning code using CLang options (here 2x dangling Else)
+
+	* src/basic_fun_jmg.cpp, src/arrayindex.cpp:
+	continuing cleaning code using CLang options (here dangling Else)
+
+	* src/datatypes.cpp:
+	continuing cleaning code using CLang options (here 2x dangling Else)
+
+	* src/gdlgstream.hpp:
+	CLang complains here due to [-Wlogical-op-parentheses]
+
+	* src/list.cpp, src/str.cpp, src/read.cpp:
+	continuing cleaning code using CLang options (here dangling Else)
+
+2013-09-16  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp: "dangling else", thanks to CLang warnings.
+
+	* src/gsl_fun.cpp:
+	fixing trivial warning coming from CLang default compilation.
+
+	* src/GDLInterpreter.hpp, src/devicex.hpp, src/plotting_windows.cpp, src/widget.cpp:
+	starting fixing obvious bugs (= instead ==) or "dangling else", thanks to CLang warnings.
+
+2013-09-16  m_schellens  <m_schellens@sf.net>
+
+	* src/list.cpp: fixed LIST with negative LENGTH KW
+
+2013-09-10  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/basic_pro.cpp:
+	option LAST_MESSAGE  for HELP now correctly supports the presence of the OUTPUT keyword
+
+2013-09-07  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/basic_pro.cpp:
+	Corrected positive year dates that were wrong by 1 day. Note that Julian date does not vary between 5 and 15 October 1582 (correct behaviour).
+
+2013-09-04  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: solves bug #565
+
+2013-08-30  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/calendar.pro:
+	fixing a (old) input conversion error (bug #218) in CALENDAR.
+
+	* testsuite/Makefile.am, testsuite/test_array_equal.pro, testsuite/test_netcdf.pro:
+	initial import of "test_array_equal.pro" (some basic test cases for ARRAY_EQUAL were wrong)
+	and "test_netcdf.pro", a to-be-finished merging of various tests cases for NetCDF format.
+
+	* src/basic_fun.cpp:
+	correction a bug in ARRAY_EQUAL when one of the inputs arrays is
+	an array with only one element: ARRAY_EQUAL(1,[1,1]) is True, ARRAY_EQUAL([1],[1,1]) is False !!
+	Test cases to be put in the testsuite.
+
+	* src/envt.cpp:
+	in "envt.cpp", GetParDefined() should throw when the variable is undefined OR explicitly equal to !Null
+
+	* testsuite/test_strsplit.pro:
+	Adding few tests cases in TEST_STRSPLIT related to Length= keyword.
+	A bug related to ARRAY_EQUAL() was also corrected.
+
+	* src/ncdf_var_cl.cpp:
+	Correcting bug #524 NCDF_VARGET fails for string array, thanks to Harald.
+	(test case to be add in testsuite/)
+
+2013-08-29  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_windows.cpp, src/devicex.hpp:
+	Adds support for preference values GDL_GR_[WIN or X]_WIDTH, HEIGHT and QSCREEN. To be used as their *DL equivalents in the environment.
+
+2013-08-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_contour.cpp:
+	solves bug #561 ( contour desperately stuck )
+
+2013-08-26  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting_contour.cpp:
+	clarifying logic in CONTOUR inputs to avoid crashing without x/y and /irregular
+
+2013-08-22  alaingdl  <alaingdl@sf.net>
+
+	* src/datatypes.cpp:
+	I revert this change in CONVOL input types, because it is not compilable with "old" GCC (4.3, 4.4).
+	Looking for a more partable version.
+
+2013-08-11  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_idl_validname.pro:
+	new test cases in "test_idl_validname.pro"
+
+	* src/pro/idl_validname.pro:
+	three improvments in pro IDL_VALIDNAME: 1/ input as list of string OK,
+	2/ thanks to patch 66, better managment of 3 special chars: $, ! and \,
+	3/ "!" at first place and /convert_all is well managed.
+
+2013-08-05  alaingdl  <alaingdl@sf.net>
+
+	* src/datatypes.cpp:
+	in CONVOL(), allowing Ulong and Ulong64 (work by Nodar K.).
+
+2013-08-04  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_pro_jmg.cpp:
+	In CALL_EXTERNAL C code, removing fixed defaultAlign = 16 (Eigen Case).
+	This is problematic for structures on 32b linux.
+
+	* src/basic_pro_jmg.cpp:
+	for CALL_EXTERNAL, pbs running "test_ce.pro" : applying patch 69 from Orion,
+	plus an extra test for string. Now all tests but "struct" OK !
+
+2013-08-03  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/ofmt.cpp:
+	c++ code ready for C() format. Needs separate work on antlr code...
+
+2013-08-02  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gdlgstream.hpp:
+	corrected wrong orientation of XOUTS characters when axes are inverted
+
+	* src/plotting.cpp:
+	corrected wrong orientation of symbols when axes are inverted
+
+	* src/plotting_xyouts.cpp:
+	corrected wrong orientation of XOUTS characters when axes are inverted
+
+2013-08-01  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/basic_pro_jmg.cpp:
+	solves bug #559 however reason why the string pointer was corrupted to begin with is unclear for me.
+
+2013-07-31  gilles-duvert  <gilles-duvert@sf.net>
+
+	* testsuite/test_strsplit.pro:
+	test for bug #554 and others related to use of LENGTH Keyword
+
+	* src/pro/strsplit.pro:
+	should solve bug #554 and other related to use of LENGTH Keyword
+
+	* src/matrix_cholesky.cpp: should solve bug #555
+
+2013-07-26  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/datatypes.cpp, src/hash.cpp, src/hash.hpp, src/list.cpp, src/list.hpp, src/overload.cpp, src/prognode.cpp:
+	IsTrue for LIST and HASH
+
+2013-07-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: cosmetic changes after patch #68
+
+	* src/plotting_contour.cpp, src/plotting_shade_surf.cpp, src/plotting_surface.cpp, src/plotting_plot.cpp:
+	applied patch #68
+
+	* src/pro/oploterr.pro:
+	behaviour of oploterr should be to clip errorbars...
+
+2013-07-26  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun.cpp, src/pythongdl.cpp: fix for python module
+
+2013-07-25  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/pro/delvar.pro:
+	implements delvar as a procedure using code from old version of delvarx.pro (under BSD license)
+
+2013-07-25  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun.cpp, src/basic_fun.cpp, src/datatypes.hpp, src/dpro.cpp, src/dpro.hpp, src/dstructgdl.hpp, src/typedefs.hpp:
+	sync
+
+	* src/envt.hpp, src/extrat.cpp, src/hash.cpp, src/math_fun_jmg.cpp, src/typedefs.hpp, src/basic_fun.cpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/dcommon.hpp, src/dpro.hpp, src/dstructdesc.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/dvar.hpp, src/envt.cpp:
+	replaced deque by vector where possible
+
+2013-07-24  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/pro/ploterr.pro:
+	trick to plot errorbars waaay faster using nan-separated values in arrays.
+
+	* src/pro/oploterr.pro: introduced simple oploterr version as in idl.
+
+2013-07-24  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/pro/strsplit.pro:
+	fixed STRSPLIT
+
+	* src/basic_fun.cpp, src/datatypesref.cpp, src/hash.cpp:
+	some fixed for HASH
+
+	* src/dinterpreter.cpp, src/hash.cpp: sync
+
+2013-07-23  m_schellens  <m_schellens@sf.net>
+
+	* src/hash.cpp, src/list.cpp, NEWS, src/dinterpreter.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	dot access for GDL_OBJECTs (left and right-side)
+
+2013-07-22  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_pro.cpp:
+	adding working TRANSFER_COUNT keyword for READU/WRITEU, this is used in a procedure
+	(BLKSHIFT) in the AstroLib (work by Nodar K.)
+
+	* src/libinit.cpp:
+	in RESTORE, we need to have obsolete keyword (without effect) for CMSVlib.
+
+2013-07-21  m_schellens  <m_schellens@sf.net>
+
+	* NEWS, src/GDLInterpreter.hpp, src/basic_op.cpp, src/hash.cpp, src/overload.cpp:
+	HASH complete
+
+2013-07-19  m_schellens  <m_schellens@sf.net>
+
+	* src/hash.cpp, src/hash.hpp, src/overload.cpp: sync
+
+2013-07-18  m_schellens  <m_schellens@sf.net>
+
+	* NEWS, src/basic_pro.cpp, src/hash.cpp, src/list.cpp, src/list.hpp:
+	HASH::HASH___OverloadPlus (no structs yet)
+
+2013-07-18  alaingdl  <alaingdl@sf.net>
+
+	* NEWS:
+	initial import of CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3 (Work by Nodar K.)
+
+	* src/matrix_cholesky.hpp, src/CMakeLists.txt, src/Makefile.am, src/datatypes.cpp, src/gsl_fun.hpp, src/libinit_jmg.cpp, src/matrix_cholesky.cpp:
+	Initial import of CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3.
+	This is not optimal because Eigen3 does not separate the steps, then computations
+	are done 2 times. Work by Nodar K.
+	Also temporary change in CONVOL to help compiling on older GCC compilers.
+
+2013-07-18  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlc.i.g, src/hash.cpp, src/hash.hpp, src/list.cpp, src/objects.cpp, src/objects.hpp, src/overload.cpp, src/prognode.cpp, src/GDLInterpreter.hpp, src/basegdl.hpp, src/datatypesref.cpp:
+	HASH: ToStruct, Keys, Values, HasKey
+
+2013-07-18  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp:
+	back to a working version for the CVS, due to files related to changes in CONVOL
+
+2013-07-17  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.hpp, src/hash.cpp, src/hash.hpp, src/libinit.cpp, src/list.cpp, src/overload.cpp:
+	HASH::REMOVE (pre-alpha)
+
+2013-07-17  alaingdl  <alaingdl@sf.net>
+
+	* src/convol.hpp, src/libinit.cpp:
+	CONVOL: one file forgotten, one typo in new calling name
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/convol.cpp, src/datatypes.cpp, src/libinit.cpp, src/nullgdl.cpp, src/nullgdl.hpp:
+	two new keywords managed inside CONVOL(): BIAS and NORMALIZE
+	(see request in bug report 542). Work by Nodar K.
+
+2013-07-17  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlarray.hpp, src/hash.cpp, src/hash.hpp, src/list.cpp, src/objects.cpp, src/overload.cpp:
+	HASH::_OverloadBracketsRightSide
+
+2013-07-17  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/write_png.pro:
+	correcting bug 553 (good order for 2D image and R,G,B keywords)
+
+2013-07-16  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_pro.cpp, src/hash.cpp: fixed HELP output for arrays
+
+	* src/basic_fun.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypesref.cpp, src/default_io.cpp, src/hash.cpp, src/hash.hpp, src/libinit.cpp, src/list.hpp:
+	HASH (still alpha)
+
+2013-07-15  m_schellens  <m_schellens@sf.net>
+
+	* src/nullgdl.hpp, src/objects.cpp, src/overload.cpp, src/prognode.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/hash.cpp, src/nullgdl.cpp:
+	hash (pre-alpha)
+
+	* src/prognodeexpr.cpp: fixed test_bug_3152829
+
+2013-07-15  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/CMakeLists.txt:
+	including Orion' patch to catch when the test case fully crashes GDL.
+
+2013-07-15  m_schellens  <m_schellens@sf.net>
+
+	* src/hash.cpp: sync
+
+	* src/CMakeLists.txt, src/Makefile.am, src/hash.cpp, src/hash.hpp:
+	add files for HASH
+
+2013-07-13  m_schellens  <m_schellens@sf.net>
+
+	* NEWS: Full support of LIST
+
+	* src/datatypesref.cpp: Fixed LIST::NewIx
+
+	* src/GDLInterpreter.cpp, src/basic_pro.cpp, src/default_io.cpp, src/gdlc.i.g, src/list.cpp, src/list.hpp, src/prognode_lexpr.cpp:
+	HELP and PRINT support for LIST
+
+	* src/list.cpp, src/list.hpp, src/overload.cpp:
+	full support for LIST except for PRINT and HELP
+
+	* src/basic_fun.cpp, src/basic_op.cpp, src/basic_op_add.cpp, src/basic_op_sub.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/envt.cpp, src/envt.hpp, src/list.cpp, src/list.hpp, src/overload.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	added operations for LIST
+
+2013-07-12  m_schellens  <m_schellens@sf.net>
+
+	* src/list.cpp, src/list.hpp, src/overload.cpp:
+	LIST::REMOVE and LIST::REVERSE procedures
+
+2013-07-12  alaingdl  <alaingdl@sf.net>
+
+	* src/Makefile.am:
+	4 missing files in "Makefile.am" for the "configure" way (OK on Debian stable)
+
+2013-07-11  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp, src/envt.hpp, src/list.cpp, src/objects.hpp:
+	Correct cleanup for LIST
+
+2013-07-10  m_schellens  <m_schellens@sf.net>
+
+	* src/list.cpp, src/overload.cpp: ADD::REMOVE (still alpha)
+
+	* src/basic_fun.cpp, src/list.cpp, src/list.hpp, src/overload.cpp:
+	LIST::REMOVE (alpha version)
+
+2013-07-09  m_schellens  <m_schellens@sf.net>
+
+	* src/list.cpp, src/list.hpp: add
+
+	* src/CMakeLists.txt, src/GDLInterpreter.hpp, src/basic_fun.cpp, src/basic_pro.hpp, src/gdlc.i.g, src/overload.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/overload.hpp, src/specializations.hpp, src/datalistt.hpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp, src/dpro.cpp:
+	LIST::ADD
+
+2013-07-08  alaingdl  <alaingdl@sf.net>
+
+	* src/dinterpreter.cpp:
+	switching back the default history to 200: convenient, and similar behavior on the other side ;-)
+
+	* src/gsl_fun.cpp:
+	In QROMB and QROMO, better managment of keyword EPS=, thanks to patch 67.
+	At the same time, correcting a long living bug in the order of parameters
+	when calling GSL function : gsl_integration_qag(). Please report pbs !!
+
+2013-07-05  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_bug_3057520.pro, testsuite/test_bug_3275334.pro:
+	just giving a message before exiting.
+
+2013-07-04  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp, src/gdlarray.hpp, src/gdlc.i.g, src/objects.cpp, src/overload.cpp, src/GDLInterpreter.cpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/basic_pro_jmg.cpp:
+	LIST (function and right[])
+
+2013-07-03  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.hpp, src/gdlc.i.g, src/libinit.cpp, src/prognode.cpp, src/prognodeexpr.cpp, src/typedefs.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/deviceps.hpp, src/envt.cpp:
+	fixed TEST_PS_DECOMPOSED
+
+2013-07-02  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_ce.pro, testsuite/test_python_module_0.pro, testsuite/test_python_module_1.pro:
+	the field "!system.os_name" is now always in Lower Case.
+
+2013-07-01  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/arrayindex.cpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/envt.hpp, src/gdlc.i.g, src/libinit.cpp, src/objects.cpp, src/overload.cpp, src/prognode.cpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	fixed a = ptr_new(1) & *a= reform(*a, /over) & *a= reform(*a, /over) bug
+
+2013-07-01  alaingdl  <alaingdl@sf.net>
+
+	* src/str.cpp: Work by Nodar K.
+	One more attempt to better processing of space(s) within WordExp().
+	This time, names with multi consecutives spaces should be well managed.
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp:
+	import of internal C++ versions of FILE_BASENAME() and FILE_DIRNAME(),
+	with a better management of (some) special chars. (e.g. see bug 550).
+
+	* src/basic_pro.cpp: removing useless comment !
+
+	* src/pro/Makefile.am, src/pro/file_basename.pro, src/pro/file_basename_old.pro, src/pro/file_dirname.pro, src/pro/file_dirname_old.pro:
+	moving into obsoleting names the two functions file_basename.pro file_dirname.pro
+	to be substitute to C++ versions.
+
+2013-06-29  m_schellens  <m_schellens@sf.net>
+
+	* src/datalistt.hpp, src/envt.hpp, src/libinit_cl.cpp, src/libinit_jmg.cpp, src/prognode.cpp:
+	some more small optimizations
+
+	* src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/gdlc.i.g, src/prognode_lexpr.cpp, src/GDLInterpreter.cpp:
+	some optimizations
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dpro.hpp, src/envt.hpp, src/gdlc.g, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	several optimizations
+
+2013-06-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.hpp, src/format.out.g, src/nullgdl.cpp, src/nullgdl.hpp, src/ofmt.cpp, src/specializations.hpp:
+	first steps to support calendar format C().
+
+	* src/libinit.cpp:
+	added CHANNEL as unsupported option for plot routines (was not present). Needs however to be fully supported.
+
+2013-06-26  m_schellens  <m_schellens@sf.net>
+
+	* src/FMTTokenTypes.txt, src/basic_fun_jmg.cpp, src/cformat.g, src/libinit_mes.cpp, src/print.cpp, src/pro/str_sep.pro, src/CFMTLexer.cpp, src/CFMTLexer.hpp, src/CFMTTokenTypes.hpp, src/CFMTTokenTypes.txt, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp:
+	fixed cformat issue (uncommented 'ALL')
+
+2013-06-26  alaingdl  <alaingdl@sf.net>
+
+	* src/libinit.cpp:
+	forgot to update helpKeys (re-ordered and also /path_cache and /help added)
+
+	* src/basic_pro.cpp: in HELP, adding keywords /Path_cache and /help
+	in JULDAY, full management of 3 to 6 inputs params.
+
+	* src/envt.cpp, src/envt.hpp: /bin/bash: q: command not found
+	(only available now in HELP pro and Besel functions !)
+
+2013-06-24  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.cpp, src/envt.hpp: FreeListT for EnvUDT
+
+	* src/envt.cpp, src/envt.hpp, src/extrat.cpp, src/gsl_fun.cpp, src/math_fun.cpp, src/read.cpp, src/basic_fun.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypesref.cpp, src/dstructdesc.cpp:
+	removed dynamic_cast<>s
+
+	* src/gsl_fun.cpp: fixed bug #548 (HISTOGRAM,OMAX=value with BYTE)
+
+2013-06-23  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp, src/gdlexception.cpp, src/gdlexception.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	made ARRAYEXPR node distinugish between indexee and index error. Needed for ARRAYEXPR_FCALL resolving.
+
+2013-06-22  m_schellens  <m_schellens@sf.net>
+
+	* src/prognodeexpr.cpp: changed order to try in ARRAYEXPR_FCALL nodes
+
+2013-06-21  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/pro/smooth.pro, src/typedefs.hpp:
+	memory management optimization
+
+2013-06-18  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp: Added JULDAY!
+
+2013-06-17  m_schellens  <m_schellens@sf.net>
+
+	* src/assocdata.cpp, src/assocdata.hpp, src/datatypes.cpp, src/datatypes.hpp:
+	sync
+
+	* src/basic_pro.cpp, src/typedefs.hpp: cleanup
+
+	* src/basic_pro_jmg.cpp, src/dstructdesc.hpp, src/gsl_fun.cpp, src/typedefs.hpp:
+	fixed memeory leak in call_external
+
+2013-06-14  alaingdl  <alaingdl@sf.net>
+
+	* src/file.cpp, src/str.cpp:
+	trying to improve WordExp(), work by Nodar K.
+
+2013-06-13  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun.cpp, src/ncdf_att_cl.cpp, src/fftw.cpp, src/gsl_matrix.cpp:
+	fixed bug with wrong sizeof(long - should be Dlong)
+
+	* src/basic_fun_cl.cpp:
+	fixed mismatched new[] delete (removed the allocation)
+
+2013-06-12  m_schellens  <m_schellens@sf.net>
+
+	* src/CFMTTokenTypes.hpp, src/CFMTTokenTypes.txt, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/cformat.g, src/format.g, NEWS, src/CFMTLexer.cpp, src/CFMTLexer.hpp:
+	fixed C string grammar (still not implemented)
+
+2013-06-12  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp, src/plotting.hpp:
+	handle X11 window resizes better, writes [XYZ].REGION, uses !P.REGION etc.
+
+	* src/plotting_plot.cpp: plot knows about !P.NSUM
+
+2013-06-12  alaingdl  <alaingdl@sf.net>
+
+	* src/plotting.cpp:
+	trying to manage !P.region when !P.position is equivalent to unset.
+
+2013-06-11  m_schellens  <m_schellens@sf.net>
+
+	* NEWS, src/GDLInterpreter.hpp, src/arrayindex.hpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdl.cpp, src/gdlc.i.g, src/gdlexception.cpp, src/objects.cpp:
+	Added .RESET_SESSION and .FULL_RESET_SESSION commands
+
+	* src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdlc.g, src/gdlc.i.g, src/graphics.cpp, src/objects.cpp, src/objects.hpp, src/GDLInterpreter.hpp, src/GDLLexer.cpp, src/GDLParser.cpp, src/arrayindex.hpp, src/dcommon.cpp:
+	.RESET command (not complete yet); Fixed bug with ARRAYEXPR_FCALL and more than 8 parameters
+
+2013-06-11  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_fun_cl.cpp: fixing a small memory leak in SYSTIME() (Nodar)
+
+2013-06-10  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: oops, small ticks were not small anymore...
+
+2013-06-10  alaingdl  <alaingdl@sf.net>
+
+	* configure.in:
+	updating the Configure way with new capabilities ralted to plplot.
+
+2013-06-09  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: removed a memory loss
+
+	* src/gdlgstream.hpp, src/gdlgstream.cpp:
+	change in TranslateFormatCodes to avoid Valgrind complaining. previous version would return the c_str() of a std::string created in the function. Apparently the std::string is deleted on return, and the c_str() was pointing to a deallocated memory. Current version manages the string on the caller side.
+
+2013-06-08  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_shade_surf.cpp:
+	better defaults for shading lightsource. plplot's shading is definitely not very efficient, alas.
+
+	* src/devicex.hpp: should solve bug 535
+
+2013-06-07  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp, src/plotting_axis.cpp:
+	variant of gdlAxis to handle special case of AXIS command (to have correct ticklengths)
+
+	* src/plotting_plots.cpp: bug in use of !P.T3D and 3 parameters
+
+	* src/plotting.hpp, src/plotting_contour.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_polyfill.cpp, src/plotting_shade_surf.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp:
+	support for use of !P.T3D
+
+	* src/gshhs.cpp:
+	temporarily solves ticket 474. A severe rewriting is needed to handle all the special projection cases especially for contour filling (poles, projection limits but also map levels: ponds in inslands in lakes in continents...)
+
+2013-06-07  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt:
+	Better management of GM and IM: when GM available, using it. If GM not available, if IM available, using IM.
+	The selection of IM or GM if both presents should still be possible (-DGRAPHICSMAGICK=off).
+	Tested on CentOS and OSX. Patch by Nodar K. with Alain C.
+
+	* CMakeModules/FindImageMagick.cmake:
+	change in the file provided by CMake to support local install of IM
+	(tested on CentOs and OSX)
+
+2013-06-06  alaingdl  <alaingdl@sf.net>
+
+	* src/objects.cpp: fixing warning when computing Thread Numbers (NK)
+
+2013-06-03  m_schellens  <m_schellens@sf.net>
+
+	* src/magick_cl.cpp: fixed memory leak in magick_write
+
+2013-06-03  alaingdl  <alaingdl@sf.net>
+
+	* src/gdl.cpp, src/objects.cpp:
+	when not compiled with Eigen3, must add <omp.h> in these 2 files.
+
+	* src/plotting.cpp: needed on OSX with gcc 4.2.1
+
+2013-06-01  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp, src/gdlgstream.hpp:
+	bugfix: replaced Guard with ArrayGuard
+
+2013-05-31  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	solves last bug on poly_2d #3613920
+
+2013-05-30  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_pro.cpp, src/gdl.cpp, src/objects.cpp, src/objects.hpp:
+	On muticores with non null load, performances are strongly dependant to a pertinent choice of OMP_NUM_THREADS value.
+	A mechanism is proposed to estimate a optimal value for the number of Threads,
+	is applied at startup time and propagated into !cpu.TPOOL_NTHREADS (work by Nodar K.)
+
+2013-05-30  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_windows.cpp: annotations
+
+	* src/plotting_cursor.cpp: correct warping of pointer (command tvcrs)
+
+	* src/gdlxstream.cpp:
+	erase was not properly erasing window when subpages were present.
+	Also, correct warping of pointer (command tvcrs)
+
+	* src/gdlxstream.cpp, src/gdlgstream.hpp, src/gdlxstream.hpp, src/plotting.hpp:
+	uses pixmap double-buffering provided by plplot to speed up operations with X11 windows. to be tested. could solve bug  3612116, also.
+
+2013-05-29  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_pro.cpp: in pro CPU, restore= and /reset are exclusive.
+
+2013-05-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_shade_surf.cpp, src/plotting_surface.cpp, src/plotting_contour.cpp:
+	solves bug #3613926 by removing unfortunate optimization
+
+2013-05-25  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_surface.cpp, src/plotting_shade_surf.cpp:
+	handles correctly combinations of min/max_values and zrange.
+
+2013-05-24  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_contour.cpp:
+	better handling of 1 contour and associated c_color vector
+
+	* src/gsl_fun.cpp, src/interp_multid.h, testsuite/test_congrid.pro:
+	solves bug  #3612274!
+
+2013-05-21  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/basic_pro.cpp, src/libinit.cpp:
+	Support for MESSAGE, /REISSUE_LAST and corresponding HELP, /LAST_MESSAGE (used in, e.g., CoyoteGraphics library)
+
+	* src/gdlgstream.hpp:
+	change to enable compiling gdl on old plplot versions while a new feature depending on the presence of the 'pllegend' function has been added.
+
+2013-05-18  cokhavim  <cokhavim@sf.net>
+
+	* src/gdlgstream.hpp:
+	In gdlGetmmStringLength moved legend position to avoid showing up in postscripts
+
+	* src/deviceps.hpp: Added improvements for encapsulated postscripts
+
+	* src/gdlgstream.cpp:
+	GetGeometry outpus incorrect dimensions for PS device
+
+	* src/plotting.cpp:
+	Increased default top margin slightly to accomodate subscripts and superscripts
+
+2013-05-17  alaingdl  <alaingdl@sf.net>
+
+	* src/Makefile.am:
+	Missing new filename "plotting_shade_surf.cpp" in src/Makefile.am
+
+2013-05-16  gilles-duvert  <gilles-duvert@sf.net>
+
+	* config.h.cmake, CMakeLists.txt:
+	change to enable compiling gdl on old plplot versions while a new feature depending on the presence of the 'pllegend' function has been added.
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicex.hpp:
+	due to popluar demand ;^), reinstalled colormap initialisation for colormap#1 in device[ps,x,svg].
+
+	* src/plotting.cpp: Patch for Bug item #3613383,
+
+2013-05-16  alaingdl  <alaingdl@sf.net>
+
+	* src/basic_fun.cpp: removing extra "cout <<"
+
+	* src/basic_fun.cpp, src/libinit.cpp:
+	Initial managment of /source keyword in ROUTINE_INFO() [bug report 3612842].
+	Not ready when no parameter provided (in that case, all compiled procedures or functions
+	name/path informations must returned)
+
+2013-05-16  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/devicex.hpp, src/plotting_windows.cpp:
+	when opening several windows whose position are not given, dispatch them at the 4 corners of display in sequence. handy and mimics the (default) 'Tile'  of IDL_GR_WIN_LAYOUT preference (such external preferences not being part of gdl yet)
+
+	* src/plotting_xyouts.cpp: removed unnecessary warning
+
+2013-05-16  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	managing /Double keyword for INVERT() (patch by Nodar K.)
+
+2013-05-15  gilles-duvert  <gilles-duvert@sf.net>
+
+	* CMakeLists.txt, config.h.cmake, src/gdlgstream.hpp, src/plotting_xyouts.cpp:
+	Solves problems related to variable string lengths in XYOUTS (Hersey chars are not monospaced): if the plplot shared library  contains the private function plstrl(), it is used. If not, (Ubuntu, debian) implemented a workaround by using a feature of pllegend(). Needs a full recompilation (after removing  CMakeCache.txt and config.h).
+
+	* doc/udg/README.txt:
+	added infos about absent style files seemingly needed on my distro.
+
+2013-05-14  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_pickfile.pro:
+	in gnome3, we need to tell to Zenity the current path :(
+
+2013-05-13  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_xyouts.cpp:
+	returned string width in option width= of xyouts is inexact since glyphs have a variable spacing. Added a warning about this. Since using plplot's private headers is not permitted (use of plstrl()) , one could consider adding the functionality to plplot (i.e., that plstrl() be public) or get access to  a copy of the current PLStream structure and use its information.
+
+2013-05-12  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	test patch: changed axis labelling to be clearer and more similar to original layout (exponents no more at end of axis etc).
+
+	* src/plotting.hpp:
+	removed some private structs from plotting.hpp to plotting.cpp
+
+2013-05-10  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_polyfill.cpp, src/CMakeLists.txt, src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_convert_coord.cpp, src/plotting_erase.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp:
+	Added almost full support for 3D plots in CONTOUR,PLOT,PLOTS,OPLOT,XYOUTS,SURFACE,SHADE_SURF,CONVERT_COORD,T3D,SCALE3,POLYFILL,SET_SHADING,AXIS(not complete).
+	Still lacking 3D support:TV,TVSCL
+	enabled /IRREGULAR for CONTOUR.
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicex.hpp:
+	removed colormap initialisation in device[ps,x,svg] since it seems to slow the display and does not appear to be needed.
+
+	* src/plotting_windows.cpp:
+	give window creation in "wset,0" same properties as a normal window (except backingStore)
+
+	* src/plotting_shade_surf.cpp: adding shade_surf
+
+2013-05-08  gilles-duvert  <gilles-duvert@sf.net>
+
+	* testsuite/CMakeLists.txt:
+	Applied Orion's patch #3606092. Solves indeed the hangups of 'make check' when using CMake.
+
+2013-05-07  m_schellens  <m_schellens@sf.net>
+
+	* CMakeLists.txt, CMakeModules/FindNetCDF.cmake, configure.in, src/ncdf_att_cl.cpp, src/ncdf_cl.hpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp:
+	applied patch ID: 3608649
+
+	* src/basic_fun.cpp, src/datatypes.cpp, src/gsl_fun.cpp, src/math_fun_ac.cpp, src/math_fun_gm.cpp, src/math_fun_jmg.cpp, src/plotting.cpp, src/plotting_plot.cpp, src/plotting_polyfill.cpp:
+	applied patch ID: 3612678 (with some mods)
+
+	* src/antlr/LLkParser.cpp, src/gdlc.g: added some comments
+
+	* src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/antlr/LLkParser.cpp, src/gdlc.g, testsuite/test_suite.pro:
+	fixed deref for arrayexpr_mfcall (bug tracker ID: 3612104)
+
+2013-05-06  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/deviceps.hpp:
+	Added Joanna's patches #3612688 while reverting some code back to before rev.1.37 ( since forcing background erase in gdlpsstream.cpp rev. 1.7 was not a good solution to bug #361189) -- now we seem to have both PS and EPS color/bw landscape/portrait outputs generally quite good,
+
+	* src/plotting_misc.cpp:
+	Previous patch (inverting !P.COLOR and !P.BACKGROUND values when device=PS) had side effects.
+
+	* src/gdlgstream.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp:
+	Reverted last patch (1.6) -- forcing background erase was not a good solution.
+
+2013-05-06  m_schellens  <m_schellens@sf.net>
+
+	* src/pro/read_ascii.pro: fixed DATA_START for READ_ASCII
+
+	* src/libinit_cl.cpp: added missing KLISTEND
+
+2013-04-30  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_misc.cpp: Joanna Patch item #3611949. thanks.
+
+	* src/deviceps.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp, src/gdlgstream.hpp:
+	Should solve Bug #3611897. By forcing background to erase the PS plot, one can have the correct background even on the first page.
+	Note that now PS behave exactly as X, i.e., PS has also the option DECOMPOSED and color tables varies accordingly.
+
+2013-04-29  alaingdl  <alaingdl@sf.net>
+
+	* src/deviceps.hpp:
+	patch 3611949 by Joanna to restore Horizontal/Vertical placements in PostScript.
+
+	* src/deviceps.hpp:
+	better version for bug 3611898. I suspect we can play directly with Lun ...
+
+	* src/deviceps.hpp:
+	first attempt to solve bug report 3611898. But it is not enough
+
+2013-04-26  alaingdl  <alaingdl@sf.net>
+
+	* src/deviceps.hpp:
+	patch 3611864: two corrections: orientation (value for "sdiori" should be in expressed related to !pi/2) and color.
+
+2013-04-24  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt:
+	in CMake way, if both packets present, we prefer to use GraphicsMagick than ImageMagick
+
+2013-04-23  alaingdl  <alaingdl@sf.net>
+
+	* CMakeModules/FindGraphicsMagick.cmake, CMakeLists.txt:
+	initial import of patch 3611651 to activate GraphicsMagick instead of ImageMagick in the CMake way.
+
+2013-04-18  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/online_help.pro:
+	in ONLINE_HELP, activating book= and /full_path keywords, used inside HEALPix lib.
+
+2013-04-11  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/libinit.cpp:
+	changes related to options accepted now by plotting_surface.
+
+	* src/plotting_surface.cpp:
+	intermediate version before tackling the T3D transforms.
+
+2013-04-11  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_matrix_multiply.pro, testsuite/Makefile.am:
+	new test for matrix multiplication, using matrix with rotation property.
+	Types 14 and 15 are not ready on the GDL side due to INVERT().
+	May be INVERT has to be rewrite using Eigen3 ?
+
+2013-04-11  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp: solves bug #3610459
+
+2013-04-11  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/diag_matrix.pro:
+	in DIAG_MATRIX(), type for output should be derived from the type of the input vector !
+
+2013-04-09  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_cursor.cpp: solves bug #3608752
+
+2013-04-07  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/datatypes.hpp, src/specializations.hpp:
+	took change of Data_ template back (too early)
+
+2013-04-04  m_schellens  <m_schellens@sf.net>
+
+	* src/dinterpreter.cpp: fixed usage of Guard
+
+	* src/datatypes.hpp, src/math_fun_ac.cpp: added some clarifiying macros
+
+2013-04-02  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.hpp, src/math_fun_ac.cpp, src/prognodeexpr.cpp:
+	refactored complex-double type promotion
+
+2013-03-28  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/matrix_multiply.pro: removing usage of MATMUL()
+
+2013-03-27  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.hpp, src/test_template_grouping.cpp:
+	enabled default template parameters
+
+2013-03-26  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/math_fun_ac.cpp, src/prognodeexpr.cpp:
+	eigen3 with matrix operator working
+
+	* src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/libinit_ac.cpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp, src/nullgdl.cpp, src/nullgdl.hpp, src/specializations.hpp:
+	depoyed eigen3 for matrix operator (still buggy)
+
+2013-03-25  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLTreeParserTokenTypes.txt, src/arrayindex.hpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/gdlc.i.g, src/nullgdl.cpp, src/nullgdl.hpp, src/specializations.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp:
+	test overload funtion with template
+
+2013-03-25  opoplawski  <opoplawski@sf.net>
+
+	* CMakeLists.txt:
+	Make cmake look for python 2 or PYTHONVERSION if specified
+
+	* testsuite/test_ce.pro:
+	Make test_ce.pro look in current directory for libtest_ce.so for cmake builds
+
+2013-03-25  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.cpp, src/datatypes.hpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_surface.cpp, src/prognode.cpp, src/typedefs.hpp, src/typetraits.hpp:
+	fixed usage of Guard (replaced usage of operator=)
+
+2013-03-25  alaingdl  <alaingdl@sf.net>
+
+	* src/datatypes.hpp: commenting c++11 line apparently not need/used now
+
+2013-03-22  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.hpp: commented out c++11 stuff
+
+	* src/deviceps.hpp, src/devicex.hpp, src/dinterpreter.cpp, src/envt.cpp, src/envt.hpp, src/fftw.cpp, src/gdlarray.hpp, src/gdlc.i.g, src/gdlwidget.cpp, src/gsl_fun.cpp, src/gsl_matrix.cpp, src/magick_cl.cpp, src/math_fun.cpp, src/math_fun_ac.cpp, src/math_fun_gm.cpp, src/math_fun_jmg.cpp, src/ncdf_cl.cpp, src/ncdf_var_cl.cpp, src/newprognode.cpp, src/plotting.cpp, src/plotting_contour.cpp, src/plotting_convert_coord.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp, src/print.cpp, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/pythongdl.cpp, src/read.cpp, src/typedefs.hpp, src/widget.cpp, CMakeLists.txt, src/GDLInterpreter.cpp, src/accessdesc.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp, src/dcompiler.cpp:
+	replaced obsoleted std::auto_ptr with Guard
+
+2013-03-21  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/basic_op_add.cpp, src/basic_op_div.cpp, src/basic_op_mult.cpp, src/basic_op_new.cpp, src/basic_op_sub.cpp, src/datatypes.cpp, src/dstructgdl.cpp:
+	moved DStructGDL invalid functions
+
+2013-03-21  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_bytscl.pro:
+	initial of "test_bytscl.pro", not finished and not included in automatic test suite.
+	We do have a problem when using /nan in BYTSCL() ...
+
+2013-03-20  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	Preparation for all (?) gridding-related functions that can (easily?) be added using QHULL Library which is also a dependency (optional) of plplot.
+
+	* src/basic_fun.cpp:
+	patched incorrect behaviour for TOP > 255. Possibly caused problems in (related) tvscl, hist_equal.
+
+2013-03-19  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/dpro.hpp, src/typedefs.hpp, src/typetraits.hpp:
+	added new type trait IS_FLOAT
+
+	* src/gdlarray.hpp, src/libinit_ac.cpp, src/math_fun_ac.cpp:
+	un-uncommented some GDLArray members
+
+	* src/gdlarray.hpp: fixed bug in GDLArray's allocation logic
+
+2013-03-18  m_schellens  <m_schellens@sf.net>
+
+	* src/gdlarray.hpp, src/typedefs.hpp, src/typetraits.hpp:
+	restructure and refactoring for easier addition of new types
+
+2013-03-16  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op_add.cpp, src/basic_pro_jmg.cpp, src/datatypes.cpp, src/datatypes.hpp, src/specializations.hpp, src/typedefs.hpp, src/typetraits.cpp, src/typetraits.hpp, src/basegdl.hpp:
+	refactoring, preparation for new types
+
+2013-03-16  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gdlgstream.cpp:
+	patch should cure bug reported by AC (incorrect behaviour for !P.MULTI=[2,0,0])
+
+2013-03-14  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun_ac.cpp: continue being able to compile without Eigen3
+
+2013-03-13  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun.cpp: deployed eigen3 for SQRT
+
+2013-03-12  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op_add.cpp:
+	own specialization adding a scalar string to avoid eigen usage
+
+	* src/envt.hpp: added some const specifiers to ForLoopInfo
+
+	* src/basic_op_add.cpp: fixed bug with string addition
+
+	* src/CFMTLexer.cpp, src/cformat.g:
+	applied change suggested by patch tracker ID: 3465879
+
+	* src/math_fun.cpp, src/overload.cpp, src/typedefs.hpp, src/basic_fun.cpp, src/basic_op.cpp, src/basic_op_add.cpp, src/basic_op_div.cpp, src/basic_op_mult.cpp, src/basic_op_new.cpp, src/basic_op_sub.cpp, src/basic_pro.cpp, src/convert2.cpp, src/datatypesref.cpp, src/fftw.cpp:
+	introduced OMPInt for OpenMP loop variables
+
+	* src/basic_op.cpp, src/basic_op_add.cpp, src/basic_op_div.cpp, src/basic_op_mult.cpp, src/basic_op_sub.cpp, src/ncdf_var_cl.cpp:
+	updated some int to string conversions
+
+2013-03-11  m_schellens  <m_schellens@sf.net>
+
+	* src/magick_cl.cpp, src/ncdf_cl.cpp, src/ncdf_var_cl.cpp:
+	updated some int to string conversions
+
+2013-03-10  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/math_fun.cpp:
+	use eigen3 for + - and *
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/math_fun.cpp:
+	use eigen3 for + - and * (incomplete)
+
+	* src/libinit_ac.cpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp, src/typedefs.hpp:
+	deploy eigen3 noalias()
+
+2013-03-09  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/libinit.cpp, src/plotting_device.cpp, src/plotting_windows.cpp:
+	support for "RETAIN" in DEVICE. Will not really do anything useful, though, until some other patch informs plplot of the necessity to redraw the plot.
+
+2013-03-08  m_schellens  <m_schellens@sf.net>
+
+	* src/ofmt.cpp: Fixed binary output format
+
+	* src/plotting_oplot.cpp, src/arrayindex.hpp, src/basic_op.cpp, src/deviceps.hpp, src/gdlgstream.hpp, src/math_utl.hpp, src/ofmt.cpp, src/overload.cpp, src/plotting.cpp, src/plotting_contour.cpp:
+	applied patch ID: 3606722
+
+	* src/math_fun_ac.cpp: sync
+
+2013-03-08  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun_ac.cpp:
+	in "math_fun_ac.cpp" being able to compile without Eigen3;
+
+2013-03-08  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun_ac.cpp: refactoring for matmul_fun
+
+	* src/math_fun_ac.cpp: correct output type for matmul_fun
+
+	* src/math_fun_ac.cpp: optimization for matmul_fun
+
+	* src/math_fun_ac.cpp: fix error message
+
+2013-03-07  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun_ac.cpp: Aligned access in malmul_fun
+
+	* src/dstructgdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/typedefs.hpp, src/dstructdesc.hpp, src/includefirst.hpp:
+	alignment for eigne3 (also for structs)
+
+	* src/datatypes.cpp, src/includefirst.hpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp, src/typedefs.hpp:
+	eigen3 alignment for GDLArray
+
+2013-03-06  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/math_fun_ac.cpp:
+	Last and final optimizations: directly address memory location using Map<> object instead of MatrixXX, added GDL_FLOAT case to speed up this last case.
+
+2013-03-06  m_schellens  <m_schellens@sf.net>
+
+	* src/math_fun_ac.cpp: optimizations for MATMUL
+
+2013-03-05  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/pro/matrix_multiply.pro:
+	Modified matmul_fun to accept also complex and dcomplex matrices.
+	Modified matrix_multiply accordingly.
+
+	* src/math_fun_ac.cpp:
+	Modified matmul_fun to accept also complex and dcomplex matrices.
+	Behaviour is now idem idl for Vectors (implicit transposition)
+	Acceleration even better due to Eigen's use of .transpose() and direct copy of arrays with  memcpy().
+
+2013-03-05  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/online_help.pro:
+	is ONLINE_HELP, better management of default browser
+
+	* src/pro/online_help.pro:
+	details for ONLINE_HELP: trying to use default browser if any; "open" for OSX ...
+
+2013-03-04  m_schellens  <m_schellens@sf.net>
+
+	* src/dinterpreter.cpp: removed: return CC_OK; for ? command :-)
+
+	* src/dinterpreter.cpp: added: return CC_OK; for ? command
+
+2013-03-04  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/online_help.pro:
+	ONLINE_HELP: correct help header; testing if computing node; managing void "name" input
+
+	* src/pro/online_help.pro:
+	limited changes in ONLINE_HELP, more to come.
+
+	* src/dinterpreter.cpp: removing useless comments.
+
+	* src/dinterpreter.cpp:
+	activating "?" command, calling ONLINE_HELP (e.g.: ?fft)
+
+	* src/pro/Makefile.am: I forgot to add these 2 files names here ...
+
+2013-03-01  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/doc_library.pro, src/pro/online_help.pro:
+	initial import of DOC_LIBRARY (Feature request 3606434) and ONLINE_HELP procedures.
+
+2013-02-28  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindexlistnoassoct.hpp, src/basic_fun.cpp, src/basic_op_new.cpp, src/envt.hpp:
+	fixed extra allocation in Data_<SpDDouble>::PowIntNew. bug tracker ID: 3605947
+
+2013-02-26  alaingdl  <alaingdl@sf.net>
+
+	* src/gsl_fun.cpp:
+	temporary solution for bug report 3602623 related to inaccurary in bins computations for histograms in the GSL, sensitive on 64b versions ...
+
+2013-02-25  alaingdl  <alaingdl@sf.net>
+
+	* src/ncdf_var_cl.cpp:
+	correcting bug 3605899: creating big NetCDF files (> 4 GB). Tested OK on CentOS 5.8 64b by AC.
+
+2013-02-20  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_histo.pro:
+	adding "TEST_UNITY_BIN_HISTO" procedure into "test_histo.pro" to trace bug 3602623.
+	Up to now, this bug occurs only on 64b computers, not on 32b, GSL versions chenged nothing.
+
+	* src/pro/interpol.pro:
+	correcting small regression when testing size of inputs for INTERPOL(/spline)
+
+2013-02-19  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt, configure.in:
+	for CMake, now default is trying to use Eigen3 if found in default place (/usr/include/eigen3)
+	or if path provided (-DEIGEN3DIR= then checked and found)
+	then same for Configure (--with-eigen3=). Both ways checked with success on U 12.04 with libeigen3-dev.
+
+2013-02-18  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/interpol.pro:
+	correcting INTERPOL() when we have NaN or Inf values in third vector (bug 3602770)
+
+	* CMakeModules/FindEigen3.cmake:
+	initial input of this file for patch 3603806 (Eigen3 support in CMake)
+
+	* CMakeLists.txt, config.h.cmake:
+	applying patch 3603806 to have Eigen3 choice in CMake
+
+2013-02-06  gilles-duvert  <gilles-duvert@sf.net>
+
+	* NEWS: update for summary of GD's recent changes
+
+	* src/plotting_contour.cpp, src/plotting_plot.cpp:
+	corrected regression: plot,findgen(4),color=0,background=255 would not change background correctly since it is changed only at subpage change, which was called before setting background value. To be checked for the other plotting functions on which i have not yet worked.
+
+2013-02-05  alaingdl  <alaingdl@sf.net>
+
+	* INSTALL, NEWS, README:
+	updating informative files about Eigen lib. usage.
+
+	* src/libinit_ac.cpp, src/math_fun_ac.cpp, src/pro/matrix_multiply.pro:
+	extension of MATMUL, to exploit /atranspose and /btranspose.
+	Change into z=MATRIX_MULTIPLY() to switch with or without Eigen disponibility.
+
+2013-02-05  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_pro.cpp, src/libinit.cpp:
+	started SOURCE_FILES keyword for HELP
+
+2013-02-04  alaingdl  <alaingdl@sf.net>
+
+	* configure.in:
+	managing Include Path for Eigen is still a work in progress, sorry ...
+
+	* src/libinit_ac.cpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp, configure.in:
+	initial import of fast matrix multiplication code res=MATMUL(a,b) based on external library Eigen
+
+2013-01-29  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/Makefile.am: new "test_structures.pro" file for test suite
+
+2013-01-29  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/devicex.hpp, src/graphics.hpp, src/plotting_windows.cpp:
+	First pass to implement support for RETAIN=0,1,2  in window.
+	Should be revised to fully mimic IDL's behaviour.
+	Difficulty: backing store is noticeably device and OS dependent...
+
+2013-01-29  m_schellens  <m_schellens@sf.net>
+
+	* testsuite/test_structures.pro, src/prognodeexpr.cpp:
+	fixed indexed structure access. Bug tracker ID: 3601949
+
+2013-01-28  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_structures.pro:
+	adding a test for internal indexing in structures, to avoid any future regression ...
+	(was bug 3601949)
+
+2013-01-26  gilles-duvert  <gilles-duvert@sf.net>
+
+	* CMakeLists.txt, config.h.cmake:
+	should permit, through the use of HAS_PLPLOT_SLABELFUNC, to disable the user-format option for labels of axis in plplot, functionality which is at the basis of the support of [XYZ]TICKFORMAT, [XYZ]TICKNAME etc but which has only been introduced in plplot after 5.9.6 (as far as I can guess).
+
+2013-01-25  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	severe regression corrected: 'x' modifier for plbox() is in plplot > 5.9.7 and does not replace the 't' option, only modifies it. I restore the 't' option (draw labels) and labels should reappear for older plplot versions.
+
+2013-01-23  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gdlxstream.cpp, src/devicex.hpp, src/gdlgstream.hpp, src/gdlxstream.hpp, src/graphics.hpp, src/libinit.cpp, src/plotting.hpp, src/plotting_cursor.cpp, src/plotting_device.cpp, src/plotting_windows.cpp:
+	Added full support for CURSOR command, which is interruptible by control-c (rewrote the plplot's cursor function. Note that cursor as in plplot can be moved by the arrow keys with the modifiers keys as accelerators, useful for fine positioning and absent from idl). Now RDPIX procedure works.
+	Added cursor-related functions TVCRS (for completeness: since PlPlot's X11 window is not fully event-driven the cursor positioning has no visible effect---help welcome), EMPTY (idem), DEVICE options CURSOR_CROSSHAIR, CURSOR_STANDARD, CURSOR_ORIGINAL and GET/SET_GRAPHICS_FUNCTION (GXoR, GXand, etc). Disabled by default the focus in the X11 graphics windows as idl does.
+
+	* CMakeLists.txt, src/plotting.cpp:
+	Modified plotting.cpp and CMakelists.txt to fix problem of absence of 'plslabelfunc()' in old plplot versions.
+
+	* src/devicez.hpp: uncommented useful lines!
+
+2013-01-14  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.hpp: made call to member expilcit
+
+	* src/basic_op.cpp: changed loop var to SizeT in MatrixOp
+
+2013-01-13  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/wmenu.pro, src/pro/zenity_check.pro:
+	typos when improving ZENITY_CHECK()
+
+	* src/pro/dialog_pickfile.pro, src/pro/wmenu.pro, src/pro/zenity_check.pro:
+	fixing details in DIALOG_PICKFILE, WMENU and ZENITY_CHECK
+
+2013-01-11  m_schellens  <m_schellens@sf.net>
+
+	* src/new.cpp: sync
+
+2013-01-10  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp, src/plotting.hpp:
+	Support for [XYZ]Tickformat with format='an external function' or format='(a valid GDL format)'. The C() time format code and LABEL_DATE() functions have yet to be written for this part to be complete, however.
+
+2013-01-09  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g:
+	optimization setting \!ERROR_STATE
+
+	* src/basic_pro.cpp, src/GDLInterpreter.cpp, src/gdlc.i.g, src/initsysvar.cpp, src/initsysvar.hpp, src/io.cpp:
+	set \!ERROR_STATE
+
+2013-01-08  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_pro.cpp, src/gdlexception.hpp, src/io.cpp, src/gdlc.i.g, src/gdlexception.cpp, src/gdlxstream.cpp, src/GDLInterpreter.cpp, src/accessdesc.hpp, src/allix.cpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp:
+	infrastructure for error codes
+
+2013-01-08  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/_news.inc.php: updating last builds (Gentoo, Debian); links.
+
+2013-01-08  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	oops, DeviceToNorm should not be used, only DeviceTo NormedDevice is consistent with the rest of coordinates transforms unless special cases.
+
+2013-01-08  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_pro.cpp, src/GDLInterpreter.cpp, src/dinterpreter.cpp, src/envt.hpp, src/gdlc.i.g, src/gdlgstream.cpp, src/prognode.cpp:
+	working CATCH
+
+2013-01-08  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	solves bug 2880540 (plots the non-zero values of a dataset in logscale).
+
+2013-01-07  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.hpp, src/dinterpreter.cpp, src/gdlc.i.g, src/plotting_contour.cpp:
+	refactoring
+
+2013-01-05  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting_plot.cpp:
+	solves bug 2880540 (2nd part, plot,[-1,1],/ylog)
+
+	* src/plotting.cpp:
+	In view of bug 2880540 (solved), it is better for the time to avoid plplot getting loose on crazy coordinates.
+
+2013-01-04  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.hpp, src/accessdesc.hpp, src/dinterpreter.cpp, src/envt.cpp, src/gdlc.i.g, src/prognodeexpr.cpp:
+	refactoring for GDL_OBJECT::Get/SetProperty
+
+2013-01-04  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/plotting.cpp:
+	plslabelfunc() and associated "o" option for custom axis labelling is not present until plplot v.5.9.5
+	I remove the few lines associated with the use of custom labeling with  HAVE_PLPLOT_BEFORE_5994, but the labeling will be bad! Users should update their plplot version to the last one.
+
+	* src/plotting_contour.cpp:
+	removed attempt to record path, should solve problems arising from changes in fill() definition which varies with plplot versions.
+
+	* src/plotting.cpp:
+	supports request #3389025 in that  !P.LINESTYLE works with CONTOUR. (not described in the IDL documentation, but the case nevertheless)
+
+2013-01-03  gilles-duvert  <gilles-duvert@sf.net>
+
+	* src/gshhs.cpp, src/libinit.cpp, src/libinit_jmg.cpp, src/plotting_cursor.cpp, src/plotting_map_proj.cpp, src/plotting_surface.cpp:
+	miminum set of changes to be compatible with new plotting routines etc.
+
+	* src/plotting_misc.cpp:
+	code layout changed as in NetBeans for readability.
+
+	* src/plotting_device.cpp:
+	gets /XSIZE etc options correctly to pass to, e.g., PS device.
+
+	* src/plotting_plots.cpp: All keywords supported except Z and T3D
+	Provides /CONTINUE
+	Correct handling of log/DATA/NORMAL/DEVICE coordinates
+	CLIP ok.
+
+	* src/plotting_oplot.cpp: All keywords supported.
+	Correct handling of log/DATA/NORMAL/DEVICE overplots
+	CLIP ok.
+
+	* src/plotting_polyfill.cpp:
+	miminum changes to be compatible with new plotting.cpp version.
+	Still lacking: IMAGE_COORD, IMAGE_INTERp, PATTERN, TRANSPARENT,T3D,Z.
+
+	* src/plotting_xyouts.cpp:
+	Support of all options except TEXT_AXES and T3D
+	Better than IDL:
+	ORIENTATION, ALIGNMENT, CHARSIZE, CHARTHICK and COLOR may be vectors.
+
+	* src/plotting.cpp, src/plotting.hpp:
+	large changes to provide new functionalities and use our overloading of several plplot functions.
+	All symbols now exactly as IDL.
+
+	* src/plotting_contour.cpp:
+	Support of all options except ZVALUE, ZAXIS,CELL_FILL, C_ANNOTATIONS, CLOSED, DOWNHILL, IRREGULAR, TRIANGULATION,PATH_***
+	Correct implementation of Z, [X,Y], i.e., contours may be skewed, rotated, etc depending on X and Y.
+	Better than IDL:
+	- a new ZLOG option makes log contours as well.
+	- C_ORIENTATION, C_SPACING are also vectors.
+	- log axes give better results
+	- good contouring of Not-A-Number values in Z and MIN_VALUE/MAX_VALUE
+	- CLIP ok.
+
+	Automatic limits in some cases still different from idl.
+
+	* src/plotting_axis.cpp:
+	Support of all 2D options (i.e., all X*** and Y***)
+	Formatting of strings by XTICKFORMAT not yet working.
+	TICKLAYOUT=2 not implemented
+
+	* src/plotting_plot.cpp:
+	Support of all 2D options except 'FONT' and 'T3D'.
+	All symbols exactly as IDL.
+	Formatting of strings by XTICKFORMAT not yet working.
+	TICKLAYOUT=2 not implemented
+	Automatic limits in some cases still different from idl.
+
+	* src/graphics.hpp: SetColor() has now 1 arg.
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp:
+	overloading of many useful plplot functions to keep track of positions, sizes, etc. Possibly overkill.
+
+	* src/gdlxstream.cpp:
+	instrumented according to our overloading of several plplot functions.
+
+	* src/gdlpsstream.hpp: better plplot options management
+
+	* src/devicesvg.hpp:
+	setup of initial values to satisfy our overloading of several plplot functions.
+
+	* src/deviceps.hpp:
+	setup of initial values to satisfy our overloading of several plplot functions.
+	workaround for bugs in plplot+pslib drivers. Not entirely convincing though.
+
+	* src/devicewin.hpp:
+	setup of initial values to satisfy our overloading of several plplot functions. Not tested on windows.
+
+	* src/devicez.hpp:
+	setup of initial values to satisfy our overloading of several plplot functions.
+
+	* src/devicex.hpp: defaulted initial position top right of screen.
+	setup of initial values to satisfy our overloading of several plplot functions.
+
+	* src/initsysvar.cpp: updated clip box values
+
+	* src/pro/loadct.pro, src/image.cpp, src/image.hpp:
+	command LOADCT supports BOTTOM, NCOLORS, RGB_TABLE, SILENT
+
+	* src/gdlwidget.cpp:
+	change needed to compile with my g++ 4.4.3 x86_64-manbo-linux-gnu (?)
+
+	* src/envt.cpp, src/envt.hpp:
+	added KeywordPresent with string instead of id.
+
+2013-01-02  gilles-duvert  <gilles-duvert@sf.net>
+
+	* CMakeModules/Findlibps.cmake:
+	needed to find libps on some 64 bits architectures
+
+2013-01-02  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/contribute.html, doc/www/credits.html, doc/www/download.html, doc/www/feedback.html, doc/www/home.html, doc/www/index.html, doc/www/menu.html, doc/www/require.html, doc/www/resources.html, doc/www/screenshot.html, doc/www/support.html, doc/www/tdl.html:
+	small changes to be OK with http://validator.w3.org/
+
+	* doc/www/_news.inc.php, doc/www/credits.php, doc/www/faq.php, doc/www/menu.html:
+	updating informations: 0.9.3 delivered (news), MSwin version, credit (JBPark)
+
+2012-12-30  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/accessdesc.hpp, src/gdlc.i.g, src/prognodeexpr.cpp:
+	refactorizations
+
+
+
 GDL 0.9.3:
 2012-12-27  m_schellens  <m_schellens@sf.net>
 

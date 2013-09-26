@@ -35,11 +35,9 @@ garbage collection pointers and objects
 call methods on an object using "." (e. g. object.aMemberProcedure,arg1)
 empty arrays and !NULL system variable
 automatic promotion of FOR loop variable types
+LIST and HASH types
 
 Not yet supported:
-
-Operator overloading
-LIST and HASH types
 simplified property access on objects (e. g. object.aProperty = value & print,object.aProperty)
 
 
@@ -57,14 +55,14 @@ DICOM files are supported via the GDLffDICOM object (http://idl.barnett.id.au/id
 (files in the src/pro/dicom subdirectory).
 
 
-Overall more than 380 library routines are implemented.
+Overall more than 400 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
 library routines written in GDL in the src/pro subdirectory.
 
-Graphical output is partially implemented. The PLOT, OPLOT, PLOTS,
-XYOUTS, SURFACE, CONTOUR and TV commands (along with WINDOW, WDELETE,
-SET_PLOT, WSET, TVLCT, LOADCT) are working (important keywords,
-some !P system variable tags and multi-plots are supported) for X windows,
+Graphical output is almost completely implemented (no object-graphics). 
+The PLOT, OPLOT, PLOTS, XYOUTS, SURFACE, CONTOUR and TV commands (along with WINDOW, 
+WDELETE, SET_PLOT, WSET, TVLCT, LOADCT) are working (most keywords,
+!P system variable tags and multi-plots are supported) for X windows,
 z-buffer and postscript output.
 
 GDL has an interface to python.
@@ -72,10 +70,6 @@ Python can be embedded into GDL and GDL can be compiled as a
 python module. See the file PYTHON.txt for details.
 
 For the thread pool OpenMP is utilized if the compiler supports it.
-Due to a bug in some OpenMP versions you might get lots of warnings:
-iteration variable ‘i’ is unsigned
-They are harmless, see http://gcc.gnu.org/ml/gcc-bugs/2006-05/msg00878.html
-for details.
 
 
 REQUIREMENTS:
@@ -89,19 +83,19 @@ readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 zlib        http://www.zlib.net/
 
 Optional libraries:
+Eigen       http://eigen.tuxfamily.org
 ImageMagick http://www.imagemagick.org/www/download.html
-netCDF *)     ftp://ftp.unidata.ucar.edu/pub/netcdf
-HDF4 *)       ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
-HDF5          ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
-FFTW          http://www.fftw.org/download.html
-python        http://www.python.org
-libproj4      (consult the MAP_INSTALL file)
-UDUNITS-2     http://www.unidata.ucar.edu/software/udunits/
-GRIB API      http://www.ecmwf.int/products/data/software/grib_api.html        
-GSHHS         (consult the MAP_INSTALL file)
-wxWidgets     http://www.wxwidgets.org/
-pslib         http://pslib.sourceforge.net/
-Eigen         http://eigen.tuxfamily.org
+netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
+HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+FFTW        http://www.fftw.org/download.html
+python      http://www.python.org
+libproj4    (consult the MAP_INSTALL file)
+UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
+GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
+GSHHS       (consult the MAP_INSTALL file)
+wxWidgets   http://www.wxwidgets.org/
+pslib       http://pslib.sourceforge.net/
 
 Only with python:
 numpy          http://numpy.scipy.org/
@@ -161,6 +155,9 @@ obects in GDL.
 Note that version 1.1.1 was reported to NOT work with GDL)
 You find it at:
 http://www.gnu.org/software/gsl
+
+The Eigen library version 3.1 or later is highly recommended for a performance
+boost. To be found at: http://eigen.tuxfamily.org
 
 GDL supports GUI (widget) programming (thanks to Joel Gales)
 using the wxWidgets library. It is required by default.
