@@ -1888,10 +1888,6 @@ RetCode   RETFNode::Run()
       if( eL != NULL)
       {
 	e = *eL;
-	if( callStackBack->IsLocalKW( eL))
-	{
-	  
-	}
       }
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);
