@@ -3367,7 +3367,7 @@ BaseGDL* POWNCNode::Eval()
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
-    BaseGDL** res = newEnv->GetPtrToReturnValue();
+    BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly
     
   }  
@@ -3462,7 +3462,7 @@ BaseGDL* POWNCNode::Eval()
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
-    BaseGDL** res = newEnv->GetPtrToReturnValue();
+    BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly    
   }
   
@@ -3548,7 +3548,7 @@ BaseGDL* POWNCNode::Eval()
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
-    BaseGDL** res = newEnv->GetPtrToReturnValue();
+    BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly    
   }
   
@@ -3775,7 +3775,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     rEval= ProgNode::interpreter->
 		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 //     res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
-    res = newEnv->GetPtrToReturnValue();
+    res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly    
     
     tryARRAYEXPR:;
@@ -4261,6 +4261,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
         {
             s=_t->EvalNC();//indexable_expr(_t);
             assert(s != NULL);
+	    assert( s->Type() != GDL_UNDEF);
         }
 //     else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
 //     {
@@ -4280,7 +4281,9 @@ BaseGDL* ARRAYEXPRNode::Eval()
             else
                 s = *ref;
             assert(s != NULL);
+	    assert( s->Type() != GDL_UNDEF);
         }
+
 
         ixExprList.push_back( s);
         if( ixExprList.size() == nExpr)

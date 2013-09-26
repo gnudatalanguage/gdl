@@ -1865,7 +1865,8 @@ RetCode   RETFNode::Run()
 {
     ProgNodeP _t = this->getFirstChild();
     assert( _t != NULL);
-    EnvUDT::CallContext actualCallContext = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->GetCallContext();
+    EnvUDT* callStackBack = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+    EnvUDT::CallContext actualCallContext = callStackBack->GetCallContext();
     if ( actualCallContext == EnvUDT::RFUNCTION)
     {
       // pure r-function
@@ -1885,7 +1886,13 @@ RetCode   RETFNode::Run()
       eL =_t->EvalRefCheck( e);
       interpreter->SetRetTree( _t->getNextSibling());
       if( eL != NULL)
+      {
 	e = *eL;
+	if( callStackBack->IsLocalKW( eL))
+	{
+	  
+	}
+      }
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);
       ProgNode::interpreter->returnValueL=eL;

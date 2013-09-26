@@ -91,9 +91,21 @@ private:
     BaseGDL** ptrToReturnValue;
 public:
 
+  void SetPtrToReturnValue(BaseGDL** p) { ptrToReturnValue = p;}
   BaseGDL** GetPtrToReturnValueNull() { BaseGDL** p = ptrToReturnValue;ptrToReturnValue=NULL;return p;}
   BaseGDL** GetPtrToReturnValue() const { return ptrToReturnValue;}
-  void SetPtrToReturnValue(BaseGDL** p) { ptrToReturnValue = p;}
+  BaseGDL** GetPtrToGlobalReturnValue() 
+  { 
+    if( ptrToReturnValue == NULL)
+      return NULL;
+    if( env.InLoc(ptrToReturnValue))
+    {
+      *ptrToReturnValue = NULL; // steal local value
+      return NULL; // return as not global
+    }
+    return ptrToReturnValue;
+    
+  }
 
   // used by the interperter returns the keyword index, used for UD functions
   // and used by WRAPPED subroutines
@@ -109,6 +121,15 @@ public:
       }
     return false;
   }
+
+//   bool StealLocalKW( BaseGDL** ref) 
+//   { 
+//    if( !env.InLoc( pp))
+//      return false;
+// 
+//    *ref = NULL;
+//     return true;
+//   }
 
   bool LocalKW( SizeT ix) const
   {
