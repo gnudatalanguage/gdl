@@ -135,11 +135,11 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       BinaryExpr* newNode = NULL;
       switch( refNode->getType())
 	{
-	case GDLTokenTypes::QUESTION:
-	  {
-	    return new QUESTIONNode( refNode);
-	  }
-
+// 	case GDLTokenTypes::QUESTION:
+// 	  {
+// 	    return new QUESTIONNode( refNode);
+// 	  }
+// 
 	  // unary
 	case GDLTokenTypes::UMINUS:
 	  {
@@ -390,11 +390,11 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       BinaryExpr* newNode = NULL;
       switch( refNode->getType())
 	{
-	case GDLTokenTypes::QUESTION:
-	  {
-	    return new QUESTIONNode( refNode);
-	  }
-
+// 	case GDLTokenTypes::QUESTION:
+// 	  {
+// 	    return new QUESTIONNode( refNode);
+// 	  }
+// 
 	  // unary
 	case GDLTokenTypes::UMINUS:
 	  {
@@ -569,6 +569,11 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
   // independed of nonCopy:
   switch( refNode->getType())
     {
+    case GDLTokenTypes::QUESTION:
+      {
+	return new QUESTIONNode( refNode);
+      }
+
     case GDLTokenTypes::FCALL_LIB_RETNEW:
       {
 	ProgNodeP c = new FCALL_LIB_RETNEWNode( refNode);

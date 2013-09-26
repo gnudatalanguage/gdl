@@ -442,18 +442,21 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   // APRO,(((a=2))=3) // forbidden in GDL
   // Makes IDL segfault: APRO,++(((a=2))=3)
 
-  // expressions (braces) are ignored
-  while( n->getType() == EXPR) n = n->getFirstChild();
   int t=n->getType();
-  if( t == DEC || t == INC) // only preinc can be reference
-    {
-      n = n->getFirstChild();
-      t=n->getType();
-    }
-
   // expressions (braces) are ignored
-  while( n->getType() == EXPR) n = n->getFirstChild();
-  t=n->getType();
+  do {
+    while( n->getType() == EXPR) n = n->getFirstChild();
+    t = n->getType();
+    if( t == DEC || t == INC) // only preinc can be reference
+      {
+	n = n->getFirstChild();
+	t = n->getType();
+      }
+  }
+  while( t == DEC || t == INC || t == EXPR);
+//   // expressions (braces) are ignored
+//   while( n->getType() == EXPR) n = n->getFirstChild();
+//   t=n->getType();
   bool assignReplace = false;
   if( t == ASSIGN_REPLACE)
     {

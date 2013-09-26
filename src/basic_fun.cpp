@@ -1275,14 +1275,14 @@ BaseGDL* dcomplex_fun( EnvT* e)
         // SA: calling GDL_STRING() with correct parameters
         static int stringIx = LibFunIx("STRING");
 
-		assert( stringIx >= 0);
-		
+	assert( stringIx >= 0);
+	
         EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
 
-		Guard<EnvT> guard( newEnv);
+	Guard<EnvT> guard( newEnv);
 
-		newEnv->SetNextPar(&e->GetPar(0)); // pass as global
-        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
+	newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+	if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
           newEnv->SetKeyword("PRINT", new DIntGDL(1));
 //         e->Interpreter()->CallStack().push_back( newEnv); 
         return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
@@ -1724,23 +1724,17 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
     BaseGDL* p0 = e->GetPar( 0);
     if( p0 == NULL)
-      e->Throw(
-			  "Variable is undefined: "+
-			  e->GetParString(0));
-    DStringGDL* p0S = static_cast<DStringGDL*>
-      (p0->Convert2(GDL_STRING,BaseGDL::COPY));
+      e->Throw("Variable is undefined: " + e->GetParString(0));
+    DStringGDL* p0S = static_cast<DStringGDL*>(p0->Convert2(GDL_STRING,BaseGDL::COPY));
     
     DLong mode = 0;
     if( nParam == 2)
       {
 	BaseGDL* p1 = e->GetPar( 1);
 	if( p1 == NULL)
-	  e->Throw(
-			      "Variable is undefined: "+e->GetParString(1));
+	  e->Throw("Variable is undefined: "+e->GetParString(1));
 	if( !p1->Scalar())
-	  e->Throw(
-			      "Expression must be a "
-			      "scalar in this context: "+
+	  e->Throw("Expression must be a scalar in this context: "+
 			      e->GetParString(1));
 	DLongGDL* p1L = static_cast<DLongGDL*>
 	  (p1->Convert2(GDL_LONG,BaseGDL::COPY));
@@ -1753,9 +1747,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
 	  {
 	    ostringstream os;
 	    p1->ToStream( os);
-	    e->Throw(
-				"Value of <"+ p1->TypeStr() +
-				"  ("+os.str()+
+	    e->Throw( "Value of <"+ p1->TypeStr() + "  ("+ os.str() +
 				")> is out of allowed range.");
 	  }
       }
