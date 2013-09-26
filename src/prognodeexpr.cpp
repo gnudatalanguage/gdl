@@ -3321,7 +3321,7 @@ BaseGDL* POWNCNode::Eval()
 //     // push id.pro onto call stack
 //     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
-    BaseGDL* res=this->libFun->Fun()(newEnv);
+    BaseGDL* res=this->libFunFun(newEnv);
     // *** MUST always return a defined expression
     assert( res != NULL);
     //       throw GDLException( _t, "");

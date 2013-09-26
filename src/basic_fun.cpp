@@ -1325,7 +1325,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
 	  EnvT* newEnv = e->NewEnv( libFunList[ funIx], 1);
 	  Guard<EnvT> guard( newEnv);
 	  BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	  e->SetPtrToReturnValue( newEnv->GetPtrToReturnValueNull());
+	  e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
 	  return res;
 	}
       }
