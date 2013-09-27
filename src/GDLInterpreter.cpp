@@ -1944,8 +1944,10 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 		break;
 		}
 		
-		if( dec_inc == DEC) res->DecAt( aL); 
-		else if( dec_inc == INC) res->IncAt( aL);
+		if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+		res->DecAt( aL); 
+		else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+		res->IncAt( aL);
 		
 		BaseGDL* resBefore = res;
 		res = resBefore->Index( aL);
@@ -1967,12 +1969,12 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 		e=l_decinc_indexable_expr(_t,dec_inc, res);
 		_t = _retTree;
 		
-		if( dec_inc == DECSTATEMENT) 
+		if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
 		{
 		res->Dec(); 
 		break;
 		}
-		if( dec_inc == INCSTATEMENT)
+		if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
 		{
 		res->Inc();
 		break;
@@ -2141,7 +2143,9 @@ BaseGDL**  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	BaseGDL** refRet;
 	ProgNodeP l_decinc_dot_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
-	refRet = NULL;
+	
+	refRet = NULL; 
+	
 	
 	ProgNodeP __t35 = _t;
 	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -2183,8 +2187,10 @@ BaseGDL**  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	}
 	else
 	{
-	if( dec_inc == DEC) aD.Get()->Dec(); //*** aD->Assign( dec_inc);
-	else if( dec_inc == INC) aD.Get()->Inc();
+	if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+	aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+	else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+	aD.Get()->Inc();
 	//                
 	res=aD.Get()->ADResolve();
 	
@@ -2753,13 +2759,13 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		if( e == NULL)
 		throw GDLException( _t, "Variable is undefined: "+Name(ee),true,false);
 		
-		if( dec_inc == DECSTATEMENT) 
+		if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
 		{
 		e->Dec(); 
 		_retTree = startNode->getNextSibling();
 		return ee;
 		}
-		if( dec_inc == INCSTATEMENT)
+		if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
 		{
 		e->Inc();
 		_retTree = startNode->getNextSibling();
@@ -4772,6 +4778,8 @@ const char* GDLInterpreter::tokenNames[] = {
 	"PARADECL",
 	"PARAEXPR",
 	"PARAEXPR_VN",
+	"DEC_REF_CHECK",
+	"INC_REF_CHECK",
 	"POSTDEC",
 	"POSTINC",
 	"DECSTATEMENT",
@@ -4942,14 +4950,14 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3232760224UL, 3223064639UL, 285655041UL, 151076864UL, 48UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3232760224UL, 3223064639UL, 1142620161UL, 604307456UL, 192UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ASSIGN_ARRAYEXPR_MFCALL BLOCK BREAK CONTINUE "for" 
 // FOR_STEP "foreach" FOREACH_INDEX FOR_LOOP FOR_STEP_LOOP FOREACH_LOOP 
 // FOREACH_INDEX_LOOP IF_ELSE LABEL MPCALL MPCALL_PARENT ON_IOERROR_NULL 
 // PCALL PCALL_LIB "repeat" REPEAT_LOOP RETF RETP "while" "case" "goto" 
 // "if" "on_ioerror" "switch" DEC INC 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 738853792UL, 824181952UL, 14155824UL, 0UL, 48UL, 0UL, 4195328UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 738853792UL, 824181952UL, 56623296UL, 0UL, 192UL, 0UL, 16781312UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ASSIGN_ARRAYEXPR_MFCALL ARRAYDEF ARRAYEXPR ARRAYEXPR_MFCALL 
 // CONSTANT DEREF EXPR FCALL FCALL_LIB FCALL_LIB_RETNEW MFCALL MFCALL_PARENT 
 // NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR VAR VARPTR DEC INC DOT 

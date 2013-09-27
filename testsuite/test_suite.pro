@@ -317,18 +317,36 @@ pro goto_test
 
 end
 
-function fff,x
-return,(x)
+function REF_PAR_RET,x
+return,(1?x:1)
 end
-pro callee,a,b
-a=1
-b=1
+
+pro ref_par_called,x,y,target
+if x ne target or y ne target then print,"REF_PAR: error 4"
+x=537
+y=537
 end
-pro rett_test
-p=ptr_new(0)
-a=0
-callee,fff(*p),fff(((a)))
-if a eq 0 or *p eq 0 then print,"RETT_TEST: l-value parameter ret FAILED."
+
+pro REF_PAR_TEST
+
+p = ptr_new(10)
+a = 10
+
+ref_par_called,(REF_PAR_RET(a)),(REF_PAR_RET(*p)),10
+if a NE 537 OR *p NE 537 then print,"REF_PAR: error 1"
+
+p = ptr_new(10)
+a = 10
+
+ref_par_called,++(REF_PAR_RET(a)),++(REF_PAR_RET(*p)),11
+if a NE 537 OR *p NE 537 then print,"REF_PAR: error 2"
+
+p = ptr_new(10)
+a = 10
+
+ref_par_called,(REF_PAR_RET(a))++,(REF_PAR_RET(*p))++,10
+if a NE 11 OR *p NE 11 then print,"REF_PAR: error 3"
+
 end
 
 function ret99
@@ -369,7 +387,7 @@ end
 
 pro ret_test
 
-  rett_test
+  ref_par_test
 
   if ret99() ne 99.0 then begin
     message, '***RET: ERROR1', /conti

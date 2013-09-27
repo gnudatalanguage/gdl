@@ -133,6 +133,8 @@ tokens {
 	PARADECL;
 	PARAEXPR;  // parameter
 	PARAEXPR_VN; // _VN Variable Number of parameters version
+    DEC_REF_CHECK; // called from EvalRefCheck() (no temporary needed then)
+    INC_REF_CHECK; // called from EvalRefCheck() (no temporary needed then)
     POSTDEC;
     POSTINC; 
     DECSTATEMENT; // as a statement

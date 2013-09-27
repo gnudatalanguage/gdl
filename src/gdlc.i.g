@@ -1639,8 +1639,10 @@ l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
                 break;
             }
 
-            if( dec_inc == DEC) res->DecAt( aL); 
-            else if( dec_inc == INC) res->IncAt( aL);
+            if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+                res->DecAt( aL); 
+            else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+                res->IncAt( aL);
 
             BaseGDL* resBefore = res;
             res = resBefore->Index( aL);
@@ -1650,12 +1652,12 @@ l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
         }
     | e=l_decinc_indexable_expr[dec_inc, res]
         {
-            if( dec_inc == DECSTATEMENT) 
+            if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
             {
                 res->Dec(); 
                 break;
             }
-            if( dec_inc == INCSTATEMENT)
+            if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
             {
                 res->Inc();
                 break;
@@ -1675,7 +1677,9 @@ l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 // struct assignment
 // MAIN function: called from l_decinc_expr
 l_decinc_dot_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
-{ refRet = NULL; }
+{ 
+    refRet = NULL; 
+}
     : #(dot:DOT 
             { 
                 SizeT nDot=dot->nDot;
@@ -1695,8 +1699,10 @@ l_decinc_dot_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
             }
             else
             {
-                if( dec_inc == DEC) aD.Get()->Dec(); //*** aD->Assign( dec_inc);
-                else if( dec_inc == INC) aD.Get()->Inc();
+                if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+                    aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+                else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+                    aD.Get()->Inc();
 //                
                 res=aD.Get()->ADResolve();
                 
@@ -1902,13 +1908,13 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
             if( e == NULL)
                 throw GDLException( _t, "Variable is undefined: "+Name(ee),true,false);
 
-            if( dec_inc == DECSTATEMENT) 
+            if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
                 {
                     e->Dec(); 
                     _retTree = startNode->getNextSibling();
                     return ee;
                 }
-            if( dec_inc == INCSTATEMENT)
+            if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
                 {
                     e->Inc();
                     _retTree = startNode->getNextSibling();

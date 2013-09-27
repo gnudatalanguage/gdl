@@ -36,47 +36,47 @@ GDLLexer::GDLLexer(const antlr::LexerSharedInputState& state)
 
 void GDLLexer::initLiterals()
 {
-	literals["endcase"] = 98;
-	literals["case"] = 92;
-	literals["while"] = 88;
-	literals["repeat"] = 78;
-	literals["ne"] = 117;
-	literals["endif"] = 102;
-	literals["end"] = 97;
-	literals["le"] = 114;
-	literals["then"] = 124;
-	literals["endswitch"] = 104;
-	literals["until"] = 125;
-	literals["and"] = 90;
-	literals["endrep"] = 103;
-	literals["not"] = 118;
+	literals["endcase"] = 100;
+	literals["case"] = 94;
+	literals["while"] = 90;
+	literals["repeat"] = 80;
+	literals["ne"] = 119;
+	literals["endif"] = 104;
+	literals["end"] = 99;
+	literals["le"] = 116;
+	literals["then"] = 126;
+	literals["endswitch"] = 106;
+	literals["until"] = 127;
+	literals["and"] = 92;
+	literals["endrep"] = 105;
+	literals["not"] = 120;
 	literals["foreach"] = 32;
-	literals["mod"] = 116;
-	literals["forward_function"] = 107;
-	literals["do"] = 95;
-	literals["function"] = 108;
-	literals["endfor"] = 100;
-	literals["gt"] = 111;
-	literals["compile_opt"] = 94;
-	literals["inherits"] = 113;
-	literals["of"] = 119;
-	literals["or"] = 121;
-	literals["if"] = 112;
-	literals["pro"] = 122;
-	literals["xor"] = 126;
-	literals["ge"] = 109;
-	literals["goto"] = 110;
+	literals["mod"] = 118;
+	literals["forward_function"] = 109;
+	literals["do"] = 97;
+	literals["function"] = 110;
+	literals["endfor"] = 102;
+	literals["gt"] = 113;
+	literals["compile_opt"] = 96;
+	literals["inherits"] = 115;
+	literals["of"] = 121;
+	literals["or"] = 123;
+	literals["if"] = 114;
+	literals["pro"] = 124;
+	literals["xor"] = 128;
+	literals["ge"] = 111;
+	literals["goto"] = 112;
 	literals["for"] = 30;
-	literals["eq"] = 106;
-	literals["on_ioerror"] = 120;
-	literals["endelse"] = 99;
-	literals["begin"] = 91;
-	literals["else"] = 96;
-	literals["lt"] = 115;
-	literals["endwhile"] = 105;
-	literals["switch"] = 123;
-	literals["common"] = 93;
-	literals["endforeach"] = 101;
+	literals["eq"] = 108;
+	literals["on_ioerror"] = 122;
+	literals["endelse"] = 101;
+	literals["begin"] = 93;
+	literals["else"] = 98;
+	literals["lt"] = 117;
+	literals["endwhile"] = 107;
+	literals["switch"] = 125;
+	literals["common"] = 95;
+	literals["endforeach"] = 103;
 }
 
 antlr::RefToken GDLLexer::nextToken()
@@ -3618,7 +3618,7 @@ const unsigned long GDLLexer::_tokenSet_2_data_[] = { 4294958072UL, 4294967295UL
 // 0xbc 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 
 // 0xca 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 
 // 0xd8 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 
-// 0xe6 0xe7 0xe8 0xe9 0xea 
+// 0xe6 0xe7 0xe8 0xe9 0xea 0xeb 0xec 
 const antlr::BitSet GDLLexer::_tokenSet_2(_tokenSet_2_data_,16);
 const unsigned long GDLLexer::_tokenSet_3_data_[] = { 0UL, 67053568UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // + - 0 1 2 3 4 5 6 7 8 9 
@@ -3654,7 +3654,7 @@ const unsigned long GDLLexer::_tokenSet_10_data_[] = { 4294958072UL, 4294967291U
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
 // 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 0xd8 
 // 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 0xe6 
-// 0xe7 0xe8 0xe9 0xea 
+// 0xe7 0xe8 0xe9 0xea 0xeb 0xec 
 const antlr::BitSet GDLLexer::_tokenSet_10(_tokenSet_10_data_,16);
 const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
@@ -3669,6 +3669,6 @@ const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167U
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
 // 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 0xd8 
 // 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 0xe6 
-// 0xe7 0xe8 0xe9 0xea 
+// 0xe7 0xe8 0xe9 0xea 0xeb 0xec 
 const antlr::BitSet GDLLexer::_tokenSet_11(_tokenSet_11_data_,16);
 

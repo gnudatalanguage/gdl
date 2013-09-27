@@ -1117,12 +1117,12 @@ BaseGDL* DECNode::Eval()
 
 BaseGDL** DECNode::EvalRefCheck( BaseGDL*& res)
 {
-  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC, res);
-  if( ref != NULL)
-  {
-      GDLDelete( res);
-      res = *ref;
-  }
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC_REF_CHECK, res);
+//   if( ref != NULL)
+//   {
+//       GDLDelete( res);
+//       res = *ref;
+//   }
   return ref;
 }
 
@@ -1172,12 +1172,12 @@ BaseGDL* INCNode::Eval()
 
 BaseGDL** INCNode::EvalRefCheck( BaseGDL*& res)
 {
-  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC, res);
-  if( ref != NULL)
-  {
-      GDLDelete( res);
-      res = *ref;
-  }
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC_REF_CHECK, res);
+//   if( ref != NULL)
+//   {
+//       GDLDelete( res);
+//       res = *ref;
+//   }
   return ref;
 }
 
