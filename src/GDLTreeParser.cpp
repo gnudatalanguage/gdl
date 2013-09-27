@@ -3937,7 +3937,13 @@ void GDLTreeParser::key_parameter(RefDNode _t) {
 	variable=comp.ByReference(k_AST);
 	if( variable != static_cast<RefDNode>(antlr::nullAST))
 	{
-	if( variable == k_AST)
+	int vT = variable->getType();
+	if( IsREF_CHECK(vT))
+	{
+	d_AST=astFactory->create(KEYDEF_REF_CHECK,"keydef_ref_check");
+	key_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(d_AST))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(k_AST))));
+	}
+	else if( variable == k_AST)
 	{
 	d_AST=astFactory->create(KEYDEF_REF,"keydef_ref");
 	key_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(d_AST))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(variable))));
@@ -3952,17 +3958,18 @@ void GDLTreeParser::key_parameter(RefDNode _t) {
 	{
 	int t = k_AST->getType();
 	// Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
-	if( t == FCALL_LIB 
-	|| t == MFCALL_LIB  // || t == FCALL_LIB_N_ELEMENTS 
-	|| t == MFCALL_PARENT_LIB  
-	|| t == QUESTION 
-	// TODO: These are ref check as well, but parameter nodes need to know
-	|| t == FCALL || t == MFCALL || t == MFCALL_PARENT
-	
-	//                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-	//                          t == MFCALL_PARENT_LIB_RETNEW //||
-	//                          t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
-	)
+	if( IsREF_CHECK(t))
+	//                            t  == FCALL_LIB 
+	//                         || t == MFCALL_LIB  // || t == FCALL_LIB_N_ELEMENTS 
+	//                         || t == MFCALL_PARENT_LIB  
+	//                         || t == QUESTION 
+	//                         || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+	//                         || t == ARRAYEXPR_FCALL
+	//                         || t == ARRAYEXPR_MFCALL
+	// //                 t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+	// //                 t == MFCALL_PARENT_LIB_RETNEW //||
+	// //                 t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+	// // )
 	{
 	d_AST=astFactory->create(KEYDEF_REF_CHECK,"keydef_ref_check");
 	key_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(d_AST))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(k_AST))));
@@ -4014,7 +4021,15 @@ void GDLTreeParser::pos_parameter(RefDNode _t,
 	variable=comp.ByReference(e_AST);
 	if( variable != static_cast<RefDNode>(antlr::nullAST))
 	{
-	if( variable == e_AST)
+	int vT = variable->getType();
+	if( IsREF_CHECK(vT))
+	{
+	if( varNum)
+	pos_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(REF_CHECK_VN,"ref_check_vn")))->add(antlr::RefAST(e_AST))));
+	else
+	pos_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(REF_CHECK,"ref_check")))->add(antlr::RefAST(e_AST))));
+	}
+	else if( variable == e_AST)
 	{
 	if( varNum)
 	pos_parameter_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(REF_VN,"ref_vn")))->add(antlr::RefAST(variable))));
@@ -4033,17 +4048,19 @@ void GDLTreeParser::pos_parameter(RefDNode _t,
 	{
 	int t = e_AST->getType();
 	// Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
-	if( t == FCALL_LIB 
-	|| t == MFCALL_LIB  //t == FCALL_LIB_N_ELEMENTS ||
-	|| t == MFCALL_PARENT_LIB 
-	|| t == QUESTION 
-	// TODO: These are ref check as well, but parameter nodes need to know
-	|| t == FCALL || t == MFCALL || t == MFCALL_PARENT
-	
-	//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-	//                      t == MFCALL_PARENT_LIB_RETNEW
-	//                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
-	) 
+	if( IsREF_CHECK(t))
+	//                 if( t == FCALL_LIB 
+	//                     || t == MFCALL_LIB  //t == FCALL_LIB_N_ELEMENTS ||
+	//                     || t == MFCALL_PARENT_LIB 
+	//                     || t == QUESTION 
+	// // TODO: These are ref check as well, but parameter nodes need to know
+	//                     || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+	//                     || t == ARRAYEXPR_FCALL
+	//                     || t == ARRAYEXPR_MFCALL
+	// //                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+	// //                      t == MFCALL_PARENT_LIB_RETNEW
+	// //                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+	//                     ) 
 	{
 	// something like: CALLAPRO,reform(a,/OVERWRITE)
 	if( varNum)

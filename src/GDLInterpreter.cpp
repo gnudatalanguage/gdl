@@ -1676,6 +1676,8 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		_retTree = _t->getNextSibling();
 		return res;
 	
+	BaseGDL** refRet; // not used
+	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -1721,7 +1723,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		ProgNodeP tmp59_AST_in = _t;
 		match(antlr::RefAST(_t),DEC);
 		_t = _t->getFirstChild();
-		res=l_decinc_expr(_t, DEC);
+		refRet=l_decinc_expr(_t, DEC, res);
 		_t = _retTree;
 		_t = __t68;
 		_t = _t->getNextSibling();
@@ -1733,7 +1735,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		ProgNodeP tmp60_AST_in = _t;
 		match(antlr::RefAST(_t),INC);
 		_t = _t->getFirstChild();
-		res=l_decinc_expr(_t, INC);
+		refRet=l_decinc_expr(_t, INC, res);
 		_t = _retTree;
 		_t = __t69;
 		_t = _t->getNextSibling();
@@ -1745,7 +1747,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		ProgNodeP tmp61_AST_in = _t;
 		match(antlr::RefAST(_t),POSTDEC);
 		_t = _t->getFirstChild();
-		res=l_decinc_expr(_t, POSTDEC);
+		refRet=l_decinc_expr(_t, POSTDEC, res);
 		_t = _retTree;
 		_t = __t70;
 		_t = _t->getNextSibling();
@@ -1757,7 +1759,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		ProgNodeP tmp62_AST_in = _t;
 		match(antlr::RefAST(_t),POSTINC);
 		_t = _t->getFirstChild();
-		res=l_decinc_expr(_t, POSTINC);
+		refRet=l_decinc_expr(_t, POSTINC, res);
 		_t = _retTree;
 		_t = __t71;
 		_t = _t->getNextSibling();
@@ -1772,13 +1774,13 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
-	int dec_inc
+BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
+	int dec_inc, BaseGDL*& res
 ) {
-	BaseGDL* res;
+	BaseGDL** e;
 	ProgNodeP l_decinc_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	BaseGDL** e;
+	e = NULL;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1830,7 +1832,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	}
 	}
 	_retTree = _t;
-	return res;
+	return e;
 }
 
 BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
@@ -1898,15 +1900,18 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
-	int dec_inc
+BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
+	int dec_inc, BaseGDL*& res
 ) {
-	BaseGDL* res;
+	BaseGDL** e;
 	ProgNodeP l_decinc_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	e = NULL;
+	
 	ArrayIndexListT* aL;
-	BaseGDL*         e;
 	ArrayIndexListGuard guard;
+	
+	BaseGDL** ignore;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1918,7 +1923,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 		ProgNodeP tmp66_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
-		e=l_decinc_indexable_expr(_t, dec_inc);
+		ignore=l_decinc_indexable_expr(_t,dec_inc, res);
 		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
@@ -1926,28 +1931,27 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 		_t = _t->getNextSibling();
 		
 		guard.reset( aL); 
-		aL->SetVariable( e);
+		aL->SetVariable( res);
 		
 		if( dec_inc == DECSTATEMENT) 
 		{
-		e->DecAt( aL); 
-		res = NULL;
+		res->DecAt( aL); 
 		break;
 		}
 		if( dec_inc == INCSTATEMENT)
 		{
-		e->IncAt( aL);
-		res = NULL;
+		res->IncAt( aL);
 		break;
 		}
 		
-		if( dec_inc == DEC) e->DecAt( aL); 
-		else if( dec_inc == INC) e->IncAt( aL);
-		//
-		res=e->Index( aL);
+		if( dec_inc == DEC) res->DecAt( aL); 
+		else if( dec_inc == INC) res->IncAt( aL);
 		
-		if( dec_inc == POSTDEC) e->DecAt( aL);
-		else if( dec_inc == POSTINC) e->IncAt( aL);
+		BaseGDL* resBefore = res;
+		res = resBefore->Index( aL);
+		
+		if( dec_inc == POSTDEC) resBefore->DecAt( aL);
+		else if( dec_inc == POSTINC) resBefore->IncAt( aL);
 		
 		break;
 	}
@@ -1960,29 +1964,28 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	case VAR:
 	case VARPTR:
 	{
-		e=l_decinc_indexable_expr(_t, dec_inc);
+		e=l_decinc_indexable_expr(_t,dec_inc, res);
 		_t = _retTree;
 		
 		if( dec_inc == DECSTATEMENT) 
 		{
-		e->Dec(); 
-		res = NULL;
+		res->Dec(); 
 		break;
 		}
 		if( dec_inc == INCSTATEMENT)
 		{
-		e->Inc();
-		res = NULL;
+		res->Inc();
 		break;
 		}
 		
-		if( dec_inc == DEC) e->Dec();
-		else if( dec_inc == INC) e->Inc();
+		if( dec_inc == DEC) res->Dec();
+		else if( dec_inc == INC) res->Inc();
 		//          
-		res = e->Dup();
+		BaseGDL* resBefore = res;
+		res = resBefore->Dup();
 		
-		if( dec_inc == POSTDEC) e->Dec();
-		else if( dec_inc == POSTINC) e->Inc();
+		if( dec_inc == POSTDEC) resBefore->Dec();
+		else if( dec_inc == POSTINC) resBefore->Inc();
 		
 		break;
 	}
@@ -1992,7 +1995,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	}
 	}
 	_retTree = _t;
-	return res;
+	return e;
 }
 
 ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
@@ -2132,12 +2135,13 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	return aL;
 }
 
-BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
-	int dec_inc
+BaseGDL**  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
+	int dec_inc, BaseGDL*& res
 ) {
-	BaseGDL* res;
+	BaseGDL** refRet;
 	ProgNodeP l_decinc_dot_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
+	refRet = NULL;
 	
 	ProgNodeP __t35 = _t;
 	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -2172,12 +2176,10 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	if( dec_inc == DECSTATEMENT) 
 	{
 	aD.Get()->Dec(); 
-	res = NULL;
 	}
 	else if( dec_inc == INCSTATEMENT)
 	{
 	aD.Get()->Inc();
-	res = NULL;
 	}
 	else
 	{
@@ -2191,7 +2193,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	}
 	
 	_retTree = _t;
-	return res;
+	return refRet;
 }
 
 void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
@@ -2333,12 +2335,14 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	_retTree = _t;
 }
 
-BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
-	int dec_inc
+BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
+	int dec_inc, BaseGDL*& res
 ) {
-	BaseGDL* res;
+	BaseGDL** refRet;
 	ProgNodeP l_decinc_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP mp2 = ProgNodeP(antlr::nullAST);
+	
+	refRet = NULL;
 	
 	BaseGDL*       e1;
 	ProgNodeP startNode = _t;
@@ -2360,12 +2364,12 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		
 		if( e1->True())
 		{
-		res=l_decinc_expr(_t, dec_inc);
+		refRet=l_decinc_expr(_t, dec_inc, res);
 		}
 		else
 		{
 		_t=_t->GetNextSibling(); // jump over 1st expression
-		res=l_decinc_expr(_t, dec_inc);
+		refRet=l_decinc_expr(_t, dec_inc, res);
 		}
 		
 		_t = __t39;
@@ -2448,7 +2452,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		
 		_t = l;
 		
-		res=l_decinc_expr(_t, dec_inc);
+		refRet=l_decinc_expr(_t,dec_inc, res);
 		_t = _retTree;
 		_t = __t40;
 		_t = _t->getNextSibling();
@@ -2541,7 +2545,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		*tmp = e1->Dup();
 		}
 		
-		res=l_decinc_expr( l, dec_inc);
+		refRet=l_decinc_expr( l, dec_inc, res);
 		}
 		catch( GDLException& ex)
 		{
@@ -2555,7 +2559,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		throw GDLException(ex.toString() + " or "+ex2.toString());
 		}
 		
-		res=l_decinc_expr( l, dec_inc);
+		refRet=l_decinc_expr( l, dec_inc, res);
 		}
 		
 		_t = __t42;
@@ -2676,7 +2680,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		
 		_t = l;
 		
-		res=l_decinc_expr(_t, dec_inc);
+		refRet=l_decinc_expr(_t,dec_inc, res);
 		_t = _retTree;
 		_t = __t44;
 		_t = _t->getNextSibling();
@@ -2692,7 +2696,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case VAR:
 	case VARPTR:
 	{
-		res=l_decinc_array_expr(_t, dec_inc);
+		refRet=l_decinc_array_expr(_t,dec_inc, res);
 		_t = _retTree;
 		break;
 	}
@@ -2729,10 +2733,10 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		{
 		_t = mark;
 		
-		res=l_decinc_dot_expr(_t, dec_inc);
+		refRet=l_decinc_dot_expr(_t, dec_inc, res);
 		
 		_retTree = startNode->getNextSibling();
-		return res;
+		return refRet;
 		}   
 		
 		parameter_def(_t, newEnv);
@@ -2752,16 +2756,14 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		if( dec_inc == DECSTATEMENT) 
 		{
 		e->Dec(); 
-		res = NULL;
 		_retTree = startNode->getNextSibling();
-		return res;
+		return ee;
 		}
 		if( dec_inc == INCSTATEMENT)
 		{
 		e->Inc();
-		res = NULL;
 		_retTree = startNode->getNextSibling();
-		return res;
+		return ee;
 		}
 		
 		if( dec_inc == DEC) e->Dec();
@@ -2773,7 +2775,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		else if( dec_inc == POSTINC) e->Inc();
 		
 		_retTree = startNode->getNextSibling();
-		return res;
+		return ee;
 		
 		_t = __t47;
 		_t = _t->getNextSibling();
@@ -2781,7 +2783,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	}
 	case DOT:
 	{
-		res=l_decinc_dot_expr(_t, dec_inc);
+		refRet=l_decinc_dot_expr(_t,dec_inc, res);
 		_t = _retTree;
 		break;
 	}
@@ -2821,7 +2823,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	}
 	}
 	_retTree = _t;
-	return res;
+	return refRet;
 }
 
 BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {

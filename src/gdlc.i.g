@@ -1584,9 +1584,9 @@ l_ret_expr returns [BaseGDL** res]
 
 // l expressions for DEC/INC ********************************
 // called from l_decinc_array_expr
-l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
+l_decinc_indexable_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 {
-    BaseGDL** e;
+    e = NULL;
 }
 //     : #(EXPR e = l_expr_internal[ NULL])                       
 //         {
@@ -1612,68 +1612,70 @@ l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
     ;
 
 // called from l_decinc_expr
-l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
+l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 {
+    e = NULL;
+
     ArrayIndexListT* aL;
-    BaseGDL*         e;
     ArrayIndexListGuard guard;
+
+    BaseGDL** ignore;
 }
     : #(ARRAYEXPR 
-            e=l_decinc_indexable_expr[ dec_inc]   
+            ignore=l_decinc_indexable_expr[dec_inc, res]   
             aL=arrayindex_list )
         {
             guard.reset( aL); 
-            aL->SetVariable( e);
+            aL->SetVariable( res);
 
             if( dec_inc == DECSTATEMENT) 
             {
-                e->DecAt( aL); 
-                res = NULL;
+                res->DecAt( aL); 
                 break;
             }
             if( dec_inc == INCSTATEMENT)
             {
-                e->IncAt( aL);
-                res = NULL;
+                res->IncAt( aL);
                 break;
             }
 
-            if( dec_inc == DEC) e->DecAt( aL); 
-            else if( dec_inc == INC) e->IncAt( aL);
-//
-            res=e->Index( aL);
+            if( dec_inc == DEC) res->DecAt( aL); 
+            else if( dec_inc == INC) res->IncAt( aL);
 
-            if( dec_inc == POSTDEC) e->DecAt( aL);
-            else if( dec_inc == POSTINC) e->IncAt( aL);
+            BaseGDL* resBefore = res;
+            res = resBefore->Index( aL);
+
+            if( dec_inc == POSTDEC) resBefore->DecAt( aL);
+            else if( dec_inc == POSTINC) resBefore->IncAt( aL);
         }
-    | e=l_decinc_indexable_expr[ dec_inc]
+    | e=l_decinc_indexable_expr[dec_inc, res]
         {
             if( dec_inc == DECSTATEMENT) 
             {
-                e->Dec(); 
-                res = NULL;
+                res->Dec(); 
                 break;
             }
             if( dec_inc == INCSTATEMENT)
             {
-                e->Inc();
-                res = NULL;
+                res->Inc();
                 break;
             }
 
-            if( dec_inc == DEC) e->Dec();
-            else if( dec_inc == INC) e->Inc();
+            if( dec_inc == DEC) res->Dec();
+            else if( dec_inc == INC) res->Inc();
   //          
-            res = e->Dup();
+            BaseGDL* resBefore = res;
+            res = resBefore->Dup();
             
-            if( dec_inc == POSTDEC) e->Dec();
-            else if( dec_inc == POSTINC) e->Inc();
+            if( dec_inc == POSTDEC) resBefore->Dec();
+            else if( dec_inc == POSTINC) resBefore->Inc();
         }
     ;
 
 // struct assignment
 // MAIN function: called from l_decinc_expr
-l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
+l_decinc_dot_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
+{ refRet = NULL; }
     : #(dot:DOT 
             { 
                 SizeT nDot=dot->nDot;
@@ -1686,12 +1688,10 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
             if( dec_inc == DECSTATEMENT) 
             {
                 aD.Get()->Dec(); 
-                res = NULL;
             }
             else if( dec_inc == INCSTATEMENT)
             {
                 aD.Get()->Inc();
-                res = NULL;
             }
             else
             {
@@ -1707,8 +1707,10 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
     ;
 
 // l_decinc_expr is only used in dec/inc statements and within itself
-l_decinc_expr [int dec_inc] returns [BaseGDL* res]
+l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
 {
+    refRet = NULL;
+
     BaseGDL*       e1;
     ProgNodeP startNode = _t;
 }
@@ -1718,12 +1720,12 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 
                 if( e1->True())
                 {
-                    res=l_decinc_expr(_t, dec_inc);
+                    refRet=l_decinc_expr(_t, dec_inc, res);
                 }
                 else
                 {
                     _t=_t->GetNextSibling(); // jump over 1st expression
-                    res=l_decinc_expr(_t, dec_inc);
+                    refRet=l_decinc_expr(_t, dec_inc, res);
                 }
             }
         ) // trinary operator
@@ -1759,7 +1761,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             {
                 _t = l;
             }
-            res=l_decinc_expr[ dec_inc]
+            refRet=l_decinc_expr[dec_inc, res]
         )
     | #(ASSIGN_ARRAYEXPR_MFCALL
             { 
@@ -1795,7 +1797,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                             *tmp = e1->Dup();
                     }
 
-                    res=l_decinc_expr( l, dec_inc);
+                    refRet=l_decinc_expr( l, dec_inc, res);
                 }
                 catch( GDLException& ex)
                 {
@@ -1809,7 +1811,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                         throw GDLException(ex.toString() + " or "+ex2.toString());
                     }
 
-                    res=l_decinc_expr( l, dec_inc);
+                    refRet=l_decinc_expr( l, dec_inc, res);
                 }
             }
         )
@@ -1853,9 +1855,9 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             {
                 _t = l;
             }
-            res=l_decinc_expr[ dec_inc]
+            refRet=l_decinc_expr[dec_inc, res]
         )
-    | res=l_decinc_array_expr[ dec_inc]
+    | refRet=l_decinc_array_expr[dec_inc, res]
     | #(ARRAYEXPR_MFCALL
         {
             ProgNodeP mark = _t;
@@ -1881,10 +1883,10 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                 {
                     _t = mark;
 
-                    res=l_decinc_dot_expr(_t, dec_inc);
+                    refRet=l_decinc_dot_expr(_t, dec_inc, res);
 
                     _retTree = startNode->getNextSibling();
-                    return res;
+                    return refRet;
                 }   
         }    
         parameter_def[ newEnv]
@@ -1903,16 +1905,14 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             if( dec_inc == DECSTATEMENT) 
                 {
                     e->Dec(); 
-                    res = NULL;
                     _retTree = startNode->getNextSibling();
-                    return res;
+                    return ee;
                 }
             if( dec_inc == INCSTATEMENT)
                 {
                     e->Inc();
-                    res = NULL;
                     _retTree = startNode->getNextSibling();
-                    return res;
+                    return ee;
                 }
 
             if( dec_inc == DEC) e->Dec();
@@ -1924,10 +1924,10 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             else if( dec_inc == POSTINC) e->Inc();
 
             _retTree = startNode->getNextSibling();
-            return res;
+            return ee;
         }   
         )
-    | res=l_decinc_dot_expr[ dec_inc]
+    | refRet=l_decinc_dot_expr[dec_inc, res]
     | e1=r_expr
         {
             delete e1;
@@ -2145,16 +2145,18 @@ r_expr returns [BaseGDL* res]
     res=_t->Eval();
 	_retTree = _t->getNextSibling();
 	return res;
+
+    BaseGDL** refRet; // not used
 }
     : EXPR
     | ARRAYDEF
     | STRUC
     | NSTRUC
     | NSTRUC_REF
-    |	#(DEC res=l_decinc_expr[ DEC])
-    |	#(INC res=l_decinc_expr[ INC])
-    |	#(POSTDEC res=l_decinc_expr[ POSTDEC])
-    |	#(POSTINC res=l_decinc_expr[ POSTINC])
+    |	#(DEC refRet=l_decinc_expr[ DEC, res])
+    |	#(INC refRet=l_decinc_expr[ INC, res])
+    |	#(POSTDEC refRet=l_decinc_expr[ POSTDEC, res])
+    |	#(POSTINC refRet=l_decinc_expr[ POSTINC, res])
     ;
 
 

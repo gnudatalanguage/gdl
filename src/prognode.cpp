@@ -1097,32 +1097,53 @@ RetCode  PCALLNode::Run()
 
 BaseGDL* POSTDECNode::Eval()
 {
-  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTDEC);
-//   interpreter->SetRetTree(this->getNextSibling());
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTDEC, res);
   return res;
 }
 
+// BaseGDL** POSTDECNode::LEval()
+// {
+//   throw GDLException(this,"Internal error: POSTDECNode::LEVal() called.",true,false);
+//   return NULL;
+// }
+
 BaseGDL* DECNode::Eval()
 {
-  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC);
-//   interpreter->SetRetTree(this->getNextSibling());
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC, res);
   return res;
+}
+
+BaseGDL** DECNode::EvalRefCheck( BaseGDL*& res)
+{
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC, res);
+  if( ref != NULL)
+  {
+      GDLDelete( res);
+      res = *ref;
+  }
+  return ref;
 }
 
 BaseGDL** DECNode::LEval()
 {
-  BaseGDL** res = this->getFirstChild()->LEval();
-  (*res)->Dec();
-//   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC);
-//   interpreter->SetRetTree(this->getNextSibling());
-  return res;
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC, res);
+  if( ref == NULL)
+    throw GDLException(this,"-- requires l-value.",true,false);
+  return ref;
+//   BaseGDL** res = this->getFirstChild()->LEval();
+//   (*res)->Dec();
+//   return res;
 }
 
 RetCode  DECNode::Run()
 {
   //		match(antlr::RefAST(_t),DEC);
   ProgNodeP _t = this->getFirstChild();
-  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::DECSTATEMENT);
+  BaseGDL* dummy;
+  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::DECSTATEMENT, dummy);
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
 }
@@ -1130,32 +1151,56 @@ RetCode  DECNode::Run()
 
 BaseGDL* POSTINCNode::Eval()
 {
-  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTINC);
-//   interpreter->SetRetTree(this->getNextSibling());
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTINC, res);
   return res;
 }
 
+// BaseGDL** POSTINCNode::LEval()
+// {
+//   throw GDLException(this,"Internal error: POSTINCNode::LEVal() called.",true,false);
+//   return NULL;
+// }
+
+
 BaseGDL* INCNode::Eval()
 {
-  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC);
-//   interpreter->SetRetTree(this->getNextSibling());
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC, res);
   return res;
+}
+
+BaseGDL** INCNode::EvalRefCheck( BaseGDL*& res)
+{
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC, res);
+  if( ref != NULL)
+  {
+      GDLDelete( res);
+      res = *ref;
+  }
+  return ref;
 }
 
 BaseGDL** INCNode::LEval()
 {
-  BaseGDL** res = this->getFirstChild()->LEval();
-  (*res)->Inc();
-//   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC);
-//   interpreter->SetRetTree(this->getNextSibling());
-  return res;
+  BaseGDL* res;
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC, res);
+  if( ref == NULL)
+    throw GDLException(this,"++ requires l-value.",true,false);
+  return ref;
+//   BaseGDL** res = this->getFirstChild()->LEval();
+//   (*res)->Inc();
+// //   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC);
+// //   interpreter->SetRetTree(this->getNextSibling());
+//   return res;
 }
 
 RetCode  INCNode::Run()
 {
   //		match(antlr::RefAST(_t),INC);
   ProgNodeP _t = this->getFirstChild();
-  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::INCSTATEMENT);
+  BaseGDL* dummy;
+  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::INCSTATEMENT, dummy);
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
 }

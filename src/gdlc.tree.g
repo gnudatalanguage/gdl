@@ -82,7 +82,23 @@ options {
         return (FindInIDList( loopVarStack, lN->getText()) != -1);
         return false;
     }
-    
+
+public:    
+    static bool IsREF_CHECK(int t)
+    {
+        return    t == FCALL_LIB 
+            // || t == MFCALL_LIB  
+            // //t == FCALL_LIB_N_ELEMENTS ||
+            // || t == MFCALL_PARENT_LIB 
+            || t == QUESTION 
+            // TODO: These are ref check as well, but parameter nodes need to know
+            || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+            || t == ARRAYEXPR_FCALL
+            || t == ARRAYEXPR_MFCALL
+            ;
+    }
+
+private:
     // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {
@@ -709,7 +725,13 @@ key_parameter!//
                 variable=comp.ByReference(#k);
                 if( variable != static_cast<RefDNode>(antlr::nullAST))
                 {
-                    if( variable == #k)
+                    int vT = variable->getType();
+                    if( IsREF_CHECK(vT))
+                    {
+                        #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
+                        #key_parameter=#(d,i,k);
+                    }
+                    else if( variable == #k)
                     {
                         #d=#[KEYDEF_REF,"keydef_ref"];
                         #key_parameter=#(d,i,variable);
@@ -724,17 +746,18 @@ key_parameter!//
                 {
                     int t = #k->getType();
                     // Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
-                    if( t == FCALL_LIB 
-                        || t == MFCALL_LIB  // || t == FCALL_LIB_N_ELEMENTS 
-                        || t == MFCALL_PARENT_LIB  
-                        || t == QUESTION 
-// TODO: These are ref check as well, but parameter nodes need to know
-                        || t == FCALL || t == MFCALL || t == MFCALL_PARENT
-
-//                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-//                          t == MFCALL_PARENT_LIB_RETNEW //||
-//                          t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
-                      )
+                    if( IsREF_CHECK(t))
+//                            t  == FCALL_LIB 
+//                         || t == MFCALL_LIB  // || t == FCALL_LIB_N_ELEMENTS 
+//                         || t == MFCALL_PARENT_LIB  
+//                         || t == QUESTION 
+//                         || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+//                         || t == ARRAYEXPR_FCALL
+//                         || t == ARRAYEXPR_MFCALL
+// //                 t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+// //                 t == MFCALL_PARENT_LIB_RETNEW //||
+// //                 t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+                      // // )
                     {
                         #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
                         #key_parameter=#(d,i,k);
@@ -762,7 +785,15 @@ pos_parameter! [bool varNum] // varNum: is variable number of parameters subrout
             variable=comp.ByReference(#e);
             if( variable != static_cast<RefDNode>(antlr::nullAST))
             {
-                if( variable == #e)
+                    int vT = variable->getType();
+                    if( IsREF_CHECK(vT))
+                    {
+                        if( varNum)
+                            #pos_parameter=#([REF_CHECK_VN,"ref_check_vn"],e);
+                        else
+                            #pos_parameter=#([REF_CHECK,"ref_check"],e);
+                    }
+                    else if( variable == #e)
                     {
                         if( varNum)
                             #pos_parameter=#([REF_VN,"ref_vn"],variable);
@@ -781,17 +812,19 @@ pos_parameter! [bool varNum] // varNum: is variable number of parameters subrout
             {
                 int t = #e->getType();
                 // Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
-                if( t == FCALL_LIB 
-                    || t == MFCALL_LIB  //t == FCALL_LIB_N_ELEMENTS ||
-                    || t == MFCALL_PARENT_LIB 
-                    || t == QUESTION 
-// TODO: These are ref check as well, but parameter nodes need to know
-                    || t == FCALL || t == MFCALL || t == MFCALL_PARENT
-
-//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-//                      t == MFCALL_PARENT_LIB_RETNEW
-//                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
-                    ) 
+                if( IsREF_CHECK(t))
+//                 if( t == FCALL_LIB 
+//                     || t == MFCALL_LIB  //t == FCALL_LIB_N_ELEMENTS ||
+//                     || t == MFCALL_PARENT_LIB 
+//                     || t == QUESTION 
+// // TODO: These are ref check as well, but parameter nodes need to know
+//                     || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+//                     || t == ARRAYEXPR_FCALL
+//                     || t == ARRAYEXPR_MFCALL
+// //                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+// //                      t == MFCALL_PARENT_LIB_RETNEW
+// //                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+//                     ) 
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
                     if( varNum)

@@ -803,17 +803,17 @@ public:
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call_internal(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
-		int dec_inc
+	public: BaseGDL**  l_decinc_indexable_expr(ProgNodeP _t,
+		int dec_inc, BaseGDL*& res
 	);
 	public: BaseGDL**  l_defined_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_sys_var(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_array_expr(ProgNodeP _t,
-		int dec_inc
+	public: BaseGDL**  l_decinc_array_expr(ProgNodeP _t,
+		int dec_inc, BaseGDL*& res
 	);
 	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
-		int dec_inc
+	public: BaseGDL**  l_decinc_dot_expr(ProgNodeP _t,
+		int dec_inc, BaseGDL*& res
 	);
 	public: void l_dot_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
@@ -821,8 +821,8 @@ public:
 	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
-		int dec_inc
+	public: BaseGDL**  l_decinc_expr(ProgNodeP _t,
+		int dec_inc, BaseGDL*& res
 	);
 	public: BaseGDL*  indexable_expr(ProgNodeP _t);
 	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);

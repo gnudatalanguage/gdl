@@ -29,7 +29,23 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         return (FindInIDList( loopVarStack, lN->getText()) != -1);
         return false;
     }
-    
+
+public:    
+    static bool IsREF_CHECK(int t)
+    {
+        return    t == FCALL_LIB 
+            // || t == MFCALL_LIB  
+            // //t == FCALL_LIB_N_ELEMENTS ||
+            // || t == MFCALL_PARENT_LIB 
+            || t == QUESTION 
+            // TODO: These are ref check as well, but parameter nodes need to know
+            || t == FCALL || t == MFCALL || t == MFCALL_PARENT
+            || t == ARRAYEXPR_FCALL
+            || t == ARRAYEXPR_MFCALL
+            ;
+    }
+
+private:
     // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {

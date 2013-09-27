@@ -1584,6 +1584,7 @@ public:
 class DECNode: public CommandNode
 { public:
   DECNode( const RefDNode& refNode): CommandNode( refNode){}
+  BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
   RetCode Run();
@@ -1591,19 +1592,22 @@ class DECNode: public CommandNode
 class INCNode: public CommandNode
 { public:
   INCNode( const RefDNode& refNode): CommandNode( refNode){}
+  BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
   RetCode Run();
 };
-class POSTDECNode: public DECNode
+class POSTDECNode: public CommandNode
 { public:
-  POSTDECNode( const RefDNode& refNode): DECNode( refNode){}
+  POSTDECNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL* Eval();
+//   BaseGDL** LEval();
 };
-class POSTINCNode: public INCNode
+class POSTINCNode: public CommandNode
 { public:
-  POSTINCNode( const RefDNode& refNode): INCNode( refNode){}
+  POSTINCNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL* Eval();
+//   BaseGDL** LEval();
 };
 
 class ARRAYEXPRNode: public DefaultNode
