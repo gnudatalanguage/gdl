@@ -715,6 +715,7 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
   return _t->LExpr( right); //l_expr(_t, right);
 }
 
+// something like: (( ((aFUNorVAR(aVAR))) =e1 ))=right
 BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
 //case ASSIGN_ARRAYEXPR_MFCALL:
 {
@@ -722,46 +723,12 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
 
   if( NonCopyNode(_t->getType()))
   {
-//     BaseGDL*       e1=interpreter->indexable_expr(_t);
-//     _t = interpreter->GetRetTree();
     BaseGDL* e1 = _t->EvalNC();
     _t = _t->getNextSibling();    
   }
-//   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-//   {
-// //     BaseGDL*       e1=interpreter->lib_function_call(_t);
-// //     _t = interpreter->GetRetTree();
-//     BaseGDL** retValPtr;
-//     BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-//     _t = _t->getNextSibling();
-// //     if( !interpreter->CallStackBack()->Contains( e1))
-//     if( retValPtr == NULL)
-//       GDLDelete(e1); // guard if no global data
-//   }
   else
   {
-    //       case ASSIGN:
-    //       case ASSIGN_REPLACE:
-    //       case ASSIGN_ARRAYEXPR_MFCALL:
-    //       case ARRAYDEF:
-    //       case ARRAYEXPR:
-    //       case ARRAYEXPR_MFCALL:
-    //       case EXPR:
-    //       case FCALL:
-    //       case FCALL_LIB_RETNEW:
-    //       case MFCALL:
-    //       case MFCALL_PARENT:
-    //       case NSTRUC:
-    //       case NSTRUC_REF:
-    //       case POSTDEC:
-    //       case POSTINC:
-    //       case STRUC:
-    //       case DEC:
-    //       case INC:
-    //       case DOT:
-    //       case QUESTION:
-//     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
-//     _t = interpreter->GetRetTree();
+    // e1 must be calculated due to possible side effects, but the result isn't used or even accessible
     BaseGDL* e1;
     BaseGDL** ref =_t->EvalRefCheck(e1);
     if( ref == NULL)

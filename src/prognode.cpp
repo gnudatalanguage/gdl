@@ -1129,9 +1129,12 @@ BaseGDL** DECNode::EvalRefCheck( BaseGDL*& res)
 BaseGDL** DECNode::LEval()
 {
   BaseGDL* res;
-  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC, res);
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC_REF_CHECK, res);
   if( ref == NULL)
+  {
+    GDLDelete( res);
     throw GDLException(this,"-- requires l-value.",true,false);
+  }
   return ref;
 //   BaseGDL** res = this->getFirstChild()->LEval();
 //   (*res)->Dec();
@@ -1184,9 +1187,12 @@ BaseGDL** INCNode::EvalRefCheck( BaseGDL*& res)
 BaseGDL** INCNode::LEval()
 {
   BaseGDL* res;
-  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC, res);
+  BaseGDL** ref=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC_REF_CHECK, res);
   if( ref == NULL)
+  {
+    GDLDelete( res);
     throw GDLException(this,"++ requires l-value.",true,false);
+  }
   return ref;
 //   BaseGDL** res = this->getFirstChild()->LEval();
 //   (*res)->Inc();
