@@ -1,3 +1,9 @@
+<h2>GDL 0.9.4 released</h2>
+<p>
+  2013-09-28: GDL 0.9.4 source tarball released.<br />
+  <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.4/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>
+</p>
+
 <h2>GDL 0.9.3 released</h2>
 <p>
   2013-01-05: <a href="http://packages.debian.org/experimental/gnudatalanguage">Debian port updated</a><br />
