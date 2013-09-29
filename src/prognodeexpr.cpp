@@ -4062,7 +4062,7 @@ BaseGDL* DOTNode::Eval()
     if( !handled)
     {
       // regular (non-object) case
-      ArrayIndexListT* aL = interpreter->arrayindex_list(_t);
+      ArrayIndexListT* aL = interpreter->arrayindex_list(_t,!r->IsAssoc());
 
       guard.reset(aL);
 
@@ -4137,22 +4137,9 @@ BaseGDL* ARRAYEXPRNode::Eval()
         if( NonCopyNode(_t->getType()))
         {
             r=_t->EvalNC();
-            //r=indexable_expr(_t);
         }
-//         else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-//         {
-//             // better than Eval(): no copying here if not necessary
-//             // r=ProgNode::interpreter->lib_function_call(_t);
-//             BaseGDL** retValPtr;
-//             r = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr);
-// 
-// //       if( !ProgNode::interpreter->CallStack().back()->Contains( r))
-//             if( retValPtr == NULL)
-//                 rGuard.Init( r); // guard if no global data
-//         }
         else
         {
-//             r=_t->Eval();
             BaseGDL** ref =_t->EvalRefCheck(r);
             if( ref == NULL)
 		rGuard.Init( r);
@@ -4238,8 +4225,6 @@ BaseGDL* ARRAYEXPRNode::Eval()
 
             return res;
         }
-// 	  }
-//       }
     }
 
     // first use NoAssoc case
@@ -4262,16 +4247,6 @@ BaseGDL* ARRAYEXPRNode::Eval()
             assert(s != NULL);
 	    assert( s->Type() != GDL_UNDEF);
         }
-//     else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-//     {
-// // 	s=ProgNode::interpreter->lib_function_call(_t);
-// 	BaseGDL** retValPtr;
-// 	s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr);
-// // 	if( !ProgNode::interpreter->CallStack().back()->Contains( s))
-// 	if( retValPtr == NULL)
-// 		  exprList.push_back( s);
-// 	assert(s != NULL);
-//     }
         else
         {
             BaseGDL** ref =_t->EvalRefCheck(s); //ProgNode::interpreter->indexable_tmp_expr(_t);

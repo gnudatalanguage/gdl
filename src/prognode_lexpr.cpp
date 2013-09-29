@@ -92,8 +92,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
   {
   //res=l_array_expr(_t, right);
   if( right == NULL)
-  throw GDLException( this, "Indexed expression not allowed in this context.",
-	  true,false);
+    throw GDLException( this, "Indexed expression not allowed in this context.", true,false);
 
   ArrayIndexListT* aL;
   ArrayIndexListGuard guard;
@@ -120,19 +119,15 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	  ex.SetArrayexprIndexeeFailed( true);
 	  throw ex;
       }
-      GDLException ex( _t, "Variable is undefined: "+interpreter->Name(res),true,false);
+      GDLException ex( _t, "Heap variable is undefined: "+interpreter->Name(res),true,false);
       ex.SetArrayexprIndexeeFailed( true);
       throw ex;
   }
-//   }
-//   catch( GDLException& ex)
-//   {
-//     ex.SetArrayexprIndexeeFailed( true);
-//     throw ex;
-//   }
 
   if( (*res)->IsAssoc())
-    aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling());
+  {
+    aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling(), false);
+  }
   else
   {
     if( (*res)->Type() == GDL_OBJ && (*res)->StrictScalar())
@@ -220,71 +215,14 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	  
 	  return res;
 	}
-// 		  }
-// 	      }
     }
       
 // aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());  
-    {
+
 //       IxExprListT      cleanupList; // for cleanup
-      IxExprListT      ixExprList;
-      SizeT nExpr;
-      BaseGDL* s;
-      
-      ProgNodeP ax = this->getFirstChild()->getNextSibling();
-      // 	match(antlr::RefAST(_t),ARRAYIX);
-      ProgNodeP _t = ax->getFirstChild();
-      
-      aL = ax->arrIxListNoAssoc;
-      assert( aL != NULL);
-      
-      nExpr = aL->NParam();
-      if( nExpr == 0)
-      {
-	aL->Init();
-      }
-      else
-      {
-	IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
-
-	while( true) {
-	  assert( _t != NULL);
-	  if( NonCopyNode( _t->getType()))
-	      {
-		  s= _t->EvalNC(); //indexable_expr(_t);
-	      }
-// 	  else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-// 	      {
-// // 		  s = interpreter->lib_function_call(_t);
-// 		  BaseGDL** retValPtr;
-// 		  s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
-// 
-// // 		  if( !interpreter->CallStackBack()->Contains( s)) 
-// 		  if( retValPtr == NULL)
-// 		      cleanupList->push_back( s);
-// 	      }				
-	  else
-	      {
-		BaseGDL** ref =_t->EvalRefCheck(s);
-		if( ref == NULL)
-		    cleanupList->push_back( s);
-		else
-		    s = *ref;
-		
-// 		  s=_t->Eval(); //indexable_tmp_expr(_t);
-// 		  cleanupList->push_back( s);
-	      }
-			  
-	  ixExprList.push_back( s);
-	  if( ixExprList.size() == nExpr)
-	      break; // allows some manual tuning
-
-	  _t = _t->getNextSibling();
-	}
-
-	aL->Init( ixExprList);//, &cleanupList);	      
-      }
-    }
+    ProgNodeP ax = this->getFirstChild()->getNextSibling();
+    aL=interpreter->arrayindex_list( ax, true);
+    
   }
   guard.reset(aL);
 
@@ -433,74 +371,72 @@ BaseGDL** ARRAYEXPR_FCALLNode::LExpr( BaseGDL* right)
   
 
 BaseGDL** ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
-	//case ARRAYEXPR_MFCALL:
-	{
-	return interpreter->l_arrayexpr_mfcall(this, right);
-	}
+{
+  return interpreter->l_arrayexpr_mfcall(this, right);
+}
 // default ...Grab version
 
 BaseGDL** DOTNode::LExpr( BaseGDL* right)
-	//case DOT:
-	{
-	if( right == NULL)
-		throw GDLException( this, "Struct expression not allowed in this context.",
-			true,false);
+{
+  if( right == NULL)
+      throw GDLException( this, "Struct expression not allowed in this context.",
+			  true,false);
 
-	ProgNodeP _t = this->getFirstChild();
+  ProgNodeP _t = this->getFirstChild();
 
-	//SizeT nDot = tIn->nDot;
-	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+  //SizeT nDot = tIn->nDot;
+  Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
 
-	//interpreter->l_dot_array_expr(_t, aD.get());
-	
-	ArrayIndexListT* aL;
-	BaseGDL**        rP;		
-	if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
-	{
+  //interpreter->l_dot_array_expr(_t, aD.get());
+
+  ArrayIndexListT* aL;
+  BaseGDL**        rP;
+  if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
+  {
 // 	  rP=l_indexable_expr(_t->getFirstChild());
-	  rP = _t->getFirstChild()->LEval(); // throws
-	  if( *rP == NULL) 
-	  { // ERROR
-	      BaseGDL** res = rP;
-	      _t = _t->getFirstChild();
-	      // check not needed for SYSVAR 
-	      assert( _t->getType() != GDLTokenTypes::SYSVAR);
-	      if( _t->getType() == GDLTokenTypes::VARPTR)
-	      {
-		  GDLException ex( _t, "Common block variable is undefined: "+
-				      interpreter->CallStackBack()->GetString( *res),true,false);
-		  ex.SetArrayexprIndexeeFailed( true);
-		  throw ex;
-	      }
-	      if( _t->getType() == GDLTokenTypes::VAR)
-	      {
-		  GDLException ex( _t, "Variable is undefined: "+
-				interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
-		  ex.SetArrayexprIndexeeFailed( true);
-		  throw ex;
-	      }
-	      GDLException ex( _t, "Variable is undefined: "+interpreter->Name(res),true,false);
+      rP = _t->getFirstChild()->LEval(); // throws
+      if( *rP == NULL)
+      {   // ERROR
+	  BaseGDL** res = rP;
+	  _t = _t->getFirstChild();
+	  // check not needed for SYSVAR
+	  assert( _t->getType() != GDLTokenTypes::SYSVAR);
+	  if( _t->getType() == GDLTokenTypes::VARPTR)
+	  {
+	      GDLException ex( _t, "Common block variable is undefined: "+
+				interpreter->CallStackBack()->GetString( *res),true,false);
 	      ex.SetArrayexprIndexeeFailed( true);
 	      throw ex;
 	  }
-	  
-// 	  aL=arrayindex_list(_t->getFirstChild()->getNextSibling());
-	  bool handled = false;
-	  if( !(*rP)->IsAssoc() && (*rP)->Type() == GDL_OBJ && (*rP)->StrictScalar())
+	  if( _t->getType() == GDLTokenTypes::VAR)
 	  {
+	      GDLException ex( _t, "Variable is undefined: "+
+				interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
+	      ex.SetArrayexprIndexeeFailed( true);
+	      throw ex;
+	  }
+	  GDLException ex( _t, "Variable is undefined: "+interpreter->Name(res),true,false);
+	  ex.SetArrayexprIndexeeFailed( true);
+	  throw ex;
+      }
 
-	    // check for _overloadBracketsLeftSide
-	    DObj s = (*static_cast<DObjGDL*>(*rP))[0]; // is StrictScalar()
-	    DSubUD* bracketsLeftSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
-	    if( bracketsLeftSideOverload != NULL)
-	    {
-	      bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();  
+      // aL=arrayindex_list(_t->getFirstChild()->getNextSibling());
+      bool handled = false;
+      if( !(*rP)->IsAssoc() && (*rP)->Type() == GDL_OBJ && (*rP)->StrictScalar())
+      {
 
-		// _overloadBracketsLeftSide
+	  // check for _overloadBracketsLeftSide
+	  DObj s = (*static_cast<DObjGDL*>(*rP))[0]; // is StrictScalar()
+	  DSubUD* bracketsLeftSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
+	  if( bracketsLeftSideOverload != NULL)
+	  {
+	      bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();
+
+	      // _overloadBracketsLeftSide
 	      IxExprListT indexList;
 	      interpreter->arrayindex_list_overload( _t->getFirstChild()->getNextSibling(), indexList);
 	      ArrayIndexListGuard guard(_t->getFirstChild()->getNextSibling()->arrIxListNoAssoc);
-	      
+
 	      // hidden SELF is counted as well
 	      int nParSub = bracketsLeftSideOverload->NPar();
 	      assert( nParSub >= 1); // SELF
@@ -508,28 +444,28 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	      // indexList.size() + OBJREF + RVALUE > regular paramters w/o SELF
 	      if( (indexList.size() + 2) > nParSub - 1)
 	      {
-		indexList.Cleanup();
-		throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
-				": Incorrect number of arguments.",
-				false, false);
+		  indexList.Cleanup();
+		  throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
+				      ": Incorrect number of arguments.",
+				      false, false);
 	      }
 
 	      DObjGDL* self;
 	      Guard<BaseGDL> selfGuard;
 	      if( internalDSubUD)
 	      {
-		self = static_cast<DObjGDL*>(*rP); // internal subroutines behave well
+		  self = static_cast<DObjGDL*>(*rP); // internal subroutines behave well
 	      }
 	      else
 	      {
-		self = static_cast<DObjGDL*>(*rP)->Dup(); // res should be not changeable via SELF
-		selfGuard.Reset( self);
+		  self = static_cast<DObjGDL*>(*rP)->Dup(); // res should be not changeable via SELF
+		  selfGuard.Reset( self);
 	      }
-	      
+
 	      // adds already SELF parameter
 	      EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
 	      // Guard<EnvUDT> newEnvGuard( newEnv);
-	      
+
 	      // parameters
 	      // special: we are in dot access here
 	      // signal to _overloadBracketsLeftSide by setting OBJREF to NULL
@@ -540,120 +476,120 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 
 	      BaseGDL* rValueNull = NULL;
 	      newEnv->SetNextParUnchecked( rValueNull); // RVALUE parameter NULL, as value
-// 	      if( internalDSubUD)  
+// 	      if( internalDSubUD)
 // 		newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
 // 	      else
 // 		newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
 
 	      // pass as reference would be more efficient, but as the data might
 	      // be deleted in bracketsLeftSideOverload it is not possible.
-	      // BaseGDL* rightCopy = right;  
+	      // BaseGDL* rightCopy = right;
 	      // newEnv->SetNextParUnchecked( &rightCopy); // RVALUE  parameter
 
 // 	      // signal dot access:
-// 	      // set ISRANGE[0] from 0/1 to 2/3	      
+// 	      // set ISRANGE[0] from 0/1 to 2/3
 // 	      assert( indexList.size() > 0);
 // 	      assert( indexList[0]->Type() == GDL_LONG);
 // 	      assert( indexList[0]->N_Elements() > 0);
 // 	      *(static_cast<DLongGDL>(indexList))[0] += 2;
 
 	      for( SizeT p=0; p<indexList.size(); ++p)
-		newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+		  newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
 
 	      StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
-	      interpreter->CallStack().push_back( newEnv); 
-	      
+	      interpreter->CallStack().push_back( newEnv);
+
 	      // make the call
 	      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
 	      if( !internalDSubUD && self != selfGuard.Get())
 	      {
-		// always put out warning first, in case of a later crash
-		Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
-		      ": Assignment to SELF detected (GDL session still ok).");
-		// assignment to SELF -> self was deleted and points to new variable
-		// which it owns
-		selfGuard.Release();
-		if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
-		  selfGuard.Reset(self);
+		  // always put out warning first, in case of a later crash
+		  Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() +
+			    ": Assignment to SELF detected (GDL session still ok).");
+		  // assignment to SELF -> self was deleted and points to new variable
+		  // which it owns
+		  selfGuard.Release();
+		  if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+		      selfGuard.Reset(self);
 	      }
-	      
+
 	      if( returnOBJREF == NULL || returnOBJREF->Type() != GDL_PTR)
 		  GDLException ex( _t, "OBJREF must return a PTR to the STRUCT to access.",true,false);
-	
+
 	      DPtr vID = (*static_cast<DPtrGDL*>(returnOBJREF))[0];
 	      delete returnOBJREF;
-	      
+
 	      BaseGDL* structToAccess = interpreter->GetHeap( vID);
-	      
-	      interpreter->SetRootL( _t, aD.get(), structToAccess, NULL); 
+
+	      interpreter->SetRootL( _t, aD.get(), structToAccess, NULL);
 	      handled = true;
-	    }
-	  } //  	  if( (*rP)->Type() == GDL_OBJ && (*rP)->StrictScalar())
-	  if( !handled)
-	  {
-	    // regular (non-object) case
-	    aL=interpreter->arrayindex_list( _t->getFirstChild()->getNextSibling());
-	    interpreter->SetRootL( _t, aD.get(), *rP, aL); 
 	  }
-	}
-	else
-	// case ARRAYEXPR_MFCALL:
-	// case DEREF:
-	// case EXPR:
-	// case FCALL:
-	// case FCALL_LIB:
-	// case MFCALL:
-	// case MFCALL_PARENT:
-	// case SYSVAR:
-	// case VAR:
-	// case VARPTR:
-	{
-// 	  rP=l_indexable_expr(_t);
-	  rP = _t->LEval(); // throws
-	  if( *rP == NULL) 
-	  { // ERROR
-	      BaseGDL** res = rP;
-	      // check not needed for SYSVAR 
-	      assert( _t->getType() != GDLTokenTypes::SYSVAR);
-	      if( _t->getType() == GDLTokenTypes::VARPTR)
-	      {
-		  GDLException ex( _t, "Common block variable is undefined: "+
-				      interpreter->CallStackBack()->GetString( *res),true,false);
-		  ex.SetArrayexprIndexeeFailed( true);
-		  throw ex;
-	      }
-	      if( _t->getType() == GDLTokenTypes::VAR)
-	      {
-		  GDLException ex( _t, "Variable is undefined: "+
-				interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
-		  ex.SetArrayexprIndexeeFailed( true);
-		  throw ex;
-	      }
-	      GDLException ex( _t, "Variable is undefined: "+interpreter->Name(res),true,false);
+      } //  	  if( (*rP)->Type() == GDL_OBJ && (*rP)->StrictScalar())
+      if( !handled)
+      {
+	  // regular (non-object) case
+	  aL=interpreter->arrayindex_list( _t->getFirstChild()->getNextSibling(),!(*rP)->IsAssoc());
+	  interpreter->SetRootL( _t, aD.get(), *rP, aL);
+      }
+  }
+  else
+      // case ARRAYEXPR_MFCALL:
+      // case DEREF:
+      // case EXPR:
+      // case FCALL:
+      // case FCALL_LIB:
+      // case MFCALL:
+      // case MFCALL_PARENT:
+      // case SYSVAR:
+      // case VAR:
+      // case VARPTR:
+  {
+      // rP=l_indexable_expr(_t);
+      rP = _t->LEval(); // throws
+      if( *rP == NULL)
+      {   // ERROR
+	  BaseGDL** res = rP;
+	  // check not needed for SYSVAR
+	  assert( _t->getType() != GDLTokenTypes::SYSVAR);
+	  if( _t->getType() == GDLTokenTypes::VARPTR)
+	  {
+	      GDLException ex( _t, "Common block variable is undefined: "+
+				interpreter->CallStackBack()->GetString( *res),true,false);
 	      ex.SetArrayexprIndexeeFailed( true);
 	      throw ex;
 	  }
-	  interpreter->SetRootL( _t, aD.get(), *rP, NULL); 
-	}
-	
-	_t = _t->getNextSibling();
-	for( int d=0; d<nDot; ++d)
-	{
-	// if ((_t->getType() == ARRAYEXPR || _t->getType() == EXPR ||
-	// _t->getType() == IDENTIFIER)) {
-	interpreter->tag_array_expr(_t, aD.get());
-	_t = interpreter->GetRetTree();
-	//       }
-	//       else {
-	// 	break;
-	//       }
-	}
-	aD->ADAssign( right);
-	//res=NULL;
-	//SetRetTree( tIn->getNextSibling());
-	return NULL;
-	}
+	  if( _t->getType() == GDLTokenTypes::VAR)
+	  {
+	      GDLException ex( _t, "Variable is undefined: "+
+				interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
+	      ex.SetArrayexprIndexeeFailed( true);
+	      throw ex;
+	  }
+	  GDLException ex( _t, "Variable is undefined: "+interpreter->Name(res),true,false);
+	  ex.SetArrayexprIndexeeFailed( true);
+	  throw ex;
+      }
+      interpreter->SetRootL( _t, aD.get(), *rP, NULL);
+  }
+
+  _t = _t->getNextSibling();
+  for( int d=0; d<nDot; ++d)
+  {
+      // if ((_t->getType() == ARRAYEXPR || _t->getType() == EXPR ||
+      // _t->getType() == IDENTIFIER)) {
+      interpreter->tag_array_expr(_t, aD.get());
+      _t = interpreter->GetRetTree();
+      //       }
+      //       else {
+      // 	break;
+      //       }
+  }
+  aD->ADAssign( right);
+  //res=NULL;
+  //SetRetTree( tIn->getNextSibling());
+  return NULL;
+}
 // default ...Grab version
 
 BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)	

@@ -152,8 +152,8 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
       if( r->IsAssoc())
 	  {
 	      ArrayIndexListGuard guard( aL);
-	      throw GDLException( tt, "File expression not allowed "
-				  "in this context: "+Name(r),true,false);
+	      throw GDLException( tt, "File expression not allowed in this context: "+
+					Name(r),true,false);
 	  }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot(structR, aL); 
@@ -162,9 +162,8 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
   {
       if( r->Type() != GDL_OBJ)
 	  {
-	      throw GDLException( tt, "Expression must be a"
-				  " STRUCT in this context: "+Name(r),
-				  true,false);
+	      throw GDLException( tt, "Expression must be a STRUCT in this context: "+
+					Name(r),true,false);
 	  }
 
       ArrayIndexListGuard guard( aL);
@@ -233,8 +232,8 @@ if( r->Type() == GDL_STRUCT)
       if( r->IsAssoc())
 	  {
 	      ArrayIndexListGuard guard( aL);
-	      throw GDLException( tt, "File expression not allowed "
-				  "in this context: "+Name(r),true,false);
+	      throw GDLException( tt, "File expression not allowed in this context: "+
+				       Name(r),true,false);
 	  }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot( structR, aL); 

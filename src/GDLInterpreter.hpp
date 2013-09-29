@@ -804,16 +804,18 @@ public:
 	public:  BaseGDL*  lib_function_call_internal(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL**  l_decinc_indexable_expr(ProgNodeP _t,
-		int dec_inc, BaseGDL*& res
+		 BaseGDL*& res
 	);
 	public: BaseGDL**  l_defined_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_sys_var(ProgNodeP _t);
 	public: BaseGDL**  l_decinc_array_expr(ProgNodeP _t,
 		int dec_inc, BaseGDL*& res
 	);
-	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t);
-	public: BaseGDL**  l_decinc_dot_expr(ProgNodeP _t,
-		int dec_inc, BaseGDL*& res
+	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t,
+		 bool noAssoc
+	);
+	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
+		int dec_inc
 	);
 	public: void l_dot_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD

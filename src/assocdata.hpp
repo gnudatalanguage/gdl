@@ -63,7 +63,11 @@ static	void operator delete( void *ptr);
   // returns (*this)[ ixList]
   Parent_* Index( ArrayIndexListT* ixList);
 
-  SizeT N_Elements() const { return 1;}
+  SizeT N_Elements() const 
+  { 
+    return this->Parent_::N_Elements();
+    return 1;
+  }
 
   bool IsAssoc() const { return true;}
 
@@ -77,6 +81,7 @@ static	void operator delete( void *ptr);
 
   SizeT NBytes() const 
   {
+    return this->Parent_::NBytes();
     throw GDLException("Assoc_::NBytes() called.");
   }
   

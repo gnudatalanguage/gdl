@@ -1583,10 +1583,21 @@ l_ret_expr returns [BaseGDL** res]
     ;
 
 // l expressions for DEC/INC ********************************
+// l_decind_expr is the only function called from external
+
+// l_decinc_expr is the only external function of the l_decinc_* expressions
+
+
 // called from l_decinc_array_expr
-l_decinc_indexable_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
+l_decinc_indexable_expr [ BaseGDL*& res] returns [BaseGDL** e]
 {
-    e = NULL;
+    e = _t->LEval();
+    res = *e;
+    if( res == NULL)
+        throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
+    return e;
+
+    e = NULL;    
 }
 //     : #(EXPR e = l_expr_internal[ NULL])                       
 //         {
@@ -1611,106 +1622,157 @@ l_decinc_indexable_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
     | e=l_sys_var { res = *e; }            // no Dup here
     ;
 
+
+
 // called from l_decinc_expr
 l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 {
-    e = NULL;
+	ArrayIndexListT* aL;
+	ArrayIndexListGuard guard;
+	
+	if( _t->getType() == ARRAYEXPR)
+	{
+		ProgNodeP arrExNP = _t;
+		// match(antlr::RefAST(_t),ARRAYEXPR);
 
-    ArrayIndexListT* aL;
-    ArrayIndexListGuard guard;
+		_t = _t->getFirstChild();
 
+		BaseGDL** tmp =_t->LEval();// l_decinc_indexable_expr(_t, res);
+        res = *tmp;
+        if( res == NULL)
+            throw GDLException( _t, "Variable is undefined: " + Name(tmp),
+                                true,false);
+		_t = _t->getNextSibling();
+
+		aL=arrayindex_list(_t,!res->IsAssoc());
+
+		_retTree = arrExNP->getNextSibling();
+		
+		guard.reset( aL); 
+		aL->SetVariable( res);
+		
+		if( dec_inc == DECSTATEMENT) 
+		{
+            res->DecAt( aL); 
+            return NULL;
+		}
+		if( dec_inc == INCSTATEMENT)
+		{
+            res->IncAt( aL);
+            return NULL;
+		}
+		
+		if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+		res->DecAt( aL); 
+		else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+		res->IncAt( aL);
+		
+		BaseGDL* resBefore = res;
+		res = resBefore->Index( aL);
+		
+		if( dec_inc == POSTDEC) resBefore->DecAt( aL);
+		else if( dec_inc == POSTINC) resBefore->IncAt( aL);
+		
+        return NULL;
+	}
+    else
+    {
+		e =_t->LEval();// l_decinc_indexable_expr(_t, res);
+        res = *e;
+        if( res == NULL)
+            throw GDLException( _t, "Variable is undefined: " + Name(e),
+                                true,false);
+		_retTree = _t->getNextSibling();
+		// e=l_decinc_indexable_expr(_t, res);
+		// _t = _retTree;
+		
+		if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
+		{
+            res->Dec(); 
+            return e;
+		}
+		if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
+		{
+            res->Inc();
+            return e;
+		}
+		
+		if( dec_inc == DEC) res->Dec();
+		else if( dec_inc == INC) res->Inc();
+		//          
+		BaseGDL* resBefore = res;
+		res = resBefore->Dup();
+		
+		if( dec_inc == POSTDEC) resBefore->Dec();
+		else if( dec_inc == POSTINC) resBefore->Inc();
+		
+        return e;
+	}
+	_retTree = _t;
+	return e;
+
+    // not used _______________________________________
+    // ------------------------------------------------
     BaseGDL** ignore;
 }
     : #(ARRAYEXPR 
-            ignore=l_decinc_indexable_expr[dec_inc, res]   
-            aL=arrayindex_list )
-        {
-            guard.reset( aL); 
-            aL->SetVariable( res);
-
-            if( dec_inc == DECSTATEMENT) 
-            {
-                res->DecAt( aL); 
-                break;
-            }
-            if( dec_inc == INCSTATEMENT)
-            {
-                res->IncAt( aL);
-                break;
-            }
-
-            if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
-                res->DecAt( aL); 
-            else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
-                res->IncAt( aL);
-
-            BaseGDL* resBefore = res;
-            res = resBefore->Index( aL);
-
-            if( dec_inc == POSTDEC) resBefore->DecAt( aL);
-            else if( dec_inc == POSTINC) resBefore->IncAt( aL);
-        }
-    | e=l_decinc_indexable_expr[dec_inc, res]
-        {
-            if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
-            {
-                res->Dec(); 
-                break;
-            }
-            if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
-            {
-                res->Inc();
-                break;
-            }
-
-            if( dec_inc == DEC) res->Dec();
-            else if( dec_inc == INC) res->Inc();
-  //          
-            BaseGDL* resBefore = res;
-            res = resBefore->Dup();
-            
-            if( dec_inc == POSTDEC) resBefore->Dec();
-            else if( dec_inc == POSTINC) resBefore->Inc();
-        }
+            ignore=l_decinc_indexable_expr[ res]   
+            aL=arrayindex_list[ false] )
+    | e= l_decinc_indexable_expr[ res]
     ;
 
 // struct assignment
 // MAIN function: called from l_decinc_expr
-l_decinc_dot_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
+l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
 { 
-    refRet = NULL; 
-}
-    : #(dot:DOT 
-            { 
-                SizeT nDot=dot->nDot;
-                Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-            } 
-            l_dot_array_expr[ aD.Get()] 
-            (tag_array_expr[ aD.Get()] /* nDot times*/ )+ 
-        )         
+	ProgNodeP dot = _t;
+	//match(antlr::RefAST(_t),DOT);
+
+	_t = _t->getFirstChild();
+	
+	SizeT nDot=dot->nDot;
+	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	
+	l_dot_array_expr(_t, aD.Get());
+	_t = _retTree;
+
+    while( _t != NULL)
         {
-            if( dec_inc == DECSTATEMENT) 
-            {
-                aD.Get()->Dec(); 
-            }
-            else if( dec_inc == INCSTATEMENT)
-            {
-                aD.Get()->Inc();
-            }
-            else
-            {
-                if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
-                    aD.Get()->Dec(); //*** aD->Assign( dec_inc);
-                else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
-                    aD.Get()->Inc();
-//                
-                res=aD.Get()->ADResolve();
-                
-                if( dec_inc == POSTDEC) aD.Get()->Dec();
-                else if( dec_inc == POSTINC) aD.Get()->Inc();
-            }
+            tag_array_expr(_t, aD.Get());
+			_t = _retTree;
+		}
+
+	_retTree = dot->getNextSibling();
+	
+	if( dec_inc == DECSTATEMENT) 
+        {
+            aD.Get()->Dec(); 
+            return NULL;
+        }   
+	if( dec_inc == INCSTATEMENT)
+        {
+            aD.Get()->Inc();
+            return NULL; 
         }
-    ;
+	
+	if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
+        aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+	else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
+        aD.Get()->Inc();
+	
+	res=aD.Get()->ADResolve();
+	
+	if( dec_inc == POSTDEC) aD.Get()->Dec();
+	else if( dec_inc == POSTINC) aD.Get()->Inc();
+
+	return res;
+}
+    : #(/*dot:*/ DOT 
+            l_dot_array_expr[ aD.Get()] 
+            (tag_array_expr[ aD.Get()] /* nDot times*/ )* 
+            ///'*' generates better code here than '+' 
+        )         
+       ;
 
 // l_decinc_expr is only used in dec/inc statements and within itself
 l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
@@ -1889,7 +1951,7 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
                 {
                     _t = mark;
 
-                    refRet=l_decinc_dot_expr(_t, dec_inc, res);
+                    res=l_decinc_dot_expr(_t, dec_inc);
 
                     _retTree = startNode->getNextSibling();
                     return refRet;
@@ -1933,7 +1995,7 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
             return ee;
         }   
         )
-    | refRet=l_decinc_dot_expr[dec_inc, res]
+    | res=l_decinc_dot_expr[dec_inc]
     | e1=r_expr
         {
             delete e1;
@@ -1963,7 +2025,7 @@ l_indexable_expr returns [BaseGDL** res]
             if( _t->getType() == VAR)
                 throw GDLException( _t, "Variable is undefined: "+
                                callStack.back()->GetString(_t->varIx),true,false);
-            throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
+            throw GDLException( _t, "Heap variable is undefined: "+Name(res),true,false);
         }
    _retTree = _t->getNextSibling();
 	return res;
@@ -1976,13 +2038,12 @@ l_indexable_expr returns [BaseGDL** res]
     | res=l_sys_var 
     ;
 
-// called from l_expr_internal
+// called from only from unused part of l_expr_internal
 unused_l_array_expr [BaseGDL* right] returns [BaseGDL** res]
-//{
-//    ArrayIndexListT* aL;
-//}
-//    : #(ARRAYEXPR res=l_indexable_expr aL=arrayindex_list) 
-    : ARRAYEXPR
+{
+   ArrayIndexListT* aL;
+}
+   : #(ARRAYEXPR res=l_indexable_expr aL=arrayindex_list[ false]) 
     ;
 
 l_dot_array_expr [DotAccessDescT* aD] // 1st
@@ -1993,7 +2054,8 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
 	if( _t->getType() == ARRAYEXPR)
 	{
 		rP=l_indexable_expr(_t->getFirstChild());
-		aL=arrayindex_list(_retTree);
+
+		aL=arrayindex_list(_retTree,!(*rP)->IsAssoc());
 
 		_retTree = _t->getNextSibling();
         
@@ -2018,7 +2080,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
     return;
 //	_retTree = _t;
 }
-    : #(ARRAYEXPR rP=l_indexable_expr aL=arrayindex_list)   
+    : #(ARRAYEXPR rP=l_indexable_expr aL=arrayindex_list[ false])   
     | rP=l_indexable_expr
     ;
 
@@ -2027,7 +2089,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
 l_expr_internal [BaseGDL* right] returns [BaseGDL** res]
 {
     res = _t->LExpr( right);
-    SetRetTree( _t->getNextSibling());
+    _retTree = _t->getNextSibling();
     return res;
     
     BaseGDL* e1; 
@@ -2216,8 +2278,9 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 		_t = _t->getFirstChild();
 		tag_expr(_t, aD);
 		_t = _retTree;
-		aL=arrayindex_list(_t);
-		_t = _retTree;
+        // noAssoc==true, as assoc vars cannot be struct members
+		aL=arrayindex_list(_t,true); 
+		//_t = _retTree;
 		aD->ADAddIx(aL);
 		_retTree = tIn->getNextSibling();
 	}
@@ -2232,7 +2295,7 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 	//_retTree = _t;
     return;
 }
-	: #(ARRAYEXPR tag_expr[ aD] aL=arrayindex_list /*{ aD->ADAddIx(aL);}*/ )
+	: #(ARRAYEXPR tag_expr[ aD] aL=arrayindex_list[ true] /*{ aD->ADAddIx(aL);}*/ )
     | tag_expr[ aD] //{ aD->ADAddIx(NULL);} 
     ;
 
@@ -2287,7 +2350,8 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 	{
 		//match(antlr::RefAST(_t),ARRAYEXPR);
 		r=r_dot_indexable_expr(_t->getFirstChild(), aD);
-		aL=arrayindex_list(_retTree);
+
+		aL=arrayindex_list(_retTree,!r->IsAssoc());
 		_retTree = _t->getNextSibling();
 		
 		// check here for object and get struct
@@ -2305,16 +2369,8 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 }
 // NOTE: r is owned by aD or a l_... (r must not be deleted here)
     : #(ARRAYEXPR r=r_dot_indexable_expr[ aD] 
-            aL=arrayindex_list /*{ guard.reset(aL);}*/ )   
-        {
-            // check here for object and get struct
-            SetRootR( _t, aD, r, aL); 
-        }
+            aL=arrayindex_list[ false] /*{ guard.reset(aL);}*/ )   
     | r=r_dot_indexable_expr[ aD]
-        {
-            // check here for object and get struct
-            SetRootR( _t, aD, r, NULL); 
-        }
     ;
 
 // Entry function for struct access
@@ -2965,7 +3021,7 @@ parameter_def_nocheck [EnvBaseT* actEnv]
         )
 	;
 
-arrayindex_list returns [ArrayIndexListT* aL]
+arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
 {
     // IxExprListT      cleanupList; // for cleanup
     IxExprListT      ixExprList;
@@ -2977,7 +3033,10 @@ arrayindex_list returns [ArrayIndexListT* aL]
 // 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
 	
-	aL = ax->arrIxList; // vs. ax->arrIxListNoAssoc
+    if( noAssoc)
+        aL = ax->arrIxListNoAssoc;
+    else
+        aL = ax->arrIxList; 
 	assert( aL != NULL);
 
 	nExpr = aL->NParam();
@@ -2988,28 +3047,21 @@ arrayindex_list returns [ArrayIndexListT* aL]
         return aL;
 	}
 	
+    IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
 	while( true) {
-        IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
 
         assert( _t != NULL);
         if( NonCopyNode( _t->getType()))
             {
-                s= _t->EvalNC(); //indexable_expr(_t);
-                //_t = _retTree;
+                s = _t->EvalNC(); 
             }
-        else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-            {
-                s=lib_function_call_internal(_t);
-                //_t = _retTree;
-                // if( !callStack.back()->Contains( s)) 
-                if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-                    cleanupList->push_back( s);
-            }				
         else
             {
-                s=_t->Eval(); //indexable_tmp_expr(_t);
-                //_t = _retTree;
-                cleanupList->push_back( s);
+                BaseGDL** ref =_t->EvalRefCheck( s); 
+                if( ref == NULL)
+                    cleanupList->push_back( s);
+                else
+                    s = *ref;
             }
 			
         assert( s != NULL);
