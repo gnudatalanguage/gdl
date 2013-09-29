@@ -2107,26 +2107,52 @@ namespace lib {
     DDouble missing;
     e->AssureDoubleScalarKWIfPresent(missingIx, missing);
 
-    DDoubleGDL* p0D;
+    DDoubleGDL* p0D[2];
     DDoubleGDL* p1D;
     DDoubleGDL* p2D;
     DDoubleGDL* p3D;
-    Guard<BaseGDL> guard0;
+    Guard<BaseGDL> guard00;
+    Guard<BaseGDL> guard01;
     Guard<BaseGDL> guard1;
     Guard<BaseGDL> guard2;
     Guard<BaseGDL> guard3;
+    int complexity=1;
 
     if (nParam < 2) e->Throw("Incorrect number of arguments.");
 
-    // convert to internal double arrays
+    // convert to internal double arrays. Special case for complex values, we separate R and I
     BaseGDL* p0 = e->GetParDefined(0);
     if (p0->Rank() < nParam - 1)
       e->Throw("Number of parameters must agree with dimensions of argument.");
-    if (p0->Type() == GDL_DOUBLE) p0D = static_cast<DDoubleGDL*>(p0);
+    if (p0->Type() == GDL_COMPLEX) {
+        complexity=2;
+        DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
+        p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
+        p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
+#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
+#pragma omp for
+        for (SizeT i = 0; i < c0->N_Elements(); ++i) {
+            (*p0D[0])[i] = (*c0)[i].real();
+            (*p0D[1])[i] = (*c0)[i].imag();
+        }
+    }
+    else if( p0->Type() == GDL_COMPLEXDBL) {
+        complexity=2;
+        DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
+        p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
+        p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
+#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
+#pragma omp for
+        for (SizeT i = 0; i < c0->N_Elements(); ++i) {
+            (*p0D[0])[i] = (*c0)[i].real();
+            (*p0D[1])[i] = (*c0)[i].imag();
+        }
+    }
+    else if (p0->Type() == GDL_DOUBLE) p0D[0] = static_cast<DDoubleGDL*>(p0);
     else
       {
-	p0D = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	guard0.Init(p0D);
+	p0D[0] = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+	guard00.Init(p0D[0]);
       }
 
     BaseGDL* p1 = e->GetParDefined(1);
@@ -2159,88 +2185,113 @@ namespace lib {
 	}
     }
 
-    // Determine dimensions of output
-    DDoubleGDL* res;
-    // 1D Interpolation
-    if (nParam == 2) {
-      //   res=interpolate_1dim(e,p0D,p1D,cubic,use_missing,missing);
-      if (nnbor)   res=interpolate_1dim(e,gdl_interp1d_nearest,p0D,p1D,use_missing,missing,0.0);
-      else if (cubic)   res=interpolate_1dim(e,gdl_interp1d_cubic,p0D,p1D,use_missing,missing,gamma);
-      else         res=interpolate_1dim(e,gdl_interp1d_linear,p0D,p1D,use_missing,missing,0.0);
-    }
- 
-    if (nParam == 3) {
-      if (nnbor)        res=interpolate_2dim(e,gdl_interp2d_binearest,p0D,p1D,p2D,grid,use_missing,missing,0.0);
-      else if (cubic)   res=interpolate_2dim(e,gdl_interp2d_bicubic,p0D,p1D,p2D,grid,use_missing,missing,gamma);
-      else              res=interpolate_2dim(e,gdl_interp2d_bilinear,p0D,p1D,p2D,grid,use_missing,missing,0.0);
-    }
-    if (nParam == 4) {
-      res=interpolate_3dim(e,gdl_interp3d_trilinear,p0D,p1D,p2D,p3D,grid,use_missing,missing);
-    }
+    DDoubleGDL* res[2];
+    for (int iloop=0; iloop<complexity; ++iloop)
+    {
 
+
+        // 1D Interpolation
+        if (nParam == 2) {
+          //   res[iloop]=interpolate_1dim(e,p0D[iloop],p1D,cubic,use_missing,missing);
+          if (nnbor)   res[iloop]=interpolate_1dim(e,gdl_interp1d_nearest,p0D[iloop],p1D,use_missing,missing,0.0);
+          else if (cubic)   res[iloop]=interpolate_1dim(e,gdl_interp1d_cubic,p0D[iloop],p1D,use_missing,missing,gamma);
+          else         res[iloop]=interpolate_1dim(e,gdl_interp1d_linear,p0D[iloop],p1D,use_missing,missing,0.0);
+        }
+
+        if (nParam == 3) {
+          if (nnbor)        res[iloop]=interpolate_2dim(e,gdl_interp2d_binearest,p0D[iloop],p1D,p2D,grid,use_missing,missing,0.0);
+          else if (cubic)   res[iloop]=interpolate_2dim(e,gdl_interp2d_bicubic,p0D[iloop],p1D,p2D,grid,use_missing,missing,gamma);
+          else              res[iloop]=interpolate_2dim(e,gdl_interp2d_bilinear,p0D[iloop],p1D,p2D,grid,use_missing,missing,0.0);
+        }
+        if (nParam == 4) {
+          res[iloop]=interpolate_3dim(e,gdl_interp3d_trilinear,p0D[iloop],p1D,p2D,p3D,grid,use_missing,missing);
+        }
+    }
     if (p0->Type() == GDL_DOUBLE)
       {
-	return res;
+	return res[0];
       }
     else if (p0->Type() == GDL_FLOAT)
       {
 	DFloatGDL* res1 = static_cast<DFloatGDL*>
-	  (res->Convert2(GDL_FLOAT, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_FLOAT, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_INT)
       {
 	DIntGDL* res1 = static_cast<DIntGDL*>
-	  (res->Convert2(GDL_INT, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_INT, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_UINT)
       {
 	DUIntGDL* res1 = static_cast<DUIntGDL*>
-	  (res->Convert2(GDL_UINT, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_UINT, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_LONG)
       {
 	DLongGDL* res1 = static_cast<DLongGDL*>
-	  (res->Convert2(GDL_LONG, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_LONG, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_ULONG)
       {
 	DULongGDL* res1 = static_cast<DULongGDL*>
-	  (res->Convert2(GDL_ULONG, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_ULONG, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_LONG64)
       {
 	DLong64GDL* res1 = static_cast<DLong64GDL*>
-	  (res->Convert2(GDL_LONG64, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_LONG64, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_ULONG64)
       {
 	DULong64GDL* res1 = static_cast<DULong64GDL*>
-	  (res->Convert2(GDL_ULONG64, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_ULONG64, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
     else if (p0->Type() == GDL_BYTE)
       {
 	DByteGDL* res1 = static_cast<DByteGDL*>
-	  (res->Convert2(GDL_BYTE, BaseGDL::COPY));
-	delete res;
+	  (res[0]->Convert2(GDL_BYTE, BaseGDL::COPY));
+	delete res[0];
 	return res1;
       }
-    else
+    else if (p0->Type() == GDL_COMPLEX) {
+	DComplexGDL* res1 = new DComplexGDL(res[0]->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
+#pragma omp for
+        for (SizeT i = 0; i < res1->N_Elements(); ++i) {
+            (*res1)[i].real() = (*res[0])[i];
+            (*res1)[i].imag() = (*res[1])[i];
+        }
+ 	delete res[0]; delete res[1];
+	return res1;       
+    }
+    else if (p0->Type() == GDL_COMPLEXDBL) {
+	DComplexDblGDL* res1 = new DComplexDblGDL(res[0]->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
+#pragma omp for
+        for (SizeT i = 0; i < res1->N_Elements(); ++i) {
+            (*res1)[i].real() = (*res[0])[i];
+            (*res1)[i].imag() = (*res[1])[i];
+        }
+ 	delete res[0]; delete res[1];
+	return res1;       
+    }
+    else //?
       {
-	return res;
+	return res[0];
       }
 
   }
