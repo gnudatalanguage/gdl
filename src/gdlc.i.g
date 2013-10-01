@@ -2380,77 +2380,8 @@ indexable_tmp_expr returns [BaseGDL* res]
      res = _t->Eval(); //lib_function_call_retnew_internal(_t);
 	_retTree = _t->getNextSibling();
     return res;
-//    BaseGDL*  e1;
-//    BaseGDL* res;
-//    ProgNodeP q = ProgNodeP(antlr::nullAST);
-//    ProgNodeP a = ProgNodeP(antlr::nullAST);
-    
-    switch ( _t->getType()) {
-      case QUESTION:
-      // {
-	  //     res = _t->Eval();
-	  //     _retTree = _t->getNextSibling();
-	  //     break;
-      // }
-      case ARRAYEXPR:
-      // {
-	  //     res = _t->Eval();
-	  //     _retTree = _t->getNextSibling();
-	  //     break;
-      // }
-      case ARRAYEXPR_MFCALL:
-      case FCALL:
-      case MFCALL:
-      case MFCALL_PARENT:
-  //     {
-  //         res=_t->Eval(); //function_call(_t);
-  //         _retTree = _t->getNextSibling();
-  // //	    _t = _retTree;
-  //         break;
-  //     }
-      case ARRAYDEF:
-      case EXPR:
-      case NSTRUC:
-      case NSTRUC_REF:
-      case POSTDEC:
-      case POSTINC:
-      case STRUC:
-      case DEC:
-      case INC:
-  //     {
-  //         res=_t->Eval(); //r_expr(_t);
-  //         _retTree = _t->getNextSibling();
-  // //	    _t = _retTree;
-  //         break;
-  //     }
-      case DOT:
-  //     {
-  //         res=_t->Eval(); //dot_expr(_t);
-  //         _retTree = _t->getNextSibling();
-  // //	    _t = _retTree;
-  //         break;
-  //     }
-      case ASSIGN:
-      case ASSIGN_REPLACE:
-      case ASSIGN_ARRAYEXPR_MFCALL:
-  //     {
-  //         res=_t->Eval(); //assign_expr(_t);
-  //         _retTree = _t->getNextSibling();
-  // //	    _t = _retTree;
-  //         break;
-  //     }
-      case FCALL_LIB_RETNEW:
-      {
-	      res=_t->Eval(); //lib_function_call_retnew_internal(_t);
-	      _retTree = _t->getNextSibling();
-  //	    _t = _retTree;
-	      break;
-      }
-    }
-//    _retTree = _t;
-    return res;
 }
-	: #(q:QUESTION { res=q->Eval();}) // trinary operator
+	: (QUESTION) // trinary operator
     | (ARRAYEXPR) //res=array_expr
     | res=dot_expr_unused
     | res=assign_expr
@@ -2508,7 +2439,7 @@ tmp_expr returns [BaseGDL* res]
     BaseGDL** e2;
 } // tmp_expr
     : e2=l_deref 
-	| #(q:QUESTION {res=q->Eval();}) // trinary operator
+	| (QUESTION) // trinary operator
     | (ARRAYEXPR) //res=array_expr
 //    | res=array_expr
     | res=dot_expr_unused
@@ -2563,7 +2494,7 @@ simple_var returns [BaseGDL* res]
 	if( vData == NULL)
         {
         if( _t->getType() == VAR)
-            throw GDLException( _t, "Variable is undefined: "+var->getText(),true,false);
+            throw GDLException( _t, "Variable is undefined: "+_t->getText(),true,false);
         else // VARPTR
             throw GDLException( _t, "Common block variable is undefined.",true,false);
         }
@@ -2591,19 +2522,6 @@ sys_var_nocopy returns [BaseGDL* res]
 }
     : SYSVAR 
     ;
-
-// constant returns [BaseGDL* res]
-// {
-//     res = _t->Eval();
-// 	_retTree = _t->getNextSibling();
-// 	return res; //_t->cData->Dup(); 
-// }
-//   : CONSTANT
-// //         {
-// //             res=c->cData->Dup(); 
-// //         }
-//   ;
-
 
 lib_function_call_internal returns[ BaseGDL* res]
 { 
