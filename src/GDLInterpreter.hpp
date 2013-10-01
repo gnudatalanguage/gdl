@@ -643,16 +643,18 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
 
         std::cout << std::flush;
         if( dumpStack)
-        if( e.Prefix())
-        {
-            std::cerr << msgPrefix << e.toString() << std::endl;
-            lib::write_journal_comment(msgPrefix+e.toString());
-        }
-        else
-        {
-            std::cerr << e.toString() << std::endl;
-            lib::write_journal_comment(e.toString());
-        }
+            {
+                if( e.Prefix())
+                    {
+                      std::cerr << msgPrefix << e.toString() << std::endl;
+                      lib::write_journal_comment(msgPrefix+e.toString());
+                    }
+                else
+                    {
+                        std::cerr << e.toString() << std::endl;
+                        lib::write_journal_comment(e.toString());
+                    }
+            }
 
         std::cerr << msgPrefix << emsg << " " << 
         std::left << std::setw(16) << callStack.back()->GetProName();
