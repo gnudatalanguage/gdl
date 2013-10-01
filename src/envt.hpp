@@ -83,7 +83,7 @@ protected:
   bool                 obj;       // member subroutine?
   ExtraT*            extra;
 
-  EnvBaseT*      newEnv;
+  EnvBaseT*      newEnvOff;
 
   // finds the local variable pp points to
 //   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
@@ -167,8 +167,8 @@ public:
 // 		std::cout << this->pro->ObjectName() << std::endl;
 // 	}
 
-	EnvBaseT* GetNewEnv() {return newEnv; }
-	void SetNewEnv( EnvBaseT* nE) { newEnv = nE;}
+  EnvBaseT* GetNewEnv() {return newEnvOff; }
+  void SetNewEnv( EnvBaseT* nE) { newEnvOff = nE;}
 
   virtual void ObjCleanup( DObj actID);
 
@@ -500,6 +500,7 @@ public:
     return static_cast<DSubUD*>( pro)->GotoTarget( ix);
   }
   CallContext GetCallContext() const { return callContext;} // left-function
+  void SetCallContext(CallContext cC) { callContext = cC;} // left-function
 
   void SetIOError( int targetIx) 
   { // this isn't a jump
@@ -552,7 +553,7 @@ public:
 
   // used by obj_new (basic_fun.cpp)
   EnvT* NewEnv(  DSub* newPro, SizeT skipP, DObjGDL** newObj=NULL);
-  void PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj=NULL);
+  EnvUDT* PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj=NULL);
   // for exclusive use by lib::on_error
   void OnError();
   // for exclusive use by lib::catch_pro
@@ -657,8 +658,8 @@ public:
     BaseGDL* p = GetKW( ix);
     if( p == NULL)
       Throw( "Keyword is undefined: "+GetString( ix));
-	if( p->Type() == T::t)
-		return static_cast<T*>( p);
+    if( p->Type() == T::t)
+      return static_cast<T*>( p);
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
@@ -672,8 +673,8 @@ public:
   {
     BaseGDL* p = GetPar( pIx);
     if( p == NULL) return NULL;
-	if( p->Type() == T::t)
-		return static_cast<T*>( p);
+    if( p->Type() == T::t)
+	return static_cast<T*>( p);
 //     T* res = dynamic_cast<T*>( p);
 //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));

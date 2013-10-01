@@ -1247,14 +1247,14 @@ namespace lib {
       }
     else
       {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
 	proIx = DInterpreter::GetProIx( callP);
 	
-	e->PushNewEnvUD( proList[ proIx], 1);
+	EnvUDT* newEnv = e->PushNewEnvUD( proList[ proIx], 1);
 	
 	// make the call
-	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
+// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
 	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->
 				   GetTree());
       }

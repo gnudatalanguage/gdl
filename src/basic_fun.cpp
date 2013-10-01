@@ -883,7 +883,11 @@ namespace lib {
 
     BaseGDL* p0=e->GetPar( 0);
 
-    if( p0 == NULL) return new DLongGDL( 0);
+    if( p0 == NULL) 
+      return new DLongGDL( 0);
+    if( p0->IsAssoc())
+      return new DLongGDL( 1);
+     
     return new DLongGDL( p0->N_Elements()); 
     
 //     assert( 0);
@@ -1337,11 +1341,14 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
 	funIx = GDLInterpreter::GetFunIx( callF);
 	
-	e->PushNewEnvUD( funList[ funIx], 1);
+	EnvUDT* newEnv = e->PushNewEnvUD( funList[ funIx], 1);
 	
 	// make the call
-	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
-	return e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
+	newEnv->SetCallContext( EnvUDT::LRFUNCTION);
+	BaseGDL* res = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+	return res;
       }
   }
 
@@ -1351,8 +1358,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
     int nParam=e->NParam();
     if( nParam < 2)
-      e->Throw(  "Name and object reference"
-			  " must be specified.");
+      e->Throw(  "Name and object reference must be specified.");
     
     DString callP;
     e->AssureScalarPar<DStringGDL>( 0, callP);
@@ -1366,11 +1372,15 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
-// // // /**/
-    e->PushNewEnvUD( method, 2, (DObjGDL**) &e->GetPar( 1));
+
+    EnvUDT* newEnv = e->PushNewEnvUD( method, 2, (DObjGDL**) &e->GetPar( 1));
     
     // make the call
-    return e->Interpreter()->call_fun( method->GetTree());
+//     return e->Interpreter()->call_fun( method->GetTree());
+    newEnv->SetCallContext( EnvUDT::LRFUNCTION);
+    BaseGDL* res = e->Interpreter()->call_fun( method->GetTree());
+    e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+    return res;
   }
 
 

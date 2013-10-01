@@ -982,7 +982,8 @@ public:
     //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     DByteGDL* p0B;
     p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));
-    e->DeleteAtExit( p0B);
+    Guard<BaseGDL> guardP0B( p0B);
+//     e->DeleteAtExit( p0B);
     
     int width, height;
     DLong tru=0;

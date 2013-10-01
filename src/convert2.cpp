@@ -1247,7 +1247,7 @@ TRACE_CONVERT2
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=Real2DByte<double>((*this)[i]);
@@ -1270,7 +1270,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=Real2Int<DInt,double>((*this)[i]);
@@ -1292,7 +1292,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=static_cast< DUInt>((*this)[i]);//Real2Int<DUInt,double>((*this)[i]);
@@ -1313,7 +1313,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=Real2Int<DLong,double>((*this)[i]);
@@ -1335,7 +1335,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=static_cast< DULong>((*this)[i]);//Real2Int<DULong,double>((*this)[i]);
@@ -1356,7 +1356,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=Real2Int<DLong64,double>((*this)[i]);
@@ -1378,7 +1378,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
+	if( nEl == 1) 
 	{
 		const SizeT i = 0;
 		(*dest)[i]=static_cast< DULong64>((*this)[i]);//Real2Int<DULong64,double>((*this)[i]);

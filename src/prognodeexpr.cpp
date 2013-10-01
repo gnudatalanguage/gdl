@@ -520,12 +520,6 @@ BaseGDL** SYSVARNode::LEval()
 
 BaseGDL* DEREFNode::Eval()
 {
-    // use new env if set (during parameter parsing)
-  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
-  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
-
-  assert( actEnv != NULL);
-
   Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
@@ -533,27 +527,11 @@ BaseGDL* DEREFNode::Eval()
     {
       e1 = evalExpr->EvalNC();
     }
-//   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
-//     {
-// //       e1=interpreter->lib_function_call(evalExpr);
-//       BaseGDL** retValPtr;
-//       e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
-//       // set return tree not needed
-//       if( e1 == NULL) // ROUTINE_NAMES
-// 	      throw GDLException( evalExpr, "Undefined return value", true, false);
-//       
-// //       if( !DInterpreter::CallStackBack()->Contains( e1)) 
-//       if( retValPtr == NULL)
-// 	{
-//   	  e1_guard.Init( e1); 
-// 	}
-//     }
   else
     {
-//       e1 = evalExpr->Eval();
-//       e1_guard.Init( e1); 
       BaseGDL** ref = evalExpr->EvalRefCheck(e1);
       if( ref == NULL)
+	  // here a guard is ok here as we return a copy
 	  e1_guard.Init( e1); 
       else
 	  e1 = *ref;
@@ -567,11 +545,11 @@ BaseGDL* DEREFNode::Eval()
 
   DPtr sc; 
   if( !ptr->StrictScalar(sc))
-  throw GDLException( this, "Expression must be a "
-  "scalar in this context: "+interpreter->Name(e1),true,false);
+    throw GDLException( this, "Expression must be a scalar in this context: "+
+				interpreter->Name(e1),true,false);
   if( sc == 0)
-  throw GDLException( this, "Unable to dereference"
-  " NULL pointer: "+interpreter->Name(e1),true,false);
+    throw GDLException( this, "Unable to dereference NULL pointer: "+
+				interpreter->Name(e1),true,false);
   
   BaseGDL** res;
   try{
@@ -584,24 +562,34 @@ BaseGDL* DEREFNode::Eval()
 
   if( *res == NULL)
 	  throw GDLException( this, "Variable is undefined: "+
-		  interpreter->Name(res),true,false);
+				      interpreter->Name(res),true,false);
   return (*res)->Dup();
 }
 	
 BaseGDL* DEREFNode::EvalNC()
 {
-  Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
-  {
-    e1 = evalExpr->EvalNC();
-  }
+    {
+      e1 = evalExpr->EvalNC();
+    }
   else
-  {
-    e1 = evalExpr->Eval();
-    e1_guard.Reset(e1);
-  }
+    {
+      BaseGDL** ref = evalExpr->EvalRefCheck(e1);
+      if( ref == NULL)
+      {
+	  // use new env if set (during parameter parsing)
+	  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+	  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+	  assert( actEnv != NULL);
+	  // this is crucial, a guard does not work here as a temporary
+	  // ptr will be cleaned up at return from this function
+	  actEnv->DeleteAtExit( e1);
+      }
+      else
+	  e1 = *ref;
+    }
 
   if( e1 == NULL || e1->Type() != GDL_PTR)
     throw GDLException( this, "Pointer type required"
@@ -631,63 +619,42 @@ BaseGDL** DEREFNode::EvalRefCheck( BaseGDL*& rEval)
 
 BaseGDL** DEREFNode::LEval()
 {
-  // use new env if set (during parameter parsing)
-  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
-  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
-
-  assert( actEnv != NULL);
-
-//   Guard<BaseGDL> e1_guard;
   BaseGDL* e1;
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
     {
       e1 = evalExpr->EvalNC();
     }
-//   else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
-//     {
-// //       e1=interpreter->lib_function_call(evalExpr);
-//       BaseGDL** retValPtr;
-//       e1 = static_cast<FCALL_LIBNode*>(evalExpr)->EvalFCALL_LIB( retValPtr); 
-//       // set return tree not needed
-//       if( e1 == NULL) // ROUTINE_NAMES
-// 	      throw GDLException( evalExpr, "Undefined return value", true, false);
-//       
-// //       if( !DInterpreter::CallStackBack()->Contains( e1)) 
-//       if( retValPtr == NULL)
-// 	{
-// //   	  e1_guard.Init( e1); 
-// 	  actEnv->DeleteAtExit( e1); // we need life cycle until end of current subroutine
-// 	}
-//     }
   else
     {
-//       e1 = evalExpr->Eval();
-// //       e1_guard.Init( e1); 
-//       // in case *(ptr_new(value)), value will be destroyed due to ref counting
-//       // when e1 is deleted
-//       actEnv->DeleteAtExit( e1);// we need life cycle until end of current subroutine
-
       BaseGDL** ref = evalExpr->EvalRefCheck(e1);
       if( ref == NULL)
+      {
+	  // use new env if set (during parameter parsing)
+	  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+	  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+	  assert( actEnv != NULL);
+	  // this is crucial, a guard does not work here as a temporary
+	  // ptr will be cleaned up at return from this function
 	  actEnv->DeleteAtExit( e1);
+      }
       else
 	  e1 = *ref;
     }
 
   if( e1 == NULL || e1->Type() != GDL_PTR)
-  throw GDLException( evalExpr, "Pointer type required"
-		      " in this context: "+interpreter->Name(e1),true,false);
+    throw GDLException( evalExpr, "Pointer type required in this context: "+
+				    interpreter->Name(e1),true,false);
 
   DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
 
   DPtr sc; 
   if( !ptr->StrictScalar(sc))
-  throw GDLException( this, "Expression must be a "
-  "scalar in this context: "+interpreter->Name(e1),true,false);
+  throw GDLException( this, "Expression must be a scalar in this context: "+
+			      interpreter->Name(e1),true,false);
   if( sc == 0)
-  throw GDLException( this, "Unable to dereference"
-  " NULL pointer: "+interpreter->Name(e1),true,false);
+  throw GDLException( this, "Unable to dereference NULL pointer: "+
+			      interpreter->Name(e1),true,false);
   
   BaseGDL** res;
   try{
@@ -700,7 +667,6 @@ BaseGDL** DEREFNode::LEval()
 
   return res;
 }
-
 
 
 
@@ -3115,60 +3081,47 @@ BaseGDL* POWNCNode::Eval()
     }
   return res;
 }
-// BaseGDL* DECNCNode::Eval()
-// { BaseGDL* res;
-//   return new DECNode( refNode);
-// }
-// BaseGDL* INCNCNode::Eval()
-// { BaseGDL* res;
-//   return new INCNode( refNode);
-// }
-// BaseGDL* POSTDECNCNode::Eval()
-// { BaseGDL* res;
-//   return new POSTDECNode( refNode);
-// }
-// BaseGDL* POSTINCNCNode::Eval()
-// { BaseGDL* res;
-//   return new POSTINCNode( refNode);
-// }
 
-  BaseGDL** FCALL_LIB_N_ELEMENTSNode::LEval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+BaseGDL** FCALL_LIB_N_ELEMENTSNode::LEval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     throw GDLException(this,"Internal error: N_ELEMENTS called as left expr.");
-  }
+}
 
-  BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
-  {
+BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
+{
     try
-      {
-	BaseGDL* param;
-	bool isReference = 
-	  static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
-	Guard<BaseGDL> guard;
-	if( !isReference)
-	  guard.Reset( param);
+    {
+        BaseGDL* param;
+        bool isReference =
+            static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
+        Guard<BaseGDL> guard;
+        if( !isReference)
+            guard.Reset( param);
 
-	if( param == NULL)
-	  return new DLongGDL( 0);
-	
-	return new DLongGDL( param->N_Elements());   
-      } 
+        if( param == NULL)
+            return new DLongGDL( 0);
+
+        if( param->IsAssoc())
+            return new DLongGDL( 1);
+
+        return new DLongGDL( param->N_Elements());
+    }
     catch( GDLException& e)
-      {
-	// an error occured -> parameter is undefined 
-	return new DLongGDL( 0);
-      }
-  }
+    {
+        // an error occured -> parameter is undefined
+        return new DLongGDL( 0);
+    }
+}
 
-  BaseGDL** FCALL_LIB_RETNEWNode::LEval()
-  {
+BaseGDL** FCALL_LIB_RETNEWNode::LEval()
+{
     throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
-  }
+}
 
-  BaseGDL* FCALL_LIB_RETNEWNode::Eval()
-  {
+BaseGDL* FCALL_LIB_RETNEWNode::Eval()
+{
 // 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
     EnvT* newEnv=new EnvT( this, this->libFun);
 
@@ -3180,51 +3133,51 @@ BaseGDL* POWNCNode::Eval()
     //*** MUST always return a defined expression
     assert( res != NULL);
     return res;
-  }
+}
 
-  BaseGDL** FCALL_LIB_DIRECTNode::LEval()
-  {
+BaseGDL** FCALL_LIB_DIRECTNode::LEval()
+{
     throw GDLException(this,"Internal error: FCALL_LIB_DIRECTNode as left expr.");
-  }
+}
 
-  BaseGDL* FCALL_LIB_DIRECTNode::Eval()
-  {
+BaseGDL* FCALL_LIB_DIRECTNode::Eval()
+{
     BaseGDL* param;
-    bool isReference = 
-      static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
+    bool isReference =
+        static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
     Guard<BaseGDL> guard;
     if( !isReference)
-      guard.Init( param);
+        guard.Init( param);
     // check already here to keep functions leaner
     if( param == NULL)
     {
-      assert( isReference);
-      // unfortunately we cannot retrieve the variable's name here without some effort
-      throw GDLException(this, 
-			 this->libFun->ObjectName()+": Variable is undefined.",
-			 false,false);
+        assert( isReference);
+        // unfortunately we cannot retrieve the variable's name here without some effort
+        throw GDLException(this,
+                           this->libFun->ObjectName()+": Variable is undefined.",
+                           false,false);
     }
     try {
-      BaseGDL* res = this->libFunDirectFun(param, isReference);
+        BaseGDL* res = this->libFunDirectFun(param, isReference);
 // 	static_cast<DLibFunDirect*>(this->libFun)->FunDirect()(param, isReference);
-      assert( res != NULL); //*** MUST always return a defined expression
-      if( res == param)
-	guard.release();
-      return res;
+        assert( res != NULL); //*** MUST always return a defined expression
+        if( res == param)
+            guard.release();
+        return res;
     }
     catch( GDLException& ex)
     {
-      // annotate exception
-      throw GDLException(this, this->libFun->ObjectName()+": "+ ex.getMessage(),false,false); 
+        // annotate exception
+        throw GDLException(this, this->libFun->ObjectName()+": "+ ex.getMessage(),false,false);
     }
-  }
+}
 
-  BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
+{
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
-	Guard<EnvT> guardEnv( newEnv);
+    Guard<EnvT> guardEnv( newEnv);
 
     // make the call
 //     rEval = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
@@ -3233,10 +3186,10 @@ BaseGDL* POWNCNode::Eval()
     BaseGDL** res = newEnv->GetPtrToReturnValue();
     return res; // NULL ok, rEval set properly
 
-  }
-  
-  BaseGDL** FCALL_LIBNode::LEval()
-  {
+}
+
+BaseGDL** FCALL_LIBNode::LEval()
+{
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
@@ -3246,71 +3199,60 @@ BaseGDL* POWNCNode::Eval()
     static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
     if( scopeVarfetchPro == this->libFun)//newEnv->GetPro())
     {
-      BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
-      if( sV != NULL)
-	return sV;
-      // should never happen
-      throw GDLException( this, "SCOPE_VARFETCH returned no l-value: "+this->getText());
+        BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
+        if( sV != NULL)
+            return sV;
+        // should never happen
+        throw GDLException( this, "Internal error: SCOPE_VARFETCH returned no left-value: "+this->getText());
     }
     static DSub* routine_namesPro = libFunList[ LibFunIx("ROUTINE_NAMES")];
     if( routine_namesPro == this->libFun)// newEnv->GetPro())
     {
-      BaseGDL**  sV = lib::routine_names_reference( newEnv);
-      if( sV != NULL)
-	return sV;
-      // should never happen
-      throw GDLException( this, "ROUTINE_NAMES returned no l-value: "+this->getText());
+        BaseGDL**  sV = lib::routine_names_reference( newEnv);
+        if( sV != NULL)
+            return sV;
+        // should never happen
+        throw GDLException( this, "Internal error: ROUTINE_NAMES returned no left-value: "+this->getText());
     }
 //     BaseGDL* libRes = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL* libRes = this->libFunFun(newEnv);
-    // this is correct: l-value in current environment
-//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
     BaseGDL** res = newEnv->GetPtrToReturnValue();
-    // wrong: would return ptr to local
-    //     BaseGDL** res = newEnv->GetPtrTo( libRes);
     if( res == NULL)
     {
-      GDLDelete( libRes);
-      
-      throw GDLException( this, "Library function must return a "
-	    "l-value in this context: "+this->getText());
+        GDLDelete( libRes);
+
+        throw GDLException( this, "Library function must return a "
+                            "left-value in this context: "+this->getText());
     }
     return res;
-  }
+}
 
-  // returns new or existing variable
-  BaseGDL* FCALL_LIBNode::EvalFCALL_LIB(BaseGDL**& retValPtr)
-  {
-    
+// returns new or existing variable
+BaseGDL* FCALL_LIBNode::EvalFCALL_LIB(BaseGDL**& retValPtr)
+{
+
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
-	
+
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 
     Guard<EnvT> guardEnv( newEnv);
 
 //     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
 //     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
-		
+
 //     BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL* res=this->libFunFun(newEnv);
-
-//     if( newEnv->Contains( res))
-//     {
-// 	// now what to do? returned input parameter
-// 	// but caller will never know
-// 	// we need another solution
-//     }
-
-    // *** MUST always return a defined expression
+    // *** MUST always return a defined expression or !NULL
     assert( res != NULL);
-//     ProgNode::interpreter->CallStackBack()->SetPtrToReturnValue( newEnv->GetPtrToReturnValueNull());
+
+    //     ProgNode::interpreter->CallStackBack()->SetPtrToReturnValue( newEnv->GetPtrToReturnValueNull());
     retValPtr = newEnv->GetPtrToReturnValue();
     return res;
-  }
+}
 
-  // returns always a new variable - see EvalFCALL_LIB
-  BaseGDL* FCALL_LIBNode::Eval() 
-  {
+// returns always a new variable - see EvalFCALL_LIB
+BaseGDL* FCALL_LIBNode::Eval()
+{
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
@@ -3330,7 +3272,7 @@ BaseGDL* POWNCNode::Eval()
 //     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
 //     if( callStackBack->Contains( res))
     if( newEnv->GetPtrToReturnValue() != NULL)
-	return res->Dup();
+        return res->Dup();
 
 //     static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
 //     if( scopeVarfetchPro == newEnv->GetPro())
@@ -3338,42 +3280,41 @@ BaseGDL* POWNCNode::Eval()
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL** MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+BaseGDL** MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
+{
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-		
+
     ProgNodeP _t = this->getFirstChild();
 
     BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     Guard<BaseGDL> self_guard(self);
-    
+
     _t = _t->getNextSibling();
     //match(antlr::RefAST(_t),IDENTIFIER);
 
     EnvUDT* newEnv=new EnvUDT( self, _t, "", EnvUDT::LRFUNCTION);
-    
+
     self_guard.release();
-    
+
     _t = _t->getNextSibling();
-    
+
     ProgNode::interpreter->parameter_def(_t, newEnv); // temporary owns newEnv (-> no guard necessary)
-  	
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv); // now guarded by "guard"
-    
+
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    
-//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
     return res; // NULL ok, rEval set properly
-  }  
-  
-  BaseGDL** MFCALLNode::LEval()
-  {
-        // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+}
+
+BaseGDL** MFCALLNode::LEval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 
 //		match(antlr::RefAST(_t),MFCALL);
@@ -3390,57 +3331,57 @@ BaseGDL* POWNCNode::Eval()
     self_guard.release();
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
-    
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-	    
-	    // make the call
+
+    // make the call
     BaseGDL**	res=ProgNode::interpreter->
-		    call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+                    call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
- 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL* MFCALLNode::Eval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+BaseGDL* MFCALLNode::Eval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-		
+
     ProgNodeP _t = this->getFirstChild();
 
     BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     Guard<BaseGDL> self_guard(self);
-    
+
     _t = _t->getNextSibling();
     //match(antlr::RefAST(_t),IDENTIFIER);
 
     EnvUDT* newEnv=new EnvUDT( self, _t);
-    
+
     self_guard.release();
-    
+
     _t = _t->getNextSibling();
-    
+
     ProgNode::interpreter->parameter_def(_t, newEnv);
-  	
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    
+
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL** MFCALL_PARENTNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+BaseGDL** MFCALL_PARENTNode::EvalRefCheck( BaseGDL*& rEval)
+{
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //  match(antlr::RefAST(_t),MFCALL_PARENT);
     ProgNodeP _t = this->getFirstChild();
     BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     Guard<BaseGDL> self_guard(self);
-    
+
     _t = _t->getNextSibling();
     ProgNodeP parent = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
@@ -3449,65 +3390,64 @@ BaseGDL* POWNCNode::Eval()
 // 		match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
 
-    EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), EnvUDT::LRFUNCTION);
+    EnvUDT* newEnv=new EnvUDT( self, p, parent->getText(), EnvUDT::LRFUNCTION);
 
     self_guard.release();
-    
+
     ProgNode::interpreter->parameter_def(_t, newEnv);
-  	
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
-    return res; // NULL ok, rEval set properly    
-  }
-  
-  BaseGDL** MFCALL_PARENTNode::LEval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    return res; // NULL ok, rEval set properly
+}
+
+BaseGDL** MFCALL_PARENTNode::LEval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //			match(antlr::RefAST(_t),MFCALL_PARENT);
-	ProgNodeP _t = this->getFirstChild();
-	BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
-	Guard<BaseGDL> self_guard(self);
+    ProgNodeP _t = this->getFirstChild();
+    BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
+    Guard<BaseGDL> self_guard(self);
 
-	_t = _t->getNextSibling();
-	ProgNodeP parent = _t;
+    _t = _t->getNextSibling();
+    ProgNodeP parent = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
-	_t = _t->getNextSibling();
-	ProgNodeP p = _t;
+    _t = _t->getNextSibling();
+    ProgNodeP p = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
-	_t = _t->getNextSibling();
+    _t = _t->getNextSibling();
 
-	EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), EnvUDT::LFUNCTION);
+    EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), EnvUDT::LFUNCTION);
 
-	self_guard.release();
+    self_guard.release();
 
-	ProgNode::interpreter->parameter_def(_t, newEnv);
+    ProgNode::interpreter->parameter_def(_t, newEnv);
 
-		// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-		
-		// make the call
-	BaseGDL** res=ProgNode::interpreter->
-		  call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
 
- 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
-  }
+    // make the call
+    BaseGDL** res=ProgNode::interpreter->
+                  call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-  BaseGDL* MFCALL_PARENTNode::Eval()
-  {
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
+}
+
+BaseGDL* MFCALL_PARENTNode::Eval()
+{
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //  match(antlr::RefAST(_t),MFCALL_PARENT);
     ProgNodeP _t = this->getFirstChild();
     BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     Guard<BaseGDL> self_guard(self);
-    
+
     _t = _t->getNextSibling();
     ProgNodeP parent = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
@@ -3517,88 +3457,87 @@ BaseGDL* POWNCNode::Eval()
     _t = _t->getNextSibling();
 
     EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText());
-    
+
     self_guard.release();
-    
+
     ProgNode::interpreter->parameter_def(_t, newEnv);
-  	
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    
+
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
+{
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
-    
+
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
-    
+
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-//     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
-    return res; // NULL ok, rEval set properly    
-  }
-  
-  BaseGDL** ARRAYEXPR_FCALLNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+    return res; // NULL ok, rEval set properly
+}
+
+BaseGDL** ARRAYEXPR_FCALLNode::EvalRefCheck( BaseGDL*& rEval)
+{
     if( fcallNodeFunIx >= 0)
-      return fcallNode->FCALLNode::EvalRefCheck( rEval);
+        return fcallNode->FCALLNode::EvalRefCheck( rEval);
     else if( fcallNodeFunIx == -2)
     {
-      rEval = arrayExprNode->ARRAYEXPRNode::Eval();
-      return NULL;
+        rEval = arrayExprNode->ARRAYEXPRNode::Eval();
+        return NULL;
     }
-    
+
     assert( fcallNodeFunIx == -1);
     // 1st try arrayexpr
-    try{
-      rEval = arrayExprNode->ARRAYEXPRNode::Eval();
-      assert( rEval != NULL);
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      return NULL;
+    try {
+        rEval = arrayExprNode->ARRAYEXPRNode::Eval();
+        assert( rEval != NULL);
+        fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+        return NULL;
     }
     catch( GDLException& ex)
     {
-     if( !ex.GetArrayexprIndexeeFailed())
-    {
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      throw ex;
+        if( !ex.GetArrayexprIndexeeFailed())
+        {
+            fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+            throw ex;
+        }
+        // then try fcall
+        try {
+            BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
+            fcallNodeFunIx = fcallNode->funIx;
+            return res;
+        }
+        catch( GDLException& innerEx)
+        {
+            // keep FCALL if already compiled (but runtime error)
+            if(fcallNode->funIx >= 0)
+            {
+                fcallNodeFunIx = fcallNode->funIx;
+                throw innerEx;
+            }
+            string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+                         " or: " + innerEx.ANTLRException::toString();
+            throw GDLException(this,msg,true,false);
+        }
     }
-     // then try fcall  
-      try{
-	BaseGDL** res = fcallNode->FCALLNode::EvalRefCheck( rEval);
-	fcallNodeFunIx = fcallNode->funIx;
-	return res;
-      }
-      catch( GDLException& innerEx)
-      {
-	// keep FCALL if already compiled (but runtime error)
-	if(fcallNode->funIx >= 0)
-	{
-	  fcallNodeFunIx = fcallNode->funIx;
-	  throw innerEx;
-	}
-	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	" or: " + innerEx.ANTLRException::toString();
-	throw GDLException(this,msg,true,false);
-      }
-    }
-  }
-  
-  BaseGDL** FCALLNode::LEval()
-  {
+}
+
+BaseGDL** FCALLNode::LEval()
+{
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     //	match(antlr::RefAST(_t),FCALL);
@@ -3615,130 +3554,130 @@ BaseGDL* POWNCNode::Eval()
 
     // make the call
     BaseGDL** res=
-    ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+        ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL** ARRAYEXPR_FCALLNode::LEval()
-  {
+BaseGDL** ARRAYEXPR_FCALLNode::LEval()
+{
     // already succeeded
     if( fcallNodeFunIx >= 0)
-      return fcallNode->FCALLNode::LEval();
+        return fcallNode->FCALLNode::LEval();
     else if( fcallNodeFunIx == -2)
     {
-      return arrayExprNode->ARRAYEXPRNode::LEval();
+        return arrayExprNode->ARRAYEXPRNode::LEval();
     }
 
     // both possible
     assert( fcallNodeFunIx == -1);
     // 1st try arrayexpr
-    try{
-      BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LEval();
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      return res;
+    try {
+        BaseGDL** res = arrayExprNode->ARRAYEXPRNode::LEval();
+        fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+        return res;
     }
     catch( GDLException& ex)
     {
-     if( !ex.GetArrayexprIndexeeFailed())
-    {
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      throw ex;
+        if( !ex.GetArrayexprIndexeeFailed())
+        {
+            fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+            throw ex;
+        }
+        // then try fcall
+        try {
+            BaseGDL** res = fcallNode->FCALLNode::LEval();
+            fcallNodeFunIx = fcallNode->funIx;
+            return res;
+        }
+        catch( GDLException& innerEx)
+        {
+            // keep FCALL if already compiled (but runtime error)
+            if(fcallNode->funIx >= 0)
+            {
+                fcallNodeFunIx = fcallNode->funIx;
+                throw innerEx;
+            }
+            string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+                         " or: " + innerEx.ANTLRException::toString();
+            throw GDLException(this,msg,true,false);
+        }
     }
-     // then try fcall
-      try {
-	BaseGDL** res = fcallNode->FCALLNode::LEval();
-	fcallNodeFunIx = fcallNode->funIx;
-	return res;
-      }
-      catch( GDLException& innerEx)
-	{
-	  // keep FCALL if already compiled (but runtime error)
-	  if(fcallNode->funIx >= 0)
-	  {
-	    fcallNodeFunIx = fcallNode->funIx;
-	    throw innerEx;
-	  }
-	  string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	  " or: " + innerEx.ANTLRException::toString();
-	  throw GDLException(this,msg,true,false);
-	}
-    }
-  }
+}
 
-  BaseGDL* FCALLNode::Eval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+BaseGDL* FCALLNode::Eval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
-    
+
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
-    
+
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     BaseGDL*
     res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    
+
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
-  BaseGDL* ARRAYEXPR_FCALLNode::Eval()
-  {
+BaseGDL* ARRAYEXPR_FCALLNode::Eval()
+{
     if( fcallNodeFunIx >= 0)
-      return fcallNode->FCALLNode::Eval();
+        return fcallNode->FCALLNode::Eval();
     else if( fcallNodeFunIx == -2)
     {
-	return arrayExprNode->ARRAYEXPRNode::Eval();
+        return arrayExprNode->ARRAYEXPRNode::Eval();
     }
-    
+
     assert( fcallNodeFunIx == -1);
 
     // 1st try arrayexpr
-    try{
-      BaseGDL* res = arrayExprNode->ARRAYEXPRNode::Eval();
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      return res;
+    try {
+        BaseGDL* res = arrayExprNode->ARRAYEXPRNode::Eval();
+        fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+        return res;
     }
     catch( GDLException& ex)
     {
-      // then try fcall
-      // Problem here: we don't know, why arrayexpr failed
-      // if it is just because of the index, we should not 
-      // try the function here
-    if( !ex.GetArrayexprIndexeeFailed())
-    {
-      fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
-      throw ex;
+        // then try fcall
+        // Problem here: we don't know, why arrayexpr failed
+        // if it is just because of the index, we should not
+        // try the function here
+        if( !ex.GetArrayexprIndexeeFailed())
+        {
+            fcallNodeFunIx = -2; // mark as ARRAYEXPR succeeded
+            throw ex;
+        }
+        try {
+            BaseGDL* res = fcallNode->FCALLNode::Eval();
+            fcallNodeFunIx = fcallNode->funIx;
+            return res;
+        }
+        catch( GDLException& innerEx)
+        {
+            // keep FCALL if already compiled (but runtime error)
+            if(fcallNode->funIx >= 0)
+            {
+                fcallNodeFunIx = fcallNode->funIx;
+                throw innerEx;
+            }
+            string msg = "Ambiguous: " + ex.ANTLRException::toString() +
+                         " or: " + innerEx.ANTLRException::toString();
+            throw GDLException(this,msg,true,false);
+        }
     }
-      try{
-	BaseGDL* res = fcallNode->FCALLNode::Eval();
-	fcallNodeFunIx = fcallNode->funIx;
-	return res;
-      } 
-      catch( GDLException& innerEx)
-      {
-	// keep FCALL if already compiled (but runtime error)
-	if(fcallNode->funIx >= 0)
-	{
-	  fcallNodeFunIx = fcallNode->funIx;
-	  throw innerEx;
-	}
-	string msg = "Ambiguous: " + ex.ANTLRException::toString() +
-	" or: " + innerEx.ANTLRException::toString();
-	throw GDLException(this,msg,true,false);
-      }
-    }
-  }
-  
-  
+}
+
+
 BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
-  {
+{
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
     ProgNodeP mark = this->getFirstChild();
@@ -3757,81 +3696,81 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
 
     EnvUDT* newEnv;
     try {
-	    newEnv=new EnvUDT( self, mp2, "", EnvUDT::LRFUNCTION);
-	    self_guard.release();
+        newEnv=new EnvUDT( self, mp2, "", EnvUDT::LRFUNCTION);
+        self_guard.release();
     }
     catch( GDLException& ex)
     {
-	    goto tryARRAYEXPR;
+        goto tryARRAYEXPR;
     }
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
 
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     rEval= ProgNode::interpreter->
-		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-//     res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
+           call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     res = newEnv->GetPtrToGlobalReturnValue();
-    return res; // NULL ok, rEval set properly    
-    
-    tryARRAYEXPR:;
+    return res; // NULL ok, rEval set properly
+
+tryARRAYEXPR:
+    ;
     //_t = mark;
-    
+
     ProgNodeP dot = mark;
     // 	match(antlr::RefAST(_t),DOT);
     _t = mark->getFirstChild();
-	    
+
     SizeT nDot=dot->nDot;
     Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-	    
+
     ProgNode::interpreter->r_dot_array_expr(_t, aD.get());
     _t = _t->getNextSibling();
     for (; _t != NULL;) {
-    ProgNode::interpreter->tag_array_expr(_t, aD.get());
-    _t = _t->getNextSibling();
+        ProgNode::interpreter->tag_array_expr(_t, aD.get());
+        _t = _t->getNextSibling();
     }
     rEval= aD->ADResolve();
     return NULL;  // always r-value
-  }
-  
+}
+
 // from  l_arrayexpr_mfcall_as_mfcall
 BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
-  {
+{
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     BaseGDL *self;
     EnvUDT*   newEnv;
-    
-    ProgNodeP _t = this->getFirstChild();    
+
+    ProgNodeP _t = this->getFirstChild();
     _t = _t->getNextSibling(); // skip DOT
-    
+
     self= _t->Eval(); //interpreter->expr(_t);
     ProgNodeP mp2 = _t->getNextSibling(); // interpreter->GetRetTree();
     //match(antlr::RefAST(_t),IDENTIFIER);
-    
+
     Guard<BaseGDL> self_guard(self);
-    
+
     newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
-    
+
     self_guard.release();
-    
+
     ProgNode::interpreter->parameter_def( mp2->getNextSibling(), newEnv);
-    
+
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     return ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-  }
-    
-  
+}
 
-  BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+
+
+BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
+{
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
     ProgNodeP mark = this->getFirstChild();
@@ -3850,48 +3789,49 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 
     EnvUDT* newEnv;
     try {
-	    newEnv=new EnvUDT( self, mp2);
-	    self_guard.release();
+        newEnv=new EnvUDT( self, mp2);
+        self_guard.release();
     }
     catch( GDLException& ex)
     {
-	    goto tryARRAYEXPR;
+        goto tryARRAYEXPR;
     }
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
 
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
-    
+
     // make the call
     res=
-	    ProgNode::interpreter->
-		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-    
+        ProgNode::interpreter->
+        call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-    
-    tryARRAYEXPR:;
+
+tryARRAYEXPR:
+    ;
     //_t = mark;
-    
+
     ProgNodeP dot = mark;
     // 	match(antlr::RefAST(_t),DOT);
     _t = mark->getFirstChild();
-	    
+
     SizeT nDot=dot->nDot;
     Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-	    
+
     ProgNode::interpreter->r_dot_array_expr(_t, aD.get());
     _t = _t->getNextSibling();
     for (; _t != NULL;) {
-    ProgNode::interpreter->tag_array_expr(_t, aD.get());
-    _t = _t->getNextSibling();
+        ProgNode::interpreter->tag_array_expr(_t, aD.get());
+        _t = _t->getNextSibling();
     }
     res= aD->ADResolve();
-    
+
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
-  }
+}
 
 //   BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 //   {
@@ -3909,216 +3849,216 @@ BaseGDL** VARNode::LEval()
     return &ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
 }
 BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
-  {
-  return this->LEval();
-  }
-  BaseGDL** VARPTRNode::LEval()
-	{
+{
+    return this->LEval();
+}
+BaseGDL** VARPTRNode::LEval()
+{
 //   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return &this->var->Data();
-	}
+    return &this->var->Data();
+}
 
 
 BaseGDL** EXPRNode::EvalRefCheck( BaseGDL*& rEval)
-  {
-  return this->LEval();
-  }
+{
+    return this->LEval();
+}
 BaseGDL** EXPRNode::LEval()
 {
-  return this->getFirstChild()->LExpr( NULL); //interpreter->l_expr( this->getFirstChild(), NULL);
+    return this->getFirstChild()->LExpr( NULL); //interpreter->l_expr( this->getFirstChild(), NULL);
 }
 
 BaseGDL* DOTNode::Eval()
 {
-  BaseGDL* r;
-  // clears aL when destroyed
-  ArrayIndexListGuard guard; 
-  
-  DotAccessDescT aD( nDot+1);
+    BaseGDL* r;
+    // clears aL when destroyed
+    ArrayIndexListGuard guard;
 
-  ProgNodeP _t = this->getFirstChild();
-  if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
-  {
-    _t = _t->getFirstChild();
+    DotAccessDescT aD( nDot+1);
 
-    // r = interpreter->r_dot_indexable_expr(_t, &aD);
-    // _t = interpreter->GetRetTree();
-    if( _t->getType() == GDLTokenTypes::EXPR)
+    ProgNodeP _t = this->getFirstChild();
+    if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
     {
-	r = _t->getFirstChild()->Eval();
-	aD.SetOwner( true);
-	_t = _t->getNextSibling();
-    }
-    else if( _t->getType() == GDLTokenTypes::SYSVAR)
-    {
-      r = _t->EvalNC();
-      _t = _t->getNextSibling();
-    }
-    else
-    {
-      assert( _t->getType() == GDLTokenTypes::VAR
-	|| _t->getType() == GDLTokenTypes::VARPTR);
-      BaseGDL** e = _t->LEval();
-      if( *e == NULL)
-      {
-	  if( _t->getType() == GDLTokenTypes::VAR)
-	      throw GDLException( _t, "Variable is undefined: "+
-				  interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
-	  else
-	      throw GDLException( _t, "Common block variable is undefined: "+
-				  interpreter->CallStackBack()->GetString( /* reference! */ *e),true,false);
-      }
-      r = *e;
-      _t = _t->getNextSibling();
-    }
+        _t = _t->getFirstChild();
 
-    
-    bool handled = false;
-    if( !r->IsAssoc() && r->Type() == GDL_OBJ && r->StrictScalar())
-    {
-      // check for _overloadBracketsRightSide
-      DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
+        // r = interpreter->r_dot_indexable_expr(_t, &aD);
+        // _t = interpreter->GetRetTree();
+        if( _t->getType() == GDLTokenTypes::EXPR)
+        {
+            r = _t->getFirstChild()->Eval();
+            aD.SetOwner( true);
+            _t = _t->getNextSibling();
+        }
+        else if( _t->getType() == GDLTokenTypes::SYSVAR)
+        {
+            r = _t->EvalNC();
+            _t = _t->getNextSibling();
+        }
+        else
+        {
+            assert( _t->getType() == GDLTokenTypes::VAR
+                    || _t->getType() == GDLTokenTypes::VARPTR);
+            BaseGDL** e = _t->LEval();
+            if( *e == NULL)
+            {
+                if( _t->getType() == GDLTokenTypes::VAR)
+                    throw GDLException( _t, "Variable is undefined: "+
+                                        interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
+                else
+                    throw GDLException( _t, "Common block variable is undefined: "+
+                                        interpreter->CallStackBack()->GetString( /* reference! */ *e),true,false);
+            }
+            r = *e;
+            _t = _t->getNextSibling();
+        }
+
+
+        bool handled = false;
+        if( !r->IsAssoc() && r->Type() == GDL_OBJ && r->StrictScalar())
+        {
+            // check for _overloadBracketsRightSide
+            DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
 //       if( s != 0)  // no overloads for null object
 //       {
 // 	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
 // 	if( oStructGDL != NULL) // if object not valid -> default behaviour
 // 	  {
 // 	    DStructDesc* desc = oStructGDL->Desc();
-// 
+//
 // 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
-      DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
-      if( bracketsRightSideOverload != NULL)
-	{
-	  // _overloadBracketsRightSide
-	  bool internalDSubUD = bracketsRightSideOverload->GetTree()->IsWrappedNode();  
+            DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
+            if( bracketsRightSideOverload != NULL)
+            {
+                // _overloadBracketsRightSide
+                bool internalDSubUD = bracketsRightSideOverload->GetTree()->IsWrappedNode();
 
-	  DObjGDL* self = static_cast<DObjGDL*>(r);
-	  Guard<BaseGDL> selfGuard;
-	  if( aD.IsOwner())
-	  {
-	    aD.SetOwner( false);
-	    // WE are now the proud owner of 'self'
-	    selfGuard.Init( self);
-	    // so it might be overwritten
-	  }
-	  else 
-	  {
-	    if( !internalDSubUD) // internal beahve well
-	    {
-	      self = self->Dup(); // res should be not changeable via SELF
-	      selfGuard.Init( self);
-	    }
-	  }	  
-	  
-	  
-	  IxExprListT indexList;
-	  // uses arrIxListNoAssoc
-	  interpreter->arrayindex_list_overload( _t, indexList);
-	  ArrayIndexListGuard guard(_t->arrIxListNoAssoc);
+                DObjGDL* self = static_cast<DObjGDL*>(r);
+                Guard<BaseGDL> selfGuard;
+                if( aD.IsOwner())
+                {
+                    aD.SetOwner( false);
+                    // WE are now the proud owner of 'self'
+                    selfGuard.Init( self);
+                    // so it might be overwritten
+                }
+                else
+                {
+                    if( !internalDSubUD) // internal beahve well
+                    {
+                        self = self->Dup(); // res should be not changeable via SELF
+                        selfGuard.Init( self);
+                    }
+                }
 
-	  // hidden SELF is counted as well
-	  int nParSub = bracketsRightSideOverload->NPar();
-	  assert( nParSub >= 1); // SELF
-	  // indexList.size() > regular paramters w/o SELF
-	  if( indexList.size() > nParSub - 1)
-	  {
-	    indexList.Cleanup();
-	    throw GDLException( this, bracketsRightSideOverload->ObjectName() +
-				": Incorrect number of arguments.",
-				false, false);
-	  }
 
-	  // adds already SELF parameter
-	  EnvUDT* newEnv= new EnvUDT( this, bracketsRightSideOverload, &self);
-	  // no guarding of newEnv here (no exceptions until push_back())
-	  
-	  // parameters
-	  for( SizeT p=0; p<indexList.size(); ++p)
-	    newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+                IxExprListT indexList;
+                // uses arrIxListNoAssoc
+                interpreter->arrayindex_list_overload( _t, indexList);
+                ArrayIndexListGuard guard(_t->arrIxListNoAssoc);
 
-	  StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
-	  interpreter->CallStack().push_back( newEnv); 
-	  
-	  // make the call, return the result
-	  BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+                // hidden SELF is counted as well
+                int nParSub = bracketsRightSideOverload->NPar();
+                assert( nParSub >= 1); // SELF
+                // indexList.size() > regular paramters w/o SELF
+                if( indexList.size() > nParSub - 1)
+                {
+                    indexList.Cleanup();
+                    throw GDLException( this, bracketsRightSideOverload->ObjectName() +
+                                        ": Incorrect number of arguments.",
+                                        false, false);
+                }
 
-	  if( selfGuard.Get() != NULL && self != selfGuard.Get())
-	  {
-	    // always put out warning first, in case of a later crash
-	    Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() + 
-		      ": Assignment to SELF detected (GDL session still ok).");
-	    // assignment to SELF -> self was deleted and points to new variable
-	    // which it owns
-	    selfGuard.Release();
-	    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
-	      selfGuard.Reset(self);
-	  }
+                // adds already SELF parameter
+                EnvUDT* newEnv= new EnvUDT( this, bracketsRightSideOverload, &self);
+                // no guarding of newEnv here (no exceptions until push_back())
 
-	  aD.SetOwner( true); // aD owns res here
-	  interpreter->SetRootR( this, &aD, res, NULL);
-	  handled = true;
-	}  
+                // parameters
+                for( SizeT p=0; p<indexList.size(); ++p)
+                    newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+
+                StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
+                interpreter->CallStack().push_back( newEnv);
+
+                // make the call, return the result
+                BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+                if( selfGuard.Get() != NULL && self != selfGuard.Get())
+                {
+                    // always put out warning first, in case of a later crash
+                    Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() +
+                             ": Assignment to SELF detected (GDL session still ok).");
+                    // assignment to SELF -> self was deleted and points to new variable
+                    // which it owns
+                    selfGuard.Release();
+                    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+                        selfGuard.Reset(self);
+                }
+
+                aD.SetOwner( true); // aD owns res here
+                interpreter->SetRootR( this, &aD, res, NULL);
+                handled = true;
+            }
+        }
+        if( !handled)
+        {
+            // regular (non-object) case
+            ArrayIndexListT* aL = interpreter->arrayindex_list(_t,!r->IsAssoc());
+
+            guard.reset(aL);
+
+            // check here for object and get struct
+            //structR=dynamic_cast<DStructGDL*>(r);
+            // this is much faster than a dynamic_cast
+            interpreter->SetRootR( this, &aD, r, aL);
+        }
+        _t = this->getFirstChild()->getNextSibling();
     }
-    if( !handled)
-    {
-      // regular (non-object) case
-      ArrayIndexListT* aL = interpreter->arrayindex_list(_t,!r->IsAssoc());
-
-      guard.reset(aL);
-
-      // check here for object and get struct
-      //structR=dynamic_cast<DStructGDL*>(r);
-      // this is much faster than a dynamic_cast
-      interpreter->SetRootR( this, &aD, r, aL);
-    }
-    _t = this->getFirstChild()->getNextSibling();
-  }
-  else // ! ARRAYEXPR
+    else // ! ARRAYEXPR
 // 	case EXPR:
 // 	case SYSVAR:
 // 	case VAR:
 // 	case VARPTR:
-  {
+    {
 //     r=interpreter->r_dot_indexable_expr(_t, &aD);
 //     _t = interpreter->GetRetTree();
-    if( _t->getType() == GDLTokenTypes::EXPR)
-    {
-	r = _t->getFirstChild()->Eval();
-	aD.SetOwner( true);
-	_t = _t->getNextSibling();
-    }
-    else if( _t->getType() == GDLTokenTypes::SYSVAR)
-    {
-      r = _t->EvalNC();
-      _t = _t->getNextSibling();
-    }
-    else
-    {
-      assert( _t->getType() == GDLTokenTypes::VAR || _t->getType() == GDLTokenTypes::VARPTR);
-      BaseGDL** e = _t->LEval();
-      if( *e == NULL)
-      {
-	if( _t->getType() == GDLTokenTypes::VAR)
-	  throw GDLException( _t, "Variable is undefined: "+
-	      interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
-	else
-	  throw GDLException( _t, "Common block variable is undefined: "+
-	      interpreter->CallStackBack()->GetString( /* reference */ *e),true,false);
-      }
-      r = *e;
-      _t = _t->getNextSibling();
+        if( _t->getType() == GDLTokenTypes::EXPR)
+        {
+            r = _t->getFirstChild()->Eval();
+            aD.SetOwner( true);
+            _t = _t->getNextSibling();
+        }
+        else if( _t->getType() == GDLTokenTypes::SYSVAR)
+        {
+            r = _t->EvalNC();
+            _t = _t->getNextSibling();
+        }
+        else
+        {
+            assert( _t->getType() == GDLTokenTypes::VAR || _t->getType() == GDLTokenTypes::VARPTR);
+            BaseGDL** e = _t->LEval();
+            if( *e == NULL)
+            {
+                if( _t->getType() == GDLTokenTypes::VAR)
+                    throw GDLException( _t, "Variable is undefined: "+
+                                        interpreter->CallStackBack()->GetString(_t->GetVarIx()),true,false);
+                else
+                    throw GDLException( _t, "Common block variable is undefined: "+
+                                        interpreter->CallStackBack()->GetString( /* reference */ *e),true,false);
+            }
+            r = *e;
+            _t = _t->getNextSibling();
+        }
+
+        interpreter->SetRootR( this, &aD, r, NULL);
     }
 
-    interpreter->SetRootR( this, &aD, r, NULL);
-  }
-
-  for (; _t != NULL;) {
-	  interpreter->tag_array_expr(_t, &aD); // nDot times
-	  _t = interpreter->GetRetTree();
-  }
-  return aD.ADResolve();
+    for (; _t != NULL;) {
+        interpreter->tag_array_expr(_t, &aD); // nDot times
+        _t = interpreter->GetRetTree();
+    }
+    return aD.ADResolve();
 } // DOTNode::Eval
-  
+
 BaseGDL* ARRAYEXPRNode::Eval()
 {
     BaseGDL* res;
@@ -4142,7 +4082,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
         {
             BaseGDL** ref =_t->EvalRefCheck(r);
             if( ref == NULL)
-		rGuard.Init( r);
+                rGuard.Init( r);
             else
                 r = *ref;
         }
@@ -4168,7 +4108,8 @@ BaseGDL* ARRAYEXPRNode::Eval()
 // 	    DStructDesc* desc = oStructGDL->Desc();
 //
 // 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
-        DSubUD* bracketsRightSideOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
+        DSubUD* bracketsRightSideOverload = 
+	  static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
         if( bracketsRightSideOverload != NULL)
         {
             // _overloadBracketsRightSide
@@ -4227,7 +4168,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
         }
     }
 
-    // first use NoAssoc case
+    // first use NoAssoc case (just to get nExpr)
     ArrayIndexListT* aL = ixListNode->arrIxListNoAssoc;
     assert( aL != NULL);
     nExpr = aL->NParam();
@@ -4245,7 +4186,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
         {
             s=_t->EvalNC();//indexable_expr(_t);
             assert(s != NULL);
-	    assert( s->Type() != GDL_UNDEF);
+            assert( s->Type() != GDL_UNDEF);
         }
         else
         {
@@ -4255,11 +4196,11 @@ BaseGDL* ARRAYEXPRNode::Eval()
             else
                 s = *ref;
             assert(s != NULL);
-	    assert( s->Type() != GDL_UNDEF);
+            assert( s->Type() != GDL_UNDEF);
         }
 
 
-        ixExprList.push_back( s);
+        ixExprList.push_back( s); // already owned (s. a.)
         if( ixExprList.size() == nExpr)
             break; // while( true) -> finish
 

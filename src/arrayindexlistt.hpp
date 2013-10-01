@@ -119,7 +119,7 @@ public:
   {
 //     delete allIx;
     delete ix;
-	cleanupIx.Cleanup(); // must be explicitely cleaned up
+    cleanupIx.Cleanup(); // must be explicitely cleaned up
   }
 
   // constructor
@@ -136,7 +136,7 @@ public:
     allIx( NULL)
   {
     assert( cp.allIx == NULL);
-	assert( cp.cleanupIx.size() == 0);
+    assert( cp.cleanupIx.size() == 0);
   }
 
   // called after structure is fixed
@@ -152,7 +152,6 @@ public:
 //     delete allIx;
     allIx = NULL;
 //     allIxMulti.Clear();
-    
     ix->Clear();
     cleanupIx.Cleanup();
   }
@@ -166,30 +165,28 @@ public:
 
 //     if( cleanupIxIn != NULL)
 //       cleanupIx = *cleanupIxIn;
-    
     if( nParam == 0) return;
-    if( nParam == 1) 
-      {
-		ix->Init( ix_[ 0]);
-      }
-    else if( nParam == 2) 
-      {
-		ix->Init( ix_[ 0], ix_[ 1]);
-		return;
-      }
+    if( nParam == 1)
+    {
+	ix->Init( ix_[ 0]);
+    }
+    else if( nParam == 2)
+    {
+	ix->Init( ix_[ 0], ix_[ 1]);
+	return;
+    }
     else // nParam == 3
-      {
-		ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
-		return;
-      }
+    {
+	ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
+	return;
+    }
   }
 
   void Init() {} // eg. a[*]
 
-  // requires special handling
-  // used by Assoc_<> returns last index in lastIx, removes it
-  // and returns true is the list is empty
-//   bool ToAssocIndex( SizeT& lastIx)
+// requires special handling
+// used by Assoc_<> returns last index in lastIx, removes it
+// and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
     // cannot be ArrayIndexScalar[VP] ix->Init();
@@ -224,18 +221,18 @@ public:
   // structure of indexed expression
   const dimension GetDim()
   {
-    if( ix->Scalar())
+      if( ix->Scalar())
       {
-		return dimension();
+	  return dimension();
       }
-    else if( ix->Indexed())
+      else if( ix->Indexed())
       {
-		return static_cast<ArrayIndexIndexed*>(ix)->GetDim();
-	// gets structure of indexing array
+	  return static_cast<ArrayIndexIndexed*>(ix)->GetDim();
+	  // gets structure of indexing array
       }
-    else
+      else
       {
-		return dimension( nIx); // one dimensional if not indexed
+	  return dimension( nIx); // one dimensional if not indexed
       }
   }
 
@@ -249,9 +246,6 @@ public:
   {
     if( allIx != NULL) // can happen if called from DotAccessDescT::DoAssign()
       return allIx;
-    assert( allIx == NULL);
-//     if( allIx != NULL)
-// 		return allIx;
 
     if( ix->Indexed())
       {
@@ -2184,6 +2178,7 @@ public:
   }
   void reset( ArrayIndexListT* aL_) { aL = aL_;}
   ArrayIndexListT* release() { ArrayIndexListT* res = aL; aL = NULL; return res;}
+  void Release() { aL = NULL;}
 };
 
 

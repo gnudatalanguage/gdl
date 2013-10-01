@@ -476,22 +476,6 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 
 	      BaseGDL* rValueNull = NULL;
 	      newEnv->SetNextParUnchecked( rValueNull); // RVALUE parameter NULL, as value
-// 	      if( internalDSubUD)
-// 		newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-// 	      else
-// 		newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
-
-	      // pass as reference would be more efficient, but as the data might
-	      // be deleted in bracketsLeftSideOverload it is not possible.
-	      // BaseGDL* rightCopy = right;
-	      // newEnv->SetNextParUnchecked( &rightCopy); // RVALUE  parameter
-
-// 	      // signal dot access:
-// 	      // set ISRANGE[0] from 0/1 to 2/3
-// 	      assert( indexList.size() > 0);
-// 	      assert( indexList[0]->Type() == GDL_LONG);
-// 	      assert( indexList[0]->N_Elements() > 0);
-// 	      *(static_cast<DLongGDL>(indexList))[0] += 2;
 
 	      for( SizeT p=0; p<indexList.size(); ++p)
 		  newEnv->SetNextParUnchecked( indexList[p]); // takes ownership

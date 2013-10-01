@@ -844,56 +844,39 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 		ProgNodeP retTree = _t->getNextSibling();
 	
-	EnvBaseT* actEnv = callStack.back()->GetNewEnv();
-	if( actEnv == NULL) actEnv = callStack.back();
-	
-	assert( actEnv != NULL);
-	
-	Guard<BaseGDL> e1_guard;
 	BaseGDL* e1;
 	ProgNodeP evalExpr = _t->getFirstChild();
 	if( NonCopyNode( evalExpr->getType()))
 	{
 	e1 = evalExpr->EvalNC();
 	}
-	else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
-	{
-	e1=lib_function_call_internal(evalExpr);
-	
-	if( e1 == NULL) // ROUTINE_NAMES
-	throw GDLException( evalExpr, "Undefined return value", true, false);
-	
-	if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-	{
-	//                if( actEnv != NULL)
-	actEnv->DeleteAtExit( e1); 
-	//                else
-	//                    e1_guard.reset( e1);
-	}
-	}
 	else
 	{
-	e1 = evalExpr->Eval();
-	
-	//      if( actEnv != NULL)
-	actEnv->DeleteAtExit( e1); 
-	//      else
-	//          e1_guard.reset(e1);
+	BaseGDL** ref = evalExpr->EvalRefCheck(e1);
+	if( ref == NULL)
+	{
+	// use new env if set (during parameter parsing)
+	EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+	if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+	assert( actEnv != NULL);
+	// this is crucial, a guard does not work here as a temporary
+	// ptr will be cleaned up at return from this function
+	actEnv->DeleteAtExit( e1);
+	}
+	else
+	e1 = *ref;
 	}
 	
 	if( e1 == NULL || e1->Type() != GDL_PTR)
-	throw GDLException( evalExpr, "Pointer type required"
-	" in this context: "+Name(e1),true,false);
+	throw GDLException( evalExpr, "Pointer type required in this context: "+Name(e1),true,false);
 	
 	DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
 	
 	DPtr sc; 
 	if( !ptr->Scalar(sc))
-	throw GDLException( _t, "Expression must be a "
-	"scalar in this context: "+Name(e1),true,false);
+	throw GDLException( _t, "Expression must be a scalar in this context: "+Name(e1),true,false);
 	if( sc == 0)
-	throw GDLException( _t, "Unable to dereference"
-	" NULL pointer: "+Name(e1),true,false);
+	throw GDLException( _t, "Unable to dereference NULL pointer: "+Name(e1),true,false);
 	
 	try
 	{
@@ -1984,7 +1967,7 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 			
 			if( dec_inc == DEC) res->Dec();
 			else if( dec_inc == INC) res->Inc();
-			//          
+	
 			BaseGDL* resBefore = res;
 			res = resBefore->Dup();
 			

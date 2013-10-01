@@ -725,7 +725,7 @@ else if(var_type == NC_LONG)
 	if(var_ndims > NC_MAX_VAR_DIMS)
 	  {
 	    throw GDLException(e->CallingNode(),
-			       "Too many elements error 1 in array"				       +e->GetParString(0));
+			       "Too many elements error 1 in array"+e->GetParString(0));
 	  }					      
 
 	for (i=0; i<var_ndims;++i)

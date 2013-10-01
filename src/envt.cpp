@@ -111,7 +111,7 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
   toDestroy(),
   pro(pro_),
   extra(NULL),
-  newEnv(NULL), 
+  newEnvOff(NULL), 
   callingNode( cN),
   lineNumber( 0),
   obj(false)
@@ -679,7 +679,7 @@ void EnvT::ObjCleanup( DObj actID)
                 Guard<BaseGDL> actObjGDL_guard( actObjGDL);
                 GDLInterpreter::IncRefObj( actID);
 
-                PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+                EnvUDT* newEnv = PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
 
                 inProgress.insert( actID);
 
@@ -687,7 +687,7 @@ void EnvT::ObjCleanup( DObj actID)
 
                 inProgress.erase( actID);
 
-                delete interpreter->CallStack().back();
+                delete newEnv;
                 interpreter->CallStack().pop_back();
             }
 
@@ -1036,7 +1036,7 @@ void EnvBaseT::PushNewEmptyEnvUD(  DSubUD* newPro, DObjGDL** newObj)
 // and obj_destroy (basic_pro.cpp)
 // and call_function (basic_fun.cpp)
 // and call_procedure (basic_pro.cpp)
-void EnvT::PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj)
+EnvUDT* EnvT::PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj)
 {
   EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
@@ -1055,6 +1055,7 @@ void EnvT::PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj)
   newEnv->extra->ResolveExtra( this); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
 
   interpreter->CallStack().push_back( newEnv); 
+  return newEnv;
 }
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)

@@ -2271,9 +2271,10 @@ namespace lib {
 	DComplexGDL* res1 = new DComplexGDL(res[0]->Dim(), BaseGDL::NOZERO);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (SizeT i = 0; i < res1->N_Elements(); ++i) {
-            (*res1)[i].real() = (*res[0])[i];
-            (*res1)[i].imag() = (*res[1])[i];
+        for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
+	    (*res1)[ i] = DComplex((*res[0])[i],(*res[1])[i]);
+//             (*res1)[i].real() = (*res[0])[i];
+//             (*res1)[i].imag() = (*res[1])[i];
         }
  	delete res[0]; delete res[1];
 	return res1;       
@@ -2282,9 +2283,10 @@ namespace lib {
 	DComplexDblGDL* res1 = new DComplexDblGDL(res[0]->Dim(), BaseGDL::NOZERO);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (SizeT i = 0; i < res1->N_Elements(); ++i) {
-            (*res1)[i].real() = (*res[0])[i];
-            (*res1)[i].imag() = (*res[1])[i];
+        for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
+	    (*res1)[ i] = DComplexDbl((*res[0])[i],(*res[1])[i]);
+// 	    (*res1)[i].real() = (*res[0])[i];
+//             (*res1)[i].imag() = (*res[1])[i];
         }
  	delete res[0]; delete res[1];
 	return res1;       
@@ -2607,6 +2609,8 @@ namespace lib {
 					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+    // From 0.9.4 on, call_fun can return left and right values dependent on the call context
+    // which is by default EnvUDT::RFUNCTION, hence the above is *here* correct.
     Guard<BaseGDL> res_guard(res);
     // sanity checks
     //   if (res->Rank() != 1 || res->N_Elements() != x->size) 

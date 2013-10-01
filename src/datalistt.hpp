@@ -328,13 +328,13 @@ public:
 
   BaseGDL** GetPtrTo( BaseGDL* p)
   {
-	assert( p != NULL);
-    for( SizeT i=0; i<env.size(); i++)
+      assert( p != NULL);
+      for( SizeT i=0; i<env.size(); i++)
       {
-		if( env[i].P() == p) return &env[i].PRef();
-		if( env[i].IsPP() && *env[i].PP() == p) return env[i].PP();
+	  if( env[i].P() == p) return &env[i].PRef();
+	  if( env[i].IsPP() && *env[i].PP() == p) return env[i].PP();
       }
-    return NULL;
+      return NULL;
   }
 
   BaseGDL* Loc( SizeT ix) const
