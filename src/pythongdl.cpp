@@ -373,7 +373,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
     if( libCall)
       e = new EnvT( NULL, sub);
     else
-      e = new EnvUDT( NULL, sub);
+      e = new EnvUDT( NULL, static_cast<DSubUD*>(sub));
 
     Guard< EnvBaseT> e_guard( e);
 
