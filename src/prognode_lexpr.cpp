@@ -54,37 +54,6 @@ BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 {
     ProgNodeP branch = this->GetBranch();
     return branch->LExpr( right);
-    
-//     ProgNodeP _t = this->getFirstChild();
-// 
-//     Guard<BaseGDL> e1_guard;
-//     BaseGDL* e1;
-//     if( NonCopyNode( _t->getType()))
-//     {
-//         e1 = _t->EvalNC();
-//     }
-//     else
-//     {
-//         BaseGDL** ref = _t->EvalRefCheck(e1);
-//         if( ref == NULL)
-//             e1_guard.Init(e1);
-//         else
-//             e1 = *ref;
-//     }
-// // 	BaseGDL*       e1=interpreter->expr(_t);
-//     _t = _t->GetNextSibling();
-// // 	Guard<BaseGDL> e1_guard(e1);
-//     if( e1->True())
-//     {
-//         return _t->LExpr( right); //l_expr(_t, right);
-//     }
-//     else
-//     {
-//         _t=_t->GetNextSibling(); // jump over 1st expression
-//         return _t->LExpr( right); //l_expr(_t, right);
-//     }
-//     //SetRetTree( tIn->getNextSibling());
-//     //return res;
 }
 
 BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
@@ -577,67 +546,26 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 // default ...Grab version
 
 BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)	
-//case ASSIGN:
 {
   ProgNodeP _t = this->getFirstChild();
   if( NonCopyNode(_t->getType()))
   {
-//     BaseGDL*       e1=interpreter->indexable_expr(_t);
-//     _t = interpreter->GetRetTree();
     BaseGDL* e1 = _t->EvalNC();
     _t = _t->getNextSibling();    	  
   }
-//   else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-//   {
-// // 	  BaseGDL*       e1=interpreter->lib_function_call(_t);
-// // 	  _t = interpreter->GetRetTree();
-// 	  BaseGDL** retValPtr;
-// 	  BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-// 	  _t = _t->getNextSibling();
-// // 	  if( !interpreter->CallStackBack()->Contains( e1))
-// 	  if( retValPtr == NULL)
-// 	    GDLDelete(e1); // guard if no global data
-//   }
   else
   {
-    //       case ASSIGN:
-    //       case ASSIGN_REPLACE:
-    //       case ASSIGN_ARRAYEXPR_MFCALL:
-    //       case ARRAYDEF:
-    //       case ARRAYEXPR:
-    //       case ARRAYEXPR_MFCALL:
-    //       case EXPR:
-    //       case FCALL:
-    //       case FCALL_LIB_RETNEW:
-    //       case MFCALL:
-    //       case MFCALL_PARENT:
-    //       case NSTRUC:
-    //       case NSTRUC_REF:
-    //       case POSTDEC:
-    //       case POSTINC:
-    //       case STRUC:
-    //       case DEC:
-    //       case INC:
-    //       case DOT:
-    //       case QUESTION:
-//     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
-//     _t = interpreter->GetRetTree();
-//     BaseGDL* e1 = _t->Eval(); 
-//     //lib_function_call_retnew(_t);
-//     GDLDelete(e1);
     BaseGDL* e1;
     BaseGDL** ref =_t->EvalRefCheck(e1);
     if( ref == NULL)
       GDLDelete(e1);
     _t = _t->getNextSibling();
   }
-  //SetRetTree( tIn->getNextSibling());
   return _t->LExpr( right); //l_expr(_t, right);
 }
 
 // something like: (( ((aFUNorVAR(aVAR))) =e1 ))=right
 BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
-//case ASSIGN_ARRAYEXPR_MFCALL:
 {
   ProgNodeP _t = this->getFirstChild();
 
@@ -653,9 +581,6 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     BaseGDL** ref =_t->EvalRefCheck(e1);
     if( ref == NULL)
       GDLDelete(e1);
-//     BaseGDL* e1 = _t->Eval(); 
-//     //lib_function_call_retnew(_t);
-//     GDLDelete(e1);
     _t = _t->getNextSibling();
   }
   ProgNodeP l = _t;
@@ -693,47 +618,7 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   ProgNodeP _t = this->getFirstChild();
 
   BaseGDL** res;
-//   if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-//   {
-// // 	  BaseGDL* e1=interpreter->lib_function_call(_t);
-// // 	  _t = interpreter->GetRetTree();
-//       BaseGDL** retValPtr;
-//       BaseGDL* e1 = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB( retValPtr); 
-//       _t = _t->getNextSibling();
-//       res =_t->LEval(); //l_function_call(_t);
-// //       if( *res != e1 && !interpreter->CallStackBack()->Contains( e1))
-//       if( *res != e1 && retValPtr == NULL)
-// 	GDLDelete(e1);
-//   }
-//   else
   {
-  //     case ASSIGN:
-  //     case ASSIGN_REPLACE:
-  //     case ASSIGN_ARRAYEXPR_MFCALL:
-  //     case ARRAYDEF:
-  //     case ARRAYEXPR:
-  //     case ARRAYEXPR_MFCALL:
-  //     case CONSTANT:
-  //     case DEREF:
-  //     case EXPR:
-  //     case FCALL:
-  //     case FCALL_LIB_RETNEW:
-  //     case MFCALL:
-  //     case MFCALL_PARENT:
-  //     case NSTRUC:
-  //     case NSTRUC_REF:
-  //     case POSTDEC:
-  //     case POSTINC:
-  //     case STRUC:
-  //     case SYSVAR:
-  //     case VAR:
-  //     case VARPTR:
-  //     case DEC:
-  //     case INC:
-  //     case DOT:
-  //     case QUESTION:
-
-//   BaseGDL* e1=interpreter->tmp_expr(_t);
     BaseGDL* e1;
     BaseGDL** ref =_t->EvalRefCheck(e1);
     if( ref != NULL)
@@ -744,48 +629,14 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
     res =_t->LEval(); //l_function_call(_t);
     if( *res != e1 && ref == NULL) 
       GDLDelete(e1);
-
-//     BaseGDL* e1 = _t->Eval();
-//     _t =_t->getNextSibling();
-//     res =_t->LEval(); //l_function_call(_t);
-//     if( *res != e1)
-//       GDLDelete(e1);
   }
 
-  // switch ( _t->getType()) {
-  // case DEREF:
-  //     // 	  {
-  //     // 		  res=_t->LEval(); //l_deref(_t);
-  //     // 		  _t = _retTree;
-  //     // 		  break;
-  //     // 	  }
-  // case VAR:
-  // case VARPTR:
-  //     // {
-  //     //     res=_t->LEval(); //l_simple_var(_t);
-  //     //     _retTree = tIn->getNextSibling();
-  //     //     //_t = _retTree;
-  //     //     break;
-  //     // }
-  // default:
-  //     // 	  case FCALL:
-  //     // 	  case FCALL_LIB:
-  //     // 	  case MFCALL:
-  //     // 	  case MFCALL_PARENT:
-  //     {
-//   BaseGDL** res=_t->LEval(); //l_function_call(_t);
-  //_retTree = tIn->getNextSibling();
-  //_t = _retTree;
-  //         break;
-  //     }
-  // }
   if( right != (*res))
   {
     GDLDelete(*res);
     assert( right != NULL);
     *res = right->Dup();
   }
-// 	SetRetTree( this->getNextSibling());
   return res;
 }
 

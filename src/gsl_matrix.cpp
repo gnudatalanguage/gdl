@@ -234,7 +234,7 @@ namespace lib {
     DDoubleGDL* res = new DDoubleGDL( p2->Dim(), BaseGDL::NOZERO);
     memcpy(&(*res)[0], x->data, nEl1*szdbl);
 	
-//     gsl_matrix_free(mat);
+//     gsl_matrix_free(mat);Parameter
 //     gsl_vector_free(x);
 //     gsl_permutation_free(p);
 //     b ???    
