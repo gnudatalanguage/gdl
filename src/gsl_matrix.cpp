@@ -197,6 +197,7 @@ namespace lib {
     memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
     gsl_permutation *p = gsl_permutation_alloc (nEl1);
+    GDLGuard<gsl_permutation> g2(p,gsl_permutation_free);
     if (sizeof(size_t) == szlng) {
       DLongGDL* p1L =e->GetParAs<DLongGDL>(1);
       memcpy(p->data, &(*p1L)[0], nEl1*szlng);
@@ -204,7 +205,6 @@ namespace lib {
       DLong64GDL* p1L =e->GetParAs<DLong64GDL>(1);
       memcpy(p->data, &(*p1L)[0], nEl1*szlng64);
     }
-    GDLGuard<gsl_permutation> g2(p,gsl_permutation_free);
       
     DDoubleGDL *p2D = e->GetParAs<DDoubleGDL>(2);
     gsl_vector *b = gsl_vector_alloc(nEl2);
