@@ -334,6 +334,7 @@ namespace lib {
 	    if ((found+ProSuffixLen) == tmp_fname.length()) NbProFilesInCurrentDir++;
 	  }
 	}
+	closedir(dirp);
 	cout << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
       }
   }
