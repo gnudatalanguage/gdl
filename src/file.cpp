@@ -20,7 +20,6 @@
 #include "basegdl.hpp"
 #include "str.hpp"
 
-#include <libgen.h>
 
 //#ifdef HAVE_LIBWXWIDGETS
 
@@ -29,6 +28,7 @@
 #include "objects.hpp"
 
 #ifndef _MSC_VER
+#include <libgen.h>
 #include <unistd.h>
 #endif
 #include <sys/stat.h>
@@ -39,26 +39,47 @@
 // #include <wx/dir.h>
 
 #ifndef _MSC_VER
+
 #include <glob.h>
+
 #include <fnmatch.h>
+
 #include <dirent.h>
+
 #else
+
 #include <io.h>
+
 #define access _access
+
 #define R_OK    4       /* Test for read permission.  */
+
 #define W_OK    2       /* Test for write permission.  */
+
 //#define   X_OK    1       /* execute permission - unsupported in windows*/
+
 #define F_OK    0       /* Test for existence.  */
+
 #define PATH_MAX 255
+
+
 
 #include <direct.h>
 
+
+
 #if !defined(S_ISDIR)
+
 #define __S_ISTYPE(mode, mask)	(((mode) & S_IFMT) == (mask))
+
 #define S_ISDIR(mode)	 __S_ISTYPE((mode), S_IFDIR)
+
 #define S_ISREG(mode)    __S_ISTYPE((mode), S_IFREG)
+
 #endif
+
 #include <shlwapi.h>
+
 #endif
 
 // workaround for HP-UX. A better solution is needed i think
@@ -79,158 +100,313 @@
 
 #ifdef _MSC_VER
 
+
+
 /*
+
+
 
     Implementation of POSIX directory browsing functions and types for Win32.
 
+
+
     Author:  Kevlin Henney (kevlin@acm.org, kevlin@curbralan.com)
+
     History: Created March 1997. Updated June 2003 and July 2012.
+
     Rights:  See end of file.
+
+
 
 */
 
+
+
 #include <errno.h>
+
 #include <io.h> /* _findfirst and _findnext set errno iff they return -1 */
+
 #include <stdlib.h>
+
 #include <string.h>
 
+
+
 struct dirent
+
 {
+
     char *d_name;
+
 };
 
+
+
 #ifdef __cplusplus
+
 extern "C"
+
 {
+
 #endif
+
+
 
 typedef ptrdiff_t handle_type; /* C99's intptr_t not sufficiently portable */
 
+
+
 struct DIR
+
 {
+
     handle_type         handle; /* -1 for failed rewind */
+
     struct _finddata_t  info;
+
     struct dirent       result; /* d_name null iff first time */
+
     char                *name;  /* null-terminated char string */
+
 };
 
+
+
 DIR *opendir(const char *name)
+
 {
+
     DIR *dir = 0;
 
+
+
     if(name && name[0])
+
     {
+
         size_t base_length = strlen(name);
+
         const char *all = /* search pattern must end with suitable wildcard */
+
             strchr("/\\", name[base_length - 1]) ? "*" : "/*";
 
+
+
         if((dir = (DIR *) malloc(sizeof *dir)) != 0 &&
+
            (dir->name = (char *) malloc(base_length + strlen(all) + 1)) != 0)
+
         {
+
             strcat(strcpy(dir->name, name), all);
 
+
+
             if((dir->handle =
+
                 (handle_type) _findfirst(dir->name, &dir->info)) != -1)
+
             {
+
                 dir->result.d_name = 0;
+
             }
+
             else /* rollback */
+
             {
+
                 free(dir->name);
+
                 free(dir);
+
                 dir = 0;
+
             }
+
         }
+
         else /* rollback */
+
         {
+
             free(dir);
+
             dir   = 0;
+
             errno = ENOMEM;
+
         }
+
     }
+
     else
+
     {
+
         errno = EINVAL;
+
     }
+
+
 
     return dir;
+
 }
+
+
 
 int closedir(DIR *dir)
+
 {
+
     int result = -1;
 
+
+
     if(dir)
+
     {
+
         if(dir->handle != -1)
+
         {
+
             result = _findclose(dir->handle);
+
         }
+
+
 
         free(dir->name);
+
         free(dir);
+
     }
+
+
 
     if(result == -1) /* map all errors to EBADF */
+
     {
+
         errno = EBADF;
+
     }
 
+
+
     return result;
+
 }
+
+
 
 struct dirent *readdir(DIR *dir)
+
 {
+
     struct dirent *result = 0;
 
+
+
     if(dir && dir->handle != -1)
+
     {
+
         if(!dir->result.d_name || _findnext(dir->handle, &dir->info) != -1)
+
         {
+
             result         = &dir->result;
+
             result->d_name = dir->info.name;
+
         }
+
     }
+
     else
+
     {
+
         errno = EBADF;
+
     }
+
+
 
     return result;
+
 }
+
+
 
 void rewinddir(DIR *dir)
+
 {
+
     if(dir && dir->handle != -1)
+
     {
+
         _findclose(dir->handle);
+
         dir->handle = (handle_type) _findfirst(dir->name, &dir->info);
+
         dir->result.d_name = 0;
+
     }
+
     else
+
     {
+
         errno = EBADF;
+
     }
+
 }
 
+
+
 #ifdef __cplusplus
+
 }
+
 #endif
+
+
 
 /*
 
+
+
     Copyright Kevlin Henney, 1997, 2003, 2012. All rights reserved.
 
+
+
     Permission to use, copy, modify, and distribute this software and its
+
     documentation for any purpose is hereby granted without fee, provided
+
     that this copyright and permissions notice appear in all copies and
+
     derivatives.
+
     
+
     This software is supplied "as is" without express or implied warranty.
+
+
 
     But that said, if there are any problems please get in touch.
 
+
+
 */
+
+
 
 #endif
 
@@ -331,9 +507,13 @@ namespace lib {
 
 	struct stat statStruct;
 #ifdef _MSC_VER
+
 	int actStat = stat( actFile, &statStruct);
+
 #else
+
 	int actStat = lstat( actFile, &statStruct);
+
 #endif
 	if( actStat != 0) 
 	  continue;
@@ -348,38 +528,72 @@ namespace lib {
 	// 	if( write && !wxFile::Access( actFile, wxFile::write))
 	// 	  continue;
 
+
 	if( read && access( actFile, R_OK) != 0)
+
 	  continue;
+
 	if( write && access( actFile, W_OK) != 0)
+
 	  continue;
+
+
 
 	if( zero_length && statStruct.st_size != 0) 
-	  continue;
-#ifndef _MSC_VER
-	if( executable && access( actFile, X_OK) != 0)
+
 	  continue;
 
+#ifndef _MSC_VER
+
+	if( executable && access( actFile, X_OK) != 0)
+
+	  continue;
+
+
+
 	if( get_mode)
+
 	  (*getMode)[ f] = statStruct.st_mode & 
+
 	    (S_IRWXU | S_IRWXG | S_IRWXO);
+
 	if( block_special && S_ISBLK(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	if( character_special && S_ISCHR(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	if( named_pipe && S_ISFIFO(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	if( socket && S_ISSOCK(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	if( symlink && S_ISLNK(statStruct.st_mode) == 0) 
+
 	  continue;
+
 #endif
+
 	if( directory && S_ISDIR(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	if( regular && S_ISREG(statStruct.st_mode) == 0) 
+
 	  continue;
+
 	
+
 	(*res)[ f] = 1;
+
       }
+
+
 
     return res;
   }
@@ -473,16 +687,27 @@ namespace lib {
 	  {
 	    DString testFile = root + entryStr;
 #ifdef _MSC_VER
+
 	    int actStat = stat( testFile.c_str(), &statStruct);
+
 #else
+
 	    int actStat = lstat( testFile.c_str(), &statStruct);
+
 #endif
+
 	    if( S_ISDIR(statStruct.st_mode) == 0)
+
 	      { // only test non-dirs
+
 #ifdef _MSC_VER
+
 		int match = PathMatchSpecEx(entryStr.c_str(), pat.c_str(), 0);
+
 #else
+
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
+
 #endif
 		if( match == 0)
 		  {
@@ -534,10 +759,15 @@ namespace lib {
 	  {
 	    DString testDir = root + entryStr;
 #ifdef _MSC_VER
+
 	    int actStat = stat( testDir.c_str(), &statStruct);
+
 #else
+
 	    int actStat = lstat( testDir.c_str(), &statStruct);
+
 #endif
+
 	    if( S_ISDIR(statStruct.st_mode) != 0)
 	      {
 		recurDir.push_back( testDir);
@@ -545,9 +775,13 @@ namespace lib {
 	    else if( notAdded)
 	      {
 #ifdef _MSC_VER
+
 		int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+
 #else
+
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
+
 #endif
 		if( match == 0)
 		  notAdded = false;
@@ -598,23 +832,41 @@ namespace lib {
     // dirN == "+DIRNAME"
 
 #ifdef _MSC_VER
+
 	// Windows does not use '~' as a home directory alias
+
 	DString initDir = dirN;
+
 #else
+
     // do first a glob because of '~'
+
     int flags = GLOB_TILDE | GLOB_NOSORT;
+
     glob_t p;
+
     int offset_tilde=0;
+
     if (dirN[0] == '+') offset_tilde=1;
+
     int gRes = glob( dirN.substr(offset_tilde).c_str(), flags, NULL, &p);
+
     if( gRes != 0 || p.gl_pathc == 0)
+
       {
+
 		globfree( &p);
+
 		return;
+
       }
 
+
+
     DString initDir = p.gl_pathv[ 0];
+
     globfree( &p);
+
 #endif
     
     if (dirN[0] == '+')
@@ -694,11 +946,17 @@ namespace lib {
     int fnFlags = 0;
 
 #ifndef _MSC_VER
+
     if( !match_dot)
+
       fnFlags |= FNM_PERIOD;
 
+
+
     if( !quote)
+
       fnFlags |= FNM_NOESCAPE;
+
 #endif
 
     DString root = dirN;
@@ -761,19 +1019,33 @@ namespace lib {
 	      {
 		DString testDir = root + entryStr;
 #ifdef _MSC_VER
+
 		int actStat = stat( testDir.c_str(), &statStruct);
+
 #else
+
 		int actStat = lstat( testDir.c_str(), &statStruct);
+
 #endif
+
 		if( S_ISDIR(statStruct.st_mode) != 0)
+
 		    recurDir.push_back( testDir);
+
 	      }
 
+
+
 	    // dirs are also returned if they match
+
 #ifdef _MSC_VER
+
 	    int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+
 #else
+
 	    int match = fnmatch( pat.c_str(), entryStr.c_str(), fnFlags);
+
 #endif
 	    if( match == 0)
 	      fL.push_back( prefix + entryStr);
@@ -1121,17 +1393,28 @@ DString makeInsensitive(const DString &s)
     resDim=p0S->Dim();
     DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
 
-    char *bname;
-    char *tmp;
-
     for (SizeT i = 0; i < p0S->N_Elements(); i++) {
 
-      tmp=strdup((*p0S)[i].c_str());
+      //tmp=strdup((*p0S)[i].c_str());
+      const string& tmp=strdup((*p0S)[i].c_str());
 
-      //      cout << ">>"<<(*p0S)[i].c_str() << "<<" << endl;
-      if (strlen(tmp) > 0) {
-	bname=basename(tmp);
-	(*res)[i]=string(bname);
+	  //      cout << ">>"<<(*p0S)[i].c_str() << "<<" << endl;
+	  if (tmp.length() > 0) {
+
+#ifdef _MSC_VER
+   char path_buffer[_MAX_PATH];
+   char drive[_MAX_DRIVE];
+   char dir[_MAX_DIR];
+   char fname[_MAX_FNAME];
+   char ext[_MAX_EXT];
+
+   _splitpath( tmp.c_str(),drive,dir,fname,ext);
+   string bname = string(fname)+"."+ext;
+#else
+	string bname=string(basename(tmp));
+#endif
+
+	(*res)[i] = bname;
       } 
       else
 	{
@@ -1150,7 +1433,7 @@ DString makeInsensitive(const DString &s)
       
       if (fold_case) suffixe=StrUpCase(suffixe);
 
-      cout << "suffixe :"<< suffixe << endl;
+      //cout << "suffixe :"<< suffixe << endl;
 
       
       string tmp1, fin_tmp;
@@ -1186,13 +1469,23 @@ DString makeInsensitive(const DString &s)
     resDim=p0S->Dim();
     DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
 
-    char *dname;
-
     for (SizeT i = 0; i < p0S->N_Elements(); i++) {
-      char *tmp;
-      tmp=strdup((*p0S)[i].c_str());
-      dname=dirname(tmp);
-      (*res)[i]=string(dname);
+      //tmp=strdup((*p0S)[i].c_str());
+      const string& tmp = (*p0S)[i];
+
+#ifdef _MSC_VER
+   char path_buffer[_MAX_PATH];
+   char drive[_MAX_DRIVE];
+   char dir[_MAX_DIR];
+   char fname[_MAX_FNAME];
+   char ext[_MAX_EXT];
+
+   _splitpath( tmp.c_str(),drive,dir,fname,ext);
+   string dname = string(drive)+":"+dir;
+#else
+   string dname=string(dirname(tmp.c_str()));
+#endif
+   (*res)[i]=string(dname);
 
     }
     
@@ -1341,66 +1634,122 @@ DString makeInsensitive(const DString &s)
         // stating the file (and moving on to the next file if failed)
 	struct stat statStruct;
 #ifdef _MSC_VER
+
 	if (stat(actFile, &statStruct) != 0) continue;
+
 #else
+
 	if (lstat(actFile, &statStruct) != 0) continue;
+
 #endif
+
         // checking struct tag indices (once)
+
         if (!indices_known) 
+
         {
+
           tExists =           res->Desc()->TagIndex("EXISTS"); 
+
           tRead =             res->Desc()->TagIndex("READ"); 
+
           tWrite =            res->Desc()->TagIndex("WRITE"); 
+
           tRegular =          res->Desc()->TagIndex("REGULAR"); 
+
           tDirectory =        res->Desc()->TagIndex("DIRECTORY");
+
 #ifndef _MSC_VER
+
           tBlockSpecial =     res->Desc()->TagIndex("BLOCK_SPECIAL");
+
           tCharacterSpecial = res->Desc()->TagIndex("CHARACTER_SPECIAL");
+
           tNamedPipe =        res->Desc()->TagIndex("NAMED_PIPE");
+
           tExecute =          res->Desc()->TagIndex("EXECUTE"); 
+
           tSetuid =           res->Desc()->TagIndex("SETUID");
+
           tSetgid =           res->Desc()->TagIndex("SETGID");
+
 		  tSocket =           res->Desc()->TagIndex("SOCKET");
+
           tStickyBit =        res->Desc()->TagIndex("STICKY_BIT");
+
           tSymlink =          res->Desc()->TagIndex("SYMLINK");
+
           tDanglingSymlink =  res->Desc()->TagIndex("DANGLING_SYMLINK");
+
           tMode =             res->Desc()->TagIndex("MODE");
+
 #endif
+
           tAtime =            res->Desc()->TagIndex("ATIME");
+
           tCtime =            res->Desc()->TagIndex("CTIME");
+
           tMtime =            res->Desc()->TagIndex("MTIME");
+
           tSize =             res->Desc()->TagIndex("SIZE");
+
           indices_known = true;
+
         }
 
         // EXISTS (would not reach here if stat failed)
         *(res->GetTag(tExists, f)) = DByteGDL(1);
         
         // READ, WRITE, EXECUTE
+
         *(res->GetTag(tRead, f)) =    DByteGDL(access(actFile, R_OK) == 0);
+
         *(res->GetTag(tWrite, f)) =   DByteGDL(access(actFile, W_OK) == 0);
+
 #ifndef _MSC_VER
+
         *(res->GetTag(tExecute, f)) = DByteGDL(access(actFile, X_OK) == 0);
+
 #endif
 
+
+
         // REGULAR, DIRECTORY, BLOCK_SPECIAL, CHARACTER_SPECIAL, NAMED_PIPE, SOCKET
+
         *(res->GetTag(tRegular, f)) =          DByteGDL(S_ISREG( statStruct.st_mode) != 0);
+
         *(res->GetTag(tDirectory, f)) =        DByteGDL(S_ISDIR( statStruct.st_mode) != 0);
+
 #ifndef _MSC_VER
+
         *(res->GetTag(tBlockSpecial, f)) =     DByteGDL(S_ISBLK( statStruct.st_mode) != 0);
+
         *(res->GetTag(tCharacterSpecial, f)) = DByteGDL(S_ISCHR( statStruct.st_mode) != 0);
+
         *(res->GetTag(tNamedPipe, f)) =        DByteGDL(S_ISFIFO(statStruct.st_mode) != 0);
+
         *(res->GetTag(tSocket, f)) =           DByteGDL(S_ISSOCK(statStruct.st_mode) != 0);
+
 #endif  
+
         // SETUID, SETGID, STICKY_BIT
+
 #ifndef _MSC_VER
+
         *(res->GetTag(tSetuid, f)) =           DByteGDL((S_ISUID & statStruct.st_mode) != 0);
+
         *(res->GetTag(tSetgid, f)) =           DByteGDL((S_ISGID & statStruct.st_mode) != 0);
+
         *(res->GetTag(tStickyBit, f)) =        DByteGDL((S_ISVTX & statStruct.st_mode) != 0);
+
         // MODE
+
         *(res->GetTag(tMode, f)) = DLongGDL(
+
           statStruct.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX)
+
         );
+
 #endif
 
         // ATIME, CTIME, MTIME
@@ -1412,13 +1761,21 @@ DString makeInsensitive(const DString &s)
 	*(res->GetTag(tSize, f)) = DLong64GDL(statStruct.st_size);
 
         // SYMLINK, DANLING_SYMLINK
+
 #ifndef _MSC_VER // No symlinks in windows
+
         if (S_ISLNK(statStruct.st_mode) != 0)
+
         {
+
           *(res->GetTag(tSymlink, f)) = DByteGDL(1);
+
           // warning: statStruct now describes the linked file
+
           *(res->GetTag(tDanglingSymlink, f)) = DByteGDL(stat(actFile, &statStruct) != 0);
+
         }
+
 #endif
       }
 

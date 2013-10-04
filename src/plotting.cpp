@@ -40,7 +40,9 @@ namespace lib
 
   using namespace std;
 //  using std::isinf;
+#ifndef _MSC_VER
   using std::isnan;
+#endif
   
 //static values
   static DDouble savedPointX=0.0;
@@ -146,11 +148,11 @@ namespace lib
     {
        //look only in range x=[xmin,xmax]
        valx=(*xVal)[i];
-       if (std::isnan(valx)) break;
+       if (isnan(valx)) break;
        if(valx<xmin || valx>xmax) break;
        //min and max of y if not NaN and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
        valy=(*yVal)[i];
-       if (std::isnan(valy)) break;
+       if (isnan(valy)) break;
        if (doMinMax &&(valy<minVal || valy>maxVal)) break;
        if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}
        k++;
@@ -1551,7 +1553,7 @@ namespace lib
       if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
       if ( xLog ) x=log10(x);
       if ( yLog ) y=log10(y);
-      isBad=(isBad||!isfinite(x)|| !isfinite(y)||std::isnan(x)||std::isnan(y));
+      isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
       if ( isBad )
       {
         reset=1;
@@ -2597,14 +2599,14 @@ namespace lib
     {
       snprintf(test, length, "%f",value);
       ns=strlen(test);
-      i=rindex(test,'0');
+      i=strrchr (test,'0');
       while (i==(test+ns-1)) //remove trailing zeros...
       {
           *i='\0';
-        i=rindex(test,'0');
+        i=strrchr(test,'0');
         ns--;
       }
-      i=rindex(test,'.'); //remove trailing '.'
+      i=strrchr(test,'.'); //remove trailing '.'
       if (i==(test+ns-1)) {*i='\0'; ns--;}
       if (ptr->isLog) snprintf( label, length, specialfmtlog.c_str(),test);
       else
@@ -2615,11 +2617,11 @@ namespace lib
       z=value*sgn/pow(10.,e);
       snprintf(test,20,"%7.6f",z);
       ns=strlen(test);
-      i=rindex(test,'0');
+      i=strrchr(test,'0');
       while (i==(test+ns-1))
       {
           *i='\0';
-        i=rindex(test,'0');
+        i=strrchr(test,'0');
         ns--;
       }
       ns-=2;ns=(ns>6)?6:ns;

@@ -41,7 +41,9 @@
 namespace lib {
 
   using namespace std;
+#ifndef _MSC_VER
   using std::isnan;
+#endif
 
   //const int szdbl=sizeof(double);
   //const int szflt=sizeof(float);

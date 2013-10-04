@@ -51,7 +51,7 @@ public:
   dimension(const dimension& dim_)
   { 
     rank = dim_.rank;
-    for(unsigned i=0; i<rank; ++i)
+    for(char i=0; i<rank; ++i)
       { dim[i]=dim_.dim[i];}
     stride[0] = 0; // not set
   }
@@ -114,7 +114,7 @@ public:
   { 
     if( &dim_ == this) return *this; // self assignment
     rank = dim_.rank;
-    for(unsigned i=0; i<rank; ++i) 
+    for(char i=0; i<rank; ++i) 
       dim[i]=dim_.dim[i];
     stride[0] = 0; // not set
     return *this;
@@ -273,7 +273,7 @@ public:
   SizeT NDimElementsConst() const
   {
     SizeT res=1;
-    for(unsigned i=0; i<rank; ++i) res *= dim[i];
+    for(char i=0; i<rank; ++i) res *= dim[i];
     return res;
   }
 

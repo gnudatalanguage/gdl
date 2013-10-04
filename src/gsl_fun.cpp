@@ -102,7 +102,9 @@
 namespace lib {
 
   using namespace std;
+#ifndef _MSC_VER
   using std::isnan;
+#endif
 
   const int szdbl=sizeof(double);
   const int szflt=sizeof(float);
@@ -1796,7 +1798,7 @@ namespace lib {
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
 #endif
-	for (SizeT i = 0; i < chunksize; ++i)
+	for (OMPInt i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
 	    (*res)[i*ninterp+iterate] = gdl_interp1d_eval(interpolant, xa, temp, x, accx);
@@ -1924,7 +1926,7 @@ namespace lib {
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
 #endif
-      for (SizeT i = 0; i < chunksize; ++i)
+      for (OMPInt i = 0; i < chunksize; ++i)
       {
         double x = xval[i];
         double y = yval[i];
@@ -2070,7 +2072,7 @@ namespace lib {
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
 #endif
-	for (SizeT i = 0; i < chunksize; ++i)
+	for (OMPInt i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
 	    double y = yval[i];
@@ -2131,7 +2133,7 @@ namespace lib {
         p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (SizeT i = 0; i < c0->N_Elements(); ++i) {
+        for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
             (*p0D[0])[i] = (*c0)[i].real();
             (*p0D[1])[i] = (*c0)[i].imag();
         }
@@ -2143,7 +2145,7 @@ namespace lib {
         p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (SizeT i = 0; i < c0->N_Elements(); ++i) {
+        for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
             (*p0D[0])[i] = (*c0)[i].real();
             (*p0D[1])[i] = (*c0)[i].imag();
         }

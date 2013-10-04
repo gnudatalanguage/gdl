@@ -201,7 +201,7 @@ public:
 	BGroupReturn;
 
 	GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
-									BaseGDL *uV, DStringGDL buttonuvalue,
+									BaseGDL *uV, DString buttonuvalue,
 									DLong xSize, DLong ySize,
 									DString labeltop, DLong rows, DLong cols,
 									BGroupMode mode, BGroupReturn ret

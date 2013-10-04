@@ -54,8 +54,10 @@
 namespace lib {
 
   using namespace std;
+#ifndef _MSC_VER
   using std::isinf;
   using std::isnan;
+#endif
 
   BaseGDL* machar_fun( EnvT* e)
   {

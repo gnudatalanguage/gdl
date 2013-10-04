@@ -173,6 +173,7 @@ public:
 // 			plstreamInitCalled = true;
 // 		}
 // 	}
+  void wid( PLINT w) { this->width( w);}
 
   static bool checkPlplotDriver(const char *driver)
   {

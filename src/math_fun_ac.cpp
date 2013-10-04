@@ -161,7 +161,9 @@
 namespace lib {
 
 using namespace std;
+#ifndef _MSC_VER
 using std::isinf;
+#endif
 
 #if defined(USE_EIGEN)
 using namespace Eigen;

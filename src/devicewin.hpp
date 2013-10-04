@@ -35,64 +35,66 @@ const int maxWin=32;
 
 class DeviceWIN: public Graphics
 {
-  std::vector<GDLGStream*> winList;
-  std::vector<long>      oList;
+  std::vector<GDLGStream*>	winList;
+  std::vector<long>			oList;
   long oIx;
   int  actWin;
 
   void SetActWin( int wIx)
   {
-    // update !D
-    if( wIx >= 0 && wIx < winList.size()) 
-      {
-	// window size and pos
-	PLFLT xp; PLFLT yp; 
-	PLINT xleng; PLINT yleng;
-	PLINT xoff; PLINT yoff;
-	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
-	(*static_cast<DLongGDL*>( dStruct->Get( xSTag)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( ySTag)))[0] = yleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag)))[0] = yleng;
-      }	
+	  // update !D
+	  if( wIx >= 0 && wIx < winList.size()) 
+	  {
+		  // window size and pos
+		  PLFLT xp; PLFLT yp; 
+		  PLINT xleng; PLINT yleng;
+		  PLINT xoff; PLINT yoff;
+		  winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
+		  (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xleng;
+		  (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = yleng;
+		  (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xleng;
+		  (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = yleng;
+	  }	
 
-    // window number
-    (*static_cast<DLongGDL*>( dStruct->Get( wTag)))[0] = wIx;
+	  // window number
+	  (*static_cast<DLongGDL*>( dStruct->GetTag( wTag)))[0] = wIx;
 
-    actWin = wIx;
+	  actWin = wIx;
   }
 
   // process user deleted windows
   // should be done in a thread
   void ProcessDeleted()
   {
-    int wLSize = winList.size();
+	  int wLSize = winList.size();
 
-//     bool redo;
-//     do { // it seems that the event queue is only searched a few events deep
-//       redo = false;
-      for( int i=0; i<wLSize; i++)
-	if( winList[ i] != NULL && !winList[ i]->Valid()) 
+	  //     bool redo;
+	  //     do { // it seems that the event queue is only searched a few events deep
+	  //       redo = false;
+	  for( int i=0; i<wLSize; i++)
 	  {
-	    delete winList[ i];
-	    winList[ i] = NULL;
-	    oList[ i] = 0;
-// 	    redo = true;
+		  if( winList[ i] != NULL && !winList[ i]->Valid()) 
+		  {
+			  delete winList[ i];
+			  winList[ i] = NULL;
+			  oList[ i] = 0;
+			  // 	    redo = true;
+		  }
+		  //     } while( redo);
 	  }
-//     } while( redo);
 
-    // set to most recently created
-    std::vector< long>::iterator mEl = 
-      std::max_element( oList.begin(), oList.end());
-    
-    // no window open
-    if( *mEl == 0) 
-      {
-	SetActWin( -1);
-	oIx = 1;
-      }
-    else
-      SetActWin( std::distance( oList.begin(), mEl)); 
+	  // set to most recently created
+	  std::vector< long>::iterator mEl = 
+		  std::max_element( oList.begin(), oList.end());
+
+	  // no window open
+	  if( *mEl == 0) 
+	  {
+		  SetActWin( -1);
+		  oIx = 1;
+	  }
+	  else
+		  SetActWin( std::distance( oList.begin(), mEl)); 
   }
 
 public:

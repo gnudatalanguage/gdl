@@ -26,7 +26,9 @@ namespace lib {
 
   using namespace std;
 //  using std::isinf;
+#ifndef _MSC_VER
   using std::isnan;
+#endif
 
   class plot_call : public plotting_routine_call 
   {

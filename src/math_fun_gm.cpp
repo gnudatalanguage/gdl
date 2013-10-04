@@ -197,7 +197,9 @@
 namespace lib
 {
 using namespace std;
+#ifndef _MSC_VER
 using std::isnan;
+#endif
 
   double gm_expint(int n, double x);
   double gm_lentz(double a[], double b[], double tiny, int n, double eps);

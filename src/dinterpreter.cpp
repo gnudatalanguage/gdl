@@ -649,10 +649,12 @@ void AppendExtension( string& argstr)
 DInterpreter::CommandCode DInterpreter::CmdReset()
 {
   RetAll( RetAllException::RESET);
+  return CC_OK;
 }
 DInterpreter::CommandCode DInterpreter::CmdFullReset()
 {
   RetAll( RetAllException::FULL_RESET);
+  return CC_OK;
 }
 
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
