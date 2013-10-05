@@ -173,7 +173,9 @@ public:
 // 			plstreamInitCalled = true;
 // 		}
 // 	}
-  void wid( PLINT w) { this->width( w);}
+
+  // uncomment for plplot >= 5.9.10
+//   void wid( PLINT w) { this->width( w);}
 
   static bool checkPlplotDriver(const char *driver)
   {

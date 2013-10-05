@@ -77,9 +77,9 @@ namespace lib {
     string gdlQscreen=GetEnvString("GDL_GR_WIN_QSCREEN");
     if( gdlQscreen == "1") noQscreen=false;
     string gdlXsize=GetEnvString("GDL_GR_WIN_WIDTH");
-    if( gdlXsize != "" && noQscreen ) *xSize=atoi(gdlXsize.c_str()); 
+    if( gdlXsize != "" && noQscreen) xSize=atoi(gdlXsize.c_str()); 
     string gdlYsize=GetEnvString("GDL_GR_WIN_HEIGHT");
-    if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
+    if( gdlYsize != "" && noQscreen) ySize=atoi(gdlYsize.c_str()); 
 #endif
 #endif
     e->AssureLongScalarKWIfPresent( "XSIZE", xSize);

@@ -215,7 +215,7 @@ namespace lib
     }
 
     // AC, 07/02/2012, please report any unexpected side effect (see test_tvlct.pro)
-    if ( ~get )
+    if ( !get )
     {
       GDLGStream* actStream=Graphics::GetDevice()->GetStream(false);
       if ( actStream!=NULL )
