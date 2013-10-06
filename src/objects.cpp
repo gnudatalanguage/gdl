@@ -526,7 +526,8 @@ int get_suggested_omp_num_threads() {
       return default_num_threads;
     }
 
-#elif defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+//#elif defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#elif defined(_MSC_VER)
   cout<<"get_suggested_omp_num_threads(): is windows"<<endl;
   iff= _popen("wmic cpu get loadpercentage|more +1", "r");
   if (!iff)
@@ -561,6 +562,7 @@ int get_suggested_omp_num_threads() {
 
   // if the following is commented out, there is no return statement
   // this lead to FILE_INFO in TEST_FILE_COPY fail
+#ifndef _MSC_VER
   
   char buffer[4];
   char* c;
@@ -574,6 +576,7 @@ int get_suggested_omp_num_threads() {
   avload=(buffer[0]-'0')+((buffer[2]-'0')>5?1:0);
 
   suggested_num_threads=nbofproc-avload;
+#endif  
   return suggested_num_threads;
 }
 #endif
