@@ -7,11 +7,11 @@
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
 #
-# for use of version from:
-# http://home.comcast.net/~gevenden56/proj/
+# for use of version from: 
+# http://trac.osgeo.org/proj/
 
-find_library(LIBPROJ4_LIBRARIES NAMES proj4)
-find_path(LIBPROJ4_INCLUDE_DIR NAMES lib_proj.h)
+find_library(LIBPROJ4_LIBRARIES NAMES proj)
+find_path(LIBPROJ4_INCLUDE_DIR NAMES proj_api.h)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LIBPROJ4 DEFAULT_MSG LIBPROJ4_LIBRARIES LIBPROJ4_INCLUDE_DIR)
 

@@ -548,7 +548,12 @@ endif(FFTW)
 # -DLIBPROJ4DIR=DIR
 if(LIBPROJ4)
 	set(CMAKE_PREFIX_PATH ${LIBPROJ4DIR})
-	find_package(Libproj4 QUIET)
+	find_package(Libproj4)
+	if(LIBPROJ4_FOUND)	
+	else(LIBPROJ4_FOUND)
+	find_package(Libproj4new)
+	endif(LIBPROJ4_FOUND)	
+
 	if(LIBPROJ4_FOUND)	
 		set(CMAKE_REQUIRED_LIBRARIES ${LIBPROJ4_LIBRARIES} ${GSL_LIBRARIES} m)
 
