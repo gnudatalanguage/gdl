@@ -2,7 +2,8 @@ check_LTLIBRARIES = libtest_ce.la
 libtest_ce_la_SOURCES = libtest_ce.cpp
 libtest_ce_la_LDFLAGS = -rpath $(abs_srcdir)/testsuite/.libs
 
-TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
+#TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
+TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir) $(top_builddir)
 TESTS = \
   test_angles.pro \
   test_array_equal.pro \
