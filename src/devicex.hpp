@@ -437,21 +437,25 @@ public:
     xleng = xSize;
     yleng = ySize;
 
-    bool noPos=(xPos==-1 && yPos==-1);
+    bool noPosx=(xPos==-1);
+    bool noPosy=(yPos==-1);
     xPos=max(0,xPos);
     yPos=max(0,yPos);
-    static PLINT Quadx[4]={xMaxSize-xSize,0,0,xMaxSize-xSize};
-    static PLINT Quady[4]={0,0,yMaxSize-ySize,yMaxSize-ySize};
-    if (noPos)
-    { //no init given, use 4 quadrants:
+    static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
+    static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
+    if (noPosx && noPosy) { //no init given, use 4 quadrants:
         xoff = Quadx[wIx%4];
         yoff = Quady[wIx%4];
+    } else if (noPosx) {
+        xoff = Quadx[wIx%4];
+        yoff = yMaxSize-yPos-ySize;
+    } else if (noPosy) {
+        xoff = xPos;
+        yoff = Quady[wIx%4];
     } else {
-      xoff  = xPos==0?xMaxSize-xSize:xPos;
-      yoff  = yPos==0?yPos:yMaxSize-(yPos+ySize);
+      xoff  = xPos;
+      yoff  = yMaxSize-yPos-ySize;
     }
-    if (yoff <= 0) yoff=1;
-    
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
     xp=max(xp,1.0);
     yp=max(yp,1.0);
