@@ -54,19 +54,19 @@ return nonCopyNodeLookupArray;
 
 // tanslation RefDNode -> ProgNode
 ProgNode::ProgNode( const RefDNode& refNode):
+  ttype( refNode->getType()),
+  text( refNode->getText()),
 	keepRight( false),
 	keepDown( false),
 	breakTarget( NULL),
-  ttype( refNode->getType()),
-  text( refNode->getText()),
   down( NULL), 
   right( NULL),
-  lineNumber( refNode->getLine()),
   cData( refNode->StealCData()), // stealing is crucial here because references might exist
-  // as arrayindices
-  libPro( refNode->libPro),
-  libFun( refNode->libFun),
   var( refNode->var),
+  // as arrayindices
+  libFun( refNode->libFun),
+  libPro( refNode->libPro),
+  lineNumber( refNode->getLine()),
   arrIxList( refNode->StealArrIxList()),
   arrIxListNoAssoc( refNode->StealArrIxNoAssocList()),
 //   arrIxList( refNode->CloneArrIxList()),

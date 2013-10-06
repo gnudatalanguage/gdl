@@ -200,8 +200,8 @@ DSubUD::~DSubUD()
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
   DSub(n,o), file(f),
   tree( NULL),
-  labelList(),
   compileOpt(GDLParser::NONE),
+  labelList(),
   nForLoops( 0)
 {
   if( o != "")

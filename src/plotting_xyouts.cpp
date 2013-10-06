@@ -339,8 +339,13 @@ namespace lib
         //plot!
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
         if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
-        if (docharthick) actStream->wid ( ( *charthick )[i%charthick->N_Elements ( )]);
-        //orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
+#if (HAVE_PLPLOT_WIDTH)
+        if (docharthick) actStream->width ( static_cast<PLFLT>(( *charthick )[i%charthick->N_Elements ( )]));
+#else
+	if (docharthick) actStream->wid ( ( *charthick )[i%charthick->N_Elements ( )]);
+#endif
+
+	//orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
         PLFLT oriD=(( *orientation )[i%orientation->N_Elements ( )]); //ori DEVICE
         PLFLT oriW=oriD; //ori WORLD
         oriD *= DEGTORAD;

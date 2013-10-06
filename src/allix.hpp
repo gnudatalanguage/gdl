@@ -344,9 +344,9 @@ private:
 public:
   AllIxAllIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_)
     : ixList( ixList_)
+    , varStride( varStride_)
     , acRank( acRank_)
     , nIx( nIx_)
-    , varStride( varStride_)
   {}
   ~AllIxAllIndexedT() {}
 
@@ -384,11 +384,11 @@ private:
 public:
   AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
-    , acRank( acRank_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , acRank( acRank_)
+    , nIx( nIx_)
   {
     add = 0;
 	assert( varStride[0] == 1);
@@ -440,10 +440,10 @@ private:
 public:
   AllIxNewMulti2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , nIx( nIx_)
   {
     add = 0;
 	if( !(*ixList)[0]->Indexed())
@@ -499,11 +499,11 @@ private:
 public:
   AllIxNewMultiNoneIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
-    , acRank( acRank_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , acRank( acRank_)
+    , nIx( nIx_)
   {
 	assert( varStride[0] == 1);
     add = 0;
@@ -548,10 +548,10 @@ private:
 public:
   AllIxNewMultiNoneIndexed2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , nIx( nIx_)
   {
 		assert( varStride[0] == 1);
 		ixListStride[0] = (*ixList)[0]->GetStride();
@@ -593,11 +593,11 @@ public:
   AllIxNewMultiOneVariableIndexNoIndexT( RankT gt1Rank, SizeT add_,
 								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
 	: ixList( ixList_)
-    , acRank( acRank_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , acRank( acRank_)
+    , nIx( nIx_)
 	, add( add_)
 	, variableIndex( gt1Rank)
 	{
@@ -642,11 +642,11 @@ public:
 					 SizeT acRank_, SizeT nIx_, const SizeT* varStride_, 
 					 SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
-    , acRank( acRank_)
-    , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
+    , acRank( acRank_)
+    , nIx( nIx_)
     , add( add_)
     , variableIndex( gt1Rank)
     {

@@ -43,9 +43,9 @@ GDLException::GDLException(DLong eC, const string& s, bool pre, bool decorate):
   errorNodeP( NULL),
   errorCode(eC),
   line( 0), col( 0), prefix( pre),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
 if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -97,9 +97,9 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   errorNodeP( NULL),
   errorCode(-1),
   line( 0), col( 0), prefix( true),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
 if(interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -122,9 +122,9 @@ GDLException::GDLException(DLong eC, const RefDNode eN, const string& s):
   errorNodeP( NULL),
   errorCode(eC),
   line( 0), col( 0), prefix( true),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
 if(interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -148,9 +148,9 @@ GDLException::GDLException(const ProgNodeP eN, const string& s, bool decorate, b
   errorNodeP( eN),
   errorCode(-1),
   line( 0), col( 0), prefix( true),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
 if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
@@ -177,9 +177,9 @@ GDLException::GDLException(DLong eC, const ProgNodeP eN, const string& s, bool d
   errorNodeP( eN),
   errorCode(eC),
   line( 0), col( 0), prefix( true),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
   if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
   {
@@ -207,9 +207,9 @@ GDLException::GDLException(SizeT l, SizeT c, const string& s):
   errorNodeP( NULL),
   errorCode(-1),
   line( l), col( c), prefix( true),
+  arrayexprIndexeeFailed(false),
   ioException( false),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  targetEnv( NULL)
 {
   if(interpreter!=NULL && interpreter->CallStack().size()>0) 
   {
@@ -232,8 +232,8 @@ GDLException::GDLException(DLong eC, SizeT l, SizeT c, const string& s):
   errorNodeP( NULL),
   errorCode(eC),
   line( l), col( c), prefix( true),
-  targetEnv( NULL),
-  arrayexprIndexeeFailed(false)
+  arrayexprIndexeeFailed(false),
+  targetEnv( NULL)
 {
   if(interpreter!=NULL && interpreter->CallStack().size()>0) 
   {

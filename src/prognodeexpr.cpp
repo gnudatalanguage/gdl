@@ -49,18 +49,18 @@ BinaryExprNC::BinaryExprNC( const RefDNode& refNode): BinaryExpr( refNode)
 }
 
 ProgNode::ProgNode(): // for NULLProgNode
+  ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
+  text( "NULLProgNode"),
 	keepRight( false),
 	keepDown( false),
 	breakTarget( NULL),
-  ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
-  text( "NULLProgNode"),
   down( NULL), 
   right( NULL),
-  lineNumber( 0),
   cData( NULL),
-  libPro( NULL),
-  libFun( NULL),
   var( NULL),
+  libFun( NULL),
+  libPro( NULL),
+  lineNumber( 0),
   labelStart( 0),
   labelEnd( 0)
 {}

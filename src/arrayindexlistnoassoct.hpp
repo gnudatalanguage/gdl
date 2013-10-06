@@ -59,8 +59,8 @@ public:
   { nParam = 0;}
 
   ArrayIndexListOneNoAssocT( const ArrayIndexListOneNoAssocT& cp):
-	cleanupIx(),
     ArrayIndexListT( cp),
+	cleanupIx(),
     ix( cp.ix->Dup()),
     allIx( NULL)
   {

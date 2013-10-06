@@ -107,14 +107,14 @@ void EnvUDT::operator delete( void *ptr)
 
 
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
-  env(), 
-  toDestroy(),
-  pro(pro_),
-  extra(NULL),
-  newEnvOff(NULL), 
-  callingNode( cN),
-  lineNumber( 0),
-  obj(false)
+   toDestroy()
+  ,env()
+  ,pro(pro_)
+  ,callingNode( cN)
+  ,lineNumber( 0)
+  ,obj(false)
+  ,extra(NULL)
+  ,newEnvOff(NULL)
   ,ptrToReturnValue(NULL)
 //, toDestroyInitialIndex( toDestroy.size())
 {}

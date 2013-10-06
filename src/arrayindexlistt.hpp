@@ -130,8 +130,8 @@ public:
   { nParam = 0;}
 
   ArrayIndexListOneT( const ArrayIndexListOneT& cp):
-	cleanupIx(),
     ArrayIndexListT( cp),
+	cleanupIx(),
     ix( cp.ix->Dup()),
     allIx( NULL)
   {

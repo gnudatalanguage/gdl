@@ -66,18 +66,18 @@ public:
 		  errorNodeP( NULL),
 		  errorCode(-1),
 		  line( 0), col( 0), prefix( true),
+		  arrayexprIndexeeFailed(false),
 		  ioException( false),
-		  targetEnv( NULL),
-		  arrayexprIndexeeFailed(false)
+		  targetEnv( NULL)
   {}
   GDLException( DLong eC): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
 		  errorCode(eC),
 		  line( 0), col( 0), prefix( true),
+		  arrayexprIndexeeFailed(false),
 		  ioException( false),
-		  targetEnv( NULL),
-		  arrayexprIndexeeFailed(false)
+		  targetEnv( NULL)
   {}
   GDLException(const std::string& s, bool pre = true, bool decorate=true);
   GDLException(const RefDNode eN, const std::string& s);

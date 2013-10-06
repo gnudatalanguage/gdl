@@ -1893,7 +1893,11 @@ namespace lib
       DFloatGDL* charthickVect=e->GetKWAs<DFloatGDL>( charthickIx );
       charthick=(*charthickVect)[0];
     }
+#if (HAVE_PLPLOT_WIDTH)
+    a->width(static_cast<PLFLT>(charthick));
+#else
     a->wid(charthick);
+#endif
   }
 
   void gdlSetAxisCharsize(EnvT *e, GDLGStream *a, string axis)
@@ -1921,7 +1925,11 @@ namespace lib
 
     e->AssureFloatScalarKWIfPresent("THICK", thick);
     if ( thick<=0.0 ) thick=1.0;
+#if (HAVE_PLPLOT_WIDTH)
+    a->width(static_cast<PLFLT>(thick));
+#else
     a->wid(static_cast<PLINT>(floor(thick-0.5)));
+#endif
   }
 
   //LINESTYLE
@@ -2938,7 +2946,11 @@ namespace lib
         a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
         a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
+#if (HAVE_PLPLOT_WIDTH)
+        a->width(static_cast<PLFLT>(Thick));
+#else
         a->wid(Thick);
+#endif
         //ticks or grid eventually with style and length:
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
@@ -2983,7 +2995,11 @@ namespace lib
         else if (axis=="Y") a->box("", 0.0, 0 , Opt.c_str(), 0.0, 0);
       }
       //reset charsize & thick
+#if (HAVE_PLPLOT_WIDTH)
+      a->width(1.0);
+#else
       a->wid(1);
+#endif
       a->sizeChar(1.0);
     }
 	return 0;
@@ -3126,7 +3142,11 @@ namespace lib
         a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
         a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
+#if (HAVE_PLPLOT_WIDTH)
+        a->width(static_cast<PLFLT>(Thick));
+#else
         a->wid(Thick);
+#endif
         //ticks or grid eventually with style and length:
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
@@ -3151,7 +3171,11 @@ namespace lib
         else if (axis=="Z") a->box3("","",0,0,"","",0,0, Opt.c_str(), "", TickInterval, Minor);
       }
       //reset charsize & thick
+#if (HAVE_PLPLOT_WIDTH)
+      a->width(1.0);
+#else
       a->wid(1);
+#endif
       a->sizeChar(1.0);
     }
 	return 0;

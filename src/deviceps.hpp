@@ -443,9 +443,9 @@ private:
   }
 
 public:
-  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), color(0), 
-    decomposed( 0), encapsulated(false), scale(1.), XPageSize(17.78), YPageSize(12.7),
-    XOffset(0.0),YOffset(0.0)
+  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL),
+    XPageSize(17.78), YPageSize(12.7), XOffset(0.0),YOffset(0.0),
+    color(0), decomposed( 0), encapsulated(false), scale(1.)
   {
     name = "PS";
 

@@ -55,9 +55,10 @@ DNode::DNode( const DNode& cp):
 //   keepRight( false),
   CommonAST( cp), //down(), right(), 
   lineNumber( cp.getLine()), cData(NULL), 
-  var(cp.var), arrIxList(NULL),arrIxListNoAssoc(NULL), 
+  var(cp.var),
   libFun( cp.libFun),
   libPro( cp.libPro),
+  arrIxList(NULL),arrIxListNoAssoc(NULL), 
   labelStart( cp.labelStart), labelEnd( cp.labelEnd)
 {
   if( cp.cData != NULL) cData = cp.cData->Dup();

@@ -864,7 +864,7 @@ public:
   typedef SizeT size_type;
   typedef EnvUDT* pointer_type;
   
-  EnvStackT(): sz(defaultStackDepth), top(0) 
+  EnvStackT(): top(0), sz(defaultStackDepth) 
   {
     envStackFrame = new EnvUDT* [ sz+1];
     envStack = envStackFrame + 1;

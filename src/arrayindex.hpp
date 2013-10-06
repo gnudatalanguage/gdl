@@ -303,7 +303,7 @@ private:
   RangeT s;
   BaseGDL* rawData; // for overloaded object indexing
 
-  CArrayIndexScalar( const CArrayIndexScalar& c): s( c.s), sInit( c.sInit) 
+  CArrayIndexScalar( const CArrayIndexScalar& c):  sInit( c.sInit), s( c.s)
   {
     assert( c.rawData != NULL);
     rawData = c.rawData->Dup();

@@ -728,7 +728,11 @@ namespace lib
               actStream->pat(1,&ori,&spa);
 
               if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+#if (HAVE_PLPLOT_WIDTH)
+              if (dothick) actStream->width ( static_cast<PLFLT>(( *thick )[i%thick->N_Elements ( )]));
+#else
               if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+#endif
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
@@ -811,7 +815,11 @@ namespace lib
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
             }
             if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, 2);
+#if (HAVE_PLPLOT_WIDTH)
+            if (dothick) actStream->width ( static_cast<PLFLT>(( *thick )[i%thick->N_Elements ( )]));
+#else
             if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+#endif
             if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
             if (dolabels) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING,
                                                         (PLINT)(*labels)[i%labels->N_Elements()] );

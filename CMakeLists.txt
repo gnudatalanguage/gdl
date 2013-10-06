@@ -23,6 +23,7 @@ include(CheckLibraryExists)
 include(CheckFunctionExists)
 include(CheckSymbolExists)
 include(CheckCSourceRuns)
+include(CheckCXXSourceCompiles)
 include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
 
@@ -302,6 +303,18 @@ if(PLPLOT_FOUND)
 	  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
 	    "you should upgrade to plplot version > 5.9.6")
 	endif(HAVE_PLPLOT_SLABELFUNC)
+	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+	check_cxx_source_compiles("
+#include <plplot/plstream.h>
+int main(int argc, char **argv) {
+  plstream *p = new plstream();
+  PLFLT w = 0.5;
+  p->width(w);
+}" HAVE_PLPLOT_WIDTH)
+	if(HAVE_PLPLOT_WIDTH)
+	  set(HAVE_PLPLOT_WIDTH 1)
+	endif(HAVE_PLPLOT_WIDTH)
 	check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
 	if(PLPLOT_PRIVATE_NOT_HIDDEN)
 	  set(PLPLOT_PRIVATE_NOT_HIDDEN 1)

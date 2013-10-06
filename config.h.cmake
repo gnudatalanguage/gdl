@@ -28,6 +28,7 @@
 #cmakedefine HAVE_NEXTTOWARD 1
 #cmakedefine HAVE_OLDPLPLOT 1
 #cmakedefine HAVE_PLPLOT_SLABELFUNC 1
+#cmakedefine HAVE_PLPLOT_WIDTH 1
 #cmakedefine PLPLOT_PRIVATE_NOT_HIDDEN 1
 #cmakedefine PLPLOT_HAS_LEGEND
 #ifndef HAVE_STDINT_H
