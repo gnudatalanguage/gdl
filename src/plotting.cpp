@@ -1881,7 +1881,7 @@ namespace lib
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a)
   {
-    PLINT charthick=1;
+    PLFLT charthick=1;
      // get !P preference
     static DStructGDL* pStruct=SysVar::P();
     charthick=(*static_cast<DFloatGDL*>
@@ -1896,7 +1896,7 @@ namespace lib
 #if (HAVE_PLPLOT_WIDTH)
     a->width(static_cast<PLFLT>(charthick));
 #else
-    a->wid(charthick);
+    a->wid(static_cast<PLINT>(charthick));
 #endif
   }
 
@@ -2949,7 +2949,7 @@ namespace lib
 #if (HAVE_PLPLOT_WIDTH)
         a->width(static_cast<PLFLT>(Thick));
 #else
-        a->wid(Thick);
+        a->wid(static_cast<PLINT>(Thick));
 #endif
         //ticks or grid eventually with style and length:
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
@@ -3145,7 +3145,7 @@ namespace lib
 #if (HAVE_PLPLOT_WIDTH)
         a->width(static_cast<PLFLT>(Thick));
 #else
-        a->wid(Thick);
+        a->wid(static_cast<PLINT>(Thick));
 #endif
         //ticks or grid eventually with style and length:
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0

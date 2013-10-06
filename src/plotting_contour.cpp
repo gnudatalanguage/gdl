@@ -49,7 +49,8 @@ namespace lib
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool zLog, isLog;
     bool overplot, make2dBox, make3dBox, nodata;
-    DLongGDL *colors,*thick,*labels,*style;
+    DLongGDL *colors,*labels,*style;
+    DFloatGDL* thick;
     Guard<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
     DFloatGDL *spacing,*orientation;
     Guard<BaseGDL> spacing_guard,orientation_guard;
@@ -659,7 +660,7 @@ namespace lib
         }
         if ( e->GetKW ( c_thickIx )!=NULL )
         {
-          thick=e->GetKWAs<DLongGDL>( c_thickIx ); dothick=true;
+          thick=e->GetKWAs<DFloatGDL>( c_thickIx ); dothick=true;
         }
         if ( e->GetKW ( c_labelsIx )!=NULL )
         {
@@ -727,11 +728,11 @@ namespace lib
               spa=floor(10000*(*spacing)[i%spacing->N_Elements()]);
               actStream->pat(1,&ori,&spa);
 
-              if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+              if (docolors) actStream->Color( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
 #if (HAVE_PLPLOT_WIDTH)
-              if (dothick) actStream->width ( static_cast<PLFLT>(( *thick )[i%thick->N_Elements ( )]));
+              if (dothick) actStream->width( static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]));
 #else
-              if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+              if (dothick) actStream->wid( static_cast<PLINT>(( *thick )[i%thick->N_Elements()]));
 #endif
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
@@ -742,7 +743,7 @@ namespace lib
               (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
             actStream->psty(0);
-            if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+            if (docolors) gdlSetGraphicsForegroundColorFromKw( e, actStream );
             if (dothick) gdlSetPenThickness(e, actStream);
             if (dostyle) gdlLineStyle(actStream, 0);
           }
@@ -818,7 +819,7 @@ namespace lib
 #if (HAVE_PLPLOT_WIDTH)
             if (dothick) actStream->width ( static_cast<PLFLT>(( *thick )[i%thick->N_Elements ( )]));
 #else
-            if (dothick) actStream->wid ( ( *thick )[i%thick->N_Elements ( )]);
+            if (dothick) actStream->wid( ( *thick )[i%thick->N_Elements ( )]);
 #endif
             if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
             if (dolabels) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING,

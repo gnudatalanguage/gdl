@@ -340,9 +340,9 @@ namespace lib
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
         if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
 #if (HAVE_PLPLOT_WIDTH)
-        if (docharthick) actStream->width ( static_cast<PLFLT>(( *charthick )[i%charthick->N_Elements ( )]));
+        if (docharthick) actStream->width( static_cast<PLFLT>(( *charthick )[i%charthick->N_Elements()]));
 #else
-	if (docharthick) actStream->wid ( ( *charthick )[i%charthick->N_Elements ( )]);
+	if (docharthick) actStream->wid( static_cast<PLINT>(( *charthick )[i%charthick->N_Elements()]));
 #endif
 
 	//orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
