@@ -26,6 +26,10 @@ namespace lib {
   void device( EnvT* e)
   {
     Graphics* actDevice = Graphics::GetDevice();
+    // GET_PAGE_SIZE ?
+    // GET_PIXEL_DEPTH ?
+    // GET_VISUAL_NAME ?
+    // GET_WRITE_MASK ? 
     
     // GET_SCREEN_SIZE {{{
     {
@@ -409,6 +413,31 @@ namespace lib {
     }
     // }}}
 
+    // WINDOW_POSITION kw {{{
+    { 
+      static int window_positionIx = e->KeywordIx( "GET_WINDOW_POSITION");
+      if (e->KeywordPresent(window_positionIx))
+      {
+        // check if X (could be more elegant...)
+        DStructGDL* dStruct = SysVar::D();
+        static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+        DString d_name = (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
+        // if PS and not noErase (ie, erase) then set !p.noerase=0    
+        if (d_name != "X") e->Throw("WINDOW_POSITION not supported for the current device (" + d_name + "), it works for X only");
+
+        PLINT xleng; PLINT yleng;
+        PLINT xoff; PLINT yoff;
+        bool success = actDevice->WSize( actDevice->ActWin() ,&xleng, &yleng, &xoff, &yoff);
+        if (success) {
+            DIntGDL* res;
+            res = new DIntGDL(2, BaseGDL::NOZERO);
+            (*res)[0]= xoff;
+            (*res)[1]= yoff;
+            e->SetKW( window_positionIx, res);
+        }
+      }
+    }
+    // }}}
 
   }
 
