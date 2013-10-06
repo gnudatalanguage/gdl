@@ -1312,9 +1312,6 @@ DString makeInsensitive(const DString &s)
 
     SizeT nEl = p0S->N_Elements();
 
-//debug    
-  p0S->ToStream(cout);
-  cout << endl;
     for( SizeT f=0; f<nEl; ++f)
       {
 	string actFile;
@@ -1347,11 +1344,11 @@ DString makeInsensitive(const DString &s)
 	int actStat = lstat( actFile.c_str(), &statStruct);
 
 #endif
-// debug
-	if( actStat != 0)
-	{
-	  cout << "FILE_TEST: actStat != 0: " << actFile << endl;
-	}
+// // debug
+// 	if( actStat != 0)
+// 	{
+// 	  cout << "FILE_TEST: actStat != 0: " << actFile << endl;
+// 	}
 	
 	if( actStat != 0) 
 	  continue;
@@ -1461,11 +1458,12 @@ DString makeInsensitive(const DString &s)
 	int actStat = lstat(actFile, &statStruct);
 
 #endif
-// debug
-	if( actStat != 0)
-	{
-	  cout << "FILE_INFO: actStat != 0: " << actFile << endl;
-	}
+// // debug
+// 	cout << "FILE_INFO: actStat = " << actStat << ": " << actFile << endl;
+// 	if( actStat != 0)
+// 	{
+// 	  cout << "FILE_INFO: actStat != 0: " << actFile << endl;
+// 	}
 
 	if( actStat != 0) 
 	  continue;
