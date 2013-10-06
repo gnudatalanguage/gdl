@@ -920,7 +920,9 @@ inline SizeT CShiftNormalize( DLong s, SizeT this_dim)
   if ( s >= 0 )
     return s % this_dim;
   // s < 0
-  long dstIx = -(-s % this_dim);
+//  long dstIx = -(-s % this_dim);
+  long dstIx = -s % this_dim;
+  dstIx = -dstIx;
   if( dstIx == 0) // if this_dim == 1
     return 0;
   assert( dstIx + this_dim > 0);
