@@ -961,11 +961,19 @@ namespace lib {
 
       // Convert lon/lat to x/y device coord
       for( SizeT i=0; i<x_tri->N_Elements(); ++i) {
+#if !defined(USE_LIBPROJ4_NEW)
 	idata.lam = (*x_tri)[i] * DEG_TO_RAD;
 	idata.phi = (*y_tri)[i] * DEG_TO_RAD;
 	odata = PJ_FWD(idata, ref);
 	(*x_tri)[i] = odata.x *  xvsx[1] + xvsx[0];
 	(*y_tri)[i] = odata.y *  yvsy[1] + yvsy[0];
+#else
+	idata.u = (*x_tri)[i] * DEG_TO_RAD;
+	idata.v = (*y_tri)[i] * DEG_TO_RAD;
+	odata = PJ_FWD(idata, ref);
+	(*x_tri)[i] = odata.u *  xvsx[1] + xvsx[0];
+	(*y_tri)[i] = odata.v *  yvsy[1] + yvsy[0];
+#endif	
       }
     }
 #endif

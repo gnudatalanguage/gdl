@@ -1420,7 +1420,11 @@ Esko G. Cate & David W. Twigg
       last_lat2 = map_lat2;
 
       //      prev_ref = pj_init(nparms, parms);
+#ifdef USE_LIBPROJ4_NEW     
+      *prev_ref = PJ_INIT(nparms, parms);
+#else
       prev_ref = PJ_INIT(nparms, parms);
+#endif      
     }
     return prev_ref;
   }

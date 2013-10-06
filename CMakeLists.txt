@@ -551,16 +551,17 @@ if(LIBPROJ4)
 	find_package(Libproj4 QUIET)
 	if(LIBPROJ4_FOUND)	
 		set(CMAKE_REQUIRED_LIBRARIES ${LIBPROJ4_LIBRARIES} ${GSL_LIBRARIES} m)
-# patch #42 (commented out)
-		check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4_NEW)
+
+		check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
 		if(USE_LIBPROJ4_NEW)
 #		check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
 #		if(USE_LIBPROJ4)
 
+                        # define USE_LIB_PROJ4 in any case
 			set(USE_LIBPROJ4 1)
 
 		else(USE_LIBPROJ4_NEW)
-			check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4)
+			check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
 			if(NOT USE_LIBPROJ4)
 #		else(USE_LIBPROJ4)
 #			check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)

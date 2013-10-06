@@ -83,11 +83,19 @@ void tvcrs( EnvT* e)
       PROJTYPE* ref = map_init();
       if (ref == NULL) e->Throw("Projection initialization failed.");
       LPTYPE idataN;
+#ifdef USE_LIBPROJ4_NEW
+      idataN.u = tempx* RAD_TO_DEG;
+      idataN.v = tempy* RAD_TO_DEG;
+      XYTYPE odata = PJ_FWD(idataN, ref);
+      tempx = odata.u;
+      tempy = odata.v;
+#else
       idataN.lam = tempx* RAD_TO_DEG;
       idataN.phi = tempy* RAD_TO_DEG;
       XYTYPE odata = PJ_FWD(idataN, ref);
       tempx = odata.x;
       tempy = odata.y;
+#endif	  
     }
 #endif
     bool xLog, yLog;
@@ -242,12 +250,21 @@ void cursor(EnvT* e){
         PROJTYPE* ref = map_init();
         if (ref == NULL) e->Throw("Projection initialization failed.");
         XYTYPE idata, idataN;
+#ifdef USE_LIBPROJ4_NEW
+        idataN.u = gin.dX;
+        idataN.v = gin.dY;
+        plg->NormToWorld(idataN.u, idataN.v, idata.u, idata.v);
+        LPTYPE odata = PJ_INV(idata, ref);
+        tempx = odata.u * RAD_TO_DEG;
+        tempy = odata.v * RAD_TO_DEG;
+#else
         idataN.x = gin.dX;
         idataN.y = gin.dY;
         plg->NormToWorld(idataN.x, idataN.y, idata.x, idata.y);
         LPTYPE odata = PJ_INV(idata, ref);
         tempx = odata.lam * RAD_TO_DEG;
         tempy = odata.phi * RAD_TO_DEG;
+#endif
       }
 #endif
       bool xLog, yLog;

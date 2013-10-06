@@ -623,11 +623,19 @@ namespace lib
             {
               for ( SizeT j=0; j<yEl; j++ )
               {
+#ifdef USE_LIBPROJ4_NEW     
+                idata.u= cgrid2.xg[i][j] * DEG_TO_RAD;
+                idata.v= cgrid2.yg[i][j] * DEG_TO_RAD;
+                odata=PJ_FWD ( idata, ref );
+                cgrid2.xg[i][j]=odata.u;
+                cgrid2.yg[i][j]=odata.v;
+#else
                 idata.lam= cgrid2.xg[i][j] * DEG_TO_RAD;
                 idata.phi= cgrid2.yg[i][j] * DEG_TO_RAD;
                 odata=PJ_FWD ( idata, ref );
                 cgrid2.xg[i][j]=odata.x;
                 cgrid2.yg[i][j]=odata.y;
+#endif
               }
             }
           }

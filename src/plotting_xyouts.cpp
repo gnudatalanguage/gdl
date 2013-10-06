@@ -322,12 +322,20 @@ namespace lib
         {
           LPTYPE idata;
           XYTYPE odata;
+#ifdef USE_LIBPROJ4_NEW
+          idata.u=x * DEG_TO_RAD;
+          idata.v=y * DEG_TO_RAD;
+          odata=PJ_FWD(idata, ref);
+          x=odata.u;
+          y=odata.v;
+#else
           idata.lam=x * DEG_TO_RAD;
           idata.phi=y * DEG_TO_RAD;
           odata=PJ_FWD(idata, ref);
           x=odata.x;
           y=odata.y;
-        }
+#endif	
+         }
 #endif
 
         if( xLog ) x=log10(x);

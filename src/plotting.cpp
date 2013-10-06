@@ -1537,7 +1537,19 @@ namespace lib
 #ifdef USE_LIBPROJ4
       if ( mapSet&& !e->KeywordSet("NORMAL") )
       {
-        idata.lam=x * DEG_TO_RAD;
+#ifdef USE_LIBPROJ4_NEW
+	idata.u=x * DEG_TO_RAD;
+        idata.v=y * DEG_TO_RAD;
+        if ( i>0 )
+        {
+          xMapBefore=odata.u;
+          yMapBefore=odata.v;
+        }
+        odata=PJ_FWD(idata, ref);
+        x=odata.u;
+        y=odata.v;
+#else
+	idata.lam=x * DEG_TO_RAD;
         idata.phi=y * DEG_TO_RAD;
         if ( i>0 )
         {
@@ -1547,6 +1559,7 @@ namespace lib
         odata=PJ_FWD(idata, ref);
         x=odata.x;
         y=odata.y;
+#endif
       }
 #endif
       //note: here y is in minVal maxVal
