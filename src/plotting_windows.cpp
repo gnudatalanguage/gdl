@@ -61,7 +61,7 @@ namespace lib {
 	title = "GDL "+i2s( wIx);
       }
 
-    DLong xPos=-1, yPos=-1;
+    DLong xPos=-1, yPos=-1; //NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!
     e->AssureLongScalarKWIfPresent( "XPOS", xPos);
     e->AssureLongScalarKWIfPresent( "YPOS", yPos);
 
@@ -90,7 +90,7 @@ namespace lib {
       cout << "xPos/yPos   :"<<  xPos << " " << yPos << endl;
       cout << "xSize/ySize :"<<  xSize << " " << ySize << endl;
     }
-    if( xSize <= 0 || ySize <= 0 || xPos < -1 || yPos < -1)
+    if( xSize <= 0 || ySize <= 0 || xPos < -1 || yPos < -1) //NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!
       e->Throw(  "Unable to create window "
 		 "(BadValue (integer parameter out of range for "
 		 "operation)).");
