@@ -798,23 +798,14 @@ public:
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
-	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
-	public: BaseGDL*  expr(ProgNodeP _t);
-	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
-	public:  BaseGDL**  l_function_call_internal(ProgNodeP _t);
-	public: BaseGDL*  tmp_expr(ProgNodeP _t);
-	public:  BaseGDL*  lib_function_call_internal(ProgNodeP _t);
-	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL**  l_decinc_indexable_expr(ProgNodeP _t,
 		 BaseGDL*& res
 	);
+	public:  BaseGDL**  l_function_call_internal(ProgNodeP _t);
 	public: BaseGDL**  l_defined_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_sys_var(ProgNodeP _t);
 	public: BaseGDL**  l_decinc_array_expr(ProgNodeP _t,
 		int dec_inc, BaseGDL*& res
-	);
-	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t,
-		 bool noAssoc
 	);
 	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
 		int dec_inc
@@ -828,18 +819,26 @@ public:
 	public: BaseGDL**  l_decinc_expr(ProgNodeP _t,
 		int dec_inc, BaseGDL*& res
 	);
+	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL*  indexable_expr(ProgNodeP _t);
 	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
+	public:  BaseGDL*  lib_function_call_internal(ProgNodeP _t);
 	public: BaseGDL**  l_expr_internal(ProgNodeP _t,
 		BaseGDL* right
 	);
+	public: BaseGDL*  tmp_expr(ProgNodeP _t);
 	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: void parameter_def(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);
+	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
+	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public: BaseGDL**  unused_l_array_expr(ProgNodeP _t,
 		BaseGDL* right
+	);
+	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t,
+		 bool noAssoc
 	);
 	public: BaseGDL**  l_arrayexpr_mfcall(ProgNodeP _t,
 		BaseGDL* right
@@ -853,11 +852,9 @@ public:
 	public: void r_dot_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL*  dot_expr_unused(ProgNodeP _t);
 	public: BaseGDL*  assign_expr(ProgNodeP _t);
 	public:  BaseGDL*  unused_function_call(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call_retnew_internal(ProgNodeP _t);
-	public: BaseGDL*  sys_var_nocopy(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
 	public: BaseGDL**  l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
@@ -893,8 +890,6 @@ private:
 	
 	static const unsigned long _tokenSet_0_data_[];
 	static const antlr::BitSet _tokenSet_0;
-	static const unsigned long _tokenSet_1_data_[];
-	static const antlr::BitSet _tokenSet_1;
 };
 
 #endif /*INC_GDLInterpreter_hpp_*/

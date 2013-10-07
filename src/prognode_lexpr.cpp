@@ -52,7 +52,7 @@ BaseGDL** ProgNode::LExpr( BaseGDL* right)
 BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 		//case QUESTION:
 {
-    ProgNodeP branch = this->GetBranch();
+    ProgNodeP branch = this->GetThisBranch();
     return branch->LExpr( right);
 }
 

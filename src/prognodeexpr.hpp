@@ -342,21 +342,19 @@ class QUESTIONNode: public TrinaryExpr
   QUESTIONNode( const RefDNode& refNode): TrinaryExpr( refNode){}
   ProgNodeP GetThisBranch(); // as parameter or keyword
   BaseGDL* Eval();
+  BaseGDL** LEval();
   BaseGDL** LExpr(BaseGDL* right);
   BaseGDL** EvalRefCheck( BaseGDL*& rEval);
-
-//   BaseGDL** LExprGrab(BaseGDL* right);
-  ProgNodeP GetBranch() 
-  {
-    ProgNodeP branch = this->GetThisBranch();
-    while( branch->getType() == GDLTokenTypes::QUESTION)
-    {
-      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
-      branch = qRecursive->GetThisBranch();
-    }
-    return branch;
-  }
-
+//   ProgNodeP GetBranch() 
+//   {
+//     ProgNodeP branch = this->GetThisBranch();
+//     while( branch->getType() == GDLTokenTypes::QUESTION)
+//     {
+//       QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+//       branch = qRecursive->GetThisBranch();
+//     }
+//     return branch;
+//   }
 };
 class UMINUSNode: public UnaryExpr
 { public:

@@ -1954,7 +1954,8 @@ RetCode   RETFNode::Run()
     else // EnvUDT::LFUNCTION
     {
       // pure l-function
-      BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
+//       BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
+      BaseGDL** eL=_t->LEval();
 
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);

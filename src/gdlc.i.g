@@ -1348,7 +1348,8 @@ statement returns[ RetCode retCode]
             }
 
         return retCode;
-    }
+    } // catch [ GDLException& e] 
+
 
 
 
@@ -1408,164 +1409,9 @@ l_deref returns [BaseGDL** res]
 	_retTree = retTree;
 	return res;
 }
-    : (DEREF //e1=expr 
-        )
+    : DEREF
     ;
 
-// return value from functions when used as l var
-// used only from jump_statement and within itself
-l_ret_expr returns [BaseGDL** res]
-{
-    BaseGDL*       e1;
-}
-    : res=l_deref
-    | #(QUESTION e1=expr
-            { 
-                Guard<BaseGDL> e1_guard(e1);
-                if( e1->True())
-                {
-                    res=l_ret_expr(_t);
-                }
-                else
-                {
-                    _t=_t->GetNextSibling(); // jump over 1st expression
-                    res=l_ret_expr(_t);
-                }
-            }
-        ) // trinary operator
-//    | #(EXPR res=l_ret_expr) // does not exist anymore
-    | res=l_arrayexpr_mfcall_as_mfcall
-    | res=l_function_call_internal 
-        { // here a local to the actual environment could be returned
-            if( callStack.back()->IsLocalKW( res))
-            throw GDLException( _t, 
-                "Attempt to return indirectly a local variable "
-                "from left-function.",true,false);
-        }
-    | varPtr:VARPTR // DNode.var   is ptr to common block variable
-        {
-            res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
-        }
-    | var:VAR // DNode.varIx is index into functions/procedures environment
-        {     // check if variable is non-local 
-              // (because it will be invalid after return otherwise)
-            if( !callStack.back()->GlobalKW(var->varIx))
-            throw GDLException( _t, 
-                "Attempt to return a non-global variable "
-                "from left-function.",true,false);
-            
-            res=&callStack.back()->GetKW(var->varIx); 
-        }
-    | // here ASSIGN and ASSIGN_REPLACE are identical
-      #(ASSIGN // can it occur at all?
-            { 
-                Guard<BaseGDL> r_guard;
-            } 
-            ( e1=tmp_expr
-                {
-                    r_guard.Init( e1);
-                }
-            | e1=lib_function_call_internal
-                {
-                    // if( !callStack.back()->Contains( e1)) 
-                    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-                        r_guard.Init( e1);
-                }
-            )
-            res=l_ret_expr
-            {
-                if( e1 != (*res))
-                    {
-                    delete *res;
-                    *res = e1;
-                    }
-                r_guard.release();
-            }
-        )
-    | #(ASSIGN_ARRAYEXPR_MFCALL // here as return value of l_function
-            { 
-                Guard<BaseGDL> r_guard;
-            } 
-            ( e1=tmp_expr
-                {
-                    r_guard.Init( e1);
-                }
-            | e1=lib_function_call_internal
-                {
-                    // if( !callStack.back()->Contains( e1)) 
-                    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-                        r_guard.Init( e1);
-                }
-            )
-            res=l_arrayexpr_mfcall_as_mfcall
-            {
-                if( e1 != (*res))
-                    {
-                    delete *res;
-                    *res = e1;
-                    }
-                r_guard.release();
-            }
-        )
-    | #(ASSIGN_REPLACE 
-            { 
-                Guard<BaseGDL> r_guard;
-            } 
-            ( e1=tmp_expr
-                {
-                    r_guard.Init( e1);
-                }
-            | e1=lib_function_call_internal
-                {
-                    // if( !callStack.back()->Contains( e1)) 
-                    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-                        r_guard.Init( e1);
-                }
-            )
-            res=l_ret_expr
-            {
-                if( e1 != (*res))
-                    {
-                    delete *res;
-                    *res = e1;
-                    }
-                r_guard.release();
-            }
-        )
-
-    // the following are forbiden    
-    | #(ARRAYEXPR
-            {
-                throw GDLException( _t, 
-                    "Indexed expression not allowed as left-function"
-                    " return value.",true,false);
-            }
-        )
-    | #(DOT 
-            {
-                throw GDLException( _t, 
-                    "Struct expression not allowed as left-function"
-                    " return value.",true,false);
-            }
-        )
-    | SYSVAR
-        {
-            throw GDLException( _t, 
-                "System variable not allowed as left-function"
-                " return value.",true,false);
-        }
-    | e1=r_expr
-        {
-            delete e1;
-            throw GDLException( _t, 
-                "Expression not allowed as left-function return value.",true,false);
-        }
-    | CONSTANT //e1=constant_nocopy
-        {
-            throw GDLException( _t, 
-                "Constant not allowed as left-function return value.",true,false);
-        }
-    ;
 
 // l expressions for DEC/INC ********************************
 // l_decind_expr is the only function called from external
@@ -1581,30 +1427,11 @@ l_decinc_indexable_expr [ BaseGDL*& res] returns [BaseGDL** e]
     if( res == NULL)
         throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
     return e;
-
-    e = NULL;    
 }
-//     : #(EXPR e = l_expr_internal[ NULL])                       
-//         {
-//             res = *e;
-//             if( res == NULL)
-//             throw GDLException( _t, "Variable is undefined: "+Name(e));
-//         }
-//     | e=l_function_call_internal
     : e=l_function_call_internal
-        {
-            res = *e;
-            if( res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
-        }
     | e=l_deref 
-        {
-            res = *e;
-            if( res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
-        }
-    | e=l_defined_simple_var { res = *e; } // no Dup here
-    | e=l_sys_var { res = *e; }            // no Dup here
+    | e=l_defined_simple_var
+    | e=l_sys_var
     ;
 
 
@@ -1693,16 +1520,13 @@ l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 		
         return e;
 	}
-	_retTree = _t;
+    assert(false);
 	return e;
 
     // not used _______________________________________
     // ------------------------------------------------
-    BaseGDL** ignore;
 }
-    : #(ARRAYEXPR 
-            ignore=l_decinc_indexable_expr[ res]   
-            aL=arrayindex_list[ false] )
+    : ARRAYEXPR 
     | e= l_decinc_indexable_expr[ res]
     ;
 
@@ -1786,16 +1610,6 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
             { 
                 Guard<BaseGDL> r_guard;
             } 
-//             ( e1=tmp_expr
-//                 {
-//                     r_guard.reset( e1);
-//                 }
-//             | e1=lib_function_call_internal
-//                 {
-//                     if( !callStack.back()->Contains( e1)) 
-//                         r_guard.reset( e1);
-//                 }
-//             )
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { r_guard.Init( e1);}
             | e1=lib_function_call_internal
@@ -1889,22 +1703,21 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
                 BaseGDL** tmp;
             } 
 //            tmp=l_expr_internal[ e1] // assign
-            (
-              tmp=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            ( tmp=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
             | tmp=l_deref           // DEREF
             | tmp=l_simple_var      // VAR, VARPTR
             )
-        {
-            if( e1 != (*tmp))
             {
-                delete *tmp;
+                if( e1 != (*tmp))
+                    {
+                        delete *tmp;
 
-                if( r_guard.Get() == e1)
-                  *tmp = r_guard.release();
-                else  
-                  *tmp = e1->Dup();
+                        if( r_guard.Get() == e1)
+                            *tmp = r_guard.release();
+                        else  
+                            *tmp = e1->Dup();
+                    }
             }
-        }
             {
                 _t = l;
             }
@@ -2015,7 +1828,7 @@ l_indexable_expr returns [BaseGDL** res]
    _retTree = _t->getNextSibling();
 	return res;
 }
-    : #(EXPR res=l_expr_internal[ NULL]) // for l_dot_array_expr
+    : EXPR // for l_dot_array_expr
     | res=l_function_call_internal
     | res=l_arrayexpr_mfcall_as_mfcall 
     | res=l_deref
@@ -2079,51 +1892,17 @@ l_expr_internal [BaseGDL* right] returns [BaseGDL** res]
     
     BaseGDL* e1; 
 }
-    : #(QUESTION e1=expr
-        ) // trinary operator
+    : QUESTION
     | res=unused_l_array_expr[ right]
     | res=l_sys_var // sysvars cannot change their type
-    | // can be called via QUESTION
-       ( res=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
-       | res=l_deref           // DEREF
-       | res=l_simple_var      // VAR, VARPTR
-       )
+    | res=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+    | res=l_deref           // DEREF
+    | res=l_simple_var      // VAR, VARPTR
     | res=l_arrayexpr_mfcall[ right]
-//  | res=l_dot_expr[ right]
-    | #(dot:DOT  // struct assignment
-            l_dot_array_expr[ NULL] //aD.get()] 
-           // (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
-        )         
-    | #(ASSIGN //???
-            // just calculate because of side effects
-            ( e1=indexable_expr
-            | e1=indexable_tmp_expr { delete e1;}
-            | e1=lib_function_call_internal
-                // {
-                //     if( !callStack.back()->Contains( e1)) 
-                //         delete e1; // guard if no global data
-                // }
-            )
-            // here the only relevant assingment is done
-            res=l_expr_internal[ right]
-        )
-    | #(ASSIGN_ARRAYEXPR_MFCALL
-            ( e1=indexable_expr
-            | e1=indexable_tmp_expr //{ delete e1;}
-            | e1=lib_function_call_internal
-            )
-        )
-    | #(ASSIGN_REPLACE //???e1=expr
-            ( e1=tmp_expr
-            | e1=lib_function_call_internal
-            )
-            (
-              res=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
-            | res=l_deref           // DEREF
-            | res=l_simple_var      // VAR, VARPTR
-            )
-        )
-//    | { right == NULL}? res=l_function_call_internal
+    | DOT
+    | ASSIGN
+    | ASSIGN_ARRAYEXPR_MFCALL
+    | ASSIGN_REPLACE 
     | e1=r_expr // illegal
     | CONSTANT // illegal
     ;
@@ -2159,19 +1938,7 @@ l_defined_simple_var returns [BaseGDL** res]
 
 }
     : VAR // DNode.varIx is index into functions/procedures environment
-//         {
-//             res=&callStack.back()->GetKW(var->varIx); 
-//             if( *res == NULL)
-//             throw GDLException( _t, "Variable is undefined: "+
-//                 callStack.back()->GetString(var->varIx),true,false);
-//         }
     | VARPTR // DNode.var   is ptr to common block variable
-//         {
-//             res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
-//             if( *res == NULL)
-//             throw GDLException( _t, "Variable is undefined: "+
-//                 callStack.back()->GetString( *res),true,false);
-//         }
     ;
 
 l_sys_var returns [BaseGDL** res]
@@ -2184,10 +1951,6 @@ l_sys_var returns [BaseGDL** res]
 
 }
     : SYSVAR  
-        // {
-        //     res=sysVar->LEval();
-        //     _retTree = sysVar->getNextSibling();
-        // }
     ;
 
 // right expressions **********************************************************
@@ -2247,8 +2010,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 	}
     return;
 }
-    : #(EXPR e=expr
-        )                       
+    : EXPR
     | IDENTIFIER
     ;
 
@@ -2358,20 +2120,6 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
     | r=r_dot_indexable_expr[ aD]
     ;
 
-// Entry function for struct access
-//#(DOT array_expr (tag_array_expr)+)                     
-dot_expr_unused returns [BaseGDL* res]
-{
-    res = _t->Eval();
-    _retTree = _t->getNextSibling();
-    return res;
-}
-    : #(DOT 
-            r_dot_array_expr[ NULL]  
-            (tag_array_expr[ NULL] /* nDot times*/ )+ 
-        )         
-    ;
-
 // indexable expressions are used to minimize copying of data
 // ( via Dup())
 // owned by caller
@@ -2383,7 +2131,7 @@ indexable_tmp_expr returns [BaseGDL* res]
 }
 	: (QUESTION) // trinary operator
     | (ARRAYEXPR) //res=array_expr
-    | res=dot_expr_unused
+    | DOT
     | res=assign_expr
     | res=unused_function_call
     | res=r_expr
@@ -2400,10 +2148,7 @@ indexable_expr returns [BaseGDL* res]
     BaseGDL** e2;
 }
     : e2=l_defined_simple_var
-        {
-            res = *e2;
-        }
-    | res=sys_var_nocopy
+    | SYSVAR
     | CONSTANT //res=constant_nocopy
     | e2=l_deref 
     ;
@@ -2417,17 +2162,11 @@ expr returns [BaseGDL* res]
     res = _t->Eval();
     _retTree = _t->getNextSibling();
     return res; //tmp_expr(_t);
-
-EnvT*   newEnv;
 }
     : res=tmp_expr
     | res=lib_function_call_internal
     ;    
 
-
-// check_expr returns [BaseGDL* res]
-//     : res=lib_function_call_internal 
-//     ;
 
 // l_expr_internal used as r_expr and true r_expr
 tmp_expr returns [BaseGDL* res]
@@ -2442,7 +2181,7 @@ tmp_expr returns [BaseGDL* res]
 	| (QUESTION) // trinary operator
     | (ARRAYEXPR) //res=array_expr
 //    | res=array_expr
-    | res=dot_expr_unused
+    | DOT
     | res=assign_expr
     | res=unused_function_call
     | res=r_expr
@@ -2461,28 +2200,9 @@ assign_expr returns [BaseGDL* res]
 
     BaseGDL** l;
 }
-    : #(ASSIGN 
-            ( res=tmp_expr
-            | res=lib_function_call_internal
-            )
-            l=l_expr_internal[ res]
-        )
-    | #(ASSIGN_ARRAYEXPR_MFCALL
-            ( res=tmp_expr
-            | res=lib_function_call_internal
-            )
-            l=l_expr_internal[ res]
-        )
-    | #(ASSIGN_REPLACE 
-            ( res=tmp_expr
-            | res=lib_function_call_internal
-            )
-            (
-              l=l_function_call_internal   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
-            | l=l_deref           // DEREF
-            | l=l_simple_var      // VAR, VARPTR
-            )
-        )
+    : ASSIGN 
+    | ASSIGN_ARRAYEXPR_MFCALL
+    | ASSIGN_REPLACE 
     ;
 
 
@@ -2501,8 +2221,8 @@ simple_var returns [BaseGDL* res]
 	_retTree = _t->getNextSibling();
 	return vData->Dup();
 }
-    : var:VAR // DNode.varIx is index into functions/procedures environment
-    | varPtr:VARPTR // DNode.var   is ptr to common block variable
+    : VAR // DNode.varIx is index into functions/procedures environment
+    | VARPTR // DNode.var   is ptr to common block variable
     ;
 
 sys_var returns [BaseGDL* res]
@@ -2511,16 +2231,7 @@ sys_var returns [BaseGDL* res]
 	_retTree = _t->getNextSibling();
 	return res; // no ->Dup()
 }
-    : res=sys_var_nocopy 
-    ;
-
-sys_var_nocopy returns [BaseGDL* res]
-{
-    res = _t->EvalNC();
-	_retTree = _t->getNextSibling();
-	return res; // no ->Dup()
-}
-    : SYSVAR 
+    : SYSVAR
     ;
 
 lib_function_call_internal returns[ BaseGDL* res]
@@ -2532,12 +2243,8 @@ lib_function_call_internal returns[ BaseGDL* res]
 
     callStack.back()->SetPtrToReturnValue( retValPtr); 
     return res;
-
-    EnvT*   newEnv;
 }
-	: #(FCALL_LIB //fll:IDENTIFIER
-            parameter_def[ newEnv]
-        )
+	: FCALL_LIB
     ;    
 
 lib_function_call_retnew_internal returns[ BaseGDL* res]
@@ -2545,48 +2252,23 @@ lib_function_call_retnew_internal returns[ BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; //_t->cData->Dup(); 
-
-    EnvT*   newEnv;
 }
-	: #(FCALL_LIB_RETNEW //fll:IDENTIFIER
-            parameter_def[ newEnv]
-        )
+	: FCALL_LIB_RETNEW
     ;    
 
 
 unused_function_call returns[ BaseGDL* res]
-{ 
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(callStack);
-    BaseGDL *self;
-    EnvUDT*  newEnv;
-    ProgNodeP startNode = _t;
-    ProgNodeP mark;
-}
-    : ( 
-          #(MFCALL 
-                self=expr mp:IDENTIFIER
-                parameter_def[ newEnv]
-            )
-        | #(MFCALL_PARENT 
-                self=expr parent:IDENTIFIER p:IDENTIFIER
-                parameter_def[ newEnv]
-            )
-        | #(f:FCALL //f:IDENTIFIER
-                parameter_def[ newEnv]
-            )
-        | #(ARRAYEXPR_MFCALL
-            self=expr mp2:IDENTIFIER
-            parameter_def[ newEnv]
-            )
-        )        
+    : MFCALL 
+    | MFCALL_PARENT 
+    | FCALL 
+    | ARRAYEXPR_MFCALL
 	;	
 
 
 
 l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
 { 
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    // better than Guard: Guard wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
     EnvUDT*  newEnv;
@@ -2716,30 +2398,11 @@ l_function_call_internal returns[ BaseGDL** res]
     res = _t->LEval();
     _retTree = _t->getNextSibling();
     return res;
-
-    BaseGDL *self;
-    EnvUDT*   newEnv;
 }
-
-	: #(FCALL_LIB //fl:IDENTIFIER
-            parameter_def[ newEnv]
-        )
-    |
-        (
-        ( #(MFCALL 
-                self=expr IDENTIFIER
-                parameter_def[ newEnv]
-            )
-        | #(MFCALL_PARENT 
-                self=expr IDENTIFIER IDENTIFIER
-                parameter_def[ newEnv]
-            )
-
-        | #(FCALL //f:IDENTIFIER
-                parameter_def[ newEnv]
-            )
-        )
-        )
+	: FCALL_LIB
+    | MFCALL 
+    | MFCALL_PARENT 
+    | FCALL
 	;	
 
 // for N_ELEMENTS() the environment is (as well) not on the callstack
@@ -2809,9 +2472,8 @@ parameter_def_n_elements [EnvBaseT* actEnv]
 	
     return;
 }
-    : #(KEYDEF_REF_EXPR IDENTIFIER //ref_parameter
-        )             
-;
+    : KEYDEF_REF_EXPR IDENTIFIER
+    ;
 
 // the environment is not on the callstack
 parameter_def [EnvBaseT* actEnv] 
@@ -2873,9 +2535,7 @@ parameter_def [EnvBaseT* actEnv]
 	
     return;
 }
-    : (  #(KEYDEF_REF IDENTIFIER //ref_parameter
-            )
-        )
+    : KEYDEF_REF IDENTIFIER
 	;
 
 // the environment is not on the callstack
@@ -2919,9 +2579,7 @@ parameter_def_nocheck [EnvBaseT* actEnv]
 	
     return;
 }
-    : (  #(KEYDEF_REF IDENTIFIER //ref_parameter
-            )
-        )
+    : KEYDEF_REF IDENTIFIER
 	;
 
 arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
@@ -2980,82 +2638,11 @@ arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
 	_retTree = ax->getNextSibling();//retTree;
 	return aL;
 }
-	: #(ARRAYIX
-            (
-                ( s=indexable_expr
-                | s=lib_function_call_internal
-                | s=indexable_tmp_expr
-                )
-            )*
-        )
+	: ARRAYIX
     ;
-/*
-arrayindex_list_noassoc returns [ArrayIndexListT* aL]
-{
-    IxExprListT      cleanupList; // for cleanup
-    IxExprListT      ixExprList;
-    SizeT nExpr;
-    BaseGDL* s;
-	
-//	ProgNodeP retTree = _t->getNextSibling();
-	ProgNodeP ax = _t;
-// 	match(antlr::RefAST(_t),ARRAYIX);
-	_t = _t->getFirstChild();
-	
-	aL = ax->arrIxListNoAssoc;
-	assert( aL != NULL);
-	
-	nExpr = aL->NParam();
-	if( nExpr == 0)
-	{
-        aL->Init();
-        _retTree = ax->getNextSibling();//retTree;
-        return aL;
-	}
-	
-	while( true) {
-        assert( _t != NULL);
-        if( NonCopyNode( _t->getType()))
-            {
-                s= _t->EvalNC(); //indexable_expr(_t);
-                //_t = _retTree;
-            }
-        else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-            {
-                s=lib_function_call_internal(_t);
-                //_t = _retTree;
-                if( !callStack.back()->Contains( s)) 
-                    cleanupList.push_back( s);
-            }				
-        else
-            {
-                s=_t->Eval(); //indexable_tmp_expr(_t);
-                //_t = _retTree;
-                cleanupList.push_back( s);
-            }
-			
-        ixExprList.push_back( s);
-        if( ixExprList.size() == nExpr)
-            break; // allows some manual tuning
 
-        _t = _t->getNextSibling();
-	}
 
-	aL->Init( ixExprList, &cleanupList);
-	
-	_retTree = ax->getNextSibling();//retTree;
-	return aL;
-}
-	: #(ARRAYIX
-            (
-                ( s=indexable_expr
-                | s=lib_function_call_internal
-                | s=indexable_tmp_expr
-                )
-            )*
-        )
-    ;
-*/
+
 // for _overloadBracketsLeftSide/_overloadBracketsRightSide
 arrayindex_list_overload [IxExprListT& indexList]
 {
@@ -3090,17 +2677,7 @@ arrayindex_list_overload [IxExprListT& indexList]
                 s= _t->EvalNCNull(); // in this case (overload) NULL is ok
                 //_t = _retTree;
             }
-         // else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
-         //     {
-         //         // s=lib_function_call_internal(_t);
-         //         BaseGDL** retValPtr;
-         //         s = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(retValPtr); 
-         //         //_t = _retTree;
-         //         // if( !callStack.back()->Contains( s)) 
-         //         if( retValPtr == NULL) 
-         //             cleanupList->push_back( s);
-         //     }				
-        else
+       else
             {
                 BaseGDL** ref=_t->EvalRefCheck( s); //indexable_tmp_expr(_t);
                 //_t = _retTree;
@@ -3121,14 +2698,7 @@ arrayindex_list_overload [IxExprListT& indexList]
 	
 	_retTree = ax->getNextSibling();//retTree;
 	return;
-}
-	: #(ARRAYIX
-            (
-                ( s=indexable_expr
-                | s=lib_function_call_internal
-                | s=indexable_tmp_expr
-                )
-            )*
-        )
-    ;
 
+ }
+	: ARRAYIX
+    ;

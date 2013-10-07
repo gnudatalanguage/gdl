@@ -68,8 +68,7 @@ ProgNode::ProgNode(): // for NULLProgNode
 BaseGDL* ProgNode::EvalNC()
 {
   throw GDLException( this,
-		      "Internal error. "
-		      "ProgNode::EvalNC() called.",true,false);
+		      "Internal error. ProgNode::EvalNC() called.",true,false);
 }
 BaseGDL* ProgNode::EvalNCNull()
 {
@@ -79,8 +78,7 @@ BaseGDL* ProgNode::EvalNCNull()
 BaseGDL** ProgNode::LEval()
 {
   throw GDLException( this,
-		      "Internal error. "
-		      "ProgNode::LEval() called.",true,false);
+		      "Internal error. ProgNode::LEval() called.",true,false);
 }
 BaseGDL** ProgNode::EvalRefCheck( BaseGDL*& rEval) // default like Eval()
 {
@@ -91,8 +89,7 @@ BaseGDL** ProgNode::EvalRefCheck( BaseGDL*& rEval) // default like Eval()
 RetCode   ProgNode::Run()
 { 
   throw GDLException( this,
-		      "Internal error. "
-		      "ProgNode::Run() called.",true,false);
+		      "Internal error. ProgNode::Run() called.",true,false);
   return RC_OK; // silence compiler
 }
 
@@ -105,8 +102,7 @@ void ProgNode::SetRightDown( const ProgNodeP r, const ProgNodeP d)
 BaseGDL* ProgNode::Eval()
 { 
   throw GDLException( this,
-		      "Internal error. "
-		      "ProgNode::Eval() called.",true,false);
+		      "Internal error. ProgNode::Eval() called.",true,false);
 //   return ProgNode::interpreter->expr( this);
 }
 
@@ -675,13 +671,19 @@ BaseGDL** DEREFNode::LEval()
 // trinary operator
 BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
 {
-  ProgNodeP branch = this->GetBranch();
+  ProgNodeP branch = this->GetThisBranch();
   return branch->EvalRefCheck( rEval);
 }  
 
+BaseGDL** QUESTIONNode::LEval()
+{
+  ProgNodeP branch = this->GetThisBranch();
+  return branch->LEval();
+}
+
 BaseGDL* QUESTIONNode::Eval()
 {
-  ProgNodeP branch = this->GetBranch();
+  ProgNodeP branch = this->GetThisBranch();
   return branch->Eval();
   
 //   Guard<BaseGDL> e1_guard;
