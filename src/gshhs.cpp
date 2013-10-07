@@ -249,6 +249,17 @@ namespace lib {
             double lat = p.y * GSHHS_SCL;
              
 #ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ4_NEW
+            // map projection
+            if (mapSet) // ... always true
+            {
+              idata.u = lon * DEG_TO_RAD;
+              idata.v = lat * DEG_TO_RAD;
+              odata = PJ_FWD(idata, ref);
+              lon = odata.u;
+              lat = odata.v;
+            }
+#else
             // map projection
             if (mapSet) // ... always true
             {
@@ -258,6 +269,7 @@ namespace lib {
               lon = odata.x;
               lat = odata.y;
             }
+#endif
 #endif
             if (k != 0) {  //very crude patch --- will not avoid spurious lines & artifacts!
                 if(fabs(olon-lon) > 0.5*abs(xEnd-xStart)) forget=true;

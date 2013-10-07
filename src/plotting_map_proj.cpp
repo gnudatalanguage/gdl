@@ -73,7 +73,7 @@ namespace lib
       SizeT nEl=p0->N_Elements();
       for ( SizeT i=0; i<nEl/2; ++i )
       {
- #ifdef USE_LIBPROJ4
+ #ifdef USE_LIBPROJ4_NEW
        idata.u=(*ll)[2*i]*DEG_TO_RAD;
         idata.v=(*ll)[2*i+1]*DEG_TO_RAD;
         odata=PJ_FWD(idata, ref);
@@ -115,7 +115,7 @@ namespace lib
       SizeT nEl=p0->N_Elements();
       for ( SizeT i=0; i<nEl; ++i )
       {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ4_NEW
         idata.u=(*lon)[i]*DEG_TO_RAD;
         idata.v=(*lat)[i]*DEG_TO_RAD;
         odata=PJ_FWD(idata, ref);
@@ -187,7 +187,7 @@ namespace lib
       SizeT nEl=p0->N_Elements();
       for ( SizeT i=0; i<nEl/2; ++i )
       {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ4_NEW
         idata.u=(*xy)[2*i];
         idata.v=(*xy)[2*i+1];
         odata=PJ_INV(idata, ref);
@@ -229,7 +229,7 @@ namespace lib
       SizeT nEl=p0->N_Elements();
       for ( SizeT i=0; i<nEl; ++i )
       {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ4_NEW
         idata.u=(*x)[i];
         idata.v=(*y)[i];
         odata=PJ_INV(idata, ref);
