@@ -1576,12 +1576,8 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
 
 	return res;
 }
-    : #(/*dot:*/ DOT 
-            l_dot_array_expr[ aD.Get()] 
-            (tag_array_expr[ aD.Get()] /* nDot times*/ )* 
-            ///'*' generates better code here than '+' 
-        )         
-       ;
+    : DOT
+    ;
 
 // l_decinc_expr is only used in dec/inc statements and within itself
 l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
@@ -1755,6 +1751,7 @@ l_decinc_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** refRet]
                     return refRet;
                 }   
         }    
+        // no exception caught
         parameter_def[ newEnv]
         {
             // push environment onto call stack
@@ -2475,6 +2472,8 @@ parameter_def_n_elements [EnvBaseT* actEnv]
     : KEYDEF_REF_EXPR IDENTIFIER
     ;
 
+
+
 // the environment is not on the callstack
 parameter_def [EnvBaseT* actEnv] 
 {
@@ -2538,6 +2537,8 @@ parameter_def [EnvBaseT* actEnv]
     : KEYDEF_REF IDENTIFIER
 	;
 
+
+
 // the environment is not on the callstack
 // for library subroutines, their number of parameters is already checked in the compiler
 parameter_def_nocheck [EnvBaseT* actEnv] 
@@ -2581,6 +2582,8 @@ parameter_def_nocheck [EnvBaseT* actEnv]
 }
     : KEYDEF_REF IDENTIFIER
 	;
+
+
 
 arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
 {
