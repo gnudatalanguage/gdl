@@ -20,18 +20,18 @@ general, it performs a proper cleanup of the newly created object.
 Of course the guard must be informed when some other entity takes care of the
 new heap object (e. g. it is returned from a function).
 GDL provides serveral kinds of such guards:
-for normal objects auto_ptr is used (to set the guarded object free
-release() must be called). For array objects (destroyed by "delete[]" instead
-of "delete") GDL provides the ArrayGuard class. For objects with a cleanup 
-function (e. g. GSL objects) the use of use GDLGuard is recommended.
-Please see the source code for examples.
+for normal objects Guard<> is used (to set the guarded object free
+Release() must be called). For array objects (destroyed by "delete[]" instead
+of "delete") GDL provides the templated ArrayGuard<> class.
+For objects with a cleanup function (e. g. GSL objects) the use of use
+GDLGuard is recommended. Please see the source code for examples.
 
 As this is not a proper place to discuss exception save programming in detail,
 here are just some rules of thumb, when this might concern a code contributor:
 - you need almost always a guard when using (operator) new somwhere in 
   your code
 - objects returned from Convert2(..., COPY) methods are to be guarded as well
-- same goes for objects created with Dup() methods.
+- same for objects created with Dup() methods.
 
 
 
@@ -56,14 +56,10 @@ Extensions can be also done in python. See file PYTHON.txt for details.
 
 In the distribution there is an empty file: new.cpp 
 This file is part of the project (will be compiled and linked). It is 
-intended for extensions to GDL. Furthermore there is a new.hpp file
-which is included (#include "new.hpp") in libinit.cpp (see below).
-If you use these files, you don't need to edit the Makefile for your
-extension. Please put in the header the real filename you intend to
-give to your extension. If you send this two files then to me, I will
-rename them and make the renamed files part of the project.
-I think as long as there are not that many contributors, this way is
-easier than putting the code into CVS.
+intended for quick and easy extensions to GDL. Furthermore there is a new.hpp
+file which is included (#include "new.hpp") in libinit.cpp (see below).
+If you use these files, you don't need to edit any build system related files
+for your extension.
 
 This hacking guide isn't far from complete yet and intended to be extended.
 Please send questions.
@@ -87,7 +83,8 @@ Add (preferable at the bottom) in libinit.cpp:
 new DLibPro( subroutine name, GDL name, max. number of arguments, keyword list);
 if the max. number of args is -1 an arbitrary number is allowed (like for
 the PRINT procedure)
-(new DLibFun( subroutine name ...) for functions)
+(new DLibFunRetNew( subroutine name ...) for functions,
+new DLibFun( subroutine name ...) for functions which might return an existing value)
 For the keyword list look at libinit.cpp for examples.
 
 
@@ -131,8 +128,7 @@ minPar is the minimal number of paramters the function needs
 
 raise an exception from within a library function
 automatically cares for adding line/column info and the
-function name. 's' should be set to the 'raw' error message
-saves some typing :-)
+function name. 's' should be set to the 'raw' error message:
 
   void Throw( const std::string& s);
 
@@ -155,7 +151,16 @@ Eg.:
 
 
 Note that all guarded objects are deleted with 'delete', ie. you
-cannot guard arrays this way (which require 'delete[]').
+cannot guard arrays this way (which require 'delete[]', see
+ArrayGuard<> class).
+
+
+New since GDL 0.9.4: In the rare case that a library function returns an
+existing variable (as opposed to a new one), it must notify the interprefer
+about it by calling EnvBaseT::SetPtrToReturnValue( BaseGDL** ptrToRetVal).
+Such a function must be a declared (in libinit.cpp) as a DLibFun, never as 
+DLibFunRetNew. While any other library function should be declared as
+DLibFunRetNew.
 
 
 for library functions (keyword must be an exact match)
@@ -415,6 +420,7 @@ There is a simple example in "src/dll/two.cpp".
 To use it:
 1. Build the shared library:
 g++ -I/(GDL header file directory) -c two.cpp
+(64 bit: g++ -DHAVE_64BIT_OS -I/(GDL header file directory) -c two.cpp -fpic)
 g++ -shared -lm -lc  -o two.so two.o
 
 2. Run LINKIMAGE:
