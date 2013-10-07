@@ -810,12 +810,6 @@ public:
 	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: void l_dot_array_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: void tag_array_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
 	public: BaseGDL**  l_decinc_expr(ProgNodeP _t,
 		int dec_inc, BaseGDL*& res
 	);
@@ -840,10 +834,16 @@ public:
 	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t,
 		 bool noAssoc
 	);
+	public: void l_dot_array_expr(ProgNodeP _t,
+		DotAccessDescT* aD
+	);
 	public: BaseGDL**  l_arrayexpr_mfcall(ProgNodeP _t,
 		BaseGDL* right
 	);
 	public: void tag_expr(ProgNodeP _t,
+		DotAccessDescT* aD
+	);
+	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
 	public: BaseGDL*  r_dot_indexable_expr(ProgNodeP _t,
