@@ -96,7 +96,7 @@ mid=MAGICK_OPEN(filename)
 ;
 ;;flip if order is set
 ;
-if (KEYWORD_SET(order) or !ORDER eq 1) then MAGICK_FLIP, mid
+if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
 
 if (magick_IndexedColor(mid)) then begin
     image=MAGICK_READINDEXES(mid)
