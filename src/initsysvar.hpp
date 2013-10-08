@@ -85,6 +85,9 @@ namespace SysVar
 
   // get and set USERSYM
   DStructGDL* USYM();
+
+  // get the !ORDER variable
+  DLong TV_ORDER();
   
   // initialize the predefined system variables (!IDNAME)
   void InitSysVar();

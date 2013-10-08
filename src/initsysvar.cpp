@@ -51,7 +51,7 @@ namespace SysVar
   UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx, usersymIx;
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx, usersymIx, orderIx;
 
   // !D structs
   const int nDevices = 4;
@@ -293,7 +293,13 @@ namespace SysVar
     DVar& pSysVar = *sysVarList[ usersymIx];
     return static_cast<DStructGDL*>(pSysVar.Data());
   }
-    
+
+  DLong TV_ORDER()
+  {
+    DVar& orderVar=*sysVarList[orderIx];
+    return static_cast<DLongGDL&>(*orderVar.Data())[0];
+  }
+
   // call only once in main
   void InitSysVar()
   { 
@@ -389,6 +395,7 @@ namespace SysVar
     // !ORDER
     DLongGDL *orderData = new DLongGDL( 0 );
     DVar *order = new DVar( "ORDER", orderData);
+    orderIx     = sysVarList.size();
     sysVarList.push_back( order);
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
