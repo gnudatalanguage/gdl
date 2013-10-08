@@ -774,24 +774,17 @@ public:
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
 
-    if (e->KeywordSet("ORDER")) e->Throw( "ORDER keyword not yet supported.");
     if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
-
+    DLong orderVal=SysVar::TV_ORDER();
+    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    
     /* this variable will contain the attributes of the window. */
       XWindowAttributes win_attr;
 
     /* query the window's attributes. */
      Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
-    unsigned int xSize = win_attr.width;
-    unsigned int ySize = win_attr.height;
-    //cout<<xSize<<" "<<ySize<<endl;
-    //int xPos, yPos;
-    int actWin = /* actDevice-> */ ActWin();
-   // bool success = /* actDevice-> */ WSize( actWin, &xSize, &ySize, &xPos, &yPos);
-    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
-    ximg = XGetImage( xwd->display, dev->window, (int) 0, (int) 0,
-		      xSize, ySize, AllPlanes, ZPixmap);
-    XSetErrorHandler(oldErrorHandler);
+    unsigned int xMaxSize = win_attr.width;
+    unsigned int yMaxSize = win_attr.height;
 
     SizeT dims[3];
     
@@ -799,154 +792,155 @@ public:
 
     DLong tru=0;
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
 
     DLong channel=-1;
-    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
-    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
 
-    unsigned int x0u=0;
-    unsigned int y0u=0;
-    unsigned int Nxu=xSize-1;
-    unsigned int Nyu=ySize-1;
-    unsigned int Channelu=0;
+    unsigned int x_gdl=0;
+    unsigned int y_gdl=0;
+    unsigned int nx_gdl=xMaxSize;
+    unsigned int ny_gdl=yMaxSize;
 
+    bool error=false;
+    bool hasXsize=false;
+    bool hasYsize=false;
     int nParam = e->NParam();
-    if (nParam >= 1) {
-      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
-      x0u=(*x0)[0];
-    }
-    if (nParam >= 2) {
-      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
-      y0u=(*y0)[0];
+    if (nParam >= 4) {
+      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
+      ny_gdl=(*Ny)[0];
+      hasYsize=true;
     }
     if (nParam >= 3) {
       DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
-      Nxu=(*Nx)[0];
+      nx_gdl=(*Nx)[0];
+      hasXsize=true;
     }
-    if (nParam >= 4) {
-      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
-      Nyu=(*Ny)[0];
+    if (nParam >= 2) {
+      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
+      y_gdl=(*y0)[0];
+    }
+    if (nParam >= 1) {
+      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
+      x_gdl=(*x0)[0];
     }
     if (nParam == 5) {
-      DLongGDL* Channel = e->GetParAs<DLongGDL>(4);
-      Channelu=(*Channel)[0];
+      DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
+      channel=(*ChannelGdl)[0]; 
     }
+    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
 
     if (debug) {
-      cout << "hello"<<endl;
-      //     cout << (*x0)[0] <<" "<< (*x1)[0] <<" "<< (*Nx)[0] <<" "<< (*Ny)[0] <<" "<< (*Channel)[0] <<endl;
-      cout << x0u <<" "<< y0u <<" "<< Nxu <<" "<< Nyu <<" "<< Channelu <<endl;
+      cout << x_gdl <<" "<< y_gdl <<" "<< nx_gdl <<" "<< ny_gdl <<" "<< channel <<endl;
     }
+    if (!(hasXsize))nx_gdl-=x_gdl; 
+    if (!(hasYsize))ny_gdl-=y_gdl;
+    
+    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
+    int x_11=0;
+    int y_11=0;
+    xref=0;xval=0;xinc=1;
+    yref=yMaxSize-1;yval=0;yinc=-1;
+    
+    x_11=xval+(x_gdl-xref)*xinc;
+    y_11=yval+(y_gdl-yref)*yinc;
+    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
+    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
+     if (debug) {
+      cout <<"["<< x_11 <<","<< xmax11 <<"],["<< ymin11 <<","<< y_11 <<"]"<<endl;
+    }   
+    if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
+    if (x_11 < 0 || x_11 > xMaxSize-1) error=true;
+    if (xmax11 < 0 || xmax11 > xMaxSize-1) error=true;
+    if (ymin11 < 0 || ymin11 > yMaxSize-1) error=true;
+    if (error) e->Throw("Value of Area is out of allowed range.");
 
-    if (tru == 0 || channel != -1) {
-      dims[0] = xSize;
-      dims[1] = ySize;
+    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
+    ximg = XGetImage( xwd->display, dev->window, (int) x_11, (int) ymin11,
+		      nx_gdl, ny_gdl, AllPlanes, ZPixmap);
+    XSetErrorHandler(oldErrorHandler);
+#define PAD 4
+//   printf("\t width = %d\n", ximg->width);
+//   printf("\t height = %d\n", ximg->height);
+//   printf("\t xoffset = %d\n", ximg->xoffset);
+//   printf("\t byte_order = %d\n", ximg->byte_order);
+//   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
+//   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
+//   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
+//   printf("\t depth = %d\n", ximg->depth);
+//   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
+//   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
+//   printf("\t red_mask = %x\n", ximg->red_mask);
+//   printf("\t green_mask = %x\n", ximg->green_mask);
+//   printf("\t blue_mask = %x\n", ximg->blue_mask);
+
+    if (ximg->bits_per_pixel != 32) 
+        e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
+
+    if (tru == 0) {
+      dims[0] = nx_gdl;
+      dims[1] = ny_gdl;
       dimension dim(dims, (SizeT) 2);
       res = new DByteGDL( dim, BaseGDL::ZERO);
 
       if (ximg == NULL) return res;
 
-      if (channel <= 0) {
-        DByte mx, mx1;
-        for (SizeT i = 0; i < xSize * ySize; ++i) {
-          mx = (DByte) ximg->data[4 * i];
-          for (SizeT j = 1; j <= 2; ++j) {
-            mx1 = (DByte) ximg->data[4 * i + j];
-            if (mx1 > mx) mx = mx1;
-          }
-          (*res)[ xSize * ySize - 1 - i] = mx;
+        if (channel <= 0) { //channel not given, return max of the 3 channels
+            DByte mx, mx1;
+            for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+                mx = (DByte) ximg->data[PAD * i];
+                mx1 = (DByte) ximg->data[PAD * i + 1];
+                if (mx1 > mx) mx = mx1;
+                mx1 = (DByte) ximg->data[PAD * i + 2];
+                if (mx1 > mx) mx = mx1;
+                (*res)[i] = mx;
+            }
+        } else {
+            for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+                (*res)[i] = ximg->data[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
+            }
         }
-      } else {
-        for (SizeT i = 0; i < xSize * ySize; ++i) {
-          (*res)[ xSize * ySize - 1 - i] = ximg->data[4 * i + (3 - channel)];
+          XDestroyImage(ximg);
+          // Reflect about y-axis
+          if (orderVal == 0) res->Reverse(1);
+          return res;
+
+        } else {
+        dims[0] = 3;
+        dims[1] = nx_gdl;
+        dims[2] = ny_gdl;
+        dimension dim(dims, (SizeT) 3);
+        res = new DByteGDL(dim, BaseGDL::NOZERO);
+        if (ximg == NULL) return res;
+
+        for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
+        {
+            for(SizeT j=0; j<3; ++j) (*res)[(i+1)*3-(j+1)] = ximg->data[kpad++];
+            kpad++;
+        } 
+
+        XDestroyImage(ximg);
+        // Reflect about y-axis
+        if (orderVal == 0) res->Reverse(2);
+
+        DUInt* perm = new DUInt[3];
+        if (tru == 1) {
+            return res;
+        } else if (tru == 2) {
+            perm[0] = 1;
+            perm[1] = 0;
+            perm[2] = 2;
+            return res->Transpose(perm);
+        } else if (tru == 3) {
+            perm[0] = 1;
+            perm[1] = 2;
+            perm[2] = 0;
+            return res->Transpose(perm);
         }
-      }
-
-      // Reflect about y-axis
-      for (SizeT i = 0; i < ySize; ++i) {
-        for (SizeT j = 0; j < xSize / 2; ++j) {
-          DByte c = (*res)[ i * xSize + (xSize - 1 - j)];
-          (*res)[ i * xSize + (xSize - 1 - j)] = (*res)[ i * xSize + j];
-          (*res)[ i * xSize + j] = c;
-        }
-      }
-      return res;
-
-    } else {
-      if (tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
-
-      // AC 17 march 2012
-      // below something is wrong
-      // window, 3,xsize=10, ysize=7
-      // plot, findgen(10), col='ff'x, back='ff'x ;; all in red
-      // uu=tvrd(/tru)
-      // plot, uu(0,*,*) ; should be at 255, but not all :(
-      // It seems to be related to refreshment of the screen !
-
-      if (nParam ==0)
-	{
-	  // AC 17 march 2012 : we may have a mirror effect here
-	  dims[0] = 3;
-	  dims[1] = xSize;
-	  dims[2] = ySize;
-	  dimension dim(dims, (SizeT) 3);
-	  res = new DByteGDL(dim, BaseGDL::NOZERO);
-	  if (ximg == NULL) return res;
-	  
-	  SizeT jj=0;
-	  for (SizeT i = 0; i < xSize; ++i) {
-	    for (SizeT j = 0; j < ySize; ++j) {
-	      for (SizeT k = 0; k < 4; ++k) {
-		if (k < 3) {
-		  (*res)[xSize*j * 3 + i * 3 + 2 - k] =
-		        ximg->data[j * xSize * 4 + i * 4 + k];
-		}
-	      }
-	    }
-	  }
-	}
-      else
-	{
-	  // AC 17 march 2012 : we may have a mirror effect here
-	  dims[0] = 3;
-	  dims[1] = Nxu;
-	  dims[2] = Nyu;
-	  //cout << dims[1] << " " << dims[2] <<endl;
-	  dimension dim(dims, (SizeT) 3);
-	  res = new DByteGDL(dim, BaseGDL::NOZERO);
-	  if (ximg == NULL) return res;
-	  
-	  for (SizeT i = x0u; i < x0u+Nxu; ++i) {
-	    for (SizeT j = y0u; j < y0u+Nyu; ++j) {
-	      for (SizeT k = 0; k < 4; ++k) {
-		if (k < 3) {		  
-		  (*res)[dims[1]*(j-y0u) * 3 + (i-x0u) * 3 + 2 - k] =
-		    ximg->data[j * xSize * 4 + i * 4 + k];
-		}
-	      }
-	    }
-	  }
-	}
-    }
-
-    XDestroyImage(ximg);
-
-    DUInt* perm = new DUInt[3];
-    if (tru == 1) {
-      return res;
-    } else if (tru == 2) {
-      perm[0] = 1;
-      perm[1] = 0;
-      perm[2] = 2;
-      return res->Transpose( perm);
-    } else if (tru == 3) {
-      perm[0] = 1;
-      perm[1] = 2;
-      perm[2] = 0;
-      return res->Transpose( perm);
     }
     assert( false);
     return NULL;
+#undef PAD 
   }
 
   void TV( EnvT* e)
@@ -976,66 +970,67 @@ public:
     BaseGDL* p0=e->GetParDefined( 0);
     SizeT rank = p0->Rank();
 
-    if (rank < 2 || rank > 3) e->Throw("Image array must have rank 2 or 3");
-
-    DLong orderVal=0;
-    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
-    //std::cout << "OrderVal "<< orderVal << std::endl;      
-    if (orderVal != 0) p0=p0->Rotate(7);
-
-    //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
-    DByteGDL* p0B;
-    p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));
-    Guard<BaseGDL> guardP0B( p0B);
-//     e->DeleteAtExit( p0B);
-    
-    int width, height;
     DLong tru=0;
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    if (rank < 2 || rank > 3) e->Throw("Image array must have rank 2 or 3");
+    if (rank == 2 && tru !=0 ) e->Throw("Array must have 3 dimensions: " +e->GetParString(0));
+    if (tru < 0 || tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
+    if (tru == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for true color display");
 
+    DLong orderVal=SysVar::TV_ORDER();
+    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    
+    DByteGDL* p0B;
+    Guard<BaseGDL> guardP0B;
+    int width, height;
     if (rank == 2) {
-      if (tru != 0) e->Throw("Array must have 3 dimensions: " +e->GetParString(0));
-
+      p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
+      if (orderVal != 0) {p0B->Reverse(1);}
       width = p0B->Dim(0);
       height = p0B->Dim(1);
-
-    } 
-    if (rank == 3) {
-      if (tru < 0 || tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
-      if (tru == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for true color display");
-
-      int DimProblem=0;
+    } else if (rank == 3) {
       if (tru == 1) {
-	if (p0B->Dim(1) < 3) DimProblem=1;
+        p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
+	if (p0B->Dim(0) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
+			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+			    +"]> does not have enough elements.");
+        if (orderVal != 0) {p0B->Reverse(2);}
 	width = p0B->Dim(1);
 	height = p0B->Dim(2);
       }
       if (tru == 2) {
-	if (p0B->Dim(1) < 3) DimProblem=1;
+        p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
+	if (p0B->Dim(1) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
+			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+			    +"]> does not have enough elements.");
+        if (orderVal != 0) {p0B->Reverse(2);}
 	width = p0B->Dim(0);
 	height = p0B->Dim(2);
       } 
       if (tru == 3) {
-	if (p0B->Dim(2) < 3) DimProblem=1;
+        p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
+	if (p0B->Dim(2) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
+			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+			    +"]> does not have enough elements.");
+        if (orderVal != 0) {p0B->Reverse(1);}
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
       }
       if (tru == 0) {  // here we have a rank =3
-	width = p0B->Dim(0);
-	height = p0B->Dim(1);
+        p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
 	if (p0B->Dim(0) == 1) {
 	  width = p0B->Dim(1);
 	  height = p0B->Dim(2);
-	} 
-	if (p0B->Dim(1) == 1) {
+          if (orderVal != 0) {p0B->Reverse(2);}
+	} else if (p0B->Dim(1) == 1) {
 	  width = p0B->Dim(0);
 	  height = p0B->Dim(2);
-	}
-      }
-      if (DimProblem == 1) {
-        e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
-			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
-			    +"]> does not have enough elements.");
+          if (orderVal != 0) {p0B->Reverse(2);}
+	} else {
+	  width = p0B->Dim(0);
+	  height = p0B->Dim(1);
+          if (orderVal != 0) {p0B->Reverse(1);}
+        }
       }
     }
     int debug=0;
