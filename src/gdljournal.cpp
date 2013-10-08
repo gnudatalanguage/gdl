@@ -149,7 +149,7 @@ namespace lib
 
       if(res != 0) 
 	write_journal_comment(string("Date: ") + st + string("\n"));
-      delete st;
+      delete[] st;
 
       // clear input line (should not be put into the journal file
       GDLInterpreter* ip = e->Interpreter();

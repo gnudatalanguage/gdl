@@ -1140,7 +1140,7 @@ namespace lib {
       }
     }
 
-    delete found;
+    delete[] found;
     return res;
   }
 
