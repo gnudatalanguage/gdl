@@ -95,9 +95,7 @@ endif else begin
    endif
 endelse
 ;
-;;flip if order is set
-;if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
-;
+
 if (MAGICK_INDEXEDCOLOR(mid)) then begin
     image=MAGICK_READINDEXES(mid)
     MAGICK_READCOLORMAPRGB, mid, red, green, blue
