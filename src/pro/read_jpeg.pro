@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.14 2012-08-14 14:21:37 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.15 2013-10-08 15:59:56 gilles-duvert Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -120,7 +120,7 @@ endif else begin
 endelse
 ;
 ;;flip if order is set
-if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
+if (KEYWORD_SET(order) or !ORDER eq 1L) then MAGICK_FLIP, mid
 ;
 if (MAGICK_INDEXEDCOLOR(mid)) then begin
     image=MAGICK_READINDEXES(mid)
