@@ -52,6 +52,9 @@
 #ifndef HAVE_UNISTD_H
 #cmakedefine HAVE_UNISTD_H 1
 #endif
+#ifndef HAVE_EXT_STDIO_FILEBUF_H
+#cmakedefine HAVE_EXT_STDIO_FILEBUF_H 1
+#endif
 #cmakedefine OLD_DARWIN
 #cmakedefine PYTHON_MODULE 1
 #cmakedefine RL_GET_SCREEN_SIZE 1

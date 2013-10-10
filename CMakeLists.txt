@@ -139,8 +139,22 @@ check_include_file(strings.h HAVE_STRINGS_H)
 check_include_file(sys/stat.h HAVE_SYS_STAT_H)
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(unistd.h HAVE_UNISTD_H)
-check_include_file(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
-
+#check_include_file(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
+#sometimes it compiles but stdio_filebuf is only in gcc-x-y-z directory tree...
+# would be silly not to use this functionality if present, so recheck:
+if (HAVE_EXT_STDIO_FILEBUF_H)
+else (HAVE_EXT_STDIO_FILEBUF_H)
+	check_cxx_source_compiles("
+#include <ext/stdio_filebuf.h>
+int main(int argc, char **argv) {
+    int i=0;
+    i+=1;
+}" REALLY_HAVE_EXT_STDIO_FILEBUF_H)
+endif (HAVE_EXT_STDIO_FILEBUF_H)
+if (REALLY_HAVE_EXT_STDIO_FILEBUF_H)
+message(STATUS "INFO: will use GNU extensions for STDIO (useful for compressed I/O) since it seems accepted by your c++ compiler.")
+set (HAVE_EXT_STDIO_FILEBUF_H 1)
+endif (REALLY_HAVE_EXT_STDIO_FILEBUF_H)
 # dlfcn.h
 check_include_file(dlfcn.h HAVE_DLFCN_H)
 
