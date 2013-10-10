@@ -70,6 +70,7 @@ void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
 }
 DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
 {
+#ifdef HAVE_LIBWXWIDGETS
   DLong actID = id;
   do {
     GDLWidget *widget = GDLWidget::GetWidget( actID);
@@ -109,6 +110,7 @@ DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
     actID = widget->GetParentID();
   }
   while( actID != 0);
+#endif
   return ev;
 }
 
