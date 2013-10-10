@@ -29,35 +29,94 @@
 #  include "gdlwidget.hpp"
 #endif
 
+// non library functions
+// these reside here because gdlwidget.hpp is only included if wxWidgets are used
+// and hence putting them there would cause a compiler error without wxWidgets
+BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev)
+{
+  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack());
+
+  int funIx = GDLInterpreter::GetFunIx( f);
+
+  ProgNodeP callingNode = BaseGDL::interpreter->GetRetTree();
+  
+  EnvUDT* newEnv= new EnvUDT( callingNode, funList[ funIx], NULL);
+  newEnv->SetNextPar( ev); // pass as local
+  
+  BaseGDL::interpreter->CallStack().push_back( newEnv); 
+
+  // make the call
+  newEnv->SetCallContext( EnvUDT::RFUNCTION);
+  BaseGDL* res = BaseGDL::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+  return res;
+}
+void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
+{
+  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack());
+
+  int proIx = GDLInterpreter::GetProIx( p);
+
+  ProgNodeP callingNode = BaseGDL::interpreter->GetRetTree();
+  
+  EnvUDT* newEnv= new EnvUDT( callingNode, proList[ proIx], NULL);
+  newEnv->SetNextPar( p0); // pass as local
+  if( p1 != NULL)
+    newEnv->SetNextPar( p1); // pass as local
+  
+  BaseGDL::interpreter->CallStack().push_back( newEnv); 
+
+  // make the call
+  BaseGDL::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+}
+DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
+{
+  DLong actID = id;
+  do {
+    GDLWidget *widget = GDLWidget::GetWidget( actID);
+    DString eventHandlerPro = widget->GetEventPro();
+    if( eventHandlerPro != "")
+    {
+      (*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+      CallEventPro( eventHandlerPro, ev); // grabs ev
+      ev = NULL;
+      break;
+    }
+    DString eventHandlerFun = widget->GetEventFun();
+    if( eventHandlerFun != "")
+    {
+      (*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+      BaseGDL* retVal = CallEventFunc( eventHandlerFun, ev); // grabs ev
+      if( retVal->Type() == GDL_STRUCT)
+      {
+	// ev is already deleted
+	ev = static_cast<DStructGDL*>( retVal); 
+	if( ev->Desc()->TagIndex("ID") == -1 ||
+	  ev->Desc()->TagIndex("TOP") == -1 ||
+	  ev->Desc()->TagIndex("HANDLER") == -1)
+	{
+	  GDLDelete( ev);
+	  throw GDLException(eventHandlerFun+ ": Event handler return struct must contain tags ID, TOP, HANDLER.");
+	}
+	// no break!
+      }
+      else
+      {
+	GDLDelete( retVal);
+	ev = NULL;
+	break;    
+      }
+    }
+    actID = widget->GetParentID();
+  }
+  while( actID != 0);
+  return ev;
+}
+
+
+
+
 namespace lib {
   using namespace std;
-
-  void executeString2( EnvBaseT* caller, istringstream *istr)
-  {
-    RefDNode theAST;
-
-    GDLLexer lexer(*istr, "", GDLParser::NONE);
-    GDLParser& parser = lexer.Parser();
-    parser.interactive();
-    theAST = parser.getAST();
-    RefDNode trAST;
-    GDLTreeParser treeParser( caller);
-    treeParser.interactive(theAST);
-    trAST = treeParser.getAST();
-    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    Guard< ProgNode> progAST_guard( progAST);
-
-    // necessary for correct FOR loop handling
-    assert( dynamic_cast<EnvUDT*>(caller) != NULL);
-    EnvUDT* env = static_cast<EnvUDT*>(caller);
-    int nForLoopsIn = env->NForLoops();
-    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
-    env->ResizeForLoops( nForLoops);
-    env->ResizeForLoops( nForLoopsIn);
-
-    RetCode retCode = caller->Interpreter()->execute( progAST);
-  }
-
 
   BaseGDL* widget_base( EnvT* e)
   {
@@ -284,24 +343,18 @@ namespace lib {
     //...
 
     // generate widget
-    WidgetIDT mBarID = 0;
-    if( mbarPresent)
-      {
-	GDLWidgetMBar* mBar = new GDLWidgetMBar(); 
-	mBarID = GDLWidget::NewWidget( mBar);
-	e->SetKW( mbarIx, new DLongGDL( mBarID));
-      }
+    WidgetIDT mBarID = mbarPresent ? 1 : 0;
 
     int exclusiveMode = 0;
     if( exclusive)    exclusiveMode = 1;
     if( nonexclusive) exclusiveMode = 2;
 
-    DLong events;
+    DLong events = 0;
 
     GDLWidgetBase* base = new GDLWidgetBase( parentID, 
 					     uvalue, uname,
 					     sensitive, mapWid,
-					     mBarID, modal, group_leader,
+					     /*ref*/ mBarID, modal, group_leader,
 					     column, row,
 					     events,
 					     exclusiveMode, 
@@ -320,6 +373,10 @@ namespace lib {
 					     x_scroll_size, y_scroll_size);
     
     // some more properties
+    if( mbarPresent)
+    {
+      e->SetKW( mbarIx, new DLongGDL( mBarID));
+    }
 
     // return widget ID
     return new DLongGDL( base->WidgetID());
@@ -351,95 +408,95 @@ namespace lib {
 
     button->SetWidgetType( "BUTTON");
 
-    button->SetButtonOff();
+    button->SetButtonSet(false);
 
     return new DLongGDL( button->WidgetID());
 #endif
   }
 
-	// WIDGET CW_BGROUP
-	BaseGDL* widget_bgroup( EnvT* e)
-	{
+// WIDGET CW_BGROUP
+BaseGDL* widget_bgroup( EnvT* e)
+{
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
-		//SizeT nParam = e->NParam();
-		DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    //SizeT nParam = e->NParam();
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
 
-		DStringGDL* names = e->GetParAs<DStringGDL>(1);
+    DStringGDL* names = e->GetParAs<DStringGDL>(1);
 
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-		DLong xsize = -1;
-		static int xsizeIx = e->KeywordIx( "XSIZE");
+    DLong xsize = -1;
+    static int xsizeIx = e->KeywordIx( "XSIZE");
     e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
 
-		DLong ysize = -1;
-		static int ysizeIx = e->KeywordIx( "YSIZE");
+    DLong ysize = -1;
+    static int ysizeIx = e->KeywordIx( "YSIZE");
     e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
 
     static int buttonuvalueIx = e->KeywordIx( "BUTTON_UVALUE");
-		DString buttonuvalue = "";
+    DString buttonuvalue = "";
     e->AssureStringScalarKWIfPresent(buttonuvalueIx, buttonuvalue);
 
     static int uvalueIx = e->KeywordIx( "UVALUE");
     BaseGDL* uvalue = e->GetKW( uvalueIx);
     if( uvalue != NULL)
-      uvalue = uvalue->Dup();
+        uvalue = uvalue->Dup();
 
     static int labelIx = e->KeywordIx( "LABEL_TOP");
     DString labeltop = "";
     e->AssureStringScalarKWIfPresent( labelIx, labeltop);
 
-		GDLWidgetBGroup::BGroupMode mode = GDLWidgetBGroup::NORMAL;
-		static int modeIx = e->KeywordIx( "EXCLUSIVE");
-		if(e->KeywordSet( modeIx)){
-			mode = GDLWidgetBGroup::EXCLUSIVE;
-		}else{
-			modeIx = e->KeywordIx( "NONEXCLUSIVE");
-			if(e->KeywordSet(modeIx)){
-				mode = GDLWidgetBGroup::NONEXCLUSIVE;
-			}
-		}
+    GDLWidgetBGroup::BGroupMode mode = GDLWidgetBGroup::NORMAL;
+    static int modeIx = e->KeywordIx( "EXCLUSIVE");
+    if(e->KeywordSet( modeIx)) {
+        mode = GDLWidgetBGroup::EXCLUSIVE;
+    } else {
+        modeIx = e->KeywordIx( "NONEXCLUSIVE");
+        if(e->KeywordSet(modeIx)) {
+            mode = GDLWidgetBGroup::NONEXCLUSIVE;
+        }
+    }
 
-		GDLWidgetBGroup::BGroupReturn ret = GDLWidgetBGroup::RETURN_ID;
-		static int retIx = e->KeywordIx( "RETURN_INDEX");
-		if(e->KeywordSet( retIx)){
-			ret = GDLWidgetBGroup::RETURN_INDEX;
-		}else{
-			retIx = e->KeywordIx( "RETURN_NAME");
-			if(e->KeywordSet(retIx)){
-				ret = GDLWidgetBGroup::RETURN_NAME;
-			}
-		}
+    GDLWidgetBGroup::BGroupReturn ret = GDLWidgetBGroup::RETURN_ID;
+    static int retIx = e->KeywordIx( "RETURN_INDEX");
+    if(e->KeywordSet( retIx)) {
+        ret = GDLWidgetBGroup::RETURN_INDEX;
+    } else {
+        retIx = e->KeywordIx( "RETURN_NAME");
+        if(e->KeywordSet(retIx)) {
+            ret = GDLWidgetBGroup::RETURN_NAME;
+        }
+    }
 
-		DLong rows = -1;
-		static int rowIx = e->KeywordIx("ROW");
-		e->AssureLongScalarKWIfPresent( rowIx, rows);
+    DLong rows = -1;
+    static int rowIx = e->KeywordIx("ROW");
+    e->AssureLongScalarKWIfPresent( rowIx, rows);
 
-		DLong cols = -1;
-		static int colIx = e->KeywordIx("COLUMN");
-		e->AssureLongScalarKWIfPresent( colIx, cols);
+    DLong cols = -1;
+    static int colIx = e->KeywordIx("COLUMN");
+    e->AssureLongScalarKWIfPresent( colIx, cols);
 
     GDLWidgetBGroup* group = new GDLWidgetBGroup( parentID, names,
-																									uvalue, buttonuvalue,
-																									xsize, ysize, labeltop,
-																									rows, cols, mode, ret);
+            uvalue, buttonuvalue,
+            xsize, ysize, labeltop,
+            rows, cols, mode, ret);
     group->SetWidgetType("GROUP");
 
     return new DLongGDL( group->WidgetID());
 
 #endif
-	}
+}
 
 
 
 
-	// WIDGET_LIST
-	BaseGDL* widget_list( EnvT* e)
-	{
+// WIDGET_LIST
+BaseGDL* widget_list( EnvT* e)
+{
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
@@ -448,36 +505,36 @@ namespace lib {
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-		DLong xsize = -1;
-		static int xsizeIx = e->KeywordIx( "XSIZE");
+    DLong xsize = -1;
+    static int xsizeIx = e->KeywordIx( "XSIZE");
     e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
 
-		DLong ysize = -1;
-		static int ysizeIx = e->KeywordIx( "YSIZE");
+    DLong ysize = -1;
+    static int ysizeIx = e->KeywordIx( "YSIZE");
     e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
 
-		static int valueIx = e->KeywordIx( "VALUE");
+    static int valueIx = e->KeywordIx( "VALUE");
     BaseGDL* value = e->GetKW( valueIx);
     if( value != NULL)
-      value = value->Dup();
+        value = value->Dup();
 
     static int uvalueIx = e->KeywordIx( "UVALUE");
     BaseGDL* uvalue = e->GetKW( uvalueIx);
     if( uvalue != NULL)
-      uvalue = uvalue->Dup();
+        uvalue = uvalue->Dup();
 
-		static int multipleIx = e->KeywordIx( "MULTIPLE");
-		bool multiple = e->KeywordSet( multipleIx);
+    static int multipleIx = e->KeywordIx( "MULTIPLE");
+    bool multiple = e->KeywordSet( multipleIx);
 
     DLong style = multiple ? wxLB_MULTIPLE : wxLB_SINGLE;
     GDLWidgetList* list = new GDLWidgetList( parentID, uvalue, value,
-																						 xsize, ysize,
-																						 style);
+            xsize, ysize,
+            style);
     list->SetWidgetType( "LIST");
 
     return new DLongGDL( list->WidgetID());
 #endif
-	}
+}
 
   // WIDGET_DROPLIST
   BaseGDL* widget_droplist( EnvT* e)
@@ -770,8 +827,6 @@ namespace lib {
 
     EnvBaseT* caller;
 
-    static DLong lasttop = -1;
-
     DLong id;
     DLong top;
     DLong handler;
@@ -779,88 +834,54 @@ namespace lib {
     //    int i; cin >> i;
 
     while ( 1) { // outer while loop
-      std::cout << "In PollEvents loop (widget_event)" << std::endl;
+      std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;      
+      
+      DStructGDL* ev = NULL;
+
       while ( 1) {
-	// Sleep a bit to prevent CPU overuse
-	wxMilliSleep( 50);
-	if ( GDLWidget::PollEvents( &id, &top, &handler, &select))
+	if( !eventQueue.empty())
+	{
+	  ev = eventQueue.front();
+	  eventQueue.pop_front();
+
+	  id = (*static_cast<DLongGDL*>
+		  (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
+	  top = (*static_cast<DLongGDL*>
+		  (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
+	  handler = (*static_cast<DLongGDL*>
+		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
+	  select = (*static_cast<DLongGDL*>
+		      (ev->GetTag(ev->Desc()->TagIndex("SELECT"), 0)))[0];
 	  break;
+	}
+	else
+	{
+	  // Sleep a bit to prevent CPU overuse
+	  // but only if there are no events!
+	  wxMilliSleep( 50);	  
+	}
+	
+	if( sigControlC)
+	  return new DLongGDL( 0);	  
       }
 
-      std::cout << "break from PollEvents (widget_event)" << std::endl;
+      std::cout << "WIDGET_EVENT: Event found" << std::endl;
       std::cout << "top: " << top << std::endl;
       std::cout << "id:  " << id << std::endl;
 
-      // Get Event Pro
-      GDLWidget *widget = GDLWidget::GetWidget( top);
-      DString eventHandler = widget->GetEventPro();
-
-      // Build event handler command
-      ostringstream ostr;
-      ostr << "EV={WIDGET_BUTTON, ";
-      ostr << "ID: " << id << "L, TOP: " << top << "L, ";
-      ostr << "HANDLER: " << handler << "L, SELECT: " << select << "L } ";
-      ostr << "& " << eventHandler.c_str() << ", EV";
-
-      DString line = ostr.rdbuf()->str();
-      istringstream istr(line+"\n");
-
-
-      // Call widget event handler routine
-      if ( lasttop != top) {
-	caller = e->Caller();
-// ms: commented out to comply with new stack handling
-	// 	e->Interpreter()->CallStack().pop_back();
-	//	std::cout << "before delete e" << std::endl;
-// 	delete e;
+      ev = CallEventHandler( id, ev);
+     
+      if( ev != NULL)
+      {
+	Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s(id));
+	GDLDelete( ev);
+	ev = NULL;
       }
-
-      executeString2( caller, &istr);
-
-      /*
-      RefDNode theAST;
-
-      GDLLexer lexer(istr, "", GDLParser::NONE);
-      GDLParser& parser = lexer.Parser();
-      parser.interactive();
-
-      theAST = parser.getAST();
-      RefDNode trAST;
-      GDLTreeParser treeParser( caller);
-      treeParser.interactive(theAST);
-      trAST = treeParser.getAST();
-
-      ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-      Guard< ProgNode> progAST_guard( progAST);
-
-      // necessary for correct FOR loop handling
-      assert( dynamic_cast<EnvUDT*>(caller) != NULL);
-      EnvUDT* env = static_cast<EnvUDT*>(caller);
-      int nForLoopsIn = env->NForLoops();
-      int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
-      env->ResizeForLoops( nForLoops);
-
-      RetCode retCode =
-	caller->Interpreter()->execute( progAST);
-
-	env->ResizeForLoops( nForLoopsIn);
-      */
-
-      // Return from GDL/IDL event handler procedure
-      std::cout << "return from event handler (widget_event)" << 
-	std::endl << std::endl;
 
       if ( GDLWidget::GetWidget( top) == NULL) {
-	std::cout << "widget NULLed" << std::endl;
+	std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;
 	break;
       }
-
-      GDLWidgetButton *buttonWidget = 
-	( GDLWidgetButton *) GDLWidget::GetWidget( id);
-      buttonWidget->SetSelectOff();
-      buttonWidget->SetManaged( false);
-
-      lasttop = top;
     } // outer while loop
 
     return new DLongGDL( 0);
@@ -946,7 +967,7 @@ namespace lib {
 
     if ( destroy) {
       std::cout << "Destroy widget" << std::endl;
-      delete widget;
+      delete widget;      
     }
 
     if ( eventpro) {
@@ -1006,9 +1027,9 @@ namespace lib {
       DLong buttonVal;
       e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal);
       if ( buttonVal == 0)
-	widget->SetButtonOff();
+	widget->SetButtonSet(false);
       else
-	widget->SetButtonOn();
+	widget->SetButtonSet(true);
     }
 
     if ( setvalue) {
@@ -1021,26 +1042,28 @@ namespace lib {
 	DString setProName = widget->GetProValue();
 	if ( setProName != "") {
 
-	  // Build call to SETV procedure
-	  ostringstream ostr;
-	  ostr << setProName.c_str() << ", " << widgetID << ", [";
+	  CallEventPro( setProName, p0L->Dup(), value); // grabs
 
-	  DLongGDL* values = e->IfDefGetKWAs<DLongGDL>( setvalueIx);
-	  DLong nEl = values->N_Elements();
-	  for( SizeT i=0; i<nEl; i++) {
-	    ostr << (*values)[i];
-	    if ( i != (nEl-1)) ostr << ", ";
-	  }
-	  ostr << "]";
-
-	  DString line = ostr.rdbuf()->str();
-	  istringstream istr(line+"\n");
-
-	  // Call SETV procedure
-// ms: commented out to comply with new stack handling
-	  EnvBaseT* caller = e->Caller();
-// 	  e->Interpreter()->CallStack().pop_back();
-	  executeString2( caller, &istr);
+// 	  // Build call to SETV procedure
+// 	  ostringstream ostr;
+// 	  ostr << setProName << ", " << widgetID << ", [";
+// 
+// 	  DLongGDL* values = e->IfDefGetKWAs<DLongGDL>( setvalueIx);
+// 	  DLong nEl = values->N_Elements();
+// 	  for( SizeT i=0; i<nEl; i++) {
+// 	    ostr << (*values)[i];
+// 	    if ( i != (nEl-1)) ostr << ", ";
+// 	  }
+// 	  ostr << "]";
+// 
+// 	  DString line = ostr.rdbuf()->str();
+// 	  istringstream istr(line+"\n");
+// 
+// 	  // Call SETV procedure
+// // ms: commented out to comply with new stack handling
+// 	  EnvBaseT* caller = e->Caller();
+// // 	  e->Interpreter()->CallStack().pop_back();
+// 	  executeString2( caller, &istr);
 	}
 
 
@@ -1110,5 +1133,4 @@ namespace lib {
 #endif
   }
 
-} // namespace
-
+} // namespace library

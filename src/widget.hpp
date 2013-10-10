@@ -38,4 +38,8 @@ namespace lib {
 
 } // namespace
 
+BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev);
+void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL);
+DStructGDL* CallEventHandler( DLong id, DStructGDL* ev);
+
 #endif

@@ -1,5 +1,5 @@
 /***************************************************************************
-                          basegdl.cpp  -  base class for GDL datatypes
+                          nullgdl.cpp  -  class for GDL !NULL
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens

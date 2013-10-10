@@ -24,6 +24,7 @@
 #include <map>
 
 #include "typedefs.hpp"
+#include "str.hpp"
 
 class guiThread : public wxThread
 {
@@ -31,11 +32,11 @@ public:
   guiThread() : wxThread(wxTHREAD_JOINABLE) {};
 
   // thread execution starts here
-  virtual void *Entry();
+  ExitCode Entry();
 
   // called when the thread exits - whether it terminates normally or is
   // stopped with Delete() (but not when it is Kill()ed!)
-  virtual void OnExit( guiThread *thread);
+  void OnExit( guiThread *thread);
 };
 static guiThread *thread;
 
@@ -44,12 +45,15 @@ class GDLWidget;
 // global widget list type
 typedef DLong                       WidgetIDT;
 typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
+typedef std::deque<DStructGDL*> EventQueueT;
+
+extern EventQueueT eventQueue;
 
 // main App class
 class GDLApp: public wxApp
 {
-  virtual int OnRun();  // Defined in GDLApp::OnRun()
-  virtual int OnExit(); // Defined in GDLApp::OnExit()
+  int OnRun();  // Defined in GDLApp::OnRun()
+  int OnExit(); // Defined in GDLApp::OnExit()
 };
 
 // GUI base class **********************************
@@ -73,7 +77,7 @@ public:
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
-  static WidgetIDT GetBase( WidgetIDT widID);
+  static WidgetIDT GetTopLevelBase( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
 
@@ -83,7 +87,7 @@ protected:
                       // Note: wxWidget is GDL name not wxWidgets (JMG)
 
   WidgetIDT    widgetID;  // own index to widgetList
-  WidgetIDT    parent;    // parent ID (0 for TLBs)
+  WidgetIDT    parentID;    // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
   BaseGDL*     vValue;    // the VVALUE
   bool         sensitive;
@@ -97,15 +101,22 @@ protected:
   wxPanel*     widgetPanel;
   DString      widgetType;
   DString      uName;
+
+private:  
   DString      proValue;
   DString      funcValue;
-
+  DString      eventPro; // event handler PRO
+  DString      eventFun; // event handler FUN
+  
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
 	     bool s=true, bool mp=true,
 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1);
   virtual ~GDLWidget();
 
+//   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}
+  WidgetIDT GetParentID() const { return parentID;}
+  
   wxObject* WxWidget() { return wxWidget;}
 
   BaseGDL* GetUvalue() { return uValue;}
@@ -116,11 +127,13 @@ public:
   virtual void SetXmanagerActiveCommand() {};
   virtual bool GetXmanagerActiveCommand() {return false;};
 
-  virtual void SetEventPro( DString) {};
-  virtual DString GetEventPro() {return NULL;};
+  void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
+  const DString& GetEventPro() const { return eventPro;};
+  void SetEventFun( const DString& eFun) { eventFun = StrUpCase( eFun);}
+  const DString& GetEventFun() const { return eventFun;};
 
   static bool GetXmanagerBlock();
-  static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
+//   static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
 
   WidgetIDT WidgetID() { return widgetID;}
 
@@ -129,32 +142,32 @@ public:
   //  void SetSizer( wxSizer*);
 
   bool GetManaged() { return managed;}
-  void SetManaged( bool);
+  void SetManaged( bool manval){managed = manval;}
+
 
   bool GetMap() { return map;}
-  void SetMap( bool);
+void SetMap( bool mapval){ map = mapval;}
 
   int  GetExclusiveMode() { return exclusiveMode;}
-  void SetExclusiveMode( int);
+void SetExclusiveMode( int exclusiveval){exclusiveMode = exclusiveval;}
 
-  void SetUvalue( BaseGDL *);
-  void SetVvalue( BaseGDL *);
+void SetUvalue( BaseGDL *uV){uValue = uV;}
+void SetVvalue( BaseGDL *vV){vValue = vV;}
 
-  void SetWidgetType( DString);
-  DString GetWidgetType() { return widgetType;}
+  const DString& GetWidgetType() { return widgetType;}
+void SetWidgetType( const DString& wType){widgetType = wType;}
 
-  void SetButtonOff();
-  void SetButtonOn();
   bool GetButtonSet() { return buttonSet;}
+void SetButtonSet(bool onOff){buttonSet = onOff;}
 
-  void SetUname( DString);
-  DString GetUname() { return uName;}
+  const DString& GetUname() { return uName;}
+void SetUname( const DString& uname){uName = uname;}
 
-  void SetProValue( DString);
-  DString GetProValue() { return proValue;}
+  const DString& GetProValue() { return proValue;}
+void SetProValue( const DString&  provalue){proValue = StrUpCase(provalue);}
 
-  void SetFuncValue( DString);
-  DString GetFuncValue() { return funcValue;}
+  const DString& GetFuncValue() { return funcValue;}
+void SetFuncValue( const DString&  funcvalue){funcValue = StrUpCase(funcvalue);}
 };
 
 
@@ -167,7 +180,7 @@ class GDLWidgetButton: public GDLWidget
 public:
   GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, DString value);
 
-  void SetSelectOff();
+//   void SetSelectOff();
 };
 
 
@@ -179,7 +192,7 @@ public:
   //	     DString title, DLong xSize, DLong style);
   GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 		     DString title, DLong xSize, DLong style);
-  void SetSelectOff();
+//   void SetSelectOff();
 };
 
 // list widget **************************************************
@@ -188,7 +201,7 @@ class GDLWidgetList : public GDLWidget
 public:
   GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 								 DLong xSize, DLong ySize, DLong style);
-  void SetSelectOff();
+//   void SetSelectOff();
 };
 
 // bgroup widget **************************************************
@@ -201,11 +214,11 @@ public:
 	BGroupReturn;
 
 	GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
-									BaseGDL *uV, DString buttonuvalue,
-									DLong xSize, DLong ySize,
-									DString labeltop, DLong rows, DLong cols,
-									BGroupMode mode, BGroupReturn ret
-									);
+			BaseGDL *uV, DString buttonuvalue,
+			DLong xSize, DLong ySize,
+			DString labeltop, DLong rows, DLong cols,
+			BGroupMode mode, BGroupReturn ret
+			);
 
 };
 
@@ -217,7 +230,7 @@ private:
 
 public:
   GDLWidgetText( WidgetIDT parentID, BaseGDL *uvalue, DString value,
-								 DLong xSize, bool editable);
+		  DLong xSize, bool editable);
  
   void SetTextValue( DString);
 };
@@ -247,25 +260,25 @@ protected:
   bool                                    xmanActCom;
   bool                                    modal;
   WidgetIDT                               mbarID;
-  DString                                 eventHandler;
+//   DString                                 eventHandler;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, 
-		 BaseGDL* uvalue, DString uname,
+		 BaseGDL* uvalue, const DString& uname,
 		 bool sensitive, bool mapWid,
-		 WidgetIDT mBarID, bool modal, 
+		 WidgetIDT& mBarIDInOut, bool modal, 
 		 WidgetIDT group_leader,
 		 DLong col, DLong row,
 		 long events,
 		 int exclusiveMode, 
 		 bool floating,
-		 DString event_func, DString event_pro,
-		 DString pro_set_value, DString func_get_value,
-		 DString notify_realize, DString kill_notify,
-		 DString resource_name, DString rname_mbar,
-		 DString title,
+		 const DString& event_func, const DString& event_pro,
+		 const DString& pro_set_value, const DString& func_get_value,
+		 const DString& notify_realize, const DString& kill_notify,
+		 const DString& resource_name, const DString& rname_mbar,
+		 const DString& title,
 		 DLong frame, DLong units,
-		 DString display_name,
+		 const DString& display_name,
 		 DLong xpad, DLong ypad,
 		 DLong xoffset, DLong yoffset,
 		 DLong xsize, DLong ysize,
@@ -290,15 +303,22 @@ public:
   void SetXmanagerActiveCommand();
   bool GetXmanagerActiveCommand() { return xmanActCom;}
 
-  void SetEventPro( DString);
-  DString GetEventPro() { return eventHandler;}
+//   void SetEventPro( DString);
+//   const DString& GetEventPro() { return eventHandler;}
 
   DLong GetChild( DLong);
 
 };
 
-class GDLWidgetMBar: public GDLWidgetBase
+class GDLWidgetMBar: public GDLWidget//Base
 {
+  // disable
+  GDLWidgetMBar();
+public:
+  GDLWidgetMBar( WidgetIDT p): GDLWidget( p)
+  {
+    this->wxWidget = new wxMenuBar();
+  }
 };
 
 
@@ -313,8 +333,8 @@ public:
   void OnRadioButton( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
 
-private:
-    // any class wishing to process wxWidgets events must use this macro
+// private:
+  // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };
 

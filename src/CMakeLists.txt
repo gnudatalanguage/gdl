@@ -234,6 +234,7 @@ typedefs.hpp
 typetraits.cpp
 typetraits.hpp
 widget.cpp
+widget.hpp
 )
 
 if(WIN32 AND NOT CYGWIN)
