@@ -10,7 +10,9 @@
   There were several talks and posters on GDL prepared by the project team:
 </p>
 <ul>
-  <li><a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/slides_ADASS2011_GDL_Coulais.pdf">talk @ ADASS 2011</a> by Alain Coulais</li> (no definitive version of the <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/O11_ADASS2011_GDL_Coulais.pdf">corresponding paper</a>)
+  <li><a href="http://adass2013.cfht.hawaii.edu/presenterdetails.php?id=189">poster</a> @ <a href="http://adass2013.cfht.hawaii.edu/index.php">ADASS 2013</a>by Alain Coulais et al.</li>
+(no definitive version of the <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2013/P39_Adass2013_Coulais.pdf">corresponding paper</a> [in pdf])
+  <li><a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/slides_ADASS2011_GDL_Coulais.pdf">talk @ ADASS 2011</a> by Alain Coulais</li> (no definitive version of the <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/O11_ADASS2011_GDL_Coulais.pdf">corresponding paper</a> [in pdf])
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-ghm2011paris.pdf">talk @ GHM 2011</a> by Alain Coulais &amp; Sylwester Arabas</li>
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-fosdem-2011-talk.pdf">talk @ FOSDEM 2011</a> by Sylwester Arabas</li>
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/prezentacja-jamstec-20100820.pdf">talk/tutorial at The Earth Simulator Center</a> by Alain Coulais, Sylwester Arabas &amp; Takeshi Enomoto</li>
