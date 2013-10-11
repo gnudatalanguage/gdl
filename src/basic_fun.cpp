@@ -4143,7 +4143,7 @@ BaseGDL* transpose( EnvT* e)
 	    if ( (*p0)[ii] > max ) max = ((*p0)[ii]);
 	  }	
 		
-   	//---------------------------- END d'acquisistion des paramÃ?tres -------------------------------------	
+   	//---------------------------- END d'acquisistion des paramï¿½?tres -------------------------------------	
 
 	
 	static int evenIx = e->KeywordIx( "EVEN");
@@ -6422,7 +6422,7 @@ BaseGDL* transpose( EnvT* e)
       while (p < e) 
       {
         // scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-        if (!isalpha(*p) && !isdigit(*p) && *p != '+' && *p != '.' && *p != '-') 
+        if (!(isalpha(*p)) && !(isdigit(*p)) && (*p != '+') && (*p != '.') && (*p != '-')) 
         {
           if (e + 1 < ue) goto parse_port;
           else goto just_path;
