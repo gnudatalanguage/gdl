@@ -21,24 +21,90 @@
 
 #include <wx/wx.h>
 
+#include <deque>
 #include <map>
 
 #include "typedefs.hpp"
 #include "str.hpp"
 
-class guiThread : public wxThread
+// thread save deque
+class GDLEventQueue
 {
+private:
+  std::deque<DStructGDL*> dq;
+  bool isEmpty;
+  wxMutex mutex;
+  bool isPolled;
 public:
-  guiThread() : wxThread(wxTHREAD_JOINABLE) {};
+  GDLEventQueue()
+  : isEmpty( true)
+  , isPolled( false)
+  {}
+  
+  bool GetIsPolled() const { return isPolled;}
+  void SetIsPolled( bool p) { isPolled = p;}
+  
+  DStructGDL* pop()
+  {
+    mutex.Lock();
+    DStructGDL* front = dq.front();
+    dq.pop_front();
+    isEmpty = dq.empty();
+    mutex.Unlock();
+    return front;
+  }
+  void push( DStructGDL* w)
+  {
+    mutex.Lock();
+    dq.push_back( w);
+    isEmpty = false;
+    mutex.Unlock();    
+  }
+  bool empty() const 
+  { 
+    return isEmpty;    
+  }
+};
+class GDLEventQueuePolledGuard
+{
+  GDLEventQueue* eq;
+  bool polledIn;
+  
+public:
+  GDLEventQueuePolledGuard(GDLEventQueue* e)
+  : eq( e)
+  , polledIn( e->GetIsPolled())
+  {
+    eq->SetIsPolled( true);
+  }
+  ~GDLEventQueuePolledGuard()
+  {
+    eq->SetIsPolled( polledIn);
+  }
+};
+
+class GDLGUIThread : public wxThread
+{
+  bool exited;
+  
+public:
+  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE)
+  , exited(false)
+  {};
+
+  bool Exited() const { return exited;}
 
   // thread execution starts here
   ExitCode Entry();
 
   // called when the thread exits - whether it terminates normally or is
   // stopped with Delete() (but not when it is Kill()ed!)
-  void OnExit( guiThread *thread);
+  void OnExit();
+  
+  void Exit(); // end this
 };
-static guiThread *thread;
+
+static GDLGUIThread *gdlGUIThread = NULL;
 
 class GDLWidget;
 
@@ -47,13 +113,12 @@ typedef DLong                       WidgetIDT;
 typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 typedef std::deque<DStructGDL*> EventQueueT;
 
-extern EventQueueT eventQueue;
 
 // main App class
 class GDLApp: public wxApp
 {
-  int OnRun();  // Defined in GDLApp::OnRun()
-  int OnExit(); // Defined in GDLApp::OnExit()
+public:
+  int OnRun(); 
 };
 
 // GUI base class **********************************
@@ -72,6 +137,11 @@ protected:
   static void WidgetRemove( WidgetIDT widID);
 
 public:
+  static GDLEventQueue eventQueue;
+  static GDLEventQueue readlineEventQueue;
+  static void HandleEvents();
+  static const WidgetIDT NullID;
+  
   // ID for widget (called from widgets constructor)
   static WidgetIDT NewWidget( GDLWidget* w);
   // get widget from ID

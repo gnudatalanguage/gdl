@@ -42,12 +42,15 @@ IMPLEMENT_APP_NO_MAIN( GDLApp)
 
 //#define GDL_DEBUG_WIDGETS
 
+const WidgetIDT GDLWidget::NullID = 0;
+
 // instantiation
 WidgetIDT	GDLWidget::widgetIx;
 WidgetListT	GDLWidget::widgetList;
 
 // VarListT                    eventVarList;
-EventQueueT	eventQueue;
+GDLEventQueue	GDLWidget::eventQueue; // the event queue
+GDLEventQueue	GDLWidget::readlineEventQueue; // for process at command line level
 
 void getSizer( DLong col, DLong row, DLong frameBox, 
 	       wxPanel *panel, wxSizer **sizer) {
@@ -101,6 +104,8 @@ void GDLWidget::WidgetRemove( WidgetIDT widID)
 // widget from ID
 GDLWidget* GDLWidget::GetWidget( WidgetIDT widID)
 {
+  if( widID == GDLWidget::NullID)
+    return NULL;
   WidgetListT::iterator it=widgetList.find( widID);
   if( it == widgetList.end()) return NULL;
   return it->second;
@@ -110,6 +115,8 @@ GDLWidget* GDLWidget::GetWidget( WidgetIDT widID)
 GDLWidget* GDLWidget::GetParent( WidgetIDT widID)
 {
   GDLWidget *widget = GetWidget( widID);
+  if( widget == NULL)
+    return NULL;
   WidgetIDT parentID = widget->parentID;
   GDLWidget *parent = GetWidget( parentID);
   return parent;
@@ -119,16 +126,48 @@ GDLWidget* GDLWidget::GetParent( WidgetIDT widID)
 WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
 {
   GDLWidget *widget, *parent;
-  WidgetIDT parentID;
-
-  parentID = widID;
+  WidgetIDT actID = widID;
   while ( 1) {
-    widget = GetWidget( parentID);
-    if ( widget->parentID == 0) 
-      return parentID; 
+    widget = GetWidget( actID);
+    if( widget == NULL)
+      return GDLWidget::NullID;
+    if ( widget->parentID == GDLWidget::NullID) 
+      return actID; 
     else 
-      parentID = widget->parentID;
+      actID = widget->parentID;
   }
+}
+
+void GDLWidget::HandleEvents()
+{
+  while( !GDLWidget::readlineEventQueue.empty())
+  {
+    DStructGDL* ev = GDLWidget::readlineEventQueue.pop();
+
+    WidgetIDT id = (*static_cast<DLongGDL*>
+	    (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
+
+    ev = CallEventHandler( id, ev);
+    if( ev != NULL)
+    {
+      Warning( "Unhandled event. ID: " + i2s(id));
+      GDLDelete( ev);
+      ev = NULL;
+    }
+
+    // refresh (if tlb still exists (handler might have destroyed it))
+    // even on unhandled event as it might have been rewritten by a handler
+    WidgetIDT tlb = GetTopLevelBase( id);
+    if( tlb != GDLWidget::NullID)
+    {
+      GDLWidget *tlw = GetWidget( tlb);
+      assert( tlw != NULL);
+      assert( dynamic_cast<GDLFrame*>(tlw->wxWidget) != NULL);
+      // Pause 50 millisecs then refresh widget 
+      wxMilliSleep( 50); // (why?)
+      static_cast<GDLFrame*>(tlw->wxWidget)->Refresh();
+    }
+  }    
 }
 
 
@@ -264,19 +303,27 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 
   // If first base widget ...
   if ( parentID == 0) {
-    if (thread != NULL)
-      thread->OnExit( thread);
-
-    thread = new guiThread();
+    if (gdlGUIThread != NULL)
+    {
+      if( gdlGUIThread->Exited())
+      {
+	gdlGUIThread->Wait();
+	gdlGUIThread = NULL;
+      }
+    }
+    if (gdlGUIThread == NULL)
+    {
+//       gdlGUIThread->Exit(); // delete itself
 
     // Defined in threadpsx.cpp (wxWidgets)
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "Creating thread: " << thread << std::endl;
+      std::cout << "Creating thread: " << thread << std::endl;
 #endif    
-    
-    thread->Create();
-    thread->Run();
-
+      gdlGUIThread = new GDLGUIThread();
+   
+      gdlGUIThread->Create();
+      gdlGUIThread->Run();
+    }
     // GUI lock defined in threadpsx.cpp
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "before wxMutexGuiEnter()" << std::endl;
@@ -409,11 +456,8 @@ void GDLWidgetBase::Realize( bool map)
 {
   GDLFrame *frame = (GDLFrame *) this->wxWidget;
   bool stat = frame->Show( map);
-  //  wxString nme = frame->GetName();
-  //std::cout << frame->IsShown() << std::endl;
-
-  // GUI unlock defined in threadpsx.cpp
-  //  std::cout << "wxMutexGuiLeave()" << std::endl;
+  // std::cout << frame->IsShown() << std::endl;
+  // std::cout << "wxMutexGuiLeave()" << std::endl;
   wxMutexGuiLeave();
 }
 
@@ -825,34 +869,30 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 
   // Get XmanagerActiveCommand status
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-  // std::cout << "Base Widget ID: " << baseWidgetID << std::endl;
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
   bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
   //std::cout << "xmanActCom: " << xmanActCom << std::endl;
 
+  // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
   widgbut->InitTag("HANDLER", DLongGDL( 0));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
-  if( xmanActCom == false)
+  if( xmanActCom == false || GDLWidget::eventQueue.GetIsPolled())
   {
-    eventQueue.push_back(widgbut);
-    return;
+    if( xmanActCom == false)      
+      std::cout << "xmanActCom == false: " << event.GetId() << std::endl;
+    else
+      std::cout << "isPolled: " << event.GetId() << std::endl;
+    GDLWidget::eventQueue.push(widgbut);
   }
-
-  BaseGDL* ev = CallEventHandler( event.GetId(), widgbut);
-  if( ev != NULL)
+  else
   {
-    Warning( "Unhandled event. ID: " + i2s(event.GetId()));
-    GDLDelete( ev);
-    ev = NULL;
+    std::cout << "xmanActCom == true: " << event.GetId() << std::endl;
+    GDLWidget::readlineEventQueue.push( widgbut);
   }
-  
-  // Pause 50 millisecs then refresh widget
-  wxMilliSleep( 50);
-  Refresh();
 }
 
 void GDLFrame::OnRadioButton( wxCommandEvent& event)
@@ -864,19 +904,19 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 
 void GDLFrame::OnIdle( wxIdleEvent&)
 {
-  //  std::cout << "In OnIdle" << std::endl;
+  //std::cout << "In OnIdle" << std::endl;
   // Refresh();
 }
 
 
 // *** guiThread ***
-wxThread::ExitCode guiThread::Entry()
+wxThread::ExitCode GDLGUIThread::Entry()
 {
   // Called from PthreadStart() in threadpsx.cpp (wxWidgets)
 
   // gui loop
 
-  std::cout << "In thread Entry()" << std::endl;
+//   std::cout << "In thread Entry()" << std::endl;
 
   wxTheApp->OnRun();
   // Calls GDLApp::OnRun()
@@ -888,7 +928,7 @@ int GDLApp::OnRun()
 {
   // Called by guiThread::Entry()
 
-  std::cout << " In OnRun()" << std::endl;
+//   std::cout << " In OnRun()" << std::endl;
 
   int exitcode = wxApp::OnRun();
   // Note: Calls wxAppBase::OnRun() in appcmn.cpp (wxWidgets)
@@ -898,32 +938,46 @@ int GDLApp::OnRun()
   return exitcode;
 }
 
-int GDLApp::OnExit()
-{
-  // Called by exitgdl() in basic_pro.cpp
+// int GDLApp::Exit()
+// {
+//   // Called by exitgdl() in basic_pro.cpp
+// 
+//   std::cout << " In GDLApp::Exit()" << std::endl;
+//   
+//   //bool running = thread->IsRunning();
+//   //std::cout << "running: " << running << std::endl;
+// 
+//   // Defined in guiThread::OnExit() in gdlwidget.cpp
+//   //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
+//   if (gdlGUIThread != NULL)
+//   {
+//      gdlGUIThread->Exit();
+//      gdlGUIThread = NULL;
+//   }
+// 
+//   return 0;
+// }
 
-  //  std::cout << " In GDLApp::OnExit()" << std::endl;
-  
-  //bool running = thread->IsRunning();
-  //std::cout << "running: " << running << std::endl;
 
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
-  if (thread != NULL)
-    thread->OnExit( thread);
-
-  return 0;
-}
-
-
-void guiThread::OnExit( guiThread *thread)
+void GDLGUIThread::OnExit()
 {
   // Called by GDLApp::OnExit() in gdlwidget.cpp
 #ifdef GDL_DEBUG_WIDGETS
-  std::cout << "In guiThread::OnExit(): " << thread << std::endl;
+  std::cout << "In guiThread::OnExit()." << std::endl;
 #endif
+  std::cout << "In GDLGUIThread::OnExit()." << std::endl;
+  exited = true;
+}
 
-  delete thread;
+void GDLGUIThread::Exit()
+{
+  // Called by GDLApp::OnExit() in gdlwidget.cpp
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "In GDLGUIThread::Exit()." << std::endl;
+#endif
+  std::cout << "In GDLGUIThread::Exit()." << std::endl;
+
+  delete this;
 }
 
 #endif

@@ -818,7 +818,7 @@ BaseGDL* widget_list( EnvT* e)
 #else
     SizeT nParam=e->NParam();
 
-    DLongGDL* p0L;
+    DLongGDL* p0L; 
 
     if ( nParam > 0) {
       p0L = e->GetParAs<DLongGDL>( 0);
@@ -834,26 +834,25 @@ BaseGDL* widget_list( EnvT* e)
     DLong handler;
     DLong select;
     //    int i; cin >> i;
-
+    GDLEventQueuePolledGuard polledGuard( &GDLWidget::eventQueue);
     while ( 1) { // outer while loop
       std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;      
       
       DStructGDL* ev = NULL;
 
       while ( 1) {
-	if( !eventQueue.empty())
+	if( !GDLWidget::eventQueue.empty())
 	{
-	  ev = eventQueue.front();
-	  eventQueue.pop_front();
+	  ev = GDLWidget::eventQueue.pop();
 
 	  id = (*static_cast<DLongGDL*>
 		  (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
 	  top = (*static_cast<DLongGDL*>
 		  (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
-	  handler = (*static_cast<DLongGDL*>
-		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
-	  select = (*static_cast<DLongGDL*>
-		      (ev->GetTag(ev->Desc()->TagIndex("SELECT"), 0)))[0];
+// 	  handler = (*static_cast<DLongGDL*>
+// 		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
+// 	  select = (*static_cast<DLongGDL*>
+// 		      (ev->GetTag(ev->Desc()->TagIndex("SELECT"), 0)))[0];
 	  break;
 	}
 	else
@@ -877,13 +876,25 @@ BaseGDL* widget_list( EnvT* e)
       {
 	Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s(id));
 	GDLDelete( ev);
-	ev = NULL;
+ 	ev = NULL;
       }
 
       if ( GDLWidget::GetWidget( top) == NULL) {
 	std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;
 	break;
       }
+      
+      WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
+      if( tlb != GDLWidget::NullID)
+      {
+	GDLWidget *tlw = GDLWidget::GetWidget( tlb);
+	assert( tlw != NULL);
+	assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
+	// Pause 50 millisecs then refresh widget 
+	wxMilliSleep( 50); // (why?)
+	static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
+      }
+
     } // outer while loop
 
     return new DLongGDL( 0);

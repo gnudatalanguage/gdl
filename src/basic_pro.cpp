@@ -106,7 +106,7 @@
 #include <signal.h>
 
 #ifdef HAVE_LIBWXWIDGETS
-#include <wx/wx.h>
+#include <gdlwidget.hpp>
 #endif
 
 namespace lib {
@@ -1032,44 +1032,46 @@ namespace lib {
 
     if( historyIntialized)
     {
-		// Create eventually the ".gdl" path in user $HOME
-		int result, debug=0;
-		char *homeDir = getenv( "HOME");
-		if (homeDir != NULL)
-		{
-			string pathToGDL_history = homeDir;
-			AppendIfNeeded(pathToGDL_history, "/");
-			pathToGDL_history += ".gdl";
-			// Create eventially the ".gdl" path in Home
+        // Create eventually the ".gdl" path in user $HOME
+        int result, debug=0;
+        char *homeDir = getenv( "HOME");
+        if (homeDir != NULL)
+        {
+            string pathToGDL_history = homeDir;
+            AppendIfNeeded(pathToGDL_history, "/");
+            pathToGDL_history += ".gdl";
+            // Create eventially the ".gdl" path in Home
 #ifdef _MSC_VER
-			result = mkdir(pathToGDL_history.c_str());
+            result = mkdir(pathToGDL_history.c_str());
 #else
-			result = mkdir(pathToGDL_history.c_str(), 0700);
+            result = mkdir(pathToGDL_history.c_str(), 0700);
 #endif
-			if (debug)
-			{
-				if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
-				else cout << "~/.gdl PATH was still here "<< endl;
-			}
-			
-			// (over)write the history file in ~/.gdl PATH
-		
-			AppendIfNeeded(pathToGDL_history, "/");
-			string history_filename = pathToGDL_history + "history";
-			if (debug) cout << "History file name: " << history_filename << endl;
-			result = write_history(history_filename.c_str());
-			if (debug)
-			{
-				if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
-				else cout <<"Fail to write ~/.gdl/history"<<endl;
-			}
-		}
+            if (debug)
+            {
+                if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
+                else cout << "~/.gdl PATH was still here "<< endl;
+            }
+
+            // (over)write the history file in ~/.gdl PATH
+
+            AppendIfNeeded(pathToGDL_history, "/");
+            string history_filename = pathToGDL_history + "history";
+            if (debug) cout << "History file name: " << history_filename << endl;
+            result = write_history(history_filename.c_str());
+            if (debug)
+            {
+                if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
+                else cout <<"Fail to write ~/.gdl/history"<<endl;
+            }
+        }
     }
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
     // wxTheApp may be a null pointer (tracker item no. 2946058)
-    if (wxTheApp) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
+//     if (wxTheApp != NULL) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
+    if( gdlGUIThread != NULL)
+      gdlGUIThread->Exit();
 
     // SA: gives the following error message with no connection to X-server:
     //   GDL> exit
