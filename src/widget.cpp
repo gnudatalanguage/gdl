@@ -24,6 +24,7 @@
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
+#include "gdleventhandler.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 #  include "gdlwidget.hpp"
@@ -830,24 +831,30 @@ BaseGDL* widget_list( EnvT* e)
     EnvBaseT* caller;
 
     DLong id;
-    DLong top;
-    DLong handler;
-    DLong select;
+    DLong tlb;
+//     DLong handler;
+//     DLong select;
     //    int i; cin >> i;
-    GDLEventQueuePolledGuard polledGuard( &GDLWidget::eventQueue);
+//     GDLEventQueuePolledGuard polledGuard( &GDLWidget::eventQueue);
     while ( 1) { // outer while loop
       std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;      
       
       DStructGDL* ev = NULL;
 
       while ( 1) {
+	// handle global GUI events as well as plot events
+	// handling is completed on return
+	// calls GDLWidget::HandleEvents()
+	int res = GDLEventHandler();
+
+	// the polling event handler
 	if( !GDLWidget::eventQueue.empty())
 	{
 	  ev = GDLWidget::eventQueue.pop();
 
 	  id = (*static_cast<DLongGDL*>
 		  (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
-	  top = (*static_cast<DLongGDL*>
+	  tlb = (*static_cast<DLongGDL*>
 		  (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
 // 	  handler = (*static_cast<DLongGDL*>
 // 		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
@@ -855,7 +862,10 @@ BaseGDL* widget_list( EnvT* e)
 // 		      (ev->GetTag(ev->Desc()->TagIndex("SELECT"), 0)))[0];
 	  break;
 	}
-	else
+	
+	// if poll event handler found an event this is not reached due to the 
+	// 'break' statement
+	if( res == 0)
 	{
 	  // Sleep a bit to prevent CPU overuse
 	  // but only if there are no events!
@@ -864,10 +874,10 @@ BaseGDL* widget_list( EnvT* e)
 	
 	if( sigControlC)
 	  return new DLongGDL( 0);	  
-      }
+      } // inner while
 
       std::cout << "WIDGET_EVENT: Event found" << std::endl;
-      std::cout << "top: " << top << std::endl;
+      std::cout << "top: " << tlb << std::endl;
       std::cout << "id:  " << id << std::endl;
 
       ev = CallEventHandler( id, ev);
@@ -879,21 +889,18 @@ BaseGDL* widget_list( EnvT* e)
  	ev = NULL;
       }
 
-      if ( GDLWidget::GetWidget( top) == NULL) {
+      GDLWidget *tlw = GDLWidget::GetWidget( tlb);
+      if ( tlw == NULL) {
 	std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;
 	break;
       }
       
-      WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
-      if( tlb != GDLWidget::NullID)
-      {
-	GDLWidget *tlw = GDLWidget::GetWidget( tlb);
-	assert( tlw != NULL);
-	assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
-	// Pause 50 millisecs then refresh widget 
-	wxMilliSleep( 50); // (why?)
-	static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
-      }
+      // see comment in GDLWidget::HandleEvents()
+      // WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
+      assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
+      // Pause 50 millisecs then refresh widget 
+//       wxMilliSleep( 50); // (why?)
+      static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
 
     } // outer while loop
 

@@ -138,14 +138,18 @@ WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
   }
 }
 
-void GDLWidget::HandleEvents()
+int GDLWidget::HandleEvents()
 {
+  int res = 0;
   while( !GDLWidget::readlineEventQueue.empty())
   {
+    ++res;
     DStructGDL* ev = GDLWidget::readlineEventQueue.pop();
 
     WidgetIDT id = (*static_cast<DLongGDL*>
 	    (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
+    WidgetIDT tlb = (*static_cast<DLongGDL*>
+	    (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
 
     ev = CallEventHandler( id, ev);
     if( ev != NULL)
@@ -157,17 +161,18 @@ void GDLWidget::HandleEvents()
 
     // refresh (if tlb still exists (handler might have destroyed it))
     // even on unhandled event as it might have been rewritten by a handler
-    WidgetIDT tlb = GetTopLevelBase( id);
-    if( tlb != GDLWidget::NullID)
+    // use 'old' tlb as id might no longer exist
+//     WidgetIDT tlb = GetTopLevelBase( id);
+    GDLWidget *tlw = GetWidget( tlb);
+    if( tlw != NULL)
     {
-      GDLWidget *tlw = GetWidget( tlb);
-      assert( tlw != NULL);
       assert( dynamic_cast<GDLFrame*>(tlw->wxWidget) != NULL);
       // Pause 50 millisecs then refresh widget 
-      wxMilliSleep( 50); // (why?)
+//       wxMilliSleep( 50); // (why?)
       static_cast<GDLFrame*>(tlw->wxWidget)->Refresh();
     }
-  }    
+  }
+  return res;
 }
 
 
@@ -880,12 +885,9 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   widgbut->InitTag("HANDLER", DLongGDL( 0));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
-  if( xmanActCom == false || GDLWidget::eventQueue.GetIsPolled())
+  if( xmanActCom == false)
   {
-    if( xmanActCom == false)      
-      std::cout << "xmanActCom == false: " << event.GetId() << std::endl;
-    else
-      std::cout << "isPolled: " << event.GetId() << std::endl;
+    std::cout << "xmanActCom == false: " << event.GetId() << std::endl;
     GDLWidget::eventQueue.push(widgbut);
   }
   else

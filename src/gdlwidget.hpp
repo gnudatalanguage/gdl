@@ -65,23 +65,23 @@ public:
     return isEmpty;    
   }
 };
-class GDLEventQueuePolledGuard
-{
-  GDLEventQueue* eq;
-  bool polledIn;
-  
-public:
-  GDLEventQueuePolledGuard(GDLEventQueue* e)
-  : eq( e)
-  , polledIn( e->GetIsPolled())
-  {
-    eq->SetIsPolled( true);
-  }
-  ~GDLEventQueuePolledGuard()
-  {
-    eq->SetIsPolled( polledIn);
-  }
-};
+// class GDLEventQueuePolledGuard
+// {
+//   GDLEventQueue* eq;
+//   bool polledIn;
+//   
+// public:
+//   GDLEventQueuePolledGuard(GDLEventQueue* e)
+//   : eq( e)
+//   , polledIn( e->GetIsPolled())
+//   {
+//     eq->SetIsPolled( true);
+//   }
+//   ~GDLEventQueuePolledGuard()
+//   {
+//     eq->SetIsPolled( polledIn);
+//   }
+// };
 
 class GDLGUIThread : public wxThread
 {
@@ -139,7 +139,7 @@ protected:
 public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
-  static void HandleEvents();
+  static int HandleEvents();
   static const WidgetIDT NullID;
   
   // ID for widget (called from widgets constructor)

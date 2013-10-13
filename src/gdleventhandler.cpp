@@ -33,7 +33,7 @@ using namespace std;
 int GDLEventHandler()
 {
   Graphics::HandleEvents();
-  GDLWidget::HandleEvents();
+  int res = GDLWidget::HandleEvents();
   
 #ifdef __APPLE__
   // under OS X the event loop burns to much CPU time
@@ -43,6 +43,6 @@ int GDLEventHandler()
   nanosleep(&delay,NULL);
 #endif
 
-  return 0;
+  return res;
 }
 
