@@ -182,10 +182,10 @@ public:
 //   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}
   WidgetIDT GetParentID() const { return parentID;}
   
-  wxObject* WxWidget() { return wxWidget;}
+  wxObject* WxWidget() const { return wxWidget;}
 
-  BaseGDL* GetUvalue() { return uValue;}
-  BaseGDL* GetVvalue() { return vValue;}
+  BaseGDL* GetUvalue() const { return uValue;}
+  BaseGDL* GetVvalue() const { return vValue;}
 
   virtual void Realize( bool) {} 
   virtual DLong GetChild( DLong) {return 0;};
