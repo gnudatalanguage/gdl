@@ -34,15 +34,10 @@ private:
   std::deque<DStructGDL*> dq;
   bool isEmpty;
   wxMutex mutex;
-  bool isPolled;
 public:
   GDLEventQueue()
   : isEmpty( true)
-  , isPolled( false)
   {}
-  
-  bool GetIsPolled() const { return isPolled;}
-  void SetIsPolled( bool p) { isPolled = p;}
   
   DStructGDL* pop()
   {
@@ -370,8 +365,9 @@ public:
   { children.erase( find( children.begin(), children.end(), c));}
 
   void Realize( bool);
-  void SetXmanagerActiveCommand();
-  bool GetXmanagerActiveCommand() { return xmanActCom;}
+  
+  void SetXmanagerActiveCommand() { xmanActCom = true;}
+  bool GetXmanagerActiveCommand() const { return xmanActCom;}
 
 //   void SetEventPro( DString);
 //   const DString& GetEventPro() { return eventHandler;}
@@ -397,6 +393,8 @@ class GDLFrame : public wxFrame
 public:
   // ctor(s)
   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
+  ~GDLFrame()
+  { std::cout << "~GDLFrame: " << this << std::endl;}
 
   // event handlers (these functions should _not_ be virtual)
   void OnButton( wxCommandEvent& event);
