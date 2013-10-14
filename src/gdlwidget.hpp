@@ -106,7 +106,7 @@ class GDLWidget;
 // global widget list type
 typedef DLong                       WidgetIDT;
 typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
-typedef std::deque<DStructGDL*> EventQueueT;
+// typedef std::deque<DStructGDL*> EventQueueT;
 
 
 // main App class

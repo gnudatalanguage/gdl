@@ -39,7 +39,7 @@ BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev)
 
   int funIx = GDLInterpreter::GetFunIx( f);
 
-  ProgNodeP callingNode = BaseGDL::interpreter->GetRetTree();
+  ProgNodeP callingNode = NULL;//BaseGDL::interpreter->GetRetTree();
   
   EnvUDT* newEnv= new EnvUDT( callingNode, funList[ funIx], NULL);
   newEnv->SetNextPar( ev); // pass as local
@@ -57,7 +57,7 @@ void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
 
   int proIx = GDLInterpreter::GetProIx( p);
 
-  ProgNodeP callingNode = BaseGDL::interpreter->GetRetTree();
+  ProgNodeP callingNode = NULL;//BaseGDL::interpreter->GetRetTree();
   
   EnvUDT* newEnv= new EnvUDT( callingNode, proList[ proIx], NULL);
   newEnv->SetNextPar( p0); // pass as local
@@ -75,42 +75,50 @@ DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
   DLong actID = id;
   do {
     GDLWidget *widget = GDLWidget::GetWidget( actID);
-    DString eventHandlerPro = widget->GetEventPro();
-    if( eventHandlerPro != "")
+    if( widget == NULL)
     {
-      (*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
-      CallEventPro( eventHandlerPro, ev); // grabs ev
-      ev = NULL;
-      break;
+      std::cout << "CallEventHandler: Widget no longer valid. ID: " << actID << std::endl;
+      actID = GDLWidget::NullID;
     }
-    DString eventHandlerFun = widget->GetEventFun();
-    if( eventHandlerFun != "")
+    else
     {
-      (*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
-      BaseGDL* retVal = CallEventFunc( eventHandlerFun, ev); // grabs ev
-      if( retVal->Type() == GDL_STRUCT)
+      DString eventHandlerPro = widget->GetEventPro();
+      if( eventHandlerPro != "")
       {
-	// ev is already deleted
-	ev = static_cast<DStructGDL*>( retVal); 
-	if( ev->Desc()->TagIndex("ID") == -1 ||
-	  ev->Desc()->TagIndex("TOP") == -1 ||
-	  ev->Desc()->TagIndex("HANDLER") == -1)
-	{
-	  GDLDelete( ev);
-	  throw GDLException(eventHandlerFun+ ": Event handler return struct must contain tags ID, TOP, HANDLER.");
-	}
-	// no break!
-      }
-      else
-      {
-	GDLDelete( retVal);
+	(*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+	CallEventPro( eventHandlerPro, ev); // grabs ev
 	ev = NULL;
-	break;    
+	break;
       }
+      DString eventHandlerFun = widget->GetEventFun();
+      if( eventHandlerFun != "")
+      {
+	(*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+	BaseGDL* retVal = CallEventFunc( eventHandlerFun, ev); // grabs ev
+	if( retVal->Type() == GDL_STRUCT)
+	{
+	  // ev is already deleted
+	  ev = static_cast<DStructGDL*>( retVal); 
+	  if( ev->Desc()->TagIndex("ID") == -1 ||
+	    ev->Desc()->TagIndex("TOP") == -1 ||
+	    ev->Desc()->TagIndex("HANDLER") == -1)
+	  {
+	    GDLDelete( ev);
+	    throw GDLException(eventHandlerFun+ ": Event handler return struct must contain tags ID, TOP, HANDLER.");
+	  }
+	  // no break!
+	}
+	else
+	{
+	  GDLDelete( retVal);
+	  ev = NULL;
+	  break;    
+	}
+      }
+      actID = widget->GetParentID();
     }
-    actID = widget->GetParentID();
   }
-  while( actID != 0);
+  while( actID != GDLWidget::NullID);
 #endif
   return ev;
 }
@@ -394,6 +402,8 @@ namespace lib {
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -424,6 +434,8 @@ BaseGDL* widget_bgroup( EnvT* e)
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     //SizeT nParam = e->NParam();
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
@@ -504,6 +516,8 @@ BaseGDL* widget_list( EnvT* e)
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -546,6 +560,8 @@ BaseGDL* widget_list( EnvT* e)
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -589,6 +605,8 @@ BaseGDL* widget_list( EnvT* e)
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -628,6 +646,8 @@ BaseGDL* widget_list( EnvT* e)
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL; // avoid warning
 #else
+    SizeT nParam=e->NParam(1);
+
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -664,9 +684,9 @@ BaseGDL* widget_list( EnvT* e)
 #else
     SizeT nParam=e->NParam();
 
-    DLongGDL* p0L;
-    SizeT nEl;
-    SizeT rank;
+    DLongGDL* p0L = NULL;
+    SizeT nEl = 0;
+    SizeT rank = 0;
 
     if ( nParam > 0) {
       p0L = e->GetParAs<DLongGDL>( 0);
@@ -803,9 +823,11 @@ BaseGDL* widget_list( EnvT* e)
 
     // XMANAGER_BLOCK keyword
     if ( xmanagerBlock) {
-      return new DLongGDL( GDLWidget::GetXmanagerBlock());
+      return new DLongGDL( GDLWidget::GetXmanagerBlock() ? 1 : 0);
     }
     // End /XMANAGER_BLOCK
+    assert( false);
+    return NULL;
 #endif
   }
 
@@ -819,7 +841,7 @@ BaseGDL* widget_list( EnvT* e)
 #else
     SizeT nParam=e->NParam();
 
-    DLongGDL* p0L; 
+    DLongGDL* p0L = NULL; 
 
     if ( nParam > 0) {
       p0L = e->GetParAs<DLongGDL>( 0);
@@ -900,7 +922,9 @@ BaseGDL* widget_list( EnvT* e)
       assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
       // Pause 50 millisecs then refresh widget 
 //       wxMilliSleep( 50); // (why?)
+      wxMutexGuiEnter();
       static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
+      wxMutexGuiLeave();
 
     } // outer while loop
 
