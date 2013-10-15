@@ -126,6 +126,8 @@ private:
   // shared among all widgets
   static WidgetIDT                   widgetIx;
   static WidgetListT                 widgetList;
+  // ID for widget (must be called from widgets constructor only)
+  static WidgetIDT NewWidget( GDLWidget* w);
 
 protected:
   // removes a widget, (called from widgets destructor -> don't delete)
@@ -137,8 +139,6 @@ public:
   static int HandleEvents();
   static const WidgetIDT NullID;
   
-  // ID for widget (called from widgets constructor)
-  static WidgetIDT NewWidget( GDLWidget* w);
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
@@ -198,7 +198,6 @@ public:
   const DString& GetEventFun() const { return eventFun;};
 
   static bool GetXmanagerBlock();
-//   static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
 
   WidgetIDT WidgetID() { return widgetID;}
 
@@ -211,28 +210,28 @@ public:
 
 
   bool GetMap() { return map;}
-void SetMap( bool mapval){ map = mapval;}
+  void SetMap( bool mapval){ map = mapval;}
 
   int  GetExclusiveMode() { return exclusiveMode;}
-void SetExclusiveMode( int exclusiveval){exclusiveMode = exclusiveval;}
+  void SetExclusiveMode( int exclusiveval){exclusiveMode = exclusiveval;}
 
-void SetUvalue( BaseGDL *uV){uValue = uV;}
-void SetVvalue( BaseGDL *vV){vValue = vV;}
+  void SetUvalue( BaseGDL *uV){uValue = uV;}
+  void SetVvalue( BaseGDL *vV){vValue = vV;}
 
   const DString& GetWidgetType() { return widgetType;}
-void SetWidgetType( const DString& wType){widgetType = wType;}
+  void SetWidgetType( const DString& wType){widgetType = wType;}
 
   bool GetButtonSet() { return buttonSet;}
-void SetButtonSet(bool onOff){buttonSet = onOff;}
+  void SetButtonSet(bool onOff){buttonSet = onOff;}
 
   const DString& GetUname() { return uName;}
-void SetUname( const DString& uname){uName = uname;}
+  void SetUname( const DString& uname){uName = uname;}
 
   const DString& GetProValue() { return proValue;}
-void SetProValue( const DString&  provalue){proValue = StrUpCase(provalue);}
+  void SetProValue( const DString&  provalue){proValue = StrUpCase(provalue);}
 
   const DString& GetFuncValue() { return funcValue;}
-void SetFuncValue( const DString&  funcvalue){funcValue = StrUpCase(funcvalue);}
+  void SetFuncValue( const DString&  funcvalue){funcValue = StrUpCase(funcvalue);}
 };
 
 
@@ -381,7 +380,7 @@ class GDLWidgetMBar: public GDLWidget//Base
   // disable
   GDLWidgetMBar();
 public:
-  GDLWidgetMBar( WidgetIDT p): GDLWidget( p, NULL, NULL, false, false, 0, 0, 0, 0, "mbar")
+  GDLWidgetMBar( WidgetIDT p): GDLWidget( p, NULL, NULL, false, false, 0, 0, 0, 0, "")
 
   {
     this->wxWidget = new wxMenuBar();

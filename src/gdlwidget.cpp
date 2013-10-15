@@ -87,14 +87,12 @@ void getSizer( DLong col, DLong row, DLong frameBox,
 // ID for widget (called from widgets constructor)
 WidgetIDT GDLWidget::NewWidget( GDLWidget* w)
 {
-//   //  std::cout << " In NewWidget()" << std::endl;
-//   widgetList.insert( widgetList.end(),
-// 		     std::pair<WidgetIDT, GDLWidget*>( widgetIx, w));
-//   return ++widgetIx;
+// //  std::cout << " In NewWidget()" << std::endl;
+// widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( widgetIx, w));
+// return ++widgetIx;
   wxWindowID newID = wxWindow::NewControlId();
   w->widgetID = newID;
-  widgetList.insert( widgetList.end(),
-		     std::pair<WidgetIDT, GDLWidget*>( newID, w));
+  widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( newID, w));
   
   std::cout << "inserted: ID: " << newID << "  parentID: " << w->parentID << "   uname: " << w->uName << std::endl;
   
