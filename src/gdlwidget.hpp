@@ -176,7 +176,7 @@ private:
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
 	     bool s=true, bool mp=true,
-	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1);
+	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1, const DString& uname = "");
   virtual ~GDLWidget();
 
 //   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}
@@ -243,7 +243,7 @@ class GDLWidgetMbar;
 class GDLWidgetButton: public GDLWidget
 {
 public:
-  GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, DString value);
+  GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, const DString& value, const DString& uname);
 
 //   void SetSelectOff();
 };
@@ -381,7 +381,8 @@ class GDLWidgetMBar: public GDLWidget//Base
   // disable
   GDLWidgetMBar();
 public:
-  GDLWidgetMBar( WidgetIDT p): GDLWidget( p)
+  GDLWidgetMBar( WidgetIDT p): GDLWidget( p, NULL, NULL, false, false, 0, 0, 0, 0, "mbar")
+
   {
     this->wxWidget = new wxMenuBar();
   }

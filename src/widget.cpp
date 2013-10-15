@@ -417,7 +417,11 @@ namespace lib {
     if( uvalue != NULL)
       uvalue = uvalue->Dup();
 
-    GDLWidgetButton* button = new GDLWidgetButton( parentID, uvalue, value);
+    DString uname = "";
+    static int unameIx = e->KeywordIx( "UNAME");
+    e->AssureStringScalarKWIfPresent( unameIx, uname);
+
+    GDLWidgetButton* button = new GDLWidgetButton( parentID, uvalue, value, uname);
 
     button->SetWidgetType( "BUTTON");
 

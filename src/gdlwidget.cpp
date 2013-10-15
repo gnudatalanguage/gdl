@@ -92,8 +92,12 @@ WidgetIDT GDLWidget::NewWidget( GDLWidget* w)
 // 		     std::pair<WidgetIDT, GDLWidget*>( widgetIx, w));
 //   return ++widgetIx;
   wxWindowID newID = wxWindow::NewControlId();
+  w->widgetID = newID;
   widgetList.insert( widgetList.end(),
 		     std::pair<WidgetIDT, GDLWidget*>( newID, w));
+  
+  std::cout << "inserted: ID: " << newID << "  parentID: " << w->parentID << "   uname: " << w->uName << std::endl;
+  
   return newID; // compiler shut-up
 }
 
@@ -196,6 +200,12 @@ bool GDLWidget::GetXmanagerBlock()
   bool managed;
   bool xmanActCom;
 
+  std::cout << "+ GetXmanagerBlock: widgetList:" << std::endl;
+  for( it = widgetList.begin(); it != widgetList.end(); ++it) {
+    std::cout << (*it).first << ": " << (*it).second->widgetID << "  parentID: " <<
+    (*it).second->parentID << "  uname: " << (*it).second->uName <<std::endl;   
+  }
+  std::cout << "- GetXmanagerBlock: widgetList end" << std::endl;
   for( it = widgetList.begin(); it != widgetList.end(); ++it) {
     // Only consider base widgets
     if ( (*it).second->parentID == GDLWidget::NullID) {
@@ -224,7 +234,7 @@ void GDLWidget::Init()
 
 
 GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
-		      DLong xO, DLong yO, DLong xS, DLong yS): 
+		      DLong xO, DLong yO, DLong xS, DLong yS, const DString& uname): 
   wxWidget( NULL),
   parentID( p), uValue( uV), vValue( vV), sensitive( s), map( mp)
   , buttonSet(false)
@@ -233,6 +243,7 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
   , topWidgetSizer(NULL)
   , widgetSizer(NULL)
   , widgetPanel(NULL)
+  , uName( uname)
 {
   managed = false;
   // TODO exception savety
@@ -257,7 +268,7 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
 
 GDLWidget::~GDLWidget()
 {
-  std::cout << "in ~GDLWidget(): " << std::endl;
+  std::cout << "in ~GDLWidget(): " << uName << std::endl;
   managed = false;
 
 //   if( parentID != 0) 
@@ -298,7 +309,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 			      DLong xsize, DLong ysize,
 			      DLong scr_xsize, DLong scr_ysize,
 			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, 0, 0)
+  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, 0, 0, uname)
   , modal( modal_)
   , mbarID( mBarIDInOut)
 {
@@ -350,7 +361,9 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     if( mbarID != 0)
     {
       GDLWidgetMBar* mBar = new GDLWidgetMBar( widgetID); 
-      mbarID = GDLWidget::NewWidget( mBar);
+      // already called in constructor:
+      // mbarID = GDLWidget::NewWidget( mBar);
+      mbarID = mBar->WidgetID();
       mBarIDInOut = mbarID;
       
 //       wxMenuBar* m = static_cast<wxMenuBar*>(GDLWidget::GetWidget( mbarID)->WxWidget());
@@ -501,8 +514,8 @@ DLong GDLWidgetBase::GetChild( DLong childIx)
 
 
 
-GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
-  GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
+GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, const DString& value, const DString& uname):
+  GDLWidget( p, uV, NULL, false, false, 0, 0, 0, 0, uname)
 {
   wxMutexGuiEnter();
 
@@ -515,11 +528,13 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
   wxMenuBar *menuBar =  dynamic_cast< wxMenuBar*>( wxParentObject);
   if( menuBar != NULL)
   {
+//     cout << "MenuBar: " << widgetID << endl;
     this->wxWidget = new wxMenu();
     menuBar->Append( static_cast<wxMenu*>(this->wxWidget), wxString(value.c_str(), wxConvUTF8));
   }
   else
   {
+//     cout << "Menu: " << widgetID << endl;
     wxMenu *menu =  dynamic_cast< wxMenu*>( wxParentObject);
     if( menu != NULL)
     {
@@ -533,6 +548,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
 // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
     }
     else if (gdlParent->GetMap()) {
+//       cout << "Button: " << widgetID << endl;
       wxPanel *panel = gdlParent->GetPanel();
 
       wxButton *button;
