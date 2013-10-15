@@ -376,6 +376,10 @@ void InitObjects()
   //  Preferences::Init();
 
 #ifdef HAVE_LIBWXWIDGETS
+
+  // some X error message suggested this call
+  XInitThreads();
+
   // initialize widget system
   GDLWidget::Init();
 #endif

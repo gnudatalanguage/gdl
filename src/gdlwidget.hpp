@@ -124,7 +124,7 @@ class GDLWidget
 private:
   // the global widget list and the actual index for new widgets
   // shared among all widgets
-  static WidgetIDT                   widgetIx;
+//   static WidgetIDT                   widgetIx;
   static WidgetListT                 widgetList;
   // ID for widget (must be called from widgets constructor only)
   static WidgetIDT NewWidget( GDLWidget* w);

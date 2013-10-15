@@ -31,7 +31,7 @@
 
 #include "widget.hpp"
 
-#define GDL_DEBUG_WIDGETS
+// #define GDL_DEBUG_WIDGETS
 
 
 BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
@@ -48,7 +48,7 @@ IMPLEMENT_APP_NO_MAIN( GDLApp)
 const WidgetIDT GDLWidget::NullID = 0;
 
 // instantiation
-WidgetIDT	GDLWidget::widgetIx;
+// WidgetIDT	GDLWidget::widgetIx;
 WidgetListT	GDLWidget::widgetList;
 
 // VarListT                    eventVarList;
@@ -94,8 +94,9 @@ WidgetIDT GDLWidget::NewWidget( GDLWidget* w)
   w->widgetID = newID;
   widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( newID, w));
   
+#ifdef GDL_DEBUG_WIDGETS
   std::cout << "inserted: ID: " << newID << "  parentID: " << w->parentID << "   uname: " << w->uName << std::endl;
-  
+#endif  
   return newID; // compiler shut-up
 }
 
@@ -198,12 +199,14 @@ bool GDLWidget::GetXmanagerBlock()
   bool managed;
   bool xmanActCom;
 
+#ifdef GDL_DEBUG_WIDGETS
   std::cout << "+ GetXmanagerBlock: widgetList:" << std::endl;
   for( it = widgetList.begin(); it != widgetList.end(); ++it) {
     std::cout << (*it).first << ": " << (*it).second->widgetID << "  parentID: " <<
     (*it).second->parentID << "  uname: " << (*it).second->uName <<std::endl;   
   }
   std::cout << "- GetXmanagerBlock: widgetList end" << std::endl;
+#endif
   for( it = widgetList.begin(); it != widgetList.end(); ++it) {
     // Only consider base widgets
     if ( (*it).second->parentID == GDLWidget::NullID) {
@@ -225,7 +228,7 @@ void GDLWidget::Init()
 {
   // Called by InitObjects() in object.cpp
   //  std::cout << " In GDLWidget::Init()" << std::endl;
-  widgetIx = wxID_HIGHEST; // use same wx ID and GDL ID 
+//   widgetIx = wxID_HIGHEST; // use same wx ID and GDL ID 
 
   wxInitialize();
 }
@@ -266,7 +269,9 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
 
 GDLWidget::~GDLWidget()
 {
-  std::cout << "in ~GDLWidget(): " << uName << std::endl;
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "in ~GDLWidget(): " << widgetID << std::endl;
+#endif
   managed = false;
 
 //   if( parentID != 0) 
@@ -341,6 +346,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
       gdlGUIThread = new GDLGUIThread();
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "Created thread: " << gdlGUIThread << std::endl;
+      std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
 #endif    
    
       gdlGUIThread->Create();
@@ -485,6 +491,28 @@ GDLWidgetBase::~GDLWidgetBase()
 
 void GDLWidgetBase::Realize( bool map)
 {
+//   if (gdlGUIThread != NULL)
+//   {
+//     if( gdlGUIThread->Exited() || !gdlGUIThread->IsAlive())
+//     {
+//       gdlGUIThread->Wait();
+//       gdlGUIThread = NULL;
+//     }
+//   }
+//   if (gdlGUIThread == NULL)
+//   {
+// //       gdlGUIThread->Exit(); // delete itself
+// 
+//   // Defined in threadpsx.cpp (wxWidgets)
+//     gdlGUIThread = new GDLGUIThread();
+// #ifdef GDL_DEBUG_WIDGETS
+//     std::cout << "Created thread: " << gdlGUIThread << std::endl;
+// #endif    
+// 
+//     gdlGUIThread->Create();
+//     gdlGUIThread->Run();
+//   }
+
   wxMutexGuiEnter();
 
   GDLFrame *frame = (GDLFrame *) this->wxWidget;
@@ -1009,6 +1037,7 @@ void GDLGUIThread::OnExit()
   // Called by GDLApp::OnExit() in gdlwidget.cpp
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "In guiThread::OnExit()." << std::endl;
+  std::cout << "IsMainThread: " << wxIsMainThread() << std::endl;
 #endif
   exited = true;
 }
