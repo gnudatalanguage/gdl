@@ -356,7 +356,7 @@ public:
   {
     std::vector<GDLGStream*>::iterator i;
     for(i = winList.begin(); i != winList.end(); ++i) 
-      { delete *i; *i = NULL;}
+      { delete *i; /* *i = NULL;*/}
   }
 
   void EventHandler()
