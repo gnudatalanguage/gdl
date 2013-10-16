@@ -40,7 +40,7 @@
 #include <algorithm>
 #endif
 
-#define MMTOINCH 0.03937
+const double MMToINCH = 0.03937;
 
 using namespace std;
 
@@ -157,7 +157,7 @@ public:
     gdlDefaultCharInitialized=0;
     thePage.nbPages=0;
     theBox.initialized=false;
-     plgpls( &Mypls);
+    plgpls( &Mypls);
   }
 
   virtual ~GDLGStream()
@@ -759,8 +759,8 @@ public:
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"gpage() [%f,%f]\n",xp,yp);
     if(updatePageInfo()==true)
     {
-        xp=thePage.xdpmm/MMTOINCH;
-        yp=thePage.ydpmm/MMTOINCH;
+        xp=thePage.xdpmm/MMToINCH;
+        yp=thePage.ydpmm/MMToINCH;
         xleng=(PLINT)thePage.length;
         yleng=(PLINT)thePage.height;
         xoff=(PLINT)thePage.plxoff;

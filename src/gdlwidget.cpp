@@ -312,7 +312,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 			      DLong xsize, DLong ysize,
 			      DLong scr_xsize, DLong scr_ysize,
 			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, 0, 0, uname)
+  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize, uname)
   , modal( modal_)
   , mbarID( mBarIDInOut)
 {
@@ -427,8 +427,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 	  exit(2);
 	}
       } else {
-	wxStaticBox *box = 
-	  new wxStaticBox( panel, wxID_ANY, _T(""));
+	wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
 	if ( row == 0) {
 	  sizer = new wxStaticBoxSizer( box, wxVERTICAL);
 	} else if ( row != 0 && col == 0) {

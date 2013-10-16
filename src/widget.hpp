@@ -24,6 +24,7 @@
 
 namespace lib {
 
+  BaseGDL* widget_draw( EnvT* e);
   BaseGDL* widget_base( EnvT* e);
   BaseGDL* widget_button( EnvT* e);
   BaseGDL* widget_droplist( EnvT* e);

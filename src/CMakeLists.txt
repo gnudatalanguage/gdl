@@ -114,8 +114,11 @@ gdlsvgstream.cpp
 gdlsvgstream.hpp
 gdlwidget.cpp
 gdlwidget.hpp
+gdlwidgetdraw.cpp
 gdlwinstream.cpp
 gdlwinstream.hpp
+gdlwxstream.cpp
+gdlwxstream.hpp
 gdlxstream.cpp
 gdlxstream.hpp
 gdlzstream.cpp

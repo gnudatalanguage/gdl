@@ -125,7 +125,7 @@ private:
   // the global widget list and the actual index for new widgets
   // shared among all widgets
 //   static WidgetIDT                   widgetIx;
-  static WidgetListT                 widgetList;
+  static WidgetListT widgetList;
   // ID for widget (must be called from widgets constructor only)
   static WidgetIDT NewWidget( GDLWidget* w);
 
@@ -142,7 +142,7 @@ public:
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
-  static WidgetIDT GetTopLevelBase( WidgetIDT widID);
+  static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
 
@@ -372,6 +372,28 @@ public:
 //   const DString& GetEventPro() { return eventHandler;}
 
   DLong GetChild( DLong);
+
+};
+
+
+
+// draw widget **************************************************
+class GDLWidgetDraw: public GDLWidget
+{
+public:
+  GDLWidgetDraw( WidgetIDT parentID, 
+		BaseGDL* uvalue, const DString& uname,
+		bool sensitive, WidgetIDT group_leader,
+		const DString& event_func, const DString& event_pro,
+		const DString& pro_set_value, const DString& func_get_value,
+		const DString& notify_realize, const DString& kill_notify,
+		DLong frame, DLong units,
+		DLong xoffset, DLong yoffset,
+		DLong xsize, DLong ysize,
+		DLong scr_xsize, DLong scr_ysize,
+		DLong x_scroll_size, DLong y_scroll_size);
+
+  virtual ~GDLWidgetDraw();
 
 };
 

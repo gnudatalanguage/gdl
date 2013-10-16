@@ -23,7 +23,10 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
 		gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
 		GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
-		gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
+		gdlwinstream.cpp gdlwinstream.hpp \
+		gdlwxstream.cpp gdlwxstream.hpp \
+		gdlxstream.cpp gdlxstream.hpp \
+		getfmtast.cpp \
 		getfmtast.hpp graphics.cpp graphics.hpp \
 		gsl_fun.cpp gsl_fun.hpp gsl_matrix.cpp gsl_matrix.hpp \
 		gstream.hpp ifmt.cpp \
@@ -41,7 +44,7 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
 		typedefs.hpp typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp \
-		hdf_pro.hpp magick_cl.cpp magick_cl.hpp specializations.hpp gdlwidget.cpp \
+		hdf_pro.hpp magick_cl.cpp magick_cl.hpp specializations.hpp gdlwidget.cpp gdlwidgetdraw.cpp \
 		widget.cpp basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
