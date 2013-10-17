@@ -42,12 +42,10 @@
 #define SETOPT setopt
 #endif
 
+const int maxWin=32;  
 
 class DeviceX: public Graphics
 {
-public:
-  const int maxWin=32;  
-
 private:  
   std::vector<GDLGStream*> winList;
   std::vector<long>        oList;

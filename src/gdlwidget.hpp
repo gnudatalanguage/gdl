@@ -449,6 +449,7 @@ public:
   
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);
+  void OnShow(wxShowEvent& event);
 
 // private:
   // any class wishing to process wxWidgets events must use this macro

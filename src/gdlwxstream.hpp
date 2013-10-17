@@ -40,6 +40,7 @@ public:
     void RenewPlot();   //!< Redo plot.
     
     void Init();
+
 };
 
 

@@ -65,24 +65,18 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID,
   wxPanel *panel = gdlParent->GetPanel();
   widgetPanel = panel;
   
-  if ( frame == 0) {
-    wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
-    //    std::cout << "Getting Parent Sizer:" << parentSizer << std::endl;
-//     parentSizer->Add( sizer, 0, wxEXPAND|wxALL, 5);
-  } else {
-    wxStaticBoxSizer *parentSizer = (wxStaticBoxSizer *) gdlParent->GetSizer();
-    //    std::cout << "Getting Parent Sizer:" << parentSizer << std::endl;
-//     parentSizer->Add( sizer, 0, wxEXPAND|wxALL, 5);
-  }
-  
-  // TODO
-// In the wxWidgets application a wxMemoryDC must be created (e.g. in the constructor of a wxWindow) and made known to the driver, e.g.
-  
-// memPlotDC = new wxMemoryDC;
-// memPlotDCBitmap = new wxBitmap( 640, 400, -1 );
-// memPlotDC->SelectObject( *MemPlotDCBitmap );
-// my_stream = new GDLWXStream( (wxDC*)MemPlotDC, MemPlotDC_width, MemPlotDC_height );
+  long style = 0;
+  if( frame == 1)
+    style = wxBORDER_SIMPLE;
+  else if( frame > 1)
+    style = wxBORDER_DOUBLE;
+        
+  GDLWindow* gdlWindow = new GDLWindow( panel, widgetID, wxDefaultPosition, wxSize(xsize,ysize), style);
+  wxWidget = gdlWindow;
 
+  wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
+  parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
+  
   wxMutexGuiLeave();
 }
 

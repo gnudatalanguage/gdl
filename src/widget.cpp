@@ -257,7 +257,6 @@ namespace lib {
     static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL");
     static int COLORS = e->KeywordIx( "COLORS"); // long
     static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY"); //string
-    static int FRAME = e->KeywordIx( "FRAME");  // width
     static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL");
     static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS");
     static int KEYBOARD_EVENTS = e->KeywordIx( "KEYBOARD_EVENTS"); // 1, 2
@@ -266,6 +265,7 @@ namespace lib {
     static int RETAIN = e->KeywordIx( "RETAIN");
     static int TOOLTIP = e->KeywordIx( "TOOLTIP");
 
+    static int FRAME = e->KeywordIx( "FRAME");  // width
     DLong frame = 0;
     e->AssureLongScalarKWIfPresent( FRAME, frame);
 

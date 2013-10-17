@@ -45,6 +45,7 @@ END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(GDLWindow, wxWindow)
   EVT_PAINT(GDLWindow::OnPaint)
+  EVT_SHOW(GDLWindow::OnShow)
 END_EVENT_TABLE()
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
@@ -76,7 +77,7 @@ GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const 
   memPlotDCBitmap = new wxBitmap( width, height, -1 );
   memPlotDC->SelectObject( *memPlotDCBitmap);
 
-  pstream = new GDLWXStream( (wxDC*)memPlotDC, width, height);
+  pstream = new GDLWXStream( memPlotDC, width, height);
 
   drawSize = size;
 }
@@ -106,7 +107,7 @@ void GDLWindow::OnPaint(wxPaintEvent& event)
 
 	memPlotDC->SelectObject( *memPlotDCBitmap);
 
-        pstream = new GDLWXStream( (wxDC*)memPlotDC, width, width );
+        pstream = new GDLWXStream( (wxDC*)memPlotDC, width, height);
 
         pstream->SetSize( width, height);
         pstream->replot();
@@ -117,6 +118,9 @@ void GDLWindow::OnPaint(wxPaintEvent& event)
     wxPaintDC dc( this );
     dc.SetClippingRegion( GetUpdateRegion() );
     dc.Blit( 0, 0, width, height, memPlotDC, 0, 0 );
+}
+void GDLWindow::OnShow(wxShowEvent& event)
+{
 }
 
 void getSizer( DLong col, DLong row, DLong frameBox, 
@@ -387,8 +391,8 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
   wxWindow *wxParent = NULL;
 
   wxSizer *sizer;
-  wxSizer **sizerPtr;
-  sizerPtr = &sizer;
+//   wxSizer **sizerPtr;
+//   sizerPtr = &sizer;
 
   // If first base widget ...
   if ( parentID == 0) 
@@ -446,12 +450,12 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     widgetPanel = panel;
     //    std::cout << "Creating Panel: " << panel << std::endl;
 
-    getSizer( col, row, frameBox, panel, sizerPtr);
-    widgetSizer = *sizerPtr;
+    getSizer( col, row, frameBox, panel, &sizer);
+    widgetSizer = sizer;
 
-    topWidgetSizer = *sizerPtr;
+    topWidgetSizer = sizer;
     //std::cout << "SetSizer: " << *sizerPtr << std::endl;
-    panel->SetSizer( *sizerPtr);
+    panel->SetSizer( sizer);
 
     this->SetMap( mapWid);
 

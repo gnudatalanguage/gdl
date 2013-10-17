@@ -224,19 +224,19 @@ void GDLXStream::WarpPointer(DLong x, DLong y)
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XWarpPointer( xwd->display, None, dev->window, 0, 0, 0, 0, x, dev->height-y );
 }
-void GDLXStream::setDoubleBuffering()
+void GDLXStream::SetDoubleBuffering()
 {
   XwDev *dev = (XwDev *) pls->dev;
   dev->write_to_window = 0;
   pls->db = 1;
 }
-void GDLXStream::unSetDoubleBuffering()
+void GDLXStream::UnSetDoubleBuffering()
 {
   XwDev *dev = (XwDev *) pls->dev;
   dev->write_to_window = 1;
   pls->db = 0;
 }
-bool GDLXStream::hasDoubleBuffering()
+bool GDLXStream::HasDoubleBuffering()
 {
   return true;
 }
