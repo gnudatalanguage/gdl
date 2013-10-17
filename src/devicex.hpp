@@ -42,10 +42,13 @@
 #define SETOPT setopt
 #endif
 
-const int maxWin=32;  
 
 class DeviceX: public Graphics
 {
+public:
+  const int maxWin=32;  
+
+private:  
   std::vector<GDLGStream*> winList;
   std::vector<long>        oList;
   long oIx;
@@ -227,35 +230,35 @@ SizeT nOp = kxLimit * kyLimit;
   }
 
 
-  void SetActWin( int wIx)
-  {
+ void SetActWin( int wIx)
+{
     // update !D
-    if( wIx >= 0 && wIx < winList.size()) 
-      {
-	long xsize,ysize,xoff,yoff;
-	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
-    PLStream* pls;
-    plgpls( &pls);
-	// window size and pos
-// 	PLFLT xp; PLFLT yp; 
+    if( wIx >= 0 && wIx < winList.size())
+    {
+        long xsize,ysize,xoff,yoff;
+        winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
+        PLStream* pls;
+        plgpls( &pls);
+        // window size and pos
+// 	PLFLT xp; PLFLT yp;
 // 	PLINT xleng; PLINT yleng;
 // 	PLINT xoff; PLINT yoff;
 // 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
-	(*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
-	(*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
-	(*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
-	(*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
 
         // number of colors (based on the color depth from PLPlot)
-        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 
-          1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
-      }	
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] =
+            1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
+    }
 
     // window number
     (*static_cast<DLongGDL*>( dStruct->GetTag( wTag)))[0] = wIx;
 
     actWin = wIx;
-  }
+}
 
   void RaiseWin( int wIx)
   {

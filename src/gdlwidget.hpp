@@ -428,5 +428,33 @@ public:
   DECLARE_EVENT_TABLE()
 };
 
+
+class GDLWXStream;
+
+class GDLWindow : public wxWindow
+{
+  GDLWXStream*	pstream;
+  wxSize 	drawSize;
+  wxMemoryDC*  memPlotDC;
+  wxBitmap*    memPlotDCBitmap;
+  
+public:
+  // ctor(s)
+  GDLWindow(wxWindow* parent, wxWindowID id, 
+	    const wxPoint& pos = wxDefaultPosition, 
+	    const wxSize& size = wxDefaultSize,
+	    long style = 0, 
+	    const wxString& name = wxPanelNameStr);
+  ~GDLWindow();
+  
+  // event handlers (these functions should _not_ be virtual)
+  void OnPaint(wxPaintEvent& event);
+
+// private:
+  // any class wishing to process wxWidgets events must use this macro
+  DECLARE_EVENT_TABLE()
+};
+
+
 #endif
 

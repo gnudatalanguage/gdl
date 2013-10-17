@@ -25,6 +25,8 @@
 
 #include "dinterpreter.hpp"
 
+#include "gdlwxstream.hpp"
+
 #ifdef HAVE_LIBWXWIDGETS
 
 #include "gdlwidget.hpp"
@@ -41,6 +43,10 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_IDLE( GDLFrame::OnIdle)
 END_EVENT_TABLE()
 
+BEGIN_EVENT_TABLE(GDLWindow, wxWindow)
+  EVT_PAINT(GDLWindow::OnPaint)
+END_EVENT_TABLE()
+
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
 //#define GDL_DEBUG_WIDGETS
@@ -54,6 +60,64 @@ WidgetListT	GDLWidget::widgetList;
 // VarListT                    eventVarList;
 GDLEventQueue	GDLWidget::eventQueue; // the event queue
 GDLEventQueue	GDLWidget::readlineEventQueue; // for process at command line level
+
+GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+: wxWindow( parent, id, pos, size, style, name)
+, pstream(NULL)
+, memPlotDC( NULL)
+, memPlotDCBitmap( NULL)
+{
+  DLong width = size.x;
+  DLong height = size.y;
+
+  memPlotDC = new wxMemoryDC();
+  memPlotDC->SelectObject( wxNullBitmap );
+
+  memPlotDCBitmap = new wxBitmap( width, height, -1 );
+  memPlotDC->SelectObject( *memPlotDCBitmap);
+
+  pstream = new GDLWXStream( (wxDC*)memPlotDC, width, height);
+
+  drawSize = size;
+}
+
+GDLWindow::~GDLWindow()
+{ 
+  std::cout << "~GDLWindow: " << this << std::endl;
+  delete memPlotDC;
+  delete memPlotDCBitmap;
+  delete pstream;
+}
+
+
+void GDLWindow::OnPaint(wxPaintEvent& event)
+{
+    int width, height;
+    GetSize( &width, &height );
+
+    // Check if we window was resized (or dc is invalid)
+    if( (pstream == NULL) || (drawSize.x != width) || (drawSize.y !=height)) 
+    {
+	memPlotDC->SelectObject( wxNullBitmap );
+
+        if( memPlotDCBitmap )
+            delete memPlotDCBitmap;
+        memPlotDCBitmap = new wxBitmap( width, height, -1 );
+
+	memPlotDC->SelectObject( *memPlotDCBitmap);
+
+        pstream = new GDLWXStream( (wxDC*)memPlotDC, width, width );
+
+        pstream->SetSize( width, height);
+        pstream->replot();
+
+        drawSize = wxSize( width, height);
+    }
+
+    wxPaintDC dc( this );
+    dc.SetClippingRegion( GetUpdateRegion() );
+    dc.Blit( 0, 0, width, height, memPlotDC, 0, 0 );
+}
 
 void getSizer( DLong col, DLong row, DLong frameBox, 
 	       wxPanel *panel, wxSizer **sizer) {
