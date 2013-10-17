@@ -31,6 +31,8 @@ GDLWXStream::GDLWXStream( wxDC *dc, int width, int height )
 //   SetOpt( "smooth", "1" );  // antialiased text?
 //   init();
   plP_esc( PLESC_DEVINIT, (void*)m_dc );
+  set_stream(); // private
+//   plgpls( &thePls); // in GDLGStream
 }
 
 void GDLWXStream::set_stream()
@@ -53,7 +55,7 @@ void GDLWXStream::Init()
 
   set_stream(); // private
 
-  plgpls( &pls);
+//   plgpls( &thePls); // in GDLGStream
 }
 
 

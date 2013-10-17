@@ -145,7 +145,7 @@ protected:
   int gdlDefaultCharInitialized;
   gdlbox theBox;
   gdlpage thePage;
-  PLStream* Mypls;
+  PLStream* thePls;
 
 public:
 
@@ -157,7 +157,7 @@ public:
     gdlDefaultCharInitialized=0;
     thePage.nbPages=0;
     theBox.initialized=false;
-    plgpls( &Mypls);
+    plgpls( &thePls);
   }
 
   virtual ~GDLGStream()
@@ -268,41 +268,41 @@ public:
   inline PLFLT mmyPageSize(){return thePage.ysizemm;}
   inline PLFLT boxnXSize(){return theBox.sndx;}
   inline PLFLT boxnYSize(){return theBox.sndy;}
-  inline PLFLT xPageSize(){return thePage.length;} //size in units (alternate:{return Mypls->xlength;})
-  inline PLFLT yPageSize(){return thePage.height;} //alternate: {return Mypls->ylength;}
+  inline PLFLT xPageSize(){return thePage.length;} //size in units (alternate:{return thePls->xlength;})
+  inline PLFLT yPageSize(){return thePage.height;} //alternate: {return thePls->ylength;}
   inline PLFLT xSubPageSize(){return thePage.subpage.dxsize;} //size in units
   inline PLFLT ySubPageSize(){return thePage.subpage.dysize;}
 
-  // bunch of conversion functions that should be used in the future now that Mypls is here!
+  // bunch of conversion functions that should be used in the future now that thePls is here!
   // device coords to physical coords (x,y)
-  inline PLFLT d2px(PLFLT x){ return ( Mypls->phyxmi + Mypls->phyxlen * x  );}
-  inline PLFLT d2py(PLFLT y){ return ( Mypls->phyymi + Mypls->phyylen * y  );}
+  inline PLFLT d2px(PLFLT x){ return ( thePls->phyxmi + thePls->phyxlen * x  );}
+  inline PLFLT d2py(PLFLT y){ return ( thePls->phyymi + thePls->phyylen * y  );}
   inline void device2physical(PLFLT devx, PLFLT devy, PLFLT &physx, PLFLT &physy)
   { physx=d2px(devx); physy=d2py(devy);}
   // device to mm
-  inline PLFLT d2mx(PLFLT x){ return (PLFLT) ( x * ( Mypls->phyxma - Mypls->phyxmi ) / Mypls->xpmm ) ;}
-  inline PLFLT d2my(PLFLT y){ return (PLFLT) ( y * ( Mypls->phyyma - Mypls->phyymi ) / Mypls->ypmm ) ;}
+  inline PLFLT d2mx(PLFLT x){ return (PLFLT) ( x * ( thePls->phyxma - thePls->phyxmi ) / thePls->xpmm ) ;}
+  inline PLFLT d2my(PLFLT y){ return (PLFLT) ( y * ( thePls->phyyma - thePls->phyymi ) / thePls->ypmm ) ;}
   inline void device2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
   { mmx=d2mx(devx); mmy=d2my(devy);}
   //device to world
-  inline PLFLT d2wx(PLFLT x){return (PLFLT) ( (x- Mypls->wdxoff) / Mypls->wdxscl );}
-  inline PLFLT d2wy(PLFLT y){return (PLFLT) ( (y- Mypls->wdyoff) / Mypls->wdyscl );}
+  inline PLFLT d2wx(PLFLT x){return (PLFLT) ( (x- thePls->wdxoff) / thePls->wdxscl );}
+  inline PLFLT d2wy(PLFLT y){return (PLFLT) ( (y- thePls->wdyoff) / thePls->wdyscl );}
   inline void device2world(PLFLT devx, PLFLT devy, PLFLT &wx, PLFLT &wy)
   { wx=d2wx(devx); wy=d2wy(devy);}
   // device coords to subpage coords
-  inline PLFLT d2spx(PLFLT x){ return (PLFLT) ( ( x - Mypls->spdxmi ) / ( Mypls->spdxma - Mypls->spdxmi ) ) ;}
-  inline PLFLT d2spy(PLFLT y){ return (PLFLT) ( ( y - Mypls->spdymi ) / ( Mypls->spdyma - Mypls->spdymi ) ) ;}
+  inline PLFLT d2spx(PLFLT x){ return (PLFLT) ( ( x - thePls->spdxmi ) / ( thePls->spdxma - thePls->spdxmi ) ) ;}
+  inline PLFLT d2spy(PLFLT y){ return (PLFLT) ( ( y - thePls->spdymi ) / ( thePls->spdyma - thePls->spdymi ) ) ;}
   inline void device2subpage(PLFLT devx, PLFLT devy, PLFLT &spx, PLFLT &spy)
   { spx=d2spx(devx); spy=d2spy(devy);}
 
   // millimeters to physical coords (x,y)
-  inline PLFLT m2px(PLFLT x){ return ( Mypls->phyxmi + Mypls->xpmm * x  );}
-  inline PLFLT m2py(PLFLT y){ return ( Mypls->phyymi + Mypls->ypmm * y  );}
+  inline PLFLT m2px(PLFLT x){ return ( thePls->phyxmi + thePls->xpmm * x  );}
+  inline PLFLT m2py(PLFLT y){ return ( thePls->phyymi + thePls->ypmm * y  );}
   inline void mm2physical(PLFLT mmx, PLFLT mmy, PLFLT &physx, PLFLT &physy)
   { physx=m2px(mmx); physy=m2py(mmy);}
   // mm to device
-  inline PLFLT m2dx(PLFLT x){ return (PLFLT) ( ( x * Mypls->xpmm ) / abs( Mypls->phyxma - Mypls->phyxmi ));}
-  inline PLFLT m2dy(PLFLT y){ return (PLFLT) ( ( y * Mypls->ypmm ) / abs( Mypls->phyyma - Mypls->phyymi ));}
+  inline PLFLT m2dx(PLFLT x){ return (PLFLT) ( ( x * thePls->xpmm ) / abs( thePls->phyxma - thePls->phyxmi ));}
+  inline PLFLT m2dy(PLFLT y){ return (PLFLT) ( ( y * thePls->ypmm ) / abs( thePls->phyyma - thePls->phyymi ));}
   inline void mm2device(PLFLT mmx, PLFLT mmy, PLFLT &devx, PLFLT &devy)
   { devx=m2dx(mmx); devy=m2dy(mmy);}
   // mm to world
@@ -317,18 +317,18 @@ public:
   { spx=m2spx(mmx); spy=m2spy(mmy);}
 
   // world to physical coords
-  inline PLFLT w2px(PLFLT x){ return ( Mypls->wpxoff + Mypls->wpxscl * x  );}
-  inline PLFLT w2py(PLFLT y){ return ( Mypls->wpyoff + Mypls->wpyscl * y  );}
+  inline PLFLT w2px(PLFLT x){ return ( thePls->wpxoff + thePls->wpxscl * x  );}
+  inline PLFLT w2py(PLFLT y){ return ( thePls->wpyoff + thePls->wpyscl * y  );}
   inline void world2physical(PLFLT wx, PLFLT wy, PLFLT &physx, PLFLT &physy)
   { physx=m2px(wx); physy=m2py(wy);}
   // world to device
-  inline PLFLT w2dx(PLFLT x){ return (PLFLT) ( Mypls->wdxoff + Mypls->wdxscl * x );}
-  inline PLFLT w2dy(PLFLT y){ return (PLFLT) ( Mypls->wdyoff + Mypls->wdyscl * y );}
+  inline PLFLT w2dx(PLFLT x){ return (PLFLT) ( thePls->wdxoff + thePls->wdxscl * x );}
+  inline PLFLT w2dy(PLFLT y){ return (PLFLT) ( thePls->wdyoff + thePls->wdyscl * y );}
   inline void world2device(PLFLT wx, PLFLT wy, PLFLT &devx, PLFLT &devy)
   { devx=w2dx(wx); devy=w2dy(wy);}
   //world to mm
-  inline PLFLT w2mx(PLFLT x){ return (PLFLT) ( Mypls->wmxoff + Mypls->wmxscl * x );}
-  inline PLFLT w2my(PLFLT y){ return (PLFLT) ( Mypls->wmyoff + Mypls->wmyscl * y );}
+  inline PLFLT w2mx(PLFLT x){ return (PLFLT) ( thePls->wmxoff + thePls->wmxscl * x );}
+  inline PLFLT w2my(PLFLT y){ return (PLFLT) ( thePls->wmyoff + thePls->wmyscl * y );}
   inline void world2mm(PLFLT wx, PLFLT wy, PLFLT &mmx, PLFLT &mmy)
   { mmx=w2mx(wx); mmy=w2my(wy);}
   //world to subpage coord
@@ -338,8 +338,8 @@ public:
   { spx=w2spx(wx); spy=w2my(spy);}
 
   // physical to device
-  inline PLFLT p2dx(PLFLT x){ return (PLFLT) ( ( x - Mypls->phyxmi ) / (double) Mypls->phyxlen );}
-  inline PLFLT p2dy(PLFLT y){ return (PLFLT) ( ( y - Mypls->phyymi ) / (double) Mypls->phyylen );}
+  inline PLFLT p2dx(PLFLT x){ return (PLFLT) ( ( x - thePls->phyxmi ) / (double) thePls->phyxlen );}
+  inline PLFLT p2dy(PLFLT y){ return (PLFLT) ( ( y - thePls->phyymi ) / (double) thePls->phyylen );}
   inline void physical2device(PLFLT physx, PLFLT physy, PLFLT &devx, PLFLT &devy)
   { devx=p2dx(physx); devy=p2dy(physy);}
   //physical to world
@@ -347,8 +347,8 @@ public:
   //physical to subpage coord
 
   // subpage coords to device coords
-  inline PLFLT sp2dx(PLFLT x){ return (PLFLT) ( Mypls->spdxmi + ( Mypls->spdxma - Mypls->spdxmi ) * x ) ;}
-  inline PLFLT sp2dy(PLFLT y){ return (PLFLT) ( Mypls->spdymi + ( Mypls->spdyma - Mypls->spdymi ) * y ) ;}
+  inline PLFLT sp2dx(PLFLT x){ return (PLFLT) ( thePls->spdxmi + ( thePls->spdxma - thePls->spdxmi ) * x ) ;}
+  inline PLFLT sp2dy(PLFLT y){ return (PLFLT) ( thePls->spdymi + ( thePls->spdyma - thePls->spdymi ) * y ) ;}
   inline void subpage2device(PLFLT spx, PLFLT spy, PLFLT &devx, PLFLT &devy)
   { devx=sp2dx(spx); devy=sp2dy(spy);}
   //subpage to world
@@ -366,22 +366,22 @@ public:
   //use trick to extract desired value hidden in pllegend!
   PLFLT gdlGetmmStringLength(const char *string)
   {
-    if ( Mypls->has_string_length )
+    if ( thePls->has_string_length )
     {
-        Mypls->get_string_length = 1;
+        thePls->get_string_length = 1;
         c_plmtex( "t", 0.0, 0.0, 0.0, string );
-        Mypls->get_string_length = 0;
-        return (PLFLT) m2dx(Mypls->string_length);
+        thePls->get_string_length = 0;
+        return (PLFLT) m2dx(thePls->string_length);
     }
     //else use only possibility without using Private function plstrl(): pllegend!
-    PLFLT text_scale = Mypls->chrht / Mypls->chrdef;
+    PLFLT text_scale = thePls->chrht / thePls->chrdef;
     PLFLT xwmin_save, xwmax_save, ywmin_save, ywmax_save;
     plgvpw(&xwmin_save, &xwmax_save, &ywmin_save, &ywmax_save);
     PLFLT xdmin_save, xdmax_save, ydmin_save, ydmax_save;
-    xdmin_save = ( Mypls->vpdxmi - Mypls->spdxmi ) / ( Mypls->spdxma - Mypls->spdxmi );
-    xdmax_save = ( Mypls->vpdxma - Mypls->spdxmi ) / ( Mypls->spdxma - Mypls->spdxmi );
-    ydmin_save = ( Mypls->vpdymi - Mypls->spdymi ) / ( Mypls->spdyma - Mypls->spdymi );
-    ydmax_save = ( Mypls->vpdyma - Mypls->spdymi ) / ( Mypls->spdyma - Mypls->spdymi );
+    xdmin_save = ( thePls->vpdxmi - thePls->spdxmi ) / ( thePls->spdxma - thePls->spdxmi );
+    xdmax_save = ( thePls->vpdxma - thePls->spdxmi ) / ( thePls->spdxma - thePls->spdxmi );
+    ydmin_save = ( thePls->vpdymi - thePls->spdymi ) / ( thePls->spdyma - thePls->spdymi );
+    ydmax_save = ( thePls->vpdyma - thePls->spdymi ) / ( thePls->spdyma - thePls->spdymi );
     PLFLT mxmin, mxmax, mymin, mymax;
     plgspa( &mxmin, &mxmax, &mymin, &mymax );
     PLFLT x_subpage_per_mm, y_subpage_per_mm;
@@ -394,10 +394,10 @@ public:
     plvpor( 0., 1., 0., 1. );
     plwind( 0., 1., 0., 1. );
     PLFLT xdmin_adopted, xdmax_adopted, ydmin_adopted, ydmax_adopted;
-    xdmin_adopted = ( Mypls->vpdxmi - Mypls->spdxmi ) / ( Mypls->spdxma - Mypls->spdxmi );
-    xdmax_adopted = ( Mypls->vpdxma - Mypls->spdxmi ) / ( Mypls->spdxma - Mypls->spdxmi );
-    ydmin_adopted = ( Mypls->vpdymi - Mypls->spdymi ) / ( Mypls->spdyma - Mypls->spdymi );
-    ydmax_adopted = ( Mypls->vpdyma - Mypls->spdymi ) / ( Mypls->spdyma - Mypls->spdymi );
+    xdmin_adopted = ( thePls->vpdxmi - thePls->spdxmi ) / ( thePls->spdxma - thePls->spdxmi );
+    xdmax_adopted = ( thePls->vpdxma - thePls->spdxmi ) / ( thePls->spdxma - thePls->spdxmi );
+    ydmin_adopted = ( thePls->vpdymi - thePls->spdymi ) / ( thePls->spdyma - thePls->spdymi );
+    ydmax_adopted = ( thePls->vpdyma - thePls->spdymi ) / ( thePls->spdyma - thePls->spdymi );
 // we have all info, give back box values:
     plvpor( xdmin_save, xdmax_save, ydmin_save, ydmax_save );
     plwind( xwmin_save, xwmax_save, ywmin_save, ywmax_save );
@@ -444,27 +444,27 @@ public:
 
   void  currentPhysicalPos(PLFLT &x, PLFLT &y)
   {
-    x=Mypls->currx; //Physical x-coordinate of current point
-    y=Mypls->curry;
+    x=thePls->currx; //Physical x-coordinate of current point
+    y=thePls->curry;
   }
   void  currentWorldPos(PLFLT &x, PLFLT &y)
   {
-    x=Mypls->currx; //Physical x-coordinate of current point
-    y=Mypls->curry;
-    x=(x-Mypls->wpxoff)/Mypls->wpxscl;
-    y=(y-Mypls->wpyoff)/Mypls->wpyscl;
+    x=thePls->currx; //Physical x-coordinate of current point
+    y=thePls->curry;
+    x=(x-thePls->wpxoff)/thePls->wpxscl;
+    y=(y-thePls->wpyoff)/thePls->wpyscl;
   }
   void  currentDevicePos(PLFLT &x, PLFLT &y)
   {
-    x=Mypls->currx; //Physical x-coordinate of current point
-    y=Mypls->curry;
+    x=thePls->currx; //Physical x-coordinate of current point
+    y=thePls->curry;
     x=p2dx(x);
     y=p2dy(y);
   }
   void  currentMmPos(PLFLT &x, PLFLT &y)
   {
-    x=Mypls->currx; //Physical x-coordinate of current point
-    y=Mypls->curry;
+    x=thePls->currx; //Physical x-coordinate of current point
+    y=thePls->curry;
     x=p2dx(x);x=d2mx(x);
     y=p2dy(y);y=d2my(y);
   }

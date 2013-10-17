@@ -29,8 +29,6 @@
 class GDLWXStream: public GDLGStream
 {
 private:
-    PLStream* pls;
-
     wxDC* m_dc;   //!< Pointer to wxDC to plot into.
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
