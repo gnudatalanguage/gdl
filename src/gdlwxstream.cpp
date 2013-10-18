@@ -21,16 +21,23 @@
 
 #include "gdlwxstream.hpp"
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
+
 GDLWXStream::GDLWXStream( wxDC *dc, int width, int height )
 : GDLGStream( width, height, "wxwidgets")
   , m_dc(dc), m_width(width), m_height(height)
 {
-//   ::plstream();
-  sdev( "wxwidgets" );
-  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
-  setopt( "text", "1" ); // use freetype?
-  setopt( "smooth", "1" );  // antialiased text?
-//   init();
+  //::plstream();
+  //sdev( "wxwidgets" );
+  //spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+  SETOPT( "text", "1" ); // use freetype?
+  SETOPT( "smooth", "1" );  // antialiased text?
+  this->plstream::init();
 
 // segv.
 

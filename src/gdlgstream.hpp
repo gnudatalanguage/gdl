@@ -133,7 +133,8 @@ using namespace std;
 
 class GDLGStream: public plstream
 {
-  void init(); // prevent plstream::init from being called directly
+// protected:  
+//   void init(); // prevent plstream::init from being called directly
 private:
     gdlpage pageLayout;
     gdlbox boxLayout;
