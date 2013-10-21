@@ -31,7 +31,9 @@
 #include "gdlxstream.hpp"
 #include "initsysvar.hpp"
 
+#ifdef HAVE_LIBWXWIDGETS
 #include "gdlwxstream.hpp"
+#endif
 
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 #ifndef free_mem
@@ -409,6 +411,7 @@ public:
     return true;
   }
 
+#ifdef HAVE_LIBWXWIDGETS
   bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
   {
     int xPos=0; int yPos=0;
@@ -513,6 +516,7 @@ public:
 
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   } // GUIOpen
+#endif
 
   
   bool WOpen( int wIx, const std::string& title, 
