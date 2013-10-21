@@ -60,7 +60,7 @@
 #include "graphics.hpp"
 #include "initsysvar.hpp"
 
-#define HAVE_PLPLOT_WIDTH
+//#define HAVE_PLPLOT_WIDTH
 
   struct GDL_3DTRANSFORMDATA
   {
