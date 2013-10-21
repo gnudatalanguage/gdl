@@ -35,11 +35,11 @@ using namespace std;
 
 int GDLEventHandler()
 {
-  Graphics::HandleEvents();
-#ifdef HAVE_LIBWXWIDGETS
-  int res = GDLWidget::HandleEvents();
-#else
+  GraphicsDevice::HandleEvents();
+
   int res =0;
+#ifdef HAVE_LIBWXWIDGETS
+  res = GDLWidget::HandleEvents();
 #endif
 
 #ifdef __APPLE__
