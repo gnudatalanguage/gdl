@@ -22,6 +22,8 @@
 
 #include "gdlgstream.hpp"
 
+#ifdef HAVE_LIBWXWIDGETS
+
 // #include <plplotP.h>
 // #include <plstream.h>
 #include <wx/dc.h>
