@@ -26,15 +26,22 @@
 
 #include "gdleventhandler.hpp"
 #include "graphicsdevice.hpp"
+
+#ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
+#endif
 
 using namespace std;
 
 int GDLEventHandler()
 {
-  GraphicsDevice::HandleEvents();
+  Graphics::HandleEvents();
+#ifdef HAVE_LIBWXWIDGETS
   int res = GDLWidget::HandleEvents();
-  
+#else
+  int res =0;
+#endif
+
 #ifdef __APPLE__
   // under OS X the event loop burns to much CPU time
   struct timespec delay;

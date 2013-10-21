@@ -25,9 +25,9 @@
 
 #include "dinterpreter.hpp"
 
-#include "gdlwxstream.hpp"
-
 #ifdef HAVE_LIBWXWIDGETS
+
+#include "gdlwxstream.hpp"
 
 #include "devicex.hpp"
 
