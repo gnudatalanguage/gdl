@@ -26,6 +26,9 @@
 
 #include "typedefs.hpp"
 #include "str.hpp"
+#include "datatypes.hpp"
+
+class DStructGDL;
 
 // thread save deque
 class GDLEventQueue
@@ -380,6 +383,8 @@ public:
 // draw widget **************************************************
 class GDLWidgetDraw: public GDLWidget
 {
+  int pstreamIx;
+  
 public:
   GDLWidgetDraw( WidgetIDT parentID, 
 		BaseGDL* uvalue, const DString& uname,
@@ -433,10 +438,14 @@ class GDLWXStream;
 
 class GDLWindow : public wxWindow
 {
-  GDLWXStream*	pstream;
+  int		pstreamIx;
+  GDLWXStream*	pstreamP;
+
   wxSize 	drawSize;
-  wxMemoryDC*  memPlotDC;
-  wxBitmap*    memPlotDCBitmap;
+
+  wxMemoryDC*  	memPlotDC;
+  wxBitmap*    	memPlotDCBitmap;
+//   GDLWXStream*	PStream();
   
 public:
   // ctor(s)
@@ -447,10 +456,20 @@ public:
 	    const wxString& name = wxPanelNameStr);
   ~GDLWindow();
   
+//   void SetPStreamIx( int ix) { pstreamIx = ix;}
+  int PStreamIx() { return pstreamIx;}
+
+  void Update();
+  
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);
   void OnShow(wxShowEvent& event);
+  void OnClose(wxCloseEvent& event);
 
+//   void OnCreate(wxWindowCreateEvent& event);
+//   void OnDestroy(wxWindowDestroyEvent& event);
+
+  
 // private:
   // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()

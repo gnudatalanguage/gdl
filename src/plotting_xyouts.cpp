@@ -347,7 +347,7 @@ namespace lib
         //plot!
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
         if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
         if (docharthick) actStream->width( static_cast<PLFLT>(( *charthick )[i%charthick->N_Elements()]));
 #else
 	if (docharthick) actStream->wid( static_cast<PLINT>(( *charthick )[i%charthick->N_Elements()]));

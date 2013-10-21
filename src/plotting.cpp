@@ -1906,7 +1906,7 @@ namespace lib
       DFloatGDL* charthickVect=e->GetKWAs<DFloatGDL>( charthickIx );
       charthick=(*charthickVect)[0];
     }
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
     a->width(static_cast<PLFLT>(charthick));
 #else
     a->wid(static_cast<PLINT>(charthick));
@@ -1938,7 +1938,7 @@ namespace lib
 
     e->AssureFloatScalarKWIfPresent("THICK", thick);
     if ( thick<=0.0 ) thick=1.0;
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
     a->width(static_cast<PLFLT>(thick));
 #else
     a->wid(static_cast<PLINT>(floor(thick-0.5)));
@@ -2959,7 +2959,7 @@ namespace lib
         a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
         a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
         a->width(static_cast<PLFLT>(Thick));
 #else
         a->wid(static_cast<PLINT>(Thick));
@@ -3008,7 +3008,7 @@ namespace lib
         else if (axis=="Y") a->box("", 0.0, 0 , Opt.c_str(), 0.0, 0);
       }
       //reset charsize & thick
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
       a->width(1.0);
 #else
       a->wid(1);
@@ -3155,7 +3155,7 @@ namespace lib
         a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
         a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
         a->width(static_cast<PLFLT>(Thick));
 #else
         a->wid(static_cast<PLINT>(Thick));
@@ -3184,7 +3184,7 @@ namespace lib
         else if (axis=="Z") a->box3("","",0,0,"","",0,0, Opt.c_str(), "", TickInterval, Minor);
       }
       //reset charsize & thick
-#if (HAVE_PLPLOT_WIDTH)
+#ifdef HAVE_PLPLOT_WIDTH
       a->width(1.0);
 #else
       a->wid(1);

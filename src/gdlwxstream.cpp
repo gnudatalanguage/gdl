@@ -17,8 +17,10 @@
 
 #include "includefirst.hpp"
 
+#include <plplot/plstream.h>
 #include <plplot/plplotP.h>
 
+#include "gdlwidget.hpp"
 #include "gdlwxstream.hpp"
 
 #ifdef HAVE_OLDPLPLOT
@@ -31,20 +33,31 @@
 GDLWXStream::GDLWXStream( wxDC *dc, int width, int height )
 : GDLGStream( width, height, "wxwidgets")
   , m_dc(dc), m_width(width), m_height(height)
+  , gdlWindow(NULL)
 {
   //::plstream();
-  //sdev( "wxwidgets" );
-  //spage( 0.0, 0.0, m_width, m_height, 0, 0 );
-  SETOPT( "text", "1" ); // use freetype?
-  SETOPT( "smooth", "1" );  // antialiased text?
+  sdev( "wxwidgets" );
+  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+//   SETOPT( "text", "1" ); // use freetype?
+//   SETOPT( "smooth", "1" );  // antialiased text?
   this->plstream::init();
-
-// segv.
 
   plP_esc( PLESC_DEVINIT, (void*)m_dc );
 
   set_stream(); // private
 //   plgpls( &thePls); // in GDLGStream
+}
+
+void GDLWXStream::SetGDLWindow(GDLWindow* w)
+{
+  gdlWindow = w;
+}
+
+void GDLWXStream::Update()
+{
+  if( gdlWindow == NULL)
+    return;
+  gdlWindow->Update();
 }
 
 void GDLWXStream::set_stream()
@@ -54,9 +67,11 @@ void GDLWXStream::set_stream()
 
 void GDLWXStream::SetSize( int width, int height )
 {
-  plP_esc( PLESC_CLEAR, NULL );
+//   plP_esc( PLESC_CLEAR, NULL );
   wxSize size = wxSize( width, height);
   plP_esc( PLESC_RESIZE, (void*)&size);
+  m_width = width;
+  m_height = height;
 }
 
 
@@ -77,4 +92,20 @@ void GDLWXStream::RenewPlot()
   replot();
 }
 
+void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
+{
+  // plplot does not return the real size
+  xSize = m_width;
+  ySize = m_height;
+  xoff =  0; //false with X11
+  yoff =  0; //false with X11
+  PLFLT xp; PLFLT yp; 
+  PLINT xleng; PLINT yleng;
+  PLINT plxoff; PLINT plyoff;
+//   plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff);
+//   //warning neither X11 nor plplot give the good value for the position of the window!!!!
+//   xoff = plxoff; //not good either!!!
+//   yoff = plyoff; // idem
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
+}
 

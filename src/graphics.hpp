@@ -105,12 +105,14 @@ public:
 class   Graphics;
 typedef std::vector< Graphics*> DeviceListT;
 
+class wxDC;
 class Graphics
 {
   static void InitCT();         // preset CT and actCT
 
   static Graphics*    actDevice;
   static DeviceListT  deviceList;
+  static Graphics*    actGUIDevice;
 
   static void DefineDStructDesc(); // modifies structList
 
@@ -148,13 +150,16 @@ public:
   static SizeT       N_CT() { return CT.size();}
   static bool        SetDevice( const std::string& devName);
   static Graphics*   GetDevice() { return actDevice;}
+  static Graphics*   GetGUIDevice() { return actGUIDevice;}
   static DStructGDL* DStruct()   { return actDevice->dStruct;} 
   
   const DString     Name() { return name;}
 
+  virtual GDLGStream* GetStreamAt( int wIx) const     { return NULL;}
   virtual GDLGStream* GetStream( bool open=true)      { return NULL;}
   virtual bool WSet( int ix)                          { return false;}
   virtual int  WAdd()                                 { return false;}
+  virtual bool GUIOpen( int wIx, wxDC *dc, int xSize, int ySize) { return false;} 
   virtual bool WOpen( int ix, const std::string& title,
 		      int xsize, int ysize, 
 		      int xpos, int ypos)             { return false;}

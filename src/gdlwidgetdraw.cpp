@@ -30,11 +30,14 @@
 #include "gdlwidget.hpp"
 
 #include "widget.hpp"
+#include "graphics.hpp"
 
 // #define GDL_DEBUG_WIDGETS
 
 GDLWidgetDraw::~GDLWidgetDraw()
-{}
+{
+  Graphics::GetGUIDevice()->WDelete( pstreamIx);
+}
 
 
 GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, 
@@ -49,6 +52,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID,
 			      DLong scr_xsize, DLong scr_ysize,
 			      DLong x_scroll_size, DLong y_scroll_size)
   : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize, uname)
+  , pstreamIx(-1)
 {
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
   assert( parentID != GDLWidget::NullID);
@@ -78,6 +82,16 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID,
   parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
   
   wxMutexGuiLeave();
+
+  pstreamIx = gdlWindow->PStreamIx();
+  if( pstreamIx != -1)
+    {
+      this->vValue = new DLongGDL(pstreamIx);
+    }
+  else
+    {
+      throw GDLException("GDLWindow::PStream: Failed to open stream.");
+    }
 }
 
 #endif

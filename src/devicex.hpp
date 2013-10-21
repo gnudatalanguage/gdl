@@ -27,8 +27,11 @@
 
 #include <plplot/drivers.h>
 
+#include "graphics.hpp"
 #include "gdlxstream.hpp"
 #include "initsysvar.hpp"
+
+#include "gdlwxstream.hpp"
 
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 #ifndef free_mem
@@ -43,6 +46,7 @@
 #endif
 
 const int maxWin=32;  
+const int maxWinReserve=256;  
 
 class DeviceX: public Graphics
 {
@@ -287,7 +291,7 @@ SizeT nOp = kxLimit * kyLimit;
     //     do { // it seems that the event queue is only searched a few events deep
     //       redo = false;
     for( int i=0; i<wLSize; i++)
-      if( winList[ i] != NULL && !winList[ i]->Valid()) 
+      if( winList[ i] != NULL && !winList[ i]->GetValid()) 
 	{
 	  delete winList[ i];
 	  winList[ i] = NULL;
@@ -299,7 +303,7 @@ SizeT nOp = kxLimit * kyLimit;
 
     // set new actWin IF NOT VALID ANY MORE
     if( actWin < 0 || actWin >= wLSize || 
-	winList[ actWin] == NULL || !winList[ actWin]->Valid())
+	winList[ actWin] == NULL || !winList[ actWin]->GetValid())
       {
 	// set to most recently created
 	std::vector< long>::iterator mEl = 
@@ -345,8 +349,10 @@ public:
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
 
-    winList.resize( maxWin);
+    winList.reserve( maxWinReserve);
+    winList.resize( maxWin);    
     for( int i=0; i < maxWin; i++) winList[ i] = NULL;
+    oList.reserve( maxWinReserve);
     oList.resize( maxWin);
     for( int i=0; i < maxWin; i++) oList[ i] = 0;
 
@@ -360,6 +366,11 @@ public:
       { delete *i; /* *i = NULL;*/}
   }
 
+//   GDLGStream* GetStream( int wIx) const 
+//   { 
+//     return winList[ wIx];
+//   }
+//   
   void EventHandler()
   {
     int wLSize = winList.size();
@@ -398,6 +409,112 @@ public:
     return true;
   }
 
+  bool GUIOpen( int wIx, wxDC *dc, int xSize, int ySize)//, int xPos, int yPos)
+  {
+    int xPos=0; int yPos=0;
+    ProcessDeleted();
+
+    int wLSize = winList.size();
+    if( wIx >= wLSize || wIx < 0)
+      return false;
+
+    if( winList[ wIx] != NULL)
+    {
+        delete winList[ wIx];
+        winList[ wIx] = NULL;
+    }
+
+    DLongGDL* pMulti = SysVar::GetPMulti();
+    DLong nx = (*pMulti)[ 1];
+    DLong ny = (*pMulti)[ 2];
+
+    if( nx <= 0) nx = 1;
+    if( ny <= 0) ny = 1;
+
+    winList[ wIx] = new GDLWXStream( dc, xSize, ySize);
+    
+    // as wxwidgets never set this, they can be intermixed
+    // oList[ wIx]   = oIx++;
+
+    // set initial window size
+    PLFLT xp; PLFLT yp; 
+    PLINT xleng; PLINT yleng;
+    PLINT xoff; PLINT yoff;
+    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
+
+    int debug=0;
+    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+
+    DLong xMaxSize, yMaxSize;
+    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
+
+    xleng = xSize;
+    yleng = ySize;
+
+    bool noPosx=(xPos==-1);
+    bool noPosy=(yPos==-1);
+    xPos=max(0,xPos);
+    yPos=max(0,yPos);
+    static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
+    static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
+    if (noPosx && noPosy) { //no init given, use 4 quadrants:
+        xoff = Quadx[wIx%4];
+        yoff = Quady[wIx%4];
+    } else if (noPosx) {
+        xoff = Quadx[wIx%4];
+        yoff = yMaxSize-yPos-ySize;
+    } else if (noPosy) {
+        xoff = xPos;
+        yoff = Quady[wIx%4];
+    } else {
+      xoff  = xPos;
+      yoff  = yMaxSize-yPos-ySize;
+    }
+    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+    xp=max(xp,1.0);
+    yp=max(yp,1.0);
+//     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+
+    // no pause on win destruction
+    winList[ wIx]->spause( false);
+
+    // extended fonts
+    winList[ wIx]->fontld( 1);
+
+    // we want color
+    winList[ wIx]->scolor( 1);
+
+    // avoid to set color map 0 -- makes plplot very slow (?)
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    actCT.Get( r, g, b);
+//    winList[ wIx]->scmap0( r, g, b, ctSize);
+    winList[ wIx]->scmap1( r, g, b, ctSize);
+
+//     winList[ wIx]->Init();
+// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
+//     bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
+//     ResizeWin((UInt)xleng, (UInt) yleng);
+    // need to be called initially. permit to fix things
+    winList[ wIx]->ssub(1,1);
+    winList[ wIx]->adv(0);
+    // load font
+    winList[ wIx]->font( 1);
+    winList[ wIx]->vpor(0,1,0,1);
+    winList[ wIx]->wind(0,1,0,1);
+    winList[ wIx]->DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (winList[ wIx]->updatePageInfo()==true)
+    {
+        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+
+    }
+    // sets actWin and updates !D
+//     SetActWin( wIx);
+
+    return true; //winList[ wIx]->Valid(); // Valid() need to called once
+  } // GUIOpen
+
+  
   bool WOpen( int wIx, const std::string& title, 
 	      int xSize, int ySize, int xPos, int yPos)
   {
@@ -421,6 +538,8 @@ public:
     if( ny <= 0) ny = 1;
 
     winList[ wIx] = new GDLXStream( nx, ny);
+    
+    // as wxwidgets never set this, they can be intermixed
     oList[ wIx]   = oIx++;
 
     // set initial window size
@@ -577,6 +696,11 @@ public:
     return wLSize;
   }
 
+  GDLGStream* GetStreamAt( int wIx) const 
+  { 
+    return winList[ wIx];
+  }
+  
   // should check for valid streams
   GDLGStream* GetStream( bool open=true)
   {

@@ -226,13 +226,17 @@ public:
   static void SetErrorHandlers();
 
   virtual void Init()=0;
+
+  // called after draw operation
+  virtual void Update() {}
+  
   virtual void EventHandler() {}
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 
   virtual void eop()          { plstream::eop();}
-  virtual void setDoubleBuffering() {}
-  virtual void unSetDoubleBuffering() {}
-  virtual bool hasDoubleBuffering() {return false;}
+  virtual void SetDoubleBuffering() {}
+  virtual void UnSetDoubleBuffering() {}
+  virtual bool HasDoubleBuffering() {return false;}
   virtual void Raise()         {}
   virtual void Lower()        {}
   virtual void Iconic()        {}
@@ -243,7 +247,8 @@ public:
   virtual void Clear()         {}
   virtual void Clear( DLong bColor)          {}
 
-  bool Valid() { return valid;}
+  void SetValid( bool v) { valid = v;}
+  bool GetValid() { return valid;}
   bool validWorldBox()
   {
     if (((theBox.wx1==0) && (theBox.wx2==0)) 

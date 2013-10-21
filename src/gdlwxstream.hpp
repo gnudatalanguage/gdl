@@ -26,6 +26,8 @@
 // #include <plstream.h>
 #include <wx/dc.h>
 
+class GDLWindow;
+
 class GDLWXStream: public GDLGStream
 {
 private:
@@ -33,6 +35,8 @@ private:
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
 
+    GDLWindow* gdlWindow;
+    
 public:
     GDLWXStream( wxDC *dc, int width, int height );  //!< Constructor.
     void set_stream();   //!< Calls some code before every PLplot command.
@@ -40,7 +44,10 @@ public:
     void RenewPlot();   //!< Redo plot.
     
     void Init();
-
+    void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+    
+    void Update();
+    void SetGDLWindow(GDLWindow*);
 };
 
 

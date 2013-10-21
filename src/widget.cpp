@@ -1276,8 +1276,8 @@ BaseGDL* widget_list( EnvT* e)
 	*valueKW = new DIntGDL( (*( DIntGDL*) (res))[0]);
       } else {
 	// "Regular" getvalue
-	BaseGDL** valueKW = &e->GetKW( getvalueIx);
-	GDLDelete((*valueKW));
+// 	BaseGDL** valueKW = &e->GetKW( getvalueIx);
+// 	GDLDelete((*valueKW));
 
 	*valueKW = widget->GetVvalue();
 	if ( *valueKW != NULL) {

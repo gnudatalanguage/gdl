@@ -60,6 +60,8 @@
 #include "graphics.hpp"
 #include "initsysvar.hpp"
 
+#define HAVE_PLPLOT_WIDTH
+
   struct GDL_3DTRANSFORMDATA
   {
     DDoubleGDL* Matrix;
@@ -195,8 +197,8 @@ namespace lib {
 
       GDLGStream* actStream = Graphics::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
-      isDB = actStream->hasDoubleBuffering();
-      if (isDB) actStream->setDoubleBuffering();
+      isDB = actStream->HasDoubleBuffering();
+      if (isDB) actStream->SetDoubleBuffering();
       DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
       if (name == "X") 
       {       
@@ -213,7 +215,8 @@ namespace lib {
 
       post_call(e, actStream);
       if (isDB) actStream->eop(); else actStream->flush();
-      if(isDB) actStream->unSetDoubleBuffering();
+      if(isDB) actStream->UnSetDoubleBuffering();
+      actStream->Update();
     } // }}}
   };
   template <typename T>

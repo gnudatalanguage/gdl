@@ -103,6 +103,8 @@ GDLCT              Graphics::actCT; // actual used colortable
 
 DeviceListT  Graphics::deviceList;
 Graphics*    Graphics::actDevice   = NULL;
+Graphics*    Graphics::actGUIDevice   = NULL;
+
 int Graphics::wTag;
 int Graphics::xSTag;
 int Graphics::ySTag;
@@ -147,8 +149,7 @@ void Graphics::Init()
 #ifdef _MSC_VER
   deviceList.push_back( new DeviceWIN());
 #else
-#  ifndef HAVE_X
-#  else
+#  ifdef HAVE_X
   deviceList.push_back( new DeviceX());
 #  endif
 #endif
@@ -172,6 +173,8 @@ void Graphics::Init()
     exit( EXIT_FAILURE);
     }
 #  endif 
+
+  actGUIDevice = deviceList[0];
 }
 
 void Graphics::DestroyDevices()
