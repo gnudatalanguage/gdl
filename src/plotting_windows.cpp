@@ -195,7 +195,7 @@ namespace lib {
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
 	  e->Throw( "Window number "+i2s(wIx)+
-			      " out of range or no more windows.");
+			      " invalid or no more windows.");
 	return;
       }
 
@@ -206,7 +206,7 @@ namespace lib {
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
 	  e->Throw( "Window number "+i2s(wIx)+
-		    " out of range or no more windows.");
+		    " invalid or no more windows.");
       }
   }
 

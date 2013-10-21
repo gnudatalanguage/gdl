@@ -179,7 +179,12 @@ private:
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
 	     bool s=true, bool mp=true,
-	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1, const DString& uname = "");
+	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1, const DString& uname = ""
+, const DString&  proValue_=""
+, const DString&  funcValue_=""
+, const DString&  eventPro_="" 
+, const DString&  eventFun_=""    
+  );
   virtual ~GDLWidget();
 
 //   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}

@@ -213,8 +213,7 @@ void getSizer( DLong col, DLong row, DLong frameBox,
     } else if ( row != 0 && col == 0) {
       *sizer = new wxBoxSizer( wxHORIZONTAL);
     } else {
-      std::cout << "Shouldn't be here" << std::endl;
-      exit(2);
+      *sizer = new wxFlexGridSizer( row, col, 0, 0);
     }
   } else {
 
@@ -225,8 +224,7 @@ void getSizer( DLong col, DLong row, DLong frameBox,
     } else if ( row != 0 && col == 0) {
       *sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
     } else {
-      std::cout << "Shouldn't be here" << std::endl;
-      exit(2);
+      *sizer = new wxFlexGridSizer( row, col, 0, 0);
     }
   }
   //  std::cout << "Creating Sizer in getSizer: " << *sizer << std::endl;
@@ -486,7 +484,6 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
   xmanActCom = false;
   wxWindow *wxParent = NULL;
 
-  wxSizer *sizer;
 //   wxSizer **sizerPtr;
 //   sizerPtr = &sizer;
 
@@ -546,6 +543,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     widgetPanel = panel;
     //    std::cout << "Creating Panel: " << panel << std::endl;
 
+    wxSizer *sizer;
     getSizer( col, row, frameBox, panel, &sizer);
     widgetSizer = sizer;
 
@@ -580,6 +578,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     else
       this->SetExclusiveMode(  exclusiveMode);
 
+    wxSizer *sizer;
     if ( mapWid) {
       if ( frameBox == 0) {
 	if ( row == 0) {
@@ -587,8 +586,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 	} else if ( row != 0 && col == 0) {
 	  sizer = new wxBoxSizer( wxHORIZONTAL);
 	} else {
-	  std::cout << "Shouldn't be here" << std::endl;
-	  exit(2);
+	  sizer = new wxFlexGridSizer( row, col, 0, 0);
 	}
       } else {
 	wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
@@ -597,8 +595,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 	} else if ( row != 0 && col == 0) {
 	  sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
 	} else {
-	  std::cout << "Shouldn't be here" << std::endl;
-	  exit(2);
+	  sizer = new wxFlexGridSizer( row, col, 0, 0);
 	}
       }
 
