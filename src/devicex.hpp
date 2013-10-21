@@ -30,6 +30,7 @@
 #include "graphicsdevice.hpp"
 #include "gdlxstream.hpp"
 #include "initsysvar.hpp"
+#include "gdlexception.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwxstream.hpp"
@@ -391,6 +392,12 @@ public:
     if( wIx >= wLSize || wIx < 0 || winList[ wIx] == NULL)
       return false;
 
+    if( dynamic_cast<GDLWXStream*>( winList[ wIx]) != NULL)
+    {
+      Warning("Attempt to delete widget (ID="+i2s(wIx)+"). Will be auto-deleted upon window destruction.");
+      return false;
+    }
+    
     delete winList[ wIx];
     winList[ wIx] = NULL;
     oList[ wIx] = 0;

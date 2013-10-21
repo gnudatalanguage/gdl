@@ -385,7 +385,12 @@ void GDLWidget::Init()
 
 
 GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
-		      DLong xO, DLong yO, DLong xS, DLong yS, const DString& uname): 
+		      DLong xO, DLong yO, DLong xS, DLong yS, const DString& uname
+, const DString&  proValue_
+, const DString&  funcValue_
+, const DString&  eventPro_ 
+, const DString&  eventFun_    
+		    ): 
   wxWidget( NULL),
   parentID( p), uValue( uV), vValue( vV), sensitive( s), map( mp)
   , buttonSet(false)
@@ -395,6 +400,10 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
   , widgetSizer(NULL)
   , widgetPanel(NULL)
   , uName( uname)
+, proValue( proValue_)
+, funcValue( funcValue_)
+, eventPro( eventPro_)
+, eventFun( eventFun_)
 {
   managed = false;
   // TODO exception savety
@@ -462,7 +471,12 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 			      DLong xsize, DLong ysize,
 			      DLong scr_xsize, DLong scr_ysize,
 			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize, uname)
+  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize, uname
+  , pro_set_value
+  , func_get_value
+  , event_pro 
+  , event_func 
+  )
   , modal( modal_)
   , mbarID( mBarIDInOut)
 {
