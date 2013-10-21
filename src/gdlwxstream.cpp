@@ -30,13 +30,26 @@
 #endif
 
 
-GDLWXStream::GDLWXStream( wxDC *dc, int width, int height )
+GDLWXStream::GDLWXStream( int width, int height )
 : GDLGStream( width, height, "wxwidgets")
-  , m_dc(dc), m_width(width), m_height(height)
+  , m_dc(NULL)
+  , m_bitmap(NULL)
+  , m_width(width), m_height(height)
   , gdlWindow(NULL)
 {
+  m_dc = new wxMemoryDC();
+  m_bitmap = new wxBitmap( width, height, -1 );
+  m_dc->SelectObject( *m_bitmap);
+  if( !m_dc->IsOk())
+  {
+    m_dc->SelectObject( wxNullBitmap );
+    delete m_bitmap;
+    delete m_dc;
+    throw GDLException("GDLWXStream: Failed to create DC.");
+  }
+
   //::plstream();
-  sdev( "wxwidgets" );
+//   sdev( "wxwidgets" );
   spage( 0.0, 0.0, m_width, m_height, 0, 0 );
 //   SETOPT( "text", "1" ); // use freetype?
 //   SETOPT( "smooth", "1" );  // antialiased text?
@@ -44,8 +57,16 @@ GDLWXStream::GDLWXStream( wxDC *dc, int width, int height )
 
   plP_esc( PLESC_DEVINIT, (void*)m_dc );
 
-  set_stream(); // private
+  plstream::set_stream();
 //   plgpls( &thePls); // in GDLGStream
+}
+
+
+GDLWXStream::~GDLWXStream()
+{
+  m_dc->SelectObject( wxNullBitmap );
+  delete m_bitmap;
+  delete m_dc;
 }
 
 void GDLWXStream::SetGDLWindow(GDLWindow* w)
@@ -55,19 +76,29 @@ void GDLWXStream::SetGDLWindow(GDLWindow* w)
 
 void GDLWXStream::Update()
 {
-  if( gdlWindow == NULL)
-    return;
-  gdlWindow->Update();
+  if( gdlWindow != NULL)
+    gdlWindow->Update();
 }
 
-void GDLWXStream::set_stream()
-{
-  plstream::set_stream();
-}
+// void GDLWXStream::set_stream()
+// {
+// }
 
 void GDLWXStream::SetSize( int width, int height )
 {
-//   plP_esc( PLESC_CLEAR, NULL );
+  m_dc->SelectObject( wxNullBitmap );
+  delete m_bitmap;
+  m_bitmap = new wxBitmap( width, height, -1 );
+  m_dc->SelectObject( *m_bitmap);
+  if( !m_dc->IsOk())
+  {
+    m_dc->SelectObject( wxNullBitmap );
+    delete m_bitmap;
+    delete m_dc;
+    throw GDLException("GDLWXStream: Failed to resize DC.");
+  }
+
+  //   plP_esc( PLESC_CLEAR, NULL );
   wxSize size = wxSize( width, height);
   plP_esc( PLESC_RESIZE, (void*)&size);
   m_width = width;

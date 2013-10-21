@@ -27,7 +27,7 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		gdlwxstream.cpp gdlwxstream.hpp \
 		gdlxstream.cpp gdlxstream.hpp \
 		getfmtast.cpp \
-		getfmtast.hpp graphics.cpp graphics.hpp \
+		getfmtast.hpp graphicsdevice.cpp graphicsdevice.hpp \
 		gsl_fun.cpp gsl_fun.hpp gsl_matrix.cpp gsl_matrix.hpp \
 		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \

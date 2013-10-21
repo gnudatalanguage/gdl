@@ -19,7 +19,7 @@
 
 #include "includefirst.hpp"
 
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "image.hpp"
 
 // #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
@@ -34,19 +34,19 @@ namespace lib {
 
   void tv( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     actDevice->TV( e);
   }
 
   BaseGDL* tvrd( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     return actDevice->TVRD( e);
   }
 
   void loadct( EnvT* e) // = LOADCT_INTERNALGDL for exclusive use by LOADCT
   {
-    SizeT nCT = Graphics::N_CT();
+    SizeT nCT = GraphicsDevice::N_CT();
 
     static int get_namesIx = e->KeywordIx( "GET_NAMES"); 
     bool get_names = e->KeywordPresent( get_namesIx);
@@ -56,7 +56,7 @@ namespace lib {
 
       DStringGDL* names = new DStringGDL( nCT, BaseGDL::NOZERO);
       for( SizeT i=0; i<nCT; ++i)
-        (*names)[ i] = Graphics::GetCT( i)->Name();
+        (*names)[ i] = GraphicsDevice::GetCT( i)->Name();
 
       e->SetKW( get_namesIx, names);
       return; //correct behaviour.
@@ -69,7 +69,7 @@ namespace lib {
     DByte r[256], g[256], b[256];
     PLINT rint[256], gint[256], bint[256];
     //load original table
-    GDLCT* actCT = Graphics::GetCT();
+    GDLCT* actCT = GraphicsDevice::GetCT();
     actCT->Get(rint,gint,bint,256);
 
 
@@ -77,12 +77,12 @@ namespace lib {
     if( iCT < 0 || iCT >= nCT)
       e->Throw( "Table number must be from 0 to "+i2s(nCT-1));
     
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     GDLGStream* actStream = actDevice->GetStream( false); // no open
 
-    Graphics::LoadCT( iCT);
+    GraphicsDevice::LoadCT( iCT);
     //new table is:
-    actCT = Graphics::GetCT();
+    actCT = GraphicsDevice::GetCT();
 #define MAX_COLORS 256
     DLong bottom=0;
     DLong ncolors=MAX_COLORS;

@@ -27,7 +27,7 @@
 
 #include <plplot/drivers.h>
 
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlxstream.hpp"
 #include "initsysvar.hpp"
 
@@ -48,7 +48,7 @@
 const int maxWin=32;  
 const int maxWinReserve=256;  
 
-class DeviceX: public Graphics
+class DeviceX: public GraphicsDevice
 {
 private:  
   std::vector<GDLGStream*> winList;
@@ -321,7 +321,7 @@ SizeT nOp = kxLimit * kyLimit;
   }
 
 public:
-  DeviceX(): Graphics(), oIx( 1), actWin( -1), decomposed( -1)
+  DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1)
   {
     name = "X";
 
@@ -409,7 +409,7 @@ public:
     return true;
   }
 
-  bool GUIOpen( int wIx, wxDC *dc, int xSize, int ySize)//, int xPos, int yPos)
+  bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
   {
     int xPos=0; int yPos=0;
     ProcessDeleted();
@@ -431,7 +431,7 @@ public:
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
 
-    winList[ wIx] = new GDLWXStream( dc, xSize, ySize);
+    winList[ wIx] = new GDLWXStream( xSize, ySize);
     
     // as wxwidgets never set this, they can be intermixed
     // oList[ wIx]   = oIx++;
@@ -762,7 +762,7 @@ public:
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
     {
-      Graphics* actDevice = Graphics::GetDevice();
+      GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
       GDLGStream* newStream = actDevice->GetStream();
       plgpls( &pls);
       dev = (XwDev *) pls->dev;
@@ -804,7 +804,7 @@ public:
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
     {
-      Graphics* actDevice = Graphics::GetDevice();
+      GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
       GDLGStream* newStream = actDevice->GetStream();
       plgpls( &pls);
       dev = (XwDev *) pls->dev;
@@ -874,7 +874,7 @@ public:
   {
     // AC 17 march 2012: needed to catch the rigth current window (wset ...)
     DLong wIx = -1;
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     wIx = actDevice->ActWin();
     bool success = actDevice->WSet( wIx);
     int debug=0;

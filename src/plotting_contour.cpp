@@ -707,7 +707,7 @@ namespace lib
         }
         bool hachures=(dospacing || doori);
         // Get decomposed value for colors
-        DLong decomposed=Graphics::GetDevice()->GetDecomposed();
+        DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
         // Important: make all clipping computations BEFORE setting graphic properties (color, size)
         bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));

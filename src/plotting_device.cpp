@@ -25,7 +25,7 @@ namespace lib {
 
   void device( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     // GET_PAGE_SIZE ?
     // GET_PIXEL_DEPTH ?
     // GET_VISUAL_NAME ?

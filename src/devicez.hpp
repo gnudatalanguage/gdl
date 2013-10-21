@@ -43,7 +43,7 @@ return(i);
 }
 #endif
 
-class DeviceZ: public Graphics
+class DeviceZ: public GraphicsDevice
 {
   GDLZStream*     actStream;
 
@@ -171,7 +171,7 @@ class DeviceZ: public Graphics
   }
 
 public:
-  DeviceZ(): Graphics(), actStream( NULL), memBuffer( NULL), zBuffer( NULL)
+  DeviceZ(): GraphicsDevice(), actStream( NULL), memBuffer( NULL), zBuffer( NULL)
   {
     name = "Z";
 

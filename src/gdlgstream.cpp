@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlgstream.hpp"
 #include "initsysvar.hpp"
 
@@ -54,7 +54,7 @@ void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
 
   if( c < ctSize && decomposed == 0)
     {
-      Graphics::GetCT()->Get( c, r, g, b);
+      GraphicsDevice::GetCT()->Get( c, r, g, b);
     }
   else
     {
@@ -73,7 +73,7 @@ void GDLGStream::Background( ULong c, DLong decomposed)
 
   if( c < ctSize && decomposed == 0)
     {
-      Graphics::GetCT()->Get( c, r, g, b);
+      GraphicsDevice::GetCT()->Get( c, r, g, b);
     }
   else
     {

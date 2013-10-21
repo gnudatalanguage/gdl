@@ -27,7 +27,7 @@
 #include "initsysvar.hpp"
 #include "math_utl.hpp"
 #include "math_fun_jmg.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 
 //#define GDL_DEBUG
 #undef GDL_DEBUG

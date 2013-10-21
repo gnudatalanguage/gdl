@@ -443,8 +443,8 @@ class GDLWindow : public wxWindow
 
   wxSize 	drawSize;
 
-  wxMemoryDC*  	memPlotDC;
-  wxBitmap*    	memPlotDCBitmap;
+  wxDC*  	m_dc;
+//   wxBitmap*    	memPlotDCBitmap;
 //   GDLWXStream*	PStream();
   
 public:

@@ -34,7 +34,7 @@ namespace lib
     // this is the device name
     device=StrUpCase(device);
 
-    bool success=Graphics::SetDevice(device);
+    bool success=GraphicsDevice::SetDevice(device);
     if ( !success )
       e->Throw("Device not supported/unknown: "+device);
 
@@ -75,7 +75,7 @@ namespace lib
     bool hsv=e->KeywordSet(hsvKW);
 
     DLong start=0;
-    GDLCT* actCT=Graphics::GetCT();
+    GDLCT* actCT=GraphicsDevice::GetCT();
     if ( nParam<=2 ) // TVLCT,I[,Start]
     {
       if ( nParam==2 )
@@ -217,7 +217,7 @@ namespace lib
     // AC, 07/02/2012, please report any unexpected side effect (see test_tvlct.pro)
     if ( !get )
     {
-      GDLGStream* actStream=Graphics::GetDevice()->GetStream(false);
+      GDLGStream* actStream=GraphicsDevice::GetDevice()->GetStream(false);
       if ( actStream!=NULL )
       {
         PLINT red[ctSize], green[ctSize], blue[ctSize];

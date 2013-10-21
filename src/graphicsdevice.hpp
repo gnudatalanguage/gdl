@@ -1,5 +1,6 @@
 /* *************************************************************************
                           graphicsdevice.hpp  -  GDL graphical output
+renamed from: graphics.hpp                          
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
@@ -15,13 +16,11 @@
  *                                                                         *
  ***************************************************************************/
 
-#error "This file is no longer an active part of GDL. It is kept for version history only. Use graphicsdevice.hpp instead"
-
 /* 
 
 GDL Graphic subsytem:
 
-Graphics - base subsystem class
+GraphicsDevice - base subsystem class
 DeviceXXX - dervived from Graphics, subsystem for device XXX
 
 
@@ -31,10 +30,11 @@ GDLXXXStream - derived from GDLGStream for XXX type of stream
 
 So for each device XXX there is a:
 DeviceXXX
+and at least one
 GDLXXXStream
  
 Devices are (note that on a given platform not all devices are available): 
-X   - X windows
+X   - X windows (GDLXStream, GDLWXStream)
 WIN - Windows
 PS  - postscript output
 ...
@@ -42,8 +42,8 @@ PS  - postscript output
 */
 
 
-#ifndef GRAPHICS_HPP_
-#define GRAPHICS_HPP_
+#ifndef GRAPHICSDEVICE_HPP_
+#define GRAPHICSDEVICE_HPP_
 
 #include <vector>
 
@@ -139,7 +139,7 @@ protected:
 
 public:
   GraphicsDevice();
-  virtual ~GraphicsDevice();g
+  virtual ~GraphicsDevice();
 
   static void Init();
   static void DestroyDevices();

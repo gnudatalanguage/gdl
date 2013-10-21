@@ -125,8 +125,8 @@ gdlzstream.cpp
 gdlzstream.hpp
 getfmtast.cpp
 getfmtast.hpp
-graphics.cpp
-graphics.hpp
+graphicsdevice.cpp
+graphicsdevice.hpp
 grib.cpp
 grib.hpp
 gshhs.cpp

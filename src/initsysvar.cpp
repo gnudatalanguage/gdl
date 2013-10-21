@@ -32,7 +32,7 @@
 
 #include "objects.hpp"
 #include "dstructgdl.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 
 #include "file.hpp"
 

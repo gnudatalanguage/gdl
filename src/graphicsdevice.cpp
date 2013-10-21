@@ -1,6 +1,6 @@
 /* *************************************************************************
-                          graphics.cpp  -  GDL base class for all 
-			  graphic devices
+     graphicsdevice.cpp  -  GDL base class for all graphic devices
+renamed from: graphics.cpp                          
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
@@ -15,8 +15,6 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-#error "This file is no longer an active part of GDL. It is kept for version history only. Use graphicsdevice.cpp instead"
 
 #include "includefirst.hpp"
 

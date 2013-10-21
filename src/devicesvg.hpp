@@ -26,7 +26,7 @@
 #define SETOPT setopt
 #endif
 
-class DeviceSVG : public Graphics
+class DeviceSVG : public GraphicsDevice
 {
   std::string      fileName;
   GDLSVGStream*     actStream;
@@ -82,7 +82,7 @@ class DeviceSVG : public Graphics
   }
 
 public:
-  DeviceSVG(): Graphics(), fileName( "gdl.svg"), actStream( NULL)
+  DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL)
   {
     name = "SVG";
 

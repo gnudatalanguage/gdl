@@ -25,14 +25,14 @@
 #endif
 
 #include "gdleventhandler.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlwidget.hpp"
 
 using namespace std;
 
 int GDLEventHandler()
 {
-  Graphics::HandleEvents();
+  GraphicsDevice::HandleEvents();
   int res = GDLWidget::HandleEvents();
   
 #ifdef __APPLE__

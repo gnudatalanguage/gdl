@@ -57,10 +57,10 @@
       }
 
 #include "envt.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
 
-//#define HAVE_PLPLOT_WIDTH
+// #define HAVE_PLPLOT_WIDTH
 
   struct GDL_3DTRANSFORMDATA
   {
@@ -195,7 +195,7 @@ namespace lib {
 
       overplot = handle_args(e);
 
-      GDLGStream* actStream = Graphics::GetDevice()->GetStream();
+      GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
       isDB = actStream->HasDoubleBuffering();
       if (isDB) actStream->SetDoubleBuffering();

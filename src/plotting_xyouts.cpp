@@ -301,7 +301,7 @@ namespace lib
         yVal=yValou;
       }
       // Get decomposed value for colors
-      DLong decomposed=Graphics::GetDevice()->GetDecomposed();
+      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
       for ( SizeT i=0; i<minEl; ++i )
       {

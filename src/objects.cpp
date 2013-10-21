@@ -26,7 +26,7 @@
 #include "dnodefactory.hpp"
 
 #include "objects.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "preferences.hpp"
 #include "overload.hpp"
 
@@ -88,7 +88,7 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 void ResetObjects()
 {
-  Graphics::DestroyDevices();
+  GraphicsDevice::DestroyDevices();
 
   fileUnits.clear();
   cerr << flush; cout << flush; clog << flush;
@@ -370,7 +370,7 @@ void InitObjects()
   
   // graphic devices must be initialized after system variables
   // !D must already exist
-  Graphics::Init();
+  GraphicsDevice::Init();
 
   // preferences
   //  Preferences::Init();

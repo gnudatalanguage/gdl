@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 #include <iostream>
 
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlxstream.hpp"
 
 #ifndef HAVE_X
@@ -168,7 +168,7 @@ void GDLXStream::Clear( DLong bColor)
   plgcolbg (&r0, &g0, &b0);
 
   // Get desired background color
-  GDLCT* actCT = Graphics::GetCT();
+  GDLCT* actCT = GraphicsDevice::GetCT();
   actCT->Get( bColor, rb, gb, bb);
 
   // Convert to PLINT from GDL_BYTE

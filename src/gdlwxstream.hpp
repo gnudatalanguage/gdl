@@ -31,15 +31,22 @@ class GDLWindow;
 class GDLWXStream: public GDLGStream
 {
 private:
-    wxDC* m_dc;   //!< Pointer to wxDC to plot into.
+    wxMemoryDC*  	m_dc;
+    wxBitmap*    	m_bitmap;
+
+//     wxDC* m_dc;   //!< Pointer to wxDC to plot into.
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
 
-    GDLWindow* gdlWindow;
+    GDLWindow* gdlWindow; // for Update()
     
 public:
-    GDLWXStream( wxDC *dc, int width, int height );  //!< Constructor.
-    void set_stream();   //!< Calls some code before every PLplot command.
+    GDLWXStream( int width, int height );  //!< Constructor.
+    ~GDLWXStream();  //!< Constructor.
+    
+    wxMemoryDC* GetDC() const { return m_dc;}
+    
+//     void set_stream();   //!< Calls some code before every PLplot command.
     void SetSize( int width, int height );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     

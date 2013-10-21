@@ -27,7 +27,7 @@
 #include <plplot/plstream.h>
 
 #include "initsysvar.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
@@ -1381,7 +1381,7 @@ namespace lib
   {
     bool docolor=(color != NULL);
     // Get decomposed value for colors
-    DLong decomposed=Graphics::GetDevice()->GetDecomposed();
+    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"draw_polyline()\n");
     SizeT plotIndex=0;
@@ -1778,7 +1778,7 @@ namespace lib
     }
     colorindex=i;
     // Get decomposed value for colors
-    DLong decomposed=Graphics::GetDevice()->GetDecomposed();
+    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
     a->Color(color, decomposed, colorindex);
   }
 

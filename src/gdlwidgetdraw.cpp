@@ -30,13 +30,13 @@
 #include "gdlwidget.hpp"
 
 #include "widget.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 
 // #define GDL_DEBUG_WIDGETS
 
 GDLWidgetDraw::~GDLWidgetDraw()
 {
-  Graphics::GetGUIDevice()->WDelete( pstreamIx);
+  GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
 }
 
 

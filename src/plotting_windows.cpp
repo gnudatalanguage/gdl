@@ -25,7 +25,7 @@ namespace lib {
 
   void window( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     int maxWin = actDevice->MaxWin();
     if( maxWin == 0)
       e->Throw( "Routine is not defined for current "
@@ -113,7 +113,7 @@ namespace lib {
 
   void wset( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
     SizeT nParam=e->NParam();
     DLong wIx = 0;
@@ -153,7 +153,7 @@ namespace lib {
 
   void wshow( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
     SizeT nParam=e->NParam();
     DLong wIx = 0;
@@ -186,7 +186,7 @@ namespace lib {
 
   void wdelete( EnvT* e)
   {
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
     SizeT nParam=e->NParam();
     if( nParam == 0)

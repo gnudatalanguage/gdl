@@ -34,7 +34,7 @@
 #include "gdlwidget.hpp"
 
 #include "widget.hpp"
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 
 // #define GDL_DEBUG_WIDGETS
 
@@ -70,40 +70,42 @@ GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const 
 : wxWindow( parent, id, pos, size, style, name)
 , pstreamIx(-1)
 , pstreamP( NULL)
-, memPlotDC( NULL)
-, memPlotDCBitmap( NULL)
+, m_dc( NULL)
+// , memPlotDC( NULL)
+// , memPlotDCBitmap( NULL)
 {
-  pstreamIx = Graphics::GetGUIDevice()->WAdd();
+  pstreamIx = GraphicsDevice::GetGUIDevice()->WAdd();
   if( pstreamIx == -1)
     throw GDLException("Failed to allocate GUI stream.");
 
-  memPlotDC = new wxMemoryDC();
-//   memPlotDC->SelectObject( wxNullBitmap );
-  memPlotDCBitmap = new wxBitmap( size.x, size.y, -1 );
-  memPlotDC->SelectObject( *memPlotDCBitmap);
+//   memPlotDC = new wxMemoryDC();
+// //   memPlotDC->SelectObject( wxNullBitmap );
+//   memPlotDCBitmap = new wxBitmap( size.x, size.y, -1 );
+//   memPlotDC->SelectObject( *memPlotDCBitmap);
 
 //   pstream = new GDLWXStream( memPlotDC, width, height);
 
   drawSize = size;
-  bool success = Graphics::GetGUIDevice()->GUIOpen( pstreamIx, memPlotDC, drawSize.x, drawSize.y);  
+  bool success = GraphicsDevice::GetGUIDevice()->GUIOpen( pstreamIx, drawSize.x, drawSize.y);  
   if( !success)
   {
-    memPlotDC->SelectObject( wxNullBitmap );
-    delete memPlotDCBitmap;
-    delete memPlotDC;
+//     memPlotDC->SelectObject( wxNullBitmap );
+//     delete memPlotDCBitmap;
+//     delete memPlotDC;
     throw GDLException("Failed to open GUI stream: "+i2s(pstreamIx));
   }
-  pstreamP = static_cast<GDLWXStream*>(Graphics::GetGUIDevice()->GetStreamAt( pstreamIx));
-
+  pstreamP = static_cast<GDLWXStream*>(GraphicsDevice::GetGUIDevice()->GetStreamAt( pstreamIx));
   pstreamP->SetGDLWindow( this);
+  
+  m_dc = pstreamP->GetDC();
 }
 
 GDLWindow::~GDLWindow()
 { 
   std::cout << "~GDLWindow: " << this << std::endl;
-  memPlotDC->SelectObject( wxNullBitmap );
-  delete memPlotDCBitmap;
-  delete memPlotDC;
+//   memPlotDC->SelectObject( wxNullBitmap );
+//   delete memPlotDCBitmap;
+//   delete memPlotDC;
   if( pstreamP != NULL)
       pstreamP->SetValid(false);
 }
@@ -126,7 +128,7 @@ void GDLWindow::Update()
   wxClientDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion() );
   wxMutexGuiEnter();
-  dc.Blit( 0, 0, drawSize.x, drawSize.y, memPlotDC, 0, 0 );
+  dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
   wxMutexGuiLeave();
   wxWindow::Update();
 }
@@ -180,7 +182,7 @@ void GDLWindow::OnPaint(wxPaintEvent& event)
 
 //     wxMutexGuiEnter();
     
-    dc.Blit( 0, 0, drawSize.x, drawSize.y, memPlotDC, 0, 0 );
+    dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
 
 //     wxMutexGuiLeave();
 }
@@ -200,6 +202,8 @@ void GDLWindow::OnClose(wxCloseEvent& event)
 {
   std::cout << "GDLWindow::OnClose: " << this << std::endl;
 }
+
+
 
 void getSizer( DLong col, DLong row, DLong frameBox, 
 	       wxPanel *panel, wxSizer **sizer) {

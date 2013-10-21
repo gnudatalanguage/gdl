@@ -369,7 +369,7 @@ namespace lib {
     DLong xv=1, yv=1;
     int xSize, ySize, xPos, yPos;
     // Use Size in lieu of VSize
-    Graphics* actDevice = Graphics::GetDevice();
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     DLong wIx = actDevice->ActWin();
     if( wIx == -1) {
       DStructGDL* dStruct = SysVar::D();

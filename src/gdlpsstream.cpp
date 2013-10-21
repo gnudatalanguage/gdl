@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 
 //#include <iostream>
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlpsstream.hpp"
 
 using namespace std;

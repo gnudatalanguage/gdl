@@ -26,7 +26,7 @@ using namespace std;
 
 void empty(EnvT* e)
 {
-  Graphics* actDevice = Graphics::GetDevice();
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   if (actDevice->Name() == "X")
   {
     GDLGStream *plg = actDevice->GetStream();
@@ -36,7 +36,7 @@ void empty(EnvT* e)
 
 void tvcrs( EnvT* e)
 {
-  Graphics* actDevice = Graphics::GetDevice();
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
   if (actDevice->Name() != "X")
   {
@@ -120,7 +120,7 @@ void tvcrs( EnvT* e)
 // get cursor from plPlot     AC February 2008
 // fully compatible with IDL using our own cursor routines GD Jan 2013
 void cursor(EnvT* e){
-  Graphics* actDevice = Graphics::GetDevice();
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
   if (actDevice->Name() != "X")
   {

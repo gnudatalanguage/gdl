@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "graphics.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlgstream.hpp"
 
 class GDLZStream: public GDLGStream
