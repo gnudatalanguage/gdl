@@ -29,7 +29,7 @@
 
 namespace lib {
 
-  BaseGDL* invert_fun( EnvT* e);
+  //  BaseGDL* invert_fun( EnvT* e);
   BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
   BaseGDL* histogram_fun( EnvT* e);
