@@ -54,6 +54,8 @@
 #include "matrix_cholesky.hpp"
 #endif
 
+#include "matrix_invert.hpp"
+
 #include "gshhs.hpp"
 
 using namespace std;
@@ -72,12 +74,10 @@ void LibInit_jmg()
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
 
-  const string invertKey[]={"DOUBLE",KLISTEND};
-
 #if defined(USE_EIGEN)
-  //  new DLibFunRetNew(lib::invert_fun2,string("INVERT_EIG"),2,invertKey);
-  new DLibPro(lib::choldc_pro,string("CHOLDC"),3,invertKey);
-  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),4,invertKey);
+  const string cholKey[]={"DOUBLE",KLISTEND};
+  new DLibPro(lib::choldc_pro,string("CHOLDC"),3,cholKey);
+  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),4,cholKey);
 
   const string lacholKey[]={"DOUBLE","STATUS","UPPER",KLISTEND};
   new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),4,lacholKey);
@@ -86,7 +86,8 @@ void LibInit_jmg()
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   
-  new DLibFunRetNew(lib::invert_fun,string("INVERT"),2,invertKey);
+  const string invertKey[]={"DOUBLE","GSL","EIGEN",KLISTEND};
+  new DLibFunRetNew(lib::AC_invert_fun,string("INVERT"),2,invertKey);
 
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION",KLISTEND};
 #if defined(USE_FFTW)
@@ -347,9 +348,9 @@ void LibInit_jmg()
 	const string widget_listKey[] = {"CONTEXT_EVENTS","EVENT_FUNC","EVENT_PRO","FONT","FRAME","FUNC_GET_VALUE","GROUP_LEADER","KILL_NOTIFY","MULTIPLE","NO_COPY","NOTIFY_REALIZE","PRO_SET_VALUE","RESOURCE_NAME","SCR_XSIZE","SCR_YSIZE","SENSITIVE","TAB_MODE","TRACKING_EVENTS","UNAME","UNITS","UVALUE","VALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
 	new DLibFunRetNew(lib::widget_list,string("WIDGET_LIST"),1,widget_listKey);
 
-// 	const string widget_bgroupKey[] =
-// 	{"BUTTON_UVALUE","COLUMN","EVENT_FUNC","EXCLUSIVE","NONEXCLUSIVE","SPACE","XPAD","YPAD","FONT","FRAME","IDS","LABEL_LEFT","LABEL_TOP","MAP","NO_RELEASE","RETURN_ID","RETURN_INDEX","RETURN_NAME","ROW","SCROLL","SET_VALUE","TAB_MODE","X_SCROLL_SIZE","Y_SCROLL_SIZE","SET_VALUE","UNAME","UVALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
-// 	new DLibFunRetNew(lib::widget_bgroup,string("CW_BGROUP"),2,widget_bgroupKey);
+	const string widget_bgroupKey[] =
+	{"BUTTON_UVALUE","COLUMN","EVENT_FUNC","EXCLUSIVE","NONEXCLUSIVE","SPACE","XPAD","YPAD","FONT","FRAME","IDS","LABEL_LEFT","LABEL_TOP","MAP","NO_RELEASE","RETURN_ID","RETURN_INDEX","RETURN_NAME","ROW","SCROLL","SET_VALUE","TAB_MODE","X_SCROLL_SIZE","Y_SCROLL_SIZE","SET_VALUE","UNAME","UVALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
+	new DLibFunRetNew(lib::widget_bgroup,string("CW_BGROUP"),2,widget_bgroupKey);
 
   const string widget_textKey[] = {"ALL_EVENTS","CONTEXT_EVENTS","EDITABLE","EVENT_FUNC","EVENT_PRO","FONT","FRAME","FUNC_GET_VALUE","GROUP_LEADER","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","KILL_NOTIFY","NO_COPY","NO_NEWLINE","NOTIFY_REALIZE","PRO_SET_VALUE","RESOURCE_NAME","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","TAB_MODE","TRACKING_EVENTS","UNAME","UNITS","UVALUE","VALUE","WRAP","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
   new DLibFunRetNew(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey);
