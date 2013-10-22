@@ -80,7 +80,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID,
 
   wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
   parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
-  
+  parentSizer->SetSizeHints( wxParent); 
+ 
   wxMutexGuiLeave();
 
   pstreamIx = gdlWindow->PStreamIx();

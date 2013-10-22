@@ -479,8 +479,8 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
   , mbarID( mBarIDInOut)
 {
   //  std::cout << "In GDLWidgetBase::GDLWidgetBase: " << widgetID << std::endl
-//   this->SetExclusiveMode( exclusiveMode_);
-
+  this->SetExclusiveMode( exclusiveMode_);
+  
   xmanActCom = false;
   wxWindow *wxParent = NULL;
 
@@ -742,22 +742,29 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, const DString& value
       wxCheckBox *checkBox;
       wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
 
-      if ( gdlParent->GetExclusiveMode() == 0) {
+      if ( gdlParent->GetExclusiveMode() == 0) 
+      {
 	button = new wxButton( panel, widgetID, wxString(value.c_str(), wxConvUTF8));
 	boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = button;
-      } else if ( gdlParent->GetExclusiveMode() == -1) {
+      }
+      else if ( gdlParent->GetExclusiveMode() == -1) 
+      {
 	radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
 					wxDefaultPosition, wxDefaultSize,
 					wxRB_GROUP);
 	gdlParent->SetExclusiveMode( 1);
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
-      } else if ( gdlParent->GetExclusiveMode() == 1) {
+      } 
+      else if ( gdlParent->GetExclusiveMode() == 1) 
+      {
 	radioButton = new wxRadioButton( panel, widgetID, wxString(value.c_str(), wxConvUTF8));
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
-      } else if ( gdlParent->GetExclusiveMode() == 2) {
+      } 
+      else if ( gdlParent->GetExclusiveMode() == 2) 
+      {
 	checkBox = new wxCheckBox( panel, wxID_ANY, wxString(value.c_str(), wxConvUTF8));
 	boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = checkBox;

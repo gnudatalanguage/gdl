@@ -20,9 +20,9 @@
 #ifndef GDLWXSTREAM_HPP_
 #define GDLWXSTREAM_HPP_
 
-#include "gdlgstream.hpp"
-
 #ifdef HAVE_LIBWXWIDGETS
+
+#include "gdlgstream.hpp"
 
 // #include <plplotP.h>
 // #include <plstream.h>

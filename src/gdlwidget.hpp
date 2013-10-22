@@ -222,7 +222,7 @@ public:
   bool GetMap() { return map;}
   void SetMap( bool mapval){ map = mapval;}
 
-  int  GetExclusiveMode() { return exclusiveMode;}
+  int  GetExclusiveMode() const { return exclusiveMode;}
   void SetExclusiveMode( int exclusiveval){exclusiveMode = exclusiveval;}
 
   void SetUvalue( BaseGDL *uV){uValue = uV;}

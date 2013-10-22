@@ -31,11 +31,18 @@ namespace lib {
   BaseGDL* widget_list( EnvT* e);
   BaseGDL* widget_text( EnvT* e);
   BaseGDL* widget_label( EnvT* e);
+
   BaseGDL* widget_info( EnvT* e);
   BaseGDL* widget_event( EnvT* e);
-  BaseGDL* widget_bgroup( EnvT* e);
 
   void widget_control( EnvT* e);
+
+  // TODO
+  BaseGDL* widget_combobox( EnvT* e);
+  BaseGDL* widget_slider( EnvT* e);
+  BaseGDL* widget_tab( EnvT* e);
+  BaseGDL* widget_table( EnvT* e);
+  BaseGDL* widget_tree( EnvT* e);
 
 } // namespace
 

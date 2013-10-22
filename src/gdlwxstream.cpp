@@ -15,9 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_LIBWXWIDGETS
-
 #include "includefirst.hpp"
+
+#ifdef HAVE_LIBWXWIDGETS
 
 #include <plplot/plstream.h>
 #include <plplot/plplotP.h>

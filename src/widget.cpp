@@ -48,10 +48,8 @@
     static int uvalueIx = e->KeywordIx( "UVALUE");\
     static int xoffsetIx = e->KeywordIx( "XOFFSET");\
     static int xsizeIx = e->KeywordIx( "XSIZE");\
-    static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");\
     static int yoffsetIx = e->KeywordIx( "YOFFSET");\
     static int ysizeIx = e->KeywordIx( "YSIZE");\
-    static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE");\
     bool no_copy = e->KeywordSet( no_copyIx);\
     bool scroll = e->KeywordSet( scrollIx);\
     bool sensitive = e->KeywordSet( sensitiveIx);\
@@ -67,10 +65,6 @@
     e->AssureLongScalarKWIfPresent( scr_xsizeIx, scr_xsize);\
     DLong scr_ysize = 0;\
     e->AssureLongScalarKWIfPresent( scr_ysizeIx, scr_ysize);\
-    DLong x_scroll_size = 0;\
-    e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);\
-    DLong y_scroll_size = 0;\
-    e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);\
     BaseGDL* uvalue = e->GetKW( uvalueIx);\
     if( uvalue != NULL) { if( no_copy) e->GetKW( uvalueIx) = NULL;\
       else uvalue = uvalue->Dup();\
@@ -234,6 +228,12 @@ namespace lib {
 //     DString func_get_value = "";
 //     DLong xoffset = 0;
 //     DLong yoffset = 0;
+    static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");\
+    DLong x_scroll_size = 0;\
+    e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);\
+    static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE");\
+    DLong y_scroll_size = 0;\
+    e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);\
 
     static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS");
     static int EXPOSE_EVENTS = e->KeywordIx( "EXPOSE_EVENTS");
@@ -306,6 +306,13 @@ namespace lib {
     SET_COMMON_GRAPHICS_KEYWORDS
 
     // handle some more keywords
+    static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");\
+    DLong x_scroll_size = 0;\
+    e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);\
+    static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE");\
+    DLong y_scroll_size = 0;\
+    e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);\
+
     static int align_bottomIx = e->KeywordIx( "ALIGN_BOTTOM");
     static int align_centerIx = e->KeywordIx( "ALIGN_CENTER");
     static int align_leftIx   = e->KeywordIx( "ALIGN_LEFT");
@@ -544,85 +551,85 @@ namespace lib {
 #endif
   }
 
-// WIDGET CW_BGROUP
-BaseGDL* widget_bgroup( EnvT* e)
-{
-#ifndef HAVE_LIBWXWIDGETS
-    e->Throw("GDL was compiled without support for wxWidgets");
-    return NULL; // avoid warning
-#else
-    SizeT nParam=e->NParam(1);
-
-    //SizeT nParam = e->NParam();
-    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
-    WidgetIDT parentID = (*p0L)[0];
-
-    DStringGDL* names = e->GetParAs<DStringGDL>(1);
-
-    GDLWidget *widget = GDLWidget::GetWidget( parentID);
-
-    DLong xsize = -1;
-    static int xsizeIx = e->KeywordIx( "XSIZE");
-    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
-
-    DLong ysize = -1;
-    static int ysizeIx = e->KeywordIx( "YSIZE");
-    e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
-
-    static int buttonuvalueIx = e->KeywordIx( "BUTTON_UVALUE");
-    DString buttonuvalue = "";
-    e->AssureStringScalarKWIfPresent(buttonuvalueIx, buttonuvalue);
-
-    static int uvalueIx = e->KeywordIx( "UVALUE");
-    BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
-        uvalue = uvalue->Dup();
-
-    static int labelIx = e->KeywordIx( "LABEL_TOP");
-    DString labeltop = "";
-    e->AssureStringScalarKWIfPresent( labelIx, labeltop);
-
-    GDLWidgetBGroup::BGroupMode mode = GDLWidgetBGroup::NORMAL;
-    static int modeIx = e->KeywordIx( "EXCLUSIVE");
-    if(e->KeywordSet( modeIx)) {
-        mode = GDLWidgetBGroup::EXCLUSIVE;
-    } else {
-        modeIx = e->KeywordIx( "NONEXCLUSIVE");
-        if(e->KeywordSet(modeIx)) {
-            mode = GDLWidgetBGroup::NONEXCLUSIVE;
-        }
-    }
-
-    GDLWidgetBGroup::BGroupReturn ret = GDLWidgetBGroup::RETURN_ID;
-    static int retIx = e->KeywordIx( "RETURN_INDEX");
-    if(e->KeywordSet( retIx)) {
-        ret = GDLWidgetBGroup::RETURN_INDEX;
-    } else {
-        retIx = e->KeywordIx( "RETURN_NAME");
-        if(e->KeywordSet(retIx)) {
-            ret = GDLWidgetBGroup::RETURN_NAME;
-        }
-    }
-
-    DLong rows = -1;
-    static int rowIx = e->KeywordIx("ROW");
-    e->AssureLongScalarKWIfPresent( rowIx, rows);
-
-    DLong cols = -1;
-    static int colIx = e->KeywordIx("COLUMN");
-    e->AssureLongScalarKWIfPresent( colIx, cols);
-
-    GDLWidgetBGroup* group = new GDLWidgetBGroup( parentID, names,
-            uvalue, buttonuvalue,
-            xsize, ysize, labeltop,
-            rows, cols, mode, ret);
-    group->SetWidgetType("GROUP");
-
-    return new DLongGDL( group->WidgetID());
-
-#endif
-}
-
+// // WIDGET CW_BGROUP
+// BaseGDL* widget_bgroup( EnvT* e)
+// {
+// #ifndef HAVE_LIBWXWIDGETS
+//     e->Throw("GDL was compiled without support for wxWidgets");
+//     return NULL; // avoid warning
+// #else
+//     SizeT nParam=e->NParam(1);
+// 
+//     //SizeT nParam = e->NParam();
+//     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+//     WidgetIDT parentID = (*p0L)[0];
+// 
+//     DStringGDL* names = e->GetParAs<DStringGDL>(1);
+// 
+//     GDLWidget *widget = GDLWidget::GetWidget( parentID);
+// 
+//     DLong xsize = -1;
+//     static int xsizeIx = e->KeywordIx( "XSIZE");
+//     e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
+// 
+//     DLong ysize = -1;
+//     static int ysizeIx = e->KeywordIx( "YSIZE");
+//     e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
+// 
+//     static int buttonuvalueIx = e->KeywordIx( "BUTTON_UVALUE");
+//     DString buttonuvalue = "";
+//     e->AssureStringScalarKWIfPresent(buttonuvalueIx, buttonuvalue);
+// 
+//     static int uvalueIx = e->KeywordIx( "UVALUE");
+//     BaseGDL* uvalue = e->GetKW( uvalueIx);
+//     if( uvalue != NULL)
+//         uvalue = uvalue->Dup();
+// 
+//     static int labelIx = e->KeywordIx( "LABEL_TOP");
+//     DString labeltop = "";
+//     e->AssureStringScalarKWIfPresent( labelIx, labeltop);
+// 
+//     GDLWidgetBGroup::BGroupMode mode = GDLWidgetBGroup::NORMAL;
+//     static int modeIx = e->KeywordIx( "EXCLUSIVE");
+//     if(e->KeywordSet( modeIx)) {
+//         mode = GDLWidgetBGroup::EXCLUSIVE;
+//     } else {
+//         modeIx = e->KeywordIx( "NONEXCLUSIVE");
+//         if(e->KeywordSet(modeIx)) {
+//             mode = GDLWidgetBGroup::NONEXCLUSIVE;
+//         }
+//     }
+// 
+//     GDLWidgetBGroup::BGroupReturn ret = GDLWidgetBGroup::RETURN_ID;
+//     static int retIx = e->KeywordIx( "RETURN_INDEX");
+//     if(e->KeywordSet( retIx)) {
+//         ret = GDLWidgetBGroup::RETURN_INDEX;
+//     } else {
+//         retIx = e->KeywordIx( "RETURN_NAME");
+//         if(e->KeywordSet(retIx)) {
+//             ret = GDLWidgetBGroup::RETURN_NAME;
+//         }
+//     }
+// 
+//     DLong rows = -1;
+//     static int rowIx = e->KeywordIx("ROW");
+//     e->AssureLongScalarKWIfPresent( rowIx, rows);
+// 
+//     DLong cols = -1;
+//     static int colIx = e->KeywordIx("COLUMN");
+//     e->AssureLongScalarKWIfPresent( colIx, cols);
+// 
+//     GDLWidgetBGroup* group = new GDLWidgetBGroup( parentID, names,
+//             uvalue, buttonuvalue,
+//             xsize, ysize, labeltop,
+//             rows, cols, mode, ret);
+//     group->SetWidgetType("GROUP");
+// 
+//     return new DLongGDL( group->WidgetID());
+// 
+// #endif
+// }
+// 
 
 
 
