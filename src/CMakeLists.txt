@@ -178,6 +178,8 @@ math_utl.cpp
 math_utl.hpp
 matrix_cholesky.cpp
 matrix_cholesky.hpp
+matrix_invert.cpp
+matrix_invert.hpp
 mpi.cpp
 mpi.hpp
 ncdf_att_cl.cpp
