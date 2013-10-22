@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_LIBWXWIDGETS
+
 #include "includefirst.hpp"
 
 #include <plplot/plstream.h>
@@ -140,3 +142,4 @@ void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
 }
 
+#endif

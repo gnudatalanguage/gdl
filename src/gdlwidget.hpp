@@ -19,6 +19,8 @@
 #ifndef GDLWIDGET_HPP
 #define GDLWIDGET_HPP
 
+#ifdef HAVE_LIBWXWIDGETS
+
 #include <wx/wx.h>
 
 #include <deque>
@@ -480,6 +482,8 @@ public:
   DECLARE_EVENT_TABLE()
 };
 
+
+#endif
 
 #endif
 
