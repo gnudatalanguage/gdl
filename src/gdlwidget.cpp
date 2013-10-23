@@ -44,6 +44,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
   EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
   EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox)
+  EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox)
   EVT_IDLE( GDLFrame::OnIdle)
 END_EVENT_TABLE()
 
@@ -391,6 +392,45 @@ void GDLWidget::Init()
   wxInitialize();
 }
 
+GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NULL*/)
+  : wxWidget( NULL)
+  , parentID( p)
+  , uValue( NULL)
+  , vValue( vV)
+  , buttonSet(false)
+  , exclusiveMode(0)
+  , topWidgetSizer(NULL)
+  , widgetSizer(NULL)
+  , widgetPanel(NULL)
+  , managed( false)
+  , map( map_)
+  {
+    SetCommonKeywords( e);
+
+    widgetID = wxWindow::NewControlId();
+
+    if( parentID != GDLWidget::NullID)
+    {
+        GDLWidget* gdlParent = GetWidget( parentID);
+        if( gdlParent->IsBase())
+        {
+            GDLWidgetBase* base = static_cast< GDLWidgetBase*>( gdlParent);
+//       assert( base != NULL); // should be already checked elsewhere
+            base->AddChild( widgetID);
+        }
+        else
+        {
+            GDLWidgetBase* tlb = GetBaseWidget( parentID);
+            if( tlb != NULL)
+                tlb->AddChild( widgetID);
+        }
+    }
+
+    widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( widgetID, this));
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
+#endif
+  }
 
 GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
                       DLong xO, DLong yO, DLong xS, DLong yS, const DString& uname
@@ -400,9 +440,10 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
                       , const DString&  eventFun_
                       , const DString&  notifyRealize_
                       , const DString&  killNotify_
-                    ):
-    wxWidget( NULL),
-    parentID( p), uValue( uV), vValue( vV), sensitive( s), map( mp)
+                    )
+    : wxWidget( NULL)
+    , parentID( p), uValue( uV), vValue( vV), sensitive( s)
+    , map( mp)
     , buttonSet(false)
     , exclusiveMode(0)
     , xOffset( xO), yOffset( yO), xSize( xS), ySize( yS)
@@ -416,9 +457,8 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, bool s, bool mp,
     , eventFun( eventFun_)
     , notifyRealize( notifyRealize_)
     , killNotify( killNotify_)
+    , managed( false)
 {
-    managed = false;
-
     // widgetID = NewWidget( this);
     widgetID = wxWindow::NewControlId();
 
@@ -473,36 +513,19 @@ GDLWidget::~GDLWidget()
 // 
 // {}
 
-GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID, 
-			      BaseGDL* uvalue, const DString& uname,
-			      bool sensitive, bool mapWid,
-			      WidgetIDT& mBarIDInOut, bool modal_, 
-			      WidgetIDT group_leader,
-			      DLong col, DLong row,
-			      long events,
-			      int exclusiveMode_, 
-			      bool floating_,
-			      const DString& event_func, const DString& event_pro,
-			      const DString& pro_set_value, const DString& func_get_value,
-			      const DString& notify_realize, const DString& kill_notify,
-			      const DString& resource_name, const DString& rname_mbar,
-			      const DString& title_,
-			      DLong frameBox, DLong units,
-			      const DString& display_name,
-			      DLong xpad, DLong ypad,
-			      DLong xoffset, DLong yoffset,
-			      DLong xsize, DLong ysize,
-			      DLong scr_xsize, DLong scr_ysize,
-			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize
-  , uname
-  , pro_set_value
-  , func_get_value
-  , event_pro 
-  , event_func 
-  , notify_realize
-  , kill_notify
-  )
+GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID, EnvT* e,
+bool mapWid,
+WidgetIDT& mBarIDInOut, bool modal_, 
+DLong col, DLong row,
+long events,
+int exclusiveMode_, 
+bool floating_,
+const DString& resource_name, const DString& rname_mbar,
+const DString& title_,
+const DString& display_name,
+DLong xpad, DLong ypad,
+DLong x_scroll_size, DLong y_scroll_size)
+  : GDLWidget( parentID, e, mapWid)
   , modal( modal_)
   , mbarID( mBarIDInOut)
   , lastRadioSelection( NullID)
@@ -557,10 +580,10 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     wxMutexGuiEnter();
 
     // GDLFrame is derived from wxFrame
-    GDLFrame *frame = new GDLFrame( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
-    wxWidget = frame;
+    GDLFrame *gdlFrame = new GDLFrame( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
+    wxWidget = gdlFrame;
 
-    frame->SetSize( xsize, ysize);
+    gdlFrame->SetSize( xSize, ySize);
 
     if( mbarID != 0)
     {
@@ -571,18 +594,18 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
       mBarIDInOut = mbarID;
       
 //       wxMenuBar* m = static_cast<wxMenuBar*>(GDLWidget::GetWidget( mbarID)->WxWidget());
-      frame->SetMenuBar( static_cast<wxMenuBar*>( mBar->WxWidget()));
+      gdlFrame->SetMenuBar( static_cast<wxMenuBar*>( mBar->WxWidget()));
 
 //       GDLWidget::GetWidget( mbarID)->InitParentID( widgetID);
 
-      frame->SetSize( xsize, ysize);
+      gdlFrame->SetSize( xSize, ySize);
     }
 
-    wxPanel *panel = new wxPanel( frame, wxID_ANY);
+    wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY);
     widgetPanel = panel;
     //    std::cout << "Creating Panel: " << panel << std::endl;
 
-    wxSizer *sizer = GetNewSizer( col, row, frameBox, panel);
+    wxSizer *sizer = GetNewSizer( col, row, frame, panel);
     widgetSizer = sizer;
 
     topWidgetSizer = sizer;
@@ -612,7 +635,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     if ( mapWid) 
     {
 
-      wxSizer *sizer = GetNewSizer( col, row, frameBox, panel);
+      wxSizer *sizer = GetNewSizer( col, row, frame, panel);
       widgetSizer = sizer;
       //      std::cout << "Creating Sizer2: " << sizer << std::endl;
     
@@ -956,7 +979,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
                                       ySize*fontSize.GetHeight()),
                               n, choices, style
                             );
-        wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+        wxSizer *boxSizer = gdlParent->GetSizer();
         boxSizer->Add( list, 0, wxEXPAND | wxALL, 5);
 
         if ( wxParent != NULL) {
@@ -978,9 +1001,9 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 }
 
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
-GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
-				      DString title, DLong xSize, DLong style):
-  GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
+GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
+				      const DString& title, DLong style)
+ : GDLWidget( p, e, true, value)
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
   wxMutexGuiEnter();
@@ -993,17 +1016,27 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
 
-    DStringGDL* val = static_cast<DStringGDL*>( value);
-
+    DStringGDL* val;
+    Guard<DStringGDL> valGuard;
+    if( vValue->Type() != GDL_STRING)
+    {
+      val = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::COPY));
+      valGuard.Init(val);
+    }
+    else
+    {
+      val = static_cast<DStringGDL*>( vValue);
+    }
+    
     DLong n= val->N_Elements();
-    wxString *choices = new wxString[n];
-    for( SizeT i=0; i<n; ++i) choices[i] = wxString((*val)[i].c_str(), wxConvUTF8);
+    wxArrayString choices;// = new wxString[n];
+    for( SizeT i=0; i<n; ++i) 
+      choices.Add( wxString((*val)[i].c_str(), wxConvUTF8));
 
-    combo = new wxComboBox( panel, widgetID, wxString( (const wchar_t*) choices[0].c_str(), wxConvUTF8),
-			    wxDefaultPosition, wxDefaultSize,
-			    n, choices, style);
+    combo = new wxComboBox( panel, widgetID, wxString((*val)[0].c_str(), wxConvUTF8),
+			    wxDefaultPosition, wxDefaultSize, choices, style);
 
-    wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+    wxSizer *boxSizer = gdlParent->GetSizer();
     boxSizer->Add( combo, 0, wxEXPAND | wxALL, 5);
 
     if ( wxParent != NULL) {
@@ -1028,7 +1061,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 
 
 GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
-															DLong xSize, bool editable):
+	DLong xSize, bool editable):
   GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
@@ -1037,13 +1070,11 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
 
-
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
 		DLong style = editable ? 0 : wxTE_READONLY;
     text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
-													 wxDefaultPosition, wxSize( xSize*5,
-																											wxDefaultCoord), style );
+      wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord), style );
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
     boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
@@ -1233,6 +1264,53 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
   else
   {
     GDLWidget::readlineEventQueue.push( widgbut);
+  }
+}
+
+void GDLFrame::OnComboBox( wxCommandEvent& event)
+{
+  std::cout << "in OnComboBox: " << event.GetId() << std::endl;
+
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
+
+  int selectValue = event.GetSelection();
+  
+  bool dropList = false;
+  
+  // create GDL event struct
+  DStructGDL*  widgcbox;
+  if( !dropList)
+  {
+    wxString strValue = event.GetString();
+    
+    widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
+    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
+    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
+    widgcbox->InitTag("HANDLER", DLongGDL( 0));
+    widgcbox->InitTag("INDEX", DLongGDL( selectValue));
+    widgcbox->InitTag("STR", DStringGDL( strValue.c_str().AsChar()));
+  }
+  else
+  {
+    widgcbox = new DStructGDL( "WIDGET_DROPLIST");
+    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
+    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
+    widgcbox->InitTag("HANDLER", DLongGDL( 0));
+    widgcbox->InitTag("INDEX", DLongGDL( selectValue));   
+  }
+
+  if( xmanActCom == false)
+  {
+    GDLWidget::eventQueue.push(widgcbox);
+  }
+  else
+  {
+    GDLWidget::readlineEventQueue.push( widgcbox);
   }
 }
 

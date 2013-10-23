@@ -166,17 +166,21 @@ protected:
   WidgetIDT    parentID;    // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
   BaseGDL*     vValue;    // the VVALUE
+  bool         scroll;
   bool         sensitive;
   bool         managed;
   bool         map;
   bool         buttonSet;
   int          exclusiveMode;
-  DLong        xOffset, yOffset, xSize, ySize;
+  DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
   wxSizer*     topWidgetSizer;
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
-
+  WidgetIDT    groupLeader;
+  DLong        units;
+  DLong        frame;
+  
 private:  
   DString      uName;
   DString      proValue;
@@ -186,7 +190,10 @@ private:
   DString      notifyRealize;
   DString      killNotify;
   
+  void SetCommonKeywords( EnvT* e);
+
 public:
+  GDLWidget( WidgetIDT p, EnvT* e, bool map_=true, BaseGDL* vV=NULL);
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
 	     bool s=true, bool mp=true,
 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1
@@ -288,8 +295,8 @@ class GDLWidgetDropList: public GDLWidget
 public:
   //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
   //	     DString title, DLong xSize, DLong style);
-  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
-		     DString title, DLong xSize, DLong style);
+  GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
+		     const DString& title, DLong style);
 //   void SetSelectOff();
 };
 
@@ -362,27 +369,39 @@ protected:
   WidgetIDT                               lastRadioSelection;
 
 public:
-  GDLWidgetBase( WidgetIDT parentID, 
-		 BaseGDL* uvalue, const DString& uname,
-		 bool sensitive, bool mapWid,
+  GDLWidgetBase( WidgetIDT parentID, EnvT* e,
+		 bool mapWid,
 		 WidgetIDT& mBarIDInOut, bool modal, 
-		 WidgetIDT group_leader,
 		 DLong col, DLong row,
 		 long events,
 		 int exclusiveMode, 
 		 bool floating,
-		 const DString& event_func, const DString& event_pro,
-		 const DString& pro_set_value, const DString& func_get_value,
-		 const DString& notify_realize, const DString& kill_notify,
 		 const DString& resource_name, const DString& rname_mbar,
 		 const DString& title,
-		 DLong frame, DLong units,
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
-		 DLong xoffset, DLong yoffset,
-		 DLong xsize, DLong ysize,
-		 DLong scr_xsize, DLong scr_ysize,
 		 DLong x_scroll_size, DLong y_scroll_size);
+//   GDLWidgetBase( WidgetIDT parentID, 
+// 		 BaseGDL* uvalue, const DString& uname,
+// 		 bool sensitive, bool mapWid,
+// 		 WidgetIDT& mBarIDInOut, bool modal, 
+// 		 WidgetIDT group_leader,
+// 		 DLong col, DLong row,
+// 		 long events,
+// 		 int exclusiveMode, 
+// 		 bool floating,
+// 		 const DString& event_func, const DString& event_pro,
+// 		 const DString& pro_set_value, const DString& func_get_value,
+// 		 const DString& notify_realize, const DString& kill_notify,
+// 		 const DString& resource_name, const DString& rname_mbar,
+// 		 const DString& title,
+// 		 DLong frame, DLong units,
+// 		 const DString& display_name,
+// 		 DLong xpad, DLong ypad,
+// 		 DLong xoffset, DLong yoffset,
+// 		 DLong xsize, DLong ysize,
+// 		 DLong scr_xsize, DLong scr_ysize,
+// 		 DLong x_scroll_size, DLong y_scroll_size);
 
 //   GDLWidgetBase( WidgetIDT p=0,           // parent
 // 		 BaseGDL* uV=NULL,        // UVALUE
@@ -425,17 +444,8 @@ class GDLWidgetDraw: public GDLWidget
   int pstreamIx;
   
 public:
-  GDLWidgetDraw( WidgetIDT parentID, 
-		BaseGDL* uvalue, const DString& uname,
-		bool sensitive, WidgetIDT group_leader,
-		const DString& event_func, const DString& event_pro,
-		const DString& pro_set_value, const DString& func_get_value,
-		const DString& notify_realize, const DString& kill_notify,
-		DLong frame, DLong units,
-		DLong xoffset, DLong yoffset,
-		DLong xsize, DLong ysize,
-		DLong scr_xsize, DLong scr_ysize,
-		DLong x_scroll_size, DLong y_scroll_size);
+  GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
+		  DLong x_scroll_size, DLong y_scroll_size);
 
   virtual ~GDLWidgetDraw();
 
@@ -466,6 +476,7 @@ public:
   void OnButton( wxCommandEvent& event);
   void OnRadioButton( wxCommandEvent& event);
   void OnCheckBox( wxCommandEvent& event);
+  void OnComboBox( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
 
 // private:

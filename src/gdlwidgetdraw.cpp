@@ -40,18 +40,9 @@ GDLWidgetDraw::~GDLWidgetDraw()
 }
 
 
-GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, 
-			      BaseGDL* uvalue, const DString& uname,
-			      bool sensitive, WidgetIDT group_leader,
-			      const DString& event_func, const DString& event_pro,
-			      const DString& pro_set_value, const DString& func_get_value,
-			      const DString& notify_realize, const DString& kill_notify,
-			      DLong frame, DLong units,
-			      DLong xoffset, DLong yoffset,
-			      DLong xsize, DLong ysize,
-			      DLong scr_xsize, DLong scr_ysize,
+GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
 			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, uvalue, NULL, sensitive, map, xoffset, yoffset, xsize, ysize, uname)
+  : GDLWidget( parentID, e)
   , pstreamIx(-1)
 {
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
@@ -75,7 +66,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID,
   else if( frame > 1)
     style = wxBORDER_DOUBLE;
         
-  GDLWindow* gdlWindow = new GDLWindow( panel, widgetID, wxDefaultPosition, wxSize(xsize,ysize), style);
+  GDLWindow* gdlWindow = new GDLWindow( panel, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style);
   wxWidget = gdlWindow;
 
   wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();

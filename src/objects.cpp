@@ -315,9 +315,18 @@ void InitStructs()
   widgdlist->AddTag("ID", &aLong);
   widgdlist->AddTag("TOP", &aLong);
   widgdlist->AddTag("HANDLER", &aLong);
-  widgdlist->AddTag("SELECT", &aLong);
+  widgdlist->AddTag("INDEX", &aLong);
   // insert into structList
   structList.push_back( widgdlist);
+
+  DStructDesc* widgcbox = new DStructDesc( "WIDGET_COMBOBOX");
+  widgcbox->AddTag("ID", &aLong);
+  widgcbox->AddTag("TOP", &aLong);
+  widgcbox->AddTag("HANDLER", &aLong);
+  widgcbox->AddTag("INDEX", &aLong);
+  widgcbox->AddTag("STR", &aString);
+  // insert into structList
+  structList.push_back( widgcbox);
 
   DStructDesc* widglist = new DStructDesc( "WIDGET_LIST");
   widglist->AddTag("ID", &aLong);
