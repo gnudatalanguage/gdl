@@ -60,8 +60,6 @@
 #include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
 
-#define HAVE_PLPLOT_WIDTH
-
   struct GDL_3DTRANSFORMDATA
   {
     DDoubleGDL* Matrix;
