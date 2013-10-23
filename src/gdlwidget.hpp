@@ -102,7 +102,7 @@ public:
   // stopped with Delete() (but not when it is Kill()ed!)
   void OnExit();
   
-  void Exit(); // end this
+//   void Exit(); // end this
 };
 
 static GDLGUIThread *gdlGUIThread = NULL;
@@ -151,6 +151,7 @@ public:
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
   static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
+  static GDLWidgetBase* GetTopLevelBaseWidget( WidgetIDT widID);
   static WidgetIDT  GetBase( WidgetIDT widID);
   static GDLWidgetBase* GetBaseWidget( WidgetIDT widID);
 
@@ -199,6 +200,8 @@ public:
   );
   virtual ~GDLWidget();
 
+//   void SetCommonKeywords( EnvT* e);
+  
 //   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}
   WidgetIDT GetParentID() const { return parentID;}
   
@@ -355,7 +358,8 @@ protected:
   bool                                    xmanActCom;
   bool                                    modal;
   WidgetIDT                               mbarID;
-//   DString                                 eventHandler;
+  // for radio buttons to generate deselect event
+  WidgetIDT                               lastRadioSelection;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, 
@@ -380,15 +384,18 @@ public:
 		 DLong scr_xsize, DLong scr_ysize,
 		 DLong x_scroll_size, DLong y_scroll_size);
 
-  GDLWidgetBase( WidgetIDT p=0,           // parent
-		 BaseGDL* uV=NULL,        // UVALUE
-		 BaseGDL* vV=NULL,        // VVALUE
-		 bool s=true,             // SENSITIVE
-		 bool mp=true,             // MAP
-		 DLong xO=-1, DLong yO=-1,  // offset 
-		 DLong xS=-1, DLong yS=-1); // size
+//   GDLWidgetBase( WidgetIDT p=0,           // parent
+// 		 BaseGDL* uV=NULL,        // UVALUE
+// 		 BaseGDL* vV=NULL,        // VVALUE
+// 		 bool s=true,             // SENSITIVE
+// 		 bool mp=true,             // MAP
+// 		 DLong xO=-1, DLong yO=-1,  // offset 
+// 		 DLong xS=-1, DLong yS=-1); // size
   
   ~GDLWidgetBase();
+
+  WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
+  void SetLastRadioSelection(WidgetIDT lastSel) { lastRadioSelection = lastSel;}                         
 
   // as this is called in the constructor, no type checking of c can be done
   // hence the AddChild() function should be as simple as that
@@ -458,6 +465,7 @@ public:
   // event handlers (these functions should _not_ be virtual)
   void OnButton( wxCommandEvent& event);
   void OnRadioButton( wxCommandEvent& event);
+  void OnCheckBox( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
 
 // private:

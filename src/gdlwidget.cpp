@@ -43,6 +43,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_MENU(wxID_ANY, GDLFrame::OnButton)
   EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
   EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
+  EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox)
   EVT_IDLE( GDLFrame::OnIdle)
 END_EVENT_TABLE()
 
@@ -274,12 +275,24 @@ WidgetIDT GDLWidget::GetBase( WidgetIDT widID)
   }
 }
 
-WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
+GDLWidgetBase* GDLWidget::GetTopLevelBaseWidget( WidgetIDT widID)
 {
-  GDLWidget *widget;
   WidgetIDT actID = widID;
   while ( 1) {
-    widget = GetWidget( actID);
+    GDLWidget *widget = GetWidget( actID);
+    if( widget == NULL)
+      return GDLWidget::NullID;
+    if ( widget->parentID == GDLWidget::NullID) 
+      return static_cast<GDLWidgetBase*>(widget); 
+    else 
+      actID = widget->parentID;
+  }
+}
+WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
+{
+  WidgetIDT actID = widID;
+  while ( 1) {
+    GDLWidget *widget = GetWidget( actID);
     if( widget == NULL)
       return GDLWidget::NullID;
     if ( widget->parentID == GDLWidget::NullID) 
@@ -450,11 +463,15 @@ GDLWidget::~GDLWidget()
   WidgetRemove( widgetID);
 }
 
-GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, 
-			      bool s, bool mp,
-			      DLong xO, DLong yO, DLong xS, DLong yS): 
-  GDLWidget( p, uV, vV, s, mp, xO, yO, xS, yS)
-{}
+// GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, BaseGDL* vV, 
+// 			      bool s, bool mp,
+// 			      DLong xO, DLong yO, DLong xS, DLong yS)
+//  : GDLWidget( p, uV, vV, s, mp, xO, yO, xS, yS)
+//  , modal( modal_)
+//  , mbarID( mBarIDInOut)
+//  , lastRadioSelection( NullID)
+// 
+// {}
 
 GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID, 
 			      BaseGDL* uvalue, const DString& uname,
@@ -488,6 +505,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
   )
   , modal( modal_)
   , mbarID( mBarIDInOut)
+  , lastRadioSelection( NullID)
 {
   //  std::cout << "In GDLWidgetBase::GDLWidgetBase: " << widgetID << std::endl
   
@@ -746,6 +764,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, const DString& value
 					wxDefaultPosition, wxDefaultSize,
 					wxRB_GROUP);
 	gdlParent->SetExclusiveMode( 1);
+	static_cast<GDLWidgetBase*>(gdlParent)->SetLastRadioSelection( widgetID);
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
 	cout << "wxRadioButton1: " << widgetID << endl;
@@ -759,7 +778,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, const DString& value
       } 
       else if ( gdlParent->GetExclusiveMode() == 2) 
       {
-	checkBox = new wxCheckBox( panel, wxID_ANY, wxString(value.c_str(), wxConvUTF8));
+	checkBox = new wxCheckBox( panel, widgetID, wxString(value.c_str(), wxConvUTF8));
 	boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = checkBox;
 	cout << "wxCheckBox: " << widgetID << endl;
@@ -1107,8 +1126,9 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 
   std::cout << "in OnButton: " << event.GetId() << std::endl;
 
-  // Get XmanagerActiveCommand status
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
   bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
   //std::cout << "xmanActCom: " << xmanActCom << std::endl;
@@ -1134,13 +1154,70 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 {
   std::cout << "in OnRadioButton: " << event.GetId() << std::endl;
 
-  // Get XmanagerActiveCommand status
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
   bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
   //std::cout << "xmanActCom: " << xmanActCom << std::endl;
 
-  bool selectValue = event.IsSelection();
+//   bool selectValue = event.IsSelection();
+//   int selectValue = event.GetSelection();
+
+  GDLWidgetBase* gdlParentWidget = static_cast<GDLWidgetBase*>(GDLWidget::GetParent( event.GetId()));
+  WidgetIDT lastSelection = gdlParentWidget->GetLastRadioSelection();
+  if( lastSelection != GDLWidget::NullID)
+  {
+    if( lastSelection == event.GetId())      
+      return;
+    // create GDL event struct
+    DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
+    widgbut->InitTag("ID", DLongGDL( lastSelection));
+    widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
+    widgbut->InitTag("HANDLER", DLongGDL( 0));
+    widgbut->InitTag("SELECT", DLongGDL( 0));
+    if( xmanActCom == false)
+    {
+      GDLWidget::eventQueue.push(widgbut);
+    }
+    else
+    {
+      GDLWidget::readlineEventQueue.push( widgbut);
+    }
+  }
+    
+  // create GDL event struct
+  DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
+  widgbut->InitTag("ID", DLongGDL( event.GetId()));
+  widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
+  widgbut->InitTag("HANDLER", DLongGDL( 0));
+//   widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
+  widgbut->InitTag("SELECT", DLongGDL( 1));
+
+  gdlParentWidget->SetLastRadioSelection(event.GetId());
+
+  if( xmanActCom == false)
+  {
+    GDLWidget::eventQueue.push(widgbut);
+  }
+  else
+  {
+    GDLWidget::readlineEventQueue.push( widgbut);
+  }
+}
+
+void GDLFrame::OnCheckBox( wxCommandEvent& event)
+{
+  std::cout << "in OnCheckBox: " << event.GetId() << std::endl;
+
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
+
+  bool selectValue = event.IsChecked();
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -1203,7 +1280,7 @@ int GDLApp::OnExit()
   //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
   if (gdlGUIThread != NULL)
   {
-     gdlGUIThread->Exit();
+     delete gdlGUIThread;
      gdlGUIThread = NULL;
   }
 
@@ -1222,14 +1299,14 @@ void GDLGUIThread::OnExit()
 }
 
 
-void GDLGUIThread::Exit()
-{
-  // Called by GDLApp::OnExit() in gdlwidget.cpp
-#ifdef GDL_DEBUG_WIDGETS
-  std::cout << "In GDLGUIThread::Exit()." << std::endl;
-#endif
-  delete this;
-}
+// void GDLGUIThread::Exit()
+// {
+//   // Called by GDLApp::OnExit() in gdlwidget.cpp
+// #ifdef GDL_DEBUG_WIDGETS
+//   std::cout << "In GDLGUIThread::Exit()." << std::endl;
+// #endif
+//   delete this;
+// }
 
 GDLGUIThread::~GDLGUIThread()
 {

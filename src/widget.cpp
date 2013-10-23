@@ -1263,10 +1263,7 @@ BaseGDL* widget_list( EnvT* e)
       if ( getFuncName != "") {
 	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
-	DString callF;
-	// this is a function name -> convert to UPPERCASE
-	callF = getFuncName.c_str();
-	callF = StrUpCase( callF);
+	DString callF = StrUpCase( getFuncName);
 
 	SizeT funIx = GDLInterpreter::GetFunIx( callF);
 	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);

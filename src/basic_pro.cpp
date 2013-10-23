@@ -1070,8 +1070,8 @@ namespace lib {
 #ifdef HAVE_LIBWXWIDGETS
     // wxTheApp may be a null pointer (tracker item no. 2946058)
 //     if (wxTheApp != NULL) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
-    if( gdlGUIThread != NULL)
-      gdlGUIThread->Exit();
+//     if( gdlGUIThread != NULL)
+//       gdlGUIThread->Exit();
 
     // SA: gives the following error message with no connection to X-server:
     //   GDL> exit
