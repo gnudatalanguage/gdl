@@ -78,7 +78,7 @@ void GDLWXStream::SetGDLWindow(GDLWindow* w)
 
 void GDLWXStream::Update()
 {
-  if( gdlWindow != NULL)
+  if( this->valid && gdlWindow != NULL)
     gdlWindow->Update();
 }
 

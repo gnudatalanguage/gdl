@@ -467,8 +467,8 @@ namespace lib {
 	if( p == NULL)
 	  e->Throw( "Invalid widget identifier: "+i2s(parentID));
 	
-	GDLWidgetBase* bp = dynamic_cast< GDLWidgetBase*>( p);
-	if( p == NULL)
+// 	GDLWidgetBase* bp = dynamic_cast< GDLWidgetBase*>( p);
+	if( !p->IsBase())
 	  e->Throw( "Parent is of incorrect type.");
       }
     //...
@@ -851,7 +851,7 @@ BaseGDL* widget_list( EnvT* e)
 	if ( widget == NULL) {
 	  return new DLongGDL( 0);
 	} else {
-	  DLong nChildren = widget->GetChild( -1);
+	  DLong nChildren = widget->NChildren();
 	  if ( nChildren != 0)
 	    return new DLongGDL( widget->GetChild( 0));
 	  else
@@ -866,7 +866,7 @@ BaseGDL* widget_list( EnvT* e)
 	  if ( widget == NULL) {
 	    (*res)[ i] = (DLong) 0;
 	  } else {
-	    DLong nChildren = widget->GetChild( -1);
+	    DLong nChildren = widget->NChildren();
 	    if ( nChildren != 0)
 	      (*res)[ i] = (DLong) widget->GetChild( 0);
 	    else

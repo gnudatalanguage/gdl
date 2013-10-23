@@ -388,7 +388,7 @@ public:
 		 DLong xO=-1, DLong yO=-1,  // offset 
 		 DLong xS=-1, DLong yS=-1); // size
   
-  virtual ~GDLWidgetBase();
+  ~GDLWidgetBase();
 
   // as this is called in the constructor, no type checking of c can be done
   // hence the AddChild() function should be as simple as that
