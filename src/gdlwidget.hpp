@@ -91,6 +91,7 @@ public:
   GDLGUIThread() : wxThread(wxTHREAD_JOINABLE)
   , exited(false)
   {};
+  ~GDLGUIThread();
 
   bool Exited() const { return exited;}
 
@@ -119,9 +120,11 @@ class GDLApp: public wxApp
 {
 public:
   int OnRun(); 
+  int OnExit(); 
 };
 
 // GUI base class **********************************
+class GDLWidgetBase;
 class GDLWidget
 { 
   // static part is used for the abstraction
@@ -132,7 +135,7 @@ private:
 //   static WidgetIDT                   widgetIx;
   static WidgetListT widgetList;
   // ID for widget (must be called from widgets constructor only)
-  static WidgetIDT NewWidget( GDLWidget* w);
+//   static WidgetIDT NewWidget( GDLWidget* w);
 
 protected:
   // removes a widget, (called from widgets destructor -> don't delete)
@@ -148,6 +151,8 @@ public:
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
   static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
+  static WidgetIDT  GetBase( WidgetIDT widID);
+  static GDLWidgetBase* GetBaseWidget( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
 
@@ -170,22 +175,27 @@ protected:
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
-  DString      uName;
 
 private:  
+  DString      uName;
   DString      proValue;
   DString      funcValue;
   DString      eventPro; // event handler PRO
   DString      eventFun; // event handler FUN
+  DString      notifyRealize;
+  DString      killNotify;
   
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
 	     bool s=true, bool mp=true,
-	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1, const DString& uname = ""
+	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1
+, const DString& uName = ""
 , const DString&  proValue_=""
 , const DString&  funcValue_=""
 , const DString&  eventPro_="" 
 , const DString&  eventFun_=""    
+, const DString&  notifyRealize_="" 
+, const DString&  killNotify_=""    
   );
   virtual ~GDLWidget();
 
@@ -197,8 +207,13 @@ public:
   BaseGDL* GetUvalue() const { return uValue;}
   BaseGDL* GetVvalue() const { return vValue;}
 
+  // for query of children
+  virtual bool IsBase() const { return false;} 
+  virtual bool IsButton() const { return false;} 
+
   virtual void Realize( bool) {} 
-  virtual DLong GetChild( DLong) {return 0;};
+  virtual WidgetIDT GetChild( DLong) const {return NullID;};
+  virtual DLong NChildren() const {return 0;};
   virtual void SetXmanagerActiveCommand() {};
   virtual bool GetXmanagerActiveCommand() {return false;};
 
@@ -206,6 +221,10 @@ public:
   const DString& GetEventPro() const { return eventPro;};
   void SetEventFun( const DString& eFun) { eventFun = StrUpCase( eFun);}
   const DString& GetEventFun() const { return eventFun;};
+  void SetNotifyRealize( const DString& eNR) { notifyRealize = StrUpCase( eNR);}
+  const DString& GetNotifyRealize() const { return notifyRealize;};
+  void SetKillNotify( const DString& eKN) { killNotify = StrUpCase( eKN);}
+  const DString& GetKillNotify() const { return killNotify;};
 
   static bool GetXmanagerBlock();
 
@@ -253,6 +272,8 @@ class GDLWidgetButton: public GDLWidget
 {
 public:
   GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, const DString& value, const DString& uname);
+
+  bool IsButton() const { return true;} 
 
 //   void SetSelectOff();
 };
@@ -366,12 +387,14 @@ public:
 		 bool mp=true,             // MAP
 		 DLong xO=-1, DLong yO=-1,  // offset 
 		 DLong xS=-1, DLong yS=-1); // size
+  
   virtual ~GDLWidgetBase();
 
-  void AddChild( WidgetIDT c) 
-  { children.push_back( c);}
-  void RemoveChild( WidgetIDT  c)
-  { children.erase( find( children.begin(), children.end(), c));}
+  // as this is called in the constructor, no type checking of c can be done
+  // hence the AddChild() function should be as simple as that
+  void AddChild( WidgetIDT c) { children.push_back( c);}
+  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
+							  children.end(), c));}
 
   void Realize( bool);
   
@@ -381,8 +404,10 @@ public:
 //   void SetEventPro( DString);
 //   const DString& GetEventPro() { return eventHandler;}
 
-  DLong GetChild( DLong);
+  WidgetIDT GetChild( DLong) const;
+  DLong NChildren() const;
 
+  bool IsBase() const { return true;} 
 };
 
 
