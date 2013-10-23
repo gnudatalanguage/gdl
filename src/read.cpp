@@ -279,6 +279,7 @@ namespace lib {
 	      }
 	  }
       }
+      // read until end of line
       if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
       {
 	streampos actPos = is->tellg();
