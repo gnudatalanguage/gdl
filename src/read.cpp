@@ -271,7 +271,7 @@ namespace lib {
 	    else
 #endif
 	      {
-		posBeforeLast = is->tellg();
+// 		posBeforeLast = is->tellg();
 
 		parIn->FromStream( *is);
 
@@ -281,7 +281,13 @@ namespace lib {
       }
       if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
       {
-	is->seekg( posBeforeLast);
+	streampos actPos = is->tellg();
+
+// 	is->seekg( posBeforeLast);
+	assert( actPos > 0);
+	
+	streamoff one = 1;
+	is->seekg( actPos-one);
 	
 	DStringGDL gdlString("");
 	gdlString.FromStream( *is);
