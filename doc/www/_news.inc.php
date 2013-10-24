@@ -3,7 +3,7 @@
   2013-10-11: <a href="http://www.freshports.org/science/gnudatalanguage/">FreeBSD port updated</a><br />
   2013-10-08: <a href="http://koji.fedoraproject.org/koji/packageinfo?packageID=1830">Fedora package updated</a><br />
   2013-10-02: <a href="https://trac.macports.org/changeset/111797">MacPort updated</a><br />
-  2013-09-30: <a href="http://www.hmug.org/pub/MacOS_X/X/Applications/Science/gdl/">HMUG package updated<br />
+  2013-09-30: <a href="http://www.hmug.org/pub/MacOS_X/X/Applications/Science/gdl/">HMUG package updated</a><br />
   2013-09-29: <a href="http://packages.debian.org/gnudatalanguage">Debian port updated</a><br />
   2013-09-28: GDL 0.9.4 source tarball released.<br />
  <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.4/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>

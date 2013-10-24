@@ -28,7 +28,7 @@
       <ul>
         <li><a href="http://koji.fedoraproject.org/koji/packageinfo?packageID=1830">Fedora</a></li>
         <li><a href="http://packages.debian.org/search?keywords=gnudatalanguage">Debian GNU/Linux</a></li>
-        <li><a href="http://gentoo-portage.com/dev-lang/gdl">Gentoo</a></li>
+        <li><a href="http://packages.gentoo.org/package/dev-lang/gdl">Gentoo</a></li>
         <li><a href="http://aur.archlinux.org/packages.php?ID=2493">Arch Linux</a></li>
         <li><a href="http://packages.ubuntu.com/gnudatalanguage">Ubuntu</a></li>
       </ul>
