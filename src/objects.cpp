@@ -332,7 +332,8 @@ void InitStructs()
   widglist->AddTag("ID", &aLong);
   widglist->AddTag("TOP", &aLong);
   widglist->AddTag("HANDLER", &aLong);
-  widglist->AddTag("SELECT", &aLong);
+  widglist->AddTag("INDEX", &aLong);
+  widglist->AddTag("CLICKS", &aLong);
   // insert into structList
   structList.push_back( widglist);
 

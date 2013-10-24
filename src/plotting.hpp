@@ -20,6 +20,8 @@
 #define gdlPlot_Min(a, b) ((a) < (b) ? (a) : (b))
 #define gdlPlot_Max(a, b) ((a) > (b) ? (a) : (b))
 
+// #define HAVE_PLPLOT_WIDTH
+
 //To debug Affine 3D homogenous projections matrices.
 //IDL define a matrix as  M[ncol,mrow] and print as such. However col_major and
 //row_major refer to the math notation M[row,col] where row=dim(0) and col=dim(1).

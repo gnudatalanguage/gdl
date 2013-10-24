@@ -193,18 +193,21 @@ private:
   void SetCommonKeywords( EnvT* e);
 
 public:
+  typedef enum BGroupMode_ {
+    BGNORMAL=0, BGEXCLUSIVE=1, BGNONEXCLUSIVE=2, BGEXCLUSIVE1ST=3 } BGroupMode;
+
   GDLWidget( WidgetIDT p, EnvT* e, bool map_=true, BaseGDL* vV=NULL);
-  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
-	     bool s=true, bool mp=true,
-	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1
-, const DString& uName = ""
-, const DString&  proValue_=""
-, const DString&  funcValue_=""
-, const DString&  eventPro_="" 
-, const DString&  eventFun_=""    
-, const DString&  notifyRealize_="" 
-, const DString&  killNotify_=""    
-  );
+//   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
+// 	     bool s=true, bool mp=true,
+// 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1
+// , const DString& uName = ""
+// , const DString&  proValue_=""
+// , const DString&  funcValue_=""
+// , const DString&  eventPro_="" 
+// , const DString&  eventFun_=""    
+// , const DString&  notifyRealize_="" 
+// , const DString&  killNotify_=""    
+//   );
   virtual ~GDLWidget();
 
 //   void SetCommonKeywords( EnvT* e);
@@ -248,7 +251,7 @@ public:
   void SetManaged( bool manval){managed = manval;}
 
 
-  bool GetMap() { return map;}
+  bool GetMap() const { return map;}
   void SetMap( bool mapval){ map = mapval;}
 
   int  GetExclusiveMode() const { return exclusiveMode;}
@@ -281,7 +284,7 @@ class GDLWidgetMbar;
 class GDLWidgetButton: public GDLWidget
 {
 public:
-  GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, const DString& value, const DString& uname);
+  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value);
 
   bool IsButton() const { return true;} 
 
@@ -304,8 +307,7 @@ public:
 class GDLWidgetList : public GDLWidget
 {
 public:
-  GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
-		 DLong xSize, DLong ySize, DLong style);
+  GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style);
 //   void SetSelectOff();
 };
 
@@ -313,8 +315,6 @@ public:
 class GDLWidgetBGroup: public GDLWidget
 {
 public:
-	typedef enum e_BGroupMode {NORMAL, EXCLUSIVE, NONEXCLUSIVE}
-	BGroupMode;
 	typedef enum e_BGRoupReturn {RETURN_ID, RETURN_INDEX, RETURN_NAME}
 	BGroupReturn;
 
@@ -330,12 +330,9 @@ public:
 // text widget **************************************************
 class GDLWidgetText: public GDLWidget
 {
-private:
-  wxTextCtrl *text;
-
 public:
-  GDLWidgetText( WidgetIDT parentID, BaseGDL *uvalue, DString value,
-		  DLong xSize, bool editable);
+  GDLWidgetText( WidgetIDT parentID, EnvT* e, DString value,
+		 bool editable);
  
   void SetTextValue( DString);
 };
@@ -344,12 +341,8 @@ public:
 // label widget **************************************************
 class GDLWidgetLabel: public GDLWidget
 {
-private:
-  wxStaticText *label;
-
 public:
-  GDLWidgetLabel( WidgetIDT parentID, BaseGDL *uvalue, DString value,
-		  DLong xSize);
+  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, DString value);
  
   void SetLabelValue( DString);
 };
@@ -456,8 +449,8 @@ class GDLWidgetMBar: public GDLWidget//Base
   // disable
   GDLWidgetMBar();
 public:
-  GDLWidgetMBar( WidgetIDT p): GDLWidget( p, NULL, NULL, false, false, 0, 0, 0, 0, "")
-
+  GDLWidgetMBar( WidgetIDT p): 
+  GDLWidget( p, NULL)
   {
     this->wxWidget = new wxMenuBar();
   }
@@ -466,6 +459,8 @@ public:
 
 class GDLFrame : public wxFrame
 {
+  void OnListBoxDo( wxCommandEvent& event, DLong clicks);
+
 public:
   // ctor(s)
   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
@@ -473,11 +468,13 @@ public:
   { std::cout << "~GDLFrame: " << this << std::endl;}
 
   // event handlers (these functions should _not_ be virtual)
+  void OnIdle( wxIdleEvent& event);
   void OnButton( wxCommandEvent& event);
   void OnRadioButton( wxCommandEvent& event);
   void OnCheckBox( wxCommandEvent& event);
   void OnComboBox( wxCommandEvent& event);
-  void OnIdle( wxIdleEvent& event);
+  void OnListBox( wxCommandEvent& event);
+  void OnListBoxDoubleClicked( wxCommandEvent& event);
 
 // private:
   // any class wishing to process wxWidgets events must use this macro

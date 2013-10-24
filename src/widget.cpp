@@ -487,9 +487,9 @@ namespace lib {
     // generate widget
     WidgetIDT mBarID = mbarPresent ? 1 : 0;
 
-    int exclusiveMode = 0;
-    if( exclusive)    exclusiveMode = 1;
-    if( nonexclusive) exclusiveMode = 2;
+    int exclusiveMode = GDLWidget::BGNORMAL;
+    if( exclusive)    exclusiveMode = GDLWidget::BGEXCLUSIVE;
+    if( nonexclusive) exclusiveMode = GDLWidget::BGNONEXCLUSIVE;
 
     DLong events = 0;
 
@@ -555,16 +555,7 @@ namespace lib {
     DString value = "";
     e->AssureStringScalarKWIfPresent( valueIx, value);
 
-    static int uvalueIx = e->KeywordIx( "UVALUE");
-    BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
-      uvalue = uvalue->Dup();
-
-    DString uname = "";
-    static int unameIx = e->KeywordIx( "UNAME");
-    e->AssureStringScalarKWIfPresent( unameIx, uname);
-
-    GDLWidgetButton* button = new GDLWidgetButton( parentID, uvalue, value, uname);
+    GDLWidgetButton* button = new GDLWidgetButton( parentID, e, value);
 
     button->SetWidgetType( "BUTTON");
 
@@ -669,31 +660,16 @@ BaseGDL* widget_list( EnvT* e)
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-    DLong xsize = -1;
-    static int xsizeIx = e->KeywordIx( "XSIZE");
-    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
-
-    DLong ysize = -1;
-    static int ysizeIx = e->KeywordIx( "YSIZE");
-    e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
-
     static int valueIx = e->KeywordIx( "VALUE");
     BaseGDL* value = e->GetKW( valueIx);
     if( value != NULL)
         value = value->Dup();
 
-    static int uvalueIx = e->KeywordIx( "UVALUE");
-    BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
-        uvalue = uvalue->Dup();
-
     static int multipleIx = e->KeywordIx( "MULTIPLE");
     bool multiple = e->KeywordSet( multipleIx);
 
-    DLong style = multiple ? wxLB_MULTIPLE : wxLB_SINGLE;
-    GDLWidgetList* list = new GDLWidgetList( parentID, uvalue, value,
-            xsize, ysize,
-            style);
+    DLong style = multiple ? wxLB_EXTENDED /*wxLB_MULTIPLE*/ : wxLB_SINGLE;
+    GDLWidgetList* list = new GDLWidgetList( parentID, e, value, style);
     list->SetWidgetType( "LIST");
 
     return new DLongGDL( list->WidgetID());
@@ -796,14 +772,12 @@ BaseGDL* widget_list( EnvT* e)
     if( uvalue != NULL)
       uvalue = uvalue->Dup();
 
-		DLong edit = 0;
-		static int editableIx = e->KeywordIx("EDITABLE");
-		e->AssureLongScalarKWIfPresent( editableIx, edit);
-		bool editable = edit == 1;
+    DLong edit = 0;
+    static int editableIx = e->KeywordIx("EDITABLE");
+    e->AssureLongScalarKWIfPresent( editableIx, edit);
+    bool editable = edit == 1;
 
-    GDLWidgetText* text = new GDLWidgetText( parentID, uvalue, value,
-    xsize, editable);
-
+    GDLWidgetText* text = new GDLWidgetText( parentID, e, value, editable);
     text->SetWidgetType( "TEXT");
 
     return new DLongGDL( text->WidgetID());
@@ -824,22 +798,11 @@ BaseGDL* widget_list( EnvT* e)
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-    DLong xsize = -1;
-    static int xsizeIx = e->KeywordIx( "XSIZE");
-    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
-
     static int valueIx = e->KeywordIx( "VALUE");
     DString value = "";
     e->AssureStringScalarKWIfPresent( valueIx, value);
 
-    static int uvalueIx = e->KeywordIx( "UVALUE");
-    BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
-      uvalue = uvalue->Dup();
-
-    GDLWidgetLabel* label = 
-      new GDLWidgetLabel( parentID, uvalue, value, xsize);
-
+    GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value);
     label->SetWidgetType( "LABEL");
 
     return new DLongGDL( label->WidgetID());
