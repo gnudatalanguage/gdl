@@ -191,7 +191,8 @@ else(CURSES_FOUND)
 		include_directories(${CURSES_INCLUDE_DIR})
 	else(CURSES_FOUND)
 		message(FATAL_ERROR "(N)Curses was not found.\n"
-		"Use -DNCURSESDIR=DIR to specify the (n)curses directory tree.")
+		"Use -DNCURSESDIR=DIR to specify the (n)curses directory tree.\n"
+                "(suitable Debian/Ubuntu package: libncurses-dev)\n")
 	endif(CURSES_FOUND)
 endif(CURSES_FOUND)
 
@@ -217,7 +218,7 @@ if(READLINE)
 	else(READLINE_FOUND)
 		message(FATAL_ERROR "GNU readline was not found.\n"
 		  "Use -DREADLINEDIR=no to explicitely disable it.\n"
-                  "(suitable Debian/Ubuntu package: libreadline5-dev)\n"
+                  "(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
                   "(suitable Fedora package: readline-devel)")
 	endif(READLINE_FOUND)
 endif(READLINE)
@@ -377,7 +378,7 @@ if(GRAPHICSMAGICK)
 		Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
 		Use -DGRAPHICSMAGICK=OFF to not use it.
                 (suitable Fedora package: GraphicsMagick-c++-devel
-		   Debian/Ubuntu package: libgraphicsmagick++1-devel)\n")
+		   Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
 		message( STATUS 
 		"Looking for ImageMagick")
 	endif(GRAPHICSMAGICK_FOUND)
@@ -552,8 +553,8 @@ if(FFTW)
 		message(FATAL_ERROR "FFTW3 is required but was not found.\n"
 		"Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
 		"Use -DFFTW=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libfftw3-dev)\n
-                "(suitable Fedora package: fftw-devel)"")
+                "(suitable Debian/Ubuntu package: libfftw3-dev)\n"
+                "(suitable Fedora package: fftw-devel)")
 	endif(FFTW_FOUND)
 endif(FFTW)
 
@@ -728,7 +729,8 @@ if(EIGEN3)
 		message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
 		"Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
 		"Use -DEIGEN3=OFF to not use it.\n"
-                "(suitable Fedora package: eigen3-devel)")
+                "(suitable Fedora package: eigen3-devel)\n"
+                "(suitable Debian/Ubuntu package: libeigen3-dev)")
 	endif(EIGEN3_FOUND)
 endif(EIGEN3)
 
