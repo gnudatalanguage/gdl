@@ -30,6 +30,7 @@
 #  include "gdlwidget.hpp"
 #endif
 
+#ifdef HAVE_LIBWXWIDGETS
 void GDLWidget::SetCommonKeywords( EnvT* e)
 {
   static int frameIx = e->KeywordIx( "FRAME");
@@ -100,7 +101,7 @@ void GDLWidget::SetCommonKeywords( EnvT* e)
   uName = "";
   e->AssureStringScalarKWIfPresent( unameIx, uName);
 }    
-    
+#endif    
 
     
 // non library functions
