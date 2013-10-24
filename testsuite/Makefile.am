@@ -39,7 +39,6 @@ TESTS = \
   test_bug_3152899.pro \
   test_bug_3189072.pro \
   test_bug_3199465.pro \
-  test_bug_3244840.pro \
   test_bug_3275334.pro \
   test_bug_3286031.pro \
   test_bug_3288652.pro \
@@ -79,6 +78,7 @@ TESTS = \
   test_finite.pro \
   test_fix.pro \
   test_fixprint.pro \
+  test_format.pro \
   test_fx_root.pro \
   test_fz_roots.pro \
   test_gc.pro \

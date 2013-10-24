@@ -3,8 +3,16 @@
 ; Distributed version 2010/06/14
 ; Under GNU GPL V2 or later
 ;
-; Purpose: Check READF procedure with different end-of-line characters (CR, LF, CRLF)
+; Purpose:
+;
+; -- Checking if we can go back in lines ...
+;
+; -- Check READF procedure with different end-of-line characters (CR, LF, CRLF)
 ; @2010/06/14 : issue with lines ended with CR character
+;
+;
+; see also "TEST_BUG_3244840" in "TEST_FORMAT", using 
+; unwritten temporary file and POINT_LUN
 ;
 ; --------------------------------------------
 ;
@@ -17,6 +25,55 @@
 ; EXIT, status=1
 ; ;
 ; end
+;
+; --------------------------------------------------------
+; http://sourceforge.net/p/gnudatalanguage/bugs/573/
+; playing with lines skipping
+;
+pro TEST_BUG_573, verbose=verbose, errors=errors, test=test
+;
+MESSAGE, /continue, 'running TEST_BUG_573'
+;
+if N_ELEMENTS(errors) EQ 0 then errors=0
+;
+filename='test_bug_573.tmp'
+;
+OPENW, nlun, filename, /get_lun;, /delete
+PRINTF, nlun, '234.123 231.2 54.3'
+PRINTF, nlun, '5432.4 543.'
+PRINTF, nlun, '33.4 444.22 3321.'
+CLOSE, nlun
+FREE_LUN, nlun
+
+;
+OPENR, unit, filename, /get_lun
+foo=DBLARR(5)
+READF,unit, foo
+READF,unit, foo2, foo3, foo4
+CLOSE, unit
+CLOSE, unit
+;
+; expected values
+exp2=33.4000
+exp3=444.220
+exp4=3321.00
+;
+if ((foo2 NE exp2) OR (foo3 NE exp3) OR (foo4 NE exp4)) then begin
+   errors++
+   MESSAGE, /continue, 'Failure in TEST_BUG_573'
+   if KEYWORD_SET(verbose) then begin
+      print, 'Expected: ', foo2, foo3, foo4
+      print, 'result  : ', exp2, exp3, exp4
+   endif
+endif else begin
+   MESSAGE, /continue, 'passing with success TEST_BUG_573'
+endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; --------------------------------------------------------
 ;
 pro MINIREREADF, filename
 ;
@@ -114,10 +171,12 @@ end
 ;
 ; --------------------------------------------
 ;
-pro TEST_READF, verbose=verbose, no_erase=no_erase, help=help
+pro TEST_READF, verbose=verbose, no_erase=no_erase, help=help, $
+                no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_READF, verbose=verbose, no_erase=no_erase, help=help'
+    print, 'pro TEST_READF, verbose=verbose, no_erase=no_erase, help=help, $'
+    print, '                no_exit=no_exit, test=test'
     return
 endif
 ;
@@ -133,6 +192,12 @@ TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='LF'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CRLF'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CR'
 ;
-if (errors GT 0) then EXIT, status=1
+TEST_BUG_573, verbose=verbose, errors=errors
+;
+if ~KEYWORD_SET(no_exit) then begin
+   if (errors GT 0) then EXIT, status=1
+endif
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
