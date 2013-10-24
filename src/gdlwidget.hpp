@@ -305,7 +305,7 @@ class GDLWidgetList : public GDLWidget
 {
 public:
   GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
-								 DLong xSize, DLong ySize, DLong style);
+		 DLong xSize, DLong ySize, DLong style);
 //   void SetSelectOff();
 };
 
