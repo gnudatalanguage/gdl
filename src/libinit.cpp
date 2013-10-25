@@ -581,6 +581,9 @@ void LibInit()
   //
   const string plotWarnKey[]= { "FONT","CHANNEL", KLISTEND };
   new DLibPro(lib::plot,string("PLOT"),2,plotKey,plotWarnKey);
+  new DLibPro(lib::plot_io,string("PLOT_IO"),2,plotKey,plotWarnKey);
+  new DLibPro(lib::plot_oo,string("PLOT_OO"),2,plotKey,plotWarnKey);
+  new DLibPro(lib::plot_oi,string("PLOT_OI"),2,plotKey,plotWarnKey);
 
   const string axisKey[]=
   {

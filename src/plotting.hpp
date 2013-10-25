@@ -107,6 +107,9 @@ namespace lib {
 
   // main plotting routine (all defined using the plotting_routine_call class)
   void plot( EnvT* e);
+  void plot_io( EnvT* e);
+  void plot_oo( EnvT* e);
+  void plot_oi( EnvT* e);
   void oplot( EnvT* e);
   void plots( EnvT* e);
   void surface( EnvT* e);
