@@ -346,13 +346,45 @@ void InitStructs()
   // insert into structList
   structList.push_back(widgbgroup);
 
-  DStructDesc* widgtxt = new DStructDesc( "WIDGET_TEXT");
-  widgtxt->AddTag("ID", &aLong);
-  widgtxt->AddTag("TOP", &aLong);
-  widgtxt->AddTag("HANDLER", &aLong);
-  widgtxt->AddTag("SELECT", &aLong);
+  DStructDesc* widgtxtc = new DStructDesc( "WIDGET_TEXT_CH");
+  widgtxtc->AddTag("ID", &aLong);
+  widgtxtc->AddTag("TOP", &aLong);
+  widgtxtc->AddTag("HANDLER", &aLong);
+  widgtxtc->AddTag("TYPE", &aInt); // 0
+  widgtxtc->AddTag("OFFSET", &aLong);
+  widgtxtc->AddTag("CH", &aByte);
   // insert into structList
-  structList.push_back( widgtxt);
+  structList.push_back( widgtxtc);
+
+  DStructDesc* widgtxtst = new DStructDesc( "WIDGET_TEXT_STR");
+  widgtxtst->AddTag("ID", &aLong);
+  widgtxtst->AddTag("TOP", &aLong);
+  widgtxtst->AddTag("HANDLER", &aLong);
+  widgtxtst->AddTag("TYPE", &aInt); // 1
+  widgtxtst->AddTag("OFFSET", &aLong);
+  widgtxtst->AddTag("STR", &aString);
+  // insert into structList
+  structList.push_back( widgtxtst);
+
+  DStructDesc* widgtxts = new DStructDesc( "WIDGET_TEXT_SEL");
+  widgtxts->AddTag("ID", &aLong);
+  widgtxts->AddTag("TOP", &aLong);
+  widgtxts->AddTag("HANDLER", &aLong);
+  widgtxts->AddTag("TYPE", &aInt); // 3
+  widgtxts->AddTag("OFFSET", &aLong);
+  widgtxts->AddTag("LENGTH", &aLong);
+  // insert into structList
+  structList.push_back( widgtxts);
+  
+  DStructDesc* widgtxtd = new DStructDesc( "WIDGET_TEXT_DEL");
+  widgtxtd->AddTag("ID", &aLong);
+  widgtxtd->AddTag("TOP", &aLong);
+  widgtxtd->AddTag("HANDLER", &aLong);
+  widgtxtd->AddTag("TYPE", &aInt); // 2
+  widgtxtd->AddTag("OFFSET", &aLong);
+  widgtxtd->AddTag("LENGTH", &aLong);
+  // insert into structList
+  structList.push_back( widgtxtd);
 
   DStructDesc* widgver = new DStructDesc( "WIDGET_VERSION");
   widgver->AddTag("STYLE", &aString);

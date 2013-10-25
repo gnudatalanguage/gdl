@@ -144,6 +144,8 @@ protected:
 public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
+  static void PushEvent( bool xmanActCom, DStructGDL* ev);
+
   static int HandleEvents();
   static const WidgetIDT NullID;
   
@@ -220,11 +222,14 @@ public:
   BaseGDL* GetUvalue() const { return uValue;}
   BaseGDL* GetVvalue() const { return vValue;}
 
+  void Realize( bool);
+
   // for query of children
   virtual bool IsBase() const { return false;} 
   virtual bool IsButton() const { return false;} 
+  virtual bool IsText() const { return false;} 
+  virtual bool IsDropList() const { return false;} 
 
-  virtual void Realize( bool) {} 
   virtual WidgetIDT GetChild( DLong) const {return NullID;};
   virtual DLong NChildren() const {return 0;};
   virtual void SetXmanagerActiveCommand() {};
@@ -295,12 +300,17 @@ public:
 // droplist widget **************************************************
 class GDLWidgetDropList: public GDLWidget
 {
+  std::string lastValue;
 public:
   //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
   //	     DString title, DLong xSize, DLong style);
   GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
 //   void SetSelectOff();
+  bool IsDropList() const { return true;} 
+
+  std::string SetLastValue( const std::string& v) { lastValue = v;}
+  const std::string& GetLastValue() const { return lastValue;}
 };
 
 // list widget **************************************************
@@ -330,11 +340,17 @@ public:
 // text widget **************************************************
 class GDLWidgetText: public GDLWidget
 {
+  std::string lastValue;
 public:
-  GDLWidgetText( WidgetIDT parentID, EnvT* e, DString value,
+  GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
  
-  void SetTextValue( DString);
+  void SetTextValue( DStringGDL* value, bool noNewLine);
+  
+  bool IsText() const { return true;} 
+  
+  std::string SetLastValue( const std::string& v) { lastValue = v;}
+  const std::string& GetLastValue() const { return lastValue;}
 };
 
 
@@ -475,6 +491,8 @@ public:
   void OnComboBox( wxCommandEvent& event);
   void OnListBox( wxCommandEvent& event);
   void OnListBoxDoubleClicked( wxCommandEvent& event);
+  void OnText( wxCommandEvent& event);
+  void OnTextEnter( wxCommandEvent& event);
 
 // private:
   // any class wishing to process wxWidgets events must use this macro

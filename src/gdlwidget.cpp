@@ -48,6 +48,8 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox)
   EVT_LISTBOX(wxID_ANY, GDLFrame::OnListBox)
   EVT_LISTBOX_DCLICK(wxID_ANY, GDLFrame::OnListBoxDoubleClicked)
+  EVT_TEXT(wxID_ANY, GDLFrame::OnText)
+  EVT_TEXT_ENTER(wxID_ANY, GDLFrame::OnTextEnter)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(GDLWindow, wxWindow)
@@ -460,6 +462,17 @@ GDLWidget::~GDLWidget()
   WidgetRemove( widgetID);
 }
 
+void GDLWidget::PushEvent( bool xmanActCom, DStructGDL* ev) 
+{
+  if( !xmanActCom)
+  {
+    eventQueue.push(ev);
+  }
+  else
+  {
+    readlineEventQueue.push( ev);
+  }
+}
 
 
 GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -588,7 +601,7 @@ DLong x_scroll_size, DLong y_scroll_size)
 
     if( modal)
       wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
-  }
+  }	
   wxMutexGuiLeave();
 }
 
@@ -621,14 +634,32 @@ GDLWidgetBase::~GDLWidgetBase()
   wxMutexGuiLeave();
 }
 
-void GDLWidgetBase::Realize( bool map)
+void GDLWidget::Realize( bool map)
 {
-  wxMutexGuiEnter();
+  if( parentID == NullID)
+  {
+    std::cout << "GDLWidget:Realize: " << this->widgetID << std::endl;
+    wxMutexGuiEnter();
 
-  GDLFrame *frame = (GDLFrame *) this->wxWidget;
-  bool stat = frame->Show( map);
+    GDLFrame *frame = static_cast<GDLFrame *>( this->wxWidget);
+    bool stat = frame->Show( map);
 
-  wxMutexGuiLeave();
+    wxMutexGuiLeave();
+  }
+  else
+  {
+    std::cout << "GDLWidget:Realize TLB of: " << this->widgetID << std::endl;
+    GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID);
+    assert( tlb != NULL);
+
+    wxMutexGuiEnter();
+
+    GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
+    bool stat = frame->Show( map);
+
+    wxMutexGuiLeave();
+    
+  }
 }
 
 
@@ -642,7 +673,6 @@ WidgetIDT GDLWidgetBase::GetChild( DLong childIx) const
   assert( childIx < children.size());
   return children[childIx];
 }
-
 
 // void  GDLWidgetBase::SetEventPro( DString eventPro)
 // {
@@ -953,9 +983,9 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 }
 
 
-GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DString value,
+GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine,
 	bool editable):
-  GDLWidget( p, e)
+  GDLWidget( p, e, true, valueStr)
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
   wxMutexGuiEnter();
@@ -966,6 +996,17 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DString value,
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
 
+    string value = "";
+    if( valueStr != NULL)
+    {
+	for( int i=0; i<valueStr->N_Elements(); ++i)
+	{
+	  value += (*valueStr)[i];
+	  if( !noNewLine && (i+1) < valueStr->N_Elements())
+	    value += '\n';
+	}
+    }
+    
     wxSize fontSize = wxNORMAL_FONT->GetPixelSize();      
     wxSize widgetSize = wxDefaultSize;
     if( xSize != widgetSize.x)
@@ -973,6 +1014,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DString value,
     if( ySize != widgetSize.y)
       widgetSize.y = ySize * fontSize.y;
     DLong style = editable ? 0 : wxTE_READONLY;
+     
     wxTextCtrl* text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
       wxPoint(xOffset,yOffset), widgetSize, style );
 
@@ -990,9 +1032,20 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DString value,
 }
 
 
-void GDLWidgetText::SetTextValue( DString value)
+void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
 {
+  delete vValue;
+  vValue = valueStr;
+  DString value = "";
+  for( int i=0; i<valueStr->N_Elements(); ++i)
+  {
+    value += (*valueStr)[ i];
+    if( !noNewLine && (i+1) < valueStr->N_Elements())
+      value += '\n';
+  }
+
   wxMutexGuiEnter();
+
   static_cast<wxTextCtrl*>(wxWidget)->SetValue( wxString( value.c_str(), wxConvUTF8));
   //  text->Refresh(); 
   //wxMilliSleep(700); 
@@ -1042,6 +1095,12 @@ GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
   //  std::cout << "in GDLFrame Constructor" << std::endl;
 }
 
+void GDLFrame::OnIdle( wxIdleEvent&)
+{
+  //std::cout << "In OnIdle" << std::endl;
+  // Refresh();
+}
+
 void GDLFrame::OnButton( wxCommandEvent& event)
 {
   // Called by EVT_BUTTON in EVENT_TABLE in gdlwidget.cpp
@@ -1062,14 +1121,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   widgbut->InitTag("HANDLER", DLongGDL( 0));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
-  if( xmanActCom == false)
-  {
-    GDLWidget::eventQueue.push(widgbut);
-  }
-  else
-  {
-    GDLWidget::readlineEventQueue.push( widgbut);
-  }
+  GDLWidget::PushEvent( xmanActCom, widgbut);
 }
 
 void GDLFrame::OnRadioButton( wxCommandEvent& event)
@@ -1098,14 +1150,8 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
     widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
     widgbut->InitTag("HANDLER", DLongGDL( 0));
     widgbut->InitTag("SELECT", DLongGDL( 0));
-    if( xmanActCom == false)
-    {
-      GDLWidget::eventQueue.push(widgbut);
-    }
-    else
-    {
-      GDLWidget::readlineEventQueue.push( widgbut);
-    }
+
+    GDLWidget::PushEvent( xmanActCom, widgbut);
   }
     
   // create GDL event struct
@@ -1118,14 +1164,7 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 
   gdlParentWidget->SetLastRadioSelection(event.GetId());
 
-  if( xmanActCom == false)
-  {
-    GDLWidget::eventQueue.push(widgbut);
-  }
-  else
-  {
-    GDLWidget::readlineEventQueue.push( widgbut);
-  }
+  GDLWidget::PushEvent( xmanActCom, widgbut);
 }
 
 void GDLFrame::OnCheckBox( wxCommandEvent& event)
@@ -1148,14 +1187,7 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
   widgbut->InitTag("HANDLER", DLongGDL( 0));
   widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
 
-  if( xmanActCom == false)
-  {
-    GDLWidget::eventQueue.push(widgbut);
-  }
-  else
-  {
-    GDLWidget::readlineEventQueue.push( widgbut);
-  }
+  GDLWidget::PushEvent( xmanActCom, widgbut);
 }
 
 void GDLFrame::OnComboBox( wxCommandEvent& event)
@@ -1184,7 +1216,7 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
     widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
     widgcbox->InitTag("HANDLER", DLongGDL( 0));
     widgcbox->InitTag("INDEX", DLongGDL( selectValue));
-    widgcbox->InitTag("STR", DStringGDL( strValue.c_str().AsChar()));
+    widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str()) ));
   }
   else
   {
@@ -1195,14 +1227,7 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
     widgcbox->InitTag("INDEX", DLongGDL( selectValue));   
   }
 
-  if( xmanActCom == false)
-  {
-    GDLWidget::eventQueue.push(widgcbox);
-  }
-  else
-  {
-    GDLWidget::readlineEventQueue.push( widgcbox);
-  }
+  GDLWidget::PushEvent( xmanActCom, widgcbox);
 }
 
 void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
@@ -1227,14 +1252,7 @@ void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
   widgcbox->InitTag("INDEX", DLongGDL( selectValue));
   widgcbox->InitTag("CLICKS", DLongGDL( clicks));
 
-  if( xmanActCom == false)
-  {
-    GDLWidget::eventQueue.push(widgcbox);
-  }
-  else
-  {
-    GDLWidget::readlineEventQueue.push( widgcbox);
-  }
+  GDLWidget::PushEvent( xmanActCom, widgcbox);
 }
 void GDLFrame::OnListBox( wxCommandEvent& event)
 {
@@ -1247,11 +1265,162 @@ void GDLFrame::OnListBoxDoubleClicked( wxCommandEvent& event)
   OnListBoxDo( event, 2);
 }
 
-void GDLFrame::OnIdle( wxIdleEvent&)
+void GDLFrame::OnText( wxCommandEvent& event)
 {
-  //std::cout << "In OnIdle" << std::endl;
-  // Refresh();
+  std::cout << "in OnText: " << event.GetId() << std::endl;
+
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
+
+  bool isModified;
+  long selStart, selEnd;
+  DLong offset;
+  std::string lastValue;
+  std::string newValue;
+  
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget->IsText())
+  {
+    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
+    // isModified = textCtrl->IsModified();
+    textCtrl->GetSelection( &selStart, &selEnd);
+    offset = textCtrl->GetInsertionPoint();
+    lastValue = static_cast<GDLWidgetText*>(widget)->GetLastValue();
+    newValue = textCtrl->GetValue().mb_str();
+    isModified = lastValue != newValue;
+    static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
+  }
+  else
+  {
+    assert( widget->IsDropList());
+    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
+    control->GetSelection( &selStart, &selEnd);
+    offset = control->GetInsertionPoint();    
+    lastValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
+    newValue = control->GetValue().mb_str();
+    isModified = lastValue != newValue;
+    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+  }
+
+  DStructGDL*  widg;
+  if( !isModified)
+  {
+    widg = new DStructGDL( "WIDGET_TEXT_SEL");
+    widg->InitTag("ID", DLongGDL( event.GetId()));
+    widg->InitTag("TOP", DLongGDL( baseWidgetID));
+    widg->InitTag("HANDLER", DLongGDL( 0));
+    widg->InitTag("TYPE", DIntGDL( 3)); // selection
+    widg->InitTag("OFFSET", DLongGDL( offset));
+    widg->InitTag("LENGTH", DLongGDL( selEnd-selStart));
+  }
+  else
+  {
+    int lenghtDiff = newValue.length() - lastValue.length();
+    if( lenghtDiff < 0) // deleted
+    {
+      widg = new DStructGDL( "WIDGET_TEXT_DEL");
+      widg->InitTag("ID", DLongGDL( event.GetId()));
+      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+      widg->InitTag("HANDLER", DLongGDL( 0));
+      widg->InitTag("TYPE", DIntGDL( 2)); // delete
+      widg->InitTag("OFFSET", DLongGDL( offset));
+      widg->InitTag("LENGTH", DLongGDL( -lenghtDiff));
+    }
+    else if( lenghtDiff == 0) // replace TODO: just flag the real change
+    {   
+      // 1st delete all
+      widg = new DStructGDL( "WIDGET_TEXT_DEL");
+      widg->InitTag("ID", DLongGDL( event.GetId()));
+      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+      widg->InitTag("HANDLER", DLongGDL( 0));
+      widg->InitTag("TYPE", DIntGDL( 2)); // delete
+      widg->InitTag("OFFSET", DLongGDL( 0));
+      widg->InitTag("LENGTH", DLongGDL( lastValue.length()));
+      
+      GDLWidget::PushEvent( xmanActCom, widg);
+
+      // 2nd insert new
+      widg = new DStructGDL( "WIDGET_TEXT_STR");
+      widg->InitTag("ID", DLongGDL( event.GetId()));
+      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+      widg->InitTag("HANDLER", DLongGDL( 0));
+      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
+      widg->InitTag("OFFSET", DLongGDL( 0));
+      widg->InitTag("STR", DStringGDL( newValue));
+    }
+    else if( lenghtDiff == 1)
+    {
+      widg = new DStructGDL( "WIDGET_TEXT_CH");
+      widg->InitTag("ID", DLongGDL( event.GetId()));
+      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+      widg->InitTag("HANDLER", DLongGDL( 0));
+      widg->InitTag("TYPE", DIntGDL( 0)); // single char
+      widg->InitTag("OFFSET", DLongGDL( offset));
+      widg->InitTag("CH", DByteGDL( newValue[offset]));
+    }
+    else // > 1
+    {
+      widg = new DStructGDL( "WIDGET_TEXT_STR");
+      widg->InitTag("ID", DLongGDL( event.GetId()));
+      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+      widg->InitTag("HANDLER", DLongGDL( 0));
+      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
+      widg->InitTag("OFFSET", DLongGDL( offset));
+      widg->InitTag("STR", DStringGDL( newValue.substr(offset,lenghtDiff)));
+    }
+  }
+  
+  GDLWidget::PushEvent( xmanActCom, widg);
 }
+
+void GDLFrame::OnTextEnter( wxCommandEvent& event)
+{
+  std::cout << "in OnTextEnter: " << event.GetId() << std::endl;
+
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+
+  // Get XmanagerActiveCommand status
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
+
+  DLong offset;
+  std::string newValue;
+
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget->IsText())
+  {
+    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
+    offset = textCtrl->GetInsertionPoint();
+    newValue = textCtrl->GetValue().mb_str();
+    static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
+  }
+  else
+  {
+    assert( widget->IsDropList());
+    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
+    offset = control->GetInsertionPoint();    
+    newValue = control->GetValue().mb_str();
+    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+  }
+  
+  // create GDL event struct
+  DStructGDL*  widg;
+  widg = new DStructGDL( "WIDGET_TEXT_CH");
+  widg->InitTag("ID", DLongGDL( event.GetId()));
+  widg->InitTag("TOP", DLongGDL( baseWidgetID));
+  widg->InitTag("HANDLER", DLongGDL( 0));
+  widg->InitTag("TYPE", DIntGDL( 0)); // single char
+  widg->InitTag("OFFSET", DLongGDL( offset));
+  widg->InitTag("CH", DByteGDL( '\n'));
+
+  GDLWidget::PushEvent( xmanActCom, widg);
+}
+
 
 
 // *** guiThread ***

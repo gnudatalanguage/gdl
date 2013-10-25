@@ -759,25 +759,28 @@ BaseGDL* widget_list( EnvT* e)
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-    DLong xsize = -1;
-    static int xsizeIx = e->KeywordIx( "XSIZE");
-    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
+    static int noNewLineIx = e->KeywordIx( "NO_NEWLINE");
+    bool noNewLine = e->KeywordSet(noNewLineIx);
 
+    DStringGDL* valueStr = NULL;
     static int valueIx = e->KeywordIx( "VALUE");
-    DString value = "";
-    e->AssureStringScalarKWIfPresent( valueIx, value);
-
-    static int uvalueIx = e->KeywordIx( "UVALUE");
-    BaseGDL* uvalue = e->GetKW( uvalueIx);
-    if( uvalue != NULL)
-      uvalue = uvalue->Dup();
-
+    BaseGDL* valueKW = e->GetKW( valueIx);
+    if( valueKW != NULL)
+    {
+      if( valueKW->Type() != GDL_STRING)
+	e->Throw("VALUE must be a STRING.");
+      valueStr = static_cast<DStringGDL*>(valueKW);
+      bool success = e->StealLocalKW(valueIx);
+      if( !success)
+	valueStr = valueStr->Dup();
+    }
+    
     DLong edit = 0;
     static int editableIx = e->KeywordIx("EDITABLE");
     e->AssureLongScalarKWIfPresent( editableIx, edit);
     bool editable = edit == 1;
 
-    GDLWidgetText* text = new GDLWidgetText( parentID, e, value, editable);
+    GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable);
     text->SetWidgetType( "TEXT");
 
     return new DLongGDL( text->WidgetID());
@@ -1250,11 +1253,23 @@ BaseGDL* widget_list( EnvT* e)
       }
 
       if ( wType == "TEXT") {
-	DString value = "";
-	e->AssureStringScalarKWIfPresent( setvalueIx, value);
-	//	std::cout << "settextvalue: " << value.c_str() << std::endl;
-	GDLWidgetText *textWidget = ( GDLWidgetText *) widget;
-	textWidget->SetTextValue( value);
+	static int noNewLineIx = e->KeywordIx( "NO_NEWLINE");
+	bool noNewLine = e->KeywordSet(noNewLineIx);
+
+	BaseGDL* valueKW = e->GetKW( setvalueIx);
+	DStringGDL* valueStr = NULL;
+	if( valueKW != NULL)
+	{
+	  if( valueKW->Type() != GDL_STRING)
+	    e->Throw("VALUE must be a STRING for WIDGET_TEXT.");
+	  valueStr = static_cast<DStringGDL*>(valueKW);
+	  bool success = e->StealLocalKW(setvalueIx);
+	  if( !success)
+	    valueStr = valueStr->Dup();
+
+	  GDLWidgetText *textWidget = ( GDLWidgetText *) widget;
+	  textWidget->SetTextValue( valueStr, noNewLine);
+	}
       }
 
       if ( wType == "LABEL") {
@@ -1293,16 +1308,55 @@ BaseGDL* widget_list( EnvT* e)
 	// "Regular" getvalue
 // 	BaseGDL** valueKW = &e->GetKW( getvalueIx);
 // 	GDLDelete((*valueKW));
-
-	*valueKW = widget->GetVvalue();
-	if ( *valueKW != NULL) {
-	  if( (*valueKW)->Type() == GDL_STRING)
-	    *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
-	  if( (*valueKW)->Type() == GDL_LONG)
-	    *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
-	} else {
-	  DLongGDL* res = new DLongGDL( 0);
-	  *valueKW = res;
+	DString wType = widget->GetWidgetType();
+	if( widget->IsText() || widget->IsDropList())
+	{
+	  string rawValue;
+	  if( widget->IsText())
+	    rawValue = static_cast<GDLWidgetText*>(widget)->GetLastValue();
+	  else
+	    rawValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
+	  if( rawValue.length() == 0)
+	  {
+	    *valueKW = new DStringGDL(dimension(1));
+	  }
+	  else
+	  {
+	    vector<DString> strArr;
+	    strArr.reserve(rawValue.length());
+	    string actStr = "";
+	    for( int i=0; i<rawValue.length(); ++i)
+	    {
+		if( rawValue[i] != '\n')
+		  actStr += rawValue[i];
+		else
+		{
+		  strArr.push_back( actStr);
+		  actStr.clear();
+		}
+	    }
+	    DStringGDL* valueStr = new DStringGDL( dimension(strArr.size()));
+	    for( int i=0; i<strArr.size(); ++i)
+	    {
+	      (*valueStr)[i] = strArr[i];
+	    }
+	    *valueKW = valueStr;
+	  }
+	}	  
+	else
+	{
+	  *valueKW = widget->GetVvalue();
+	  if ( *valueKW != NULL) 
+	  {
+	    if( (*valueKW)->Type() == GDL_STRING)
+	      *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
+	    if( (*valueKW)->Type() == GDL_LONG)
+	      *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
+	  } 
+	  else 
+	  {
+	    *valueKW = new DLongGDL( 0);
+	  }
 	}
       }
     }
