@@ -37,16 +37,19 @@ int GDLEventHandler()
 {
   GraphicsDevice::HandleEvents();
 
-  int res =0;
 #ifdef HAVE_LIBWXWIDGETS
-  res = GDLWidget::HandleEvents();
+  int res = GDLWidget::HandleEvents();
+  const long OS_X_DELAY_NS = 5000000; // 5ms
+#else
+  int res =0;
+  const long OS_X_DELAY_NS = 20000000; // 20ms
 #endif
 
 #ifdef __APPLE__
   // under OS X the event loop burns to much CPU time
   struct timespec delay;
   delay.tv_sec=0;
-  delay.tv_nsec = 20000000; // 20ms
+  delay.tv_nsec = OS_X_DELAY_NS; // 20ms
   nanosleep(&delay,NULL);
 #endif
 

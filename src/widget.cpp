@@ -1008,9 +1008,9 @@ BaseGDL* widget_list( EnvT* e)
 	int res = GDLEventHandler();
 
 	// the polling event handler
-	if( !GDLWidget::eventQueue.empty())
+	if( (ev = GDLWidget::eventQueue.Pop()) != NULL)
 	{
-	  ev = GDLWidget::eventQueue.pop();
+// 	  ev = GDLWidget::eventQueue.Pop();
 
 	  id = (*static_cast<DLongGDL*>
 		  (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
@@ -1018,8 +1018,6 @@ BaseGDL* widget_list( EnvT* e)
 		  (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
 // 	  handler = (*static_cast<DLongGDL*>
 // 		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
-// 	  select = (*static_cast<DLongGDL*>
-// 		      (ev->GetTag(ev->Desc()->TagIndex("SELECT"), 0)))[0];
 	  break;
 	}
 	

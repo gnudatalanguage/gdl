@@ -37,51 +37,36 @@ class GDLEventQueue
 {
 private:
   std::deque<DStructGDL*> dq;
-  bool isEmpty;
   wxMutex mutex;
 public:
   GDLEventQueue()
-  : isEmpty( true)
   {}
   
-  DStructGDL* pop()
+  DStructGDL* Pop()
   {
-    mutex.Lock();
+    wxMutexLocker lock( mutex);
+    if( dq.empty()) 
+      return NULL;   
     DStructGDL* front = dq.front();
     dq.pop_front();
-    isEmpty = dq.empty();
-    mutex.Unlock();
     return front;
   }
-  void push( DStructGDL* w)
+  void Push( DStructGDL* ev)
   {
-    mutex.Lock();
-    dq.push_back( w);
-    isEmpty = false;
-    mutex.Unlock();    
+    wxMutexLocker lock( mutex);
+    dq.push_back( ev);
   }
-  bool empty() const 
-  { 
-    return isEmpty;    
-  }
+// Not good: between call of Empty and Pop another thread's Pop could be executed
+//           -> Empty is useless (dangerous) for polling
+// although: as used here (there is only one thread calling Pop) it would work
+//   bool Empty() const
+//   { 
+//     return isEmpty;    
+//   }
+  void Purge();
 };
-// class GDLEventQueuePolledGuard
-// {
-//   GDLEventQueue* eq;
-//   bool polledIn;
-//   
-// public:
-//   GDLEventQueuePolledGuard(GDLEventQueue* e)
-//   : eq( e)
-//   , polledIn( e->GetIsPolled())
-//   {
-//     eq->SetIsPolled( true);
-//   }
-//   ~GDLEventQueuePolledGuard()
-//   {
-//     eq->SetIsPolled( polledIn);
-//   }
-// };
+
+
 
 class GDLGUIThread : public wxThread
 {
@@ -144,7 +129,7 @@ protected:
 public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
-  static void PushEvent( bool xmanActCom, DStructGDL* ev);
+  static void PushEvent(  WidgetIDT baseWidgetID, DStructGDL* ev);
 
   static int HandleEvents();
   static const WidgetIDT NullID;
@@ -175,7 +160,6 @@ protected:
   bool         buttonSet;
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
-  wxSizer*     topWidgetSizer;
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
@@ -227,9 +211,10 @@ public:
   // for query of children
   virtual bool IsBase() const { return false;} 
   virtual bool IsButton() const { return false;} 
-  virtual bool IsText() const { return false;} 
   virtual bool IsDropList() const { return false;} 
-
+  virtual bool IsTab() { return false;}
+  virtual bool IsText() const { return false;} 
+  
   virtual WidgetIDT GetChild( DLong) const {return NullID;};
   virtual DLong NChildren() const {return 0;};
   virtual void SetXmanagerActiveCommand() {};
@@ -301,6 +286,7 @@ public:
 class GDLWidgetDropList: public GDLWidget
 {
   std::string lastValue;
+  wxMutex m_mutex;
 public:
   //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
   //	     DString title, DLong xSize, DLong style);
@@ -309,8 +295,8 @@ public:
 //   void SetSelectOff();
   bool IsDropList() const { return true;} 
 
-  std::string SetLastValue( const std::string& v) { lastValue = v;}
-  const std::string& GetLastValue() const { return lastValue;}
+  void SetLastValue( const std::string& v) { m_mutex.Lock(); lastValue = v; m_mutex.Unlock();}
+  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
 };
 
 // list widget **************************************************
@@ -341,6 +327,7 @@ public:
 class GDLWidgetText: public GDLWidget
 {
   std::string lastValue;
+  wxMutex m_mutex;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
@@ -349,8 +336,8 @@ public:
   
   bool IsText() const { return true;} 
   
-  std::string SetLastValue( const std::string& v) { lastValue = v;}
-  const std::string& GetLastValue() const { return lastValue;}
+  void SetLastValue( const std::string& v) { m_mutex.Lock(); lastValue = v; m_mutex.Unlock();}
+  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
 };
 
 
@@ -447,7 +434,6 @@ public:
 
 
 
-// draw widget **************************************************
 class GDLWidgetDraw: public GDLWidget
 {
   int pstreamIx;
@@ -456,7 +442,7 @@ public:
   GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
 		  DLong x_scroll_size, DLong y_scroll_size);
 
-  virtual ~GDLWidgetDraw();
+  ~GDLWidgetDraw();
 
 };
 
@@ -472,7 +458,21 @@ public:
   }
 };
 
+// tab widget **************************************************
+class GDLWidgetTab: public GDLWidget
+{
+public:
+  GDLWidgetTab( WidgetIDT parentID, EnvT* e, DLong location, DLong multiline);
 
+  ~GDLWidgetTab();
+  
+  bool IsTab() { return true;}
+};
+
+
+
+// GDL versions of wxWidgets controls =======================================
+class wxNotebookEvent;
 class GDLFrame : public wxFrame
 {
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
@@ -493,6 +493,7 @@ public:
   void OnListBoxDoubleClicked( wxCommandEvent& event);
   void OnText( wxCommandEvent& event);
   void OnTextEnter( wxCommandEvent& event);
+  void OnPageChanged( wxNotebookEvent& event);
 
 // private:
   // any class wishing to process wxWidgets events must use this macro
