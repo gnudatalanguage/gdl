@@ -356,6 +356,10 @@ void LibInit_jmg()
   const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"ALL_EVENTS","CONTEXT_EVENTS","EDITABLE","FONT","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","NO_NEWLINE","RESOURCE_NAME","TAB_MODE","TRACKING_EVENTS","VALUE","WRAP",KLISTEND};
   new DLibFunRetNew(lib::widget_label,string("WIDGET_LABEL"),1,widget_labelKey);
 
+  const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MULTILINE","LOCATION","TAB_MODE","TRACKING_EVENTS", KLISTEND};
+  new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey);
+
+  
   const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK","CHILD","VERSION",
 				   KLISTEND};
   new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);

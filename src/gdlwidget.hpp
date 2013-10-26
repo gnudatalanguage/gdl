@@ -70,15 +70,15 @@ public:
 
 class GDLGUIThread : public wxThread
 {
-  bool exited;
+//   bool exited;
   
 public:
-  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE)
-  , exited(false)
+  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
+//   , exited(false)
   {};
   ~GDLGUIThread();
 
-  bool Exited() const { return exited;}
+//   bool Exited() const { return exited;}
 
   // thread execution starts here
   ExitCode Entry();
@@ -96,8 +96,59 @@ class GDLWidget;
 
 // global widget list type
 typedef DLong                       WidgetIDT;
-typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
+// typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 // typedef std::deque<DStructGDL*> EventQueueT;
+
+class WidgetListT
+{
+public:
+  typedef std::map<WidgetIDT, GDLWidget*> mapT;
+  typedef mapT::iterator iterator;
+  typedef mapT::size_type size_type;
+  typedef WidgetIDT key_type;
+  typedef GDLWidget* mapped_type;
+  typedef std::pair<const key_type,mapped_type> value_type;
+
+private:
+  mapT map;
+  wxMutex m_mutex;
+
+public:
+  WidgetListT(): map() {}
+  ~WidgetListT() {}
+  
+  void erase (iterator position) 
+  { 
+    wxMutexLocker lock(m_mutex);
+    map.erase(position);
+  }
+  size_type erase (const key_type& k) 
+  { 
+    wxMutexLocker lock(m_mutex);
+    return map.erase(k);
+  }
+  iterator find (const key_type& k) 
+  { 
+    wxMutexLocker lock(m_mutex);
+    return map.find(k);
+  }
+  iterator begin() 
+  { 
+    wxMutexLocker lock(m_mutex);
+    return map.begin();
+  }
+  iterator end() 
+  { 
+    wxMutexLocker lock(m_mutex);
+    return map.end();
+  }
+
+  iterator insert (iterator position, value_type val) 
+  { 
+    wxMutexLocker lock(m_mutex);
+    return map.insert( position, val);    
+  }
+};
 
 
 // main App class

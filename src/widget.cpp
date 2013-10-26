@@ -479,8 +479,8 @@ namespace lib {
 	  e->Throw( "Invalid widget identifier: "+i2s(parentID));
 	
 // 	GDLWidgetBase* bp = dynamic_cast< GDLWidgetBase*>( p);
-	if( !p->IsBase())
-	  e->Throw( "Parent must be a WIDGET_BASE.");
+	if( !p->IsBase() && !p->IsTab())
+	  e->Throw( "Parent must be a WIDGET_BASE or WIDGET_TAB.");
       }
     //...
 
@@ -745,7 +745,34 @@ BaseGDL* widget_list( EnvT* e)
 #endif
   }
 
+ 
+  BaseGDL* widget_tab( EnvT* e)
+  {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
+#else
+    SizeT nParam=e->NParam(1);
 
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    DLong multiline = 0;
+    static int multilineIx = e->KeywordIx( "MULTILINE");
+    e->AssureLongScalarKWIfPresent( multilineIx, multiline);
+
+    DLong location = 0;
+    static int locationIx = e->KeywordIx( "LOCATION");
+    e->AssureLongScalarKWIfPresent( locationIx, location);
+
+    GDLWidgetTab* tab = new GDLWidgetTab( parentID, e, location, multiline);
+    tab->SetWidgetType( "TAB");
+
+    return new DLongGDL( tab->WidgetID());
+#endif
+  }
+  
   // WIDGET_TEXT
   BaseGDL* widget_text( EnvT* e)
   {

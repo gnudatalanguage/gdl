@@ -71,7 +71,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
 
   wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
   parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
-  parentSizer->SetSizeHints( wxParent); 
+//   parentSizer->SetSizeHints( wxParent); 
  
   wxMutexGuiLeave();
 

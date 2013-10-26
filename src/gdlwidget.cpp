@@ -405,14 +405,32 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   
 void GDLWidget::Realize( bool map)
 {
+  if (gdlGUIThread != NULL)
+  {
+    gdlGUIThread->Delete();
+    std::cout << "GDLWidget:Realize: Deleted thread: " << gdlGUIThread << std::endl;
+  }
+//   if (gdlGUIThread != NULL)
+//   {
+//     if( !gdlGUIThread->Exited() && gdlGUIThread->IsAlive())
+//     {
+// #ifdef GDL_DEBUG_WIDGETS
+//     std::cout << "gdlGUIThread->Pause(): " << gdlGUIThread << std::endl;
+// #endif    
+//       gdlGUIThread->Pause();
+//     }
+//   }
   if( parentID == NullID)
   {
     assert( this->IsBase());
     std::cout << "GDLWidget:Realize: " << this->widgetID << std::endl;
 
+    GDLFrame *frame = static_cast<GDLFrame *>( this->wxWidget);
+
     wxMutexGuiEnter();
 
-    GDLFrame *frame = static_cast<GDLFrame *>( this->wxWidget);
+    widgetSizer->SetSizeHints(frame);
+    std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
     bool stat = frame->Show( map);
 
     wxMutexGuiLeave();
@@ -423,33 +441,45 @@ void GDLWidget::Realize( bool map)
     GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID);
     assert( tlb != NULL);
 
+    GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
+
     wxMutexGuiEnter();
 
-    GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
+    widgetSizer->SetSizeHints(frame);
+    std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
     bool stat = frame->Show( map);
 
     wxMutexGuiLeave();  
   }
   
-  if (gdlGUIThread != NULL)
-  {
-#ifdef GDL_DEBUG_WIDGETS
-    std::cout << "gdlGUIThread: " << gdlGUIThread << std::endl;
-#endif    
-    if( gdlGUIThread->Exited() || !gdlGUIThread->IsAlive())
-    {
-#ifdef GDL_DEBUG_WIDGETS
-    std::cout << "gdlGUIThread->Wait(): " << gdlGUIThread << std::endl;
-#endif    
-      gdlGUIThread->Wait();
+  // start GUI thread
 
-      delete gdlGUIThread;
-      gdlGUIThread = NULL;
-
-      eventQueue.Purge();
-      readlineEventQueue.Purge();      
-    }
-  }
+//   if (gdlGUIThread != NULL)
+//   {
+// #ifdef GDL_DEBUG_WIDGETS
+//     std::cout << "gdlGUIThread: " << gdlGUIThread << std::endl;
+// #endif    
+//     if( gdlGUIThread->Exited() || !gdlGUIThread->IsAlive())
+//     {
+// #ifdef GDL_DEBUG_WIDGETS
+//     std::cout << "gdlGUIThread->Wait(): " << gdlGUIThread << std::endl;
+// #endif    
+//       gdlGUIThread->Wait();
+// 
+//       delete gdlGUIThread;
+//       gdlGUIThread = NULL;
+// 
+//       eventQueue.Purge();
+//       readlineEventQueue.Purge();      
+//     }
+//     else
+//     {
+//       gdlGUIThread->Resume();
+// #ifdef GDL_DEBUG_WIDGETS
+//     std::cout << "gdlGUIThread->Resume(): " << gdlGUIThread << std::endl;
+// #endif    
+//     }
+//   }
   if (gdlGUIThread == NULL)
   {
 //       gdlGUIThread->Exit(); // delete itself
@@ -462,7 +492,12 @@ void GDLWidget::Realize( bool map)
 #endif    
   
     gdlGUIThread->Create();
-    gdlGUIThread->Run();
+    if ( gdlGUIThread->Run() != wxTHREAD_NO_ERROR )
+    {
+//       delete gdlGUIThread;
+      gdlGUIThread = NULL;
+      throw GDLException("Failed to create GUI thread.");
+    }
   }
 }
 
@@ -590,7 +625,7 @@ DLong x_scroll_size, DLong y_scroll_size)
       panel->SetSizer( sizer);
       
       wxParent->AddPage(panel,wxString(title_.c_str(), wxConvUTF8));
-      parentSizer->SetSizeHints( wxParent);
+//       parentSizer->SetSizeHints( wxParent);
     }
     else
     {
@@ -615,8 +650,8 @@ DLong x_scroll_size, DLong y_scroll_size)
 	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
       else
 	wxWidget = wxParent;
-      if ( wxParent != NULL) 
-	parentSizer->SetSizeHints( wxParent);
+//       if ( wxParent != NULL) 
+// 	parentSizer->SetSizeHints( wxParent);
     }
   }	
   wxMutexGuiLeave();
@@ -695,12 +730,12 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
 					  style);
   this->wxWidget = notebook;
 
-  wxSizer *boxSizer = gdlParent->GetSizer();
-  boxSizer->Add( notebook, 0, wxEXPAND | wxALL, 5);
+  widgetSizer = gdlParent->GetSizer();
+  widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, 5);
 
-  if ( wxParent != NULL) {
-      boxSizer->SetSizeHints( wxParent);
-  }
+//   if ( wxParent != NULL) {
+//       widgetSizer->SetSizeHints( wxParent);
+//   }
 
   wxMutexGuiLeave();  
 }
@@ -787,10 +822,10 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
       }
 
       wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
-      if ( wxParent != NULL) {
-	//      std::cout << "SetSizeHints: " << wxParent << std::endl;
-	boxSizer->SetSizeHints( wxParent);
-      }
+//       if ( wxParent != NULL) {
+// 	//      std::cout << "SetSizeHints: " << wxParent << std::endl;
+// 	boxSizer->SetSizeHints( wxParent);
+//       }
     } // GetMap()
   }
 
@@ -886,9 +921,9 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
                    0,                // make vertically unstretchable
                    wxALIGN_CENTER ); // no border and centre horizontally
 
-    if ( wxParent != NULL) {
-        boxSizer->SetSizeHints( wxParent);
-    }
+//     if ( wxParent != NULL) {
+//         boxSizer->SetSizeHints( wxParent);
+//     }
     wxMutexGuiLeave();
 }
 
@@ -923,9 +958,9 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     wxSizer *boxSizer = gdlParent->GetSizer();
     boxSizer->Add( list, 0, wxEXPAND | wxALL, 5);
 
-    if ( wxParent != NULL) {
-        boxSizer->SetSizeHints( wxParent);
-    }
+//     if ( wxParent != NULL) {
+//         boxSizer->SetSizeHints( wxParent);
+//     }
     wxMutexGuiLeave();
 }
 
@@ -960,10 +995,10 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
     wxSizer *boxSizer = gdlParent->GetSizer();
     boxSizer->Add( combo, 0, wxEXPAND | wxALL, 5);
 
-    if ( wxParent != NULL) {
-      //      std::cout << "SetSizeHints: " << wxParent << std::endl;
-      boxSizer->SetSizeHints( wxParent);
-    }
+//     if ( wxParent != NULL) {
+//       //      std::cout << "SetSizeHints: " << wxParent << std::endl;
+//       boxSizer->SetSizeHints( wxParent);
+//     }
     
     this->wxWidget = combo;
   } // GetMap()
@@ -1014,12 +1049,9 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
   boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
 
-  if ( wxParent != NULL) {
-    std::cout << "SetSizeHints: " << wxParent << std::endl;
-    boxSizer->SetSizeHints( wxParent);
-    std::cout << "SetSizeHints: " << wxParent << std::endl;
-    boxSizer->SetSizeHints( wxParent);
-  }
+//   if ( wxParent != NULL) {
+//     boxSizer->SetSizeHints( wxParent);
+//   }
 
   wxMutexGuiLeave();
 }
@@ -1065,9 +1097,9 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
   wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
   boxSizer->Add( label, 0, wxEXPAND | wxALL, 5);
 
-  if ( wxParent != NULL) {
-    boxSizer->SetSizeHints( wxParent);
-  }
+//   if ( wxParent != NULL) {
+//     boxSizer->SetSizeHints( wxParent);
+//   }
   wxMutexGuiLeave();
 }
 
@@ -1296,8 +1328,8 @@ void GDLFrame::OnText( wxCommandEvent& event)
   }
   else
   {
-    int lenghtDiff = newValue.length() - lastValue.length();
-    if( lenghtDiff < 0) // deleted
+    int lengthDiff = newValue.length() - lastValue.length();
+    if( lengthDiff < 0) // deleted
     {
       widg = new DStructGDL( "WIDGET_TEXT_DEL");
       widg->InitTag("ID", DLongGDL( event.GetId()));
@@ -1305,9 +1337,9 @@ void GDLFrame::OnText( wxCommandEvent& event)
       widg->InitTag("HANDLER", DLongGDL( 0));
       widg->InitTag("TYPE", DIntGDL( 2)); // delete
       widg->InitTag("OFFSET", DLongGDL( offset-1));
-      widg->InitTag("LENGTH", DLongGDL( -lenghtDiff));
+      widg->InitTag("LENGTH", DLongGDL( -lengthDiff));
     }
-    else if( lenghtDiff == 0) // replace TODO: just flag the real change
+    else if( lengthDiff == 0) // replace TODO: just flag the real change
     {   
       // 1st delete all
       widg = new DStructGDL( "WIDGET_TEXT_DEL");
@@ -1329,7 +1361,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
       widg->InitTag("OFFSET", DLongGDL( 0));
       widg->InitTag("STR", DStringGDL( newValue));
     }
-    else if( lenghtDiff == 1)
+    else if( lengthDiff == 1)
     {
       widg = new DStructGDL( "WIDGET_TEXT_CH");
       widg->InitTag("ID", DLongGDL( event.GetId()));
@@ -1337,17 +1369,24 @@ void GDLFrame::OnText( wxCommandEvent& event)
       widg->InitTag("HANDLER", DLongGDL( 0));
       widg->InitTag("TYPE", DIntGDL( 0)); // single char
       widg->InitTag("OFFSET", DLongGDL( offset+1));
-      widg->InitTag("CH", DByteGDL( newValue[offset]));
+      widg->InitTag("CH", DByteGDL( newValue[offset<newValue.length()?offset:newValue.length()-1]));
     }
     else // > 1
     {
+      int nVLenght = newValue.length();
+      if( offset < lengthDiff)
+	lengthDiff = offset;
+      string str = "";
+      if( offset <= nVLenght && lengthDiff > 0)
+	str = newValue.substr(offset-lengthDiff,lengthDiff);
+      
       widg = new DStructGDL( "WIDGET_TEXT_STR");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
       widg->InitTag("HANDLER", DLongGDL( 0));
       widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
       widg->InitTag("OFFSET", DLongGDL( offset));
-      widg->InitTag("STR", DStringGDL( newValue.substr(offset-lenghtDiff,lenghtDiff)));
+      widg->InitTag("STR", DStringGDL( str));
     }
   }
   
@@ -1417,16 +1456,25 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 // *** guiThread ***
 wxThread::ExitCode GDLGUIThread::Entry()
 {
-  // Called from PthreadStart() in threadpsx.cpp (wxWidgets)
+    // Called from PthreadStart() in threadpsx.cpp (wxWidgets)
 
-  // gui loop
+    // gui loop
 
 //   std::cout << "In thread Entry()" << std::endl;
+    try {
+        wxTheApp->OnRun();
+        // Calls GDLApp::OnRun()
+    }
+    catch( exception& e)
+    {
+        cout << "GDLGUIThread::Entry(): Exception caught: " << e.what() << endl;
+    }
+    catch( ...)
+    {
+        cout << "GDLGUIThread::Entry(): Unknown exception caught." << endl;
+    }
 
-  wxTheApp->OnRun();
-  // Calls GDLApp::OnRun()
-
-  return NULL;
+    return NULL;
 }
 
 int GDLApp::OnRun()
@@ -1451,7 +1499,7 @@ int GDLApp::OnExit()
   //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
   if (gdlGUIThread != NULL)
   {
-     delete gdlGUIThread;
+//      delete gdlGUIThread;
      gdlGUIThread = NULL;
   }
 
@@ -1466,7 +1514,7 @@ void GDLGUIThread::OnExit()
   std::cout << "In guiThread::OnExit()." << std::endl;
   std::cout << "IsMainThread: " << wxIsMainThread() << std::endl;
 #endif
-  exited = true;
+  gdlGUIThread = NULL;
 }
 
 
@@ -1482,7 +1530,7 @@ void GDLGUIThread::OnExit()
 GDLGUIThread::~GDLGUIThread()
 {
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "In ~GDLGUIThread(). exited: " << exited << std::endl;
+    std::cout << "In ~GDLGUIThread(). exited." << std::endl;
 #endif
 }
 
