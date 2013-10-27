@@ -113,6 +113,7 @@ gdlpython.hpp
 gdlsvgstream.cpp
 gdlsvgstream.hpp
 gdlwidget.cpp
+gdlwidgeteventhandler.cpp
 gdlwidget.hpp
 gdlwidgetdraw.cpp
 gdlwinstream.cpp

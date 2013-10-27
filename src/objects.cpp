@@ -345,6 +345,15 @@ void InitStructs()
   // insert into structList
   structList.push_back( widgdtab);
 
+  DStructDesc* widgdsl = new DStructDesc( "WIDGET_SLIDER");
+  widgdsl->AddTag("ID", &aLong);
+  widgdsl->AddTag("TOP", &aLong);
+  widgdsl->AddTag("HANDLER", &aLong);
+  widgdsl->AddTag("VALUE", &aLong);
+  widgdsl->AddTag("DRAG", &aInt);
+  // insert into structList
+  structList.push_back( widgdsl);
+
   DStructDesc* widgbgroup =  new DStructDesc( "WIDGET_BGROUP");
   widgbgroup->AddTag("ID", &aLong);
   widgbgroup->AddTag("TOP", &aLong);

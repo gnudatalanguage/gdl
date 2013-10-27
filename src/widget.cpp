@@ -466,11 +466,13 @@ namespace lib {
 
     if( modal)
     {
-	static int group_leaderIx   = e->KeywordIx( "GROUP_LEADER");
+	static int group_leaderIx = e->KeywordIx( "GROUP_LEADER");
 	DLong groupLeader = 0;
 	e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader);
 	if( groupLeader == 0)
 	  e->Throw( "MODAL top level bases must have a group leader specified.");
+	if( parentID != 0)
+	  e->Throw( "Only top level bases can be MODAL.");
     }
     if( parentID != 0)
       { 
@@ -770,6 +772,48 @@ BaseGDL* widget_list( EnvT* e)
     tab->SetWidgetType( "TAB");
 
     return new DLongGDL( tab->WidgetID());
+#endif
+  }
+  
+  BaseGDL* widget_slider( EnvT* e)
+  {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
+#else
+    SizeT nParam=e->NParam(1);
+
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    DLong minimum = 0;
+    static int minimumIx = e->KeywordIx( "MINIMUM");
+    e->AssureLongScalarKWIfPresent( minimumIx, minimum);
+    DLong maximum = 0;
+    static int maximumIx = e->KeywordIx( "MAXIMUM");
+    e->AssureLongScalarKWIfPresent( maximumIx, maximum);
+
+    DLong value = minimum;
+    static int valueIx = e->KeywordIx( "VALUE");
+    e->AssureLongScalarKWIfPresent( valueIx, value);
+
+    static int dragIx = e->KeywordIx( "DRAG");
+    bool drag = e->KeywordSet( dragIx);
+    
+    static int verticalIx = e->KeywordIx( "VERTICAL");
+    bool vertical = e->KeywordSet( verticalIx);
+    
+    static int suppressValueIx = e->KeywordIx( "SUPPRESS_VALUE");
+    bool suppressValue = e->KeywordSet( suppressValueIx);
+    
+    GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e, 
+					     value, minimum, maximum, 
+					     vertical, 
+					     suppressValue);
+    sl->SetWidgetType( "SLIDER");
+
+    return new DLongGDL( sl->WidgetID());
 #endif
   }
   
@@ -1085,9 +1129,9 @@ BaseGDL* widget_list( EnvT* e)
       assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
       // Pause 50 millisecs then refresh widget 
 //       wxMilliSleep( 50); // (why?)
-      wxMutexGuiEnter();
+      GUIMutexLockerT gdlMutexGuiEnterLeave;
       static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
-      wxMutexGuiLeave();
+      gdlMutexGuiEnterLeave.Leave();
 
     } // outer while loop
 
@@ -1168,7 +1212,7 @@ BaseGDL* widget_list( EnvT* e)
     }
 
     if ( xmanActCom) {
-      cout << "Set xmanager active command: " << widgetID << endl;
+//       cout << "Set xmanager active command: " << widgetID << endl;
       widget->SetXmanagerActiveCommand();
     }
 

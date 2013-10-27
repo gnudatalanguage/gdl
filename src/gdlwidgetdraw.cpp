@@ -50,7 +50,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
   
   wxWindow *wxParent = NULL;
 
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
   // If parent base widget exists ....
   GDLWidget* gdlParent = GetWidget( parentID);
   wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
@@ -73,7 +73,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
   parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
 //   parentSizer->SetSizeHints( wxParent); 
  
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
 
   pstreamIx = gdlWindow->PStreamIx();
   if( pstreamIx != -1)

@@ -37,32 +37,10 @@
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
 
-#define GDL_DEBUG_WIDGETS
-
-
-BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
-  EVT_IDLE( GDLFrame::OnIdle)
-  EVT_MENU(wxID_ANY, GDLFrame::OnButton)
-  EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
-  EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
-  EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox)
-  EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox)
-  EVT_LISTBOX(wxID_ANY, GDLFrame::OnListBox)
-  EVT_LISTBOX_DCLICK(wxID_ANY, GDLFrame::OnListBoxDoubleClicked)
-  EVT_TEXT(wxID_ANY, GDLFrame::OnText)
-  EVT_TEXT_ENTER(wxID_ANY, GDLFrame::OnTextEnter)
-  EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, GDLFrame::OnPageChanged)
-END_EVENT_TABLE()
-
-BEGIN_EVENT_TABLE(GDLWindow, wxWindow)
-  EVT_PAINT(GDLWindow::OnPaint)
-//   EVT_SHOW(GDLWindow::OnShow)
-//   EVT_CLOSE(GDLWindow::OnClose)
-END_EVENT_TABLE()
-
-IMPLEMENT_APP_NO_MAIN( GDLApp)
 
 //#define GDL_DEBUG_WIDGETS
+
+
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -83,6 +61,34 @@ void GDLEventQueue::Purge()
 //   isEmpty = true;
 }
 
+
+wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel) 
+{
+  wxSizer* sizer = NULL;
+  if ( frameBox == 0) 
+  {
+    if ( row == 0) {
+      sizer = new wxBoxSizer( wxVERTICAL);
+    } else if ( row != 0 && col == 0) {
+      sizer = new wxBoxSizer( wxHORIZONTAL);
+    } else {
+      sizer = new wxFlexGridSizer( row, col, 0, 0);
+    }
+  } 
+  else 
+  {
+    if ( row == 0) {
+      wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
+      sizer = new wxStaticBoxSizer( box, wxVERTICAL);
+    } else if ( row != 0 && col == 0) {
+      wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
+      sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
+    } else {
+      sizer = new wxFlexGridSizer( row, col, 0, 0);
+    }
+  }
+  return sizer;
+}
 
 GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : wxWindow( parent, id, pos, size, style, name)
@@ -117,70 +123,13 @@ void GDLWindow::Update()
 {
   wxClientDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion() );
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
   wxWindow::Update();
 }
     
-void GDLWindow::OnPaint(wxPaintEvent& event)
-{
-    std::cout << "GDLWindow::OnPaint: " << this << std::endl;
 
-    wxPaintDC dc( this);
-    dc.SetDeviceClippingRegion( GetUpdateRegion() );
-//     wxMutexGuiEnter();
-    dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
-//     wxMutexGuiLeave();
-}
-// void GDLWindow::OnCreate(wxWindowCreateEvent& event)
-// {
-//   std::cout << "GDLWindow::OnCreate: " << this << std::endl;
-// }
-// void GDLWindow::OnDestroy(wxWindowDestroyEvent& event)
-// {
-//   std::cout << "GDLWindow::OnDestroy: " << this << std::endl;
-// }
-void GDLWindow::OnShow(wxShowEvent& event)
-{
-  std::cout << "GDLWindow::OnShow: " << this << std::endl;
-}
-void GDLWindow::OnClose(wxCloseEvent& event)
-{
-  std::cout << "GDLWindow::OnClose: " << this << std::endl;
-}
-
-
-
-
-
-wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel) 
-{
-  wxSizer* sizer = NULL;
-  if ( frameBox == 0) 
-  {
-    if ( row == 0) {
-      sizer = new wxBoxSizer( wxVERTICAL);
-    } else if ( row != 0 && col == 0) {
-      sizer = new wxBoxSizer( wxHORIZONTAL);
-    } else {
-      sizer = new wxFlexGridSizer( row, col, 0, 0);
-    }
-  } 
-  else 
-  {
-    if ( row == 0) {
-      wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
-      sizer = new wxStaticBoxSizer( box, wxVERTICAL);
-    } else if ( row != 0 && col == 0) {
-      wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T(""));
-      sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
-    } else {
-      sizer = new wxFlexGridSizer( row, col, 0, 0);
-    }
-  }
-  return sizer;
-}
 
 // removes a widget
 // (called from widget's destructor -> don't delete widget here)
@@ -303,15 +252,30 @@ int GDLWidget::HandleEvents()
       assert( dynamic_cast<GDLFrame*>(tlw->wxWidget) != NULL);
       // Pause 50 millisecs then refresh widget 
 //       wxMilliSleep( 50); // (why?)
-      wxMutexGuiEnter();
+      GUIMutexLockerT gdlMutexGuiEnterLeave;
       static_cast<GDLFrame*>(tlw->wxWidget)->Refresh();
-      wxMutexGuiLeave();
+      gdlMutexGuiEnterLeave.Leave();
     }
   }
   return res;
 }
 
-
+void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) 
+{
+  // Get XmanagerActiveCommand status
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  if( !xmanActCom)
+  {
+//     wxMessageOutputDebug().Printf("eventQueue.Push: %d\n",baseWidgetID);
+    eventQueue.Push(ev);
+  }
+  else
+  {
+//     wxMessageOutputDebug().Printf("readLineEventQueue.Push: %d\n",baseWidgetID);
+    readlineEventQueue.Push( ev);
+  }
+}
 //void GDLWidget::SetSizer( wxSizer *sizer)
 //{
 //  widgetSizer = sizer;
@@ -368,6 +332,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   , vValue( vV)
   , buttonSet(false)
   , exclusiveMode(0)
+  , topWidgetSizer(NULL)
   , widgetSizer(NULL)
   , widgetPanel(NULL)
   , managed( false)
@@ -397,7 +362,9 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
 
     widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( widgetID, this));
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
+//     GUIMutexLockerT gdlMutexGuiEnterLeave;
+    wxMessageOutputDebug().Printf("inserted: ID: %d  parentID: %d\n",widgetID,parentID);
+//     std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
 #endif
   }
 
@@ -405,11 +372,11 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   
 void GDLWidget::Realize( bool map)
 {
-  if (gdlGUIThread != NULL)
-  {
-    gdlGUIThread->Delete();
-    std::cout << "GDLWidget:Realize: Deleted thread: " << gdlGUIThread << std::endl;
-  }
+//   if (gdlGUIThread != NULL)
+//   {
+//     gdlGUIThread->Delete();
+//     std::cout << "GDLWidget:Realize: Deleted thread: " << gdlGUIThread << std::endl;
+//   }
 //   if (gdlGUIThread != NULL)
 //   {
 //     if( !gdlGUIThread->Exited() && gdlGUIThread->IsAlive())
@@ -423,33 +390,55 @@ void GDLWidget::Realize( bool map)
   if( parentID == NullID)
   {
     assert( this->IsBase());
-    std::cout << "GDLWidget:Realize: " << this->widgetID << std::endl;
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputDebug().Printf("GDLWidget:Realize: %d\n",this->widgetID);
+#endif
+    GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
 
-    GDLFrame *frame = static_cast<GDLFrame *>( this->wxWidget);
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
-    wxMutexGuiEnter();
+    topWidgetSizer->SetSizeHints(frame);
+//     frame->SetClientSize(widgetPanel->GetSize());
+//     frame->Layout();
+//     std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
+//   if (gdlGUIThread != NULL)
+//   {
+//     gdlGUIThread->Pause();
+//     std::cout << "GDLWidget:Realize: Paused thread: " << gdlGUIThread << std::endl;
+//   }
+    
+    
+    frame->SendShowRequestEvent( map);
+//     bool stat = frame->Show( map);
+    
+    
+//     frame->Thaw();
+//   if (gdlGUIThread != NULL)
+//   {
+//     gdlGUIThread->Resume();
+//     std::cout << "GDLWidget:Realize: Resumed thread: " << gdlGUIThread << std::endl;
+//   }
 
-    widgetSizer->SetSizeHints(frame);
-    std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
-    bool stat = frame->Show( map);
-
-    wxMutexGuiLeave();
+    gdlMutexGuiEnterLeave.Leave();
   }
   else
   {
-    std::cout << "GDLWidget:Realize TLB of: " << this->widgetID << std::endl;
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputDebug().Printf("GDLWidget:Realize TLB of: %d\n",this->widgetID);
+#endif
     GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID);
     assert( tlb != NULL);
 
     GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
 
-    wxMutexGuiEnter();
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
-    widgetSizer->SetSizeHints(frame);
-    std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
-    bool stat = frame->Show( map);
+    tlb->topWidgetSizer->SetSizeHints(frame);
+//     std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
+    frame->SendShowRequestEvent(map);
+//     bool stat = frame->Show( map);
 
-    wxMutexGuiLeave();  
+    gdlMutexGuiEnterLeave.Leave();  
   }
   
   // start GUI thread
@@ -519,20 +508,6 @@ GDLWidget::~GDLWidget()
   WidgetRemove( widgetID);
 }
 
-void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) 
-{
-  // Get XmanagerActiveCommand status
-  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
-  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
-  if( !xmanActCom)
-  {
-    eventQueue.Push(ev);
-  }
-  else
-  {
-    readlineEventQueue.Push( ev);
-  }
-}
 
 
 /*********************************************************/
@@ -572,12 +547,17 @@ DLong x_scroll_size, DLong y_scroll_size)
   {
     // obsolete: thread need to be created here (in realize it is too late)
 
-    wxMutexGuiEnter();
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
+//     if( modal) // ???
+// 	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
+//     else
     // GDLFrame is derived from wxFrame
-    GDLFrame *gdlFrame = new GDLFrame( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
+    wxString titleWxString = wxString( title_.c_str(), wxConvUTF8);
+    GDLFrame *gdlFrame = new GDLFrame( wxParent, widgetID, titleWxString);
     wxWidget = gdlFrame;
-
+//     gdlFrame->Freeze();
+    
     gdlFrame->SetSize( xSize, ySize);
 
     if( mbarID != 0)
@@ -593,6 +573,10 @@ DLong x_scroll_size, DLong y_scroll_size)
       gdlFrame->SetSize( xSize, ySize);
     }
 
+    wxSizer *topSizer = new wxBoxSizer( wxVERTICAL);
+    topWidgetSizer = topSizer;
+    gdlFrame->SetSizer( topSizer);
+
     wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY);
     widgetPanel = panel;
     //    std::cout << "Creating Panel: " << panel << std::endl;
@@ -600,8 +584,11 @@ DLong x_scroll_size, DLong y_scroll_size)
     wxSizer *sizer = GetNewSizer( col, row, frame, panel);
     widgetSizer = sizer;
 
+    
     //std::cout << "SetSizer: " << *sizerPtr << std::endl;
     panel->SetSizer( sizer);
+
+    topSizer->Add( panel);    
   } 
   else 
   {
@@ -609,7 +596,7 @@ DLong x_scroll_size, DLong y_scroll_size)
     GDLWidget* gdlParent = GetWidget( parentID);
     wxSizer* parentSizer = gdlParent->GetSizer();
     
-    wxMutexGuiEnter();
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
     if( gdlParent->IsTab())
     {
@@ -624,16 +611,21 @@ DLong x_scroll_size, DLong y_scroll_size)
       widgetSizer = sizer;
       panel->SetSizer( sizer);
       
-      wxParent->AddPage(panel,wxString(title_.c_str(), wxConvUTF8));
+      wxString titleWxString = wxString( title_.c_str(), wxConvUTF8);
+      wxParent->AddPage(panel,titleWxString);
 //       parentSizer->SetSizeHints( wxParent);
     }
     else
     {
       wxWindow* wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
 
-      wxPanel *panel = gdlParent->GetPanel();
+//       wxPanel *panel = gdlParent->GetPanel();
+//       widgetPanel = panel;
+//       //    std::cout << "Getting Panel: " << panel << std::endl;
+
+      wxPanel *panel = new wxPanel( wxParent, wxID_ANY);
       widgetPanel = panel;
-      //    std::cout << "Getting Panel: " << panel << std::endl;
+      wxWidget = panel;
 
       // If map is true check for parent map value
       if( mapWid) 
@@ -643,18 +635,16 @@ DLong x_scroll_size, DLong y_scroll_size)
       wxSizer *sizer = GetNewSizer( col, row, frame, panel);
       widgetSizer = sizer;
       //      std::cout << "Creating Sizer2: " << sizer << std::endl;
-    
-      parentSizer->Add( sizer, 0, wxEXPAND|wxALL, 5);
 
-      if( modal) // ???
-	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
-      else
-	wxWidget = wxParent;
+      panel->SetSizer( sizer);
+    
+      parentSizer->Add( panel, 0, wxEXPAND|wxALL, 5);
+
+//       wxWidget = panel;
 //       if ( wxParent != NULL) 
 // 	parentSizer->SetSizeHints( wxParent);
     }
   }	
-  wxMutexGuiLeave();
 }
 
 GDLWidgetBase::~GDLWidgetBase()
@@ -667,7 +657,7 @@ GDLWidgetBase::~GDLWidgetBase()
     delete GetWidget( children[i]);
   }
 
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   // Close widget frame
   if( this->parentID == 0)
@@ -679,8 +669,6 @@ GDLWidgetBase::~GDLWidgetBase()
     ((GDLFrame *) this->wxWidget)->Destroy();
     // delete wxWidget;
   }
-  
-  wxMutexGuiLeave();
 }
 
 
@@ -709,7 +697,7 @@ WidgetIDT GDLWidgetBase::GetChild( DLong childIx) const
 GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multiline)
 : GDLWidget( p, e)
 {
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
@@ -726,21 +714,52 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
   
   wxNotebook *notebook = new wxNotebook( panel, widgetID,
 					  wxPoint(xOffset,yOffset),
-					  wxSize( xSize, ySize),
+					  wxSize(xSize, ySize),
 					  style);
   this->wxWidget = notebook;
 
   widgetSizer = gdlParent->GetSizer();
   widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, 5);
-
-//   if ( wxParent != NULL) {
-//       widgetSizer->SetSizeHints( wxParent);
-//   }
-
-  wxMutexGuiLeave();  
 }
 
 GDLWidgetTab::~GDLWidgetTab()
+{}
+
+  
+
+/*********************************************************/
+// for WIDGET_SLIDER
+/*********************************************************/
+GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_, DLong minimum_, DLong maximum_, bool vertical, bool suppressValue)
+: GDLWidget( p, e)
+, value(value_)
+, minimum(minimum_)
+, maximum(maximum_)
+{
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
+
+  GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+
+  wxPanel *panel = gdlParent->GetPanel();
+
+  long style = wxSL_HORIZONTAL;
+  if( vertical)
+    style |= wxSL_VERTICAL;
+  if( !suppressValue)
+    style |= wxSL_LABELS;
+
+  wxSlider *slider = new wxSlider( panel, widgetID, value, minimum, maximum,
+				    wxPoint(xOffset,yOffset),
+				    wxSize(xSize, ySize),
+				    style);
+  this->wxWidget = slider;
+
+  widgetSizer = gdlParent->GetSizer();
+  widgetSizer->Add( slider, 0, wxEXPAND | wxALL, 5);
+}
+
+GDLWidgetSlider::~GDLWidgetSlider()
 {}
 
   
@@ -749,7 +768,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 				  const DString& value)
 : GDLWidget( p, e)
 {
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxObject *wxParentObject = gdlParent->WxWidget();
@@ -762,7 +781,8 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   {
 //     cout << "MenuBar: " << widgetID << endl;
     this->wxWidget = new wxMenu();
-    menuBar->Append( static_cast<wxMenu*>(this->wxWidget), wxString(value.c_str(), wxConvUTF8));
+  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+    menuBar->Append( static_cast<wxMenu*>(this->wxWidget), valueWxString);
   }
   else
   {
@@ -774,7 +794,8 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
 	// at destruction this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
 	// on wxWidgets < 2.9.5
-	wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, wxString(value.c_str(), wxConvUTF8));
+	wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+	wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString);
 	menu->Append( menuItem);
 	this->wxWidget = menuItem;
 // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
@@ -783,42 +804,46 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 //       cout << "Button: " << widgetID << endl;
       wxPanel *panel = gdlParent->GetPanel();
 
-      wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+      wxSizer *boxSizer = gdlParent->GetSizer();
 
       if ( gdlParent->GetExclusiveMode() == BGNORMAL) 
       {
-	wxButton *button = new wxButton( panel, widgetID, wxString(value.c_str(), wxConvUTF8),
+	wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+	wxButton *button = new wxButton( panel, widgetID, valueWxString,
 	  wxPoint(xOffset,yOffset));
 	boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = button;
-	cout << "wxButton: " << widgetID << endl;
+// 	cout << "wxButton: " << widgetID << endl;
       }
       else if ( gdlParent->GetExclusiveMode() == BGEXCLUSIVE1ST) 
       {
-	wxRadioButton *radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
+	wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+	wxRadioButton *radioButton = new wxRadioButton( panel, widgetID, valueWxString,
 					wxPoint(xOffset,yOffset), wxDefaultSize,
 					wxRB_GROUP);
 	gdlParent->SetExclusiveMode( 1);
 	static_cast<GDLWidgetBase*>(gdlParent)->SetLastRadioSelection( widgetID);
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
-	cout << "wxRadioButton1: " << widgetID << endl;
+// 	cout << "wxRadioButton1: " << widgetID << endl;
       } 
       else if ( gdlParent->GetExclusiveMode() == BGEXCLUSIVE) 
       {
-	wxRadioButton *radioButton = new wxRadioButton( panel, widgetID, wxString(value.c_str(), wxConvUTF8),
+	wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+	wxRadioButton *radioButton = new wxRadioButton( panel, widgetID, valueWxString,
 	  wxPoint(xOffset,yOffset));
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
-	cout << "wxRadioButton: " << widgetID << endl;
+// 	cout << "wxRadioButton: " << widgetID << endl;
       } 
       else if ( gdlParent->GetExclusiveMode() == BGNONEXCLUSIVE) 
       {
-	wxCheckBox *checkBox = new wxCheckBox( panel, widgetID, wxString(value.c_str(), wxConvUTF8),
+	wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+	wxCheckBox *checkBox = new wxCheckBox( panel, widgetID, valueWxString,
 	  wxPoint(xOffset,yOffset));
 	boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = checkBox;
-	cout << "wxCheckBox: " << widgetID << endl;
+// 	cout << "wxCheckBox: " << widgetID << endl;
       }
 
       wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
@@ -829,7 +854,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
     } // GetMap()
   }
 
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
 }
 
 
@@ -842,7 +867,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
                                 ):
     GDLWidget( p, NULL)
 {
-    wxMutexGuiEnter();
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
     wxWindow *wxParent = static_cast< wxWindow*>(
@@ -858,8 +883,9 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
     wxString *choices = new wxString[n];
     for( SizeT i=0; i<n; ++i) choices[i] = wxString((*names)[i].c_str(),wxConvUTF8);
 
+    wxString labeltopWxString = wxString( labeltop.c_str(), wxConvUTF8);
     wxStaticText* label = new wxStaticText( panel, widgetID,
-                                            wxString(labeltop.c_str(), wxConvUTF8),
+                                            labeltopWxString,
                                             wxPoint(10,10),
                                             wxDefaultSize, wxALIGN_CENTRE);
 
@@ -924,7 +950,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
 //     if ( wxParent != NULL) {
 //         boxSizer->SetSizeHints( wxParent);
 //     }
-    wxMutexGuiLeave();
+    gdlMutexGuiEnterLeave.Leave();
 }
 
 
@@ -932,7 +958,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     : GDLWidget( p, e, true, value)
 {
-    wxMutexGuiEnter();
+    GUIMutexLockerT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
     wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
@@ -961,7 +987,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
 //     if ( wxParent != NULL) {
 //         boxSizer->SetSizeHints( wxParent);
 //     }
-    wxMutexGuiLeave();
+    gdlMutexGuiEnterLeave.Leave();
 }
 
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
@@ -970,7 +996,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
     : GDLWidget( p, e, true, value)
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
@@ -989,7 +1015,8 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
     for( SizeT i=0; i<n; ++i) 
       choices.Add( wxString((*val)[i].c_str(), wxConvUTF8));
 
-    wxComboBox *combo = new wxComboBox( panel, widgetID, wxString((*val)[0].c_str(), wxConvUTF8),
+    wxString val0WxString = wxString( (*val)[0].c_str(), wxConvUTF8);
+    wxComboBox *combo = new wxComboBox( panel, widgetID, val0WxString,
 			    wxPoint(xOffset,yOffset), wxSize(xSize,ySize), choices, style);
 
     wxSizer *boxSizer = gdlParent->GetSizer();
@@ -1002,7 +1029,6 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
     
     this->wxWidget = combo;
   } // GetMap()
-  wxMutexGuiLeave();
 }
 
 
@@ -1011,14 +1037,14 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   GDLWidget( p, e, true, valueStr)
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
 
   wxPanel *panel = gdlParent->GetPanel();
 
-  string value = "";
+  DString value = "";
   if( valueStr != NULL)
   {
       for( int i=0; i<valueStr->N_Elements(); ++i)
@@ -1028,6 +1054,9 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
 	  value += '\n';
       }
   }
+  
+  // remember initial setting
+  lastValue = value;
   
   wxSize fontSize = wxNORMAL_FONT->GetPixelSize();      
   wxSize widgetSize = wxDefaultSize;
@@ -1042,7 +1071,8 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   if( ySize > 1)
     style |= wxTE_MULTILINE;
   
-  wxTextCtrl* text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
+  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+  wxTextCtrl* text = new wxTextCtrl( panel, widgetID, valueWxString,
     wxPoint(xOffset,yOffset), widgetSize, style );
   this->wxWidget = text;
 
@@ -1053,7 +1083,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
 //     boxSizer->SetSizeHints( wxParent);
 //   }
 
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
 }
 
 
@@ -1069,19 +1099,20 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
       value += '\n';
   }
 
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
 
-  static_cast<wxTextCtrl*>(wxWidget)->SetValue( wxString( value.c_str(), wxConvUTF8));
+  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+  static_cast<wxTextCtrl*>(wxWidget)->SetValue( valueWxString);
   static_cast<wxTextCtrl*>(wxWidget)->Refresh(); 
   //wxMilliSleep(700); 
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
  }
 
 
 GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
 : GDLWidget( p, e)
 {
-  wxMutexGuiEnter();
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
   //  std::cout << "In Label: " << widgetID << " " << p << std::endl;
 
   GDLWidget* gdlParent = GetWidget( p);
@@ -1089,8 +1120,9 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
   
   wxPanel *panel = gdlParent->GetPanel();
 
-//     wxSize fontSize = wxNORMAL_FONT->GetPixelSize();      
-  wxStaticText* label = new wxStaticText( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
+//     wxSize fontSize = wxNORMAL_FONT->GetPixelSize(); 
+  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+  wxStaticText* label = new wxStaticText( panel, widgetID, valueWxString,
 			      wxPoint(xOffset,yOffset), wxSize(xSize, ySize), wxALIGN_CENTRE);
   this->wxWidget = label;
 
@@ -1100,358 +1132,24 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
 //   if ( wxParent != NULL) {
 //     boxSizer->SetSizeHints( wxParent);
 //   }
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
 }
 
 void GDLWidgetLabel::SetLabelValue( DString value)
 {
-  wxMutexGuiEnter();
-  static_cast<wxStaticText*>(wxWidget)->SetLabel( wxString( value.c_str(), wxConvUTF8));
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+  static_cast<wxStaticText*>(wxWidget)->SetLabel( valueWxString);
   static_cast<wxStaticText*>(wxWidget)->Refresh(); 
-  wxMutexGuiLeave();
+  gdlMutexGuiEnterLeave.Leave();
  }
 
 // *** GDLFrame ***
 GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
-       : wxFrame(parent, id, title)
+: wxFrame(parent, id, title)
 {
-  //  std::cout << "in GDLFrame Constructor" << std::endl;
 }
 
-void GDLFrame::OnIdle( wxIdleEvent&)
-{
-  //std::cout << "In OnIdle" << std::endl;
-  // Refresh();
-}
-
-void GDLFrame::OnButton( wxCommandEvent& event)
-{
-  // Called by EVT_BUTTON in EVENT_TABLE in gdlwidget.cpp
-
-  std::cout << "in OnButton: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
-
-  // create GDL event struct
-  DStructGDL*  widgbut = new DStructGDL( "");
-  widgbut->InitTag("ID", DLongGDL( event.GetId()));
-  widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( 0));
-  widgbut->InitTag("SELECT", DLongGDL( 1));
-
-  GDLWidget::PushEvent( baseWidgetID, widgbut);
-}
-
-void GDLFrame::OnRadioButton( wxCommandEvent& event)
-{
-  std::cout << "in OnRadioButton: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-//   bool selectValue = event.IsSelection();
-//   int selectValue = event.GetSelection();
-
-  GDLWidgetBase* gdlParentWidget = static_cast<GDLWidgetBase*>(GDLWidget::GetParent( event.GetId()));
-  WidgetIDT lastSelection = gdlParentWidget->GetLastRadioSelection();
-  if( lastSelection != GDLWidget::NullID)
-  {
-    if( lastSelection == event.GetId())      
-      return;
-    // create GDL event struct
-    DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
-    widgbut->InitTag("ID", DLongGDL( lastSelection));
-    widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgbut->InitTag("HANDLER", DLongGDL( 0));
-    widgbut->InitTag("SELECT", DLongGDL( 0));
-
-    GDLWidget::PushEvent( baseWidgetID, widgbut);
-  }
-    
-  // create GDL event struct
-  DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
-  widgbut->InitTag("ID", DLongGDL( event.GetId()));
-  widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( 0));
-//   widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
-  widgbut->InitTag("SELECT", DLongGDL( 1));
-
-  gdlParentWidget->SetLastRadioSelection(event.GetId());
-
-  GDLWidget::PushEvent( baseWidgetID, widgbut);
-}
-
-void GDLFrame::OnCheckBox( wxCommandEvent& event)
-{
-  std::cout << "in OnCheckBox: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  bool selectValue = event.IsChecked();
-  
-  // create GDL event struct
-  DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
-  widgbut->InitTag("ID", DLongGDL( event.GetId()));
-  widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( 0));
-  widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
-
-  GDLWidget::PushEvent( baseWidgetID, widgbut);
-}
-
-void GDLFrame::OnComboBox( wxCommandEvent& event)
-{
-  std::cout << "in OnComboBox: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  int selectValue = event.GetSelection();
-  
-  bool dropList = false;
-  
-  // create GDL event struct
-  DStructGDL*  widgcbox;
-  if( !dropList)
-  {
-    wxString strValue = event.GetString();
-    
-    widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
-    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
-    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgcbox->InitTag("HANDLER", DLongGDL( 0));
-    widgcbox->InitTag("INDEX", DLongGDL( selectValue));
-    widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str()) ));
-  }
-  else
-  {
-    widgcbox = new DStructGDL( "WIDGET_DROPLIST");
-    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
-    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgcbox->InitTag("HANDLER", DLongGDL( 0));
-    widgcbox->InitTag("INDEX", DLongGDL( selectValue));   
-  }
-
-  GDLWidget::PushEvent( baseWidgetID, widgcbox);
-}
-
-void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
-{
-  std::cout << "in OnListBoxDo: " << event.GetId() << "  " << clicks << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  int selectValue = event.GetSelection();
-  
-  // create GDL event struct
-  DStructGDL*  widgcbox;
-  widgcbox = new DStructGDL( "WIDGET_LIST");
-  widgcbox->InitTag("ID", DLongGDL( event.GetId()));
-  widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgcbox->InitTag("HANDLER", DLongGDL( 0));
-  widgcbox->InitTag("INDEX", DLongGDL( selectValue));
-  widgcbox->InitTag("CLICKS", DLongGDL( clicks));
-
-  GDLWidget::PushEvent( baseWidgetID, widgcbox);
-}
-void GDLFrame::OnListBox( wxCommandEvent& event)
-{
-  OnListBoxDo( event, 1);
-}
-void GDLFrame::OnListBoxDoubleClicked( wxCommandEvent& event)
-{
-// Note: IDL sends one click AND two click event on double click  
-  OnListBoxDo( event, 1);
-  OnListBoxDo( event, 2);
-}
-
-void GDLFrame::OnText( wxCommandEvent& event)
-{
-  std::cout << "in OnText: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  bool isModified;
-  long selStart, selEnd;
-  DLong offset;
-  std::string lastValue;
-  std::string newValue;
-  
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
-  if( widget->IsText())
-  {
-    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
-    if( textCtrl == NULL)
-    {
-      event.Skip();
-      return; // happens on construction
-    }
-    // isModified = textCtrl->IsModified();
-    textCtrl->GetSelection( &selStart, &selEnd);
-    offset = textCtrl->GetInsertionPoint();
-    lastValue = static_cast<GDLWidgetText*>(widget)->GetLastValue();
-    newValue = textCtrl->GetValue().mb_str();
-    isModified = lastValue != newValue;
-    static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
-
-    textCtrl->Refresh();
-  }
-  else
-  {
-    assert( widget->IsDropList());
-    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
-    if( control == NULL)
-    {
-      event.Skip();
-      return; // happens on construction
-    }
-    control->GetSelection( &selStart, &selEnd);
-    offset = control->GetInsertionPoint();    
-    lastValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
-    newValue = control->GetValue().mb_str();
-    isModified = lastValue != newValue;
-    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
-
-    control->Refresh();
-  }
-
-  DStructGDL*  widg;
-  if( !isModified)
-  {
-    widg = new DStructGDL( "WIDGET_TEXT_SEL");
-    widg->InitTag("ID", DLongGDL( event.GetId()));
-    widg->InitTag("TOP", DLongGDL( baseWidgetID));
-    widg->InitTag("HANDLER", DLongGDL( 0));
-    widg->InitTag("TYPE", DIntGDL( 3)); // selection
-    widg->InitTag("OFFSET", DLongGDL( offset));
-    widg->InitTag("LENGTH", DLongGDL( selEnd-selStart));
-  }
-  else
-  {
-    int lengthDiff = newValue.length() - lastValue.length();
-    if( lengthDiff < 0) // deleted
-    {
-      widg = new DStructGDL( "WIDGET_TEXT_DEL");
-      widg->InitTag("ID", DLongGDL( event.GetId()));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( 0));
-      widg->InitTag("TYPE", DIntGDL( 2)); // delete
-      widg->InitTag("OFFSET", DLongGDL( offset-1));
-      widg->InitTag("LENGTH", DLongGDL( -lengthDiff));
-    }
-    else if( lengthDiff == 0) // replace TODO: just flag the real change
-    {   
-      // 1st delete all
-      widg = new DStructGDL( "WIDGET_TEXT_DEL");
-      widg->InitTag("ID", DLongGDL( event.GetId()));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( 0));
-      widg->InitTag("TYPE", DIntGDL( 2)); // delete
-      widg->InitTag("OFFSET", DLongGDL( 0));
-      widg->InitTag("LENGTH", DLongGDL( lastValue.length()));
-      
-      GDLWidget::PushEvent( baseWidgetID, widg);
-
-      // 2nd insert new
-      widg = new DStructGDL( "WIDGET_TEXT_STR");
-      widg->InitTag("ID", DLongGDL( event.GetId()));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( 0));
-      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
-      widg->InitTag("OFFSET", DLongGDL( 0));
-      widg->InitTag("STR", DStringGDL( newValue));
-    }
-    else if( lengthDiff == 1)
-    {
-      widg = new DStructGDL( "WIDGET_TEXT_CH");
-      widg->InitTag("ID", DLongGDL( event.GetId()));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( 0));
-      widg->InitTag("TYPE", DIntGDL( 0)); // single char
-      widg->InitTag("OFFSET", DLongGDL( offset+1));
-      widg->InitTag("CH", DByteGDL( newValue[offset<newValue.length()?offset:newValue.length()-1]));
-    }
-    else // > 1
-    {
-      int nVLenght = newValue.length();
-      if( offset < lengthDiff)
-	lengthDiff = offset;
-      string str = "";
-      if( offset <= nVLenght && lengthDiff > 0)
-	str = newValue.substr(offset-lengthDiff,lengthDiff);
-      
-      widg = new DStructGDL( "WIDGET_TEXT_STR");
-      widg->InitTag("ID", DLongGDL( event.GetId()));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( 0));
-      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
-      widg->InitTag("OFFSET", DLongGDL( offset));
-      widg->InitTag("STR", DStringGDL( str));
-    }
-  }
-  
-  GDLWidget::PushEvent( baseWidgetID, widg);
-}
-
-void GDLFrame::OnTextEnter( wxCommandEvent& event)
-{
-  std::cout << "in OnTextEnter: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
-  DLong offset;
-  std::string newValue;
-
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
-  if( widget->IsText())
-  {
-    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
-    offset = textCtrl->GetInsertionPoint();
-    newValue = textCtrl->GetValue().mb_str();
-    static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
-
-    textCtrl->Refresh();
-  }
-  else
-  {
-    assert( widget->IsDropList());
-    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
-    offset = control->GetInsertionPoint();    
-    newValue = control->GetValue().mb_str();
-    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
-
-    control->Refresh();
-  }
-  
-  // create GDL event struct
-  DStructGDL*  widg;
-  widg = new DStructGDL( "WIDGET_TEXT_CH");
-  widg->InitTag("ID", DLongGDL( event.GetId()));
-  widg->InitTag("TOP", DLongGDL( baseWidgetID));
-  widg->InitTag("HANDLER", DLongGDL( 0));
-  widg->InitTag("TYPE", DIntGDL( 0)); // single char
-  widg->InitTag("OFFSET", DLongGDL( offset));
-  widg->InitTag("CH", DByteGDL( '\n'));
-
-  GDLWidget::PushEvent( baseWidgetID, widg);
-}
-
-void GDLFrame::OnPageChanged( wxNotebookEvent& event)
-{  
-  std::cout << "in OnPageChanged: " << event.GetId() << std::endl;
-
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
- 
-  // create GDL event struct
-  DStructGDL*  widg;
-  widg = new DStructGDL( "WIDGET_TAB");
-  widg->InitTag("ID", DLongGDL( event.GetId()));
-  widg->InitTag("TOP", DLongGDL( baseWidgetID));
-  widg->InitTag("HANDLER", DLongGDL( 0));
-  widg->InitTag("TAB", DLongGDL( event.GetSelection()));
-  
-  GDLWidget::PushEvent( baseWidgetID, widg);
-}
 
 // *** guiThread ***
 wxThread::ExitCode GDLGUIThread::Entry()

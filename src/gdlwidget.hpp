@@ -66,7 +66,14 @@ public:
   void Purge();
 };
 
-
+class GUIMutexLockerT
+{
+  bool left;
+public:
+  GUIMutexLockerT(): left(false) {  wxMutexGuiEnter();}
+  ~GUIMutexLockerT() {  if(!left) wxMutexGuiLeave();}
+  void Leave() { wxMutexGuiLeave(); left=true;}
+};
 
 class GDLGUIThread : public wxThread
 {
@@ -114,7 +121,7 @@ private:
   wxMutex m_mutex;
 
 public:
-  WidgetListT(): map() {}
+  WidgetListT(): map(), m_mutex() {}
   ~WidgetListT() {}
   
   void erase (iterator position) 
@@ -211,6 +218,7 @@ protected:
   bool         buttonSet;
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
+  wxSizer*     topWidgetSizer;
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
@@ -263,22 +271,22 @@ public:
   virtual bool IsBase() const { return false;} 
   virtual bool IsButton() const { return false;} 
   virtual bool IsDropList() const { return false;} 
-  virtual bool IsTab() { return false;}
+  virtual bool IsTab() const { return false;}
   virtual bool IsText() const { return false;} 
-  
-  virtual WidgetIDT GetChild( DLong) const {return NullID;};
-  virtual DLong NChildren() const {return 0;};
-  virtual void SetXmanagerActiveCommand() {};
-  virtual bool GetXmanagerActiveCommand() {return false;};
+  virtual bool IsSlider() const { return false;}
 
+  virtual WidgetIDT GetChild( DLong) const {return NullID;}
+  virtual DLong NChildren() const {return 0;}
+  virtual void SetXmanagerActiveCommand() {}
+  virtual bool GetXmanagerActiveCommand() const { return false;}
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
   void SetEventFun( const DString& eFun) { eventFun = StrUpCase( eFun);}
-  const DString& GetEventFun() const { return eventFun;};
+  const DString& GetEventFun() const { return eventFun;}
   void SetNotifyRealize( const DString& eNR) { notifyRealize = StrUpCase( eNR);}
-  const DString& GetNotifyRealize() const { return notifyRealize;};
+  const DString& GetNotifyRealize() const { return notifyRealize;}
   void SetKillNotify( const DString& eKN) { killNotify = StrUpCase( eKN);}
-  const DString& GetKillNotify() const { return killNotify;};
+  const DString& GetKillNotify() const { return killNotify;}
 
   static bool GetXmanagerBlock();
 
@@ -471,8 +479,16 @@ public:
 
   void Realize( bool);
   
-  void SetXmanagerActiveCommand() { xmanActCom = true;}
-  bool GetXmanagerActiveCommand() const { return xmanActCom;}
+  void SetXmanagerActiveCommand() 
+  { 
+//     wxMessageOutputDebug().Printf("SetXmanagerActiveCommand: %d\n",widgetID);
+    xmanActCom = true;
+  }
+  bool GetXmanagerActiveCommand() const 
+  { 
+//     wxMessageOutputDebug().Printf("GetXmanagerActiveCommand: %d\n",widgetID);
+    return xmanActCom;
+  }
 
 //   void SetEventPro( DString);
 //   const DString& GetEventPro() { return eventHandler;}
@@ -485,6 +501,7 @@ public:
 
 
 
+// draw widget **************************************************
 class GDLWidgetDraw: public GDLWidget
 {
   int pstreamIx;
@@ -517,12 +534,35 @@ public:
 
   ~GDLWidgetTab();
   
-  bool IsTab() { return true;}
+  bool IsTab() const { return true;}
+};
+
+// slider widget **************************************************
+class GDLWidgetSlider: public GDLWidget
+{
+  DLong value; 
+  DLong minimum; 
+  DLong maximum;
+public:
+  GDLWidgetSlider( WidgetIDT parentID, EnvT* e,
+		   DLong value_, DLong minimum_, DLong maximum_,
+		   bool vertical,
+		   bool suppressValue);
+
+  ~GDLWidgetSlider();
+
+  void SetValue( DLong v) { value = v;}
+  DLong GetValue() const { return value;}
+  
+  bool IsSlider() const { return true;}
 };
 
 
 
 // GDL versions of wxWidgets controls =======================================
+DECLARE_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
+DECLARE_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
+
 class wxNotebookEvent;
 class GDLFrame : public wxFrame
 {
@@ -545,8 +585,29 @@ public:
   void OnText( wxCommandEvent& event);
   void OnTextEnter( wxCommandEvent& event);
   void OnPageChanged( wxNotebookEvent& event);
+//   void OnSlider( wxCommandEvent& event);
+  void OnScroll( wxScrollEvent& event);
+  void OnThumbRelease( wxScrollEvent& event);
 
-// private:
+  void SendShowRequestEvent( bool show)
+  {
+    if( show)
+    {
+    wxCommandEvent* event = new wxCommandEvent( wxEVT_SHOW_REQUEST, GetId() );
+    event->SetEventObject( this );
+    this->QueueEvent( event);
+    }
+    else
+    {
+    wxCommandEvent* event = new wxCommandEvent( wxEVT_HIDE_REQUEST, GetId() );
+    event->SetEventObject( this );
+    this->QueueEvent( event);
+    }
+  }
+  void OnShowRequest( wxCommandEvent& event);
+  void OnHideRequest( wxCommandEvent& event);
+  
+
   // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };
@@ -592,7 +653,6 @@ public:
   // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };
-
 
 #endif
 

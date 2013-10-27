@@ -45,7 +45,10 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
 		typedefs.hpp typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp \
-		hdf_pro.hpp magick_cl.cpp magick_cl.hpp specializations.hpp gdlwidget.cpp gdlwidgetdraw.cpp \
+		hdf_pro.hpp magick_cl.cpp magick_cl.hpp specializations.hpp \
+		gdlwidget.cpp \
+		gdlwidgeteventhandler.cpp \
+		gdlwidgetdraw.cpp \
 		widget.cpp basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
