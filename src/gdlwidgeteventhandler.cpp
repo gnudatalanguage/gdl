@@ -82,7 +82,7 @@ void GDLFrame::OnShowRequest( wxCommandEvent& event)
 #endif
     return;
   }
-  GDLFrame *frame = static_cast<GDLFrame*>( widget->WxWidget());
+  GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
   bool stat = frame->Show(true);
 }
 
@@ -99,7 +99,7 @@ void GDLFrame::OnHideRequest( wxCommandEvent& event)
 #endif
     return;
   }
-  GDLFrame *frame = static_cast<GDLFrame*>( widget->WxWidget());
+  GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
   bool stat = frame->Show(false);
 }
 
@@ -282,7 +282,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget->IsText())
   {
-    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
+    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->GetWxWidget());
     if( textCtrl == NULL)
     {
       event.Skip();
@@ -301,7 +301,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
   else
   {
     assert( widget->IsDropList());
-    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
+    wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
     if( control == NULL)
     {
       event.Skip();
@@ -410,7 +410,7 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget->IsText())
   {
-    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->WxWidget());
+    wxTextCtrl* textCtrl = static_cast<wxTextCtrl*>(widget->GetWxWidget());
     offset = textCtrl->GetInsertionPoint();
     newValue = textCtrl->GetValue().mb_str();
     static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
@@ -420,7 +420,7 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
   else
   {
     assert( widget->IsDropList());
-    wxComboBox* control = static_cast<wxComboBox*>(widget->WxWidget());
+    wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
     offset = control->GetInsertionPoint();    
     newValue = control->GetValue().mb_str();
     static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);

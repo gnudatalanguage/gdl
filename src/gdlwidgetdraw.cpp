@@ -53,7 +53,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
   GUIMutexLockerT gdlMutexGuiEnterLeave;
   // If parent base widget exists ....
   GDLWidget* gdlParent = GetWidget( parentID);
-  wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
   //    std::cout << "Getting Parent: " << parent << " " << gdlParent << " " 
   //      << wxParent << std::endl;
 

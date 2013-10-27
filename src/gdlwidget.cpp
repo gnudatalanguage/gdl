@@ -113,8 +113,10 @@ GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const 
 }
 
 GDLWindow::~GDLWindow()
-{ 
+{
+  
   std::cout << "~GDLWindow: " << this << std::endl;
+  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
   if( pstreamP != NULL)
       pstreamP->SetValid(false);
 }
@@ -372,21 +374,6 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   
 void GDLWidget::Realize( bool map)
 {
-//   if (gdlGUIThread != NULL)
-//   {
-//     gdlGUIThread->Delete();
-//     std::cout << "GDLWidget:Realize: Deleted thread: " << gdlGUIThread << std::endl;
-//   }
-//   if (gdlGUIThread != NULL)
-//   {
-//     if( !gdlGUIThread->Exited() && gdlGUIThread->IsAlive())
-//     {
-// #ifdef GDL_DEBUG_WIDGETS
-//     std::cout << "gdlGUIThread->Pause(): " << gdlGUIThread << std::endl;
-// #endif    
-//       gdlGUIThread->Pause();
-//     }
-//   }
   if( parentID == NullID)
   {
     assert( this->IsBase());
@@ -400,24 +387,9 @@ void GDLWidget::Realize( bool map)
     topWidgetSizer->SetSizeHints(frame);
 //     frame->SetClientSize(widgetPanel->GetSize());
 //     frame->Layout();
-//     std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
-//   if (gdlGUIThread != NULL)
-//   {
-//     gdlGUIThread->Pause();
-//     std::cout << "GDLWidget:Realize: Paused thread: " << gdlGUIThread << std::endl;
-//   }
-    
     
     frame->SendShowRequestEvent( map);
 //     bool stat = frame->Show( map);
-    
-    
-//     frame->Thaw();
-//   if (gdlGUIThread != NULL)
-//   {
-//     gdlGUIThread->Resume();
-//     std::cout << "GDLWidget:Realize: Resumed thread: " << gdlGUIThread << std::endl;
-//   }
 
     gdlMutexGuiEnterLeave.Leave();
   }
@@ -443,37 +415,8 @@ void GDLWidget::Realize( bool map)
   
   // start GUI thread
 
-//   if (gdlGUIThread != NULL)
-//   {
-// #ifdef GDL_DEBUG_WIDGETS
-//     std::cout << "gdlGUIThread: " << gdlGUIThread << std::endl;
-// #endif    
-//     if( gdlGUIThread->Exited() || !gdlGUIThread->IsAlive())
-//     {
-// #ifdef GDL_DEBUG_WIDGETS
-//     std::cout << "gdlGUIThread->Wait(): " << gdlGUIThread << std::endl;
-// #endif    
-//       gdlGUIThread->Wait();
-// 
-//       delete gdlGUIThread;
-//       gdlGUIThread = NULL;
-// 
-//       eventQueue.Purge();
-//       readlineEventQueue.Purge();      
-//     }
-//     else
-//     {
-//       gdlGUIThread->Resume();
-// #ifdef GDL_DEBUG_WIDGETS
-//     std::cout << "gdlGUIThread->Resume(): " << gdlGUIThread << std::endl;
-// #endif    
-//     }
-//   }
   if (gdlGUIThread == NULL)
   {
-//       gdlGUIThread->Exit(); // delete itself
-
-  // Defined in threadpsx.cpp (wxWidgets)
     gdlGUIThread = new GDLGUIThread();
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "Created thread: " << gdlGUIThread << std::endl;
@@ -495,7 +438,7 @@ GDLWidget::~GDLWidget()
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "in ~GDLWidget(): " << widgetID << std::endl;
 #endif
-  managed = false;
+//   managed = false;
 
 //   if( parentID != 0) 
 //     {
@@ -568,7 +511,7 @@ DLong x_scroll_size, DLong y_scroll_size)
       mbarID = mBar->WidgetID();
       mBarIDInOut = mbarID;
       
-      gdlFrame->SetMenuBar( static_cast<wxMenuBar*>( mBar->WxWidget()));
+      gdlFrame->SetMenuBar( static_cast<wxMenuBar*>( mBar->GetWxWidget()));
 
       gdlFrame->SetSize( xSize, ySize);
     }
@@ -601,7 +544,7 @@ DLong x_scroll_size, DLong y_scroll_size)
     if( gdlParent->IsTab())
     {
       GDLWidgetTab* parentTab = static_cast<GDLWidgetTab*>(gdlParent);
-      wxNotebook* wxParent = static_cast<wxNotebook*>( parentTab->WxWidget());
+      wxNotebook* wxParent = static_cast<wxNotebook*>( parentTab->GetWxWidget());
 
       wxPanel *panel = new wxPanel( wxParent, wxID_ANY);
       widgetPanel = panel;
@@ -617,7 +560,7 @@ DLong x_scroll_size, DLong y_scroll_size)
     }
     else
     {
-      wxWindow* wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+      wxWindow* wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
 //       wxPanel *panel = gdlParent->GetPanel();
 //       widgetPanel = panel;
@@ -651,7 +594,6 @@ GDLWidgetBase::~GDLWidgetBase()
 {
   std::cout << "In ~GDLWidgetBase(). wxWidget: " << this->wxWidget << std::endl;
 
-  // Note: iterator for loop doesn't work when deleting widget
   for( SizeT i=0; i<children.size(); i++) 
   {
     delete GetWidget( children[i]);
@@ -659,16 +601,16 @@ GDLWidgetBase::~GDLWidgetBase()
 
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
-  // Close widget frame
-  if( this->parentID == 0)
-  {
-    // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
-    // on wxWidgets < 2.9.5
-    std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
-
-    ((GDLFrame *) this->wxWidget)->Destroy();
-    // delete wxWidget;
-  }
+  // Close widget frame (might be already closed)
+//   if( this->parentID == 0)
+//   {
+//     // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
+//     // on wxWidgets < 2.9.5
+//     std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
+// 
+//     ((GDLFrame *) this->wxWidget)->Destroy();
+//     // delete wxWidget;
+//   }
 }
 
 
@@ -700,7 +642,7 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
   wxPanel *panel = gdlParent->GetPanel();
 
@@ -739,7 +681,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_, DLong mini
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
   wxPanel *panel = gdlParent->GetPanel();
 
@@ -771,7 +713,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxObject *wxParentObject = gdlParent->WxWidget();
+  wxObject *wxParentObject = gdlParent->GetWxWidget();
 
   //  std::cout << "In Button: " << widgetID << " Parent: " << p << " xMode:" <<
   //gdlParent->GetExclusiveMode() << " " << value << std::endl;
@@ -871,7 +813,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
 
     GDLWidget* gdlParent = GetWidget( p);
     wxWindow *wxParent = static_cast< wxWindow*>(
-                             gdlParent->WxWidget());
+                             gdlParent->GetWxWidget());
 
     wxPanel *panel = gdlParent->GetPanel();
 
@@ -961,7 +903,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     GUIMutexLockerT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
-    wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+    wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
     wxPanel *panel = gdlParent->GetPanel();
 
@@ -999,7 +941,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
@@ -1040,7 +982,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
   wxPanel *panel = gdlParent->GetPanel();
 
@@ -1116,7 +1058,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
   //  std::cout << "In Label: " << widgetID << " " << p << std::endl;
 
   GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
   
   wxPanel *panel = gdlParent->GetPanel();
 
@@ -1148,6 +1090,12 @@ void GDLWidgetLabel::SetLabelValue( DString value)
 GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
 : wxFrame(parent, id, title)
 {
+}
+
+GDLFrame::~GDLFrame()
+{ 
+  std::cout << "~GDLFrame: " << this << std::endl;
+  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
 }
 
 

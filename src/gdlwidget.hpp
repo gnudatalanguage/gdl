@@ -242,25 +242,12 @@ public:
     BGNORMAL=0, BGEXCLUSIVE=1, BGNONEXCLUSIVE=2, BGEXCLUSIVE1ST=3 } BGroupMode;
 
   GDLWidget( WidgetIDT p, EnvT* e, bool map_=true, BaseGDL* vV=NULL);
-//   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
-// 	     bool s=true, bool mp=true,
-// 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1
-// , const DString& uName = ""
-// , const DString&  proValue_=""
-// , const DString&  funcValue_=""
-// , const DString&  eventPro_="" 
-// , const DString&  eventFun_=""    
-// , const DString&  notifyRealize_="" 
-// , const DString&  killNotify_=""    
-//   );
+
   virtual ~GDLWidget();
 
-//   void SetCommonKeywords( EnvT* e);
-  
-//   void InitParentID( WidgetIDT p) {assert(parentID == 0); parentID = p;}
   WidgetIDT GetParentID() const { return parentID;}
   
-  wxObject* WxWidget() const { return wxWidget;}
+  wxObject* GetWxWidget() const { return wxWidget;}
 
   BaseGDL* GetUvalue() const { return uValue;}
   BaseGDL* GetVvalue() const { return vValue;}
@@ -279,6 +266,7 @@ public:
   virtual DLong NChildren() const {return 0;}
   virtual void SetXmanagerActiveCommand() {}
   virtual bool GetXmanagerActiveCommand() const { return false;}
+
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
   void SetEventFun( const DString& eFun) { eventFun = StrUpCase( eFun);}
@@ -294,11 +282,9 @@ public:
 
   wxSizer* GetSizer() { return widgetSizer;}
   wxPanel* GetPanel() { return widgetPanel;}
-  //  void SetSizer( wxSizer*);
 
-  bool GetManaged() { return managed;}
+  bool GetManaged() const { return managed;}
   void SetManaged( bool manval){managed = manval;}
-
 
   bool GetMap() const { return map;}
   void SetMap( bool mapval){ map = mapval;}
@@ -309,20 +295,20 @@ public:
   void SetUvalue( BaseGDL *uV){uValue = uV;}
   void SetVvalue( BaseGDL *vV){vValue = vV;}
 
-  const DString& GetWidgetType() { return widgetType;}
+  const DString& GetWidgetType() const { return widgetType;}
   void SetWidgetType( const DString& wType){widgetType = wType;}
 
-  bool GetButtonSet() { return buttonSet;}
+  bool GetButtonSet() const { return buttonSet;}
   void SetButtonSet(bool onOff){buttonSet = onOff;}
 
-  const DString& GetUname() { return uName;}
+  const DString& GetUname() const { return uName;}
   void SetUname( const DString& uname){uName = uname;}
 
-  const DString& GetProValue() { return proValue;}
-  void SetProValue( const DString&  provalue){proValue = StrUpCase(provalue);}
+  const DString& GetProValue() const { return proValue;}
+  void SetProValue( const DString& provalue){proValue = StrUpCase(provalue);}
 
-  const DString& GetFuncValue() { return funcValue;}
-  void SetFuncValue( const DString&  funcvalue){funcValue = StrUpCase(funcvalue);}
+  const DString& GetFuncValue() const { return funcValue;}
+  void SetFuncValue( const DString& funcvalue){funcValue = StrUpCase(funcvalue);}
 };
 
 
@@ -436,35 +422,6 @@ public:
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
 		 DLong x_scroll_size, DLong y_scroll_size);
-//   GDLWidgetBase( WidgetIDT parentID, 
-// 		 BaseGDL* uvalue, const DString& uname,
-// 		 bool sensitive, bool mapWid,
-// 		 WidgetIDT& mBarIDInOut, bool modal, 
-// 		 WidgetIDT group_leader,
-// 		 DLong col, DLong row,
-// 		 long events,
-// 		 int exclusiveMode, 
-// 		 bool floating,
-// 		 const DString& event_func, const DString& event_pro,
-// 		 const DString& pro_set_value, const DString& func_get_value,
-// 		 const DString& notify_realize, const DString& kill_notify,
-// 		 const DString& resource_name, const DString& rname_mbar,
-// 		 const DString& title,
-// 		 DLong frame, DLong units,
-// 		 const DString& display_name,
-// 		 DLong xpad, DLong ypad,
-// 		 DLong xoffset, DLong yoffset,
-// 		 DLong xsize, DLong ysize,
-// 		 DLong scr_xsize, DLong scr_ysize,
-// 		 DLong x_scroll_size, DLong y_scroll_size);
-
-//   GDLWidgetBase( WidgetIDT p=0,           // parent
-// 		 BaseGDL* uV=NULL,        // UVALUE
-// 		 BaseGDL* vV=NULL,        // VVALUE
-// 		 bool s=true,             // SENSITIVE
-// 		 bool mp=true,             // MAP
-// 		 DLong xO=-1, DLong yO=-1,  // offset 
-// 		 DLong xS=-1, DLong yS=-1); // size
   
   ~GDLWidgetBase();
 
@@ -571,8 +528,7 @@ class GDLFrame : public wxFrame
 public:
   // ctor(s)
   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
-  ~GDLFrame()
-  { std::cout << "~GDLFrame: " << this << std::endl;}
+  ~GDLFrame();
 
   // event handlers (these functions should _not_ be virtual)
   void OnIdle( wxIdleEvent& event);
