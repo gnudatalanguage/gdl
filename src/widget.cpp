@@ -1126,11 +1126,11 @@ BaseGDL* widget_list( EnvT* e)
       
       // see comment in GDLWidget::HandleEvents()
       // WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
-      assert( dynamic_cast<GDLFrame*>(tlw->WxWidget()) != NULL);
+      assert( dynamic_cast<GDLFrame*>(tlw->GetWxWidget()) != NULL);
       // Pause 50 millisecs then refresh widget 
 //       wxMilliSleep( 50); // (why?)
       GUIMutexLockerT gdlMutexGuiEnterLeave;
-      static_cast<GDLFrame*>(tlw->WxWidget())->Refresh();
+      static_cast<GDLFrame*>(tlw->GetWxWidget())->Refresh();
       gdlMutexGuiEnterLeave.Leave();
 
     } // outer while loop

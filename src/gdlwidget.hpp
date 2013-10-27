@@ -208,7 +208,7 @@ protected:
                       // Note: wxWidget is GDL name not wxWidgets (JMG)
 
   WidgetIDT    widgetID;  // own index to widgetList
-  WidgetIDT    parentID;    // parent ID (0 for TLBs)
+  WidgetIDT    parentID;  // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
   BaseGDL*     vValue;    // the VVALUE
   bool         scroll;
