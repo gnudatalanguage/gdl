@@ -125,7 +125,7 @@ void GDLWindow::Update()
 {
   wxClientDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion() );
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
   gdlMutexGuiEnterLeave.Leave();
   wxWindow::Update();
@@ -254,7 +254,7 @@ int GDLWidget::HandleEvents()
       assert( dynamic_cast<GDLFrame*>(tlw->wxWidget) != NULL);
       // Pause 50 millisecs then refresh widget 
 //       wxMilliSleep( 50); // (why?)
-      GUIMutexLockerT gdlMutexGuiEnterLeave;
+      GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
       static_cast<GDLFrame*>(tlw->wxWidget)->Refresh();
       gdlMutexGuiEnterLeave.Leave();
     }
@@ -322,6 +322,7 @@ void GDLWidget::Init()
   // std::cout << " In GDLWidget::Init()" << std::endl;
   // widgetIx = wxID_HIGHEST; // use same wx ID and GDL ID 
   wxInitialize();
+//   wxMutexGuiLeave();
 }
 
 
@@ -364,7 +365,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
 
     widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( widgetID, this));
 #ifdef GDL_DEBUG_WIDGETS
-//     GUIMutexLockerT gdlMutexGuiEnterLeave;
+//     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
     wxMessageOutputDebug().Printf("inserted: ID: %d  parentID: %d\n",widgetID,parentID);
 //     std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
 #endif
@@ -382,7 +383,7 @@ void GDLWidget::Realize( bool map)
 #endif
     GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
 
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     topWidgetSizer->SetSizeHints(frame);
 //     frame->SetClientSize(widgetPanel->GetSize());
@@ -403,7 +404,7 @@ void GDLWidget::Realize( bool map)
 
     GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
 
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     tlb->topWidgetSizer->SetSizeHints(frame);
 //     std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
@@ -490,7 +491,7 @@ DLong x_scroll_size, DLong y_scroll_size)
   {
     // obsolete: thread need to be created here (in realize it is too late)
 
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
 //     if( modal) // ???
 // 	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
@@ -539,7 +540,7 @@ DLong x_scroll_size, DLong y_scroll_size)
     GDLWidget* gdlParent = GetWidget( parentID);
     wxSizer* parentSizer = gdlParent->GetSizer();
     
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     if( gdlParent->IsTab())
     {
@@ -599,7 +600,7 @@ GDLWidgetBase::~GDLWidgetBase()
     delete GetWidget( children[i]);
   }
 
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   // Close widget frame (might be already closed)
   if( this->parentID == 0)
@@ -647,7 +648,7 @@ WidgetIDT GDLWidgetBase::GetChild( DLong childIx) const
 GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multiline)
 : GDLWidget( p, e)
 {
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
@@ -686,7 +687,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_, DLong mini
 , minimum(minimum_)
 , maximum(maximum_)
 {
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
@@ -718,7 +719,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 				  const DString& value)
 : GDLWidget( p, e)
 {
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxObject *wxParentObject = gdlParent->GetWxWidget();
@@ -817,7 +818,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
                                 ):
     GDLWidget( p, NULL)
 {
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
     wxWindow *wxParent = static_cast< wxWindow*>(
@@ -908,7 +909,7 @@ GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     : GDLWidget( p, e, true, value)
 {
-    GUIMutexLockerT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
     wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
@@ -946,7 +947,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
     : GDLWidget( p, e, true, value)
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
@@ -987,7 +988,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   GDLWidget( p, e, true, valueStr)
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
@@ -1049,7 +1050,7 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
       value += '\n';
   }
 
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
   static_cast<wxTextCtrl*>(wxWidget)->SetValue( valueWxString);
@@ -1062,7 +1063,7 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
 GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
 : GDLWidget( p, e)
 {
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   //  std::cout << "In Label: " << widgetID << " " << p << std::endl;
 
   GDLWidget* gdlParent = GetWidget( p);
@@ -1087,7 +1088,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
 
 void GDLWidgetLabel::SetLabelValue( DString value)
 {
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
   static_cast<wxStaticText*>(wxWidget)->SetLabel( valueWxString);
   static_cast<wxStaticText*>(wxWidget)->Refresh(); 

@@ -114,7 +114,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnButton: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -136,7 +136,7 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnRadioButton: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -177,7 +177,7 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnCheckBox: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -198,7 +198,7 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnComboBox: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -236,7 +236,7 @@ void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnListBoxDo: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -269,7 +269,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnText: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -400,7 +400,7 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnTextEnter: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -446,7 +446,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnPageChanged: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
  
@@ -572,7 +572,7 @@ void GDLWindow::OnPaint(wxPaintEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnPaint: %d\n",event.GetId());
 #endif
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   wxPaintDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion());

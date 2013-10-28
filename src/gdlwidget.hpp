@@ -66,13 +66,38 @@ public:
   void Purge();
 };
 
-class GUIMutexLockerT
+// both locker classes are identical. For controlling locking separately
+#define GUIMutexLockerWidgetsT_OFF
+class GUIMutexLockerWidgetsT
 {
+#ifdef GUIMutexLockerWidgetsT_OFF
+public:
+  GUIMutexLockerWidgetsT() {}
+  ~GUIMutexLockerWidgetsT() {}
+  void Leave() {}
+#else
   bool left;
 public:
-  GUIMutexLockerT(): left(false) {  wxMutexGuiEnter();}
-  ~GUIMutexLockerT() {  if(!left) wxMutexGuiLeave();}
+  GUIMutexLockerWidgetsT(): left(false) { wxMutexGuiEnter();}
+  ~GUIMutexLockerWidgetsT() { if(!left) wxMutexGuiLeave();}
   void Leave() { wxMutexGuiLeave(); left=true;}
+#endif  
+};
+#define GUIMutexLockerEventHandlersT_OFF
+class GUIMutexLockerEventHandlersT
+{
+#ifdef GUIMutexLockerEventHandlersT_OFF
+public:
+  GUIMutexLockerEventHandlersT() {}
+  ~GUIMutexLockerEventHandlersT() {}
+  void Leave() {}
+#else
+  bool left;
+public:
+  GUIMutexLockerEventHandlersT(): left(false) { wxMutexGuiEnter();}
+  ~GUIMutexLockerEventHandlersT() { if(!left) wxMutexGuiLeave();}
+  void Leave() { wxMutexGuiLeave(); left=true;}
+#endif  
 };
 
 class GDLGUIThread : public wxThread
@@ -555,18 +580,23 @@ public:
 
   void SendShowRequestEvent( bool show)
   {
+    wxCommandEvent* event;
     if( show)
     {
-    wxCommandEvent* event = new wxCommandEvent( wxEVT_SHOW_REQUEST, GetId() );
-    event->SetEventObject( this );
-    this->QueueEvent( event);
+    event = new wxCommandEvent( wxEVT_SHOW_REQUEST, GetId() );
     }
     else
     {
-    wxCommandEvent* event = new wxCommandEvent( wxEVT_HIDE_REQUEST, GetId() );
-    event->SetEventObject( this );
-    this->QueueEvent( event);
+    event = new wxCommandEvent( wxEVT_HIDE_REQUEST, GetId() );
     }
+    event->SetEventObject( this );
+    // only for wWidgets > 2.9 (takes ownership of event)
+//     this->QueueEvent( event);
+    
+    wxMessageOutputDebug().Printf(_T("AddPendingEvent: %d\n"),event->GetId());
+
+    this->AddPendingEvent( *event); // copies event
+    delete event;
   }
   void OnShowRequest( wxCommandEvent& event);
   void OnHideRequest( wxCommandEvent& event);
