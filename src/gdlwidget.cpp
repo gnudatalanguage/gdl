@@ -497,7 +497,7 @@ DLong x_scroll_size, DLong y_scroll_size)
 //     else
     // GDLFrame is derived from wxFrame
     wxString titleWxString = wxString( title_.c_str(), wxConvUTF8);
-    GDLFrame *gdlFrame = new GDLFrame( wxParent, widgetID, titleWxString);
+    GDLFrame *gdlFrame = new GDLFrame( this, wxParent, widgetID, titleWxString);
     wxWidget = gdlFrame;
 //     gdlFrame->Freeze();
     
@@ -602,15 +602,23 @@ GDLWidgetBase::~GDLWidgetBase()
   GUIMutexLockerT gdlMutexGuiEnterLeave;
 
   // Close widget frame (might be already closed)
-//   if( this->parentID == 0)
-//   {
-//     // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
-//     // on wxWidgets < 2.9.5
-//     std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
-// 
-//     ((GDLFrame *) this->wxWidget)->Destroy();
-//     // delete wxWidget;
-//   }
+  if( this->parentID == 0)
+  {
+    // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
+    // on wxWidgets < 2.9.5
+    if( this->wxWidget != NULL)
+    {
+      wxMutexLocker lock( static_cast<GDLFrame*>(this->wxWidget)->ownerMutex);//TODO
+      // after we got the lock th...
+      if( this->wxWidget != NULL)
+      {
+	static_cast<GDLFrame*>(this->wxWidget)->NullGDLOnwer();
+	std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
+	static_cast<GDLFrame*>(this->wxWidget)->Destroy();
+	// delete wxWidget;
+      }
+    }
+  }
 }
 
 
@@ -1087,15 +1095,21 @@ void GDLWidgetLabel::SetLabelValue( DString value)
  }
 
 // *** GDLFrame ***
-GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
+GDLFrame::GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title)
 : wxFrame(parent, id, title)
+, gdlOwner( gdlOwner_)
 {
 }
 
 GDLFrame::~GDLFrame()
 { 
+  wxMutexLocker lock( ownerMutex); // TODO
   std::cout << "~GDLFrame: " << this << std::endl;
   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+  if( gdlOwner != NULL)
+  {
+    gdlOwner->NullWxWidget();
+  }
 }
 
 

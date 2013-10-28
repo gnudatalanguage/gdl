@@ -425,6 +425,8 @@ public:
   
   ~GDLWidgetBase();
 
+  void NullWxWidget() { this->wxWidget = NULL;}
+  
   WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
   void SetLastRadioSelection(WidgetIDT lastSel) { lastRadioSelection = lastSel;}                         
 
@@ -523,13 +525,19 @@ DECLARE_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
 class wxNotebookEvent;
 class GDLFrame : public wxFrame
 {
+  GDLWidgetBase* gdlOwner;
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
+  // called from ~GDLWidgetBase
+  void NullGDLOnwer() { gdlOwner = NULL;}
+  wxMutex ownerMutex;
+  friend class GDLWidgetBase;
 public:
   // ctor(s)
-  GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
+  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title);
   ~GDLFrame();
 
+  
   // event handlers (these functions should _not_ be virtual)
   void OnIdle( wxIdleEvent& event);
   void OnButton( wxCommandEvent& event);
