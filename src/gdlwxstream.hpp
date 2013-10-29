@@ -28,7 +28,7 @@
 // #include <plstream.h>
 #include <wx/dc.h>
 
-class GDLWindow;
+class GDLDrawPanel;
 
 class GDLWXStream: public GDLGStream
 {
@@ -40,7 +40,7 @@ private:
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
 
-    GDLWindow* gdlWindow; // for Update()
+    GDLDrawPanel* gdlWindow; // for Update()
     
 public:
     GDLWXStream( int width, int height );  //!< Constructor.
@@ -56,7 +56,7 @@ public:
     void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
     
     void Update();
-    void SetGDLWindow(GDLWindow*);
+    void SetGDLDrawPanel(GDLDrawPanel*);
 };
 
 

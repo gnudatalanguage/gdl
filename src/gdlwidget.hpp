@@ -29,6 +29,7 @@
 #include "typedefs.hpp"
 #include "str.hpp"
 #include "datatypes.hpp"
+#include "widget.hpp"
 
 typedef DLong WidgetIDT;
 
@@ -291,10 +292,25 @@ public:
 
   virtual ~GDLWidget();
 
+  void CreateWidgetPanel();
   // this is called from the GUI thread on (before) Show()
   // wxTextCtrl and maybe other controls crash when called from the
   // main thread
   virtual void OnShow() {}
+  // this is called from the main thread on (before) Realize()
+  // for latest initialzation (like allocating the plplot stream)
+  // calls NOTIFY_REALIZE procedure
+  virtual void OnRealize() 
+  {
+    if( notifyRealize != "")
+      CallEventPro( notifyRealize, new DLongGDL( widgetID));
+  }
+  virtual void OnKill()
+  {
+    if( killNotify != "")
+      CallEventPro( killNotify, new DLongGDL( widgetID));
+  }
+
   void SetSizeHints();
   
   WidgetIDT GetParentID() const { return parentID;}
@@ -313,6 +329,7 @@ public:
   virtual bool IsTab() const { return false;}
   virtual bool IsText() const { return false;} 
   virtual bool IsSlider() const { return false;}
+  virtual bool IsDraw() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const {return 0;}
@@ -404,6 +421,26 @@ public:
 	w->OnShow();
     }
   }
+  void OnRealize() 
+  {
+    for( cIter c=children.begin(); c!=children.end(); ++c)
+    {
+      GDLWidget* w = GetWidget( *c);
+      if( w != NULL)
+	w->OnRealize();
+    }
+    GDLWidget::OnRealize();
+  }
+  void OnKill()
+  {
+    for( cIter c=children.begin(); c!=children.end(); ++c)
+    {
+      GDLWidget* w = GetWidget( *c);
+      if( w != NULL)
+	w->OnKill();
+    }
+    GDLWidget::OnKill();
+  }
 
   void NullWxWidget() { this->wxWidget = NULL;}
   
@@ -461,11 +498,17 @@ class GDLWidgetDropList: public GDLWidget
 {
   std::string lastValue;
   wxMutex m_mutex;
+  DString title;
+  DLong style;
+  
 public:
   //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
   //	     DString title, DLong xSize, DLong style);
   GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
+
+  void OnShow();
+  
 //   void SetSelectOff();
   bool IsDropList() const { return true;} 
 
@@ -532,13 +575,18 @@ public:
 class GDLWidgetDraw: public GDLWidget
 {
   int pstreamIx;
-  
+  DLong x_scroll_size;
+  DLong y_scroll_size;
 public:
   GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
 		  DLong x_scroll_size, DLong y_scroll_size);
 
   ~GDLWidgetDraw();
 
+//   void OnShow();
+  void OnRealize();
+  
+  bool IsDraw() const { return true;}
 };
 
 class GDLWidgetMBar: public GDLWidget//Base
@@ -593,6 +641,7 @@ DECLARE_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
 class wxNotebookEvent;
 class GDLFrame : public wxFrame
 {
+  bool lastShowRequest;
   GDLWidgetBase* gdlOwner;
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
@@ -621,6 +670,8 @@ public:
   void OnScroll( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
 
+  bool LastShowRequest() const { return lastShowRequest;}
+  
   void SendShowRequestEvent( bool show)
   {
     wxCommandEvent* event;
@@ -636,10 +687,10 @@ public:
     // only for wWidgets > 2.9 (takes ownership of event)
 //     this->QueueEvent( event);
     
-    wxMessageOutputDebug().Printf(_T("AddPendingEvent: %d\n"),event->GetId());
-
     this->AddPendingEvent( *event); // copies event
     delete event;
+
+    lastShowRequest = show;
   }
   void OnShowRequest( wxCommandEvent& event);
   void OnHideRequest( wxCommandEvent& event);
@@ -652,7 +703,7 @@ public:
 
 class GDLWXStream;
 
-class GDLWindow : public wxWindow
+class GDLDrawPanel : public wxPanel
 {
   int		pstreamIx;
   GDLWXStream*	pstreamP;
@@ -665,17 +716,19 @@ class GDLWindow : public wxWindow
   
 public:
   // ctor(s)
-  GDLWindow(wxWindow* parent, wxWindowID id, 
+  GDLDrawPanel(wxWindow* parent, wxWindowID id, 
 	    const wxPoint& pos = wxDefaultPosition, 
 	    const wxSize& size = wxDefaultSize,
 	    long style = 0, 
 	    const wxString& name = wxPanelNameStr);
-  ~GDLWindow();
+  ~GDLDrawPanel();
+  
+  void Update();
   
 //   void SetPStreamIx( int ix) { pstreamIx = ix;}
   int PStreamIx() { return pstreamIx;}
 
-  void Update();
+  void InitStream();
   
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);

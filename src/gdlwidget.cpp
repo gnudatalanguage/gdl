@@ -111,48 +111,6 @@ wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel)
   return sizer;
 }
 
-GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
-: wxWindow( parent, id, pos, size, style, name)
-, pstreamIx(-1)
-, pstreamP( NULL)
-, m_dc( NULL)
-{
-  pstreamIx = GraphicsDevice::GetGUIDevice()->WAdd();
-  if( pstreamIx == -1)
-    throw GDLException("Failed to allocate GUI stream.");
-
-  drawSize = size;
-  bool success = GraphicsDevice::GetGUIDevice()->GUIOpen( pstreamIx, drawSize.x, drawSize.y);  
-  if( !success)
-  {
-    throw GDLException("Failed to open GUI stream: "+i2s(pstreamIx));
-  }
-  pstreamP = static_cast<GDLWXStream*>(GraphicsDevice::GetGUIDevice()->GetStreamAt( pstreamIx));
-  pstreamP->SetGDLWindow( this);
-  
-  m_dc = pstreamP->GetDC();
-}
-
-GDLWindow::~GDLWindow()
-{  
-  std::cout << "~GDLWindow: " << this << std::endl;
-  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
-  if( pstreamP != NULL)
-      pstreamP->SetValid(false);
-}
-
-void GDLWindow::Update()
-{
-  wxClientDC dc( this);
-  dc.SetDeviceClippingRegion( GetUpdateRegion() );
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
-  dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
-  gdlMutexGuiEnterLeave.Leave();
-  wxWindow::Update();
-}
-    
-
-
 // removes a widget
 // (called from widget's destructor -> don't delete widget here)
 void GDLWidget::WidgetRemove( WidgetIDT widID)
@@ -350,7 +308,6 @@ void GDLWidget::Init()
 
 
 
-
 GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NULL*/)
   : wxWidget( NULL)
   , parentID( p)
@@ -394,12 +351,33 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
 #endif
   }
 
+
+void GDLWidget::CreateWidgetPanel()
+{
+  GDLWidget* gdlParent = GetWidget( parentID);
+
+  wxPanel *parentPanel = gdlParent->GetPanel();
+
+  wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
+  , wxDefaultPosition
+  , wxDefaultSize
+//   , wxBORDER_SIMPLE 
+  );
+  widgetPanel = panel;
+  
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
+}
+
 void GDLWidget::SetSizeHints()
 {
   assert( parentID == NullID);
-  wxMessageOutputDebug().Printf("GDLWidget:SetSizeHints: %d\n",this->widgetID);
+  wxMessageOutputDebug().Printf(_T("GDLWidget:SetSizeHints: %d\n"),this->widgetID);
   GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
   topWidgetSizer->SetSizeHints(frame);
+//bad:  frame->SetClientSize(widgetPanel->GetSize());
+//bad:  frame->Layout();
+
 }
 
 void GDLWidget::Realize( bool map)
@@ -411,17 +389,11 @@ void GDLWidget::Realize( bool map)
     wxMessageOutputDebug().Printf("GDLWidget:Realize: %d\n",this->widgetID);
 #endif
     GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
-
-    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
-//     topWidgetSizer->SetSizeHints(frame);
-//bad:  frame->SetClientSize(widgetPanel->GetSize());
-//bad:  frame->Layout();
-    
-    frame->SendShowRequestEvent( map);
-//     bool stat = frame->Show( map);
-
-    gdlMutexGuiEnterLeave.Leave();
+    if( frame->LastShowRequest() != map)
+    {
+      this->OnRealize();
+      frame->SendShowRequestEvent( map);
+    }
   }
   else
   {
@@ -432,15 +404,11 @@ void GDLWidget::Realize( bool map)
     assert( tlb != NULL);
 
     GDLFrame *frame = static_cast<GDLFrame *>( tlb->wxWidget);
-
-    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
-    tlb->topWidgetSizer->SetSizeHints(frame);
-//     std::cout << "GDLWidget:Realize: SetSizeHints(" << frame << ")" << std::endl;
-    frame->SendShowRequestEvent(map);
-//     bool stat = frame->Show( map);
-
-    gdlMutexGuiEnterLeave.Leave();  
+    if( frame->LastShowRequest() != map)
+    {
+      this->OnRealize();
+      frame->SendShowRequestEvent(map);
+    }
   }
   
   // start GUI thread
@@ -627,13 +595,16 @@ DLong x_scroll_size, DLong y_scroll_size)
 
 GDLWidgetBase::~GDLWidgetBase()
 {
-  std::cout << "In ~GDLWidgetBase(). wxWidget: " << this->wxWidget << std::endl;
+  // call KILL_NOTIFY procedures
+  this->OnKill();
 
+  // delete all children
   for( SizeT i=0; i<children.size(); i++) 
   {
-    delete GetWidget( children[i]);
+    GDLWidget* child = GetWidget( children[i]);
+    delete child;
   }
-
+  
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   // Close widget frame (might be already closed)
@@ -644,11 +615,10 @@ GDLWidgetBase::~GDLWidgetBase()
     if( this->wxWidget != NULL)
     {
       static_cast<GDLFrame*>(this->wxWidget)->NullGDLOnwer();
-      std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
       // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
       // on wxWidgets < 2.9.5
-      static_cast<GDLFrame*>(this->wxWidget)->Destroy();
-      // delete wxWidget;
+      static_cast<GDLFrame*>(this->wxWidget)->Destroy(); // instead of delete operator
+ 
       m_gdlFrameOwnerMutexP->Unlock();
     }
     else
@@ -1000,43 +970,55 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
 
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
 GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
-                                      const DString& title, DLong style)
+                                      const DString& title_, DLong style_)
     : GDLWidget( p, e, true, value)
+    , title( title_)
+    , style( style_)
+{
+  if( vValue->Type() != GDL_STRING)
+  {
+      vValue = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::CONVERT));
+  }
+
+  CreateWidgetPanel();
+  
+//   GDLWidget* gdlParent = GetWidget( parentID);
+// 
+//   wxPanel *parentPanel = gdlParent->GetPanel();
+// 
+//   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
+//   , wxDefaultPosition
+//   , wxDefaultSize
+// //   , wxBORDER_SIMPLE 
+//   );
+//   widgetPanel = panel;
+//   
+//   wxSizer *boxSizer = gdlParent->GetSizer();
+//   boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
+}
+    
+void GDLWidgetDropList::OnShow()  
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-  GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
+  GDLWidget* gdlParent = GetWidget( parentID);
 
-  if (gdlParent->GetMap()) {
-    wxPanel *panel = gdlParent->GetPanel();
+  DStringGDL* val = static_cast<DStringGDL*>( vValue);
+  DLong n= val->N_Elements();
+  wxArrayString choices;// = new wxString[n];
+  for( SizeT i=0; i<n; ++i) 
+    choices.Add( wxString((*val)[i].c_str(), wxConvUTF8));
 
-    if( vValue->Type() != GDL_STRING)
-    {
-      vValue = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::CONVERT));
-    }
-    DStringGDL* val = static_cast<DStringGDL*>( vValue);
-    
-    DLong n= val->N_Elements();
-    wxArrayString choices;// = new wxString[n];
-    for( SizeT i=0; i<n; ++i) 
-      choices.Add( wxString((*val)[i].c_str(), wxConvUTF8));
+  wxString val0WxString = wxString( (*val)[0].c_str(), wxConvUTF8);
+  wxComboBox *combo = new wxComboBox( widgetPanel, widgetID, val0WxString,
+			  wxPoint(xOffset,yOffset), wxSize(xSize,ySize), choices, style);
+  this->wxWidget = combo;
 
-    wxString val0WxString = wxString( (*val)[0].c_str(), wxConvUTF8);
-    wxComboBox *combo = new wxComboBox( panel, widgetID, val0WxString,
-			    wxPoint(xOffset,yOffset), wxSize(xSize,ySize), choices, style);
+  widgetPanel->SetClientSize(combo->GetSize());
 
-    wxSizer *boxSizer = gdlParent->GetSizer();
-    boxSizer->Add( combo, 0, wxEXPAND | wxALL, 5);
-
-//     if ( wxParent != NULL) {
-//       //      std::cout << "SetSizeHints: " << wxParent << std::endl;
-//       boxSizer->SetSizeHints( wxParent);
-//     }
-    
-    this->wxWidget = combo;
-  } // GetMap()
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Layout();
 }
 
 
@@ -1058,15 +1040,20 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   }
   lastValue = value;
 
-  GDLWidget* gdlParent = GetWidget( parentID);
-
-  wxPanel *parentPanel = gdlParent->GetPanel();
-
-  wxPanel *panel = new wxPanel( parentPanel, wxID_ANY);
-  widgetPanel = panel;
-  
-  wxSizer *boxSizer = gdlParent->GetSizer();
-  boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
+  CreateWidgetPanel();
+//   GDLWidget* gdlParent = GetWidget( parentID);
+// 
+//   wxPanel *parentPanel = gdlParent->GetPanel();
+// 
+//   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
+//   , wxDefaultPosition
+//   , wxDefaultSize
+// //   , wxBORDER_SIMPLE 
+//   );
+//   widgetPanel = panel;
+//   
+//   wxSizer *boxSizer = gdlParent->GetSizer();
+//   boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
 }
 
 void GDLWidgetText::OnShow()
@@ -1093,6 +1080,8 @@ void GDLWidgetText::OnShow()
   wxTextCtrl* text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
     wxPoint(xOffset,yOffset), widgetSize, style );
   this->wxWidget = text;
+
+  widgetPanel->SetClientSize(text->GetSize());
 
   wxSizer *boxSizer = gdlParent->GetSizer();
   boxSizer->Layout();
@@ -1156,9 +1145,11 @@ void GDLWidgetLabel::SetLabelValue( const DString& value)
   gdlMutexGuiEnterLeave.Leave();
  }
 
-// *** GDLFrame ***
+// GDL widgets =====================================================
+// GDLFrame ========================================================
 GDLFrame::GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title)
 : wxFrame(parent, id, title)
+, lastShowRequest( false)
 , gdlOwner( gdlOwner_)
 {
   m_gdlFrameOwnerMutexP = new wxMutex();
@@ -1184,14 +1175,59 @@ GDLFrame::~GDLFrame()
 }
 
 
-// *** guiThread ***
+// GDLDrawPanel ========================================================
+GDLDrawPanel::GDLDrawPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+: wxPanel( parent, id, pos, size, style, name)
+, pstreamIx(-1)
+, pstreamP( NULL)
+, m_dc( NULL)
+{
+// initialization of stream is done in GDLWidgetDraw::OnRealize()
+}
+
+void GDLDrawPanel::InitStream()
+{
+  pstreamIx = GraphicsDevice::GetGUIDevice()->WAdd();
+  if( pstreamIx == -1)
+    throw GDLException("Failed to allocate GUI stream.");
+
+  drawSize = this->GetSize();
+  bool success = GraphicsDevice::GetGUIDevice()->GUIOpen( pstreamIx, drawSize.x, drawSize.y);  
+  if( !success)
+  {
+    throw GDLException("Failed to open GUI stream: "+i2s(pstreamIx));
+  }
+  pstreamP = static_cast<GDLWXStream*>(GraphicsDevice::GetGUIDevice()->GetStreamAt( pstreamIx));
+  pstreamP->SetGDLDrawPanel( this);
+  
+  m_dc = pstreamP->GetDC();
+}
+
+GDLDrawPanel::~GDLDrawPanel()
+{  
+  std::cout << "~GDLDrawPanel: " << this << std::endl;
+  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+  if( pstreamP != NULL)
+      pstreamP->SetValid(false);
+}
+
+void GDLDrawPanel::Update()
+{
+  cout << "in GDLDrawPanel::Update()" << endl;
+  wxClientDC dc( this);
+  dc.SetDeviceClippingRegion( GetUpdateRegion() );
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
+  dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
+  gdlMutexGuiEnterLeave.Leave();
+  wxPanel::Update();
+}
+    
+
+
+
+// GDLGUIThread ==================================================
 wxThread::ExitCode GDLGUIThread::Entry()
 {
-    // Called from PthreadStart() in threadpsx.cpp (wxWidgets)
-
-    // gui loop
-
-//   std::cout << "In thread Entry()" << std::endl;
     try {
         wxTheApp->OnRun();
         // Calls GDLApp::OnRun()
@@ -1206,35 +1242,6 @@ wxThread::ExitCode GDLGUIThread::Entry()
     }
 
     return NULL;
-}
-
-int GDLApp::OnRun()
-{
-  // Called by guiThread::Entry()
-
-//   std::cout << " In OnRun()" << std::endl;
-
-  int exitcode = wxApp::OnRun();
-  // Note: Calls wxAppBase::OnRun() in appcmn.cpp (wxWidgets)
-  // MainLoop() etc
-
-//   if (exitcode!=0)
-  return exitcode;
-}
-
-int GDLApp::OnExit()
-{
-  std::cout << " In GDLApp::OnExit()" << std::endl;
-  
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
-  if (GDLGUIThread::gdlGUIThread != NULL)
-  {
-//      delete gdlGUIThread;
-     GDLGUIThread::gdlGUIThread = NULL;
-  }
-
-  return 0;
 }
 
 
@@ -1264,6 +1271,39 @@ GDLGUIThread::~GDLGUIThread()
     std::cout << "In ~GDLGUIThread(). exited." << std::endl;
 #endif
 }
+
+
+
+// GDLApp =================================================
+int GDLApp::OnRun()
+{
+  // Called by guiThread::Entry()
+
+//   std::cout << " In OnRun()" << std::endl;
+
+  int exitcode = wxApp::OnRun();
+  // Note: Calls wxAppBase::OnRun() in appcmn.cpp (wxWidgets)
+  // MainLoop() etc
+
+//   if (exitcode!=0)
+  return exitcode;
+}
+
+int GDLApp::OnExit()
+{
+  std::cout << " In GDLApp::OnExit()" << std::endl;
+  
+  // Defined in guiThread::OnExit() in gdlwidget.cpp
+  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
+  if (GDLGUIThread::gdlGUIThread != NULL)
+  {
+//      delete gdlGUIThread;
+     GDLGUIThread::gdlGUIThread = NULL;
+  }
+
+  return 0;
+}
+
 
 #endif
 

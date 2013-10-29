@@ -107,7 +107,7 @@ void GDLWidget::SetCommonKeywords( EnvT* e)
 // non library functions
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
-BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev)
+BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
 {
   StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack());
 
@@ -126,7 +126,7 @@ BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev)
   return res;
 }
 
-void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
+void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1)
 {
   StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack());
 
@@ -1393,6 +1393,7 @@ BaseGDL* widget_event( EnvT* e)
     }
 
     if ( getvalue) {
+      
       BaseGDL** valueKW = &e->GetKW( getvalueIx);
       GDLDelete((*valueKW));
 

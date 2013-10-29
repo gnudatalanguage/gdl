@@ -71,7 +71,7 @@ GDLWXStream::~GDLWXStream()
   delete m_dc;
 }
 
-void GDLWXStream::SetGDLWindow(GDLWindow* w)
+void GDLWXStream::SetGDLDrawPanel(GDLDrawPanel* w)
 {
   gdlWindow = w;
 }

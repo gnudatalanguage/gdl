@@ -40,10 +40,12 @@ GDLWidgetDraw::~GDLWidgetDraw()
 }
 
 
-GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
-			      DLong x_scroll_size, DLong y_scroll_size)
-  : GDLWidget( parentID, e)
+GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
+			      DLong x_scroll_size_, DLong y_scroll_size_)
+  : GDLWidget( p, e)
   , pstreamIx(-1)
+  , x_scroll_size(x_scroll_size_)
+  , y_scroll_size(y_scroll_size_)
 {
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
   assert( parentID != GDLWidget::NullID);
@@ -57,8 +59,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
   //    std::cout << "Getting Parent: " << parent << " " << gdlParent << " " 
   //      << wxParent << std::endl;
 
-  wxPanel *panel = gdlParent->GetPanel();
-  widgetPanel = panel;
+  wxPanel *parentPanel = gdlParent->GetPanel();
+//   widgetPanel = panel;
   
   long style = 0;
   if( frame == 1)
@@ -66,24 +68,25 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
   else if( frame > 1)
     style = wxBORDER_DOUBLE;
         
-  GDLWindow* gdlWindow = new GDLWindow( panel, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style);
+  GDLDrawPanel* gdlWindow = new GDLDrawPanel( parentPanel, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style);
   wxWidget = gdlWindow;
 
   wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
   parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
-//   parentSizer->SetSizeHints( wxParent); 
- 
-  gdlMutexGuiEnterLeave.Leave();
 
-  pstreamIx = gdlWindow->PStreamIx();
-  if( pstreamIx != -1)
-    {
-      this->vValue = new DLongGDL(pstreamIx);
-    }
-  else
-    {
-      throw GDLException("GDLWindow::PStream: Failed to open stream.");
-    }
+  this->vValue = new DLongGDL(pstreamIx);
+}
+
+void GDLWidgetDraw::OnRealize()
+{
+  cout << "in GDLWidgetDraw::OnRealize()" << endl;
+  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
+  
+  pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
+  GDLDelete( vValue);
+  this->vValue = new DLongGDL(pstreamIx);
+  
+  GDLWidget::OnRealize();
 }
 
 #endif

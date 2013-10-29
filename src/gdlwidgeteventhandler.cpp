@@ -59,8 +59,8 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_SCROLL(GDLFrame::OnScroll)
 END_EVENT_TABLE()
 
-BEGIN_EVENT_TABLE(GDLWindow, wxWindow)
-  EVT_PAINT(GDLWindow::OnPaint)
+BEGIN_EVENT_TABLE(GDLDrawPanel, wxPanel)
+  EVT_PAINT(GDLDrawPanel::OnPaint)
 //   EVT_SHOW(GDLWindow::OnShow)
 //   EVT_CLOSE(GDLWindow::OnClose)
 END_EVENT_TABLE()
@@ -82,10 +82,14 @@ void GDLFrame::OnShowRequest( wxCommandEvent& event)
 #endif
     return;
   }
-  widget->OnShow();
-  widget->SetSizeHints();
   GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
-  bool stat = frame->Show(true);
+  if( !frame->IsShown())
+  {
+    widget->OnShow();
+    widget->SetSizeHints();
+    
+    bool stat = frame->Show(true);
+  }
 }
 
 void GDLFrame::OnHideRequest( wxCommandEvent& event)
@@ -102,7 +106,10 @@ void GDLFrame::OnHideRequest( wxCommandEvent& event)
     return;
   }
   GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
-  bool stat = frame->Show(false);
+  if( frame->IsShown())
+  {
+    bool stat = frame->Show(false);
+  }
 }
 
 
@@ -569,8 +576,9 @@ void GDLFrame::OnThumbRelease( wxScrollEvent& event)
 }
 
 
-void GDLWindow::OnPaint(wxPaintEvent& event)
+void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 {
+  cout <<"in OnPaint: "<< event.GetId() << endl;
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf("in OnPaint: %d\n",event.GetId());
 #endif
@@ -588,11 +596,11 @@ void GDLWindow::OnPaint(wxPaintEvent& event)
 // {
 //   std::cout << "GDLWindow::OnDestroy: " << this << std::endl;
 // }
-void GDLWindow::OnShow(wxShowEvent& event)
+void GDLDrawPanel::OnShow(wxShowEvent& event)
 {
   std::cout << "GDLWindow::OnShow: " << this << std::endl;
 }
-void GDLWindow::OnClose(wxCloseEvent& event)
+void GDLDrawPanel::OnClose(wxCloseEvent& event)
 {
   std::cout << "GDLWindow::OnClose: " << this << std::endl;
 }

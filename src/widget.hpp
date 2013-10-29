@@ -1,5 +1,5 @@
 /***************************************************************************
-                          widget.hpp  -  WxWidgets GDL library function
+    widget.hpp  -  WIDGET_XXX GDL library function
                              -------------------
     begin                : Dec 17 2007
     copyright            : (C) 2007 by Joel Gales
@@ -15,12 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIDGET_HPP_
 #define WIDGET_HPP_
+
+#include "dstructgdl.hpp"
 
 namespace lib {
 
@@ -50,8 +48,8 @@ namespace lib {
 
 } // namespace
 
-BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev);
-void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL);
+BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev);
+void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 = NULL);
 DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev);
 
 #endif
