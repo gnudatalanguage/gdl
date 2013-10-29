@@ -168,6 +168,9 @@ typedef std::set< DPtr>               DPtrListT;
 //class ArrayIndexT;
 //typedef std::vector<ArrayIndexT*> ArrayIndexVectorT;
 
+// // for GUI (but also used in GDLEventHandler()
+// typedef DLong WidgetIDT;
+
 // to resolve include conflict (declared in gdlexception.hpp)
 void ThrowGDLException( const std::string& str);
 

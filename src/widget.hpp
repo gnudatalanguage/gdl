@@ -30,6 +30,7 @@ namespace lib {
   BaseGDL* widget_droplist( EnvT* e);
   BaseGDL* widget_combobox( EnvT* e);
   BaseGDL* widget_list( EnvT* e);
+  BaseGDL* widget_slider( EnvT* e);
   BaseGDL* widget_tab( EnvT* e);
   BaseGDL* widget_text( EnvT* e);
   BaseGDL* widget_label( EnvT* e);
@@ -42,7 +43,6 @@ namespace lib {
   // TODO
   BaseGDL* widget_displaycontextmenu( EnvT* e);
   BaseGDL* widget_propertysheet( EnvT* e);
-  BaseGDL* widget_slider( EnvT* e);
   BaseGDL* widget_table( EnvT* e);
   BaseGDL* widget_tree( EnvT* e);
   BaseGDL* widget_tree_move( EnvT* e);
@@ -52,6 +52,6 @@ namespace lib {
 
 BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev);
 void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL);
-DStructGDL* CallEventHandler( DLong id, DStructGDL* ev);
+DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev);
 
 #endif

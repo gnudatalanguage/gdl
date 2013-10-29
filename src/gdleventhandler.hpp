@@ -17,6 +17,7 @@
 #ifndef GDLEVENTHANDLER_HPP_
 #define GDLEVENTHANDLER_HPP_
 
+// called from readline
 int GDLEventHandler();
 
 #endif

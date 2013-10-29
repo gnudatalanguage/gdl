@@ -48,6 +48,8 @@ const WidgetIDT GDLWidget::NullID = 0;
 // WidgetIDT	GDLWidget::widgetIx;
 WidgetListT	GDLWidget::widgetList;
 
+GDLGUIThread* GDLGUIThread::gdlGUIThread = NULL;
+
 // VarListT                    eventVarList;
 GDLEventQueue	GDLWidget::eventQueue; // the event queue
 GDLEventQueue	GDLWidget::readlineEventQueue; // for process at command line level
@@ -58,6 +60,25 @@ void GDLEventQueue::Purge()
   for( SizeT i=0; i<dq.size();++i)
     delete dq[i];
   dq.clear();
+//   isEmpty = true;
+}
+
+// removes all events for TLB 'topID'
+void GDLEventQueue::Purge( WidgetIDT topID)
+{
+  wxMutexLocker lock( mutex);
+  for( long i=dq.size()-1; i>=0;--i)
+  {
+    DStructGDL* ev = dq[i];
+    static int topIx = ev->Desc()->TagIndex("TOP");
+    assert( topIx == 1);
+    DLong top = (*static_cast<DLongGDL*>(ev->GetTag(topIx,0)))[0];
+    if( top == topID)
+    {
+      delete ev;
+      dq.erase (dq.begin()+i);
+    }
+  }
 //   isEmpty = true;
 }
 
@@ -113,8 +134,7 @@ GDLWindow::GDLWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const 
 }
 
 GDLWindow::~GDLWindow()
-{
-  
+{  
   std::cout << "~GDLWindow: " << this << std::endl;
   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
   if( pstreamP != NULL)
@@ -125,7 +145,7 @@ void GDLWindow::Update()
 {
   wxClientDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion() );
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+  GUIMutexLockerT gdlMutexGuiEnterLeave;
   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
   gdlMutexGuiEnterLeave.Leave();
   wxWindow::Update();
@@ -222,32 +242,35 @@ WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
 
 int GDLWidget::HandleEvents()
 {
-  int res = 0;
   DStructGDL* ev = NULL;
   while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
   {
-    ++res;
 //     DStructGDL* ev = GDLWidget::readlineEventQueue.Pop();
 //     if( ev == NULL)
 //       continue;
 
-    WidgetIDT id = (*static_cast<DLongGDL*>
-	    (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
-    WidgetIDT tlb = (*static_cast<DLongGDL*>
-	    (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
+    static int idIx = ev->Desc()->TagIndex("ID"); // 0
+    static int topIx = ev->Desc()->TagIndex("TOP"); // 1
+    static int handlerIx = ev->Desc()->TagIndex("HANDLER"); // 2
+    assert( idIx == 0);
+    assert( topIx == 1);
+    assert( handlerIx == 2);
+    
+    WidgetIDT id = (*static_cast<DLongGDL*>(ev->GetTag(idIx, 0)))[0];
+    WidgetIDT tlb = (*static_cast<DLongGDL*>(ev->GetTag(topIx, 0)))[0];
 
-    ev = CallEventHandler( id, ev);
+    ev = CallEventHandler( /*id,*/ ev);
+
     if( ev != NULL)
     {
       Warning( "Unhandled event. ID: " + i2s(id));
       GDLDelete( ev);
       ev = NULL;
     }
-
+    
     // refresh (if tlb still exists (handler might have destroyed it))
     // even on unhandled event as it might have been rewritten by a handler
     // use 'old' tlb as id might no longer exist
-//     WidgetIDT tlb = GetTopLevelBase( id);
     GDLWidget *tlw = GetWidget( tlb);
     if( tlw != NULL)
     {
@@ -259,7 +282,7 @@ int GDLWidget::HandleEvents()
       gdlMutexGuiEnterLeave.Leave();
     }
   }
-  return res;
+  return 0;
 }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) 
@@ -371,8 +394,14 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
 #endif
   }
 
+void GDLWidget::SetSizeHints()
+{
+  assert( parentID == NullID);
+  wxMessageOutputDebug().Printf("GDLWidget:SetSizeHints: %d\n",this->widgetID);
+  GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
+  topWidgetSizer->SetSizeHints(frame);
+}
 
-  
 void GDLWidget::Realize( bool map)
 {
   if( parentID == NullID)
@@ -385,9 +414,9 @@ void GDLWidget::Realize( bool map)
 
     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-    topWidgetSizer->SetSizeHints(frame);
-//     frame->SetClientSize(widgetPanel->GetSize());
-//     frame->Layout();
+//     topWidgetSizer->SetSizeHints(frame);
+//bad:  frame->SetClientSize(widgetPanel->GetSize());
+//bad:  frame->Layout();
     
     frame->SendShowRequestEvent( map);
 //     bool stat = frame->Show( map);
@@ -416,19 +445,20 @@ void GDLWidget::Realize( bool map)
   
   // start GUI thread
 
-  if (gdlGUIThread == NULL)
+  if (GDLGUIThread::gdlGUIThread == NULL)
   {
-    gdlGUIThread = new GDLGUIThread();
+    GDLGUIThread::gdlGUIThread = new GDLGUIThread();
+    std::cout << "Created thread: " << GDLGUIThread::gdlGUIThread << std::endl;
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "Created thread: " << gdlGUIThread << std::endl;
+    std::cout << "Created thread: " << GDLGUIThread::gdlGUIThread << std::endl;
     std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
 #endif    
   
-    gdlGUIThread->Create();
-    if ( gdlGUIThread->Run() != wxTHREAD_NO_ERROR )
+    GDLGUIThread::gdlGUIThread->Create();
+    if ( GDLGUIThread::gdlGUIThread->Run() != wxTHREAD_NO_ERROR )
     {
 //       delete gdlGUIThread;
-      gdlGUIThread = NULL;
+      GDLGUIThread::gdlGUIThread = NULL;
       throw GDLException("Failed to create GUI thread.");
     }
   }
@@ -473,6 +503,7 @@ DLong x_scroll_size, DLong y_scroll_size)
   , modal( modal_)
   , mbarID( mBarIDInOut)
   , lastRadioSelection( NullID)
+  , m_gdlFrameOwnerMutexP( NULL)
 {
   //  std::cout << "In GDLWidgetBase::GDLWidgetBase: " << widgetID << std::endl
   
@@ -500,6 +531,9 @@ DLong x_scroll_size, DLong y_scroll_size)
     wxString titleWxString = wxString( title_.c_str(), wxConvUTF8);
     GDLFrame *gdlFrame = new GDLFrame( this, wxParent, widgetID, titleWxString);
     wxWidget = gdlFrame;
+    
+    m_gdlFrameOwnerMutexP = gdlFrame->m_gdlFrameOwnerMutexP;
+    assert( m_gdlFrameOwnerMutexP != NULL);
 //     gdlFrame->Freeze();
     
     gdlFrame->SetSize( xSize, ySize);
@@ -605,23 +639,46 @@ GDLWidgetBase::~GDLWidgetBase()
   // Close widget frame (might be already closed)
   if( this->parentID == 0)
   {
-    // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
-    // on wxWidgets < 2.9.5
+    assert( m_gdlFrameOwnerMutexP != NULL);
+    m_gdlFrameOwnerMutexP->Lock();
     if( this->wxWidget != NULL)
     {
-      wxMutexLocker lock( static_cast<GDLFrame*>(this->wxWidget)->ownerMutex);//TODO
-      // after we got the lock th...
-      if( this->wxWidget != NULL)
-      {
-	static_cast<GDLFrame*>(this->wxWidget)->NullGDLOnwer();
-	std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
-	static_cast<GDLFrame*>(this->wxWidget)->Destroy();
-	// delete wxWidget;
-      }
+      static_cast<GDLFrame*>(this->wxWidget)->NullGDLOnwer();
+      std::cout << "~GDLWidgetBase: GDLFrame::Destroy(): " << this->wxWidget << std::endl;
+      // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
+      // on wxWidgets < 2.9.5
+      static_cast<GDLFrame*>(this->wxWidget)->Destroy();
+      // delete wxWidget;
+      m_gdlFrameOwnerMutexP->Unlock();
+    }
+    else
+    {
+      m_gdlFrameOwnerMutexP->Unlock();
+      delete m_gdlFrameOwnerMutexP;
     }
   }
+
+  // remove all widgets still in the queue for current TLB
+  eventQueue.Purge( widgetID);
+  readlineEventQueue.Purge( widgetID);
 }
 
+
+// called form event handling thread
+// sends an destroy event for itself
+void GDLWidgetBase::Destroy()
+{
+  assert( parentID == NullID);
+
+  // create GDL event struct
+  DStructGDL*  ev = new DStructGDL( "WIDGET_MESSAGE");
+  ev->InitTag("ID", DLongGDL( widgetID));
+  ev->InitTag("TOP", DLongGDL( widgetID));
+  ev->InitTag("HANDLER", DLongGDL( 0));
+  ev->InitTag("MESSAGE", DLongGDL( 0));
+
+  readlineEventQueue.PushFront(ev); // push front (will be handled next)
+}
 
 
 DLong GDLWidgetBase::NChildren() const
@@ -983,32 +1040,42 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 }
 
 
-GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine,
-	bool editable):
-  GDLWidget( p, e, true, valueStr)
+GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine_,
+	bool editable_)
+: GDLWidget( p, e, true, valueStr)
+, noNewLine(noNewLine_)
+, editable(editable_)
+{
+  DString value = "";
+  if( vValue != NULL)
+  {
+      for( int i=0; i<vValue->N_Elements(); ++i)
+      {
+	value += (*static_cast<DStringGDL*>(vValue))[i];
+	if( !noNewLine && (i+1) < vValue->N_Elements())
+	  value += '\n';
+      }
+  }
+  lastValue = value;
+
+  GDLWidget* gdlParent = GetWidget( parentID);
+
+  wxPanel *parentPanel = gdlParent->GetPanel();
+
+  wxPanel *panel = new wxPanel( parentPanel, wxID_ANY);
+  widgetPanel = panel;
+  
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
+}
+
+void GDLWidgetText::OnShow()
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-  GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
+  GDLWidget* gdlParent = GetWidget( parentID);
 
-  wxPanel *panel = gdlParent->GetPanel();
-
-  DString value = "";
-  if( valueStr != NULL)
-  {
-      for( int i=0; i<valueStr->N_Elements(); ++i)
-      {
-	value += (*valueStr)[i];
-	if( !noNewLine && (i+1) < valueStr->N_Elements())
-	  value += '\n';
-      }
-  }
-  
-  // remember initial setting
-  lastValue = value;
-  
   wxSize fontSize = wxNORMAL_FONT->GetPixelSize();      
   wxSize widgetSize = wxDefaultSize;
   if( xSize != widgetSize.x)
@@ -1022,19 +1089,13 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool n
   if( ySize > 1)
     style |= wxTE_MULTILINE;
   
-  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
-  wxTextCtrl* text = new wxTextCtrl( panel, widgetID, valueWxString,
+  wxString valueWxString = wxString( lastValue.c_str(), wxConvUTF8);
+  wxTextCtrl* text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
     wxPoint(xOffset,yOffset), widgetSize, style );
   this->wxWidget = text;
 
-  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
-  boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
-
-//   if ( wxParent != NULL) {
-//     boxSizer->SetSizeHints( wxParent);
-//   }
-
-  gdlMutexGuiEnterLeave.Leave();
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Layout();
 }
 
 
@@ -1060,7 +1121,7 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
  }
 
 
-GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
+GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value)
 : GDLWidget( p, e)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
@@ -1086,7 +1147,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, DString value)
   gdlMutexGuiEnterLeave.Leave();
 }
 
-void GDLWidgetLabel::SetLabelValue( DString value)
+void GDLWidgetLabel::SetLabelValue( const DString& value)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
@@ -1100,16 +1161,25 @@ GDLFrame::GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, co
 : wxFrame(parent, id, title)
 , gdlOwner( gdlOwner_)
 {
+  m_gdlFrameOwnerMutexP = new wxMutex();
 }
 
 GDLFrame::~GDLFrame()
 { 
-  wxMutexLocker lock( ownerMutex); // TODO
   std::cout << "~GDLFrame: " << this << std::endl;
   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+
+  m_gdlFrameOwnerMutexP->Lock();
   if( gdlOwner != NULL)
   {
     gdlOwner->NullWxWidget();
+    gdlOwner->Destroy(); // send delete request to GDL owner
+    m_gdlFrameOwnerMutexP->Unlock();
+  }
+  else
+  {
+    m_gdlFrameOwnerMutexP->Unlock();
+    delete m_gdlFrameOwnerMutexP;
   }
 }
 
@@ -1158,10 +1228,10 @@ int GDLApp::OnExit()
   
   // Defined in guiThread::OnExit() in gdlwidget.cpp
   //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
-  if (gdlGUIThread != NULL)
+  if (GDLGUIThread::gdlGUIThread != NULL)
   {
 //      delete gdlGUIThread;
-     gdlGUIThread = NULL;
+     GDLGUIThread::gdlGUIThread = NULL;
   }
 
   return 0;
@@ -1175,7 +1245,7 @@ void GDLGUIThread::OnExit()
   std::cout << "In guiThread::OnExit()." << std::endl;
   std::cout << "IsMainThread: " << wxIsMainThread() << std::endl;
 #endif
-  gdlGUIThread = NULL;
+  GDLGUIThread::gdlGUIThread = NULL;
 }
 
 

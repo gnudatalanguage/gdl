@@ -82,6 +82,8 @@ void GDLFrame::OnShowRequest( wxCommandEvent& event)
 #endif
     return;
   }
+  widget->OnShow();
+  widget->SetSizeHints();
   GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
   bool stat = frame->Show(true);
 }
@@ -121,7 +123,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   //std::cout << "xmanActCom: " << xmanActCom << std::endl;
 
   // create GDL event struct
-  DStructGDL*  widgbut = new DStructGDL( "");
+  DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
   widgbut->InitTag("HANDLER", DLongGDL( 0));

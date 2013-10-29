@@ -125,6 +125,7 @@ BaseGDL* CallEventFunc( const std::string f, BaseGDL* ev)
   BaseGDL* res = BaseGDL::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
   return res;
 }
+
 void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
 {
   StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack());
@@ -143,39 +144,71 @@ void CallEventPro( const std::string p, BaseGDL* p0, BaseGDL* p1 = NULL)
   // make the call
   BaseGDL::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 }
-DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
+
+DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
 {
 #ifdef HAVE_LIBWXWIDGETS
-  DLong actID = id;
+  static int idIx = ev->Desc()->TagIndex("ID"); // 0
+  static int topIx = ev->Desc()->TagIndex("TOP"); // 1
+  static int handlerIx = ev->Desc()->TagIndex("HANDLER"); // 2
+
+  DLong actID = (*static_cast<DLongGDL*>(ev->GetTag(idIx,0)))[0];
   do {
     GDLWidget *widget = GDLWidget::GetWidget( actID);
     if( widget == NULL)
     {
-      std::cout << "CallEventHandler: Widget no longer valid. ID: " << actID << std::endl;
+      Warning("CallEventHandler: Widget no longer valid. ID: " + i2s(actID));
       actID = GDLWidget::NullID;
     }
     else
     {
+      if( ev->Desc()->Name() == "WIDGET_MESSAGE")
+      {
+	static int messageIx = ev->Desc()->TagIndex("MESSAGE");
+
+	DLong id = (*static_cast<DLongGDL*>(ev->GetTag(idIx,0)))[0];
+	DLong top = (*static_cast<DLongGDL*>(ev->GetTag(topIx,0)))[0];
+	DLong message = (*static_cast<DLongGDL*>(ev->GetTag(messageIx,0)))[0];
+
+	assert( id == top);
+	assert( message == 0); // only '0' -> Destroy for now
+
+	if( id != actID)
+	{
+	  Warning("CallEventHandler: WIDGET_MESSAGE: Got event from another handler. ID: " + i2s(actID));
+	  GDLWidget *messageWidget = GDLWidget::GetWidget( id);
+	  delete messageWidget;
+	}
+	else
+	{
+	  std::cout << "CallEventHandler: WIDGET_MESSAGE: Deleting widget: "+i2s(actID) << std::endl;
+	  delete widget; // removes itself from widgetList
+	}
+	GDLDelete( ev);
+	ev = NULL;
+	break; // out of while
+      }
+
       DString eventHandlerPro = widget->GetEventPro();
       if( eventHandlerPro != "")
       {
-	(*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+	(*static_cast<DLongGDL*>(ev->GetTag(handlerIx, 0)))[0] = actID;
 	CallEventPro( eventHandlerPro, ev); // grabs ev
 	ev = NULL;
-	break;
+	break; // out of while
       }
       DString eventHandlerFun = widget->GetEventFun();
       if( eventHandlerFun != "")
       {
-	(*static_cast<DLongGDL*>(ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0] = actID;
+	(*static_cast<DLongGDL*>(ev->GetTag(handlerIx, 0)))[0] = actID;
 	BaseGDL* retVal = CallEventFunc( eventHandlerFun, ev); // grabs ev
 	if( retVal->Type() == GDL_STRUCT)
 	{
 	  // ev is already deleted
 	  ev = static_cast<DStructGDL*>( retVal); 
-	  if( ev->Desc()->TagIndex("ID") == -1 ||
-	    ev->Desc()->TagIndex("TOP") == -1 ||
-	    ev->Desc()->TagIndex("HANDLER") == -1)
+	  if( ev->Desc()->TagIndex("ID") != idIx ||
+	    ev->Desc()->TagIndex("TOP") != topIx ||
+	    ev->Desc()->TagIndex("HANDLER") != handlerIx)
 	  {
 	    GDLDelete( ev);
 	    throw GDLException(eventHandlerFun+ ": Event handler return struct must contain tags ID, TOP, HANDLER.");
@@ -186,7 +219,7 @@ DStructGDL* CallEventHandler( DLong id, DStructGDL* ev)
 	{
 	  GDLDelete( retVal);
 	  ev = NULL;
-	  break;    
+	  break; // out of while   
 	}
       }
       actID = widget->GetParentID();
@@ -1042,18 +1075,18 @@ BaseGDL* widget_list( EnvT* e)
 
 
   // WIDGET_EVENT
-  BaseGDL* widget_event( EnvT* e)
-  {
+BaseGDL* widget_event( EnvT* e)
+{
 #ifndef HAVE_LIBWXWIDGETS
     e->Throw("GDL was compiled without support for wxWidgets");
     return NULL;
 #else
     SizeT nParam=e->NParam();
 
-    DLongGDL* p0L = NULL; 
+    DLongGDL* p0L = NULL;
 
     if ( nParam > 0) {
-      p0L = e->GetParAs<DLongGDL>( 0);
+        p0L = e->GetParAs<DLongGDL>( 0);
     }
 
     static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK");
@@ -1067,77 +1100,84 @@ BaseGDL* widget_list( EnvT* e)
 //     DLong select;
     //    int i; cin >> i;
 //     GDLEventQueuePolledGuard polledGuard( &GDLWidget::eventQueue);
-    while ( 1) { // outer while loop
-      std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;      
-      
-      DStructGDL* ev = NULL;
+    while ( 1)
+    {   // outer while loop
+        std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;
 
-      while ( 1) {
-	// handle global GUI events as well as plot events
-	// handling is completed on return
-	// calls GDLWidget::HandleEvents()
-	int res = GDLEventHandler();
+        DStructGDL* ev = NULL;
 
-	// the polling event handler
-	if( (ev = GDLWidget::eventQueue.Pop()) != NULL)
-	{
-// 	  ev = GDLWidget::eventQueue.Pop();
+        while ( 1)
+        {
+            // handle global GUI events as well as plot events
+            // handling is completed on return
+            // calls GDLWidget::HandleEvents()
+            // which calls GDLWidget::CallEventHandler()
+            GDLEventHandler();
 
-	  id = (*static_cast<DLongGDL*>
-		  (ev->GetTag(ev->Desc()->TagIndex("ID"), 0)))[0];
-	  tlb = (*static_cast<DLongGDL*>
-		  (ev->GetTag(ev->Desc()->TagIndex("TOP"), 0)))[0];
-// 	  handler = (*static_cast<DLongGDL*>
-// 		      (ev->GetTag(ev->Desc()->TagIndex("HANDLER"), 0)))[0];
-	  break;
-	}
-	
-	// if poll event handler found an event this is not reached due to the 
-	// 'break' statement
-	if( res == 0)
-	{
-	  // Sleep a bit to prevent CPU overuse
-	  // but only if there are no events!
-	  wxMilliSleep( 50);	  
-	}
-	
-	if( sigControlC)
-	  return new DLongGDL( 0);	  
-      } // inner while
+            // the polling event handler
+            if( (ev = GDLWidget::eventQueue.Pop()) != NULL)
+            {
+                // ev = GDLWidget::eventQueue.Pop();
+                static int idIx = ev->Desc()->TagIndex("ID"); // 0
+                static int topIx = ev->Desc()->TagIndex("TOP"); // 1
+                static int handlerIx = ev->Desc()->TagIndex("HANDLER"); // 2
 
-      std::cout << "WIDGET_EVENT: Event found" << std::endl;
-      std::cout << "top: " << tlb << std::endl;
-      std::cout << "id:  " << id << std::endl;
+                id = (*static_cast<DLongGDL*>
+                      (ev->GetTag(idIx, 0)))[0];
+                tlb = (*static_cast<DLongGDL*>
+                       (ev->GetTag(topIx, 0)))[0];
+                break;
+            }
 
-      ev = CallEventHandler( id, ev);
-     
-      if( ev != NULL)
-      {
-	Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s(id));
-	GDLDelete( ev);
- 	ev = NULL;
-      }
+            // if poll event handler found an event this is not reached due to the
+            // 'break' statement
+            // Sleep a bit to prevent CPU overuse
+            wxMilliSleep( 50);
 
-      GDLWidget *tlw = GDLWidget::GetWidget( tlb);
-      if ( tlw == NULL) {
-	std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;
-	break;
-      }
-      
-      // see comment in GDLWidget::HandleEvents()
-      // WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
-      assert( dynamic_cast<GDLFrame*>(tlw->GetWxWidget()) != NULL);
-      // Pause 50 millisecs then refresh widget 
+            if( sigControlC)
+                return new DLongGDL( 0);
+	    
+	    if( GDLGUIThread::gdlGUIThread == NULL)
+	    {
+	      std::cout << "WIDGET_EVENT: GUI thread has exited." << std::endl;
+	      return new DLongGDL( 0);
+	    }
+        } // inner while
+
+        std::cout << "WIDGET_EVENT: Event found" << std::endl;
+        std::cout << "top: " << tlb << std::endl;
+        std::cout << "id:  " << id << "   thread:" << GDLGUIThread::gdlGUIThread << std::endl;
+
+        ev = CallEventHandler( /*id,*/ ev);
+
+        if( ev != NULL)
+        {
+            Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s(id));
+            GDLDelete( ev);
+            ev = NULL;
+        }
+
+        GDLWidget *tlw = GDLWidget::GetWidget( tlb);
+        if ( tlw == NULL)
+        {
+            std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;
+            break;
+        }
+
+        // see comment in GDLWidget::HandleEvents()
+        // WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
+        assert( dynamic_cast<GDLFrame*>(tlw->GetWxWidget()) != NULL);
+        // Pause 50 millisecs then refresh widget
 //       wxMilliSleep( 50); // (why?)
-      GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-      static_cast<GDLFrame*>(tlw->GetWxWidget())->Refresh();
-      gdlMutexGuiEnterLeave.Leave();
+        GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+        static_cast<GDLFrame*>(tlw->GetWxWidget())->Refresh();
+        gdlMutexGuiEnterLeave.Leave();
 
     } // outer while loop
 
     return new DLongGDL( 0);
 #endif
-  }
+}
 
 
   // WIDGET_CONTROL
@@ -1150,7 +1190,9 @@ BaseGDL* widget_list( EnvT* e)
 
     WidgetIDT widgetID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( widgetID);
-
+    if( widget == NULL)
+      e->Throw("Widget ID not valid: "+i2s(widgetID));
+    
     static int realizeIx = e->KeywordIx( "REALIZE");
     bool realize = e->KeywordSet( realizeIx);
 

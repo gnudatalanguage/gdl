@@ -30,6 +30,8 @@
 #include "str.hpp"
 #include "datatypes.hpp"
 
+typedef DLong WidgetIDT;
+
 class DStructGDL;
 
 // thread save deque
@@ -44,14 +46,23 @@ public:
   
   DStructGDL* Pop()
   {
+    if( dq.empty()) // optimzation: aquiring of mutex not necessary at first
+      return NULL;   
     wxMutexLocker lock( mutex);
-    if( dq.empty()) 
+    if( dq.empty()) // needed again for thread save behaviour
       return NULL;   
     DStructGDL* front = dq.front();
     dq.pop_front();
     return front;
   }
+  // for all regular events
   void Push( DStructGDL* ev)
+  {
+    wxMutexLocker lock( mutex);
+    dq.push_back( ev);
+  }
+  // for priority events (like delete widget)
+  void PushFront( DStructGDL* ev)
   {
     wxMutexLocker lock( mutex);
     dq.push_back( ev);
@@ -64,9 +75,18 @@ public:
 //     return isEmpty;    
 //   }
   void Purge();
+  void Purge( WidgetIDT topID);
 };
 
-// both locker classes are identical. For controlling locking separately
+// all locker classes are identical. For control of locking separately
+class GUIMutexLockerT
+{
+  bool left;
+public:
+  GUIMutexLockerT(): left(false) { wxMutexGuiEnter();}
+  ~GUIMutexLockerT() { if(!left) wxMutexGuiLeave();}
+  void Leave() { wxMutexGuiLeave(); left=true;}
+};
 #define GUIMutexLockerWidgetsT_OFF
 class GUIMutexLockerWidgetsT
 {
@@ -103,11 +123,12 @@ public:
 class GDLGUIThread : public wxThread
 {
 //   bool exited;
-  
 public:
+  static GDLGUIThread* gdlGUIThread;
+
   GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
 //   , exited(false)
-  {};
+  {}
   ~GDLGUIThread();
 
 //   bool Exited() const { return exited;}
@@ -122,12 +143,10 @@ public:
 //   void Exit(); // end this
 };
 
-static GDLGUIThread *gdlGUIThread = NULL;
-
 class GDLWidget;
 
 // global widget list type
-typedef DLong                       WidgetIDT;
+// typedef DLong                       WidgetIDT;
 // typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 // typedef std::deque<DStructGDL*> EventQueueT;
 
@@ -214,7 +233,7 @@ public:
   static GDLEventQueue readlineEventQueue;
   static void PushEvent(  WidgetIDT baseWidgetID, DStructGDL* ev);
 
-  static int HandleEvents();
+  static WidgetIDT HandleEvents();
   static const WidgetIDT NullID;
   
   // get widget from ID
@@ -228,9 +247,11 @@ public:
   static void Init(); // GUI intialization upon GDL startup
 
 protected:
-  wxObject* wxWidget; // deleted only from TLB as the rest is deleted 
-                      // automatic
-                      // Note: wxWidget is GDL name not wxWidgets (JMG)
+// only TLB have to care for this
+// (they do by sending messgages to each other in a thread save way)
+// as the rest is deleted automatically 
+// Note: wxWidget is GDL name not wxWidgets (JMG)
+  wxObject* wxWidget;
 
   WidgetIDT    widgetID;  // own index to widgetList
   WidgetIDT    parentID;  // parent ID (0 for TLBs)
@@ -270,6 +291,12 @@ public:
 
   virtual ~GDLWidget();
 
+  // this is called from the GUI thread on (before) Show()
+  // wxTextCtrl and maybe other controls crash when called from the
+  // main thread
+  virtual void OnShow() {}
+  void SetSizeHints();
+  
   WidgetIDT GetParentID() const { return parentID;}
   
   wxObject* GetWxWidget() const { return wxWidget;}
@@ -337,8 +364,85 @@ public:
 };
 
 
+// base widget **************************************************
+class GDLWidgetBase: public GDLWidget
+{
+protected:
+  typedef std::deque<WidgetIDT>::iterator cIter;
+  std::deque<WidgetIDT>                   children;
+  
+  bool                                    xmanActCom;
+  bool                                    modal;
+  WidgetIDT                               mbarID;
+  // for radio buttons to generate deselect event
+  WidgetIDT                               lastRadioSelection;
 
-class GDLWidgetMbar;
+  wxMutex*                                m_gdlFrameOwnerMutexP;
+
+public:
+  GDLWidgetBase( WidgetIDT parentID, EnvT* e,
+		 bool mapWid,
+		 WidgetIDT& mBarIDInOut, bool modal, 
+		 DLong col, DLong row,
+		 long events,
+		 int exclusiveMode, 
+		 bool floating,
+		 const DString& resource_name, const DString& rname_mbar,
+		 const DString& title,
+		 const DString& display_name,
+		 DLong xpad, DLong ypad,
+		 DLong x_scroll_size, DLong y_scroll_size);
+  
+  ~GDLWidgetBase();
+
+  void OnShow() 
+  {
+    for( cIter c=children.begin(); c!=children.end(); ++c)
+    {
+      GDLWidget* w = GetWidget( *c);
+      if( w != NULL)
+	w->OnShow();
+    }
+  }
+
+  void NullWxWidget() { this->wxWidget = NULL;}
+  
+  WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
+  void SetLastRadioSelection(WidgetIDT lastSel) { lastRadioSelection = lastSel;}                         
+
+  // as this is called in the constructor, no type checking of c can be done
+  // hence the AddChild() function should be as simple as that
+  void AddChild( WidgetIDT c) { children.push_back( c);}
+  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
+							  children.end(), c));}
+
+  void Realize( bool);
+  
+  void Destroy(); // sends delete event to itself
+  
+  void SetXmanagerActiveCommand() 
+  { 
+//     wxMessageOutputDebug().Printf("SetXmanagerActiveCommand: %d\n",widgetID);
+    xmanActCom = true;
+  }
+  bool GetXmanagerActiveCommand() const 
+  { 
+//     wxMessageOutputDebug().Printf("GetXmanagerActiveCommand: %d\n",widgetID);
+    return xmanActCom;
+  }
+
+//   void SetEventPro( DString);
+//   const DString& GetEventPro() { return eventHandler;}
+
+  WidgetIDT GetChild( DLong) const;
+  DLong NChildren() const;
+
+  bool IsBase() const { return true;} 
+};
+
+
+
+// class GDLWidgetMbar;
 
 // button widget **************************************************
 class GDLWidgetButton: public GDLWidget
@@ -398,10 +502,13 @@ class GDLWidgetText: public GDLWidget
 {
   std::string lastValue;
   wxMutex m_mutex;
+  bool noNewLine;
+  bool editable;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
- 
+  void OnShow();
+
   void SetTextValue( DStringGDL* value, bool noNewLine);
   
   bool IsText() const { return true;} 
@@ -415,74 +522,10 @@ public:
 class GDLWidgetLabel: public GDLWidget
 {
 public:
-  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, DString value);
+  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value);
  
-  void SetLabelValue( DString);
+  void SetLabelValue( const DString& value);
 };
-
-
-// base widget **************************************************
-class GDLWidgetBase: public GDLWidget
-{
-protected:
-  typedef std::deque<WidgetIDT>::iterator cIter;
-  std::deque<WidgetIDT>                   children;
-  
-  bool                                    xmanActCom;
-  bool                                    modal;
-  WidgetIDT                               mbarID;
-  // for radio buttons to generate deselect event
-  WidgetIDT                               lastRadioSelection;
-
-public:
-  GDLWidgetBase( WidgetIDT parentID, EnvT* e,
-		 bool mapWid,
-		 WidgetIDT& mBarIDInOut, bool modal, 
-		 DLong col, DLong row,
-		 long events,
-		 int exclusiveMode, 
-		 bool floating,
-		 const DString& resource_name, const DString& rname_mbar,
-		 const DString& title,
-		 const DString& display_name,
-		 DLong xpad, DLong ypad,
-		 DLong x_scroll_size, DLong y_scroll_size);
-  
-  ~GDLWidgetBase();
-
-  void NullWxWidget() { this->wxWidget = NULL;}
-  
-  WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
-  void SetLastRadioSelection(WidgetIDT lastSel) { lastRadioSelection = lastSel;}                         
-
-  // as this is called in the constructor, no type checking of c can be done
-  // hence the AddChild() function should be as simple as that
-  void AddChild( WidgetIDT c) { children.push_back( c);}
-  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
-							  children.end(), c));}
-
-  void Realize( bool);
-  
-  void SetXmanagerActiveCommand() 
-  { 
-//     wxMessageOutputDebug().Printf("SetXmanagerActiveCommand: %d\n",widgetID);
-    xmanActCom = true;
-  }
-  bool GetXmanagerActiveCommand() const 
-  { 
-//     wxMessageOutputDebug().Printf("GetXmanagerActiveCommand: %d\n",widgetID);
-    return xmanActCom;
-  }
-
-//   void SetEventPro( DString);
-//   const DString& GetEventPro() { return eventHandler;}
-
-  WidgetIDT GetChild( DLong) const;
-  DLong NChildren() const;
-
-  bool IsBase() const { return true;} 
-};
-
 
 
 // draw widget **************************************************
@@ -555,7 +598,7 @@ class GDLFrame : public wxFrame
 
   // called from ~GDLWidgetBase
   void NullGDLOnwer() { gdlOwner = NULL;}
-  wxMutex ownerMutex;
+  wxMutex* m_gdlFrameOwnerMutexP;
   friend class GDLWidgetBase;
 public:
   // ctor(s)

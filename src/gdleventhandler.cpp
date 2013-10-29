@@ -38,10 +38,9 @@ int GDLEventHandler()
   GraphicsDevice::HandleEvents();
 
 #ifdef HAVE_LIBWXWIDGETS
-  int res = GDLWidget::HandleEvents();
+  GDLWidget::HandleEvents();
   const long OS_X_DELAY_NS = 5000000; // 5ms
 #else
-  int res =0;
   const long OS_X_DELAY_NS = 20000000; // 20ms
 #endif
 
@@ -53,6 +52,6 @@ int GDLEventHandler()
   nanosleep(&delay,NULL);
 #endif
 
-  return res;
+  return 0;
 }
 
