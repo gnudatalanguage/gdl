@@ -250,12 +250,12 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev)
   bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
   if( !xmanActCom)
   {
-//     wxMessageOutputDebug().Printf("eventQueue.Push: %d\n",baseWidgetID);
+//     wxMessageOutputDebug().Printf(_T("eventQueue.Push: %d\n",baseWidgetID);
     eventQueue.Push(ev);
   }
   else
   {
-//     wxMessageOutputDebug().Printf("readLineEventQueue.Push: %d\n",baseWidgetID);
+//     wxMessageOutputDebug().Printf(_T("readLineEventQueue.Push: %d\n",baseWidgetID);
     readlineEventQueue.Push( ev);
   }
 }
@@ -346,7 +346,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
     widgetList.insert( widgetList.end(), std::pair<WidgetIDT, GDLWidget*>( widgetID, this));
 #ifdef GDL_DEBUG_WIDGETS
 //     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-    wxMessageOutputDebug().Printf("inserted: ID: %d  parentID: %d\n",widgetID,parentID);
+    wxMessageOutputDebug().Printf(_T("inserted: ID: %d  parentID: %d\n",widgetID,parentID);
 //     std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
 #endif
   }
@@ -386,7 +386,7 @@ void GDLWidget::Realize( bool map)
   {
     assert( this->IsBase());
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf("GDLWidget:Realize: %d\n",this->widgetID);
+    wxMessageOutputDebug().Printf(_T("GDLWidget:Realize: %d\n",this->widgetID);
 #endif
     GDLFrame *frame = static_cast<GDLFrame*>( this->wxWidget);
     if( frame->LastShowRequest() != map)
@@ -398,7 +398,7 @@ void GDLWidget::Realize( bool map)
   else
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf("GDLWidget:Realize TLB of: %d\n",this->widgetID);
+    wxMessageOutputDebug().Printf(_T("GDLWidget:Realize TLB of: %d\n",this->widgetID);
 #endif
     GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID);
     assert( tlb != NULL);

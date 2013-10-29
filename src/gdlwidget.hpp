@@ -459,12 +459,12 @@ public:
   
   void SetXmanagerActiveCommand() 
   { 
-//     wxMessageOutputDebug().Printf("SetXmanagerActiveCommand: %d\n",widgetID);
+//     wxMessageOutputDebug().Printf(_T("SetXmanagerActiveCommand: %d\n",widgetID);
     xmanActCom = true;
   }
   bool GetXmanagerActiveCommand() const 
   { 
-//     wxMessageOutputDebug().Printf("GetXmanagerActiveCommand: %d\n",widgetID);
+//     wxMessageOutputDebug().Printf(_T("GetXmanagerActiveCommand: %d\n",widgetID);
     return xmanActCom;
   }
 
