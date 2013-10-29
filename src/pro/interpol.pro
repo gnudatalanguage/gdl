@@ -11,6 +11,9 @@
 ; revised 18-Feb-2013 by Alain C. after bug report 3602770
 ; We have to manage NaN and Infinity ...
 ;
+; resived 29-Oct-2013 by Alain C. thanks to Gael mixing
+; of Double/Long64 types in HFI Planck Monte Carlo pipeline.
+;
 function INTERPOL, p0, p1, p2, lsquadratic=lsquadratic, $
                    quadratic=quadratic, spline=spline, $
                    test=test, help=help, debug=debug
@@ -25,6 +28,18 @@ if KEYWORD_SET(help) then begin
     return, -1
 endif
 ;
+; input type sanity checks
+;
+; type of return output comes from "p0" type
+;
+p0_type=SIZE(p0, /type)
+if ((p0_type EQ 7) OR (p0_type EQ 8) OR (p0_type EQ 10)) then $
+  MESSAGE, 'expression TYPE not allowed in this context: p0'
+;
+p1_type=SIZE(p1, /type)
+if ((p1_type EQ 7) OR (p1_type EQ 8) OR (p1_type EQ 10)) then $
+  MESSAGE, 'expression TYPE not allowed in this context: p1'
+;
 ;; sanity checks
 ;
 if N_PARAMS() eq 1 then $
@@ -37,6 +52,7 @@ if KEYWORD_SET(quadratic) then $
 ;  if N_PARAMS() eq 3 and N_ELEMENTS(p0) ne N_ELEMENTS(p1) then $
 ;    MESSAGE, 'In the three-parameter case the first and second argument must be of equal length'
 ; <see bug no. 3104537>
+;
 if N_PARAMS() eq 3 then begin
     if N_ELEMENTS(p0) ne N_ELEMENTS(p1) then $
       MESSAGE, 'In the three-parameter case the first and second argument must be of equal length'
@@ -51,6 +67,11 @@ endif
 ; </...>
 ;
 isint = SIZE(p0, /type) lt 4 || SIZE(p0, /type) gt 11
+;
+; AC, 29-oct-2013, other "bad" types exited before
+; Float is "4", Dbl is 5, Cplx 6, DCplx 9 (TBC)
+;
+if ((p0_type LT 4) OR (p0_type GT 11)) then p0_type=4
 ;
 ; AC 2012/03/05: useful values ... may be updated later
 nbp_inside=N_ELEMENTS(p0)
@@ -118,7 +139,7 @@ endif else begin
     ;; linear interpolation case
     if (nbp_inside GT 0) then result=INTERPOLATE(isint ? FLOAT(p0) : p0, ind)
     if (nbp_outside GT 0) then begin
-        tmp=p2
+        tmp=MAKE_ARRAY(p2_info, type=p0_type)
         if (nbp_inside GT 0) then tmp[inside_OK]=result
         last=N_ELEMENTS(p0)-1
         slope_begin=(1.*p0[1]-p0[0])/(p1[1]-p1[0])
@@ -135,9 +156,9 @@ endif else begin
 endelse
 ;
 if ExistNotFinite then begin
-    resres=MAKE_ARRAY(p2_info, type=SIZE(result,/type))
+    resres=MAKE_ARRAY(p2_info, type=p0_type)
     resres[index_p2_not_finite]=p2_not_finite
-    resres[index_p2_finite]=result    
+    resres[index_p2_finite]=result
     result=resres
 endif
 ;
