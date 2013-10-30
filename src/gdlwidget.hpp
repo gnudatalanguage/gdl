@@ -520,21 +520,6 @@ public:
 //   void SetSelectOff();
 };
 
-// bgroup widget **************************************************
-class GDLWidgetBGroup: public GDLWidget
-{
-public:
-	typedef enum e_BGRoupReturn {RETURN_ID, RETURN_INDEX, RETURN_NAME}
-	BGroupReturn;
-
-	GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
-			BaseGDL *uV, DString buttonuvalue,
-			DLong xSize, DLong ySize,
-			DString labeltop, DLong rows, DLong cols,
-			BGroupMode mode, BGroupReturn ret
-			);
-
-};
 
 // text widget **************************************************
 class GDLWidgetText: public GDLWidget

@@ -558,10 +558,6 @@ DLong x_scroll_size, DLong y_scroll_size)
     {
       wxWindow* wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
-//       wxPanel *panel = gdlParent->GetPanel();
-//       widgetPanel = panel;
-//       //    std::cout << "Getting Panel: " << panel << std::endl;
-
       wxPanel *panel = new wxPanel( wxParent, wxID_ANY);
       widgetPanel = panel;
       wxWidget = panel;
@@ -575,10 +571,11 @@ DLong x_scroll_size, DLong y_scroll_size)
       widgetSizer = sizer;
       //      std::cout << "Creating Sizer2: " << sizer << std::endl;
 
-      panel->SetSizer( sizer);
-    
+      panel->SetSizer( sizer);    
       parentSizer->Add( panel, 0, wxEXPAND|wxALL, 5);
 
+      parentSizer->Layout();
+//       boxSizer->Layout();
 //       wxWidget = panel;
 //       if ( wxParent != NULL) 
 // 	parentSizer->SetSizeHints( wxParent);
@@ -752,7 +749,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   {
 //     cout << "MenuBar: " << widgetID << endl;
     this->wxWidget = new wxMenu();
-  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+    wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
     menuBar->Append( static_cast<wxMenu*>(this->wxWidget), valueWxString);
   }
   else
@@ -817,7 +814,9 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 // 	cout << "wxCheckBox: " << widgetID << endl;
       }
 
-      wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
+      boxSizer->Layout();
+
+//       wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
 //       if ( wxParent != NULL) {
 // 	//      std::cout << "SetSizeHints: " << wxParent << std::endl;
 // 	boxSizer->SetSizeHints( wxParent);
@@ -826,102 +825,6 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   }
 
   gdlMutexGuiEnterLeave.Leave();
-}
-
-
-
-GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
-                                 BaseGDL *uV, DString buttonuvalue,
-                                 DLong xSize, DLong ySize,
-                                 DString labeltop, DLong rows, DLong cols,
-                                 BGroupMode mode, BGroupReturn ret
-                                ):
-    GDLWidget( p, NULL)
-{
-    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
-    GDLWidget* gdlParent = GetWidget( p);
-    wxWindow *wxParent = static_cast< wxWindow*>(
-                             gdlParent->GetWxWidget());
-
-    wxPanel *panel = gdlParent->GetPanel();
-
-    wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
-
-    //DStringGDL* buttonval = static_cast<DStringGDL*>( buttonvalue);
-
-    DLong n = names->N_Elements();
-    wxString *choices = new wxString[n];
-    for( SizeT i=0; i<n; ++i) choices[i] = wxString((*names)[i].c_str(),wxConvUTF8);
-
-    wxString labeltopWxString = wxString( labeltop.c_str(), wxConvUTF8);
-    wxStaticText* label = new wxStaticText( panel, widgetID,
-                                            labeltopWxString,
-                                            wxPoint(10,10),
-                                            wxDefaultSize, wxALIGN_CENTRE);
-
-    boxSizer->Add( label, 0, wxEXPAND | wxALL, 5);
-
-    // define grid dimension
-    if(rows == -1 && cols == -1) {
-        cols = 1;
-        rows = n;
-    } else {
-        if(rows == -1) {
-            rows = 1;
-            cols = n;
-        }
-        if(cols == -1) {
-            cols = 1;
-            rows = n;
-        }
-    }
-
-    // define grid object
-    wxFlexGridSizer *buttonSizer = new wxFlexGridSizer( (int)rows, (int) cols, 0, 0 );
-    switch(mode)
-    {
-    case BGNORMAL:
-    {
-        for( SizeT i=0; i<n; ++i) {
-            wxButton* button = new wxButton(panel, widgetID, choices[i]);
-            buttonSizer->Add( button, 0, wxEXPAND | wxALL, 5);
-        }
-    }
-    break;
-    case BGEXCLUSIVE:
-    {
-        wxRadioButton* radio = new wxRadioButton(panel, widgetID,
-                choices[0],
-                wxDefaultPosition,
-                wxDefaultSize,
-                wxRB_GROUP
-                                                );
-        buttonSizer->Add( radio, 0, wxEXPAND | wxALL, 5);
-        for( SizeT i=1; i<n; ++i) {
-            radio = new wxRadioButton(panel, widgetID, choices[i]);
-            buttonSizer->Add( radio, 0, wxEXPAND | wxALL, 5);
-        }
-    }
-    break;
-    case BGNONEXCLUSIVE:
-    {
-        wxCheckBox* check;
-        for( SizeT i=0; i<n; ++i) {
-            check = new wxCheckBox(panel, widgetID, choices[i]);
-            buttonSizer->Add( check, 0, wxEXPAND | wxALL, 5);
-        }
-    }
-    }
-
-    boxSizer->Add( buttonSizer,
-                   0,                // make vertically unstretchable
-                   wxALIGN_CENTER ); // no border and centre horizontally
-
-//     if ( wxParent != NULL) {
-//         boxSizer->SetSizeHints( wxParent);
-//     }
-    gdlMutexGuiEnterLeave.Leave();
 }
 
 
@@ -1083,24 +986,24 @@ void GDLWidgetText::OnShow()
 
 void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
 {
-  delete vValue;
-  vValue = valueStr;
-  DString value = "";
-  for( int i=0; i<valueStr->N_Elements(); ++i)
-  {
-    value += (*valueStr)[ i];
-    if( !noNewLine && (i+1) < valueStr->N_Elements())
-      value += '\n';
-  }
+    delete vValue;
+    vValue = valueStr;
+    DString value = "";
+    for( int i=0; i<valueStr->N_Elements(); ++i)
+    {
+        value += (*valueStr)[ i];
+        if( !noNewLine && (i+1) < valueStr->N_Elements())
+            value += '\n';
+    }
+    lastValue = value;
 
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-  wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
-  static_cast<wxTextCtrl*>(wxWidget)->SetValue( valueWxString);
-  static_cast<wxTextCtrl*>(wxWidget)->Refresh(); 
-  //wxMilliSleep(700); 
-  gdlMutexGuiEnterLeave.Leave();
- }
+    wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
+    static_cast<wxTextCtrl*>(wxWidget)->SetValue( valueWxString);
+    static_cast<wxTextCtrl*>(wxWidget)->Refresh();
+}
+
 
 
 GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_)
@@ -1199,7 +1102,7 @@ void GDLDrawPanel::InitStream()
 
 GDLDrawPanel::~GDLDrawPanel()
 {  
-  std::cout << "~GDLDrawPanel: " << this << std::endl;
+//   std::cout << "~GDLDrawPanel: " << this << std::endl;
 //   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
   if( pstreamP != NULL)
       pstreamP->SetValid(false);
@@ -1207,7 +1110,7 @@ GDLDrawPanel::~GDLDrawPanel()
 
 void GDLDrawPanel::Update()
 {
-  cout << "in GDLDrawPanel::Update()" << endl;
+//   cout << "in GDLDrawPanel::Update()" << endl;
   SendPaintEvent();
 //   wxClientDC dc( this);
 //   dc.SetDeviceClippingRegion( GetUpdateRegion() );

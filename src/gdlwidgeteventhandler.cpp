@@ -575,7 +575,7 @@ void GDLFrame::OnThumbRelease( wxScrollEvent& event)
 
 void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 {
-  cout <<"in OnPaint: "<< event.GetId() << endl;
+//   cout <<"in OnPaint: "<< event.GetId() << endl;
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnPaint: %d\n"),event.GetId());
 #endif
