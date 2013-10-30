@@ -597,8 +597,6 @@ namespace lib {
 
     button->SetWidgetType( "BUTTON");
 
-    button->SetButtonSet(false);
-
     return new DLongGDL( button->WidgetID());
 #endif
   }
@@ -1320,12 +1318,17 @@ BaseGDL* widget_event( EnvT* e)
     }
 
     if ( setbutton) {
+      if( !widget->IsButton())
+      {
+	e->Throw( "Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
+      }
+      GDLWidgetButton* button = static_cast<GDLWidgetButton*>(widget);
       DLong buttonVal;
       e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal);
       if ( buttonVal == 0)
-	widget->SetButtonSet(false);
+	button->SetButtonWidget(false);
       else
-	widget->SetButtonSet(true);
+	button->SetButtonWidget(true);
     }
 
     if ( setvalue) {

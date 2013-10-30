@@ -359,7 +359,7 @@ void LibInit_jmg()
   const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MULTILINE","LOCATION","TAB_MODE","TRACKING_EVENTS", KLISTEND};
   new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey);
 
-  const string widget_slider[] = {WIDGET_COMMON_KEYWORDS,"TITLE","DRAG","VALUE","MINIMUM","MAXIMUM","VERTICAL","SUPPRESS_VALUE", KLISTEND};
+  const string widget_slider[] = {WIDGET_COMMON_KEYWORDS,"TITLE"/*TODO*/,"DRAG","VALUE","MINIMUM","MAXIMUM","VERTICAL","SUPPRESS_VALUE", KLISTEND};
   new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_slider);
 
   
