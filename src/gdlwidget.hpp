@@ -30,6 +30,7 @@
 #include "str.hpp"
 #include "datatypes.hpp"
 #include "widget.hpp"
+#include "plotting.hpp"
 
 typedef DLong WidgetIDT;
 
@@ -258,7 +259,7 @@ protected:
   bool         sensitive;
   bool         managed;
   bool         map;
-  bool         buttonSet;
+//   bool         buttonSet;
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
   wxSizer*     topWidgetSizer;
@@ -363,8 +364,8 @@ public:
   const DString& GetWidgetType() const { return widgetType;}
   void SetWidgetType( const DString& wType){widgetType = wType;}
 
-  bool GetButtonSet() const { return buttonSet;}
-  void SetButtonSet(bool onOff){buttonSet = onOff;}
+//   bool GetButtonSet() const { return buttonSet;}
+//   void SetButtonSet(bool onOff){buttonSet = onOff;}
 
   const DString& GetUname() const { return uName;}
   void SetUname( const DString& uname){uName = uname;}
@@ -480,9 +481,46 @@ public:
 // button widget **************************************************
 class GDLWidgetButton: public GDLWidget
 {
+  typedef enum ButtonType_ {
+  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3} ButtonType;
+
+  ButtonType buttonType;
+
+  bool buttonState;
+  
 public:
   GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value);
 
+  // for WIDGET_CONTROL
+  void SetButtonWidget( bool onOff)
+  {
+    if( wxWidget != NULL)
+    {
+      switch( buttonType) {
+	case RADIO: {	  
+	  SetButton( onOff);
+	  wxRadioButton* radioButton = static_cast<wxRadioButton*>(wxWidget);
+	  radioButton->SetValue(onOff);
+	  break;
+	}
+	case CHECKBOX: {
+	  SetButton( onOff);
+	  wxCheckBox* checkBox = static_cast<wxCheckBox*>(wxWidget);
+	  checkBox->SetValue(onOff);
+	  break;
+	}
+      }
+    }
+  }
+  void SetButton( bool onOff)
+  {
+    buttonState = onOff;
+  }
+  bool GetButton() const
+  {
+    return buttonState;
+  }
+  
   bool IsButton() const { return true;} 
 
 //   void SetSelectOff();

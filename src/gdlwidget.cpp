@@ -18,15 +18,17 @@
 
 #include "includefirst.hpp"
 
+#ifdef HAVE_LIBWXWIDGETS
+
 #include <memory> 
+
+#include <wx/notebook.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
 
 #include "dinterpreter.hpp"
 
-#ifdef HAVE_LIBWXWIDGETS
-#include <wx/notebook.h>
 
 #include "gdlwxstream.hpp"
 
@@ -306,7 +308,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   , parentID( p)
   , uValue( NULL)
   , vValue( vV)
-  , buttonSet(false)
+//   , buttonSet(false)
   , exclusiveMode(0)
   , topWidgetSizer(NULL)
   , widgetSizer(NULL)
@@ -557,7 +559,7 @@ DLong x_scroll_size, DLong y_scroll_size)
     else
     {
       wxWindow* wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
-
+     
       wxPanel *panel = new wxPanel( wxParent, wxID_ANY);
       widgetPanel = panel;
       wxWidget = panel;
@@ -572,13 +574,15 @@ DLong x_scroll_size, DLong y_scroll_size)
       //      std::cout << "Creating Sizer2: " << sizer << std::endl;
 
       panel->SetSizer( sizer);    
+      
       parentSizer->Add( panel, 0, wxEXPAND|wxALL, 5);
-
-      parentSizer->Layout();
-//       boxSizer->Layout();
-//       wxWidget = panel;
-//       if ( wxParent != NULL) 
-// 	parentSizer->SetSizeHints( wxParent);
+      
+      
+//       parentSizer->Layout();
+// 
+//       wxPanel* parentPanel = gdlParent->GetPanel();
+// 
+//       parentSizer->Fit( parentPanel);
     }
   }	
 }
@@ -735,10 +739,12 @@ GDLWidgetSlider::~GDLWidgetSlider()
 GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 				  const DString& value)
 : GDLWidget( p, e)
+, buttonType( UNDEFINED)
+, buttonState( false)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-  GDLWidget* gdlParent = GetWidget( p);
+  GDLWidget* gdlParent = GetWidget( parentID);
   wxObject *wxParentObject = gdlParent->GetWxWidget();
 
   //  std::cout << "In Button: " << widgetID << " Parent: " << p << " xMode:" <<
@@ -751,6 +757,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
     this->wxWidget = new wxMenu();
     wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
     menuBar->Append( static_cast<wxMenu*>(this->wxWidget), valueWxString);
+    buttonType = MBAR;
   }
   else
   {
@@ -766,9 +773,11 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 	wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString);
 	menu->Append( menuItem);
 	this->wxWidget = menuItem;
+	buttonType = MENU;
 // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
     }
-    else if (gdlParent->GetMap()) {
+    else 
+    {
 //       cout << "Button: " << widgetID << endl;
       wxPanel *panel = gdlParent->GetPanel();
 
@@ -781,6 +790,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 	  wxPoint(xOffset,yOffset));
 	boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = button;
+	buttonType = NORMAL;
 // 	cout << "wxButton: " << widgetID << endl;
       }
       else if ( gdlParent->GetExclusiveMode() == BGEXCLUSIVE1ST) 
@@ -794,6 +804,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
 // 	cout << "wxRadioButton1: " << widgetID << endl;
+	buttonType = RADIO;
       } 
       else if ( gdlParent->GetExclusiveMode() == BGEXCLUSIVE) 
       {
@@ -803,6 +814,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 	boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = radioButton;
 // 	cout << "wxRadioButton: " << widgetID << endl;
+	buttonType = RADIO;
       } 
       else if ( gdlParent->GetExclusiveMode() == BGNONEXCLUSIVE) 
       {
@@ -812,9 +824,12 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 	boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
 	this->wxWidget = checkBox;
 // 	cout << "wxCheckBox: " << widgetID << endl;
+	buttonType = CHECKBOX;
       }
 
-      boxSizer->Layout();
+      boxSizer->Layout(); // maybe not necessary
+      boxSizer->Fit( panel);
+//       boxSizer->Layout();
 
 //       wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
 //       if ( wxParent != NULL) {
@@ -835,7 +850,6 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     GDLWidget* gdlParent = GetWidget( p);
-    wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
 
     wxPanel *panel = gdlParent->GetPanel();
 
@@ -858,10 +872,8 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
     wxSizer *boxSizer = gdlParent->GetSizer();
     boxSizer->Add( list, 0, wxEXPAND | wxALL, 5);
 
-//     if ( wxParent != NULL) {
-//         boxSizer->SetSizeHints( wxParent);
-//     }
-    gdlMutexGuiEnterLeave.Leave();
+    boxSizer->Layout(); // maybe not necessary
+    boxSizer->Fit( panel);
 }
 
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
@@ -979,8 +991,9 @@ void GDLWidgetText::OnShow()
 
   widgetPanel->SetClientSize(text->GetSize());
 
-  wxSizer *boxSizer = gdlParent->GetSizer();
-  boxSizer->Layout();
+//   wxSizer *parentSizer = gdlParent->GetSizer();
+//   parentSizer->Layout(); // maybe not necessary
+//   parentSizer->Fit( gdlParent->GetPanel());
 }
 
 

@@ -162,6 +162,9 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
     widgbut->InitTag("HANDLER", DLongGDL( 0));
     widgbut->InitTag("SELECT", DLongGDL( 0));
 
+    GDLWidget* widget = GDLWidget::GetWidget( lastSelection);
+    assert(widget->IsButton());
+    static_cast<GDLWidgetButton*>(widget)->SetButton( false);
     GDLWidget::PushEvent( baseWidgetID, widgbut);
   }
     
@@ -175,6 +178,9 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 
   gdlParentWidget->SetLastRadioSelection(event.GetId());
 
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  assert(widget->IsButton());
+  static_cast<GDLWidgetButton*>(widget)->SetButton( true);
   GDLWidget::PushEvent( baseWidgetID, widgbut);
 }
 
@@ -185,9 +191,12 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
 #endif
   GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
-  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
   bool selectValue = event.IsChecked();
+  
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  assert(widget->IsButton());
+  static_cast<GDLWidgetButton*>(widget)->SetButton( selectValue);
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
