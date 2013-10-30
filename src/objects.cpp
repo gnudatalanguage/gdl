@@ -304,7 +304,9 @@ void InitStructs()
   structList.push_back( dmachar);
 
   // for internal usage
-  DStructDesc* widgmsg = new DStructDesc( "WIDGET_MESSAGE");
+  // attention: $WIDGET_MESSAGE would identify this as an unnamed struct
+  // see DStructDesc constructor
+  DStructDesc* widgmsg = new DStructDesc( "*WIDGET_MESSAGE*");
   widgmsg->AddTag("ID", &aLong);
   widgmsg->AddTag("TOP", &aLong);
   widgmsg->AddTag("HANDLER", &aLong);

@@ -127,8 +127,6 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
-  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
-
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
@@ -137,7 +135,6 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
   GDLWidget::PushEvent( baseWidgetID, widgbut);
-  gdlMutexGuiEnterLeave.Leave();
 }
 
 void GDLFrame::OnRadioButton( wxCommandEvent& event)
@@ -588,14 +585,7 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
   dc.SetDeviceClippingRegion( GetUpdateRegion());
   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
 }
-// void GDLWindow::OnCreate(wxWindowCreateEvent& event)
-// {
-//   std::cout << "GDLWindow::OnCreate: " << this << std::endl;
-// }
-// void GDLWindow::OnDestroy(wxWindowDestroyEvent& event)
-// {
-//   std::cout << "GDLWindow::OnDestroy: " << this << std::endl;
-// }
+
 void GDLDrawPanel::OnShow(wxShowEvent& event)
 {
   std::cout << "GDLWindow::OnShow: " << this << std::endl;

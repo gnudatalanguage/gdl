@@ -80,14 +80,14 @@ public:
 };
 
 // all locker classes are identical. For control of locking separately
-class GUIMutexLockerT
-{
-  bool left;
-public:
-  GUIMutexLockerT(): left(false) { wxMutexGuiEnter();}
-  ~GUIMutexLockerT() { if(!left) wxMutexGuiLeave();}
-  void Leave() { wxMutexGuiLeave(); left=true;}
-};
+// class GUIMutexLockerT
+// {
+//   bool left;
+// public:
+//   GUIMutexLockerT(): left(false) { wxMutexGuiEnter();}
+//   ~GUIMutexLockerT() { if(!left) wxMutexGuiLeave();}
+//   void Leave() { wxMutexGuiLeave(); left=true;}
+// };
 #define GUIMutexLockerWidgetsT_OFF
 class GUIMutexLockerWidgetsT
 {
@@ -218,21 +218,15 @@ class GDLWidget
   // static part is used for the abstraction
   // all widgets are refered to as IDs
 private:
-  // the global widget list and the actual index for new widgets
-  // shared among all widgets
-//   static WidgetIDT                   widgetIx;
+  // the global widget list 
+  // a widget is added by the constructor and removed by the destructor
+  // so no other action is necessary for list handling
   static WidgetListT widgetList;
-  // ID for widget (must be called from widgets constructor only)
-//   static WidgetIDT NewWidget( GDLWidget* w);
-
-protected:
-  // removes a widget, (called from widgets destructor -> don't delete)
-  static void WidgetRemove( WidgetIDT widID);
 
 public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
-  static void PushEvent(  WidgetIDT baseWidgetID, DStructGDL* ev);
+  static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
 
   static WidgetIDT HandleEvents();
   static const WidgetIDT NullID;
@@ -240,10 +234,12 @@ public:
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
-  static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
   static GDLWidgetBase* GetTopLevelBaseWidget( WidgetIDT widID);
-  static WidgetIDT  GetBase( WidgetIDT widID);
   static GDLWidgetBase* GetBaseWidget( WidgetIDT widID);
+
+  // get ID of base widgets
+  static WidgetIDT  GetBase( WidgetIDT widID);
+  static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
 
@@ -564,10 +560,12 @@ public:
 // label widget **************************************************
 class GDLWidgetLabel: public GDLWidget
 {
+  DString value;
 public:
-  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value);
+  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_);
+  void OnShow();
  
-  void SetLabelValue( const DString& value);
+  void SetLabelValue( const DString& value_);
 };
 
 
@@ -737,6 +735,17 @@ public:
 
 //   void OnCreate(wxWindowCreateEvent& event);
 //   void OnDestroy(wxWindowDestroyEvent& event);
+  void SendPaintEvent()
+  {
+    wxPaintEvent* event;
+    event = new wxPaintEvent( GetId());
+    event->SetEventObject( this);
+    // only for wWidgets > 2.9 (takes ownership of event)
+//     this->QueueEvent( event);
+    
+    this->AddPendingEvent( *event); // copies event
+    delete event;
+  }
 
   
 // private:

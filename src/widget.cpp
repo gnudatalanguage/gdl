@@ -153,6 +153,36 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
   static int handlerIx = ev->Desc()->TagIndex("HANDLER"); // 2
 
   DLong actID = (*static_cast<DLongGDL*>(ev->GetTag(idIx,0)))[0];
+
+  // note that such a struct name is illegal in GDL
+  // therefore it cannot be used in user code.
+  // This is safer than choosing a legal name
+  // as it could collide with user code
+  if( ev->Desc()->Name() == "*WIDGET_MESSAGE*")
+  {
+    GDLWidget* widget = GDLWidget::GetWidget( actID);
+    if( widget == NULL)
+    {
+      Warning("CallEventHandler: *WIDGET_MESSAGE*: Internal error: Destroy request for already destroyed widget. ID: "+i2s(actID));
+      return NULL;
+    }
+    
+    static int messageIx = ev->Desc()->TagIndex("MESSAGE");
+    DLong message = (*static_cast<DLongGDL*>(ev->GetTag(messageIx,0)))[0];
+
+    GDLDelete( ev);
+
+    assert( message == 0); // only '0' -> Destroy for now
+
+    assert( widget->IsBase());
+
+    std::cout << "CallEventHandler: *WIDGET_MESSAGE*: Deleting widget: "+i2s(actID) << std::endl;
+
+    delete widget; // removes itself from widgetList
+
+    return NULL;
+  }
+
   do {
     GDLWidget *widget = GDLWidget::GetWidget( actID);
     if( widget == NULL)
@@ -162,33 +192,6 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
     }
     else
     {
-      if( ev->Desc()->Name() == "WIDGET_MESSAGE")
-      {
-	static int messageIx = ev->Desc()->TagIndex("MESSAGE");
-
-	DLong id = (*static_cast<DLongGDL*>(ev->GetTag(idIx,0)))[0];
-	DLong top = (*static_cast<DLongGDL*>(ev->GetTag(topIx,0)))[0];
-	DLong message = (*static_cast<DLongGDL*>(ev->GetTag(messageIx,0)))[0];
-
-	assert( id == top);
-	assert( message == 0); // only '0' -> Destroy for now
-
-	if( id != actID)
-	{
-	  Warning("CallEventHandler: WIDGET_MESSAGE: Got event from another handler. ID: " + i2s(actID));
-	  GDLWidget *messageWidget = GDLWidget::GetWidget( id);
-	  delete messageWidget;
-	}
-	else
-	{
-	  std::cout << "CallEventHandler: WIDGET_MESSAGE: Deleting widget: "+i2s(actID) << std::endl;
-	  delete widget; // removes itself from widgetList
-	}
-	GDLDelete( ev);
-	ev = NULL;
-	break; // out of while
-      }
-
       DString eventHandlerPro = widget->GetEventPro();
       if( eventHandlerPro != "")
       {
@@ -211,7 +214,7 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
 	    ev->Desc()->TagIndex("HANDLER") != handlerIx)
 	  {
 	    GDLDelete( ev);
-	    throw GDLException(eventHandlerFun+ ": Event handler return struct must contain tags ID, TOP, HANDLER.");
+	    throw GDLException(eventHandlerFun+ ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
 	  }
 	  // no break!
 	}

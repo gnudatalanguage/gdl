@@ -111,13 +111,6 @@ wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel)
   return sizer;
 }
 
-// removes a widget
-// (called from widget's destructor -> don't delete widget here)
-void GDLWidget::WidgetRemove( WidgetIDT widID)
-{
-  widgetList.erase( widID); 
-}
-
 
 // widget from ID
 GDLWidget* GDLWidget::GetWidget( WidgetIDT widID)
@@ -447,7 +440,7 @@ GDLWidget::~GDLWidget()
 //     }
   GDLDelete(uValue);
   GDLDelete(vValue);
-  WidgetRemove( widgetID);
+  widgetList.erase( widgetID);
 }
 
 
@@ -641,7 +634,7 @@ void GDLWidgetBase::Destroy()
   assert( parentID == NullID);
 
   // create GDL event struct
-  DStructGDL*  ev = new DStructGDL( "WIDGET_MESSAGE");
+  DStructGDL*  ev = new DStructGDL( "*WIDGET_MESSAGE*");
   ev->InitTag("ID", DLongGDL( widgetID));
   ev->InitTag("TOP", DLongGDL( widgetID));
   ev->InitTag("HANDLER", DLongGDL( 0));
@@ -1110,39 +1103,40 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
  }
 
 
-GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value)
+GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_)
 : GDLWidget( p, e)
+, value(value_)
+{
+  CreateWidgetPanel();
+}
+
+void GDLWidgetLabel::OnShow()
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   //  std::cout << "In Label: " << widgetID << " " << p << std::endl;
 
-  GDLWidget* gdlParent = GetWidget( p);
-  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
+  GDLWidget* gdlParent = GetWidget( parentID);
   
-  wxPanel *panel = gdlParent->GetPanel();
-
-//     wxSize fontSize = wxNORMAL_FONT->GetPixelSize(); 
+  //     wxSize fontSize = wxNORMAL_FONT->GetPixelSize(); 
   wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
-  wxStaticText* label = new wxStaticText( panel, widgetID, valueWxString,
+
+  wxStaticText* label = new wxStaticText( widgetPanel, widgetID, valueWxString,
 			      wxPoint(xOffset,yOffset), wxSize(xSize, ySize), wxALIGN_CENTRE);
   this->wxWidget = label;
 
-  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
-  boxSizer->Add( label, 0, wxEXPAND | wxALL, 5);
+  widgetPanel->SetClientSize(label->GetSize());
 
-//   if ( wxParent != NULL) {
-//     boxSizer->SetSizeHints( wxParent);
-//   }
-  gdlMutexGuiEnterLeave.Leave();
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Layout();
 }
 
-void GDLWidgetLabel::SetLabelValue( const DString& value)
+void GDLWidgetLabel::SetLabelValue( const DString& value_)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
   static_cast<wxStaticText*>(wxWidget)->SetLabel( valueWxString);
   static_cast<wxStaticText*>(wxWidget)->Refresh(); 
-  gdlMutexGuiEnterLeave.Leave();
+  value = value_;
  }
 
 // GDL widgets =====================================================
@@ -1206,7 +1200,7 @@ void GDLDrawPanel::InitStream()
 GDLDrawPanel::~GDLDrawPanel()
 {  
   std::cout << "~GDLDrawPanel: " << this << std::endl;
-  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+//   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
   if( pstreamP != NULL)
       pstreamP->SetValid(false);
 }
@@ -1214,12 +1208,13 @@ GDLDrawPanel::~GDLDrawPanel()
 void GDLDrawPanel::Update()
 {
   cout << "in GDLDrawPanel::Update()" << endl;
-  wxClientDC dc( this);
-  dc.SetDeviceClippingRegion( GetUpdateRegion() );
-  GUIMutexLockerT gdlMutexGuiEnterLeave;
-  dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
-  gdlMutexGuiEnterLeave.Leave();
-  wxPanel::Update();
+  SendPaintEvent();
+//   wxClientDC dc( this);
+//   dc.SetDeviceClippingRegion( GetUpdateRegion() );
+//   GUIMutexLockerT gdlMutexGuiEnterLeave;
+//   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
+//   wxPanel::Update();
+//   gdlMutexGuiEnterLeave.Leave();
 }
     
 
@@ -1228,20 +1223,20 @@ void GDLDrawPanel::Update()
 // GDLGUIThread ==================================================
 wxThread::ExitCode GDLGUIThread::Entry()
 {
-    try {
-        wxTheApp->OnRun();
-        // Calls GDLApp::OnRun()
-    }
-    catch( exception& e)
-    {
-        cout << "GDLGUIThread::Entry(): Exception caught: " << e.what() << endl;
-    }
-    catch( ...)
-    {
-        cout << "GDLGUIThread::Entry(): Unknown exception caught." << endl;
-    }
+  try {
+      wxTheApp->OnRun();
+      // Calls GDLApp::OnRun()
+  }
+  catch( exception& e)
+  {
+      cout << "GDLGUIThread::Entry(): Exception caught: " << e.what() << endl;
+  }
+  catch( ...)
+  {
+      cout << "GDLGUIThread::Entry(): Unknown exception caught." << endl;
+  }
 
-    return NULL;
+  return NULL;
 }
 
 
