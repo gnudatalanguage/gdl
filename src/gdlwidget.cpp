@@ -19,7 +19,6 @@
 #include "includefirst.hpp"
 
 #include <memory> 
-#include <wx/notebook.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
@@ -27,6 +26,7 @@
 #include "dinterpreter.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
+#include <wx/notebook.h>
 
 #include "gdlwxstream.hpp"
 
