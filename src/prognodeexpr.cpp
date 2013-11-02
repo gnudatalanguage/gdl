@@ -3843,12 +3843,16 @@ tryARRAYEXPR:
 
 BaseGDL** VARNode::EvalRefCheck( BaseGDL*& rEval)
 {
-    return this->LEval();
+    BaseGDL** res = this->LEval();
+    return res;
 }
 BaseGDL** VARNode::LEval()
 {
 //   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-    return &ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
+//     BaseGDL* v = ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
+//     BaseGDL** vv = &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
+//     cout << "vv = " << vv << "  *vv = " << *vv << "  v = " << v << endl;
+    return &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
 }
 BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
 {

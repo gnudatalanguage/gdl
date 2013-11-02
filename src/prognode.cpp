@@ -1920,43 +1920,36 @@ RetCode   RETFNode::Run()
     else if ( actualCallContext == EnvUDT::LRFUNCTION)
     {
       // for RefCheck context
-      BaseGDL** eL;
-      BaseGDL*  e;
+      BaseGDL** eL = NULL;
+      BaseGDL*  e = NULL;
       eL =_t->EvalRefCheck( e);
       interpreter->SetRetTree( _t->getNextSibling());
       if( eL != NULL)
       {
 	e = *eL;
+	callStackBack->SetPtrToReturnValue( eL);
+	eL = callStackBack->GetPtrToGlobalReturnValue();
+	callStackBack->SetPtrToReturnValue( eL);
       }
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);
-      ProgNode::interpreter->returnValueL=eL;
-      ProgNode::interpreter->returnValue=e;
-//       BaseGDL** eL;
-//       BaseGDL*  e;
-//       try {
-// 	eL=ProgNode::interpreter->l_ret_expr(_t);
-// 	assert( eL != NULL);
-// 	e = *eL;
-//       }
-//       catch(...)
-//       {
-// 	// TODO make dedicated lr_ret_expr instead
-// 	eL = NULL;
-// 	e =_t->Eval();
-// 	interpreter->SetRetTree( _t->getNextSibling()); // ???
-//       }
-//       assert(ProgNode::interpreter->returnValue == NULL);
-//       assert(ProgNode::interpreter->returnValueL == NULL);
 //       ProgNode::interpreter->returnValueL=eL;
-//       ProgNode::interpreter->returnValue=e;
+      ProgNode::interpreter->returnValue=e;
     }
     else // EnvUDT::LFUNCTION
     {
       // pure l-function
 //       BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
       BaseGDL** eL=_t->LEval();
-
+      if( eL != NULL)
+      {
+	BaseGDL* e = *eL;
+	callStackBack->SetPtrToReturnValue( eL);
+	eL = callStackBack->GetPtrToGlobalReturnValue();
+	callStackBack->SetPtrToReturnValue( eL);
+	if( eL == NULL) 
+	  GDLDelete( e); // was stolen in GetPtrToGlobalReturnValue();
+      }
       assert(ProgNode::interpreter->returnValue == NULL);
       assert(ProgNode::interpreter->returnValueL == NULL);
       ProgNode::interpreter->returnValueL=eL;

@@ -1348,6 +1348,8 @@ BaseGDL* dcomplex_fun( EnvT* e)
 	newEnv->SetCallContext( EnvUDT::LRFUNCTION);
 	BaseGDL* res = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 	e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+// 	BaseGDL* ppp = res->Dup();
+// 	cout << " res = " << res << "  p to res = " << newEnv->GetPtrToReturnValue() << endl;
 	return res;
       }
   }

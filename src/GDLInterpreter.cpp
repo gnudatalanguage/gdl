@@ -779,7 +779,7 @@ GDLInterpreter::GDLInterpreter()
 		// default return value if none was set
 		if( res == NULL)
 	throw GDLException( in, "Function "+callStack.back()->GetProName()+
-	" must return a left-value in this context.",
+	" must return a global left-value in this context.",
 	false,false);
 		_retTree = _t;
 		return res;
