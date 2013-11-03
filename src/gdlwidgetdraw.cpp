@@ -36,7 +36,8 @@
 
 GDLWidgetDraw::~GDLWidgetDraw()
 {
-  GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
+  // handled in GDLDrawPanel (which is deleted by wxWidgets)
+//   GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
 }
 
 

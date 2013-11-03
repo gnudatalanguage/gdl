@@ -3270,17 +3270,9 @@ BaseGDL* FCALL_LIBNode::Eval()
     assert( res != NULL);
     //       throw GDLException( _t, "");
 
-//     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
-//     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
-//     if( callStackBack->Contains( res))
     if( newEnv->GetPtrToReturnValue() != NULL)
         return res->Dup();
 
-//     static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
-//     if( scopeVarfetchPro == newEnv->GetPro())
-//       return res->Dup();
-
-    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
 }
 

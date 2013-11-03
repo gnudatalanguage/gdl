@@ -244,7 +244,16 @@ public:
 
   static void Init(); // GUI intialization upon GDL startup
 
+  typedef enum EventTypeFlags_ 
+    { ALL=1
+    , CONTEXT = 2
+    , KBRD_FOCUS = 4
+    , TRACKING = 8 
+    } EventTypeFlags;
+
 protected:
+    EventTypeFlags eventFlags; // event types widget should reply to
+  
 // only TLB have to care for this
 // (they do by sending messgages to each other in a thread save way)
 // as the rest is deleted automatically 
@@ -327,6 +336,7 @@ public:
   virtual bool IsText() const { return false;} 
   virtual bool IsSlider() const { return false;}
   virtual bool IsDraw() const { return false;}
+  virtual bool IsMenuBar() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const {return 0;}
@@ -546,7 +556,7 @@ public:
 //   void SetSelectOff();
   bool IsDropList() const { return true;} 
 
-  void SetLastValue( const std::string& v) { m_mutex.Lock(); lastValue = v; m_mutex.Unlock();}
+  void SetLastValue( const std::string& v) {  wxMutexLocker lock(m_mutex); lastValue = v;}
   std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
 };
 
@@ -610,6 +620,8 @@ public:
   bool IsDraw() const { return true;}
 };
 
+
+// menu bar widget **************************************************
 class GDLWidgetMBar: public GDLWidget//Base
 {
   // disable
@@ -620,6 +632,8 @@ public:
   {
     this->wxWidget = new wxMenuBar();
   }
+
+  bool IsMenuBar() const { return true;}
 };
 
 // tab widget **************************************************
@@ -632,6 +646,74 @@ public:
   
   bool IsTab() const { return true;}
 };
+
+
+// table widget **************************************************
+class GDLWidgetTable: public GDLWidget
+{
+  DLongGDL* alignment;
+  DStringGDL* amPm;
+  DByteGDL* backgroundColor;
+  DByteGDL* foregroundColor;
+  DStringGDL* columnLabels;
+  bool columnMajor;
+  DLongGDL* columnWidth;
+  DStringGDL* daysOfWeek;
+  bool disjointSelection;
+  bool editable;
+  DStringGDL* font;
+  DStringGDL* format;
+  DLong groupLeader;
+  bool ignoreAccelerators;
+  DStringGDL* month;
+  bool noColumnHeaders;
+  bool noRowHeaders;
+  bool resizeableColumns;
+  bool resizeableRows;
+  DLongGDL* rowHeights;
+  DStringGDL* rowLabels;
+  bool rowMajor;
+  DLong tabMode;
+  DLong xScrollSize;
+  DLong yScrollSize;
+
+public:
+  GDLWidgetTable( WidgetIDT p, EnvT* e, 
+		  DLongGDL* alignment_,
+		  DStringGDL* amPm_,
+		  DByteGDL* backgroundColor_,
+		  DByteGDL* foregroundColor_,
+		  DStringGDL* columnLabels_,
+		  bool columnMajor_,
+		  DLongGDL* columnWidth_,
+		  DStringGDL* daysOfWeek_,
+		  bool disjointSelection_,
+		  bool editable_,
+		  DStringGDL* font_,
+		  DStringGDL* format_,
+		  DLong groupLeader_,
+ 		  bool ignoreAccelerators_,
+		  DStringGDL* month_,
+		  bool noColumnHeaders_,
+		  bool noRowHeaders_,
+		  bool resizeableColumns_,
+		  bool resizeableRows_,
+		  DLongGDL* rowHeights_,
+		  DStringGDL* rowLabels_,
+		  bool rowMajor_,
+		  DLong tabMode_,
+		  BaseGDL* value_,
+		  DLong xScrollSize_,
+		  DLong yScrollSize_
+		);
+
+  ~GDLWidgetTable();
+  
+  void OnShow();
+
+  bool IsTable() const { return true;}
+};
+
 
 // slider widget **************************************************
 class GDLWidgetSlider: public GDLWidget

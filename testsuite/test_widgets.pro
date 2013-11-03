@@ -1,6 +1,9 @@
 ; this file is part of GDL
 ; using the widgets prints the generated events
 ; 30. Oct 2013 Marc Schellens
+pro exit_gui,ev
+  widget_control,ev.top,/DESTROY
+end
 
 pro handle_Event,ev
 help,ev,/STRUCT
@@ -9,8 +12,11 @@ end
 pro test_widgets
 
 ;Create a base widget. 
-base = WIDGET_BASE(/COL) 
+base = WIDGET_BASE(/COL,MBAR=mbar) 
  
+menu = widget_button(mbar,VALUE="Menu")
+ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui")
+
 tab = widget_tab( base)
 
 t1 = widget_base( tab, TITLE="GDL",/COL)

@@ -88,18 +88,25 @@ void GDLWidget::SetCommonKeywords( EnvT* e)
   } 
   eventFun = "";
   e->AssureStringScalarKWIfPresent( event_funcIx, eventFun);
+  StrUpCaseInplace(eventFun);
   eventPro = "";
   e->AssureStringScalarKWIfPresent( event_proIx, eventPro);
+  StrUpCaseInplace(eventPro);
   killNotify = "";
   e->AssureStringScalarKWIfPresent( kill_notifyIx, killNotify);
+  StrUpCaseInplace(killNotify);
   notifyRealize = "";
   e->AssureStringScalarKWIfPresent( notify_realizeIx, notifyRealize);
+  StrUpCaseInplace(notifyRealize);
   proValue = "";
   e->AssureStringScalarKWIfPresent( pro_set_valueIx, proValue);
+  StrUpCaseInplace(proValue);
   funcValue = "";
   e->AssureStringScalarKWIfPresent( func_get_valueIx, funcValue);
+  StrUpCaseInplace(funcValue);
   uName = "";
   e->AssureStringScalarKWIfPresent( unameIx, uName);
+  // no case change
 }    
 #endif    
 
@@ -239,6 +246,64 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
 namespace lib {
   using namespace std;
 
+BaseGDL* widget_table( EnvT* e)
+{
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
+#else
+    SizeT nParam=e->NParam(1);
+
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget* p = GDLWidget::GetWidget( parentID);
+    if( p == NULL)
+        e->Throw( "Invalid widget identifier: "+i2s(parentID));
+
+    static int  ALIGNMENT             = e->KeywordIx( "ALIGNMENT");
+    static int  ALL_EVENTS            = e->KeywordIx( "ALL_EVENTS");
+    static int  AM_PM                 = e->KeywordIx( "AM_PM");
+    static int  BACKGROUND_COLOR      = e->KeywordIx( "BACKGROUND_COLOR");
+    static int  COLUMN_LABELS         = e->KeywordIx( "COLUMN_LABELS");
+    static int  COLUMN_MAJOR          = e->KeywordIx( "COLUMN_MAJOR");
+    static int  ROW_MAJOR             = e->KeywordIx( "ROW_MAJOR");
+    static int  COLUMN_WIDTHS         = e->KeywordIx( "COLUMN_WIDTHS");
+    static int  CONTEXT_EVENTS        = e->KeywordIx( "CONTEXT_EVENTS");
+    static int  DAYS_OF_WEEK          = e->KeywordIx( "DAYS_OF_WEEK");
+    static int  DISJOINT_SELECTION    = e->KeywordIx( "DISJOINT_SELECTION");
+    static int  EDITABLE              = e->KeywordIx( "EDITABLE");
+    static int  FONT                  = e->KeywordIx( "FONT");
+    static int  FOREGROUND_COLOR      = e->KeywordIx( "FOREGROUND_COLOR");
+    static int  FORMAT                = e->KeywordIx( "FORMAT");
+    static int  GROUP_LEADER          = e->KeywordIx( "GROUP_LEADER");
+    static int  IGNORE_ACCELERATORS   = e->KeywordIx( "IGNORE_ACCELERATORS");
+    static int  KBRD_FOCUS_EVENTS     = e->KeywordIx( "KBRD_FOCUS_EVENTS");
+    static int  MONTHS                = e->KeywordIx( "MONTHS");
+    static int  NO_COLUMN_HEADERS     = e->KeywordIx( "NO_COLUMN_HEADERS");
+    static int  NO_HEADERS            = e->KeywordIx( "NO_HEADERS");
+    static int  NO_ROW_HEADERS        = e->KeywordIx( "NO_ROW_HEADERS");
+    static int  RESIZEABLE_COLUMNS    = e->KeywordIx( "RESIZEABLE_COLUMNS");
+    static int  RESIZEABLE_ROWS       = e->KeywordIx( "RESIZEABLE_ROWS");
+    static int  ROW_HEIGHTS           = e->KeywordIx( "ROW_HEIGHTS");
+    static int  ROW_LABELS            = e->KeywordIx( "ROW_LABELS");
+    static int  TAB_MODE              = e->KeywordIx( "TAB_MODE");
+    static int  TRACKING_EVENTS       = e->KeywordIx( "TRACKING_EVENTS");
+    static int  VALUE                 = e->KeywordIx( "VALUE");
+
+    static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");
+    DLong x_scroll_size = 0;
+    e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);
+    static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE");
+    DLong y_scroll_size = 0;
+    e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);
+    
+
+    // TODO
+
+    return 0;
+#endif
+} // widget_table
+  
   BaseGDL* widget_draw( EnvT* e)
   {
 #ifndef HAVE_LIBWXWIDGETS
@@ -257,28 +322,6 @@ namespace lib {
     if( base == NULL)
       e->Throw( "Parent is of incorrect type.");
 
-//     SET_COMMON_GRAPHICS_KEYWORDS
-// the above defines (and sets properly):
-//     bool no_copy = e->KeywordSet( no_copyIx);
-//     bool scroll = e->KeywordSet( scrollIx);
-//     bool sensitive = e->KeywordSet( sensitiveIx);
-//     WidgetIDT group_leader = 0;
-//     DLong units = 0;
-//     DLong xsize = -1;
-//     DLong ysize = -1;
-//     DLong scr_xsize = 0;
-//     DLong scr_ysize = 0;
-//     DLong x_scroll_size = 0;
-//     DLong y_scroll_size = 0;
-//     BaseGDL* uvalue = e->GetKW( uvalueIx);
-//     DString event_func = "";
-//     DString event_pro = "";
-//     DString kill_notify = "";
-//     DString notify_realize = "";
-//     DString pro_set_value = "";
-//     DString func_get_value = "";
-//     DLong xoffset = 0;
-//     DLong yoffset = 0;
     static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");\
     DLong x_scroll_size = 0;\
     e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);\

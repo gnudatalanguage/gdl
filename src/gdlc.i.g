@@ -891,11 +891,12 @@ call_fun returns[ BaseGDL* res]
 			{
                 res=returnValue;
                 returnValue=NULL;
-                if( returnValueL != NULL)
-                    {
-                        callStack.back()->SetPtrToReturnValue( returnValueL);
-                        returnValueL = NULL;
-                    }
+                // already done in RETFNode::Run() :
+                // if( returnValueL != NULL)
+                //     {
+                //         callStack.back()->SetPtrToReturnValue( returnValueL);
+                //         returnValueL = NULL;
+                //     }
 			break;
 			}					
 
@@ -909,20 +910,7 @@ call_fun returns[ BaseGDL* res]
 	return res;
 }
     : (retCode=statement
-            {
-                if( retCode >= RC_RETURN) 
-                {
-                    res=returnValue;
-                    returnValue=NULL;
-                    
-                    break;
-                }
-            }
         )*
-        {
-            // default return value if none was set
-            if( res == NULL) res = new DIntGDL( 0); 
-        }
     ;
 
 call_lfun returns[ BaseGDL** res]
@@ -946,10 +934,10 @@ call_lfun returns[ BaseGDL** res]
             }
     }
 	
-	// default return value if none was set
+	// res must be defined here
 	if( res == NULL)
         throw GDLException( in, "Function "+callStack.back()->GetProName()+
-                            " must return a left-value in this context.",
+                            " must return a global left-value in this context.",
                             false,false);
 	_retTree = _t;
 	return res;

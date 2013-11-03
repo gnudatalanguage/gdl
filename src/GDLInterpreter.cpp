@@ -703,11 +703,12 @@ GDLInterpreter::GDLInterpreter()
 				{
 	res=returnValue;
 	returnValue=NULL;
-	if( returnValueL != NULL)
-	{
-	callStack.back()->SetPtrToReturnValue( returnValueL);
-	returnValueL = NULL;
-	}
+	// already done in RETFNode::Run() :
+	// if( returnValueL != NULL)
+	//     {
+	//         callStack.back()->SetPtrToReturnValue( returnValueL);
+	//         returnValueL = NULL;
+	//     }
 				break;
 				}					
 	
@@ -728,15 +729,6 @@ GDLInterpreter::GDLInterpreter()
 		if ((_tokenSet_0.member(_t->getType()))) {
 			retCode=statement(_t);
 			_t = _retTree;
-			
-			if( retCode >= RC_RETURN) 
-			{
-			res=returnValue;
-			returnValue=NULL;
-			
-			break;
-			}
-			
 		}
 		else {
 			goto _loop7;
@@ -745,10 +737,6 @@ GDLInterpreter::GDLInterpreter()
 	}
 	_loop7:;
 	} // ( ... )*
-	
-	// default return value if none was set
-	if( res == NULL) res = new DIntGDL( 0); 
-	
 	_retTree = _t;
 	return res;
 }
@@ -776,7 +764,7 @@ GDLInterpreter::GDLInterpreter()
 	}
 	}
 		
-		// default return value if none was set
+		// res must be defined here
 		if( res == NULL)
 	throw GDLException( in, "Function "+callStack.back()->GetProName()+
 	" must return a global left-value in this context.",

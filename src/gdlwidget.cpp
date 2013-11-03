@@ -697,7 +697,90 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
 GDLWidgetTab::~GDLWidgetTab()
 {}
 
+
+
+/*********************************************************/
+// for WIDGET_TABLE
+/*********************************************************/
+
+GDLWidgetTable::GDLWidgetTable( WidgetIDT p, EnvT* e, 
+		DLongGDL* alignment_,
+		DStringGDL* amPm_,
+		DByteGDL* backgroundColor_,
+		DByteGDL* foregroundColor_,
+		DStringGDL* columnLabels_,
+		bool columnMajor_,
+		DLongGDL* columnWidth_,
+		DStringGDL* daysOfWeek_,
+		bool disjointSelection_,
+		bool editable_,
+		DStringGDL* font_,
+		DStringGDL* format_,
+		DLong groupLeader_,
+ 		bool ignoreAccelerators_,
+		DStringGDL* month_,
+		bool noColumnHeaders_,
+		bool noRowHeaders_,
+		bool resizeableColumns_,
+		bool resizeableRows_,
+		DLongGDL* rowHeights_,
+		DStringGDL* rowLabels_,
+		bool rowMajor_,
+		DLong tabMode_,
+		BaseGDL* value_,
+		DLong xScrollSize_,
+		DLong yScrollSize_
+	      )
+: GDLWidget( p, e, true, value_)
+,alignment( alignment_)
+,amPm( amPm_)
+,backgroundColor( backgroundColor_)
+,foregroundColor( foregroundColor_)
+,columnLabels( columnLabels_)
+,columnMajor( columnMajor_)
+,columnWidth( columnWidth_)
+,daysOfWeek( daysOfWeek_)
+,disjointSelection( disjointSelection_)
+,editable( editable_)
+,font( font_)
+,format( format_)
+,groupLeader( groupLeader_)
+,ignoreAccelerators( ignoreAccelerators_)
+,month( month_)
+,noColumnHeaders( noColumnHeaders_)
+,noRowHeaders( noRowHeaders_)
+,resizeableColumns( resizeableColumns_)
+,resizeableRows( resizeableRows_)
+,rowHeights( rowHeights_)
+,rowLabels( rowLabels_)
+,rowMajor( rowMajor_)
+,tabMode( tabMode_)
+,xScrollSize( xScrollSize_)
+,yScrollSize( yScrollSize_)
+{
+  CreateWidgetPanel();
+}
+
+GDLWidgetTable::~GDLWidgetTable()
+{
+GDLDelete( alignment);
+GDLDelete( amPm);
+GDLDelete( backgroundColor);
+GDLDelete( foregroundColor);
+GDLDelete( columnLabels);
+GDLDelete( columnWidth);
+GDLDelete( daysOfWeek);
+GDLDelete( font);
+GDLDelete( format);
+GDLDelete( month);
+GDLDelete( rowHeights);
+GDLDelete( rowLabels);
+}
   
+void GDLWidgetTable::OnShow()
+{
+  // TODO
+}
 
 /*********************************************************/
 // for WIDGET_SLIDER
@@ -750,10 +833,10 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   //  std::cout << "In Button: " << widgetID << " Parent: " << p << " xMode:" <<
   //gdlParent->GetExclusiveMode() << " " << value << std::endl;
 
-  wxMenuBar *menuBar =  dynamic_cast< wxMenuBar*>( wxParentObject);
-  if( menuBar != NULL)
+  if( gdlParent->IsMenuBar())
   {
 //     cout << "MenuBar: " << widgetID << endl;
+    wxMenuBar *menuBar =  static_cast< wxMenuBar*>( wxParentObject);
     this->wxWidget = new wxMenu();
     wxString valueWxString = wxString( value.c_str(), wxConvUTF8);
     menuBar->Append( static_cast<wxMenu*>(this->wxWidget), valueWxString);
@@ -762,9 +845,11 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
   else
   {
 //     cout << "Menu: " << widgetID << endl;
-    wxMenu *menu =  dynamic_cast< wxMenu*>( wxParentObject);
-    if( menu != NULL)
+    if( gdlParent->IsButton())
     {
+	assert( dynamic_cast< wxMenu*>( wxParentObject) != NULL);
+	
+	wxMenu *menu =  static_cast< wxMenu*>( wxParentObject);
         // wxMenuItem
 // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
 	// at destruction this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
@@ -1067,8 +1152,8 @@ GDLFrame::GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, co
 
 GDLFrame::~GDLFrame()
 { 
-  std::cout << "~GDLFrame: " << this << std::endl;
-  std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+//   std::cout << "~GDLFrame: " << this << std::endl;
+//   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
 
   m_gdlFrameOwnerMutexP->Lock();
   if( gdlOwner != NULL)
