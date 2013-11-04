@@ -7,6 +7,8 @@ prolib_DATA = \
   calendar.pro \
   congrid.pro \
   correlate.pro \
+  cw_bgroup.pro \
+  delvar.pro \
   deriv.pro \
   diag_matrix.pro \
   dialog_message.pro \
@@ -49,6 +51,7 @@ prolib_DATA = \
   moment.pro \
   norm.pro \
   online_help.pro \
+  oploterr.pro \
   path_sep.pro \
   ploterr.pro \
   poly.pro \
@@ -75,6 +78,7 @@ prolib_DATA = \
   read_gif.pro \
   read_image.pro \
   read_jpeg.pro \
+  read_jpeg2000.pro \
   read_pict.pro \
   read_png.pro \
   read_tiff.pro \
