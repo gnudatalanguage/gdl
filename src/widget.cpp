@@ -183,7 +183,7 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
 
     assert( widget->IsBase());
 
-    std::cout << "CallEventHandler: *WIDGET_MESSAGE*: Deleting widget: "+i2s(actID) << std::endl;
+//     std::cout << "CallEventHandler: *WIDGET_MESSAGE*: Deleting widget: "+i2s(actID) << std::endl;
 
     delete widget; // removes itself from widgetList
 
@@ -1303,7 +1303,7 @@ BaseGDL* widget_event( EnvT* e)
     }
 
     if ( destroy) {
-      std::cout << "Destroy widget" << std::endl;
+//       std::cout << "Destroy widget" << std::endl;
       delete widget;      
     }
 
