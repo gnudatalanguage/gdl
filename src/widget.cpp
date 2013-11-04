@@ -290,6 +290,18 @@ BaseGDL* widget_table( EnvT* e)
     static int  TRACKING_EVENTS       = e->KeywordIx( "TRACKING_EVENTS");
     static int  VALUE                 = e->KeywordIx( "VALUE");
 
+    bool columnMajor = e->KeywordSet( COLUMN_MAJOR);
+    bool rowMajor = e->KeywordSet( ROW_MAJOR);
+    bool disjointSelection = e->KeywordSet( DISJOINT_SELECTION);
+    bool editable = e->KeywordSet( EDITABLE);
+    bool ignoreAccelerators = e->KeywordSet( IGNORE_ACCELERATORS);
+    bool noHeaders = e->KeywordSet( NO_HEADERS);
+    bool noColumnHeaders = e->KeywordSet( NO_COLUMN_HEADERS) || noHeaders;
+    bool noRowHeaders = e->KeywordSet( NO_ROW_HEADERS) || noHeaders;
+    bool resizeableColumns = e->KeywordSet( RESIZEABLE_COLUMNS);
+    bool resizeableRows = e->KeywordSet( RESIZEABLE_ROWS);
+    
+    
     static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");
     DLong x_scroll_size = 0;
     e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);
@@ -303,7 +315,63 @@ BaseGDL* widget_table( EnvT* e)
     return 0;
 #endif
 } // widget_table
-  
+
+
+BaseGDL* widget_tree( EnvT* e)
+{
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL; // avoid warning
+#else
+    SizeT nParam=e->NParam(1);
+
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget* p = GDLWidget::GetWidget( parentID);
+    if( p == NULL)
+        e->Throw( "Invalid widget identifier: "+i2s(parentID));
+
+    static int  ALIGN_BOTTOM = e->KeywordIx("ALIGN_BOTTOM"); 
+    static int  ALIGN_CENTER = e->KeywordIx("ALIGN_CENTER"); 
+    static int  ALIGN_LEFT   = e->KeywordIx("ALIGN_LEFT"); 
+    static int  ALIGN_RIGHT  = e->KeywordIx("ALIGN_RIGHT"); 
+    static int  ALIGN_TOP    = e->KeywordIx("ALIGN_TOP"); 
+    static int  BITMAP       = e->KeywordIx("BITMAP"); 
+    static int  CHECKBOX     = e->KeywordIx("CHECKBOX"); 
+    static int  CHECKED      = e->KeywordIx("CHECKED"); 
+    static int  DRAG_NOTIFY  = e->KeywordIx("DRAG_NOTIFY"); 
+    static int  DRAGGABLE    = e->KeywordIx("DRAGGABLE"); 
+    static int  EXPANDED     = e->KeywordIx("EXPANDED"); 
+    static int  FOLDER       = e->KeywordIx("FOLDER"); 
+    static int  GROUP_LEADER = e->KeywordIx("GROUP_LEADER"); 
+    static int  INDEX        = e->KeywordIx("INDEX"); 
+    static int  MASK         = e->KeywordIx("MASK"); 
+    static int  MULTIPLE     = e->KeywordIx("MULTIPLE");
+    static int  NO_BITMAPS   = e->KeywordIx("NO_BITMAPS");
+    static int  TAB_MODE     = e->KeywordIx("TAB_MODE"); 
+    static int  TOOLTIP      = e->KeywordIx("TOOLTIP"); 
+   
+    bool alignBottom = e->KeywordSet( ALIGN_BOTTOM);
+    bool alignCenter = e->KeywordSet( ALIGN_CENTER);
+    bool alignLeft = e->KeywordSet( ALIGN_LEFT);
+    bool alignRight = e->KeywordSet( ALIGN_RIGHT);
+    bool alignTop = e->KeywordSet( ALIGN_TOP);
+    bool checkbox = e->KeywordSet( CHECKBOX);
+    bool draggable = e->KeywordSet( DRAGGABLE);
+    bool expanded = e->KeywordSet( EXPANDED);
+    bool folder = e->KeywordSet( FOLDER);
+    bool mask = e->KeywordSet( MASK);
+    bool multiple = e->KeywordSet( MULTIPLE);
+    bool noBitmaps = e->KeywordSet( NO_BITMAPS);
+
+    // TODO
+
+    return 0;
+#endif
+} // widget_tree
+
+
+
   BaseGDL* widget_draw( EnvT* e)
   {
 #ifndef HAVE_LIBWXWIDGETS

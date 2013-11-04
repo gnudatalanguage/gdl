@@ -303,7 +303,7 @@ void GDLWidget::Init()
 
 
 
-GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NULL*/)
+GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NULL*/, DULong eventFlags_/*=0*/)
   : wxWidget( NULL)
   , parentID( p)
   , uValue( NULL)
@@ -315,7 +315,8 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/,BaseGDL* vV/*=NUL
   , widgetPanel(NULL)
   , managed( false)
   , map( map_)
-  {
+  , eventFlags(eventFlags_)
+{
     if( e != NULL) 
       SetCommonKeywords( e);
 
@@ -782,6 +783,69 @@ void GDLWidgetTable::OnShow()
   // TODO
 }
 
+
+
+/*********************************************************/
+// for WIDGET_TREE
+/*********************************************************/
+GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, DString value_,
+                              bool alignBottom_,
+                              bool alignCenter_,
+                              bool alignLeft_,
+                              bool alignRight_,
+                              bool alignTop_,
+                              BaseGDL* bitmap_,
+                              bool checkbox_,
+                              DLong checked_,
+                              DString dragNotify_,
+                              bool draggable_,
+                              bool expanded_,
+                              bool folder_,
+                              DLong groupLeader_,
+                              DLong index_,
+                              bool mask_,
+                              bool multiple_,
+                              bool noBitmaps_,
+                              DLong tabMode_,
+                              DString toolTip_)
+: GDLWidget( p, e),
+alignBottom( alignBottom_),
+alignCenter( alignCenter_),
+alignLeft( alignLeft_), 
+alignRight( alignRight_), 
+alignTop( alignTop_), 
+bitmap( bitmap_), 
+checkbox( checkbox_), 
+checked( checked_), 
+dragNotify( dragNotify_),
+draggable( draggable_), 
+expanded( expanded_), 
+folder( folder_), 
+groupLeader( groupLeader_),
+index( index_), 
+mask( mask_), 
+multiple( multiple_), 
+noBitmaps( noBitmaps_), 
+tabMode( tabMode_), 
+toolTip( toolTip_),
+value( value_)
+{
+  CreateWidgetPanel();
+}
+
+GDLWidgetTree::~GDLWidgetTree()
+{
+  GDLDelete( bitmap);
+}
+
+void GDLWidgetTree::OnShow()
+{
+  // TODO
+}
+
+
+
+
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/
@@ -964,30 +1028,16 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style)
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
 GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
                                       const DString& title_, DLong style_)
-    : GDLWidget( p, e, true, value)
+    : GDLWidget( p, e, true, static_cast<DStringGDL*>( value->Convert2(GDL_STRING,BaseGDL::CONVERT)))
     , title( title_)
     , style( style_)
 {
-  if( vValue->Type() != GDL_STRING)
-  {
-      vValue = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::CONVERT));
-  }
+//   if( vValue->Type() != GDL_STRING)
+//   {
+//       vValue = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::CONVERT));
+//   }
 
   CreateWidgetPanel();
-  
-//   GDLWidget* gdlParent = GetWidget( parentID);
-// 
-//   wxPanel *parentPanel = gdlParent->GetPanel();
-// 
-//   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
-//   , wxDefaultPosition
-//   , wxDefaultSize
-// //   , wxBORDER_SIMPLE 
-//   );
-//   widgetPanel = panel;
-//   
-//   wxSizer *boxSizer = gdlParent->GetSizer();
-//   boxSizer->Add( panel, 0, wxEXPAND | wxALL, 5);  
 }
     
 void GDLWidgetDropList::OnShow()  

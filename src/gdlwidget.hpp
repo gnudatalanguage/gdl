@@ -242,17 +242,10 @@ public:
   static WidgetIDT  GetBase( WidgetIDT widID);
   static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
 
-  static void Init(); // GUI intialization upon GDL startup
+  static void Init(); // global GUI intialization upon GDL startup
 
-  typedef enum EventTypeFlags_ 
-    { ALL=1
-    , CONTEXT = 2
-    , KBRD_FOCUS = 4
-    , TRACKING = 8 
-    } EventTypeFlags;
 
 protected:
-    EventTypeFlags eventFlags; // event types widget should reply to
   
 // only TLB have to care for this
 // (they do by sending messgages to each other in a thread save way)
@@ -278,8 +271,11 @@ protected:
   WidgetIDT    groupLeader;
   DLong        units;
   DLong        frame;
+
   
 private:  
+  DULong eventFlags; // event types widget should reply to
+
   DString      uName;
   DString      proValue;
   DString      funcValue;
@@ -290,11 +286,33 @@ private:
   
   void SetCommonKeywords( EnvT* e);
 
+  
 public:
-  typedef enum BGroupMode_ {
-    BGNORMAL=0, BGEXCLUSIVE=1, BGNONEXCLUSIVE=2, BGEXCLUSIVE1ST=3 } BGroupMode;
+  typedef enum BGroupMode_ 
+  { BGNORMAL=0
+  , BGEXCLUSIVE=1
+  , BGNONEXCLUSIVE=2
+  , BGEXCLUSIVE1ST=3 
+  } BGroupMode;
 
-  GDLWidget( WidgetIDT p, EnvT* e, bool map_=true, BaseGDL* vV=NULL);
+  typedef enum EventTypeFlags_ 
+    { NONE = 0
+    , ALL = 1
+    , CONTEXT = 2
+    , KBRD_FOCUS = 4
+    , TRACKING = 8 
+    , DROP = 16
+    , EXPOSE = 32
+    , MOTION = 64
+    , VIEWPORT = 128
+    , WHEEL = 256
+    } EventTypeFlags;
+
+  bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
+  void AddEventType( DULong evType) { eventFlags |= evType;}
+
+  GDLWidget( WidgetIDT p, EnvT* e, 
+	     bool map_=true, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
 
@@ -334,6 +352,7 @@ public:
   virtual bool IsDropList() const { return false;} 
   virtual bool IsTab() const { return false;}
   virtual bool IsText() const { return false;} 
+  virtual bool IsTree() const { return false;} 
   virtual bool IsSlider() const { return false;}
   virtual bool IsDraw() const { return false;}
   virtual bool IsMenuBar() const { return false;}
@@ -713,6 +732,61 @@ public:
 
   bool IsTable() const { return true;}
 };
+
+
+// tree widget **************************************************
+class GDLWidgetTree: public GDLWidget
+{
+bool alignBottom; 
+bool alignCenter; 
+bool alignLeft  ; 
+bool alignRight ; 
+bool alignTop   ; 
+BaseGDL* bitmap ; 
+bool checkbox   ; 
+DLong checked   ; 
+DString dragNotify ; 
+bool draggable  ; 
+bool expanded   ; 
+bool folder     ; 
+DLong groupLeader; 
+DLong index     ; 
+bool mask       ; 
+bool multiple   ; 
+bool noBitmaps  ; 
+DLong tabMode   ; 
+DString toolTip ; 
+DString value;  
+  
+public:
+  GDLWidgetTree( WidgetIDT parentID, EnvT* e, DString value_,
+                   bool alignBottom_,
+                   bool alignCenter_,
+                   bool alignLeft_,
+                   bool alignRight_,
+                   bool alignTop_,
+                   BaseGDL* bitmap_,
+                   bool checkbox_,
+                   DLong checked_,
+                   DString dragNotify_,
+                   bool draggable_,
+                   bool expanded_,
+                   bool folder_,
+                   DLong groupLeader_,
+                   DLong index_,
+                   bool mask_,
+                   bool multiple_,
+                   bool noBitmaps_,
+                   DLong tabMode_,
+                   DString toolTip_);
+		 
+  ~GDLWidgetTree();
+
+  void OnShow();
+
+  bool IsTree() const { return true;}
+};
+
 
 
 // slider widget **************************************************
