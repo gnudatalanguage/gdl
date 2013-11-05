@@ -3,7 +3,7 @@
 ;
 ; A simple test that checks the dimensions of the read and written image
 ; 
-pro TEST_WRITE_READ_ENVI, columns=columns, rows=rows, bands=bands, $
+pro TEST_WRITE_READ_ENVI, columns__=columns, rows=rows, bands=bands, $
                           out_name=out_name, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
