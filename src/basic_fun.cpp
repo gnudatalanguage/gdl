@@ -4695,7 +4695,7 @@ BaseGDL* transpose( EnvT* e)
     return new DIntGDL( 0);
   }
 
-  /*
+  /* see convol.cpp 
   BaseGDL* convol( EnvT* e)
   {
     SizeT nParam=e->NParam( 2); 

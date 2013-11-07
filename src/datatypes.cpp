@@ -258,6 +258,27 @@ template class GDLArray<char>;
   
 #endif
 
+template<typename T>
+inline bool gdlValid( const T &value )
+{
+    T max_value = std::numeric_limits<T>::max();
+    T min_value = - max_value;
+    return ( ( min_value <= value && value <= max_value ) &&  (value == value));
+}
+inline bool gdlValid( const DComplex &value )
+{
+    DFloat max_value = std::numeric_limits<DFloat>::max();
+    DFloat min_value = - max_value;
+    return ( ( min_value <= value.real() && value.real() <= max_value ) &&  (value.real() == value.real()))&&
+            ( ( min_value <= value.imag() && value.imag() <= max_value ) && (value.imag() == value.imag()));
+}
+inline bool gdlValid( const DComplexDbl &value )
+{
+    DDouble max_value = std::numeric_limits<DDouble>::max();
+    DDouble min_value = - max_value;
+    return ( ( min_value <= value.real() && value.real() <= max_value ) &&  (value.real() == value.real()))&&
+            ( ( min_value <= value.imag() && value.imag() <= max_value ) &&  (value.imag() == value.imag()));
+}
 
 
 
@@ -4771,39 +4792,44 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 
 
 template<>
-BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   BaseGDL* bias,
- 				   bool center, bool normalize, int edgeMode)
+BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+ 				   bool center, bool normalize, int edgeMode,
+                                   bool doNan, BaseGDL* missing, bool doMissing,
+                                   BaseGDL* invalid, bool doInvalid)
 {
   throw GDLException("String expression not allowed in this context.");
 }
 template<>
-BaseGDL* Data_<SpDObj>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   BaseGDL* bias,
- 				   bool center, bool normalize, int edgeMode)
+BaseGDL* Data_<SpDObj>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+ 				bool center, bool normalize, int edgeMode,
+                                bool doNan, BaseGDL* missing, bool doMissing,
+                                BaseGDL* invalid, bool doInvalid)
 {
   throw GDLException("Object expression not allowed in this context.");
 }
 template<>
-BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   BaseGDL* bias,
- 				   bool center, bool normalize, int edgeMode)
+BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
+ 				bool center, bool normalize, int edgeMode,
+                                bool doNan, BaseGDL* missing, bool doMissing,
+                                BaseGDL* invalid, bool doInvalid)
 {
   throw GDLException("Pointer expression not allowed in this context.");
 }
 
 template<>
-BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   BaseGDL* bias,
- 				   bool center, bool normalize, int edgeMode)
+BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+ 				  bool center, bool normalize, int edgeMode,
+                                  bool doNan, BaseGDL* missing, bool doMissing,
+                                  BaseGDL* invalid, bool doInvalid)
 {
   throw GDLException("ULONG expression not allowed in this context.");
 }
 
 template<>
-BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
-				   BaseGDL* bias,
- 				   bool center, bool normalize, int edgeMode)
+BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+ 				    bool center, bool normalize, int edgeMode,
+                                    bool doNan, BaseGDL* missing, bool doMissing,
+                                    BaseGDL* invalid, bool doInvalid)
 {
   throw GDLException("ULONG64 expression not allowed in this context.");
 }

@@ -37,7 +37,9 @@ using namespace std;
 
 template<>
 BaseGDL* Data_<SpDByte>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
-				 bool center, bool normalize, int edgeMode)
+				 bool center, bool normalize, int edgeMode,
+                                 bool doNan, BaseGDL* missing, bool doMissing,
+                                 BaseGDL* invalid, bool doInvalid)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
   DLong scale = (*static_cast<Data_<SpDInt>*>( scaleIn))[0];
@@ -47,13 +49,17 @@ BaseGDL* Data_<SpDByte>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
   // DLong* biasd=static_cast<DLong*>( bias);
   Data_<SpDLong>* biast=static_cast<Data_<SpDLong>*>( bias);
   DLong* biasd = static_cast<DLong*>( biast->DataAddr());
+  DLong missingValue = *(static_cast<DLong*>( missing->DataAddr()));
+  DLong invalidValue = *(static_cast<DLong*>( invalid->DataAddr()));
 #else
 
 #ifdef CONVOL_UINT__
 
 template<>
 BaseGDL* Data_<SpDUInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
-				 bool center, bool normalize, int edgeMode)
+				 bool center, bool normalize, int edgeMode,
+                                 bool doNan, BaseGDL* missing, bool doMissing,
+                                 BaseGDL* invalid, bool doInvalid)
 {
   Data_* kernel = static_cast<Data_*>( kIn);
   DLong scale = (*static_cast<Data_<SpDUInt>*>( scaleIn))[0];
@@ -64,12 +70,16 @@ BaseGDL* Data_<SpDUInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
   //  DLongGDL* biasd=static_cast<DLong*>( bias);
   Data_* biast=static_cast<Data_*>( bias);
   Ty* biasd = &(*biast)[0];
+  Ty missingValue = (*static_cast<Data_*>( missing))[0];
+  Ty invalidValue = (*static_cast<Data_*>( invalid))[0];
 #else
 
 
 template<class Sp>
 BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
-			    bool center, bool normalize, int edgeMode)
+			    bool center, bool normalize, int edgeMode,
+                            bool doNan, BaseGDL* missing, bool doMissing,
+                            BaseGDL* invalid, bool doInvalid)
 {
   Data_* kernel = static_cast<Data_*>( kIn);
   Ty scale = (*static_cast<Data_*>( scaleIn))[0];
@@ -78,9 +88,11 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
   Ty* ker = &(*kernel)[0];
   Data_* biast=static_cast<Data_*>( bias);
   Ty* biasd = &(*biast)[0];
+  Ty missingValue = (*static_cast<Data_*>( missing))[0];
+  Ty invalidValue = (*static_cast<Data_*>( invalid))[0];
 #endif
 #endif
-
+  
   if( scale == this->zero) scale = 1;
 
   SizeT nA = N_Elements();
@@ -164,6 +176,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
   SizeT	kDim0_nDim = kDim0 * nDim;
 
 #define INCLUDE_CONVOL_INC_CPP 
+#define CONVERT_CONVOL_TO_BYTE  if(res_a>0){if(res_a<255){(*res)[a]=res_a;}else{(*res)[a]=255;}}else{(*res)[a]=0;}
 
   if( edgeMode == 0)
     {
@@ -171,14 +184,23 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
     }
   else if( edgeMode == 1)
     {
+#define CONVOL_EDGE_WRAP
 #include "convol_inc1.cpp"
+#undef CONVOL_EDGE_WRAP
     }
   else if( edgeMode == 2)
     {
-#include "convol_inc2.cpp"
+#define CONVOL_EDGE_TRUNCATE
+#include "convol_inc1.cpp"
+#undef CONVOL_EDGE_TRUNCATE
     }
-
-
+  else if( edgeMode == 3)
+    {
+#define CONVOL_EDGE_ZERO
+#include "convol_inc1.cpp"
+#undef CONVOL_EDGE_ZERO
+    }
+#undef CONVERT_CONVOL_TO_BYTE 
 #undef INCLUDE_CONVOL_INC_CPP
 
 
@@ -280,13 +302,16 @@ namespace lib {
     bool edge_wrap = e->KeywordSet( edge_wrapIx);
     static int edge_truncateIx = e->KeywordIx( "EDGE_TRUNCATE");
     bool edge_truncate = e->KeywordSet( edge_truncateIx);
-
+    static int edge_zeroIx = e->KeywordIx( "EDGE_ZERO");
+    bool edge_zero = e->KeywordSet( edge_zeroIx);
     int edgeMode = 0; 
     if( edge_wrap)
       edgeMode = 1;
     else if( edge_truncate)
       edgeMode = 2;
-
+    else if( edge_zero)
+      edgeMode = 3;
+    
     // p0, p1 and scale have same type
     // p1 has rank of 1 or same rank as p0 with each dimension smaller than p0
     // scale is a scalar
@@ -311,8 +336,52 @@ namespace lib {
 
     static int normalIx = e->KeywordIx( "NORMALIZE");
     bool normalize = e->KeywordPresent( normalIx);
-  
-    return p0->Convol( p1, scale, bias, center, normalize, edgeMode);
+    
+    /***********************************Parameter NAN****************************************/
+
+    static int nanIx = e->KeywordIx( "NAN");
+    bool doNan = e->KeywordPresent( nanIx);
+    
+    /***********************************Parameter MISSING************************************/
+    static int missingIx = e->KeywordIx("MISSING");
+    bool doMissing = e->KeywordPresent( missingIx );
+    BaseGDL* missing;
+    if (p0->Type() != GDL_BYTE) {
+        if (doMissing) {
+            missing = e->GetKW(missingIx);
+            if (p0->Type() != missing->Type()) {
+                missing = missing->Convert2(p0->Type(), BaseGDL::COPY);
+            }
+        } else missing = p1->New(1, BaseGDL::ZERO);
+    } else {
+        if (doMissing) { missing = e->GetKW(missingIx);
+        } else missing = p1->New(1, BaseGDL::ZERO);
+        missing = missing->Convert2(GDL_LONG, BaseGDL::COPY);
+    }
+   /***********************************Parameter INVALID************************************/
+    static int invalidIx = e->KeywordIx("INVALID");
+    bool doInvalid = e->KeywordPresent( invalidIx );
+    BaseGDL* invalid;
+    if (p0->Type() != GDL_BYTE) {
+        if (doInvalid) {
+            invalid = e->GetKW(invalidIx);
+            if (p0->Type() != invalid->Type()) {
+                invalid = invalid->Convert2(p0->Type(), BaseGDL::COPY);
+            }
+        } else invalid = p1->New(1, BaseGDL::ZERO);
+    } else {
+        if (doInvalid) {
+            invalid = e->GetKW(invalidIx);
+        } else invalid = p1->New(1, BaseGDL::ZERO);
+        invalid = invalid->Convert2(GDL_LONG, BaseGDL::COPY);
+    }
+    if (!doNan && !doInvalid) doMissing=false;
+    if (!doMissing && (p0->Type()==GDL_FLOAT ||p0->Type()==GDL_COMPLEX))
+      missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("F_NAN"), 0);
+    if (!doMissing && (p0->Type()==GDL_DOUBLE ||p0->Type()==GDL_COMPLEXDBL))
+      missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("D_NAN"), 0);
+    
+    return p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid,doInvalid);
   } //end of convol_fun
 
 

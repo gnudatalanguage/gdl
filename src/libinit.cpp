@@ -139,8 +139,8 @@ void LibInit()
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
-  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",
-			    "BIAS","NORMALIZE",KLISTEND};
+  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO",
+			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
 #ifndef _MSC_VER

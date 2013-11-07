@@ -290,7 +290,9 @@ static	void operator delete( void *ptr);
   BaseGDL* Abs() const;  
 
   BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
-		   bool center, bool normalize, int edgeMode);
+		   bool center, bool normalize, int edgeMode,
+                   bool doNan, BaseGDL* missing, bool doMissing,
+                   BaseGDL* invalid, bool doInvalid);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
 
   void Assign( BaseGDL* src, SizeT nEl);
