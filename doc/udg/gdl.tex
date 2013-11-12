@@ -96,6 +96,10 @@
 \usepackage[miniindex]{authorindex} % page references in the bibliography
 \def\theaipage{\string\hyperpage{\thepage}}
 \usepackage[numbers]{natbib}
+
+%mwcls+natbib fix
+\renewcommand*{\bibsection}{\section*{\refname}}
+
 %\aipagetypeorder
 \bibliographystyle{copernicus} % e.g. http://www.atmospheric-chemistry-and-physics.net/Copernicus.bst
 
