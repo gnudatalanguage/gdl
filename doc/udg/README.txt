@@ -30,6 +30,8 @@ see http://mirrors.ctan.org/indexing/authorindex/
 Take care that you must put this self-executable script in a directory see by your PATH
 (maybe the current directory is not allowed to contain executables)
 
+The LaTeX files should go to some place like ~/texmf
+
 2/ Then you can start to compile the doc.
 You have to do in the current directory: ./makeall
 (and wait for a while)
