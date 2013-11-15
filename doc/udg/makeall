@@ -11,6 +11,14 @@
 #  makeindex -o gdl.ind gdl.4dx     &&\ 
 #  htlatex gdl "$HTOPT"  
 
+# checking for missing executables (thanks Alain)
+CMDS="ps2pdf pdfcrop awk grep bibtex pdflatex authorindex makeindex"
+for i in $CMDS
+do
+  # command -v will return >0 when the $i is not found
+  command -v $i >/dev/null && continue || { echo "$i command not found."; exit 1; }
+done
+
 # generate the list of routines (./routinelist.tmp), do it only
 #   - if routinelist.tmp does not exist or
 #   - if the gdl binary has changed (C++ routines might have changed) or
