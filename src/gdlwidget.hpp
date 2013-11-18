@@ -795,11 +795,14 @@ class GDLWidgetSlider: public GDLWidget
   DLong value; 
   DLong minimum; 
   DLong maximum;
+  DString title;
 public:
   GDLWidgetSlider( WidgetIDT parentID, EnvT* e,
 		   DLong value_, DLong minimum_, DLong maximum_,
 		   bool vertical,
-		   bool suppressValue);
+		   bool suppressValue,
+		   DString title
+ 		);
 
   ~GDLWidgetSlider();
 

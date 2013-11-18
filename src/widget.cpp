@@ -240,7 +240,22 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev)
   return ev;
 }
 
+template< typename T> 
+T* GetKeywordAs( EnvT* e, int ix)
+{
+    BaseGDL* kwBaseGDL = e->GetKW( ix);
+    if( kwBaseGDL == NULL)
+      return NULL;
 
+    if( kwBaseGDL->Type() != T::t)
+      return static_cast<T*>(kwBaseGDL->Convert2( T::t, BaseGDL::COPY));
+    
+    bool stolen = e->StealLocalKW( ix);
+    if( stolen)
+      return static_cast<T*>(kwBaseGDL);
+    
+    return static_cast<T*>(kwBaseGDL->Dup());
+}
 
 
 namespace lib {
@@ -300,8 +315,26 @@ BaseGDL* widget_table( EnvT* e)
     bool noRowHeaders = e->KeywordSet( NO_ROW_HEADERS) || noHeaders;
     bool resizeableColumns = e->KeywordSet( RESIZEABLE_COLUMNS);
     bool resizeableRows = e->KeywordSet( RESIZEABLE_ROWS);
+
+    DLongGDL* alignment = GetKeywordAs<DLongGDL>( e, ALIGNMENT);
+    DStringGDL* amPm = GetKeywordAs<DStringGDL>( e, AM_PM);
+    DByteGDL* backgroundColor = GetKeywordAs<DByteGDL>( e, BACKGROUND_COLOR);
+    DByteGDL* foregroundColor = GetKeywordAs<DByteGDL>( e, FOREGROUND_COLOR);
+    DStringGDL* columnLabels = GetKeywordAs<DStringGDL>( e, COLUMN_LABELS);
+    DLongGDL* columnWidth = GetKeywordAs<DLongGDL>( e, COLUMN_WIDTHS);
+    DStringGDL* daysOfWeek = GetKeywordAs<DStringGDL>( e, DAYS_OF_WEEK);
+    DStringGDL* font = GetKeywordAs<DStringGDL>( e, FONT);
+    DStringGDL* format = GetKeywordAs<DStringGDL>( e, FORMAT);
+    DStringGDL* month = GetKeywordAs<DStringGDL>( e, MONTHS);
     
-    
+    DLongGDL* rowHeights = GetKeywordAs<DLongGDL>( e, ROW_HEIGHTS);
+    DStringGDL* rowLabels = GetKeywordAs<DStringGDL>( e, ROW_LABELS);
+
+    DLong groupLeader = 0;
+    e->AssureLongScalarKWIfPresent( GROUP_LEADER, groupLeader);
+    DLong tabMode = 0;
+    e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode);
+
     static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE");
     DLong x_scroll_size = 0;
     e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size);
@@ -309,10 +342,39 @@ BaseGDL* widget_table( EnvT* e)
     DLong y_scroll_size = 0;
     e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size);
     
+    BaseGDL* value = e->GetKW(VALUE);
 
-    // TODO
+    GDLWidgetTable* table = new GDLWidgetTable( parentID, e, 
+		  alignment,
+		  amPm,
+		  backgroundColor,
+		  foregroundColor,
+		  columnLabels,
+		  columnMajor,
+		  columnWidth,
+		  daysOfWeek,
+		  disjointSelection,
+		  editable,
+		  font,
+		  format,
+		  groupLeader,
+ 		  ignoreAccelerators,
+		  month,
+		  noColumnHeaders,
+		  noRowHeaders,
+		  resizeableColumns,
+		  resizeableRows,
+		  rowHeights,
+		  rowLabels,
+		  rowMajor,
+		  tabMode,
+		  value,
+		  x_scroll_size,
+		  y_scroll_size
+		);
 
-    return 0;
+    // return widget ID
+    return new DLongGDL( table->WidgetID());
 #endif
 } // widget_table
 
@@ -350,6 +412,7 @@ BaseGDL* widget_tree( EnvT* e)
     static int  NO_BITMAPS   = e->KeywordIx("NO_BITMAPS");
     static int  TAB_MODE     = e->KeywordIx("TAB_MODE"); 
     static int  TOOLTIP      = e->KeywordIx("TOOLTIP"); 
+    static int  VALUE        = e->KeywordIx("VALUE"); 
    
     bool alignBottom = e->KeywordSet( ALIGN_BOTTOM);
     bool alignCenter = e->KeywordSet( ALIGN_CENTER);
@@ -364,9 +427,47 @@ BaseGDL* widget_tree( EnvT* e)
     bool multiple = e->KeywordSet( MULTIPLE);
     bool noBitmaps = e->KeywordSet( NO_BITMAPS);
 
-    // TODO
+    BaseGDL* bitmap = e->GetKW(BITMAP);
+    
+    DLong checked = 0;
+    e->AssureLongScalarKWIfPresent( CHECKED, checked);
+    DLong groupLeader = 0;
+    e->AssureLongScalarKWIfPresent( GROUP_LEADER, groupLeader);
+    DLong tabMode = 0;
+    e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode);
+    DLong index = 0;
+    e->AssureLongScalarKWIfPresent( INDEX, index);
+    DString dragNotify;
+    e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify);
+    DString toolTip;
+    e->AssureStringScalarKWIfPresent( TOOLTIP, toolTip);
 
-    return 0;
+    DString value;
+    e->AssureStringScalarKWIfPresent( VALUE, value);
+
+    GDLWidgetTree* tree = new GDLWidgetTree( parentID, e, value,
+                              alignBottom,
+                              alignCenter,
+                              alignLeft,
+                              alignRight,
+                              alignTop,
+                              bitmap,
+                              checkbox,
+                              checked,
+                              dragNotify,
+                              draggable,
+                              expanded,
+                              folder,
+                              groupLeader,
+                              index,
+                              mask,
+                              multiple,
+                              noBitmaps,
+                              tabMode,
+                              toolTip);
+
+    // return widget ID
+    return new DLongGDL( tree->WidgetID());
 #endif
 } // widget_tree
 
@@ -952,10 +1053,16 @@ BaseGDL* widget_list( EnvT* e)
     static int suppressValueIx = e->KeywordIx( "SUPPRESS_VALUE");
     bool suppressValue = e->KeywordSet( suppressValueIx);
     
+    DString title;
+    static int titleIx = e->KeywordIx( "TITLE");
+    e->AssureStringScalarKWIfPresent( titleIx, title);
+    
     GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e, 
 					     value, minimum, maximum, 
 					     vertical, 
-					     suppressValue);
+					     suppressValue,
+					     title
+ 					    );
     sl->SetWidgetType( "SLIDER");
 
     return new DLongGDL( sl->WidgetID());

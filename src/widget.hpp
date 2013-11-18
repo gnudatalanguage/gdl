@@ -30,7 +30,9 @@ namespace lib {
   BaseGDL* widget_list( EnvT* e);
   BaseGDL* widget_slider( EnvT* e);
   BaseGDL* widget_tab( EnvT* e);
+  BaseGDL* widget_table( EnvT* e);
   BaseGDL* widget_text( EnvT* e);
+  BaseGDL* widget_tree( EnvT* e);
   BaseGDL* widget_label( EnvT* e);
 
   BaseGDL* widget_info( EnvT* e);
@@ -41,8 +43,6 @@ namespace lib {
   // TODO
   BaseGDL* widget_displaycontextmenu( EnvT* e);
   BaseGDL* widget_propertysheet( EnvT* e);
-  BaseGDL* widget_table( EnvT* e);
-  BaseGDL* widget_tree( EnvT* e);
   BaseGDL* widget_tree_move( EnvT* e);
   BaseGDL* widget_window( EnvT* e);
 

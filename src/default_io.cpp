@@ -456,79 +456,79 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 }
 
 // string
-template<> 
-istream& operator>>(istream& is, Data_<SpDString>& data_) 
+template<>
+istream& operator>>(istream& is, Data_<SpDString>& data_)
 {
-  stringstream ioss;
+    stringstream ioss;
 
-  SizeT nEl = data_.dd.size();
-  
-  char delim = '\n';
-  streampos startPos = is.tellg();
-  bool checkForCROnly = true;
-  goto start;
+    SizeT nEl = data_.dd.size();
 
-  rerunCR:
-  delim = '\r';
-  is.seekg( startPos);
-  ioss.str("");
+    char delim = '\n';
+    streampos startPos = is.tellg();
+    bool checkForCROnly = true;
+    goto start;
 
-  start:
-  for( SizeT c=0; c < nEl; c++)
+rerunCR:
+    delim = '\r';
+    is.seekg( startPos);
+    ioss.str("");
+
+start:
+    for( SizeT c=0; c < nEl; c++)
     {
 //      is.get( *ioss.rdbuf());
-      is.get( *ioss.rdbuf(), delim);
+        is.get( *ioss.rdbuf(), delim);
 
-	  // error handling
-      if ( (is.rdstate() & ifstream::failbit ) != 0 )
-		{
-		if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-			throw GDLIOException( "End of file encountered. "+
-					StreamInfo( &is));
-      
-		if ( (is.rdstate() & ifstream::badbit ) != 0 )
-			throw GDLIOException( "Error reading STRING. "+
-					StreamInfo( &is));
-      
-		is.clear();
-		is.get();   // remove delimiter
-		data_[ c] = "";
+        // error handling
+        if ( (is.rdstate() & ifstream::failbit ) != 0 )
+        {
+            if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+                throw GDLIOException( "End of file encountered. "+
+                                      StreamInfo( &is));
 
-		continue;
-		}
+            if ( (is.rdstate() & ifstream::badbit ) != 0 )
+                throw GDLIOException( "Error reading STRING. "+
+                                      StreamInfo( &is));
 
-      if( !is.good() && !is.eof())
-		throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
-  
-      if( !is.eof()) is.get(); // remove delimiter
+            is.clear();
+            is.get();   // remove delimiter
+            data_[ c] = "";
 
-      const string& str = ioss.str();
+            continue;
+        }
 
-	  if( checkForCROnly)
-		{
-			// do only once
-			checkForCROnly = false;
-			
-			SizeT posCR = str.find( '\r');
-			if( posCR != string::npos && posCR != str.length()-1)
-				{
-					goto rerunCR;
-				}
-		}
-      
-      // handle \r\n (\n not read)
-      if( delim == '\n' && str.length() > 0 && str[ str.length()-1] == '\r')
-		{
-		data_[ c] = str.substr(0,str.length()-1);
-		}
-      else
-		{
-		data_[ c] = str;
-		}
-		
-      ioss.str("");
+        if( !is.good() && !is.eof())
+            throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
+
+        if( !is.eof()) is.get(); // remove delimiter
+
+        const string& str = ioss.str();
+
+        if( checkForCROnly)
+        {
+            // do only once
+            checkForCROnly = false;
+
+            SizeT posCR = str.find( '\r');
+            if( posCR != string::npos && posCR != str.length()-1)
+            {
+                goto rerunCR;
+            }
+        }
+
+        // handle \r\n (\n not read)
+        if( delim == '\n' && str.length() > 0 && str[ str.length()-1] == '\r')
+        {
+            data_[ c] = str.substr(0,str.length()-1);
+        }
+        else
+        {
+            data_[ c] = str;
+        }
+
+        ioss.str("");
     }
-  return is;
+    return is;
 }
 
 istream& operator>>(istream& i, DStructGDL& data_)

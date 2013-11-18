@@ -849,11 +849,17 @@ void GDLWidgetTree::OnShow()
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/
-GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_, DLong minimum_, DLong maximum_, bool vertical, bool suppressValue)
+GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
+, DLong minimum_
+, DLong maximum_
+, bool vertical
+, bool suppressValue
+, DString title_)
 : GDLWidget( p, e)
 , value(value_)
 , minimum(minimum_)
 , maximum(maximum_)
+, title( title_)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
