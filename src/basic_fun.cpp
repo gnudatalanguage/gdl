@@ -27,6 +27,10 @@
 #include <termios.h> 
 #include <unistd.h> 
 #endif
+
+// used to defined GDL_TMPDIR: may have trouble on MSwin, help welcome
+#include <paths.h>
+
 #include <limits>
 #include <string>
 #include <fstream>
@@ -5310,8 +5314,9 @@ BaseGDL* transpose( EnvT* e)
 	      if( resPtr != NULL)
 		(*env)[i] = resPtr;
 	      else
-		(*env)[i] = SysVar::Dir();
-
+		//		(*env)[i] = SysVar::Dir();
+		(*env)[i] = _PATH_VARTMP ;
+	      
 	      AppendIfNeeded( (*env)[i], "/");
 	    }
 	  else // normal environment variables
