@@ -405,8 +405,7 @@ private:
     }
 
     // write the first buflen to temp file
-    char* buffer2 = new char[buflen + extralen];
-	ArrayGuard<char> buffer2Guard( buffer2);
+    char buffer2[buflen + extralen];
     strcpy(buffer2,sbuff.c_str());
     fwrite(&buffer2, 1, buflen+extralen, fp); 
 
