@@ -38,7 +38,7 @@ namespace lib
     if ( !success )
       e->Throw("Device not supported/unknown: "+device);
 
-    if ( device=="PS"/*||device=="SVG"*/ )
+    if ( device=="PS" ||device=="SVG" )
     {
       static DStructGDL* pStruct=SysVar::P();
       // SA: this does not comply with IDL behaviour, see testsuite/test_pmulti.pro
@@ -47,10 +47,10 @@ namespace lib
       if ( device=="PS" )
       {
         static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=255; //PLEASE DO NOT CHANGE values here until a better color
+        (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=0; //PLEASE DO NOT CHANGE values here until a better color
                                                                         // handling has been found.
          static unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0; //PLEASE DO NOT CHANGE values here. This default is OK.
+        (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=255; //PLEASE DO NOT CHANGE values here. This default is OK.
       }
     }
     else
