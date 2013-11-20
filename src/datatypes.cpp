@@ -4030,6 +4030,10 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0)
@@ -4041,13 +4045,18 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0)
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
@@ -4060,6 +4069,9 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0.0f)
@@ -4071,13 +4083,18 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0.0f)
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
@@ -4090,6 +4107,9 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0.0)
@@ -4101,13 +4121,18 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
@@ -4120,6 +4145,9 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != "")
@@ -4131,13 +4159,18 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != "")
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
@@ -4150,6 +4183,9 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
@@ -4161,13 +4197,18 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
@@ -4180,6 +4221,9 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
@@ -4191,13 +4235,18 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
 	      ixList[ --nIx] = i;
 	    }
 	}
+    } // omp
     }
   else
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
+    } // omp
   n = count;
   return ixList;
 }
