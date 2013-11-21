@@ -7,10 +7,13 @@ end
 
 pro handle_Event,ev
 help,ev,/STRUCT
+; the following crash GDL!
+;  widget_control,ev.top,get_uvalue=topuval & print,topuval
+;  widget_control,ev.id,get_uvalue=iduval & print,iduval
 end
 
 pro test_widgets
-
+ev = {vEv,type:'',pos:[0,0]}
 ;Create a base widget. 
 base = WIDGET_BASE(/COL,MBAR=mbar) 
  
@@ -28,16 +31,16 @@ t4 = widget_base( tab, TITLE="now",/COL)
 draw = WIDGET_DRAW(t1, XSIZE = 256, YSIZE = 256) 
  
 radio=widget_base(t2,/EXCLUSIVE,COL=1)
-rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1")
-rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2")
+rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]})
+rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2",uvalue={vEv,'rb2',[9,0]})
 
 check=widget_base(t2,/NONEXCLUSIVE,COL=1)
-cb1=widget_button(check,VALUE="button in NONEXCLUSIVE base 1")
-cb2=widget_button(check,VALUE="button in NONEXCLUSIVE base 2")
+cb1=widget_button(check,VALUE="button in NONEXCLUSIVE base 1",uvalue={vEv,'cb1',[81,0]})
+cb2=widget_button(check,VALUE="button in NONEXCLUSIVE base 2",uvalue={vEv,'cb2',[12,0]})
 
 sl=widget_slider(t2,MIN=0,MAX=100,/DRAG,TITLE="WIDGET_SLIDER")
 
-l=widget_label(t3,VALUE="A label created with WIDGET_LABEL")
+l=widget_label(t3,VALUE="A label created with WIDGET_LABEL",uvalue={vEv,'lll',[1,-1]})
 t=widget_text(t3,VALUE=["This is a text widget",$
                         "created with","WIDGET_TEXT"],$
               /EDITABLE,/ALL_EVENTS,YSIZE=5)
