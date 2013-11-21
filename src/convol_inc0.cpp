@@ -140,6 +140,7 @@ for (SizeT a = 0; a < nA; ++aInitIx[1]) {
         if (counter == 0) res_a = missingValue;
 
 #ifdef CONVOL_BYTE__
+        CONVERT_CONVOL_TO_BYTE;
 #endif
       }
 
