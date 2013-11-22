@@ -158,8 +158,8 @@ namespace lib {
 	  e->Throw("RESTORE must be set to an instance with the same struct layout as {!CPU}");
 	
         locCpuTPOOL_NTHREADS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( NTHREADSTag, 0))))[0];
-        locCpuTPOOL_MIN_ELTS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MIN_ELTSTag, 0))))[0];
-        locCpuTPOOL_MAX_ELTS= (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
+        locCpuTPOOL_MIN_ELTS = (*(static_cast<DLong64GDL*>( restoreCpu->GetTag( TPOOL_MIN_ELTSTag, 0))))[0];
+        locCpuTPOOL_MAX_ELTS= (*(static_cast<DLong64GDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
       }
     else
       {
@@ -196,8 +196,8 @@ namespace lib {
 
     // update !CPU system variable
     (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] = CpuTPOOL_NTHREADS;
-    (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0] = CpuTPOOL_MIN_ELTS;
-    (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0] = CpuTPOOL_MAX_ELTS;
+    (*static_cast<DLong64GDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0] = CpuTPOOL_MIN_ELTS;
+    (*static_cast<DLong64GDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0] = CpuTPOOL_MAX_ELTS;
 
 #ifdef _OPENMP
     omp_set_num_threads(CpuTPOOL_NTHREADS);

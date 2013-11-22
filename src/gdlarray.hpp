@@ -206,7 +206,7 @@ public:
 
   T& operator[]( SizeT ix) throw()
   {
-//      if( ix >= sz) // debug
+      if( ix >= sz) // debug
       assert( ix < sz);
     return buf[ ix];
   }
