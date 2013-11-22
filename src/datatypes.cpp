@@ -3865,8 +3865,9 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   // length of one segment to copy
   SizeT len=srcArr->dim.Stride(atDim+1); // src array
 
+  SizeT nEl=srcArr->N_Elements();
   // number of copy actions
-  SizeT nCp=srcArr->N_Elements()/len;
+  SizeT nCp=nEl/len;
 
   // initial offset
   SizeT destStart= this->dim.Stride(atDim) * at; // dest array
@@ -3875,34 +3876,34 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   // number of elements to skip
   SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
-  // #ifdef _OPENMP
-  // SizeT nEl = srcArr->N_Elements();
-  // #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  //   for( SizeT c=0; c<nCp; ++c)
-  //     {
-  //       set new destination pointer
-  //       SizeT eIx = c*gap;
-  //       SizeT sIx = eIx  + destStart;
-  //       eIx += destEnd;
-  // 
-  //       copy one segment
-  //       SizeT srcIx = c*len;
-  //       for( SizeT destIx=sIx; destIx< eIx; ++destIx)
-  // 	(*this)[destIx] = (*srcArr)[ srcIx+destIx-sIx];
-  //     }
-  // #else
-  SizeT srcIx=0;
-  for( SizeT c=0; c<nCp; ++c)
+#ifdef _OPENMP
+    #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-      // copy one segment
-      for( SizeT destIx=destStart; destIx< destEnd; destIx++)
-	(*this)[destIx] = (*srcArr)[ srcIx++];
+        #pragma omp for
+        for( SizeT c=0; c<nCp; ++c)
+        {
+            // copy one segment
+            SizeT destStartLoop = destStart + c * gap;
+            SizeT destEndLoop   = destStartLoop + len;
+            SizeT srcIxLoop     = c * len;
+            for( SizeT destIx=destStartLoop; destIx< destEndLoop; destIx++)
+                (*this)[destIx] = (*srcArr)[ srcIxLoop++];
 
-      // set new destination pointer
-      destStart += gap;
-      destEnd   += gap;
+        }
+    } // OMP
+#else // #ifdef _OPENMP
+    SizeT srcIx=0;
+    for( SizeT c=0; c<nCp; ++c)
+    {
+        // copy one segment
+        for( SizeT destIx=destStart; destIx< destEnd; destIx++)
+            (*this)[destIx] = (*srcArr)[ srcIx++];
+
+        // set new destination pointer
+        destStart += gap;
+        destEnd   += gap;
     }
-  // #endif
+#endif
 
   SizeT add=srcArr->dim[atDim]; // update 'at'
   at += (add > 1)? add : 1;

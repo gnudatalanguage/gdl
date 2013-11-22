@@ -23,6 +23,7 @@
 #include <memory> 
 
 #include <wx/notebook.h>
+#include <wx/grid.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
@@ -780,7 +781,19 @@ GDLDelete( rowLabels);
   
 void GDLWidgetTable::OnShow()
 {
-  // TODO
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+
+  GDLWidget* gdlParent = GetWidget( parentID);
+
+  long style = wxWANTS_CHARS;
+  wxGrid *grid = new wxGrid( widgetPanel, widgetID, 
+			      wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style);
+  this->wxWidget = grid;
+
+  widgetPanel->SetClientSize(grid->GetSize());
+
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Layout();
 }
 
 
@@ -808,29 +821,54 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, DString value_,
                               bool noBitmaps_,
                               DLong tabMode_,
                               DString toolTip_)
-: GDLWidget( p, e),
-alignBottom( alignBottom_),
-alignCenter( alignCenter_),
-alignLeft( alignLeft_), 
-alignRight( alignRight_), 
-alignTop( alignTop_), 
-bitmap( bitmap_), 
-checkbox( checkbox_), 
-checked( checked_), 
-dragNotify( dragNotify_),
-draggable( draggable_), 
-expanded( expanded_), 
-folder( folder_), 
-groupLeader( groupLeader_),
-index( index_), 
-mask( mask_), 
-multiple( multiple_), 
-noBitmaps( noBitmaps_), 
-tabMode( tabMode_), 
-toolTip( toolTip_),
-value( value_)
+    : GDLWidget( p, e),
+      alignBottom( alignBottom_),
+      alignCenter( alignCenter_),
+      alignLeft( alignLeft_),
+      alignRight( alignRight_),
+      alignTop( alignTop_),
+      bitmap( bitmap_),
+      checkbox( checkbox_),
+      checked( checked_),
+      dragNotify( dragNotify_),
+      draggable( draggable_),
+      expanded( expanded_),
+      folder( folder_),
+      groupLeader( groupLeader_),
+      index( index_),
+      mask( mask_),
+      multiple( multiple_),
+      noBitmaps( noBitmaps_),
+      tabMode( tabMode_),
+      toolTip( toolTip_),
+      value( value_),
+      treeItemID( 0)
 {
-  CreateWidgetPanel();
+    GDLWidget* gdlParent = GetWidget( parentID);
+    if( gdlParent->IsBase())
+    {
+        CreateWidgetPanel();
+
+	long style = wxTR_DEFAULT_STYLE;
+        wxTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
+                                           wxPoint(xOffset,yOffset),
+                                           wxSize(xSize, ySize),
+                                           style);
+	this->wxWidget = tree;
+	
+	treeItemID = tree->AddRoot( wxString( value.c_str(), wxConvUTF8));
+    }
+    else
+    {
+        assert( gdlParent->IsTree());
+	GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*>( gdlParent);
+	
+	this->wxWidget = parentTree->GetWxWidget();
+	
+	wxTreeCtrl* tree = static_cast<wxTreeCtrl*>( this->wxWidget);
+	
+	treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( value.c_str(), wxConvUTF8));
+    }
 }
 
 GDLWidgetTree::~GDLWidgetTree()
@@ -840,7 +878,13 @@ GDLWidgetTree::~GDLWidgetTree()
 
 void GDLWidgetTree::OnShow()
 {
-  // TODO
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+
+  GDLWidget* gdlParent = GetWidget( parentID);
+
+  wxSizer *boxSizer = gdlParent->GetSizer();
+  boxSizer->Layout();
+
 }
 
 
