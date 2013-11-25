@@ -3646,7 +3646,7 @@ namespace lib {
 	  res[j] = sign * sphPlm.val;
 	*/
 	res[j] = sign * gsl_sf_legendre_sphPlm(l, abs(m), cos(theta[j * step_theta]));
-	res[j] *= exp(complex<T_phi>(0., m * phi[j * step_phi]));
+	res[j] *= T_res(std::exp(complex<T_phi>(0., m * phi[j * step_phi])));
       }
   }
   template <class T_phi, class T_res>
