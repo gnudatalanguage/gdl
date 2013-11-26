@@ -4067,7 +4067,6 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
   SizeT nEl = N_Elements();
   DLong* ixList = new DLong[ nEl];
   SizeT count = 0;
-  cout << "here" << endl;
   if( comp)
     {
       SizeT nIx = nEl;

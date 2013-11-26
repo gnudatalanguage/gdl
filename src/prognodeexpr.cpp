@@ -1592,7 +1592,7 @@ BaseGDL* EQ_OPNCNode::Eval()
   Guard<BaseGDL> g2;
   BaseGDL *e1, *e2;
   AdjustTypesNCNull( g1, e1, g2, e2);
-  if( e2->Type() == GDL_OBJ) 
+  if( e2 != NULL && e2->Type() == GDL_OBJ) 
   {
     if( e1->Type() != GDL_OBJ) 
     {
@@ -1611,7 +1611,7 @@ BaseGDL* NE_OPNCNode::Eval()
   Guard<BaseGDL> g2;
   BaseGDL *e1, *e2;
   AdjustTypesNCNull( g1, e1, g2, e2);
-  if( e2->Type() == GDL_OBJ) 
+  if( e2 != NULL && e2->Type() == GDL_OBJ) 
   {
     if( e1->Type() != GDL_OBJ) 
     {

@@ -752,8 +752,7 @@ namespace SysVar
     warnIx     = sysVarList.size();
     sysVarList.push_back(warn);
 
-    // !USERSYM (sorry if this is not how to do the job!)
-    
+    // !USERSYM (sorry if this is not how to do the job!
     DStructGDL* usersymData = new DStructGDL( "!USERSYM");
     usersymData->NewTag("DIM", new DLongGDL(0));
     usersymData->NewTag("FILL", new DIntGDL(0));

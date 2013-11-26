@@ -1302,6 +1302,33 @@ pro operator_test
     exit, status=1
   endif
 
+  if ~(!NULL eq !NULL) then begin
+    message, "***OPERATOR: ERROR8", /conti
+    exit, status=1
+  endif
+  if ~(un_def eq !NULL) then begin
+    message, "***OPERATOR: ERROR9", /conti
+    exit, status=1
+  endif
+  if ~(!NULL eq un_def) then begin
+    message, "***OPERATOR: ERROR10", /conti
+    exit, status=1
+  endif
+  if !NULL ne !NULL then begin
+    message, "***OPERATOR: ERROR8", /conti
+    exit, status=1
+  endif
+  if un_def ne !NULL then begin
+    message, "***OPERATOR: ERROR9", /conti
+    exit, status=1
+  endif
+  if !NULL ne un_def then begin
+    message, "***OPERATOR: ERROR10", /conti
+    exit, status=1
+  endif
+
+
+
   print,'OPERATORS: OK'
 
 end
