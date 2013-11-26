@@ -78,7 +78,7 @@ endif
 ;
 list_of_times=DBLARR(N_ELEMENTS(list_of_clocks))
 for ii=0, N_ELEMENTS(list_of_clocks)-1 do begin
-   list_of_times[ii]=t0-list_of_times.TIME
+   list_of_times[ii]=t0-list_of_clocks[ii].TIME
 endfor
 ;
 if KEYWORD_SET(test) then STOP
