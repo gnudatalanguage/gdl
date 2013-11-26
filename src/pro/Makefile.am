@@ -103,6 +103,8 @@ prolib_DATA = \
   swap_endian_inplace.pro \
   template.pro \
   template_blank.pro \
+  tic.pro \
+  toc.pro \
   trace.pro \
   tvscl.pro \
   uniq.pro \
