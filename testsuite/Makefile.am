@@ -100,6 +100,7 @@ TESTS = \
   test_nans_in_sort_and_median.pro \
   test_netcdf.pro \
   test_nestedloop.pro \
+  test_null.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
