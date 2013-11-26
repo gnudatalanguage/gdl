@@ -619,3 +619,6 @@
            - WSHOW works irregularly, depending on the window manager.
 
 
+0.9.5:
+           - lot of improvments in Widgets related code
+           - TIC and TOC
