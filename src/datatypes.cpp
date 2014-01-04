@@ -4865,24 +4865,25 @@ BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
 {
   throw GDLException("Pointer expression not allowed in this context.");
 }
+// Normally ULong and ULong64 should pass as well. Otherwise, use UINT code in convol.cpp 
+// as template for the needed specialization.
+//template<>
+//BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+// 				  bool center, bool normalize, int edgeMode,
+//                                  bool doNan, BaseGDL* missing, bool doMissing,
+//                                  BaseGDL* invalid, bool doInvalid)
+//{
+//  throw GDLException("ULONG expression not allowed in this context.");
+//}
 
-template<>
-BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
- 				  bool center, bool normalize, int edgeMode,
-                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                  BaseGDL* invalid, bool doInvalid)
-{
-  throw GDLException("ULONG expression not allowed in this context.");
-}
-
-template<>
-BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
- 				    bool center, bool normalize, int edgeMode,
-                                    bool doNan, BaseGDL* missing, bool doMissing,
-                                    BaseGDL* invalid, bool doInvalid)
-{
-  throw GDLException("ULONG64 expression not allowed in this context.");
-}
+//template<>
+//BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+// 				    bool center, bool normalize, int edgeMode,
+//                                    bool doNan, BaseGDL* missing, bool doMissing,
+//                                    BaseGDL* invalid, bool doInvalid)
+//{
+//  throw GDLException("ULONG64 expression not allowed in this context.");
+//}
 
 
 #define INCLUDE_CONVOL_CPP 1
@@ -4897,6 +4898,12 @@ BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bia
 #include "convol.cpp"
 
 #undef CONVOL_UINT__
+
+#define CONVOL_INT__
+
+#include "convol.cpp"
+
+#undef CONVOL_INT__
 
 #include "convol.cpp"
 

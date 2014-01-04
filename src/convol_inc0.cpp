@@ -47,102 +47,155 @@ for (SizeT a = 0; a < nA; ++aInitIx[1]) {
   if (regular) {
     a += aBeg0;
 
-    if (center)
-      for (long aInitIx0 = aBeg0; aInitIx0 < aEnd0; ++aInitIx0, ++a) {
-#ifdef CONVOL_BYTE__
-        DInt res_a = 0;
+        if (center) { //regular, center
+            for (long aInitIx0 = aBeg0; aInitIx0 < aEnd0; ++aInitIx0, ++a) { // 0-dim body regular center
+
+#if (defined(CONVOL_BYTE__) || defined (CONVOL_UINT__) || defined (CONVOL_INT__))
+            DLong res_a = 0;
+            DLong otfBias = 0;
+            DLong curScale = 0;
 #else
-        Ty& res_a = (*res)[ a];
+            Ty& res_a = (*res)[ a];
+            Ty otfBias = this->zero;
+            Ty curScale = this->zero;
 #endif
-        SizeT counter = 0;
+            SizeT counter = 0;
 
-        long* kIx = kIxArr;
-        for (SizeT k = 0; k < nK; k += kDim0) {
-          SizeT aLonIx = aInitIx0 + kIx[0];
-          for (SizeT rSp = 1; rSp < nDim; ++rSp) aLonIx += (aInitIx[ rSp] + kIx[ rSp]) * aStride[ rSp];
-
-          for (SizeT k0 = 0; k0 < kDim0; ++k0) {
-            if (doInvalid) {
-              if (ddP[ aLonIx + k0] != invalidValue) {
-                if (doNan) {
-                  if (gdlValid(ddP[ aLonIx + k0])) {
-                    res_a += ddP[ aLonIx + k0] * ker[ k + k0];
-                    counter++;
-                  }
-                } else {
-                  res_a += ddP[ aLonIx + k0] * ker[ k + k0];
-                  counter++;
+                long* kIx = kIxArr;
+                for (SizeT k = 0; k < nK; k += kDim0) {
+                    SizeT aLonIx = aInitIx0 + kIx[0];
+                    for (SizeT rSp = 1; rSp < nDim; ++rSp) {
+                        aLonIx += (aInitIx[ rSp] + kIx[ rSp]) * aStride[ rSp];
+                    }
+                    for (SizeT k0 = 0; k0 < kDim0; ++k0) {
+                        //was            res_a += ddP[ aLonIx + k0] * ker[ k + k0];
+                        if (doInvalid) {
+                            if (ddP[ aLonIx + k0] != invalidValue) {
+                                if (doNan) {
+                                    if (gdlValid(ddP[ aLonIx + k0])) {
+                                        res_a += ddP[ aLonIx + k0] * ker[ k + k0];
+                                        counter++;
+                                        if(normalize)  { curScale += absker[ k + k0];
+                                        otfBias += biasker[ k + k0];}
+                                    }
+                                } else {
+                                    res_a += ddP[ aLonIx + k0] * ker[ k + k0];
+                                    counter++;
+                                    if(normalize)  { curScale += absker[ k + k0];
+                                    otfBias += biasker[ k + k0];}
+                                }
+                            }
+                        } else {
+                            if (doNan) {
+                                if (gdlValid(ddP[ aLonIx + k0])) {
+                                    res_a += ddP[ aLonIx + k0] * ker[ k + k0];
+                                    counter++;
+                                    if(normalize)  { curScale += absker[ k + k0];
+                                    otfBias += biasker[ k + k0];}
+                                }
+                            } else {
+                                res_a += ddP[ aLonIx + k0] * ker[ k + k0];
+                                counter++;
+                            }
+                        }
+                    }
+                    kIx += kDim0_nDim;
                 }
-              }
-            } else {
-              if (doNan) {
-                if (gdlValid(ddP[ aLonIx + k0])) {
-                  res_a += ddP[ aLonIx + k0] * ker[ k + k0];
-                  counter++;
-                }
-              } else {
-                res_a += ddP[ aLonIx + k0] * ker[ k + k0];
-                counter++;
-              }
-            }
-          }
-          kIx += kDim0_nDim;
-        }
-        res_a /= scale;
-        if (counter == 0) res_a = missingValue;
 
-#ifdef CONVOL_BYTE__
-        CONVERT_CONVOL_TO_BYTE;
-#endif
-      } else
-      for (long aInitIx0 = aBeg0; aInitIx0 < aEnd0; ++aInitIx0, ++a) {
-#ifdef CONVOL_BYTE__
-        DInt res_a = 0;
+            if (normalize && (doInvalid||doNan)) { 
+                scale = curScale;
+#if defined(CONVOL_BYTE__) || defined (CONVOL_UINT__)
+                CONVERT_MODIFY_BIAS;
 #else
-        Ty& res_a = (*res)[ a];
+                bias=this->zero;
 #endif
-        SizeT counter = 0;
-
-        long* kIx = kIxArr;
-        for (SizeT k = 0; k < nK; k += kDim0) {
-          SizeT aLonIx = aInitIx0 + kIx[0];
-          for (SizeT rSp = 1; rSp < nDim; ++rSp) aLonIx += (aInitIx[ rSp] + kIx[ rSp]) * aStride[ rSp];
-
-          for (SizeT k0 = 0; k0 < kDim0; ++k0) {
-            if (doInvalid) {
-              if (ddP[ aLonIx - k0] != invalidValue) {
-                if (doNan) {
-                  if (gdlValid(ddP[ aLonIx - k0])) {
-                    res_a += ddP[ aLonIx - k0] * ker[ k + k0];
-                    counter++;
-                  }
-                } else {
-                  res_a += ddP[ aLonIx - k0] * ker[ k + k0];
-                  counter++;
-                }
-              }
-            } else {
-              if (doNan) {
-                if (gdlValid(ddP[ aLonIx - k0])) {
-                  res_a += ddP[ aLonIx - k0] * ker[ k + k0];
-                  counter++;
-                }
-              } else {
-                res_a += ddP[ aLonIx - k0] * ker[ k + k0];
-                counter++;
-              }
             }
-          }
-          kIx += kDim0_nDim;
-        }
+            if (counter == 0) res_a = missingValue; 
+            else 
+            {
+                res_a /= scale;
+                res_a += bias;
+             }
 
-        res_a /= scale;
-        if (counter == 0) res_a = missingValue;
-
-#ifdef CONVOL_BYTE__
-        CONVERT_CONVOL_TO_BYTE;
+#if (defined(CONVOL_BYTE__) || defined (CONVOL_UINT__) || defined (CONVOL_INT__))
+                CONVERT_CONVOL_TO_ORIG;
 #endif
-      }
+            } //body regular center
+        } else { //not center
+            for (long aInitIx0 = aBeg0; aInitIx0 < aEnd0; ++aInitIx0, ++a) { // regular body not center
+
+#if (defined(CONVOL_BYTE__) || defined (CONVOL_UINT__) || defined (CONVOL_INT__))
+            DLong res_a = 0;
+            DLong otfBias = 0;
+            DLong curScale = 0;
+#else
+            Ty& res_a = (*res)[ a];
+            Ty otfBias = this->zero;
+            Ty curScale = this->zero;
+#endif
+                SizeT counter = 0;
+
+                long* kIx = kIxArr;
+                for (SizeT k = 0; k < nK; k += kDim0) {
+                    SizeT aLonIx = aInitIx0 + kIx[0];
+                    for (SizeT rSp = 1; rSp < nDim; ++rSp) {
+                        aLonIx += (aInitIx[ rSp] + kIx[ rSp]) * aStride[ rSp];
+                    }
+                    for (SizeT k0 = 0; k0 < kDim0; ++k0) {
+                        // was:           res_a += ddP[ aLonIx - k0] * ker[ k + k0];
+                        if (doInvalid) {
+                            if (ddP[ aLonIx + k0] != invalidValue) {
+                                if (doNan) {
+                                    if (gdlValid(ddP[ aLonIx - k0])) {
+                                        res_a += ddP[ aLonIx - k0] * ker[ k + k0];
+                                        counter++;
+                                        if(normalize)  { curScale += absker[ k + k0];
+                                        otfBias += biasker[ k + k0];}
+                                    }
+                                } else {
+                                    res_a += ddP[ aLonIx - k0] * ker[ k + k0];
+                                    counter++;
+                                    if(normalize)  { curScale += absker[ k + k0];
+                                    otfBias += biasker[ k + k0];}
+                                }
+                            }
+                        } else {
+                            if (doNan) {
+                                if (gdlValid(ddP[ aLonIx - k0])) {
+                                    res_a += ddP[ aLonIx - k0] * ker[ k + k0];
+                                    counter++;
+                                    if(normalize)  { curScale += absker[ k + k0];
+                                    otfBias += biasker[ k + k0];}
+                                }
+                            } else {
+                                res_a += ddP[ aLonIx - k0] * ker[ k + k0];
+                                counter++;
+                            }
+                        }
+                    }
+                    kIx += kDim0_nDim;
+                }
+
+            if (normalize && (doInvalid||doNan)) { 
+                scale = curScale;
+#if defined(CONVOL_BYTE__) || defined (CONVOL_UINT__)
+                CONVERT_MODIFY_BIAS;
+#else
+                bias=this->zero;
+#endif
+            }
+            if (counter == 0) res_a = missingValue; 
+            else 
+            {
+                res_a /= scale;
+                res_a += bias;
+             }
+
+#if (defined(CONVOL_BYTE__) || defined (CONVOL_UINT__) || defined (CONVOL_INT__))
+                CONVERT_CONVOL_TO_ORIG;
+#endif
+            } //regular body not center 
+        } //not center
 
     a += dim0_aEnd0;
   }// if( regular) // in dim 1-n

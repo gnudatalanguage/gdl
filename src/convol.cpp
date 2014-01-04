@@ -33,93 +33,121 @@
 using namespace std;
 
 
-#ifdef CONVOL_BYTE__
+#define CONVERT_CONVOL_TO_ORIG   if(res_a>CONVOL_TRUNCATE_MIN){if(res_a<CONVOL_TRUNCATE_MAX){(*res)[a]=res_a;}else{(*res)[a]=CONVOL_TRUNCATE_MAX;}}else{(*res)[a]=CONVOL_TRUNCATE_MIN;}
+//modify bias will not be used with *INT* type (documentation).
+#define CONVERT_MODIFY_BIAS  bias=(scale==0)?0:otfBias*CONVOL_TRUNCATE_MAX/scale;if(bias<CONVOL_TRUNCATE_MIN){bias=CONVOL_TRUNCATE_MIN;}else{if( bias>CONVOL_TRUNCATE_MAX) bias=CONVOL_TRUNCATE_MAX;}
+
+#if defined (CONVOL_BYTE__)
+#define CONVOL_TRUNCATE_MIN 0
+#define CONVOL_TRUNCATE_MAX 255
 
 template<>
-BaseGDL* Data_<SpDByte>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
+BaseGDL* Data_<SpDByte>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
                                  BaseGDL* invalid, bool doInvalid)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
-  DLong scale = (*static_cast<Data_<SpDInt>*>( scaleIn))[0];
+  Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  Data_<SpDLong>* dbiaskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  DLong* absker = static_cast<DLong*>( dabskern->DataAddr());
+  DLong* biasker = static_cast<DLong*>( dbiaskern->DataAddr());
+  
+  DLong scale = (*static_cast<Data_<SpDLong>*>( scaleIn))[0];
   // the result to be returned
   Data_* res = New( dim, BaseGDL::ZERO);
-  DInt* ker = static_cast<DInt*>( kernel->DataAddr());
-  // DLong* biasd=static_cast<DLong*>( bias);
-  Data_<SpDLong>* biast=static_cast<Data_<SpDLong>*>( bias);
-  DLong* biasd = static_cast<DLong*>( biast->DataAddr());
-  DLong missingValue = *(static_cast<DLong*>( missing->DataAddr()));
-  DLong invalidValue = *(static_cast<DLong*>( invalid->DataAddr()));
-#else
-
-#ifdef CONVOL_UINT__
-
+  DLong* ker = static_cast<DLong*>( kernel->DataAddr());
+  DLong bias = (*static_cast<Data_<SpDLong>*>( biasIn))[0];
+  
+#elif defined (CONVOL_UINT__)
+#define CONVOL_TRUNCATE_MIN 0
+#define CONVOL_TRUNCATE_MAX 65535
 template<>
-BaseGDL* Data_<SpDUInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
+BaseGDL* Data_<SpDUInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
                                  BaseGDL* invalid, bool doInvalid)
 {
-  Data_* kernel = static_cast<Data_*>( kIn);
-  DLong scale = (*static_cast<Data_<SpDUInt>*>( scaleIn))[0];
+  Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
+  Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  Data_<SpDLong>* dbiaskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  DLong* absker = static_cast<DLong*>( dabskern->DataAddr());
+  DLong* biasker = static_cast<DLong*>( dbiaskern->DataAddr());
+
+  DLong scale = (*static_cast<Data_<SpDLong>*>( scaleIn))[0];
   // the result to be returned
   Data_* res = New( dim, BaseGDL::ZERO);
-  // DLong* ker = static_cast<DLong*>( kernel->DataAddr());
-  Ty* ker = &(*kernel)[0];
-  //  DLongGDL* biasd=static_cast<DLong*>( bias);
-  Data_* biast=static_cast<Data_*>( bias);
-  Ty* biasd = &(*biast)[0];
-  Ty missingValue = (*static_cast<Data_*>( missing))[0];
-  Ty invalidValue = (*static_cast<Data_*>( invalid))[0];
+  DLong* ker = static_cast<DLong*>( kernel->DataAddr());
+  DLong bias = (*static_cast<Data_<SpDLong>*>( biasIn))[0];
+  
+#elif defined (CONVOL_INT__)
+#define CONVOL_TRUNCATE_MIN -32768
+#define CONVOL_TRUNCATE_MAX 32767
+template<>
+BaseGDL* Data_<SpDInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
+				 bool center, bool normalize, int edgeMode,
+                                 bool doNan, BaseGDL* missing, bool doMissing,
+                                 BaseGDL* invalid, bool doInvalid)
+{
+  Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
+  Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  Data_<SpDLong>* dbiaskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  DLong* absker = static_cast<DLong*>( dabskern->DataAddr());
+  DLong* biasker = static_cast<DLong*>( dbiaskern->DataAddr());
+
+  DLong scale = (*static_cast<Data_<SpDLong>*>( scaleIn))[0];
+  // the result to be returned
+  Data_* res = New( dim, BaseGDL::ZERO);
+  DLong* ker = static_cast<DLong*>( kernel->DataAddr());
+  DLong bias = (*static_cast<Data_<SpDLong>*>( biasIn))[0];
 #else
 
 
 template<class Sp>
-BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
+BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 			    bool center, bool normalize, int edgeMode,
                             bool doNan, BaseGDL* missing, bool doMissing,
                             BaseGDL* invalid, bool doInvalid)
 {
   Data_* kernel = static_cast<Data_*>( kIn);
+  Data_* dabskern = new Data_( kIn->Dim(), BaseGDL::ZERO);
+  Data_* dbiaskern = new Data_( kIn->Dim(), BaseGDL::ZERO);
+  Ty* absker = &(*dabskern)[0];
+  Ty* biasker = &(*dbiaskern)[0];
   Ty scale = (*static_cast<Data_*>( scaleIn))[0];
   // the result to be returned
   Data_* res = New( this->dim, BaseGDL::ZERO);
   Ty* ker = &(*kernel)[0];
-  Data_* biast=static_cast<Data_*>( bias);
-  Ty* biasd = &(*biast)[0];
+  Ty bias = (*static_cast<Data_*>( biasIn))[0];
+#endif
+
   Ty missingValue = (*static_cast<Data_*>( missing))[0];
   Ty invalidValue = (*static_cast<Data_*>( invalid))[0];
-#endif
-#endif
   
-  if( scale == this->zero) scale = 1;
 
   SizeT nA = N_Elements();
   SizeT nK = kernel->N_Elements();
 
   if(normalize)
     { 
-
-      DDouble tmp=0;
+      scale = this->zero;
       for ( SizeT ind=0; ind<nK; ind++ )
-	tmp+=abs(ker[ind]);
-      scale=tmp;
-
-#ifdef CONVOL_BYTE__
-	  tmp=0;
-	  for ( SizeT ind=0; ind<nK; ind++ )
-	    if(ker[ind]<0)
-	      tmp+=abs(ker[ind]);
-	  biasd[0]=tmp*255/scale;
-	  if( biasd[0]<0)
-	    biasd[0]=0;
-	  else  
-	    if( biasd[0]>255) 
-	      biasd[0]=255;
+      { //abs(kern) needed when normalizing:
+        absker[ind]=abs(ker[ind]);
+        scale+=absker[ind];
+      }
+      bias=this->zero;
+#if defined(CONVOL_BYTE__)||defined (CONVOL_UINT__)
+      DDouble tmp=0; 
+      for ( SizeT ind=0; ind<nK; ind++ ) { if(ker[ind]<0) biasker[ind]=absker[ind]; tmp+=biasker[ind];}
+	  bias=tmp*CONVOL_TRUNCATE_MAX/scale;
+	  if( bias<CONVOL_TRUNCATE_MIN) bias=CONVOL_TRUNCATE_MIN; else if( bias>CONVOL_TRUNCATE_MAX) bias=CONVOL_TRUNCATE_MAX;
 #endif
-
     }
+  else 
+  {
+      if( scale == this->zero) scale = 1;
+  }
 
   SizeT nDim = this->Rank(); // number of dimension to run over
 
@@ -165,7 +193,27 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
     }
 
   Ty* ddP = &(*this)[0];
-
+  
+//test if array has nans when donan is present (treatment would be shorter if array had no nans)
+  if(doNan)
+  {
+    doNan=false;
+#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
+    {
+#pragma omp for
+    for( SizeT i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
+    }
+  }
+//same for invalid. a real gain of time if no values are invalid, a small loss if not.
+  if(doInvalid)
+  {
+    doInvalid=false;
+#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
+    {
+#pragma omp for
+    for( SizeT i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
+    }
+  }
   // some loop constants
   SizeT dim0  = this->dim[0];
   SizeT aBeg0 = aBeg[0];
@@ -175,13 +223,18 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
   SizeT kDim0      = kernel->Dim( 0);
   SizeT	kDim0_nDim = kDim0 * nDim;
 
-#define INCLUDE_CONVOL_INC_CPP 
-#define CONVERT_CONVOL_TO_BYTE  if(res_a>0){if(res_a<255){(*res)[a]=res_a;}else{(*res)[a]=255;}}else{(*res)[a]=0;}
 
+#define INCLUDE_CONVOL_INC_CPP 
+          
   if( edgeMode == 0)
     {
+    if (!doInvalid && !doNan) {
+        //special version to speed up in this case
+#include "convol_inc2.cpp"
+    } else {
 #include "convol_inc0.cpp"
     }
+  }
   else if( edgeMode == 1)
     {
 #define CONVOL_EDGE_WRAP
@@ -198,22 +251,17 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
     {
 #define CONVOL_EDGE_ZERO
 #include "convol_inc1.cpp"
+#include "basegdl.hpp"
 #undef CONVOL_EDGE_ZERO
     }
-#undef CONVERT_CONVOL_TO_BYTE 
 #undef INCLUDE_CONVOL_INC_CPP
-
-
-  if(biasd[0]!=this->zero)
-    {
-      for(SizeT indi=0;indi<nA;indi++)
-	(*res)[indi]+=biasd[0];
-    }
 
   return res;
  }//end of template convol
+#undef CONVOL_TRUNCATE_MIN 
+#undef CONVOL_TRUNCATE_MAX
 
-#if !defined(CONVOL_BYTE__) && !defined(CONVOL_UINT__)
+#if !defined(CONVOL_BYTE__) && !defined(CONVOL_UINT__) && !defined(CONVOL_INT__)
 
 namespace lib {
 
@@ -253,40 +301,32 @@ namespace lib {
     /***************************************Preparing_matrices*************************************************/
     // convert kernel to array type
     Guard<BaseGDL> p1Guard;
-    if( p0->Type() == GDL_BYTE)
-      {
-	if( p1->Type() != GDL_INT)
-	  {
-	    p1 = p1->Convert2( GDL_INT, BaseGDL::COPY); 
-	    p1Guard.Reset( p1);
-	  }
+    if (p0->Type() == GDL_BYTE || p0->Type() == GDL_UINT || p0->Type() == GDL_INT) {
+      if (p1->Type() != GDL_LONG) {
+        p1 = p1->Convert2(GDL_LONG, BaseGDL::COPY);
+        p1Guard.Reset(p1);
       }
-    else if( p0->Type() != p1->Type())
-      {
-	p1 = p1->Convert2( p0->Type(), BaseGDL::COPY); 
-	p1Guard.Reset( p1);
-      }
+    } else if (p0->Type() != p1->Type()) {
+      p1 = p1->Convert2(p0->Type(), BaseGDL::COPY);
+      p1Guard.Reset(p1);
+    }
 
     BaseGDL* scale;
     Guard<BaseGDL> scaleGuard;
-    if( nParam > 2)
-      {
-	scale = e->GetParDefined( 2);
-	if( scale->Rank() > 0) 
-	  e->Throw( "Expression must be a scalar in this context: "+
-		    e->GetParString(2));
+    if (nParam > 2) {
+      scale = e->GetParDefined(2);
+      if (scale->Rank() > 0)
+        e->Throw("Expression must be a scalar in this context: " +
+          e->GetParString(2));
 
-	// p1 here handles GDL_BYTE case also
-	if( p1->Type() != scale->Type())
-	  {
-	    scale = scale->Convert2( p1->Type(),BaseGDL::COPY); 
-	    scaleGuard.Reset( scale);
-	  }
+      // p1 here handles GDL_BYTE||GDL_UINT||GDL_INT case also
+      if (p1->Type() != scale->Type()) {
+        scale = scale->Convert2(p1->Type(), BaseGDL::COPY);
+        scaleGuard.Reset(scale);
       }
-    else
-      {
-	scale = p1->New( dimension(), BaseGDL::ZERO);
-      }
+    } else {
+      scale = p1->New(1, BaseGDL::ZERO);
+    }
     /********************************************Arguments_treatement***********************************/
     bool center = true;
     static int centerIx = e->KeywordIx( "CENTER");
@@ -318,19 +358,19 @@ namespace lib {
 
     /***********************************Parameter_BIAS**************************************/
     static int biasIx = e->KeywordIx("BIAS");
-    bool statusBias = e->KeywordPresent( biasIx );
+    bool statusBias = e->KeywordPresent(biasIx);
     //    DLong bias=0;
     BaseGDL* bias;
-    if(statusBias)
-      {
-	bias=e->GetKW( biasIx);
+    Guard<BaseGDL> biasGuard;
+    if (statusBias) {
+      bias = e->GetKW(biasIx);
 
-	if( p0->Type() != bias->Type())
-	  {
-	    bias = bias->Convert2( p0->Type(), BaseGDL::COPY); 
-	  }
+      // p1 here handles GDL_BYTE||GDL_UINT||GDL_INT case also
+      if (p1->Type() != bias->Type()) {
+        bias = bias->Convert2(p1->Type(), BaseGDL::COPY);
+        biasGuard.Reset(bias);
       }
-    else bias=p1->New( 1,BaseGDL::ZERO);
+    } else bias = p1->New(1, BaseGDL::ZERO);
 
     /***********************************Parameter_Normalize**********************************/
 
@@ -344,37 +384,28 @@ namespace lib {
     
     /***********************************Parameter MISSING************************************/
     static int missingIx = e->KeywordIx("MISSING");
-    bool doMissing = e->KeywordPresent( missingIx );
+    bool doMissing = e->KeywordPresent(missingIx);
     BaseGDL* missing;
-    if (p0->Type() != GDL_BYTE) {
-        if (doMissing) {
-            missing = e->GetKW(missingIx);
-            if (p0->Type() != missing->Type()) {
-                missing = missing->Convert2(p0->Type(), BaseGDL::COPY);
-            }
-        } else missing = p1->New(1, BaseGDL::ZERO);
-    } else {
-        if (doMissing) { missing = e->GetKW(missingIx);
-        } else missing = p1->New(1, BaseGDL::ZERO);
-        missing = missing->Convert2(GDL_LONG, BaseGDL::COPY);
-    }
+    Guard<BaseGDL> missGuard;
+    if (doMissing) {
+      missing = e->GetKW(missingIx);
+      if (p0->Type() != missing->Type()) {
+        missing = missing->Convert2(p0->Type(), BaseGDL::COPY);
+        missGuard.Reset(missing);
+      }
+    } else missing = p0->New(1, BaseGDL::ZERO);
    /***********************************Parameter INVALID************************************/
     static int invalidIx = e->KeywordIx("INVALID");
     bool doInvalid = e->KeywordPresent( invalidIx );
     BaseGDL* invalid;
-    if (p0->Type() != GDL_BYTE) {
-        if (doInvalid) {
-            invalid = e->GetKW(invalidIx);
-            if (p0->Type() != invalid->Type()) {
-                invalid = invalid->Convert2(p0->Type(), BaseGDL::COPY);
-            }
-        } else invalid = p1->New(1, BaseGDL::ZERO);
-    } else {
-        if (doInvalid) {
-            invalid = e->GetKW(invalidIx);
-        } else invalid = p1->New(1, BaseGDL::ZERO);
-        invalid = invalid->Convert2(GDL_LONG, BaseGDL::COPY);
-    }
+    Guard<BaseGDL> invalGuard;
+    if (doInvalid) {
+        invalid = e->GetKW(invalidIx);
+        if (p0->Type() != invalid->Type()) {
+          invalid = invalid->Convert2(p0->Type(), BaseGDL::COPY);
+          invalGuard.Reset(invalid);
+        }
+    } else invalid = p0->New(1, BaseGDL::ZERO);
     if (!doNan && !doInvalid) doMissing=false;
     if (!doMissing && (p0->Type()==GDL_FLOAT ||p0->Type()==GDL_COMPLEX))
       missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("F_NAN"), 0);

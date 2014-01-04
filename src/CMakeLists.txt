@@ -53,6 +53,7 @@ convert2.cpp
 convol.cpp
 convol_inc0.cpp
 convol_inc1.cpp
+convol_inc2.cpp
 datalistt.hpp
 datatypes.cpp
 datatypes.hpp
