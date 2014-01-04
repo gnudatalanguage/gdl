@@ -15,6 +15,8 @@ TESTS = \
   test_bug_2846561.pro \
   test_bug_2876150.pro \
   test_bug_2876161.pro \
+  test_bug_2876372.pro \
+  test_bug_2892631.pro \
   test_bug_2974380.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
@@ -32,6 +34,7 @@ TESTS = \
   test_bug_3104214.pro \
   test_bug_3104326.pro \
   test_bug_3104349.pro \
+  test_bug_3147146.pro \
   test_bug_3147181.pro \
   test_bug_3147733.pro \
   test_bug_3151760.pro \
@@ -40,6 +43,7 @@ TESTS = \
   test_bug_3189072.pro \
   test_bug_3199465.pro \
   test_bug_3275334.pro \
+  test_bug_3285659.pro \
   test_bug_3286031.pro \
   test_bug_3288652.pro \
   test_bug_3290532.pro \
@@ -52,6 +56,7 @@ TESTS = \
   test_bug_3483402.pro \
   test_bug_3488003.pro \
   test_bug_3559291.pro \
+  test_bug_3572473.pro \
   test_call_function.pro \
   test_call_procedure.pro \
   test_ce.pro \
@@ -98,14 +103,14 @@ TESTS = \
   test_mpfit.pro \
   test_multiroots.pro \
   test_nans_in_sort_and_median.pro \
-  test_netcdf.pro \
   test_nestedloop.pro \
+  test_netcdf.pro \
   test_null.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
-  test_ptrarr.pro \
   test_ps_decomposed.pro \
+  test_ptrarr.pro \
   test_python.pro \
   test_python_module_0.pro \
   test_python_module_1.pro \
