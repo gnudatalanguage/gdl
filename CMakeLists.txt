@@ -787,7 +787,7 @@ if(GSHHS)
 		include_directories(${GSHHS_INCLUDE_DIR})
 	else(USE_GSHHS)
 		message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
-		"Use -DGSSHSDIR=DIR to specify the GSHHS directory tree.\n"
+		"Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
 		"Use -DGSHHS=OFF to not use it.")
 	endif(USE_GSHHS)
 endif(GSHHS)
