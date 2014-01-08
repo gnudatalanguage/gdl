@@ -100,6 +100,46 @@ BaseGDL* Data_<SpDInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   Data_* res = New( dim, BaseGDL::ZERO);
   DLong* ker = static_cast<DLong*>( kernel->DataAddr());
   DLong bias = (*static_cast<Data_<SpDLong>*>( biasIn))[0];
+#elif defined (CONVOL_ULONG__)
+#define CONVOL_TRUNCATE_MIN 0
+#define CONVOL_TRUNCATE_MAX 1 //not truncated, anything goes.
+template<>
+BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
+				 bool center, bool normalize, int edgeMode,
+                                 bool doNan, BaseGDL* missing, bool doMissing,
+                                 BaseGDL* invalid, bool doInvalid)
+{
+  Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
+  Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  Data_<SpDLong>* dbiaskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
+  DLong* absker = static_cast<DLong*>( dabskern->DataAddr());
+  DLong* biasker = static_cast<DLong*>( dbiaskern->DataAddr());
+
+  DLong scale = (*static_cast<Data_<SpDLong>*>( scaleIn))[0];
+  // the result to be returned
+  Data_* res = New( dim, BaseGDL::ZERO);
+  DLong* ker = static_cast<DLong*>( kernel->DataAddr());
+  DLong bias = (*static_cast<Data_<SpDLong>*>( biasIn))[0];
+#elif defined (CONVOL_ULONG64__)
+#define CONVOL_TRUNCATE_MIN 0
+#define CONVOL_TRUNCATE_MAX 1 //not truncated, anything goes.
+template<>
+BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
+				 bool center, bool normalize, int edgeMode,
+                                 bool doNan, BaseGDL* missing, bool doMissing,
+                                 BaseGDL* invalid, bool doInvalid)
+{
+  Data_<SpDLong64>* kernel = static_cast<Data_<SpDLong64>*>( kIn);
+  Data_<SpDLong64>* dabskern = new Data_<SpDLong64>( kIn->Dim(), BaseGDL::ZERO);
+  Data_<SpDLong64>* dbiaskern = new Data_<SpDLong64>( kIn->Dim(), BaseGDL::ZERO);
+  DLong64* absker = static_cast<DLong64*>( dabskern->DataAddr());
+  DLong64* biasker = static_cast<DLong64*>( dbiaskern->DataAddr());
+
+  DLong64 scale = (*static_cast<Data_<SpDLong64>*>( scaleIn))[0];
+  // the result to be returned
+  Data_* res = New( dim, BaseGDL::ZERO);
+  DLong64* ker = static_cast<DLong64*>( kernel->DataAddr());
+  DLong64 bias = (*static_cast<Data_<SpDLong64>*>( biasIn))[0];
 #else
 
 
@@ -261,7 +301,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 #undef CONVOL_TRUNCATE_MIN 
 #undef CONVOL_TRUNCATE_MAX
 
-#if !defined(CONVOL_BYTE__) && !defined(CONVOL_UINT__) && !defined(CONVOL_INT__)
+#if !defined(CONVOL_BYTE__) && !defined(CONVOL_UINT__) && !defined(CONVOL_INT__) && !defined(CONVOL_ULONG__) && !defined(CONVOL_ULONG64__)
 
 namespace lib {
 
