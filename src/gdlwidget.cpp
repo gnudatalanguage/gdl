@@ -842,7 +842,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, DString value_,
       tabMode( tabMode_),
       toolTip( toolTip_),
       value( value_),
-      treeItemID( 0)
+      treeItemID( 0L)
 {
     GDLWidget* gdlParent = GetWidget( parentID);
     if( gdlParent->IsBase())
