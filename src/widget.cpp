@@ -805,6 +805,8 @@ BaseGDL* widget_tree( EnvT* e)
     DString value = "";
     e->AssureStringScalarKWIfPresent( valueIx, value);
 
+    //    cout << value << ",  ParentID : "<<  parentID <<  endl;
+
     GDLWidgetButton* button = new GDLWidgetButton( parentID, e, value);
 
     button->SetWidgetType( "BUTTON");
@@ -1434,6 +1436,10 @@ BaseGDL* widget_event( EnvT* e)
     static int eventproIx = e->KeywordIx( "EVENT_PRO");
     bool eventpro = e->KeywordSet( eventproIx);
 
+    DString eventFun = "";
+    static int eventfunIx = e->KeywordIx( "EVENT_FUNC");
+    bool eventfun = e->KeywordSet( eventfunIx);
+
     static int getuvalueIx = e->KeywordIx( "GET_UVALUE");
     bool getuvalue = e->KeywordPresent( getuvalueIx);
 
@@ -1485,6 +1491,12 @@ BaseGDL* widget_event( EnvT* e)
     if ( eventpro) {
       e->AssureStringScalarKWIfPresent( eventproIx, eventPro);
       widget->SetEventPro( eventPro);
+    }
+
+    if ( eventfun) {
+      e->AssureStringScalarKWIfPresent( eventfunIx, eventFun);
+      cout << eventFun << endl;
+      widget->SetEventFun( eventFun);
     }
 
 
