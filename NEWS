@@ -622,3 +622,4 @@
 0.9.5:
            - lot of improvments in Widgets related code
            - TIC and TOC
+           - adding !Const

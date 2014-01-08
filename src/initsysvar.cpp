@@ -474,6 +474,88 @@ namespace SysVar
     sysVarList.push_back( radeg);
     sysVarRdOnlyList.push_back( radeg); // make it read only
 
+    // !CONST
+    // source : http://physics.nist.gov/cgi-bin/cuu/Results?category=abbr_in
+    DStructGDL *constantList   = new DStructGDL( "!CONST");
+    // Fine structure constant
+    constantList ->NewTag("ALPHA", new DDoubleGDL(7.2973525698e-3));
+    // Astronomical Unit [m]
+    constantList ->NewTag("AU", new DDoubleGDL(1.49597870700e11));
+    // Speed of Light in Vacuum [m/s]
+    constantList ->NewTag("C", new DDoubleGDL(299792458.));
+    // Degrees to radians
+    constantList ->NewTag("DtoR", new DDoubleGDL((*dpiData)[0] / 180.));
+    // Elementary Charge [Coulon]
+    constantList ->NewTag("E", new DDoubleGDL(1.602176565e-19));
+    // Electric Vacuum Permittivity [F/m]
+    constantList ->NewTag("EPS0", new DDoubleGDL(8.854187817e-12));
+    // Euler's number
+    constantList ->NewTag("EULER", new DDoubleGDL(2.7182818284590452));
+    // Faraday constant NAe [C/mol]
+    constantList ->NewTag("F", new DDoubleGDL(96485.3365));
+    // Gravitation constant [m^3/kg/s^2]
+    constantList ->NewTag("G", new DDoubleGDL(6.67384e-11));
+    // Earth standard gravity [m/s^2]
+    constantList ->NewTag("GN", new DDoubleGDL(9.80665));
+    // Planck constant [Js]
+    constantList ->NewTag("h", new DDoubleGDL(6.62606957e-34));
+    // h_bar (h/!pi) [Js]
+    constantList ->NewTag("hbar", new DDoubleGDL(1.054571726e-34));
+    //Imaginary number 
+    complex<double> imaginary(0., 1.);
+    constantList ->NewTag("I", new DComplexDblGDL(imaginary));
+    // Boltzmann constant (R/NA) [J/K]
+    constantList ->NewTag("k", new DDoubleGDL(1.3806488e-23 ));
+    // Light-Year distance [m]
+    constantList ->NewTag("ly", new DDoubleGDL(9.4607304725808e15));
+    // Mass of the Earth [kg]
+    constantList ->NewTag("M_Earth", new DDoubleGDL(5.972186390e24));
+    // Mass of the Sun [kg]
+    constantList ->NewTag("M_Sun", new DDoubleGDL(1.98841586057e30));
+    // electron mass [kg]
+    constantList ->NewTag("Me", new DDoubleGDL(9.10938291e-31));
+    // neutron mass [kg]
+    constantList ->NewTag("Mn", new DDoubleGDL(1.674927351e-27));
+    // proton mass [kg]
+    constantList ->NewTag("Mp", new DDoubleGDL(1.672621777e-27));
+    // magnetic vacuum permeability [N/A^2]
+    constantList ->NewTag("mu0", new DDoubleGDL(12.566370614e-7));
+    // Loschmidt's number NAp0/(RT0) [m-3]
+    constantList ->NewTag("n0", new DDoubleGDL(2.6867805e25));
+    // Avogadro constant NA [mol-1]
+    constantList ->NewTag("Na", new DDoubleGDL(6.02214129e23));
+    // Standard atmosphere Pression [Pa]
+    constantList ->NewTag("p0", new DDoubleGDL(101325.));
+    // Parsec distance [m]
+    constantList ->NewTag("parsec", new DDoubleGDL(3.0856775814671912e16));
+    //golden ratio ((1+sqrt(5))/2)
+    constantList ->NewTag("Phi", new DDoubleGDL(1.6180339887498948));
+    // Pi
+    constantList ->NewTag("Pi", new DDoubleGDL((*dpiData)[0]));
+    // molar gas constant [J/mol/K]
+    constantList ->NewTag("R", new DDoubleGDL(8.3144621));
+    // Earth radius (assuming spherical) [m]
+    constantList ->NewTag("R_Earth", new DDoubleGDL(6378136.6));
+    // classical electron radius [m]
+    constantList ->NewTag("re", new DDoubleGDL(2.8179403267e-15));
+    // Radians to degrees
+    constantList ->NewTag("RtoD", new DDoubleGDL(180./(*dpiData)[0]));
+    // Rydberg constant R∞ [1/m]
+    constantList ->NewTag("Rydberg", new DDoubleGDL(10973731.568539));
+    // Stefan-Boltzmann constant [W/m^2/K^4]
+    constantList ->NewTag("sigma", new DDoubleGDL(5.670373e-8));
+    // Standard temperature [K]
+    constantList ->NewTag("T0", new DDoubleGDL(273.15));
+    // unified atomic mass unit [kg]
+    constantList ->NewTag("u", new DDoubleGDL(1.660538921e-27));
+    // Molar volume, ideal gas at Standard temperature and Pression (STP) [m^3/mol]
+    constantList ->NewTag("Vm", new DDoubleGDL(22.413968e-3));
+
+    DVar *constant = new DVar("CONST",constantList);
+    sysVarList.push_back(constant);
+    sysVarRdOnlyList.push_back(constant); // make it read only
+
+
     // ![XYZ]
     SizeT dim2  = 2;
     SizeT dim60 = 60;
