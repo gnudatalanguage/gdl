@@ -92,7 +92,7 @@ void LibInit_cl()
   new DLibFunRetNew(lib::ncdf_ncidinq,string("NCDF_NCIDINQ"),2);
   // returns a group’s variable IDs.
   new DLibFunRetNew(lib::ncdf_varidsinq,string("NCDF_VARIDSINQ"),1);
-#endifdef // USE_NETCDF4
+#endif // USE_NETCDF4
 
   //Inquire
   new DLibFunRetNew(lib::ncdf_inquire,string("NCDF_INQUIRE"),1);
