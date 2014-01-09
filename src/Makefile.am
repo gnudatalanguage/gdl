@@ -35,8 +35,10 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		matrix_cholesky.hpp matrix_cholesky.cpp \
 		matrix_invert.hpp matrix_invert.cpp \
 		math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
-		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
-		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
+		math_fun_jmg.hpp math_utl.cpp math_utl.hpp \
+		ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
+		ncdf_dim_cl.cpp ncdf_var_cl.cpp ncdf4_group.cpp \
+		new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
                 math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
 		math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp \

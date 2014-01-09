@@ -188,6 +188,7 @@ ncdf_cl.cpp
 ncdf_cl.hpp
 ncdf_dim_cl.cpp
 ncdf_var_cl.cpp
+ncdf4_group.cpp
 new.cpp
 new.hpp
 newprognode.cpp

@@ -95,6 +95,17 @@ namespace lib {
 						   T* data);
   //----------------
 
+
+  // --- groups were introduced in netcdf4 
+  BaseGDL* ncdf_groupsinq(EnvT* e);
+  BaseGDL* ncdf_groupname(EnvT* e);
+  BaseGDL* ncdf_groupdef(EnvT* e);
+  BaseGDL* ncdf_fullgroupname(EnvT* e);
+  BaseGDL* ncdf_groupparent(EnvT* e);
+  BaseGDL* ncdf_dimidsinq(EnvT* e);
+  BaseGDL* ncdf_ncidinq(EnvT* e);
+  BaseGDL* ncdf_varidsinq(EnvT* e);
+
 } // namespace
 
 #endif

@@ -65,13 +65,33 @@ void LibInit_cl()
   new DLibFunRetNew(lib::ncdf_open,string("NCDF_OPEN"),1,ncdf_openKey);
 
   //create NetCDF
-  const string ncdf_createKey[]={"CLOBBER","NOCLOBBER",KLISTEND};
+  const string ncdf_createKey[]={"CLOBBER","NOCLOBBER","NETCDF3_64BIT","NETCDF4_FORMAT",KLISTEND};
   new DLibFunRetNew(lib::ncdf_create,string("NCDF_CREATE"),1,ncdf_createKey);
 
   //close NetCDF
   new DLibPro(lib::ncdf_close,string("NCDF_CLOSE"),1);
 
   //reading NetCDF
+
+  // NetCDF 4 extension
+  // Group Inquire
+  new DLibFunRetNew(lib::ncdf_groupsinq,string("NCDF_GROUPSINQ"),1);
+  // Group Name
+  new DLibFunRetNew(lib::ncdf_groupname,string("NCDF_GROUPNAME"),1);
+  // Full Group Name
+  new DLibFunRetNew(lib::ncdf_fullgroupname,string("NCDF_FULLGROUPNAME"),1);
+  // Group Parent
+  new DLibFunRetNew(lib::ncdf_groupparent,string("NCDF_GROUPPARENT"),1);
+  // Group Def
+  new DLibFunRetNew(lib::ncdf_groupdef,string("NCDF_GROUPDEF"),2);
+  // array of dimension IDs 
+  const string ncdf_dimidsinqKey[]={"INCLUDE_PARENTS",KLISTEND};
+  new DLibFunRetNew(lib::ncdf_dimidsinq,string("NCDF_DIMIDSINQ"), 1,ncdf_dimidsinqKey);
+  // returns the ID of a group
+  new DLibFunRetNew(lib::ncdf_ncidinq,string("NCDF_NCIDINQ"),2);
+  // returns a group’s variable IDs.
+  new DLibFunRetNew(lib::ncdf_varidsinq,string("NCDF_VARIDSINQ"),1);
+
   //Inquire
   new DLibFunRetNew(lib::ncdf_inquire,string("NCDF_INQUIRE"),1);
 

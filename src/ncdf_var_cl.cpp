@@ -458,8 +458,12 @@ else if(var_type == NC_LONG)
       {
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
-        ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
-        GDLDelete(e->GetParGlobal(2));  
+	if (status != NC_ERANGE) {
+	  ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+	} else {
+	  Warning("Warning in NCDF_VARGET: NC_ERANGE during BYTE reading");
+	}
+	GDLDelete(e->GetParGlobal(2));  
         e->GetParGlobal(2)=temp;      	
       } 
       else if (var_type == NC_CHAR)

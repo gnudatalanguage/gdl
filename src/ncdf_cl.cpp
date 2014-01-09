@@ -350,24 +350,37 @@ namespace lib {
     DString s;
     e->AssureScalarPar<DStringGDL>(0, s);
 
-
+    int format;
+    format = NC_FORMAT_CLASSIC;
+    if (e->KeywordSet("NETCDF3_64BIT")) 
+      {
+	Warning("keyword NETCDF3_64BIT not ready.");
+	format= NC_FORMAT_64BIT;
+      }
+    if (e->KeywordSet("NETCDF4_FORMAT"))
+      {
+	Warning("keyword NETCDF4_FORMAT experimental.");
+	format=NC_FORMAT_NETCDF4;
+      }
+ 
     int cdfid,status;
+
+    status=nc_set_default_format(format, NULL);
+
     if(e->KeywordSet("CLOBBER") &&!e->KeywordSet("NOCLOBBER"))
       {
 	status=nc_create(s.c_str(),
 		       NC_CLOBBER,
 		       &cdfid);
       } else {
-	status=nc_create(s.c_str(),
+      status=nc_create(s.c_str(),
 		       NC_NOCLOBBER,
 		       &cdfid);
       }
 
-      ncdf_handle_error(e,status,"NCDF_CREATE");
-
+    ncdf_handle_error(e,status,"NCDF_CREATE");
+    
     return new DLongGDL(cdfid);
-
-
   }
 
   void ncdf_control(EnvT* e)
@@ -450,6 +463,8 @@ namespace lib {
     //conversion tm --> t_time
     //    http://www.cplusplus.com/reference/clibrary/ctime/mktime/
   };
+
+
 
 }
 #endif
