@@ -69,6 +69,7 @@
 #cmakedefine USE_MAGICK 1
 #cmakedefine USE_MPI 1
 #cmakedefine USE_NETCDF 1
+#cmakedefine USE_NETCDF4 1
 #cmakedefine USE_PYTHON 1
 #cmakedefine USE_UDUNITS 1
 #cmakedefine USE_PSLIB 1

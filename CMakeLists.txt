@@ -475,6 +475,15 @@ if(NETCDF)
 			"- Installing NetCDF before HDF4.")
 		endif(HAVE_NETCDF_H)
 		set(CMAKE_REQUIRED_INCLUDES)
+		#
+		# are extensions NetCDF-4 available ??
+		check_library_exists("${NETCDF_LIBRARIES}" nc_inq_grps "" HAVE_NETCDF4)
+		if(HAVE_NETCDF4)
+		  set(USE_NETCDF4 1)
+		else(HAVE_NETCDF4)
+		  message(STATUS "warning, you don't have NetCDF-4 version"
+		    "some new NetCDF capabilities in NetCDF-4 (related to Groups) will not be usable")
+		endif(HAVE_NETCDF4)
 	else(NETCDF_FOUND)
 		message(FATAL_ERROR "NetCDF version 3.5.1 or later is required but was not found.\n"
 		"Use -DNETCDFDIR=DIR to specify the netcdf directory tree.\n"
