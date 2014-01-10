@@ -39,6 +39,8 @@
 #define GDL_DEBUG
 //#undef GDL_DEBUG
 
+#ifdef USE_NETCDF4
+
 namespace lib {
 
   using namespace std;
@@ -223,4 +225,5 @@ namespace lib {
   }
 
 }
-#endif
+#endif //USE_NETCDF4
+#endif //USE_NETCDF
