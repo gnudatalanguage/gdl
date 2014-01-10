@@ -58,6 +58,7 @@ TESTS = \
   test_bug_3488003.pro \
   test_bug_3559291.pro \
   test_bug_3572473.pro \
+  test_bug_3595172.pro \
   test_call_function.pro \
   test_call_procedure.pro \
   test_ce.pro \
