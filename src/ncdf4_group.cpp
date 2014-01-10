@@ -27,18 +27,14 @@
 
 #include "includefirst.hpp"
 
-#include <string>
+//#include <string>
 //#include <fstream>
 //#include <memory>
 
 #include "datatypes.hpp"
-#include "math_utl.hpp"
 #include "envt.hpp"
-#include "dpro.hpp"
-#include "dinterpreter.hpp"
+
 #include "ncdf_cl.hpp"
-//#include "terminfo.hpp"
-//#include "typedefs.hpp"
 
 #define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -51,41 +47,43 @@ namespace lib {
   BaseGDL* ncdf_groupsinq(EnvT* e)
   {
     size_t nParam=e->NParam(1);
-    if(nParam != 1) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_GROUPSINQ: Wrong number of arguments.");
-    }
-    
+     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
     
     int status;
     int numgrps;
     int ncids[NC_MAX_VAR_DIMS];
-    // nc_inq_grps(int ncid, int *numgrps, int *ncids);
 
     status=nc_inq_grps(grpid, &numgrps, (int *) &ncids);
-    //    cout << "numgrps :" << numgrps << endl;
-    //cout << "ncids : " << ncids << endl;
-
-    dimension dim(numgrps);
-    DLongGDL *res = new DLongGDL(dim,BaseGDL::NOZERO);
-    for (size_t i=0; i<numgrps; ++i) (*res)[ i] = ncids[i];
-
-    return res;
+    ncdf_handle_error(e, status,"NCDF_GROUPSINQ");
     
+    int debug=0;
+    if (debug) {
+      cout << "NetCDF status : " << status <<endl;
+      cout << "numgrps :" << numgrps << endl;
+      cout << "ncids : ";
+      for (size_t i=0; i<numgrps; ++i) cout <<  ncids[i];
+      cout << endl;
+    }
+
+    if (numgrps > 0) { 
+      dimension dim(numgrps);
+      DLongGDL *res = new DLongGDL(dim,BaseGDL::NOZERO);
+      for (size_t i=0; i<numgrps; ++i) (*res)[ i] = ncids[i];
+      return res;
+    } else {
+      return new DLongGDL(-1);
+    }    
   }
 
   BaseGDL* ncdf_groupdef(EnvT* e)
   {
-    size_t nParam=e->NParam();
-    if(nParam != 2) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_GROUPDEF: Wrong number of arguments.");
-    }
+    size_t nParam=e->NParam(2);
 
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
+
     DString s;
     e->AssureScalarPar<DStringGDL>(1, s);
 
@@ -93,17 +91,15 @@ namespace lib {
     int new_grpid;
 
     status=nc_def_grp(grpid, s.c_str(), &new_grpid);
+    ncdf_handle_error(e, status,"NCDF_GROUPDEF");
+
     return new DLongGDL(new_grpid);
 }
 
 
   BaseGDL* ncdf_groupname(EnvT* e)
   {
-    size_t nParam=e->NParam();
-    if(nParam != 1) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_GROUPNAME: Wrong number of arguments.");
-    }
+    size_t nParam=e->NParam(1);
 
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -112,6 +108,7 @@ namespace lib {
     char groupname[NC_MAX_NAME];
 
     status=nc_inq_grpname(grpid, groupname);
+    ncdf_handle_error(e, status,"NCDF_GROUPNAME");
 
     return new DStringGDL(groupname);
 
@@ -119,11 +116,7 @@ namespace lib {
 
   BaseGDL* ncdf_fullgroupname(EnvT* e)
   {
-    size_t nParam=e->NParam();
-    if(nParam != 1) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_FULLGROUPNAME: Wrong number of arguments.");
-    }
+    size_t nParam=e->NParam(1);
     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -132,17 +125,14 @@ namespace lib {
     char fullgroupname[NC_MAX_NAME];
     size_t lenp;
     status=nc_inq_grpname_full(grpid, &lenp, fullgroupname);
+    ncdf_handle_error(e, status,"NCDF_GROUPFULLNAME");
 
     return new DStringGDL(fullgroupname);
   }
 
   BaseGDL* ncdf_groupparent(EnvT* e)
   {
-    size_t nParam=e->NParam();
-    if(nParam != 1) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_GROUPPARENT: Wrong number of arguments.");
-    }
+    size_t nParam=e->NParam(1);
     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -150,18 +140,14 @@ namespace lib {
     int status;
     int new_grpid;
     status=nc_inq_grp_parent(grpid, &new_grpid);
+    ncdf_handle_error(e, status,"NCDF_GROUPPARENT");
 
     return new DLongGDL(new_grpid);
   }
 
   BaseGDL* ncdf_dimidsinq(EnvT* e)
   {
-
     size_t nParam=e->NParam();
-    if(nParam != 1) {
-      throw GDLException(e->CallingNode(),
-			 "NCDF_DIMIDSINQ: Wrong number of arguments.");
-    }
     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -174,26 +160,63 @@ namespace lib {
     int dimids[NC_MAX_VAR_DIMS];
 
     status=nc_inq_dimids(grpid, &ndims, (int *) &dimids, include_parents);
-    //status=nc_inq_dimids(grpid, int *ndims, int *dimids, include_parents);
- 
+    ncdf_handle_error(e, status,"NCDF_DIMIDSINQ");
+
     dimension dim(ndims);
     DLongGDL *res = new DLongGDL(dim,BaseGDL::NOZERO);
     for (size_t i=0; i<ndims; ++i) (*res)[ i] = dimids[i];
 
-    return res;
-   
-    //   cout << "not ready " << endl;
-
-    // status=nc_inq_dimids(grpid, &ndims, (int *) &dimids, include_parents);
-
-    //    return new DLongGDL(-104);
+    return res;   
   }
+
   BaseGDL* ncdf_ncidinq(EnvT* e)
   {
-    cout << "not ready " << endl;
+ 
+    DLong grpid;
+    e->AssureLongScalarPar( 0, grpid);
+
+    DString s;
+    e->AssureScalarPar<DStringGDL>(1, s);
+
+
+
+    DLong ncid;
+    e->AssureLongScalarPar( 0, ncid);
+ 
+    // before going further we have to chech the file format, must be NetCDF-4
+
+    int status;
+    int fileformat;
+    status=nc_inq_format(ncid, &fileformat);
+    ncdf_handle_error(e, status,"NCDF_NCISINQ");
+
+    if (fileformat == NC_FORMAT_CLASSIC) Warning("NetCDF 3 Classic format found. not OK");
+    if (fileformat == NC_FORMAT_64BIT) Warning("NetCDF 3 64BIT format found. not OK");
+    
+    if ((fileformat == NC_FORMAT_64BIT) || (fileformat == NC_FORMAT_CLASSIC)) {
+	return new DLongGDL(-1);
+
+    DLong grpid;
+    e->AssureLongScalarPar( 0, grpid);
+
+    DString s;
+    e->AssureScalarPar<DStringGDL>(1, s);
+
+
+    }
+
+
+   cout << "not ready " << endl;
     return new DLongGDL(-105);
   }
+
   BaseGDL* ncdf_varidsinq(EnvT* e)
+  {
+    cout << "not ready " << endl;
+    return new DLongGDL(-106);
+  }
+
+  BaseGDL* ncdf_unlimdimsinq(EnvT* e)
   {
     cout << "not ready " << endl;
     return new DLongGDL(-106);

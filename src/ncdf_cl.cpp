@@ -28,20 +28,18 @@
 #include <string>
 #include <fstream>
 #include <memory>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_sf.h>
 
 #include "datatypes.hpp"
-#include "math_utl.hpp"
+//#include "math_utl.hpp"
 #include "envt.hpp"
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
-#include "ncdf_cl.hpp"
-#include "terminfo.hpp"
-#include "typedefs.hpp"
 
-#include "time.h"
+#include "ncdf_cl.hpp"
+//#include "terminfo.hpp"
+//#include "typedefs.hpp"
+
+//#include "time.h"
 
 
 #define GDL_DEBUG
@@ -70,6 +68,9 @@ namespace lib {
 
   void ncdf_handle_error(EnvT *e, int status, const char *function)
   {
+    // function is no more used ... can we used it for extra informational purpose ??
+    // cout << function << endl;
+
     if(status != NC_NOERR)
       {
 	string error;
@@ -343,9 +344,6 @@ namespace lib {
   BaseGDL * ncdf_create(EnvT * e)
   {
     size_t nParam=e->NParam(1);
-    if(nParam != 1) throw GDLException(e->CallingNode(),
-				       "NCDF_CREATE: Wrong number of arguments.");
-
     
     DString s;
     e->AssureScalarPar<DStringGDL>(0, s);
@@ -442,29 +440,6 @@ namespace lib {
       }
 
   }
-
-  // see also http://www.mathworks.com/help/techdoc/ref/cdflib.epochbreakdown.html
-  void cdf_epoch(EnvT* e)
-  {
-    if (e->KeywordSet("BREAKDOWN_EPOCH") && e->KeywordSet("COMPUTE_EPOCH"))
-       e->Throw( "sorry, mutualy exclusive keywords.");
-
-    if (e->KeywordSet("BREAKDOWN_EPOCH"))
-      {
-	//http://www.cplusplus.com/reference/clibrary/ctime/tm/
-	struct tm *t;
-	DLong epoch;	
-	e->AssureLongScalarPar( 0, epoch);
-	
-	t = gmtime ((time_t *)&epoch);
-	printf("The year is: %d\n", t->tm_year + 1900);
-	printf("The julian day is: %d\n", t->tm_yday + 1);
-      }
-    //conversion tm --> t_time
-    //    http://www.cplusplus.com/reference/clibrary/ctime/mktime/
-  };
-
-
 
 }
 #endif

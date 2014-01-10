@@ -51,7 +51,7 @@ void LibInit_cl()
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
-    const string legendreKey[]={"DOUBLE",KLISTEND};
+  const string legendreKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::legendre,string("LEGENDRE"),3,legendreKey);
 
   new DLibFunRetNew(lib::gsl_exp, string("GSL_EXP"),1);
@@ -87,11 +87,14 @@ void LibInit_cl()
   new DLibFunRetNew(lib::ncdf_groupdef,string("NCDF_GROUPDEF"),2);
   // array of dimension IDs 
   const string ncdf_dimidsinqKey[]={"INCLUDE_PARENTS",KLISTEND};
-  new DLibFunRetNew(lib::ncdf_dimidsinq,string("NCDF_DIMIDSINQ"), 1,ncdf_dimidsinqKey);
+  new DLibFunRetNew(lib::ncdf_dimidsinq,string("NCDF_DIMIDSINQ"),1,ncdf_dimidsinqKey);
   // returns the ID of a group
   new DLibFunRetNew(lib::ncdf_ncidinq,string("NCDF_NCIDINQ"),2);
   // returns a group’s variable IDs.
   new DLibFunRetNew(lib::ncdf_varidsinq,string("NCDF_VARIDSINQ"),1);
+  // returns the identifiers of the unlimited dimensions in a group.
+  const string ncdf_unlimdimsinqKey[]={"COUNT",KLISTEND};
+  new DLibFunRetNew(lib::ncdf_unlimdimsinq,string("NCDF_UNLIMDIMSINQ"),1,ncdf_unlimdimsinqKey);
 #endif // USE_NETCDF4
 
   //Inquire
@@ -175,9 +178,10 @@ void LibInit_cl()
   const string ncdf_varputKey[]={"COUNT","OFFSET", "STRIDE",KLISTEND};
   new DLibPro(lib::ncdf_varput, string("NCDF_VARPUT"), 3,ncdf_varputKey);
 
-  //epoch time conversion
-  const string cdf_epochKey[]={"BREAKDOWN_EPOCH","COMPUTE_EPOCH",KLISTEND};
-  new DLibPro(lib::cdf_epoch, string("CDF_EPOCH"),8,cdf_epochKey);
+  //epoch time conversion (a draft of the code existed in CVS version before January 2014
+  // in "ncdf_cl.cpp" but is was wrong !)
+  //  const string cdf_epochKey[]={"BREAKDOWN_EPOCH","COMPUTE_EPOCH",KLISTEND};
+  //  new DLibPro(lib::cdf_epoch, string("CDF_EPOCH"),8,cdf_epochKey);
 
 #endif
 
@@ -234,4 +238,3 @@ void LibInit_cl()
   Magick::InitializeMagick(NULL); 
 #endif
 }
-

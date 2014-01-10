@@ -27,9 +27,6 @@
 #include <string>
 #include <fstream>
 #include <memory>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_sf.h>
 #include <netcdf.h>
 
 #include "datatypes.hpp"
@@ -72,7 +69,7 @@ namespace lib {
       e->AssureScalarPar<DStringGDL>(1, dim_name);
       status=nc_inq_dimid(cdfid, dim_name.c_str(), &dimid);
       ncdf_handle_error(e, status, "NCDF_DIMRENAME");
-    }   
+    }
 
     //call the ncdf library
     status=nc_inq_dim(cdfid, dimid,dim_name,&dim_size);

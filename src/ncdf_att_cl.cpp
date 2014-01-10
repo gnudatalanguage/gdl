@@ -26,22 +26,15 @@
 #  include "includefirst.hpp"
 #  define HDF 1
 
-#  include <string>
-#  include <fstream>
-#  include <memory>
-#  include <gsl/gsl_sys.h>
-#  include <gsl/gsl_linalg.h>
-#  include <gsl/gsl_sf.h>
 #  include <netcdf.h>
 
 #  include "datatypes.hpp"
-#  include "math_utl.hpp"
 #  include "envt.hpp"
-#  include "dpro.hpp"
-#  include "dinterpreter.hpp"
+
+//#  include "dpro.hpp"
+//#  include "dinterpreter.hpp"
 #  include "ncdf_cl.hpp"
-#  include "terminfo.hpp"
-#  include "typedefs.hpp"
+
 
 //#  define GDL_DEBUG
 #  undef GDL_DEBUG
@@ -303,7 +296,6 @@ namespace lib {
     BaseGDL* at;//name
     DString attname;
     BaseGDL* val;//value;
-
 
     //get the cdfid, which must be given.
 

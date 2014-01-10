@@ -28,9 +28,7 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_sf.h>
+
 #include <netcdf.h>
 
 #include "datatypes.hpp"
@@ -38,9 +36,10 @@
 #include "envt.hpp"
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
+
 #include "ncdf_cl.hpp"
-#include "terminfo.hpp"
-#include "typedefs.hpp"
+//#include "terminfo.hpp"
+//#include "typedefs.hpp"
 
 
 
@@ -87,6 +86,8 @@ namespace lib {
   template <typename T> 
   void ncdf_var_handle_error(EnvT *e, int status, const char *function, T *data)
   {
+
+    cout << function << endl;
     if (data != NULL and status != NC_NOERR) GDLDelete(data);
     ncdf_handle_error(e, status, function);
   }
@@ -459,9 +460,10 @@ else if(var_type == NC_LONG)
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
 	if (status != NC_ERANGE) {
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+	  ncdf_var_handle_error(e,status,"NCDF_VARGET (ici)", temp);
 	} else {
 	  Warning("Warning in NCDF_VARGET: NC_ERANGE during BYTE reading");
+	  ncdf_var_handle_error(e,status,"NCDF_VARGET (ici)", temp);
 	}
 	GDLDelete(e->GetParGlobal(2));  
         e->GetParGlobal(2)=temp;      	

@@ -26,7 +26,6 @@ namespace lib {
   using namespace std;
   using namespace antlr;
 
-
   void ncdf_handle_error(EnvT* e, int status, const char * function);
 
   template <typename T>void ncdf_handle_error(EnvT* e, int status, 
@@ -50,18 +49,17 @@ namespace lib {
   BaseGDL* ncdf_inquire(EnvT* e);
   void ncdf_control(EnvT* e);
 
-  void cdf_epoch(EnvT* e);
-
-
   //------------------
+  //----------------- dim relative func/pro
 
   void ncdf_diminq(EnvT* e);
   void ncdf_dimrename(EnvT* e);
 
   BaseGDL* ncdf_dimid(EnvT* e);
   BaseGDL* ncdf_dimdef(EnvT* e);
-  //---------------------------
 
+  //---------------------------
+  //----------------- variable relative func/pro
 
   void ncdf_varget1(EnvT* e);
   void ncdf_varget(EnvT* e);
@@ -76,9 +74,7 @@ namespace lib {
 						   const char *function,
 						   T* data);
 
-
-
-  //-----------------
+  //----------------- attribute relative func/pro
 
   void ncdf_attput(EnvT* e);
   void ncdf_attget(EnvT* e);
@@ -89,14 +85,12 @@ namespace lib {
   BaseGDL* ncdf_attname(EnvT* e);
   BaseGDL* ncdf_attcopy(EnvT* e);
 
-
   template <typename T> void ncdf_att_handle_error(EnvT *e, int status, 
 						   const char *function,
 						   T* data);
-  //----------------
-
 
   // --- groups were introduced in netcdf4 
+
   BaseGDL* ncdf_groupsinq(EnvT* e);
   BaseGDL* ncdf_groupname(EnvT* e);
   BaseGDL* ncdf_groupdef(EnvT* e);
@@ -105,6 +99,11 @@ namespace lib {
   BaseGDL* ncdf_dimidsinq(EnvT* e);
   BaseGDL* ncdf_ncidinq(EnvT* e);
   BaseGDL* ncdf_varidsinq(EnvT* e);
+  BaseGDL* ncdf_unlimdimsinq(EnvT* e);
+
+  template <typename T> void ncdf_grp_handle_error(EnvT *e, int status,
+						   const char *function,
+						   T* data);
 
 } // namespace
 
