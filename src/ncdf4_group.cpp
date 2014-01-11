@@ -205,10 +205,7 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>(1, s);
 
 
-    }
-
-
-   cout << "not ready " << endl;
+    cout << "not ready " << endl;
     return new DLongGDL(-105);
   }
 
