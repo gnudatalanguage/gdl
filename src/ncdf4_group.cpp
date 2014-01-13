@@ -6,7 +6,7 @@
     email                : 
     purpose              : this file contains some extensions 
                            provided by NetCDF-4, e.g. group
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -96,7 +96,7 @@ namespace lib {
     ncdf_handle_error(e, status,"NCDF_GROUPDEF");
 
     return new DLongGDL(new_grpid);
-}
+  }
 
 
   BaseGDL* ncdf_groupname(EnvT* e)
@@ -149,8 +149,7 @@ namespace lib {
 
   BaseGDL* ncdf_dimidsinq(EnvT* e)
   {
-    size_t nParam=e->NParam();
-    
+ 
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
 
@@ -174,53 +173,57 @@ namespace lib {
   BaseGDL* ncdf_ncidinq(EnvT* e)
   {
  
+    // it is mandatory to have 2 parameters !
+    size_t nParam=e->NParam(2);
+
+    // in fact, we can use the "grpid" to check the file format it-self.
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
 
     DString s;
     e->AssureScalarPar<DStringGDL>(1, s);
 
-
-
-    DLong ncid;
-    e->AssureLongScalarPar( 0, ncid);
- 
     // before going further we have to chech the file format, must be NetCDF-4
 
     int status;
     int fileformat;
-    status=nc_inq_format(ncid, &fileformat);
-    ncdf_handle_error(e, status,"NCDF_NCISINQ");
+    status=nc_inq_format(grpid, &fileformat);
+    ncdf_handle_error(e, status,"NCDF_NCIDINQ");
 
-    if (fileformat == NC_FORMAT_CLASSIC) Warning("NetCDF 3 Classic format found. not OK");
-    if (fileformat == NC_FORMAT_64BIT) Warning("NetCDF 3 64BIT format found. not OK");
+    if (fileformat == NC_FORMAT_CLASSIC) Warning("NCDF_NCIDINQ: NetCDF 3 Classic format found. not OK");
+    if (fileformat == NC_FORMAT_64BIT) Warning("NCDF_NCIDINQ: NetCDF 3 64-BIT format found. not OK");
     
     if ((fileformat == NC_FORMAT_64BIT) || (fileformat == NC_FORMAT_CLASSIC)) {
+      return new DLongGDL(-1);
+    }
+
+    int sub_grpid;
+    status=nc_inq_ncid(grpid, s.c_str(), &sub_grpid);
+
+    if (status != 0) {
+      if (status == -125) {
+	Warning("NCDF_NCIDINQ: No group found. (NC_ERROR=-125)");      
 	return new DLongGDL(-1);
+      } else {
+	ncdf_handle_error(e, status,"NCDF_NCIDINQ");
+      }
+    }
+    return new DLongGDL(sub_grpid);
 
-    DLong grpid;
-    e->AssureLongScalarPar( 0, grpid);
-
-    DString s;
-    e->AssureScalarPar<DStringGDL>(1, s);
-
-
-    cout << "not ready " << endl;
-    return new DLongGDL(-105);
   }
-
+  
   BaseGDL* ncdf_varidsinq(EnvT* e)
   {
     cout << "not ready " << endl;
     return new DLongGDL(-106);
   }
-
+  
   BaseGDL* ncdf_unlimdimsinq(EnvT* e)
   {
     cout << "not ready " << endl;
     return new DLongGDL(-106);
   }
-
+  
 }
 #endif //USE_NETCDF4
 #endif //USE_NETCDF
