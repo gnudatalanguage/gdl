@@ -42,7 +42,20 @@ if (TOTAL(STRCMP(resu, expected)) NE 4) then begin
     if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 1c FAILED'
     nb_errors=nb_errors+1
 endif else begin
-    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'basic test 1c OK'
+   if KEYWORD_SET(verbose) then MESSAGE, /continue, 'basic test 1c OK'
+endelse
+;
+; this bug 581 was reported 14-Jan-2014
+;
+if KEYWORD_SET(verbose) then MESSAGE, /continue, 'basic test 1d START'
+pos=STREGEX('abcdefg', '[xyz]', length=lstr)
+expected_pos=-1
+expected_lstr=-1
+if ((pos NE expected_pos) OR (lstr NE expected_lstr)) then begin
+    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 1d FAILED'
+    nb_errors=nb_errors+1
+endif else begin
+   if KEYWORD_SET(verbose) then MESSAGE, /continue, 'basic test 1d OK'
 endelse
 ;
 ; Second serie : more complex Regex tests
