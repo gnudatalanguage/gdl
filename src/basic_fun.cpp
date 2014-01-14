@@ -5533,7 +5533,9 @@ BaseGDL* transpose( EnvT* e)
 	  }
 
 	if( lengthKW && !subexprKW)
-	  (*len)[s] = pmatch[0].rm_eo - pmatch[0].rm_so;
+	  //(*len)[s] = pmatch[0].rm_eo - pmatch[0].rm_so;
+	  (*len)[s] = pmatch[0].rm_so != -1 ? pmatch[0].rm_eo - pmatch[0].rm_so : -1;
+
       }
 
     regfree( &regexp);
