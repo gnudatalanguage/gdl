@@ -4,7 +4,7 @@ end
 
 pro test_same_name
   ; 1st case
-  dist = dist(10)
+  if execute("dist = dist(10)") ne 1 then exit, status=1
 
   ; 2nd case
   x=0
