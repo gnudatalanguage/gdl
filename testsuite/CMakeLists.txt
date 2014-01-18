@@ -46,7 +46,7 @@ if(child_pid == 0) {
 file(WRITE ${CMAKE_SOURCE_DIR}/testsuite/launchtest.c "${LAUNCH}")
 add_executable(launchtest EXCLUDE_FROM_ALL ${CMAKE_SOURCE_DIR}/testsuite/launchtest.c)
 add_library(test_ce SHARED EXCLUDE_FROM_ALL libtest_ce.cpp)
-add_custom_target(check COMMAND ${CMAKE_BUILD_TOOL} test DEPENDS launchtest test_ce)
+add_custom_target(check COMMAND ${CMAKE_BUILD_TOOL} test DEPENDS launchtest test_ce gdl)
 get_target_property(LAUNCHTESTLOCATION launchtest LOCATION)
 execute_process(
   COMMAND "fgrep" ".pro" "${BASE_SOURCE}/testsuite/Makefile.am" 
@@ -54,4 +54,5 @@ execute_process(
   OUTPUT_VARIABLE TESTS)
 foreach(TEST ${TESTS})
 	add_test(${TEST} ${LAUNCHTESTLOCATION} ${TEST})
+	set_tests_properties(${TEST} PROPERTIES SKIP_RETURN_CODE 77) # autoconf's setting
 endforeach(TEST TESTS)
