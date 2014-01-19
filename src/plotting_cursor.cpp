@@ -120,6 +120,13 @@ void tvcrs( EnvT* e)
 // get cursor from plPlot     AC February 2008
 // fully compatible with IDL using our own cursor routines GD Jan 2013
 void cursor(EnvT* e){
+  enum CursorOpt {
+    NOWAIT=0, 
+    WAIT, //1
+    CHANGE, //2
+    DOWN, //3
+    UP //4
+  };
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
   if (actDevice->Name() != "X")
@@ -155,34 +162,34 @@ void cursor(EnvT* e){
 
   }
   // mimic idl logic:
-  DLong wait = 1;
+  DLong wait = WAIT;
   if (nParam == 3)
   {
     e->AssureLongScalarPar(2, wait);
   }
-  if (e->KeywordSet("NOWAIT")) wait=0;
-  if (e->KeywordSet("CHANGE")) wait=2;
-  if (e->KeywordSet("WAIT")) wait=1;
-  if (e->KeywordSet("DOWN")) wait=3;
-  if (e->KeywordSet("UP")) wait=4;
+  if (e->KeywordSet("NOWAIT")) wait=NOWAIT;
+  if (e->KeywordSet("CHANGE")) wait=CHANGE;
+  if (e->KeywordSet("WAIT")) wait=WAIT;
+  if (e->KeywordSet("DOWN")) wait=DOWN;
+  if (e->KeywordSet("UP")) wait=UP;
   PLFLT xp, yp;
   PLINT xleng, yleng, xoff, yoff;
   plg->gpage(xp, yp, xleng, yleng, xoff, yoff);
 
-  if (wait == 0)
+  if (wait == NOWAIT)
   {
-    if(plg->GetGin(&gin, 0)==false) return;
+    if(plg->GetGin(&gin, NOWAIT)==false) return;
   }
-  else if (wait == 2)
+  else if (wait == CHANGE)
   {
-    if(plg->GetGin(&gin, 0)==false) return;
+    if(plg->GetGin(&gin, WAIT)==false) return;
     PLFLT RefX, RefY;
     RefX = gin.pX;
     RefY = gin.pY;
     unsigned int refstate=gin.state;
     while (1)
     {
-      if(plg->GetGin(&gin, 2)==false) return;
+      if(plg->GetGin(&gin, CHANGE)==false) return;
       if (abs(RefX - gin.pX) > 0 || abs(RefY - gin.pY) > 0)
       {
         RefX = gin.pX;
@@ -196,17 +203,17 @@ void cursor(EnvT* e){
       }
     }
   }
-  else if (wait == 3)
+  else if (wait == DOWN)
   {
-    if(plg->GetGin(&gin, 3)==false) return;
+    if(plg->GetGin(&gin, DOWN)==false) return;
   }
-  else if (wait == 4)
+  else if (wait == UP)
   {
-    if(plg->GetGin(&gin, 4)==false) return;
+    if(plg->GetGin(&gin, UP)==false) return;
   }
   else
   {
-    if(plg->GetGin(&gin, 1)==false) return;
+    if(plg->GetGin(&gin, WAIT)==false) return;
   }
   // outside window report -1 -1 at least for DEVICE values
   if (gin.pX < 0 || gin.pX > plg->xPageSize() || gin.pY < 0 || gin.pY > plg->yPageSize())
@@ -291,7 +298,9 @@ void cursor(EnvT* e){
     static unsigned yMouseTag = Struct->Desc()->TagIndex("Y");
     (*static_cast<DLongGDL*>(Struct->GetTag(yMouseTag)))[0] = gin.pY;
     static unsigned ButtonMouseTag = Struct->Desc()->TagIndex("BUTTON");
-    if (gin.button == 3) gin.button = 4; // 4 values only (0,1,2,4)
+    if (gin.button == 5) gin.button = 16; // today we have 5 buttons mouses!
+    if (gin.button == 4) gin.button = 8; // but we keep the previous logic:
+    if (gin.button == 3) gin.button = 4; // in powers of 2 (0,1,2,4..)
     (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0] = gin.button;
   }
   DVar *err=FindInVarList(sysVarList, "ERR");
