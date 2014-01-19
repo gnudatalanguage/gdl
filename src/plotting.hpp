@@ -179,7 +179,7 @@ namespace lib {
     // private fields
     private: SizeT _nParam;
     private: bool overplot;
-    private: bool isDB;
+//    private: bool isDB; //see below why commented.
 
     // common helper methods
     protected: inline SizeT nParam() { return _nParam; }
@@ -199,8 +199,10 @@ namespace lib {
 
       GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
-      isDB = actStream->HasDoubleBuffering();
-      if (isDB) actStream->SetDoubleBuffering();
+      //double buffering kills the logic and operation of XOR modes. I remove this feature until someone
+      //disentangles the X11 and plplot problems!
+//      isDB = actStream->HasDoubleBuffering();
+//      if (isDB) actStream->SetDoubleBuffering();
       DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
       if (name == "X") 
       {       
@@ -216,8 +218,9 @@ namespace lib {
       call_plplot(e, actStream);
 
       post_call(e, actStream);
-      if (isDB) actStream->eop(); else actStream->flush();
-      if(isDB) actStream->UnSetDoubleBuffering();
+//      if (isDB) actStream->eop(); else 
+//          actStream->flush(); //said to be unuseful, even to be avoided. I remove it.
+//      if(isDB) actStream->UnSetDoubleBuffering();
       actStream->Update();
     } // }}}
   };
