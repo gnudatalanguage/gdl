@@ -56,29 +56,33 @@ pro showfont, num, name, encapsulated=eps, tt_font=tt, base=base, beg=beg, fin=f
   ; handling default keyword values
   if not keyword_set(base) then base = 16
   if not keyword_set(beg) then beg = 32
-  if not keyword_set(fin) then fin = num eq 3 ? 255 : 127
+  if not keyword_set(fin) then fin = 127 ; num eq 3 ? 255 : 127
   if not keyword_set(name) then name = ''
 
   ; constructing horizontal and vertical grid lines
   n_hor = (fin + 1 - beg) / base + 1
-  h_x = (double(rebin(base * byte(128 * indgen(2 * (n_hor))) / 128, 4 * n_hor, /sample)))[1:4 * n_hor - 1] - .5
-  h_y = (double(rebin(beg + indgen(n_hor) * base, 4 * n_hor, /sample)))[0:4 * n_hor - 2] - base/2.
+  h_x = base * byte(128 * indgen(2 * (n_hor))) / 128
+  h_x = rebin(h_x, 4 * n_hor, /sample)
+  h_x = (double(h_x))[1:4 * n_hor - 1] - .5
+  h_y = beg + indgen(n_hor) * base
+  h_y = rebin(h_y, 4 * n_hor, /sample)
+  h_y = (double(h_y))[0:4 * n_hor - 2] - base/2.
   v_x = base - indgen(4 * base - 1) / 4 - .5
-  v_y = (double(rebin(byte(128 * indgen(2 * (base))) / 128, 4 * base, /sample)))[1:4 * base - 1] $
-    * base * ((fin + 1 - beg) / base) + beg - base / 2.
-
-  ; ploting grid and title
-  plot,  [h_x, v_x], [h_y, v_y], $
+  v_y = byte(128 * indgen(2 * (base))) / 128
+  v_y = rebin(v_y, 4 * base, /sample)
+  v_y = (double(v_y))[1:4 * base - 1]  * base * ((fin + 1 - beg) / base) + beg - base / 2.
+;
+  ; plotting grid and title
+  plot,  [h_x, v_x], [h_y, v_y],/xstyle,/ystyle, $
      title='Font ' + strtrim(string(num), 2) + ', ' + name, $
-     xrange=[-1, base], $
-     yrange=[base * ((fin + 1) / base), beg - base], $
-     yticks=n_hor, $
-     xticks=base+1, $
+     xrange=[-0.5, base-0.5], $
+     yrange=[base * ((fin + 1) / base) -base/2, beg - base/2], $
+     yticks=n_hor-1, $
+     xticks=base, $
      xtitle='char mod ' + strtrim(string(base), 2), $
      ytitle=strtrim(string(base), 2) + ' * (char / ' + strtrim(string(base), 2) + ')'
-     
-  ; ploting characters
+  ; plotting characters
   for c = beg, fin do $
-    xyouts, (c mod base), base * (c / base), '!' + strtrim(string(num), 2) + string(byte(c))
+    xyouts, (c mod base), base * (c / base), '!' + strtrim(string(num), 2) + string(byte(c)),CHARSIZE=2
 
 end
