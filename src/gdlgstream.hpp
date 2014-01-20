@@ -237,6 +237,7 @@ public:
   virtual void SetDoubleBuffering() {}
   virtual void UnSetDoubleBuffering() {}
   virtual bool HasDoubleBuffering() {return false;}
+  virtual bool HasSafeDoubleBuffering() {return false;}
   virtual void Raise()         {}
   virtual void Lower()        {}
   virtual void Iconic()        {}

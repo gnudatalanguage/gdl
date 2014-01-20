@@ -59,6 +59,7 @@ public:
   void SetDoubleBuffering();
   void UnSetDoubleBuffering();
   bool HasDoubleBuffering();
+  bool HasSafeDoubleBuffering();
 };
 
 #endif

@@ -229,7 +229,15 @@ void GDLXStream::UnSetDoubleBuffering() {
 bool GDLXStream::HasDoubleBuffering() {
   return true;
 }
-
+//modified version. Will not tell double buffering is available if current graphic function is not pure "copy".
+bool GDLXStream::HasSafeDoubleBuffering() {
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL || dev->xwd == NULL)    return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XGCValues gcValues;
+    XGetGCValues(xwd->display, dev->gc, GCFunction, &gcValues);
+    if (gcValues.function == GXcopy ) return true; else return false;  
+}
 bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
 
   enum CursorOpt {
