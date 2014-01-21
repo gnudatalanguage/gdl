@@ -199,8 +199,7 @@ namespace lib {
 
       GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
-      //double buffering kills the logic and operation of XOR modes. I remove this feature until someone
-      //disentangles the X11 and plplot problems!
+      //double buffering kills the logic and operation of XOR modes. Use HasSafeDoubleBuffering() that tests this feature.)
       isDB = actStream->HasSafeDoubleBuffering();
       if (isDB) actStream->SetDoubleBuffering();
       DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
@@ -218,7 +217,7 @@ namespace lib {
       call_plplot(e, actStream);
 
       post_call(e, actStream);
-      if (isDB) actStream->eop(); //else actStream->flush(); //said to be unuseful, even to be avoided. I remove it.
+      if (isDB) actStream->eop(); else actStream->flush();
       if (isDB) actStream->UnSetDoubleBuffering();
       actStream->Update();
     } // }}}
