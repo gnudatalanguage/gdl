@@ -54,6 +54,7 @@ namespace lib {
   Image gImage[40];
   unsigned int gValid[40];
   unsigned int gCount=0;
+  static bool notWarned=true;
 
   
   void magick_setup()
@@ -97,7 +98,14 @@ namespace lib {
 
 
   BaseGDL* magick_open(EnvT* e)
-  {
+{
+//warn about limitations due to local implementation of Magick library.
+//We should do more, by example hat octave people do in their code (they circumvent some other limitations)
+    if (notWarned && QuantumDepth < 32) {
+      fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n",
+              MagickPackageName, QuantumDepth);
+      notWarned = false;
+    }
     try{
       DString filename;
       e->AssureScalarPar<DStringGDL>(0,filename);
@@ -134,7 +142,11 @@ namespace lib {
     //  e->Warning("SUPPORTED_READ and SUPPORTED_WRITE keywords not supported yet");
 
     // TODO: JPEG2000- and TIFF-related additional fields in the INFO structure
-
+    if (notWarned && QuantumDepth < 32) {
+      fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n",
+              MagickPackageName, QuantumDepth);
+      notWarned = false;
+    }
     SizeT nParam=e->NParam(1);
  
     try 
@@ -165,9 +177,9 @@ namespace lib {
   
       int debug=0;
       if (debug == 1) {
-	cout << "a.type()      :" << a.type() << endl;
-	cout << "a.classType() :" << a.classType() << endl;
-	cout << "a.matte()     :" << a.matte() << endl;
+        cout << "a.type()      :" << a.type() << endl;
+        cout << "a.classType() :" << a.classType() << endl;
+        cout << "a.matte()     :" << a.matte() << endl;
 	// no useful info here:cout << "a.colorSpace()     :" << a.colorSpace() << endl;
 	// Always 8:cout << "a.depth()     :" << a.depth() << endl;
 	// Always 1: cout << "a.colorSpace() :" << a.colorSpace() << endl;
