@@ -52,7 +52,10 @@ if N_PARAMS() EQ 0 then name=''
 t0=SYSTIME(1)
 ;
 ; since a function call to TIC then TOC is OK, !tic must be set up
-DEFSYSV, '!TIC', {NAME: '', TIME : 0.0D}
+; (the value is wrong but works as expected !)
+;
+DEFSYSV, '!TIC', exist=tic_exist
+if ~tic_exist then DEFSYSV, '!TIC', {NAME: '', TIME : 0.0D}
 ;
 if KEYWORD_SET(test) then STOP
 ;
