@@ -27,21 +27,14 @@
 
 #include <string>
 #include <fstream>
-//#include <memory>
 #include <iostream>
 
 #include "datatypes.hpp"
-//#include "math_utl.hpp"
 #include "envt.hpp"
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
 
 #include "ncdf_cl.hpp"
-//#include "terminfo.hpp"
-//#include "typedefs.hpp"
-
-//#include "time.h"
-
 
 #define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -272,13 +265,14 @@ namespace lib {
 
   }
 
+  // a way to test status of local file
   bool is_readable( const std::string & file ) 
   { 
     std::ifstream fichier( file.c_str() ); 
     return !fichier.fail(); 
-  } 
+  }
   
-  //open the ncdf file of given filename
+  //open the ncdf file of given filename OR an URL+filename
   BaseGDL * ncdf_open(EnvT * e)
   {
     size_t nParam=e->NParam(1);
@@ -287,40 +281,51 @@ namespace lib {
     DString s;
     e->AssureScalarPar<DStringGDL>(0, s);
     WordExp(s);
-
-    // before any NetCDF stuff, we check whether the file exists ...
-    if (!is_readable(s))
+    
+    int cdfid,status;
+    
+    if(e->KeywordSet("WRITE") &&!e->KeywordSet("NOWRITE"))
       {
-	Warning("NCDF_OPEN: file not found or not readable");
-	e->Throw("Unable to open the file \""+s+"\". (NC_ERROR=-31)");
+	status=nc_open(s.c_str(), NC_WRITE, &cdfid);
       }
     else
       {
-	int cdfid,status;
-	
-	if(e->KeywordSet("WRITE") &&!e->KeywordSet("NOWRITE"))
-	  {
-	    status=nc_open(s.c_str(), NC_WRITE, &cdfid);
-	  }
-	else
-	  {
-	    status=nc_open(s.c_str(), NC_NOWRITE, &cdfid);
-	  }
-	
-	if (status == -51) 
-	  {
-	    Warning("NCDF_OPEN: file exists but not in NetCDF format(s)");
-#ifndef USE_NETCDF4
-	    Warning("NCDF_OPEN: GDL was compiled without support to new NetCDF-4 format(s)");
-#endif
-	    e->Throw("Unable to open the file \""+s+"\". (NC_ERROR=-51)");
-	  } 
-	else
-	  {
-	    ncdf_handle_error(e,status,"NCDF_OPEN");
-	    return new DLongGDL(cdfid);
-	  }
+	status=nc_open(s.c_str(), NC_NOWRITE, &cdfid);
       }
+    
+    bool debug=FALSE;
+    if (debug) {
+      cout << "NCDF_OPEN: filename (or url) : " << s << endl;
+      cout << "NCDF_OPEN: status : " << status << endl;
+    }
+    
+    // we try to add few extra informations to help to understand why the
+    // file or link was not opened
+    
+    if (status != 0) {
+      
+      if ((status == -31) | (status == 2)) 
+	{
+	  // before any NetCDF stuff, we check whether the file exists ...
+	  if (!is_readable(s))
+	    {
+	      Warning("NCDF_OPEN: file not found or not readable");
+	      e->Throw("Unable to open the file \""+s+"\". (NC_ERROR="+i2s(status)+")");
+	    }
+	}
+	  
+      if (status == -51) 
+	{
+	  Warning("NCDF_OPEN: file exists but not in NetCDF format(s)");
+#ifndef USE_NETCDF4
+	  Warning("NCDF_OPEN: GDL was compiled without support to new NetCDF-4 format(s)");
+#endif
+	  e->Throw("Unable to open the file \""+s+"\". (NC_ERROR=-51)");
+	} 
+	  
+      ncdf_handle_error(e,status,"NCDF_OPEN");
+    }
+    return new DLongGDL(cdfid);
   }
 
   //close the NetCDF file
@@ -386,7 +391,7 @@ namespace lib {
     if (e->KeywordSet("NETCDF4_FORMAT"))
       {
 #ifndef USE_NETCDF4
-	    e->Throw("GDL was compiled without support to new NetCDF-4 format(s)");
+	e->Throw("GDL was compiled without support to new NetCDF-4 format(s)");
 #endif
 	Warning("keyword NETCDF4_FORMAT experimental.");
 	format=NC_FORMAT_NETCDF4;
