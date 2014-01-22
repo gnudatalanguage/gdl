@@ -624,68 +624,67 @@ namespace lib {
 	DUInt mid;
 	e->AssureScalarPar<DUIntGDL>(0,mid);
 	Image image=magick_image(e,mid);
-	int columns,rows;
-	StorageType ty;
-	ty=CharPixel;
+	int columns,rows, planes;
+//	StorageType ty;
+//	ty=CharPixel;
 	BaseGDL* GDLimage=e->GetParDefined(1);
 
 	string map="BGR";
-	if(GDLimage->Rank() == 3)
-	  {
-	    columns=GDLimage->Dim(1);
-	    rows=GDLimage->Dim(2);
-	    if(e->GetKW(0) != NULL)//RGB
-	      {
-		DInt rgb;
-		e->AssureScalarKW<DIntGDL>(0,rgb);
+	if(GDLimage->Rank() == 3) {
+        planes = GDLimage->Dim(0);
+        columns = GDLimage->Dim(1);
+        rows = GDLimage->Dim(2);
+        if (planes == 2) {
+          map = "IA";
+        } else {
+          if (e->GetKW(0) != NULL)//RGB
+          {
+            DInt rgb;
+            e->AssureScalarKW<DIntGDL>(0, rgb);
 
-		if(rgb==0) map="BGR";
-		else if(rgb==1) map="RGB";
-		else if(rgb==2) map="RBG";
-		else if(rgb==3) map="BRG";
-		else if(rgb==4) map="GRB";
-		else if(rgb==5) map="GBR";
-		else
-		{
-		  string s="MAGICK_WRITE: RGB order type not supported (";
-		  s+=i2s(rgb);
-		  s+="), using BGR ordering.";
-		  Message(s);		
-		  map="BGR";
-		}
-		if(image.matte()) map=map+"A";
-	      }
-	    /*	    if(image.depth() == 8)
-		    {*/
+            if (rgb == 0) map = "BGR";
+            else if (rgb == 1) map = "RGB";
+            else if (rgb == 2) map = "RBG";
+            else if (rgb == 3) map = "BRG";
+            else if (rgb == 4) map = "GRB";
+            else if (rgb == 5) map = "GBR";
+            else {
+              string s = "MAGICK_WRITE: RGB order type not supported (";
+              s += i2s(rgb);
+              s += "), using BGR ordering.";
+              Message(s);
+              map = "BGR";
+            }
+            if (image.matte()) map = map + "A";
+          }
+        }
+          /*	    if(image.depth() == 8)
+              {*/
 
-		DByteGDL * bImage =
-		  static_cast<DByteGDL*>( GDLimage->Convert2(GDL_BYTE,BaseGDL::COPY));
-		Guard<DByteGDL> bImageGuard(bImage);
-		
-		image.read(columns,rows,map, CharPixel,&(*bImage)[0]);
-		/*	      }
-	    else if(image.depth() == 16)
-	      {
-		DUIntGDL * iImage=
-		  static_cast<DUIntGDL*>(GDLimage->Convert2(GDL_UINT,BaseGDL::COPY));
+          DByteGDL * bImage =
+                  static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
+          Guard<DByteGDL> bImageGuard(bImage);
 
-		image.read(columns,rows,map, ShortPixel,&(*iImage)[0]);
-	      }
-	    else
-	      {
-		e->Throw("Unsupported bit depth");
-		}*/
-	    
-	  }
-	else 
-	  {
-	    e->Throw("2D Not yet supported");
-	  }
-	image.flip();
-	magick_replace(e,mid,image);
-      }
-    catch (Exception &error_ )
-      {
+          image.read(columns, rows, map, CharPixel, &(*bImage)[0]);
+          /*	      }
+          else if(image.depth() == 16)
+            {
+          DUIntGDL * iImage=
+            static_cast<DUIntGDL*>(GDLimage->Convert2(GDL_UINT,BaseGDL::COPY));
+
+          image.read(columns,rows,map, ShortPixel,&(*iImage)[0]);
+            }
+          else
+            {
+          e->Throw("Unsupported bit depth");
+          }*/
+
+        } else {
+          e->Throw("2D Not yet supported");
+        }
+        image.flip();
+        magick_replace(e, mid, image);
+      } catch (Exception &error_) {
         e->Throw(error_.what());
       }
 
@@ -863,8 +862,9 @@ namespace lib {
 	DUInt mid;
 	e->AssureScalarPar<DUIntGDL>(0,mid);    
 	Image image=magick_image(e,mid);
-	if(e->KeywordSet(1)) image.matte(false);
-	else image.matte(true);
+//	if(e->KeywordSet(1)) image.matte(false);
+//	else 
+      image.matte(true);
 
 	magick_replace(e,mid,image);
       }
