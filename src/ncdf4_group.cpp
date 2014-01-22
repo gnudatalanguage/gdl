@@ -27,10 +27,6 @@
 
 #include "includefirst.hpp"
 
-//#include <string>
-//#include <fstream>
-//#include <memory>
-
 #include "datatypes.hpp"
 #include "envt.hpp"
 
@@ -45,7 +41,7 @@ namespace lib {
 
   using namespace std;
   using namespace antlr;
-  
+
   BaseGDL* ncdf_groupsinq(EnvT* e)
   {
     size_t nParam=e->NParam(1);
@@ -62,7 +58,7 @@ namespace lib {
     
     int debug=0;
     if (debug) {
-      cout << "NetCDF status : " << status <<endl;
+      cout << "NCDF_GROUPSINQ : " << status <<endl;
       cout << "numgrps :" << numgrps << endl;
       cout << "ncids : ";
       for (size_t i=0; i<numgrps; ++i) cout <<  ncids[i];
@@ -190,8 +186,10 @@ namespace lib {
     status=nc_inq_format(grpid, &fileformat);
     ncdf_handle_error(e, status,"NCDF_NCIDINQ");
 
-    if (fileformat == NC_FORMAT_CLASSIC) Warning("NCDF_NCIDINQ: NetCDF 3 Classic format found. not OK");
-    if (fileformat == NC_FORMAT_64BIT) Warning("NCDF_NCIDINQ: NetCDF 3 64-BIT format found. not OK");
+    if (fileformat == NC_FORMAT_CLASSIC) 
+      Warning("NCDF_NCIDINQ: NetCDF 3 Classic format found. not OK");
+    if (fileformat == NC_FORMAT_64BIT)
+      Warning("NCDF_NCIDINQ: NetCDF 3 64-BIT format found. not OK");
     
     if ((fileformat == NC_FORMAT_64BIT) || (fileformat == NC_FORMAT_CLASSIC)) {
       return new DLongGDL(-1);
@@ -214,14 +212,77 @@ namespace lib {
   
   BaseGDL* ncdf_varidsinq(EnvT* e)
   {
-    cout << "not ready " << endl;
-    return new DLongGDL(-106);
+    //size_t nParam=e->NParam(1);
+    
+    DLong grpid;
+    e->AssureLongScalarPar( 0, grpid);
+
+    int status;
+    int nvars, varids[NC_MAX_VAR_DIMS];
+
+    status=nc_inq_varids(grpid, &nvars, (int *) &varids);
+
+    int debug=0;
+    if (debug) {
+      cout << "NCDF_VARIDSINQ: status : " << status << endl;
+      cout << "NCDF_VARIDSINQ: nvars : " << nvars << endl;
+      cout << "NCDF_VARIDSINQ: *varId : ";
+      for (size_t i=0; i<nvars; ++i) cout << varids[i];
+      cout << endl;
+    }
+    ncdf_handle_error(e, status,"NCDF_VARIDSINQ");
+
+    if (nvars > 0) { 
+      dimension dim(nvars);
+      DLongGDL *res = new DLongGDL(dim,BaseGDL::NOZERO);
+      for (size_t i=0; i<nvars; ++i) (*res)[ i] = varids[i];
+      return res;
+    } else {
+      return new DLongGDL(-1);
+    }   
   }
   
   BaseGDL* ncdf_unlimdimsinq(EnvT* e)
   {
-    cout << "not ready " << endl;
-    return new DLongGDL(-106);
+    DLong grpid;
+    e->AssureLongScalarPar( 0, grpid);
+
+    // first of all, we check whether the Group ID is a good one
+    int status;
+    char groupname[NC_MAX_NAME];
+
+    status=nc_inq_grpname(grpid, groupname);
+    ncdf_handle_error(e, status,"NCDF_GROUPNAME");
+
+    int nunlimdimsp, unlimdimidsp[NC_MAX_VAR_DIMS];
+    status=nc_inq_unlimdims(grpid, &nunlimdimsp, (int *) &unlimdimidsp);
+    ncdf_handle_error(e, status,"NCDF_UNLIMDIMSINQ");
+
+    int debug=0;
+    if (debug) {
+      cout << "NCDF_UNLIMDIMSINQ: status : " << status << endl;
+      cout << "NCDF_UNLIMDIMSINQ: nunlimdimsp : " << nunlimdimsp << endl;
+      cout << "NCDF_UNLIMDIMSINQ: *unlimdimidsp : ";
+      for (size_t i=0; i<nunlimdimsp; ++i) cout << unlimdimidsp[i];
+      cout << endl;
+    }
+
+    // AC: having no test cases up to now, I don't know if I have to return -1
+    static int countIx = e->KeywordIx("COUNT");
+    if (e->KeywordPresent(countIx)) {
+      int count=0;
+      if (nunlimdimsp > 0) count=nunlimdimsp;
+       e->SetKW(countIx, new DLongGDL(count));
+    }
+
+    if (nunlimdimsp > 0) { 
+      dimension dim(nunlimdimsp);
+      DLongGDL *res = new DLongGDL(dim,BaseGDL::NOZERO);
+      for (size_t i=0; i<nunlimdimsp; ++i) (*res)[ i] =unlimdimidsp[i];
+      return res;
+    } else {
+      return new DLongGDL(-1);
+    }    
   }
   
 }
