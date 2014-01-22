@@ -163,16 +163,18 @@ endif
 ;
 ; transparent 3D case [2,N,M] or [4,N,M]
 ;
-if (nb_channels EQ 2) OR (nb_channels EQ 4) then begin
-   ;; Original message was:
-   ;; This is untested, hence it's commented out, but in theory, it's all
-   ;; there.
-   MESSAGE,/continue, "When we do a have transparency"
-   MESSAGE,/continue, "This is untested, but in theory, it's all there."
-   ;;
+if (nb_channels EQ 4) then begin
    mid=MAGICK_CREATE(im_size[1],im_size[2])
-   MAGICK_MATTE, mid;,/true
+   MAGICK_MATTE, mid
    MAGICK_WRITE, mid, image, rgb=rgb
+   if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
+   MAGICK_WRITEFILE, mid, filename, "PNG"
+   MAGICK_CLOSE, mid
+endif
+if (nb_channels EQ 2) then begin
+   mid=MAGICK_CREATE(im_size[1],im_size[2])
+   MAGICK_MATTE, mid
+   MAGICK_WRITE, mid, image
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid
