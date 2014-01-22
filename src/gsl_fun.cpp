@@ -1094,6 +1094,10 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     BaseGDL* p0 = e->GetNumericParDefined( 0);
+
+    if (p0->Rank() == 0) 
+      e->Throw( "Expression must be an array in this context: " + e->GetParString(0));
+
     SizeT nEl = p0->N_Elements();
 
     if( p0->Type() == GDL_COMPLEX || p0->Type() == GDL_COMPLEXDBL)
