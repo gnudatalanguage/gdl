@@ -134,6 +134,7 @@ void LibInit_jmg()
 	      string("MAP_PROJ_INVERSE"),3,map_proj_inverseKey);
 
 #endif
+#ifdef USE_GSHHS
 
   // SA: GSHHS dataset
   // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
@@ -143,6 +144,7 @@ void LibInit_jmg()
   const string map_continentsWarnKey[] = {"USA", "COASTS", KLISTEND};
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
+#endif
 
 
   const string convert_coordKey[]={"DATA","DEVICE","NORMAL","T3D","DOUBLE",
