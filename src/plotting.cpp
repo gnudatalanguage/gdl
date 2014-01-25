@@ -1380,9 +1380,14 @@ namespace lib
                                            DLong psym, bool append, DLongGDL *color)
   {
     bool docolor=(color != NULL);
+    //if docolor, do we really have more than one color?
+    if (docolor) if (color->N_Elements() == 1) {
+      a->Color ( (*color)[0] );
+      docolor=false;
+    } 
     // Get decomposed value for colors
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-
+    
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"draw_polyline()\n");
     SizeT plotIndex=0;
     bool line=false;
@@ -1720,6 +1725,7 @@ namespace lib
     a->Background(background);
   }
 
+  //Very special usage only in plotting surface
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a)
   {
     a->plstream::col0( 0);
