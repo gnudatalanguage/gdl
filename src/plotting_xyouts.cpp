@@ -88,13 +88,39 @@ namespace lib
         yEl=yVal->N_Elements();
         strVal=e->GetParAs<DStringGDL>(2);
         strEl=strVal->N_Elements();
+        //behaviour: if x or y are not an array, they are repeated to match minEl
+        //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
          //z will be set at Zero unless Z=value is given
-        zEl=xEl;
+        if ( (xVal->Dim(0)==0) && (yVal->Dim(0)==0) ) {
+          minEl=strEl;
+          DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
+          xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO); //should remove previous xVal if allocated -- fixme.
+          xval_guard.Reset(xVal); // delete upon exit
+          for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
+          DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
+          yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO); //idem and below
+          yval_guard.Reset(yVal); // delete upon exit
+          for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
+        } else if (xVal->Dim(0)==0) {
+          minEl=(yEl<strEl)?yEl:strEl;
+          DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
+          xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
+          xval_guard.Reset(xVal); // delete upon exit
+          for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
+        } else if (yVal->Dim(0)==0) {
+          minEl=(xEl<strEl)?xEl:strEl;
+          DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
+          yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
+          yval_guard.Reset(yVal); // delete upon exit
+          for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
+         } else {
+          minEl=(xEl<yEl)?xEl:yEl;
+          minEl=(minEl<strEl)?minEl:strEl;          
+         }
+        zEl=minEl;
         zVal=new DDoubleGDL(dimension(zEl));
         zval_guard.Reset(zVal); // delete upon exit
         for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
-        minEl=(xEl<yEl)?xEl:yEl;
-        minEl=(minEl<strEl)?minEl:strEl;
       }
       else
       {
