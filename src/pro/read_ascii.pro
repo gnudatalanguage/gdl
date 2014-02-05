@@ -317,6 +317,18 @@ endif
 fieldcount  = template.fieldcount
 fieldtypes  = template.fieldtypes
 fieldnames  = template.fieldnames
+;fieldnames must not begin with a Number; blanks or '-' will be
+;replaced by '_'.
+for ifield=0L,n_elements(fieldnames)-1 do begin
+ if stregex(fieldnames[ifield],'[0123456789]') eq 0 then Message,'Illegal field name: '+fieldnames[ifield]
+ if stregex(fieldnames[ifield],'[ -]') ne 0 then begin ; cure that!
+   b=byte(fieldnames[ifield])
+   for ibyte=0L,n_elements(b)-1 do begin
+     if b[ibyte] eq 32 or b[ibyte] eq 45 then b[ibyte]=95
+  end
+  fieldnames[ifield]=string(b)
+ end
+end
 fieldlocs   = template.fieldlocations
 fieldgroups = template.fieldgroups
 
