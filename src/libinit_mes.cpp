@@ -50,7 +50,7 @@ void LibInit_mes()
   
   // general procedures/functions 
   const string strtokKey[]={"EXTRACT","ESCAPE","LENGTH",
-			    "PRESERVE_NULL","REGEX","COUNT",KLISTEND};
+			    "PRESERVE_NULL","REGEX","COUNT","FOLD_CASE",KLISTEND};
   new DLibFunRetNew(lib::strtok_fun, string("STRTOK"), 2, strtokKey);
 
 
