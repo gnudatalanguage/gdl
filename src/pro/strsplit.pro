@@ -71,15 +71,6 @@ if (N_PARAMS() EQ 2) then begin
    if N_ELEMENTS(pattern) EQ 0 then MESSAGE, 'Variable is undefined: PATTERN.'
 endif
 ;
-if KEYWORD_SET(escape) then begin
-   MESSAGE, /continue, 'Sorry, this keyword /ESCAPE is not implemented (no effect)'
-   MESSAGE, /continue, 'PLEASE CONTRIBUTE'
-endif
-;
-if KEYWORD_SET(fold_case) then begin
-   MESSAGE, /continue, 'Sorry, this keyword /FOLD_CASE is not implemented (no effect)'
-   MESSAGE, /continue, 'PLEASE CONTRIBUTE'
-endif
 ;
 ;; AC 14-Oct-2010: may be not fully OK (see below)
 ;if KEYWORD_SET(regex) and KEYWORD_SET(preserve_null) then begin
@@ -119,16 +110,16 @@ endif
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 1)) then begin
    resu=STRTOK(local_input1, extract=extract,$
-               REGEX=regex, preserve_null=preserve_null)
-; 2nd pass for length.
-if ARG_PRESENT(length) then  temp=STRTOK(local_input1, LENGTH=length, REGEX=regex, preserve_null=preserve_null)
+               REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
+; 2nd pass for length
+if ARG_PRESENT(length) then  temp=STRTOK(local_input1, LENGTH=length, REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
 endif
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
    resu=STRTOK(local_input1, local_pattern, extract=extract,$
-               REGEX=regex, preserve_null=preserve_null)
+               REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
 ; 2nd pass for length.
- if ARG_PRESENT(length) then temp=STRTOK(local_input1, local_pattern, LENGTH=length, REGEX=regex, preserve_null=preserve_null)
+ if ARG_PRESENT(length) then temp=STRTOK(local_input1, local_pattern, LENGTH=length, REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
 endif
 ;
 if  ARG_PRESENT(count) then begin
