@@ -188,6 +188,7 @@ public:
   virtual bool CursorStandard( int value)             { return false;}
   virtual bool CursorCrosshair()                      { return false;}
   virtual bool UnsetFocus()                           { return false;}
+  virtual bool SetFocus()                             { return false;}
   virtual bool EnableBackingStore(bool enable)        { return false;}
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}

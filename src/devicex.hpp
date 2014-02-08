@@ -858,6 +858,20 @@ public:
     gestw.flags = InputHint;
     XSetWMHints(xwd->display, dev->window, &gestw);
     return true;
+  }  
+  
+  bool SetFocus()
+  {
+    PLStream* pls;
+    plgpls( &pls);
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XWMHints gestw;
+    gestw.input = TRUE;
+    gestw.flags = InputHint;
+    XSetWMHints(xwd->display, dev->window, &gestw);
+    return true;
   }
   bool EnableBackingStore(bool enable)
    {
