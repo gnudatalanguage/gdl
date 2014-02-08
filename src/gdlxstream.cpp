@@ -238,7 +238,104 @@ bool GDLXStream::HasSafeDoubleBuffering() {
     XGetGCValues(xwd->display, dev->gc, GCFunction, &gcValues);
     if (gcValues.function == GXcopy ) return true; else return false;  
 }
+//simple GetGin that reproduces IDL's own.
+//However, trapping  controlC should be done inside, to clean properly.
+//Below, a more complicated version that adds other functionalities, and ^C trapping, but
+//grabs the keyboard, which is not recommended.
 bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
+
+  enum CursorOpt {
+    NOWAIT = 0,
+    WAIT, //1
+    CHANGE, //2
+    DOWN, //3
+    UP //4
+  };
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  Window root, child;
+  int root_x, root_y, oldx, oldy;
+  unsigned int ostate;
+  XQueryPointer(xwd->display, dev->window, &root, &child,
+          &root_x, &root_y, &oldx, &oldy, &ostate);
+  gin->pX = oldx;
+  gin->pY = dev->height - oldy;
+  gin->state = ostate;
+  gin->dX = (PLFLT) gin->pX / (dev->width - 1);
+  gin->dY = (PLFLT) gin->pY / (dev->height - 1);
+  gin->string[0] = '\0';
+  gin->keysym = 0x20;
+  gin->button = 0;
+  if (ostate & Button1Mask) gin->button = 1;
+  if (ostate & Button2Mask) gin->button = 2;
+  if (ostate & Button3Mask) gin->button = 3;
+  if (ostate & Button4Mask) gin->button = 4;
+  if (ostate & Button5Mask) gin->button = 5; //IDL does not support buttons 4-5 but we may?
+  //return if NOWAIT
+  if (mode == NOWAIT) return true;
+  
+  unsigned long event_mask = (PointerMotionMask|ButtonMotionMask);
+  switch (mode) {
+    case WAIT:
+      if (gin->button > 0) return true; //else wait below for a down...
+    case DOWN:
+      event_mask |= ButtonPressMask;
+      break;
+    case UP:
+    case CHANGE:
+      event_mask |= (ButtonPressMask | ButtonReleaseMask);
+  }
+
+  XEvent event;
+  XRaiseWindow(xwd->display, dev->window);
+  XSelectInput(xwd->display, dev->window, event_mask);
+  XSync(xwd->display, true);  //useful?
+  while (1) {
+    XWindowEvent(xwd->display, dev->window, event_mask, &event);
+
+    switch (event.type) {
+        int nchars;
+        KeySym mykey;
+      case ButtonRelease:
+        gin->pX = event.xbutton.x;
+        gin->pY = event.xbutton.y;
+        gin->state = event.xbutton.state;
+        gin->button = event.xbutton.button;
+        gin->string[0] = '\0';
+        gin->keysym = 0x20;
+        if (mode==UP || mode==CHANGE) goto end;
+        break;
+      case ButtonPress:
+        gin->pX = event.xbutton.x;
+        gin->pY = event.xbutton.y;
+        gin->state = event.xbutton.state;
+        gin->button = event.xbutton.button;
+        gin->string[0] = '\0';
+        gin->keysym = 0x20;
+        if (mode==WAIT || mode==DOWN || mode==CHANGE) goto end;
+        break;
+      case MotionNotify:
+        if (mode==CHANGE) {
+          gin->pX = event.xmotion.x;
+          gin->pY = event.xmotion.y;
+          gin->state = event.xmotion.state;
+          gin->string[0] = '\0';
+          gin->keysym = 0x20;
+          goto end;
+        }
+        break;
+      default:
+        break;
+    }
+  }
+end:
+  gin->pY = dev->height - gin->pY;
+  gin->dX = (PLFLT) gin->pX / (dev->width - 1);
+  gin->dY = (PLFLT) gin->pY / (dev->height - 1);
+  return true;
+}
+
+bool GDLXStream::GetExtendedGin(PLGraphicsIn *gin, int mode) {
 
   enum CursorOpt {
     NOWAIT = 0,
@@ -276,10 +373,10 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
   
   int x, x1, xmin = 0, xmax = (int) dev->width - 1;
   int y, y1, ymin = 0, ymax = (int) dev->height - 1;
+  // If we want to trap keyboard events we need to set focus (complicated) OR grab keyboard:
+  bool kbgrabbed= (XGrabKeyboard(xwd->display, dev->window, True, GrabModeAsync, GrabModeAsync, CurrentTime)==GrabSuccess);
 
-  //Key Press is for ^C  handling and we add also cursor warping with arrow keys as a supplementary convenience.
-  //The drawing of a big cross has been removed, was too slow. 
-  unsigned long event_mask = (EnterWindowMask| LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonMotionMask);
+unsigned long event_mask = (EnterWindowMask| LeaveWindowMask | KeyPressMask  | KeyReleaseMask | PointerMotionMask);
   switch (mode) {
     case WAIT:
       if (gin->button > 0) return true; //else wait below for a down...
@@ -288,30 +385,31 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
       break;
     case UP:
     case CHANGE:
-      event_mask |= (ButtonPressMask | ButtonReleaseMask);
-  }
+      event_mask |= ButtonPressMask | ButtonReleaseMask;
+      break;
+  }  
+  bool grabbed = false;
+  unsigned long grab_mask = (EnterWindowMask|LeaveWindowMask|PointerMotionMask|ButtonPressMask | ButtonReleaseMask);
+  if (alreadyInside)  grabbed=(XGrabPointer(xwd->display, dev->window, False, grab_mask,GrabModeAsync,GrabModeAsync,dev->window,None,CurrentTime)==GrabSuccess);
 
   XEvent event;
   //we do our own event handling and furthermore we need to grab the pointer since plplot owns this window, too.
-  bool grabbed = false;
-  XRaiseWindow(xwd->display, dev->window);
+  int first=0;
   XSelectInput(xwd->display, dev->window, event_mask);
-  unsigned long grab_mask = (EnterWindowMask|LeaveWindowMask|PointerMotionMask|ButtonPressMask | ButtonReleaseMask);
-  if (alreadyInside)  grabbed=(XGrabPointer(xwd->display, dev->window, False, grab_mask,GrabModeAsync,GrabModeAsync,dev->window,None,CurrentTime)==GrabSuccess);
-  XSync(xwd->display, true);  //useful?
+  XRaiseWindow(xwd->display, dev->window);
+  XSync(xwd->display, true);
   while (1) {
     XWindowEvent(xwd->display, dev->window, event_mask, &event);
-
     switch (event.type) {
         int nchars;
         KeySym mykey;
       case EnterNotify:
-          if(!grabbed) grabbed=(XGrabPointer(xwd->display, dev->window, False, grab_mask,GrabModeAsync,GrabModeAsync,None,None,CurrentTime)==GrabSuccess);
+         if(!grabbed) grabbed=(XGrabPointer(xwd->display, dev->window, False, grab_mask,GrabModeAsync,GrabModeAsync,None,None,CurrentTime)==GrabSuccess);
           break;
       case LeaveNotify:
-          XUngrabPointer(xwd->display,CurrentTime);
-          grabbed = false;
-          break;
+       XUngrabPointer(xwd->display,CurrentTime);
+       grabbed = false;
+       break;
       case ButtonRelease:
         gin->pX = event.xbutton.x;
         gin->pY = event.xbutton.y;
@@ -338,8 +436,10 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
         gin->state = event.xkey.state;
         nchars = XLookupString(&event.xkey, gin->string, PL_MAXKEY - 1, &mykey, NULL);
         gin->string[nchars] = '\0';
-        gin->keysym = (unsigned int) mykey;
-        if (gin->state & 4 && (gin->keysym == 67 || gin->keysym == 99)) {
+        gin->keysym = (unsigned int) mykey; 
+        goto end;
+        if (gin->state&0x4 && (gin->keysym==67 || gin->keysym==99)) 
+        {
           status = false;
           goto end;
         }
@@ -405,15 +505,31 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
           if (mode==CHANGE) goto end;
         }
         break;
+      case MotionNotify:
+        gin->pX = event.xmotion.x;
+        gin->pY = event.xmotion.y;
+        gin->state = event.xmotion.state;
+        gin->string[0] = '\0';
+        gin->keysym = 0x20;
+        if (mode==CHANGE) goto end; // crosshair not available if we exit on motion!!!
+        if(event.type==MotionNotify){
+            x=event.xmotion.x; y=event.xmotion.y;
+        }
+        else {
+            x=event.xcrossing.x; y=event.xcrossing.y;
+        }
+        break;
       default:
         break;
     }
   }
-end:
-  if (grabbed) XUngrabPointer(xwd->display,CurrentTime);
+  end: 
   gin->pY = dev->height - gin->pY;
   gin->dX = (PLFLT) gin->pX / (dev->width - 1);
   gin->dY = (PLFLT) gin->pY / (dev->height - 1);
+  if(grabbed)     XUngrabPointer(xwd->display,CurrentTime);
+  if(kbgrabbed)   XUngrabKeyboard(xwd->display,CurrentTime);
+  XFlush(xwd->display);
   return status;
 }
 
