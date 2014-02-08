@@ -175,46 +175,7 @@ void cursor(EnvT* e){
   PLFLT xp, yp;
   PLINT xleng, yleng, xoff, yoff;
   plg->gpage(xp, yp, xleng, yleng, xoff, yoff);
-
-  if (wait == NOWAIT)
-  {
-    if(plg->GetGin(&gin, NOWAIT)==false) return;
-  }
-  else if (wait == CHANGE)
-  {
-    if(plg->GetGin(&gin, WAIT)==false) return;
-    PLFLT RefX, RefY;
-    RefX = gin.pX;
-    RefY = gin.pY;
-    unsigned int refstate=gin.state;
-    while (1)
-    {
-      if(plg->GetGin(&gin, CHANGE)==false) return;
-      if (abs(RefX - gin.pX) > 0 || abs(RefY - gin.pY) > 0)
-      {
-        RefX = gin.pX;
-        RefY = gin.pY;
-        break;
-      }
-      if (gin.state != refstate)
-      {
-        refstate=gin.state;
-        break;
-      }
-    }
-  }
-  else if (wait == DOWN)
-  {
-    if(plg->GetGin(&gin, DOWN)==false) return;
-  }
-  else if (wait == UP)
-  {
-    if(plg->GetGin(&gin, UP)==false) return;
-  }
-  else
-  {
-    if(plg->GetGin(&gin, WAIT)==false) return;
-  }
+  if(plg->GetGin(&gin, wait)==false) return;
   // outside window report -1 -1 at least for DEVICE values
   if (gin.pX < 0 || gin.pX > plg->xPageSize() || gin.pY < 0 || gin.pY > plg->yPageSize())
   {
