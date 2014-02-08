@@ -26,7 +26,7 @@
 ;                  These lines will be discarded as records, but are available
 ;                  with the header keyword
 ;
-;   delimeter      If set (or non equal to ''), the records will be split 
+;   delimiter      If set (or non equal to ''), the records will be split 
 ;                  according to the supplied delimiter locations and the length
 ;                  of the fields is not necessarily the same for all records. 
 ;                  Otherwise, template.fieldlocations will be used to identify 
@@ -99,6 +99,7 @@
 ;   06-APr-2008 : m_schellens: made data_start independent of header
 ;   15-Nov-2011 : A. Coulais : better management of dir/file and
 ;                 missing file
+;   05-Feb-2014 : G. Duvert : avoid unlawful tag names 
 ;
 ;-
 ; LICENCE:
