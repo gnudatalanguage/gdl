@@ -73,6 +73,8 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;   14-Oct-2010 : Correcting Bug in Kurtosis (by Alain C.)
 ;   16-Jun-2012 : Dimension Keyword (by Mathieu Pinter)
 ;   14-Jul-2012 : check ASAP whether Dimension value is OK ... (by Alain C.)
+;   14-Feb-2014 : GD: removed protection against zero-dim x since even zero-dim x
+;                 have a mean (x) and moments (Nan).
 ;
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee
@@ -88,12 +90,11 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;-
 ON_ERROR, 2
 ;
-if (N_ELEMENTS(x) LE 1) then begin
-   MESSAGE, 'Input Array must contain 2 OR more elements.'
-endif
 ;
 ; we don't reuse code in mean.pro, because we need variable n.
-;
+; The following seems to be able to handle zero-size arrays (singletons) correctly,
+; with or without the /dimension keyword used.
+
 if KEYWORD_SET(dimension) then begin
    ;; we check asap whether "dimension" in the good range
    if ((dimension GT SIZE(x, /N_DIMENSION)) || (dimension LT 0)) then begin
@@ -116,9 +117,6 @@ endelse
 ;
 ; if input is : print, MOMENT([1,!values.f_nan],/na)
 ;
-if (TOTAL(n) LE 1) THEN BEGIN
-   MESSAGE, 'Input Array must contain 2 OR more elements.'
-endif
 ; 
 if ~KEYWORD_SET(maxmoment) THEN maxmoment = 4
 ;
