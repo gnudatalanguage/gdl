@@ -26,6 +26,7 @@
 ;
 ; MODIFICATION HISTORY:
 ; 02-Jul-2012: Written by Josh Sixsmith
+; 16-Feb-2014: Better managment of input filenames
 ;
 ; LICENCE:
 ; Copyright (C) 2012, Josh Sixsmith
@@ -404,34 +405,166 @@ RETURN, rfc
 ;
 END
 ;
+; -----------------------------------------------------
+; better managing finding the files (.IMG + .HDR or .IMG.HDR + .IMG)
+;
+function ENVI_SELECT_FILENAME, filename, hname, fname, test=test, debug=debug
+;
+suffixe=STRMID(filename, 3, /reverse_offset)
+files_found=0
+;
+; testing first case: HDR file as input.
+;
+IF (STRCMP(suffixe, '.hdr', /fold_case)) EQ 1 THEN BEGIN
+    ;; path
+    path=FILE_DIRNAME(filename, /mark_directory)
+    if path EQ './' then path=''
+    ;; 
+    bodyname=FILE_BASENAME(filename, '.hdr')
+    fname=FILE_SEARCH(path+bodyname+'.img',/fold)
+    if (STRLEN(fname) EQ 0) then begin
+        mess='No IMG data file found corresponding to HDR header file : '
+        MESSAGE, mess+filename
+    endif
+    if (N_ELEMENTS(fname) GT 1) then begin
+        MESSAGE,/continue, 'More than one IMG data file found, first used !'
+        fname=fname[0]
+    endif
+    hname=filename
+    files_found=1
+endif
+;
+; testing first case: IMG file as input.
+;
+IF (STRCMP(suffixe, '.img', /fold_case)) EQ 1 THEN BEGIN
+    ;; path
+    path=FILE_DIRNAME(filename, /mark_directory)
+    if path EQ './' then path=''
+    ;; 
+    bodyname=FILE_BASENAME(filename, '.img')
+    ;; we use '*.hdr' because we may have '.img.hdr' or '.hdr'
+    hname=FILE_SEARCH(path+bodyname+'*.hdr',/fold)
+    if (STRLEN(hname) EQ 0) then begin
+        mess='No HDR header file found corresponding to IMG data file : '
+        MESSAGE, mess+filename
+    endif
+    if (N_ELEMENTS(hname) GT 1) then begin
+        MESSAGE,/continue, 'More than one HDR header file found, first used !'
+        hname=hname[0]
+    endif
+    fname=filename
+    files_found=1
+endif
+;
+; if just the "file_basename" is provide, do we have the files ?
+;
+if (files_found EQ 0) then begin
+    ;; path
+    path=FILE_DIRNAME(filename, /mark_directory)
+    if path EQ './' then path=''
+    ;; 
+    hname=FILE_SEARCH(filename+'*.hdr',/fold)
+    fname=FILE_SEARCH(filename+'*.img',/fold)
+    ;
+    if (N_ELEMENTS(hname) EQ 0) then $
+      MESSAGE, /cont, 'no HDR header file found with given basename pattern'
+    ;;
+    if (N_ELEMENTS(fname) EQ 0) then $
+      MESSAGE, /cont, 'no IMG data file found with given basename pattern'
+    ;;
+    if ((N_ELEMENTS(hname) EQ 1) AND (N_ELEMENTS(fname) EQ 1)) then begin
+        b1=FILE_BASENAME(hname,'.hdr',/fold)
+        b1bis=FILE_BASENAME(hname,'.img.hdr',/fold)
+        b2=FILE_BASENAME(fname,'.img',/fold)
+        if STRCMP(b1,b2,/fold_case) EQ 1 then files_found=1
+        if STRCMP(b1bis,b2,/fold_case) EQ 1 then files_found=1
+        if files_found EQ 0 then begin
+            MESSAGE, /cont, 'bad files names, please check the input filter'
+        endif
+    endif
+    ;;
+    txt='found, please check input filename'
+    if (N_ELEMENTS(hname) GT 1) then begin
+        MESSAGE, /cont, 'More than one HDR header file '+txt
+    endif
+    if (N_ELEMENTS(fname) GT 1) then begin
+        MESSAGE, /cont, 'More than one IMG data file '+txt
+    endif
+endif
+;
+; Are really the files around ? Are the files void ?
+;
+if (files_found EQ 1) then begin
+    count=0
+    if ~FILE_TEST(fname) then begin
+        count++
+        MESSAGE, /continue, 'IMG data file not found (no file/bad name ?)'
+    endif else begin
+        if FILE_TEST(fname,/zero_length) then begin
+            count++
+            MESSAGE, /continue, 'IMG data file does not contain data !'
+        endif
+    endelse
+    if ~FILE_TEST(hname) then begin
+        count++
+        MESSAGE, /continue, 'HDR header file not found (no file/bad name ?)'
+    endif else begin        
+        if FILE_TEST(hname,/zero_length) then begin
+            count++
+            MESSAGE, /continue, 'HDR header file does not contain data !'
+        endif
+    endelse
+    if (count NE 0) then files_found=0
+endif
+;
+if (files_found GT 0) then begin
+    PRINT, 'IMG data filename   = ', fname
+    PRINT, 'HDR header filename = ', hname
+    PRINT, 'Directory name      = ', FILE_DIRNAME(hname, /mark_directory)
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+return, files_found
+;
+end
+;
 ;-----------------------------------------------------------------------
 ;
-pro READ_ENVI_FILE, filename, image=image, info=info, help=help, test=test
+pro READ_ENVI_FILE, filename, image=image, info=info, $
+                    help=help, test=test, debug=debug
 ;
-ON_ERROR, 2
+if ~KEYWORD_SET(debug) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) THEN BEGIN
-   PRINT, 'pro TEST_READ_ENVI, filename, image=image, info=info, help=help, test=test'
-;
+   PRINT, 'pro TEST_READ_ENVI, filename, image=image, info=info, $'
+   PRINT, '                    help=help, test=test, debug=debug'
    PRINT, ''
    PRINT, 'Reads an ENVI style image format. Set info to a variable'
    PRINT, 'that will contain a structure containing the image'
    PRINT, 'information such as samples, lines, bands, data type etc.'
+   PRINT, ''
+   PRINT, 'Warning : currently, suffixes can be only .IMG for data files and'
+   PRINT, '(.IMG.HRD or .HDR) for Header files [with any Up/Low case combi]'
+   return
 ENDIF
 ;
-IF (STRCMP(STRMID(filename, 2, /reverse_offset), 'hdr', /fold_case)) EQ 1 THEN BEGIN
-   fname = FILE_DIRNAME(filename, /mark_directory) + $
-           FILE_BASENAME(filename, '.hdr') ;, /fold_case) ; fold_case not implemented in gdl yet
-   fname = fname[0]
-   hname = filename
-ENDIF ELSE BEGIN
-   fname = filename
-   hname = fname + '.hdr'
-ENDELSE
+txt='FILENAME (.HDR, .IMG or basename)'
 ;
-PRINT, 'fname = ', fname
-PRINT, 'hname = ', hname
-PRINT, file_dirname(hname, /mark_directory)
+if N_PARAMS() EQ 0 then filename=DIALOG_PICKFILE(filter='*.hdr')
+if N_ELEMENTS(filename) GT 1 then $
+  MESSAGE, 'You can provide only one '+txt+' at once'
+;
+; from a given file name (w/o extension .hrd/.img + w/o path)
+; returning ONE and only one pair of Hname+Fname 
+;
+files_found=ENVI_SELECT_FILENAME(filename, hname, fname, test=test)
+if ~files_found then MESSAGE, 'Please check carrefully the input '+txt
+;
+; after this point, we have one IMG file and one HDR file 
+; (existances checked)
+;
+if KEYWORD_SET(debug) then STOP
 ;
 hdr = READ_HEADER(hname)
 ;
@@ -439,12 +572,12 @@ hdr = READ_HEADER(hname)
 descript = DESCRIPTION(hdr)
 ;
 ;; Get samples, lines, bands, datatype, interleave
-ns = num_samples(hdr)
-nl = num_lines(hdr)
-nb = num_bands(hdr)
+ns = NUM_SAMPLES(hdr)
+nl = NUM_LINES(hdr)
+nb = NUM_BANDS(hdr)
 ;
-dtype    = datatype(hdr)
-intleave = interleave(hdr)
+dtype    = DATATYPE(hdr)
+intleave = INTERLEAVE(hdr)
 ;
 CASE intleave OF
    ;; BSQ Interleaving
