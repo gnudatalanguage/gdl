@@ -121,6 +121,7 @@ void InitStructs()
   SpDFloat  aFloat;
   SpDDouble aDouble;
   SpDLong   aLongArr8( dimension(8));
+  SpDLong64   aLong64Arr8( dimension(8));
   SpDPtr    aPtrRef;
   SpDObj    aObjRef;
 
@@ -178,21 +179,30 @@ void InitStructs()
   structDesc::GDL_HASHTABLEENTRY = gdlHashTE;
   
   // OBJECTS END =======================================================
-
-  
-  
-  DStructDesc* gdl_size = new DStructDesc( "IDL_SIZE");
-  gdl_size->AddTag("TYPE_NAME", &aString);
-  gdl_size->AddTag("STRUCTURE_NAME", &aString);
-  gdl_size->AddTag("TYPE", &aInt);
-  gdl_size->AddTag("FILE_LUN", &aInt);
-  gdl_size->AddTag("FILE_OFFSET",  &aLong);
-  gdl_size->AddTag("N_ELEMENTS",  &aLong);
-  gdl_size->AddTag("N_DIMENSIONS",  &aLong);
-  gdl_size->AddTag("DIMENSIONS",  &aLongArr8);
-  // insert into structList
-  structList.push_back(gdl_size);
-
+   
+  for (int big = 1; big >= 0; --big) 
+  {
+    DStructDesc* gdl_size = new DStructDesc( big ? "IDL_SIZE64" : "IDL_SIZE");
+    gdl_size->AddTag("TYPE_NAME", &aString);
+    gdl_size->AddTag("STRUCTURE_NAME", &aString);
+    gdl_size->AddTag("TYPE", &aInt);
+    gdl_size->AddTag("FILE_LUN", &aInt);
+    if (big) {
+      gdl_size->AddTag("FILE_OFFSET",  &aLong64);
+      gdl_size->AddTag("N_ELEMENTS",  &aLong64);
+    } else {
+      gdl_size->AddTag("FILE_OFFSET",  &aLong);
+      gdl_size->AddTag("N_ELEMENTS",  &aLong);
+    }
+    gdl_size->AddTag("N_DIMENSIONS",  &aLong);
+    if (big) {
+      gdl_size->AddTag("DIMENSIONS",  &aLong64Arr8);
+    } else {
+      gdl_size->AddTag("DIMENSIONS",  &aLongArr8);
+    }
+    // insert into structList
+    structList.push_back(gdl_size);
+  }
 
   for (int big = 1; big >= 0; --big) 
   {

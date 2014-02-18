@@ -109,8 +109,14 @@ namespace lib {
     // STRUCTURE
     } else if( e->KeywordSet(STRUCTUREIx)) { 
 
+      DStructGDL* res;
 
-      DStructGDL* res = new DStructGDL( "IDL_SIZE");
+      if (e->KeywordSet(L64Ix)) {
+	res = new DStructGDL( "IDL_SIZE64");
+      } else {
+	res = new DStructGDL( "IDL_SIZE");
+      }
+      
       if ( p0 == NULL) return res;
 
       DString tname;
@@ -127,23 +133,31 @@ namespace lib {
 	sname = "";
       }
 
-
-      DLongGDL *dims_res = new DLongGDL(dimension(MAXRANK), BaseGDL::ZERO);      
-
-      // Initialize dimension values to 0
-      for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-      for( SizeT i=0; i<Rank; ++i) {
-	(*dims_res)[ i] = p0->Dim(i);
-      }
-
       res->InitTag("TYPE_NAME", DStringGDL(tname));
       res->InitTag("STRUCTURE_NAME", DStringGDL(sname));
       res->InitTag("TYPE", DIntGDL(vType));
       res->InitTag("FILE_LUN", DIntGDL(0));
-      res->InitTag("FILE_OFFSET", DLongGDL(0));
-      res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
+      if (e->KeywordSet(L64Ix)) {
+	res->InitTag("FILE_OFFSET", DLong64GDL(0));
+	res->InitTag("N_ELEMENTS",  DLong64GDL(nEl));
+      } else {
+	res->InitTag("FILE_OFFSET", DLongGDL(0));
+	res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
+      }
       res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
-      res->InitTag("DIMENSIONS",  *dims_res);
+
+      // Initialize dimension values to 0
+      if (e->KeywordSet(L64Ix)) {
+	DLong64GDL *dims_res = new DLong64GDL(dimension(MAXRANK), BaseGDL::ZERO);
+	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	res->InitTag("DIMENSIONS",  *dims_res);
+      } else {
+	DLongGDL *dims_res = new DLongGDL(dimension(MAXRANK), BaseGDL::ZERO);	
+	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	res->InitTag("DIMENSIONS",  *dims_res);
+      }
 
       return res;
       //e->Throw( "STRUCTURE not supported yet.");
