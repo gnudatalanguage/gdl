@@ -435,7 +435,8 @@ namespace lib {
 #ifdef _MSC_VER
     HMODULE handle =  LoadLibrary((LPCSTR)image.c_str());
 #else
-    void* handle =  dlopen(image.c_str(),  RTLD_NOW | RTLD_GLOBAL);
+    // you MUST keep the double "||" to have CALL_EXTERNAL working
+    void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
 #endif
     if (handle == NULL) {
 #ifndef _MSC_VER
