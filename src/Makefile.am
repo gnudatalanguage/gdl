@@ -9,7 +9,8 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		basic_pro_jmg.cpp basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp \
 		cformat.g color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
 		datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
-		deviceps.hpp devicesvg.hpp devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
+		deviceps.hpp devicesvg.hpp devicewin.hpp devicex.hpp devicenull.hpp \
+		dimension.hpp dinterpreter.cpp \
 		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp \
 		dstructdesc.cpp \
 		dstructdesc.hpp dstructgdl.cpp dstructgdl.hpp dvar.cpp dvar.hpp envt.cpp envt.hpp \

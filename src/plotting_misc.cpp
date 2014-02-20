@@ -35,8 +35,10 @@ namespace lib
     device=StrUpCase(device);
 
     bool success=GraphicsDevice::SetDevice(device);
-    if ( !success )
+    if ( !success ) {
+      GraphicsDevice::ListDevice();
       e->Throw("Device not supported/unknown: "+device);
+    }
 
     if ( device=="PS" ||device=="SVG" )
     {

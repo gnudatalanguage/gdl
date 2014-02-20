@@ -193,6 +193,10 @@ namespace lib {
     // all steps combined (virtual methods cannot be called from ctor)
     public: void call(EnvT* e, SizeT n_params_required) // {{{
     {
+      // when !d.name == Null  we do nothing !
+      DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+      if (name == "NULL") return;
+
       _nParam = e->NParam(n_params_required);
 
       overplot = handle_args(e);
@@ -202,7 +206,7 @@ namespace lib {
       //double buffering kills the logic and operation of XOR modes. Use HasSafeDoubleBuffering() that tests this feature.)
       isDB = actStream->HasSafeDoubleBuffering();
       if (isDB) actStream->SetDoubleBuffering();
-      DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+
       if (name == "X") 
       {       
           actStream->updatePageInfo(); //since window size can change

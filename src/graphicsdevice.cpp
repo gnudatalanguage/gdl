@@ -30,6 +30,7 @@ renamed from: graphics.cpp
 #include "deviceps.hpp"
 #include "devicesvg.hpp"
 #include "devicez.hpp"
+#include "devicenull.hpp"
 #include "initsysvar.hpp"
 #include "color.hpp"
 
@@ -122,6 +123,14 @@ GraphicsDevice::GraphicsDevice(): dStruct( NULL)
 {
 }
 
+void GraphicsDevice::ListDevice()
+{
+  int size = deviceList.size();
+  cout << "Available Graphics Devices: ";
+  for( int i=0; i<size; i++) cout << deviceList[ i]->Name() << " ";
+  cout << endl;
+}
+
 bool GraphicsDevice::SetDevice( const string& device)
 {
   int size = deviceList.size();
@@ -156,6 +165,7 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
+  deviceList.push_back( new DeviceNULL());
 
 #ifdef _MSC_VER
   if( !SetDevice( "WIN")) 
@@ -173,6 +183,8 @@ void GraphicsDevice::Init()
     exit( EXIT_FAILURE);
     }
 #  endif 
+
+    //    cout << "pb here "<< (*deviceList)[0]  << endl;
 
   actGUIDevice = deviceList[0];
 }
