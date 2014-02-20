@@ -445,6 +445,15 @@ namespace lib {
       help_path_cached();
       return;
     }
+
+    static int deviceKWIx = e->KeywordIx("DEVICE");
+    bool deviceKW = e->KeywordPresent(deviceKWIx);
+    if( deviceKW) {
+      GraphicsDevice::ListDevice();     
+      DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+      cout << "Current graphics device: " << name << endl;
+      return;
+    }
     
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
