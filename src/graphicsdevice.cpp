@@ -131,6 +131,21 @@ void GraphicsDevice::ListDevice()
   cout << endl;
 }
 
+bool GraphicsDevice::ExistDevice( const string& device, int &index)
+{
+  index=-1;
+  int size = deviceList.size();
+  for( int i=0; i<size; i++)
+    {
+      if( deviceList[ i]->Name() == device)
+	{
+	  index=i;
+	  return true;
+	}
+    }
+  return false;
+}
+
 bool GraphicsDevice::SetDevice( const string& device)
 {
   int size = deviceList.size();
@@ -155,38 +170,51 @@ void GraphicsDevice::Init()
 
   DefineDStructDesc();
 
-#ifdef _MSC_VER
-  deviceList.push_back( new DeviceWIN());
-#else
-#  ifdef HAVE_X
-  deviceList.push_back( new DeviceX());
-#  endif
-#endif
+  // 4 devices types without surprise !
+  deviceList.push_back( new DeviceNULL());
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
-  deviceList.push_back( new DeviceNULL());
 
+#ifdef _MSC_VER
+  deviceList.push_back( new DeviceWIN());
+#else
+  #  ifdef HAVE_X
+  deviceList.push_back( new DeviceX());
+  #  endif
+#endif
+
+  // we try to set WIN or X as default 
+  // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
 #ifdef _MSC_VER
   if( !SetDevice( "WIN")) 
 #else
 #  ifndef HAVE_X
+    if( !SetDevice( "NULL")) 
 #  else
-  if( !SetDevice( "X")) 
+    if( !SetDevice( "X")) 
 #  endif
 #endif
 #  ifndef HAVE_X
-    {}
+      {}
 #  else
-    {
+  {
     cerr << "Error initializing graphics." << endl;
     exit( EXIT_FAILURE);
+  }
+#  endif
+
+  int index=0;
+  // setting the GUI dev. (before, X/win was the first but X might be not defined now
+  if (ExistDevice( "WIN", index)) {
+    actGUIDevice = deviceList[index];
+  } else {
+    if (ExistDevice( "X", index)) {
+      actGUIDevice = deviceList[index];
+    } else {
+      actGUIDevice = deviceList[0];
     }
-#  endif 
-
-    //    cout << "pb here "<< (*deviceList)[0]  << endl;
-
-  actGUIDevice = deviceList[0];
+  }
 }
 
 void GraphicsDevice::DestroyDevices()

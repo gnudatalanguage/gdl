@@ -37,6 +37,11 @@ namespace lib
     bool success=GraphicsDevice::SetDevice(device);
     if ( !success ) {
       GraphicsDevice::ListDevice();
+#ifndef _MSC_VER
+      if (device=="X") {
+	cout << "This system seems to be a X11 capable one where GDL was compiled without X11 lib." << endl;
+      }
+#endif
       e->Throw("Device not supported/unknown: "+device);
     }
 

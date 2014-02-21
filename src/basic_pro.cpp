@@ -99,6 +99,7 @@
 #include "io.hpp"
 #include "basic_pro.hpp"
 #include "semshm.hpp"
+#include "graphicsdevice.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #  include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?

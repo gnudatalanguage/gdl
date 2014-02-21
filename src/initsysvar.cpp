@@ -55,7 +55,7 @@ namespace SysVar
 
   // !D structs
   const int nDevices = 5;
-  DStructGDL* devices[ 5]; // NULL, X or WIN, PS, Z, SVG
+  DStructGDL* devices[ 5]; // NULL, PS, Z, SVG, (X or WIN or nothing)
 
   // !STIME
   const SizeT MAX_STIME_STRING_LENGTH=80;
