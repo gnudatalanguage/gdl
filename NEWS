@@ -626,3 +626,5 @@
            - initial import of NetCDF-4 related codes:
              NCDF_GROUPSINQ, NCDF_GROUPNAME, NCDF_GROUPDEF, NCDF_FULLGROUPNAME,
              NCDF_GROUPPARENT, NCDF_DIMIDSINQ, NCDF_NCIDINQ, NCDF_VARIDSINQ
+           - introducing the NULL device type, better result on Unix like system without X11 (e.g. computing nodes on HPC)
+
