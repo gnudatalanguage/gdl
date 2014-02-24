@@ -358,7 +358,11 @@ namespace lib
       bool stopClip=false;
       if ( doClip )  if ( startClipping(e, actStream, true)==TRUE ) stopClip=true;
       //properties
-      gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
+      if (!doColor || color->N_Elements() == 1){ //if no KW or only 1 color, no need to complicate things
+                                                //at draw_polyline level!
+        gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
+        doColor=false;
+      }
       gdlGetPsym(e, psym); //PSYM
       if (psym==10) e->Throw("PSYM (plotting symbol) out of range"); //not allowed for PLOTS!
       gdlSetLineStyle(e, actStream); //LINESTYLE

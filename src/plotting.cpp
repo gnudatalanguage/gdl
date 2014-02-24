@@ -1380,14 +1380,15 @@ namespace lib
                                            DLong psym, bool append, DLongGDL *color)
   {
     bool docolor=(color != NULL);
-    //if docolor, do we really have more than one color?
-    if (docolor) if (color->N_Elements() == 1) {
-      a->Color ( (*color)[0] );
-      docolor=false;
-    } 
+ 
     // Get decomposed value for colors
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-    
+    //if docolor, do we really have more than one color?
+    if (docolor) if (color->N_Elements() == 1) { //do the job once and forget it after.
+      a->Color ( ( *color )[0], decomposed, 2);
+      docolor=false;
+      
+    }    
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"draw_polyline()\n");
     SizeT plotIndex=0;
     bool line=false;
