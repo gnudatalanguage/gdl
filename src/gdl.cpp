@@ -119,9 +119,10 @@ void InitGDL()
   rl_initialize();
   char rlName[] = "GDL";
   rl_readline_name = rlName;
-  //removed our handler. takes too long and is called each time we stop the cursor
-  //when editing the command line. (bug 562). used also in dinterpreted.cpp 
-//  rl_event_hook = GDLEventHandler;
+  //Our handler takes too long
+  //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
+  //but... without it we have no graphics event handler! FIXME!!! 
+  rl_event_hook = GDLEventHandler;
   // SA: history is now stifled in the interpreter.InterpreterLoop( startup),
   //     enabling one to set the history-file length via the !EDIT_INPUT sysvar
   // stifle_history( 20);

@@ -1571,9 +1571,10 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
   // http://www.delorie.com/gnu/docs/readline/rlman.html
   char rlName[] = "GDL";
   rl_readline_name = rlName;
-  //removed our handler. takes too long and is called each time we stop the cursor
-  //when editing the command line. (bug 562). used also in gdl.cpp 
-  //rl_event_hook = GDLEventHandler;
+  //Our handler takes too long
+  //when editing the command line with ARROW keys. (bug 562). (used also in gdl.cpp)
+  //but... without it we have no graphics event handler! FIXME!!!
+  rl_event_hook = GDLEventHandler;
   {
     int edit_input = SysVar::Edit_Input();
     stifle_history(edit_input == 1 || edit_input < 0 ? 200 : edit_input);
