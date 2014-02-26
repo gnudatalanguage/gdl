@@ -28,7 +28,8 @@ namespace lib {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     int maxWin = actDevice->MaxWin();
     if( maxWin == 0)
-      e->Throw( "Routine is not defined for current graphics device.");
+      e->Throw( "Routine is not defined for current "
+		"graphics device.");
 
     SizeT nParam=e->NParam();
 
@@ -86,13 +87,23 @@ namespace lib {
 
     int debug=0;
     if (debug) {
+      cout << "input values :"<< endl;
       cout << "xPos/yPos   :"<<  xPos << " " << yPos << endl;
-      cout << "xSize/ySize :"<<  xSize << " " << ySize << endl;
+      cout << "xSize/ySize :"<<  xSize << " " << ySize << endl;      
     }
-    if( xSize <= 0 || ySize <= 0 || xPos < -1 || yPos < -1) //NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!
-      e->Throw(  "Unable to create window "
-		 "(BadValue (integer parameter out of range for "
-		 "operation)).");
+    
+    if (xSize < 0) xSize=10000;
+    if (ySize < 0) ySize=10000;
+
+
+//NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!   
+
+// AC 2014/02/26: this seems to be not need as long as xSize/ySize > 0
+// which is done above
+
+//    if( xSize <= 0 || ySize <= 0 || xPos < -1 || yPos < -1)
+//      e->Throw(  "Unable to create window "
+//		 "(BadValue (integer parameter out of range for operation)).");
     
     bool success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
@@ -113,9 +124,6 @@ namespace lib {
   void wset( EnvT* e)
   {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    int maxWin = actDevice->MaxWin();
-    if( maxWin == 0)
-      e->Throw( "Routine is not defined for current graphics device.");
 
     SizeT nParam=e->NParam();
     DLong wIx = 0;
@@ -156,9 +164,6 @@ namespace lib {
   void wshow( EnvT* e)
   {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    int maxWin = actDevice->MaxWin();
-    if( maxWin == 0)
-      e->Throw( "Routine is not defined for current graphics device.");
 
     SizeT nParam=e->NParam();
     DLong wIx = 0;
@@ -192,9 +197,6 @@ namespace lib {
   void wdelete( EnvT* e)
   {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    int maxWin = actDevice->MaxWin();
-    if( maxWin == 0)
-      e->Throw( "Routine is not defined for current graphics device.");
 
     SizeT nParam=e->NParam();
     if( nParam == 0)
