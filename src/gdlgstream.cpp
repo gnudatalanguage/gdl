@@ -175,6 +175,15 @@ void GDLGStream::NoSub()
 //  DefaultCharSize();
 }
 
+void GDLGStream::GetX11Depth( int& depth)
+{
+  // nothing to do
+}
+void GDLGStream::GetX11Geometry( long& xSize, long& ySize, long& xoff, long& yoff)
+{
+  // nothing to do
+}
+
 // default is a wrapper for gpage(). Is overriden by, e.g., X driver.
 void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 {

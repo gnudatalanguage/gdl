@@ -104,31 +104,84 @@ void GDLXStream::EventHandler() {
   plstream::cmd(PLESC_EH, NULL);
 }
 
-void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
-  // plplot does not return the real size
+void GDLXStream::GetX11Depth(int &depth){
+
+  int debug=0;
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;  
+  XWindowAttributes win_attributes;
+
+  /* query the window's attributes. */
+  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
+
+  if (debug) printf("  Depth: %d\n", win_attributes.depth);
+  depth=win_attributes.depth;
+
+}
+
+void GDLXStream::GetX11Geometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+
+  int debug=0;
+
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
 
-  XWindowAttributes win_attr;
+  XWindowAttributes win_attributes;
+
+  /* query the full display (screen)'s attributes. */
+  int screen_num, screen_width, screen_height;
+  screen_num = DefaultScreen(xwd->display);
+  screen_width = DisplayWidth(xwd->display, screen_num);
+  screen_height = DisplayHeight(xwd->display, screen_num);
 
   /* query the window's attributes. */
-  Status rc = XGetWindowAttributes(xwd->display,
-          dev->window,
-          &win_attr);
-  xSize = win_attr.width;
-  ySize = win_attr.height;
-  xoff = win_attr.x; //false with X11
-  yoff = win_attr.y; //false with X11
-  PLFLT xp;
-  PLFLT yp;
-  PLINT xleng;
-  PLINT yleng;
-  PLINT plxoff;
-  PLINT plyoff;
+  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
+
+  xSize = win_attributes.width;
+  ySize = win_attributes.height;
+  
+  int rx, ry;
+  Window junkwin;
+
+  /* recovering the true offset */
+  (void) XTranslateCoordinates (xwd->display, dev->window, win_attributes.root, 
+				-win_attributes.border_width,
+				-win_attributes.border_width,
+				&rx, &ry, &junkwin);
+  xoff=(long)rx;
+  yoff=(long)(screen_height-ry-win_attributes.height);
+  
+  if (debug) {
+    cout << "---- Begin Inside GetX11Geometry ----" << endl;
+    cout << "display size : " << screen_width << " " << screen_height << endl;
+    cout << "win_attributes W/H: " << win_attributes.width << " " << win_attributes.height << endl;
+    cout << "win_attributes border width: " << win_attributes.border_width << endl;
+    cout << "win_attributes X/Y: " << win_attributes.x << " " << win_attributes.y << endl;
+    cout << "RX/RY: " << rx << " " << ry << endl;
+    cout << "results: " << endl;
+    cout << "xSize/ySize: " << xSize << " " << ySize << endl;
+    cout << "xoff/yoff: " << xoff << " " << yoff << endl;
+    cout << "---- End Inside GetX11Geometry ----" << endl;
+  }
+
+}
+
+void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+
+  PLFLT xp, yp;
+  PLINT xleng, yleng;
+  PLINT plxoff, plyoff;
+
   plstream::gpage(xp, yp, xleng, yleng, plxoff, plyoff);
-  //warning neither X11 nor plplot give the good value for the position of the window!!!!
+
+  xSize=xleng;
+  ySize=yleng;
+
+  //warning neither X11 nor plplot give directly the good value for the position of the window!!!!
+  // you need to recover it using XQueryTree() or XTranslateCoordinates (see GDLXStream::GetX11Geometry() above)
   xoff = plxoff; //not good either!!!
   yoff = plyoff; // idem
+
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
 }
 

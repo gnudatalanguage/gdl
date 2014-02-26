@@ -25,42 +25,109 @@ namespace lib {
 
   void device( EnvT* e)
   {
+
+    int debug=0;
+
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+
+    // get the device name in {NULL, SVG, PS, Z, (WIN or X or nothing if X not available)}
+    DStructGDL* dStruct = SysVar::D();
+    static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+    DString d_name = (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
+    
+
     // GET_PAGE_SIZE ?
     // GET_PIXEL_DEPTH ?
+
+    static int get_pixel_depthIx = e->KeywordIx("GET_PIXEL_DEPTH");
+    if( e->KeywordPresent(get_pixel_depthIx))
+      {
+	if (d_name != "Z") {
+	  e->Throw("GET_PIXEL_DEPTH keyword is defined only for Z device type.");
+	} else {
+	  e->Throw("GET_PIXEL_DEPTH keyword not ready, sorry, please contribute.");
+	}
+      }
+
+    static int get_visual_depthIx = e->KeywordIx("GET_VISUAL_DEPTH");
+    if( e->KeywordPresent(get_visual_depthIx))
+      {
+	  e->Throw("GET_VISUAL_DEPTH keyword soon available !");
+      }
+
     // GET_VISUAL_NAME ?
     // GET_WRITE_MASK ? 
     
-    // GET_SCREEN_SIZE {{{
-    {
-      static int get_screen_sizeIx = e->KeywordIx( "GET_SCREEN_SIZE");
-      if( e->KeywordPresent( get_screen_sizeIx))
-      {
-#ifndef HAVE_X
-        e->Throw("GDL was compiled without support for X-windows");
-#else
-	// see below in Function "get_scren_size()" explanations ...
-	Display* display = XOpenDisplay(NULL);
-	if (display == NULL)
-	  e->Throw("Cannot connect to X server");
-	
-	int screen_num;
-	int screen_width;
-	int screen_height;
-	screen_num = DefaultScreen(display);
-	screen_width = DisplayWidth(display, screen_num);
-	screen_height = DisplayHeight(display, screen_num);
+    // GET_SCREEN_SIZE and GET_WINDOW_POSITION (both need to know full screen size)
 
-	DIntGDL* res;
-	res = new DIntGDL(2, BaseGDL::NOZERO);
+    static int get_screen_sizeIx = e->KeywordIx("GET_SCREEN_SIZE");
+    static int window_positionIx = e->KeywordIx("GET_WINDOW_POSITION");
     
-	(*res)[0]= screen_width;
-	(*res)[1]= screen_height;
-	e->SetKW( get_screen_sizeIx, res);
+    if( e->KeywordPresent( get_screen_sizeIx) || e->KeywordPresent(window_positionIx))
+      {
+	// these 2 keywords should work only for X and WIN
+
+	if ((d_name != "WIN") && (d_name != "X")) {
+	  if (e->KeywordPresent(get_screen_sizeIx)) 
+	    e->Throw("GET_SCREEN_SIZE keyword not define for device type "+d_name);
+	  if (e->KeywordPresent(window_positionIx))
+	    e->Throw("GET_WINDOW_POSITION keyword not define for device type "+d_name);
+	}
+
+	if (d_name == "WIN") {
+	  if (e->KeywordPresent(get_screen_sizeIx))
+	    e->Throw("GET_SCREEN_SIZE keyword not ready for WIN device type, please contribute.");
+	  if (e->KeywordPresent(window_positionIx))
+	    e->Throw("GET_WINDOW_POSITION keyword not ready for WIN device type, please contribute.");
+	}
+
+	if (d_name == "X") {
+#ifndef HAVE_X
+	  e->Throw("GDL was compiled without support for X-windows");
+#else
+	  // see in Function "get_scren_size()" explanations ...
+	  Display* display = XOpenDisplay(NULL);
+	  if (display == NULL)
+	    e->Throw("Cannot connect to X server");
+	  
+	  int screen_num, screen_width, screen_height;
+	  screen_num = DefaultScreen(display);
+	  screen_width = DisplayWidth(display, screen_num);
+	  screen_height = DisplayHeight(display, screen_num);
+	  if (debug) fprintf(stderr, "Screen Size (%i %i)\n", screen_width, screen_height);
+	  
+	  if (e->KeywordPresent(get_screen_sizeIx))
+	    {
+	      DIntGDL* res;
+	      res = new DIntGDL(2, BaseGDL::NOZERO);
+	      (*res)[0]= screen_width;
+	      (*res)[1]= screen_height;
+	      e->SetKW( get_screen_sizeIx, res);
+	    }
+	  if (e->KeywordPresent(window_positionIx))
+	    {
+	      PLINT xleng, yleng, xoff, yoff;
+	      bool success;
+	      if (actDevice->GetStream() != NULL) 
+		{
+		  GDLGStream* actStream = actDevice->GetStream();
+		  long xSize,ySize,xOff,yOff;
+		  actStream->GetX11Geometry(xSize,ySize,xOff,yOff);
+		  if (debug) cout << "GetX11Geo :" << xSize <<" "<< ySize <<" "<< xOff <<" "<< yOff << endl;
+
+		  DIntGDL* res;
+		  res = new DIntGDL(2, BaseGDL::NOZERO);
+		  (*res)[0]= xOff;
+		  (*res)[1]= yOff;
+		    e->SetKW( window_positionIx, res);
+		}
+	      else {
+		e->Throw("Unable to open at least one window !");
+	      }
+	    }
 #endif
+	}
       }
-    }
-    // }}}
 
     // WINDOW_STATE kw {{{
     { 
@@ -410,32 +477,6 @@ namespace lib {
           success = actDevice->SetEncapsulated(true);
         if (!success) e->Throw( "Current device does not support keyword ENCAPSULATED.");
       } 
-    }
-    // }}}
-
-    // WINDOW_POSITION kw {{{
-    { 
-      static int window_positionIx = e->KeywordIx( "GET_WINDOW_POSITION");
-      if (e->KeywordPresent(window_positionIx))
-      {
-        // check if X (could be more elegant...)
-        DStructGDL* dStruct = SysVar::D();
-        static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
-        DString d_name = (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
-        // if PS and not noErase (ie, erase) then set !p.noerase=0    
-        if (d_name != "X") e->Throw("WINDOW_POSITION not supported for the current device (" + d_name + "), it works for X only");
-
-        PLINT xleng; PLINT yleng;
-        PLINT xoff; PLINT yoff;
-        bool success = actDevice->WSize( actDevice->ActWin() ,&xleng, &yleng, &xoff, &yoff);
-        if (success) {
-            DIntGDL* res;
-            res = new DIntGDL(2, BaseGDL::NOZERO);
-            (*res)[0]= xoff;
-            (*res)[1]= yoff;
-            e->SetKW( window_positionIx, res);
-        }
-      }
     }
     // }}}
 

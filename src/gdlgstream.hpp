@@ -231,6 +231,8 @@ public:
   virtual void Update() {}
   
   virtual void EventHandler() {}
+  virtual void GetX11Depth( int & depth);
+  virtual void GetX11Geometry( long& xSize, long& ySize, long& xoff, long& yoff);
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 
   virtual void eop()          { plstream::eop();}

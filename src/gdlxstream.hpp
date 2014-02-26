@@ -45,8 +45,10 @@ public:
 
   static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
+  void GetX11Depth(int &depth);
+  void GetX11Geometry( long& xSize, long& ySize, long& xoff, long& yoff);
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-
+  
   void Clear();
   void Clear( DLong bColor);
   void Raise();
