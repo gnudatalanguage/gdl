@@ -175,7 +175,7 @@ void GDLGStream::NoSub()
 //  DefaultCharSize();
 }
 
-void GDLGStream::Get_X11_VisualClassName(string &VisualClassName)
+void GDLGStream::Get_X11_VisualClassName(std::string &VisualClassName)
 {
   // nothing to do
 }

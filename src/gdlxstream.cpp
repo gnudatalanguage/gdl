@@ -152,7 +152,7 @@ void GDLXStream::EventHandler() {
   plstream::cmd(PLESC_EH, NULL);
 }
 
-void GDLXStream::Get_X11_VisualClassName(string &VisualClassName){
+void GDLXStream::Get_X11_VisualClassName(std::string &VisualClassName){
 
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;  
@@ -168,7 +168,7 @@ void GDLXStream::Get_X11_VisualClassName(string &VisualClassName){
   vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
 
   // in very old X11 code, "c_class" is "class" which cannot compile within C++
-  VisualClassName=string(Lookup(vinfo->c_class, _visual_classes));
+  VisualClassName=std::string(Lookup(vinfo->c_class, _visual_classes));
 
   int debug=0;
   if (debug)

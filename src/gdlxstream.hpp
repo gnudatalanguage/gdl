@@ -45,7 +45,7 @@ public:
 
   static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
-  void Get_X11_VisualClassName(string &VisualClassName);
+  void Get_X11_VisualClassName(std::string &VisualClassName);
   void Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset);
 
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);

@@ -232,7 +232,7 @@ public:
   
   virtual void EventHandler() {}
 
-  virtual void Get_X11_VisualClassName(string &VisualClassName);
+  virtual void Get_X11_VisualClassName(std::string &VisualClassName);
   virtual void Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset);
 
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
