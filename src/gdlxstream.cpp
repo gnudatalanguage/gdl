@@ -28,6 +28,54 @@ using namespace std;
 
 // bool GDLXStream::plstreamInitCalled = false;
 
+
+// the code below (up to "binding _visual_classes") is extracted from "xwininfo.c"
+// xwininfo.c - MIT Project Athena, X Window system window information utility.
+// Author: Mark Lillibridge, MIT Project Athena	16-Jun-87
+ /* 
+ * Lookup: lookup a code in a table.
+ */
+typedef struct {
+	long code;
+	char *name;
+} binding;
+
+static char _lookup_buffer[100];
+
+char *LookupL(long code, binding * table)
+{
+  char *name;
+  
+  sprintf(_lookup_buffer, "unknown (code = %ld. = 0x%lx)", code, code);
+  name = _lookup_buffer;
+  
+  while (table->name) {
+    if (table->code == code) {
+      name = table->name;
+      break;
+    }
+    table++;
+  }  
+  return(name);
+}
+
+char *Lookup(int code, binding *table)
+{
+  return LookupL((long)code, table);
+}
+
+static binding _visual_classes[] = {
+  { StaticGray, "StaticGray" },
+  { GrayScale, "GrayScale" },
+  { StaticColor, "StaticColor" },
+  { PseudoColor, "PseudoColor" },
+  { TrueColor, "TrueColor" },
+  { DirectColor, "DirectColor" },
+  { 0, 0 }};
+
+// end of code copy from "xwininfo.c"
+
+
 void GDLXStream::Init() {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
   {
@@ -104,9 +152,8 @@ void GDLXStream::EventHandler() {
   plstream::cmd(PLESC_EH, NULL);
 }
 
-void GDLXStream::GetX11Depth(int &depth){
+void GDLXStream::Get_X11_VisualClassName(string &VisualClassName){
 
-  int debug=0;
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;  
   XWindowAttributes win_attributes;
@@ -114,14 +161,24 @@ void GDLXStream::GetX11Depth(int &depth){
   /* query the window's attributes. */
   Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
 
-  if (debug) printf("  Depth: %d\n", win_attributes.depth);
-  depth=win_attributes.depth;
+  /* need some works to go to Visual Name */
+  int junk;
+  XVisualInfo vistemplate, *vinfo; 
+  vistemplate.visualid = XVisualIDFromVisual(win_attributes.visual);
+  vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
 
-}
-
-void GDLXStream::GetX11Geometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+  // in very old X11 code, "c_class" is "class" which cannot compile within C++
+  VisualClassName=string(Lookup(vinfo->c_class, _visual_classes));
 
   int debug=0;
+  if (debug)
+    {
+      printf("Depth: %d\n", win_attributes.depth);
+      printf("Visual Class (2): %s\n", VisualClassName.c_str());
+    }
+}
+
+void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
@@ -139,7 +196,8 @@ void GDLXStream::GetX11Geometry(long& xSize, long& ySize, long& xoff, long& yoff
 
   xSize = win_attributes.width;
   ySize = win_attributes.height;
-  
+  int junk;
+
   int rx, ry;
   Window junkwin;
 
@@ -148,9 +206,10 @@ void GDLXStream::GetX11Geometry(long& xSize, long& ySize, long& xoff, long& yoff
 				-win_attributes.border_width,
 				-win_attributes.border_width,
 				&rx, &ry, &junkwin);
-  xoff=(long)rx;
-  yoff=(long)(screen_height-ry-win_attributes.height);
+  xOffset=(long)rx;
+  yOffset=(long)(screen_height-ry-win_attributes.height);
   
+  int debug=0;
   if (debug) {
     cout << "---- Begin Inside GetX11Geometry ----" << endl;
     cout << "display size : " << screen_width << " " << screen_height << endl;
@@ -160,29 +219,29 @@ void GDLXStream::GetX11Geometry(long& xSize, long& ySize, long& xoff, long& yoff
     cout << "RX/RY: " << rx << " " << ry << endl;
     cout << "results: " << endl;
     cout << "xSize/ySize: " << xSize << " " << ySize << endl;
-    cout << "xoff/yoff: " << xoff << " " << yoff << endl;
+    cout << "xOffset/yOffset: " << xOffset << " " << yOffset << endl;
     cout << "---- End Inside GetX11Geometry ----" << endl;
   }
 
 }
 
-void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
   PLFLT xp, yp;
   PLINT xleng, yleng;
-  PLINT plxoff, plyoff;
+  PLINT plxOffset, plyOffset;
 
-  plstream::gpage(xp, yp, xleng, yleng, plxoff, plyoff);
+  plstream::gpage(xp, yp, xleng, yleng, plxOffset, plyOffset);
 
   xSize=xleng;
   ySize=yleng;
 
   //warning neither X11 nor plplot give directly the good value for the position of the window!!!!
   // you need to recover it using XQueryTree() or XTranslateCoordinates (see GDLXStream::GetX11Geometry() above)
-  xoff = plxoff; //not good either!!!
-  yoff = plyoff; // idem
+  xOffset = plxOffset; //not good either!!!
+  yOffset = plyOffset; // idem
 
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xOffset, yOffset);
 }
 
 // plplot 5.3 does not provide the clear function for c++

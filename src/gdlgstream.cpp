@@ -175,11 +175,11 @@ void GDLGStream::NoSub()
 //  DefaultCharSize();
 }
 
-void GDLGStream::GetX11Depth( int& depth)
+void GDLGStream::Get_X11_VisualClassName(string &VisualClassName)
 {
   // nothing to do
 }
-void GDLGStream::GetX11Geometry( long& xSize, long& ySize, long& xoff, long& yoff)
+void GDLGStream::Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset)
 {
   // nothing to do
 }
