@@ -2950,33 +2950,26 @@ TRACEOMP( __FILE__, __LINE__)
   bool dateToJD(DDouble &jd, DLong &day, DLong &month, DLong &year, DLong &hour, DLong &minute, DDouble &second)
   {   
     if (year < -4716 || year > 5000000 || year==0 ) return false;
-    if (month < 1 || month > 12) return false;
-    if (day < 0 || day > 31) return false;
 
-    // the following tests seem to be NOT active ...
-
+    // the following tests seem to be NOT active in IDL. We choose to mimic it.
+    //    if (month < 1 || month > 12) return false;
+    //    if (day < 0 || day > 31) return false;
+    //these one too...
     // if (hour < 0 || hour > 24) return false;
     // if (minute < 0 || minute > 60) return false;
     // if (second < 0 || second > 60) return false;
 
-//    fprintf(stderr,"Day %d, Month %d Year %d, Hour %d Minute %d Second %f\n",
-//            day, month, year, hour, minute, second);
-    DDouble a,y,b,c;
+    DDouble a,y,b;
     DLong m;
-    y=(year>0)?year:year+1; //formula below is for *astronomical calendar* where year 0 exists.
-    // but it appears that we use here a calendar with no year 0
+    y=(year>0)?year:year+1; //we use here a calendar with no year 0 (not astronomical)
     m=month;
     b=0.0;
-    c=0.0;
     if (month <= 2)
     {
       y=y-1.0;
       m=m+12;
     }
-    if (y < 0)
-    {
-      c=-0.75;
-    } else {
+    if (y >= 0) {
        if (year > 1582  ||  (year == 1582 &&  (month > 10  ||
                (month == 10 && day > 14)))) {
           a=floor(y/100.0);
@@ -2986,10 +2979,8 @@ TRACEOMP( __FILE__, __LINE__)
           return true;
        }
     }
-    jd=ceil(365.25*y+c)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
+    jd=floor(365.25*y)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
     (second*1.0)/86400.0+1720994.50+b;
-    if (y > 0) jd--; //for some obscure reason
-    //    cout << "jd :" << jd << endl;
     return true;
   }
   
@@ -3003,14 +2994,14 @@ TRACEOMP( __FILE__, __LINE__)
     DLong h=12;
     DLong m=0;
     DDouble s=0.0;
-    SizeT nM,nD,nY,nH,nMi,nS,finalN=1,minsizePar;
+    SizeT nM,nD,nY,nH,nMi,nS,finalN=1;
     dimension finalDim;
     //behaviour: minimum set of dimensions of arrays. singletons expanded to dimension,
     //keep array trace.
     SizeT nEl,maxEl=1,minEl;
     for (int i=0; i<e->NParam() ; ++i) {
       nEl = e->GetPar(i)->N_Elements() ;
-      if (nEl > 1 && nEl > maxEl) {
+      if ((nEl > 1) && (nEl > maxEl)) {
         maxEl=nEl;
         finalN = maxEl;
         finalDim = e->GetPar(i)->Dim();
@@ -3051,8 +3042,8 @@ TRACEOMP( __FILE__, __LINE__)
       for (SizeT i=0; i< finalN; ++i) {
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], m, s)) {(*ret)[i]=jd;}
 	else e->Throw("Invalid Calendar Date input.");	
+    }
 	return ret;
-      }
     }
 
     if (e->NParam() >= 5) {
@@ -3063,8 +3054,8 @@ TRACEOMP( __FILE__, __LINE__)
       for (SizeT i=0; i< finalN; ++i) {
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], (*Minute)[i%nMi], s)) (*ret)[i]=jd;
 	else e->Throw("Invalid Calendar Date input.");
-	return ret;
       }
+	return ret;
     }
     
     if (e->NParam() == 6) {
@@ -3074,8 +3065,8 @@ TRACEOMP( __FILE__, __LINE__)
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH],(*Minute)[i%nMi],(*Second)[i%nS])) {(*ret)[i]=jd;}
         else e->Throw("Invalid Calendar Date input.");
       }
-      return ret;
-    }
+     return ret;
+   }
     assert(false);
     return NULL;
   }
