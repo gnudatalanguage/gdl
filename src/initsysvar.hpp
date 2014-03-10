@@ -42,8 +42,9 @@ namespace SysVar
 
   // updates !STIME
   void UpdateSTime();
+
   // updates !D
-  void UpdateD(long &xSize, long &ySize);
+  void UpdateD();//long &xSize, long &ySize);
 
   DStructGDL* Version();
 
@@ -73,6 +74,9 @@ namespace SysVar
 
   // returns !D
   DStructGDL* D();
+
+  // returns !STIME
+  DStringGDL* STime();
 
   // returns !WARN
   DStructGDL* Warn();

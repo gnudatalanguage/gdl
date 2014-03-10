@@ -60,6 +60,20 @@ namespace SysVar
   // !STIME
   const SizeT MAX_STIME_STRING_LENGTH=80;
 
+  bool IsSTime( DVar* var)
+  { 
+// due to .RESET_SESSION we cannot use static here
+// but the effect will be minimal anyway    
+//     static DVar* varSTime = sysVarList[ stimeIx];
+    return var == sysVarList[ stimeIx];
+  }
+   
+  bool IsD( DVar* var)
+  { 
+    return var == sysVarList[ dIx];
+  }
+   
+  
   void SetGDLPath( const DString& newPath)
   {
     FileListT sArr;
@@ -117,9 +131,25 @@ namespace SysVar
     stime = st;
   }
 
-  // updates !D in X mode only
-  void UpdateD(long &xSize, long &ySize)
+  DStructGDL* D()
   {
+    DVar& var = *sysVarList[ dIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
+
+  // updates !D in X mode only
+  void UpdateD()//long &xSize, long &ySize)
+  {
+    DStructGDL* dD = D();
+
+    DString name = (*static_cast<DStringGDL*>(dD->GetTag(dD->Desc()->TagIndex("NAME"), 0)))[0];
+    if( name != "X")
+      return;
+
+    DLong windowIdx=(*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("WINDOW"), 0)))[0];
+    if( windowIdx <0)
+      return;    
+    
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     GDLGStream* actStream = actDevice->GetStream();
 
@@ -127,8 +157,11 @@ namespace SysVar
     actStream->GetGeometry(xSizeGG,ySizeGG,xOff,yOff);
     int debug=0;
     if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG <<" "<< xOff <<" "<< yOff << endl;
-    xSize=xSizeGG;
-    ySize=ySizeGG;
+    
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;	    
   }
 
   // returns array of path strings
@@ -222,6 +255,11 @@ namespace SysVar
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
   }
 
+  DStringGDL* STime()
+  {
+    DVar& var = *sysVarList[ stimeIx];
+    return static_cast<DStringGDL*>(var.Data());
+  }
   DStructGDL* X()
   {
     DVar& var = *sysVarList[ xIx];
@@ -270,12 +308,6 @@ namespace SysVar
   {
     DVar* sysVarList_cpuIx = sysVarList[ cpuIx];
     return static_cast<DStructGDL*>(sysVarList_cpuIx->Data());
-  }
-
-  DStructGDL* D()
-  {
-    DVar& var = *sysVarList[ dIx];
-    return static_cast<DStructGDL*>(var.Data());
   }
 
   DStructGDL* Warn()
