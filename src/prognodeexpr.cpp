@@ -32,6 +32,8 @@
 #include "basic_fun.hpp"
 #include "basic_fun_jmg.hpp"
 
+#include "initsysvar.hpp"
+
 using namespace std;
 
 
@@ -479,6 +481,35 @@ BaseGDL* SYSVARNode::EvalNC()
 		throw GDLException( this, "Not a legal system variable: !"+
 			    this->getText(),true,false);
     }
+
+  // we have these two variables which need to be update before returning
+
+  if(this->getText() == "STIME") SysVar::UpdateSTime();
+
+  // note by AC on March 10, 2014: I tried to use #include "graphicsdevice.hpp"
+  // but the compilation fails after, in "ProgNodeP QUESTIONNode::GetThisBranch()" around line 770: 
+  //             error: expected unqualified-id before numeric constant
+  //             error: expected `)' before numeric constant
+
+  if(this->getText() == "D")
+    {
+      DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+      if (name == "X") 
+	{
+	  DLong windowIdx=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("WINDOW"), 0)))[0];
+	  if (windowIdx >=0) {
+	    long xSize,ySize;
+	    SysVar::UpdateD(xSize,ySize);
+	    int debug=0;
+	    if (debug) cout << "GetX11Geo in SYSVARNode::EvalNC() : " << xSize <<" "<< ySize << endl;
+	    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSize;
+	    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySize;
+	    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSize;
+	    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySize;	    
+	  }
+	}
+    }
+  
   // system variables are always defined
   return this->var->Data(); 
 }

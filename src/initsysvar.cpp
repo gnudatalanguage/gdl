@@ -117,6 +117,20 @@ namespace SysVar
     stime = st;
   }
 
+  // updates !D in X mode only
+  void UpdateD(long &xSize, long &ySize)
+  {
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+    GDLGStream* actStream = actDevice->GetStream();
+
+    long xSizeGG,ySizeGG,xOff,yOff;
+    actStream->GetGeometry(xSizeGG,ySizeGG,xOff,yOff);
+    int debug=0;
+    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG <<" "<< xOff <<" "<< yOff << endl;
+    xSize=xSizeGG;
+    ySize=ySizeGG;
+  }
+
   // returns array of path strings
   const StrArr& GDLPath()
   {
