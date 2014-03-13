@@ -29,22 +29,15 @@ namespace lib {
   };
 
   template< typename T1, typename T2>
-  BaseGDL* convert_coord_template( EnvT* e,
+  BaseGDL* convert_coord_template( EnvT* e, DType type,
 				   BaseGDL* p0, BaseGDL* p1, BaseGDL* p2,
 				   DDouble *sx, DDouble *sy, DDouble *sz,
 				   DLong xv, DLong yv, DLong xt, DLong yt)
   {
     DLong dims[2]={3,0};
-    if( e->NParam() == 1) {
-      if (p0->Dim(0) != 2 && p0->Dim(0) != 3)
-	e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
-    }
-
-    DType aTy;
-    if (p0->Type() == GDL_DOUBLE || e->KeywordSet("DOUBLE"))
-      aTy = GDL_DOUBLE;
-    else
-      aTy = GDL_FLOAT;
+    
+    DType aTy = GDL_FLOAT;
+    if (type == GDL_DOUBLE) aTy = GDL_DOUBLE;
 
     T1* res;
     SizeT nrows;
@@ -337,6 +330,10 @@ namespace lib {
 
   BaseGDL* convert_coord( EnvT* e)
   {
+    
+    if (e->KeywordSet("T3D"))
+      e->Throw( "Sorry, /T3D is not ready, please contribute.");
+    
     SizeT nParam=e->NParam();
     if( nParam < 1)
       e->Throw( "Incorrect number of arguments.");
@@ -344,12 +341,27 @@ namespace lib {
     BaseGDL* p0;
     BaseGDL* p1;
     BaseGDL* p2;
+    
+    DType type=GDL_FLOAT;
+    if (e->KeywordSet("DOUBLE")) type=GDL_DOUBLE;
 
     p0 = e->GetParDefined( 0);
-    if (nParam >= 2)
+    if (p0->Type() == GDL_DOUBLE) type=GDL_DOUBLE;
+
+    if( e->NParam() == 1) {
+      if (p0->Dim(0) != 2 && p0->Dim(0) != 3)
+	e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
+    }
+
+    if (nParam >= 2) {
       p1 = e->GetParDefined( 1);
-    if (nParam == 3)
+      if (p1->Type() == GDL_DOUBLE) type=GDL_DOUBLE;
+    }
+
+    if (nParam == 3) {
       p2 = e->GetParDefined( 2);
+      if (p2->Type() == GDL_DOUBLE) type=GDL_DOUBLE;
+    }
 
     DDouble *sx, *sy;
     GetSFromPlotStructs(&sx, &sy);
@@ -372,6 +384,7 @@ namespace lib {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     DLong wIx = actDevice->ActWin();
     if( wIx == -1) {
+      Message(e->GetProName()+": Window is closed and unavailable.");
       DStructGDL* dStruct = SysVar::D();
       static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
       static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
@@ -393,12 +406,12 @@ namespace lib {
     DLong yv = (*static_cast<DLongGDL*>( dStruct->GetTag( yvTag, 0)))[0];
     */
 
-    if (p0->Type() == GDL_DOUBLE || e->KeywordSet("DOUBLE")) {
+    if (type == GDL_DOUBLE) {
       return convert_coord_template<DDoubleGDL, DDouble>
-	( e, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
+	( e, type, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
     } else {
       return convert_coord_template<DFloatGDL, DFloat>
-	( e, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
+	( e, type, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
     }
   }
 
