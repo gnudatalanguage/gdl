@@ -148,6 +148,7 @@ TESTS = \
   test_url.pro \
   test_wait.pro \
   test_wavelet.pro \
+  test_where.pro \
   test_zeropoly.pro \
   test_zip.pro \
   checks
