@@ -818,8 +818,10 @@ public:
   void AssureLongScalarKWIfPresent( SizeT ix, DLong& scalar);
   // converts keyword 'kw' if necessary and sets 'scalar' 
   void AssureLongScalarKW( const std::string& kw, DLong& scalar);
+  void AssureLongScalarKW( const std::string& kw, DLong64& scalar);
   // converts ix'th keyword if necessary and sets 'scalar' 
   void AssureLongScalarKW( SizeT ix, DLong& scalar);
+  void AssureLongScalarKW( SizeT ix, DLong64& scalar);
   // converts parameter 'ix' if necessary and sets 'scalar' 
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
   void AssureLongScalarPar( SizeT ix, DLong64& scalar);

@@ -1509,6 +1509,26 @@ void EnvT::AssureLongScalarKW( const std::string& kw, DLong& scalar)
 {
   AssureLongScalarKW( KeywordIx( kw), scalar);
 }
+void EnvT::AssureLongScalarKW( const std::string& kw, DLong64& scalar)
+{
+  AssureLongScalarKW( KeywordIx( kw), scalar);
+}
+
+void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
+{
+  BaseGDL* p = GetKW( eIx);
+  
+  if( p == NULL)
+    Throw("Expression undefined: "+GetString(eIx));
+  
+  DLong64GDL* lp= static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
+  
+  Guard<DLong64GDL> guard_lp( lp);
+
+  if( !lp->Scalar( scalar))
+    Throw("Expression must be a scalar in this context: "+
+		       GetString(eIx));
+}
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 {
   BaseGDL* p = GetKW( eIx);

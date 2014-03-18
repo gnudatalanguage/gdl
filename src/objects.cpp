@@ -78,9 +78,9 @@ namespace structDesc {
 
 // for OpenMP
 DLong CpuTPOOL_NTHREADS;
-DLong CpuTPOOL_MIN_ELTS;
-DLong CpuTPOOL_MAX_ELTS;
-const DLong CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong>::max();
+DLong64 CpuTPOOL_MIN_ELTS;
+DLong64 CpuTPOOL_MAX_ELTS;
+const DLong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;

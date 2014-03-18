@@ -126,7 +126,7 @@ namespace lib {
 
     bool reset = e->KeywordSet( resetIx);
     bool restore = e->KeywordSet( restoreIx);
-    if ((reset) && (restore)) e->Throw("Conflicting keywords.");
+    if ((reset) && (restore)) e->Throw("Conflicting keywords (/reset and /restore).");
 
     bool vectorEnable = e->KeywordSet( vectorEableIx);
 
@@ -136,8 +136,8 @@ namespace lib {
 #endif
 
     DLong locCpuTPOOL_NTHREADS=CpuTPOOL_NTHREADS;
-    DLong locCpuTPOOL_MIN_ELTS=CpuTPOOL_MIN_ELTS;
-    DLong locCpuTPOOL_MAX_ELTS=CpuTPOOL_MAX_ELTS;
+    DLong64 locCpuTPOOL_MIN_ELTS=CpuTPOOL_MIN_ELTS;
+    DLong64 locCpuTPOOL_MAX_ELTS=CpuTPOOL_MAX_ELTS;
 
     // reading the Tag Index of the variable parts in !CPU
     DStructGDL* cpu = SysVar::Cpu();
@@ -160,7 +160,7 @@ namespace lib {
 	
         locCpuTPOOL_NTHREADS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( NTHREADSTag, 0))))[0];
         locCpuTPOOL_MIN_ELTS = (*(static_cast<DLong64GDL*>( restoreCpu->GetTag( TPOOL_MIN_ELTSTag, 0))))[0];
-        locCpuTPOOL_MAX_ELTS= (*(static_cast<DLong64GDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
+        locCpuTPOOL_MAX_ELTS = (*(static_cast<DLong64GDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
       }
     else
       {
@@ -192,8 +192,8 @@ namespace lib {
 #else
     CpuTPOOL_NTHREADS=1;
 #endif
-    CpuTPOOL_MIN_ELTS=locCpuTPOOL_MIN_ELTS;
-    CpuTPOOL_MAX_ELTS=locCpuTPOOL_MAX_ELTS;
+    if (locCpuTPOOL_MIN_ELTS >= 0) CpuTPOOL_MIN_ELTS=locCpuTPOOL_MIN_ELTS;
+    if (locCpuTPOOL_MAX_ELTS >= 0) CpuTPOOL_MAX_ELTS=locCpuTPOOL_MAX_ELTS;
 
     // update !CPU system variable
     (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] = CpuTPOOL_NTHREADS;

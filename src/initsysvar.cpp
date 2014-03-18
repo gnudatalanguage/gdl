@@ -832,11 +832,12 @@ namespace SysVar
     cpuData->NewTag("HW_NCPU", new DLongGDL( 1)); 
 #endif
     cpuData->NewTag("TPOOL_NTHREADS", new DLongGDL( CpuTPOOL_NTHREADS));
-    //if use DLong64 here, please update basic_pro.cpp (function cpu()) and
+
+    //if use DLong64 below, please update basic_pro.cpp (function cpu()) and
     //add an 'assureLong64Kw()' function in envt.cpp. Otherwise the program will
-    //crash in cpu().
-    cpuData->NewTag("TPOOL_MIN_ELTS", new DLongGDL( CpuTPOOL_MIN_ELTS)); 
-    cpuData->NewTag("TPOOL_MAX_ELTS", new DLongGDL( CpuTPOOL_MAX_ELTS)); 
+    //crash in cpu(). (should have been done on 2014 March 18 by AC (tested).)
+    cpuData->NewTag("TPOOL_MIN_ELTS", new DLong64GDL( CpuTPOOL_MIN_ELTS)); 
+    cpuData->NewTag("TPOOL_MAX_ELTS", new DLong64GDL( CpuTPOOL_MAX_ELTS)); 
 
     DVar *cpu=new DVar( "CPU", cpuData);
     cpuIx=sysVarList.size();
