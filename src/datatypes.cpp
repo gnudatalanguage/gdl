@@ -4020,8 +4020,11 @@ bool Data_<SpDObj>::LogTrue(SizeT i)
 }
 // structs are not allowed
 
-// for WHERE
-// integers, also ptr and object
+// AC: see bug report #592 : it was found on 2014 March, 18,
+// that WHERE was buggy due to OpenMP option
+// when n_elements of input bigger than !cpu.TPOOL_MIN_ELTS
+//
+// for WHERE, integers, also ptr and object
 template<class Sp>
 DLong* Data_<Sp>::Where( bool comp, SizeT& n)
 {
@@ -4031,10 +4034,10 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //  TRACEOMP( __FILE__, __LINE__)
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0)
@@ -4049,9 +4052,9 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0)
 	{
@@ -4070,9 +4073,9 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0.0f)
@@ -4087,9 +4090,9 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0.0f)
 	{
@@ -4108,9 +4111,9 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != 0.0)
@@ -4125,9 +4128,9 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != 0.0)
 	{
@@ -4146,9 +4149,9 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i] != "")
@@ -4163,9 +4166,9 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i] != "")
 	{
@@ -4184,9 +4187,9 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
@@ -4201,9 +4204,9 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
@@ -4222,9 +4225,9 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
   if( comp)
     {
       SizeT nIx = nEl;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
@@ -4239,9 +4242,9 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
     } // omp
     }
   else
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+      //#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
