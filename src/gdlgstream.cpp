@@ -184,6 +184,11 @@ void GDLGStream::Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset
   // nothing to do
 }
 
+void GDLGStream::Get_X11_WindowSize(long& xSize, long& ySize)
+{
+  // nothing to do
+}
+
 // default is a wrapper for gpage(). Is overriden by, e.g., X driver.
 void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 {

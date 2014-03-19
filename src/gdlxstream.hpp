@@ -47,6 +47,7 @@ public:
 
   void Get_X11_VisualClassName(std::string &VisualClassName);
   void Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset);
+  void Get_X11_WindowSize(long& xSize, long& ySize);
 
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   

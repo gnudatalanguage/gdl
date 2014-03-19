@@ -178,6 +178,17 @@ void GDLXStream::Get_X11_VisualClassName(std::string &VisualClassName){
     }
 }
 
+void GDLXStream::Get_X11_WindowSize(long& xSize, long& ySize){
+
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XWindowAttributes win_attributes;
+  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
+  xSize = win_attributes.width;
+  ySize = win_attributes.height;
+
+}
+
 void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
   XwDev *dev = (XwDev *) pls->dev;
@@ -186,6 +197,7 @@ void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset,
   XWindowAttributes win_attributes;
 
   /* query the full display (screen)'s attributes. */
+  /* these values are used below to compute offsets */
   int screen_num, screen_width, screen_height;
   screen_num = DefaultScreen(xwd->display);
   screen_width = DisplayWidth(xwd->display, screen_num);
@@ -225,9 +237,14 @@ void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset,
 
 }
 
+//warning neither X11 nor plplot give directly the good value for the position of the window!!!!
+// you need to recover it using XQueryTree() or XTranslateCoordinates (see GDLXStream::GetX11Geometry() above)
+
 void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
-  PLFLT xp, yp;
+  GDLXStream::Get_X11_WindowGeometry(xSize ,ySize, xOffset, yOffset);
+
+  /*  PLFLT xp, yp;
   PLINT xleng, yleng;
   PLINT plxOffset, plyOffset;
 
@@ -235,12 +252,9 @@ void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOff
 
   xSize=xleng;
   ySize=yleng;
-
-  //warning neither X11 nor plplot give directly the good value for the position of the window!!!!
-  // you need to recover it using XQueryTree() or XTranslateCoordinates (see GDLXStream::GetX11Geometry() above)
   xOffset = plxOffset; //not good either!!!
   yOffset = plyOffset; // idem
-
+  */
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xOffset, yOffset);
 }
 
