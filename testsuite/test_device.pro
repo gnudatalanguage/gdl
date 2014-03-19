@@ -19,6 +19,10 @@ pro TEST_DEVICE_X, nb_errors, test=test, verbose=verbose
 errors=0
 ;
 SET_PLOT, 'X'
+if (strlowcase(!d.name) NE 'x') then begin
+    MESSAGE, /continue, 'Unable to switch to X display mode'
+    return
+endif
 ;
 xsize=223
 ysize=245
@@ -138,6 +142,10 @@ INTERNAL_MESSAGES, 'TEST_DEVICE_X', errors
 if N_PARAMS() GT 0 then nb_errors=nb_errors+errors
 ;
 SET_PLOT, 'X'
+if (strlowcase(!d.name) NE 'x') then begin
+    MESSAGE, /continue, 'Unable to switch to X display mode'
+    return
+endif
 ;
 if KEYWORD_SET(test) then STOP
 ;
