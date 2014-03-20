@@ -114,6 +114,10 @@ class DevicePS: public GraphicsDevice
 //    actStream->scmap0( r, g, b, ctSize);
     actStream->scmap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
+
+    // AC 2014 March 20 : temporary solution for main problem
+    // with bug 530
+    color=1;
     if (color == 0)
     {
       actStream->SETOPT( "drvopt","text=0,color=0");
