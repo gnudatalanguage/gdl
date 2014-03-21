@@ -391,8 +391,13 @@ namespace lib
     {
       x=max-min;
       intv=AutoIntv(x);
-      max=ceil(max/intv)*intv;
-      min=floor(min/intv)*intv;
+      if ( log ) {
+        max=ceil((max/intv)*intv);
+        min=floor((min/intv)*intv);        
+      } else {
+        max=ceil(max/intv)*intv;
+        min=floor(min/intv)*intv;
+      }
     }
 
     if ( debug )
