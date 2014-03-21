@@ -1723,7 +1723,8 @@ namespace lib
      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
     if ( kw )
       e->AssureLongScalarKWIfPresent("BACKGROUND", background);
-    a->Background(background);
+    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+    a->Background(background,decomposed);
   }
 
   //Very special usage only in plotting surface
@@ -1776,7 +1777,8 @@ namespace lib
     }
     int i;
     bool found=false;
-    for (i=0; i<maxindex; i++) if (value[i]==color) {found=true;break;}
+    //solves bug #530 still temporarily
+    for (i=1; i<maxindex; i++) if (value[i]==color) {found=true;break;}
     if (!found)
     {
       value[i]=color;
