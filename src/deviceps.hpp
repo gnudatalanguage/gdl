@@ -115,9 +115,6 @@ class DevicePS: public GraphicsDevice
     actStream->scmap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
 
-    // AC 2014 March 20 : temporary solution for main problem
-    // with bug 530
-    color=1;
     if (color == 0)
     {
       actStream->SETOPT( "drvopt","text=0,color=0");
@@ -630,7 +627,7 @@ public:
 
     GDLGStream* actStream = GetStream();
 
-    // TODO: use it is XSIZE and YSIZE is not specified!
+    // TODO: use it if XSIZE and YSIZE is not specified!
     //DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
     //DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
@@ -714,28 +711,50 @@ public:
         idata.data[x][y] = (*p0B)[x + y * width]; 
 
     PLFLT xmax, ymax;
+    DDouble xsize=-1.0, ysize=-1.0;
+    bool sizeXNotSet=true;
+    bool sizeYNotSet=true;
+
     if (e->KeywordSet("XSIZE")) 
     {
-      DDouble tmp;
-      e->AssureDoubleScalarKW("XSIZE", tmp);
-      xmax = xmin + tmp;
+      e->AssureDoubleScalarKW("XSIZE", xsize);
+      sizeXNotSet=false;
     }
-    else e->Throw("Specification of XSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
+    else 
+    {
+      xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0] ; // wrong for PS, see GDLGStream::GetGeometry;
+      xsize /= 1000;
+    }//e->Throw("Specification of XSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
     if (e->KeywordSet("YSIZE")) 
     {
-      DDouble tmp;
-      e->AssureDoubleScalarKW("YSIZE", tmp);
-      ymax = ymin + tmp;
+      e->AssureDoubleScalarKW("YSIZE", ysize);
+      sizeYNotSet=false;
     }
-    else e->Throw("Specification of YSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
+    else
+    {
+      ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0]; // wrong for PS, see GDLGStream::GetGeometry;
+      ysize /= 1000;
+    } //e->Throw("Specification of YSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
+    if (sizeXNotSet && sizeYNotSet ) { //scale while preserving ratio
+        DDouble ratiox=xsize/width; 
+        DDouble ratioy=ysize/height;
+        if (ratiox < ratioy ) ysize=height*ratiox; else xsize=width*ratioy;
+        cout<<xsize<<" "<<ysize<<endl;
+    } else if (sizeXNotSet) {
+        xsize=(double)width/(double)height*ysize;
+    } else  if (sizeYNotSet ) { //scale while preserving ratio
+        ysize=(double)height/(double)width*xsize;
+    } 
+    xmax = xmin + xsize;
+    ymax = ymin + ysize;
 
     // TODO: map projection (via the last two arguments - same as was done in CONTOUR e.g.)
     bool mapSet = false;
 #ifdef USE_LIBPROJ4
     //get_mapset(mapSet);
 #endif
-    if (mapSet) e->Throw("PostScript + TV() + mapping cobination not available yet (FIXME!)");
-
+    if (mapSet) e->Throw("PostScript + TV() + mapping combination not available yet (FIXME!)");
+    //fprintf(stderr,"%d %d %f %f %f %f (%f %f)\n",width, height, xmin, xmax, ymin, ymax,actStream->xPageSize(),actStream->yPageSize());
     actStream->imagefr(idata.data, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
   }
 
