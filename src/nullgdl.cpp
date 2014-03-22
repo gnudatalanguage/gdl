@@ -184,7 +184,7 @@ BaseGDL* NullGDL::Convert2( DType destTy, Convert2Mode mode)
 
 BaseGDL* NullGDL::GetTag() const 
 {
-  throw GDLException("NullGDL::GetTag(...) called.");
+  throw GDLException("!NULL not allowed in tag definition.");
 }
 
 BaseGDL* NullGDL::GetInstance() const
