@@ -134,7 +134,7 @@ template<class Sp> SizeT
 Data_<Sp>::OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
 {
   DStringGDL* stringVal = static_cast<DStringGDL*>
-    ( this->Convert2( GDL_STRING, BaseGDL::COPY));
+    ( this->Convert2( GDL_STRING, BaseGDL::COPY_BYTE_AS_INT));
   SizeT retVal = stringVal->OFmtA( os, offs, r, w);
   delete stringVal;
   return retVal;
