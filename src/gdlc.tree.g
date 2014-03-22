@@ -1431,7 +1431,9 @@ arrayexpr_fn!//
                 // isVar == true -> VAR for sure 
                 // (== false: maybe VAR nevertheless)
 
-                int libIx = LibFunIx(id_text);
+                int libIx = -1;    
+                if( id_text != "LIST" && id_text != "HASH")    
+                    libIx = LibFunIx(id_text);
 
             }
             (   
