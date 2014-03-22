@@ -60,6 +60,7 @@ class DeviceSVG : public GraphicsDevice
     actCT.Get( r, g, b);
 //    actStream->scmap0( r, g, b, ctSize);
     actStream->scmap1( r, g, b, ctSize);
+    actStream->scolbg(255,255,255); // start with a white background
 
     actStream->SETOPT( "drvopt","text_clipping=1"); // clear drvopt
 
