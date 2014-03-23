@@ -915,8 +915,8 @@ void FMTParser::w_d(
 	switch ( LA(1)) {
 	case NUMBER:
 	{
-		n1=nnf();
-		if (n1<0) { n1 *= -1; fNode->setFill('0'); } fNode->setW( n1);
+		n1=nnf( fNode);
+		if (n1<0) { n1 = 0;} fNode->setW( n1);
 		{
 		switch ( LA(1)) {
 		case DOT:
@@ -1464,7 +1464,9 @@ void FMTParser::csubcode() {
 	returnAST = csubcode_AST;
 }
 
- int  FMTParser::nnf() {
+ int  FMTParser::nnf(
+	 RefFMTNode fNode
+) {
 	 int n;
 	returnAST = RefFMTNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -1480,7 +1482,10 @@ void FMTParser::csubcode() {
 	char c = s.get();
 	s.putback(c);
 	s >> n;
-	if (c == '0') n *= -1; 
+	if (c == '0') 
+	fNode->setFill('0');
+	if (c == '+') 
+	fNode->setFill('+');
 	
 	returnAST = nnf_AST;
 	return n;

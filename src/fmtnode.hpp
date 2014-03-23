@@ -141,7 +141,7 @@ private:
 
   int rep;
   char fill; // fill (for zero padding)
-
+  
 // private:
 
 //   // forbid usage of these

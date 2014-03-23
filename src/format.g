@@ -218,14 +218,17 @@ nn! returns[ int n]
     ;
 
 // no nodes for numbers with zero padding
-nnf! returns[ int n]
+nnf! [ RefFMTNode fNode] returns[ int n]
     : num:NUMBER 
         { 
             std::istringstream s(#num->getText());
             char c = s.get();
             s.putback(c);
             s >> n;
-            if (c == '0') n *= -1; 
+            if (c == '0') 
+               fNode->setFill('0');
+            if (c == '+') 
+               fNode->setFill('+');
         }
     ;
 
@@ -235,7 +238,8 @@ w_d! [ RefFMTNode fNode]
     fNode->setW( -1);
     fNode->setD( -1);
 }
-    : (n1=nnf { if (n1<0) { n1 *= -1; fNode->setFill('0'); } fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
+    // : (n1=nnf { if (n1<0) { n1 *= -1; fNode->setFill('0'); } fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
+    : (n1=nnf[ fNode] { if (n1<0) { n1 = 0;} fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
     ;
 
 w_d_e! [ RefFMTNode fNode]
@@ -298,6 +302,7 @@ CSTRING!
     | '%' '\'' 
         { cLexer->DoubleQuotes( false); selector->push( cLexer); selector->retry();}
 	;	
+
 
 LBRACE: '(';
 RBRACE: ')';
@@ -396,6 +401,7 @@ NUMBER // handles hollerith strings also
 { 
     SizeT n;
     SizeT i = 0;
+    bool uPlus = false;
     bool uMinus = false;
 } 
     : 
@@ -403,10 +409,15 @@ NUMBER // handles hollerith strings also
        {
        uMinus = true;
        }
+      |'+' 
+       {
+       uPlus = true;
+       }
       )? 
       num:DIGITS
       {
       if( uMinus) num->setText( "-" + num->getText());
+      if( uPlus) num->setText( "+" + num->getText());
       }
         (   
             { 

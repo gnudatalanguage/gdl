@@ -72,7 +72,9 @@ public:
 	);
 	public: void csub();
 	public: void csubcode();
-	public:  int  nnf();
+	public:  int  nnf(
+		 RefFMTNode fNode
+	);
 public:
 	antlr::RefAST getAST()
 	{

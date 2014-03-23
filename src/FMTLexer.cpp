@@ -216,6 +216,7 @@ antlr::RefToken FMTLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
+			case 0x2b /* '+' */ :
 			case 0x2d /* '-' */ :
 			case 0x30 /* '0' */ :
 			case 0x31 /* '1' */ :
@@ -1359,6 +1360,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 	
 	SizeT n;
 	SizeT i = 0;
+	bool uPlus = false;
 	bool uMinus = false;
 	
 	
@@ -1369,6 +1371,14 @@ void FMTLexer::mNUMBER(bool _createToken) {
 		match('-' /* charlit */ );
 		
 		uMinus = true;
+		
+		break;
+	}
+	case 0x2b /* '+' */ :
+	{
+		match('+' /* charlit */ );
+		
+		uPlus = true;
 		
 		break;
 	}
@@ -1395,6 +1405,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 	num=_returnToken;
 	
 	if( uMinus) num->setText( "-" + num->getText());
+	if( uPlus) num->setText( "+" + num->getText());
 	
 	{
 	if ((LA(1) == 0x48 /* 'H' */ )) {

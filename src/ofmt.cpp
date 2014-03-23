@@ -567,11 +567,15 @@ template <typename longT>
 void ZeroPad( ostream* os, int w, int d, char f, longT dd)
 {
   std::ostringstream ossF;
-  ossF << noshowpoint << setprecision(0) << dd;
+  ossF << noshowpoint << setprecision(0);
+  if (f == '+') 
+    ossF << "+";
+  ossF << dd;
   int ddLen = ossF.str().size();
 
   if (w == 0) w = ddLen; // I0 -> auto width
   if (d > 0 && dd < 0) ++d; // minus sign
+//   else if (f == '+') ++ddLen; // plus sign
   if (f == '0' && d == -1) d = w; // zero padding
 
   if( w < ddLen || d > w) 
@@ -591,11 +595,15 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
 	(*os) << " ";
 
       int nZero = d-ddLen;
-      if (nZero > 0 && dd < 0) // preventing "00-1.00"
+      if (nZero > 0 && dd < 0) // preventing "00-1.00" (instead of -001.00)
       {
         skip = 1;
         (*os) << "-";
       }
+//       else if (f == '+') // preventing "00-1.00" (instead of -001.00)
+//       {
+//         (*os) << "+";
+//       }
       for( SizeT i=0; i<nZero; ++i)
 	(*os) << "0";
     }
