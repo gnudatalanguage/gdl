@@ -39,10 +39,12 @@
 ;      * Correcting bug 3189065 : better message when no-existing file !
 ;      * Correcting bug 3175753 : bad value when filename begin with number
 ;      * managing input files list
+;   - 25/03/2014: Alain
+;      * pb when "~" in filename
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2006, 2012 Alain Coulais
+; Copyright (C) 2006--2014 Alain Coulais
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -69,7 +71,14 @@ for ii=0, N_ELEMENTS(filenames)-1 do begin
     ;;
     filename=filenames[ii]
     if (FILE_TEST(filename) EQ 0) then begin
-        MESSAGE, 'Error opening file. File: '+filename
+       MESSAGE, 'Error opening file. File: '+filename
+    endif
+    ;;
+    ;; subsituting "~" when at first place
+    ;; (seems to be no sense to be in another place)
+    ;;
+    if STRPOS(filename,'~') EQ 0 then begin
+       filename=GETENV('HOME')+STRMID(filename,1)
     endif
     ;;
     commande=["wc", "-l",filename]
