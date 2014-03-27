@@ -575,7 +575,6 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
 
   if (w == 0) w = ddLen; // I0 -> auto width
   if (d > 0 && dd < 0) ++d; // minus sign
-//   else if (f == '+') ++ddLen; // plus sign
   if (f == '0' && d == -1) d = w; // zero padding
 
   if( w < ddLen || d > w) 
@@ -600,10 +599,6 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
         skip = 1;
         (*os) << "-";
       }
-//       else if (f == '+') // preventing "00-1.00" (instead of -001.00)
-//       {
-//         (*os) << "+";
-//       }
       for( SizeT i=0; i<nZero; ++i)
 	(*os) << "0";
     }

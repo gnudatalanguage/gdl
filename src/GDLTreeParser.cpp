@@ -5554,7 +5554,7 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	// (== false: maybe VAR nevertheless)
 	
 	int libIx = -1;    
-	if( id_text != "LIST" && id_text != "HASH")    
+	//                if( id_text != "LIST" && id_text != "HASH")    
 	libIx = LibFunIx(id_text);
 	
 	
