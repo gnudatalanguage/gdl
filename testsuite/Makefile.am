@@ -145,6 +145,7 @@ TESTS = \
   test_suite.pro \
   test_systime.pro \
   test_trisol.pro \
+  test_typename.pro \
   test_url.pro \
   test_wait.pro \
   test_wavelet.pro \

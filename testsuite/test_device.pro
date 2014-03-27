@@ -155,6 +155,11 @@ end
 ;
 pro TEST_DEVICE, help=help, test=test, verbose=verbose, no_exit=no_exit
 ;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_DEVICE, help=help, test=test, verbose=verbose, no_exit=no_exit'
+   return
+endif
+;
 nb_errors=0
 ;
 print, 'Calling TEST_DEVICE_X'
@@ -166,7 +171,7 @@ TEST_DEVICE_PS, nb_errors, test=test, verbose=verbose
 if (nb_errors EQ 0) then begin
     MESSAGE, /continue, 'No error found in TEST_DEVICE'
 endif else begin
-    MESSAGE, /continue, STRING(nb_errors)+' errors found in TEST_WHERE'
+    MESSAGE, /continue, STRING(nb_errors)+' errors found in TEST_DEVICE'
     if ~KEYWORD_SET(no_exit) then EXIT, status=1
 endelse
 ;
