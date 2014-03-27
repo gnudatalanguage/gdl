@@ -39,8 +39,53 @@ namespace lib {
   using namespace std;
   using namespace antlr;
  
-  
-  BaseGDL* size( EnvT* e) 
+  BaseGDL* isa_fun( EnvT* e) 
+  {
+    cout << "hello isa" <<endl;
+    return new DLongGDL( 0);
+  }  
+
+  BaseGDL* typename_fun( EnvT* e) 
+  {
+    DString type="";
+    BaseGDL* p0 = e->GetPar(0);
+
+    // we manage !null and Undefined here
+    if (p0 == NULL) return new DStringGDL("UNDEFINED");
+    
+    int redo=0;
+
+    switch (p0->Type())
+      {
+      case GDL_UNDEF: type="UNDEFINED"; break; // should be already done !
+      case GDL_BYTE: type="BYTE"; break;
+      case GDL_INT: type="INT"; break;
+      case GDL_LONG: type="LONG"; break;
+      case GDL_FLOAT: type="FLOAT"; break;
+      case GDL_DOUBLE: type="DOUBLE"; break;
+      case GDL_COMPLEX: type="COMPLEX"; break;
+      case GDL_STRING: type="STRING"; break;
+      case GDL_STRUCT: redo=1; break;
+      case GDL_COMPLEXDBL: type="DCOMPLEX"; break;
+      case GDL_PTR: redo=1; break;
+      case GDL_OBJ:redo=1; break;
+      case GDL_UINT: type="UINT"; break;
+      case GDL_ULONG: type="ULONG"; break;
+      case GDL_LONG64: type="LONG64"; break;
+      case GDL_ULONG64: type="ULONG64"; break;
+
+      default: e->Throw("This should never happen, please report");
+      }
+    
+    if (redo) {
+      cout << "type "<< p0->Type() <<" not ready" <<endl;
+    }
+
+    return new DStringGDL(type);
+
+  }  
+
+  BaseGDL* size_fun( EnvT* e) 
   {
     static int L64Ix = e->KeywordIx( "L64");
     static int dimIx = e->KeywordIx( "DIMENSIONS");
@@ -200,7 +245,7 @@ namespace lib {
     return new DIntGDL( 0); // default for not supported
   }
 
-  BaseGDL* fstat( EnvT* e) 
+  BaseGDL* fstat_fun( EnvT* e) 
   { 
     e->NParam( 1);//, "FSTAT");
 

@@ -67,12 +67,18 @@ void LibInit_jmg()
   // the following by Joel Gales <jomoga@users.sourceforge.net>
   const string sizeKey[]={"L64","DIMENSIONS","FILE_LUN","N_DIMENSIONS",
 			  "N_ELEMENTS","STRUCTURE","TNAME","TYPE",KLISTEND};
-  new DLibFunRetNew(lib::size,string("SIZE"),1,sizeKey);
-  new DLibFunRetNew(lib::fstat,string("FSTAT"),1);
+  new DLibFunRetNew(lib::size_fun,string("SIZE"),1,sizeKey);
+  new DLibFunRetNew(lib::fstat_fun,string("FSTAT"),1);
   const string routine_namesKey[]={"LEVEL","VARIABLES","FETCH","ARG_NAME",
 				   "STORE","S_FUNCTIONS","S_PROCEDURES",
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
+  
+
+  const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR",KLISTEND};
+  new DLibFunRetNew(lib::isa_fun,string("ISA"),2,isaKey);
+
+  new DLibFunRetNew(lib::typename_fun,string("TYPENAME"),1);
 
 #if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};

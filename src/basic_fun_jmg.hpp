@@ -20,8 +20,10 @@
 
 namespace lib {
 
-  BaseGDL* size( EnvT* e);
-  BaseGDL* fstat( EnvT* e); 
+  BaseGDL* isa_fun( EnvT* e);
+  BaseGDL* typename_fun( EnvT* e); 
+  BaseGDL* size_fun( EnvT* e);
+  BaseGDL* fstat_fun( EnvT* e); 
   BaseGDL* make_array( EnvT* e);
   BaseGDL* reform( EnvT* e);
   BaseGDL* routine_names_value( EnvT* e);
