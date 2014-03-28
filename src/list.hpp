@@ -39,6 +39,8 @@ namespace lib {
    BaseGDL* LIST___OverloadNEOp( EnvUDT* e);
 
    void list__add( EnvUDT* e);
+  
+   BaseGDL* list__count( EnvUDT* e);
    
    void list__remove_pro( EnvUDT* e);
 

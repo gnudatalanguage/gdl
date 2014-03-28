@@ -1259,8 +1259,17 @@ BaseGDL* list__toarray( EnvUDT* e)
     return NULL;
   }
 
-  
-  
+// only the basic stuff, nothing equivalent to where ...
+  BaseGDL* list__count( EnvUDT* e)
+  {
+    DStructGDL* self = GetSELF( e->GetKW( 0), e);
+    static DString listName("LIST");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+
+    return new DLongGDL(nList);
+  }
+
   BaseGDL* list__remove( EnvUDT* e, bool asFunction);
 
   BaseGDL* list__remove_fun( EnvUDT* e)

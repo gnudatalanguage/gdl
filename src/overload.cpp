@@ -538,6 +538,12 @@ void SetupOverloadSubroutines()
   listDesc->FunList().push_back(LIST_overloadIsTrue);
   listDesc->SetOperator(OOIsTrue,LIST_overloadIsTrue);
  
+// LIST::COUNT
+  DFun *DFunLIST__COUNT = new DFun("COUNT","LIST",INTERNAL_LIBRARY_STR);
+  tree = new WRAPPED_FUNNode( lib::list__count);
+  DFunLIST__COUNT->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__COUNT);
+
 // LIST::ADD
   DPro *DProLIST__ADD = new DPro("ADD","LIST",INTERNAL_LIBRARY_STR);
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
