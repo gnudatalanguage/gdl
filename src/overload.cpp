@@ -538,12 +538,6 @@ void SetupOverloadSubroutines()
   listDesc->FunList().push_back(LIST_overloadIsTrue);
   listDesc->SetOperator(OOIsTrue,LIST_overloadIsTrue);
  
-// LIST::COUNT
-  DFun *DFunLIST__COUNT = new DFun("COUNT","LIST",INTERNAL_LIBRARY_STR);
-  tree = new WRAPPED_FUNNode( lib::list__count);
-  DFunLIST__COUNT->SetTree( tree);
-  listDesc->FunList().push_back(DFunLIST__COUNT);
-
 // LIST::ADD
   DPro *DProLIST__ADD = new DPro("ADD","LIST",INTERNAL_LIBRARY_STR);
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
@@ -582,6 +576,21 @@ void SetupOverloadSubroutines()
   tree2 = new WRAPPED_PRONode( lib::list__cleanup);
   DProLIST__CLEANUP->SetTree( tree2);
   listDesc->ProList().push_back(DProLIST__CLEANUP);
+// LIST::COUNT()
+  DFun *DFunLIST__COUNT = new DFun("COUNT","LIST",INTERNAL_LIBRARY_STR);
+  DFunLIST__COUNT->AddPar("VALUE");
+  tree = new WRAPPED_FUNNode( lib::list__count);
+  DFunLIST__COUNT->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__COUNT);
+// LIST::WHERE()
+  DFun *DFunLIST__WHERE = new DFun("WHERE","LIST",INTERNAL_LIBRARY_STR);
+  DFunLIST__WHERE->AddKey("COMPLEMENT","COMPLEMENT");
+  DFunLIST__WHERE->AddKey("COUNT","COUNT");
+  DFunLIST__WHERE->AddKey("NCOMPLEMENT","NCOMPLEMENT");
+  DFunLIST__WHERE->AddPar("VALUE");
+  tree = new WRAPPED_FUNNode( lib::list__where);
+  DFunLIST__WHERE->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__WHERE);
 
   
   
@@ -668,5 +677,20 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::hash__tostruct);
   DFunHASH__TOSTRUCT->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__TOSTRUCT);
+// HASH::COUNT()
+  DFun *DFunHASH__COUNT = new DFun("COUNT","HASH",INTERNAL_LIBRARY_STR);
+  DFunHASH__COUNT->AddPar("VALUE");
+  tree = new WRAPPED_FUNNode( lib::hash__count);
+  DFunHASH__COUNT->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__COUNT);
+// HASH::WHERE()
+  DFun *DFunHASH__WHERE = new DFun("WHERE","HASH",INTERNAL_LIBRARY_STR);
+  DFunHASH__WHERE->AddKey("COMPLEMENT","COMPLEMENT");
+  DFunHASH__WHERE->AddKey("COUNT","COUNT");
+  DFunHASH__WHERE->AddKey("NCOMPLEMENT","NCOMPLEMENT");
+  DFunHASH__WHERE->AddPar("VALUE");
+  tree = new WRAPPED_FUNNode( lib::hash__where);
+  DFunHASH__WHERE->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__WHERE);
   
 }

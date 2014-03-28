@@ -1534,6 +1534,90 @@ namespace lib {
     instance_guard.Release();
     return instance;
   }
+
+  BaseGDL* hash__count( EnvUDT* e)
+  {
+    const int kwSELFIx = 0;
+    const int kwVALUEIx = 1;
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+
+    SizeT nParam = e->NParam(1); // SELF
+
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetSELF( selfP, e); // checks
+
+    DObjGDL* selfObj = static_cast<DObjGDL*>(selfP);
+    
+    if( nParam > 1)
+    {
+      BaseGDL* r = e->GetKW( kwVALUEIx);
+    
+      EnvUDT* newEnv= new EnvUDT( e->CallingNode(), static_cast<DSubUD*>(e->GetPro()), &selfObj);
+      Guard<EnvUDT> guard( newEnv);
+      newEnv->SetNextParUnchecked( (BaseGDL**) &self); // LEFT  parameter
+      newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+      
+      DObjGDL* listObj = static_cast<DObjGDL*>(HASH___OverloadEQOp( newEnv));      
+      Guard<DObjGDL> listObjGuard( listObj);
+    
+      DStructGDL* selfLIST = GetSELF( listObj, e);
+
+      DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];	      
+
+      return new DLongGDL( nList);
+    }
+    
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];	      
+    return new DLongGDL( nCount);
+  }
+  
+  
+  BaseGDL* hash__where( EnvUDT* e)
+  {
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+
+    const int kwNCOMPLEMENTIx = 0; 
+    const int kwCOUNTIx = 1; 
+    const int kwCOMPLEMENTIx = 2; 
+    const int kwSELFIx = 3;
+    const int kwVALUEIx = 4;
+
+    SizeT nParam = e->NParam(2); // SELF, VALUE
+
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetSELF( selfP, e); // checks
+
+    DObjGDL* selfObj = static_cast<DObjGDL*>(selfP);
+    
+    BaseGDL* r = e->GetKW( kwVALUEIx);
+    
+    DObjGDL* listObj = static_cast<DObjGDL*>( selfObj->EqOp( r));
+    Guard<DObjGDL> listObjGuard( listObj);
+
+    DStructGDL* selfLIST = GetSELF( listObj, e);
+    DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];	      
+
+    if( e->KeywordPresent( kwNCOMPLEMENTIx)) // NCOMPLEMENT
+    {
+	DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+	e->SetKW( kwNCOMPLEMENTIx, new DLongGDL( nCount - nList));
+    }
+    if( e->KeywordPresent( kwCOUNTIx)) // COUNT
+    {
+	e->SetKW( kwCOUNTIx, new DLongGDL( nList));
+    }
+    if( e->KeywordPresent( kwCOMPLEMENTIx)) // COMPLEMENT
+    {
+	DObjGDL* compObj = static_cast<DObjGDL*>( selfObj->NeOp( r));
+	e->SetKW( kwCOMPLEMENTIx, compObj);
+    }
+    
+    listObjGuard.Release();
+    return listObj;
+  }
+  
   
   BaseGDL* hash__keysvalues( EnvUDT* e, bool keys);
 

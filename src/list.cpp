@@ -1259,17 +1259,105 @@ BaseGDL* list__toarray( EnvUDT* e)
     return NULL;
   }
 
-// only the basic stuff, nothing equivalent to where ...
   BaseGDL* list__count( EnvUDT* e)
   {
-    DStructGDL* self = GetSELF( e->GetKW( 0), e);
-    static DString listName("LIST");
-    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+  static int kwSELFIx = 0;
+  static int kwVALUEIx = 1;
+  static DString listName("LIST");
+  static DString cNodeName("GDL_CONTAINER_NODE");
+  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
-    return new DLongGDL(nList);
+  // because of .RESET_SESSION, we cannot use static here
+  DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
+
+  SizeT nParam = e->NParam(1); // minimum SELF
+      
+  DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
+
+  if( nParam > 1)
+  {
+    BaseGDL* r = e->GetKW( kwVALUEIx);
+  
+    DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
+    
+    EnvUDT* newEnv= new EnvUDT( e->CallingNode(), static_cast<DSubUD*>(e->GetPro()), &selfObj);
+    Guard<EnvUDT> guard( newEnv);
+    newEnv->SetNextParUnchecked( (BaseGDL**) &self); // LEFT  parameter
+    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+    
+    DByteGDL* result = static_cast<DByteGDL*>(LIST___OverloadEQOp( newEnv));
+    Guard<DByteGDL> newObjGuard( result);
+    
+    DLong nList = 0;
+    for( SizeT i=0; i<result->N_Elements(); ++i)
+    {
+      if( (*result)[i] != 0)
+	++nList;
+    }
+    return new DLongGDL( nList);
+  }
+  
+  DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+  return new DLongGDL( nList);
   }
 
+  BaseGDL* list__where( EnvUDT* e)
+  {
+    const int kwNCOMPLEMENTIx = 0; 
+    const int kwCOUNTIx = 1; 
+    const int kwCOMPLEMENTIx = 2; 
+    const int kwSELFIx = 3;
+    const int kwVALUEIx = 4;
+
+    SizeT nParam = e->NParam(2); // SELF, VALUE
+
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetSELF( selfP, e); // checks
+
+    BaseGDL* r = e->GetKW( kwVALUEIx);
+  
+    DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
+
+    BaseGDL* result = selfObj->EqOp( r);
+    Guard<BaseGDL> resultGuard( result);
+
+    DLong nEl = result->N_Elements();
+    
+    SizeT count;
+    DLong* ixList = result->Where( e->KeywordPresent( kwCOMPLEMENTIx), count);
+    
+    if( e->KeywordPresent( kwNCOMPLEMENTIx)) // NCOMPLEMENT
+    {
+	e->SetKW( kwNCOMPLEMENTIx, new DLongGDL( nEl - count));
+    }
+    if( e->KeywordPresent( kwCOUNTIx)) // COUNT
+    {
+	e->SetKW( kwCOUNTIx, new DLongGDL( count));
+    }
+    if( e->KeywordPresent( kwCOMPLEMENTIx)) // COMPLEMENT
+    {
+        SizeT nCount = nEl - count;
+	if( nCount == 0)
+	{
+	  e->SetKW( kwCOMPLEMENTIx, NullGDL::GetSingleInstance());
+	}
+	else
+	{
+	  DLongGDL* cIxList = new DLongGDL( dimension( &nCount, 1), BaseGDL::NOZERO);	  
+	  SizeT cIx = nEl;
+	  for( SizeT i=0; i<nCount; ++i)
+	      (*cIxList)[ i] = ixList[ --cIx];
+	  e->SetKW( kwCOMPLEMENTIx, cIxList);
+	}
+    }
+    
+    if( count == 0)
+      return NullGDL::GetSingleInstance();
+    else
+      return new DLongGDL( ixList, count);
+  }
+  
+  
   BaseGDL* list__remove( EnvUDT* e, bool asFunction);
 
   BaseGDL* list__remove_fun( EnvUDT* e)

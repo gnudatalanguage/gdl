@@ -1088,7 +1088,7 @@ void EnvT::AssureGlobalPar( SizeT pIx)
   AssureGlobalKW( ix);
 }
   
-void EnvT::AssureGlobalKW( SizeT ix)
+void EnvBaseT::AssureGlobalKW( SizeT ix)
 {
   if( env.Env( ix) == NULL) {
     if( env.Loc( ix) != NULL)
@@ -1671,7 +1671,7 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 		       GetString(eIx));
 }
 
-void EnvT::SetKW( SizeT ix, BaseGDL* newVal)
+void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released
   Guard<BaseGDL> guard( newVal);

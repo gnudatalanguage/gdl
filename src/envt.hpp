@@ -107,6 +107,8 @@ public:
     
   }
 
+  void SetKW( SizeT ix, BaseGDL* newVal);
+
   // used by the interperter returns the keyword index, used for UD functions
   // and used by WRAPPED subroutines
   int GetKeywordIx( const std::string& k);
@@ -319,6 +321,8 @@ public:
 //   const std::string GetString( BaseGDL* p);
 
   virtual const std::string GetFilename() const=0;
+
+  void AssureGlobalKW( SizeT ix);
 
   // converts parameter 'ix' if necessary and sets 'scalar' 
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
@@ -770,7 +774,7 @@ public:
   // create the data (newVal) only if its necessary
   // if the functions throw, they delete newVal before -> no
   // guarding of newVal is needed
-  void SetKW( SizeT ix, BaseGDL* newVal);
+//   void SetKW( SizeT ix, BaseGDL* newVal);
   void SetPar( SizeT ix, BaseGDL* newVal);
 
   // Assure functions:
@@ -811,7 +815,7 @@ public:
   }
 
   void AssureGlobalPar( SizeT pIx);
-  void AssureGlobalKW( SizeT ix);
+//   void AssureGlobalKW( SizeT ix);
 
   // if keyword 'kw' is not set, 'scalar' is left unchanged
   void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
