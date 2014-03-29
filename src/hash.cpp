@@ -1553,12 +1553,7 @@ namespace lib {
     {
       BaseGDL* r = e->GetKW( kwVALUEIx);
     
-      EnvUDT* newEnv= new EnvUDT( e->CallingNode(), static_cast<DSubUD*>(e->GetPro()), &selfObj);
-      Guard<EnvUDT> guard( newEnv);
-      newEnv->SetNextParUnchecked( (BaseGDL**) &self); // LEFT  parameter
-      newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-      
-      DObjGDL* listObj = static_cast<DObjGDL*>(HASH___OverloadEQOp( newEnv));      
+      DObjGDL* listObj = static_cast<DObjGDL*>( selfObj->EqOp( r));
       Guard<DObjGDL> listObjGuard( listObj);
     
       DStructGDL* selfLIST = GetSELF( listObj, e);

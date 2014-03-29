@@ -505,9 +505,26 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
 	}
 	else
 	{
-	  BaseGDL* rConvert = dataR->Convert2(dataL->Type(),BaseGDL::COPY);
-	  Guard<BaseGDL> rCovertGuard( rConvert);
-	  BaseGDL* eqRes = dataL->EqOp( rConvert);
+	  
+	  BaseGDL* eqRes = NULL;
+
+	  DType aTy=dataL->Type();
+	  DType bTy=dataR->Type();
+	  if( DTypeOrder[aTy] > DTypeOrder[bTy])
+	    {
+	      // convert b to a
+	      BaseGDL* rConvert = dataR->Convert2(dataL->Type(),BaseGDL::COPY);
+	      Guard<BaseGDL> rConvertGuard(rConvert);
+	      eqRes = dataL->EqOp( rConvert);
+	    }
+	  else
+	    {
+	      // convert a to b
+	      BaseGDL* lConvert = dataL->Convert2(dataR->Type(),BaseGDL::COPY);
+	      Guard<BaseGDL> lConvertGuard(lConvert);
+	      eqRes = dataR->EqOp( lConvert);
+	    }
+	  	  
 	  if( eqRes->Type() != GDL_BYTE)
 	  {
 	    Guard<BaseGDL> eqResGuardTmp( eqRes);
@@ -1261,44 +1278,39 @@ BaseGDL* list__toarray( EnvUDT* e)
 
   BaseGDL* list__count( EnvUDT* e)
   {
-  static int kwSELFIx = 0;
-  static int kwVALUEIx = 1;
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
-  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    static int kwSELFIx = 0;
+    static int kwVALUEIx = 1;
+    static DString listName("LIST");
+    static DString cNodeName("GDL_CONTAINER_NODE");
+    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
-  // because of .RESET_SESSION, we cannot use static here
-  DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
+    // because of .RESET_SESSION, we cannot use static here
+    DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
 
-  SizeT nParam = e->NParam(1); // minimum SELF
-      
-  DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
+    SizeT nParam = e->NParam(1); // minimum SELF
+	
+    DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
 
-  if( nParam > 1)
-  {
-    BaseGDL* r = e->GetKW( kwVALUEIx);
-  
-    DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
-    
-    EnvUDT* newEnv= new EnvUDT( e->CallingNode(), static_cast<DSubUD*>(e->GetPro()), &selfObj);
-    Guard<EnvUDT> guard( newEnv);
-    newEnv->SetNextParUnchecked( (BaseGDL**) &self); // LEFT  parameter
-    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-    
-    DByteGDL* result = static_cast<DByteGDL*>(LIST___OverloadEQOp( newEnv));
-    Guard<DByteGDL> newObjGuard( result);
-    
-    DLong nList = 0;
-    for( SizeT i=0; i<result->N_Elements(); ++i)
+    if( nParam > 1)
     {
-      if( (*result)[i] != 0)
-	++nList;
+      BaseGDL* r = e->GetKW( kwVALUEIx);
+    
+      DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
+      
+      DByteGDL* result = static_cast<DByteGDL*>(selfObj->EqOp( r));
+      Guard<DByteGDL> newObjGuard( result);
+      
+      DLong nList = 0;
+      for( SizeT i=0; i<result->N_Elements(); ++i)
+      {
+	if( (*result)[i] != 0)
+	  ++nList;
+      }
+      return new DLongGDL( nList);
     }
+    
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
     return new DLongGDL( nList);
-  }
-  
-  DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
-  return new DLongGDL( nList);
   }
 
   BaseGDL* list__where( EnvUDT* e)
