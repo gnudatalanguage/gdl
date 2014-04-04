@@ -50,6 +50,7 @@ public:
   void Get_X11_WindowSize(long& xSize, long& ySize);
 
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+  void GetWindowSize( long& xSize, long& ySize);
   
   void Clear();
   void Clear( DLong bColor);

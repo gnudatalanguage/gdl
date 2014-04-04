@@ -237,6 +237,7 @@ public:
   virtual void Get_X11_WindowSize(long& xSize, long& ySize);
 
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+  virtual void GetWindowSize( long& xSize, long& ySize);
 
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}

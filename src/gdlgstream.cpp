@@ -68,6 +68,10 @@ void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
 
 void GDLGStream::Background( ULong c, DLong decomposed)
 {
+
+  int debug=0;
+  if (debug) cout << "decomposed value in GDLGStream::Background " <<  decomposed <<endl;
+
   DByte r,g,b;
   if (decomposed == 0) c = c & 0x0000FF;
 
@@ -185,6 +189,11 @@ void GDLGStream::Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset
 }
 
 void GDLGStream::Get_X11_WindowSize(long& xSize, long& ySize)
+{
+  // nothing to do
+}
+
+void GDLGStream::GetWindowSize( long& xSize, long& ySize)
 {
   // nothing to do
 }

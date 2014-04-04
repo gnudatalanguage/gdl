@@ -242,20 +242,35 @@ void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset,
 
 void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
-  GDLXStream::Get_X11_WindowGeometry(xSize ,ySize, xOffset, yOffset);
+  // this call was not working ... keeping the plplot one
+  //
+  //  Get_X11_WindowGeometry(xSize ,ySize, xOffset, yOffset);
+  //  cout << "GetGeometry : " << xSize <<" "<< ySize<<" "<< xOffset<<" "<< yOffset<<endl;
 
-  /*  PLFLT xp, yp;
+  PLFLT xp, yp;
   PLINT xleng, yleng;
   PLINT plxOffset, plyOffset;
-
+  
   plstream::gpage(xp, yp, xleng, yleng, plxOffset, plyOffset);
-
+  
   xSize=xleng;
   ySize=yleng;
   xOffset = plxOffset; //not good either!!!
   yOffset = plyOffset; // idem
-  */
+  //  */
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xOffset, yOffset);
+}
+
+void GDLXStream::GetWindowSize(long& xSize, long& ySize){ 
+
+  PLFLT xp, yp;
+  PLINT xleng, yleng;
+  PLINT plxOffset, plyOffset;
+  
+  plstream::gpage(xp, yp, xleng, yleng, plxOffset, plyOffset);
+  
+  xSize=xleng;
+  ySize=yleng;
 }
 
 // plplot 5.3 does not provide the clear function for c++

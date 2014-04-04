@@ -1,10 +1,10 @@
 /* *************************************************************************
-                          devicex.hpp  -  X windows device
-                             -------------------
-    begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
-    email                : m_schellens@users.sf.net
- ***************************************************************************/
+   devicex.hpp  -  X windows device
+   -------------------
+   begin                : July 22 2002
+   copyright            : (C) 2002 by Marc Schellens
+   email                : m_schellens@users.sf.net
+***************************************************************************/
 
 /* *************************************************************************
  *                                                                         *
@@ -38,8 +38,8 @@
 
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 #ifndef free_mem
-#define free_mem(a) \
-    if (a != NULL) { free((void *) a); a = NULL; }
+#define free_mem(a)					\
+  if (a != NULL) { free((void *) a); a = NULL; }
 #endif
 
 #ifdef HAVE_OLDPLPLOT
@@ -95,9 +95,9 @@ private:
     }
 
     if (dev->write_to_window)
-	ximg = XGetImage( xwd->display, dev->window, 0, 0, 
-			  dev->width, dev->height,
-			  AllPlanes, ZPixmap);
+      ximg = XGetImage( xwd->display, dev->window, 0, 0, 
+			dev->width, dev->height,
+			AllPlanes, ZPixmap);
 
     XSetErrorHandler(oldErrorHandler);
 
@@ -120,13 +120,13 @@ private:
 
       ncolors = 256;
 
-//#if PL_RGB_COLOR == -1 //was (always?) set by plplotP.h which we do not use anymore. 
+      //#if PL_RGB_COLOR == -1 //was (always?) set by plplotP.h which we do not use anymore. 
       if (xwd->ncol1 != ncolors)
-      {
-        free_mem(xwd->cmap1);
-        xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof(XColor));
-      }
-//#endif
+	{
+	  free_mem(xwd->cmap1);
+	  xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof(XColor));
+	}
+      //#endif
 
       for( SizeT i = 0; i < ncolors; i++ ) {
 
@@ -153,12 +153,12 @@ private:
     if( nx < kxLimit) kxLimit = nx;
     if( ny < kyLimit) kyLimit = ny;
 
-/*#ifdef _OPENMP
-SizeT nOp = kxLimit * kyLimit;
-#endif
-#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
-{
-#pragma omp for*/
+    /*#ifdef _OPENMP
+      SizeT nOp = kxLimit * kyLimit;
+      #endif
+      #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
+      {
+      #pragma omp for*/
     for(ix = 0; ix < kxLimit; ++ix) {
       for(iy = 0; iy < kyLimit; ++iy) {
 
@@ -212,18 +212,18 @@ SizeT nOp = kxLimit * kyLimit;
 	//std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
 	// TODO check if XPutPixel() and XGetPixel() are thread save
 	if( ky < dev->height && kx < dev->width)
-	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
+	  XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
-//}
+    //}
 
     if (dev->write_to_pixmap)
-	XPutImage( xwd->display, dev->pixmap, dev->gc, ximg, 0, 0, 
-		   0, 0, dev->width, dev->height);
+      XPutImage( xwd->display, dev->pixmap, dev->gc, ximg, 0, 0, 
+		 0, 0, dev->width, dev->height);
 
     if (dev->write_to_window)
-	XPutImage( xwd->display, dev->window, dev->gc, ximg, 0, 0,
-		   0, 0, dev->width, dev->height);
+      XPutImage( xwd->display, dev->window, dev->gc, ximg, 0, 0,
+		 0, 0, dev->width, dev->height);
 
     if (ximg != ximg_pixmap) {
       XDestroyImage(ximg);
@@ -235,20 +235,23 @@ SizeT nOp = kxLimit * kyLimit;
   }
 
 
- void SetActWin( int wIx)
-{
+  void SetActWin( int wIx)
+  {
     // update !D
     if( wIx >= 0 && wIx < winList.size())
-    {
-        long xsize,ysize,xoff,yoff;
-        winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
-        PLStream* pls;
-        plgpls( &pls);
+      {
+	long xsize,ysize; //,xoff,yoff;
+	//        winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
+	winList[ wIx]->GetWindowSize( xsize, ysize);
+	// cout << "SetActWin : " << xsize <<" "<< ysize<<" "<< xoff<<" "<< yoff<<endl;
+	
+	PLStream* pls;
+	plgpls( &pls);
         // window size and pos
-// 	PLFLT xp; PLFLT yp;
-// 	PLINT xleng; PLINT yleng;
-// 	PLINT xoff; PLINT yoff;
-// 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
+	// 	PLFLT xp; PLFLT yp;
+	// 	PLINT xleng; PLINT yleng;
+	// 	PLINT xoff; PLINT yoff;
+	// 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
         (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
@@ -256,14 +259,14 @@ SizeT nOp = kxLimit * kyLimit;
 
         // number of colors (based on the color depth from PLPlot)
         (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] =
-            1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
-    }
+	  1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
+      }
 
     // window number
     (*static_cast<DLongGDL*>( dStruct->GetTag( wTag)))[0] = wIx;
 
     actWin = wIx;
-}
+  }
 
   void RaiseWin( int wIx)
   {
@@ -359,7 +362,7 @@ public:
     oList.resize( maxWin);
     for( int i=0; i < maxWin; i++) oList[ i] = 0;
 
-//     GDLGStream::SetErrorHandlers();
+    //     GDLGStream::SetErrorHandlers();
   }
   
   ~DeviceX()
@@ -369,11 +372,11 @@ public:
       { delete *i; /* *i = NULL;*/}
   }
 
-//   GDLGStream* GetStream( int wIx) const 
-//   { 
-//     return winList[ wIx];
-//   }
-//   
+  //   GDLGStream* GetStream( int wIx) const 
+  //   { 
+  //     return winList[ wIx];
+  //   }
+  //   
   void EventHandler()
   {
     int wLSize = winList.size();
@@ -394,10 +397,10 @@ public:
 
 #ifdef HAVE_LIBWXWIDGETS
     if( dynamic_cast<GDLWXStream*>( winList[ wIx]) != NULL)
-    {
-      Warning("Attempt to delete widget (ID="+i2s(wIx)+"). Will be auto-deleted upon window destruction.");
-      return false;
-    }
+      {
+	Warning("Attempt to delete widget (ID="+i2s(wIx)+"). Will be auto-deleted upon window destruction.");
+	return false;
+      }
 #endif    
 
     delete winList[ wIx];
@@ -431,10 +434,10 @@ public:
       return false;
 
     if( winList[ wIx] != NULL)
-    {
+      {
         delete winList[ wIx];
         winList[ wIx] = NULL;
-    }
+      }
 
     DLongGDL* pMulti = SysVar::GetPMulti();
     DLong nx = (*pMulti)[ 1];
@@ -470,14 +473,14 @@ public:
     static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
     static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
     if (noPosx && noPosy) { //no init given, use 4 quadrants:
-        xoff = Quadx[wIx%4];
-        yoff = Quady[wIx%4];
+      xoff = Quadx[wIx%4];
+      yoff = Quady[wIx%4];
     } else if (noPosx) {
-        xoff = Quadx[wIx%4];
-        yoff = yMaxSize-yPos-ySize;
+      xoff = Quadx[wIx%4];
+      yoff = yMaxSize-yPos-ySize;
     } else if (noPosy) {
-        xoff = xPos;
-        yoff = Quady[wIx%4];
+      xoff = xPos;
+      yoff = Quady[wIx%4];
     } else {
       xoff  = xPos;
       yoff  = yMaxSize-yPos-ySize;
@@ -485,7 +488,7 @@ public:
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
     xp=max(xp,1.0);
     yp=max(yp,1.0);
-//     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+    //     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
     // no pause on win destruction
     winList[ wIx]->spause( false);
@@ -499,13 +502,13 @@ public:
     // avoid to set color map 0 -- makes plplot very slow (?)
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-//    winList[ wIx]->scmap0( r, g, b, ctSize);
+    //    winList[ wIx]->scmap0( r, g, b, ctSize);
     winList[ wIx]->scmap1( r, g, b, ctSize);
 
-//     winList[ wIx]->Init();
-// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-//     bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
-//     ResizeWin((UInt)xleng, (UInt) yleng);
+    //     winList[ wIx]->Init();
+    // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
+    //     bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
+    //     ResizeWin((UInt)xleng, (UInt) yleng);
     // need to be called initially. permit to fix things
     winList[ wIx]->ssub(1,1);
     winList[ wIx]->adv(0);
@@ -516,12 +519,12 @@ public:
     winList[ wIx]->DefaultCharSize();
     //in case these are not initalized, here is a good place to do it.
     if (winList[ wIx]->updatePageInfo()==true)
-    {
+      {
         winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    }
+      }
     // sets actWin and updates !D
-//     SetActWin( wIx);
+    //     SetActWin( wIx);
 
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   } // GUIOpen
@@ -531,6 +534,8 @@ public:
   bool WOpen( int wIx, const std::string& title, 
 	      int xSize, int ySize, int xPos, int yPos)
   {
+
+    //cout << "WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos<<endl;
     ProcessDeleted();
 
     int wLSize = winList.size();
@@ -538,10 +543,10 @@ public:
       return false;
 
     if( winList[ wIx] != NULL)
-		{
-		delete winList[ wIx];
-		winList[ wIx] = NULL;
-		}
+      {
+	delete winList[ wIx];
+	winList[ wIx] = NULL;
+      }
 
     DLongGDL* pMulti = SysVar::GetPMulti();
     DLong nx = (*pMulti)[ 1];
@@ -577,14 +582,14 @@ public:
     static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
     static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
     if (noPosx && noPosy) { //no init given, use 4 quadrants:
-        xoff = Quadx[wIx%4];
-        yoff = Quady[wIx%4];
+      xoff = Quadx[wIx%4];
+      yoff = Quady[wIx%4];
     } else if (noPosx) {
-        xoff = Quadx[wIx%4];
-        yoff = yMaxSize-yPos-ySize;
+      xoff = Quadx[wIx%4];
+      yoff = yMaxSize-yPos-ySize;
     } else if (noPosy) {
-        xoff = xPos;
-        yoff = Quady[wIx%4];
+      xoff = xPos;
+      yoff = Quady[wIx%4];
     } else {
       xoff  = xPos;
       yoff  = yMaxSize-yPos-ySize;
@@ -615,11 +620,11 @@ public:
     // avoid to set color map 0 -- makes plplot very slow (?)
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-//    winList[ wIx]->scmap0( r, g, b, ctSize);
+    //    winList[ wIx]->scmap0( r, g, b, ctSize);
     winList[ wIx]->scmap1( r, g, b, ctSize);
 
     winList[ wIx]->Init();
-// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
+    // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
     bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
     ResizeWin((UInt)xleng, (UInt) yleng);
     // need to be called initially. permit to fix things
@@ -632,10 +637,10 @@ public:
     winList[ wIx]->DefaultCharSize();
     //in case these are not initalized, here is a good place to do it.
     if (winList[ wIx]->updatePageInfo()==true)
-    {
+      {
         winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-    }
+      }
     // sets actWin and updates !D
     SetActWin( wIx);
 
@@ -747,23 +752,23 @@ public:
   { 
     // initial setting (information from the X-server needed)
     if( decomposed == -1)
-    {
-      Display* display = XOpenDisplay(NULL);
-      if (display == NULL) ThrowGDLException("Cannot connect to X server");
+      {
+	Display* display = XOpenDisplay(NULL);
+	if (display == NULL) ThrowGDLException("Cannot connect to X server");
 
-      int Depth;
-      Depth=DefaultDepth(display, DefaultScreen(display));      
-      decomposed = (Depth >= 15 ? true : false);
-      DLong toto=16777216;
-      if (Depth == 24) 
-	(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = toto;
-      int debug=0;
-      if (debug) {
-	cout << "Display Depth " << Depth << endl;
-	cout << "n_colors " << toto << endl;
+	int Depth;
+	Depth=DefaultDepth(display, DefaultScreen(display));      
+	decomposed = (Depth >= 15 ? true : false);
+	DLong toto=16777216;
+	if (Depth == 24) 
+	  (*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = toto;
+	int debug=0;
+	if (debug) {
+	  cout << "Display Depth " << Depth << endl;
+	  cout << "n_colors " << toto << endl;
+	}
+	XCloseDisplay(display);
       }
-      XCloseDisplay(display);
-    }
     if( decomposed) return 1;
     return 0;
   }
@@ -774,26 +779,26 @@ public:
     plgpls( &pls);
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
-    {
-      GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-      GDLGStream* newStream = actDevice->GetStream();
-      plgpls( &pls);
-      dev = (XwDev *) pls->dev;
-      if( dev == NULL) 
       {
-        std::cerr<<"Device not open."<<std::endl;
-        return 0;
+	GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+	GDLGStream* newStream = actDevice->GetStream();
+	plgpls( &pls);
+	dev = (XwDev *) pls->dev;
+	if( dev == NULL) 
+	  {
+	    std::cerr<<"Device not open."<<std::endl;
+	    return 0;
+	  }
       }
-    }
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     if (write)
-    {
-      XChangeGC(xwd->display, dev->gc, valuemask, gcValues);
-    }
+      {
+	XChangeGC(xwd->display, dev->gc, valuemask, gcValues);
+      }
     else
-    {
-      XGetGCValues(xwd->display, dev->gc, valuemask, gcValues);
-    }
+      {
+	XGetGCValues(xwd->display, dev->gc, valuemask, gcValues);
+      }
     return 1;
   }
   bool SetGraphicsFunction( DLong value)                
@@ -816,17 +821,17 @@ public:
     int num=max(0,min(XC_num_glyphs-1,cursorNumber));
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
-    {
-      GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-      GDLGStream* newStream = actDevice->GetStream();
-      plgpls( &pls);
-      dev = (XwDev *) pls->dev;
-      if( dev == NULL)
       {
-        std::cerr<<"Device not open."<<std::endl;
-        return 0;
+	GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+	GDLGStream* newStream = actDevice->GetStream();
+	plgpls( &pls);
+	dev = (XwDev *) pls->dev;
+	if( dev == NULL)
+	  {
+	    std::cerr<<"Device not open."<<std::endl;
+	    return 0;
+	  }
       }
-    }
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XDefineCursor(xwd->display,dev->window,XCreateFontCursor(xwd->display,num));
     return true;
@@ -874,21 +879,21 @@ public:
     return true;
   }
   bool EnableBackingStore(bool enable)
-   {
+  {
     PLStream* pls;
     plgpls( &pls);
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL) return false;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
- 	XSetWindowAttributes attr;
+    XSetWindowAttributes attr;
     if (enable)
-    {
-	 attr.backing_store = Always;
-    }
+      {
+	attr.backing_store = Always;
+      }
     else
-    {
-	 attr.backing_store = NotUseful;
-    }
+      {
+	attr.backing_store = NotUseful;
+      }
     XChangeWindowAttributes(xwd->display, dev->window,CWBackingStore,&attr);
     return true;
   }
@@ -915,13 +920,13 @@ public:
     plgpls( &pls);
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL || dev->xwd == NULL)
-    {
-      GDLGStream* newStream = actDevice->GetStream();
-      //already done: newStream->Init();
-      plgpls( &pls);
-      dev = (XwDev *) pls->dev;
-      if( dev == NULL) e->Throw( "Device not open.");
-    }
+      {
+	GDLGStream* newStream = actDevice->GetStream();
+	//already done: newStream->Init();
+	plgpls( &pls);
+	dev = (XwDev *) pls->dev;
+	if( dev == NULL) e->Throw( "Device not open.");
+      }
 
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
@@ -931,10 +936,10 @@ public:
     e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
     
     /* this variable will contain the attributes of the window. */
-      XWindowAttributes win_attr;
+    XWindowAttributes win_attr;
 
     /* query the window's attributes. */
-     Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
+    Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
     unsigned int xMaxSize = win_attr.width;
     unsigned int yMaxSize = win_attr.height;
 
@@ -998,7 +1003,7 @@ public:
     y_11=yval+(y_gdl-yref)*yinc;
     xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
     ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
-     if (debug) {
+    if (debug) {
       cout <<"["<< x_11 <<","<< xmax11 <<"],["<< ymin11 <<","<< y_11 <<"]"<<endl;
     }   
     if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
@@ -1012,22 +1017,22 @@ public:
 		      nx_gdl, ny_gdl, AllPlanes, ZPixmap);
     XSetErrorHandler(oldErrorHandler);
 #define PAD 4
-//   printf("\t width = %d\n", ximg->width);
-//   printf("\t height = %d\n", ximg->height);
-//   printf("\t xoffset = %d\n", ximg->xoffset);
-//   printf("\t byte_order = %d\n", ximg->byte_order);
-//   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
-//   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
-//   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
-//   printf("\t depth = %d\n", ximg->depth);
-//   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
-//   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
-//   printf("\t red_mask = %x\n", ximg->red_mask);
-//   printf("\t green_mask = %x\n", ximg->green_mask);
-//   printf("\t blue_mask = %x\n", ximg->blue_mask);
+    //   printf("\t width = %d\n", ximg->width);
+    //   printf("\t height = %d\n", ximg->height);
+    //   printf("\t xoffset = %d\n", ximg->xoffset);
+    //   printf("\t byte_order = %d\n", ximg->byte_order);
+    //   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
+    //   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
+    //   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
+    //   printf("\t depth = %d\n", ximg->depth);
+    //   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
+    //   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
+    //   printf("\t red_mask = %x\n", ximg->red_mask);
+    //   printf("\t green_mask = %x\n", ximg->green_mask);
+    //   printf("\t blue_mask = %x\n", ximg->blue_mask);
 
     if (ximg->bits_per_pixel != 32) 
-        e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
+      e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
 
     if (tru == 0) {
       dims[0] = nx_gdl;
@@ -1037,58 +1042,58 @@ public:
 
       if (ximg == NULL) return res;
 
-        if (channel <= 0) { //channel not given, return max of the 3 channels
-            DByte mx, mx1;
-            for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-                mx = (DByte) ximg->data[PAD * i];
-                mx1 = (DByte) ximg->data[PAD * i + 1];
-                if (mx1 > mx) mx = mx1;
-                mx1 = (DByte) ximg->data[PAD * i + 2];
-                if (mx1 > mx) mx = mx1;
-                (*res)[i] = mx;
-            }
-        } else {
-            for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-                (*res)[i] = ximg->data[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
-            }
-        }
-          XDestroyImage(ximg);
-          // Reflect about y-axis
-          if (orderVal == 0) res->Reverse(1);
-          return res;
+      if (channel <= 0) { //channel not given, return max of the 3 channels
+	DByte mx, mx1;
+	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+	  mx = (DByte) ximg->data[PAD * i];
+	  mx1 = (DByte) ximg->data[PAD * i + 1];
+	  if (mx1 > mx) mx = mx1;
+	  mx1 = (DByte) ximg->data[PAD * i + 2];
+	  if (mx1 > mx) mx = mx1;
+	  (*res)[i] = mx;
+	}
+      } else {
+	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+	  (*res)[i] = ximg->data[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
+	}
+      }
+      XDestroyImage(ximg);
+      // Reflect about y-axis
+      if (orderVal == 0) res->Reverse(1);
+      return res;
 
-        } else {
-        dims[0] = 3;
-        dims[1] = nx_gdl;
-        dims[2] = ny_gdl;
-        dimension dim(dims, (SizeT) 3);
-        res = new DByteGDL(dim, BaseGDL::NOZERO);
-        if (ximg == NULL) return res;
+    } else {
+      dims[0] = 3;
+      dims[1] = nx_gdl;
+      dims[2] = ny_gdl;
+      dimension dim(dims, (SizeT) 3);
+      res = new DByteGDL(dim, BaseGDL::NOZERO);
+      if (ximg == NULL) return res;
 
-        for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
+      for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
         {
-            for(SizeT j=0; j<3; ++j) (*res)[(i+1)*3-(j+1)] = ximg->data[kpad++];
-            kpad++;
+	  for(SizeT j=0; j<3; ++j) (*res)[(i+1)*3-(j+1)] = ximg->data[kpad++];
+	  kpad++;
         } 
 
-        XDestroyImage(ximg);
-        // Reflect about y-axis
-        if (orderVal == 0) res->Reverse(2);
+      XDestroyImage(ximg);
+      // Reflect about y-axis
+      if (orderVal == 0) res->Reverse(2);
 
-        DUInt* perm = new DUInt[3];
-        if (tru == 1) {
-            return res;
-        } else if (tru == 2) {
-            perm[0] = 1;
-            perm[1] = 0;
-            perm[2] = 2;
-            return res->Transpose(perm);
-        } else if (tru == 3) {
-            perm[0] = 1;
-            perm[1] = 2;
-            perm[2] = 0;
-            return res->Transpose(perm);
-        }
+      DUInt* perm = new DUInt[3];
+      if (tru == 1) {
+	return res;
+      } else if (tru == 2) {
+	perm[0] = 1;
+	perm[1] = 0;
+	perm[2] = 2;
+	return res->Transpose(perm);
+      } else if (tru == 3) {
+	perm[0] = 1;
+	perm[1] = 2;
+	perm[2] = 0;
+	return res->Transpose(perm);
+      }
     }
     assert( false);
     return NULL;
@@ -1105,8 +1110,8 @@ public:
     GDLGStream* actStream = GetStream();
     if( actStream == NULL)
       {
-		std::cerr << "TV: Internal error: plstream not set." << std::endl;
-		exit( EXIT_FAILURE);
+	std::cerr << "TV: Internal error: plstream not set." << std::endl;
+	exit( EXIT_FAILURE);
       }
 
     //    actStream->NextPlot( false);
@@ -1149,8 +1154,8 @@ public:
       if (tru == 1) {
         p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
 	if (p0B->Dim(0) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
-			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
-			    +"]> does not have enough elements.");
+				      i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+				      +"]> does not have enough elements.");
         if (orderVal != 0) {p0B->Reverse(2);}
 	width = p0B->Dim(1);
 	height = p0B->Dim(2);
@@ -1158,8 +1163,8 @@ public:
       if (tru == 2) {
         p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
 	if (p0B->Dim(1) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
-			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
-			    +"]> does not have enough elements.");
+				      i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+				      +"]> does not have enough elements.");
         if (orderVal != 0) {p0B->Reverse(2);}
 	width = p0B->Dim(0);
 	height = p0B->Dim(2);
@@ -1167,8 +1172,8 @@ public:
       if (tru == 3) {
         p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));     guardP0B.Init( p0B);
 	if (p0B->Dim(2) < 3) e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
-			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
-			    +"]> does not have enough elements.");
+				      i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+				      +"]> does not have enough elements.");
         if (orderVal != 0) {p0B->Reverse(1);}
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
@@ -1287,11 +1292,11 @@ public:
 #ifdef HAVE_X
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
-    {   
-      *xSize = DisplayWidth(display, DefaultScreen(display)) / 2; 
-      *ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
-      XCloseDisplay(display);
-    }   
+      {   
+	*xSize = DisplayWidth(display, DefaultScreen(display)) / 2; 
+	*ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
+	XCloseDisplay(display);
+      }   
 #endif
     bool noQscreen=true;
     string gdlQscreen=GetEnvString("GDL_GR_X_QSCREEN");
@@ -1309,11 +1314,11 @@ public:
 #ifdef HAVE_X
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
-    {
-      *xSize = DisplayWidth(display, DefaultScreen(display));
-      *ySize = DisplayHeight(display, DefaultScreen(display));
-      XCloseDisplay(display);
-    }
+      {
+	*xSize = DisplayWidth(display, DefaultScreen(display));
+	*ySize = DisplayHeight(display, DefaultScreen(display));
+	XCloseDisplay(display);
+      }
 #endif
   }
 
