@@ -83,7 +83,7 @@ namespace lib {
 	DStructGDL* s = static_cast<DStructGDL*>(p0);
 	if (s->Desc()->IsUnnamed()) {
 	  type="ANONYMOUS";
-	} else {	
+	} else {
 	  type=s->Desc()->Name();
 	}
 	redo=0;
@@ -257,6 +257,16 @@ namespace lib {
       //e->Throw( "STRUCTURE not supported yet.");
     }
     
+    // SNAME
+    if( e->KeywordSet(SNAMEIx)) {
+      DString sname="";
+      if (vType == GDL_STRUCT) {
+	DStructGDL* s = static_cast<DStructGDL*>( p0);
+	if (!s->Desc()->IsUnnamed()) sname = s->Desc()->Name();
+      }
+      return new DStringGDL(sname);
+    }
+
     // TNAME
     if( e->KeywordSet(TNAMEIx)) {
       if( p0 == NULL)
