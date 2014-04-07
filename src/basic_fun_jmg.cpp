@@ -4,7 +4,7 @@
     begin                : 2004
     copyright            : (C) 2004 by Joel Gales
     email                : jomoga@users.sourceforge.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -41,7 +41,7 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
-    cout << "hello isa" <<endl;
+    cout << "hello isa (not ready !)" <<endl;
     return new DLongGDL( 0);
   }  
 
@@ -86,31 +86,28 @@ namespace lib {
 	} else {
 	  type=s->Desc()->Name();
 	}
-	redo=0;
       }
-      // this is not ready because we have to manage Objects, LIST, HASH
+      // here we manage : {Objects, LIST, HASH}
       if (p0->Type() == GDL_OBJ) {
-	cout << "type (ObjRef,List,Hash) "<< p0->Type() <<" not ready" <<endl;
-      }
-      /*
-	//	DObjGDL* obj = static_cast< DObjGDL*>(p0);
-	//	DStructGDL* s = static_cast<DStructGDL*>(p0);
-	cout <<  p0->TypeStr() << endl;//)->Name() << endl;
-	//DStructDesc* listDesc=structDesc::LIST;
-    
-	/*	DStructGDL* s = static_cast<DStructGDL*>(p0);
-	if (s->Desc()->IsUnnamed()) {
-	  type="ANONYMOUS";
-	} else {	
-	  type=s->Desc()->Name();
-	}
-	redo=0;
-      }*/
-    }
-    
-    return new DStringGDL(type);
+	
+	// see case in "basic_pro.cpp", in help_item()
+	if (!p0->StrictScalar())
+	  e->Throw("We don't know how to do here, please provide exemple !");
 
-  }  
+	DObj s = (*static_cast<DObjGDL*>(p0))[0]; // is StrictScalar()
+	if( s != 0)  // no overloads for null object
+	  {
+	    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+	    if (oStructGDL->Desc()->IsUnnamed()) 
+	      e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide exemple !");
+	    
+	    type= oStructGDL->Desc()->Name();
+	  }
+      }
+    }
+    return new DStringGDL(type);
+    
+  }
 
   BaseGDL* size_fun( EnvT* e) 
   {
@@ -319,12 +316,12 @@ namespace lib {
     bool big = false;
 
     if (lun > 0)
-    {
-      if(fileUnits[ lun-1].IsOpen())  {
-	size = fileUnits[ lun-1].Size();
-	big = (DLong(size) != size);
+      {
+	if(fileUnits[ lun-1].IsOpen())  {
+	  size = fileUnits[ lun-1].Size();
+	  big = (DLong(size) != size);
+	}
       }
-    }
 
     DStructGDL* fstat;
     if (big) fstat = new DStructGDL( "FSTAT64");
@@ -383,7 +380,7 @@ namespace lib {
 
 	fstat->InitTag("NAME", DStringGDL( actUnit.Name()));
 	if (big) fstat->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
-        else fstat->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
+	else fstat->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
 	fstat->InitTag("OPEN", DByteGDL( 1)); 
 	// fstat->InitTag("ISATTY", DByteGDL( 0)); 
 	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
@@ -397,8 +394,8 @@ namespace lib {
 	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
 	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime)); 
-        if (big) fstat->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
-        else fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
+	if (big) fstat->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
+	else fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
       }
 
     return fstat;
@@ -414,10 +411,10 @@ namespace lib {
 	if( value != NULL)
 	  {
 	    T* v = static_cast<T*>( value);
-// 	    T* res = new T(dim, BaseGDL::NOZERO);
-// 	    SizeT nEl = dim.N_Elements();
-// 	    for( SizeT i=0; i<nEl; ++i)
-// 	      (*res)[i] = (*v)[0];
+	    // 	    T* res = new T(dim, BaseGDL::NOZERO);
+	    // 	    SizeT nEl = dim.N_Elements();
+	    // 	    for( SizeT i=0; i<nEl; ++i)
+	    // 	      (*res)[i] = (*v)[0];
 	    T* res = v->New( dim, BaseGDL::INIT);
 	    return res;
 	  }
@@ -430,10 +427,10 @@ namespace lib {
 	if( value != NULL)
 	  {
 	    T* v = static_cast<T*>( value);
-// 	    T* res = new T(dim, BaseGDL::NOZERO);
-// 	    SizeT nEl = dim.N_Elements();
-// 	    for( SizeT i=0; i<nEl; ++i)
-// 	      (*res)[i] = (*v)[0];
+	    // 	    T* res = new T(dim, BaseGDL::NOZERO);
+	    // 	    SizeT nEl = dim.N_Elements();
+	    // 	    for( SizeT i=0; i<nEl; ++i)
+	    // 	      (*res)[i] = (*v)[0];
 	    T* res = v->New( dim, BaseGDL::INIT);
 	    return res;
 	  }
@@ -502,16 +499,16 @@ namespace lib {
 	e->Throw("Invalid type specified for result.");
       }
  
-// TODO: sanity check on dimKey & arguments - if all are > 0, otherwise:
-//       e->Throw("Array dimensions must be greater than 0.");
+    // TODO: sanity check on dimKey & arguments - if all are > 0, otherwise:
+    //       e->Throw("Array dimensions must be greater than 0.");
 
     if (e->KeywordSet(indexix))
-    {
-      if (type == GDL_PTR || e->KeywordSet(18)) 
-        e->Throw("Index initialization of pointer array is invalid.");
-      if (type == GDL_OBJ || e->KeywordSet(19)) 
-        e->Throw("Index initialization of object reference array is invalid..");
-    }
+      {
+	if (type == GDL_PTR || e->KeywordSet(18)) 
+	  e->Throw("Index initialization of pointer array is invalid.");
+	if (type == GDL_OBJ || e->KeywordSet(19)) 
+	  e->Throw("Index initialization of object reference array is invalid..");
+      }
 
     static int valueix = e->KeywordIx( "VALUE"); 
     BaseGDL* value = e->GetKW( valueix);
@@ -584,24 +581,24 @@ namespace lib {
     } else if (e->KeywordSet(17) || type == GDL_STRING) {
 
       if (!e->KeywordSet(indexix))
-		return make_array_template< DStringGDL>( e, dimKey, value);
+	return make_array_template< DStringGDL>( e, dimKey, value);
       
       // 'true' for ignoring /INDEX keyword 
-	 // BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
-//       if (e->KeywordSet(indexix))
-//       {
+      // BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
+      //       if (e->KeywordSet(indexix))
+      //       {
 
-	  BaseGDL* ret = make_array_template< DULongGDL>( e, dimKey, value); //, true);
+      BaseGDL* ret = make_array_template< DULongGDL>( e, dimKey, value); //, true);
       return ret->Convert2( GDL_STRING);
 
-//         for (DLong i = 0; i < ret->N_Elements(); ++i)
-//         {
-//           char tmp[13];
-//           assert(sprintf(tmp, "%12d", i) == 12);
-//           (*static_cast<DStringGDL*>(ret))[i] = tmp;
-//         }
-//       }
-//       return ret;
+      //         for (DLong i = 0; i < ret->N_Elements(); ++i)
+      //         {
+      //           char tmp[13];
+      //           assert(sprintf(tmp, "%12d", i) == 12);
+      //           (*static_cast<DStringGDL*>(ret))[i] = tmp;
+      //         }
+      //       }
+      //       return ret;
 
       // GDL_PTR (added by SA 15.08.2009)
     } else if (e->KeywordSet(18) || type == GDL_PTR) {
@@ -644,12 +641,12 @@ namespace lib {
     BaseGDL* p0 = *p0P;
 
     SizeT nEl = p0->N_Elements();
-//     SizeT Rank = p0->Rank();
-//     if( Rank == 0)
-//       e->Throw( "Parameter must be an array in this context: " 
-// 		+ e->GetParString( 0));
+    //     SizeT Rank = p0->Rank();
+    //     if( Rank == 0)
+    //       e->Throw( "Parameter must be an array in this context: " 
+    // 		+ e->GetParString( 0));
 
-//     SizeT Type = p0->Type();
+    //     SizeT Type = p0->Type();
 
     dimension dim;
 
@@ -660,10 +657,10 @@ namespace lib {
 	if (p0->Dim(i) > 1)
 	  {
 	    dim << p0->Dim( i);  
-	  //	  j *= p0->Dim(i);
-	  //	  cout << j << p0->Dim(i) << endl;
-	  //	  dim.Set(j,p0->Dim(i));
-	  //j++;
+	    //	  j *= p0->Dim(i);
+	    //	  cout << j << p0->Dim(i) << endl;
+	    //	  dim.Set(j,p0->Dim(i));
+	    //j++;
 	  }
       }
       if( dim.Rank() == 0)
@@ -692,11 +689,11 @@ namespace lib {
 
     static int overwriteIx = e->KeywordIx("OVERWRITE");
     if (e->KeywordSet( overwriteIx)) 
-    {
-      p0->SetDim(dim);
-      e->SetPtrToReturnValue( p0P);
-      return p0;
-    }
+      {
+	p0->SetDim(dim);
+	e->SetPtrToReturnValue( p0P);
+	return p0;
+      }
 
     // global paramter - make a copy
     BaseGDL* res = p0->Dup();
@@ -713,9 +710,9 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
-//     DLong curlevnum = callStack.size()-1;
-	// 'e' is not on the stack
-	DLong curlevnum = callStack.size();
+    //     DLong curlevnum = callStack.size()-1;
+    // 'e' is not on the stack
+    DLong curlevnum = callStack.size();
 
     if (e->KeywordSet( "S_FUNCTIONS")) {
       vector<DString> subList;
@@ -821,12 +818,12 @@ namespace lib {
 	int xI = pro->FindVar( varName);
 	//	cout << xI << endl;
 	if (xI != -1) {
-// 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 
 	  if( par == NULL)
- 		e->Throw( "Variable is undefined: " + varName);
-// 		return NULL;
+	    e->Throw( "Variable is undefined: " + varName);
+	  // 		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 
 	  // no retnew function BUT: ret value is not from current environment
@@ -837,8 +834,8 @@ namespace lib {
 	  // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
 	}
 	
- 	e->Throw( "Variable not found: " + varName);
- 	return NULL;
+	e->Throw( "Variable not found: " + varName);
+	return NULL;
       } else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");
@@ -848,11 +845,11 @@ namespace lib {
 	//	cout << "nVar:" << nVar << endl;
 	EnvBaseT* desiredCallStack;
 	if( desiredlevnum >= callStack.size())
-		desiredCallStack = e;
+	  desiredCallStack = e;
 	else
-		desiredCallStack = callStack[ desiredlevnum];
+	  desiredCallStack = callStack[ desiredlevnum];
 	
-// 	SizeT nCall = callStack[desiredlevnum]->NParam();
+	// 	SizeT nCall = callStack[desiredlevnum]->NParam();
 	SizeT nCall = desiredCallStack->NParam();
 	
 	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
@@ -865,7 +862,7 @@ namespace lib {
 	      BaseGDL*& p = e->GetPar( i);
 	      if (p == NULL) {
 		(*res)[i]="UNDEFINED";
-// 		break;
+		// 		break;
 	      }
 	      //	      cout << "p:" << p << endl;
 
@@ -903,7 +900,7 @@ namespace lib {
 	if (xI == -1) {
 
 	  SizeT u = pro->AddVar(StrUpCase(varName));
- 	  s = callStack[desiredlevnum-1]->AddEnv();
+	  s = callStack[desiredlevnum-1]->AddEnv();
 	  //cout << "AddVar u: " << u << endl;
 	  //cout << "AddEnv s: " << s << endl;
 
@@ -912,12 +909,12 @@ namespace lib {
 	  //cout << "FindVar s: " << s << endl;
 	}
 
-// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
+	// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
- 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
 
 	//	cout << "par: " << &par << endl << endl;
-// 	memcpy(&par, &res, sizeof(par)); 
+	// 	memcpy(&par, &res, sizeof(par)); 
 
 	return new DIntGDL( 1);
       }
@@ -958,9 +955,9 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
-//     DLong curlevnum = callStack.size()-1;
-	// 'e' is not on the stack
-	DLong curlevnum = callStack.size();
+    //     DLong curlevnum = callStack.size()-1;
+    // 'e' is not on the stack
+    DLong curlevnum = callStack.size();
 
     if (e->KeywordSet( "S_FUNCTIONS")) {
       return NULL;
@@ -1046,10 +1043,10 @@ namespace lib {
       }
     } 
     else 
-    {
+      {
 	// Get Compiled Procedures & Functions 
 	return NULL;
-    }
+      }
   }
 
   
