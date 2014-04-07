@@ -35,6 +35,21 @@ if (TYPENAME(1ll) NE "LONG64") then MYMESS, nb_errors, 'bad type with LONG64'
 if (TYPENAME(1ul) NE "ULONG") then MYMESS, nb_errors, 'bad type with ULONG'
 if (TYPENAME(1ull) NE "ULONG64") then MYMESS, nb_errors, 'bad type with ULONG64'
 ;
+if (TYPENAME(HASH([1,2,3])) NE "HASH") then MYMESS, nb_errors, 'bad type with HASH'
+if (TYPENAME(LIST(1,2,3)) NE "LIST") then MYMESS, nb_errors, 'bad type with LIST'
+;
+; this class should be in the GDL_PATH, or in src/pro/dicom
+;
+tmp=OBJ_NEW('gdlffdicom')
+if (TYPENAME(tmp) NE "GDLFFDICOM") then MYMESS, nb_errors, 'bad type with Dicom Obj'
+;
+; structures
+;
+struct1={a:1}
+if (TYPENAME(struct1) NE "ANONYMOUS") then MYMESS, nb_errors, 'bad type with Anonymous Structure'
+struct2={gdltest,a:1}
+if (TYPENAME(struct2) NE "GDLTEST") then MYMESS, nb_errors, 'bad type with Named Structure'
+;
 if (nb_errors EQ 0) then begin
     MESSAGE, /continue, 'No error found in TEST_TYPENAME'
 endif else begin
