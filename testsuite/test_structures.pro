@@ -15,11 +15,36 @@ endif
 ;
 nb_errors=0
 ;
+; the structure we create has a name: "TEST"
+;
 structarray=REPLICATE({test, value:0.0},10)
 ;populate values:
 structarray.value=FINDGEN(10)
 ;
 HELP, structarray.value
+;
+; basic tests using SIZE() & co.
+;
+if (TYPENAME(structarray) NE "TEST") then begin
+   message,/continue, '(0a) unexpected results in TYPENAME() !' 
+   nb_errors=nb_errors+1
+endif
+if (SIZE(structarray,/sname) NE "TEST") then begin
+   message,/continue, '(0b) unexpected results in SIZE(... ,/sname) !' 
+   nb_errors=nb_errors+1
+endif
+if (SIZE(structarray,/tname) NE "STRUCT") then begin
+   message,/continue, '(0c) unexpected results in SIZE(... ,/tname) !' 
+   nb_errors=nb_errors+1
+endif
+if (SIZE(structarray,/type) NE 8) then begin
+   message,/continue, '(0d) unexpected results in SIZE(... ,/type) !' 
+   nb_errors=nb_errors+1
+endif
+if ~ARRAY_EQUAL(SIZE(structarray), [1L,10,8,10]) then begin
+   message,/continue, '(0e) unexpected results in SIZE() !' 
+   nb_errors=nb_errors+1
+endif
 ;
 ;get subset:
 www=WHERE(structarray.value gt 6)
