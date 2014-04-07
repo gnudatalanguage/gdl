@@ -65,21 +65,25 @@ void LibInit_jmg()
   const char KLISTEND[] = "";
 
   // the following by Joel Gales <jomoga@users.sourceforge.net>
-  const string sizeKey[]={"L64","DIMENSIONS","FILE_LUN","N_DIMENSIONS",
-			  "N_ELEMENTS","STRUCTURE","TNAME","TYPE",KLISTEND};
+  const string sizeKey[]={"L64","DIMENSIONS","FILE_LUN","FILE_OFFSET",
+			  "N_DIMENSIONS","N_ELEMENTS",
+			  "SNAME","STRUCTURE","TNAME","TYPE",KLISTEND};
   new DLibFunRetNew(lib::size_fun,string("SIZE"),1,sizeKey);
+
   new DLibFunRetNew(lib::fstat_fun,string("FSTAT"),1);
+
   const string routine_namesKey[]={"LEVEL","VARIABLES","FETCH","ARG_NAME",
 				   "STORE","S_FUNCTIONS","S_PROCEDURES",
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
   
-
+  // the 2 following by Alain C.
   const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR",KLISTEND};
   new DLibFunRetNew(lib::isa_fun,string("ISA"),2,isaKey);
 
   new DLibFunRetNew(lib::typename_fun,string("TYPENAME"),1);
 
+  // the following (Chol and Invert) by Alain C. and Nodar K.
 #if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};
   new DLibPro(lib::choldc_pro,string("CHOLDC"),3,cholKey);
@@ -95,6 +99,7 @@ void LibInit_jmg()
   const string invertKey[]={"DOUBLE","GSL","EIGEN",KLISTEND};
   new DLibFunRetNew(lib::AC_invert_fun,string("INVERT"),2,invertKey);
 
+  // if FFTw not available, FFT in the GSL used (slower)
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION",KLISTEND};
 #if defined(USE_FFTW)
   new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);

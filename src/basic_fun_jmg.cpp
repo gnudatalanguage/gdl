@@ -67,7 +67,7 @@ namespace lib {
       case GDL_STRING: type="STRING"; break;
       case GDL_STRUCT: redo=1; break;
       case GDL_COMPLEXDBL: type="DCOMPLEX"; break;
-      case GDL_PTR: redo=1; break;
+      case GDL_PTR: type="POINTER"; break;
       case GDL_OBJ:redo=1; break;
       case GDL_UINT: type="UINT"; break;
       case GDL_ULONG: type="ULONG"; break;
@@ -76,11 +76,38 @@ namespace lib {
 
       default: e->Throw("This should never happen, please report");
       }
-    
+ 
     if (redo) {
-      cout << "type "<< p0->Type() <<" not ready" <<endl;
+      //      cout << "here we are " <<p0->Type() << endl;
+      if (p0->Type() == GDL_STRUCT) {
+	DStructGDL* s = static_cast<DStructGDL*>(p0);
+	if (s->Desc()->IsUnnamed()) {
+	  type="ANONYMOUS";
+	} else {	
+	  type=s->Desc()->Name();
+	}
+	redo=0;
+      }
+      // this is not ready because we have to manage Objects, LIST, HASH
+      if (p0->Type() == GDL_OBJ) {
+	cout << "type (ObjRef,List,Hash) "<< p0->Type() <<" not ready" <<endl;
+      }
+      /*
+	//	DObjGDL* obj = static_cast< DObjGDL*>(p0);
+	//	DStructGDL* s = static_cast<DStructGDL*>(p0);
+	cout <<  p0->TypeStr() << endl;//)->Name() << endl;
+	//DStructDesc* listDesc=structDesc::LIST;
+    
+	/*	DStructGDL* s = static_cast<DStructGDL*>(p0);
+	if (s->Desc()->IsUnnamed()) {
+	  type="ANONYMOUS";
+	} else {	
+	  type=s->Desc()->Name();
+	}
+	redo=0;
+      }*/
     }
-
+    
     return new DStringGDL(type);
 
   }  
@@ -90,9 +117,11 @@ namespace lib {
     static int L64Ix = e->KeywordIx( "L64");
     static int dimIx = e->KeywordIx( "DIMENSIONS");
     static int FILE_LUNIx = e->KeywordIx( "FILE_LUN");
+    static int FILE_OFFSETIx = e->KeywordIx( "FILE_OFFSET");
     static int N_DIMENSIONSIx = e->KeywordIx( "N_DIMENSIONS");
     static int N_ELEMENTSIx = e->KeywordIx( "N_ELEMENTS");
     static int STRUCTUREIx = e->KeywordIx( "STRUCTURE");
+    static int SNAMEIx = e->KeywordIx( "SNAME");
     static int TNAMEIx = e->KeywordIx( "TNAME");
     static int TYPEIx = e->KeywordIx( "TYPE");
 
@@ -100,6 +129,20 @@ namespace lib {
 
     // BaseGDL* p0 = e->GetParDefined( 0); //, "SIZE");
     BaseGDL* p0 = e->GetPar( 0); //, "SIZE");
+    
+    // managing exclusive keywords (all but L64)
+    int nb_keywords_set=0;
+    if (e->KeywordSet(dimIx)) nb_keywords_set++;
+    if (e->KeywordSet(FILE_LUNIx)) nb_keywords_set++;
+    if (e->KeywordSet(FILE_OFFSETIx)) nb_keywords_set++;
+    if (e->KeywordSet(N_DIMENSIONSIx)) nb_keywords_set++;
+    if (e->KeywordSet(N_ELEMENTSIx)) nb_keywords_set++;
+    if (e->KeywordSet(STRUCTUREIx)) nb_keywords_set++;
+    if (e->KeywordSet(SNAMEIx)) nb_keywords_set++;
+    if (e->KeywordSet(TNAMEIx)) nb_keywords_set++;
+    if (e->KeywordSet(TYPEIx)) nb_keywords_set++;
+
+    if (nb_keywords_set > 1) e->Throw("Conflicting keywords.");
 
     SizeT nEl = 0;
     SizeT Rank = 0;
@@ -132,27 +175,33 @@ namespace lib {
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i] = p0->Dim(i);
 	return res;
       }
+    }
 
     // FILE_LUN
-    } else if( e->KeywordSet(FILE_LUNIx)) { 
-
-      e->Throw( "FILE_LUN not supported yet.");
+    string txt="Sorry, this keyword ";
+    if( e->KeywordSet(FILE_LUNIx)) {    
+      e->Throw(txt+"/FILE_LUN not supported yet, please contribute.");
+    }
+    if( e->KeywordSet(FILE_OFFSETIx))  {
+      e->Throw(txt+"/FILE_OFFSET not supported yet, please contribute.");
+    }
 
     // N_DIMENSIONS
-    } else if( e->KeywordSet(N_DIMENSIONSIx)) { 
-
+    if( e->KeywordSet(N_DIMENSIONSIx)) {
       return new DLongGDL( Rank);
+    }
 
     //N_ELEMENTS
-    } else if( e->KeywordSet(N_ELEMENTSIx)) { 
-
+    if( e->KeywordSet(N_ELEMENTSIx)) { 
+      
       if( e->KeywordSet(0))
 	return new DULongGDL( nEl);
       else
 	return new DLongGDL( nEl);
+    }
 
     // STRUCTURE
-    } else if( e->KeywordSet(STRUCTUREIx)) { 
+    if( e->KeywordSet(STRUCTUREIx)) { 
 
       DStructGDL* res;
 
@@ -206,42 +255,42 @@ namespace lib {
 
       return res;
       //e->Throw( "STRUCTURE not supported yet.");
-
+    }
+    
     // TNAME
-    } else if( e->KeywordSet(TNAMEIx)) { 
-
+    if( e->KeywordSet(TNAMEIx)) {
       if( p0 == NULL)
 	return new DStringGDL( "UNDEFINED");
-
       return new DStringGDL( p0->TypeStr());
-
-    // TYPE
-    } else if( e->KeywordSet(TYPEIx)) { 
-
-      return new DLongGDL( vType );
-
-    } else {
-
-      dimension dim( 3 + Rank);
-
-      if( e->KeywordSet(L64Ix)) {
-	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
-	(*res)[ 0] = Rank;
-	for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
-	(*res) [ Rank+1] = vType;
-	(*res) [ Rank+2] = nEl;
-
-	return res;
-      } else {
-	DLongGDL* res = new DLongGDL( dim, BaseGDL::NOZERO);
-	(*res)[ 0] = Rank;
-	for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
-	(*res) [ Rank+1] = vType;
-	(*res) [ Rank+2] = nEl;
-
-	return res;
-      }
     }
+    
+    // TYPE
+    if( e->KeywordSet(TYPEIx)) { 
+      return new DLongGDL( vType );
+    }
+
+    // the general case without keyword ...
+
+    dimension dim( 3 + Rank);
+    
+    if( e->KeywordSet(L64Ix)) {
+      DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
+      (*res)[ 0] = Rank;
+      for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
+      (*res) [ Rank+1] = vType;
+      (*res) [ Rank+2] = nEl;
+      
+      return res;
+    } else {
+      DLongGDL* res = new DLongGDL( dim, BaseGDL::NOZERO);
+      (*res)[ 0] = Rank;
+      for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
+      (*res) [ Rank+1] = vType;
+      (*res) [ Rank+2] = nEl;
+      
+      return res;
+    }
+    
     return new DIntGDL( 0); // default for not supported
   }
 
