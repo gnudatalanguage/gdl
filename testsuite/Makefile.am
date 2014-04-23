@@ -107,6 +107,7 @@ TESTS = \
   test_ludc_lusol.pro \
   test_matrix_multiply.pro \
   test_memory.pro \
+  test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
   test_multiroots.pro \
