@@ -3083,9 +3083,10 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
 // float modulo division: left=left % right
 inline DFloat Modulo( const DFloat& l, const DFloat& r)
 {
-  float t=abs(l/r);
-  if( l < 0.0) return t=(floor(t)-t)*abs(r);
-  return (t-floor(t))*abs(r);
+//   float t=abs(l/r);
+//   if( l < 0.0) return t=(floor(t)-t)*abs(r);
+//   return (t-floor(t))*abs(r);
+  return fmod(l,r);
 }
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
@@ -3130,9 +3131,10 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
 // double modulo division: left=left % right
 inline DDouble DModulo( const DDouble& l, const DDouble& r)
  {
-   DDouble t=abs(l/r);
-   if( l < 0.0) return t=(floor(t)-t)*abs(r);
-   return (t-floor(t))*abs(r);
+//    DDouble t=abs(l/r);
+//    if( l < 0.0) return t=(floor(t)-t)*abs(r);
+//    return (t-floor(t))*abs(r);
+   return fmod(l,r);
  }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
