@@ -1946,12 +1946,7 @@ Data_<Sp>* Data_<Sp>::ModInvNew( BaseGDL* r)
 }
 // in basic_op.cpp
 // float modulo division: left=left % right
-// inline DFloat Modulo( const DFloat& l, const DFloat& r)
-// {
-//   float t=abs(l/r);
-//   if( l < 0.0) return t=(floor(t)-t)*abs(r);
-//   return (t-floor(t))*abs(r);
-// }
+
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::ModNew( BaseGDL* r)
 {
@@ -2003,12 +1998,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew( BaseGDL* r)
   return res;
 }
 // double modulo division: left=left % right
-inline DDouble Modulo( const DDouble& l, const DDouble& r)
-{
-  DDouble t=abs(l/r);
-  if( l < 0.0) return t=(floor(t)-t)*abs(r);
-  return (t-floor(t))*abs(r);
-}
+
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::ModNew( BaseGDL* r)
 {
@@ -2021,7 +2011,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew( BaseGDL* r)
   Data_* res = NewResult();
   if( nEl == 1)
   {
-	(*res)[0] = Modulo((*this)[0],(*right)[0]);
+	(*res)[0] = DModulo((*this)[0],(*right)[0]);
 	return res;
   }
   
@@ -2030,7 +2020,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew( BaseGDL* r)
     {
 #pragma omp for
       for( OMPInt i=0; i < nEl; ++i)
-	(*res)[i] = Modulo((*this)[i],(*right)[i]);
+	(*res)[i] = DModulo((*this)[i],(*right)[i]);
     }
   return res;
 }
@@ -2047,7 +2037,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew( BaseGDL* r)
   assert( nEl);
   if( nEl == 1)
   {
-	(*res)[0] = Modulo((*right)[0],(*this)[0]);
+	(*res)[0] = DModulo((*right)[0],(*this)[0]);
 	return res;
   }
   
@@ -2056,7 +2046,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew( BaseGDL* r)
     {
 #pragma omp for
       for( OMPInt i=0; i < nEl; ++i)
-	(*res)[i] = Modulo((*right)[i],(*this)[i]);
+	(*res)[i] = DModulo((*right)[i],(*this)[i]);
     }  
   return res;
 }
@@ -2260,7 +2250,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModSNew( BaseGDL* r)
   Data_* res = NewResult();
   if( nEl == 1)
   {
-	(*res)[0] = Modulo((*this)[0],(*right)[0]);
+	(*res)[0] = DModulo((*this)[0],(*right)[0]);
 	return res;
   }
     
@@ -2270,7 +2260,7 @@ TRACEOMP( __FILE__, __LINE__)
     {
 #pragma omp for
       for( OMPInt i=0; i < nEl; ++i)
-	(*res)[i] = Modulo((*this)[i],s);
+	(*res)[i] = DModulo((*this)[i],s);
     }  
   return res;
 }
@@ -2286,7 +2276,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew( BaseGDL* r)
   Data_* res = NewResult();
   if( nEl == 1)
   {
-	(*res)[0] = Modulo((*right)[0],(*this)[0]);
+	(*res)[0] = DModulo((*right)[0],(*this)[0]);
 	return res;
   }
   
@@ -2296,7 +2286,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew( BaseGDL* r)
     {
 #pragma omp for
       for( OMPInt i=0; i < nEl; ++i)
-	(*res)[i] = Modulo(s,(*this)[i]);
+	(*res)[i] = DModulo(s,(*this)[i]);
     }
   return res;
 }
