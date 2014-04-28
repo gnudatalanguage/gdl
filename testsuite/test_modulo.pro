@@ -12,6 +12,30 @@ errors=errors+1
 MESSAGE, /continue, message
 end
 ;
+function TMP_TYPENAME, input
+;
+typename_exist=0
+;
+DEFSYSV, '!gdl', exists=is_it_gdl
+;
+if (is_it_gdl) then begin
+   if (!gdl.EPOCH GT 1398200000) then typename_exist=1
+   ;;
+endif else begin
+   ;;
+   ;; we are in IDL, TYPENAME() was introduced in 8.0
+   ;;
+   if !VERSION.RELEASE GE '8.0' then typename_exist=1
+endelse
+;
+if (typename_exist) then begin
+   return, TYPENAME(input)
+endif else begin
+   return, STRING(SIZE(input,/tname))
+endelse
+;
+end
+;
 ; ----------------------------
 ;
 pro MODULO_ON_INTEGERS, nb_errors, type=type, verbose=verbose, test=test
@@ -25,7 +49,7 @@ if ((type EQ 0) OR ((type GT 3 ) AND (type LT 12))) then begin
    if (type EQ 10) OR (type EQ 11) then begin
       MESSAGE, /continue, 'BAD input TYPE (pointer, struct)'
    endif else begin
-      MESSAGE, /continue, 'BAD numerical input TYPE (not an Integer-like) ['+TYPENAME(INDGEN(1, type=type))+']'
+      MESSAGE, /continue, 'BAD numerical input TYPE (not an Integer-like) ['+TMP_TYPENAME(INDGEN(1, type=type))+']'
    endelse
    return
 endif
@@ -48,15 +72,15 @@ input0=INDGEN(nbps, type=type)-half
 ;
 if KEYWORD_SET(verbose) then begin
    print, 'requested TYPE = ', type, ', Type Name = ', $
-          TYPENAME(INDGEN(1, type=type))
+          TMP_TYPENAME(INDGEN(1, type=type))
    print, 'effective TYPE = ', SIZE(input0,/type), ', Type Name = ', $
-          TYPENAME(input0)   
+          TMP_TYPENAME(input0)   
 endif
 ;
 input2=input0*2
 input7=input0*7
 ;
-type_info='(for TYPE == '+TYPENAME(input0)+')'
+type_info='(for TYPE == '+TMP_TYPENAME(input0)+')'
 ;
 txt='Errors in MODULO_ON_INTEGERS '+type_info
 ;
