@@ -30,7 +30,7 @@ using namespace std;
 namespace lib {
 
   // important comment: as for Besel family, in IDL, VOIGT([2.],[0,1,2]) !=  VOIGT(2.,[0,1,2])
-  // We don't follow this dangerous situtation, we do have   VOIGT([2.],[0,1,2]) ==  VOIGT(2.,[0,1,2])
+  // We don't follow this dangerous situation, we do have   VOIGT([2.],[0,1,2]) ==  VOIGT(2.,[0,1,2])
 
   BaseGDL* voigt_fun(EnvT* e)
   { 
@@ -49,7 +49,7 @@ namespace lib {
 
     // Use to define NaN which is returned if one parameter of humlik function is Not A Number 
     static DStructGDL *Values =  SysVar::Values();                                                
-    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           
+    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
     DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];  
     // we don't use Gregory formalism (see macros in "math_fun_gm.cpp")
     // but we follow him notations ... just in case ...
@@ -124,6 +124,13 @@ namespace lib {
     //Voigt ( scalar , array )
     if (nElp0 == 1 && nElp1 > 1)
       {
+	if ((A->Rank() > 0) && (SysVar::GDL_Warning())) {
+	  Warning ( "You are using a case where IDL and GDL don't work similarly:");
+	  Warning ( "in Voigt(A,U), A is a singleton array and U a true array: check your code !");
+	  Warning ( "in GDL: Voigt(1,[0,1,2]) == Voigt([1],[0,1,2]) == Voigt([1,1,1],[0,1,2]).");
+	  Warning ( "You can turn OFF this warning changing !GDL_WARNING to 0.");
+	}
+
 	for (i=0;i<nElp;++i)
 	  {
 	    if (isfinite(InitA)==0 || isfinite((*U)[i])==0)
@@ -146,6 +153,12 @@ namespace lib {
     // Voigt ( array , scalar)   
     if (nElp0 > 1 && nElp1 == 1)
       {
+	if ((U->Rank() > 0) && (SysVar::GDL_Warning())) {
+	  Warning ( "You are using a case where IDL and GDL don't work similarly:");
+	  Warning ( "in Voigt(A,U), U is a singleton array and A a true array: check your code !");
+	  Warning ( "in GDL: Voigt([0,1,2], 1) == Voigt([0,1,2],[1]) == Voigt([0,1,2],[1,1,1]).");
+	  Warning ( "You can turn OFF this warning changing !GDL_WARNING to 0.");
+	}
 	for (i=0;i<nElp;++i)
 	  { 
 	    if (isfinite((*A)[i])==0 || isfinite(InitU)==0)

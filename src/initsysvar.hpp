@@ -84,6 +84,7 @@ namespace SysVar
   const std::string& Prompt();
   int   Edit_Input();
   DLong Quiet();
+  DLong GDL_Warning();
 
   // get and set !JOURNAL (journal file LUN)
   DLong JournalLUN();

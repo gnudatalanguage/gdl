@@ -149,6 +149,7 @@ TESTS = \
   test_trisol.pro \
   test_typename.pro \
   test_url.pro \
+  test_voigt.pro \
   test_wait.pro \
   test_wavelet.pro \
   test_where.pro \

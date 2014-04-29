@@ -246,3 +246,25 @@ print, 'VOIGT: ', SYSTIME(1)-t0
 ;
 
 end
+;
+; showing IDL/GDL differences in behavoir 
+;
+pro TEST_VOIGT_SINGLETON, test=test
+;
+a=1
+u=[1,2,3,-10.]
+;
+res1=VOIGT(a,u)
+res2=VOIGT([a],u)
+res3=VOIGT(REPLICATE(a,N_ELEMENTS(u)),u)
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+pro TEST_VOIGT
+;
+print, 'AC 2014-04-29: not finished ...'
+TEST_VOIGT_SINGLETON
+;
+end

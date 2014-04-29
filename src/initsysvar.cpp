@@ -48,10 +48,11 @@ namespace SysVar
   using namespace std;
 
   // the index of some system variables
-  UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx, 
-    dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
+  UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx,
+    dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx, usersymIx, orderIx;
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
+    warnIx, usersymIx, orderIx;
 
   // !D structs
   const int nDevices = 5;
@@ -208,6 +209,12 @@ namespace SysVar
   {
     DVar& qSysVar=*sysVarList[quietIx];
     return static_cast<DLongGDL&>(*qSysVar.Data())[0];
+  }
+
+  DLong GDL_Warning()
+  {
+    DVar& gwSysVar=*sysVarList[gdlWarningIx];
+    return static_cast<DLongGDL&>(*gwSysVar.Data())[0];
   }
 
   void SetC( DLong cVal)
@@ -443,6 +450,13 @@ namespace SysVar
     DVar *order = new DVar( "ORDER", orderData);
     orderIx     = sysVarList.size();
     sysVarList.push_back( order);
+
+    // !GDL_WARNING (to be used in VOIGT() and BeselIJKY() to warm on
+    // different behaviour between IDL and GDL
+    DLongGDL *gdlWarningData = new DLongGDL( 1 );
+    DVar *gdlWarning = new DVar( "GDL_WARNING", gdlWarningData);
+    gdlWarningIx     = sysVarList.size();
+    sysVarList.push_back( gdlWarning);
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
