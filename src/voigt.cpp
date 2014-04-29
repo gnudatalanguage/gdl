@@ -22,6 +22,8 @@
  ***************************************************************************/
 ///   To calculate the Faddeeva function with relative error less than 10^(-4).
 ///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+///    http://dx.doi.org/10.1016/S0022-4073(97)00231-8
+///
 /// arguments:
 ///  x, y - Faddeeva/Voigt function arguments 
 /// return value -- voigt

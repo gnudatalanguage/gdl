@@ -28,7 +28,10 @@
 using namespace std;
 
 namespace lib {
-  
+
+  // important comment: as for Besel family, in IDL, VOIGT([2.],[0,1,2]) !=  VOIGT(2.,[0,1,2])
+  // We don't follow this dangerous situtation, we do have   VOIGT([2.],[0,1,2]) ==  VOIGT(2.,[0,1,2])
+
   BaseGDL* voigt_fun(EnvT* e)
   { 
     SizeT nParam = e->NParam();
@@ -56,8 +59,12 @@ namespace lib {
 
     DFloatGDL* res ;
 
-    if (nElp0 == 1 && nElp1 == 1)
-      res = new DFloatGDL(1, BaseGDL::NOZERO);
+    if (nElp0 == 1 && nElp1 == 1) {
+      if (A->Rank() > U->Rank()) 
+	res = new DFloatGDL(A->Dim(), BaseGDL::NOZERO);
+      else
+	res = new DFloatGDL(U->Dim(), BaseGDL::NOZERO);
+    }
     else if (nElp0 > 1 && nElp1 == 1)
       res = new DFloatGDL(A->Dim(), BaseGDL::NOZERO);
     else if (nElp0 == 1 && nElp1 > 1)
