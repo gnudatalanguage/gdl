@@ -115,6 +115,7 @@ TESTS = \
   test_nestedloop.pro \
   test_netcdf.pro \
   test_null.pro \
+  test_obj_new.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
