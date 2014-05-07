@@ -816,7 +816,7 @@ namespace lib {
 	e->AssureScalarPar<DStringGDL>( 0, varName);
 	varName = StrUpCase( varName);
 	int xI = pro->FindVar( varName);
-	//	cout << xI << endl;
+	//cout << xI << " " << varName << " " << pro->Size() << endl;
 	if (xI != -1) {
 	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
@@ -834,7 +834,7 @@ namespace lib {
 	  // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
 	}
 	
-	e->Throw( "Variable not found: " + varName);
+	Message( "Variable not found: " + varName);
 	return NULL;
       } else if (arg) { // ARG_NAME
 
