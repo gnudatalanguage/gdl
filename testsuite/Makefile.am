@@ -134,6 +134,7 @@ TESTS = \
   test_readf.pro \
   test_rebin.pro \
   test_rk4.pro \
+  test_routine_names.pro \
   test_same_name.pro \
   test_scope_varfetch.pro \
   test_sem.pro \
