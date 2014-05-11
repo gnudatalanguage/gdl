@@ -1180,8 +1180,11 @@ Esko G. Cate & David W. Twigg
   }
 
 #ifdef USE_LIBPROJ4
-  PROJTYPE *map_init()
-  {
+#ifdef USE_LIBPROJ4_NEW
+  PROJTYPE map_init() {
+#else
+  PROJTYPE *map_init() {
+#endif
     // Checks for changes to projection parameters and calls
     // pj_init if they have changed or if first time.
 
@@ -1192,6 +1195,7 @@ Esko G. Cate & David W. Twigg
     static unsigned aTag = mapStruct->Desc()->TagIndex( "A");
     static unsigned e2Tag = mapStruct->Desc()->TagIndex( "E2");
     static unsigned pTag = mapStruct->Desc()->TagIndex( "P");
+    static unsigned rTag = mapStruct->Desc()->TagIndex("ROTATION");
 
     DLong map_projection = 
       (*static_cast<DLongGDL*>( mapStruct->GetTag( projectionTag, 0)))[0];
@@ -1209,6 +1213,8 @@ Esko G. Cate & David W. Twigg
       (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[3];
     DDouble map_lat2 = 
       (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[4];
+    DDouble map_rot =
+            (*static_cast<DDoubleGDL*> (mapStruct->GetTag(rTag, 0)))[0];
 
     char proj[64];
     char p0lon[64];
@@ -1219,11 +1225,14 @@ Esko G. Cate & David W. Twigg
     char lat_2[64];
     char lat_ts[64];
     char h[64];
+    char rot[64];
 
     // Oblique projection parameters
     char ob_proj[64];
     char ob_lon[64];
     char ob_lat[64];
+    DDouble proj_p0lon = 0.0; //Default
+    DDouble proj_p0lat = 90.0; //Default
 
     static char *parms[32];
     static DLong last_proj = 0;
@@ -1234,6 +1243,9 @@ Esko G. Cate & David W. Twigg
     static DDouble last_p0 = -9999;
     static DDouble last_lat1 = -9999;
     static DDouble last_lat2 = -9999;
+    static DDouble last_rot = -9999;
+
+    bool isrot = false;
 
     if (map_projection != last_proj ||
 	map_p0lon != last_p0lon ||
@@ -1242,8 +1254,44 @@ Esko G. Cate & David W. Twigg
 	map_e2 != last_e2 || 
 	map_p0 != last_p0 ||
 	map_lat1 != last_lat1 ||
-	map_lat2 != last_lat2) {
+            map_lat2 != last_lat2 ||
+            map_rot != last_rot) {
 
+//save values here, we may change them later for local convenience
+      last_proj = map_projection;
+      last_p0lon = map_p0lon;
+      last_p0lat = map_p0lat;
+      last_a = map_a;
+      last_e2 = map_e2;
+      last_p0 = map_p0;
+      last_lat1 = map_lat1;
+      last_lat2 = map_lat2;
+      last_rot = map_rot;
+
+
+      if (map_rot != 0.0) isrot = true;
+
+      switch (map_projection) {
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+          isrot = true;
+          proj_p0lat = 90.0 - map_p0lat; //ADD CENTRAL_AZIMUTH!!
+          map_p0lat = 0.0;
+          break;
+      }
+      sprintf(rot, "rot=%lf", map_rot);
+
+      sprintf(ob_lon, "o_lon_p=%lf", fabs(proj_p0lon));
+      strcat(ob_lon, "E");
       if (map_p0lon >= 0) {
 	sprintf(p0lon, "lon_0=%lf", map_p0lon);
 	strcat(p0lon, "E");
@@ -1252,6 +1300,8 @@ Esko G. Cate & David W. Twigg
 	strcat(p0lon, "W");
       }
       
+      sprintf(ob_lat, "o_lat_p=%lf", fabs(proj_p0lat));
+      strcat(ob_lat, "N");
       if (map_p0lat >= 0) {
 	sprintf(p0lat, "lat_0=%lf", map_p0lat);
 	strcat(p0lat, "N");
@@ -1281,147 +1331,214 @@ Esko G. Cate & David W. Twigg
       // gnomic        iproj =  5
       // azimuth       iproj =  6
       // satellite     iproj =  7
+      // cylindrical   iproj =  8
       // mercator      iproj =  9
       // mollweide     iproj = 10
       // sinusoidal    iproj = 11
       // aitoff        iproj = 12
       // hammer        iproj = 13
       // albers        iproj = 14
-      // utm           iproj = 15
+      // transverse mercator   iproj = 15
       // miller        iproj = 16
       // robinson      iproj = 17
+      // lambertConicEllipsoid  iproj = 18 version of conic with ellipsoid= keyword. To be confirmed.
       // goodes        iproj = 19
 
+      //note: horizons do not seem to work?
+
       // Stereographic Projection
-      if (map_projection == 1) {
-	strcpy(proj, "proj=stere");
+      if (isrot) {
+        strcpy(ob_proj, "proj=ob_tran");
+        parms[nparms++] = &ob_proj[0];
+        switch (map_projection) {
+          case 1:
+            strcpy(proj, "o_proj=stere"); // stereographic //OK
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
-
-      // Orthographic Projection
-      if (map_projection == 2) {
-	strcpy(proj, "proj=ortho");
+            break;
+          case 2:
+            strcpy(proj, "o_proj=ortho"); // orthographic //OK
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
-
-      // Lambert Conformal Conic
-      if (map_projection == 3) {
-	strcpy(proj, "proj=lcc");
+            break;
+          case 3:
+            //lambert Conformal conic with 1 or 2 standard parallels
+            strcpy(proj, "o_proj=lcc"); // conic //OK //USE: ELLIPSOID=[A,E2,K0] (default:1.0) //CONIC: USE STANDARD_PARALLELS
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
 	sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
 	sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
 	parms[nparms++] = &lat_1[0];
 	parms[nparms++] = &lat_2[0];
-      }
-
-      // Lambert Equal Area Conic
-      if (map_projection == 4) {
-	strcpy(proj, "proj=leac");
+            break;
+          case 4:
+            strcpy(proj, "o_proj=laea"); // lambert //OK 
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
-
-      // Gnomonic
-      if (map_projection == 5) {
-	strcpy(proj, "proj=gnom");
+            break;
+          case 5:
+            strcpy(proj, "o_proj=gnom"); // gnomic  //OK
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
-
-      // Azimuthal Equidistant
-      if (map_projection == 6) {
-	strcpy(proj, "proj=aeqd");
+            break;
+          case 6:
+            strcpy(proj, "o_proj=aeqd"); // azimuth //OK
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
-
-      // Satellite (Tilted Perspective)
-      if (map_projection == 7) {
-	strcpy(proj, "proj=tpers");
+            break;
+          case 7:
+            strcpy(proj, "o_proj=tpers"); // satellite , add info below //USE: SAT_P=[ P, Omega, and Gamma]
 	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
 	sprintf(h, "h=%lf", map_p0);
 	parms[nparms++] = &h[0];
-	//	omega = pj_param(P->params, "dtilt").f * DEG_TO_RAD;
-	//gamma = pj_param(P->params, "dazi").f * DEG_TO_RAD;
-	//P->height = pj_param(P->params, "dh")
-      }
-
-      // Cylindrical Equidistant
-      if (map_projection == 8) {
-	if (map_p0lat == 0) {
-	  strcpy(proj, "proj=eqc");
+            //        //	omega = pj_param(P->params, "dtilt").f * DEG_TO_RAD;
+            //        //gamma = pj_param(P->params, "dazi").f * DEG_TO_RAD;
+            //        //P->height = pj_param(P->params, "dh")
+            break;
+          case 8:
+            strcpy(proj, "o_proj=eqc"); // cylindrical // Check change with LAT //USE: CENTRAL_AZIMUTH
 	  parms[nparms++] = &proj[0];
-	  parms[nparms++] = &p0lon[0];
-	} else {
-	  strcpy(ob_proj, "proj=ob_tran");
-	  parms[nparms++] = &ob_proj[0];
-	  strcpy(proj, "o_proj=eqc");
+            break;
+          case 9:
+            strcpy(proj, "o_proj=merc"); // mercator // Check change with LAT //USE: CENTRAL_AZIMUTH
 	  parms[nparms++] = &proj[0];
-	  parms[nparms++] = &p0lon[0];
-
-	  /*
-	  if (map_p0lon >= 0) {
-	    sprintf(ob_lon, "o_lon_0=%lf", map_p0lon);
-	    strcat(ob_lon, "E");
-	  } else {
-	    sprintf(ob_lon, "o_lon_0=%lf", fabs(map_p0lon));
-	    strcat(ob_lon, "W");
+            break;
+          case 10:
+            strcpy(proj, "o_proj=moll"); //mollweide // Check change with LAT //USE: CENTRAL_AZIMUTH
+            parms[nparms++] = &proj[0];
+            break;
+          case 11:
+            strcpy(proj, "o_proj=sinu"); // sinusoidal // Check change with LAT //USE: CENTRAL_AZIMUTH
+            parms[nparms++] = &proj[0];
+            break;
+          case 12:
+            strcpy(proj, "o_proj=aitoff"); // aitoff // Check change with LAT
+            parms[nparms++] = &proj[0];
+            break;
+          case 13:
+            strcpy(proj, "o_proj=hammer"); // hammer // Check change with LAT
+            parms[nparms++] = &proj[0];
+            break;
+          case 14:
+            strcpy(proj, "o_proj=aea"); // albers  //OK //CONIC: USE STANDARD_PARALLELS
+            parms[nparms++] = &proj[0];
+            sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
+            sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
+            parms[nparms++] = &lat_1[0];
+            parms[nparms++] = &lat_2[0];
+            break;
+          case 15:
+            strcpy(proj, "o_proj=tmerc"); // transverse mercator //OK ? //USE: ELLIPSOID=[A,E2,K0] default Clarke 1866=[6378206.4, 0.00676866, 0.9996].
+            parms[nparms++] = &proj[0];
+            break;
+          case 16:
+            strcpy(proj, "o_proj=mill"); // miller // Check change with LAT
+            parms[nparms++] = &proj[0];
+            break;
+          case 17:
+            strcpy(proj, "o_proj=robin"); // robinson // Check change with LAT
+            parms[nparms++] = &proj[0];
+            break;
+          case 18:
+            //            strcpy(proj,"o_proj=aaaa");// lambertConicEllipsoid ?? //USE: ELLIPSOID=[A,E2,K0]
+            //            parms[nparms++] = &proj[0];
+            //            break;              
+          case 19:
+#ifdef USE_LIBPROJ4_NEW  
+            strcpy(proj, "o_proj=igh"); // interrupted goode's homolosine: % MAP_SET: Goode's Homolosine: center is always on equator.
+#else
+            strcpy(proj, "o_proj=goode"); // goode's homolosine: % MAP_SET: Goode's Homolosine: center is always on equator.
+#endif
+            parms[nparms++] = &proj[0]; //not the good projection if old libproj4
+            break;
 	  }
 	  parms[nparms++] = &ob_lon[0];
-	  */
-
-	  sprintf(ob_lat, "o_lat_p=%lf", 90-map_p0lat);
 	  parms[nparms++] = &ob_lat[0];
-	}
+        parms[nparms++] = &rot[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
+      } else {
+        switch (map_projection) {
+          case 1:
+            strcpy(proj, "proj=stere"); // stereographic //OK
+            break;
+          case 2:
+            strcpy(proj, "proj=ortho"); // orthographic //OK
+            break;
+          case 3:
+            strcpy(proj, "proj=lcc"); // conic //OK
+            sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
+            sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
+            parms[nparms++] = &lat_1[0];
+            parms[nparms++] = &lat_2[0];
+            break;
+          case 4:
+            strcpy(proj, "proj=laea"); // lambert //NOT OK . dig more
+            break;
+          case 5:
+            strcpy(proj, "proj=gnom"); // gnomic  //OK
+            break;
+          case 6:
+            strcpy(proj, "proj=aeqd"); // azimuth //OK
+            break;
+          case 7:
+            strcpy(proj, "proj=tpers"); // satellite //FAILED
+            sprintf(h, "h=%lf", map_p0);
+            parms[nparms++] = &h[0];
+            //        //	omega = pj_param(P->params, "dtilt").f * DEG_TO_RAD;
+            //        //gamma = pj_param(P->params, "dazi").f * DEG_TO_RAD;
+            //        //P->height = pj_param(P->params, "dh")
+            break;
+          case 8:
+            strcpy(proj, "proj=eqc"); // cylindrical // Check change with LAT
+            break;
+          case 9:
+            strcpy(proj, "proj=merc"); // mercator // Check change with LAT
+            break;
+          case 10:
+            strcpy(proj, "proj=moll"); //mollweide // Check change with LAT
+            break;
+          case 11:
+            strcpy(proj, "proj=sinu"); // sinusoidal // Check change with LAT
+            break;
+          case 12:
+            strcpy(proj, "proj=aitoff"); // aitoff // Check change with LAT
+            break;
+          case 13:
+            strcpy(proj, "proj=hammer"); // hammer // Check change with LAT
+            break;
+          case 14:
+            strcpy(proj, "proj=aea"); // albers //OK
+            sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
+            sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
+            parms[nparms++] = &lat_1[0];
+            parms[nparms++] = &lat_2[0];
+            break;
+          case 15:
+            strcpy(proj, "proj=tmerc"); // transverse mercator //OK ?
+            break;
+          case 16:
+            strcpy(proj, "proj=mill"); // miller // Check change with LAT
+            break;
+          case 17:
+            strcpy(proj, "proj=robin"); // robinson // Check change with LAT
+            break;
+          case 18:
+            //            strcpy(proj,"proj=aaaa");// lambertConicEllipsoid ??
+            //            parms[nparms++] = &proj[0];
+            //            break;              
+          case 19:
+#ifdef USE_LIBPROJ4_NEW  
+            strcpy(proj, "proj=igh"); // interrupted goode's homolosine: % MAP_SET: Goode's Homolosine: center is always on equator.
+#else
+            strcpy(proj, "proj=goode"); // goode's homolosine: % MAP_SET: Goode's Homolosine: center is always on equator.
+#endif
+            break;
       }
-
-      // Mercator
-      if (map_projection == 9) {
-	strcpy(proj, "proj=merc");
-	sprintf(lat_ts, "lat_ts=%lf", 0.0);
-	parms[nparms++] = &proj[0];
-	//	parms[nparms++] = &lat_ts[0];
-      }
-
-      // Aitoff
-      if (map_projection == 12) {
-	strcpy(proj, "proj=aitoff");
 	parms[nparms++] = &proj[0];
 	parms[nparms++] = &p0lon[0];
 	parms[nparms++] = &p0lat[0];
       }
 
-      // Robinson
-      if (map_projection == 17) {
-	strcpy(proj, "proj=robin");
-	parms[nparms++] = &proj[0];
-	parms[nparms++] = &p0lon[0];
-	parms[nparms++] = &p0lat[0];
-      }
 
-      last_proj = map_projection;
-      last_p0lon = map_p0lon;
-      last_p0lat = map_p0lat;
-      last_a = map_a;
-      last_e2 = map_e2;
-      last_p0 = map_p0;
-      last_lat1 = map_lat1;
-      last_lat2 = map_lat2;
-
-      //      prev_ref = pj_init(nparms, parms);
+//      for (SizeT i = 0; i < nparms; ++i) fprintf(stderr, "%s\n", parms[i]);
+//      fprintf(stderr, "%d\n",nparms);
 #ifdef USE_LIBPROJ4_NEW     
-      *prev_ref = PJ_INIT(nparms, parms);
+      prev_ref = PJ_INIT(nparms, parms);
 #else
       prev_ref = PJ_INIT(nparms, parms);
 #endif      
