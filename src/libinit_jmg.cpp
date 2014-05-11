@@ -133,7 +133,7 @@ void LibInit_jmg()
   const string rk4Key[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
 
-#if defined(USE_LIBPROJ4)
+#if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
   const string map_proj_forwardKey[]={"CONNECTIVITY","FILL",
 				      "MAP_STRUCTURE","POLYGONS",
 				      "POLYLINES","RADIANS",KLISTEND};
@@ -148,11 +148,11 @@ void LibInit_jmg()
 #ifdef USE_GSHHS
 
   // SA: GSHHS dataset
-  // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
+  // TODO: USA, ORIENTATION, LIMIT,
   //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
-  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", 
+  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", "COASTS", "CONTINENTS",
     "HIRES", "FILL_CONTINENTS", KLISTEND};
-  const string map_continentsWarnKey[] = {"USA", "COASTS", KLISTEND};
+  const string map_continentsWarnKey[] = {"USA",  KLISTEND};
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
 #endif
