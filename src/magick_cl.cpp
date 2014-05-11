@@ -39,7 +39,6 @@
 #include "basic_fun_cl.hpp"
 #include "terminfo.hpp"
 #include "typedefs.hpp"
-#include "math_utl.hpp"
 #include "magick_cl.hpp"
 
 #define GDL_DEBUG
