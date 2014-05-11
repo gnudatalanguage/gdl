@@ -37,7 +37,7 @@ Devices are (note that on a given platform not all devices are available):
 X   - X windows (GDLXStream, GDLWXStream)
 WIN - Windows
 PS  - postscript output
-...
+SVG - a SVG compliant file.
 
 */
 
