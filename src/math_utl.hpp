@@ -64,6 +64,9 @@ extern "C" {
 #define PJ_INIT pj_init
 #define PJ_FWD pj_fwd
 #define PJ_INV pj_inv
+PROJTYPE map_init();
+static  PROJTYPE ref;
+static  PROJTYPE prev_ref;
 #else
 extern "C" {
 #include "lib_proj.h"
@@ -74,12 +77,13 @@ extern "C" {
 #define PJ_INIT proj_init
 #define PJ_FWD proj_fwd
 #define PJ_INV proj_inv
+PROJTYPE *map_init();
+static  PROJTYPE *ref;
+static  PROJTYPE *prev_ref;
 #endif
 
 
-  PROJTYPE *map_init();
-  static PROJTYPE *ref;
-  static PROJTYPE *prev_ref;
+
 
 #define COMPLEX2 GDL_COMPLEX
 #endif //USE_LIBPROJ4
