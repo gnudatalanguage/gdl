@@ -32,7 +32,7 @@
 ;
 ;-
 pro map_clip_set,reset=reset,split=split,clip_plane=clip_plane, $
-                 transform=transform,clip_uv=clip_uv
+                 transform=transform,clip_uv=clip_uv, show=show
 on_error, 2
 
 
@@ -40,7 +40,18 @@ if (keyword_set(reset)) then begin
     !map.pipeline=0.0
     return
 endif
-
+if (keyword_set(show)) then begin
+  i=0
+  while(!map.pipeline[0,i] ne 0) do begin
+    case fix(!map.pipeline[0,i]) of
+      1: print,"PIPELINE_SPLIT",!map.pipeline[1,i],!map.pipeline[2,i],!map.pipeline[3,i],!map.pipeline[4,i]
+      2: print,"PIPELINE_PLANE",!map.pipeline[1,i],!map.pipeline[2,i],!map.pipeline[3,i],!map.pipeline[4,i]
+      3: print,"PIPELINE_TRANS",!map.pipeline[1,i],!map.pipeline[2,i],!map.pipeline[3,i],!map.pipeline[4,i]
+      4: print,"PIPELINE_UVBOX",!map.pipeline[1,i],!map.pipeline[2,i],!map.pipeline[3,i],!map.pipeline[4,i]
+    endcase
+    i++
+  endwhile
+endif
 if (n_elements(clip_plane) ne 0) then begin
     i = 0
     while (!map.pipeline[0,i] ne 0 and !map.pipeline[0,i] ne 3) do i = i + 1
