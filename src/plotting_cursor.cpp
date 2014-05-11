@@ -80,7 +80,7 @@ void tvcrs( EnvT* e)
     get_mapset(mapSet);
     if (mapSet)
     {
-      PROJTYPE* ref = map_init();
+//      PROJTYPE* ref = map_init();
       if (ref == NULL) e->Throw("Projection initialization failed.");
       LPTYPE idataN;
 #ifdef USE_LIBPROJ4_NEW
@@ -215,7 +215,12 @@ void cursor(EnvT* e){
       }
       else
       {
-        PROJTYPE* ref = map_init();
+#ifdef USE_LIBPROJ4_NEW
+      static PROJTYPE ref;
+#else
+      static PROJTYPE* ref;
+#endif
+        ref = map_init();
         if (ref == NULL) e->Throw("Projection initialization failed.");
         XYTYPE idata, idataN;
 #ifdef USE_LIBPROJ4_NEW

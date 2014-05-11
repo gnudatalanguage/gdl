@@ -231,7 +231,11 @@ namespace lib
 #ifdef USE_LIBPROJ4
       static LPTYPE idata;
       static XYTYPE odata;
+#ifdef USE_LIBPROJ4_NEW
+      static PROJTYPE ref;
+#else
       static PROJTYPE* ref;
+#endif
       get_mapset ( mapSet );
       if ( mapSet )
       {
@@ -593,6 +597,27 @@ namespace lib
           cgrid1.ny = yEl;
           for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
           for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
+#ifdef USE_LIBPROJ4
+        if ( mapSet )
+          {
+            for ( SizeT i=0; i<xEl; i++ )
+            {
+#ifdef USE_LIBPROJ4_NEW     
+                idata.u= cgrid1.xg[i] * DEG_TO_RAD;
+                idata.v= cgrid1.yg[i] * DEG_TO_RAD;
+                odata=PJ_FWD ( idata, ref );
+                cgrid1.xg[i]=odata.u;
+                cgrid1.yg[i]=odata.v;
+#else
+                idata.lam= cgrid1.xg[i] * DEG_TO_RAD;
+                idata.phi= cgrid1.yg[i] * DEG_TO_RAD;
+                odata=PJ_FWD ( idata, ref );
+                cgrid1.xg[i]=odata.x;
+                cgrid1.yg[i]=odata.y;
+#endif
+            }  
+          }
+#endif
           //apply plot options transformations:
           if (xLog) for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):1E-12;  // #define EXTENDED_DEFAULT_LOGRANGE 12
           if (yLog) for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
