@@ -50,7 +50,11 @@ namespace lib {
 #ifndef USE_GSHHS
     e->Throw("GDL was compiled without support for GSHHS");
 #else
-
+    static struct POINT p;
+    static DStructGDL* mapStruct=SysVar::Map();
+    static unsigned llboxTag=mapStruct->Desc()->TagIndex("LL_BOX");
+    static DDoubleGDL *llbox;
+    llbox=static_cast<DDoubleGDL*>(mapStruct->GetTag(llboxTag, 0));
     // mapping init
     bool mapSet = false;
 #ifdef USE_LIBPROJ4
@@ -85,14 +89,24 @@ namespace lib {
     actStream->wind( xStart, xEnd, yStart, yEnd);
 
     // GDL stuff
+    static int continentsIx = e->KeywordIx("CONTINENTS");
+    bool kw_continents = true;
     static int riversIx = e->KeywordIx("RIVERS");
     bool kw_rivers = e->KeywordSet(riversIx);
+    if (kw_rivers) kw_continents=e->KeywordSet(continentsIx);
     static int countriesIx = e->KeywordIx("COUNTRIES");
     bool kw_countries = e->KeywordSet(countriesIx);
+    if (kw_countries) kw_continents=e->KeywordSet(continentsIx);
+    static int coastsIx = e->KeywordIx("COASTS");
+    bool kw_coasts = e->KeywordSet(coastsIx);
+    if (kw_coasts) kw_continents=e->KeywordSet(continentsIx);
+
     static int hiresIx = e->KeywordIx("HIRES");
     bool kw_hires = e->KeywordSet(hiresIx);
     static int fillIx = e->KeywordIx("FILL_CONTINENTS");
     bool kw_fill = e->KeywordSet(fillIx);
+    if (kw_fill) kw_continents=true;
+
  
     // SA: the code below is based on the gshhs.c by Paul Wessel
     // here's the original copyright notice:
@@ -137,20 +151,24 @@ namespace lib {
 
     string dir = string(GDLDATADIR) + "/../gshhs/"; 
     enum set {continents, countries, rivers, coasts};
-    string sufix = kw_hires ? "_h.b" : "_c.b";
+    string sufix = kw_hires ? "_h.b" : "_c.b";  //easy: should improve resolution based on actual size of exposed area and screen resolution!!
 
     vector<string> files(4);
     files[continents] = dir + "gshhs" + sufix;
     files[countries] = dir + "wdb_borders" + sufix;
     files[rivers] = dir + "wdb_rivers" + sufix;
     files[coasts] = dir + "gshhs" + sufix;
-
+    bool do_fill=false;
     for (int i = 0; i < files.size(); ++i)
     {
-      if (kw_fill && i != continents) continue; 
+
 
       if (i == countries && !kw_countries) continue;
       if (i == rivers && !kw_rivers) continue;
+      if (i == continents && !kw_continents) continue;
+      if (i == coasts && !kw_coasts) continue;
+      do_fill=(kw_fill && i == continents); 
+
       // TODO: coasts, continents
 
       FILE *fp = NULL;
@@ -164,8 +182,7 @@ namespace lib {
       int flip = (version != GSHHS_DATA_RELEASE);	/* Take as sign that byte-swabbing is needed */
   	
       int max_east = 270000000;
-      while (n_read == 1) 
-      {
+      while (n_read == 1) {
         if (flip) 
         {
           h.id = swabi4((unsigned int)h.id);
@@ -194,10 +211,24 @@ namespace lib {
         if (river) source = tolower ((int)source);   // Lower case c means river-lake 
         int line = (h.area) ? 0 : 1;                 // Either Polygon (0) or Line (1) (if no area) 
          
-        /*
+        
         double area = 0.1 * h.area;                  // Now im km^2 
-        double f_area = 0.1 * h.area_full;           // Now im km^2 
-  
+        double f_area = 0.1 * h.area_full;           // Now im km^2
+        bool skip=false;
+        if (i == continents && line) skip=true;
+        if (do_fill && line) skip=true;
+        if (i == continents && river ) skip=true;
+        if (i == continents && (level > 1)) skip=true;
+        if (i == coasts && level > 2 ) skip=true;
+        if (i == coasts && !kw_hires && area < 100.0 ) skip=true;
+        if (skip) 
+        {
+          if (fseek (fp,  (long)(h.n*sizeof(struct POINT)), SEEK_CUR) != 0)  e->Throw("Error reading file" + files[i] + " for " + (line ? "line" : "polygon") 
+              + i2s(h.id));
+          n_read = fread((void *)&h, (size_t)sizeof (struct GSHHS), (size_t)1, fp);
+        } else 
+        {
+        /*
         char kind[2] = {'P', 'L'};
         char c = kind[line];
         if (line)
@@ -215,7 +246,7 @@ namespace lib {
         double lon_last, lat_last, olon;
         PLFLT *lons, *lats;
         SizeT k,l;
-        if (kw_fill && !line)
+        if (do_fill)
         {
           lons = (PLFLT*)malloc(h.n *2* sizeof(PLFLT));
           if (lons == NULL) 
@@ -226,16 +257,12 @@ namespace lib {
         }
 //        Message("in file" + files[i] + " for " + (line ? "line" : "polygon") 
 //              + i2s(h.id) + ",size " + i2s(h.n)+", level"+i2s(level));
-        for (k = 0, l=0 ; k < h.n; k++) 
-        {
-          struct POINT p;
+        for (k = 0, l=0 ; k < h.n; k++) {
           if (fread ((void *)&p, (size_t)sizeof(struct POINT), (size_t)1, fp) != 1) 
           {
             e->Throw("Error reading file" + files[i] + " for " + (line ? "line" : "polygon") 
               + i2s(h.id) + ", point " + i2s(k));
           }
-          if (!(line && kw_fill))
-          {
             // byte order
             if (flip) 
             {
@@ -247,7 +274,7 @@ namespace lib {
             double lon = p.x * GSHHS_SCL;
             if ((greenwich && p.x > max_east) || (h.west > 180000000)) lon -= 360.0;
             double lat = p.y * GSHHS_SCL;
-             
+//should not use projection here. should use AFTERWARDS in plot.              
 #ifdef USE_LIBPROJ4
 #ifdef USE_LIBPROJ4_NEW
             // map projection
@@ -271,12 +298,13 @@ namespace lib {
             }
 #endif
 #endif
-            if (k != 0) {  //very crude patch --- will not avoid spurious lines & artifacts!
+	    if (k==0) olon=lon; else 
+            {  //very crude patch --- will not avoid spurious lines & artifacts!
                 if(fabs(olon-lon) > 0.5*abs(xEnd-xStart)) forget=true;
                 olon=lon;
             }
             // drawing line or recording data for drawing a polygon afterwards
-            if (!kw_fill)
+            if (!do_fill)
             {
               if (k != 0) {
                   if (forget) forget=false; else  actStream->join(lon_last, lat_last, lon, lat);
@@ -294,22 +322,22 @@ namespace lib {
                   lats[l] = lat;
                   l++;
               } else
-              {
+            {
                   lons[l] = lon;
                   lats[l] = lat;
                   l++;
-              }
             }
-          }
+			}
         }
-        if (kw_fill && !line) 
+        if (do_fill && !line) 
         {
           if (l>2) actStream->fill(l, lons, lats); // TODO: PL_MAXPOLY is 256 :(
           free(lons);
           free(lats);
-        }
+        } 
         max_east = 180000000;	/* Only Eurasia needs 270 */
         n_read = fread((void *)&h, (size_t)sizeof (struct GSHHS), (size_t)1, fp);
+      }
       }
 		
 //       fclose(fp);
