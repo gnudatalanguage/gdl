@@ -42,7 +42,11 @@ Self-consistent, Hierarchical, High-resolution Shoreline Database)
 available under the GNU GPL. To provide support for MAP_CONTINENTS the 
 database files and one header file (gshhs.h) need to be downloaded e.g. from:
 
-ftp://ftp.soest.hawaii.edu/pwessel/gshhs
+ftp://ftp.soest.hawaii.edu/pwessel/gshhsg
+
+see file ftp://ftp.soest.hawaii.edu/pwessel/gshhg/README.TXT for
+complete description.
+
 
 The header file for the 2.0 dataset is in the gshhs_1.12_src.zip file.
 The datafiles (*.b) are in the gshhs_2.0.tbz file.
