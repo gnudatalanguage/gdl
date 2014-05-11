@@ -659,7 +659,7 @@ void LibInit()
     {
       "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", "XLOG", "YLOG","ZLOG", 
       //General Graphics KW
-      "BACKGROUND", "NOERASE",
+      "BACKGROUND", "NOERASE", "CLIP",
       "CHARSIZE", "CHARTHICK", "COLOR", "DATA", "DEVICE", "NORMAL", "FONT",
       "NODATA", "POSITION", "SUBTITLE", "THICK", "TICKLEN", "TITLE",
       //Axis KW
@@ -787,7 +787,7 @@ void LibInit()
     };
    // NO SUPPORT AT ALL for:,"CLOSED","DOWNHILL","IRREGULAR","PATH_DATA_COORDS","PATH_FILENAME",
    // "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE","ZAXIS"
-  // "CHANNEL" is supposed to be passed from CONTOUR, PLOT, OPLOT, SHADE_SURF etc to ERASER
+  // "CHANNEL" is supposed to be passed from CONTOUR, PLOT, OPLOT, SHADE_SURF etc to ERASE
    const string contourWarnKey[]=
     {
       
