@@ -404,7 +404,17 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
 	  }
 	// 	  val += 1; // no increment operator for floats
       }
+  }
+  if (iT == BaseGDL::ZERO) {
+    SizeT sz = dd.size();
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for
+      for (int i = 0; i < sz; ++i) {
+        (*this)[i] = 0;
+      }
     }
+  }
 }
 /*// INDGEN seems to be more precise for large arrays
   template<> Data_<SpDFloat>::Data_(const dimension& dim_,
