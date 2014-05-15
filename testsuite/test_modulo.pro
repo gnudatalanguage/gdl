@@ -153,10 +153,10 @@ end
 ;
 ; ----------------------------------------------------------------
 ;
-pro TEST_MODULO, help=help, verbose=verbose, no_exit=no_exit, test=test
+pro TEST_MODULO, help=help, short=short, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_MODULO, help=help, verbose=verbose, $'
+   print, 'pro TEST_MODULO, help=help, short=short, verbose=verbose, $'
    print, '                 no_exit=no_exit, test=test'
    return
 endif
@@ -182,14 +182,9 @@ MODULO_ON_FLOAT, nb_errors, tol=6.3, scale=1.12, nb=1230, $
 MODULO_ON_FLOAT, nb_errors, tol=2.4e-11, scale=1.12, nb=1230, /double, $
                  verbose=verbose, test=test
 ;
-BANNER_FOR_TESTSUITE, 'TEST_MODULO', nb_errors
+BANNER_FOR_TESTSUITE, 'TEST_MODULO', nb_errors, short=short
 ;
-if (nb_errors EQ 0) then begin
-    MESSAGE, /continue, 'No error found in TEST_MODULO'
-endif else begin
-    MESSAGE, /continue, STRING(nb_errors)+' nb_errors found in TEST_MODULO'
-    if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endelse
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

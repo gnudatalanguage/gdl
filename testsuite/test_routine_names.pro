@@ -78,6 +78,8 @@ end
 ;
 pro INTERNAL_KEYWORDS, NAMES=names, info_size=info_size, nb_errors, verbose=verbose, debug=debug, test=test
 ;
+MESSAGE, /continue, 'Begin of INTERNAL_KEYWORDS procedure'
+;
 size_of_var=info_size
 ;
 errors=0
@@ -115,19 +117,25 @@ for ii=0, N_ELEMENTS(names)-1 do begin
 endfor
 ;
 if (errors GT 0) then begin
-    print, 'Errors found '
-endif
+    MESSAGE, /continue, 'End of INTERNAL_KEYWORDS procedure : Errors found'
+endif else begin
+    MESSAGE, /continue, 'End of INTERNAL_KEYWORDS procedure : NO Errors found'
+endelse
 ;
 if KEYWORD_SET(test) then STOP
 ;
 nb_errors=nb_errors+errors
-
 ;
 end
 ;
+; ----------------------------------------------------
 ;
+pro TEST_ROUTINE_NAMES, verbose=verbose, short=short, debug=debug, test=test, no_exit=no_exit
 ;
-pro TEST_ROUTINE_NAMES, verbose=verbose, debug=debug, test=test
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_ROUTINE_NAMES, verbose=verbose, short=short, debug=debug, test=test, no_exit=no_exit'
+    return
+endif
 ;
 nb_errors=0
 ;
@@ -145,9 +153,11 @@ INTERNAL_VARIABLES, ['A','B','C','D','E'], info_size, nb_errors, $
 INTERNAL_KEYWORDS, names=['A','B','C','D','E'], info_size=info_size, nb_errors, $
   verbose=verbose, debug=debug, test=test
 ;
-print, 'Total errors :', nb_errors
+BANNER_FOR_TESTSUITE, 'TEST_ROUTINE_NAMES', nb_errors, short=short
 ;
-if KEYWORD_SET(test) then stop
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 
