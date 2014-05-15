@@ -52,15 +52,8 @@ extern "C" {
 }
 #define LPTYPE projLP
 #define XYTYPE projXY
-//#undef projXY 
-//#undef projLP
-// typedef struct { double lam, phi; } LPTYPE;
-// typedef struct { double x, y; }     XYTYPE;
 
 #define PROJTYPE projPJ
-// #define PROJTYPE PJ
-//#define LPTYPE projLP
-//#define XYTYPE projXY
 #define PJ_INIT pj_init
 #define PJ_FWD pj_fwd
 #define PJ_INV pj_inv
@@ -69,6 +62,8 @@ static  PROJTYPE ref;
 static  PROJTYPE prev_ref;
 #else
 extern "C" {
+//add this in the future to remove the problem with lam,phi vs. x,y (change everywhere accordingly)    
+//#define PROJ_UV_TYPE 1
 #include "lib_proj.h"
 }
 #define PROJTYPE PROJ
