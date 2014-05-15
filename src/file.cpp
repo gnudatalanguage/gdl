@@ -814,23 +814,40 @@ DString makeInsensitive(const DString &s)
     }
     else 
     {
-      string pattern;
-      if 
-      (
-        st.at(0) != '/' && 
-        !(tilde && st.at(0) == '~') && 
-        !(environment && st.at(0) == '$')
-      ) 
-      { 
-        pattern = GetCWD();
-        pattern.append("/");
-        pattern.append(s);
-	if(!( st.size() ==1 && st.at(0) == '.')) pattern.append(st);
-        gRes = glob(pattern.c_str(), flags, NULL, &p);
+      int debug=0;
+      if (debug) {
+	cout << "st : " << st << endl;
+	cout << "st.size() : " << st.size() << endl;
       }
-      else 
-      {
-        gRes = glob(st.c_str(), flags, NULL, &p);
+      
+      string pattern;
+      if (st == ""){
+	pattern = GetCWD();
+	pattern.append("/*");
+	gRes = glob(pattern.c_str(), flags, NULL, &p);
+      } else {
+	if (
+	    st.at(0) != '/' && 
+	    !(tilde && st.at(0) == '~') && 
+	    !(environment && st.at(0) == '$')
+	    ) 
+	  { 
+	    pattern = GetCWD();
+	    pattern.append("/");
+	    if(!( st.size() ==1 && st.at(0) == '.')) pattern.append(st);
+	    
+	    if (debug) cout << "patern : " << pattern << endl;
+	    
+	    gRes = glob(pattern.c_str(), flags, NULL, &p);
+	  }
+	else 
+	  {
+	    gRes = glob(st.c_str(), flags, NULL, &p);
+	  }
+      }
+      if (debug) {
+	cout << "gRes : " << gRes << endl;
+	cout << "st out : " << st << endl;
       }
     }
 
@@ -942,6 +959,8 @@ DString makeInsensitive(const DString &s)
     bool onlyDir = nParam > 1;
 
     FileListT fileList;
+    int debug=0;
+    if (debug) cout << "nPath: " << nPath << endl;
 
     if( nPath == 0)
       FileSearch( fileList, "", 
@@ -958,6 +977,9 @@ DString makeInsensitive(const DString &s)
 		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
 
     DLong count = fileList.size();
+
+    if (debug) cout << "Count : " << count << endl;
+    //    cout << fileList << endl;
 
     if( onlyDir)
       { // recursive search for recurPattern
