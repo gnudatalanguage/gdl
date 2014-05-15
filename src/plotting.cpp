@@ -174,7 +174,6 @@ namespace lib
   bool gdlYaxisNoZero(EnvT* e)
   {
     //no explict range given?
-    SysVar::Y();
     DDouble test1, test2;
     static unsigned rangeTag=SysVar::Y()->Desc()->TagIndex("RANGE");
     test1=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[0];
@@ -2098,7 +2097,21 @@ namespace lib
     {
       int debug=0;
       if ( debug ) cout<<"Get     :"<<Start<<" "<<End<<endl;
-
+      bool isProj;
+      get_mapset(isProj);
+      if (isProj && axis!="Z") {
+        static DStructGDL* mapStruct=SysVar::Map();
+        static unsigned uvboxTag=mapStruct->Desc()->TagIndex("UV_BOX");
+        static DDoubleGDL *uvbox;
+        uvbox=static_cast<DDoubleGDL*>(mapStruct->GetTag(uvboxTag, 0));
+        if (axis=="X") {
+          Start=(*uvbox)[0];
+          End=(*uvbox)[2];
+        } else {
+          Start=(*uvbox)[1];
+          End=(*uvbox)[3];
+        }
+      } else {
       static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
       Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
       End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
@@ -2111,6 +2124,7 @@ namespace lib
         if ( debug ) cout<<"Get log :"<<Start<<" "<<End<<endl;
       }
     }
+  }
   }
 
   //Stores [XYZ].WINDOW, .REGION and .S
@@ -2302,7 +2316,7 @@ namespace lib
     e->AssureLongScalarKWIfPresent(what_s, axisMinor);
   }
 
-  //GET RANGE
+  //GET RANGE. Bool is set if Range has been set, either with [XYZ].RANGE or with [XYZ]RANGE=value
 
   bool gdlGetDesiredAxisRange(EnvT *e, string axis, DDouble &start, DDouble &end)
   {
