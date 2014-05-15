@@ -881,6 +881,16 @@ DString makeInsensitive(const DString &s)
       fL.push_back( "");
   }
 
+
+  // AC 16 May 2014 : preliminary (and no MSwin support !)
+  BaseGDL* file_expand_path( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    
+    return new DStringGDL("not ready");
+  }
+
   // not finished yet
   BaseGDL* file_search( EnvT* e)
   {

@@ -152,6 +152,10 @@ void LibInit()
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 #endif
 
+  const string file_expand_pathKey[]={KLISTEND};
+  new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
+ 
+
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
   
