@@ -468,22 +468,27 @@ public:
 
     bool noPosx=(xPos==-1);
     bool noPosy=(yPos==-1);
-    xPos=max(0,xPos);
-    yPos=max(0,yPos);
-    static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
-    static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
+    xPos=max(1,xPos); //starts at 1
+    yPos=max(1,yPos);
+
+    xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
+    yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
+    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
+// dynamic allocation needed!    
+    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
+    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
     if (noPosx && noPosy) { //no init given, use 4 quadrants:
       xoff = Quadx[wIx%4];
       yoff = Quady[wIx%4];
     } else if (noPosx) {
       xoff = Quadx[wIx%4];
-      yoff = yMaxSize-yPos-ySize;
+        yoff = yMaxSize-yPos-yleng;
     } else if (noPosy) {
       xoff = xPos;
       yoff = Quady[wIx%4];
     } else {
       xoff  = xPos;
-      yoff  = yMaxSize-yPos-ySize;
+      yoff  = yMaxSize-yPos-yleng;
     }
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
     xp=max(xp,1.0);
@@ -572,27 +577,29 @@ public:
     DLong xMaxSize, yMaxSize;
     DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
 
-    xleng = xSize;
-    yleng = ySize;
-
     bool noPosx=(xPos==-1);
     bool noPosy=(yPos==-1);
-    xPos=max(0,xPos);
-    yPos=max(0,yPos);
-    static PLINT Quadx[4]={xMaxSize-xSize,xMaxSize-xSize,0,0};
-    static PLINT Quady[4]={0,             yMaxSize-ySize,0,yMaxSize-ySize};
+    xPos=max(1,xPos); //starts at 1
+    yPos=max(1,yPos);
+
+    xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
+    yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
+    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
+// dynamic allocation needed!    
+    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
+    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
     if (noPosx && noPosy) { //no init given, use 4 quadrants:
       xoff = Quadx[wIx%4];
       yoff = Quady[wIx%4];
     } else if (noPosx) {
       xoff = Quadx[wIx%4];
-      yoff = yMaxSize-yPos-ySize;
+        yoff = yMaxSize-yPos-yleng;
     } else if (noPosy) {
       xoff = xPos;
       yoff = Quady[wIx%4];
     } else {
       xoff  = xPos;
-      yoff  = yMaxSize-yPos-ySize;
+      yoff  = yMaxSize-yPos-yleng;
     }
     if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
     xp=max(xp,1.0);
