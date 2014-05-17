@@ -885,10 +885,51 @@ DString makeInsensitive(const DString &s)
   // AC 16 May 2014 : preliminary (and no MSwin support !)
   BaseGDL* file_expand_path( EnvT* e)
   {
+    // always 1
     SizeT nParam=e->NParam();
+    cout << "nParam :" << nParam << endl;
+
+    DStringGDL* pathSpec;
+    SizeT nPath = 0;
+    
+    BaseGDL* p0 = e->GetParDefined( 0);
+    pathSpec = dynamic_cast<DStringGDL*>( p0);
+    if( pathSpec == NULL)
+      e->Throw( "String expression required in this context.");
+
+    nPath = pathSpec->N_Elements();
+    cout << "nPath :" << nParam << endl;
+
+    FileListT fileList;
+
+    // unix defaults
+    bool tilde = true;
+    bool environment = true;
+    bool fold_case = false;
+
+    bool accErr =false;
+    bool mark=false;
+    bool quote=false;
+    bool noSort=false;
+    bool onlyDir=false;
+    bool match_dot=true;
+    bool forceAbsPath=true;
 
     
-    return new DStringGDL("not ready");
+    for( SizeT f=0; f < nPath; ++f) 
+      FileSearch( fileList, (*pathSpec)[f],
+		  environment, tilde, 
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
+
+    DLong count = fileList.size();
+
+    // fileList -> res
+    DStringGDL* res = new DStringGDL( dimension( count), BaseGDL::NOZERO);
+    for( SizeT r=0; r<count; ++r)
+      (*res)[r] = fileList[ r];
+
+    return res;
+  
   }
 
   // not finished yet
