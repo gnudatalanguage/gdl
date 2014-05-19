@@ -107,7 +107,12 @@
 ;   1-nov-2006, ras, protect against differing input dimensions
 ;	causing concatenation problems
 ; 
-;  
+; AC 19 May 2014:
+;   - I checked that is is OK with idl 8.2.2 change
+;     (e.g.: print, VALUE_LOCATE([0], [-2,-1,0,3,4]))
+;   - just a warning when array clearly not monotoneous (results are
+;     not OK)
+;   - few type conversions/test ...
 ;
 ;-
 ; Copyright (C) 2006, richard schwartz
@@ -117,22 +122,29 @@
 ; are included unchanged.
 ;-
 
-FUNCTION is_defined, var 
+FUNCTION IS_DEFINED, var 
 ; debug,'V1.0 FH 1998-01-20' 
 a = SIZE(var) 
 n = N_ELEMENTS(a) 
 RETURN, a[n - 2] NE 0 
 END
-
-FUNCTION is_scalar, var 
+;
+FUNCTION IS_SCALAR, var 
 ; debug,'V1.0 FH 1998-01-23' 
 RETURN, ((SIZE(var))[0] EQ 0) AND is_defined(var) 
 END
-
-
-function val_loc_inc, x, u, l64=l64
-
+;
+; -------------------------------------------
+;
+function VAL_LOC_INC, x, uu, l64=l64
+;
 on_error, 2
+;
+; AC: I don't know how to without copy of input
+u=uu
+if (SIZE(uu,/type) EQ 6) then u=FLOAT(uu)
+if (SIZE(uu,/type) EQ 9) then u=DOUBLE(uu)
+;
 maxlong = 2LL^31-1
 
 y64 = (n_elements(x) gt maxlong) or keyword_set(l64)
@@ -173,18 +185,45 @@ out = out < (nx-2)
 if (size(u))[0] eq 0 then out = out[0]
 return, out
 end
-
-function value_locate, x, u, l64=l64
-
+;
+; ---------------------------------------
+;
+function VALUE_LOCATE, x, u, l64=l64
+;
 ;increasing or decreasing
 ;default, l64,0
+;
+if (KEYWORD_SET(l64) EQ 0) then l64 = 0
+;
+if SIZE(x,/type) EQ 0 then MESSAGE, 'First variable is undefined.'
+if SIZE(u,/type) EQ 0 then MESSAGE, 'Second variable is undefined.'
+;
+; check on input type
+;
+type_x=SIZE(x,/type)
+if ((type_x EQ 6) or ((type_x GE 8) and (type_x LE 11))) then $
+   MESSAGE, 'First variable : '+SIZE(x,/tname)+' not allowed in this context.'
+;
+type_u=SIZE(u,/type)
+if ((type_u EQ 8) or (type_u EQ 10) or (type_u EQ 11)) then $
+   MESSAGE, 'Second variable : '+SIZE(u,/tname)+' not allowed in this context.'
+;
+; warning if array is not monotomeous (GDL extension)
+;
+if N_ELEMENTS(x) GT 1 then begin
+   diff=x-SHIFT(x,1)
+   maxi=MAX(diff[1:*])
+   mini=MIN(diff[1:*])
+   if (maxi*mini LT 0.0) then begin
+      txt='Warning : input array is NOT monotonically increasing or decreasing'
+      MESSAGE,/continue, txt
+   endif
+endif
+;
+out = IS_SCALAR(u) ? 0 : MAKE_ARRAY( long = 1-l64, l64 = l64, dim=SIZE(/dim, u))
+temp = (last_item(x) lt x[0]) ? N_ELEMENTS(x)-2- VAL_LOC_INC(reverse(x), u, l64=l64) : $
+	VAL_LOC_INC(x, u, l64=l64)
 
-if (keyword_set(l64) eq 0) then l64 = 0
-
-out = is_scalar(u) ? 0 : make_array( long = 1-l64, l64 = l64, dim=size(/dim, u))
-temp = (last_item(x) lt x[0]) ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64) : $
-	val_loc_inc(x, u, l64=l64)
-
-out = out + temporary( temp)
+out = out + TEMPORARY( temp)
 return, out
 end
