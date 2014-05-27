@@ -1831,18 +1831,29 @@ namespace lib {
     if (p0->Rank() < nParam - 1)
       e->Throw("Number of parameters must agree with dimensions of argument.");
     
-    //Ok, Ranks are compatible, but check if last parameter has dimension 1.
+    //Ok, Ranks are compatible, but check if last parameter(s) have dimension 1.
     //interpol is unable to interpolate on a zero-size dimension. We will downgrade the number
-    //of dimensions to be interpolated, and duplicate the result to the size of the last parameter.
+    //of dimensions to be interpolated, and duplicate the result to the size of the last parameter(s).
     SizeT lastDim=0;
-    bool needsLastDim=false;
-    dimension dim=p0->Dim();
-    
-    if (dim[dim.Rank()-1]==1) {
-      lastDim=(e->GetParDefined(nParam-1))->Dim(0);
-      if (lastDim > 1) needsLastDim=true; //correct behaviour: last dim=1 is trimmed anyway.
-      nParam--;
+    bool needsLastDims=false;
+    dimension dimIni=p0->Dim();
+    dimension dimEnd=p0->Dim();
+    dimEnd.Purge();
+    SizeT RankDiff=dimIni.Rank()-dimEnd.Rank(); //number of 1-sized dimensions consecutive at end
+    SizeT resDimInit[ MAXRANK];
+    SizeT iAddRank=0;
+    for (iAddRank=0;iAddRank<dimEnd.Rank();++iAddRank) resDimInit[iAddRank]=dimEnd[iAddRank];
+    //All of the above not useful if grid is not set!
+    if (grid && RankDiff>0) {
+      for (SizeT i=RankDiff; i>=1; --i){
+        lastDim=(e->GetParDefined(nParam-i))->Dim(0);
+        if (lastDim > 1) needsLastDims=true; //correct behaviour: last dim=1 is trimmed anyway.
+        resDimInit[iAddRank]=(lastDim==0)?1:lastDim;
+        iAddRank++;
+        }
+      nParam-=RankDiff;
     }
+
     
     if (p0->Type() == GDL_COMPLEX) {
         complexity=2;
@@ -1908,8 +1919,8 @@ namespace lib {
     DDoubleGDL* res[2];
     for (int iloop=0; iloop<complexity; ++iloop)
     {
-
-
+        // 0D Interpolation (special case with needLastDims=true)
+        if (nParam < 2) res[iloop]=p0D[iloop]->Dup();
         // 1D Interpolation
         if (nParam == 2) {
           //   res[iloop]=interpolate_1dim(e,p0D[iloop],p1D,cubic,use_missing,missing);
@@ -1917,26 +1928,25 @@ namespace lib {
           else if (cubic)   res[iloop]=interpolate_1dim(e,gdl_interp1d_cubic,p0D[iloop],p1D,use_missing,missing,gamma);
           else         res[iloop]=interpolate_1dim(e,gdl_interp1d_linear,p0D[iloop],p1D,use_missing,missing,0.0);
         }
-
+        // 2D Interpolation
         if (nParam == 3) {
           if (nnbor)        res[iloop]=interpolate_2dim(e,gdl_interp2d_binearest,p0D[iloop],p1D,p2D,grid,use_missing,missing,0.0);
           else if (cubic)   res[iloop]=interpolate_2dim(e,gdl_interp2d_bicubic,p0D[iloop],p1D,p2D,grid,use_missing,missing,gamma);
           else              res[iloop]=interpolate_2dim(e,gdl_interp2d_bilinear,p0D[iloop],p1D,p2D,grid,use_missing,missing,0.0);
         }
+        // 3D Interpolation
         if (nParam == 4) {
           res[iloop]=interpolate_3dim(e,gdl_interp3d_trilinear,p0D[iloop],p1D,p2D,p3D,grid,use_missing,missing);
         }
-    }
-    //special case where last dimension of input was 1
-    if (needsLastDim){
-      dim=res[0]->Dim();
-      SizeT resDimInit[ MAXRANK];
-      SizeT rank=res[0]->Rank();cerr<<"Rank="<<rank<<endl;
-      for (SizeT i=0;i<rank;++i) {resDimInit[i]=dim[i];cerr<<resDimInit[i]<<",";}cerr<<endl;
-      resDimInit[rank]=lastDim;
-      dimension resDim( resDimInit, rank+1);
-      cout<<resDim.ToString()<<endl;
-      res[0]= static_cast<DDoubleGDL*>(res[0]->Rebin(resDim, true));
+      //special case where last dimension of input was 1
+      if (needsLastDims){
+        dimension dim=(res[iloop])->Dim();
+        for (SizeT i=0; i<(res[iloop])->Rank(); ++i){
+          resDimInit[i]=dim[i]; //put back first dimensions of interpolated result
+        }
+        dimension resDim( resDimInit, iAddRank); //change as Dimension...
+        res[iloop]= static_cast<DDoubleGDL*>(res[iloop]->Rebin(resDim, true)); //Rebin to the extra number of dims.
+      }
     }
     
     if (p0->Type() == GDL_DOUBLE)
