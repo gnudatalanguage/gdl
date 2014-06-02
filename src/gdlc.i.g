@@ -225,6 +225,8 @@ protected:
     bool interruptEnable;
 
 public:
+
+    bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
     static bool CompileFile(const std::string& f, 
                             const std::string& untilPro="",
@@ -1821,7 +1823,7 @@ l_indexable_expr returns [BaseGDL** res]
     | res=l_sys_var 
     ;
 
-// called from only from unused part of l_expr_internal
+// called only from unused part of l_expr_internal
 unused_l_array_expr [BaseGDL* right] returns [BaseGDL** res]
 {
    ArrayIndexListT* aL;

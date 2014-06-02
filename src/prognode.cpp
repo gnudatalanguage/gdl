@@ -1033,8 +1033,6 @@ RetCode  MPCALL_PARENTNode::Run()
 
 RetCode  PCALLNode::Run()
 {
-  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-  StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
   EnvUDT*   newEnv;
 	
   // 			match(antlr::RefAST(_t),PCALL);
@@ -1049,6 +1047,8 @@ RetCode  PCALLNode::Run()
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);
 
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
 //     if( _t->getLine() != 0) 
   //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 // push environment onto call stack

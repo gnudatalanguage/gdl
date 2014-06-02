@@ -1301,23 +1301,20 @@ namespace lib {
       }
     else
       {
-	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
 	proIx = DInterpreter::GetProIx( callP);
 	
+	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
 	EnvUDT* newEnv = e->PushNewEnvUD( proList[ proIx], 1);
 	
 	// make the call
 // 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
-	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->
-				   GetTree());
+	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
       }
   }
 
   void call_method_procedure( EnvT* e)
   {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
     int nParam=e->NParam();
     if( nParam < 2)
       e->Throw( "Name and object reference must be specified.");
@@ -1334,6 +1331,8 @@ namespace lib {
 
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
+
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
     e->PushNewEnvUD( method, 2,(DObjGDL**) &e->GetPar( 1));
     

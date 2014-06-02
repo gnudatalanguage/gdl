@@ -597,7 +597,7 @@ DULong SHAH0[] = {
 
   BaseGDL* obj_new( EnvT* e)
   {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+//     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
     
     int nParam=e->NParam();
     
@@ -627,6 +627,8 @@ DULong SHAH0[] = {
       DFun* objINIT= objDesc->GetFun( "INIT");
       if( objINIT != NULL)
 	{
+	  StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
 	  // morph to obj environment and push it onto the stack again
 	  e->PushNewEnvUD( objINIT, 1, &newObj);
 	
@@ -1362,10 +1364,10 @@ BaseGDL* dcomplex_fun( EnvT* e)
       {
 	// no direct call here
 	
-	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
 	funIx = GDLInterpreter::GetFunIx( callF);
 	
+	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
 	EnvUDT* newEnv = e->PushNewEnvUD( funList[ funIx], 1);
 	
 	// make the call
@@ -1381,8 +1383,6 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
   BaseGDL* call_method_function( EnvT* e)
   {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
     int nParam=e->NParam();
     if( nParam < 2)
       e->Throw(  "Name and object reference must be specified.");
@@ -1399,6 +1399,8 @@ BaseGDL* dcomplex_fun( EnvT* e)
 
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
+
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
     EnvUDT* newEnv = e->PushNewEnvUD( method, 2, (DObjGDL**) &e->GetPar( 1));
     

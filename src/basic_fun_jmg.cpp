@@ -790,9 +790,12 @@ namespace lib {
 
     if (level != NULL) {
       DLong desiredlevnum = (*level)[0];
-      if (desiredlevnum <= 0) desiredlevnum += curlevnum;
-      if (desiredlevnum < 1) return new DStringGDL("");
-      if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+      if (desiredlevnum <= 0) 
+	desiredlevnum += curlevnum;
+      if (desiredlevnum < 1) 
+	return new DStringGDL("");
+      if (desiredlevnum > curlevnum) 
+	desiredlevnum = curlevnum;
 
       DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
 
@@ -834,8 +837,11 @@ namespace lib {
 	  // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
 	}
 	
-	Message( "Variable not found: " + varName);
+	if( e->Interpreter()->InterruptEnable())
+	  Message( "Variable not found: " + varName);
+
 	return NULL;
+
       } else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");

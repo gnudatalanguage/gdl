@@ -679,6 +679,7 @@ void EnvT::ObjCleanup( DObj actID)
                 Guard<BaseGDL> actObjGDL_guard( actObjGDL);
                 GDLInterpreter::IncRefObj( actID);
 
+		StackGuard<EnvStackT> guard( interpreter->CallStack());
                 EnvUDT* newEnv = PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
 
                 inProgress.insert( actID);
@@ -686,9 +687,8 @@ void EnvT::ObjCleanup( DObj actID)
                 interpreter->call_pro( objCLEANUP->GetTree());
 
                 inProgress.erase( actID);
-
-                delete newEnv;
-                interpreter->CallStack().pop_back();
+//                 delete newEnv;
+//                 interpreter->CallStack().pop_back();
             }
 
             FreeObjHeap( actID); // the actual freeing

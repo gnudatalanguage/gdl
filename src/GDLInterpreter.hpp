@@ -172,6 +172,8 @@ protected:
     bool interruptEnable;
 
 public:
+
+    bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
     static bool CompileFile(const std::string& f, 
                             const std::string& untilPro="",
