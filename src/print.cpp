@@ -180,12 +180,18 @@ namespace lib {
       
 	BaseGDL* par;
 	bool lastParScalar = false;
-        bool anyArrayBefore = e->GetParDefined( parOffset)->Rank() > 0;
+	BaseGDL* parOffsetPar = e->GetPar( parOffset);
+        bool anyArrayBefore = false;
+	if( parOffsetPar != NULL)
+	  anyArrayBefore = parOffsetPar->Rank() > 0;
+
 	SizeT actPos = 0;
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
 	    if( i > parOffset) lastParScalar = /*par->Type() == GDL_STRING &&*/ par->Scalar();
-	    par=e->GetParDefined( i);
+	    par=e->GetPar( i);
+	    if( par == NULL) // allowed here: NullGDL::GetSingleInstance())
+	      e->Throw("Variable is undefined: "+e->GetParString( i));
             if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << endl; // e.g. print,[1],1,[1] 
             anyArrayBefore |= par->Rank() != 0;
 	    par->ToStream( *os, width, &actPos);

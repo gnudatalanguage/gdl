@@ -1449,7 +1449,6 @@ bool EnvBaseT::KeywordSet( SizeT ix)
 BaseGDL*& EnvT::GetPar(SizeT i)
 {
   static BaseGDL* null=NULL;
-  assert( null == NULL);
   SizeT ix= i + pro->key.size();
   if( ix >= env.size()) 
     {
