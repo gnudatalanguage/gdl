@@ -821,8 +821,11 @@ namespace lib {
 	int xI = pro->FindVar( varName);
 	//cout << xI << " " << varName << " " << pro->Size() << endl;
 	if (xI != -1) {
-	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
-	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+
+	  // Keywords are already counted (in FindVar)
+// 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
 
 	  if( par == NULL)
 	    e->Throw( "Variable is undefined: " + varName);
@@ -917,7 +920,8 @@ namespace lib {
 
 	// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
-	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+// 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+	((EnvT*)(callStack[desiredlevnum-1]))->GetKW( s) = res->Dup();
 
 	//	cout << "par: " << &par << endl << endl;
 	// 	memcpy(&par, &res, sizeof(par)); 
@@ -1027,7 +1031,8 @@ namespace lib {
 	int xI = pro->FindVar( varName);
 	//	cout << xI << endl;
 	if (xI != -1) {
-	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+// 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
 	  return &par; // <-  HERE IS THE DIFFERENCE
 	}
 	
