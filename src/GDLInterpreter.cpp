@@ -697,6 +697,7 @@ GDLInterpreter::GDLInterpreter()
 		for (; _t != NULL;) {
 	
 				retCode=statement(_t);
+	_t = _retTree;
 				
 	// 			if( retCode == RC_RETURN) 
 				if( retCode >= RC_RETURN) 
@@ -711,8 +712,6 @@ GDLInterpreter::GDLInterpreter()
 	//     }
 				break;
 				}					
-	
-			_t = _retTree;
 		}
 		
 		// default return value if none was set

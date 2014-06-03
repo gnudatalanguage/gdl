@@ -402,7 +402,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   int proIx=ProIx(proName);
   if( proIx == -1)
     {
-					throw GDLException(cN, "Procedure not found: "+proName, true, false);
+	throw GDLException(cN, "Procedure not found: "+proName, true, false);
     }
   
   // 'guard' call stack
