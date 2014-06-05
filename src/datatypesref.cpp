@@ -1342,6 +1342,7 @@ BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
     return result->Dup();
   }
   
+  GDLInterpreter::IncRefObj( s);
   return new Data_( s);
 }
 
