@@ -19,9 +19,12 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
-#define TONORMCOORD( in, out, log) out = (log) ? sx[0] + sx[1] * log10(in) : sx[0] + sx[1] * in;
-#define TODATACOORD( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
-
+#define TONORMCOORDX( in, out, log) out = (log) ? sx[0] + sx[1] * log10(in) : sx[0] + sx[1] * in;
+#define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
+#define TONORMCOORDY( in, out, log) out = (log) ? sy[0] + sy[1] * log10(in) : sy[0] + sy[1] * in;
+#define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
+#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
+#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
 namespace lib {
 
   using namespace std;
@@ -82,7 +85,6 @@ namespace lib {
     gdlGetAxisType("Y", yLog);
     gdlGetAxisType("Z", zLog);
         
-    DLong xv=1, yv=1;
     int xSize, ySize, xPos, yPos;
     // Use Size in lieu of VSize
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
@@ -96,10 +98,6 @@ namespace lib {
       ySize = (*static_cast<DLongGDL*>( dStruct->GetTag( ysizeTag, 0)))[0];
     } else {
       bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
-    }
-    if ( e->KeywordSet("DEVICE") || e->KeywordSet("TO_DEVICE")) {
-      xv = xSize;
-      yv = ySize;
     }
     
     //projection?
@@ -115,7 +113,7 @@ namespace lib {
       get_mapset ( mapSet );
       if ( mapSet )
       {
-        ref=map_init ( );
+        ref=map_init ();
         if ( ref==NULL ) e->Throw ( "Projection initialization failed." );
       }
 #endif
@@ -154,8 +152,9 @@ namespace lib {
       {
 #pragma omp for
         for (SizeT i = 0; i < nrows; ++i) {
-          TONORMCOORD((*xVal)[i], (*xVal)[i], xLog);
-          TONORMCOORD((*yVal)[i], (*yVal)[i], yLog);
+          TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog);
         }
       }
         break;
@@ -166,6 +165,7 @@ namespace lib {
         for (SizeT i = 0; i < nrows; ++i) {
           (*xVal)[i] /= xSize;
           (*yVal)[i] /= ySize;
+          // (zSize is 1)
         }
       }
     }
@@ -179,8 +179,9 @@ namespace lib {
       {
 #pragma omp for
         for (SizeT i = 0; i < nrows; ++i) {
-          TODATACOORD((*xVal)[i], (*xVal)[i], xLog);
-          TODATACOORD((*yVal)[i], (*yVal)[i], yLog);
+          TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog);
         }
       }
       
@@ -218,6 +219,7 @@ namespace lib {
         for (SizeT i = 0; i < nrows; ++i) {
           (*xVal)[i] *= xSize;
           (*yVal)[i] *= ySize;
+          //(zSize is 1)
         }
       }
     }
@@ -248,8 +250,6 @@ namespace lib {
     bool doT3d;
     static int t3dIx = e->KeywordIx( "T3D");
     doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e));
-    DDoubleGDL* t3dMatrix;
-    Guard<BaseGDL> t3dMatrix_guard;
     DDoubleGDL *xValou;
     DDoubleGDL *yValou;
     Guard<BaseGDL> xvalou_guard, yvalou_guard;
@@ -358,7 +358,9 @@ namespace lib {
 
     if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
     {
-      DDoubleGDL* t3dMatrix=gdlGetT3DMatrix(); //the original one
+      DDoubleGDL* t3dMatrix;
+      Guard<BaseGDL> t3dMatrix_guard;
+      t3dMatrix=gdlGetT3DMatrix(); //the original one
       t3dMatrix_guard.Reset(t3dMatrix);
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
