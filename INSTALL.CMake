@@ -1,70 +1,66 @@
-Be sure that you have at least cmake v. 2.6 (cmake --version)
+Be sure that you have at least CMake 2.6 (cmake --version)
 
-Create a new directory where the objets and executables will be built.
-e.g. `mkdir build; cd !$'
+Create a new directory where the objects and executables 
+will be built, e.g.
+$ mkdir build; cd !$
 
-Then you can run cmake on the root directory of gdl.
-e.g. `cmake ..'
+Then run cmake pointing it to the root directory of gdl:
+$ cmake ..
 
-You can also specify an install directory `cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../install'
+You can optionally specify a custom install prefix, e.g.:
+$ cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../install
 
-The default buid mode is "Release", to use the "Debug" mode try `cmake ... -DCMAKE_BUILD_TYPE=Debug'
+The default build mode is "Release" which enables compiler
+optimisations and disables storing debugging symbols in 
+the GDL binary. To use the "Debug" mode type:
+$ cmake .. -DCMAKE_BUILD_TYPE=Debug
 
-You can choose to pass parameters to cmake in the manner of configure.
-For each non-mandatory module, you can choose to enable/disable it
-(default values are the same than in configure)
-e.g. `cmake .. -DREADLINE=OFF' to disable readline.
-The following lists the parameters that can be used as boolean values
-(ON,YES,Y,OFF,NO,N, case insensitive)
-FFTW
-GRIB
-GSHHS
-HDF5
-HDF
-LIBPROJ4
-MAGICK
-MPICH
-NETCDF
-OPENMP
-PYTHON
-PYTHON_MODULE
-READLINE
-UDUNITS
-WXWIDGETS
+To use a non-default C++ compiler, one needs to call e.g.:
+$ cmake .. -DCMAKE_CXX_COMPILER=clang++
 
-You can also specify a path to different libraries :
-FFTWDIR
-GRIBDIR
-GSHHSDIR
-HDF5DIR
-HDFDIR
-LIBPROJ4DIR
-MAGICKDIR
-MPICHDIR
-NETCDFDIR
-PYTHONDIR
-READLINEDIR
-UDUNITSDIR
-WXWIDGETSDIR
+Numerous features of GDL rely on external libraries. These
+features can be enabled or disabled using CMake options.
 
-Few other options are available in order to help cmake to find
-(extra) libraries (if you don't know what these libraries are,
-then you probably don't have to care about it)
-JASPERDIR
-JPEGDIR
-SZIPDIR
-PYTHONVERSION
-OLDPLPLOT
+Most of the optional features have a flag that controls
+enabling/disabling the feature (e.g. EIGEN3, FFTW, HDF5, 
+MAGICK, PSLIB, GRAPHICSMAGICK, GRIB, GSHHS, HDF, ...) 
+and a flag that allows to specify a custom location of a
+given package (e.g. EIGEN3DIR, FFTWDIR, HDF5DIR, ...). 
+Both the on/off and the path-spec options are passed 
+to CMake as command=line options prefixed with "-D", e.g.:
+$ cmake .. -DREADLINE=OFF'         # to disable readline
+$ cmake .. -DFFTWDIR=/opt/local/   # alternative FFTW path
 
-Results are cached. So if you need to specify a new libraries that have already been
-found you have to delete CMakeCache.txt and rerun cmake.
+Other options include:
+- PYTHONVERSION to chose a particular Python version if 
+  multiple are installed on the system,
+- OLDPLPLOT to switch off features requiring newer plplot
+  versions,
+- GDL_DATA_DIR (default: /share/gnudatalanguage) to specify
+  a custom installation location for GDL files 
+  (a subdirectory of the main installation prefix)
 
-If you are on a Unix system, you can run `make'
-For other systems, a native project file should be produced.
+The list of all GDL-related options accepted by CMake along
+with their default values can be obtained by calling:
+$ cmake .. -LAH | grep -A1 "// GDL: "
 
-To launch the tests, run `make check'.
-To install, type `make install'.
+Results are cached. So if you need to specify a new 
+libraries that have already been found you have to 
+delete CMakeCache.txt and rerun cmake.
 
-Usefull commands :
-`make help' to view different targets.
-`make edit_cache' to edit cache results (variables defined in advanced mode shouldn't be edited)
+If you are on a Unix system, you can run `make' to begin
+compilation (optionally with the number of concurrent
+processes specified using the -j option):
+$ make -j 3
+
+For other systems, a native project file will be produced.
+
+To launch the tests, run:
+$ make check
+
+To install, type:
+$ make install
+
+Other useful commands include `make help' to view a list
+of targets and `make edit_cache' to edit cache results 
+(variables defined in advanced mode shouldn't be edited).

@@ -30,79 +30,79 @@ include(FindPackageHandleStandardArgs)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
-set(PYTHON_MODULE OFF CACHE BOOL "Build GDL as a Python module ?")
+set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
-set(X11 ON CACHE BOOL "Enable X11 ?") 
-set(X11DIR "" CACHE PATH "Specify X11 directory tree")
+set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
+set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
-set(READLINE ON CACHE BOOL "Enable GNU Readline ?")
-set(READLINEDIR "" CACHE PATH "Specify the GNU readline directory tree")
+set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
+set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU readline directory tree")
 
-set(OLDPLPLOT OFF CACHE BOOL "Enable old plplot ?")
-set(PLPLOTDIR "" CACHE PATH "Specify the plplot directory tree")
+set(OLDPLPLOT OFF CACHE BOOL "GDL: Enable old plplot ?")
+set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
 
-set(GSLDIR "" CACHE PATH "Specify the GSL directory tree")
+set(GSLDIR "" CACHE PATH "GDL: Specify the GSL directory tree")
 
-set(ZLIBDIR "" CACHE PATH "specify the Zlib directory tree")
+set(ZLIBDIR "" CACHE PATH "GDL: Specify the Zlib directory tree")
 
-set(WXWIDGETS ON CACHE BOOL "Enable WxWidgets ?")
-set(WXWIDGETSDIR "" CACHE PATH "Specify WxWidgets directory tree")
+set(WXWIDGETS ON CACHE BOOL "GDL: Enable WxWidgets ?")
+set(WXWIDGETSDIR "" CACHE PATH "GDL: Specify WxWidgets directory tree")
 
-set(UDUNITS OFF CACHE BOOL "Enable UDUNITS-2 ?")
-set(UDUNITSDIR "" CACHE PATH "Specify the UDUNITS-2 directory tree")
+set(UDUNITS OFF CACHE BOOL "GDL: Enable UDUNITS-2 ?")
+set(UDUNITSDIR "" CACHE PATH "GDL: Specify the UDUNITS-2 directory tree")
 
-set(EIGEN3 ON CACHE BOOL "Enable Eigen3 ?")
-set(EIGEN3DIR "" CACHE PATH "Specify the Eigen3 directory tree")
+set(EIGEN3 ON CACHE BOOL "GDL: Enable Eigen3 ?")
+set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
 
-set(PSLIB ON CACHE BOOL "Enable pslib ?")
-set(PSLIBDIR "" CACHE PATH "Specify the pslib directory tree")
+set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
+set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
-set(GRIB OFF CACHE BOOL "Enable Grib ?")
-set(GRIBDIR "" CACHE PATH "Specifiy the GRIB directory tree")
+set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
+set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 
 
-set(MAGICK ON CACHE BOOL "Enable ImageMagick ?")
-set(MAGICKDIR "" CACHE PATH "Specifiy the ImageMagick directory tree")
+set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
+set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
 
 # GraphicsMagick is a good alternative to ImageMagick
-set(GRAPHICSMAGICK ON CACHE BOOL "Enable GraphicsMagick ?")
-set(GRAPHICSMAGICKDIR "" CACHE PATH "Specify the GraphicsMagick directory tree")
+set(GRAPHICSMAGICK ON CACHE BOOL "GDL: Enable GraphicsMagick ?")
+set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory tree")
 
-set(NETCDF ON CACHE BOOL "Enable NetCDF ?")
-set(NETCDFDIR "" CACHE PATH "Specifiy the netCDF directory tree")
+set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
+set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
 
-set(HDF ON CACHE BOOL "Enable Hdf ?")
-set(HDFDIR "" CACHE PATH "Specifiy the HDF directory tree")
+set(HDF ON CACHE BOOL "GDL: Enable Hdf ?")
+set(HDFDIR "" CACHE PATH "GDL: Specifiy the HDF directory tree")
 
-set(HDF5 ON CACHE BOOL "Enable Hdf5 ?")
-set(HDF5DIR "" CACHE PATH "Specifiy the HDF5 directory tree")
+set(HDF5 ON CACHE BOOL "GDL: Enable Hdf5 ?")
+set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
 
-set(FFTW ON CACHE BOOL "Enable FFTW ?")
-set(FFTWDIR "" CACHE PATH "Specifiy the FFTW directory tree")
+set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
+set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 
-set(LIBPROJ4 OFF CACHE BOOL "Enable LIBPROJ4 ?")
-set(LIBPROJ4DIR "" CACHE PATH "Specifiy the LIBPROJ4 directory tree")
+set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
+set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
-set(MPICH OFF CACHE BOOL "Enable MPICH ?")
-set(MPICHDIR "" CACHE PATH "Specify the MPICH (experimental) directory tree")
+set(MPICH OFF CACHE BOOL "GDL: Enable MPICH ?")
+set(MPICHDIR "" CACHE PATH "GDL: Specify the MPICH (experimental) directory tree")
 
-set(PYTHON ON CACHE BOOL "Enable Python ?")
-set(PYTHONDIR "" CACHE PATH "Specifiy the use Python directory tree")
-set(PYTHONVERSION "" CACHE STRING "Specify the Python version to use")
+set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
+set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
+set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(GSHHS OFF CACHE BOOL "Enable GSHHS ?")
-set(GSHHSDIR "" CACHE PATH "Specifiy the GSHHS directory tree")
+set(GSHHS OFF CACHE BOOL "GDL: Enable GSHHS ?")
+set(GSHHSDIR "" CACHE PATH "GDL: Specifiy the GSHHS directory tree")
 
-set(NCURSESDIR "" CACHE PATH "Specify the ncurses (or curses) directory tree")
+set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
 
-set(OPENMP ON CACHE BOOL "Enable OpenMP ?")
+set(OPENMP ON CACHE BOOL "GDL: Enable OpenMP ?")
 
 # Third party libraries
-set(JASPERDIR "" CACHE PATH "Specify the JasPer directory tree")
-set(JPEGDIR "" CACHE PATH "Specify the JPEG directory tree")
-set(SZIPDIR "" CACHE PATH "Specify the SZip directory tree")
+set(JASPERDIR "" CACHE PATH "GDL: Specify the JasPer directory tree")
+set(JPEGDIR "" CACHE PATH "GDL: Specify the JPEG directory tree")
+set(SZIPDIR "" CACHE PATH "GDL: Specify the SZip directory tree")
 
-set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "Choose data install directory relative to CMAKE_INSTALL_PREFIX")
+set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relative to CMAKE_INSTALL_PREFIX")
 
 
 # check for 64-bit OS

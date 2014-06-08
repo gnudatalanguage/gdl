@@ -4,20 +4,26 @@
 # this is still a quick-and-dirty bash "makefile" (FIXME!)
 # TODO: trap?
 # TODO: sprawdzanie daty python-lib i samego makeall
-# TODO: tex4ht i latex2txt? 
-#  HTOPT="xhtml,pmathml,css2,next,sec-filename,index=1,2,frames"
-#  htlatex gdl "$HTOPT"             &&\
-#  tex '\def\filename{{gdl}{idx}{4dx}{ind}} \input  idxmake.4ht' &&\ 
-#  makeindex -o gdl.ind gdl.4dx     &&\ 
-#  htlatex gdl "$HTOPT"  
 
 # checking for missing executables (thanks Alain)
-CMDS="ps2pdf pdfcrop awk grep bibtex pdflatex authorindex makeindex"
+CMDS="ps2pdf pdfcrop awk grep bibtex pdflatex authorindex makeindex htlatex"
 for i in $CMDS
 do
   # command -v will return >0 when the $i is not found
   command -v $i >/dev/null && continue || { echo "$i command not found."; exit 1; }
 done
+
+# generate a list of accepted CMake options
+echo -n "--- Generating CMake options list file ... "
+cmake ../.. -LAH 2>/dev/stdout \
+  | grep -A1 "// GDL: " \
+  | awk '{ if ($0=="--") print ""; else print }' \
+  > cmakeoptlist.tmp
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "failed!";
+fi
 
 # generate the list of routines (./routinelist.tmp), do it only
 #   - if routinelist.tmp does not exist or
@@ -171,18 +177,20 @@ else
   exit 1
 fi
 
-## doing LaTeX 3rd pass
-#echo -n "--- Doing LaTeX 4-th pass (that should give a final gdl.pdf file - this takes a while) ... "
-#pdflatex -halt-on-error -interaction=nonstopmode gdl.tex &>pdflatex.log
-#if `test 0 -eq $?`; then
-#  echo "done";
-#else
-#  echo "error (consult pdflatex.log)";
-#  exit 1
-#fi
-
+# generating diagnostc files
+echo -n "--- generating diag/broken-references (list of undocumented items)"
 grep -1 "^LaTeX Warning: Hyper reference \`LIB." gdl.log \
   | awk '{ if ($0=="--") print ""; else printf("%s",$0)} END {print ""}' \
   | cut -d\` -f 2 \
   | cut -d \' -f1 \
   > diag/broken-references
+echo "done"
+
+# generating the HTML version
+#echo -n "--- generating HTML version of the docs"
+#  HTOPT="xhtml,pmathml,css2,next,sec-filename,index=1,2,frames"
+#  htlatex gdl "$HTOPT"             &&\
+#  tex '\def\filename{{gdl}{idx}{4dx}{ind}} \input  idxmake.4ht' &&\ 
+#  makeindex -o gdl.ind gdl.4dx     &&\ 
+#  htlatex gdl "$HTOPT"  
+#echo "done"
