@@ -134,12 +134,12 @@ if KEYWORD_SET(book) then begin
     ;; when the document is a PDF file, we try to use a PDF viewer
     ;;
     idx_suffixe=STRPOS(book, '.', /reverse_search)
-    ;; when the suffixe is not found we keed "browser"
+    ;; when the suffixe is not found we need "browser"
     if (idx_suffixe GE 0) then begin
         suffixe=STRMID(book, idx_suffixe+1)
         if STRLOWCASE(suffixe) EQ 'pdf' then begin
             ;; don't hesitate to complete this list
-            list_of_pdf_viewers=['xpdf','evince','acroread']
+            list_of_pdf_viewers=['xpdf','evince','atril','acroread']
             ;; if we don't locate a PDF viewer, we will use the default (web) Brower
             for ii=0, N_ELEMENTS(list_of_pdf_viewers)-1 do begin
                 SPAWN, 'which '+list_of_pdf_viewers[ii], ok, error
