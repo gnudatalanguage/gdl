@@ -63,15 +63,17 @@
   \caseupper[q]{#1}
   \let\tmp\thestring
   \convertchar[q]{\tmp}{-}{\_}%
-  \index{\thestring() function}%
   \hyperref[LIB.\tmp.FUN]{\thestring()}%
+  \convertchar[e]{1}{1}{\thestring() function}
+  \index{\thestring}%
 }
 \newcommand{\gdlproref}[1]{%
   \caseupper[q]{#1}
   \let\tmp\thestring
   \convertchar[q]{\tmp}{-}{\_}%
-  \index{\thestring procedure}%
   \hyperref[LIB.\tmp.PRO]{\thestring}%
+  \convertchar[e]{1}{1}{\thestring procedure}
+  \index{\thestring}%
 }
 
 \newcommand{\gdlcodeexample}[3]{
