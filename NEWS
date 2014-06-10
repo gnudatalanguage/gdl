@@ -620,11 +620,20 @@
 
 
 0.9.5:
-           - lot of improvments in Widgets related code
+           - lot of improvments in Widgets related code. Available widgets:
+	     WIDGET_DRAW(!), WIDGET_BASE, WIDGET_BUTTON, 
+             WIDGET_DROPLIST, WIDGET_COMBOBOX, WIDGET_LIST, 
+             WIDGET_SLIDER, WIDGET_TAB, WIDGET_TEXT, 
+             WIDGET_LABEL, CW_BGROUP
+	     (Note: Not all keywords are supported yet (however, they are accepted) but almost all functional keywords.
+	     This means: Programs using these widgets should work but maybe look a bit different)
+	     Controlling routines:
+	     WIDGET_EVENT, WIDGET_CONTROL, XMANAGER
            - TIC and TOC
-           - adding !Const
+           - !CONST system variable
            - initial import of NetCDF-4 related codes:
              NCDF_GROUPSINQ, NCDF_GROUPNAME, NCDF_GROUPDEF, NCDF_FULLGROUPNAME,
              NCDF_GROUPPARENT, NCDF_DIMIDSINQ, NCDF_NCIDINQ, NCDF_VARIDSINQ
-           - introducing the NULL device type, better result on Unix like system without X11 (e.g. computing nodes on HPC)
+           - introducing the NULL device type, better result on Unix like system without X11 
+             (e. g. computing nodes on HPC)
 

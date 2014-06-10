@@ -23,11 +23,11 @@
 //#include <list>
 #ifndef _MSC_VER
 #  include <rpc/rpc.h>
-#  include <algorithm>
 #else
 #  include <rpc/xdr.h>
 #endif
 
+#include <algorithm>
 #include "dimension.hpp"
 #include "gdlexception.hpp"
 
