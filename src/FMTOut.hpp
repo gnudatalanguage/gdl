@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTOutTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20120518): "format.out.g" -> "FMTOut.hpp"$ */
+/* $ANTLR 2.7.7 (20130425): "format.out.g" -> "FMTOut.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -31,14 +31,17 @@ public:
     {
         std::ostringstream* osLocal;
         std::auto_ptr<std::ostream> osLocalGuard;
-        if( *os_ == std::cout)
+        //if( *os_ == std::cout) // SA: this did not work with win32
+        if( os_->rdbuf() == std::cout.rdbuf())
             {
+                // e.g. print, 1, f='(A)'
                 osLocal = new std::ostringstream();
                 osLocalGuard.reset( osLocal);
                 os = osLocal;
             }
         else
             {
+                // e.g. print, string(1, f='(A)')
                 os = os_;
             }
 
@@ -78,7 +81,7 @@ public:
             }
         (*os) << std::flush;
 
-        if( *os_ == std::cout)
+        if( os_->rdbuf() == std::cout.rdbuf()) // SA: see note above
             {
                 os = os_;
                 (*os) << osLocal->str();
