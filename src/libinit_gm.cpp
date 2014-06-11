@@ -49,7 +49,7 @@ void LibInit_gm()
   const string lngammaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);
 
-  const string igammaKey[]={"DOUBLE",KLISTEND};
+  const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
   new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey);
 
   const string betaKey[]={"DOUBLE",KLISTEND};
