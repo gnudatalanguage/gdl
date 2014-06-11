@@ -201,7 +201,7 @@ ostream& operator<<(ostream& os, const CheckNL& c)
   if( *c.actPosPtr == 0)
     {
       GDLStream* s = lib::get_journal();
-      if( s != NULL && s->OStream() == os) os << lib::JOURNALCOMMENT;
+      if( s != NULL && s->OStream().rdbuf() == os.rdbuf()) os << lib::JOURNALCOMMENT;
     }
 
   *c.actPosPtr += c.nextW;

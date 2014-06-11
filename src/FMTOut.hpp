@@ -51,7 +51,7 @@ public:
     
         GDLStream* j = lib::get_journal();
 
-        if( j != NULL && j->OStream() == (*os)) 
+        if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
             (*os) << lib::JOURNALCOMMENT;
 
         format( fmt);
@@ -64,7 +64,7 @@ public:
         {
            (*os) << '\n';
             
-            if( j != NULL && j->OStream() == (*os)) 
+            if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
                 (*os) << lib::JOURNALCOMMENT;
 
             format_reversion( reversionAnker);            

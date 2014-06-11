@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20120518): "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.7 (20130425): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -116,7 +116,7 @@ void FMTOut::q(RefFMTNode _t) {
 		
 		// only one newline to journal file
 		GDLStream* j = lib::get_journal();
-		if( j != NULL && j->OStream() == (*os))
+		if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
 		(*os) << '\n' << lib::JOURNALCOMMENT;
 		else
 		for( int r=s->getRep(); r > 0; r--) (*os) << '\n';

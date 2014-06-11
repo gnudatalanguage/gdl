@@ -88,7 +88,7 @@ public:
     
         GDLStream* j = lib::get_journal();
 
-        if( j != NULL && j->OStream() == (*os)) 
+        if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
             (*os) << lib::JOURNALCOMMENT;
 
         format( fmt);
@@ -101,7 +101,7 @@ public:
         {
            (*os) << '\n';
             
-            if( j != NULL && j->OStream() == (*os)) 
+            if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
                 (*os) << lib::JOURNALCOMMENT;
 
             format_reversion( reversionAnker);            
@@ -271,7 +271,7 @@ q
             {
                 // only one newline to journal file
                 GDLStream* j = lib::get_journal();
-                if( j != NULL && j->OStream() == (*os))
+                if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
                     (*os) << '\n' << lib::JOURNALCOMMENT;
                 else
                     for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
