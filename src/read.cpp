@@ -31,7 +31,7 @@
 
 //#include "format.g"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
 #define isatty _isatty
 #endif

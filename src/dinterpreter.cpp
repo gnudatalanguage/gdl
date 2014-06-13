@@ -20,8 +20,6 @@
 #include <iostream>
 #ifdef _MSC_VER
 #include <io.h> // isatty, windows
-#define feclearexcept(e)
-#define FE_ALL_EXCEPT
 #else
 #include <unistd.h> // isatty
 #endif
@@ -1318,7 +1316,11 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
 {
   ProgNodeP retTreeSave = _retTree;
   for (;;) {
+#if defined (_MSC_VER) && _MSC_VER < 1800
+	_clearfp();
+#else
     feclearexcept(FE_ALL_EXCEPT);
+#endif
 
     DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
 
@@ -1357,7 +1359,11 @@ bool DInterpreter::RunBatch( istream* in)
 
   while( in->good())
     {
+#if defined (_MSC_VER) && _MSC_VER < 1800
+	  _clearfp();
+#else
       feclearexcept(FE_ALL_EXCEPT);
+#endif
       
       try
 	{
@@ -1400,7 +1406,11 @@ void DInterpreter::ExecuteFile( const string& file)
   bool runCmd = false;
   while( in.good())
     {
+#if defined (_MSC_VER) && _MSC_VER < 1800
+	  _clearfp();
+#else
       feclearexcept(FE_ALL_EXCEPT);
+#endif 
 
       try
  	{
@@ -1482,7 +1492,11 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
 	{
 	  while( in.good())
 	    {
+#if defined (_MSC_VER) && _MSC_VER < 1800
+		  _clearfp();
+#else
 	      feclearexcept(FE_ALL_EXCEPT);
+#endif
 
 	      try
 		{
@@ -1584,7 +1598,11 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
   // we do not make one commun function with the save side
   // because on the save side we may need to create the .gdl/ PATH ...
   int result, debug=0;
+#if defined (_WIN32) && !defined(__CYGWIN__)
+  char *homeDir = getenv( "HOMEPATH");
+#else
   char *homeDir = getenv( "HOME");
+#endif
   if (homeDir != NULL)
   {
     string pathToGDL_history;
@@ -1614,7 +1632,11 @@ historyIntialized = true;
 
   // go into main loop
   for (;;) {
+#if defined (_MSC_VER) && _MSC_VER < 1800
+    _clearfp();
+#else
     feclearexcept(FE_ALL_EXCEPT);
+#endif
 
     try
       {

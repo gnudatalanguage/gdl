@@ -21,7 +21,7 @@
 #include "includefirst.hpp"
 
 //#include <list>
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__MINGW__)
 #  include <rpc/rpc.h>
 #else
 #  include <rpc/xdr.h>

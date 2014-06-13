@@ -110,12 +110,14 @@ void LibInit()
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
-
-#ifndef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
+  const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
+	  "SH", "NOSHELL", "UNIT", "HIDE", KLISTEND };
+#else
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
 			    "SH","NOSHELL","UNIT",KLISTEND};
-  new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 #endif
+  new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
   new DLibFunRetNew(lib::bytscl,string("BYTSCL"),3,bytsclKey);
@@ -143,18 +145,17 @@ void LibInit()
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
 				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
-#endif
 
   const string file_expand_pathKey[]={KLISTEND};
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
- 
+#endif
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);

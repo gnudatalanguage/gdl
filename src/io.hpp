@@ -26,7 +26,7 @@
 #include <cassert>
 
 #include <sys/types.h>
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	#include <winsock2.h>
 #else
 	#include <sys/socket.h>

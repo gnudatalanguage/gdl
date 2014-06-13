@@ -30,8 +30,8 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
-#ifdef _MSC_VER
-#include "gtdhelper.hpp"
+#if defined (_WIN32) && !defined(__CYGWIN__)
+#include "gtdhelper.hpp" // just a workaround, using QueryPerformanceCounter is better
 #endif
 
 namespace lib {
@@ -77,7 +77,7 @@ namespace lib {
   void linkimage( EnvT* e) 
   {
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     HMODULE module[MAXNDLL];
 #else
     const char *error;
@@ -117,7 +117,7 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 3, entryName);
 
     /* Load dynamically loaded library */
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     #ifdef _UNICODE
     TCHAR u_shrdimgName[255];
     MultiByteToWideChar(CP_ACP, 0, shrdimgName.c_str(), shrdimgName.length(), u_shrdimgName, 255);
@@ -144,7 +144,7 @@ namespace lib {
     dlerror();
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (funcType == 0) {
       (void* &) dynPro[count_pro] = 
 	(void *) GetProcAddress(module[count], entryName.c_str());
@@ -223,7 +223,7 @@ namespace lib {
     // AC 2010-09-16 this version should used much less CPU !
     if (old_version == 0) {
       //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
       Sleep(floor(waittime*1e3));
 #else
       struct timespec tv;
@@ -432,21 +432,29 @@ namespace lib {
 
     // Load shared object, call function
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _UNICODE
+	TCHAR* tchr = new TCHAR[image.size() + 1];
+	tchr[image.size()] = 0;
+	std::copy(image.begin(),image.end(),tchr);
+    HMODULE handle =  LoadLibrary(tchr);
+	delete(tchr);
+#else
     HMODULE handle =  LoadLibrary((LPCSTR)image.c_str());
+#endif
 #else
     // you MUST keep the double "||" to have CALL_EXTERNAL working
     void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
 #endif
     if (handle == NULL) {
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 	cout << dlerror() << endl;
 #endif
 	e->Throw("Error opening shared object: " + image);
     }
 
-#ifdef _MSC_VER
-    void* func = GetProcAddress(handle,entry.c_str());
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    void* func = (void *)GetProcAddress(handle,entry.c_str());
 #else
     void* func = dlsym(handle,entry.c_str());
 #endif
@@ -493,7 +501,7 @@ namespace lib {
     }
 
     if (flagUnload) {
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	while (! FreeLibrary(handle) ) {}
 #else
 	while (! dlclose(handle) ) {}

@@ -19,6 +19,7 @@
 #define GDLWINSTREAM_HPP_
 
 #include "gdlgstream.hpp"
+#include <Windows.h>
 
 class GDLWINStream: public GDLGStream
 {
@@ -26,11 +27,13 @@ class GDLWINStream: public GDLGStream
   //Atom wm_delete_window;
 
   PLStream* pls;
+  plstream *plst;
 
 public:
   GDLWINStream( int nx, int ny):
     GDLGStream( nx, ny, "wingcc")
   {
+	  plst = new plstream(nx, ny, "wingcc");
   }
 
   ~GDLWINStream()

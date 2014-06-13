@@ -43,15 +43,16 @@
 // #include <wx/utils.h>
 // #include <wx/file.h>
 // #include <wx/dir.h>
+#if !defined (_WIN32) || defined(__CYGWIN__)
+#	include <fnmatch.h>
+#	include <glob.h> // glob in MinGW does not working..... why?
+#else
+#	include <shlwapi.h>
+#endif
 
 #ifndef _MSC_VER
-
-#	include <glob.h>
-#	include <fnmatch.h>
 #	include <dirent.h>
-
 #else
-
 #	include <io.h>
 
 #	define access _access
@@ -74,7 +75,6 @@
 
 #endif
 
-#include <shlwapi.h>
 
 #endif
 
@@ -332,7 +332,7 @@ namespace lib {
 	if( entryStr != "." && entryStr != "..")
 	  {
 	    DString testFile = root + entryStr;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
 
 	    int actStat = stat( testFile.c_str(), &statStruct);
 
@@ -346,10 +346,18 @@ namespace lib {
 
 	      { // only test non-dirs
 
-#ifdef _MSC_VER
-
-		int match = PathMatchSpecEx(entryStr.c_str(), pat.c_str(), 0);
-
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#	ifdef _UNICODE
+		TCHAR *tchr1 = new TCHAR[entryStr.size()+1];
+		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
+		tchr1[entryStr.size()] = 0;
+		tchr2[pat.size()] = 0;
+		int match = PathMatchSpec(tchr1, tchr2);
+		delete tchr1;
+		delete tchr2;
+#	else
+		int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+#	endif
 #else
 
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
@@ -404,7 +412,7 @@ namespace lib {
 	if( entryStr != "." && entryStr != "..")
 	  {
 	    DString testDir = root + entryStr;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
 
 	    int actStat = stat( testDir.c_str(), &statStruct);
 
@@ -420,10 +428,19 @@ namespace lib {
 	      }
 	    else if( notAdded)
 	      {
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
+#	ifdef _UNICODE
+		TCHAR *tchr1 = new TCHAR[entryStr.size() + 1];
+		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
+		tchr1[entryStr.size()] = 0;
+		tchr2[pat.size()] = 0;
+		int match = PathMatchSpec(tchr1, tchr2);
+		delete tchr1;
+		delete tchr2;
 
+#	else
 		int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
-
+#	endif
 #else
 
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
@@ -477,7 +494,7 @@ namespace lib {
 
     // dirN == "+DIRNAME"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 
 	// Windows does not use '~' as a home directory alias
 
@@ -591,7 +608,7 @@ namespace lib {
   {
     int fnFlags = 0;
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 
     if( !match_dot)
 
@@ -664,7 +681,7 @@ namespace lib {
 	    if( root != "") // dirs for current ("") already included
 	      {
 		DString testDir = root + entryStr;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
 
 		int actStat = stat( testDir.c_str(), &statStruct);
 
@@ -684,9 +701,20 @@ namespace lib {
 
 	    // dirs are also returned if they match
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 
+#	ifdef _UNICODE
+		TCHAR *tchr1 = new TCHAR[entryStr.size() + 1];
+		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
+		tchr1[entryStr.size()] = 0;
+		tchr2[pat.size()] = 0;
+		int match = PathMatchSpec(tchr1, tchr2);
+		delete tchr1;
+		delete tchr2;
+
+#	else
 	    int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+#	endif
 
 #else
 
@@ -757,7 +785,7 @@ DString makeInsensitive(const DString &s)
 	return insen;
 }
 
-#ifndef _MSC_VER
+#if !defined (_WIN32) || defined(__CYGWIN__)
   void FileSearch( FileListT& fL, const DString& s, 
 		   bool environment,
 		   bool tilde,
@@ -1408,7 +1436,7 @@ DString makeInsensitive(const DString &s)
         }
 
 	struct stat statStruct;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
 
 	int actStat = stat( actFile.c_str(), &statStruct);
 
@@ -1444,7 +1472,7 @@ DString makeInsensitive(const DString &s)
 	if( zero_length && statStruct.st_size != 0) 
 	  continue;
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 
 	if( executable && access( actFile.c_str(), X_OK) != 0)
 	  continue;
@@ -1522,7 +1550,7 @@ DString makeInsensitive(const DString &s)
 
         // stating the file (and moving on to the next file if failed)
 	struct stat statStruct;
-#ifdef _MSC_VER
+#if defined (_WIN32) && !defined(__CYGWIN__)
 
 	int actStat = stat(actFile, &statStruct);
 
@@ -1608,14 +1636,15 @@ DString makeInsensitive(const DString &s)
         *(res->GetTag(tCharacterSpecial, f)) = DByteGDL(S_ISCHR( statStruct.st_mode) != 0);
 
         *(res->GetTag(tNamedPipe, f)) =        DByteGDL(S_ISFIFO(statStruct.st_mode) != 0);
-
+#ifndef __MINGW32__
         *(res->GetTag(tSocket, f)) =           DByteGDL(S_ISSOCK(statStruct.st_mode) != 0);
+#endif
 
 #endif  
 
         // SETUID, SETGID, STICKY_BIT
 
-#ifndef _MSC_VER
+#if !defined(WIN32) || defined(__CYGWIN__)
 
         *(res->GetTag(tSetuid, f)) =           DByteGDL((S_ISUID & statStruct.st_mode) != 0);
 
@@ -1643,7 +1672,7 @@ DString makeInsensitive(const DString &s)
 
         // SYMLINK, DANLING_SYMLINK
 
-#ifndef _MSC_VER // No symlinks in windows
+#if !defined(_WIN32) || defined(__CYGWIN__) // No symlinks in windows
 
         if (S_ISLNK(statStruct.st_mode) != 0)
 

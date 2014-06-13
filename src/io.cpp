@@ -21,12 +21,17 @@
 
 #include "objects.hpp"
 #include "io.hpp"
+#ifdef __MINGW32__
+#include <unistd.h> // for close()
+#endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #define NS_INT16SZ       2
 #define NS_INADDRSZ      4
 #define NS_IN6ADDRSZ    16
-
+#ifndef EAFNOSUPPORT
+#define EAFNOSUPPORT	9901 
+#endif
 static int inet_pton4( const char *src, unsigned char *dst )
 {
   static const char digits[] = "0123456789";

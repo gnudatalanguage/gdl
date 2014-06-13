@@ -34,9 +34,7 @@
 
 #define COMPLEX2 GDL_COMPLEX
 
-#ifdef _MSC_VER
-#define fetestexcept(e) false
-#define feclearexcept(e)
+#if defined(_MSC_VER) && _MSC_VER < 1800
 #define FE_DIVBYZERO
 #define FE_UNDERFLOW
 #define FE_OVERFLOW
@@ -476,7 +474,11 @@ namespace lib {
       e->AssureLongScalarKWIfPresent( maskKwIx, mask);	
 
     if (mask & 16) {
+#if defined(_MSC_VER) && _MSC_VER < 1800
+      if (_statusfp() & _SW_ZERODIVIDE == _SW_ZERODIVIDE) {
+#else
       if (fetestexcept(FE_DIVBYZERO)) {
+#endif
 	value = value | 16;
 	if ( flag_print)
 	  cout << 
@@ -486,7 +488,11 @@ namespace lib {
     }
 
     if (mask & 32) {
-      if (fetestexcept(FE_UNDERFLOW)) {
+#if defined(_MSC_VER) && _MSC_VER < 1800
+		if (_statusfp() & _SW_UNDERFLOW == _SW_UNDERFLOW) {
+#else
+		if (fetestexcept(FE_UNDERFLOW)) {
+#endif
 	value = value | 32;
 	if ( flag_print)
 	  cout << 
@@ -496,7 +502,11 @@ namespace lib {
     }
 
     if (mask & 64) {
-      if (fetestexcept(FE_OVERFLOW)) {
+#if defined(_MSC_VER) && _MSC_VER < 1800
+		if (_statusfp() & _SW_OVERFLOW == _SW_OVERFLOW) {
+#else
+		if (fetestexcept(FE_OVERFLOW)) {
+#endif
 	value = value | 64;
 	if ( flag_print)
 	  cout << 
@@ -507,7 +517,11 @@ namespace lib {
 
     
     if (mask & 128) {// && value == 0) {
-      if (fetestexcept(FE_INVALID)) {
+#if defined(_MSC_VER) && _MSC_VER < 1800
+		if (_statusfp() & _SW_INVALID == _SW_INVALID) {
+#else
+		if (fetestexcept(FE_INVALID)) {
+#endif
 	value = value | 128;
 	if ( flag_print) // avoid double message
 	  cout << 

@@ -1,4 +1,4 @@
-#include < time.h >
+#include <time.h>
 #include <windows.h>
 // A conversion constant between epoch time and microsecs
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)

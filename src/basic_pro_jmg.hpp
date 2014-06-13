@@ -19,7 +19,7 @@
 #ifndef BASIC_PRO_JMG_HPP_
 #define BASIC_PRO_JMG_HPP_
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <dlfcn.h>
 #endif
 #include <time.h>

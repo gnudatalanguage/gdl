@@ -33,7 +33,7 @@
 
 const int maxWin=32;  
 
-class DeviceWIN: public Graphics
+class DeviceWIN: public GraphicsDevice
 {
   std::vector<GDLGStream*>	winList;
   std::vector<long>			oList;
@@ -73,7 +73,7 @@ class DeviceWIN: public Graphics
 	  //       redo = false;
 	  for( int i=0; i<wLSize; i++)
 	  {
-		  if( winList[ i] != NULL && !winList[ i]->Valid()) 
+		  if( winList[ i] != NULL && !winList[ i]->GetValid()) 
 		  {
 			  delete winList[ i];
 			  winList[ i] = NULL;
@@ -98,7 +98,7 @@ class DeviceWIN: public Graphics
   }
 
 public:
-  DeviceWIN(): Graphics(), oIx( 1), actWin( -1)
+  DeviceWIN(): GraphicsDevice(), oIx( 1), actWin( -1)
   {
     name = "WIN";
 

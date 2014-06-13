@@ -24,7 +24,7 @@
 
 //#include "sigfpehandler.hpp"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #define sigjmp_buf jmp_buf
 #define siglongjmp longjmp
 #endif

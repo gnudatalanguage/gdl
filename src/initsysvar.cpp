@@ -17,7 +17,7 @@
 
 #include "includefirst.hpp"
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <sys/utsname.h>
 #endif
 #include <cmath>
@@ -664,7 +664,12 @@ namespace SysVar
 
     // !VERSION
     DStructGDL*  ver = new DStructGDL( "!VERSION");
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef __MINGW32__
+	typedef void (WINAPI *GetNativeSystemInfoFunc)(LPSYSTEM_INFO);
+	HMODULE hModule = LoadLibrary("kernel32.dll");
+	GetNativeSystemInfoFunc GetNativeSystemInfo = (GetNativeSystemInfoFunc) GetProcAddress(hModule, "GetNativeSystemInfo");
+#endif
 	const char* SysName = "windows";
 	SYSTEM_INFO stInfo;
 	GetNativeSystemInfo( &stInfo );

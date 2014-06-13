@@ -29,8 +29,14 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <sys/wait.h>
+#else
+#include <tchar.h>
+#endif
+
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
 #endif
 
 #ifndef _MSC_VER
@@ -80,6 +86,8 @@
 # define environ (*_NSGetEnviron())
 #else
 #ifdef _MSC_VER
+#include <direct.h>
+#include <io.h>
 #define R_OK    4       /* Test for read permission.  */
 #define W_OK    2       /* Test for write permission.  */
 #define F_OK    0       /* Test for existence.  */
@@ -1051,7 +1059,7 @@ namespace lib {
             AppendIfNeeded(pathToGDL_history, "/");
             pathToGDL_history += ".gdl";
             // Create eventially the ".gdl" path in Home
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
             result = mkdir(pathToGDL_history.c_str());
 #else
             result = mkdir(pathToGDL_history.c_str(), 0700);
@@ -2341,7 +2349,7 @@ TRACEOMP( __FILE__, __LINE__)
       DString strArg = strEnv.substr(pos+1, len - pos - 1);
       strEnv = strEnv.substr(0, pos);
       // putenv() is POSIX unlike setenv()
-      #if defined(__hpux__) || defined(_MSC_VER)
+      #if defined(__hpux__) || (defined(_WIN32) && !defined(__CYGWIN__))
       int ret = putenv((strEnv+"="+strArg).c_str());
       #else
       int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
@@ -2414,9 +2422,233 @@ TRACEOMP( __FILE__, __LINE__)
 		     " tag " + sourceTagName + ". Not copied.");
       }
   }
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define BUFSIZE 1024
+  void ReadFromPipe(HANDLE g_Rd, vector<DString> *s_str)
 
-#ifndef _MSC_VER
+	  // Read output from the child process's pipe for STDOUT
+	  // and write to the parent process's pipe for STDOUT. 
+	  // Stop when there is no more data. 
+  {
+	  DWORD dwRead, len;
+	  CHAR chBuf[BUFSIZE];
+	  CHAR a_chr;
+	  BOOL bSuccess = FALSE;
+	  
+	  len = 0;
+	  for (;;)
+	  {
+		  bSuccess = ReadFile(g_Rd, &a_chr, 1, &dwRead, NULL);
+		  if (!bSuccess || dwRead == 0) {
+			  if (len > 0) {
+				  if (len < BUFSIZE-1) len++;
+				  chBuf[len] = 0;
+				  s_str->push_back(DString(chBuf));
+			  }
+			  break;
+		  }
+		  if (a_chr == '\r')
+			  a_chr = '\0';
+		  chBuf[len++] = a_chr;
+		  if (a_chr == '\n' || len == BUFSIZE) {
+			  len = 0;
+			  s_str->push_back(DString(chBuf));
+		  }
+	  }
+  }
+
+  DWORD launch_cmd(BOOL hide, LPSTR cmd, LPSTR title = NULL, DWORD *pid = NULL, vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
+  {
+	  DWORD status;
+
+	  STARTUPINFO si = { 0, };
+	  PROCESS_INFORMATION pi = {0, };
+
+	  SECURITY_ATTRIBUTES saAttr;
+
+	  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	  saAttr.bInheritHandle = TRUE;
+	  saAttr.lpSecurityDescriptor = NULL;
+
+	  //HANDLE g_hChildStd_IN_Rd = NULL;
+	  //HANDLE g_hChildStd_IN_Wr = NULL;
+	  HANDLE g_hChildStd_OUT_Rd = NULL;
+	  HANDLE g_hChildStd_OUT_Wr = NULL;
+	  HANDLE g_hChildStd_ERR_Rd = NULL;
+	  HANDLE g_hChildStd_ERR_Wr = NULL;
  
+	  si.cb = sizeof(si);
+	  if (title == NULL)
+		si.lpTitle = cmd;
+	  else
+		si.lpTitle = title;
+
+	  if (hide)
+	  {
+		  si.dwFlags = STARTF_USESHOWWINDOW;
+		  si.wShowWindow = SW_SHOWMINNOACTIVE;
+	  }
+
+	  if (ds_outs != NULL) {
+		  //CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0);
+		  CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0);
+		  //si.hStdInput = g_hChildStd_IN_Rd;
+		  si.hStdOutput = g_hChildStd_OUT_Wr;
+		  if (ds_errs != NULL) {
+		    CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0);
+		    si.hStdError = g_hChildStd_ERR_Wr;
+	      }
+		  si.dwFlags |= STARTF_USESTDHANDLES;
+		  CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+	  }
+	  else
+	  {
+		  CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+		  WaitForSingleObject(pi.hProcess, INFINITE);
+	  }
+	  if (pid != NULL)
+		  *pid = pi.dwProcessId;
+	  GetExitCodeProcess(pi.hProcess, &status);
+	  CloseHandle(pi.hProcess);
+	  CloseHandle(pi.hThread);
+
+	  if (ds_outs != NULL) {
+		  CloseHandle(g_hChildStd_OUT_Wr);
+		  ReadFromPipe(g_hChildStd_OUT_Rd, ds_outs);
+		  if (ds_errs != NULL) {
+			  CloseHandle(g_hChildStd_ERR_Wr);
+			  ReadFromPipe(g_hChildStd_ERR_Rd, ds_errs);
+		  }
+	  }
+	  return status;
+  }
+
+  void spawn_pro(EnvT* e)
+  {
+	  SizeT nParam = e->NParam();
+
+	  static int countIx = e->KeywordIx("COUNT");
+	  bool countKeyword = e->KeywordPresent(countIx);
+	  if (countKeyword) e->AssureGlobalKW(countIx);
+
+	  static int pidIx = e->KeywordIx("PID");
+	  bool pidKeyword = e->KeywordPresent(pidIx);
+	  if (pidKeyword) e->AssureGlobalKW(pidIx);
+
+	  static int exit_statusIx = e->KeywordIx("EXIT_STATUS");
+	  bool exit_statusKeyword = e->KeywordPresent(exit_statusIx);
+	  if (exit_statusKeyword) e->AssureGlobalKW(exit_statusIx);
+
+	  static int noshellIx = e->KeywordIx("NOSHELL");
+	  bool noshellKeyword = e->KeywordSet(noshellIx);
+
+	  static int hideIx = e->KeywordIx("HIDE");
+	  bool hideKeyword = e->KeywordSet(hideIx);
+
+	  static int unitIx = e->KeywordIx("UNIT");
+	  bool unitKeyword = e->KeywordPresent(unitIx);
+	  if (unitKeyword) e->AssureGlobalKW(unitIx);
+
+	  if (unitKeyword)
+	  {
+		  e->Throw("UNIT keyword is not implemented yet!");
+		  /*
+		  if (exit_statusKeyword)
+		  {
+			  Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
+			  e->SetKW(exit_statusIx, new DLongGDL(0));
+		  }
+		  if (countKeyword)
+		  {
+			  Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
+			  e->SetKW(countIx, new DLongGDL(0));
+		  }
+		  if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
+		  */
+	  }
+
+	  if (nParam == 0)
+	  {
+		  DWORD status = launch_cmd(hideKeyword, (LPSTR)(_T("cmd")), (LPSTR)(_T("Command Prompt")));
+		  if (countKeyword)
+			  e->SetKW(countIx, new DLongGDL(0));
+		  if (exit_statusKeyword)
+			  e->SetKW(exit_statusIx, new DLongGDL(status));
+		  return;
+	  }
+
+	  DStringGDL* command = e->GetParAs<DStringGDL>(0);
+	  DString cmd = (*command)[0];
+
+	  const int bufSize = 1024;
+	  char buf[bufSize];
+
+	  if (nParam > 1) e->AssureGlobalPar(1);
+	  if (nParam > 2) e->AssureGlobalPar(2);
+	  DString ds_cmd;
+	  if (noshellKeyword)
+		ds_cmd = cmd;
+	  else
+		ds_cmd = "cmd /c " + cmd;
+#ifdef _UNICODE
+	  TCHAR t_cmd[255];
+	  MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
+#else
+	  LPSTR t_cmd = (LPSTR)ds_cmd.c_str();
+#endif
+	  vector<DString> ds_outs;
+	  vector<DString> ds_errs;
+	  int status;
+	  DWORD pid;
+	  if (nParam == 1)
+		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid);
+	  else if (nParam == 2) {
+		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs);
+	  }
+	  else if (nParam == 3) {
+		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs, &ds_errs);
+	  }
+
+	  if (pidKeyword)
+		  e->SetKW(pidIx, new DLongGDL(pid));
+
+      if (exit_statusKeyword)
+		  e->SetKW(exit_statusIx, new DLongGDL(status));
+		  
+
+	  SizeT nLines = 0;
+	  if (nParam > 1)
+	  {
+		  DStringGDL* result;
+		  nLines = ds_outs.size();
+		  if (nLines == 0)
+			  result = new DStringGDL("");
+		  else
+		  {
+			  result = new DStringGDL(dimension(nLines), BaseGDL::NOZERO);
+			  for (SizeT l = 0; l<nLines; ++l) (*result)[l] = ds_outs[l];
+		  }
+		  e->SetPar(1, result);
+	  }
+
+	  if (countKeyword) e->SetKW(countIx, new DLongGDL(nLines));
+
+	  if (nParam > 2)
+	  {
+		  DStringGDL* errResult;
+		  SizeT nErrLines = ds_errs.size();
+		  if (nErrLines == 0)
+			  errResult = new DStringGDL("");
+		  else
+		  {
+			  errResult = new DStringGDL(dimension(nErrLines), BaseGDL::NOZERO);
+			  for (SizeT l = 0; l < nErrLines; ++l) (*errResult)[l] = ds_errs[l];
+		  }
+		  e->SetPar(2, errResult);
+	  }
+  }
+
+#else
   // helper function for spawn_pro
   static void child_sighandler(int x){
     pid_t pid;

@@ -20,7 +20,7 @@
 #endif
 #include "includefirst.hpp"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #define sem_trywait(sem) (WaitForSingleObject(sem, 0) == WAIT_OBJECT_0 ? 0 : -1) 
 #define sem_post(sem) (ReleaseSemaphore(sem, 1, NULL) ? 0 : -1) 
 #else
@@ -37,7 +37,7 @@ namespace lib {
 
   // map: semaphore_name -> semaphore_data
   typedef struct {
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     HANDLE sem;
 #else
     sem_t *sem;
@@ -124,7 +124,7 @@ namespace lib {
     {
       if (sem_is_deletable(it->second))
       {
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
         CloseHandle(it->second.sem);
 #else
         sem_unlink(it->first.c_str());
@@ -152,7 +152,7 @@ namespace lib {
     }
 
     bool owner = true;
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     HANDLE sem = CreateSemaphore(NULL,1,1,name.c_str());
     if (sem == NULL) {
 	owner = false;
@@ -200,7 +200,7 @@ namespace lib {
     e->AssureStringScalarPar(0, name);
 
     const sem_data_t &data = sem_get_data(name, e);
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     CloseHandle(data.sem);
 #else
     sem_close(data.sem);

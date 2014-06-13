@@ -28,10 +28,8 @@ extern "C" {
 // quoting http://permalink.gmane.org/gmane.os.openbsd.tech/19860 :
 // 'wordexp() will never be in OpenBSD's libc' :)
 // (TODO: perhaps better to implement it using HAVE_WORDEXP_H? + once more below in WordExp())
-#ifndef _MSC_VER
-#if !defined(__OpenBSD__)
+#if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
 #  include <wordexp.h>
-#endif
 #endif
 
 #ifdef __CYGWIN__
@@ -268,8 +266,7 @@ unsigned long int Str2UL( const string& s, int base)
 void WordExp( string& s)
 {
 //cout << "WordExp  in: " << s << endl;
-#if !defined(__OpenBSD__)
-#ifndef _MSC_VER
+#if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
 // esc whitespace
 // which is not already escaped
 //   string sEsc;
@@ -319,7 +316,6 @@ void WordExp( string& s)
 #  endif
      wordfree( &p);
    }
-#endif
 #endif
 //cout << "WordExp out: " << s << endl;
 }

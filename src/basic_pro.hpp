@@ -78,9 +78,7 @@ namespace lib {
 
   void byteorder( EnvT* e);
 
-#ifndef _MSC_VER
   void spawn_pro( EnvT* e);
-#endif
 
   // the following by Peter Messmer 
   // (messmer@users.sourceforge.net)

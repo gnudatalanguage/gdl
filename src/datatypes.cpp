@@ -3890,7 +3890,7 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
     #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
         #pragma omp for
-        for( SizeT c=0; c<nCp; ++c)
+        for( OMPInt c=0; c<nCp; ++c)
         {
             // copy one segment
             SizeT destStartLoop = destStart + c * gap;

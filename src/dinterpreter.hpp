@@ -38,9 +38,22 @@
 #  define FE_INVALID		FP_X_INV
 #  define FE_OVERFLOW		FP_X_OFL
 #  define FE_UNDERFLOW		FP_X_UFL
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && _MSC_VER < 1800
 #  include <float.h>
+#  pragma fenv_access(on)
 #else
+#  ifdef __MINGW32__ // hack for MINGW
+#    define FE_INVALID		0x01
+#    define FE_DENORMAL		0x02
+#    define FE_DIVBYZERO	0x04
+#    define FE_OVERFLOW		0x08
+#    define FE_UNDERFLOW	0x10
+#    define FE_INEXACT		0x20
+#    define FE_ALL_EXCEPT (FE_INVALID | FE_DENORMAL | FE_DIVBYZERO \
+		           | FE_OVERFLOW | FE_UNDERFLOW | FE_INEXACT)
+extern int __cdecl __MINGW_NOTHROW feclearexcept (int);	  	
+extern int __cdecl __MINGW_NOTHROW fetestexcept (int excepts);
+#  endif
 #  include <fenv.h>
 #endif
 #  if defined(__FreeBSD__)

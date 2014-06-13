@@ -22,7 +22,7 @@ renamed from: graphics.cpp
 
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__) // does cygwin have its own X11 port?
 #  include "devicewin.hpp"
 #else
 #  include "devicex.hpp"
@@ -176,7 +176,7 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
   deviceList.push_back( new DeviceWIN());
 #else
   #  ifdef HAVE_X
@@ -186,7 +186,7 @@ void GraphicsDevice::Init()
 
   // we try to set WIN or X as default 
   // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
   if( !SetDevice( "WIN")) 
 #else
 #  ifndef HAVE_X

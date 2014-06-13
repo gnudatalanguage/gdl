@@ -20,7 +20,7 @@
 
 #include <csetjmp>
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
 extern jmp_buf sigFPEJmpBuf;
 #define sigsetjmp(x,s) setjmp(x)
 #else

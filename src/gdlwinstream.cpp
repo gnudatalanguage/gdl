@@ -19,48 +19,74 @@
 
 #include <iostream>
 
+#include "graphicsdevice.hpp"
 #include "gdlwinstream.hpp"
+
+// Copied from wingcc.c
+// Struct to hold device-specific info.
+
+typedef struct
+{
+	PLFLT scale;                     // scaling factor to "blow up" to the "virtual" page in removing hidden lines
+	PLINT width;                     // Window width (which can change)
+	PLINT height;                    // Window Height
+
+	PLFLT PRNT_scale;
+	PLINT PRNT_width;
+	PLINT PRNT_height;
+
+	char  FT_smooth_text;
+	//
+	// WIN32 API variables
+	//
+
+	COLORREF          colour;                       // Current Colour
+	COLORREF          oldcolour;                    // Used for high-speed background erasing
+	MSG               msg;                          // A Win32 message structure.
+	WNDCLASSEX        wndclass;                     // An extended window class structure.
+	HWND              hwnd;                         // Handle for the main window.
+	HPEN              pen;                          // Windows pen used for drawing
+	HDC               hdc;                          // Driver Context
+	HDC               hdc2;                         // Driver Context II - used for Blitting
+	HDC               SCRN_hdc;                     // The screen's context
+	HDC               PRNT_hdc;                     // used for printing
+	PAINTSTRUCT       ps;                           // used to paint the client area of a window owned by that application
+	RECT              rect;                         // defines the coordinates of the upper-left and lower-right corners of a rectangle
+	RECT              oldrect;                      // used for re-sizing comparisons
+	RECT              paintrect;                    // used for painting etc...
+	HBRUSH            fillbrush;                    // brush used for fills
+	HCURSOR           cursor;                       // Current windows cursor for this window
+	HBITMAP           bitmap;                       // Bitmap of current display; used for fast redraws via blitting
+	HGDIOBJ           oldobject;                    // Used for tracking objects probably not really needed but
+	HMENU             PopupMenu;
+
+	PLINT             draw_mode;
+	char              truecolour;      // Flag to indicate 24 bit mode
+	char              waiting;         // Flag to indicate drawing is done, and it is waiting;
+	// we only do a windows redraw if plplot is plotting
+	char              enterresize;     // Used to keep track of reszing messages from windows
+	char              already_erased;  // Used to track first and only first backgroudn erases
+} wingcc_Dev;
 
 using namespace std;
 
 void GDLWINStream::Init()
 {
   plstream::init();
+  plgpls(&pls);
+  //pls->debug = true;
 
-//   //  set_stream(); // private
-//   plgpls( &pls);
-//   XwDev *dev = (XwDev *) pls->dev;
-//   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-
-//   wm_protocols = XInternAtom( xwd->display, "WM_PROTOCOLS", false);  
-//   wm_delete_window = XInternAtom( xwd->display, "WM_DELETE_WINDOW", false);
-  
-//   XSetWMProtocols( xwd->display, dev->window, &wm_delete_window, 1);
-//   XFlush( xwd->display);
+  wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+  dev->waiting = 1;
 }
 
 void GDLWINStream::EventHandler()
 {
-//   if( !valid) return;
-
-//   XwDev *dev = (XwDev *) pls->dev;
-//   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  
-//   XEvent event;
-//   if( XCheckTypedWindowEvent( xwd->display, dev->window, 
-// 			      ClientMessage, &event))
-//     {
-//       if( event.xclient.message_type == wm_protocols &&
-// 	  event.xclient.data.l[0] == wm_delete_window)  
-// 	{
-// 	  valid = false;
-// 	  return; // no more event handling
-// 	}
-//       else
-// 	XPutBackEvent( xwd->display, &event);
-//     }
-
-//   // plplot event handler
-//   plstream::cmd( PLESC_EH, NULL);
+	MSG Message;
+	if (PeekMessage(&Message, NULL, 0, 0, PM_NOREMOVE))
+	{
+		GetMessage(&Message, NULL, 0, 0);
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
 }
-

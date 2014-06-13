@@ -23,13 +23,15 @@
 
 // get_kbrd patch
 // http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <termios.h> 
 #include <unistd.h> 
 #endif
 
 // used to defined GDL_TMPDIR: may have trouble on MSwin, help welcome
+#ifndef WIN32
 #include <paths.h>
+#endif
 
 #include <limits>
 #include <string>
@@ -64,9 +66,12 @@ extern "C" char **environ;
 #define MAX_REGEXPERR_LENGTH 80
 
 #ifdef _MSC_VER
+#if _MSC_VER < 1800
 #define isfinite _finite
 #define isnan _isnan
 #define round(f) floor(f+0.5)
+#endif
+#define isfinite(x) isfinite((double) x)
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
   if (n == 0)
@@ -81,7 +86,9 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 
   return tolower(*(unsigned char *) s1) - tolower(*(unsigned char *) s2);
 }
-#else
+#endif
+
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <sys/utsname.h>
 #endif
 
@@ -5333,11 +5340,27 @@ BaseGDL* strtok_fun(EnvT* e) {
 	    {
 	      resPtr = getenv((*name)[i].c_str());
 
-	      if( resPtr != NULL)
+		  if (resPtr != NULL)
+		  {
 		(*env)[i] = resPtr;
+		  }
 	      else
+		  {
 		//		(*env)[i] = SysVar::Dir();
+#ifdef WIN32
+			  TCHAR tmpBuf[MAX_PATH];
+			  GetTempPath(MAX_PATH, tmpBuf);
+#	ifdef _UNICODE
+			  char c_tmpBuf[MAX_PATH];
+			  WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
+			  (*env)[i] = c_tmpBuf;
+#	else
+			  (*env)[i] = tmpBuf;
+#	endif
+#else
 		(*env)[i] = _PATH_VARTMP ;
+#endif
+		  }
 	      
 	      AppendIfNeeded( (*env)[i], "/");
 	    }
@@ -5777,11 +5800,11 @@ BaseGDL* strtok_fun(EnvT* e) {
     char c='\0'; //initialize is never a bad idea...
 
     int fd=fileno(stdin);
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
     struct termios orig, get; 
 #endif
     // Get terminal setup to revert to it at end. 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
     (void)tcgetattr(fd, &orig); 
     // New terminal setup, non-canonical.
     get.c_lflag = ISIG; 
@@ -5789,7 +5812,7 @@ BaseGDL* strtok_fun(EnvT* e) {
     if (doWait)
     {
      // will wait for a character
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
      get.c_cc[VTIME]=0;
      get.c_cc[VMIN]=1;
      (void)tcsetattr(fd, TCSANOW, &get); 
@@ -5799,7 +5822,7 @@ BaseGDL* strtok_fun(EnvT* e) {
     else 
     {
      // will not wait, but return EOF or next character in terminal buffer if present
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
      get.c_cc[VTIME]=0;
      get.c_cc[VMIN]=0;
      (void)tcsetattr(fd, TCSANOW, &get); 
@@ -5812,7 +5835,7 @@ BaseGDL* strtok_fun(EnvT* e) {
     }
     
     // Restore original terminal settings. 
-#ifndef _MSC_VER
+#if !defined(_WIN32) || defined(__CYGWIN__)
     (void)tcsetattr(fd, TCSANOW, &orig); 
 #endif
 #if defined(HAVE_LIBREADLINE)
@@ -6667,7 +6690,7 @@ BaseGDL* strtok_fun(EnvT* e) {
   BaseGDL* get_login_info( EnvT* e)
   {
     // getting the info 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     #define MAX_TCHAR_BUF 256
 
     char login[MAX_TCHAR_BUF];
@@ -6700,7 +6723,7 @@ BaseGDL* strtok_fun(EnvT* e) {
 
     // returning the info 
     stru->InitTag("USER_NAME", DStringGDL(login));
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__CYGWIN__)
     stru->InitTag("MACHINE_NAME", DStringGDL(info));
 #else
     stru->InitTag("MACHINE_NAME", DStringGDL(info.nodename));

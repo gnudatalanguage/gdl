@@ -241,7 +241,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for
-    for( SizeT i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
+    for( OMPInt i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
     }
   }
 //same for invalid. a real gain of time if no values are invalid, a small loss if not.
@@ -251,7 +251,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for
-    for( SizeT i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
+    for( OMPInt i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
     }
   }
   // some loop constants

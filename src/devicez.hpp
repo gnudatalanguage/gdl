@@ -27,7 +27,7 @@
 #define SETOPT setopt
 #endif
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && (_MSC_VER < 1800)
 /* replacement of Unix rint() for Windows */
 static int rint (double x)
 {
