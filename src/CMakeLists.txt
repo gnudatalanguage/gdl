@@ -65,7 +65,6 @@ dcompiler.hpp
 default_io.cpp
 deviceps.hpp
 devicesvg.hpp
-devicewin.hpp
 devicex.hpp
 devicez.hpp
 dimension.hpp
@@ -116,8 +115,6 @@ gdlwidget.cpp
 gdlwidgeteventhandler.cpp
 gdlwidget.hpp
 gdlwidgetdraw.cpp
-gdlwinstream.cpp
-gdlwinstream.hpp
 gdlwxstream.cpp
 gdlwxstream.hpp
 gdlxstream.cpp
@@ -247,8 +244,11 @@ widget.hpp
 if(WIN32 AND NOT CYGWIN)
 set(SOURCES
 ${SOURCES}
+gdlwinstream.cpp
+gdlwinstream.hpp
 gtdhelper.cpp
 gtdhelper.hpp
+devicewin.hpp
 )
 endif(WIN32 AND NOT CYGWIN)
 
