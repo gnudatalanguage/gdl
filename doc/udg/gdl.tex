@@ -18,9 +18,6 @@
 % ----------------------------------------------------
 
 % mwbk for a more European look & feel :)
-
-%\documentclass[10pt,titleauthor,openany]{mwbk}
-
 \documentclass[10pt,titleauthor,openany]{mwbk}
 \SetSectionFormatting{section}{14pt plus5pt minus2pt}{\FormatHangHeading{\large}}{5pt plus3pt}
 \usepackage[T1]{fontenc} % otherwise underscores are not "searchable in PDFs"
@@ -107,6 +104,14 @@
 \setcounter{secnumdepth}{0}
 \setcounter{tocdepth}{1}
 
+% making the above work with TeX4ht, mwbk and hyperref
+% (workaround suggested by Deimantas Galcius - thanks!)
+\makeatletter
+\def\section@flags{0100}
+\def\subsection@flags{0100}
+\def\subsubsection@flags{0100}
+\makeatother
+
 % IDL + trademark sign
 \def\IDL{IDL\leavevmode\hbox{$\rm {}^{TM}$}}
 \def\PVWAVE{PV-WAVE\leavevmode\hbox{$\rm {}^{TM}$}}
@@ -120,8 +125,7 @@
   }
 }
 \author{
-  developed by Marc Schellens and The GDL team\\
-  documentation maintained by Sylwester Arabas and Alain Coulais
+  developed by Marc Schellens and The GDL team
 }
 \date{\today}
 
