@@ -270,9 +270,10 @@ namespace lib {
 
     if( e->NParam() == 1) {
       if (p0->Dim(0) == 0) e->Throw( "Expression must be an array in this context: "+e->GetParString(0));
-      if (p0->Dim(0) != 2 && p0->Dim(0) != 3) e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
+      if (p0->Dim(0) != 2 && p0->Dim(0) != 3) e->Throw( "When only 1 param, dims must be (2,n) or (3,n)"); //with n=0 also!!!
       SizeT dim0=p0->Dim(0);
       minEl=p0->Dim(1);
+      if (minEl==0) minEl=1; // aka in convert_coord([44,22])-->n_dim=1,dim=2
       xVal=new DDoubleGDL(dimension(minEl), BaseGDL::NOZERO);
       xval_guard.Reset(xVal); // delete upon exit
       DDoubleGDL* tmpVal=e->GetParAs< DDoubleGDL>(0);
