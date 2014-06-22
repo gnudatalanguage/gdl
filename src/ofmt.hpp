@@ -168,9 +168,10 @@ void OutAuto( std::ostream& os, T val, int w, int d, char f)
   if( w == 0 && (powTen < d && powTen > -d) &&
       (val - std::floor( val) < std::pow( 10.0, static_cast<double>(-d))))
     ossF << std::fixed << std::setprecision(0) << val; 
-  else if( powTen == 0 || (powTen < d && powTen > -d))
+  else if( powTen == 0 || (powTen < d && powTen > -d+1)) //just like that.
     {
-      ossF << std::fixed << std::setprecision(d>fixLen?d-fixLen:0) << val;
+      //format for values between -1 and 1 adapts to the width as to show as many digits as possible
+      ossF << std::fixed << std::setprecision(d>fixLen?d-fixLen+((powTen<0)?-powTen:0):0) << val;
       if( d <= fixLen) ossF << ".";
     }
   else
