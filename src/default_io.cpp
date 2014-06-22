@@ -1202,6 +1202,7 @@ ostream& Data_<SpDByte>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 template<> 
 ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
+  bool someCharacterSeen=false;
   SizeT nElem=N_Elements();
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
@@ -1258,14 +1259,16 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       InsNL( o, actPosPtr);
     }
 
-  for( SizeT i1=1; i1<d1; i1++)
-    {
-      for( SizeT i0=1; i0<d0; i0++)
-	{
+  for ( SizeT i1 = 1; i1 < d1; i1++ ) {
+    someCharacterSeen=false;
+    for ( SizeT i0 = 1; i0 < d0; i0++ ) {
 	  length = (*this)[eIx].length() + 1;
-// 	  if( length > 1) // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
-	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
-// 	  else eIx++;
+      if( length > 1)  someCharacterSeen=true;
+      // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
+      // actually, blanks are inserted only between the first non-null character and the last non-null character. 
+      //see a=strarr(9)&a[6]=':'&a[1]='>'&aa=[[a],[a]]&print,aa
+      if (someCharacterSeen) o << CheckNL( w, actPosPtr, length ) << (*this)[eIx++] << " ";
+      else eIx++;
 	}
       length = (*this)[eIx].length();
       if( length > 0)
@@ -1273,13 +1276,15 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       else eIx++;
       InsNL( o, actPosPtr);
     }
-  
-  for( SizeT i0=1; i0<d0; i0++)
-    {
+  someCharacterSeen=false;
+  for ( SizeT i0 = 1; i0 < d0; i0++ ) {
       length = (*this)[eIx].length() + 1;
-//       if( length > 1) // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&print,a
-	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
-//       else eIx++;
+    // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
+    // actually, blanks are inserted only between the first non-null character and the last non-null character. 
+    //see a=strarr(9)&a[6]=':'&a[1]='>'&aa=[[a],[a]]&print,aa
+    if( length > 1)  someCharacterSeen=true;
+    if (someCharacterSeen) o << CheckNL( w, actPosPtr, length ) << (*this)[eIx++] << " ";
+    else eIx++;
     }
   length = (*this)[eIx].length();
   if( length > 0)
