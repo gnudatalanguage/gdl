@@ -46,7 +46,7 @@ namespace lib {
   // help_item is used by EnvT::HeapGC
   void help_item( std::ostream& os,
 		  BaseGDL* par, DString parString, bool doIndentation);
-  void help( EnvT* e);
+  void help_pro( EnvT* e);
   void exitgdl( EnvT* e);
 
   // in print.cpp

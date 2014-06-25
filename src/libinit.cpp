@@ -225,11 +225,12 @@ void LibInit()
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
   const string helpKey[]={"ALL_KEYS","BRIEF","CALLS","DEVICE","FUNCTIONS","HELP","INFO",
-			  "INTERNAL_LIB_GDL","LAST_MESSAGE","LIB","MEMORY",
+			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
 			  "OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES", KLISTEND};
-  const string helpWarnKey[]={"FULL","TRACEBACK", KLISTEND};
-  new DLibPro(lib::help,string("HELP"),-1,helpKey,helpWarnKey);
+  const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","FULL","HEAP_VARIABLES","LEVEL","MESSAGES",
+			      "OBJECTS","SHARED_MEMORY","SYSTEM_VARIABLES","TRACEBACK", KLISTEND};
+  new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
 
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
     "NUM_FREE","STRUCTURE","L64",KLISTEND};

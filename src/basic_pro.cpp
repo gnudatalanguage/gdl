@@ -27,8 +27,13 @@
 #include <set>
 #include <iterator>
 
+//#include <regex.h> // stregex
+#include <fnmatch.h>
+
+
 #include <sys/stat.h>
-#include <sys/types.h>
+//#include <sys/types.h>
+
 #if !defined(_WIN32) || defined(__CYGWIN__)
 #include <sys/wait.h>
 #else
@@ -389,7 +394,7 @@ namespace lib {
       }
   }
 
-  void help( EnvT* e)
+  void help_pro( EnvT* e)
   {    
     // in order of priority
     bool kw = false;
@@ -421,14 +426,14 @@ namespace lib {
     if( helpKW) {
       string inline_help[]={"Usage: "+e->GetProName()+", expr1, ..., exprN,", 
 			    "          /ALL_KEYS, /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
-			    "          /INTERNAL_LIB_GDL, /LAST_MESSAGE, /LIB, /MEMORY,",
-			    "          /OUTPUT, /PATH_CACHE, /PREFERENCES, /PROCEDURES,",
+			    "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
+			    "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE, /PREFERENCES, /PROCEDURES,",
 			    "          /RECALL_COMMANDS, /ROUTINES, /SOURCE_FILES, /STRUCTURES,"};
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	
       e->Help(inline_help, size_of_s);
     }
 
-    if (e->KeywordSet("ALL_KEYS")) {  // obsolete keyword
+    if (e->KeywordSet("ALL_KEYS") || e->KeywordSet("KEYS")) {  // ALL_KEYS is an obsolete keyword
       cout << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
       cout << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
       cout << endl;
@@ -463,7 +468,10 @@ namespace lib {
       cout << "Current graphics device: " << name << endl;
       return;
     }
-    
+
+    static int namesKWIx = e->KeywordIx("NAMES");
+    bool namesKW= e->KeywordPresent(namesKWIx);
+
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
     if( sourceFilesKW)
@@ -500,13 +508,27 @@ namespace lib {
 	    if( !alreadyInList)
 	      sourceFiles.push_back(proFile);
 	}
-	// sourceFiles now contains a uniqe list of all file names.
+	// sourceFiles now contains a unique list of all file names.
 	sort( sourceFiles.begin(), sourceFiles.end());
 
       	SizeT nSourceFiles = sourceFiles.size();
 	cout << "Source files (" << nSourceFiles <<"):" << endl;
-	for( SizeT i = 0; i<nSourceFiles; ++i)
+	
+	for( SizeT i = 0; i<nSourceFiles; ++i)	  
 	  cout << sourceFiles[ i] << endl;
+
+	
+	if (namesKW) {
+	  cout << "TEST !! hello" << endl;
+	  DString names = "";
+	  e->AssureStringScalarKWIfPresent("NAMES", names);
+	  cout << "hello " << names << endl;
+
+	  for( SizeT i = 0; i<nSourceFiles; ++i)
+	    if( fnmatch(names.c_str(), sourceFiles[ i].c_str(), 0 ) == 0 ){
+	      cout << sourceFiles[ i] << endl;
+	    }
+	}
     }
     
     static int callsKWIx = e->KeywordIx("CALLS");
@@ -558,6 +580,7 @@ namespace lib {
 	  "functions/procedures." << endl;
 	cout << "Additional subroutines are written in GDL language, "
 	  "look for *.pro files." << endl;
+	cout << "HELP, /ALL_KEYS for useful CLI keys shortcuts." << endl;
 	cout << endl;
       }
 
@@ -780,11 +803,15 @@ namespace lib {
 	    int nPar = pro->NPar();
 	    int nKey = pro->NKey();
 
+	    cout << pro->ObjectName() << " " << nPar << " " << nKey << endl;
+
 	    // Loop through parameters
 	    if (outputKW == NULL) {
 	      cout << setw(25) << left << pro->ObjectName() << setw(0);
 	      for( SizeT j=0; j<nPar; j++)
 		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      for( SizeT j=0; j<nKey; j++)
+		cout << StrUpCase(pro->GetVarName(j)) << " ";
 	    } else {
 	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
 	      for( SizeT j=0; j<nPar; j++)
