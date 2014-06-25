@@ -460,6 +460,23 @@ namespace lib {
       return;
     }
 
+    static int sysvarKWIx = e->KeywordIx("SYSTEM_VARIABLES");
+    bool sysvarKW= e->KeywordPresent(sysvarKWIx);
+    if (sysvarKW) {
+      SizeT nVar = sysVarList.size();
+      for( SizeT v=0; v<nVar; ++v)
+	{
+	  DVar* var = sysVarList[ v];
+	  DStructGDL* tmp= tmp=static_cast<DStructGDL*>(var->Data());
+	  // if( var != NULL) cout << v << var->Data() << endl;
+	  //if( var != NULL) cout << v << var->Name() << endl;
+	  //	  cout << static_cast<DStructGDL*>(v.Data());
+	  help_item(cout, tmp, "!"+var->Name(), false);
+	  
+	}
+      return;
+    }
+
     static int deviceKWIx = e->KeywordIx("DEVICE");
     bool deviceKW = e->KeywordPresent(deviceKWIx);
     if( deviceKW) {
