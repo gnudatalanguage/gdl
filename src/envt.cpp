@@ -1413,10 +1413,11 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
     
   SizeT varIx=std::distance(pro->key.begin(),f);
 
-  // already set? -> Warning
+  // already set? -> Warning 
+  // (move to Throw by AC on June 25, 2014, bug found by Levan.)
   if( KeywordPresent(varIx)) // just a message in the original
     {
-      Warning( "Duplicate keyword "+k+" in call to: "+pro->Name());
+      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
     }
 
   return varIx;
