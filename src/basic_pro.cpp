@@ -27,16 +27,15 @@
 #include <set>
 #include <iterator>
 
-//#include <regex.h> // stregex
-#include <fnmatch.h>
-
-
 #include <sys/stat.h>
 //#include <sys/types.h>
 
 #if !defined(_WIN32) || defined(__CYGWIN__)
+//#include <regex.h> // stregex
+#include <fnmatch.h>
 #include <sys/wait.h>
 #else
+#include <shlwapi.h>
 #include <tchar.h>
 #endif
 
@@ -541,13 +540,32 @@ namespace lib {
 	  e->AssureStringScalarKWIfPresent("NAMES", names);
 	  cout << "hello " << names << endl;
 
-	  for( SizeT i = 0; i<nSourceFiles; ++i)
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	  TCHAR tnames[MAX_PATH];
+	  TCHAR tsourceFiles[MAX_PATH];
+
+	  const char* cnames = names.c_str();
+      const char* csourceFiles;
+
+      for( SizeT i = 0; i<nSourceFiles; ++i) {
+	    csourceFiles = sourceFiles[ i].c_str();
+
+	    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cnames, strlen(cnames), tnames, MAX_PATH);
+	    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, csourceFiles, strlen(csourceFiles), tsourceFiles, MAX_PATH);
+
+	    if( PathMatchSpec(tnames, tsourceFiles) ){
+	      cout << sourceFiles[ i] << endl;
+        }
+      }
+#else
+      for( SizeT i = 0; i<nSourceFiles; ++i)
 	    if( fnmatch(names.c_str(), sourceFiles[ i].c_str(), 0 ) == 0 ){
 	      cout << sourceFiles[ i] << endl;
 	    }
-	}
+#endif    
+      }
     }
-    
+
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent( callsKWIx);
     if( callsKW)
