@@ -5733,8 +5733,6 @@ BaseGDL* strtok_fun(EnvT* e) {
 	      Message("No FUNCTIONS compiled yet !");
 	      return new DStringGDL("");
 	    }
-	    subList.resize( n);
-		
 	    for( SizeT i = 0; i<n; ++i)
 	      subList.push_back( funList[ i]->ObjectName());
 	  }
@@ -5761,8 +5759,7 @@ BaseGDL* strtok_fun(EnvT* e) {
 	      (*res)[0]="$MAIN$";
 	      return res;
 	    }
-	    subList.resize( n);
-		
+	    subList.push_back("$MAIN$");
 	    for( SizeT i = 0; i<n; ++i)
 	      subList.push_back( proList[ i]->ObjectName());
 	  }
