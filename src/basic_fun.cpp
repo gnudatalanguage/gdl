@@ -5729,7 +5729,10 @@ BaseGDL* strtok_fun(EnvT* e) {
 	else
 	  {
 	    SizeT n = funList.size();
-	    if( n == 0) return new DStringGDL("");
+	    if( n == 0) {
+	      Message("No FUNCTIONS compiled yet !");
+	      return new DStringGDL("");
+	    }
 	    subList.resize( n);
 		
 	    for( SizeT i = 0; i<n; ++i)
@@ -5752,7 +5755,12 @@ BaseGDL* strtok_fun(EnvT* e) {
 	else
 	  {
 	    SizeT n = proList.size();
-	    if( n == 0) return new DStringGDL("");
+	    if( n == 0) {
+	      Message("No PROCEDURES compiled yet !");
+	      DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
+	      (*res)[0]="$MAIN$";
+	      return res;
+	    }
 	    subList.resize( n);
 		
 	    for( SizeT i = 0; i<n; ++i)
