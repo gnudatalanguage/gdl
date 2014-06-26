@@ -2501,7 +2501,7 @@ TRACEOMP( __FILE__, __LINE__)
 	  }
   }
 
-  DWORD launch_cmd(BOOL hide, LPSTR cmd, LPSTR title = NULL, DWORD *pid = NULL, vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
+  DWORD launch_cmd(BOOL hide, LPWSTR cmd, LPWSTR title = NULL, DWORD *pid = NULL, vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
   {
 	  DWORD status;
 
@@ -2613,7 +2613,7 @@ TRACEOMP( __FILE__, __LINE__)
 
 	  if (nParam == 0)
 	  {
-		  DWORD status = launch_cmd(hideKeyword, (LPSTR)(_T("cmd")), (LPSTR)(_T("Command Prompt")));
+		  DWORD status = launch_cmd(hideKeyword, (LPWSTR)(_T("cmd")), (LPWSTR)(_T("Command Prompt")));
 		  if (countKeyword)
 			  e->SetKW(countIx, new DLongGDL(0));
 		  if (exit_statusKeyword)

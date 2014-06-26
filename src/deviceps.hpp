@@ -28,7 +28,9 @@
 
 #  ifdef USE_PSLIB
 #    include <stdio.h> // tmpnam
-#    include <sys/utsname.h> // uname
+#    if !defined(_WIN32) || defined(__CYGWIN__)
+#        include <sys/utsname.h> // uname
+#    endif
 #    include <libps/pslib.h>
 #  endif
 
@@ -178,15 +180,29 @@ private:
     PS_set_info(ps, "Title", "Graphics produced by GDL"); 
     PS_set_info(ps, "Orientation", orient_portrait ? "Portrait" : "Landscape"); 
     {
+      string tmp;
+#if !defined(_WIN32) || defined(__CYGWIN__)
       struct utsname uts;
       uname(&uts);
-      string tmp;
       tmp = "GDL Version " + string(VERSION) + ", " + string(uts.sysname) + " " + string(uts.machine);
       PS_set_info(ps, "Creator", tmp.c_str()); 
       char* login = getlogin();
       if (login == NULL) Warning("Warning: getlogin() failed!");
       tmp = (login == NULL ? "?" : login) + string("@") + uts.nodename;
       PS_set_info(ps, "Author", tmp.c_str());
+#else
+      tmp = "GDL Version " + string(VERSION) + ", Microsoft Windows x32";
+      PS_set_info(ps, "Creator", tmp.c_str());
+
+      TCHAR username[257];
+      char cusername[257];
+      DWORD username_len = 257;
+      GetUserName(username, &username_len);
+
+      WideCharToMultiByte(CP_ACP, 0, username, username_len, cusername, username_len, NULL, NULL);
+
+      PS_set_info(ps, "Author", cusername);
+#endif
     }
     //bug: PSLIB does not return the correct boundingbox, it forgets offx and offy. Try to get it
     //back (using pslib own code!)!

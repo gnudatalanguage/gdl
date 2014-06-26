@@ -32,7 +32,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### Default cached values
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
-set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
+if(WIN32 AND NOT CYGWIN)
+	set(X11 OFF CACHE BOOL "GDL: Enable X11 ?") 
+else(WIN32 AND NOT CYGWIN)
+	set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
+endif(WIN32 AND NOT CYGWIN)
 set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
 set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
@@ -171,30 +175,46 @@ check_include_file(mpi.h HAVE_MPI_H)
 #     version of antlr in system-wide directories
 include_directories(src)
 
-# Ncurses MANDATORY
-# -DNCURSESDIR=DIR
-set(CMAKE_PREFIX_PATH ${NCURSESDIR})	
-set(CURSES_NEED_NCURSES TRUE)
-find_package(Curses QUIET COMPONENTS initscr)
-mark_as_advanced(CURSES_CURSES_H_PATH CURSES_FORM_LIBRARY CURSES_HAVE_CURSES_H)
-if(CURSES_FOUND)
-	set(HAVE_LIBNCURSES 1)
-	set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
-	include_directories(${CURSES_INCLUDE_DIR})
-else(CURSES_FOUND)
-	# search for curses
-	set(CURSES_NEED_NCURSES FALSE)
-	find_package(Curses COMPONENTS initscr)
-	set(HAVE_LIBCURSES ${CURSES_FOUND})
+if(WIN32 AND NOT CYGWIN)
+	# For Win32 find Pdcureses instead of (N)Curses
+	# -DPDCURSESDIR=DIR
+	set(CMAKE_PREFIX_PATH ${PDCURSESDIR})
+	find_package(Pdcurses)
+	if(PDCURSES_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${PDCURSES_LIBRARIES})
+		include_directories(${PDCURSES_INCLUDE_DIR})
+		set(HAVE_LIBPDCURSES 1)
+	else(PDCURSES_FOUND)
+		message("${PDCURSES_LIBRARIES}\n${PDCURSES_LIBRARY}\n${PDCURSES_INCLUDE_DIR}\n")
+		message(FATAL_ERROR "PDCurses was not found.\n"
+			"Use -DPDCURSESDIR=DIR to specify the curses directory tree.\n")
+	endif(PDCURSES_FOUND)
+else(WIN32 AND NOT CYGWIN)
+	# Ncurses MANDATORY
+	# -DNCURSESDIR=DIR
+	set(CMAKE_PREFIX_PATH ${NCURSESDIR})	
+	set(CURSES_NEED_NCURSES TRUE)
+	find_package(Curses QUIET COMPONENTS initscr)
+	mark_as_advanced(CURSES_CURSES_H_PATH CURSES_FORM_LIBRARY CURSES_HAVE_CURSES_H)
 	if(CURSES_FOUND)
+		set(HAVE_LIBNCURSES 1)
 		set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
 		include_directories(${CURSES_INCLUDE_DIR})
 	else(CURSES_FOUND)
-		message(FATAL_ERROR "(N)Curses was not found.\n"
-		"Use -DNCURSESDIR=DIR to specify the (n)curses directory tree.\n"
-                "(suitable Debian/Ubuntu package: libncurses-dev)\n")
+		# search for curses
+		set(CURSES_NEED_NCURSES FALSE)
+		find_package(Curses COMPONENTS initscr)
+		set(HAVE_LIBCURSES ${CURSES_FOUND})
+		if(CURSES_FOUND)
+			set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
+			include_directories(${CURSES_INCLUDE_DIR})
+		else(CURSES_FOUND)
+			message(FATAL_ERROR "(N)Curses was not found.\n"
+				"Use -DNCURSESDIR=DIR to specify the curses directory tree.\n"
+				"(suitable Debian/Ubuntu package: libncurses-dev)\n")
+		endif(CURSES_FOUND)
 	endif(CURSES_FOUND)
-endif(CURSES_FOUND)
+endif(WIN32 AND NOT CYGWIN)
 
 # Readline
 # -DREADLINE=ON|OFF
@@ -401,9 +421,10 @@ endif(MAGICK)
 # wxWdigets
 # -DWXWIDGET=ON|OFF
 # -DWXWIDGETDIR=DIR
+set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
 	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-	find_package(wxWidgets QUIET)
+	find_package(wxWidgets QUIET REQUIRED base core adv)
 	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
 	if(wxWidgets_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
@@ -934,5 +955,5 @@ module(OLDPLPLOT "Old Plplot ")
 module(READLINE  "Readline   ")
 module(GSL       "GSL        ")
 module(ZLIB      "Zlib       ")
-module(CURSES    "Ncurses    ")
+module(CURSES    "(N or PD)curses    ")
 message("")

@@ -8,8 +8,8 @@ if(LIBPSPKG)
 		find_package_handle_standard_args(LIBPS DEFAULT_MSG LIBPS_LIBRARIES)
 	endif(LIBPS_FOUND)
 else(LIBPSPKG) # no libps.pc file
-	find_library(LIBPS_LIBRARIES NAMES libps)
-	find_path(LIBPS_INCLUDE_DIRS NAMES pslib.h)	
+	find_library(LIBPS_LIBRARIES NAMES libps pslib)
+	find_path(LIBPS_INCLUDE_DIRS NAMES libps/pslib.h)	
 	find_package_handle_standard_args(LIBPS DEFAULT_MSG LIBPS_LIBRARIES)
 endif(LIBPSPKG)
 
