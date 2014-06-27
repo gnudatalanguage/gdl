@@ -284,12 +284,13 @@ private:
       // edits will be in the first 12288 bytes; add the length of offstr-3
       const size_t buflen=12288 + pbstr.length()-22;
       //const size_t buflen=4096;
-      char buff[buflen];
+      char *buff = new char[buflen];
 
       //do the first read:
       size_t cnt = fread(&buff, 1, 12288, fp);
       string sbuff;
       sbuff = string(buff);
+	  delete buff;
 
       // find the PageBoundingBox statement
       size_t pos = sbuff.find("%%PageBoundingBox: 0 0");

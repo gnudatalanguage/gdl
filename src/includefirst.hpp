@@ -26,6 +26,7 @@
 //#endif
 #ifdef _MSC_VER
 #define NOMINMAX
+#define _WINSOCKAPI_
 #endif
 
 // Python.h must be included before everything else
