@@ -911,53 +911,55 @@ DString makeInsensitive(const DString &s)
 
 
   // AC 16 May 2014 : preliminary (and no MSwin support !)
+  // revised by AC on June 28 
+  // PRINT, FILE_expand_path([['','.'],['$PWD','src/']])
+  // when the path is wrong, wrong output ...
+
   BaseGDL* file_expand_path( EnvT* e)
   {
     // always 1
-    SizeT nParam=e->NParam();
-    cout << "nParam :" << nParam << endl;
+    SizeT nParam=e->NParam(1);
 
-    DStringGDL* pathSpec;
-    SizeT nPath = 0;
-    
-    BaseGDL* p0 = e->GetParDefined( 0);
-    pathSpec = dynamic_cast<DStringGDL*>( p0);
-    if( pathSpec == NULL)
-      e->Throw( "String expression required in this context.");
+    // accepting only strings as parameters
+    BaseGDL* p0 = e->GetParDefined(0);
+    if( p0->Type() != GDL_STRING)
+      e->Throw("String expression required in this context: " + e->GetParString(0));
+    DStringGDL* p0S = static_cast<DStringGDL*>(p0);
 
-    nPath = pathSpec->N_Elements();
-    cout << "nPath :" << nParam << endl;
+    SizeT nPath = p0S->N_Elements();
 
-    FileListT fileList;
+    //    cout << "nPath :" << nPath  << endl;
 
-    // unix defaults
-    bool tilde = true;
-    bool environment = true;
-    bool fold_case = false;
+    DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+    for( SizeT r=0; r<nPath ; ++r)
+      {
+	string tmp=(*p0S)[r];
 
-    bool accErr =false;
-    bool mark=false;
-    bool quote=false;
-    bool noSort=false;
-    bool onlyDir=false;
-    bool match_dot=true;
-    bool forceAbsPath=true;
-
-    
-    for( SizeT f=0; f < nPath; ++f) 
-      FileSearch( fileList, (*pathSpec)[f],
-		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
-
-    DLong count = fileList.size();
-
-    // fileList -> res
-    DStringGDL* res = new DStringGDL( dimension( count), BaseGDL::NOZERO);
-    for( SizeT r=0; r<count; ++r)
-      (*res)[r] = fileList[ r];
-
+	if (tmp.length() == 0) {
+	  char* cwd;
+	  char buff[PATH_MAX + 1];
+	  cwd = getcwd( buff, PATH_MAX + 1 );
+	  if( cwd != NULL ){
+	    (*res)[r]= string(cwd);
+	  } 
+	  else {
+	    (*res)[r]=""; //( errors are not managed ...)
+	  }
+	} else {
+	  WordExp(tmp);
+	  char *symlinkpath =const_cast<char*> (tmp.c_str());
+	  char actualpath [PATH_MAX+1];
+	  char *ptr;
+	  ptr = realpath(symlinkpath, actualpath);
+	  if( ptr != NULL ){
+	    (*res)[r] =string(ptr);
+	  }else {
+	    //( errors are not managed ...)
+	    (*res)[r] = tmp ;
+	  }
+	}
+      }
     return res;
-  
   }
 
   // not finished yet
