@@ -2639,7 +2639,7 @@ namespace lib
     int sgn=(value<0)?-1:1;
     if (sgn*value<gdlEpsDouble()) 
     {
-      snprintf(label, length, ((ptr->isLog)?"1":"0"),value); 
+      snprintf(label, length, ((ptr->isLog)?"1":"0")); 
       return;
     }
     int e=floor(log10(value*sgn));
