@@ -65,12 +65,12 @@ char *Lookup(int code, binding *table)
 }
 
 static binding _visual_classes[] = {
-  { StaticGray, "StaticGray" },
-  { GrayScale, "GrayScale" },
-  { StaticColor, "StaticColor" },
-  { PseudoColor, "PseudoColor" },
-  { TrueColor, "TrueColor" },
-  { DirectColor, "DirectColor" },
+  { StaticGray,  (char *)"StaticGray" }, //must be casted char* since literal strings are char const * 
+  { GrayScale, (char *) "GrayScale" },
+  { StaticColor,  (char *)"StaticColor" },
+  { PseudoColor, (char *) "PseudoColor" },
+  { TrueColor,  (char *)"TrueColor" },
+  { DirectColor,  (char *)"DirectColor" },
   { 0, 0 }};
 
 // end of code copy from "xwininfo.c"
