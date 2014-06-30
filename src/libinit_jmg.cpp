@@ -84,14 +84,17 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::typename_fun,string("TYPENAME"),1);
 
   // the following (Chol and Invert) by Alain C. and Nodar K.
+  // Since we have a difference between the IDL way and the Eigen way
+  // we (temporary) remove these 2 codes in the CVS of GDL
+  // Help welcome. 
 #if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};
   new DLibPro(lib::choldc_pro,string("CHOLDC"),3,cholKey);
-  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),4,cholKey);
+  //  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),4,cholKey);
 
   const string lacholKey[]={"DOUBLE","STATUS","UPPER",KLISTEND};
   new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),4,lacholKey);
-  new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),4,lacholKey);
+  //new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),4,lacholKey);
 #endif
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
