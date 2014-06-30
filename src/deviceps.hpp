@@ -284,8 +284,8 @@ private:
       // edits will be in the first 12288 bytes; add the length of offstr-3
       const size_t buflen=12288 + pbstr.length()-22;
       //const size_t buflen=4096;
-      char *buff = new char[buflen];
-
+	  char *buff = new char[buflen];
+	  memset((void*) buff, 0, buflen);
       //do the first read:
       size_t cnt = fread(&buff, 1, 12288, fp);
       string sbuff;
