@@ -636,4 +636,8 @@
              NCDF_GROUPPARENT, NCDF_DIMIDSINQ, NCDF_NCIDINQ, NCDF_VARIDSINQ
            - introducing the NULL device type, better result on Unix like system without X11 
              (e. g. computing nodes on HPC)
+	   - better free format for print, preserving precision
+	     digits.
 
+0.9.5+:
+	   -support for projections now complete. See MAP_INSTALL for details.
