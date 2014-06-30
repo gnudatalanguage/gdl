@@ -27,7 +27,13 @@
 #else
 #  include <plplot/plxwd.h>
 #endif
+#ifdef HAVE_CONFIG_H
+// we should not add all the plplot's internal defines (which are 
+// added if HAVE_CONFIG_H is defined) to ours. Makes problem with distros.
+#undef HAVE_CONFIG_H 
 #include <plplot/plplot.h>
+#define HAVE_CONFIG_H 1
+#endif
 #if PLPLOT_PRIVATE_NOT_HIDDEN
 #include <plplot/plplotP.h>
 #endif
