@@ -112,7 +112,6 @@ namespace lib {
     //get wiewport window in world coordinates
     PLFLT xmin, xmax, ymin, ymax;
     actStream->gvpw(xmin, xmax, ymin, ymax);
-
     xStart=oxStart=xmin;
     xEnd=oxEnd=xmax;
     yStart=oyStart=ymin;

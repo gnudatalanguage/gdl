@@ -17,7 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 namespace lib
 {

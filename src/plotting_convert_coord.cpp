@@ -17,7 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 #define TONORMCOORDX( in, out, log) out = (log) ? sx[0] + sx[1] * log10(in) : sx[0] + sx[1] * in;
 #define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
@@ -105,11 +104,6 @@ namespace lib {
 #ifdef USE_LIBPROJ4
       static LPTYPE idata;
       static XYTYPE odata;
-#ifdef USE_LIBPROJ4_NEW
-      static PROJTYPE ref;
-#else
-      static PROJTYPE* ref;
-#endif
       get_mapset ( mapSet );
       if ( mapSet )
       {
@@ -130,19 +124,11 @@ namespace lib {
         {
 #pragma omp for private(idata,odata)
             for (SizeT i = 0; i < nrows; i++) {
-#ifdef USE_LIBPROJ4_NEW     
               idata.u = (*xVal)[i] * DEG_TO_RAD;
               idata.v = (*yVal)[i] * DEG_TO_RAD;
               odata = PJ_FWD(idata, ref);
               (*xVal)[i] = odata.u;
               (*yVal)[i] = odata.v;
-#else
-              idata.lam = (*xVal)[i] * DEG_TO_RAD;
-              idata.phi = (*yVal)[i] * DEG_TO_RAD;
-              odata = PJ_FWD(idata, ref);
-              (*xVal)[i] = odata.x;
-              (*yVal)[i] = odata.y;
-#endif
             }
           }
         }
@@ -193,19 +179,11 @@ namespace lib {
         {
 #pragma omp for private(idata,odata)
             for (SizeT i = 0; i < nrows; i++) {
-#ifdef USE_LIBPROJ4_NEW     
               odata.u = (*xVal)[i];
               odata.v = (*yVal)[i];
               idata = PJ_INV(odata, ref);
               (*xVal)[i] = idata.u * RAD_TO_DEG;
               (*yVal)[i] = idata.v * RAD_TO_DEG;
-#else
-            odata.x = (*xVal)[i];
-            odata.y = (*yVal)[i];
-            idata = PJ_INV(odata, ref);
-            (*xVal)[i] = idata.lam * RAD_TO_DEG;
-            (*yVal)[i] = idata.phi * RAD_TO_DEG;
-#endif
             }
           }
         }

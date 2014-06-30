@@ -363,13 +363,14 @@ void LibInit()
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
-  
-  const string stringKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
+  //need to keep the position of the keywords until lib::string_fun does not use fixed kw index anymore (fixme).)
+  const string stringKey[]={"FORMAT","XXXXX","YYYYYYYY","ZZZZZZ",
 			    "PRINT",KLISTEND};
+  const string stringWarnKey[]={"AM_PM","DAYS_OF_WEEK","MONTHS",KLISTEND};
 //  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
 //  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
 // that's apparently the desired bahaviour, see bug no. 3151760
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,NULL);
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,stringWarnKey);
   new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
 
 /*

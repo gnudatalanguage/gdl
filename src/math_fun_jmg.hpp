@@ -63,7 +63,6 @@ namespace lib {
   BaseGDL* qgrid3_fun ( EnvT* e);
   BaseGDL* sph_scat_fun ( EnvT* e);
 #endif
-  BaseGDL* trigrid_fun( EnvT* e);
   BaseGDL* poly_2d_fun( EnvT* e);
   BaseGDL* rk4jmg_fun( EnvT* e);
 

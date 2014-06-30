@@ -32,7 +32,6 @@
 #include <netcdf.h>
 
 #include "datatypes.hpp"
-#include "math_utl.hpp"
 #include "envt.hpp"
 #include "dpro.hpp"
 #include "dinterpreter.hpp"

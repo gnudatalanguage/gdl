@@ -17,8 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
-#define PLK_Escape            0x1B
 
 namespace lib{
 
@@ -75,35 +73,32 @@ void tvcrs( EnvT* e)
     DDouble tempx,tempy;
     tempx=(*x)[0];
     tempy=(*y)[0];
-#ifdef USE_LIBPROJ4
     bool mapSet = false;
     get_mapset(mapSet);
     if (mapSet)
     {
-//      PROJTYPE* ref = map_init();
+#ifdef USE_LIBPROJ4
       if (ref == NULL) e->Throw("Projection initialization failed.");
       LPTYPE idataN;
-#ifdef USE_LIBPROJ4_NEW
-      idataN.u = tempx* RAD_TO_DEG;
-      idataN.v = tempy* RAD_TO_DEG;
+      idataN.u = tempx* DEG_TO_RAD;
+      idataN.v = tempy* DEG_TO_RAD;
       XYTYPE odata = PJ_FWD(idataN, ref);
-      tempx = odata.u;
-      tempy = odata.v;
-#else
-      idataN.lam = tempx* RAD_TO_DEG;
-      idataN.phi = tempy* RAD_TO_DEG;
-      XYTYPE odata = PJ_FWD(idataN, ref);
-      tempx = odata.x;
-      tempy = odata.y;
-#endif	  
-    }
+      // norm to world invalid since projection. use !x.s and !y.s directly
+      DDouble *sx, *sy;
+      GetSFromPlotStructs( &sx, &sy );
+      tempx= sx[0] +odata.u * sx[1];
+      tempy= sy[0] +odata.v * sy[1]; //normed values
+      plg->NormedDeviceToDevice(tempx,tempy,ix,iy);
+      plg->WarpPointer(ix,iy);
+      return;
 #endif
-    bool xLog, yLog;
-    gdlGetAxisType("X", xLog);
-    gdlGetAxisType("Y", yLog);
-    if(xLog) tempx=pow(10,tempx);
-    if(yLog) tempy=pow(10,tempy);
-    plg->WorldToDevice(tempx,tempy,ix,iy);
+    }
+     bool xLog, yLog;
+     gdlGetAxisType("X", xLog);
+     gdlGetAxisType("Y", yLog);
+     if(xLog) tempx=pow(10,tempx);
+     if(yLog) tempy=pow(10,tempy);
+     plg->WorldToDevice(tempx,tempy,ix,iy);
   }
   else if (e->KeywordSet("NORMAL"))
   {
@@ -215,29 +210,20 @@ void cursor(EnvT* e){
       }
       else
       {
-#ifdef USE_LIBPROJ4_NEW
-      static PROJTYPE ref;
-#else
-      static PROJTYPE* ref;
-#endif
         ref = map_init();
         if (ref == NULL) e->Throw("Projection initialization failed.");
         XYTYPE idata, idataN;
-#ifdef USE_LIBPROJ4_NEW
         idataN.u = gin.dX;
         idataN.v = gin.dY;
-        plg->NormToWorld(idataN.u, idataN.v, idata.u, idata.v);
+        DDouble *sx, *sy;
+        // norm to world invalid since projection. use !x.s and !y.s directly
+        // was: plg->NormToWorld(idataN.u, idataN.v, idata.u, idata.v);
+        GetSFromPlotStructs( &sx, &sy );
+        idata.u = (idataN.u - sx[0])/sx[1];
+        idata.v = (idataN.v - sy[0])/sy[1];
         LPTYPE odata = PJ_INV(idata, ref);
         tempx = odata.u * RAD_TO_DEG;
         tempy = odata.v * RAD_TO_DEG;
-#else
-        idataN.x = gin.dX;
-        idataN.y = gin.dY;
-        plg->NormToWorld(idataN.x, idataN.y, idata.x, idata.y);
-        LPTYPE odata = PJ_INV(idata, ref);
-        tempx = odata.lam * RAD_TO_DEG;
-        tempy = odata.phi * RAD_TO_DEG;
-#endif
       }
 #endif
       bool xLog, yLog;

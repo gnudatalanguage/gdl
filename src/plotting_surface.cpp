@@ -17,7 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 namespace lib
 {
@@ -157,21 +156,6 @@ namespace lib
 
     void old_body (EnvT* e, GDLGStream* actStream) // {{{
     {
-     //projection: would work only with 2D X and Y. Not supported here
-      bool mapSet=false;
-#ifdef USE_LIBPROJ4
-      static LPTYPE idata;
-      static XYTYPE odata;
-      static PROJTYPE* ref;
-      get_mapset ( mapSet );
-      if ( mapSet )
-      { // do nothing
-//        ref=map_init ( );
-//        if ( ref==NULL ) e->Throw ( "Projection initialization failed." );
-        // but warn that projection is not taken into account
-        Warning ( "SURFACE: Projection is set, but not taken into account (ony 1d X and Y) (FIX plplot first!)." );
-      }
-#endif
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
       bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));

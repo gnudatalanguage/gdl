@@ -226,23 +226,6 @@ namespace lib
       DDouble az, alt, ay, scale;
       ORIENTATION3D axisExchangeCode;
 
-      //projection: would work only with 2D X and Y.
-      bool mapSet=false;
-#ifdef USE_LIBPROJ4
-      static LPTYPE idata;
-      static XYTYPE odata;
-#ifdef USE_LIBPROJ4_NEW
-      static PROJTYPE ref;
-#else
-      static PROJTYPE* ref;
-#endif
-      get_mapset ( mapSet );
-      if ( mapSet )
-      {
-        ref=map_init ( );
-        if ( ref==NULL ) e->Throw ( "Projection initialization failed." );
-      }
-#endif
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
@@ -321,6 +304,21 @@ namespace lib
       make2dBox=(!overplot&&!doT3d);
       make3dBox=(!overplot&& doT3d);
 
+      //projection: would work only with 2D X and Y.
+      bool mapSet=false;
+#ifdef USE_LIBPROJ4
+      static LPTYPE idata;
+      static XYTYPE odata;
+      get_mapset ( mapSet );
+      mapSet = mapSet && overplot; 
+      if ( mapSet )
+      {
+        ref=map_init ( );
+        if ( ref==NULL ) e->Throw ( "Projection initialization failed." );
+      }
+#endif
+
+
       if (overplot) //retrieve information in case they are not in the command line ans apply
                     // some computation (alas)!
       {
@@ -330,6 +328,21 @@ namespace lib
         gdlGetCurrentAxisRange("X", xStart, xEnd);
         gdlGetCurrentAxisRange("Y", yStart, yEnd);
         gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
+
+      actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
+      
+      DDouble *sx, *sy;
+      GetSFromPlotStructs( &sx, &sy );
+
+      DFloat *wx, *wy;
+      GetWFromPlotStructs( &wx, &wy );
+
+      DDouble xStart, xEnd, yStart, yEnd;
+      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+
+      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+      actStream->wind( xStart, xEnd, yStart, yEnd );
+
       }
 
       static DDouble x0,y0,xs,ys; //conversion to normalized coords
@@ -586,7 +599,7 @@ namespace lib
         bool oneDim=true;
         // the Grids:
         // 1 DIM X & Y
-        if ( xVal->Rank ( )==1&&yVal->Rank ( )==1 )
+        if ( xVal->Rank ( )==1&&yVal->Rank ( )==1 && !mapSet) //mapSet: must create a 2d grid 
         {
           oneDim=true;
           xg1 = new PLFLT[xEl];
@@ -616,8 +629,8 @@ namespace lib
           {
             for ( SizeT j=0; j<yEl; j++ )
             {
-              cgrid2.xg[i][j]=(*xVal)[j*( xEl )+i];
-              cgrid2.yg[i][j]=(*yVal)[j*( xEl )+i];
+              cgrid2.xg[i][j]=mapSet?(*xVal)[i]:(*xVal)[j*( xEl )+i];
+              cgrid2.yg[i][j]=mapSet?(*yVal)[j]:(*yVal)[j*( xEl )+i];
             }
           }
           //apply projection transformations:
@@ -628,19 +641,11 @@ namespace lib
             {
               for ( SizeT j=0; j<yEl; j++ )
               {
-#ifdef USE_LIBPROJ4_NEW     
                 idata.u= cgrid2.xg[i][j] * DEG_TO_RAD;
                 idata.v= cgrid2.yg[i][j] * DEG_TO_RAD;
                 odata=PJ_FWD ( idata, ref );
                 cgrid2.xg[i][j]=odata.u;
                 cgrid2.yg[i][j]=odata.v;
-#else
-                idata.lam= cgrid2.xg[i][j] * DEG_TO_RAD;
-                idata.phi= cgrid2.yg[i][j] * DEG_TO_RAD;
-                odata=PJ_FWD ( idata, ref );
-                cgrid2.xg[i][j]=odata.x;
-                cgrid2.yg[i][j]=odata.y;
-#endif
               }
             }
           }
@@ -972,6 +977,7 @@ namespace lib
 
     virtual void post_call (EnvT*, GDLGStream* actStream)
     {
+      if (overplot) actStream->RestoreLayout();
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     }

@@ -17,7 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 #define DPI (double)(4*atan(1.0))
 #define DEGTORAD DPI/180.0
@@ -38,12 +37,12 @@ namespace lib
     Guard<DDoubleGDL> xval_guard, yval_guard, zval_guard;
     DStringGDL* strVal;
     SizeT xEl, yEl, zEl, strEl;
+    SizeT minEl;
     bool xLog, yLog, zLog;
     bool doClip, restoreClipBox;
     PLFLT savebox[4];
     bool kwWidth;
     PLFLT width;
-    DLong minEl;
     DLongGDL *color;
     DFloatGDL *spacing,*orientation,*charthick,*alignement,*size;
     Guard<BaseGDL> alignement_guard, orientation_guard,size_guard;
@@ -169,18 +168,6 @@ namespace lib
       gdlGetAxisType("Y", yLog);
       gdlGetAxisType("Z", zLog);
 
-      bool mapSet=false;
-#ifdef USE_LIBPROJ4
-      get_mapset(mapSet);
-      if ( mapSet )
-      {
-        ref=map_init();
-        if ( ref==NULL )
-        {
-          e->Throw("Projection initialization failed.");
-        }
-      }
-#endif
       restoreClipBox=false;
       int noclipvalue=1;
       e->AssureLongScalarKWIfPresent( "NOCLIP", noclipvalue);
@@ -230,10 +217,37 @@ namespace lib
         for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=tempbox[i];
       }
 
+      bool mapSet=false;
+      mapSet=false;
+#ifdef USE_LIBPROJ4
+      get_mapset(mapSet);
+      mapSet=(mapSet && coordinateSystem==DATA);
+      if ( mapSet )
+      {
+        ref=map_init();
+        if ( ref==NULL )
+        {
+          e->Throw("Projection initialization failed.");
+        }
+      }
+#endif
+
+      actStream->OnePageSaveLayout(); // one page
+      DDouble *sx, *sy;
+      GetSFromPlotStructs( &sx, &sy );
+
+      DFloat *wx, *wy;
+      GetWFromPlotStructs( &wx, &wy );
+
+      DDouble xStart, xEnd, yStart, yEnd;
+      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+
+      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+      actStream->wind( xStart, xEnd, yStart, yEnd );
+
       PLFLT wun, wdeux, wtrois, wquatre;
       actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
 
-      actStream->OnePageSaveLayout(); // one page
       actStream->vpor(0, 1, 0, 1); //set full viewport
 
       if ( coordinateSystem==DEVICE )
@@ -344,24 +358,16 @@ namespace lib
 
         //following obviously wrong if T3D...
 #ifdef USE_LIBPROJ4
-        if ( mapSet&& coordinateSystem==DATA )
+        if ( mapSet )
         {
           LPTYPE idata;
           XYTYPE odata;
-#ifdef USE_LIBPROJ4_NEW
           idata.u=x * DEG_TO_RAD;
           idata.v=y * DEG_TO_RAD;
           odata=PJ_FWD(idata, ref);
           x=odata.u;
           y=odata.v;
-#else
-          idata.lam=x * DEG_TO_RAD;
-          idata.phi=y * DEG_TO_RAD;
-          odata=PJ_FWD(idata, ref);
-          x=odata.x;
-          y=odata.y;
-#endif	
-         }
+        }
 #endif
 
         if( xLog ) x=log10(x);

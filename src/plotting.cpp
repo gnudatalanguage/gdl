@@ -420,169 +420,6 @@ namespace lib
     return intv;
   }
 
-  // !P
-
-  void GetPData(
-                DLong& p_background,
-                DLong& p_noErase, DLong& p_color, DLong& p_psym,
-                DLong& p_linestyle,
-                DFloat& p_symsize, DFloat& p_charsize, DFloat& p_thick,
-                DString& p_title, DString& p_subTitle, DFloat& p_ticklen)
-  {
-    static DStructGDL* pStruct=SysVar::P();
-    static unsigned backgroundTag=pStruct->Desc()->TagIndex("BACKGROUND");
-    static unsigned noEraseTag=pStruct->Desc()->TagIndex("NOERASE");
-    static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-    static unsigned psymTag=pStruct->Desc()->TagIndex("PSYM");
-    static unsigned linestyleTag=pStruct->Desc()->TagIndex("LINESTYLE");
-    static unsigned symsizeTag=pStruct->Desc()->TagIndex("SYMSIZE");
-    static unsigned charsizeTag=pStruct->Desc()->TagIndex("CHARSIZE");
-    static unsigned thickTag=pStruct->Desc()->TagIndex("THICK");
-    static unsigned ticklenTag=pStruct->Desc()->TagIndex("TICKLEN");
-    static unsigned titleTag=pStruct->Desc()->TagIndex("TITLE");
-    static unsigned subTitleTag=pStruct->Desc()->TagIndex("SUBTITLE");
-    p_background=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(backgroundTag, 0)))[0];
-    p_noErase=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(noEraseTag, 0)))[0];
-    p_color=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0];
-    p_psym=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(psymTag, 0)))[0];
-    p_linestyle=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(linestyleTag, 0)))[0];
-    p_symsize=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(symsizeTag, 0)))[0];
-    p_charsize=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(charsizeTag, 0)))[0];
-    p_thick=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(thickTag, 0)))[0];
-    p_title=
-    (*static_cast<DStringGDL*>(pStruct->GetTag(titleTag, 0)))[0];
-    p_subTitle=
-    (*static_cast<DStringGDL*>(pStruct->GetTag(subTitleTag, 0)))[0];
-    p_ticklen=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(ticklenTag, 0)))[0];
-  }
-
-  void GetPData2(pstruct& p)
-  {
-    int i, j;
-    static DStructGDL* pStruct=SysVar::P();
-
-    static unsigned backgroundTag=pStruct->Desc()->TagIndex("BACKGROUND");
-    p.background=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(backgroundTag, 0)))[0];
-
-    static unsigned charsizeTag=pStruct->Desc()->TagIndex("CHARSIZE");
-    p.charSize=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(charsizeTag, 0)))[0];
-
-    static unsigned charthickTag=pStruct->Desc()->TagIndex("CHARTHICK");
-    p.charThick=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(charthickTag, 0)))[0];
-
-    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
-    for ( i=0; i<6; ++i ) p.clip[i]=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i];
-
-    static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-    p.color=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0];
-
-    static unsigned fontTag=pStruct->Desc()->TagIndex("FONT");
-    p.font=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(fontTag, 0)))[0];
-
-    static unsigned linestyleTag=pStruct->Desc()->TagIndex("LINESTYLE");
-    p.lineStyle=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(linestyleTag, 0)))[0];
-
-    static unsigned multiTag=pStruct->Desc()->TagIndex("MULTI");
-    for ( i=0; i<5; ++i ) p.multi[i]=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(multiTag, 0)))[i];
-
-    static unsigned noClipTag=pStruct->Desc()->TagIndex("NOCLIP");
-    p.noClip=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(noClipTag, 0)))[0];
-
-    static unsigned noEraseTag=pStruct->Desc()->TagIndex("NOERASE");
-    p.noErase=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(noEraseTag, 0)))[0];
-
-    static unsigned nsumTag=pStruct->Desc()->TagIndex("NSUM");
-    p.nsum=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(nsumTag, 0)))[0];
-
-    static unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
-    for ( i=0; i<4; ++i ) p.position[i]=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(positionTag, 0)))[i];
-
-    static unsigned psymTag=pStruct->Desc()->TagIndex("PSYM");
-    p.psym=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(psymTag, 0)))[0];
-
-    static unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
-    for ( i=0; i<4; ++i ) p.region[i]=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(regionTag, 0)))[i];
-
-    static unsigned subtitleTag=pStruct->Desc()->TagIndex("SUBTITLE");
-    p.subTitle=
-    (*static_cast<DStringGDL*>(pStruct->GetTag(subtitleTag, 0)))[0];
-
-    static unsigned symsizeTag=pStruct->Desc()->TagIndex("SYMSIZE");
-    p.symSize=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(symsizeTag, 0)))[0];
-
-    static unsigned tTag=pStruct->Desc()->TagIndex("T");
-    for ( i=0; i<4; ++i ) for ( j=0; j<4; ++j ) p.t[i][j]=
-      (*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[j*4+i];
-
-    static unsigned t3dTag=pStruct->Desc()->TagIndex("T3D");
-    p.t3d=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(t3dTag, 0)))[0];
-
-    static unsigned thickTag=pStruct->Desc()->TagIndex("THICK");
-    p.thick=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(thickTag, 0)))[0];
-
-    static unsigned titleTag=pStruct->Desc()->TagIndex("TITLE");
-    p.title=
-    (*static_cast<DStringGDL*>(pStruct->GetTag(titleTag, 0)))[0];
-
-    static unsigned ticklenTag=pStruct->Desc()->TagIndex("TICKLEN");
-    p.ticklen=
-    (*static_cast<DFloatGDL*>(pStruct->GetTag(ticklenTag, 0)))[0];
-
-    static unsigned channelTag=pStruct->Desc()->TagIndex("CHANNEL");
-    p.channel=
-    (*static_cast<DLongGDL*>(pStruct->GetTag(channelTag, 0)))[0];
-  }
-
-  // !X, !Y, !Z
-
-  void GetAxisData(DStructGDL* xStruct,
-                   DLong& style, DString& title, DFloat& charSize,
-                   DFloat& margin0, DFloat& margin1, DFloat& ticklen)
-  {
-    static unsigned styleTag=xStruct->Desc()->TagIndex("STYLE");
-    static unsigned marginTag=xStruct->Desc()->TagIndex("MARGIN");
-    static unsigned axisTitleTag=xStruct->Desc()->TagIndex("TITLE");
-    static unsigned axischarsizeTag=xStruct->Desc()->TagIndex("CHARSIZE");
-    static unsigned ticklenTag=xStruct->Desc()->TagIndex("TICKLEN");
-    style=
-    (*static_cast<DLongGDL*>(xStruct->GetTag(styleTag, 0)))[0];
-    title=
-    (*static_cast<DStringGDL*>(xStruct->GetTag(axisTitleTag, 0)))[0];
-    charSize=
-    (*static_cast<DFloatGDL*>(xStruct->GetTag(axischarsizeTag, 0)))[0];
-    margin0=
-    (*static_cast<DFloatGDL*>(xStruct->GetTag(marginTag, 0)))[0];
-    margin1=
-    (*static_cast<DFloatGDL*>(xStruct->GetTag(marginTag, 0)))[1];
-    ticklen=
-    (*static_cast<DFloatGDL*>(xStruct->GetTag(ticklenTag, 0)))[0];
-  }
-
   void GetUserSymSize(EnvT *e, GDLGStream *a, DDouble& UsymConvX, DDouble& UsymConvY)
   {
     //get symsize
@@ -1474,27 +1311,26 @@ namespace lib
     // if scalar y
     if ( yVal->N_Elements()==1&&yVal->Rank()==0 )
       minEl=xVal->N_Elements();
-
-    bool mapSet=false;
-#ifdef USE_LIBPROJ4
-    // Map Stuff (xtype = 3)
-    LPTYPE idata;
-    XYTYPE odata;
-
-    get_mapset(mapSet);
-
-    DDouble xStart, xEnd;
-    gdlGetCurrentAxisRange("X", xStart, xEnd);
-
-    if ( mapSet )
-    {
-      ref=map_init();
-      if ( ref==NULL )
-      {
-        e->Throw("Projection initialization failed.");
-      }
-    }
-#endif
+//    bool mapSet=false;
+//#ifdef USE_LIBPROJ4
+//    // Map Stuff (xtype = 3)
+//    LPTYPE idata;
+//    XYTYPE odata;
+//
+//    get_mapset(mapSet);
+//
+//    DDouble xStart, xEnd;
+//    gdlGetCurrentAxisRange("X", xStart, xEnd);
+//
+//    if ( mapSet )
+//    {
+//      ref=map_init();
+//      if ( ref==NULL )
+//      {
+//        e->Throw("Projection initialization failed.");
+//      }
+//    }
+//#endif
 
     // is one of the 2 "arrays" a singleton or not ?
 
@@ -1544,34 +1380,21 @@ namespace lib
         if ( !flag_y_const ) y=static_cast<PLFLT>((*yVal)[i]);
         else y=y_ref;
       }
-#ifdef USE_LIBPROJ4
-      if ( mapSet&& !e->KeywordSet("NORMAL") )
-      {
-#ifdef USE_LIBPROJ4_NEW
-	idata.u=x * DEG_TO_RAD;
-        idata.v=y * DEG_TO_RAD;
-        if ( i>0 )
-        {
-          xMapBefore=odata.u;
-          yMapBefore=odata.v;
-        }
-        odata=PJ_FWD(idata, ref);
-        x=odata.u;
-        y=odata.v;
-#else
-	idata.lam=x * DEG_TO_RAD;
-        idata.phi=y * DEG_TO_RAD;
-        if ( i>0 )
-        {
-          xMapBefore=odata.x;
-          yMapBefore=odata.y;
-        }
-        odata=PJ_FWD(idata, ref);
-        x=odata.x;
-        y=odata.y;
-#endif
-      }
-#endif
+//#ifdef USE_LIBPROJ4
+//      if ( mapSet&& !e->KeywordSet("NORMAL") )
+//      {
+//	    idata.u=x * DEG_TO_RAD;
+//        idata.v=y * DEG_TO_RAD;
+//        if ( i>0 )
+//        {
+//          xMapBefore=odata.u;
+//          yMapBefore=odata.v;
+//        }
+//        odata=PJ_FWD(idata, ref);
+//        x=odata.u;
+//        y=odata.v;
+//      }
+//#endif
       //note: here y is in minVal maxVal
       if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
       if ( xLog ) x=log10(x);
@@ -1627,30 +1450,30 @@ namespace lib
         continue;
       }
 
-#ifdef USE_LIBPROJ4
-      if ( mapSet&& !e->KeywordSet("NORMAL") ) //IS BROKEN FOR X/YLOG !!!!!!
-      {
-        if ( i>0 ) //;&& (i_buff >0))
-        {
-          x1=xMapBefore;
-          if ( !isfinite(xMapBefore)|| !isfinite(yMapBefore) ) continue;
-
-          // Break "jumps" across maps (kludge!)
-          if ( fabs(x-x1)>0.5*(xEnd-xStart) )
-          {
-            reset=1;
-            if ( (i_buff>0)&&(line) )
-            {
-              a->line(i_buff, x_buff, y_buff);
-              //		  x_buff[0]=x_buff[i_buff-1];
-              //y_buff[0]=y_buff[i_buff-1];
-              i_buff=0;
-            }
-            continue;
-          }
-        }
-      }
-#endif
+//#ifdef USE_LIBPROJ4
+//      if ( mapSet&& !e->KeywordSet("NORMAL") ) //IS BROKEN FOR X/YLOG !!!!!!
+//      {
+//        if ( i>0 ) //;&& (i_buff >0))
+//        {
+//          x1=xMapBefore;
+//          if ( !isfinite(xMapBefore)|| !isfinite(yMapBefore) ) continue;
+//
+//          // Break "jumps" across maps (kludge!)
+//          if ( fabs(x-x1)>0.5*(xEnd-xStart) )
+//          {
+//            reset=1;
+//            if ( (i_buff>0)&&(line) )
+//            {
+//              a->line(i_buff, x_buff, y_buff);
+//              //		  x_buff[0]=x_buff[i_buff-1];
+//              //y_buff[0]=y_buff[i_buff-1];
+//              i_buff=0;
+//            }
+//            continue;
+//          }
+//        }
+//      }
+//#endif
       x_buff[i_buff]=x;
       y_buff[i_buff]=y;
       i_buff=i_buff+1;
@@ -3301,5 +3124,739 @@ namespace lib
     }
     SetUsym(n, do_fill, x, y);
   }
+  
+  BaseGDL* trigrid_fun( EnvT* e)
+  {
+    //   Compute plane parameters A,B,C given 3 points on plane.
+    //
+    //   z = A + Bx + Cy
+    //
+    //       (^x21^z10 - ^x10^z21)
+    //   C = --------------------- 
+    //       (^x21^y10 - ^x10^y21)
+    //
+    //       (^z10 - C*^y10)
+    //   B = ---------------
+    //            ^x10
+    //
+    //   A = z - Bx -Cy
+    //
+    //   where ^x21 = x2 - x1, etc.
+
+    SizeT nParam=e->NParam();
+    if( nParam < 4)
+      e->Throw( "Incorrect number of arguments.");
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p1 = e->GetParDefined( 1);
+    BaseGDL* p2 = e->GetParDefined( 2);
+    BaseGDL* p3 = e->GetParDefined( 3);
+
+    if (p0->N_Elements() != p1->N_Elements() ||
+	p0->N_Elements() != p2->N_Elements() ||
+	p1->N_Elements() != p2->N_Elements())
+      e->Throw( "X, Y, or Z array dimensions are incompatible.");
+
+    if( p3->Rank() == 0)
+      e->Throw( "Expression must be an array "
+		"in this context: "+ e->GetParString(0));
+    if (p3->N_Elements() % 3 != 0)
+      e->Throw( "Array of triangles incorrectly dimensioned.");
+    DLong n_tri = p3->N_Elements() / 3;
+
+    if( p0->Rank() == 0)
+      e->Throw( "Expression must be an array "
+		"in this context: "+ e->GetParString(0));
+    if( p0->N_Elements() < 3)
+      e->Throw( "Value of Bounds is out of allowed range.");
+
+    if( p1->Rank() == 0)
+      e->Throw( "Expression must be an array "
+		"in this context: "+ e->GetParString(1));
+
+    if( p2->Rank() == 0)
+      e->Throw( "Expression must be an array "
+		"in this context: "+ e->GetParString(2));
+
+    if (p2->Rank() < 1 || p2->Rank() > 2)
+      e->Throw( "Array must have 1 or 2 dimensions: "
+		+e->GetParString(0));
+
+    DDoubleGDL* GS=NULL;
+    DDoubleGDL* limits=NULL;
+    if( nParam > 4) {
+      BaseGDL* p4 = e->GetParDefined( 4);
+      if( p4->Rank() == 0)
+	e->Throw( "Expression must be an array "
+		  "in this context: "+ e->GetParString(4));
+      if (p4->N_Elements() != 2)
+	e->Throw( "Array must have 2 elements: "
+		  +e->GetParString(4));
+      GS = static_cast<DDoubleGDL*>
+	(p4->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+
+      if( nParam == 6) {
+	BaseGDL* p5 = e->GetParDefined( 5);
+	if( p5->Rank() == 0)
+	  e->Throw( "Expression must be an array "
+		    "in this context: "+ e->GetParString(4));
+	if (p5->N_Elements() != 4)
+	  e->Throw( "Array must have 4 elements: "
+		    +e->GetParString(5));
+	limits = static_cast<DDoubleGDL*>
+	  (p5->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+      }
+    }
+
+    DLong n_segx = 50;
+    DLong n_segy = 50;
+
+    DDouble diff[3][2];
+    DDouble edge[3][3];
+
+    DDouble diff_pl[3][3];
+    DDouble edge_pl[3][3];
+    DDouble uv_tri[3][3];
+    DDouble uv_gridpt[3];
+
+    DDouble delx10;
+    DDouble delx21;
+    DDouble dely10;
+    DDouble dely21;
+    DDouble delz10;
+    DDouble delz21;
+
+    DDouble A;
+    DDouble B;
+    DDouble C;
+
+    bool vertx=false;
+    bool verty=false;
+
+    DDouble lon;
+    DDouble lat;
+
+    DLong minxEl;
+    DLong maxxEl;
+    DLong minyEl;
+    DLong maxyEl;
+    
+    // Get NX, NY values if present
+    int nxix = e->KeywordIx( "NX");
+    if(e->KeywordSet(nxix)) {
+      e->AssureLongScalarKW( nxix, n_segx);
+    }
+    int nyix = e->KeywordIx( "NY");
+    if(e->KeywordSet(nyix)) {
+      e->AssureLongScalarKW( nyix, n_segy);
+    }
+
+    DDoubleGDL* x_tri = static_cast<DDoubleGDL*>
+      (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+    DDoubleGDL* y_tri = static_cast<DDoubleGDL*>
+      (p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+    DDoubleGDL* z = static_cast<DDoubleGDL*>
+      (p2->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+    DLongGDL* triangles = static_cast<DLongGDL*>
+      (p3->Convert2( GDL_LONG, BaseGDL::COPY));
+
+
+    //    bool sphere=false;
+    //int sphereix = e->KeywordIx( "SPHERE");
+    //if(e->KeywordSet(sphereix)) sphere = true;
+
+    DDouble xvsx[2];
+    DDouble yvsy[2];
+    bool map=false;
+
+
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+
+    // Stuff needed for MAP keyword processing
+    int mapix = e->KeywordIx( "MAP");
+    BaseGDL* Map = e->GetKW( mapix);
+    if( Map != NULL) {
+      //      e->Throw("MAP keyword not yet supported.");
+      map = true;
+      if(Map != NULL) 
+      {
+	if(Map->N_Elements() != 4)
+	  e->Throw("Keyword array parameter MAP"
+		   "must have 4 elements.");
+	Guard<DDoubleGDL> guard;
+	DDoubleGDL* mapD = static_cast<DDoubleGDL*>
+	  ( Map->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+	guard.Reset( mapD);
+	xvsx[0] = (*mapD)[0];
+	xvsx[1] = (*mapD)[1];
+	yvsy[0] = (*mapD)[2];
+	yvsy[1] = (*mapD)[3];
+      }
+    }
+
+    LPTYPE idata;
+    XYTYPE odata;
+
+    if ( map) {
+      ref = map_init();
+      if ( ref == NULL) {
+	e->Throw( "Projection initialization failed.");
+      }
+
+      // Convert lon/lat to x/y device coord
+      for( SizeT i=0; i<x_tri->N_Elements(); ++i) {
+        idata.u = (*x_tri)[i] * DEG_TO_RAD;
+        idata.v = (*y_tri)[i] * DEG_TO_RAD;
+        odata = PJ_FWD(idata, ref);
+        (*x_tri)[i] = odata.u *  xvsx[1] + xvsx[0];
+        (*y_tri)[i] = odata.v *  yvsy[1] + yvsy[0];
+      }
+    }
+#endif
+
+    // Determine grid range
+    x_tri->MinMax( &minxEl, &maxxEl, NULL, NULL, true);
+    y_tri->MinMax( &minyEl, &maxyEl, NULL, NULL, true);
+
+    DDouble x0;
+    DDouble y0;
+    DDouble x_span = (*x_tri)[maxxEl] - (*x_tri)[minxEl];
+    DDouble y_span = (*y_tri)[maxyEl] - (*y_tri)[minyEl];
+    if (limits != NULL) {
+      x_span = (*limits)[2] - (*limits)[0];
+      y_span = (*limits)[3] - (*limits)[1];
+      x0 = (*limits)[0];
+      y0 = (*limits)[1];
+    } else {
+      x0 = (*x_tri)[minxEl];
+      y0 = (*y_tri)[minyEl];
+    }
+
+    // Determine grid spacing
+    DDouble x_spacing = x_span / n_segx;
+    DDouble y_spacing = y_span / n_segy;
+    if (GS != NULL && !e->KeywordSet(nxix)) {
+      x_spacing = (*GS)[0];
+      n_segx = (DLong) (x_span / x_spacing);
+    }
+    if (GS != NULL && !e->KeywordSet(nyix)) {
+      y_spacing = (*GS)[1];
+      n_segy = (DLong) (y_span / y_spacing);
+    }
+    if (e->KeywordSet(nxix) && n_segx == 1) n_segx = 0;
+    if (e->KeywordSet(nyix) && n_segy == 1) n_segy = 0;
+
+    // Setup return array
+    DLong dims[2];
+    dims[0] = n_segx + 1;
+    dims[1] = n_segy + 1;
+    dimension dim((DLong *) dims, 2);
+    DDoubleGDL* res = new DDoubleGDL( dim, BaseGDL::ZERO);
+
+    bool *found = new bool [(n_segx+1)*(n_segy+1)];
+    for( SizeT i=0; i<(n_segx+1)*(n_segy+1); ++i) found[i] = false;
+
+    // *** LOOP THROUGH TRIANGLES *** //
+
+    // Loop through all triangles
+    for( SizeT i=0; i<n_tri; ++i) {
+
+      DLong tri0 = (*triangles)[3*i+0];
+      DLong tri1 = (*triangles)[3*i+1];
+      DLong tri2 = (*triangles)[3*i+2];
+
+      /*
+      // Convert lon/lat to x/y device coord
+      if ( map) {
+	idata.lam = (*x_tri)[tri0] * DEG_TO_RAD;
+	idata.phi = (*y_tri)[tri0] * DEG_TO_RAD;
+	odata = pj_fwd(idata, ref);
+	(*x_tri)[tri0] = odata.x *  xvsx[1] + xvsx[0];
+	(*y_tri)[tri0] = odata.y *  yvsy[1] + yvsy[0];
+
+	idata.lam = (*x_tri)[tri1] * DEG_TO_RAD;
+	idata.phi = (*y_tri)[tri1] * DEG_TO_RAD;
+	odata = pj_fwd(idata, ref);
+	(*x_tri)[tri1] = odata.x *  xvsx[1] + xvsx[0];
+	(*y_tri)[tri1] = odata.y *  yvsy[1] + yvsy[0];
+
+	idata.lam = (*x_tri)[tri2] * DEG_TO_RAD;
+	idata.phi = (*y_tri)[tri2] * DEG_TO_RAD;
+	odata = pj_fwd(idata, ref);
+	(*x_tri)[tri2] = odata.x *  xvsx[1] + xvsx[0];
+	(*y_tri)[tri2] = odata.y *  yvsy[1] + yvsy[0];
+      }
+      */
+      // *** PLANE INTERPOLATION *** //
+
+      delx10 = (*x_tri)[tri1] - (*x_tri)[tri0];
+      delx21 = (*x_tri)[tri2] - (*x_tri)[tri1];
+
+      dely10 = (*y_tri)[tri1] - (*y_tri)[tri0];
+      dely21 = (*y_tri)[tri2] - (*y_tri)[tri1];
+
+      delz10 = (*z)[tri1] - (*z)[tri0];
+      delz21 = (*z)[tri2] - (*z)[tri1];
+	
+      // Compute grid array
+      for( SizeT j=0; j<3; ++j) {
+	DLong itri = (*triangles)[3*i+j];
+	DLong ktri = (*triangles)[3*i+((j+1) % 3)];
+	edge[j][0] = (*x_tri)[ktri] - (*x_tri)[itri];
+	edge[j][1] = (*y_tri)[ktri] - (*y_tri)[itri];
+      }
+
+      C = (delx21*delz10 - delx10*delz21) /
+	(delx21*dely10 - delx10*dely21);
+      B = (delz10 - C*dely10) / delx10;
+      A = (*z)[tri0] - B*(*x_tri)[tri0] - C*(*y_tri)[tri0];
+
+      
+      // *** LOOP THROUGH GRID POINTS *** //
+
+      // Loop through all y-grid values
+      for( SizeT iy=0; iy<n_segy+1; ++iy) {
+	DDouble devy = y0 + iy * y_spacing;
+
+	// Loop through all x-grid values
+	for( SizeT ix=0; ix<n_segx+1; ++ix) {
+
+	  if (found[iy*(n_segx+1)+ix]) continue;
+
+	  bool inside = true;
+	  DDouble devx = x0 + ix * x_spacing;
+
+	  // *** PLANE INTERPOLATION *** //
+
+	  // Compute diff array for xy-values
+	  for( SizeT j=0; j<3; ++j) {
+	    DLong itri = (*triangles)[3*i+j];
+	    diff[j][0] = (*x_tri)[itri] - devx;
+	    diff[j][1] = (*y_tri)[itri] - devy;
+	  }
+
+
+	  // Determine if inside triangle
+	  for( SizeT ivert=0; ivert<3; ++ivert) {
+	    DLong kvert = (ivert+1) % 3;
+
+	    DDouble crs1;
+	    DDouble crs2;
+	    crs1 = diff[ivert][0]*edge[ivert][1]-diff[ivert][1]*edge[ivert][0];
+	    crs2 = edge[kvert][0]*edge[ivert][1]-edge[kvert][1]*edge[ivert][0];
+	    if (crs1*crs2 > 0) {
+	      inside = false;
+	      break;
+	    }
+	  }
+
+	  if (inside == true) {
+	    found[iy*(n_segx+1)+ix] = true;
+	    (*res)[iy*(n_segx+1)+ix] = A + B*devx + C*devy;
+	    if ( map) {
+	      //	      cout << setiosflags(ios::fixed);
+	      //cout << setw(2);
+	      //cout << setprecision(2);
+	      //cout << left << "lon: "   << setw(10) << right << lon;
+	      //cout << left << "  lat: " << setw(10) << right << lat; 
+	      //cout << " in triangle: " << i << endl;
+	    }
+	  }
+
+	} // ix loop
+      } // iy loop
+    } // i (triangle) loop
+
+    for( SizeT i=0; i<(n_segx+1)*(n_segy+1); ++i) {
+      if (found[i] == false && map) {
+	//	cout << i/(n_segy+1) << " ";
+	//cout << i - (i/(n_segy+1))*(n_segy+1);
+	//cout << " NOT in triangles." << endl;
+	//(*res)[i] = 0;
+      }
+    }
+
+    delete[] found;
+    return res;
+}
+
+static DDouble bad=sqrt(-1);
+
+#define PROJEPSILON 1E-6
+  //plane-vector intersection 
+  inline void OnSphereVectorPlaneIntersection(DDouble x1,DDouble y1,DDouble z1,DDouble x2,DDouble y2,
+  DDouble z2,DDouble u,DDouble v,DDouble w,DDouble h,
+  DDouble &x, DDouble &y, DDouble &z, DDouble incr=0.0){
+    DDouble a=x2-x1;
+    DDouble b=y2-y1;
+    DDouble c=z2-z1;
+    DDouble t=u*a+v*b+w*c;
+    if (abs(t)<PROJEPSILON) {x=bad; y=bad; z=bad; return;}
+    t=(-h-u*x1-v*y1-w*z1)/t;
+    x=a*(t+incr)+x1;
+    y=b*(t+incr)+y1;
+    z=c*(t+incr)+z1;
+    DDouble norm=sqrt(x*x+y*y+z*z);
+    x/=norm;y/=norm;z/=norm;
+    return;
+  }
+  
+DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalmap)
+{
+    // MATRIX keyword (read). Never declare mapIx as static!
+    int mapIx = e->KeywordIx( "MAP_STRUCTURE" );
+    externalmap = e->KeywordPresent( mapIx );
+
+    DStructGDL* map = NULL;
+
+    if ( externalmap ) {
+      map = e->GetKWAs<DStructGDL>(mapIx);
+      if ( map->Desc( ) != SysVar::Map( )->Desc( ) ) e->Throw( "Conflicting data structures: MAP_STRUCTURE,!MAP." );
+      unsigned projectionTag = map->Desc( )->TagIndex( "PROJECTION" );
+      DLong map_projection = (*static_cast<DLongGDL*> (map->GetTag( projectionTag, 0 )))[0];
+      if ( map_projection < 1 ) e->Throw( "Map transform not established." );
+    } else {
+      map = SysVar::Map( );
+      unsigned projectionTag = map->Desc( )->TagIndex( "PROJECTION" );
+      DLong map_projection = (*static_cast<DLongGDL*> (map->GetTag( projectionTag, 0 )))[0];
+      if ( map_projection < 1 ) e->Throw( "Map transform not established." );
+    }
+    return map;
+}
+
+DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
+bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill ) {
+
+//rule: we do not change input values, we copy them.
+  
+  //DATA MUST BE IN RADIANS
+#ifdef USE_LIBPROJ4
+  LPTYPE idata;
+  XYTYPE odata;
+#endif
+  
+  unsigned pTag = map->Desc( )->TagIndex( "PIPELINE" );
+  DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag( pTag, 0 )));
+  DLong dims[2];
+
+  enum {
+    EXIT = 0,
+    SPLIT,
+    CLIP_PLANE,
+    TRANSFORM,
+    CLIP_UV
+  } action;
+  
+  dims[0] = pipeline->Dim( 0 );
+  dims[1] = pipeline->Dim( 1 );
+  int line = 0;
+  int icode = (*pipeline)[dims[0] * line + 0];
+  DDouble a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
+  DDouble b = (*pipeline)[dims[0] * line + 2];
+  DDouble c = (*pipeline)[dims[0] * line + 3];
+  DDouble d = (*pipeline)[dims[0] * line + 4];
+  DDouble px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
+  DDouble py = (*pipeline)[dims[0] * line + 6];
+  DDouble pz = (*pipeline)[dims[0] * line + 7];
+  DDouble x, y, z, before, after, xs, ys, zs, xe, ye, ze, x1, y1, z1, x2, y2, z2;
+  SizeT out,nOut, nEl, iconn, nConn, lastConn;
+  OMPInt in;
+  DDoubleGDL *lons;
+  DDoubleGDL *lats;
+  DLongGDL *currentConn,*nextConn,*tmpConn;
+  DDoubleGDL *oldLons;
+  DDoubleGDL *oldLats;
+  //interpolations for GONS on cuts is every 2.5 degrees.
+  //Gons takes precedence on Lines
+
+  nEl=lonsIn->N_Elements();
+  //if connectivity does not exist, fake a simple one
+  if (!doConn) {
+    currentConn=new DLongGDL( dimension( nEl+1 ), BaseGDL::INDGEN);
+    currentConn->Dec(); 
+    (*currentConn)[0]=nEl; //[nEl,0,1...nEl]  very important!
+  } else { //just copy
+    currentConn=connIn->Dup();
+  }
+
+  //copy Input
+  lons=lonsIn->Dup();
+  lats=latsIn->Dup();
+  int pass=0;
+  SizeT index;
+  SizeT size;
+  SizeT start;
+  SizeT k,chunksize,ichunk;
+  bool isVisible;
+  while ( icode > 0 ) {
+    switch ( icode ) {
+      case SPLIT:
+      case CLIP_PLANE:
+        pass++;
+        //explore conn; for each segment, work inside the segment and determine the needed output sizes.
+        index=0;
+        nOut=0;
+        nConn=0;
+        //fprintf( stderr, "\npass%d lon=%d conn=%d, ",pass,lons->N_Elements( ), currentConn->N_Elements());
+
+        while(index >= 0 && index < currentConn->N_Elements() ) {
+          size=(*currentConn)[index];
+          if (size<0) break;
+          start=index+1; //start new chunk...
+          nConn++; nConn++;
+          k=(*currentConn)[start+0];
+          x = cos( (*lons)[k] ) * cos( (*lats)[k] );
+          y = sin( (*lons)[k] ) * cos( (*lats)[k] );
+          z = sin( (*lats)[k] );
+          before = a * x + b * y + c * z + d;
+          isVisible = ( before > 0.0  || icode == SPLIT ); //use isVisible only for CLIP_PLANE
+          nOut++;
+          for ( in = 1; in < size; in++ ) {
+            k=(*currentConn)[start+in]; //conn is a list of indexes...
+            x = cos( (*lons)[k] ) * cos( (*lats)[k] );
+            y = sin( (*lons)[k] ) * cos( (*lats)[k] );
+            z = sin( (*lats)[k] );
+            after = a * x + b * y + c * z + d;
+            if ( before * after < 0.0 ) {
+              nOut += 2; //two more points
+              if (doGons) nConn += 3; else nConn += 3;  //on more for size---> need to close polygons TODO!!!
+            }
+            nOut++; 
+            nConn++;
+            before = after;
+          }
+          index+=(size+1); 
+        }
+        //fprintf( stderr, "end: found lon=%d conn=%d...",nOut,nConn);
+        //2nd pass, cut if necessary.
+        if (true) {//nOut > nEl ) { //switch lons,lats,lines,gons with new ones
+          //fprintf( stderr, "(replace)\n",nOut,nConn);
+          oldLons = lons;
+          oldLats = lats;
+          lons = new DDoubleGDL( nOut, BaseGDL::NOZERO );
+          lats = new DDoubleGDL( nOut, BaseGDL::NOZERO );
+          nextConn = new DLongGDL( nConn, BaseGDL::NOZERO );
+          in = 0;
+          out = 0;
+          iconn = -1;
+          index=0;
+          ichunk=0;
+          while(index >= 0 && index < currentConn->N_Elements() ) {
+            size=(*currentConn)[index];
+            if (size<0) break;
+            start=index+1;
+            ichunk++;
+            k=(*currentConn)[start+0];
+
+            iconn++;  (*nextConn)[iconn] = -1; lastConn=iconn;  chunksize=0;
+            
+            //fprintf( stderr, "\nchunk %d size %d starts at %d with %d at %d, running index in lon: %d\n", ichunk, size, start,(*nextConn)[lastConn],lastConn,k);
+
+            xs = cos( (*oldLons)[k] ) * cos( (*oldLats)[k] );
+            ys = sin( (*oldLons)[k] ) * cos( (*oldLats)[k] );
+            zs = sin( (*oldLats)[k] );
+            before = a * xs + b * ys + c * zs + d;
+
+            isVisible = ( before > 0.0  || icode == SPLIT ); //use isVisible only for CLIP_PLANE
+            
+            if (isVisible) {(*lons)[out] = (*oldLons)[k]; (*lats)[out] = (*oldLats)[k];} 
+            else {(*lons)[out]=bad;(*lats)[out] =bad;}
+            
+            iconn++; (*nextConn)[iconn] = out; out++; chunksize++;
+            
+            //fprintf( stderr, "[%d", (*nextConn)[iconn]);
+
+            for ( in = 1; in < size; in++) {
+              k=(*currentConn)[start+in]; //conn is a list of indexes...
+              
+              xe = cos( (*oldLons)[k] ) * cos( (*oldLats)[k] );
+              ye = sin( (*oldLons)[k] ) * cos( (*oldLats)[k] );
+              ze = sin( (*oldLats)[k] );
+              after = a * xe + b * ye + c * ze + d;
+
+              if ( before * after < 0.0 ) { //insert two or more points
+                //find intersection epsilon before  
+                OnSphereVectorPlaneIntersection( xs, ys, zs, xe, ye, ze, a, b, c, d , x, y, z, -0.001 );
+                if (isVisible) (*lons)[out] = atan2( y, x ); else (*lons)[out] = bad;
+                if (isVisible) (*lats)[out] = asin( z ); else (*lats)[out] = bad;
+                iconn++;  (*nextConn)[iconn] = out;   out++; chunksize++;
+                
+                if (icode == CLIP_PLANE ) isVisible = !isVisible;
+                
+                //fprintf( stderr, ",%d", (*nextConn)[iconn]);
+                //fprintf( stderr, "]; %d->", (*nextConn)[lastConn]);
+                (*nextConn)[lastConn] = chunksize; //give back total of points
+                //fprintf( stderr, "%d\n", (*nextConn)[lastConn]);
+              
+                chunksize=0; //reset chunksize
+                iconn++; lastConn=iconn;(*nextConn)[iconn]=-1;
+                
+                //fprintf( stderr, "next at index %d says %d", lastConn, (*nextConn)[lastConn]);
+              
+                OnSphereVectorPlaneIntersection( xs, ys, zs, xe, ye, ze, a, b, c, d, x, y, z, +0.001 );
+                if (isVisible) (*lons)[out] = atan2( y, x ); else (*lons)[out] = bad;
+                if (isVisible) (*lats)[out] = asin( z ); else (*lats)[out] = bad;
+                iconn++; (*nextConn)[iconn] = out; out++; chunksize++;
+              
+                //fprintf( stderr, "[%d", (*nextConn)[iconn]);
+              }
+              
+              if (isVisible) {(*lons)[out] = (*oldLons)[k]; (*lats)[out] = (*oldLats)[k];} 
+              else {(*lons)[out] = bad; (*lats)[out] = bad;}
+              iconn++;  (*nextConn)[iconn] = out; out++; chunksize++;
+
+              //fprintf( stderr, ",%d", (*nextConn)[iconn]);
+            
+              before = after;
+              xs=xe;ys=ye;zs=ze;
+            }
+            //fprintf( stderr, "]; end chunk; %d->", (*nextConn)[lastConn]);
+            (*nextConn)[lastConn] = chunksize; //give back total of points
+            //fprintf( stderr, "%d\n -last written conn index: %d of %d", (*nextConn)[lastConn],iconn,nextConn->N_Elements());
+            index+=(size+1); 
+          }
+          //switch connexions...
+          tmpConn=currentConn;
+          currentConn=nextConn;
+          GDLDelete(tmpConn);
+        }
+        break;
+      case TRANSFORM:
+#ifdef USE_LIBPROJ4
+        nEl = lons->N_Elements( );
+#ifdef PROJ_IS_THREADSAFE
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+#endif
+        for ( in = 0; in < nEl; in++ ) {
+          idata.u = (*lons)[in];
+          idata.v = (*lats)[in];
+          odata = PJ_FWD( idata, ref );
+          (*lons)[in] = odata.u;
+          (*lats)[in] = odata.v;
+        }
+#ifdef PROJ_IS_THREADSAFE
+    }
+#endif
+#endif   //USE_LIBPROJ4 
+        break;
+      case CLIP_UV:
+        nEl = lons->N_Elements( );
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+  #pragma omp for
+            for ( in = 0; in < nEl; in++ ) { //use abcd, here  Umin, Vmin, Umax, Vmax
+            if (finite((*lons)[in]*(*lats)[in])) if ( (*lons)[in] < a || (*lons)[in] > c || (*lats)[in] < b || (*lats)[in] > d ) {
+              (*lons)[in] = sqrt( -1.0 );
+              (*lats)[in] = sqrt( -1.0 );
+            }
+          }
+      }
+        break;
+      default:
+        continue;
+//        fprintf( stderr, "BUG in map_pipeline, please report!\n" );
+//        for ( SizeT i = 1; i < dims[0]; ++i ) fprintf( stderr, "%f, ", (*pipeline)[dims[0] * line + i] );
+//        fprintf( stderr, "\n" );
+    }
+    line++;
+    icode = (*pipeline)[dims[0] * line + 0];
+    a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
+    b = (*pipeline)[dims[0] * line + 2];
+    c = (*pipeline)[dims[0] * line + 3];
+    d = (*pipeline)[dims[0] * line + 4];
+    px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
+    py = (*pipeline)[dims[0] * line + 6];
+    pz = (*pipeline)[dims[0] * line + 7];
+  }
+  
+  nEl = lons->N_Elements( ); 
+  DLong odims[2];
+  odims[0] = 2;
+  odims[1] = nEl;
+  dimension dim(odims, 2);
+  DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for (OMPInt i = 0; i < nEl ; ++i) {
+        (*res)[2 * i] = (*lons)[i];
+        (*res)[2 * i + 1] = (*lats)[i];
+      }
+    }
+  //cleanup
+  GDLDelete(lons);
+  GDLDelete(lats);
+  if (doGons || doLines ) {
+    if (doGons) gonsOut=currentConn; else linesOut=currentConn;
+  } else  GDLDelete(currentConn);
+  return res;
+}
+
+///
+/// Performs all projections and clips defined in a !map.pipeline structure on a vector of lons and lats.
+/// eventually with connectivity 'conn'. Depending on doFill, fill or plot the vectors.
+/// @param general environnement pointer 
+/// @param graphic stream 
+/// @param ref pointer on proj.4 opaque projection
+/// @param map pointer to a DStructGDL of type !MAP (can be null, the internal !MAP is used)
+/// @param lons pointer on DDouble longitude-type values
+/// @param lats pointer on DDouble latitude-type values
+/// @param isRadians bool false if lon/lat are not in radians (performs conversion to radians)
+/// @param doFill const bool if output u,v path has to be filled.
+/// @param conn pointer to a DLongGDL connectivity list (can be null)
+///
+  void GDLgrProjectedPolygonPlot( EnvT* e, GDLGStream * a, PROJTYPE ref, DStructGDL* map,
+  DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *conn ) {
+    DStructGDL* localMap = map;
+    if (localMap==NULL) localMap=SysVar::Map( );
+    bool mapSet; 
+    get_mapset(mapSet); //if mapSet, output will be converted to normalized coordinates as this seems to be the way to do it.
+    bool doConn = (conn != NULL);
+    DLongGDL *gons, *lines;
+    if (!isRadians) {
+    SizeT nin = lons->N_Elements( );
+#pragma omp parallel if (nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nin))
+      {
+#pragma omp for
+        for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
+          (*lons)[in] *= DEG_TO_RAD;
+          (*lats)[in] *= DEG_TO_RAD;
+        }
+      }
+    }
+    DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
+    res = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (res)->Transpose( NULL ));
+    SizeT nout = res->N_Elements( ) / 2;
+    int minpoly;
+    if ( doFill ) {
+      conn = gons;
+      minpoly = 3;
+    } else {
+      conn = lines;
+      minpoly = 2;
+    }
+    SizeT index = 0;
+    SizeT size;
+    SizeT start;
+    while ( index >= 0 && index < conn->N_Elements( ) ) {
+      size = (*conn)[index];
+      if ( size < 0 ) break;
+      start = (*conn)[index + 1];
+      if ( size >= minpoly )
+        if ( doFill ) {
+          a->fill( size, (PLFLT*) &((*res)[start]), (PLFLT*) &((*res)[start + nout]) );
+        } else {
+          a->line( size, (PLFLT*) &((*res)[start]), (PLFLT*) &((*res)[start + nout]) );
+        }
+      index += (size + 1);
+    }
+    GDLDelete( res );
+    if ( doFill ) GDLDelete( gons );
+    else GDLDelete( lines );
+  }
+  
 
 } // namespace

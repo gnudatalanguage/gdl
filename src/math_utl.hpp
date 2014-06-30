@@ -43,46 +43,6 @@ namespace lib {
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, double *eps, double *epsneg, double *xmin, double *xmax );
 
-#if defined(USE_LIBPROJ4) //|| defined(USE_LIBPROJ4_NEW)
-#define GDL_COMPLEX COMPLEX2
-
-#ifdef USE_LIBPROJ4_NEW
-extern "C" {
-#include "proj_api.h"
-}
-#define LPTYPE projLP
-#define XYTYPE projXY
-
-#define PROJTYPE projPJ
-#define PJ_INIT pj_init
-#define PJ_FWD pj_fwd
-#define PJ_INV pj_inv
-PROJTYPE map_init();
-static  PROJTYPE ref;
-static  PROJTYPE prev_ref;
-#else
-extern "C" {
-//add this in the future to remove the problem with lam,phi vs. x,y (change everywhere accordingly)    
-//#define PROJ_UV_TYPE 1
-#include "lib_proj.h"
-}
-#define PROJTYPE PROJ
-#define LPTYPE PROJ_LP
-#define XYTYPE PROJ_XY
-#define PJ_INIT proj_init
-#define PJ_FWD proj_fwd
-#define PJ_INV proj_inv
-PROJTYPE *map_init();
-static  PROJTYPE *ref;
-static  PROJTYPE *prev_ref;
-#endif
-
-
-
-
-#define COMPLEX2 GDL_COMPLEX
-#endif //USE_LIBPROJ4
-
 #ifdef _MSC_VER
 #  define isinf !_finite
 #  define isfinite _finite

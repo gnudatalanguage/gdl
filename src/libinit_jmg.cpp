@@ -137,25 +137,26 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
 
 #if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
-  const string map_proj_forwardKey[]={"CONNECTIVITY","FILL",
-				      "MAP_STRUCTURE","POLYGONS",
-				      "POLYLINES","RADIANS",KLISTEND};
+  const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};
   new DLibFunRetNew(lib::map_proj_forward_fun,
-	      string("MAP_PROJ_FORWARD"),3,map_proj_forwardKey);
+	      string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);
 
-  const string map_proj_inverseKey[]={"RADIANS",KLISTEND};
+  const string map_proj_inverseKey[]={"RADIANS","MAP_STRUCTURE",KLISTEND};
   new DLibFunRetNew(lib::map_proj_inverse_fun,
-	      string("MAP_PROJ_INVERSE"),3,map_proj_inverseKey);
-
+	      string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);
+//dummy functions for compatibility support of GCTP projections 
+  new DLibPro(lib::map_proj_gctp_forinit,string("MAP_PROJ_GCTP_FORINIT"),4);
+  new DLibPro(lib::map_proj_gctp_revinit,string("MAP_PROJ_GCTP_REVINIT"),4);
 #endif
 #ifdef USE_GSHHS
 
   // SA: GSHHS dataset
   // TODO: USA, ORIENTATION, LIMIT,
-  //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
-  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", "COASTS", "CONTINENTS",
-    "HIRES", "FILL_CONTINENTS", KLISTEND};
-  const string map_continentsWarnKey[] = {"USA",  KLISTEND};
+  //       , MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
+  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", "COASTS", "CONTINENTS", "USA", 
+    "HIRES", "FILL_CONTINENTS", "MAP_STRUCTURE",KLISTEND};
+  const string map_continentsWarnKey[] = {"ORIENTATION", "LIMIT",
+         "MLINESTYLE", "MLINETHICK", "SPACING", "T3D", "ZVALUE", KLISTEND};
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
 #endif

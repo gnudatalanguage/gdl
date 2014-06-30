@@ -17,7 +17,6 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 namespace lib
 {
@@ -31,18 +30,16 @@ namespace lib
     DDoubleGDL *xVal, *yVal, *zVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
-    DLong psym;
     bool xLog, yLog, zLog;
     SizeT xEl, yEl, zEl;
-    bool append;
     bool doClip;
-    bool restoreClipBox;
-    PLFLT savebox[4];
     bool doT3d, real3d;
     DDouble zValue;
     DDoubleGDL* plplot3d;
     Guard<BaseGDL> plplot3d_guard;
-//    DLongGDL *color;
+    DDouble az, alt, ay, scale;
+    ORIENTATION3D axisExchangeCode;
+    bool mapSet;
 
   private:
 
@@ -136,9 +133,15 @@ namespace lib
           zEl=size;
         }
       }
+      if ( doT3d && !real3d) { //test to throw before plot values changes 
+        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+        if (plplot3d == NULL)
+        {
+          e->Throw("Illegal 3D transformation. (FIXME)");
+        }
+      }
       return false;
-//      return true;
-    } // }}}
+    }
 
     void old_body(EnvT* e, GDLGStream* actStream) // {{{
     {
@@ -180,12 +183,10 @@ namespace lib
         xEnd = 1;
       }
 
-      bool mapSet=false;
+      mapSet=false;
 #ifdef USE_LIBPROJ4
-      // Map Stuff (xtype = 3)
-
       get_mapset(mapSet);
-
+      mapSet=(mapSet && coordinateSystem==DATA);
       if ( mapSet )
       {
         ref=map_init();
@@ -196,15 +197,26 @@ namespace lib
       }
 #endif
 
+      actStream->OnePageSaveLayout(); // one page
 
+      DDouble *sx, *sy;
+      GetSFromPlotStructs( &sx, &sy );
+
+      DFloat *wx, *wy;
+      GetWFromPlotStructs( &wx, &wy );
+
+      DDouble xStart, xEnd, yStart, yEnd;
+      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+
+      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+      actStream->wind( xStart, xEnd, yStart, yEnd );
+    
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with POLYFILL, we can plot *outside* the box(e)s in DATA coordinates.
                                    // convert to device coords in this case
       {
         actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
       }
-
-      actStream->OnePageSaveLayout(); // one page
 
       actStream->vpor(0, 1, 0, 1);
       if ( coordinateSystem==DEVICE )
@@ -224,7 +236,7 @@ namespace lib
         actStream->wind(wun, wdeux, wtrois, wquatre);
       }
 
-    } // }}}
+    } 
 
   private:
 
@@ -240,15 +252,7 @@ namespace lib
                                //if the x and y scaling is OK, using !P.T directly permits to use other projections
                                //than those used implicitly by plplot. See @showhaus example for *DL
         // case where we project 2D data on 3D: use plplot-like matrix.
-        DDouble az, alt, ay, scale;
-        ORIENTATION3D axisExchangeCode;
-
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL)
-        {
-          e->Throw("Illegal 3D transformation. (FIXME)");
-        }
-
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
         switch (axisExchangeCode) {
@@ -302,14 +306,8 @@ namespace lib
       // make all clipping computations BEFORE setting graphic properties (color, size)
       bool stopClip=false;
       if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
-      //properties
-//      int colorIx=e->KeywordIx ( "COLOR" ); bool doColor=false;
-//      if ( e->GetKW ( colorIx )!=NULL )
-//      {
-//        color=e->GetKWAs<DLongGDL>( colorIx ); doColor=true;
-//      }
 
-      // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK (thanks to JW)
+      // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK old code: should be put in line with CONTOUR code (FIXME)
       static int line_fillIx=e->KeywordIx("LINE_FILL");
       if ( e->KeywordSet(line_fillIx) )
       {
@@ -334,11 +332,8 @@ namespace lib
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
 
-      if (real3d)
-      {
+      if (real3d) {
         //try first if the matrix is a plplot-compatible one
-        DDouble az, alt, ay, scale;
-        ORIENTATION3D axisExchangeCode;
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
 
         if (plplot3d == NULL) //use the original !P.T matrix (better than nothing)
@@ -377,11 +372,20 @@ namespace lib
         yval_guard.reset(yValou);
         //rescale to normalized box before conversions --- works for both matrices.
         gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
-
-        actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
-
+#ifdef USE_LIBPROJ4
+        if (mapSet) 
+          GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, true, NULL);
+        else  actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
+      } else {  
+        if (mapSet) GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, true, NULL);
+        else actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
       }
-      else  actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+#else
+        actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
+      } else {  
+        actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+      }
+#endif
       if (stopClip) stopClipping(actStream);
     } // }}}
 
