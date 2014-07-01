@@ -64,6 +64,8 @@ function FINDEX, u, v, test=test
 nu=N_ELEMENTS(u)
 nv=N_ELEMENTS(v)
 ;
+if nu eq 2 then return,(v-u(0))/(u(1)-u(0))
+;
 us=u-SHIFT(u,+1)
 us=us(1:*)
 umx=max(us,min=umn)
