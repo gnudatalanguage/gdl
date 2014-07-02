@@ -1,3 +1,39 @@
+IMPORTANT WARNING
+=================
+
+July 2, 2014
+
+The "configure" way is no more maintained in GDL.  To avoid confict
+with Debian and Ubuntu packaging which are looking for "configure"
+related files, we move then into this "obsolete/" sub-directory.
+
+The "configure" way is still working (used in 2014 on various OS like
+CentOS, Debian and Ubuntu) but it does not covered all the options we
+have now in CMake and we don't plan to update the "configure" files.
+
+You can still regenerated the "configure" file by moving
+"config.h.in" and "configure.in" in the root of the GDL project, then
+doing few commands
+($ mkdir m4   not need on most OS, but needed on old CentOS !)
+$ autoreconf -vfi
+$ ./configure
+$ make
+
+e.g. on a 8-cores with lot of RAM :
+$ ./configure --without-python --with-hdf=no --with-hdf5=no --with-pslib=no \
+    --with-plplotdir=$HOME/GDL/plplot-5.9.6/Compilation/ \
+    --with-Magick=$HOME/GDL/ImageMagick-6.5.9-0/Compilation \
+    --without-GraphicsMagick --with-eigen3=$HOME/GDL/Eigen/Eigen3.1.2/
+$ make -j 20
+
+
+Experiences gain during last 3 years indicated that
+it is more tricky to maintain the "configure" way than the "CMake" way.
+
+CMake in now under "new BSD license" and is packaged in most Linux
+distributions. It is very easy to compiled it from source under other
+OS like OSX.
+
 QUICK INSTALLATION:
 ===================
 
