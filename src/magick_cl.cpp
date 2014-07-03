@@ -413,8 +413,16 @@ namespace lib {
 	  IndexPacket* index;
 	  pixel=image.getPixels(0,0,columns,rows);
 	  index=image.getIndexes();
-	  string txt="(FIXME!) Magick's getIndexes() returned NULL for: ";
-	  if (index == NULL) e->Throw(txt + e->GetParString(0));
+
+	  if (index == NULL) {
+	  string txt="Warning -- Magick's getIndexes() returned NULL for: ";
+	  string txt2=", using unsafe patch.";
+      //PATCH to get something until we understand what's going on
+        cerr<<(txt + e->GetParString(0)+txt2)<<endl;
+	  string map="R";
+	  image.write(0,0,columns,rows,map, CharPixel,&(*bImage)[0]);
+	  return bImage;
+      }
 	  unsigned int cx, cy;
 	  for (cy=0;cy<rows;++cy)
 	    for (cx=0;cx<columns;++cx)
