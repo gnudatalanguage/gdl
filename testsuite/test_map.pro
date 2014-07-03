@@ -30,9 +30,21 @@ print, 'Exemple 4: Should plot Europa centered on Paris Observatory using Gnomic
 MAP_SET,/cont, 48.83,2.33,/grid,/gnomic,/iso, scale=3.e7, title='Zoom on Europa, Gnomic Projection'
 suite='' & read, 'Press Enter', suite
 ;
+print, 'Exemple 4bis: Should plot Europa centered on Paris Observatory using Gnomic Projection (+ rivers and countries)'
+MAP_SET, 48.83,2.33,/grid,/gnomic,/iso, scale=3.e7, $
+         title='Zoom on Europa, Gnomic Projection'
+MAP_CONTINENTS, color='ffff00'x,/river
+MAP_CONTINENTS, color='00ff00'x,/count
+map_continents, colo='ffffff'x,/cont    
+
+
+suite='' & read, 'Press Enter', suite
+;
 print, 'Exemple 5: Should plot North America using Gnomic Projection'
 MAP_SET,/gnomic,/iso,40,-105,/cont, limit=[20,-130,70,-70], title='Gnomic, North America'
 suite='' & read, 'Press Enter', suite
+
+
 ;
 print, 'Exemple 6: Should plot North America using Satellite Projection'
 MAP_SET, 40,-105,/satellite,/grid,/cont,limit=[20,-130,70,-70], sat_p=[2.22, 0, 0], title='Satellite Projection, North America'

@@ -34,8 +34,10 @@ http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_info.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init_commonblock.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init_common.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init.pro
+http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_satellite_limit.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_set.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_struct_append.pro
+(cd src/pro/ ; mkdir map; cd map; grep 'gsfc.nasa' ../../../MAP* | xargs wget)
 
 Note that 'map_continents.pro' is not in this list. map_continents is
 inside GDL.  If these .pro files are not available, google is your
