@@ -39,6 +39,7 @@ namespace SysVar
 
   // returns !DIR
   const DString& Dir();
+  const DString& GshhsDir();
 
   // updates !STIME
   void UpdateSTime();

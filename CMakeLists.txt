@@ -94,7 +94,7 @@ set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(GSHHS OFF CACHE BOOL "GDL: Enable GSHHS ?")
+set(GSHHS ON CACHE BOOL "GDL: Enable GSHHS ?")
 set(GSHHSDIR "" CACHE PATH "GDL: Specifiy the GSHHS directory tree")
 
 set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")

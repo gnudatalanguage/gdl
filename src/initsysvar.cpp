@@ -53,7 +53,7 @@ namespace SysVar
   UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, GshhsDirIx, stimeIx,
     warnIx, usersymIx, orderIx;
 
   // !D structs
@@ -75,8 +75,7 @@ namespace SysVar
   { 
     return var == sysVarList[ dIx];
   }
-   
-  
+
   void SetGDLPath( const DString& newPath)
   {
     FileListT sArr;
@@ -262,6 +261,12 @@ namespace SysVar
     static DStructGDL* pStruct = SysVar::P();
     static int tag = pStruct->Desc()->TagIndex( "FONT");
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
+  }
+
+  const DString& GshhsDir()
+  {
+    DVar& var = *sysVarList[GshhsDirIx];
+    return static_cast<DStringGDL&>(*var.Data())[0];
   }
 
   DStringGDL* STime()
@@ -886,6 +891,18 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
+    // !GSHHS_DATA_DIR
+    DStringGDL *GshhsDataDir = new DStringGDL("");
+    string tmpDir=GetEnvString("GSHHS_DATA_DIR");
+    if( tmpDir != "") 
+	{
+	  delete GshhsDataDir;
+	  GshhsDataDir = new DStringGDL( gdlDir);
+	}
+    DVar *GshhsDir = new DVar("GSHHS_DATA_DIR", GshhsDataDir);
+    GshhsDirIx=sysVarList.size();
+    sysVarList.push_back(GshhsDir);
+   
     // !STIME
     DStringGDL *stimeData = new DStringGDL( "");
     DVar *stime = new DVar( "STIME", stimeData);

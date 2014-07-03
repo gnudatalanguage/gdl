@@ -29,8 +29,10 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
+#include "initsysvar.hpp"
+
 #ifdef USE_GSHHS
-#include <gshhs.h>
+#include "gshhs.h"
 #endif
 
 #define DPI (double)(4*atan(1.0))
@@ -133,8 +135,12 @@ private:
      *
      *	Contact info: www.soest.hawaii.edu/pwessel 
      */
+    
+    string dir = SysVar::GshhsDir();
 
-    string dir = string( GDLDATADIR ) + "/../gshhs/";
+    cout << dir << endl;
+
+    //    string dir = string( GSHHS_DATA_DIR ); // + "/../gshhs/";
 
     enum set {
       continents, countries, rivers, coasts
