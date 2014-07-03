@@ -1,25 +1,28 @@
-To provide map projections support your first need to make sure the proj.4
-library is installed. There are two libraries, the 'classic PROJ.4' library 
-maintained by the original author, G.Evenden:
+Revised version by Gilles Duvert on July 2014
+
+To provide map projections support your first need to make sure the
+proj.4 library is installed. There are two libraries, the 'classic
+PROJ.4' library maintained by the original author, G. Evenden:
 http://home.comcast.net/~gevenden56/proj/
 (http://home.comcast.net/~gevenden56/proj/libproj4.3_20081120.tar.bz2)
+and a more complete (but by no means bug free!) fork of this library
+available at http://trac.osgeo.org/proj.
 
-and  more complete (but by no means bug free!) fork of this library available
-at http://trac.osgeo.org/proj.
-
-Both work with GDL and provide all projection-related internal facilities.
-We tend to prefer G.Evenden's trimmed classical version since it handles correctly
-rotations and has fever crashes. Unfortunately the fancy interrupted Goode Homomsine is not
-present in GE's library.
-It is recommendend to recompile either of these libraries instead of using the
-version that may come with your software distribution (but it can work, too).
+Both work with GDL and provide all projection-related internal
+facilities.  We tend to prefer G. Evenden's trimmed classical version
+since it handles correctly rotations and has fever
+crashes. Unfortunately the fancy interrupted Goode Homomsine is not
+present in GE's library.  It is recommendend to recompile either of
+these libraries instead of using the version that may come with your
+software distribution (but it can work, too).
 
 If GDL does not find (lib)proj4 files automatically, use 
-"-DLIBPROJ4=YES" "-DLIBPROJ4DIR=DIR" as arguments for cmake. (were 'DIR' is the location
-of the compiled library.
+"-DLIBPROJ4=YES" "-DLIBPROJ4DIR=DIR" as arguments for cmake. 
+(were 'DIR' is the location of the compiled library.
 
-To finish the support of projections in GDL, first the following additional PRO 
-files must be acquired and placed in a directory of the GDL PATH:
+To finish the support of projections in GDL, first the following
+additional PRO files must be acquired and placed in a directory of the
+GDL PATH:
 
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_grid.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_horizon.pro
@@ -34,14 +37,15 @@ http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_set.pro
 http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_struct_append.pro
 
-Note that 'map_continents' is not in this list. map_continents is inside GDL.
-If these .pro files are not available, google is your friend;^).
-These are proprietary files and not part of the GDL distribution.
-They do lots of complicated things in a not-very-general way, and should be
-rewritten completely for GDL. As GDL uses Proj.4 and Proj know all the tricks 
-used in these procedures, it should not be such a terrible job. Help would be
-most appreciated. See below for an example where new projections are used that do
-not need the above procedures...
+Note that 'map_continents.pro' is not in this list. map_continents is
+inside GDL.  If these .pro files are not available, google is your
+friend;^).  These are proprietary files and not part of the GDL
+distribution.  They do lots of complicated things in a
+not-very-general way, and should be rewritten completely for GDL. As
+GDL uses Proj.4 and Proj know all the tricks used in these procedures,
+it should not be such a terrible job. Help would be most
+appreciated. See below for an example where new projections are used
+that do not need the above procedures...
 
 ===========================================================================
 
@@ -58,12 +62,18 @@ complete description.
 The header file for the 2.0 dataset is in the gshhs_1.12_src.zip file.
 The datafiles (*.b) are in the gshhs_2.0.tbz file.
 
-When compiling GDL, the "-DGSHHS=YES" option must be given (not enabled by default),
-optionally with an argument pointing to the GSHHS installation prefix: -DGSHHSDIR="DIR"
+When compiling GDL, the "-DGSHHS=YES" option must be given (not
+enabled by default), optionally with an argument pointing to the GSHHS
+installation prefix: -DGSHHSDIR="DIR"
  
-Warning: At execution time, GDL will look for the GSHHS datafiles 
-(gshhs_f.b, gshhs_l.b, etc...) in the $GDLDATADIR/../gshhs/ directory. So they must
-be put there. (we need a more flexible solution - FIXME!)
+Warning: At execution time, GDL will look for the GSHHS datafiles
+(gshhs_f.b, gshhs_l.b, etc...) in the $GSHHS_DATA_DIR. Before running
+GDL you can setup this variable (e.g. in bash : 
+export GSHHS_DATA_DIR=/my/path/to/gshhs/). 
+When GDL is compiled, if $GSHHS_DATA_DIR unknown, if $GDLDATADIR
+exists and if $GDLDATADIR/../gshhs/ exist too, this path is used as a
+defaut directory for gshhs data. So the files can/must be put there. 
+(we need a more flexible solution - FIXME!)
 
 Reference:
 Wessel, P. and Smith, W.H.F., 1996. A global, self-consistent, hierarchical, 
@@ -72,14 +82,16 @@ Wessel, P. and Smith, W.H.F., 1996. A global, self-consistent, hierarchical,
 ===========================================================================
 NOTE ON PROJECTION-RELATED PROCEDURES IN GDL (and IDL)
 ===========================================================================
-All the historical projections are supported fully (Godde's Homolosine will not
-be truncated if you link with G.Evenden's library).
-The GCTP supplementary projections are at least partially supported. They lack the
-proper initialisation of the map.pipeline array, which governs the clipping and avoids
-spurious lines. 
-Moreover, ALL the projections in the PROJ.4 library linked with GDL are supported via a trick:
-passing a valid PROJ.4 command line in the projection name of a map structure, with the
-projection number set to 999
+
+All the historical projections are supported fully (Godde's Homolosine
+will not be truncated if you link with G.Evenden's library).  The GCTP
+supplementary projections are at least partially supported. They lack
+the proper initialisation of the map.pipeline array, which governs the
+clipping and avoids spurious lines.  Moreover, ALL the projections in
+the PROJ.4 library linked with GDL are supported via a trick: passing
+a valid PROJ.4 command line in the projection name of a map structure,
+with the projection number set to 999
+
 example:
 a=!map
 a.up_name="+proj=mbtfpq +a=1"
@@ -93,11 +105,14 @@ map_continents,map=a
 map_grid,map=a
 
 Some warnings:
-- MAP_SET is straightforward to use but is restricted to historical projections.
-- MAP_PROJ_INIT is very long to compile (GDL bug!) but gives access to all projections.
-However some projections may crash with MAP_PROJ_INIT since proj.4 is not protected at
-all (against null pointers, unknown projection inverses, etc...). We recommend G.Ewenden's
-library which is not so "good programmer practice" but has more "good sense"!
+- MAP_SET is straightforward to use but is restricted to historical
+  projections.
+- MAP_PROJ_INIT is very long to compile (GDL bug!) but gives access to
+all projections.  However some projections may crash with
+MAP_PROJ_INIT since proj.4 is not protected at all (against null
+pointers, unknown projection inverses, etc...). We recommend
+G.Ewenden's library which is not so "good programmer practice" but has
+more "good sense"!
 
 Joel Gales, Gilles Duvert
 

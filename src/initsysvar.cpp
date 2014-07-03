@@ -891,14 +891,18 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
-    // !GSHHS_DATA_DIR
-    DStringGDL *GshhsDataDir = new DStringGDL("");
+    // !GSHHS_DATA_DIR 
     string tmpDir=GetEnvString("GSHHS_DATA_DIR");
-    if( tmpDir != "") 
-	{
-	  delete GshhsDataDir;
-	  GshhsDataDir = new DStringGDL( gdlDir);
-	}
+    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/../gshhs/";
+    //    cout << "1 GSHHS data dir : " << tmpDir << endl;
+    // is the path a true path ?
+    char *symlinkpath =const_cast<char*> (tmpDir.c_str());
+    char actualpath [PATH_MAX+1];
+    char *ptr;
+    ptr = realpath(symlinkpath, actualpath);
+    if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
+    //cout << "2 GSHHS data dir : " << tmpDir << endl;
+    DStringGDL *GshhsDataDir =  new DStringGDL( tmpDir);
     DVar *GshhsDir = new DVar("GSHHS_DATA_DIR", GshhsDataDir);
     GshhsDirIx=sysVarList.size();
     sysVarList.push_back(GshhsDir);

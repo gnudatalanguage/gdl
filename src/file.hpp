@@ -23,6 +23,7 @@ namespace lib {
   // library functions
   BaseGDL* file_test( EnvT* e);
 
+  std::string PathSeparator();
   void cd_pro( EnvT* e);
 
   BaseGDL* expand_path( EnvT* e);

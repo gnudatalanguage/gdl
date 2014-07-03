@@ -244,6 +244,16 @@ namespace lib {
 
   using namespace std;
 
+  string PathSeparator()
+  {
+#ifdef _MSC_VER
+    string PathSep="\\"; //"
+#else
+    string PathSep="/";//"
+#endif
+    return PathSep;
+  }
+
   DString GetCWD()
   {
     SizeT bufSize = PATH_MAX;
@@ -1245,14 +1255,9 @@ DString makeInsensitive(const DString &s)
 
     }
     
-#ifdef _MSC_VER
-    string PathSeparator="\\"; //"
-#else
-    string PathSeparator="/";//"
-#endif
     if (e->KeywordSet("MARK_DIRECTORY")) {
       for (SizeT i = 0; i < p0S->N_Elements(); i++) {
-	(*res)[i]=(*res)[i] + PathSeparator;
+	(*res)[i]=(*res)[i] + PathSeparator();
       }
     }
     
