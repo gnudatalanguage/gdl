@@ -41,9 +41,155 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
-    cout << "hello isa (not ready !)" <<endl;
-    return new DLongGDL( 0);
-  }  
+    DString type;
+    BaseGDL *p0;
+    BaseGDL *p1;
+    DStringGDL *p1Str;
+    DString p1S = "";
+    int numParam,nb_kw=0;
+    bool res = true;
+    bool nul = false;
+    bool ARRAY_KW_B = false;
+    bool FILE_KW_B = false;
+    bool NULL_KW_B = false;
+    bool NUMBER_KW_B = false;
+    bool SCALAR_KW_B = false;
+    bool isARRAY = false;
+    bool isFILE = false;
+    bool isNULL = false;
+    bool isNUMBER = false;
+    bool isSCALAR = false;
+    bool secPar = false;
+    SizeT n_elem;
+    SizeT rank;
+    int debug=1;
+
+    static int array_kw = e->KeywordIx("ARRAY");
+    static int file_kw = e->KeywordIx("FILE");
+    static int null_kw = e->KeywordIx("NULL");
+    static int number_kw = e->KeywordIx("NUMBER");
+    static int scalar_kw = e->KeywordIx("SCALAR");
+    
+    if (e->KeywordSet(array_kw)) { ARRAY_KW_B = true; nb_kw++;}
+    if (e->KeywordSet(file_kw)) { FILE_KW_B = true; nb_kw++;}
+    if (e->KeywordSet(null_kw)) { NULL_KW_B = true; nb_kw++; }
+    if (e->KeywordSet(number_kw)) { NUMBER_KW_B = true; nb_kw++; }
+    if (e->KeywordSet(scalar_kw)) { SCALAR_KW_B = true; nb_kw++; }
+
+	
+    if(SCALAR_KW_B && ARRAY_KW_B) {
+      e->Throw("Keywords ARRAY and SCALAR are mutually exclusive.");
+    }
+
+    if(NULL_KW_B) {
+      if(ARRAY_KW_B) e->Throw("Keywords NULL and ARRAY are mutually exclusive.");
+      if(FILE_KW_B) e->Throw("Keywords NULL and FILE are mutually exclusive.");
+      if(SCALAR_KW_B) e->Throw("Keywords NULL and SCALAR are mutually exclusive.");
+      if(NUMBER_KW_B) e->Throw("Keywords NULL and NUMBER are mutually exclusive.");
+    }
+
+    //cout<<nb_kw<<endl;
+    numParam = e->NParam();
+    if(numParam == 0){
+      e->Throw("Requires at least one argument !");
+    }
+    //cout<<numParam<<endl;
+    //first par.
+    p0 = e->GetPar(0);
+	
+    if (p0 == NULL) {
+      type="UNDEFINED";
+      res = false;
+    } else {
+      n_elem = p0->N_Elements();
+      rank = p0->Rank();
+      if (debug) cout << "type : "<< p0->Type() << ", Rank : "<< rank << endl;
+      
+      switch (p0->Type())
+	{
+	case GDL_UNDEF: type="UNDEFINED"; nul=true;break; 
+	case GDL_BYTE: type="BYTE";isNUMBER=true; break;
+	case GDL_INT: type="INT"; isNUMBER=true; break;
+	case GDL_LONG: type="LONG"; isNUMBER=true; break;
+	case GDL_FLOAT: type="FLOAT"; isNUMBER=true; break;
+	case GDL_DOUBLE: type="DOUBLE"; isNUMBER=true; break;
+	case GDL_COMPLEX: type="COMPLEX"; isNUMBER=true; break;
+	case GDL_STRING: type="STRING"; isNUMBER=false; break;
+	case GDL_STRUCT: type="STRUCT"; isNUMBER=false; break;
+	case GDL_COMPLEXDBL: type="DCOMPLEX";isNUMBER=true; break;
+	case GDL_PTR: type="POINTER"; isNUMBER=false; break;
+	case GDL_OBJ: type="OBJECT"; isNUMBER=false; break;
+	case GDL_UINT: type="UINT";isNUMBER=true; break;
+	case GDL_ULONG: type="ULONG";isNUMBER=true; break;
+	case GDL_LONG64: type="LONG64";isNUMBER=true; break;
+	case GDL_ULONG64: type="ULONG64";isNUMBER=true; break;
+	  
+	default: e->Throw("This should never happen, please report");
+	}
+    }
+    //cout<<type<<endl;
+    
+    //second par.
+    p1 = e->GetPar(1);
+    if(p1 != NULL){
+      
+      if (p1->Type() != GDL_STRING)
+	e->Throw("String expression required in this context:"+e->GetParString(1));
+
+      if (p1->N_Elements() > 1)
+	e->Throw("Expression must be a scalar or 1 element array in this context"+e->GetParString(1));      
+      p1Str = static_cast<DStringGDL*>(p1->Convert2(GDL_STRING,BaseGDL::COPY));
+      transform((*p1Str)[0].begin(), (*p1Str)[0].end(),(*p1Str)[0].begin(), ::toupper);
+      
+      //   if((*p1Str)[0] == "POINTER") e->Throw("(pointer - ISA() not ready !)");
+      //if((*p1Str)[0] == "STRUCT") e->Throw("(struct - ISA() not ready !)");
+      //      if((*p1Str)[0] == "OBJECT") e->Throw("(object - ISA() not ready !)");
+
+      if (type == (*p1Str)[0]) res = true;
+      else res = false;
+    }
+
+    if(type != "UNDEFINED"){
+      if(NULL_KW_B && res){
+	res = false;
+      }
+
+      if(SCALAR_KW_B && res){
+	if(rank==0) isSCALAR=true;
+	else isSCALAR=false;
+	res = res && isSCALAR; 
+      }
+
+      if(NUMBER_KW_B && res){
+	//cout<<"Number"<<endl;
+	res = res && isNUMBER;
+      }
+
+      if(ARRAY_KW_B && res){
+	//cout<<"Array"<<endl;
+	if(rank>0) isARRAY = true;
+	else isARRAY = false;
+	res = res && isARRAY;
+      }
+
+      if(NULL_KW_B && res){
+	res = false;
+      }
+    } else {
+      if(NULL_KW_B && res){
+	res = nul;
+      }else 
+	res = res && (!ARRAY_KW_B) && (!SCALAR_KW_B) && (!NUMBER_KW_B); 
+    }
+
+    if(FILE_KW_B){
+      e->Throw("(file keyword - ISA() not ready !)");
+    }
+    
+    if (res) return new DByteGDL(1);
+    return new DByteGDL(0);
+
+  }
 
   BaseGDL* typename_fun( EnvT* e) 
   {
