@@ -122,6 +122,7 @@ namespace lib {
       {
         cerr << warning_.what() << endl;
       }
+      if ((a.rows()*a.columns())==0) e->Throw("Error reading image dimensions!");
       a.flip();
       unsigned int mid;
       mid=magick_image(e, a);
@@ -545,7 +546,7 @@ namespace lib {
 	
 	columns=image.columns();
 	rows=image.rows();
-	
+    if ((rows*columns)==0) e->Throw("Error reading image dimensions!");
 	string map="BGR";
 	if(e->GetKW(0) != NULL)//RGB
 	  {
@@ -596,7 +597,6 @@ namespace lib {
 	c[1] = wx;
 	c[2] = wy;
 	dimension dim(c,3);	  
-
 	if(image.depth() == 8)
 	  {
 	    DByteGDL *bImage=new DByteGDL(dim,BaseGDL::NOZERO);
