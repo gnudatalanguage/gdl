@@ -411,7 +411,7 @@ endif(GRAPHICSMAGICK_FOUND)
 if(MAGICK) # support Magick
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
 	if(HAVE_PLGETDRVDIR)
-		message(STATUS "WARNING: Dynamic drivers have to be disabled in plplot.\n"
+		message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
 		"To make plplot work with ImageMagick:\n"
 		"use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
 		"use -DMAGICK=OFF here to not use ImageMagick in GDL.")
