@@ -165,17 +165,17 @@ foreach(component ${ImageMagick_FIND_COMPONENTS}
     )
   if(component STREQUAL "Magick++")
     FIND_IMAGEMAGICK_API(Magick++ Magick++.h
-      Magick++ CORE_RL_Magick++_ Magick++-6.Q16 Magick++-Q16 Magick++-6.Q8 Magick++-Q8
+      Magick++ CORE_RL_Magick++_ Magick++-6.Q16 Magick++-Q16 Magick++-6.Q8 Magick++-Q8 Magick++-6.Q16HDRI Magick++-Q16HDRI Magick++-6.Q8HDRI Magick++-Q8HDRI
       )
     list(APPEND ImageMagick_REQUIRED_VARS ImageMagick_Magick++_LIBRARY)
   elseif(component STREQUAL "MagickWand")
     FIND_IMAGEMAGICK_API(MagickWand wand/MagickWand.h
-      Wand MagickWand CORE_RL_wand_ MagickWand-6.Q16 MagickWand-Q16 MagickWand-6.Q8 MagickWand-Q8
+      Wand MagickWand CORE_RL_wand_ MagickWand-6.Q16 MagickWand-Q16 MagickWand-6.Q8 MagickWand-Q8 MagickWand-6.Q16HDRI MagickWand-Q16HDRI MagickWand-6.Q8HDRI MagickWand-Q8HDRI
       )
     list(APPEND ImageMagick_REQUIRED_VARS ImageMagick_MagickWand_LIBRARY)
   elseif(component STREQUAL "MagickCore")
     FIND_IMAGEMAGICK_API(MagickCore magick/MagickCore.h
-      Magick MagickCore CORE_RL_magick_ MagickCore-6.Q16 MagickCore-Q16 MagickCore-6.Q8 MagickCore-Q8
+      Magick MagickCore CORE_RL_magick_ MagickCore-6.Q16 MagickCore-Q16 MagickCore-6.Q8 MagickCore-Q8 MagickCore-6.Q16HDRI MagickCore-Q16HDRI MagickCore-6.Q8HDRI MagickCore-Q8HDRI
       )
     list(APPEND ImageMagick_REQUIRED_VARS ImageMagick_MagickCore_LIBRARY)
   else()
@@ -230,6 +230,22 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(ImageMagick
 # Maintain consistency with all other variables.
 set(ImageMagick_FOUND ${IMAGEMAGICK_FOUND})
 
+if (ImageMagick_FOUND)
+# run the Magick++ config program to get cxxflags
+  execute_process(
+    COMMAND sh "${ImageMagick_EXECUTABLE_DIR}/MagickCore-config" "--cxxflags"
+    OUTPUT_VARIABLE IMAGEMAGICK_CXX_FLAGS
+    RESULT_VARIABLE RET
+    ERROR_QUIET
+    )
+  if(RET EQUAL 0)
+    string(STRIP "${IMAGEMAGICK_CXX_FLAGS}" IMAGEMAGICK_CXX_FLAGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGEMAGICK_CXX_FLAGS}")
+  else()
+    DBG_MSG_V("MagickCore-config --cxxflags command FAILED with RET=${RET}")
+  endif()
+endif()
+
 #---------------------------------------------------------------------
 # DEPRECATED: Setting variables for backward compatibility.
 #---------------------------------------------------------------------
@@ -253,3 +269,4 @@ mark_as_advanced(
   IMAGEMAGICK_MONTAGE_EXECUTABLE
   IMAGEMAGICK_COMPOSITE_EXECUTABLE
   )
+
