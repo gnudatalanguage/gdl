@@ -582,6 +582,11 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::list__count);
   DFunLIST__COUNT->SetTree( tree);
   listDesc->FunList().push_back(DFunLIST__COUNT);
+// LIST::ISEMPTY()
+  DFun *DFunLIST__ISEMPTY = new DFun("ISEMPTY","LIST",INTERNAL_LIBRARY_STR);
+  tree = new WRAPPED_FUNNode( lib::list__isempty);
+  DFunLIST__ISEMPTY->SetTree( tree);
+  listDesc->FunList().push_back(DFunLIST__ISEMPTY);
 // LIST::WHERE()
   DFun *DFunLIST__WHERE = new DFun("WHERE","LIST",INTERNAL_LIBRARY_STR);
   DFunLIST__WHERE->AddKey("COMPLEMENT","COMPLEMENT");
@@ -683,6 +688,11 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::hash__count);
   DFunHASH__COUNT->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__COUNT);
+// HASH::ISEMPTY()
+  DFun *DFunHASH__ISEMPTY = new DFun("ISEMPTY","HASH",INTERNAL_LIBRARY_STR);
+  tree = new WRAPPED_FUNNode( lib::hash__isempty);
+  DFunHASH__ISEMPTY->SetTree( tree);
+  hashDesc->FunList().push_back(DFunHASH__ISEMPTY);
 // HASH::WHERE()
   DFun *DFunHASH__WHERE = new DFun("WHERE","HASH",INTERNAL_LIBRARY_STR);
   DFunHASH__WHERE->AddKey("COMPLEMENT","COMPLEMENT");

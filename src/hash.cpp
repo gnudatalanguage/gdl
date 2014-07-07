@@ -1535,6 +1535,16 @@ namespace lib {
     return instance;
   }
 
+  BaseGDL* hash__isempty( EnvUDT* e)
+  {
+    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    const int kwSELFIx = 0;
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetSELF( selfP, e); // checks
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
+    if (nCount > 0) return new DByteGDL( 0); else return new DByteGDL(1);
+  }
+
   BaseGDL* hash__count( EnvUDT* e)
   {
     const int kwSELFIx = 0;

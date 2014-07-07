@@ -1269,15 +1269,24 @@ BaseGDL* list__toarray( EnvUDT* e)
       
     }
     catch( GDLException& ex)
-    {
-      ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-    }
+      {
+	ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+      }
     assert(false);
     return NULL;
   }
 
-  BaseGDL* list__count( EnvUDT* e)
-  {
+BaseGDL* list__isempty( EnvUDT* e)
+{
+  static int kwSELFIx = 0;
+  DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
+  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+  DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+  if (nList > 0) return new DByteGDL(0); else return new DLongGDL(1);
+}
+
+BaseGDL* list__count( EnvUDT* e)
+{
     static int kwSELFIx = 0;
     static int kwVALUEIx = 1;
     static DString listName("LIST");
