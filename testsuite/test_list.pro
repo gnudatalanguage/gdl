@@ -1,16 +1,18 @@
 ;
 ; Alain, 28 March 2014: 
 ; first draft for a testsuite for LIST
+; AC July: adding IsEmpty tests
 ;
 pro MYMESS, errors, message
 errors=errors+1
 MESSAGE, /continue, message
 end
 ;
-pro TEST_LIST, help=help, verbose=verbose, no_exit=no_exit, test=test
+pro TEST_LIST, help=help, verbose=verbose, short=short, $
+               no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_LIST, help=help, verbose=verbose, $'
+   print, 'pro TEST_LIST, help=help, verbose=verbose, short=short, $'
    print, '               no_exit=no_exit, test=test'
    return
 endif
@@ -25,7 +27,8 @@ known_nbe=3
 nbe1=N_ELEMENTS(list)
 nbe2=list.count()
 ;
-txt='bad counting of elements number '
+txt0='bad counting of elements number '
+txt=txt0
 if (nbe1 NE known_nbe) then MYMESS, nb_errors, txt+'(N_ELEMENTS)'
 if (nbe2 NE known_nbe) then MYMESS, nb_errors, txt+'(LIST.COUNT())'
 if KEYWORD_SET(verbose) then print, 'OK after basic countings'
@@ -39,7 +42,7 @@ known_nbe=5
 nbe1=N_ELEMENTS(list)
 nbe2=list.count()
 ;
-txt=txt+'after LIST.ADD (singleton)'
+txt=txt0+'after LIST.ADD (singleton)'
 if (nbe1 NE known_nbe) then MYMESS, nb_errors, txt+'(N_ELEMENTS)'
 if (nbe2 NE known_nbe) then MYMESS, nb_errors, txt+'(LIST.COUNT())'
 if KEYWORD_SET(verbose) then print, 'counting OK after basic add'
@@ -51,19 +54,27 @@ known_nbe=6
 nbe1=N_ELEMENTS(list)
 nbe2=list.count()
 ;
-txt=txt+'after LIST.ADD (array)'
+txt=txt0+'after LIST.ADD (array)'
 if (nbe1 NE known_nbe) then MYMESS, nb_errors, txt+'(N_ELEMENTS)'
 if (nbe2 NE known_nbe) then MYMESS, nb_errors, txt+'(LIST.COUNT())'
 if KEYWORD_SET(verbose) then print, 'counting OK after array add'
 ;
+; Empty List ?
+;
+empty_list=LIST()
+known_nbe=0
+nbe1=N_ELEMENTS(empty_list)
+;
+txt=txt0+'after LIST.IsEmpty()'
+if (nbe1 NE known_nbe) then MYMESS, nb_errors, txt+'(N_ELEMENTS)'
+if (empty_list.IsEmpty() NE 1) then MYMESS, nb_errors, txt+'(it is LIST.IsEmpty())'
+if (list.IsEmpty() NE 0) then MYMESS, nb_errors, txt+'(not LIST.IsEmpty())'
+;
 ; ----------------- final messages ----------
 ;
-if (nb_errors EQ 0) then begin
-    MESSAGE, /continue, 'No error found in TEST_LIST'
-endif else begin
-    MESSAGE, /continue, STRING(nb_errors)+' errors found in TEST_LIST'
-    if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endelse
+BANNER_FOR_TESTSUITE, 'TEST_LIST', nb_errors, short=short
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;
