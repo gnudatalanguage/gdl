@@ -582,7 +582,7 @@
 	     it must in turn set this OBJREF parameter (the variable) to a POINTER to
 	     the heap variable to access.
            - .RESET_SESSION and .FULL_RESET_SESSION commands
-           - CHOLSOL/CHOLDC and LA_CHOLSOL/LA_CHOLDC using Eigen3 (sub-optimal)
+           - CHOLSOL/CHOLDC using Eigen3 (sub-optimal but efficient for big matrix on multicores) (LA_CHOLSOL/LA_CHOLDC removed for technical issues)
            - large change in various graphic/plotting keywords (see below). 3D options supported, 
              but some limitations due to the use of the plplot library. 
            - PLOT, OPLOT: All keywords supported except FONT and CHANNEL,
@@ -636,8 +636,8 @@
              NCDF_GROUPPARENT, NCDF_DIMIDSINQ, NCDF_NCIDINQ, NCDF_VARIDSINQ
            - introducing the NULL device type, better result on Unix like system without X11 
              (e. g. computing nodes on HPC)
-	   - better free format for print, preserving precision
-	     digits.
+	   - better free format for print, preserving precision digits.
+	   - ISA() and TYPENAME()
 
 0.9.5+:
 	   -support for projections now complete. See MAP_INSTALL for details.
