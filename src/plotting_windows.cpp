@@ -107,7 +107,6 @@ namespace lib {
     bool success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
       e->Throw(  "Unable to create window.");
-    success = actDevice->CursorCrosshair();
     success = actDevice->UnsetFocus();
     bool doretain=true;
     DLong retainType ; //=Graphics::getRetain();
@@ -151,7 +150,6 @@ namespace lib {
 	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, -1, -1);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
-        success = actDevice->CursorCrosshair();
         success = actDevice->UnsetFocus();
         //FIXME: ADD support for RETAIN (BackingSTORE))
 	    return;
