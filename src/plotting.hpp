@@ -288,12 +288,12 @@ DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL 
       if (name == "X") 
       {       
           actStream->updatePageInfo(); //since window size can change
-          long xSize,ySize;
-          actStream->Get_X11_WindowSize(xSize,ySize);
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySize;
+          long xsize,ysize,xoff,yoff;
+          actStream->GetGeometry(xsize,ysize,xoff,yoff);
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
+          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
       }
       old_body(e, actStream); // TODO: to be removed!
       call_plplot(e, actStream);
