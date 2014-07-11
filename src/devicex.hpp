@@ -48,7 +48,7 @@
 #define SETOPT setopt
 #endif
 
-const int maxWin=32;  
+const int maxWin=65;  //IDL has 65...
 const int maxWinReserve=256;  
 
 class DeviceX: public GraphicsDevice
@@ -59,8 +59,12 @@ private:
   long oIx;
   int  actWin;
   int decomposed; // false -> use color table
+  int cursorId; //should be 3 by default.
+  long gcFunction;
 
-
+  int getCursorId(){return cursorId;}
+  long getGCFunction(){return gcFunction;}
+  
   void plimage_gdl(PLStream* pls, unsigned char *idata, PLINT nx, PLINT ny, 
 		   DLong tru, DLong chan)
   {
@@ -240,26 +244,15 @@ private:
     // update !D
     if( wIx >= 0 && wIx < winList.size())
       {
-	long xsize,ysize; //,xoff,yoff;
-	//        winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
-	winList[ wIx]->GetWindowSize( xsize, ysize);
-	// cout << "SetActWin : " << xsize <<" "<< ysize<<" "<< xoff<<" "<< yoff<<endl;
+	long xsize,ysize,xoff,yoff,depth;
+	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
 	
-	PLStream* pls;
-	plgpls( &pls);
-        // window size and pos
-	// 	PLFLT xp; PLFLT yp;
-	// 	PLINT xleng; PLINT yleng;
-	// 	PLINT xoff; PLINT yoff;
-	// 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
         (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
-
-        // number of colors (based on the color depth from PLPlot)
-        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] =
-	  1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(pls->dev))->xwd))->depth));
+        // number of colors
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
       }
 
     // window number
@@ -289,7 +282,7 @@ private:
 
   // process user deleted windows
   // should be done in a thread
-  void ProcessDeleted()
+  void TidyWindowsList()
   {
     int wLSize = winList.size();
 
@@ -327,7 +320,7 @@ private:
   }
 
 public:
-  DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1)
+  DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1), cursorId(XC_crosshair), gcFunction(3)
   {
     name = "X";
 
@@ -384,12 +377,12 @@ public:
       if( winList[ i] != NULL)
 	winList[ i]->EventHandler();
 
-    ProcessDeleted();
+    TidyWindowsList();
   }
 
   bool WDelete( int wIx)
   {
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if( wIx >= wLSize || wIx < 0 || winList[ wIx] == NULL)
@@ -427,7 +420,7 @@ public:
   bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
   {
     int xPos=0; int yPos=0;
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if( wIx >= wLSize || wIx < 0)
@@ -512,7 +505,8 @@ public:
 
     //     winList[ wIx]->Init();
     // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-    //     bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
+    // bug #535 had other causes. removed until further notice.
+    //     bool success = WSize( wIx ,&xleng, &yleng, &xoff, &yoff);
     //     ResizeWin((UInt)xleng, (UInt) yleng);
     // need to be called initially. permit to fix things
     winList[ wIx]->ssub(1,1);
@@ -541,7 +535,7 @@ public:
   {
 
     //cout << "WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos<<endl;
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if( wIx >= wLSize || wIx < 0)
@@ -569,22 +563,22 @@ public:
     PLFLT xp; PLFLT yp; 
     PLINT xleng; PLINT yleng;
     PLINT xoff; PLINT yoff;
-    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
+    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff); //always NULL values! not useful!
 
     int debug=0;
-    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+    if (debug) cout <<"Start: xp="<<xp<<", yp="<<yp<<", xleng="<<xleng<<", yleng="<<yleng<<", xoff="<<xoff<<", yoff="<<yoff<<endl;
 
     DLong xMaxSize, yMaxSize;
     DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
 
     bool noPosx=(xPos==-1);
     bool noPosy=(yPos==-1);
-    xPos=max(1,xPos); //starts at 1
+    xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
     yPos=max(1,yPos);
 
     xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
     yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
-    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
+    if (debug) cout <<"then: xleng="<<xleng<<", yleng="<<yleng<<" xMaxSize="<<xMaxSize<<" yMaxSize="<<yMaxSize<<endl;
 // dynamic allocation needed!    
     PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
     PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
@@ -593,7 +587,7 @@ public:
       yoff = Quady[wIx%4];
     } else if (noPosx) {
       xoff = Quadx[wIx%4];
-        yoff = yMaxSize-yPos-yleng;
+      yoff = yMaxSize-yPos-yleng;
     } else if (noPosy) {
       xoff = xPos;
       yoff = Quady[wIx%4];
@@ -601,10 +595,12 @@ public:
       xoff  = xPos;
       yoff  = yMaxSize-yPos-yleng;
     }
-    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+    //apparently this is OK to get same results as IDL on X11...
+    yoff+=1;
+    if (debug) cout <<"End: xp="<<xp<<", yp="<<yp<<", xleng="<<xleng<<", yleng="<<yleng<<", xoff="<<xoff<<", yoff="<<yoff<<endl;
     xp=max(xp,1.0);
     yp=max(yp,1.0);
-    winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+    winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff); //must be before 'Init'
 
     // no pause on win destruction
     winList[ wIx]->spause( false);
@@ -632,8 +628,9 @@ public:
 
     winList[ wIx]->Init();
     // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-    bool success = WSize( actWin ,&xleng, &yleng, &xoff, &yoff);
-    ResizeWin((UInt)xleng, (UInt) yleng);
+    // bug #535 had other causes. removed until further notice.
+    //    bool success = WSize( wIx ,&xleng, &yleng, &xoff, &yoff);
+    //    ResizeWin((UInt)xleng, (UInt) yleng);
     // need to be called initially. permit to fix things
     winList[ wIx]->ssub(1,1);
     winList[ wIx]->adv(0);
@@ -661,7 +658,7 @@ public:
 
   bool WSize( int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
   {
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if( wIx > wLSize || wIx < 0)
@@ -681,7 +678,7 @@ public:
 
   bool WSet( int wIx)
   {
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if( wIx >= wLSize || wIx < 0 || winList[ wIx] == NULL)
@@ -693,7 +690,7 @@ public:
 
   bool WShow( int ix, bool show, bool iconic)
   {
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     if (ix >= wLSize || ix < 0 || winList[ ix] == NULL) return false;
@@ -707,7 +704,7 @@ public:
 
   int WAdd()
   {
-    ProcessDeleted();
+    TidyWindowsList();
 
     int wLSize = winList.size();
     for( int i=maxWin; i<wLSize; i++)
@@ -729,7 +726,7 @@ public:
   // should check for valid streams
   GDLGStream* GetStream( bool open=true)
   {
-    ProcessDeleted();
+    TidyWindowsList();
     if( actWin == -1)
       {
 	if( !open) return NULL;
@@ -779,70 +776,141 @@ public:
     if( decomposed) return 1;
     return 0;
   }
-  
-  int OperateCG(XGCValues *gcValues, unsigned long valuemask, bool write) 
-  {
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL || dev->xwd == NULL)
-      {
-	GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-	GDLGStream* newStream = actDevice->GetStream();
-	plgpls( &pls);
-	dev = (XwDev *) pls->dev;
-	if( dev == NULL) 
-	  {
-	    std::cerr<<"Device not open."<<std::endl;
-	    return 0;
-	  }
-      }
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    if (write)
-      {
-	XChangeGC(xwd->display, dev->gc, valuemask, gcValues);
-      }
-    else
-      {
-	XGetGCValues(xwd->display, dev->gc, valuemask, gcValues);
-      }
-    return 1;
-  }
+
   bool SetGraphicsFunction( DLong value)                
   { 
-    XGCValues gcValues;
-    gcValues.function   = max(0,min(value,15));
-    if (OperateCG(&gcValues, GCFunction, true)) return true;
-    else return false;
-  }
-  DLong GetGraphicsFunction()                
-  {
-    XGCValues gcValues;
-    if (OperateCG(&gcValues, GCFunction, false)) return (DLong)gcValues.function;
-    else return -1;
-  }
-  bool CursorStandard(int cursorNumber)
-  {
-    PLStream* pls;
-    plgpls( &pls);
-    int num=max(0,min(XC_num_glyphs-1,cursorNumber));
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL || dev->xwd == NULL)
-      {
-	GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-	GDLGStream* newStream = actDevice->GetStream();
-	plgpls( &pls);
-	dev = (XwDev *) pls->dev;
-	if( dev == NULL)
-	  {
-	    std::cerr<<"Device not open."<<std::endl;
-	    return 0;
-	  }
-      }
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XDefineCursor(xwd->display,dev->window,XCreateFontCursor(xwd->display,num));
+    gcFunction=max(0,min(value,15));
+    TidyWindowsList();
+    this->GetStream(); //to open a window if none opened.
+    bool ret;
+    for( int i=0; i<winList.size(); i++) {
+      if( winList[ i] != NULL) ret=winList[i]->SetGraphicsFunction(gcFunction);
+      if (ret==false) return ret;
+    }
     return true;
   }
+  
+  DLong GetGraphicsFunction()                
+  {
+    TidyWindowsList();
+    this->GetStream(); //to open a window if none opened.
+    return gcFunction;
+  }
+  
+    DIntGDL* GetScreenSize()
+    { 
+      Display* display = XOpenDisplay(NULL);
+      if (display == NULL) ThrowGDLException("Cannot connect to X server");
+      int screen_num, screen_width, screen_height;
+      screen_num = DefaultScreen(display);
+      screen_width = DisplayWidth(display, screen_num);
+      screen_height = DisplayHeight(display, screen_num);
+      XCloseDisplay(display);
+
+      DIntGDL* res;
+      res = new DIntGDL(2, BaseGDL::NOZERO);
+      (*res)[0]= screen_width;
+      (*res)[1]= screen_height;
+      return res;
+    }
+
+    DIntGDL* GetWindowPosition() {
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        long xpos,ypos;
+        if ( winList[ actWin]->GetWindowPosition(xpos,ypos) ) {
+            DIntGDL* res;
+            res = new DIntGDL(2, BaseGDL::NOZERO);
+            (*res)[0] = xpos;
+            (*res)[1] = ypos;
+            return res;
+        }
+        else return NULL;
+    }
+    
+    DLong GetVisualDepth()
+    {
+        PLStream* pls;
+        plgpls(&pls);
+        XwDev *dev = (XwDev *) pls->dev;
+        if (dev == NULL || dev->xwd == NULL) {
+            GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+            GDLGStream* newStream = actDevice->GetStream();
+            plgpls(&pls);
+            dev = (XwDev *) pls->dev;
+            if (dev == NULL) {
+                std::cerr << "Device not open." << std::endl;
+                return -1;
+            }
+        }
+        XwDisplay *xwd = (XwDisplay *) dev->xwd;
+        XWindowAttributes wa;
+        if(XGetWindowAttributes( xwd->display, dev->window, &wa )) return (DLong)wa.depth;
+        else return -1;
+    }
+
+    DString GetVisualName()
+    {
+    static const char* visual_classes_names[] = {
+     "StaticGray" , //must be casted char* since literal strings are char const * 
+     "GrayScale" ,
+     "StaticColor" ,
+      "PseudoColor" ,
+     "TrueColor" ,
+     "DirectColor" };
+    PLStream* pls;
+        plgpls(&pls);
+        XwDev *dev = (XwDev *) pls->dev;
+        if (dev == NULL || dev->xwd == NULL) {
+            GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+            GDLGStream* newStream = actDevice->GetStream();
+            plgpls(&pls);
+            dev = (XwDev *) pls->dev;
+            if (dev == NULL) {
+                std::cerr << "Device not open." << std::endl;
+                return "";
+            }
+        }
+        XwDisplay *xwd = (XwDisplay *) dev->xwd;
+        XWindowAttributes wa;
+        if(XGetWindowAttributes( xwd->display, dev->window, &wa )) {
+          /* need some works to go to Visual Name */
+          int junk;
+          XVisualInfo vistemplate, *vinfo; 
+          vistemplate.visualid = XVisualIDFromVisual(wa.visual);
+          vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
+          if (vinfo->c_class < 5){
+              string ret;
+              ret=string(visual_classes_names[vinfo->c_class]);
+              return ret;
+          } else return "";
+        }
+        else return "";
+    }
+    
+    DByteGDL* WindowState()
+    { 
+        int maxwin = MaxWin();
+        if (maxwin > 0){
+        DByteGDL* ret = new DByteGDL(dimension( maxwin), BaseGDL::NOZERO);
+        for (int i = 0; i < maxwin; i++) (*ret)[i] = WState(i);
+        return ret;
+        } else return NULL;
+    }  
+    
+  bool CursorStandard(int cursorNumber)
+  {
+    cursorId=cursorNumber;
+    TidyWindowsList();
+    this->GetStream(); //to open a window if none opened.
+    bool ret;
+    for( int i=0; i<winList.size(); i++) {
+      if( winList[ i] != NULL) ret=winList[i]->CursorStandard(cursorNumber);
+      if (ret==false) return ret;
+    }
+    return true;
+  }
+  
   bool CursorCrosshair()
   {
     return CursorStandard(XC_crosshair);
@@ -906,8 +974,8 @@ public:
   }
 
 
-  int MaxWin() { ProcessDeleted(); return winList.size();}
-  int ActWin() { ProcessDeleted(); return actWin;}
+  int MaxWin() { TidyWindowsList(); return winList.size();}
+  int ActWin() { TidyWindowsList(); return actWin;}
 
   BaseGDL* TVRD( EnvT* e)
   {

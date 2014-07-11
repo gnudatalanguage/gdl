@@ -132,13 +132,6 @@ void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   ySize = m_height;
   xoff =  0; //false with X11
   yoff =  0; //false with X11
-  PLFLT xp; PLFLT yp; 
-  PLINT xleng; PLINT yleng;
-  PLINT plxoff; PLINT plyoff;
-//   plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff);
-//   //warning neither X11 nor plplot give the good value for the position of the window!!!!
-//   xoff = plxoff; //not good either!!!
-//   yoff = plyoff; // idem
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
 }
 

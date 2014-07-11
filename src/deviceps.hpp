@@ -634,7 +634,14 @@ public:
   {
     return decomposed;  
   }
-
+  DIntGDL* GetPageSize()
+  {
+    DIntGDL* res;
+    res = new DIntGDL(2, BaseGDL::NOZERO);
+    (*res)[0]= XPageSize;
+    (*res)[1]= YPageSize;
+    return res;
+  }
   // TODO: SA: this TV() should be merged with TV() in DeviceX and DeviceZ!
   // TODO: SA: just a draft - a lot more needs to be done...
   void TV( EnvT* e)

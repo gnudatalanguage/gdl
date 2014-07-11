@@ -29,11 +29,9 @@ class GDLXStream: public GDLGStream
   Atom wm_delete_window;
 
   PLStream* pls;
-
 public:
   GDLXStream( int nx, int ny)
     : GDLGStream( nx, ny, "xwin")
-//    , plstreamInitCalled( false)
   {
   }
 
@@ -45,13 +43,12 @@ public:
 
   static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
-  void Get_X11_VisualClassName(std::string &VisualClassName);
-  void Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset);
-  void Get_X11_WindowSize(long& xSize, long& ySize);
-
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   void GetWindowSize( long& xSize, long& ySize);
-  
+  unsigned long GetWindowDepth();
+  bool SetGraphicsFunction(long value );
+  bool GetWindowPosition(long& xpos, long& ypos );
+  bool CursorStandard(int cursorNumber);
   void Clear();
   void Clear( DLong bColor);
   void Raise();

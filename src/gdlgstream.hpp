@@ -238,13 +238,12 @@ public:
   
   virtual void EventHandler() {}
 
-  virtual void Get_X11_VisualClassName(std::string &VisualClassName);
-  virtual void Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset);
-  virtual void Get_X11_WindowSize(long& xSize, long& ySize);
-
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   virtual void GetWindowSize( long& xSize, long& ySize);
-
+  virtual unsigned long GetWindowDepth () {return 0;}
+  virtual bool SetGraphicsFunction(long value ){return false;}
+  virtual bool GetWindowPosition(long& xpos, long& ypos ){return false;}
+  virtual bool CursorStandard(int cursorNumber){return false;}
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}
   virtual void UnSetDoubleBuffering() {}

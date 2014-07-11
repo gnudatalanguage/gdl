@@ -179,24 +179,12 @@ void GDLGStream::NoSub()
 //  DefaultCharSize();
 }
 
-void GDLGStream::Get_X11_VisualClassName(std::string &VisualClassName)
-{
-  // nothing to do
-}
-void GDLGStream::Get_X11_WindowGeometry( long& xSize, long& ySize, long& xOffset, long& yOffset)
-{
-  // nothing to do
-}
-
-void GDLGStream::Get_X11_WindowSize(long& xSize, long& ySize)
-{
-  // nothing to do
-}
 
 void GDLGStream::GetWindowSize( long& xSize, long& ySize)
 {
   // nothing to do
 }
+
 
 // default is a wrapper for gpage(). Is overriden by, e.g., X driver.
 void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
@@ -248,6 +236,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
   //   is designed to indicate if the device does not support extended commands
   // - unicode substitution for non-unicode terminals results in plplot controll
   //   sequences being printed 
+  // do something about handling of !C and !S and !R
   // - ... a look-up table instead of the long switch/case blocks ...
  
   size_t len = strlen(in);

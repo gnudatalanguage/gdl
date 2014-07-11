@@ -181,14 +181,23 @@ public:
   virtual int  ActWin()                               { return -1;}
   virtual void EventHandler() {}
 
+  virtual DLong GetDecomposed()                       { return -1;}
+  virtual DLong GetGraphicsFunction()                 { return -1;}
+  virtual DIntGDL* GetPageSize()                      { return NULL;}
+  virtual DLong GetPixelDepth()                       { return -1;}
+  virtual DIntGDL* GetScreenSize()                    { return NULL;}
+  virtual DLong GetVisualDepth()                      { return -1;}
+  virtual DString GetVisualName()                     { return "";}
+  virtual DIntGDL* GetWindowPosition()                { return NULL;}
+  virtual DLong GetWriteMask()                        { return -1;}
+  virtual DByteGDL* WindowState()                     { return NULL;}
   virtual bool CloseFile()                            { return false;}
   virtual bool SetFileName( const std::string& f)     { return false;}
-  virtual bool  Decomposed( bool value)               { return false;}
-  virtual DLong GetDecomposed()                       { return -1;}
-  virtual bool  SetGraphicsFunction( DLong value)     { return false;}
-  virtual DLong GetGraphicsFunction()                 { return -1;}
+  virtual bool Decomposed( bool value)                { return false;}
+  virtual bool SetGraphicsFunction( DLong value)      { return false;}
   virtual bool CursorStandard( int value)             { return false;}
   virtual bool CursorCrosshair()                      { return false;}
+  virtual int  getCursorId()                             { return -1;}
   virtual bool UnsetFocus()                           { return false;}
   virtual bool SetFocus()                             { return false;}
   virtual bool EnableBackingStore(bool enable)        { return false;}

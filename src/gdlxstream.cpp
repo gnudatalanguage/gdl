@@ -26,56 +26,6 @@
 
 using namespace std;
 
-// bool GDLXStream::plstreamInitCalled = false;
-
-
-// the code below (up to "binding _visual_classes") is extracted from "xwininfo.c"
-// xwininfo.c - MIT Project Athena, X Window system window information utility.
-// Author: Mark Lillibridge, MIT Project Athena	16-Jun-87
- /* 
- * Lookup: lookup a code in a table.
- */
-typedef struct {
-	long code;
-	char *name;
-} binding;
-
-static char _lookup_buffer[100];
-
-char *LookupL(long code, binding * table)
-{
-  char *name;
-  
-  sprintf(_lookup_buffer, "unknown (code = %ld. = 0x%lx)", code, code);
-  name = _lookup_buffer;
-  
-  while (table->name) {
-    if (table->code == code) {
-      name = table->name;
-      break;
-    }
-    table++;
-  }  
-  return(name);
-}
-
-char *Lookup(int code, binding *table)
-{
-  return LookupL((long)code, table);
-}
-
-static binding _visual_classes[] = {
-  { StaticGray,  (char *)"StaticGray" }, //must be casted char* since literal strings are char const * 
-  { GrayScale, (char *) "GrayScale" },
-  { StaticColor,  (char *)"StaticColor" },
-  { PseudoColor, (char *) "PseudoColor" },
-  { TrueColor,  (char *)"TrueColor" },
-  { DirectColor,  (char *)"DirectColor" },
-  { 0, 0 }};
-
-// end of code copy from "xwininfo.c"
-
-
 void GDLXStream::Init() {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
   {
@@ -87,41 +37,27 @@ void GDLXStream::Init() {
     XCloseDisplay(display);
   }
 
-  //      if( !plstreamInitCalled)
-  //    {
   this->plstream::init();
-  //  		plstreamInitCalled = true;
-  // 	}
 
-  //  set_stream(); // private
   plgpls(&pls);
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-
   wm_protocols = XInternAtom(xwd->display, "WM_PROTOCOLS", false);
   wm_delete_window = XInternAtom(xwd->display, "WM_DELETE_WINDOW", false);
 
   XSetWMProtocols(xwd->display, dev->window, &wm_delete_window, 1);
   XFlush(xwd->display);
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+  //current cursor:
+  CursorStandard(actDevice->getCursorId());
+  //current graphics function
+  SetGraphicsFunction(actDevice->GetGraphicsFunction());
 }
 
 void GDLXStream::EventHandler() {
   if (!valid) return;
 
-  // dummy call to get private function set_stream() called
-  //   char dummy;
-  //   gesc( &dummy);
-  // 
-  //   plgpls( &pls);
-
   XwDev *dev = (XwDev *) pls->dev;
-
-  // 	if( dev == NULL)
-  // 		this->plstream::init();
-  // 
-  //   plgpls( &pls);
-  //   
-  //   dev = (XwDev *) pls->dev;
 
   if (dev == NULL) {
     cerr << "X window invalid." << endl;
@@ -152,83 +88,55 @@ void GDLXStream::EventHandler() {
   plstream::cmd(PLESC_EH, NULL);
 }
 
-void GDLXStream::Get_X11_VisualClassName(std::string &VisualClassName){
-
-  XwDev *dev = (XwDev *) pls->dev;
-  XwDisplay *xwd = (XwDisplay *) dev->xwd;  
-  XWindowAttributes win_attributes;
-
-  /* query the window's attributes. */
-  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
-
-  /* need some works to go to Visual Name */
-  int junk;
-  XVisualInfo vistemplate, *vinfo; 
-  vistemplate.visualid = XVisualIDFromVisual(win_attributes.visual);
-  vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
-
-  // in very old X11 code, "c_class" is "class" which cannot compile within C++
-  VisualClassName=std::string(Lookup(vinfo->c_class, _visual_classes));
-
-  int debug=0;
-  if (debug)
-    {
-      printf("Depth: %d\n", win_attributes.depth);
-      printf("Visual Class (2): %s\n", VisualClassName.c_str());
-    }
+bool GDLXStream::SetGraphicsFunction( long value) {
+    XGCValues gcValues;
+    gcValues.function = (value<0)?0:(value>15)?15:value;
+    XwDev *dev = (XwDev *) pls->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    return XChangeGC( xwd->display, dev->gc, GCFunction, &gcValues );
 }
 
-void GDLXStream::Get_X11_WindowSize(long& xSize, long& ySize){
+bool GDLXStream::GetWindowPosition(long& xpos, long& ypos ) {
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XWindowAttributes wa;
+  int addx, addy;
+  Window child;
+  XGetWindowAttributes( xwd->display, dev->window, &wa );
+  if ( XTranslateCoordinates( xwd->display, dev->window, wa.root, 0, 0, &addx, &addy, &child ) ) {
+    xpos = addx - wa.x;
+    ypos = DisplayHeight( xwd->display, DefaultScreen( xwd->display ) ) - wa.height + 1 - (addy - wa.y) + 1;
+    return true;
+  } else return false;
+}
+
+void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
 
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  XWindowAttributes win_attributes;
-  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
-  xSize = win_attributes.width;
-  ySize = win_attributes.height;
-
-}
-
-void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
-
-  XwDev *dev = (XwDev *) pls->dev;
-  XwDisplay *xwd = (XwDisplay *) dev->xwd;
-
-  XWindowAttributes win_attributes;
-
-  /* query the full display (screen)'s attributes. */
-  /* these values are used below to compute offsets */
-  int screen_num, screen_width, screen_height;
-  screen_num = DefaultScreen(xwd->display);
-  screen_width = DisplayWidth(xwd->display, screen_num);
-  screen_height = DisplayHeight(xwd->display, screen_num);
-
+  XWindowAttributes wa;
   /* query the window's attributes. */
-  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attributes);
-
-  xSize = win_attributes.width;
-  ySize = win_attributes.height;
-  int junk;
-
-  int rx, ry;
-  Window junkwin;
-
-  /* recovering the true offset */
-  (void) XTranslateCoordinates (xwd->display, dev->window, win_attributes.root, 
-				-win_attributes.border_width,
-				-win_attributes.border_width,
-				&rx, &ry, &junkwin);
-  xOffset=(long)rx;
-  yOffset=(long)(screen_height-ry-win_attributes.height);
+  if (XGetWindowAttributes(xwd->display, dev->window, &wa)){
+    int addx,addy;
+    Window child;
+    XTranslateCoordinates( xwd->display, dev->window, wa.root, 0, 0, &addx, &addy, &child );
+    xSize=wa.width;
+    ySize=wa.height;
+    xOffset = addx-wa.x;
+    yOffset = dev->height-addy+wa.y+1;
+  } else GDLGStream::GetGeometry(xSize, ySize, xOffset, yOffset);
   
   int debug=0;
   if (debug) {
+    int screen_num, screen_width, screen_height;
+    screen_num = DefaultScreen(xwd->display);
+    screen_width = DisplayWidth(xwd->display, screen_num);
+    screen_height = DisplayHeight(xwd->display, screen_num);
     cout << "---- Begin Inside GetX11Geometry ----" << endl;
     cout << "display size : " << screen_width << " " << screen_height << endl;
-    cout << "win_attributes W/H: " << win_attributes.width << " " << win_attributes.height << endl;
-    cout << "win_attributes border width: " << win_attributes.border_width << endl;
-    cout << "win_attributes X/Y: " << win_attributes.x << " " << win_attributes.y << endl;
-    cout << "RX/RY: " << rx << " " << ry << endl;
+    cout << "win_attributes W/H: " << wa.width << " " << wa.height << endl;
+    cout << "win_attributes border width: " << wa.border_width << endl;
+    cout << "win_attributes X/Y: " << wa.x << " " << wa.y << endl;
     cout << "results: " << endl;
     cout << "xSize/ySize: " << xSize << " " << ySize << endl;
     cout << "xOffset/yOffset: " << xOffset << " " << yOffset << endl;
@@ -237,32 +145,10 @@ void GDLXStream::Get_X11_WindowGeometry(long& xSize, long& ySize, long& xOffset,
 
 }
 
-//warning neither X11 nor plplot give directly the good value for the position of the window!!!!
-// you need to recover it using XQueryTree() or XTranslateCoordinates (see GDLXStream::GetX11Geometry() above)
-
-void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
-
-  // this call was not working ... keeping the plplot one
-  //
-  //  Get_X11_WindowGeometry(xSize ,ySize, xOffset, yOffset);
-  //  cout << "GetGeometry : " << xSize <<" "<< ySize<<" "<< xOffset<<" "<< yOffset<<endl;
-
-  PLFLT xp, yp;
-  PLINT xleng, yleng;
-  PLINT plxOffset, plyOffset;
-  
-  plstream::gpage(xp, yp, xleng, yleng, plxOffset, plyOffset);
-  
-  xSize=xleng;
-  ySize=yleng;
-  xOffset = plxOffset; //not good either!!!
-  yOffset = plyOffset; // idem
-  //  */
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "GDLXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xOffset, yOffset);
-}
-
 void GDLXStream::GetWindowSize(long& xSize, long& ySize){ 
-
+//  long xOffset;
+//  long yOffset;
+//  GetGeometry(xSize, ySize, xOffset, yOffset);
   PLFLT xp, yp;
   PLINT xleng, yleng;
   PLINT plxOffset, plyOffset;
@@ -273,6 +159,15 @@ void GDLXStream::GetWindowSize(long& xSize, long& ySize){
   ySize=yleng;
 }
 
+  bool GDLXStream::CursorStandard(int cursorNumber)
+  {
+    int num=max(0,min(XC_num_glyphs-1,cursorNumber));
+    XwDev *dev = (XwDev *) pls->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XDefineCursor(xwd->display,dev->window,XCreateFontCursor(xwd->display,num));
+    return true;
+  }
+  
 // plplot 5.3 does not provide the clear function for c++
 
 void GDLXStream::Clear() {
@@ -318,7 +213,12 @@ void GDLXStream::Clear(DLong bColor) {
   //
   //  plscolbg (r0, g0, b0);
 }
-
+  
+unsigned long GDLXStream::GetWindowDepth() {
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  return xwd->depth;
+}
 void GDLXStream::Raise() {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;

@@ -274,7 +274,8 @@ public:
       memBuffer[i] = bColor;
   }
 
-
+  DLong GetPixelDepth() { return 8;}
+  
   BaseGDL* TVRD( EnvT* e)
   {
     DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
