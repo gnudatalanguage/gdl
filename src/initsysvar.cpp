@@ -139,31 +139,26 @@ namespace SysVar
     return static_cast<DStructGDL*>(var.Data());
   }
 
-  // updates !D in X mode only
-  void UpdateD()//long &xSize, long &ySize)
+  // updates !D in all modes (should insure correct update if Win, XWidgets ...)
+  void UpdateD()
   {
     DStructGDL* dD = D();
 
-    DString name = (*static_cast<DStringGDL*>(dD->GetTag(dD->Desc()->TagIndex("NAME"), 0)))[0];
-    if( name != "X")
-      return;
-
     DLong windowIdx=(*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("WINDOW"), 0)))[0];
-    if( windowIdx <0)
-      return;    
+    if( windowIdx <0)  return;    
     
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     GDLGStream* actStream = actDevice->GetStream();
 
-    long xSize,ySize;
-    actStream->Get_X11_WindowSize(xSize,ySize);
+    long xSizeGG,ySizeGG,xOff,yOff;
+    actStream->GetGeometry(xSizeGG,ySizeGG,xOff,yOff);
     int debug=0;
-    if (debug) cout << "Get_X11_WindowSize in SysVar::UpdateD : " << xSize <<" "<< ySize << endl;
+    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG <<" "<< xOff <<" "<< yOff << endl;
     
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSize;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySize;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSize;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySize;	    
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSizeGG;
+    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;	    
   }
 
   // returns array of path strings
