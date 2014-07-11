@@ -29,6 +29,7 @@
 #include "dinterpreter.hpp"
 #include "objects.hpp"
 #include "basic_fun_jmg.hpp"
+#include "nullgdl.hpp"
 
 
 //#define GDL_DEBUG
@@ -48,7 +49,6 @@ namespace lib {
     DString p1S = "";
     int numParam,nb_kw=0;
     bool res = true;
-    bool nul = false;
     bool ARRAY_KW_B = false;
     bool FILE_KW_B = false;
     bool NULL_KW_B = false;
@@ -62,7 +62,10 @@ namespace lib {
     bool secPar = false;
     SizeT n_elem;
     SizeT rank;
-    int debug=1;
+    int debug=0;
+
+    string structName;
+    string objectName;
 
     static int array_kw = e->KeywordIx("ARRAY");
     static int file_kw = e->KeywordIx("FILE");
@@ -70,33 +73,32 @@ namespace lib {
     static int number_kw = e->KeywordIx("NUMBER");
     static int scalar_kw = e->KeywordIx("SCALAR");
     
-    if (e->KeywordSet(array_kw)) { ARRAY_KW_B = true; nb_kw++;}
-    if (e->KeywordSet(file_kw)) { FILE_KW_B = true; nb_kw++;}
-    if (e->KeywordSet(null_kw)) { NULL_KW_B = true; nb_kw++; }
-    if (e->KeywordSet(number_kw)) { NUMBER_KW_B = true; nb_kw++; }
-    if (e->KeywordSet(scalar_kw)) { SCALAR_KW_B = true; nb_kw++; }
-
+    if (e->KeywordSet(array_kw)) { ARRAY_KW_B = true;}
+    if (e->KeywordSet(file_kw)) { FILE_KW_B = true;}
+    if (e->KeywordSet(null_kw)) { NULL_KW_B = true;}
+    if (e->KeywordSet(number_kw)) { NUMBER_KW_B = true;}
+    if (e->KeywordSet(scalar_kw)) { SCALAR_KW_B = true; }
 	
     if(SCALAR_KW_B && ARRAY_KW_B) {
       e->Throw("Keywords ARRAY and SCALAR are mutually exclusive.");
     }
 
     if(NULL_KW_B) {
-      if(ARRAY_KW_B) e->Throw("Keywords NULL and ARRAY are mutually exclusive.");
-      if(FILE_KW_B) e->Throw("Keywords NULL and FILE are mutually exclusive.");
-      if(SCALAR_KW_B) e->Throw("Keywords NULL and SCALAR are mutually exclusive.");
-      if(NUMBER_KW_B) e->Throw("Keywords NULL and NUMBER are mutually exclusive.");
+      string txt="Keywords NULL and ";
+      if(ARRAY_KW_B) e->Throw(txt+"ARRAY are mutually exclusive.");
+      if(FILE_KW_B) e->Throw(txt+"FILE are mutually exclusive.");
+      if(SCALAR_KW_B) e->Throw(txt+"SCALAR are mutually exclusive.");
+      if(NUMBER_KW_B) e->Throw(txt+"NUMBER are mutually exclusive.");
     }
 
-    //cout<<nb_kw<<endl;
     numParam = e->NParam();
     if(numParam == 0){
       e->Throw("Requires at least one argument !");
     }
-    //cout<<numParam<<endl;
+
     //first par.
     p0 = e->GetPar(0);
-	
+
     if (p0 == NULL) {
       type="UNDEFINED";
       res = false;
@@ -104,10 +106,10 @@ namespace lib {
       n_elem = p0->N_Elements();
       rank = p0->Rank();
       if (debug) cout << "type : "<< p0->Type() << ", Rank : "<< rank << endl;
-      
+
       switch (p0->Type())
 	{
-	case GDL_UNDEF: type="UNDEFINED"; nul=true;break; 
+	case GDL_UNDEF: type="UNDEFINED";break; 
 	case GDL_BYTE: type="BYTE";isNUMBER=true; break;
 	case GDL_INT: type="INT"; isNUMBER=true; break;
 	case GDL_LONG: type="LONG"; isNUMBER=true; break;
@@ -118,17 +120,42 @@ namespace lib {
 	case GDL_STRUCT: type="STRUCT"; isNUMBER=false; break;
 	case GDL_COMPLEXDBL: type="DCOMPLEX";isNUMBER=true; break;
 	case GDL_PTR: type="POINTER"; isNUMBER=false; break;
-	case GDL_OBJ: type="OBJECT"; isNUMBER=false; break;
+	case GDL_OBJ: type="OBJREF"; isNUMBER=false; break;
 	case GDL_UINT: type="UINT";isNUMBER=true; break;
 	case GDL_ULONG: type="ULONG";isNUMBER=true; break;
 	case GDL_LONG64: type="LONG64";isNUMBER=true; break;
 	case GDL_ULONG64: type="ULONG64";isNUMBER=true; break;
-	  
+
 	default: e->Throw("This should never happen, please report");
 	}
     }
-    //cout<<type<<endl;
-    
+
+    if(type == "POINTER"){
+      DPtrGDL* ptr = static_cast<DPtrGDL*>(p0);
+      DPtr ptrID = (*ptr)[0];
+      if(ptrID == 0) res=false;
+      else res=true;
+    }
+
+    if(type == "STRUCT"){
+      DStructGDL* str = static_cast<DStructGDL*>(p0);	   
+      if(str->Desc()->IsUnnamed()) {
+	structName="ANONYMOUS";
+      }else structName = str->Desc()->Name();
+    }
+
+    if(type == "OBJREF"){
+      DObjGDL* obj = static_cast<DObjGDL*>(p0);
+      DObj objID = (*obj)[0];
+      if(objID == 0){
+	res = false;
+      }else res = true;
+      BaseGDL* objRef = DInterpreter::GetObjHeap(objID);
+      DStructGDL* str = static_cast<DStructGDL*>(objRef);
+      if(str->Desc()->IsUnnamed()) objectName="Anonymous";
+      else objectName = str->Desc()->Name();
+    }
+
     //second par.
     p1 = e->GetPar(1);
     if(p1 != NULL){
@@ -147,9 +174,16 @@ namespace lib {
 
       if (type == (*p1Str)[0]) res = true;
       else res = false;
-    }
 
+      debug=1;
+      if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
+	
+      if(type == "STRUCT"){ if(structName == (*p1Str)[0]) res = true;}
+      if(type == "OBJREF"){ if(objectName == (*p1Str)[0]) res = true;}
+    }
+	
     if(type != "UNDEFINED"){
+
       if(NULL_KW_B && res){
 	res = false;
       }
@@ -176,8 +210,9 @@ namespace lib {
 	res = false;
       }
     } else {
-      if(NULL_KW_B && res){
-	res = nul;
+      //res = false;
+      if(NULL_KW_B){
+	res = true;
       }else 
 	res = res && (!ARRAY_KW_B) && (!SCALAR_KW_B) && (!NUMBER_KW_B); 
     }
@@ -185,10 +220,9 @@ namespace lib {
     if(FILE_KW_B){
       e->Throw("(file keyword - ISA() not ready !)");
     }
-    
+
     if (res) return new DByteGDL(1);
     return new DByteGDL(0);
-
   }
 
   BaseGDL* typename_fun( EnvT* e) 
@@ -248,7 +282,10 @@ namespace lib {
 	      e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide exemple !");
 	    
 	    type= oStructGDL->Desc()->Name();
-	  }
+	  }else {
+	  type = "UNDEFINED";
+	}
+	 
       }
     }
     return new DStringGDL(type);
@@ -970,7 +1007,7 @@ namespace lib {
 	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
 
 	  // Keywords are already counted (in FindVar)
-// 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+	  // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
 
 	  if( par == NULL)
@@ -1066,7 +1103,7 @@ namespace lib {
 
 	// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
-// 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+	// 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
 	((EnvT*)(callStack[desiredlevnum-1]))->GetKW( s) = res->Dup();
 
 	//	cout << "par: " << &par << endl << endl;
@@ -1177,7 +1214,7 @@ namespace lib {
 	int xI = pro->FindVar( varName);
 	//	cout << xI << endl;
 	if (xI != -1) {
-// 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+	  // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
 	  return &par; // <-  HERE IS THE DIFFERENCE
 	}

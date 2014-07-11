@@ -24,7 +24,8 @@ return,type_fun
 ;
 end
 ;
-pro INCREMENT_ERRORS, total_errors, nb_errors
+pro INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+if KEYWORD_SET(verbose) then print, total_errors, nb_errors
 total_errors=total_errors+nb_errors
 nb_errors=0
 end
@@ -41,7 +42,6 @@ endif
 ;
 total_errors=0
 nb_errors=0
-
 ;
 if KEYWORD_SET(verbose) then verb=1 else verb=0
 ;
@@ -50,7 +50,7 @@ if (verb) then MESSAGE, /cont, 'Testing Undefined.'
 if ISA(a) eq 1 then nb_errors=nb_errors+1
 if ISA(a,"undefined") eq 0 then nb_errors=nb_errors+1
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing Undefined (1).'
-INCREMENT_ERRORS, total_errors, nb_errors
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 ;NULL keyword for "UNDEFINED" type
 if (verb) then MESSAGE, /cont, 'Testing Undefined and !Null.'
@@ -59,14 +59,14 @@ if ISA(a,/NULL) eq 0 then nb_errors=nb_errors+1
 if ISA(a,"undefined",/NULL) eq 0 then nb_errors=nb_errors+1
 if ISA(a,"undefined") eq 0 then nb_errors=nb_errors+1
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing Undefined (2).'
-INCREMENT_ERRORS, total_errors, nb_errors
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 b=b
 if ISA(b,/NULL) eq 1 then nb_errors=nb_errors+1
 if ISA(b,"undefined",/NULL) eq 1 then nb_errors=nb_errors+1
 if ISA(b,"undefined") eq 0 then nb_errors=nb_errors+1
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing Undefined (3).'
-INCREMENT_ERRORS, total_errors, nb_errors
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 ; testing string
 str_var = STRING(1)
@@ -74,7 +74,7 @@ if ISA(str_var) eq 0 then nb_errors=nb_errors+1
 if ISA(str_var,"STRING") eq 0 then nb_errors=nb_errors+1
 if ISA(str_var,"OTHER") eq 1 then nb_errors=nb_errors+1
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing STRING.'
-INCREMENT_ERRORS, total_errors, nb_errors
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 ;for numerical types, expect "PTR","OBJ","STR","STRING"
 list_type = ["BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX",$
@@ -117,12 +117,12 @@ for i=0,n-1 do begin
     if (nb_errors GT 0) then begin
         MESSAGE, /continue, 'Errors found within type : '+list_type[i]
     endif
-    INCREMENT_ERRORS, total_errors, nb_errors
+    INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_ISA', nb_errors, short=short
+BANNER_FOR_TESTSUITE, 'TEST_ISA', total_errors, short=short
 ;
-if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+if (total_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

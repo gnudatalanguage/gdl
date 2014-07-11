@@ -135,9 +135,9 @@ See below if you have an older version of plplot.
 To download plplot please look here:
 http://plplot.sourceforge.net/source/index.html
 
-If you have plplot older than 5.9.0 use the configure
-option --enable-oldplplot 
-With this option, plplot down to 5.3 should work.
+If you have plplot older than 5.9.6 use the configure
+option --enable-oldplplot (configure) or -DOLDPLPLOT=on (CMake)
+With this option, plplot down to 5.9 should work.
 A possible problem was reported:
 On opening more than one window, plplot causes a segmentation fault
 if GDL is compiled with ImageMagick. This happens if plplot uses 
@@ -157,12 +157,12 @@ You find it at:
 http://www.gnu.org/software/gsl
 
 The Eigen library version 3.1 or later is highly recommended for a performance
-boost. To be found at: http://eigen.tuxfamily.org
+boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org
 
 GDL supports GUI (widget) programming (thanks to Joel Gales)
 using the wxWidgets library. It is required by default.
 If you don't want to use it, use
---with-wxWidgets=no
+--with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
 wxWidgets can be obtained from:
 http://www.wxwidgets.org/downloads
 Only some WIDGET_... functions are implemented so far
@@ -175,7 +175,7 @@ Note that if you plan to use netCDF also, it might be necessary to
 install HDF4 before netCDF due to same named but different header
 files which are overwritten by the HDF4 version otherwise.
 HDF4 is required by default. If you don't want to use it, use 
---with-hdf=no
+--with-hdf=no (configure) or -DHDF=off (CMake)
 Note that HDF in turn needs other libraries. Check out the
 homepage for more information:
 http://hdf.ncsa.uiuc.edu/
@@ -185,7 +185,7 @@ ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 Basic support for HDF5 is now provided (thanks to Peter Messmer).
 If you want to use it, you need the HDF5 library.
 It is required by default. If you don't want to use it, use 
---with-hdf5=no
+--with-hdf5=no (configure) or -DHDF5=off (CMake)
 Note that HDF5 in turn needs other libraries. Check out the
 homepage for more information:
 http://hdf.ncsa.uiuc.edu/HDF5
@@ -200,9 +200,9 @@ to install netCDF after HDF4 due to same named, but different header
 files. If the header files of HDF4 and netCDF are in different directories 
 make sure, that the directory containing netCDF's version gets searched first,
 ie. put an explicit path for netCDF even if it is in the default include path,
-eg: --with-netcdf=/usr) 
+eg: --with-netcdf=/usr (configure) or -DNETCDFDIR=/usr (CMake)) 
 netCDF is used by default. If you don't want to use it, use 
---with-netcdf=no
+--with-netcdf=no (configure) or -DNETCDF=off (CMake)
 as a command line option to 'configure'.
 netCDF is available from:
 ftp://ftp.unidata.ucar.edu/pub/netcdf
