@@ -26,154 +26,142 @@ namespace lib {
   void device( EnvT* e)
   {
 
-    int debug=0;
-
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
 
-    // get the device name in {NULL, SVG, PS, Z, (WIN or X or nothing if X not available)}
-    DStructGDL* dStruct = SysVar::D();
-    static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
-    DString d_name = (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
+    //GET_CURRENT_FONT ? //TODO
     
-
-    // GET_PAGE_SIZE ?
-    // GET_PIXEL_DEPTH ?
-
-    static int get_pixel_depthIx = e->KeywordIx("GET_PIXEL_DEPTH");
-    if( e->KeywordPresent(get_pixel_depthIx))
+    // GET_DECOMPOSED ?
+    {
+    static int get_decomposedIx = e->KeywordIx( "GET_DECOMPOSED" );
+    if ( e->KeywordPresent( get_decomposedIx ) )
       {
-	if (d_name != "Z") {
-	  e->Throw("GET_PIXEL_DEPTH keyword is defined only for Z device type.");
-	} else {
-	  e->Throw("GET_PIXEL_DEPTH keyword not ready, sorry, please contribute.");
-	}
+        DLong value = actDevice->GetDecomposed( );
+        if ( value == -1 )
+          e->Throw( "Keyword GET_DECOMPOSED not allowed for call to: DEVICE" );
+        else
+          e->SetKW( get_decomposedIx, new DLongGDL( value ) );
       }
+    }
+    
+    //GET_FONTNAMES? //TODO
+    //GET_FONTNUM? //TODO
+    
+    // GET_GRAPHICS_FUNCTION
+    {
+    static int get_graphics_FunctionIx = e->KeywordIx( "GET_GRAPHICS_FUNCTION");
+    if( e->KeywordPresent( get_graphics_FunctionIx)) 
+      {
+        DLong value = actDevice->GetGraphicsFunction();
+        if(value == -1)
+          e->Throw( "Keyword GET_GRAPHICS_FUNCTION not allowed for call to: DEVICE");
+        else 
+          e->SetKW( get_graphics_FunctionIx, new DLongGDL( value));
+      }
+    }
+    
+    // GET_PAGE_SIZE ?
+    {
+     static int get_page_sizeIx = e->KeywordIx("GET_PAGE_SIZE");
+      if( e->KeywordPresent( get_page_sizeIx)) 
+      {
+       DIntGDL* value = actDevice->GetPageSize();
+       if (value == NULL) 
+          e->Throw( "Keyword GET_PAGE_SIZE not allowed for call to: DEVICE");
+       else 
+          e->SetKW( get_page_sizeIx, value );
+      }
+    }
 
+    // GET_PIXEL_DEPTH ?
+    {
+      static int get_pixel_depthIx = e->KeywordIx( "GET_PIXEL_DEPTH");
+      if( e->KeywordPresent( get_pixel_depthIx)) 
+      {
+        DLong value = actDevice->GetPixelDepth();
+        if(value == -1)
+          e->Throw( "Keyword GET_PIXEL_DEPTH not allowed for call to: DEVICE");
+        else 
+          e->SetKW( get_pixel_depthIx, new DLongGDL( value ));
+      }
+    }
+
+    // GET_SCREEN_SIZE
+    {
+      static int get_screen_sizeIx = e->KeywordIx("GET_SCREEN_SIZE");
+      if( e->KeywordPresent( get_screen_sizeIx)) 
+      {
+       DIntGDL* value = actDevice->GetScreenSize();
+       if (value == NULL) 
+          e->Throw( "Keyword GET_SCREEN_SIZE not allowed for call to: DEVICE");
+       else 
+          e->SetKW( get_screen_sizeIx, value);
+      }
+    }
+   
+    // GET_VISUAL_DEPTH ?
+    {
+      static int get_visual_depthIx = e->KeywordIx( "GET_VISUAL_DEPTH");
+      if( e->KeywordPresent( get_visual_depthIx)) 
+      {
+        DLong value = actDevice->GetVisualDepth();
+        if(value == -1)
+          e->Throw( "Keyword GET_VISUAL_DEPTH not allowed for call to: DEVICE");
+        else 
+          e->SetKW( get_visual_depthIx, new DLongGDL( value));
+      }
+    }
+    
     // GET_VISUAL_NAME ?
+    {
+      static int get_visual_nameIx = e->KeywordIx( "GET_VISUAL_NAME");
+      if( e->KeywordPresent( get_visual_nameIx)) 
+      {
+        DString value = actDevice->GetVisualName();
+        if(value == "")
+          e->Throw( "Keyword GET_VISUAL_NAME not allowed for call to: DEVICE");
+        else 
+          e->SetKW( get_visual_nameIx, new DStringGDL( value));
+      }
+    } 
+
+    // GET_WINDOW_POSITION ?
+    {
+     static int get_window_positionIx = e->KeywordIx("GET_WINDOW_POSITION");
+      if( e->KeywordPresent( get_window_positionIx)) 
+      {
+       DIntGDL* value = actDevice->GetWindowPosition();
+       if (value == NULL) 
+          e->Throw( "Keyword GET_WINDOW_POSITION not allowed for call to: DEVICE");
+       else 
+          e->SetKW( get_window_positionIx, value);
+      }
+    }
+
     // GET_WRITE_MASK ? 
-    
-    // GET_SCREEN_SIZE and GET_WINDOW_POSITION (both need to know full screen size)
-
-    static int get_screen_sizeIx = e->KeywordIx("GET_SCREEN_SIZE");
-    static int window_positionIx = e->KeywordIx("GET_WINDOW_POSITION");
-    static int get_visual_depthIx = e->KeywordIx("GET_VISUAL_DEPTH");
-    static int get_visual_nameIx = e->KeywordIx("GET_VISUAL_NAME");
-    
-    // these 4 keywords should work only for X and WIN, we reject now other device types
-    
-    if ((d_name != "WIN") && (d_name != "X")) {
-      if (e->KeywordPresent(get_screen_sizeIx)) 
-	e->Throw("GET_SCREEN_SIZE keyword not define for device type "+d_name);
-      if (e->KeywordPresent(window_positionIx))
-	e->Throw("GET_WINDOW_POSITION keyword not define for device type "+d_name);
-      if (e->KeywordPresent(get_visual_depthIx))
-	e->Throw("GET_VISUAL_DEPTH keyword not define for device type "+d_name);      
-      if (e->KeywordPresent(get_visual_nameIx))
-	e->Throw("GET_VISUAL_NAME keyword not define for device type "+d_name);
-    }
-   
-    // we are not ready on WIN side
-    if (d_name == "WIN") {
-      if (e->KeywordPresent(get_screen_sizeIx)) 
-	e->Throw("GET_SCREEN_SIZE keyword not ready for WIN device type, please contribute.");
-      if (e->KeywordPresent(window_positionIx))
-	e->Throw("GET_WINDOW_POSITION keyword not ready for WIN device type, please contribute.");
-      if (e->KeywordPresent(get_visual_depthIx))
-	e->Throw("GET_VISUAL_DEPTH keyword not ready for WIN device type, please contribute.");
-      if (e->KeywordPresent(get_visual_nameIx))
-	e->Throw("GET_VISUAL_NAME keyword not ready for WIN device type, please contribute.");
-    }
-
-    if (e->KeywordPresent(get_screen_sizeIx)) {
-#ifndef HAVE_X
-      e->Throw("GDL was compiled without support for X-windows");
-#else
-      // see in Function "get_scren_size()" explanations ...
-      Display* display = XOpenDisplay(NULL);
-      if (display == NULL) e->Throw("Cannot connect to X server");
-     
-      int screen_num, screen_width, screen_height;
-      screen_num = DefaultScreen(display);
-      screen_width = DisplayWidth(display, screen_num);
-      screen_height = DisplayHeight(display, screen_num);
-      XCloseDisplay(display);
-      if (debug) fprintf(stderr, "Screen Size (%i %i)\n", screen_width, screen_height);
-
-      DIntGDL* res;
-      res = new DIntGDL(2, BaseGDL::NOZERO);
-      (*res)[0]= screen_width;
-      (*res)[1]= screen_height;
-      e->SetKW( get_screen_sizeIx, res);
-#endif
-    }
-   
-    if (e->KeywordPresent(window_positionIx)) {
-#ifndef HAVE_X
-      e->Throw("GDL was compiled without support for X-windows");
-#else
-      PLINT xleng, yleng, xoff, yoff;
-      GDLGStream* actStream = actDevice->GetStream();
-      if (actStream != NULL) {
-	long xSize,ySize,xOff,yOff;
-	actStream->Get_X11_WindowGeometry(xSize,ySize,xOff,yOff);
-	if (debug) cout << "GetX11Geo :" << xSize <<" "<< ySize <<" "<< xOff <<" "<< yOff << endl;
-       
-	DIntGDL* res;
-	res = new DIntGDL(2, BaseGDL::NOZERO);
-	(*res)[0]= xOff;
-	(*res)[1]= yOff;
-	e->SetKW( window_positionIx, res);
+    {
+    static int get_write_maskIx = e->KeywordIx( "GET_WRITE_MASK");
+      if( e->KeywordPresent( get_write_maskIx)) 
+      {
+        DLong value = actDevice->GetWriteMask();
+        if(value == -1)
+          e->Throw( "Keyword GET_WRITE_MASK not allowed for call to: DEVICE");
+        else 
+          e->SetKW( get_write_maskIx, new DLongGDL( value));
       }
-      else {
-	e->Throw("Unable to open at least one window !");
-      }   
-#endif
-    }
+    }    
 
-    if (e->KeywordPresent(get_visual_depthIx)) {
-#ifndef HAVE_X
-      e->Throw("GDL was compiled without support for X-windows");
-#else   
-      Display* display = XOpenDisplay(NULL);
-      if (display == NULL) e->Throw("Cannot connect to X server");
-      int VisualDepth = DefaultDepth(display, DefaultScreen(display));
-      XCloseDisplay(display);
-      e->SetKW(get_visual_depthIx, new DLongGDL(VisualDepth));
-#endif
-    }
-
-    if (e->KeywordPresent(get_visual_nameIx)) {
-#ifndef HAVE_X
-      e->Throw("GDL was compiled without support for X-windows");
-#else   
-      GDLGStream* actStream = actDevice->GetStream();
-      if (actStream != NULL) {
-	string VisualClassName;
-	actStream->Get_X11_VisualClassName(VisualClassName);
-	if (debug) cout  << "Visual Class Name : " << VisualClassName << endl;
-	e->SetKW(get_visual_nameIx, new DStringGDL(VisualClassName));
+    // WINDOW_STATE ?
+    {
+    static int window_stateIx = e->KeywordIx( "WINDOW_STATE");
+      if( e->KeywordPresent( window_stateIx)) 
+      {
+        DByteGDL* value = actDevice->WindowState();
+        if(value == NULL)
+          e->Throw( "Keyword WINDOW_STATE not allowed for call to: DEVICE");
+        else 
+          e->SetKW( window_stateIx, value);
       }
-      else {
-	e->Throw("Unable to open at least one window !");
-      }
-#endif
-    }
-
-    // WINDOW_STATE kw {{{
-    { 
-      static int window_stateIx = e->KeywordIx( "WINDOW_STATE");
-      if (e->KeywordPresent(window_stateIx))
-	{
-	  // if PS and not noErase (ie, erase) then set !p.noerase=0    
-	  if (d_name != "X") e->Throw("WINDOW_STATE not supported for the current device (" + d_name + "), it works for X only");
-	  int maxwin = actDevice->MaxWin();
-	  assert(maxwin > 0);
-	  DByteGDL* ret = new DByteGDL(dimension( maxwin), BaseGDL::NOZERO);
-	  for (int i = 0; i < maxwin; i++) (*ret)[i] = actDevice->WState(i);
-	  e->SetKW( window_stateIx, ret);
-	}
-    }
-    // }}}
+    } 
 
     // CLOSE_FILE {{{
     {
@@ -198,7 +186,6 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword Z_BUFFERING.");
 	}
     }
-    // }}}
 
     // SET_RESOLUTION {{{
     {
@@ -220,7 +207,6 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword SET_RESOLUTION.");
 	}
     }
-    // }}}
 
     // DECOMPOSED {{{
     {
@@ -233,33 +219,7 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword DECOMPOSED.");
 	}
     }  
-    // }}}
 
-    // GET_DECOMPOSED {{{
-    {
-      static int get_decomposedIx = e->KeywordIx( "GET_DECOMPOSED"); 
-      if( e->KeywordPresent( get_decomposedIx)) 
-	{
-	  DLong value = actDevice->GetDecomposed();
-	  if(value == -1)
-	    e->Throw( "Current device does not support keyword GET_DECOMPOSED.");
-	  else 
-	    e->SetKW( get_decomposedIx, new DLongGDL( value));
-	}
-    }
-    // }}}
-    // GET_GRAPHICS_FUNCTION
-    {
-      static int get_graphicsFunctionIx = e->KeywordIx( "GET_GRAPHICS_FUNCTION");
-      if( e->KeywordPresent( get_graphicsFunctionIx)) 
-	{
-	  DLong value = actDevice->GetGraphicsFunction();
-	  if(value == -1)
-	    e->Throw( "Current device does not support keyword GET_GRAPHICS_FUNCTION.");
-	  else 
-	    e->SetKW( get_graphicsFunctionIx, new DLongGDL( value));
-	}
-    }
     // SET_GRAPHICS_FUNCTION
     {
       static int set_graphicsFunctionIx = e->KeywordIx( "SET_GRAPHICS_FUNCTION");
@@ -319,7 +279,7 @@ namespace lib {
 	}
     }
 
-    // FILENAME {{{
+    // FILENAME 
     {
       static int fileNameIx = e->KeywordIx( "FILENAME"); 
       BaseGDL* fileName = e->GetKW( fileNameIx);
@@ -335,7 +295,6 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword FILENAME.");
 	}
     }
-    // }}}
 
     // LANDSCAPE and PORTRAIT need to be executed before XSIZE, YSIZE, XOFFSET and YOFFSET!
     {
@@ -344,7 +303,7 @@ namespace lib {
       if (e->KeywordSet(portraitIx) && e->KeywordSet(landscapeIx)) 
         Warning("Warning: both PORTRAIT and LANDSCAPE specified!");
 
-      // LANDSCAPE {{{
+      // LANDSCAPE 
       {
         if (e->GetKW(landscapeIx) != NULL)
 	  {
@@ -352,9 +311,8 @@ namespace lib {
 	    if (!success) e->Throw("Current device does not support keyword LANDSCAPE");
 	  }
       }
-      // }}}
 
-      // PORTRAIT {{{
+      // PORTRAIT 
       {
         if (e->GetKW(portraitIx) != NULL)
 	  {
@@ -362,7 +320,6 @@ namespace lib {
 	    if (!success) e->Throw("Current device does not support keyword PORTRAIT");
 	  }
       }
-      // }}}
     }
 
     {
@@ -382,9 +339,8 @@ namespace lib {
 	      e->Throw( "Current device does not support keyword XOFFSET.");
 	  } 
       }
-      // }}}
 
-      // YOFFSET {{{
+      // YOFFSET 
       {
         static int yOffsetIx = e->KeywordIx( "YOFFSET");
         BaseGDL* yOffsetKW = e->GetKW( yOffsetIx);
@@ -399,9 +355,8 @@ namespace lib {
 	      e->Throw( "Current device does not support keyword YOFFSET.");
 	  } 
       }
-      // }}}
 
-      // XSIZE {{{
+      // XSIZE 
       {
         static int xSizeIx = e->KeywordIx( "XSIZE");
         BaseGDL* xSizeKW = e->GetKW( xSizeIx);
@@ -416,9 +371,8 @@ namespace lib {
 	      e->Throw( "Current device does not support keyword XSIZE.");
 	  } 
       }
-      // }}}
 
-      // YSIZE {{{
+      // YSIZE 
       {
         static int ySizeIx = e->KeywordIx( "YSIZE");
         BaseGDL* ySizeKW = e->GetKW( ySizeIx);
@@ -433,10 +387,9 @@ namespace lib {
 	      e->Throw( "Current device does not support keyword YSIZE.");
 	  } 
       }
-      // }}}
     }
 
-    // SCALE_FACTOR {{{
+    // SCALE_FACTOR 
     {
       static int scaleIx = e->KeywordIx( "SCALE_FACTOR");
       BaseGDL* scaleKW = e->GetKW( scaleIx);
@@ -449,9 +402,8 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword SCALE.");
 	} 
     }
-    // }}}
 
-    // COLOR {{{
+    // COLOR 
     {
       // TODO: turn off with COLOR=0?
       static int colorIx = e->KeywordIx( "COLOR");
@@ -464,9 +416,8 @@ namespace lib {
 	  if( !success) e->Throw( "Current device does not support keyword COLOR.");
 	} 
     }
-    // }}}
 
-    // ENCAPSULATED {{{
+    // ENCAPSULATED 
     {
       static int encapsulatedIx = e->KeywordIx( "ENCAPSULATED");
       BaseGDL* encapsulatedKW = e->GetKW( encapsulatedIx);
@@ -480,7 +431,6 @@ namespace lib {
 	  if (!success) e->Throw( "Current device does not support keyword ENCAPSULATED.");
 	} 
     }
-    // }}}
 
   }
 
