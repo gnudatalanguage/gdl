@@ -667,7 +667,16 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 //       DFun* EQOverload = static_cast<DFun*>(desc->GetOperator( OOEQ));
 //       
       DSubUD* EQOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OOEQ));
-      if( EQOverload != NULL)
+      if( EQOverload == NULL)
+      {
+	if( r == NullGDL::GetSingleInstance())
+	{
+	  Data_<SpDByte>* res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	  (*res)[0] = (0 == (*this)[0]);
+	  return res;
+	} 
+      }
+      else //( EQOverload != NULL)
       {
 	ProgNodeP callingNode = interpreter->GetRetTree();
 	// hidden SELF is counted as well
@@ -731,6 +740,12 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
   // here r can be of any GDL type (due to operator overloading)
   if( r->Type() != GDL_OBJ)
   {
+	if( r == NullGDL::GetSingleInstance()) // "this" is not scalar here -> return always false
+	{
+	  Data_<SpDByte>* res= new Data_<SpDByte>(0);
+// 	  (*res)[0] = 0;
+	  return res;
+	} 
         throw GDLException("Unable to convert variable to type object reference.",true,false);
   }
 
@@ -914,7 +929,16 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
 //       
       DSubUD* NEOverload = 
 	static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OONE));
-      if( NEOverload != NULL)
+      if( NEOverload == NULL)
+      {
+	if( r == NullGDL::GetSingleInstance())
+	{
+	  Data_<SpDByte>* res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	  (*res)[0] = (0 != (*this)[0]);
+	  return res;
+	} 
+      }
+      else //      if( NEOverload != NULL)
       {
 	ProgNodeP callingNode = interpreter->GetRetTree();
 	// hidden SELF is counted as well
@@ -978,6 +1002,13 @@ BaseGDL* Data_<SpDObj>::NeOp( BaseGDL* r)
   // here r can be of any GDL type (due to operator overloading)
   if( r->Type() != GDL_OBJ)
   {
+    if( r == NullGDL::GetSingleInstance()) // "this" is not scalar here -> return always true
+    {
+      Data_<SpDByte>* res= new Data_<SpDByte>(1);
+// 	  (*res)[0] = 0;
+      return res;
+    } 
+      
     throw GDLException("Unable to convert variable to type object reference.",true,false);
   }
 

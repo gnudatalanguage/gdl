@@ -29,8 +29,11 @@ NullGDL* NullGDL::instance = NULL;
 
 NullGDL::~NullGDL()
 {
-  //throw GDLException("Attempt to destroy !NULL."); 
-  cerr << "Internal error: !NULL destructor called (GDL session still ok).\nPlease report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
+// it would be the fastest way, to just ignore it.
+// but ~BaseGDL() is called as well. And this must not be
+  cerr << "Internal error: !NULL destructor called.\n"
+	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
+	  "Please report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
 }
 
 bool NullGDL::IsAssoc() const { return false;}

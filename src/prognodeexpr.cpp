@@ -423,7 +423,7 @@ BaseGDL* VARPTRNode::Eval()
 }
 BaseGDL* SYSVARNode::Eval()
 {
-	return this->EvalNC()->Dup();
+  return this->EvalNC()->Dup();
 }
 
 BaseGDL* VARNode::EvalNC()
@@ -892,10 +892,16 @@ BaseGDL* EQ_OPNode::Eval()
       // order is critical: overload might just be defined for one of the object types
       // use e2 only if e1 is no object
       BaseGDL* res=e2->EqOp(e1.get());
+      if( e1.Get() == NullGDL::GetSingleInstance())
+	e1.Release();
       return res;
     }
   }
   BaseGDL* res=e1->EqOp(e2.get());
+  if( e1.Get() == NullGDL::GetSingleInstance())
+    e1.Release();
+  if( e2.Get() == NullGDL::GetSingleInstance())
+    e2.Release();
   return res;
 }
 BaseGDL* NE_OPNode::Eval()
@@ -910,10 +916,16 @@ BaseGDL* NE_OPNode::Eval()
       // order is critical: overload might just be defined for one of the object types
       // use e2 only if e1 is no object
       BaseGDL* res=e2->NeOp(e1.get());
+      if( e1.Get() == NullGDL::GetSingleInstance())
+	e1.Release();
       return res;
     }
   }
   BaseGDL* res=e1->NeOp(e2.get());
+  if( e1.Get() == NullGDL::GetSingleInstance())
+    e1.Release();
+  if( e2.Get() == NullGDL::GetSingleInstance())
+    e2.Release();
   return res;
 }
 BaseGDL* LE_OPNode::Eval()
