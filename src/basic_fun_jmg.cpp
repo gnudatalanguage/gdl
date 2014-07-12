@@ -326,39 +326,73 @@ namespace lib {
 
     SizeT nEl = 0;
     SizeT Rank = 0;
+    SizeT LogicalRank = 0;
     SizeT vType = GDL_UNDEF;
 
     if (p0 != NULL) {
       nEl = p0->N_Elements();
       Rank = p0->Rank();
+      LogicalRank = p0->Rank();
       vType = p0->Type();
     }
 
+    bool isObjectContainer = false;
+    if( vType == GDL_OBJ)
+    {
+      DObjGDL* p0Obj = static_cast<DObjGDL*>(p0);
+      if( p0Obj->StrictScalar())
+      {
+	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( (*p0Obj)[0]);
+	if( oStructGDL != NULL) // if object not valid -> default behaviour
+	{  
+	  DStructDesc* desc = oStructGDL->Desc();
+
+	  if( desc->IsParent("LIST"))
+	  {
+	    isObjectContainer = true;
+	  }
+	  if( desc->IsParent("HASH"))
+	  {
+	    isObjectContainer = true;
+	  }
+	}
+      }
+    }
+
+    if( isObjectContainer)
+    {
+      LogicalRank = 1;
+    }
+    
     // DIMENSIONS
     if( e->KeywordSet( dimIx)) { 
-      if( Rank == 0) {
+      if( LogicalRank == 0) {
 	if( e->KeywordSet(L64Ix))
 	  return new DLong64GDL( 0);
 	else
 	  return new DLongGDL( 0);
       }
-      dimension dim( Rank);
+      dimension dim( LogicalRank);
 
       if( e->KeywordSet(L64Ix)) { // L64
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
 	(*res)[0] = 0;
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i] = p0->Dim(i);
+	if( isObjectContainer)
+	  (*res)[ 0] = nEl;
 	return res;
       } else {
 	DLongGDL* res = new DLongGDL( dim, BaseGDL::NOZERO);
 	(*res)[0] = 0;
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i] = p0->Dim(i);
+	if( isObjectContainer)
+	  (*res)[ 0] = nEl;
 	return res;
       }
     }
 
     // FILE_LUN
-    string txt="Sorry, this keyword ";
+    string txt="Sorry, keyword ";
     if( e->KeywordSet(FILE_LUNIx)) {    
       e->Throw(txt+"/FILE_LUN not supported yet, please contribute.");
     }
@@ -368,7 +402,7 @@ namespace lib {
 
     // N_DIMENSIONS
     if( e->KeywordSet(N_DIMENSIONSIx)) {
-      return new DLongGDL( Rank);
+      return new DLongGDL( LogicalRank);
     }
 
     //N_ELEMENTS
@@ -461,22 +495,26 @@ namespace lib {
 
     // the general case without keyword ...
 
-    dimension dim( 3 + Rank);
+    dimension dim( 3 + LogicalRank);
     
     if( e->KeywordSet(L64Ix)) {
       DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
-      (*res)[ 0] = Rank;
+      (*res)[ 0] = LogicalRank;
       for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
-      (*res) [ Rank+1] = vType;
-      (*res) [ Rank+2] = nEl;
+      if( isObjectContainer)
+	(*res)[ 0+1] = nEl;
+      (*res) [ LogicalRank+1] = vType;
+      (*res) [ LogicalRank+2] = nEl;
       
       return res;
     } else {
       DLongGDL* res = new DLongGDL( dim, BaseGDL::NOZERO);
-      (*res)[ 0] = Rank;
+      (*res)[ 0] = LogicalRank;
       for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
-      (*res) [ Rank+1] = vType;
-      (*res) [ Rank+2] = nEl;
+      if( isObjectContainer)
+	(*res)[ 0+1] = nEl;
+      (*res) [ LogicalRank+1] = vType;
+      (*res) [ LogicalRank+2] = nEl;
       
       return res;
     }
