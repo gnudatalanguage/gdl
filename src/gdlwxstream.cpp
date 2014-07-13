@@ -60,7 +60,6 @@ GDLWXStream::GDLWXStream( int width, int height )
   plP_esc( PLESC_DEVINIT, (void*)m_dc );
 
   plstream::set_stream();
-//   plgpls( &thePls); // in GDLGStream
 }
 
 
@@ -115,7 +114,6 @@ void GDLWXStream::Init()
 
   set_stream(); // private
 
-//   plgpls( &thePls); // in GDLGStream
 }
 
 

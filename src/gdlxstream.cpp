@@ -39,7 +39,6 @@ void GDLXStream::Init() {
 
   this->plstream::init();
 
-  plgpls(&pls);
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   wm_protocols = XInternAtom(xwd->display, "WM_PROTOCOLS", false);
@@ -219,6 +218,80 @@ unsigned long GDLXStream::GetWindowDepth() {
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   return xwd->depth;
 }
+DLong GDLXStream::GetVisualDepth() {
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XWindowAttributes wa;
+  if(XGetWindowAttributes( xwd->display, dev->window, &wa )) return (long)wa.depth;
+  else return -1;
+}
+DString GDLXStream::GetVisualName() {
+  static const char* visual_classes_names[] = {
+   "StaticGray" , 
+   "GrayScale" ,
+   "StaticColor" ,
+    "PseudoColor" ,
+   "TrueColor" ,
+   "DirectColor" };
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XWindowAttributes wa;
+  if(XGetWindowAttributes( xwd->display, dev->window, &wa )) {
+    /* need some works to go to Visual Name */
+    int junk;
+    XVisualInfo vistemplate, *vinfo; 
+    vistemplate.visualid = XVisualIDFromVisual(wa.visual);
+    vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
+    if (vinfo->c_class < 5){
+        std::string ret;
+        ret=std::string(visual_classes_names[vinfo->c_class]);
+        return ret;
+    } else return "";
+  }
+  else return "";
+  }
+
+  bool GDLXStream::UnsetFocus()
+  {
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XWMHints gestw;
+    gestw.input = FALSE;
+    gestw.flags = InputHint;
+    XSetWMHints(xwd->display, dev->window, &gestw);
+    return true;
+  }  
+  
+  bool GDLXStream::SetFocus()
+  {
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XWMHints gestw;
+    gestw.input = TRUE;
+    gestw.flags = InputHint;
+    XSetWMHints(xwd->display, dev->window, &gestw);
+    return true;
+  }
+  bool GDLXStream::EnableBackingStore(bool enable)
+  {
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XSetWindowAttributes attr;
+    if (enable)
+    {
+      attr.backing_store = Always;
+    }
+    else
+    {
+      attr.backing_store = NotUseful;
+    }
+    XChangeWindowAttributes(xwd->display, dev->window,CWBackingStore,&attr);
+    return true;
+  }
+
 void GDLXStream::Raise() {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
@@ -235,6 +308,7 @@ void GDLXStream::Iconic() {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XIconifyWindow(xwd->display, dev->window, xwd->screen);
+// really hides the window  XWithdrawWindow(xwd->display, dev->window, xwd->screen);
 }
 
 void GDLXStream::DeIconic() {

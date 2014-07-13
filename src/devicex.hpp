@@ -65,11 +65,11 @@ private:
   int getCursorId(){return cursorId;}
   long getGCFunction(){return gcFunction;}
   
-  void plimage_gdl(PLStream* pls, unsigned char *idata, PLINT nx, PLINT ny, 
+  void plimage_gdl(PLStream* plsShouldNotBeUsed, unsigned char *idata, PLINT nx, PLINT ny, 
 		   DLong tru, DLong chan)
   {
     PLINT ix, iy;
-    XwDev *dev = (XwDev *) pls->dev;
+    XwDev *dev = (XwDev *) plsShouldNotBeUsed->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL, *ximg_pixmap = NULL;
 
@@ -78,7 +78,7 @@ private:
     int (*oldErrorHandler)(Display*, XErrorEvent*);
 
     //the following 2 tests cannot happen i think. I keep them for safety.
-    if (pls->level < 3) {
+    if (plsShouldNotBeUsed->level < 3) {
       std::cerr<<"plimage: window must be set up first"<<std::endl; //plabort() not available anymore!
       return ;
     }
@@ -134,9 +134,9 @@ private:
 
       for( SizeT i = 0; i < ncolors; i++ ) {
 
-	xwd->cmap1[i].red   = ToXColor(pls->cmap1[i].r);
-	xwd->cmap1[i].green = ToXColor(pls->cmap1[i].g);
-	xwd->cmap1[i].blue  = ToXColor(pls->cmap1[i].b);
+	xwd->cmap1[i].red   = ToXColor(plsShouldNotBeUsed->cmap1[i].r);
+	xwd->cmap1[i].green = ToXColor(plsShouldNotBeUsed->cmap1[i].g);
+	xwd->cmap1[i].blue  = ToXColor(plsShouldNotBeUsed->cmap1[i].b);
 	xwd->cmap1[i].flags = DoRed | DoGreen | DoBlue;
 	
 	if ( XAllocColor( xwd->display, xwd->map, &xwd->cmap1[i]) == 0)
@@ -145,8 +145,8 @@ private:
       xwd->ncol1 = ncolors;
     }
 
-    PLINT xoff = (PLINT) (pls->wpxoff/32767 * dev->width  + 1);
-    PLINT yoff = (PLINT) (pls->wpyoff/24575 * dev->height + 1);
+    PLINT xoff = (PLINT) (plsShouldNotBeUsed->wpxoff/32767 * dev->width  + 1);
+    PLINT yoff = (PLINT) (plsShouldNotBeUsed->wpyoff/24575 * dev->height + 1);
     PLINT kx, ky;
 
     XColor curcolor;
@@ -830,62 +830,16 @@ public:
     
     DLong GetVisualDepth()
     {
-        PLStream* pls;
-        plgpls(&pls);
-        XwDev *dev = (XwDev *) pls->dev;
-        if (dev == NULL || dev->xwd == NULL) {
-            GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-            GDLGStream* newStream = actDevice->GetStream();
-            plgpls(&pls);
-            dev = (XwDev *) pls->dev;
-            if (dev == NULL) {
-                std::cerr << "Device not open." << std::endl;
-                return -1;
-            }
-        }
-        XwDisplay *xwd = (XwDisplay *) dev->xwd;
-        XWindowAttributes wa;
-        if(XGetWindowAttributes( xwd->display, dev->window, &wa )) return (DLong)wa.depth;
-        else return -1;
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualDepth();
     }
 
     DString GetVisualName()
     {
-    static const char* visual_classes_names[] = {
-     "StaticGray" , //must be casted char* since literal strings are char const * 
-     "GrayScale" ,
-     "StaticColor" ,
-      "PseudoColor" ,
-     "TrueColor" ,
-     "DirectColor" };
-    PLStream* pls;
-        plgpls(&pls);
-        XwDev *dev = (XwDev *) pls->dev;
-        if (dev == NULL || dev->xwd == NULL) {
-            GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-            GDLGStream* newStream = actDevice->GetStream();
-            plgpls(&pls);
-            dev = (XwDev *) pls->dev;
-            if (dev == NULL) {
-                std::cerr << "Device not open." << std::endl;
-                return "";
-            }
-        }
-        XwDisplay *xwd = (XwDisplay *) dev->xwd;
-        XWindowAttributes wa;
-        if(XGetWindowAttributes( xwd->display, dev->window, &wa )) {
-          /* need some works to go to Visual Name */
-          int junk;
-          XVisualInfo vistemplate, *vinfo; 
-          vistemplate.visualid = XVisualIDFromVisual(wa.visual);
-          vinfo = XGetVisualInfo(xwd->display, VisualIDMask, &vistemplate, &junk);
-          if (vinfo->c_class < 5){
-              string ret;
-              ret=string(visual_classes_names[vinfo->c_class]);
-              return ret;
-          } else return "";
-        }
-        else return "";
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualName();
     }
     
     DByteGDL* WindowState()
@@ -916,61 +870,19 @@ public:
     return CursorStandard(XC_crosshair);
   }
   
-  void ResizeWin(UInt width, UInt height)
-  {
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL) return;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XResizeWindow(xwd->display, dev->window, width, height);
-  }
   
   bool UnsetFocus()
   {
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL) return false;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XWMHints gestw;
-    gestw.input = FALSE;
-    gestw.flags = InputHint;
-    XSetWMHints(xwd->display, dev->window, &gestw);
-    return true;
+    return winList[ actWin]->UnsetFocus();
   }  
   
   bool SetFocus()
   {
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL) return false;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XWMHints gestw;
-    gestw.input = TRUE;
-    gestw.flags = InputHint;
-    XSetWMHints(xwd->display, dev->window, &gestw);
-    return true;
+    return winList[ actWin]->SetFocus();
   }
   bool EnableBackingStore(bool enable)
   {
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL) return false;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XSetWindowAttributes attr;
-    if (enable)
-      {
-	attr.backing_store = Always;
-      }
-    else
-      {
-	attr.backing_store = NotUseful;
-      }
-    XChangeWindowAttributes(xwd->display, dev->window,CWBackingStore,&attr);
-    return true;
+    return winList[ actWin]->EnableBackingStore(enable);
   }
 
 
@@ -991,15 +903,15 @@ public:
     //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
     //as soon as part of the window is obscured.
     int (*oldErrorHandler)(Display*, XErrorEvent*);
-    PLStream* pls;
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
+    PLStream* plsShouldNotBeUsed;
+    plgpls( &plsShouldNotBeUsed);
+    XwDev *dev = (XwDev *) plsShouldNotBeUsed->dev;
     if( dev == NULL || dev->xwd == NULL)
       {
 	GDLGStream* newStream = actDevice->GetStream();
 	//already done: newStream->Init();
-	plgpls( &pls);
-	dev = (XwDev *) pls->dev;
+	plgpls( &plsShouldNotBeUsed);
+	dev = (XwDev *) plsShouldNotBeUsed->dev;
 	if( dev == NULL) e->Throw( "Device not open.");
       }
 
@@ -1180,7 +1092,7 @@ public:
     //    Graphics* actDevice = Graphics::GetDevice();
 
     SizeT nParam=e->NParam( 1); 
-    PLStream* pls;
+    PLStream* plsShouldNotBeUsed;
 
     GDLGStream* actStream = GetStream();
     if( actStream == NULL)
@@ -1191,8 +1103,8 @@ public:
 
     //    actStream->NextPlot( false);
     actStream->NoSub();
-    plgpls( &pls);
-    XwDev *dev = (XwDev *) pls->dev;
+    plgpls( &plsShouldNotBeUsed);
+    XwDev *dev = (XwDev *) plsShouldNotBeUsed->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
 
     int xSize, ySize, xPos, yPos;
@@ -1321,7 +1233,7 @@ public:
 
     Guard<BaseGDL> chan_guard;
     if (channel == 0) {
-      plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);
+      plimage_gdl(plsShouldNotBeUsed, &(*p0B)[0], width, height, tru, channel);
     } else if (rank == 3) {
       // Rank == 3 w/channel
       SizeT dims[2];
@@ -1333,11 +1245,11 @@ public:
 	(*p0B_chan)[i/3] = (*p0B)[i];
       }
       // Send just single channel
-      plimage_gdl(pls, &(*p0B_chan)[0], width, height, tru, channel);
+      plimage_gdl(plsShouldNotBeUsed, &(*p0B_chan)[0], width, height, tru, channel);
       chan_guard.Init( p0B_chan); // delete upon exit
     } else if (rank == 2) {
       // Rank = 2 w/channel
-      plimage_gdl(pls, &(*p0B)[0], width, height, tru, channel);
+      plimage_gdl(plsShouldNotBeUsed, &(*p0B)[0], width, height, tru, channel);
     }
   }
 

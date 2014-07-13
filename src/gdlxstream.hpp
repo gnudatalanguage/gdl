@@ -28,7 +28,6 @@ class GDLXStream: public GDLGStream
   Atom wm_protocols;
   Atom wm_delete_window;
 
-  PLStream* pls;
 public:
   GDLXStream( int nx, int ny)
     : GDLGStream( nx, ny, "xwin")
@@ -46,6 +45,11 @@ public:
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   void GetWindowSize( long& xSize, long& ySize);
   unsigned long GetWindowDepth();
+  DLong GetVisualDepth();
+  DString GetVisualName();
+  bool SetFocus();
+  bool UnsetFocus();
+  bool EnableBackingStore(bool enable);
   bool SetGraphicsFunction(long value );
   bool GetWindowPosition(long& xpos, long& ypos );
   bool CursorStandard(int cursorNumber);

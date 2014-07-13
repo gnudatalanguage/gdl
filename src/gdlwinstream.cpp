@@ -27,8 +27,6 @@ using namespace std;
 void GDLWINStream::Init()
 {
 	plstream::init();
-	plgpls(&pls);
-	//pls->debug = true;
 
 	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 	dev->waiting = 1;
