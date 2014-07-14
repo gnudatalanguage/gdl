@@ -233,7 +233,12 @@ namespace lib {
         os << "";
       }
 
-    // Type display
+    // Type display (we have two "null" : defined !null and undefined variables ...
+    if (par == NULL) 
+      {
+        os << "UNDEFINED = <Undefined>" << endl;
+        return;
+      }
     if( !par)
       {
         os << "UNDEFINED = !NULL" << endl;

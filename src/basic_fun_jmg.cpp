@@ -138,22 +138,25 @@ namespace lib {
     }
 
     if(type == "STRUCT"){
+      //cout << "struct" << endl;
+      rank=1; // alway array following ISA() doc.
       DStructGDL* str = static_cast<DStructGDL*>(p0);	   
-      if(str->Desc()->IsUnnamed()) {
-	structName="ANONYMOUS";
-      }else structName = str->Desc()->Name();
+      if(str->Desc()->IsUnnamed()) structName="ANONYMOUS"; else structName = str->Desc()->Name();
     }
 
     if(type == "OBJREF"){
+      //cout << "OBJREF" << endl;
       DObjGDL* obj = static_cast<DObjGDL*>(p0);
       DObj objID = (*obj)[0];
-      if(objID == 0){
-	res = false;
-      }else res = true;
-      BaseGDL* objRef = DInterpreter::GetObjHeap(objID);
-      DStructGDL* str = static_cast<DStructGDL*>(objRef);
-      if(str->Desc()->IsUnnamed()) objectName="Anonymous";
-      else objectName = str->Desc()->Name();
+      if(objID == 0) res = false; else res = true;
+
+      DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow(objID);
+      if( oStructGDL != NULL) {
+	BaseGDL* objRef = DInterpreter::GetObjHeap(objID);
+	DStructGDL* str = static_cast<DStructGDL*>(objRef);
+	if(str->Desc()->IsUnnamed()) objectName="Anonymous"; else objectName = str->Desc()->Name();
+	// cout << objectName << endl;
+      }
     }
 
     //second par.
@@ -168,14 +171,9 @@ namespace lib {
       p1Str = static_cast<DStringGDL*>(p1->Convert2(GDL_STRING,BaseGDL::COPY));
       transform((*p1Str)[0].begin(), (*p1Str)[0].end(),(*p1Str)[0].begin(), ::toupper);
       
-      //   if((*p1Str)[0] == "POINTER") e->Throw("(pointer - ISA() not ready !)");
-      //if((*p1Str)[0] == "STRUCT") e->Throw("(struct - ISA() not ready !)");
-      //      if((*p1Str)[0] == "OBJECT") e->Throw("(object - ISA() not ready !)");
+      if (type == (*p1Str)[0]) res = true; else res = false;
 
-      if (type == (*p1Str)[0]) res = true;
-      else res = false;
-
-      debug=1;
+      debug=0;
       if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
 	
       if(type == "STRUCT"){ if(structName == (*p1Str)[0]) res = true;}
@@ -189,8 +187,7 @@ namespace lib {
       }
 
       if(SCALAR_KW_B && res){
-	if(rank==0) isSCALAR=true;
-	else isSCALAR=false;
+	if (rank == 0) isSCALAR=true; else isSCALAR=false;
 	res = res && isSCALAR; 
       }
 
@@ -201,8 +198,7 @@ namespace lib {
 
       if(ARRAY_KW_B && res){
 	//cout<<"Array"<<endl;
-	if(rank>0) isARRAY = true;
-	else isARRAY = false;
+	if (rank > 0) isARRAY = true; else isARRAY = false;
 	res = res && isARRAY;
       }
 
@@ -210,11 +206,13 @@ namespace lib {
 	res = false;
       }
     } else {
+      // we have two cases : undefined variable OR variable set to !null
       //res = false;
       if(NULL_KW_B){
-	res = true;
-      }else 
+	if (p0 == NULL) res = false; else res = true;
+      } else {
 	res = res && (!ARRAY_KW_B) && (!SCALAR_KW_B) && (!NUMBER_KW_B); 
+      }
     }
 
     if(FILE_KW_B){
@@ -230,14 +228,15 @@ namespace lib {
     DString type="";
     BaseGDL* p0 = e->GetPar(0);
 
-    // we manage !null and Undefined here
+    // we manage Undefined here, !null is managed below
     if (p0 == NULL) return new DStringGDL("UNDEFINED");
     
     int redo=0;
 
     switch (p0->Type())
       {
-      case GDL_UNDEF: type="UNDEFINED"; break; // should be already done !
+	// this is different that (p0 == NULL), here input is set to !null
+      case GDL_UNDEF: type="UNDEFINED"; break;
       case GDL_BYTE: type="BYTE"; break;
       case GDL_INT: type="INT"; break;
       case GDL_LONG: type="LONG"; break;
