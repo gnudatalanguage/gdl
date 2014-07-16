@@ -42,13 +42,15 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
+    if (e->NParam() == 0) e->Throw("Requires at least one argument !");
+
     DString type;
     BaseGDL *p0;
     BaseGDL *p1;
     DStringGDL *p1Str;
     DString p1S = "";
-    int numParam,nb_kw=0;
-    bool res = true;
+    int nb_kw=0;
+
     bool ARRAY_KW_B = false;
     bool FILE_KW_B = false;
     bool NULL_KW_B = false;
@@ -57,7 +59,6 @@ namespace lib {
     bool isARRAY = false;
     bool isFILE = false;
     bool isNULL = false;
-    bool isNUMBER = false;
     bool isSCALAR = false;
     bool secPar = false;
     SizeT n_elem;
@@ -74,57 +75,59 @@ namespace lib {
     static int scalar_kw = e->KeywordIx("SCALAR");
     
     if (e->KeywordSet(array_kw)) { ARRAY_KW_B = true;}
-    if (e->KeywordSet(file_kw)) { FILE_KW_B = true;}
     if (e->KeywordSet(null_kw)) { NULL_KW_B = true;}
     if (e->KeywordSet(number_kw)) { NUMBER_KW_B = true;}
     if (e->KeywordSet(scalar_kw)) { SCALAR_KW_B = true; }
+
+    // not ready
+    if (e->KeywordSet(file_kw)) { FILE_KW_B = true;}
+    if (FILE_KW_B) e->Throw("(file keyword - ISA() not ready ! Please contribute !!)");
 	
-    if(SCALAR_KW_B && ARRAY_KW_B) {
+    if (SCALAR_KW_B && ARRAY_KW_B) {
       e->Throw("Keywords ARRAY and SCALAR are mutually exclusive.");
     }
 
-    if(NULL_KW_B) {
+    if (NULL_KW_B) {
       string txt="Keywords NULL and ";
-      if(ARRAY_KW_B) e->Throw(txt+"ARRAY are mutually exclusive.");
-      if(FILE_KW_B) e->Throw(txt+"FILE are mutually exclusive.");
-      if(SCALAR_KW_B) e->Throw(txt+"SCALAR are mutually exclusive.");
-      if(NUMBER_KW_B) e->Throw(txt+"NUMBER are mutually exclusive.");
-    }
-
-    numParam = e->NParam();
-    if(numParam == 0){
-      e->Throw("Requires at least one argument !");
+      if (ARRAY_KW_B) e->Throw(txt+"ARRAY are mutually exclusive.");
+      if (FILE_KW_B) e->Throw(txt+"FILE are mutually exclusive.");
+      if (SCALAR_KW_B) e->Throw(txt+"SCALAR are mutually exclusive.");
+      if (NUMBER_KW_B) e->Throw(txt+"NUMBER are mutually exclusive.");
     }
 
     //first par.
     p0 = e->GetPar(0);
 
+    bool isNUMBER = true;
+    bool res = true;
+
     if (p0 == NULL) {
       type="UNDEFINED";
       res = false;
+      isNUMBER=false;
     } else {
       n_elem = p0->N_Elements();
       rank = p0->Rank();
       if (debug) cout << "type : "<< p0->Type() << ", Rank : "<< rank << endl;
-
+      
       switch (p0->Type())
 	{
-	case GDL_UNDEF: type="UNDEFINED";break; 
-	case GDL_BYTE: type="BYTE";isNUMBER=true; break;
-	case GDL_INT: type="INT"; isNUMBER=true; break;
-	case GDL_LONG: type="LONG"; isNUMBER=true; break;
-	case GDL_FLOAT: type="FLOAT"; isNUMBER=true; break;
-	case GDL_DOUBLE: type="DOUBLE"; isNUMBER=true; break;
-	case GDL_COMPLEX: type="COMPLEX"; isNUMBER=true; break;
+	case GDL_UNDEF: type="UNDEFINED"; isNUMBER=false; res=false; break; 
+	case GDL_BYTE: type="BYTE"; break;
+	case GDL_INT: type="INT"; break;
+	case GDL_LONG: type="LONG"; break;
+	case GDL_FLOAT: type="FLOAT"; break;
+	case GDL_DOUBLE: type="DOUBLE"; break;
+	case GDL_COMPLEX: type="COMPLEX"; break;
 	case GDL_STRING: type="STRING"; isNUMBER=false; break;
 	case GDL_STRUCT: type="STRUCT"; isNUMBER=false; break;
-	case GDL_COMPLEXDBL: type="DCOMPLEX";isNUMBER=true; break;
+	case GDL_COMPLEXDBL: type="DCOMPLEX"; break;
 	case GDL_PTR: type="POINTER"; isNUMBER=false; break;
 	case GDL_OBJ: type="OBJREF"; isNUMBER=false; break;
-	case GDL_UINT: type="UINT";isNUMBER=true; break;
-	case GDL_ULONG: type="ULONG";isNUMBER=true; break;
-	case GDL_LONG64: type="LONG64";isNUMBER=true; break;
-	case GDL_ULONG64: type="ULONG64";isNUMBER=true; break;
+	case GDL_UINT: type="UINT"; break;
+	case GDL_ULONG: type="ULONG"; break;
+	case GDL_LONG64: type="LONG64"; break;
+	case GDL_ULONG64: type="ULONG64"; break;
 
 	default: e->Throw("This should never happen, please report");
 	}
@@ -133,8 +136,7 @@ namespace lib {
     if(type == "POINTER"){
       DPtrGDL* ptr = static_cast<DPtrGDL*>(p0);
       DPtr ptrID = (*ptr)[0];
-      if(ptrID == 0) res=false;
-      else res=true;
+      if(ptrID == 0) res=false; else res=true;
     }
 
     if(type == "STRUCT"){
@@ -161,13 +163,14 @@ namespace lib {
 
     //second par.
     p1 = e->GetPar(1);
-    if(p1 != NULL){
-      
+    if (p1 != NULL){
+
       if (p1->Type() != GDL_STRING)
 	e->Throw("String expression required in this context:"+e->GetParString(1));
 
       if (p1->N_Elements() > 1)
-	e->Throw("Expression must be a scalar or 1 element array in this context"+e->GetParString(1));      
+	e->Throw("Expression must be a scalar or 1 element array in this context"+e->GetParString(1));
+
       p1Str = static_cast<DStringGDL*>(p1->Convert2(GDL_STRING,BaseGDL::COPY));
       transform((*p1Str)[0].begin(), (*p1Str)[0].end(),(*p1Str)[0].begin(), ::toupper);
       
@@ -207,18 +210,17 @@ namespace lib {
       }
     } else {
       // we have two cases : undefined variable OR variable set to !null
-      //res = false;
-      if(NULL_KW_B){
-	if (p0 == NULL) res = false; else res = true;
+      if (NULL_KW_B){
+	if (p0 == NULL) res = false; 
+	else {
+	  res = true;
+	  res = res && (!ARRAY_KW_B) && (!SCALAR_KW_B) && (!NUMBER_KW_B); 
+	}
       } else {
 	res = res && (!ARRAY_KW_B) && (!SCALAR_KW_B) && (!NUMBER_KW_B); 
       }
     }
-
-    if(FILE_KW_B){
-      e->Throw("(file keyword - ISA() not ready !)");
-    }
-
+    
     if (res) return new DByteGDL(1);
     return new DByteGDL(0);
   }
@@ -337,31 +339,31 @@ namespace lib {
 
     bool isObjectContainer = false;
     if( vType == GDL_OBJ)
-    {
-      DObjGDL* p0Obj = static_cast<DObjGDL*>(p0);
-      if( p0Obj->StrictScalar())
       {
-	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( (*p0Obj)[0]);
-	if( oStructGDL != NULL) // if object not valid -> default behaviour
-	{  
-	  DStructDesc* desc = oStructGDL->Desc();
+	DObjGDL* p0Obj = static_cast<DObjGDL*>(p0);
+	if( p0Obj->StrictScalar())
+	  {
+	    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( (*p0Obj)[0]);
+	    if( oStructGDL != NULL) // if object not valid -> default behaviour
+	      {  
+		DStructDesc* desc = oStructGDL->Desc();
 
-	  if( desc->IsParent("LIST"))
-	  {
-	    isObjectContainer = true;
+		if( desc->IsParent("LIST"))
+		  {
+		    isObjectContainer = true;
+		  }
+		if( desc->IsParent("HASH"))
+		  {
+		    isObjectContainer = true;
+		  }
+	      }
 	  }
-	  if( desc->IsParent("HASH"))
-	  {
-	    isObjectContainer = true;
-	  }
-	}
       }
-    }
 
     if( isObjectContainer)
-    {
-      LogicalRank = 1;
-    }
+      {
+	LogicalRank = 1;
+      }
     
     // DIMENSIONS
     if( e->KeywordSet( dimIx)) { 

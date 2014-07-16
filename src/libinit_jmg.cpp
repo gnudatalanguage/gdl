@@ -77,7 +77,7 @@ void LibInit_jmg()
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
   
-  // the 2 following by Alain C.
+  // the 2 following by Alain C. and Levan L.
   const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR",KLISTEND};
   new DLibFunRetNew(lib::isa_fun,string("ISA"),2,isaKey);
 
