@@ -36,36 +36,91 @@ end
 
 ;  -----------------------------------------------
 
-; pro TEST_ISA_FOR_LIST, external_errors, verbose=verbose
+pro TEST_ISA_FOR_LIST, external_errors, verbose=verbose
 
-; if KEYWORD_SET(verb) then verb=1 else verb=0
+if KEYWORD_SET(verb) then verb=1 else verb=0
 
-; end
+data = LIST()
+if ISA(data) eq 0 then external_errors=external_errors+1
+if ISA(data,'LIST') eq 0 then external_errors=external_errors+1
+if ISA(data,'OBJREF') eq 0 then external_errors=external_errors+1
+if ISA(data,/NULL) eq 1 then external_errors=external_errors+1
+if ISA(data,"UNDEFINED") eq 1 then external_errors=external_errors+1
 
-;  -----------------------------------------------
+;error in LIST
+;data = LIST(1,2,3)
+;if ISA(data,/ARRAY) eq 0 then external_errors=external_errors+1
 
-; pro TEST_ISA_FOR_HASH, external_errors, verbose=verbose
-
-; if KEYWORD_SET(verb) then verb=1 else verb=0
-; if (verb) then MESSAGE, /continue, 'Starting testing for HASH'
-
-; data=HASH()
-; if ISA(data,/NULL) eq 0 then nb_errors=nb_errors+1
-; if ISA(a,"undefined",/NULL) eq 0 then nb_errors=nb_errors+1
-; if ISA(a,"undefined") eq 0 then nb_errors=nb_errors+1
-; if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing Undefined (2).'
-
-
-; end
+end
 
 ;  -----------------------------------------------
 
-; pro TEST_ISA_FOR_OBJECT, external_errors, verbose=verbose
+pro TEST_ISA_FOR_HASH, external_errors, verbose=verbose
 
-; if KEYWORD_SET(verb) then verb=1 else verb=0
+if KEYWORD_SET(verb) then verb=1 else verb=0
+if (verb) then MESSAGE, /continue, 'Starting testing for HASH'
 
-; end
-;
+data=HASH()
+if ISA(data) eq 0 then external_errors=external_errors+1
+if ISA(data,'HASH') eq 0 then external_errors=external_errors+1
+if ISA(data,'OBJREF') eq 0 then external_errors=external_errors+1
+if ISA(data,/NULL) eq 1 then external_errors=external_errors+1
+if ISA(data,"UNDEFINED") eq 1 then external_errors=external_errors+1
+
+end
+
+;  -----------------------------------------------
+
+pro TEST_ISA_FOR_POINTER, external_errors, verbose=verbose
+
+if KEYWORD_SET(verb) then verb=1 else verb=0
+
+;testing NULL pointer
+ptr = PTR_NEW()
+if ISA(ptr) eq 1 then external_errors=external_errors+1
+if ISA(ptr,/NULL) eq 1 then external_errors=external_errors+1
+if ISA(ptr,'POINTER') eq 0 then external_errors=external_errors+1
+if ISA(ptr,'STRING') eq 1 then external_errors=external_errors+1
+
+;testing not a NULL pointer
+ptr = PTR_NEW(1)
+if ISA(ptr) eq 0 then external_errors=external_errors+1
+if ISA(*ptr) eq 0 then external_errors=external_errors+1
+end
+
+
+;  -----------------------------------------------
+
+pro TEST_ISA_FOR_OBJECT, external_errors, verbose=verbose
+
+if KEYWORD_SET(verb) then verb=1 else verb=0
+
+obj = OBJ_NEW()
+if ISA(obj) eq 1 then external_errors=external_errors+1
+if ISA(obj,'OBJECT') eq 1 then external_errors=external_errors+1
+if ISA(obj,'OBJREF') eq 0 then external_errors=external_errors+1
+if ISA(obj,/NULL) eq 1 then external_errors=external_errors+1
+obj = OBJ_NEW('LIST')
+if ISA(obj) eq 0 then external_errors=external_errors+1
+if ISA(obj,'OBJREF') eq 0 then external_errors=external_errors+1
+if ISA(obj,'LIST') eq 0 then external_errors=external_errors+1
+
+end
+
+; -----------------------------------------------
+
+pro TEST_ISA_FOR_STRUCT, external_errors, verbose=verbose
+
+if KEYWORD_SET(verb) then verb=1 else verb=0
+
+str = {MYSTRUCT, field1: 'f1'}
+if ISA(str) eq 0 then external_errors=external_errors+1
+if ISA(str,'STRUCT') eq 0 then external_errors=external_errors+1
+if ISA(str,'MYSTRUCT') eq 0 then external_errors=external_errors+1
+
+end
+
+
 ; -----------------------------------------------
 ;
 pro TEST_ISA_FOR_NUMBERS, external_errors, array=array, verbose=verbose
@@ -205,17 +260,25 @@ INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 ; testing Objects, List, Hash
 ;
-;TEST_ISA_FOR_OBJECT, nb_errors, verbose=verbose
-;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing OBJECT'
-;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+TEST_ISA_FOR_OBJECT, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing OBJECT'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
-;TEST_ISA_FOR_LIST, nb_errors, verbose=verbose
-;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing LIST'
-;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
-;
-;TEST_ISA_FOR_HASH, nb_errors, verbose=verbose
-;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing HASH'
-;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+TEST_ISA_FOR_POINTER, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing POINTER'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+
+TEST_ISA_FOR_STRUCT, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing STRUCT'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+
+TEST_ISA_FOR_LIST, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing LIST'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+
+TEST_ISA_FOR_HASH, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing HASH'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 ; final message
 ;
@@ -226,3 +289,4 @@ if (total_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 if KEYWORD_SET(test) then STOP
 ;
 end
+
