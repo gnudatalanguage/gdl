@@ -426,18 +426,20 @@ DULong SHAH0[] = {
   BaseGDL* ptr_new( EnvT* e)
   {
     int nParam=e->NParam();
-    
     if( nParam > 0)
       {
 	// new ptr from undefined variable is allowed as well
 	BaseGDL* p= e->GetPar( 0);
-        if( p == NULL)
+        if ( p == NULL)
 	  {
 	    DPtr heapID= e->NewHeap();
 	    return new DPtrGDL( heapID);
 	  }
+	
+	// this case was discovered by chance by Leva, July 16, 2014
+	// p=ptr_new(!null) should work
 
-	if( e->KeywordSet(0)) // NO_COPY
+	if ((p->Type() == GDL_UNDEF) || (e->KeywordSet("NO_COPY"))) // NO_COPY
 	  {
 	    BaseGDL** p= &e->GetPar( 0);
 	    // 	    if( *p == NULL)
