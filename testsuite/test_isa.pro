@@ -24,11 +24,128 @@ return,type_fun
 ;
 end
 ;
+; -----------------------------------------------
+; this procedure adds running "nb_errors" into "total_errors"
+; then reset "nb_errors" to 0 for next block of tests.
+;
 pro INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 if KEYWORD_SET(verbose) then print, total_errors, nb_errors
 total_errors=total_errors+nb_errors
 nb_errors=0
 end
+
+;  -----------------------------------------------
+
+; pro TEST_ISA_FOR_LIST, external_errors, verbose=verbose
+
+; if KEYWORD_SET(verb) then verb=1 else verb=0
+
+; end
+
+;  -----------------------------------------------
+
+; pro TEST_ISA_FOR_HASH, external_errors, verbose=verbose
+
+; if KEYWORD_SET(verb) then verb=1 else verb=0
+; if (verb) then MESSAGE, /continue, 'Starting testing for HASH'
+
+; data=HASH()
+; if ISA(data,/NULL) eq 0 then nb_errors=nb_errors+1
+; if ISA(a,"undefined",/NULL) eq 0 then nb_errors=nb_errors+1
+; if ISA(a,"undefined") eq 0 then nb_errors=nb_errors+1
+; if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing Undefined (2).'
+
+
+; end
+
+;  -----------------------------------------------
+
+; pro TEST_ISA_FOR_OBJECT, external_errors, verbose=verbose
+
+; if KEYWORD_SET(verb) then verb=1 else verb=0
+
+; end
+;
+; -----------------------------------------------
+;
+pro TEST_ISA_FOR_NUMBERS, external_errors, array=array, verbose=verbose
+;
+if KEYWORD_SET(array) then dim=1 else dim=0
+;
+if KEYWORD_SET(verb) then verb=1 else verb=0
+;
+if (verb) then begin
+    txt='Starting testing for Numbers types '
+    if (dim EQ 0) then MESSAGE, /continue, txt+'(scalar)'
+    if (dim EQ 1) then MESSAGE, /continue, txt+'(array)'
+endif
+;
+;for numerical types, expect "PTR","OBJ","STR","STRING"
+list_type = ["BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX",$
+             "DCOMPLEX","UINT","ULONG","LONG64","ULONG64"]
+;list_keywords = ["/NULL","/ARRAY","/SCALAR","/NUMBER"]
+;
+n = N_ELEMENTS(list_type)
+;
+; this is for internal errors only
+nb_errors=0
+;
+for i=0,n-1 do begin
+    ;;
+    tmp_var = TYPE_GEN(list_type[i])
+    ;;
+    if (dim EQ 1) then tmp_var =REPLICATE(tmp_var, 4)
+    ;;
+    if (verb) then HELP, tmp_var
+    ;;
+    if ISA(tmp_var) eq 0 then nb_errors=nb_errors+1
+    if ISA(tmp_var,list_type[i]) eq 0 then nb_errors=nb_errors+1
+    if ISA(tmp_var,"OTHER") eq 1 then nb_errors=nb_errors+1
+    ;;
+    for j=1,n-2 do begin
+        ind = i+j
+        if ind lt n then ind=ind else  ind = ind - n
+        if ISA(tmp_var,list_type[ind]) eq 1 then nb_errors=nb_errors+1 	
+        if ISA(tmp_var,list_type[ind],/SCALAR) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,list_type[ind],/ARRAY) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,list_type[ind],/NUMBER) eq 1 then nb_errors=nb_errors+1
+    endfor	
+    ;;
+    ;;if ISA gives 1 for different types, 
+    ;; ( for example: a = 2   &&   ISA(a,"STRING")-->1)
+    ;;testing string
+    ;;
+    if ISA(str_var,list_type[i]) eq 1 then nb_errors=nb_errors+1
+    for j=i+1,n-1 do begin
+        if ISA(tmp_var,list_type[j]) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,list_type[j],/SCALAR) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,list_type[j],/ARRAY) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,list_type[j],/NUMBER) eq 1 then nb_errors=nb_errors+1
+    endfor
+    ;;
+    ;;      testing keywords
+    ;;NULL
+    if ISA(tmp_var,/NULL) eq 1 then nb_errors=nb_errors+1
+    ;;NUMBER
+    if ISA(tmp_var,/NUMBER) eq 0 then nb_errors=nb_errors+1
+    ;;
+    ;; cross test Scalar or Array
+    if (dim EQ 1) then begin
+        if ISA(tmp_var,/ARRAY) eq 0 then nb_errors=nb_errors+1
+        if ISA(tmp_var,/SCALAR) eq 1 then nb_errors=nb_errors+1
+    endif else begin
+        if ISA(tmp_var,/ARRAY) eq 1 then nb_errors=nb_errors+1
+        if ISA(tmp_var,/SCALAR) eq 0 then nb_errors=nb_errors+1
+    endelse
+    ;;
+    if (nb_errors GT 0) then begin
+        MESSAGE, /continue, 'Errors found within type : '+list_type[i]
+    endif
+    INCREMENT_ERRORS, external_errors, nb_errors, verbose=verbose
+endfor
+;
+end
+;
 ; -----------------------------------------------
 ;
 pro TEST_ISA, nb_errors=nb_errors, tmp_var=tmp_var, $
@@ -76,49 +193,31 @@ if ISA(str_var,"OTHER") eq 1 then nb_errors=nb_errors+1
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing STRING.'
 INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
-;for numerical types, expect "PTR","OBJ","STR","STRING"
-list_type = ["BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX",$
-             "DCOMPLEX","UINT","ULONG","LONG64","ULONG64"]
-list_keywords = ["/NULL","/ARRAY","/SCALAR","/NUMBER"]
-
-n = N_ELEMENTS(list_type)
-
-for i=0,n-1 do begin
-    ;;
-    tmp_var = TYPE_GEN(list_type[i])
-    ;;
-    if ISA(tmp_var) eq 0 then nb_errors=nb_errors+1
-    if ISA(tmp_var,list_type[i]) eq 0 then nb_errors=nb_errors+1
-    if ISA(tmp_var,"OTHER") eq 1 then nb_errors=nb_errors+1
-    ;;
-    for j=1,n-2 do begin
-        ind = i+j
-        if ind lt n then ind=ind else  ind = ind - n
-        if ISA(tmp_var,list_type[ind]) eq 1 then nb_errors=nb_errors+1 	
-    endfor	
-    ;;
-    ;;if ISA gives 1 for different types, 
-    ;; ( for example: a = 2   &&   ISA(a,"STRING")-->1)
-    ;;testing string
-    ;;
-    if ISA(str_var,list_type[i]) eq 1 then nb_errors=nb_errors+1
-    for j=i+1,n-1 do begin
-        if ISA(tmp_var,list_type[j]) eq 1 then nb_errors=nb_errors+1
-    endfor
-    ;;
-    ;;      testing keywords
-    ;;NULL
-    if ISA(tmp_var,/NULL) eq 1 then nb_errors=nb_errors+1
-    ;;ARRAY	
-    if ISA(tmp_var,/ARRAY) eq 1 then nb_errors=nb_errors+1
-    ;;SCALAR
-    if ISA(tmp_var,/SCALAR) eq 0 then nb_errors=nb_errors+1
-    ;;
-    if (nb_errors GT 0) then begin
-        MESSAGE, /continue, 'Errors found within type : '+list_type[i]
-    endif
-    INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
-endfor
+; testing numerical types, one time for Scalar, one time for Array
+;
+TEST_ISA_FOR_NUMBERS, nb_errors, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing NUMBERS (scalar).'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+;
+TEST_ISA_FOR_NUMBERS, nb_errors, /array, verbose=verbose
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing NUMBERS (array).'
+INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+;
+; testing Objects, List, Hash
+;
+;TEST_ISA_FOR_OBJECT, nb_errors, verbose=verbose
+;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing OBJECT'
+;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+;
+;TEST_ISA_FOR_LIST, nb_errors, verbose=verbose
+;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing LIST'
+;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+;
+;TEST_ISA_FOR_HASH, nb_errors, verbose=verbose
+;if nb_errors gt 0 then MESSAGE, /cont, 'Errors in Testing HASH'
+;INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+;
+; final message
 ;
 BANNER_FOR_TESTSUITE, 'TEST_ISA', total_errors, short=short
 ;
