@@ -33,101 +33,193 @@ if KEYWORD_SET(verbose) then print, total_errors, nb_errors
 total_errors=total_errors+nb_errors
 nb_errors=0
 end
-
+;
 ;  -----------------------------------------------
-
+;
 pro TEST_ISA_FOR_LIST, external_errors, verbose=verbose
-
-if KEYWORD_SET(verb) then verb=1 else verb=0
-
+;
+if KEYWORD_SET(verbose) then verb=1 else verb=0
+;
+nb_errors=0
+accumul_errors=0
+;
+txt=' testing ISA for LIST'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
 data = LIST()
-if ISA(data) eq 0 then external_errors=external_errors+1
-if ISA(data,'LIST') eq 0 then external_errors=external_errors+1
-if ISA(data,'OBJREF') eq 0 then external_errors=external_errors+1
-if ISA(data,/NULL) eq 1 then external_errors=external_errors+1
-if ISA(data,"UNDEFINED") eq 1 then external_errors=external_errors+1
-
-;error in LIST
-;data = LIST(1,2,3)
-;if ISA(data,/ARRAY) eq 0 then external_errors=external_errors+1
+if ISA(data) eq 0 then nb_errors=nb_errors+1
+if ISA(data,'LIST') eq 0 then nb_errors=nb_errors+1
+if ISA(data,'OBJREF') eq 0 then nb_errors=nb_errors+1
+if ISA(data,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,"UNDEFINED") eq 1 then nb_errors=nb_errors+1
+if ISA(data,/ARRAY) eq 0 then nb_errors=nb_errors+1
+if (verb) or (nb_errors GT 0) then BANNER_FOR_TESTSUITE, 'Void list() test done', nb_errors,/short
+INCREMENT_ERRORS, accumul_errors, nb_errors
+;
+;error in LIST rank
+;
+data = LIST(1,2,3)
+if ISA(data,/ARRAY) eq 0 then nb_errors=nb_errors+1
+if ISA(data,/SCALAR) eq 1 then nb_errors=nb_errors+1
+if ISA(data,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,/Number) eq 1 then nb_errors=nb_errors+1
+if (verb) or (nb_errors GT 0) then BANNER_FOR_TESTSUITE, 'list(1,2,3) test done', nb_errors, /short
+INCREMENT_ERRORS, accumul_errors, nb_errors
+;
+;error in LIST rank
+;
+type_info='list'
+data = LIST(1,2,3)
+if ISA(data,type_info,/ARRAY) eq 0 then nb_errors=nb_errors+1
+if ISA(data,type_info,/SCALAR) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/Number) eq 1 then nb_errors=nb_errors+1
+if (verb) or (nb_errors GT 0) then BANNER_FOR_TESTSUITE, 'list(1,2,3) test done (with type LIST)', nb_errors, /short
+INCREMENT_ERRORS, accumul_errors, nb_errors
+;
+type_info='objref'
+data = LIST(1,2,3)
+if ISA(data,type_info,/ARRAY) eq 0 then nb_errors=nb_errors+1
+if ISA(data,type_info,/SCALAR) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/Number) eq 1 then nb_errors=nb_errors+1
+if (verb) or (nb_errors GT 0) then BANNER_FOR_TESTSUITE, 'list(1,2,3) test done (with type ObjRef)', nb_errors, /short
+INCREMENT_ERRORS, accumul_errors, nb_errors
+;
+type_info='no_a_type'
+data = LIST(1,2,3)
+if ISA(data,type_info,/ARRAY) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/SCALAR) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,type_info,/Number) eq 1 then nb_errors=nb_errors+1
+if (verb) or (nb_errors GT 0) then BANNER_FOR_TESTSUITE, 'list(1,2,3) test done (with type other) ', nb_errors, /short
+INCREMENT_ERRORS, accumul_errors, nb_errors
+;
+if accumul_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
+  if (verb) then MESSAGE, /cont, 'Success in '+txt
+;
+INCREMENT_ERRORS, external_errors, accumul_errors
 
 end
-
+;
 ;  -----------------------------------------------
-
+;
 pro TEST_ISA_FOR_HASH, external_errors, verbose=verbose
-
+;
 if KEYWORD_SET(verb) then verb=1 else verb=0
-if (verb) then MESSAGE, /continue, 'Starting testing for HASH'
-
+;
+nb_errors=0
+;
+txt=' testing ISA for HASH'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
 data=HASH()
-if ISA(data) eq 0 then external_errors=external_errors+1
-if ISA(data,'HASH') eq 0 then external_errors=external_errors+1
-if ISA(data,'OBJREF') eq 0 then external_errors=external_errors+1
-if ISA(data,/NULL) eq 1 then external_errors=external_errors+1
-if ISA(data,"UNDEFINED") eq 1 then external_errors=external_errors+1
+;
+if ISA(data) eq 0 then nb_errors=nb_errors+1
+if ISA(data,'HASH') eq 0 then nb_errors=nb_errors+1
+if ISA(data,'OBJREF') eq 0 then nb_errors=nb_errors+1
+if ISA(data,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(data,"UNDEFINED") eq 1 then nb_errors=nb_errors+1
+;
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
+  if (verb) then MESSAGE, /cont, 'Success in '+txt
+;
+INCREMENT_ERRORS, external_errors, nb_errors
 
 end
 
 ;  -----------------------------------------------
 
 pro TEST_ISA_FOR_POINTER, external_errors, verbose=verbose
-
-if KEYWORD_SET(verb) then verb=1 else verb=0
-
+;
+if KEYWORD_SET(verbose) then verb=1 else verb=0
+;
+nb_errors=0
+;
+txt=' testing ISA for POINTER'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
 ;testing NULL pointer
 ptr = PTR_NEW()
-if ISA(ptr) eq 1 then external_errors=external_errors+1
-if ISA(ptr,/NULL) eq 1 then external_errors=external_errors+1
-if ISA(ptr,'POINTER') eq 0 then external_errors=external_errors+1
-if ISA(ptr,'STRING') eq 1 then external_errors=external_errors+1
-
+;
+if ISA(ptr) eq 1 then nb_errors=nb_errors+1
+if ISA(ptr,/NULL) eq 1 then nb_errors=nb_errors+1
+if ISA(ptr,'POINTER') eq 0 then nb_errors=nb_errors+1
+if ISA(ptr,'STRING') eq 1 then nb_errors=nb_errors+1
+;
 ;testing not a NULL pointer
+;
 ptr = PTR_NEW(1)
-if ISA(ptr) eq 0 then external_errors=external_errors+1
-if ISA(*ptr) eq 0 then external_errors=external_errors+1
+;
+if ISA(ptr) eq 0 then nb_errors=nb_errors+1
+if ISA(*ptr) eq 0 then nb_errors=nb_errors+1
+;
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
+  if (verb) then MESSAGE, /cont, 'Success in '+txt
+;
+INCREMENT_ERRORS, external_errors, nb_errors
+;
 end
-
-
-;  -----------------------------------------------
-
-pro TEST_ISA_FOR_OBJECT, external_errors, verbose=verbose
-
-if KEYWORD_SET(verb) then verb=1 else verb=0
-
-obj = OBJ_NEW()
-if ISA(obj) eq 1 then external_errors=external_errors+1
-if ISA(obj,'OBJECT') eq 1 then external_errors=external_errors+1
-if ISA(obj,'OBJREF') eq 0 then external_errors=external_errors+1
-if ISA(obj,/NULL) eq 1 then external_errors=external_errors+1
-obj = OBJ_NEW('LIST')
-if ISA(obj) eq 0 then external_errors=external_errors+1
-if ISA(obj,'OBJREF') eq 0 then external_errors=external_errors+1
-if ISA(obj,'LIST') eq 0 then external_errors=external_errors+1
-
-end
-
+;
 ; -----------------------------------------------
-
-pro TEST_ISA_FOR_STRUCT, external_errors, verbose=verbose
-
-if KEYWORD_SET(verb) then verb=1 else verb=0
-
-str = {MYSTRUCT, field1: 'f1'}
-if ISA(str) eq 0 then external_errors=external_errors+1
-if ISA(str,'STRUCT') eq 0 then external_errors=external_errors+1
-if ISA(str,'MYSTRUCT') eq 0 then external_errors=external_errors+1
-
+;
+pro TEST_ISA_FOR_OBJECT, external_errors, verbose=verbose
+;
+if KEYWORD_SET(verbose) then verb=1 else verb=0
+;
+nb_errors=0
+;
+txt=' testing ISA for OBJECT'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
+obj = OBJ_NEW()
+if ISA(obj) eq 1 then nb_errors=nb_errors+1
+if ISA(obj,'OBJECT') eq 1 then nb_errors=nb_errors+1
+if ISA(obj,'OBJREF') eq 0 then nb_errors=nb_errors+1
+if ISA(obj,/NULL) eq 1 then nb_errors=nb_errors+1
+;
+obj = OBJ_NEW('LIST')
+if ISA(obj) eq 0 then nb_errors=nb_errors+1
+if ISA(obj,'OBJREF') eq 0 then nb_errors=nb_errors+1
+if ISA(obj,'LIST') eq 0 then nb_errors=nb_errors+1
+;
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
+  if (verb) then MESSAGE, /cont, 'Success in '+txt
+;
+INCREMENT_ERRORS, external_errors, nb_errors
+;
 end
-
-
+;
+; -----------------------------------------------
+;
+pro TEST_ISA_FOR_STRUCT, external_errors, verbose=verbose
+;
+if KEYWORD_SET(verbose) then verb=1 else verb=0
+;
+nb_errors=0
+;
+txt=' testing ISA for Structures'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
+str = {MYSTRUCT, field1: 'f1'}
+if ISA(str) eq 0 then nb_errors=nb_errors+1
+if ISA(str,'STRUCT') eq 0 then nb_errors=nb_errors+1
+if ISA(str,'MYSTRUCT') eq 0 then nb_errors=nb_errors+1
+;
+if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
+  if (verb) then MESSAGE, /cont, 'Success in '+txt
+;
+INCREMENT_ERRORS, external_errors, nb_errors
+;
+end
+;
 ; -----------------------------------------------
 ;
 pro TEST_ISA_FOR_NUMBERS, external_errors, array=array, verbose=verbose
 ;
 if KEYWORD_SET(array) then dim=1 else dim=0
 ;
-if KEYWORD_SET(verb) then verb=1 else verb=0
+if KEYWORD_SET(verbose) then verb=1 else verb=0
 ;
 if (verb) then begin
     txt='Starting testing for Numbers types '
