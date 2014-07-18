@@ -147,6 +147,7 @@ namespace lib {
     }
 
     if(type == "OBJREF"){
+      rank=1; // alway array following ISA() doc.
       //cout << "OBJREF" << endl;
       DObjGDL* obj = static_cast<DObjGDL*>(p0);
       DObj objID = (*obj)[0];
