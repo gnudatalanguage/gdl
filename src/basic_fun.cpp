@@ -429,10 +429,11 @@ DULong SHAH0[] = {
     if( nParam > 0)
       {
 	BaseGDL* p= e->GetPar( 0);
+
 	// new ptr from undefined variable is allowed as well
 	// this case was discovered by chance by Leva, July 16, 2014
-	// p=ptr_new(!null) should work
-	BaseGDL* p= e->GetPar( 0);
+	// p=ptr_new(), p=ptr_new(!null), p=ptr_new(undef_var) should work
+
         if ((p == NULL) || (p->Type() == GDL_UNDEF))
 	  {
 	    DPtr heapID= e->NewHeap();
