@@ -957,7 +957,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       return ExecuteCommand( line.substr(1));
     }
 
-  // command
+  //  online help (if possible, start a browser)
   if( firstChar == "?") 
     {
       // later, we will have to check whether we have X11/Display or not
@@ -971,6 +971,65 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       }
     }
   
+  // shell command
+  if( firstChar == "#") 
+    {
+      if (line.substr(1).length() > 0) {
+	line=line.substr(1);
+	StrTrim(line);
+	line=StrUpCase(line);
+	//cout << "yes ! >>"<<StrUpCase(line)<<"<<" << endl;
+	SizeT nProFun;
+	int nbFound=0;
+	// looking in internal procedures
+	nProFun=libProList.size();
+	for( SizeT i = 0; i<nProFun; ++i)
+	  {
+	    if (line.compare(libProList[ i]->Name()) == 0) {
+	      cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
+	      nbFound++;
+	      break;
+	    }
+	  }
+	// looking in internal functions
+	nProFun = libFunList.size();
+	for( SizeT i = 0; i<nProFun; ++i)
+	  {
+	    if (line.compare(libFunList[ i]->Name()) == 0) {
+	      cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
+	      nbFound++;
+	      break;
+	    }
+	  }
+	// looking in compiled functions
+	nProFun = funList.size();
+	for( SizeT i = 0; i<nProFun; ++i)
+	  {
+	    if (line.compare(funList[ i]->Name()) == 0) {
+	      cout << "Compiled FUNCTION : " << funList[ i]->ToString() << endl;
+	      nbFound++;
+	      break;
+	    }
+	  }
+	// looking in compiled procedures
+	nProFun = proList.size();
+	for( SizeT i = 0; i<nProFun; ++i)
+	  {
+	    if (line.compare(proList[ i]->Name()) == 0) {
+	      cout << "Compiled PROCEDURE : " << proList[ i]->ToString() << endl;
+	      nbFound++;
+	      break;
+	    }
+	  }
+	if (nbFound == 0) {
+	  cout << "No Procedure/Function, internal or compiled, with name : "<< line << endl;
+	}
+      } else {
+	cout << "Please provide a pro/fun name !" << endl;
+      }
+      return CC_OK;
+    }
+
   // shell command
   if( firstChar == "$") 
     {

@@ -466,6 +466,9 @@ public:
     DSubUD(n,o,f)
   {}
   
+  const std::string ToString();
+
+
   ~DPro() {}; 
 };
 
@@ -475,7 +478,9 @@ public:
   DFun(const std::string& n,const std::string& o="",const std::string& f=""): 
     DSubUD(n,o,f)
   {} 
-  
+
+  const std::string ToString();
+
   ~DFun() {};
 };
 

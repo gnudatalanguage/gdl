@@ -100,6 +100,22 @@ const string DLibPro::ToString()
   return s;
 }
 
+const string DPro::ToString()
+{
+  string s;
+  if( object != "") s += object+"::";
+  s += name;
+  if( nPar == -1)
+    s += ",[inf. Args]";
+  else if( nPar == 1)
+    s += ",["+i2s( nPar)+" Arg]";
+  else if( nPar > 1)
+    s += ",["+i2s( nPar)+" Args]";
+  for( SizeT i=0; i<key.size(); ++i)
+    s += ","+key[ i];//+"=val";
+  return s;
+}
+
 const string DLibFun::ToString()
 {
   string s = "res=";
@@ -123,6 +139,31 @@ const string DLibFun::ToString()
   s += ")";
   return s;
 }
+
+const string DFun::ToString()
+{
+  string s = "res=";
+  if( object != "") s += object+"::";
+  s += name+"(";
+  if( nPar == -1)
+    s += "[inf. Args]";
+  else if( nPar == 1)
+    s += "["+i2s( nPar)+" Arg]";
+  else if( nPar > 1)
+    s += "["+i2s( nPar)+" Args]";
+  if( key.size() > 0)
+    {
+      if( nPar != 0) s += ",";
+      for( SizeT i=0; i<key.size(); ++i)
+	{
+	  s += key[ i];//+"=val";
+	    if( i+1 != key.size()) s += ",";
+	}
+    }
+  s += ")";
+  return s;
+}
+
 
 // const string DLibFunDirect::ToString()
 // {
