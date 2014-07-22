@@ -85,8 +85,7 @@ namespace lib {
   template <typename T> 
   void ncdf_var_handle_error(EnvT *e, int status, const char *function, T *data)
   {
-
-    cout << function << endl;
+//    cout << function << endl;
     if (data != NULL and status != NC_NOERR) GDLDelete(data);
     ncdf_handle_error(e, status, function);
   }
