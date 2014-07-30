@@ -289,10 +289,40 @@ private:
 
 }; // class definition
 
-void map_continents( EnvT* e ) {
-  map_continents_call map_continents;
-  map_continents.call( e, 0 );
-}
+
+  BaseGDL* gshhg_exists( EnvT* e )
+  {
+#ifdef USE_GSHHS
+    //    e->Message( "GDL was compiled with support for GSHHG" );
+    return new DIntGDL(1);
+#else
+    //e->Message( "GDL was compiled without support for GSHHG" );
+    return new DIntGDL(0);
+#endif
+  }
+  
+  BaseGDL* proj4_exists( EnvT* e )
+  {
+#if defined(USE_LIBPROJ4)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+  
+  BaseGDL* proj4new_exists( EnvT* e )
+  {
+#if defined(USE_LIBPROJ4_NEW)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
+  void map_continents( EnvT* e ) {
+    map_continents_call map_continents;
+    map_continents.call( e, 0 );
+  }
 
 } // namespace
 

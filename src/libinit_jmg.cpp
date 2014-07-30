@@ -136,6 +136,10 @@ void LibInit_jmg()
   const string rk4Key[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
 
+
+  new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));
+  new DLibFunRetNew(lib::proj4new_exists,string("PROJ4NEW_EXISTS"));
+
 #if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
   const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};
   new DLibFunRetNew(lib::map_proj_forward_fun,
@@ -148,6 +152,8 @@ void LibInit_jmg()
   new DLibPro(lib::map_proj_gctp_forinit,string("MAP_PROJ_GCTP_FORINIT"),4);
   new DLibPro(lib::map_proj_gctp_revinit,string("MAP_PROJ_GCTP_REVINIT"),4);
 #endif
+
+  new DLibFunRetNew(lib::gshhg_exists,string("GSHHG_EXISTS"));
 #ifdef USE_GSHHS
 
   // SA: GSHHS dataset
@@ -160,6 +166,7 @@ void LibInit_jmg()
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
 #endif
+  
 
 
   const string convert_coordKey[]={"DATA","DEVICE","NORMAL","T3D","DOUBLE",
