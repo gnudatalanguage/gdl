@@ -1,18 +1,221 @@
 ;
-; AC, le 27-fev-2007. updated 17-avr-2007
+; A visual way to check some projections and Earth cartography.
+;
+; Also a way to check whether GDL was compiled with GSHHG support,
+; with GSHHG somewhere in GSHHG_DATA_DIR,
+; and if GDL is compiled or not with LibProj4 or LibProj4New
+;
+; --------------------------------------------
+; This code is under GNU GPL v2 or later.
+;
+; Creation by AC, 27-Feb-2007. updated 17-avr-2007
 ; 25-May2007 : 2 messages were removed since all the cases are now
 ; working for x86 and x86_64
 ;
 ; History
 ; AC 28-Jul-2008: 2 new projections provided by Joel.
 ;
+; Spring 2014: large rewritting by Gilles D., adding a lot
+; of examples linked to newly available projections in GDL
+;
+; 2014 July 30: some help to run this test !
+;
 ; Purpose: A very simple test for MAP library
 ; (a way not to forgot how to call the mapping procedures !!)
 ;
+;
+function INTERNAL_GDL_MAP_LIBS
+;
+FORWARD_FUNCTION GSHHG_EXISTS, PROJ4_EXISTS, PROJ4NEW_EXISTS
+;
+print, 'Stating INTERNAL_GDL_MAP_LIBS'
+;
+status=0
+;
+if GSHHG_EXISTS() then begin
+   print, 'GDL was compiled with GSHHG support !'
+   status=1
+endif else begin
+   print, 'Unfortunalty, GDL was compiled without GSHHG support !'
+   print, 'This is mandatory for Earth Cartography'
+   status=-100
+endelse
+;
+if PROJ4_EXISTS()  then begin
+   print, 'GDL was compiled with LibProj4 support !'
+   status=status+10
+endif else begin
+   print, 'Unfortunalty, GDL was compiled without LibProj4 support !'
+endelse
+;
+if PROJ4NEW_EXISTS()  then begin
+   print, 'GDL was compiled with LibProj4New support !'
+   status=status+10
+endif else begin
+   print, 'Unfortunalty, GDL was compiled without LibProj4New support !'
+endelse
+;
+return, status
+;
+end
+;
+; -------------------------------------------------
+;
+pro GET_MAP_PROCEDURES, quiet=quiet
+;
+print, 'Starting GET_MAP_PROCEDURES'
+
+; recovering the list of missing map routines
+;
+get_lun, lun
+openr, lun, 'MAP_INSTALL'
+cur_line=''
+lines=''
+while ~EOF(lun) do begin
+   readf, lun, cur_line
+   lines=[lines,cur_line]
+endwhile
+close, lun
+free_lun, lun
+;
+filtre='http://idlastro'
+
+OK=WHERE(STRPOS(lines, filtre) GE 0, nb_ok)
+if nb_ok EQ 0 then MESSAGE, 'something wrong in MAP_INSTALL file !'
+;
+; do we need to had this path to the whole !path
+;
+dir_name='map_routines'
+CD, current=old_current
+new_current=old_current+PATH_SEP()+dir_name
+;
+; we check whether we already have the mandatory files around
+;
+list_of_dir=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH),/EXTRACT)
+;
+; do we already have a "map_routines" dir. here ??
+exist=STRPOS(list_of_dir,'map_routine')
+exist_ok=WHERE(exist GE 0, nb_exist_ok)
+if nb_exist_ok EQ 0 then begin
+   !path=!path+':'+new_current
+   list_of_dir=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH),/EXTRACT)
+endif
+;
+for ii=0, nb_ok-1 do begin
+   fullfile=lines[OK[ii]]
+   file=STRMID(fullfile,1+STRPOS(lines[ok[ii]],'/',/reverse_search))
+   Result = FILE_SEARCH(list_of_dir+PATH_SEP()+file)
+   if STRLEN(result) GT 0 then OK[ii]=-1
+endfor
+OK=WHERE(OK GE 0, nb_ok)
+if nb_ok EQ 0 then begin
+   print, 'all mandatory routines already available'
+   return
+endif
+;
+; creating a sub-dir for Map routines
+; updating the !path
+;
+CD, current=old_current
+;
+FILE_MKDIR, dir_name
+;
+CD, dir_name
+CD, current=new_current
+;
+; downloading the files
+for ii=0, nb_ok-1 do begin
+   spawn, "curl -O "+lines[OK[ii]]
+endfor
+;
+CD, old_current
+;
+end
+;
+; -------------------------------------------------
+;
+pro CHECK_GSHHG_DATA, test=test
+;
+print, 'Starting CHECK_GSHHG_DATA'
+;
+files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
+nb_files=N_ELEMENTS(files)
+;
+final_path_sep=STRPOS(!GSHHS_DATA_DIR,PATH_SEP(),/reverse_search)
+if (STRLEN(!GSHHS_DATA_DIR) GT 0) then begin
+   if (final_path_sep EQ -1) then begin
+      !GSHHS_DATA_DIR=!GSHHS_DATA_DIR+PATH_SEP()
+   endif else begin
+      if (STRLEN(!GSHHS_DATA_DIR) GT final_path_sep+1) then begin
+         !GSHHS_DATA_DIR=!GSHHS_DATA_DIR+PATH_SEP()
+      endif  
+   endelse
+endif else begin
+   print, 'You must provide a valid !GSHHS_DATA_DIR path'
+endelse
+;
+files_ok=nb_files
+;
+for ii=0, nb_files-1 do begin
+   Result=FILE_SEARCH(!GSHHS_DATA_DIR+files[ii])
+   if (STRLEN(Result) EQ 0) then begin
+      print, 'GSHHG data file <<'+files[ii]+'>> not found'
+      files_ok--
+   endif
+endfor
+;
+if files_ok NE nb_files then begin
+   MESSAGE, 'Some GSHHG data files are missing ... please check !GSHHS_DATA_DIR'
+endif else begin
+   MESSAGE, /continue, 'GSHHG data files found'
+endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ------------------------------------
+;
+pro INTERNAL_GDL_MAP_CHECK
+;
+status=INTERNAL_GDL_MAP_LIBS()
+
+; Checking if GDL is compiled with mandatory libraries: 
+;  GSHHG and one in the 2 projections libraries
+;
+if (status LT 0) then begin
+   MESSAGE, 'GSHHG missing, no Earth maps in GDL !'
+endif
+if (status LE 10)  then begin
+   MESSAGE, 'GDL without Projection support !'
+   status=-1
+endif
+;
+if (status LT 0) then begin
+   MESSAGE, 'please read the MAP_INSTALL document in the root of the GDL dir.'
+endif
+;
+; getting the missing routines if needed.
+; (based on MAP_INSTALL informations --> test of presence of this file
+; not done now, ToDo)
+;
+GET_MAP_PROCEDURES
+;
+; Checking we have data file around
+;
+CHECK_GSHHG_DATA
+;
+end
+;
+; ------------------------------------
+;
 pro TEST_MAP, dir=dir
 ;
-print, 'please read the MAP_INSTALL document in the root of the GDL dir.'
-suite='' & read, 'Accept by striking the Enter key', suite
+DEFSYSV, '!gdl', exists=is_it_gdl
+;
+if (is_it_gdl) then INTERNAL_GDL_MAP_CHECK
+;
+;suite='' & read, 'Accept by striking the Enter key', suite
 ;
 print, 'Exemple 1: Should plot the whole world centered on the Japan time line'
 MAP_SET, 0, 139, /continent, title='Continents'
@@ -241,6 +444,3 @@ print, 'last demo done'
 if KEYWORD_SET(test) then STOP
 ;
 end
-
-;AC 25/05/2007 no more useful, bug corrected in CVS by Joel
-;if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
