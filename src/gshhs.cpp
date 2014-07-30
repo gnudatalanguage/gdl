@@ -138,7 +138,7 @@ private:
     
     string dir = SysVar::GshhsDir();
 
-    cout << dir << endl;
+    //    cout << dir << endl;
 
     //    string dir = string( GSHHS_DATA_DIR ); // + "/../gshhs/";
 
