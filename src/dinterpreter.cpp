@@ -792,17 +792,18 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     cmdstr = cmdstr.substr(0, sppos);
   }
     
-  //  cout << "Execute command: " << command << endl;
+  //   cout << "Execute command: " << command << endl;
 
   String_abbref_eq cmd( StrUpCase( cmdstr));
 
-  if( cmd( "COMPILE"))
-    {
-      return CmdCompile( command);
-    }
+  // AC: Continue before Compile to have ".c" giving ".continue"
   if( cmd( "CONTINUE"))
     {
       return CC_CONTINUE;
+    }
+  if( cmd( "COMPILE"))
+    {
+      return CmdCompile( command);
     }
   if( cmd( "EDIT"))
     {
