@@ -462,7 +462,7 @@ void LibInit_jmg()
 				      "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
 				      "SET_UNAME","NO_COPY","SET_BUTTON",
 				      "SET_DROPLIST_SELECT","SENSITIVE",
-				      "GET_VALUE",KLISTEND};
+				      "GET_VALUE","DEFAULT_FONT",KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_controlKey);
 
