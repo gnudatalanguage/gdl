@@ -144,6 +144,11 @@ namespace lib {
 	DString fmtString;
 	e->AssureScalarKW<DStringGDL>( 0, fmtString);
 
+	// removing "$" in input format : not used
+	std::size_t found =fmtString.find("$");
+	if (found!=std::string::npos)
+	  fmtString.erase(found,1); 
+
 	RefFMTNode fmtAST = GetFMTAST( fmtString);
 
 	FMTIn Formatter( fmtAST, is, e, parOffset, prompt);
@@ -334,6 +339,11 @@ namespace lib {
       {
 	DString fmtString;
 	e->AssureScalarKW<DStringGDL>( 0, fmtString);
+
+	// removing "$" in input format : not used
+	std::size_t found =fmtString.find("$");
+	if (found!=std::string::npos)
+	  fmtString.erase(found,1); 
 
 	RefFMTNode fmtAST = GetFMTAST( fmtString);
 
