@@ -1452,12 +1452,24 @@ namespace lib {
   {
     int nParam=e->NParam( 2);
     
-    if( e->KeywordSet( "GET_LUN")) get_lun( e);
-    // par 0 contains now the LUN
-
     DLong lun;
-    e->AssureLongScalarPar( 0, lun);
+    if( e->KeywordSet( "GET_LUN")) 
+    {
+      //     get_lun( e);
+      // not using SetPar later gives a better error message
+      e->AssureGlobalPar( 0);
+    
+      // here lun is the GDL lun, not the internal one
+      lun = GetLUN();
 
+      if( lun == 0)
+	e->Throw( "All available logical units are currently in use.");
+    }
+    else
+    {
+      e->AssureLongScalarPar( 0, lun);
+    }
+    
     bool stdLun = check_lun( e, lun);
     if( stdLun)
       e->Throw( "Unit already open. Unit: "+i2s( lun));
@@ -1550,8 +1562,22 @@ namespace lib {
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
 			      xdr, width, f77, compress);
+
+      if( e->KeywordSet( "GET_LUN")) 
+      {
+	BaseGDL** retLun = &e->GetPar( 0);
+	GDLDelete((*retLun)); 
+	*retLun = new DLongGDL( lun);
+	// par 0 contains now the LUN
+      }
     } 
     catch( GDLException& ex) {
+      
+      if( e->KeywordSet( "GET_LUN")) 
+      {
+	fileUnits[ lun-1].Free();
+      }
+      
       DString errorMsg = ex.getMessage()+ // getMessage gets the non-decorated error message
 	" Unit: "+i2s( lun)+", File: "+fileUnits[ lun-1].Name();
       
