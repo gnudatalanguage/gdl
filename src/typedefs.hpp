@@ -318,7 +318,7 @@ public:
   
   void Reset( T* newGuarded)
   {
-    delete guarded;
+    delete[] guarded;
     guarded = newGuarded;
   }  
   void Release()
