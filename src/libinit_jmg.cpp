@@ -456,14 +456,15 @@ void LibInit_jmg()
 				    KLISTEND};
   new DLibFunRetNew(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey);
 
-  const string widget_controlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
+  const string widget_ControlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
 				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
 				      "GET_UVALUE","SET_UVALUE","SET_VALUE",
 				      "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
 				      "SET_UNAME","NO_COPY","SET_BUTTON",
 				      "SET_DROPLIST_SELECT","SENSITIVE",
-				      "GET_VALUE","DEFAULT_FONT",KLISTEND};
+				      "GET_VALUE",KLISTEND};
+  const string widget_WarnControlKey[] ={"DEFAULT_FONT","CLEAR_EVENTS",KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
-	      widget_controlKey);
+	      widget_ControlKey,widget_WarnControlKey);
 
 }
