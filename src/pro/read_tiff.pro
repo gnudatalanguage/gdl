@@ -1,20 +1,19 @@
-;$Id: read_tiff.pro,v 1.3 2012-08-14 14:21:37 alaingdl Exp $
-
-function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,image_index=image_index,interleave=interleave,orientation=orientation,planarconfig=planarconfig,sub_rect=sub_rect,verbose=verbose
-  on_error, 2
+;$Id: read_tiff.pro,v 1.4 2014-08-10 06:54:54 alaingdl Exp $
+;
+function READ_TIFF, filename, red, green, blue, channels=channels, $
+                    geotiff=geotiff, image_index=image_index, $
+                    interleave=interleave, orientation=orientation, $
+                    planarconfig=planarconfig, sub_rect=sub_rect, $
+                    verbose=verbose
 ;+
 ;
 ;
 ;
 ; NAME: READ_TIFF
 ;
-;
 ; PURPOSE: Reads a tiff file into memory
 ;
-;
-;
 ; CATEGORY: Images (IO)
-;
 ;
 ; CALLING SEQUENCE: image=read_tiff(filename,r,g,b)
 ;
@@ -48,8 +47,6 @@ function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,i
 ; OUTPUTS: For true color images, data is a three dimensional array
 ; with interleaving set by the INTERLEAVE keyword
 ;
-;
-;
 ; OPTIONAL OUTPUTS: For pseudocolor only
 ;        red  : the Red colormap vector (for PseudoColor images)
 ;        green: the Green colormap vector (for PseudoColor images)
@@ -63,16 +60,13 @@ function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,i
 ;
 ; EXAMPLE:
 ;         
-;
-;
 ; MODIFICATION HISTORY:
 ; 	Written by: Christopher Lee 2004-05-23
-;
-;
+;       Small revision by Alain Coulais, 2014-08-09
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2014
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -80,6 +74,20 @@ function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,i
 ;
 ;
 ;-
+;
+ON_ERROR, 2
+;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_READ
+;
+;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, "You must have ImageMagick support to use this functionaly."
+endif
+
 
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 

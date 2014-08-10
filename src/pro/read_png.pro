@@ -51,9 +51,11 @@
 ;  2012-May-25, Alain Coulais : fake INTERNAL_READ_PNG to have both
 ;   pro/func working transparently without pre-compilation
 ;
+;  2014-Aug-09, AC : FORWARD_FUNCTION
+;
 ;-
 ; LICENCE:
-; Copyright (C) 2004, 2011, 2012
+; Copyright (C) 2004, 2011, 2012, 2014
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -64,7 +66,10 @@
 function INTERNAL_READ_PNG, filename, red, green, blue, $
                             order=order, transparent=transparent, $
                             test=test, verbose=verbose
-
+;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
+;
 ; Do we have access to ImageMagick functionnalities ??
 ;
 if (MAGICK_EXISTS() EQ 0) then begin

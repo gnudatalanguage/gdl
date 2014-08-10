@@ -63,6 +63,9 @@ pro WRITE_PNG, filename, image, red, green, blue, $
                order=order, transparent=transparent, $
                verbose=verbose, help=help, test=test, debug=debug
 ;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
+;
 ;if ~KEYWORD_SET(debug) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin

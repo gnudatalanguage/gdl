@@ -62,6 +62,9 @@ pro WRITE_JPEG, filename, image, true=true, $
                 progressive=progressive, $
                 test=test, help=help, debug=debug
 ;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
+;
 if ~KEYWORD_SET(debug) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin

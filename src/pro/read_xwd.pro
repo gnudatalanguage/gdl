@@ -43,6 +43,9 @@ function READ_XWD, filename, red, green, blue
 ;
 ON_ERROR, 2
 ;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS
+;
 if KEYWORD_SET(help) then begin
     print, 'function READ_XWD, filename, red, green, blue, $'
     print, '                   verbose=verbose, help=help, test=test'

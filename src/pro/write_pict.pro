@@ -7,13 +7,13 @@
 ; CATEGORY: Images (IO)
 ;
 ; CALLING SEQUENCE: 
-;         write_pict,filename,image,red,green,blue
+;         WRITE_PICT, filename, image, red, green, blue, $
+;                     test=test, help=help, debug=debug
 ;
 ; OPTIONAL INPUTS: For pseudocolor only
 ;        red  : the Red colormap vector (for PseudoColor images)
 ;        green: the Green colormap vector (for PseudoColor images)
 ;        blue : the Blue colormap vector (for PseudoColor images)
-;
 ;
 ; RESTRICTIONS:
 ;         Requires ImageMagick
@@ -43,11 +43,14 @@
 pro WRITE_PICT, filename, image, red, green, blue, $
                 test=test, help=help, debug=debug
 ;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
+;
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro WRITE_BMP, filename, image, red, green, blue, $'
-    print, '               help=help, test=test, debug=debug'
+    print, 'pro WRITE_PICT, filename, image, red, green, blue, $'
+    print, '                help=help, test=test, debug=debug'
     return
 endif
 ;

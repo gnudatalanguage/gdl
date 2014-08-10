@@ -7,7 +7,8 @@
 ; CATEGORY: Images (IO)
 ;
 ; CALLING SEQUENCE: 
-;      READ_JPEG, filename, image, colortable
+;      READ_JPEG, filename, red, green, blue, image_index=image_index, $
+                  help=help, test=test
 ;
 ; KEYWORD PARAMETERS: 
 ;        UNIT: not supported yet
@@ -56,6 +57,11 @@
 function READ_IMAGE, filename, red, green, blue, $
                      image_index=image_index, $
                      help=help, test=test
+;
+ON_ERROR, 2
+;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
 ;
 if KEYWORD_SET(help) then begin
    print, 'function READ_IMAGE, filename, red, green, blue, $'

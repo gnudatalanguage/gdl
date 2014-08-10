@@ -11,8 +11,6 @@
 ;                                                 IHDR=IHDR,$
 ;                                                 HEADER_DEFINE=HEADER_DEFINE])
 ;
-;
-;
 ; KEYWORD PARAMETERS: 
 ;     RGB        : Set to reverse the color ordering from BGR  
 ;     FOUR_BIT   : Four bit data file
@@ -40,12 +38,15 @@
 ;
 ; Written by: Christopher Lee 2004-05-17
 ;
-; Modification by Alain Coulais, 30-AUG-2011:
-;  adding check on ImageMagick
-;
+; Modifications
+; Alain Coulais, 30-AUG-2011:
+; - adding check on ImageMagick/GraphicMagick MAGICK_EXISTS()
+; Alain Coulais, 10-AUG-2014:
+; - FORWARD_FUNCTION
+; 
 ;-
 ; LICENCE:
-; Copyright (C) 2004, 2011
+; Copyright (C) 2004, 2011, 2014
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -57,6 +58,9 @@ pro WRITE_BMP, filename, image, red, green, blue, $
                rgb=rgb, four_bit=four_bit, $
                ihdr=ihdr,header_define=header_define, $
                test=test, help=help, debug=debug
+;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
 ;
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;

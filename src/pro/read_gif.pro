@@ -1,7 +1,3 @@
-pro READ_GIF, filename, image, Red, Green, Blue, $
-              help=help, test=test, debug=debug
-;
-ON_ERROR, 2
 ;+
 ;
 ; NAME: READ_GIF
@@ -51,6 +47,14 @@ ON_ERROR, 2
 ; (at your option) any later version.                                   
 ;
 ;-
+;
+pro READ_GIF, filename, image, Red, Green, Blue, $
+              help=help, test=test, debug=debug
+;
+ON_ERROR, 2
+;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro READ_GIF, filename, image, Red, Green, Blue, $'

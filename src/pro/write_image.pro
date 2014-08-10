@@ -50,6 +50,9 @@
 pro WRITE_IMAGE, filename, format, image, red, green, blue, $
                  append=append, help=help, test=test
 ;
+; this line allows to compile also in IDL ...
+FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
+;
 if KEYWORD_SET(help) then begin
    print, 'pro WRITE_IMAGE, filename, format, image, red, green, blue, $'
    print, '                 append=append, help=help, test=test'
@@ -71,11 +74,20 @@ if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 case STRUPCASE(format) of
    'JPEG' : begin
       if (N_ELEMENTS(red) GT 0) then begin
-         colortable=BYTARR(256,3)
-         colortable[*,0]=red
-         colortable[*,1]=green
-         colortable[*,2]=blue
-         WRITE_JPEG, filename, image, colortable, colors=256
+      
+         ;; AC 2014-Aug-10: this code is not OK within current version
+         ;; of WRITE_JPEG
+         ;;
+         ;;colortable=BYTARR(256,3)
+         ;;colortable[*,0]=red
+         ;;colortable[*,1]=green
+         ;;colortable[*,2]=blue
+         ;; WRITE_JPEG, filename, image, colortable, colors=256
+         ;;
+         ;; but not sure this is better ! help welcome
+         ;;
+         TVLCT, red, green, blue
+         WRITE_JPEG, filename, image
       endif else begin
          WRITE_JPEG, filename, image
       endelse
