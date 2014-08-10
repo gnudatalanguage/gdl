@@ -431,8 +431,9 @@ namespace lib {
       string inline_help[]={"Usage: "+e->GetProName()+", expr1, ..., exprN,", 
 			    "          /ALL_KEYS, /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
 			    "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
-			    "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE, /PREFERENCES, /PROCEDURES,",
-			    "          /RECALL_COMMANDS, /ROUTINES, /SOURCE_FILES, /STRUCTURES,"};
+			    "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE,",
+			    "          /PREFERENCES, /PROCEDURES, /RECALL_COMMANDS, /ROUTINES,",
+			    "          /SOURCE_FILES, /STRUCTURES, /SYSTEM_VARIABLES"};
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	
       e->Help(inline_help, size_of_s);
     }
@@ -615,12 +616,20 @@ namespace lib {
       {
 	kw = true;
 
-	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	cout << "HELP,/LIB for a list of all internal library "
+	cout << "* Homepage: http://gnudatalanguage.sf.net" << endl;
+	cout << endl;
+	cout << "* #NameOfRoutine for list of params and keywords" 
+	  " for a given NameOfRoutine (internal or compiled pro/func)" << endl;
+	cout << endl;
+	cout << "* ?NameOfRoutine for starting a browers to access online doc"
+	  " for a given routine (if exists ! internal or compiled pro/func)" ;
+	cout << endl; cout << endl;
+	cout << "* HELP, /LIB for a list of all internal library "
 	  "functions/procedures." << endl;
 	cout << "Additional subroutines are written in GDL language, "
-	  "look for *.pro files." << endl;
-	cout << "HELP, /ALL_KEYS for useful CLI keys shortcuts." << endl;
+	  "look for *.pro files (e.g. in CVS in src/pro/)." << endl;
+	cout << endl;
+	cout << "* HELP, /ALL_KEYS for useful CLI keys shortcuts." << endl;
 	cout << endl;
       }
 
