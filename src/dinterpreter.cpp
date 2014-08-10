@@ -107,7 +107,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
 // at main level
 RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
 {
-  if( callStack.size() <= 1) return RC_ABORT; // stay in main loop 
+  if( callStack.size() <= 1 && lineOffset == 0) return RC_ABORT; // stay in main loop 
   
   assert( dynamic_cast<DInterpreter*>( this) != NULL);
   return static_cast<DInterpreter*>( this)->InnerInterpreterLoop(lineOffset);
