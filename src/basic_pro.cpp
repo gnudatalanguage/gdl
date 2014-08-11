@@ -122,6 +122,41 @@
 #include <gdlwidget.hpp>
 #endif
 
+
+// for sorting compiled pro/fun lists by name
+struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
+{
+  bool operator() ( DFun* f1, DFun* f2) const
+  { return f1->ObjectName() < f2->ObjectName();}
+};
+
+struct CompProName: public std::binary_function< DPro*, DPro*, bool>
+{
+  bool operator() ( DPro* f1, DPro* f2) const
+  { return f1->ObjectName() < f2->ObjectName();}
+};
+
+bool CompareWithJokers(string names, string sourceFiles) {	
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  TCHAR tnames[MAX_PATH];
+  TCHAR tsourceFiles[MAX_PATH];
+  
+  const char* cnames = names.c_str();
+  const char* csourceFiles= sourceFiles.c_str();
+  
+  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cnames, strlen(cnames), tnames, MAX_PATH);
+  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, csourceFiles, strlen(csourceFiles), tsourceFiles, MAX_PATH);
+  
+  if( PathMatchSpec(tnames, tsourceFiles)) 
+    {return TRUE; }
+  else{ return FALSE;}
+#else
+  if( fnmatch(names.c_str(), sourceFiles.c_str(), 0 ) == 0 )
+    {return TRUE; }
+  else{ return FALSE;}
+#endif
+}
+
 namespace lib {
  
   using namespace std;
@@ -408,7 +443,8 @@ namespace lib {
     static int outputIx = e->KeywordIx( "OUTPUT");
     bool doOutput = ( e->KeywordPresent( outputIx));
     
-    //if LAST_MESSAGE is present, it is the only output. All other kw are ignored *EXCEPT 'output'*.
+    // if LAST_MESSAGE is present, it is the only output.
+    // All other kw are ignored *EXCEPT 'output'*.
     if( lastmKW)
     {
       DStructGDL* errorState = SysVar::Error_State();
@@ -465,23 +501,46 @@ namespace lib {
       return;
     }
 
+    static int briefKWIx = e->KeywordIx("BRIEF");
+    bool briefKW = e->KeywordSet( briefKWIx);
+
     static int sysvarKWIx = e->KeywordIx("SYSTEM_VARIABLES");
     bool sysvarKW= e->KeywordPresent(sysvarKWIx);
+
+    // AC 14-08-11 : I don't know how to copy the list in a String Array
+    // then sorting is ... SysVar at not ordered ...
+    // help,/sys  and help,/brief,/sys are ok
     if (sysvarKW) {
       SizeT nVar = sysVarList.size();
-      for( SizeT v=0; v<nVar; ++v)
-	{
-	  DVar* var = sysVarList[ v];
-	  DStructGDL* tmp= tmp=static_cast<DStructGDL*>(var->Data());
-	  // if( var != NULL) cout << v << var->Data() << endl;
-	  //if( var != NULL) cout << v << var->Name() << endl;
-	  //	  cout << static_cast<DStructGDL*>(v.Data());
-	  help_item(cout, tmp, "!"+var->Name(), false);
-	  
-	}
+      if (briefKW) {
+	string tmp_line="", tmp_word="";
+	for( SizeT v=0; v<nVar; ++v)
+	  {
+	    DVar* var = sysVarList[ v];
+	    tmp_word=" !"+var->Name();
+	    if (tmp_line.length()+tmp_word.length() >= 80) {
+	      cout << tmp_line <<endl;
+	      tmp_line=tmp_word;
+	    } else {
+	      tmp_line=tmp_line+tmp_word;
+	    }
+	  }
+	if (tmp_line.length() > 0) cout << tmp_line <<endl;
+      } else {
+	for( SizeT v=0; v<nVar; ++v)
+	  {
+	    DVar* var = sysVarList[ v];
+	    DStructGDL* tmp= tmp=static_cast<DStructGDL*>(var->Data());
+	    // if( var != NULL) cout << v << var->Data() << endl;
+	    //if( var != NULL) cout << v << var->Name() << endl;
+	    //	  cout << static_cast<DStructGDL*>(v.Data());
+	    help_item(cout, tmp, "!"+var->Name(), false);	    
+	  }
+      }
       return;
     }
 
+    // AC 14-08-11 : detailed info (display size, deep ...) are missing
     static int deviceKWIx = e->KeywordIx("DEVICE");
     bool deviceKW = e->KeywordPresent(deviceKWIx);
     if( deviceKW) {
@@ -496,81 +555,64 @@ namespace lib {
 
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
-    if( sourceFilesKW)
+
+    bool isKWSetProcedures = e->KeywordSet( "PROCEDURES");
+    bool isKWSetFunctions  = e->KeywordSet( "FUNCTIONS");
+    
+    if (sourceFilesKW)
       {
-	vector<string> sourceFiles;
-	
-	for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
-	  {
-	    string funFile = (*i)->GetFilename();
-	    bool alreadyInList = false;
-	    for(vector<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
-	      {
-		if( funFile == *i2)
-		{
-		  alreadyInList = true;
-		  break;
-		}
-	    }
-	    if( !alreadyInList)
-	      sourceFiles.push_back(funFile);
-	}
-	for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
-	{
-	    string proFile = (*i)->GetFilename();
-	    bool alreadyInList = false;
-	    for(vector<string>::iterator i2=sourceFiles.begin(); i2 != sourceFiles.end(); ++i2)
-	    {
-		if( proFile == *i2)
-		{
-		  alreadyInList = true;
-		  break;
-		}
-	    }
-	    if( !alreadyInList)
-	      sourceFiles.push_back(proFile);
-	}
-	// sourceFiles now contains a unique list of all file names.
-	sort( sourceFiles.begin(), sourceFiles.end());
+	bool do_pro=TRUE;
+	bool do_fun=TRUE;
+	if (isKWSetProcedures && !isKWSetFunctions) do_fun=FALSE;
+	if (!isKWSetProcedures && isKWSetFunctions) do_pro=FALSE;
 
-      	SizeT nSourceFiles = sourceFiles.size();
-	cout << "Source files (" << nSourceFiles <<"):" << endl;
-	
-	for( SizeT i = 0; i<nSourceFiles; ++i)	  
-	  cout << sourceFiles[ i] << endl;
-
-	
+	DString names = "";
 	if (namesKW) {
-	  cout << "TEST !! hello" << endl;
-	  DString names = "";
 	  e->AssureStringScalarKWIfPresent("NAMES", names);
-	  cout << "hello " << names << endl;
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	  TCHAR tnames[MAX_PATH];
-	  TCHAR tsourceFiles[MAX_PATH];
-
-	  const char* cnames = names.c_str();
-      const char* csourceFiles;
-
-      for( SizeT i = 0; i<nSourceFiles; ++i) {
-	    csourceFiles = sourceFiles[ i].c_str();
-
-	    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cnames, strlen(cnames), tnames, MAX_PATH);
-	    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, csourceFiles, strlen(csourceFiles), tsourceFiles, MAX_PATH);
-
-	    if( PathMatchSpec(tnames, tsourceFiles) ){
-	      cout << sourceFiles[ i] << endl;
-        }
+	}
+	
+	if (do_pro) {
+	  sort( proList.begin(), proList.end(), CompProName());
+	  cout << "Compiled Procedures:" << endl;
+	  cout << "$MAIN$" << endl;
+	  if (namesKW) {
+	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
+	      if (CompareWithJokers(names,(*i)->ObjectName()))
+	      {
+		cout << setw(25) << left << (*i)->ObjectName() << setw(0);
+		cout << (*i)->GetFilename() << endl;
+	      }
+	  } 
+	  else {	  
+	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
+	      {
+		cout << setw(25) << left << (*i)->ObjectName() << setw(0);
+		cout << (*i)->GetFilename() << endl;
+	      }
+	  }
+	}
+	if (do_fun) {
+	  if (do_pro) cout << endl;
+	  sort( funList.begin(), funList.end(), CompFunName());
+	  cout << "Compiled Functions:" << endl;
+	  if (namesKW) {
+	    for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
+	      if (CompareWithJokers(names,(*i)->ObjectName()))
+		{
+		  cout << setw(25) << left << (*i)->ObjectName() << setw(0);
+		  cout << (*i)->GetFilename() << endl;
+		}	    
+	  }
+	  else {
+	    for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
+	      {
+		cout << setw(25) << left << (*i)->ObjectName() << setw(0);
+		cout << (*i)->GetFilename() << endl;
+	      }
+	  }
+	}
+	return;
       }
-#else
-      for( SizeT i = 0; i<nSourceFiles; ++i)
-	    if( fnmatch(names.c_str(), sourceFiles[ i].c_str(), 0 ) == 0 ){
-	      cout << sourceFiles[ i] << endl;
-	    }
-#endif    
-      }
-    }
 
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent( callsKWIx);
@@ -708,9 +750,6 @@ namespace lib {
 
     bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
     if( isKWSetStructures) kw = true;
-
-    bool isKWSetProcedures = e->KeywordSet( "PROCEDURES");
-    bool isKWSetFunctions  = e->KeywordSet( "FUNCTIONS");
    
     if (isKWSetStructures && (isKWSetProcedures || isKWSetFunctions))
       e->Throw( "Conflicting keywords.");	
@@ -791,14 +830,13 @@ namespace lib {
       cout << dec;
 
     static int routinesKWIx = e->KeywordIx("ROUTINES");
-    static int briefKWIx = e->KeywordIx("BRIEF");
     bool routinesKW = e->KeywordSet( routinesKWIx);
-    bool briefKW = e->KeywordSet( briefKWIx);
+
     SizeT nOut = 0;
     
     if ((nParam == 0 && !isKWSetMemory) || isKWSetFunctions || isKWSetProcedures) {
 
-      if (nParam == 0 && !isKWSetFunctions && !isKWSetProcedures) {
+      if (nParam == 0 && !isKWSetFunctions && !isKWSetProcedures && !routinesKW) {
 	// Tell where we are
 	DSubUD* pro = static_cast<DSubUD*>( e->Caller()->GetPro());
 	if (outputKW == NULL) {
@@ -822,7 +860,7 @@ namespace lib {
       sort( fList.begin(), fList.end());
 
       // PROCEDURES keyword
-      if (isKWSetProcedures) {
+      if (isKWSetProcedures || routinesKW) {
 	if (outputKW == NULL) {
 	    cout << "Compiled Procedures:" << endl;
 	} else {
@@ -852,7 +890,7 @@ namespace lib {
 	    int nPar = pro->NPar();
 	    int nKey = pro->NKey();
 
-	    cout << pro->ObjectName() << " " << nPar << " " << nKey << endl;
+	    //cout << pro->ObjectName() << " " << nPar << " " << nKey << endl;
 
 	    // Loop through parameters
 	    if (outputKW == NULL) {
@@ -865,16 +903,19 @@ namespace lib {
 	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
 	      for( SizeT j=0; j<nPar; j++)
 		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      for( SizeT j=0; j<nKey; j++)
+		ostr << StrLowCase(pro->GetVarName(j)) << " ";
 	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
 	      ostr.str("");
 	    }
 	  }
 	  if (outputKW == NULL) cout << endl;
 	}
-	// FUNCTIONS keyword
-      } else if (isKWSetFunctions) {
-
+      }
+      
+      if (isKWSetFunctions || routinesKW) {	
 	if (outputKW == NULL) {
+	  if (isKWSetProcedures || routinesKW) cout << endl;
 	  cout << "Compiled Functions:" << endl;
 	} else {
 	  ostr << "Compiled Functions:";
@@ -884,7 +925,7 @@ namespace lib {
 
 	// Loop through functions
 	for( SizeT i=0; i<nf; i++) {
-
+	  
 	  // Find DFun pointer for fList[i]
 	  FunListT::iterator p=std::find_if(funList.begin(),funList.end(),
 					    Is_eq<DFun>(fList[i]));
@@ -898,10 +939,14 @@ namespace lib {
 	      cout << setw(25) << left << pro->ObjectName() << setw(0);
 	      for( SizeT j=0; j<nPar; j++)
 		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      for( SizeT j=0; j<nKey; j++)
+		cout << StrUpCase(pro->GetVarName(j)) << " ";
 	    } else {
 	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
 	      for( SizeT j=0; j<nPar; j++)
 		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      for( SizeT j=0; j<nKey; j++)
+		ostr << StrLowCase(pro->GetVarName(j)) << " ";
 	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
 	      ostr.str("");
 	    }
@@ -911,27 +956,28 @@ namespace lib {
       }
       if( isKWSetProcedures) return;
       if( isKWSetFunctions)  return;
-    } 
-    else if (isKWSetMemory)
-    {
-      std::ostream* ostrp = outputKW == NULL ? &cout : &ostr;
-      *ostrp << "heap memory used: ";
-      *ostrp << MemStats::GetCurrent();
-      *ostrp << ", max: ";
-      *ostrp << MemStats::GetHighWater();
-      *ostrp << ", gets: ";
-      *ostrp << MemStats::GetNumAlloc();
-      *ostrp << ", frees: ";
-      *ostrp << MemStats::GetNumFree();
-      if (outputKW == NULL) cout << endl;
-      else
-      {
-        (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-        ostr.str("");
-      }
-      return;
-    } 
+    }
 
+    if (isKWSetMemory)
+      {
+	std::ostream* ostrp = outputKW == NULL ? &cout : &ostr;
+	*ostrp << "heap memory used: ";
+	*ostrp << MemStats::GetCurrent();
+	*ostrp << ", max: ";
+	*ostrp << MemStats::GetHighWater();
+	*ostrp << ", gets: ";
+	*ostrp << MemStats::GetNumAlloc();
+	*ostrp << ", frees: ";
+	*ostrp << MemStats::GetNumFree();
+	if (outputKW == NULL) cout << endl;
+	else
+	  {
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+	  }
+	return;
+      }
+    
     // Excluding keywords which are exclusive is not finished ...
     if (isKWSetPreferences)
       {	
@@ -1009,9 +1055,11 @@ namespace lib {
 	    }
 	  }
       }
+    
+    // if /brief and /routines then no var. to be shown
     if( routinesKW || briefKW) kw = true;
 
-    if( nParam == 0 && !kw)
+    if( nParam == 0  && !kw)
       {
 	routinesKW = true;
 	briefKW = true;
@@ -1036,12 +1084,13 @@ namespace lib {
 	    helpStr.insert( ss.str() );
 	  }
 
-	  if (outputKW == NULL) {
-	    copy( helpStr.begin(), helpStr.end(),
-		  ostream_iterator<string>( cout) );
-	  }
-
-
+	if (outputKW == NULL) {
+	  copy( helpStr.begin(), helpStr.end(),
+		ostream_iterator<string>( cout) );
+	}
+      }
+    
+    if( routinesKW && briefKW) {
 	// Display compiled procedures & functions
 	if (!isKWSetProcedures && !isKWSetFunctions) {
 	  // StdOut
@@ -1056,6 +1105,7 @@ namespace lib {
 	  } else {
 	    // Keyword Output
 
+	    set<string> helpStr;  // "Sorted List" 
 	    // Output variables
 	    set<string>::iterator it = helpStr.begin(); 
 	    while(it != helpStr.end()) { 
