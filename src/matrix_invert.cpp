@@ -92,19 +92,28 @@ namespace lib {
       }
     else
       {      
-	return invert_eigen_fun(e);
-      }
-    //    bool GSL_flag, Eigen_flag, debug;
-    //int GSLiX, EIGENiX;
-    //GSLiX=
+	//	return invert_eigen_fun(e);
+	//
+	// AC 2014-08-10 : during tests of Chianti Code,
+	// we discovered that the GSL code was less sensitive
+	// to very high range in matrix ... 
+	// If status used, if Eigen fails, we try GSL
 
-    //   if (e->KeywordSet("GSL")) return new DLongGDL(1);
-    // if (e->KeywordSet("EIGEN")) return new DLongGDL(2);
-    //    if (e->KeywordSet("GSL")) return invert_gsl_fun(e);
-    //if (e->KeywordSet("EIGEN")) return invert_eigen_fun(e);
-    //return new DLongGDL(0);
+	BaseGDL* tmp;
+	tmp=invert_eigen_fun(e);	
+	SizeT nParam=e->NParam(1);
+	if (nParam == 2) 
+	  {
+	    BaseGDL* p1 = e->GetParDefined(1);
+	    DLongGDL* res = static_cast<DLongGDL*>
+	      (p1->Convert2(GDL_LONG, BaseGDL::COPY));
+	    DLong status;
+	    status=(*res)[0];
+	    if (status > 0) tmp=invert_gsl_fun(e);
+	  }
+	return tmp;
+      }
   }
- 
 
   BaseGDL* invert_gsl_fun( EnvT* e)
   {
@@ -235,7 +244,7 @@ namespace lib {
        	det = gsl_linalg_complex_LU_lndet(mat);
 	if (gsl_isinf(det) == 0) {
 	  gsl_linalg_complex_LU_invert (mat, perm, inverse);
-	  if (det * LOG10E < 1e-5) singular = 2;
+	  if (abs(det) * LOG10E < 1e-5) singular = 2;
 	}
 	else singular = 1;
 
@@ -276,7 +285,7 @@ namespace lib {
 	det = gsl_linalg_complex_LU_lndet(mat);
 	if (gsl_isinf(det) == 0) {
 	  gsl_linalg_complex_LU_invert (mat, perm, inverse);
-	  if (det * LOG10E < 1e-5) singular = 2;
+	  if (abs(det) * LOG10E < 1e-5) singular = 2;
 	}
 	else singular = 1;
 
@@ -314,7 +323,7 @@ namespace lib {
 	det = gsl_linalg_LU_lndet(mat);
 	if (gsl_isinf(det) == 0) {
 	  gsl_linalg_LU_invert (mat, perm, inverse);
-	  if (det * LOG10E < 1e-5) singular = 2;
+	  if (abs(det) * LOG10E < 1e-5) singular = 2;
 	}
 	else singular = 1;
 
@@ -377,7 +386,7 @@ namespace lib {
 	det = gsl_linalg_LU_lndet(mat);
 	if (gsl_isinf(det) == 0) {
 	  gsl_linalg_LU_invert (mat, perm, inverse);
-	  if (det * LOG10E < 1e-5) singular = 2;
+	  if (abs(det) * LOG10E < 1e-5) singular = 2;
 	}
 	else singular = 1;
 
@@ -512,9 +521,9 @@ namespace lib {
 
       FullPivLU<MatrixXcf> lu(m0);
 
-        if(lu.isInvertible()) {
+      if(lu.isInvertible()) {
 	tmp_res=lu.inverse();
-		if ( lu.determinant().real()* LOG10E < 1e-5) singular = 2;
+	if (abs(lu.determinant().real())* LOG10E < 1e-5) singular = 2;
 	}
 	else singular=1;
 
@@ -538,7 +547,7 @@ namespace lib {
 
       if(lu.isInvertible()) {
 	tmp_res=lu.inverse();
-	if (lu.determinant().real()* LOG10E < 1e-5) singular = 2;
+	if (abs(lu.determinant().real())* LOG10E < 1e-5) singular = 2;
      }
       else singular=1;
 
@@ -557,11 +566,13 @@ namespace lib {
       MatrixXd tmp_res (NbCol,NbRow);
       Map<Matrix<double,Dynamic,Dynamic> > m0(&(*p0D)[0], NbCol,NbRow);
 
-      FullPivLU<MatrixXd> lu(m0);
+      Eigen::FullPivLU<MatrixXd> lu(m0);
+      //      cout << lu.determinant() << endl;
+      //cout << lu.isInvertible() << endl;
     
       if(lu.isInvertible()) {
 	tmp_res=lu.inverse();
-	if (lu.determinant() * LOG10E < 1e-5) singular = 2;
+	if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
       }
       else singular=1;
 
@@ -595,12 +606,11 @@ namespace lib {
 	
 	FullPivLU<MatrixXf> lu(m0);
 	
-		if(lu.isInvertible()) {
-		  //	tmp_res=lu.solve();
-		  tmp_res=lu.inverse();
-	    if (lu.determinant() * LOG10E < 1e-5) singular = 2;
-	  }
-	  else singular=1;
+	if(lu.isInvertible()) {
+	  tmp_res=lu.inverse();
+	  if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+	}
+	else singular=1;
 
 	DFloatGDL* res =new DFloatGDL(p0->Dim(), BaseGDL::NOZERO);
 	Map<MatrixXf>(&(*res)[0], NbCol, NbRow) = tmp_res.cast<float>();
