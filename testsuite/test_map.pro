@@ -279,7 +279,7 @@ if ~FILE_TEST(tmp_gshhg_data_dir) then FILE_MKDIR, tmp_gshhg_data_dir
 CD, tmp_gshhg_data_dir
 ;
 files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
-md5sum=['b87b875e8b8c89c1314be5ff6da3a30', $
+md5sum=['b87b875e8b8c89c1314be5ff6da3a300', $
         '2df949e98ef93455bfa9fabba53f6e5e', $
         'b4c834981036e4c740d980bd91258844']
 ;
@@ -288,14 +288,15 @@ http="http://aramis.obspm.fr/~coulais/IDL_et_GDL/GSHHS_2.3.1/"
 ;
 ; downloading the files
 for ii=0, N_ELEMENTS(files)-1 do begin
-   spawn, "curl -O "+http+files[ii]
+   if ~FILE_TEST(files[ii]) then SPAWN, "curl -O "+http+files[ii]
 endfor
 ;
 ; check the files integrity
 ;
 for ii=0, N_ELEMENTS(files)-1 do begin
-   spawn, "md5sum "+files[ii], result
-   if result NE md5sum[ii] then begin
+   SPAWN, "md5sum "+files[ii], result
+   extract_result=STRMID(result,0,32)
+   if (extract_result NE md5sum[ii]) then begin
       MESSAGE,/cont, "Warning : md5sum NOT OK for file : "+files[ii]
    endif else begin
        MESSAGE,/cont, "md5sum OK for file : "+files[ii]
