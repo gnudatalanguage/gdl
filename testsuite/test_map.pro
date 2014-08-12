@@ -61,14 +61,43 @@ end
 ;
 ; -------------------------------------------------
 ;
-pro GET_MAP_PROCEDURES, quiet=quiet
+pro GET_MAP_PROCEDURES, path2file, quiet=quiet, verbose=verbose, $
+                        help=help, debug=debug, test=test
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro GET_MAP_PROCEDURES, path2file, quiet=quiet, verbose=verbose, $'
+   print, '                        help=help, debug=debug, test=test'
+   return
+endif
 ;
 print, 'Starting GET_MAP_PROCEDURES'
-
+;
+filename='MAP_INSTALL'
+;
+if (N_PARAMS() EQ 0) then path2file=''
+;
+full_name=''
+;
+; we just try 3 basic locations
+;
+if FILE_TEST(path2file+filename) then full_name=path2file+filename
+if (STRLEN(full_name) EQ 0) then begin
+   if FILE_TEST(path2file+PATH_SEP()+filename) then full_name=path2file+filename
+endif
+if (STRLEN(full_name) EQ 0) then begin
+   if FILE_TEST(path2file+PATH_SEP()+filename) then full_name=path2file+filename
+endif
+;
+if (STRLEN(full_name) EQ 0) then begin
+   MESSAGE, /continue, "the file MAP_INSTALL was not found"
+   MESSAGE, /continue, "please provide path two this file"
+   return
+endif
+;
 ; recovering the list of missing map routines
 ;
 get_lun, lun
-openr, lun, 'MAP_INSTALL'
+openr, lun, full_name
 cur_line=''
 lines=''
 while ~EOF(lun) do begin
@@ -82,6 +111,14 @@ filtre='http://idlastro'
 
 OK=WHERE(STRPOS(lines, filtre) GE 0, nb_ok)
 if nb_ok EQ 0 then MESSAGE, 'something wrong in MAP_INSTALL file !'
+;
+if KEYWORD_SET(debug) OR KEYWORD_SET(verbose) then begin
+   print, 'OK indexes values : ', OK
+   for ii=0, nb_ok-1 do begin
+      print, lines[OK[ii]]
+   endfor
+   if KEYWORD_SET(debug) then STOP
+endif
 ;
 ; do we need to had this path to the whole !path
 ;
@@ -107,8 +144,8 @@ for ii=0, nb_ok-1 do begin
    Result = FILE_SEARCH(list_of_dir+PATH_SEP()+file)
    if STRLEN(result) GT 0 then OK[ii]=-1
 endfor
-OK=WHERE(OK GE 0, nb_ok)
-if nb_ok EQ 0 then begin
+OK_tmp=WHERE(OK GE 0, nb_ok_tmp)
+if (nb_ok_tmp EQ 0) then begin
    print, 'all mandatory routines already available'
    return
 endif
@@ -130,11 +167,13 @@ endfor
 ;
 CD, old_current
 ;
+if KEYWORD_SET(test) then STOP
+;
 end
 ;
 ; -------------------------------------------------
 ;
-pro CHECK_GSHHG_DATA, test=test
+function CHECK_GSHHG_DATA, test=test
 ;
 print, 'Starting CHECK_GSHHG_DATA'
 ;
@@ -150,8 +189,13 @@ if (STRLEN(!GSHHS_DATA_DIR) GT 0) then begin
          !GSHHS_DATA_DIR=!GSHHS_DATA_DIR+PATH_SEP()
       endif  
    endelse
+   if ~FILE_TEST(!GSHHS_DATA_DIR) then begin
+      print, 'the !GSHHS_DATA_DIR does not exist !'
+      return, -1
+   endif
 endif else begin
    print, 'You must provide a valid !GSHHS_DATA_DIR path'
+   return, -1
 endelse
 ;
 files_ok=nb_files
@@ -164,10 +208,12 @@ for ii=0, nb_files-1 do begin
    endif
 endfor
 ;
-if files_ok NE nb_files then begin
-   MESSAGE, 'Some GSHHG data files are missing ... please check !GSHHS_DATA_DIR'
+if (files_ok NE nb_files) then begin
+   MESSAGE, /continue, 'Some GSHHG data files are missing ... please check !GSHHS_DATA_DIR'
+   return, -2
 endif else begin
    MESSAGE, /continue, 'GSHHG data files found'
+   return, 1
 endelse
 ;
 if KEYWORD_SET(test) then STOP
@@ -176,7 +222,7 @@ end
 ;
 ; ------------------------------------
 ;
-pro INTERNAL_GDL_MAP_CHECK
+pro INTERNAL_GDL_MAP_CHECK, test=test
 ;
 status=INTERNAL_GDL_MAP_LIBS()
 
@@ -203,7 +249,62 @@ GET_MAP_PROCEDURES
 ;
 ; Checking we have data file around
 ;
-CHECK_GSHHG_DATA
+status_gshhg_data=CHECK_GSHHG_DATA()
+if (status_gshhg_data LT 0) then begin
+   GET_GSHHG_DATA
+   ;;
+   ;; now we can check again
+   status_gshhg_data=CHECK_GSHHG_DATA()
+   if (status_gshhg_data LT 0) then begin
+      message,"GSHHS data still missing"
+   endif
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ------------------------------------
+;
+pro GET_GSHHG_DATA, test=test
+;
+tmp_gshhg_data_dir='tmp_gshhg_data_dir'
+;
+!GSHHS_DATA_DIR=tmp_gshhg_data_dir
+;
+CD, current=old_current
+;
+if ~FILE_TEST(tmp_gshhg_data_dir) then FILE_MKDIR, tmp_gshhg_data_dir
+;
+CD, tmp_gshhg_data_dir
+;
+files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
+md5sum=['b87b875e8b8c89c1314be5ff6da3a30', $
+        '2df949e98ef93455bfa9fabba53f6e5e', $
+        'b4c834981036e4c740d980bd91258844']
+;
+; the three files we need are store here:
+http="http://aramis.obspm.fr/~coulais/IDL_et_GDL/GSHHS_2.3.1/"
+;
+; downloading the files
+for ii=0, N_ELEMENTS(files)-1 do begin
+   spawn, "curl -O "+http+files[ii]
+endfor
+;
+; check the files integrity
+;
+for ii=0, N_ELEMENTS(files)-1 do begin
+   spawn, "md5sum "+files[ii], result
+   if result NE md5sum[ii] then begin
+      MESSAGE,/cont, "Warning : md5sum NOT OK for file : "+files[ii]
+   endif else begin
+       MESSAGE,/cont, "md5sum OK for file : "+files[ii]
+    endelse
+endfor
+;
+CD, old_current
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
@@ -237,10 +338,9 @@ print, 'Exemple 4bis: Should plot Europa centered on Paris Observatory using Gno
 MAP_SET, 48.83,2.33,/grid,/gnomic,/iso, scale=3.e7, $
          title='Zoom on Europa, Gnomic Projection'
 MAP_CONTINENTS, color='ffff00'x,/river
-MAP_CONTINENTS, color='00ff00'x,/count
-map_continents, colo='ffffff'x,/cont    
-
-
+MAP_CONTINENTS, color='00ff00'x,/countrie
+MAP_CONTINENTS, colo='ffffff'x,/continents
+;
 suite='' & read, 'Press Enter', suite
 ;
 print, 'Exemple 5: Should plot North America using Gnomic Projection'
