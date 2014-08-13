@@ -6,7 +6,7 @@
     email                : m_schellens@users.sf.net
          
     - UNIT keyword for SPAWN by Greg Huey
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -46,22 +46,22 @@
 #ifndef _MSC_VER
 #	include <dirent.h>
 #else
-  // MSC workaround implementation in file.cpp
-  /*
-      Declaration of POSIX directory browsing functions and types for Win32.
+// MSC workaround implementation in file.cpp
+/*
+  Declaration of POSIX directory browsing functions and types for Win32.
 
-      Author:  Kevlin Henney (kevlin@acm.org, kevlin@curbralan.com)
-      History: Created March 1997. Updated June 2003.
-      Rights:  See end of file.
-  */
-  extern "C"
-  {
+  Author:  Kevlin Henney (kevlin@acm.org, kevlin@curbralan.com)
+  History: Created March 1997. Updated June 2003.
+  Rights:  See end of file.
+*/
+extern "C"
+{
 
   typedef struct DIR DIR;
 
   struct dirent
   {
-      char *d_name;
+    char *d_name;
   };
 
   DIR           *opendir(const char *);
@@ -70,19 +70,19 @@
   void          rewinddir(DIR *);
 
   /*
-      Copyright Kevlin Henney, 1997, 2003. All rights reserved.
+    Copyright Kevlin Henney, 1997, 2003. All rights reserved.
 
-      Permission to use, copy, modify, and distribute this software and its
-      documentation for any purpose is hereby granted without fee, provided
-      that this copyright and permissions notice appear in all copies and
-      derivatives.
+    Permission to use, copy, modify, and distribute this software and its
+    documentation for any purpose is hereby granted without fee, provided
+    that this copyright and permissions notice appear in all copies and
+    derivatives.
       
-      This software is supplied "as is" without express or implied warranty.
+    This software is supplied "as is" without express or implied warranty.
 
-      But that said, if there are any problems please get in touch.
+    But that said, if there are any problems please get in touch.
   */
 
-  } // extern "C"
+} // extern "C"
 #endif
 
 #ifdef __APPLE__
@@ -295,73 +295,73 @@ namespace lib {
 	os << " ";
       }
     else if( par->Dim( 0) == 0)
-    {
-      if (par->Type() == GDL_STRING)
       {
-	os << par->TypeStr() << right;
-	if( !doIndentation) os << "= ";
-	doTypeString = false;
+	if (par->Type() == GDL_STRING)
+	  {
+	    os << par->TypeStr() << right;
+	    if( !doIndentation) os << "= ";
+	    doTypeString = false;
 
-	// trim string larger than 45 characters
-	DString dataString = (*static_cast<DStringGDL*>(par))[0];
-	os << "'" << StrMid( dataString,0,45,0) << "'";
-	if( dataString.length() > 45) os << "...";
-      }
-      else if (par->Type() == GDL_OBJ && par->StrictScalar())
-      {
-	DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
-	if( s != 0)  // no overloads for null object
-	{
-	  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-	  if( oStructGDL != NULL) // if object not valid -> default behaviour
-	  {  
-	    DStructDesc* desc = oStructGDL->Desc();
-	    static DString listName("LIST");
-	    if( desc->IsParent(listName))
-	    {
-	      os << desc->Name();
-
-	      unsigned nListTag = desc->TagIndex( "NLIST");
-	      DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
-	      os << left;
-	      os << "<ID=";
-	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
-	       
-	      doTypeString = false;
-	    }
-	    static DString hashName("HASH");
-	    if( desc->IsParent(hashName))
-	    {
-	      os << desc->Name();
-
-	      unsigned nListTag = desc->TagIndex( "TABLE_COUNT");
-	      DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
-	      os << left;
-	      os << "<ID=";
-	      os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
-	       
-	      doTypeString = false;
-	    }
+	    // trim string larger than 45 characters
+	    DString dataString = (*static_cast<DStringGDL*>(par))[0];
+	    os << "'" << StrMid( dataString,0,45,0) << "'";
+	    if( dataString.length() > 45) os << "...";
 	  }
-	}
-      }
-      if( doTypeString)
-      {	
-	os << par->TypeStr() << right;
-	if( !doIndentation) os << "= ";
-	doTypeString = false;
+	else if (par->Type() == GDL_OBJ && par->StrictScalar())
+	  {
+	    DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
+	    if( s != 0)  // no overloads for null object
+	      {
+		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+		if( oStructGDL != NULL) // if object not valid -> default behaviour
+		  {  
+		    DStructDesc* desc = oStructGDL->Desc();
+		    static DString listName("LIST");
+		    if( desc->IsParent(listName))
+		      {
+			os << desc->Name();
+
+			unsigned nListTag = desc->TagIndex( "NLIST");
+			DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+			os << left;
+			os << "<ID=";
+			os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
+	       
+			doTypeString = false;
+		      }
+		    static DString hashName("HASH");
+		    if( desc->IsParent(hashName))
+		      {
+			os << desc->Name();
+
+			unsigned nListTag = desc->TagIndex( "TABLE_COUNT");
+			DLong nList = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
+			os << left;
+			os << "<ID=";
+			os << i2s(s) <<"  N_ELEMENTS=" << i2s(nList) << ">";      
+	       
+			doTypeString = false;
+		      }
+		  }
+	      }
+	  }
+	if( doTypeString)
+	  {	
+	    os << par->TypeStr() << right;
+	    if( !doIndentation) os << "= ";
+	    doTypeString = false;
 	
-	par->ToStream( os);
+	    par->ToStream( os);
+	  }
       }
-    }
 
     if( doTypeString)
-    {
+      {
 	os << par->TypeStr() << right;
 	if( !doIndentation) os << "= ";
 	if( par->IsAssoc())
 	  par->ToStream( os);
-    }
+      }
 
     // Dimension display
     if( par->Dim( 0) != 0) os << par->Dim();
@@ -391,9 +391,9 @@ namespace lib {
 	(*retVal)[ i] = the_list[i]->line;
     }
 #else
-//     if (status == 0) {
-      Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
-//     }
+    //     if (status == 0) {
+    Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
+    //     }
 #endif
     return retVal;
   }
@@ -446,20 +446,20 @@ namespace lib {
     // if LAST_MESSAGE is present, it is the only output.
     // All other kw are ignored *EXCEPT 'output'*.
     if( lastmKW)
-    {
-      DStructGDL* errorState = SysVar::Error_State();
-      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-      if (doOutput) 
-      {    // Setup output return variable
-          outputKW = &e->GetKW( outputIx);
-          GDLDelete((*outputKW));
-          *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))->Convert2( GDL_STRING, BaseGDL::COPY));
-          return;
-      } else {
+      {
+	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	if (doOutput) 
+	  {    // Setup output return variable
+	    outputKW = &e->GetKW( outputIx);
+	    GDLDelete((*outputKW));
+	    *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))->Convert2( GDL_STRING, BaseGDL::COPY));
+	    return;
+	  } else {
           cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
           return;
+	}
       }
-    }
 
     static int helpKWIx = e->KeywordIx("HELP");
     bool helpKW= e->KeywordPresent(helpKWIx);
@@ -551,10 +551,19 @@ namespace lib {
     }
 
     static int namesKWIx = e->KeywordIx("NAMES");
-    bool namesKW= e->KeywordPresent(namesKWIx);
+    bool isKWSetNames= e->KeywordPresent(namesKWIx);
+    DString names = "";
+    if (isKWSetNames) {
+      e->AssureStringScalarKWIfPresent("NAMES", names);
+      // since routines and var. are stored in Maj, we convert ...
+      names=StrUpCase(names);
+    }
 
     static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
     bool sourceFilesKW = e->KeywordPresent( sourceFilesKWIx);
+
+    static int routinesKWIx = e->KeywordIx("ROUTINES");
+    bool routinesKW = e->KeywordSet( routinesKWIx);
 
     bool isKWSetProcedures = e->KeywordSet( "PROCEDURES");
     bool isKWSetFunctions  = e->KeywordSet( "FUNCTIONS");
@@ -565,37 +574,36 @@ namespace lib {
 	bool do_fun=TRUE;
 	if (isKWSetProcedures && !isKWSetFunctions) do_fun=FALSE;
 	if (!isKWSetProcedures && isKWSetFunctions) do_pro=FALSE;
-
-	DString names = "";
-	if (namesKW) {
-	  e->AssureStringScalarKWIfPresent("NAMES", names);
+	if (routinesKW) {
+	  bool do_pro=TRUE;
+	  bool do_fun=TRUE;
 	}
-	
+
 	if (do_pro) {
 	  sort( proList.begin(), proList.end(), CompProName());
 	  cout << "Compiled Procedures:" << endl;
 	  cout << "$MAIN$" << endl;
-	  if (namesKW) {
-	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
-	      if (CompareWithJokers(names,(*i)->ObjectName()))
-	      {
+	  if (isKWSetNames) {
+	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i) {
+	      if (CompareWithJokers(names,(*i)->ObjectName())) {
 		cout << setw(25) << left << (*i)->ObjectName() << setw(0);
 		cout << (*i)->GetFilename() << endl;
 	      }
-	  } 
+	    }
+	  }
 	  else {	  
-	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
-	      {
-		cout << setw(25) << left << (*i)->ObjectName() << setw(0);
-		cout << (*i)->GetFilename() << endl;
-	      }
+	    for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i) {
+	      cout << setw(25) << left << (*i)->ObjectName() << setw(0);
+	      cout << (*i)->GetFilename() << endl;
+	    }
 	  }
 	}
+
 	if (do_fun) {
 	  if (do_pro) cout << endl;
 	  sort( funList.begin(), funList.end(), CompFunName());
 	  cout << "Compiled Functions:" << endl;
-	  if (namesKW) {
+	  if (isKWSetNames) {
 	    for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
 	      if (CompareWithJokers(names,(*i)->ObjectName()))
 		{
@@ -626,7 +634,7 @@ namespace lib {
 
 	DStringGDL* retVal = new DStringGDL( dimension( level-1), BaseGDL::NOZERO);
 	SizeT rIx = 0;
-// 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
+	// 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
 	for( long ix = cS.size()-2; ix >= 0; --ix)
 	  {
 	    EnvUDT** r = &cS[ ix];
@@ -635,7 +643,7 @@ namespace lib {
 
 	    DString actString = actEnv->GetProName();
 	    DSubUD* actSub = dynamic_cast<DSubUD*>(actEnv->GetPro());
-// 	    if( (r+1) != cS.rend() && actSub != NULL)
+	    // 	    if( (r+1) != cS.rend() && actSub != NULL)
 	    if( (ix-1) >= 0 && actSub != NULL)
 	      {
 		actString += " <"+actSub->GetFilename() + "(";
@@ -683,10 +691,10 @@ namespace lib {
 	vector<DString> subList;
 	SizeT nPro = libProList.size();
 	for( SizeT i = 0; i<nPro; ++i)
-	{
-	  if( !libProList[ i]->GetHideHelp())
-	    subList.push_back(libProList[ i]->ToString());
-	}
+	  {
+	    if( !libProList[ i]->GetHideHelp())
+	      subList.push_back(libProList[ i]->ToString());
+	  }
 	sort( subList.begin(), subList.end());
 
 	SizeT nProList = subList.size();
@@ -698,10 +706,10 @@ namespace lib {
 
 	SizeT nFun = libFunList.size();
 	for( SizeT i = 0; i<nFun; ++i)
-	{
-	  if( !libFunList[ i]->GetHideHelp())
-	    subList.push_back(libFunList[ i]->ToString());
-	}
+	  {
+	    if( !libFunList[ i]->GetHideHelp())
+	      subList.push_back(libFunList[ i]->ToString());
+	  }
 	sort( subList.begin(), subList.end());
 
 	SizeT nFunList = subList.size();
@@ -719,10 +727,10 @@ namespace lib {
 	vector<DString> subList;
 	SizeT nPro = libProList.size();
 	for( SizeT i = 0; i<nPro; ++i)
-	{
-	  if( libProList[ i]->GetHideHelp()) // difference here
-	    subList.push_back(libProList[ i]->ToString());
-	}
+	  {
+	    if( libProList[ i]->GetHideHelp()) // difference here
+	      subList.push_back(libProList[ i]->ToString());
+	  }
 	sort( subList.begin(), subList.end());
 
 	SizeT nProList = subList.size();
@@ -736,10 +744,10 @@ namespace lib {
 
 	SizeT nFun = libFunList.size();
 	for( SizeT i = 0; i<nFun; ++i)
-	{
-	  if( libFunList[ i]->GetHideHelp()) // difference here
-	    subList.push_back(libFunList[ i]->ToString());
-	}
+	  {
+	    if( libFunList[ i]->GetHideHelp()) // difference here
+	      subList.push_back(libFunList[ i]->ToString());
+	  }
 	sort( subList.begin(), subList.end());
 
 	SizeT nFunList = subList.size();
@@ -772,8 +780,8 @@ namespace lib {
       previous_commands=recall_commands_internal();
       SizeT nEl2 = previous_commands->N_Elements();
       cout << "Recall buffer length: " << nEl2 << endl;
-	for( SizeT i=0; i<nEl2; ++i)
-	  cout << i+1 << "  " <<(*previous_commands)[i] << endl;
+      for( SizeT i=0; i<nEl2; ++i)
+	cout << i+1 << "  " <<(*previous_commands)[i] << endl;
       return;
     }
 
@@ -829,9 +837,6 @@ namespace lib {
     if( outputKW == NULL)
       cout << dec;
 
-    static int routinesKWIx = e->KeywordIx("ROUTINES");
-    bool routinesKW = e->KeywordSet( routinesKWIx);
-
     SizeT nOut = 0;
     
     if ((nParam == 0 && !isKWSetMemory) || isKWSetFunctions || isKWSetProcedures) {
@@ -862,7 +867,7 @@ namespace lib {
       // PROCEDURES keyword
       if (isKWSetProcedures || routinesKW) {
 	if (outputKW == NULL) {
-	    cout << "Compiled Procedures:" << endl;
+	  cout << "Compiled Procedures:" << endl;
 	} else {
 	  ostr << "Compiled Procedures:";
 	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
@@ -881,35 +886,43 @@ namespace lib {
 	      ostr.str("");
 	    }
 	  }
-
+	  bool do_output=true;
+	    
 	  // Find DPro pointer for pList[i]
 	  ProListT::iterator p=std::find_if(proList.begin(),proList.end(),
 					    Is_eq<DPro>(pList[i]));
 	  if( p != proList.end()) {
 	    DPro *pro = *p;
-	    int nPar = pro->NPar();
-	    int nKey = pro->NKey();
 
-	    //cout << pro->ObjectName() << " " << nPar << " " << nKey << endl;
+	    if (isKWSetNames) {
+	      if (!CompareWithJokers(names, pro->ObjectName())) do_output=false;
+	    }
+	    
+	    if (do_output) {
+	      int nPar = pro->NPar();
+	      int nKey = pro->NKey();
 
-	    // Loop through parameters
-	    if (outputKW == NULL) {
-	      cout << setw(25) << left << pro->ObjectName() << setw(0);
-	      for( SizeT j=0; j<nPar; j++)
-		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-	      for( SizeT j=0; j<nKey; j++)
-		cout << StrUpCase(pro->GetVarName(j)) << " ";
-	    } else {
-	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
-	      for( SizeT j=0; j<nPar; j++)
-		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-	      for( SizeT j=0; j<nKey; j++)
-		ostr << StrLowCase(pro->GetVarName(j)) << " ";
-	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	      ostr.str("");
+	      //cout << pro->ObjectName() << " " << nPar << " " << nKey << endl;
+
+	      // Loop through parameters
+	      if (outputKW == NULL) {
+		cout << setw(25) << left << pro->ObjectName() << setw(0);
+		for( SizeT j=0; j<nPar; j++)
+		  cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+		for( SizeT j=0; j<nKey; j++)
+		  cout << StrUpCase(pro->GetVarName(j)) << " ";
+	      } else {
+		ostr << setw(25) << left << pro->ObjectName() << setw(0);
+		for( SizeT j=0; j<nPar; j++)
+		  ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+		for( SizeT j=0; j<nKey; j++)
+		  ostr << StrLowCase(pro->GetVarName(j)) << " ";
+		(*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+		ostr.str("");
+	      }
 	    }
 	  }
-	  if (outputKW == NULL) cout << endl;
+	  if ((outputKW == NULL) && do_output) cout << endl;
 	}
       }
       
@@ -925,33 +938,41 @@ namespace lib {
 
 	// Loop through functions
 	for( SizeT i=0; i<nf; i++) {
+	  bool do_output=true;
 	  
 	  // Find DFun pointer for fList[i]
 	  FunListT::iterator p=std::find_if(funList.begin(),funList.end(),
 					    Is_eq<DFun>(fList[i]));
 	  if( p != funList.end()) {
 	    DFun *pro = *p;
-	    int nPar = pro->NPar();
-	    int nKey = pro->NKey();
 
-	    // Loop through parameters
-	    if (outputKW == NULL) {
-	      cout << setw(25) << left << pro->ObjectName() << setw(0);
-	      for( SizeT j=0; j<nPar; j++)
-		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-	      for( SizeT j=0; j<nKey; j++)
-		cout << StrUpCase(pro->GetVarName(j)) << " ";
-	    } else {
-	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
-	      for( SizeT j=0; j<nPar; j++)
-		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-	      for( SizeT j=0; j<nKey; j++)
-		ostr << StrLowCase(pro->GetVarName(j)) << " ";
-	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	      ostr.str("");
+	    if (isKWSetNames) {
+	      if (!CompareWithJokers(names, pro->ObjectName())) do_output=false;
+	    }
+
+	    if (do_output) {
+	      int nPar = pro->NPar();
+	      int nKey = pro->NKey();
+
+	      // Loop through parameters
+	      if (outputKW == NULL) {
+		cout << setw(25) << left << pro->ObjectName() << setw(0);
+		for( SizeT j=0; j<nPar; j++)
+		  cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+		for( SizeT j=0; j<nKey; j++)
+		  cout << StrUpCase(pro->GetVarName(j)) << " ";
+	      } else {
+		ostr << setw(25) << left << pro->ObjectName() << setw(0);
+		for( SizeT j=0; j<nPar; j++)
+		  ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+		for( SizeT j=0; j<nKey; j++)
+		  ostr << StrLowCase(pro->GetVarName(j)) << " ";
+		(*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+		ostr.str("");
+	      }
 	    }
 	  }
-	  if (outputKW == NULL) cout << endl;
+	  if ((outputKW == NULL) && do_output) cout << endl;
 	}
       }
       if( isKWSetProcedures) return;
@@ -1091,78 +1112,78 @@ namespace lib {
       }
     
     if( routinesKW && briefKW) {
-	// Display compiled procedures & functions
-	if (!isKWSetProcedures && !isKWSetFunctions) {
-	  // StdOut
-	  if (outputKW == NULL) {
-	    cout << "Compiled Procedures:" << endl;
-	    for( SizeT i=0; i<np; i++) cout << pList[i] << " ";
-	    cout << endl << endl;
+      // Display compiled procedures & functions
+      if (!isKWSetProcedures && !isKWSetFunctions) {
+	// StdOut
+	if (outputKW == NULL) {
+	  cout << "Compiled Procedures:" << endl;
+	  for( SizeT i=0; i<np; i++) cout << pList[i] << " ";
+	  cout << endl << endl;
 
-	    cout << "Compiled Functions:" << endl;
-	    for( SizeT i=0; i<nf; i++) cout << fList[i] << " ";
-	    cout << endl;
-	  } else {
-	    // Keyword Output
+	  cout << "Compiled Functions:" << endl;
+	  for( SizeT i=0; i<nf; i++) cout << fList[i] << " ";
+	  cout << endl;
+	} else {
+	  // Keyword Output
 
-	    set<string> helpStr;  // "Sorted List" 
-	    // Output variables
-	    set<string>::iterator it = helpStr.begin(); 
-	    while(it != helpStr.end()) { 
-	      ostr << *it;
+	  set<string> helpStr;  // "Sorted List" 
+	  // Output variables
+	  set<string>::iterator it = helpStr.begin(); 
+	  while(it != helpStr.end()) { 
+	    ostr << *it;
 
-	      (*(DStringGDL *) *outputKW)[nOut++] = 
-		ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
+	    (*(DStringGDL *) *outputKW)[nOut++] = 
+	      ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
 
-	      ++it;
-	      ostr.str("");
-	    } 
-
-	    // Output procedures & functions
-	    ostr << "Compiled Procedures:";
-	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ++it;
 	    ostr.str("");
+	  } 
 
-	    for( SizeT i=0; i<np; i++) ostr << pList[i] << " ";
-	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	    ostr.str("");
+	  // Output procedures & functions
+	  ostr << "Compiled Procedures:";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
 
-	    ostr << "Compiled Functions:";
-	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	    ostr.str("");
+	  for( SizeT i=0; i<np; i++) ostr << pList[i] << " ";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
 
-	    for( SizeT i=0; i<nf; i++) ostr << fList[i] << " ";
-	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	    ostr.str("");
-	  }
+	  ostr << "Compiled Functions:";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
 
+	  for( SizeT i=0; i<nf; i++) ostr << fList[i] << " ";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
 	}
+
+      }
     }
 
-// 	stringstream strS;
-// 	for( SizeT i=0; i<nEnv; ++i)
-// 	  {
-// 	    BaseGDL*& par=caller->GetKW( i);
-// 	    if( par == NULL) 
-// 	      continue;
+    // 	stringstream strS;
+    // 	for( SizeT i=0; i<nEnv; ++i)
+    // 	  {
+    // 	    BaseGDL*& par=caller->GetKW( i);
+    // 	    if( par == NULL) 
+    // 	      continue;
 	    
-// 	    DString parString = caller->GetString( par);
+    // 	    DString parString = caller->GetString( par);
 
-// 	    help_item(  &strS, par, parString, false);
-// 	  }
+    // 	    help_item(  &strS, par, parString, false);
+    // 	  }
 
-// 	deque<DString> toSort;
-// 	for( SizeT i=0; i<nEnv; ++i)
-// 	  {
-// 	    char buf[ 256];
-// 	    strS.getline( buf, 256);
-// 	    toSort.push_back( buf);
-// 	  }
-// 	sort( toSort.begin(), toSort.end());
-// 	for( SizeT i=0; i<nEnv; ++i)
-// 	  {
-// 	    cout << toSort[ i] << endl;
-// 	  }
+    // 	deque<DString> toSort;
+    // 	for( SizeT i=0; i<nEnv; ++i)
+    // 	  {
+    // 	    char buf[ 256];
+    // 	    strS.getline( buf, 256);
+    // 	    toSort.push_back( buf);
+    // 	  }
+    // 	sort( toSort.begin(), toSort.end());
+    // 	for( SizeT i=0; i<nEnv; ++i)
+    // 	  {
+    // 	    cout << toSort[ i] << endl;
+    // 	  }
   }
 
   void exitgdl( EnvT* e)
@@ -1175,12 +1196,12 @@ namespace lib {
     // this should be limited by "history/readline" itself
 
     if( historyIntialized)
-    {
+      {
         // Create eventually the ".gdl" path in user $HOME
         int result, debug=0;
         char *homeDir = getenv( "HOME");
         if (homeDir != NULL)
-        {
+	  {
             string pathToGDL_history = homeDir;
             AppendIfNeeded(pathToGDL_history, "/");
             pathToGDL_history += ".gdl";
@@ -1191,10 +1212,10 @@ namespace lib {
             result = mkdir(pathToGDL_history.c_str(), 0700);
 #endif
             if (debug)
-            {
+	      {
                 if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
                 else cout << "~/.gdl PATH was still here "<< endl;
-            }
+	      }
 
             // (over)write the history file in ~/.gdl PATH
 
@@ -1203,19 +1224,19 @@ namespace lib {
             if (debug) cout << "History file name: " << history_filename << endl;
             result = write_history(history_filename.c_str());
             if (debug)
-            {
+	      {
                 if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
                 else cout <<"Fail to write ~/.gdl/history"<<endl;
-            }
-        }
-    }
+	      }
+	  }
+      }
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
     // wxTheApp may be a null pointer (tracker item no. 2946058)
-//     if (wxTheApp != NULL) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
-//     if( gdlGUIThread != NULL)
-//       gdlGUIThread->Exit();
+    //     if (wxTheApp != NULL) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
+    //     if( gdlGUIThread != NULL)
+    //       gdlGUIThread->Exit();
 
     // SA: gives the following error message with no connection to X-server:
     //   GDL> exit
@@ -1259,51 +1280,51 @@ namespace lib {
     if( var == NULL)
       return;
     if( var->Type() == GDL_STRUCT)
-    {
-      DStructGDL* varStruct = static_cast<DStructGDL*>( var);
-      DStructDesc* desc = varStruct->Desc();
-      for( SizeT e=0; e<varStruct->N_Elements(); ++e)
-	for( SizeT t=0; t<desc->NTags(); ++t)
-	{
-	    BaseGDL* actElementTag = varStruct->GetTag( t, e);
-	    HeapFreeObj( env, actElementTag, verbose);
-	}
-    }
+      {
+	DStructGDL* varStruct = static_cast<DStructGDL*>( var);
+	DStructDesc* desc = varStruct->Desc();
+	for( SizeT e=0; e<varStruct->N_Elements(); ++e)
+	  for( SizeT t=0; t<desc->NTags(); ++t)
+	    {
+	      BaseGDL* actElementTag = varStruct->GetTag( t, e);
+	      HeapFreeObj( env, actElementTag, verbose);
+	    }
+      }
     else if( var->Type() == GDL_PTR)
-    {
-      // descent into pointer
-      DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
-      for( SizeT e=0; e<varPtr->N_Elements(); ++e)
       {
-	DPtr actPtrID = (*varPtr)[e];
-	if( actPtrID == 0)
-	  continue;
+	// descent into pointer
+	DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
+	for( SizeT e=0; e<varPtr->N_Elements(); ++e)
+	  {
+	    DPtr actPtrID = (*varPtr)[e];
+	    if( actPtrID == 0)
+	      continue;
 	
-	BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
-	HeapFreeObj( env, derefPtr, verbose);
+	    BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
+	    HeapFreeObj( env, derefPtr, verbose);
+	  }
       }
-    }
     else if( var->Type() == GDL_OBJ)
-    {
-      DObjGDL* varObj = static_cast<DObjGDL*>( var);
-      for( SizeT e=0; e<varObj->N_Elements(); ++e)
       {
-	DObj actID = (*varObj)[e];
-	if( actID == 0)
-	  continue;
+	DObjGDL* varObj = static_cast<DObjGDL*>( var);
+	for( SizeT e=0; e<varObj->N_Elements(); ++e)
+	  {
+	    DObj actID = (*varObj)[e];
+	    if( actID == 0)
+	      continue;
 	
-	if( verbose)
-	{
-	  BaseGDL* derefObj = DInterpreter::GetObjHeap( actID);
-	  help_item( cout, 
-		      derefObj, DString( "<ObjHeapVar")+
-		      i2s(actID)+">",
-		      false);
-	}
-	// 2. free object
-	env->ObjCleanup( actID);
+	    if( verbose)
+	      {
+		BaseGDL* derefObj = DInterpreter::GetObjHeap( actID);
+		help_item( cout, 
+			   derefObj, DString( "<ObjHeapVar")+
+			   i2s(actID)+">",
+			   false);
+	      }
+	    // 2. free object
+	    env->ObjCleanup( actID);
+	  }
       }
-    }
   }
   
   void HeapFreePtr( BaseGDL* var, bool verbose)
@@ -1311,39 +1332,39 @@ namespace lib {
     if( var == NULL)
       return;
     if( var->Type() == GDL_STRUCT)
-    {
-      DStructGDL* varStruct = static_cast<DStructGDL*>( var);
-      DStructDesc* desc = varStruct->Desc();
-      for( SizeT e=0; e<varStruct->N_Elements(); ++e)
-	for( SizeT t=0; t<desc->NTags(); ++t)
-	{
-	    BaseGDL* actElementTag = varStruct->GetTag( t, e);
-	    HeapFreePtr( actElementTag, verbose);  // recursive call
-	}
-    }
-    else if( var->Type() == GDL_PTR)
-    {
-      // 1. descent into pointer
-      DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
-      for( SizeT e=0; e<varPtr->N_Elements(); ++e)
       {
-	DPtr actPtrID = (*varPtr)[e];
-	if( actPtrID == 0)
-	  continue;
-	
-	BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
-	if( verbose)
-	{
-	  help_item( cout, 
-		      derefPtr, DString( "<PtrHeapVar")+
-		      i2s(actPtrID)+">",
-		      false);
-	}
-	HeapFreePtr( derefPtr, verbose); // recursive call
+	DStructGDL* varStruct = static_cast<DStructGDL*>( var);
+	DStructDesc* desc = varStruct->Desc();
+	for( SizeT e=0; e<varStruct->N_Elements(); ++e)
+	  for( SizeT t=0; t<desc->NTags(); ++t)
+	    {
+	      BaseGDL* actElementTag = varStruct->GetTag( t, e);
+	      HeapFreePtr( actElementTag, verbose);  // recursive call
+	    }
       }
-      // 2. free pointer
-      DInterpreter::FreeHeap( varPtr);
-    }
+    else if( var->Type() == GDL_PTR)
+      {
+	// 1. descent into pointer
+	DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
+	for( SizeT e=0; e<varPtr->N_Elements(); ++e)
+	  {
+	    DPtr actPtrID = (*varPtr)[e];
+	    if( actPtrID == 0)
+	      continue;
+	
+	    BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
+	    if( verbose)
+	      {
+		help_item( cout, 
+			   derefPtr, DString( "<PtrHeapVar")+
+			   i2s(actPtrID)+">",
+			   false);
+	      }
+	    HeapFreePtr( derefPtr, verbose); // recursive call
+	  }
+	// 2. free pointer
+	DInterpreter::FreeHeap( varPtr);
+      }
   }
   
   void heap_free( EnvT* e)
@@ -1373,15 +1394,15 @@ namespace lib {
       {
 	BaseGDL* p = e->GetPar( i);
 	if( p == NULL)
-	{
-	  e->Throw( "Pointer type required"
-		    " in this context: "+e->GetParString(i));	  
-	}
+	  {
+	    e->Throw( "Pointer type required"
+		      " in this context: "+e->GetParString(i));	  
+	  }
 	if( p->Type() != GDL_PTR)
-	{
-	  e->Throw( "Pointer type required"
-		    " in this context: "+e->GetParString(i));	  
-	}
+	  {
+	    e->Throw( "Pointer type required"
+		      " in this context: "+e->GetParString(i));	  
+	  }
 	DPtrGDL* par=static_cast<DPtrGDL*>(e->GetPar( i));
 	e->FreeHeap( par);
       }
@@ -1426,9 +1447,9 @@ namespace lib {
     int proIx=LibProIx( callP);
     if( proIx != -1)
       {
-// 	e->PushNewEnv( libProList[ proIx], 1);
+	// 	e->PushNewEnv( libProList[ proIx], 1);
 	// make the call
-// 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+	// 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
 	EnvT* newEnv = e->NewEnv( libProList[ proIx], 1);
 	Guard<EnvT> guard( newEnv);
 	static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
@@ -1442,7 +1463,7 @@ namespace lib {
 	EnvUDT* newEnv = e->PushNewEnvUD( proList[ proIx], 1);
 	
 	// make the call
-// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
+	// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
 	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
       }
   }
@@ -1513,21 +1534,21 @@ namespace lib {
     
     DLong lun;
     if( e->KeywordSet( "GET_LUN")) 
-    {
-      //     get_lun( e);
-      // not using SetPar later gives a better error message
-      e->AssureGlobalPar( 0);
+      {
+	//     get_lun( e);
+	// not using SetPar later gives a better error message
+	e->AssureGlobalPar( 0);
     
-      // here lun is the GDL lun, not the internal one
-      lun = GetLUN();
+	// here lun is the GDL lun, not the internal one
+	lun = GetLUN();
 
-      if( lun == 0)
-	e->Throw( "All available logical units are currently in use.");
-    }
+	if( lun == 0)
+	  e->Throw( "All available logical units are currently in use.");
+      }
     else
-    {
-      e->AssureLongScalarPar( 0, lun);
-    }
+      {
+	e->AssureLongScalarPar( 0, lun);
+      }
     
     bool stdLun = check_lun( e, lun);
     if( stdLun)
@@ -1538,8 +1559,8 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 1, name); 
 
     // Change leading "~" to home directory
-//     if (name.substr(0,2) == "~/")
-//       name = getenv("HOME") + name.substr(1,name.size()-1);
+    //     if (name.substr(0,2) == "~/")
+    //       name = getenv("HOME") + name.substr(1,name.size()-1);
 
     // endian
     bool swapEndian=false;
@@ -1568,29 +1589,29 @@ namespace lib {
     // SA: trunc flag for non-existent file is needed in order to comply with
     // IDL behaviour (creating a file even if /APPEND flag is set) (tracker bug 2103871)
     if (e->KeywordSet(appendIx))
-    { 
+      { 
 	if( compress)
-		e->Throw("Keywords APPEND and COMPRESS exclude each other.");
-      // 
-      // SA: The manual says that access() "is a potential security hole and should never be used"
-      // but I didn't find any better way to do it. A problem might happen when the following sequence occurs:
-      // * openu/openw is called with the /append flag and the target file does not exist
-      // * access() informs about non-existence -> "trunc" flag is set to be used instead of "ate"
-      // * in the meantime the file is created by some other process
-      // * opening the file truncates it but it shouldn't as the /append flag was used
-      // However, apparently only when "trunc" is set, a previously-non-existent file gets created.
-      // Therefore it seems necessary to check for file existence before, in order to choose
-      // between "ate" and "trunc" flags.
-      //
-      // ensuring trunc when a non-existent file requested (the OPENU,/APPEND case)
-      if (-1 == access(name.c_str(), F_OK)) mode |= fstream::trunc;
-      else {
-        // ensuring no trunc when an existent file requested (the OPENW,/APPEND case)
-        mode &= ~fstream::trunc;
-        // handling /APPEND (both for OPENW,/APPEND and OPENU,/APPEND)
-        mode |= fstream::ate;
+	  e->Throw("Keywords APPEND and COMPRESS exclude each other.");
+	// 
+	// SA: The manual says that access() "is a potential security hole and should never be used"
+	// but I didn't find any better way to do it. A problem might happen when the following sequence occurs:
+	// * openu/openw is called with the /append flag and the target file does not exist
+	// * access() informs about non-existence -> "trunc" flag is set to be used instead of "ate"
+	// * in the meantime the file is created by some other process
+	// * opening the file truncates it but it shouldn't as the /append flag was used
+	// However, apparently only when "trunc" is set, a previously-non-existent file gets created.
+	// Therefore it seems necessary to check for file existence before, in order to choose
+	// between "ate" and "trunc" flags.
+	//
+	// ensuring trunc when a non-existent file requested (the OPENU,/APPEND case)
+	if (-1 == access(name.c_str(), F_OK)) mode |= fstream::trunc;
+	else {
+	  // ensuring no trunc when an existent file requested (the OPENW,/APPEND case)
+	  mode &= ~fstream::trunc;
+	  // handling /APPEND (both for OPENW,/APPEND and OPENU,/APPEND)
+	  mode |= fstream::ate;
+	}
       }
-    }
 
     static int f77Ix = e->KeywordIx( "F77_UNFORMATTED");
     bool f77 = e->KeywordSet( f77Ix);
@@ -1613,29 +1634,29 @@ namespace lib {
     // Assume variable-length VMS file initially
     // fileUnits[ lun-1].PutVarLenVMS( true);
 
-   // m_schellens: this is no good. It fails for regular files which by accident fit the 
-   // variable-length VMS file criteria (see bug tracker ID: 3028279)
-   // we need something more sophisticated here
-   fileUnits[ lun-1].PutVarLenVMS( false);
+    // m_schellens: this is no good. It fails for regular files which by accident fit the 
+    // variable-length VMS file criteria (see bug tracker ID: 3028279)
+    // we need something more sophisticated here
+    fileUnits[ lun-1].PutVarLenVMS( false);
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
 			      xdr, width, f77, compress);
 
       if( e->KeywordSet( "GET_LUN")) 
-      {
-	BaseGDL** retLun = &e->GetPar( 0);
-	GDLDelete((*retLun)); 
-	*retLun = new DLongGDL( lun);
-	// par 0 contains now the LUN
-      }
+	{
+	  BaseGDL** retLun = &e->GetPar( 0);
+	  GDLDelete((*retLun)); 
+	  *retLun = new DLongGDL( lun);
+	  // par 0 contains now the LUN
+	}
     } 
     catch( GDLException& ex) {
       
       if( e->KeywordSet( "GET_LUN")) 
-      {
-	fileUnits[ lun-1].Free();
-      }
+	{
+	  fileUnits[ lun-1].Free();
+	}
       
       DString errorMsg = ex.getMessage()+ // getMessage gets the non-decorated error message
 	" Unit: "+i2s( lun)+", File: "+fileUnits[ lun-1].Name();
@@ -1646,7 +1667,7 @@ namespace lib {
       BaseGDL** err = &e->GetKW( errorIx);
       
       GDLDelete(*err); 
-//    if( *err != e->Caller()->Object()) delete (*err); 
+      //    if( *err != e->Caller()->Object()) delete (*err); 
       
       *err = new DLongGDL( ex.ErrorCode());
       return;
@@ -1656,7 +1677,7 @@ namespace lib {
       {
 	BaseGDL** err = &e->GetKW( errorIx);
       
-// 	if( *err != e->Caller()->Object()) delete (*err); 
+	// 	if( *err != e->Caller()->Object()) delete (*err); 
 	GDLDelete((*err)); 
       
 	*err = new DLongGDL( 0);
@@ -1759,7 +1780,7 @@ namespace lib {
       BaseGDL** err = &e->GetKW( errorIx);
       
       GDLDelete((*err)); 
-//    if( *err != e->Caller()->Object()) delete (*err); 
+      //    if( *err != e->Caller()->Object()) delete (*err); 
       
       *err = new DLongGDL( 1);
       return;
@@ -1769,7 +1790,7 @@ namespace lib {
       {
 	BaseGDL** err = &e->GetKW( errorIx);
       
-// 	if( *err != e->Caller()->Object()) delete (*err); 
+	// 	if( *err != e->Caller()->Object()) delete (*err); 
 	GDLDelete((*err)); 
       
 	*err = new DLongGDL( 0);
@@ -1782,20 +1803,20 @@ namespace lib {
     // within GDL, always lun+1 is used
     int nParam = e->NParam();
     for (int p = 0; p < nParam; p++)
-    {
-      DLong lun;
-      e->AssureLongScalarPar(p, lun);
-      if (lun > maxLun) 
-        e->Throw("File unit is not within allowed range: " + i2s(lun) + ".");
-      else if (lun == -2) 
-        cerr << flush;
-      else if (lun == -1)
-        cout << flush; 
-      else if (lun == 0)
-        ;// do nothing?
-      else 
-        fileUnits[lun - 1].Flush();
-    }
+      {
+	DLong lun;
+	e->AssureLongScalarPar(p, lun);
+	if (lun > maxLun) 
+	  e->Throw("File unit is not within allowed range: " + i2s(lun) + ".");
+	else if (lun == -2) 
+	  cerr << flush;
+	else if (lun == -1)
+	  cout << flush; 
+	else if (lun == 0)
+	  ;// do nothing?
+	else 
+	  fileUnits[lun - 1].Flush();
+      }
   }
 
   void close_free_lun( EnvT* e, bool freeLun)
@@ -1882,9 +1903,9 @@ namespace lib {
 
 	compress = fileUnits[ lun-1].Compress();
 	if( !compress)
-		os = &fileUnits[ lun-1].OStream();
+	  os = &fileUnits[ lun-1].OStream();
 	else
-		ogzs = &fileUnits[ lun-1].OgzStream();
+	  ogzs = &fileUnits[ lun-1].OgzStream();
 	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
 	xdrs = fileUnits[ lun-1].Xdr();
@@ -1893,7 +1914,7 @@ namespace lib {
     if( f77)
       {
 	if(compress)
-		e->Throw("COMPRESS not supported for F77.");
+	  e->Throw("COMPRESS not supported for F77.");
 
 	// count record length
 	SizeT nBytesAll = 0;
@@ -1914,24 +1935,24 @@ namespace lib {
 	  }
 
 	// write record length
-		fileUnits[ lun-1].F77Write( nBytesAll);
-	}
-  else
-	if( compress)
+	fileUnits[ lun-1].F77Write( nBytesAll);
+      }
+    else
+      if( compress)
 	{
-		for( SizeT i=1; i<nParam; i++)
-			{
-			BaseGDL* p = e->GetParDefined( i);
-			p->Write( *ogzs, swapEndian, compress, xdrs);
-			}
+	  for( SizeT i=1; i<nParam; i++)
+	    {
+	      BaseGDL* p = e->GetParDefined( i);
+	      p->Write( *ogzs, swapEndian, compress, xdrs);
+	    }
 	}
-	else
+      else
 	{
-		for( SizeT i=1; i<nParam; i++)
-			{
-			BaseGDL* p = e->GetParDefined( i);
-			p->Write( *os, swapEndian, compress, xdrs);
-			}
+	  for( SizeT i=1; i<nParam; i++)
+	    {
+	      BaseGDL* p = e->GetParDefined( i);
+	      p->Write( *os, swapEndian, compress, xdrs);
+	    }
 	}
 
     BaseGDL* p = e->GetParDefined( nParam-1);
@@ -1944,7 +1965,7 @@ namespace lib {
       GDLDelete((*tcKW));
       *tcKW= new DLongGDL(p->N_Elements());
     }
-}
+  }
 
   void readu( EnvT* e)
   {
@@ -2002,9 +2023,9 @@ namespace lib {
       {
 	compress = fileUnits[ lun-1].Compress();
 	if( !compress)
-		is = &fileUnits[ lun-1].IStream();
+	  is = &fileUnits[ lun-1].IStream();
 	else
-		igzs = &fileUnits[ lun-1].IgzStream();
+	  igzs = &fileUnits[ lun-1].IgzStream();
 	f77 = fileUnits[ lun-1].F77();
 	varlenVMS = fileUnits[ lun-1].VarLenVMS();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
@@ -2054,45 +2075,45 @@ namespace lib {
 	    }
 
 	  if (compress) 
-	  {
-	    p->Read( *igzs, swapEndian, compress, xdrs);
-	  } 
+	    {
+	      p->Read( *igzs, swapEndian, compress, xdrs);
+	    } 
 	  else if (varlenVMS && i == 1) 
-	  {
-	    // Check if VMS variable-length file
-	    char hdr[4], tmp;
+	    {
+	      // Check if VMS variable-length file
+	      char hdr[4], tmp;
 
-	    // Read possible record header
-	    is->read(hdr, 4);
+	      // Read possible record header
+	      is->read(hdr, 4);
 
-	    DLong nRec1;
-	    memcpy(&nRec1, hdr, 4);
+	      DLong nRec1;
+	      memcpy(&nRec1, hdr, 4);
 
-	    // switch endian
-	    tmp = hdr[3]; hdr[3] = hdr[0]; hdr[0] = tmp;
-	    tmp = hdr[2]; hdr[2] = hdr[1]; hdr[1] = tmp;
+	      // switch endian
+	      tmp = hdr[3]; hdr[3] = hdr[0]; hdr[0] = tmp;
+	      tmp = hdr[2]; hdr[2] = hdr[1]; hdr[1] = tmp;
 
-	    DLong nRec2;
-	    memcpy(&nRec2, hdr, 4);
-	    SizeT nBytes = p->NBytes();
+	      DLong nRec2;
+	      memcpy(&nRec2, hdr, 4);
+	      SizeT nBytes = p->NBytes();
 
-	    // In variable length VMS files, each record is prefixed 
-	    // with a count byte that contains the number of bytes 
-	    // in the record.  This step checks whether the length
-	    // of the possible header record actually corresponds
-	    // to the total length of the desired fields in the
-	    // call to READU.
+	      // In variable length VMS files, each record is prefixed 
+	      // with a count byte that contains the number of bytes 
+	      // in the record.  This step checks whether the length
+	      // of the possible header record actually corresponds
+	      // to the total length of the desired fields in the
+	      // call to READU.
 
-	    // if not VMS v.l.f then backup 4 bytes and tag files
-	    // as not variable-length
-	    if (nRec1 != nBytes && nRec2 != nBytes) { 	     
-	      is->seekg(-4, ios::cur);
-	      fileUnits[ lun-1].PutVarLenVMS( false);
+	      // if not VMS v.l.f then backup 4 bytes and tag files
+	      // as not variable-length
+	      if (nRec1 != nBytes && nRec2 != nBytes) { 	     
+		is->seekg(-4, ios::cur);
+		fileUnits[ lun-1].PutVarLenVMS( false);
+	      }
+	      p->Read( *is, swapEndian, compress, xdrs);
 	    }
-	    p->Read( *is, swapEndian, compress, xdrs);
-	  }
 	  else 
-		p->Read( *is, swapEndian, compress, xdrs);
+	    p->Read( *is, swapEndian, compress, xdrs);
 
 	  // Socket Read
 	  if (sockNum != -1) {
@@ -2122,11 +2143,11 @@ namespace lib {
 
   void catch_pro( EnvT* e)
   {
-//     static bool warned = false;
-//     if (!warned) {
-//       Warning("CATCH: feature not implemented yet (FIXME!).");
-//       warned = true;
-//     }
+    //     static bool warned = false;
+    //     if (!warned) {
+    //       Warning("CATCH: feature not implemented yet (FIXME!).");
+    //       warned = true;
+    //     }
     e->Catch();
   }
 
@@ -2151,13 +2172,13 @@ namespace lib {
       }
 
     SizeT nEl = dest->N_Elements();
-TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      {
 #pragma omp for
-    for( OMPInt i=0; i<nEl; ++i)
-	StrPut((*dest)[ i], source, pos);
-}
+	for( OMPInt i=0; i<nEl; ++i)
+	  StrPut((*dest)[ i], source, pos);
+      }
   }
 
   void retall( EnvT* e)
@@ -2292,38 +2313,38 @@ TRACEOMP( __FILE__, __LINE__)
     bool reissue = e->KeywordSet( reissueIx);
 
     if( reset)
-    {
-      DStructGDL* errorState = SysVar::Error_State();
-      static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
-      static unsigned blockTag = errorState->Desc()->TagIndex( "BLOCK");
-      static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-      static unsigned rangeTag = errorState->Desc()->TagIndex( "RANGE");
-      static unsigned sys_code_typeTag = errorState->Desc()->TagIndex( "SYS_CODE_TYPE");
-      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-      static unsigned sys_msgTag = errorState->Desc()->TagIndex( "SYS_MSG");
-      static unsigned msg_prefixTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
+      {
+	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
+	static unsigned blockTag = errorState->Desc()->TagIndex( "BLOCK");
+	static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+	static unsigned rangeTag = errorState->Desc()->TagIndex( "RANGE");
+	static unsigned sys_code_typeTag = errorState->Desc()->TagIndex( "SYS_CODE_TYPE");
+	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	static unsigned sys_msgTag = errorState->Desc()->TagIndex( "SYS_MSG");
+	static unsigned msg_prefixTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
 
-      (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = "IDL_M_SUCCESS";
-      (*static_cast<DStringGDL*>( errorState->GetTag( blockTag)))[0] = "IDL_MBLK_CORE";
-      (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
-      (*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[0] = 0;
-      (*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[1] = 0;
-      (*static_cast<DStringGDL*>( errorState->GetTag( sys_code_typeTag)))[0] = "";
-      (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = "";
-      (*static_cast<DStringGDL*>( errorState->GetTag( sys_msgTag)))[0] = "";
-      (*static_cast<DStringGDL*>( errorState->GetTag( msg_prefixTag)))[0] = "% ";
+	(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = "IDL_M_SUCCESS";
+	(*static_cast<DStringGDL*>( errorState->GetTag( blockTag)))[0] = "IDL_MBLK_CORE";
+	(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
+	(*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[0] = 0;
+	(*static_cast<DLongGDL*>( errorState->GetTag( rangeTag)))[1] = 0;
+	(*static_cast<DStringGDL*>( errorState->GetTag( sys_code_typeTag)))[0] = "";
+	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = "";
+	(*static_cast<DStringGDL*>( errorState->GetTag( sys_msgTag)))[0] = "";
+	(*static_cast<DStringGDL*>( errorState->GetTag( msg_prefixTag)))[0] = "% ";
       
-      SysVar::SetErr_String( "");     
-      SysVar::SetErrError( 0);
-    }
+	SysVar::SetErr_String( "");     
+	SysVar::SetErrError( 0);
+      }
     
     if( reissue )
-    {
-      DStructGDL* errorState = SysVar::Error_State();
-      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-      if( !info || (SysVar::Quiet() == 0)) cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
-      return;
-    }
+      {
+	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	if( !info || (SysVar::Quiet() == 0)) cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
+	return;
+      }
 
     if( nParam == 0) return;
 
@@ -2334,16 +2355,16 @@ TRACEOMP( __FILE__, __LINE__)
       msg = e->Caller()->GetProName() + ": " + msg;
 
     if( !info)
-    {
-      DStructGDL* errorState = SysVar::Error_State();
-      static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-      (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
-      static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-      (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
+      {
+	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+	(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
+	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
 
-      SysVar::SetErr_String( msg);
-      SysVar::SetErrError( -1);
-    }
+	SysVar::SetErr_String( msg);
+	SysVar::SetErrError( -1);
+      }
 
     if( noprint)
       msg = "";
@@ -2359,75 +2380,75 @@ TRACEOMP( __FILE__, __LINE__)
   }
 
   void byteorderDo( EnvT* e, BaseGDL* pIn, SizeT swapSz, DLong p)
-{
-	if( pIn->Type() == GDL_STRUCT)
-	{
-		DStructGDL* dS=static_cast<DStructGDL*>( pIn);
-		if( dS->Desc()->ContainsStringPtrObject())
-			e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));
-		for( SizeT t=0; t<dS->NTags(); ++t)
-		{
-			BaseGDL* par = dS->GetTag( t);
+  {
+    if( pIn->Type() == GDL_STRUCT)
+      {
+	DStructGDL* dS=static_cast<DStructGDL*>( pIn);
+	if( dS->Desc()->ContainsStringPtrObject())
+	  e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));
+	for( SizeT t=0; t<dS->NTags(); ++t)
+	  {
+	    BaseGDL* par = dS->GetTag( t);
 			
-			if( par->Type() == GDL_STRUCT && par->N_Elements() == 1)
-			{
-				// do tag by tag for scalar struct as memory might not be contigous (
-				byteorderDo( e, par, swapSz, p);
-			}
-			else
-			{
+	    if( par->Type() == GDL_STRUCT && par->N_Elements() == 1)
+	      {
+		// do tag by tag for scalar struct as memory might not be contigous (
+		byteorderDo( e, par, swapSz, p);
+	      }
+	    else
+	      {
 				
-				SizeT nBytes = par->NBytes();
-				if( nBytes % swapSz != 0)
-				e->Throw( "Operand's size must be a multiple of swap "
-					"datum size: " + e->GetParString(p));		    
-				
-				SizeT nSwap = nBytes / swapSz;
-			
-				char* addr = static_cast<char*>(par->DataAddr());
-			
-				for( SizeT i=0; i<nSwap; ++i)
-				{
-					for( SizeT s=0; s < (swapSz/2); ++s)
-					{
-						char tmp = *(addr+i*swapSz+s);
-						*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
-						*(addr+i*swapSz+swapSz-1-s) = tmp;
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		if( pIn->Type() == GDL_STRING)
-		e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-		if( pIn->Type() == GDL_OBJ)
-		e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
-		if( pIn->Type() == GDL_PTR)
-		e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
-	
-		BaseGDL*& par = pIn;
 		SizeT nBytes = par->NBytes();
 		if( nBytes % swapSz != 0)
-		e->Throw( "Operand's size must be a multiple of swap "
-			"datum size: " + e->GetParString(p));		    
-		
+		  e->Throw( "Operand's size must be a multiple of swap "
+			    "datum size: " + e->GetParString(p));		    
+				
 		SizeT nSwap = nBytes / swapSz;
-	
+			
 		char* addr = static_cast<char*>(par->DataAddr());
-	
+			
 		for( SizeT i=0; i<nSwap; ++i)
-		{
-			for( SizeT s=0; s < (swapSz/2); ++s)
-			{
-				char tmp = *(addr+i*swapSz+s);
-				*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
-				*(addr+i*swapSz+swapSz-1-s) = tmp;
-			}
-		}
-	}
-}
+		  {
+		    for( SizeT s=0; s < (swapSz/2); ++s)
+		      {
+			char tmp = *(addr+i*swapSz+s);
+			*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
+			*(addr+i*swapSz+swapSz-1-s) = tmp;
+		      }
+		  }
+	      }
+	  }
+      }
+    else
+      {
+	if( pIn->Type() == GDL_STRING)
+	  e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
+	if( pIn->Type() == GDL_OBJ)
+	  e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
+	if( pIn->Type() == GDL_PTR)
+	  e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
+	
+	BaseGDL*& par = pIn;
+	SizeT nBytes = par->NBytes();
+	if( nBytes % swapSz != 0)
+	  e->Throw( "Operand's size must be a multiple of swap "
+		    "datum size: " + e->GetParString(p));		    
+		
+	SizeT nSwap = nBytes / swapSz;
+	
+	char* addr = static_cast<char*>(par->DataAddr());
+	
+	for( SizeT i=0; i<nSwap; ++i)
+	  {
+	    for( SizeT s=0; s < (swapSz/2); ++s)
+	      {
+		char tmp = *(addr+i*swapSz+s);
+		*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
+		*(addr+i*swapSz+swapSz-1-s) = tmp;
+	      }
+	  }
+      }
+  }
 
   void byteorder( EnvT* e)
   {
@@ -2501,11 +2522,11 @@ TRACEOMP( __FILE__, __LINE__)
       DString strArg = strEnv.substr(pos+1, len - pos - 1);
       strEnv = strEnv.substr(0, pos);
       // putenv() is POSIX unlike setenv()
-      #if defined(__hpux__) || (defined(_WIN32) && !defined(__CYGWIN__))
+#if defined(__hpux__) || (defined(_WIN32) && !defined(__CYGWIN__))
       int ret = putenv((strEnv+"="+strArg).c_str());
-      #else
+#else
       int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
-      #endif
+#endif
     }
   } 
 
@@ -2534,7 +2555,7 @@ TRACEOMP( __FILE__, __LINE__)
 
     // zero out the destination
     if( !nozero)
-       (*dest).Clear();
+      (*dest).Clear();
 
     nTags = (*source).Desc()->NTags();
 
@@ -2563,7 +2584,7 @@ TRACEOMP( __FILE__, __LINE__)
 	      }
 
 	    if( nTagElements > nTagDestElements)
-		nTagElements = nTagDestElements;
+	      nTagElements = nTagDestElements;
 
 	    for( SizeT a=0; a< nElements; ++a)
 	      dest->GetTag( ix, a)->Assign( source->GetTag( t, a), nTagElements);
@@ -2578,226 +2599,226 @@ TRACEOMP( __FILE__, __LINE__)
 #define BUFSIZE 1024
   void ReadFromPipe(HANDLE g_Rd, vector<DString> *s_str)
 
-	  // Read output from the child process's pipe for STDOUT
-	  // and write to the parent process's pipe for STDOUT. 
-	  // Stop when there is no more data. 
+  // Read output from the child process's pipe for STDOUT
+  // and write to the parent process's pipe for STDOUT. 
+  // Stop when there is no more data. 
   {
-	  DWORD dwRead, len;
-	  CHAR chBuf[BUFSIZE];
-	  CHAR a_chr;
-	  BOOL bSuccess = FALSE;
+    DWORD dwRead, len;
+    CHAR chBuf[BUFSIZE];
+    CHAR a_chr;
+    BOOL bSuccess = FALSE;
 	  
-	  len = 0;
-	  for (;;)
-	  {
-		  bSuccess = ReadFile(g_Rd, &a_chr, 1, &dwRead, NULL);
-		  if (!bSuccess || dwRead == 0) {
-			  if (len > 0) {
-				  if (len < BUFSIZE-1) len++;
-				  chBuf[len] = 0;
-				  s_str->push_back(DString(chBuf));
-			  }
-			  break;
-		  }
-		  if (a_chr == '\r')
-			  a_chr = '\0';
-		  chBuf[len++] = a_chr;
-		  if (a_chr == '\n' || len == BUFSIZE) {
-			  len = 0;
-			  s_str->push_back(DString(chBuf));
-		  }
+    len = 0;
+    for (;;)
+      {
+	bSuccess = ReadFile(g_Rd, &a_chr, 1, &dwRead, NULL);
+	if (!bSuccess || dwRead == 0) {
+	  if (len > 0) {
+	    if (len < BUFSIZE-1) len++;
+	    chBuf[len] = 0;
+	    s_str->push_back(DString(chBuf));
 	  }
+	  break;
+	}
+	if (a_chr == '\r')
+	  a_chr = '\0';
+	chBuf[len++] = a_chr;
+	if (a_chr == '\n' || len == BUFSIZE) {
+	  len = 0;
+	  s_str->push_back(DString(chBuf));
+	}
+      }
   }
 
   DWORD launch_cmd(BOOL hide, LPWSTR cmd, LPWSTR title = NULL, DWORD *pid = NULL, vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
   {
-	  DWORD status;
+    DWORD status;
 
-	  STARTUPINFO si = { 0, };
-	  PROCESS_INFORMATION pi = {0, };
+    STARTUPINFO si = { 0, };
+    PROCESS_INFORMATION pi = {0, };
 
-	  SECURITY_ATTRIBUTES saAttr;
+    SECURITY_ATTRIBUTES saAttr;
 
-	  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-	  saAttr.bInheritHandle = TRUE;
-	  saAttr.lpSecurityDescriptor = NULL;
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
 
-	  //HANDLE g_hChildStd_IN_Rd = NULL;
-	  //HANDLE g_hChildStd_IN_Wr = NULL;
-	  HANDLE g_hChildStd_OUT_Rd = NULL;
-	  HANDLE g_hChildStd_OUT_Wr = NULL;
-	  HANDLE g_hChildStd_ERR_Rd = NULL;
-	  HANDLE g_hChildStd_ERR_Wr = NULL;
+    //HANDLE g_hChildStd_IN_Rd = NULL;
+    //HANDLE g_hChildStd_IN_Wr = NULL;
+    HANDLE g_hChildStd_OUT_Rd = NULL;
+    HANDLE g_hChildStd_OUT_Wr = NULL;
+    HANDLE g_hChildStd_ERR_Rd = NULL;
+    HANDLE g_hChildStd_ERR_Wr = NULL;
  
-	  si.cb = sizeof(si);
-	  if (title == NULL)
-		si.lpTitle = cmd;
-	  else
-		si.lpTitle = title;
+    si.cb = sizeof(si);
+    if (title == NULL)
+      si.lpTitle = cmd;
+    else
+      si.lpTitle = title;
 
-	  if (hide)
-	  {
-		  si.dwFlags = STARTF_USESHOWWINDOW;
-		  si.wShowWindow = SW_SHOWMINNOACTIVE;
-	  }
+    if (hide)
+      {
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_SHOWMINNOACTIVE;
+      }
 
-	  if (ds_outs != NULL) {
-		  //CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0);
-		  CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0);
-		  //si.hStdInput = g_hChildStd_IN_Rd;
-		  si.hStdOutput = g_hChildStd_OUT_Wr;
-		  if (ds_errs != NULL) {
-		    CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0);
-		    si.hStdError = g_hChildStd_ERR_Wr;
-	      }
-		  si.dwFlags |= STARTF_USESTDHANDLES;
-		  CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
-	  }
-	  else
-	  {
-		  CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
-		  WaitForSingleObject(pi.hProcess, INFINITE);
-	  }
-	  if (pid != NULL)
-		  *pid = pi.dwProcessId;
-	  GetExitCodeProcess(pi.hProcess, &status);
-	  CloseHandle(pi.hProcess);
-	  CloseHandle(pi.hThread);
+    if (ds_outs != NULL) {
+      //CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0);
+      CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0);
+      //si.hStdInput = g_hChildStd_IN_Rd;
+      si.hStdOutput = g_hChildStd_OUT_Wr;
+      if (ds_errs != NULL) {
+	CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0);
+	si.hStdError = g_hChildStd_ERR_Wr;
+      }
+      si.dwFlags |= STARTF_USESTDHANDLES;
+      CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+    }
+    else
+      {
+	CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+	WaitForSingleObject(pi.hProcess, INFINITE);
+      }
+    if (pid != NULL)
+      *pid = pi.dwProcessId;
+    GetExitCodeProcess(pi.hProcess, &status);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 
-	  if (ds_outs != NULL) {
-		  CloseHandle(g_hChildStd_OUT_Wr);
-		  ReadFromPipe(g_hChildStd_OUT_Rd, ds_outs);
-		  if (ds_errs != NULL) {
-			  CloseHandle(g_hChildStd_ERR_Wr);
-			  ReadFromPipe(g_hChildStd_ERR_Rd, ds_errs);
-		  }
-	  }
-	  return status;
+    if (ds_outs != NULL) {
+      CloseHandle(g_hChildStd_OUT_Wr);
+      ReadFromPipe(g_hChildStd_OUT_Rd, ds_outs);
+      if (ds_errs != NULL) {
+	CloseHandle(g_hChildStd_ERR_Wr);
+	ReadFromPipe(g_hChildStd_ERR_Rd, ds_errs);
+      }
+    }
+    return status;
   }
 
   void spawn_pro(EnvT* e)
   {
-	  SizeT nParam = e->NParam();
+    SizeT nParam = e->NParam();
 
-	  static int countIx = e->KeywordIx("COUNT");
-	  bool countKeyword = e->KeywordPresent(countIx);
-	  if (countKeyword) e->AssureGlobalKW(countIx);
+    static int countIx = e->KeywordIx("COUNT");
+    bool countKeyword = e->KeywordPresent(countIx);
+    if (countKeyword) e->AssureGlobalKW(countIx);
 
-	  static int pidIx = e->KeywordIx("PID");
-	  bool pidKeyword = e->KeywordPresent(pidIx);
-	  if (pidKeyword) e->AssureGlobalKW(pidIx);
+    static int pidIx = e->KeywordIx("PID");
+    bool pidKeyword = e->KeywordPresent(pidIx);
+    if (pidKeyword) e->AssureGlobalKW(pidIx);
 
-	  static int exit_statusIx = e->KeywordIx("EXIT_STATUS");
-	  bool exit_statusKeyword = e->KeywordPresent(exit_statusIx);
-	  if (exit_statusKeyword) e->AssureGlobalKW(exit_statusIx);
+    static int exit_statusIx = e->KeywordIx("EXIT_STATUS");
+    bool exit_statusKeyword = e->KeywordPresent(exit_statusIx);
+    if (exit_statusKeyword) e->AssureGlobalKW(exit_statusIx);
 
-	  static int noshellIx = e->KeywordIx("NOSHELL");
-	  bool noshellKeyword = e->KeywordSet(noshellIx);
+    static int noshellIx = e->KeywordIx("NOSHELL");
+    bool noshellKeyword = e->KeywordSet(noshellIx);
 
-	  static int hideIx = e->KeywordIx("HIDE");
-	  bool hideKeyword = e->KeywordSet(hideIx);
+    static int hideIx = e->KeywordIx("HIDE");
+    bool hideKeyword = e->KeywordSet(hideIx);
 
-	  static int unitIx = e->KeywordIx("UNIT");
-	  bool unitKeyword = e->KeywordPresent(unitIx);
-	  if (unitKeyword) e->AssureGlobalKW(unitIx);
+    static int unitIx = e->KeywordIx("UNIT");
+    bool unitKeyword = e->KeywordPresent(unitIx);
+    if (unitKeyword) e->AssureGlobalKW(unitIx);
 
-	  if (unitKeyword)
+    if (unitKeyword)
+      {
+	e->Throw("UNIT keyword is not implemented yet!");
+	/*
+	  if (exit_statusKeyword)
 	  {
-		  e->Throw("UNIT keyword is not implemented yet!");
-		  /*
-		  if (exit_statusKeyword)
-		  {
-			  Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
-			  e->SetKW(exit_statusIx, new DLongGDL(0));
-		  }
-		  if (countKeyword)
-		  {
-			  Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
-			  e->SetKW(countIx, new DLongGDL(0));
-		  }
-		  if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
-		  */
+	  Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
+	  e->SetKW(exit_statusIx, new DLongGDL(0));
 	  }
-
-	  if (nParam == 0)
+	  if (countKeyword)
 	  {
-		  DWORD status = launch_cmd(hideKeyword, (LPWSTR)(_T("cmd")), (LPWSTR)(_T("Command Prompt")));
-		  if (countKeyword)
-			  e->SetKW(countIx, new DLongGDL(0));
-		  if (exit_statusKeyword)
-			  e->SetKW(exit_statusIx, new DLongGDL(status));
-		  return;
+	  Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
+	  e->SetKW(countIx, new DLongGDL(0));
 	  }
+	  if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
+	*/
+      }
 
-	  DStringGDL* command = e->GetParAs<DStringGDL>(0);
-	  DString cmd = (*command)[0];
+    if (nParam == 0)
+      {
+	DWORD status = launch_cmd(hideKeyword, (LPWSTR)(_T("cmd")), (LPWSTR)(_T("Command Prompt")));
+	if (countKeyword)
+	  e->SetKW(countIx, new DLongGDL(0));
+	if (exit_statusKeyword)
+	  e->SetKW(exit_statusIx, new DLongGDL(status));
+	return;
+      }
 
-	  const int bufSize = 1024;
-	  char buf[bufSize];
+    DStringGDL* command = e->GetParAs<DStringGDL>(0);
+    DString cmd = (*command)[0];
 
-	  if (nParam > 1) e->AssureGlobalPar(1);
-	  if (nParam > 2) e->AssureGlobalPar(2);
-	  DString ds_cmd;
-	  if (noshellKeyword)
-		ds_cmd = cmd;
-	  else
-		ds_cmd = "cmd /c " + cmd;
+    const int bufSize = 1024;
+    char buf[bufSize];
+
+    if (nParam > 1) e->AssureGlobalPar(1);
+    if (nParam > 2) e->AssureGlobalPar(2);
+    DString ds_cmd;
+    if (noshellKeyword)
+      ds_cmd = cmd;
+    else
+      ds_cmd = "cmd /c " + cmd;
 #ifdef _UNICODE
-	  TCHAR t_cmd[255];
-	  MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
+    TCHAR t_cmd[255];
+    MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
 #else
-	  LPSTR t_cmd = (LPSTR)ds_cmd.c_str();
+    LPSTR t_cmd = (LPSTR)ds_cmd.c_str();
 #endif
-	  vector<DString> ds_outs;
-	  vector<DString> ds_errs;
-	  int status;
-	  DWORD pid;
-	  if (nParam == 1)
-		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid);
-	  else if (nParam == 2) {
-		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs);
-	  }
-	  else if (nParam == 3) {
-		  status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs, &ds_errs);
-	  }
+    vector<DString> ds_outs;
+    vector<DString> ds_errs;
+    int status;
+    DWORD pid;
+    if (nParam == 1)
+      status = launch_cmd(hideKeyword, t_cmd, NULL, &pid);
+    else if (nParam == 2) {
+      status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs);
+    }
+    else if (nParam == 3) {
+      status = launch_cmd(hideKeyword, t_cmd, NULL, &pid, &ds_outs, &ds_errs);
+    }
 
-	  if (pidKeyword)
-		  e->SetKW(pidIx, new DLongGDL(pid));
+    if (pidKeyword)
+      e->SetKW(pidIx, new DLongGDL(pid));
 
-      if (exit_statusKeyword)
-		  e->SetKW(exit_statusIx, new DLongGDL(status));
+    if (exit_statusKeyword)
+      e->SetKW(exit_statusIx, new DLongGDL(status));
 		  
 
-	  SizeT nLines = 0;
-	  if (nParam > 1)
+    SizeT nLines = 0;
+    if (nParam > 1)
+      {
+	DStringGDL* result;
+	nLines = ds_outs.size();
+	if (nLines == 0)
+	  result = new DStringGDL("");
+	else
 	  {
-		  DStringGDL* result;
-		  nLines = ds_outs.size();
-		  if (nLines == 0)
-			  result = new DStringGDL("");
-		  else
-		  {
-			  result = new DStringGDL(dimension(nLines), BaseGDL::NOZERO);
-			  for (SizeT l = 0; l<nLines; ++l) (*result)[l] = ds_outs[l];
-		  }
-		  e->SetPar(1, result);
+	    result = new DStringGDL(dimension(nLines), BaseGDL::NOZERO);
+	    for (SizeT l = 0; l<nLines; ++l) (*result)[l] = ds_outs[l];
 	  }
+	e->SetPar(1, result);
+      }
 
-	  if (countKeyword) e->SetKW(countIx, new DLongGDL(nLines));
+    if (countKeyword) e->SetKW(countIx, new DLongGDL(nLines));
 
-	  if (nParam > 2)
+    if (nParam > 2)
+      {
+	DStringGDL* errResult;
+	SizeT nErrLines = ds_errs.size();
+	if (nErrLines == 0)
+	  errResult = new DStringGDL("");
+	else
 	  {
-		  DStringGDL* errResult;
-		  SizeT nErrLines = ds_errs.size();
-		  if (nErrLines == 0)
-			  errResult = new DStringGDL("");
-		  else
-		  {
-			  errResult = new DStringGDL(dimension(nErrLines), BaseGDL::NOZERO);
-			  for (SizeT l = 0; l < nErrLines; ++l) (*errResult)[l] = ds_errs[l];
-		  }
-		  e->SetPar(2, errResult);
+	    errResult = new DStringGDL(dimension(nErrLines), BaseGDL::NOZERO);
+	    for (SizeT l = 0; l < nErrLines; ++l) (*errResult)[l] = ds_errs[l];
 	  }
+	e->SetPar(2, errResult);
+      }
   }
 
 #else
@@ -2834,19 +2855,19 @@ TRACEOMP( __FILE__, __LINE__)
     if( unitKeyword) e->AssureGlobalKW( unitIx);
 
     if (unitKeyword)
-    {
-      if (exit_statusKeyword) 
       {
-        Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
-        e->SetKW( exit_statusIx, new DLongGDL( 0));
+	if (exit_statusKeyword) 
+	  {
+	    Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
+	    e->SetKW( exit_statusIx, new DLongGDL( 0));
+	  }
+	if (countKeyword)
+	  {
+	    Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
+	    e->SetKW( countIx, new DLongGDL( 0)); 
+	  }
+	if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
       }
-      if (countKeyword)
-      {
-        Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
-        e->SetKW( countIx, new DLongGDL( 0)); 
-      }
-      if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
-    }
 
     string shellCmd;
     if( shKeyword) 
@@ -2885,9 +2906,9 @@ TRACEOMP( __FILE__, __LINE__)
 
     int coutP[2];
     if (nParam > 1 || unitKeyword)  
-    {
-      if (pipe(coutP)) return;
-    }
+      {
+	if (pipe(coutP)) return;
+      }
 
     int cerrP[2];
     if( nParam > 2 && !unitKeyword && pipe(cerrP)) return;
@@ -2903,28 +2924,28 @@ TRACEOMP( __FILE__, __LINE__)
     if( pid == 0) // we are child
       {
         if (unitKeyword) 
-        {
-          dup2(coutP[1], 1); // cout
-          dup2(coutP[1], 2); // cout
-          close( coutP[0]); 
-          close( coutP[1]);
-        }
+	  {
+	    dup2(coutP[1], 1); // cout
+	    dup2(coutP[1], 2); // cout
+	    close( coutP[0]); 
+	    close( coutP[1]);
+	  }
         else
-        {
-	  if( nParam > 1) dup2(coutP[1], 1); // cout
-	  if( nParam > 2) dup2(cerrP[1], 2); // cerr
+	  {
+	    if( nParam > 1) dup2(coutP[1], 1); // cout
+	    if( nParam > 2) dup2(cerrP[1], 2); // cerr
 
-	  if( nParam > 1) 
-          { 
-            close( coutP[0]); 
-            close( coutP[1]);
-          }
-	  if( nParam > 2) 
-          { 
-            close( cerrP[0]); 
-            close( cerrP[1]);
-          }
-        }
+	    if( nParam > 1) 
+	      { 
+		close( coutP[0]); 
+		close( coutP[1]);
+	      }
+	    if( nParam > 2) 
+	      { 
+		close( cerrP[0]); 
+		close( cerrP[1]);
+	      }
+	  }
 
 	if( noshellKeyword)
 	  {
@@ -2954,125 +2975,125 @@ TRACEOMP( __FILE__, __LINE__)
         if( nParam > 2 && !unitKeyword) close( cerrP[1]);
 
         if (unitKeyword)
-        {
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-          // UNIT kw code based on the patch by Greg Huey:
- 
-          Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
-          // This is just code stolen from void get_lun( EnvT* e)
-          // here lun is the GDL lun, not the internal one
-          DLong unit_lun = GetLUN();
-
-          if( unit_lun == 0)
-            e->Throw( "SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
- 
-           FILE *coutF;
-           coutF = fdopen( coutP[0], "r");
-           if( coutF == NULL) close( coutP[0]);
-
-           e->SetKW( unitIx, new DLongGDL( unit_lun ));
-           bool stdLun = check_lun( e, unit_lun);
-           if( stdLun)
-             e->Throw( "SPAWN: Failed to open new LUN: Unit already open. Unit: "+i2s( unit_lun));
-           fileUnits[ unit_lun-1].PutVarLenVMS( false);
- 
-           // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
-           __gnu_cxx::stdio_filebuf<char> *frb_p;
-           frb_p = new __gnu_cxx::stdio_filebuf<char>(coutF, std::ios_base::in);
- 
-           fileUnits[ unit_lun-1].Close();
-           fileUnits[ unit_lun-1].Open("/dev/zero", std::ios_base::in, 0, 0, 0, 0, 0, 0);
-
-           basic_streambuf<char> *bsrb_old_p;
-           bsrb_old_p = fileUnits[ unit_lun-1].get_stream_readbuf_bsrb();
-           fileUnits[ unit_lun-1].set_stream_readbuf_bsrb_from_frb(frb_p);
-           fileUnits[ unit_lun-1].set_readbuf_frb_destroy_on_close(frb_p);
-           fileUnits[ unit_lun-1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
-           fileUnits[ unit_lun-1].set_fd_close_on_close(coutP[0]);
-#else
-           e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not availble during compilation?)");
-#endif
-
-        }
-        else
-        {
-	  FILE *coutF, *cerrF;
-	  if( nParam > 1) 
 	  {
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+	    // UNIT kw code based on the patch by Greg Huey:
+ 
+	    Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
+	    // This is just code stolen from void get_lun( EnvT* e)
+	    // here lun is the GDL lun, not the internal one
+	    DLong unit_lun = GetLUN();
+
+	    if( unit_lun == 0)
+	      e->Throw( "SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
+ 
+	    FILE *coutF;
 	    coutF = fdopen( coutP[0], "r");
 	    if( coutF == NULL) close( coutP[0]);
-	  }
-	  if( nParam > 2) 
-	  {
-	    cerrF = fdopen( cerrP[0], "r");
-	    if( cerrF == NULL) close( cerrP[0]);
-	  }
 
-          vector<DString> outStr;
-          vector<DString> errStr;
+	    e->SetKW( unitIx, new DLongGDL( unit_lun ));
+	    bool stdLun = check_lun( e, unit_lun);
+	    if( stdLun)
+	      e->Throw( "SPAWN: Failed to open new LUN: Unit already open. Unit: "+i2s( unit_lun));
+	    fileUnits[ unit_lun-1].PutVarLenVMS( false);
+ 
+	    // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
+	    __gnu_cxx::stdio_filebuf<char> *frb_p;
+	    frb_p = new __gnu_cxx::stdio_filebuf<char>(coutF, std::ios_base::in);
+ 
+	    fileUnits[ unit_lun-1].Close();
+	    fileUnits[ unit_lun-1].Open("/dev/zero", std::ios_base::in, 0, 0, 0, 0, 0, 0);
+
+	    basic_streambuf<char> *bsrb_old_p;
+	    bsrb_old_p = fileUnits[ unit_lun-1].get_stream_readbuf_bsrb();
+	    fileUnits[ unit_lun-1].set_stream_readbuf_bsrb_from_frb(frb_p);
+	    fileUnits[ unit_lun-1].set_readbuf_frb_destroy_on_close(frb_p);
+	    fileUnits[ unit_lun-1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
+	    fileUnits[ unit_lun-1].set_fd_close_on_close(coutP[0]);
+#else
+	    e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not availble during compilation?)");
+#endif
+
+	  }
+        else
+	  {
+	    FILE *coutF, *cerrF;
+	    if( nParam > 1) 
+	      {
+		coutF = fdopen( coutP[0], "r");
+		if( coutF == NULL) close( coutP[0]);
+	      }
+	    if( nParam > 2) 
+	      {
+		cerrF = fdopen( cerrP[0], "r");
+		if( cerrF == NULL) close( cerrP[0]);
+	      }
+
+	    vector<DString> outStr;
+	    vector<DString> errStr;
 	    
-          // read cout
-          if( nParam > 1 && coutF != NULL)
-	  {
-            while( fgets(buf, bufSize, coutF) != NULL)
-            {
-              SizeT len = strlen( buf);
-              if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
-              outStr.push_back( DString( buf));
-            }
-            fclose( coutF);
-          }
+	    // read cout
+	    if( nParam > 1 && coutF != NULL)
+	      {
+		while( fgets(buf, bufSize, coutF) != NULL)
+		  {
+		    SizeT len = strlen( buf);
+		    if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
+		    outStr.push_back( DString( buf));
+		  }
+		fclose( coutF);
+	      }
 
-          // read cerr
-          if( nParam > 2 && cerrF != NULL) 
-          {
-            while( fgets(buf, bufSize, cerrF) != NULL)
-            {
-              SizeT len = strlen( buf);
-              if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
-              errStr.push_back( DString( buf));
-            }
-            fclose( cerrF);
-          }
+	    // read cerr
+	    if( nParam > 2 && cerrF != NULL) 
+	      {
+		while( fgets(buf, bufSize, cerrF) != NULL)
+		  {
+		    SizeT len = strlen( buf);
+		    if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
+		    errStr.push_back( DString( buf));
+		  }
+		fclose( cerrF);
+	      }
 
-          // wait until child terminates
-          int status;
-          pid_t wpid  = wait( &status);
+	    // wait until child terminates
+	    int status;
+	    pid_t wpid  = wait( &status);
 	
-          if( exit_statusKeyword)
-            e->SetKW( exit_statusIx, new DLongGDL( status >> 8));
+	    if( exit_statusKeyword)
+	      e->SetKW( exit_statusIx, new DLongGDL( status >> 8));
 	    
-          SizeT nLines = 0;
-          if( nParam > 1)
-          {
-            DStringGDL* result;
-            nLines = outStr.size();
-            if( nLines == 0)
-              result = new DStringGDL("");
-            else 
-            {
-              result = new DStringGDL( dimension( nLines), BaseGDL::NOZERO);
-              for( SizeT l=0; l<nLines; ++l) (*result)[ l] = outStr[ l];
-            }
-            e->SetPar( 1, result);
-          }
+	    SizeT nLines = 0;
+	    if( nParam > 1)
+	      {
+		DStringGDL* result;
+		nLines = outStr.size();
+		if( nLines == 0)
+		  result = new DStringGDL("");
+		else 
+		  {
+		    result = new DStringGDL( dimension( nLines), BaseGDL::NOZERO);
+		    for( SizeT l=0; l<nLines; ++l) (*result)[ l] = outStr[ l];
+		  }
+		e->SetPar( 1, result);
+	      }
 
-          if( countKeyword) e->SetKW( countIx, new DLongGDL( nLines));
+	    if( countKeyword) e->SetKW( countIx, new DLongGDL( nLines));
 	    
-          if( nParam > 2)
-          {
-            DStringGDL* errResult;
-            SizeT nErrLines = errStr.size();
-            if( nErrLines == 0)
-              errResult = new DStringGDL("");
-            else 
-            {
-              errResult = new DStringGDL( dimension( nErrLines), BaseGDL::NOZERO);
-              for( SizeT l=0; l<nErrLines; ++l) (*errResult)[ l] = errStr[ l];
-            }
-            e->SetPar( 2, errResult);
-          }
-        }
+	    if( nParam > 2)
+	      {
+		DStringGDL* errResult;
+		SizeT nErrLines = errStr.size();
+		if( nErrLines == 0)
+		  errResult = new DStringGDL("");
+		else 
+		  {
+		    errResult = new DStringGDL( dimension( nErrLines), BaseGDL::NOZERO);
+		    for( SizeT l=0; l<nErrLines; ++l) (*errResult)[ l] = errStr[ l];
+		  }
+		e->SetPar( 2, errResult);
+	      }
+	  }
       }
   }
 #endif
@@ -3113,7 +3134,7 @@ TRACEOMP( __FILE__, __LINE__)
 	  e->Throw( "D1 (3rd) argument is out of range: "+
 		    e->GetParString(2));
 	
-// 	BaseGDL* p3 = e->GetNumericParDefined( 3);
+	// 	BaseGDL* p3 = e->GetNumericParDefined( 3);
 	DLongGDL* p3 = e->GetParAs< DLongGDL>( 3);
 	if( p3->N_Elements() != p0->Rank())
 	  e->Throw( "Loc1 (4th) argument must have the same number of "
@@ -3137,12 +3158,12 @@ TRACEOMP( __FILE__, __LINE__)
 	    p5 = e->GetNumericParDefined( 5);
 	  }
 
-// 	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
-// 	Guard< ArrayIndexVectorT> ixList_guard( ixList);
+	// 	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
+	// 	Guard< ArrayIndexVectorT> ixList_guard( ixList);
 	ArrayIndexVectorT ixList; 
-// 	BaseGDL* loc1 = p3->Dup();
-// 	loc1->SetDim (dimension( loc1->N_Elements()));
-//	ixList->reserve( p3->N_Elements());
+	// 	BaseGDL* loc1 = p3->Dup();
+	// 	loc1->SetDim (dimension( loc1->N_Elements()));
+	//	ixList->reserve( p3->N_Elements());
 	for (size_t i=0; i<p3->N_Elements(); i++)
 	  if( (i+1) == d1)
 	    ixList.push_back( new ArrayIndexAll());
@@ -3162,55 +3183,55 @@ TRACEOMP( __FILE__, __LINE__)
   {
     SizeT nParam=e->NParam(1); 
     
-//     static int eitherIx = e->KeywordIx( "EITHER");
-//     static int is_functionIx = e->KeywordIx( "IS_FUNCTION");
-//     static int no_recompileIx = e->KeywordIx( "NO_RECOMPILE");
+    //     static int eitherIx = e->KeywordIx( "EITHER");
+    //     static int is_functionIx = e->KeywordIx( "IS_FUNCTION");
+    //     static int no_recompileIx = e->KeywordIx( "NO_RECOMPILE");
 
-	BaseGDL* p0 = e->GetParDefined( 0);
-	if( p0->Type() != GDL_STRING)
-	      e->Throw( "Expression must be a string in this context: "+
-		        e->GetParString(0));
-	DStringGDL* p0S = static_cast<DStringGDL*>( p0);
+    BaseGDL* p0 = e->GetParDefined( 0);
+    if( p0->Type() != GDL_STRING)
+      e->Throw( "Expression must be a string in this context: "+
+		e->GetParString(0));
+    DStringGDL* p0S = static_cast<DStringGDL*>( p0);
 
-	static StrArr openFiles;
+    static StrArr openFiles;
 	
-	SizeT nEl = p0S->N_Elements();
-	for( int i=0; i<nEl; ++i)
-	{
-		DString pro = (*p0S)[ i];
+    SizeT nEl = p0S->N_Elements();
+    for( int i=0; i<nEl; ++i)
+      {
+	DString pro = (*p0S)[ i];
 
-		string proFile=StrLowCase(pro);
-		AppendIfNeeded( proFile, ".pro");
+	string proFile=StrLowCase(pro);
+	AppendIfNeeded( proFile, ".pro");
 
-		bool found=CompleteFileName(proFile);
-		if( !found)
-			e->Throw("Not found: " + proFile);
+	bool found=CompleteFileName(proFile);
+	if( !found)
+	  e->Throw("Not found: " + proFile);
 	
-		// file already opened?
-		bool open = false;
-		for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); i++)
-		{
-			if( proFile == *i)
-			{
-				open = true;
-				break;
-			}
-		}
-		if( open)
-			continue;
+	// file already opened?
+	bool open = false;
+	for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); i++)
+	  {
+	    if( proFile == *i)
+	      {
+		open = true;
+		break;
+	      }
+	  }
+	if( open)
+	  continue;
 
-		StackSizeGuard<StrArr> guard( openFiles);
+	StackSizeGuard<StrArr> guard( openFiles);
 
-	    // append file to list
-		openFiles.push_back(proFile);
+	// append file to list
+	openFiles.push_back(proFile);
 
-		bool success =  GDLInterpreter::CompileFile( proFile); // this might trigger recursion
+	bool success =  GDLInterpreter::CompileFile( proFile); // this might trigger recursion
 			
-		if( success)
-			Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
-		else
-			e->Throw("Failed to compiled file: " + proFile);
-	}
+	if( success)
+	  Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
+	else
+	  e->Throw("Failed to compiled file: " + proFile);
+      }
   }
   
   void caldat(EnvT* e) {
@@ -3239,7 +3260,7 @@ TRACEOMP( __FILE__, __LINE__)
     // checking if all Julian values fall within the accepted range
     SizeT nEl = p0->N_Elements();
     for (SizeT i = 0; i < nEl; i++) if ((*p0)[i] < -1095 || (*p0)[i] > 1827933925)
-      e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
+				      e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
 
     // preparing output (loop order important when all parameters point the same variable)
     //BaseGDL** ret[nParam - 1];
@@ -3248,86 +3269,86 @@ TRACEOMP( __FILE__, __LINE__)
     GDLGuard<BaseGDL**,void,void> retGuard( ret, free);
     
     for (int i = nParam - 2; i >= 0; i--) if (global[i]) 
-    {
-      ret[i] = &e->GetPar(i + 1);
-      // global parameter: undefined or different type/size -> creating
-      if 
-      (
-        *ret[i] == NULL || 
-        (*ret[i])->Type() != (i < 5 ? GDL_LONG : GDL_DOUBLE) || 
-        (*ret[i])->N_Elements() != nEl 
-      )
-      {
-        // not catching exceptions from SetPar as globality was ensured before
-        if (i < 5) 
-        {
-          // handling repeated parameters case
-          if (nParam == 7 && *ret[i] == *ret[5]) global[i] = false;
-          else e->SetPar(i + 1, new DLongGDL(p0->Dim()));
-        }
-        else e->SetPar(i + 1, new DDoubleGDL(p0->Dim()));
-      } 
-      // global parameter that has correct size but different shape -> reforming
-      else if ((*ret[i])->Rank() != p0->Rank()) (*ret[i])->SetDim(p0->Dim());
-    }
+					    {
+					      ret[i] = &e->GetPar(i + 1);
+					      // global parameter: undefined or different type/size -> creating
+					      if 
+						(
+						 *ret[i] == NULL || 
+						 (*ret[i])->Type() != (i < 5 ? GDL_LONG : GDL_DOUBLE) || 
+						 (*ret[i])->N_Elements() != nEl 
+						 )
+						{
+						  // not catching exceptions from SetPar as globality was ensured before
+						  if (i < 5) 
+						    {
+						      // handling repeated parameters case
+						      if (nParam == 7 && *ret[i] == *ret[5]) global[i] = false;
+						      else e->SetPar(i + 1, new DLongGDL(p0->Dim()));
+						    }
+						  else e->SetPar(i + 1, new DDoubleGDL(p0->Dim()));
+						} 
+					      // global parameter that has correct size but different shape -> reforming
+					      else if ((*ret[i])->Rank() != p0->Rank()) (*ret[i])->SetDim(p0->Dim());
+					    }
 
     int A, a, B, C, D, E, hours, minutes, months;
     double JD, F, Z;
     // loop over input elements
     for (SizeT i = 0; i < nEl; i++)
-    {
-      JD = (*p0)[i] + 0.5;
-      Z = floor(JD);
-      F = JD - Z;
-
-      if (Z < 2299161) A = (int) Z;
-      else {
-        a = (int) ((Z - 1867216.25) / 36524.25);
-        A = (int) (Z + 1 + a - (int)(a / 4));
-      }
-
-      B = A + 1524;
-      C = (int) ((B - 122.1) / 365.25);
-      D = (int) (365.25 * C);
-      E = (int) ((B - D) / 30.6001);
-
-      // months
-      months = E < 14 ? E - 1 : E - 13;
-      if (global[1 - 1]) 
-        (*static_cast<DLongGDL*>(*ret[1 - 1]))[i] = months;
-
-      // days
-      if (global[2 - 1]) 
-        (*static_cast<DLongGDL*>(*ret[2 - 1]))[i] = B - D - (int)(30.6001 * E);
-
-      // years
-      if (global[3 - 1])
       {
-        (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] = months > 2 ? C - 4716 : C - 4715;
-        if ((*static_cast<DLongGDL*>(*ret[3 - 1]))[i] < 0) 
-          (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] -= 1;
+	JD = (*p0)[i] + 0.5;
+	Z = floor(JD);
+	F = JD - Z;
+
+	if (Z < 2299161) A = (int) Z;
+	else {
+	  a = (int) ((Z - 1867216.25) / 36524.25);
+	  A = (int) (Z + 1 + a - (int)(a / 4));
+	}
+
+	B = A + 1524;
+	C = (int) ((B - 122.1) / 365.25);
+	D = (int) (365.25 * C);
+	E = (int) ((B - D) / 30.6001);
+
+	// months
+	months = E < 14 ? E - 1 : E - 13;
+	if (global[1 - 1]) 
+	  (*static_cast<DLongGDL*>(*ret[1 - 1]))[i] = months;
+
+	// days
+	if (global[2 - 1]) 
+	  (*static_cast<DLongGDL*>(*ret[2 - 1]))[i] = B - D - (int)(30.6001 * E);
+
+	// years
+	if (global[3 - 1])
+	  {
+	    (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] = months > 2 ? C - 4716 : C - 4715;
+	    if ((*static_cast<DLongGDL*>(*ret[3 - 1]))[i] < 0) 
+	      (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] -= 1;
+	  }
+
+	if (!(global[4 - 1] || global[5 - 1] || global[6 - 1])) continue;
+
+	// hours
+	hours = (int) (F * 24);
+	F -= (double)hours / 24;
+	if (global[4 - 1]) 
+	  (*static_cast<DLongGDL*>(*ret[4 - 1]))[i] = hours;
+
+	// minutes
+	minutes = (int) (F * 1440);
+	F -= (double)minutes / 1440;
+	if (global[5 - 1]) 
+	  (*static_cast<DLongGDL*>(*ret[5 - 1]))[i] = minutes;
+
+	// seconds
+	if (global[6 - 1]) 
+	  (*static_cast<DDoubleGDL*>(*ret[6 - 1]))[i] = F * 86400;
       }
-
-      if (!(global[4 - 1] || global[5 - 1] || global[6 - 1])) continue;
-
-      // hours
-      hours = (int) (F * 24);
-      F -= (double)hours / 24;
-      if (global[4 - 1]) 
-        (*static_cast<DLongGDL*>(*ret[4 - 1]))[i] = hours;
-
-      // minutes
-      minutes = (int) (F * 1440);
-      F -= (double)minutes / 1440;
-      if (global[5 - 1]) 
-        (*static_cast<DLongGDL*>(*ret[5 - 1]))[i] = minutes;
-
-      // seconds
-      if (global[6 - 1]) 
-        (*static_cast<DDoubleGDL*>(*ret[6 - 1]))[i] = F * 86400;
-    }
     // now guarded. s. a.
-//     free((void *)ret);
+    //     free((void *)ret);
   }
 
   bool dateToJD(DDouble &jd, DLong &day, DLong &month, DLong &year, DLong &hour, DLong &minute, DDouble &second)
@@ -3348,22 +3369,22 @@ TRACEOMP( __FILE__, __LINE__)
     m=month;
     b=0.0;
     if (month <= 2)
-    {
-      y=y-1.0;
-      m=m+12;
-    }
+      {
+	y=y-1.0;
+	m=m+12;
+      }
     if (y >= 0) {
-       if (year > 1582  ||  (year == 1582 &&  (month > 10  ||
-               (month == 10 && day > 14)))) {
-          a=floor(y/100.0);
-          b=2.0-a+floor(a/4.0);
-       } else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
-          jd= 2299161; //date does not move 
-          return true;
-       }
+      if (year > 1582  ||  (year == 1582 &&  (month > 10  ||
+					      (month == 10 && day > 14)))) {
+	a=floor(y/100.0);
+	b=2.0-a+floor(a/4.0);
+      } else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
+	jd= 2299161; //date does not move 
+	return true;
+      }
     }
     jd=floor(365.25*y)+floor(30.6001*(m+1))+day+(hour*1.0)/24.0+(minute*1.0)/1440.0+
-    (second*1.0)/86400.0+1720994.50+b;
+      (second*1.0)/86400.0+1720994.50+b;
     return true;
   }
   
@@ -3425,8 +3446,8 @@ TRACEOMP( __FILE__, __LINE__)
       for (SizeT i=0; i< finalN; ++i) {
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], m, s)) {(*ret)[i]=jd;}
 	else e->Throw("Invalid Calendar Date input.");	
-    }
-	return ret;
+      }
+      return ret;
     }
 
     if (e->NParam() >= 5) {
@@ -3438,7 +3459,7 @@ TRACEOMP( __FILE__, __LINE__)
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH], (*Minute)[i%nMi], s)) (*ret)[i]=jd;
 	else e->Throw("Invalid Calendar Date input.");
       }
-	return ret;
+      return ret;
     }
     
     if (e->NParam() == 6) {
@@ -3448,8 +3469,8 @@ TRACEOMP( __FILE__, __LINE__)
         if (dateToJD(jd,(*Day)[i%nD],(*Month)[i%nM],(*Year)[i%nY],(*Hour)[i%nH],(*Minute)[i%nMi],(*Second)[i%nS])) {(*ret)[i]=jd;}
         else e->Throw("Invalid Calendar Date input.");
       }
-     return ret;
-   }
+      return ret;
+    }
     assert(false);
     return NULL;
   }
