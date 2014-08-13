@@ -340,7 +340,6 @@ namespace lib {
 
 	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
-	cout << "hello" << endl;
 	gsl_linalg_LU_decomp (mat, perm, &s);
 	det = gsl_linalg_LU_lndet(mat);
 	if (gsl_isinf(det) == 0) {
