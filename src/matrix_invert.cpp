@@ -75,7 +75,7 @@ namespace lib {
 
   void matrix_input_check_dims( EnvT* e)
   {
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetNumericParDefined( 0);
 
     //cout << p0->Rank() << endl;
 
@@ -97,8 +97,8 @@ namespace lib {
         e->Throw( "Input must be a square matrix: " + e->GetParString(0));
     }
 
-    if (p0->Rank() == 0) 
-        e->Throw( "Expression must be an array in this context: " + e->GetParString(0));
+    if (p0->Rank() == 0)
+      e->Throw( "Expression must be an array in this context: " + e->GetParString(0));
     
   }
 

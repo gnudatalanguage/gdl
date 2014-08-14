@@ -89,12 +89,14 @@ void LibInit_jmg()
   // Help welcome. 
 #if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};
-  new DLibPro(lib::choldc_pro,string("CHOLDC"),3,cholKey);
-  //  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),4,cholKey);
+  new DLibPro(lib::choldc_pro,string("CHOLDC"),2,cholKey);
+  new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),3,cholKey);
 
-  const string lacholKey[]={"DOUBLE","STATUS","UPPER",KLISTEND};
-  new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),4,lacholKey);
-  //new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),4,lacholKey);
+  //
+  const string lacholdcKey[]={"DOUBLE","STATUS","UPPER",KLISTEND};
+  new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),1,lacholdcKey);
+  const string lacholsolKey[]={"DOUBLE","STATUS",KLISTEND};
+  new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),2,lacholsolKey);
 #endif
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)

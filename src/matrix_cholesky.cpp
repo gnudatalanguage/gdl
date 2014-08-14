@@ -57,6 +57,11 @@ namespace lib {
 ************************************************************/
   BaseGDL* la_cholsol_fun ( EnvT* e)
   {
+    
+    Message("We have troubles related to LA_CHOLDC/LA_CHOLSOL and Eigen");
+    Message("Help and contributions very welcome");
+    Message(" ");
+    
     //    set_num_threads();
 
     SizeT nParam=e->NParam(2);
@@ -127,9 +132,6 @@ namespace lib {
   }
 
 
-
-
-
 /***********************************************************
 ********************Cholesky_Solution***********************
 ************************************************************/
@@ -140,9 +142,9 @@ namespace lib {
     //    set_num_threads();
     
     SizeT nParam=e->NParam(3);
-    BaseGDL* p0 = e->GetParDefined( 0);
-    BaseGDL* p1 = e->GetParDefined( 1);
-    BaseGDL* p2 = e->GetParDefined( 2);
+    BaseGDL* p0 = e->GetNumericParDefined( 0);
+    BaseGDL* p1 = e->GetNumericParDefined( 1);
+    BaseGDL* p2 = e->GetNumericParDefined( 2);
 
 /*********************************Checking_if_arguments_are_OK*********************/   
 
@@ -359,6 +361,11 @@ namespace lib {
 ************************************************************/
 void la_choldc_pro( EnvT* e) 
   {
+
+    Message("We have troubles related to LA_CHOLDC/LA_CHOLSOL and Eigen");
+    Message("Help and contributions very welcome");
+    Message(" ");
+
     SizeT    nParam = e->NParam(1);
     BaseGDL* p0     = e->GetParDefined( 0);
     SizeT    nEl    = p0->N_Elements();
@@ -552,12 +559,9 @@ void la_choldc_pro( EnvT* e)
   void choldc_pro( EnvT* e) 
   {
 
-    //#if defined _OPENMP 
-    // set_num_threads();
-    //#endif
-    // BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
-    BaseGDL* p0 = e->GetParDefined( 0);
-    //         BaseGDL* p0 = e->GetPar( 0);
+    BaseGDL* p0 = e->GetNumericParDefined( 0);
+    //BaseGDL* p0 = e->GetParDefined( 0);
+
     SizeT nParam=e->NParam(2);
     long singular=0;
     SizeT nEl = p0->N_Elements();

@@ -610,8 +610,10 @@ public:
     if( NumericType( p0->Type()))
 	return p0;
 
-    if( p0->Type() == GDL_STRING)
-      Throw( "String expression not allowed in this context: "+GetParString(ix));
+    // AC 2014-08-14 : in fact, in most case, a tentative of String to Numeric
+    // convertion is done. E.g. invert(['1']) is OK !
+    //    if( p0->Type() == GDL_STRING)
+    //  Throw( "String expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == GDL_STRUCT)
       Throw( "Struct expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == GDL_PTR)
