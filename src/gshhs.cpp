@@ -320,8 +320,12 @@ private:
   }
 
   void map_continents( EnvT* e ) {
+#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW)
     map_continents_call map_continents;
     map_continents.call( e, 0 );
+#else
+    Throw("GDL was compiled without Proj4 ou LibProj4 ... no cartography !");
+#endif
   }
 
 } // namespace
