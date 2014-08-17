@@ -17,7 +17,13 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
-#include "devicex.hpp"
+
+// patch by Greg Jung
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#  include "devicewin.hpp"
+#else
+#  include "devicex.hpp"
+#endif
 
 namespace lib {
 
