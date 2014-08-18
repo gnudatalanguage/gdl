@@ -22,9 +22,6 @@
 #include "envt.hpp"
 
 namespace lib {
-  BaseGDL* gshhg_exists(EnvT* e);
-  BaseGDL* proj4_exists(EnvT* e);
-  BaseGDL* proj4new_exists(EnvT* e);
 
   void map_continents(EnvT* e);
 

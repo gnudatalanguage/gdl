@@ -59,6 +59,11 @@ void LibInit_cl()
   new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
   new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
 
+  new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));
+  new DLibFunRetNew(lib::proj4new_exists,string("PROJ4NEW_EXISTS"));
+  new DLibFunRetNew(lib::gshhg_exists,string("GSHHG_EXISTS"));
+
+
 #ifdef USE_NETCDF
   //open NetCDF
   const string ncdf_openKey[]={"WRITE","NOWRITE",KLISTEND};

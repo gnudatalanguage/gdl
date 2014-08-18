@@ -29,6 +29,10 @@ namespace lib {
   BaseGDL* ncdf_exists(EnvT* e);
   BaseGDL* magick_exists(EnvT* e);
 
+  BaseGDL* gshhg_exists(EnvT* e);
+  BaseGDL* proj4_exists(EnvT* e);
+  BaseGDL* proj4new_exists(EnvT* e);
+
 } // namespace
 
 #endif

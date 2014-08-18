@@ -24,6 +24,9 @@
 #define USE_GSHHS 1
 #endif
 
+#if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
+
+
 #include "includefirst.hpp"
 #include "gshhs.hpp"
 #include "plotting.hpp"
@@ -290,34 +293,6 @@ private:
 }; // class definition
 
 
-  BaseGDL* gshhg_exists( EnvT* e )
-  {
-#ifdef USE_GSHHS
-    //    e->Message( "GDL was compiled with support for GSHHG" );
-    return new DIntGDL(1);
-#else
-    //e->Message( "GDL was compiled without support for GSHHG" );
-    return new DIntGDL(0);
-#endif
-  }
-  
-  BaseGDL* proj4_exists( EnvT* e )
-  {
-#if defined(USE_LIBPROJ4)
-    return new DIntGDL(1);
-#else
-    return new DIntGDL(0);
-#endif
-  }
-  
-  BaseGDL* proj4new_exists( EnvT* e )
-  {
-#if defined(USE_LIBPROJ4_NEW)
-    return new DIntGDL(1);
-#else
-    return new DIntGDL(0);
-#endif
-  }
 
   void map_continents( EnvT* e ) {
 #if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW)
@@ -330,3 +305,4 @@ private:
 
 } // namespace
 
+#endif
