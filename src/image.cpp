@@ -43,6 +43,7 @@ namespace lib {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     return actDevice->TVRD( e);
   }
+#define MAX_COLORS 256
 
   void loadct( EnvT* e) // = LOADCT_INTERNALGDL for exclusive use by LOADCT
   {
@@ -66,11 +67,11 @@ namespace lib {
 
     DLong iCT;
 
-    DByte r[256], g[256], b[256];
-    PLINT rint[256], gint[256], bint[256];
+    DByte r[MAX_COLORS], g[MAX_COLORS], b[MAX_COLORS];
+    PLINT rint[MAX_COLORS], gint[MAX_COLORS], bint[MAX_COLORS];
     //load original table
     GDLCT* actCT = GraphicsDevice::GetCT();
-    actCT->Get(rint,gint,bint,256);
+    actCT->Get(rint,gint,bint,MAX_COLORS);
 
 
     e->AssureLongScalarPar( 0, iCT);
@@ -83,7 +84,6 @@ namespace lib {
     GraphicsDevice::LoadCT( iCT);
     //new table is:
     actCT = GraphicsDevice::GetCT();
-#define MAX_COLORS 256
     DLong bottom=0;
     DLong ncolors=MAX_COLORS;
     if ( e->KeywordSet ( "BOTTOM" ) ) e->AssureLongScalarKWIfPresent ( "BOTTOM", bottom );
@@ -93,7 +93,6 @@ namespace lib {
     if (ncolors < 1) ncolors=1;
     if (ncolors > MAX_COLORS) ncolors=MAX_COLORS;
     if (bottom+ncolors > MAX_COLORS) ncolors=MAX_COLORS-bottom;
-#undef MAX_COLORS
     for( SizeT i=0, j=bottom ; j<bottom+ncolors; ++i, ++j) {
       actCT->Get( i, r[ i], g[ i], b[ i]);
       //update section of colors
@@ -118,8 +117,9 @@ namespace lib {
     }
 
     if (actStream != NULL)
-      actStream->scmap1( rint, gint, bint, 256);
+      actStream->scmap0( rint, gint, bint, MAX_COLORS);
   }
+#undef MAX_COLORS
 
 } // namespace
 
