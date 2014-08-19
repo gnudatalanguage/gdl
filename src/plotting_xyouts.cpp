@@ -412,7 +412,7 @@ namespace lib
         {
           width=actStream->gdlGetmmStringLength(out.c_str()); //in mm
           //we want normed size:
-          width=actStream->m2dx(width);
+          width=actStream->mm2ndx(width);
           //save position - compute must be in DEVICE coords, or in normed*aspect!
           actStream->WorldToNormedDevice(x, y, dx, dy); //normed
           actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOriD,dy+(1.0-align)*width*sinOriD/aspectd,dispx,dispy);
