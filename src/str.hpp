@@ -93,6 +93,12 @@ public:
   }
 };
 
+// replacement for library routine 
+// double strtod( const char* cStart, char** cEnd);
+// to hanlde d/D instead of e/E (e. g. 1.2D5)
+// this is done very slow by copying the string and replacing the first d/D with e/E
+// however, this only, if strtod fails. Otherwise the overhead is minimal
+double StrToD( const char* cStart, char** cEnd);
 
 double Str2D( const char* c);
 double Str2D( const std::string& s);

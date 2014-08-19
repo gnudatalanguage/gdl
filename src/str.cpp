@@ -213,6 +213,40 @@ void StrLowCaseInplace(string& s)
 //     s[i]=tolower(sCStr[i]);
 }
 
+// replacement for library routine 
+// double strtod( const char* cStart, char** cEnd);
+// to hanlde d/D instead of e/E (e. g. 1.2D5)
+// this is done very slow by copying the string and replacing the d/D with e/E
+// however, it is done only, if strtod stops at a 'd' or 'D' character 
+double StrToD( const char* cStart, char** cEnd)
+{
+  double ret = strtod( cStart, cEnd);
+  if( cEnd != NULL && (**cEnd == 'd' || **cEnd == 'D'))
+    {
+      int dPos = *cEnd - cStart;      
+
+      // copy the string here. This is very slow.
+      // but the glibc implementation is hidden
+      // I have not investigated further, but I assume this is because processor specific
+      // optimizations are used. So it might be ok to copy the string here as in the regular
+      // case the optimzed strtod function will make up for the loss.
+      string cStr( cStart);
+
+      // replace d by e and D by E
+      cStr[dPos] = (**cEnd == 'd')? 'e':'E';
+
+      char* cEndD;
+      const char* cStrc_str = cStr.c_str();
+      
+      double retD = strtod( cStrc_str, &cEndD);      
+      
+      // set end as if orignal string had the d/D replaced
+      *cEnd = const_cast<char*>(cStart) + (cEndD - cStrc_str);      
+      // return replaced result
+      return retD;
+    }
+  return ret;
+}
 double Str2D( const char* cStart)
 {
   char* cEnd;

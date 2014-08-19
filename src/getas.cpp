@@ -372,7 +372,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    float result = strtod(cStart,&cEnd);
+    float result = StrToD(cStart,&cEnd);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "
@@ -386,7 +386,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    double result = strtod(cStart,&cEnd);
+    double result = StrToD(cStart,&cEnd);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "
@@ -400,7 +400,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    float result = strtod(cStart,&cEnd);
+    float result = StrToD(cStart,&cEnd);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "
@@ -414,7 +414,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    double result = strtod(cStart,&cEnd);
+    double result = StrToD(cStart,&cEnd);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "

@@ -252,7 +252,7 @@ istream& operator>>(istream& i, Data_<SpDFloat>& data_)
       const string segment = ReadElement( i);
       const char* cStart=segment.c_str();
       char* cEnd;
-      data_[ assignIx] = strtod( cStart, &cEnd);
+      data_[ assignIx] = StrToD( cStart, &cEnd);
       if( cEnd == cStart)
 	{
 	  data_[ assignIx]= -1;
@@ -277,7 +277,7 @@ istream& operator>>(istream& i, Data_<SpDDouble>& data_)
       const string segment = ReadElement( i);
       const char* cStart=segment.c_str();
       char* cEnd;
-      data_[ assignIx] = strtod( cStart, &cEnd);
+      data_[ assignIx] = StrToD( cStart, &cEnd);
       if( cEnd == cStart)
 	{
 	  data_[ assignIx]= -1;
@@ -328,9 +328,9 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	      
 	      char* cEnd1, *cEnd2;
 	      const char* c1=seg1.c_str();
-	      double re = strtod( c1, &cEnd1);
+	      double re = StrToD( c1, &cEnd1);
 	      const char* c2=seg2.c_str();
-	      double im = strtod( c2, &cEnd2);
+	      double im = StrToD( c2, &cEnd2);
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_[ assignIx]= DComplex(0.0,0.0);
@@ -350,7 +350,7 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	  // convert segment and assign
 	  const char* cStart=actLine.c_str();
 	  char* cEnd;
-	  double val = strtod( cStart, &cEnd);
+	  double val = StrToD( cStart, &cEnd);
 	  if( cEnd == cStart)
 	    {
 	      data_[ assignIx]= DComplex(0.0,0.0);
@@ -410,9 +410,9 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	      
 	      char* cEnd1, *cEnd2;
 	      const char* c1=seg1.c_str();
-	      double re = strtod( c1, &cEnd1);
+	      double re = StrToD( c1, &cEnd1);
 	      const char* c2=seg2.c_str();
-	      double im = strtod( c2, &cEnd2);
+	      double im = StrToD( c2, &cEnd2);
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_[ assignIx]= DComplexDbl(0.0,0.0);
@@ -432,7 +432,7 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	  // convert segment and assign
 	  const char* cStart=actLine.c_str();
 	  char* cEnd;
-	  double val = strtod( cStart, &cEnd);
+	  double val = StrToD( cStart, &cEnd);
 	  if( cEnd == cStart)
 	    {
 	      data_[ assignIx]= DComplexDbl(0.0,0.0);

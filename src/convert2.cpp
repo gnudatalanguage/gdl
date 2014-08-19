@@ -61,7 +61,7 @@ template <>
 inline float string2real_helper<float>(const char* cStart, char** cEnd)
 {
 #ifdef _MSC_VER
-  return strtod(cStart, cEnd);
+  return StrToD(cStart, cEnd);
 #else
   return strtof(cStart, cEnd);
 #endif
@@ -70,7 +70,7 @@ inline float string2real_helper<float>(const char* cStart, char** cEnd)
 template <>
 inline double string2real_helper<double>(const char* cStart, char** cEnd)
 {
-  return strtod(cStart, cEnd);
+  return StrToD(cStart, cEnd);
 }
 
 template <typename real_t>
