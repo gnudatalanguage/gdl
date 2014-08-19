@@ -21,7 +21,7 @@
 #include "math_utl.hpp"
 
 #define LABELOFFSET 0.003
-#define LABELSPACING 0.25
+#define LABELSPACING 0.1
 
 namespace lib
 {
@@ -29,9 +29,15 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static bool xLog;
-  static bool yLog;
-
+  bool xLog;
+  bool yLog;
+  bool restorelayout;
+  void myrecordingfunction(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data)
+  {
+    *xt=x;
+    *yt=y;
+    fprintf(stderr,"x=%f,y=%f\n",x,y);
+  }
   PLINT doIt( PLFLT x, PLFLT y )
   {
     if (xLog && x<=0 ) return 0;
@@ -225,7 +231,7 @@ namespace lib
       DDoubleGDL* plplot3d;
       DDouble az, alt, ay, scale;
       ORIENTATION3D axisExchangeCode;
-
+      restorelayout=false;
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
@@ -241,19 +247,21 @@ namespace lib
         hasZvalue=true;
       }
       //NODATA
-      int nodataIx = e->KeywordIx( "NODATA");
+      static int nodataIx = e->KeywordIx( "NODATA");
       nodata=e->KeywordSet(nodataIx);
       //We could RECORD PATH this way. Not developed since PATH_INFO seems not to be used
       bool recordPath;
-      int pathinfoIx = e->KeywordIx( "PATH_INFO");
-      int pathxyIx= e->KeywordIx( "PATH_XY");
+      static int pathinfoIx = e->KeywordIx( "PATH_INFO");
+      static int pathxyIx= e->KeywordIx( "PATH_XY");
       recordPath=(e->KeywordSet(pathinfoIx)||e->KeywordSet(pathxyIx));
       if (recordPath)
       {
+      //recordPath--> use actStream->stransform(myrecordingfunction, &data);
+      //       actStream->stransform(myrecordingfunction, NULL);
         Warning( "PATH_INFO, PATH_XY not yet supported, (FIXME)");
         recordPath=false;
       }
-      //recordPath--> use actStream->stransform(myrecordingfunction, &data);
+//      else actStream->stransform(NULL, NULL);
       //ISOTROPIC
       DLong iso=0;
       e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
@@ -329,6 +337,8 @@ namespace lib
         gdlGetCurrentAxisRange("Y", yStart, yEnd);
         gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
 
+        if (!doT3d) {
+          restorelayout=true;
       actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
       
       DDouble *sx, *sy;
@@ -342,7 +352,7 @@ namespace lib
 
       actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
       actStream->wind( xStart, xEnd, yStart, yEnd );
-
+        }
       }
 
       static DDouble x0,y0,xs,ys; //conversion to normalized coords
@@ -364,7 +374,7 @@ namespace lib
       if(make2dBox) {       //start a plot
         // viewport and world coordinates
         // use POSITION
-        int positionIx = e->KeywordIx( "POSITION");
+        static int positionIx = e->KeywordIx( "POSITION");
         DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
         if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
         // set the PLOT charsize before computing box, see plot command.
@@ -384,48 +394,28 @@ namespace lib
 
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-
-        switch (axisExchangeCode) {
-          case NORMAL: //X->X Y->Y plane XY
             Data3d.x0=x0;
             Data3d.y0=y0;
             Data3d.xs=xs;
             Data3d.ys=ys;
+ 
+        switch (axisExchangeCode) {
+          case NORMAL: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
           case XY: // X->Y Y->X plane XY
-            Data3d.x0=0;
-            Data3d.y0=x0;
-            Data3d.xs=ys;
-            Data3d.ys=xs;
             Data3d.code = code102;
             break;
           case XZ: // Y->Y X->Z plane YZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code210;
             break;
           case YZ: // X->X Y->Z plane XZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code021;
             break;
           case XZXY: //X->Y Y->Z plane YZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code120;
             break;
           case XZYZ: //X->Z Y->X plane XZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code201;
             break;
         }
@@ -489,7 +479,12 @@ namespace lib
       else
       {
         PLFLT zintv;
-        // Jo: added keyword NLEVELS
+        DDouble mapmax,mapmin;
+        mapmax=(zLog)?log10(zEnd):zEnd;
+        mapmin=(zLog)?log10(zStart):zStart;
+        // first, compute autolevel interval...
+        zintv=AutoTick ( mapmax-mapmin); //zintv never null.
+
         if ( e->KeywordSet ( "NLEVELS" ) )
         {
           DLong l_nlevel=nlevel; // GCC 3.4.4 needs that
@@ -497,19 +492,23 @@ namespace lib
           nlevel=l_nlevel;
           if ( nlevel<0) nlevel=2; //as IDL
           if (nlevel==0) nlevel=3; //idem
-
-          // cokhavim: IDL does this...
-          zintv=(PLFLT) ( ( zEnd-zStart )/( nlevel+1 ) );
-          //gd: we can support ZLOG as well:
-          if (zLog) zintv=(PLFLT) ( ( log10(zEnd)-log10(zStart )) / ( nlevel+1 ) );
-
         }
         else
         {
-          zintv=AutoTick ( zEnd-zStart ); if (zLog) zintv=AutoTick ( log10(zEnd)-log10(zStart) );
-          nlevel=(PLINT) floor ( ( zEnd-zStart )/zintv ); if (zLog) nlevel=(PLINT) floor ( ( log10(zEnd)-log10(zStart) )/zintv );
-          // SA: sanity check to prevent segfaults, e.g. with solely non-finite values
-          if ( zintv==0||nlevel<0 ) nlevel=0;
+          nlevel=(PLINT) floor ( ( mapmax-mapmin )/zintv );
+          if ( nlevel<0 ) nlevel=1; //never happens i guess
+        }
+        //levels values tries to be as rounded as possible aka IDL.
+
+        //trick to round
+        DDouble cmax,cmin;
+        cmax=ceil(mapmax/zintv)*zintv;
+        cmin=floor(mapmin/zintv)*zintv;
+        zintv=(cmax-cmin)/(nlevel+1);
+
+        if (!setZrange) { //update CRANGE if it was rounded above.
+          zStart=cmin;
+          zEnd=cmax;
         }
 
         if (fill)
@@ -519,18 +518,19 @@ namespace lib
         clevel=new PLFLT[nlevel];
         clevel_guard.Reset ( clevel );
         //IDL does this:
-        for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
-        if (zLog) for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = pow(10.0,(log10(zStart)+zintv*i));
+        
+        if (zLog) for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = pow(10.0,(zintv * i + cmin)); 
+        else      for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + cmin;
       }
 
       // set label params always since they are not forgotten by plplot.'label' tells if they should be used.
       // IDL default: 3/4 of the axis charsize (CHARSIZE keyword or !P.CHARSIZE)
       // PlPlot default: .3
-      // should be: DFloat label_size=.75*actStream->charScale(); however IDL doc false.
-      DFloat label_size=0.9; //IDL behaviour, IDL doc false.
+      // should be: DFloat label_size=.75*actStream->charScale(); however IDL doc false (?).
+      DFloat label_size=0.9; //IDL behaviour, IDL doc false ?.
       if ( e->KeywordSet ( "C_CHARSIZE" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARSIZE", label_size );
-      actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, (label)?1:0 );
-      actStream->setcontlabelformat (3, 3 );
+// set up after:      actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, (label)?1:0 );
+      actStream->setcontlabelformat (4, 3 );
 
       // PLOT ONLY IF NODATA=0
       if (!nodata)
@@ -661,24 +661,40 @@ namespace lib
           }
         }
 
-        // Graphic options
-        // C_COLORS=vector, (eventually converted to integer), give color index. repated if less than contours.
-        // C_LABELS=vector of 0 and 1 (float, double, int) . Implies FOLLOW.
-        // C_LINESTYLE =vector of linestyles. Defaults to !P.LINESTYLE
-        // C_THICK=vector of thickness. repated if less than contours. defaults to !P.THICK or THICK
-        int c_colorsIx=e->KeywordIx ( "C_COLORS" ); bool docolors=false;
-        int c_linestyleIx=e->KeywordIx ( "C_LINESTYLE" ); bool dostyle=false;
-        int c_thickIx=e->KeywordIx ( "C_THICK" ); bool dothick=false;
-        int c_labelsIx=e->KeywordIx ( "C_LABELS" ); bool dolabels=false;
-        int c_orientationIx=e->KeywordIx ( "C_ORIENTATION" ); bool doori=false;
-        int c_spacingIx=e->KeywordIx ( "C_SPACING" ); bool dospacing=false;
+        //Colors.
+        static DStructGDL* pStruct=SysVar::P();
+        static DStructGDL* dStruct=SysVar::D();
+        DLong n_colors=(*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"), 0)))[0];
+        static int c_colorsIx=e->KeywordIx ( "C_COLORS" ); bool docolors=false;
+        // Get decomposed value for colors
+        DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
         if ( e->GetKW ( c_colorsIx )!=NULL )
         {
           colors=e->GetKWAs<DLongGDL>( c_colorsIx ); docolors=true;
+        } else {
+          // Get COLOR from PLOT system variable
+          colors=new DLongGDL( 1, BaseGDL::NOZERO );
+	      colors_guard.Init ( colors ); // delete upon exit
+          colors=static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)); docolors=false;
         }
+        //treat decomposed problem here (simpler: colors for table 0 will already be truncated to 0xFF)
+        if (!decomposed) for ( SizeT i=0; i<colors->N_Elements(); ++i ){(*colors)[i]&=0xFF;}
+
+        static int c_linestyleIx=e->KeywordIx ( "C_LINESTYLE" ); bool dostyle=false;
+        static int c_thickIx=e->KeywordIx ( "C_THICK" ); bool dothick=false;
+        static int c_labelsIx=e->KeywordIx ( "C_LABELS" ); bool dolabels=false;
+        static int c_orientationIx=e->KeywordIx ( "C_ORIENTATION" ); bool doori=false;
+        static int c_spacingIx=e->KeywordIx ( "C_SPACING" ); bool dospacing=false;
+
         if ( e->GetKW ( c_thickIx )!=NULL )
         {
           thick=e->GetKWAs<DFloatGDL>( c_thickIx ); dothick=true;
+        } else {
+          // Get THICK from PLOT system variable
+          thick=new DFloatGDL( 1, BaseGDL::NOZERO );
+	      thick_guard.Init ( thick ); // delete upon exit
+          static DStructGDL* pStruct=SysVar::P();
+          thick=static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)); dothick=false;          
         }
         if ( e->GetKW ( c_labelsIx )!=NULL )
         {
@@ -686,9 +702,9 @@ namespace lib
         }
         else //every other level
         {
-          labels=new DLongGDL  ( dimension (2), BaseGDL::ZERO );
+          labels=new DLongGDL  ( dimension (nlevel), BaseGDL::ZERO );
           labels_guard.Init( labels);
-          (*labels)[0]=1;(*labels)[1]=0;
+          for ( SizeT i=0; i<nlevel-1; ++i )(*labels)[i]=(i+1)%2;
           if (label) dolabels=true; //yes!
         }
         if ( e->GetKW ( c_linestyleIx )!=NULL )
@@ -717,13 +733,18 @@ namespace lib
         }
         bool hachures=(dospacing || doori);
         // Get decomposed value for colors
-        DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
         // Important: make all clipping computations BEFORE setting graphic properties (color, size)
         bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));
         bool stopClip=false;
         if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
 
+        //provides some defaults:
+        if (!docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+        if (!dothick) gdlSetPenThickness(e, actStream);
+        gdlSetPlotCharsize(e, actStream);
+        actStream->psty(0); //solid fill by default!
+            
         if (fill) {
           const PLINT COLORTABLE0 = 0;
           const PLINT COLORTABLE1 = 1;
@@ -755,7 +776,8 @@ namespace lib
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
-              COLORTABLE0, colorindex_table_0_color, 1, //colorindex is an int passed as a double in case map0
+              COLORTABLE0, colorindex_table_0_color, 
+              static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]),
               0,0,0,0,
               (plstream::fill), (oneDim),
               (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
@@ -764,12 +786,12 @@ namespace lib
             if (docolors) gdlSetGraphicsForegroundColorFromKw( e, actStream );
             if (dothick) gdlSetPenThickness(e, actStream);
             if (dostyle) gdlLineStyle(actStream, 0);
-          }
-          else  if (doT3d & !hasZvalue) {
+          } //end FILL with equispaced lines
+          else  if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
             for ( SizeT i=0; i<nlevel; ++i ) {
-                Data3d.zValue=clevel[i]/(zEnd-zStart);
-                colorindex_table_1_color=(PLFLT)(i+1)/PLFLT(nlevel);
-                actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
+              Data3d.zValue=clevel[i]/(zEnd-zStart); //displacement in Z
+              colorindex_table_1_color=(PLFLT)(i+1)/PLFLT(nlevel);
+              actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
                 if (docolors)
                 {
                   actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
@@ -799,14 +821,15 @@ namespace lib
             gdlSetGraphicsForegroundColorFromKw ( e, actStream );
             // note that plshade is not protected against 1 level (color formula is
             // "shade_color = color_min + i / (PLFLT) ( nlevel - 2 ) * color_range;"
-            // meaning that nlevel must be >=2 for plshade!)
-            if (nlevel>2 && !(docolors)) {
+            // meaning that nlevel=xx must be xx>=2 for plshades to work!)
+            if (nlevel>2 && !(docolors)) { //acceleration with shades when no c_colors are given. use continuous table1, decomposed or not.
+              //acceleration is most sensible when a (x,y) transform (rotate, stretch) is in place since plplot does not recompute the map.
               actStream->shades( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
                                 clevel, nlevel, 1, 0, 0, plstream::fill, (oneDim),
                                 (oneDim)?(plstream::tr1):(plstream::tr2),
                                 (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
-            else {
+            else { //fill with colors defined with c_colors or n<=2
               for ( SizeT i=0; i<nlevel; ++i ) 
               {
                 if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
@@ -819,14 +842,10 @@ namespace lib
                 (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
               }
             }
-            //useful?
-            gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //needs to be called again or else PS files look wrong
           }
-        }
-        else  {
-          //useful?
-          gdlSetGraphicsForegroundColorFromKw ( e, actStream );
-          gdlSetPenThickness(e, actStream);
+        } else { //no fill = contours . use normal pen procedures.
+          if (!docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+          if (!dothick) gdlSetPenThickness(e, actStream);
           gdlSetPlotCharsize(e, actStream);
           for ( SizeT i=0; i<nlevel; ++i ) {
             if (doT3d & !hasZvalue) {
@@ -840,8 +859,9 @@ namespace lib
             if (dothick) actStream->wid( ( *thick )[i%thick->N_Elements ( )]);
 #endif
             if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
-            if (dolabels) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING,
-                                                        (PLINT)(*labels)[i%labels->N_Elements()] );
+             //no label in T3D , bug in plplot...
+            if (doT3d) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0 ); 
+            else if (dolabels && i<labels->N_Elements()) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING*sqrt(label_size),(PLINT)(*labels)[i] ); 
             actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
                 (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
           }
@@ -977,7 +997,7 @@ namespace lib
 
     virtual void post_call (EnvT*, GDLGStream* actStream)
     {
-      if (overplot) actStream->RestoreLayout();
+      if (restorelayout) actStream->RestoreLayout();
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     }
