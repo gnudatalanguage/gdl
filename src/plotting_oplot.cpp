@@ -219,47 +219,27 @@ namespace lib {
       }
       Data3d.zValue = zValue;
       Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-        switch (axisExchangeCode) {
-          case NORMAL: //X->X Y->Y plane XY
             Data3d.x0=x0;
             Data3d.y0=y0;
             Data3d.xs=xs;
             Data3d.ys=ys;
+        switch (axisExchangeCode) {
+          case NORMAL: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
           case XY: // X->Y Y->X plane XY
-            Data3d.x0=0;
-            Data3d.y0=x0;
-            Data3d.xs=ys;
-            Data3d.ys=xs;
             Data3d.code = code102;
             break;
           case XZ: // Y->Y X->Z plane YZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code210;
             break;
           case YZ: // X->X Y->Z plane XZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code021;
             break;
           case XZXY: //X->Y Y->Z plane YZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code120;
             break;
           case XZYZ: //X->Z Y->X plane XZ
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
             Data3d.code = code201;
             break;
         }
