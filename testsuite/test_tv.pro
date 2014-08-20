@@ -109,6 +109,36 @@ endif
 if KEYWORD_SET(test) then STOP
 ;;
 end 
+
+PRO TEST_TV_OVER_BOX
+filename='Saturn.jpg'
+list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+queryStatus = QUERY_IMAGE(file, imageInfo)
+image = READ_IMAGE(file)
+redChannel = REFORM(image[0, *, *])
+greenChannel = REFORM(image[1, *, *])
+blueChannel = REFORM(image[2, *, *])
+aa=findgen(32)
+window,11
+loadct,13
+plot,aa,back=88
+tv,redChannel,0,CHAN=1
+tv,redChannel,0,0,/DATA,CHAN=1
+tv,greenChannel,0,CHAN=2
+tv,greenChannel,10,10,/DATA,CHAN=2
+tv,blueChannel,0,CHAN=3
+tv,blueChannel,20,20,/DATA,CHAN=3
+window,12
+!P.MULTI=[0,3,2]
+for i=0,5 do begin
+plot,aa
+TV, image,10,10,/DATA,/true,xsize=50
+end
+!P.MULTI=0
+end
+
+
 ; -------------------------------------
 ;
 pro TEST_TV, noclose=noclose, test=test
@@ -134,12 +164,13 @@ MY_WINDOW, 6, REFORM(b3)
 ;
 TEST_TV_DAMIER, 8, /noclose
 TEST_TV_DAMIER_COLOR, 9, /noclose
+TEST_TV_OVER_BOX
 ;
 if NOT(KEYWORD_SET(noclose)) then begin
    rep=''
    READ, 'press any key to finish (and closing all windows)', rep
    ;;
-   WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9
+   WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9, 11, 12
 endif
 ;
 if KEYWORD_SET(test) then STOP
