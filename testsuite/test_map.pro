@@ -222,6 +222,18 @@ end
 ;
 ; ------------------------------------
 ;
+function TEST_MAP_PROCEDURES
+;
+; do we have this procedure in GDL syntax in the PATH ?
+;
+test=EXECUTE("map_set")
+;
+if test EQ 0 then return, 0 else return, 1
+;
+end
+;
+; ------------------------------------
+;
 pro INTERNAL_GDL_MAP_CHECK, test=test
 ;
 status=INTERNAL_GDL_MAP_LIBS()
@@ -241,22 +253,32 @@ if (status LT 0) then begin
    MESSAGE, 'please read the MAP_INSTALL document in the root of the GDL dir.'
 endif
 ;
+status_map_pro=TEST_MAP_PROCEDURES()
+;
 ; getting the missing routines if needed.
 ; (based on MAP_INSTALL informations --> test of presence of this file
 ; not done now, ToDo)
 ;
-GET_MAP_PROCEDURES
+if status_map_pro EQ 0 then GET_MAP_PROCEDURES
 ;
 ; Checking we have data file around
 ;
 status_gshhg_data=CHECK_GSHHG_DATA()
 if (status_gshhg_data LT 0) then begin
-   GET_GSHHG_DATA
+   reponse=''
+   print, 'GSHHG/S data are missing on local computer,'
+   read, 'Are you OK to download the three missing data files (y/n) ?', reponse
+   reponse=STRMID(STRupCASE(reponse),0,1)
+   if (reponse EQ 'Y' or reponse EQ 'O') then begin
+      GET_GSHHG_DATA
+   endif else begin
+      MESSAGE, "GSHHS data are missing, you can set up !GSHHS_DATA_DIR if you have a local copy"
+   endelse
    ;;
    ;; now we can check again
    status_gshhg_data=CHECK_GSHHG_DATA()
    if (status_gshhg_data LT 0) then begin
-      message,"GSHHS data still missing"
+      MESSAGE, "GSHHS data still missing"
    endif
 endif
 ;
