@@ -404,7 +404,7 @@ public:
         pls->get_string_length = 1;
         c_plmtex( "t", 0.0, 0.0, 0.0, string );
         pls->get_string_length = 0;
-        return (PLFLT) m2ndx(pls->string_length);
+        return (PLFLT) mm2ndx(pls->string_length);
     }
     //else use only possibility without using Private function plstrl(): pllegend!
     PLFLT text_scale = pls->chrht / pls->chrdef;
