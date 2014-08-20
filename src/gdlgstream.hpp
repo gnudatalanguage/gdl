@@ -263,6 +263,7 @@ public:
   virtual void Flush() {}
   virtual void Clear()         {}
   virtual void Clear( DLong bColor)          {}
+  virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
 
   void SetValid( bool v) { valid = v;}
   bool GetValid() { return valid;}

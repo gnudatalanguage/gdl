@@ -203,6 +203,7 @@ plotting_convert_coord.cpp
 plotting_cursor.cpp
 plotting_device.cpp
 plotting_erase.cpp
+plotting_image.cpp
 plotting_map_proj.cpp
 plotting_misc.cpp
 plotting_oplot.cpp

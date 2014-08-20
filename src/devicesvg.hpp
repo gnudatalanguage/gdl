@@ -30,6 +30,7 @@ class DeviceSVG : public GraphicsDevice
 {
   std::string      fileName;
   GDLSVGStream*     actStream;
+  int              decomposed; // false -> use color table
 
   void InitStream()
   {
@@ -83,7 +84,7 @@ class DeviceSVG : public GraphicsDevice
   }
 
 public:
-  DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL)
+  DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL), decomposed(0)
   {
     name = "SVG";
 
@@ -139,6 +140,20 @@ public:
     actStream = NULL;
     return true;
   }
+  
+  bool Decomposed( bool value)           
+  {   
+    decomposed = value;
+    if (decomposed) (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256*256*256;
+    else (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256;
+    return true;
+  }
+
+  DLong GetDecomposed()        
+  {
+    return decomposed;  
+  }
+
 };
 
 #endif

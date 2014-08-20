@@ -22,6 +22,9 @@
 
 class GDLSVGStream: public GDLGStream
 {
+
+  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
+
 public:
   GDLSVGStream( int nx, int ny):
     GDLGStream( nx, ny, checkPlplotDriver("svgcairo") ? "svgcairo" : "svg")

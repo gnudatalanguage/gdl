@@ -303,8 +303,9 @@ void LibInit_jmg()
  
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA",KLISTEND};
-  new DLibPro(lib::tv,string("TV"),4,tvKey);
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA","T3D","Z","CENTIMETERS","INCHES",KLISTEND};
+  const string tvWarnKey[]={"WORDS",KLISTEND};
+  new DLibPro(lib::tv_image,string("TV"),4,tvKey,tvWarnKey);
 
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
   new DLibFunRetNew(lib::tvrd,string("TVRD"),5,tvrdKey);

@@ -117,6 +117,7 @@ namespace lib {
   void xyouts( EnvT* e);
   void axis( EnvT* e);
   void polyfill( EnvT* e);
+  void tv_image( EnvT* e);
   void usersym( EnvT* e);
   void set_shading( EnvT* e);
 

@@ -43,6 +43,7 @@ public:
   void eop();
 
   void Init();
+  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
 
 };
 

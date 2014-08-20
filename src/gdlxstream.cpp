@@ -20,6 +20,7 @@
 
 #include "graphicsdevice.hpp"
 #include "gdlxstream.hpp"
+#include "devicex.hpp"
 
 #ifndef HAVE_X
 #else
@@ -647,5 +648,179 @@ unsigned long event_mask = (EnterWindowMask| LeaveWindowMask | KeyPressMask  | K
   XFlush(xwd->display);
   return status;
 }
+#define ToXColor(a) (((0xFF & (a)) << 8) | (a))
+
+bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
+        DLong trueColorOrder, DLong chan) {
+
+  PLINT ix, iy;
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XImage *ximg = NULL, *ximg_pixmap = NULL;
+
+  int x, y;
+
+  int (*oldErrorHandler)(Display*, XErrorEvent*);
+  //the following 2 tests cannot happen i think. I keep them for safety.
+  if (pls->level < 3) {
+    std::cerr << "plimage: window must be set up first" << std::endl; //plabort() not available anymore!
+    return false;
+  }
+
+  if (nx <= 0 || ny <= 0) {
+    std::cerr << "plimage: nx and ny must be positive" << std::endl;
+    return false;
+  }
+
+  oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
+
+  XFlush(xwd->display);
+  
+  if (dev->write_to_pixmap) {
+    ximg = XGetImage(xwd->display, dev->pixmap, 0, 0,
+            dev->width, dev->height,
+            AllPlanes, ZPixmap);
+    ximg_pixmap = ximg;
+  }
+
+  if (dev->write_to_window)
+    ximg = XGetImage(xwd->display, dev->window, 0, 0,
+          dev->width, dev->height,
+          AllPlanes, ZPixmap);
+
+  XSetErrorHandler(oldErrorHandler);
+
+  if (ximg == NULL) {
+    XSync(xwd->display, 0);
+    x = 0;
+    y = 0;
+    if (dev->write_to_pixmap) {
+      XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc,
+              x, y, dev->width, dev->height, x, y);
+      XSync(xwd->display, 0);
+      ximg = ximg_pixmap;
+    }
+  }
+
+
+  int ncolors;
+  PLINT iclr1, ired, igrn, iblu;
+  if (trueColorOrder == 0 && chan == 0) {
+
+    ncolors = 256;
+
+    //#if PL_RGB_COLOR == -1 //was (always?) set by plplotP.h which we do not use anymore. 
+    if (xwd->ncol1 != ncolors) {
+      free_mem(xwd->cmap1);
+      xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof (XColor));
+    }
+    //#endif
+
+    for (SizeT i = 0; i < ncolors; i++) {
+
+      xwd->cmap1[i].red = ToXColor(pls->cmap0[i].r);
+      xwd->cmap1[i].green = ToXColor(pls->cmap0[i].g);
+      xwd->cmap1[i].blue = ToXColor(pls->cmap0[i].b);
+      xwd->cmap1[i].flags = DoRed | DoGreen | DoBlue;
+
+      if (XAllocColor(xwd->display, xwd->map, &xwd->cmap1[i]) == 0)
+        break;
+    }
+    xwd->ncol1 = ncolors;
+  }
+  PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
+  PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
+  PLINT kx, ky;
+
+  XColor curcolor;
+
+  PLINT kxLimit = dev->width - xoff;
+  PLINT kyLimit = dev->height - yoff;
+
+  if (nx < kxLimit) kxLimit = nx;
+  if (ny < kyLimit) kyLimit = ny;
+
+  /*#ifdef _OPENMP
+  SizeT nOp = kxLimit * kyLimit;
+#endif
+  #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
+  {
+  #pragma omp for*/
+  for (ix = 0; ix < kxLimit; ++ix) {
+    for (iy = 0; iy < kyLimit; ++iy) {
+
+      kx = xoff + ix;
+      ky = yoff + iy;
+
+      if (trueColorOrder == 0 && chan == 0) {
+        iclr1 = idata[iy * nx + ix];
+
+        if (xwd->color)
+          curcolor = xwd->cmap1[iclr1];
+        else
+          curcolor = xwd->fgcolor;
+
+        //	  printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
+
+      } else {
+        if (chan == 0) {
+          if (trueColorOrder == 1) {
+            ired = idata[3 * (iy * nx + ix) + 0];
+            igrn = idata[3 * (iy * nx + ix) + 1];
+            iblu = idata[3 * (iy * nx + ix) + 2];
+          } else if (trueColorOrder == 2) {
+            ired = idata[nx * (iy * 3 + 0) + ix];
+            igrn = idata[nx * (iy * 3 + 1) + ix];
+            iblu = idata[nx * (iy * 3 + 2) + ix];
+          } else if (trueColorOrder == 3) {
+            ired = idata[nx * (0 * ny + iy) + ix];
+            igrn = idata[nx * (1 * ny + iy) + ix];
+            iblu = idata[nx * (2 * ny + iy) + ix];
+          }
+          curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
+        }else{
+          unsigned long pixel = XGetPixel(ximg, kx, dev->height - 1 - ky);
+          if (chan == 1) {
+            pixel &= 0x00ffff;
+            ired = idata[1 * (iy * nx + ix) + 0];
+            curcolor.pixel = ired * 256 * 256 + pixel;
+          } else if (chan == 2) {
+            pixel &= 0xff00ff;
+            igrn = idata[1 * (iy * nx + ix) + 1];
+            curcolor.pixel = igrn * 256 + pixel;
+          } else if (chan == 3) {
+            pixel &= 0xffff00;
+            iblu = idata[1 * (iy * nx + ix) + 2];
+            curcolor.pixel = iblu + pixel;
+          }
+        }
+      }
+
+      //std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
+      // TODO check if XPutPixel() and XGetPixel() are thread save
+      if (ky < dev->height && kx < dev->width)
+        XPutPixel(ximg, kx, dev->height - 1 - ky, curcolor.pixel);
+    }
+  }
+  //}
+
+  if (dev->write_to_pixmap)
+    XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
+          0, 0, dev->width, dev->height);
+
+  if (1) //(dev->write_to_window) //always write
+    XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
+          0, 0, dev->width, dev->height);
+
+  if (ximg != ximg_pixmap) {
+    XDestroyImage(ximg);
+    XDestroyImage(ximg_pixmap);
+  } else {
+    XDestroyImage(ximg);
+  }
+  return true;
+}
+#undef ToXColor
+
 
 #endif

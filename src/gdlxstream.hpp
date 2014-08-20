@@ -67,6 +67,7 @@ public:
   void UnSetDoubleBuffering();
   bool HasDoubleBuffering();
   bool HasSafeDoubleBuffering();
+  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
 };
 
 #endif
