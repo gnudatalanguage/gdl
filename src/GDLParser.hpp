@@ -2,7 +2,7 @@
 #define INC_GDLParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20120518): "gdlc.g" -> "GDLParser.hpp"$ */
+/* $ANTLR 2.7.7 (20130428): "gdlc.g" -> "GDLParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "GDLTokenTypes.hpp"
@@ -195,6 +195,8 @@ public:
 	public: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
+	public: void primary_expr_tail();
+	public: void primary_expr_deref();
 	public: void primary_expr();
 	public: void decinc_expr();
 	public: void exponential_expr();
@@ -273,6 +275,10 @@ private:
 	static const antlr::BitSet _tokenSet_23;
 	static const unsigned long _tokenSet_24_data_[];
 	static const antlr::BitSet _tokenSet_24;
+	static const unsigned long _tokenSet_25_data_[];
+	static const antlr::BitSet _tokenSet_25;
+	static const unsigned long _tokenSet_26_data_[];
+	static const antlr::BitSet _tokenSet_26;
 };
 
 #endif /*INC_GDLParser_hpp_*/

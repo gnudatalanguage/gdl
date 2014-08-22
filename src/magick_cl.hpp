@@ -19,6 +19,7 @@
 #define MAGICK_HPP_CL
 
 #include <Magick++.h>
+
 namespace lib {
 
   using namespace Magick;
