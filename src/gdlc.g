@@ -1345,14 +1345,6 @@ tag_array_expr_nth!
 	;	
 
 tag_access_keeplast returns [int nDot]
-// {
-//     nDot=0;
-//     SizeT dotCount = 0 ;
-//     int last;
-// }
-// 	: 
-//         (options {greedy=true;}: DOT! { ++nDot;} tag_array_expr_nth)+
-//     ;
 {
     int t;
     bool parent = false;
@@ -1368,13 +1360,6 @@ tag_access_keeplast returns [int nDot]
         )
     ;
 
-// // can be an array expr
-// deref_expr_dot // only used in predicate
-// 	: array_expr_1st t=tag_access
-//     | ASTERIX! deref_expr_dot
-//         { #deref_expr = 
-// 			#([DEREF,"deref"], #deref_expr);}
-// 	;
 
 deref_dot_expr_keeplast
 {
@@ -1399,37 +1384,6 @@ deref_dot_expr_keeplast
         { #deref_dot_expr_keeplast = 
 			#([DEREF,"deref"], #deref_dot_expr_keeplast);}
 	;
-// {
-//     RefDNode dot;
-//     SizeT nDot = 1;
-// }
-//     :
-//  (array_expr_1st tag_access_keeplast)=> 
-//       a1:array_expr_1st
-//         ( /*(tag_access_keeplast)=>*/ nDot=tag_access_keeplast
-//             { 
-//                 dot=#[DOT,"."];
-//                 dot->SetNDot( nDot);    
-//                 dot->SetLine( #a1->getLine());
-
-//                 #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast);
-//             }
-//         )
-//     |
-//  (array_expr_1st DOT tag_array_expr_nth)=> 
-//       array_expr_1st 
-// //        {/*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/}
-// //             {
-// //                 dot=#[DOT,"."];
-// //                 dot->SetNDot( nDot);    
-// //                 dot->SetLine( #a1->getLine());
-
-// //                 #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast);
-// //             }
-//     | ASTERIX! deref_dot_expr_keeplast
-//         { #deref_dot_expr_keeplast = 
-// 			#([DEREF,"deref"], #deref_dot_expr_keeplast);}
-// ;
 
 tag_access returns [SizeT nDot]
 {
@@ -1635,19 +1589,32 @@ primary_expr_deref
 {
     bool parent;
 
-    bool skip = false;
+    bool skip;
     int markIn = mark();
+
 	inputState->guessing++;
-	try {
-        deref_dot_expr_keeplast();
+
+    bool tailLa1La2 = (_tokenSet_23.member(LA(1))) && (_tokenSet_24.member(LA(2)));
+    bool derefLa1La2 = (_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))); 
+
+    if ( derefLa1La2) 
+    {
+        skip = false;
+        try {
+            deref_dot_expr_keeplast();
+        }
+        catch (antlr::RecognitionException& pe) {
+            skip = true;
+        }
     }
-    catch (antlr::RecognitionException& pe) {
+    else
         skip = true;
-    }
-	rewind( markIn);
-	inputState->guessing--;
-    if( skip && ((_tokenSet_23.member(LA(1))) && (_tokenSet_24.member(LA(2)))))
+
+    if( skip && tailLa1La2)
         {
+            rewind( markIn);
+            inputState->guessing--;
+
             primary_expr_tail();
             if (inputState->guessing==0) {
                 astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -1656,30 +1623,106 @@ primary_expr_deref
             returnAST = primary_expr_deref_AST;
             return;
         }
+
+    bool baseclass_methodParse = true;
+    bool arrayexpr_mfcallParse = false;
+    bool function_callParse = false;
+
+    int mark2nd = mark();
+
+    try {
+        {
+        baseclass_method();
+        }
+    }
+    catch (antlr::RecognitionException& pe) {
+        baseclass_methodParse = false;
+    }
+
+    rewind( mark2nd);
+
+    if( !baseclass_methodParse)
+    {
+        int mark3rd = mark();
+
+        arrayexpr_mfcallParse = true;
+        try {
+                {
+    			match(IDENTIFIER);
+    			match(LBRACE);
+    			expr();
+    			{ // ( ... )*
+    			for (;;) {
+    				if ((LA(1) == COMMA)) {
+    					match(COMMA);
+    					expr();
+    				}
+    				else {
+                        break;
+    				}
+                }
+    			} // ( ... )*
+    			match(RBRACE);
+                }
+            }
+        catch (antlr::RecognitionException& pe) {
+            arrayexpr_mfcallParse = false;
+        }
+
+        rewind( mark3rd);
+
+        if( !arrayexpr_mfcallParse)
+        {
+            function_callParse = true;
+            try {
+                {
+                formal_function_call();
+                }
+            }
+            catch (antlr::RecognitionException& pe) {
+                 function_callParse = false;
+            }
+
+            if( !function_callParse && tailLa1La2)
+            {
+                rewind( markIn);
+                inputState->guessing--;
+
+                primary_expr_tail();
+                if (inputState->guessing==0) {
+                    astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+                }
+                primary_expr_deref_AST = RefDNode(currentAST.root);
+                returnAST = primary_expr_deref_AST;
+                return; 
+            }
+        }
+   }
+
+   rewind( markIn);
+   inputState->guessing--;
 }
     : 
         // with METHOD
-        (deref_dot_expr_keeplast baseclass_method)=>
 
-        d1:deref_dot_expr_keeplast baseclass_method formal_function_call
+//        (deref_dot_expr_keeplast baseclass_method)=>
+        {baseclass_methodParse}?
+        deref_dot_expr_keeplast baseclass_method formal_function_call
         {
             #primary_expr_deref = #([MFCALL_PARENT, "mfcall::"], #primary_expr_deref);
         }   
     | 
         // ambiguity (arrayexpr or mfcall)
-        (deref_dot_expr_keeplast 
-            (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
 
+//        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
+        {arrayexpr_mfcallParse}?
         arrayexpr_mfcall
-        // d2:deref_dot_expr_keeplast 
-        //     // here it is impossible to decide about function call
-        //     // as we do not know the object type/struct tag
-        //     IDENTIFIER arrayindex_list 
-        //     { #primary_expr = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #primary_expr);}
     | 
         // not the above -> unambigous mfcall (or unambigous array expr handled below)
-        (deref_dot_expr_keeplast formal_function_call)=> 
-        d3:deref_dot_expr_keeplast 
+
+  //      (deref_dot_expr_keeplast formal_function_call)=> 
+        {function_callParse}?
+        deref_dot_expr_keeplast 
             // here it is impossible to decide about function call
             // as we do not know the object type/struct tag
             formal_function_call
@@ -1687,24 +1730,6 @@ primary_expr_deref
 
     |
         primary_expr_tail
-	// |  
-    //     // a member function call starts with a deref_expr 
- 	// 	(deref_dot_expr)=>
-    //     // same parsing as (deref_expr)=> see below
-	// 	deref_expr 
-    //     ( parent=member_function_call
-    //         { 
-    //             if( parent)
-    //             {
-    //                 #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-    //             }
-    //             else
-    //             {
-    //                 #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-    //             }
-    //         }
-    //     | // empty -> array expression
-    //     )
     ;
 
 
@@ -1719,158 +1744,6 @@ primary_expr
 		}  
 	| numeric_constant
     | primary_expr_deref
-    //     // with METHOD
-    //     (deref_dot_expr_keeplast baseclass_method)=>
-
-    //     d1:deref_dot_expr_keeplast baseclass_method formal_function_call
-    //     {
-    //         #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-    //     }   
-    // | 
-    //     // ambiguity (arrayexpr or mfcall)
-    //     (deref_dot_expr_keeplast 
-    //         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
-
-    //     arrayexpr_mfcall
-    //     // d2:deref_dot_expr_keeplast 
-    //     //     // here it is impossible to decide about function call
-    //     //     // as we do not know the object type/struct tag
-    //     //     IDENTIFIER arrayindex_list 
-    //     //     { #primary_expr = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #primary_expr);}
-    // | 
-    //     // not the above -> unambigous mfcall (or unambigous array expr handled below)
-    //     (deref_dot_expr_keeplast formal_function_call)=> 
-    //     d3:deref_dot_expr_keeplast 
-    //         // here it is impossible to decide about function call
-    //         // as we do not know the object type/struct tag
-    //         formal_function_call
-	// 		{ #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
-
-	// // |  
-    // //     // a member function call starts with a deref_expr 
- 	// // 	(deref_dot_expr)=>
-    // //     // same parsing as (deref_expr)=> see below
-	// // 	deref_expr 
-    // //     ( parent=member_function_call
-    // //         { 
-    // //             if( parent)
-    // //             {
-    // //                 #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-    // //             }
-    // //             else
-    // //             {
-    // //                 #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-    // //             }
-    // //         }
-    // //     | // empty -> array expression
-    // //     )
-    // |
-    //     primary_expr_tail
-//         (   
-//         // ambiguity (arrayexpr or fcall)
-//         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
-// 		(
-
-// 			// already known function 
-// 			// (could be reordered, but this is conform to original)
-// 			{ IsFun(LT(1))}? formal_function_call
-// 			{ 
-// //             std::cout << "+++(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 1" << std::endl;
-
-// //                 if( StrUpCase(#i->getText) == "N_ELEMENTS")
-// //                     #primary_expr = #([FCALL_LIB_N_ELEMENTS, "fcall_n_elements"], #primary_expr);
-// //                 else
-//                    #primary_expr = #([FCALL, "fcall"], #primary_expr);
-//             }
-// 		| 
-//             // still ambiguity (arrayexpr or fcall)
-//         (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
-//             { 
-// //             std::cout << "***(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 2" << std::endl;
-
-//                 #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);}
-//         |   // if arrayindex_list failed (due to to many indices)
-//             // this must be a function call
-//             formal_function_call
-// 			{ 
-//                    #primary_expr = #([FCALL, "fcall"], #primary_expr);
-//             }
-// // 	  		( parent=member_function_call
-// // 				{ 
-// //                     if( parent)
-// //                     {
-// //                         #primary_expr = 
-// //                         #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-// //                     }
-// //                     else
-// //                     {
-// //                         #primary_expr = 
-// //                         #([MFCALL, "mfcall"], #primary_expr);
-// //                     }
-// //                 }
-// // 	  		| (DOT IDENTIFIER METHOD)=> member_function_call_dot
-// //                     {
-// //                         #primary_expr = 
-// //                         #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-// //                     }
-// //             | DOT! formal_function_call
-// //                 {
-// //                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-// //                 }
-// //             |
-// //          )		
-// // commented out to leave checking to tree parser (if MEMBER and DOT are
-// // present it could be decided already here if it can be a FCALL)
-// //		|
-// //		// can formally be both 
-// //	  	// (during compiling we know as a var must be already defined)
-// //			array_expr_fn
-// 		)
-		
-// 	|   // not the above => keyword parameter (or no args) => function call
-// 	 	(formal_function_call)=> formal_function_call
-// 	 	{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
-
-
-// 	|   // a member function call starts with a deref_expr 
-//         // deref_dot_expr already failed
-//  		(deref_expr)=>
-// 		deref_expr 
-//         ( parent=member_function_call
-//             { 
-//                 if( parent)
-//                 {
-//                     #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-//                 }
-//                 else
-//                 {
-//                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-//                 }
-//             }
-// // 	  	| (DOT IDENTIFIER METHOD)=> member_function_call_dot
-// //                     {
-// //                         #primary_expr = 
-// //                         #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-// //                     }
-// //         | DOT! formal_function_call
-// //                 {
-// //                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-// //                 }
-//         | // empty -> array expression
-//         )
-
-//     | assign_expr
-// 	| array_def
-// 	| struct_def
-//     | ! ls:LSQUARE !RSQUARE
-// 		{ #primary_expr=#[GDLNULL,"GDLNULL[]"];
-//             #primary_expr->SetLine( #ls->getLine());
-// 		}  
-//     | ! lc:LCURLY !RCURLY
-// 		{ #primary_expr=#[GDLNULL,"GDLNULL{}"];
-//             #primary_expr->SetLine( #lc->getLine());
-// 		}
-//     )  
 	;
 
 // only one INC/DEC allowed per target
@@ -1967,30 +1840,6 @@ logical_expr
 			) boolean_expr
 		)*
 	;
-
-
-// boolean_expr
-// 	: relational_expr
-// 		( 
-// 			( AND_OP^ 
-// 			| OR_OP^ 
-// 			| XOR_OP^ 
-// 			) (boolean_expr | log_neg_expr)
-// 		)?
-// 	;
-
-// log_neg_expr
-//     : LOG_NEG^ boolean_expr // multiple not allowed
-//  	;
-
-// logical_expr
-// 	: (boolean_expr | log_neg_expr)
-// 		( 
-// 			( LOG_AND^ 
-// 			| LOG_OR^ 
-// 			) logical_expr // multiple allowed boolean_expr
-// 		)?
-// 	;
 
 // expr is referenced in several places
 expr
