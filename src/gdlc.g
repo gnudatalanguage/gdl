@@ -1624,12 +1624,12 @@ primary_expr_deref
             return;
         }
 
-    bool baseclass_methodParse = true;
     bool arrayexpr_mfcallParse = false;
     bool function_callParse = false;
 
     int mark2nd = mark();
 
+    bool baseclass_methodParse = true;
     try {
         {
         baseclass_method();
