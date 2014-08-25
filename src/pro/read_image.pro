@@ -8,7 +8,7 @@
 ;
 ; CALLING SEQUENCE: 
 ;      READ_JPEG, filename, red, green, blue, image_index=image_index, $
-                  help=help, test=test
+;                 help=help, test=test
 ;
 ; KEYWORD PARAMETERS: 
 ;        UNIT: not supported yet
