@@ -27,10 +27,10 @@
 // #include <plplotP.h>
 // #include <plstream.h>
 #include <wx/dc.h>
-
+#include <wx/rawbmp.h>
 class GDLDrawPanel;
 
-class GDLWXStream: public GDLGStream
+class GDLWXStream: public GDLGStream 
 {
 private:
     wxMemoryDC*  	m_dc;
@@ -57,6 +57,10 @@ public:
     
     void Update();
     void SetGDLDrawPanel(GDLDrawPanel*);
+    bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
+		   DLong trueColorOrder, DLong channel);
+    void Clear();
+    void Clear( DLong bColor);
 };
 
 
