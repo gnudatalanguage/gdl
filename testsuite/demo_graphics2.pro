@@ -22,6 +22,8 @@ on_error, 2
 !X.TITLE="X"
 !Y.TITLE="Y"
 ;
+device,get_decomposed=decomp
+if (decomp) then AdaptiveColorList=['00FFFF'x,'FFFF00'x,'FF00FF'x] else AdaptiveColorList=[64,92,110,156,208,233,250]
 over=1
 cont=1
 fill=1
@@ -47,8 +49,8 @@ if (cont) then contour,a,nlev=24,over=over,/ISO,/FOLLOW,/XSTYLE,/YSTYLE, _EXTRA=
 !P.TITLE="With 1DX, 1DY"
 x=exp((generatorx)/(2*range)) &x=x+MIN(x)+1
 y=(range+generatory)^2 & y=y+MIN(Y)+1
-if (fill) then contour,a,x,y,nlev=24,/FILL,_EXTRA=ex
-if (cont) then contour,a,x,y,nlev=24,over=over,/FOLLOW, _EXTRA=ex
+if (fill) then contour,a,x,y,nlev=24,/XSTYLE,/YSTYLE,/FILL,_EXTRA=ex
+if (cont) then contour,a,x,y,nlev=24,/XSTYLE,/YSTYLE,over=over,/FOLLOW, _EXTRA=ex
 !P.TITLE="With 2DX, 2DY (45 degrees rotation)"
 generatorx=([findgen(m*n) mod m]/float(m))*2*!PI
 generatorx=reform(generatorx,m,n,/over)
@@ -60,7 +62,7 @@ y=generatorx*sin(angle)+generatory*cos(angle) & y=y+10
 if (fill) then contour,a,x,y,nlev=24,/FILL,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
 if (cont) then contour,a,x,y,nlev=24,OVER=over,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
 !P.TITLE="With patterns"
-if (fill) then contour,a,nlev=24,C_COLORS=['00FFFF'x,'FFFF00'x,'FF00FF'x],C_ORIENTATION=([indgen(24)]*120/24),C_SPACING=[0.1,0.2,0.3],C_LINESTYLE=[0,1,2,3],C_THICK=[0,3,5],/FILL,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
+if (fill) then contour,a,nlev=24,C_COLORS=AdaptiveColorlist,C_ORIENTATION=([indgen(24)]*120/24),C_SPACING=[0.1,0.2,0.3],C_LINESTYLE=[0,1,2,3],C_THICK=[0,3,5],/FILL,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
 if (cont) then contour,a,x,y,nlev=6,OVER=over,/follow,/ISO, _EXTRA=ex
 end
 
