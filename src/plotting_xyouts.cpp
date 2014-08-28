@@ -217,8 +217,9 @@ namespace lib
         for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=tempbox[i];
       }
 
+      actStream->OnePageSaveLayout(); // one page
+
       bool mapSet=false;
-      mapSet=false;
 #ifdef USE_LIBPROJ4
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
@@ -229,21 +230,20 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
-      }
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
+
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble xStart, xEnd, yStart, yEnd;
+        DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( xStart, xEnd, yStart, yEnd );
+        }
 #endif
 
-      actStream->OnePageSaveLayout(); // one page
-      DDouble *sx, *sy;
-      GetSFromPlotStructs( &sx, &sy );
-
-      DFloat *wx, *wy;
-      GetWFromPlotStructs( &wx, &wy );
-
-      DDouble xStart, xEnd, yStart, yEnd;
-      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
-
-      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-      actStream->wind( xStart, xEnd, yStart, yEnd );
 
       PLFLT wun, wdeux, wtrois, wquatre;
       actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);

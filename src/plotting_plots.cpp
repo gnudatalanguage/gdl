@@ -279,6 +279,8 @@ namespace lib
         //place in !P.CLIP
         for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=tempbox[i];
       }
+
+      actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
       
       mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -291,22 +293,18 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
+
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble xStart, xEnd, yStart, yEnd;
+        DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( xStart, xEnd, yStart, yEnd );
       }
 #endif
-
-      actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
-      
-      DDouble *sx, *sy;
-      GetSFromPlotStructs( &sx, &sy );
-
-      DFloat *wx, *wy;
-      GetWFromPlotStructs( &wx, &wy );
-
-      DDouble xStart, xEnd, yStart, yEnd;
-      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
-
-      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-      actStream->wind( xStart, xEnd, yStart, yEnd );
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
