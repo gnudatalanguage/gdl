@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTInTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20120518): "format.in.g" -> "FMTIn.hpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "format.in.g" -> "FMTIn.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -170,8 +170,11 @@ private:
         }
 
         if( !is->good())
-        throw GDLException( e->CallingNode(), "Error reading data. "+
-            StreamInfo( is));
+        { 
+           if( !is->eof()) 
+              throw GDLException( e->CallingNode(), "Error 1 reading data. "+
+              StreamInfo( is));
+        }
 
         if( !is->eof()) is->get(); // remove delimiter
 

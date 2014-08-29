@@ -207,8 +207,11 @@ private:
         }
 
         if( !is->good())
-        throw GDLException( e->CallingNode(), "Error reading data. "+
-            StreamInfo( is));
+        { 
+           if( !is->eof()) 
+              throw GDLException( e->CallingNode(), "Error 1 reading data. "+
+              StreamInfo( is));
+        }
 
         if( !is->eof()) is->get(); // remove delimiter
 
