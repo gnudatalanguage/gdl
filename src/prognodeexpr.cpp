@@ -3234,8 +3234,10 @@ BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
     {
         BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
         if( sV == NULL)
-	  // should never happen
-	  throw GDLException( this, "Internal error: SCOPE_VARFETCH returned no left-value: "+this->getText());
+	{
+	  rEval = lib::scope_varfetch_value( newEnv);
+	  return NULL;
+	}
 	rEval = *sV;
 	if( newEnv->InLoc(sV))
 	{
@@ -3248,8 +3250,10 @@ BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
     {
         BaseGDL**  sV = lib::routine_names_reference( newEnv);
         if( sV == NULL)
-	  // should never happen
-	  throw GDLException( this, "Internal error: ROUTINE_NAMES returned no left-value: "+this->getText());
+	{
+	  rEval = lib::routine_names_value( newEnv);
+	  return NULL;
+	}
 	rEval = *sV;
 	if( newEnv->InLoc(sV))
 	{
