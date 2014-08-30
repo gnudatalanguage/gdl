@@ -72,6 +72,8 @@ MYPLOT,a,b,doplots,doxy,dooplot,noclip
 plot,b,a,psym=4,xrange=[1,200],yrange=[1,2000],/ylog,/xlog
 MYPLOT,a,b,doplots,doxy,dooplot,noclip
 
+!P.MULTI=0 
+
 end
 
 PRO demo_graphics1,print=print,mode=mode,help=help

@@ -50,7 +50,7 @@ contour,z,/xs,/ys,nlev=20,/T3D,/FILL,CLIP=0
 
 set_shading,light=[500,0,1]
 shade_surf,z,/xs,/ys,/T3D,CLIP=0
-
+!P.MULTI=0
 end
 
 PRO demo_graphics3, print=print,mode=mode,help=help

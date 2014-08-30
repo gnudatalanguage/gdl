@@ -64,6 +64,7 @@ if (cont) then contour,a,x,y,nlev=24,OVER=over,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
 !P.TITLE="With patterns"
 if (fill) then contour,a,nlev=24,C_COLORS=AdaptiveColorlist,C_ORIENTATION=([indgen(24)]*120/24),C_SPACING=[0.1,0.2,0.3],C_LINESTYLE=[0,1,2,3],C_THICK=[0,3,5],/FILL,/ISO,/XSTYLE,/YSTYLE, _EXTRA=ex
 if (cont) then contour,a,x,y,nlev=6,OVER=over,/follow,/ISO, _EXTRA=ex
+!P.MULTI=0
 end
 
 PRO demo_graphics2, print=print,mode=mode,help=help
