@@ -27,7 +27,7 @@ namespace lib {
   {
 
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-
+    //GET functions are examined BEFORE setting functions.
     //GET_CURRENT_FONT ? //TODO
     
     // GET_DECOMPOSED ?
@@ -173,9 +173,8 @@ namespace lib {
 	    e->Throw( "Current device does not support keyword CLOSE_FILE.");
 	}
     }
-    // }}}
 
-    // Z_BUFFERING {{{
+    // Z_BUFFERING 
     {
       static int z_bufferingIx = e->KeywordIx( "Z_BUFFERING"); 
       BaseGDL* z_buffering = e->GetKW( z_bufferingIx);
@@ -187,7 +186,7 @@ namespace lib {
 	}
     }
 
-    // SET_RESOLUTION {{{
+    // SET_RESOLUTION 
     {
       static int set_resolutionIx = e->KeywordIx( "SET_RESOLUTION"); 
       BaseGDL* set_resolution = e->GetKW( set_resolutionIx);
@@ -208,7 +207,7 @@ namespace lib {
 	}
     }
 
-    // DECOMPOSED {{{
+    // DECOMPOSED 
     {
       static int decomposedIx = e->KeywordIx( "DECOMPOSED"); 
       BaseGDL* decomposed = e->GetKW( decomposedIx);
@@ -324,7 +323,7 @@ namespace lib {
 
     {
       static int inchesIx = e->KeywordIx( "INCHES");
-      // XOFFSET {{{
+      // XOFFSET 
       {
         static int xOffsetIx = e->KeywordIx( "XOFFSET");
         BaseGDL* xOffsetKW = e->GetKW( xOffsetIx);

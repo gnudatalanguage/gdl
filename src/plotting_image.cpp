@@ -45,7 +45,7 @@ namespace lib {
       if (rank < 1 || rank > 3) e->Throw("Image array must have rank 1, 2 or 3");
       if (rank <= 2 && trueColor != 0) e->Throw("Array must have 3 dimensions: " + e->GetParString(0));
       if (trueColor < 0 || trueColor > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
-      // to be changed    if (trueColor == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for trueColore color display");
+      // to be changed    if (trueColor == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for trueColor color display");
 
       DLong orderVal = SysVar::TV_ORDER();
       e->AssureLongScalarKWIfPresent("ORDER", orderVal);
@@ -311,6 +311,7 @@ namespace lib {
 //  cout << devicebox[0] << "," << devicebox[1] << "," << devicebox[2] << ","<< devicebox[3] << endl;
 
       Guard<BaseGDL> chan_guard;
+      actStream->flush();
       if (channel == 0) {
         if (!actStream->PaintImage(&(*byteImage)[0], imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
       } else if (rank == 3) {
