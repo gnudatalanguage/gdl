@@ -61,6 +61,9 @@ set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
 set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
 set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
+set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
+set(BPNLIBGDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
+
 set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 
@@ -257,6 +260,26 @@ else(ZLIB_FOUND)
         "(suitable Debian/Ubuntu package: zlib1g-dev)\n"
         "(suitable Fedora package: zlib-devel)")
 endif(ZLIB_FOUND)
+
+# libpng
+# -DPNGLIB=ON|OFF
+# -DPNGLIBDIR=DIR
+if(PNGLIB)
+	set(CMAKE_PREFIX_PATH ${LIBPNGDIR})
+	find_package(PNG QUIET)
+	set(USE_PNGLIB ${PNG_FOUND})
+	if(PNG_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${PNG_LIBRARIES})
+		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PNG_LIBRARY_DIRS})
+		include_directories(${PNG_INCLUDE_DIRS})
+	else(PNG_FOUND)
+		message(FATAL_ERROR "libpng is required but was not found.\n"
+		"Use -DLIBPNGDIR=DIR to specify the libpng directory tree.\n"
+		"Use -DLIBPNG=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libpng-dev)\n"
+                "(suitable Fedora package: libpng-devel)")
+	endif(PNG_FOUND)
+endif(PNGLIB)
 
 # openmp
 # -DOPENMP=ON|OFF
@@ -943,6 +966,7 @@ set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
 module(PSLIB	 "pslib      ")
 module(X11	 "Xlib       ")
+module(PNGLIB    "libpng     ")
 message("")
 message(STATUS "Mandatory modules")
 set(PLPLOT ON)
