@@ -63,14 +63,14 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 #define BUFLEN 256
   char outbuf[BUFLEN];
   static DLong bitsPerPix = 8;
-  static DLong ncomp;
   
+  //position of the image WILL NOT BE ACCURATE. The coordinate transforms of plplot are a mess.
   double xScale=(pls->diorot==0)?(double)YPSSIZE/(double)xs:(double)XPSSIZE/(double)xs;
   double yScale=(pls->diorot==0)?(double)XPSSIZE/(double)ys:(double)YPSSIZE/(double)ys;
   if (channel > 0) {
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
-  } else ncomp = (trueColorOrder == 0) ? 1 : 3;
+  } 
   strncpy(outbuf, "\n%%BeginObject: Image\n S gsave\n", BUFLEN);
   pls->bytecnt += (PLINT) strlen(outbuf);
   fprintf(pls->OutFile, outbuf);
