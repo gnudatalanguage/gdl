@@ -24,10 +24,13 @@ class GDLSVGStream: public GDLGStream
 {
 
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
+  std::string svg_to_png64(int height, int width, unsigned char *image, int bit_depth, int bpp, int whattype, int *error);
 
 public:
   GDLSVGStream( int nx, int ny):
-    GDLGStream( nx, ny, checkPlplotDriver("svgcairo") ? "svgcairo" : "svg")
+    GDLGStream( nx, ny, "svg")
+//cairo is nice but buffering prevents TV to work...
+//    GDLGStream( nx, ny, checkPlplotDriver("svgcairo") ? "svgcairo" : "svg")
   {
   }
 
