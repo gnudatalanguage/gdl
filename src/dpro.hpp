@@ -315,6 +315,11 @@ public:
   void SetTree( ProgNodeP t) { tree = t;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
+  void DeleteLastAddedCommon()
+  {
+    delete common.back();
+    common.pop_back();
+  }
   
   void ResolveAllLabels();
   LabelListT& LabelList() { return labelList;}

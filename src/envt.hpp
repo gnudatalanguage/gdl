@@ -106,7 +106,12 @@ public:
     return ptrToReturnValue;
     
   }
-
+  bool InLoc( BaseGDL** pp)
+  {
+    return env.InLoc(pp);
+  }
+  
+  
   void SetKW( SizeT ix, BaseGDL* newVal);
 
   // used by the interperter returns the keyword index, used for UD functions

@@ -990,9 +990,12 @@ namespace lib {
 
     DLongGDL* level;
     level = e->IfDefGetKWAs<DLongGDL>( variablesIx);
-    if (level != NULL) {
+    if (level != NULL) 
+    {
       var = true;
-    } else {
+    } 
+    else 
+    {
       level = e->IfDefGetKWAs<DLongGDL>( fetchIx);
       if (level != NULL) {
 	fetch = true;
@@ -1011,7 +1014,8 @@ namespace lib {
 
     DString varName;
 
-    if (level != NULL) {
+    if (level != NULL) 
+    {
       DLong desiredlevnum = (*level)[0];
       if (desiredlevnum <= 0) 
 	desiredlevnum += curlevnum;
@@ -1028,7 +1032,8 @@ namespace lib {
       //cout << "nVar:" << nVar << endl;
       //cout << pro->Name() << endl;
 
-      if (var) {
+      if (var) 
+      {
 	if( nVar == 0) return new DStringGDL("");
 
 	DStringGDL* res = new DStringGDL( dimension( nVar), BaseGDL::NOZERO);
@@ -1037,7 +1042,9 @@ namespace lib {
 	  (*res)[i] = vname;
 	}
 	return res;
-      } else if (fetch) { // FETCH
+      } 
+      else if (fetch) 
+      { // FETCH
 
 	e->AssureScalarPar<DStringGDL>( 0, varName);
 	varName = StrUpCase( varName);
@@ -1068,7 +1075,8 @@ namespace lib {
 
 	return NULL;
 
-      } else if (arg) { // ARG_NAME
+      }
+      else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");
 
@@ -1081,15 +1089,17 @@ namespace lib {
 	else
 	  desiredCallStack = callStack[ desiredlevnum];
 	
-	// 	SizeT nCall = callStack[desiredlevnum]->NParam();
 	SizeT nCall = desiredCallStack->NParam();
 	
 	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
+	// search for all given parameters of this call
 	for( SizeT i = 0; i<nParam; ++i) {
+
+	  // search all parameters of target environment
 	  for( SizeT j = 0; j<nCall; ++j) {
 
-	    if (e->GetParString(i) == 
-		desiredCallStack->GetParString(j)) {
+	    if (e->GetParString(i) == desiredCallStack->GetParString(j)) 
+	    {
 	      //	      cout << "Calling param: " << j+1 << endl;
 	      BaseGDL*& p = e->GetPar( i);
 	      if (p == NULL) {
@@ -1098,11 +1108,11 @@ namespace lib {
 	      }
 	      //	      cout << "p:" << p << endl;
 
-	      for( SizeT xI=0; xI<nVar; ++xI) {
+	      SizeT xI=0;
+	      for( ; xI<nVar; ++xI) 
+	      {
 		string vname = pro->GetVarName( xI);
-		BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->
-		  GetPar( xI-nKey);
-
+		BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
 		//    cout << "xI:" << xI << " " << vname.c_str() << endl;
 		//    cout << "par:" << par << endl;
 		if (&par == &p) {
@@ -1110,6 +1120,13 @@ namespace lib {
 		  break;
 		}
 	      } // xI loop
+	      if( xI == nVar) // not found -> search common
+	      {
+		string vname;
+		bool success = pro->GetCommonVarName( p, vname);
+		if( success)
+		  (*res)[i] = vname;
+	      }
 	      break;
 	    }
 	  } // j loop

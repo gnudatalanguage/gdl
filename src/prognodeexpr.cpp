@@ -3228,6 +3228,38 @@ BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
     Guard<EnvT> guardEnv( newEnv);
 
     // make the call
+    static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
+    static DSub* routine_namesPro = libFunList[ LibFunIx("ROUTINE_NAMES")];
+    if( scopeVarfetchPro == this->libFun)//newEnv->GetPro())
+    {
+        BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
+        if( sV == NULL)
+	  // should never happen
+	  throw GDLException( this, "Internal error: SCOPE_VARFETCH returned no left-value: "+this->getText());
+	rEval = *sV;
+	if( newEnv->InLoc(sV))
+	{
+	  *sV = NULL; // steal local value
+	  return NULL; // return as not global
+	}
+	return sV;
+    }
+    if( routine_namesPro == this->libFun)// newEnv->GetPro())
+    {
+        BaseGDL**  sV = lib::routine_names_reference( newEnv);
+        if( sV == NULL)
+	  // should never happen
+	  throw GDLException( this, "Internal error: ROUTINE_NAMES returned no left-value: "+this->getText());
+	rEval = *sV;
+	if( newEnv->InLoc(sV))
+	{
+	  *sV = NULL; // steal local value
+	  return NULL; // return as not global
+	}
+	return sV;
+    }
+
+    // make the call
 //     rEval = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     rEval = this->libFunFun(newEnv);
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
