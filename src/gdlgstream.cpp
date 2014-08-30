@@ -47,6 +47,15 @@ using namespace std;
 //   plsabort( PLPlotAbortHandler);
 // }
 
+void GDLGStream::Thick(DFloat thick)
+{
+#ifdef HAVE_PLPLOT_WIDTH
+    plstream::width(static_cast<PLFLT>(thick*thickFactor));
+#else
+    plstream::wid(static_cast<PLINT>(floor((thick*thickFactor)-0.5)));
+#endif
+}
+    
 void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
 {
   DByte r,g,b;

@@ -46,7 +46,7 @@
 #include <algorithm>
 #endif
 
-const double MMToINCH = 0.03937;
+const double MMToINCH = 0.39370078 ; // 1./2.54;
 
 using namespace std;
 
@@ -153,11 +153,12 @@ protected:
   gdlbox theBox;
   gdlpage thePage;
   PLStream* pls;
-
+  DFloat thickFactor;
+  
 public:
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
-    : plstream( nx, ny, driver, file), valid( true)
+    : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0)
   {
     if (!checkPlplotDriver(driver))
       ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
@@ -180,9 +181,6 @@ public:
 // 			plstreamInitCalled = true;
 // 		}
 // 	}
-
-  // uncomment for plplot >= 5.9.10
-//   void wid( PLINT w) { this->width( w);}
 
   static bool checkPlplotDriver(const char *driver)
   {
@@ -692,7 +690,7 @@ public:
     NormedDeviceToDevice(normx, normy,  devx, devy);
   }
   
-  //  void Clear();
+  void Thick( DFloat thick);
   void Color( ULong c, DLong decomposed=0, UInt ix=1);
   void Background( ULong c, DLong decomposed=0);
 
@@ -734,6 +732,22 @@ public:
     theCurrentChar.wsy=theCurrentChar.scale*theDefaultChar.wsy;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"UpdateCurrentCharWorldSize(%f,%f)\n",
                                     theCurrentChar.wsx,theCurrentChar.wsy);
+  }
+  
+  void RenewPlplotDefaultCharsize(PLFLT newMmSize)
+  {
+    PLFLT oldsize=theDefaultChar.mmsy;
+    plstream::schr(newMmSize, 1.0);
+    PLFLT fact=newMmSize/oldsize; 
+    PLFLT aspect=theDefaultChar.ndsx/theDefaultChar.ndsy; // width/height
+    theDefaultChar.mmsy=newMmSize;
+    theDefaultChar.mmsx=aspect*newMmSize; //since aspect do not change
+    theDefaultChar.ndsx*=(fact*aspect);
+    theDefaultChar.ndsy*=fact;
+    theDefaultChar.dsx*=(fact*aspect);
+    theDefaultChar.dsy*=fact;
+    gdlDefaultCharInitialized=1;
+    CurrentCharSize(1.0);
   }
   
   void GetPlplotDefaultCharSize()
@@ -847,6 +861,12 @@ public:
     NormToDevice(theBox.nx1,theBox.ny1,theBox.dx1,theBox.dy1);
     NormToDevice(theBox.nx2,theBox.ny2,theBox.dx2,theBox.dy2);
   }
+
+  inline void setThickFactor(DFloat tf)
+  {
+      thickFactor=tf;
+  }
+
 };
 
 #endif
