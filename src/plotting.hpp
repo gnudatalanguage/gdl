@@ -335,6 +335,8 @@ DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
   //set the line thickness
   void gdlSetPenThickness(EnvT * e, GDLGStream * a);
+  //get the line thickness
+  DFloat gdlGetPenThickness(EnvT * e, GDLGStream * a);
   //set the linestyle
   void gdlLineStyle(GDLGStream *a, DLong style);
   void gdlSetLineStyle(EnvT * e, GDLGStream * a);

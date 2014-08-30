@@ -429,10 +429,6 @@ namespace lib
         actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
       }
 
-
-
-      gdlSetPlotCharthick(e,actStream);
-
       if ( xLog && xStart<=0.0 ) Warning ( "CONTOUR: Infinite x plot range." );
       if ( yLog && yStart<=0.0 ) Warning ( "CONTOUR: Infinite y plot range." );
       if ( zLog && zStart<=0.0 ) Warning ( "CONTOUR: Infinite z plot range." );
@@ -527,9 +523,11 @@ namespace lib
       // IDL default: 3/4 of the axis charsize (CHARSIZE keyword or !P.CHARSIZE)
       // PlPlot default: .3
       // should be: DFloat label_size=.75*actStream->charScale(); however IDL doc false (?).
-      DFloat label_size=0.9; //IDL behaviour, IDL doc false ?.
+      DFloat label_size=0.9; //IDL behaviour, IDL doc is false, label of contours is not 3/4 of !P.CHARSIZE or CHARSIZE
       if ( e->KeywordSet ( "C_CHARSIZE" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARSIZE", label_size );
 // set up after:      actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, (label)?1:0 );
+      DFloat label_thick=1; 
+      if ( e->KeywordSet ( "C_CHARTHICK" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARTHICK", label_thick );
       actStream->setcontlabelformat (4, 3 );
 
       // PLOT ONLY IF NODATA=0
@@ -748,7 +746,7 @@ namespace lib
         if (fill) {
           const PLINT COLORTABLE0 = 0;
           const PLINT COLORTABLE1 = 1;
-          const PLFLT colorindex_table_0_color=2;
+          const PLINT colorindex_table_0_color=2;
           PLFLT colorindex_table_1_color=0;
           if (hachures) {
             PLINT ori;
@@ -767,17 +765,13 @@ namespace lib
               spa=floor(10000*(*spacing)[i%spacing->N_Elements()]);
               actStream->pat(1,&ori,&spa);
 
-              if (docolors) actStream->Color( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
-#ifdef HAVE_PLPLOT_WIDTH
-              if (dothick) actStream->width( static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]));
-#else
-              if (dothick) actStream->wid( static_cast<PLINT>(( *thick )[i%thick->N_Elements()]));
-#endif
+              if (docolors) actStream->Color( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
+              if (dothick) actStream->Thick(( *thick )[i%thick->N_Elements()]);
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
               COLORTABLE0, colorindex_table_0_color, 
-              static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]),
+              static_cast<PLINT>(( *thick )[i%thick->N_Elements()]),
               0,0,0,0,
               (plstream::fill), (oneDim),
               (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
@@ -794,7 +788,7 @@ namespace lib
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
                 if (docolors)
                 {
-                  actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+                  actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
                   actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
                   xStart, xEnd, yStart, yEnd,
                   clevel[i], maxmax, //clevel[nlevel-1],
@@ -832,7 +826,7 @@ namespace lib
             else { //fill with colors defined with c_colors or n<=2
               for ( SizeT i=0; i<nlevel; ++i ) 
               {
-                if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, (PLINT)colorindex_table_0_color );
+                if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
                 actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
                 xStart, xEnd, yStart, yEnd,
                 clevel[i], maxmax,
@@ -845,7 +839,8 @@ namespace lib
           }
         } else { //no fill = contours . use normal pen procedures.
           if (!docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
-          if (!dothick) gdlSetPenThickness(e, actStream);
+          DFloat referencePenThickness;
+          if (!dothick) {gdlSetPenThickness(e, actStream); referencePenThickness = gdlGetPenThickness(e, actStream);}
           gdlSetPlotCharsize(e, actStream);
           for ( SizeT i=0; i<nlevel; ++i ) {
             if (doT3d & !hasZvalue) {
@@ -853,17 +848,31 @@ namespace lib
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
             }
             if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, 2);
-#ifdef HAVE_PLPLOT_WIDTH
-            if (dothick) actStream->width ( static_cast<PLFLT>(( *thick )[i%thick->N_Elements ( )]));
-#else
-            if (dothick) actStream->wid( ( *thick )[i%thick->N_Elements ( )]);
-#endif
+            if (dothick) { actStream->Thick (( *thick )[i%thick->N_Elements ( )]); referencePenThickness = ( *thick )[i%thick->N_Elements ( )]; }
             if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
-             //no label in T3D , bug in plplot...
-            if (doT3d) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0 ); 
-            else if (dolabels && i<labels->N_Elements()) actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING*sqrt(label_size),(PLINT)(*labels)[i] ); 
-            actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
+            if (doT3d) { //no label in T3D , bug in plplot...
+              actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0 );
+              actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
                 (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+            } else {
+              if (dolabels && i<labels->N_Elements()) 
+              {
+                if ( label_thick < referencePenThickness ) { //one pass with (current) thick without labels, over with (smaller) label+contour.
+                                                              //else (lables thicker than contours) impossible with plplot...
+                  actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0 ); 
+                  actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
+                  (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2); //thick contours, no label
+                  actStream->Thick(label_thick);
+                } 
+                actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING*sqrt(label_size),(PLINT)(*labels)[i] ); 
+                actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
+                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+                if (!dothick) gdlSetPenThickness(e, actStream);
+              } else {
+                actStream->cont ( map, xEl, yEl, 1, xEl, 1, yEl, &( clevel[i] ), 1,
+                (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
+              }
+            }
           }
           if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
           if (dothick) gdlSetPenThickness(e, actStream);

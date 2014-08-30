@@ -156,8 +156,6 @@ namespace lib {
     gdlSetGraphicsForegroundColorFromKw(e, actStream);       //COLOR
     //    contrary to the documentation axis does not erase the plot (fortunately!)
     //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
-    gdlSetPlotCharthick(e,actStream); 
-    gdlSetPlotCharsize(e, actStream);    //CHARSIZE
 
     PLFLT vpXL, vpXR, vpYB, vpYT; //define new viewport in relative units
     // where is point of world coords xVal, yVal in viewport relative coords?

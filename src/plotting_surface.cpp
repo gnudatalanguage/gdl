@@ -228,7 +228,7 @@ namespace lib
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
-
+        // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
 
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
@@ -281,9 +281,6 @@ namespace lib
 
       if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
         xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return;
-
-      gdlSetPlotCharthick(e,actStream);
-
 
       if (xLog) xStart=log10(xStart);
       if (yLog) yStart=log10(yStart);

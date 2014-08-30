@@ -330,7 +330,6 @@ private:
       if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
         xStart, xEnd, yStart, yEnd) == FALSE) return;
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlSetPlotCharthick(e, actStream);
 
       DDouble  t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
       switch (axisExchangeCode) {
@@ -457,7 +456,6 @@ private:
 	      xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
       //current pen color...
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlSetPlotCharthick(e, actStream);
 
       gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
     }
