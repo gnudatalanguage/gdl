@@ -62,7 +62,7 @@ set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
 set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
-set(BPNLIBGDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
+set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
 set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
@@ -265,7 +265,7 @@ endif(ZLIB_FOUND)
 # -DPNGLIB=ON|OFF
 # -DPNGLIBDIR=DIR
 if(PNGLIB)
-	set(CMAKE_PREFIX_PATH ${LIBPNGDIR})
+	set(CMAKE_PREFIX_PATH ${PNGLIBDIR})
 	find_package(PNG QUIET)
 	set(USE_PNGLIB ${PNG_FOUND})
 	if(PNG_FOUND)
@@ -274,8 +274,8 @@ if(PNGLIB)
 		include_directories(${PNG_INCLUDE_DIRS})
 	else(PNG_FOUND)
 		message(FATAL_ERROR "libpng is required but was not found.\n"
-		"Use -DLIBPNGDIR=DIR to specify the libpng directory tree.\n"
-		"Use -DLIBPNG=OFF to not use it.\n"
+		"Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
+		"Use -DPNGLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libpng-dev)\n"
                 "(suitable Fedora package: libpng-devel)")
 	endif(PNG_FOUND)
