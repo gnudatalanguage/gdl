@@ -45,12 +45,16 @@ void LibInit_gm()
 
   const string gammaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::gamma_fun,string("GAMMA"),1,gammaKey);
+  // undocumented function ...
+  new DLibFunRetNew(lib::gamma_fun,string("NR_GAMMA"),1,gammaKey);
 
   const string lngammaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);
 
   const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
   new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey);
+  // undocumented function ...
+  new DLibFunRetNew(lib::igamma_fun,string("IDL_IGAMMA"),2,igammaKey);
 
   const string betaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::beta_fun,string("BETA"),2,betaKey);
