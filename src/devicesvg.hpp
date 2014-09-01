@@ -26,12 +26,23 @@
 #define SETOPT setopt
 #endif
 
+static const float SVG_CM2IN = (1.0 / 2.54) ;
+static const float SVG_RESOL = 1000.0; // per cm
+static const PLFLT SVG_DPI = 72; 
+
 class DeviceSVG : public GraphicsDevice
 {
   std::string      fileName;
-  GDLSVGStream*     actStream;
+  GDLSVGStream*    actStream;
+  float            XPageSize;
+  float            YPageSize;
+  float            XOffset;
+  float            YOffset;
+  int              color;
   int              decomposed; // false -> use color table
-
+  bool	           orient_portrait; 
+  float	           scale;
+  
   void InitStream()
   {
     delete actStream;
@@ -47,23 +58,19 @@ class DeviceSVG : public GraphicsDevice
 
     actStream->sfnam( fileName.c_str());
 
+    actStream->spage(SVG_DPI, SVG_DPI, XPageSize*72*SVG_CM2IN, YPageSize*72*SVG_CM2IN, XOffset*72*SVG_CM2IN, YOffset*72*SVG_CM2IN);
+
     // no pause on destruction
     actStream->spause( false);
 
     // extended fonts
     actStream->fontld( 1);
 
-    // we want color
-    actStream->scolor( 1);
-
-    // avoid to set color map 0 -- makes plplot very slow (?)
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-//    actStream->scmap0( r, g, b, ctSize);
+    actStream->scmap0( r, g, b, ctSize);
     actStream->scmap1( r, g, b, ctSize);
     actStream->scolbg(255,255,255); // start with a white background
-
-    actStream->SETOPT( "drvopt","text_clipping=1"); // clear drvopt
 
     actStream->Init();
     
@@ -79,12 +86,13 @@ class DeviceSVG : public GraphicsDevice
     if (actStream->updatePageInfo()==true)
     {
         actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
     }
   }
 
 public:
-  DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL), decomposed(0)
+  DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL),
+	       XPageSize(29.7), YPageSize(21.0), XOffset(0.0), YOffset(0.0),
+    color(1),  decomposed(1), scale(1.)
   {
     name = "SVG";
 
@@ -95,14 +103,14 @@ public:
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( 17780)); 
-    dStruct->InitTag("Y_SIZE",     DLongGDL( 12700)); 
-    dStruct->InitTag("X_VSIZE",    DLongGDL( 640)); 
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( 512)); 
-    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); 
-    dStruct->InitTag("Y_PX_CM",    DFloatGDL( 1000.0)); 
+    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*SVG_RESOL)); 
+    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*SVG_RESOL)); 
+    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*SVG_RESOL)); 
+    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*SVG_RESOL)); 
+    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 0.25*scale*SVG_RESOL)); 
+    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 0.25*scale*SVG_RESOL)); 
+    dStruct->InitTag("X_PX_CM",    DFloatGDL( SVG_RESOL)); 
+    dStruct->InitTag("Y_PX_CM",    DFloatGDL( SVG_RESOL)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 16777216)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
@@ -111,6 +119,8 @@ public:
     dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
+    
+    SetLandscape();
   }
   
   ~DeviceSVG()
@@ -141,6 +151,89 @@ public:
     return true;
   }
   
+  bool SetXOffset( const float xo) // xo [cm]
+  {
+    // nothing for the moment (coordinates tricky)
+    //    XOffset=xo;
+    return true;
+  }
+
+  bool SetYOffset( const float yo) // yo [cm]
+  {
+    // nothing for the moment (coordinates tricky)
+    // YOffset=yo;
+    return true;
+  }
+
+  bool SetXPageSize( const float xs) // xs [cm]
+  {
+    // nothing for the moment (coordinates tricky)
+//    XPageSize=xs;
+//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
+//      = DLong(floor(0.5+
+//        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+//      ));
+//   (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_VSIZE"))))[0]
+//      = DLong(floor(0.5+
+//        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+//      ));
+    return true;
+  }
+
+  bool SetYPageSize( const float ys) // ys [cm]
+  {
+    // nothing for the moment (coordinates tricky)
+//    YPageSize=ys;
+//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
+//      = DLong(floor(0.5+
+//        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+//      ));
+//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_VSIZE"))))[0]
+//      = DLong(floor(0.5+
+//        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+//      ));
+    return true;
+  }
+
+  bool SetColor(const long hascolor)
+  {
+    if (hascolor==1) color=1; else color=0;
+      if (hascolor==1) 
+      {
+        DLong FLAG=(*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0];
+        (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0]=FLAG|16; //set colored device
+      } else {
+      DLong FLAG=(*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0];
+        (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0]=FLAG&(~16); //set monochrome device
+      }
+      //trick, to be repeated in Decomposed()
+      DLong FLAG=(*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0];
+      if (decomposed==1 && color==1) (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0]= FLAG&(~512); //remove flag 'printer' since logic does not work with ps drive
+      else (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0]= FLAG|(512); //set Flag printer
+    return true;
+  }
+
+  bool SetPortrait()
+  {
+    // nothing for the moment (coordinates tricky)
+    //    orient_portrait = true;
+    return true;
+  }
+
+  bool SetLandscape()
+  {
+    // nothing for the moment (coordinates tricky)
+    //    orient_portrait = false;
+    return true;
+  }
+
+  bool SetScale(float value)
+  {
+      //no effect for postscript in IDL up to 8 (?)
+    //    scale = value;
+    return true;
+  }
+  
   bool Decomposed( bool value)           
   {   
     decomposed = value;
@@ -153,7 +246,15 @@ public:
   {
     return decomposed;  
   }
-
+  
+  DIntGDL* GetPageSize()
+  {
+    DIntGDL* res;
+    res = new DIntGDL(2, BaseGDL::NOZERO);
+    (*res)[0]= XPageSize*SVG_DPI*SVG_CM2IN;
+    (*res)[1]= YPageSize*SVG_DPI*SVG_CM2IN;
+    return res;
+  }
 };
 
 #endif
