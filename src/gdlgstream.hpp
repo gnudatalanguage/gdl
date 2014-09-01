@@ -46,7 +46,7 @@
 #include <algorithm>
 #endif
 
-const double MMToINCH = 0.39370078 ; // 1./2.54;
+const double MMToINCH = 0.039370078 ; // 1./2.54;
 
 using namespace std;
 
