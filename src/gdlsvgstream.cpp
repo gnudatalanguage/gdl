@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "png.h"
+
 #include "includefirst.hpp"
 #include "gdlsvgstream.hpp"
 
