@@ -64,7 +64,6 @@ if keyword_set(help) then begin
 endif
 if ~size(mode,/type)  then mode=2
 
-set_plot,'x'
 for decomposed=0,1 do begin
    if decomposed eq mode or mode eq 2 then begin
       device,decomposed=decomposed
