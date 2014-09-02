@@ -20,6 +20,8 @@
 
 #include "gdlgstream.hpp"
 #ifdef USE_PNGLIB
+// PNG_SKIP_SETJMP_CHECK seems to be a way to get round a png lib 'feature' see https://bugs.launchpad.net/ubuntu/+source/libpng/+bug/218409
+#define PNG_SKIP_SETJMP_CHECK 1
 #include "png.h"
 #endif
 
