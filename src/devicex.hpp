@@ -60,9 +60,11 @@ private:
   int decomposed; // false -> use color table
   int cursorId; //should be 3 by default.
   long gcFunction;
+  int backingStoreMode;
 
   int getCursorId(){return cursorId;}
   long getGCFunction(){return gcFunction;}
+  int GetBackingStore(){return backingStoreMode;}
   
   void SetActWin( int wIx)
   {
@@ -145,7 +147,7 @@ private:
   }
 
 public:
-  DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1), cursorId(XC_crosshair), gcFunction(3)
+  DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1), cursorId(XC_crosshair), gcFunction(3), backingStoreMode(0)
   {
     name = "X";
 
@@ -704,11 +706,12 @@ public:
   {
     return winList[ actWin]->SetFocus();
   }
-  bool EnableBackingStore(bool enable)
+  
+  bool SetBackingStore(int value)
   {
-    return winList[ actWin]->EnableBackingStore(enable);
+    backingStoreMode = value;
+    return true;
   }
-
 
   int MaxWin() { TidyWindowsList(); return winList.size();}
   int ActWin() { TidyWindowsList(); return actWin;}

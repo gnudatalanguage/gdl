@@ -243,7 +243,7 @@ public:
   virtual DString GetVisualName() {return "";}
   virtual bool SetFocus(){return false;}
   virtual bool UnsetFocus(){return false;}
-  virtual bool EnableBackingStore(bool enable){return false;}
+  virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
   virtual bool GetWindowPosition(long& xpos, long& ypos ){return false;}
   virtual bool CursorStandard(int cursorNumber){return false;}

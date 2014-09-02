@@ -52,6 +52,8 @@ void GDLXStream::Init() {
   CursorStandard(actDevice->getCursorId());
   //current graphics function
   SetGraphicsFunction(actDevice->GetGraphicsFunction());
+  //BackingStore 
+  SetBackingStore(actDevice->getBackingStore());
 }
 
 void GDLXStream::EventHandler() {
@@ -275,13 +277,14 @@ DString GDLXStream::GetVisualName() {
     XSetWMHints(xwd->display, dev->window, &gestw);
     return true;
   }
-  bool GDLXStream::EnableBackingStore(bool enable)
+  
+  bool GDLXStream::SetBackingStore(int value)
   {
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL) return false;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XSetWindowAttributes attr;
-    if (enable)
+    if (value > 0)
     {
       attr.backing_store = Always;
     }

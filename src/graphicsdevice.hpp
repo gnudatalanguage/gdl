@@ -200,7 +200,8 @@ public:
   virtual int  getCursorId()                             { return -1;}
   virtual bool UnsetFocus()                           { return false;}
   virtual bool SetFocus()                             { return false;}
-  virtual bool EnableBackingStore(bool enable)        { return false;}
+  virtual bool SetBackingStore(int value)          { return false;}
+  virtual int  getBackingStore()                      { return -1;}
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}
   virtual bool SetColor(const long color=0)           { return false;}

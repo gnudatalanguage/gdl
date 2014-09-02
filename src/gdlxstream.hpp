@@ -49,7 +49,7 @@ public:
   DString GetVisualName();
   bool SetFocus();
   bool UnsetFocus();
-  bool EnableBackingStore(bool enable);
+  bool SetBackingStore(int value);
   bool SetGraphicsFunction(long value );
   bool GetWindowPosition(long& xpos, long& ypos );
   bool CursorStandard(int cursorNumber);

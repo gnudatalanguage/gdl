@@ -110,19 +110,16 @@ namespace lib {
 //      e->Throw(  "Unable to create window "
 //		 "(BadValue (integer parameter out of range for operation)).");
     
-    bool success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
-    if( !success)
-      e->Throw(  "Unable to create window.");
-    success = actDevice->UnsetFocus();
-    bool doretain=true;
-    DLong retainType ; //=Graphics::getRetain();
-//    if (retainType=0) doretain=false;
+    DLong retainType ; 
     if( e->KeywordPresent( "RETAIN"))
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
-      if (retainType == 0) doretain=false;
     }
-    success = actDevice->EnableBackingStore(doretain);
+    bool success = actDevice->SetBackingStore(retainType);    
+    success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
+    if( !success)
+      e->Throw(  "Unable to create window.");
+    success = actDevice->UnsetFocus();
  }
 
   void wset( EnvT* e)

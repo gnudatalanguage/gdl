@@ -250,7 +250,7 @@ namespace lib {
       if( res != NULL)
 	{
 	  DLongGDL* val = e->GetKWAs<DLongGDL>( valIx);
-	  bool success = actDevice->EnableBackingStore((*val)[0]);
+	  bool success = actDevice->SetBackingStore((*val)[0]);
 	  if( !success)
 	    e->Throw( "Current device does not support keyword RETAIN.");
 	}
