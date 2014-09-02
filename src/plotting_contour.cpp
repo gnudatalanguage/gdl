@@ -278,9 +278,24 @@ namespace lib
       gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
       gdlGetDesiredAxisMargin(e, "Z", zMarginF, zMarginB);
 
-      xLog=e->KeywordSet ( "XLOG" );
-      yLog=e->KeywordSet ( "YLOG" );
+      // undocumented keywords [xy]type still exist and
+      // had priority on [xy]log ! (no Ztype)
+      
+      if (e->KeywordPresent( "XTYPE" )) {
+	xLog=e->KeywordSet ( "XTYPE" );
+      } else {
+	xLog=e->KeywordSet ( "XLOG" );
+      }
+
+      if (e->KeywordPresent( "YTYPE" )) {
+	yLog=e->KeywordSet ( "YTYPE" );
+      } else {
+	yLog=e->KeywordSet ( "YLOG" );
+      }
+
       if (xLog || yLog) isLog=true; else isLog=false;
+
+      // ztype does not exist in IDL
       zLog=e->KeywordSet ( "ZLOG" );
 
       if ( ( xStyle&1 )!=1 )
