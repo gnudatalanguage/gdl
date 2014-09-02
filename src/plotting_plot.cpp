@@ -168,26 +168,26 @@ private:
     }
 
     // handle Log options passing via Keywords
-    int xTypeIx = e->KeywordIx("XTYPE");
-    int yTypeIx = e->KeywordIx("YTYPE");
-    int xLogIx = e->KeywordIx("XLOG");
-    int yLogIx = e->KeywordIx("YLOG");
+    static int xTypeIx = e->KeywordIx("XTYPE");
+    static int yTypeIx = e->KeywordIx("YTYPE");
+    static int xLogIx = e->KeywordIx("XLOG");
+    static int yLogIx = e->KeywordIx("YLOG");
 
     if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
     if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
 
-      if (e->KeywordPresent(xTypeIx )) {
-	xLog=e->KeywordSet (xTypeIx );
-      } else {
-	xLog=e->KeywordSet (xLogIx );
-      }
-      
-      if (e->KeywordPresent(yTypeIx )) {
-	yLog=e->KeywordSet (yTypeIx );
-      } else {
-	yLog=e->KeywordSet (yLogIx);
-      }
-
+    if (e->KeywordPresent(xTypeIx )) {
+      xLog=e->KeywordSet (xTypeIx );
+    } else {
+      xLog=e->KeywordSet (xLogIx );
+    }
+    
+    if (e->KeywordPresent(yTypeIx )) {
+      yLog=e->KeywordSet (yTypeIx );
+    } else {
+      yLog=e->KeywordSet (yLogIx);
+    }
+    
     //cout << xLog << " " << yLog << endl;
 
     // compute adequate values for log scale, warn adequately...

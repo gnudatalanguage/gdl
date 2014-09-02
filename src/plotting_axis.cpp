@@ -120,10 +120,27 @@ namespace lib {
     if (xAxisWasLog) {xStart=pow(10,xStart);xEnd=pow(10,xEnd);}
     if (yAxisWasLog) {yStart=pow(10,yStart);yEnd=pow(10,yEnd);}
 
-    static int xLogIx = e->KeywordIx( "XLOG" );
-    static int yLogIx = e->KeywordIx( "YLOG" );
-    xLog = (xLog || e->KeywordSet( xLogIx ));
-    yLog = (yLog || e->KeywordSet( yLogIx ));
+
+    // handle Log options passing via Keywords
+    static int xTypeIx = e->KeywordIx("XTYPE");
+    static int yTypeIx = e->KeywordIx("YTYPE");
+    static int xLogIx = e->KeywordIx("XLOG");
+    static int yLogIx = e->KeywordIx("YLOG");
+
+    // if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+    // if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+    
+    if (e->KeywordPresent(xTypeIx )) {
+      xLog= ( xLog || e->KeywordSet (xTypeIx ));
+    } else {
+      xLog= ( xLog || e->KeywordSet (xLogIx ));
+    }
+    
+    if (e->KeywordPresent(yTypeIx )) {
+      yLog= ( yLog || e->KeywordSet (yTypeIx ));
+    } else {
+      yLog= ( yLog ||e->KeywordSet (yLogIx));
+    }
 
     //YNOZERO corrects yStart
     if ( e->KeywordSet( "YNOZERO") && yStart >0 && !yLog ) yStart=0.0;
