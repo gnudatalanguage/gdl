@@ -43,9 +43,28 @@ namespace lib
  private:
     bool handle_args (EnvT* e)
     {
-      xLog=e->KeywordSet ( "XLOG" );
-      yLog=e->KeywordSet ( "YLOG" );
-      zLog=e->KeywordSet ( "ZLOG" );
+
+      // undocumented keywords [xyz]type still exist and
+      // had priority on [xyz]log !
+      
+      if (e->KeywordPresent( "XTYPE" )) {
+	xLog=e->KeywordSet ( "XTYPE" );
+      } else {
+	xLog=e->KeywordSet ( "XLOG" );
+      }
+
+      if (e->KeywordPresent( "YTYPE" )) {
+	yLog=e->KeywordSet ( "YTYPE" );
+      } else {
+	yLog=e->KeywordSet ( "YLOG" );
+      }
+
+      if (e->KeywordPresent( "ZTYPE" )) {
+	zLog=e->KeywordSet ( "ZTYPE" );
+      } else {
+	zLog=e->KeywordSet ( "ZLOG" );
+      }
+
       if ( nParam ( )==1 )
       {
         if ( (e->GetNumericArrayParDefined ( 0 ))->Rank ( )!=2 )

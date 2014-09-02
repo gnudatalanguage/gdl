@@ -664,7 +664,9 @@ void LibInit()
 
   const string shade_surfKey[]=
     {
-      "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", "XLOG", "YLOG","ZLOG", 
+      "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", 
+      // ([xyz]type undocumented but still existing in SHADE_SURF ...)
+      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
       //General Graphics KW
       "BACKGROUND", "NOERASE", "CLIP",
       "CHARSIZE", "CHARTHICK", "COLOR", "DATA", "DEVICE", "NORMAL", "FONT",
@@ -699,54 +701,27 @@ void LibInit()
   const string surfaceKey[]=
     {
      // GRAPHIC KEYWORDS
-     // 0
      "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
-     // 4
      "COLOR",     "DATA",    "DEVICE",   "FONT",
-     // 8
      "LINESTYLE", "NOCLIP",  "NODATA",   "NOERASE", 
-     // 12
      "NORMAL",    "POSITION",     "SUBTITLE",
-     // 15
-     "THICK",    "TICKLEN", 
-     // 18
-     "TITLE",
-     // 19
+     "THICK",    "TICKLEN", "TITLE",
      "XCHARSIZE",    "XGRIDSTYLE", "XMARGIN", "XMINOR",
-     // 23
      "XRANGE",       "XSTYLE",     "XTHICK",  "XTICKFORMAT",
-     // 27
      "XTICKINTERVAL","XTICKLAYOUT","XTICKLEN","XTICKNAME",
-     // 31
-     "XTICKS",       "XTICKUNITS", "XTICKV",  "XTICK_GET",
-     // 35
-     "XTITLE",
-     // 36
+     "XTICKS",       "XTICKUNITS", "XTICKV",  "XTICK_GET", "XTITLE",
      "YCHARSIZE",    "YGRIDSTYLE", "YMARGIN", "YMINOR",
-     // 40
      "YRANGE",       "YSTYLE",     "YTHICK",  "YTICKFORMAT",
-     // 44
      "YTICKINTERVAL","YTICKLAYOUT","YTICKLEN","YTICKNAME",
-     // 48
-     "YTICKS",       "YTICKUNITS", "YTICKV",  "YTICK_GET",
-     // 52
-     "YTITLE",
-     // 53
+     "YTICKS",       "YTICKUNITS", "YTICKV",  "YTICK_GET", "YTITLE",
      "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
-     // 57
      "ZRANGE",       "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
-     // 61
      "ZTICKINTERVAL","ZTICKLAYOUT","ZTICKLEN","ZTICKNAME",
-     // 65
-     "ZTICKS",       "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
-     // 69
-     "ZTITLE",
-     // 70
-
-
+     "ZTICKS",       "ZTICKUNITS", "ZTICKV",  "ZTICK_GET", "ZTITLE",
      // SURFACE keywords
-     // 73
-     "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", "XLOG", "YLOG", "ZLOG",
+     "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", 
+     // ([xyz]type undocumented but still existing in SURFACE ...)
+     "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
      "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "SHADES", "ZAXIS",  "BOTTOM", 
      "SKIRT", "SAVE", "T3D",  "ZVALUE", KLISTEND
     };
@@ -765,9 +740,10 @@ void LibInit()
       "T3D",     "THICK",    "TICKLEN",
       "TITLE" ,    "LEVELS", "NLEVELS",
       "MAX_VALUE", "MIN_VALUE",
-      "XLOG", "YLOG", "FILL", "ISOTROPIC",
-      "FOLLOW",
-
+      // ([xy]type undocumented but still existing in CONTOUR ...)
+      "XLOG", "YLOG", "XTYPE", "YTYPE",
+      
+      "FILL", "ISOTROPIC", "FOLLOW",
       "XCHARSIZE", "YCHARSIZE", "ZCHARSIZE",
       "XGRIDSTYLE", "YGRIDSTYLE", "ZGRIDSTYLE",
       "XMARGIN", "YMARGIN", "ZMARGIN",
