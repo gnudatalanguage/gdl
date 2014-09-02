@@ -260,7 +260,7 @@ public:
   virtual void WarpPointer(DLong x, DLong y){}
   virtual void Flush() {}
   virtual void Clear()         {}
-  virtual void Clear( DLong bColor)          {}
+  virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
 
   void SetValid( bool v) { valid = v;}
@@ -691,9 +691,15 @@ public:
   }
   
   void Thick( DFloat thick);
-  void Color( ULong c, DLong decomposed=0, UInt ix=1);
+  void Color( ULong c, DLong decomposed=0);
   void Background( ULong c, DLong decomposed=0);
-
+  void SetColorMap1SingleColor( ULong color);
+  //if decomposed, create a red ramp. If not, copy the colormap0 in colormap1
+  void SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed=0);
+  //if create a colormap1 color with passed colors, palette will be tableSize and colors assigned like in contour.
+  void SetColorMap1Table(PLINT tableSize, BaseGDL *passed_colors, DLong decomposed=0);
+  //if create a colormap1 with a black to white ramp.
+  void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
   void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots
 

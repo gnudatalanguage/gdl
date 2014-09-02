@@ -378,7 +378,7 @@ namespace lib
 
         //plot!
         if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
-        if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed, 2);
+        if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed);
         if (docharthick) actStream->Thick(( *charthick )[i%charthick->N_Elements()]);
 
 	//orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]

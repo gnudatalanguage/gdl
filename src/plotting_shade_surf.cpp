@@ -377,6 +377,13 @@ namespace lib
         PLINT meshOpt;
         meshOpt=(doShade)?MAG_COLOR:0;
         if (e->KeywordSet ( "SKIRT" )) meshOpt+=DRAW_SIDES;
+
+        // Get decomposed value for shades
+        DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+        if (doShade) actStream->SetColorMap1DefaultColors(256,  decomposed );
+        else actStream->SetColorMap1Ramp(decomposed, 0.5); 
+        //position of light Source. Plplot does not use only the direction of the beam but the position of the illuminating
+        //source. And its illumination looks strange. We try to make the ill. source a bit far in the good direction.
         PLFLT sun[3];
         sun[0]=xStart+(xEnd-xStart)*(0.5+lightSourcePos[0]);
         sun[1]=yStart+(yEnd-yStart)*(0.5+lightSourcePos[1]);

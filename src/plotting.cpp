@@ -1226,7 +1226,7 @@ namespace lib
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
     //if docolor, do we really have more than one color?
     if (docolor) if (color->N_Elements() == 1) { //do the job once and forget it after.
-      a->Color ( ( *color )[0], decomposed, 2);
+      a->Color ( ( *color )[0], decomposed);
       docolor=false;
       
     }    
@@ -1409,7 +1409,7 @@ namespace lib
           {
             if (docolor) for (SizeT jj=0; jj< i_buff-1 ; ++jj)
             {
-              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed, 2);
+              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);
               a->line(2, &(x_buff[jj]), &(y_buff[jj]));
               plotIndex++;
             }
@@ -1428,7 +1428,7 @@ namespace lib
               }
               if (docolor)
               {
-                a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed, 2 );
+                a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);
                 plotIndex++;
               }
               if ( *do_fill==1 )
@@ -1486,7 +1486,7 @@ namespace lib
         {
           if (docolor) for (SizeT jj=0; jj< i_buff-1 ; ++jj)
             {
-              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed, 2);
+              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);
               a->line(2, &(x_buff[jj]), &(y_buff[jj]));
               plotIndex++;
             }
@@ -1505,7 +1505,7 @@ namespace lib
             }
             if (docolor)
             {
-              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed, 2 );
+              a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);
               plotIndex++;
             }
             if ( *do_fill==1 )
@@ -1561,37 +1561,14 @@ namespace lib
   }
 
   //COLOR
-#define GDL_PLPLOT_MAX_SIMPLE_COLORS 16
-#define GDL_PLPLOT_INDEX_WHITE 15
   void gdlSetGraphicsForegroundColorFromKw(EnvT *e, GDLGStream *a, string OtherColorKw)
   {
-    static unsigned int colorindex=1;
-    static long value[GDL_PLPLOT_MAX_SIMPLE_COLORS];
-    static int maxindex=2;
-    static bool notDone=1;
-
     // Get COLOR from PLOT system variable
     static DStructGDL* pStruct=SysVar::P();
     DLong color=
     (*static_cast<DLongGDL*>
      (pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
 
-    // Get # of colors from DEVICE system variable
-    DVar *var=FindInVarList(sysVarList, "D");
-    DStructGDL* s=static_cast<DStructGDL*>(var->Data());
-    DLong ncolor=(*static_cast<DLongGDL*>
-                  (s->GetTag(s->Desc()->TagIndex("N_COLORS"), 0)))[0];
-
-    //FIXME: serves to update color if palette larger than 256. We can do better!
-    if ( ncolor>256&&color==255 ) color=ncolor-1;
-
-    if (notDone)
-    {
-      for (int i=0; i<GDL_PLPLOT_MAX_SIMPLE_COLORS; i++) value[i]=0;
-      value[1]=ncolor-1;
-      notDone=false;
-      maxindex=2;
-    }
     DLongGDL *colorVect;
     int colorIx;
     //eventually do not get color from standard "COLOR" keyword but from another...
@@ -1602,20 +1579,9 @@ namespace lib
       colorVect=e->GetKWAs<DLongGDL>( colorIx );
       color=(*colorVect)[0]; //this function only sets color to 1st arg in list!
     }
-    int i;
-    bool found=false;
-    //solves bug #530 still temporarily
-    for (i=1; i<maxindex; i++) if (value[i]==color) {found=true;break;}
-    if (!found)
-    {
-      value[i]=color;
-      maxindex++;
-      maxindex=min(maxindex,GDL_PLPLOT_INDEX_WHITE); //avoid BLACK & WHITE, use last color if more than 16.
-    }
-    colorindex=i;
     // Get decomposed value for colors
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-    a->Color(color, decomposed, colorindex);
+    a->Color(color, decomposed);
   }
 
   // helper for NOERASE (but also used in XYOUTS)

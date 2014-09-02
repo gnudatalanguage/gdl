@@ -54,7 +54,7 @@ public:
   bool GetWindowPosition(long& xpos, long& ypos );
   bool CursorStandard(int cursorNumber);
   void Clear();
-  void Clear( DLong bColor);
+  void Clear( DLong chan);
   void Raise();
   void Lower();
   void Iconic();

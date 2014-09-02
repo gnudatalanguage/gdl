@@ -226,7 +226,7 @@ namespace lib
       {
         PLINT red[ctSize], green[ctSize], blue[ctSize];
         actCT->Get(red, green, blue);
-        actStream->scmap1(red, green, blue, ctSize);
+        actStream->scmap0(red, green, blue, ctSize);
       }
     }
   }

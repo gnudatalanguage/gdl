@@ -57,6 +57,7 @@ namespace lib
     bool zLog, isLog;
     bool overplot, make2dBox, make3dBox, nodata;
     DLongGDL *colors,*labels,*style;
+    PLINT defaultColor;
     DFloatGDL* thick;
     Guard<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
     DFloatGDL *spacing,*orientation;
@@ -745,7 +746,6 @@ namespace lib
           (*spacing)[0]=0.25;
         }
         bool hachures=(dospacing || doori);
-        // Get decomposed value for colors
 
         // Important: make all clipping computations BEFORE setting graphic properties (color, size)
         bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));
@@ -758,11 +758,13 @@ namespace lib
         gdlSetPlotCharsize(e, actStream);
         actStream->psty(0); //solid fill by default!
             
+        PLFLT colorindex;
+        
+        PLFLT value; //used for all filled contours: they use colortable 1; value is between 0 and 1.
+        if (docolors) actStream->SetColorMap1Table(nlevel, colors , decomposed ); //load colormap1 with given colors (decomposed or not))
+        else          actStream->SetColorMap1DefaultColors(nlevel, decomposed); 
+
         if (fill) {
-          const PLINT COLORTABLE0 = 0;
-          const PLINT COLORTABLE1 = 1;
-          const PLINT colorindex_table_0_color=2;
-          PLFLT colorindex_table_1_color=0;
           if (hachures) {
             PLINT ori;
             PLINT spa;
@@ -779,56 +781,38 @@ namespace lib
               ori=floor(10.0*(*orientation)[i%orientation->N_Elements()]);
               spa=floor(10000*(*spacing)[i%spacing->N_Elements()]);
               actStream->pat(1,&ori,&spa);
-
-              if (docolors) actStream->Color( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
+              value=static_cast<PLFLT>(i)/nlevel;
               if (dothick) actStream->Thick(( *thick )[i%thick->N_Elements()]);
               if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
-              COLORTABLE0, colorindex_table_0_color, 
-              static_cast<PLINT>(( *thick )[i%thick->N_Elements()]),
+              1, value, 
+              static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]),
               0,0,0,0,
               (plstream::fill), (oneDim),
               (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
             actStream->psty(0);
-            if (docolors) gdlSetGraphicsForegroundColorFromKw( e, actStream );
-            if (dothick) gdlSetPenThickness(e, actStream);
-            if (dostyle) gdlLineStyle(actStream, 0);
+//            if (docolors) gdlSetGraphicsForegroundColorFromKw( e, actStream );
+//            if (dothick) gdlSetPenThickness(e, actStream);
+//            if (dostyle) gdlLineStyle(actStream, 0);
           } //end FILL with equispaced lines
           else  if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
             for ( SizeT i=0; i<nlevel; ++i ) {
               Data3d.zValue=clevel[i]/(zEnd-zStart); //displacement in Z
-              colorindex_table_1_color=(PLFLT)(i+1)/PLFLT(nlevel);
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
-                if (docolors)
-                {
-                  actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
+
+              value=static_cast<PLFLT>(i)/nlevel;
                   actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
                   xStart, xEnd, yStart, yEnd,
-                  clevel[i], maxmax, //clevel[nlevel-1],
-                  COLORTABLE0, colorindex_table_0_color, 1,
-                  0,0,0,0,
+              clevel[i], maxmax, 
+              1,value,
+              0,0,0,0,0,
                   plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
                   (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
                 }
-                else
-                {
-                  actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
-                  xStart, xEnd, yStart, yEnd,
-                  clevel[i], maxmax, //clevel[nlevel-1],
-                  COLORTABLE1, colorindex_table_1_color, 1,   //colorindex is a double [0.0..1.0] in case map1
-                  0,0,0,0,
-                  plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
-                  (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
-                }
-             }
-            if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
-          }
-          else {
-            //useful?
-            gdlSetGraphicsForegroundColorFromKw ( e, actStream );
-            // note that plshade is not protected against 1 level (color formula is
+          } else {  //every other case of fill 
+            // note that plshades is not protected against 1 level (color formula is
             // "shade_color = color_min + i / (PLFLT) ( nlevel - 2 ) * color_range;"
             // meaning that nlevel=xx must be xx>=2 for plshades to work!)
             if (nlevel>2 && !(docolors)) { //acceleration with shades when no c_colors are given. use continuous table1, decomposed or not.
@@ -841,12 +825,12 @@ namespace lib
             else { //fill with colors defined with c_colors or n<=2
               for ( SizeT i=0; i<nlevel; ++i ) 
               {
-                if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, colorindex_table_0_color );
+                value=static_cast<PLFLT>(i)/nlevel;
                 actStream->shade( map, xEl, yEl, isLog?doIt:NULL,
                 xStart, xEnd, yStart, yEnd,
                 clevel[i], maxmax,
-                COLORTABLE0,  colorindex_table_0_color , 1,
-                0,0,0,0,
+                1,value,
+                0,0,0,0,0,
                 plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
                 (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
               }
@@ -862,7 +846,7 @@ namespace lib
               Data3d.zValue=clevel[i]/(zEnd-zStart);
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
             }
-            if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed, 2);
+            if (docolors) actStream->Color ( ( *colors )[i%colors->N_Elements ( )], decomposed);
             if (dothick) { actStream->Thick (( *thick )[i%thick->N_Elements ( )]); referencePenThickness = ( *thick )[i%thick->N_Elements ( )]; }
             if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
             if (doT3d) { //no label in T3D , bug in plplot...
@@ -889,9 +873,9 @@ namespace lib
               }
             }
           }
-          if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
-          if (dothick) gdlSetPenThickness(e, actStream);
-          if (dostyle) gdlLineStyle(actStream, 0);
+//          if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
+//          if (dothick) gdlSetPenThickness(e, actStream);
+//          if (dostyle) gdlLineStyle(actStream, 0);
         }
         if (tidyGrid2WorldData)
         {

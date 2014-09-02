@@ -55,61 +55,109 @@ void GDLGStream::Thick(DFloat thick)
     plstream::wid(static_cast<PLINT>(floor((thick*thickFactor)-0.5)));
 #endif
 }
-    
-void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
-{
-  DByte r,g,b;
-  if (decomposed == 0) c = c & 0x0000FF;
 
-  if( c < ctSize && decomposed == 0)
-    {
-      GraphicsDevice::GetCT()->Get( c, r, g, b);
-    }
-  else
-    {
-      r = c & 0xFF;
-      g = (c >> 8)  & 0xFF;
-      b = (c >> 16) & 0xFF;
-    }
-  plstream::scol0( ix, r, g, b);
-  plstream::col0( ix);
+#define BLACK0 255
+#define BLACK1 0
+void GDLGStream::Color( ULong color, DLong decomposed) {
+    bool printer = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512) == 512);
+//    bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); //potentially useful.
+
+  if (decomposed == 0) {
+    if (printer && (color & 0xFF) == 0) {
+      GDLGStream::SetColorMap1SingleColor(BLACK1);
+      plstream::col1(1);
+      return;
+    } else plstream::col0(color & 0xFF); //just set color index [0..255]. simple and fast.
+  } else {
+    if (printer && color == 0) color=BLACK0;
+    GDLGStream::SetColorMap1SingleColor(color);
+    plstream::col1(1); //call for it
+  }
+}
+#undef BLACK0
+#undef BLACK1
+
+void GDLGStream::SetColorMap1SingleColor( ULong color)
+{
+    PLINT red[2],green[2],blue[2];
+    red[0] =red[1] = color & 0xFF;
+    green[0] = green[1] =(color >> 8)  & 0xFF;
+    blue[0]= blue[1]=(color >> 16) & 0xFF;
+    plstream::scmap1(red, green, blue, 2); 
 }
 
-void GDLGStream::Background( ULong c, DLong decomposed)
+void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)
 {
-
-  int debug=0;
-  if (debug) cout << "decomposed value in GDLGStream::Background " <<  decomposed <<endl;
-
-  DByte r,g,b;
-  if (decomposed == 0) c = c & 0x0000FF;
-
-  if( c < ctSize && decomposed == 0)
-    {
-      GraphicsDevice::GetCT()->Get( c, r, g, b);
-    }
-  else
-    {
-      r = c & 0xFF;
-      g = (c >> 8)  & 0xFF;
-      b = (c >> 16) & 0xFF;
-    }
-  /*
-  DByte r,g,b;
-  if( c < ctSize)
-    {
-      Graphics::GetCT()->Get( c, r, g, b);
-    }
-  else
-    {
-      r = c & 0xFF;
-      g = (c >> 8)  & 0xFF;
-      b = (c >> 16) & 0xFF;
-    }
-  */
-  plstream::scolbg( r, g, b);
+  if (decomposed == 0) { //just copy Table0 to Table1 so that scale from 0 to 1 in table 1 goes through the whole table
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    GraphicsDevice::GetCT()->Get( r, g, b); 
+    plstream::scmap1(r, g, b, ctSize); 
+  } else {
+    PLFLT r[2], g[2], b[2], pos[2];
+    r[0] = pos[0] = 0.0;
+    r[1] = pos[1] = 1.0;
+    g[0] = g[1] = 0.0;
+    b[0] = b[1] = 0.0;
+    plstream::scmap1n(ncolors);
+    plstream::scmap1l(True,2,pos,r, g, b, NULL); 
+  }
 }
 
+void GDLGStream::SetColorMap1Table( PLINT tableSize, BaseGDL *passed_colors,  DLong decomposed)
+{ //cycle on passed colors to fill tableSize.
+  DLongGDL *colors=static_cast<DLongGDL*>(passed_colors);
+  DLong n=colors->N_Elements();
+  PLINT r[tableSize], g[tableSize], b[tableSize];
+  if (decomposed == 0) { 
+    PLINT red[ctSize], green[ctSize], blue[ctSize], col;
+    GraphicsDevice::GetCT()->Get( red, green, blue);
+    for (SizeT i=0; i< tableSize; ++i) {
+      col = (*colors)[i%n]& 0xFF;
+      r[i] = red[col];
+      g[i] = green[col];
+      b[i] = blue[col];
+    }
+  } else {
+    PLINT col;
+     for (SizeT i=0; i< tableSize; ++i) {
+      col = (*colors)[i%n];
+      r[i] =  col        & 0xFF;
+      g[i] = (col >> 8)  & 0xFF;
+      b[i] = (col >> 16) & 0xFF;   
+     }
+  }
+  plstream::scmap1(r, g, b, tableSize); 
+}
+
+void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
+{ //cycle on passed colors to fill table1 with ramp.
+    PLFLT h[2], l[2], s[2], pos[2];
+    h[0] = h[1] = s[0] = s[1] = pos[0] = 0.0;
+    l[0] = minlight;
+    l[1] = pos[1] = 1.0;
+    plstream::scmap1n(256);
+    plstream::scmap1l(False,2,pos,h, l, s, NULL); 
+}
+#define WHITEB 255
+void GDLGStream::Background( ULong color, DLong decomposed)
+{
+  if ((*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512 ) {  ;//printer like PostScript
+   plstream::scolbg( WHITEB, WHITEB, WHITEB );
+   return;
+  }
+  DByte r,g,b;
+  PLINT red,green,blue;
+  if (decomposed == 0) { //just an index
+    GraphicsDevice::GetCT()->Get( color & 0xFF, r, g, b);
+    red=r; green=g; blue=b;
+  } else {
+    red = color & 0xFF;
+    green = (color >> 8)  & 0xFF;
+    blue = (color >> 16) & 0xFF;
+  }
+  plstream::scolbg( red, green, blue); //set background (col0 in plplot)
+}
+#undef WHITEB
 void GDLGStream::DefaultCharSize()
 {
   DString name = (*static_cast<DStringGDL*>(
@@ -203,6 +251,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   PLINT xleng; PLINT yleng;
   PLINT plxoff; PLINT plyoff;
   plstream::gpage( xp, yp, xleng, yleng, plxoff, plyoff); //for X-Window, wrapper give sizes from X11, not plplot which seems bugged.
+  // for PostScript, Page size is FIXED (720x540) and GDLPSStream::GetGeometry replies correctly
   
 //since the page sizes for PS and EPS images are processed by GDL after plplot finishes 
 //its work, gpage will not output correct sizes 

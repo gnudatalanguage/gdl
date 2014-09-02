@@ -38,28 +38,28 @@ namespace lib {
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
     {
-      //      if (e->KeywordPresent(0))
-      if (e->KeywordPresent(e->KeywordIx("CHANNEL")))
-	Message(e->GetProName() + " : CHANNEL keyword not yet supported.");
-
-      static int bColorIx = e->KeywordIx("COLOR");
+      DLong chan=0;
+      static int chanIx = e->KeywordIx("CHANNEL");
+      if (e->KeywordPresent(chanIx))  {
+        e->AssureLongScalarKWIfPresent(chanIx, chan);
+	      if ((chan > 3) || (chan < 0) )  e->Throw("Value of Channel is out of allowed range.");
+      } 
       
-      //      cout << "bColorIx"<< bColorIx << endl;
-
+	  static DStructGDL* dStruct = SysVar::D();
       DLong MaxColorIdx;
-      DLong bColor=-1;
-      MaxColorIdx=256*256*256-1;
-      //      cout << MaxColorIdx << endl;
+	  MaxColorIdx = (*static_cast<DLongGDL*>
+		       (dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"),0)))[0];
       
+      DLong bColor=-1;
+      static int bColorIx = e->KeywordIx("COLOR");
+
       if (nParam() == 0)
-	{
+ 	{
 	  if (e->KeywordPresent(e->KeywordIx("COLOR")))
 	    {
 	      e->AssureLongScalarKWIfPresent(bColorIx, bColor);
 	      if (bColor > MaxColorIdx) bColor = MaxColorIdx;
 	      if (bColor < 0)   bColor = 0;
-	      //if (bColor >= 0 & bColor <= MaxColorIdx)
-	      //actStream->Background( bColor, 1);
 	    }
 	  else
 	    // we have to read back !p.background value
@@ -75,9 +75,9 @@ namespace lib {
 	  if (bColor > MaxColorIdx) bColor = MaxColorIdx;
 	  if (bColor < 0)   bColor = 0;
 	}
-
-    actStream->Background( bColor);
-    actStream->Clear();      
+    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+    actStream->Background( bColor, decomposed);
+    if (chan > 0) actStream->Clear(chan-1); else actStream->Clear();      
     }
 
     private: virtual void post_call(EnvT*, GDLGStream*) // {{{

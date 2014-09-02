@@ -324,11 +324,9 @@ public:
     // we want color
     winList[ wIx]->scolor( 1);
 
-    // avoid to set color map 0 -- makes plplot very slow (?)
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-    winList[ wIx]->scmap0( r, g, b, ctSize);
-    winList[ wIx]->scmap1( r, g, b, ctSize);
+    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
     //     winList[ wIx]->Init();
     // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
@@ -449,9 +447,8 @@ public:
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-    winList[ wIx]->scmap0( r, g, b, ctSize);
-    winList[ wIx]->scmap1( r, g, b, ctSize);
-
+    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
+//all the options must be passed BEFORE INIT=plinit.
     winList[ wIx]->Init();
     // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
     // bug #535 had other causes. removed until further notice.

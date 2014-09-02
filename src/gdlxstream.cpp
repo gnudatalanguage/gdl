@@ -174,46 +174,29 @@ void GDLXStream::GetWindowSize(long& xSize, long& ySize){
 
 void GDLXStream::Clear() {
   // dummy call to get private function set_stream() called
-  //  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
-  //  RGB_HLS( a,b,c,&d,&e,&f);
-  char dummy;
-  gesc(&dummy);
-  // this mimics better the *DL behaviour.
+  // gd: tested, fail to see why use this dummy call ?
+//  char dummy;
+//  gesc(&dummy);
+  // this mimics better the *DL behaviour but plbob create a new page, etc..
   ::c_plbop();
-  //plclear clears only the current subpage.
-  //  ::c_plclear();
+  //plclear clears only the current subpage. But it clears it. One has
+  //just to set the number of subpages to 1
+  ::c_plclear();
 }
 
-void GDLXStream::Clear(DLong bColor) {
-  // dummy call to get private function set_stream() called
-  //  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
-  //  RGB_HLS( a,b,c,&d,&e,&f);
-  char dummy;
-  gesc(&dummy);
-
-  PLINT r0, g0, b0;
-  PLINT r1, g1, b1;
-  DByte rb, gb, bb;
-
-  // Get current background color
-  plgcolbg(&r0, &g0, &b0);
-
-  // Get desired background color
-  GDLCT* actCT = GraphicsDevice::GetCT();
-  actCT->Get(bColor, rb, gb, bb);
-
-  // Convert to PLINT from GDL_BYTE
-  r1 = (PLINT) rb;
-  g1 = (PLINT) gb;
-  b1 = (PLINT) bb;
-  // this mimics better the *DL behaviour.
-  ::c_plbop();
-  plscolbg(r1, g1, b1);
-
-  //plclear clears only the current subpage.
-  //  ::c_plclear();
-  //
-  //  plscolbg (r0, g0, b0);
+void GDLXStream::Clear(DLong chan) {
+  static const int planemask[3]={0x0000FF,0x00FF00,0xFF0000};
+//fill screen with background (since plotting erase has called background) on channel chan
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XSetForeground(xwd->display,dev->gc,xwd->cmap0[0].pixel);
+  XSetPlaneMask(xwd->display,dev->gc,planemask[chan]);
+  if (dev->write_to_pixmap)
+    XFillRectangle(xwd->display, dev->pixmap, dev->gc, 0, 0, dev->width, dev->height);
+  if (1) // not (dev->write_to_window): always!
+    XFillRectangle(xwd->display, dev->window, dev->gc, 0, 0, dev->width, dev->height);
+  XSetForeground(xwd->display,dev->gc,dev->curcolor.pixel);
+  XSetPlaneMask(xwd->display,dev->gc,AllPlanes);
 }
   
 unsigned long GDLXStream::GetWindowDepth() {
