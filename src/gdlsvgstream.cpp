@@ -15,7 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "png.h"
 
 #include "includefirst.hpp"
 #include "gdlsvgstream.hpp"
@@ -76,7 +75,6 @@ static const char svgfillchar = '=';
 	}
 
 #ifdef USE_PNGLIB
-#include "png.h"
  
 std::string GDLSVGStream::svg_to_png64(int width,int height,
 	    png_byte *image, int bit_depth, int nbpp, int whattype, int *error) 
@@ -239,14 +237,8 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    unlink(filename);
    return tmpstr;
 }
-#endif
 bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 		   DLong trueColorOrder, DLong channel) {
-//need to : check position in file Ok; update bounding box values, convert image to png. Impossible to add text directly, file is created on
-//close. write to a memory file and cat the memory when plplot closes file.
-#ifndef USE_PNGLIB
-  return false;
-#else  
   c_plflush();
   if (channel > 0) {
     cerr << "TV+SVG device: Value of CHANNEL (use TRUE instead) is out of allowed range. (FIXME!)" << endl;
@@ -285,5 +277,8 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
   fprintf(pls->OutFile,"\"/>\n");
   return true;
 #undef BUFLEN
-#endif
 }
+#else
+bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
+		   DLong trueColorOrder, DLong channel) {return false;}
+#endif
