@@ -39,7 +39,7 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     DLong wIx = 0;
-    if( e->KeywordSet( 1)) // FREE
+    if( e->KeywordSet("FREE"))
       {
 	wIx = actDevice->WAdd();
 	if( wIx == -1)
@@ -57,7 +57,7 @@ namespace lib {
       }
 
     DString title;
-    if( e->KeywordPresent( 4)) // TITLE
+    if( e->KeywordPresent( "TITLE"))
       {
 	e->AssureStringScalarKWIfPresent( 4, title);
       }
@@ -117,7 +117,7 @@ namespace lib {
     bool doretain=true;
     DLong retainType ; //=Graphics::getRetain();
 //    if (retainType=0) doretain=false;
-    if( e->KeywordPresent( 3)) // RETAIN
+    if( e->KeywordPresent( "RETAIN"))
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
       if (retainType == 0) doretain=false;
