@@ -248,7 +248,7 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
     cerr << "TV+SVG device: True Color images must be [3,*,*] only. (FIXME!)" << endl;
     return false;
   }
-  fprintf(pls->OutFile,"<image preserveAspectRatio=\"none\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" xlink:href=\"data:image/svg;base64,",
+  pls->bytecnt += fprintf(pls->OutFile,"<image preserveAspectRatio=\"none\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" xlink:href=\"data:image/svg;base64,",
           pos[0],pos[2],pos[1],pos[3]);
   int error;
   std::string ret ;      
@@ -259,12 +259,12 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
   if ( channel == 0 ) {
     if ( trueColorOrder == 0 ) { //indexed value 0->255: image
       ret = GDLSVGStream::svg_to_png64( nx, ny, idata, 8, 1 ,PNG_COLOR_TYPE_PALETTE, &error );
-      if ( error == 0 ) fprintf( pls->OutFile, ret.c_str( ) );
+      if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, ret.c_str( ) );
      } else {
       switch ( trueColorOrder ) {
         case 1:
           ret = GDLSVGStream::svg_to_png64( nx, ny, idata, 8, 3 ,PNG_COLOR_TYPE_RGB, &error );
-          if ( error == 0 ) fprintf( pls->OutFile, ret.c_str( ) );
+          if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, ret.c_str( ) );
           break;
         case 2:
           break;
@@ -274,7 +274,7 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
     }
 //  } else { //channel = 1 to 3
   }
-  fprintf(pls->OutFile,"\"/>\n");
+  pls->bytecnt += fprintf(pls->OutFile,"\"/>\n");
   return true;
 #undef BUFLEN
 }

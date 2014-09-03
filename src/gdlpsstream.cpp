@@ -60,8 +60,6 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 #define ENLARGE       5
 #define XPSSIZE       ENLARGE * XSIZE
 #define YPSSIZE       ENLARGE * YSIZE
-#define BUFLEN 256
-  char outbuf[BUFLEN];
   static DLong bitsPerPix = 8;
   
   //position of the image WILL NOT BE ACCURATE. The coordinate transforms of plplot are a mess.
@@ -71,59 +69,33 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
   } 
-  strncpy(outbuf, "\n%%BeginObject: Image\n S gsave\n", BUFLEN);
-  pls->bytecnt += (PLINT) strlen(outbuf);
-  fprintf(pls->OutFile, outbuf);
+  pls->bytecnt += fprintf(pls->OutFile, "\n%%BeginObject: Image\n S gsave\n");
   if (pls->diorot == 1.0) {
-    snprintf(outbuf, BUFLEN, "/ratio {%d %d div} def\n/offset {%d %d ratio mul sub 2 div} def\n %f offset %f ratio mul ratio mul add translate\n",XPSSIZE,YPSSIZE,YPSSIZE,XPSSIZE,pos[0]*xScale, pos[2]*yScale);
-    pls->bytecnt += (PLINT) strlen(outbuf);
-    fprintf(pls->OutFile, outbuf);
+    pls->bytecnt += fprintf(pls->OutFile, "/ratio {%d %d div} def\n/offset {%d %d ratio mul sub 2 div} def\n %f offset %f ratio mul ratio mul add translate\n",XPSSIZE,YPSSIZE,YPSSIZE,XPSSIZE,pos[0]*xScale, pos[2]*yScale);
   } else {
-    snprintf(outbuf, BUFLEN, "%d 0 translate 90 rotate\n", XPSSIZE);
-    pls->bytecnt += (PLINT) strlen(outbuf);
-    fprintf(pls->OutFile, outbuf);
-    snprintf(outbuf, BUFLEN, "%f %f translate\n", pos[0]*xScale, pos[2]*yScale);
-    pls->bytecnt += (PLINT) strlen(outbuf);
-    fprintf(pls->OutFile, outbuf);
+    pls->bytecnt += fprintf(pls->OutFile, "%d 0 translate 90 rotate\n", XPSSIZE);
+    pls->bytecnt += fprintf(pls->OutFile, "%f %f translate\n", pos[0]*xScale, pos[2]*yScale);
   }
 
-
-//  snprintf(outbuf, BUFLEN, "%d %d scale\n", pos[1], pos[3]);
-  snprintf(outbuf, BUFLEN, "%f %f scale\n", pos[1]*xScale, pos[3]*xScale);
-  pls->bytecnt += (PLINT) strlen(outbuf);
-  fprintf(pls->OutFile, outbuf);
+  pls->bytecnt += fprintf(pls->OutFile, "%f %f scale\n", pos[1]*xScale, pos[3]*xScale);
 
 #define LINEWIDTH 80
 
   if (trueColorOrder == 0) { 
     if  (bw) { //black and white indexed value 0->255: image
-      snprintf(outbuf, BUFLEN, "/gdlImagePixString %d string def\n", nx);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
-      snprintf(outbuf, BUFLEN, "%d %d %d\n", nx, ny, bitsPerPix);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
+      pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixString %d string def\n", nx);
+      pls->bytecnt += fprintf(pls->OutFile, "%d %d %d\n", nx, ny, bitsPerPix);
 
-      snprintf(outbuf, BUFLEN, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} image\n", nx, ny);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
+      pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} image\n", nx, ny);
       //output data in lines of LINEWIDTH chars:
       for (SizeT i = 0, k=0 ; i < nx * ny ; ++i) {
         fprintf(pls->OutFile, "%2.2X", idata[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
         }
       pls->bytecnt += (nx*ny*2 + nx*ny*2/LINEWIDTH);
     } else {
-      snprintf(outbuf, BUFLEN, "/gdlImagePixString %d string def\n", nx * 3);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
-
-      snprintf(outbuf, BUFLEN, "%d %d %d\n", nx, ny, bitsPerPix);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
-
-      snprintf(outbuf, BUFLEN, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} false 3 colorimage\n", nx, ny);
-      pls->bytecnt += (PLINT) strlen(outbuf);
-      fprintf(pls->OutFile, outbuf);
+      pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixString %d string def\n", nx * 3);
+      pls->bytecnt += fprintf(pls->OutFile, "%d %d %d\n", nx, ny, bitsPerPix);
+      pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} false 3 colorimage\n", nx, ny);
       //output data in lines of LINEWIDTH chars:
       for (SizeT i = 0, k=0 ; i < nx * ny; ++i) {
         fprintf(pls->OutFile, "%2.2X", pls->cmap0[idata[i]].r); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
@@ -135,43 +107,19 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   } else { //true color
     switch (trueColorOrder) {
       case 1:
-        snprintf(outbuf, BUFLEN, "/gdlImagePixString %d string def\n", nx * 3);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "%d %d %d\n", nx, ny, bitsPerPix);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} false 3 colorimage\n", nx, ny);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
+        pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixString %d string def\n", nx * 3);
+        pls->bytecnt += fprintf(pls->OutFile, "%d %d %d\n", nx, ny, bitsPerPix);
+        pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] {currentfile gdlImagePixString readhexstring pop} false 3 colorimage\n", nx, ny);
         break;
       case 2:
-        snprintf(outbuf, BUFLEN, "/gdlImagePixStringR %d string def /gdlImagePixStringG %d string def /gdlImagePixStringB %d string def\n", nx, nx, nx);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "%d %d %d\n", nx, ny, bitsPerPix);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "[%d 0 0 %d 0 0] {currentfile gdlImagePixStringR readhexstring pop} {currentfile gdlImagePixStringG readhexstring pop} {currentfile gdlImagePixStringB readhexstring pop} true 3 colorimage\n", nx, ny);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
+        pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixStringR %d string def /gdlImagePixStringG %d string def /gdlImagePixStringB %d string def\n", nx, nx, nx);
+        pls->bytecnt += fprintf(pls->OutFile, "%d %d %d\n", nx, ny, bitsPerPix);
+        pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] {currentfile gdlImagePixStringR readhexstring pop} {currentfile gdlImagePixStringG readhexstring pop} {currentfile gdlImagePixStringB readhexstring pop} true 3 colorimage\n", nx, ny);
         break;
       case 3:
-        snprintf(outbuf, BUFLEN, "/gdlImagePixStringR %d string def /gdlImagePixStringG %d string def /gdlImagePixStringB %d string def\n", nx*ny, nx*ny, nx*ny);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "%d %d %d\n", nx, ny, bitsPerPix);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
-
-        snprintf(outbuf, BUFLEN, "[%d 0 0 %d 0 0] {currentfile gdlImagePixStringR readhexstring pop} {currentfile gdlImagePixStringG readhexstring pop} {currentfile gdlImagePixStringB readhexstring pop} true 3 colorimage\n",  nx, ny);
-        pls->bytecnt += (PLINT) strlen(outbuf);
-        fprintf(pls->OutFile, outbuf);
+        pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixStringR %d string def /gdlImagePixStringG %d string def /gdlImagePixStringB %d string def\n", nx*ny, nx*ny, nx*ny);
+        pls->bytecnt += fprintf(pls->OutFile, "%d %d %d\n", nx, ny, bitsPerPix);
+        pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] {currentfile gdlImagePixStringR readhexstring pop} {currentfile gdlImagePixStringG readhexstring pop} {currentfile gdlImagePixStringB readhexstring pop} true 3 colorimage\n",  nx, ny);
         break;
       default:
         cerr<<"you should not get here!"<<endl;
@@ -182,11 +130,8 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
       }
     pls->bytecnt += (nx*ny*6 + nx*ny*6/LINEWIDTH);
   }
-  strncpy(outbuf, "\ngrestore\n%%EndObject: Image\n       ", BUFLEN);
-  fprintf(pls->OutFile, outbuf);
-  pls->bytecnt += (PLINT) strlen(outbuf);
+  pls->bytecnt += fprintf(pls->OutFile, "\ngrestore\n%%EndObject: Image\n       ");
   return true;
 #undef LINEWIDTH
 }
-#undef BUFLEN
 
