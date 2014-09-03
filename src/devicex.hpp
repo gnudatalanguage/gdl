@@ -67,10 +67,10 @@ private:
   int GetBackingStore(){return backingStoreMode;}
   
   void SetActWin( int wIx)
-  {
+  { 
     // update !D
     if( wIx >= 0 && wIx < winList.size())
-      {
+    {
 	long xsize,ysize,xoff,yoff;
 	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
 	
@@ -79,12 +79,24 @@ private:
         (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
         // number of colors
-        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
-      }
-
+//        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
+        
+        // set !D.N_COLORS and !P.COLORS according to decomposed value.
+        unsigned long nSystemColors= (1 << winList[wIx]->GetWindowDepth() );
+        unsigned long oldColor = (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0]; 
+        unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
+        if (this->decomposed=-1) decomposed=this->GetDecomposed();
+        if (this->decomposed==1 && oldNColor==256) {
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
+            if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors-1 ; 
+        } else if (this->decomposed==0 && oldNColor==nSystemColors) { 
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 256 ;
+            if (oldColor == nSystemColors-1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255 ; 
+        }
+    }
     // window number
     (*static_cast<DLongGDL*>( dStruct->GetTag( wTag)))[0] = wIx;
-
+    
     actWin = wIx;
   }
 
@@ -199,6 +211,7 @@ public:
   //   
   void EventHandler()
   {
+    if (actWin<0) return; //would this have side effects?  
     int wLSize = winList.size();
     for( int i=0; i<wLSize; i++)
       if( winList[ i] != NULL)
@@ -572,6 +585,18 @@ public:
   bool Decomposed( bool value)                
   { 
     decomposed = value;
+    if (actWin<0) return true;   
+    //update relevant values --- this should not be done at window level, but at Display level!!!!
+    unsigned long nSystemColors= (1 << winList[actWin]->GetWindowDepth() );
+    unsigned long oldColor = (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0]; 
+    unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
+    if (this->decomposed==1 && oldNColor==256) {
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
+        if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors-1 ; 
+    } else if (this->decomposed==0 && oldNColor==nSystemColors) { 
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 256 ;
+        if (oldColor == nSystemColors-1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255 ; 
+    }
     return true;
   }
 
@@ -586,13 +611,23 @@ public:
 	int Depth;
 	Depth=DefaultDepth(display, DefaultScreen(display));      
 	decomposed = (Depth >= 15 ? true : false);
-	DLong toto=16777216;
-	if (Depth == 24) 
-	  (*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = toto;
+        unsigned long nSystemColors= (1 << Depth );
+        unsigned long oldColor = (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0]; 
+        unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
+        if (this->decomposed==1 && oldNColor==256) {
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
+            if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors-1 ; 
+        } else if (this->decomposed==0 && oldNColor==nSystemColors) { 
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 256 ;
+            if (oldColor == nSystemColors-1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255 ; 
+        }
+// was initially: 	DLong toto=16777216;
+//	if (Depth == 24) 
+//	  (*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = toto;
 	int debug=0;
 	if (debug) {
 	  cout << "Display Depth " << Depth << endl;
-	  cout << "n_colors " << toto << endl;
+	  cout << "n_colors " << nSystemColors << endl;
 	}
 	XCloseDisplay(display);
       }

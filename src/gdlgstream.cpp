@@ -56,26 +56,26 @@ void GDLGStream::Thick(DFloat thick)
 #endif
 }
 
-#define BLACK0 255
-#define BLACK1 0
+#define BLACK 0
+#define WHITE 16777215
 void GDLGStream::Color( ULong color, DLong decomposed) {
     bool printer = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512) == 512);
-//    bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); //potentially useful.
-
-  if (decomposed == 0) {
-    if (printer && (color & 0xFF) == 0) {
-      GDLGStream::SetColorMap1SingleColor(BLACK1);
-      plstream::col1(1);
+    bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); //in that case, 
+    //plplot postscript driver uses gray levels instead of colorindex, and 1 is black, not 0 !!!
+    if (decomposed == 0) {
+      if (printer && (color & 0xFF) == 0) { color=(bw)?WHITE:BLACK; //note that if bw other colors will be a gray value 
+        GDLGStream::SetColorMap1SingleColor(color);
+        plstream::col1(1); //send specifically color ZERO = black.
+        return;
+      } else plstream::col0(color & 0xFF); //just set color index [0..255]. simple and fast.
+    } else {
+      if (printer && color == 0) color=(bw)?WHITE:BLACK;
+      GDLGStream::SetColorMap1SingleColor(color);
+      plstream::col1(1); //send specifically color ZERO = black.
       return;
-    } else plstream::col0(color & 0xFF); //just set color index [0..255]. simple and fast.
-  } else {
-    if (printer && color == 0) color=BLACK0;
-    GDLGStream::SetColorMap1SingleColor(color);
-    plstream::col1(1); //call for it
-  }
+    }
 }
-#undef BLACK0
-#undef BLACK1
+#undef BLACK
 
 void GDLGStream::SetColorMap1SingleColor( ULong color)
 {
