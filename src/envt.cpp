@@ -1178,7 +1178,7 @@ int EnvT::KeywordIx( const std::string& k)
 bool EnvT::KeywordPresent( const std::string& kw)
 {
   int ix = KeywordIx( kw);
-  return (env[ix] != NULL);
+  return EnvBaseT::KeywordPresent( ix);
 }
 
 const string EnvBaseT::GetString( SizeT ix)
