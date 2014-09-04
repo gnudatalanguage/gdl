@@ -29,12 +29,15 @@ using namespace std;
 
 void GDLXStream::Init() {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
+  Window from_window=0;
+  int revert_to;
   {
     Display* display = XOpenDisplay(NULL);
     if (display == NULL) {
       valid = false;
       ThrowGDLException("Cannot connect to X server");
     }
+    XGetInputFocus(display, &from_window, &revert_to);
     XCloseDisplay(display);
   }
 
@@ -46,6 +49,14 @@ void GDLXStream::Init() {
   wm_delete_window = XInternAtom(xwd->display, "WM_DELETE_WINDOW", false);
 
   XSetWMProtocols(xwd->display, dev->window, &wm_delete_window, 1);
+  //give back focus to caller -- hopefully the terminal.
+  XWindowAttributes from_attr;
+  if(from_window) {
+    XGetWindowAttributes(xwd->display,from_window,&from_attr);
+    if(from_attr.map_state==IsViewable) {
+      XSetInputFocus(xwd->display,from_window,RevertToParent,CurrentTime);
+    }
+  }
   XFlush(xwd->display);
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   //current cursor:
