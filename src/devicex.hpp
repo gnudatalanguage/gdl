@@ -85,7 +85,7 @@ private:
         unsigned long nSystemColors= (1 << winList[wIx]->GetWindowDepth() );
         unsigned long oldColor = (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0]; 
         unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
-        if (this->decomposed=-1) decomposed=this->GetDecomposed();
+        if (this->decomposed==-1) decomposed=this->GetDecomposed();
         if (this->decomposed==1 && oldNColor==256) {
             (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
             if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors-1 ; 

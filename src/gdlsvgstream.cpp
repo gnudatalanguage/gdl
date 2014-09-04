@@ -259,12 +259,12 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
   if ( channel == 0 ) {
     if ( trueColorOrder == 0 ) { //indexed value 0->255: image
       ret = GDLSVGStream::svg_to_png64( nx, ny, idata, 8, 1 ,PNG_COLOR_TYPE_PALETTE, &error );
-      if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, ret.c_str( ) );
+      if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, "%s", ret.c_str( ) );
      } else {
       switch ( trueColorOrder ) {
         case 1:
           ret = GDLSVGStream::svg_to_png64( nx, ny, idata, 8, 3 ,PNG_COLOR_TYPE_RGB, &error );
-          if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, ret.c_str( ) );
+          if ( error == 0 ) pls->bytecnt += fprintf( pls->OutFile, "%s", ret.c_str( ) );
           break;
         case 2:
           break;
