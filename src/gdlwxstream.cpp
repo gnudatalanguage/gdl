@@ -133,6 +133,10 @@ void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
 }
 
+unsigned long GDLWXStream::GetWindowDepth() {
+  return 24;
+}
+
 void GDLWXStream::Clear() {
   ::c_plbop();
 }

@@ -54,7 +54,7 @@ public:
     
     void Init();
     void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-    
+    unsigned long GetWindowDepth() ;   
     void Update();
     void SetGDLDrawPanel(GDLDrawPanel*);
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
