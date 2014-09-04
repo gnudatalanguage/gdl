@@ -366,6 +366,17 @@ using std::isnan;
             else
                 (*res)[c] = gsl_sf_gamma_inc_P((*p0)[c], (*p1)[c]);
 
+
+    if (e->KeywordPresent(4)) {
+      //    if (e->KeywordPresent("METHOD")) {
+      //      cout << nElp << endl;
+      //cout << "method" <<endl;
+      
+      DIntGDL* IxMethod = new DIntGDL( res->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nElp; ++i) (*IxMethod)[ i] = 0;
+      e->SetKW( 4, IxMethod);
+    }
+
     GM_CV2();
   } // igamma_fun
 
