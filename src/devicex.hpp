@@ -259,7 +259,7 @@ public:
 #ifdef HAVE_LIBWXWIDGETS
   bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
   {
-    int xPos=0; int yPos=0;
+//    int xPos=0; int yPos=0;
     TidyWindowsList();
 
     int wLSize = winList.size();
@@ -272,61 +272,61 @@ public:
         winList[ wIx] = NULL;
       }
 
-    DLongGDL* pMulti = SysVar::GetPMulti();
-    DLong nx = (*pMulti)[ 1];
-    DLong ny = (*pMulti)[ 2];
-
-    if( nx <= 0) nx = 1;
-    if( ny <= 0) ny = 1;
+//    DLongGDL* pMulti = SysVar::GetPMulti();
+//    DLong nx = (*pMulti)[ 1];
+//    DLong ny = (*pMulti)[ 2];
+//
+//    if( nx <= 0) nx = 1;
+//    if( ny <= 0) ny = 1;
 
     winList[ wIx] = new GDLWXStream( xSize, ySize);
     
     // as wxwidgets never set this, they can be intermixed
     // oList[ wIx]   = oIx++;
 
-    // set initial window size
-    PLFLT xp; PLFLT yp; 
-    PLINT xleng; PLINT yleng;
-    PLINT xoff; PLINT yoff;
-    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
-
-    int debug=0;
-    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
-
-    DLong xMaxSize, yMaxSize;
-    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
-
-    xleng = xSize;
-    yleng = ySize;
-
-    bool noPosx=(xPos==-1);
-    bool noPosy=(yPos==-1);
-    xPos=max(1,xPos); //starts at 1
-    yPos=max(1,yPos);
-
-    xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
-    yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
-    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
-// dynamic allocation needed!    
-    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
-    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
-    if (noPosx && noPosy) { //no init given, use 4 quadrants:
-      xoff = Quadx[wIx%4];
-      yoff = Quady[wIx%4];
-    } else if (noPosx) {
-      xoff = Quadx[wIx%4];
-        yoff = yMaxSize-yPos-yleng;
-    } else if (noPosy) {
-      xoff = xPos;
-      yoff = Quady[wIx%4];
-    } else {
-      xoff  = xPos;
-      yoff  = yMaxSize-yPos-yleng;
-    }
-    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
-    xp=max(xp,1.0);
-    yp=max(yp,1.0);
-    //     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+//    // set initial window size
+//    PLFLT xp; PLFLT yp; 
+//    PLINT xleng; PLINT yleng;
+//    PLINT xoff; PLINT yoff;
+//    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
+//
+//    int debug=0;
+//    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+//
+//    DLong xMaxSize, yMaxSize;
+//    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
+//
+//    xleng = xSize;
+//    yleng = ySize;
+//
+//    bool noPosx=(xPos==-1);
+//    bool noPosy=(yPos==-1);
+//    xPos=max(1,xPos); //starts at 1
+//    yPos=max(1,yPos);
+//
+//    xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
+//    yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
+//    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
+//// dynamic allocation needed!    
+//    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
+//    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
+//    if (noPosx && noPosy) { //no init given, use 4 quadrants:
+//      xoff = Quadx[wIx%4];
+//      yoff = Quady[wIx%4];
+//    } else if (noPosx) {
+//      xoff = Quadx[wIx%4];
+//        yoff = yMaxSize-yPos-yleng;
+//    } else if (noPosy) {
+//      xoff = xPos;
+//      yoff = Quady[wIx%4];
+//    } else {
+//      xoff  = xPos;
+//      yoff  = yMaxSize-yPos-yleng;
+//    }
+//    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+//    xp=max(xp,1.0);
+//    yp=max(yp,1.0);
+//    //     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
     // no pause on win destruction
     winList[ wIx]->spause( false);
@@ -361,7 +361,7 @@ public:
 
       }
     // sets actWin and updates !D
-    //     SetActWin( wIx);
+         SetActWin( wIx);
 
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   } // GUIOpen
