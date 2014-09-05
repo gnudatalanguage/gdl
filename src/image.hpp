@@ -24,12 +24,7 @@
 
 namespace lib {
 
-  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
-		   DLong tru, DLong chan);
-
-  void tv( EnvT* e);
   void loadct( EnvT* e);
-
   BaseGDL* tvrd( EnvT* e);
 
 } // namespace

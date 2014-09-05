@@ -32,12 +32,6 @@ using namespace std;
 namespace lib {
 
 
-  void tv( EnvT* e)
-  {
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    actDevice->TV( e);
-  }
-
   BaseGDL* tvrd( EnvT* e)
   {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
