@@ -26,6 +26,8 @@
 #include "gsl_matrix.hpp"
 #include "gsl_fun.hpp"
 
+#include "smooth.hpp"
+
 using namespace std;
 
 void LibInit_ac()
@@ -84,6 +86,12 @@ void LibInit_ac()
 
   const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
   new DLibFunRetNew(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);
+
+  // Levan Loria and Alain Coulais, September 2014 : to be extensively tested
+
+  const string smoothKey[]={"NAN",KLISTEND};
+  new DLibFunRetNew(lib::smooth2_fun,string("SMOOTH2"),2,smoothKey);
+  new DLibFunRetNew(lib::smooth3_fun,string("SMOOTH3"),2,smoothKey); 
 
 }
 

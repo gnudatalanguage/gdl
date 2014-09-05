@@ -35,6 +35,7 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
 		libinit_jmg.cpp \
 		matrix_cholesky.hpp matrix_cholesky.cpp \
 		matrix_invert.hpp matrix_invert.cpp \
+	        smooth.hpp smooth.cpp \
 		math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp \
 		ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
@@ -64,8 +65,8 @@ cpp_hpp_files = hash.cpp hash.hpp overload.hpp overload.cpp nullgdl.hpp nullgdl.
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \
                 plotting_windows.cpp plotting_convert_coord.cpp plotting_map_proj.cpp plotting_misc.cpp \
                 plotting_erase.cpp plotting_shade_surf.cpp semshm.cpp
-# Makefile.am Makefile.in 
 
+# Makefile.am Makefile.in 
 
 
 # standalone program

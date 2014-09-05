@@ -228,6 +228,8 @@ semshm.cpp
 semshm.hpp
 sigfpehandler.cpp
 sigfpehandler.hpp
+smooth.cpp
+smooth.hpp
 specializations.hpp
 str.cpp
 str.hpp
