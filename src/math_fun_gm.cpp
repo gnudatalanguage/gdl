@@ -366,15 +366,11 @@ using std::isnan;
             else
                 (*res)[c] = gsl_sf_gamma_inc_P((*p0)[c], (*p1)[c]);
 
-
-    if (e->KeywordPresent(4)) {
-      //    if (e->KeywordPresent("METHOD")) {
-      //      cout << nElp << endl;
-      //cout << "method" <<endl;
-      
-      DIntGDL* IxMethod = new DIntGDL( res->Dim(), BaseGDL::NOZERO);
+    static int methodIx = e->KeywordIx("METHOD");
+    if (e->KeywordPresent(methodIx)) {
+      DIntGDL* IxMethod = new DIntGDL(nElp, BaseGDL::NOZERO);
       for( SizeT i=0; i<nElp; ++i) (*IxMethod)[ i] = 0;
-      e->SetKW( 4, IxMethod);
+      e->SetKW( methodIx, IxMethod);
     }
 
     GM_CV2();
@@ -390,7 +386,6 @@ using std::isnan;
     {
         bool flag0 = false;
         bool flag1 = false;
-
 
         if (isfinite((*p0)[0]) == 0)
             flag0 = true;

@@ -51,8 +51,10 @@ void LibInit_gm()
   const string lngammaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);
 
-  const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
-  new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey);
+  //  const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
+  const string igammaKey[]={"DOUBLE","METHOD",KLISTEND};
+  const string igammaWarnKey[]={"EPS","ITER","ITMAX",KLISTEND};
+  new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey,igammaWarnKey);
   // undocumented function ...
   new DLibFunRetNew(lib::igamma_fun,string("IDL_IGAMMA"),2,igammaKey);
 
