@@ -46,7 +46,6 @@ namespace lib {
       if (rank <= 2 && trueColor != 0) e->Throw("Array must have 3 dimensions: " + e->GetParString(0));
       if (trueColor < 0 || trueColor > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
       // to be changed    if (trueColor == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for trueColor color display");
-
       DLong orderVal = SysVar::TV_ORDER();
       e->AssureLongScalarKWIfPresent("ORDER", orderVal);
       
@@ -108,28 +107,33 @@ namespace lib {
           imageWidth = byteImage->Dim(0);
           imageHeight = byteImage->Dim(1);
         }
-        if (trueColor == 0) { // here we have a rank =3
+        if (trueColor == 0) { // here we have a rank =3 which is indeed a disguised rank 2
+          if (image->Dim(0) == 1) {
+            imageWidth = image->Dim(1);
+            imageHeight = image->Dim(2);
+          } else if (image->Dim(1) == 1) {
+            imageWidth = image->Dim(0);
+            imageHeight = image->Dim(2);
+          } else if (image->Dim(2) == 1) {
+            imageWidth = image->Dim(0);
+            imageHeight = image->Dim(1);
+          } 
+          else { //passed a tricolor image whithout saying it!
+            imageWidth = image->Dim(0);
+            imageHeight = image->Dim(1);
+            if (imageWidth == 3 ) {imageWidth=1;} else { if (imageHeight == 3 ) imageHeight = 1;} //rather horrible patch
+          }
           byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
           byteImageGuard.Init(byteImage);
-          if (byteImage->Dim(0) == 1) {
-            imageWidth = byteImage->Dim(1);
-            imageHeight = byteImage->Dim(2);
-            if (orderVal != 0) {
-              byteImage->Reverse(2);
-            }
-          } else if (byteImage->Dim(1) == 1) {
-            imageWidth = byteImage->Dim(0);
-            imageHeight = byteImage->Dim(2);
-            if (orderVal != 0) {
-              byteImage->Reverse(2);
-            }
-          } else {
-            imageWidth = byteImage->Dim(0);
-            imageHeight = byteImage->Dim(1);
-            if (orderVal != 0) {
-              byteImage->Reverse(1);
-            }
-          }
+          SizeT newdims[2];
+          newdims[0] = imageWidth;
+          newdims[1] = imageHeight;
+          dimension dim(newdims, 2);
+          (static_cast<BaseGDL*>(byteImage))->SetDim(dim);
+          rank=2;
+          if (orderVal != 0) {
+             byteImage->Reverse(1);
+          }        
         }
       }
       return false;
