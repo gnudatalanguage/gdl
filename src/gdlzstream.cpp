@@ -43,6 +43,93 @@ void GDLZStream::Clear( DLong bColor)
 
 void GDLZStream::Init()
 {
-   plstream::init();
+   this->plstream::init();
 }
 
+void GDLZStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff)
+{
+  xSize=pls->phyxma;
+  ySize=pls->phyyma;
+  xoff=0;
+  yoff=0;
+}
+  
+unsigned long GDLZStream::GetWindowDepth(){
+   GraphicsDevice* actDevice=GraphicsDevice::GetDevice();
+   return actDevice->GetPixelDepth(); 
+}
+
+bool GDLZStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
+DLong trueColorOrder, DLong chan ) {
+
+  //the following 2 tests cannot happen i think. I keep them for safety.
+  if ( pls->level < 3 ) {
+    std::cerr << "plimage: window must be set up first" << std::endl; //plabort() not available anymore!
+    return false;
+  }
+
+  if ( nx <= 0 || ny <= 0 ) {
+    std::cerr << "plimage: nx and ny must be positive" << std::endl;
+    return false;
+  }
+
+  plP_esc( PLESC_FLUSH, NULL );
+  unsigned char *mem = (unsigned char *) pls->dev;
+
+  PLINT xoff = (PLINT) pos[0];
+  PLINT yoff = (PLINT) pos[2];
+
+  PLINT xsize = pls->phyxma;
+  PLINT ysize = pls->phyyma;
+
+  PLINT kxLimit = xsize - xoff;
+  PLINT kyLimit = ysize - yoff;
+
+  if ( nx < kxLimit ) kxLimit = nx;
+  if ( ny < kyLimit ) kyLimit = ny;
+
+  if ( nx > 0 && ny > 0 ) {
+    SizeT p = (ysize - yoff - 1)*3*xsize;
+    for ( int iy = 0; iy < kyLimit; ++iy ) {
+      SizeT rowStart = p;
+      p += xoff*3;
+      for ( int ix = 0; ix < kxLimit; ++ix ) {
+        if ( trueColorOrder == 0 && chan == 0 ) {
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
+        } else {
+          if ( chan == 0 ) {
+            if ( trueColorOrder == 1 ) {
+              mem[p++] = idata[3 * (iy * nx + ix) + 0];
+              mem[p++] = idata[3 * (iy * nx + ix) + 1];
+              mem[p++] = idata[3 * (iy * nx + ix) + 2];
+            } else if ( trueColorOrder == 2 ) {
+              mem[p++] = idata[nx * (iy * 3 + 0) + ix];
+              mem[p++] = idata[nx * (iy * 3 + 1) + ix];
+              mem[p++] = idata[nx * (iy * 3 + 2) + ix];
+            } else if ( trueColorOrder == 3 ) {
+              mem[p++] = idata[nx * (0 * ny + iy) + ix];
+              mem[p++] = idata[nx * (1 * ny + iy) + ix];
+              mem[p++] = idata[nx * (2 * ny + iy) + ix];
+            }
+          } else {
+            if ( chan == 1 ) {
+              mem[p++] = idata[1 * (iy * nx + ix) + 0];
+              p += 2;
+            } else if ( chan == 2 ) {
+              p ++;
+              mem[p++] = idata[1 * (iy * nx + ix) + 1];
+              p ++;
+            } else if ( chan == 3 ) {
+              p += 2;
+              mem[p++] = idata[1 * (iy * nx + ix) + 2];
+            }
+          }
+        }
+      }
+      p = rowStart - (xsize*3);  
+    }
+  }
+  return true;
+}

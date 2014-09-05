@@ -50,45 +50,6 @@ class DeviceZ: public GraphicsDevice
   char*  memBuffer;
   DInt*  zBuffer;
 
-  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
-		   PLINT xLL, PLINT yLL, DLong tru, DLong chan)
-  {
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0];
-
-    PLINT ix, iy; //, xm, ym;
-
-    PLINT ired; //, igrn, iblu;
-    for(ix = 0; ix < nx; ++ix) {
-      for(iy = 0; iy < ny; ++iy) {
-
-	  if (tru == 0) {
-	    ired = idata[iy*nx+ix];
-	  } else if (tru == 1) {
-	    ired = idata[3*(iy*nx+ix)+0];
-	    //	    igrn = idata[3*(iy*nx+ix)+1];
-	    //	    iblu = idata[3*(iy*nx+ix)+2];
-	    //	    curcolor.pixel = ired*256*256+igrn*256+iblu;
-	  } else if (tru == 2) {
-	    ired = idata[nx*(iy*3+0)+ix];
-	    //	    igrn = idata[nx*(iy*3+1)+ix];
-	    //	    iblu = idata[nx*(iy*3+2)+ix];
-	    //	    curcolor.pixel = ired*256*256+igrn*256+iblu;
-	  } else if (tru == 3) {
-	    ired = idata[nx*(0*ny+iy)+ix];
-	    //	    igrn = idata[nx*(1*ny+iy)+ix];
-	    //	    iblu = idata[nx*(2*ny+iy)+ix];
-	    //	    curcolor.pixel = ired*256*256+igrn*256+iblu;
-	  }
-
-	  SizeT baseIx = ((ysize-1-(iy+yLL))*xsize+(ix+xLL)) * 3;
-	  memBuffer[ baseIx+0] = ired;
-	  memBuffer[ baseIx+1] = ired;
-	  memBuffer[ baseIx+2] = ired;
-      }
-    }
-  }
-
   void SetZBuffer( DLong x, DLong y)
   {
     delete[] zBuffer;
@@ -274,98 +235,150 @@ public:
       memBuffer[i] = bColor;
   }
 
-  DLong GetPixelDepth() { return 8;}
+  DLong GetPixelDepth() { return 24;}
   
+#define PAD 3
   BaseGDL* TVRD( EnvT* e)
   {
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
+    DLong xMaxSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong yMaxSize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
-    if( memBuffer == NULL)
-      {
-	return new DByteGDL( dimension( xsize, ysize));
-      }
-      
-    DByteGDL* res = new DByteGDL( dimension( xsize, ysize), 
-				  BaseGDL::NOZERO);
+    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
+    DLong orderVal=SysVar::TV_ORDER();
+    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    SizeT dims[3];
     
-    for( SizeT x=0; x<xsize; ++x)
-      for( SizeT y=0; y<ysize; ++y)
-	(*res)[ y*xsize+x] = memBuffer[ ((ysize-y-1)*xsize+x) * 3];
-    
-    return res;
-  }
+    DByteGDL* res;
 
-  void TV( EnvT* e)
-  {
-    //    Graphics* actDevice = Graphics::GetDevice();
-    SizeT nParam=e->NParam( 1); 
-
-    GDLGStream* actStream = GetStream();
-
-    //    actStream->NextPlot( false); // JMG
-
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
-
-    DLong xLL=0, yLL=0, pos=0;
-    if (nParam == 2) {
-      e->AssureLongScalarPar( 1, pos);
-    } else if (nParam >= 3) {
-      DDouble xLLf, yLLf;
-      if (e->KeywordSet(1)) { // NORMAL
-	e->AssureDoubleScalarPar( 1, xLLf);
-	e->AssureDoubleScalarPar( 2, yLLf);
-	xLL = (DLong) rint(xLLf * xsize);
-	yLL = (DLong) rint(yLLf * ysize);
-      } else {
-	e->AssureLongScalarPar( 1, xLL);
-	e->AssureLongScalarPar( 2, yLL);
-      }
-    }
-
-    actStream->vpor( 0, 1.0, 0, 1.0);
-    actStream->wind( 1-xLL, xsize-xLL, 1-yLL, ysize-yLL);
-
-    DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
-    SizeT rank = p0B->Rank();
-
-    int width, height;
     DLong tru=0;
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
-    if (rank == 2) 
-      {
-	if (tru != 0)
-	  e->Throw( "Array must have 3 dimensions: "+
-		    e->GetParString(0));
-	width  = p0B->Dim(0);
-	height = p0B->Dim(1);
-      } 
-    else if( rank == 3) 
-      {
-	if (tru == 1) {
-	  width = p0B->Dim(1);
-	  height = p0B->Dim(2);
-	} else if (tru == 2) {
-	  width = p0B->Dim(0);
-	  height = p0B->Dim(2);
-	} else if (tru == 3) {
-	  width = p0B->Dim(0);
-	  height = p0B->Dim(1);
-	} else {
-	  e->Throw( "TRUE must be between 1 and 3");
+    if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
+
+    DLong channel=-1;
+
+    unsigned int x_gdl=0;
+    unsigned int y_gdl=0;
+    unsigned int nx_gdl=xMaxSize;
+    unsigned int ny_gdl=yMaxSize;
+
+    bool error=false;
+    bool hasXsize=false;
+    bool hasYsize=false;
+    int nParam = e->NParam();
+    if (nParam >= 4) {
+      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
+      ny_gdl=(*Ny)[0];
+      hasYsize=true;
+    }
+    if (nParam >= 3) {
+      DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
+      nx_gdl=(*Nx)[0];
+      hasXsize=true;
+    }
+    if (nParam >= 2) {
+      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
+      y_gdl=(*y0)[0];
+    }
+    if (nParam >= 1) {
+      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
+      x_gdl=(*x0)[0];
+    }
+    if (nParam == 5) {
+      DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
+      channel=(*ChannelGdl)[0]; 
+    }
+    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
+
+    bool debug=false;
+    if (debug) {
+      cout << x_gdl <<" "<< y_gdl <<" "<< nx_gdl <<" "<< ny_gdl <<" "<< channel <<endl;
+    }
+    if (!(hasXsize))nx_gdl-=x_gdl; 
+    if (!(hasYsize))ny_gdl-=y_gdl;
+    
+    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
+    int x_11=0;
+    int y_11=0;
+    xref=0;xval=0;xinc=1;
+    yref=yMaxSize-1;yval=0;yinc=-1;
+    
+    x_11=xval+(x_gdl-xref)*xinc;
+    y_11=yval+(y_gdl-yref)*yinc;
+    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
+    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
+    if (debug) {
+      cout <<"["<< x_11 <<","<< xmax11 <<"],["<< ymin11 <<","<< y_11 <<"]"<<endl;
+    }   
+    if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
+    if (x_11 < 0 || x_11 > xMaxSize-1) error=true;
+    if (xmax11 < 0 || xmax11 > xMaxSize-1) error=true;
+    if (ymin11 < 0 || ymin11 > yMaxSize-1) error=true;
+    if (error) e->Throw("Value of Area is out of allowed range.");
+
+    if (tru == 0) {
+      dims[0] = nx_gdl;
+      dims[1] = ny_gdl;
+      dimension dim(dims, (SizeT) 2);
+      res = new DByteGDL( dim, BaseGDL::ZERO);
+
+      if (memBuffer == NULL) return res;
+
+      if (channel <= 0) { //channel not given, return max of the 3 channels
+	DByte mx, mx1;
+	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+	  mx = (DByte) memBuffer[PAD * i];
+	  mx1 = (DByte) memBuffer[PAD * i + 1];
+	  if (mx1 > mx) mx = mx1;
+	  mx1 = (DByte) memBuffer[PAD * i + 2];
+	  if (mx1 > mx) mx = mx1;
+	  (*res)[i] = mx;
 	}
       } else {
-	e->Throw( "Image array must have rank 2 or 3");
+	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+	  (*res)[i] = memBuffer[PAD * i + channel]; //0=R,1:G,2:B,3
+	}
       }
+      // Reflect about y-axis
+      if (orderVal == 0) res->Reverse(1);
+      return res;
 
-    if( width + xLL > xsize || height + yLL > ysize)
-      e->Throw( "Value of image coordinates is out of allowed range.");
+    } else {
+      dims[0] = 3;
+      dims[1] = nx_gdl;
+      dims[2] = ny_gdl;
+      dimension dim(dims, (SizeT) 3);
+      res = new DByteGDL(dim, BaseGDL::NOZERO);
+      if (memBuffer == NULL) return res; //new DByteGDL(dim, BaseGDL::ZERO);
 
-    DLong chan = 0;
-    plimage_gdl(&(*p0B)[0], width, height, xLL, yLL, tru, chan);
+      for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
+        {
+	  for(SizeT j=0; j<PAD; ++j) (*res)[(i+1)*PAD-(j+1)] = memBuffer[kpad++]; 
+	  kpad++;
+        } 
+
+      // Reflect about y-axis
+      if (orderVal == 0) res->Reverse(2);
+
+      DUInt* perm = new DUInt[3];
+      if (tru == 1) {
+	return res;
+      } else if (tru == 2) {
+	perm[0] = 1;
+	perm[1] = 0;
+	perm[2] = 2;
+	return res->Transpose(perm);
+      } else if (tru == 3) {
+	perm[0] = 1;
+	perm[1] = 2;
+	perm[2] = 0;
+	return res->Transpose(perm);
+      }
+    }
+    assert( false);
+    return NULL;
   }
-
+#undef PAD
 };
 
 #endif
