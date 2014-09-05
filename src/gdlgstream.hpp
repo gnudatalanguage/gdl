@@ -237,7 +237,6 @@ public:
   virtual void EventHandler() {}
 
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-  virtual void GetWindowSize( long& xSize, long& ySize);
   virtual unsigned long GetWindowDepth () {return 0;}
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}

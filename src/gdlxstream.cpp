@@ -158,20 +158,6 @@ void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOff
 
 }
 
-void GDLXStream::GetWindowSize(long& xSize, long& ySize){ 
-//  long xOffset;
-//  long yOffset;
-//  GetGeometry(xSize, ySize, xOffset, yOffset);
-  PLFLT xp, yp;
-  PLINT xleng, yleng;
-  PLINT plxOffset, plyOffset;
-  
-  plstream::gpage(xp, yp, xleng, yleng, plxOffset, plyOffset);
-  
-  xSize=xleng;
-  ySize=yleng;
-}
-
   bool GDLXStream::CursorStandard(int cursorNumber)
   {
     int num=max(0,min(XC_num_glyphs-1,cursorNumber));

@@ -237,12 +237,6 @@ void GDLGStream::NoSub()
 }
 
 
-void GDLGStream::GetWindowSize( long& xSize, long& ySize)
-{
-  // nothing to do
-}
-
-
 // default is a wrapper for gpage(). Is overriden by, e.g., X driver.
 void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 {

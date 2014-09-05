@@ -43,7 +43,6 @@ public:
   static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-  void GetWindowSize( long& xSize, long& ySize);
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();
   DString GetVisualName();
