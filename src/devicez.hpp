@@ -350,12 +350,10 @@ public:
       dimension dim(dims, (SizeT) 3);
       res = new DByteGDL(dim, BaseGDL::NOZERO);
       if (memBuffer == NULL) return res; //new DByteGDL(dim, BaseGDL::ZERO);
-
-      for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
-        {
-	  for(SizeT j=0; j<PAD; ++j) (*res)[(i+1)*PAD-(j+1)] = memBuffer[kpad++]; 
-	  kpad++;
-        } 
+      //normally this is sufficient...
+      memcpy(&(*res)[0],memBuffer,dims[0]* dims[1] * dims[2] * sizeof(unsigned char));
+      //unless you want to parallellize the following:
+      //for (SizeT i = 0; i < dims[0]* dims[1] * dims[2]; ++i)  (*res)[i] = memBuffer[i]; 
 
       // Reflect about y-axis
       if (orderVal == 0) res->Reverse(2);
