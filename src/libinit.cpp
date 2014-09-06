@@ -544,7 +544,7 @@ void LibInit()
   const string deviceWarnKey[] = {"FONT","GET_CURRENT_FONT","GET_FONTNAMES","GET_FONTNUM","SET_FONT", "HELVETICA", 
     "AVANTGARDE", "BKMAN", "COURIER", "PALATINO", 
     "SCHOOLBOOK", "TIMES", "ZAPFCHANCERY", "ZAPFDINGBATS", "BITS_PER_PIXEL", 
-    "ITALIC", "BOLD", "TRUE_COLOR", "CURSOR_IMAGE","CURSOR_MASK","CURSOR_XY", KLISTEND};
+    "ITALIC", "BOLD", "TRUE_COLOR", "CURSOR_IMAGE","CURSOR_MASK","CURSOR_XY","TT_FONT","USER_FONT","FONT_INDEX","FONT_SIZE", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string usersymKey[]= 
