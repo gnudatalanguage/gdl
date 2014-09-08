@@ -99,7 +99,7 @@ void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)
     g[0] = g[1] = 0.0;
     b[0] = b[1] = 0.0;
     plstream::scmap1n(ncolors);
-    plstream::scmap1l(True,2,pos,r, g, b, NULL); 
+    plstream::scmap1l(TRUE,2,pos,r, g, b, NULL); 
   }
 }
 
@@ -136,7 +136,7 @@ void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
     l[0] = minlight;
     l[1] = pos[1] = 1.0;
     plstream::scmap1n(256);
-    plstream::scmap1l(False,2,pos,h, l, s, NULL); 
+    plstream::scmap1l(FALSE,2,pos,h, l, s, NULL); 
 }
 #define WHITEB 255
 void GDLGStream::Background( ULong color, DLong decomposed)
