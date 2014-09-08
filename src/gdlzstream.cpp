@@ -21,6 +21,8 @@
 
 #include "gdlzstream.hpp"
 
+#include <plplot/plplotP.h>
+
 using namespace std;
 
 void GDLZStream::eop()
