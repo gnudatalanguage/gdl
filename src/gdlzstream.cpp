@@ -21,7 +21,7 @@
 
 #include "gdlzstream.hpp"
 
-#include <plplot/plplotP.h>
+//should not be needed. #include <plplot/plplotP.h>
 
 using namespace std;
 
@@ -63,17 +63,6 @@ unsigned long GDLZStream::GetWindowDepth(){
 
 bool GDLZStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 DLong trueColorOrder, DLong chan ) {
-
-  //the following 2 tests cannot happen i think. I keep them for safety.
-  if ( pls->level < 3 ) {
-    std::cerr << "plimage: window must be set up first" << std::endl; //plabort() not available anymore!
-    return false;
-  }
-
-  if ( nx <= 0 || ny <= 0 ) {
-    std::cerr << "plimage: nx and ny must be positive" << std::endl;
-    return false;
-  }
 
   plP_esc( PLESC_FLUSH, NULL );
   unsigned char *mem = (unsigned char *) pls->dev;
