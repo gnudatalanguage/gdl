@@ -180,12 +180,17 @@ public:
   virtual int  MaxWin()                               { return 0;}
   virtual int  ActWin()                               { return -1;}
   virtual void EventHandler() {}
-
+  virtual void DefaultXYSize(DLong *xsize, DLong *ysize) {
+							*xsize=640, *ysize=480; return;}
+  virtual void MaxXYSize(DLong *xsize, DLong *ysize) {
+							*xsize=1200, *ysize=800; return;}
   virtual DLong GetDecomposed()                       { return -1;}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}
-  virtual DIntGDL* GetScreenSize()                    { return NULL;}
+  virtual DDoubleGDL* GetScreenResolution(char* disp=NULL)           { return NULL;}
+  virtual DFloatGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
+//  virtual DIntGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
   virtual DLong GetVisualDepth()                      { return -1;}
   virtual DString GetVisualName()                     { return "";}
   virtual DIntGDL* GetWindowPosition()                { return NULL;}
