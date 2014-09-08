@@ -168,17 +168,6 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   int wxOKforThis=wxMAJOR_VERSION*10000+wxMINOR_VERSION*100+wxRELEASE_NUMBER;
   if (wxOKforThis<30001) return false; //wxWorks bug in earlier versions prevent the following code to work!
 
-  //the following 2 tests cannot happen i think. I keep them for safety.
-  if (pls->level < 3) {
-    std::cerr << "plimage: window must be set up first" << std::endl; //plabort() not available anymore!
-    return false;
-  }
-
-  if (nx <= 0 || ny <= 0) {
-    std::cerr << "plimage: nx and ny must be positive" << std::endl;
-    return false;
-  }
-
   plP_esc( PLESC_FLUSH, NULL );
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
