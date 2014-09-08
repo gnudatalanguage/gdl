@@ -19,14 +19,16 @@
 #define GDLGSTREAM_HPP_
 
 //debug aid. Put to 1 to debug
+#ifdef GDL_DEBUG
+#define GDL_DEBUG_PLSTREAM 1
+#else
 #define GDL_DEBUG_PLSTREAM 0
+#endif
 
 #include <plplot/plstream.h>
 #include <plplot/plstrm.h>
-#ifndef HAVE_X
-#else
-#  include <plplot/plxwd.h>
-#endif
+
+
 #ifdef HAVE_CONFIG_H
 // we should not add all the plplot's internal defines (which are 
 // added if HAVE_CONFIG_H is defined) to ours. Makes problem with distros.
