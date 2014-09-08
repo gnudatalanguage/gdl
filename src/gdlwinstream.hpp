@@ -14,6 +14,12 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/** 
+  \file gdlwinstream.hpp
+  \brief graphic stream M$ windows
+  \struc wingcc_Dev
+  \class GDLWINStream
+*/
 
 #ifndef GDLWINSTREAM_HPP_
 #define GDLWINSTREAM_HPP_
@@ -24,7 +30,7 @@
 // Copied from wingcc.c
 // Struct to hold device-specific info.
 
-typedef struct
+struct wingcc_Dev
 {
 	PLFLT scale;                     // scaling factor to "blow up" to the "virtual" page in removing hidden lines
 	PLINT width;                     // Window width (which can change)
@@ -65,7 +71,8 @@ typedef struct
 	// we only do a windows redraw if plplot is plotting
 	char              enterresize;     // Used to keep track of reszing messages from windows
 	char              already_erased;  // Used to track first and only first backgroudn erases
-} wingcc_Dev;
+        struct wingcc_Dev  *push;
+};
 
 class GDLWINStream : public GDLGStream
 {
@@ -88,6 +95,11 @@ public:
 
 	void Init();
 	void EventHandler();
+  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
+  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+  unsigned long GetWindowDepth();
+//to be written. Needed by same needs as for X11
+//  bool SetGraphicsFunction(long value );
 };
 
 #endif
