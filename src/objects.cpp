@@ -457,11 +457,6 @@ void InitObjects()
 
 #ifdef HAVE_LIBWXWIDGETS
 
-  // some X error message suggested this call
-#ifdef HAVE_X
-  XInitThreads();
-#endif
-
   // initialize widget system
   GDLWidget::Init();
 #endif

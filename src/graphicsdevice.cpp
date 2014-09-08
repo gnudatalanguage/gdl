@@ -204,6 +204,13 @@ void GraphicsDevice::Init()
   }
 #  endif
 
+#ifdef HAVE_LIBWXWIDGETS
+
+  // some X error message suggested this call
+#ifdef HAVE_X
+  XInitThreads();
+#endif
+#endif
   int index=0;
   // setting the GUI dev. (before, X/win was the first but X might be not defined now
   if (ExistDevice( "WIN", index)) {
