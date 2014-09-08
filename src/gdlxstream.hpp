@@ -19,9 +19,8 @@
 #define GDLXSTREAM_HPP_
 
 #include "gdlgstream.hpp"
-
-#ifndef HAVE_X
-#else
+#ifdef HAVE_X
+#  include <plplot/plxwd.h>
 
 class GDLXStream: public GDLGStream
 {
