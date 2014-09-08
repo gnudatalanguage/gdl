@@ -29,8 +29,6 @@
 
 #include "gdlwxstream.hpp"
 
-#include "devicex.hpp"
-
 #include "gdlwidget.hpp"
 
 #include "widget.hpp"
