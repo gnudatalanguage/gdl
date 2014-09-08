@@ -655,9 +655,9 @@ public:
     return gcFunction;
   }
   
-    DIntGDL* GetScreenSize()
+    DFloatGDL* GetScreenSize(char* disp)
     { 
-      Display* display = XOpenDisplay(NULL);
+      Display* display = XOpenDisplay(disp);
       if (display == NULL) ThrowGDLException("Cannot connect to X server");
       int screen_num, screen_width, screen_height;
       screen_num = DefaultScreen(display);
@@ -665,11 +665,32 @@ public:
       screen_height = DisplayHeight(display, screen_num);
       XCloseDisplay(display);
 
-      DIntGDL* res;
-      res = new DIntGDL(2, BaseGDL::NOZERO);
+      DFloatGDL* res;
+      res = new DFloatGDL(2, BaseGDL::NOZERO);
       (*res)[0]= screen_width;
       (*res)[1]= screen_height;
       return res;
+    }
+    
+    DDoubleGDL* GetScreenResolution(char* disp)
+    { 
+      Display* display = XOpenDisplay(disp);
+      if (display == NULL) ThrowGDLException("Cannot connect to X server: "+string(disp));
+      int screen_num, screen_width, screen_height;
+      screen_num = DefaultScreen(display);
+      screen_width = DisplayWidth(display, screen_num);
+      screen_height = DisplayHeight(display, screen_num);
+      int screen_width_mm;
+      int screen_height_mm;
+      screen_width_mm = DisplayWidthMM(display, screen_num);
+      screen_height_mm = DisplayHeightMM(display, screen_num);
+      XCloseDisplay(display);
+
+      DDoubleGDL* resolution;
+      resolution = new DDoubleGDL(2, BaseGDL::NOZERO);
+      (*resolution)[0]=(screen_width_mm/10.)/screen_width;
+      (*resolution)[1]=(screen_height_mm/10.)/screen_height;
+      return resolution;
     }
 
     DIntGDL* GetWindowPosition() {
@@ -964,12 +985,11 @@ public:
     return 1;
   }
 
-  static void DefaultXYSize(DLong *xSize, DLong *ySize)
+  void DefaultXYSize(DLong *xSize, DLong *ySize)
   {
     *xSize = 640;
     *ySize = 512;
-    //GD: normally here we always have HAVE_X true, no? 
-#ifdef HAVE_X
+
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
       {   
@@ -977,7 +997,7 @@ public:
 	*ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
 	XCloseDisplay(display);
       }   
-#endif
+
     bool noQscreen=true;
     string gdlQscreen=GetEnvString("GDL_GR_X_QSCREEN");
     if( gdlQscreen == "1") noQscreen=false;
@@ -987,11 +1007,11 @@ public:
     if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
   }
   
-  static void MaxXYSize(DLong *xSize, DLong *ySize)
+  void MaxXYSize(DLong *xSize, DLong *ySize)
   {
     *ySize = 640;
     *ySize = 512;
-#ifdef HAVE_X
+
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
       {
@@ -999,7 +1019,7 @@ public:
 	*ySize = DisplayHeight(display, DefaultScreen(display));
 	XCloseDisplay(display);
       }
-#endif
+
   }
 
 };
