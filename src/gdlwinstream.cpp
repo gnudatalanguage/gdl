@@ -50,6 +50,7 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *
 
   PLINT xoff = (PLINT) pos[0];
   PLINT yoff = (PLINT) pos[2];
+  PLINT kx, ky;
 
   PLINT xsize = pls->phyxma;
   PLINT ysize = pls->phyyma;
@@ -64,8 +65,8 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *
     char iclr1, ired, igrn, iblu;
     long curcolor;
 
-    for ( ix = 0; ix < kxLimit; ++ix ) {
-      for ( iy = 0; iy < kyLimit; ++iy ) {
+    for ( SizeT ix = 0; ix < kxLimit; ++ix ) {
+      for ( SizeT iy = 0; iy < kyLimit; ++iy ) {
 
         kx = xoff + ix;
         ky = yoff + iy;
