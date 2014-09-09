@@ -21,8 +21,6 @@
 
 #include "gdlzstream.hpp"
 
-//should not be needed. #include <plplot/plplotP.h>
-
 using namespace std;
 
 void GDLZStream::eop()
@@ -64,7 +62,7 @@ unsigned long GDLZStream::GetWindowDepth(){
 bool GDLZStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 DLong trueColorOrder, DLong chan ) {
 
-  plP_esc( PLESC_FLUSH, NULL );
+  plstream::cmd( PLESC_FLUSH, NULL );
   unsigned char *mem = (unsigned char *) pls->dev;
 
   PLINT xoff = (PLINT) pos[0];

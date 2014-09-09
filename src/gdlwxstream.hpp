@@ -24,8 +24,6 @@
 
 #include "gdlgstream.hpp"
 
-// #include <plplotP.h>
-// #include <plstream.h>
 #include <wx/dc.h>
 #include <wx/rawbmp.h>
 class GDLDrawPanel;

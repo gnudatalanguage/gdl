@@ -20,7 +20,6 @@
 #ifdef HAVE_LIBWXWIDGETS
 
 #include <plplot/plstream.h>
-#include <plplot/plplotP.h>
 
 #include "gdlwidget.hpp"
 #include "gdlwxstream.hpp"
@@ -56,8 +55,7 @@ GDLWXStream::GDLWXStream( int width, int height )
 //   SETOPT( "text", "1" ); // use freetype?
 //   SETOPT( "smooth", "1" );  // antialiased text?
   this->plstream::init();
-
-  plP_esc( PLESC_DEVINIT, (void*)m_dc );
+  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
 
   plstream::set_stream();
 }
@@ -99,9 +97,8 @@ void GDLWXStream::SetSize( int width, int height )
     throw GDLException("GDLWXStream: Failed to resize DC.");
   }
 
-  //   plP_esc( PLESC_CLEAR, NULL );
   wxSize size = wxSize( width, height);
-  plP_esc( PLESC_RESIZE, (void*)&size);
+  plstream::cmd(PLESC_RESIZE, (void*)&size );
   m_width = width;
   m_height = height;
 }
@@ -119,7 +116,7 @@ void GDLWXStream::Init()
 
 void GDLWXStream::RenewPlot()
 {
-  plP_esc( PLESC_CLEAR, NULL );
+  plstream::cmd( PLESC_CLEAR, NULL );
   replot();
 }
 
@@ -168,7 +165,7 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   int wxOKforThis=wxMAJOR_VERSION*10000+wxMINOR_VERSION*100+wxRELEASE_NUMBER;
   if (wxOKforThis<30001) return false; //wxWorks bug in earlier versions prevent the following code to work!
 
-  plP_esc( PLESC_FLUSH, NULL );
+  plstream::cmd( PLESC_FLUSH, NULL );
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
   wxAlphaPixelData data( *m_bitmap );

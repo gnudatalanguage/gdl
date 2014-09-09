@@ -682,7 +682,6 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 
     ncolors = 256;
 
-    //#if PL_RGB_COLOR == -1 //was (always?) set by plplotP.h which we do not use anymore. 
     if (xwd->ncol1 != ncolors) {
       free_mem(xwd->cmap1);
       xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof (XColor));

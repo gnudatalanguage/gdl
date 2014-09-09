@@ -43,7 +43,7 @@ void GDLWINStream::EventHandler()
 }
 
 bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan ) {
-  plP_esc( PLESC_FLUSH, NULL );
+  plstream::cmd( PLESC_FLUSH, NULL );
   
   wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
   HDC hdc = dev->hdc;
