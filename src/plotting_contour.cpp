@@ -783,7 +783,7 @@ namespace lib
               actStream->pat(1,&ori,&spa);
               value=static_cast<PLFLT>(i)/nlevel;
               if (dothick) actStream->Thick(( *thick )[i%thick->N_Elements()]);
-              if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]);
+              if (dostyle) gdlLineStyle(actStream, ( *style )[i%style->N_Elements ( )]); //not working; plplot bug see https://sourceforge.net/p/plplot/bugs/111
               actStream->shade( map, xEl, yEl, isLog?doIt:NULL, xStart, xEnd, yStart, yEnd,
               clevel[i], clevel[i+1],
               1, value, 
