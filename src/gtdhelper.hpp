@@ -1,4 +1,5 @@
 #include <time.h>
+#include <winsock2.h>
 #include <windows.h>
 // A conversion constant between epoch time and microsecs
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
@@ -6,12 +7,16 @@
 #else
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
-
-struct timezone
-{
-  int  tz_minuteswest; /* minutes W of Greenwich */
-  int  tz_dsttime;     /* type of dst correction */
+/*!
+ \brief gtdhelper.hpp for WIN32 or MINGW32
+ */
+#ifndef _TIMEZONE_DEFINED /* also in sys/time.h */
+#define _TIMEZONE_DEFINED
+struct timezone {
+  int tz_minuteswest;
+  int tz_dsttime;
 };
+#endif /* _TIMEZONE_DEFINED */
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 

@@ -869,6 +869,11 @@ namespace SysVar
     if( omp_get_dynamic())
 	omp_set_dynamic( 1);
 #endif
+#if defined (__MINGW32__)
+
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
+// ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
+#endif
 
     // !DIR
 #ifndef EXEC_PREFIX

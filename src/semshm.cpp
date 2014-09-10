@@ -14,12 +14,18 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+/*! \brief semshm.cpp  functions to handle semaphores
+  \typedef sem_data_t
+  \struct  sem_data_t
+  \namespace lib
+ */
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 #include "includefirst.hpp"
-
+// Greg Jung 
+// These windows calls are not found in gnu/mingw compiler but 
+// it does bring a semaphore.h in
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define sem_trywait(sem) (WaitForSingleObject(sem, 0) == WAIT_OBJECT_0 ? 0 : -1) 
 #define sem_post(sem) (ReleaseSemaphore(sem, 1, NULL) ? 0 : -1) 
@@ -90,7 +96,8 @@ namespace lib {
     sem_map().erase(name);
   }
 
-  static inline void sem_add(const DString &name, const sem_data_t &data)
+  static inline void sem_add(const DString &name,
+         const sem_data_t &data)
   {
     sem_map_t &map = sem_map();
     sem_map_t::iterator it = map.find(name);
@@ -157,7 +164,7 @@ namespace lib {
     const char* cname = name.c_str();
     TCHAR tname[256] = {0,};
 
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cname, strlen(cname), tname, 256);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cname, strlen(cname),(LPWSTR) tname, 256);
     HANDLE sem = CreateSemaphore(NULL,1,1,tname);
     if (sem == NULL) {
 	owner = false;
@@ -166,11 +173,11 @@ namespace lib {
 #else
     sem_t *sem = sem_open(name.c_str(), O_CREAT | O_EXCL, 0666, 1);
     if (sem == SEM_FAILED)
-    {
+    {  // semaphore exists. make another one, locked (value=0)
       owner = false;
       if (errno == EEXIST)
       {
-        sem = sem_open(name.c_str(), 0);
+        sem = sem_open(name.c_str(), O_CREAT ,0666, 0);
       }
       if (sem == SEM_FAILED)
       {
