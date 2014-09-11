@@ -354,11 +354,43 @@ void WordExp( string& s)
 //cout << "WordExp out: " << s << endl;
 }
 
+string FullPathFileName(string in_file)
+{
+  
+  string AbsolutePath;
+
+  char *symlinkpath =const_cast<char*> (in_file.c_str());
+  char actualpath [PATH_MAX+1];
+  char *ptr;
+
+  ptr = realpath(symlinkpath, actualpath);
+  if( ptr != NULL ){
+    AbsolutePath =string(ptr);
+  }else {
+    AbsolutePath = in_file;
+  }
+ 
+  int debug=0;
+  if (debug) {
+    cout << in_file << endl;
+    cout << AbsolutePath << endl;
+  }
+
+  return AbsolutePath;
+
+}
 
 // Tries to find file "fn" along GDLPATH.
 // If found, sets fn to the full pathname.
 // and returns true, else false
-// If fn starts with '/' or ".." or "./", just checks if it is readable.
+// 
+// this line is no more true : "If fn starts with '/' or ".." or "./", just checks if it is readable."
+// new since AC 11-Sept-2014: we return the absolute path, this is needed
+// for outputs in various procedures:
+// GDL> HELP, /source  ou HELP, /traceback
+// GDL> print, ROUTINE_INFO('dist',/function,/source)
+
+
 bool CompleteFileName(string& fn)
 {
   WordExp( fn);
@@ -368,6 +400,7 @@ bool CompleteFileName(string& fn)
   if(fp)
     {
       fclose(fp);
+      fn=FullPathFileName(fn);
       return true;
     }
 
@@ -385,7 +418,12 @@ bool CompleteFileName(string& fn)
 
       act=act+fn;
       fp = fopen(act.c_str(),"r");
-      if(fp) {fclose(fp); fn=act; return true;}
+      if(fp) {
+	fclose(fp);
+	fn=act;
+	fn=FullPathFileName(fn);
+	return true;
+      }
     }
   else
     for(unsigned p=0; p<path.size(); p++)
@@ -401,7 +439,12 @@ bool CompleteFileName(string& fn)
 
 	act=act+fn;
 	fp = fopen(act.c_str(),"r");
-	if(fp) {fclose(fp); fn=act; return true;}
+	if(fp) {
+	  fclose(fp);
+	  fn=act;
+	  fn=FullPathFileName(fn);
+	  return true;
+	}
       }
   return false;
 }

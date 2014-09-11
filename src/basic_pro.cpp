@@ -436,6 +436,49 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	}
     }
 
+    // a simplification of codes (DebugMsg & DumpStack) in GDLInterpreter.cpp
+    // ProgNodeP cN = e->CallingNode();
+    // DInterpreter::DebugMsg(cN, "At ");
+    // DInterpreter::DumpStack(3);
+    
+    void SimpleDumpStack(EnvT* e)
+    {
+
+      EnvStackT& callStack = e->Interpreter()->CallStack();
+
+      // simple way to manage the first line : exception
+      SizeT w=0;
+      string msgPrefix="% At ";
+
+      long actIx = callStack.size() - 1;
+      for( ; actIx >= 0; --actIx)
+        {
+	  EnvStackT::pointer_type upEnv = callStack[ actIx]; 
+
+	  std::cerr << msgPrefix << std::right << std::setw( w) << "";
+	  // simple way to manage the first line : exception
+	  msgPrefix="";
+	  w=5;
+	  std::cerr << std::left << std::setw(16) << upEnv->GetProName();
+	  
+	  std::string file = upEnv->GetFilename();
+	  if( file != "")
+            {              	      
+	      int lineNumber = upEnv->GetLineNumber();
+	      if( lineNumber != 0)
+                {       
+		  std::cerr << std::right << std::setw(6) << lineNumber;
+                }
+	      else
+                {
+		  std::cerr << std::right << std::setw(6) << "";
+                }
+	      std::cerr << std::left << " " << file;
+            }
+	  std::cerr << std::endl;
+	}
+    }
+
     void help_pro( EnvT* e)
     {    
       // in order of priority
@@ -472,9 +515,10 @@ bool CompareWithJokers(string names, string sourceFiles) {
 			      "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
 			      "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE,",
 			      "          /PREFERENCES, /PROCEDURES, /RECALL_COMMANDS, /ROUTINES,",
-			      "          /SOURCE_FILES, /STRUCTURES, /SYSTEM_VARIABLES"};
-	int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	
+			      "          /SOURCE_FILES, /STRUCTURES, /SYSTEM_VARIABLES, /TRACEBACK"};
+	int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
 	e->Help(inline_help, size_of_s);
+	return;
       }
 
       if (e->KeywordSet("ALL_KEYS") || e->KeywordSet("KEYS")) {  // ALL_KEYS is an obsolete keyword
@@ -501,6 +545,20 @@ bool CompareWithJokers(string names, string sourceFiles) {
       bool pathKW= e->KeywordPresent(pathKWIx);
       if( pathKW) {
 	help_path_cached();
+	return;
+      }
+
+      // if keyword /TraceBack then we return
+      static int tracebackKWIx = e->KeywordIx("TRACEBACK");
+      bool tracebackKW = e->KeywordSet(tracebackKWIx);
+
+      if (tracebackKW) {
+	SimpleDumpStack(e);
+	// AC 12-sept-2014: not ready but "SimpleDumpStack"
+	// should be easy to be generalize for that ...
+	if (doOutput) {
+	  Warning("output keyword not ready here, please contribute here 1");
+	}
 	return;
       }
 
@@ -848,8 +906,12 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  // Tell where we are
 	  DSubUD* pro = static_cast<DSubUD*>( e->Caller()->GetPro());
 	  if (outputKW == NULL) {
-	    cout << "% At " << pro->ObjectName() << endl;
+	    SimpleDumpStack(e);	
+	    //cout << "% At " << pro->ObjectName() << endl;
 	  } else {
+	    // AC 12-sept-2014: not ready but "SimpleDumpStack"
+	    // should be easy to be generalize for that ...
+	    Warning("output keyword not ready here, please contribute here 2");
 	    ostr << "% At " << pro->ObjectName();
 	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
 	    ostr.str("");
@@ -3184,6 +3246,12 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
     void resolve_routine( EnvT* e)
     {
+
+      // AC 11 Sept. 2014
+      Warning("This code is not doing what it should.");
+      Warning("and keywords are not managed ...");
+      Warning("If you need this code, please ask or contribute !");
+
       SizeT nParam=e->NParam(1); 
     
       //     static int eitherIx = e->KeywordIx( "EITHER");
