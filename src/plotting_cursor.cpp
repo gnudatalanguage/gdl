@@ -34,12 +34,16 @@ void empty(EnvT* e)
 
 void tvcrs( EnvT* e)
 {
+ 
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-
-  if (actDevice->Name() != "X")
+   if (actDevice == NULL) e->Throw("No device available"); 
+  GDLGStream *actStream = actDevice->GetStream();
+  if (actStream == NULL) e->Throw("Unable to create window.");
+  if (!actStream->HasCrossHair())
   {
     e->Throw("Routine is not defined for current graphics device.");
   }
+
   SizeT nParam = e->NParam(1);
 
   if (nParam < 2 )
@@ -51,8 +55,6 @@ void tvcrs( EnvT* e)
   x = e->GetParAs< DDoubleGDL > (0);
   y = e->GetParAs< DDoubleGDL > (1);
 
-  GDLGStream *actStream = actDevice->GetStream();
-  if (actStream == NULL) e->Throw("Unable to create window.");
   PLINT plplot_level;
   actStream->glevel(plplot_level);
   // when level < 2, we have to read if ![x|y].crange exist
@@ -90,6 +92,8 @@ void tvcrs( EnvT* e)
       tempy= sy[0] +odata.v * sy[1]; //normed values
       actStream->NormedDeviceToDevice(tempx,tempy,ix,iy);
       actStream->WarpPointer(ix,iy);
+      actStream->Flush();
+      actStream->UnsetFocus();
       return;
 #endif
     }
@@ -110,6 +114,9 @@ void tvcrs( EnvT* e)
     iy=(*y)[0];
   }
   actStream->WarpPointer(ix,iy);
+  actStream->Flush();
+  actStream->UnsetFocus();
+
 }
 
 // get cursor from plPlot     AC February 2008
@@ -123,8 +130,10 @@ void cursor(EnvT* e){
     UP //4
   };
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-
-  if (actDevice->Name() != "X")
+   if (actDevice == NULL) e->Throw("No device available"); 
+  GDLGStream *actStream = actDevice->GetStream();
+  if (actStream == NULL) e->Throw("Unable to create window.");
+  if (!actStream->HasCrossHair())
   {
     e->Throw("Routine is not defined for current graphics device.");
   }
@@ -138,9 +147,6 @@ void cursor(EnvT* e){
 
   e->AssureGlobalPar(0);
   e->AssureGlobalPar(1);
-
-  GDLGStream *actStream = actDevice->GetStream();
-  if (actStream == NULL) e->Throw("Unable to create window.");
 
   static PLGraphicsIn gin;
 
