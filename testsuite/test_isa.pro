@@ -296,11 +296,11 @@ end
 ; -----------------------------------------------
 ;
 pro TEST_ISA, nb_errors=nb_errors, tmp_var=tmp_var, $
-              help=help, verbose=verbose, no_exit=no_exit
+              help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro TEST_ISA, nb_errors=nb_errors, tmp_var=tmp_var, $'
-    print, '              help=help, verbose=verbose, no_exit=no_exit'
+    print, '              help=help, verbose=verbose, no_exit=no_exit, test=test'
     return
 endif
 ;
@@ -376,9 +376,9 @@ INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
 ;
 BANNER_FOR_TESTSUITE, 'TEST_ISA', total_errors, short=short
 ;
-if (total_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
-;
 if KEYWORD_SET(test) then STOP
+;
+if (total_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 end
 
