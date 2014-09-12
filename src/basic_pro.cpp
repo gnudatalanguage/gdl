@@ -1188,7 +1188,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
 		{
 		  DString parString = (*it)->VarName( vIx) +" ("+(*it)->Name()+')';
 		  stringstream ss;
-		  help_item( ss, NULL, parString, false);
+		  DVar* var = (*it)->Var( vIx);
+		  help_item( ss, var->Data(), parString, false);
 		  helpStr.insert( ss.str() );
 		}
 	    }
