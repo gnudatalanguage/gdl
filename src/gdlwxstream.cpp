@@ -103,7 +103,24 @@ void GDLWXStream::SetSize( int width, int height )
   m_height = height;
 }
 
+void GDLWXStream::WarpPointer(DLong x, DLong y) {
+//  int xx=x;
+//  int yy=y;
+//  wxWindow *w =  m_dc->GetWindow();
+//  w->WarpPointer(xx,yy); //crash??
+}
 
+//bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
+//
+//  enum CursorOpt {
+//    NOWAIT = 0,
+//    WAIT, //1
+//    CHANGE, //2
+//    DOWN, //3
+//    UP //4
+//  };
+//  return true;
+//}
 
 void GDLWXStream::Init()
 {

@@ -59,6 +59,8 @@ public:
 		   DLong trueColorOrder, DLong channel);
     void Clear();
     void Clear( DLong bColor);
+    void WarpPointer(DLong x, DLong y);
+    virtual bool HasCrossHair() {return false;}
 };
 
 

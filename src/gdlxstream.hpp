@@ -66,6 +66,7 @@ public:
   bool HasDoubleBuffering();
   bool HasSafeDoubleBuffering();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
+  virtual bool HasCrossHair() {return true;}
 };
 
 #endif

@@ -263,6 +263,7 @@ public:
   virtual void Clear()         {}
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
+  virtual bool HasCrossHair() {return false;}
 
   void SetValid( bool v) { valid = v;}
   bool GetValid() { return valid;}
