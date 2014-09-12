@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -45,8 +45,8 @@ DSub::~DSub() {}
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
 	    const string warnKeyNames[], const int nParMin_)
- : DSub(n,o)
- , hideHelp( false)
+  : DSub(n,o)
+  , hideHelp( false)
 {
   nPar=nPar_;
   nParMin = nParMin_;
@@ -55,7 +55,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
   SizeT nKey_=0;
   if( keyNames != NULL)
     {
-    while( keyNames[nKey_] != "") ++nKey_;
+      while( keyNames[nKey_] != "") ++nKey_;
     }
 
   key.resize(nKey_);
@@ -77,7 +77,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
   SizeT nWarnKey_=0;
   if( warnKeyNames != NULL)
     {
-    while( warnKeyNames[nWarnKey_] != "") ++nWarnKey_;
+      while( warnKeyNames[nWarnKey_] != "") ++nWarnKey_;
     }
 
   warnKey.resize(nWarnKey_);
@@ -133,7 +133,7 @@ const string DLibFun::ToString()
       for( SizeT i=0; i<key.size(); ++i)
 	{
 	  s += key[ i];//+"=val";
-	    if( i+1 != key.size()) s += ",";
+	  if( i+1 != key.size()) s += ",";
 	}
     }
   s += ")";
@@ -157,7 +157,7 @@ const string DFun::ToString()
       for( SizeT i=0; i<key.size(); ++i)
 	{
 	  s += key[ i];//+"=val";
-	    if( i+1 != key.size()) s += ",";
+	  if( i+1 != key.size()) s += ",";
 	}
     }
   s += ")";
@@ -175,40 +175,40 @@ const string DFun::ToString()
 // }
 
 DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
 }
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
-			const string& o, const int nPar_, 
-			const string keyNames[], const string warnKeyNames[], const int nParMin_)
+			      const string& o, const int nPar_, 
+			      const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLibFun(f,n,o,nPar_,keyNames, warnKeyNames, nParMin_)
 {}
 
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
-			const string keyNames[], const string warnKeyNames[], bool rConstant,
-			const int nParMin_)
+			      const string keyNames[], const string warnKeyNames[], bool rConstant,
+			      const int nParMin_)
   : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_), retConstant( rConstant)
 {}
 // DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
@@ -312,8 +312,8 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
       if(extraIx != -1) extraIx++; // update extra ix index
     }
   // as we only push_front during compilation, we better use a vector here
-//   key.push_front(k);
-//   var.push_back(v);
+  //   key.push_front(k);
+  //   var.push_back(v);
   // we want push_front
   key.resize( key.size() + 1);
   for( int i= key.size()-1; i>0; --i)
@@ -336,17 +336,17 @@ void DSubUD::ResolveLabel( ProgNodeP p)
 {
   if( p == NULL) return;
 
-// if( p->getNextSibling() != NULL)
-// 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: "<< p->GetNextSibling()->getText() << std::endl;
-// else
-// 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: NULL"<< std::endl;
+  // if( p->getNextSibling() != NULL)
+  // 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: "<< p->GetNextSibling()->getText() << std::endl;
+  // else
+  // 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: NULL"<< std::endl;
   
   if( p->getType() == GDLTreeParser::ON_IOERROR || 
       p->getType() == GDLTreeParser::GOTO)
     {
       int ix = labelList.Find( p->getText());
       if( ix == -1)
-		throw GDLException( p, ObjectName()+": Undefined label "+p->getText()+
+	throw GDLException( p, ObjectName()+": Undefined label "+p->getText()+
 			    " referenced in GOTO statement.",false,false);
       
       p->SetGotoIx( ix);
@@ -357,16 +357,16 @@ void DSubUD::ResolveLabel( ProgNodeP p)
     }
   
   if( !p->KeepDown())
-	ResolveLabel( p->getFirstChild());
+    ResolveLabel( p->getFirstChild());
   if( !p->KeepRight())
-	ResolveLabel( p->getNextSibling());
-//   else
-// 	ResolveLabel( p->getNextSibling());
+    ResolveLabel( p->getNextSibling());
+  //   else
+  // 	ResolveLabel( p->getNextSibling());
 }
 
-  // **************************************
-  // the final "compilation" takes part here 
-  // **************************************
+// **************************************
+// the final "compilation" takes part here 
+// **************************************
 void DSubUD::SetTree( RefDNode n)
 {
   //
@@ -376,51 +376,49 @@ void DSubUD::SetTree( RefDNode n)
   // ***************************************************
   tree = ProgNode::NewProgNode( n);
 
-//   if( tree != NULL)
-    nForLoops = ProgNode::NumberForLoops( tree);
-//   else
-// 	nForLoops = 0;
+  //   if( tree != NULL)
+  nForLoops = ProgNode::NumberForLoops( tree);
+  //   else
+  // 	nForLoops = 0;
   
 #ifdef GDL_DEBUG
-      cout << "DSubUD::SetTree:" << endl;
-      antlr::print_tree pt;
-      pt.pr_tree(tree);
-      cout << "DSubUD::SetTree end." << endl;
+  cout << "DSubUD::SetTree:" << endl;
+  antlr::print_tree pt;
+  pt.pr_tree(tree);
+  cout << "DSubUD::SetTree end." << endl;
 #endif
 
 }
 
- bool DSubUD::GetCommonVarName(const BaseGDL* p, std::string& varName)
-  {
-    for( CommonBaseListT::iterator c=common.begin();
-	 c != common.end(); c++)
-      {
-	int vIx = (*c)->Find( p);
-	if( vIx >= 0) 
-	  {
-	    varName=(*c)->VarName( vIx);
-	    return true;
-	  }
-      }
-    return false;
-  }
+bool DSubUD::GetCommonVarName(const BaseGDL* p, std::string& varName)
+{
+  CommonBaseListT::iterator it;
+  for( it=common.begin(); it != common.end(); it++)
+    {
+      int vIx = (*it)->Find( p);
+      if( vIx >= 0) 
+	{
+	  varName=(*it)->VarName( vIx);
+	  return true;
+	}
+    }
+  return false;
+}
 
- bool DSubUD::GetCommonVarName4Help(const BaseGDL* p, std::string& varName)
-  {
-    CommonBaseListT::iterator it;
-
-    for( it=common.begin(); it != common.end(); it++)
-      {
-	int vIx = (*it)->Find( p);
-	if( vIx >= 0) 
-	  {
-	    varName=(*it)->VarName( vIx) +" ("+(*it)->Name()+')';
-	    cout << "GetCommonVarName4Help "<< varName << endl;
-	    return true;
-	  }
-      }
-    return false;
-  }
+bool DSubUD::GetCommonVarName4Help(const BaseGDL* p, std::string& varName)
+{
+  CommonBaseListT::iterator it;
+  for( it=common.begin(); it != common.end(); it++)
+    {
+      int vIx = (*it)->Find( p);
+      if( vIx >= 0) 
+	{
+	  varName=(*it)->VarName( vIx) +" ("+(*it)->Name()+')';
+	  return true;
+	}
+    }
+  return false;
+}
 
 
 bool DSubUD::isObsolete()

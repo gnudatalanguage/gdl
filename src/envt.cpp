@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -41,26 +41,26 @@ void* EnvT::operator new( size_t bytes)
 {
   assert( bytes == sizeof( EnvT));
   if( freeList.size() > 0)
-  {
-    void* res = freeList.back();
-    freeList.pop_back();
-    return res;	
-  }
-//   cout << "*** Resize EnvT " << endl;
+    {
+      void* res = freeList.back();
+      freeList.pop_back();
+      return res;	
+    }
+  //   cout << "*** Resize EnvT " << endl;
   const size_t newSize = multiAllocEnvT - 1;
   freeList.resize( newSize);
   char* res = static_cast< char*>( malloc( sizeof( EnvT) * multiAllocEnvT)); // one more than newSize
   for( size_t i=0; i<newSize; ++i)
-  {
-    freeList[ i] = res;
-    res += sizeof( EnvT);
-  } 
+    {
+      freeList[ i] = res;
+      res += sizeof( EnvT);
+    } 
   // the one more
   return res;
 }
 void EnvT::operator delete( void *ptr)
 {
-freeList.push_back( ptr);
+  freeList.push_back( ptr);
 }
 
 // EnvUDT::new & delete 
@@ -71,30 +71,30 @@ void* EnvUDT::operator new( size_t bytes)
 {
   assert( bytes == sizeof( EnvUDT));
   if( freeList.size() > 0)
-  {
-    return freeList.pop_back();  
-//     void* res = freeList.back();
-//     freeList.pop_back();
-//     return res;	
-  }
-//   cout << "*** Resize EnvUDT " << endl;
+    {
+      return freeList.pop_back();  
+      //     void* res = freeList.back();
+      //     freeList.pop_back();
+      //     return res;	
+    }
+  //   cout << "*** Resize EnvUDT " << endl;
   const size_t newSize = multiAllocEnvUDT - 1;
 
   static long callCount = 0;
   ++callCount;
   
   freeList.reserve( multiAllocEnvUDT * callCount);
-//   char* res = static_cast< char*>( malloc( sizeof( EnvUDT) * multiAllocEnvUDT)); // one more than newSize
-//   for( size_t i=0; i<newSize; ++i)
-//   {
-//     freeList[ i] = res;
-//     res += sizeof( EnvUDT);
-//   } 
+  //   char* res = static_cast< char*>( malloc( sizeof( EnvUDT) * multiAllocEnvUDT)); // one more than newSize
+  //   for( size_t i=0; i<newSize; ++i)
+  //   {
+  //     freeList[ i] = res;
+  //     res += sizeof( EnvUDT);
+  //   } 
   const size_t sizeOfType = sizeof( EnvUDT);
   char* res = static_cast< char*>( malloc( sizeOfType * multiAllocEnvUDT)); // one more than newSize
   
   res = freeList.Init( newSize, res, sizeOfType);
- // the one more
+  // the one more
   return res;
 }
 void EnvUDT::operator delete( void *ptr)
@@ -107,7 +107,7 @@ void EnvUDT::operator delete( void *ptr)
 
 
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
-   toDestroy()
+  toDestroy()
   ,env()
   ,pro(pro_)
   ,callingNode( cN)
@@ -116,7 +116,7 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
   ,extra(NULL)
   ,newEnvOff(NULL)
   ,ptrToReturnValue(NULL)
-//, toDestroyInitialIndex( toDestroy.size())
+		  //, toDestroyInitialIndex( toDestroy.size())
 {}
 
 EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF): 
@@ -126,7 +126,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF):
   catchVar(NULL), 
   catchNode(NULL), 
   callContext( lF),
-//   callContext( RFUNCTION),
+  //   callContext( RFUNCTION),
   nJump( 0),
   lastJump( -1)
 {
@@ -145,25 +145,25 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF):
 }
 
 EnvT::EnvT ( ProgNodeP cN, DSub* pro_):
-		EnvBaseT ( cN, pro_)
+  EnvBaseT ( cN, pro_)
 {
-// 	SizeT envSize;
-// 	SizeT keySize;
-	parIx=pro->key.size();
-	if ( pro->nPar > 0 )
-	{
-		env.resize ( pro->nPar + parIx);
-// 		envSize=pro->nPar+parIx;
-	}
-	else
-	{
-		env.resize ( parIx);
-// 		envSize=parIx;
-		// performance optimization
-		//env.reserve(envSize+5);
-	}
-// 	env.resize ( envSize);
-//   parIx=keySize; // set to first parameter
+  // 	SizeT envSize;
+  // 	SizeT keySize;
+  parIx=pro->key.size();
+  if ( pro->nPar > 0 )
+    {
+      env.resize ( pro->nPar + parIx);
+      // 		envSize=pro->nPar+parIx;
+    }
+  else
+    {
+      env.resize ( parIx);
+      // 		envSize=parIx;
+      // performance optimization
+      //env.reserve(envSize+5);
+    }
+  // 	env.resize ( envSize);
+  //   parIx=keySize; // set to first parameter
 }
 
 // member pro
@@ -213,12 +213,12 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
-//   SizeT keySize;
+  //   SizeT keySize;
   envSize=proUD->var.size();
   parIx=proUD->key.size();
 
   env.resize(envSize);
-//   parIx=keySize; // set to first parameter
+  //   parIx=keySize; // set to first parameter
   // pass by value (self must not be changed)
   env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
@@ -272,7 +272,7 @@ EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext l
   parIx=proUD->key.size();
 
   env.resize(envSize);
-//   parIx=keySize; // set to first parameter
+  //   parIx=keySize; // set to first parameter
   // pass by value (self must not be changed)
   env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
@@ -288,15 +288,15 @@ EnvT::EnvT( EnvT* pEnv, DSub* newPro, DObjGDL** self):
   SizeT envSize;
   parIx=pro->key.size();
   if( pro->nPar > 0)
-	{
-		envSize=pro->nPar+parIx;
-	}
+    {
+      envSize=pro->nPar+parIx;
+    }
   else
-	{
-		envSize=parIx;
-	}
+    {
+      envSize=parIx;
+    }
   env.resize(envSize);
-//   parIx=keySize; // set to first parameter
+  //   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
     env.Set( parIx++, (BaseGDL**)self); //static_cast<BaseGDL*>(oStructGDL));
@@ -306,7 +306,7 @@ EnvT::EnvT( EnvT* pEnv, DSub* newPro, DObjGDL** self):
 
 //EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
 EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
-//   EnvBaseT( pEnv->CallingNode(), newPro),
+  //   EnvBaseT( pEnv->CallingNode(), newPro),
   EnvBaseT( callingNode_, newPro),
   ioError(NULL), 
   onError( -1), 
@@ -323,11 +323,11 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
   forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
-//   SizeT keySize;
+  //   SizeT keySize;
   envSize=proUD->var.size();
   parIx=proUD->key.size();
   env.resize(envSize);
-//   parIx=keySize; // set to first parameter
+  //   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
     env.Set( parIx++, (BaseGDL**)self); //static_cast<BaseGDL*>(oStructGDL));
@@ -347,10 +347,10 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
   
   // avoid recursion on LIST (for > 100000 list elements a segfault is generated otherwise)
   if( desc->IsParent("LIST"))
-  {
+    {
       AddLIST(ptrAccessible, objAccessible, stru);
       return;
-  }
+    }
 
   SizeT nTags = desc->NTags();
   for( SizeT t=0; t<nTags; ++t)
@@ -371,7 +371,7 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 	      AddStruct( ptrAccessible, objAccessible, ptr);
 	    }
 	}
-     else if( (*desc)[ t]->Type() == GDL_OBJ)
+      else if( (*desc)[ t]->Type() == GDL_OBJ)
 	{
 	  for( SizeT e = 0; e<nEl; ++e)
 	    {
@@ -445,7 +445,7 @@ void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 {
   for( SizeT i=0; i<toDestroy.size(); ++i)
     {
-	Add( ptrAccessible, objAccessible, toDestroy[i]);
+      Add( ptrAccessible, objAccessible, toDestroy[i]);
     }
 }
 
@@ -480,7 +480,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 	    DVar* var = common->Var( v);
 	    if( var != NULL)
 	      {
-			Add( ptrAccessible, objAccessible, var->Data());
+		Add( ptrAccessible, objAccessible, var->Data());
 	      }
 	  }
       }
@@ -496,7 +496,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       }
 
     EnvStackT& cS=interpreter->CallStack();
-//     for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
+    //     for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
     for( long ix = cS.size()-1; ix >= 0; --ix) 
       {
 	cS[ix]->AddEnv( ptrAccessible, objAccessible);
@@ -538,7 +538,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       {
 	std::vector<DPtr>* heap = interpreter->GetAllHeapSTL();
 	Guard< std::vector<DPtr> > heap_guard( heap);
-	    SizeT nH = heap->size();
+	SizeT nH = heap->size();
 	if( nH > 0 && (*heap)[0] != 0)
 	  {
 	    for( SizeT h=0; h<nH; ++h)
@@ -614,84 +614,84 @@ void EnvBaseT::ObjCleanup( DObj actID)
 	 
   // found actID  
   if( actObj != NULL)
-  {
-    InProgressGuard inProgressGuard( actID); // exception save
+    {
+      InProgressGuard inProgressGuard( actID); // exception save
     
-    Guard<BaseGDL> actObjGDL_guard;
-    try{
+      Guard<BaseGDL> actObjGDL_guard;
+      try{
 	// call CLEANUP function
 	DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
 
 	if( objCLEANUP != NULL)
+	  {
+	    DObjGDL* actObjGDL = new DObjGDL( actID);
+	    actObjGDL_guard.Init( actObjGDL);
+	    GDLInterpreter::IncRefObj( actID); // set refcount to 1
+  
+	    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
+  
+	    interpreter->call_pro( objCLEANUP->GetTree());
+  
+	    EnvBaseT* callStackBack =  interpreter->CallStack().back();
+	    interpreter->CallStack().pop_back();
+	    delete callStackBack;
+	  }
+      }
+      catch( ...)
 	{
-	  DObjGDL* actObjGDL = new DObjGDL( actID);
-	  actObjGDL_guard.Init( actObjGDL);
-	  GDLInterpreter::IncRefObj( actID); // set refcount to 1
-  
-	  PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
-  
-	  interpreter->call_pro( objCLEANUP->GetTree());
-  
-	  EnvBaseT* callStackBack =  interpreter->CallStack().back();
-	  interpreter->CallStack().pop_back();
-	  delete callStackBack;
-	}
+	  FreeObjHeap( actID); // make sure actObj is freed
+	  throw; // rethrow
+	}		
+      // actObjGDL_guard goes out of scope -> refcount is (would be) decreased
+      FreeObjHeap( actID); 
     }
-    catch( ...)
-      {
-	FreeObjHeap( actID); // make sure actObj is freed
-	throw; // rethrow
-      }		
-    // actObjGDL_guard goes out of scope -> refcount is (would be) decreased
-    FreeObjHeap( actID); 
-  }
   else // actObj == NULL
-  {
+    {
       Warning("Cleaning up invalid (NULL) OBJECT ID <"+i2s(actID)+">.");
       FreeObjHeap( actID); // make sure actObj is freed
-  }
+    }
 }
 
 
 
 void EnvT::ObjCleanup( DObj actID)
 {
-    if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
+  if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
     {
-        DStructGDL* actObj;
-        try {
-            actObj=GetObjHeap( actID);
-//  		GDLInterpreter::ObjHeapT::iterator it;
-// 		actObj=GDLInterpreter::GetObjHeap( actID, it);
-        }
-        catch( GDLInterpreter::HeapException) {
-            actObj=NULL;
-        }
+      DStructGDL* actObj;
+      try {
+	actObj=GetObjHeap( actID);
+	//  		GDLInterpreter::ObjHeapT::iterator it;
+	// 		actObj=GDLInterpreter::GetObjHeap( actID, it);
+      }
+      catch( GDLInterpreter::HeapException) {
+	actObj=NULL;
+      }
 
-        if( actObj != NULL)
+      if( actObj != NULL)
         {
-            // call CLEANUP function
-            DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+	  // call CLEANUP function
+	  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
 
-            if( objCLEANUP != NULL)
+	  if( objCLEANUP != NULL)
             {
-                DObjGDL* actObjGDL = new DObjGDL( actID);
-                Guard<BaseGDL> actObjGDL_guard( actObjGDL);
-                GDLInterpreter::IncRefObj( actID);
+	      DObjGDL* actObjGDL = new DObjGDL( actID);
+	      Guard<BaseGDL> actObjGDL_guard( actObjGDL);
+	      GDLInterpreter::IncRefObj( actID);
 
-		StackGuard<EnvStackT> guard( interpreter->CallStack());
-                EnvUDT* newEnv = PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+	      StackGuard<EnvStackT> guard( interpreter->CallStack());
+	      EnvUDT* newEnv = PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
 
-                inProgress.insert( actID);
+	      inProgress.insert( actID);
 
-                interpreter->call_pro( objCLEANUP->GetTree());
+	      interpreter->call_pro( objCLEANUP->GetTree());
 
-                inProgress.erase( actID);
-//                 delete newEnv;
-//                 interpreter->CallStack().pop_back();
+	      inProgress.erase( actID);
+	      //                 delete newEnv;
+	      //                 interpreter->CallStack().pop_back();
             }
 
-            FreeObjHeap( actID); // the actual freeing
+	  FreeObjHeap( actID); // the actual freeing
         }
     }
 }
@@ -745,12 +745,12 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	{
 	  if( subUD != NULL) {return subUD->GetVarName(ix);break;}
 
-	string callerName = Default;
- 	if( this->Caller() != NULL)
- 		callerName = this->Caller()->GetString( p, calledFromHELP);
+	  string callerName = Default;
+	  if( this->Caller() != NULL)
+	    callerName = this->Caller()->GetString( p, calledFromHELP);
  
-	if( callerName.length() < Default.length() || callerName.substr(0,Default.length()) != Default)
-		return callerName;
+	  if( callerName.length() < Default.length() || callerName.substr(0,Default.length()) != Default)
+	    return callerName;
 
 	  if( ix < pro->key.size()) {name="<KEY_"+i2s(ix)+">";break;}
 	  name="<PAR_"+i2s(ix - pro->key.size())+">";
@@ -762,62 +762,62 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
   // note: system variables are never passed by reference
   // ie. always a copy is passed.
   // therefore the help function never returns the sys var's name here
-//   DVar* sysVar=FindInVarList( sysVarList, p);
-//   if( sysVar != NULL) return sysVar->Name();
+  //   DVar* sysVar=FindInVarList( sysVarList, p);
+  //   if( sysVar != NULL) return sysVar->Name();
 
   // search common blocks
   if( name == Default && subUD != NULL)
     {
       string varName;
-      if( subUD->GetCommonVarName( p, varName)) 
+      if( subUD->GetCommonVarName4Help( p, varName)) 
 	return varName;
     }
 
-    if( !p)
-      {
-        return  "<Undefined>";
-      }
+  if( !p)
+    {
+      return  "<Undefined>";
+    }
 
-    if( !calledFromHELP)
+  if( !calledFromHELP)
+    {
+      ostringstream os;
+      os << '<' << left;
+      os.width(10);
+      os << p->TypeStr() << right;
+	
+      // Data display
+      if( p->Type() == GDL_STRUCT)
 	{
-	ostringstream os;
-	os << '<' << left;
-	os.width(10);
-	os << p->TypeStr() << right;
-	
-	// Data display
-	if( p->Type() == GDL_STRUCT)
+	  /*		DStructGDL* s = static_cast<DStructGDL*>( p);
+	    os << "-> ";
+	    os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+	    os << " ";*/
+	}
+      else if( p->Dim( 0) == 0)
 	{
-/*		DStructGDL* s = static_cast<DStructGDL*>( p);
-		os << "-> ";
-		os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
-		os << " ";*/
-	}
-	else if( p->Dim( 0) == 0)
-	{
-		os << "(";
-		if (p->Type() == GDL_STRING)
-		{
-		// trim string larger than 45 characters
-		DString dataString = (*static_cast<DStringGDL*>(p))[0];
-		os << "'" << StrMid( dataString,0,45,0) << "'";
-		if( dataString.length() > 45) os << "...";
-		}
-		else
-		{
-		p->ToStream( os);
-		}
-		os << ")";
+	  os << "(";
+	  if (p->Type() == GDL_STRING)
+	    {
+	      // trim string larger than 45 characters
+	      DString dataString = (*static_cast<DStringGDL*>(p))[0];
+	      os << "'" << StrMid( dataString,0,45,0) << "'";
+	      if( dataString.length() > 45) os << "...";
+	    }
+	  else
+	    {
+	      p->ToStream( os);
+	    }
+	  os << ")";
 	}
 	
-	// Dimension display
-	if( p->Dim( 0) != 0) os << p->Dim();
+      // Dimension display
+      if( p->Dim( 0) != 0) os << p->Dim();
 	
-	os << ">";
+      os << ">";
 	
-	name += " " + os.str();
-// 	return os.str();
-	}
+      name += " " + os.str();
+      // 	return os.str();
+    }
 
   return name; //string("<Expression>");
 }
@@ -994,21 +994,21 @@ EnvBaseT* EnvBaseT::Caller()
   //if( callStack.size() <= 1) return NULL;
   // library environments are no longer on the call stack
   // but since we have WRAPPED_FUNNode it is convenient 
-//   assert( callStack.back() != this);
+  //   assert( callStack.back() != this);
   if( callStack.back() == this)
-  {
-    assert( callStack.size() >= 2);
-    return callStack[ callStack.size() - 2];
-  }
+    {
+      assert( callStack.size() >= 2);
+      return callStack[ callStack.size() - 2];
+    }
 
   return callStack.back();
   
-//   if( callStack.back() != this) 
-//     return callStack.back();
-// //     return static_cast< EnvUDT*>( callStack.back());
-// 
-//   return callStack[ callStack.size()-2];
-// //   return static_cast< EnvUDT*>( callStack[ callStack.size()-2]);
+  //   if( callStack.back() != this) 
+  //     return callStack.back();
+  // //     return static_cast< EnvUDT*>( callStack.back());
+  // 
+  //   return callStack[ callStack.size()-2];
+  // //   return static_cast< EnvUDT*>( callStack[ callStack.size()-2]);
 }
 
 // used by obj_new (basic_fun.cpp)
@@ -1018,18 +1018,18 @@ void EnvBaseT::PushNewEmptyEnvUD(  DSubUD* newPro, DObjGDL** newObj)
   EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
   // pass the parameters, skip the first 'skipP'
-//   SizeT nParam = NParam();
-//   for( SizeT p=skipP; p<nParam; p++)
-//     {
-//       newEnv->SetNextPar( &GetPar( p)); // pass as global
-//     }
+  //   SizeT nParam = NParam();
+  //   for( SizeT p=skipP; p<nParam; p++)
+  //     {
+  //       newEnv->SetNextPar( &GetPar( p)); // pass as global
+  //     }
 
   interpreter->CallStack().push_back( newEnv); 
 
   // _REF_EXTRA is set to the keyword string array
-//   newEnv->extra = new ExtraT( newEnv);
-//   newEnv->extra->Set( &env[0]);
-//   newEnv->extra->Resolve();
+  //   newEnv->extra = new ExtraT( newEnv);
+  //   newEnv->extra->Set( &env[0]);
+  //   newEnv->extra->Resolve();
 }
 
 // used by obj_new (basic_fun.cpp)
@@ -1047,7 +1047,7 @@ EnvUDT* EnvT::PushNewEnvUD(  DSubUD* newPro, SizeT skipP, DObjGDL** newObj)
       newEnv->SetNextPar( &GetPar( p)); // pass as global
     }
 
-//   interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
+  //   interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
 
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
@@ -1072,7 +1072,7 @@ EnvT* EnvT::NewEnv(  DSub* newPro, SizeT skipP, DObjGDL** newObj)
       newEnv->SetNextPar( &GetPar( p)); // pass as global
     }
 
-//   interpreter->CallStack().push_back( newEnv); 
+  //   interpreter->CallStack().push_back( newEnv); 
 
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
@@ -1131,27 +1131,27 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx)
 
 // for exclusive use by lib::catch_pro
 void EnvT::Catch()
-  {
-    EnvUDT* caller = static_cast<EnvUDT*>(Caller());
-    if( caller == NULL) return;
-    SizeT nParam = NParam();
-    if( nParam == 0)
-      {
-	if( KeywordSet( 0)) // CANCEL
-	  {
+{
+  EnvUDT* caller = static_cast<EnvUDT*>(Caller());
+  if( caller == NULL) return;
+  SizeT nParam = NParam();
+  if( nParam == 0)
+    {
+      if( KeywordSet( 0)) // CANCEL
+	{
 	  caller->catchVar = NULL;
 	  caller->catchNode = NULL;
-	  }
-	return;
-      }
-    if( !GlobalPar( 0))
-      Throw( "Expression must be named variable "
-			  "in this context: " + GetParString(0));
-    caller->catchNode = callingNode->getNextSibling();
-    caller->catchVar = &GetPar( 0);
-    GDLDelete(*caller->catchVar);
-    *caller->catchVar = new DLongGDL( 0);
-  }
+	}
+      return;
+    }
+  if( !GlobalPar( 0))
+    Throw( "Expression must be named variable "
+	   "in this context: " + GetParString(0));
+  caller->catchNode = callingNode->getNextSibling();
+  caller->catchVar = &GetPar( 0);
+  GDLDelete(*caller->catchVar);
+  *caller->catchVar = new DLongGDL( 0);
+}
 
 // for exclusive use by lib::on_error
 void EnvT::OnError()
@@ -1182,22 +1182,22 @@ bool EnvT::KeywordPresent( const std::string& kw)
 }
 
 const string EnvBaseT::GetString( SizeT ix)
-  {
-    const string unnamed("<INTERNAL_VAR>");
-    DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
-    if( subUD == NULL) 
-      { // internal subroutine
-	DLib* subLib=dynamic_cast<DLib*>(pro);
-	if( subLib != NULL)
-	  {
-	    EnvBaseT* caller = Caller();
-	    if( caller != NULL) return caller->GetString( env[ ix]);
-	  }
-	return unnamed;
-      }
-    // UD subroutine
-    return subUD->GetVarName( ix);
-  }
+{
+  const string unnamed("<INTERNAL_VAR>");
+  DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
+  if( subUD == NULL) 
+    { // internal subroutine
+      DLib* subLib=dynamic_cast<DLib*>(pro);
+      if( subLib != NULL)
+	{
+	  EnvBaseT* caller = Caller();
+	  if( caller != NULL) return caller->GetString( env[ ix]);
+	}
+      return unnamed;
+    }
+  // UD subroutine
+  return subUD->GetVarName( ix);
+}
 
 // SA: used by GDL_STRING() for VMS-compat hack
 void EnvT::ShiftParNumbering(int n)
@@ -1208,23 +1208,23 @@ void EnvT::ShiftParNumbering(int n)
   SizeT oParam = pro->key.size();
 
   if (n == 1)
-  {
-    BaseGDL* tmp = env[oParam + nParam - 1];
-    for (int i = nParam - 1; i > 0; --i) 
     {
-      env[oParam + i] = env[oParam + i - 1];
+      BaseGDL* tmp = env[oParam + nParam - 1];
+      for (int i = nParam - 1; i > 0; --i) 
+	{
+	  env[oParam + i] = env[oParam + i - 1];
+	}
+      env[oParam] = tmp;
     }
-    env[oParam] = tmp;
-  }
   else if (n == -1)
-  {
-    BaseGDL* tmp = env[oParam];
-    for (int i = 0; i < nParam - 1; ++i) 
     {
-      env[oParam + i] = env[oParam + i + 1];
+      BaseGDL* tmp = env[oParam];
+      for (int i = 0; i < nParam - 1; ++i) 
+	{
+	  env[oParam + i] = env[oParam + i + 1];
+	}
+      env[oParam + nParam - 1] = tmp;
     }
-    env[oParam + nParam - 1] = tmp;
-  }
 }
 
 BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
@@ -1247,9 +1247,9 @@ BaseGDL*& EnvT::GetParGlobal(SizeT pIx)
   return GetPar( pIx);
 }
 
-  // get i'th parameter, subName is used for error reporting
-  // throws if not present (ie. not global)
-  // paramter might be NULL (but &paramter is a valid BaseGDL** to store into) 
+// get i'th parameter, subName is used for error reporting
+// throws if not present (ie. not global)
+// paramter might be NULL (but &paramter is a valid BaseGDL** to store into) 
 // BaseGDL*& EnvT::GetParPresent(SizeT i, const std::string& subName = "")
 // {
 //   SizeT ix = i + pro->key.size();
@@ -1282,7 +1282,7 @@ SizeT EnvT::NParam( SizeT minPar)
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
 {
-//   if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar))
+  //   if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar))
   assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
   env.Set(parIx++,nextP); // check done in parameter_def
 }
@@ -1355,10 +1355,10 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 				       strAbbrefEq_k);
       if( wf == pro->warnKey.end()) 
 	Throw(  "Keyword parameter "+k+" not allowed in call "
-			   "to: "+pro->Name());
-// 	throw GDLException(callingNode,
-// 			   "Keyword parameter "+k+" not allowed in call "
-// 			   "to: "+pro->Name());
+		"to: "+pro->Name());
+      // 	throw GDLException(callingNode,
+      // 			   "Keyword parameter "+k+" not allowed in call "
+      // 			   "to: "+pro->Name());
 
       Warning("Warning: Keyword parameter "+k+" not supported in call "
 	      "to: "+pro->Name() + ". Ignored.");
@@ -1368,8 +1368,8 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
   
   // search keyword
   KeyVarListT::iterator f=std::find_if(pro->key.begin(),
-				  pro->key.end(),
-				  strAbbrefEq_k);
+				       pro->key.end(),
+				       strAbbrefEq_k);
   if( f == pro->key.end()) 
     {
       // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
@@ -1384,10 +1384,10 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 					   strAbbrefEq_k);
 	  if( wf == pro->warnKey.end()) 
 	    Throw( "Keyword parameter "+k+" not allowed in call "
-			       "to: "+pro->Name());
-/*	    throw GDLException(callingNode,
-			       "Keyword parameter "+k+" not allowed in call "
-			       "to: "+pro->Name());*/
+		   "to: "+pro->Name());
+	  /*	    throw GDLException(callingNode,
+	    "Keyword parameter "+k+" not allowed in call "
+	    "to: "+pro->Name());*/
 	  
 	  Warning("Warning: Keyword parameter "+k+" not supported in call "
 		  "to: "+pro->Name() + ". Ignored.");
@@ -1400,8 +1400,8 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
     }
   // continue search (for ambiguity)
   KeyVarListT::iterator ff=std::find_if(f+1,
-				   pro->key.end(),
-				   strAbbrefEq_k);
+					pro->key.end(),
+					strAbbrefEq_k);
   if( ff != pro->key.end())
     {
       Throw("Ambiguous keyword abbreviation: "+k);
@@ -1453,7 +1453,7 @@ BaseGDL*& EnvT::GetPar(SizeT i)
   SizeT ix= i + pro->key.size();
   if( ix >= env.size()) 
     {
-//       Warning( "EnvT::GetPar(): Index out of env size ("+i2s(env.size())+"): " + i2s(i) +" (+ "+i2s(pro->key.size())+" KW)");
+      //       Warning( "EnvT::GetPar(): Index out of env size ("+i2s(env.size())+"): " + i2s(i) +" (+ "+i2s(pro->key.size())+" KW)");
       return null;
     }
   return env[ ix];
@@ -1471,7 +1471,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
   Guard<DLong64GDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
-		       GetParString(pIx));
+	  GetParString(pIx));
 }
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {
@@ -1480,7 +1480,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
   Guard<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
-		       GetParString(pIx));
+	  GetParString(pIx));
 }
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 {
@@ -1527,7 +1527,7 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
-		       GetString(eIx));
+	  GetString(eIx));
 }
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 {
@@ -1542,7 +1542,7 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
-		       GetString(eIx));
+	  GetString(eIx));
 }
 
 void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
@@ -1552,7 +1552,7 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
   Guard<DDoubleGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
-		       GetParString(pIx));
+	  GetParString(pIx));
 }
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
 {
@@ -1584,7 +1584,7 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
-		       GetString(eIx));
+	  GetString(eIx));
 }
 
 
@@ -1595,7 +1595,7 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
   Guard<DFloatGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
-		       GetParString(pIx));
+	  GetParString(pIx));
 }
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
 {
@@ -1627,7 +1627,7 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
-		       GetString(eIx));
+	  GetString(eIx));
 }
 
 
@@ -1638,7 +1638,7 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
   Guard<DStringGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
-		       GetParString(pIx));
+	  GetParString(pIx));
 }
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
 {
@@ -1668,7 +1668,7 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 
   if( !lp->Scalar( scalar))
     Throw("Expression must be a scalar in this context: "+
-		       GetString(eIx));
+	  GetString(eIx));
 }
 
 void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)

@@ -39,6 +39,9 @@
 #include <tchar.h>
 #endif
 
+
+
+
 #ifdef _MSC_VER
 #pragma comment(lib, "ws2_32.lib")
 #endif
@@ -112,6 +115,8 @@ extern "C"
 #include "basic_pro.hpp"
 #include "semshm.hpp"
 #include "graphicsdevice.hpp"
+//#include "dcommon.hpp"
+//#include "dpro.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #  include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
@@ -1155,21 +1160,39 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
 	  SizeT nEnv = caller->EnvSize();
 
+	  //cout << "EnvSize() " << nEnv << endl;
+
 	  set<string> helpStr;  // "Sorted List" 
 	  for ( int i = 0; i < nEnv; ++i ) 
 	    {
 	      BaseGDL*& par=caller->GetKW( i);
-	      if( par == NULL) 
-		continue;
+
+	      // commenting this out allows to access to "normal" UNDEFINED var. ...
+	      // if( par == NULL) continue;
 
 	      DString parString = caller->GetString( par,true);
-	    
+	      //  cout << parString<< endl;
+
 	      stringstream ss;
 	      help_item( ss, par, parString, false);
 	    
 	      helpStr.insert( ss.str() );
 	    }
 
+
+	  CommonListT::iterator it;
+	  for( it=commonList.begin(); it != commonList.end(); it++)
+	    {
+	      SizeT nVar = (*it)->NVar();
+	      for( SizeT vIx = 0; vIx < nVar; ++vIx)
+		{
+		  DString parString = (*it)->VarName( vIx) +" ("+(*it)->Name()+')';
+		  stringstream ss;
+		  help_item( ss, NULL, parString, false);
+		  helpStr.insert( ss.str() );
+		}
+	    }
+	  
 	  if (outputKW == NULL) {
 	    copy( helpStr.begin(), helpStr.end(),
 		  ostream_iterator<string>( cout) );
