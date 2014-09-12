@@ -390,6 +390,39 @@ void DSubUD::SetTree( RefDNode n)
 
 }
 
+ bool DSubUD::GetCommonVarName(const BaseGDL* p, std::string& varName)
+  {
+    for( CommonBaseListT::iterator c=common.begin();
+	 c != common.end(); c++)
+      {
+	int vIx = (*c)->Find( p);
+	if( vIx >= 0) 
+	  {
+	    varName=(*c)->VarName( vIx);
+	    return true;
+	  }
+      }
+    return false;
+  }
+
+ bool DSubUD::GetCommonVarName4Help(const BaseGDL* p, std::string& varName)
+  {
+    CommonBaseListT::iterator it;
+
+    for( it=common.begin(); it != common.end(); it++)
+      {
+	int vIx = (*it)->Find( p);
+	if( vIx >= 0) 
+	  {
+	    varName=(*it)->VarName( vIx) +" ("+(*it)->Name()+')';
+	    cout << "GetCommonVarName4Help "<< varName << endl;
+	    return true;
+	  }
+      }
+    return false;
+  }
+
+
 bool DSubUD::isObsolete()
 {
   return compileOpt & GDLParser::OBSOLETE;
