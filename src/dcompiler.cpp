@@ -366,8 +366,10 @@ void DCompiler::CommonVar(DCommonBase* c, const string& N)
 	if( !ownCommonList.empty() && ownCommonList.back() == c) // only if added here
 	  ownCommonList.pop_back();
 	pro->DeleteLastAddedCommon(); // always
-	throw( GDLException("Variable: "+N+" ("+cName+") already defined"
-			    " with a conficting definition."));
+	string append = " with a conficting definition.";
+	if( c1st != NULL)
+	  append = " in common block "+ c1st->Name()+".";
+	throw( GDLException("Variable: "+N+" ("+cName+") already defined"+append));
       }
     }
   c->AddVar(N);
