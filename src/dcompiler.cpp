@@ -363,7 +363,7 @@ void DCompiler::CommonVar(DCommonBase* c, const string& N)
       {
 	// Common block deletion (needed in case variable declaration fails)
 	string cName = c->Name(); // c is deleted in DeleteLastAddedCommon()
-	if( ownCommonList.back() == c) // only if added here
+	if( !ownCommonList.empty() && ownCommonList.back() == c) // only if added here
 	  ownCommonList.pop_back();
 	pro->DeleteLastAddedCommon(); // always
 	throw( GDLException("Variable: "+N+" ("+cName+") already defined"
