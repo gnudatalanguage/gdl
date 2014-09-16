@@ -43,7 +43,7 @@
 // #include <wx/utils.h>
 // #include <wx/file.h>
 // #include <wx/dir.h>
-#if !defined (_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
 #	include <fnmatch.h>
 #	include <glob.h> // glob in MinGW does not working..... why?
 #else
@@ -344,11 +344,11 @@ namespace lib {
 		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
 		tchr1[entryStr.size()] = 0;
 		tchr2[pat.size()] = 0;
-		int match = PathMatchSpec(tchr1, tchr2);
+		int match = 1 - PathMatchSpec(tchr1, tchr2);
 		delete tchr1;
 		delete tchr2;
 #	else
-		int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+		int match = 1 - PathMatchSpec(entryStr.c_str(), pat.c_str());
 #	endif
 #else
 
@@ -392,11 +392,10 @@ namespace lib {
     DIR* dir = opendir( dirN.c_str());
  
     if( dir == NULL) return;
-    
-//		if(debug) cout << "ExpandPathN:>" << dirN<<">>" ;
+    int debug=0;
+	if(debug) cout << "ExpandPathN:>" << dirN<<">>" ;
     if( all_dirs)
-      notAdded = false;
-    
+      notAdded = false;    
     for(;;)
       {
 	struct dirent* entry = readdir( dir);
@@ -415,7 +414,7 @@ namespace lib {
 	    if( S_ISDIR(statStruct.st_mode) != 0)
 	      {
 		recurDir.push_back( testDir);
-//		if(debug) cout << "..dir:" << testDir;
+		if(debug) cout << "..dir:" << testDir << endl;;
 	      }
 	    else if( notAdded)
 	      {
@@ -425,20 +424,22 @@ namespace lib {
 		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
 		tchr1[entryStr.size()] = 0;
 		tchr2[pat.size()] = 0;
-		int match = PathMatchSpec(tchr1, tchr2);
+		int match = 1 -  PathMatchSpec(tchr1, tchr2);
 		delete tchr1;
 		delete tchr2;
 
 #	else
-		int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+		int match = 1 - PathMatchSpec(entryStr.c_str(), pat.c_str());
 #	endif
 #else
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
 #endif
+		if(debug) cout << "Entry:" << entryStr << match << ">>" ;
 		if( match == 0)
 		  notAdded = false;
 	      }
 	  }
+          if (debug) cout << " notAdded? "<< notAdded << endl;
       }
 
     int c = closedir( dir);
@@ -460,7 +461,8 @@ namespace lib {
 		    const DString& pat,
 		    bool all_dirs)
   {
-//	cout << " ExpandPath(,dirN.pat,bool) " << dirN << endl;
+	int debug=0;
+	if(debug) 	cout << " ExpandPath(,dirN.pat,bool) " << dirN << endl;
     if( dirN == "") 
       return;
 
@@ -485,11 +487,9 @@ namespace lib {
     // dirN == "+DIRNAME"
 
 #ifdef _WIN32
-
-	// Windows does not use '~' as a home directory alias
-	if(dirN[0] == '+') 
-		 DString initDir = dirN.substr(1);
-	else DString initDir = dirN;
+    DString initDir = dirN;
+    if(dirN[0] == '+') 
+		 initDir = dirN.substr(1);
         
 #else
 
@@ -514,7 +514,7 @@ namespace lib {
     globfree( &p);
 
 #endif
-    
+ //   cout << "ExpandPath: initDir:" << initDir << dirN << endl;
     if (dirN[0] == '+')
       { 
 	ExpandPathN( result, initDir, pat, all_dirs);
@@ -693,11 +693,11 @@ namespace lib {
 		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
 		tchr1[entryStr.size()] = 0;
 		tchr2[pat.size()] = 0;
-		int match = PathMatchSpec(tchr1, tchr2);
+		int match = 1 - PathMatchSpec(tchr1, tchr2);
 		delete tchr1;
 		delete tchr2;
 #	else
-	    int match = PathMatchSpec(entryStr.c_str(), pat.c_str());
+	    int match = 1 - PathMatchSpec(entryStr.c_str(), pat.c_str());
 #	endif
 #else
 	    int match = fnmatch( pat.c_str(), entryStr.c_str(), fnFlags);
@@ -1510,12 +1510,6 @@ DString makeInsensitive(const DString &s)
 	int actStat = lstat(actFile, &statStruct);
 #endif
 
-// // debug
-// 	cout << "FILE_INFO: actStat = " << actStat << ": " << actFile << endl;
-// 	if( actStat != 0)
-// 	{
-// 	  cout << "FILE_INFO: actStat != 0: " << actFile << endl;
-// 	}
 
 	if( actStat != 0) 
 	  continue;

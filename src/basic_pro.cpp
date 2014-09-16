@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 //#include <sys/types.h>
 
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
 //#include <regex.h> // stregex
 #include <fnmatch.h>
 #include <sys/wait.h>
@@ -46,7 +46,7 @@
 #pragma comment(lib, "ws2_32.lib")
 #endif
 
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
 #	include <dirent.h>
 #else
 // MSC workaround implementation in file.cpp
@@ -92,7 +92,7 @@ extern "C"
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
 #else
-#if  defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 #include <direct.h>
 #include <io.h>
 #define R_OK    4       /* Test for read permission.  */
@@ -141,7 +141,7 @@ struct CompProName: public std::binary_function< DPro*, DPro*, bool>
   { return f1->ObjectName() < f2->ObjectName();}
 };
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 bool CompareWithJokers(string names, string sourceFiles) {	
   TCHAR tnames[MAX_PATH];
   TCHAR tsourceFiles[MAX_PATH];
@@ -1295,7 +1295,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	      AppendIfNeeded(pathToGDL_history, "/");
 	      pathToGDL_history += ".gdl";
 	      // Create eventially the ".gdl" path in Home
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 	      result = mkdir(pathToGDL_history.c_str());
 #else
 	      result = mkdir(pathToGDL_history.c_str(), 0700);
@@ -2611,7 +2611,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	DString strArg = strEnv.substr(pos+1, len - pos - 1);
 	strEnv = strEnv.substr(0, pos);
 	// putenv() is POSIX unlike setenv()
-#if defined(__hpux__) || (defined(_WIN32) && !defined(__CYGWIN__))
+#if defined(__hpux__) || defined(_WIN32)
 	int ret = putenv((strEnv+"="+strArg).c_str());
 #else
 	int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
@@ -2684,7 +2684,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 		       " tag " + sourceTagName + ". Not copied.");
 	}
     }
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 #define BUFSIZE 1024
     void ReadFromPipe(HANDLE g_Rd, vector<DString> *s_str)
 
