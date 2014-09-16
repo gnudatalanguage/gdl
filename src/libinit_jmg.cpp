@@ -461,7 +461,7 @@ void LibInit_jmg()
 				      "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
 				      "SET_UNAME","NO_COPY","SET_BUTTON",
 				      "SET_DROPLIST_SELECT","SENSITIVE",
-				      "GET_VALUE",KLISTEND};
+				      "GET_VALUE","NO_NEWLINE",KLISTEND};
   const string widget_WarnControlKey[] ={"DEFAULT_FONT","CLEAR_EVENTS",KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_ControlKey,widget_WarnControlKey);

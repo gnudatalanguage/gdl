@@ -423,6 +423,10 @@ protected:
   WidgetIDT                               lastRadioSelection;
 
   wxMutex*                                m_gdlFrameOwnerMutexP;
+  DLong ncols;
+  DLong nrows;
+  bool scrolled;
+  void* scrollContainer;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -457,6 +461,7 @@ public:
       if( w != NULL)
 	w->OnRealize();
     }
+    if (scrolled) this->FitInside();
     GDLWidget::OnRealize();
   }
   void OnKill()
@@ -503,6 +508,8 @@ public:
   DLong NChildren() const;
 
   bool IsBase() const { return true;} 
+  bool IsScrolled() { return scrolled;}
+  void FitInside();
 };
 
 
@@ -538,6 +545,19 @@ public:
 	  SetButton( onOff);
 	  wxCheckBox* checkBox = static_cast<wxCheckBox*>(wxWidget);
 	  checkBox->SetValue(onOff);
+	  break;
+	}
+      }
+    }
+  }
+  void SetButtonWidgetLabelText( const DString& value )
+  {
+    if( wxWidget != NULL)
+    {
+      switch( buttonType) {
+	case NORMAL: {
+	  wxButton* bb = static_cast<wxButton*>(wxWidget);
+	  bb->SetLabelText(value);
 	  break;
 	}
       }
