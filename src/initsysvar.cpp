@@ -49,6 +49,7 @@ namespace SysVar
 
   using namespace std;
 
+
   // the index of some system variables
   UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
@@ -79,12 +80,17 @@ namespace SysVar
   void SetGDLPath( const DString& newPath)
   {
     FileListT sArr;
+    #ifdef _WIN32
+      char pathsep[]=";";
+    #else
+      char pathsep[]=":";
+    #endif
 
     SizeT d;
     long   sPos=0;
     do
       {
-	d=newPath.find(':',sPos);
+	d=newPath.find(pathsep[0],sPos);
 	string act = newPath.substr(sPos,d-sPos);
 	
 	lib::ExpandPath( sArr, act, "*.pro");
@@ -101,9 +107,9 @@ namespace SysVar
     DString& path=static_cast<DStringGDL&>(*pathSysVar.Data())[0];
 
     // set the path
-    path = sArr[0];
+    path = sArr[nArr-1];
     for( SizeT i=1; i<nArr; ++i)
-      path += ":" + sArr[i];
+      path += pathsep + sArr[nArr-i-1];
   }
 
   // returns !DIR (as a plain DString)
@@ -177,10 +183,15 @@ namespace SysVar
   
     SizeT d;
     long   sPos=0;
+   #ifdef _WIN32
+      char pathsep[]=";";
+    #else
+      char pathsep[]=":";
+    #endif
 
     do
       {
-	d=path.find(':',sPos);
+	d=path.find(pathsep[0],sPos);
 	sArr.push_back(path.substr(sPos,d-sPos));
 	sPos=d+1;
       }

@@ -21,10 +21,10 @@
 #include "includefirst.hpp"
 
 //#include <list>
-#if !defined(_MSC_VER) || defined(__MINGW__)
-#  include <rpc/rpc.h>
-#else
+#if defined(__CYGWIN__) || defined(_WIN32)
 #  include <rpc/xdr.h>
+#else
+#  include <rpc/rpc.h>
 #endif
 
 #include <algorithm>

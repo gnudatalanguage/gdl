@@ -354,6 +354,12 @@ void WordExp( string& s)
 //cout << "WordExp out: " << s << endl;
 }
 
+#if defined (__MINGW32__)
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
+// ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
+#endif
+
+
 string FullPathFileName(string in_file)
 {
   
@@ -389,7 +395,6 @@ string FullPathFileName(string in_file)
 // for outputs in various procedures:
 // GDL> HELP, /source  ou HELP, /traceback
 // GDL> print, ROUTINE_INFO('dist',/function,/source)
-
 
 bool CompleteFileName(string& fn)
 {

@@ -110,7 +110,7 @@ void LibInit()
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
-#if defined (_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
   const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
 	  "SH", "NOSHELL", "UNIT", "HIDE", KLISTEND };
 #else
@@ -145,7 +145,7 @@ void LibInit()
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
@@ -157,7 +157,7 @@ void LibInit()
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
 #endif
 
-  const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
+  const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT","PATTERN",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
   
   const string strjoinKey[]={"SINGLE",KLISTEND};
