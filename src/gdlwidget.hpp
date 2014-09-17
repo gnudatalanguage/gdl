@@ -557,7 +557,7 @@ public:
       switch( buttonType) {
 	case NORMAL: {
 	  wxButton* bb = static_cast<wxButton*>(wxWidget);
-	  bb->SetLabel(value);
+	  bb->SetLabel(wxString(value.c_str( ), wxConvUTF8));
 	  break;
 	}
       }
