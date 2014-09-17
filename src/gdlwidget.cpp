@@ -1068,8 +1068,20 @@ const DString& value )
   gdlMutexGuiEnterLeave.Leave( );
 }
 
-
-
+  void GDLWidgetButton::SetButtonWidgetLabelText( const DString& value_ )
+  {
+    //update vValue
+    delete(vValue);
+    vValue = new DStringGDL( value_ );
+    
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    wxString valueWxString = wxString( value_.c_str( ), wxConvUTF8 );
+    if ( this->wxWidget != NULL ) {
+      wxWindowID id = static_cast<wxButton*> (wxWidget)->GetId( );
+      static_cast<wxButton*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
+    } else std::cerr << "Null widget in GDLWidgetLabel::SetButtonWidgetLabelText(), please report!" << std::endl;
+  }
+  
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style )
     : GDLWidget( p, e, true, value)
 {
@@ -1226,7 +1238,7 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
 
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
   if ( this->wxWidget != NULL ) {
-    static_cast<wxTextCtrl*> (wxWidget)->SetValue( valueWxString );
+    static_cast<wxTextCtrl*> (wxWidget)->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
     //    static_cast<wxTextCtrl*>(wxWidget)->Refresh();  //not useful
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
   }
@@ -1262,15 +1274,19 @@ void GDLWidgetLabel::OnShow()
 
 void GDLWidgetLabel::SetLabelValue( const DString& value_)
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-  wxString valueWxString = wxString( value_.c_str( ), wxConvUTF8 );
-  if ( this->wxWidget != NULL ) {
-    wxWindowID id = static_cast<wxStaticText*> (wxWidget)->GetId( );
-    static_cast<wxStaticText*> (wxWidget)->SetLabel( valueWxString );
-    static_cast<wxStaticText*> (wxWidget)->Refresh( );
     value = value_;
+    //update vValue
+    delete(vValue);
+    vValue = new DStringGDL( value );
+    
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    wxString valueWxString = wxString( value_.c_str( ), wxConvUTF8 );
+    if ( this->wxWidget != NULL ) {
+      wxWindowID id = static_cast<wxStaticText*> (wxWidget)->GetId( );
+      static_cast<wxStaticText*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
+//      static_cast<wxStaticText*> (wxWidget)->Refresh( ); //not useful
   }    else std::cerr << "Null widget in GDLWidgetLabel::SetLabelValue(), please report!" << std::endl;
-  }
+}
 
 // GDL widgets =====================================================
 // GDLFrame ========================================================

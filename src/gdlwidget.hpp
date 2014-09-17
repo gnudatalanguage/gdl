@@ -550,19 +550,20 @@ public:
       }
     }
   }
-  void SetButtonWidgetLabelText( const DString& value )
-  {
-    if( wxWidget != NULL)
-    {
-      switch( buttonType) {
-	case NORMAL: {
-	  wxButton* bb = static_cast<wxButton*>(wxWidget);
-	  bb->SetLabel(wxString(value.c_str( ), wxConvUTF8));
-	  break;
-	}
-      }
-    }
-  }
+  void SetButtonWidgetLabelText( const DString& value_ );
+ // code in gdlwidget.
+//  {
+//    if( wxWidget != NULL)
+//    {
+//      switch( buttonType) {
+//	case NORMAL: {
+//	  wxButton* bb = static_cast<wxButton*>(wxWidget);
+//	  bb->SetLabel(wxString(value_.c_str( ), wxConvUTF8));
+//	  break;
+//	}
+//      }
+//    }
+//  }
   void SetButton( bool onOff)
   {
     buttonState = onOff;
