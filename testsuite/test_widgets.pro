@@ -7,12 +7,14 @@ pro exit_gui,ev
 end
 
 pro handle_Event,ev
-  widget_control,ev.id,get_uvalue=uval 
+help,ev,/str
+  widget_control,ev.id,get_uvalue=uv 
   widget_control,ev.top,get_uvalue=topuv
-  if n_elements(uval) gt 0 then begin
-     case uval.type of
+  if n_elements(uv) gt 0 then begin
+     print,"uvalue.type=",uv.type
+     case uv.type of
         'file': begin
-           widget_control,ev.id,get_value=value
+           widget_control,ev.id,get_value=value & print,ev.id,value
            case value of
               "Y": widget_control,ev.id,set_value="N"
               "N": widget_control,ev.id,set_value="Y"
@@ -104,13 +106,13 @@ selectBase=widget_base(tab5,/ROW)
       xsize=80,ysize=25,/align_left)
 ;show last button clicked value
    statusLabel = widget_text(selectBase,value='', $
-      xsize=30)
+      xsize=30,/editable)
    ;pass label to top (avoid using a common)
    widget_control,base,set_uvalue=statusLabel
 ;base for listing contents of tables and to show selected files
 ;(below)
 nrows=n_elements(table)
-if ( n_elements(table) eq 0 or size(table,/type) ne 9 ) then begin
+if ( n_elements(table) eq 0 or size(table,/type) ne 8 ) then begin
 tbltemplate={table2,string:'a very very very long string ',real:0.0,double:0.0D,another:'another very very very long string',yanother:'yet another very very very long string'} 
 ; make a long table of nrows
 nrows=53
@@ -170,5 +172,5 @@ WSET, index
 f=findgen(1000)/100.
 contour,cos(dist(100,100)/10.)
 
-xmanager,/NO_BLOCK,"handle",base
+xmanager,"handle",base,/NO_BLOCK
 end
