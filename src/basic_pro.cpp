@@ -1092,7 +1092,9 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	{
 	  BaseGDL*& par=e->GetPar( i);
 	  DString parString = e->Caller()->GetString( par, true);
-	  // NON-STRUCTURES
+	  // NON-STRUCTURES except if one and only one param is a Struct.
+	  if (nParam == 1) { isKWSetStructures=true;}
+
 	  if( !par || !isKWSetStructures || par->Type() != GDL_STRUCT)
 	    {
 	      // If no OUTPUT keyword send to stdout
