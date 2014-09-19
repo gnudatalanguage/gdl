@@ -28,14 +28,13 @@
 
 
 #include "includefirst.hpp"
-#include "gshhs.hpp"
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
 #include "initsysvar.hpp"
 
 #ifdef USE_GSHHS
-#include "gshhg.h"
+#include "gshhs.h"
 #endif
 
 #define DPI (double)(4*atan(1.0))
@@ -58,7 +57,7 @@ private:
 #ifndef USE_GSHHS
     e->Throw( "GDL was compiled without support for GSHHS" );
 #else
-    static struct GSHHG_POINT p;
+    static struct GSHHS_POINT p;
     bool externalMap;
     bool mapSet;
     // Get MATRIX 
@@ -96,54 +95,8 @@ private:
     static int fillIx = e->KeywordIx( "FILL_CONTINENTS" );
     bool kw_fill = e->KeywordSet( fillIx );
     if ( kw_fill ) kw_continents = true;
-
-
-    // SA: the code below is based on the gshhs.c by Paul Wessel
-    // here's the original copyright notice:
-
-    /*
-     *	Copyright (c) 1996-2009 by P. Wessel and W. H. F. Smith
-     *	See COPYING file for copying and redistribution conditions.
-     *
-     * PROGRAM:	gshhs.c
-     * AUTHOR:	Paul Wessel (pwessel@hawaii.edu)
-     * CREATED:	JAN. 28, 1996
-     * PURPOSE:	To extract ASCII data from the binary GSHHS shoreline data
-     *		as described in the 1996 Wessel & Smith JGR Data Analysis Note.
-     * VERSION:	1.1 (Byte flipping added)
-     *		1.2 18-MAY-1999:
-     *		   Explicit binary open for DOS systems
-     *		   POSIX.1 compliant
-     *		1.3 08-NOV-1999: Released under GNU GPL
-     *		1.4 05-SEPT-2000: Made a GMT supplement; FLIP no longer needed
-     *		1.5 14-SEPT-2004: Updated to deal with latest GSHHS database (1.3)
-     *		1.6 02-MAY-2006: Updated to deal with latest GSHHS database (1.4)
-     *		1.7 11-NOV-2006: Fixed bug in computing level (&& vs &)
-     *		1.8 31-MAR-2007: Updated to deal with latest GSHHS database (1.5)
-     *		1.9 27-AUG-2007: Handle line data as well as polygon data
-     *		1.10 15-FEB-2008: Updated to deal with latest GSHHS database (1.6)
-     *		1.12 15-JUN-2009: Now contains information on container polygon,
-     *				the polygons ancestor in the full resolution, and
-     *				a flag to tell if a lake is a riverlake.
-     *				Updated to deal with latest GSHHS database (2.0)
-     *
-     *	This program is free software; you can redistribute it and/or modify
-     *	it under the terms of the GNU General Public License as published by
-     *	the Free Software Foundation; version 2 of the License.
-     *
-     *	This program is distributed in the hope that it will be useful,
-     *	but WITHOUT ANY WARRANTY; without even the implied warranty of
-     *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     *	GNU General Public License for more details.
-     *
-     *	Contact info: www.soest.hawaii.edu/pwessel 
-     */
     
     string dir = SysVar::GshhsDir();
-
-    //    cout << dir << endl;
-
-    //    string dir = string( GSHHS_DATA_DIR ); // + "/../gshhs/";
 
     enum set {
       continents, countries, rivers, coasts
@@ -240,7 +193,7 @@ private:
         if ( i == coasts && !kw_hires && area < 100.0 ) skip = true;
         if ( i == rivers && (level > 4) ) skip = true;
         if ( skip ) {
-          if ( fseek( fp, (long) (h.n * sizeof (struct GSHHG_POINT)), SEEK_CUR ) != 0 ) {
+          if ( fseek( fp, (long) (h.n * sizeof (struct GSHHS_POINT)), SEEK_CUR ) != 0 ) {
             actStream->RestoreLayout();
             e->Throw( "Error reading file" + files[i] + " for " + (line ? "line" : "polygon") + i2s( h.id ) );
           }
@@ -250,7 +203,7 @@ private:
           lats = new DDoubleGDL( h.n, BaseGDL::NOZERO );
 
           for ( SizeT k = 0; k < h.n; k++ ) {
-            if ( fread( (void *) &p, (size_t)sizeof (struct GSHHG_POINT), (size_t) 1, fp ) != 1 ) {
+            if ( fread( (void *) &p, (size_t)sizeof (struct GSHHS_POINT), (size_t) 1, fp ) != 1 ) {
               actStream->RestoreLayout();
               e->Throw( "Error reading file" + files[i] + " for " + (line ? "line" : "polygon")  + i2s( h.id ) + ", point " + i2s( k ) );
             }
