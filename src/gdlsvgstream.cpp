@@ -19,6 +19,14 @@
 #include "includefirst.hpp"
 #include "gdlsvgstream.hpp"
 
+#ifdef WIN32
+#include <io.h>
+#include <fcntl.h>
+#include <share.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
+
 using namespace std;
 
 void GDLSVGStream::Init()
@@ -96,7 +104,16 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    *error = 0;
    /* open a temporary file */
    sprintf(filename,"%sgdlsvgpng64.XXXXXX",getenv("IDL_TMPDIR")); //Insecure, check!
+#ifdef WIN32
+   static const char *letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+   char *XXXXXX = &filename[strlen(filename)-6];
+   srand((unsigned int)time(NULL));
+   for (int i=0; i<6; i++)
+      XXXXXX[i] = letters[rand()%63];
+   _sopen_s(&fd, filename, O_RDWR | O_CREAT | O_EXCL, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+#else
    fd=mkstemp(filename);
+#endif
 
    if (fd==-1)
    {

@@ -35,7 +35,7 @@
 #include "initsysvar.hpp"
 
 #ifdef USE_GSHHS
-#include "gshhs.h"
+#include "gshhg.h"
 #endif
 
 #define DPI (double)(4*atan(1.0))
@@ -58,7 +58,7 @@ private:
 #ifndef USE_GSHHS
     e->Throw( "GDL was compiled without support for GSHHS" );
 #else
-    static struct POINT p;
+    static struct GSHHG_POINT p;
     bool externalMap;
     bool mapSet;
     // Get MATRIX 
@@ -240,7 +240,7 @@ private:
         if ( i == coasts && !kw_hires && area < 100.0 ) skip = true;
         if ( i == rivers && (level > 4) ) skip = true;
         if ( skip ) {
-          if ( fseek( fp, (long) (h.n * sizeof (struct POINT)), SEEK_CUR ) != 0 ) {
+          if ( fseek( fp, (long) (h.n * sizeof (struct GSHHG_POINT)), SEEK_CUR ) != 0 ) {
             actStream->RestoreLayout();
             e->Throw( "Error reading file" + files[i] + " for " + (line ? "line" : "polygon") + i2s( h.id ) );
           }
@@ -250,7 +250,7 @@ private:
           lats = new DDoubleGDL( h.n, BaseGDL::NOZERO );
 
           for ( SizeT k = 0; k < h.n; k++ ) {
-            if ( fread( (void *) &p, (size_t)sizeof (struct POINT), (size_t) 1, fp ) != 1 ) {
+            if ( fread( (void *) &p, (size_t)sizeof (struct GSHHG_POINT), (size_t) 1, fp ) != 1 ) {
               actStream->RestoreLayout();
               e->Throw( "Error reading file" + files[i] + " for " + (line ? "line" : "polygon")  + i2s( h.id ) + ", point " + i2s( k ) );
             }

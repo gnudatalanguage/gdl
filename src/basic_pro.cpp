@@ -2720,7 +2720,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  }
 	}
     }
-    DWORD launch_cmd(BOOL hide, LPWSTR cmd, LPWSTR title = NULL, DWORD *pid = NULL,
+    DWORD launch_cmd(BOOL hide, LPTSTR cmd, LPTSTR title = NULL, DWORD *pid = NULL,
 		     vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
     {
       DWORD status;
@@ -2743,9 +2743,9 @@ bool CompareWithJokers(string names, string sourceFiles) {
  
       si.cb = sizeof(si);
       if (title == NULL)
-	si.lpTitle = (LPSTR) cmd;
+	si.lpTitle = cmd;
       else
-	si.lpTitle = (LPSTR) title;
+	si.lpTitle = title;
 
       if (hide)
 	{
@@ -2763,11 +2763,11 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  si.hStdError = g_hChildStd_ERR_Wr;
 	}
 	si.dwFlags |= STARTF_USESTDHANDLES;
-	CreateProcess(NULL, (LPSTR) cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+	CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
       }
       else
 	{
-	  CreateProcess(NULL, (LPSTR) cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+	  CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	  WaitForSingleObject(pi.hProcess, INFINITE);
 	}
       if (pid != NULL)
@@ -2858,19 +2858,19 @@ bool CompareWithJokers(string names, string sourceFiles) {
       TCHAR t_cmd[255];
       MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
 #else
-      LPSTR t_cmd = (LPSTR)ds_cmd.c_str();
+      LPTSTR t_cmd = (LPTSTR)ds_cmd.c_str();
 #endif
       vector<DString> ds_outs;
       vector<DString> ds_errs;
       int status;
       DWORD pid;
       if (nParam == 1)
-	status = launch_cmd(hideKeyword, (LPWSTR) t_cmd, NULL, &pid);
+	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid);
       else if (nParam == 2) {
-	status = launch_cmd(hideKeyword, (LPWSTR) t_cmd, NULL, &pid, &ds_outs);
+	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs);
       }
       else if (nParam == 3) {
-	status = launch_cmd(hideKeyword, (LPWSTR) t_cmd, NULL, &pid, &ds_outs, &ds_errs);
+	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs, &ds_errs);
       }
 
       if (pidKeyword)
