@@ -376,13 +376,17 @@ if(PLPLOT_FOUND)
 	endif(HAVE_PLPLOT_SLABELFUNC)
 	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
 	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
-	check_cxx_source_compiles("
-#include <plplot/plstream.h>
-int main(int argc, char **argv) {
-  plstream *p = new plstream();
-  PLFLT w = 0.5;
-  p->width(w);
-}" HAVE_PLPLOT_WIDTH)
+#the following does not work with clang (???)
+#	check_cxx_source_compiles("
+##include <plplot/plstream.h>
+#int main(int argc, char **argv) {
+#  plstream *p = new plstream();
+#  PLFLT w = 0.5;
+#  p->width(w);
+#}" HAVE_PLPLOT_WIDTH)
+
+#give it a 2nd try...
+	 check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
 	if(HAVE_PLPLOT_WIDTH)
 	  set(HAVE_PLPLOT_WIDTH 1)
 	endif(HAVE_PLPLOT_WIDTH)
@@ -828,21 +832,24 @@ endif(GRIB)
 
 # gshhs
 # -DGSHHS=ON|OFF
-# -DGSHHSDIR=DIR
-if(GSHHS)
-	set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
-	find_path(GSHHS_INCLUDE_DIR gshhs.h)
-	mark_as_advanced(GSHHS_INCLUDE_DIR)
-	set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
-	if(USE_GSHHS)
-		include_directories(${GSHHS_INCLUDE_DIR})
-	else(USE_GSHHS)
-		message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
-		"Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
-		"Use -DGSHHS=OFF to not use it.")
-	endif(USE_GSHHS)
+if(GSHHS) 	
+    set(USE_GSHHS 1)
 endif(GSHHS)
-
+# -DGSHHSDIR=DIR
+#not needed anymore, gshhs include is in src/
+#	set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
+#	find_path(GSHHS_INCLUDE_DIR gshhs.h)
+#	mark_as_advanced(GSHHS_INCLUDE_DIR)
+#	set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
+#	if(USE_GSHHS)
+#		include_directories(${GSHHS_INCLUDE_DIR})
+#	else(USE_GSHHS)
+#		message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
+#		"Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
+#		"Use -DGSHHS=OFF to not use it.")
+#	endif(USE_GSHHS)
+#endif(GSHHS)
+#
 # X11
 if(X11)
 	set(CMAKE_PREFIX_PATH ${X11DIR})
