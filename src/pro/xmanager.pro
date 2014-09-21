@@ -7,10 +7,10 @@
 ;
 ; CALLING SEQUENCE:
 ;
-; XMANAGER, NAME, ID, /NO_BLOCK, GROUP_LEADER=groupLeader
+; XMANAGER, NAME, ID, /NO_BLOCK, GROUP_LEADER=groupLeader, CLEANUP=Cleanup
 ;
 ;
-; INPUTS:
+; inputs:
 ;
 ; OPTIONAL INPUTS:  none
 ;
@@ -36,7 +36,7 @@
 ;-
 ;
 
-pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler
+pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, CLEANUP=Cleanup
 
 if not keyword_set(eventHandler) then begin
   eventHandler = name + '_event'
@@ -47,6 +47,10 @@ widget_control, id, event_pro=eventHandler
 
 if keyword_set(groupLeader) then begin
    widget_control, id, GROUP_LEADER=groupLeader
+endif
+; dummy function at the moment -- even KILL_NOTIFY is not implemented
+if n_elements(cleanup) then begin
+   widget_control, id, KILL_NOTIFY=Cleanup
 endif
 
 if keyword_set(noBlock) then begin
