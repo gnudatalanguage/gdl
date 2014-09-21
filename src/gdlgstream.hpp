@@ -234,7 +234,7 @@ public:
 
   static void SetErrorHandlers();
   virtual PLStream* GetPLStream() {
-    if (GDL_DEBUG_PLSTREAM) printf(" PLStream GDLGstream::GetPLStream(): pls=0x%X \n" ,pls);
+    if (GDL_DEBUG_PLSTREAM) printf(" PLStream GDLGstream::GetPLStream(): pls=%p \n", (void *)pls);
 
      return pls;}
   virtual void Init()=0;
