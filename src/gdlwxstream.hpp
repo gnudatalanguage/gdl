@@ -75,7 +75,7 @@ public:
   //bool GetWindowPosition(long& xpos, long& ypos );
   //bool CursorStandard(int cursorNumber);
   void Clear();
-    void Clear( DLong bColor); //
+  void Clear( DLong bColor);
   //void Raise();
   //void Lower();
   //void Iconic();
@@ -89,8 +89,15 @@ public:
   //bool HasDoubleBuffering();
   //bool HasSafeDoubleBuffering();
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
-		   DLong trueColorOrder, DLong channel); //
-  virtual bool HasCrossHair() {return true;}
+		   DLong trueColorOrder, DLong channel);
+    virtual bool HasCrossHair() {return true;}
+    bool SetGraphicsFunction( long value);
+    bool GetWindowPosition(long& xpos, long& ypos );
+    bool CursorStandard(int cursorNumber);
+    DLong GetVisualDepth();
+    DString GetVisualName();
+    bool HasImage(){return true;}
+    BaseGDL* GetImage( EnvT* e);
 };
 
 

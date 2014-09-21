@@ -21,6 +21,7 @@
 
 #include "graphicsdevice.hpp"
 #include "image.hpp"
+#include "gdlwxstream.hpp"
 
 // #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
@@ -34,8 +35,11 @@ namespace lib {
 
   BaseGDL* tvrd( EnvT* e)
   {
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    return actDevice->TVRD( e);
+      // when !d.name == Null  we do nothing !
+      GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
+      if (actStream == NULL) e->Throw("Unable to create window.");
+      if (actStream->HasImage()) return static_cast<GDLWXStream*>(actStream)->GetImage(e);
+        else return GraphicsDevice::GetDevice()->TVRD( e);
   }
 #define MAX_COLORS 256
 
