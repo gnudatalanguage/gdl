@@ -47,8 +47,8 @@
 #define SETOPT setopt
 #endif
 
-const int maxWin=65;  //IDL has 65...
-const int maxWinReserve=256;  
+#define maxWin 65  //IDL has 65...
+#define maxWinReserve 256
 
 class DeviceX: public GraphicsDevice
 {
@@ -967,6 +967,8 @@ public:
 
 };
 
+#undef maxWin
+#undef maxWinReserve
 
 #endif
 

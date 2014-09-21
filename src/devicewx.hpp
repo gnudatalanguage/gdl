@@ -18,8 +18,8 @@
 #ifndef DEVICEWX_HPP_
 #define DEVICEWX_HPP_
 
-//#ifndef HAVE_LIBWXWIDGETS
-//#else
+#ifndef HAVE_LIBWXWIDGETS
+#else
 
 #include <algorithm>
 #include <vector>
@@ -47,8 +47,8 @@ if (a != NULL) { free((void *)a); a = NULL; }
 #define SETOPT setopt
 #endif
 
-const int maxWin = 65;  //IDL has 65...
-const int maxWinReserve = 256;
+#define maxWin 65  //IDL has 65...
+#define maxWinReserve 256
 
 class DeviceWX : public GraphicsDevice
 {
@@ -980,6 +980,7 @@ public:
 	}
 
 };
-
+#undef maxWin
+#undef maxWinReserve
 #endif
-//#endif
+#endif
