@@ -354,11 +354,14 @@ void WordExp( string& s)
 //cout << "WordExp out: " << s << endl;
 }
 
-#if defined (__MINGW32__)
+#if defined (_WIN32)
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
 #endif
 
+#ifdef _MSC_VER
+#define PATH_MAX _MAX_PATH
+#endif
 
 string FullPathFileName(string in_file)
 {

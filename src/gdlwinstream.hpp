@@ -73,11 +73,12 @@ struct wingcc_Dev
 	char              already_erased;  // Used to track first and only first backgroudn erases
         struct wingcc_Dev  *push;
 };
-
+static tagWINDOWINFO Winfo;
 class GDLWINStream : public GDLGStream
 {
 	//Atom wm_protocols;
 	//Atom wm_delete_window;
+    HWND refocus;
 
 	PLStream* pls;
 	plstream *plst;
@@ -86,7 +87,9 @@ public:
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
 	{
-		plst = new plstream(nx, ny, "wingcc");
+  // get the command interpreter window's handle
+		Winfo.cbSize = sizeof(Winfo);
+		refocus = GetForegroundWindow();
 	}
 
 	~GDLWINStream()
@@ -95,9 +98,18 @@ public:
 
 	void Init();
 	void EventHandler();
+    bool GetGin(PLGraphicsIn *gin, int mode);
+    bool UnsetFocus();
+    bool SetFocus();
+  void Raise();
+  void Lower();
+  void Iconic();
+  void DeIconic();
+  void Flush();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-  unsigned long GetWindowDepth();
+  bool GetWindowPosition( long& xpos, long& ypos);
+  //unsigned long GetWindowDepth();
 //to be written. Needed by same needs as for X11
 //  bool SetGraphicsFunction(long value );
 };

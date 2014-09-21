@@ -22,11 +22,10 @@ renamed from: graphics.cpp
 
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
-#if defined(_WIN32) && !defined(__CYGWIN__) // does cygwin have its own X11 port?
-#  include "devicewin.hpp"
-#else
-#  include "devicex.hpp"
-#endif
+
+#include "devicewin.hpp"
+#include "devicewx.hpp"
+#include "devicex.hpp"
 #include "deviceps.hpp"
 #include "devicesvg.hpp"
 #include "devicez.hpp"
@@ -175,28 +174,30 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef HAVE_LIBWXWIDGETS
+  deviceList.push_back( new DeviceWX());
+#endif
+#ifdef HAVE_X
+  deviceList.push_back(new DeviceX());
+#endif
+#ifdef _WIN32
   deviceList.push_back( new DeviceWIN());
-#else
-  #  ifdef HAVE_X
-  deviceList.push_back( new DeviceX());
-  #  endif
 #endif
 
-  // we try to set WIN or X as default 
+  // we try to set X, WIN or WX as default 
   // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(HAVE_X) // Check X11 first
+  if( !SetDevice( "X")) 
+#elif defined(_WIN32) // If Windows enable WinGCC driver 
   if( !SetDevice( "WIN")) 
+#elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
+  if (!SetDevice("WX"))
 #else
-#  ifndef HAVE_X
-    if( !SetDevice( "NULL")) 
-#  else
-    if( !SetDevice( "X")) 
-#  endif
+  if( !SetDevice( "NULL")) 
 #endif
-#  ifndef HAVE_X
-      {}
+#  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
+  {
+  }
 #  else
   {
     cerr << "Error initializing graphics." << endl;
@@ -205,7 +206,6 @@ void GraphicsDevice::Init()
 #  endif
 
 #ifdef HAVE_LIBWXWIDGETS
-
   // some X error message suggested this call
 #ifdef HAVE_X
   XInitThreads();
@@ -213,14 +213,14 @@ void GraphicsDevice::Init()
 #endif
   int index=0;
   // setting the GUI dev. (before, X/win was the first but X might be not defined now
-  if (ExistDevice( "WIN", index)) {
+  if (ExistDevice("X", index)) {
+	actGUIDevice = deviceList[index];
+  } else if (ExistDevice("WIN", index)) {
+    actGUIDevice = deviceList[index];
+  } else if (ExistDevice( "WX", index)) {
     actGUIDevice = deviceList[index];
   } else {
-    if (ExistDevice( "X", index)) {
-      actGUIDevice = deviceList[index];
-    } else {
-      actGUIDevice = deviceList[0];
-    }
+    actGUIDevice = deviceList[0];
   }
 }
 

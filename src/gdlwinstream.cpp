@@ -30,6 +30,8 @@ void GDLWINStream::Init()
 	plgpls(&pls);
 	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 	dev->waiting = 1;
+
+	UnsetFocus();
 }
 
 void GDLWINStream::EventHandler()
@@ -40,6 +42,21 @@ void GDLWINStream::EventHandler()
 		TranslateMessage(&Message);
 		DispatchMessage(&Message);
 	}
+}
+bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
+    LPPOINT lpt;
+
+  enum CursorOpt {
+    NOWAIT = 0,
+    WAIT, //1
+    CHANGE, //2
+    DOWN, //3
+    UP //4
+    };
+  gin->button = mode; // passing our mode into the event loop.
+
+  plstream::cmd( PLESC_GETC, gin );
+  return 0;
 }
 
 bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan ) {
@@ -120,183 +137,66 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *
   }
   return true;
 }
+void GDLWINStream::Raise() 
+{
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+  BringWindowToTop(dev->hwnd);
+  return;
+}
+void GDLWINStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff) {
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
 
-  void DeviceWIN::EventHandler()
-  {
-    int wLSize = winList.size();
-    for( int i=0; i<wLSize; i++) {
-      if( winList[ i] != NULL)	winList[ i]->EventHandler();
-    }
-    TidyWindowsList();
-  }
+  GetWindowInfo(dev->hwnd, &Winfo);
+  xSize = Winfo.rcWindow.right - Winfo.rcWindow.left;
+  ySize = Winfo.rcWindow.bottom - Winfo.rcWindow.top;
+  xoff = Winfo.rcWindow.left;
+  yoff = Winfo.rcWindow.top;
+}
+bool GDLWINStream::GetWindowPosition( long& xpos, long& ypos) {
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+  
+  GetWindowInfo(dev->hwnd, &Winfo);
+  xpos = Winfo.rcWindow.left;
+  ypos = Winfo.rcWindow.top;
+  return true;
+}
 
-  bool DeviceWIN::WDelete( int wIx)
-  {
-	TidyWindowsList();
+void GDLWINStream::Lower()
+{
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+  UINT SWP = (SWP_NOMOVE | SWP_NOSIZE);
+  SetWindowPos(dev->hwnd, HWND_BOTTOM, 0,0,0,0, SWP);
+  return;
+}
 
-    int wLSize = winList.size();
-    if( wIx >= wLSize || wIx < 0 || winList[ wIx] == NULL)
-      return false;
+void GDLWINStream::Iconic() {
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+ UINT SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_HIDEWINDOW);  // this does nothinc
+  SetWindowPos(dev->hwnd, HWND_BOTTOM, 0,0,0,0, SWP);
+  return;
+}
 
+void GDLWINStream::DeIconic() {
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+ UINT SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
+  SetWindowPos(dev->hwnd, HWND_BOTTOM, 0,0,0,0, SWP);
+  return;
 
-    delete winList[ wIx];
-    winList[ wIx] = NULL;
-    oList[ wIx] = 0;
+}
 
-    // set to most recently created
-    std::vector< long>::iterator mEl = 
-      std::max_element( oList.begin(), oList.end());
-    
-    // no window open
-    if( *mEl == 0) 
-      {
-	SetActWin( -1);
-	oIx = 1;
-      }
-    else
-      SetActWin( std::distance( oList.begin(), mEl)); 
+void GDLWINStream::Flush() {
+   GdiFlush();
+}
 
-    return true;
-  }
+bool GDLWINStream::UnsetFocus()
+{
+    // TODO: write using HWND 'this->refocus'
+    // this->refocus == GetForgroundWindow()
+    return false;
+}
 
-  bool DeviceWIN::WOpen( int wIx, const std::string& title, 
-	      int xSize, int ySize, int xPos, int yPos)
-  {
-
-    int debug=0;
-#ifdef GDL_DEBUG
-     debug=1;
-#endif
-    if(debug) cout << "WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos;
-    TidyWindowsList();
-
-    int wLSize = winList.size();
-    if( wIx >= wLSize || wIx < 0)
-      return false;
-
-    if( winList[ wIx] != NULL)
-      {
-	delete winList[ wIx];
-	winList[ wIx] = NULL;
-      }
-
-    DLongGDL* pMulti = SysVar::GetPMulti();
-    DLong nx = (*pMulti)[ 1];
-    DLong ny = (*pMulti)[ 2];
-
-    if( nx <= 0) nx = 1;
-    if( ny <= 0) ny = 1;
-
-    winList[ wIx] = new GDLWINStream( nx, ny);
-    
-    // as wxwidgets never set this, they can be intermixed
-    oList[ wIx]   = oIx++;
-
-    // set initial window size
-    PLFLT xp; PLFLT yp; 
-    PLINT xleng; PLINT yleng;
-    PLINT xoff; PLINT yoff;
-    if(debug) cout << "WOpen: ->plstream:gpage(";
-    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
-// <<<< alternate block in devicex.hpp
-		xleng = xSize;
-		yleng = ySize;
-		xoff = xPos;
-		yoff = yPos;
-// >>>>
-    if(debug) cout << " )WOpen: ->spage(";
-    winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
-
-    if(debug) cout << " )\n WOpen: ->spause(";
-
-    // no pause on win destruction
-    winList[ wIx]->spause( false);
-    if(debug) cout << " ) WOpen: ->fontld(";
-
-    // extended fonts
-    winList[ wIx]->fontld( 1);
-    if(debug) cout << " ) WOpen: ->scolor(";
-
-
-    // we want color
-    winList[ wIx]->scolor( 1);
-
-    // window title
-    static char buf[ 256];
-    strncpy( buf, title.c_str(), 255);
-    buf[ 255] = 0;
-   if(debug) cout << " )\n WOpen: ->SETOPT(plwindow,buf) \n";
-    winList[ wIx]->SETOPT( "plwindow", buf);
-
-		// we want color (and the driver options need to be overwritten)
-		// winList[ wIx]->SETOPT( "drvopt","color=1");
-// ---- alternate SETOPT in devicex.hpp
-		// set color map
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    //    winList[ wIx]->scmap0( r, g, b, ctSize);
-    winList[ wIx]->scmap1( r, g, b, ctSize);
-
-   if(debug) cout << " WOpen:winList[ wIx]->Init(";
-
-    winList[ wIx]->Init();
-if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)" 
-               << "adv(0) font(1) vpor(0,1,0,1) wind(0,1,0,1";
-			   //----------------------
-				//----------------------
-   // need to be called initially. permit to fix things
-    winList[ wIx]->ssub(1,1);
-    winList[ wIx]->adv(0);
-    // load font
-    winList[ wIx]->font( 1);
-    winList[ wIx]->vpor(0,1,0,1);
-    winList[ wIx]->wind(0,1,0,1);
-   if(debug) cout << " )\n WOpen:winList[ wIx]->DefaultCharsize(";
-
-    winList[ wIx]->DefaultCharSize();
-   if(debug) cout << " )\n WOpen:winList[ wIx]->updatePageInfo(";
-    //in case these are not initalized, here is a good place to do it.
-    if (winList[ wIx]->updatePageInfo()==true)
-      {
-        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-      }
-    // sets actWin and updates !D
-    SetActWin( wIx);
-   if(debug) cout << " WOpen return true;} \n ";
-
-    return true; //winList[ wIx]->Valid(); // Valid() need to called once
-  }
-//* Missing: WState( int wIx), WSize( int wIx, ...), WShow
-  bool DeviceWIN::WState( int wIx)
-  { 
-    return wIx >= 0 && wIx < oList.size() && oList[ wIx] != 0;
-  }
-
-	bool DeviceWIN::WSet(int wIx)
-	{
-		TidyWindowsList();
-
-		int wLSize = winList.size();
-		if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
-			return false;
-
-		SetActWin(wIx);
-		return true;
-	}
-
-  int DeviceWIN::WAdd()
-  {
-    TidyWindowsList();
-
-    int wLSize = winList.size();
-    for( int i=0; i<wLSize; i++)
-      if( winList[ i] == NULL) return i;
-
-    // plplot allows only 101 windows
-    if( wLSize == 101) return -1;
-
-    winList.push_back( NULL);
-    oList.push_back( 0);
-    return wLSize;
-  }
+bool GDLWINStream::SetFocus() {
+    // TODO: write using HWND 'this->refocus'
+    // this->refocus == GetForgroundWindow()
+    return false;
+}

@@ -233,34 +233,39 @@ namespace lib
   
   BaseGDL* get_screen_size( EnvT* e)
   {
-    SizeT nParam=e->NParam();
-    SizeT authorized_nb_params=0;
-#ifdef HAVE_X  
-    authorized_nb_params=1;
-#endif
-    if ( nParam > authorized_nb_params) e->Throw( "Incorrect number of arguments.");
-    char *TheDisplay=NULL;
-
-#ifdef HAVE_X
-    if ( nParam == 1) { 
-      DString GivenDisplay;
-      e->AssureStringScalarPar(0, GivenDisplay);
-      TheDisplay = new char [GivenDisplay.size()+1];
-      strcpy (TheDisplay, GivenDisplay.c_str());
-    }
-    static int displayNameIx = e->KeywordIx( "DISPLAY_NAME");
-    if ( e->KeywordPresent( displayNameIx)) { 
-      DString GivenDisplay;
-      e->AssureStringScalarKW( displayNameIx, GivenDisplay);;
-      TheDisplay = new char [GivenDisplay.size()+1];
-      strcpy (TheDisplay, GivenDisplay.c_str());
-    }
-#endif
     GraphicsDevice* currentDevice=GraphicsDevice::GetDevice();
-    static int resolutionIx = e->KeywordIx( "RESOLUTION");
-    if( e->KeywordPresent( resolutionIx)) {
-      e->SetKW(0, currentDevice->GetScreenResolution(TheDisplay));
-    }
-    return currentDevice->GetScreenSize(TheDisplay);
+
+    if (currentDevice->Name() == "X") {
+      SizeT authorized_nb_params=1;
+      SizeT nParam=e->NParam();
+      if ( nParam > authorized_nb_params) e->Throw( "Incorrect number of arguments.");
+
+      char *TheDisplay=NULL;
+      static int resolutionIx = e->KeywordIx( "RESOLUTION");
+      if( e->KeywordPresent( resolutionIx))
+        e->SetKW(0, currentDevice->GetScreenResolution(TheDisplay));
+
+      if ( nParam == 1) { 
+        DString GivenDisplay;
+        e->AssureStringScalarPar(0, GivenDisplay);
+        TheDisplay = new char [GivenDisplay.size()+1];
+        strcpy (TheDisplay, GivenDisplay.c_str());
+      }
+      static int displayNameIx = e->KeywordIx( "DISPLAY_NAME");
+      if ( e->KeywordPresent( displayNameIx)) { 
+        DString GivenDisplay;
+        e->AssureStringScalarKW( displayNameIx, GivenDisplay);;
+        TheDisplay = new char [GivenDisplay.size()+1];
+        strcpy (TheDisplay, GivenDisplay.c_str());
+      }
+      return currentDevice->GetScreenSize(TheDisplay);
+    }  // "X"
+    DLong xsize, ysize;
+    currentDevice->MaxXYSize( &xsize, &ysize);
+    DLongGDL* res;
+    res = new DLongGDL(2, BaseGDL::NOZERO);
+    (*res)[0]= xsize;
+    (*res)[1]= ysize;
+    return res;
   }
 } // namespace

@@ -45,6 +45,7 @@ void GDLXStream::Init() {
 
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
   wm_protocols = XInternAtom(xwd->display, "WM_PROTOCOLS", false);
   wm_delete_window = XInternAtom(xwd->display, "WM_DELETE_WINDOW", false);
 
@@ -57,6 +58,7 @@ void GDLXStream::Init() {
       XSetInputFocus(xwd->display,from_window,RevertToParent,CurrentTime);
     }
   }
+  UnsetFocus();
   XFlush(xwd->display);
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   //current cursor:
@@ -243,6 +245,8 @@ DString GDLXStream::GetVisualName() {
     gestw.input = FALSE;
     gestw.flags = InputHint;
     XSetWMHints(xwd->display, dev->window, &gestw);
+    XSetInputFocus(xwd->display,
+        DefaultRootWindow(xwd->display),RevertToParent,CurrentTime);
     return true;
   }  
   

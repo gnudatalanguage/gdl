@@ -40,7 +40,9 @@ namespace lib
 
   using namespace std;
 //  using std::isinf;
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#define finite _finite
+#else
   using std::isnan;
 #endif
   

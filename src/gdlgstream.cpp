@@ -107,7 +107,10 @@ void GDLGStream::SetColorMap1Table( PLINT tableSize, BaseGDL *passed_colors,  DL
 { //cycle on passed colors to fill tableSize.
   DLongGDL *colors=static_cast<DLongGDL*>(passed_colors);
   DLong n=colors->N_Elements();
-  PLINT r[tableSize], g[tableSize], b[tableSize];
+  PLINT *r = (PLINT*)alloca(sizeof(PLINT)*tableSize);
+  PLINT *g = (PLINT*)alloca(sizeof(PLINT)*tableSize);
+  PLINT *b = (PLINT*)alloca(sizeof(PLINT)*tableSize);
+  //PLINT r[tableSize], g[tableSize], b[tableSize];
   if (decomposed == 0) { 
     PLINT red[ctSize], green[ctSize], blue[ctSize], col;
     GraphicsDevice::GetCT()->Get( red, green, blue);
@@ -165,7 +168,7 @@ void GDLGStream::DefaultCharSize()
   ))[0];
 
   if (name == "PS" || name=="SVG") schr( 3.5, 1.0);
-  else schr(1.5, 1.0);
+  else schr(2.1, 1.4);  // from 1.5, 1.0 2014/09/18
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_CH_SIZE"), 0)))[0]=
   theCurrentChar.dsx;
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_CH_SIZE"), 0)))[0]=

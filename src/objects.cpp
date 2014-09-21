@@ -609,7 +609,7 @@ int get_suggested_omp_num_threads() {
 
 
 #elif defined(_WIN32)
-  cout<<"get_suggested_omp_num_threads(): is windows"<<endl;
+  //cout<<"get_suggested_omp_num_threads(): is windows"<<endl;
   iff= _popen("wmic cpu get loadpercentage|more +1", "r");
   if (!iff)
     {

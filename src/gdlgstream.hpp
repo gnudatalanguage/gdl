@@ -168,10 +168,13 @@ public:
     thePage.nbPages=0;
     theBox.initialized=false;
     plgpls( &pls);
+    if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=0x%X \n",nx,ny, driver, pls);
+
   }
 
   virtual ~GDLGStream()
   {
+    if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%X \n", pls);
 // 	plend();
   }
 
@@ -230,7 +233,10 @@ public:
   }
 
   static void SetErrorHandlers();
+  virtual PLStream* GetPLStream() {
+    if (GDL_DEBUG_PLSTREAM) printf(" PLStream GDLGstream::GetPLStream(): pls=0x%X \n" ,pls);
 
+     return pls;}
   virtual void Init()=0;
 
   // called after draw operation
@@ -304,8 +310,8 @@ public:
   inline void norm2physical(PLFLT devx, PLFLT devy, PLFLT &physx, PLFLT &physy)
   { physx=nd2px(devx); physy=nd2py(devy);}
   // (normed) device to mm
-  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * fabs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
-  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * fabs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
+  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * abs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
+  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * abs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
   inline void norm2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
   { mmx=nd2mx(devx); mmy=nd2my(devy);}
   //(normed) device to world

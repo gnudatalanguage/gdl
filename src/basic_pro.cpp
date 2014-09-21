@@ -39,13 +39,6 @@
 #include <tchar.h>
 #endif
 
-
-
-
-#ifdef _MSC_VER
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #ifndef _WIN32
 #	include <dirent.h>
 #else

@@ -21,7 +21,6 @@
 
 #include <plplot/plstream.h>
 
-#include "gdlwidget.hpp"
 #include "gdlwxstream.hpp"
 
 #ifdef HAVE_OLDPLPLOT
@@ -29,37 +28,6 @@
 #else
 #define SETOPT setopt
 #endif
-
-
-GDLWXStream::GDLWXStream( int width, int height )
-: GDLGStream( width, height, "wxwidgets")
-  , m_dc(NULL)
-  , m_bitmap(NULL)
-  , m_width(width), m_height(height)
-  , gdlWindow(NULL)
-{
-  m_dc = new wxMemoryDC();
-  m_bitmap = new wxBitmap( width, height, 32);
-  m_dc->SelectObject( *m_bitmap);
-  if( !m_dc->IsOk())
-  {
-    m_dc->SelectObject( wxNullBitmap );
-    delete m_bitmap;
-    delete m_dc;
-    throw GDLException("GDLWXStream: Failed to create DC.");
-  }
-
-  //::plstream();
-//   sdev( "wxwidgets" );
-  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
-//   SETOPT( "text", "1" ); // use freetype?
-//   SETOPT( "smooth", "1" );  // antialiased text?
-  this->plstream::init();
-  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
-
-  plstream::set_stream();
-}
-
 
 GDLWXStream::~GDLWXStream()
 {
@@ -124,10 +92,25 @@ void GDLWXStream::WarpPointer(DLong x, DLong y) {
 
 void GDLWXStream::Init()
 {
-  this->plstream::init();
+  m_dc = new wxMemoryDC();
+  m_bitmap = new wxBitmap(m_width, m_height, 32);
+  m_dc->SelectObject(*m_bitmap);
+  if (!m_dc->IsOk())
+  {
+	  m_dc->SelectObject(wxNullBitmap);
+	  delete m_bitmap;
+	  delete m_dc;
+	  throw GDLException("GDLWXStream: Failed to create DC.");
+  }
+  
+  SETOPT( "text", "1" ); // use freetype?
+  SETOPT( "smooth", "1" );  // antialiased text?
 
-  set_stream(); // private
+  plstream::init();
+  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
 
+  plstream::set_stream();
+  gdlFrame->Show();
 }
 
 

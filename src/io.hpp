@@ -18,6 +18,7 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
+#include "includefirst.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -27,7 +28,6 @@
 
 #include <sys/types.h>
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	#include <winsock2.h>
 #else
 	#include <sys/socket.h>
 	#include <netinet/in.h>

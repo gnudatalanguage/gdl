@@ -286,7 +286,7 @@ private:
       string pbstr=string("%%PageBoundingBox: ")+offstr;
       // edits will be in the first 12288 bytes; add the length of offstr-3
       const size_t buflen=12288 + pbstr.length()-22;
-      char buff[buflen];
+      char *buff = (char*)alloca(sizeof(char)*buflen);
       
       //do the first read:
       size_t cnt = fread(&buff, 1, buflen, fp);

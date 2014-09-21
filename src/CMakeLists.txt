@@ -252,6 +252,7 @@ gdlwinstream.hpp
 gtdhelper.cpp
 gtdhelper.hpp
 devicewin.hpp
+devicewin.cpp
 )
 endif(WIN32 AND NOT CYGWIN)
 

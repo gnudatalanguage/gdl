@@ -1,6 +1,4 @@
 #include <time.h>
-#include <winsock2.h>
-#include <windows.h>
 // A conversion constant between epoch time and microsecs
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64

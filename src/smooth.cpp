@@ -58,7 +58,7 @@ namespace lib {
     if(dimArray < p1->N_Elements()) e->Throw("Number of Array dimensions does not match number of Width dimensions");
     DLong64GDL *W_tmp = static_cast<DLong64GDL*>
       (p1->Convert2(GDL_LONG64,BaseGDL::COPY));
-    long W[dimArray];
+    long *W = (long*) alloca(sizeof(long)*dimArray);
     if(p1->Rank() != 0){
       if(dimArray != p1->N_Elements()) e->Throw("Number of Array dimensions does not match number of Width dimensions");
       for(int i=0;i<dimArray;i++){
@@ -147,7 +147,6 @@ namespace lib {
 	}
 	
 	(*R)[ind1]=1.0/n * s;
-	int a,b;
 	tmp1 = w2 + 1;	
 	tmp2 = W[0]-1 - w2;
 	for(long ii=ind1+1;ii<=ind2;ii++){
@@ -202,8 +201,6 @@ namespace lib {
       long M = p0->Dim(1);
 		
       //other variables
-      long i,j,ii,jj;
-      long sub_index,add_index;
       long num;
 
       //tmp variables

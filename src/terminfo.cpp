@@ -25,7 +25,6 @@
 #include "terminfo.hpp"
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#include <winsock2.h>
 #include <windows.h>
 
 int TermWidth()

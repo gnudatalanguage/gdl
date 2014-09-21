@@ -23,10 +23,10 @@
 #ifdef HAVE_LIBWXWIDGETS
 
 #include "gdlgstream.hpp"
+#include "gdlwidget.hpp"
 
 #include <wx/dc.h>
 #include <wx/rawbmp.h>
-class GDLDrawPanel;
 
 class GDLWXStream: public GDLGStream 
 {
@@ -39,28 +39,58 @@ private:
     int m_height;   //!< Height of dc/plot area.
 
     GDLDrawPanel* gdlWindow; // for Update()
-    
+	GDLFrame* gdlFrame;
 public:
-    GDLWXStream( int width, int height );  //!< Constructor.
+	GDLWXStream(int width, int height)
+		: GDLGStream(width, height, "wxwidgets")
+		, m_dc(NULL)
+		, m_bitmap(NULL)
+		, m_width(width), m_height(height)
+		, gdlWindow(NULL)
+		, gdlFrame(NULL)
+	{};
     ~GDLWXStream();  //!< Constructor.
     
     wxMemoryDC* GetDC() const { return m_dc;}
-    
+
 //     void set_stream();   //!< Calls some code before every PLplot command.
     void SetSize( int width, int height );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
-    
-    void Init();
-    void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-    unsigned long GetWindowDepth() ;   
     void Update();
     void SetGDLDrawPanel(GDLDrawPanel*);
+
+    void Init();
+    //void EventHandler(); //    
+    
+    //static int   GetImageErrorHandler(Display *display, XErrorEvent *error); //
+
+    void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+    unsigned long GetWindowDepth() ;   
+
+  //DString GetVisualName();
+  //bool SetFocus();
+  //bool UnsetFocus();
+  //bool SetBackingStore(int value);
+  //bool SetGraphicsFunction(long value );
+  //bool GetWindowPosition(long& xpos, long& ypos );
+  //bool CursorStandard(int cursorNumber);
+  void Clear();
+    void Clear( DLong bColor); //
+  //void Raise();
+  //void Lower();
+  //void Iconic();
+  //void DeIconic();
+  //bool GetGin(PLGraphicsIn *gin, int mode);
+  //bool GetExtendedGin(PLGraphicsIn *gin, int mode);
+  void WarpPointer(DLong x, DLong y);
+  //void Flush();
+  //void SetDoubleBuffering();
+  //void UnSetDoubleBuffering();
+  //bool HasDoubleBuffering();
+  //bool HasSafeDoubleBuffering();
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
-		   DLong trueColorOrder, DLong channel);
-    void Clear();
-    void Clear( DLong bColor);
-    void WarpPointer(DLong x, DLong y);
-    virtual bool HasCrossHair() {return false;}
+		   DLong trueColorOrder, DLong channel); //
+  virtual bool HasCrossHair() {return true;}
 };
 
 

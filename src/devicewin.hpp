@@ -18,6 +18,7 @@
 #ifndef DEVICEWIN_HPP_
 #define DEVICEWIN_HPP_
 
+
 #include <algorithm>
 #include <vector>
 #include <cstring>
@@ -25,7 +26,7 @@
 #include <plplot/drivers.h>
 
 #include "graphicsdevice.hpp"
-#include "gdlwinstream.hpp"
+#include "datatypes.hpp"
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
@@ -47,34 +48,36 @@ private:
   int  actWin;
   int decomposed; // false -> use color table
 
-  
   int cursorId; //should be 3 by default.
   long gcFunction;
   int backingStoreMode;
+  
   void EventHandler();
-
   bool WDelete( int );
   bool WOpen( int , const std::string& , 
 	      int , int , int , int );
   bool WState( int );
- // bool WSize( int , int*, int*, int*, int*);
+  bool WSize( int , int*, int*, int*, int*);
   bool WSet( int );
- // bool WShow( int, bool, bool);
+  bool WShow( int, bool, bool);
   int WAdd();
-//> 	******					Device::SetActWin
+  DIntGDL* GetWindowPosition();
+  void MaxXYSize(DLong *xSize, DLong *ySize);
+  void DefaultXYSize(DLong *xSize, DLong *ySize);
+
+  //> 	******					Device::SetActWin
   void SetActWin( int wIx)
   {
 	// update !D
     if (wIx >= 0 && wIx < winList.size()) {	// window size and pos
-	  PLFLT xp; PLFLT yp;
-	  PLINT xleng; PLINT yleng;
-	  PLINT xoff; PLINT yoff;
-	  winList[wIx]->gpage(xp, yp, xleng, yleng, xoff, yoff);
-// GetGeometry, GetWindowsize are not impleented in gdlwinstream.
-	  (*static_cast<DLongGDL*>(dStruct->GetTag(xSTag)))[0] = xleng;
-	  (*static_cast<DLongGDL*>(dStruct->GetTag(ySTag)))[0] = yleng;
-	  (*static_cast<DLongGDL*>(dStruct->GetTag(xVSTag)))[0] = xleng;
-	  (*static_cast<DLongGDL*>(dStruct->GetTag(yVSTag)))[0] = yleng;
+
+	long xsize,ysize,xoff,yoff;
+	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
+	
+        (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
     }
 
 		// window number
@@ -149,14 +152,15 @@ public:
     oList.resize( maxWin);
     for( int i=0; i < maxWin; i++) oList[ i] = 0;
 
-    //     GDLGStream::SetErrorHandlers();
+ 
   }
   
 	~DeviceWIN()
   {
     std::vector<GDLGStream*>::iterator i;
     for(i = winList.begin(); i != winList.end(); ++i) 
-      { delete *i; /* *i = NULL;*/}
+      { delete *i; //*i = NULL;
+	  }
   }
 
   GDLGStream* GetStreamAt( int wIx) const 
@@ -168,15 +172,15 @@ public:
  
   // should check for valid streams
   GDLGStream* GetStream( bool open=true)
-   { /* This routine looks broken gvj 8/2014 */
+   { 
     TidyWindowsList();
     if( actWin == -1) {
 	  if( !open) return NULL;
 
 	  DString title = "GDL 0";
 	  DLong xSize, ySize;
-			//DefaultXYSize(&xSize, &ySize);
-	  xSize = 640; ySize = 480;
+	  DefaultXYSize(&xSize, &ySize);
+//	  xSize = 640; ySize = 480;
 	  bool success = WOpen( 0, title, xSize, ySize, -1, -1);
 	  if( !success)	  return NULL;
 	  if( actWin == -1)	  {
@@ -187,18 +191,45 @@ public:
     return winList[ actWin];
   }
 
-	bool Decomposed(bool value)
-	{
-		decomposed = value;
-		return true;
-	}
+//	bool Decomposed(bool value)
+//	{
+//		decomposed = value;
+//		return value;
+//	}
 
+  bool SetFocus()
+  {
+	  if (actWin == -1) { cout << " actWin=-1      !!!" << endl; return false; }
+	  return winList[actWin]->SetFocus();
+  }
+  bool UnsetFocus()
+  {
+//	cout << "\n DeviceWIN:: UnsetFocus(){return winList[ actWin]->UnsetFocus();} \n";
+   if( actWin == -1) { cout << " actWin=-1      !!!" <<endl; return false;}
+    return winList[ actWin]->UnsetFocus();
+  }  
+  
+void RaiseWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Raise();
+  }
 
+  void LowerWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Lower();
+  }
 
-
+  void IconicWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Iconic();
+  }
+  void DeIconicWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->DeIconic();
+  }
+  
 	int MaxWin() { TidyWindowsList(); return maxWin; }
 	int ActWin() { TidyWindowsList(); return actWin; }
-
 };
 #undef maxWin
 #undef maxWinReserve

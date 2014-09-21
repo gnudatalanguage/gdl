@@ -535,6 +535,8 @@ public:
     
     if (iconic) IconicWin(ix); else DeIconicWin(ix);
 
+    UnsetFocus();
+
     return true;
   }
 

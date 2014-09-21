@@ -880,7 +880,7 @@ namespace SysVar
     if( omp_get_dynamic())
 	omp_set_dynamic( 1);
 #endif
-#if defined (__MINGW32__)
+#if defined (_WIN32)
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
@@ -908,6 +908,11 @@ namespace SysVar
     //    cout << "1 GSHHS data dir : " << tmpDir << endl;
     // is the path a true path ?
     char *symlinkpath =const_cast<char*> (tmpDir.c_str());
+
+#ifdef _MSC_VER
+	#define PATH_MAX MAX_PATH
+#endif
+
     char actualpath [PATH_MAX+1];
     char *ptr;
     ptr = realpath(symlinkpath, actualpath);
