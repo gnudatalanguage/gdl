@@ -326,6 +326,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
       event.Skip();
       return; // happens on construction
     }
+    //here we should differentiate EDITABLE and not-editable comboboxes!!! FIXME
     control->GetSelection( &selStart, &selEnd);
     offset = control->GetInsertionPoint();    
     lastValue = static_cast<GDLWidgetComboBox*>(widget)->GetLastValue();
@@ -346,7 +347,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
     }
     int where = control->GetSelection();
     if (where !=  wxNOT_FOUND) {
-      newValue=control->GetString(where);
+      newValue=control->GetString(where).mb_str();
       lastValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
       isModified = lastValue != newValue;
       static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
@@ -458,8 +459,9 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
   else if( widget->IsComboBox())
   {
     wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
+    //here we should differentiate EDITABLE and not-editable comboboxes!!! FIXME
     offset = control->GetInsertionPoint();    
-    newValue = control->GetValue().mb_str();
+    newValue = control->GetStringSelection().mb_str();
     static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
 
     control->Refresh();
@@ -469,8 +471,10 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
     assert( widget->IsDropList());
     wxChoice* control = static_cast<wxChoice*>(widget->GetWxWidget());
     int where = control->GetSelection();
-    newValue = control->GetString(where);
-    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+    if (where != wxNOT_FOUND) {
+      newValue = control->GetString(where).mb_str();
+      static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+    }
 
     control->Refresh();
   }
