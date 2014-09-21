@@ -138,6 +138,7 @@ void GDLWXStream::Clear() {
   ::c_plbop();
 }
 
+//FALSE: REPLACE With Clear(DLong chan) as in X
 void GDLWXStream::Clear(DLong bColor) {
   PLINT r0, g0, b0;
   PLINT r1, g1, b1;
@@ -229,5 +230,185 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   temp_dc.SelectObject( wxNullBitmap);
   *m_bitmap = m_dc->GetAsBitmap(); 
   return true;
+}
+bool GDLWXStream::SetGraphicsFunction( long value) {
+  cerr<<"Set Graphics Function not ready for wxWindow draw panel, please contribute."<<endl;
+ return true;
+}
+
+bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
+  cerr<<"Get Window Position not ready for wxWindow draw panel, please contribute."<<endl;
+  xpos=0;
+  ypos=0;
+ return true;
+}
+bool GDLWXStream::CursorStandard(int cursorNumber)
+{
+ cerr<<"Cursor Setting not ready for wxWindow draw panel, please contribute."<<endl;
+ return true;
+}
+DLong GDLWXStream::GetVisualDepth() {
+return 24;
+}
+DString GDLWXStream::GetVisualName() {
+static const char* visual="TrueColor";
+return visual;
+}
+BaseGDL* GDLWXStream::GetImage( EnvT* e){
+
+    plstream::cmd( PLESC_FLUSH, NULL );
+    wxMemoryDC temp_dc;
+    temp_dc.SelectObject(*m_bitmap);
+    wxAlphaPixelData data( *m_bitmap );
+    if ( !data ) e->Throw("No TV to read! (GDL internal error?)");
+    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
+    DLong orderVal=SysVar::TV_ORDER();
+    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    
+    SizeT dims[3],datadims[3];
+    
+    DByteGDL* res;
+
+    DLong tru=0;
+    e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
+
+    DLong channel=-1;
+
+    unsigned int xMaxSize = m_bitmap->GetWidth();
+    unsigned int yMaxSize = m_bitmap->GetHeight();
+    unsigned int x_gdl=0;
+    unsigned int y_gdl=0;
+    unsigned int nx_gdl=xMaxSize;
+    unsigned int ny_gdl=yMaxSize;
+
+    bool error=false;
+    bool hasXsize=false;
+    bool hasYsize=false;
+    int nParam = e->NParam();
+    if (nParam >= 4) {
+      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
+      ny_gdl=(*Ny)[0];
+      hasYsize=true;
+    }
+    if (nParam >= 3) {
+      DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
+      nx_gdl=(*Nx)[0];
+      hasXsize=true;
+    }
+    if (nParam >= 2) {
+      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
+      y_gdl=(*y0)[0];
+    }
+    if (nParam >= 1) {
+      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
+      x_gdl=(*x0)[0];
+    }
+    if (nParam == 5) {
+      DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
+      channel=(*ChannelGdl)[0]; 
+    }
+    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
+
+    if (!(hasXsize))nx_gdl-=x_gdl; 
+    if (!(hasYsize))ny_gdl-=y_gdl;
+    
+    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
+    int x_11=0;
+    int y_11=0;
+    xref=0;xval=0;xinc=1;
+    yref=yMaxSize-1;yval=0;yinc=-1;
+    
+    x_11=xval+(x_gdl-xref)*xinc;
+    y_11=yval+(y_gdl-yref)*yinc;
+    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
+    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
+    if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
+    if (x_11 < 0 || x_11 > xMaxSize-1) error=true;
+    if (xmax11 < 0 || xmax11 > xMaxSize-1) error=true;
+    if (ymin11 < 0 || ymin11 > yMaxSize-1) error=true;
+    if (error) e->Throw("Value of Area is out of allowed range.");
+
+    datadims[0] = m_bitmap->GetWidth();
+    datadims[1] = m_bitmap->GetHeight();
+    datadims[2] = 3;
+    dimension datadim(datadims, (SizeT) 3);
+    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::ZERO);
+    PLINT nx = m_bitmap->GetWidth();
+    PLINT ny = m_bitmap->GetHeight();
+    wxAlphaPixelData::Iterator p( data );
+    for ( int iy = 0; iy < ny; ++iy ) {
+      wxAlphaPixelData::Iterator rowStart = p;
+      for ( int ix = 0; ix < nx; ++ix ) {
+        (*bitmap)[3 * (iy * nx + ix) + 0] = p.Red( );
+        (*bitmap)[3 * (iy * nx + ix) + 1] = p.Green( );
+        (*bitmap)[3 * (iy * nx + ix) + 2] = p.Blue( );
+        p.OffsetX( data, 1 );
+      }
+      p = rowStart;
+      p.OffsetY( data, 1 );
+    }
+    
+#define PAD 3
+
+  if ( tru == 0 ) {
+    dims[0] = nx_gdl;
+    dims[1] = ny_gdl;
+    dimension dim( dims, (SizeT) 2 );
+    res = new DByteGDL( dim, BaseGDL::ZERO );
+    if ( channel <= 0 ) { //channel not given, return max of the 3 channels
+      DByte mx, mx1;
+
+      for ( SizeT i = 0; i < dims[0] * dims[1]; ++i ) {
+        mx = (*bitmap)[PAD * i];
+        mx1 = (*bitmap)[PAD * i + 1];
+        if ( mx1 > mx ) mx = mx1;
+        mx1 = (*bitmap)[PAD * i + 2];
+        if ( mx1 > mx ) mx = mx1;
+        (*res)[i] = mx;
+      }
+    } else {
+      for ( SizeT i = 0; i < dims[0] * dims[1]; ++i ) {
+        (*res)[i] = (*bitmap)[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
+      }
+    }
+    GDLDelete(bitmap);
+    // Reflect about y-axis
+    if ( orderVal == 0 ) res->Reverse( 1 );
+    return res;
+
+  } else {
+    dims[0] = 3;
+    dims[1] = nx_gdl;
+    dims[2] = ny_gdl;
+    dimension dim( dims, (SizeT) 3 );
+    res = new DByteGDL( dim, BaseGDL::NOZERO );
+    for ( SizeT i = 0, kpad = 0; i < dims[1] * dims[2]; ++i ) {
+      for ( SizeT j = 0; j < 3; ++j ) ( *res )[(i + 1)*3 - (j + 1)] = (*bitmap)[kpad++];
+      kpad++;
+    }
+    GDLDelete(bitmap);
+    // Reflect about y-axis
+    if ( orderVal == 0 ) res->Reverse( 2 );
+
+    DUInt* perm = new DUInt[3];
+    if ( tru == 1 ) {
+      return res;
+    } else if ( tru == 2 ) {
+      perm[0] = 1;
+      perm[1] = 0;
+      perm[2] = 2;
+      return res->Transpose( perm );
+    } else if ( tru == 3 ) {
+      perm[0] = 1;
+      perm[1] = 2;
+      perm[2] = 0;
+      return res->Transpose( perm );
+    }
+  }
+  assert( false );
+  return NULL;
+#undef PAD 
 }
 #endif
