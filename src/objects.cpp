@@ -430,6 +430,22 @@ void InitStructs()
   widgver->AddTag("RELEASE", &aString);
   // insert into structList
   structList.push_back( widgver);
+  
+  DStructDesc* widggeom = new DStructDesc( "WIDGET_GEOMETRY");
+  widggeom->AddTag("XOFFSET",&aFloat);
+  widggeom->AddTag("YOFFSET",&aFloat);
+  widggeom->AddTag("XSIZE",&aFloat);
+  widggeom->AddTag("YSIZE",&aFloat);
+  widggeom->AddTag("SCR_XSIZE",&aFloat);
+  widggeom->AddTag("SCR_YSIZE",&aFloat);
+  widggeom->AddTag("DRAW_XSIZE",&aFloat);
+  widggeom->AddTag("DRAW_YSIZE",&aFloat);
+  widggeom->AddTag("MARGIN",&aFloat);
+  widggeom->AddTag("XPAD",&aFloat);
+  widggeom->AddTag("YPAD",&aFloat);
+  widggeom->AddTag("SPACE",&aFloat);
+  // insert into structList
+  structList.push_back( widggeom);
 }
 
 void InitObjects()
