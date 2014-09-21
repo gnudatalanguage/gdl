@@ -88,11 +88,10 @@ void GDLEventQueue::Purge( WidgetIDT topID)
 wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel) 
 {
   wxSizer* sizer = NULL;
-  if (row==0 && col==0) cerr<<"invalid null rows and cols in base widget, please report!"<<endl;
   if ( frameBox == 0 ) {
-    if ( row == 0  && col == 1) {sizer = new wxBoxSizer( wxVERTICAL ); }
+    if ( row == 0  && col <= 1) {sizer = new wxBoxSizer( wxVERTICAL ); }
     else if ( row == 0 && col > 1) {sizer = new wxFlexGridSizer( 0, col, 0, 0 );}
-    else if ( col == 0 && row == 1) {sizer = new wxBoxSizer( wxHORIZONTAL );}
+    else if ( col == 0 && row <= 1) {sizer = new wxBoxSizer( wxHORIZONTAL );}
     else if ( col == 0 && row > 1) {sizer = new wxFlexGridSizer( row, 0, 0, 0 );}
     else sizer = new wxFlexGridSizer( row, col, 0, 0 ); //which should not happen.
     } else {
@@ -957,7 +956,7 @@ GDLWidgetSlider::~GDLWidgetSlider()
   
 
 GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
-const DString& value )
+const DString& value , bool isMenu)
 : GDLWidget( p, e )
 , buttonType( UNDEFINED )
 , buttonState( false)
@@ -973,9 +972,10 @@ const DString& value )
   //update vValue
   delete(vValue);
   vValue = new DStringGDL( value );
-
+  
   if ( gdlParent->IsMenuBar( ) )
   {
+    //A button in a menubar is automatically a MENU
     //     cout << "MenuBar: " << widgetID << endl;
     wxMenuBar *menuBar = static_cast<wxMenuBar*> (wxParentObject);
     this->wxWidget = new wxMenu( );
@@ -988,20 +988,29 @@ const DString& value )
     //     cout << "Menu: " << widgetID << endl;
     if( gdlParent->IsButton())
     {
-      assert( dynamic_cast<wxMenu*> (wxParentObject) != NULL );
+      if ( dynamic_cast<wxMenu*> (wxParentObject) == NULL ) e->Throw("Parent is of incorrect type.");
 
-      wxMenu *menu = static_cast<wxMenu*> (wxParentObject);
-      // wxMenuItem
+        wxMenu *menu = static_cast<wxMenu*> (wxParentObject);
+        if (isMenu) {
+          this->wxWidget = new wxMenu( );
+          wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
+          menu->AppendSubMenu( static_cast<wxMenu*> (this->wxWidget), valueWxString );
+          buttonType = MENU;
+        }
+        else //only an entry.
+        {
+        // wxMenuItem
+        // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
+        // at destruction this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
+        // on wxWidgets < 2.9.5
+        wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
+        wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString );
+        menu->Append( menuItem );
+        this->wxWidget = menuItem;
+        buttonType = ENTRY;
       // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
-      // at destruction this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
-      // on wxWidgets < 2.9.5
-      wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
-      wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString );
-      menu->Append( menuItem );
-      this->wxWidget = menuItem;
-      buttonType = MENU;
-      // 	this->wxWidget = menu->Append( widgetID, wxString(value.c_str(), wxConvUTF8));
-    }
+        }
+      }
     else 
     {
       //       cout << "Button: " << widgetID << endl;
@@ -1077,9 +1086,11 @@ const DString& value )
     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
     wxString valueWxString = wxString( value_.c_str( ), wxConvUTF8 );
     if ( this->wxWidget != NULL ) {
-      wxWindowID id = static_cast<wxButton*> (wxWidget)->GetId( );
-      static_cast<wxButton*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-    } else std::cerr << "Null widget in GDLWidgetLabel::SetButtonWidgetLabelText(), please report!" << std::endl;
+        if ( dynamic_cast<wxMenu*>(wxWidget)->GetMenuBar() == NULL ) { //a real button
+          wxWindowID id = static_cast<wxButton*> (wxWidget)->GetId( );
+          static_cast<wxButton*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
+      } else std::cerr << "Null widget in GDLWidgetLabel::SetButtonWidgetLabelText(), please report!" << std::endl;
+    }
   }
   
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style )
@@ -1114,24 +1125,51 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style 
     boxSizer->Fit( panel );
     }
 
-//GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
 GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 const DString& title_, DLong style_ )
 : GDLWidget( p, e, true, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )) )
 , title( title_ )
     , style( style_)
 {
-  //   if( vValue->Type() != GDL_STRING)
-  //   {
-  //       vValue = static_cast<DStringGDL*>( vValue->Convert2(GDL_STRING,BaseGDL::CONVERT));
-  //   }
-
   CreateWidgetPanel( );
 }
 
 void GDLWidgetDropList::OnShow()  
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+
+  GDLWidget* gdlParent = GetWidget( parentID );
+
+  DStringGDL* val = static_cast<DStringGDL*> (vValue);
+  DLong n = val->N_Elements( );
+  wxArrayString choices; // = new wxString[n];
+  for ( SizeT i = 0; i < n; ++i )
+  choices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
+
+  wxChoice * droplist = new wxChoice( widgetPanel, widgetID, 
+  wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), choices, style );
+  droplist->SetSelection(0);
+  this->wxWidget = droplist;
+
+    widgetPanel->SetClientSize( droplist->GetSize( ) );
+
+    wxSizer * boxSizer = gdlParent->GetSizer( );
+    boxSizer->Layout( );
+    }
+
+GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
+const DString& title_, DLong style_ )
+: GDLWidget( p, e, true, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )) )
+, title( title_ )
+, style( style_)
+{
+  CreateWidgetPanel( );
+}
+
+void GDLWidgetComboBox::OnShow()  
+{
+  //  std::cout << "In ComboBox: " << widgetID << " " << p << std::endl;
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( parentID );
@@ -1153,7 +1191,6 @@ void GDLWidgetDropList::OnShow()
     boxSizer->Layout( );
     }
 
-
 GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine_,
 bool editable_ )
 : GDLWidget( p, e, true, valueStr )
@@ -1161,11 +1198,14 @@ bool editable_ )
 , editable(editable_)
 {
   DString value = "";
+  maxlinelength = 0;
   if( vValue != NULL)
   {
       for( int i=0; i<vValue->N_Elements(); ++i)
       {
-      value += (*static_cast<DStringGDL*> (vValue))[i];
+        int length=((*static_cast<DStringGDL*> (vValue))[i]).length();
+      value += (*static_cast<DStringGDL*> (vValue))[i]; 
+      maxlinelength=(length>maxlinelength)?length:maxlinelength;
       if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
       value += '\n';
       }
@@ -1194,26 +1234,25 @@ void GDLWidgetText::OnShow()
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( parentID );
-
-  wxSize fontSize = wxNORMAL_FONT->GetPixelSize( );
+  wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   wxSize widgetSize = wxDefaultSize;
   if ( xSize != widgetSize.x )
   widgetSize.x = xSize * fontSize.x;
-    if ( ySize != widgetSize.y )
-    widgetSize.y = ySize * fontSize.y;
+  else widgetSize.x = maxlinelength * fontSize.x;
+  if ( ySize != widgetSize.y )
+  widgetSize.y = ySize * fontSize.y;
 
     DLong style = wxTE_NOHIDESEL;
       if ( !editable )
       style |= wxTE_READONLY;
         if ( ySize > 1 )
         style |= wxTE_MULTILINE;
-
         wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
         wxTextCtrl * text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
         wxPoint( xOffset, yOffset ), widgetSize, style );
         this->wxWidget = text;
 
-          //  widgetPanel->SetClientSize(text->GetSize());
+          //widgetPanel->SetClientSize(text->GetSize());
 
 //   wxSizer *parentSizer = gdlParent->GetSizer();
 //   parentSizer->Layout(); // maybe not necessary

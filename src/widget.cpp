@@ -804,10 +804,9 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   //    cout << value << ",  ParentID : "<<  parentID <<  endl;
 
-  GDLWidgetButton* button = new GDLWidgetButton( parentID, e, value );
-
-  button->SetWidgetType( "BUTTON" );
-
+  static int menuIx = e->KeywordIx( "MENU" );
+  bool isMenu =  e->KeywordSet( menuIx );
+  GDLWidgetButton* button = new GDLWidgetButton( parentID, e, value, isMenu );
   return new DLongGDL( button->WidgetID( ) );
 #endif
 }
@@ -946,7 +945,7 @@ BaseGDL* widget_list( EnvT* e ) {
   if ( value != NULL )
     value = value->Dup( );
 
-  DLong style = wxCB_READONLY;
+  DLong style = 0;
   GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style );
   droplist->SetWidgetType( "DROPLIST" );
 
@@ -985,10 +984,10 @@ BaseGDL* widget_combobox( EnvT* e ) {
   if ( !editable )
     style = wxCB_READONLY;
 
-  GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style );
-  droplist->SetWidgetType( "COMBOBOX" );
+  GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, title, style );
+  combobox->SetWidgetType( "COMBOBOX" );
 
-  return new DLongGDL( droplist->WidgetID( ) );
+  return new DLongGDL( combobox->WidgetID( ) );
 #endif
 }
 
@@ -1098,7 +1097,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   DLong edit = 0;
   static int editableIx = e->KeywordIx( "EDITABLE" );
   e->AssureLongScalarKWIfPresent( editableIx, edit );
-  bool editable = edit == 1;
+  bool editable = (edit == 1);
 
   GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable );
   text->SetWidgetType( "TEXT" );
@@ -1169,11 +1168,38 @@ BaseGDL* widget_info( EnvT* e ) {
 
   static int versionIx = e->KeywordIx( "VERSION" );
   bool version = e->KeywordSet( versionIx );
-
+  
+  static int geometryIx = e->KeywordIx( "GEOMETRY" );
+  bool geometry = e->KeywordSet( geometryIx );
+  
+  static int unameIx = e->KeywordIx( "UNAME");
+  bool uname = e->KeywordSet( unameIx );
+  
   // VERSION keyword
   if ( version ) {
     DStructGDL* res = new DStructGDL( "WIDGET_VERSION" );
     return res;
+  }
+  // UNAME keyword
+  if ( uname ) {
+    if ( rank == 0 ) {
+      // Scalar Input
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      if ( widget == NULL ) return new DStringGDL();
+      else   return new DStringGDL(widget->GetUname());
+    } else {
+      // Array Input
+      DStringGDL* res = new DStringGDL( p0L->Dim( ), BaseGDL::NOZERO );
+      for ( SizeT i = 1; i < nEl; i++ ) {
+        WidgetIDT widgetID = (*p0L)[i];
+        GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+        if ( widget != NULL ) {
+            (*res)[ i] = widget->GetUname() ;
+        }
+      }
+      return res;
+    }
   }
 
   // CHILD keyword
@@ -1236,6 +1262,48 @@ BaseGDL* widget_info( EnvT* e ) {
     }
   }
   // End /VALID
+  // GEOMETRY keyword
+  if ( geometry ) {
+        cerr <<"warning, WIDGET_INFO( /GEOMETRY) not finished\n";
+    if ( rank == 0 ) {
+      // Scalar Input
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      if ( widget == NULL )
+        return new DLongGDL( 0 );
+      else
+      {//dummy values, FIXME!!!
+       DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+       ex->InitTag("XOFFSET",DFloatGDL(3.0));  
+       ex->InitTag("YOFFSET",DFloatGDL(3.0)); 
+       ex->InitTag("XSIZE",DFloatGDL(300.0));  
+       ex->InitTag("YSIZE",DFloatGDL(300.0)); 
+       ex->InitTag("SCR_XSIZE",DFloatGDL(300.0));  
+       ex->InitTag("SCR_YSIZE",DFloatGDL(300.0));  
+       ex->InitTag("DRAW_XSIZE",DFloatGDL(100.0));  
+       ex->InitTag("DRAW_YSIZE",DFloatGDL(100.0));  
+       ex->InitTag("MARGIN",DFloatGDL(0.0));  
+       ex->InitTag("XPAD",DFloatGDL(0.0));  
+       ex->InitTag("YPAD",DFloatGDL(0.0));  
+       ex->InitTag("SPACE",DFloatGDL(0.0));
+
+        return ex; 
+      }
+    } else {
+      // Array Input
+      DLongGDL* res = new DLongGDL( p0L->Dim( ), BaseGDL::NOZERO );
+      for ( SizeT i = 1; i < nEl; i++ ) {
+        WidgetIDT widgetID = (*p0L)[i];
+        GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+        if ( widget == NULL )
+          ( *res )[ i] = (DLong) 0;
+        else
+          (*res)[ i] = (DLong) 1;
+      }
+      return res;
+    }
+  }
+  // End /GEOMETRY
 
   // MODAL keyword (stub)
   if ( modal ) {
@@ -1657,10 +1725,14 @@ void widget_control( EnvT* e ) {
       // "Regular" getvalue
       if ( widget->IsText( ) || widget->IsDropList( ) ) {
         string rawValue;
-        if ( widget->IsText( ) )
-          rawValue = static_cast<GDLWidgetText*> (widget)->GetLastValue( );
-        else
+        if ( widget->IsText( ) ) rawValue = static_cast<GDLWidgetText*> (widget)->GetLastValue( );
+        else if ( widget->IsComboBox( ) )
+          rawValue = static_cast<GDLWidgetComboBox*> (widget)->GetLastValue( );
+        else //Droplist
+        {
+          assert( widget->IsDropList());
           rawValue = static_cast<GDLWidgetDropList*> (widget)->GetLastValue( );
+        }
 	  if( rawValue.length() == 0)
 	  {
           *valueKW = new DStringGDL( dimension( 1 ) );

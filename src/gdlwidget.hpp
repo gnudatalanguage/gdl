@@ -91,7 +91,10 @@ public:
 //   ~GUIMutexLockerT() { if(!left) wxMutexGuiLeave();}
 //   void Leave() { wxMutexGuiLeave(); left=true;}
 // };
-#define GUIMutexLockerWidgetsT_OFF
+
+//Apparently (TBC) having _OFF is very bad for our widgets (linux): spurious frequent crashes!
+//Fortunately MS seems to have already provided the locking mechanism, so I make it valid
+//#define GUIMutexLockerWidgetsT_OFF
 class GUIMutexLockerWidgetsT
 {
 #ifdef GUIMutexLockerWidgetsT_OFF
@@ -107,7 +110,8 @@ public:
   void Leave() { wxMutexGuiLeave(); left=true;}
 #endif  
 };
-#define GUIMutexLockerEventHandlersT_OFF
+//See comment above.
+//#define GUIMutexLockerEventHandlersT_OFF
 class GUIMutexLockerEventHandlersT
 {
 #ifdef GUIMutexLockerEventHandlersT_OFF
@@ -352,12 +356,15 @@ public:
   virtual bool IsBase() const { return false;} 
   virtual bool IsButton() const { return false;} 
   virtual bool IsDropList() const { return false;} 
+  virtual bool IsComboBox() const { return false;} 
   virtual bool IsTab() const { return false;}
   virtual bool IsText() const { return false;} 
   virtual bool IsTree() const { return false;} 
   virtual bool IsSlider() const { return false;}
   virtual bool IsDraw() const { return false;}
   virtual bool IsMenuBar() const { return false;}
+  virtual bool IsMenu() const { return false;}
+  virtual bool IsMenuItem() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const {return 0;}
@@ -520,14 +527,14 @@ public:
 class GDLWidgetButton: public GDLWidget
 {
   typedef enum ButtonType_ {
-  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3} ButtonType;
+  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3, ENTRY=4} ButtonType;
 
   ButtonType buttonType;
 
   bool buttonState;
   
 public:
-  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value);
+  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu);
 
   // for WIDGET_CONTROL
   void SetButtonWidget( bool onOff)
@@ -550,20 +557,7 @@ public:
       }
     }
   }
-  void SetButtonWidgetLabelText( const DString& value_ );
- // code in gdlwidget.
-//  {
-//    if( wxWidget != NULL)
-//    {
-//      switch( buttonType) {
-//	case NORMAL: {
-//	  wxButton* bb = static_cast<wxButton*>(wxWidget);
-//	  bb->SetLabel(wxString(value_.c_str( ), wxConvUTF8));
-//	  break;
-//	}
-//      }
-//    }
-//  }
+  void SetButtonWidgetLabelText( const DString& value_ );//code in gdlwidget
   void SetButton( bool onOff)
   {
     buttonState = onOff;
@@ -602,6 +596,27 @@ public:
   std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
 };
 
+// combobox widget **************************************************
+class GDLWidgetComboBox: public GDLWidget
+{
+  std::string lastValue;
+  wxMutex m_mutex;
+  DString title;
+  DLong style;
+  
+public:
+  GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
+		     const DString& title, DLong style);
+
+  void OnShow();
+  
+//   void SetSelectOff();
+  bool IsComboBox() const { return true;} 
+
+  void SetLastValue( const std::string& v) {  wxMutexLocker lock(m_mutex); lastValue = v;}
+  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
+};
+
 // list widget **************************************************
 class GDLWidgetList : public GDLWidget
 {
@@ -618,6 +633,7 @@ class GDLWidgetText: public GDLWidget
   wxMutex m_mutex;
   bool noNewLine;
   bool editable;
+  int maxlinelength;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
@@ -627,7 +643,7 @@ public:
   
   bool IsText() const { return true;} 
   
-  void SetLastValue( const std::string& v) { m_mutex.Lock(); lastValue = v; m_mutex.Unlock();}
+  void SetLastValue( const std::string& v) { wxMutexError mtxerr=m_mutex.Lock(); lastValue = v; if (mtxerr==wxMUTEX_NO_ERROR) m_mutex.Unlock();}
   std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
 };
 
@@ -673,6 +689,7 @@ public:
   GDLWidget( p, NULL)
   {
     this->wxWidget = new wxMenuBar();
+    this->widgetType="MBAR";
   }
 
   bool IsMenuBar() const { return true;}
@@ -866,6 +883,7 @@ public:
   void OnRadioButton( wxCommandEvent& event);
   void OnCheckBox( wxCommandEvent& event);
   void OnComboBox( wxCommandEvent& event);
+  void OnDropList( wxCommandEvent& event);
   void OnListBox( wxCommandEvent& event);
   void OnListBoxDoubleClicked( wxCommandEvent& event);
   void OnText( wxCommandEvent& event);

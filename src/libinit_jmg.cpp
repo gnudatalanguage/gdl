@@ -447,7 +447,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_slider);
 
   
-  const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK","CHILD","VERSION",
+  const string widget_infoKey[] = {"VALID_ID","MODAL","MANAGED","XMANAGER_BLOCK","CHILD","VERSION","GEOMETRY","UNAME",
 				   KLISTEND};
   new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);
 
@@ -462,7 +462,7 @@ void LibInit_jmg()
 				      "SET_UNAME","NO_COPY","SET_BUTTON",
 				      "SET_DROPLIST_SELECT","SENSITIVE",
 				      "GET_VALUE","NO_NEWLINE",KLISTEND};
-  const string widget_WarnControlKey[] ={"DEFAULT_FONT","CLEAR_EVENTS",KLISTEND};
+  const string widget_WarnControlKey[] ={"DEFAULT_FONT","CLEAR_EVENTS","XOFFSET","YOFFSET","TLB_SET_TITLE","KILL_NOTIFY",KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_ControlKey,widget_WarnControlKey);
 

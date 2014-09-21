@@ -47,6 +47,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
   EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox)
   EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox)
+  EVT_CHOICE(wxID_ANY, GDLFrame::OnDropList)
   EVT_LISTBOX_DCLICK(wxID_ANY, GDLFrame::OnListBoxDoubleClicked)
   EVT_LISTBOX(wxID_ANY, GDLFrame::OnListBox)
   EVT_TEXT_ENTER(wxID_ANY, GDLFrame::OnTextEnter)
@@ -214,34 +215,40 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
   GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
-
   int selectValue = event.GetSelection();
-  
-  bool dropList = false;
   
   // create GDL event struct
   DStructGDL*  widgcbox;
-  if( !dropList)
-  {
-    wxString strValue = event.GetString();
-    
-    widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
-    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
-    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgcbox->InitTag("HANDLER", DLongGDL( 0));
-    widgcbox->InitTag("INDEX", DLongGDL( selectValue));
-    widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str()) ));
-  }
-  else
-  {
-    widgcbox = new DStructGDL( "WIDGET_DROPLIST");
-    widgcbox->InitTag("ID", DLongGDL( event.GetId()));
-    widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgcbox->InitTag("HANDLER", DLongGDL( 0));
-    widgcbox->InitTag("INDEX", DLongGDL( selectValue));   
-  }
+  wxString strValue = event.GetString();
+
+  widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
+  widgcbox->InitTag("ID", DLongGDL( event.GetId()));
+  widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
+  widgcbox->InitTag("HANDLER", DLongGDL( 0));
+  widgcbox->InitTag("INDEX", DLongGDL( selectValue));
+  widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str()) ));
 
   GDLWidget::PushEvent( baseWidgetID, widgcbox);
+}
+
+void GDLFrame::OnDropList( wxCommandEvent& event)
+{
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputDebug().Printf(_T("in OnDropList: %d\n"),event.GetId());
+#endif
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+  int selectValue = event.GetSelection();
+  
+  DStructGDL*  widdrplst;
+  widdrplst = new DStructGDL( "WIDGET_DROPLIST");
+  widdrplst->InitTag("ID", DLongGDL( event.GetId()));
+  widdrplst->InitTag("TOP", DLongGDL( baseWidgetID));
+  widdrplst->InitTag("HANDLER", DLongGDL( 0));
+  widdrplst->InitTag("INDEX", DLongGDL( selectValue));   
+
+  GDLWidget::PushEvent( baseWidgetID, widdrplst);
 }
 
 void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
@@ -310,10 +317,9 @@ void GDLFrame::OnText( wxCommandEvent& event)
     static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
 
     textCtrl->Refresh();
-  }
-  else
+  } 
+  else if ( widget->IsComboBox()) 
   {
-    assert( widget->IsDropList());
     wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
     if( control == NULL)
     {
@@ -322,10 +328,29 @@ void GDLFrame::OnText( wxCommandEvent& event)
     }
     control->GetSelection( &selStart, &selEnd);
     offset = control->GetInsertionPoint();    
-    lastValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
+    lastValue = static_cast<GDLWidgetComboBox*>(widget)->GetLastValue();
     newValue = control->GetValue().mb_str();
     isModified = lastValue != newValue;
-    static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+    static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
+
+    control->Refresh();
+  }
+  else
+  {
+    assert( widget->IsDropList());
+    wxChoice* control = static_cast<wxChoice*>(widget->GetWxWidget());
+    if( control == NULL)
+    {
+      event.Skip();
+      return; // happens on construction
+    }
+    int where = control->GetSelection();
+    if (where !=  wxNOT_FOUND) {
+      newValue=control->GetString(where);
+      lastValue = static_cast<GDLWidgetDropList*>(widget)->GetLastValue();
+      isModified = lastValue != newValue;
+      static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
+    }
 
     control->Refresh();
   }
@@ -430,12 +455,21 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
 
     textCtrl->Refresh();
   }
-  else
+  else if( widget->IsComboBox())
   {
-    assert( widget->IsDropList());
     wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
     offset = control->GetInsertionPoint();    
     newValue = control->GetValue().mb_str();
+    static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
+
+    control->Refresh();
+  }
+  else
+  {
+    assert( widget->IsDropList());
+    wxChoice* control = static_cast<wxChoice*>(widget->GetWxWidget());
+    int where = control->GetSelection();
+    newValue = control->GetString(where);
     static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
 
     control->Refresh();
