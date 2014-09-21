@@ -168,13 +168,13 @@ public:
     thePage.nbPages=0;
     theBox.initialized=false;
     plgpls( &pls);
-    if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=0x%X \n",nx,ny, driver, (unsigned int)pls);
+	if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=%p \n", nx, ny, driver, (void *)pls);
 
   }
 
   virtual ~GDLGStream()
   {
-	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%X \n", (unsigned int)pls);
+	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%p \n", (void *)pls);
 // 	plend();
   }
 
