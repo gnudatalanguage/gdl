@@ -107,11 +107,14 @@ void GDLGStream::SetColorMap1Table( PLINT tableSize, BaseGDL *passed_colors,  DL
 { //cycle on passed colors to fill tableSize.
   DLongGDL *colors=static_cast<DLongGDL*>(passed_colors);
   DLong n=colors->N_Elements();
+#ifdef _MSC_VER
   PLINT *r = (PLINT*)alloca(sizeof(PLINT)*tableSize);
   PLINT *g = (PLINT*)alloca(sizeof(PLINT)*tableSize);
   PLINT *b = (PLINT*)alloca(sizeof(PLINT)*tableSize);
-  //PLINT r[tableSize], g[tableSize], b[tableSize];
-  if (decomposed == 0) { 
+#else
+  PLINT r[tableSize], g[tableSize], b[tableSize];
+#endif
+  if (decomposed == 0) {
     PLINT red[ctSize], green[ctSize], blue[ctSize], col;
     GraphicsDevice::GetCT()->Get( red, green, blue);
     for (SizeT i=0; i< tableSize; ++i) {
