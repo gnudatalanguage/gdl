@@ -21,7 +21,9 @@
 
 #include "graphicsdevice.hpp"
 #include "image.hpp"
+#ifdef HAVE_LIBWXWIDGETS
 #include "gdlwxstream.hpp"
+#endif
 
 // #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
