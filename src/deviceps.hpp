@@ -286,8 +286,12 @@ private:
       string pbstr=string("%%PageBoundingBox: ")+offstr;
       // edits will be in the first 12288 bytes; add the length of offstr-3
       const size_t buflen=12288 + pbstr.length()-22;
+#ifdef _MSC_VER
       char *buff = (char*)alloca(sizeof(char)*buflen);
-      
+#else      
+      char buff[buflen];
+#endif
+
       //do the first read:
       size_t cnt = fread(&buff, 1, buflen, fp);
       std::string sbuff;

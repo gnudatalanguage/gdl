@@ -58,7 +58,11 @@ namespace lib {
     if(dimArray < p1->N_Elements()) e->Throw("Number of Array dimensions does not match number of Width dimensions");
     DLong64GDL *W_tmp = static_cast<DLong64GDL*>
       (p1->Convert2(GDL_LONG64,BaseGDL::COPY));
+#ifdef _MSC_VER
     long *W = (long*) alloca(sizeof(long)*dimArray);
+#else
+    long W[dimArray];
+#endif
     if(p1->Rank() != 0){
       if(dimArray != p1->N_Elements()) e->Throw("Number of Array dimensions does not match number of Width dimensions");
       for(int i=0;i<dimArray;i++){
