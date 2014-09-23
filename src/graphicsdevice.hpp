@@ -115,7 +115,7 @@ class GraphicsDevice
   static GraphicsDevice*    actDevice;
   static DeviceListT  deviceList;
   static GraphicsDevice*    actGUIDevice;
-
+  
   static void DefineDStructDesc(); // modifies structList
 
 protected:
@@ -188,9 +188,23 @@ public:
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}
-  virtual DDoubleGDL* GetScreenResolution(char* disp=NULL)           { return NULL;}
-  virtual DFloatGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
-//  virtual DIntGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
+  virtual DDoubleGDL* GetScreenResolution(char* disp=NULL)  //fake a basic screen if not implemented:
+  {
+    DDoubleGDL* res;
+    res = new DDoubleGDL(2, BaseGDL::NOZERO);
+    (*res)[0]=1.0;
+    (*res)[1]=1.0;
+    return res;
+  }
+//  virtual DFloatGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
+  virtual DIntGDL* GetScreenSize(char* disp=NULL) //fake a basic screen if not implemented:
+  {
+    DIntGDL* res;
+    res = new DIntGDL(2, BaseGDL::NOZERO);
+    (*res)[0]=640;
+    (*res)[1]=480;
+    return res;
+  }
   virtual DLong GetVisualDepth()                      { return -1;}
   virtual DString GetVisualName()                     { return "";}
   virtual DIntGDL* GetWindowPosition()                { return NULL;}
