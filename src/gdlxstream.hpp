@@ -26,10 +26,11 @@ class GDLXStream: public GDLGStream
 {
   Atom wm_protocols;
   Atom wm_delete_window;
-
+  Window term_window;
 public:
   GDLXStream( int nx, int ny)
     : GDLGStream( nx, ny, "xwin")
+    , term_window(0)
   {
   }
 

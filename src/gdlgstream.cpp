@@ -171,7 +171,12 @@ void GDLGStream::DefaultCharSize()
   ))[0];
 
   if (name == "PS" || name=="SVG") schr( 3.5, 1.0);
-  else schr(2.1, 1.4);  // from 1.5, 1.0 2014/09/18
+  else 
+#if defined(_WIN32)
+    schr(2.1, 1.4);  // from 1.5, 1.0 2014/09/18 //This is a feature of windows --- or of windows plplot -- to be confirmed.
+#else
+    schr(1.5, 1.0);
+#endif
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_CH_SIZE"), 0)))[0]=
   theCurrentChar.dsx;
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_CH_SIZE"), 0)))[0]=

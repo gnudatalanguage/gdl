@@ -178,7 +178,7 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceWX());
 #endif
 #ifdef HAVE_X
-  deviceList.push_back(new DeviceX());
+  deviceList.push_back( new DeviceX());
 #endif
 #ifdef _WIN32
   deviceList.push_back( new DeviceWIN());
@@ -194,7 +194,7 @@ void GraphicsDevice::Init()
   if (!SetDevice("WX"))
 #else
   if( !SetDevice( "NULL")) 
-#endif
+#  endif
 #  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
   {
   }
@@ -213,16 +213,16 @@ void GraphicsDevice::Init()
 #endif
   int index=0;
   // setting the GUI dev. (before, X/win was the first but X might be not defined now
-  if (ExistDevice("X", index)) {
-	actGUIDevice = deviceList[index];
+    if (ExistDevice( "X", index)) {
+      actGUIDevice = deviceList[index];
   } else if (ExistDevice("WIN", index)) {
     actGUIDevice = deviceList[index];
   } else if (ExistDevice( "WX", index)) {
     actGUIDevice = deviceList[index];
-  } else {
-    actGUIDevice = deviceList[0];
+    } else {
+      actGUIDevice = deviceList[0];
+    }
   }
-}
 
 void GraphicsDevice::DestroyDevices()
 {

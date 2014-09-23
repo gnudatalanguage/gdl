@@ -233,10 +233,7 @@ public:
   }
 
   static void SetErrorHandlers();
-  virtual PLStream* GetPLStream() {
-    if (GDL_DEBUG_PLSTREAM) printf(" PLStream GDLGstream::GetPLStream(): pls=%p \n", (void *)pls);
 
-     return pls;}
   virtual void Init()=0;
 
   // called after draw operation
@@ -253,6 +250,7 @@ public:
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
   virtual bool GetWindowPosition(long& xpos, long& ypos ){return false;}
+  virtual bool GetScreenResolution(double& resx, double& resy){return false;}
   virtual bool CursorStandard(int cursorNumber){return false;}
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}

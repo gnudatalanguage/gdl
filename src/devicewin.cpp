@@ -25,8 +25,20 @@
 #include "plotting.hpp"
 
  
-  void DeviceWIN::DefaultXYSize(DLong *xSize,DLong  *ySize) {
-    *xSize=680; *ySize=480; return;}
+  void DeviceWIN::DefaultXYSize(DLong *xSize,DLong  *ySize) 
+  {
+   *xSize=680; *ySize=480; 
+#if defined (_WIN32) 
+    // the following not tested (no access to windows) (GD)
+    bool noQscreen=true;
+    string gdlQscreen=GetEnvString("GDL_GR_WIN_QSCREEN");
+    if( gdlQscreen == "1") noQscreen=false;
+    string gdlXsize=GetEnvString("GDL_GR_WIN_WIDTH");
+    if( gdlXsize != "" && noQscreen) xSize=atoi(gdlXsize.c_str()); 
+    string gdlYsize=GetEnvString("GDL_GR_WIN_HEIGHT");
+    if( gdlYsize != "" && noQscreen) ySize=atoi(gdlYsize.c_str()); 
+#endif
+  return;}
 
   void DeviceWIN::MaxXYSize(DLong *xSize, DLong *ySize)
   {

@@ -598,7 +598,7 @@ public:
     return gcFunction;
   }
   
-    DFloatGDL* GetScreenSize(char* disp)
+    DIntGDL* GetScreenSize(char* disp)
     { 
       Display* display = XOpenDisplay(disp);
       if (display == NULL) ThrowGDLException("Cannot connect to X server");
@@ -608,8 +608,8 @@ public:
       screen_height = DisplayHeight(display, screen_num);
       XCloseDisplay(display);
 
-      DFloatGDL* res;
-      res = new DFloatGDL(2, BaseGDL::NOZERO);
+      DIntGDL* res;
+      res = new DIntGDL(2, BaseGDL::NOZERO);
       (*res)[0]= screen_width;
       (*res)[1]= screen_height;
       return res;

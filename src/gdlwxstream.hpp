@@ -27,6 +27,7 @@
 
 #include <wx/dc.h>
 #include <wx/rawbmp.h>
+class GDLDrawPanel;
 
 class GDLWXStream: public GDLGStream 
 {
@@ -39,16 +40,8 @@ private:
     int m_height;   //!< Height of dc/plot area.
 
     GDLDrawPanel* gdlWindow; // for Update()
-	GDLFrame* gdlFrame;
 public:
-	GDLWXStream(int width, int height)
-		: GDLGStream(width, height, "wxwidgets")
-		, m_dc(NULL)
-		, m_bitmap(NULL)
-		, m_width(width), m_height(height)
-		, gdlWindow(NULL)
-		, gdlFrame(NULL)
-	{};
+    GDLWXStream( int width, int height );  //!< Constructor.
     ~GDLWXStream();  //!< Constructor.
     
     wxMemoryDC* GetDC() const { return m_dc;}
@@ -67,13 +60,9 @@ public:
     void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
     unsigned long GetWindowDepth() ;   
 
-  //DString GetVisualName();
   //bool SetFocus();
   //bool UnsetFocus();
   //bool SetBackingStore(int value);
-  //bool SetGraphicsFunction(long value );
-  //bool GetWindowPosition(long& xpos, long& ypos );
-  //bool CursorStandard(int cursorNumber);
   void Clear();
   void Clear( DLong bColor);
   //void Raise();
@@ -98,6 +87,7 @@ public:
     DString GetVisualName();
     bool HasImage(){return true;}
     BaseGDL* GetImage( EnvT* e);
+    bool GetScreenResolution(double& resx, double& resy);
 };
 
 

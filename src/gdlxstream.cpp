@@ -29,7 +29,7 @@ using namespace std;
 
 void GDLXStream::Init() {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
-  Window from_window=0;
+  bool okToRevertToTerminal=false;
   int revert_to;
   {
     Display* display = XOpenDisplay(NULL);
@@ -37,7 +37,7 @@ void GDLXStream::Init() {
       valid = false;
       ThrowGDLException("Cannot connect to X server");
     }
-    XGetInputFocus(display, &from_window, &revert_to);
+    XGetInputFocus(display, &term_window, &revert_to);
     XCloseDisplay(display);
   }
 
@@ -52,13 +52,12 @@ void GDLXStream::Init() {
   XSetWMProtocols(xwd->display, dev->window, &wm_delete_window, 1);
   //give back focus to caller -- hopefully the terminal.
   XWindowAttributes from_attr;
-  if(from_window) {
-    XGetWindowAttributes(xwd->display,from_window,&from_attr);
-    if(from_attr.map_state==IsViewable) {
-      XSetInputFocus(xwd->display,from_window,RevertToParent,CurrentTime);
-    }
+  if(term_window) {
+    XGetWindowAttributes(xwd->display,term_window,&from_attr);
+    if(from_attr.map_state==IsViewable) okToRevertToTerminal=true;
   }
-  UnsetFocus();
+  if ( okToRevertToTerminal ) XSetInputFocus(xwd->display,term_window,RevertToParent,CurrentTime);
+  else UnsetFocus(); //desperate method, since it prevents iconifying etc...
   XFlush(xwd->display);
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   //current cursor:
@@ -241,12 +240,18 @@ DString GDLXStream::GetVisualName() {
     XwDev *dev = (XwDev *) pls->dev;
     if( dev == NULL) return false;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XWMHints gestw;
-    gestw.input = FALSE;
-    gestw.flags = InputHint;
-    XSetWMHints(xwd->display, dev->window, &gestw);
-    XSetInputFocus(xwd->display,
-        DefaultRootWindow(xwd->display),RevertToParent,CurrentTime);
+    if(term_window) {
+      XWindowAttributes from_attr;
+      XGetWindowAttributes(xwd->display,term_window,&from_attr);
+      if(from_attr.map_state==IsViewable) XSetInputFocus(xwd->display,term_window,RevertToParent,CurrentTime);
+    } 
+    else 
+    { 
+      XWMHints gestw;
+      gestw.input = FALSE;
+      gestw.flags = InputHint;
+      XSetInputFocus(xwd->display, DefaultRootWindow(xwd->display),RevertToParent,CurrentTime);
+    }
     return true;
   }  
   

@@ -25,12 +25,12 @@
 #include <vector>
 #include <cstring>
 
+#include <plplot/drivers.h>
+
 #include "graphicsdevice.hpp"
 #include "gdlwxstream.hpp"
+#include <wx/settings.h>
 
-#include <plplot/drivers.h>
-#include <plplot/plplotP.h>
-#include "plplot_wxwidgets.h" // from plplot/drivers/wxwidgets.h
 
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
@@ -62,10 +62,10 @@ private:
 	long gcFunction;
 	int backingStoreMode;
 
-	int getCursorId(){ return cursorId; }
-	long getGCFunction(){ return gcFunction; }
-	int GetBackingStore(){ return backingStoreMode; }
-
+  int getCursorId(){ return cursorId; }
+  long getGCFunction(){ return gcFunction; }
+  int GetBackingStore(){ return backingStoreMode; }
+  
 	void SetActWin(int wIx)
 	{
 		// update !D
@@ -73,14 +73,13 @@ private:
 		{
 			long xsize, ysize, xoff, yoff;
 			winList[wIx]->GetGeometry(xsize, ysize, xoff, yoff);
-
+	
 			(*static_cast<DLongGDL*>(dStruct->GetTag(xSTag)))[0] = xsize;
 			(*static_cast<DLongGDL*>(dStruct->GetTag(ySTag)))[0] = ysize;
 			(*static_cast<DLongGDL*>(dStruct->GetTag(xVSTag)))[0] = xsize;
 			(*static_cast<DLongGDL*>(dStruct->GetTag(yVSTag)))[0] = ysize;
 			// number of colors
 			//        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
-
 			// set !D.N_COLORS and !P.COLORS according to decomposed value.
 			unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
 			unsigned long oldColor = (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
@@ -89,8 +88,7 @@ private:
 			if (this->decomposed == 1 && oldNColor == 256) {
 				(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
 				if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-			}
-			else if (this->decomposed == 0 && oldNColor == nSystemColors) {
+			}			else if (this->decomposed == 0 && oldNColor == nSystemColors) {
 				(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = 256;
 				if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
 			}
@@ -202,16 +200,14 @@ public:
 	{
 		std::vector<GDLGStream*>::iterator i;
 		for (i = winList.begin(); i != winList.end(); ++i)
-		{
-			delete *i; /* *i = NULL;*/
-		}
+		{ delete *i; /* *i = NULL;*/}
 	}
 
-	//   GDLGStream* GetStream( int wIx) const 
-	//   { 
-	//     return winList[ wIx];
-	//   }
-	//   
+	   GDLGStream* GetStream( int wIx) const 
+	   { 
+	     return winList[ wIx];
+	   }
+	   
 	void EventHandler()
 	{
 		if (actWin<0) return; //would this have side effects?  
@@ -231,13 +227,11 @@ public:
 		if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
 			return false;
 
-#ifdef HAVE_LIBWXWIDGETS
 		if (dynamic_cast<GDLWXStream*>(winList[wIx]) != NULL)
 		{
 			Warning("Attempt to delete widget (ID=" + i2s(wIx) + "). Will be auto-deleted upon window destruction.");
 			return false;
-		}
-#endif    
+		}  
 
 		delete winList[wIx];
 		winList[wIx] = NULL;
@@ -258,241 +252,80 @@ public:
 
 		return true;
 	}
+        
+  bool WOpen( int wIx,  const std::string& title,
+          int xSize, int ySize, int xPos, int yPos)
+  {
+          TidyWindowsList();
 
-#ifdef HAVE_LIBWXWIDGETS
-	bool GUIOpen(int wIx, int xSize, int ySize)//, int xPos, int yPos)
-	{
-		//    int xPos=0; int yPos=0;
-		TidyWindowsList();
+    int wLSize = winList.size();
+    if( wIx >= wLSize || wIx < 0)
+      return false;
 
-		int wLSize = winList.size();
-		if (wIx >= wLSize || wIx < 0)
-			return false;
+    if( winList[ wIx] != NULL)
+      {
+        delete winList[ wIx];
+        winList[ wIx] = NULL;
+      }
 
-		if (winList[wIx] != NULL)
-		{
-			delete winList[wIx];
-			winList[wIx] = NULL;
-		}
+    wxWindow *wxParent = NULL;
+  
+    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-		//    DLongGDL* pMulti = SysVar::GetPMulti();
-		//    DLong nx = (*pMulti)[ 1];
-		//    DLong ny = (*pMulti)[ 2];
-		//
-		//    if( nx <= 0) nx = 1;
-		//    if( ny <= 0) ny = 1;
+    wxString titleWxString = wxString( title.c_str( ), wxConvUTF8 );
+    GDLFrame *gdlFrame = new GDLFrame( 0 , 0 , 0, titleWxString );
+//    m_gdlFrameOwnerMutexP = gdlFrame->m_gdlFrameOwnerMutexP;
+//    assert( m_gdlFrameOwnerMutexP != NULL );
+    //     gdlFrame->Freeze();
 
-		winList[wIx] = new GDLWXStream(xSize, ySize);
+    gdlFrame->SetSize( xSize, ySize );
 
-		// as wxwidgets never set this, they can be intermixed
-		// oList[ wIx]   = oIx++;
+    wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
+    gdlFrame->SetSizer( topSizer );
 
-		//    // set initial window size
-		//    PLFLT xp; PLFLT yp; 
-		//    PLINT xleng; PLINT yleng;
-		//    PLINT xoff; PLINT yoff;
-		//    winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
-		//
-		//    int debug=0;
-		//    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
-		//
-		//    DLong xMaxSize, yMaxSize;
-		//    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
-		//
-		//    xleng = xSize;
-		//    yleng = ySize;
-		//
-		//    bool noPosx=(xPos==-1);
-		//    bool noPosy=(yPos==-1);
-		//    xPos=max(1,xPos); //starts at 1
-		//    yPos=max(1,yPos);
-		//
-		//    xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
-		//    yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
-		//    if (debug) cout <<xleng<<" "<<yleng<<" "<<xMaxSize<<" "<<yMaxSize<<endl;
-		//// dynamic allocation needed!    
-		//    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
-		//    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
-		//    if (noPosx && noPosy) { //no init given, use 4 quadrants:
-		//      xoff = Quadx[wIx%4];
-		//      yoff = Quady[wIx%4];
-		//    } else if (noPosx) {
-		//      xoff = Quadx[wIx%4];
-		//        yoff = yMaxSize-yPos-yleng;
-		//    } else if (noPosy) {
-		//      xoff = xPos;
-		//      yoff = Quady[wIx%4];
-		//    } else {
-		//      xoff  = xPos;
-		//      yoff  = yMaxSize-yPos-yleng;
-		//    }
-		//    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
-		//    xp=max(xp,1.0);
-		//    yp=max(yp,1.0);
-		//    //     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+    wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY );
+    wxSizer *sizer = new wxBoxSizer( wxVERTICAL );
+    panel->SetSizer( sizer );
+    topSizer->Add( panel );
+    GDLDrawPanel* gdlWindow = new GDLDrawPanel( gdlFrame, panel->GetId(), wxDefaultPosition, wxSize(xSize,ySize), wxBORDER_SIMPLE);
+    topSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
+  
+    gdlWindow->InitStream();
+    winList[ wIx] = static_cast<GDLGStream*> (GraphicsDevice::GetGUIDevice( )->GetStreamAt( gdlWindow->PStreamIx() ));
+    static_cast<GDLWXStream*>(winList[ wIx])->SetGDLDrawPanel(gdlWindow);
+    gdlFrame->Show();
+    // no pause on win destruction
+    winList[ wIx]->spause( false);
 
-		// no pause on win destruction
-		winList[wIx]->spause(false);
+    // extended fonts
+    winList[ wIx]->fontld( 1);
 
-		// extended fonts
-		winList[wIx]->fontld(1);
+    // we want color
+    winList[ wIx]->scolor( 1);
 
-		// we want color
-		winList[wIx]->scolor(1);
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    actCT.Get( r, g, b);
+    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
-		PLINT r[ctSize], g[ctSize], b[ctSize];
-		actCT.Get(r, g, b);
-		winList[wIx]->scmap0(r, g, b, ctSize); //set colormap 0 to 256 values
+    // need to be called initially. permit to fix things
+    winList[ wIx]->ssub(1,1);
+    winList[ wIx]->adv(0);
+    // load font
+    winList[ wIx]->font( 1);
+    winList[ wIx]->vpor(0,1,0,1);
+    winList[ wIx]->wind(0,1,0,1);
+    winList[ wIx]->DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (winList[ wIx]->updatePageInfo()==true)
+      {
+        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
-		//     winList[ wIx]->Init();
-		// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-		// bug #535 had other causes. removed until further notice.
-		//     bool success = WSize( wIx ,&xleng, &yleng, &xoff, &yoff);
-		//     ResizeWin((UInt)xleng, (UInt) yleng);
-		// need to be called initially. permit to fix things
-		winList[wIx]->ssub(1, 1);
-		winList[wIx]->adv(0);
-		// load font
-		winList[wIx]->font(1);
-		winList[wIx]->vpor(0, 1, 0, 1);
-		winList[wIx]->wind(0, 1, 0, 1);
-		winList[wIx]->DefaultCharSize();
-		//in case these are not initalized, here is a good place to do it.
-		if (winList[wIx]->updatePageInfo() == true)
-		{
-			winList[wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+      }
+    // sets actWin and updates !D
+         SetActWin( wIx);
 
-		}
-		// sets actWin and updates !D
-		SetActWin(wIx);
-
-		return true; //winList[ wIx]->Valid(); // Valid() need to called once
-	} // GUIOpen
-#endif
-
-
-	bool WOpen(int wIx, const std::string& title,
-		int xSize, int ySize, int xPos, int yPos)
-	{
-
-		//cout << "WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos<<endl;
-		TidyWindowsList();
-
-		int wLSize = winList.size();
-		if (wIx >= wLSize || wIx < 0)
-			return false;
-
-		if (winList[wIx] != NULL)
-		{
-			delete winList[wIx];
-			winList[wIx] = NULL;
-		}
-
-		DLongGDL* pMulti = SysVar::GetPMulti();
-		DLong nx = (*pMulti)[1];
-		DLong ny = (*pMulti)[2];
-
-		if (nx <= 0) nx = 1;
-		if (ny <= 0) ny = 1;
-
-		winList[wIx] = new GDLWXStream(nx, ny);
-
-		// as wxwidgets never set this, they can be intermixed
-		oList[wIx] = oIx++;
-
-		// set initial window size
-		PLFLT xp; PLFLT yp;
-		PLINT xleng; PLINT yleng;
-		PLINT xoff; PLINT yoff;
-		winList[wIx]->plstream::gpage(xp, yp, xleng, yleng, xoff, yoff); //always NULL values! not useful!
-
-		int debug = 0;
-		if (debug) cout << "Start: xp=" << xp << ", yp=" << yp << ", xleng=" << xleng << ", yleng=" << yleng << ", xoff=" << xoff << ", yoff=" << yoff << endl;
-
-		DLong xMaxSize, yMaxSize;
-		DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
-
-		bool noPosx = (xPos == -1);
-		bool noPosy = (yPos == -1);
-		xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
-		yPos = max(1, yPos);
-
-		xleng = min(xSize, xMaxSize); if (xPos + xleng > xMaxSize) xPos = xMaxSize - xleng - 1;
-		yleng = min(ySize, yMaxSize); if (yPos + yleng > yMaxSize) yPos = yMaxSize - yleng - 1;
-		if (debug) cout << "then: xleng=" << xleng << ", yleng=" << yleng << " xMaxSize=" << xMaxSize << " yMaxSize=" << yMaxSize << endl;
-		// dynamic allocation needed!    
-		PLINT Quadx[4] = { xMaxSize - xleng - 1, xMaxSize - xleng - 1, 1, 1 };
-		PLINT Quady[4] = { 1, yMaxSize - yleng - 1, 1, yMaxSize - yleng - 1 };
-		if (noPosx && noPosy) { //no init given, use 4 quadrants:
-			xoff = Quadx[wIx % 4];
-			yoff = Quady[wIx % 4];
-		}
-		else if (noPosx) {
-			xoff = Quadx[wIx % 4];
-			yoff = yMaxSize - yPos - yleng;
-		}
-		else if (noPosy) {
-			xoff = xPos;
-			yoff = Quady[wIx % 4];
-		}
-		else {
-			xoff = xPos;
-			yoff = yMaxSize - yPos - yleng;
-		}
-		//apparently this is OK to get same results as IDL on X11...
-		yoff += 1;
-		if (debug) cout << "End: xp=" << xp << ", yp=" << yp << ", xleng=" << xleng << ", yleng=" << yleng << ", xoff=" << xoff << ", yoff=" << yoff << endl;
-		xp = max(xp, 1.0);
-		yp = max(yp, 1.0);
-		winList[wIx]->spage(xp, yp, xleng, yleng, xoff, yoff); //must be before 'Init'
-
-		// no pause on win destruction
-		winList[wIx]->spause(false);
-
-		// extended fonts
-		winList[wIx]->fontld(1);
-
-		// we want color
-		winList[wIx]->scolor(1);
-
-		// window title
-		static char buf[256];
-		strncpy(buf, title.c_str(), 255);
-		buf[255] = 0;
-		winList[wIx]->SETOPT("plwindow", buf);
-
-		// we use our own window handling
-		// winList[wIx]->SETOPT("drvopt", "usepth=0");
-
-		PLINT r[ctSize], g[ctSize], b[ctSize];
-		actCT.Get(r, g, b);
-		winList[wIx]->scmap0(r, g, b, ctSize); //set colormap 0 to 256 values
-		//all the options must be passed BEFORE INIT=plinit.
-		winList[wIx]->Init();
-
-		// get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-		// bug #535 had other causes. removed until further notice.
-		//    bool success = WSize( wIx ,&xleng, &yleng, &xoff, &yoff);
-		//    ResizeWin((UInt)xleng, (UInt) yleng);
-		// need to be called initially. permit to fix things
-		winList[wIx]->ssub(1, 1);
-		winList[wIx]->adv(0);
-		// load font
-		winList[wIx]->font(1);
-		winList[wIx]->vpor(0, 1, 0, 1);
-		winList[wIx]->wind(0, 1, 0, 1);
-		winList[wIx]->DefaultCharSize();
-		//in case these are not initalized, here is a good place to do it.
-		if (winList[wIx]->updatePageInfo() == true)
-		{
-			winList[wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-		}
-		// sets actWin and updates !D
-		SetActWin(wIx);
-
-		return true; //winList[ wIx]->Valid(); // Valid() need to called once
-	}
+    return true; //winList[ wIx]->Valid(); // Valid() need to called once
+  } 
 
 	bool WState(int wIx)
 	{
@@ -600,8 +433,7 @@ public:
 		if (this->decomposed == 1 && oldNColor == 256) {
 			(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
 			if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-		}
-		else if (this->decomposed == 0 && oldNColor == nSystemColors) {
+		}		else if (this->decomposed == 0 && oldNColor == nSystemColors) {
 			(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = 256;
 			if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
 		}
@@ -621,8 +453,7 @@ public:
 			if (this->decomposed == 1 && oldNColor == 256) {
 				(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
 				if (oldColor == 255) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-			}
-			else if (this->decomposed == 0 && oldNColor == nSystemColors) {
+			}			else if (this->decomposed == 0 && oldNColor == nSystemColors) {
 				(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = 256;
 				if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*>(SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
 			}
@@ -659,27 +490,27 @@ public:
 		return gcFunction;
 	}
 
-	DFloatGDL* GetScreenSize(char* disp)
+	DIntGDL* GetScreenSize(char* disp)
 	{
-		DFloatGDL* res;
-		res = new DFloatGDL(2, BaseGDL::NOZERO);
+		DIntGDL* res;
+		res = new DIntGDL(2, BaseGDL::NOZERO);
 		(*res)[0] = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 		(*res)[1] = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
 		return res;
 	}
 
-	DDoubleGDL* GetScreenResolution(char* disp)
-	{
-		DDoubleGDL* resolution;
-		wxScreenDC dc;
-
-		wxSize screen_size_mm = dc.GetSizeMM();
-		wxSize screen_size = dc.GetSize();
-
-		resolution = new DDoubleGDL(2, BaseGDL::NOZERO);
-		(*resolution)[0] = (screen_size_mm.GetWidth() / 10.) / screen_size.x;
-		(*resolution)[1] = (screen_size_mm.GetHeight() / 10.) / screen_size.y;
-		return resolution;
+	DDoubleGDL* GetScreenResolution(char* disp) {
+		TidyWindowsList();
+		this->GetStream(); //to open a window if none opened.
+		double resx, resy;
+                if  (winList[actWin]->GetScreenResolution(resx,resy)) {
+			DDoubleGDL* res;
+			res = new DDoubleGDL(2, BaseGDL::NOZERO);
+			(*res)[0] = resx;
+			(*res)[1] = resy;
+			return res;
+		}
+		else return NULL;
 	}
 
 	DIntGDL* GetWindowPosition() {
@@ -717,8 +548,7 @@ public:
 			DByteGDL* ret = new DByteGDL(dimension(maxwin), BaseGDL::NOZERO);
 			for (int i = 0; i < maxwin; i++) (*ret)[i] = WState(i);
 			return ret;
-		}
-		else return NULL;
+		}		else return NULL;
 	}
 
 	bool CursorStandard(int cursorNumber)
@@ -759,205 +589,205 @@ public:
 	int MaxWin() { TidyWindowsList(); return winList.size(); }
 	int ActWin() { TidyWindowsList(); return actWin; }
 
-	BaseGDL* TVRD(EnvT* e)
-	{
-		// AC 17 march 2012: needed to catch the rigth current window (wset ...)
-		DLong wIx = -1;
-		GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-		wIx = actDevice->ActWin();
-		bool success = actDevice->WSet(wIx);
-		int debug = 0;
-		if (debug) cout << "wIx :" << wIx << " " << success << endl;
-
-		//everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
-		//BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
-		//as soon as part of the window is obscured.
-
-		PLStream* plsShouldNotBeUsed;
-		plgpls(&plsShouldNotBeUsed);
-		wxPLDevBase *dev = (wxPLDevBase *)plsShouldNotBeUsed->dev;
-		if (dev == NULL || dev->m_frame == NULL)
-		{
-			GDLGStream* newStream = actDevice->GetStream();
-			//already done: newStream->Init();
-			plgpls(&plsShouldNotBeUsed);
-			dev = (wxPLDevBase *)plsShouldNotBeUsed->dev;
-			if (dev == NULL) e->Throw("Device not open.");
-		}
-
-		wxMemoryDC memDC;
-
-		if (e->KeywordSet("WORDS")) e->Throw("WORDS keyword not yet supported.");
-		DLong orderVal = SysVar::TV_ORDER();
-		e->AssureLongScalarKWIfPresent("ORDER", orderVal);
-
-		/* this variable will contain the client size of the window. */
-		wxSize win_attr = dev->m_frame->GetClientSize();
-
-		/* query the window's client size. */
-		unsigned int xMaxSize = win_attr.GetWidth();
-		unsigned int yMaxSize = win_attr.GetHeight();
-
-		SizeT dims[3];
-
-		DByteGDL* res;
-
-		DLong tru = 0;
-		e->AssureLongScalarKWIfPresent("TRUE", tru);
-		if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
-
-		DLong channel = -1;
-
-		unsigned int x_gdl = 0;
-		unsigned int y_gdl = 0;
-		unsigned int nx_gdl = xMaxSize;
-		unsigned int ny_gdl = yMaxSize;
-
-		bool error = false;
-		bool hasXsize = false;
-		bool hasYsize = false;
-		int nParam = e->NParam();
-		if (nParam >= 4) {
-			DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
-			ny_gdl = (*Ny)[0];
-			hasYsize = true;
-		}
-		if (nParam >= 3) {
-			DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
-			nx_gdl = (*Nx)[0];
-			hasXsize = true;
-		}
-		if (nParam >= 2) {
-			DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
-			y_gdl = (*y0)[0];
-		}
-		if (nParam >= 1) {
-			DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
-			x_gdl = (*x0)[0];
-		}
-		if (nParam == 5) {
-			DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
-			channel = (*ChannelGdl)[0];
-		}
-		e->AssureLongScalarKWIfPresent("CHANNEL", channel);
-		if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
-
-		if (debug) {
-			cout << x_gdl << " " << y_gdl << " " << nx_gdl << " " << ny_gdl << " " << channel << endl;
-		}
-		if (!(hasXsize))nx_gdl -= x_gdl;
-		if (!(hasYsize))ny_gdl -= y_gdl;
-
-		DLong xref, xval, xinc, yref, yval, yinc, xmax11, ymin11;
-		int x_11 = 0;
-		int y_11 = 0;
-		xref = 0; xval = 0; xinc = 1;
-		yref = yMaxSize - 1; yval = 0; yinc = -1;
-
-		x_11 = xval + (x_gdl - xref)*xinc;
-		y_11 = yval + (y_gdl - yref)*yinc;
-		xmax11 = xval + (x_gdl + nx_gdl - 1 - xref)*xinc;
-		ymin11 = yval + (y_gdl + ny_gdl - 1 - yref)*yinc;
-		if (debug) {
-			cout << "[" << x_11 << "," << xmax11 << "],[" << ymin11 << "," << y_11 << "]" << endl;
-		}
-		if (y_11 < 0 || y_11 > yMaxSize - 1) error = true;
-		if (x_11 < 0 || x_11 > xMaxSize - 1) error = true;
-		if (xmax11 < 0 || xmax11 > xMaxSize - 1) error = true;
-		if (ymin11 < 0 || ymin11 > yMaxSize - 1) error = true;
-		if (error) e->Throw("Value of Area is out of allowed range.");
-
-		wxBitmap wxBM(nx_gdl, ny_gdl, -1);; // will be converted into Image
-		memDC.SelectObject(wxBM);
-		dev->BlitRectangle(&memDC, (int)x_11, (int)ymin11, nx_gdl, ny_gdl);
-		memDC.SelectObject(wxNullBitmap);
-		wxImage wxImg = wxBM.ConvertToImage();
-#define PAD 4
-		//   printf("\t width = %d\n", ximg->width);
-		//   printf("\t height = %d\n", ximg->height);
-		//   printf("\t xoffset = %d\n", ximg->xoffset);
-		//   printf("\t byte_order = %d\n", ximg->byte_order);
-		//   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
-		//   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
-		//   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
-		//   printf("\t depth = %d\n", ximg->depth);
-		//   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
-		//   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
-		//   printf("\t red_mask = %x\n", ximg->red_mask);
-		//   printf("\t green_mask = %x\n", ximg->green_mask);
-		//   printf("\t blue_mask = %x\n", ximg->blue_mask);
-
-		if (wxBM.GetDepth() != 32)
-			e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
-
-		unsigned char* imgdata = wxImg.GetData();
-		if (tru == 0) {
-			dims[0] = nx_gdl;
-			dims[1] = ny_gdl;
-			dimension dim(dims, (SizeT)2);
-			res = new DByteGDL(dim, BaseGDL::ZERO);
-
-			if (&wxImg == NULL) return res;
-
-			if (channel <= 0) { //channel not given, return max of the 3 channels
-				DByte mx, mx1;
-				for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-					mx = (DByte)imgdata[PAD * i];
-					mx1 = (DByte)imgdata[PAD * i + 1];
-					if (mx1 > mx) mx = mx1;
-					mx1 = (DByte)imgdata[PAD * i + 2];
-					if (mx1 > mx) mx = mx1;
-					(*res)[i] = mx;
-				}
-			}
-			else {
-				for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-					(*res)[i] = imgdata[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
-				}
-			}
-			// Reflect about y-axis
-			if (orderVal == 0) res->Reverse(1);
-			return res;
-
-		}
-		else {
-			dims[0] = 3;
-			dims[1] = nx_gdl;
-			dims[2] = ny_gdl;
-			dimension dim(dims, (SizeT)3);
-			res = new DByteGDL(dim, BaseGDL::NOZERO);
-			if (&wxBM == NULL) return res;
-
-			for (SizeT i = 0, kpad = 0; i < dims[1] * dims[2]; ++i)
-			{
-				for (SizeT j = 0; j<3; ++j) (*res)[(i + 1) * 3 - (j + 1)] = imgdata[kpad++];
-				kpad++;
-			}
-
-			// Reflect about y-axis
-			if (orderVal == 0) res->Reverse(2);
-
-			DUInt* perm = new DUInt[3];
-			if (tru == 1) {
-				return res;
-			}
-			else if (tru == 2) {
-				perm[0] = 1;
-				perm[1] = 0;
-				perm[2] = 2;
-				return res->Transpose(perm);
-			}
-			else if (tru == 3) {
-				perm[0] = 1;
-				perm[1] = 2;
-				perm[2] = 0;
-				return res->Transpose(perm);
-			}
-		}
-		assert(false);
-		return NULL;
-#undef PAD 
-	}
+//	BaseGDL* TVRD(EnvT* e)
+//	{
+//		// AC 17 march 2012: needed to catch the rigth current window (wset ...)
+//		DLong wIx = -1;
+//		GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+//		wIx = actDevice->ActWin();
+//		bool success = actDevice->WSet(wIx);
+//		int debug = 0;
+//		if (debug) cout << "wIx :" << wIx << " " << success << endl;
+//
+//		//everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
+//		//BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
+//		//as soon as part of the window is obscured.
+//
+//		PLStream* plsShouldNotBeUsed;
+//		plgpls(&plsShouldNotBeUsed);
+//		wxPLDevBase *dev = (wxPLDevBase *)plsShouldNotBeUsed->dev;
+//		if (dev == NULL || dev->m_frame == NULL)
+//		{
+//			GDLGStream* newStream = actDevice->GetStream();
+//			//already done: newStream->Init();
+//			plgpls(&plsShouldNotBeUsed);
+//			dev = (wxPLDevBase *)plsShouldNotBeUsed->dev;
+//			if (dev == NULL) e->Throw("Device not open.");
+//		}
+//
+//		wxMemoryDC memDC;
+//
+//		if (e->KeywordSet("WORDS")) e->Throw("WORDS keyword not yet supported.");
+//		DLong orderVal = SysVar::TV_ORDER();
+//		e->AssureLongScalarKWIfPresent("ORDER", orderVal);
+//
+//		/* this variable will contain the client size of the window. */
+//		wxSize win_attr = dev->m_frame->GetClientSize();
+//
+//		/* query the window's client size. */
+//		unsigned int xMaxSize = win_attr.GetWidth();
+//		unsigned int yMaxSize = win_attr.GetHeight();
+//
+//		SizeT dims[3];
+//
+//		DByteGDL* res;
+//
+//		DLong tru = 0;
+//		e->AssureLongScalarKWIfPresent("TRUE", tru);
+//		if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
+//
+//		DLong channel = -1;
+//
+//		unsigned int x_gdl = 0;
+//		unsigned int y_gdl = 0;
+//		unsigned int nx_gdl = xMaxSize;
+//		unsigned int ny_gdl = yMaxSize;
+//
+//		bool error = false;
+//		bool hasXsize = false;
+//		bool hasYsize = false;
+//		int nParam = e->NParam();
+//		if (nParam >= 4) {
+//			DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
+//			ny_gdl = (*Ny)[0];
+//			hasYsize = true;
+//		}
+//		if (nParam >= 3) {
+//			DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
+//			nx_gdl = (*Nx)[0];
+//			hasXsize = true;
+//		}
+//		if (nParam >= 2) {
+//			DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
+//			y_gdl = (*y0)[0];
+//		}
+//		if (nParam >= 1) {
+//			DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
+//			x_gdl = (*x0)[0];
+//		}
+//		if (nParam == 5) {
+//			DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
+//			channel = (*ChannelGdl)[0];
+//		}
+//		e->AssureLongScalarKWIfPresent("CHANNEL", channel);
+//		if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
+//
+//		if (debug) {
+//			cout << x_gdl << " " << y_gdl << " " << nx_gdl << " " << ny_gdl << " " << channel << endl;
+//		}
+//		if (!(hasXsize))nx_gdl -= x_gdl;
+//		if (!(hasYsize))ny_gdl -= y_gdl;
+//
+//		DLong xref, xval, xinc, yref, yval, yinc, xmax11, ymin11;
+//		int x_11 = 0;
+//		int y_11 = 0;
+//		xref = 0; xval = 0; xinc = 1;
+//		yref = yMaxSize - 1; yval = 0; yinc = -1;
+//
+//		x_11 = xval + (x_gdl - xref)*xinc;
+//		y_11 = yval + (y_gdl - yref)*yinc;
+//		xmax11 = xval + (x_gdl + nx_gdl - 1 - xref)*xinc;
+//		ymin11 = yval + (y_gdl + ny_gdl - 1 - yref)*yinc;
+//		if (debug) {
+//			cout << "[" << x_11 << "," << xmax11 << "],[" << ymin11 << "," << y_11 << "]" << endl;
+//		}
+//		if (y_11 < 0 || y_11 > yMaxSize - 1) error = true;
+//		if (x_11 < 0 || x_11 > xMaxSize - 1) error = true;
+//		if (xmax11 < 0 || xmax11 > xMaxSize - 1) error = true;
+//		if (ymin11 < 0 || ymin11 > yMaxSize - 1) error = true;
+//		if (error) e->Throw("Value of Area is out of allowed range.");
+//
+//		wxBitmap wxBM(nx_gdl, ny_gdl, -1);; // will be converted into Image
+//		memDC.SelectObject(wxBM);
+//		dev->BlitRectangle(&memDC, (int)x_11, (int)ymin11, nx_gdl, ny_gdl);
+//		memDC.SelectObject(wxNullBitmap);
+//		wxImage wxImg = wxBM.ConvertToImage();
+//#define PAD 4
+//		//   printf("\t width = %d\n", ximg->width);
+//		//   printf("\t height = %d\n", ximg->height);
+//		//   printf("\t xoffset = %d\n", ximg->xoffset);
+//		//   printf("\t byte_order = %d\n", ximg->byte_order);
+//		//   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
+//		//   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
+//		//   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
+//		//   printf("\t depth = %d\n", ximg->depth);
+//		//   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
+//		//   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
+//		//   printf("\t red_mask = %x\n", ximg->red_mask);
+//		//   printf("\t green_mask = %x\n", ximg->green_mask);
+//		//   printf("\t blue_mask = %x\n", ximg->blue_mask);
+//
+//		if (wxBM.GetDepth() != 32)
+//			e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
+//
+//		unsigned char* imgdata = wxImg.GetData();
+//		if (tru == 0) {
+//			dims[0] = nx_gdl;
+//			dims[1] = ny_gdl;
+//			dimension dim(dims, (SizeT)2);
+//			res = new DByteGDL(dim, BaseGDL::ZERO);
+//
+//			if (&wxImg == NULL) return res;
+//
+//			if (channel <= 0) { //channel not given, return max of the 3 channels
+//				DByte mx, mx1;
+//				for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+//					mx = (DByte)imgdata[PAD * i];
+//					mx1 = (DByte)imgdata[PAD * i + 1];
+//					if (mx1 > mx) mx = mx1;
+//					mx1 = (DByte)imgdata[PAD * i + 2];
+//					if (mx1 > mx) mx = mx1;
+//					(*res)[i] = mx;
+//				}
+//			}
+//			else {
+//				for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
+//					(*res)[i] = imgdata[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
+//				}
+//			}
+//			// Reflect about y-axis
+//			if (orderVal == 0) res->Reverse(1);
+//			return res;
+//
+//		}
+//		else {
+//			dims[0] = 3;
+//			dims[1] = nx_gdl;
+//			dims[2] = ny_gdl;
+//			dimension dim(dims, (SizeT)3);
+//			res = new DByteGDL(dim, BaseGDL::NOZERO);
+//			if (&wxBM == NULL) return res;
+//
+//			for (SizeT i = 0, kpad = 0; i < dims[1] * dims[2]; ++i)
+//			{
+//				for (SizeT j = 0; j<3; ++j) (*res)[(i + 1) * 3 - (j + 1)] = imgdata[kpad++];
+//				kpad++;
+//			}
+//
+//			// Reflect about y-axis
+//			if (orderVal == 0) res->Reverse(2);
+//
+//			DUInt* perm = new DUInt[3];
+//			if (tru == 1) {
+//				return res;
+//			}
+//			else if (tru == 2) {
+//				perm[0] = 1;
+//				perm[1] = 0;
+//				perm[2] = 2;
+//				return res->Transpose(perm);
+//			}
+//			else if (tru == 3) {
+//				perm[0] = 1;
+//				perm[1] = 2;
+//				perm[2] = 0;
+//				return res->Transpose(perm);
+//			}
+//		}
+//		assert(false);
+//		return NULL;
+//#undef PAD 
+//	}
 
 	void DefaultXYSize(DLong *xSize, DLong *ySize)
 	{

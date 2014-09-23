@@ -29,6 +29,37 @@
 #define SETOPT setopt
 #endif
 
+
+GDLWXStream::GDLWXStream( int width, int height )
+: GDLGStream( width, height, "wxwidgets")
+  , m_dc(NULL)
+  , m_bitmap(NULL)
+  , m_width(width), m_height(height)
+  , gdlWindow(NULL)
+{
+  m_dc = new wxMemoryDC();
+  m_bitmap = new wxBitmap( width, height, 32);
+  m_dc->SelectObject( *m_bitmap);
+  if( !m_dc->IsOk())
+  {
+    m_dc->SelectObject( wxNullBitmap );
+    delete m_bitmap;
+    delete m_dc;
+    throw GDLException("GDLWXStream: Failed to create DC.");
+  }
+
+  //::plstream();
+//   sdev( "wxwidgets" );
+  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+  SETOPT( "text", "1" ); // use freetype?
+  SETOPT( "smooth", "1" );  // antialiased text?
+  this->plstream::init();
+  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
+
+  plstream::set_stream();
+}
+
+
 GDLWXStream::~GDLWXStream()
 {
   m_dc->SelectObject( wxNullBitmap );
@@ -92,25 +123,10 @@ void GDLWXStream::WarpPointer(DLong x, DLong y) {
 
 void GDLWXStream::Init()
 {
-  m_dc = new wxMemoryDC();
-  m_bitmap = new wxBitmap(m_width, m_height, 32);
-  m_dc->SelectObject(*m_bitmap);
-  if (!m_dc->IsOk())
-  {
-	  m_dc->SelectObject(wxNullBitmap);
-	  delete m_bitmap;
-	  delete m_dc;
-	  throw GDLException("GDLWXStream: Failed to create DC.");
-  }
-  
-  SETOPT( "text", "1" ); // use freetype?
-  SETOPT( "smooth", "1" );  // antialiased text?
+  this->plstream::init();
 
-  plstream::init();
-  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
-
-  plstream::set_stream();
-  gdlFrame->Show();
+  set_stream(); // private
+// test :  gdlFrame->Show();
 }
 
 
@@ -241,6 +257,14 @@ bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
   xpos=0;
   ypos=0;
  return true;
+}
+
+bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
+  wxScreenDC *temp_dc=new wxScreenDC();
+  wxSize reso=temp_dc->GetPPI();
+  resx = reso.x/2.54;
+  resy = reso.y/2.54;
+  return true;
 }
 bool GDLWXStream::CursorStandard(int cursorNumber)
 {
