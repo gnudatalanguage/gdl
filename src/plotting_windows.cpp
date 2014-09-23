@@ -68,17 +68,6 @@ namespace lib {
 
     actDevice->DefaultXYSize(&xSize, &ySize);
 
-#ifdef _MSC_VER
-    // the following not tested (no access to windows) (GD)
-    bool noQscreen=true;
-    string gdlQscreen=GetEnvString("GDL_GR_WIN_QSCREEN");
-    if( gdlQscreen == "1") noQscreen=false;
-    string gdlXsize=GetEnvString("GDL_GR_WIN_WIDTH");
-    if( gdlXsize != "" && noQscreen) xSize=atoi(gdlXsize.c_str()); 
-    string gdlYsize=GetEnvString("GDL_GR_WIN_HEIGHT");
-    if( gdlYsize != "" && noQscreen) ySize=atoi(gdlYsize.c_str()); 
-#endif
-
     e->AssureLongScalarKWIfPresent( "XSIZE", xSize);
     e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
 
