@@ -36,6 +36,7 @@
 #include <plplot/plplot.h>
 #define HAVE_CONFIG_H 1
 #endif
+//this include should be removed as soon as plplot has a public method to give the size of a string in mm when plotted.
 #if PLPLOT_PRIVATE_NOT_HIDDEN
 #include <plplot/plplotP.h>
 #endif

@@ -25,11 +25,6 @@
 #include "gdlwxstream.hpp"
 #endif
 
-// #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
-
-// #define free_mem(a) \
-//     if (a != NULL) { free((void *) a); a = NULL; }
-
 using namespace std;
 
 namespace lib {

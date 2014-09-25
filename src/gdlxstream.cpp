@@ -680,7 +680,8 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     ncolors = 256;
 
     if (xwd->ncol1 != ncolors) {
-      free_mem(xwd->cmap1);
+      //was free_mem from plplotP.h which is forbidden - thanks to GJ for pointing this.
+      if ( xwd->cmap1 != NULL ) { free( (void *)  xwd->cmap1); xwd->cmap1 = NULL; } 
       xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof (XColor));
     }
     //#endif

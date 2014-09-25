@@ -35,12 +35,6 @@
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
-
-#ifndef free_mem
-#define free_mem(a)					\
-if (a != NULL) { free((void *)a); a = NULL; }
-#endif
-
 #ifdef HAVE_OLDPLPLOT
 #define SETOPT SetOpt
 #else
