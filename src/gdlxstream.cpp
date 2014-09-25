@@ -255,18 +255,6 @@ DString GDLXStream::GetVisualName() {
     return true;
   }  
   
-  bool GDLXStream::SetFocus()
-  {
-    XwDev *dev = (XwDev *) pls->dev;
-    if( dev == NULL) return false;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XWMHints gestw;
-    gestw.input = TRUE;
-    gestw.flags = InputHint;
-    XSetWMHints(xwd->display, dev->window, &gestw);
-    return true;
-  }
-  
   bool GDLXStream::SetBackingStore(int value)
   {
     XwDev *dev = (XwDev *) pls->dev;

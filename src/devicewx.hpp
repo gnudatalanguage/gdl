@@ -575,10 +575,6 @@ public:
 		return winList[actWin]->UnsetFocus();
 	}
 
-	bool SetFocus()
-	{
-		return winList[actWin]->SetFocus();
-	}
 
 	bool SetBackingStore(int value)
 	{

@@ -175,17 +175,7 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%p \n", (void *)pls);
-// 	plend();
   }
-
-// 	void PlstreamInit()
-// 	{
-// 	    if( !plstreamInitCalled)
-// 		{
-// 			this->plstream::init();
-// 			plstreamInitCalled = true;
-// 		}
-// 	}
 
   static bool checkPlplotDriver(const char *driver)
   {
@@ -245,7 +235,6 @@ public:
   virtual unsigned long GetWindowDepth () {return 0;}
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
-  virtual bool SetFocus(){return false;}
   virtual bool UnsetFocus(){return false;}
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
