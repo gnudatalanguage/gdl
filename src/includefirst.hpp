@@ -18,6 +18,12 @@
 #ifndef INCLUDEFIRST_HPP_
 #define INCLUDEFIRST_HPP_
 
+#ifdef __CYGWIN__
+//  std::cerr is  broken in gcc/cygwin64 - for gdl, anyways.
+#define cerr cout
+#endif
+// #undef cerr if you want to try it.
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -67,14 +73,6 @@
 #  include <sys/regset.h>
 #  undef CS
 #  undef GS
-#endif
-
-#if defined(_WIN32)
-#  include <WinSock2.h>
-#  include <Windows.h>
-#  ifdef _MSC_VER
-#    pragma comment(lib, "ws2_32.lib")
-#  endif
 #endif
 
 #endif

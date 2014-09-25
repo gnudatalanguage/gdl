@@ -2826,7 +2826,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       if (nParam == 0)
 	{
-	  DWORD status = launch_cmd(hideKeyword, (LPWSTR)(_T("cmd")), (LPWSTR)(_T("Command Prompt")));
+	  DWORD status = launch_cmd(hideKeyword, (LPTSTR)(_T("cmd")), (LPTSTR)(_T("Command Prompt")));
 	  if (countKeyword)
 	    e->SetKW(countIx, new DLongGDL(0));
 	  if (exit_statusKeyword)

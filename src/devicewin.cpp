@@ -266,3 +266,13 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
       }
       else return NULL;
   }
+
+    DByteGDL* DeviceWIN::WindowState()
+    { 
+        int maxwin = MaxWin();
+        if (maxwin > 0){
+        DByteGDL* ret = new DByteGDL(dimension( maxwin), BaseGDL::NOZERO);
+        for (int i = 0; i < maxwin; i++) (*ret)[i] = WState(i);
+        return ret;
+        } else return NULL;
+    }  

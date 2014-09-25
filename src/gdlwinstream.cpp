@@ -53,13 +53,16 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     DOWN, //3
     UP //4
     };
+ 
   gin->button = mode; // passing our mode into the event loop.
 
   plstream::cmd( PLESC_GETC, gin );
-  return 0;
+  return true;  
 }
 
-bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan ) {
+bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny, 
+				DLong *pos, DLong tru, DLong chan ) 
+  {
   plstream::cmd( PLESC_FLUSH, NULL );
   
   wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
@@ -189,14 +192,14 @@ void GDLWINStream::Flush() {
 }
 
 bool GDLWINStream::UnsetFocus()
-{
-    // TODO: write using HWND 'this->refocus'
-    // this->refocus == GetForgroundWindow()
-    return false;
-}
+{ 
+    SetFocus(this->refocus); 
+    return true;
+ }
 
-bool GDLWINStream::SetFocus() {
-    // TODO: write using HWND 'this->refocus'
-    // this->refocus == GetForgroundWindow()
-    return false;
+
+void GDLWINStream::Clear()
+{
+    ::c_plbop();
+    ::c_plclear();
 }

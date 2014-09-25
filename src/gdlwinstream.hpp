@@ -78,15 +78,15 @@ class GDLWINStream : public GDLGStream
 {
 	//Atom wm_protocols;
 	//Atom wm_delete_window;
-    HWND refocus;
-
+        HWND refocus;
+        
 	PLStream* pls;
 	plstream *plst;
 
 public:
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
-	{
+	{	
   // get the command interpreter window's handle
 		Winfo.cbSize = sizeof(Winfo);
 		refocus = GetForegroundWindow();
@@ -94,13 +94,15 @@ public:
 
 	~GDLWINStream()
 	{
+
 	}
+
 
 	void Init();
 	void EventHandler();
-    bool GetGin(PLGraphicsIn *gin, int mode);
-    bool UnsetFocus();
-    bool SetFocus();
+  bool GetGin(PLGraphicsIn *gin, int mode);
+  bool UnsetFocus();
+  void Clear();
   void Raise();
   void Lower();
   void Iconic();
@@ -109,9 +111,12 @@ public:
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   bool GetWindowPosition( long& xpos, long& ypos);
-  //unsigned long GetWindowDepth();
+//  unsigned long GetWindowDepth();
 //to be written. Needed by same needs as for X11
 //  bool SetGraphicsFunction(long value );
+  virtual bool HasCrossHair() { return true;}
+
+
 };
 
 #endif

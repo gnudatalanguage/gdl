@@ -30,6 +30,7 @@
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
+
 #ifdef HAVE_OLDPLPLOT
 #define SETOPT SetOpt
 #else
@@ -48,11 +49,12 @@ private:
   int  actWin;
   int decomposed; // false -> use color table
 
+  
   int cursorId; //should be 3 by default.
   long gcFunction;
   int backingStoreMode;
-  
   void EventHandler();
+
   bool WDelete( int );
   bool WOpen( int , const std::string& , 
 	      int , int , int , int );
@@ -62,10 +64,11 @@ private:
   bool WShow( int, bool, bool);
   int WAdd();
   DIntGDL* GetWindowPosition();
+  DByteGDL* WindowState();
   void MaxXYSize(DLong *xSize, DLong *ySize);
   void DefaultXYSize(DLong *xSize, DLong *ySize);
 
-  //> 	******					Device::SetActWin
+//> 	******					Device::SetActWin
   void SetActWin( int wIx)
   {
 	// update !D
@@ -159,8 +162,7 @@ public:
   {
     std::vector<GDLGStream*>::iterator i;
     for(i = winList.begin(); i != winList.end(); ++i) 
-      { delete *i; //*i = NULL;
-	  }
+      { delete *i; /* *i = NULL;*/}
   }
 
   GDLGStream* GetStreamAt( int wIx) const 
@@ -180,7 +182,7 @@ public:
 	  DString title = "GDL 0";
 	  DLong xSize, ySize;
 	  DefaultXYSize(&xSize, &ySize);
-//	  xSize = 640; ySize = 480;
+
 	  bool success = WOpen( 0, title, xSize, ySize, -1, -1);
 	  if( !success)	  return NULL;
 	  if( actWin == -1)	  {
@@ -191,24 +193,19 @@ public:
     return winList[ actWin];
   }
 
-//	bool Decomposed(bool value)
-//	{
-//		decomposed = value;
-//		return value;
-//	}
 
-  bool SetFocus()
+  bool Decomposed(bool value)
   {
-	  if (actWin == -1) { cout << " actWin=-1      !!!" << endl; return false; }
-	  return winList[actWin]->SetFocus();
+  	decomposed = value;
+  	return true;
   }
+
   bool UnsetFocus()
   {
-//	cout << "\n DeviceWIN:: UnsetFocus(){return winList[ actWin]->UnsetFocus();} \n";
-   if( actWin == -1) { cout << " actWin=-1      !!!" <<endl; return false;}
+   if( actWin == -1) { return false;}
     return winList[ actWin]->UnsetFocus();
   }  
-  
+
 void RaiseWin( int wIx)
   {
     if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Raise();
@@ -227,9 +224,10 @@ void RaiseWin( int wIx)
   {
     if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->DeIconic();
   }
-  
-	int MaxWin() { TidyWindowsList(); return maxWin; }
-	int ActWin() { TidyWindowsList(); return actWin; }
+
+  int MaxWin() { TidyWindowsList(); return winList.size();}
+  int ActWin() { TidyWindowsList(); return actWin;}
+
 };
 #undef maxWin
 #undef maxWinReserve

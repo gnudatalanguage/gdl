@@ -42,10 +42,6 @@ basic_fun_cl.hpp
 basic_fun_jmg.cpp
 basic_fun_jmg.hpp
 basic_op.cpp
-basic_pro.cpp
-basic_pro.hpp
-basic_pro_jmg.cpp
-basic_pro_jmg.hpp
 cformat.g
 color.cpp
 color.hpp
@@ -65,7 +61,6 @@ dcompiler.hpp
 default_io.cpp
 deviceps.hpp
 devicesvg.hpp
-devicex.hpp
 devicez.hpp
 dimension.hpp
 dinterpreter.cpp
@@ -103,6 +98,27 @@ gdlexception.cpp
 gdlexception.hpp
 gdlgstream.cpp
 gdlgstream.hpp
+)
+if(WIN32)
+set(SOURCES
+${SOURCES}
+gdlwinstream.cpp
+gdlwinstream.hpp
+gtdhelper.cpp
+gtdhelper.hpp
+devicewin.hpp
+devicewin.cpp
+)
+else(WIN32)
+set(SOURCES
+${SOURCES}
+devicex.hpp
+gdlxstream.cpp
+gdlxstream.hpp
+)
+endif(WIN32)
+set(SOURCES
+${SOURCES}
 gdljournal.cpp
 gdljournal.hpp
 gdlpsstream.cpp
@@ -117,14 +133,16 @@ gdlwidget.hpp
 gdlwidgetdraw.cpp
 gdlwxstream.cpp
 gdlwxstream.hpp
-gdlxstream.cpp
-gdlxstream.hpp
 gdlzstream.cpp
 gdlzstream.hpp
 getfmtast.cpp
 getfmtast.hpp
 graphicsdevice.cpp
 graphicsdevice.hpp
+basic_pro.cpp
+basic_pro.hpp
+basic_pro_jmg.cpp
+basic_pro_jmg.hpp
 grib.cpp
 grib.hpp
 gshhs.cpp
@@ -243,18 +261,6 @@ typetraits.hpp
 widget.cpp
 widget.hpp
 )
-
-if(WIN32 AND NOT CYGWIN)
-set(SOURCES
-${SOURCES}
-gdlwinstream.cpp
-gdlwinstream.hpp
-gtdhelper.cpp
-gtdhelper.hpp
-devicewin.hpp
-devicewin.cpp
-)
-endif(WIN32 AND NOT CYGWIN)
 
 add_subdirectory(antlr)
 
