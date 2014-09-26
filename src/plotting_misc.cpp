@@ -253,7 +253,7 @@ namespace lib
       static int displayNameIx = e->KeywordIx( "DISPLAY_NAME");
       if ( e->KeywordPresent( displayNameIx)) { 
         DString GivenDisplay;
-        e->AssureStringScalarKW( displayNameIx, GivenDisplay);;
+        e->AssureStringScalarKWIfPresent( displayNameIx, GivenDisplay);;
         TheDisplay = new char [GivenDisplay.size()+1];
         strcpy (TheDisplay, GivenDisplay.c_str());
       }

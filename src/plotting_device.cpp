@@ -336,7 +336,7 @@ namespace lib {
 	    DFloat xOffsetValue;
 	    e->AssureFloatScalarKW( xOffsetIx, xOffsetValue);
 	    bool success = actDevice->SetXOffset( xOffsetValue 
-						  * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+						  * (e->KeywordSet(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
 						  );
 	    if( !success)
 	      e->Throw( "Current device does not support keyword XOFFSET.");
@@ -352,7 +352,7 @@ namespace lib {
 	    DFloat yOffsetValue;
 	    e->AssureFloatScalarKW( yOffsetIx, yOffsetValue);
 	    bool success = actDevice->SetYOffset( yOffsetValue 
-						  * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+						  * (e->KeywordSet(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
 						  );
 	    if( !success)
 	      e->Throw( "Current device does not support keyword YOFFSET.");
@@ -368,7 +368,7 @@ namespace lib {
 	    DFloat xSizeValue;
 	    e->AssureFloatScalarKW( xSizeIx, xSizeValue);
 	    bool success = actDevice->SetXPageSize( xSizeValue 
-						    * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+						    * (e->KeywordSet(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
 						    );
 	    if( !success)
 	      e->Throw( "Current device does not support keyword XSIZE.");
@@ -384,7 +384,7 @@ namespace lib {
 	    DFloat ySizeValue;
 	    e->AssureFloatScalarKW( ySizeIx, ySizeValue);
 	    bool success = actDevice->SetYPageSize( ySizeValue
-						    * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+						    * (e->KeywordSet(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
 						    );
 	    if( !success)
 	      e->Throw( "Current device does not support keyword YSIZE.");

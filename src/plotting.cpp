@@ -3466,7 +3466,7 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalmap)
 {
     // MATRIX keyword (read). Never declare mapIx as static!
     int mapIx = e->KeywordIx( "MAP_STRUCTURE" );
-    externalmap = e->KeywordPresent( mapIx );
+    externalmap = e->KeywordSet( mapIx );
 
     DStructGDL* map = NULL;
 

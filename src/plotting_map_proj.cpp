@@ -46,7 +46,7 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 
   //RADIANS
   static int radianIx = e->KeywordIx( "RADIANS" );
-  bool radians = e->KeywordPresent( radianIx );
+  bool radians = e->KeywordSet( radianIx );
 
   // Get MATRIX 
   bool externalMap;
@@ -58,11 +58,11 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 
   // keywords "POLYGONS", "POLYLINES" and "FILL"
   static int gonsIx = e->KeywordIx( "POLYGONS" );
-  bool doGons = e->KeywordPresent( gonsIx );
+  bool doGons = e->KeywordSet( gonsIx );
   static int linesIx = e->KeywordIx( "POLYLINES" );
-  bool doLines = e->KeywordPresent( linesIx );
+  bool doLines = e->KeywordSet( linesIx );
   static int fillIx = e->KeywordIx( "FILL" );
-  bool doFill = e->KeywordPresent( fillIx );
+  bool doFill = e->KeywordSet( fillIx );
 
   //keyword CONNECTIVITY
   static int connIx = e->KeywordIx( "CONNECTIVITY" );
@@ -156,7 +156,7 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
       e->Throw("Incorrect number of arguments.");
 
     static int radianIx = e->KeywordIx("RADIANS");
-    bool radians=e->KeywordPresent(radianIx);
+    bool radians=e->KeywordSet(radianIx);
     
   // Get MATRIX 
   bool externalMap;
