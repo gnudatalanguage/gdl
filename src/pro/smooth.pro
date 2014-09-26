@@ -90,10 +90,10 @@
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.
-;-
+;
 ;
 function SMOOTH, input_array, width, $                 
-                 EDGE_TRUNCATE=EDGE_TRUNCATE, NAN=NAN, $
+                 EDGE_TRUNCATE=EDGE_TRUNCATE, NAN=NAN, MISSING=MISSING, INVALID=INVALID, $
                  slow_algo=slow_algo, $ ; the slow reference version
                  test=test, help=help, debug=debug, verbose=verbose
 ;
@@ -104,15 +104,10 @@ ON_ERROR, 2
 if (N_PARAMS() NE 2) then help=1
 ;
 if KEYWORD_SET(help) then begin
-   print, 'function SMOOTH, array, width, [/EDGE_TRUNCATE], [/NAN] [/help, /test, /verbose]'
+   print, 'function SMOOTH, array, width, [/EDGE_TRUNCATE], [/NAN] , [MISSING=value], [INVALID=invalid], /help, /test, /verbose]'
    if (N_PARAMS() NE 2) then return, -1 else return, input_array
 endif
 ;
-if KEYWORD_SET(NaN) then begin
-   print, '------------------------ warning --------'
-   print, '-- /NaN  not fully ready now ------------'
-   print, '------------------------ warning --------'
-endif
 ;
 if (SIZE(input_array,/type) EQ 7) then begin
    MESSAGE, 'STRING expression not allowed in this context:'
@@ -149,14 +144,8 @@ endelse
 ; below here, no more use of "width"
 ;
 for ii=0, N_ELEMENTS(real_width)-1 do begin
-   if (real_width[ii] LT 0) then begin
-      MESSAGE, 'Width must be nonnegative',/continue
-      return, input_array
-   endif
-   ;;
-   ;; This is NOT check properly in IDL
-   if (real_width[ii] LE 1) then begin
-      MESSAGE, 'Width must be Great or Equal to 2',/continue
+   if (real_width[ii] LT 1) then begin
+      MESSAGE, 'Width must be strictly positive',/continue
       return, input_array
    endif
    ;;
@@ -172,30 +161,6 @@ half_width=real_width/2
 ;
 if KEYWORD_SET(test) then print, width, real_width, half_width
 ;
-; by default, we assume we don't need NaN processing
-;
-need_nan_process=0
-;
-; if the NaN switch ON ?
-;
-if KEYWORD_SET(NaN) then begin
-   need_nan_process=1
-   nan_location=WHERE(FINITE(input_array) EQ 0, nbp_nan)
-   ;;
-   ;; can we switch OFF ?
-   if (nbp_nan EQ 0) then begin
-      if KEYWORD_SET(verbose) then print, 'NaN flag switch ON but no NaN founded'
-      need_nan_process=0
-   endif else begin
-      ;; we create an array of same size the input array but with Zero's 
-      pb=FLTARR(SIZE(input_array,/dimensions))
-      ;; Where we have NaN, we put "One" (1.)
-      pb[nan_location]=1.
-      ;; We put Zero's for Missing data
-      input_array[nan_location]=0.        
-   endelse
-endif
-;
 ; The SLOW initial version.
 ; We keep it just in case, and also because we use it in time tests
 ;
@@ -207,7 +172,7 @@ if KEYWORD_SET(slow_algo) then begin
    gate=REPLICATE(1., real_width)
    norm_of_gate=TOTAL(gate)
    output_array=CONVOL(input_array, gate, norm_of_gate, $
-                       EDGE_TRUNCATE=EDGE_TRUNCATE)
+                       EDGE_TRUNCATE=EDGE_TRUNCATE, NAN=NAN, MISSING=MISSING, INVALID=INVALID)
 endif else begin
    if KEYWORD_SET(debug) then MESSAGE, /continue, 'Revisited Algo (fast)'
    ;;
@@ -219,7 +184,9 @@ endif else begin
    ;;
    ;; this will be dimensions for 1d kernel ([1,1,1])
    ;;
-   ;output_array=input_array
+
+   output_array=input_array
+
    for i=0,N_ELEMENTS(real_width)-1 do begin
       temp_width[i]=real_width[i]
       ;;
@@ -230,9 +197,8 @@ endif else begin
       ;;creating kernel (gate) for 1d convolution
       ;;
       norm_of_gate=TOTAL(gate)
-;      output_array=CONVOL(TEMPORARY(output_array), gate, norm_of_gate, $
-      output_array=CONVOL(input_array, gate, norm_of_gate, $
-                          EDGE_TRUNCATE=EDGE_TRUNCATE)
+      output_array=CONVOL(TEMPORARY(output_array), gate, norm_of_gate, $
+                          EDGE_TRUNCATE=EDGE_TRUNCATE, NAN=NAN, MISSING=MISSING, INVALID=INVALID)
       ;;
       ;;convolution with 1d kernel
       ;;
@@ -242,57 +208,57 @@ endif else begin
       ;;
    endfor
 endelse
-;
-; Please remember that Convol return 0 on borders when EDGE_TRUNCATE is not set 
-;
-if NOT(KEYWORD_SET(EDGE_TRUNCATE)) then begin
-   if (n_dimensions GT 3) then begin 
-      MESSAGE, '/EDGE_TRUNCATE not available in SMOOTH when N_dim > 3 ...', /continue
-      return, input_array
-   endif
-   ;; not very efficient but mandatory for the edges,
-   ;; and I never used SMOOTH in higher dimensions
-   ;;
-   if (n_dimensions EQ 1) then begin
-      output_array[0:half_width-1]=input_array[0:half_width-1]
-      output_array[dimensions[0]-half_width:dimensions[0]-1]=input_array[dimensions[0]-half_width:dimensions[0]-1]
-   endif
-   ;;
-   if (n_dimensions EQ 2) then begin
-      output_array[0:half_width[0]-1,*]=input_array[0:half_width[0]-1,*]
-      output_array[dimensions[0]-half_width[0]:dimensions[0]-1,*]=input_array[dimensions[0]-half_width[0]:dimensions[0]-1,*]
-      ;;
-      output_array[*,0:half_width[1]-1]=input_array[*,0:half_width[1]-1]
-      output_array[*,dimensions[1]-half_width[1]:dimensions[1]-1]=input_array[*,dimensions[1]-half_width[1]:dimensions[1]-1]
-   endif
-   ;;
-   if (n_dimensions EQ 3) then begin
-      output_array[0:half_width[0]-1,*,*]=input_array[0:half_width[0]-1,*,*]
-      output_array[dimensions[0]-half_width[0]:dimensions[0]-1,*,*]=input_array[dimensions[0]-half_width[0]:dimensions[0]-1,*,*]
-      ;;
-      output_array[*,0:half_width[1]-1,*]=input_array[*,0:half_width[1]-1,*]
-      output_array[*,dimensions[1]-half_width[1]:dimensions[1]-1,*]=input_array[*,dimensions[1]-half_width[1]:dimensions[1]-1,*]
-      ;;
-      output_array[*,*,0:half_width[2]-1]=input_array[*,*,0:half_width[2]-1]
-      output_array[*,*,dimensions[2]-half_width[2]:dimensions[2]-1]=input_array[*,*,dimensions[2]-half_width[2]:dimensions[2]-1]
-   endif
-endif
-;
-; 
-if (need_nan_process EQ 1) then begin
-   pb=CONVOL(pb, gate, norm_of_gate)
-   pb_remain=WHERE(pb GT 0.999999, nbp_pb_remain)
-   if (nbp_pb_remain GT 0) then begin
-      if KEYWORD_SET(verbose) then print, 'It remain''s some NaN points !'
-      output_array[pb_remain]=!values.f_NaN
-   endif else begin
-      if KEYWORD_SET(verbose) then print, 'No more NaN points !'
-   endelse
-   ;;
-   ;; we write back the NaN in the input array
-   input_array[nan_location]=!values.f_NaN
-endif
-;
+;;;;
+;;;; Please remember that Convol return 0 on borders when EDGE_TRUNCATE is not set 
+;;;;
+;;;if NOT(KEYWORD_SET(EDGE_TRUNCATE)) then begin
+;;;   if (n_dimensions GT 3) then begin 
+;;;      MESSAGE, '/EDGE_TRUNCATE not available in SMOOTH when N_dim > 3 ...', /continue
+;;;      return, input_array
+;;;   endif
+;;;   ;; not very efficient but mandatory for the edges,
+;;;   ;; and I never used SMOOTH in higher dimensions
+;;;   ;;
+;;;   if (n_dimensions EQ 1) then begin
+;;;      output_array[0:half_width-1]=input_array[0:half_width-1]
+;;;      output_array[dimensions[0]-half_width:dimensions[0]-1]=input_array[dimensions[0]-half_width:dimensions[0]-1]
+;;;   endif
+;;;   ;;
+;;;   if (n_dimensions EQ 2) then begin
+;;;      output_array[0:half_width[0]-1,*]=input_array[0:half_width[0]-1,*]
+;;;      output_array[dimensions[0]-half_width[0]:dimensions[0]-1,*]=input_array[dimensions[0]-half_width[0]:dimensions[0]-1,*]
+;;;      ;;
+;;;      output_array[*,0:half_width[1]-1]=input_array[*,0:half_width[1]-1]
+;;;      output_array[*,dimensions[1]-half_width[1]:dimensions[1]-1]=input_array[*,dimensions[1]-half_width[1]:dimensions[1]-1]
+;;;   endif
+;;;   ;;
+;;;   if (n_dimensions EQ 3) then begin
+;;;      output_array[0:half_width[0]-1,*,*]=input_array[0:half_width[0]-1,*,*]
+;;;      output_array[dimensions[0]-half_width[0]:dimensions[0]-1,*,*]=input_array[dimensions[0]-half_width[0]:dimensions[0]-1,*,*]
+;;;      ;;
+;;;      output_array[*,0:half_width[1]-1,*]=input_array[*,0:half_width[1]-1,*]
+;;;      output_array[*,dimensions[1]-half_width[1]:dimensions[1]-1,*]=input_array[*,dimensions[1]-half_width[1]:dimensions[1]-1,*]
+;;;      ;;
+;;;      output_array[*,*,0:half_width[2]-1]=input_array[*,*,0:half_width[2]-1]
+;;;      output_array[*,*,dimensions[2]-half_width[2]:dimensions[2]-1]=input_array[*,*,dimensions[2]-half_width[2]:dimensions[2]-1]
+;;;   endif
+;;;endif
+;;;;
+;;;; 
+;;;if (need_nan_process EQ 1) then begin
+;;;   pb=CONVOL(pb, gate, norm_of_gate)
+;;;   pb_remain=WHERE(pb GT 0.999999, nbp_pb_remain)
+;;;   if (nbp_pb_remain GT 0) then begin
+;;;      if KEYWORD_SET(verbose) then print, 'It remain''s some NaN points !'
+;;;      output_array[pb_remain]=!values.f_NaN
+;;;   endif else begin
+;;;      if KEYWORD_SET(verbose) then print, 'No more NaN points !'
+;;;   endelse
+;;;   ;;
+;;;   ;; we write back the NaN in the input array
+;;;   input_array[nan_location]=!values.f_NaN
+;;;endif
+;;;;
 if KEYWORD_SET(test) then STOP
 ;
 return, output_array
