@@ -240,7 +240,7 @@ namespace lib
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
       bool hasZvalue=false;
-      if( e->KeywordPresent(zvIx))
+      if( e->KeywordSet(zvIx))
       {
         e->AssureDoubleScalarKW( zvIx, zValue );
         zValue=min(zValue,0.999999); //to avoid problems with plplot
