@@ -53,7 +53,7 @@ namespace lib {
     DString title;
     if( e->KeywordPresent( "TITLE"))
       {
-	e->AssureStringScalarKWIfPresent( 4, title);
+	e->AssureStringScalarKWIfPresent( "TITLE", title);
       }
     else
       {
