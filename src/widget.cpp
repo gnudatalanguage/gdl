@@ -1294,42 +1294,40 @@ BaseGDL* widget_info( EnvT* e ) {
       // Array Input
       DStructDesc* dWidgeomDesc = FindInStructList( structList, "WIDGET_GEOMETRY");
       DStructGDL* ex = new DStructGDL(dWidgeomDesc, p0L->Dim( ), BaseGDL::NOZERO );
+      ex->Clear();
+      static unsigned tag1=ex->Desc()->TagIndex("XOFFSET");
+      static unsigned tag2=ex->Desc()->TagIndex("YOFFSET");
+      static unsigned tag3=ex->Desc()->TagIndex("XSIZE");
+      static unsigned tag4=ex->Desc()->TagIndex("YSIZE");
+      static unsigned tag5=ex->Desc()->TagIndex("SCR_XSIZE");
+      static unsigned tag6=ex->Desc()->TagIndex("SCR_YSIZE");
       for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
         int xs,ys;
         int xvs,yvs;
         wxSize bord;
-        if ( widget == NULL ) {
-          xs=0;
-          ys=0;
-          xvs=0;
-          yvs=0;
-        }
-        else
-        {
+        if ( widget != NULL ) {
           static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
           static_cast<wxWindow*>(widget->GetWxWidget())->GetVirtualSize(&xvs,&yvs);
           bord=(static_cast<wxWindow*>(widget->GetWxWidget()))->GetWindowBorderSize();
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag1, i)))[0]=bord.x;
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag2, i)))[0]=bord.y;
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag3, i)))[0]=xs;
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag4, i)))[0]=ys;
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag5, i)))[0]=xvs;
+          (*static_cast<DFloatGDL*>(ex->GetTag(tag6, i)))[0]=yvs;
+//        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
+//        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
+//        ex->InitTag("MARGIN",DFloatGDL(0.0));  
+//        ex->InitTag("XPAD",DFloatGDL(0.0));  
+//        ex->InitTag("YPAD",DFloatGDL(0.0));  
+//        ex->InitTag("SPACE",DFloatGDL(0.0));
         }
-        ex->InitTag("XOFFSET",DFloatGDL(bord.x));  
-        ex->InitTag("YOFFSET",DFloatGDL(bord.y)); 
-        ex->InitTag("XSIZE",DFloatGDL(xs)); 
-        ex->InitTag("YSIZE",DFloatGDL(ys)); 
-        ex->InitTag("SCR_XSIZE",DFloatGDL(xvs)); 
-        ex->InitTag("SCR_YSIZE",DFloatGDL(yvs)); 
-        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
-        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
-        ex->InitTag("MARGIN",DFloatGDL(0.0));  
-        ex->InitTag("XPAD",DFloatGDL(0.0));  
-        ex->InitTag("YPAD",DFloatGDL(0.0));  
-        ex->InitTag("SPACE",DFloatGDL(0.0));
-  //now, please put this in ex[i], not ex!!!!
       }
       return ex;
     }
-  }
-  // End /GEOMETRY
+  }  // End /GEOMETRY
 
   // MODAL keyword (stub)
   if ( modal ) {
