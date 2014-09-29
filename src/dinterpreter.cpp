@@ -910,14 +910,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 void DInterpreter::ExecuteShellCommand(const string& command)
 {
   string commandLine = command;
-  if(commandLine == "") 
-  { 
-    commandLine = GetEnvString("SHELL");
-    if (commandLine == "")
-    {
-      cout << "Error managing child process. Environment variable SHELL not set." << endl;
+  if(commandLine == "") {
+     char* shellEnv = getenv("SHELL");
+	 if (shellEnv == NULL) shellEnv = getenv("COMSPEC");
+	 if (shellEnv == NULL) {
+        cout << "Error managing child process. " <<
+		" Environment variable SHELL or COMSPEC not set." << endl;
       return;
     }
+	 commandLine = shellEnv;
   }
 
   int ignored = system( commandLine.c_str());
@@ -1658,7 +1659,7 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
   // we do not make one commun function with the save side
   // because on the save side we may need to create the .gdl/ PATH ...
   int result, debug=0;
-#if defined (_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
   char *homeDir = getenv( "HOMEPATH");
 #else
   char *homeDir = getenv( "HOME");

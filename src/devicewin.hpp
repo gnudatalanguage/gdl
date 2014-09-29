@@ -64,16 +64,19 @@ private:
   bool WShow( int, bool, bool);
   int WAdd();
   DIntGDL* GetWindowPosition();
+  DLong GetVisualDepth();
+  DString GetVisualName();
+  DLong GetPixelDepth();
   DByteGDL* WindowState();
+  DIntGDL* GetScreenSize(char* disp=NULL);
+  DDoubleGDL* GetScreenResolution(char* disp=NULL);
   void MaxXYSize(DLong *xSize, DLong *ySize);
   void DefaultXYSize(DLong *xSize, DLong *ySize);
 
-//> 	******					Device::SetActWin
   void SetActWin( int wIx)
   {
 	// update !D
     if (wIx >= 0 && wIx < winList.size()) {	// window size and pos
-
 	long xsize,ysize,xoff,yoff;
 	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
 	
@@ -81,6 +84,7 @@ private:
         (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
         (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
+	    winList[ wIx]->CheckValid(); // runs an IsWindow(hwnd) check
     }
 
 		// window number
@@ -90,11 +94,10 @@ private:
   }
 
 	// process user deleted windows
-//> 	******					DeviceWIN::TidyWindowsList
   void TidyWindowsList()
   {
     int wLSize = winList.size();
-
+ 
     for( int i=0; i<wLSize; i++) {
       if( winList[ i] != NULL && !winList[ i]->GetValid()) {
 	    delete winList[ i];
@@ -202,11 +205,11 @@ public:
 
   bool UnsetFocus()
   {
-   if( actWin == -1) { return false;}
+    if( actWin == -1) { return false;}
     return winList[ actWin]->UnsetFocus();
   }  
 
-void RaiseWin( int wIx)
+  void RaiseWin( int wIx)
   {
     if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Raise();
   }

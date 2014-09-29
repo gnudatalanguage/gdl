@@ -250,7 +250,21 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
     oList.push_back( 0);
     return wLSize;
   }
+    DLong DeviceWIN::GetVisualDepth()
+    {
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualDepth();
+    }
 
+
+    DString DeviceWIN::GetVisualName()
+    {
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualName();
+    }
+  
  
   DIntGDL* DeviceWIN::GetWindowPosition()
   {
@@ -266,6 +280,46 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
       }
       else return NULL;
   }
+  DIntGDL* 	DeviceWIN::GetScreenSize(char *disp)
+  {
+      DLong xsize, ysize;
+      MaxXYSize( &xsize, &ysize);
+      DIntGDL* res;
+      res = new DIntGDL(2, BaseGDL::NOZERO);
+      (*res)[0]= xsize;
+      (*res)[1]= ysize;
+      return res;
+  } 
+  
+  
+  DDoubleGDL* DeviceWIN::GetScreenResolution(char* disp)
+  { 
+
+      HDC hscreenDC = GetWindowDC(GetDesktopWindow());
+      int screen_width,    screen_height;
+      int screen_width_mm, screen_height_mm;
+	  screen_width     = GetDeviceCaps(hscreenDC, HORZRES);
+	  screen_width_mm  = GetDeviceCaps(hscreenDC, HORZSIZE);
+	  screen_height    = GetDeviceCaps(hscreenDC, VERTRES);
+	  screen_height_mm = GetDeviceCaps(hscreenDC, VERTSIZE);
+ 
+      ReleaseDC(GetDesktopWindow(),hscreenDC);
+
+      DDoubleGDL* resolution;
+      resolution = new DDoubleGDL(2, BaseGDL::NOZERO);
+      (*resolution)[0]=(screen_width_mm/10.)/screen_width;
+      (*resolution)[1]=(screen_height_mm/10.)/screen_height;
+      return resolution;
+  }
+	
+	
+  DLong DeviceWIN::GetPixelDepth()
+  {
+      HDC hscreenDC = GetWindowDC(GetDesktopWindow());
+      int bitsperpixel =  GetDeviceCaps(hscreenDC, BITSPIXEL);
+	  ReleaseDC(NULL, hscreenDC);
+	  return bitsperpixel;
+   }
 
     DByteGDL* DeviceWIN::WindowState()
     { 

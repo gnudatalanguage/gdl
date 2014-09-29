@@ -110,13 +110,16 @@ void LibInit()
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
+
 #ifdef _WIN32
+//Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.
   const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
-	  "SH", "NOSHELL", "UNIT", "HIDE", KLISTEND };
+	  "SH", "NOSHELL", "UNIT", "HIDE", "NOWAIT", KLISTEND };
 #else
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
 			    "SH","NOSHELL","UNIT",KLISTEND};
 #endif
+ 
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};

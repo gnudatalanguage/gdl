@@ -186,10 +186,23 @@ void GDLWINStream::DeIconic() {
   return;
 
 }
+void GDLWINStream::CheckValid() {
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+  if(!IsWindow(dev->hwnd)) this->SetValid(false);
+}
 
 void GDLWINStream::Flush() {
    GdiFlush();
 }
+
+DLong GDLWINStream::GetVisualDepth(){
+  wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
+  return GetDeviceCaps(dev->hdc,PLANES);
+  }
+
+unsigned long  GDLWINStream::GetWindowDepth(){
+  return GetVisualDepth();
+  }
 
 bool GDLWINStream::UnsetFocus()
 { 

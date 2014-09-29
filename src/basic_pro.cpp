@@ -2713,7 +2713,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  }
 	}
     }
-    DWORD launch_cmd(BOOL hide, LPTSTR cmd, LPTSTR title = NULL, DWORD *pid = NULL,
+    DWORD launch_cmd(BOOL hide, BOOL nowait, LPTSTR cmd, LPTSTR title = NULL, DWORD *pid = NULL,
 		     vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
     {
       DWORD status;
@@ -2740,8 +2740,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       else
 	si.lpTitle = title;
 
-      if (hide)
-	{
+      if (hide)	    {
 	  si.dwFlags = STARTF_USESHOWWINDOW;
 	  si.wShowWindow = SW_SHOWMINNOACTIVE;
 	}
@@ -2757,14 +2756,15 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	}
 	si.dwFlags |= STARTF_USESTDHANDLES;
 	CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+        if (pid != NULL)	*pid = pi.dwProcessId;
+		 WaitForSingleObject(pi.hProcess, INFINITE);
       }
       else
 	{
 	  CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
-	  WaitForSingleObject(pi.hProcess, INFINITE);
+        if (pid != NULL)	*pid = pi.dwProcessId;
+	    if( !nowait)       WaitForSingleObject(pi.hProcess, INFINITE);
 	}
-      if (pid != NULL)
-	*pid = pi.dwProcessId;
       GetExitCodeProcess(pi.hProcess, &status);
       CloseHandle(pi.hProcess);
       CloseHandle(pi.hThread);
@@ -2791,6 +2791,9 @@ bool CompareWithJokers(string names, string sourceFiles) {
       static int pidIx = e->KeywordIx("PID");
       bool pidKeyword = e->KeywordPresent(pidIx);
       if (pidKeyword) e->AssureGlobalKW(pidIx);
+
+      static int waitIx = e->KeywordIx("NOWAIT");
+      bool nowaitKeyword = e->KeywordPresent(waitIx);
 
       static int exit_statusIx = e->KeywordIx("EXIT_STATUS");
       bool exit_statusKeyword = e->KeywordPresent(exit_statusIx);
@@ -2826,7 +2829,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       if (nParam == 0)
 	{
-	  DWORD status = launch_cmd(hideKeyword, (LPTSTR)(_T("cmd")), (LPTSTR)(_T("Command Prompt")));
+	  DWORD status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR)(_T("cmd")), (LPTSTR)(_T("Command Prompt")));
 	  if (countKeyword)
 	    e->SetKW(countIx, new DLongGDL(0));
 	  if (exit_statusKeyword)
@@ -2858,12 +2861,12 @@ bool CompareWithJokers(string names, string sourceFiles) {
       int status;
       DWORD pid;
       if (nParam == 1)
-	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid);
+	status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR) t_cmd, NULL, &pid);
       else if (nParam == 2) {
-	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs);
+	status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs);
       }
       else if (nParam == 3) {
-	status = launch_cmd(hideKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs, &ds_errs);
+	status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR) t_cmd, NULL, &pid, &ds_outs, &ds_errs);
       }
 
       if (pidKeyword)
@@ -2953,15 +2956,12 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
 	}
 
-      string shellCmd;
-      if( shKeyword) 
-	shellCmd = "/bin/sh"; // must be there if POSIX
-      else
-	{
+      string shellCmd = "/bin/sh"; // must be there if POSIX
+      if( !shKeyword) 	{
 	  char* shellEnv = getenv("SHELL");
-	  if (shellEnv == NULL)
-	    e->Throw( "Error managing child process. "
-		      "Environment variable SHELL not set.");
+	    if (shellEnv == NULL) shellEnv = getenv("COMSPEC");
+	    if (shellEnv == NULL)  e->Throw( "Error spawning child process: \n"
+		      "Environment variable SHELL | COMSPEC not set.");
 	  shellCmd = shellEnv;
 	}
 

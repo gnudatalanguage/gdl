@@ -17,7 +17,7 @@
 
 #include "includefirst.hpp"
 
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
 #include <sys/utsname.h>
 #else
 #include <tchar.h>
@@ -430,7 +430,7 @@ namespace SysVar
     plt->NewTag("CHARSIZE", new DFloatGDL( 0.0)); 
     plt->NewTag("CHARTHICK", new DFloatGDL( 0.0)); 
     plt->NewTag("CLIP", p_clip); 
-    plt->NewTag("COLOR", new DLongGDL( 255)); 
+    plt->NewTag("COLOR", new DLongGDL( -1)); 
     plt->NewTag("FONT", new DLongGDL( -1)); 
     plt->NewTag("LINESTYLE", new DLongGDL( 0)); 
     plt->NewTag("MULTI", new DLongGDL( dimension( &multiDim, one))); 
@@ -677,25 +677,29 @@ namespace SysVar
 
     // !VERSION
     DStructGDL*  ver = new DStructGDL( "!VERSION");
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 #ifdef __MINGW32__
 	typedef void (WINAPI *GetNativeSystemInfoFunc)(LPSYSTEM_INFO);
 	HMODULE hModule = LoadLibrary(_T("kernel32.dll"));
-	GetNativeSystemInfoFunc GetNativeSystemInfo = (GetNativeSystemInfoFunc) GetProcAddress(hModule, "GetNativeSystemInfo");
+	GetNativeSystemInfoFunc GetNativeSystemInfo =(GetNativeSystemInfoFunc) 
+            GetProcAddress(hModule, "GetNativeSystemInfo");
 #endif
-	const char* SysName = "windows";
+	const char* SysName = "Windows";
 	SYSTEM_INFO stInfo;
 	GetNativeSystemInfo( &stInfo );
 	DStringGDL *arch;
-	switch(stInfo.dwProcessorType) {
+	switch(stInfo.wProcessorArchitecture) {
 	case PROCESSOR_ARCHITECTURE_AMD64:
 		arch = new DStringGDL("x64");
 		break;
 	case PROCESSOR_ARCHITECTURE_INTEL:
 		arch = new DStringGDL("x86");
 		break;
+	case PROCESSOR_ARCHITECTURE_ARM:
+		arch = new DStringGDL("ARM");
+		break;
 	default:
-		arch = new DStringGDL("unknown cpu");
+		arch = new DStringGDL("unknown");
 	}
 	ver->NewTag("ARCH", arch); 
     ver->NewTag("OS_FAMILY", new DStringGDL( "windows")); 

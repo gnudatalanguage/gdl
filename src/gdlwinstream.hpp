@@ -100,20 +100,30 @@ public:
 
 	void Init();
 	void EventHandler();
+	
+//	  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
+
+  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   bool GetGin(PLGraphicsIn *gin, int mode);
+  
+  unsigned long GetWindowDepth();
+  DLong GetVisualDepth();
+//  DString GetVisualName();
+  
   bool UnsetFocus();
+//  bool SetBackingStore(int value);
+//  bool SetGraphicsFunction(long value );
+  bool GetWindowPosition(long& xpos, long& ypos );
   void Clear();
   void Raise();
   void Lower();
   void Iconic();
   void DeIconic();
   void Flush();
+  void CheckValid();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
-  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-  bool GetWindowPosition( long& xpos, long& ypos);
-//  unsigned long GetWindowDepth();
-//to be written. Needed by same needs as for X11
-//  bool SetGraphicsFunction(long value );
+
+  //  bool SetGraphicsFunction(long value );
   virtual bool HasCrossHair() { return true;}
 
 

@@ -260,6 +260,7 @@ public:
   virtual bool HasImage(){return false;}
   virtual bool HasCrossHair() {return false;}
 
+  virtual void CheckValid() {}
   void SetValid( bool v) { valid = v;}
   bool GetValid() { return valid;}
   bool validWorldBox()
