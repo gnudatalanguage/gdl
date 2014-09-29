@@ -1144,13 +1144,16 @@ BaseGDL* widget_info( EnvT* e ) {
   DLongGDL* p0L = NULL;
   SizeT nEl = 0;
   SizeT rank = 0;
-
-  if ( nParam > 0 ) {
+  if ( nParam > 1 ) {
+    e->Throw("Incorrect number of arguments.");
+  }
+  
+   if ( nParam > 0 ) {
     p0L = e->GetParAs<DLongGDL>(0);
     nEl = p0L->N_Elements( );
     rank = p0L->Rank( );
-  }
-
+  } 
+  
   static int validIx = e->KeywordIx( "VALID" );
   bool valid = e->KeywordSet( validIx );
 
@@ -1174,12 +1177,7 @@ BaseGDL* widget_info( EnvT* e ) {
   
   static int unameIx = e->KeywordIx( "UNAME");
   bool uname = e->KeywordSet( unameIx );
-  
-  // VERSION keyword
-  if ( version ) {
-    DStructGDL* res = new DStructGDL( "WIDGET_VERSION" );
-    return res;
-  }
+    
   // UNAME keyword
   if ( uname ) {
     if ( rank == 0 ) {
@@ -1264,43 +1262,71 @@ BaseGDL* widget_info( EnvT* e ) {
   // End /VALID
   // GEOMETRY keyword
   if ( geometry ) {
-        cerr <<"warning, WIDGET_INFO( /GEOMETRY) not finished\n";
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL )
-        return new DLongGDL( 0 );
+        e->Throw("Invalid widget identifier:"+i2s(widgetID));
       else
-      {//dummy values, FIXME!!!
-       DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
-       ex->InitTag("XOFFSET",DFloatGDL(3.0));  
-       ex->InitTag("YOFFSET",DFloatGDL(3.0)); 
-       ex->InitTag("XSIZE",DFloatGDL(300.0));  
-       ex->InitTag("YSIZE",DFloatGDL(300.0)); 
-       ex->InitTag("SCR_XSIZE",DFloatGDL(300.0));  
-       ex->InitTag("SCR_YSIZE",DFloatGDL(300.0));  
-       ex->InitTag("DRAW_XSIZE",DFloatGDL(100.0));  
-       ex->InitTag("DRAW_YSIZE",DFloatGDL(100.0));  
-       ex->InitTag("MARGIN",DFloatGDL(0.0));  
-       ex->InitTag("XPAD",DFloatGDL(0.0));  
-       ex->InitTag("YPAD",DFloatGDL(0.0));  
-       ex->InitTag("SPACE",DFloatGDL(0.0));
-
+      {
+        int xs,ys;
+        static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
+        int xvs,yvs;
+        static_cast<wxWindow*>(widget->GetWxWidget())->GetVirtualSize(&xvs,&yvs);
+        wxSize bord=(static_cast<wxWindow*>(widget->GetWxWidget()))->GetWindowBorderSize();
+        DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+        ex->InitTag("XOFFSET",DFloatGDL(bord.x));  
+        ex->InitTag("YOFFSET",DFloatGDL(bord.y)); 
+        ex->InitTag("XSIZE",DFloatGDL(xs)); 
+        ex->InitTag("YSIZE",DFloatGDL(ys)); 
+        ex->InitTag("SCR_XSIZE",DFloatGDL(xvs)); 
+        ex->InitTag("SCR_YSIZE",DFloatGDL(yvs)); 
+        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
+        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
+        ex->InitTag("MARGIN",DFloatGDL(0.0));  
+        ex->InitTag("XPAD",DFloatGDL(0.0));  
+        ex->InitTag("YPAD",DFloatGDL(0.0));  
+        ex->InitTag("SPACE",DFloatGDL(0.0));
         return ex; 
       }
     } else {
       // Array Input
-      DLongGDL* res = new DLongGDL( p0L->Dim( ), BaseGDL::NOZERO );
-      for ( SizeT i = 1; i < nEl; i++ ) {
+      DStructDesc* dWidgeomDesc = FindInStructList( structList, "WIDGET_GEOMETRY");
+      DStructGDL* ex = new DStructGDL(dWidgeomDesc, p0L->Dim( ), BaseGDL::NOZERO );
+      for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
-        if ( widget == NULL )
-          ( *res )[ i] = (DLong) 0;
+        int xs,ys;
+        int xvs,yvs;
+        wxSize bord;
+        if ( widget == NULL ) {
+          xs=0;
+          ys=0;
+          xvs=0;
+          yvs=0;
+        }
         else
-          (*res)[ i] = (DLong) 1;
+        {
+          static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
+          static_cast<wxWindow*>(widget->GetWxWidget())->GetVirtualSize(&xvs,&yvs);
+          bord=(static_cast<wxWindow*>(widget->GetWxWidget()))->GetWindowBorderSize();
+        }
+        ex->InitTag("XOFFSET",DFloatGDL(bord.x));  
+        ex->InitTag("YOFFSET",DFloatGDL(bord.y)); 
+        ex->InitTag("XSIZE",DFloatGDL(xs)); 
+        ex->InitTag("YSIZE",DFloatGDL(ys)); 
+        ex->InitTag("SCR_XSIZE",DFloatGDL(xvs)); 
+        ex->InitTag("SCR_YSIZE",DFloatGDL(yvs)); 
+        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
+        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
+        ex->InitTag("MARGIN",DFloatGDL(0.0));  
+        ex->InitTag("XPAD",DFloatGDL(0.0));  
+        ex->InitTag("YPAD",DFloatGDL(0.0));  
+        ex->InitTag("SPACE",DFloatGDL(0.0));
+  //now, please put this in ex[i], not ex!!!!
       }
-      return res;
+      return ex;
     }
   }
   // End /GEOMETRY
@@ -1352,8 +1378,13 @@ BaseGDL* widget_info( EnvT* e ) {
     return new DLongGDL( GDLWidget::GetXmanagerBlock( ) ? 1 : 0 );
   }
   // End /XMANAGER_BLOCK
-  assert( false );
-  return NULL;
+  // if code pointer arrives here, give WIDGET_VERSION:
+  //it is as if /version was set.
+  DStructGDL* res = new DStructGDL( "WIDGET_VERSION" );
+  res->InitTag("STYLE",DStringGDL("GTK"));
+  res->InitTag("TOOLKIT",DStringGDL("wxWidgets"));
+  res->InitTag("RELEASE",DStringGDL("3.0.0")); //dummy values, could be replaced by better ones, see wxPlatformInfo doc. 
+  return res;
 #endif
 }
 
