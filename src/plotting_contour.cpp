@@ -823,6 +823,7 @@ namespace lib
                                 (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
             }
             else { //fill with colors defined with c_colors or n<=2
+              if(nlevel > 1) 
               for ( SizeT i=0; i<nlevel; ++i ) 
               {
                 value=static_cast<PLFLT>(i)/nlevel;
@@ -833,7 +834,8 @@ namespace lib
                 0,0,0,0,0,
                 plstream::fill, (oneDim), //Onedim is accelerator since rectangles are kept rectangles see plplot doc
                 (oneDim)?(plstream::tr1):(plstream::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
-              }
+              } else
+		        printf(" Problem, sorry! plplot doesn't like to FILL with a single level!");
             }
           }
         } else { //no fill = contours . use normal pen procedures.
