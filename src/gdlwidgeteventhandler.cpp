@@ -327,7 +327,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
       return; // happens on construction
     }
     //here we should differentiate EDITABLE and not-editable comboboxes!!! FIXME
-    control->GetSelection( &selStart, &selEnd);
+    control->GetCurrentSelection() ; //would be control->GetSelection( &selStart, &selEnd); // with GTK 
     offset = control->GetInsertionPoint();    
     lastValue = static_cast<GDLWidgetComboBox*>(widget)->GetLastValue();
     newValue = control->GetValue().mb_str();

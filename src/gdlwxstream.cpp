@@ -179,74 +179,141 @@ void GDLWXStream::Clear(DLong bColor) {
 
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
-  int wxOKforThis=wxMAJOR_VERSION*10000+wxMINOR_VERSION*100+wxRELEASE_NUMBER;
-  if (wxOKforThis<30001) return false; //wxWorks bug in earlier versions prevent the following code to work!
-
   plstream::cmd( PLESC_FLUSH, NULL );
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
-  wxAlphaPixelData data( *m_bitmap );
-  if ( !data ) {
-    cerr << " ... raw access to bitmap data unavailable, do something else ..." << endl;
-    return false;
-  }
-
+  wxImage image=m_bitmap->ConvertToImage();
+  unsigned char* mem=image.GetData();
   PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
   PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
 
-  PLINT kxLimit = m_bitmap->GetWidth() - xoff;
-  PLINT kyLimit = m_bitmap->GetHeight() - yoff;
+  PLINT xsize = m_width;
+  PLINT ysize = m_height;
+  PLINT kxLimit = xsize - xoff;
+  PLINT kyLimit = ysize - yoff;
   if (nx < kxLimit) kxLimit = nx;
   if (ny < kyLimit) kyLimit = ny;
 
-  if (nx > 0 && ny >0 ) {
-    wxAlphaPixelData::Iterator p( data );
-    p.OffsetY( data, m_bitmap->GetHeight( ) - yoff - 1 );
+  if ( nx > 0 && ny > 0 ) {
+    SizeT p = (ysize - yoff - 1)*3*xsize;
     for ( int iy = 0; iy < kyLimit; ++iy ) {
-      wxAlphaPixelData::Iterator rowStart = p;
-      p.OffsetX( data, xoff );
+      SizeT rowStart = p;
+      p += xoff*3;
       for ( int ix = 0; ix < kxLimit; ++ix ) {
         if ( trueColorOrder == 0 && chan == 0 ) {
-          p.Red( ) = pls->cmap0[idata[iy * nx + ix]].r;
-          p.Green( ) = pls->cmap0[idata[iy * nx + ix]].g;
-          p.Blue( ) = pls->cmap0[idata[iy * nx + ix]].b;
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
+          mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
         } else {
           if ( chan == 0 ) {
             if ( trueColorOrder == 1 ) {
-              p.Red( ) = idata[3 * (iy * nx + ix) + 0];
-              p.Green( ) = idata[3 * (iy * nx + ix) + 1];
-              p.Blue( ) = idata[3 * (iy * nx + ix) + 2];
+              mem[p++] = idata[3 * (iy * nx + ix) + 0]; 
+              mem[p++] = idata[3 * (iy * nx + ix) + 1];
+              mem[p++] = idata[3 * (iy * nx + ix) + 2];
             } else if ( trueColorOrder == 2 ) {
-              p.Red( ) = idata[nx * (iy * 3 + 0) + ix];
-              p.Green( ) = idata[nx * (iy * 3 + 1) + ix];
-              p.Blue( ) = idata[nx * (iy * 3 + 2) + ix];
+              mem[p++] = idata[nx * (iy * 3 + 0) + ix];
+              mem[p++] = idata[nx * (iy * 3 + 1) + ix];
+              mem[p++] = idata[nx * (iy * 3 + 2) + ix];
             } else if ( trueColorOrder == 3 ) {
-              p.Red( ) = idata[nx * (0 * ny + iy) + ix];
-              p.Green( ) = idata[nx * (1 * ny + iy) + ix];
-              p.Blue( ) = idata[nx * (2 * ny + iy) + ix];
+              mem[p++] = idata[nx * (0 * ny + iy) + ix];
+              mem[p++] = idata[nx * (1 * ny + iy) + ix];
+              mem[p++] = idata[nx * (2 * ny + iy) + ix];
             }
           } else {
             if ( chan == 1 ) {
-              p.Red( ) = idata[1 * (iy * nx + ix) + 0];
+              mem[p++] = idata[1 * (iy * nx + ix) + 0];
+              p += 2;
             } else if ( chan == 2 ) {
-              p.Green( ) = idata[1 * (iy * nx + ix) + 1];
+              p ++;
+              mem[p++] = idata[1 * (iy * nx + ix) + 1];
+              p ++;
             } else if ( chan == 3 ) {
-              p.Blue( ) = idata[1 * (iy * nx + ix) + 2];
+              p += 2;
+              mem[p++] = idata[1 * (iy * nx + ix) + 2];
             }
           }
         }
-        p.Alpha( ) = 255;
-        p.OffsetX( data, 1 );
       }
-      p = rowStart;
-      p.OffsetY( data, -1 );
+      p = rowStart - (xsize*3);  
     }
   }
-  m_dc->Blit(0, 0, m_width, m_height, &temp_dc, 0, 0);
+  m_dc->DrawBitmap(image,0,0);
+  image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
   *m_bitmap = m_dc->GetAsBitmap(); 
   return true;
 }
+//bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
+//        DLong trueColorOrder, DLong chan) {
+// Version using wxAlphaPixelData, found starting version 3.0, for future Alpha Uses.
+//  int wxOKforThis=wxMAJOR_VERSION*10000+wxMINOR_VERSION*100+wxRELEASE_NUMBER;
+//  if (wxOKforThis<30001) return false; //wxWorks bug in earlier versions prevent the following code to work!
+//
+//  plstream::cmd( PLESC_FLUSH, NULL );
+//  wxMemoryDC temp_dc;
+//  temp_dc.SelectObject(*m_bitmap);
+//  wxAlphaPixelData data( *m_bitmap );
+//  if ( !data ) {
+//    cerr << " ... raw access to bitmap data unavailable, do something else ..." << endl;
+//    return false;
+//  }
+//
+//  PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
+//  PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
+//
+//  PLINT kxLimit = m_bitmap->GetWidth() - xoff;
+//  PLINT kyLimit = m_bitmap->GetHeight() - yoff;
+//  if (nx < kxLimit) kxLimit = nx;
+//  if (ny < kyLimit) kyLimit = ny;
+//
+//  if (nx > 0 && ny >0 ) {
+//    wxAlphaPixelData::Iterator p( data );
+//    p.OffsetY( data, m_bitmap->GetHeight( ) - yoff - 1 );
+//    for ( int iy = 0; iy < kyLimit; ++iy ) {
+//      wxAlphaPixelData::Iterator rowStart = p;
+//      p.OffsetX( data, xoff );
+//      for ( int ix = 0; ix < kxLimit; ++ix ) {
+//        if ( trueColorOrder == 0 && chan == 0 ) {
+//          p.Red( ) = pls->cmap0[idata[iy * nx + ix]].r;
+//          p.Green( ) = pls->cmap0[idata[iy * nx + ix]].g;
+//          p.Blue( ) = pls->cmap0[idata[iy * nx + ix]].b;
+//        } else {
+//          if ( chan == 0 ) {
+//            if ( trueColorOrder == 1 ) {
+//              p.Red( ) = idata[3 * (iy * nx + ix) + 0];
+//              p.Green( ) = idata[3 * (iy * nx + ix) + 1];
+//              p.Blue( ) = idata[3 * (iy * nx + ix) + 2];
+//            } else if ( trueColorOrder == 2 ) {
+//              p.Red( ) = idata[nx * (iy * 3 + 0) + ix];
+//              p.Green( ) = idata[nx * (iy * 3 + 1) + ix];
+//              p.Blue( ) = idata[nx * (iy * 3 + 2) + ix];
+//            } else if ( trueColorOrder == 3 ) {
+//              p.Red( ) = idata[nx * (0 * ny + iy) + ix];
+//              p.Green( ) = idata[nx * (1 * ny + iy) + ix];
+//              p.Blue( ) = idata[nx * (2 * ny + iy) + ix];
+//            }
+//          } else {
+//            if ( chan == 1 ) {
+//              p.Red( ) = idata[1 * (iy * nx + ix) + 0];
+//            } else if ( chan == 2 ) {
+//              p.Green( ) = idata[1 * (iy * nx + ix) + 1];
+//            } else if ( chan == 3 ) {
+//              p.Blue( ) = idata[1 * (iy * nx + ix) + 2];
+//            }
+//          }
+//        }
+//        p.Alpha( ) = 255;
+//        p.OffsetX( data, 1 );
+//      }
+//      p = rowStart;
+//      p.OffsetY( data, -1 );
+//    }
+//  }
+//  m_dc->Blit(0, 0, m_width, m_height, &temp_dc, 0, 0);
+//  temp_dc.SelectObject( wxNullBitmap);
+//  *m_bitmap = m_dc->GetAsBitmap(); 
+//  return true;
+//}
 bool GDLWXStream::SetGraphicsFunction( long value) {
   cerr<<"Set Graphics Function not ready for wxWindow draw panel, please contribute."<<endl;
  return true;
@@ -283,8 +350,9 @@ BaseGDL* GDLWXStream::GetImage( EnvT* e){
     plstream::cmd( PLESC_FLUSH, NULL );
     wxMemoryDC temp_dc;
     temp_dc.SelectObject(*m_bitmap);
-    wxAlphaPixelData data( *m_bitmap );
-    if ( !data ) e->Throw("No TV to read! (GDL internal error?)");
+    wxImage image=m_bitmap->ConvertToImage();
+    unsigned char* mem=image.GetData();
+    if ( mem == NULL ) e->Throw("No TV to read! (GDL internal error?)");
     if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
     DLong orderVal=SysVar::TV_ORDER();
     e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
@@ -361,19 +429,15 @@ BaseGDL* GDLWXStream::GetImage( EnvT* e){
     DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::ZERO);
     PLINT nx = m_bitmap->GetWidth();
     PLINT ny = m_bitmap->GetHeight();
-    wxAlphaPixelData::Iterator p( data );
+    SizeT p = 0;
     for ( int iy = 0; iy < ny; ++iy ) {
-      wxAlphaPixelData::Iterator rowStart = p;
       for ( int ix = 0; ix < nx; ++ix ) {
-        (*bitmap)[3 * (iy * nx + ix) + 0] = p.Red( );
-        (*bitmap)[3 * (iy * nx + ix) + 1] = p.Green( );
-        (*bitmap)[3 * (iy * nx + ix) + 2] = p.Blue( );
-        p.OffsetX( data, 1 );
+        (*bitmap)[3 * (iy * nx + ix) + 0] = mem[p++];
+        (*bitmap)[3 * (iy * nx + ix) + 1] = mem[p++];
+        (*bitmap)[3 * (iy * nx + ix) + 2] = mem[p++];
       }
-      p = rowStart;
-      p.OffsetY( data, 1 );
     }
-    
+    image.Destroy();
 #define PAD 3
 
   if ( tru == 0 ) {

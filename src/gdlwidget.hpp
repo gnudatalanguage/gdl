@@ -94,7 +94,7 @@ public:
 
 //Apparently (TBC) having _OFF is very bad for our widgets (linux): spurious frequent crashes!
 //Fortunately MS seems to have already provided the locking mechanism, so I make it valid
-//#define GUIMutexLockerWidgetsT_OFF
+#define GUIMutexLockerWidgetsT_OFF
 class GUIMutexLockerWidgetsT
 {
 #ifdef GUIMutexLockerWidgetsT_OFF
@@ -111,7 +111,7 @@ public:
 #endif  
 };
 //See comment above.
-//#define GUIMutexLockerEventHandlersT_OFF
+#define GUIMutexLockerEventHandlersT_OFF
 class GUIMutexLockerEventHandlersT
 {
 #ifdef GUIMutexLockerEventHandlersT_OFF

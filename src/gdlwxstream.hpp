@@ -25,8 +25,8 @@
 #include "gdlgstream.hpp"
 #include "gdlwidget.hpp"
 
-#include <wx/dc.h>
-#include <wx/rawbmp.h>
+//#include <wx/dc.h>
+//#include <wx/rawbmp.h>
 class GDLDrawPanel;
 
 class GDLWXStream: public GDLGStream 
