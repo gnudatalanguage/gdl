@@ -583,15 +583,17 @@ namespace lib {
       {
 	DStringGDL* res = new DStringGDL( dimension( nArr), BaseGDL::NOZERO);
 	for( SizeT i=0; i<nArr; ++i)
-	  (*res)[ i] = sArr[nArr-i-1];
+	  (*res)[ i] = sArr[i];
+	// GJ (*res)[ i] = sArr[nArr-i-1];
 	return res;
       }
 
     // set the path
-    DString cat = sArr[nArr-1];
+    DString cat = sArr[0];
+    // GJ DString cat = sArr[nArr-1];
     for( SizeT i=1; i<nArr; ++i)
-      cat += pathsep + sArr[nArr-i-1];
-    
+      //GJ      cat += pathsep + sArr[nArr-i-1];
+      cat += pathsep + sArr[i];
     return new DStringGDL( cat);
   }
 

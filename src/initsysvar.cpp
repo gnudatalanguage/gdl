@@ -107,9 +107,12 @@ namespace SysVar
     DString& path=static_cast<DStringGDL&>(*pathSysVar.Data())[0];
 
     // set the path
-    path = sArr[nArr-1];
+    path = sArr[0];
     for( SizeT i=1; i<nArr; ++i)
-      path += pathsep + sArr[nArr-i-1];
+      path += pathsep + sArr[i];
+    // GJ version    path = sArr[nArr-1];
+    // GJ version for( SizeT i=1; i<nArr; ++i)
+    // GJ version  path += pathsep + sArr[nArr-i-1];
   }
 
   // returns !DIR (as a plain DString)
