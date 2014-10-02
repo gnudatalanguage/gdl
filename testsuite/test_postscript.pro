@@ -4,6 +4,7 @@
 ; Alain Coulais 23/08/2011
 ;
 ; adding APPLEMAN and SATURN test due to great progress by Sylwester
+; GD Oct 2014: updated test to reflect progress in compatibility
 ;
 ; -------------------------------------------
 ;
@@ -14,14 +15,14 @@ if isGDL then prefix='GDL_' else prefix='IDL_'
 ;
 SET_PLOT, 'PS'
 ;
-DEVICE, filename=prefix+'appleman.ps'
+DEVICE, filename=prefix+'appleman.ps', /color
 ;
 plot, findgen(1000), /nodata, $
       xrange=[-10, 650], yrange=[-10,522], /xstyle, /ystyle
 ;
 APPLEMAN, res=res, /NoDisplay
 LOADCT, 15
-TV, res, xsize=640, ysize=512
+TV, res, 10,10, xsize=640, ysize=512, /DATA
 ;
 DEVICE, /close
 ;
@@ -69,8 +70,6 @@ pro TEST_POSTSCRIPT
 ;
 TEST_POSTSCRIPT_BASIC
 TEST_POSTSCRIPT_APPLEMAN
-;
-; to do TEST_POSTSCRIPT_SATURN
 ;
 end
 
