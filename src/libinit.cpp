@@ -92,6 +92,8 @@ void LibInit()
   const string hashKey[]={"NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::hash_fun,string("HASH"),-1,hashKey);
 
+  new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
+
   const string scope_varfetchKey[]={"LEVEL", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
 
@@ -234,7 +236,14 @@ void LibInit()
   const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","FULL","HEAP_VARIABLES","LEVEL","MESSAGES",
 			      "OBJECTS","SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
-
+  
+  //stub to avoid setting errors on pref_set. One may want to really write pref_set,
+  // but this function is just here to prevent setting !ERR=-1 when stumbling on a pref_set command,
+  // since !ERR=-1 is frequently checked by legacy procedures.
+  const string pref_setKey[] = {"FILENAME","COMMIT","DEFAULT", KLISTEND };
+  new DLibPro(lib::pref_set_pro, string("PREF_SET"), -1, pref_setKey);
+  
+  
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
     "NUM_FREE","STRUCTURE","L64",KLISTEND};
   new DLibFunRetNew(lib::memory, string("MEMORY"), 1, memoryKey, NULL);
@@ -796,7 +805,6 @@ void LibInit()
       "ORIENTATION","ALIGNMENT","CHARSIZE","SIZE","CHARTHICK", //note SIZE is not in doc but in XYOUTS demo!
       "NOCLIP","T3D","Z","TEXT_AXES","WIDTH","FONT",KLISTEND
     };
-   const string xyoutsWarnKey[]={KLISTEND};  
    new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);//, xyoutsWarnKey);
    
    const string polyfillKey[]=

@@ -6778,6 +6778,14 @@ BaseGDL* strtok_fun(EnvT* e) {
     return new DStringGDL("");
   }
 
+  BaseGDL* scope_level( EnvT* e) 
+  {
+    SizeT nParam=e->NParam();
+    if ( nParam > 0 ) e->Throw("Incorrect number of arguments.");
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+    return new DLongGDL(callStack.size());
+  }
+  
   // note: changes here MUST be reflected in scope_varfetch_reference() as well
   // because DLibFun of this function is used for scope_varfetch_reference() the keyword
   // indices must match
