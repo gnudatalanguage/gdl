@@ -246,7 +246,7 @@ namespace lib {
 
 // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 
-       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO); // ::ZERO is not working
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO); // ::ZERO is not working
        SizeT nEl = src->N_Elements();
 
        //       for ( SizeT i=0; i<nEl; ++i) (*res)[i]=0;
@@ -255,12 +255,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
 	   }
 	 }
 	 return res;	 
@@ -269,12 +269,12 @@ namespace lib {
 	 if (kwSign > 0) {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
 	   }
 	 } else {
 // #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
 	   }
 	 }
 	 return res;
@@ -288,12 +288,11 @@ namespace lib {
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
      {
-       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
        SizeT nEl = src->N_Elements();
        
        for ( SizeT i=0; i<nEl; ++i)
 	 {
-	   (*res)[i]=0;
 	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
 	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
 	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
