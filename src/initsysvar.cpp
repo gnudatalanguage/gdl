@@ -758,7 +758,7 @@ namespace SysVar
     DVar *errorVar = new DVar( "ERROR", errorData );
     errorIx            = sysVarList.size();
     sysVarList.push_back( errorVar);
-    sysVarRdOnlyList.push_back( errorVar);
+    //sysVarRdOnlyList.push_back( errorVar); !error is (no more?) a readonly variable.
 
     // !ERR
     DLongGDL *errData = new DLongGDL( 0 );
@@ -772,7 +772,7 @@ namespace SysVar
     DVar *err_stringVar = new DVar( "ERR_STRING", err_stringData );
     err_stringIx        = sysVarList.size();
     sysVarList.push_back( err_stringVar );
-    sysVarRdOnlyList.push_back( err_stringVar);
+    sysVarRdOnlyList.push_back( err_stringVar); //!err_string IS a readonly variable!
 
     // !VALUES
     DStructGDL*  valuesData = new DStructGDL( "!VALUES");
@@ -787,8 +787,11 @@ namespace SysVar
 	valuesData->NewTag("F_INFINITY", new DFloatGDL((float)1.0/0.0)); 
 #endif
       }
-
-    valuesData->NewTag("F_NAN", new DFloatGDL(-sqrt((float) -1.0))); 
+#ifdef NAN
+    valuesData->NewTag("F_NAN", new DFloatGDL(NAN));
+#else
+    valuesData->NewTag("F_NAN", new DFloatGDL(sqrt((float) -1.0))); //sign depends on the architecture, dangerous way to define a +Nan!
+#endif
 
     if( std::numeric_limits< DDouble>::has_infinity)
       {
@@ -802,7 +805,11 @@ namespace SysVar
 #endif
       }
 
-    valuesData->NewTag("D_NAN", new DDoubleGDL(-sqrt((double) -1.0)));
+#ifdef NAN
+    valuesData->NewTag("D_NAN", new DDoubleGDL(NAN));
+#else
+    valuesData->NewTag("D_NAN", new DDoubleGDL(-sqrt((double) -1.0))); //sign depends on the architecture, dangerous way to define a +Nan!
+#endif
     DVar *values       = new DVar( "VALUES", valuesData);
     valuesIx           = sysVarList.size();
     sysVarList.push_back(values);
