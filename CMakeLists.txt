@@ -592,7 +592,7 @@ if(HDF5)
 		"Use -DHDF5DIR=DIR to specify the HDF5 directory tree.\n"
 		"Use -DHDF5=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libhdf5-serial-dev)\n"
-                "(suitable Fedora package: hdf-devel)")
+                "(suitable Fedora package: hdf5-devel)")
 	endif(HDF5_FOUND)
 endif(HDF5)
 
