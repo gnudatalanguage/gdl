@@ -332,7 +332,11 @@ namespace lib {
 		
 	  for(long k=0;k<W[1];k++){ 
 	    s_tmp = (*A_tmp)[i+(k+J1-w2_j)*N];
+#ifdef _MSC_VER
+		if (isnan(s_tmp) || isinf((long double)tmp)){
+#else
 	    if(isnan(s_tmp) || isinf(tmp)){
+#endif
 	      num--;			
 	    }else{
 	      s += s_tmp;	
@@ -353,7 +357,11 @@ namespace lib {
 	    }		
 
 			
+#ifdef _MSC_VER
+	    if(isnan((long double)(add || isinf(add)))){
+#else
 	    if(isnan(add || isinf(add))){
+#endif
 	      add = 0;
 	    }else{
 	      num++;			
