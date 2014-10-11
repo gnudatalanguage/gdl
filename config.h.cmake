@@ -5,6 +5,8 @@
 #define GDLDATADIR "@CMAKE_INSTALL_PREFIX@@GDL_DATA_DIR@"
 #define VERSION "@VERSION@"
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #cmakedefine HAVE_X 1
 #cmakedefine HAVE_64BIT_OS 1
 #cmakedefine HAVE_DLFCN_H 1
