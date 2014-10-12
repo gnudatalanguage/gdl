@@ -34,6 +34,9 @@
 #include "widget.hpp"
 #include "plotting.hpp"
 
+#define SCROLL_WIDTH 10
+#define DEFAULT_BORDER_SIZE 3
+
 typedef DLong WidgetIDT;
 
 class DStructGDL;
@@ -69,9 +72,9 @@ public:
   void PushFront( DStructGDL* ev)
   {
     wxMutexLocker lock( mutex);
-    dq.push_back( ev);
+    dq.push_front( ev);
   }
-// Not good: between call of Empty and Pop another thread's Pop could be executed
+  // Not good: between call of Empty and Pop another thread's Pop could be executed
 //           -> Empty is useless (dangerous) for polling
 // although: as used here (there is only one thread calling Pop) it would work
 //   bool Empty() const
@@ -134,7 +137,8 @@ class GDLGUIThread : public wxThread
 public:
   static GDLGUIThread* gdlGUIThread;
 
-  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
+//  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
+  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE) //test
 //   , exited(false)
   {}
   ~GDLGUIThread();
@@ -254,7 +258,7 @@ public:
 protected:
   
 // only TLB have to care for this
-// (they do by sending messgages to each other in a thread save way)
+// (they do by sending messages to each other in a thread save way)
 // as the rest is deleted automatically 
 // Note: wxWidget is GDL name not wxWidgets (JMG)
   wxObject* wxWidget;
@@ -267,7 +271,7 @@ protected:
   bool         sensitive;
   bool         managed;
   bool         map;
-//   bool         buttonSet;
+  bool         buttonState; //only for buutons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
   wxSizer*     topWidgetSizer;
@@ -402,7 +406,7 @@ public:
   const DString& GetWidgetType() const { return widgetType;}
   void SetWidgetType( const DString& wType){widgetType = wType;}
 
-//   bool GetButtonSet() const { return buttonSet;}
+  virtual bool GetButtonSet() const { return 0;} //normally not a button
 //   void SetButtonSet(bool onOff){buttonSet = onOff;}
 
   const DString& GetUname() const { return uName;}
@@ -433,7 +437,6 @@ protected:
   DLong ncols;
   DLong nrows;
   bool scrolled;
-  void* scrollContainer;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -468,7 +471,6 @@ public:
       if( w != NULL)
 	w->OnRealize();
     }
-    if (scrolled) this->FitInside();
     GDLWidget::OnRealize();
   }
   void OnKill()
@@ -531,7 +533,7 @@ class GDLWidgetButton: public GDLWidget
 
   ButtonType buttonType;
 
-  bool buttonState;
+//  bool buttonState; //defined in base class now.
   
 public:
   GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu);
@@ -562,7 +564,7 @@ public:
   {
     buttonState = onOff;
   }
-  bool GetButton() const
+  bool GetButtonSet() const
   {
     return buttonState;
   }
@@ -634,6 +636,7 @@ class GDLWidgetText: public GDLWidget
   bool noNewLine;
   bool editable;
   int maxlinelength;
+  int nlines;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
@@ -666,6 +669,7 @@ class GDLWidgetDraw: public GDLWidget
   int pstreamIx;
   DLong x_scroll_size;
   DLong y_scroll_size;
+  bool scrolled;
 public:
   GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
 		  DLong x_scroll_size, DLong y_scroll_size);

@@ -50,6 +50,15 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
 {
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
   assert( parentID != GDLWidget::NullID);
+
+  //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
+  if (scrolled) scroll=TRUE;
+  if (x_scroll_size > 0) {scroll=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scroll=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (scroll) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
+  if (scroll) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
+  scrolled=scroll;
+
   
   wxWindow *wxParent = NULL;
 
@@ -62,19 +71,31 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
 
   wxPanel *parentPanel = gdlParent->GetPanel();
 //   widgetPanel = panel;
-  
+
   long style = 0;
   if( frame == 1)
     style = wxBORDER_SIMPLE;
   else if( frame > 1)
     style = wxBORDER_DOUBLE;
-        
-  GDLDrawPanel* gdlWindow = new GDLDrawPanel( parentPanel, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style);
-  wxWidget = gdlWindow;
-
+  
   wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
-  parentSizer->Add( gdlWindow, 0, wxEXPAND|wxALL, 5);
 
+  if ( scroll ) { //the right way to do the job!!!
+    wxScrolledWindow *scrw;
+    scrw = new wxScrolledWindow( wxParent, wxID_ANY ,  wxPoint(xOffset,yOffset), wxSize(x_scroll_size, y_scroll_size ), wxBORDER_SUNKEN);
+    scrw->SetScrollbars(1, 1, 1, 1); //needed to have scrollbars appear
+    wxSizer * scrwsizer = new wxBoxSizer( wxVERTICAL );
+    scrw->SetSizer( scrwsizer );
+
+    GDLDrawPanel* gdlWindow = new GDLDrawPanel( scrw, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style);
+    scrwsizer->Add( gdlWindow, 0, wxEXPAND|wxALL); //since internal size is given just above, respect it!!
+    wxWidget = gdlWindow;
+    parentSizer->Add(scrw, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);    //important to fix sizes 
+  } else {
+    GDLDrawPanel* gdlWindow = new GDLDrawPanel( parentPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style);
+    wxWidget = gdlWindow;
+    parentSizer->Add( gdlWindow, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);
+  }
   this->vValue = new DLongGDL(pstreamIx);
 }
 

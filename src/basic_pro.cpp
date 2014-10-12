@@ -2376,6 +2376,16 @@ bool CompareWithJokers(string names, string sourceFiles) {
     // note: this implemetation does not honor all keywords
     void message( EnvT* e)
     {
+	  DStructGDL* errorState = SysVar::Error_State();
+	  static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
+	  static unsigned blockTag = errorState->Desc()->TagIndex( "BLOCK");
+	  static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
+	  static unsigned rangeTag = errorState->Desc()->TagIndex( "RANGE");
+	  static unsigned sys_code_typeTag = errorState->Desc()->TagIndex( "SYS_CODE_TYPE");
+	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	  static unsigned sys_msgTag = errorState->Desc()->TagIndex( "SYS_MSG");
+	  static unsigned msg_prefixTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
+
       SizeT nParam = e->NParam();
 
       static int continueIx = e->KeywordIx( "CONTINUE");
@@ -2398,16 +2408,6 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       if( reset)
 	{
-	  DStructGDL* errorState = SysVar::Error_State();
-	  static unsigned nameTag = errorState->Desc()->TagIndex( "NAME");
-	  static unsigned blockTag = errorState->Desc()->TagIndex( "BLOCK");
-	  static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-	  static unsigned rangeTag = errorState->Desc()->TagIndex( "RANGE");
-	  static unsigned sys_code_typeTag = errorState->Desc()->TagIndex( "SYS_CODE_TYPE");
-	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-	  static unsigned sys_msgTag = errorState->Desc()->TagIndex( "SYS_MSG");
-	  static unsigned msg_prefixTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
-
 	  (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = "IDL_M_SUCCESS";
 	  (*static_cast<DStringGDL*>( errorState->GetTag( blockTag)))[0] = "IDL_MBLK_CORE";
 	  (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
@@ -2440,21 +2440,19 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       if( !info)
 	{
-	  DStructGDL* errorState = SysVar::Error_State();
-	  static unsigned codeTag = errorState->Desc()->TagIndex( "CODE");
-	  (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 0;
-	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	  (*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = "IDL_M_USER_ERR"; //unfortunately will be erased by gdlexception below...
+	  (*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = -5;
 	  (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
 
 	  SysVar::SetErr_String( msg);
-	  SysVar::SetErrError( -1);
+	  SysVar::SetErrError( -5); //IDL_M_USER_ERR is -5
 	}
 
       if( noprint)
 	msg = "";
     
       if( !continueKW && !info)
-	throw GDLException( msg, !noprefix, false);
+	throw GDLException(-5, msg, !noprefix, false);
     
       if( !noprint && !noprefix)
 	msg = SysVar::MsgPrefix() + msg;

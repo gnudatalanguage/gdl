@@ -36,14 +36,40 @@
 ;-
 ;
 
+pro tidyManagedCommon
+common managed_by_gdl, ids, names
+if (not keyword_set(ids)) then begin ids=0 & names = 0 & endif
+if (ids[0] eq 0) then return
+keep=where(widget_info(ids,/managed),count)
+if ( count gt 0 ) then begin
+  ids=(temporary(ids))[keep]
+  names=(temporary(names))[keep]
+endif else begin
+  ids = 0
+  names = 0
+endelse
+end
+
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, CLEANUP=Cleanup
+
+common managed_by_gdl, ids, names
+
+tidyManagedCommon
 
 if not keyword_set(eventHandler) then begin
   eventHandler = name + '_event'
 endif
  
 widget_control, id, event_pro=eventHandler
-
+widget_control, id, /managed
+; add to common
+if (ids[0] ne 0) then begin
+ ids = [ids, id]
+ names = [names, name]
+endif else begin
+ ids = id
+ names = name
+endelse
 
 if keyword_set(groupLeader) then begin
    widget_control, id, GROUP_LEADER=groupLeader

@@ -423,7 +423,14 @@ void InitStructs()
   widgtxtd->AddTag("LENGTH", &aLong);
   // insert into structList
   structList.push_back( widgtxtd);
-
+  
+  DStructDesc* widgnoevent = new DStructDesc( "WIDGET_NOEVENT");
+  widgnoevent->AddTag("ID", &aLong);
+  widgnoevent->AddTag("TOP", &aLong);
+  widgnoevent->AddTag("HANDLER", &aLong);  
+  // insert into structList
+  structList.push_back( widgnoevent);
+  
   DStructDesc* widgver = new DStructDesc( "WIDGET_VERSION");
   widgver->AddTag("STYLE", &aString);
   widgver->AddTag("TOOLKIT", &aString);

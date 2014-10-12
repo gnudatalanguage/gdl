@@ -95,13 +95,17 @@ wxSizer* GetNewSizer( DLong col, DLong row, DLong frameBox, wxPanel *panel)
     else if ( col == 0 && row > 1) {sizer = new wxFlexGridSizer( row, 0, 0, 0 );}
     else sizer = new wxFlexGridSizer( row, col, 0, 0 ); //which should not happen.
     } else {
-    if ( row == 0 ) {
+    if ( row == 0  && col <= 1) {
       wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T( "" ) );
       sizer = new wxStaticBoxSizer( box, wxVERTICAL );
-    } else if ( row != 0 && col == 0 ) {
+    } else if ( row == 0 && col > 1) {
+      sizer = new wxFlexGridSizer( 0, col, 0, 0 );
+    } else if ( col == 0 && row <= 1 ) {
       wxStaticBox *box = new wxStaticBox( panel, wxID_ANY, _T( "" ) );
       sizer = new wxStaticBoxSizer( box, wxHORIZONTAL );
-    } else {
+    } else if ( col == 0 && row > 1) {
+      sizer = new wxFlexGridSizer( row, 0, 0, 0 );
+    }else {
       sizer = new wxFlexGridSizer( row, col, 0, 0 );
     }
   }
@@ -223,10 +227,11 @@ int GDLWidget::HandleEvents()
     if( tlw != NULL)
     {
       assert( dynamic_cast<GDLFrame*> (tlw->wxWidget) != NULL );
-      // Pause 50 millisecs then refresh widget 
-      //       wxMilliSleep( 50); // (why?)
+      // Pause 50 millisecs then refresh widget . This avoids a lot of crashes... to be tested further!
+             wxMilliSleep( 50); 
       GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-      static_cast<GDLFrame*> (tlw->wxWidget)->Refresh( );
+//      static_cast<GDLFrame*> (tlw->wxWidget)->Refresh( ); //apparently we crash too often here...
+      static_cast<GDLFrame*> (tlw->wxWidget)->Update(); //...let's try Update, which is immediate (Refresh() waits for the next event loop).
       gdlMutexGuiEnterLeave.Leave( );
     }
   }
@@ -237,6 +242,7 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev)
 {
   // Get XmanagerActiveCommand status
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID );
+  if (baseWidget != NULL) {
   bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
   if( !xmanActCom)
   {
@@ -248,6 +254,8 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev)
     //     wxMessageOutputDebug().Printf(_T("readLineEventQueue.Push: %d\n",baseWidgetID);
     readlineEventQueue.Push( ev );
   }
+  //We really need to cure this problem:wigets can be destroyed and replaced by others 'live'.
+  } else cerr<<"NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT vaseWidgetID="<< baseWidgetID<<", DStructGDL* ev="<<ev<<"), please report!\n";
 }
 //void GDLWidget::SetSizer( wxSizer *sizer)
 //{
@@ -352,13 +360,12 @@ void GDLWidget::CreateWidgetPanel()
   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
   , wxDefaultPosition
   , wxDefaultSize
-  //   , wxBORDER_SIMPLE 
-  , wxNO_BORDER
+  , wxNO_BORDER  //   , wxBORDER_SIMPLE 
   );
   widgetPanel = panel;
 
   wxSizer *boxSizer = gdlParent->GetSizer( );
-  boxSizer->Add( panel, 0, wxEXPAND | wxALL, 1);
+  boxSizer->Add( panel, 0, wxEXPAND | wxALL, DEFAULT_BORDER_SIZE);
 }
 
 void GDLWidget::SetSizeHints()
@@ -472,17 +479,16 @@ DLong x_scroll_size, DLong y_scroll_size )
 
   xmanActCom = false;
   wxWindow *wxParent = NULL;
-  
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
-  if (x_scroll_size >0 || y_scroll_size >0) scroll=TRUE;
-  if (scroll) {
-    x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
-    y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
-  } 
+  if (scrolled) scroll=TRUE;
+  if (x_scroll_size > 0) {scroll=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scroll=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (scroll) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
+  if (scroll) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
+  scrolled=scroll;
   //ncols, nrows
   ncols=col;
   nrows=row;
-  scrolled=scroll;
   
   // Set exclusiveMode
   // If exclusive then set to -1 to signal first radiobutton
@@ -570,38 +576,38 @@ DLong x_scroll_size, DLong y_scroll_size )
     else
     {
       wxWindow* wxParent = static_cast<wxWindow*> (gdlParent->GetWxWidget( ));
-      if ( scroll ) {
+      if ( scroll ) { //the right way to do the job!!!
         wxScrolledWindow *scrw;
-        scrw = new wxScrolledWindow( wxParent, wxID_ANY ,  wxDefaultPosition, wxSize(x_scroll_size, y_scroll_size ), wxBORDER_SUNKEN);
-        scrw->SetScrollbars( 20, 20, 50, 50 );
-        wxSizer * sizer = GetNewSizer( ncols, nrows, frame, scrw );
-        scrw->SetSizer( sizer );
-        widgetPanel = scrw;
-        wxWidget = scrw; 
-        widgetSizer = sizer;
-        parentSizer->Add( scrw, 0, wxEXPAND|wxALL, 10);
-       
-      } else {
+        scrw = new wxScrolledWindow( wxParent, wxID_ANY , wxPoint(xOffset,yOffset), wxSize(x_scroll_size, y_scroll_size ));
+        scrw->SetScrollbars(1, 1, 1, 1); //needed to have scrollbars appear
+        wxSizer * scrwsizer = new wxBoxSizer( wxVERTICAL );
+        scrw->SetSizer( scrwsizer );
+        
         wxPanel *panel;
-        panel = new wxPanel( wxParent, wxID_ANY );
+        panel = new wxPanel(scrw, wxID_ANY,  wxDefaultPosition, wxSize(xSize, ySize ), wxBORDER_SUNKEN); 
+        wxSizer * panelsizer = GetNewSizer( ncols, nrows, frame, panel );
+        panel->SetSizer( panelsizer );
+        scrwsizer->Add( panel, 0, wxGROW);     // important to fix sizes
+        parentSizer->Add(scrw, 0, wxFIXED_MINSIZE, DEFAULT_BORDER_SIZE);    //--->very important to fix sizes here instead! 
         widgetPanel = panel;
         wxWidget = panel;
-        wxSizer * sizer = GetNewSizer( ncols, nrows, frame, panel );
-        widgetSizer = sizer;
-        panel->SetSizer( sizer );
-        parentSizer->Add( panel, 0, wxEXPAND|wxALL, 1);
+        widgetSizer = panelsizer ;
+
+      } else {
+        wxPanel *panel;
+        panel = new wxPanel( wxParent, wxID_ANY, wxPoint(xOffset,yOffset), wxSize(xSize, ySize ), wxBORDER_DEFAULT);
+        widgetPanel = panel;
+        wxWidget = panel;
+        wxSizer * panelsizer = GetNewSizer( ncols, nrows, frame, panel );
+        widgetSizer = panelsizer;
+        panel->SetSizer( panelsizer );
+        parentSizer->Add( panel, 0, wxGROW, DEFAULT_BORDER_SIZE);//wxEXPAND|wxALL);
        }
 
       // If map is true check for parent map value
         if ( mapWid )
         mapWid = gdlParent->GetMap( );
         this->SetMap( mapWid );
-     
-//               parentSizer->Layout();
-//         
-//               wxPanel* parentPanel = gdlParent->GetPanel();
-//         
-//               parentSizer->Fit( parentPanel);
         }
   }
 }
@@ -663,12 +669,6 @@ void GDLWidgetBase::Destroy()
   readlineEventQueue.PushFront( ev ); // push front (will be handled next)
 }
 
-void GDLWidgetBase::FitInside()
-{
-  //this is supposed to make appear the contents of a panel created with /row,/scroll but no avail!
-  static_cast<wxScrolledWindow*>(wxWidget)->Fit();
-}
-
 DLong GDLWidgetBase::NChildren() const
 {
   return children.size( );
@@ -715,7 +715,7 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
         this->wxWidget = notebook;
 
           widgetSizer = gdlParent->GetSizer( );
-          widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, 1);
+          widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, DEFAULT_BORDER_SIZE);
           }
 
 GDLWidgetTab::~GDLWidgetTab()
@@ -810,12 +810,35 @@ void GDLWidgetTable::OnShow()
   long style = wxWANTS_CHARS;
   wxGrid *grid = new wxGrid( widgetPanel, widgetID,
   wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), style );
-  this->wxWidget = grid;
+//use example (does not work yet!!! ???????)
+  // (100 rows and 10 columns in this example)
+grid->CreateGrid( 100, 10 );
+// We can set the sizes of individual rows and columns
+// in pixels
+grid->SetRowSize( 0, 60 );
+grid->SetColSize( 0, 120 );
+// And set grid cell contents as strings
+grid->SetCellValue( 0, 0, wxString("wxGrid is good", wxConvUTF8 ) );
+// We can specify that some cells are read->only
+grid->SetCellValue( 0, 3,  wxString("This is read->only", wxConvUTF8 ) );
+grid->SetReadOnly( 0, 3 );
+// Colours can be specified for grid cell contents
+grid->SetCellValue(3, 3,  wxString("green on grey", wxConvUTF8 ));
+grid->SetCellTextColour(3, 3, *wxGREEN);
+grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
+// We can specify the some cells will store numeric
+// values rather than strings. Here we set grid column 5
+// to hold floating point values displayed with width of 6
+// and precision of 2
+grid->SetColFormatFloat(5, 6, 2);
+grid->SetCellValue(0, 6,  wxString("3.1415", wxConvUTF8 ));
 
-  widgetPanel->SetClientSize( grid->GetSize( ) );
-
-  wxSizer * boxSizer = gdlParent->GetSizer( );
-  boxSizer->Layout( );
+this->wxWidget = grid;
+//
+// widgetPanel->SetClientSize( grid->GetSize( ) );
+//
+//  wxSizer * boxSizer = gdlParent->GetSizer( );
+//  boxSizer->Layout( );
   }
 
 
@@ -900,12 +923,12 @@ GDLWidgetTree::~GDLWidgetTree()
 
 void GDLWidgetTree::OnShow()
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
-  GDLWidget* gdlParent = GetWidget( parentID );
+//  GDLWidget* gdlParent = GetWidget( parentID );
 
-  wxSizer *boxSizer = gdlParent->GetSizer( );
-  boxSizer->Layout( );
+//  wxSizer *boxSizer = gdlParent->GetSizer( );
+//  boxSizer->Layout( );
 
 }
 
@@ -947,7 +970,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
     this->wxWidget = slider;
 
       widgetSizer = gdlParent->GetSizer( );
-      widgetSizer->Add( slider, 0, wxEXPAND | wxALL, 1);
+      widgetSizer->Add( slider, 0, wxEXPAND | wxALL);
       }
 
 GDLWidgetSlider::~GDLWidgetSlider()
@@ -959,7 +982,6 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
 const DString& value , bool isMenu)
 : GDLWidget( p, e )
 , buttonType( UNDEFINED )
-, buttonState( false)
 {
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
@@ -1022,8 +1044,8 @@ const DString& value , bool isMenu)
       {
         wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
         wxButton *button = new wxButton( panel, widgetID, valueWxString,
-        wxPoint( xOffset, yOffset ) );
-        boxSizer->Add( button, 0, wxEXPAND | wxALL, 1);
+        wxPoint( xOffset, yOffset ) , wxSize(xSize,ySize));
+        boxSizer->Add( button, 0, wxEXPAND | wxALL);
         this->wxWidget = button;
         buttonType = NORMAL;
         // 	cout << "wxButton: " << widgetID << endl;
@@ -1036,7 +1058,7 @@ const DString& value , bool isMenu)
         wxRB_GROUP );
         gdlParent->SetExclusiveMode( 1 );
         static_cast<GDLWidgetBase*> (gdlParent)->SetLastRadioSelection( widgetID );
-        boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 1);
+        boxSizer->Add( radioButton, 0, wxEXPAND | wxALL);
         this->wxWidget = radioButton;
         // 	cout << "wxRadioButton1: " << widgetID << endl;
         buttonType = RADIO;
@@ -1046,7 +1068,7 @@ const DString& value , bool isMenu)
         wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
         wxRadioButton *radioButton = new wxRadioButton( panel, widgetID, valueWxString,
         wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ) );
-        boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 1);
+        boxSizer->Add( radioButton, 0, wxEXPAND | wxALL);
         this->wxWidget = radioButton;
         // 	cout << "wxRadioButton: " << widgetID << endl;
         buttonType = RADIO;
@@ -1056,22 +1078,12 @@ const DString& value , bool isMenu)
         wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
         wxCheckBox *checkBox = new wxCheckBox( panel, widgetID, valueWxString,
         wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ) );
-        boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 1);
+        boxSizer->Add( checkBox, 0, wxEXPAND | wxALL);
         this->wxWidget = checkBox;
         // 	cout << "wxCheckBox: " << widgetID << endl;
         buttonType = CHECKBOX;
-        }
-
-      boxSizer->Layout( ); // maybe not necessary
-      boxSizer->Fit( panel );
-      //       boxSizer->Layout();
-
-      //       wxWindow *wxParent = dynamic_cast< wxWindow*>( wxParentObject);
-      //       if ( wxParent != NULL) {
-      // 	//      std::cout << "SetSizeHints: " << wxParent << std::endl;
-      // 	boxSizer->SetSizeHints( wxParent);
-      //       }
-    } // GetMap()
+      }
+    }
   }
 
   gdlMutexGuiEnterLeave.Leave( );
@@ -1084,13 +1096,10 @@ const DString& value , bool isMenu)
     vValue = new DStringGDL( value_ );
     
     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-    wxString valueWxString = wxString( value_.c_str( ), wxConvUTF8 );
     if ( this->wxWidget != NULL ) {
-        if ( dynamic_cast<wxMenu*>(wxWidget)->GetMenuBar() == NULL ) { //a real button
-          wxWindowID id = static_cast<wxButton*> (wxWidget)->GetId( );
-          static_cast<wxButton*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-      } else std::cerr << "Null widget in GDLWidgetLabel::SetButtonWidgetLabelText(), please report!" << std::endl;
-    }
+          (static_cast<wxButton*> (wxWidget))->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
+           static_cast<wxButton*> (wxWidget)->Refresh();  //not useful
+      } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
   }
   
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style )
@@ -1102,8 +1111,8 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style 
 
   wxPanel *panel = gdlParent->GetPanel( );
 
-    if( vValue->Type() != GDL_STRING)
-    {
+  if( vValue->Type() != GDL_STRING)
+  {
     vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
   }
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
@@ -1112,18 +1121,17 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style 
   wxArrayString choices; // = new wxString[n];
   for ( SizeT i = 0; i < n; ++i )
   choices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
-
+  if (ySize<2) {
+    ySize=(wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize()).y*2; //one line as in *DL -- annoying with the scrollbar, should step by line!
+  }
   wxListBox * list = new wxListBox( panel, widgetID, wxPoint( xOffset, yOffset ),
   wxSize( xSize, ySize ),
   choices, style );
   this->wxWidget = list;
 
-    wxSizer * boxSizer = gdlParent->GetSizer( );
-    boxSizer->Add( list, 0, wxEXPAND | wxALL, 1);
-
-    boxSizer->Layout( ); // maybe not necessary
-    boxSizer->Fit( panel );
-    }
+  wxSizer * boxSizer = gdlParent->GetSizer( );
+  boxSizer->Add( list, 0, wxEXPAND | wxALL);
+}
 
 GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 const DString& title_, DLong style_ )
@@ -1151,11 +1159,6 @@ void GDLWidgetDropList::OnShow()
   wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), choices, style );
   droplist->SetSelection(0);
   this->wxWidget = droplist;
-
-    widgetPanel->SetClientSize( droplist->GetSize( ) );
-
-    wxSizer * boxSizer = gdlParent->GetSizer( );
-    boxSizer->Layout( );
     }
 
 GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
@@ -1184,11 +1187,6 @@ void GDLWidgetComboBox::OnShow()
   wxComboBox * combo = new wxComboBox( widgetPanel, widgetID, val0WxString,
   wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), choices, style );
   this->wxWidget = combo;
-
-    widgetPanel->SetClientSize( combo->GetSize( ) );
-
-    wxSizer * boxSizer = gdlParent->GetSizer( );
-    boxSizer->Layout( );
     }
 
 GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine_,
@@ -1199,65 +1197,52 @@ bool editable_ )
 {
   DString value = "";
   maxlinelength = 0;
+  nlines=0;
+  if (ySize<2) noNewLine=TRUE;
   if( vValue != NULL)
   {
       for( int i=0; i<vValue->N_Elements(); ++i)
       {
         int length=((*static_cast<DStringGDL*> (vValue))[i]).length();
-      value += (*static_cast<DStringGDL*> (vValue))[i]; 
-      maxlinelength=(length>maxlinelength)?length:maxlinelength;
-      if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
-      value += '\n';
+        value += (*static_cast<DStringGDL*> (vValue))[i]; 
+        maxlinelength=(length>maxlinelength)?length:maxlinelength;
+        if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
+        {value += '\n'; nlines++;} else {value +=" ";} //an improvement upon *DL
       }
   }
   lastValue = value;
 
   CreateWidgetPanel( );
-  //   GDLWidget* gdlParent = GetWidget( parentID);
-  // 
-  //   wxPanel *parentPanel = gdlParent->GetPanel();
-  // 
-  //   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
-  //   , wxDefaultPosition
-  //   , wxDefaultSize
-  // //   , wxBORDER_SIMPLE 
-  //   );
-  //   widgetPanel = panel;
-  //   
-  //   wxSizer *boxSizer = gdlParent->GetSizer();
-  //   boxSizer->Add( panel, 0, wxEXPAND | wxALL, 1);  
+
 }
 
 void GDLWidgetText::OnShow()
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
   GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
-  GDLWidget* gdlParent = GetWidget( parentID );
+  //widget text size is in LINES in Y and CHARACTERS in X
   wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   wxSize widgetSize = wxDefaultSize;
   if ( xSize != widgetSize.x )
   widgetSize.x = xSize * fontSize.x;
   else widgetSize.x = maxlinelength * fontSize.x;
-  if ( ySize != widgetSize.y )
-  widgetSize.y = ySize * fontSize.y;
+  if ( ySize != widgetSize.y )  widgetSize.y = ySize * fontSize.y; 
+  else widgetSize.y = fontSize.y; //instead of nlines*fontSize.y to be compliant with *DL 
 
-    DLong style = wxTE_NOHIDESEL;
-      if ( !editable )
-      style |= wxTE_READONLY;
-        if ( ySize > 1 )
-        style |= wxTE_MULTILINE;
-        wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
-        wxTextCtrl * text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
-        wxPoint( xOffset, yOffset ), widgetSize, style );
-        this->wxWidget = text;
+  wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
 
-          //widgetPanel->SetClientSize(text->GetSize());
+  if (!(wxNORMAL_FONT->IsFixedWidth())) { //then all our calculations goes to dump
+    widgetSize.x *= 0.75; //should compensate for non-fixed width
+  }
+  
+  DLong style = wxTE_NOHIDESEL;
 
-//   wxSizer *parentSizer = gdlParent->GetSizer();
-//   parentSizer->Layout(); // maybe not necessary
-//   parentSizer->Fit( gdlParent->GetPanel());
-          }
+  if ( !editable ) style |= wxTE_READONLY;
+  if ( nlines > 1 ) style |= wxTE_MULTILINE;
+  wxTextCtrl * text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
+  wxPoint( xOffset, yOffset ), widgetSize, style );
+  this->wxWidget = text;
+}
 
 
 void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
@@ -1265,11 +1250,12 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
   delete vValue;
   vValue = valueStr;
   DString value = "";
+  nlines=0;
     for( int i=0; i<valueStr->N_Elements(); ++i)
     {
     value += (*valueStr)[ i];
     if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) )
-    value += '\n';
+    {value += '\n'; nlines++;}
     }
   lastValue = value;
 
@@ -1278,7 +1264,6 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
   if ( this->wxWidget != NULL ) {
     static_cast<wxTextCtrl*> (wxWidget)->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
-    //    static_cast<wxTextCtrl*>(wxWidget)->Refresh();  //not useful
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
   }
 
@@ -1298,17 +1283,11 @@ void GDLWidgetLabel::OnShow()
 
   GDLWidget* gdlParent = GetWidget( parentID );
 
-  //     wxSize fontSize = wxNORMAL_FONT->GetPixelSize(); 
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
 
   wxStaticText* label = new wxStaticText( widgetPanel, widgetID, valueWxString,
   wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), wxALIGN_LEFT | wxST_NO_AUTORESIZE );
   this->wxWidget = label;
-
-  widgetPanel->SetClientSize( label->GetSize( ) );
-
-  wxSizer * boxSizer = gdlParent->GetSizer( );
-  boxSizer->Layout( );
   }
 
 void GDLWidgetLabel::SetLabelValue( const DString& value_)
@@ -1323,7 +1302,7 @@ void GDLWidgetLabel::SetLabelValue( const DString& value_)
     if ( this->wxWidget != NULL ) {
       wxWindowID id = static_cast<wxStaticText*> (wxWidget)->GetId( );
       static_cast<wxStaticText*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-//      static_cast<wxStaticText*> (wxWidget)->Refresh( ); //not useful
+      static_cast<wxStaticText*> (wxWidget)->Refresh( ); //not useful
   }    else std::cerr << "Null widget in GDLWidgetLabel::SetLabelValue(), please report!" << std::endl;
 }
 
