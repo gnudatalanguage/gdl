@@ -1,3 +1,13 @@
+<h2>GDL 0.9.5 released</h2>
+<p>
+  2014-10-12: <a href="http://www.freshports.org/science/gnudatalanguage/">FreeBSD port updated</a><br />
+</p>
+
+<h2>First GDL workshop</h2>
+<p>
+  2014-06-(10--13): <a href="http://cias.obspm.fr/fr/activities/details.php?id=103">Workshop at CIAS</a><br />
+</p>
+
 <h2>GDL 0.9.4 released</h2>
 <p>
   2013-10-11: <a href="http://www.freshports.org/science/gnudatalanguage/">FreeBSD port updated</a><br />
