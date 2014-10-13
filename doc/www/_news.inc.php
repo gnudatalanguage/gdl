@@ -1,7 +1,8 @@
 <h2>GDL 0.9.5 released</h2>
 <p>
   2014-10-12: <a href="http://www.freshports.org/science/gnudatalanguage/">FreeBSD port updated</a><br />
-</p>
+  2014-10-11: GDL 0.9.5 source tarball released.<br />
+ <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.5/README/download">release notes</a> | <a href="downloads.php">downloads</a></span></p>
 
 <h2>First GDL workshop</h2>
 <p>
