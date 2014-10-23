@@ -42,7 +42,7 @@ namespace lib {
       DEVICE
     } COORDSYS; 
     
-    COORDSYS icoordinateSystem, ocoordinateSystem ;
+    COORDSYS icoordinateSystem=DATA, ocoordinateSystem=DATA ;
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet("DATA") ) icoordinateSystem=DATA;
     if ( e->KeywordSet("DEVICE") ) icoordinateSystem=DEVICE;
