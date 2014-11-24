@@ -41,22 +41,22 @@ typedef DLong WidgetIDT;
 
 class DStructGDL;
 
-// thread save deque
+// thread safe deque
 class GDLEventQueue
 {
 private:
   std::deque<DStructGDL*> dq;
   wxMutex mutex;
 public:
-  GDLEventQueue()
+  GDLEventQueue() //normally we should have ~GDLEventQueue removing the DStructGDLs?
   {}
   
   DStructGDL* Pop()
   {
-    if( dq.empty()) // optimzation: aquiring of mutex not necessary at first
+    if( dq.empty()) // optimization: acquiring of mutex not necessary at first
       return NULL;   
     wxMutexLocker lock( mutex);
-    if( dq.empty()) // needed again for thread save behaviour
+    if( dq.empty()) // needed again for thread safe behaviour
       return NULL;   
     DStructGDL* front = dq.front();
     dq.pop_front();
@@ -95,9 +95,7 @@ public:
 //   void Leave() { wxMutexGuiLeave(); left=true;}
 // };
 
-//Apparently (TBC) having _OFF is very bad for our widgets (linux): spurious frequent crashes!
-//Fortunately MS seems to have already provided the locking mechanism, so I make it valid
-#define GUIMutexLockerWidgetsT_OFF
+//#define GUIMutexLockerWidgetsT_OFF
 class GUIMutexLockerWidgetsT
 {
 #ifdef GUIMutexLockerWidgetsT_OFF
@@ -106,14 +104,14 @@ public:
   ~GUIMutexLockerWidgetsT() {}
   void Leave() {}
 #else
-  bool left;
+  bool hasLeft;
 public:
-  GUIMutexLockerWidgetsT(): left(false) { wxMutexGuiEnter();}
-  ~GUIMutexLockerWidgetsT() { if(!left) wxMutexGuiLeave();}
-  void Leave() { wxMutexGuiLeave(); left=true;}
+  GUIMutexLockerWidgetsT(): hasLeft(false) { if (!wxIsMainThread()) wxMutexGuiEnter(); else hasLeft=true; }
+  ~GUIMutexLockerWidgetsT() { if (!wxIsMainThread()) if(!hasLeft) wxMutexGuiLeave();}
+  void Leave() {if (!wxIsMainThread()){ wxMutexGuiLeave(); hasLeft=true;}}
 #endif  
 };
-//See comment above.
+
 #define GUIMutexLockerEventHandlersT_OFF
 class GUIMutexLockerEventHandlersT
 {
@@ -123,11 +121,11 @@ public:
   ~GUIMutexLockerEventHandlersT() {}
   void Leave() {}
 #else
-  bool left;
+  bool hasLeft;
 public:
-  GUIMutexLockerEventHandlersT(): left(false) { wxMutexGuiEnter();}
-  ~GUIMutexLockerEventHandlersT() { if(!left) wxMutexGuiLeave();}
-  void Leave() { wxMutexGuiLeave(); left=true;}
+  GUIMutexLockerEventHandlersT(): hasLeft(false) { if (!wxIsMainThread()) wxMutexGuiEnter(); else hasLeft=true; }
+  ~GUIMutexLockerEventHandlersT() { if (!wxIsMainThread()) if(!hasLeft) wxMutexGuiLeave();}
+  void Leave() {if (!wxIsMainThread()){ wxMutexGuiLeave(); hasLeft=true;}}
 #endif  
 };
 
@@ -137,8 +135,8 @@ class GDLGUIThread : public wxThread
 public:
   static GDLGUIThread* gdlGUIThread;
 
-//  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
-  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE) //test
+  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
+//  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE) //test
 //   , exited(false)
   {}
   ~GDLGUIThread();
@@ -184,11 +182,13 @@ public:
   { 
     wxMutexLocker lock(m_mutex);
     map.erase(position);
+    cerr <<"deletep,size="<<map.size()<<endl;
   }
   size_type erase (const key_type& k) 
   { 
     wxMutexLocker lock(m_mutex);
     return map.erase(k);
+    cerr <<"deletek,size="<<map.size()<<endl;
   }
   iterator find (const key_type& k) 
   { 
@@ -210,6 +210,7 @@ public:
   { 
     wxMutexLocker lock(m_mutex);
     return map.insert( position, val);    
+    cerr <<"insert,size="<<map.size()<<endl;
   }
 };
 
@@ -267,11 +268,11 @@ protected:
   WidgetIDT    parentID;  // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
   BaseGDL*     vValue;    // the VVALUE
-  bool         scroll;
+  bool         scrolled;
   bool         sensitive;
   bool         managed;
   bool         map;
-  bool         buttonState; //only for buutons
+  bool         buttonState; //only for buttons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
   wxSizer*     topWidgetSizer;
@@ -281,6 +282,8 @@ protected:
   WidgetIDT    groupLeader;
   DLong        units;
   DLong        frame;
+  DString      font;
+  wxAlignment  alignment;
 
   
 private:  
@@ -316,17 +319,26 @@ public:
     , MOTION = 64
     , VIEWPORT = 128
     , WHEEL = 256
+    , BUTTON = 512
+    , KEYBOARD = 1024 //widget_draw, normal keys in the KEY field, modifiers reported in the "MODIFIERS" field
+    , KEYBOARD2 = 2048 //widget_draw, normal keys and compose keys reported in the KEY field 
     } EventTypeFlags;
 
+  virtual void updateFlags(); //to be overloaded...
+  DULong GetEventFlags()  const { return eventFlags;}
+  bool SetEventFlags( DULong evFlags) { eventFlags = evFlags; updateFlags();}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
-  void AddEventType( DULong evType) { eventFlags |= evType;}
+  void AddEventType( DULong evType) { eventFlags |= evType; updateFlags();}
+  void RemoveEventType( DULong evType) { eventFlags &= ~evType; updateFlags();}
+  void Raise();
+  void Lower();
 
   GDLWidget( WidgetIDT p, EnvT* e, 
 	     bool map_=true, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
 
-  void CreateWidgetPanel();
+  void CreateWidgetPanel(DLong borderWidth=DEFAULT_BORDER_SIZE, wxBorder=wxNO_BORDER );
   // this is called from the GUI thread on (before) Show()
   // wxTextCtrl and maybe other controls crash when called from the
   // main thread
@@ -336,13 +348,20 @@ public:
   // calls NOTIFY_REALIZE procedure
   virtual void OnRealize() 
   {
-    if( notifyRealize != "")
-      CallEventPro( notifyRealize, new DLongGDL( widgetID));
+    if( notifyRealize != "") { //insure it is called once only for this.
+      std::string note=notifyRealize;
+      notifyRealize.clear();
+      CallEventPro( note, new DLongGDL( widgetID));
+    }
   }
   virtual void OnKill()
   {
-    if( killNotify != "")
-      CallEventPro( killNotify, new DLongGDL( widgetID));
+    if( killNotify != ""){ //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
+    cerr <<"calling procedure: \""<<killNotify<<"\" for"<<widgetID<<endl;
+        std::string RIP=killNotify;
+        killNotify.clear();
+      CallEventPro( RIP, new DLongGDL( widgetID));
+    }
   }
 
   void SetSizeHints();
@@ -385,7 +404,9 @@ public:
   const DString& GetKillNotify() const { return killNotify;}
 
   static bool GetXmanagerBlock();
-
+  static DLong GetNumberOfWidgets();
+  static BaseGDL* GetWidgetsList();
+  
   WidgetIDT WidgetID() { return widgetID;}
 
   wxSizer* GetSizer() { return widgetSizer;}
@@ -393,6 +414,9 @@ public:
 
   bool GetManaged() const { return managed;}
   void SetManaged( bool manval){managed = manval;}
+//  void SetSensitive( bool value){sensitive = value;}
+  virtual void SetSensitive( bool value);
+  virtual void SetFocus();
 
   bool GetMap() const { return map;}
   void SetMap( bool mapval){ map = mapval;}
@@ -425,6 +449,7 @@ class GDLWidgetBase: public GDLWidget
 {
 protected:
   typedef std::deque<WidgetIDT>::iterator cIter;
+  typedef std::deque<WidgetIDT>::reverse_iterator rcIter;
   std::deque<WidgetIDT>                   children;
   
   bool                                    xmanActCom;
@@ -436,7 +461,7 @@ protected:
   wxMutex*                                m_gdlFrameOwnerMutexP;
   DLong ncols;
   DLong nrows;
-  bool scrolled;
+//  bool scrolled;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -454,6 +479,13 @@ public:
   
   ~GDLWidgetBase();
 
+//perhaps a bit too simple!
+  void ClearEvents()
+  {
+  if (!this->GetXmanagerActiveCommand( ))  eventQueue.Purge();
+  else readlineEventQueue.Purge(); 
+  }
+  
   void OnShow() 
   {
     for( cIter c=children.begin(); c!=children.end(); ++c)
@@ -475,15 +507,14 @@ public:
   }
   void OnKill()
   {
-    for( cIter c=children.begin(); c!=children.end(); ++c)
+    for( rcIter rc=children.rbegin(); rc!=children.rend(); ++rc)
     {
-      GDLWidget* w = GetWidget( *c);
-      if( w != NULL)
-	w->OnKill();
+      GDLWidget* w = GetWidget( *rc);
+      if( w != NULL) w->OnKill();
     }
-    GDLWidget::OnKill();
+//    this->OnKill(); //removing this stops otherwise reentrant code leading to crash. But it stinks!.FIXME
   }
-
+  
   void NullWxWidget() { this->wxWidget = NULL;}
   
   WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
@@ -501,12 +532,12 @@ public:
   
   void SetXmanagerActiveCommand() 
   { 
-//     wxMessageOutputDebug().Printf(_T("SetXmanagerActiveCommand: %d\n",widgetID);
+//     wxMessageOutputStderr().Printf(_T("SetXmanagerActiveCommand: %d\n",widgetID);
     xmanActCom = true;
   }
   bool GetXmanagerActiveCommand() const 
   { 
-//     wxMessageOutputDebug().Printf(_T("GetXmanagerActiveCommand: %d\n",widgetID);
+//     wxMessageOutputStderr().Printf(_T("GetXmanagerActiveCommand: %d\n",widgetID);
     return xmanActCom;
   }
 
@@ -532,11 +563,12 @@ class GDLWidgetButton: public GDLWidget
   UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3, ENTRY=4} ButtonType;
 
   ButtonType buttonType;
+  bool addSeparatorAbove;
 
 //  bool buttonState; //defined in base class now.
   
 public:
-  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu);
+  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu, bool hasSeparatorAbove);
 
   // for WIDGET_CONTROL
   void SetButtonWidget( bool onOff)
@@ -642,7 +674,12 @@ public:
 		 bool editable);
   void OnShow();
 
-  void SetTextValue( DStringGDL* value, bool noNewLine);
+  bool IsEditable(){return editable;}
+  void ChangeText( DStringGDL* value, bool noNewLine=false);
+  void InsertText( DStringGDL* value, bool noNewLine=false, bool insertAtEnd=false);
+  void SetTextSelection(DLongGDL* pos);
+  DLongGDL* GetTextSelection();
+  void AppendTextValue( DStringGDL* value, bool noNewLine);
   
   bool IsText() const { return true;} 
   
@@ -669,16 +706,15 @@ class GDLWidgetDraw: public GDLWidget
   int pstreamIx;
   DLong x_scroll_size;
   DLong y_scroll_size;
-  bool scrolled;
 public:
   GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
-		  DLong x_scroll_size, DLong y_scroll_size);
+		  DLong x_scroll_size, DLong y_scroll_size, DULong eventFlags);
 
   ~GDLWidgetDraw();
 
 //   void OnShow();
   void OnRealize();
-  
+  void updateFlags();
   bool IsDraw() const { return true;}
 };
 
@@ -724,7 +760,6 @@ class GDLWidgetTable: public GDLWidget
   DStringGDL* daysOfWeek;
   bool disjointSelection;
   bool editable;
-  DStringGDL* font;
   DStringGDL* format;
   DLong groupLeader;
   bool ignoreAccelerators;
@@ -752,7 +787,6 @@ public:
 		  DStringGDL* daysOfWeek_,
 		  bool disjointSelection_,
 		  bool editable_,
-		  DStringGDL* font_,
 		  DStringGDL* format_,
 		  DLong groupLeader_,
  		  bool ignoreAccelerators_,
@@ -770,7 +804,20 @@ public:
 		  DLong yScrollSize_
 		);
 
-  ~GDLWidgetTable();
+~GDLWidgetTable()
+{
+  GDLDelete( alignment );
+  GDLDelete( amPm );
+  GDLDelete( backgroundColor );
+  GDLDelete( foregroundColor );
+  GDLDelete( columnLabels );
+  GDLDelete( columnWidth );
+  GDLDelete( daysOfWeek );
+  GDLDelete( format );
+  GDLDelete( month );
+  GDLDelete( rowHeights );
+  GDLDelete( rowLabels );
+}
   
   void OnShow();
 
@@ -826,7 +873,10 @@ public:
                    DLong tabMode_,
                    DString toolTip_);
 		 
-  ~GDLWidgetTree();
+~GDLWidgetTree()
+{
+  GDLDelete( bitmap );
+}
 
   void OnShow();
 
@@ -872,7 +922,7 @@ class GDLFrame : public wxFrame
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
   // called from ~GDLWidgetBase
-  void NullGDLOnwer() { gdlOwner = NULL;}
+  void NullGDLOwner() { gdlOwner = NULL;}
   wxMutex* m_gdlFrameOwnerMutexP;
   friend class GDLWidgetBase;
 public:
@@ -938,6 +988,7 @@ class GDLDrawPanel : public wxPanel
   wxSize 	drawSize;
 
   wxDC*  	m_dc;
+  DULong        eventFlags;
 //   wxBitmap*    	memPlotDCBitmap;
 //   GDLWXStream*	PStream();
   
@@ -947,11 +998,12 @@ public:
 	    const wxPoint& pos = wxDefaultPosition, 
 	    const wxSize& size = wxDefaultSize,
 	    long style = 0, 
+            DULong eventFlags_ = 0,
 	    const wxString& name = wxPanelNameStr);
-  ~GDLDrawPanel();
+ ~GDLDrawPanel();
   
   void Update();
-  
+  void GetEventFlags(DULong eventFlags);
 //   void SetPStreamIx( int ix) { pstreamIx = ix;}
   int PStreamIx() { return pstreamIx;}
 
@@ -961,7 +1013,14 @@ public:
   void OnPaint(wxPaintEvent& event);
   void OnShow(wxShowEvent& event);
   void OnClose(wxCloseEvent& event);
-
+  void OnMouseMove( wxMouseEvent& event);
+  void OnMouseDown( wxMouseEvent& event);
+  void OnMouseUp( wxMouseEvent& event);
+  void OnMouseWheel( wxMouseEvent& event);
+  void OnKey( wxKeyEvent& event);
+  void OnEnterWindow(wxMouseEvent &event);
+  void OnLeaveWindow(wxMouseEvent &event);
+  void SetEventFlags(DULong eventFlag_);
 //   void OnCreate(wxWindowCreateEvent& event);
 //   void OnDestroy(wxWindowDestroyEvent& event);
   void SendPaintEvent()

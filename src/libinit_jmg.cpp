@@ -326,33 +326,128 @@ void LibInit_jmg()
     , "NOTIFY_REALIZE" , "PRO_SET_VALUE" , "NO_COPY" , "GROUP_LEADER"\
     , "SCR_XSIZE" , "SCR_YSIZE" , "SCROLL" , "SENSITIVE" \
     , "UNAME" , "UNITS" , "UVALUE" , "XOFFSET" \
-    , "XSIZE" , "YOFFSET" , "YSIZE" , "FRAME"
-
-  const string widget_drawKey[] = { WIDGET_COMMON_KEYWORDS
-    , "APP_SCROLL"
-    , "BUTTON_EVENTS"
+    , "XSIZE" , "YOFFSET" , "YSIZE" , "FRAME" \
+    , "ALIGN_LEFT", "ALIGN_RIGHT", "ALIGN_CENTER", "FONT","RESOURCE_NAME"\
+//ACTIVEX
+//BASE  
+  const string widget_baseKey[] = {WIDGET_COMMON_KEYWORDS,"MBAR","APP_MBAR","MODAL","COLUMN","ROW",
+  "EXCLUSIVE","NONEXCLUSIVE","FLOATING","MAP","TITLE","XPAD","X_SCROLL_SIZE","YPAD","Y_SCROLL_SIZE","DISPLAY_NAME",
+  "RNAME_MBAR","TAB_MODE",KLISTEND};
+  const string widget_baseWarnKey[] = {"ALIGN_BOTTOM","ALIGN_TOP",
+  "BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP",
+  "CONTEXT_EVENTS","CONTEXT_MENU","GRID_LAYOUT","KBRD_FOCUS_EVENTS","SPACE",
+  "TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS",
+  "TOOLBAR","TRACKING_EVENTS",KLISTEND};
+  new DLibFunRetNew(lib::widget_base,string("WIDGET_BASE"),1,widget_baseKey,widget_baseWarnKey);
+//BUTTON
+  const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"MENU","VALUE","HELP","SEPARATOR","INPUT_FOCUS",KLISTEND};
+  const string widget_buttonWarnKey[] ={"ACCELERATOR","BITMAP","CHECKED_MENU","DYNAMIC_RESIZE",
+  "TRACKING_EVENTS","X_BITMAP_EXTRA",KLISTEND};
+  new DLibFunRetNew(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey,widget_buttonWarnKey);
+//COMBOBOX
+  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","TITLE","VALUE",KLISTEND};
+  const string widget_comboboxWarnKey[] = {"DYNAMIC_RESIZE","TAB_MODE","TRACKING_EVENTS",KLISTEND};
+  new DLibFunRetNew(lib::widget_combobox,string("WIDGET_COMBOBOX"),1,widget_comboboxKey,widget_comboboxWarnKey);
+//CONTROL
+  const string widget_ControlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
+  "XMANAGER_ACTIVE_COMMAND","DESTROY",
+  "GET_UVALUE","SET_UVALUE","SET_VALUE",
+  "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
+  "SET_UNAME","NO_COPY","SET_BUTTON",
+  "SET_DROPLIST_SELECT","SENSITIVE",
+  "GET_VALUE","NO_NEWLINE","TLB_GET_SIZE",
+  "HOURGLASS","TLB_SET_TITLE","INPUT_FOCUS",
+  "CLEAR_EVENTS","PUSHBUTTON_EVENTS",
+  "DRAW_BUTTON_EVENTS","DRAW_EXPOSE_EVENTS","DRAW_KEYBOARD_EVENTS", 
+  "DRAW_MOTION_EVENTS","DRAW_WHEEL_EVENTS","TRACKING_EVENTS","DRAW_VIEWPORT_EVENTS",
+  "SET_DROP_EVENTS","KILL_NOTIFY","SHOW","APPEND","USE_TEXT_SELECT","SET_TEXT_SELECT",
+  KLISTEND};
+  const string widget_WarnControlKey[] ={"DEFAULT_FONT",
+  "TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS",
+  "CONTEXT_EVENTS","KBRD_FOCUS_EVENTS",
+  "ALL_TABLE_EVENTS","SEND_EVENT",
+  "ALL_TEXT_EVENTS","XOFFSET","YOFFSET","DYNAMIC_RESIZE",
+  KLISTEND}; //LIST NOT CLOSE!!!
+  new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
+	      widget_ControlKey,widget_WarnControlKey);
+//DISPLAYCONTEXTMENU
+//DRAW
+  const string widget_drawKey[] = { WIDGET_COMMON_KEYWORDS, "X_SCROLL_SIZE", "Y_SCROLL_SIZE"
+  , "MOTION_EVENTS"
+  , "BUTTON_EVENTS"
+  , "DROP_EVENTS"
+  , "EXPOSE_EVENTS"
+  , "KEYBOARD_EVENTS"
+  , "TRACKING_EVENTS"
+  , "WHEEL_EVENTS"
+  , "VIEWPORT_EVENTS"
+  , "INPUT_FOCUS"
+  , KLISTEND};
+   const string widget_drawWarnKey[] = {"APP_SCROLL"
     , "CLASSNAME"
     , "COLOR_MODEL"
     , "COLORS"
     , "DRAG_NOTIFY"
-    , "DROP_EVENTS"
-    , "EXPOSE_EVENTS"
     , "GRAPHICS_LEVEL"
     , "IGNORE_ACCELERATORS"
-    , "KEYBOARD_EVENTS"
-    , "MOTION_EVENTS"
     , "RENDERER"
-    , "RESOURCE_NAME"
     , "RETAIN"
     , "TOOLTIP"
-    , "TRACKING_EVENTS"
-    , "VIEWPORT_EVENTS"
-    , "WHEEL_EVENTS"
-    , "X_SCROLL_SIZE"
-    , "Y_SCROLL_SIZE"
     ,KLISTEND};
-  new DLibFunRetNew(lib::widget_draw,string("WIDGET_DRAW"),1,widget_drawKey);
-  
+  new DLibFunRetNew(lib::widget_draw,string("WIDGET_DRAW"),1,widget_drawKey,widget_drawWarnKey);
+ //DROPLIST 
+  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS,"TITLE","VALUE",KLISTEND};
+  const string widget_droplistWarnKey[] = {"DYNAMIC_RESIZE","TAB_MODE","TRACKING_EVENTS",KLISTEND};
+  new DLibFunRetNew(lib::widget_droplist,string("WIDGET_DROPLIST"),1,widget_droplistKey,widget_droplistWarnKey);
+//EVENT  
+  const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY","SAVE_HOURGLASS","NOWAIT","BAD_ID",KLISTEND};
+  new DLibFunRetNew(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey); //complete!!
+//INFO
+  const string widget_infoKey[] = {  "ACTIVE","VALID_ID","MODAL","MANAGED",
+  "XMANAGER_BLOCK", //only GDL, used in xmanager.pro , may even not be useful now.
+  "CHILD","VERSION","GEOMETRY","UNAME",
+  "FONTNAME",//not really supported - returns "".
+  "BUTTON_SET","PARENT","TEXT_SELECT",KLISTEND};
+  const string widget_infoWarnKey[]={
+//  "ALL_CHILDREN","COLUMN_WIDTHS",
+//  "COMBOBOX_GETTEXT","COMBOBOX_NUMBER","COMPONENT","CONTEXT_EVENTS","DRAGGABLE","DRAG_NOTIFY",
+//  "DRAW_BUTTON_EVENTS","DRAW_EXPOSE_EVENTS","DRAW_KEYBOARD_EVENTS","DRAW_MOTION_EVENTS",
+//  "DRAW_VIEWPORT_EVENTS","DRAW_WHEEL_EVENTS","DROPLIST_NUMBER","DROPLIST_SELECT","DROP_EVENTS",
+//  "DYNAMIC_RESIZE","EVENT_FUNC","EVENT_PRO","FIND_BY_UNAME","KBRD_FOCUS_EVENTS",
+//  "LIST_MULTIPLE","LIST_NUMBER","LIST_NUM_VISIBLE","LIST_SELECT","LIST_TOP","MAP","MASK",
+//  "MULTIPLE_PROPERTIES","NAME","N_CHILDREN","PROPERTYSHEET_NSELECTED","PROPERTYSHEET_SELECTED",
+//  "PROPERTY_VALID","PROPERTY_VALUE","PUSHBUTTON_EVENTS","REALIZED","ROW_HEIGHTS","SENSITIVE","SIBLING",
+//  "SLIDER_MIN_MAX","STRING_SIZE","SYSTEM_COLORS","TABLE_ALL_EVENTS","TABLE_BACKGROUND_COLOR","TABLE_DISJOINT_SELECTION",
+//  "TABLE_EDITABLE","TABLE_EDIT_CELL","TABLE_FONT","TABLE_FOREGROUND_COLOR","TABLE_SELECT","TABLE_VIEW","TAB_CURRENT",
+//  "TAB_MODE","TAB_MULTILINE","TAB_NUMBER","TEXT_ALL_EVENTS","TEXT_EDITABLE","TEXT_NUMBER","TEXT_OFFSET_TO_XY",
+//  "TEXT_TOP_LINE","TEXT_XY_TO_OFFSET","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS",
+//  "TLB_SIZE_EVENTS","TOOLTIP","TRACKING_EVENTS","TREE_BITMAP","TREE_DRAG_SELECT","TREE_EXPANDED","TREE_FOLDER",
+//  "TREE_INDEX","TREE_ROOT","TREE_SELECT","TYPE","UNITS","UPDATE","USE_TABLE_SELECT","VISIBLE",
+    KLISTEND};
+  new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey,widget_infoWarnKey);
+//LABEL
+  const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"VALUE",KLISTEND};
+  const string widget_labelWarnKey[] = {"DYNAMIC_RESIZE","ALL_EVENTS","CONTEXT_EVENTS",
+  "EDITABLE","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","NO_NEWLINE","TAB_MODE","TRACKING_EVENTS",
+  "WRAP",KLISTEND};
+  new DLibFunRetNew(lib::widget_label,string("WIDGET_LABEL"),1,widget_labelKey,widget_labelWarnKey);
+//LIST
+  const string widget_listKey[] = {WIDGET_COMMON_KEYWORDS,"MULTIPLE","VALUE",KLISTEND};
+  const string widget_listWarnKey[] = {"CONTEXT_EVENTS","TAB_MODE","TRACKING_EVENTS",KLISTEND};
+  new DLibFunRetNew(lib::widget_list,string("WIDGET_LIST"),1,widget_listKey,widget_listWarnKey);
+//MESSAGE
+//PROPERTYSHEET (2-columns TABLE)
+//SLIDER
+  const string widget_sliderKey[] = {WIDGET_COMMON_KEYWORDS,"TITLE","DRAG","VALUE","MINIMUM","MAXIMUM","VERTICAL",
+  "SUPPRESS_VALUE", KLISTEND};
+  new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_sliderKey);
+//STUB
+//TAB
+  const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"MULTILINE","LOCATION", KLISTEND};
+  const string widget_tabWarnKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM",
+  "ALIGN_TOP","TAB_MODE","TRACKING_EVENTS", KLISTEND};
+  new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey,widget_tabWarnKey);
+//TABLE
   const string widget_tableKey[] = {WIDGET_COMMON_KEYWORDS
   , "ALIGNMENT"
   , "ALL_EVENTS"
@@ -387,12 +482,14 @@ void LibInit_jmg()
   , "Y_SCROLL_SIZE"
   , KLISTEND};
   new DLibFunRetNew(lib::widget_table,string("WIDGET_TABLE"),1,widget_tableKey);
-  
+//TEXT
+  const string widget_textKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","NO_NEWLINE","VALUE",
+  "INPUT_FOCUS","ALL_EVENTS","CONTEXT_EVENTS","KBRD_FOCUS_EVENTS","TRACKING_EVENTS",KLISTEND};
+  const string widget_textWarnKey[] = {"IGNORE_ACCELERATORS","TAB_MODE","WRAP",KLISTEND};
+  new DLibFunRetNew(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey,widget_textWarnKey);
+//TREE
   const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
   , "ALIGN_BOTTOM"
-  , "ALIGN_CENTER"
-  , "ALIGN_LEFT"
-  , "ALIGN_RIGHT"
   , "ALIGN_TOP"
   , "BITMAP"
   , "CHECKBOX"
@@ -408,65 +505,15 @@ void LibInit_jmg()
   , "NO_BITMAPS"
   , "TAB_MODE"
   , "TOOLTIP"
+  , "VALUE"
   , KLISTEND};
 //   , "CONTEXT_EVENTS"
 //   , "TRACKING_EVENTS"
 //   , "DROP_EVENTS"
-  new DLibFunRetNew(lib::widget_base,string("WIDGET_TREE"),1,widget_treeKey);
-  
-  const string widget_baseKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MBAR","APP_MBAR","MODAL","BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP","COLUMN","ROW","CONTEXT_EVENTS","CONTEXT_MENU","EXCLUSIVE","NONEXCLUSIVE","FLOATING","GRID_LAYOUT","KBRD_FOCUS_EVENTS","MAP","SPACE","TITLE","TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TOOLBAR","TRACKING_EVENTS","XPAD","X_SCROLL_SIZE","YPAD","Y_SCROLL_SIZE","DISPLAY_NAME","RESOURCE_NAME","RNAME_MBAR","TAB_MODE",KLISTEND};
-  new DLibFunRetNew(lib::widget_base,string("WIDGET_BASE"),1,widget_baseKey);
-
-  const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"ACCELERATOR","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","BITMAP","CHECKED_MENU","DYNAMIC_RESIZE","FONT","HELP","MENU","NO_COPY","NO_RELEASE","PUSHBUTTON_EVENTS","SEPARATOR","TAB_MODE","TOOLTIP","TRACKING_EVENTS","VALUE","X_BITMAP_EXTRA",KLISTEND};
-  new DLibFunRetNew(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey);
-
-  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS,"DYNAMIC_RESIZE","FONT","RESOURCE_NAME","TAB_MODE","TITLE","TRACKING_EVENTS","VALUE",KLISTEND};
-  new DLibFunRetNew(lib::widget_droplist,string("WIDGET_DROPLIST"),1,widget_droplistKey);
-
-  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","DYNAMIC_RESIZE","FONT","RESOURCE_NAME","TAB_MODE","TITLE","TRACKING_EVENTS","VALUE",KLISTEND};
-  new DLibFunRetNew(lib::widget_combobox,string("WIDGET_COMBOBOX"),1,widget_comboboxKey);
-
-  const string widget_listKey[] = {WIDGET_COMMON_KEYWORDS,"CONTEXT_EVENTS","FONT","MULTIPLE","RESOURCE_NAME","TAB_MODE","TRACKING_EVENTS","VALUE",KLISTEND};
-  new DLibFunRetNew(lib::widget_list,string("WIDGET_LIST"),1,widget_listKey);
-
+  new DLibFunRetNew(lib::widget_tree,string("WIDGET_TREE"),1,widget_treeKey);
+//TREE_MOVE  
 // 	const string widget_bgroupKey[] =
-// 	{"BUTTON_UVALUE","COLUMN","EVENT_FUNC","EXCLUSIVE","NONEXCLUSIVE","SPACE","XPAD","YPAD","FONT","FRAME","IDS","LABEL_LEFT","LABEL_TOP","MAP","NO_RELEASE","RETURN_ID","RETURN_INDEX","RETURN_NAME","ROW","SCROLL","SET_VALUE","TAB_MODE","X_SCROLL_SIZE","Y_SCROLL_SIZE","SET_VALUE","UNAME","UVALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
+// 	{"BUTTON_UVALUE","COLUMN","EVENT_FUNC","EXCLUSIVE","NONEXCLUSIVE","SPACE","XPAD","YPAD","FRAME","IDS","LABEL_LEFT","LABEL_TOP","MAP","NO_RELEASE","RETURN_ID","RETURN_INDEX","RETURN_NAME","ROW","SCROLL","SET_VALUE","TAB_MODE","X_SCROLL_SIZE","Y_SCROLL_SIZE","SET_VALUE","UNAME","UVALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
 // 	new DLibFunRetNew(lib::widget_bgroup,string("CW_BGROUP"),2,widget_bgroupKey);
-
-  const string widget_textKey[] = {WIDGET_COMMON_KEYWORDS,"ALL_EVENTS","CONTEXT_EVENTS","EDITABLE","FONT","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","NO_NEWLINE","RESOURCE_NAME","TAB_MODE","TRACKING_EVENTS","VALUE","WRAP",KLISTEND};
-  new DLibFunRetNew(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey);
-
-  const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"ALL_EVENTS","CONTEXT_EVENTS","EDITABLE","FONT","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","NO_NEWLINE","RESOURCE_NAME","TAB_MODE","TRACKING_EVENTS","VALUE","WRAP",KLISTEND};
-  const string widget_labelWarnKey[] = {"ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT", KLISTEND};
-  new DLibFunRetNew(lib::widget_label,string("WIDGET_LABEL"),1,widget_labelKey,widget_labelWarnKey);
-
-  const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MULTILINE","LOCATION","TAB_MODE","TRACKING_EVENTS", KLISTEND};
-  new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey);
-
-  const string widget_slider[] = {WIDGET_COMMON_KEYWORDS,"TITLE"/*TODO*/,"DRAG","VALUE","MINIMUM","MAXIMUM","VERTICAL","SUPPRESS_VALUE", KLISTEND};
-  new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_slider);
-
-  
-  const string widget_infoKey[] = {"VALID_ID","MODAL","MANAGED","XMANAGER_BLOCK","CHILD","VERSION","GEOMETRY","UNAME","FONTNAME",
-                      "BUTTON_SET","PARENT",KLISTEND};
-  new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);
-
-  const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY","SAVE_HOURGLASS","NOWAIT","BAD_ID",
-				    KLISTEND};
-  new DLibFunRetNew(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey);
-
-  const string widget_ControlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
-				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
-				      "GET_UVALUE","SET_UVALUE","SET_VALUE",
-				      "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
-				      "SET_UNAME","NO_COPY","SET_BUTTON",
-				      "SET_DROPLIST_SELECT","SENSITIVE",
-				      "GET_VALUE","NO_NEWLINE","TLB_GET_SIZE","HOURGLASS","TLB_SET_TITLE",KLISTEND};
-  const string widget_WarnControlKey[] ={"DEFAULT_FONT","CLEAR_EVENTS","XOFFSET","YOFFSET","KILL_NOTIFY",
-  "DRAW_BUTTON_EVENTS","DRAW_EXPOSE_EVENTS","DRAW_KEYBOARD_EVENTS", 
-  "DRAW_MOTION_EVENTS","DRAW_VIEWPORT_EVENTS","DRAW_WHEEL_EVENTS",
-  "SHOW",KLISTEND};
-  new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
-	      widget_ControlKey,widget_WarnControlKey);
 
 }

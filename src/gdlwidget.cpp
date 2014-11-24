@@ -218,44 +218,45 @@ int GDLWidget::HandleEvents()
       Warning( "Unhandled event. ID: " + i2s( id ) );
       GDLDelete( ev );
       ev = NULL;
+      return 0;
     }
-
-    // refresh (if tlb still exists (handler might have destroyed it))
-    // even on unhandled event as it might have been rewritten by a handler
-    // use 'old' tlb as id might no longer exist
-    GDLWidget *tlw = GetWidget( tlb );
-    if( tlw != NULL)
-    {
-      assert( dynamic_cast<GDLFrame*> (tlw->wxWidget) != NULL );
-      // Pause 50 millisecs then refresh widget . This avoids a lot of crashes... to be tested further!
-             wxMilliSleep( 50); 
-      GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-//      static_cast<GDLFrame*> (tlw->wxWidget)->Refresh( ); //apparently we crash too often here...
-      static_cast<GDLFrame*> (tlw->wxWidget)->Update(); //...let's try Update, which is immediate (Refresh() waits for the next event loop).
-      gdlMutexGuiEnterLeave.Leave( );
-    }
+// The FOLLOWING ALWAYS CRASHES GDL in "complicated" cases such as "atv.pro".
+// Removed until further notice.
+// Necessity of "refreshing" TLBs is not obvious yet for me.
+//    // refresh (if tlb still exists (handler might have destroyed it))
+//    // even on unhandled event as it might have been rewritten by a handler
+//    // use 'old' tlb as id might no longer exist
+//    GDLWidget *tlw = GetWidget( tlb );
+//    if( tlw != NULL)
+//    {
+//      assert( dynamic_cast<GDLFrame*> (tlw->wxWidget) != NULL );
+//      // Pause 50 millisecs then refresh widget . This avoids a lot of crashes... to be tested further!
+//           wxMilliSleep( 10 ); //passed to 10 (GD: 50 is way too long for atv.pro! 
+//      GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//     static_cast<GDLFrame*> (tlw->wxWidget)->Refresh( ); //apparently we crash too often here...
+//     static_cast<GDLFrame*> (tlw->wxWidget)->Update(); //...let's try Update, which is immediate (Refresh() waits for the next event loop).
+//      gdlMutexGuiEnterLeave.Leave( );
+//    }
   }
   return 0;
 }
 
-void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) 
-{
+void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
+  //end eventual busycursor since this is the last stage of processing an event:
+  wxEndBusyCursor( );
   // Get XmanagerActiveCommand status
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID );
-  if (baseWidget != NULL) {
-  bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
-  if( !xmanActCom)
-  {
-    //     wxMessageOutputDebug().Printf(_T("eventQueue.Push: %d\n",baseWidgetID);
-    eventQueue.Push( ev );
-  }
-  else
-  {
-    //     wxMessageOutputDebug().Printf(_T("readLineEventQueue.Push: %d\n",baseWidgetID);
-    readlineEventQueue.Push( ev );
-  }
-  //We really need to cure this problem:wigets can be destroyed and replaced by others 'live'.
-  } else cerr<<"NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT vaseWidgetID="<< baseWidgetID<<", DStructGDL* ev="<<ev<<"), please report!\n";
+  if ( baseWidget != NULL ) {
+    bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
+    if ( !xmanActCom ) {
+      //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
+      eventQueue.Push( ev );
+    } else {
+      //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
+      readlineEventQueue.Push( ev );
+    }
+    //We really need to cure this problem:wigets can be destroyed and replaced by others 'live'.
+  } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT vaseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
 }
 //void GDLWidget::SetSizer( wxSizer *sizer)
 //{
@@ -293,7 +294,23 @@ bool GDLWidget::GetXmanagerBlock()
   }
   return xmanBlock;
 }
-
+DLong GDLWidget::GetNumberOfWidgets() {
+  WidgetListT::iterator it;
+  DLong result=0;
+  for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) result++;
+  return result;
+}
+BaseGDL* GDLWidget::GetWidgetsList() {
+  DLong nw=GetNumberOfWidgets();
+  if (nw<=0) return new DLongGDL(0);
+  WidgetListT::iterator it;
+  SizeT index=0;
+  DLongGDL* result=new DLongGDL(nw,BaseGDL::NOZERO);
+  for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
+    (*result)[index]=(*it).second->widgetID; index++;
+  }
+  return result;
+}
 // Init
 void GDLWidget::Init()
 {
@@ -311,31 +328,25 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/, BaseGDL* vV/*=NU
 , parentID( p )
 , uValue( NULL )
 , vValue( vV )
-//   , buttonSet(false)
 , exclusiveMode( 0 )
 , topWidgetSizer( NULL )
 , widgetSizer( NULL )
 , widgetPanel( NULL )
 , managed( false )
 , map( map_ )
-  , eventFlags(eventFlags_)
-{
+, eventFlags( eventFlags_ ) {
   if ( e != NULL )
     SetCommonKeywords( e );
 
   widgetID = wxWindow::NewControlId( );
 
-    if( parentID != GDLWidget::NullID)
-    {
+  if ( parentID != GDLWidget::NullID ) {
     GDLWidget* gdlParent = GetWidget( parentID );
-        if( gdlParent->IsBase())
-        {
+    if ( gdlParent->IsBase( ) ) {
       GDLWidgetBase* base = static_cast<GDLWidgetBase*> (gdlParent);
       //       assert( base != NULL); // should be already checked elsewhere
       base->AddChild( widgetID );
-        }
-        else
-        {
+    } else {
       GDLWidgetBase* base = GetBaseWidget( parentID );
       if ( base != NULL )
         base->AddChild( widgetID );
@@ -345,13 +356,13 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, bool map_/*=true*/, BaseGDL* vV/*=NU
   widgetList.insert( widgetList.end( ), std::pair<WidgetIDT, GDLWidget*>(widgetID, this) );
 #ifdef GDL_DEBUG_WIDGETS
   //     GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-  wxMessageOutputDebug( ).Printf( _T( "inserted: ID: %d  parentID: %d\n", widgetID, parentID );
+  wxMessageOutputStderr( ).Printf( _T( "inserted: ID: %d  parentID: %d\n" ), widgetID, parentID );
   //     std::cout << "inserted: ID: " << widgetID << "  parentID: " << parentID << "   uname: " << uName << std::endl;
 #endif
 }
 
 
-void GDLWidget::CreateWidgetPanel()
+void GDLWidget::CreateWidgetPanel(int borderWidth, wxBorder bb )
 {
   GDLWidget* gdlParent = GetWidget( parentID );
 
@@ -360,18 +371,30 @@ void GDLWidget::CreateWidgetPanel()
   wxPanel *panel = new wxPanel( parentPanel, wxID_ANY
   , wxDefaultPosition
   , wxDefaultSize
-  , wxNO_BORDER  //   , wxBORDER_SIMPLE 
+  , bb  //   , wxBORDER_SIMPLE 
   );
   widgetPanel = panel;
 
-  wxSizer *boxSizer = gdlParent->GetSizer( );
-  boxSizer->Add( panel, 0, wxEXPAND | wxALL, DEFAULT_BORDER_SIZE);
+  gdlParent->GetSizer( )->Add( panel, 0, wxEXPAND | wxALL, borderWidth);
 }
 
+void GDLWidget::SetSensitive(bool value)
+{
+   GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
+   frame->Enable(value);
+}
+
+void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
+{
+  if (this->GetWidgetType()=="DRAW") static_cast<wxPanel*>(this->wxWidget)->SetFocus(); 
+  else  static_cast<wxPanel*> (this->widgetPanel)->SetFocus();
+}
 void GDLWidget::SetSizeHints()
 {
   assert( parentID == NullID );
-  wxMessageOutputDebug( ).Printf( _T( "GDLWidget:SetSizeHints: %d\n" ), this->widgetID );
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr( ).Printf( _T( "GDLWidget:SetSizeHints: %d\n" ), this->widgetID );
+#endif
   GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
   topWidgetSizer->SetSizeHints( frame );
   //bad:  frame->SetClientSize(widgetPanel->GetSize());
@@ -385,7 +408,7 @@ void GDLWidget::Realize( bool map)
   {
     assert( this->IsBase( ) );
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug( ).Printf( _T( "GDLWidget:Realize: %d\n", this->widgetID );
+    wxMessageOutputStderr( ).Printf( _T( "GDLWidget:Realize: %d\n"), this->widgetID );
 #endif
     GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
     if( frame->LastShowRequest() != map)
@@ -397,7 +420,7 @@ void GDLWidget::Realize( bool map)
   else
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug( ).Printf( _T( "GDLWidget:Realize TLB of: %d\n", this->widgetID );
+    wxMessageOutputStderr( ).Printf( _T( "GDLWidget:Realize TLB of: %d\n"), this->widgetID );
 #endif
     GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID );
     assert( tlb != NULL );
@@ -449,7 +472,48 @@ GDLWidget::~GDLWidget()
   widgetList.erase( widgetID );
 }
 
+void GDLWidget::Raise()
+{
+  wxWindow * win;
+  if( parentID == NullID)
+  {
+    assert( this->IsBase( ) );
+    win = static_cast<wxWindow*> (this->wxWidget);
+  }
+  else
+  {
+    GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID );
+    assert( tlb != NULL );
 
+    win = static_cast<wxWindow *> (tlb->wxWidget);
+  }
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    if (win!=NULL) win->Raise();
+}
+
+void GDLWidget::Lower()
+{
+  wxWindow * win;
+  if( parentID == NullID)
+  {
+    assert( this->IsBase( ) );
+    win = static_cast<wxWindow*> (this->wxWidget);
+  }
+  else
+  {
+    GDLWidgetBase* tlb = GetTopLevelBaseWidget( parentID );
+    assert( tlb != NULL );
+
+    win = static_cast<wxWindow *> (tlb->wxWidget);
+  }
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    if (win!=NULL)  win->Lower();
+}
+
+void GDLWidget::updateFlags()
+{
+  cerr<<"unhandled eventFlag "<<this->GetEventFlags()<<" for widget id "<<this->widgetID<<endl;
+}
 
 /*********************************************************/
 // for WIDGET_BASE
@@ -471,7 +535,6 @@ DLong x_scroll_size, DLong y_scroll_size )
 , mbarID( mBarIDInOut )
 , lastRadioSelection( NullID )
 , m_gdlFrameOwnerMutexP( NULL)
-, scrolled(false)
 , nrows(0)
 , ncols(0)
 {
@@ -480,12 +543,10 @@ DLong x_scroll_size, DLong y_scroll_size )
   xmanActCom = false;
   wxWindow *wxParent = NULL;
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
-  if (scrolled) scroll=TRUE;
-  if (x_scroll_size > 0) {scroll=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
-  if (y_scroll_size > 0) {scroll=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
-  if (scroll) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
-  if (scroll) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
-  scrolled=scroll;
+  if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
+  if (scrolled) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
   //ncols, nrows
   ncols=col;
   nrows=row;
@@ -502,7 +563,6 @@ DLong x_scroll_size, DLong y_scroll_size )
   {
     // obsolete: thread need to be created here (in realize it is too late)
 
-    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     //     if( modal) // ???
     // 	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
@@ -516,7 +576,7 @@ DLong x_scroll_size, DLong y_scroll_size )
     assert( m_gdlFrameOwnerMutexP != NULL );
     //     gdlFrame->Freeze();
 
-    gdlFrame->SetSize( xSize, ySize );
+//    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     if( mbarID != 0)
     {
@@ -528,9 +588,10 @@ DLong x_scroll_size, DLong y_scroll_size )
 
         gdlFrame->SetMenuBar( static_cast<wxMenuBar*> (mBar->GetWxWidget( )) );
 
-        gdlFrame->SetSize( xSize, ySize );
       }
 
+    gdlFrame->SetSize(xOffset, yOffset, xSize, ySize, wxDEFAULT_FRAME_STYLE );
+    
     wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
     topWidgetSizer = topSizer;
     gdlFrame->SetSizer( topSizer );
@@ -554,7 +615,7 @@ DLong x_scroll_size, DLong y_scroll_size )
     GDLWidget* gdlParent = GetWidget( parentID );
     wxSizer* parentSizer = gdlParent->GetSizer( );
 
-    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
     if( gdlParent->IsTab())
     {
@@ -576,7 +637,7 @@ DLong x_scroll_size, DLong y_scroll_size )
     else
     {
       wxWindow* wxParent = static_cast<wxWindow*> (gdlParent->GetWxWidget( ));
-      if ( scroll ) { //the right way to do the job!!!
+      if ( scrolled ) { //the right way to do the job!!!
         wxScrolledWindow *scrw;
         scrw = new wxScrolledWindow( wxParent, wxID_ANY , wxPoint(xOffset,yOffset), wxSize(x_scroll_size, y_scroll_size ));
         scrw->SetScrollbars(1, 1, 1, 1); //needed to have scrollbars appear
@@ -614,13 +675,17 @@ DLong x_scroll_size, DLong y_scroll_size )
 
 GDLWidgetBase::~GDLWidgetBase()
 {
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "in ~GDLWidgetBase(): " << widgetID << std::endl;
+#endif
+
   // call KILL_NOTIFY procedures
   this->OnKill( );
 
-  // delete all children
-  for( SizeT i=0; i<children.size(); i++) 
+  // delete all children in reverse order...
+  for( SizeT i=children.size(); i>0;  i--) 
   {
-    GDLWidget* child = GetWidget( children[i] );
+    GDLWidget* child = GetWidget( children[i-1] );
     delete child;
   }
 
@@ -629,44 +694,47 @@ GDLWidgetBase::~GDLWidgetBase()
   // Close widget frame (might be already closed)
   if( this->parentID == 0)
   {
-    assert( m_gdlFrameOwnerMutexP != NULL );
-    m_gdlFrameOwnerMutexP->Lock( );
-    if( this->wxWidget != NULL)
-    {
-      static_cast<GDLFrame*> (this->wxWidget)->NullGDLOnwer( );
-      // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
-      // on wxWidgets < 2.9.5
-      static_cast<GDLFrame*> (this->wxWidget)->Destroy( ); // instead of delete operator
-
-      m_gdlFrameOwnerMutexP->Unlock( );
-    }
-    else
-    {
-      m_gdlFrameOwnerMutexP->Unlock( );
-      delete m_gdlFrameOwnerMutexP;
-    }
+    if ( m_gdlFrameOwnerMutexP != NULL ) {
+      if( static_cast<GDLFrame*>(this->wxWidget) != NULL)
+      {
+        m_gdlFrameOwnerMutexP->Lock( );
+        static_cast<GDLFrame*> (this->wxWidget)->NullGDLOwner( );
+        // this seems to provoke: LIBDBUSMENU-GLIB-WARNING **: Trying to remove a child that doesn't believe we're it's parent.
+        // on wxWidgets < 2.9.5
+        static_cast<GDLFrame*> (this->wxWidget)->Destroy( ); // instead of delete operator
+        m_gdlFrameOwnerMutexP->Unlock( );
+      }
+      else
+      {
+        delete m_gdlFrameOwnerMutexP;
+        m_gdlFrameOwnerMutexP=NULL;
+      }
+    }//else the widget has already been destroyed!à
   }
 
   // remove all widgets still in the queue for current TLB
-  eventQueue.Purge( widgetID );
-  readlineEventQueue.Purge( widgetID );
+  eventQueue.Purge( widgetID);
+  readlineEventQueue.Purge( widgetID);
 }
 
 
-// called form event handling thread
-// sends an destroy event for itself
+// called from event handling thread
+// sends a destroy event for itself
 void GDLWidgetBase::Destroy()
 {
   assert( parentID == NullID );
 
   // create GDL event struct
-  DStructGDL* ev = new DStructGDL( "*WIDGET_MESSAGE*" );
+  DStructGDL* ev = new DStructGDL( "*WIDGET_DESTROY*" );
   ev->InitTag( "ID", DLongGDL( widgetID ) );
   ev->InitTag( "TOP", DLongGDL( widgetID ) );
   ev->InitTag( "HANDLER", DLongGDL( 0 ) );
   ev->InitTag( "MESSAGE", DLongGDL( 0 ) );
-
+  if ( !this->GetXmanagerActiveCommand( ) ){
+  eventQueue.PushFront( ev ); // push front (will be handled next)
+  } else {
   readlineEventQueue.PushFront( ev ); // push front (will be handled next)
+  }
 }
 
 DLong GDLWidgetBase::NChildren() const
@@ -691,9 +759,8 @@ WidgetIDT GDLWidgetBase::GetChild( DLong childIx) const
 // for WIDGET_TAB
 /*********************************************************/
 GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multiline )
-: GDLWidget( p, e)
-{
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+: GDLWidget( p, e ) {
+  //  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p );
   wxWindow *wxParent = static_cast<wxWindow*> (gdlParent->GetWxWidget( ));
@@ -702,24 +769,28 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
 
   long style = wxNB_TOP;
   if ( location == 1 ) style = wxNB_BOTTOM;
-    if ( location == 2 ) style = wxNB_LEFT;
-      if ( location == 3 ) style = wxNB_RIGHT;
+  if ( location == 2 ) style = wxNB_LEFT;
+  if ( location == 3 ) style = wxNB_RIGHT;
 
-        if ( multiline != 0 )
-        style |= wxNB_MULTILINE;
+  if ( multiline != 0 )
+    style |= wxNB_MULTILINE;
 
-        wxNotebook * notebook = new wxNotebook( panel, widgetID,
-        wxPoint( xOffset, yOffset ),
-        wxSize( xSize, ySize ),
-        style );
-        this->wxWidget = notebook;
+  wxNotebook * notebook = new wxNotebook( panel, widgetID,
+  wxPoint( xOffset, yOffset ),
+  wxSize( xSize, ySize ),
+  style );
+  this->wxWidget = notebook;
 
-          widgetSizer = gdlParent->GetSizer( );
-          widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, DEFAULT_BORDER_SIZE);
-          }
+  widgetSizer = gdlParent->GetSizer( );
+  widgetSizer->Add( notebook, 0, wxEXPAND | wxALL, DEFAULT_BORDER_SIZE );
+}
 
-GDLWidgetTab::~GDLWidgetTab()
-{}
+//why overcast inherited ~GDLWidget????
+GDLWidgetTab::~GDLWidgetTab(){
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "in ~GDLWidgetTable(): " << widgetID << std::endl;
+#endif
+}
 
 
 
@@ -738,7 +809,6 @@ DLongGDL* columnWidth_,
 DStringGDL* daysOfWeek_,
 bool disjointSelection_,
 bool editable_,
-DStringGDL* font_,
 DStringGDL* format_,
 DLong groupLeader_,
 bool ignoreAccelerators_,
@@ -766,7 +836,6 @@ DLong yScrollSize_
 , daysOfWeek( daysOfWeek_ )
 , disjointSelection( disjointSelection_ )
 , editable( editable_ )
-, font( font_ )
 , format( format_ )
 , groupLeader( groupLeader_ )
 , ignoreAccelerators( ignoreAccelerators_ )
@@ -783,28 +852,14 @@ DLong yScrollSize_
 ,yScrollSize( yScrollSize_)
 {
   CreateWidgetPanel( );
-}
-
-GDLWidgetTable::~GDLWidgetTable()
-{
-  GDLDelete( alignment );
-  GDLDelete( amPm );
-  GDLDelete( backgroundColor );
-  GDLDelete( foregroundColor );
-  GDLDelete( columnLabels );
-  GDLDelete( columnWidth );
-  GDLDelete( daysOfWeek );
-  GDLDelete( font );
-  GDLDelete( format );
-  GDLDelete( month );
-  GDLDelete( rowHeights );
-  GDLDelete( rowLabels );
+  wxSize widgetSize = wxDefaultSize;
+  if ( xSize == widgetSize.x ) xSize=300; //yes, has a default value!
+  if ( ySize == widgetSize.y ) ySize=300;
 }
 
 void GDLWidgetTable::OnShow()
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   GDLWidget* gdlParent = GetWidget( parentID );
 
   long style = wxWANTS_CHARS;
@@ -834,12 +889,7 @@ grid->SetColFormatFloat(5, 6, 2);
 grid->SetCellValue(0, 6,  wxString("3.1415", wxConvUTF8 ));
 
 this->wxWidget = grid;
-//
-// widgetPanel->SetClientSize( grid->GetSize( ) );
-//
-//  wxSizer * boxSizer = gdlParent->GetSizer( );
-//  boxSizer->Layout( );
-  }
+}
 
 
 
@@ -887,13 +937,16 @@ noBitmaps( noBitmaps_ ),
 tabMode( tabMode_ ),
 toolTip( toolTip_ ),
 value( value_ ),
-      treeItemID( 0L)
+treeItemID( 0L)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
     if( gdlParent->IsBase())
     {
     CreateWidgetPanel( );
-
+    wxSize widgetSize = wxDefaultSize;
+    if ( xSize == widgetSize.x ) xSize=300; //yes, has a default value!
+    if ( ySize == widgetSize.y ) ySize=300;
+    
     long style = wxTR_DEFAULT_STYLE;
     wxTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
     wxPoint( xOffset, yOffset ),
@@ -916,10 +969,6 @@ value( value_ ),
     }
 }
 
-GDLWidgetTree::~GDLWidgetTree()
-{
-  GDLDelete( bitmap );
-}
 
 void GDLWidgetTree::OnShow()
 {
@@ -950,12 +999,16 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
 , maximum( maximum_ )
 , title( title_)
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p );
   wxWindow *wxParent = static_cast<wxWindow*> (gdlParent->GetWxWidget( ));
 
   wxPanel *panel = gdlParent->GetPanel( );
+  
+  wxSize widgetSize = wxDefaultSize;
+  if (( xSize == widgetSize.x ) && !vertical) xSize=100; //yes, has a default value!
+  if (( ySize == widgetSize.y ) && vertical) ySize=100;
 
   long style = wxSL_HORIZONTAL;
   if ( vertical )
@@ -973,17 +1026,22 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
       widgetSizer->Add( slider, 0, wxEXPAND | wxALL);
       }
 
-GDLWidgetSlider::~GDLWidgetSlider()
-{}
+//why overcast inherited ~GDLWidget????
+GDLWidgetSlider::~GDLWidgetSlider(){
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "in ~GDLWidgetSlider(): " << widgetID << std::endl;
+#endif
+}
 
   
 
 GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
-const DString& value , bool isMenu)
+const DString& value , bool isMenu, bool hasSeparatorAbove)
 : GDLWidget( p, e )
 , buttonType( UNDEFINED )
+, addSeparatorAbove(hasSeparatorAbove)
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( parentID );
   wxObject *wxParentObject = gdlParent->GetWxWidget( );
@@ -1014,6 +1072,7 @@ const DString& value , bool isMenu)
 
         wxMenu *menu = static_cast<wxMenu*> (wxParentObject);
         if (isMenu) {
+          if (addSeparatorAbove) menu->AppendSeparator();
           this->wxWidget = new wxMenu( );
           wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
           menu->AppendSubMenu( static_cast<wxMenu*> (this->wxWidget), valueWxString );
@@ -1044,7 +1103,7 @@ const DString& value , bool isMenu)
       {
         wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
         wxButton *button = new wxButton( panel, widgetID, valueWxString,
-        wxPoint( xOffset, yOffset ) , wxSize(xSize,ySize));
+        wxPoint( xOffset, yOffset ) , wxSize(xSize,ySize), alignment);
         boxSizer->Add( button, 0, wxEXPAND | wxALL);
         this->wxWidget = button;
         buttonType = NORMAL;
@@ -1086,7 +1145,7 @@ const DString& value , bool isMenu)
     }
   }
 
-  gdlMutexGuiEnterLeave.Leave( );
+//  gdlMutexGuiEnterLeave.Leave( );
 }
 
   void GDLWidgetButton::SetButtonWidgetLabelText( const DString& value_ )
@@ -1105,7 +1164,7 @@ const DString& value , bool isMenu)
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style )
     : GDLWidget( p, e, true, value)
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( p );
 
@@ -1145,7 +1204,7 @@ const DString& title_, DLong style_ )
 void GDLWidgetDropList::OnShow()  
 {
   //  std::cout << "In DropList: " << widgetID << " " << p << std::endl;
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( parentID );
 
@@ -1173,7 +1232,7 @@ const DString& title_, DLong style_ )
 void GDLWidgetComboBox::OnShow()  
 {
   //  std::cout << "In ComboBox: " << widgetID << " " << p << std::endl;
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
   GDLWidget* gdlParent = GetWidget( parentID );
 
@@ -1207,7 +1266,7 @@ bool editable_ )
         value += (*static_cast<DStringGDL*> (vValue))[i]; 
         maxlinelength=(length>maxlinelength)?length:maxlinelength;
         if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
-        {value += '\n'; nlines++;} else {value +=" ";} //an improvement upon *DL
+        {value += '\n'; nlines++;}
       }
   }
   lastValue = value;
@@ -1219,33 +1278,40 @@ bool editable_ )
 void GDLWidgetText::OnShow()
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   //widget text size is in LINES in Y and CHARACTERS in X
   wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   wxSize widgetSize = wxDefaultSize;
   if ( xSize != widgetSize.x )
   widgetSize.x = xSize * fontSize.x;
   else widgetSize.x = maxlinelength * fontSize.x;
+  if ( widgetSize.x < 100 ) widgetSize.x=20* fontSize.x; //default
   if ( ySize != widgetSize.y )  widgetSize.y = ySize * fontSize.y; 
   else widgetSize.y = fontSize.y; //instead of nlines*fontSize.y to be compliant with *DL 
 
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
-
-  if (!(wxNORMAL_FONT->IsFixedWidth())) { //then all our calculations goes to dump
-    widgetSize.x *= 0.75; //should compensate for non-fixed width
+  long textAlignment=wxTE_LEFT;
+  switch(alignment){
+    case wxALIGN_RIGHT:
+      textAlignment=wxTE_RIGHT; break;
+    case wxALIGN_CENTER:
+      textAlignment=wxTE_CENTRE; break;
   }
-  
-  DLong style = wxTE_NOHIDESEL;
+  DLong style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|textAlignment;
 
-  if ( !editable ) style |= wxTE_READONLY;
+ if ( !editable ) style |= wxTE_READONLY; //no, because *DL provides READONLY and still give events.
+// this permits to a procedure (cw_field.pro for example) to filter the editing of text fields.
+// so wxTextCtrl::OnChar is overwritten in gdlwidgeteventhandler.cpp just for this reason.
   if ( nlines > 1 ) style |= wxTE_MULTILINE;
   wxTextCtrl * text = new wxTextCtrl( widgetPanel, widgetID, valueWxString,
   wxPoint( xOffset, yOffset ), widgetSize, style );
+  text->SetInsertionPoint(0);
+  text->SetSelection(0,0);
   this->wxWidget = text;
 }
 
 
-void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
+void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine)
 {
   delete vValue;
   vValue = valueStr;
@@ -1263,11 +1329,85 @@ void GDLWidgetText::SetTextValue( DStringGDL* valueStr, bool noNewLine)
 
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
   if ( this->wxWidget != NULL ) {
-    static_cast<wxTextCtrl*> (wxWidget)->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
+    wxTextCtrl* txt=static_cast<wxTextCtrl*> (wxWidget);
+    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
+    txt->Refresh();
+    txt->Update();
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
+}
+
+void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine, bool insertAtEnd)
+{
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+  long from,to;
+  wxTextCtrl* txt=static_cast<wxTextCtrl*> (wxWidget);
+  txt->GetSelection(&from,&to);
+  if (insertAtEnd) {from=txt->GetLastPosition(); to=from;}
+  DString value = "";
+  nlines=0;
+  for ( int i = 0; i < valueStr->N_Elements( ); ++i ) {
+    value += (*valueStr)[ i];
+    if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) ) {
+      value += '\n'; nlines++;
+    }
   }
+  lastValue.replace(from,to-from,value);
+  delete vValue;
+  vValue = new DStringGDL(lastValue);
+//  cout<<from<<"->"<<to<<":"<<lastValue.c_str( )<<endl;
+  wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
+  if ( this->wxWidget != NULL ) {
+    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT (neither does *DL).    
+    txt->Refresh();
+    txt->Update();
+    txt->SetSelection(from,from);
+  }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
+}
 
+void GDLWidgetText::SetTextSelection(DLongGDL* pos)
+{ //*DL selection are [start,length] [3,20] -> pos (3,23)
+  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+  //numerous cases to handle with invalid values (negative, too large).
+  //Hope it works for all cases:
+  long from,to,len;
+  long oldSelStart, oldSelEnd;
+  static_cast<wxTextCtrl*>(wxWidget)->GetSelection(&oldSelStart,&oldSelEnd);
+  len = static_cast<wxTextCtrl*>(wxWidget)->GetLastPosition()+1;
 
+  if ((*pos)[0] < 0 ) from=0;
+  else if ((*pos)[0] > len ) from=len;
+  else from=(*pos)[0];
+
+  
+  if (pos->N_Elements()<2) {
+    //selection = insertion
+    static_cast<wxTextCtrl*>(wxWidget)->SetSelection(from,from);
+    return;
+  }
+  //2 elements, define selection
+  to=(*pos)[1];
+
+  if ( from+to >= len ) {
+    //set insertion position at end of last selection (?)
+    static_cast<wxTextCtrl*>(wxWidget)->SetSelection(oldSelEnd,oldSelEnd);
+    return;
+  }
+  if ( to < 0 ) {
+    //set insertion position at from
+    static_cast<wxTextCtrl*>(wxWidget)->SetSelection(from,from);
+    return;
+  }
+  static_cast<wxTextCtrl*>(wxWidget)->SetSelection(from,from+to);
+}
+
+DLongGDL* GDLWidgetText::GetTextSelection()
+{
+  DLongGDL* pos=new DLongGDL(dimension(2),BaseGDL::ZERO);
+  long from,to;
+  static_cast<wxTextCtrl*>(wxWidget)->GetSelection(&from,&to);
+  (*pos)[0]=from; (*pos)[1]=to-from;
+  return pos;
+}
 
 GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ )
 : GDLWidget( p, e )
@@ -1278,7 +1418,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ )
 
 void GDLWidgetLabel::OnShow()
 {
-  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   //  std::cout << "In Label: " << widgetID << " " << p << std::endl;
 
   GDLWidget* gdlParent = GetWidget( parentID );
@@ -1286,7 +1426,7 @@ void GDLWidgetLabel::OnShow()
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
 
   wxStaticText* label = new wxStaticText( widgetPanel, widgetID, valueWxString,
-  wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), wxALIGN_LEFT | wxST_NO_AUTORESIZE );
+  wxPoint( xOffset, yOffset ), wxSize( xSize, ySize ), alignment|wxST_NO_AUTORESIZE );
   this->wxWidget = label;
   }
 
@@ -1318,9 +1458,11 @@ GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, c
 
 GDLFrame::~GDLFrame()
 { 
-  //   std::cout << "~GDLFrame: " << this << std::endl;
-  //   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
-
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "~GDLFrame: " << this << std::endl;
+    std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+#endif  
+ 
   m_gdlFrameOwnerMutexP->Lock( );
   if( gdlOwner != NULL)
   {
@@ -1337,15 +1479,20 @@ GDLFrame::~GDLFrame()
 
 
 // GDLDrawPanel ========================================================
-GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name )
+GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, 
+DULong eventFlags_, const wxString& name)
 : wxPanel( parent, id, pos, size, style, name )
 , pstreamIx( -1 )
 , pstreamP( NULL )
 , m_dc( NULL)
+, eventFlags(eventFlags_)
 {
   // initialization of stream is done in GDLWidgetDraw::OnRealize()
 }
-
+void GDLDrawPanel::SetEventFlags(DULong eventFlags_)
+{
+  eventFlags=eventFlags_;
+}
 void GDLDrawPanel::InitStream()
 {
   pstreamIx = GraphicsDevice::GetGUIDevice( )->WAdd( );
@@ -1366,8 +1513,10 @@ void GDLDrawPanel::InitStream()
 
 GDLDrawPanel::~GDLDrawPanel()
 {  
-  //   std::cout << "~GDLDrawPanel: " << this << std::endl;
-  //   std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+#ifdef GDL_DEBUG_WIDGETS
+     std::cout << "~GDLDrawPanel: " << this << std::endl;
+     std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
+#endif
   if ( pstreamP != NULL )
   pstreamP->SetValid( false );
   }

@@ -60,6 +60,28 @@ END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(GDLDrawPanel, wxPanel)
   EVT_PAINT(GDLDrawPanel::OnPaint)
+  EVT_MOTION (GDLDrawPanel::OnMouseMove)
+  EVT_LEFT_DOWN (GDLDrawPanel::OnMouseDown)
+  EVT_LEFT_UP (GDLDrawPanel::OnMouseUp)
+  EVT_LEFT_DCLICK(GDLDrawPanel::OnMouseDown)
+  EVT_MIDDLE_DOWN(GDLDrawPanel::OnMouseDown)
+  EVT_MIDDLE_UP(GDLDrawPanel::OnMouseUp)
+  EVT_MIDDLE_DCLICK(GDLDrawPanel::OnMouseDown)
+  EVT_RIGHT_DOWN(GDLDrawPanel::OnMouseDown)
+  EVT_RIGHT_UP(GDLDrawPanel::OnMouseUp)
+  EVT_RIGHT_DCLICK(GDLDrawPanel::OnMouseDown)
+  //EVT_MOUSE_AUX1_DOWN
+  //EVT_MOUSE_AUX1_UP
+  //EVT_MOUSE_AUX1_DCLICK
+  //EVT_MOUSE_AUX2_DOWN
+  //EVT_MOUSE_AUX2_UP
+  //EVT_MOUSE_AUX2_DCLICK
+  EVT_MOUSEWHEEL(GDLDrawPanel::OnMouseWheel)
+  EVT_KEY_DOWN(GDLDrawPanel::OnKey)
+  EVT_KEY_UP(GDLDrawPanel::OnKey)
+  EVT_CHAR(GDLDrawPanel::OnKey)
+//  EVT_ENTER_WINDOW( GDLDrawPanel::OnEnterWindow)
+//  EVT_LEAVE_WINDOW( GDLDrawPanel::OnLeaveWindow)
 //   EVT_SHOW(GDLWindow::OnShow)
 //   EVT_CLOSE(GDLWindow::OnClose)
 END_EVENT_TABLE()
@@ -67,12 +89,113 @@ END_EVENT_TABLE()
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
 
+void wxTextCtrl::OnChar(wxKeyEvent& event ) {
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+  //I cannot get cw_field to work if OnChar is not overwritten -- certainly there is a better way?
+  GDLWidget* txt = GDLWidget::GetWidget( event.GetId());
+  DStructGDL* widg;
+  bool report = txt->HasEventType( GDLWidget::ALL );
+  bool edit = this->IsEditable( );
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+  if ( !report ) {
+    if ( !edit ) {
+      event.Skip( );
+      return;
+    } else { //editable
+      if ( event.GetKeyCode( ) == WXK_RETURN ) { //only 
+      widg = new DStructGDL( "WIDGET_TEXT_CH" );
+      widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+      widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+      widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+      widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
+      widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint() ) );
+      widg->InitTag( "CH", DByteGDL( 10 ) );
+      GDLWidget::PushEvent( baseWidgetID, widg );
+      }
+      event.Skip( );
+      return;
+    }
+  } else { //report ALL (text) events, editable or not
+    int sign = 1;
+    long from, to;
+    this->GetSelection( &from, &to );
+    long oldpos = this->GetInsertionPoint( ), newpos;
+    switch ( event.GetKeyCode( ) ) {
+      case WXK_LEFT:
+        sign = -1;
+      case WXK_RIGHT:
+        newpos = oldpos + sign * 1;
+        if ( newpos >= 0 && newpos <= this->GetLastPosition( ) ) this->SetInsertionPoint( newpos );
+        widg = new DStructGDL( "WIDGET_TEXT_SEL" );
+        widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+        widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+        widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+        widg->InitTag( "TYPE", DIntGDL( 3 ) ); // selection
+        widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint( ) ) );
+        widg->InitTag( "LENGTH", DLongGDL( 0 ) );
+        GDLWidget::PushEvent( baseWidgetID, widg );
+        return;
+        break;
+      case WXK_BACK:
+        if ( oldpos > 0 ) {
+          widg = new DStructGDL( "WIDGET_TEXT_DEL" );
+          widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+          widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+          widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+          widg->InitTag( "TYPE", DIntGDL( 2 ) ); // selection
+          widg->InitTag( "OFFSET", DLongGDL( from - 1 ) );
+          widg->InitTag( "LENGTH", DLongGDL( to - from + 1 ) );
+          GDLWidget::PushEvent( baseWidgetID, widg );
+        }
+        if (edit) event.Skip( ); //do it!
+        return;
+        break;
+      case WXK_DELETE:
+        if ( oldpos <= this->GetLastPosition() ) {
+          widg = new DStructGDL( "WIDGET_TEXT_DEL" );
+          widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+          widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+          widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+          widg->InitTag( "TYPE", DIntGDL( 2 ) ); // selection
+          widg->InitTag( "OFFSET", DLongGDL( from ) );
+          widg->InitTag( "LENGTH", DLongGDL( to - from ) );
+          GDLWidget::PushEvent( baseWidgetID, widg );
+        }
+        if (edit) event.Skip( ); //do it!
+        return;
+        break;
+      case WXK_RETURN: //important, *DL returns CH=10 instead of 13 for <CR>
+        widg = new DStructGDL( "WIDGET_TEXT_CH" );
+        widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+        widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+        widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+        widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
+        widg->InitTag( "OFFSET", DLongGDL( from ) );
+        widg->InitTag( "CH", DByteGDL( 10 ) );
+        GDLWidget::PushEvent( baseWidgetID, widg );
+        return;
+        break;
+    }
+    if (edit) event.Skip( ); //else do it!
+  }
+
+  //else return a CHAR event for most keys (as *DL)
+    widg = new DStructGDL( "WIDGET_TEXT_CH" );
+    widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widg->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widg->InitTag( "TYPE", DIntGDL( 0 ) ); // single char
+    widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint( ) ) );
+    widg->InitTag( "CH", DByteGDL( event.GetKeyCode( ) ) );
+    GDLWidget::PushEvent( baseWidgetID, widg );
+}
 
 void GDLFrame::OnShowRequest( wxCommandEvent& event)
 {  
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnShowRequest: %d\n"),event.GetId());
 #endif
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
@@ -96,6 +219,7 @@ void GDLFrame::OnHideRequest( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnHideRequest: %d\n"),event.GetId());
 #endif
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
@@ -188,6 +312,7 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnCheckBox: %d\n"),event.GetId());
 #endif
+
   GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   bool selectValue = event.IsChecked();
@@ -196,6 +321,8 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   assert(widget->IsButton());
   static_cast<GDLWidgetButton*>(widget)->SetButton( selectValue);
+  
+  gdlMutexGuiEnterLeave.Leave();
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -308,15 +435,16 @@ void GDLFrame::OnText( wxCommandEvent& event)
       event.Skip();
       return; // happens on construction
     }
-    // isModified = textCtrl->IsModified();
     textCtrl->GetSelection( &selStart, &selEnd);
     offset = textCtrl->GetInsertionPoint();
     lastValue = static_cast<GDLWidgetText*>(widget)->GetLastValue();
     newValue = textCtrl->GetValue().mb_str();
     isModified = lastValue != newValue;
     static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
+//return without producing event struct if eventType is not set
+    if (!(widget->HasEventType( GDLWidget::ALL ))) return;
 
-    textCtrl->Refresh();
+//    textCtrl->Refresh();
   } 
   else if ( widget->IsComboBox()) 
   {
@@ -334,7 +462,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
     isModified = lastValue != newValue;
     static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
 
-    control->Refresh();
+//    control->Refresh();
   }
   else
   {
@@ -353,9 +481,11 @@ void GDLFrame::OnText( wxCommandEvent& event)
       static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
     }
 
-    control->Refresh();
+//    control->Refresh();
   }
 
+  gdlMutexGuiEnterLeave.Leave();
+  
   DStructGDL*  widg;
   if( !isModified)
   {
@@ -454,7 +584,7 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
     newValue = textCtrl->GetValue().mb_str();
     static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
 
-    textCtrl->Refresh();
+//    textCtrl->Refresh();
   }
   else if( widget->IsComboBox())
   {
@@ -464,7 +594,7 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
     newValue = control->GetStringSelection().mb_str();
     static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
 
-    control->Refresh();
+//    control->Refresh();
   }
   else
   {
@@ -476,8 +606,9 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
       static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
     }
 
-    control->Refresh();
+//    control->Refresh();
   }
+  gdlMutexGuiEnterLeave.Leave();
   
   // create GDL event struct
   DStructGDL*  widg;
@@ -537,6 +668,7 @@ void GDLFrame::OnScroll( wxScrollEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnScroll: %d\n"),event.GetId());
 #endif
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
@@ -582,6 +714,7 @@ void GDLFrame::OnThumbRelease( wxScrollEvent& event)
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputDebug().Printf(_T("in OnThumbRelease: %d\n"),event.GetId());
 #endif
+  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
@@ -598,7 +731,9 @@ void GDLFrame::OnThumbRelease( wxScrollEvent& event)
     GDLWidgetSlider* sl = static_cast<GDLWidgetSlider*>(widget);
 
     DLong newSelection = event.GetSelection();
+
     sl->SetValue( newSelection);
+
     // create GDL event struct
     DStructGDL*  widg;
     widg = new DStructGDL( "WIDGET_SLIDER");
@@ -633,15 +768,164 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 
 void GDLDrawPanel::OnShow(wxShowEvent& event)
 {
+//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   std::cout << "GDLWindow::OnShow: " << this << std::endl;
 }
 void GDLDrawPanel::OnClose(wxCloseEvent& event)
 {
+//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
   std::cout << "GDLWindow::OnClose: " << this << std::endl;
 }
 
+void GDLDrawPanel::OnEnterWindow( wxMouseEvent &event ) {
+//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+}
 
+void GDLDrawPanel::OnLeaveWindow( wxMouseEvent &event ) {
+//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+}
 
+void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {
+  
+  if ( this->eventFlags & GDLWidget::MOTION ) {
+//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+    DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
+    widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgdraw->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widgdraw->InitTag( "TYPE", DIntGDL( 2 ) ); //motion
+    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    GDLWidget::PushEvent( baseWidgetID, widgdraw );
+  } //normal end of event processing!
+}
+
+void GDLDrawPanel::OnMouseDown( wxMouseEvent &event ) {
+  if ( this->eventFlags & GDLWidget::BUTTON ) {
+//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+    DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
+    widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgdraw->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widgdraw->InitTag( "TYPE", DIntGDL( 0 ) ); //button Press
+    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    unsigned long btn=1<<(event.GetButton()-1);
+    widgdraw->InitTag( "PRESS", DByteGDL( btn ));
+    widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
+    widgdraw->InitTag( "CLICKS", DLongGDL( 1 ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "CH", DByteGDL( 0 ) );
+    widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
+    GDLWidget::PushEvent( baseWidgetID, widgdraw );
+  } //normal end of event processing!
+}
+void GDLDrawPanel::OnMouseUp( wxMouseEvent &event ) {
+  if ( this->eventFlags & GDLWidget::BUTTON ) {
+//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+    DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
+    widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgdraw->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widgdraw->InitTag( "TYPE", DIntGDL( 1 ) ); //button Release
+    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    unsigned long btn=1<<(event.GetButton()-1);
+    widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
+    widgdraw->InitTag( "RELEASE", DByteGDL( btn ) );
+    widgdraw->InitTag( "CLICKS", DLongGDL( 1 ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "CH", DByteGDL( 0 ) );
+    widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
+    GDLWidget::PushEvent( baseWidgetID, widgdraw );
+  } //normal end of event processing!
+}
+
+void GDLDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
+  if ( this->eventFlags & GDLWidget::WHEEL ) {
+//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+    DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
+    widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgdraw->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widgdraw->InitTag( "TYPE", DIntGDL( 7 ) ); //wheel event
+    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
+    widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
+    widgdraw->InitTag( "CLICKS", DLongGDL( event.GetWheelRotation() ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "CH", DByteGDL( 0 ) );
+    widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
+    GDLWidget::PushEvent( baseWidgetID, widgdraw );
+  }
+}
+
+void GDLDrawPanel::OnKey( wxKeyEvent &event ) {
+  int mode=1;
+  if ( this->eventFlags & GDLWidget::KEYBOARD || this->eventFlags & GDLWidget::KEYBOARD2 ) {
+    if (this->eventFlags & GDLWidget::KEYBOARD2) mode=2;
+//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+    DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
+    widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+    widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgdraw->InitTag( "HANDLER", DLongGDL( 0 ) );
+    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    widgdraw->InitTag( "CLICKS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "PRESS", DByteGDL( (event.GetEventType() == wxEVT_KEY_DOWN) ) );
+    widgdraw->InitTag( "RELEASE", DByteGDL( (event.GetEventType() == wxEVT_KEY_UP) ) );
+    
+    int start=0;
+    int keyc=event.GetKeyCode( );
+    //get key
+    switch ( keyc ) {
+      case WXK_NUMPAD_END: case WXK_END:
+        start++;
+      case WXK_NUMPAD_HOME: case WXK_HOME:
+        start++;
+      case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
+        start++;
+      case WXK_NUMPAD_PAGEUP: case WXK_PAGEUP:
+        start++;
+      case WXK_NUMPAD_DOWN:case WXK_DOWN:
+        start++;
+      case WXK_NUMPAD_UP:case WXK_UP:
+        start++;
+      case WXK_NUMPAD_RIGHT:case WXK_RIGHT:
+        start++;
+      case WXK_NUMPAD_LEFT:case WXK_LEFT:
+        start++;
+      case WXK_ALT:
+        start++;
+      case WXK_CAPITAL: //not sure OK!
+        start++;
+      case WXK_CONTROL:
+        start++;
+      case WXK_SHIFT:
+        start++;
+        if ( mode==2 || start > 4 ) {
+          widgdraw->InitTag( "TYPE", DIntGDL( 6 ) ); //special key
+          widgdraw->InitTag( "KEY", DLongGDL( start ) );
+          widgdraw->InitTag( "CH", DByteGDL( 0 ) );
+          widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers()) );
+          GDLWidget::PushEvent( baseWidgetID, widgdraw );
+        }
+        break;
+      default:
+        widgdraw->InitTag( "TYPE", DIntGDL( 5 ) ); //normal key
+        widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
+        widgdraw->InitTag( "CH", DByteGDL( event.GetRawKeyCode() & 0xFF ) );
+        widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers() ) );
+        GDLWidget::PushEvent( baseWidgetID, widgdraw );
+    }
+  }
+}
 
 #endif
 
