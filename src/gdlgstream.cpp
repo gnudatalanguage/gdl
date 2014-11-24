@@ -169,18 +169,20 @@ void GDLGStream::DefaultCharSize()
   DString name = (*static_cast<DStringGDL*>(
     SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
   ))[0];
-
-  if (name == "PS" || name=="SVG") schr( 3.5, 1.0);
+//values must be those that plplot think are good. Most of the time they are not.
+  if (name == "PS" || name=="SVG") schr( 2.5, 1.0);
   else 
 #if defined(_WIN32)
     schr(2.1, 1.4);  // from 1.5, 1.0 2014/09/18 //This is a feature of windows --- or of windows plplot -- to be confirmed.
 #else
-    schr(1.5, 1.0);
+    schr(1.5, 1.0); //is 6 pixels because plplot supposes 4ppm, which is not always true and never exact.
+    //Note that IDL 1) write strings of characters a bit wider than plplot and 2) also wider than one would suppose
+    //based on the value of !D.X_CH_SIZE and !D.Y_CH_SIZE
 #endif
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_CH_SIZE"), 0)))[0]=
-  theCurrentChar.dsx;
+  ceil(theCurrentChar.dsx);
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_CH_SIZE"), 0)))[0]=
-  theCurrentChar.dsy;
+  ceil(theCurrentChar.dsx)*10.0/6.0;
 }
 
 void GDLGStream::NextPlot( bool erase )
@@ -938,4 +940,44 @@ void GDLGStream::adv(PLINT page)
   if (page==0) {thePage.curPage++;} else {thePage.curPage=page;}
   if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
+}
+//get region (3BPP data)
+bool GDLGStream::GetRegion(DLong& x_gdl, DLong& y_gdl, DLong& nx_gdl, DLong& ny_gdl){
+    DByteGDL *bitmap = static_cast<DByteGDL*>(this->GetBitmapData());
+    if (bitmap==NULL)  return false; //need to GDLDelete bitmap on exit after this line.
+
+    bool error=false;
+    DLong nx=bitmap->Dim(0);
+    DLong ny=bitmap->Dim(1);
+    
+    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
+    long x_11=0;
+    long y_11=0;
+    xref=0;xval=0;xinc=1;
+    yref=0;yval=0;yinc=1;
+    
+    x_11=xval+(x_gdl-xref)*xinc;
+    y_11=yval+(y_gdl-yref)*yinc;
+    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
+    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
+    if (y_11 < 0 || y_11 > ny-1) error=true;
+    if (x_11 < 0 || x_11 > nx-1) error=true;
+    if (xmax11 < 0 || xmax11 > nx-1) error=true;
+    if (ymin11 < 0 || ymin11 > ny-1) error=true;
+    if (error) {  GDLDelete(bitmap); return false; }
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+    unsigned char* data=actDevice->SetCopyBuffer(nx_gdl*ny_gdl*3);  
+    for ( SizeT i =0; i < nx_gdl ; ++i ) {
+      for ( SizeT j = 0; j < ny_gdl ; ++j ) {
+       for ( SizeT k = 0 ; k < 3 ; ++k) data[3 * (j * nx_gdl + i) + k] = (*bitmap)[3 * ((j+y_11) * nx + (i+x_11)) + k]; 
+      }
+    }
+    GDLDelete(bitmap);
+    return true;
+}
+
+bool GDLGStream::SetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny){
+  DLong pos[4]={xs,nx,ys,ny};
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+  return this->PaintImage(actDevice->GetCopyBuffer(), nx, ny, pos, 1, 0);  
 }

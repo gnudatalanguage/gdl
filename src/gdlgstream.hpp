@@ -257,8 +257,11 @@ public:
   virtual void Clear()         {}
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
-  virtual bool HasImage(){return false;}
   virtual bool HasCrossHair() {return false;}
+  virtual void UnMapWindow() {}
+  virtual BaseGDL* GetBitmapData(){return NULL;}
+  bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
+  bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}
 
   virtual void CheckValid() {}
   void SetValid( bool v) { valid = v;}
@@ -274,7 +277,7 @@ public:
 	|| ((theBox.ny1==0) && (theBox.ny2==0))) return false; else return true;
   }
   inline PLFLT charScale(){return theCurrentChar.scale;}
-  inline PLFLT nCharLength(){return theCurrentChar.ndsx;}
+  inline PLFLT nCharWidth(){return theCurrentChar.ndsx;}
   inline PLFLT nCharHeight(){return theCurrentChar.ndsy;}
   inline PLFLT dCharLength(){return theCurrentChar.dsx;}
   inline PLFLT dCharHeight(){return theCurrentChar.dsy;}
@@ -738,20 +741,11 @@ public:
                                     theCurrentChar.wsx,theCurrentChar.wsy);
   }
   
-  void RenewPlplotDefaultCharsize(PLFLT newMmSize)
+  inline void RenewPlplotDefaultCharsize(PLFLT newMmSize)
   {
-    PLFLT oldsize=theDefaultChar.mmsy;
     plstream::schr(newMmSize, 1.0);
-    PLFLT fact=newMmSize/oldsize; 
-    PLFLT aspect=theDefaultChar.ndsx/theDefaultChar.ndsy; // width/height
-    theDefaultChar.mmsy=newMmSize;
-    theDefaultChar.mmsx=aspect*newMmSize; //since aspect do not change
-    theDefaultChar.ndsx*=(fact*aspect);
-    theDefaultChar.ndsy*=fact;
-    theDefaultChar.dsx*=(fact*aspect);
-    theDefaultChar.dsy*=fact;
-    gdlDefaultCharInitialized=1;
-    CurrentCharSize(1.0);
+    gdlDefaultCharInitialized=0;
+    GetPlplotDefaultCharSize();
   }
   
   void GetPlplotDefaultCharSize()
@@ -771,23 +765,24 @@ public:
       plstream::wind(0.0,1.0,0.0,1.0);
     }
     plstream::gvpw(wxmin, wxmax, wymin, wymax); //save world of current box
-    PLFLT vpXmin, vpXmax, vpYmin, vpYmax;
     PLFLT vpXmin2, vpXmax2, vpYmin2, vpYmax2;
     plstream::vpor(0, 1, 0, 1);
     plstream::wind(0.0,1.0,0.0,1.0);
-    plstream::gvpd(vpXmin, vpXmax, vpYmin, vpYmax);
+// plplot doc says "Defines a "standard" viewport with seven character heights for
+// the left margin and four character heights everywhere else."
+// but c_plvsta() code shows the sizes are 8 and 5 character heights instead!
     plstream::vsta();
     plstream::gvpd(vpXmin2, vpXmax2, vpYmin2, vpYmax2);
-    theDefaultChar.ndsx=0.5*((vpXmin2-vpXmin)/8.0+(vpXmax-vpXmax2)/5.0);
-    theDefaultChar.ndsy=0.5*((vpYmin2-vpYmin)/5.0+(vpYmax-vpYmax2)/5.0);
-    theDefaultChar.dsx=0.5*((vpXmin2-vpXmin)/8.0+(vpXmax-vpXmax2)/5.0)*thePage.length;
-    theDefaultChar.dsy=0.5*((vpYmin2-vpYmin)/5.0+(vpYmax-vpYmax2)/5.0)*thePage.height;
+    theDefaultChar.ndsx=vpXmin2/8.0;
+    theDefaultChar.ndsy=(vpYmin2+1-vpYmax2)/10.0; //5+5 char heights
+    theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
+    theDefaultChar.dsx=theDefaultChar.ndsx*thePage.length;
     plstream::vpor(nxmin, nxmax, nymin, nymax); //restore norm of current box
     plstream::wind(wxmin, wxmax, wymin, wymax); //restore world of current box
     PLFLT defhmm, scalhmm;
     plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-    theDefaultChar.mmsy=scalhmm;
-    theDefaultChar.mmsx=theDefaultChar.ndsx/theDefaultChar.ndsy*scalhmm;
+    theDefaultChar.mmsx=scalhmm;
+    theDefaultChar.mmsy=theDefaultChar.dsy/theDefaultChar.dsx*scalhmm;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(mm)\n",theDefaultChar.mmsx,theDefaultChar.mmsy);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(norm)\n",theDefaultChar.ndsx,theDefaultChar.ndsy);
     gdlDefaultCharInitialized=1;
@@ -806,20 +801,6 @@ public:
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
   void ssub( PLINT nx, PLINT ny);
   void adv(PLINT page);
-  void gpage(PLFLT& xp, PLFLT& yp, PLINT& xleng, PLINT& yleng,
-                PLINT& xoff, PLINT& yoff)
-  {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"gpage() [%f,%f]\n",xp,yp);
-    if(updatePageInfo()==true)
-    {
-        xp=thePage.xdpmm/MMToINCH;
-        yp=thePage.ydpmm/MMToINCH;
-        xleng=(PLINT)thePage.length;
-        yleng=(PLINT)thePage.height;
-        xoff=(PLINT)thePage.plxoff;
-        yoff=(PLINT)thePage.plyoff;
-    }
-  }
 
   inline void syncPageInfo()
   {
