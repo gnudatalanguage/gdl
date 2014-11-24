@@ -38,7 +38,7 @@
 
 pro tidyManagedCommon
 common managed_by_gdl, ids, names
-if (not keyword_set(ids)) then begin ids=0 & names = 0 & endif
+if (n_elements(ids) eq 0) then begin ids=0 & names=0 & endif
 if (ids[0] eq 0) then return
 keep=where(widget_info(ids,/managed),count)
 if ( count gt 0 ) then begin
@@ -74,17 +74,15 @@ endelse
 if keyword_set(groupLeader) then begin
    widget_control, id, GROUP_LEADER=groupLeader
 endif
-; dummy function at the moment -- even KILL_NOTIFY is not implemented
+; cleanup is implemented now
 if n_elements(cleanup) then begin
    widget_control, id, KILL_NOTIFY=Cleanup
 endif
 
 if keyword_set(noBlock) then begin
-
    widget_control, /XMANAGER_ACTIVE_COMMAND, id
 endif else begin
-
-   tmp = widget_event(/XMANAGER_BLOCK)
+   tmp = widget_event(/XMANAGER_BLOCK) ; will block until TLB widget is closed
 endelse
 
 end

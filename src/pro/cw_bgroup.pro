@@ -79,7 +79,7 @@ function CW_BGROUP_GETV,id
      message,"CW_BGROUP: Unable to get plain button group value."
   endif
   if state.exclusiveMode eq 1 then begin
-     return,state.rArray[state.lastButtonIx]
+     return,state.rArray[state.lastButton]
   endif
   return,state.buttonState
 end
