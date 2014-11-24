@@ -223,7 +223,7 @@ namespace lib {
       // Despite Type is NOT useful without a a.read(), it is OK for Palette !
       // This should be reliable (OK with ImageMagick AND GraphicsMagick)
       DInt has_palette=0;
-      if (a.type() == 4 | a.type() == 5) has_palette=1;
+      if (a.type() == PaletteType | a.type() == PaletteMatteType) has_palette=1;
 
       // TODO: 
       // - JP2->JPEG2000 ?      
