@@ -842,32 +842,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
       cout << "RNEW not implemented yet." << endl;
       return CC_OK;
     }
-  if( cmd( "SIZE"))
-    {
-      cout << "SIZE not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "SKIP"))
-    {
-      DLong sCount;
-      if( args == "")
-      {
-	  sCount = 1;
-      }
-      else
-      {
-	const char* cStart=args.c_str();
-	char* cEnd;
-	sCount = strtol(cStart,&cEnd,10);
-	if( cEnd == cStart)
-	{
-	  cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-	  return CC_OK;
-	}
-      }
-      stepCount = sCount;
-      return CC_SKIP;
-    }
+  // GD:Here to have ".s" giving ".step"
   if( cmd( "STEP"))
     {
       DLong sCount;
@@ -890,9 +865,36 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 	debugMode = DEBUG_STEP;
 	return CC_STEP;
     }
+
+  if( cmd( "SKIP"))
+    {
+      DLong sCount;
+      if( args == "")
+      {
+	  sCount = 1;
+      }
+      else
+      {
+	const char* cStart=args.c_str();
+	char* cEnd;
+	sCount = strtol(cStart,&cEnd,10);
+	if( cEnd == cStart)
+	{
+	  cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+	  return CC_OK;
+	}
+      }
+      stepCount = sCount;
+      return CC_SKIP;
+    }
   if( cmd( "STEPOVER"))
     {
       cout << "STEPOVER not implemented yet." << endl;
+      return CC_OK;
+    }
+  if( cmd( "SIZE"))
+    {
+      cout << "SIZE not implemented yet." << endl;
       return CC_OK;
     }
   if( cmd( "TRACE"))
@@ -949,7 +951,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
-  //  cout << "ExecuteLine: " << line << endl;
+  // cout << "ExecuteLine: " << line << endl;
 
   string firstChar = line.substr(0,1);
 
