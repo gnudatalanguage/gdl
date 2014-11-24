@@ -146,6 +146,16 @@ class DevicePS: public GraphicsDevice
         actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
 
     }
+    PLFLT xp, yp;
+    PLINT xleng, yleng, xoff, yoff;
+    actStream->gpage(xp, yp, xleng, yleng, xoff, yoff);
+    // to mimic IDL we must scale char so that the A4 charsize is constant whatever the size of the plot
+    PLFLT size = (XPageSize>YPageSize)?XPageSize:YPageSize;
+    PLFLT refsize= (xleng/xp>yleng/yp)?xleng/xp:yleng/yp;
+    PLFLT scale=(refsize*in2cm)/size;
+    PLFLT defhmm, scalhmm;
+    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+    actStream->RenewPlplotDefaultCharsize(defhmm * scale);
   }
     
 private:
