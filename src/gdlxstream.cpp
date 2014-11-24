@@ -298,6 +298,14 @@ void GDLXStream::DeIconic() {
   XMapWindow(dev->xwd->display, dev->window);
 }
 
+void GDLXStream::UnMapWindow() {
+  //Used for /PIXMAP windows: 1) insure write_to_pixmap and not write_to_window, and 2) hide the window.
+  XwDev *dev = (XwDev *) pls->dev;
+  dev->write_to_pixmap=TRUE;
+  dev->write_to_window=FALSE;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XWithdrawWindow(xwd->display, dev->window, xwd->screen);
+}
 void GDLXStream::Flush() {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
@@ -636,31 +644,23 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   PLINT ix, iy;
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  XImage *ximg = NULL, *ximg_pixmap = NULL;
+  XImage *ximg = NULL;
 
   int x, y;
+  XFlush(xwd->display);
 
   int (*oldErrorHandler)(Display*, XErrorEvent*);
-
   oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
-
-  XFlush(xwd->display);
-  
   if (dev->write_to_pixmap) {
     ximg = XGetImage(xwd->display, dev->pixmap, 0, 0,
             dev->width, dev->height,
             AllPlanes, ZPixmap);
-    ximg_pixmap = ximg;
-  }
-
-  if (dev->write_to_window)
+  } else {
     ximg = XGetImage(xwd->display, dev->window, 0, 0,
           dev->width, dev->height,
           AllPlanes, ZPixmap);
-
-  XSetErrorHandler(oldErrorHandler);
-
-  if (ximg == NULL) {
+  }
+  if (ximg == NULL) { //last chance!!!
     XSync(xwd->display, 0);
     x = 0;
     y = 0;
@@ -668,11 +668,13 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
       XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc,
               x, y, dev->width, dev->height, x, y);
       XSync(xwd->display, 0);
-      ximg = ximg_pixmap;
     }
   }
-
-
+  XSetErrorHandler(oldErrorHandler);
+  if (ximg == NULL) {
+    cerr<<"Unhandled unsuccessful XCopyArea, returning."<<endl; 
+    return false; 
+  }
   int ncolors;
   PLINT iclr1, ired, igrn, iblu;
   if (trueColorOrder == 0 && chan == 0) {
@@ -768,6 +770,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 
       //std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
       // TODO check if XPutPixel() and XGetPixel() are thread save
+      // do not forget to invert Y:
       if (ky < dev->height && kx < dev->width)
         XPutPixel(ximg, kx, dev->height - 1 - ky, curcolor.pixel);
     }
@@ -782,15 +785,55 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
           0, 0, dev->width, dev->height);
 
-  if (ximg != ximg_pixmap) {
-    XDestroyImage(ximg);
-    XDestroyImage(ximg_pixmap);
-  } else {
-    XDestroyImage(ximg);
-  }
+  XDestroyImage(ximg);
   return true;
 }
 #undef ToXColor
+//Read X11 bitmapdata -- normally on 4BPP=Allplanes, return 3BPP ignoring Alpha plane.
+DByteGDL* GDLXStream::GetBitmapData() {
+  plstream::cmd( PLESC_FLUSH, NULL );
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+  
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XImage *ximg = NULL;
+  XWindowAttributes win_attr;
 
+  /* query the window's attributes. */
+  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
+  unsigned int nx = win_attr.width;
+  unsigned int ny = win_attr.height;
+
+    int (*oldErrorHandler)(Display*, XErrorEvent*);
+    oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
+    if (dev->write_to_pixmap) {
+      ximg = XGetImage(xwd->display, dev->pixmap, 0, 0, nx, ny, AllPlanes, ZPixmap);
+    } else {
+      ximg = XGetImage( xwd->display, dev->window, 0, 0, nx, ny, AllPlanes, ZPixmap);
+    }
+    XSetErrorHandler(oldErrorHandler);
+    
+    if (ximg == NULL) return NULL;
+    if (ximg->bits_per_pixel != 32) return NULL;
+
+    SizeT datadims[3];
+    datadims[0] = nx;
+    datadims[1] = ny;
+    datadims[2] = 3;
+    dimension datadim(datadims, (SizeT) 3);
+    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
+    //PADDING is 4BPP -- we take 3BPP and revert Y to respect IDL default
+    SizeT kpad = 0;
+    for ( SizeT iy =0; iy < ny ; ++iy ) {
+      for ( SizeT ix = 0; ix < nx; ++ix ) {
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] = ximg->data[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] = ximg->data[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] = ximg->data[kpad++];
+        kpad++; //pad to 4
+      }
+    }
+    XDestroyImage(ximg);
+    return bitmap;
+}
 
 #endif
