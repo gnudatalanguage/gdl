@@ -49,7 +49,7 @@ class DeviceZ: public GraphicsDevice
 
   char*  memBuffer;
   DInt*  zBuffer;
-
+  
   void SetZBuffer( DLong x, DLong y)
   {
     delete[] zBuffer;
@@ -235,148 +235,7 @@ public:
       memBuffer[i] = bColor;
   }
 
-  DLong GetPixelDepth() { return 24;}
-  
-#define PAD 3
-  BaseGDL* TVRD( EnvT* e)
-  {
-    DLong xMaxSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
-    DLong yMaxSize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
-
-    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
-    DLong orderVal=SysVar::TV_ORDER();
-    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
-    SizeT dims[3];
-    
-    DByteGDL* res;
-
-    DLong tru=0;
-    e->AssureLongScalarKWIfPresent( "TRUE", tru);
-    if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
-
-    DLong channel=-1;
-
-    unsigned int x_gdl=0;
-    unsigned int y_gdl=0;
-    unsigned int nx_gdl=xMaxSize;
-    unsigned int ny_gdl=yMaxSize;
-
-    bool error=false;
-    bool hasXsize=false;
-    bool hasYsize=false;
-    int nParam = e->NParam();
-    if (nParam >= 4) {
-      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
-      ny_gdl=(*Ny)[0];
-      hasYsize=true;
-    }
-    if (nParam >= 3) {
-      DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
-      nx_gdl=(*Nx)[0];
-      hasXsize=true;
-    }
-    if (nParam >= 2) {
-      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
-      y_gdl=(*y0)[0];
-    }
-    if (nParam >= 1) {
-      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
-      x_gdl=(*x0)[0];
-    }
-    if (nParam == 5) {
-      DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
-      channel=(*ChannelGdl)[0]; 
-    }
-    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
-    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
-
-    bool debug=false;
-    if (debug) {
-      cout << x_gdl <<" "<< y_gdl <<" "<< nx_gdl <<" "<< ny_gdl <<" "<< channel <<endl;
-    }
-    if (!(hasXsize))nx_gdl-=x_gdl; 
-    if (!(hasYsize))ny_gdl-=y_gdl;
-    
-    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
-    int x_11=0;
-    int y_11=0;
-    xref=0;xval=0;xinc=1;
-    yref=yMaxSize-1;yval=0;yinc=-1;
-    
-    x_11=xval+(x_gdl-xref)*xinc;
-    y_11=yval+(y_gdl-yref)*yinc;
-    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
-    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
-    if (debug) {
-      cout <<"["<< x_11 <<","<< xmax11 <<"],["<< ymin11 <<","<< y_11 <<"]"<<endl;
-    }   
-    if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
-    if (x_11 < 0 || x_11 > xMaxSize-1) error=true;
-    if (xmax11 < 0 || xmax11 > xMaxSize-1) error=true;
-    if (ymin11 < 0 || ymin11 > yMaxSize-1) error=true;
-    if (error) e->Throw("Value of Area is out of allowed range.");
-
-    if (tru == 0) {
-      dims[0] = nx_gdl;
-      dims[1] = ny_gdl;
-      dimension dim(dims, (SizeT) 2);
-      res = new DByteGDL( dim, BaseGDL::ZERO);
-
-      if (memBuffer == NULL) return res;
-
-      if (channel <= 0) { //channel not given, return max of the 3 channels
-	DByte mx, mx1;
-	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-	  mx = (DByte) memBuffer[PAD * i];
-	  mx1 = (DByte) memBuffer[PAD * i + 1];
-	  if (mx1 > mx) mx = mx1;
-	  mx1 = (DByte) memBuffer[PAD * i + 2];
-	  if (mx1 > mx) mx = mx1;
-	  (*res)[i] = mx;
-	}
-      } else {
-	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-	  (*res)[i] = memBuffer[PAD * i + channel]; //0=R,1:G,2:B,3
-	}
-      }
-      // Reflect about y-axis
-      if (orderVal == 0) res->Reverse(1);
-      return res;
-
-    } else {
-      dims[0] = 3;
-      dims[1] = nx_gdl;
-      dims[2] = ny_gdl;
-      dimension dim(dims, (SizeT) 3);
-      res = new DByteGDL(dim, BaseGDL::NOZERO);
-      if (memBuffer == NULL) return res; //new DByteGDL(dim, BaseGDL::ZERO);
-      //normally this is sufficient...
-      memcpy(&(*res)[0],memBuffer,dims[0]* dims[1] * dims[2] * sizeof(unsigned char));
-      //unless you want to parallellize the following:
-      //for (SizeT i = 0; i < dims[0]* dims[1] * dims[2]; ++i)  (*res)[i] = memBuffer[i]; 
-
-      // Reflect about y-axis
-      if (orderVal == 0) res->Reverse(2);
-
-      DUInt* perm = new DUInt[3];
-      if (tru == 1) {
-	return res;
-      } else if (tru == 2) {
-	perm[0] = 1;
-	perm[1] = 0;
-	perm[2] = 2;
-	return res->Transpose(perm);
-      } else if (tru == 3) {
-	perm[0] = 1;
-	perm[1] = 2;
-	perm[2] = 0;
-	return res->Transpose(perm);
-      }
-    }
-    assert( false);
-    return NULL;
-  }
-#undef PAD
+  DLong GetPixelDepth() { return 24;}  
 };
 
 #endif

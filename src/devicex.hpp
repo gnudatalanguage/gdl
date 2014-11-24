@@ -157,11 +157,16 @@ public:
   DeviceX(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1), cursorId(XC_crosshair), gcFunction(3), backingStoreMode(0)
   {
     name = "X";
-
     DLongGDL origin( dimension( 2));
     DLongGDL zoom( dimension( 2));
     zoom[0] = 1;
     zoom[1] = 1;
+    Display* display = XOpenDisplay(NULL);
+    if (display != NULL) {
+        int Depth;
+        Depth=DefaultDepth(display, DefaultScreen(display));      
+        decomposed = (Depth >= 15 ? true : false);
+    }
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
@@ -173,9 +178,9 @@ public:
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 9)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 40.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 40.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
+    dStruct->InitTag("N_COLORS",   DLongGDL( (decomposed==1)?256*256*256:256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( ctSize)); 
-    dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
+    dStruct->InitTag("FILL_DIST",  DLongGDL( 1)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
     dStruct->InitTag("FLAGS",      DLongGDL( 328124)); 
@@ -292,12 +297,21 @@ public:
     winList[ wIx]->DefaultCharSize();
     //in case these are not initalized, here is a good place to do it.
     if (winList[ wIx]->updatePageInfo()==true)
-      {
-        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-      }
+    {
+      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+    }    
+    //see wxDriver code -it redefines x and y dpi according to the size of the page.
+    //to insure a x (mm) charsize in height, similar in shape to what X11 does with its 4dpm (250mu pitch)
+    //we need to rescale the default value 
+    PLFLT defhmm, scalhmm;
+    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+    PLFLT xp, yp;
+    PLINT xleng, yleng, xoff, yoff;
+    winList[ wIx]->gpage(xp, yp, xleng, yleng, xoff, yoff);
+    PLFLT newsize=(defhmm*4)/(yp/25.4);
+    winList[ wIx]->RenewPlplotDefaultCharsize(newsize);
     // sets actWin and updates !D
-         SetActWin( wIx);
+    SetActWin( wIx);
 
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   } // GUIOpen
@@ -392,7 +406,8 @@ public:
     winList[ wIx]->SETOPT( "plwindow", buf);
 
     // we use our own window handling
-    winList[ wIx]->SETOPT( "drvopt","usepth=1");
+    winList[ wIx]->SETOPT( "drvopt","usepth=0");
+// to be tested further    winList[ wIx]->SETOPT( "drvopt","usepth=1");
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
@@ -413,10 +428,9 @@ public:
     winList[ wIx]->DefaultCharSize();
     //in case these are not initalized, here is a good place to do it.
     if (winList[ wIx]->updatePageInfo()==true)
-      {
-        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-      }
+    {
+      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+    }
     // sets actWin and updates !D
     SetActWin( wIx);
 
@@ -700,206 +714,31 @@ public:
     return true;
   }
 
+  bool Hide() //used as a substitute for /PIXMAP in DEVICE
+  { 
+    TidyWindowsList();
+    winList[ actWin]->UnMapWindow();
+    return true;
+  }
+
+  bool CopyRegion(DLongGDL* me) 
+  {
+    TidyWindowsList();
+    DLong xs,ys,nx,ny,xd,yd;
+    DLong source;
+    xs=(*me)[0];
+    ys=(*me)[1];
+    nx=(*me)[2];
+    ny=(*me)[3];
+    xd=(*me)[4];
+    yd=(*me)[5];
+    if (me->N_Elements() == 7) source=(*me)[6]; else source=actWin;
+    if (!winList[ source]->GetRegion(xs,ys,nx,ny)) return false;
+    return winList[ actWin ]->SetRegion(xd,yd,nx,ny);
+  }
+  
   int MaxWin() { TidyWindowsList(); return winList.size();}
   int ActWin() { TidyWindowsList(); return actWin;}
-
-  BaseGDL* TVRD( EnvT* e)
-  {
-    // AC 17 march 2012: needed to catch the rigth current window (wset ...)
-    DLong wIx = -1;
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    wIx = actDevice->ActWin();
-    bool success = actDevice->WSet( wIx);
-    int debug=0;
-    if (debug) cout << "wIx :" << wIx << " " << success << endl;
-
-    //everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
-    //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
-    //as soon as part of the window is obscured.
-    int (*oldErrorHandler)(Display*, XErrorEvent*);
-    PLStream* plsShouldNotBeUsed;
-    plgpls( &plsShouldNotBeUsed);
-    XwDev *dev = (XwDev *) plsShouldNotBeUsed->dev;
-    if( dev == NULL || dev->xwd == NULL)
-      {
-	GDLGStream* newStream = actDevice->GetStream();
-	//already done: newStream->Init();
-	plgpls( &plsShouldNotBeUsed);
-	dev = (XwDev *) plsShouldNotBeUsed->dev;
-	if( dev == NULL) e->Throw( "Device not open.");
-      }
-
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XImage *ximg = NULL;
-
-    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
-    DLong orderVal=SysVar::TV_ORDER();
-    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
-    
-    /* this variable will contain the attributes of the window. */
-    XWindowAttributes win_attr;
-
-    /* query the window's attributes. */
-    Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
-    unsigned int xMaxSize = win_attr.width;
-    unsigned int yMaxSize = win_attr.height;
-
-    SizeT dims[3];
-    
-    DByteGDL* res;
-
-    DLong tru=0;
-    e->AssureLongScalarKWIfPresent( "TRUE", tru);
-    if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
-
-    DLong channel=-1;
-
-    unsigned int x_gdl=0;
-    unsigned int y_gdl=0;
-    unsigned int nx_gdl=xMaxSize;
-    unsigned int ny_gdl=yMaxSize;
-
-    bool error=false;
-    bool hasXsize=false;
-    bool hasYsize=false;
-    int nParam = e->NParam();
-    if (nParam >= 4) {
-      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
-      ny_gdl=(*Ny)[0];
-      hasYsize=true;
-    }
-    if (nParam >= 3) {
-      DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
-      nx_gdl=(*Nx)[0];
-      hasXsize=true;
-    }
-    if (nParam >= 2) {
-      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
-      y_gdl=(*y0)[0];
-    }
-    if (nParam >= 1) {
-      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
-      x_gdl=(*x0)[0];
-    }
-    if (nParam == 5) {
-      DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
-      channel=(*ChannelGdl)[0]; 
-    }
-    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
-    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
-
-    if (debug) {
-      cout << x_gdl <<" "<< y_gdl <<" "<< nx_gdl <<" "<< ny_gdl <<" "<< channel <<endl;
-    }
-    if (!(hasXsize))nx_gdl-=x_gdl; 
-    if (!(hasYsize))ny_gdl-=y_gdl;
-    
-    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
-    int x_11=0;
-    int y_11=0;
-    xref=0;xval=0;xinc=1;
-    yref=yMaxSize-1;yval=0;yinc=-1;
-    
-    x_11=xval+(x_gdl-xref)*xinc;
-    y_11=yval+(y_gdl-yref)*yinc;
-    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
-    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
-    if (debug) {
-      cout <<"["<< x_11 <<","<< xmax11 <<"],["<< ymin11 <<","<< y_11 <<"]"<<endl;
-    }   
-    if (y_11 < 0 || y_11 > yMaxSize-1) error=true;
-    if (x_11 < 0 || x_11 > xMaxSize-1) error=true;
-    if (xmax11 < 0 || xmax11 > xMaxSize-1) error=true;
-    if (ymin11 < 0 || ymin11 > yMaxSize-1) error=true;
-    if (error) e->Throw("Value of Area is out of allowed range.");
-
-    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
-    ximg = XGetImage( xwd->display, dev->window, (int) x_11, (int) ymin11,
-		      nx_gdl, ny_gdl, AllPlanes, ZPixmap);
-    XSetErrorHandler(oldErrorHandler);
-#define PAD 4
-    //   printf("\t width = %d\n", ximg->width);
-    //   printf("\t height = %d\n", ximg->height);
-    //   printf("\t xoffset = %d\n", ximg->xoffset);
-    //   printf("\t byte_order = %d\n", ximg->byte_order);
-    //   printf("\t bitmap_unit = %d\n", ximg->bitmap_unit);
-    //   printf("\t bitmap_bit_order = %d\n", ximg->bitmap_bit_order);
-    //   printf("\t bitmap_pad = %d\n", ximg->bitmap_pad);
-    //   printf("\t depth = %d\n", ximg->depth);
-    //   printf("\t bits_per_pixel = %d\n", ximg->bits_per_pixel);
-    //   printf("\t bytes_per_line = %d\n", ximg->bytes_per_line);
-    //   printf("\t red_mask = %x\n", ximg->red_mask);
-    //   printf("\t green_mask = %x\n", ximg->green_mask);
-    //   printf("\t blue_mask = %x\n", ximg->blue_mask);
-
-    if (ximg->bits_per_pixel != 32) 
-      e->Throw("Sorry, Display of bits_per_pixel different from 32 are unsupported (FIXME).");
-
-    if (tru == 0) {
-      dims[0] = nx_gdl;
-      dims[1] = ny_gdl;
-      dimension dim(dims, (SizeT) 2);
-      res = new DByteGDL( dim, BaseGDL::ZERO);
-
-      if (ximg == NULL) return res;
-
-      if (channel <= 0) { //channel not given, return max of the 3 channels
-	DByte mx, mx1;
-	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-	  mx = (DByte) ximg->data[PAD * i];
-	  mx1 = (DByte) ximg->data[PAD * i + 1];
-	  if (mx1 > mx) mx = mx1;
-	  mx1 = (DByte) ximg->data[PAD * i + 2];
-	  if (mx1 > mx) mx = mx1;
-	  (*res)[i] = mx;
-	}
-      } else {
-	for (SizeT i = 0; i < dims[0] * dims[1]; ++i) {
-	  (*res)[i] = ximg->data[PAD * i + channel]; //0=R,1:G,2:B,3:Alpha
-	}
-      }
-      XDestroyImage(ximg);
-      // Reflect about y-axis
-      if (orderVal == 0) res->Reverse(1);
-      return res;
-
-    } else {
-      dims[0] = 3;
-      dims[1] = nx_gdl;
-      dims[2] = ny_gdl;
-      dimension dim(dims, (SizeT) 3);
-      res = new DByteGDL(dim, BaseGDL::NOZERO);
-      if (ximg == NULL) return res;
-
-      for (SizeT i = 0, kpad=0; i < dims[1] * dims[2]; ++i)
-        {
-	  for(SizeT j=0; j<3; ++j) (*res)[(i+1)*3-(j+1)] = ximg->data[kpad++];
-	  kpad++;
-        } 
-
-      XDestroyImage(ximg);
-      // Reflect about y-axis
-      if (orderVal == 0) res->Reverse(2);
-
-      DUInt* perm = new DUInt[3];
-      if (tru == 1) {
-	return res;
-      } else if (tru == 2) {
-	perm[0] = 1;
-	perm[1] = 0;
-	perm[2] = 2;
-	return res->Transpose(perm);
-      } else if (tru == 3) {
-	perm[0] = 1;
-	perm[1] = 2;
-	perm[2] = 0;
-	return res->Transpose(perm);
-      }
-    }
-    assert( false);
-    return NULL;
-#undef PAD 
-  }
 
   /*------------------------------------------------------------------------*\
    * GetImageErrorHandler()
