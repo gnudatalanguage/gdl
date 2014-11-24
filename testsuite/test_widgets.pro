@@ -5,8 +5,15 @@
 pro exit_gui,ev
   widget_control,ev.top,/DESTROY
 end
+pro cleanup, id
+  widget_control,id,/DESTROY
+end
+pro toto, id
+  print,"event in",id
+end
 
 pro handle_Event,ev
+common mycount,count
 help,ev,/str
   widget_control,ev.id,get_uvalue=uv 
   widget_control,ev.top,get_uvalue=topuv
@@ -32,7 +39,10 @@ help,ev,/str
   endif
 end
 
-pro test_widgets,table,help=help,nocanvas=nocanvas
+pro test_widgets,table,help=help,nocanvas=nocanvas,block=block
+common mycount,count
+count=0
+if ~keyword_set(block) then block=0
 if keyword_set(help) then begin
 print,"useage: test_widgets[,table][,/help]"
 print,"Will display some examples of currently available widgets"
@@ -44,7 +54,7 @@ endif
 
 ev = {vEv,type:'',pos:[0,0]}
 ;Create a base widget. 
-base = WIDGET_BASE(/COL,MBAR=mbar,title="gdl widget examples") 
+base = WIDGET_BASE(COL=4,MBAR=mbar,title="gdl widget examples",event_pro=toto);,kill_notify="cleanup") 
  
 menu = widget_button(mbar,VALUE="Menu")
 ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui")
@@ -83,8 +93,8 @@ tab5 = widget_base( tab, TITLE="now!",/COL)
 ;tab6 = widget_base( tab, TITLE="...",/COL)
  
 ;TAB1: Attach 256 x 256 draw widgets. 
-if ~keyword_set(nocanvas) then draw = WIDGET_DRAW(tab1, XSIZE = 1512, YSIZE = 1512,x_scroll_size=256,y_scroll_size=256) 
-if ~keyword_set(nocanvas) then draw2 = WIDGET_DRAW(tab1, xoff=100, yoff=100, xsize=256,ysize=256) 
+if ~keyword_set(nocanvas) then draw = WIDGET_DRAW(tab1, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256) 
+if ~keyword_set(nocanvas) then draw2 = WIDGET_DRAW(tab1, xoff=100, yoff=100, xsize=256,ysize=256,/button_events,keyboard_events=1) 
 
 
 ; TAB2: 
@@ -195,6 +205,7 @@ WIDGET_CONTROL, /REALIZE, base
  
 ;Obtain the window index. 
 if ~keyword_set(nocanvas) then begin
+print,"Draw widgets:",draw,draw2
  WIDGET_CONTROL, draw, GET_VALUE = index 
   WIDGET_CONTROL, draw2, GET_VALUE = index2 
 
@@ -211,5 +222,5 @@ if ~keyword_set(nocanvas) then begin
  contour,cos(dist(100,100)/10.)
 
 end
-xmanager,"handle",base,/NO_BLOCK
+xmanager,"handle",base,cleanup="cleanup",no_block=~block
 end
