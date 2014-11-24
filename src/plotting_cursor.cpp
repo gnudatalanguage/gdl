@@ -91,7 +91,9 @@ void tvcrs( EnvT* e)
       tempx= sx[0] +odata.u * sx[1];
       tempy= sy[0] +odata.v * sy[1]; //normed values
       actStream->NormedDeviceToDevice(tempx,tempy,ix,iy);
-      actStream->WarpPointer(ix,iy);
+      DLong iix=ix;
+      DLong iiy=iy;
+      actStream->WarpPointer(iix,iiy);
       actStream->Flush();
       actStream->UnsetFocus();
       return;
@@ -113,7 +115,9 @@ void tvcrs( EnvT* e)
     ix=(*x)[0];
     iy=(*y)[0];
   }
-  actStream->WarpPointer(ix,iy);
+  DLong iix=ix;
+  DLong iiy=iy;
+  actStream->WarpPointer(iix,iiy);
   actStream->Flush();
   actStream->UnsetFocus();
 
@@ -173,9 +177,6 @@ void cursor(EnvT* e){
   if (e->KeywordSet("WAIT")) wait=WAIT;
   if (e->KeywordSet("DOWN")) wait=DOWN;
   if (e->KeywordSet("UP")) wait=UP;
-  PLFLT xp, yp;
-  PLINT xleng, yleng, xoff, yoff;
-  actStream->gpage(xp, yp, xleng, yleng, xoff, yoff);
   if(actStream->GetGin(&gin, wait)==false) return;
   // outside window report -1 -1 at least for DEVICE values
   if (gin.pX < 0 || gin.pX > actStream->xPageSize() || gin.pY < 0 || gin.pY > actStream->yPageSize())
