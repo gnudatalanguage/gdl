@@ -85,9 +85,8 @@ public:
     bool CursorStandard(int cursorNumber);
     DLong GetVisualDepth();
     DString GetVisualName();
-    bool HasImage(){return true;}
-    BaseGDL* GetImage( EnvT* e);
     bool GetScreenResolution(double& resx, double& resy);
+    DByteGDL* GetBitmapData();
 };
 
 

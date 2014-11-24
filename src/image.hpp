@@ -26,6 +26,7 @@ namespace lib {
 
   void loadct( EnvT* e);
   BaseGDL* tvrd( EnvT* e);
+  BaseGDL* GetImage( EnvT* e);
 
 } // namespace
 

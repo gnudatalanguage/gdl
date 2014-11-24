@@ -122,3 +122,20 @@ DLong trueColorOrder, DLong chan ) {
   }
   return true;
 }
+DByteGDL* GDLZStream::GetBitmapData() {
+    plstream::cmd( PLESC_FLUSH, NULL );
+    unsigned char *mem = (unsigned char *) pls->dev;
+    if (mem == NULL) return NULL;
+    PLINT nx = pls->phyxma;
+    PLINT ny = pls->phyyma;
+
+    SizeT datadims[3];
+    datadims[0] = nx;
+    datadims[1] = ny;
+    datadims[2] = 3;
+    dimension datadim(datadims, (SizeT) 3);
+    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
+//Z buffer is in order=0 by default, no need to revert Y.    
+    memcpy(&(*bitmap)[0],mem,datadims[0] * datadims[1] * datadims[2] * sizeof(unsigned char));
+    return bitmap;
+}
