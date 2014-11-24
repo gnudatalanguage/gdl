@@ -464,44 +464,6 @@ namespace lib
   }
 
 
-  void CheckMargin3d(EnvT* e, GDLGStream* actStream,
-                   PLFLT& xMR,
-                   PLFLT& xML,
-                   PLFLT& yMB,
-                   PLFLT& yMT)
-  {
-    // [XY]MARGIN
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-//    PLFLT scl=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
-    PLFLT scl=actStream->nCharLength(); //current char length
-    xML=xMarginL*scl; //margin as percentage of subpage
-    xMR=xMarginR*scl;
-    cout<<scl<<","<<xML<<endl;
-//    scl=actStream->dCharHeight()/actStream->ySubPageSize(); //current char length/subpage size
-    scl=actStream->nCharHeight(); //current char height
-    cout<<scl<<endl;
-    yMB=(yMarginB)*scl;
-    yMT=(yMarginT)*scl;
-
-    if ( xML+xMR>=1.0 )
-    {
-      Message(e->GetProName()+": XMARGIN to large (adjusted).");
-      PLFLT xMMult=xML+xMR;
-      xML/=xMMult*1.5;
-      xMR/=xMMult*1.5;
-    }
-    if ( yMB+yMT>=1.0 )
-    {
-      Message(e->GetProName()+": YMARGIN to large (adjusted).");
-      PLFLT yMMult=yMB+yMT;
-      yMB/=yMMult*1.5;
-      yMT/=yMMult*1.5;
-    }
-  }
-
-
   void CheckMargin(EnvT* e, GDLGStream* actStream,
                    DFloat xMarginL,
                    DFloat xMarginR,
@@ -629,7 +591,7 @@ namespace lib
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
     gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-    PLFLT scl=actStream->nCharLength(); //current char length
+    PLFLT scl=actStream->nCharWidth(); //current char width
     xML=xMarginL*scl; //margin as percentage of subpage
     xMR=xMarginR*scl;
     scl=actStream->nCharHeight(); //current char height
@@ -804,9 +766,9 @@ namespace lib
                 //a surrogate of !P.Position:
     {
         //compute position removing margins
-        positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
+        positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
         positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
-        positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
+        positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
         positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
     }
     //compatibility: Position NEVER outside [0,1]:
@@ -1927,9 +1889,9 @@ namespace lib
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
+    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharWidth();}
     if ( axis=="Y" ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
-    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
+    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharWidth();}
     if ( Struct!=NULL )
     {
       unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
@@ -2736,7 +2698,7 @@ namespace lib
           else if (axis=="Y") 
           {
             a->smaj(a->mmCharLength(), 1.0 );
-            a->plstream::vpor(un-i*3*a->nCharLength(),deux,trois,quatre);
+            a->plstream::vpor(un-i*3*a->nCharWidth(),deux,trois,quatre);
             a->plstream::wind(xun,xdeux,xtrois,xquatre);
             a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
           }
