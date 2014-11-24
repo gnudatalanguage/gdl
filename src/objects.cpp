@@ -314,15 +314,15 @@ void InitStructs()
   structList.push_back( dmachar);
 
   // for internal usage
-  // attention: $WIDGET_MESSAGE would identify this as an unnamed struct
+  // attention: $WIDGET_DESTROY would identify this as an unnamed struct
   // see DStructDesc constructor
-  DStructDesc* widgmsg = new DStructDesc( "*WIDGET_MESSAGE*");
-  widgmsg->AddTag("ID", &aLong);
-  widgmsg->AddTag("TOP", &aLong);
-  widgmsg->AddTag("HANDLER", &aLong);
-  widgmsg->AddTag("MESSAGE", &aLong);
+  DStructDesc* widgdestroy = new DStructDesc( "*WIDGET_DESTROY*");
+  widgdestroy->AddTag("ID", &aLong);
+  widgdestroy->AddTag("TOP", &aLong);
+  widgdestroy->AddTag("HANDLER", &aLong);
+  widgdestroy->AddTag("MESSAGE", &aLong);
   // insert into structList
-  structList.push_back( widgmsg);
+  structList.push_back( widgdestroy);
 
   DStructDesc* widgbut = new DStructDesc( "WIDGET_BUTTON");
   widgbut->AddTag("ID", &aLong);
@@ -453,7 +453,41 @@ void InitStructs()
   widggeom->AddTag("SPACE",&aFloat);
   // insert into structList
   structList.push_back( widggeom);
-}
+  
+  DStructDesc* widgdraw = new DStructDesc( "WIDGET_DRAW");
+  widgdraw->AddTag("ID", &aLong);
+  widgdraw->AddTag("TOP", &aLong);
+  widgdraw->AddTag("HANDLER", &aLong);
+  widgdraw->AddTag("TYPE", &aInt);
+  widgdraw->AddTag("X", &aLong);
+  widgdraw->AddTag("Y", &aLong);
+  widgdraw->AddTag("PRESS", &aByte);
+  widgdraw->AddTag("RELEASE", &aByte);
+  widgdraw->AddTag("CLICKS", &aLong);
+  widgdraw->AddTag("MODIFIERS", &aLong);
+  widgdraw->AddTag("CH", &aByte);
+  widgdraw->AddTag("KEY", &aLong);
+  // insert into structList
+  structList.push_back( widgdraw);
+  
+  DStructDesc* widgkbrdfocus = new DStructDesc( "WIDGET_KBRD_FOCUS");  
+  widgkbrdfocus->AddTag("ID", &aLong);
+  widgkbrdfocus->AddTag("TOP", &aLong);
+  widgkbrdfocus->AddTag("HANDLER", &aLong);
+  widgkbrdfocus->AddTag("ENTER", &aInt);
+  structList.push_back( widgkbrdfocus);
+
+  DStructDesc* widgcontext = new DStructDesc( "WIDGET_DRAW");
+  widgcontext->AddTag("ID", &aLong);
+  widgcontext->AddTag("TOP", &aLong);
+  widgcontext->AddTag("HANDLER", &aLong);
+  widgcontext->AddTag("X", &aLong);
+  widgcontext->AddTag("Y", &aLong);
+  widgcontext->AddTag("ROW", &aLong);
+  widgcontext->AddTag("COL", &aLong);
+  // insert into structList
+  structList.push_back( widgcontext);
+ }
 
 void InitObjects()
 {
