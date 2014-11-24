@@ -368,7 +368,7 @@ template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
   Sp( dim_), dd( Sp::zero, this->dim.NDimElements())
 {
-  this->dim.Purge();
+//  this->dim.Purge();
 }
 
 // new one-dim array from Ty*
@@ -389,7 +389,7 @@ template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
-  this->dim.Purge();
+//  this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
     {
@@ -487,7 +487,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
 template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
-  dim.Purge();
+//  dim.Purge();
   
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
@@ -495,7 +495,7 @@ template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
 template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
   SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
-  dim.Purge();
+//  dim.Purge();
   
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
@@ -517,7 +517,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
-  dim.Purge();
+//  dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
