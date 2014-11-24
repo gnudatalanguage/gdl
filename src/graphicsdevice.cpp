@@ -118,7 +118,7 @@ GraphicsDevice::~GraphicsDevice()
   if( actDevice != this) delete dStruct;
 } // v-table instatiation
 
-GraphicsDevice::GraphicsDevice(): dStruct( NULL)
+GraphicsDevice::GraphicsDevice(): dStruct( NULL), CopyBufferSize(0)
 {
 }
 

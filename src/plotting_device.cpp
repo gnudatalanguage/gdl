@@ -434,7 +434,23 @@ namespace lib {
 	  if (!success) e->Throw( "Current device does not support keyword ENCAPSULATED.");
 	} 
     }
-
+    // COPY
+    {
+      static int copyIx = e->KeywordIx("COPY");
+      if( e->KeywordPresent( copyIx)) 
+      {
+       DLongGDL* parameters=e->GetKWAs<DLongGDL>(copyIx);
+       if (parameters->N_Elements() > 7 || parameters->N_Elements() < 6) 
+         e->Throw("Keyword array parameter COPY must have from 6 to 7 elements.");
+// WRONG!! device number may also be a gui number in some cases... HAVING TWO X11-like GRAPHIC DEVICES IS NOT GOOD AT ALL! FIXME!
+       if (parameters->N_Elements() == 7) {
+         if (!actDevice->WState((*parameters)[6])) e->Throw("Window number "+i2s((*parameters)[6])+" out of range or no more windows or known bug with widgets");
+       }
+       bool doesTheCopy=actDevice->CopyRegion(parameters);
+       if (!doesTheCopy) e->Throw( "Keyword COPY not allowed for call to: DEVICE");
+       }
+    }
+ 
   }
 
 } // namespace

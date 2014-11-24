@@ -100,7 +100,11 @@ namespace lib {
     success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
       e->Throw(  "Unable to create window.");
-    success = actDevice->UnsetFocus();
+    if ( e->KeywordSet( "PIXMAP"))
+    {
+      success = actDevice->Hide();
+    }
+    else success = actDevice->UnsetFocus();
  }
 
   void wset( EnvT* e)
