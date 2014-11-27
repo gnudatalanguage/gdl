@@ -123,6 +123,8 @@ BaseGDL* tvrd( EnvT* e){
     dims[1] = ny_gdl;
     dimension dim( dims, (SizeT) 2 );
     res = new DByteGDL( dim, BaseGDL::ZERO );
+//set again dimension since tvrd does not want the 1-sized dimensions purged! (like in a=tvrd(0,0,1,1) a=Array[1,1]
+    static_cast<BaseGDL*>(res)->SetDim(dim);
     if ( channel <= 0 ) { //channel not given, return max of the 3 channels
       DByte mx, mx1;
       for ( SizeT i =0; i < nx_gdl ; ++i ) {
@@ -153,6 +155,8 @@ BaseGDL* tvrd( EnvT* e){
     dims[2] = ny_gdl;
     dimension dim( dims, (SizeT) 3 );
     res = new DByteGDL( dim, BaseGDL::NOZERO );
+//set again dimension since tvrd does not want the 1-sized dimensions purged! (like in a=tvrd(0,0,1,1,/tru) a=Array[3,1,1]
+    static_cast<BaseGDL*>(res)->SetDim(dim);
     for ( SizeT i =0; i < nx_gdl ; ++i ) {
       for ( SizeT j = 0; j < ny_gdl ; ++j ) {
        for ( SizeT k = 0 ; k < 3 ; ++k) (*res)[3 * (j * nx_gdl + i) + k] = (*bitmap)[3 * ((j+y_11) * nx + (i+x_11)) + k]; 
