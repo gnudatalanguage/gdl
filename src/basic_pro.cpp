@@ -420,17 +420,22 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       for( StrArr::iterator CurrentDir=path.begin(); CurrentDir != path.end(); CurrentDir++)
 	{
+	  //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
 	  NbProFilesInCurrentDir=0;
 	  dirp = opendir((*CurrentDir).c_str());
-	  while ((dp = readdir(dirp)) != NULL){
-	    tmp_fname=dp->d_name;
-	    found = tmp_fname.rfind(ProSuffix);
-	    if (found!=std::string::npos) {
-	      if ((found+ProSuffixLen) == tmp_fname.length()) NbProFilesInCurrentDir++;
-	    }
+	  //cout << "2>>" << dirp << "<<" <<endl;
+	  if (dirp != NULL) {
+	    while ((dp = readdir(dirp)) != NULL){
+	      tmp_fname=dp->d_name;
+	      found = tmp_fname.rfind(ProSuffix);
+	      if (found!=std::string::npos) {
+		if ((found+ProSuffixLen) == tmp_fname.length())
+		  NbProFilesInCurrentDir++;
+	      }
+	    }  
+	    closedir(dirp);
+	    cout << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
 	  }
-	  closedir(dirp);
-	  cout << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
 	}
     }
 
