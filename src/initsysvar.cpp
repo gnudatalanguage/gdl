@@ -51,7 +51,7 @@ namespace SysVar
 
 
   // the index of some system variables
-  UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx,
+  UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, GshhsDirIx, stimeIx,
@@ -380,7 +380,19 @@ namespace SysVar
     DVar *nullVar = new DVar( "NULL", nullInstance);
     nullIx=sysVarList.size();
     sysVarList.push_back(nullVar);
-   
+
+    // !TRUE
+    DByteGDL* trueData = new DByteGDL(1);
+    DVar *true_logical = new DVar( "TRUE", trueData );
+    trueIx=sysVarList.size();
+    sysVarList.push_back(true_logical);
+
+    // !FALSE
+    DByteGDL* falseData = new DByteGDL(0);
+    DVar *false_logical = new DVar( "FALSE", falseData );
+    falseIx=sysVarList.size();
+    sysVarList.push_back(false_logical);
+    
     // !PATH
     //    DString initPath(""); // set here the initial path
     DStringGDL* pathData=new DStringGDL( "");
