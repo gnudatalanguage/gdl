@@ -639,5 +639,7 @@
 	   - better free format for print, preserving precision digits.
 	   - ISA() and TYPENAME()
 
-0.9.5+:
-	   -support for projections now complete. See MAP_INSTALL for details.
+0.9.6:
+	   - support for projections now complete. See MAP_INSTALL for details.
+	   - new keywords (BOOLEAN,INTEGER,FLOAT,COMPLEX,STRING) in ISA()
+	   - two new system variables: !TRUE and !FALSE
