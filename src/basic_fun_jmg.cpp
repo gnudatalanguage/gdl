@@ -51,15 +51,6 @@ namespace lib {
     DString p1S = "";
     int nb_kw=0;
 
-    bool ARRAY_KW_B = false;
-    bool FILE_KW_B = false;
-    bool NULL_KW_B = false;
-    bool NUMBER_KW_B = false;
-    bool SCALAR_KW_B = false;
-    bool isARRAY = false;
-    bool isFILE = false;
-    bool isNULL = false;
-    bool isSCALAR = false;
     bool secPar = false;
     SizeT n_elem;
     SizeT rank;
@@ -68,20 +59,60 @@ namespace lib {
     string structName;
     string objectName;
 
+    bool ARRAY_KW_B = false;
+    bool NULL_KW_B = false;
+    bool NUMBER_KW_B = false;
+    bool SCALAR_KW_B = false;
+
+    bool isARRAY = false;
+    bool isFILE = false;
+    bool isNULL = false;
+    bool isSCALAR = false;
+
     static int array_kw = e->KeywordIx("ARRAY");
-    static int file_kw = e->KeywordIx("FILE");
     static int null_kw = e->KeywordIx("NULL");
     static int number_kw = e->KeywordIx("NUMBER");
     static int scalar_kw = e->KeywordIx("SCALAR");
-    
-    if (e->KeywordSet(array_kw)) { ARRAY_KW_B = true;}
-    if (e->KeywordSet(null_kw)) { NULL_KW_B = true;}
+
+    if (e->KeywordSet(array_kw))  { ARRAY_KW_B = true;}
+    if (e->KeywordSet(null_kw))   { NULL_KW_B = true;}
     if (e->KeywordSet(number_kw)) { NUMBER_KW_B = true;}
     if (e->KeywordSet(scalar_kw)) { SCALAR_KW_B = true; }
+   
+    // new since 8.4
 
-    // not ready
+    bool isBOOLEAN = false;
+    bool isINTEGER = false;
+    bool isFLOAT = false;
+    bool isCOMPLEX = false;
+    bool isSTRING = false;
+
+    bool BOOLEAN_KW_B = false;
+    bool INTEGER_KW_B = false;
+    bool FLOAT_KW_B = false;
+    bool COMPLEX_KW_B = false;
+    bool STRING_KW_B = false;
+
+    static int boolean_kw = e->KeywordIx("BOOLEAN");
+    static int integer_kw = e->KeywordIx("INTEGER");
+    static int float_kw = e->KeywordIx("FLOAT");
+    static int complex_kw = e->KeywordIx("COMPLEX");
+    static int string_kw = e->KeywordIx("STRING"); 
+
+    if (e->KeywordSet(boolean_kw)) { BOOLEAN_KW_B = true;}
+    if (e->KeywordSet(integer_kw)) { INTEGER_KW_B = true;}
+    if (e->KeywordSet(float_kw))   { FLOAT_KW_B = true;}
+    if (e->KeywordSet(complex_kw)) { COMPLEX_KW_B = true; }
+    if (e->KeywordSet(string_kw))  { STRING_KW_B = true; }
+
+    // /FILE keyword not ready
+    bool FILE_KW_B = false;
+    static int file_kw = e->KeywordIx("FILE");
     if (e->KeywordSet(file_kw)) { FILE_KW_B = true;}
-    if (FILE_KW_B) e->Throw("(file keyword - ISA() not ready ! Please contribute !!)");
+    if (FILE_KW_B) {
+      string txt="(file keyword - ISA() not ready ! Please contribute !!";
+      e->Throw(txt);
+    }
 	
     if (SCALAR_KW_B && ARRAY_KW_B) {
       e->Throw("Keywords ARRAY and SCALAR are mutually exclusive.");
@@ -93,6 +124,35 @@ namespace lib {
       if (FILE_KW_B) e->Throw(txt+"FILE are mutually exclusive.");
       if (SCALAR_KW_B) e->Throw(txt+"SCALAR are mutually exclusive.");
       if (NUMBER_KW_B) e->Throw(txt+"NUMBER are mutually exclusive.");
+
+      if (BOOLEAN_KW_B) e->Throw(txt+"BOOLEAN are mutually exclusive.");
+      if (INTEGER_KW_B) e->Throw(txt+"INTEGER are mutually exclusive.");
+      if (FLOAT_KW_B) e->Throw(txt+"FLOAT are mutually exclusive.");
+      if (COMPLEX_KW_B) e->Throw(txt+"COMPLEX are mutually exclusive.");
+      if (STRING_KW_B) e->Throw(txt+"STRING are mutually exclusive.");
+    }
+
+    if (BOOLEAN_KW_B) {
+      string txt="Keywords BOOLEAN and ";
+      if (INTEGER_KW_B) e->Throw(txt+"INTEGER are mutually exclusive.");
+      if (FLOAT_KW_B) e->Throw(txt+"FLOAT are mutually exclusive.");
+      if (COMPLEX_KW_B) e->Throw(txt+"COMPLEX are mutually exclusive.");
+      if (STRING_KW_B) e->Throw(txt+"STRING are mutually exclusive.");
+    }
+    if (INTEGER_KW_B) {
+      string txt="Keywords INTEGER and ";
+      if (FLOAT_KW_B) e->Throw(txt+"FLOAT are mutually exclusive.");
+      if (COMPLEX_KW_B) e->Throw(txt+"COMPLEX are mutually exclusive.");
+      if (STRING_KW_B) e->Throw(txt+"STRING are mutually exclusive.");
+    }
+    if (FLOAT_KW_B) {
+      string txt="Keywords FLOAT and ";
+      if (COMPLEX_KW_B) e->Throw(txt+"COMPLEX are mutually exclusive.");
+      if (STRING_KW_B) e->Throw(txt+"STRING are mutually exclusive.");
+    }
+    if (COMPLEX_KW_B) {
+      string txt="Keywords COMPLEX and ";
+      if (STRING_KW_B) e->Throw(txt+"STRING are mutually exclusive.");
     }
 
     //first par.
@@ -100,6 +160,8 @@ namespace lib {
 
     bool isNUMBER = true;
     bool res = true;
+    // (1: boolean, 2: all integer like, 3 : float, 4 : complex, 5: string)
+    int sub_type=0;
 
     if (p0 == NULL) {
       type="UNDEFINED";
@@ -113,21 +175,21 @@ namespace lib {
       switch (p0->Type())
 	{
 	case GDL_UNDEF: type="UNDEFINED"; isNUMBER=false; res=false; break; 
-	case GDL_BYTE: type="BYTE"; break;
-	case GDL_INT: type="INT"; break;
-	case GDL_LONG: type="LONG"; break;
-	case GDL_FLOAT: type="FLOAT"; break;
-	case GDL_DOUBLE: type="DOUBLE"; break;
-	case GDL_COMPLEX: type="COMPLEX"; break;
-	case GDL_STRING: type="STRING"; isNUMBER=false; break;
+	case GDL_BYTE: type="BYTE"; sub_type=1; break;
+	case GDL_INT: type="INT"; sub_type=2; break;
+	case GDL_LONG: type="LONG"; sub_type=2; break;
+	case GDL_FLOAT: type="FLOAT"; sub_type=3; break;
+	case GDL_DOUBLE: type="DOUBLE"; sub_type=3; break;
+	case GDL_COMPLEX: type="COMPLEX"; sub_type=4; break;
+	case GDL_STRING: type="STRING"; sub_type=5; isNUMBER=false; break;
 	case GDL_STRUCT: type="STRUCT"; isNUMBER=false; break;
-	case GDL_COMPLEXDBL: type="DCOMPLEX"; break;
+	case GDL_COMPLEXDBL: type="DCOMPLEX"; sub_type=4; break;
 	case GDL_PTR: type="POINTER"; isNUMBER=false; break;
 	case GDL_OBJ: type="OBJREF"; isNUMBER=false; break;
-	case GDL_UINT: type="UINT"; break;
-	case GDL_ULONG: type="ULONG"; break;
-	case GDL_LONG64: type="LONG64"; break;
-	case GDL_ULONG64: type="ULONG64"; break;
+	case GDL_UINT: type="UINT"; sub_type=2; break;
+	case GDL_ULONG: type="ULONG"; sub_type=2; break;
+	case GDL_LONG64: type="LONG64"; sub_type=2; break;
+	case GDL_ULONG64: type="ULONG64"; sub_type=2; break;
 
 	default: e->Throw("This should never happen, please report");
 	}
@@ -157,7 +219,13 @@ namespace lib {
       if( oStructGDL != NULL) {
 	BaseGDL* objRef = DInterpreter::GetObjHeap(objID);
 	DStructGDL* str = static_cast<DStructGDL*>(objRef);
-	if(str->Desc()->IsUnnamed()) objectName="Anonymous"; else objectName = str->Desc()->Name();
+	if(str->Desc()->IsUnnamed())
+	  {
+	    objectName="Anonymous"; 
+	  }
+	else {
+	  objectName = str->Desc()->Name();
+	}
 	// cout << objectName << endl;
       }
     }
@@ -185,6 +253,18 @@ namespace lib {
     }
 	
     if(type != "UNDEFINED"){
+
+      if (sub_type == 1) isBOOLEAN = true;
+      if (sub_type == 2) isINTEGER = true;
+      if (sub_type == 3) isFLOAT   = true;
+      if (sub_type == 4) isCOMPLEX = true;
+      if (sub_type == 5) isSTRING  = true;
+
+      if(BOOLEAN_KW_B && res) { res = res && isBOOLEAN ;}
+      if(INTEGER_KW_B && res) { res = res && isINTEGER ;}
+      if(FLOAT_KW_B && res) { res = res && isFLOAT ;}
+      if(COMPLEX_KW_B && res) { res = res && isCOMPLEX ;}
+      if(STRING_KW_B && res) { res = res && isSTRING  ;}
 
       if(NULL_KW_B && res){
 	res = false;

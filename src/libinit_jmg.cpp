@@ -80,7 +80,8 @@ void LibInit_jmg()
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
   
   // the 2 following by Alain C. and Levan L.
-  const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR",KLISTEND};
+  const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR","BOOLEAN",
+			 "COMPLEX","FLOAT","INTEGER","STRING",KLISTEND};
   new DLibFunRetNew(lib::isa_fun,string("ISA"),2,isaKey);
 
   new DLibFunRetNew(lib::typename_fun,string("TYPENAME"),1);
