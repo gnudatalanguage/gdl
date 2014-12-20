@@ -159,14 +159,16 @@ http://www.gnu.org/software/gsl
 The Eigen library version 3.1 or later is highly recommended for a performance
 boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org
 
-GDL supports GUI (widget) programming (thanks to Joel Gales)
+GDL supports GUI (widget) programming (thanks to Joel Gales )
 using the wxWidgets library. It is required by default.
 If you don't want to use it, use
 --with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
 wxWidgets can be obtained from:
 http://www.wxwidgets.org/downloads
-Only some WIDGET_... functions are implemented so far
-(use HELP,/LIB for an overview).
+Most WIDGET_... functions are implemented (use HELP,/LIB for an overview), and
+several compound widgets (CW_... functions that are written in IDL, like CW_FIELD) are working.
+Those are not present in the GDL distribution and must be obtained separately and put
+in the GDL path before use.
 
 The HDF4 format is (not completely yet) supported (thanks to Joel Gales).
 If you want to use it, you need the HDF library (here HDF
