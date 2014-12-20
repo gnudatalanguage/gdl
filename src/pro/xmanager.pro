@@ -37,7 +37,18 @@
 ;
 
 pro tidyManagedCommon
+
 common managed_by_gdl, ids, names
+catch,falseinfo
+; if ids contains only unknown widget ids, remove silently the list
+; after catching the error:
+if falseinfo ne 0 then begin
+  ids=0
+  names=0
+  catch,/cancel
+  return
+endif
+
 if (n_elements(ids) eq 0) then begin ids=0 & names=0 & endif
 if (ids[0] eq 0) then return
 keep=where(widget_info(ids,/managed),count)
@@ -48,6 +59,8 @@ endif else begin
   ids = 0
   names = 0
 endelse
+return
+
 end
 
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, CLEANUP=Cleanup
