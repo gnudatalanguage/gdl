@@ -42,7 +42,7 @@
 #define SETOPT setopt
 #endif
 
-#define maxWin 65  //IDL has 65...
+#define maxWin 33  //IDL free and widgets start at 33 ...
 #define maxWinReserve 256
 
 class DeviceX: public GraphicsDevice
@@ -490,7 +490,7 @@ public:
     return true;
   }
 
-  int WAdd()
+  int WAddFree()
   {
     TidyWindowsList();
 

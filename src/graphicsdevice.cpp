@@ -191,7 +191,7 @@ void GraphicsDevice::Init()
 #elif defined(_WIN32) // If Windows enable WinGCC driver 
   if( !SetDevice( "WIN")) 
 #elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
-  if (!SetDevice("WX"))
+  if (!SetDevice("MAC"))
 #else
   if( !SetDevice( "NULL")) 
 #  endif
@@ -217,7 +217,7 @@ void GraphicsDevice::Init()
       actGUIDevice = deviceList[index];
   } else if (ExistDevice("WIN", index)) {
     actGUIDevice = deviceList[index];
-  } else if (ExistDevice( "WX", index)) {
+  } else if (ExistDevice( "MAC", index)) {
     actGUIDevice = deviceList[index];
     } else {
       actGUIDevice = deviceList[0];

@@ -35,7 +35,7 @@ namespace lib {
     DLong wIx = 0;
     if( e->KeywordSet("FREE"))
       {
-	wIx = actDevice->WAdd();
+	wIx = actDevice->WAddFree();
 	if( wIx == -1)
 	  e->Throw( "No more window handles left.");
       }

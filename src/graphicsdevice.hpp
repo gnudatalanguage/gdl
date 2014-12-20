@@ -175,7 +175,7 @@ public:
   virtual GDLGStream* GetStreamAt( int wIx) const     { return NULL;}
   virtual GDLGStream* GetStream( bool open=true)      { return NULL;}
   virtual bool WSet( int ix)                          { return false;}
-  virtual int  WAdd()                                 { return false;}
+  virtual int  WAddFree()                                 { return false;}
 
   // for WIDGET_DRAW
   virtual bool GUIOpen( int wIx, int xSize, int ySize) { return false;} 

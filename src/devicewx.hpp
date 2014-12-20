@@ -41,7 +41,7 @@
 #define SETOPT setopt
 #endif
 
-#define maxWin 65  //IDL has 65...
+#define maxWin 33  //IDL free and widgets start at 33 ...
 #define maxWinReserve 256
 
 class DeviceWX : public GraphicsDevice {
@@ -152,7 +152,7 @@ private:
 public:
 
     DeviceWX() : GraphicsDevice(), oIx(1), actWin(-1), decomposed(-1), gcFunction(3), backingStoreMode(0) {
-        name = "WX";
+        name = "MAC"; //temporary hack to avoid coyoteGraphics crash in ATV.PRO
 
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
@@ -241,7 +241,7 @@ public:
     }
 
     bool WOpen(int wIx, const std::string& title,
-            int xSize, int ySize, int xPos, int yPos) {
+            int xSize, int ySize, int xOffset, int yOffset) {
         TidyWindowsList();
 
         int wLSize = winList.size();
@@ -255,23 +255,23 @@ public:
 
         wxWindow *wxParent = NULL;
 
-        GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
+    //    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
 
         wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-        GDLFrame *gdlFrame = new GDLFrame(0, 0, 0, titleWxString);
+        GDLFrame *gdlFrame = new GDLFrame(0, wxParent, wxID_ANY, titleWxString);
         //    m_gdlFrameOwnerMutexP = gdlFrame->m_gdlFrameOwnerMutexP;
         //    assert( m_gdlFrameOwnerMutexP != NULL );
         //     gdlFrame->Freeze();
 
-        gdlFrame->SetSize(xSize, ySize);
+    gdlFrame->SetSize(xOffset, yOffset, xSize, ySize, wxDEFAULT_FRAME_STYLE );
+    
+    wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
+    gdlFrame->SetSizer( topSizer );
 
-        wxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
-        gdlFrame->SetSizer(topSizer);
-
-        wxPanel *panel = new wxPanel(gdlFrame, wxID_ANY);
+    wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY );
         wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
         panel->SetSizer(sizer);
-        topSizer->Add(panel);
+    topSizer->Add( panel );
         GDLDrawPanel* gdlWindow = new GDLDrawPanel(gdlFrame, panel->GetId(), wxDefaultPosition, wxSize(xSize, ySize), wxBORDER_SIMPLE);
         topSizer->Add(gdlWindow, 0, wxEXPAND | wxALL, 5);
 
@@ -369,7 +369,7 @@ public:
         return true;
     }
 
-    int WAdd() {
+    int WAddFree() {
         TidyWindowsList();
 
         int wLSize = winList.size();

@@ -37,8 +37,8 @@
 #define SETOPT setopt
 #endif
 
-#define maxWin 65
-#define maxWinReserve 100
+#define maxWin 33  //IDL free and widgets start at 33 ...
+#define maxWinReserve 256
 
 class DeviceWIN : public GraphicsDevice
 {
@@ -62,7 +62,7 @@ private:
   bool WSize( int , int*, int*, int*, int*);
   bool WSet( int );
   bool WShow( int, bool, bool);
-  int WAdd();
+  int WAddFree();
   DIntGDL* GetWindowPosition();
   DLong GetVisualDepth();
   DString GetVisualName();
