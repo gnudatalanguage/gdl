@@ -41,6 +41,9 @@ typedef DLong WidgetIDT;
 
 class DStructGDL;
 
+class GDLApp;
+//static GDLApp *theGDLApp=NULL;
+
 // thread safe deque
 class GDLEventQueue
 {
@@ -94,64 +97,6 @@ public:
 //   ~GUIMutexLockerT() { if(!left) wxMutexGuiLeave();}
 //   void Leave() { wxMutexGuiLeave(); left=true;}
 // };
-
-//#define GUIMutexLockerWidgetsT_OFF
-class GUIMutexLockerWidgetsT
-{
-#ifdef GUIMutexLockerWidgetsT_OFF
-public:
-  GUIMutexLockerWidgetsT() {}
-  ~GUIMutexLockerWidgetsT() {}
-  void Leave() {}
-#else
-  bool hasLeft;
-public:
-  GUIMutexLockerWidgetsT(): hasLeft(false) { if (!wxIsMainThread()) wxMutexGuiEnter(); else hasLeft=true; }
-  ~GUIMutexLockerWidgetsT() { if (!wxIsMainThread()) if(!hasLeft) wxMutexGuiLeave();}
-  void Leave() {if (!wxIsMainThread()){ wxMutexGuiLeave(); hasLeft=true;}}
-#endif  
-};
-
-#define GUIMutexLockerEventHandlersT_OFF
-class GUIMutexLockerEventHandlersT
-{
-#ifdef GUIMutexLockerEventHandlersT_OFF
-public:
-  GUIMutexLockerEventHandlersT() {}
-  ~GUIMutexLockerEventHandlersT() {}
-  void Leave() {}
-#else
-  bool hasLeft;
-public:
-  GUIMutexLockerEventHandlersT(): hasLeft(false) { if (!wxIsMainThread()) wxMutexGuiEnter(); else hasLeft=true; }
-  ~GUIMutexLockerEventHandlersT() { if (!wxIsMainThread()) if(!hasLeft) wxMutexGuiLeave();}
-  void Leave() {if (!wxIsMainThread()){ wxMutexGuiLeave(); hasLeft=true;}}
-#endif  
-};
-
-class GDLGUIThread : public wxThread
-{
-//   bool exited;
-public:
-  static GDLGUIThread* gdlGUIThread;
-
-  GDLGUIThread() : wxThread(wxTHREAD_DETACHED)//wxTHREAD_JOINABLE)
-//  GDLGUIThread() : wxThread(wxTHREAD_JOINABLE) //test
-//   , exited(false)
-  {}
-  ~GDLGUIThread();
-
-//   bool Exited() const { return exited;}
-
-  // thread execution starts here
-  ExitCode Entry();
-
-  // called when the thread exits - whether it terminates normally or is
-  // stopped with Delete() (but not when it is Kill()ed!)
-  void OnExit();
-  
-//   void Exit(); // end this
-};
 
 class GDLWidget;
 
@@ -210,7 +155,6 @@ public:
   { 
     wxMutexLocker lock(m_mutex);
     return map.insert( position, val);    
-    cerr <<"insert,size="<<map.size()<<endl;
   }
 };
 
@@ -219,8 +163,17 @@ public:
 class GDLApp: public wxApp
 {
 public:
-  int OnRun(); 
-  int OnExit(); 
+//  virtual int OnRun(); 
+  virtual int OnExit();
+ virtual int MainLoop();
+// virtual int OneLoop();
+ virtual bool OnInit();
+// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
+// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
+//allows the application to preempt the processing of some events. If this method returns -1
+//the event is processed normally, otherwise either true or false should be returned and 
+//the event processing stops immediately considering that the event had been already processed
+//(for the former return value) or that it is not going to be processed at all (for the latter one).
 };
 
 // GUI base class **********************************
@@ -248,7 +201,8 @@ public:
   static GDLWidget* GetParent( WidgetIDT widID);
   static GDLWidgetBase* GetTopLevelBaseWidget( WidgetIDT widID);
   static GDLWidgetBase* GetBaseWidget( WidgetIDT widID);
-
+  static void RefreshWidgets();
+  
   // get ID of base widgets
   static WidgetIDT  GetBase( WidgetIDT widID);
   static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
@@ -275,15 +229,19 @@ protected:
   bool         buttonState; //only for buttons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
-  wxSizer*     topWidgetSizer;
-  wxSizer*     widgetSizer;
-  wxPanel*     widgetPanel;
+  wxSizer*     topWidgetSizer; //the frame sizer (contains all widgets)
+  wxSizer*     widgetSizer; // the sizer which governs the placement of the widget in its Panel
+  wxPanel*     widgetPanel; // the Panel in which the widget is placed
+  wxSizer*     scrollSizer; // the sizer for the (optional) Scroll Panel
+  wxScrolledWindow*     scrollPanel; // Panel with scrollBars in which the widget may be shown
+  wxSizer*     frameSizer;  // the sizer of the (optional) "frame" (its not a wxFrame its a StaticBox) drawn around a widget
+  wxPanel*     framePanel;  // the corresponding panel
   DString      widgetType;
   WidgetIDT    groupLeader;
   DLong        units;
   DLong        frame;
   DString      font;
-  wxAlignment  alignment;
+  long  alignment;
 
   
 private:  
@@ -342,7 +300,7 @@ public:
   // this is called from the GUI thread on (before) Show()
   // wxTextCtrl and maybe other controls crash when called from the
   // main thread
-  virtual void OnShow() {}
+//  virtual void OnShow();
   // this is called from the main thread on (before) Realize()
   // for latest initialzation (like allocating the plplot stream)
   // calls NOTIFY_REALIZE procedure
@@ -369,6 +327,10 @@ public:
   WidgetIDT GetParentID() const { return parentID;}
   
   wxObject* GetWxWidget() const { return wxWidget;}
+  void FrameWidget(long style=0);
+  void ScrollWidget(DLong x_scroll_size,  DLong y_scroll_size);
+  void UnFrameWidget();
+  void UnScrollWidget();
 
   BaseGDL* GetUvalue() const { return uValue;}
   BaseGDL* GetVvalue() const { return vValue;}
@@ -486,15 +448,16 @@ public:
   else readlineEventQueue.Purge(); 
   }
   
-  void OnShow() 
-  {
-    for( cIter c=children.begin(); c!=children.end(); ++c)
-    {
-      GDLWidget* w = GetWidget( *c);
-      if( w != NULL)
-	w->OnShow();
-    }
-  }
+//  void OnShow() 
+//  {
+//    for( cIter c=children.begin(); c!=children.end(); ++c)
+//    {
+//      GDLWidget* w = GetWidget( *c);
+//      if( w != NULL)
+//	w->OnShow();
+//    }
+//    GDLWidget::OnShow();
+//  }
   void OnRealize() 
   {
     for( cIter c=children.begin(); c!=children.end(); ++c)
@@ -526,7 +489,7 @@ public:
   void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
 							  children.end(), c));}
 
-  void Realize( bool);
+//  void Realize( bool);
   
   void Destroy(); // sends delete event to itself
   
@@ -549,7 +512,7 @@ public:
 
   bool IsBase() const { return true;} 
   bool IsScrolled() { return scrolled;}
-  void FitInside();
+//  void FitInside();
 };
 
 
@@ -621,7 +584,7 @@ public:
   GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
 
-  void OnShow();
+//  void OnShow();
   
 //   void SetSelectOff();
   bool IsDropList() const { return true;} 
@@ -642,7 +605,7 @@ public:
   GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
 
-  void OnShow();
+//  void OnShow();
   
 //   void SetSelectOff();
   bool IsComboBox() const { return true;} 
@@ -672,7 +635,7 @@ class GDLWidgetText: public GDLWidget
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
-  void OnShow();
+//  void OnShow();
 
   bool IsEditable(){return editable;}
   void ChangeText( DStringGDL* value, bool noNewLine=false);
@@ -694,7 +657,7 @@ class GDLWidgetLabel: public GDLWidget
   DString value;
 public:
   GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_);
-  void OnShow();
+//  void OnShow();
  
   void SetLabelValue( const DString& value_);
 };
@@ -772,8 +735,8 @@ class GDLWidgetTable: public GDLWidget
   DStringGDL* rowLabels;
   bool rowMajor;
   DLong tabMode;
-  DLong xScrollSize;
-  DLong yScrollSize;
+  DLong x_scroll_size;
+  DLong y_scroll_size;
 
 public:
   GDLWidgetTable( WidgetIDT p, EnvT* e, 
@@ -819,7 +782,7 @@ public:
   GDLDelete( rowLabels );
 }
   
-  void OnShow();
+//  void OnShow();
 
   bool IsTable() const { return true;}
 };
@@ -878,7 +841,7 @@ public:
   GDLDelete( bitmap );
 }
 
-  void OnShow();
+//  void OnShow();
 
   bool IsTree() const { return true;}
 };
@@ -911,8 +874,8 @@ public:
 
 
 // GDL versions of wxWidgets controls =======================================
-DECLARE_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
-DECLARE_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
+DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
+DECLARE_LOCAL_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
 
 class wxNotebookEvent;
 class GDLFrame : public wxFrame
@@ -927,7 +890,7 @@ class GDLFrame : public wxFrame
   friend class GDLWidgetBase;
 public:
   // ctor(s)
-  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title);
+  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition);
   ~GDLFrame();
 
   
@@ -951,7 +914,7 @@ public:
   
   void SendShowRequestEvent( bool show)
   {
-    wxCommandEvent* event;
+   wxCommandEvent* event;
     if( show)
     {
     event = new wxCommandEvent( wxEVT_SHOW_REQUEST, GetId() );
@@ -972,7 +935,7 @@ public:
   void OnShowRequest( wxCommandEvent& event);
   void OnHideRequest( wxCommandEvent& event);
   
-
+private:
   // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };
@@ -1002,7 +965,7 @@ public:
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
   
-  void Update();
+ // void Update();
   void GetEventFlags(DULong eventFlags);
 //   void SetPStreamIx( int ix) { pstreamIx = ix;}
   int PStreamIx() { return pstreamIx;}
@@ -1011,7 +974,7 @@ public:
   
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);
-  void OnShow(wxShowEvent& event);
+//  void OnShow(wxShowEvent& event);
   void OnClose(wxCloseEvent& event);
   void OnMouseMove( wxMouseEvent& event);
   void OnMouseDown( wxMouseEvent& event);
@@ -1020,23 +983,24 @@ public:
   void OnKey( wxKeyEvent& event);
   void OnEnterWindow(wxMouseEvent &event);
   void OnLeaveWindow(wxMouseEvent &event);
+  void OnResize(wxSizeEvent &event);
   void SetEventFlags(DULong eventFlag_);
 //   void OnCreate(wxWindowCreateEvent& event);
 //   void OnDestroy(wxWindowDestroyEvent& event);
-  void SendPaintEvent()
-  {
-    wxPaintEvent* event;
-    event = new wxPaintEvent( GetId());
-    event->SetEventObject( this);
-    // only for wWidgets > 2.9 (takes ownership of event)
-//     this->QueueEvent( event);
-    
-    this->AddPendingEvent( *event); // copies event
-    delete event;
-  }
+//  void SendPaintEvent()
+//  {
+//    wxPaintEvent* event;
+//    event = new wxPaintEvent( GetId());
+//    event->SetEventObject( this);
+//    // only for wWidgets > 2.9 (takes ownership of event)
+////     this->QueueEvent( event);
+//    
+//    this->AddPendingEvent( *event); // copies event
+//    delete event;
+//  }
 
   
-// private:
+ private:
   // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };

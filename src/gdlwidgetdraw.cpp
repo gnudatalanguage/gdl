@@ -33,7 +33,15 @@
 #include "graphicsdevice.hpp"
 
 // #define GDL_DEBUG_WIDGETS
-
+#define UPDATE_WINDOW  \
+  GetWidget( parentID )->GetSizer()->Layout(); \
+  if(widgetPanel->IsShownOnScreen()) \
+  {\
+    GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID()); \
+    tlb->GetSizer()->Layout(); \
+    static_cast<wxFrame*>(tlb->GetWxWidget())->Show(); \
+  }   // or : static_cast<wxFrame*>(tlb->GetWxWidget())->Fit();
+ 
 //why overcast inherited ~GDLWidget????
 GDLWidgetDraw::~GDLWidgetDraw()
 {
@@ -58,18 +66,17 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
   if (scrolled) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
 
-  
   wxWindow *wxParent = NULL;
 
-//  GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
   // If parent base widget exists ....
   GDLWidget* gdlParent = GetWidget( parentID);
+  widgetPanel = gdlParent->GetPanel( );
+  widgetSizer = gdlParent->GetSizer( );
+  topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
+
   wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
   //    std::cout << "Getting Parent: " << parent << " " << gdlParent << " " 
   //      << wxParent << std::endl;
-
-  wxPanel *parentPanel = gdlParent->GetPanel();
-//   widgetPanel = panel;
 
   long style = 0;
   if( frame == 1)
@@ -77,26 +84,16 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   else if( frame > 1)
     style = wxBORDER_DOUBLE;
   
-  wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
   DULong eventFlags=this->GetEventFlags();
-  if ( scrolled ) { //the right way to do the job!!!
-    wxScrolledWindow *scrw;
-    scrw = new wxScrolledWindow( wxParent, wxID_ANY ,  wxPoint(xOffset,yOffset), wxSize(x_scroll_size, y_scroll_size ), wxBORDER_SUNKEN);
-    scrw->SetScrollbars(1, 1, 1, 1); //needed to have scrollbars appear
-    wxSizer * scrwsizer = new wxBoxSizer( wxVERTICAL );
-    scrw->SetSizer( scrwsizer );
-    
-    GDLDrawPanel* gdlWindow = new GDLDrawPanel( scrw, widgetID, wxDefaultPosition, wxSize(xSize,ySize), style, eventFlags);
-    scrwsizer->Add( gdlWindow, 0, wxEXPAND|wxALL); //since internal size is given just above, respect it!!
-    gdlWindow->SetCursor(wxCURSOR_CROSS);
-    wxWidget = gdlWindow;
-    parentSizer->Add(scrw, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);    //important to fix sizes 
-  } else {
-    GDLDrawPanel* gdlWindow = new GDLDrawPanel( parentPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style, eventFlags);
-    gdlWindow->SetCursor(wxCURSOR_CROSS);
-    wxWidget = gdlWindow;
-    parentSizer->Add( gdlWindow, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);
-  }
+  
+  GDLDrawPanel* gdlWindow = new GDLDrawPanel( widgetPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style, eventFlags);
+  gdlWindow->SetCursor(wxCURSOR_CROSS);
+  wxWidget = gdlWindow;
+  if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
+  if (frame) this->FrameWidget();
+  if (!scrolled && !frame) widgetSizer->Add( gdlWindow, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);
+
+  UPDATE_WINDOW
   this->vValue = new DLongGDL(pstreamIx);
 }
 void GDLWidgetDraw::updateFlags()

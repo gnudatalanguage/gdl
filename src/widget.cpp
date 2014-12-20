@@ -497,12 +497,12 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( base == NULL )
     e->Throw( "Parent is of incorrect type." );
 
-  static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );\
-    DLong x_scroll_size = 0;\
-    e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );\
-    static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );\
-    DLong y_scroll_size = 0;\
-    e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );\
+  static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
+  DLong x_scroll_size = 0;
+  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
+  DLong y_scroll_size = 0;
+  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
   static int EXPOSE_EVENTS = e->KeywordIx( "EXPOSE_EVENTS" );
@@ -540,7 +540,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   //     static int FRAME = e->KeywordIx( "FRAME");  // width
   //     DLong frame = 0;
   //     e->AssureLongScalarKWIfPresent( FRAME, frame);
-  DULong eventFlags=0;
+  DULong eventFlags=GDLWidget::NONE;
   if (motion_events)  eventFlags |= GDLWidget::MOTION;
   if (drop_events) eventFlags |= GDLWidget::DROP;
   if (expose_events) eventFlags |= GDLWidget::EXPOSE;
@@ -601,7 +601,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int exclusiveIx = e->KeywordIx( "EXCLUSIVE" );
   static int nonexclusiveIx = e->KeywordIx( "NONEXCLUSIVE" );
   static int floatingIx = e->KeywordIx( "FLOATING" );
-  static int frameIx = e->KeywordIx( "FRAME" );
 //  static int grid_layoutIx = e->KeywordIx( "GRID_LAYOUT" );
   static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
 //  static int kbrd_focus_eventsIx = e->KeywordIx( "KBRD_FOCUS_EVENTS" );
@@ -667,9 +666,9 @@ BaseGDL* widget_draw( EnvT* e ) {
 //  bool toolbar = e->KeywordSet( toolbarIx );
 //  bool tracking_events = e->KeywordSet( tracking_eventsIx );
 
-  DLong x_scroll_size = 0;
+  DLong x_scroll_size = -1;
   e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
-  DLong y_scroll_size = 0;
+  DLong y_scroll_size = -1;
   e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
 
 
@@ -690,9 +689,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( xpadIx, xpad );
   DLong ypad = 0;
   e->AssureLongScalarKWIfPresent( ypadIx, ypad );
-
-  DLong frame = 0;
-  e->AssureLongScalarKWIfPresent( frameIx, frame );
 
   DString resource_name = "";
   e->AssureStringScalarKWIfPresent( resource_nameIx, resource_name );
@@ -980,7 +976,7 @@ BaseGDL* widget_combobox( EnvT* e ) {
   static int editableIx = e->KeywordIx( "EDITABLE" );
   bool editable = e->KeywordSet( editableIx );
 
-  DLong style = wxCB_DROPDOWN;
+  DLong style = wxCB_SIMPLE;
   if ( !editable )
     style = wxCB_READONLY;
 
@@ -1078,7 +1074,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget *widget = GDLWidget::GetWidget( parentID );
-
+  
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
   static int ALL_EVENTS = e->KeywordIx( "ALL_EVENTS" );
   static int KBRD_FOCUS_EVENTS = e->KeywordIx( "KBRD_FOCUS_EVENTS" );
@@ -1114,7 +1110,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( editableIx, edit );
   bool editable = (edit == 1);
 
-  GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable );
+  GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable);
   text->SetWidgetType( "TEXT" );
   text->SetEventFlags(eventFlags);
 
@@ -1530,11 +1526,6 @@ BaseGDL* widget_event( EnvT* e ) {
         
         if ( sigControlC )
           return defaultRes;//new DLongGDL( 0 );
-
-        if ( GDLGUIThread::gdlGUIThread == NULL ) {
-          std::cout << "WIDGET_EVENT: GUI thread has exited." << std::endl;
-          return defaultRes; //new DLongGDL( 0 );
-        }
       }
     } else { //wait for ALL (and /XMANAGER_BLOCK for example) 
       while ( 1 ) {
@@ -1562,15 +1553,8 @@ BaseGDL* widget_event( EnvT* e ) {
         if ( sigControlC )
           return defaultRes; //new DLongGDL( 0 );
 
-        if ( GDLGUIThread::gdlGUIThread == NULL ) {
-          std::cout << "WIDGET_EVENT: GUI thread has exited." << std::endl;
-          return defaultRes; //new DLongGDL( 0 );
-        }
       } // inner while
     } //ALL
-//    std::cout << "WIDGET_EVENT: Event found" << std::endl;
-//    std::cout << "top: " << tlb << std::endl;
-//    std::cout << "id:  " << id << "   thread:" << GDLGUIThread::gdlGUIThread << std::endl;
 
     ev = CallEventHandler( /*id,*/ ev ); //will block waiting for XMANAGER 
     if ( ev != NULL ) {
@@ -1600,141 +1584,6 @@ BaseGDL* widget_event( EnvT* e ) {
   return defaultRes; //new DLongGDL( 0 );
 #endif
 }
-
-//Below,old version...
-//BaseGDL* widget_event( EnvT* e ) {
-//#ifndef HAVE_LIBWXWIDGETS
-//  e->Throw( "GDL was compiled without support for wxWidgets" );
-//  return NULL;
-//#else
-//  DStructGDL* defaultRes = new DStructGDL( "WIDGET_NOEVENT" );
-//  static int savehourglassIx = e->KeywordIx( "SAVE_HOURGLASS" );
-//  bool savehourglass = e->KeywordSet( savehourglassIx );
-//  // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
-//  // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
-//  if ( !savehourglass ) wxEndBusyCursor( );
-//  //xmanager_block (not a *DL standard) is used to block until TLB is killed
-//  static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK" );
-//  bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx );
-//  static int nowaitIx = e->KeywordIx( "NOWAIT" );
-//  bool nowait = e->KeywordSet( nowaitIx );
-//  static int badidIx = e->KeywordIx( "BAD_ID" );
-//  bool dobadid = e->KeywordPresent( badidIx );
-//  if (dobadid) e->AssureGlobalKW(badidIx);
-//  
-//  SizeT nParam = e->NParam( );
-//  std::vector<WidgetIDT> widgetID;
-//  DLongGDL* p0L = NULL;
-//  SizeT nEl = 0;
-//  SizeT rank = 0;
-//
-//  bool all = true;
-//  if ( nParam > 0 ) {
-//    p0L = e->GetParAs<DLongGDL>(0);
-//    all = false;
-//    nEl = p0L->N_Elements( );
-//    for ( SizeT i = 0; i < nEl; i++ ) {
-//      GDLWidget *widget = GDLWidget::GetWidget( (*p0L)[i] );
-//      if ( widget == NULL ) {
-//        if (dobadid) { 
-//          e->SetKW( badidIx, new DLongGDL( (*p0L)[i]  ) );
-//          return defaultRes; //important!!!
-//        } else { e->Throw( "Invalid widget identifier:" + i2s( (*p0L)[i] ) ); }
-//      }
-//      widgetID.push_back( (*p0L)[i] );
-//    }
-//  }
-//
-//  if (dobadid) e->SetKW( badidIx, new DLongGDL(0) ); //if id is OK, but BAD_ID was given, we must return 0 in BAD_ID.
-//
-//  EnvBaseT* caller;
-//
-//  DLong id;
-//  DLong tlb;
-////     DLong handler;
-////     DLong select;
-//    //    int i; cin >> i;
-////     GDLEventQueuePolledGuard polledGuard( &GDLWidget::eventQueue);
-//    while ( 1)
-//    {   // outer while loop
-//        std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;
-//
-//    DStructGDL* ev = NULL;
-//
-//        while ( 1)
-//        {
-//        // handle global GUI events as well as plot events
-//        // handling is completed on return
-//        // calls GDLWidget::HandleEvents()
-//        // which calls GDLWidget::CallEventHandler()
-//        GDLEventHandler( );
-//
-//        // the polling event handler
-//            if( (ev = GDLWidget::eventQueue.Pop()) != NULL)
-//            {
-//          // ev = GDLWidget::eventQueue.Pop();
-//          static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-//          static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-//          static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-//
-//                id = (*static_cast<DLongGDL*>
-//                      (ev->GetTag(idIx, 0)))[0];
-//                tlb = (*static_cast<DLongGDL*>
-//                       (ev->GetTag(topIx, 0)))[0];
-//          break;
-//        } 
-//
-//        // if poll event handler found an event this is not reached due to the
-//        // 'break' statement
-//            // Sleep a bit to prevent CPU overuse
-//            wxMilliSleep( 50);
-//
-//        if ( sigControlC )
-//          return defaultRes; //new DLongGDL( 0 );
-//
-//        if ( GDLGUIThread::gdlGUIThread == NULL ) {
-//          std::cout << "WIDGET_EVENT: GUI thread has exited." << std::endl;
-//          return defaultRes; //new DLongGDL( 0 );
-//        }
-//      } // inner while
-//
-//        std::cout << "WIDGET_EVENT: Event found" << std::endl;
-//        std::cout << "top: " << tlb << std::endl;
-//        std::cout << "id:  " << id << "   thread:" << GDLGUIThread::gdlGUIThread << std::endl;
-//
-//        ev = CallEventHandler( /*id,*/ ev);
-//
-//        if( ev != NULL)
-//        {
-//      Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s( id ) );
-//      GDLDelete( ev );
-//      ev = NULL;
-//    }
-//
-//    GDLWidget *tlw = GDLWidget::GetWidget( tlb );
-//    if ( tlw == NULL ) { //possible if a kill_notify procedure was called 
-////      std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;  //no use to report, then.
-//      break;
-//    }
-////The following is suspect (see GDLWidget::HandleEvents() ).
-//
-//        // see comment in GDLWidget::HandleEvents()
-//        // WidgetIDT tlb = GDLWidget::GetTopLevelBase( id);
-//        assert( dynamic_cast<GDLFrame*>(tlw->GetWxWidget()) != NULL);
-//        // Pause 50 millisecs then refresh widget
-////       wxMilliSleep( 50); // (why?)
-//        GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-//        static_cast<GDLFrame*>(tlw->GetWxWidget())->Refresh();
-//        gdlMutexGuiEnterLeave.Leave();
-//
-//  } // outer while loop
-//
-//  return defaultRes; //new DLongGDL( 0 );
-//#endif
-//}
-//
-
-// WIDGET_CONTROL
 
 void widget_control( EnvT* e ) {
 #ifndef HAVE_LIBWXWIDGETS

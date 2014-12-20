@@ -41,7 +41,7 @@ DEFINE_EVENT_TYPE(wxEVT_HIDE_REQUEST)
 BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_COMMAND(wxID_ANY, wxEVT_SHOW_REQUEST, GDLFrame::OnShowRequest)
   EVT_COMMAND(wxID_ANY, wxEVT_HIDE_REQUEST, GDLFrame::OnHideRequest)
-  EVT_IDLE( GDLFrame::OnIdle)
+//  EVT_IDLE( GDLFrame::OnIdle)
   EVT_MENU(wxID_ANY, GDLFrame::OnButton)
   EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
   EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
@@ -84,13 +84,17 @@ BEGIN_EVENT_TABLE(GDLDrawPanel, wxPanel)
 //  EVT_LEAVE_WINDOW( GDLDrawPanel::OnLeaveWindow)
 //   EVT_SHOW(GDLWindow::OnShow)
 //   EVT_CLOSE(GDLWindow::OnClose)
+  EVT_SIZE(GDLDrawPanel::OnResize)
 END_EVENT_TABLE()
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
 
 void wxTextCtrl::OnChar(wxKeyEvent& event ) {
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in wxTextCtrl::OnChar: %d\n"),event.GetId());
+#endif
+
   //I cannot get cw_field to work if OnChar is not overwritten -- certainly there is a better way?
   GDLWidget* txt = GDLWidget::GetWidget( event.GetId());
   DStructGDL* widg;
@@ -191,40 +195,39 @@ void wxTextCtrl::OnChar(wxKeyEvent& event ) {
 }
 
 void GDLFrame::OnShowRequest( wxCommandEvent& event)
-{  
+{
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnShowRequest: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnShowRequest: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
+    wxMessageOutputStderr().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
 #endif
     return;
   }
   GDLFrame *frame = static_cast<GDLFrame*>( widget->GetWxWidget());
   if( !frame->IsShown())
   {
-    widget->OnShow();
-    widget->SetSizeHints();
-    
+    widget->SetSizeHints(); //fundamental!
     bool stat = frame->Show(true);
   }
+  event.Skip();
 }
 
 void GDLFrame::OnHideRequest( wxCommandEvent& event)
 {  
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnHideRequest: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnHideRequest: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
+    wxMessageOutputStderr().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
 #endif
     return;
   }
@@ -233,20 +236,21 @@ void GDLFrame::OnHideRequest( wxCommandEvent& event)
   {
     bool stat = frame->Show(false);
   }
+  event.Skip();
 }
 
 
 
-void GDLFrame::OnIdle( wxIdleEvent&)
-{
-}
+//void GDLFrame::OnIdle( wxIdleEvent& event)
+//{
+//  event.Skip();
+//}
 
 void GDLFrame::OnButton( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnButton: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnButton: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -263,9 +267,8 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 void GDLFrame::OnRadioButton( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnRadioButton: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnRadioButton: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -310,10 +313,8 @@ void GDLFrame::OnRadioButton( wxCommandEvent& event)
 void GDLFrame::OnCheckBox( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnCheckBox: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnCheckBox: %d\n"),event.GetId());
 #endif
-
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   bool selectValue = event.IsChecked();
   
@@ -321,8 +322,6 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   assert(widget->IsButton());
   static_cast<GDLWidgetButton*>(widget)->SetButton( selectValue);
-  
-  gdlMutexGuiEnterLeave.Leave();
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -337,9 +336,8 @@ void GDLFrame::OnCheckBox( wxCommandEvent& event)
 void GDLFrame::OnComboBox( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnComboBox: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnComboBox: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
   int selectValue = event.GetSelection();
@@ -361,9 +359,8 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
 void GDLFrame::OnDropList( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnDropList: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnDropList: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
   int selectValue = event.GetSelection();
@@ -381,9 +378,8 @@ void GDLFrame::OnDropList( wxCommandEvent& event)
 void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnListBoxDo: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnListBoxDo: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -402,10 +398,18 @@ void GDLFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
 }
 void GDLFrame::OnListBox( wxCommandEvent& event)
 {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnListBox: %d\n"),event.GetId());
+#endif
+
   OnListBoxDo( event, 1);
 }
 void GDLFrame::OnListBoxDoubleClicked( wxCommandEvent& event)
 {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnListBoxDoubleClicked: %d\n"),event.GetId());
+#endif
+
 // Note: IDL sends one click AND two click event on double click  
   OnListBoxDo( event, 1);
   OnListBoxDo( event, 2);
@@ -414,9 +418,8 @@ void GDLFrame::OnListBoxDoubleClicked( wxCommandEvent& event)
 void GDLFrame::OnText( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnText: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnText: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -444,7 +447,6 @@ void GDLFrame::OnText( wxCommandEvent& event)
 //return without producing event struct if eventType is not set
     if (!(widget->HasEventType( GDLWidget::ALL ))) return;
 
-//    textCtrl->Refresh();
   } 
   else if ( widget->IsComboBox()) 
   {
@@ -454,15 +456,15 @@ void GDLFrame::OnText( wxCommandEvent& event)
       event.Skip();
       return; // happens on construction
     }
-    //here we should differentiate EDITABLE and not-editable comboboxes!!! FIXME
-    control->GetCurrentSelection() ; //would be control->GetSelection( &selStart, &selEnd); // with GTK 
+    if (!control->IsEditable()) return; //no OnText Events shoudl be generated!
+    int pos = control->GetCurrentSelection() ; //would be control->GetSelection( &selStart, &selEnd); // with GTK 
     offset = control->GetInsertionPoint();    
     lastValue = static_cast<GDLWidgetComboBox*>(widget)->GetLastValue();
     newValue = control->GetValue().mb_str();
     isModified = lastValue != newValue;
+//    if (isModified) control->SetString(pos,wxString(newValue.c_str(), wxConvUTF8 ));
     static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
-
-//    control->Refresh();
+    return;
   }
   else
   {
@@ -480,12 +482,8 @@ void GDLFrame::OnText( wxCommandEvent& event)
       isModified = lastValue != newValue;
       static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
     }
-
-//    control->Refresh();
   }
 
-  gdlMutexGuiEnterLeave.Leave();
-  
   DStructGDL*  widg;
   if( !isModified)
   {
@@ -567,9 +565,8 @@ void GDLFrame::OnText( wxCommandEvent& event)
 void GDLFrame::OnTextEnter( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnTextEnter: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTextEnter: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
@@ -583,33 +580,6 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
     offset = textCtrl->GetInsertionPoint();
     newValue = textCtrl->GetValue().mb_str();
     static_cast<GDLWidgetText*>(widget)->SetLastValue(newValue);
-
-//    textCtrl->Refresh();
-  }
-  else if( widget->IsComboBox())
-  {
-    wxComboBox* control = static_cast<wxComboBox*>(widget->GetWxWidget());
-    //here we should differentiate EDITABLE and not-editable comboboxes!!! FIXME
-    offset = control->GetInsertionPoint();    
-    newValue = control->GetStringSelection().mb_str();
-    static_cast<GDLWidgetComboBox*>(widget)->SetLastValue(newValue);
-
-//    control->Refresh();
-  }
-  else
-  {
-    assert( widget->IsDropList());
-    wxChoice* control = static_cast<wxChoice*>(widget->GetWxWidget());
-    int where = control->GetSelection();
-    if (where != wxNOT_FOUND) {
-      newValue = control->GetString(where).mb_str();
-      static_cast<GDLWidgetDropList*>(widget)->SetLastValue(newValue);
-    }
-
-//    control->Refresh();
-  }
-  gdlMutexGuiEnterLeave.Leave();
-  
   // create GDL event struct
   DStructGDL*  widg;
   widg = new DStructGDL( "WIDGET_TEXT_CH");
@@ -621,14 +591,44 @@ void GDLFrame::OnTextEnter( wxCommandEvent& event)
   widg->InitTag("CH", DByteGDL( '\n'));
 
   GDLWidget::PushEvent( baseWidgetID, widg);
+  }
+  else if( widget->IsComboBox())
+  {
+  // create GDL event struct
+  DStructGDL*  widgcbox;
+  int selectValue = event.GetSelection();
+  wxString strValue = event.GetString();
+
+  widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
+  widgcbox->InitTag("ID", DLongGDL( event.GetId()));
+  widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
+  widgcbox->InitTag("HANDLER", DLongGDL( 0));
+  widgcbox->InitTag("INDEX", DLongGDL( selectValue));
+  widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str()) ));
+
+  GDLWidget::PushEvent( baseWidgetID, widgcbox);
+  }
+  else
+  {
+    assert( widget->IsDropList());
+  // create GDL event struct
+  DStructGDL*  widdrplst;
+  int selectValue = event.GetSelection();
+  widdrplst = new DStructGDL( "WIDGET_DROPLIST");
+  widdrplst->InitTag("ID", DLongGDL( event.GetId()));
+  widdrplst->InitTag("TOP", DLongGDL( baseWidgetID));
+  widdrplst->InitTag("HANDLER", DLongGDL( 0));
+  widdrplst->InitTag("INDEX", DLongGDL( selectValue));   
+
+  GDLWidget::PushEvent( baseWidgetID, widdrplst);
+  }
 }
 
 void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 {  
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnPageChanged: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnPageChanged: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
  
@@ -646,7 +646,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 // void GDLFrame::OnSlider( wxCommandEvent& event)
 // {  
 // #ifdef GDL_DEBUG_WIDGETS
-//   wxMessageOutputDebug().Printf(_T("in OnSlider: %d\n"),event.GetId());
+//   wxMessageOutputStderr().Printf(_T("in OnSlider: %d\n"),event.GetId());
 // #endif
 // 
 //   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
@@ -666,14 +666,14 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 void GDLFrame::OnScroll( wxScrollEvent& event)
 {  
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnScroll: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnScroll: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
+    wxMessageOutputStderr().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
 #endif
     return;
   }
@@ -712,14 +712,14 @@ void GDLFrame::OnScroll( wxScrollEvent& event)
 void GDLFrame::OnThumbRelease( wxScrollEvent& event)
 {  
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnThumbRelease: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnThumbRelease: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL)
   {
 #ifdef GDL_DEBUG_WIDGETS
-    wxMessageOutputDebug().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
+    wxMessageOutputStderr().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
 #endif
     return;
   }
@@ -757,38 +757,57 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 {
 //   cout <<"in OnPaint: "<< event.GetId() << endl;
 #ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputDebug().Printf(_T("in OnPaint: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnPaint: %d\n"),event.GetId());
 #endif
-  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
 
   wxPaintDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion());
   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
 }
 
-void GDLDrawPanel::OnShow(wxShowEvent& event)
-{
-//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
-  std::cout << "GDLWindow::OnShow: " << this << std::endl;
-}
+//void GDLDrawPanel::OnShow(wxShowEvent& event)
+//{
+//
+//  std::cout << "GDLWindow::OnShow: " << this << std::endl;
+//  event.Skip();
+//}
 void GDLDrawPanel::OnClose(wxCloseEvent& event)
 {
-//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
-  std::cout << "GDLWindow::OnClose: " << this << std::endl;
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnClose: %d\n"),event.GetId());
+#endif
+  event.Skip();
+}
+void GDLDrawPanel::OnResize( wxSizeEvent &event ) {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnResize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
+#endif
+  drawSize=event.GetSize();
+  event.Skip();
 }
 
 void GDLDrawPanel::OnEnterWindow( wxMouseEvent &event ) {
-//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnEnterWindow: %d\n"),event.GetId());
+#endif
+  event.Skip();
+
 }
 
 void GDLDrawPanel::OnLeaveWindow( wxMouseEvent &event ) {
-//  GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnLeaveWindow: %d\n"),event.GetId());
+#endif
+  event.Skip();
+
 }
 
 void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {
-  
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseMove: %d\n"),event.GetId());
+#endif
+
   if ( this->eventFlags & GDLWidget::MOTION ) {
-//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
@@ -802,8 +821,11 @@ void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {
 }
 
 void GDLDrawPanel::OnMouseDown( wxMouseEvent &event ) {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseDown: %d\n"),event.GetId());
+#endif
+
   if ( this->eventFlags & GDLWidget::BUTTON ) {
-//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
@@ -823,8 +845,11 @@ void GDLDrawPanel::OnMouseDown( wxMouseEvent &event ) {
   } //normal end of event processing!
 }
 void GDLDrawPanel::OnMouseUp( wxMouseEvent &event ) {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseUp: %d\n"),event.GetId());
+#endif
+  
   if ( this->eventFlags & GDLWidget::BUTTON ) {
-//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
@@ -845,8 +870,11 @@ void GDLDrawPanel::OnMouseUp( wxMouseEvent &event ) {
 }
 
 void GDLDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseWheel: %d\n"),event.GetId());
+#endif
+
   if ( this->eventFlags & GDLWidget::WHEEL ) {
-//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
@@ -866,10 +894,14 @@ void GDLDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
 }
 
 void GDLDrawPanel::OnKey( wxKeyEvent &event ) {
+#ifdef GDL_DEBUG_WIDGETS
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnKey: %d\n"),event.GetId());
+#endif
+
   int mode=1;
   if ( this->eventFlags & GDLWidget::KEYBOARD || this->eventFlags & GDLWidget::KEYBOARD2 ) {
     if (this->eventFlags & GDLWidget::KEYBOARD2) mode=2;
-//    GUIMutexLockerEventHandlersT gdlMutexGuiEnterLeave;
+  
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( event.GetId( ) ) );
