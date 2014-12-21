@@ -1617,9 +1617,9 @@ bool GDLApp::OnInit()
 }
    int GDLApp::MainLoop()
 {
-    wxEventLoopTiedPtr mainLoop(&m_mainLoop, new wxEventLoop);
+    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
     m_mainLoop->SetActive(m_mainLoop);
-     wxEventLoop * const loop = wxEventLoop::GetActive();
+     wxEventLoop * const loop = (wxEventLoop *)wxEventLoop::GetActive();
         while(loop->Pending()) // Unprocessed events in queue
         {
             loop->Dispatch(); // Dispatch next event in queue
