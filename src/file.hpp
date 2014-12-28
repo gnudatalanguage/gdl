@@ -28,10 +28,8 @@ namespace lib {
 
   BaseGDL* expand_path( EnvT* e);
 
-#ifndef _MSC_VER
-  BaseGDL* file_search( EnvT* e);
   BaseGDL* file_expand_path( EnvT* e);
-#endif
+  BaseGDL* file_search( EnvT* e);
 
   BaseGDL* file_same( EnvT* e);
 
