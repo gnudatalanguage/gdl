@@ -23,6 +23,9 @@
 #ifdef __APPLE__
 #include <time.h>
 #endif
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
 
 #include "gdleventhandler.hpp"
 #include "graphicsdevice.hpp"
@@ -51,7 +54,9 @@ int GDLEventHandler()
   delay.tv_nsec = OS_X_DELAY_NS; // 20ms
   nanosleep(&delay,NULL);
 #endif
-
+#ifdef _WIN32 
+  Sleep(10);  // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#endif
   return 0;
 }
 

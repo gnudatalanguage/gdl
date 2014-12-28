@@ -116,11 +116,6 @@ extern "C"
 #endif
 #include <signal.h>
 
-#ifdef HAVE_LIBWXWIDGETS
-#include <gdlwidget.hpp>
-#endif
-
-
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
 {
@@ -1319,18 +1314,6 @@ bool CompareWithJokers(string names, string sourceFiles) {
 		}
 	    }
 	}
-#endif
-
-#ifdef HAVE_LIBWXWIDGETS
-      // wxTheApp may be a null pointer (tracker item no. 2946058)
-      //     if (wxTheApp != NULL) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
-      //     if( gdlGUIThread != NULL)
-      //       gdlGUIThread->Exit();
-
-      // SA: gives the following error message with no connection to X-server:
-      //   GDL> exit
-      //   Error: Unable to initialize gtk, is DISPLAY set properly?
-      //wxUninitialize();
 #endif
 
       sem_onexit();
@@ -2684,42 +2667,54 @@ bool CompareWithJokers(string names, string sourceFiles) {
     }
 #ifdef _WIN32
 #define BUFSIZE 1024
-    void ReadFromPipe(HANDLE g_Rd, vector<DString> *s_str)
-
-    // Read output from the child process's pipe for STDOUT
-    // and write to the parent process's pipe for STDOUT. 
-    // Stop when there is no more data. 
+	void ReadPipeToDString(HANDLE g_Rd,char *buf, int *pos, vector<DString> *s_str)
     {
-      DWORD dwRead, len;
-      CHAR chBuf[BUFSIZE];
+      CHAR chbuf[BUFSIZE];
       CHAR a_chr;
+	  DWORD dwRead;
       BOOL bSuccess = FALSE;
-	  
-      len = 0;
-      for (;;)
-	{
-	  bSuccess = ReadFile(g_Rd, &a_chr, 1, &dwRead, NULL);
-	  if (!bSuccess || dwRead == 0) {
-	    if (len > 0) {
-	      if (len < BUFSIZE-1) len++;
-	      chBuf[len] = 0;
-	      s_str->push_back(DString(chBuf));
-	    }
-	    break;
+	  int len = 0;
+	  int nlines=0;
+	  int debug=0;
+	  int ptr=*pos;
+	  	    if(debug) std::printf(" RPTD: for(;;) { ");
+	  for (;;) {
+	    if(debug) std::printf(" ReadFile .. ");
+	    bSuccess = ReadFile(g_Rd, chbuf, BUFSIZE, &dwRead, NULL) ;
+	    if( !bSuccess || dwRead == 0) break;
+	    if(debug) std::printf(" dwRead, pos= %d %d ",dwRead, ptr);
+		
+		len=0;
+		while ( dwRead > 0) {
+		  a_chr = chbuf[len++]; dwRead--;
+		  if( a_chr == '\r') a_chr = '\0';
+	
+		  if (a_chr == '\n') {
+		    buf[ptr] = 0;
+		    ptr=0;  nlines++;
+//			if(debug) std::printf(" %d:%s",dwRead,buf);
+		    s_str->push_back(DString(buf));
+		  } 
+		  else 	  buf[ptr++] = a_chr;
+	      if (ptr >= BUFSIZE-1) {
+		    buf[BUFSIZE-1] = 0; ptr = 0;
+		    s_str->push_back(DString(buf));
+		  }
+		}
 	  }
-	  if (a_chr == '\r')
-	    a_chr = '\0';
-	  chBuf[len++] = a_chr;
-	  if (a_chr == '\n' || len == BUFSIZE) {
-	    len = 0;
-	    s_str->push_back(DString(chBuf));
-	  }
+	  if(debug) {
+		if (bSuccess)  std::printf(" bSuccess=T #lines: %d ",nlines);
+		else		   std::printf(" bSuccess=F #lines: %d ",nlines);
+		std::printf(" pos= %d }\n", ptr);
 	}
+	  *pos = ptr;
     }
     DWORD launch_cmd(BOOL hide, BOOL nowait, LPTSTR cmd, LPTSTR title = NULL, DWORD *pid = NULL,
 		     vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
     {
       DWORD status;
+      CHAR outbuf[BUFSIZE];
+	  CHAR errbuf[BUFSIZE];
 
       STARTUPINFO si = { 0, };
       PROCESS_INFORMATION pi = {0, };
@@ -2730,8 +2725,6 @@ bool CompareWithJokers(string names, string sourceFiles) {
       saAttr.bInheritHandle = TRUE;
       saAttr.lpSecurityDescriptor = NULL;
 
-      //HANDLE g_hChildStd_IN_Rd = NULL;
-      //HANDLE g_hChildStd_IN_Wr = NULL;
       HANDLE g_hChildStd_OUT_Rd = NULL;
       HANDLE g_hChildStd_OUT_Wr = NULL;
       HANDLE g_hChildStd_ERR_Rd = NULL;
@@ -2742,6 +2735,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	si.lpTitle = cmd;
       else
 	si.lpTitle = title;
+	int debug  =0;
 
       if (hide)	    {
 	  si.dwFlags = STARTF_USESHOWWINDOW;
@@ -2749,36 +2743,69 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	}
 
       if (ds_outs != NULL) {
-	//CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0);
+					if(debug) std::printf(" CreatePipe stdout: ");
 	CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0);
-	//si.hStdInput = g_hChildStd_IN_Rd;
 	si.hStdOutput = g_hChildStd_OUT_Wr;
+// Ensure the read handle to the pipe for STDOUT is not inherited.
+        SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0);
 	if (ds_errs != NULL) {
+					if(debug) std::printf(" CreatePipe stderr: ");
 	  CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0);
 	  si.hStdError = g_hChildStd_ERR_Wr;
+           SetHandleInformation(g_hChildStd_ERR_Rd, HANDLE_FLAG_INHERIT, 0);
 	}
 	si.dwFlags |= STARTF_USESTDHANDLES;
+					if(debug) std::printf(" CreateProcess: ");
 	CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
         if (pid != NULL)	*pid = pi.dwProcessId;
-		 WaitForSingleObject(pi.hProcess, INFINITE);
+		DWORD progress;
+
+		int poserr=0;
+		int posout=0;
+	    if (ds_errs != NULL) CloseHandle(g_hChildStd_ERR_Wr); 		
+        CloseHandle(g_hChildStd_OUT_Wr);
+	    do { 
+		   Sleep(10);
+//		   if (ds_errs != NULL) ReadPipeToDString(g_hChildStd_ERR_Rd,errbuf,&poserr,ds_errs);
+		   if (ds_outs != NULL) ReadPipeToDString(g_hChildStd_OUT_Rd,outbuf,&posout,ds_outs);
+		   if(debug) std::printf(" Wait 1 sec: ");  if(debug) Sleep(1000);
+		   progress = WaitForSingleObject(pi.hProcess, 0);
+		   }  while ( progress == WAIT_TIMEOUT );
+        GetExitCodeProcess(pi.hProcess, &status);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+ 
+		if (progress == WAIT_OBJECT_0) {
+		  ReadPipeToDString(g_hChildStd_OUT_Rd,outbuf,&posout,ds_outs);
+		  if(posout > 0) {
+		    outbuf[BUFSIZE-1] = 0;
+			posout++;
+			if(posout < BUFSIZE) outbuf[posout]=0;
+			ds_outs->push_back(DString(outbuf));
+		  }
+		  CloseHandle(g_hChildStd_OUT_Rd);
+		  if (ds_errs != NULL) {
+			ReadPipeToDString(g_hChildStd_ERR_Rd,errbuf,&poserr, ds_errs);
+		    if(poserr > 0) {
+		      errbuf[BUFSIZE-1] = 0;
+			  poserr++;
+			  if(poserr < BUFSIZE) errbuf[poserr]=0;
+			  ds_errs->push_back(DString(errbuf));
+		    }
+			CloseHandle(g_hChildStd_ERR_Rd);
+		  }
+		} else
+		  std::printf(" error from CreateProcess: progress = 0x%x \n",progress);
+		
       }
       else
 	{
 	  CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
         if (pid != NULL)	*pid = pi.dwProcessId;
 	    if( !nowait)       WaitForSingleObject(pi.hProcess, INFINITE);
-	}
       GetExitCodeProcess(pi.hProcess, &status);
       CloseHandle(pi.hProcess);
       CloseHandle(pi.hThread);
-
-      if (ds_outs != NULL) {
-	CloseHandle(g_hChildStd_OUT_Wr);
-	ReadFromPipe(g_hChildStd_OUT_Rd, ds_outs);
-	if (ds_errs != NULL) {
-	  CloseHandle(g_hChildStd_ERR_Wr);
-	  ReadFromPipe(g_hChildStd_ERR_Rd, ds_errs);
-	}
       }
       return status;
     }
@@ -2854,7 +2881,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       else
 	ds_cmd = "cmd /c " + cmd;
 #ifdef _UNICODE
-      TCHAR t_cmd[255];
+      wchar_t t_cmd[255];
       MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
 #else
       LPTSTR t_cmd = (LPTSTR)ds_cmd.c_str();

@@ -112,7 +112,11 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    srand((unsigned int)time(NULL));
    for (int i=0; i<6; i++)
       XXXXXX[i] = letters[rand()%63];
-   _sopen_s(&fd, filename, O_RDWR | O_CREAT | O_EXCL, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+
+/* _sopen replaces _sopen_s(&fd, ...) so that XP can still run without fetching a new MSVCRT. !! */
+/* Also, sopen_s is not in all win32 compilers' io.h header */
+
+   fd = _sopen(filename, O_RDWR | O_CREAT | O_EXCL, _SH_DENYNO, _S_IREAD | _S_IWRITE);
 #else
    fd=mkstemp(filename);
 #endif

@@ -53,6 +53,8 @@ private:
   int cursorId; //should be 3 by default.
   long gcFunction;
   int backingStoreMode;
+
+
   void EventHandler();
 
   bool WDelete( int );
@@ -68,10 +70,13 @@ private:
   DString GetVisualName();
   DLong GetPixelDepth();
   DByteGDL* WindowState();
+   bool UnsetFocus();
+   int MaxWin();
+   int ActWin();
+   void DefaultXYSize(DLong *xSize,DLong  *ySize);
+  void MaxXYSize(DLong *xSize, DLong *ySize);
   DIntGDL* GetScreenSize(char* disp=NULL);
   DDoubleGDL* GetScreenResolution(char* disp=NULL);
-  void MaxXYSize(DLong *xSize, DLong *ySize);
-  void DefaultXYSize(DLong *xSize, DLong *ySize);
 
   void SetActWin( int wIx)
   {
@@ -195,19 +200,14 @@ public:
     }
     return winList[ actWin];
   }
-
-
+#ifdef HAVE_LIBWXWIDGETS
+  bool GUIOpen( int wIx, int xSize, int ySize);
+#endif
   bool Decomposed(bool value)
   {
   	decomposed = value;
   	return true;
   }
-
-  bool UnsetFocus()
-  {
-    if( actWin == -1) { return false;}
-    return winList[ actWin]->UnsetFocus();
-  }  
 
   void RaiseWin( int wIx)
   {
@@ -227,9 +227,6 @@ public:
   {
     if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->DeIconic();
   }
-
-  int MaxWin() { TidyWindowsList(); return winList.size();}
-  int ActWin() { TidyWindowsList(); return actWin;}
 
 };
 #undef maxWin

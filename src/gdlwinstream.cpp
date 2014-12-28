@@ -23,7 +23,9 @@
 using namespace std;
 #include "gdlwinstream.hpp"
 #include "devicewin.hpp"
-
+#ifndef PLESC_TELLME
+#define PLESC_TELLME  41
+#endif
 void GDLWINStream::Init()
 {
 	this->plstream::init();
@@ -54,9 +56,104 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     UP //4
     };
  
-  gin->button = mode; // passing our mode into the event loop.
+	plgpls(&pls);
+ // plstream::cmd( PLESC_GETC, gin );
+   wingcc_Dev *dev = (wingcc_Dev *) pls->dev;
 
-  plstream::cmd( PLESC_GETC, gin );
+    HCURSOR    cursor;
+    HCURSOR    crosshair;
+    HCURSOR    previous;
+    RECT rcClip;
+    RECT rcOldClip;
+	POINT Point;
+    UINT SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
+	HWND resetFG;
+	resetFG = GetForegroundWindow();
+	
+    cursor = LoadCursor( NULL, IDC_CROSS );
+#ifdef _WIN64
+    SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) cursor );
+#else
+    SetClassLong( dev->hwnd, GCLP_HCURSOR, (LONG) cursor );
+#endif
+//   SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) dev->cursor );
+    previous = SetCursor( cursor );
+
+    SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
+
+
+    SetWindowPos(dev->hwnd, HWND_TOP, 0,0,0,0, SWP);
+	GetClipCursor(&rcOldClip);
+    GetWindowRect(dev->hwnd, &rcClip);  // I tried every which-way,this is the way!
+	ClipCursor(&rcClip);                
+
+ 	gin->pX=-1;   // negative Xs are unlikely.
+//   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
+// http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
+
+	bool rbutton, xbutton, mbutton;
+	gin->button=0;
+    while ( gin->pX < 0 )
+    {
+		rbutton=false; xbutton=false; mbutton=false;
+        GetMessage( &dev->msg, NULL, 0, 0 );
+        TranslateMessage( &dev->msg );
+        switch ( (int) dev->msg.message )
+        {
+        case WM_XBUTTONDOWN:  xbutton=true;
+        case WM_RBUTTONDOWN:  rbutton=true;
+        case WM_MBUTTONDOWN:  mbutton=true;
+
+        case WM_LBUTTONDOWN:
+			if( mode == 4) {   // Looking for button up
+				DispatchMessage(&dev->msg);
+				break;
+				}
+			gin->button=1;
+            gin->pX = dev->msg.pt.x;
+            break;
+        case WM_XBUTTONUP:		xbutton=true;
+        case WM_RBUTTONUP:		rbutton=true;
+        case WM_MBUTTONUP:  mbutton=true;
+		case WM_LBUTTONUP:
+			if( mode == 3) {  // Looking for button down
+				DispatchMessage(&dev->msg);
+				break;
+				}
+			gin->button=1;
+            gin->pX = dev->msg.pt.x;
+            break;
+        case WM_CHAR:
+            gin->pX = dev->msg.pt.x;
+            gin->keysym = dev->msg.wParam;
+            break;
+		default:
+			if(mode == 0) {
+        		GetCursorPos(&Point);
+		        gin->pX = Point.x;        gin->pY = Point.y;
+	 		} else	DispatchMessage(&dev->msg);
+        }  
+	    gin->pY = dev->msg.pt.y;
+    }
+	if(xbutton) gin->button=4; else 
+		if(rbutton) gin->button=3; else
+			if(mbutton) gin->button=2;
+    gin->pX -= rcClip.left; 
+	gin->pY = rcClip.bottom - gin->pY; //  switch it to the X convention.
+    int xcorr =  8;  // yeah, really.
+    int ycorr =  8;  // a reserve in the borders?
+    gin->dX = ((PLFLT) gin->pX - xcorr) / ( dev->width - 1); // !! this is the reversible answer.
+    gin->dY = ((PLFLT) gin->pY - ycorr) / ( dev->height - 1); // re-plotting in normal coordinates
+    ClipCursor(&rcOldClip);
+
+ 	SetForegroundWindow(resetFG);
+    SetCursor( previous );
+
+    Sleep(2);
+	BringWindowToTop(dev->hwnd);
+    Sleep( 2);
+    SetFocus(resetFG);
+
   return true;  
 }
 

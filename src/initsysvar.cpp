@@ -717,7 +717,7 @@ namespace SysVar
 		arch = new DStringGDL("unknown");
 	}
 	ver->NewTag("ARCH", arch); 
-    ver->NewTag("OS_FAMILY", new DStringGDL( "windows")); 
+    ver->NewTag("OS_FAMILY", new DStringGDL( "Windows")); 
 #else
     struct utsname uts;
     uname(&uts);

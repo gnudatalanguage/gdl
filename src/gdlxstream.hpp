@@ -46,6 +46,8 @@ public:
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();
   DString GetVisualName();
+  bool setFocus(bool value);
+
   bool UnsetFocus();
   bool SetBackingStore(int value);
   bool SetGraphicsFunction(long value );

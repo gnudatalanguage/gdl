@@ -247,13 +247,24 @@ DString GDLXStream::GetVisualName() {
     } 
     else 
     { 
-      XWMHints gestw;
-      gestw.input = FALSE;
-      gestw.flags = InputHint;
       XSetInputFocus(xwd->display, DefaultRootWindow(xwd->display),RevertToParent,CurrentTime);
     }
     return true;
   }  
+  
+// This helps cursor window leave focus.
+//
+  bool GDLXStream::setFocus(bool value=true)
+  {
+    XwDev *dev = (XwDev *) pls->dev;
+    if( dev == NULL) return false;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    XWMHints gestw;
+    gestw.input = value;
+    gestw.flags = InputHint;
+    XSetWMHints(xwd->display, dev->window, &gestw);
+    return true;
+  }
   
   bool GDLXStream::SetBackingStore(int value)
   {
@@ -376,6 +387,7 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
   if (ostate & Button4Mask) gin->button = 4;
   if (ostate & Button5Mask) gin->button = 5; //IDL does not support buttons 4-5 but we may?
   //return if NOWAIT
+  setFocus(false);  // first try to get out of focus.
   if (mode == NOWAIT) return true;
   
   unsigned long event_mask = (PointerMotionMask|ButtonMotionMask);

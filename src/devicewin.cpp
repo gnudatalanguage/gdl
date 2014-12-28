@@ -22,30 +22,11 @@
 #include "gdlwinstream.hpp"
 #include "devicewin.hpp"
 
-#include "plotting.hpp"
-
- 
-  void DeviceWIN::DefaultXYSize(DLong *xSize,DLong  *ySize) 
-  {
-   *xSize=680; *ySize=480; 
-#if defined (_WIN32) 
-    // the following not tested (no access to windows) (GD)
-    bool noQscreen=true;
-    string gdlQscreen=GetEnvString("GDL_GR_WIN_QSCREEN");
-    if( gdlQscreen == "1") noQscreen=false;
-    string gdlXsize=GetEnvString("GDL_GR_WIN_WIDTH");
-    if( gdlXsize != "" && noQscreen) *xSize=atoi(gdlXsize.c_str()); 
-    string gdlYsize=GetEnvString("GDL_GR_WIN_HEIGHT");
-    if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
+#ifdef HAVE_LIBWXWIDGETS
+#include "gdlwxstream.hpp"
 #endif
-  return;}
 
-  void DeviceWIN::MaxXYSize(DLong *xSize, DLong *ySize)
-  {
-	*xSize = GetSystemMetrics(SM_CXSCREEN);
-	*ySize = GetSystemMetrics(SM_CYSCREEN);
-
-   }
+#include "plotting.hpp"
 
 
   void DeviceWIN::EventHandler()
@@ -64,6 +45,15 @@
     int wLSize = winList.size();
     if( wIx >= wLSize || wIx < 0 || winList[ wIx] == NULL)
       return false;
+
+#ifdef HAVE_LIBWXWIDGETS
+    if( dynamic_cast<GDLWXStream*>( winList[ wIx]) != NULL)
+      {
+	Warning("Attempt to delete widget (ID=" + i2s(wIx) +
+			"). Will be auto-deleted upon window destruction.");
+	return false;
+      }
+#endif    
 
     delete winList[ wIx];
     winList[ wIx] = NULL;
@@ -85,12 +75,66 @@
     return true;
   }
 
+#ifdef HAVE_LIBWXWIDGETS
+  bool DeviceWIN::GUIOpen( int wIx, int xSize, int ySize)
+  {
+
+    TidyWindowsList();
+
+    int wLSize = winList.size();
+    if( wIx >= wLSize || wIx < 0)
+      return false;
+
+    if( winList[ wIx] != NULL)
+      {
+        delete winList[ wIx];
+        winList[ wIx] = NULL;
+      }
+
+    winList[ wIx] = new GDLWINStream( xSize, ySize);
+    
+    // no pause on win destruction
+    winList[ wIx]->spause( false);
+
+    // extended fonts
+    winList[ wIx]->fontld( 1);
+
+    // we want color
+    winList[ wIx]->scolor( 1);
+
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    actCT.Get( r, g, b);
+    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
+
+    // need to be called initially. permit to fix things
+    winList[ wIx]->ssub(1,1);
+    winList[ wIx]->adv(0);
+    // load font
+    winList[ wIx]->font( 1);
+    winList[ wIx]->vpor(0,1,0,1);
+    winList[ wIx]->wind(0,1,0,1);
+    winList[ wIx]->DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (winList[ wIx]->updatePageInfo()==true)
+      {
+        winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+
+      }
+    // sets actWin and updates !D
+         SetActWin( wIx);
+
+    return true; //winList[ wIx]->Valid(); // Valid() need to called once
+  } // GUIOpen
+#endif
+
+  
   bool DeviceWIN::WOpen( int wIx, const std::string& title, 
 	      int xSize, int ySize, int xPos, int yPos)
   {
 
     int debug=0;
-    if(debug) cout << " DeviceWIN:WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos;
+    if(debug) cout << " DeviceWIN::WOpen : xsize=" << xSize <<" y:"<< ySize
+	                         <<" Xposition="<< xPos<<" Y:"<< yPos  <<endl;
     TidyWindowsList();
 
     int wLSize = winList.size();
@@ -119,27 +163,57 @@
     PLFLT xp; PLFLT yp; 
     PLINT xleng; PLINT yleng;
     PLINT xoff; PLINT yoff;
-    if(debug) cout << "WOpen: ->plstream:gpage(";
     winList[ wIx]->plstream::gpage( xp, yp, xleng, yleng, xoff, yoff);
-// <<<< alternate block in devicex.hpp
-		xleng = xSize;
-		yleng = ySize;
-		xoff = xPos;
-		yoff = yPos;
-// >>>>
-    if(debug) cout << " )WOpen: ->spage(";
+
+    if (debug) cout <<"WOpen.gpage xp="<<xp<<", yp="<<yp
+	            <<", xleng="<<xleng<<", yleng="<<yleng
+                    << ", xoff="<<xoff<<", yoff="<<yoff    <<endl;
+
+/**/
+    DLong xMaxSize, yMaxSize;
+    DeviceWIN::MaxXYSize(&xMaxSize, &yMaxSize);
+
+    bool noPosx=(xPos==-1);
+    bool noPosy=(yPos==-1);
+    xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
+    yPos=max(1,yPos);
+
+    xleng = min(xSize,xMaxSize);
+        if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
+    yleng = min(ySize,yMaxSize);
+        if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
+    if (debug) cout <<"then: xleng="<<xleng<<", yleng="<<yleng
+	            <<" xMaxSize="<<xMaxSize<<" yMaxSize="<<yMaxSize    <<endl;
+// dynamic allocation needed!    
+    PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
+    PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
+    if (noPosx && noPosy) { //no init given, use 4 quadrants:
+      xoff = Quadx[wIx%4]; yoff = Quady[wIx%4];
+    } else if (noPosx) {
+      xoff = Quadx[wIx%4]; yoff = yMaxSize-yPos-yleng;
+    } else if (noPosy) {
+      xoff = xPos; yoff = Quady[wIx%4];
+    } else {
+      xoff  = xPos; yoff  = yMaxSize-yPos-yleng;
+    }
+    //apparently this is OK to get same results as IDL on X11...
+
+    yoff++;
+    if (debug) cout <<"End: xp="<<xp<<", yp="<<yp<<", xleng="<<xleng<<", yleng="<<yleng<<", xoff="<<xoff<<", yoff="<<yoff<<endl;
     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
-    if(debug) cout << " )\n WOpen: ->spause(";
+/*  ye old way for windows ...
+		xleng = xSize; yleng = ySize;
+		xoff = xPos; yoff = yPos;
 
+    winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
+   */ 
     // no pause on win destruction
     winList[ wIx]->spause( false);
-    if(debug) cout << " ) WOpen: ->fontld(";
+    if(debug) cout << " WOpen: ->fontld( 1) WOpen: ->scolor( ";
 
     // extended fonts
     winList[ wIx]->fontld( 1);
-    if(debug) cout << " ) WOpen: ->scolor(";
-
 
     // we want color
     winList[ wIx]->scolor( 1);
@@ -148,7 +222,7 @@
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-   if(debug) cout << " )\n WOpen: ->SETOPT(plwindow,buf) \n";
+   if(debug) cout << "1) WOpen: ->SETOPT(plwindow,buf)";
     winList[ wIx]->SETOPT( "plwindow", buf);
 
 		// we want color (and the driver options need to be overwritten)
@@ -160,11 +234,11 @@
     // winList[ wIx]->scmap0( r, g, b, actCT.size());
     winList[ wIx]->scmap1( r, g, b, ctSize);
 
-   if(debug) cout << " WOpen:winList[ wIx]->Init(";
+   if(debug) cout << "; WOpen:winList[ wIx]->Init(";
 
     winList[ wIx]->Init();
-if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)" 
-               << "adv(0) font(1) vpor(0,1,0,1) wind(0,1,0,1";
+//          if(debug) cout << " ) WOpen:winList[ wIx]->ssub(1,1)" 
+//                        << "adv(0) font(1) vpor(0,1,0,1) wind(0,1,0,1";
 			   //----------------------
 				//----------------------
    // need to be called initially. permit to fix things
@@ -174,11 +248,9 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
     winList[ wIx]->font( 1);
     winList[ wIx]->vpor(0,1,0,1);
     winList[ wIx]->wind(0,1,0,1);
-   if(debug) cout << " )\n WOpen:winList[ wIx]->DefaultCharsize(";
-
     winList[ wIx]->DefaultCharSize();
-   if(debug) cout << " )\n WOpen:winList[ wIx]->updatePageInfo(";
     //in case these are not initalized, here is a good place to do it.
+        if(debug) cout << ")... DefaultCharSize(); "<< endl;
     if (winList[ wIx]->updatePageInfo()==true)
       {
         winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
@@ -186,7 +258,6 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
       }
     // sets actWin and updates !D
     SetActWin( wIx);
-   if(debug) cout << " WOpen return true;} \n ";
 
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   }
@@ -196,27 +267,35 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
     return wIx >= 0 && wIx < oList.size() && oList[ wIx] != 0;
   }
 
-  bool DeviceWIN::WSet(int wIx)
+  bool DeviceWIN::WSize( int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
   {
   	TidyWindowsList();
 
   	int wLSize = winList.size();
-  	if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
+    if( wIx > wLSize || wIx < 0)
   		return false;
 
-  	SetActWin(wIx);
+    long xleng, yleng;
+    long xoff, yoff;
+    winList[ wIx]->GetGeometry( xleng, yleng, xoff, yoff);
+
+    *xSize = xleng;
+    *ySize = yleng;
+    *xPos = xoff;
+    *yPos = yoff;
+
   	return true;
   }
-  bool DeviceWIN::WSize( int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
+
+  bool DeviceWIN::WSet(int wIx)
   {
     TidyWindowsList();
 
     int wLSize = winList.size();
-    if( wIx > wLSize || wIx < 0)      return false;
-    long xleng, yleng, xpos, ypos;
-    winList[ wIx]->GetGeometry( xleng, yleng, xpos, ypos);
-    *xSize=xleng; *ySize=yleng;
-    *xPos =xpos;  *yPos =ypos;
+  	if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
+  		return false;
+
+  	SetActWin(wIx);
     return true;
   }
 
@@ -250,36 +329,10 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
     oList.push_back( 0);
     return wLSize;
   }
-    DLong DeviceWIN::GetVisualDepth()
-    {
-        TidyWindowsList();
-        this->GetStream(); //to open a window if none opened.
-        return winList[ actWin]->GetVisualDepth();
-    }
 
 
-    DString DeviceWIN::GetVisualName()
-    {
-        TidyWindowsList();
-        this->GetStream(); //to open a window if none opened.
-        return winList[ actWin]->GetVisualName();
-    }
   
  
-  DIntGDL* DeviceWIN::GetWindowPosition()
-  {
-      TidyWindowsList();
-      this->GetStream(); //to open a window if none opened.
-      long xpos,ypos;
-      if ( winList[ actWin]->GetWindowPosition(xpos,ypos) ) {
-          DIntGDL* res;
-          res = new DIntGDL(2, BaseGDL::NOZERO);
-          (*res)[0] = xpos;
-          (*res)[1] = ypos;
-          return res;
-      }
-      else return NULL;
-  }
   DIntGDL* 	DeviceWIN::GetScreenSize(char *disp)
   {
       DLong xsize, ysize;
@@ -312,6 +365,34 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
       return resolution;
   }
 	
+  DIntGDL* DeviceWIN::GetWindowPosition()
+  {
+      TidyWindowsList();
+      this->GetStream(); //to open a window if none opened.
+      long xpos,ypos;
+      if ( winList[ actWin]->GetWindowPosition(xpos,ypos) ) {
+          DIntGDL* res;
+          res = new DIntGDL(2, BaseGDL::NOZERO);
+          (*res)[0] = xpos;
+          (*res)[1] = ypos;
+          return res;
+      }
+      else return NULL;
+  }
+
+    DLong DeviceWIN::GetVisualDepth()
+    {
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualDepth();
+    }
+
+    DString DeviceWIN::GetVisualName()
+    {
+        TidyWindowsList();
+        this->GetStream(); //to open a window if none opened.
+        return winList[ actWin]->GetVisualName();
+    }
 	
   DLong DeviceWIN::GetPixelDepth()
   {
@@ -330,3 +411,38 @@ if(debug) cout << " )\n WOpen:winList[ wIx]->ssub(1,1)"
         return ret;
         } else return NULL;
     }  
+
+  bool DeviceWIN::UnsetFocus()
+  {
+    if( actWin == -1) { return false;}
+    return winList[ actWin]->UnsetFocus();
+  }  
+
+  int DeviceWIN::MaxWin() { TidyWindowsList(); return winList.size();}
+  int DeviceWIN::ActWin() { TidyWindowsList(); return actWin;}
+ 
+  void DeviceWIN::DefaultXYSize(DLong *xSize,DLong  *ySize) 
+  {
+   *xSize=680; *ySize=480; 
+   DLong XS, YS;
+   MaxXYSize(&XS, &YS);
+   *ySize = YS/2; *xSize = XS/2;
+    if(*xSize > 1.5*(*ySize)) *xSize = floor(float(*ySize)*.1375) * 10;
+    bool noQscreen=true;
+    string gdlQscreen=GetEnvString("GDL_GR_WIN_QSCREEN");
+    if( gdlQscreen == "1") noQscreen=false;
+    string gdlXsize=GetEnvString("GDL_GR_WIN_WIDTH");
+    if( gdlXsize != "" && noQscreen) *xSize=atoi(gdlXsize.c_str()); 
+    string gdlYsize=GetEnvString("GDL_GR_WIN_HEIGHT");
+    if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
+
+  return;}
+
+  void DeviceWIN::MaxXYSize(DLong *xSize, DLong *ySize)
+  {
+	*xSize = GetSystemMetrics(SM_CXSCREEN);
+	*ySize = GetSystemMetrics(SM_CYSCREEN);
+
+   }
+
+
