@@ -21,6 +21,7 @@
 #include <plplot/plstream.h>
 
 #include "envt.hpp"
+#include "initsysvar.hpp"
 
 namespace lib {
 
