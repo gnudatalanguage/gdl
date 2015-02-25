@@ -750,41 +750,24 @@ public:
   
   void GetPlplotDefaultCharSize()
   {
+        
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetPlPlotDefaultCharsize()\n");
     if (thePage.nbPages==0)   {return;}
     //dimensions in normalized, device and millimetres
     if (gdlDefaultCharInitialized==1) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     Already initialized\n"); return;}
-
-    PLFLT nxmin, nxmax, nymin, nymax, wxmin, wxmax, wymin, wymax;
-    plstream::gvpd(nxmin, nxmax, nymin, nymax); //save norm of current box
-    if((nxmin==0.0&&nxmax==0.0)||(nymin==0.0&&nymax==0.0)) //if not initialized, set normalized mode
-    {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          Warning: initializing viewport\n");
-      plstream::vpor(0, 1, 0, 1);
-      plstream::gvpd(nxmin, nxmax, nymin, nymax);
-      plstream::wind(0.0,1.0,0.0,1.0);
-    }
-    plstream::gvpw(wxmin, wxmax, wymin, wymax); //save world of current box
-    PLFLT vpXmin2, vpXmax2, vpYmin2, vpYmax2;
-    plstream::vpor(0, 1, 0, 1);
-    plstream::wind(0.0,1.0,0.0,1.0);
-// plplot doc says "Defines a "standard" viewport with seven character heights for
-// the left margin and four character heights everywhere else."
-// but c_plvsta() code shows the sizes are 8 and 5 character heights instead!
-    plstream::vsta();
-    plstream::gvpd(vpXmin2, vpXmax2, vpYmin2, vpYmax2);
-    theDefaultChar.ndsx=vpXmin2/8.0;
-    theDefaultChar.ndsy=(vpYmin2+1-vpYmax2)/10.0; //5+5 char heights
+    theDefaultChar.scale=1.0;
+    theDefaultChar.mmsx=pls->chrht; //millimeter
+    theDefaultChar.mmsy=pls->chrht;
+    theDefaultChar.ndsx=mm2ndx(theDefaultChar.mmsx); //normalized device
+    theDefaultChar.ndsy=mm2ndy(theDefaultChar.mmsy);
     theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
     theDefaultChar.dsx=theDefaultChar.ndsx*thePage.length;
-    plstream::vpor(nxmin, nxmax, nymin, nymax); //restore norm of current box
-    plstream::wind(wxmin, wxmax, wymin, wymax); //restore world of current box
-    PLFLT defhmm, scalhmm;
-    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-    theDefaultChar.mmsx=scalhmm;
-    theDefaultChar.mmsy=theDefaultChar.dsy/theDefaultChar.dsx*scalhmm;
+    theDefaultChar.wsx=mm2wx(theDefaultChar.mmsx); //world
+    theDefaultChar.wsy=mm2wy(theDefaultChar.mmsy);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(mm)\n",theDefaultChar.mmsx,theDefaultChar.mmsy);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(norm)\n",theDefaultChar.ndsx,theDefaultChar.ndsy);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(dev)\n",theDefaultChar.dsx,theDefaultChar.dsy);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(world)\n",theDefaultChar.wsx,theDefaultChar.wsy);
     gdlDefaultCharInitialized=1;
   }
   // SA: overloading plplot methods in order to handle IDL-plplot extended

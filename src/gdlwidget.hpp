@@ -24,6 +24,7 @@
 #include <wx/wx.h>
 #include <wx/treebase.h>
 #include <wx/treectrl.h>
+#include <wx/defs.h>
 
 #include <deque>
 #include <map>
@@ -241,7 +242,8 @@ protected:
   DLong        units;
   DLong        frame;
   DString      font;
-  long  alignment;
+  long  alignment; //alignment of the widget
+  long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
 
   
 private:  
@@ -279,9 +281,14 @@ public:
     , WHEEL = 256
     , BUTTON = 512
     , KEYBOARD = 1024 //widget_draw, normal keys in the KEY field, modifiers reported in the "MODIFIERS" field
-    , KEYBOARD2 = 2048 //widget_draw, normal keys and compose keys reported in the KEY field 
+    , KEYBOARD2 = 2048 //widget_draw, normal keys and compose keys reported in the KEY field
+    , SIZE = 4096
+    , MOVE = 8192
+    , ICONIFY = 16384
+    , KILL = 32768
     } EventTypeFlags;
-
+ 
+ 
   virtual void updateFlags(); //to be overloaded...
   DULong GetEventFlags()  const { return eventFlags;}
   bool SetEventFlags( DULong evFlags) { eventFlags = evFlags; updateFlags();}
@@ -290,6 +297,9 @@ public:
   void RemoveEventType( DULong evType) { eventFlags &= ~evType; updateFlags();}
   void Raise();
   void Lower();
+  long textAlignment();
+  long widgetAlignment();
+  long getDefautAlignment();
 
   GDLWidget( WidgetIDT p, EnvT* e, 
 	     bool map_=true, BaseGDL* vV=NULL, DULong eventFlags_=0);
@@ -323,6 +333,9 @@ public:
   }
 
   void SetSizeHints();
+  void SetSize(DLong sizex, DLong sizey);
+  DLong GetXSize(){return xSize;}
+  DLong GetYSize(){return ySize;}
   
   WidgetIDT GetParentID() const { return parentID;}
   
@@ -423,21 +436,22 @@ protected:
   wxMutex*                                m_gdlFrameOwnerMutexP;
   DLong ncols;
   DLong nrows;
-//  bool scrolled;
+  bool stretchX;
+  bool stretchY;
+  long childrenAlignment;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
 		 bool mapWid,
 		 WidgetIDT& mBarIDInOut, bool modal, 
 		 DLong col, DLong row,
-		 long events,
 		 int exclusiveMode, 
 		 bool floating,
 		 const DString& resource_name, const DString& rname_mbar,
 		 const DString& title,
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
-		 DLong x_scroll_size, DLong y_scroll_size);
+		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment);
   
   ~GDLWidgetBase();
 
@@ -491,7 +505,7 @@ public:
 
 //  void Realize( bool);
   
-  void Destroy(); // sends delete event to itself
+  void SelfDestroy(); // sends delete event to itself
   
   void SetXmanagerActiveCommand() 
   { 
@@ -512,6 +526,10 @@ public:
 
   bool IsBase() const { return true;} 
   bool IsScrolled() { return scrolled;}
+  bool IsStretchable() {return stretchX||stretchY;}
+  void setStretchX(bool stretch) {stretchX=stretch;}
+  void setStretchY(bool stretch) {stretchY=stretch;}
+  long getChildrenAlignment(){return childrenAlignment;}
 //  void FitInside();
 };
 
@@ -579,14 +597,9 @@ class GDLWidgetDropList: public GDLWidget
   DLong style;
   
 public:
-  //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
-  //	     DString title, DLong xSize, DLong style);
   GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
 
-//  void OnShow();
-  
-//   void SetSelectOff();
   bool IsDropList() const { return true;} 
 
   void SetLastValue( const std::string& v) {  wxMutexLocker lock(m_mutex); lastValue = v;}
@@ -656,7 +669,7 @@ class GDLWidgetLabel: public GDLWidget
 {
   DString value;
 public:
-  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_);
+  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_, bool sunken);
 //  void OnShow();
  
   void SetLabelValue( const DString& value_);
@@ -880,19 +893,24 @@ DECLARE_LOCAL_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
 class wxNotebookEvent;
 class GDLFrame : public wxFrame
 {
+//  enum {TIMER_RESIZE = wxID_HIGHEST};
   bool lastShowRequest;
+  GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
   // called from ~GDLWidgetBase
   void NullGDLOwner() { gdlOwner = NULL;}
-  wxMutex* m_gdlFrameOwnerMutexP;
   friend class GDLWidgetBase;
 public:
   // ctor(s)
   GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition);
   ~GDLFrame();
+//  wxTimer *m_timer;
+//  wxSize desired_size;
 
+  GDLApp* GetTheApp(){return appOwner;}
+  void SetTheApp(GDLApp* myApp){appOwner=myApp;}
   
   // event handlers (these functions should _not_ be virtual)
   void OnIdle( wxIdleEvent& event);
@@ -906,10 +924,13 @@ public:
   void OnText( wxCommandEvent& event);
   void OnTextEnter( wxCommandEvent& event);
   void OnPageChanged( wxNotebookEvent& event);
-//   void OnSlider( wxCommandEvent& event);
+  void OnSize( wxSizeEvent& event);
+  void OnTimerResize(wxTimerEvent& event);
   void OnScroll( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
-
+  void OnRightClickAsContextEvent( wxMouseEvent &event );
+  void OnFocusChange( wxFocusEvent &event);
+  
   bool LastShowRequest() const { return lastShowRequest;}
   
   void SendShowRequestEvent( bool show)
@@ -983,21 +1004,20 @@ public:
   void OnKey( wxKeyEvent& event);
   void OnEnterWindow(wxMouseEvent &event);
   void OnLeaveWindow(wxMouseEvent &event);
-  void OnResize(wxSizeEvent &event);
+  void OnSize(wxSizeEvent &event);
   void SetEventFlags(DULong eventFlag_);
 //   void OnCreate(wxWindowCreateEvent& event);
 //   void OnDestroy(wxWindowDestroyEvent& event);
-//  void SendPaintEvent()
-//  {
-//    wxPaintEvent* event;
-//    event = new wxPaintEvent( GetId());
-//    event->SetEventObject( this);
-//    // only for wWidgets > 2.9 (takes ownership of event)
-////     this->QueueEvent( event);
-//    
-//    this->AddPendingEvent( *event); // copies event
-//    delete event;
-//  }
+  void SendPaintEvent()
+  {
+    wxPaintEvent* event;
+    event = new wxPaintEvent( GetId());
+    event->SetEventObject( this);
+    // only for wWidgets > 2.9 (takes ownership of event)
+//     this->QueueEvent( event);
+    this->AddPendingEvent( *event); // copies event
+    delete event;
+  }
 
   
  private:

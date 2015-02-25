@@ -33,14 +33,6 @@
 #include "graphicsdevice.hpp"
 
 // #define GDL_DEBUG_WIDGETS
-#define UPDATE_WINDOW  \
-  GetWidget( parentID )->GetSizer()->Layout(); \
-  if(widgetPanel->IsShownOnScreen()) \
-  {\
-    GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID()); \
-    tlb->GetSizer()->Layout(); \
-    static_cast<wxFrame*>(tlb->GetWxWidget())->Show(); \
-  }   // or : static_cast<wxFrame*>(tlb->GetWxWidget())->Fit();
  
 //why overcast inherited ~GDLWidget????
 GDLWidgetDraw::~GDLWidgetDraw()
@@ -60,11 +52,16 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
   assert( parentID != GDLWidget::NullID);
 
+
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
   if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
   if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
   if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
   if (scrolled) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
+
+  wxSize widgetSize = wxDefaultSize;
+  if ( xSize == widgetSize.x ) xSize=scrolled?120:100; //provide a default value!
+  if ( ySize == widgetSize.y ) ySize=scrolled?120:100; 
 
   wxWindow *wxParent = NULL;
 
@@ -89,12 +86,24 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   GDLDrawPanel* gdlWindow = new GDLDrawPanel( widgetPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style, eventFlags);
   gdlWindow->SetCursor(wxCURSOR_CROSS);
   wxWidget = gdlWindow;
-  if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
+  widgetSizer->Add( gdlWindow, 0, wxALL, DEFAULT_BORDER_SIZE);
   if (frame) this->FrameWidget();
-  if (!scrolled && !frame) widgetSizer->Add( gdlWindow, 0, wxFIXED_MINSIZE|wxALL, DEFAULT_BORDER_SIZE);
+  if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
 
-  UPDATE_WINDOW
-  this->vValue = new DLongGDL(pstreamIx);
+  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
+  
+  pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
+  GDLDelete( vValue);
+  this->vValue = new DLongGDL(pstreamIx);  
+
+//here UPDATE_WINDOW is useful.  
+  GetWidget( parentID )->GetSizer()->Layout();
+  if(widgetPanel->IsShownOnScreen()) 
+  {
+    GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID());
+//    tlb->GetSizer()->Layout();
+    static_cast<wxFrame*>(tlb->GetWxWidget())->Show();
+  }
 }
 void GDLWidgetDraw::updateFlags()
 {
@@ -104,11 +113,11 @@ void GDLWidgetDraw::updateFlags()
 void GDLWidgetDraw::OnRealize()
 {
 //  cout << "in GDLWidgetDraw::OnRealize()" << endl;
-  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
-  
-  pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
-  GDLDelete( vValue);
-  this->vValue = new DLongGDL(pstreamIx);
+//  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
+//  
+//  pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
+//  GDLDelete( vValue);
+//  this->vValue = new DLongGDL(pstreamIx);
   
   GDLWidget::OnRealize();
 }

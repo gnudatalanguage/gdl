@@ -477,7 +477,7 @@ void InitStructs()
   widgkbrdfocus->AddTag("ENTER", &aInt);
   structList.push_back( widgkbrdfocus);
 
-  DStructDesc* widgcontext = new DStructDesc( "WIDGET_DRAW");
+  DStructDesc* widgcontext = new DStructDesc( "WIDGET_CONTEXT");
   widgcontext->AddTag("ID", &aLong);
   widgcontext->AddTag("TOP", &aLong);
   widgcontext->AddTag("HANDLER", &aLong);
@@ -487,7 +487,48 @@ void InitStructs()
   widgcontext->AddTag("COL", &aLong);
   // insert into structList
   structList.push_back( widgcontext);
- }
+  
+  DStructDesc* widgtlb_size_events = new DStructDesc( "WIDGET_BASE");
+  widgtlb_size_events->AddTag("ID", &aLong);
+  widgtlb_size_events->AddTag("TOP", &aLong);
+  widgtlb_size_events->AddTag("HANDLER", &aLong);
+  widgtlb_size_events->AddTag("X", &aLong);
+  widgtlb_size_events->AddTag("Y", &aLong);
+  // insert into structList
+  structList.push_back( widgtlb_size_events);
+  
+  DStructDesc* widgtlb_move_events = new DStructDesc( "WIDGET_TLB_MOVE");
+  widgtlb_move_events->AddTag("ID", &aLong);
+  widgtlb_move_events->AddTag("TOP", &aLong);
+  widgtlb_move_events->AddTag("HANDLER", &aLong);
+  widgtlb_move_events->AddTag("X", &aLong);
+  widgtlb_move_events->AddTag("Y", &aLong);
+  // insert into structList
+  structList.push_back( widgtlb_move_events);
+
+  DStructDesc* widgtlb_iconify_events = new DStructDesc( "WIDGET_TLB_ICONIFY");
+  widgtlb_iconify_events->AddTag("ID", &aLong);
+  widgtlb_iconify_events->AddTag("TOP", &aLong);
+  widgtlb_iconify_events->AddTag("HANDLER", &aLong);
+  widgtlb_iconify_events->AddTag("ICONIFIED", &aInt);
+  // insert into structList
+  structList.push_back( widgtlb_iconify_events);
+
+  DStructDesc* widgtlb_kill_request_events = new DStructDesc( "WIDGET_KILL_REQUEST");
+  widgtlb_kill_request_events->AddTag("ID", &aLong);
+  widgtlb_kill_request_events->AddTag("TOP", &aLong);
+  widgtlb_kill_request_events->AddTag("HANDLER", &aLong);
+  // insert into structList
+  structList.push_back( widgtlb_kill_request_events);
+  
+  DStructDesc* widgtracking = new DStructDesc( "WIDGET_TRACKING");
+  widgtracking->AddTag("ID", &aLong);
+  widgtracking->AddTag("TOP", &aLong);
+  widgtracking->AddTag("HANDLER", &aLong);
+  widgtracking->AddTag("ENTER", &aInt);
+  // insert into structList
+  structList.push_back( widgtracking);
+}
 
 void InitObjects()
 {

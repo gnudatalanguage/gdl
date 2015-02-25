@@ -300,16 +300,16 @@ public:
     {
       winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
     }    
-    //see wxDriver code -it redefines x and y dpi according to the size of the page.
-    //to insure a x (mm) charsize in height, similar in shape to what X11 does with its 4dpm (250mu pitch)
-    //we need to rescale the default value 
-    PLFLT defhmm, scalhmm;
-    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-    PLFLT xp, yp;
-    PLINT xleng, yleng, xoff, yoff;
-    winList[ wIx]->gpage(xp, yp, xleng, yleng, xoff, yoff);
-    PLFLT newsize=(defhmm*4)/(yp/25.4);
-    winList[ wIx]->RenewPlplotDefaultCharsize(newsize);
+//    //see wxDriver code -it redefines x and y dpi according to the size of the page.
+//    //to insure a x (mm) charsize in height, similar in shape to what X11 does with its 4dpm (250mu pitch)
+//    //we need to rescale the default value 
+//    PLFLT defhmm, scalhmm;
+//    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+//    PLFLT xp, yp;
+//    PLINT xleng, yleng, xoff, yoff;
+//    winList[ wIx]->gpage(xp, yp, xleng, yleng, xoff, yoff);
+//    PLFLT newsize=(defhmm*4)/(yp/25.4);
+//    winList[ wIx]->RenewPlplotDefaultCharsize(newsize);
     // sets actWin and updates !D
     SetActWin( wIx);
 

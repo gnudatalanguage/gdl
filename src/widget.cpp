@@ -61,7 +61,7 @@ void GDLWidget::SetCommonKeywords( EnvT* e)
   font="";
     e->AssureStringScalarKWIfPresent( scr_xsizeIx, font );
     
-  alignment=wxALIGN_NOT;
+  alignment=-1;
   if (e->KeywordSet(ALIGN_LEFT)) alignment=wxALIGN_LEFT;
   if (e->KeywordSet(ALIGN_CENTER)) alignment=wxALIGN_CENTER;
   if (e->KeywordSet(ALIGN_RIGHT)) alignment=wxALIGN_RIGHT;
@@ -497,11 +497,14 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( base == NULL )
     e->Throw( "Parent is of incorrect type." );
 
+  static int APP_SCROLL = e->KeywordIx( "APP_SCROLL" );
+  bool appscroll = e->KeywordSet(APP_SCROLL);
+  //APP_SCROLL treatment is just a stub, please finish!
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
-  DLong x_scroll_size = 0;
+  DLong x_scroll_size = appscroll?250:0;
   e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
   static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
-  DLong y_scroll_size = 0;
+  DLong y_scroll_size = appscroll?250:0;
   e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
@@ -524,14 +527,13 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool keyboard_events = e->KeywordPresent( KEYBOARD_EVENTS );
 
 //  // TODO non-flags
-//  static int APP_SCROLL = e->KeywordIx( "APP_SCROLL" );
-//  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
+
+  //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
 //  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 //  static int COLORS = e->KeywordIx( "COLORS" ); // long
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
 //  static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL" );
 //  static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
-//  static int KEYBOARD_EVENTS = e->KeywordIx( "KEYBOARD_EVENTS" ); // 1, 2
 //  static int RENDERER = e->KeywordIx( "RENDERER" );
 //  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
 //  static int RETAIN = e->KeywordIx( "RETAIN" );
@@ -590,30 +592,30 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int obsolete_app_mbarIx = e->KeywordIx( "APP_MBAR" );
   static int modalIx = e->KeywordIx( "MODAL" );
 //  static int base_align_bottomIx = e->KeywordIx( "BASE_ALIGN_BOTTOM" );
-//  static int base_align_centerIx = e->KeywordIx( "BASE_ALIGN_CENTER" );
-//  static int base_align_leftIx = e->KeywordIx( "BASE_ALIGN_LEFT" );
-//  static int base_align_rightIx = e->KeywordIx( "BASE_ALIGN_RIGHT" );
+  static int base_align_centerIx = e->KeywordIx( "BASE_ALIGN_CENTER" );
+  static int base_align_leftIx = e->KeywordIx( "BASE_ALIGN_LEFT" );
+  static int base_align_rightIx = e->KeywordIx( "BASE_ALIGN_RIGHT" );
 //  static int base_align_topIx = e->KeywordIx( "BASE_ALIGN_TOP" );
   static int columnIx = e->KeywordIx( "COLUMN" );
   static int rowIx = e->KeywordIx( "ROW" );
-//  static int context_eventsIx = e->KeywordIx( "CONTEXT_EVENTS" );
+  static int context_eventsIx = e->KeywordIx( "CONTEXT_EVENTS" );
 //  static int context_menuIx = e->KeywordIx( "CONTEXT_MENU" );
   static int exclusiveIx = e->KeywordIx( "EXCLUSIVE" );
   static int nonexclusiveIx = e->KeywordIx( "NONEXCLUSIVE" );
   static int floatingIx = e->KeywordIx( "FLOATING" );
-//  static int grid_layoutIx = e->KeywordIx( "GRID_LAYOUT" );
+  static int grid_layoutIx = e->KeywordIx( "GRID_LAYOUT" );
   static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
-//  static int kbrd_focus_eventsIx = e->KeywordIx( "KBRD_FOCUS_EVENTS" );
+  static int kbrd_focus_eventsIx = e->KeywordIx( "KBRD_FOCUS_EVENTS" );
   static int mapIx = e->KeywordIx( "MAP" );
 //  static int spaceIx = e->KeywordIx( "SPACE" );
   static int titleIx = e->KeywordIx( "TITLE" );
 //  static int tlb_frame_attrIx = e->KeywordIx( "TLB_FRAME_ATTR" );
-//  static int tlb_iconify_eventsIx = e->KeywordIx( "TLB_ICONIFY_EVENTS" );
-//  static int tlb_kill_request_eventsIx = e->KeywordIx( "TLB_KILL_REQUEST_EVENTS" );
-//  static int tlb_move_eventsIx = e->KeywordIx( "TLB_MOVE_EVENTS" );
-//  static int tlb_size_eventsIx = e->KeywordIx( "TLB_SIZE_EVENTS" );
+  static int tlb_iconify_eventsIx = e->KeywordIx( "TLB_ICONIFY_EVENTS" );
+  static int tlb_kill_request_eventsIx = e->KeywordIx( "TLB_KILL_REQUEST_EVENTS" );
+  static int tlb_move_eventsIx = e->KeywordIx( "TLB_MOVE_EVENTS" );
+  static int tlb_size_eventsIx = e->KeywordIx( "TLB_SIZE_EVENTS" );
 //  static int toolbarIx = e->KeywordIx( "TOOLBAR" );
-//  static int tracking_eventsIx = e->KeywordIx( "TRACKING_EVENTS" );
+  static int tracking_eventsIx = e->KeywordIx( "TRACKING_EVENTS" );
   static int xpadIx = e->KeywordIx( "XPAD" );
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   static int ypadIx = e->KeywordIx( "YPAD" );
@@ -622,7 +624,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int resource_nameIx = e->KeywordIx( "RESOURCE_NAME" );
   static int rname_mbarIx = e->KeywordIx( "RNAME_MBAR" );
 
-//  // own alignment
+//  // own alignment: done in SetCommonKeywords
 //  bool align_bottom = e->KeywordSet( align_bottomIx );
 //  bool align_center = e->KeywordSet( align_centerIx );
 //  bool align_left = e->KeywordSet( align_leftIx );
@@ -631,22 +633,24 @@ BaseGDL* widget_draw( EnvT* e ) {
 //
 //  // children default alignment
 //  bool base_align_bottom = e->KeywordSet( base_align_bottomIx );
-//  bool base_align_center = e->KeywordSet( base_align_centerIx );
-//  bool base_align_left = e->KeywordSet( base_align_leftIx );
-//  bool base_align_right = e->KeywordSet( base_align_rightIx );
 //  bool base_align_top = e->KeywordSet( base_align_topIx );
+
+  long children_alignment=wxALIGN_NOT;
+  if (e->KeywordSet(base_align_leftIx )) children_alignment=wxALIGN_LEFT;
+  if (e->KeywordSet(base_align_centerIx)) children_alignment=wxALIGN_CENTER;
+  if (e->KeywordSet(base_align_rightIx)) children_alignment=wxALIGN_RIGHT;
 
   bool modal = e->KeywordSet( modalIx );
 
-//  bool context_events = e->KeywordSet( context_eventsIx );
+  bool context_events = e->KeywordSet( context_eventsIx );
 //  bool context_menu = e->KeywordSet( context_menuIx );
 
   bool exclusive = e->KeywordSet( exclusiveIx );
   bool nonexclusive = e->KeywordSet( nonexclusiveIx );
 
   bool floating = e->KeywordSet( floatingIx );
-//  bool grid_layout = e->KeywordSet( grid_layoutIx );
-//  bool kbrd_focus_events = e->KeywordSet( kbrd_focus_eventsIx );
+  bool grid_layout = e->KeywordSet( grid_layoutIx );
+  bool kbrd_focus_events = e->KeywordSet( kbrd_focus_eventsIx );
 
   bool mapWid = true;
   if ( e->KeywordPresent( mapIx ) )
@@ -659,12 +663,12 @@ BaseGDL* widget_draw( EnvT* e ) {
   //     bool sensitive = e->KeywordSet( sensitiveIx);
 //  bool space = e->KeywordSet( spaceIx );
 //  bool tlb_frame_attr = e->KeywordSet( tlb_frame_attrIx );
-//  bool tlb_iconify_events = e->KeywordSet( tlb_iconify_eventsIx );
-//  bool tlb_kill_request_events = e->KeywordSet( tlb_kill_request_eventsIx );
-//  bool tlb_move_events = e->KeywordSet( tlb_move_eventsIx );
-//  bool tlb_size_events = e->KeywordSet( tlb_size_eventsIx );
+  bool tlb_iconify_events = e->KeywordSet( tlb_iconify_eventsIx );
+  bool tlb_kill_request_events = e->KeywordSet( tlb_kill_request_eventsIx );
+  bool tlb_move_events = e->KeywordSet( tlb_move_eventsIx );
+  bool tlb_size_events = e->KeywordSet( tlb_size_eventsIx );
+  bool tracking_events = e->KeywordSet( tracking_eventsIx );
 //  bool toolbar = e->KeywordSet( toolbarIx );
-//  bool tracking_events = e->KeywordSet( tracking_eventsIx );
 
   DLong x_scroll_size = -1;
   e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
@@ -745,20 +749,26 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( exclusive ) exclusiveMode = GDLWidget::BGEXCLUSIVE;
   if ( nonexclusive ) exclusiveMode = GDLWidget::BGNONEXCLUSIVE;
 
-  DLong events = 0;
-
+  DULong eventFlags=0;
+  if (context_events) eventFlags |= GDLWidget::CONTEXT;
+  if (kbrd_focus_events) eventFlags |= GDLWidget::KBRD_FOCUS;
+  if (tlb_move_events)  eventFlags |= GDLWidget::TRACKING;
+  if (tlb_size_events) eventFlags |= GDLWidget::SIZE;
+  if (tlb_iconify_events) eventFlags |= GDLWidget::ICONIFY;
+  if (tlb_kill_request_events) eventFlags |= GDLWidget::KILL;
+  if (tracking_events) eventFlags |= GDLWidget::TRACKING;
+  
   GDLWidgetBase* base = new GDLWidgetBase( parentID, e,
   mapWid,
   /*ref*/ mBarID, modal,
   column, row,
-  events,
   exclusiveMode,
   floating,
   resource_name, rname_mbar,
   title,
   display_name,
   xpad, ypad,
-  x_scroll_size, y_scroll_size );
+  x_scroll_size, y_scroll_size, grid_layout , children_alignment);
 
   // some more properties
   if ( mbarPresent ) {
@@ -770,7 +780,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   }
   
   base->SetWidgetType( "BASE" );
-
+  // Set flags 
+  base->SetEventFlags(eventFlags);
   // return widget ID
   return new DLongGDL( base->WidgetID( ) );
 #endif
@@ -1109,7 +1120,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   static int editableIx = e->KeywordIx( "EDITABLE" );
   e->AssureLongScalarKWIfPresent( editableIx, edit );
   bool editable = (edit == 1);
-
+  
   GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable);
   text->SetWidgetType( "TEXT" );
   text->SetEventFlags(eventFlags);
@@ -1135,10 +1146,21 @@ BaseGDL* widget_slider( EnvT* e ) {
   static int valueIx = e->KeywordIx( "VALUE" );
   DString value = "label"; //tested default!
   e->AssureStringScalarKWIfPresent( valueIx, value );
+  
+  static int sunkenIx = e->KeywordIx( "SUNKEN_FRAME" );
+  bool isSunken=e->KeywordSet(sunkenIx);
+  
+  static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
+  bool trackingevents = e->KeywordPresent( TRACKING_EVENTS );
+  DULong eventFlags=0;
+  if (trackingevents)  eventFlags |= GDLWidget::TRACKING;
 
-  GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value );
+  GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value , isSunken);
   label->SetWidgetType( "LABEL" );
-
+  if (trackingevents){
+   if (e->KeywordSet(TRACKING_EVENTS))  label->AddEventType(GDLWidget::TRACKING);
+   else label->RemoveEventType(GDLWidget::TRACKING);
+  }
   return new DLongGDL( label->WidgetID( ) );
 #endif
 }
@@ -1693,10 +1715,48 @@ void widget_control( EnvT* e ) {
   static int DRAW_WHEEL_EVENTS = e->KeywordIx( "DRAW_WHEEL_EVENTS" );
   static int SET_DROP_EVENTS = e->KeywordIx( "SET_DROP_EVENTS" );
 
+  static int SCR_XSIZE = e->KeywordIx( "SCR_XSIZE" );
+  static int SCR_YSIZE= e->KeywordIx( "SCR_YSIZE" );
+  static int XSIZE = e->KeywordIx( "XSIZE" );
+  static int YSIZE = e->KeywordIx( "YSIZE" );
+  static int DRAW_XSIZE = e->KeywordIx( "DRAW_XSIZE" );
+  static int DRAW_YSIZE = e->KeywordIx( "DRAW_YSIZE" );
+  
+  bool hasScr_xsize  = e->KeywordPresent( SCR_XSIZE );
+  bool hasScr_ysize  = e->KeywordPresent( SCR_YSIZE );
+  bool hasXsize      = e->KeywordPresent( XSIZE );
+  bool hasYsize      = e->KeywordPresent( YSIZE );
+  bool hasDraw_xsize = e->KeywordPresent( DRAW_XSIZE );
+  bool hasDraw_ysize = e->KeywordPresent( DRAW_YSIZE );
+
+  if (hasXsize || hasYsize || hasScr_xsize || hasScr_ysize ) {
+    DLong xs,ys,xsize, ysize;
+    static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
+    xsize=xs;
+    ysize=ys;
+    if (hasXsize || hasScr_xsize ) {
+      if (hasScr_xsize) xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0];
+      if (hasXsize) xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
+      if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
+    }
+    if (hasYsize || hasScr_ysize ) {
+      if (hasScr_ysize) ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0];
+      if (hasYsize) ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
+      if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
+    }
+   widget->SetSize(xsize,ysize);
+  }
+  static int FRAME = e->KeywordIx( "FRAME" );
+  bool frame=e->KeywordPresent( FRAME );
+  if (frame) if (e->KeywordSet( FRAME)) widget->FrameWidget(); else widget->UnFrameWidget();
+  static int SCROLL = e->KeywordIx( "SCROLL" );
+  bool scroll=e->KeywordPresent( SCROLL );
+  if (scroll) if (e->KeywordSet( SCROLL)) widget->ScrollWidget(120,120); else widget->UnScrollWidget();
   // flags
 //  bool send_event = e->KeywordPresent( SEND_EVENT );
   bool clear_events = e->KeywordSet( CLEAR_EVENTS );
   bool tracking_events = e->KeywordPresent( TRACKING_EVENTS );
+
   bool draw_button_events = e->KeywordPresent( DRAW_BUTTON_EVENTS );
 // not supported (spacebar handling of buttons...)
 //  bool pushbutton_events = e->KeywordPresent( PUSHBUTTON_EVENTS );
@@ -1768,6 +1828,10 @@ void widget_control( EnvT* e ) {
   if ( destroy ) {
 //    std::cout << "Destroy widget:" <<widgetID<< std::endl;
     delete widget;
+
+
+
+    return;
     
   }
 

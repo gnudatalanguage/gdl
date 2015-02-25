@@ -49,7 +49,8 @@ GDLWXStream::GDLWXStream( int width, int height )
   }
 
   SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
-  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+//  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+  spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
   plstream::set_stream();
@@ -86,11 +87,24 @@ void GDLWXStream::SetSize( int width, int height )
     delete m_dc;
     throw GDLException("GDLWXStream: Failed to resize DC.");
   }
-
+//  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
   wxSize size = wxSize( width, height);
+
+  PLFLT def,cur,ofact,fact;
+  plgchr(&def,&cur); //cerr<<"before: "<<def;
+  ofact = 80.0/pls->ydpi;
+//  cerr<<", ofact= "<<ofact; 
+
   plstream::cmd(PLESC_RESIZE, (void*)&size );
   m_width = width;
   m_height = height;
+  plgchr(&def,&cur); // cerr<<" ,after= "<<def;
+  fact = 80.0/pls->ydpi;
+//  cerr<<", fact= "<<fact;
+  def *= fact/ofact;
+//  cerr<<", new: " <<def<<endl;
+////  cerr << xp << ", " << yp << ", " << xleng * xp << ", " << yleng * yp << ", " << xoff << ", " << yoff << "," << &event << endl;
+  this->RenewPlplotDefaultCharsize( def );
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {

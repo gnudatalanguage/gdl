@@ -253,31 +253,28 @@ public:
             winList[ wIx] = NULL;
         }
 
-        wxWindow *wxParent = NULL;
-
-    //    GUIMutexLockerWidgetsT gdlMutexGuiEnterLeave;
-
         wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-        GDLFrame *gdlFrame = new GDLFrame(0, wxParent, wxID_ANY, titleWxString);
-        //    m_gdlFrameOwnerMutexP = gdlFrame->m_gdlFrameOwnerMutexP;
-        //    assert( m_gdlFrameOwnerMutexP != NULL );
-        //     gdlFrame->Freeze();
+        GDLFrame *gdlFrame = new GDLFrame(0, NULL, wxID_ANY, titleWxString, wxPoint(xOffset,yOffset));
 
-    gdlFrame->SetSize(xOffset, yOffset, xSize, ySize, wxDEFAULT_FRAME_STYLE );
-    
-    wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
-    gdlFrame->SetSizer( topSizer );
+        wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
+        gdlFrame->SetSizer( topSizer );
 
-    wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY );
+        wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxSize(xSize,ySize) );
         wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
         panel->SetSizer(sizer);
-    topSizer->Add( panel );
+        topSizer->Add( panel, 1, wxEXPAND );
         GDLDrawPanel* gdlWindow = new GDLDrawPanel(gdlFrame, panel->GetId(), wxDefaultPosition, wxSize(xSize, ySize), wxBORDER_SIMPLE);
-        topSizer->Add(gdlWindow, 0, wxEXPAND | wxALL, 5);
+        sizer->Add(gdlWindow,0, wxALL, DEFAULT_BORDER_SIZE);
+        topSizer->Layout();
 
         gdlWindow->InitStream();
         winList[ wIx] = static_cast<GDLGStream*> (GraphicsDevice::GetGUIDevice()->GetStreamAt(gdlWindow->PStreamIx()));
         static_cast<GDLWXStream*> (winList[ wIx])->SetGDLDrawPanel(gdlWindow);
+    GDLApp * theGDLApp;
+    gdlFrame->SetTheApp(theGDLApp);
+    theGDLApp=new GDLApp;
+    theGDLApp->OnInit();
+    theGDLApp->OnRun();
         gdlFrame->Show();
         // no pause on win destruction
         winList[ wIx]->spause(false);
