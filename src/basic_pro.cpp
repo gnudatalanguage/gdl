@@ -252,6 +252,14 @@ bool CompareWithJokers(string names, string sourceFiles) {
     void help_item( ostream& os,
 		    BaseGDL* par, DString parString, bool doIndentation)
     {
+      int debug=0;
+      if (debug) {
+	cout << par->Type() << endl;
+	cout << par->TypeStr() << endl;
+	cout << &par->TypeStr() << endl;
+	//	cout << par->Name() << endl;	
+      }
+
       if( doIndentation) os << "   ";
 
       // Name display
@@ -399,7 +407,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
       return recall_commands_internal();
     }
 
-    void help_path_cached()  // showing HELP, /path_cache
+    // showing HELP, /path_cache
+    void help_path_cached(ostream& os, int &lines_count)
     {
       DIR *dirp;
       struct dirent *dp;
@@ -411,7 +420,9 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       StrArr path=SysVar::GDLPath();
 
-      cout << "!PATH (no cache managment in GDL, "<< path.size()  << " directories)" << endl;
+      os << "!PATH (no cache managment --now-- in GDL, ";
+      os << path.size()  << " directories)" << endl;
+      lines_count=1;
 
       for( StrArr::iterator CurrentDir=path.begin(); CurrentDir != path.end(); CurrentDir++)
 	{
@@ -429,7 +440,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	      }
 	    }  
 	    closedir(dirp);
-	    cout << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
+	    lines_count++;
+	    os << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
 	  }
 	}
     }
@@ -486,7 +498,10 @@ bool CompareWithJokers(string names, string sourceFiles) {
       BaseGDL** outputKW = NULL;
       static int outputIx = e->KeywordIx( "OUTPUT");
       bool doOutput = ( e->KeywordPresent( outputIx));
-    
+
+      SizeT nOut = 0;
+      std::ostringstream ostr;
+
       // if LAST_MESSAGE is present, it is the only output.
       // All other kw are ignored *EXCEPT 'output'*.
       if( lastmKW)
@@ -542,7 +557,39 @@ bool CompareWithJokers(string names, string sourceFiles) {
       static int pathKWIx = e->KeywordIx("PATH_CACHE");
       bool pathKW= e->KeywordPresent(pathKWIx);
       if( pathKW) {
-	help_path_cached();
+	int debug=0;
+	int lines_count=0;
+	//	help_path_cached();
+	if (!doOutput) {
+	  help_path_cached( cout, lines_count);
+	  if (debug) cout << lines_count << endl;
+	} else {
+	  help_path_cached(ostr, lines_count);
+	  if (debug) {
+	    cout << lines_count << endl;
+	    cout << "begin" << ostr.rdbuf()->str() << "end"<<endl;
+	  }
+	  std::string s = ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length(),1);
+	  std::string delimiter = "\n";
+
+	  outputKW = &e->GetKW( outputIx);
+	  GDLDelete((*outputKW));
+	  dimension dim(&lines_count, (size_t) 1);
+	  *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
+
+	  size_t pos = 0;
+	  std::string token;
+	  while ((pos = s.find(delimiter)) != std::string::npos) {
+	    token = s.substr(0, pos);
+	    //cout << nOut << endl;
+	    //std::cout << "xx " << token << std::endl;
+	    (*(DStringGDL *) *outputKW)[nOut++] = token;//.c_str();
+	    //std::cout << "xx " << token << std::endl;
+	    s.erase(0, pos + delimiter.length());
+	  }
+	  if (debug) std::cout << s << std::endl;
+	  ostr.str("");
+	}
 	return;
       }
 
@@ -845,7 +892,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       }
 
       SizeT nParam=e->NParam();
-      std::ostringstream ostr;
+      //      std::ostringstream ostr;
 
       // Compiled Procedures & Functions
       DLong np = proList.size() + 1;
@@ -896,7 +943,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       if( outputKW == NULL)
 	cout << dec;
 
-      SizeT nOut = 0;
+      //      SizeT nOut = 0;
     
       if ((nParam == 0 && !isKWSetMemory) || isKWSetFunctions || isKWSetProcedures) {
 
