@@ -162,8 +162,8 @@ namespace lib {
   BaseGDL* get_drive_list(EnvT* e);
 
   BaseGDL* scope_level( EnvT* e);
+  BaseGDL* scope_traceback( EnvT* e);
   BaseGDL* scope_varfetch_value( EnvT* e); // regular library function
-
   BaseGDL** scope_varfetch_reference( EnvT* e); // special version for LEval()
 
 } // namespace

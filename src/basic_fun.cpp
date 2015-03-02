@@ -6788,6 +6788,56 @@ BaseGDL* strtok_fun(EnvT* e) {
     return new DLongGDL(callStack.size());
   }
   
+// based on void SimpleDumpStack(EnvT* e) used in "basic_pro.cpp"
+
+  BaseGDL* scope_traceback( EnvT* e)
+  {
+    static int structureIx = e->KeywordIx("STRUCTURE");
+    bool structureKW = e->KeywordSet(structureIx);
+ 
+    if (structureKW) {
+      Warning("keyword STRUCTURE is not ready here, please contribute !");
+    }
+
+    static int systemIx = e->KeywordIx("SYSTEM");
+    bool systemKW = e->KeywordSet(systemIx);
+    if (systemKW) {
+      Warning("keyword SYSTEM is not ready here, please contribute !");
+    }
+
+    int debug=0;
+
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+    long actIx = callStack.size();
+
+    if (debug) cout << "actIx : " << actIx << endl;
+   
+    DStringGDL* res;    
+    res = new DStringGDL(dimension(actIx) , BaseGDL::NOZERO);
+    
+    string tmp="";
+
+    for( SizeT i=0; i<actIx; ++i)
+      {
+	EnvStackT::pointer_type upEnv = callStack[i]; 
+		tmp= upEnv->GetProName();
+	string file=upEnv->GetFilename();
+
+	if( file != "")
+	  {              	      
+	    int lineNumber = upEnv->GetLineNumber();
+	    if( lineNumber != 0)
+	      {
+		tmp=tmp+" <"+file+"("+i2s(lineNumber)+")>";
+	      }
+	  }
+	if (debug) cout << tmp << endl;
+	(*res)[i]=tmp;
+      }
+    
+    return res;
+  }
+
   // note: changes here MUST be reflected in scope_varfetch_reference() as well
   // because DLibFun of this function is used for scope_varfetch_reference() the keyword
   // indices must match
