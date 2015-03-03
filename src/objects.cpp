@@ -238,6 +238,18 @@ void InitStructs()
     structList.push_back( fstat);
   }
 
+  DStructDesc* traceback = new DStructDesc("IDL_TRACEBACK");
+  traceback->AddTag("ROUTINE", &aString);
+  traceback->AddTag("FILENAME", &aString);
+  traceback->AddTag("LINE", &aLong);
+  traceback->AddTag("LEVEL", &aLong);
+  traceback->AddTag("IS_FUNCTION", &aByte);
+  traceback->AddTag("METHOD", &aByte);
+  traceback->AddTag("RESTORED", &aByte);
+  traceback->AddTag("SYSTEM", &aByte);
+  // insert into structList
+  structList.push_back(traceback);
+
   DStructDesc* finfo = new DStructDesc("FILE_INFO");
   finfo->AddTag("NAME", &aString);
   finfo->AddTag("EXISTS", &aByte);
