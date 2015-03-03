@@ -6486,7 +6486,7 @@ BaseGDL* strtok_fun(EnvT* e) {
       while (p < e) 
       {
         // scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-        if (!(isalpha(*p)) && !(isdigit(*p)) && (*p != '+') && (*p != '.') && (*p != '-')) 
+        if (!(std::isalpha(*p)) && !(std::isdigit(*p)) && (*p != '+') && (*p != '.') && (*p != '-')) 
         {
           if (e + 1 < ue) goto parse_port;
           else goto just_path;
