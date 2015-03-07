@@ -252,24 +252,24 @@ void LibInit()
 
   // printKey, readKey and stringKey are closely associated
   // as the same functions are called "FORMAT" till "MONTH"
-  // must be the first four keywords
-  const string printKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
-			   "STDIO_NON_FINITE",KLISTEND};
+  // must be the first four keywords. The inner print_os function is BASED on this ORDER!
+  #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTH"
+  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"STDIO_NON_FINITE",KLISTEND};
   new DLibPro(lib::print,string("PRINT"),-1,printKey);
   new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
-
-  const string readKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
-			  "PROMPT",KLISTEND};
-  new DLibPro(lib::read,string("READ"),-1,readKey);
-  new DLibPro(lib::readf,string("READF"),-1,readKey);
-
-  const string readsKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
-			   KLISTEND}; // no PROMPT
-  new DLibPro(lib::reads,string("READS"),-1,readsKey);
-
   // allow printing (of expressions) with all keywords 
   // (easier to implement this way)
   new DLibPro(lib::stop,string("STOP"),-1,printKey); 
+
+  const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT",KLISTEND};
+  new DLibPro(lib::read,string("READ"),-1,readKey);
+  new DLibPro(lib::readf,string("READF"),-1,readKey);
+
+  const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,KLISTEND}; // no PROMPT
+  new DLibPro(lib::reads,string("READS"),-1,readsKey);
+
+  const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
 
   const string defsysvKey[]={"EXISTS",KLISTEND};
   new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
@@ -377,14 +377,7 @@ void LibInit()
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
-  //need to keep the position of the keywords until lib::string_fun does not use fixed kw index anymore (fixme).)
-  const string stringKey[]={"FORMAT","XXXXX","YYYYYYYY","ZZZZZZ",
-			    "PRINT",KLISTEND};
-  const string stringWarnKey[]={"AM_PM","DAYS_OF_WEEK","MONTHS",KLISTEND};
-//  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
-//  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
-// that's apparently the desired bahaviour, see bug no. 3151760
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,stringWarnKey);
+
   new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
 
 /*
