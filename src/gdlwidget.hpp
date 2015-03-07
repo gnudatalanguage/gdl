@@ -24,7 +24,12 @@
 #include <wx/wx.h>
 #include <wx/treebase.h>
 #include <wx/treectrl.h>
-#include <wx/defs.h>
+#include <wx/grid.h>
+#ifdef HAVE_WXWIDGETS_PROPERTYGRID
+#include <wx/propgrid/propgrid.h>
+#endif
+#include <wx/defs.h>//for timer.
+#include <wx/gdicmn.h> 
 
 #include <deque>
 #include <map>
@@ -35,10 +40,12 @@
 #include "widget.hpp"
 #include "plotting.hpp"
 
-#define SCROLL_WIDTH 10
+#define SCROLL_WIDTH 20
 #define DEFAULT_BORDER_SIZE 3
 
 typedef DLong WidgetIDT;
+static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
+static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
 class DStructGDL;
 
@@ -50,18 +57,16 @@ class GDLEventQueue
 {
 private:
   std::deque<DStructGDL*> dq;
-  wxMutex mutex;
 public:
   GDLEventQueue() //normally we should have ~GDLEventQueue removing the DStructGDLs?
   {}
   
   DStructGDL* Pop()
   {
-    if( dq.empty()) // optimization: acquiring of mutex not necessary at first
+    if( dq.empty())
       return NULL;   
-    wxMutexLocker lock( mutex);
-    if( dq.empty()) // needed again for thread safe behaviour
-      return NULL;   
+//    if( dq.empty()) // needed again for thread safe behaviour
+//      return NULL;   
     DStructGDL* front = dq.front();
     dq.pop_front();
     return front;
@@ -69,13 +74,11 @@ public:
   // for all regular events
   void Push( DStructGDL* ev)
   {
-    wxMutexLocker lock( mutex);
     dq.push_back( ev);
   }
   // for priority events (like delete widget)
   void PushFront( DStructGDL* ev)
   {
-    wxMutexLocker lock( mutex);
     dq.push_front( ev);
   }
   // Not good: between call of Empty and Pop another thread's Pop could be executed
@@ -118,43 +121,34 @@ public:
 
 private:
   mapT map;
-  wxMutex m_mutex;
 
 public:
-  WidgetListT(): map(), m_mutex() {}
+  WidgetListT(): map(){}
   ~WidgetListT() {}
   
   void erase (iterator position) 
   { 
-    wxMutexLocker lock(m_mutex);
     map.erase(position);
-    cerr <<"deletep,size="<<map.size()<<endl;
   }
   size_type erase (const key_type& k) 
   { 
-    wxMutexLocker lock(m_mutex);
     return map.erase(k);
-    cerr <<"deletek,size="<<map.size()<<endl;
   }
   iterator find (const key_type& k) 
   { 
-    wxMutexLocker lock(m_mutex);
     return map.find(k);
   }
   iterator begin() 
   { 
-    wxMutexLocker lock(m_mutex);
     return map.begin();
   }
   iterator end() 
   { 
-    wxMutexLocker lock(m_mutex);
     return map.end();
   }
 
   iterator insert (iterator position, value_type val) 
   { 
-    wxMutexLocker lock(m_mutex);
     return map.insert( position, val);    
   }
 };
@@ -202,7 +196,8 @@ public:
   static GDLWidget* GetParent( WidgetIDT widID);
   static GDLWidgetBase* GetTopLevelBaseWidget( WidgetIDT widID);
   static GDLWidgetBase* GetBaseWidget( WidgetIDT widID);
-  static void RefreshWidgets();
+//  static void RefreshWidgets();
+  void RefreshWidget();
   
   // get ID of base widgets
   static WidgetIDT  GetBase( WidgetIDT widID);
@@ -226,10 +221,10 @@ protected:
   bool         scrolled;
   bool         sensitive;
   bool         managed;
-  bool         map;
   bool         buttonState; //only for buttons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
+  wxSizer*     mySizer; //optional sizer forcing sizes & placement of widget.
   wxSizer*     topWidgetSizer; //the frame sizer (contains all widgets)
   wxSizer*     widgetSizer; // the sizer which governs the placement of the widget in its Panel
   wxPanel*     widgetPanel; // the Panel in which the widget is placed
@@ -237,11 +232,14 @@ protected:
   wxScrolledWindow*     scrollPanel; // Panel with scrollBars in which the widget may be shown
   wxSizer*     frameSizer;  // the sizer of the (optional) "frame" (its not a wxFrame its a StaticBox) drawn around a widget
   wxPanel*     framePanel;  // the corresponding panel
-  DString      widgetType;
+  DInt         widgetType;
+  DString      widgetName;
   WidgetIDT    groupLeader;
-  DLong        units;
+  wxSize       units;
   DLong        frame;
   DString      font;
+  bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
+  bool         updating; //widget is modified by program (avoid sending events)
   long  alignment; //alignment of the widget
   long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
 
@@ -257,7 +255,7 @@ private:
   DString      notifyRealize;
   DString      killNotify;
   
-  void SetCommonKeywords( EnvT* e);
+  void GetCommonKeywords( EnvT* e);
 
   
 public:
@@ -269,40 +267,56 @@ public:
   } BGroupMode;
 
   typedef enum EventTypeFlags_ 
-    { NONE = 0
-    , ALL = 1
-    , CONTEXT = 2
-    , KBRD_FOCUS = 4
-    , TRACKING = 8 
-    , DROP = 16
-    , EXPOSE = 32
-    , MOTION = 64
-    , VIEWPORT = 128
-    , WHEEL = 256
-    , BUTTON = 512
-    , KEYBOARD = 1024 //widget_draw, normal keys in the KEY field, modifiers reported in the "MODIFIERS" field
-    , KEYBOARD2 = 2048 //widget_draw, normal keys and compose keys reported in the KEY field
-    , SIZE = 4096
-    , MOVE = 8192
-    , ICONIFY = 16384
-    , KILL = 32768
+    { EV_NONE = 0
+    , EV_ALL = 1
+    , EV_CONTEXT = 2
+    , EV_KBRD_FOCUS = 4
+    , EV_TRACKING = 8 
+    , EV_DROP = 16
+    , EV_EXPOSE = 32
+    , EV_MOTION = 64
+    , EV_VIEWPORT = 128
+    , EV_WHEEL = 256
+    , EV_BUTTON = 512
+    , EV_KEYBOARD = 1024 //widget_draw, normal keys in the KEY field, modifiers reported in the "MODIFIERS" field
+    , EV_KEYBOARD2 = 2048 //widget_draw, normal keys and compose keys reported in the KEY field
+    , EV_SIZE = 4096
+    , EV_MOVE = 8192
+    , EV_ICONIFY = 16384
+    , EV_KILL = 32768
     } EventTypeFlags;
  
+   typedef enum WidgetTypes_
+    { WIDGET_BASE = 0
+     ,WIDGET_BUTTON 
+     ,WIDGET_SLIDER
+     ,WIDGET_TEXT
+     ,WIDGET_DRAW
+     ,WIDGET_LABEL
+     ,WIDGET_LIST
+     ,WIDGET_MBAR //actually this is not present in IDL, but this place is void in IDL...
+     ,WIDGET_DROPLIST
+     ,WIDGET_TABLE
+     ,WIDGET_TAB
+     ,WIDGET_TREE 
+     ,WIDGET_COMBOBOX
+     ,WIDGET_PROPERTYSHEET
+    } WidgetTypes;
  
-  virtual void updateFlags(); //to be overloaded...
   DULong GetEventFlags()  const { return eventFlags;}
-  bool SetEventFlags( DULong evFlags) { eventFlags = evFlags; updateFlags();}
+  bool SetEventFlags( DULong evFlags) { eventFlags = evFlags;}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
-  void AddEventType( DULong evType) { eventFlags |= evType; updateFlags();}
-  void RemoveEventType( DULong evType) { eventFlags &= ~evType; updateFlags();}
+  void AddEventType( DULong evType) { eventFlags |= evType;}
+  void RemoveEventType( DULong evType) { eventFlags &= ~evType;}
   void Raise();
   void Lower();
+  long buttonTextAlignment();
   long textAlignment();
   long widgetAlignment();
   long getDefautAlignment();
+  void widgetUpdate(bool update);
 
-  GDLWidget( WidgetIDT p, EnvT* e, 
-	     bool map_=true, BaseGDL* vV=NULL, DULong eventFlags_=0);
+  GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
 
@@ -325,7 +339,6 @@ public:
   virtual void OnKill()
   {
     if( killNotify != ""){ //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
-    cerr <<"calling procedure: \""<<killNotify<<"\" for"<<widgetID<<endl;
         std::string RIP=killNotify;
         killNotify.clear();
       CallEventPro( RIP, new DLongGDL( widgetID));
@@ -336,6 +349,9 @@ public:
   void SetSize(DLong sizex, DLong sizey);
   DLong GetXSize(){return xSize;}
   DLong GetYSize(){return ySize;}
+  bool IsValid(){return valid;}
+  void SetUnValid(){valid=FALSE;}
+  void SetValid(){valid=TRUE;}
   
   WidgetIDT GetParentID() const { return parentID;}
   
@@ -349,20 +365,26 @@ public:
   BaseGDL* GetVvalue() const { return vValue;}
 
   void Realize( bool);
+  void SendWidgetTimerEvent(DDouble secs);
 
   // for query of children
+  virtual bool IsContainer() const { return false;} 
   virtual bool IsBase() const { return false;} 
   virtual bool IsButton() const { return false;} 
   virtual bool IsDropList() const { return false;} 
+  virtual bool IsList() const { return false;} 
   virtual bool IsComboBox() const { return false;} 
   virtual bool IsTab() const { return false;}
+  virtual bool IsTable() const { return false;}
   virtual bool IsText() const { return false;} 
+  virtual bool IsLabel() const { return false;} 
   virtual bool IsTree() const { return false;} 
   virtual bool IsSlider() const { return false;}
   virtual bool IsDraw() const { return false;}
   virtual bool IsMenuBar() const { return false;}
   virtual bool IsMenu() const { return false;}
   virtual bool IsMenuItem() const { return false;}
+  virtual bool IsPropertySheet() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const {return 0;}
@@ -389,21 +411,19 @@ public:
 
   bool GetManaged() const { return managed;}
   void SetManaged( bool manval){managed = manval;}
-//  void SetSensitive( bool value){sensitive = value;}
   virtual void SetSensitive( bool value);
   virtual void SetFocus();
-
-  bool GetMap() const { return map;}
-  void SetMap( bool mapval){ map = mapval;}
 
   int  GetExclusiveMode() const { return exclusiveMode;}
   void SetExclusiveMode( int exclusiveval){exclusiveMode = exclusiveval;}
 
   void SetUvalue( BaseGDL *uV){uValue = uV;}
-  void SetVvalue( BaseGDL *vV){vValue = vV;}
+//  void SetVvalue( BaseGDL *vV){vValue = vV;} //unused!
 
-  const DString& GetWidgetType() const { return widgetType;}
-  void SetWidgetType( const DString& wType){widgetType = wType;}
+  const DString& GetWidgetName() const { return widgetName;}
+  void SetWidgetName( const DString& wName){widgetName = wName;}
+  DInt GetWidgetType() { return widgetType;}
+  void SetWidgetType( DInt type){widgetType=widgetTypeList[type]; widgetName = widgetNameList[type];}
 
   virtual bool GetButtonSet() const { return 0;} //normally not a button
 //   void SetButtonSet(bool onOff){buttonSet = onOff;}
@@ -416,29 +436,73 @@ public:
 
   const DString& GetFuncValue() const { return funcValue;}
   void SetFuncValue( const DString& funcvalue){funcValue = StrUpCase(funcvalue);}
+  
+  bool IsUpdating(){return updating;}
+  void ClearUpdating(){updating=FALSE;}
+  void SetUpdating(){updating=TRUE;}
+  
+  wxSize getWidgetSize(); 
+  BaseGDL * getSystemColours();
 };
 
-
-// base widget **************************************************
-class GDLWidgetBase: public GDLWidget
+class GDLWidgetContainer: public GDLWidget
 {
+  bool map;
 protected:
   typedef std::deque<WidgetIDT>::iterator cIter;
   typedef std::deque<WidgetIDT>::reverse_iterator rcIter;
   std::deque<WidgetIDT>                   children;
+public:
+  GDLWidgetContainer( WidgetIDT parentID, EnvT* e, bool map=TRUE);
+
+//  ~GDLWidgetContainer(){}
   
+  bool IsContainer() const { return true;}
+  void OnRealize() 
+  {
+    for( cIter c=children.begin(); c!=children.end(); ++c)
+    {
+      GDLWidget* w = GetWidget( *c);
+      if( w != NULL)
+	w->OnRealize();
+    }
+    GDLWidget::OnRealize();
+  }
+   // as this is called in the constructor, no type checking of c can be done
+  // hence the AddChild() function should be as simple as that
+  void AddChild( WidgetIDT c) { children.push_back( c);}
+  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
+							  children.end(), c));}
+  DLong NChildren() const
+  {
+    return children.size( );
+  }
+  WidgetIDT GetChild( DLong childIx) const
+  {
+    assert( childIx >= 0 );
+    assert( childIx < children.size( ) );
+    return children[childIx];
+  }
+
+  bool GetMap() const { return map;}
+  void SetMap( bool mapval){ map = mapval;}
+};
+
+// base widget **************************************************
+class GDLWidgetBase: public GDLWidgetContainer
+{
   bool                                    xmanActCom;
   bool                                    modal;
   WidgetIDT                               mbarID;
   // for radio buttons to generate deselect event
   WidgetIDT                               lastRadioSelection;
 
-  wxMutex*                                m_gdlFrameOwnerMutexP;
   DLong ncols;
   DLong nrows;
   bool stretchX;
   bool stretchY;
   long childrenAlignment;
+  long space;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -451,45 +515,14 @@ public:
 		 const DString& title,
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
-		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment);
+		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment, long space);
   
   ~GDLWidgetBase();
 
-//perhaps a bit too simple!
   void ClearEvents()
   {
   if (!this->GetXmanagerActiveCommand( ))  eventQueue.Purge();
   else readlineEventQueue.Purge(); 
-  }
-  
-//  void OnShow() 
-//  {
-//    for( cIter c=children.begin(); c!=children.end(); ++c)
-//    {
-//      GDLWidget* w = GetWidget( *c);
-//      if( w != NULL)
-//	w->OnShow();
-//    }
-//    GDLWidget::OnShow();
-//  }
-  void OnRealize() 
-  {
-    for( cIter c=children.begin(); c!=children.end(); ++c)
-    {
-      GDLWidget* w = GetWidget( *c);
-      if( w != NULL)
-	w->OnRealize();
-    }
-    GDLWidget::OnRealize();
-  }
-  void OnKill()
-  {
-    for( rcIter rc=children.rbegin(); rc!=children.rend(); ++rc)
-    {
-      GDLWidget* w = GetWidget( *rc);
-      if( w != NULL) w->OnKill();
-    }
-//    this->OnKill(); //removing this stops otherwise reentrant code leading to crash. But it stinks!.FIXME
   }
   
   void NullWxWidget() { this->wxWidget = NULL;}
@@ -497,60 +530,42 @@ public:
   WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
   void SetLastRadioSelection(WidgetIDT lastSel) { lastRadioSelection = lastSel;}                         
 
-  // as this is called in the constructor, no type checking of c can be done
-  // hence the AddChild() function should be as simple as that
-  void AddChild( WidgetIDT c) { children.push_back( c);}
-  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
-							  children.end(), c));}
-
-//  void Realize( bool);
-  
   void SelfDestroy(); // sends delete event to itself
   
   void SetXmanagerActiveCommand() 
   { 
-//     wxMessageOutputStderr().Printf(_T("SetXmanagerActiveCommand: %d\n",widgetID);
     xmanActCom = true;
   }
   bool GetXmanagerActiveCommand() const 
   { 
-//     wxMessageOutputStderr().Printf(_T("GetXmanagerActiveCommand: %d\n",widgetID);
     return xmanActCom;
   }
 
-//   void SetEventPro( DString);
-//   const DString& GetEventPro() { return eventHandler;}
-
-  WidgetIDT GetChild( DLong) const;
-  DLong NChildren() const;
-
   bool IsBase() const { return true;} 
+  bool IsContainer() const { return true;} 
   bool IsScrolled() { return scrolled;}
   bool IsStretchable() {return stretchX||stretchY;}
   void setStretchX(bool stretch) {stretchX=stretch;}
   void setStretchY(bool stretch) {stretchY=stretch;}
   long getChildrenAlignment(){return childrenAlignment;}
-//  void FitInside();
+  long getSpace(){return space;}
+  void mapBase(bool val);
 };
 
-
-
-// class GDLWidgetMbar;
-
-// button widget **************************************************
 class GDLWidgetButton: public GDLWidget
 {
   typedef enum ButtonType_ {
-  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3, ENTRY=4} ButtonType;
+  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3, ENTRY=4, BITMAP=5} ButtonType;
 
   ButtonType buttonType;
   bool addSeparatorAbove;
+  wxBitmap* buttonBitmap;
 
 //  bool buttonState; //defined in base class now.
   
 public:
-  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu, bool hasSeparatorAbove);
-
+  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu, bool hasSeparatorAbove=FALSE, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
+  ~GDLWidgetButton();
   // for WIDGET_CONTROL
   void SetButtonWidget( bool onOff)
   {
@@ -573,6 +588,7 @@ public:
     }
   }
   void SetButtonWidgetLabelText( const DString& value_ );//code in gdlwidget
+  void SetButtonWidgetBitmap( wxBitmap* bitmap_ );//code in gdlwidget
   void SetButton( bool onOff)
   {
     buttonState = onOff;
@@ -592,39 +608,42 @@ public:
 class GDLWidgetDropList: public GDLWidget
 {
   std::string lastValue;
-  wxMutex m_mutex;
   DString title;
   DLong style;
   
 public:
   GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
-
+  ~GDLWidgetDropList();
   bool IsDropList() const { return true;} 
 
-  void SetLastValue( const std::string& v) {  wxMutexLocker lock(m_mutex); lastValue = v;}
-  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
+  void SetLastValue( const std::string& v) { lastValue = v;}
+  std::string GetLastValue() { return lastValue;}
+  
+  void SetValue(BaseGDL *value);
+  void SelectEntry(DLong entry_number);
 };
 
 // combobox widget **************************************************
 class GDLWidgetComboBox: public GDLWidget
 {
   std::string lastValue;
-  wxMutex m_mutex;
   DString title;
   DLong style;
   
 public:
   GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
 		     const DString& title, DLong style);
-
+ ~GDLWidgetComboBox();
 //  void OnShow();
   
 //   void SetSelectOff();
   bool IsComboBox() const { return true;} 
 
-  void SetLastValue( const std::string& v) {  wxMutexLocker lock(m_mutex); lastValue = v;}
-  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
+  void SetLastValue( const std::string& v) { lastValue = v;}
+  std::string GetLastValue() { return lastValue;}
+  void SetValue(BaseGDL *value);
+  void SelectEntry(DLong entry_number);
 };
 
 // list widget **************************************************
@@ -632,7 +651,10 @@ class GDLWidgetList : public GDLWidget
 {
 public:
   GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style);
-//   void SetSelectOff();
+  ~GDLWidgetList();
+  bool IsList() const { return true;} 
+  void SetValue(BaseGDL *value);
+  void SelectEntry(DLong entry_number);
 };
 
 
@@ -640,7 +662,6 @@ public:
 class GDLWidgetText: public GDLWidget
 {
   std::string lastValue;
-  wxMutex m_mutex;
   bool noNewLine;
   bool editable;
   int maxlinelength;
@@ -648,8 +669,8 @@ class GDLWidgetText: public GDLWidget
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
 		 bool editable);
-//  void OnShow();
-
+  ~GDLWidgetText();
+  
   bool IsEditable(){return editable;}
   void ChangeText( DStringGDL* value, bool noNewLine=false);
   void InsertText( DStringGDL* value, bool noNewLine=false, bool insertAtEnd=false);
@@ -659,8 +680,9 @@ public:
   
   bool IsText() const { return true;} 
   
-  void SetLastValue( const std::string& v) { wxMutexError mtxerr=m_mutex.Lock(); lastValue = v; if (mtxerr==wxMUTEX_NO_ERROR) m_mutex.Unlock();}
-  std::string GetLastValue() { wxMutexLocker lock(m_mutex); return lastValue;}
+  void SetLastValue( const std::string& v) { lastValue = v;}
+  std::string GetLastValue() { return lastValue;}
+  wxSize getWidgetSize();
 };
 
 
@@ -670,9 +692,9 @@ class GDLWidgetLabel: public GDLWidget
   DString value;
 public:
   GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_, bool sunken);
-//  void OnShow();
- 
+ ~GDLWidgetLabel();
   void SetLabelValue( const DString& value_);
+  bool IsLabel() const { return true;} 
 };
 
 
@@ -684,61 +706,59 @@ class GDLWidgetDraw: public GDLWidget
   DLong y_scroll_size;
 public:
   GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
-		  DLong x_scroll_size, DLong y_scroll_size, DULong eventFlags);
+		  DLong x_scroll_size, DLong y_scroll_size, bool app_scroll, DULong eventFlags, DStringGDL* drawToolTip=NULL);
 
   ~GDLWidgetDraw();
 
-//   void OnShow();
   void OnRealize();
-  void updateFlags();
   bool IsDraw() const { return true;}
 };
 
 
 // menu bar widget **************************************************
-class GDLWidgetMBar: public GDLWidget//Base
+class GDLWidgetMBar: public GDLWidgetContainer//Base
 {
   // disable
   GDLWidgetMBar();
 public:
   GDLWidgetMBar( WidgetIDT p): 
-  GDLWidget( p, NULL)
+  GDLWidgetContainer( p, NULL)
   {
     this->wxWidget = new wxMenuBar();
-    this->widgetType="MBAR";
+    this->SetWidgetType(WIDGET_MBAR);
   }
 
   bool IsMenuBar() const { return true;}
 };
 
 // tab widget **************************************************
-class GDLWidgetTab: public GDLWidget
+class GDLWidgetTab: public GDLWidgetContainer
 {
 public:
-  GDLWidgetTab( WidgetIDT parentID, EnvT* e, DLong location, DLong multiline);
+    GDLWidgetTab( WidgetIDT parentID, EnvT* e, DLong location, DLong multiline);
 
   ~GDLWidgetTab();
   
   bool IsTab() const { return true;}
+  bool IsContainer() const { return true;}
 };
 
 
 // table widget **************************************************
 class GDLWidgetTable: public GDLWidget
 {
-  DLongGDL* alignment;
+  DByteGDL* alignment;
   DStringGDL* amPm;
   DByteGDL* backgroundColor;
   DByteGDL* foregroundColor;
   DStringGDL* columnLabels;
-  bool columnMajor;
+  int majority;
   DLongGDL* columnWidth;
   DStringGDL* daysOfWeek;
   bool disjointSelection;
-  bool editable;
+  DByteGDL* editable;
   DStringGDL* format;
-  DLong groupLeader;
-  bool ignoreAccelerators;
+//  bool ignoreAccelerators;
   DStringGDL* month;
   bool noColumnHeaders;
   bool noRowHeaders;
@@ -746,26 +766,27 @@ class GDLWidgetTable: public GDLWidget
   bool resizeableRows;
   DLongGDL* rowHeights;
   DStringGDL* rowLabels;
-  bool rowMajor;
-  DLong tabMode;
+//  DLong tabMode;
   DLong x_scroll_size;
   DLong y_scroll_size;
+  DStringGDL * valueAsStrings;
 
 public:
-  GDLWidgetTable( WidgetIDT p, EnvT* e, 
-		  DLongGDL* alignment_,
+ typedef enum TableMajority_ {NONE_MAJOR = 0, ROW_MAJOR, COLUMN_MAJOR} TableMajority;
+
+ GDLWidgetTable( WidgetIDT p, EnvT* e, 
+		  DByteGDL* alignment_,
 		  DStringGDL* amPm_,
 		  DByteGDL* backgroundColor_,
 		  DByteGDL* foregroundColor_,
 		  DStringGDL* columnLabels_,
-		  bool columnMajor_,
+		  int majority_,
 		  DLongGDL* columnWidth_,
 		  DStringGDL* daysOfWeek_,
 		  bool disjointSelection_,
-		  bool editable_,
+		  DByteGDL* editable_,
 		  DStringGDL* format_,
-		  DLong groupLeader_,
- 		  bool ignoreAccelerators_,
+// 		  bool ignoreAccelerators_,
 		  DStringGDL* month_,
 		  bool noColumnHeaders_,
 		  bool noRowHeaders_,
@@ -773,31 +794,75 @@ public:
 		  bool resizeableRows_,
 		  DLongGDL* rowHeights_,
 		  DStringGDL* rowLabels_,
-		  bool rowMajor_,
-		  DLong tabMode_,
+//		  DLong tabMode_,
 		  BaseGDL* value_,
 		  DLong xScrollSize_,
-		  DLong yScrollSize_
-		);
+		  DLong yScrollSize_,
+                  DStringGDL* valueAsStrings_,
+                  DULong eventFlags_
+         );
 
-~GDLWidgetTable()
-{
-  GDLDelete( alignment );
-  GDLDelete( amPm );
-  GDLDelete( backgroundColor );
-  GDLDelete( foregroundColor );
-  GDLDelete( columnLabels );
-  GDLDelete( columnWidth );
-  GDLDelete( daysOfWeek );
-  GDLDelete( format );
-  GDLDelete( month );
-  GDLDelete( rowHeights );
-  GDLDelete( rowLabels );
-}
-  
-//  void OnShow();
+~GDLWidgetTable();
 
+
+  int  GetMajority(){return majority;}
   bool IsTable() const { return true;}
+  void SetDOW(DStringGDL* val){GDLDelete(daysOfWeek); daysOfWeek=val->Dup();}
+  void SetAmPm(DStringGDL* val){GDLDelete(amPm); amPm=val->Dup();};
+  void SetMonth(DStringGDL* val){GDLDelete(month); month=val->Dup();};
+
+  DLongGDL* GetSelection();
+  
+  void SetAlignment(DByteGDL* val){GDLDelete(alignment); alignment=val->Dup();};
+  void DoAlign();
+  void DoAlign(DLongGDL* selection);
+  
+  void SetBackgroundColor(DByteGDL* val){GDLDelete(backgroundColor); backgroundColor=val->Dup();};
+  void DoBackgroundColor();
+  void DoBackgroundColor(DLongGDL* selection);
+  
+  void SetForegroundColor(DByteGDL* val){GDLDelete(foregroundColor); foregroundColor=val->Dup();};
+  void DoForegroundColor();
+  void DoForegroundColor(DLongGDL* selection);
+  
+  void SetColumnLabels(DStringGDL* val){GDLDelete(columnLabels); columnLabels=val->Dup();};
+  void DoColumnLabels();
+  
+  void SetRowLabels(DStringGDL* val){GDLDelete(rowLabels); rowLabels=val->Dup();};
+  void DoRowLabels();
+  
+  void SetColumnWidth(DLongGDL* val){GDLDelete(columnWidth); columnWidth=val->Dup();};
+  void DoColumnWidth();
+  void DoColumnWidth(DLongGDL* selection);
+  DLongGDL* GetColumnWidth(DLongGDL* selection=NULL);
+  
+  void SetRowHeights(DLongGDL* val){GDLDelete(rowHeights); rowHeights=val->Dup();};
+  void DoRowHeights();
+  void DoRowHeights(DLongGDL* selection);
+  DLongGDL* GetRowHeight(DLongGDL* selection=NULL);
+
+  bool GetDisjointSelection(){return disjointSelection;}
+  void SetDisjointSelection(bool b){disjointSelection = b;}
+  void ClearSelection();
+  
+  void DeleteColumns(DLongGDL* selection=NULL);
+  void DeleteRows(DLongGDL* selection=NULL);
+
+  bool InsertColumns(DLong count, DLongGDL* selection=NULL);
+  bool InsertRows(DLong count, DLongGDL* selection=NULL);
+
+  void SetSelection(DLongGDL* selection);
+  DStringGDL* GetTableValues(DLongGDL* selection=NULL);
+  BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
+  void SetTableValues(DStringGDL *val, DLongGDL* selection=NULL);
+  void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
+  
+  void SetTableView(DLongGDL* pos);
+  void EditCell(DLongGDL* pos);
+  void SetTableNumberOfColumns( DLong ncols);
+  void SetTableNumberOfRows( DLong nrows);
+  
+  bool IsSomethingSelected();
 };
 
 
@@ -816,7 +881,6 @@ DString dragNotify ;
 bool draggable  ; 
 bool expanded   ; 
 bool folder     ; 
-DLong groupLeader; 
 DLong index     ; 
 bool mask       ; 
 bool multiple   ; 
@@ -841,7 +905,6 @@ public:
                    bool draggable_,
                    bool expanded_,
                    bool folder_,
-                   DLong groupLeader_,
                    DLong index_,
                    bool mask_,
                    bool multiple_,
@@ -849,12 +912,7 @@ public:
                    DLong tabMode_,
                    DString toolTip_);
 		 
-~GDLWidgetTree()
-{
-  GDLDelete( bitmap );
-}
-
-//  void OnShow();
+~GDLWidgetTree();
 
   bool IsTree() const { return true;}
 };
@@ -891,12 +949,177 @@ DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_HIDE_REQUEST, -1)
 
 class wxNotebookEvent;
+class wxGridEvent;
+class wxGridSizeEvent;
+class wxGridRangeSelectEvent;
+
+class GDLGrid : public wxGrid
+{
+  wxWindowID GDLWidgetTableID;
+public:
+  GDLGrid(wxWindow* container, wxWindowID id, 
+	    const wxPoint& pos = wxDefaultPosition, 
+	    const wxSize& size = wxDefaultSize,
+	    long style = 0, 
+	    const wxString& name = wxPanelNameStr);
+  ~GDLGrid();
+  void OnTableCellSelection(wxGridEvent & event);
+  void OnTableRangeSelection(wxGridRangeSelectEvent & event);
+  void OnTableColResizing(wxGridSizeEvent & event);
+  void OnTableRowResizing(wxGridSizeEvent & event); 
+  void OnText( wxCommandEvent& event);
+  void OnTextEnter( wxCommandEvent& event);
+  
+  bool IsSomethingSelected(){
+      wxGridCellCoordsArray cellSelection=this->GetSelectedCells();
+      if ( cellSelection.Count() > 0 ) return TRUE;
+      wxGridCellCoordsArray selectionBR=this->GetSelectionBlockBottomRight();
+      if ( selectionBR.Count() > 0 ) return TRUE;
+      wxArrayInt selectionRow=this->GetSelectedRows();
+      if ( selectionRow.GetCount() > 0 ) return TRUE;
+      wxArrayInt selectionCol=this->GetSelectedCols();
+      if ( selectionCol.GetCount() > 0 ) return TRUE;
+      return FALSE;
+  }
+  vector<wxPoint> GetSelectedDisjointCellsList(){
+      vector<wxPoint> list;
+      wxGridCellCoordsArray cellSelection=this->GetSelectedCells();
+      for( int i=0; i<cellSelection.Count(); i++ ) {
+       int row = cellSelection[i].GetRow();
+       int col = cellSelection[i].GetCol();
+       list.push_back(wxPoint(row,col));
+      }
+
+      wxGridCellCoordsArray selectionTL=this->GetSelectionBlockTopLeft();
+      wxGridCellCoordsArray selectionBR=this->GetSelectionBlockBottomRight();
+      for( int k=0; k<selectionBR.Count(); k++ ) {
+       int rowTL = selectionTL[k].GetRow();
+       int colTL = selectionTL[k].GetCol();
+       int rowBR = selectionBR[k].GetRow();
+       int colBR = selectionBR[k].GetCol();
+       int nrows=rowBR-rowTL+1;
+       int ncols=colBR-colTL+1;
+       for ( int i=0; i< nrows; ++i) for (int j=0; j<ncols; ++j) list.push_back(wxPoint(rowTL+i,colTL+j));
+      }
+      wxArrayInt selectionRow=this->GetSelectedRows();
+      for( int k=0; k<selectionRow.GetCount(); k++ ) {
+       int row = selectionRow[k];
+       for ( int i=0; i< this->GetNumberCols(); ++i) list.push_back(wxPoint(row,i));
+      }
+      wxArrayInt selectionCol=this->GetSelectedCols();
+      for( int k=0; k<selectionCol.GetCount(); k++ ) {
+       int col = selectionCol[k];
+       for ( int i=0; i< this->GetNumberRows(); ++i) list.push_back(wxPoint(i,col));
+      }      
+      return list;
+  }
+
+  wxArrayInt GetSelectedBlockOfCells() {
+    wxArrayInt block;
+    wxGridCellCoordsArray selectionTL = this->GetSelectionBlockTopLeft();
+    wxGridCellCoordsArray selectionBR = this->GetSelectionBlockBottomRight();
+    if (selectionBR.Count() > 0) {
+      for (int k = 0; k < selectionBR.Count(); k++) {
+        int colTL = selectionTL[k].GetCol();
+        block.push_back(colTL);
+        int rowTL = selectionTL[k].GetRow();
+        block.push_back(rowTL);
+        int colBR = selectionBR[k].GetCol();
+        block.push_back(colBR);
+        int rowBR = selectionBR[k].GetRow();
+        block.push_back(rowBR);
+      }
+      return block;
+    }
+    
+    wxArrayInt selectionRow=this->GetSelectedRows();
+    if (selectionRow.GetCount() > 0) {
+      block.push_back(0);
+      block.push_back(selectionRow[0]);
+      block.push_back(this->GetNumberCols()-1);
+      block.push_back(selectionRow[selectionRow.GetCount()-1]);
+      return block;
+    }
+    
+    wxArrayInt selectionCol=this->GetSelectedCols();
+    if (selectionCol.GetCount() > 0) {
+      block.push_back(selectionCol[0]);
+      block.push_back(0);
+      block.push_back(selectionCol[selectionCol.GetCount()-1]);
+      block.push_back(this->GetNumberRows()-1);
+      return block;
+    } 
+
+    wxGridCellCoordsArray cellSelection=this->GetSelectedCells(); //last chance for block selection, return only first if exist!
+    if (cellSelection.Count()==0) return block; //should produce error...
+    int row = cellSelection[0].GetRow();
+    int col = cellSelection[0].GetCol();
+    block.push_back(col);
+    block.push_back(row);
+    block.push_back(col);
+    block.push_back(row);
+    return block;
+  }
+  
+   wxArrayInt GetSortedSelectedColsList(){
+   std::vector<wxPoint> list=GetSelectedDisjointCellsList();
+   wxArrayInt cols;
+   if (list.empty()) return cols; 
+   std::vector<wxPoint>::iterator iPoint;
+   std::vector<int> allCols;
+   std::vector<int>::iterator iter;
+   for ( iPoint = list.begin(); iPoint !=list.end(); ++iPoint) {
+       allCols.push_back((*iPoint).y);
+    }
+   std::sort (allCols.begin(), allCols.end());
+   int theCol=-1;
+   for ( iter = allCols.begin(); iter !=allCols.end(); ++iter) {
+       if ((*iter)!=theCol) {theCol=(*iter);cols.Add(theCol);}
+    }
+   return cols;
+  }
+  wxArrayInt GetSortedSelectedRowsList(){
+   std::vector<wxPoint> list=GetSelectedDisjointCellsList();
+   wxArrayInt rows;
+   if (list.empty()) return rows; 
+   std::vector<wxPoint>::iterator iPoint;
+   std::vector<int> allRows;
+   std::vector<int>::iterator iter;
+   for ( iPoint = list.begin(); iPoint !=list.end(); ++iPoint) {
+       allRows.push_back((*iPoint).x);
+    }
+   std::sort (allRows.begin(), allRows.end());
+   int theRow=-1;
+   for ( iter = allRows.begin(); iter !=allRows.end(); ++iter) {
+       if ((*iter)!=theRow) {theRow=(*iter);rows.Add(theRow);}
+    }
+   return rows;
+  }
+
+protected:
+  DECLARE_EVENT_TABLE()
+};
+#ifdef HAVE_WXWIDGETS_PROPERTYGRID
+
+class GDLWidgetPropertySheet : public GDLWidget
+{
+public:
+  GDLWidgetPropertySheet( WidgetIDT parentID, EnvT* e);
+
+  ~GDLWidgetPropertySheet();
+
+  bool IsPropertySheet() const { return true;}
+};
+#endif
+
 class GDLFrame : public wxFrame
 {
-//  enum {TIMER_RESIZE = wxID_HIGHEST};
+  enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   bool lastShowRequest;
+  wxSize newSize;
   GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
+  wxTimer * m_timer;
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
   // called from ~GDLWidgetBase
@@ -904,10 +1127,8 @@ class GDLFrame : public wxFrame
   friend class GDLWidgetBase;
 public:
   // ctor(s)
-  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition);
+  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition);
   ~GDLFrame();
-//  wxTimer *m_timer;
-//  wxSize desired_size;
 
   GDLApp* GetTheApp(){return appOwner;}
   void SetTheApp(GDLApp* myApp){appOwner=myApp;}
@@ -925,13 +1146,28 @@ public:
   void OnTextEnter( wxCommandEvent& event);
   void OnPageChanged( wxNotebookEvent& event);
   void OnSize( wxSizeEvent& event);
+  void OnSizeWithTimer( wxSizeEvent& event);
   void OnTimerResize(wxTimerEvent& event);
   void OnScroll( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
   void OnRightClickAsContextEvent( wxMouseEvent &event );
   void OnFocusChange( wxFocusEvent &event);
-  
+  void OnIconize( wxIconizeEvent & event);
+  void OnMove( wxMoveEvent & event);
+  void OnCloseFrame( wxCloseEvent & event);
+  void OnWidgetTimer( wxTimerEvent & event);
+
   bool LastShowRequest() const { return lastShowRequest;}
+  
+  void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
+  {
+      WidgetIDT* id=new WidgetIDT(winId);
+      wxTimer * timer=new wxTimer();
+      int millisecs=secs*1000;
+      this->GetEventHandler()->SetClientData(id);
+      timer->SetOwner(this->GetEventHandler(),WINDOW_TIMER);
+      timer->Start(millisecs, wxTIMER_ONE_SHOT);
+  }
   
   void SendShowRequestEvent( bool show)
   {
@@ -956,8 +1192,7 @@ public:
   void OnShowRequest( wxCommandEvent& event);
   void OnHideRequest( wxCommandEvent& event);
   
-private:
-  // any class wishing to process wxWidgets events must use this macro
+protected:
   DECLARE_EVENT_TABLE()
 };
 
@@ -966,15 +1201,16 @@ class GDLWXStream;
 
 class GDLDrawPanel : public wxPanel
 {
+  enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   int		pstreamIx;
   GDLWXStream*	pstreamP;
 
   wxSize 	drawSize;
 
   wxDC*  	m_dc;
-  DULong        eventFlags;
-//   wxBitmap*    	memPlotDCBitmap;
-//   GDLWXStream*	PStream();
+  wxWindowID GDLWidgetDrawID;
+  wxSize   newSize;
+  wxTimer * m_timer;
   
 public:
   // ctor(s)
@@ -982,20 +1218,34 @@ public:
 	    const wxPoint& pos = wxDefaultPosition, 
 	    const wxSize& size = wxDefaultSize,
 	    long style = 0, 
-            DULong eventFlags_ = 0,
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
   
- // void Update();
-  void GetEventFlags(DULong eventFlags);
-//   void SetPStreamIx( int ix) { pstreamIx = ix;}
+  void Update()
+  {
+      this->Refresh();
+  }
+  
+//example for multithreading?
+//void Update()
+//{
+//  //   cout << "in GDLDrawPanel::Update()" << endl;
+//  SendPaintEvent( );
+//  //   wxClientDC dc( this);
+//  //   dc.SetDeviceClippingRegion( GetUpdateRegion() );
+//  //   GUIMutexLockerT gdlMutexGuiEnterLeave;
+//  //   dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
+//  //   wxPanel::Update();
+//  //   gdlMutexGuiEnterLeave.Leave();
+//}
+  
+//  void GetEventFlags(DULong eventFlags);
   int PStreamIx() { return pstreamIx;}
 
   void InitStream();
   
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);
-//  void OnShow(wxShowEvent& event);
   void OnClose(wxCloseEvent& event);
   void OnMouseMove( wxMouseEvent& event);
   void OnMouseDown( wxMouseEvent& event);
@@ -1005,14 +1255,13 @@ public:
   void OnEnterWindow(wxMouseEvent &event);
   void OnLeaveWindow(wxMouseEvent &event);
   void OnSize(wxSizeEvent &event);
-  void SetEventFlags(DULong eventFlag_);
-//   void OnCreate(wxWindowCreateEvent& event);
-//   void OnDestroy(wxWindowDestroyEvent& event);
+  void OnSizeWithTimer(wxSizeEvent &event);
+  void OnTimerResize( wxTimerEvent& event);
   void SendPaintEvent()
   {
     wxPaintEvent* event;
     event = new wxPaintEvent( GetId());
-    event->SetEventObject( this);
+    event->SetEventObject( this );
     // only for wWidgets > 2.9 (takes ownership of event)
 //     this->QueueEvent( event);
     this->AddPendingEvent( *event); // copies event
@@ -1020,8 +1269,7 @@ public:
   }
 
   
- private:
-  // any class wishing to process wxWidgets events must use this macro
+ protected:
   DECLARE_EVENT_TABLE()
 };
 

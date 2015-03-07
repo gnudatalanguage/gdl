@@ -49,7 +49,8 @@ GDLWXStream::GDLWXStream( int width, int height )
   }
 
   SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
-//  spage( 0.0, 0.0, m_width, m_height, 0, 0 );
+//  SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
+//  SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
   spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
