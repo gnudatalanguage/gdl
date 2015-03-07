@@ -105,25 +105,23 @@ namespace lib {
 
   BaseGDL* h5f_is_hdf5_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam(1);
-    BaseGDL* id;
-    try
-    {
-      id = h5f_open_fun(e);
-    }
-    catch (GDLException ex)
-    {
+    DString h5fFilename;
+    e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
+    WordExp( h5fFilename);
+    int code;
+    code = H5Fis_hdf5(h5fFilename.c_str());
+    if (code < 0) 
+    { 
+      string msg; 
+      e->Throw(hdf5_error_message(msg));
       return new DLongGDL(0);
     }
-    if (H5Sclose((*static_cast<DLongGDL*>(id))[0]) < 0)
-      { string msg; e->Throw(hdf5_error_message(msg)); }
     return new DLongGDL(1);
   }
 
 
   BaseGDL* h5f_open_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam(1);
     DLong h5f_id;
     
     DString h5fFilename;
