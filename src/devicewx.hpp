@@ -254,7 +254,7 @@ public:
         }
 
         wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-        GDLFrame *gdlFrame = new GDLFrame(0, NULL, wxID_ANY, titleWxString, wxPoint(xOffset,yOffset));
+        GDLFrame *gdlFrame = new GDLFrame(NULL, wxID_ANY, titleWxString, wxPoint(xOffset,yOffset));
 
         wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
         gdlFrame->SetSizer( topSizer );
