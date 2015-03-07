@@ -1366,6 +1366,31 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   return o;
 }
 
+ostream& DStructGDL::ToStreamRaw( ostream& o) {
+  // avoid checking actPosPtr
+  SizeT dummyPos = 0;
+
+  SizeT nTags = NTags( );
+  SizeT nEl = N_Elements( );
+
+  bool arrOut = false; // remember if an array was already put out
+
+  for ( SizeT e = 0; e < nEl; ++e ) {
+    for ( SizeT tIx = 0; tIx < nTags - 1; ++tIx ) {
+      BaseGDL* actEl = GetTag( tIx, e );
+      assert( actEl != NULL );
+      bool isArr = (actEl->Dim( ).Rank( ) != 0);
+      actEl->ToStream( o, 0, &dummyPos );
+      if ( isArr ) arrOut = true;
+    }
+
+    BaseGDL* actEl = GetTag( nTags - 1, e );
+    assert( actEl != NULL );
+    actEl->ToStream( o, 0, &dummyPos );
+  }
+  return o;
+}
+
 
 int xdr_convert(XDR *xdrs, DByte *buf)
 {
