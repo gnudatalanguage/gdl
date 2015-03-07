@@ -120,12 +120,42 @@ void InitStructs()
   SpDLong64 aLong64;
   SpDFloat  aFloat;
   SpDDouble aDouble;
+  SpDComplex aComplex;
+  SpDComplexDbl aComplexDbl;
+//  SpDStruct  aStruct;  //protected, we cannot use?
+  SpDInt   aColor( dimension(3));
   SpDLong   aLongArr8( dimension(8));
   SpDLong64   aLong64Arr8( dimension(8));
   SpDPtr    aPtrRef;
   SpDObj    aObjRef;
+  SpDUInt   auInt;
+  SpDULong  auLong;
+  SpDULong64 auLong64;
 
   // OBJECTS =================================================
+
+//A structure where objects are in the order of GDL Typecodes. Useful.
+
+  DStructDesc* gdltypecodes = new DStructDesc("GDL_TYPECODES_AS_STRUCT");
+   gdltypecodes->AddTag("GDL_UNDEF",   &aInt            );  //Danger! // 0 Undefined value, the default for new symbols
+   gdltypecodes->AddTag("GDL_BYTE",    &aByte           );  // 1 byte
+   gdltypecodes->AddTag("GDL_INT",	   &aInt            );  // 2 Integer scalar 
+   gdltypecodes->AddTag("GDL_LONG",	   &aLong           );  // 3 long Integer scalar
+   gdltypecodes->AddTag("GDL_FLOAT",   &aFloat          );  // 4 Real scalar
+   gdltypecodes->AddTag("GDL_DOUBLE",  &aDouble         );  // 5 Double scalar
+   gdltypecodes->AddTag("GDL_COMPLEX", &aComplex        );  // 6 Complex scalar
+   gdltypecodes->AddTag("GDL_STRING",  &aString         );  // 7 String
+   gdltypecodes->AddTag("GDL_STRUCT",  &aInt            );  //Danger // 8 Struct
+   gdltypecodes->AddTag("GDL_COMPLEXDBL",  &aComplexDbl );  // 9 Complex double
+   gdltypecodes->AddTag("GDL_PTR",	   &aPtrRef         );  // 10 Pointer
+   gdltypecodes->AddTag("GDL_OBJ",     &aObjRef         );  // 11 Object reference
+   gdltypecodes->AddTag("GDL_UINT",    &auInt           );  // 12 unsigned int
+   gdltypecodes->AddTag("GDL_ULONG",   &auLong          );  // 13 unsigned long int
+   gdltypecodes->AddTag("GDL_LONG64",  &aLong64         );  // 14 64 bit integer
+   gdltypecodes->AddTag("GDL_ULONG64", &auLong64        );  // 15 unsigned 64 bit integer
+  // insert into structList
+  structList.push_back(gdltypecodes);
+
 
   DStructDesc* gdl_object = new DStructDesc( GDL_OBJECT_NAME);
   gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
@@ -237,18 +267,6 @@ void InitStructs()
     // insert into structList
     structList.push_back( fstat);
   }
-
-  DStructDesc* traceback = new DStructDesc("IDL_TRACEBACK");
-  traceback->AddTag("ROUTINE", &aString);
-  traceback->AddTag("FILENAME", &aString);
-  traceback->AddTag("LINE", &aLong);
-  traceback->AddTag("LEVEL", &aLong);
-  traceback->AddTag("IS_FUNCTION", &aByte);
-  traceback->AddTag("METHOD", &aByte);
-  traceback->AddTag("RESTORED", &aByte);
-  traceback->AddTag("SYSTEM", &aByte);
-  // insert into structList
-  structList.push_back(traceback);
 
   DStructDesc* finfo = new DStructDesc("FILE_INFO");
   finfo->AddTag("NAME", &aString);
@@ -406,6 +424,18 @@ void InitStructs()
   // insert into structList
   structList.push_back( widgtxtc);
 
+  DStructDesc* widgtablec = new DStructDesc( "WIDGET_TABLE_CH");
+  widgtablec->AddTag("ID", &aLong);
+  widgtablec->AddTag("TOP", &aLong);
+  widgtablec->AddTag("HANDLER", &aLong);
+  widgtablec->AddTag("TYPE", &aInt); // 0
+  widgtablec->AddTag("OFFSET", &aLong);
+  widgtablec->AddTag("CH", &aByte);
+  widgtablec->AddTag("X", &aLong);
+  widgtablec->AddTag("Y", &aLong);
+  // insert into structList
+  structList.push_back( widgtablec);
+
   DStructDesc* widgtxtst = new DStructDesc( "WIDGET_TEXT_STR");
   widgtxtst->AddTag("ID", &aLong);
   widgtxtst->AddTag("TOP", &aLong);
@@ -416,6 +446,18 @@ void InitStructs()
   // insert into structList
   structList.push_back( widgtxtst);
 
+  DStructDesc* widgtablest = new DStructDesc( "WIDGET_TABLE_STR");
+  widgtablest->AddTag("ID", &aLong);
+  widgtablest->AddTag("TOP", &aLong);
+  widgtablest->AddTag("HANDLER", &aLong);
+  widgtablest->AddTag("TYPE", &aInt); // 1
+  widgtablest->AddTag("OFFSET", &aLong);
+  widgtablest->AddTag("STR", &aString);
+  widgtablest->AddTag("X", &aLong);
+  widgtablest->AddTag("Y", &aLong);
+   // insert into structList
+  structList.push_back( widgtablest);
+
   DStructDesc* widgtxts = new DStructDesc( "WIDGET_TEXT_SEL");
   widgtxts->AddTag("ID", &aLong);
   widgtxts->AddTag("TOP", &aLong);
@@ -425,6 +467,42 @@ void InitStructs()
   widgtxts->AddTag("LENGTH", &aLong);
   // insert into structList
   structList.push_back( widgtxts);
+
+  DStructDesc* widgtablesel = new DStructDesc( "WIDGET_TABLE_TEXT_SEL");
+  widgtablesel->AddTag("ID", &aLong);
+  widgtablesel->AddTag("TOP", &aLong);
+  widgtablesel->AddTag("HANDLER", &aLong);
+  widgtablesel->AddTag("TYPE", &aInt); // 3
+  widgtablesel->AddTag("OFFSET", &aLong);
+  widgtablesel->AddTag("LENGTH", &aLong);
+  widgtablesel->AddTag("X", &aLong);
+  widgtablesel->AddTag("Y", &aLong);
+  // insert into structList
+  structList.push_back( widgtablesel);
+  
+  DStructDesc* widgtablecelsel = new DStructDesc( "WIDGET_TABLE_CELL_SEL");
+  widgtablecelsel->AddTag("ID", &aLong);
+  widgtablecelsel->AddTag("TOP", &aLong);
+  widgtablecelsel->AddTag("HANDLER", &aLong);
+  widgtablecelsel->AddTag("TYPE", &aInt); // 4
+  widgtablecelsel->AddTag("SEL_LEFT", &aLong);
+  widgtablecelsel->AddTag("SEL_TOP", &aLong);
+  widgtablecelsel->AddTag("SEL_RIGHT", &aLong);
+  widgtablecelsel->AddTag("SEL_BOTTOM", &aLong);
+  // insert into structList
+  structList.push_back( widgtablecelsel);
+
+  DStructDesc* widgtableceldesel = new DStructDesc( "WIDGET_TABLE_CELL_DESEL");
+  widgtableceldesel->AddTag("ID", &aLong);
+  widgtableceldesel->AddTag("TOP", &aLong);
+  widgtableceldesel->AddTag("HANDLER", &aLong);
+  widgtableceldesel->AddTag("TYPE", &aInt); // 9
+  widgtableceldesel->AddTag("SEL_LEFT", &aLong);
+  widgtableceldesel->AddTag("SEL_TOP", &aLong);
+  widgtableceldesel->AddTag("SEL_RIGHT", &aLong);
+  widgtableceldesel->AddTag("SEL_BOTTOM", &aLong);
+  // insert into structList
+  structList.push_back( widgtableceldesel);
   
   DStructDesc* widgtxtd = new DStructDesc( "WIDGET_TEXT_DEL");
   widgtxtd->AddTag("ID", &aLong);
@@ -435,6 +513,49 @@ void InitStructs()
   widgtxtd->AddTag("LENGTH", &aLong);
   // insert into structList
   structList.push_back( widgtxtd);
+  
+  DStructDesc* widgtabled = new DStructDesc( "WIDGET_TABLE_DEL");
+  widgtabled->AddTag("ID", &aLong);
+  widgtabled->AddTag("TOP", &aLong);
+  widgtabled->AddTag("HANDLER", &aLong);
+  widgtabled->AddTag("TYPE", &aInt); // 2
+  widgtabled->AddTag("OFFSET", &aLong);
+  widgtabled->AddTag("LENGTH", &aLong);
+  widgtabled->AddTag("X", &aLong);
+  widgtabled->AddTag("Y", &aLong);
+   // insert into structList
+  structList.push_back( widgtabled);
+  
+  DStructDesc* widgtablerowheight = new DStructDesc( "WIDGET_TABLE_ROW_HEIGHT");
+  widgtablerowheight->AddTag("ID", &aLong);
+  widgtablerowheight->AddTag("TOP", &aLong);
+  widgtablerowheight->AddTag("HANDLER", &aLong);
+  widgtablerowheight->AddTag("TYPE", &aInt); // 6
+  widgtablerowheight->AddTag("ROW", &aLong);
+  widgtablerowheight->AddTag("HEIGHT", &aLong);
+  // insert into structList
+  structList.push_back( widgtablerowheight);
+  
+  DStructDesc* widgtablecolwidth = new DStructDesc( "WIDGET_TABLE_COL_WIDTH");
+  widgtablecolwidth->AddTag("ID", &aLong);
+  widgtablecolwidth->AddTag("TOP", &aLong);
+  widgtablecolwidth->AddTag("HANDLER", &aLong);
+  widgtablecolwidth->AddTag("TYPE", &aInt); // 7
+  widgtablecolwidth->AddTag("COL", &aLong);
+  widgtablecolwidth->AddTag("WIDTH", &aLong);
+  // insert into structList
+  structList.push_back( widgtablecolwidth);
+  
+  DStructDesc* widgtableinvalidentry = new DStructDesc( "WIDGET_TABLE_INVALID_ENTRY");
+  widgtableinvalidentry->AddTag("ID", &aLong);
+  widgtableinvalidentry->AddTag("TOP", &aLong);
+  widgtableinvalidentry->AddTag("HANDLER", &aLong);
+  widgtableinvalidentry->AddTag("TYPE", &aInt); // 8
+  widgtableinvalidentry->AddTag("STR", &aString);
+  widgtableinvalidentry->AddTag("X", &aLong);
+  widgtableinvalidentry->AddTag("Y", &aLong);
+  // insert into structList
+  structList.push_back( widgtableinvalidentry);
   
   DStructDesc* widgnoevent = new DStructDesc( "WIDGET_NOEVENT");
   widgnoevent->AddTag("ID", &aLong);
@@ -540,6 +661,44 @@ void InitStructs()
   widgtracking->AddTag("ENTER", &aInt);
   // insert into structList
   structList.push_back( widgtracking);
+
+  DStructDesc* widgtimer = new DStructDesc( "WIDGET_TIMER");
+  widgtimer->AddTag("ID", &aLong);
+  widgtimer->AddTag("TOP", &aLong);
+  widgtimer->AddTag("HANDLER", &aLong);
+  // insert into structList
+  structList.push_back( widgtimer);
+  
+  DStructDesc* colo = new DStructDesc( "WIDGET_SYSTEM_COLORS");
+  colo->AddTag("DARK_SHADOW_3D", &aColor);
+  colo->AddTag("FACE_3D", &aColor);
+  colo->AddTag("LIGHT_EDGE_3D", &aColor);
+  colo->AddTag("LIGHT_3D", &aColor);
+  colo->AddTag("SHADOW_3D", &aColor);
+  colo->AddTag("ACTIVE_BORDER", &aColor);
+  colo->AddTag("ACTIVE_CAPTION", &aColor);
+  colo->AddTag("APP_WORKSPACE", &aColor);
+  colo->AddTag("DESKTOP", &aColor);
+  colo->AddTag("BUTTON_TEXT", &aColor);
+  colo->AddTag("CAPTION_TEXT", &aColor);
+  colo->AddTag("GRAY_TEXT", &aColor);
+  colo->AddTag("HIGHLIGHT", &aColor);
+  colo->AddTag("HIGHLIGHT_TEXT", &aColor);
+  colo->AddTag("INACTIVE_BORDER", &aColor);
+  colo->AddTag("INACTIVE_CAPTION", &aColor);
+  colo->AddTag("INACTIVE_CAPTION_TEXT", &aColor);
+  colo->AddTag("TOOLTIP_BK", &aColor);
+  colo->AddTag("TOOLTIP_TEXT", &aColor);
+  colo->AddTag("MENU", &aColor);
+  colo->AddTag("MENU_TEXT", &aColor);
+  colo->AddTag("SCROLLBAR", &aColor);
+  colo->AddTag("WINDOW_BK", &aColor);
+  colo->AddTag("WINDOW_FRAME", &aColor);
+  colo->AddTag("WINDOW_TEXT", &aColor);
+  // insert into structList
+  structList.push_back( colo);
+  
+  
 }
 
 void InitObjects()
