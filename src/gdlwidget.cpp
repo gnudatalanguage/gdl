@@ -438,8 +438,11 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputStderr( ).Printf( _T( "inserted: ID: %d  parentID: %d\n" ), widgetID, parentID );
 #endif
+  if (groupLeader != 0) {
+    GDLWidget* leader=this->GetWidget(groupLeader);
+    if (leader) leader->AddToFollowers(widgetID);
+  }
 }
-
 
 void GDLWidget::SetSensitive(bool value)
 {
@@ -600,68 +603,75 @@ BaseGDL * GDLWidget::getSystemColours()
   return colo;
 }
 
-GDLWidget::~GDLWidget()
-{
+GDLWidget::~GDLWidget( ) {
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "in ~GDLWidget(): " << widgetID << std::endl;
 #endif
-  
-  assert( this->IsValid() ); 
+
+  assert( this->IsValid( ) );
   //unvalidate widget to prevent some further actions
-  this->SetUnValid();
-  
+  this->SetUnValid( );
+
   // call KILL_NOTIFY procedures
   this->OnKill( );
-
-  //   managed = false;
-  DInt type=this->GetWidgetType();
-  bool badtype=(type==GDLWidget::WIDGET_BASE ||type==GDLWidget::WIDGET_MBAR ||type==GDLWidget::WIDGET_TAB);
-   
-  if (scrollSizer!=NULL) {
-    if (badtype) 
-    {
-#ifdef GDL_DEBUG_WIDGETS
-      cerr<<"Warning, found and ignored a Scrolled Container."<<endl; 
-#endif
-    }
-    else this->UnScrollWidget();
+  
+  // kill followers (here?)
+  // delete all children (in reverse order ?)
+  for( std::vector<WidgetIDT>::iterator iter=followers.begin(); iter!=followers.end(); ++iter) 
+  {
+      GDLWidget* follower = GetWidget( *iter);
+      if( follower ) {
+        delete follower;
+      }
   }
-  if (frameSizer!=NULL) {
-    if (badtype)
-    {
+  
+  //   managed = false;
+  DInt type = this->GetWidgetType( );
+  bool badtype = (type == GDLWidget::WIDGET_BASE || type == GDLWidget::WIDGET_MBAR || type == GDLWidget::WIDGET_TAB);
+
+  if ( scrollSizer != NULL ) {
+    if ( badtype ) {
 #ifdef GDL_DEBUG_WIDGETS
-      cerr<<"Warning, found and ignored a Framed Container."<<endl;
+      cerr << "Warning, found and ignored a Scrolled Container." << endl;
 #endif
-    } else  this->UnFrameWidget();
+    } else this->UnScrollWidget( );
+  }
+  if ( frameSizer != NULL ) {
+    if ( badtype ) {
+#ifdef GDL_DEBUG_WIDGETS
+      cerr << "Warning, found and ignored a Framed Container." << endl;
+#endif
+    } else this->UnFrameWidget( );
   }
 
   //destroy, unless...
-  if (widgetType == GDLWidget::WIDGET_MBAR) { //widget is a MBAR ---> do nothing yet, it is part of TLB
+  if ( widgetType == GDLWidget::WIDGET_MBAR ) { //widget is a MBAR ---> do nothing yet, it is part of TLB
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "in ~GDLWidget(): not destroying "<<widgetName<<": " << widgetID << endl;
+    std::cout << "in ~GDLWidget(): not destroying " << widgetName << ": " << widgetID << endl;
 #endif
   } else if ( parentID != GDLWidget::NullID ) { //not the TLB
     //parent is a panel or a tab
     GDLWidget* gdlParent = GetWidget( parentID );
     assert( gdlParent != NULL );
-if ( gdlParent->IsContainer( ) ) {
+    if ( gdlParent->IsContainer( ) ) {
 #ifdef GDL_DEBUG_WIDGETS
-      std::cout << "in ~GDLWidget(): destroy container-parent "<<widgetName<<": " << widgetID << endl;
+      std::cout << "in ~GDLWidget(): destroy container-parent " << widgetName << ": " << widgetID << endl;
 #endif
       GDLWidgetContainer* container = static_cast<GDLWidgetContainer*> (gdlParent);
       container->RemoveChild( widgetID );
       wxWindow *me = static_cast<wxWindow*> (this->GetWxWidget( ));
-      if ( me ) if (gdlParent->IsTab()) me->Hide( ); else me->Destroy(); //do not delete the page, it will be removed by the notebook deletion!!!
+      if ( me ) if ( gdlParent->IsTab( ) ) me->Hide( );
+        else me->Destroy( ); //do not delete the page, it will be removed by the notebook deletion!!!
     } else {
 #ifdef GDL_DEBUG_WIDGETS
-      std::cout << "in ~GDLWidget(): destroy non container-parent "<<widgetName<<": " << widgetID << endl;
+      std::cout << "in ~GDLWidget(): destroy non container-parent " << widgetName << ": " << widgetID << endl;
 #endif
       wxWindow *me = static_cast<wxWindow*> (this->GetWxWidget( ));
       if ( me ) me->Destroy( );
     }
-  } 
+  }
 #ifdef GDL_DEBUG_WIDGETS
-  else std::cout << "in ~GDLWidget(): not destroying TLB "<<widgetName<<": " << widgetID << endl;
+  else std::cout << "in ~GDLWidget(): not destroying TLB " << widgetName << ": " << widgetID << endl;
 #endif
   GDLDelete( uValue );
   GDLDelete( vValue );

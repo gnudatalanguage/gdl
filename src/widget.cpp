@@ -73,7 +73,13 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   if (e->KeywordPresent( sensitiveIx )) sensitive=e->KeywordSet( sensitiveIx);
 
   groupLeader = 0;
-  e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
+  if (e->KeywordPresent( group_leaderIx )){
+    e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
+    GDLWidget *widget = GDLWidget::GetWidget( groupLeader );
+    if ( widget == NULL ) {
+        e->Throw( "Invalid widget identifier:" + i2s( groupLeader ) );
+    }
+  }
 
   frame = 0;
   e->AssureLongScalarKWIfPresent( frameIx, frame );
@@ -708,7 +714,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int nonexclusiveIx = e->KeywordIx( "NONEXCLUSIVE" );
   static int floatingIx = e->KeywordIx( "FLOATING" );
   static int grid_layoutIx = e->KeywordIx( "GRID_LAYOUT" );
-  static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
   static int kbrd_focus_eventsIx = e->KeywordIx( "KBRD_FOCUS_EVENTS" );
   static int mapIx = e->KeywordIx( "MAP" );
   static int spaceIx = e->KeywordIx( "SPACE" );
@@ -775,10 +780,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
 
 
-  // non-bool
-  //     WidgetIDT group_leader = 0;
-  //     e->AssureLongScalarKWIfPresent( group_leaderIx, group_leader);
-
   bool mbarPresent = e->KeywordPresent( mbarIx )||e->KeywordPresent( obsolete_app_mbarIx );
 
   DLong space= 0;
@@ -826,6 +827,7 @@ BaseGDL* widget_draw( EnvT* e ) {
     {
       //we must test groupleader even before it is set up by SetCommonKeywords.
     DLong groupLeader = 0;
+    static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
     e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
     if ( groupLeader == 0 )
       e->Throw( "MODAL top level bases must have a group leader specified." );
@@ -1886,7 +1888,8 @@ void widget_control( EnvT* e ) {
   bool xmanActCom = e->KeywordSet( xmanActComIx );
 
   static int destroyIx = e->KeywordIx( "DESTROY" );
-  bool destroy = e->KeywordSet( destroyIx );
+  static int delay_destroyIx = e->KeywordIx( "DELAY_DESTROY" );
+  bool destroy = (e->KeywordSet( destroyIx ) || e->KeywordSet( delay_destroyIx )); //silently ignore 'delay' and maintain 'destroy'.
   
   static int timerIx = e->KeywordIx( "TIMER" );
   bool doTimer = e->KeywordPresent( timerIx );
@@ -2007,13 +2010,24 @@ void widget_control( EnvT* e ) {
   static int UPDATE = e->KeywordIx( "UPDATE" );
   bool update=e->KeywordPresent(UPDATE);
   
-  
+  static int badidIx = e->KeywordIx( "BAD_ID" );
+  bool dobadid = e->KeywordPresent( badidIx );
+  if (dobadid) e->AssureGlobalKW(badidIx);
+
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
   GDLWidget *widget = GDLWidget::GetWidget( widgetID );
-  if ( widget == NULL )
-    e->Throw( "Widget ID not valid: " + i2s( widgetID ) );
+  if ( widget == NULL ) {
+    if ( dobadid ) {
+      BaseGDL** badidKW = &e->GetKW( badidIx );
+      GDLDelete( (*badidKW) );
+      *badidKW=new DLongGDL( widgetID );
+      return;
+    } else {
+      e->Throw( "Widget ID not valid: " + i2s( widgetID ) );
+    }
+  }
 
   // start with set/ or get/value
   // this insures that all widgets, i.e. including invalid widgets (in the process of being deleted)

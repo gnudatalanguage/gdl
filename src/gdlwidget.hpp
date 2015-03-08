@@ -242,6 +242,7 @@ protected:
   bool         updating; //widget is modified by program (avoid sending events)
   long  alignment; //alignment of the widget
   long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
+  vector<WidgetIDT> followers; //all the widgets that use me as group_leader
 
   
 private:  
@@ -344,7 +345,12 @@ public:
       CallEventPro( RIP, new DLongGDL( widgetID));
     }
   }
-
+  
+  virtual void AddToFollowers(WidgetIDT him)
+  {
+    followers.insert( followers.end( ), him );
+  }
+  
   void SetSizeHints();
   void SetSize(DLong sizex, DLong sizey);
   DLong GetXSize(){return xSize;}
