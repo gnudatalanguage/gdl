@@ -94,7 +94,7 @@ for ii=0,1 do begin
       tmp=data_NaN
       title='with 10% NaN'
    endelse
-   WINDOW, ii, xsize=400, ysize=750, title=title
+   if (!d.name EQ 'X') then WINDOW, ii, xsize=400, ysize=750, title=title
    !p.multi=[0,2,4]
    ;;
    plot, MEAN(tmp, dim=1,/nan), title='MEAN, dim=1'
