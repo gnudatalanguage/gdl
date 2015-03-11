@@ -355,6 +355,8 @@ public:
   void SetSize(DLong sizex, DLong sizey);
   DLong GetXSize(){return xSize;}
   DLong GetYSize(){return ySize;}
+  DLong GetXPos(){return static_cast<wxWindow*>(wxWidget)->GetPosition().x;}
+  DLong GetYPos(){return static_cast<wxWindow*>(wxWidget)->GetPosition().y;}
   bool IsValid(){return valid;}
   void SetUnValid(){valid=FALSE;}
   void SetValid(){valid=TRUE;}
@@ -388,8 +390,6 @@ public:
   virtual bool IsSlider() const { return false;}
   virtual bool IsDraw() const { return false;}
   virtual bool IsMenuBar() const { return false;}
-  virtual bool IsMenu() const { return false;}
-  virtual bool IsMenuItem() const { return false;}
   virtual bool IsPropertySheet() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
@@ -447,7 +447,7 @@ public:
   void ClearUpdating(){updating=FALSE;}
   void SetUpdating(){updating=TRUE;}
   
-  wxSize getWidgetSize(); 
+  wxSize computeWidgetSize(); 
   BaseGDL * getSystemColours();
 };
 
@@ -650,6 +650,8 @@ public:
   std::string GetLastValue() { return lastValue;}
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
+  void AddItem(DString value, DLong pos);
+  void DeleteItem(DLong pos);
 };
 
 // list widget **************************************************
@@ -682,13 +684,14 @@ public:
   void InsertText( DStringGDL* value, bool noNewLine=false, bool insertAtEnd=false);
   void SetTextSelection(DLongGDL* pos);
   DLongGDL* GetTextSelection();
+  DStringGDL* GetSelectedText();
   void AppendTextValue( DStringGDL* value, bool noNewLine);
   
   bool IsText() const { return true;} 
   
   void SetLastValue( const std::string& v) { lastValue = v;}
   std::string GetLastValue() { return lastValue;}
-  wxSize getWidgetSize();
+  wxSize computeWidgetSize();
 };
 
 
@@ -943,6 +946,7 @@ public:
   ~GDLWidgetSlider();
 
   void SetValue( DLong v) { value = v;}
+  void ControlSetValue ( DLong v );
   DLong GetValue() const { return value;}
   
   bool IsSlider() const { return true;}
@@ -1125,7 +1129,8 @@ class GDLFrame : public wxFrame
   wxSize newSize;
   GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
-  wxTimer * m_timer;
+  wxTimer * m_resizeTimer;
+  wxTimer * m_windowTimer;
   void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
   // called from ~GDLWidgetBase
@@ -1152,8 +1157,8 @@ public:
   void OnTextEnter( wxCommandEvent& event);
   void OnPageChanged( wxNotebookEvent& event);
   void OnSize( wxSizeEvent& event);
-  void OnSizeWithTimer( wxSizeEvent& event);
-  void OnTimerResize(wxTimerEvent& event);
+//  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
+//  void OnTimerResize(wxTimerEvent& event);
   void OnScroll( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
   void OnRightClickAsContextEvent( wxMouseEvent &event );
@@ -1168,11 +1173,10 @@ public:
   void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
   {
       WidgetIDT* id=new WidgetIDT(winId);
-      wxTimer * timer=new wxTimer();
       int millisecs=secs*1000;
       this->GetEventHandler()->SetClientData(id);
-      timer->SetOwner(this->GetEventHandler(),WINDOW_TIMER);
-      timer->Start(millisecs, wxTIMER_ONE_SHOT);
+      m_windowTimer->SetOwner(this->GetEventHandler(),WINDOW_TIMER);
+      m_windowTimer->Start(millisecs, wxTIMER_ONE_SHOT);
   }
   
   void SendShowRequestEvent( bool show)
@@ -1216,7 +1220,7 @@ class GDLDrawPanel : public wxPanel
   wxDC*  	m_dc;
   wxWindowID GDLWidgetDrawID;
   wxSize   newSize;
-  wxTimer * m_timer;
+  wxTimer * m_resizeTimer;
   
 public:
   // ctor(s)
@@ -1261,8 +1265,8 @@ public:
   void OnEnterWindow(wxMouseEvent &event);
   void OnLeaveWindow(wxMouseEvent &event);
   void OnSize(wxSizeEvent &event);
-  void OnSizeWithTimer(wxSizeEvent &event);
-  void OnTimerResize( wxTimerEvent& event);
+//  void OnSizeWithTimer(wxSizeEvent &event); //not yet ready
+//  void OnTimerResize( wxTimerEvent& event);
   void SendPaintEvent()
   {
     wxPaintEvent* event;

@@ -932,12 +932,14 @@ BaseGDL* widget_draw( EnvT* e ) {
       //try loading file
       wxInitAllImageHandlers();
       wxImage * tryImage=new wxImage(wxString(value.c_str(),wxConvUTF8),wxBITMAP_TYPE_ANY);
-      if (tryImage->IsOk()) bitmap = new wxBitmap(*tryImage);
-      else e->Throw( "Unable to read image file: " + value );
-      value.clear();
-  //     if (tryImage.LoadFile(_(value))) 
-  //    { bitmap = wxBitmap(tryImage); } else {e->Throw( "Unable to read image file: " + value );}
-    }else if (invalue->Type()==GDL_STRING) {
+      if (tryImage->IsOk()) {
+        bitmap = new wxBitmap(*tryImage);
+        value.clear();
+      } else {
+        e->AssureStringScalarKWIfPresent( valueIx, value );
+        Warning( "WIDGET_BUTTON: Can't open bitmap file: " + value );
+      }
+    } else if (invalue->Type()==GDL_STRING) {
       e->AssureStringScalarKWIfPresent( valueIx, value );
     } else {
       DByteGDL* testByte=e->GetKWAs<DByteGDL>(valueIx);
@@ -1658,7 +1660,10 @@ BaseGDL* widget_info( EnvT* e ) {
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
-      return static_cast<GDLWidgetText*>(widget)->GetTextSelection();
+      if ( widget->IsText()) return static_cast<GDLWidgetText*>(widget)->GetTextSelection();
+      //other cases return [0,0]
+      DLongGDL* pos=new DLongGDL(dimension(2),BaseGDL::ZERO);
+      return pos;
   }
 
 
@@ -1948,8 +1953,18 @@ void widget_control( EnvT* e ) {
 
   static int tlbgetsizeIx =  e->KeywordIx( "TLB_GET_SIZE" );
   bool givetlbsize = e->KeywordPresent( tlbgetsizeIx );
+  static int tlbgetoffsetIx =  e->KeywordIx( "TLB_GET_OFFSET" );
+  bool givetlboffset = e->KeywordPresent( tlbgetoffsetIx );
   static int tlbsettitleIx =  e->KeywordIx( "TLB_SET_TITLE" );
   bool settlbtitle = e->KeywordPresent( tlbsettitleIx );  
+  static int tlbsetxoffsetIx =  e->KeywordIx( "TLB_SET_XOFFSET" );
+  bool settlbxoffset = e->KeywordPresent( tlbsetxoffsetIx );  
+  static int tlbsetyoffsetIx =  e->KeywordIx( "TLB_SET_YOFFSET" );
+  bool settlbyoffset = e->KeywordPresent( tlbsetyoffsetIx );  
+  static int setxoffsetIx =  e->KeywordIx( "XOFFSET" );
+  bool setxoffset = e->KeywordPresent( setxoffsetIx );  
+  static int setyoffsetIx =  e->KeywordIx( "YOFFSET" );
+  bool setyoffset = e->KeywordPresent( setyoffsetIx );  
 
   static int SEND_EVENT = e->KeywordIx( "SEND_EVENT" );
   static int CLEAR_EVENTS = e->KeywordIx( "CLEAR_EVENTS" );
@@ -2014,14 +2029,17 @@ void widget_control( EnvT* e ) {
   bool dobadid = e->KeywordPresent( badidIx );
   if (dobadid) e->AssureGlobalKW(badidIx);
 
+  static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
+
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
   GDLWidget *widget = GDLWidget::GetWidget( widgetID );
   if ( widget == NULL ) {
     if ( dobadid ) {
+      e->AssureGlobalKW(badidIx );
       BaseGDL** badidKW = &e->GetKW( badidIx );
-      GDLDelete( (*badidKW) );
+      if (badidKW) GDLDelete( (*badidKW) );
       *badidKW=new DLongGDL( widgetID );
       return;
     } else {
@@ -2062,6 +2080,11 @@ void widget_control( EnvT* e ) {
         else if (usetextselect) textWidget->InsertText( valueStr, noNewLine);
         else textWidget->ChangeText( valueStr, noNewLine);
       }
+    } else if ( wType == "SLIDER" ) {
+      DLong value = 0;
+      e->AssureLongScalarKWIfPresent( setvalueIx, value );
+      GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
+      s->ControlSetValue( value );
     } else if ( wType == "LABEL" ) {
       DString value = "";
       e->AssureStringScalarKWIfPresent( setvalueIx, value );
@@ -2069,8 +2092,14 @@ void widget_control( EnvT* e ) {
       GDLWidgetLabel *labelWidget = (GDLWidgetLabel *) widget;
       labelWidget->SetLabelValue( value );
     } else if ( wType == "COMBOBOX" ) {
+      GDLWidgetComboBox *combo = static_cast<GDLWidgetComboBox*> (widget);
+      combo->SetValue(value);
     } else if ( wType == "LIST" ) {
+      GDLWidgetList *list = static_cast<GDLWidgetList*> (widget);
+      list->SetValue(value);
     } else if ( wType == "DROPLIST" ) {
+      GDLWidgetDropList *droplist = static_cast<GDLWidgetDropList*> (widget);
+      droplist->SetValue(value);
     } else if ( wType == "BUTTON" ) {
       DString value = "";
       wxBitmap * bitmap=NULL;
@@ -2193,16 +2222,15 @@ void widget_control( EnvT* e ) {
   } //end SetValue
 
   if ( getvalue ) {
-
+    e->AssureGlobalKW( getvalueIx );
     BaseGDL** valueKW = &e->GetKW( getvalueIx );
-    GDLDelete( (*valueKW) );
 
     DString getFuncName = widget->GetFuncValue( );
-    if ( !(getFuncName.empty()) ) {
+    if ( !(getFuncName.empty( )) ) {
       StackGuard<EnvStackT> guard( e->Interpreter( )->CallStack( ) );
 
       DString callF = StrUpCase( getFuncName );
-//      cerr<<"calling funcname="<<callF<<endl;
+      //      cerr<<"calling funcname="<<callF<<endl;
 
       SizeT funIx = GDLInterpreter::GetFunIx( callF );
       EnvUDT* newEnv = new EnvUDT( e->CallingNode( ), funList[ funIx], (DObjGDL**) NULL );
@@ -2216,125 +2244,131 @@ void widget_control( EnvT* e ) {
       res = e->Interpreter( )->call_fun( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
 
       // set the keyword to the function's return value which can be anything!!!
+      if (valueKW) GDLDelete( (*valueKW) );
       *valueKW = res;
-    } else {
-      if ( widget->IsText( ) || widget->IsDropList( ) || widget->IsComboBox() ) {
-        string rawValue;
-        if ( widget->IsText( ) ) {rawValue = static_cast<GDLWidgetText*> (widget)->GetLastValue( );}
-        else if ( widget->IsComboBox( ) )
-        {rawValue = static_cast<GDLWidgetComboBox*> (widget)->GetLastValue( );}
-        else //Droplist
-        {
-          assert( widget->IsDropList());
-          rawValue = static_cast<GDLWidgetDropList*> (widget)->GetLastValue( );
-        }
-	  if( rawValue.length() == 0)
-	  {
-        *valueKW = new DStringGDL( dimension( 1 ) );
-	  }
-	  else
-	  {
-        vector<DString> strArr;
-        strArr.reserve( rawValue.length( ) );
-        string actStr = "";
-	    for( int i=0; i<rawValue.length(); ++i)
-	    {
-          if ( rawValue[i] != '\n' ) actStr += rawValue[i];
-		  else
-          {
-            strArr.push_back( actStr );
-            actStr.clear( );
-          }
-        }
-        strArr.push_back( actStr ); //was missing!!
-        if (strArr.size() > 0) {
-          DStringGDL* valueStr = new DStringGDL( dimension(strArr.size()));
-          for( int i=0; i<strArr.size(); ++i)
-          {
-            (*valueStr)[i] = strArr[i];
-          }
-            *valueKW = valueStr;
-          } else *valueKW = new DStringGDL( dimension( 1 ) );
-        }           
-      } else if (widget->IsTable( )) {
+    } else { 
+        if ( widget->IsTable( ) ) { //TABLE
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
-        static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
-        bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
+        static int USE_TABLE_SELECT = e->KeywordIx( "USE_TABLE_SELECT" );
+        bool useATableSelection = e->KeywordSet( USE_TABLE_SELECT );
         DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 
-        if (useATableSelection && tableSelectionToUse->Rank()==0 & !table->IsSomethingSelected())
-          { e->Throw( "USE_TABLE_SELECT value out of range.");}
-        if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
-          if (table->GetDisjointSelection()) {
-            if (tableSelectionToUse->Dim(0) != 2) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( USE_TABLE_SELECT ) );
+        if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 & !table->IsSomethingSelected( ) ) {
+          e->Throw( "USE_TABLE_SELECT value out of range." );
+        }
+        if ( useATableSelection && tableSelectionToUse->Rank( ) > 0 ) { //check further a bit...
+          if ( table->GetDisjointSelection( ) ) {
+            if ( tableSelectionToUse->Dim( 0 ) != 2 ) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( USE_TABLE_SELECT ) );
           } else {
-            if (tableSelectionToUse->Rank() != 1 || tableSelectionToUse->Dim(0) != 4 ) e->Throw( "Array must have dimensions of (4): " + e->GetString( USE_TABLE_SELECT ) );
+            if ( tableSelectionToUse->Rank( ) != 1 || tableSelectionToUse->Dim( 0 ) != 4 ) e->Throw( "Array must have dimensions of (4): " + e->GetString( USE_TABLE_SELECT ) );
           }
         }
-        
+
         DStringGDL *retval;
-        if (useATableSelection) retval=table->GetTableValues(tableSelectionToUse); else retval=table->GetTableValues();
-        if (retval == NULL) e->Throw("USE_TABLE_SELECT value out of range.");
-        else if (table->GetVvalue() == NULL) {e->Throw(" Class of specified widget has no value: 1");} //Just as IDL does!
-        else if (table->GetVvalue()->Type()==GDL_STRING) { *valueKW = retval->Dup();} 
-        else if (table->GetVvalue()->Type()==GDL_STRUCT) {
+        if ( useATableSelection ) retval = table->GetTableValues( tableSelectionToUse );
+        else retval = table->GetTableValues( );
+        if ( retval == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." );
+        else if ( table->GetVvalue( ) == NULL ) {
+          e->Throw( " Class of specified widget has no value: 1" );
+        }//Just as IDL does!
+        else if ( table->GetVvalue( )->Type( ) == GDL_STRING ) {
+          if (valueKW) GDLDelete( (*valueKW) );      
+          *valueKW = retval->Dup( );
+        }
+        else if ( table->GetVvalue( )->Type( ) == GDL_STRUCT ) {
           BaseGDL* val;
           //use a special case handling transpositions due to column or row majority.
-          if (useATableSelection) val=table->GetTableValuesAsStruct(tableSelectionToUse); else val=table->GetTableValuesAsStruct();
-          if (val == NULL) e->Throw("USE_TABLE_SELECT value out of range."); //superfluous.
-        *valueKW = val->Dup();
-        } 
+          if ( useATableSelection ) val = table->GetTableValuesAsStruct( tableSelectionToUse );
+          else val = table->GetTableValuesAsStruct( );
+          if ( val == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." ); //superfluous.
+          if (valueKW) GDLDelete( (*valueKW) );
+          *valueKW = val->Dup( );
+        }
         else {
           BaseGDL* val;
-          switch(table->GetVvalue()->Type()){
+          switch ( table->GetVvalue( )->Type( ) ) {
             case GDL_BYTE:
-              val=new DByteGDL(retval->Dim());
+              val = new DByteGDL( retval->Dim( ) );
               break;
-            case GDL_INT: 
-              val=new DIntGDL(retval->Dim());
+            case GDL_INT:
+              val = new DIntGDL( retval->Dim( ) );
               break;
             case GDL_LONG:
-              val=new DLongGDL(retval->Dim());
+              val = new DLongGDL( retval->Dim( ) );
               break;
             case GDL_FLOAT:
-              val=new DFloatGDL(retval->Dim());
+              val = new DFloatGDL( retval->Dim( ) );
               break;
             case GDL_DOUBLE:
-              val=new DDoubleGDL(retval->Dim());
+              val = new DDoubleGDL( retval->Dim( ) );
               break;
             case GDL_COMPLEX:
-              val=new DComplexGDL(retval->Dim());
+              val = new DComplexGDL( retval->Dim( ) );
               break;
             case GDL_COMPLEXDBL:
-              val=new DComplexDblGDL(retval->Dim());
+              val = new DComplexDblGDL( retval->Dim( ) );
               break;
             case GDL_UINT:
-              val=new DUIntGDL(retval->Dim());
+              val = new DUIntGDL( retval->Dim( ) );
               break;
             case GDL_ULONG:
-              val=new DULongGDL(retval->Dim());
+              val = new DULongGDL( retval->Dim( ) );
               break;
             case GDL_LONG64:
-              val=new DLong64GDL(retval->Dim());
+              val = new DLong64GDL( retval->Dim( ) );
               break;
             case GDL_ULONG64:
-              val=new DULong64GDL(retval->Dim());
+              val = new DULong64GDL( retval->Dim( ) );
               break;
           }
           stringstream is;
-          for( SizeT i = 0; i < val->N_Elements(); i++)  is << (*retval)[ i] << '\n';
-          val->FromStream( is);
-          *valueKW = val->Dup();
+          for ( SizeT i = 0; i < val->N_Elements( ); i++ ) is << (*retval)[ i] << '\n';
+          val->FromStream( is );
+          if (valueKW) GDLDelete( (*valueKW) );
+          *valueKW = val->Dup( );
+        }
+      } else if ( widget->IsSlider( ) ) {
+        GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
+        if (valueKW) GDLDelete( (*valueKW) );
+        *valueKW = new DLongGDL(s->GetValue());
+      } else if ( widget->IsTree( )) {
+      } else if ( widget->IsLabel( ) || widget->IsDropList( ) || widget->IsComboBox( ) || widget->IsDraw() || widget->IsButton() ) { 
+        BaseGDL *widval = widget->GetVvalue( );
+        if ( widval != NULL ) {
+          if (valueKW) GDLDelete( (*valueKW) );
+          *valueKW = widval->Dup( );
+        }
+      } else if ( widget->IsText( ) ) {
+        static int usetextselectIx  = e->KeywordIx( "USE_TEXT_SELECT" );
+        bool usetextselect = e->KeywordPresent( usetextselectIx );
+        BaseGDL *v;
+        if (usetextselect) {
+          GDLWidgetText* txt= static_cast<GDLWidgetText*>(widget);
+          v = txt->GetSelectedText();
+        } else {
+          v = widget->GetVvalue( );
+        }
+        if ( v != NULL ) {
+          if (valueKW) GDLDelete( (*valueKW) );
+          *valueKW = v->Dup( );
         }
       } else {
-         BaseGDL *widval = widget->GetVvalue();
-        if ( widval != NULL) { *valueKW = widval->Dup();}
+        e->Throw("Class of specified widget has no value: "+i2s(widget->GetWidgetType()));
       }
     }
   } //end getValue
   
   //at that point, invalid widgets will not respond to widget_control.
   if (!widget->IsValid()) return;
+
+  DLong groupLeader = 0;
+  if (e->KeywordPresent( group_leaderIx )){
+    e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
+    if (groupLeader != 0) {
+      GDLWidget* leader=widget->GetWidget(groupLeader);
+      if (leader) leader->AddToFollowers(widget->WidgetID());
+    }
+  } 
   
   if (send_event){
     BaseGDL* event = e->GetKW(SEND_EVENT)->Dup();
@@ -2362,7 +2396,9 @@ void widget_control( EnvT* e ) {
   
   if (hasXsize || hasYsize || hasScr_xsize || hasScr_ysize ) {
     DLong xs,ys,xsize, ysize;
-    static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
+    wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
+    if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
+    me->GetSize(&xs,&ys);
     xsize=xs;
     ysize=ys;
     if (hasXsize || hasScr_xsize ) {
@@ -2530,20 +2566,32 @@ void widget_control( EnvT* e ) {
     widget->SetNotifyRealize( notifyRealizeFunName );
   }
  
-  if (settlbtitle ) {
+  if (settlbtitle || settlbxoffset || settlbyoffset ) {
      GDLWidgetBase* tlb = widget->GetTopLevelBaseWidget(widgetID );
+     wxWindow* me=static_cast<wxWindow*>(tlb->GetWxWidget());
      //following should not happen I believe
      if ( tlb == NULL ) e->Throw("Widget "+i2s( widgetID )+" has no top-level Base (please report!).");
-     DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
-     wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
-     static_cast<wxWindow*>(tlb->GetWxWidget())->SetName(tlbName);
+     if (settlbtitle) {
+       DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
+       wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
+       me->SetName(tlbName);
+     }
+     if (settlbxoffset) {
+       DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
+       me->Move( (*xoffset)[0], me->GetPosition().y );
+     }
+     if (settlbyoffset) {
+       DLongGDL* yoffset=e->GetKWAs<DLongGDL>( tlbsetyoffsetIx );
+       me->Move(me->GetPosition().x, (*yoffset)[0]  );
+     }
   }
 
   if (givetlbsize) { 
+    e->AssureGlobalKW( tlbgetsizeIx );
     BaseGDL** tlbsizeKW = &e->GetKW( tlbgetsizeIx );
-    GDLDelete((*tlbsizeKW));
     GDLWidgetBase* tlb = widget->GetTopLevelBaseWidget(widgetID );
     if ( tlb == NULL ) e->Throw("Widget "+i2s( widgetID )+" has no top-level Base (please report!).");
+    if (tlbsizeKW) GDLDelete((*tlbsizeKW));
     *tlbsizeKW = new DLongGDL(2,BaseGDL::ZERO);
     DLong *retsize=&(*static_cast<DLongGDL*>(*tlbsizeKW))[0];
     int i,j;
@@ -2551,14 +2599,39 @@ void widget_control( EnvT* e ) {
     retsize[0]=i;
     retsize[1]=j;
   }
+  if (givetlboffset) { 
+    e->AssureGlobalKW( tlbgetoffsetIx );
+    BaseGDL** tlboffsetKW = &e->GetKW( tlbgetoffsetIx );
+    GDLWidgetBase* tlb = widget->GetTopLevelBaseWidget(widgetID );
+    if ( tlb == NULL ) e->Throw("Widget "+i2s( widgetID )+" has no top-level Base (please report!).");
+    if (tlboffsetKW) GDLDelete((*tlboffsetKW));
+    *tlboffsetKW = new DLongGDL(2,BaseGDL::ZERO);
+    DLong *retoffset=&(*static_cast<DLongGDL*>(*tlboffsetKW))[0];
+    int i,j;
+    static_cast<wxWindow*>(tlb->GetWxWidget())->GetPosition(&i,&j);
+    retoffset[0]=i;
+    retoffset[1]=j;
+  }
+  if ( setxoffset || setyoffset ) {
+     wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
+     if (setxoffset) {
+       DLongGDL* xoffset=e->GetKWAs<DLongGDL>( setxoffsetIx );
+       me->Move( (*xoffset)[0], me->GetPosition().y );
+     }
+     if (setyoffset) {
+       DLongGDL* yoffset=e->GetKWAs<DLongGDL>( setyoffsetIx );
+       me->Move(me->GetPosition().x, (*yoffset)[0]  );
+     }
+  }
 
   if ( getuvalue ) {
+    e->AssureGlobalKW( getuvalueIx );
     BaseGDL** uvalueKW = &e->GetKW( getuvalueIx );
-      GDLDelete((*uvalueKW));
-    
       BaseGDL *widval = widget->GetUvalue();
-      //      *uvalueKW = widget->GetUvalue();
-     if ( widval != NULL) { *uvalueKW = widval->Dup();}
+     if ( widval != NULL) {
+       if (uvalueKW) GDLDelete((*uvalueKW));
+       *uvalueKW = widval->Dup();
+     }
   }
 
   if ( setuvalue ) {
@@ -2634,8 +2707,37 @@ void widget_control( EnvT* e ) {
       if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       combo->SelectEntry((*comboSelection)[0]);
     }
+    static int COMBOBOX_ADDITEM = e->KeywordIx( "COMBOBOX_ADDITEM" );
+    static int COMBOBOX_DELETEITEM = e->KeywordIx( "COMBOBOX_DELETEITEM" );
+    static int COMBOBOX_INDEX = e->KeywordIx( "COMBOBOX_INDEX" );
+    if (e->KeywordSet(COMBOBOX_ADDITEM)) {
+      DLong pos=-1;
+      DString value="";
+      e->AssureStringScalarKWIfPresent(COMBOBOX_ADDITEM, value);
+      e->AssureLongScalarKWIfPresent(COMBOBOX_INDEX, pos);
+      combo->AddItem(value,pos);
+    } 
+    if (e->KeywordPresent(COMBOBOX_DELETEITEM)) {
+      DLong pos=-1;
+      e->AssureLongScalarKWIfPresent(COMBOBOX_DELETEITEM, pos);
+      combo->DeleteItem(pos);
+    } 
   }
-
+  
+  if (widget->IsDraw()){
+    GDLWidgetDraw *draw = (GDLWidgetDraw *) widget;
+    static int GET_DRAW_VIEW = e->KeywordIx( "GET_DRAW_VIEW" );
+    if (e->KeywordPresent(GET_DRAW_VIEW)) {
+      e->AssureGlobalKW( GET_DRAW_VIEW );
+      BaseGDL** drwKW = &e->GetKW( GET_DRAW_VIEW );
+       if (drwKW!=NULL) GDLDelete((*drwKW));
+      DLongGDL* res= new DLongGDL(dimension(2));
+       (*res)[0]=draw->GetXPos();
+       (*res)[1]=draw->GetYPos();
+       *drwKW=res->Dup();
+     }
+  }
+  
   if (widget->IsTable()) {
     GDLWidgetTable *table = (GDLWidgetTable *) widget;
     static int ALIGNMENT = e->KeywordIx( "ALIGNMENT" );

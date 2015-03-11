@@ -344,7 +344,7 @@ void LibInit_jmg()
 //BUTTON
   const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"MENU","VALUE","HELP","SEPARATOR","INPUT_FOCUS","BITMAP","TOOLTIP",KLISTEND};
   const string widget_buttonWarnKey[] ={"ACCELERATOR","CHECKED_MENU","DYNAMIC_RESIZE",
-  "TRACKING_EVENTS","X_BITMAP_EXTRA","NO_RELEASE",KLISTEND};
+  "TRACKING_EVENTS","X_BITMAP_EXTRA","TAB_MODE","NO_RELEASE",KLISTEND};
   new DLibFunRetNew(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey,widget_buttonWarnKey);
 //COMBOBOX
   const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","TITLE","VALUE",KLISTEND};
@@ -357,10 +357,10 @@ void LibInit_jmg()
   "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
   "SET_UNAME","NO_COPY","SET_BUTTON",
   "SET_DROPLIST_SELECT","SET_LIST_SELECT","SET_COMBOBOX_SELECT",
-  "SENSITIVE",
+  "SENSITIVE","XOFFSET","YOFFSET",
   "GET_VALUE","NO_NEWLINE","TLB_GET_SIZE",
   "HOURGLASS","TLB_SET_TITLE","INPUT_FOCUS",
-  "CLEAR_EVENTS",
+  "CLEAR_EVENTS","TLB_SET_XOFFSET","TLB_SET_YOFFSET","TLB_GET_OFFSET",
   "DRAW_BUTTON_EVENTS","DRAW_EXPOSE_EVENTS","DRAW_KEYBOARD_EVENTS", 
   "DRAW_MOTION_EVENTS","DRAW_WHEEL_EVENTS","TRACKING_EVENTS","DRAW_VIEWPORT_EVENTS",
   "SET_DROP_EVENTS","KILL_NOTIFY","SHOW","APPEND","USE_TEXT_SELECT","SET_TEXT_SELECT",
@@ -373,10 +373,12 @@ void LibInit_jmg()
   "INSERT_COLUMNS","INSERT_ROWS","DELETE_COLUMNS","DELETE_ROWS",
   "AM_PM", "DAYS_OF_WEEK", "MONTHS",  "SET_TABLE_SELECT","SET_TABLE_VIEW",
   "UPDATE","FORMAT","EDIT_CELL",  "TABLE_XSIZE","TABLE_YSIZE","SEND_EVENT","BAD_ID",
-   KLISTEND};
+  "GROUP_LEADER", "COMBOBOX_ADDITEM" ,"COMBOBOX_DELETEITEM" ,"COMBOBOX_INDEX", 
+  "GET_DRAW_VIEW",
+  KLISTEND};
   const string widget_WarnControlKey[] ={"DEFAULT_FONT",
-  "XOFFSET","YOFFSET","DYNAMIC_RESIZE","PUSHBUTTON_EVENTS",
-  "TABLE_BLANK",
+  "DYNAMIC_RESIZE","PUSHBUTTON_EVENTS",
+  "TABLE_BLANK","TAB_MODE",
   KLISTEND}; //LIST NOT CLOSE!!!  
   //IMPORTANT :   
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
@@ -435,7 +437,7 @@ void LibInit_jmg()
 //  "TEXT_TOP_LINE","TEXT_XY_TO_OFFSET","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS",
 //  "TLB_SIZE_EVENTS","TOOLTIP","TRACKING_EVENTS","TREE_BITMAP","TREE_DRAG_SELECT","TREE_EXPANDED","TREE_FOLDER",
 //  "TREE_INDEX","TREE_ROOT","TREE_SELECT","UNITS","UPDATE","USE_TABLE_SELECT","VISIBLE",
-    KLISTEND};
+  "TAB_MODE",KLISTEND};
   new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey,widget_infoWarnKey);
 //LABEL
   const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"VALUE","SUNKEN_FRAME","TRACKING_EVENTS",KLISTEND};
@@ -454,7 +456,8 @@ void LibInit_jmg()
   //SLIDER
   const string widget_sliderKey[] = {WIDGET_COMMON_KEYWORDS,"TITLE","DRAG","VALUE","MINIMUM","MAXIMUM","VERTICAL",
   "SUPPRESS_VALUE", KLISTEND};
-  new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_sliderKey);
+  const string widget_sliderWarnKey[] = {"TAB_MODE",KLISTEND};
+  new DLibFunRetNew(lib::widget_slider,string("WIDGET_SLIDER"),1,widget_sliderKey,widget_sliderWarnKey);
 //STUB
 //TAB
   const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"MULTILINE","LOCATION", KLISTEND};
@@ -492,8 +495,7 @@ void LibInit_jmg()
   , "MONTHS"
   , KLISTEND};
   const string widget_tableWarnKey[] = {
-   "GROUP_LEADER"
-  , "IGNORE_ACCELERATORS"
+  "IGNORE_ACCELERATORS"
   , "TAB_MODE"
   , KLISTEND};
   new DLibFunRetNew(lib::widget_table,string("WIDGET_TABLE"),1,widget_tableKey,widget_tableWarnKey);
@@ -513,7 +515,6 @@ void LibInit_jmg()
   , "DRAGGABLE"
   , "EXPANDED"
   , "FOLDER"
-  , "GROUP_LEADER"
   , "INDEX"
   , "MASK"
   , "MULTIPLE"
