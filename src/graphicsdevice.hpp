@@ -103,7 +103,7 @@ public:
   std::string Name() const { return name;}
 };
 
-
+class GDLGStream;
 class   GraphicsDevice;
 typedef std::vector< GraphicsDevice*> DeviceListT;
 
@@ -153,7 +153,7 @@ public:
   static GDLCT*      GetCT( SizeT ix) { return &CT[ix];}
   static SizeT       N_CT() { return CT.size();}
   static void        ListDevice();
-  static bool        ExistDevice( const string& device, int &index);
+  static bool        ExistDevice( const std::string& device, int &index);
   static bool        SetDevice( const std::string& devName);
   static GraphicsDevice*   GetDevice() { return actDevice;}
   static GraphicsDevice*   GetGUIDevice() { return actGUIDevice;}
