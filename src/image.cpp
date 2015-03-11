@@ -184,7 +184,6 @@ BaseGDL* tvrd( EnvT* e){
   assert( false );
   return NULL;
 }
-#define MAX_COLORS 256
 
   void loadct( EnvT* e) // = LOADCT_INTERNALGDL for exclusive use by LOADCT
   {
@@ -208,11 +207,11 @@ BaseGDL* tvrd( EnvT* e){
 
     DLong iCT;
 
-    DByte r[MAX_COLORS], g[MAX_COLORS], b[MAX_COLORS];
-    PLINT rint[MAX_COLORS], gint[MAX_COLORS], bint[MAX_COLORS];
+    DByte r[ctSize], g[ctSize], b[ctSize];
+    PLINT rint[ctSize], gint[ctSize], bint[ctSize];
     //load original table
     GDLCT* actCT = GraphicsDevice::GetCT();
-    actCT->Get(rint,gint,bint,MAX_COLORS);
+    actCT->Get(rint,gint,bint,ctSize);
 
 
     e->AssureLongScalarPar( 0, iCT);
@@ -225,15 +224,16 @@ BaseGDL* tvrd( EnvT* e){
     GraphicsDevice::LoadCT( iCT);
     //new table is:
     actCT = GraphicsDevice::GetCT();
+    //actually update colors in col0 if needed:
     DLong bottom=0;
-    DLong ncolors=MAX_COLORS;
+    DLong ncolors=ctSize;
     if ( e->KeywordSet ( "BOTTOM" ) ) e->AssureLongScalarKWIfPresent ( "BOTTOM", bottom );
     if ( e->KeywordSet ( "NCOLORS" ) ) e->AssureLongScalarKWIfPresent ( "NCOLORS", ncolors );
     if (bottom < 0) bottom=0;
-    if (bottom > MAX_COLORS-1) bottom=MAX_COLORS-1;
+    if (bottom > ctSize-1) bottom=ctSize-1;
     if (ncolors < 1) ncolors=1;
-    if (ncolors > MAX_COLORS) ncolors=MAX_COLORS;
-    if (bottom+ncolors > MAX_COLORS) ncolors=MAX_COLORS-bottom;
+    if (ncolors > ctSize) ncolors=ctSize;
+    if (bottom+ncolors > ctSize) ncolors=ctSize-bottom;
     for( SizeT i=0, j=bottom ; j<bottom+ncolors; ++i, ++j) {
       actCT->Get( i, r[ i], g[ i], b[ i]);
       //update section of colors
@@ -256,13 +256,11 @@ BaseGDL* tvrd( EnvT* e){
       e->SetKW( rgbtableIx, rgbtable);
       return; //correct behaviour.
     }
-    int nbActiveStreams=actDevice->MaxWin(); //new colormap must be given to *all* streams.
-    for (int i=0; i<nbActiveStreams; ++i) {
-      actStream = actDevice->GetStreamAt(i);
-      if (actStream != NULL) actStream->scmap0( rint, gint, bint, MAX_COLORS);
+      int nbActiveStreams=actDevice->MaxWin(); //new colormap must be given to *all* streams.
+      for (int i=0; i<nbActiveStreams; ++i) {
+        actStream = actDevice->GetStreamAt(i);
+      if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
+      }
     }
-  }
-#undef MAX_COLORS
-
 } // namespace
 
