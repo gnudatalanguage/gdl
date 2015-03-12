@@ -189,14 +189,14 @@ void GDLXStream::Clear(DLong chan) {
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XSetForeground(xwd->display,dev->gc,xwd->cmap0[0].pixel);
   XSetPlaneMask(xwd->display,dev->gc,planemask[chan]);
-  if (dev->write_to_pixmap)
+  if (dev->write_to_pixmap==1)
     XFillRectangle(xwd->display, dev->pixmap, dev->gc, 0, 0, dev->width, dev->height);
   if (1) // not (dev->write_to_window): always!
     XFillRectangle(xwd->display, dev->window, dev->gc, 0, 0, dev->width, dev->height);
   XSetForeground(xwd->display,dev->gc,dev->curcolor.pixel);
   XSetPlaneMask(xwd->display,dev->gc,AllPlanes);
 }
-  
+
 unsigned long GDLXStream::GetWindowDepth() {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
@@ -312,8 +312,8 @@ void GDLXStream::DeIconic() {
 void GDLXStream::UnMapWindow() {
   //Used for /PIXMAP windows: 1) insure write_to_pixmap and not write_to_window, and 2) hide the window.
   XwDev *dev = (XwDev *) pls->dev;
-  dev->write_to_pixmap=TRUE;
-  dev->write_to_window=FALSE;
+  dev->write_to_pixmap=1;
+  dev->write_to_window=0;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XWithdrawWindow(xwd->display, dev->window, xwd->screen);
 }
@@ -663,7 +663,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 
   int (*oldErrorHandler)(Display*, XErrorEvent*);
   oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
-  if (dev->write_to_pixmap) {
+  if (dev->write_to_pixmap==1) {
     ximg = XGetImage(xwd->display, dev->pixmap, 0, 0,
             dev->width, dev->height,
             AllPlanes, ZPixmap);
@@ -676,7 +676,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     XSync(xwd->display, 0);
     x = 0;
     y = 0;
-    if (dev->write_to_pixmap) {
+    if (dev->write_to_pixmap==1) {
       XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc,
               x, y, dev->width, dev->height, x, y);
       XSync(xwd->display, 0);
@@ -789,17 +789,51 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   }
   //}
 
-  if (dev->write_to_pixmap)
+  if (dev->write_to_pixmap==1)
     XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
           0, 0, dev->width, dev->height);
 
-  if (1) //(dev->write_to_window) //always write
+  if (1) //(dev->write_to_window==1) //always write
     XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
           0, 0, dev->width, dev->height);
 
   XDestroyImage(ximg);
   return true;
 }
+
+void GDLXStream::Color( ULong color, DLong decomposed ) {
+  if ( decomposed == 0 ) {
+    plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
+  } else {
+    if ( color == currcolor ) return;
+    currcolor = color;
+    XwDev *dev = (XwDev *) pls->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+    if ( xwd->ncol1 == 0 ) {
+      //was free_mem from plplotP.h which is forbidden - thanks to GJ for pointing this.
+      if ( xwd->cmap1 != NULL ) {
+        free( (void *) xwd->cmap1 );
+        xwd->cmap1 = NULL;
+      }
+      xwd->cmap1 = (XColor *) calloc( 1, (size_t) sizeof (XColor) );
+      xwd->ncol1 = 1;
+    }
+    unsigned char r = (color & 0xFF);
+    unsigned char g = (color >> 8 & 0xFF);
+    unsigned char b = (color >> 16 & 0xFF);
+
+    xwd->cmap1[0].red = ToXColor( r );
+    xwd->cmap1[0].green = ToXColor( g );
+    xwd->cmap1[0].blue = ToXColor( b );
+    xwd->cmap1[0].flags = DoRed | DoGreen | DoBlue;
+
+    XAllocColor( xwd->display, xwd->map, &xwd->cmap1[0] );
+    dev->curcolor = xwd->cmap1[0];
+    XSetForeground( xwd->display, dev->gc, dev->curcolor.pixel );
+  }
+}
+
+
 #undef ToXColor
 //Read X11 bitmapdata -- normally on 4BPP=Allplanes, return 3BPP ignoring Alpha plane.
 DByteGDL* GDLXStream::GetBitmapData() {
@@ -818,7 +852,7 @@ DByteGDL* GDLXStream::GetBitmapData() {
 
     int (*oldErrorHandler)(Display*, XErrorEvent*);
     oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
-    if (dev->write_to_pixmap) {
+    if (dev->write_to_pixmap==1) {
       ximg = XGetImage(xwd->display, dev->pixmap, 0, 0, nx, ny, AllPlanes, ZPixmap);
     } else {
       ximg = XGetImage( xwd->display, dev->window, 0, 0, nx, ny, AllPlanes, ZPixmap);

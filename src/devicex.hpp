@@ -394,10 +394,12 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
+//    winList[ wIx]->setopt( "db", 0); //handled elsewhere
+//    winList[ wIx]->setopt( "debug", 0);
     winList[ wIx]->SETOPT( "plwindow", buf);
 
-    // we use our own window handling
-    winList[ wIx]->SETOPT( "drvopt","usepth=0");
+//    // we use our own window handling
+//    winList[ wIx]->SETOPT( "drvopt","usepth=0");
 // to be tested further    winList[ wIx]->SETOPT( "drvopt","usepth=1");
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
