@@ -108,15 +108,9 @@ namespace lib {
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
-    int code;
+    htri_t code;
     code = H5Fis_hdf5(h5fFilename.c_str());
-    if (code < 0) 
-    { 
-      string msg; 
-      e->Throw(hdf5_error_message(msg));
-      return new DLongGDL(0);
-    }
-    return new DLongGDL(1);
+    if (code <= 0) return new DLongGDL(0); else  return new DLongGDL(1);
   }
 
 
