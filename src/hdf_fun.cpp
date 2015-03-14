@@ -63,6 +63,20 @@ namespace lib {
     return new DLongGDL( hdf_id );
   }
 
+  BaseGDL* hdf_ishdf( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+    DLong hdf_id;
+
+    DString hdfFilename;
+    e->AssureScalarPar<DStringGDL>( 0, hdfFilename); 
+    WordExp( hdfFilename);
+
+    intn access = DFACC_RDONLY;
+
+    hdf_id = Hopen(hdfFilename.c_str(), access, 0);
+    if (hdf_id==-1) return new DLongGDL(0); else return new DLongGDL( 1 );
+  }
 
   BaseGDL* hdf_vg_getid_fun( EnvT* e)
   {

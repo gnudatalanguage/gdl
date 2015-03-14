@@ -220,6 +220,7 @@ void LibInit_jmg()
   new DLibPro(lib::wait,string("WAIT"),1);
 
 #if defined(USE_HDF)
+  new DLibFunRetNew(lib::hdf_ishdf,string("HDF_ISHDF"),1);
   const string hdf_openKey[]={"READ","RDWR","CREATE","ALL","NUM_DD","WRITE",KLISTEND};
   new DLibFunRetNew(lib::hdf_open_fun,string("HDF_OPEN"),2,hdf_openKey);
 
@@ -505,16 +506,12 @@ void LibInit_jmg()
   const string widget_textWarnKey[] = {"IGNORE_ACCELERATORS","TAB_MODE","WRAP",KLISTEND};
   new DLibFunRetNew(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey,widget_textWarnKey);
 //TREE
-  const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
-  , "ALIGN_BOTTOM"
+  const string widget_treeWarnKey[] = { "ALIGN_BOTTOM"
   , "ALIGN_TOP"
-  , "BITMAP"
   , "CHECKBOX"
   , "CHECKED"
   , "DRAG_NOTIFY"
   , "DRAGGABLE"
-  , "EXPANDED"
-  , "FOLDER"
   , "INDEX"
   , "MASK"
   , "MULTIPLE"
@@ -522,11 +519,16 @@ void LibInit_jmg()
   , "TAB_MODE"
   , "TOOLTIP"
   , "VALUE"
+  , "CONTEXT_EVENTS"
+  , "TRACKING_EVENTS"
+  , "DROP_EVENTS"
   , KLISTEND};
-//   , "CONTEXT_EVENTS"
-//   , "TRACKING_EVENTS"
-//   , "DROP_EVENTS"
-  new DLibFunRetNew(lib::widget_tree,string("WIDGET_TREE"),1,widget_treeKey);
+  const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS , "VALUE"
+  , "BITMAP"
+  , "FOLDER"
+  , "EXPANDED"
+  , KLISTEND}; 
+  new DLibFunRetNew(lib::widget_tree,string("WIDGET_TREE"),1,widget_treeKey,widget_treeWarnKey);
 //TREE_MOVE  
 // 	const string widget_bgroupKey[] =
 // 	{"BUTTON_UVALUE","COLUMN","EVENT_FUNC","EXCLUSIVE","NONEXCLUSIVE","SPACE","XPAD","YPAD","FRAME","IDS","LABEL_LEFT","LABEL_TOP","MAP","NO_RELEASE","RETURN_ID","RETURN_INDEX","RETURN_NAME","ROW","SCROLL","SET_VALUE","TAB_MODE","X_SCROLL_SIZE","Y_SCROLL_SIZE","SET_VALUE","UNAME","UVALUE","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};

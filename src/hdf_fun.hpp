@@ -23,6 +23,7 @@
 
 namespace lib {
 
+  BaseGDL* hdf_ishdf( EnvT* e);
   BaseGDL* hdf_sd_create_fun( EnvT* e);
   BaseGDL* hdf_sd_start_fun( EnvT* e);
   BaseGDL* hdf_sd_nametoindex_fun( EnvT* e);
