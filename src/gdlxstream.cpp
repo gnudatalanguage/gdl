@@ -801,35 +801,29 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   return true;
 }
 
+//try to bypass plplot's ignoring the existence of truecolor and other static displays where there is more than 256 colors
+//available. accessorily, get a speedup. drawback: those colors are forgotten on window redraw (not important, and similar to IDL's behaviour).
 void GDLXStream::Color( ULong color, DLong decomposed ) {
   if ( decomposed == 0 ) {
     plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
-  } else {
-    if ( color == currcolor ) return;
-    currcolor = color;
+  } else { //decomposed=truecolor? get around plplot's buggy xwin driver which uses only 256 colors max on truecolor displays!
     XwDev *dev = (XwDev *) pls->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    if ( xwd->ncol1 == 0 ) {
-      //was free_mem from plplotP.h which is forbidden - thanks to GJ for pointing this.
-      if ( xwd->cmap1 != NULL ) {
-        free( (void *) xwd->cmap1 );
-        xwd->cmap1 = NULL;
-      }
-      xwd->cmap1 = (XColor *) calloc( 1, (size_t) sizeof (XColor) );
-      xwd->ncol1 = 1;
+    if (xwd->rw_cmap)  { //not treated here, revert to safety with plplot's overhead.
+      GDLGStream::SetColorMap1SingleColor(color);
+      plstream::col1(1); 
     }
+    XColor myColor;
     unsigned char r = (color & 0xFF);
     unsigned char g = (color >> 8 & 0xFF);
     unsigned char b = (color >> 16 & 0xFF);
 
-    xwd->cmap1[0].red = ToXColor( r );
-    xwd->cmap1[0].green = ToXColor( g );
-    xwd->cmap1[0].blue = ToXColor( b );
-    xwd->cmap1[0].flags = DoRed | DoGreen | DoBlue;
+    myColor.red = ToXColor( r );
+    myColor.green = ToXColor( g );
+    myColor.blue = ToXColor( b );
+    myColor.flags = DoRed | DoGreen | DoBlue;
 
-    XAllocColor( xwd->display, xwd->map, &xwd->cmap1[0] );
-    dev->curcolor = xwd->cmap1[0];
-    XSetForeground( xwd->display, dev->gc, dev->curcolor.pixel );
+    if (XAllocColor( xwd->display, xwd->map, &myColor )) XSetForeground( xwd->display, dev->gc, myColor.pixel ); //process silently
   }
 }
 

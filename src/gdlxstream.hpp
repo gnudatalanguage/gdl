@@ -27,12 +27,10 @@ class GDLXStream: public GDLGStream
   Atom wm_protocols;
   Atom wm_delete_window;
   Window term_window;
-  ULong currcolor;
 public:
   GDLXStream( int nx, int ny)
     : GDLGStream( nx, ny, "xwin")
     , term_window(0)
-    , currcolor(0xFFFFFFFF)
   {
   }
 
