@@ -698,7 +698,43 @@ void InitStructs()
   // insert into structList
   structList.push_back( colo);
   
+ DStructDesc* dropstruct = new DStructDesc( "WIDGET_DROP");
+  dropstruct->AddTag("ID", &aLong);
+  dropstruct->AddTag("TOP", &aLong);
+  dropstruct->AddTag("HANDLER", &aLong);
+  dropstruct->AddTag("DRAG_ID", &aLong);
+  dropstruct->AddTag("POSITION", &aLong);
+  dropstruct->AddTag("X", &aLong);
+  dropstruct->AddTag("Y", &aLong);
+  dropstruct->AddTag("MODIFIERS", &aLong);
+  // insert into structList
+  structList.push_back( dropstruct); 
   
+ DStructDesc* treeselstruct = new DStructDesc( "WIDGET_TREE_SEL");
+  treeselstruct->AddTag("ID", &aLong);
+  treeselstruct->AddTag("TOP", &aLong);
+  treeselstruct->AddTag("HANDLER", &aLong);
+  treeselstruct->AddTag("TYPE", &aLong);
+  treeselstruct->AddTag("CLICKS", &aLong);
+  // insert into structList
+  structList.push_back( treeselstruct);
+  
+ DStructDesc* treeexpandstruct = new DStructDesc( "WIDGET_TREE_EXPAND");
+  treeexpandstruct->AddTag("ID", &aLong);
+  treeexpandstruct->AddTag("TOP", &aLong);
+  treeexpandstruct->AddTag("HANDLER", &aLong);
+  treeexpandstruct->AddTag("TYPE", &aLong);
+  treeexpandstruct->AddTag("EXPAND", &aLong);
+  // insert into structList
+  structList.push_back( treeexpandstruct); 
+
+//template for future uses:
+// DStructDesc* struct = new DStructDesc( "WIDGET_DROP");
+//  struct->AddTag("ID", &aLong);
+//  struct->AddTag("TOP", &aLong);
+//  struct->AddTag("HANDLER", &aLong);
+//  // insert into structList
+//  structList.push_back( struct); 
 }
 
 void InitObjects()
@@ -717,18 +753,18 @@ void InitObjects()
   // add internal memeber subroutines
   SetupOverloadSubroutines();
   
+#ifdef HAVE_LIBWXWIDGETS
+
+  // initialize widget system
+  GDLWidget::Init();
+#endif
+
   // graphic devices must be initialized after system variables
   // !D must already exist
   GraphicsDevice::Init();
 
   // preferences
   //  Preferences::Init();
-
-#ifdef HAVE_LIBWXWIDGETS
-
-  // initialize widget system
-  GDLWidget::Init();
-#endif
 }
 
 // returns GDL lun, 0 on failure

@@ -287,6 +287,8 @@ void GDLWidget::RefreshWidget( )
 
 int GDLWidget::HandleEvents()
 {
+//make one loop for wxWidgets Events...
+  wxTheApp->OnRun();
 //treat our GDL events...
   DStructGDL* ev = NULL;
   while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -311,8 +313,6 @@ int GDLWidget::HandleEvents()
     } 
   }
   wxEndBusyCursor( );
-//make one loop for wxWidgets Events...
-  wxTheApp->OnRun();
   return 0;
 }
 
@@ -641,6 +641,10 @@ GDLWidget::~GDLWidget( ) {
 
   //destroy, unless...
   if ( widgetType == GDLWidget::WIDGET_MBAR ) { //widget is a MBAR ---> do nothing yet, it is part of TLB
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "in ~GDLWidget(): not destroying " << widgetName << ": " << widgetID << endl;
+#endif
+  } else if ( widgetType == GDLWidget::WIDGET_TREE ) { //widget is a MBAR ---> do nothing yet, it is part of TLB
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "in ~GDLWidget(): not destroying " << widgetName << ": " << widgetID << endl;
 #endif
@@ -2351,90 +2355,133 @@ GDLWidgetTable::~GDLWidgetTable()
 /*********************************************************/
 // for WIDGET_TREE
 /*********************************************************/
-GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, DString value_,
-bool alignBottom_,
-bool alignCenter_,
-bool alignLeft_,
-bool alignRight_,
-bool alignTop_,
-BaseGDL* bitmap_,
-bool checkbox_,
-DLong checked_,
-DString dragNotify_,
-bool draggable_,
-bool expanded_,
-bool folder_,
-DLong index_,
-bool mask_,
-bool multiple_,
-bool noBitmaps_,
-DLong tabMode_,
-DString toolTip_ )
-: GDLWidget( p, e ),
-alignBottom( alignBottom_ ),
-alignCenter( alignCenter_ ),
-alignLeft( alignLeft_ ),
-alignRight( alignRight_ ),
-alignTop( alignTop_ ),
-bitmap( bitmap_ ),
-checkbox( checkbox_ ),
-checked( checked_ ),
-dragNotify( dragNotify_ ),
-draggable( draggable_ ),
-expanded( expanded_ ),
-folder( folder_ ),
-index( index_ ),
-mask( mask_ ),
-multiple( multiple_ ),
-noBitmaps( noBitmaps_ ),
-tabMode( tabMode_ ),
-toolTip( toolTip_ ),
-value( value_ ),
-treeItemID( 0L)
-{
-    GDLWidget* gdlParent = GetWidget( parentID );
-    wxPanel *panel = gdlParent->GetPanel( );
-    widgetPanel = panel;
-    widgetSizer = gdlParent->GetSizer( );
-    topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
 
-    if( gdlParent->IsBase())
-    {
+// GDLTree first!
+GDLTree::GDLTree( wxWindow *parent, wxWindowID id,
+               const wxPoint& pos,
+               const wxSize& size,
+               long style ,
+               const wxValidator& validator ,
+               const wxString& name)
+: wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name )
+, GDLWidgetTableID(id)
+{
+}
+
+GDLTree::~GDLTree(){
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "~GDLTree: " << this << std::endl;
+#endif  
+}
+
+GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
+//,bool alignBottom_
+//,bool alignTop_
+,wxBitmap* bitmap
+//,bool checkbox_
+//,DLong checked_
+//,DString dragNotify_
+//,bool draggable_
+,bool expanded_
+,bool folder_
+//,DLong index_
+//,bool mask_
+//,bool multiple_
+//,bool noBitmaps_
+//,DLong tabMode_
+//,DString toolTip_ 
+)
+: GDLWidget( p, e, value_, eventFlags )
+//,alignBottom( alignBottom_ )
+//,alignTop( alignTop_ )
+//,checkbox( checkbox_ )
+//,checked( checked_ )
+//,dragNotify( dragNotify_ )
+//,draggable( draggable_ )
+//,index( index_ )
+//,mask( mask_ )
+//,multiple( multiple_ )
+//,noBitmaps( noBitmaps_ )
+//,tabMode( tabMode_ )
+//,toolTip( toolTip_ )
+,expanded(expanded_)
+,folder(folder_)
+,treeItemID( 0L )
+,rootID(0L)
+,buttonImageId(0L)
+,imageId(0L)
+,treeItemData(NULL)
+{
+  GDLWidget* gdlParent = GetWidget( parentID );
+  wxPanel *panel = gdlParent->GetPanel( );
+  widgetPanel = panel;
+  widgetSizer = gdlParent->GetSizer( );
+  topWidgetSizer = this->GetTopLevelBaseWidget( parentID )->GetSizer( );
+  DStringGDL* value=static_cast<DStringGDL*>(vValue);
+
+  if ( gdlParent->IsBase( ) ) {
     wxSize widgetSize = wxDefaultSize;
-    if ( xSize == widgetSize.x ) xSize=300; //yes, has a default value!
-    if ( ySize == widgetSize.y ) ySize=300;
-    
-    long style = wxTR_DEFAULT_STYLE;
+    if ( xSize == widgetSize.x ) xSize = 300; //yes, has a default value!
+    if ( ySize == widgetSize.y ) ySize = 300;
+
+    long style = (wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
+    // should be as of 2.9.0:  wxDataViewTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
     wxTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
     wxPoint( xOffset, yOffset ),
-    computeWidgetSize( ),
-    style );
+    computeWidgetSize( ), style );
+    //our widget will ALWAYS have an image list...
+    wxImageList* images=new wxImageList(16,16,TRUE,3);
+    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
+    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
+    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
+    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3
+
+    tree->AssignImageList(images);
+    
     this->wxWidget = tree;
-    treeItemID = tree->AddRoot( wxString( value.c_str( ), wxConvUTF8 ) );
-    if (frame) this->FrameWidget();  else  widgetSizer->Add(tree,0,widgetAlignment());//, 0, wxEXPAND | wxALL); 
+    treeItemID = 0;
+    rootID=widgetID;
+    treeItemData=new GDLTreeItemData(widgetID);
+    widgetSizer->Add( tree, 0, widgetAlignment( ) ); //, 0, wxEXPAND | wxALL); 
+    if ( frame ) this->FrameWidget( );
     TIDY_WIDGET;
-    UPDATE_WINDOW    
-    }
-    else
-    {
-    assert( gdlParent->IsTree( ) );
+    UPDATE_WINDOW
+  } else {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
-
-    this->wxWidget = parentTree->GetWxWidget( );
-
-    wxTreeCtrl * tree = static_cast<wxTreeCtrl*> (this->wxWidget);
-    treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( value.c_str( ), wxConvUTF8 ) );
+    wxWidget = parentTree->GetWxWidget( );
+    rootID =  parentTree->GetRootID();
+    treeItemData=new GDLTreeItemData(widgetID);
+    wxTreeCtrl * tree = static_cast<wxTreeCtrl*> (wxWidget);
+    wxImageList* images=tree->GetImageList();
+    WidgetIDT* remember=(WidgetIDT*)malloc(sizeof(WidgetIDT));
+    //if image is provided use it otherwise (since no image is a bit disappointing) use an internal wxWigdets icon
+    if (bitmap) {
+      int index=images->Add(*bitmap);
+      treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , index ,-1, treeItemData);
+    } else { //use open and closed folder icons
+      if (folder) {
+        treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
+      }
+      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
     }
-
+    if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
+  }
 }
+
 GDLWidgetTree::~GDLWidgetTree()
 {
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetTree: " << this << std::endl;
 #endif  
-  GDLDelete( bitmap );
 }
 
+void GDLWidgetTree::SetValue(DString val)
+{
+  GDLDelete(vValue); 
+  vValue=new DStringGDL(val);
+  wxTreeCtrl* tree=static_cast<wxTreeCtrl*>(wxWidget);
+  tree->SetItemText(treeItemID, wxString( val.c_str( ), wxConvUTF8 ));
+}
 
 /*********************************************************/
 // for WIDGET_SLIDER
@@ -3181,7 +3228,7 @@ UPDATE_WINDOW
 GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos )
 : wxFrame( NULL, id, title, pos, wxDefaultSize, wxDEFAULT_FRAME_STYLE )
 , lastShowRequest( false )
-, newSize(wxDefaultSize)
+, frameSize(wxDefaultSize)
 , gdlOwner( gdlOwner_)
 {
   m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
@@ -3217,10 +3264,7 @@ GDLGrid::~GDLGrid(){
     std::cout << "~GDLGrid: " << this << std::endl;
 #endif  
 }
-//void GDLGrid::SetEventFlags(DULong eventFlags_)
-//{
-//  eventFlags=eventFlags_;
-//}
+
 // GDLDrawPanel ========================================================
 GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : wxPanel( parent, id, pos, size, style, name )
@@ -3229,7 +3273,7 @@ GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 , m_dc( NULL)
 , GDLWidgetDrawID(id)
 {
-  m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
+//  m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
   // initialization of stream is done in GDLWidgetDraw::OnRealize()
 }
 
@@ -3239,8 +3283,8 @@ void GDLDrawPanel::InitStream()
   if ( pstreamIx == -1 )
   throw GDLException( "Failed to allocate GUI stream." );
 
-  drawSize = this->GetSize( );
-  bool success = GraphicsDevice::GetGUIDevice( )->GUIOpen( pstreamIx, drawSize.x, drawSize.y );
+//  drawSize = this->GetSize( ); //do not set drawsize here, needs to be initialized only in size event handler.
+  bool success = GraphicsDevice::GetGUIDevice( )->GUIOpen( pstreamIx, this->GetSize( ).x, this->GetSize( ).y );
   if( !success)
   {
     throw GDLException( "Failed to open GUI stream: " + i2s( pstreamIx ) );
@@ -3257,12 +3301,84 @@ GDLDrawPanel::~GDLDrawPanel()
      std::cout << "~GDLDrawPanel: " << this << std::endl;
 //     std::cout << "This IsMainThread: " << wxIsMainThread() << std::endl;
 #endif
-  if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
+//  if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
   if ( pstreamP != NULL )
   pstreamP->SetValid( false );
 }
 
+//why overcast inherited ~GDLWidget????
+GDLWidgetDraw::~GDLWidgetDraw()
+{
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "~GDLWidgetDraw: " << this << std::endl;
+#endif  
+  // handled in GDLDrawPanel (which is deleted by wxWidgets)
+//   GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
+}
 
+
+GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
+			      DLong x_scroll_size_, DLong y_scroll_size_, bool app_scroll, DULong eventFlags_, DStringGDL* drawToolTip)
+  : GDLWidget( p, e, NULL, eventFlags_)
+  , pstreamIx(-1)
+  , x_scroll_size(x_scroll_size_)
+  , y_scroll_size(y_scroll_size_)
+{
+  //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
+  assert( parentID != GDLWidget::NullID);
+
+  //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
+  if (app_scroll) scrolled=TRUE;
+  if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
+  if (scrolled) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
+
+  wxSize widgetSize = wxDefaultSize;
+  if ( xSize == widgetSize.x ) xSize=scrolled?120:100; //provide a default value!
+  if ( ySize == widgetSize.y ) ySize=scrolled?120:100; 
+
+  wxWindow *wxParent = NULL;
+
+  // If parent base widget exists ....
+  GDLWidget* gdlParent = GetWidget( parentID);
+  widgetPanel = gdlParent->GetPanel( );
+  widgetSizer = gdlParent->GetSizer( );
+  topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
+
+  wxParent = static_cast< wxWindow*>( gdlParent->GetWxWidget());
+  //    std::cout << "Getting Parent: " << parent << " " << gdlParent << " " 
+  //      << wxParent << std::endl;
+
+  long style = 0;
+  if( frame == 1)
+    style = wxBORDER_SIMPLE;
+  else if( frame > 1)
+    style = wxBORDER_DOUBLE;
+  
+  GDLDrawPanel* gdlWindow = new GDLDrawPanel( widgetPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style);
+  gdlWindow->SetCursor(wxCURSOR_CROSS);
+  if (drawToolTip) static_cast<wxWindow*>(gdlWindow)->SetToolTip( wxString((*drawToolTip)[0].c_str(),wxConvUTF8));
+  wxWidget = gdlWindow;
+  widgetSizer->Add( gdlWindow, 0, wxALL, DEFAULT_BORDER_SIZE);
+  if (frame) this->FrameWidget();
+  if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
+
+  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
+  
+  pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
+  GDLDelete( vValue);
+  this->vValue = new DLongGDL(pstreamIx);  
+  this->SetSensitive(sensitive);
+//here UPDATE_WINDOW is useful.  
+  gdlParent->GetSizer()->Layout();
+  if(widgetPanel->IsShownOnScreen()) 
+  {
+    GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID());
+//    tlb->GetSizer()->Layout();
+    static_cast<wxFrame*>(tlb->GetWxWidget())->Show();
+  }
+}
 
 // GDLApp =================================================
 

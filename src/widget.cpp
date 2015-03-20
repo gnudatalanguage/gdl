@@ -75,9 +75,11 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   groupLeader = 0;
   if (e->KeywordPresent( group_leaderIx )){
     e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
-    GDLWidget *widget = GDLWidget::GetWidget( groupLeader );
-    if ( widget == NULL ) {
+    if (groupLeader != 0) {
+      GDLWidget *widget = GDLWidget::GetWidget( groupLeader );
+      if ( widget == NULL ) {
         e->Throw( "Invalid widget identifier:" + i2s( groupLeader ) );
+      }
     }
   }
 
@@ -509,78 +511,93 @@ BaseGDL* widget_tree( EnvT* e)
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget* parent = GDLWidget::GetWidget( parentID );
   if ( parent == NULL )  e->Throw( "Invalid widget identifier: " + i2s( parentID ) );
-  if (!parent->IsBase()) e->Throw( "Parent is of incorrect type." );
+  if ( !(parent->IsBase()) && !(parent->IsTree()))  e->Throw( "Parent is of incorrect type.");
+//  if (!parent->IsBase()) e->Throw( "Parent is of incorrect type." );
 
-  static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
-  static int ALIGN_CENTER = e->KeywordIx( "ALIGN_CENTER" );
-  static int ALIGN_LEFT = e->KeywordIx( "ALIGN_LEFT" );
-  static int ALIGN_RIGHT = e->KeywordIx( "ALIGN_RIGHT" );
-  static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
+//  static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
+//  static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
   static int BITMAP = e->KeywordIx( "BITMAP" );
-  static int CHECKBOX = e->KeywordIx( "CHECKBOX" );
-  static int CHECKED = e->KeywordIx( "CHECKED" );
-  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
-  static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
+//  static int CHECKBOX = e->KeywordIx( "CHECKBOX" );
+//  static int CHECKED = e->KeywordIx( "CHECKED" );
+//  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
+//  static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
-  static int INDEX = e->KeywordIx( "INDEX" );
-  static int MASK = e->KeywordIx( "MASK" );
-  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
-  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
-  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
-  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
+//  static int INDEX = e->KeywordIx( "INDEX" );
+//  static int MASK = e->KeywordIx( "MASK" );
+//  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
+//  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
+//  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
+//  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
   static int VALUE = e->KeywordIx( "VALUE" );
-
-  bool alignBottom = e->KeywordSet( ALIGN_BOTTOM );
-  bool alignCenter = e->KeywordSet( ALIGN_CENTER );
-  bool alignLeft = e->KeywordSet( ALIGN_LEFT );
-  bool alignRight = e->KeywordSet( ALIGN_RIGHT );
-  bool alignTop = e->KeywordSet( ALIGN_TOP );
-  bool checkbox = e->KeywordSet( CHECKBOX );
-  bool draggable = e->KeywordSet( DRAGGABLE );
+//
+//  bool alignBottom = e->KeywordSet( ALIGN_BOTTOM );
+//  bool alignTop = e->KeywordSet( ALIGN_TOP );
+//  bool checkbox = e->KeywordSet( CHECKBOX );
+//  bool draggable = e->KeywordSet( DRAGGABLE );
   bool expanded = e->KeywordSet( EXPANDED );
   bool folder = e->KeywordSet( FOLDER );
-  bool mask = e->KeywordSet( MASK );
-  bool multiple = e->KeywordSet( MULTIPLE );
-  bool noBitmaps = e->KeywordSet( NO_BITMAPS );
-
-  BaseGDL* bitmap = e->GetKW( BITMAP );
-
-  DLong checked = 0;
-  e->AssureLongScalarKWIfPresent( CHECKED, checked );
-  DLong tabMode = 0;
-  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
-  DLong index = 0;
-  e->AssureLongScalarKWIfPresent( INDEX, index );
-  DString dragNotify;
-  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
-  DString toolTip;
-  e->AssureStringScalarKWIfPresent( TOOLTIP, toolTip );
-
-  DString value=""; //important to init to a zero-length string!!!
-  e->AssureStringScalarKWIfPresent( VALUE, value ); //important to init to a zero-length string!!!
-
-  cout<<"Warning, WIDGET_TREE is not fully functional in GDL (FIXME)"<<endl;
+//  bool mask = e->KeywordSet( MASK );
+//  bool multiple = e->KeywordSet( MULTIPLE );
+//  bool noBitmaps = e->KeywordSet( NO_BITMAPS );
+//
+  static int CONTEXT_EVENTS = e->KeywordIx( "CONTEXT_EVENTS" );
+  static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
+  static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
+  bool context = e->KeywordSet( CONTEXT_EVENTS );
+  bool drop = e->KeywordSet( DROP_EVENTS );
+  bool tracking = e->KeywordSet( TRACKING_EVENTS );
   
-  GDLWidgetTree* tree = new GDLWidgetTree( parentID, e, value,
-  alignBottom,
-  alignCenter,
-  alignLeft,
-  alignRight,
-  alignTop,
-  bitmap,
-  checkbox,
-  checked,
-  dragNotify,
-  draggable,
-  expanded,
-  folder,
-  index,
-  mask,
-  multiple,
-  noBitmaps,
-  tabMode,
-  toolTip );
+  DByteGDL* testByte=NULL;
+  wxBitmap* bitmap;
+  if (e->KeywordPresent( BITMAP )) { //must be 16 x 16 x 3 but we do not care about the 16x16
+    testByte = e->GetKWAs<DByteGDL>( BITMAP );
+    if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
+      BaseGDL* transpose=testByte->Transpose(NULL);
+      wxImage * tryImage=new wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),TRUE); //STATIC DATA I BELIEVE.
+      GDLDelete( transpose );
+      bitmap = new wxBitmap(*tryImage);
+    } else e->Throw( "Bitmap must be a [16,16,3] array." );
+  }
+
+//
+//  DLong checked = 0;
+//  e->AssureLongScalarKWIfPresent( CHECKED, checked );
+//  DLong tabMode = 0;
+//  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
+//  DLong index = 0;
+//  e->AssureLongScalarKWIfPresent( INDEX, index );
+//  DString dragNotify;
+//  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
+//  DString toolTip;
+//  e->AssureStringScalarKWIfPresent( TOOLTIP, toolTip );
+
+  DString strvalue=""; //important to init to a zero-length string!!!
+  e->AssureStringScalarKWIfPresent( VALUE, strvalue ); //important to init to a zero-length string!!!
+  DStringGDL* value=new DStringGDL(strvalue);
+  
+  DULong eventFlags=GDLWidget::EV_NONE;
+  if (context) eventFlags |= GDLWidget::EV_CONTEXT;
+  if (drop) eventFlags |= GDLWidget::EV_DROP;
+  if (tracking) eventFlags |= GDLWidget::EV_TRACKING;
+
+  GDLWidgetTree* tree = new GDLWidgetTree( parentID, e, value, eventFlags
+//,  alignBottom
+//,  alignTop
+  ,bitmap
+//,  checkbox
+//,  checked
+//,  dragNotify
+//,  draggable
+,  expanded
+  ,folder
+//,  index
+//,  mask
+//,  multiple
+//,  noBitmaps
+//,  tabMode
+//,  toolTip 
+  );
   
   tree->SetWidgetType( GDLWidget::WIDGET_TREE );
 
@@ -1420,8 +1437,15 @@ BaseGDL* widget_info( EnvT* e ) {
      
   static int SYSTEM_COLORS = e->KeywordIx( "SYSTEM_COLORS" );
   bool giveSystemColors = e->KeywordSet(SYSTEM_COLORS);
+
+  static int TREE_ROOT = e->KeywordIx( "TREE_ROOT" );
+  bool treeroot = e->KeywordSet(TREE_ROOT);
+
+  static int TREE_SELECT = e->KeywordIx( "TREE_SELECT");
+  bool treeselect = e->KeywordSet(TREE_SELECT);
   
-  //find a string, return a long
+
+//find a string, return a long
   if (findbyuname) {
     DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
     if (myUname == NULL) return new DLongGDL( 0 );
@@ -1702,6 +1726,14 @@ BaseGDL* widget_info( EnvT* e ) {
       }
   }
   
+  if (treeroot|treeselect) {
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      if ( widget == NULL || !widget->IsTree() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
+      GDLWidgetTree *tree = (GDLWidgetTree *) widget;
+      
+      if (treeroot) return new DLongGDL(tree->GetRootID()); else return new DLongGDL(-1);
+  }
   // End /XMANAGER_BLOCK
   // if code pointer arrives here, give WIDGET_VERSION:
   // if you get here and should not, you forgot to return the value you got...
@@ -2218,6 +2250,11 @@ void widget_control( EnvT* e ) {
           table->SetValue(value);
           table->SetTableValues(valueAsStrings);
         }
+      } else if (widget->IsTree()) {
+        DString value = "";
+        e->AssureStringScalarKWIfPresent( setvalueIx, value ); //value is a string
+        GDLWidgetTree *tree = (GDLWidgetTree *) widget;
+        tree->SetValue(value);
       }
   } //end SetValue
 
@@ -2331,8 +2368,7 @@ void widget_control( EnvT* e ) {
         GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
         if (valueKW) GDLDelete( (*valueKW) );
         *valueKW = new DLongGDL(s->GetValue());
-      } else if ( widget->IsTree( )) {
-      } else if ( widget->IsLabel( ) || widget->IsDropList( ) || widget->IsComboBox( ) || widget->IsDraw() || widget->IsButton() ) { 
+      } else if ( widget->IsTree( ) ||  widget->IsLabel( ) || widget->IsDropList( ) || widget->IsComboBox( ) || widget->IsDraw() || widget->IsButton() ) { 
         BaseGDL *widval = widget->GetVvalue( );
         if ( widval != NULL ) {
           if (valueKW) GDLDelete( (*valueKW) );

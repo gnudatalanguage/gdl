@@ -30,6 +30,8 @@
 #endif
 #include <wx/defs.h>//for timer.
 #include <wx/gdicmn.h> 
+#include <wx/imaglist.h>
+#include <wx/artprov.h>
 
 #include <deque>
 #include <map>
@@ -719,7 +721,7 @@ public:
 
   ~GDLWidgetDraw();
 
-  void OnRealize();
+//  void OnRealize();
   bool IsDraw() const { return true;}
 };
 
@@ -876,54 +878,87 @@ public:
 
 
 // tree widget **************************************************
+class GDLTree: public wxTreeCtrl
+{  
+  wxWindowID GDLWidgetTableID;
+public:
+  GDLTree(wxWindow *parent, wxWindowID id = wxID_ANY,
+               const wxPoint& pos = wxDefaultPosition,
+               const wxSize& size = wxDefaultSize,
+               long style = wxTR_DEFAULT_STYLE,
+               const wxValidator &validator = wxDefaultValidator,
+               const wxString& name = wxTreeCtrlNameStr);
+  ~GDLTree();
+
+void OnItemActivated(wxTreeEvent & event);
+void OnItemCollapsed(wxTreeEvent & event);
+void OnItemExpanded(wxTreeEvent & event);
+void OnItemDropped(wxTreeEvent & event);
+void OnItemSelected(wxTreeEvent & event);
+
+};
+
+class GDLTreeItemData : public wxTreeItemData {
+  public:
+    WidgetIDT widgetID;
+
+    GDLTreeItemData(WidgetIDT id) : widgetID(id) {}
+};
+
 class GDLWidgetTree: public GDLWidget
 {
-bool alignBottom; 
-bool alignCenter; 
-bool alignLeft  ; 
-bool alignRight ; 
-bool alignTop   ; 
-BaseGDL* bitmap ; 
-bool checkbox   ; 
-DLong checked   ; 
-DString dragNotify ; 
-bool draggable  ; 
-bool expanded   ; 
-bool folder     ; 
-DLong index     ; 
-bool mask       ; 
-bool multiple   ; 
-bool noBitmaps  ; 
-DLong tabMode   ; 
-DString toolTip ; 
-DString value;  
-  
+//bool alignBottom; 
+//bool alignTop   ; 
+//BaseGDL* bitmap ; 
+//bool checkbox   ; 
+//DLong checked   ; 
+//DString dragNotify ; 
+//bool draggable  ; 
+//DLong index     ; 
+//bool mask       ; 
+//bool multiple   ; 
+//bool noBitmaps  ; 
+//DLong tabMode   ; 
+//DString toolTip ;
+  bool expanded;
+  bool folder;
+int buttonImageId;
+int imageId;
 wxTreeItemId treeItemID;
+GDLTreeItemData* treeItemData;
+WidgetIDT rootID;
 
 public:
-  GDLWidgetTree( WidgetIDT parentID, EnvT* e, DString value_,
-                   bool alignBottom_,
-                   bool alignCenter_,
-                   bool alignLeft_,
-                   bool alignRight_,
-                   bool alignTop_,
-                   BaseGDL* bitmap_,
-                   bool checkbox_,
-                   DLong checked_,
-                   DString dragNotify_,
-                   bool draggable_,
-                   bool expanded_,
-                   bool folder_,
-                   DLong index_,
-                   bool mask_,
-                   bool multiple_,
-                   bool noBitmaps_,
-                   DLong tabMode_,
-                   DString toolTip_);
+GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
+//,bool alignBottom_
+//,bool alignTop_
+,wxBitmap* bitmap_
+//,bool checkbox_
+//,DLong checked_
+//,DString dragNotify_
+//,bool draggable_
+,bool expanded_
+,bool folder_
+//,DLong index_
+//,bool mask_
+//,bool multiple_
+//,bool noBitmaps_
+//,DLong tabMode_
+//,DString toolTip_ 
+);
 		 
 ~GDLWidgetTree();
 
   bool IsTree() const { return true;}
+  bool IsFolder() {return folder;}
+  bool IsExpanded() {return expanded;}
+  void DoExpand(){
+    GDLTree * me = static_cast<GDLTree*>(wxWidget);
+    if (me) me->Expand(treeItemID);
+  }
+  WidgetIDT GetRootID(){ return rootID;}
+  wxTreeItemId GetItemID(){ return treeItemID;}
+  void SetValue(DString val);
 };
 
 
@@ -1126,7 +1161,7 @@ class GDLFrame : public wxFrame
 {
   enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   bool lastShowRequest;
-  wxSize newSize;
+  wxSize frameSize;
   GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
   wxTimer * m_resizeTimer;
@@ -1219,8 +1254,8 @@ class GDLDrawPanel : public wxPanel
 
   wxDC*  	m_dc;
   wxWindowID GDLWidgetDrawID;
-  wxSize   newSize;
-  wxTimer * m_resizeTimer;
+//  wxSize   newSize;
+//  wxTimer * m_resizeTimer;
   
 public:
   // ctor(s)
@@ -1233,8 +1268,13 @@ public:
   
   void Update()
   {
-      this->Refresh();
+     wxClientDC dc( this);
+     dc.SetDeviceClippingRegion( GetUpdateRegion() );
+     dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
+     wxPanel::Update();
+//      this->Refresh();
   }
+  
   
 //example for multithreading?
 //void Update()

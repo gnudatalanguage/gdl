@@ -130,7 +130,6 @@ gdlsvgstream.hpp
 gdlwidget.cpp
 gdlwidgeteventhandler.cpp
 gdlwidget.hpp
-gdlwidgetdraw.cpp
 gdlwxstream.cpp
 gdlwxstream.hpp
 gdlzstream.cpp
