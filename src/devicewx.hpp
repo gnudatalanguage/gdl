@@ -241,7 +241,7 @@ public:
     }
 
     bool WOpen(int wIx, const std::string& title,
-            int xSize, int ySize, int xOffset, int yOffset) {
+            int xSize, int ySize, int xPos, int yPos) {
         TidyWindowsList();
 
         int wLSize = winList.size();
@@ -253,30 +253,58 @@ public:
             winList[ wIx] = NULL;
         }
 
+        // set initial window size
+        PLFLT xp; PLFLT yp; 
+        PLINT xleng; PLINT yleng;
+        PLINT xoff; PLINT yoff;
+
+        DLong xMaxSize, yMaxSize;
+        DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
+
+        bool noPosx=(xPos==-1);
+        bool noPosy=(yPos==-1);
+        xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
+        yPos=max(1,yPos);
+
+        xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
+        yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
+    // dynamic allocation needed!    
+        PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
+        PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
+        if (noPosx && noPosy) { //no init given, use 4 quadrants:
+          xoff = Quadx[wIx%4];
+          yoff = Quady[wIx%4];
+        } else if (noPosx) {
+          xoff = Quadx[wIx%4];
+          yoff = yMaxSize-yPos-yleng;
+        } else if (noPosy) {
+          xoff = xPos;
+          yoff = Quady[wIx%4];
+        } else {
+          xoff  = xPos;
+          yoff  = yMaxSize-yPos-yleng;
+        }
+        //apparently this is OK to get same results as IDL on X11...
+        yoff+=1;
+        xp=max(xp,1.0);
+        yp=max(yp,1.0);
+
         wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-        GDLFrame *gdlFrame = new GDLFrame(NULL, wxID_ANY, titleWxString, wxPoint(xOffset,yOffset));
+        GDLFrame *gdlFrame = new GDLFrame(NULL, wxID_ANY, titleWxString, wxPoint(xoff,yoff));
+        gdlFrame->SetSizeHints(xleng, yleng);
 
         wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
         gdlFrame->SetSizer( topSizer );
 
-        wxPanel *panel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxSize(xSize,ySize) );
-        wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-        panel->SetSizer(sizer);
-        topSizer->Add( panel, 1, wxEXPAND );
-        GDLDrawPanel* gdlWindow = new GDLDrawPanel(gdlFrame, panel->GetId(), wxDefaultPosition, wxSize(xSize, ySize), wxBORDER_SIMPLE);
-        sizer->Add(gdlWindow,0, wxALL, DEFAULT_BORDER_SIZE);
+        GDLDrawPanel* gdlWindow = new GDLDrawPanel(gdlFrame, wxID_ANY, wxDefaultPosition, wxSize(xleng, yleng));
+        topSizer->Add(gdlWindow, 1, wxEXPAND);
         topSizer->Layout();
 
         gdlWindow->InitStream();
         winList[ wIx] = static_cast<GDLGStream*> (GraphicsDevice::GetGUIDevice()->GetStreamAt(gdlWindow->PStreamIx()));
         static_cast<GDLWXStream*> (winList[ wIx])->SetGDLDrawPanel(gdlWindow);
-    GDLApp * theGDLApp;
-    gdlFrame->SetTheApp(theGDLApp);
-    theGDLApp=new GDLApp;
-    theGDLApp->OnInit();
-    theGDLApp->OnRun();
-        gdlFrame->Show();
-        // no pause on win destruction
+        gdlWindow->SetCursor(wxCURSOR_PAINT_BRUSH); //for tests
+       // no pause on win destruction
         winList[ wIx]->spause(false);
 
         // extended fonts
@@ -307,13 +335,18 @@ public:
         //we need to rescale the default value 
         PLFLT defhmm, scalhmm;
         plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-        PLFLT xp, yp;
-        PLINT xleng, yleng, xoff, yoff;
         winList[ wIx]->gpage(xp, yp, xleng, yleng, xoff, yoff);
         PLFLT newsize=(defhmm*4)/(yp/25.4);
         winList[ wIx]->RenewPlplotDefaultCharsize(newsize);
         // sets actWin and updates !D
         SetActWin( wIx);
+        GDLApp * theGDLApp;
+    gdlFrame->SetTheApp(theGDLApp);
+    theGDLApp=new GDLApp;
+    theGDLApp->OnInit();
+    theGDLApp->OnRun();
+        gdlFrame->Show();
+ 
         return true; //winList[ wIx]->Valid(); // Valid() need to called once
     }
 
