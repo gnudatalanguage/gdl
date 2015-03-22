@@ -2154,33 +2154,37 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       if( f77)
 	{
-	  SizeT recordLength = fileUnits[ lun-1].F77ReadStart();
+    SizeT recordLength = fileUnits[ lun - 1].F77ReadStart( );
 
-	  SizeT relPos = 0;
+    SizeT relPos = 0;
 	  for( SizeT i=1; i<nParam; i++)
 	    {
-	      BaseGDL* p = e->GetPar( i);
+      BaseGDL* p = e->GetPar( i );
 	      if( p == NULL)
 		{
-		  e->AssureGlobalPar( i);
-		  p = new DFloatGDL( 0.0);
-		  e->SetPar( i, p);
-		}
+        e->AssureGlobalPar( i );
+        p = new DFloatGDL( 0.0 );
+        e->SetPar( i, p );
+      }
+      
+      SizeT nBytes;
+      if (p->Type()==GDL_STRUCT) { //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
+        nBytes = static_cast<DStructGDL*>(p)->ToTransfer();
+      }
+      else nBytes = p->NBytes( ); cerr <<"relpos= "<<relPos<< ",reading "<<nBytes<<" bytes"<<endl;
 
-	      SizeT nBytes = p->NBytes();
+      if ( (relPos + nBytes) > recordLength )
+        e->Throw( "Attempt to read past end of F77_UNFORMATTED "
+      "file record." );
 
-	      if( (relPos + nBytes) > recordLength)
-		e->Throw( "Attempt to read past end of F77_UNFORMATTED "
-			  "file record.");
+      p->Read( *is, swapEndian, compress, xdrs );
 
-	      p->Read( *is, swapEndian, compress, xdrs);
+      relPos += nBytes;
+    }
 
-	      relPos += nBytes;
-	    }
-
-	  // forward to next record if necessary
-	  fileUnits[ lun-1].F77ReadEnd();
-	}
+    // forward to next record if necessary
+    fileUnits[ lun - 1].F77ReadEnd( );
+  }
       else
 	for( SizeT i=1; i<nParam; i++)
 	  {
