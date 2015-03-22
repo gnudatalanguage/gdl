@@ -41,10 +41,11 @@ namespace lib {
   void widget_control( EnvT* e);
 
   // TODO
-  BaseGDL* widget_displaycontextmenu( EnvT* e);
   BaseGDL* widget_propertysheet( EnvT* e);
   BaseGDL* widget_tree_move( EnvT* e);
   BaseGDL* widget_window( EnvT* e);
+  
+  void widget_displaycontextmenu( EnvT* e);
 
 } // namespace
 

@@ -32,6 +32,8 @@
 #include <wx/gdicmn.h> 
 #include <wx/imaglist.h>
 #include <wx/artprov.h>
+#include <wx/popupwin.h>
+//#include <wx/minifram.h>
 
 #include <deque>
 #include <map>
@@ -226,7 +228,6 @@ protected:
   bool         buttonState; //only for buttons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
-  wxSizer*     mySizer; //optional sizer forcing sizes & placement of widget.
   wxSizer*     topWidgetSizer; //the frame sizer (contains all widgets)
   wxSizer*     widgetSizer; // the sizer which governs the placement of the widget in its Panel
   wxPanel*     widgetPanel; // the Panel in which the widget is placed
@@ -415,6 +416,7 @@ public:
   WidgetIDT WidgetID() { return widgetID;}
 
   wxSizer* GetSizer() { return widgetSizer;}
+  wxSizer* GetTopSizer() { return topWidgetSizer;}
   wxPanel* GetPanel() { return widgetPanel;}
 
   bool GetManaged() const { return managed;}
@@ -511,6 +513,7 @@ class GDLWidgetBase: public GDLWidgetContainer
   bool stretchY;
   long childrenAlignment;
   long space;
+  bool IsContextMenu;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, EnvT* e,
@@ -523,7 +526,7 @@ public:
 		 const DString& title,
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
-		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment, long space);
+		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment=wxALIGN_LEFT, long space=0, bool iscontextmenu=FALSE);
   
   ~GDLWidgetBase();
 
@@ -630,6 +633,7 @@ public:
   
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
+  BaseGDL* GetSelectedEntry();
 };
 
 // combobox widget **************************************************
@@ -652,6 +656,7 @@ public:
   std::string GetLastValue() { return lastValue;}
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
+  BaseGDL* GetSelectedEntry();
   void AddItem(DString value, DLong pos);
   void DeleteItem(DLong pos);
 };
@@ -660,11 +665,12 @@ public:
 class GDLWidgetList : public GDLWidget
 {
 public:
-  GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style);
+  GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style, DULong eventflags);
   ~GDLWidgetList();
   bool IsList() const { return true;} 
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
+  BaseGDL* GetSelectedEntries();
 };
 
 
@@ -752,6 +758,10 @@ public:
   
   bool IsTab() const { return true;}
   bool IsContainer() const { return true;}
+  BaseGDL* GetTabNumber();
+  BaseGDL* GetTabCurrent();
+  void SetTabCurrent(int val);
+  BaseGDL* GetTabMultiline(); //not exactly what expected, fixme.
 };
 
 
@@ -1196,7 +1206,7 @@ public:
 //  void OnTimerResize(wxTimerEvent& event);
   void OnScroll( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
-  void OnRightClickAsContextEvent( wxMouseEvent &event );
+  void OnContextEvent( wxContextMenuEvent &event );
   void OnFocusChange( wxFocusEvent &event);
   void OnIconize( wxIconizeEvent & event);
   void OnMove( wxMoveEvent & event);

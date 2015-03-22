@@ -394,7 +394,6 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 , vValue( vV )
 , exclusiveMode( 0 )
 , topWidgetSizer( NULL )
-, mySizer( NULL )
 , widgetSizer( NULL )
 , widgetPanel( NULL )
 , scrollSizer( NULL )
@@ -731,7 +730,7 @@ const DString& resource_name, const DString& rname_mbar,
 const DString& title_,
 const DString& display_name,
 DLong xpad, DLong ypad,
-DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, long space_)
+DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, long space_, bool iscontextmenu)
 : GDLWidgetContainer( parentID, e, mapWid)
 , modal( modal_ )
 , mbarID( mBarIDInOut )
@@ -742,6 +741,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
 , stretchY(FALSE)
 , childrenAlignment( children_alignment )
 , space(space_)
+, IsContextMenu(iscontextmenu)
 {
   //  std::cout << "In GDLWidgetBase::GDLWidgetBase: " << widgetID << std::endl
 
@@ -766,10 +766,6 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
   // can receive events: size, icon and kill.
   if ( parentID == GDLWidget::NullID ) 
   {
-    //     if( modal) // ???
-    // 	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
-    //     else
-    // GDLFrame is derived from wxFrame
     wxString titleWxString = wxString( title_.c_str( ), wxConvUTF8 );
     GDLFrame *gdlFrame = new GDLFrame( this, widgetID, titleWxString , wxPoint(xOffset,yOffset));
 
@@ -792,7 +788,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     gdlFrame->SetSizer( topWidgetSizer );
 
     //create the first panel, fix size. Offset is not taken into account.
-    widgetPanel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxSize(xSize,ySize), frame?wxBORDER_SUNKEN:wxBORDER_NONE);
+    widgetPanel = new wxPanel( gdlFrame, widgetID , wxDefaultPosition, wxSize(xSize,ySize), frame?wxBORDER_SUNKEN:wxBORDER_NONE);
 #ifdef GDL_DEBUG_WIDGETS
     widgetPanel->SetBackgroundColour(wxColour(255,0,0)); //for tests!
 #endif
@@ -814,6 +810,23 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     //Allocate the sizer for children according to col or row layout
     widgetSizer = GetBaseSizer( ncols, nrows, grid , space);
     //Attach sizer to panel
+    widgetPanel->SetSizer( widgetSizer );
+  } 
+  else if ( IsContextMenu ) 
+  {
+    GDLWidget* gdlParent = GetWidget( parentID );
+    assert( gdlParent != NULL);
+    wxWindow* parentWindow=static_cast<wxWindow*>(gdlParent->GetWxWidget());
+    wxPopupTransientWindow* transient = new wxPopupTransientWindow(parentWindow );
+
+    wxWidget = transient;
+    topWidgetSizer = new wxBoxSizer( wxVERTICAL);
+    transient->SetSizer( topWidgetSizer);
+
+    widgetPanel = new wxPanel( transient,wxID_ANY, wxDefaultPosition, wxSize(500,500));
+    topWidgetSizer->Add( widgetPanel  ,1, wxEXPAND);
+
+    widgetSizer = new wxBoxSizer( wxVERTICAL);
     widgetPanel->SetSizer( widgetSizer );
   } 
   else 
@@ -975,6 +988,29 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, DLong location, DLong multilin
   widgetSizer->Layout();
   TIDY_WIDGET;
   UPDATE_WINDOW
+}
+
+BaseGDL* GDLWidgetTab::GetTabNumber(){
+  wxNotebook * notebook=static_cast<wxNotebook*>(wxWidget);
+  return new DIntGDL(notebook->GetPageCount());
+}
+
+BaseGDL* GDLWidgetTab::GetTabCurrent(){
+  wxNotebook * notebook=static_cast<wxNotebook*>(wxWidget);
+  return new DIntGDL(notebook->GetSelection());
+}
+
+void GDLWidgetTab::SetTabCurrent(int val){
+  wxNotebook * notebook=static_cast<wxNotebook*>(wxWidget);
+  if (val<notebook->GetPageCount()){
+//   notebook->GetPage(val)->Raise();    
+   notebook->ChangeSelection(val);
+  }
+}
+
+BaseGDL* GDLWidgetTab::GetTabMultiline(){
+  wxNotebook * notebook=static_cast<wxNotebook*>(wxWidget);
+  return new DIntGDL(notebook->GetExtraStyle()&wxNB_MULTILINE);
 }
 
 GDLWidgetTab::~GDLWidgetTab(){
@@ -2453,7 +2489,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     treeItemData=new GDLTreeItemData(widgetID);
     wxTreeCtrl * tree = static_cast<wxTreeCtrl*> (wxWidget);
     wxImageList* images=tree->GetImageList();
-    WidgetIDT* remember=(WidgetIDT*)malloc(sizeof(WidgetIDT));
     //if image is provided use it otherwise (since no image is a bit disappointing) use an internal wxWigdets icon
     if (bitmap) {
       int index=images->Add(*bitmap);
@@ -2628,8 +2663,6 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
         buttonType = CHECKBOX;
       }
       if (buttonToolTip) static_cast<wxWindow*>(this->wxWidget)->SetToolTip( wxString((*buttonToolTip)[0].c_str(),wxConvUTF8));
-      mySizer=new wxBoxSizer(wxHORIZONTAL);
-      static_cast<wxWindow*>(wxWidget)->SetSizer(mySizer);
       widgetSizer->Add( static_cast<wxWindow*>(wxWidget), 0, widgetAlignment(),0);
       if (frame) this->FrameWidget();
       widgetSizer->Layout();
@@ -2664,8 +2697,8 @@ GDLWidgetButton::~GDLWidgetButton(){
       } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetBitmap(), please report!" << std::endl;
   }
   
-GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style )
-    : GDLWidget( p, e, value)
+GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style, DULong eventflags )
+    : GDLWidget( p, e, value, eventflags)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = gdlParent->GetPanel( );
@@ -2716,6 +2749,20 @@ void GDLWidgetList::SetValue(BaseGDL *value){
 void GDLWidgetList::SelectEntry(DLong entry_number){
  wxListBox * list=static_cast<wxListBox*>(wxWidget);
  list->Select(entry_number); 
+}
+
+BaseGDL* GDLWidgetList::GetSelectedEntries(){
+ wxListBox * list=static_cast<wxListBox*>(wxWidget);
+ wxArrayInt selections;
+ list->GetSelections(selections);
+ DIntGDL* liste;
+ if  (selections.Count()<1) {
+   liste=new DIntGDL(-1);
+   return liste;
+ }
+ liste=new DIntGDL(dimension(selections.Count()));
+ for (SizeT i=0; i< selections.Count(); ++i) (*liste)[i]=selections[i];
+ return liste;
 }
 
 GDLWidgetList::~GDLWidgetList(){
@@ -2798,6 +2845,11 @@ void GDLWidgetDropList::SelectEntry(DLong entry_number){
  droplist->Select(entry_number); 
 }
 
+BaseGDL* GDLWidgetDropList::GetSelectedEntry(){
+  wxChoice * droplist=static_cast<wxChoice*>(wxWidget);
+  return new DIntGDL(droplist->GetSelection());
+}
+
 GDLWidgetDropList::~GDLWidgetDropList(){
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetDroplist: " << this << std::endl;
@@ -2831,12 +2883,6 @@ const DString& title_, DLong style_ )
   if (frame) this->FrameWidget(widgetStyle);
   TIDY_WIDGET;
   UPDATE_WINDOW
-}
-
-GDLWidgetComboBox::~GDLWidgetComboBox(){
-#ifdef GDL_DEBUG_WIDGETS
-  std::cout << "~GDLWidgetComboBox(): " << widgetID << std::endl;
-#endif
 }
 
 void GDLWidgetComboBox::SetValue(BaseGDL *value){
@@ -2874,6 +2920,19 @@ void GDLWidgetComboBox::DeleteItem(DLong pos) {
 void GDLWidgetComboBox::SelectEntry(DLong entry_number){
  wxComboBox * combo=static_cast<wxComboBox*>(wxWidget);
  combo->Select(entry_number); 
+}
+
+BaseGDL* GDLWidgetComboBox::GetSelectedEntry(){
+  wxComboBox * combo=static_cast<wxComboBox*>(wxWidget);
+  DStringGDL* stringres=new DStringGDL(dimension(1));
+  (*stringres)[0]=combo->GetStringSelection().mb_str(wxConvUTF8); //return null string if no selection
+  return stringres;
+}
+
+GDLWidgetComboBox::~GDLWidgetComboBox(){
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "~GDLWidgetComboBox(): " << widgetID << std::endl;
+#endif
 }
 
 GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine_,

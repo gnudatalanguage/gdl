@@ -63,7 +63,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
 //  EVT_TIMER(GDLFrame::RESIZE_TIMER, GDLFrame::OnTimerResize) //... where size event is really done here. But does not work (refresh not OK)
 //  EVT_SIZE(GDLFrame::OnSizeWithTimer) //use a timer to pass only once the resize event
 //CONTEXT
-  EVT_RIGHT_DOWN(GDLFrame::OnRightClickAsContextEvent)
+  EVT_CONTEXT_MENU(GDLFrame::OnContextEvent)
 //TLB_MOVE_EVENTS
   EVT_MOVE(GDLFrame::OnMove)
 //please ADD KBRD_FOCUS
@@ -238,7 +238,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event ) {
  void GDLFrame::OnWidgetTimer( wxTimerEvent& event)
  {
 #ifdef GDL_DEBUG_EVENTS
-   wxMessageOutputStderr().Printf(_T("in OnWidgetTimer: %d\n"),event.GetId());
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnWidgetTimer: %d\n"),event.GetId());
 #endif
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( owner->WidgetID());
@@ -726,7 +726,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 //    return;
 //   }
 //#ifdef GDL_DEBUG_EVENTS
-//   wxMessageOutputStderr().Printf(_T("in OnTimerResize: %d\n"),event.GetId());
+//   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTimerResize: %d\n"),event.GetId());
 //#endif
 //  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
 //  DULong flags=0;
@@ -748,7 +748,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
  {
    if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
  #ifdef GDL_DEBUG_EVENTS
-   wxMessageOutputStderr().Printf(_T("in OnSize: %d\n"),event.GetId());
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSize: %d\n"),event.GetId());
  #endif
   // current bug:
   // onsize should not be called 1) when TLB is resized with widget_control
@@ -785,7 +785,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 // {
 //   if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
 //#ifdef GDL_DEBUG_EVENTS
-//   wxMessageOutputStderr().Printf(_T("in OnSizeWithTimer: %d\n"),event.GetId());
+//   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSizeWithTimer: %d\n"),event.GetId());
 //#endif
 //  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
 //  if (owner->GetParentID() != 0) {
@@ -909,25 +909,46 @@ void GDLFrame::OnFocusChange( wxFocusEvent &event ) {
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
   } //normal end of event processing!
 }
-void GDLFrame::OnRightClickAsContextEvent( wxMouseEvent &event ) {
-#ifdef GDL_DEBUG_EVENTS
-  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnRichtClickAsContextEvent: %d\n"),event.GetId());
-#endif
-  if (!gdlOwner) {event.Skip(); return;}
-  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
-  DULong flags=0;
-  if( owner ) flags=owner->GetEventFlags();
 
+void GDLFrame::OnContextEvent( wxContextMenuEvent& event) {
+#ifdef GDL_DEBUG_EVENTS
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnContextMenuEvent: %d\n"),event.GetId());
+#endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {  
+    cerr<<"Null Widget, trying owner\n";
+    if (!gdlOwner) {cerr << "no Owner.\n"; event.Skip(); return;}
+    GDLWidget* owner=static_cast<GDLWidgetBase*>(gdlOwner);
+    if( widget == NULL)
+   {
+      cerr <<"nobody there\n";
+     event.Skip();
+     return;
+   }
+  }
+  DULong flags=0;
+  flags=widget->GetEventFlags();
   if ( flags & GDLWidget::EV_CONTEXT ) {
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
     DStructGDL* widgcontext = new DStructGDL( "WIDGET_CONTEXT" );
     widgcontext->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgcontext->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgcontext->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-    widgcontext->InitTag( "TYPE", DIntGDL( 0 ) ); //button Press
-    widgcontext->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgcontext->InitTag( "Y", DLongGDL( (static_cast<wxFrame*>(owner->GetWxWidget())->GetSize()).y-event.GetY()  ) );
-//LACKS: ROW AND COL, to be added for TABLE Widget
+    wxPoint position=event.GetPosition( );
+    
+    if (position==wxDefaultPosition) { //issued from keyboard
+      position=wxGetMousePosition();
+    }
+      widgcontext->InitTag( "X", DLongGDL( position.x ) );
+      widgcontext->InitTag( "Y", DLongGDL( position.y ) );
+//ROW AND COL, to be added for TABLE Widget
+    if (widget->IsTable()){
+      GDLGrid * grid = static_cast<GDLGrid*> (widget->GetWxWidget());
+      int col = grid->XToCol(position.x);
+      int row = grid->YToRow(position.y);
+      widgcontext->InitTag( "ROW", DLongGDL( row ) );
+      widgcontext->InitTag( "ROW", DLongGDL( col ) );
+    }
     GDLWidget::PushEvent( baseWidgetID, widgcontext );
   } //normal end of event processing!
 }
@@ -1050,7 +1071,7 @@ void GDLDrawPanel::OnClose(wxCloseEvent& event)
  
 void GDLDrawPanel::OnSize( wxSizeEvent &event ) {
 #ifdef GDL_DEBUG_EVENTS
-  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnResize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnSize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
 #endif
   wxSize newSize=event.GetSize();
   if (newSize==drawSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
