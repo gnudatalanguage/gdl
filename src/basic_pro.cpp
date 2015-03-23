@@ -2040,7 +2040,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  for( SizeT i=1; i<nParam; i++)
 	    {
 	      BaseGDL* p = e->GetParDefined( i);
-	      nBytesAll += p->NBytes();
+          if (p->Type()==GDL_STRUCT) nBytesAll += static_cast<DStructGDL*>(p)->NBytesToTransfer(); 
+          else                       nBytesAll += p->NBytes();
 	    }
 	
 	  // write record length
@@ -2168,10 +2169,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
       }
       
       SizeT nBytes;
-      if (p->Type()==GDL_STRUCT) { //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
-        nBytes = static_cast<DStructGDL*>(p)->ToTransfer();
-      }
-      else nBytes = p->NBytes( ); cerr <<"relpos= "<<relPos<< ",reading "<<nBytes<<" bytes"<<endl;
+      if (p->Type()==GDL_STRUCT) nBytes = static_cast<DStructGDL*>(p)->NBytesToTransfer();  //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
+      else                       nBytes = p->NBytes( ); 
 
       if ( (relPos + nBytes) > recordLength )
         e->Throw( "Attempt to read past end of F77_UNFORMATTED "

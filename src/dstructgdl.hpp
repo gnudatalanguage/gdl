@@ -244,7 +244,7 @@ return Buf();
   { 
     return (Sizeof() * N_Elements());
   }
-  SizeT ToTransfer() const // number of elements for IO tranfer  
+  SizeT ToTransfer() const // number of elements for IO transfer  
   { 
     SizeT nB = 0;
     SizeT nTags=NTags();
@@ -254,6 +254,20 @@ return Buf();
       }
     return ( nB * N_Elements()); // *** error for string?
   }
+SizeT NBytesToTransfer() // number of elements for IO transfer without padding 
+{ 
+  SizeT nB = 0;
+  SizeT nTags=this->NTags();
+  for( SizeT j=0; j < this->N_Elements(); j++) { //eventually with no error for variable-length strings (in output, input will never work)
+    for( SizeT i=0; i < nTags; i++)
+    {
+      if (this->GetTag(i,j)->Type()==GDL_STRUCT) {
+        DStructGDL* str= static_cast<DStructGDL*>(this->GetTag( i, j));
+        nB += str->NBytesToTransfer();} else nB += this->GetTag( i, j)->NBytes();
+    }
+  }
+  return nB ;
+}
   SizeT Sizeof() const
   {
     return Desc()->NBytes();
