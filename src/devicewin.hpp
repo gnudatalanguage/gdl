@@ -64,6 +64,7 @@ private:
   bool WSize( int , int*, int*, int*, int*);
   bool WSet( int );
   bool WShow( int, bool, bool);
+  int WAdd();
   int WAddFree();
   DIntGDL* GetWindowPosition();
   DLong GetVisualDepth();
