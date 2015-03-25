@@ -392,7 +392,7 @@ namespace lib {
 
     int double_flag=0;
     if (p0->Type() == GDL_DOUBLE || p1->Type() == GDL_DOUBLE) double_flag=1;
-    if (p2->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) double_flag=1;
+    if (p2->Type() == GDL_DOUBLE || p3->Type() == GDL_DOUBLE) double_flag=1;
     if (e->KeywordSet("DOUBLE")) double_flag=1;
     
     DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
