@@ -20,7 +20,6 @@
 #include "includefirst.hpp"
 
 #include <iostream>
-#include <wx-2.8/wx/popupwin.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
