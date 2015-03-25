@@ -1391,11 +1391,45 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
   return o;
 }
 
+//this is the routined used by IDL as per the documentation.
+bool_t xdr_complex( XDR *xdrs, DComplex *p)  
+{  
+  return(xdr_float(xdrs, &p->real()) &&  
+         xdr_float(xdrs, &p->imag()));  
+}  
+//this is the routined used by IDL as per the documentation.
+bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)  
+{  
+  return(xdr_double(xdrs,  &p->real()) &&  
+         xdr_double(xdrs,  &p->imag()));  
+} 
+
+
+//this is the routined used by IDL as per the documentation.
+//It happens to write twice the number of chars in the file, not very clever.
+bool_t xdr_counted_string(XDR *xdrs, char **p)  
+{  
+  int input = (xdrs->x_op == XDR_DECODE);  
+  short length;  
+  
+  /* If writing, obtain the length */  
+  if (!input) length = strlen(*p);  
+  
+  /* Transfer the string length */  
+  if (!xdr_short(xdrs, (short *) &length)) return(FALSE);  
+  /* If reading, obtain room for the string */  
+  if (input)  
+  {  
+      *p = (char*) malloc((unsigned) (length + 1));  
+         *p[length] = '\0'; /* Null termination */  
+  }  
+  /* If the string length is nonzero, transfer it */  
+  return(length ? xdr_string(xdrs, p, length) : TRUE);  
+}
 
 int xdr_convert(XDR *xdrs, DByte *buf)
 {
-  //  return (xdr_u_char(xdrs, buf));
-    return 0;
+  assert(false); return 0;
 }
 
 int xdr_convert(XDR *xdrs, DInt *buf)
@@ -1414,7 +1448,7 @@ int xdr_convert(XDR *xdrs, DLong *buf)
   /* xdr_long actually takes an int on 64bit darwin */
   return (xdr_long(xdrs, buf));
 #else
-  return (xdr_long(xdrs, reinterpret_cast<long int*>(buf)));
+   return (xdr_int(xdrs, buf));
 #endif
 }
 
@@ -1424,20 +1458,18 @@ int xdr_convert(XDR *xdrs, DULong *buf)
   /* xdr_u_long actually takes an unsigned int on 64bit darwin */
   return (xdr_u_long(xdrs, buf));
 #else
-  return (xdr_u_long(xdrs, reinterpret_cast<u_long*>(buf)));
+  return (xdr_u_int(xdrs, buf));
 #endif
 }
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
 {
-  throw GDLException( "XDR conversion of LONG64 not yet supported.");
-  //  return (xdr_longlong(xdrs, (long long *) buf));
+  return (xdr_longlong_t(xdrs, (long int*)(buf)));
 }
 
 int xdr_convert(XDR *xdrs, DULong64 *buf)
 {
-  throw GDLException( "XDR conversion of ULONG64 not yet supported.");
-  //  return (xdr_u_longlong(xdrs, (unsigned long long *) buf));
+  return (xdr_u_longlong_t(xdrs,  (unsigned long int*) (buf)));
 }
 
 int xdr_convert(XDR *xdrs, DFloat *buf)
@@ -1452,328 +1484,315 @@ int xdr_convert(XDR *xdrs, DDouble *buf)
 
 int xdr_convert(XDR *xdrs, DComplex *buf)
 {
-  return (0);
+  return ( xdr_complex(xdrs, buf)) ;
 }
 
 int xdr_convert(XDR *xdrs, DComplexDbl *buf)
 {
-  return (0);
+  return ( xdr_dcomplex(xdrs, buf)) ;
 }
 
 
 
 // unformatted ***************************************** 
 template<class Sp>
-ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, 
-			   bool compress, XDR *xdrs)
-{
-  if( os.eof()) os.clear();
+ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool compress, XDR *xdrs ) {
+  if ( os.eof( ) ) os.clear( );
 
-  SizeT count = dd.size();
+  SizeT count = dd.size( );
 
-  if( swapEndian && (sizeof(Ty) != 1))
-    {
-      char* cData = reinterpret_cast<char*>(&(*this)[0]);
-      SizeT cCount = count * sizeof(Ty);
-
-      char swap[ sizeof(Ty)];
-      for( SizeT i=0; i<cCount; i += sizeof(Ty))
-	{
-	  SizeT src = i+sizeof(Ty)-1;
-
-	  for( SizeT dst=0; dst<sizeof(Ty); dst++)
-	    swap[dst] = cData[ src--];
-	  
-	  os.write(swap,sizeof(Ty));
-	}
-    }
-  else if (xdrs != NULL)
-    {
-      char* cData = reinterpret_cast<char*>(&(*this)[0]);
-      SizeT cCount = count * sizeof(Ty);
-      long fac = 1;
-      if (sizeof(Ty) == 2) fac = 2;
-
-      //char buf[ cCount*fac];
-      char *buf = (char *)malloc(sizeof(char) * cCount*fac);
-      memset(buf, 0, cCount*fac);
-
-      xdrmem_create(xdrs, buf, sizeof(buf), XDR_ENCODE);
-
-      for( SizeT i=0; i<count; i++)
-	memcpy(&buf[i*sizeof(Ty)*fac], &cData[i*sizeof(Ty)], sizeof(Ty));
-
-      for( SizeT i=0; i<count; i++) {
-	xdr_convert(xdrs, (Ty *) &buf[i*sizeof(Ty)*fac]); 
+  if ( swapEndian && (sizeof (Ty) != 1) ) {
+    char* cData = reinterpret_cast<char*> (&(*this)[0]);
+    SizeT cCount = count * sizeof (Ty);
+    if ( Data_<Sp>::IS_COMPLEX ) {
+      char *swapBuf = (char*) malloc( sizeof (char) * sizeof (Ty) / 2 );
+      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) / 2 ) {
+        SizeT src = i + sizeof (Ty) / 2 - 1;
+        for ( SizeT dst = 0; dst<sizeof (Ty) / 2; dst++ ) swapBuf[dst]=cData[ src--];
+        os.write( swapBuf, sizeof (Ty) / 2 );
       }
- 
-      os.write(buf,cCount*fac);
-      free(buf);
-      xdr_destroy(xdrs);
+      free( swapBuf );
+    } else {
+      char swapBuf[ sizeof (Ty)];
+      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) ) {
+        SizeT src = i + sizeof (Ty) - 1;
+        for ( SizeT dst = 0; dst<sizeof (Ty); dst++ ) swapBuf[dst] = cData[ src--];
+        os.write( swapBuf, sizeof (Ty) );
+      }
     }
-  else
-    {
-      os.write( reinterpret_cast<char*>(&(*this)[0]),
-		count * sizeof(Ty));
+  } else if ( xdrs != NULL ) {
+    long fac = 1;
+    if ( sizeof (Ty) == 2 ) fac = 2;
+    SizeT bufsize = sizeof (Ty)*fac;
+    char *buf = (char *) calloc( bufsize, sizeof (char) );
+    for ( SizeT i = 0; i < count; i++ ) {
+      xdrmem_create( xdrs, buf, bufsize, XDR_ENCODE );
+      if ( !xdr_convert( xdrs, (&(*this)[i]) ) ) cerr << "Error in XDR write" << endl;
+      xdr_destroy( xdrs );
+      os.write( buf, bufsize );
     }
-  
-//   if( os.eof())
-//     {
-//       os.clear();
-//     }
+    free( buf );
+  } else {
+    os.write( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+  }
 
-  if( !os.good())
-    {
-//       if( os.rdstate() & istream::eofbit) cout << "eof." << endl;
-//       if( os.rdstate() & istream::badbit) cout << "bad." << endl;
-//       if( os.rdstate() & istream::failbit) cout << "fail." << endl;
-      throw GDLIOException("Error writing data.");
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error writing data." );
+  }
+  return os;
+}
+
+template<>
+ostream& Data_<SpDByte>::Write( ostream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  if ( os.eof( ) ) os.clear( );
+
+  SizeT count = dd.size( );
+
+  if ( xdrs != NULL ) {
+    int bufsize = 4 + 4 * ((count - 1) / 4 + 1);
+    char *buf = (char *) calloc( bufsize, sizeof (char) );
+
+    // XDR adds an addition string length
+    xdrmem_create( xdrs, &buf[0], 4, XDR_ENCODE );
+    short int length = count;
+    if ( !xdr_short( xdrs, (short int *) &length ) ) cerr << "Error in XDR write" << endl;
+    xdr_destroy( xdrs );
+    //do it ourselves
+    for ( SizeT i = 0; i < count; i++ ) buf[i + 4] = (*this)[i];
+    os.write( buf, bufsize );
+    free( buf );
+  } else {
+    os.write( reinterpret_cast<char*> (&(*this)[0]), count );
+  }
+
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error writing data." );
+  }
+
+  return os;
+}
+
+template<>
+ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  if ( os.eof( ) ) os.clear( );
+
+  SizeT count = dd.size( );
+
+  for ( SizeT i = 0; i < count; i++ ) {
+    if ( xdrs != NULL ) {
+      int bufsize = 8 + 4 * (((*this)[i].size( ) - 1) / 4 + 1);
+      char *buf = (char *) malloc( bufsize * sizeof (char) );
+      xdrmem_create( xdrs, &buf[0], bufsize, XDR_ENCODE );
+      char* bufptr = (char *) (*this)[i].c_str( );
+      if ( !xdr_counted_string( xdrs, &bufptr ) ) cerr << "Error in XDR write" << endl;
+      xdr_destroy( xdrs );
+      os.write( buf, bufsize );
+      free( buf );
+    } else {
+      os.write( (*this)[i].c_str( ), (*this)[i].size( ) );
     }
+  }
+
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error writing data." );
+  }
+
   return os;
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian, 
-			  bool compress, XDR *xdrs)
-{
-  if( os.eof())
-    throw GDLIOException("End of file encountered.");
+istream& Data_<Sp>::Read( istream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
 
-  SizeT count = dd.size();
-  
-  if( swapEndian && (sizeof(Ty) != 1))
-    {
-      char* cData = reinterpret_cast<char*>(&(*this)[0]);
-      SizeT cCount = count * sizeof(Ty);
+  SizeT count = dd.size( );
 
-      if( !Data_<Sp>::IS_COMPLEX)
-      {
-	char swapBuf[ sizeof(Ty)];
-	for( SizeT i=0; i<cCount; i += sizeof(Ty))
-	  {
-	    os.read(swapBuf,sizeof(Ty));
+  if ( swapEndian && (sizeof (Ty) != 1) ) {
+    char* cData = reinterpret_cast<char*> (&(*this)[0]);
+    SizeT cCount = count * sizeof (Ty);
 
-	    SizeT src = i+sizeof(Ty)-1;
-
-	    for( SizeT dst=0; dst<sizeof(Ty); dst++)
-	      cData[ src--] = swapBuf[dst];
-	  }
+    if ( Data_<Sp>::IS_COMPLEX ) {
+      char *swapBuf = (char*) malloc( sizeof (char) * sizeof (Ty) / 2 );
+      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) / 2 ) {
+        os.read( swapBuf, sizeof (Ty) / 2 );
+        SizeT src = i + sizeof (Ty) / 2 - 1;
+        for ( SizeT dst = 0; dst<sizeof (Ty) / 2; dst++ ) cData[ src--] = swapBuf[dst];
       }
-      else
-      {
-	//char swapBuf[ sizeof(Ty)/2];
-	char *swapBuf = (char*)malloc(sizeof(char)*sizeof(Ty)/2);
-	for( SizeT i=0; i<cCount; i += sizeof(Ty)/2)
-	  {
-	    os.read(swapBuf,sizeof(Ty)/2);
-
-	    SizeT src = i+sizeof(Ty)/2-1;
-
-	    // for GDL_BYTE sizeof(Ty)/2 is zero and a warning might be generated
-	    // as this is a template and nothing to swap in byte, this is ok
-	    for( SizeT dst=0; dst<sizeof(Ty)/2; dst++)
-	      cData[ src--] = swapBuf[dst];
-	  }
-	free(swapBuf);
+      free( swapBuf );
+    } else {
+      char swapBuf[ sizeof (Ty)];
+      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) ) {
+        os.read( swapBuf, sizeof (Ty) );
+        SizeT src = i + sizeof (Ty) - 1;
+        for ( SizeT dst = 0; dst<sizeof (Ty); dst++ ) cData[ src--] = swapBuf[dst];
       }
     }
-  else if (xdrs != NULL)
-    {
-      char* cData = reinterpret_cast<char*>(&(*this)[0]);
-      SizeT cCount = count * sizeof(Ty);
-      long fac = 1;
-      if (sizeof(Ty) == 2) fac = 2;
-
-      //char buf[ cCount*fac];
-      char *buf = (char*)malloc(sizeof(char)*cCount*fac);
-      memset(buf, 0, cCount*fac);
-
-      xdrmem_create(xdrs, buf, sizeof(buf), XDR_DECODE);
-
-      os.read(buf,cCount*fac);
-
-      for( SizeT i=0; i<count; i++)
-	xdr_convert(xdrs, (Ty *) &buf[i*sizeof(Ty)*fac]); 
-
-      for( SizeT i=0; i<count; i++)
-	memcpy(&cData[i*sizeof(Ty)], &buf[i*sizeof(Ty)*fac], sizeof(Ty));
-      free(buf);
-      xdr_destroy(xdrs);
+  } else if ( xdrs != NULL ) {
+    long fac = 1;
+    if ( sizeof (Ty) == 2 ) fac = 2;
+    SizeT bufsize = sizeof (Ty)*fac;
+    char *buf = (char *) calloc( bufsize, sizeof (char) );
+    for ( SizeT i = 0; i < count; i++ ) {
+      xdrmem_create( xdrs, buf, bufsize, XDR_DECODE );
+      os.read( buf, bufsize );
+      if ( !xdr_convert( xdrs, (&(*this)[i]) ) ) cerr << "Error in XDR read" << endl;
+      xdr_destroy( xdrs );
     }
-  else if (compress)
-    {
-      /* modifications by Maxime Lenoir June 2010
-	 this modification was succesfully checked on bigs PDS files ...
-	 Nevertheless we decided not to merge the two bloks in case other
-	 problems will be found later ...
+    free( buf );
+  } else if ( compress ) {
+    /* modifications by Maxime Lenoir June 2010
+   this modification was succesfully checked on bigs PDS files ...
+   Nevertheless we decided not to merge the two bloks in case other
+   problems will be found later ...
 
-      char* cData = reinterpret_cast<char*>(&(*this)[0]);
-      SizeT cCount = count * sizeof(Ty);
-      char c;
-      for( SizeT i=0; i<cCount; i += sizeof(Ty))
-      os.get( cData[ i]);
-      */
-      os.read(reinterpret_cast<char*>(&(*this)[0]), count * sizeof(Ty));
-    }    
-  else
-    {
-      os.read(reinterpret_cast<char*>(&(*this)[0]), count * sizeof(Ty));
-    }
-  
-  if( os.eof())
-    throw GDLIOException("End of file encountered.");
+    char* cData = reinterpret_cast<char*>(&(*this)[0]);
+    SizeT cCount = count * sizeof(Ty);
+    char c;
+    for( SizeT i=0; i<cCount; i += sizeof(Ty))
+    os.get( cData[ i]);
+     */
+    os.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+  } else {
+    os.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+  }
 
-//   if( os.eof())
-//     {
-//       os.clear();
-//     }
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
 
-  if( !os.good())
-    {
-      throw GDLIOException("Error reading data.");
-    }
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error reading data." );
+  }
 
   return os;
 }
 
 template<>
-ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, 
-				  bool compress, XDR *xdrs)
-{
-  if( os.eof()) os.clear();
+istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR *xdrs ) {
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
 
-  SizeT count = dd.size();
-  
-  for( SizeT i=0; i<count; i++)
-    {
-      if (xdrs != NULL)
-	{
-	  int bufsize = 8 + 4 * (((*this)[i].size() - 1) / 4 + 1);
-	  char *buf = (char *)malloc(bufsize * sizeof(char));
+  SizeT count = dd.size( );
 
-	  // IDL adds an addition string length
-	  xdrmem_create(xdrs, &buf[0], 4, XDR_ENCODE);
-	  short int length = (*this)[i].size();
-	  xdr_short(xdrs, (short int *) &length);
-	  xdr_destroy(xdrs);
+  if ( xdrs != NULL ) {
+    unsigned int nChar = this->N_Elements( );
 
-	  xdrmem_create(xdrs, &buf[4], bufsize-4, XDR_ENCODE);
-	  char* bufptr = (char *) (*this)[i].c_str();
-	  xdr_string(xdrs, &bufptr, (*this)[i].size());
-	  xdr_destroy(xdrs);
-	  os.write( buf, bufsize);
-	  free(buf);
-	}
-      else
-	{
-	  os.write( (*this)[i].c_str(), (*this)[i].size());
-	}
-    }
-  
-//   if( os.eof()) 
-//     {
-//       os.clear();
-//     }
+    //read byte length in file
+    char* buf = (char *) malloc( 4 );
+    os.read( buf, 4 );
+    xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
+    short int length = 0;
+    if ( !xdr_short( xdrs, &length ) ) throw GDLIOException( "Problem reading XDR file." );
+    xdr_destroy( xdrs );
+    free( buf );
+    if ( length <= 0 ) return os;
 
-  if( !os.good())
-    {
-      throw GDLIOException("Error writing data.");
-    }  
+    int bufsize = 4 * ((length - 1) / 4 + 1);
+    buf = (char *) calloc( length, sizeof (char) );
+    os.read( &buf[0], bufsize );
+    if ( !os.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
+    //do it by ourselves, faster and surer!
+    if ( bufsize < nChar ) nChar = bufsize; //truncate eventually
+    for ( SizeT i = 0; i < nChar; i++ ) ( *this )[i] = buf[i];
+    free( buf );
+  } else if ( compress ) {
+    os.read( reinterpret_cast<char*> (&(*this)[0]), count );
+  } else {
+    os.read( reinterpret_cast<char*> (&(*this)[0]), count );
+  }
 
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
+
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error reading data." );
+  }
   return os;
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian, 
-				 bool compress, XDR *xdrs)
-{
-  if( os.eof())
-    throw GDLIOException("End of file encountered.");
+istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
 
-  SizeT count = dd.size();
-  
-  SizeT maxLen = 1024;
-  vector<char> buf( maxLen);
+  SizeT count = dd.size( );
 
-  int jump = 0;
-  for( SizeT i=0; i<count; i++)
-    {
-      SizeT nChar = (*this)[i].size();
+  for ( SizeT i = 0; i < count; i++ ) {
+    SizeT nChar = (*this)[i].size( );
 
-      if (xdrs != NULL)
-	{
-	  os.seekg (jump, ios::cur);
+    if ( xdrs != NULL ) {
+      //read counted string length in file
+      char* buf = (char *) malloc( 4 );
+      os.read( buf, 4 );
+      xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
+      short int length = 0;
+      if ( !xdr_short( xdrs, &length ) ) throw GDLIOException( "Problem reading XDR file." );
+      xdr_destroy( xdrs );
+      free( buf );
+      if ( length <= 0 ) {
+        (*this)[i].clear();
+      } else {
+        int bufsize = 4 + 4 * ((length - 1) / 4 + 1) ;
+        buf = (char *) calloc( length, sizeof (char) );
+        os.read( &buf[0], bufsize );
+        if ( !os.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
+        (*this)[i].assign( &buf[4], length );
+      }
+    } else {
 
-	  os.read( (char *) &nChar, 4);
-	  xdrmem_create(xdrs, (char *) &nChar, 4, XDR_DECODE);
-#if defined(__APPLE__) && defined(__LP64__)
-          /* xdr_long actually takes an int on 64bit darwin */
-          xdr_long(xdrs, (int *) &nChar);
-#else
-	  xdr_long(xdrs, (long *) &nChar);
-#endif
-	  xdr_destroy(xdrs);
+      SizeT maxLen = 1024;
+      vector<char> vbuf( maxLen );
 
-	  os.seekg (4, ios::cur);
-
-	  jump = nChar % 4;
-	}
-
-      if( nChar > 0)
-	{
-	  if( nChar > maxLen)
-	    {
-	      maxLen = nChar;
-	      buf.resize( maxLen);
-	    }
-	  if (compress) {
-	    char c;
-	    buf.clear();
-	    for( SizeT i=0; i<nChar; i++) {
-	      os.get(c);
-	      buf.push_back( c);
-	    }
-	  } else {
-	    os.read(&buf[0],nChar);
-	  }
-	  (*this)[i].assign(&buf[0],nChar);
-	}
+      if ( nChar > 0 ) {
+        if ( nChar > maxLen ) {
+          maxLen = nChar;
+          vbuf.resize( maxLen );
+        }
+        if ( compress ) {
+          char c;
+          vbuf.clear( );
+          for ( SizeT i = 0; i < nChar; i++ ) {
+            os.get( c );
+            vbuf.push_back( c );
+          }
+        } else {
+          os.read( &vbuf[0], nChar );
+        }
+        (*this)[i].assign( &vbuf[0], nChar );
+      }
     }
+  }
 
-//   if( os.eof())
-//     {
-//       os.clear();
-//     }
-  if( os.eof())
-    throw GDLIOException("End of file encountered.");
+  if ( os.eof( ) )
+    throw GDLIOException( "End of file encountered." );
 
-  if( !os.good())
-    {
-      throw GDLIOException("Error reading data.");
-    }
-  
+  if ( !os.good( ) ) {
+    throw GDLIOException( "Error reading data." );
+  }
+
   return os;
 }
 
-ostream& DStructGDL::Write( ostream& os, bool swapEndian, 
-			    bool compress, XDR *xdrs)
-{
-  SizeT nEl = N_Elements();
-  SizeT nTags = NTags();
-  for( SizeT i=0; i<nEl; ++i)
-  for( SizeT t=0; t<nTags; ++t)
-    GetTag( t, i)->Write( os, swapEndian, compress, xdrs);
+ostream& DStructGDL::Write( ostream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  SizeT nEl = N_Elements( );
+  SizeT nTags = NTags( );
+  for ( SizeT i = 0; i < nEl; ++i )
+    for ( SizeT t = 0; t < nTags; ++t )
+      GetTag( t, i )->Write( os, swapEndian, compress, xdrs );
   return os;
 }
 
-istream& DStructGDL::Read( istream& os, bool swapEndian, 
-			   bool compress, XDR *xdrs)
-{
-  SizeT nEl = N_Elements();
-  SizeT nTags = NTags();
-  for( SizeT i=0; i<nEl; ++i)
-  for( SizeT t=0; t<nTags; ++t)
-    GetTag( t, i)->Read( os, swapEndian, compress, xdrs);
+istream& DStructGDL::Read( istream& os, bool swapEndian,
+bool compress, XDR *xdrs ) {
+  SizeT nEl = N_Elements( );
+  SizeT nTags = NTags( );
+  for ( SizeT i = 0; i < nEl; ++i )
+    for ( SizeT t = 0; t < nTags; ++t )
+      GetTag( t, i )->Read( os, swapEndian, compress, xdrs );
   return os;
 }
 

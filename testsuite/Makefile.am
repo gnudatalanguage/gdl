@@ -164,4 +164,5 @@ TESTS = \
   test_where.pro \
   test_zeropoly.pro \
   test_zip.pro \
+  test_xdr.pro \
   checks
