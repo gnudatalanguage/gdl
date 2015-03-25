@@ -7,7 +7,6 @@ prolib_DATA = \
   calendar.pro \
   congrid.pro \
   correlate.pro \
-  cw_bgroup.pro \
   delvar.pro \
   deriv.pro \
   diag_matrix.pro \
@@ -108,6 +107,7 @@ prolib_DATA = \
   trace.pro \
   tvscl.pro \
   uniq.pro \
+  unxregister.pro \ 
   value_locate.pro \
   variance.pro \
   wmenu.pro \
@@ -117,6 +117,8 @@ prolib_DATA = \
   write_jpeg.pro \
   write_pict.pro \
   write_png.pro \
+  xmanager.pro \
+  xregistered.pro \
   zenity_check.pro \
   README.txt \
   STATUS
