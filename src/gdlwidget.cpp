@@ -2475,7 +2475,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     tree->AssignImageList(images);
     
     this->wxWidget = tree;
-    treeItemID = 0;
     rootID=widgetID;
     treeItemData=new GDLTreeItemData(widgetID);
     widgetSizer->Add( tree, 0, widgetAlignment( ) ); //, 0, wxEXPAND | wxALL); 
