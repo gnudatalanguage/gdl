@@ -339,17 +339,22 @@ namespace lib {
 	      { // only test non-dirs
 
 #ifdef _WIN32
-#	ifdef _UNICODE
-		TCHAR *tchr1 = new TCHAR[entryStr.size()+1];
-		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
-		tchr1[entryStr.size()] = 0;
-		tchr2[pat.size()] = 0;
-		int match = 1 - PathMatchSpec(tchr1, tchr2);
-		delete tchr1;
-		delete tchr2;
-#	else
-		int match = 1 - PathMatchSpec(entryStr.c_str(), pat.c_str());
-#	endif
+#ifdef _UNICODE
+    wchar_t entryWStr[PATH_MAX+1] = {0,};
+    wchar_t patW[PATH_MAX+1] = {0,};
+
+    size_t entryStrlen = strlen(entryStr.c_str());
+    size_t patlen = strlen(pat.c_str());
+
+    int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
+    int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
+
+    MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
+    MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+    int match = !PathMatchSpec( entryWStr, patW );
+#else
+    int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
+#endif
 #else
 
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
@@ -414,6 +419,8 @@ namespace lib {
           if ( debug ) cout << "..dir: " << testDir << endl;
           ;
         }
+#ifndef _WIN32 // JP Mar 2015: There is no standard C/C++ way to detect Windows version of symlink. However using links on Windows is
+               // very rare, I hope currently omitting below code does not create any problem.
         //GD Dec 2014 added test: if directory is a symlink, or if a tested file is a symlink. Note the use of 'stat'
         //instead of 'lstat' below.
         else if ( S_ISLNK( statStruct.st_mode ) != 0 ) 
@@ -427,40 +434,30 @@ namespace lib {
           } 
           else if ( notAdded ) 
           {
-#ifdef _WIN32
-#ifdef _UNICODE
-            TCHAR *tchr1 = new TCHAR[entryStr.size( ) + 1];
-            TCHAR *tchr2 = new TCHAR[pat.size( ) + 1];
-            tchr1[entryStr.size( )] = 0;
-            tchr2[pat.size( )] = 0;
-            int match = 1 - PathMatchSpec( tchr1, tchr2 );
-            delete tchr1;
-            delete tchr2;
-
-#else
-            int match = 1 - PathMatchSpec( entryStr.c_str( ), pat.c_str( ) );
-#endif
-#else
             int match = fnmatch( pat.c_str( ), entryStr.c_str( ), 0 );
-#endif
             if ( debug ) cout << "symlinkEntry: " << entryStr << " match " << pat <<": "<< match << "\n";
             if ( match == 0 ) notAdded = false;
           }
         }
+#endif
         else if ( notAdded ) 
         {
 #ifdef _WIN32
 #ifdef _UNICODE
-          TCHAR *tchr1 = new TCHAR[entryStr.size( ) + 1];
-          TCHAR *tchr2 = new TCHAR[pat.size( ) + 1];
-          tchr1[entryStr.size( )] = 0;
-          tchr2[pat.size( )] = 0;
-          int match = 1 - PathMatchSpec( tchr1, tchr2 );
-          delete tchr1;
-          delete tchr2;
+          wchar_t entryWStr[PATH_MAX+1] = {0,};
+          wchar_t patW[PATH_MAX+1] = {0,};
 
+          size_t entryStrlen = strlen(entryStr.c_str());
+          size_t patlen = strlen(pat.c_str());
+
+          int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
+          int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
+
+          MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
+          MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+          int match = !PathMatchSpec( entryWStr, patW );
 #else
-          int match = 1 - PathMatchSpec( entryStr.c_str( ), pat.c_str( ) );
+          int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
 #endif
 #else
           int match = fnmatch( pat.c_str( ), entryStr.c_str( ), 0 );
@@ -720,17 +717,22 @@ namespace lib {
 	    // dirs are also returned if they match
 
 #ifdef _WIN32
-#	ifdef _UNICODE
-		TCHAR *tchr1 = new TCHAR[entryStr.size() + 1];
-		TCHAR *tchr2 = new TCHAR[pat.size() + 1];
-		tchr1[entryStr.size()] = 0;
-		tchr2[pat.size()] = 0;
-		int match = 1 - PathMatchSpec(tchr1, tchr2);
-		delete tchr1;
-		delete tchr2;
-#	else
-	    int match = 1 - PathMatchSpec(entryStr.c_str(), pat.c_str());
-#	endif
+#ifdef _UNICODE
+      wchar_t entryWStr[PATH_MAX+1] = {0,};
+      wchar_t patW[PATH_MAX+1] = {0,};
+
+      size_t entryStrlen = strlen(entryStr.c_str());
+      size_t patlen = strlen(pat.c_str());
+
+      int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
+      int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
+
+      MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
+      MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+      int match = !PathMatchSpec( entryWStr, patW );
+#else
+      int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
+#endif
 #else
 	    int match = fnmatch( pat.c_str(), entryStr.c_str(), fnFlags);
 #endif
@@ -1455,11 +1457,16 @@ DString makeInsensitive(const DString &s)
 #endif
 	
 	if( actStat != 0) 	  continue;
+#ifdef _WIN32
+     bool isASymLink = false;
+     bool isADanglingSymLink = false;
+#else
 //be more precise in case of symlinks --- use stat to find the state of the symlinked file instead:
      bool isASymLink = S_ISLNK(statStruct2.st_mode) ; 
      actStat = stat( actFile.c_str(), &statStruct);
      bool isADanglingSymLink = (actStat != 0 && isASymLink); //is a dangling symlink!
      if (isADanglingSymLink) isASymLink = FALSE;
+#endif
      
 	if( read && access( actFile.c_str(), R_OK) != 0)  continue;
 	if( write && access( actFile.c_str(), W_OK) != 0)  continue;
@@ -1543,15 +1550,16 @@ DString makeInsensitive(const DString &s)
         // stating the file (and moving on to the next file if failed)
 	struct stat statStruct,statStruct2;
 #ifdef _WIN32
-	int actStat = stat(actFile, &statStruct2);
+	int actStat = stat(actFile.c_str(), &statStruct2);
+     bool isASymLink = false;
+     bool isADanglingSymLink = false;
 #else
 	int actStat = lstat(actFile.c_str(), &statStruct2);
-#endif
 //be more precise in case of symlinks --- use stat to find the state of the symlinked file instead:
      bool isASymLink = S_ISLNK(statStruct2.st_mode);
      actStat = stat( actFile.c_str(), &statStruct);
      bool isADanglingSymLink = (actStat != 0 && isASymLink); //is a dangling symlink!
-	
+#endif
 
         // checking struct tag indices (once)
 
