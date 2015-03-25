@@ -89,14 +89,8 @@ add_library(test_ce SHARED EXCLUDE_FROM_ALL libtest_ce.cpp)
 add_custom_target(check COMMAND ${CMAKE_BUILD_TOOL} test DEPENDS launchtest test_ce gdl)
 get_target_property(LAUNCHTESTLOCATION launchtest LOCATION)
 if(WIN32 AND NOT CYGWIN)
-  execute_process(
-    COMMAND "cmd" "/c" "findstr" "\".*pro ${BASE_SOURCE}/testsuite/Makefile.am\""
-    RESULT_VARIABLE RESULTS
-    OUTPUT_VARIABLE TESTS)
-  message(FATAL_ERROR "${RESULTS}")
-  message(FATAL_ERROR "${TESTS}")
-  #string(REPLACE "\\" "" TESTS ${TESTS})
-  #string(REPLACE "\n" ";" TESTS ${TESTS})
+  file(READ "${BASE_SOURCE}/testsuite/Makefile.am" MAKEFILEAM)
+  string(REGEX MATCHALL "test[_a-zA-Z0-9]+\\.pro" TESTS ${MAKEFILEAM})
 else(WIN32 AND NOT CYGWIN)
   execute_process(
     COMMAND "fgrep" ".pro" "${BASE_SOURCE}/testsuite/Makefile.am" 
