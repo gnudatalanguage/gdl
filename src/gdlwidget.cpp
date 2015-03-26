@@ -237,7 +237,7 @@ GDLWidgetBase* GDLWidget::GetTopLevelBaseWidget( WidgetIDT widID)
   while ( 1 ) {
     GDLWidget *widget = GetWidget( actID );
     if ( widget == NULL )
-      return GDLWidget::NullID;
+      return (GDLWidgetBase*)GDLWidget::NullID;
     if ( widget->parentID == GDLWidget::NullID )
       return static_cast<GDLWidgetBase*> (widget);
     else
