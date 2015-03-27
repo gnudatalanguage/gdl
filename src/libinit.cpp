@@ -152,7 +152,6 @@ void LibInit()
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
-#ifndef _WIN32
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
@@ -162,7 +161,9 @@ void LibInit()
 
   const string file_expand_pathKey[]={KLISTEND};
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
-#endif
+
+  const string file_readlinkKey[]={"ALLOW_NONEXISTENT","ALLOW_NONSYMLINK","NOEXPAND_PATH",KLISTEND};
+  new DLibFunRetNew(lib::file_readlink,string("FILE_READLINK"),1,file_readlinkKey);
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT","PATTERN",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
