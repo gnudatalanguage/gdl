@@ -48,6 +48,11 @@
 #	include <glob.h> // glob in MinGW does not working..... why?
 #else
 #	include <shlwapi.h>
+# include <windows.h>
+#  if !defined(S_IFLNK)
+#	  define S_IFLNK 0xA000
+#	  define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
+#  endif
 #endif
 
 #ifndef _MSC_VER
@@ -239,10 +244,78 @@ void rewinddir(DIR *dir)
     But that said, if there are any problems please get in touch.
 */
 #endif
+#define NTEST_SEARCH 7
 
 namespace lib {
 
   using namespace std;
+// JP Mar 2015: Greg's implementation of fstat_win32 for checking symllinks on Windows
+#ifdef _WIN32
+//
+
+#    define lstat(x,y) stat(x,y)
+
+// fstat_win32 used for symlink treatment
+//
+      void fstat_win32(const DString& DSpath, int& st_mode)
+{
+    DWORD dwattrib, reparsetag;
+    WCHAR	filepath[MAX_PATH+1];
+    HANDLE	hFind;
+    BOOL	foundnext;
+    WIN32_FIND_DATAW FindFileData;
+// Native NTFS symlinks (not Junctions) are found
+// also cygwin symlinks are sniffed out.
+
+     MultiByteToWideChar(CP_UTF8, 0,
+                       (LPCSTR) DSpath.c_str(), -1,
+                         filepath, MAX_PATH+1);
+    hFind = FindFirstFileExW( filepath,
+             FindExInfoStandard,
+             &FindFileData,
+             FindExSearchNameMatch, NULL, 0);
+    if (hFind == INVALID_HANDLE_VALUE) {
+               FindClose(hFind);
+                return;
+        }
+    dwattrib = FindFileData.dwFileAttributes;
+    if( (dwattrib & FILE_ATTRIBUTE_REPARSE_POINT) != 0 )  {
+        reparsetag = FindFileData.dwReserved0;
+        if(reparsetag ==  IO_REPARSE_TAG_SYMLINK)
+             st_mode |= S_IFLNK;
+    } else
+      if ( (dwattrib & FILE_ATTRIBUTE_SYSTEM) != 0 ) {
+// This is the first step to a cygwin symlink.
+// next, '!<symlink>' is first 10 bytes.
+// following this, 0xFF 0xFE <target name in UTF-8>
+// for now, just assume it is a link.
+
+        HANDLE hFile = CreateFileW( filepath,
+                  FILE_GENERIC_READ,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE,         0,
+                  OPEN_EXISTING,
+                  FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_RANDOM_ACCESS,
+                    0);
+
+        if (hFile == INVALID_HANDLE_VALUE) {
+              CloseHandle(hFile);
+// happens for "hidden" files or protected files:
+//              cout << " stat_win32: could not open " + DSpath << endl;
+              return;
+             }
+        char header[12];
+        DWORD nbytesread;
+
+        BOOL result = ReadFile(hFile, header, 12,
+                               &nbytesread, 0 );
+        if (strncmp( header, "!<symlink>",10) == 0 ) st_mode |= S_IFLNK;
+         CloseHandle(hFile);
+      }
+       FindClose(hFind);
+    return;
+}
+
+#endif
 
   string PathSeparator()
   {
@@ -302,6 +375,16 @@ namespace lib {
 // 	    dir = string( homeDir) + dir.substr(1);
 // 	  }
 //       }
+// JP Mar 2015: Greg's code
+#ifdef _WIN32
+     if( dir[0] == '~')
+       {
+ 	char* homeDir = getenv( "HOME");
+
+ 	if( homeDir != NULL)
+ 	    dir = string( homeDir) + "/" + dir.substr(1);
+       }
+#endif
 
     int success = chdir( dir.c_str());
  
@@ -318,6 +401,13 @@ namespace lib {
     if( dir == NULL) return false;
 
     struct stat    statStruct;
+
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
+#if defined (_WIN32) && defined(_UNICODE)
+    wchar_t entryWStr[PATH_MAX+1] = {0,};
+    wchar_t patW[PATH_MAX+1] = {0,};
+    MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, MAX_PATH+1);
+#endif
 
     for(;;)
       {
@@ -338,19 +428,10 @@ namespace lib {
 
 	      { // only test non-dirs
 
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
 #ifdef _UNICODE
-    wchar_t entryWStr[PATH_MAX+1] = {0,};
-    wchar_t patW[PATH_MAX+1] = {0,};
-
-    size_t entryStrlen = strlen(entryStr.c_str());
-    size_t patlen = strlen(pat.c_str());
-
-    int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
-    int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
-
-    MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
-    MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+    MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, MAX_PATH+1);
     int match = !PathMatchSpec( entryWStr, patW );
 #else
     int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
@@ -400,6 +481,15 @@ namespace lib {
   if ( debug ) cout << "ExpandPathN: " << dirN << endl;
   if ( all_dirs )
     notAdded = false;
+
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
+#if defined (_WIN32) && defined (_UNICODE)
+  wchar_t entryWStr[PATH_MAX+1] = {0,};
+  wchar_t patW[PATH_MAX+1] = {0,};
+
+  MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, PATH_MAX+1);
+#endif
+
   for (;; ) {
     struct dirent* entry = readdir( dir );
     if ( entry == NULL ) break;
@@ -408,10 +498,11 @@ namespace lib {
     if ( entryStr != "." && entryStr != ".." ) {
       DString testDir = root + entryStr;
       if ( debug ) cout << "testing " << testDir <<"... ";
-#ifdef _WIN32
-      int actStat = stat( testDir.c_str( ), &statStruct );
-#else
       int actStat = lstat( testDir.c_str( ), &statStruct );
+#ifdef _WIN32
+      int addlink = 0;
+      fstat_win32(testDir, addlink);
+      statStruct.st_mode |= addlink;
 #endif
       if ( actStat == 0 ) {
         if ( S_ISDIR( statStruct.st_mode ) != 0 ) {
@@ -419,8 +510,6 @@ namespace lib {
           if ( debug ) cout << "..dir: " << testDir << endl;
           ;
         }
-#ifndef _WIN32 // JP Mar 2015: There is no standard C/C++ way to detect Windows version of symlink. However using links on Windows is
-               // very rare, I hope currently omitting below code does not create any problem.
         //GD Dec 2014 added test: if directory is a symlink, or if a tested file is a symlink. Note the use of 'stat'
         //instead of 'lstat' below.
         else if ( S_ISLNK( statStruct.st_mode ) != 0 ) 
@@ -434,27 +523,27 @@ namespace lib {
           } 
           else if ( notAdded ) 
           {
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
+#ifdef _WIN32
+#ifdef _UNICODE
+            MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
+            int match = !PathMatchSpec(entryWStr, patW);
+#else
+            int match = !PathMatchSpec(entryStr.c_str(), pat.c_str());
+#endif
+#else
             int match = fnmatch( pat.c_str( ), entryStr.c_str( ), 0 );
+#endif
             if ( debug ) cout << "symlinkEntry: " << entryStr << " match " << pat <<": "<< match << "\n";
             if ( match == 0 ) notAdded = false;
           }
         }
-#endif
         else if ( notAdded ) 
         {
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
 #ifdef _UNICODE
-          wchar_t entryWStr[PATH_MAX+1] = {0,};
-          wchar_t patW[PATH_MAX+1] = {0,};
-
-          size_t entryStrlen = strlen(entryStr.c_str());
-          size_t patlen = strlen(pat.c_str());
-
-          int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
-          int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
-
-          MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
-          MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+          MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
           int match = !PathMatchSpec( entryWStr, patW );
 #else
           int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
@@ -689,6 +778,13 @@ namespace lib {
       else
 	return;
     }
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
+#if defined (_WIN32) && defined (_UNICODE)
+    wchar_t entryWStr[PATH_MAX+1] = {0,};
+    wchar_t patW[PATH_MAX+1] = {0,};
+
+    MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, PATH_MAX+1);
+#endif
 
     for(;;)
       {
@@ -702,11 +798,7 @@ namespace lib {
 	    if( root != "") // dirs for current ("") already included
 	      {
 		DString testDir = root + entryStr;
-#ifdef _WIN32
-		int actStat = stat( testDir.c_str(), &statStruct);
-#else
 		int actStat = lstat( testDir.c_str(), &statStruct);
-#endif
 
 		if( S_ISDIR(statStruct.st_mode) != 0)
 		    recurDir.push_back( testDir);
@@ -715,20 +807,10 @@ namespace lib {
 
 
 	    // dirs are also returned if they match
-
+// JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
 #ifdef _UNICODE
-      wchar_t entryWStr[PATH_MAX+1] = {0,};
-      wchar_t patW[PATH_MAX+1] = {0,};
-
-      size_t entryStrlen = strlen(entryStr.c_str());
-      size_t patlen = strlen(pat.c_str());
-
-      int entryWStrlen = MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, 0, 0);
-      int patWlen = MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, 0, 0);
-
-      MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), entryStrlen, entryWStr, entryWStrlen);
-      MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), patlen, patW, patWlen);
+      MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
       int match = !PathMatchSpec( entryWStr, patW );
 #else
       int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
@@ -923,17 +1005,19 @@ DString makeInsensitive(const DString &s)
     if( st == "" && dir)
       fL.push_back( "");
   }
-
+#endif // !def_WIN32
+// ** out of _WIN32 block-off until it fails.
 
   // AC 16 May 2014 : preliminary (and no MSwin support !)
   // revised by AC on June 28 
   // PRINT, FILE_expand_path([['','.'],['$PWD','src/']])
   // when the path is wrong, wrong output ...
-#if defined (__MINGW32__)
+#ifdef _WIN32
 //  This is includced here even though the
 //  the whole block is exluded for _WIN32
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
+// http://msdn.microsoft.com/en-us/library/506720ff.aspx
 #endif
 
   BaseGDL* file_expand_path( EnvT* e)
@@ -1063,21 +1147,48 @@ DString makeInsensitive(const DString &s)
     FileListT fileList;
     int debug=0;
     if (debug) cout << "nPath: " << nPath << endl;
+// JP Mar 2015: Greg's implementation of file_search.
+//              The question is: FileSearch vs. PatternSearch routines?
+//              Please refer to his mail (2015 Jan 28) which address the issue.
+#ifdef _WIN32
+    if (debug) cout << ", onlyDir=F >> PatternSearch(nPath): " << nPath
+                            << " Pattern: " << recurPattern << endl;
+    DString DirSpec;
+    if(nPath == 0)
+        PatternSearch( fileList, "", recurPattern, accErr, quote,
+        match_dot,
+        "");
+    else
+        for( SizeT f=0; f < nPath; ++f) {
+            int dirsep=-1;
+            int ii=0;
+            DirSpec = (*pathSpec)[f];
+            int lenpath = DirSpec.length();
+            do
+	              if((DirSpec[ii] == '/') || (DirSpec[ii] == '\\')) dirsep=ii;
+            while( (DirSpec[ii++] != 0) && (ii < lenpath) );
+            recurPattern = DirSpec.substr(dirsep+1,dirsep+1);
+            DirSpec.resize(dirsep+1);
 
+            PatternSearch( fileList, DirSpec, recurPattern, accErr, quote,
+               match_dot,
+               DirSpec);
+        }
+#else
     if( nPath == 0)
       FileSearch( fileList, "", 
 		  environment, tilde, 
 		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
     else
       FileSearch( fileList, (*pathSpec)[0],
-		  environment, tilde, 
+		  environment, tilde,
 		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
     
     for( SizeT f=1; f < nPath; ++f) 
       FileSearch( fileList, (*pathSpec)[f],
 		  environment, tilde, 
 		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
-
+#endif
     DLong count = fileList.size();
 
     if (debug) cout << "Count : " << count << endl;
@@ -1130,8 +1241,6 @@ DString makeInsensitive(const DString &s)
 
     return res;
   }
-#endif
-
 
   BaseGDL* file_basename( EnvT* e)
   {
@@ -1450,23 +1559,21 @@ DString makeInsensitive(const DString &s)
        actFile = (*p0S)[f];
     }
 	struct stat statStruct,statStruct2;
-#ifdef _WIN32
-	int actStat = stat( actFile.c_str(), &statStruct2);
-#else
 	int actStat = lstat( actFile.c_str(), &statStruct2);
-#endif
 	
 	if( actStat != 0) 	  continue;
+
+// JP Mar 2015: Greg's patch
 #ifdef _WIN32
-     bool isASymLink = false;
-     bool isADanglingSymLink = false;
-#else
+        int addlink = 0;
+        fstat_win32(actFile, addlink);
+        statStruct.st_mode |= addlink;
+#endif
 //be more precise in case of symlinks --- use stat to find the state of the symlinked file instead:
      bool isASymLink = S_ISLNK(statStruct2.st_mode) ; 
      actStat = stat( actFile.c_str(), &statStruct);
      bool isADanglingSymLink = (actStat != 0 && isASymLink); //is a dangling symlink!
      if (isADanglingSymLink) isASymLink = FALSE;
-#endif
      
 	if( read && access( actFile.c_str(), R_OK) != 0)  continue;
 	if( write && access( actFile.c_str(), W_OK) != 0)  continue;
@@ -1504,6 +1611,82 @@ DString makeInsensitive(const DString &s)
       }
     return res;
   }
+
+// JP Mar 2015: Greg's implementation of FILE_READLINK
+// Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
+  BaseGDL* file_readlink( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1); 
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
+    if( p0S == NULL)
+      e->Throw( "String expression required in this context: "+e->GetParString(0));
+	  
+    bool noexpand_path = e->KeywordSet(e->KeywordIx( "NOEXPAND_PATH"));
+    bool allow_nonexist = e->KeywordSet(e->KeywordIx( "ALLOW_NONEXISTENT"));
+    bool allow_nonsymlink = e->KeywordSet(e->KeywordIx( "ALLOW_NONSYMLINK"));
+    SizeT nPath = p0S->N_Elements();
+
+    DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+
+    for (SizeT f = 0; f < nPath; f++)
+    {
+        // NAME
+	const char* actFile;
+        string tmp;
+        if (!noexpand_path) 
+        {
+          tmp = (*p0S)[f];
+          WordExp(tmp);
+          actFile = tmp.c_str();
+        } 
+        else actFile = (*p0S)[f].c_str();
+
+       struct stat statStruct, statlink;
+       int actStat = lstat(actFile, &statStruct);
+
+#ifdef _WIN32
+       int addlink = 0;
+       fstat_win32(actFile, addlink);
+       statStruct.st_mode |= addlink;
+#endif
+
+       bool isASymLink = S_ISLNK(statStruct.st_mode);
+       if (isASymLink ) actStat = stat(actFile, &statlink);
+
+//
+//be more precise in case of symlinks --- use stat
+/*
+    SizeT nPath = p0S->N_Elements();
+
+    DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+    for( SizeT r=0; r<nPath ; ++r) {
+	    string tmp=(*p0S)[r];
+
+	  if (tmp.length() == 0) {
+	    (*res)[r]=""; //( errors are not managed ...)
+	  } else {
+	    WordExp(tmp);
+	    char *symlinkpath =const_cast<char*> (tmp.c_str());
+	    char actualpath [PATH_MAX+1];
+	    char *ptr;
+	    ptr = realpath(symlinkpath, actualpath);
+	    if( ptr != NULL ){
+	      (*res)[r] =string(ptr);
+	    } else {
+	    //( errors are not managed ...)
+	      (*res)[r] = tmp ;
+	    }
+	  }
+    }
+    return res;
+
+*/
+// to check if target exists or is a dangling symlink!
+//
+     bool isADanglingSymLink = (actStat != 0 && isASymLink); 
+
+	}
+}
 
 
   BaseGDL* file_info( EnvT* e)
@@ -1549,17 +1732,18 @@ DString makeInsensitive(const DString &s)
 
         // stating the file (and moving on to the next file if failed)
 	struct stat statStruct,statStruct2;
-#ifdef _WIN32
-	int actStat = stat(actFile.c_str(), &statStruct2);
-     bool isASymLink = false;
-     bool isADanglingSymLink = false;
-#else
 	int actStat = lstat(actFile.c_str(), &statStruct2);
+    // JP Mar 2015: Greg's code
+#ifdef _WIN32
+    int addlink = 0;
+    fstat_win32(actFile, addlink);
+    statStruct2.st_mode |= addlink;
+#endif
+
 //be more precise in case of symlinks --- use stat to find the state of the symlinked file instead:
      bool isASymLink = S_ISLNK(statStruct2.st_mode);
      actStat = stat( actFile.c_str(), &statStruct);
      bool isADanglingSymLink = (actStat != 0 && isASymLink); //is a dangling symlink!
-#endif
 
         // checking struct tag indices (once)
 
@@ -1598,12 +1782,10 @@ DString makeInsensitive(const DString &s)
 
         }
      // DANGLING_SYMLINK good place
-#ifndef _WIN32
         if (isADanglingSymLink) { 
           // warning: statStruct now describes the linked file
           *(res->GetTag(tDanglingSymlink, f)) = DByteGDL(1);
         }
-#endif
      if( actStat != 0 ) continue;
 
        // EXISTS (would not reach here if stat failed)
@@ -1667,13 +1849,10 @@ DString makeInsensitive(const DString &s)
 	*(res->GetTag(tSize, f)) = DLong64GDL(statStruct.st_size);
 
         // SYMLINK
-#ifndef _WIN32
-
         if (isASymLink)
         {
           *(res->GetTag(tSymlink, f)) = DByteGDL(1);
         }
-#endif
       }
 
     return res;
@@ -1692,7 +1871,7 @@ DString makeInsensitive(const DString &s)
 
     static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
     bool noexpand_path = e->KeywordSet( noexpand_pathIx);
-#ifdef _MSC_VER
+#ifdef _WIN32
     string cmd = "md"; // windows always creates all of the non-existing directories
 #else
     string cmd = "mkdir -p";
