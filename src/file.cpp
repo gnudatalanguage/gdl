@@ -1290,7 +1290,7 @@ DString makeInsensitive(const DString &s)
 	char ext[_MAX_EXT];
 
 	_splitpath( tmp.c_str(),drive,dir,fname,ext);
-	string bname = string(fname)+"."+ext;
+	string bname = string(fname)+ext;
 #else
 	char buf[ PATH_MAX+1];
 	strncpy(buf, tmp.c_str(), PATH_MAX+1);
