@@ -21,15 +21,36 @@
 #include <sstream>
 #include <bitset> // for binary output
 
-template< typename T>
-std::string binstr( T v, int w)
+static const std::string allstars="****************************************************************************************************************************";
+template< typename Ty>
+std::string binstr( Ty v, int w)
 {
-  return bitset<32>(v).to_string<char,char_traits<char>,allocator<char> >().substr(32-w,w);
+  SizeT bitsetsize=sizeof(Ty)*8;
+    if (w==0) w=bitsetsize;
+  SizeT first=0;
+    if (bitsetsize == 8) {
+    std::bitset<8>* me=new bitset<8>(v);
+    for (SizeT i=0; i<8; ++i) if (me->test(7-i)) {first=i; break;}
+    if (8-first > w) return allstars.substr(0,w); else
+    return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
+  } else if (bitsetsize == 16) {
+    std::bitset<16>* me=new bitset<16>(v);
+    for (SizeT i=0; i<16; ++i) if (me->test(15-i)) {first=i; break;}
+    if (16-first > w) return allstars.substr(0,w); else
+    return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
+  } else  if (bitsetsize == 32) {
+    std::bitset<32>* me=new bitset<32>(v);
+    for (SizeT i=0; i<32; ++i) if (me->test(31-i)) {first=i; break;}
+    if (32-first > w) return allstars.substr(0,w); else
+    return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
+  } else {
+    std::bitset<64>* me=new bitset<64>(v);
+    if (64-first > w) return allstars.substr(0,w); else
+    for (SizeT i=0; i<64; ++i) if (me->test(63-i)) {first=i; break;}
+    return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
+ }
 }
-//#define binstr(v,w) bitset<32>(v).to_string<char,char_traits<char>,allocator<char> >().substr(32-(w),w)
 
-//#include "datatypes.hpp"
-//#include "dstructgdl.hpp"
 #include "ofmt.hpp"
 
 using namespace std;
@@ -89,6 +110,25 @@ void SetField( int& w, int& d, SizeT defPrec, SizeT maxPrec, SizeT wDef)
     }
   else if( d < 0) 
     d = maxPrec;
+}
+
+template<typename T> void OutHex(ostream* os,int w, char f, T x)
+{
+  ostringstream local_os;
+  local_os << uppercase << hex << x;
+  if (local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+}
+template<typename T> void OutHexl(ostream* os,int w, char f, T x)
+{
+  ostringstream local_os;
+  local_os << nouppercase << hex << x;
+  if (local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+}
+template<typename T> void OutOct(ostream* os,int w, char f, T x)
+{
+  ostringstream local_os;
+  local_os << uppercase << oct << x;
+  if (local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
 }
 
 // common code for all struct output functions
@@ -604,31 +644,48 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
     }
   (*os) << ossF.str().substr(skip);
 }
-
-const int iFmtWidth[] =    { -1,  7,  7, 12, 12, 12, 12, 12,  // GDL_UNDEF-GDL_STRING
-			     -1, 12, -1, -1,  7, 12, 22, 22}; // GDL_STRUCT-GDL_ULONG64
-const int iFmtWidthBIN[] = { -1,  8, 16, 32, 32, 32, 32, 32,  // GDL_UNDEF-GDL_STRING
-			     -1, 32, -1, -1, 16, 32, 64, 64}; // GDL_STRUCT-GDL_ULONG64
+//                         undf byte int lint real dbl cplx str strct dcplx ptr obj uint ulon int64 uint64
+const int iFmtWidth[] =    { -1,  7,  7,  12,  12,  12,  12, 12,   -1,   12, -1, -1,   7,   12,  22,   22}; 
+const int iFmtWidthBIN[] = { -1,  8, 16,  32,  32,  32,  32, 32,   -1,   64, -1, -1,  16,   32,  64,   64};
+			      // GDL_STRUCT-GDL_ULONG64
 
 template<class Sp> SizeT Data_<Sp>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
-{
-  DLongGDL* cVal = static_cast<DLongGDL*>
-    ( this->Convert2( GDL_LONG, BaseGDL::COPY));
-  if( w < 0) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]); 
-  SizeT retVal = cVal->OFmtI( os, offs, r, w, d, f, oMode);
-  delete cVal;
-  return retVal;
+       BaseGDL::IOMode oMode) {
+    if ( sizeof (this)==2 ) {
+      DIntGDL* cVal = static_cast<DIntGDL*>
+      (this->Convert2( GDL_INT, BaseGDL::COPY ));
+      if ( w < 0 ) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);
+      SizeT retVal = cVal->OFmtI( os, offs, r, w, d, f, oMode);
+      delete cVal;
+      return retVal;
+    } else if ( sizeof (this)==4 ) {
+      DLongGDL* cVal = static_cast<DLongGDL*>
+      (this->Convert2( GDL_LONG, BaseGDL::COPY ));
+      if ( w < 0 ) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);
+      SizeT retVal = cVal->OFmtI( os, offs, r, w, d, f, oMode);
+      delete cVal;
+      return retVal;
+    } else {
+      DLong64GDL* cVal = static_cast<DLong64GDL*>
+      (this->Convert2( GDL_LONG64, BaseGDL::COPY ));
+      if ( w < 0 ) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);
+      SizeT retVal = cVal->OFmtI( os, offs, r, w, d, f, oMode);
+      delete cVal;
+      return retVal;
+    }
 }
-// GDL_LONG
-template<> SizeT Data_<SpDLong>::
+template<> SizeT Data_<SpDByte>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
-  if( w < 0) w = (oMode == BIN ? 32 : 12);
-
+  if( w < 0) w = (oMode == BIN ? 8 : 7);
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=3;
+     if ( oMode == HEX || oMode == HEXL ) w=2; 
+  }
   SizeT nTrans = ToTransfer();
+  DIntGDL* cVal = static_cast<DIntGDL*> (this->Convert2( GDL_INT, BaseGDL::COPY )); //necessary for non-b formats.
 
   // transfer count
   SizeT tCount = nTrans - offs;
@@ -637,30 +694,92 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   SizeT endEl = offs + tCount;
 
   if( oMode == DEC)
-    for( SizeT i=offs; i<endEl; ++i)
-      ZeroPad( os, w, d, f, (*this)[ i]);
+    for( SizeT i=offs; i<endEl; ++i) ZeroPad( os, w, d, f, (*cVal)[ i]);
   else if ( oMode == OCT)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*cVal)[ i]);
   else if ( oMode == BIN)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << binstr((*this)[ i], w);
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
   else if ( oMode == HEX)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*cVal)[ i]);
   else // HEXL
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*cVal)[ i]);
 
   return tCount;
 }
-// GDL_ULONG
-template<> SizeT Data_<SpDULong>::
+
+//GDL_UINT
+template<> SizeT Data_<SpDUInt>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
+       BaseGDL::IOMode oMode) 
+{
+  if( w < 0) w = (oMode == BIN ? 16 : 7);
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=6;
+     if ( oMode == HEX || oMode == HEXL ) w=4; 
+  }
+  SizeT nTrans = ToTransfer();
+
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if( r < tCount) tCount = r;
+
+  SizeT endEl = offs + tCount;
+
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
+      ZeroPad( os, w, d, f, (*this)[ i]);
+  else if ( oMode == OCT)
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
+  else if ( oMode == BIN)
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
+  else if ( oMode == HEX)
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
+  else // HEXL
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
+
+  return tCount;
+}
+//GDL_INT
+template<> SizeT Data_<SpDInt>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
+       BaseGDL::IOMode oMode) 
+{
+  if( w < 0) w = (oMode == BIN ? 16 : 7);
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=6;
+     if ( oMode == HEX || oMode == HEXL ) w=4; 
+  }
+  SizeT nTrans = ToTransfer();
+
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if( r < tCount) tCount = r;
+
+  SizeT endEl = offs + tCount;
+
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
+      ZeroPad( os, w, d, f, (*this)[ i]);
+  else if ( oMode == OCT)
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
+  else if ( oMode == BIN)
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
+  else if ( oMode == HEX)
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
+  else // HEXL
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
+
+  return tCount;
+}
+
+// GDL_LONG
+template<> SizeT Data_<SpDLong>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   if( w < 0) w = (oMode == BIN ? 32 : 12);
-
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=11;
+     if ( oMode == HEX || oMode == HEXL ) w=8; 
+  }
   SizeT nTrans = ToTransfer();
 
   // transfer count
@@ -669,25 +788,47 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   SizeT endEl = offs + tCount;
   
-  if( oMode == DEC)
-    for( SizeT i=offs; i<endEl; ++i)
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
       ZeroPad( os, w, d, f, (*this)[ i]);
   else if ( oMode == OCT)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
   else if ( oMode == BIN)
-    for( SizeT i=offs; i<endEl; ++i)
-#ifdef _MSC_VER
-      (*os) << binstr((int)(*this)[ i], w);
-#else
-      (*os) << binstr((*this)[ i], w);
-#endif
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
   else if ( oMode == HEX)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
   else // HEXL
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setfill(f) << setw(w) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
+  
+  return tCount;
+}
+// GDL_ULONG
+template<> SizeT Data_<SpDULong>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
+       BaseGDL::IOMode oMode) 
+{
+  if( w < 0) w = (oMode == BIN ? 32 : 12);
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=11;
+     if ( oMode == HEX || oMode == HEXL ) w=8; 
+  }
+  SizeT nTrans = ToTransfer();
+
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if( r < tCount) tCount = r;
+
+  SizeT endEl = offs + tCount;
+  
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
+      ZeroPad( os, w, d, f, (*this)[ i]);
+  else if ( oMode == OCT)
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
+  else if ( oMode == BIN)
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
+  else if ( oMode == HEX)
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
+  else // HEXL
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
 
   return tCount;
 }
@@ -697,7 +838,10 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   if( w < 0) w = (oMode == BIN ? 64 : 22);
-
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=22;
+     if ( oMode == HEX || oMode == HEXL ) w=16; 
+  }
   SizeT nTrans = ToTransfer();
 
   // transfer count
@@ -706,31 +850,16 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   SizeT endEl = offs + tCount;
 
-  if( oMode == DEC)
-    for( SizeT i=offs; i<endEl; ++i)
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
       ZeroPad( os, w, d, f, (*this)[ i]);
   else if ( oMode == OCT)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
   else if ( oMode == BIN)
-    for( SizeT i=offs; i<endEl; ++i)
-    {
-#ifdef _MSC_VER
-      if (w > 32)
-	(*os) << binstr((int)(*this)[ i] >> 32, w - 32);
-      (*os) << binstr((int)(*this)[ i], w <= 32 ? w : 32);
-#else
-      if (w > 32) 
-	(*os) << binstr((*this)[ i] >> 32, w - 32);
-      (*os) << binstr((*this)[ i], w <= 32 ? w : 32);
-#endif
-    }
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
   else if ( oMode == HEX)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
   else // HEXL
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
 
   return tCount;
 }
@@ -740,7 +869,10 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   if( w < 0) w = (oMode == BIN ? 64 : 22);
-
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=22;
+     if ( oMode == HEX || oMode == HEXL ) w=16; 
+  }
   SizeT nTrans = ToTransfer();
 
   // transfer count
@@ -749,34 +881,73 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   SizeT endEl = offs + tCount;
 
-  if( oMode == DEC)
-    for( SizeT i=offs; i<endEl; ++i)
+  if( oMode == DEC)  for( SizeT i=offs; i<endEl; ++i)
       ZeroPad( os, w, d, f, (*this)[ i]);
   else if ( oMode == OCT)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutOct(os, w, f, (*this)[ i]);
   else if ( oMode == BIN)
-    for( SizeT i=offs; i<endEl; ++i)
-    {
-      if (w > 32) (*os) << binstr((*this)[ i] >> 32, w - 32);
-      (*os) << binstr((*this)[ i], w <= 32 ? w : 32);
-    }
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << setfill(f) << binstr((*this)[ i], w);
   else if ( oMode == HEX)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHex(os, w, f, (*this)[ i]);
   else // HEXL
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << setfill(f) << (*this)[ i];
+    for( SizeT i=offs; i<endEl; ++i) OutHexl(os, w, f, (*this)[ i]);
 
   return tCount;
 }
+//double
+template<> SizeT Data_<SpDDouble>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
+       BaseGDL::IOMode oMode) 
+{
+  if( w < 0) w = (oMode == BIN ? 32 : 12);
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=22;
+     if ( oMode == HEX || oMode == HEXL ) w=16; 
+  }
+  SizeT nTrans = ToTransfer();
+
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if( r < tCount) tCount = r;
+
+  SizeT endEl = offs + tCount;
+
+  ostringstream local_os;
+
+  if ( oMode == BIN )
+     for( SizeT i=offs; i<endEl; ++i) {
+      (*os) << setw( w ) << setfill( f ) << binstr( static_cast<long>((*this)[ i]), w );
+    } else if ( oMode == DEC )
+     for( SizeT i=offs; i<endEl; ++i) {
+      ZeroPad( os, w, d, f, (*this)[ i]);
+    } else if ( oMode == OCT )
+     for( SizeT i=offs; i<endEl; ++i) {
+      local_os  << oct << static_cast<long>((*this)[ i]);
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else if ( oMode == HEX )
+     for( SizeT i=offs; i<endEl; ++i) {
+      OutHex(os, w, f, (*this)[ i]);
+//    local_os << uppercase << hex << static_cast<long> ((*this)[ i]);
+//      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else
+     for( SizeT i=offs; i<endEl; ++i) {
+      local_os << nouppercase << hex << static_cast<long> ((*this)[ i]);
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    }
+  
+  return tCount;
+}
+
 // complex
 template<> SizeT Data_<SpDComplex>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   if( w < 0) w = (oMode == BIN ? 32 : 12);
-
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=22;
+     if ( oMode == HEX || oMode == HEXL ) w=16; 
+  }
   SizeT nTrans = ToTransfer();
 
   // transfer count
@@ -785,82 +956,73 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   SizeT tCountOut = tCount;
 
   SizeT firstEl = offs / 2;
-
+  ostringstream local_os;
   if( offs & 0x01)
     {
-      if( oMode == DEC)
-        ZeroPad( os, w, d, f, (*this)[ firstEl++].imag());
-      else if ( oMode == OCT)
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ firstEl++].imag());
-      else if ( oMode == BIN)
-	(*os) << binstr(static_cast<long int>((*this)[ firstEl++].imag()), w);
-      else if ( oMode == HEX)
-	(*os) << uppercase << hex << setw(w) << setfill(f) 
-	      << static_cast<long int>((*this)[ firstEl++].imag());
-      else
-	(*os) << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ firstEl++].imag());
+      if ( oMode == BIN)	(*os) << setw(w) << setfill(f) << binstr(static_cast<long>((*this)[ firstEl++].imag()), w);
+      else if( oMode == DEC) ZeroPad( os, w, d, f, (*this)[ firstEl++].imag());
+      else {
+        if ( oMode == OCT) local_os  << oct << static_cast<long>((*this)[ firstEl++].imag());
+        else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long>((*this)[ firstEl++].imag());
+        else local_os << hex  << static_cast<long>((*this)[ firstEl++].imag());
+        if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+      }
       tCount--;
     }
 
   SizeT endEl = firstEl + tCount / 2;
 
-  if( oMode == DEC)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-        ZeroPad( os, w, d, f, (*this)[ i].real());
-        ZeroPad( os, w, d, f, (*this)[ i].imag());
-      }
-  else if ( oMode == OCT)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].real());
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].imag());
-      }
-  else if ( oMode == BIN)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << binstr(static_cast<long int>((*this)[ i].real()), w);
-	(*os) << binstr(static_cast<long int>((*this)[ i].imag()), w);
-      }
-  else if ( oMode == HEX)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << uppercase << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].real());
-	(*os) << uppercase << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].imag());
-      }
-  else
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << nouppercase << hex << setw(w) << setfill(f) 
-	      << static_cast<long int>((*this)[ i].real());
-	(*os) << nouppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ i].imag());
-      }
-  
-  if( tCount & 0x01)
-    {
-      if( oMode == DEC)
-        ZeroPad( os, w, d, f, (*this)[ endEl].real());
-      else if ( oMode == OCT)
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ endEl].real());
-      else if ( oMode == BIN)
-	(*os) << binstr(static_cast<long int>((*this)[ endEl].real()), w);
-      else if ( oMode == HEX)
-	(*os) << uppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ endEl].real());
-      else
-	(*os) << nouppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ endEl].real());
+  if ( oMode == BIN )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      (*os) << setw( w ) << setfill( f ) << binstr( static_cast<long> ((*this)[ i].real( )), w );
+      (*os) << setw( w ) << setfill( f ) << binstr( static_cast<long> ((*this)[ i].imag( )), w );
+    } else if ( oMode == DEC )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      ZeroPad( os, w, d, f, (*this)[ i].real( ) );
+      ZeroPad( os, w, d, f, (*this)[ i].imag( ) );
+    } else if ( oMode == OCT )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os  << oct << static_cast<long>((*this)[ i].real());
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << oct << static_cast<long>((*this)[ i].imag());
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else if ( oMode == HEX )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os << uppercase << hex << static_cast<long> ((*this)[ i].real( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << uppercase << hex << static_cast<long> ((*this)[ i].imag( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os << nouppercase << hex << static_cast<long> ((*this)[ i].real( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << nouppercase << hex << static_cast<long> ((*this)[ i].imag( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
     }
   
+  if( tCount & 0x01)
+  {
+      if ( oMode == BIN)	(*os) << setw(w) << setfill(f) << binstr(static_cast<long>((*this)[ endEl].real()), w);
+      else if( oMode == DEC) ZeroPad( os, w, d, f, (*this)[ endEl].real());
+      else {
+        if ( oMode == OCT) local_os  << oct << static_cast<long>((*this)[ endEl].real());
+        else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long>((*this)[ endEl].real());
+        else local_os << hex << static_cast<long>((*this)[ endEl].real());
+        if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+      }
+  }
   return tCountOut;
 }
+// dbl complex
 template<> SizeT Data_<SpDComplexDbl>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   if( w < 0) w = (oMode == BIN ? 32 : 12);
-
+  if( w==0) { //still more special cases
+     if ( oMode == OCT) w=22;
+     if ( oMode == HEX || oMode == HEXL ) w=16; 
+  }
   SizeT nTrans = ToTransfer();
 
   // transfer count
@@ -869,77 +1031,64 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   SizeT tCountOut = tCount;
 
   SizeT firstEl = offs / 2;
-
+  ostringstream local_os;
   if( offs & 0x01)
     {
-      if( oMode == DEC)
-        ZeroPad( os, w, d, f, (*this)[ firstEl++].imag());
-      else if ( oMode == OCT)
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ firstEl++].imag());
-      else if ( oMode == BIN)
-	(*os) << binstr(static_cast<long int>((*this)[ firstEl++].imag()), w);
-      else if ( oMode == HEX)
-	(*os) << uppercase << hex << setw(w) << setfill(f) 
-	      << static_cast<long int>((*this)[ firstEl++].imag());
-      else
-	(*os) << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ firstEl++].imag());
+      if ( oMode == BIN)	(*os) << setw(w) << setfill(f) << binstr(static_cast<long int>((*this)[ firstEl++].imag()), w);
+      else if( oMode == DEC) ZeroPad( os, w, d, f, (*this)[ firstEl++].imag());
+      else {
+        if ( oMode == OCT) local_os  << oct << static_cast<long int>((*this)[ firstEl++].imag());
+        else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long int>((*this)[ firstEl++].imag());
+        else local_os << hex  << static_cast<long int>((*this)[ firstEl++].imag());
+        if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+      }
       tCount--;
     }
 
   SizeT endEl = firstEl + tCount / 2;
 
-  if( oMode == DEC)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-        ZeroPad( os, w, d, f, (*this)[ i].real());
-        ZeroPad( os, w, d, f, (*this)[ i].imag());
-      }
-  else if ( oMode == OCT)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].real());
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].imag());
-      }
-  else if ( oMode == BIN)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << binstr(static_cast<long int>((*this)[ i].real()), w);
-	(*os) << binstr(static_cast<long int>((*this)[ i].imag()), w);
-      }
-  else if ( oMode == HEX)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << uppercase << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].real());
-	(*os) << uppercase << hex << setw(w) << setfill(f) << static_cast<long int>((*this)[ i].imag());
-      }
-  else
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << nouppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ i].real());
-	(*os) << nouppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ i].imag());
-      }
-  
-  if( tCount & 0x01)
-    {
-      if( oMode == DEC)
-        ZeroPad( os, w, d, f, (*this)[ endEl].real());
-      else if ( oMode == OCT)
-	(*os) << oct << setw(w) << setfill(f) << static_cast<long int>((*this)[ endEl].real());
-      else if ( oMode == BIN)
-	(*os) << binstr(static_cast<long int>((*this)[ endEl].real()), w);
-      else if ( oMode == HEX)
-	(*os) << uppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ endEl].real());
-      else
-	(*os) << nouppercase << hex << setw(w) << setfill(f)
-	      << static_cast<long int>((*this)[ endEl].real());
+  if ( oMode == BIN )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      (*os) << setw( w ) << setfill( f ) << binstr( static_cast<long int> ((*this)[ i].real( )), w );
+      (*os) << setw( w ) << setfill( f ) << binstr( static_cast<long int> ((*this)[ i].imag( )), w );
+    } else if ( oMode == DEC )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      ZeroPad( os, w, d, f, (*this)[ i].real( ) );
+      ZeroPad( os, w, d, f, (*this)[ i].imag( ) );
+    } else if ( oMode == OCT )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os  << oct << static_cast<long int>((*this)[ i].real());
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << oct << static_cast<long int>((*this)[ i].imag());
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else if ( oMode == HEX )
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os << uppercase << hex << static_cast<long int> ((*this)[ i].real( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << uppercase << hex << static_cast<long int> ((*this)[ i].imag( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+    } else
+    for ( SizeT i = firstEl; i < endEl; ++i ) {
+      local_os << nouppercase << hex << static_cast<long int> ((*this)[ i].real( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os  << nouppercase << hex << static_cast<long int> ((*this)[ i].imag( ));
+      if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
     }
   
+  if( tCount & 0x01)
+  {
+      if ( oMode == BIN)	(*os) << setw(w) << setfill(f) << binstr(static_cast<long int>((*this)[ endEl].real()), w);
+      else if( oMode == DEC) ZeroPad( os, w, d, f, (*this)[ endEl].real());
+      else {
+        if ( oMode == OCT) local_os  << oct << static_cast<long int>((*this)[ endEl].real());
+        else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long int>((*this)[ endEl].real());
+        else local_os << hex << static_cast<long int>((*this)[ endEl].real());
+        if (local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+      }
+  }
   return tCountOut;
 }
-// struct
+
 SizeT DStructGDL::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
