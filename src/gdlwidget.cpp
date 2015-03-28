@@ -639,13 +639,13 @@ GDLWidget::~GDLWidget( ) {
   }
 
   //destroy, unless...
-  if ( widgetType == GDLWidget::WIDGET_MBAR ) { //widget is a MBAR ---> do nothing yet, it is part of TLB
+  if ( widgetType == GDLWidget::WIDGET_MBAR ) { //widget is a MBAR ---> do nothing? deleted with TLB
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "in ~GDLWidget(): not destroying " << widgetName << ": " << widgetID << endl;
+    std::cout << "in ~GDLWidget(): not destroying WIDGET_MBAR container" << widgetName << ": " << widgetID << endl;
 #endif
-  } else if ( widgetType == GDLWidget::WIDGET_TREE ) { //widget is a MBAR ---> do nothing yet, it is part of TLB
+  } else if ( widgetType == GDLWidget::WIDGET_TREE ) { //deleted elsewhere.
 #ifdef GDL_DEBUG_WIDGETS
-    std::cout << "in ~GDLWidget(): not destroying " << widgetName << ": " << widgetID << endl;
+    std::cout << "in ~GDLWidget(): not destroying WIDGET_TREE container" << widgetName << ": " << widgetID << endl;
 #endif
   } else if ( parentID != GDLWidget::NullID ) { //not the TLB
     //parent is a panel or a tab
@@ -2410,14 +2410,15 @@ GDLTree::~GDLTree(){
 #endif  
 }
 
-GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
+GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags_
 //,bool alignBottom_
 //,bool alignTop_
 ,wxBitmap* bitmap
 //,bool checkbox_
 //,DLong checked_
 //,DString dragNotify_
-//,bool draggable_
+,DLong dragability
+,DLong dropability
 ,bool expanded_
 ,bool folder_
 //,DLong index_
@@ -2427,13 +2428,14 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 //,DLong tabMode_
 //,DString toolTip_ 
 )
-: GDLWidget( p, e, value_, eventFlags )
+: GDLWidget( p, e, value_, eventFlags_ )
 //,alignBottom( alignBottom_ )
 //,alignTop( alignTop_ )
 //,checkbox( checkbox_ )
 //,checked( checked_ )
 //,dragNotify( dragNotify_ )
-//,draggable( draggable_ )
+,droppable( FALSE )
+,draggable( FALSE )
 //,index( index_ )
 //,mask( mask_ )
 //,multiple( multiple_ )
@@ -2442,7 +2444,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 //,toolTip( toolTip_ )
 ,expanded(expanded_)
 ,folder(folder_)
-,treeItemID( 0L )
+//,treeItemID( 0L ) //is an object!
 ,rootID(0L)
 ,buttonImageId(0L)
 ,imageId(0L)
@@ -2460,7 +2462,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     if ( xSize == widgetSize.x ) xSize = 300; //yes, has a default value!
     if ( ySize == widgetSize.y ) ySize = 300;
 
-    long style = (wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
+    long style = (wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
     // should be as of 2.9.0:  wxDataViewTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
     wxTreeCtrl* tree = new wxTreeCtrl( widgetPanel, widgetID,
     wxPoint( xOffset, yOffset ),
@@ -2473,12 +2475,23 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3
 
     tree->AssignImageList(images);
-    
+    folder=TRUE;
     this->wxWidget = tree;
     rootID=widgetID;
     treeItemData=new GDLTreeItemData(widgetID);
+    if (bitmap) {
+      int index=images->Add(*bitmap);
+      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
+    } else { //use open and closed folder icons
+      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
+    }    
+
     widgetSizer->Add( tree, 0, widgetAlignment( ) ); //, 0, wxEXPAND | wxALL); 
     if ( frame ) this->FrameWidget( );
+    draggable=(dragability == 1);
+    droppable=(dropability == 1);
+    tree->Expand(treeItemID);
+    
     TIDY_WIDGET;
     UPDATE_WINDOW
   } else {
@@ -2499,7 +2512,24 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
     }
     if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
+    //dragability inheritance.
+    if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
+   //dropability inheritance.
+    if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
   }
+}
+DInt GDLWidgetTree::GetTreeIndex()
+{
+  DInt count=0;
+  wxTreeCtrl* tree=static_cast<wxTreeCtrl*>(wxWidget);
+  wxTreeItemId  id=this->treeItemID;
+  wxTreeItemId prev_id=tree->GetPrevSibling(id);
+  while (prev_id.IsOk()){
+    count++; 
+    id=prev_id; 
+    prev_id=tree->GetPrevSibling(id);
+  }
+  return count+1; //to give compatible results with idl -- wxwidgets does not behave as idl!
 }
 
 GDLWidgetTree::~GDLWidgetTree()
@@ -2507,6 +2537,23 @@ GDLWidgetTree::~GDLWidgetTree()
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetTree: " << this << std::endl;
 #endif  
+  wxTreeCtrl* tree=static_cast<wxTreeCtrl*>(wxWidget);
+  if (tree) {
+  wxTreeItemId  id=this->treeItemID;
+  if (id.IsOk()) {
+    wxTreeItemIdValue cookie;
+    wxTreeItemId child=tree->GetFirstChild(id, cookie);
+    while (child.IsOk()) {
+      WidgetIDT childID=static_cast<GDLTreeItemData*>(tree->GetItemData(child))->widgetID;
+      cerr <<childID<<endl;
+      GDLWidgetTree* GDLchild= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(childID));
+      child=tree->GetNextSibling(child); //nextChild did not find the last (?) nextSibling does the job.
+      delete GDLchild;
+    }
+    treeItemID.Unset();
+    tree->Delete(id);
+  }
+  }
 }
 
 void GDLWidgetTree::SetValue(DString val)

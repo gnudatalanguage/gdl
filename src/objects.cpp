@@ -703,10 +703,10 @@ void InitStructs()
   dropstruct->AddTag("TOP", &aLong);
   dropstruct->AddTag("HANDLER", &aLong);
   dropstruct->AddTag("DRAG_ID", &aLong);
-  dropstruct->AddTag("POSITION", &aLong);
+  dropstruct->AddTag("POSITION", &aInt);
   dropstruct->AddTag("X", &aLong);
   dropstruct->AddTag("Y", &aLong);
-  dropstruct->AddTag("MODIFIERS", &aLong);
+  dropstruct->AddTag("MODIFIERS", &aInt);
   // insert into structList
   structList.push_back( dropstruct); 
   
@@ -714,7 +714,7 @@ void InitStructs()
   treeselstruct->AddTag("ID", &aLong);
   treeselstruct->AddTag("TOP", &aLong);
   treeselstruct->AddTag("HANDLER", &aLong);
-  treeselstruct->AddTag("TYPE", &aLong);
+  treeselstruct->AddTag("TYPE", &aInt);
   treeselstruct->AddTag("CLICKS", &aLong);
   // insert into structList
   structList.push_back( treeselstruct);
@@ -723,7 +723,7 @@ void InitStructs()
   treeexpandstruct->AddTag("ID", &aLong);
   treeexpandstruct->AddTag("TOP", &aLong);
   treeexpandstruct->AddTag("HANDLER", &aLong);
-  treeexpandstruct->AddTag("TYPE", &aLong);
+  treeexpandstruct->AddTag("TYPE", &aInt);
   treeexpandstruct->AddTag("EXPAND", &aLong);
   // insert into structList
   structList.push_back( treeexpandstruct); 

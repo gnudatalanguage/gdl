@@ -523,7 +523,7 @@ BaseGDL* widget_tree( EnvT* e)
 //  static int CHECKBOX = e->KeywordIx( "CHECKBOX" );
 //  static int CHECKED = e->KeywordIx( "CHECKED" );
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
-//  static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
+  static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
 //  static int INDEX = e->KeywordIx( "INDEX" );
@@ -537,7 +537,8 @@ BaseGDL* widget_tree( EnvT* e)
 //  bool alignBottom = e->KeywordSet( ALIGN_BOTTOM );
 //  bool alignTop = e->KeywordSet( ALIGN_TOP );
 //  bool checkbox = e->KeywordSet( CHECKBOX );
-//  bool draggable = e->KeywordSet( DRAGGABLE );
+  DLong draggability=-1;
+  if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool expanded = e->KeywordSet( EXPANDED );
   bool folder = e->KeywordSet( FOLDER );
 //  bool mask = e->KeywordSet( MASK );
@@ -555,8 +556,8 @@ BaseGDL* widget_tree( EnvT* e)
   if (context) eventFlags |= GDLWidget::EV_CONTEXT;
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
-  bool drop = e->KeywordSet( DROP_EVENTS );
-  if (drop) eventFlags |= GDLWidget::EV_DROP;
+  DLong dropability = -1;
+  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DRAGGABLE, dropability );;
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
@@ -594,7 +595,8 @@ BaseGDL* widget_tree( EnvT* e)
 //,  checkbox
 //,  checked
 //,  dragNotify
-//,  draggable
+,  dropability
+,  draggability
 ,  expanded
   ,folder
 //,  index
@@ -1277,7 +1279,8 @@ BaseGDL* widget_slider( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( valueIx, value );
 
   static int dragIx = e->KeywordIx( "DRAG" );
-  bool drag = e->KeywordSet( dragIx );
+  if (e->KeywordSet( dragIx )) eventFlags |= GDLWidget::EV_DRAG;
+  
 
   static int verticalIx = e->KeywordIx( "VERTICAL" );
   bool vertical = e->KeywordSet( verticalIx );
@@ -1478,11 +1481,17 @@ BaseGDL* widget_info( EnvT* e ) {
   static int SYSTEM_COLORS = e->KeywordIx( "SYSTEM_COLORS" );
   bool giveSystemColors = e->KeywordSet(SYSTEM_COLORS);
 
+  static int TREE_SELECT = e->KeywordIx( "TREE_SELECT");
+  bool treeselect = e->KeywordSet(TREE_SELECT);
+  static int TREE_INDEX = e->KeywordIx( "TREE_INDEX");
+  bool treeindex = e->KeywordSet(TREE_INDEX);
+  static int TREE_FOLDER = e->KeywordIx( "TREE_FOLDER");
+  bool treefolder = e->KeywordSet(TREE_FOLDER);
+  static int TREE_EXPANDED = e->KeywordIx( "TREE_EXPANDED");
+  bool treeexpanded = e->KeywordSet(TREE_EXPANDED);
   static int TREE_ROOT = e->KeywordIx( "TREE_ROOT" );
   bool treeroot = e->KeywordSet(TREE_ROOT);
 
-  static int TREE_SELECT = e->KeywordIx( "TREE_SELECT");
-  bool treeselect = e->KeywordSet(TREE_SELECT);
   
   static int LIST_SELECT = e->KeywordIx( "LIST_SELECT");
   bool listselect = e->KeywordSet(LIST_SELECT);
@@ -1781,13 +1790,16 @@ BaseGDL* widget_info( EnvT* e ) {
       }
   }
   
-  if (treeroot|treeselect) {
+  if (treeroot||treeselect||treefolder||treeexpanded||treeindex) {
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL || !widget->IsTree() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
       GDLWidgetTree *tree = (GDLWidgetTree *) widget;
-      
-      if (treeroot) return new DLongGDL(tree->GetRootID()); else return new DLongGDL(-1);
+      if (treeselect) return new DLongGDL(tree->GetSelectedID());
+      if (treeindex) return new DLongGDL(tree->GetTreeIndex());
+      if (treefolder) return new DLongGDL(tree->IsFolder());
+      if (treeexpanded) return new DLongGDL(tree->IsExpanded());
+      if (treeroot) return new DLongGDL(tree->GetRootID());
   }
   
   if (listselect){
@@ -1817,7 +1829,7 @@ BaseGDL* widget_info( EnvT* e ) {
       if (comboboxgettext) return combo->GetSelectedEntry();
   } 
     
-  if (tabnumber|tabcurrent|tabmultiline){
+  if (tabnumber||tabcurrent||tabmultiline){
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL || !widget->IsTab() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));

@@ -225,6 +225,7 @@ protected:
   bool         scrolled;
   bool         sensitive;
   bool         managed;
+  DULong eventFlags; // event types widget should reply to
   bool         buttonState; //only for buttons
   int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize, scrXSize, scrYSize;
@@ -249,7 +250,6 @@ protected:
 
   
 private:  
-  DULong eventFlags; // event types widget should reply to
 
   DString      uName;
   DString      proValue;
@@ -287,7 +287,8 @@ public:
     , EV_SIZE = 4096
     , EV_MOVE = 8192
     , EV_ICONIFY = 16384
-    , EV_KILL = 32768
+    , EV_DRAG = 32768
+    , EV_KILL = 65536
     } EventTypeFlags;
  
    typedef enum WidgetTypes_
@@ -903,6 +904,7 @@ public:
 void OnItemActivated(wxTreeEvent & event);
 void OnItemCollapsed(wxTreeEvent & event);
 void OnItemExpanded(wxTreeEvent & event);
+void OnBeginDrag(wxTreeEvent & event);
 void OnItemDropped(wxTreeEvent & event);
 void OnItemSelected(wxTreeEvent & event);
 
@@ -923,7 +925,8 @@ class GDLWidgetTree: public GDLWidget
 //bool checkbox   ; 
 //DLong checked   ; 
 //DString dragNotify ; 
-//bool draggable  ; 
+bool droppable  ; 
+bool draggable  ; 
 //DLong index     ; 
 //bool mask       ; 
 //bool multiple   ; 
@@ -934,6 +937,7 @@ class GDLWidgetTree: public GDLWidget
   bool folder;
 int buttonImageId;
 int imageId;
+WidgetIDT selectedID;
 wxTreeItemId treeItemID;
 GDLTreeItemData* treeItemData;
 WidgetIDT rootID;
@@ -946,7 +950,8 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 //,bool checkbox_
 //,DLong checked_
 //,DString dragNotify_
-//,bool draggable_
+,DLong dropability
+,DLong dragability
 ,bool expanded_
 ,bool folder_
 //,DLong index_
@@ -960,6 +965,8 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 ~GDLWidgetTree();
 
   bool IsTree() const { return true;}
+  bool IsDraggable() {return draggable;}
+  bool IsDroppable() {return droppable;}
   bool IsFolder() {return folder;}
   bool IsExpanded() {return expanded;}
   void DoExpand(){
@@ -967,6 +974,9 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
     if (me) me->Expand(treeItemID);
   }
   WidgetIDT GetRootID(){ return rootID;}
+  void SetSelectedID( WidgetIDT id){selectedID=id;}
+  WidgetIDT GetSelectedID(){ return selectedID;}
+  DInt GetTreeIndex();
   wxTreeItemId GetItemID(){ return treeItemID;}
   void SetValue(DString val);
 };
@@ -1204,7 +1214,7 @@ public:
   void OnSize( wxSizeEvent& event);
 //  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
 //  void OnTimerResize(wxTimerEvent& event);
-  void OnScroll( wxScrollEvent& event);
+  void OnThumbTrack( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
   void OnContextEvent( wxContextMenuEvent &event );
   void OnFocusChange( wxFocusEvent &event);

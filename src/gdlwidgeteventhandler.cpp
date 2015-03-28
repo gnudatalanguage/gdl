@@ -56,7 +56,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, GDLFrame::OnPageChanged)
 //   EVT_SLIDER(wxID_ANY,GDLFrame::OnSlider)
   EVT_SCROLL_THUMBRELEASE(GDLFrame::OnThumbRelease)
-  EVT_SCROLL(GDLFrame::OnScroll)
+  EVT_SCROLL_THUMBTRACK(GDLFrame::OnThumbTrack)
 //Added: [TLB_]SIZE_EVENTS
   EVT_SIZE(GDLFrame::OnSize) //should actually restarts a timer...
   EVT_TIMER(GDLFrame::WINDOW_TIMER, GDLFrame::OnWidgetTimer) 
@@ -74,6 +74,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
 EVT_SET_FOCUS(GDLFrame::OnFocusChange)
 EVT_KILL_FOCUS(GDLFrame::OnFocusChange)
 EVT_TREE_ITEM_ACTIVATED(wxID_ANY,GDLTree::OnItemActivated)
+EVT_TREE_BEGIN_DRAG(wxID_ANY,GDLTree::OnBeginDrag)
 EVT_TREE_END_DRAG(wxID_ANY,GDLTree::OnItemDropped)
 EVT_TREE_ITEM_COLLAPSED(wxID_ANY,GDLTree::OnItemCollapsed)
 EVT_TREE_ITEM_EXPANDED(wxID_ANY,GDLTree::OnItemExpanded)
@@ -798,7 +799,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 //  event.Skip(); //important, pass to others!
 //}
 
-void GDLFrame::OnScroll( wxScrollEvent& event)
+void GDLFrame::OnThumbTrack( wxScrollEvent& event)
 {  
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnScroll: %d\n"),event.GetId());
@@ -813,11 +814,15 @@ void GDLFrame::OnScroll( wxScrollEvent& event)
     event.Skip();
     return;
   }
-
+  
+  DULong flags=0;
+  flags=widget->GetEventFlags();
+ 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
   if( widget->IsSlider())
   {
+    if ( flags & GDLWidget::EV_DRAG ) { //otherwise last and final value will be retrieved with thumbrelease() below.
     GDLWidgetSlider* sl = static_cast<GDLWidgetSlider*>(widget);
     DLong oldValue = sl->GetValue();
     
@@ -837,6 +842,7 @@ void GDLFrame::OnScroll( wxScrollEvent& event)
       widg->InitTag("DRAG", DIntGDL( 1)); // dragging events from here
       
       GDLWidget::PushEvent( baseWidgetID, widg);
+     }
     }
     return;
   }
@@ -1561,11 +1567,12 @@ void GDLTree::OnItemActivated(wxTreeEvent & event){
     treeselect->InitTag("ID", DLongGDL( static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
     treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-    treeselect->InitTag("TYPE", DLongGDL(0)); // 0
+    treeselect->InitTag("TYPE", DIntGDL(0)); // 0
     treeselect->InitTag("CLICKS",DLongGDL(2));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
 }
+
 
 void GDLTree::OnItemSelected(wxTreeEvent & event){
 #ifdef GDL_DEBUG_EVENTS
@@ -1575,43 +1582,69 @@ void GDLTree::OnItemSelected(wxTreeEvent & event){
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     GDLTree* me=static_cast<GDLTree*>(event.GetEventObject());
+    WidgetIDT selected=static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID));
+    //inform root widget it is selected
+    GDLWidgetTree* root=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(tree->GetRootID()));
+    root->SetSelectedID(selected);
     
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
-    treeselect->InitTag("ID", DLongGDL( static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeselect->InitTag("ID", DLongGDL( selected ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
     treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-    treeselect->InitTag("TYPE", DLongGDL(0)); // 0
+    treeselect->InitTag("TYPE", DIntGDL(0)); // 0
     treeselect->InitTag("CLICKS",DLongGDL(1));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
 }
 
+void GDLTree::OnBeginDrag(wxTreeEvent & event){
+
+  //largely useful protection!!!
+  if (!event.GetItem().IsOk()) return;
+
+#ifdef GDL_DEBUG_EVENTS
+  wxMessageOutputStderr().Printf(_T("in GDLTree::OnBeginDrag: %d\n"),event.GetId());
+#endif
+
+//needed to explicitly authorize dragging.
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+//get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
+//the GDL widget that received the event
+    GDLTree* me=static_cast<GDLTree*>(event.GetEventObject());
+    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID));
+    if (item->IsDraggable()) event.Allow();
+}
+
 void GDLTree::OnItemDropped(wxTreeEvent & event){
+    
+  if (!event.GetItem().IsOk()) return;
+
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLTree::OnItemDropped: %d\n"),event.GetId());
 #endif
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
-    GDLWidgetTree* tree = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(GDLWidgetTableID));
-    DULong eventFlags=tree->GetEventFlags(); //Has and event flag associated
-    if (eventFlags & GDLWidget::EV_DROP) {
+    GDLTree* me=static_cast<GDLTree*>(event.GetEventObject());
+    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID));
+
+    if (item->IsDroppable()) {
  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
-      GDLTree* me=static_cast<GDLTree*>(event.GetEventObject());
-
       DStructGDL* treedrop = new DStructGDL( "WIDGET_DROP");
-      treedrop->InitTag("ID", DLongGDL( 0 )); //ID of the destination
+      treedrop->InitTag("ID", DLongGDL( item->WidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
       treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-      treedrop->InitTag("DRAG_ID", DLongGDL(0)); // ID of the source
-      treedrop->InitTag("POSITION",DLongGDL(1)); //1 above 2 on 3 below destination widget
-      treedrop->InitTag("X",DLongGDL(0)); //x and Y coord of position wrt lower left corner of destination tree widget
-      treedrop->InitTag("Y",DLongGDL(0));
-      treedrop->InitTag("MODIFIERS",DLongGDL(0)); //mask with 1 shift 2 control 4 caps lock 8 alt
+      treedrop->InitTag("DRAG_ID", DLongGDL( item->GetRootID())); // ID of the source TREE
+      treedrop->InitTag("POSITION",DIntGDL(2)); //ALWAYS 2 IT SEEMS THAT wxW cannot do better? !   1 above 2 on 3 below destination widget
+      treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
+      treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
+      treedrop->InitTag("MODIFIERS",DIntGDL(0)); //mask with 1 shift 2 control 4 caps lock 8 alt
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
 }
 void GDLTree::OnItemExpanded(wxTreeEvent & event){
+  if (!event.GetItem().IsOk()) return;
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLTree::OnItemExpanded: %d\n"),event.GetId());
 #endif
@@ -1624,12 +1657,13 @@ void GDLTree::OnItemExpanded(wxTreeEvent & event){
     treeexpand->InitTag("ID", DLongGDL( static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID ));
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
     treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-    treeexpand->InitTag("TYPE", DLongGDL(1)); // 1
+    treeexpand->InitTag("TYPE", DIntGDL(1)); // 1
     treeexpand->InitTag("EXPAND",DLongGDL(1)); //1 expand
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
 }
 void GDLTree::OnItemCollapsed(wxTreeEvent & event){
+  if (!event.GetItem().IsOk()) return;
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLTree::OnItemCollapsed: %d\n"),event.GetId());
 #endif
@@ -1642,7 +1676,7 @@ void GDLTree::OnItemCollapsed(wxTreeEvent & event){
     treeexpand->InitTag("ID", DLongGDL( static_cast<GDLTreeItemData*>(me->GetItemData(event.GetItem()))->widgetID ));
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
     treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-    treeexpand->InitTag("TYPE", DLongGDL(1)); // 1
+    treeexpand->InitTag("TYPE", DIntGDL(1)); // 1
     treeexpand->InitTag("EXPAND",DLongGDL(0)); //0 collapse
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
