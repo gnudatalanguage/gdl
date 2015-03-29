@@ -178,7 +178,11 @@ string StrUpCase(const string& s)
   ArrayGuard<char> guard( r);
   r[len]=0;
   for(unsigned i=0;i<len;i++)
+#ifdef _MSC_VER
+    r[i]=toupper(sCStr[i]);
+#else
     r[i]=std::toupper(sCStr[i]);
+#endif
   return string(r);
 }
 void StrUpCaseInplace( string& s)
@@ -189,7 +193,11 @@ void StrUpCaseInplace( string& s)
 //   ArrayGuard<char> guard( r);
 //   r[len]=0;
   for(unsigned i=0;i<len;i++)
+#ifdef _MSC_VER
+    s[i]=toupper(s[i]);
+#else
     s[i]=std::toupper(s[i]);
+#endif
 //   return string(r);
 }
 
@@ -201,7 +209,11 @@ string StrLowCase(const string& s)
   ArrayGuard<char> guard( r);
   r[len]=0;
   for(unsigned i=0;i<len;i++)
+#ifdef _MSC_VER
+    r[i]=tolower(sCStr[i]);
+#else
     r[i]=std::tolower(sCStr[i]);
+#endif
   return string(r);
 }
 void StrLowCaseInplace(string& s)
@@ -209,7 +221,11 @@ void StrLowCaseInplace(string& s)
   unsigned len=s.length();
 //   char const *sCStr=s.c_str();
   for(unsigned i=0;i<len;i++)
+#ifdef _MSC_VER
+    s[i]=tolower(s[i]);
+#else
     s[i]=std::tolower(s[i]);
+#endif
 //     s[i]=std::tolower(sCStr[i]);
 }
 
