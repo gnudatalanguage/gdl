@@ -33,6 +33,7 @@
 #ifdef _MSC_VER
 #define NOMINMAX
 #define _WINSOCKAPI_
+#pragma warning( disable : 4716 )
 #endif
 
 // Python.h must be included before everything else
