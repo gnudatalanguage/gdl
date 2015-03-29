@@ -1655,7 +1655,6 @@ DString makeInsensitive(const DString &s)
 
 //
 //be more precise in case of symlinks --- use stat
-/*
     SizeT nPath = p0S->N_Elements();
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
@@ -1679,12 +1678,6 @@ DString makeInsensitive(const DString &s)
 	  }
     }
     return res;
-
-*/
-// to check if target exists or is a dangling symlink!
-//
-     bool isADanglingSymLink = (actStat != 0 && isASymLink); 
-
 	}
 }
 
