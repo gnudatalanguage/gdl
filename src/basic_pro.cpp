@@ -1831,17 +1831,29 @@ namespace lib {
 
 	void openr(EnvT* e)
 	{
+#ifdef _WIN32
+		open_lun(e, fstream::in | fstream::binary);
+#else
 		open_lun(e, fstream::in);
+#endif
 	}
 
 	void openw(EnvT* e)
 	{
+#ifdef _WIN32
+		open_lun(e, fstream::in | fstream::out | fstream::trunc | fstream::binary);
+#else
 		open_lun(e, fstream::in | fstream::out | fstream::trunc);
+#endif
 	}
 
 	void openu(EnvT* e)
 	{
+#ifdef _WIN32
+		open_lun(e, fstream::in | fstream::out | fstream::binary);
+#else
 		open_lun(e, fstream::in | fstream::out);
+#endif
 	}
 
 	void socket(EnvT* e)
