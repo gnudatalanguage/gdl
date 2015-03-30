@@ -91,7 +91,7 @@ namespace lib {
 //      e->Throw(  "Unable to create window "
 //		 "(BadValue (integer parameter out of range for operation)).");
     
-    DLong retainType ; 
+    DLong retainType = 0; 
     if( e->KeywordPresent( "RETAIN"))
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
