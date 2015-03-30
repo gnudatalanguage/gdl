@@ -175,7 +175,6 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny,
   PLINT kxLimit = xsize - xoff;
   PLINT kyLimit = ysize - yoff;
 
-  HDC hDCMem = CreateCompatibleDC(hdc);
   HBITMAP hbitmap;
   BITMAPINFO bi = { 0 };
 
