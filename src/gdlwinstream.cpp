@@ -175,25 +175,40 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny,
   PLINT kxLimit = xsize - xoff;
   PLINT kyLimit = ysize - yoff;
 
+  HDC hDCMem = CreateCompatibleDC(hdc);
+  HBITMAP hbitmap;
+  BITMAPINFO bi = { 0 };
+
   if ( nx < kxLimit ) kxLimit = nx;
   if ( ny < kyLimit ) kyLimit = ny;
+
+  hbitmap = CreateCompatibleBitmap(hdc, kxLimit, kyLimit);
 
   if ( nx > 0 && ny > 0 ) {
     char iclr1, ired, igrn, iblu;
     long curcolor;
 
-    for ( SizeT ix = 0; ix < kxLimit; ++ix ) {
+	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bi.bmiHeader.biWidth = kxLimit;
+	bi.bmiHeader.biHeight = kyLimit;
+	bi.bmiHeader.biPlanes = 1;
+	bi.bmiHeader.biBitCount = 24;
+	bi.bmiHeader.biCompression = BI_RGB;
+	unsigned long ulBmpSize = kxLimit * kyLimit;
+	RGBTRIPLE *lpbitmap = new RGBTRIPLE[ulBmpSize];
+	GetDIBits(hdc, hbitmap, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
+	for ( SizeT ix = 0; ix < kxLimit; ++ix ) {
       for ( SizeT iy = 0; iy < kyLimit; ++iy ) {
-
         kx = xoff + ix;
         ky = yoff + iy;
 
         if ( tru == 0 && chan == 0 ) {
           iclr1 = idata[iy * nx + ix];
 
-          curcolor = RGB( pls->cmap1[iclr1].r,
-          pls->cmap1[iclr1].g, pls->cmap1[iclr1].b );
-
+          //curcolor = RGB( pls->cmap1[iclr1].r, pls->cmap1[iclr1].g, pls->cmap1[iclr1].b );
+		  lpbitmap[ky*kxLimit + ix].rgbtBlue = pls->cmap1[iclr1].b;
+		  lpbitmap[ky*kxLimit + ix].rgbtGreen = pls->cmap1[iclr1].g;
+		  lpbitmap[ky*kxLimit + ix].rgbtRed = pls->cmap1[iclr1].r;
           //	 			 printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
 
         } else {
@@ -211,30 +226,28 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny,
               igrn = idata[nx * (1 * ny + iy) + ix];
               iblu = idata[nx * (2 * ny + iy) + ix];
             }
-            curcolor = RGB( ired, igrn, iblu ); // It is reverse!
+			lpbitmap[ky*kxLimit + ix].rgbtBlue = iblu;
+			lpbitmap[ky*kxLimit + ix].rgbtGreen = igrn;
+			lpbitmap[ky*kxLimit + ix].rgbtRed = ired;
           } else if ( chan == 1 ) {
-            unsigned long pixel =
-            GetPixel( hdc, ix, dev->height - 1 - ky ) & 0xffff00;
             ired = idata[1 * (iy * nx + ix) + 0];
-            curcolor = RGB( ired, 0, 0 ) + pixel; // =ired*256*256 + pixel
-          } else if ( chan == 2 ) {
-            unsigned long pixel =
-            GetPixel( hdc, ix, dev->height - 1 - ky ) & 0xff00ff;
+			lpbitmap[ky*kxLimit + ix].rgbtRed = ired;
+		  }
+		  else if (chan == 2) {
             igrn = idata[1 * (iy * nx + ix) + 1];
-            curcolor = RGB( 0, igrn, 0 ) + pixel; // = igrn * 256 + pixel
-          } else if ( chan == 3 ) {
-            unsigned long pixel =
-            GetPixel( hdc, ix, dev->height - 1 - ky ) & 0x00ffff;
+			lpbitmap[ky*kxLimit + ix].rgbtGreen = igrn;
+		  }
+		  else if (chan == 3) {
             iblu = idata[1 * (iy * nx + ix) + 2];
-            curcolor = RGB( 0, 0, iblu ) + pixel; // = iblu + pixel
-          } // if (chan == 0) else
+			lpbitmap[ky*kxLimit + ix].rgbtBlue = iblu;
+		  } // if (chan == 0) else
         } // if (tru == 0  && chan == 0) else
-
-        if ( ky < dev->height && kx < dev->width )
-          SetPixel( hdc, kx, dev->height - 1 - ky, curcolor );
       } // for() inner (indent error)
     } // for() outer
+	SetDIBitsToDevice(hdc, 0, 0, kxLimit, kyLimit, 0, 0, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
+	delete [] lpbitmap;
   }
+  DeleteObject(hbitmap);
   return true;
 }
 void GDLWINStream::Raise() 
