@@ -71,15 +71,15 @@ struct wingcc_Dev
 	// we only do a windows redraw if plplot is plotting
 	char              enterresize;     // Used to keep track of reszing messages from windows
 	char              already_erased;  // Used to track first and only first backgroudn erases
-        struct wingcc_Dev  *push;
+	struct wingcc_Dev  *push;
 };
 static tagWINDOWINFO Winfo;
 class GDLWINStream : public GDLGStream
 {
 	//Atom wm_protocols;
 	//Atom wm_delete_window;
-        HWND refocus;
-        
+	HWND refocus;
+
 	PLStream* pls;
 	plstream *plst;
 
@@ -172,8 +172,8 @@ class GDLWINStream : public GDLGStream
 public:
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
-	{	
-  // get the command interpreter window's handle
+	{
+		// get the command interpreter window's handle
 		Winfo.cbSize = sizeof(Winfo);
 		refocus = GetForegroundWindow();
 	}
@@ -186,31 +186,31 @@ public:
 
 	void Init();
 	void EventHandler();
-	
-//	  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
-  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
-  bool GetGin(PLGraphicsIn *gin, int mode);
-  
-  unsigned long GetWindowDepth();
-  DLong GetVisualDepth();
-//  DString GetVisualName();
-  
-  bool UnsetFocus();
-//  bool SetBackingStore(int value);
-//  bool SetGraphicsFunction(long value );
-  bool GetWindowPosition(long& xpos, long& ypos );
-  void Clear();
-  void Raise();
-  void Lower();
-  void Iconic();
-  void DeIconic();
-  void Flush();
-  void CheckValid();
-  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
+	//	  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
-  //  bool SetGraphicsFunction(long value );
-  virtual bool HasCrossHair() { return true;}
+	void GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff);
+	bool GetGin(PLGraphicsIn *gin, int mode);
+
+	unsigned long GetWindowDepth();
+	DLong GetVisualDepth();
+	//  DString GetVisualName();
+
+	bool UnsetFocus();
+	//  bool SetBackingStore(int value);
+	//  bool SetGraphicsFunction(long value );
+	bool GetWindowPosition(long& xpos, long& ypos);
+	void Clear();
+	void Raise();
+	void Lower();
+	void Iconic();
+	void DeIconic();
+	void Flush();
+	void CheckValid();
+	bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan);
+
+	//  bool SetGraphicsFunction(long value );
+	virtual bool HasCrossHair() { return true; }
 
 
 };
