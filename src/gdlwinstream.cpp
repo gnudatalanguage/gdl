@@ -63,7 +63,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     HCURSOR    cursor;
     HCURSOR    crosshair;
     HCURSOR    previous;
-    RECT rcClip;
+	RECT rcClient;
     //RECT rcOldClip;
 	POINT Point;
     UINT SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
@@ -89,19 +89,16 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 
     SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
 
-
     SetWindowPos(dev->hwnd, HWND_TOP, 0,0,0,0, SWP);
-	//GetClipCursor(&rcOldClip);
-    GetWindowRect(dev->hwnd, &rcClip);  // I tried every which-way,this is the way!
-	//ClipCursor(&rcClip);                
+    GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
 
- 	gin->pX=-1;   // negative Xs are unlikely.
+ 	Point.x=-1;   // negative Xs are unlikely.
 //   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
 
 	bool rbutton, xbutton, mbutton;
 	gin->button=0;
-    while ( gin->pX < 0 )
+    while ( Point.x < 0 )
     {
 		rbutton=false; xbutton=false; mbutton=false;
         GetMessage( &dev->msg, NULL, 0, 0 );
@@ -118,7 +115,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 				break;
 				}
 			gin->button=1;
-            gin->pX = dev->msg.pt.x;
+			GetCursorPos(&Point);
             break;
         case WM_XBUTTONUP:		xbutton=true;
         case WM_RBUTTONUP:		rbutton=true;
@@ -129,37 +126,33 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 				break;
 				}
 			gin->button=1;
-            gin->pX = dev->msg.pt.x;
+			GetCursorPos(&Point);
             break;
         case WM_CHAR:
-            gin->pX = dev->msg.pt.x;
+			GetCursorPos(&Point);
             gin->keysym = dev->msg.wParam;
             break;
 		default:
 			if(mode == 0) {
         		GetCursorPos(&Point);
-		        gin->pX = Point.x;        gin->pY = Point.y;
 	 		} else	DispatchMessage(&dev->msg);
-        }  
-	    gin->pY = dev->msg.pt.y;
+        }
     }
-	if(xbutton) gin->button=4; else 
+	ScreenToClient(dev->hwnd, &Point); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
+	gin->pX = Point.x;
+	gin->pY = (rcClient.bottom - rcClient.top) - Point.y;
+	if (xbutton) gin->button = 4; else
 		if(rbutton) gin->button=3; else
 			if(mbutton) gin->button=2;
-    gin->pX -= rcClip.left; 
-	gin->pY = rcClip.bottom - gin->pY; //  switch it to the X convention.
-    int xcorr =  8;  // yeah, really.
-    int ycorr =  8;  // a reserve in the borders?
-    gin->dX = ((PLFLT) gin->pX - xcorr) / ( dev->width - 1); // !! this is the reversible answer.
-    gin->dY = ((PLFLT) gin->pY - ycorr) / ( dev->height - 1); // re-plotting in normal coordinates
-    //ClipCursor(&rcOldClip);
+	gin->dX = ((PLFLT)gin->pX) / (rcClient.right - rcClient.left - 1);
+	gin->dY = ((PLFLT)gin->pY) / (rcClient.bottom - rcClient.top - 1);
 
  	SetForegroundWindow(resetFG);
     SetCursor( previous );
 
     Sleep(2);
 	BringWindowToTop(dev->hwnd);
-    Sleep( 2);
+    Sleep(2);
     SetFocus(resetFG);
 
   return true;  
@@ -255,7 +248,21 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny,
 	delete [] lpbitmap;
   }
   DeleteObject(hbitmap);
-  //SetWindowPos(dev->hwnd, 0, 0, 0, kxLimit, kyLimit, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+  RECT rt = { 0, 0, kxLimit, kyLimit};
+  RECT rt2;
+  AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
+  SetWindowPos(dev->hwnd, 0, rt.right, rt.left, rt.right - rt.left, rt.bottom - rt.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+
+  // Reposition window if it is out of work area
+  SystemParametersInfo(SPI_GETWORKAREA, 0, &rt, 0);
+  GetWindowRect(dev->hwnd, &rt2);
+  LONG wdiff = 0, hdiff = 0;
+  if (rt.right < rt2.right) wdiff = rt2.right - rt.right;
+  if (rt.bottom < rt2.bottom) hdiff = rt2.bottom - rt.bottom;
+  if (wdiff) rt2.left -= wdiff;
+  if (hdiff) rt2.top -= hdiff;
+  if (wdiff || hdiff)
+	  SetWindowPos(dev->hwnd, 0, rt2.left, rt2.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
   return true;
 }
 void GDLWINStream::Raise() 
