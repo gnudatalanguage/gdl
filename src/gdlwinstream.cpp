@@ -64,13 +64,21 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     HCURSOR    crosshair;
     HCURSOR    previous;
     RECT rcClip;
-    RECT rcOldClip;
+    //RECT rcOldClip;
 	POINT Point;
     UINT SWP = (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW);
 	HWND resetFG;
 	resetFG = GetForegroundWindow();
 	
-    cursor = LoadCursor( NULL, IDC_CROSS );
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(NULL);
+	// Create a custom cursor at run time. 
+	cursor = CreateCursor(hInstance,   // app. instance 
+		15,                // horizontal position of hot spot 
+		14,                // vertical position of hot spot 
+		32,                // cursor width 
+		32,                // cursor height
+		ANDmaskCursor,     // AND mask 
+		XORmaskCursor);   // XOR mask 
 #ifdef _WIN64
     SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) cursor );
 #else
@@ -83,9 +91,9 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 
 
     SetWindowPos(dev->hwnd, HWND_TOP, 0,0,0,0, SWP);
-	GetClipCursor(&rcOldClip);
+	//GetClipCursor(&rcOldClip);
     GetWindowRect(dev->hwnd, &rcClip);  // I tried every which-way,this is the way!
-	ClipCursor(&rcClip);                
+	//ClipCursor(&rcClip);                
 
  	gin->pX=-1;   // negative Xs are unlikely.
 //   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
@@ -144,7 +152,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     int ycorr =  8;  // a reserve in the borders?
     gin->dX = ((PLFLT) gin->pX - xcorr) / ( dev->width - 1); // !! this is the reversible answer.
     gin->dY = ((PLFLT) gin->pY - ycorr) / ( dev->height - 1); // re-plotting in normal coordinates
-    ClipCursor(&rcOldClip);
+    //ClipCursor(&rcOldClip);
 
  	SetForegroundWindow(resetFG);
     SetCursor( previous );
@@ -247,6 +255,7 @@ bool GDLWINStream::PaintImage( unsigned char *idata, PLINT nx, PLINT ny,
 	delete [] lpbitmap;
   }
   DeleteObject(hbitmap);
+  //SetWindowPos(dev->hwnd, 0, 0, 0, kxLimit, kyLimit, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
   return true;
 }
 void GDLWINStream::Raise() 
