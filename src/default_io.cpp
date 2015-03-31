@@ -1393,15 +1393,19 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
 
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_complex( XDR *xdrs, DComplex *p)  
-{  
-  return(xdr_float(xdrs, &p->real()) &&  
-         xdr_float(xdrs, &p->imag()));  
+{ 
+  float preal = p->real();
+  float pimag = p->imag();
+  return(xdr_float(xdrs, &preal) &&  
+         xdr_float(xdrs, &pimag)); 
 }  
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)  
 {  
-  return(xdr_double(xdrs,  &p->real()) &&  
-         xdr_double(xdrs,  &p->imag()));  
+	double preal = p->real();
+	double pimag = p->imag();
+	return(xdr_double(xdrs, &preal) &&  
+           xdr_double(xdrs, &pimag));  
 } 
 
 
@@ -1464,12 +1468,12 @@ int xdr_convert(XDR *xdrs, DULong *buf)
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
 {
-  return (xdr_longlong_t(xdrs, (long int*)(buf)));
+  return (xdr_longlong_t(xdrs, (quad_t *)(buf)));
 }
 
 int xdr_convert(XDR *xdrs, DULong64 *buf)
 {
-  return (xdr_u_longlong_t(xdrs,  (unsigned long int*) (buf)));
+  return (xdr_u_longlong_t(xdrs, (u_quad_t *) (buf)));
 }
 
 int xdr_convert(XDR *xdrs, DFloat *buf)
