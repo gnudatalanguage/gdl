@@ -42,192 +42,195 @@
 
 class DeviceWIN : public GraphicsDevice
 {
-private:  
-  std::vector<GDLGStream*> winList;
-  std::vector<long>        oList;
-  long oIx;
-  int  actWin;
-  int decomposed; // false -> use color table
-
-  
-  int cursorId; //should be 3 by default.
-  long gcFunction;
-  int backingStoreMode;
+private:
+	std::vector<GDLGStream*> winList;
+	std::vector<long>        oList;
+	long oIx;
+	int  actWin;
+	int decomposed; // false -> use color table
 
 
-  void EventHandler();
+	int cursorId; //should be 3 by default.
+	long gcFunction;
+	int backingStoreMode;
 
-  bool WDelete( int );
-  bool WOpen( int , const std::string& , 
-	      int , int , int , int );
-  bool WState( int );
-  bool WSize( int , int*, int*, int*, int*);
-  bool WSet( int );
-  bool WShow( int, bool, bool);
-  int WAdd();
-  //int WAddFree();
-  DIntGDL* GetWindowPosition();
-  DLong GetVisualDepth();
-  DString GetVisualName();
-  DLong GetPixelDepth();
-  DByteGDL* WindowState();
-   bool UnsetFocus();
-   int MaxWin();
-   int ActWin();
-   void DefaultXYSize(DLong *xSize,DLong  *ySize);
-  void MaxXYSize(DLong *xSize, DLong *ySize);
-  DIntGDL* GetScreenSize(char* disp=NULL);
-  DDoubleGDL* GetScreenResolution(char* disp=NULL);
 
-  void SetActWin( int wIx)
-  {
-	// update !D
-    if (wIx >= 0 && wIx < winList.size()) {	// window size and pos
-	long xsize,ysize,xoff,yoff;
-	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
-	
-        (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
-        (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
-        (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
-        (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
-	    winList[ wIx]->CheckValid(); // runs an IsWindow(hwnd) check
-    }
+	void EventHandler();
+
+	bool WDelete(int);
+	bool WOpen(int, const std::string&,
+		int, int, int, int);
+	bool WState(int);
+	bool WSize(int, int*, int*, int*, int*);
+	bool WSet(int);
+	bool WShow(int, bool, bool);
+	int WAdd();
+	//int WAddFree();
+	DIntGDL* GetWindowPosition();
+	DLong GetVisualDepth();
+	DString GetVisualName();
+	DLong GetPixelDepth();
+	DByteGDL* WindowState();
+	bool UnsetFocus();
+	int MaxWin();
+	int ActWin();
+	void DefaultXYSize(DLong *xSize, DLong  *ySize);
+	void MaxXYSize(DLong *xSize, DLong *ySize);
+	DIntGDL* GetScreenSize(char* disp = NULL);
+	DDoubleGDL* GetScreenResolution(char* disp = NULL);
+
+	void SetActWin(int wIx)
+	{
+		// update !D
+		if (wIx >= 0 && wIx < winList.size()) {	// window size and pos
+			long xsize, ysize, xoff, yoff;
+			winList[wIx]->GetGeometry(xsize, ysize, xoff, yoff);
+
+			(*static_cast<DLongGDL*>(dStruct->GetTag(xSTag)))[0] = xsize;
+			(*static_cast<DLongGDL*>(dStruct->GetTag(ySTag)))[0] = ysize;
+			(*static_cast<DLongGDL*>(dStruct->GetTag(xVSTag)))[0] = xsize;
+			(*static_cast<DLongGDL*>(dStruct->GetTag(yVSTag)))[0] = ysize;
+			winList[wIx]->CheckValid(); // runs an IsWindow(hwnd) check
+		}
 
 		// window number
-    (*static_cast<DLongGDL*>(dStruct->GetTag(wTag)))[0] = wIx;
+		(*static_cast<DLongGDL*>(dStruct->GetTag(wTag)))[0] = wIx;
 
-    actWin = wIx;
-  }
+		actWin = wIx;
+	}
 
 	// process user deleted windows
-  void TidyWindowsList()
-  {
-    int wLSize = winList.size();
- 
-    for( int i=0; i<wLSize; i++) {
-      if( winList[ i] != NULL && !winList[ i]->GetValid()) {
-	    delete winList[ i];
-	    winList[ i] = NULL;	    oList[ i] = 0;
-	  }
-    }
-    // set new actWin IF NOT VALID ANY MORE
-    if( actWin < 0 || actWin >= wLSize || 
-			  winList[ actWin] == NULL ||
-			 !winList[ actWin]->GetValid())      {
-	  // set to most recently created
-	  std::vector< long>::iterator mEl = 
-	  		std::max_element( oList.begin(), oList.end());
-    
-	  // no window open
-	  if( *mEl == 0)  {
-	    SetActWin( -1);	    oIx = 1;
-	  }	else {
-	    SetActWin( std::distance( oList.begin(), mEl)); 
-      }
-    }
-  }
+	void TidyWindowsList()
+	{
+		int wLSize = winList.size();
+
+		for (int i = 0; i < wLSize; i++) {
+			if (winList[i] != NULL && !winList[i]->GetValid()) {
+				delete winList[i];
+				winList[i] = NULL;	    oList[i] = 0;
+			}
+		}
+		// set new actWin IF NOT VALID ANY MORE
+		if (actWin < 0 || actWin >= wLSize ||
+			winList[actWin] == NULL ||
+			!winList[actWin]->GetValid())      {
+			// set to most recently created
+			std::vector< long>::iterator mEl =
+				std::max_element(oList.begin(), oList.end());
+
+			// no window open
+			if (*mEl == 0)  {
+				SetActWin(-1);	    oIx = 1;
+			}
+			else {
+				SetActWin(std::distance(oList.begin(), mEl));
+			}
+		}
+	}
 
 
 public:
-  DeviceWIN(): GraphicsDevice(), oIx( 1), actWin( -1), decomposed( -1)
-  {
-    name = "WIN";
+	DeviceWIN() : GraphicsDevice(), oIx(1), actWin(-1), decomposed(-1)
+	{
+		name = "WIN";
 
-    DLongGDL origin( dimension( 2));
-    DLongGDL zoom( dimension( 2));
-    zoom[0] = 1;
-    zoom[1] = 1;
+		DLongGDL origin(dimension(2));
+		DLongGDL zoom(dimension(2));
+		zoom[0] = 1;
+		zoom[1] = 1;
 
-    dStruct = new DStructGDL( "!DEVICE");
-    dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( 640)); 
-    dStruct->InitTag("Y_SIZE",     DLongGDL( 512)); 
-    dStruct->InitTag("X_VSIZE",    DLongGDL( 640)); 
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( 512)); 
-    dStruct->InitTag("X_CH_SIZE",  DLongGDL(9));
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL(12));
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( 40.0)); 
-    dStruct->InitTag("Y_PX_CM",    DFloatGDL( 40.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
-    dStruct->InitTag("TABLE_SIZE", DLongGDL( ctSize)); 
-    dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
-    dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
-    dStruct->InitTag("UNIT",       DLongGDL( 0)); 
-    dStruct->InitTag("FLAGS",      DLongGDL( 328124)); 
-    dStruct->InitTag("ORIGIN",     origin); 
-    dStruct->InitTag("ZOOM",       zoom); 
+		dStruct = new DStructGDL("!DEVICE");
+		dStruct->InitTag("NAME", DStringGDL(name));
+		dStruct->InitTag("X_SIZE", DLongGDL(640));
+		dStruct->InitTag("Y_SIZE", DLongGDL(512));
+		dStruct->InitTag("X_VSIZE", DLongGDL(640));
+		dStruct->InitTag("Y_VSIZE", DLongGDL(512));
+		dStruct->InitTag("X_CH_SIZE", DLongGDL(9));
+		dStruct->InitTag("Y_CH_SIZE", DLongGDL(12));
+		dStruct->InitTag("X_PX_CM", DFloatGDL(40.0));
+		dStruct->InitTag("Y_PX_CM", DFloatGDL(40.0));
+		dStruct->InitTag("N_COLORS", DLongGDL(256));
+		dStruct->InitTag("TABLE_SIZE", DLongGDL(ctSize));
+		dStruct->InitTag("FILL_DIST", DLongGDL(0));
+		dStruct->InitTag("WINDOW", DLongGDL(-1));
+		dStruct->InitTag("UNIT", DLongGDL(0));
+		dStruct->InitTag("FLAGS", DLongGDL(328124));
+		dStruct->InitTag("ORIGIN", origin);
+		dStruct->InitTag("ZOOM", zoom);
 
-    winList.reserve( maxWinReserve);
-    winList.resize( maxWin);    
-    for( int i=0; i < maxWin; i++) winList[ i] = NULL;
-    oList.reserve( maxWinReserve);
-    oList.resize( maxWin);
-    for( int i=0; i < maxWin; i++) oList[ i] = 0;
+		winList.reserve(maxWinReserve);
+		winList.resize(maxWin);
+		for (int i = 0; i < maxWin; i++) winList[i] = NULL;
+		oList.reserve(maxWinReserve);
+		oList.resize(maxWin);
+		for (int i = 0; i < maxWin; i++) oList[i] = 0;
 
- 
-  }
-  
+
+	}
+
 	~DeviceWIN()
-  {
-    std::vector<GDLGStream*>::iterator i;
-    for(i = winList.begin(); i != winList.end(); ++i) 
-      { delete *i; /* *i = NULL;*/}
-  }
+	{
+		std::vector<GDLGStream*>::iterator i;
+		for (i = winList.begin(); i != winList.end(); ++i)
+		{
+			delete *i; /* *i = NULL;*/
+		}
+	}
 
-  GDLGStream* GetStreamAt( int wIx) const 
-  { 
-    return winList[ wIx];
-  }
-  
+	GDLGStream* GetStreamAt(int wIx) const
+	{
+		return winList[wIx];
+	}
 
- 
-  // should check for valid streams
-  GDLGStream* GetStream( bool open=true)
-   { 
-    TidyWindowsList();
-    if( actWin == -1) {
-	  if( !open) return NULL;
 
-	  DString title = "GDL 0";
-	  DLong xSize, ySize;
-	  DefaultXYSize(&xSize, &ySize);
 
-	  bool success = WOpen( 0, title, xSize, ySize, -1, -1);
-	  if( !success)	  return NULL;
-	  if( actWin == -1)	  {
-	    std::cerr << "Internal error: plstream not set." << std::endl;
-	    exit( EXIT_FAILURE);
-	  }
-    }
-    return winList[ actWin];
-  }
+	// should check for valid streams
+	GDLGStream* GetStream(bool open = true)
+	{
+		TidyWindowsList();
+		if (actWin == -1) {
+			if (!open) return NULL;
+
+			DString title = "GDL 0";
+			DLong xSize, ySize;
+			DefaultXYSize(&xSize, &ySize);
+
+			bool success = WOpen(0, title, xSize, ySize, -1, -1);
+			if (!success)	  return NULL;
+			if (actWin == -1)	  {
+				std::cerr << "Internal error: plstream not set." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		return winList[actWin];
+	}
 #ifdef HAVE_LIBWXWIDGETS
-  bool GUIOpen( int wIx, int xSize, int ySize);
+	bool GUIOpen(int wIx, int xSize, int ySize);
 #endif
-  bool Decomposed(bool value)
-  {
-  	decomposed = value;
-  	return true;
-  }
+	bool Decomposed(bool value)
+	{
+		decomposed = value;
+		return true;
+	}
 
-  void RaiseWin( int wIx)
-  {
-    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Raise();
-  }
+	void RaiseWin(int wIx)
+	{
+		if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Raise();
+	}
 
-  void LowerWin( int wIx)
-  {
-    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Lower();
-  }
+	void LowerWin(int wIx)
+	{
+		if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Lower();
+	}
 
-  void IconicWin( int wIx)
-  {
-    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Iconic();
-  }
-  void DeIconicWin( int wIx)
-  {
-    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->DeIconic();
-  }
+	void IconicWin(int wIx)
+	{
+		if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Iconic();
+	}
+	void DeIconicWin(int wIx)
+	{
+		if (wIx >= 0 && wIx < winList.size()) winList[wIx]->DeIconic();
+	}
 
 };
 #undef maxWin
