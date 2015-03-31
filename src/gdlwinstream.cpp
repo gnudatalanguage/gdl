@@ -1,5 +1,5 @@
 /* *************************************************************************
-  gdlwinstream.cpp  -  graphic stream M$ windows
+                          gdlwinstream.cpp  -  graphic stream M$ windows
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
@@ -57,8 +57,28 @@ void GDLWINStream::Init()
 	plgpls(&pls);
 	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 	dev->waiting = 1;
-
 	UnsetFocus();
+}
+
+void GDLWINStream::ResizeWindow(int xleng, int yleng, int xoff, int yoff)
+{
+	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+
+	RECT rt = { 0, 0, xleng, yleng };
+	RECT rt2;
+	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
+	SetWindowPos(dev->hwnd, 0, 0, 0, rt.right - rt.left, rt.bottom - rt.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+
+	// Reposition window if it is out of work area
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &rt, 0);
+	GetWindowRect(dev->hwnd, &rt2);
+	LONG wdiff = 0, hdiff = 0;
+	if (rt.right < rt2.right) wdiff = rt2.right - rt.right;
+	if (rt.bottom < rt2.bottom) hdiff = rt2.bottom - rt.bottom;
+	if (wdiff) rt2.left -= wdiff;
+	if (hdiff) rt2.top -= hdiff;
+	if (wdiff || hdiff)
+		SetWindowPos(dev->hwnd, 0, rt2.left, rt2.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void GDLWINStream::EventHandler()
@@ -277,21 +297,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 		delete[] lpbitmap;
 	}
 	DeleteObject(hbitmap);
-	RECT rt = { 0, 0, kxLimit, kyLimit };
-	RECT rt2;
-	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
-	SetWindowPos(dev->hwnd, 0, 0, 0, rt.right - rt.left, rt.bottom - rt.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-
-	// Reposition window if it is out of work area
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &rt, 0);
-	GetWindowRect(dev->hwnd, &rt2);
-	LONG wdiff = 0, hdiff = 0;
-	if (rt.right < rt2.right) wdiff = rt2.right - rt.right;
-	if (rt.bottom < rt2.bottom) hdiff = rt2.bottom - rt.bottom;
-	if (wdiff) rt2.left -= wdiff;
-	if (hdiff) rt2.top -= hdiff;
-	if (wdiff || hdiff)
-		SetWindowPos(dev->hwnd, 0, rt2.left, rt2.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	return true;
 }
 void GDLWINStream::Raise()

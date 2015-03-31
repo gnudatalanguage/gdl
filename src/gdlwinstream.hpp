@@ -121,6 +121,7 @@ public:
 	void DeIconic();
 	void Flush();
 	void CheckValid();
+	void ResizeWindow(int xleng, int yleng, int xpos, int ypos);
 	bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan);
 
 	//  bool SetGraphicsFunction(long value );

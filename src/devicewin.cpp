@@ -259,6 +259,8 @@
     // sets actWin and updates !D
     SetActWin( wIx);
 
+	((GDLWINStream *)winList[wIx])->ResizeWindow(xleng, yleng, xoff, yoff);
+
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   }
 
