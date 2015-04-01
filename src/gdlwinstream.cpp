@@ -171,6 +171,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 		}
 	}
 	ScreenToClient(dev->hwnd, &Point); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
+	
 	gin->pX = Point.x;
 	gin->pY = (rcClient.bottom - rcClient.top) - Point.y;
 	if (xbutton) gin->button = 4; else
@@ -217,7 +218,7 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 	hbitmap = CreateCompatibleBitmap(hdc, kxLimit, kyLimit);
 
 	if (nx > 0 && ny > 0) {
-		char iclr1, ired, igrn, iblu;
+		unsigned char iclr1, ired, igrn, iblu;
 		long curcolor;
 
 		bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -236,7 +237,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 
 				if (tru == 0 && chan == 0) {
 					iclr1 = idata[iy * nx + ix];
-
 					//curcolor = RGB( pls->cmap1[iclr1].r, pls->cmap1[iclr1].g, pls->cmap1[iclr1].b );
 					lpbitmap[ky*kxLimit + ix].rgbtBlue = pls->cmap1[iclr1].b;
 					lpbitmap[ky*kxLimit + ix].rgbtGreen = pls->cmap1[iclr1].g;
