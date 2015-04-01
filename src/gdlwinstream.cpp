@@ -60,25 +60,12 @@ void GDLWINStream::Init()
 	UnsetFocus();
 }
 
-void GDLWINStream::ResizeWindow(int xleng, int yleng, int xoff, int yoff)
-{
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+void GDLWINStream::SetWindowTitle(char* buf) {
+	wchar_t wbuf[256] = { 0, };
+	MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, 256);
+	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 
-	RECT rt = { 0, 0, xleng, yleng };
-	RECT rt2;
-	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
-	SetWindowPos(dev->hwnd, 0, 0, 0, rt.right - rt.left, rt.bottom - rt.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-
-	// Reposition window if it is out of work area
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &rt, 0);
-	GetWindowRect(dev->hwnd, &rt2);
-	LONG wdiff = 0, hdiff = 0;
-	if (rt.right < rt2.right) wdiff = rt2.right - rt.right;
-	if (rt.bottom < rt2.bottom) hdiff = rt2.bottom - rt.bottom;
-	if (wdiff) rt2.left -= wdiff;
-	if (hdiff) rt2.top -= hdiff;
-	if (wdiff || hdiff)
-		SetWindowPos(dev->hwnd, 0, rt2.left, rt2.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	SetWindowTextW(dev->hwnd, wbuf);
 }
 
 void GDLWINStream::EventHandler()
@@ -306,20 +293,35 @@ void GDLWINStream::Raise()
 	return;
 }
 void GDLWINStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+	// GetGeometry is called from
+	//  1. 'plotting_contour.cpp' to calculate plot area,
+	//  2. 'initsysvar.cpp' to update '!D'.
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
-	GetWindowInfo(dev->hwnd, &Winfo);
-	xSize = Winfo.rcWindow.right - Winfo.rcWindow.left;
-	ySize = Winfo.rcWindow.bottom - Winfo.rcWindow.top;
-	xoff = Winfo.rcWindow.left;
-	yoff = Winfo.rcWindow.top;
+	// http://support.microsoft.com/en-us/kb/11570
+	RECT Rect;
+	GetClientRect(dev->hwnd, &Rect);
+	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.left);
+	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.right);
+
+	xSize = Rect.right - Rect.left;
+	ySize = Rect.bottom - Rect.top;
+	xoff = Rect.left;
+	yoff = GetSystemMetrics(SM_CYSCREEN) - Rect.bottom;
 }
 bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
+	/* 
+	   GET_WINDOW_POSITION (WIN, X)
+
+	   Set this keyword to a named variable that returns a two-element array
+	 containing the (X,Y) position of the lower left corner of the current window
+	 on the screen. The origin is also in the lower left corner of the screen.
+	*/
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
 	GetWindowInfo(dev->hwnd, &Winfo);
 	xpos = Winfo.rcWindow.left;
-	ypos = Winfo.rcWindow.top;
+	ypos = GetSystemMetrics(SM_CYSCREEN) - Winfo.rcWindow.bottom;
 	return true;
 }
 

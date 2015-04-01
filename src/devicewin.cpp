@@ -171,7 +171,10 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 
 	/**/
 	DLong xMaxSize, yMaxSize;
-	DeviceWIN::MaxXYSize(&xMaxSize, &yMaxSize);
+	//DeviceWIN::MaxXYSize(&xMaxSize, &yMaxSize);
+	RECT rt;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &rt, 0);
+	xMaxSize = rt.right; yMaxSize = rt.bottom;
 
 	bool noPosx = (xPos == -1);
 	bool noPosy = (yPos == -1);
@@ -199,18 +202,9 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	else {
 		xoff = xPos; yoff = yMaxSize - yPos - yleng;
 	}
-	//apparently this is OK to get same results as IDL on X11...
-
-	yoff++;
 	if (debug) cout << "End: xp=" << xp << ", yp=" << yp << ", xleng=" << xleng << ", yleng=" << yleng << ", xoff=" << xoff << ", yoff=" << yoff << endl;
 	winList[wIx]->spage(xp, yp, xleng, yleng, xoff, yoff);
 
-	/*  ye old way for windows ...
-			xleng = xSize; yleng = ySize;
-			xoff = xPos; yoff = yPos;
-
-			winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
-			*/
 	// no pause on win destruction
 	winList[wIx]->spause(false);
 	if (debug) cout << " WOpen: ->fontld( 1) WOpen: ->scolor( ";
@@ -262,7 +256,8 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	// sets actWin and updates !D
 	SetActWin(wIx);
 
-	((GDLWINStream *)winList[wIx])->ResizeWindow(xleng, yleng, xoff, yoff);
+	// Currently Plplot ignores to update window title on Windows. it should be done manually..
+	((GDLWINStream *)winList[wIx])->SetWindowTitle(buf);
 
 	return true; //winList[ wIx]->Valid(); // Valid() need to called once
 }
@@ -449,7 +444,6 @@ void DeviceWIN::MaxXYSize(DLong *xSize, DLong *ySize)
 {
 	*xSize = GetSystemMetrics(SM_CXSCREEN);
 	*ySize = GetSystemMetrics(SM_CYSCREEN);
-
 }
 
 
