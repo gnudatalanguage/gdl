@@ -31,6 +31,7 @@
 
 void DeviceWIN::EventHandler()
 {
+	if (actWin < 0) return;
 	int wLSize = winList.size();
 	for (int i = 0; i < wLSize; i++) {
 		if (winList[i] != NULL)	winList[i]->EventHandler();
