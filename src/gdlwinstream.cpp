@@ -70,13 +70,28 @@ void GDLWINStream::SetWindowTitle(char* buf) {
 
 void GDLWINStream::EventHandler()
 {
+	if (!valid) return;
+
+	if (pls->dev == NULL) {
+		cerr << "Invalid window." << endl;
+		valid = false;
+		return;
+	}
+
 	MSG Message;
 	if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&Message);
-		DispatchMessage(&Message);
+		if (Message.message == WM_DESTROY) {
+			valid = false;
+			return;
+		} else DispatchMessage(&Message);
 	}
+
+	// plplot event handler
+	plstream::cmd(PLESC_EH, NULL);
 }
+
 bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	LPPOINT lpt;
 
@@ -119,59 +134,62 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	previous = SetCursor(cursor);
 
 	SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
 	SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
-	GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
 
-	Point.x = -1;   // negative Xs are unlikely.
+	bool buttonpressed = false;
 	//   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
-
 	bool rbutton, xbutton, mbutton;
 	gin->button = 0;
-	while (Point.x < 0)
+	while (!buttonpressed)
 	{
+		GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
+		ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.left); // http://support.microsoft.com/en-us/kb/11570
+		ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.right);
+
 		rbutton = false; xbutton = false; mbutton = false;
 		GetMessage(&dev->msg, NULL, 0, 0);
 		TranslateMessage(&dev->msg);
-		switch ((int)dev->msg.message)
-		{
-		case WM_XBUTTONDOWN:  xbutton = true;
-		case WM_RBUTTONDOWN:  rbutton = true;
-		case WM_MBUTTONDOWN:  mbutton = true;
-
-		case WM_LBUTTONDOWN:
-			if (mode == 4) {   // Looking for button up
-				DispatchMessage(&dev->msg);
-				break;
-			}
-			gin->button = 1;
-			GetCursorPos(&Point);
-			break;
-		case WM_XBUTTONUP:		xbutton = true;
-		case WM_RBUTTONUP:		rbutton = true;
-		case WM_MBUTTONUP:  mbutton = true;
-		case WM_LBUTTONUP:
-			if (mode == 3) {  // Looking for button down
-				DispatchMessage(&dev->msg);
-				break;
-			}
-			gin->button = 1;
-			GetCursorPos(&Point);
-			break;
-		case WM_CHAR:
-			GetCursorPos(&Point);
-			gin->keysym = dev->msg.wParam;
-			break;
-		default:
-			if (mode == 0) {
+		if (GetForegroundWindow() == dev->hwnd) {
+			switch ((int)dev->msg.message)
+			{
+			case WM_XBUTTONDOWN:  xbutton = true;
+			case WM_RBUTTONDOWN:  rbutton = true;
+			case WM_MBUTTONDOWN:  mbutton = true;
+			case WM_LBUTTONDOWN:
+				if (mode == 4) break;   // Looking for button up
+				gin->button = 1;
 				GetCursorPos(&Point);
+				buttonpressed = true;
+				break;
+			case WM_XBUTTONUP:	xbutton = true;
+			case WM_RBUTTONUP:	rbutton = true;
+			case WM_MBUTTONUP:  mbutton = true;
+			case WM_LBUTTONUP:
+				if (mode == 3) break;  // Looking for button down
+				gin->button = 1;
+				GetCursorPos(&Point);
+				buttonpressed = true;
+				break;
+			case WM_CHAR:
+				GetCursorPos(&Point);
+				gin->keysym = dev->msg.wParam;
+				buttonpressed = true;
+				break;
+			default:
+				if (mode == 0) {
+					GetCursorPos(&Point);
+					buttonpressed = true;
+				}
 			}
-			else	DispatchMessage(&dev->msg);
+			if (!buttonpressed || !rcClient.left > Point.x || Point.x > rcClient.right || rcClient.top > Point.y || Point.y > rcClient.bottom) {
+				DispatchMessage(&dev->msg);
+				buttonpressed = false;
+			}
 		}
 	}
 	ScreenToClient(dev->hwnd, &Point); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
-	
+
 	gin->pX = Point.x;
 	gin->pY = (rcClient.bottom - rcClient.top) - Point.y;
 	if (xbutton) gin->button = 4; else
@@ -212,6 +230,8 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 	HBITMAP hbitmap;
 	BITMAPINFO bi = { 0 };
 
+	RECT rt;
+
 	if (nx < kxLimit) kxLimit = nx;
 	if (ny < kyLimit) kyLimit = ny;
 
@@ -232,15 +252,12 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 		GetDIBits(hdc, hbitmap, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
 		for (SizeT ix = 0; ix < kxLimit; ++ix) {
 			for (SizeT iy = 0; iy < kyLimit; ++iy) {
-				kx = xoff + ix;
-				ky = yoff + iy;
-
 				if (tru == 0 && chan == 0) {
 					iclr1 = idata[iy * nx + ix];
 					//curcolor = RGB( pls->cmap1[iclr1].r, pls->cmap1[iclr1].g, pls->cmap1[iclr1].b );
-					lpbitmap[ky*kxLimit + ix].rgbtBlue = pls->cmap1[iclr1].b;
-					lpbitmap[ky*kxLimit + ix].rgbtGreen = pls->cmap1[iclr1].g;
-					lpbitmap[ky*kxLimit + ix].rgbtRed = pls->cmap1[iclr1].r;
+					lpbitmap[iy*kxLimit + ix].rgbtBlue = pls->cmap1[iclr1].b;
+					lpbitmap[iy*kxLimit + ix].rgbtGreen = pls->cmap1[iclr1].g;
+					lpbitmap[iy*kxLimit + ix].rgbtRed = pls->cmap1[iclr1].r;
 					//	 			 printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
 
 				}
@@ -261,31 +278,35 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 							igrn = idata[nx * (1 * ny + iy) + ix];
 							iblu = idata[nx * (2 * ny + iy) + ix];
 						}
-						lpbitmap[ky*kxLimit + ix].rgbtBlue = iblu;
-						lpbitmap[ky*kxLimit + ix].rgbtGreen = igrn;
-						lpbitmap[ky*kxLimit + ix].rgbtRed = ired;
+						lpbitmap[iy*kxLimit + ix].rgbtBlue = iblu;
+						lpbitmap[iy*kxLimit + ix].rgbtGreen = igrn;
+						lpbitmap[iy*kxLimit + ix].rgbtRed = ired;
 					}
 					else if (chan == 1) {
 						ired = idata[1 * (iy * nx + ix) + 0];
-						lpbitmap[ky*kxLimit + ix].rgbtRed = ired;
+						lpbitmap[iy*kxLimit + ix].rgbtRed = ired;
 					}
 					else if (chan == 2) {
 						igrn = idata[1 * (iy * nx + ix) + 1];
-						lpbitmap[ky*kxLimit + ix].rgbtGreen = igrn;
+						lpbitmap[iy*kxLimit + ix].rgbtGreen = igrn;
 					}
 					else if (chan == 3) {
 						iblu = idata[1 * (iy * nx + ix) + 2];
-						lpbitmap[ky*kxLimit + ix].rgbtBlue = iblu;
+						lpbitmap[iy*kxLimit + ix].rgbtBlue = iblu;
 					} // if (chan == 0) else
 				} // if (tru == 0  && chan == 0) else
 			} // for() inner (indent error)
 		} // for() outer
-		SetDIBitsToDevice(hdc, 0, 0, kxLimit, kyLimit, 0, 0, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
+
+		GetClientRect(dev->hwnd, &rt);
+		SetDIBitsToDevice(hdc, xoff, (rt.bottom - rt.top) - kyLimit - yoff, kxLimit, kyLimit, 0, 0, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
+		cout << kxLimit << '\t' << kyLimit << endl;
 		delete[] lpbitmap;
 	}
 	DeleteObject(hbitmap);
 	return true;
 }
+
 void GDLWINStream::Raise()
 {
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
