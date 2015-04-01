@@ -182,14 +182,21 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	yPos = max(1, yPos);
 
 	xleng = min(xSize, xMaxSize);
-	if (xPos + xleng > xMaxSize) xPos = xMaxSize - xleng - 1;
 	yleng = min(ySize, yMaxSize);
+
+	rt.left = 0; rt.top = 0; rt.right = xleng, rt.bottom = yleng;
+	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
+
+	xleng = rt.right - rt.left;
+	yleng = rt.bottom - rt.top;
+
+	if (xPos + xleng > xMaxSize) xPos = xMaxSize - xleng - 1;
 	if (yPos + yleng > yMaxSize) yPos = yMaxSize - yleng - 1;
-	if (debug) cout << "then: xleng=" << xleng << ", yleng=" << yleng
-		<< " xMaxSize=" << xMaxSize << " yMaxSize=" << yMaxSize << endl;
-	// dynamic allocation needed!    
+
+	// dynamic allocation needed!
 	PLINT Quadx[4] = { xMaxSize - xleng - 1, xMaxSize - xleng - 1, 1, 1 };
 	PLINT Quady[4] = { 1, yMaxSize - yleng - 1, 1, yMaxSize - yleng - 1 };
+
 	if (noPosx && noPosy) { //no init given, use 4 quadrants:
 		xoff = Quadx[wIx % 4]; yoff = Quady[wIx % 4];
 	}
@@ -202,7 +209,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	else {
 		xoff = xPos; yoff = yMaxSize - yPos - yleng;
 	}
-	if (debug) cout << "End: xp=" << xp << ", yp=" << yp << ", xleng=" << xleng << ", yleng=" << yleng << ", xoff=" << xoff << ", yoff=" << yoff << endl;
 	winList[wIx]->spage(xp, yp, xleng, yleng, xoff, yoff);
 
 	// no pause on win destruction
