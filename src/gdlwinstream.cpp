@@ -300,7 +300,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 
 		GetClientRect(dev->hwnd, &rt);
 		SetDIBitsToDevice(hdc, xoff, (rt.bottom - rt.top) - kyLimit - yoff, kxLimit, kyLimit, 0, 0, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
-		cout << kxLimit << '\t' << kyLimit << endl;
 		delete[] lpbitmap;
 	}
 	DeleteObject(hbitmap);
