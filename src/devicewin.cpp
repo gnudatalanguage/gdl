@@ -28,6 +28,82 @@
 
 #include "plotting.hpp"
 
+// JP Apr 2015, HACK: hook WM_PAINT and WM_DESTROY from plplot window.
+HHOOK hHook[2] = {0};
+DeviceWIN *p_this;
+
+LRESULT CALLBACK DeviceWIN::_CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	return p_this->CallWndProc(nCode, wParam, lParam);
+}
+
+LRESULT CALLBACK DeviceWIN::_GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	return p_this->GetMsgProc(nCode, wParam, lParam);
+}
+
+
+LRESULT DeviceWIN::CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	CWPSTRUCT* lpWp = (CWPSTRUCT*)lParam;
+	int i;
+	BOOL windowfound = false;
+	if (nCode >= 0) {
+		for (i = 0; i < winList.size(); i++) {
+			if (winList[i] && winList[i]->GetValid() && lpWp->hwnd == ((GDLWINStream *)winList[i])->GetHwnd()) {
+				windowfound = true;
+				break;
+			}
+		}
+		if (windowfound) {
+			switch (lpWp->message)
+			{
+				case WM_PAINT:
+				{
+					// Redraw image while resizing/moving/etc..
+					PAINTSTRUCT ps;
+					BeginPaint(lpWp->hwnd, &ps);
+					((GDLWINStream *)winList[i])->RedrawTV();
+					EndPaint(lpWp->hwnd, &ps);
+					lpWp->message = WM_NULL;
+					break;
+				}
+				case WM_DESTROY:
+				{
+					winList[i]->SetValid(false);
+					break;
+				}
+			}
+		}
+	}
+	return CallNextHookEx(hHook[0], nCode, wParam, lParam);
+}
+
+LRESULT DeviceWIN::GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	MSG* lpWp = (MSG*)lParam;
+	int i;
+	BOOL windowfound = false;
+	if (nCode >= 0) {
+		for (i = 0; i < winList.size(); i++) {
+			if (winList[i] && winList[i]->GetValid() && lpWp->hwnd == ((GDLWINStream *)winList[i])->GetHwnd()) {
+				windowfound = true;
+				break;
+			}
+		}
+		if (windowfound && lpWp->message == WM_PAINT) {
+			// Redraw image after the window is finally reactivated.
+			// TODO: plot + TV does not work!!
+			//       plot window always shows Hourglass cursor!!
+			PAINTSTRUCT ps;
+			BeginPaint(lpWp->hwnd, &ps);
+			((GDLWINStream *)winList[i])->RedrawTV();
+			EndPaint(lpWp->hwnd, &ps);
+		}
+	}
+	return CallNextHookEx(hHook[1], nCode, wParam, lParam);
+}
+// HACK end
 
 void DeviceWIN::EventHandler()
 {
@@ -69,10 +145,17 @@ bool DeviceWIN::WDelete(int wIx)
 	{
 		SetActWin(-1);
 		oIx = 1;
+		if (hHook[0]) {
+			UnhookWindowsHookEx(hHook[0]);
+			hHook[0] = 0;
+		}
+		if (hHook[1]) {
+			UnhookWindowsHookEx(hHook[1]);
+			hHook[1] = 0;
+		}
 	}
 	else
 		SetActWin(std::distance(oList.begin(), mEl));
-
 	return true;
 }
 
@@ -170,7 +253,7 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 		<< ", xleng=" << xleng << ", yleng=" << yleng
 		<< ", xoff=" << xoff << ", yoff=" << yoff << endl;
 
-	/**/
+	
 	DLong xMaxSize, yMaxSize;
 	//DeviceWIN::MaxXYSize(&xMaxSize, &yMaxSize);
 	RECT rt;
@@ -185,7 +268,7 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	xleng = min(xSize, xMaxSize);
 	yleng = min(ySize, yMaxSize);
 
-	rt.left = 0; rt.top = 0; rt.right = xleng, rt.bottom = yleng;
+	rt.left = 0; rt.top = 0; rt.right = xleng; rt.bottom = yleng;
 	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
 
 	xleng = rt.right - rt.left;
@@ -265,6 +348,14 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 
 	// Currently Plplot ignores to update window title on Windows. it should be done manually..
 	((GDLWINStream *)winList[wIx])->SetWindowTitle(buf);
+
+	// HACK: setup hook for redrawing/validating windows
+	p_this = this;
+	if (!hHook[0])
+		hHook[0] = SetWindowsHookEx(WH_CALLWNDPROC, (HOOKPROC)_CallWndProc, NULL, GetCurrentThreadId());
+	if (!hHook[1])
+		hHook[1] = SetWindowsHookEx(WH_GETMESSAGE, (HOOKPROC)_GetMsgProc, NULL, GetCurrentThreadId());
+	// HACK end
 
 	return true; //winList[ wIx]->Valid(); // Valid() need to called once
 }
@@ -453,4 +544,37 @@ void DeviceWIN::MaxXYSize(DLong *xSize, DLong *ySize)
 	*ySize = GetSystemMetrics(SM_CYSCREEN);
 }
 
+void DeviceWIN::TidyWindowsList() {
+	int wLSize = winList.size();
 
+	for (int i = 0; i < wLSize; i++) {
+		if (winList[i] != NULL && !winList[i]->GetValid()) {
+			delete winList[i];
+			winList[i] = NULL;	    oList[i] = 0;
+		}
+	}
+	// set new actWin IF NOT VALID ANY MORE
+	if (actWin < 0 || actWin >= wLSize ||
+		winList[actWin] == NULL ||
+		!winList[actWin]->GetValid())      {
+		// set to most recently created
+		std::vector< long>::iterator mEl =
+			std::max_element(oList.begin(), oList.end());
+
+		// no window open
+		if (*mEl == 0)  {
+			SetActWin(-1);	    oIx = 1;
+			if (hHook[0]) {
+				UnhookWindowsHookEx(hHook[0]);
+				hHook[0] = 0;
+			}
+			if (hHook[1]) {
+				UnhookWindowsHookEx(hHook[1]);
+				hHook[1] = 0;
+			}
+		}
+		else {
+			SetActWin(std::distance(oList.begin(), mEl));
+		}
+	}
+}

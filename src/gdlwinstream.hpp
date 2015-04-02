@@ -73,6 +73,11 @@ struct wingcc_Dev
 	char              already_erased;  // Used to track first and only first backgroudn erases
 	struct wingcc_Dev  *push;
 };
+typedef struct {
+	BITMAPINFO bi;
+	RGBQUAD *lpbitmap;
+	bool has_data;
+} tv_buf_t;
 static tagWINDOWINFO Winfo;
 class GDLWINStream : public GDLGStream
 {
@@ -83,20 +88,18 @@ class GDLWINStream : public GDLGStream
 	PLStream* pls;
 	plstream *plst;
 
+	tv_buf_t tv_buf;
 public:
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
 	{
 		// get the command interpreter window's handle
+		pls = 0;
 		Winfo.cbSize = sizeof(Winfo);
 		refocus = GetForegroundWindow();
 	}
 
-	~GDLWINStream()
-	{
-
-	}
-
+	~GDLWINStream();
 	void Init();
 	void EventHandler();
 
@@ -126,6 +129,8 @@ public:
 	virtual bool HasCrossHair() { return true; }
 
 	void SetWindowTitle(char* buf);
+	HWND GetHwnd(void);
+	void RedrawTV();
 };
 
 #endif

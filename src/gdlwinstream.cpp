@@ -51,6 +51,11 @@ BYTE XORmaskCursor[128] =
 	0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
+GDLWINStream::~GDLWINStream()
+{
+	if(tv_buf.has_data) delete [] tv_buf.lpbitmap;
+}
+
 void GDLWINStream::Init()
 {
 	this->plstream::init();
@@ -58,6 +63,7 @@ void GDLWINStream::Init()
 	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 	dev->waiting = 1;
 	UnsetFocus();
+	tv_buf.has_data = false;
 }
 
 void GDLWINStream::SetWindowTitle(char* buf) {
@@ -78,16 +84,6 @@ void GDLWINStream::EventHandler()
 		return;
 	}
 
-	MSG Message;
-	if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
-	{
-		TranslateMessage(&Message);
-		if (Message.message == WM_DESTROY) {
-			valid = false;
-			return;
-		} else DispatchMessage(&Message);
-	}
-
 	// plplot event handler
 	plstream::cmd(PLESC_EH, NULL);
 }
@@ -103,7 +99,6 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 		UP //4
 	};
 
-	plgpls(&pls);
 	// plstream::cmd( PLESC_GETC, gin );
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
@@ -133,7 +128,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	//   SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) dev->cursor );
 	previous = SetCursor(cursor);
 
-	SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+	//SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
 
 	bool buttonpressed = false;
@@ -213,53 +208,62 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 	DLong *pos, DLong tru, DLong chan)
 {
 	plstream::cmd(PLESC_FLUSH, NULL);
-
+	
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+
 	HDC hdc = dev->hdc;
-
-	PLINT xoff = (PLINT)pos[0];
-	PLINT yoff = (PLINT)pos[2];
-	PLINT kx, ky;
-
-	PLINT xsize = pls->phyxma;
-	PLINT ysize = pls->phyyma;
-
-	PLINT kxLimit = xsize - xoff;
-	PLINT kyLimit = ysize - yoff;
+	HDC hMemDC;
 
 	HBITMAP hbitmap;
-	BITMAPINFO bi = { 0 };
-
 	RECT rt;
+
+	PLINT kxLimit, kyLimit;
+	PLINT kx, ky;
+	PLINT xoff, yoff;
+
+	xoff = (PLINT)pos[0];
+	yoff = (PLINT)pos[2];
+
+	kxLimit = pls->phyxma - xoff;
+	kyLimit = pls->phyyma - yoff;
 
 	if (nx < kxLimit) kxLimit = nx;
 	if (ny < kyLimit) kyLimit = ny;
 
-	hbitmap = CreateCompatibleBitmap(hdc, kxLimit, kyLimit);
-
 	if (nx > 0 && ny > 0) {
 		unsigned char iclr1, ired, igrn, iblu;
-		long curcolor;
+		GetClientRect(dev->hwnd, &rt);
+		memset(&tv_buf.bi, 0, sizeof(BITMAPINFO));
+		tv_buf.bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		tv_buf.bi.bmiHeader.biWidth = rt.right - rt.left + 1;
+		tv_buf.bi.bmiHeader.biHeight = rt.bottom - rt.top + 1;
+		tv_buf.bi.bmiHeader.biPlanes = 1;
+		tv_buf.bi.bmiHeader.biBitCount = 32;
+		tv_buf.bi.bmiHeader.biCompression = BI_RGB;
 
-		bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bi.bmiHeader.biWidth = kxLimit;
-		bi.bmiHeader.biHeight = kyLimit;
-		bi.bmiHeader.biPlanes = 1;
-		bi.bmiHeader.biBitCount = 24;
-		bi.bmiHeader.biCompression = BI_RGB;
-		unsigned long ulBmpSize = kxLimit * kyLimit;
-		RGBTRIPLE *lpbitmap = new RGBTRIPLE[ulBmpSize];
-		GetDIBits(hdc, hbitmap, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
+		if (tv_buf.has_data)
+			delete[] tv_buf.lpbitmap;
+		tv_buf.lpbitmap = new RGBQUAD[tv_buf.bi.bmiHeader.biWidth * tv_buf.bi.bmiHeader.biHeight];
+
+		hbitmap = CreateDIBSection(hdc, &tv_buf.bi, DIB_RGB_COLORS, NULL, NULL, 0);
+		hMemDC = CreateCompatibleDC(hdc);
+		HBITMAP hdcbitmap = (HBITMAP)SelectObject(hMemDC, hbitmap);
+		BitBlt(hMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
+		SelectObject(hMemDC, hdcbitmap);
+		DeleteDC(hMemDC);
+		GetDIBits(hdc, hbitmap, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+
 		for (SizeT ix = 0; ix < kxLimit; ++ix) {
 			for (SizeT iy = 0; iy < kyLimit; ++iy) {
+				kx = xoff + ix;
+				ky = yoff + iy + 1; // To be the same as IDL
+				if (ky >= tv_buf.bi.bmiHeader.biHeight || kx >= tv_buf.bi.bmiHeader.biWidth)
+					continue;
 				if (tru == 0 && chan == 0) {
 					iclr1 = idata[iy * nx + ix];
-					//curcolor = RGB( pls->cmap1[iclr1].r, pls->cmap1[iclr1].g, pls->cmap1[iclr1].b );
-					lpbitmap[iy*kxLimit + ix].rgbtBlue = pls->cmap1[iclr1].b;
-					lpbitmap[iy*kxLimit + ix].rgbtGreen = pls->cmap1[iclr1].g;
-					lpbitmap[iy*kxLimit + ix].rgbtRed = pls->cmap1[iclr1].r;
-					//	 			 printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
-
+					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = pls->cmap1[iclr1].b;
+					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = pls->cmap1[iclr1].g;
+					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = pls->cmap1[iclr1].r;
 				}
 				else {
 					if (chan == 0) {
@@ -278,31 +282,29 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 							igrn = idata[nx * (1 * ny + iy) + ix];
 							iblu = idata[nx * (2 * ny + iy) + ix];
 						}
-						lpbitmap[iy*kxLimit + ix].rgbtBlue = iblu;
-						lpbitmap[iy*kxLimit + ix].rgbtGreen = igrn;
-						lpbitmap[iy*kxLimit + ix].rgbtRed = ired;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = iblu;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = igrn;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = ired;
 					}
 					else if (chan == 1) {
 						ired = idata[1 * (iy * nx + ix) + 0];
-						lpbitmap[iy*kxLimit + ix].rgbtRed = ired;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = ired;
 					}
 					else if (chan == 2) {
 						igrn = idata[1 * (iy * nx + ix) + 1];
-						lpbitmap[iy*kxLimit + ix].rgbtGreen = igrn;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = igrn;
 					}
 					else if (chan == 3) {
 						iblu = idata[1 * (iy * nx + ix) + 2];
-						lpbitmap[iy*kxLimit + ix].rgbtBlue = iblu;
+						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = iblu;
 					} // if (chan == 0) else
 				} // if (tru == 0  && chan == 0) else
 			} // for() inner (indent error)
 		} // for() outer
-
-		GetClientRect(dev->hwnd, &rt);
-		SetDIBitsToDevice(hdc, xoff, (rt.bottom - rt.top) - kyLimit - yoff, kxLimit, kyLimit, 0, 0, 0, kyLimit, lpbitmap, &bi, DIB_RGB_COLORS);
-		delete[] lpbitmap;
+		SetDIBitsToDevice(hdc, 0, 0, tv_buf.bi.bmiHeader.biWidth, tv_buf.bi.bmiHeader.biHeight, 0, 0, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+		DeleteObject(hbitmap);
+		tv_buf.has_data = true;
 	}
-	DeleteObject(hbitmap);
 	return true;
 }
 
@@ -324,8 +326,8 @@ void GDLWINStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff)
 	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.left);
 	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.right);
 
-	xSize = Rect.right - Rect.left;
-	ySize = Rect.bottom - Rect.top;
+	xSize = Rect.right - Rect.left + 1;
+	ySize = Rect.bottom - Rect.top + 1;
 	xoff = Rect.left;
 	yoff = GetSystemMetrics(SM_CYSCREEN) - Rect.bottom;
 }
@@ -396,4 +398,45 @@ void GDLWINStream::Clear()
 {
 	::c_plbop();
 	::c_plclear();
+}
+
+HWND GDLWINStream::GetHwnd()
+{
+	if (pls) {
+		wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+		if (dev)
+			return dev->hwnd;
+	}
+	else return 0;
+}
+
+void GDLWINStream::RedrawTV()
+{
+	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+	HBITMAP hbitmap;
+	HDC hMemDC;
+	RECT rt;
+
+	if (tv_buf.has_data) {
+		// If tv_buf has data, draw it on screen
+		SetDIBitsToDevice(dev->hdc, 0, 0, tv_buf.bi.bmiHeader.biWidth, tv_buf.bi.bmiHeader.biHeight, 0, 0, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+		delete[] tv_buf.lpbitmap;
+	}
+
+	// Resize bitmap buffer
+	GetClientRect(dev->hwnd, &rt);
+	tv_buf.lpbitmap = new RGBQUAD[(rt.right + 1) * (rt.bottom + 1)];
+
+	// Copy contents of current window's client area DC into hbitmap
+	hbitmap = CreateDIBSection(dev->hdc, &tv_buf.bi, DIB_RGB_COLORS, NULL, NULL, 0);
+	hMemDC = CreateCompatibleDC(dev->hdc);
+	HBITMAP hdcbitmap = (HBITMAP)SelectObject(hMemDC, hbitmap);
+	BitBlt(hMemDC, 0, 0, rt.right + 1, rt.bottom + 1, dev->hdc, 0, 0, SRCCOPY);
+	SelectObject(hMemDC, hdcbitmap);
+	DeleteDC(hMemDC);
+
+	// Convert hbitmap to data and put into buffer
+	GetDIBits(dev->hdc, hbitmap, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+	tv_buf.has_data = true;
+	dev->waiting = 0;
 }

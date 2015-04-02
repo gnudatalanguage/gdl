@@ -43,6 +43,11 @@
 class DeviceWIN : public GraphicsDevice
 {
 private:
+	static LRESULT CALLBACK _CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
+	LRESULT CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK _GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
+	LRESULT GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
+
 	std::vector<GDLGStream*> winList;
 	std::vector<long>        oList;
 	long oIx;
@@ -100,34 +105,7 @@ private:
 	}
 
 	// process user deleted windows
-	void TidyWindowsList()
-	{
-		int wLSize = winList.size();
-
-		for (int i = 0; i < wLSize; i++) {
-			if (winList[i] != NULL && !winList[i]->GetValid()) {
-				delete winList[i];
-				winList[i] = NULL;	    oList[i] = 0;
-			}
-		}
-		// set new actWin IF NOT VALID ANY MORE
-		if (actWin < 0 || actWin >= wLSize ||
-			winList[actWin] == NULL ||
-			!winList[actWin]->GetValid())      {
-			// set to most recently created
-			std::vector< long>::iterator mEl =
-				std::max_element(oList.begin(), oList.end());
-
-			// no window open
-			if (*mEl == 0)  {
-				SetActWin(-1);	    oIx = 1;
-			}
-			else {
-				SetActWin(std::distance(oList.begin(), mEl));
-			}
-		}
-	}
-
+	void TidyWindowsList();
 
 public:
 	DeviceWIN() : GraphicsDevice(), oIx(1), actWin(-1), decomposed(-1)
@@ -164,8 +142,6 @@ public:
 		oList.reserve(maxWinReserve);
 		oList.resize(maxWin);
 		for (int i = 0; i < maxWin; i++) oList[i] = 0;
-
-
 	}
 
 	~DeviceWIN()
