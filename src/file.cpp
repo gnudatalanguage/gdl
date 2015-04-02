@@ -403,7 +403,7 @@ namespace lib {
     struct stat    statStruct;
 
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
-#if defined (_WIN32) && defined(_UNICODE)
+#if defined (_WIN32)
     wchar_t entryWStr[PATH_MAX+1] = {0,};
     wchar_t patW[PATH_MAX+1] = {0,};
     MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, MAX_PATH+1);
@@ -430,12 +430,8 @@ namespace lib {
 
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
-#ifdef _UNICODE
     MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, MAX_PATH+1);
-    int match = !PathMatchSpec( entryWStr, patW );
-#else
-    int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
-#endif
+    int match = !PathMatchSpecW( entryWStr, patW );
 #else
 
 		int match = fnmatch( pat.c_str(), entryStr.c_str(), 0);
@@ -483,7 +479,7 @@ namespace lib {
     notAdded = false;
 
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
-#if defined (_WIN32) && defined (_UNICODE)
+#if defined (_WIN32)
   wchar_t entryWStr[PATH_MAX+1] = {0,};
   wchar_t patW[PATH_MAX+1] = {0,};
 
@@ -525,12 +521,8 @@ namespace lib {
           {
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
-#ifdef _UNICODE
             MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
-            int match = !PathMatchSpec(entryWStr, patW);
-#else
-            int match = !PathMatchSpec(entryStr.c_str(), pat.c_str());
-#endif
+            int match = !PathMatchSpecW(entryWStr, patW);
 #else
             int match = fnmatch( pat.c_str( ), entryStr.c_str( ), 0 );
 #endif
@@ -542,12 +534,8 @@ namespace lib {
         {
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
-#ifdef _UNICODE
           MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
-          int match = !PathMatchSpec( entryWStr, patW );
-#else
-          int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
-#endif
+          int match = !PathMatchSpecW( entryWStr, patW );
 #else
           int match = fnmatch( pat.c_str( ), entryStr.c_str( ), 0 );
 #endif
@@ -779,7 +767,7 @@ namespace lib {
 	return;
     }
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
-#if defined (_WIN32) && defined (_UNICODE)
+#if defined (_WIN32)
     wchar_t entryWStr[PATH_MAX+1] = {0,};
     wchar_t patW[PATH_MAX+1] = {0,};
 
@@ -809,12 +797,8 @@ namespace lib {
 	    // dirs are also returned if they match
 // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #ifdef _WIN32
-#ifdef _UNICODE
       MultiByteToWideChar(CP_UTF8, 0, entryStr.c_str(), -1, entryWStr, PATH_MAX+1);
-      int match = !PathMatchSpec( entryWStr, patW );
-#else
-      int match = !PathMatchSpec( entryStr.c_str(), pat.c_str() );
-#endif
+      int match = !PathMatchSpecW( entryWStr, patW );
 #else
 	    int match = fnmatch( pat.c_str(), entryStr.c_str(), fnFlags);
 #endif
@@ -1167,13 +1151,15 @@ DString makeInsensitive(const DString &s)
             do
 	              if((DirSpec[ii] == '/') || (DirSpec[ii] == '\\')) dirsep=ii;
             while( (DirSpec[ii++] != 0) && (ii < lenpath) );
-            recurPattern = DirSpec.substr(dirsep+1,dirsep+1);
-            DirSpec.resize(dirsep+1);
+
+            // recurPattern = DirSpec.substr(dirsep+1,dirsep+1);
+            // DirSpec.resize(dirsep+1);
 
             PatternSearch( fileList, DirSpec, recurPattern, accErr, quote,
                match_dot,
                DirSpec);
         }
+	onlyDir = false;
 #else
     if( nPath == 0)
       FileSearch( fileList, "", 
