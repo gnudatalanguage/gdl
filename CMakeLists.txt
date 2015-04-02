@@ -447,7 +447,7 @@ endif(MAGICK)
 set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
 	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-	find_package(wxWidgets QUIET REQUIRED base core adv)
+	find_package(wxWidgets REQUIRED base core adv)
 	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
 	if(wxWidgets_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
