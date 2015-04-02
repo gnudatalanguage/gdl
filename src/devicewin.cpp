@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef _WIN32
+
 #include "includefirst.hpp"
 #include <iostream>
 
@@ -578,3 +580,5 @@ void DeviceWIN::TidyWindowsList() {
 		}
 	}
 }
+
+#endif

@@ -17,7 +17,7 @@
 
 #ifndef DEVICEWIN_HPP_
 #define DEVICEWIN_HPP_
-
+#ifdef _WIN32
 
 #include <algorithm>
 #include <vector>
@@ -38,7 +38,7 @@
 #endif
 
 #define maxWin 33  //IDL free and widgets start at 33 ...
-#define maxWinReserve 256
+#define maxWinReserve 256 
 
 class DeviceWIN : public GraphicsDevice
 {
@@ -211,4 +211,5 @@ public:
 };
 #undef maxWin
 #undef maxWinReserve
+#endif
 #endif
