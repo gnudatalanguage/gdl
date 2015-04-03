@@ -402,15 +402,13 @@ if(PLPLOT_FOUND)
 	endif(PLPLOT_HAS_LEGEND)
 endif(PLPLOT_FOUND)
 	
-# GRAPHICSMAGICK is an alternative to the classical ImageMagick Lib.
+# GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
+# It was experienced that GM was more stable in time than IM
 #
 # -DGRAPHICSMAGICK=ON|OFF
 # -DGRAPHICSMAGICKDIR=DIR
+#
 if(GRAPHICSMAGICK)
-	if (MAGICK_FOUND)
-	   message("We prefer to use GraphicsMagick than ImageMagick")
-	   set(MAGICK off)
-	endif(MAGICK_FOUND)
 	set(CMAKE_PREFIX_PATH ${GRAPHICSMAGICKDIR})
 	find_package(GraphicsMagick QUIET)
 	set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
@@ -429,47 +427,21 @@ if(GRAPHICSMAGICK)
 	endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
 
+#
+# if GM found, we do not look for IM
+#
+
 if(GRAPHICSMAGICK_FOUND)
-	set(MAGICK OFF)
+	if (MAGICK)
+	   message(STATUS "INFO: We prefer to use GraphicsMagick than ImageMagick")
+	   set(MAGICK OFF)
+        endif(MAGICK)
 endif(GRAPHICSMAGICK_FOUND)
 
-if(MAGICK) # support Magick
-	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-	if(HAVE_PLGETDRVDIR)
-		message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-		"To make plplot work with ImageMagick:\n"
-		"use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-		"use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-	endif(HAVE_PLGETDRVDIR)
-endif(MAGICK)
-
-# wxWdigets
-# -DWXWIDGET=ON|OFF
-# -DWXWIDGETDIR=DIR
-set(wxWidgets_USE_DEBUG OFF) # Use release build
-if(WXWIDGETS)
-	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-	find_package(wxWidgets REQUIRED base core adv)
-	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-	if(wxWidgets_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
-		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
-		foreach(WXDEF ${wxWidgets_DEFINITIONS})
-			add_definitions(-D${WXDEF})
-		endforeach(WXDEF ${wxWidgets_DEFINITIONS})
-		include_directories(${wxWidgets_INCLUDE_DIRS})
-	else(wxWidgets_FOUND)
-		message(FATAL_ERROR "wxWidgets are required but were not found.\n"
-		"Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-		"Use -DWXWIDGETS=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
-                "(suitable Fedora package: wxGTK-devel)")
-	endif(wxWidgets_FOUND)
-endif(WXWIDGETS)
-
-# Magick
+# ImageMagick
 # -DMAGICK=ON|OFF
 # -DMAGICKDIR=DIR
+
 if(MAGICK)
 	set(CMAKE_PREFIX_PATH ${MAGICKDIR})
 	find_package(ImageMagick QUIET COMPONENTS Magick++ MagickWand MagickCore)
@@ -499,6 +471,51 @@ if(MAGICK)
                 "(suitable Fedora package: ImageMagick-c++-devel)")
 	endif(ImageMagick_FOUND)
 endif(MAGICK)
+
+# if GM or IM activated, we check whether Plplot is OK for that.
+
+if(USE_MAGICK)
+	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
+	if(HAVE_PLGETDRVDIR)
+		message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
+		"To make plplot work with ImageMagick:\n"
+		"use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
+		"use -DMAGICK=OFF here to not use ImageMagick in GDL.")
+	endif(HAVE_PLGETDRVDIR)
+endif(USE_MAGICK)
+
+# wxWdigets
+# -DWXWIDGET=ON|OFF
+# -DWXWIDGETDIR=DIR
+set(wxWidgets_USE_DEBUG OFF) # Use release build
+if(WXWIDGETS)
+	#
+	# we check whether plplot was compiled within wxwidgets
+	#
+	check_library_exists("${PLPLOT_LIBRARIES}" wxPLplotWindow "" HAVE_PLPLOT_WXWIDGETS)
+	if(NOT HAVE_PLPLOT_WXWIDGETS)
+	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxwidgets NOT found.\n"
+	       "If -DWXWIDGET=ON then PLplot must have be compiled with -DPLD_wxwidgets=ON ")
+        endif(HAVE_PLPLOT_WXWIDGETS)
+	#
+	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
+	find_package(wxWidgets REQUIRED base core adv)
+	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
+	if(wxWidgets_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
+		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
+		foreach(WXDEF ${wxWidgets_DEFINITIONS})
+			add_definitions(-D${WXDEF})
+		endforeach(WXDEF ${wxWidgets_DEFINITIONS})
+		include_directories(${wxWidgets_INCLUDE_DIRS})
+	else(wxWidgets_FOUND)
+		message(FATAL_ERROR "wxWidgets are required but were not found.\n"
+		"Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+		"Use -DWXWIDGETS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
+                "(suitable Fedora package: wxGTK-devel)")
+	endif(wxWidgets_FOUND)
+endif(WXWIDGETS)
 
 # netCDF
 # -DNETCDF=ON|OFF
