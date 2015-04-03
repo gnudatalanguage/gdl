@@ -177,6 +177,7 @@ public:
 
 // GUI base class **********************************
 class GDLWidgetBase;
+class GDLWidgetContainer;
 class GDLWidget
 { 
   // static part is used for the abstraction
@@ -208,6 +209,7 @@ public:
   static WidgetIDT  GetTopLevelBase( WidgetIDT widID);
 
   static void Init(); // global GUI intialization upon GDL startup
+  static void UnInit(); // global GUI desinitialization in case it is useful (?)
 
 
 protected:
@@ -292,7 +294,8 @@ public:
     } EventTypeFlags;
  
    typedef enum WidgetTypes_
-    { WIDGET_BASE = 0
+    { WIDGET_UNKNOWN = -1 
+     ,WIDGET_BASE = 0
      ,WIDGET_BUTTON 
      ,WIDGET_SLIDER
      ,WIDGET_TEXT
@@ -309,7 +312,7 @@ public:
     } WidgetTypes;
  
   DULong GetEventFlags()  const { return eventFlags;}
-  bool SetEventFlags( DULong evFlags) { eventFlags = evFlags;}
+  void SetEventFlags( DULong evFlags) { eventFlags = evFlags;}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
   void AddEventType( DULong evType) { eventFlags |= evType;}
   void RemoveEventType( DULong evType) { eventFlags &= ~evType;}
@@ -397,7 +400,8 @@ public:
   virtual bool IsPropertySheet() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
-  virtual DLong NChildren() const {return 0;}
+  virtual DLong NChildren() const { return 0;}
+  virtual DLongGDL* GetChildrenList() const {return new DLongGDL(0);}
   virtual void SetXmanagerActiveCommand() {}
   virtual bool GetXmanagerActiveCommand() const { return false;}
 
@@ -464,7 +468,7 @@ protected:
   typedef std::deque<WidgetIDT>::reverse_iterator rcIter;
   std::deque<WidgetIDT>                   children;
 public:
-  GDLWidgetContainer( WidgetIDT parentID, EnvT* e, bool map=TRUE);
+  GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_=0, bool map=TRUE);
 
 //  ~GDLWidgetContainer(){}
   
@@ -494,7 +498,13 @@ public:
     assert( childIx < children.size( ) );
     return children[childIx];
   }
-
+  DLongGDL* GetChildrenList() {
+    DLong size=children.size( );
+    if (size<1) return new DLongGDL(0);
+    DLongGDL* ret=new DLongGDL(dimension(size),BaseGDL::ZERO);
+    for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
+    return ret;   
+  }
   bool GetMap() const { return map;}
   void SetMap( bool mapval){ map = mapval;}
 };
@@ -517,7 +527,7 @@ class GDLWidgetBase: public GDLWidgetContainer
   bool IsContextMenu;
 
 public:
-  GDLWidgetBase( WidgetIDT parentID, EnvT* e,
+  GDLWidgetBase( WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 		 bool mapWid,
 		 WidgetIDT& mBarIDInOut, bool modal, 
 		 DLong col, DLong row,
@@ -557,11 +567,38 @@ public:
   bool IsContainer() const { return true;} 
   bool IsScrolled() { return scrolled;}
   bool IsStretchable() {return stretchX||stretchY;}
-  void setStretchX(bool stretch) {stretchX=stretch;}
-  void setStretchY(bool stretch) {stretchY=stretch;}
+  void SetStretchX(bool stretch) {stretchX=stretch;}
+  void SetStretchY(bool stretch) {stretchY=stretch;}
   long getChildrenAlignment(){return childrenAlignment;}
   long getSpace(){return space;}
   void mapBase(bool val);
+};
+
+class gdlMenuButton: public wxButton
+{
+  wxMenu* popupPanel;
+//  wxPoint* popupPosition;
+public: 
+  gdlMenuButton(wxWindow *parent, 
+          wxWindowID id, 
+          const wxString &label=wxEmptyString,
+          const wxPoint &pos=wxDefaultPosition,
+          const wxSize &size=wxDefaultSize,
+          long style=0,
+          const wxValidator &validator=wxDefaultValidator,
+          const wxString &name=wxButtonNameStr):
+    wxButton(parent,id,label,pos,size,style,validator,name){
+      popupPanel=new wxMenu();
+      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(gdlMenuButton::OnButton));
+      Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(gdlMenuButton::OnButton));
+    }
+  ~gdlMenuButton(){}
+  wxMenu* GetPopupPanel(){return popupPanel;}
+  void SetPopupPanel(wxMenu* panel){popupPanel=panel;}
+//  void SetPopupPosition(wxPoint* pos){popupPosition=pos;}
+private:
+ void OnButton(wxCommandEvent& event);
+//DECLARE_EVENT_TABLE()
 };
 
 class GDLWidgetButton: public GDLWidget
@@ -584,18 +621,19 @@ public:
     if( wxWidget != NULL)
     {
       switch( buttonType) {
-	case RADIO: {	  
-	  SetButton( onOff);
-	  wxRadioButton* radioButton = static_cast<wxRadioButton*>(wxWidget);
-	  radioButton->SetValue(onOff);
-	  break;
-	}
-	case CHECKBOX: {
-	  SetButton( onOff);
-	  wxCheckBox* checkBox = static_cast<wxCheckBox*>(wxWidget);
-	  checkBox->SetValue(onOff);
-	  break;
-	}
+        case RADIO: {	  
+          SetButton( onOff);
+          wxRadioButton* radioButton = static_cast<wxRadioButton*>(wxWidget);
+          radioButton->SetValue(onOff);
+          break;
+        }
+        case CHECKBOX: {
+          SetButton( onOff);
+          wxCheckBox* checkBox = static_cast<wxCheckBox*>(wxWidget);
+          checkBox->SetValue(onOff);
+          break;
+        }
+        default: break;
       }
     }
   }
@@ -665,6 +703,8 @@ public:
 // list widget **************************************************
 class GDLWidgetList : public GDLWidget
 {
+  int maxlinelength;
+  int nlines;
 public:
   GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style, DULong eventflags);
   ~GDLWidgetList();
@@ -672,10 +712,29 @@ public:
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
   BaseGDL* GetSelectedEntries();
+  wxSize computeWidgetSize();
 };
 
-
 // text widget **************************************************
+class gdlTextCtrl : public wxTextCtrl
+{
+public:
+ gdlTextCtrl(wxWindow *parent,
+               wxWindowID id,
+               const wxString &value = wxEmptyString,
+               const wxPoint &pos = wxDefaultPosition,
+               const wxSize &size = wxDefaultSize,
+               long style = 0,
+               const wxValidator& validator = wxDefaultValidator,
+               const wxString &name = wxTextCtrlNameStr):
+   wxTextCtrl(parent, id,value,pos,size,style,validator,name){
+  Connect(id,wxEVT_CHAR, wxKeyEventHandler(gdlTextCtrl::OnChar));
+ }
+ ~ gdlTextCtrl(){}
+private:
+  void OnChar(wxKeyEvent& event );
+};
+
 class GDLWidgetText: public GDLWidget
 {
   std::string lastValue;
@@ -730,6 +789,8 @@ public:
 
 //  void OnRealize();
   bool IsDraw() const { return true;}
+  void AddEventType( DULong evType); //specific for draw widgets
+  void RemoveEventType( DULong evType);
 };
 
 
@@ -737,13 +798,13 @@ public:
 class GDLWidgetMBar: public GDLWidgetContainer//Base
 {
   // disable
-  GDLWidgetMBar();
+//  ~GDLWidgetMBar();
 public:
-  GDLWidgetMBar( WidgetIDT p): 
-  GDLWidgetContainer( p, NULL)
+  GDLWidgetMBar( WidgetIDT p, EnvT* e): 
+  GDLWidgetContainer( p, e)
   {
     this->wxWidget = new wxMenuBar();
-    this->SetWidgetType(WIDGET_MBAR);
+    if (this->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) this->SetWidgetType(WIDGET_MBAR);
   }
 
   bool IsMenuBar() const { return true;}
@@ -753,7 +814,7 @@ public:
 class GDLWidgetTab: public GDLWidgetContainer
 {
 public:
-    GDLWidgetTab( WidgetIDT parentID, EnvT* e, DLong location, DLong multiline);
+    GDLWidgetTab( WidgetIDT parentID, EnvT* e, ULong eventFlags, DLong location, DLong multiline);
 
   ~GDLWidgetTab();
   
@@ -889,18 +950,30 @@ public:
 
 
 // tree widget **************************************************
-class GDLTree: public wxTreeCtrl
+class gdlTreeCtrl: public wxTreeCtrl
 {  
   wxWindowID GDLWidgetTableID;
 public:
-  GDLTree(wxWindow *parent, wxWindowID id = wxID_ANY,
+  gdlTreeCtrl(wxWindow *parent, wxWindowID id = wxID_ANY,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = wxTR_DEFAULT_STYLE,
                const wxValidator &validator = wxDefaultValidator,
-               const wxString& name = wxTreeCtrlNameStr);
-  ~GDLTree();
-
+               const wxString& name = wxTreeCtrlNameStr)
+          :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name )
+          {
+            GDLWidgetTableID=id;
+            Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
+            Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
+            Connect(id, wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(gdlTreeCtrl::OnBeginDrag));
+            Connect(id, wxEVT_COMMAND_TREE_END_DRAG,wxTreeEventHandler(gdlTreeCtrl::OnItemDropped));
+            Connect(id, wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(gdlTreeCtrl::OnItemCollapsed));
+            Connect(id, wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(gdlTreeCtrl::OnItemExpanded));
+            Connect(id, wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(gdlTreeCtrl::OnItemSelected));
+          }
+//necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
+  ~gdlTreeCtrl(){}
+private:
 void OnItemActivated(wxTreeEvent & event);
 void OnItemCollapsed(wxTreeEvent & event);
 void OnItemExpanded(wxTreeEvent & event);
@@ -910,11 +983,11 @@ void OnItemSelected(wxTreeEvent & event);
 
 };
 
-class GDLTreeItemData : public wxTreeItemData {
+class gdlTreeItemData : public wxTreeItemData {
   public:
     WidgetIDT widgetID;
 
-    GDLTreeItemData(WidgetIDT id) : widgetID(id) {}
+    gdlTreeItemData(WidgetIDT id) : widgetID(id) {}
 };
 
 class GDLWidgetTree: public GDLWidget
@@ -927,7 +1000,6 @@ class GDLWidgetTree: public GDLWidget
 //DString dragNotify ; 
 bool droppable  ; 
 bool draggable  ; 
-//DLong index     ; 
 //bool mask       ; 
 //bool multiple   ; 
 //bool noBitmaps  ; 
@@ -939,7 +1011,7 @@ int buttonImageId;
 int imageId;
 WidgetIDT selectedID;
 wxTreeItemId treeItemID;
-GDLTreeItemData* treeItemData;
+gdlTreeItemData* treeItemData;
 WidgetIDT rootID;
 
 public:
@@ -954,7 +1026,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 ,DLong dragability
 ,bool expanded_
 ,bool folder_
-//,DLong index_
+,DLong treeindex
 //,bool mask_
 //,bool multiple_
 //,bool noBitmaps_
@@ -970,7 +1042,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool IsFolder() {return folder;}
   bool IsExpanded() {return expanded;}
   void DoExpand(){
-    GDLTree * me = static_cast<GDLTree*>(wxWidget);
+    gdlTreeCtrl * me = static_cast<gdlTreeCtrl*>(wxWidget);
     if (me) me->Expand(treeItemID);
   }
   WidgetIDT GetRootID(){ return rootID;}
@@ -991,8 +1063,8 @@ class GDLWidgetSlider: public GDLWidget
   DLong maximum;
   DString title;
 public:
-  GDLWidgetSlider( WidgetIDT parentID, EnvT* e,
-		   DLong value_, DLong minimum_, DLong maximum_,
+  GDLWidgetSlider( WidgetIDT parentID, EnvT* e, DULong eventFlags_ ,
+		   DLong value_,DLong minimum_, DLong maximum_,
 		   bool vertical,
 		   bool suppressValue,
 		   DString title
@@ -1017,23 +1089,29 @@ class wxNotebookEvent;
 class wxGridEvent;
 class wxGridSizeEvent;
 class wxGridRangeSelectEvent;
-
-class GDLGrid : public wxGrid
+class gdlGrid : public wxGrid
 {
   wxWindowID GDLWidgetTableID;
 public:
-  GDLGrid(wxWindow* container, wxWindowID id, 
+  gdlGrid(wxWindow* container, wxWindowID id, 
 	    const wxPoint& pos = wxDefaultPosition, 
 	    const wxSize& size = wxDefaultSize,
 	    long style = 0, 
-	    const wxString& name = wxPanelNameStr);
-  ~GDLGrid();
-  void OnTableCellSelection(wxGridEvent & event);
-  void OnTableRangeSelection(wxGridRangeSelectEvent & event);
-  void OnTableColResizing(wxGridSizeEvent & event);
-  void OnTableRowResizing(wxGridSizeEvent & event); 
-  void OnText( wxCommandEvent& event);
-  void OnTextEnter( wxCommandEvent& event);
+	    const wxString& name = wxPanelNameStr):
+  wxGrid( container, id, pos, size, style, name )
+  , GDLWidgetTableID(id)
+  {
+    Connect(id,wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(gdlGrid::OnTableColResizing));
+    Connect(id,wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(gdlGrid::OnTableRowResizing));
+    Connect(id,wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(gdlGrid::OnTableRangeSelection));
+//    Connect(id,wxEVT_GRID_SELECT_CELL,wxGridEventHandler(gdlGrid::OnTableCellSelection));
+//    Connect(id,wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(gdlGrid::OnTableCellSelection));
+  }
+  ~gdlGrid(){
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "~GDLGrid: " << this << std::endl;
+#endif 
+  }
   
   bool IsSomethingSelected(){
       wxGridCellCoordsArray cellSelection=this->GetSelectedCells();
@@ -1161,8 +1239,13 @@ public:
    return rows;
   }
 
-protected:
-  DECLARE_EVENT_TABLE()
+private:
+//  void OnTableCellSelection(wxGridEvent & event);
+  void OnTableRangeSelection(wxGridRangeSelectEvent & event);
+  void OnTableColResizing(wxGridSizeEvent & event);
+  void OnTableRowResizing(wxGridSizeEvent & event); 
+//  void OnText( wxCommandEvent& event);
+//  void OnTextEnter( wxCommandEvent& event);
 };
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 
@@ -1180,13 +1263,12 @@ public:
 class GDLFrame : public wxFrame
 {
   enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
-  bool lastShowRequest;
+  bool mapped;
   wxSize frameSize;
   GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
   wxTimer * m_resizeTimer;
   wxTimer * m_windowTimer;
-  void OnListBoxDo( wxCommandEvent& event, DLong clicks);
 
   // called from ~GDLWidgetBase
   void NullGDLOwner() { gdlOwner = NULL;}
@@ -1199,31 +1281,8 @@ public:
   GDLApp* GetTheApp(){return appOwner;}
   void SetTheApp(GDLApp* myApp){appOwner=myApp;}
   
-  // event handlers (these functions should _not_ be virtual)
-  void OnIdle( wxIdleEvent& event);
-  void OnButton( wxCommandEvent& event);
-  void OnRadioButton( wxCommandEvent& event);
-  void OnCheckBox( wxCommandEvent& event);
-  void OnComboBox( wxCommandEvent& event);
-  void OnDropList( wxCommandEvent& event);
-  void OnListBox( wxCommandEvent& event);
-  void OnListBoxDoubleClicked( wxCommandEvent& event);
-  void OnText( wxCommandEvent& event);
-  void OnTextEnter( wxCommandEvent& event);
-  void OnPageChanged( wxNotebookEvent& event);
-  void OnSize( wxSizeEvent& event);
-//  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
-//  void OnTimerResize(wxTimerEvent& event);
-  void OnThumbTrack( wxScrollEvent& event);
-  void OnThumbRelease( wxScrollEvent& event);
-  void OnContextEvent( wxContextMenuEvent &event );
-  void OnFocusChange( wxFocusEvent &event);
-  void OnIconize( wxIconizeEvent & event);
-  void OnMove( wxMoveEvent & event);
-  void OnCloseFrame( wxCloseEvent & event);
-  void OnWidgetTimer( wxTimerEvent & event);
 
-  bool LastShowRequest() const { return lastShowRequest;}
+  bool IsMapped() const { return mapped;}
   
   void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
   {
@@ -1234,30 +1293,61 @@ public:
       m_windowTimer->Start(millisecs, wxTIMER_ONE_SHOT);
   }
   
-  void SendShowRequestEvent( bool show)
+  void SendShowRequestEvent()
   {
    wxCommandEvent* event;
-    if( show)
-    {
     event = new wxCommandEvent( wxEVT_SHOW_REQUEST, GetId() );
-    }
-    else
-    {
-    event = new wxCommandEvent( wxEVT_HIDE_REQUEST, GetId() );
-    }
     event->SetEventObject( this );
     // only for wWidgets > 2.9 (takes ownership of event)
 //     this->QueueEvent( event);
-    
     this->AddPendingEvent( *event); // copies event
     delete event;
+    mapped = TRUE;
+    }
 
-    lastShowRequest = show;
+  void SendHideRequestEvent()
+    {
+   wxCommandEvent* event;
+    event = new wxCommandEvent( wxEVT_HIDE_REQUEST, GetId() );
+    event->SetEventObject( this );
+    // only for wWidgets > 2.9 (takes ownership of event)
+//     this->QueueEvent( event);
+    this->AddPendingEvent( *event); // copies event
+    delete event;
+    mapped = FALSE;
   }
+// event handlers (these functions should _not_ be virtual)
+  void OnDropList( wxCommandEvent& event);
+  void OnListBox( wxCommandEvent& event);
+  void OnListBoxDoubleClicked( wxCommandEvent& event);
+  void OnComboBox( wxCommandEvent& event);
+  void OnButton( wxCommandEvent& event);
+  void OnRadioButton( wxCommandEvent& event);
+  void OnCheckBox( wxCommandEvent& event);
+  void OnPageChanged( wxNotebookEvent& event);
+  void OnText( wxCommandEvent& event);
+  void OnTextEnter( wxCommandEvent& event);
+  void OnThumbTrack( wxScrollEvent& event);
+  void OnThumbRelease( wxScrollEvent& event);
+  void OnSize( wxSizeEvent& event);
+  void OnIconize( wxIconizeEvent & event);
+  void OnMove( wxMoveEvent & event);
+  void OnCloseFrame( wxCloseEvent & event);
+  void OnUnhandledCloseFrame( wxCloseEvent & event);
+  void OnEnterWindow(wxMouseEvent& event);
+  void OnLeaveWindow(wxMouseEvent& event);
   void OnShowRequest( wxCommandEvent& event);
   void OnHideRequest( wxCommandEvent& event);
-  
-protected:
+  void OnIdle( wxIdleEvent& event);
+  void OnMenu( wxCommandEvent& event);
+//  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
+//  void OnTimerResize(wxTimerEvent& event);
+  void OnContextEvent( wxContextMenuEvent& event);
+  void OnTracking( wxFocusEvent& event);
+  void OnWidgetTimer( wxTimerEvent & event);
+  void OnKBRDFocusChange( wxFocusEvent &event );
+private:
+  void OnListBoxDo( wxCommandEvent& event, DLong clicks);
   DECLARE_EVENT_TABLE()
 };
 
@@ -1314,19 +1404,7 @@ public:
 
   void InitStream();
   
-  // event handlers (these functions should _not_ be virtual)
-  void OnPaint(wxPaintEvent& event);
-  void OnClose(wxCloseEvent& event);
-  void OnMouseMove( wxMouseEvent& event);
-  void OnMouseDown( wxMouseEvent& event);
-  void OnMouseUp( wxMouseEvent& event);
-  void OnMouseWheel( wxMouseEvent& event);
-  void OnKey( wxKeyEvent& event);
-  void OnEnterWindow(wxMouseEvent &event);
-  void OnLeaveWindow(wxMouseEvent &event);
-  void OnSize(wxSizeEvent &event);
-//  void OnSizeWithTimer(wxSizeEvent &event); //not yet ready
-//  void OnTimerResize( wxTimerEvent& event);
+
   void SendPaintEvent()
   {
     wxPaintEvent* event;
@@ -1339,7 +1417,18 @@ public:
   }
 
   
- protected:
+  // event handlers (these functions should _not_ be virtual)
+  void OnPaint(wxPaintEvent& event);
+  void OnClose(wxCloseEvent& event);
+  void OnMouseMove( wxMouseEvent& event);
+  void OnMouseDown( wxMouseEvent& event);
+  void OnMouseUp( wxMouseEvent& event);
+  void OnMouseWheel( wxMouseEvent& event);
+  void OnKey( wxKeyEvent& event);
+  void OnSize(wxSizeEvent &event);
+//  void OnSizeWithTimer(wxSizeEvent& event); //not yet ready
+//  void OnTimerResize( wxTimerEvent& event);  DECLARE_EVENT_TABLE()
+private:
   DECLARE_EVENT_TABLE()
 };
 

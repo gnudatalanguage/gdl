@@ -58,6 +58,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   static int ALIGN_LEFT = e->KeywordIx( "ALIGN_LEFT" );
   static int ALIGN_RIGHT = e->KeywordIx( "ALIGN_RIGHT" );
   static int FONT = e->KeywordIx( "FONT" );
+//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
 
   font="";
     e->AssureStringScalarKWIfPresent( FONT, font );
@@ -494,7 +495,7 @@ BaseGDL* widget_table( EnvT* e)
   valueAsStrings,
   eventFlags
   );
-  table->SetWidgetType( GDLWidget::WIDGET_TABLE );
+  if (table->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )  table->SetWidgetType( GDLWidget::WIDGET_TABLE );
 //  table->SetEventFlags(eventFlags);
   // return widget ID
   return new DLongGDL( table->WidgetID( ) );
@@ -526,7 +527,7 @@ BaseGDL* widget_tree( EnvT* e)
   static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
-//  static int INDEX = e->KeywordIx( "INDEX" );
+  static int INDEX = e->KeywordIx( "INDEX" );
 //  static int MASK = e->KeywordIx( "MASK" );
 //  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
 //  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
@@ -537,6 +538,8 @@ BaseGDL* widget_tree( EnvT* e)
 //  bool alignBottom = e->KeywordSet( ALIGN_BOTTOM );
 //  bool alignTop = e->KeywordSet( ALIGN_TOP );
 //  bool checkbox = e->KeywordSet( CHECKBOX );
+  DLong treeindex=-1;
+  if (e->KeywordPresent( INDEX )) e->AssureLongScalarKWIfPresent( INDEX, treeindex );
   DLong draggability=-1;
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool expanded = e->KeywordSet( EXPANDED );
@@ -557,7 +560,7 @@ BaseGDL* widget_tree( EnvT* e)
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
   DLong dropability = -1;
-  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DRAGGABLE, dropability );;
+  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DROP_EVENTS, dropability );;
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
@@ -568,7 +571,10 @@ BaseGDL* widget_tree( EnvT* e)
       wxImage * tryImage=new wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),TRUE); //STATIC DATA I BELIEVE.
       GDLDelete( transpose );
       bitmap = new wxBitmap(*tryImage);
+    } else {
+      if (testByte->Rank() == 0 && (*testByte)[0]==0 ) { //do nothing! yet another IDL trick.
     } else e->Throw( "Bitmap must be a [16,16,3] array." );
+  }
   }
 
 //
@@ -576,8 +582,6 @@ BaseGDL* widget_tree( EnvT* e)
 //  e->AssureLongScalarKWIfPresent( CHECKED, checked );
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
-//  DLong index = 0;
-//  e->AssureLongScalarKWIfPresent( INDEX, index );
 //  DString dragNotify;
 //  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
 //  DString toolTip;
@@ -599,7 +603,7 @@ BaseGDL* widget_tree( EnvT* e)
 ,  draggability
 ,  expanded
   ,folder
-//,  index
+,  treeindex
 //,  mask
 //,  multiple
 //,  noBitmaps
@@ -607,7 +611,7 @@ BaseGDL* widget_tree( EnvT* e)
 //,  toolTip 
   );
   
-  tree->SetWidgetType( GDLWidget::WIDGET_TREE );
+  if (tree->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) tree->SetWidgetType( GDLWidget::WIDGET_TREE );
 
   // return widget ID
   return new DLongGDL( tree->WidgetID( ) );
@@ -628,6 +632,18 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (!parent->IsBase()) e->Throw( "Parent is of incorrect type." );
   if (parent->GetExclusiveMode() != GDLWidget::BGNORMAL ) e->Throw( "Parent is of incorrect type." );
 
+
+  // TODO non-flags
+
+  //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
+//  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
+//  static int COLORS = e->KeywordIx( "COLORS" ); // long
+//  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
+//  static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL" );
+//  static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
+//  static int RENDERER = e->KeywordIx( "RENDERER" );
+//  static int RETAIN = e->KeywordIx( "RETAIN" );
+
   static int APP_SCROLL = e->KeywordIx( "APP_SCROLL" );
   bool app_scroll = e->KeywordSet(APP_SCROLL);
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
@@ -637,7 +653,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   DLong y_scroll_size = -1;
   e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
 
-  //common for all widgets
+  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
+  
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
   bool trackingevents = e->KeywordSet( TRACKING_EVENTS );
   DULong eventFlags=0;
@@ -651,9 +668,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int BUTTON_EVENTS = e->KeywordIx( "BUTTON_EVENTS" );
   static int KEYBOARD_EVENTS = e->KeywordIx( "KEYBOARD_EVENTS" );
 
-  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
-
-  // flags
   bool drop_events = e->KeywordSet( DROP_EVENTS );
   bool expose_events = e->KeywordSet( EXPOSE_EVENTS );
   bool motion_events = e->KeywordSet( MOTION_EVENTS );
@@ -662,22 +676,9 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool button_events = e->KeywordSet( BUTTON_EVENTS );
   bool keyboard_events = e->KeywordPresent( KEYBOARD_EVENTS );
 
-//  // TODO non-flags
-
-  //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
-//  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
-//  static int COLORS = e->KeywordIx( "COLORS" ); // long
-//  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
-//  static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL" );
-//  static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
-//  static int RENDERER = e->KeywordIx( "RENDERER" );
-//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
-//  static int RETAIN = e->KeywordIx( "RETAIN" );
-//  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
-
-  if (motion_events)  eventFlags |= GDLWidget::EV_MOTION;
   if (drop_events) eventFlags |= GDLWidget::EV_DROP;
   if (expose_events) eventFlags |= GDLWidget::EV_EXPOSE;
+  if (motion_events)  eventFlags |= GDLWidget::EV_MOTION;
   if (viewport_events) eventFlags |=  GDLWidget::EV_VIEWPORT;
   if (wheel_events) eventFlags |=  GDLWidget::EV_WHEEL;
   if (button_events) eventFlags |=  GDLWidget::EV_BUTTON;
@@ -693,7 +694,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   }
   else draw = new GDLWidgetDraw( parentID, e,  x_scroll_size, y_scroll_size, app_scroll, eventFlags);
 
-  draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
+  if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
   if (keyboard_events) draw->SetFocus();
   // return widget ID
   return new DLongGDL( draw->WidgetID( ) );
@@ -759,7 +760,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int ypadIx = e->KeywordIx( "YPAD" );
   static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
   static int display_nameIx = e->KeywordIx( "DISPLAY_NAME" );
-  static int resource_nameIx = e->KeywordIx( "RESOURCE_NAME" );
   static int rname_mbarIx = e->KeywordIx( "RNAME_MBAR" );
 
 //  // own alignment: done in SetCommonKeywords
@@ -825,7 +825,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( ypadIx, ypad );
 
   DString resource_name = "";
-  e->AssureStringScalarKWIfPresent( resource_nameIx, resource_name );
 
   DString rname_mbar = "";
   e->AssureStringScalarKWIfPresent( rname_mbarIx, rname_mbar );
@@ -877,14 +876,32 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( exclusive ) exclusiveMode = GDLWidget::BGEXCLUSIVE;
   if ( nonexclusive ) exclusiveMode = GDLWidget::BGNONEXCLUSIVE;
 
+  //events:
+  //CONTEXT_EVENTS
+  //KBRD_FOCUS_EVENTS
+  //TLB_ICONIFY_EVENTS
+  //TLB_KILL_REQUEST_EVENTS
+  //TLB_MOVE_EVENTS
+  //TLB_SIZE_EVENTS
+  //TRACKING_EVENTS (done above)
+
   if (context_events) eventFlags |= GDLWidget::EV_CONTEXT;
   if (kbrd_focus_events) eventFlags |= GDLWidget::EV_KBRD_FOCUS;
-  if (tlb_move_events)  eventFlags |= GDLWidget::EV_TRACKING;
-  if (tlb_size_events) eventFlags |= GDLWidget::EV_SIZE;
-  if (tlb_iconify_events) eventFlags |= GDLWidget::EV_ICONIFY;
-  if (tlb_kill_request_events) eventFlags |= GDLWidget::EV_KILL;
+  if (tlb_move_events)  {
+    if ( parentID == 0 ) eventFlags |= GDLWidget::EV_MOVE;
+  }
+  if (tlb_size_events) {
+    if ( parentID == 0 ) eventFlags |= GDLWidget::EV_SIZE;
+  }
+  if (tlb_iconify_events) {
+    if ( parentID == 0 ) eventFlags |= GDLWidget::EV_ICONIFY;
+  }
+  if (tlb_kill_request_events) {
+    if ( parentID != 0 ) e->Throw( "Only top level bases allow the TLB_KILL_REQUEST_EVENTS keyword." );
+    eventFlags |= GDLWidget::EV_KILL;
+  }
   
-  GDLWidgetBase* base = new GDLWidgetBase( parentID, e,
+  GDLWidgetBase* base = new GDLWidgetBase( parentID, e, eventFlags,
   mapWid,
   /*ref*/ mBarID, modal,
   column, row,
@@ -905,9 +922,7 @@ BaseGDL* widget_draw( EnvT* e ) {
     }
   }
   
-  base->SetWidgetType( GDLWidget::WIDGET_BASE );
-  // Set flags 
-  base->SetEventFlags(eventFlags);
+  if (base->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   base->SetWidgetType( GDLWidget::WIDGET_BASE );
   //unmap if necessary
   if (!mapWid) base->mapBase(mapWid);
   // return widget ID
@@ -946,6 +961,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   DULong eventFlags=0;
   if (trackingevents)  eventFlags |= GDLWidget::EV_TRACKING;
 
+//  To get the equivalent of pushbutton_events (push and release) with wxWidgets and have a better coverage, use ToggleButtons (wx 2.9 and after)
+//  static int PUSHBUTTON_EVENTS = e->KeywordIx( "PUSHBUTTON_EVENTS" );
+//  bool pushbuttonevents = e->KeywordSet( PUSHBUTTON_EVENTS );
+  
   BaseGDL* invalue = e->GetKW( valueIx );
 
   bool isBitmap =  e->KeywordSet( bitmapIx );
@@ -955,7 +974,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   DString value = "button"+i2s(buttonNumber++); //tested default!
 
   wxBitmap * bitmap=NULL;
-  //value=filename if /BITMAP present, bitmap if array.
+  //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
+  //Note BITMAP and RadioButtons are not possible directly.
   if (invalue) {
     if (isBitmap) {
       e->AssureStringScalarKWIfPresent( valueIx, value ); //value is a filename
@@ -996,7 +1016,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   }
   else button = new GDLWidgetButton( parentID, e, value, isMenu, hasSeparatorAbove, bitmap);
   
-  button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
+  if (button->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
   button->SetEventFlags(eventFlags);
   return new DLongGDL( button->WidgetID( ) );
 #endif
@@ -1119,7 +1139,7 @@ BaseGDL* widget_list( EnvT* e ) {
 
   DLong style = multiple ? wxLB_EXTENDED /*wxLB_MULTIPLE*/ : wxLB_SINGLE;
   GDLWidgetList* list = new GDLWidgetList( parentID, e, value, style, eventFlags );
-  list->SetWidgetType( GDLWidget::WIDGET_LIST );
+  if (list->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   list->SetWidgetType( GDLWidget::WIDGET_LIST );
 
   return new DLongGDL( list->WidgetID( ) );
 #endif
@@ -1157,7 +1177,7 @@ BaseGDL* widget_list( EnvT* e ) {
 
   DLong style = 0;
   GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style );
-  droplist->SetWidgetType( GDLWidget::WIDGET_DROPLIST );
+  if (droplist->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   droplist->SetWidgetType( GDLWidget::WIDGET_DROPLIST );
   droplist->SetEventFlags(eventFlags);
   return new DLongGDL( droplist->WidgetID( ) );
 #endif
@@ -1192,7 +1212,7 @@ BaseGDL* widget_combobox( EnvT* e ) {
   static int editableIx = e->KeywordIx( "EDITABLE" );
   bool editable = e->KeywordSet( editableIx );
 
-  //common for all widgets
+  //common for all widgets. Only that for combobox.
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
   bool trackingevents = e->KeywordSet( TRACKING_EVENTS );
   DULong eventFlags=0;
@@ -1203,7 +1223,7 @@ BaseGDL* widget_combobox( EnvT* e ) {
   if ( !editable )
     style = wxCB_READONLY;
   GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, title, style );
-  combobox->SetWidgetType( GDLWidget::WIDGET_COMBOBOX );
+  if (combobox->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   combobox->SetWidgetType( GDLWidget::WIDGET_COMBOBOX );
   combobox->SetEventFlags(eventFlags);
   return new DLongGDL( combobox->WidgetID( ) );
 #endif
@@ -1239,10 +1259,9 @@ BaseGDL* widget_combobox( EnvT* e ) {
   static int locationIx = e->KeywordIx( "LOCATION" );
   e->AssureLongScalarKWIfPresent( locationIx, location );
 
-  GDLWidgetTab* tab = new GDLWidgetTab( parentID, e, location, multiline );
+  GDLWidgetTab* tab = new GDLWidgetTab( parentID, e, eventFlags, location, multiline );
   
-  tab->SetWidgetType( GDLWidget::WIDGET_TAB );
-  tab->SetEventFlags(eventFlags);
+  if (tab->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   tab->SetWidgetType( GDLWidget::WIDGET_TAB );
   return new DLongGDL( tab->WidgetID( ) );
 #endif
 }
@@ -1292,14 +1311,13 @@ BaseGDL* widget_slider( EnvT* e ) {
   static int titleIx = e->KeywordIx( "TITLE" );
   e->AssureStringScalarKWIfPresent( titleIx, title );
 
-  GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e,
+  GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e, eventFlags,
   value, minimum, maximum,
   vertical,
   suppressValue,
   title
   );
-  sl->SetWidgetType( GDLWidget::WIDGET_SLIDER );
-  sl->SetEventFlags(eventFlags);
+  if (sl->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   sl->SetWidgetType( GDLWidget::WIDGET_SLIDER );
   return new DLongGDL( sl->WidgetID( ) );
 #endif
 }
@@ -1357,7 +1375,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   bool editable = (edit == 1);
   
   GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable);
-  text->SetWidgetType( GDLWidget::WIDGET_TEXT );
+  if (text->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   text->SetWidgetType( GDLWidget::WIDGET_TEXT );
   text->SetEventFlags(eventFlags);
 
   return new DLongGDL( text->WidgetID( ) );
@@ -1395,7 +1413,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   if (trackingevents)  eventFlags |= GDLWidget::EV_TRACKING;
 
   GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value , isSunken);
-  label->SetWidgetType( GDLWidget::WIDGET_LABEL );
+  if (label->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   label->SetWidgetType( GDLWidget::WIDGET_LABEL );
   label->SetEventFlags(eventFlags);
   return new DLongGDL( label->WidgetID( ) );
 #endif
@@ -1435,6 +1453,11 @@ BaseGDL* widget_info( EnvT* e ) {
 
   static int childIx = e->KeywordIx( "CHILD" );
   bool child = e->KeywordSet( childIx );
+  
+  static int nchildIx = e->KeywordIx( "N_CHILDREN" );
+  bool nchildren = e->KeywordSet( nchildIx );
+  static int allchildIx = e->KeywordIx( "ALL_CHILDREN" );
+  bool allchildren = e->KeywordSet( allchildIx );
 
   static int versionIx = e->KeywordIx( "VERSION" );
   bool version = e->KeywordSet( versionIx );
@@ -1446,6 +1469,12 @@ BaseGDL* widget_info( EnvT* e ) {
   bool name = e->KeywordSet( nameIx );
   static int typeIx = e->KeywordIx( "TYPE");
   bool type = e->KeywordSet( typeIx );
+
+  static int eventproIx = e->KeywordIx( "EVENT_PRO" );
+  bool eventpro = e->KeywordSet( eventproIx );
+
+  static int eventfunIx = e->KeywordIx( "EVENT_FUNC" );
+  bool eventfun = e->KeywordSet( eventfunIx );
 
   static int unameIx = e->KeywordIx( "UNAME");
   bool uname = e->KeywordSet( unameIx );
@@ -1491,6 +1520,16 @@ BaseGDL* widget_info( EnvT* e ) {
   bool treeexpanded = e->KeywordSet(TREE_EXPANDED);
   static int TREE_ROOT = e->KeywordIx( "TREE_ROOT" );
   bool treeroot = e->KeywordSet(TREE_ROOT);
+  static int TREE_BITMAP = e->KeywordIx( "TREE_BITMAP");
+  bool treebitmap = e->KeywordSet(TREE_BITMAP);
+  static int MASK = e->KeywordIx( "MASK");
+  bool treemask = e->KeywordSet(MASK);
+  static int DRAGGABLE = e->KeywordIx( "DRAGGABLE");
+  bool draggable = e->KeywordSet(DRAGGABLE);
+  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY");
+  bool dragnotify = e->KeywordSet(DRAG_NOTIFY);
+  static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS");
+  bool dropevents = e->KeywordSet(DROP_EVENTS);
 
   
   static int LIST_SELECT = e->KeywordIx( "LIST_SELECT");
@@ -1509,7 +1548,11 @@ BaseGDL* widget_info( EnvT* e ) {
   static int TAB_MULTILINE = e->KeywordIx( "TAB_MULTILINE");
   bool tabmultiline = e->KeywordSet(TAB_MULTILINE);
   
-//find a string, return a long
+  static int UPDATE = e->KeywordIx( "UPDATE" );
+  bool update=e->KeywordSet(UPDATE);
+  if (update) return new DLongGDL(1); //pretend that update works always (fixme: yet another property to add, get,set to GDLWidget::)
+
+  //find a string, return a long
   if (findbyuname) {
     DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
     if (myUname == NULL) return new DLongGDL( 0 );
@@ -1541,7 +1584,7 @@ BaseGDL* widget_info( EnvT* e ) {
   
   // Returns a String, empty if no result:
   // UNAME, FONTNAME keywords
-  if ( uname || fontname || name ) {
+  if ( uname || fontname || name ||eventpro || eventfun) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1551,6 +1594,8 @@ BaseGDL* widget_info( EnvT* e ) {
       } else {
         if (uname) return new DStringGDL(widget->GetUname());
         else if (name) return new DStringGDL(widget->GetWidgetName());
+        else if (eventfun) return new DStringGDL(widget->GetEventFun());
+        else if (eventpro) return new DStringGDL(widget->GetEventPro());
         // else if (fontname) //not programmed yet
       }
     } else {
@@ -1565,6 +1610,8 @@ BaseGDL* widget_info( EnvT* e ) {
           atLeastOneFound=TRUE;
           if (uname) result = widget->GetUname();
           else if (name) result = widget->GetWidgetName();
+          else if (eventfun) result = widget->GetEventFun();
+          else if (eventpro) result = widget->GetEventPro();
           // else if (fontname) //not programmed yet
         }
         (*res)[i] = result;
@@ -1575,7 +1622,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
   // returns a long where 0 is "no info"
   // PARENT, CHILD keyword
-  if ( child || parent || type ) {
+  if ( child || parent || type || nchildren) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1584,11 +1631,17 @@ BaseGDL* widget_info( EnvT* e ) {
         e->Throw("Invalid widget identifier:"+i2s(widgetID));
       } else {
         DLong result=0;
-        if (child) {
-          if ( widget->NChildren( ) != 0 ) result = widget->GetChild( 0 ); //may not have children
-        }
-        else if (parent)  result = widget->GetParentID( ); //but parent is always defined...
+        if (parent)  result = widget->GetParentID( ); //but parent is always defined...
         else if (type)  result = widget->GetWidgetType( ); 
+        else {
+        if (child) {
+            if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 
+            if ( nchild > 0 ) result = static_cast<GDLWidgetContainer*>(widget)->GetChild( 0 ); }//may not have children
+          }
+          else if (nchildren) {  
+            if (widget->IsContainer()) result = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); else  result = 0;
+          }
+        }
         return new DLongGDL( result );
       }
     } else {
@@ -1603,16 +1656,32 @@ BaseGDL* widget_info( EnvT* e ) {
         } else {
           atLeastOneFound=TRUE;
           DLong result=0;
+          if (parent)  result = widget->GetParentID( ); //but parent is always defined...
+          else if (type)  result = widget->GetWidgetType( );
+          else {
           if (child) {
-            if ( widget->NChildren( ) != 0 ) result = widget->GetChild( 0 ); //may not have children
+              if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 
+              if ( nchild > 0 ) result = static_cast<GDLWidgetContainer*>(widget)->GetChild( 0 ); }//may not have children
+            }
+            else if (nchildren) {  
+              if (widget->IsContainer()) result = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); else  result = 0;
+            }
           }
-          else if (parent)  result = widget->GetParentID( ); //but parent is always defined...
-          else if (parent)  result = widget->GetWidgetType( );
           ( *res )[ i] = result;
         }
       }
       if (atLeastOneFound) return res; else e->Throw("Invalid widget identifier:"+i2s((*p0L)[0]));
     }
+  }
+  if ( allchildren) {
+      // Scalar Input only
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      if ( widget == NULL ) {
+        e->Throw("Invalid widget identifier:"+i2s(widgetID));
+      } else {
+        if (widget->IsContainer()) return static_cast<GDLWidgetContainer*>(widget)->GetChildrenList( ); else return widget->GetChildrenList();
+      }
   }
 
   //SYSTEM_COLORS
@@ -1772,7 +1841,7 @@ BaseGDL* widget_info( EnvT* e ) {
       
       bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
       DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
-      if (useATableSelection && tableSelectionToUse->Rank()==0 & !table->IsSomethingSelected())
+      if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
         { e->Throw( "USE_TABLE_SELECT value out of range.");}
       if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
         if (table->GetDisjointSelection()) {
@@ -1790,7 +1859,7 @@ BaseGDL* widget_info( EnvT* e ) {
       }
   }
   
-  if (treeroot||treeselect||treefolder||treeexpanded||treeindex) {
+  if (treeroot||treeselect||treefolder||treeexpanded||treeindex ||treebitmap || treemask || draggable || dragnotify || dropevents) {
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL || !widget->IsTree() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
@@ -1800,6 +1869,11 @@ BaseGDL* widget_info( EnvT* e ) {
       if (treefolder) return new DLongGDL(tree->IsFolder());
       if (treeexpanded) return new DLongGDL(tree->IsExpanded());
       if (treeroot) return new DLongGDL(tree->GetRootID());
+      if (treebitmap) return new DLongGDL(0); //should return the bitmap!
+      if (treemask) return new DLongGDL(0); //should return the mask!
+      if (draggable) return new DLongGDL(tree->IsDraggable()); 
+      if (dropevents) return new DLongGDL(tree->IsDroppable()); 
+      if (dragnotify) return new DStringGDL("<default>"); //other not implemented!
   }
   
   if (listselect){
@@ -2395,7 +2469,7 @@ void widget_control( EnvT* e ) {
         bool useATableSelection = e->KeywordSet( USE_TABLE_SELECT );
         DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 
-        if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 & !table->IsSomethingSelected( ) ) {
+        if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 && !table->IsSomethingSelected( ) ) {
           e->Throw( "USE_TABLE_SELECT value out of range." );
         }
         if ( useATableSelection && tableSelectionToUse->Rank( ) > 0 ) { //check further a bit...
@@ -2462,6 +2536,8 @@ void widget_control( EnvT* e ) {
             case GDL_ULONG64:
               val = new DULong64GDL( retval->Dim( ) );
               break;
+            default:
+              e->Throw("Internal GDL error, please report!");
           }
           stringstream is;
           for ( SizeT i = 0; i < val->N_Elements( ); i++ ) is << (*retval)[ i] << '\n';
@@ -2558,10 +2634,10 @@ void widget_control( EnvT* e ) {
   }
   static int FRAME = e->KeywordIx( "FRAME" );
   bool frame=e->KeywordPresent( FRAME );
-  if (frame) if (e->KeywordSet( FRAME)) widget->FrameWidget(); else widget->UnFrameWidget();
+  if (frame) { if (e->KeywordSet( FRAME)) widget->FrameWidget(); else widget->UnFrameWidget();}
   static int SCROLL = e->KeywordIx( "SCROLL" );
   bool scroll=e->KeywordPresent( SCROLL );
-  if (scroll) if (e->KeywordSet( SCROLL)) widget->ScrollWidget(120,120); else widget->UnScrollWidget();
+  if (scroll) { if (e->KeywordSet( SCROLL)) widget->ScrollWidget(120,120); else widget->UnScrollWidget();}
 
   if (clear_events) { 
     GDLWidgetBase * w=widget->GetBaseWidget(widgetID);
@@ -2588,17 +2664,17 @@ void widget_control( EnvT* e ) {
     else widget->RemoveEventType(GDLWidget::EV_ICONIFY);
   }
 
-  if (kbrdfocusevents && widget->IsBase()||widget->IsTable()||widget->IsText()) {
+  if ( kbrdfocusevents && ( widget->IsBase() || widget->IsTable() || widget->IsText() ) ) { //globally handled, no need to be more specific
     if (e->KeywordSet(KBRD_FOCUS_EVENTS)) widget->AddEventType(GDLWidget::EV_KBRD_FOCUS);
     else widget->RemoveEventType(GDLWidget::EV_KBRD_FOCUS);
   }
   
-  if (contextevents && widget->IsBase()||widget->IsList()||widget->IsTable()||widget->IsText()||widget->IsTree()) {
+  if ( contextevents && ( widget->IsBase() || widget->IsList() || widget->IsTable() || widget->IsText() || widget->IsTree() ) ) { //globally handled, no need to be more specific
     if (e->KeywordSet(CONTEXT_EVENTS)) widget->AddEventType(GDLWidget::EV_CONTEXT);
     else widget->RemoveEventType(GDLWidget::EV_CONTEXT);
   }
 
-  if (drop_events && widget->IsDraw()||widget->IsTree() ) { 
+  if ( drop_events &&  ( widget->IsDraw() || widget->IsTree() ) ) { //draw not supported yet
     if (e->KeywordSet(SET_DROP_EVENTS)) widget->AddEventType(GDLWidget::EV_DROP);
     else widget->RemoveEventType(GDLWidget::EV_DROP);
   }
@@ -2694,7 +2770,6 @@ void widget_control( EnvT* e ) {
 
   if ( eventfun ) {
     e->AssureStringScalarKWIfPresent( eventfunIx, eventFun );
-//    cout << eventFun << endl;
     widget->SetEventFun( eventFun );
   }
   
@@ -2970,7 +3045,7 @@ void widget_control( EnvT* e ) {
     
     bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
     DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
-    if (useATableSelection && tableSelectionToUse->Rank()==0 & !table->IsSomethingSelected())
+    if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
       { e->Throw( "USE_TABLE_SELECT value out of range.");}
     if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
       if (table->GetDisjointSelection()) {
@@ -3080,7 +3155,7 @@ void widget_control( EnvT* e ) {
   if (widget==NULL) e->Throw( "Invalid widget identifier: " + i2s( parentID ) );
   
   GDLWidgetPropertySheet* ps = new GDLWidgetPropertySheet( parentID, e);
-  ps->SetWidgetType( GDLWidget::WIDGET_PROPERTYSHEET );
+  if (ps->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   ps->SetWidgetType( GDLWidget::WIDGET_PROPERTYSHEET );
 
   return new DLongGDL( ps->WidgetID( ) );
   }

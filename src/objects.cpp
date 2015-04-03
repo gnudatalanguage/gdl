@@ -88,6 +88,12 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 void ResetObjects()
 {
+#ifdef HAVE_LIBWXWIDGETS
+
+  // initialize widget system
+  GDLWidget::UnInit();
+#endif
+  
   GraphicsDevice::DestroyDevices();
 
   fileUnits.clear();
