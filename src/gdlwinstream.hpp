@@ -78,7 +78,7 @@ typedef struct {
 	RGBQUAD *lpbitmap;
 	bool has_data;
 } tv_buf_t;
-static tagWINDOWINFO Winfo;
+
 class GDLWINStream : public GDLGStream
 {
 	//Atom wm_protocols;
@@ -93,9 +93,8 @@ public:
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
 	{
-		// get the command interpreter window's handle
 		pls = 0;
-		Winfo.cbSize = sizeof(Winfo);
+		// get the command interpreter window's handle
 		refocus = GetForegroundWindow();
 	}
 

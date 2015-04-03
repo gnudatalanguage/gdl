@@ -131,10 +131,9 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	//SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
 
-	bool buttonpressed = false;
 	//   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
-	bool rbutton, xbutton, mbutton;
+	bool rbutton, xbutton, mbutton, buttonpressed;
 	gin->button = 0;
 	while (!buttonpressed)
 	{
@@ -143,43 +142,47 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 		ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.right);
 
 		rbutton = false; xbutton = false; mbutton = false;
-		GetMessage(&dev->msg, NULL, 0, 0);
-		TranslateMessage(&dev->msg);
-		if (GetForegroundWindow() == dev->hwnd) {
-			switch ((int)dev->msg.message)
-			{
-			case WM_XBUTTONDOWN:  xbutton = true;
-			case WM_RBUTTONDOWN:  rbutton = true;
-			case WM_MBUTTONDOWN:  mbutton = true;
-			case WM_LBUTTONDOWN:
-				if (mode == 4) break;   // Looking for button up
-				gin->button = 1;
-				GetCursorPos(&Point);
-				buttonpressed = true;
-				break;
-			case WM_XBUTTONUP:	xbutton = true;
-			case WM_RBUTTONUP:	rbutton = true;
-			case WM_MBUTTONUP:  mbutton = true;
-			case WM_LBUTTONUP:
-				if (mode == 3) break;  // Looking for button down
-				gin->button = 1;
-				GetCursorPos(&Point);
-				buttonpressed = true;
-				break;
-			case WM_CHAR:
-				GetCursorPos(&Point);
-				gin->keysym = dev->msg.wParam;
-				buttonpressed = true;
-				break;
-			default:
-				if (mode == 0) {
+		if (PeekMessage(&dev->msg, NULL, 0, 0, PM_NOREMOVE))
+		{
+			if (GetForegroundWindow() == dev->hwnd) {
+				GetMessage(&dev->msg, NULL, 0, 0);
+				TranslateMessage(&dev->msg);
+				switch ((int)dev->msg.message)
+				{
+				case WM_XBUTTONDOWN:  xbutton = true;
+				case WM_RBUTTONDOWN:  rbutton = true;
+				case WM_MBUTTONDOWN:  mbutton = true;
+				case WM_LBUTTONDOWN:
+					if (mode == 4) break;   // Looking for button up
+					gin->button = 1;
 					GetCursorPos(&Point);
 					buttonpressed = true;
+					break;
+				case WM_XBUTTONUP:	xbutton = true;
+				case WM_RBUTTONUP:	rbutton = true;
+				case WM_MBUTTONUP:  mbutton = true;
+				case WM_LBUTTONUP:
+					if (mode == 3) break;  // Looking for button down
+					gin->button = 1;
+					GetCursorPos(&Point);
+					buttonpressed = true;
+					break;
+				case WM_CHAR:
+					GetCursorPos(&Point);
+					gin->keysym = dev->msg.wParam;
+					buttonpressed = true;
+					break;
+				default:
+					if (mode == 0) {
+						GetCursorPos(&Point);
+						buttonpressed = true;
+					}
 				}
-			}
-			if (!buttonpressed || !rcClient.left > Point.x || Point.x > rcClient.right || rcClient.top > Point.y || Point.y > rcClient.bottom) {
-				DispatchMessage(&dev->msg);
-				buttonpressed = false;
+				if (!buttonpressed || rcClient.left > Point.x || Point.x > rcClient.right || rcClient.top > Point.y || Point.y > rcClient.bottom) {
+					if (dev->msg.message != WM_PAINT)
+						DispatchMessage(&dev->msg);
+					buttonpressed = false;
+				}
 			}
 		}
 	}
@@ -232,38 +235,41 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 
 	if (nx > 0 && ny > 0) {
 		unsigned char iclr1, ired, igrn, iblu;
+
 		GetClientRect(dev->hwnd, &rt);
+		if (tv_buf.has_data && (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -(tv_buf.bi.bmiHeader.biHeight) != rt.bottom + 1))
+		{
+			// Resize tv_buf.lpbitmap
+			RGBQUAD* lpbitmap = new RGBQUAD[(rt.right + 1) * (rt.bottom + 1)];
+			memset(lpbitmap, 0, sizeof(RGBQUAD) * (rt.right + 1) * (rt.bottom + 1));
+			for (SizeT ix = 0; ix < min(tv_buf.bi.bmiHeader.biWidth, rt.right + 1); ix++)
+				for (SizeT iy = 0; iy < min((-tv_buf.bi.bmiHeader.biHeight), rt.bottom + 1); iy++)
+					lpbitmap[iy*(rt.right + 1) + ix] = tv_buf.lpbitmap[iy*tv_buf.bi.bmiHeader.biWidth + ix];
+			delete[] tv_buf.lpbitmap;
+			tv_buf.lpbitmap = lpbitmap;
+		} else if (!tv_buf.has_data) {
+			tv_buf.lpbitmap = new RGBQUAD[(rt.right + 1) * (rt.bottom + 1)];
+		}
+
 		memset(&tv_buf.bi, 0, sizeof(BITMAPINFO));
 		tv_buf.bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		tv_buf.bi.bmiHeader.biWidth = rt.right - rt.left + 1;
-		tv_buf.bi.bmiHeader.biHeight = rt.bottom - rt.top + 1;
+		tv_buf.bi.bmiHeader.biWidth = rt.right + 1;
+		tv_buf.bi.bmiHeader.biHeight = -(rt.bottom + 1);
 		tv_buf.bi.bmiHeader.biPlanes = 1;
 		tv_buf.bi.bmiHeader.biBitCount = 32;
 		tv_buf.bi.bmiHeader.biCompression = BI_RGB;
 
-		if (tv_buf.has_data)
-			delete[] tv_buf.lpbitmap;
-		tv_buf.lpbitmap = new RGBQUAD[tv_buf.bi.bmiHeader.biWidth * tv_buf.bi.bmiHeader.biHeight];
-
-		hbitmap = CreateDIBSection(hdc, &tv_buf.bi, DIB_RGB_COLORS, NULL, NULL, 0);
-		hMemDC = CreateCompatibleDC(hdc);
-		HBITMAP hdcbitmap = (HBITMAP)SelectObject(hMemDC, hbitmap);
-		BitBlt(hMemDC, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY);
-		SelectObject(hMemDC, hdcbitmap);
-		DeleteDC(hMemDC);
-		GetDIBits(hdc, hbitmap, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
-
 		for (SizeT ix = 0; ix < kxLimit; ++ix) {
 			for (SizeT iy = 0; iy < kyLimit; ++iy) {
 				kx = xoff + ix;
-				ky = yoff + iy + 1; // To be the same as IDL
-				if (ky >= tv_buf.bi.bmiHeader.biHeight || kx >= tv_buf.bi.bmiHeader.biWidth)
+				ky = rt.bottom  - (yoff + iy + 1); // To be the same as IDL
+				if (ky < 0 || kx >= rt.right + 1)
 					continue;
 				if (tru == 0 && chan == 0) {
 					iclr1 = idata[iy * nx + ix];
-					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = pls->cmap1[iclr1].b;
-					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = pls->cmap1[iclr1].g;
-					tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = pls->cmap1[iclr1].r;
+					tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbBlue = pls->cmap1[iclr1].b;
+					tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbGreen = pls->cmap1[iclr1].g;
+					tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbRed = pls->cmap1[iclr1].r;
 				}
 				else {
 					if (chan == 0) {
@@ -282,27 +288,29 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 							igrn = idata[nx * (1 * ny + iy) + ix];
 							iblu = idata[nx * (2 * ny + iy) + ix];
 						}
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = iblu;
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = igrn;
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = ired;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbBlue = iblu;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbGreen = igrn;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbRed = ired;
 					}
 					else if (chan == 1) {
 						ired = idata[1 * (iy * nx + ix) + 0];
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbRed = ired;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbRed = ired;
 					}
 					else if (chan == 2) {
 						igrn = idata[1 * (iy * nx + ix) + 1];
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbGreen = igrn;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbGreen = igrn;
 					}
 					else if (chan == 3) {
 						iblu = idata[1 * (iy * nx + ix) + 2];
-						tv_buf.lpbitmap[ky * tv_buf.bi.bmiHeader.biWidth + kx].rgbBlue = iblu;
+						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbBlue = iblu;
 					} // if (chan == 0) else
 				} // if (tru == 0  && chan == 0) else
 			} // for() inner (indent error)
 		} // for() outer
-		SetDIBitsToDevice(hdc, 0, 0, tv_buf.bi.bmiHeader.biWidth, tv_buf.bi.bmiHeader.biHeight, 0, 0, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+		SetDIBitsToDevice(hdc, 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
 		DeleteObject(hbitmap);
+
+		BringWindowToTop(dev->hwnd);
 		tv_buf.has_data = true;
 	}
 	return true;
@@ -340,10 +348,12 @@ bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
 	 on the screen. The origin is also in the lower left corner of the screen.
 	*/
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+	RECT rt;
 
-	GetWindowInfo(dev->hwnd, &Winfo);
-	xpos = Winfo.rcWindow.left;
-	ypos = GetSystemMetrics(SM_CYSCREEN) - Winfo.rcWindow.bottom;
+	GetWindowRect(dev->hwnd, &rt);
+	xpos = rt.left + 1;
+	ypos = GetSystemMetrics(SM_CYSCREEN) - rt.bottom + 1;
+
 	return true;
 }
 
@@ -413,30 +423,24 @@ HWND GDLWINStream::GetHwnd()
 void GDLWINStream::RedrawTV()
 {
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	HBITMAP hbitmap;
-	HDC hMemDC;
 	RECT rt;
-
-	if (tv_buf.has_data) {
-		// If tv_buf has data, draw it on screen
-		SetDIBitsToDevice(dev->hdc, 0, 0, tv_buf.bi.bmiHeader.biWidth, tv_buf.bi.bmiHeader.biHeight, 0, 0, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
-		delete[] tv_buf.lpbitmap;
-	}
-
-	// Resize bitmap buffer
 	GetClientRect(dev->hwnd, &rt);
-	tv_buf.lpbitmap = new RGBQUAD[(rt.right + 1) * (rt.bottom + 1)];
-
-	// Copy contents of current window's client area DC into hbitmap
-	hbitmap = CreateDIBSection(dev->hdc, &tv_buf.bi, DIB_RGB_COLORS, NULL, NULL, 0);
-	hMemDC = CreateCompatibleDC(dev->hdc);
-	HBITMAP hdcbitmap = (HBITMAP)SelectObject(hMemDC, hbitmap);
-	BitBlt(hMemDC, 0, 0, rt.right + 1, rt.bottom + 1, dev->hdc, 0, 0, SRCCOPY);
-	SelectObject(hMemDC, hdcbitmap);
-	DeleteDC(hMemDC);
-
-	// Convert hbitmap to data and put into buffer
-	GetDIBits(dev->hdc, hbitmap, 0, tv_buf.bi.bmiHeader.biHeight, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
-	tv_buf.has_data = true;
-	dev->waiting = 0;
+	// If tv_buf has data, draw it on screen
+	if (tv_buf.has_data)
+	{
+		if (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -tv_buf.bi.bmiHeader.biHeight != rt.bottom + 1)
+		{
+			// Resize tv_buf.lpbitmap
+			RGBQUAD* lpbitmap = new RGBQUAD[(rt.right + 1) * (rt.bottom + 1)];
+			memset(lpbitmap, 0, sizeof(RGBQUAD) * (rt.right + 1) * (rt.bottom + 1));
+			for (SizeT ix = 0; ix < min(tv_buf.bi.bmiHeader.biWidth, rt.right + 1); ix++)
+				for (SizeT iy = 0; iy < min(-tv_buf.bi.bmiHeader.biHeight, rt.bottom + 1); iy++)
+					lpbitmap[iy*(rt.right + 1) + ix] = tv_buf.lpbitmap[iy*tv_buf.bi.bmiHeader.biWidth + ix];
+			delete[] tv_buf.lpbitmap;
+			tv_buf.lpbitmap = lpbitmap;
+			tv_buf.bi.bmiHeader.biWidth = rt.right + 1;
+			tv_buf.bi.bmiHeader.biHeight = -(rt.bottom + 1);
+		}
+		SetDIBitsToDevice(dev->hdc, 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+	}
 }

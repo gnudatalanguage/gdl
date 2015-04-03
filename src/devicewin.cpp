@@ -67,7 +67,6 @@ LRESULT DeviceWIN::CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 					BeginPaint(lpWp->hwnd, &ps);
 					((GDLWINStream *)winList[i])->RedrawTV();
 					EndPaint(lpWp->hwnd, &ps);
-					lpWp->message = WM_NULL;
 					break;
 				}
 				case WM_DESTROY:
@@ -78,11 +77,13 @@ LRESULT DeviceWIN::CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 			}
 		}
 	}
-	return CallNextHookEx(hHook[0], nCode, wParam, lParam);
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 LRESULT DeviceWIN::GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
+	LRESULT retCode = CallNextHookEx(NULL, nCode, wParam, lParam);
+
 	MSG* lpWp = (MSG*)lParam;
 	int i;
 	BOOL windowfound = false;
@@ -95,15 +96,13 @@ LRESULT DeviceWIN::GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 		}
 		if (windowfound && lpWp->message == WM_PAINT) {
 			// Redraw image after the window is finally reactivated.
-			// TODO: plot + TV does not work!!
-			//       plot window always shows Hourglass cursor!!
-			PAINTSTRUCT ps;
-			BeginPaint(lpWp->hwnd, &ps);
+			//PAINTSTRUCT ps;
+			//BeginPaint(lpWp->hwnd, &ps);
 			((GDLWINStream *)winList[i])->RedrawTV();
-			EndPaint(lpWp->hwnd, &ps);
+			//EndPaint(lpWp->hwnd, &ps);
 		}
 	}
-	return CallNextHookEx(hHook[1], nCode, wParam, lParam);
+	return retCode;
 }
 // HACK end
 
