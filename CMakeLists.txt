@@ -485,8 +485,8 @@ if(USE_MAGICK)
 endif(USE_MAGICK)
 
 # wxWdigets
-# -DWXWIDGET=ON|OFF
-# -DWXWIDGETDIR=DIR
+# -DWXWIDGETS=ON|OFF
+# -DWXWIDGETSDIR=DIR
 set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
 	#
@@ -495,8 +495,8 @@ if(WXWIDGETS)
 	check_library_exists("${PLPLOT_LIBRARIES}" wxPLplotWindow "" HAVE_PLPLOT_WXWIDGETS)
 	if(NOT HAVE_PLPLOT_WXWIDGETS)
 	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxwidgets NOT found.\n"
-	       "If -DWXWIDGET=ON then PLplot must have be compiled with -DPLD_wxwidgets=ON ")
-        endif(HAVE_PLPLOT_WXWIDGETS)
+	       "If -DWXWIDGETS=ON then PLplot must have be compiled with -DPLD_wxwidgets=ON ")
+        endif(NOT HAVE_PLPLOT_WXWIDGETS)
 	#
 	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
 	find_package(wxWidgets REQUIRED base core adv)
