@@ -730,7 +730,7 @@ namespace SysVar
 
     ver->NewTag("OS", new DStringGDL(SysName));    
     ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
-    ver->NewTag("RELEASE", new DStringGDL( "6.0")); 
+    ver->NewTag("RELEASE", new DStringGDL( "6.5")); //we are at least 6.4
     ver->NewTag("BUILD_DATE", new DStringGDL(__DATE__)); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8)); 
