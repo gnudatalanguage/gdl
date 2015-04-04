@@ -41,7 +41,6 @@ namespace lib {
   void (*dynPro[MAXNDLL/2])( EnvT* e);
   BaseGDL*(*dynFun[MAXNDLL/2])( EnvT* e);
 
-
   void point_lun( EnvT* e) 
   { 
     e->NParam( 1);//, "POINT_LUN");
@@ -118,13 +117,9 @@ namespace lib {
 
     /* Load dynamically loaded library */
 #if defined(_WIN32) && !defined(__CYGWIN__)
-    #ifdef _UNICODE
     TCHAR u_shrdimgName[255];
     MultiByteToWideChar(CP_ACP, 0, shrdimgName.c_str(), shrdimgName.length(), u_shrdimgName, 255);
-    module[count] = LoadLibrary(u_shrdimgName);
-    #else
-    module[count] = LoadLibrary(shrdimgName.c_str());
-    #endif
+    module[count] = LoadLibraryW(u_shrdimgName);
 
     if (!module[count]) {
       fprintf(stderr, "Couldn't open %s\n", 
@@ -194,6 +189,25 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
   			  "WAIT:  Argument must be non-negative"
 			  +e->GetParString( 0));
+
+#ifdef _WIN32
+	LARGE_INTEGER Frequency;
+	LARGE_INTEGER BeginTime;
+	LARGE_INTEGER Endtime;
+	LARGE_INTEGER elapsed;
+	LARGE_INTEGER waittime_us;
+	waittime_us.QuadPart = waittime * 1e6;
+
+	QueryPerformanceFrequency(&Frequency);
+	QueryPerformanceCounter(&BeginTime);
+
+	while (1) {
+		QueryPerformanceCounter(&Endtime);
+		elapsed.QuadPart = (Endtime.QuadPart - BeginTime.QuadPart)/(Frequency.QuadPart/1000000);
+		if (elapsed.QuadPart >= waittime_us.QuadPart) break;
+		else if (elapsed.QuadPart > 100) Sleep(80);
+	}
+#else
     int old_version=0;
 
     if (waittime <= 0.005) old_version=1;
@@ -202,37 +216,33 @@ namespace lib {
     // this version is OK and very accurate for small durations
     // but used 100% of one CPU :((
     if (old_version == 1) {
-
-      struct timeval tval;
+	  struct timeval tval;
       struct timezone tzone;
       
       // derivated from the current version of SYSTIME()
-      
       gettimeofday(&tval,&tzone);
       double t_start = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
       double t_current=0.0;
       
-      double diff=0.0;
+	  double diff = 0.0;
       while (diff < waittime ) {      
-	gettimeofday(&tval,&tzone);
+
+		  gettimeofday(&tval,&tzone);
 	t_current= tval.tv_sec+tval.tv_usec/1e+6;
 	diff=t_current - t_start;
-      }
-    }
+	  }
+	}
 
     // AC 2010-09-16 this version should used much less CPU !
     if (old_version == 0) {
       //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
-#if defined (_WIN32) && !defined(__CYGWIN__)
-      Sleep(floor(waittime*1e3));
-#else
       struct timespec tv;
       tv.tv_sec = floor(waittime);
       tv.tv_nsec = (waittime-floor(waittime))*1e9;
       int retval;
       retval=nanosleep(&tv,NULL);
-#endif
     }
+#endif
   }
 
 //   void kwtest( EnvT* e)
@@ -433,15 +443,11 @@ namespace lib {
     // Load shared object, call function
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#ifdef _UNICODE
 	TCHAR* tchr = new TCHAR[image.size() + 1];
 	tchr[image.size()] = 0;
 	std::copy(image.begin(),image.end(),tchr);
-    HMODULE handle =  LoadLibrary(tchr);
+    HMODULE handle =  LoadLibraryW(tchr);
 	delete(tchr);
-#else
-    HMODULE handle =  LoadLibrary((LPCSTR)image.c_str());
-#endif
 #else
     // you MUST keep the double "||" to have CALL_EXTERNAL working
     void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);

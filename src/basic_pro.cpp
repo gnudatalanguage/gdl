@@ -2807,7 +2807,7 @@ namespace lib {
 		CHAR outbuf[BUFSIZE];
 		CHAR errbuf[BUFSIZE];
 
-		STARTUPINFO si = { 0, };
+		STARTUPINFOW si = { 0, };
 		PROCESS_INFORMATION pi = { 0, };
 
 		SECURITY_ATTRIBUTES saAttr;
@@ -2847,7 +2847,7 @@ namespace lib {
 			}
 			si.dwFlags |= STARTF_USESTDHANDLES;
 			if (debug) std::printf(" CreateProcess: ");
-			CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+			CreateProcessW(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
 			if (pid != NULL)	*pid = pi.dwProcessId;
 			DWORD progress;
 
@@ -2892,7 +2892,7 @@ namespace lib {
 		}
 		else
 		{
-			CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+			CreateProcessW(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 			if (pid != NULL)	*pid = pi.dwProcessId;
 			if (!nowait)       WaitForSingleObject(pi.hProcess, INFINITE);
 			GetExitCodeProcess(pi.hProcess, &status);
@@ -2972,12 +2972,10 @@ namespace lib {
 			ds_cmd = cmd;
 		else
 			ds_cmd = "cmd /c " + cmd;
-#ifdef _UNICODE
+
 		wchar_t t_cmd[255];
 		MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
-#else
-		LPTSTR t_cmd = (LPTSTR)ds_cmd.c_str();
-#endif
+
 		vector<DString> ds_outs;
 		vector<DString> ds_errs;
 		int status;
