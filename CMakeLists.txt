@@ -492,7 +492,7 @@ if(WXWIDGETS)
 	#
 	# we check whether plplot was compiled within wxwidgets
 	#
-	check_library_exists("${PLPLOT_LIBRARIES}" wxPLplotWindow "" HAVE_PLPLOT_WXWIDGETS)
+	check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
 	if(NOT HAVE_PLPLOT_WXWIDGETS)
 	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxwidgets NOT found.\n"
 	       "If -DWXWIDGETS=ON then PLplot must have be compiled with -DPLD_wxwidgets=ON ")
