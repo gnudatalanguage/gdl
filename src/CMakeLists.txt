@@ -63,6 +63,8 @@ deviceps.hpp
 devicesvg.hpp
 devicez.hpp
 dimension.hpp
+dialog.cpp
+dialog.hpp
 dinterpreter.cpp
 dinterpreter.hpp
 dnode.cpp
@@ -175,6 +177,7 @@ libinit_gm.cpp
 libinit_jmg.cpp
 libinit_mes.cpp
 libinit_ng.cpp
+libinit_jp.cpp
 list.cpp
 list.hpp
 magick_cl.cpp

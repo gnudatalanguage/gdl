@@ -74,6 +74,7 @@ void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
 void LibInit_ng(); // libinit_ng.cpp
+void LibInit_jp(); // libinit_jp.cpp
 
 void LibInit()
 {
@@ -84,17 +85,8 @@ void LibInit()
   LibInit_ac();
   LibInit_gm();
   LibInit_ng(); 
+  LibInit_jp();
   const char KLISTEND[] = "";
-
-#ifdef _WIN32
-  // 2015 Apr 04, JP added DIALOG_PICKFILE_WIN32 (in file.cpp)
-  const string dialog_pickFile_win32Key[] = { "DEFAULT_EXTENSION", "DIRECTORY", "DIALOG_PARENT",
-	  "DISPLAY_NAME", "FILE", "FILTER", "FIX_FILTER",
-	  "GET_PATH", "GROUP", "MULTIPLE_FILES", "MUST_EXIST",
-	  "OVERWRITE_PROMPT", "PATH", "READ", "WRITE", "RESOURCE_NAME",
-	  "TITLE", KLISTEND };
-  new DLibFunRetNew(lib::dialog_pickfile_win32, string("DIALOG_PICKFILE_WIN32"), 0, dialog_pickFile_win32Key);
-#endif
 
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
