@@ -133,7 +133,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 
 	//   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
-	bool rbutton, xbutton, mbutton, buttonpressed;
+	bool rbutton, xbutton, mbutton, buttonpressed = false;
 	gin->button = 0;
 	while (!buttonpressed)
 	{
@@ -217,7 +217,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 	HDC hdc = dev->hdc;
 	HDC hMemDC;
 
-	HBITMAP hbitmap;
 	RECT rt;
 
 	PLINT kxLimit, kyLimit;
@@ -308,7 +307,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 			} // for() inner (indent error)
 		} // for() outer
 		SetDIBitsToDevice(hdc, 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
-		DeleteObject(hbitmap);
 
 		BringWindowToTop(dev->hwnd);
 		tv_buf.has_data = true;
