@@ -159,17 +159,28 @@ http://www.gnu.org/software/gsl
 The Eigen library version 3.1 or later is highly recommended for a performance
 boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org
 
-GDL supports GUI (widget) programming (thanks to Joel Gales )
+WIDGETS:
+--------
+GDL supports GUI (widget) programming (initial effort by Joel Gales rewritten by GD)
 using the wxWidgets library. It is required by default.
 If you don't want to use it, use
 --with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
 wxWidgets can be obtained from:
 http://www.wxwidgets.org/downloads
-Most WIDGET_... functions are implemented (use HELP,/LIB for an overview), and
-several compound widgets (CW_... functions that are written in IDL, like CW_FIELD) are working.
-Those are not present in the GDL distribution and must be obtained separately and put
-in the GDL path before use.
 
+The wxWidget version must be 2.8.1 or higher.
+
+The WIDGET_*... functions are all implemented (use HELP,/LIB for an overview). Only a few
+rarely seen options have not been written yet (please report in case of need). They have
+not been tested outside the linux "mageia" distribution yet, so errors and crashes are possible.
+Most procedures using widgets available (e.g., in the astrolib library) use so-called
+"compound widgets" (CW_xxxxx functions that are written in IDL, like CW_FIELD). Those have not
+been rewritten in GDL (and some have not been thoroughly tested). Those are not present
+in the GDL distribution (copyright issues), must be obtained separately (google is your friend) and put
+in the GDL path before use. 
+
+HDF4 Files:
+----------
 The HDF4 format is (not completely yet) supported (thanks to Joel Gales).
 If you want to use it, you need the HDF library (here HDF
 always means version 4).
@@ -242,9 +253,8 @@ will failed if libfftw3f.a is missing.
 As mentionned in the log. of ./configure,
 if FFTw is not used, the default (GSL) fft routine is used instead.
 
-GDL contains now a preliminary support to MAP projection,
-using the libproj4 http://members.verizon.net/~vze2hc4d/proj4/
-library. Please see MAP_INSTALL file.
+GDL contains now a complete support to MAP projection,
+using the proj4 or libproj library. Please see MAP_INSTALL file.
 It is NOT used by default.
 If you want to use it, use --with-libproj4=DIR
 
