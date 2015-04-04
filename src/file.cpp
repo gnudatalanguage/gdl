@@ -726,13 +726,13 @@ namespace lib {
 	 long endR; 
 	 for( endR = root.length()-1; endR >= 0; --endR)
 	   {
-	     if( root[ endR] != '/')
+	     if( root[ endR] != PathSeparator()[0])
 	       break;
 	   }
 	 if( endR >= 0)
-	   root = root.substr( 0, endR+1) + "/";
+	   root = root.substr( 0, endR+1) + PathSeparator();
 	 else
-	   root = "/";
+	   root = PathSeparator();
       }
 
      DString prefix = root;
