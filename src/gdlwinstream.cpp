@@ -53,7 +53,12 @@ BYTE XORmaskCursor[128] =
 
 GDLWINStream::~GDLWINStream()
 {
-	if(tv_buf.has_data) delete [] tv_buf.lpbitmap;
+	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+	if (tv_buf.has_data) {
+		tv_buf.has_data = false;
+		delete[] tv_buf.lpbitmap;
+	}
+	DestroyWindow(dev->hwnd); // Manually destroy window
 }
 
 void GDLWINStream::Init()
@@ -421,11 +426,11 @@ HWND GDLWINStream::GetHwnd()
 void GDLWINStream::RedrawTV()
 {
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	RECT rt;
-	GetClientRect(dev->hwnd, &rt);
 	// If tv_buf has data, draw it on screen
-	if (tv_buf.has_data)
+	if (tv_buf.has_data && dev->hwnd)
 	{
+		RECT rt;
+		GetClientRect(dev->hwnd, &rt);
 		if (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -tv_buf.bi.bmiHeader.biHeight != rt.bottom + 1)
 		{
 			// Resize tv_buf.lpbitmap
