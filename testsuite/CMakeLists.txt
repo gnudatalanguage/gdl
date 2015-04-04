@@ -6,7 +6,9 @@ set(LAUNCH
 "#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <malloc.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 int main(int c,char**v) {
 char*p;
 if(c!=2) return 1;
