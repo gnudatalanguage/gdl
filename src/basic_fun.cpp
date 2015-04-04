@@ -5354,14 +5354,10 @@ BaseGDL* strtok_fun(EnvT* e) {
 		//		(*env)[i] = SysVar::Dir();
 #ifdef WIN32
 			  TCHAR tmpBuf[MAX_PATH];
-			  GetTempPath(MAX_PATH, tmpBuf);
-#	ifdef _UNICODE
+			  GetTempPathW(MAX_PATH, tmpBuf);
 			  char c_tmpBuf[MAX_PATH];
 			  WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
 			  (*env)[i] = c_tmpBuf;
-#	else
-			  (*env)[i] = tmpBuf;
-#	endif
 #else
 		(*env)[i] = _PATH_VARTMP ;
 #endif
@@ -6708,16 +6704,11 @@ BaseGDL* strtok_fun(EnvT* e) {
 
     DWORD N_TCHAR = MAX_TCHAR_BUF;
 
-    #ifdef _UNICODE
     TCHAR t_buf[MAX_TCHAR_BUF];
-    GetUserName(t_buf, &N_TCHAR);
+    GetUserNameW(t_buf, &N_TCHAR);
     WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, login, N_TCHAR, NULL, NULL);
-    GetComputerName( t_buf, &N_TCHAR );
+    GetComputerNameW( t_buf, &N_TCHAR );
     WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, info, N_TCHAR, NULL, NULL);
-    #else
-    GetUserName(login, &N_TCHAR);
-    GetComputerName(info, &N_TCHAR);
-    #endif
 #else
     char* login = getlogin();
     if (login == NULL) e->Throw("Failed to get user name from the OS"); 
