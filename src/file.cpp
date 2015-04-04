@@ -1350,8 +1350,20 @@ DString makeInsensitive(const DString &s)
    char fname[_MAX_FNAME];
    char ext[_MAX_EXT];
 
-   _splitpath( tmp.c_str(),drive,dir,fname,ext);
-   string dname = string(drive)+":"+dir;
+   DString::size_type pos = 0, offset = 0;
+   DString tmp2(tmp);
+   while ((pos = tmp2.find("/", offset)) != string::npos)
+   {
+	   tmp2[pos] = '\\';
+	   offset = pos + 1;
+   }
+   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back();
+
+   _splitpath( tmp2.c_str(),drive,dir,fname,ext);
+   dir[strlen(dir) - 1] = 0; // Remove seperator
+   DString dname = DString(drive)+dir;
+
+   while (dname[dname.size() - 1] == '\\') dname.pop_back();
 #else
 	char buf[ PATH_MAX+1];
 	strncpy(buf, tmp.c_str(), PATH_MAX+1);
