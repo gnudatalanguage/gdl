@@ -494,8 +494,9 @@ if(WXWIDGETS)
 	#
 	check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
 	if(NOT HAVE_PLPLOT_WXWIDGETS)
-	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxwidgets NOT found.\n"
-	       "If -DWXWIDGETS=ON then PLplot must have be compiled with -DPLD_wxwidgets=ON ")
+	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxWidgets NOT found.\n"
+	       "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
+	       "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
         endif(NOT HAVE_PLPLOT_WXWIDGETS)
 	#
 	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
