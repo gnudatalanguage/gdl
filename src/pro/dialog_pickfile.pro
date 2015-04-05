@@ -120,7 +120,7 @@
 ;              no path given. This problem appears due to change in
 ;              Zenity in Gnome3 (e.g. : http://www.kirsle.net/blog/kirsle/zenity-and-gnome-3)
 ;
-; 03-Apr-2016: - Code for Windows platform is added.
+; 03-Apr-2015: - JP: Code for Windows platform is added.
 ;
 ;-
 ;
