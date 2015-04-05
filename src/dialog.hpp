@@ -21,7 +21,6 @@
 
 namespace lib {
 	BaseGDL* wxwidgets_exists(EnvT* e);
-#ifdef HAVE_LIBWXWIDGETS
 	BaseGDL* dialog_pickfile_wxwidgets(EnvT* e);
-#endif
+	BaseGDL* dialog_message_wxwidgets(EnvT* e);
 } // namespace

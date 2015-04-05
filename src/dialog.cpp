@@ -19,6 +19,7 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 #include <wx/filedlg.h>
+#include <wx/msgdlg.h>
 #endif
 
 #include "envt.hpp"
@@ -29,15 +30,12 @@
 using namespace std;
 
 namespace lib {
+#ifdef HAVE_LIBWXWIDGETS
 	BaseGDL* wxwidgets_exists(EnvT* e)
 	{
-#ifdef HAVE_LIBWXWIDGETS
 		return new DLongGDL(1);
-#else
-		return new DLongGDL(0);
-#endif
 	}
-#ifdef HAVE_LIBWXWIDGETS
+
 	BaseGDL* dialog_pickfile_wxwidgets(EnvT* e)
 	{
 		/*
@@ -51,70 +49,112 @@ namespace lib {
 			                                    TITLE=title)
 		*/
 
+		bool isdefault_extension = false;
 		bool isdirectory = false;
+		bool isdialog_parent = false;
+		bool isdisplay_name = false;
+		bool isfile = false;
+		bool isfilter = false;
 		bool isfix_filter = false;
+		bool isgroup = false;
 		bool ismultiple_files = false;
 		bool ismust_exist = false;
 		bool isoverwrite_prompt = false;
+		bool ispath = false;
 		bool isread = false;
 		bool iswrite = false;
+		bool isresource_name = false;
+		bool istitle = false;
 
-		static int default_extensionIx = e->KeywordIx("DEFAULT_EXTENSION");
+		static int default_extensionIx = e->KeywordIx("DEFAULT_EXTENSION"); // Partially implemented. See below for details.
+		bool default_extensionKW = e->KeywordPresent(default_extensionIx);
+		if (default_extensionKW) isdefault_extension = e->KeywordSet(default_extensionIx);
 
 		static int directoryIx = e->KeywordIx("DIRECTORY");
-		isdirectory = e->KeywordSet(directoryIx);
+		bool directoryKW = e->KeywordPresent(directoryIx);
+		if (directoryKW) isdirectory = e->KeywordSet(directoryIx);
 
-		static int dialog_parentIx = e->KeywordIx("DIALOG_PARENT");
+		static int dialog_parentIx = e->KeywordIx("DIALOG_PARENT"); // Not tested
+		bool dialog_parentKW = e->KeywordPresent(dialog_parentIx);
+		if (dialog_parentKW) isdialog_parent = e->KeywordSet(dialog_parentIx);
 
-		static int display_nameIx = e->KeywordIx("DISPLAY_NAME"); // Not implemented yet
+		static int display_nameIx = e->KeywordIx("DISPLAY_NAME"); // Not implemented
+		bool display_nameKW = e->KeywordPresent(display_nameIx);
+		if (display_nameKW) isdisplay_name = e->KeywordSet(display_nameIx);
 
 		static int fileIx = e->KeywordIx("FILE");
+		bool fileKW = e->KeywordPresent(fileIx);
+		if (fileKW) isfile = e->KeywordSet(fileIx);
 
 		static int filterIx = e->KeywordIx("FILTER");
+		bool filterKW = e->KeywordPresent(filterIx);
+		if (filterKW) isfilter = e->KeywordSet(filterIx);
 
-		static int fix_filterIx = e->KeywordIx("FIX_FILTER"); // Not implemented yet
+		static int fix_filterIx = e->KeywordIx("FIX_FILTER"); // Not implemented
+		bool fix_filterKW = e->KeywordPresent(fix_filterIx);
+		if (fix_filterKW) isfix_filter = e->KeywordSet(fix_filterIx);
 
 		static int get_pathIx = e->KeywordIx("GET_PATH");
+		bool get_pathKW = e->KeywordPresent(get_pathIx);
 
-		static int groupIx = e->KeywordIx("GROUP");
+		static int groupIx = e->KeywordIx("GROUP"); // Not tested
+		bool groupKW = e->KeywordPresent(groupIx);
+		if (groupKW) isgroup = e->KeywordSet(groupIx);
 
 		static int multiple_filesIx = e->KeywordIx("MULTIPLE_FILES");
-		ismultiple_files = e->KeywordSet(multiple_filesIx);
+		bool multiple_filesKW = e->KeywordPresent(multiple_filesIx);
+		if (multiple_filesKW) ismultiple_files = e->KeywordSet(multiple_filesIx);
 
 		static int must_existIx = e->KeywordIx("MUST_EXIST");
-		ismust_exist = e->KeywordSet(must_existIx);
+		bool must_existKW = e->KeywordPresent(must_existIx);
+		if (must_existKW) ismust_exist = e->KeywordSet(must_existIx);
 
 		static int overwrite_promptIx = e->KeywordIx("OVERWRITE_PROMPT");
-		isoverwrite_prompt = e->KeywordSet(overwrite_promptIx);
+		bool overwrite_promptKW = e->KeywordPresent(overwrite_promptIx);
+		if (overwrite_promptKW) isoverwrite_prompt = e->KeywordSet(overwrite_promptIx);
 
 		static int pathIx = e->KeywordIx("PATH");
+		bool pathKW = e->KeywordPresent(pathIx);
+		if (pathKW) ispath = e->KeywordSet(pathIx);
 
 		static int readIx = e->KeywordIx("READ");
-		isread = e->KeywordSet(readIx);
+		bool readKW = e->KeywordPresent(readIx);
+		if (readKW) isread = e->KeywordSet(readIx);
 
 		static int writeIx = e->KeywordIx("WRITE");
-		iswrite = e->KeywordSet(writeIx);
+		bool writeKW = e->KeywordPresent(writeIx);
+		if (writeKW) iswrite = e->KeywordSet(writeIx);
 
-		static int resource_nameIx = e->KeywordIx("RESOURCE_NAME"); // Not implemented yet
+		static int resource_nameIx = e->KeywordIx("RESOURCE_NAME"); // Not implemented
+		bool resource_nameKW = e->KeywordPresent(resource_nameIx);
+		if (resource_nameKW) isresource_name = e->KeywordSet(resource_nameIx);
 
 		static int titleIx = e->KeywordIx("TITLE");
-
+		bool titleKW = e->KeywordPresent(titleIx);
+		if (titleKW) istitle = e->KeywordSet(titleIx);
+		
 		if (ismultiple_files && isdirectory)
 			Warning("DIALOG_PICKFILE: Selecting multiple directories is not supported.");
+		
+		if (get_pathKW) e->AssureGlobalKW(get_pathIx);
 
+		// Set parent widget.
+		// WARNING: THIS PART IS NOT TESTED
 		GDLWidget *widget;
 		wxWindow *parent;
-		DLong groupLeader = 0;
-		e->AssureLongScalarKWIfPresent(groupIx, groupLeader);
-		e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
-		if (groupLeader > 0) {
+		if (isgroup || isdialog_parent)
+		{
+			DLong groupLeader = 0;
+			// GROUP == DIALOG_PARENT.
+			// However GROUP is deprecated, so we prefer DIALOG_PARENT here.
+			e->AssureLongScalarKWIfPresent(groupIx, groupLeader);
+			e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
+
 			widget = GDLWidget::GetWidget(groupLeader);
-			if (widget == NULL)	ThrowGDLException("Message code is invalid.");
+			if (widget == NULL) ThrowGDLException("Message code is invalid.");
 			parent = static_cast<wxWindow *> (widget->GetWxWidget());
 		}
-		else {
-			parent = 0;
-		}
+		else parent = 0;
 
 		// Set style
 		long style = 0;
@@ -134,17 +174,24 @@ namespace lib {
 
 		// Set title
 		wxString wxtitlestr = "Select File";
-		DString titlestr = "";
-		e->AssureStringScalarKWIfPresent(titleIx, titlestr);
-		if (!titlestr.empty()) wxtitlestr = titlestr.c_str();
-		else if (iswrite)      wxtitlestr = "Select File to Write";
-		else if (isread)       wxtitlestr = "Select File to Read";
+		if (istitle)
+		{
+			DString titlestr;
+			e->AssureStringScalarKW(titleIx, titlestr);
+		}
+		else
+		{
+			if (iswrite)     wxtitlestr = "Select File to Write";
+			else if (isread) wxtitlestr = "Select File to Read";
+		}
 
 		// Set default path
 		wxString wxpathstr = "";
-		DString pathstr = "";
-		e->AssureStringScalarKWIfPresent("PATH", pathstr);
-		if (!pathstr.empty())  wxpathstr = pathstr.c_str();
+		if (ispath) {
+			DString pathstr;
+			e->AssureStringScalarKW("PATH", pathstr);
+			wxpathstr = pathstr.c_str();
+		}
 
 		// Show dialog
 		wxArrayString wxpathstrarr;
@@ -164,10 +211,9 @@ namespace lib {
 		else
 		{
 			// If DIRECTORY is not set, show FileDialog
-			DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
 			wxString wxfilterstr;
-			if (filterstrarr)
-			{
+			if (isfilter) {
+				DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
 				dimension dim = filterstrarr->Dim();
 				if (dim.Rank() > 2 || (dim.Rank() == 2 && dim[1] != 2))
 					ThrowGDLException("Filter must be a one dimensional or [N,2] string array.");
@@ -193,9 +239,11 @@ namespace lib {
 			else wxfilterstr = "*.*|*.*";
 
 			wxString wxfilestr;
-			DString filestr = "";
-			e->AssureStringScalarKWIfPresent("FILE", filestr);
-			wxfilestr = filestr.c_str();
+			if (isfile) {
+				DString filestr;
+				e->AssureStringScalarKW("FILE", filestr);
+				wxfilestr = filestr.c_str();
+			}
 
 			wxFileDialog gdlFileDialog(parent, wxtitlestr, wxpathstr, wxfilestr, wxfilterstr, style);
 			if (gdlFileDialog.ShowModal() != wxID_CANCEL) {
@@ -231,60 +279,183 @@ namespace lib {
 		}
 
 		// Set the given GET_PATH variable
-		if (pathcnt > 0)
-		{
-			DStringGDL* pathstrgdl;
-			if (isdirectory) pathstrgdl = new DStringGDL((*res)[0]);
-			else
+		if (get_pathKW) {
+			if (pathcnt > 0)
 			{
-				static int file_dirnameIx = LibFunIx("FILE_DIRNAME");
-				EnvT *newEnv = new EnvT(e, libFunList[file_dirnameIx], NULL);
-				Guard<EnvT> guard(newEnv);
-				newEnv->SetNextPar(new DStringGDL((*res)[0]));
-				pathstrgdl = (DStringGDL *)file_dirname(newEnv);
-				guard.release();
-				(*pathstrgdl)[0].append(PathSeparator());
+				DStringGDL* pathstrgdl;
+				if (isdirectory) pathstrgdl = new DStringGDL((*res)[0]);
+				else
+				{
+					static int file_dirnameIx = LibFunIx("FILE_DIRNAME");
+					EnvT *newEnv = new EnvT(e, libFunList[file_dirnameIx], NULL);
+					Guard<EnvT> guard(newEnv);
+					newEnv->SetNextPar(new DStringGDL((*res)[0]));
+					pathstrgdl = (DStringGDL *)file_dirname(newEnv);
+					guard.release();
+					(*pathstrgdl)[0].append(PathSeparator());
+				}
+				e->SetKW(get_pathIx, pathstrgdl);
 			}
-			e->SetKW(get_pathIx, pathstrgdl);
+			else e->SetKW(get_pathIx, new DStringGDL(""));
 		}
-		else e->SetKW(get_pathIx, new DStringGDL(""));
 
 		// Add default extension to the results
-		if (!isdirectory && pathcnt > 0)
+		if (isdefault_extension && !isdirectory && pathcnt > 0)
 		{
-			DString defaultextstr = "";
-			e->AssureStringScalarKWIfPresent(default_extensionIx, defaultextstr);
-			if (!defaultextstr.empty())
+			DString defaultextstr;
+			e->AssureStringScalarKW(default_extensionIx, defaultextstr);
+			bool fileexists;
+			EnvT *newEnv;
+
+			// TODO: below is not valid when 'write' and 'filter' keys are simultaneously specified.
+			//       See http://www.exelisvis.com/docs/DIALOG_PICKFILE.html
+			for (int i = 0; i < pathcnt; i++)
 			{
-				bool fileexists;
-				EnvT *newEnv;
+				// Check file exists
+				ifstream f((*res)[i].c_str());
+				fileexists = f.good();
+				f.close();
 
-				// TODO: below is not valid when 'write' and 'filter' keys are simultaneously specified.
-				//       See http://www.exelisvis.com/docs/DIALOG_PICKFILE.html
-				for (int i = 0; i < pathcnt; i++)
-				{
-					// Check file exists
-					ifstream f((*res)[i].c_str());
-					fileexists = f.good();
-					f.close();
+				if (!fileexists) {
+					static int file_basenameIx = LibFunIx("FILE_BASENAME");
+					newEnv = new EnvT(e, libFunList[file_basenameIx], NULL);
+					Guard<EnvT> guard(newEnv);
+					newEnv->SetNextPar(new DStringGDL((*res)[i]));
+					DStringGDL *basenamestrgdl = (DStringGDL *)file_basename(newEnv);
+					guard.release();
 
-					if (!fileexists) {
-						static int file_basenameIx = LibFunIx("FILE_BASENAME");
-						newEnv = new EnvT(e, libFunList[file_basenameIx], NULL);
-						Guard<EnvT> guard(newEnv);
-						newEnv->SetNextPar(new DStringGDL((*res)[i]));
-						DStringGDL *basenamestrgdl = (DStringGDL *)file_basename(newEnv);
-						guard.release();
-
-						// Add default extention when the file does not have one
-						if ((*basenamestrgdl)[0].find(".") == string::npos)
-							(*res)[i] += defaultextstr;
-					}
+					// Add default extention when the file does not have one
+					if ((*basenamestrgdl)[0].find(".") == string::npos)
+						(*res)[i] += defaultextstr;
 				}
 			}
 		}
-
 		return res;
 	}
+
+	BaseGDL* dialog_message_wxwidgets(EnvT* e)
+	{
+		DString messagestr;
+		bool iscancel = false;
+		bool iscenter = false;
+		bool isdefault_cancel = false;
+		bool isdefault_no = false;
+		bool isdialog_parent = false;
+		bool isdisplay_name = false;
+		bool iserror = false;
+		bool isinformation = false;
+		bool isquestion = false;
+		bool isresource_name = false;
+		bool istitle = false;
+
+		e->AssureStringScalarPar(0, messagestr);
+
+		static int cancelIx = e->KeywordIx("CANCEL");
+		bool cancelKW = e->KeywordPresent(cancelIx);
+		if (cancelKW) iscancel = e->KeywordSet(cancelIx);
+
+		static int centerIx = e->KeywordIx("CENTER");
+		bool centerKW = e->KeywordPresent(centerIx);
+		if (centerKW) iscenter = e->KeywordSet(centerIx);
+
+		static int default_cancelIx = e->KeywordIx("DEFAULT_CANCEL");
+		bool default_cancelKW = e->KeywordPresent(default_cancelIx);
+		if (default_cancelKW) isdefault_cancel = e->KeywordSet(default_cancelIx);
+
+		static int default_noIx = e->KeywordIx("DEFAULT_NO");
+		bool default_noKW = e->KeywordPresent(default_noIx);
+		if (default_noKW) isdefault_no = e->KeywordSet(default_noIx);
+
+		static int dialog_parentIx = e->KeywordIx("DIALOG_PARENT"); // Not tested
+		bool dialog_parentKW = e->KeywordPresent(dialog_parentIx);
+		if (dialog_parentKW) isdialog_parent = e->KeywordSet(dialog_parentIx);
+
+		static int display_nameIx = e->KeywordIx("DISPLAY_NAME"); // Not implemented
+		bool display_nameKW = e->KeywordPresent(display_nameIx);
+		if (display_nameKW) isdisplay_name = e->KeywordSet(display_nameIx);
+
+		static int errorIx = e->KeywordIx("ERROR");
+		bool errorKW = e->KeywordPresent(errorIx);
+		if (errorKW) iserror = e->KeywordSet(errorIx);
+
+		static int informationIx = e->KeywordIx("INFORMATION");
+		bool informationKW = e->KeywordPresent(informationIx);
+		if (informationKW) isinformation = e->KeywordSet(informationIx);
+
+		static int questionIx = e->KeywordIx("QUESTION");
+		bool questionKW = e->KeywordPresent(questionIx);
+		if (questionKW) isquestion = e->KeywordSet(questionIx);
+
+		static int resource_nameIx = e->KeywordIx("RESOURCE_NAME"); // Not implemented
+		bool resource_nameKW = e->KeywordPresent(resource_nameIx);
+		if (resource_nameKW) isresource_name = e->KeywordSet(resource_nameIx);
+
+		static int titleIx = e->KeywordIx("TITLE");
+		bool titleKW = e->KeywordPresent(titleIx);
+		if (titleKW) istitle = e->KeywordSet(titleIx);
+
+		// If two or three styles are specified simultaneously, set INFORMATION as default.
+		if ((iserror && isquestion) || (iserror && isinformation) || (isquestion && isinformation))
+		{
+			iserror = false;
+			isquestion = false;
+			isinformation = true;
+		}
+
+		// Set style
+		long style = wxOK;
+		if (isquestion)                   style = wxYES_NO;
+		if (iscancel || isdefault_cancel) style |= wxCANCEL;
+		if (iscenter)                     style |= wxCENTRE; // On windows, dialog is always centered with or without this option.
+		if (isdefault_cancel)             style |= wxCANCEL_DEFAULT;
+		if (isquestion && isdefault_no)   style |= wxNO_DEFAULT;
+		if (isquestion)                   style |= wxICON_QUESTION;
+		else if (iserror)                 style |= wxICON_ERROR;
+		else if (isinformation)           style |= wxICON_INFORMATION;
+		else                              style |= wxICON_WARNING; // Default type is 'Warning'
+
+		// Set parent widget.
+		// WARNING: THIS PART IS NOT TESTED
+		GDLWidget *widget;
+		wxWindow *parent;
+		if (isdialog_parent)
+		{
+			DLong groupLeader = 0;
+			e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
+
+			widget = GDLWidget::GetWidget(groupLeader);
+			if (widget == NULL) ThrowGDLException("Message code is invalid.");
+			parent = static_cast<wxWindow *> (widget->GetWxWidget());
+		}
+		else parent = 0;
+
+		// Set title
+		wxString wxtitlestr;
+		if (istitle)
+		{
+			DString titlestr;
+			e->AssureStringScalarKW(titleIx, titlestr);
+			wxtitlestr = titlestr.c_str();
+		}
+		else
+		{
+			if (iserror)            wxtitlestr = "Error";
+			else if (isinformation) wxtitlestr = "Information";
+			else if (isquestion)    wxtitlestr = "Question";
+			else                    wxtitlestr = "Warning";
+		}
+
+		// Show dialog
+		wxMessageDialog gdlMessageDialog(parent, messagestr.c_str(), wxtitlestr, style);
+		int rtn = gdlMessageDialog.ShowModal();
+		if (wxID_OK == rtn)          return new DStringGDL("OK");
+		else if (wxID_YES == rtn)    return new DStringGDL("Yes");
+		else if (wxID_NO == rtn)     return new DStringGDL("No");
+		else                         return new DStringGDL("Cancel");
+	}
+#else
+	BaseGDL* wxwidgets_exists(EnvT* e) { return new DLongGDL(0) };
+	BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
+	BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
 #endif
 }

@@ -99,7 +99,7 @@
 ; 15-Nov-2012: AC: complete revision, some codes exported into common ZENITY_CHECK()
 ;              for better maintainability, better stick to orignal,
 ;              using --list when need (old Zenity or/and /cancel)
-; 
+; 05-Apr-2015: JP: Code for Windows platform is added. 
 ;-
 ;
 ; This function try to reproduce the IDL's DIALOG_MESSAGE behavior using "zenity".
@@ -150,109 +150,118 @@ endif
 ;
 if (N_params() NE 1) then MESSAGE, 'Incorrect number of arguments.'
 ;
-zenity=ZENITY_CHECK( zenity_name=zenity_name,  zenity_path=zenity_path, $
-                     zenity_version=zenity_version, $
-                     help=help, test=test, debug=debug, verbose=verbose)
-;
-; improbing more than one text line
-zenity_message_text=Message_Text[0]
-for i=1, N_ELEMENTS(Message_Text)-1 do zenity_message_text+='\n'+Message_Text[i]
-;
-cmd=zenity+' --text="'+zenity_message_text+'" '
-;
-; Set the X Window display
-if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
-if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
-;
-; TITLE or INFORMATIONAL or ERROR
-; default title (if nothing provided, is "Warning")
-title=''
-if KEYWORD_SET(error) then title='Error'
-if KEYWORD_SET(question) then title='Question'
-if KEYWORD_SET(error) AND KEYWORD_SET(question) then title='Information'
-if KEYWORD_SET(information) then title='Information'
-if KEYWORD_SET(title) then title=STRING(title[0])
-if STRLEN(title) GT 0 then cmd+='--title="'+title+'" '
-;
-;temporal string to store the kind of zenity in.
-;default option INFORMATION
-;kindof='--info'
-; ERROR
-;if KEYWORD_SET(error) then kindof='--warning'
-
-; QUESTION
-;if KEYWORD_SET(question) && ~KEYWORD_SET(information) && ~KEYWORD_SET(error) then begin
-
-; even with new zenity, we cannot have directly 3 buttons ...
-;
-if KEYWORD_SET(question) then begin
-    if KEYWORD_SET(cancel) then begin
-        kindof='--list --column="selection" "Yes" "Cancel" "No"'
-    endif else begin
-        if (zenity_version GE 22301) then begin
-            kindof='--question --cancel-label="No" --ok-label="Yes"'
-        endif else begin
-            ;; old zenity: names of buttons cannot be changed ...
-            kindof='--question'
-        endelse
-    endelse    
+wxwidget_available = WXWIDGETS_EXISTS()
+if (wxwidget_available) then begin
+    return, DIALOG_MESSAGE_WXWIDGETS(Message_Text, TITLE=title, CANCEL=cancel, $
+                                     ERROR=error, INFORMATION=information, QUESTION=question, $
+                                     DEFAULT_CANCEL=defaul_cancel, DEFAULT_NO=default_no, $
+                                     CENTER=center, DIALOG_PARENT=dialog_parent, $
+                                     DISPLAY_NAME=display_name, RESOURCE_NAME=resource_name)
 endif else begin
-    if KEYWORD_SET(cancel) then begin
-        if (zenity_version GE 22301) then begin
-            kindof='--question --cancel-label="Cancel" --ok-label="Yes"'
+    zenity=ZENITY_CHECK( zenity_name=zenity_name,  zenity_path=zenity_path, $
+                         zenity_version=zenity_version, $
+                         help=help, test=test, debug=debug, verbose=verbose)
+    ;
+    ; improbing more than one text line
+    zenity_message_text=Message_Text[0]
+    for i=1, N_ELEMENTS(Message_Text)-1 do zenity_message_text+='\n'+Message_Text[i]
+    ;
+    cmd=zenity+' --text="'+zenity_message_text+'" '
+    ;
+    ; Set the X Window display
+    if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
+    if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
+    ;
+    ; TITLE or INFORMATIONAL or ERROR
+    ; default title (if nothing provided, is "Warning")
+    title=''
+    if KEYWORD_SET(error) then title='Error'
+    if KEYWORD_SET(question) then title='Question'
+    if KEYWORD_SET(error) AND KEYWORD_SET(question) then title='Information'
+    if KEYWORD_SET(information) then title='Information'
+    if KEYWORD_SET(title) then title=STRING(title[0])
+    if STRLEN(title) GT 0 then cmd+='--title="'+title+'" '
+    ;
+    ;temporal string to store the kind of zenity in.
+    ;default option INFORMATION
+    ;kindof='--info'
+    ; ERROR
+    ;if KEYWORD_SET(error) then kindof='--warning'
+    
+    ; QUESTION
+    ;if KEYWORD_SET(question) && ~KEYWORD_SET(information) && ~KEYWORD_SET(error) then begin
+    
+    ; even with new zenity, we cannot have directly 3 buttons ...
+    ;
+    if KEYWORD_SET(question) then begin
+        if KEYWORD_SET(cancel) then begin
+            kindof='--list --column="selection" "Yes" "Cancel" "No"'
         endif else begin
-            kindof='--list --column="selection" "Cancel" "OK"'
+            if (zenity_version GE 22301) then begin
+                kindof='--question --cancel-label="No" --ok-label="Yes"'
+            endif else begin
+                ;; old zenity: names of buttons cannot be changed ...
+                kindof='--question'
+            endelse
+        endelse    
+    endif else begin
+        if KEYWORD_SET(cancel) then begin
+            if (zenity_version GE 22301) then begin
+                kindof='--question --cancel-label="Cancel" --ok-label="Yes"'
+            endif else begin
+                kindof='--list --column="selection" "Cancel" "OK"'
+            endelse
+        endif else begin
+            kindof='--error'
         endelse
-    endif else begin
-        kindof='--error'
     endelse
+    ;
+    if KEYWORD_SET(debug) then begin
+        print, 'commande :', cmd
+        print, 'option   :', kindof
+    endif
+    ;
+    cmd+=kindof
+    ;
+    ; effective call to external Zenity
+    SPAWN, cmd, result, error, exit_status=exit_status
+    ;
+    if KEYWORD_SET(debug) then begin
+        print, 'Zenity result      : ', result
+        print, 'Zenity error       : ', error
+        print, 'Zenity exit status : ', exit_status
+    endif
+    ;
+    reponse='Failed'
+    
+    if ~KEYWORD_SET(question) AND ~KEYWORD_SET(cancel) then reponse='OK'
+    if ~KEYWORD_SET(question) AND KEYWORD_SET(cancel) then begin
+        if (zenity_version GE 22301) then begin
+            if (exit_status eq 0) then reponse='OK' else reponse='Cancel'
+        endif else begin
+            ;; because we needed to use the "--list"
+            reponse=result
+        endelse
+    endif
+    ;
+    if KEYWORD_SET(question) then begin
+       if ~KEYWORD_SET(cancel) then begin
+          if (exit_status eq 0) then reponse='Yes' else reponse='No'
+       endif else begin
+          ;; this is directly the result from Zenity ! (result is is {Yes|Cancel|No})
+          reponse=result
+       endelse
+    endif
+    ;
+    ; due to strange logic maybe unexpected case remaining ?
+    if reponse EQ 'Failed' then begin
+       MESSAGE,/continue, 'You triggered an unexpected case'
+       MESSAGE,/continue, 'Please report the case (bug) to GDL team on sf.net !'
+    endif
+    ;
+    if KEYWORD_SET(test) then STOP
+    ;
+    return, reponse
+    ;
 endelse
-;
-if KEYWORD_SET(debug) then begin
-    print, 'commande :', cmd
-    print, 'option   :', kindof
-endif
-;
-cmd+=kindof
-;
-; effective call to external Zenity
-SPAWN, cmd, result, error, exit_status=exit_status
-;
-if KEYWORD_SET(debug) then begin
-    print, 'Zenity result      : ', result
-    print, 'Zenity error       : ', error
-    print, 'Zenity exit status : ', exit_status
-endif
-;
-reponse='Failed'
-
-if ~KEYWORD_SET(question) AND ~KEYWORD_SET(cancel) then reponse='OK'
-if ~KEYWORD_SET(question) AND KEYWORD_SET(cancel) then begin
-    if (zenity_version GE 22301) then begin
-        if (exit_status eq 0) then reponse='OK' else reponse='Cancel'
-    endif else begin
-        ;; because we needed to use the "--list"
-        reponse=result
-    endelse
-endif
-;
-if KEYWORD_SET(question) then begin
-   if ~KEYWORD_SET(cancel) then begin
-      if (exit_status eq 0) then reponse='Yes' else reponse='No'
-   endif else begin
-      ;; this is directly the result from Zenity ! (result is is {Yes|Cancel|No})
-      reponse=result
-   endelse
-endif
-;
-; due to strange logic maybe unexpected case remaining ?
-if reponse EQ 'Failed' then begin
-   MESSAGE,/continue, 'You triggered an unexpected case'
-   MESSAGE,/continue, 'Please report the case (bug) to GDL team on sf.net !'
-endif
-;
-if KEYWORD_SET(test) then STOP
-;
-return, reponse
-;
 end
