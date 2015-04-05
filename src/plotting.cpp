@@ -618,6 +618,13 @@ namespace lib
     // Get !P.position default values
     static unsigned positionTag=SysVar::P()->Desc()->TagIndex("POSITION");
     for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(SysVar::P()->GetTag(positionTag, 0)))[i];
+
+    //compatibility: Position NEVER outside [0,1]:
+    positionP[0]=max(0.0,positionP[0]);
+    positionP[1]=max(0.0,positionP[1]);
+    positionP[2]=min(1.0,positionP[2]);
+    positionP[3]=min(1.0,positionP[3]);
+
     //check presence of DATA,DEVICE and NORMAL options
     if ( e->KeywordSet( "DATA")) coordinateSystem=DATA;
     if ( e->KeywordSet( "DEVICE")) coordinateSystem=DEVICE;
@@ -651,6 +658,13 @@ namespace lib
         position[2]=normx;
         position[3]=normy;
       }
+    }
+    if ( boxPosition!=(DFloatGDL*)0xF)
+    {    //compatibility again: Position NEVER outside [0,1]:
+      position[0]=max(0.0,position[0]);
+      position[1]=max(0.0,position[1]);
+      position[2]=min(1.0,position[2]);
+      position[3]=min(1.0,position[3]);
     }
 
     // New plot without POSITION=[] as argument
@@ -806,7 +820,15 @@ namespace lib
         actStream->DeviceToNormedDevice(position[2], position[3], normx, normy);
         position[2]=normx;
         position[3]=normy;
-      }
+     }
+    }
+    if ( boxPosition!=NULL && boxPosition!=(DFloatGDL*)0xF )
+    {
+       //compatibility again: Position NEVER outside [0,1]:
+      position[0]=max(0.0,position[0]);
+      position[1]=max(0.0,position[1]);
+      position[2]=min(1.0,position[2]);
+      position[3]=min(1.0,position[3]);
     }
     // Adjust Start and End for Log (convert to log)
     if ( boxPosition!=NULL ) //new box
