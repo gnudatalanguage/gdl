@@ -419,6 +419,8 @@ HWND GDLWINStream::GetHwnd()
 		wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 		if (dev)
 			return dev->hwnd;
+		else
+			return 0;
 	}
 	else return 0;
 }
