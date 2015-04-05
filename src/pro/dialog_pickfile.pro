@@ -166,6 +166,7 @@ function DIALOG_PICKFILE, DEFAULT_EXTENSION=default_extension, $
                           ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path, $
                           ZENITY_SEP=ZENITY_SEP, $
                           HELP=help, test=test, debug=debug, verbose=verbose
+on_error, 2
 ;
 if KEYWORD_SET(help) then begin
     print, 'function DIALOG_PICKFILE, DEFAULT_EXTENSION=default_extension, $'

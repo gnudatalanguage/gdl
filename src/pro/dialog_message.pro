@@ -136,6 +136,7 @@ function DIALOG_MESSAGE, Message_Text, TITLE=title, CANCEL=cancel, $
                          DISPLAY_NAME=display_name, RESOURCE_NAME=resource_name, $
                          HELP=help, test=test, debug=debug, $
                          ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path
+on_error, 2
 ;
 if KEYWORD_SET(help) then begin
     print, 'function DIALOG_MESSAGE, Message_Text, TITLE=title, CANCEL=cancel, $'
