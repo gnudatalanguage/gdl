@@ -86,8 +86,8 @@ pro polywarp, Xi, Yi, Xo, Yo, Degree, Kx, Ky, DOUBLE=isdouble, STATUS=status
   _Sol = INVERT(_trX#_X, STATUS, /DOUBLE)#_trX
 
   CASE STATUS OF
-    1: MESSAGE, "Singular matrix detected.", /INFOMATIONAL
-    2: MESSAGE, "Warning: Invert detected a small pivot element.", /INFOMATIONAL
+    1: MESSAGE, "Singular matrix detected.", /INFORMATIONAL
+    2: MESSAGE, "Warning: Invert detected a small pivot element.", /INFORMATIONAL
     ELSE:
   ENDCASE
 
