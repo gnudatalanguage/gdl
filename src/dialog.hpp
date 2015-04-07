@@ -19,6 +19,13 @@
 #include "datatypes.hpp"
 #include "dinterpreter.hpp"
 
+#ifndef _U
+#define _U(x) wxString(x, wxConvUTF8)
+#endif
+#ifndef _D
+#define _D(x) DString((x).mb_str(wxConvUTF8))
+#endif
+
 namespace lib {
 	BaseGDL* wxwidgets_exists(EnvT* e);
 	BaseGDL* dialog_pickfile_wxwidgets(EnvT* e);

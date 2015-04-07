@@ -173,7 +173,7 @@ namespace lib {
 		}
 
 		// Set title
-		wxString wxtitlestr = "Select File";
+		wxString wxtitlestr = _U("Select File");
 		if (istitle)
 		{
 			DString titlestr;
@@ -181,16 +181,16 @@ namespace lib {
 		}
 		else
 		{
-			if (iswrite)     wxtitlestr = "Select File to Write";
-			else if (isread) wxtitlestr = "Select File to Read";
+			if (iswrite)     wxtitlestr = _U("Select File to Write");
+			else if (isread) wxtitlestr = _U("Select File to Read");
 		}
 
 		// Set default path
-		wxString wxpathstr = "";
+		wxString wxpathstr = _U("");
 		if (ispath) {
 			DString pathstr;
 			e->AssureStringScalarKW("PATH", pathstr);
-			wxpathstr = pathstr.c_str();
+			wxpathstr = _U(pathstr.c_str());
 		}
 
 		// Show dialog
@@ -222,8 +222,8 @@ namespace lib {
 					for (int i = 0; i < filterstrarr->Size(); i++)
 					{
 						DString filterstr = (*filterstrarr)[i];
-						if (i != 0) wxfilterstr += "|";
-						wxfilterstr += (filterstr + "|" + filterstr).c_str();
+						if (i != 0) wxfilterstr += _U("|");
+						wxfilterstr += _U((filterstr + "|" + filterstr).c_str());
 					}
 				}
 				else // rank == 2
@@ -231,18 +231,18 @@ namespace lib {
 					long filtercnt = filterstrarr->Dim(0);
 					for (int i = 0; i < filtercnt; i++)
 					{
-						if (i != 0) wxfilterstr += "|";
-						wxfilterstr += ((DString)((*filterstrarr)[i + filtercnt]) + "|" + (DString)((*filterstrarr)[i])).c_str();
+						if (i != 0) wxfilterstr += _U("|");
+						wxfilterstr += _U(((DString)((*filterstrarr)[i + filtercnt]) + "|" + (DString)((*filterstrarr)[i])).c_str());
 					}
 				}
 			}
-			else wxfilterstr = "*.*|*.*";
+			else wxfilterstr = _U("*.*|*.*");
 
 			wxString wxfilestr;
 			if (isfile) {
 				DString filestr;
 				e->AssureStringScalarKW("FILE", filestr);
-				wxfilestr = filestr.c_str();
+				wxfilestr = _U(filestr.c_str());
 			}
 
 			wxFileDialog gdlFileDialog(parent, wxtitlestr, wxpathstr, wxfilestr, wxfilterstr, style);
@@ -272,10 +272,10 @@ namespace lib {
 			{
 				res = new DStringGDL(dimension(pathcnt), BaseGDL::NOZERO);
 				for (SizeT r = 0; r < pathcnt; ++r)
-					(*res)[r] = wxpathstrarr[r].c_str();
+					(*res)[r] = _D(wxpathstrarr[r]);
 			}
-			else if (isdirectory) res = new DStringGDL(DString(wxpathstrarr[0].c_str()) + PathSeparator());
-			else                  res = new DStringGDL(DString(wxpathstrarr[0].c_str()));
+			else if (isdirectory) res = new DStringGDL(_D(wxpathstrarr[0]) + PathSeparator());
+			else                  res = new DStringGDL(_D(wxpathstrarr[0]));
 		}
 
 		// Set the given GET_PATH variable
@@ -326,7 +326,7 @@ namespace lib {
 
 					// Add default extention when the file does not have one
 					if ((*basenamestrgdl)[0].find(".") == string::npos)
-						(*res)[i] += defaultextstr;
+						(*res)[i] += "." + defaultextstr;
 				}
 			}
 		}
@@ -435,18 +435,18 @@ namespace lib {
 		{
 			DString titlestr;
 			e->AssureStringScalarKW(titleIx, titlestr);
-			wxtitlestr = titlestr.c_str();
+			wxtitlestr = _U(titlestr.c_str());
 		}
 		else
 		{
-			if (iserror)            wxtitlestr = "Error";
-			else if (isinformation) wxtitlestr = "Information";
-			else if (isquestion)    wxtitlestr = "Question";
-			else                    wxtitlestr = "Warning";
+			if (iserror)            wxtitlestr = _U("Error");
+			else if (isinformation) wxtitlestr = _U("Information");
+			else if (isquestion)    wxtitlestr = _U("Question");
+			else                    wxtitlestr = _U("Warning");
 		}
 
 		// Show dialog
-		wxMessageDialog gdlMessageDialog(parent, messagestr.c_str(), wxtitlestr, style);
+		wxMessageDialog gdlMessageDialog(parent, _U(messagestr.c_str()), wxtitlestr, style);
 		int rtn = gdlMessageDialog.ShowModal();
 		if (wxID_OK == rtn)          return new DStringGDL("OK");
 		else if (wxID_YES == rtn)    return new DStringGDL("Yes");
