@@ -394,6 +394,12 @@ namespace lib {
 		bool titleKW = e->KeywordPresent(titleIx);
 		if (titleKW) istitle = e->KeywordSet(titleIx);
 
+#ifndef wxCANCEL_DEFAULT
+#define wxCANCEL_DEFAULT 0
+		if (isdefault_cancel)
+			Warning("DIALOG_MESSAGE: Keyword DEFAULT_CANCEL is ignored.");
+#endif
+
 		// If two or three styles are specified simultaneously, set INFORMATION as default.
 		if ((iserror && isquestion) || (iserror && isinformation) || (isquestion && isinformation))
 		{
