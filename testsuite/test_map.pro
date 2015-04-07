@@ -557,7 +557,8 @@ MAP_HORIZON
 ;mapStruct = MAP_PROJ_INIT(129, LIMIT=[0,-180,90,180],SPHERE_RADIUS=1, CENTER_LONGITUDE=180)
 suite='' & read, 'Press Enter', suite
 image = BYTSCL(SIN(DIST(400)/10))
-MAP_SET, 0, 0, /GOODE, /ISOTROPIC,TITLE='GOODE + REPROJECTED IMAGE'
+;note there is a problem for the GRID if lat=0 exactly. To be investigated!
+MAP_SET, 0, -0.001, /GOODE, /ISOTROPIC,TITLE='GOODE + REPROJECTED IMAGE'
 result = MAP_IMAGE(image,Startx,Starty)
 TV, result, Startx, Starty
 MAP_CONTINENTS, /coasts
