@@ -1805,8 +1805,8 @@ namespace lib {
 			DString errorMsg = ex.getMessage() + // getMessage gets the non-decorated error message
 				" Unit: " + i2s(lun) + ", File: " + fileUnits[lun - 1].Name();
 
-			if (!errorKeyword)
-				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
+			if (!errorKeyword) e->Throw(errorMsg);
+//				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
 
 			BaseGDL** err = &e->GetKW(errorIx);
 
