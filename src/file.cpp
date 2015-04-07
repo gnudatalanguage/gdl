@@ -1108,6 +1108,15 @@ DString makeInsensitive(const DString &s)
     static int markIx = e->KeywordIx( "MARK_DIRECTORY");
     bool mark = e->KeywordSet( markIx);
 
+    static int testdirIx = e->KeywordIx( "TEST_DIRECTORY");
+    bool test_dir = e->KeywordSet( testdirIx);
+
+    static int testexeIx = e->KeywordIx( "TEST_EXECUTABLE");
+    bool test_exe = e->KeywordSet( testexeIx);
+
+    static int testregIx = e->KeywordIx( "TEST_REGULAR");
+    bool test_reg = e->KeywordSet( testregIx);
+
     static int nosortIx = e->KeywordIx( "NOSORT");
     bool noSort = e->KeywordSet( nosortIx);
 
@@ -1180,10 +1189,11 @@ DString makeInsensitive(const DString &s)
     if (debug) cout << "Count : " << count << endl;
     //    cout << fileList << endl;
 
+    // AC: code simplification (recopy) for final Test (dir/exe ...)
+    FileListT fileOut;
+
     if( onlyDir)
       { // recursive search for recurPattern
-	FileListT fileOut;
-	
 	for( SizeT f=0; f<count; ++f) // ok for count == 0
 	  {
 	    //	    cout << "Looking in: " << fileList[f] << endl;
@@ -1192,23 +1202,78 @@ DString makeInsensitive(const DString &s)
 			   fileList[f]);
 	  }	
 
-	DLong pCount = fileOut.size();
-	
-	if( countKW)
-	  e->SetKW( countIx, new DLongGDL( pCount));
+      }
+    else {
+      fileOut=fileList;
+      fileList=std::vector<DString>();
+    }
 
-	if( pCount == 0)
-	  return new DStringGDL("");
+    DLong pCount = fileOut.size();
 
-	if( !noSort)
-	  sort( fileOut.begin(), fileOut.end());
+    //filters
+
+    if (test_dir) {
+      //if (debug) cout << "here1 : " << count << endl;
+
+      FileListT fileTmp;
+      struct stat statStruct;
+      
+      for( SizeT r=0; r<pCount; ++r) {
+	int actStat = stat(fileOut[r].c_str(), &statStruct);
+	if (S_ISDIR( statStruct.st_mode) != 0) fileTmp.push_back(fileOut[r]);
+      }
+      //      if (debug) cout << "here2 : " << count << endl;
+      fileOut=fileTmp;
+      fileTmp=std::vector<DString>();
+      pCount=fileOut.size();
+    }    
+
+    if (test_exe) {
+      //if (debug) cout << "here1 : " << count << endl;
+      Warning("maybe buggy for /TEST_DIRECTORY, sorry ! please help ! AC 2015/04/07");
+      FileListT fileTmp;
+      struct stat statStruct;
+      
+      for( SizeT r=0; r<pCount; ++r) {
+	int actStat = stat(fileOut[r].c_str(), &statStruct);
+	if ((statStruct.st_mode & (S_IXUSR)) != 0 ) fileTmp.push_back(fileOut[r]);
+      }
+      //      if (debug) cout << "here2 : " << count << endl;
+      fileOut=fileTmp;
+      fileTmp=std::vector<DString>();
+      pCount=fileOut.size();
+    }
+
+    if (test_reg) {
+      FileListT fileTmp;
+      struct stat statStruct;      
+      for( SizeT r=0; r<pCount; ++r) {
+	int actStat = stat(fileOut[r].c_str(), &statStruct);
+	if (S_ISREG( statStruct.st_mode) != 0) fileTmp.push_back(fileOut[r]);
+      }
+      fileOut=fileTmp;
+      fileTmp=std::vector<DString>();
+      pCount=fileOut.size();
+    }    
+
+    if (debug) cout << "here3 : " << pCount << endl;
+
+    if( countKW)
+      e->SetKW( countIx, new DLongGDL( pCount));
+
+    if( pCount == 0)
+      return new DStringGDL("");
+
+    if( !noSort)
+      sort( fileOut.begin(), fileOut.end());
     
-	// fileOut -> res
-	DStringGDL* res = new DStringGDL( dimension( pCount), BaseGDL::NOZERO);
-	for( SizeT r=0; r<pCount; ++r)
-	  (*res)[r] = fileOut[ r];
+    // fileOut -> res
+    DStringGDL* res = new DStringGDL( dimension( pCount), BaseGDL::NOZERO);
+    for( SizeT r=0; r<pCount; ++r)
+      (*res)[r] = fileOut[ r];
 
-	return res;
+    return res;
+    /*
       }
 
     if( countKW)
@@ -1226,6 +1291,7 @@ DString makeInsensitive(const DString &s)
       (*res)[r] = fileList[ r];
 
     return res;
+    */
   }
 
   BaseGDL* file_basename( EnvT* e)

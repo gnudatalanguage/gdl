@@ -158,7 +158,8 @@ void LibInit()
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
-				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",KLISTEND};
+				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",
+				 "TEST_DIRECTORY","TEST_EXECUTABLE","TEST_REGULAR",KLISTEND};
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 
   const string file_expand_pathKey[]={KLISTEND};
