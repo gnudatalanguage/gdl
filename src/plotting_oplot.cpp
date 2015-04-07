@@ -18,37 +18,53 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#endif
+
 namespace lib {
 
   using namespace std;
+//  using std::isinf;
+#ifndef _MSC_VER
+  using std::isnan;
+#endif
 
   class oplot_call : public plotting_routine_call 
   {
-    DDoubleGDL *yVal, *xVal, *zVal, *xTemp, *yTemp;
+    DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl, zEl;
-    Guard<BaseGDL> xval_guard,yval_guard, zval_guard, xtempval_guard;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
+    bool doMinMax;
+    bool xLog, yLog, wasBadxLog, wasBadyLog;
+    Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
+    DLong iso;
     bool doT3d;
-    DDouble zValue;
 
-    private: bool handle_args( EnvT* e) // {{{
+private:
+
+  bool handle_args(EnvT* e) 
     {
+
       //T3D?
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
 
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+    static int zvIx = e->KeywordIx( "ZVALUE");
       zValue=0.0;
-      static int zvIx = e->KeywordIx( "ZVALUE");
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+    zValue=min(zValue,0.999999); //to avoid problems with plplot
+    zValue=max(zValue,0.0);
 
-      bool polar=FALSE;
-      DLong nsum=1;
+    // system variable !P.NSUM first
+    DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
       e->AssureLongScalarKWIfPresent( "NSUM", nsum);
-      if ( e->KeywordSet( "POLAR"))
-      {
-        polar=TRUE;
-      }
 
+    bool polar = (e->KeywordSet("POLAR"));
+
+//    DDoubleGDL *yValBis, *xValBis;
+//    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
       //test and transform eventually if POLAR and/or NSUM!
       if( nParam() == 1)
       {
@@ -58,7 +74,7 @@ namespace lib {
         yEl=yTemp->N_Elements();
         xEl=yEl;
         xTemp = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-        xtempval_guard.Reset( xTemp); // delete upon exit
+        xtemp_guard.Reset( xTemp); // delete upon exit
       }
       else
       {
@@ -66,7 +82,6 @@ namespace lib {
         if (xTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: "+e->GetParString(0));
         xEl=xTemp->N_Elements();
-
         yTemp = e->GetParAs< DDoubleGDL>( 1);
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: "+e->GetParString(1));
@@ -83,6 +98,7 @@ namespace lib {
       //check nsum validity
       nsum=max(1,nsum);
       nsum=min(nsum,(DLong)xEl);
+
       if (nsum == 1)
       {
         if (polar)
@@ -96,7 +112,7 @@ namespace lib {
         }
         else
         { //careful about previously set autopointers!
-          if (nParam() == 1) xval_guard.Init( xtempval_guard.release());
+          if (nParam() == 1) xval_guard.Init( xtemp_guard.release());
           xVal = xTemp;
           yVal = yTemp;
         }
@@ -104,7 +120,7 @@ namespace lib {
       else
       {
         int i, j, k;
-        DLong size = xEl / nsum;
+        DLong size = (DLong)xEl / nsum;
         xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
         xval_guard.Reset(xVal); // delete upon exit
         yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
@@ -134,15 +150,7 @@ namespace lib {
           }
         }
       }
-      if (doT3d)
-      {
-        //make zVal
-        zEl=xVal->N_Elements();
-        zVal=new DDoubleGDL(dimension(zEl), BaseGDL::NOZERO);
-        zval_guard.Reset(zVal); // delete upon exit
-        for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
-      }
-	  return 0;
+    return false;
     }
 
   private: void old_body( EnvT* e, GDLGStream* actStream) 
@@ -151,8 +159,8 @@ namespace lib {
 
     // get ![XY].CRANGE
     DDouble xStart, xEnd, yStart, yEnd;
-    gdlGetCurrentAxisRange("X", xStart, xEnd);
-    gdlGetCurrentAxisRange("Y", yStart, yEnd);
+    gdlGetCurrentAxisRange("X", xStart, xEnd, FALSE); //we want screen coordinates, not projection boundaries
+    gdlGetCurrentAxisRange("Y", yStart, yEnd, FALSE);
     DDouble minVal, maxVal;
     bool doMinMax;
 
@@ -200,6 +208,29 @@ namespace lib {
     gdlSetSymsize(e, actStream);
     gdlSetLineStyle(e, actStream);
 
+    bool mapSet=false;
+#ifdef USE_LIBPROJ4
+      get_mapset(mapSet);
+      mapSet=(mapSet);
+      if ( mapSet )
+      {
+        ref=map_init();
+        if ( ref==NULL )
+        {
+          e->Throw("Projection initialization failed.");
+        }
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
+
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble xStart, xEnd, yStart, yEnd;
+        DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( xStart, xEnd, yStart, yEnd );
+      }
+#endif
     static DDouble x0,y0,xs,ys; //conversion to normalized coords
     x0=(xLog)?-log10(xStart):-xStart;
     y0=(yLog)?-log10(yStart):-yStart;
@@ -247,8 +278,17 @@ namespace lib {
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
     }
 
-      // TODO: handle "valid"!
+#ifdef USE_LIBPROJ4
+        if ( mapSet && psym < 1) {
+          GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
+          psym=-psym;
+          if (psym > 0) bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, FALSE);
+        }
+        else 
+          bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, FALSE);
+#else
     bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
+#endif
     if (stopClip) stopClipping(actStream);
   } 
 

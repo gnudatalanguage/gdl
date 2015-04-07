@@ -140,7 +140,7 @@ namespace lib
     return absoluteMaxVal;
   }
 
-  template <typename T> void gdlDoRangeExtrema(T* xVal, T* yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
+  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
   {
     DDouble valx, valy;
     SizeT i,k;
@@ -160,7 +160,6 @@ namespace lib
        k++;
     }
   }
-  template void gdlDoRangeExtrema(Data_<SpDDouble>*, Data_<SpDDouble>*, DDouble &, DDouble &, DDouble, DDouble, bool, DDouble, DDouble);
 
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal)
   {
@@ -1198,10 +1197,24 @@ namespace lib
   }
 
 
-  //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
+///
+/// Draws a line along xVal, yVal
+/// @param general environnement pointer 
+/// @param graphic stream 
+/// @param xVal pointer on DDoubleGDL x values
+/// @param yVal pointer on DDoubleGDL y values
+/// @param minVal DDouble min value to plot.
+/// @param maxVal DDouble max value to plot.
+/// @param doMinMax bool do we use minval & maxval above?
+/// @param xLog bool scale is log in x
+/// @param yLog bool scale is log in y
+/// @param psym DLong plotting symbol code
+/// @param append bool values must be drawn starting from last plotted value 
+/// @param color DLongGDL* pointer to color list (NULL if no use)
+///
 
-  template <typename T> bool draw_polyline(EnvT *e, GDLGStream *a,
-                                           T * xVal, T* yVal,
+  bool draw_polyline(EnvT *e, GDLGStream *a,
+                                           DDoubleGDL *xVal, DDoubleGDL *yVal,
                                            DDouble minVal, DDouble maxVal, bool doMinMax,
                                            bool xLog, bool yLog,
                                            DLong psym, bool append, DLongGDL *color)
@@ -1297,26 +1310,26 @@ namespace lib
     // if scalar y
     if ( yVal->N_Elements()==1&&yVal->Rank()==0 )
       minEl=xVal->N_Elements();
-//    bool mapSet=false;
-//#ifdef USE_LIBPROJ4
-//    // Map Stuff (xtype = 3)
-//    LPTYPE idata;
-//    XYTYPE odata;
-//
-//    get_mapset(mapSet);
-//
-//    DDouble xStart, xEnd;
-//    gdlGetCurrentAxisRange("X", xStart, xEnd);
-//
-//    if ( mapSet )
-//    {
-//      ref=map_init();
-//      if ( ref==NULL )
-//      {
-//        e->Throw("Projection initialization failed.");
-//      }
-//    }
-//#endif
+    bool mapSet=false;
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+    LPTYPE idata;
+    XYTYPE odata;
+
+    get_mapset(mapSet);
+
+    DDouble xStart, xEnd;
+    gdlGetCurrentAxisRange("X", xStart, xEnd);
+
+    if ( mapSet )
+    {
+      ref=map_init();
+      if ( ref==NULL )
+      {
+        e->Throw("Projection initialization failed.");
+      }
+    }
+#endif
 
     // is one of the 2 "arrays" a singleton or not ?
 
@@ -1366,21 +1379,21 @@ namespace lib
         if ( !flag_y_const ) y=static_cast<PLFLT>((*yVal)[i]);
         else y=y_ref;
       }
-//#ifdef USE_LIBPROJ4
-//      if ( mapSet&& !e->KeywordSet("NORMAL") )
-//      {
-//	    idata.u=x * DEG_TO_RAD;
-//        idata.v=y * DEG_TO_RAD;
-//        if ( i>0 )
-//        {
-//          xMapBefore=odata.u;
-//          yMapBefore=odata.v;
-//        }
-//        odata=PJ_FWD(idata, ref);
-//        x=odata.u;
-//        y=odata.v;
-//      }
-//#endif
+#ifdef USE_LIBPROJ4
+      if ( mapSet&& !e->KeywordSet("NORMAL") )
+      {
+	    idata.u=x * DEG_TO_RAD;
+        idata.v=y * DEG_TO_RAD;
+        if ( i>0 )
+        {
+          xMapBefore=odata.u;
+          yMapBefore=odata.v;
+        }
+        odata=PJ_FWD(idata, ref);
+        x=odata.u;
+        y=odata.v;
+      }
+#endif
       //note: here y is in minVal maxVal
       if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
       if ( xLog ) x=log10(x);
@@ -1522,8 +1535,6 @@ namespace lib
     saveLastPoint(a, x, y);
     return (valid);
   }
-  // explicit instantiation for SpDDouble
-  template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, DDouble, DDouble, bool, bool, bool, DLong, bool, DLongGDL*);
 
  
   //BACKGROUND COLOR
@@ -1865,19 +1876,21 @@ namespace lib
 
   //CRANGE from struct
 
-  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End)
+  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End, bool checkMapset)
   {
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) Struct=SysVar::X();
     if ( axis=="Y" ) Struct=SysVar::Y();
     if ( axis=="Z" ) Struct=SysVar::Z();
+    Start=0;
+    End=0;
     if ( Struct!=NULL )
     {
       int debug=0;
       if ( debug ) cout<<"Get     :"<<Start<<" "<<End<<endl;
       bool isProj;
       get_mapset(isProj);
-      if (isProj && axis!="Z") {
+      if (checkMapset && isProj && axis!="Z") {
         static DStructGDL* mapStruct=SysVar::Map();
         static unsigned uvboxTag=mapStruct->Desc()->TagIndex("UV_BOX");
         static DDoubleGDL *uvbox;
@@ -3738,10 +3751,10 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
   } else  GDLDelete(currentConn);
   return res;
 }
-
+  
 ///
 /// Performs all projections and clips defined in a !map.pipeline structure on a vector of lons and lats.
-/// eventually with connectivity 'conn'. Depending on doFill, fill or plot the vectors.
+/// eventually with connectivity 'conn'. 
 /// @param general environnement pointer 
 /// @param graphic stream 
 /// @param ref pointer on proj.4 opaque projection
@@ -3753,7 +3766,11 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
 /// @param conn pointer to a DLongGDL connectivity list (can be null)
 ///
   void GDLgrProjectedPolygonPlot( EnvT* e, GDLGStream * a, PROJTYPE ref, DStructGDL* map,
-  DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *conn ) {
+  DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *conn ) {
+    DDoubleGDL *lons,*lats;
+    lons=lons_donottouch->Dup();
+    lats=lats_donottouch->Dup();
+
     DStructGDL* localMap = map;
     if (localMap==NULL) localMap=SysVar::Map( );
     bool mapSet; 

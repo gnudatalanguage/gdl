@@ -437,13 +437,17 @@ namespace lib
         //rescale to normalized box before conversions --- works for both matrices.
         gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
 #ifdef USE_LIBPROJ4
-        if (mapSet) GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
+        if ( mapSet ) GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
         else 
           bool valid=draw_polyline(e, actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
       }
       else
       {
-        if (mapSet) GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
+        if ( mapSet && psym < 1) {
+          GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
+          psym=-psym;
+          if (psym > 0) bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+        }
         else 
           bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
       }

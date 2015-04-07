@@ -202,7 +202,7 @@ bool doConn,DLongGDL* &gons, bool doGons,DLongGDL* &lines, bool doLines, bool do
 
 void GDLgrProjectedPolygonPlot(EnvT* e, GDLGStream * a, PROJTYPE ref, DStructGDL* map, 
 DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *conn=NULL);
-  DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
+DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
 //dummy functions for compatibility support of GCTP projections 
   void map_proj_gctp_forinit (EnvT* e);
   void map_proj_gctp_revinit (EnvT* e);
@@ -305,10 +305,8 @@ DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL 
       actStream->Update();
     } // }}}
   };
-  template <typename T>
-  void gdlDoRangeExtrema(T* xVal, T* yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=FALSE, DDouble minVal=0, DDouble maxVal=0);
-  template <typename T> 
-  bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
+  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=FALSE, DDouble minVal=0, DDouble maxVal=0);
+  bool draw_polyline(EnvT *e,  GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, 
              DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, 
 		     DLong psym=0, bool append=FALSE, DLongGDL *color=NULL);
@@ -352,7 +350,7 @@ DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL 
   //axis_type
   void gdlGetAxisType(string axis, bool &log);
   //get the !axis.crange vector
-  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End);
+  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End, bool checkMapset=TRUE);
   void gdlGetDesiredAxisMargin(EnvT *e, string axis,DFloat &start, DFloat &end);
   void gdlGetDesiredAxisCharsize(EnvT* e, string axis, DFloat &charsize);
   void gdlGetDesiredAxisStyle(EnvT *e, string axis,DLong &style);

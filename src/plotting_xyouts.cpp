@@ -357,6 +357,8 @@ namespace lib
         y=static_cast<PLFLT>((*yVal)[i%xVal->N_Elements ( )]);
 
         //following obviously wrong if T3D...
+        // Since we do not use lines or fill, this is the quickest method.
+        // Otherwise we must use GDLgrProjectedPolygonPlot() if map is set.
 #ifdef USE_LIBPROJ4
         if ( mapSet )
         {

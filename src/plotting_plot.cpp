@@ -32,13 +32,12 @@ namespace lib {
 
   class plot_call : public plotting_routine_call 
   {
-    DDoubleGDL *yVal, *xVal, *zVal, *xTemp, *yTemp;
+    DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl, zEl;
-    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd,
-            zValue;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
     bool doMinMax;
     bool xLog, yLog, wasBadxLog, wasBadyLog;
-    Guard<BaseGDL> xval_guard, yval_guard, zval_guard, xtemp_guard;
+    Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     DLong iso;
     bool doT3d;
 
@@ -279,15 +278,6 @@ private:
     iso=0;
     e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
 
-    if (doT3d)
-    {
-      //make zVal
-      zEl=xVal->N_Elements();
-      zVal=new DDoubleGDL(dimension(zEl), BaseGDL::NOZERO);
-      zval_guard.Reset(zVal); // delete upon exit
-      for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
-    }
-
     return false;
   }
 
@@ -322,6 +312,8 @@ private:
     int positionIx = e->KeywordIx( "POSITION");
     DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
+    else { //position values must be reviewed 
+    }
     // set the PLOT charsize before setting viewport (margin depend on charsize)
     gdlSetPlotCharsize(e, actStream);
 
