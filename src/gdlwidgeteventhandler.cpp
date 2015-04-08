@@ -306,12 +306,6 @@ void GDLFrame::OnHideRequest( wxCommandEvent& event)
   event.Skip();
 }
 
-
-
-//void GDLFrame::OnIdle( wxIdleEvent& event)
-//{
-//  event.Skip();
-//}
 void gdlMenuButton::OnButton( wxCommandEvent& event)
 {
 #ifdef GDL_DEBUG_EVENTS

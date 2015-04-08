@@ -1448,6 +1448,9 @@ BaseGDL* widget_info( EnvT* e ) {
   static int managedIx = e->KeywordIx( "MANAGED" );
   bool managed = e->KeywordSet( managedIx );
 
+  static int realizedIx = e->KeywordIx( "REALIZED" );
+  bool realized = e->KeywordSet( realizedIx );
+
   static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK" );
   bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx );
 
@@ -1774,7 +1777,7 @@ BaseGDL* widget_info( EnvT* e ) {
   // End /MODAL
 
   // VALID , MANAGED, BUTTONSET etc keywords giving back 0 or 1
-  if ( valid || managed || buttonset) {
+  if ( valid || managed || realized || buttonset) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1785,6 +1788,7 @@ BaseGDL* widget_info( EnvT* e ) {
       bool result=false;
       if (valid) result=( widget != NULL );
       else if (managed) result=( widget->GetManaged( ) == true );
+      else if (realized) result=( widget->GetRealized( ) == true );
       else if (buttonset) result=( widget->GetButtonSet() == true );
       if ( result ) return new DLongGDL( 1 ); 
       else          return new DLongGDL( 0 );
@@ -1802,6 +1806,7 @@ BaseGDL* widget_info( EnvT* e ) {
           bool result=false;
           if (valid) result=( widget != NULL );
           else if (managed) result=( widget->GetManaged( ) == true );
+          else if (realized) result=( widget->GetRealized( ) == true );
           else if (buttonset) result=( widget->GetButtonSet( ) == true );         
           if ( result ) ( *res )[ i] = (DLong) 1;
           else          ( *res )[ i] = (DLong) 0;

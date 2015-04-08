@@ -570,6 +570,13 @@ void GDLWidget::Realize( bool map)
     }
   }
 }
+
+bool GDLWidget::GetRealized() {
+    GDLWidgetBase *tlb = GetTopLevelBaseWidget( widgetID );
+    GDLFrame* frame=static_cast<GDLFrame*>(tlb->GetWxWidget());
+    return (frame->GetTheApp()!=NULL);
+  }
+
 #define GetSysC(x)   { col=wxSystemSettings::GetColour(x); r=col.Red();g=col.Green();b=col.Blue(); (*val)[0]=r;(*val)[1]=g;(*val)[2]=b; }
 BaseGDL * GDLWidget::getSystemColours()
 {
@@ -3409,6 +3416,7 @@ GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& tit
 , mapped( false )
 , frameSize(wxDefaultSize)
 , gdlOwner( gdlOwner_)
+, appOwner(NULL)
 {
   m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
   m_windowTimer = new wxTimer(this,WINDOW_TIMER);

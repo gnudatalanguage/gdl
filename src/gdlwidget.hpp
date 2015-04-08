@@ -328,7 +328,6 @@ public:
 
   virtual ~GDLWidget();
 
-  void CreateWidgetPanel(DLong borderWidth=DEFAULT_BORDER_SIZE, wxBorder=wxNO_BORDER );
   // this is called from the GUI thread on (before) Show()
   // wxTextCtrl and maybe other controls crash when called from the
   // main thread
@@ -425,6 +424,7 @@ public:
   wxPanel* GetPanel() { return widgetPanel;}
 
   bool GetManaged() const { return managed;}
+  bool GetRealized(); 
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
   virtual void SetFocus();
