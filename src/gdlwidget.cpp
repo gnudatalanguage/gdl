@@ -548,11 +548,10 @@ void GDLWidget::Realize( bool map)
       this->OnRealize( );
       if (map) frame->SendShowRequestEvent(); else frame->SendHideRequestEvent();
     }
-    GDLApp * theGDLApp;
-    frame->SetTheApp(theGDLApp);
-    theGDLApp=new GDLApp;
+    GDLApp* theGDLApp=new GDLApp;
     theGDLApp->OnInit();
     theGDLApp->OnRun();
+    frame->SetTheApp(theGDLApp);
   }
   else
   {
