@@ -335,7 +335,7 @@ namespace lib {
 
 	BaseGDL* dialog_message_wxwidgets(EnvT* e)
 	{
-		DString messagestr;
+		DStringGDL* messagestr;
 		bool iscancel = false;
 		bool iscenter = false;
 		bool isdefault_cancel = false;
@@ -348,7 +348,7 @@ namespace lib {
 		bool isresource_name = false;
 		bool istitle = false;
 
-		e->AssureStringScalarPar(0, messagestr);
+		messagestr = e->GetParAs<DStringGDL>(0);
 
 		static int cancelIx = e->KeywordIx("CANCEL");
 		bool cancelKW = e->KeywordPresent(cancelIx);
@@ -409,7 +409,7 @@ namespace lib {
 		}
 
 		// Set style
-		long style = wxOK;
+		long style = wxOK|wxSTAY_ON_TOP;
 		if (isquestion)                   style = wxYES_NO;
 		if (iscancel || isdefault_cancel) style |= wxCANCEL;
 		if (iscenter)                     style |= wxCENTRE; // On windows, dialog is always centered with or without this option.
@@ -450,9 +450,13 @@ namespace lib {
 			else if (isquestion)    wxtitlestr = _U("Question");
 			else                    wxtitlestr = _U("Warning");
 		}
-
+        // convert eventual array of strings in a string:
+        DString local_string;
+        for( int i=0; i<messagestr->N_Elements(); ++i) local_string += (*messagestr)[i]+'\n'; 
+        // remove last \n
+        if (local_string.length() > 1)  local_string.resize(local_string.length()-1);
 		// Show dialog
-		wxMessageDialog gdlMessageDialog(parent, _U(messagestr.c_str()), wxtitlestr, style);
+		wxMessageDialog gdlMessageDialog(parent, _U(local_string.c_str()), wxtitlestr, style);
 		int rtn = gdlMessageDialog.ShowModal();
 		if (wxID_OK == rtn)          return new DStringGDL("OK");
 		else if (wxID_YES == rtn)    return new DStringGDL("Yes");
