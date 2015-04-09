@@ -543,15 +543,15 @@ void GDLWidget::Realize( bool map)
     wxMessageOutputStderr( ).Printf( _T( "GDLWidget:Realize: %d\n"), this->widgetID );
 #endif
     GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
-    if( frame->IsMapped() != map)
+    GDLApp* theGDLApp = new GDLApp;
+    theGDLApp->OnInit();
+    theGDLApp->OnRun();
+    frame->SetTheApp(theGDLApp);
+    if (frame->IsMapped() != map)
     {
       this->OnRealize( );
       if (map) frame->SendShowRequestEvent(); else frame->SendHideRequestEvent();
     }
-    GDLApp* theGDLApp=new GDLApp;
-    theGDLApp->OnInit();
-    theGDLApp->OnRun();
-    frame->SetTheApp(theGDLApp);
   }
   else
   {
@@ -647,12 +647,10 @@ GDLWidget::~GDLWidget( ) {
   
   // kill followers (here?)
   // delete all children (in reverse order ?)
-  for( std::vector<WidgetIDT>::iterator iter=followers.begin(); iter!=followers.end(); ++iter) 
-  {
-      GDLWidget* follower = GetWidget( *iter);
-      if( follower ) {
-        delete follower;
-      }
+  while (followers.size()) {
+      GDLWidget* follower = GetWidget(followers[followers.size() - 1]);
+      if (follower) delete follower;
+      else followers.pop_back(); // Maybe should not be reachable
   }
   
   //   managed = false;
@@ -955,10 +953,10 @@ GDLWidgetBase::~GDLWidgetBase()
 #endif
 
   // delete all children (in reverse order ?)
-  for( rcIter rc=children.rbegin(); rc!=children.rend(); ++rc) //reverse iterator!
-  {
-      GDLWidget* child = GetWidget( *rc);
-      if( child ) {delete child;}
+  while (children.size()) {
+	  GDLWidget* child = GetWidget( children[children.size()-1]);
+	  if (child) delete child;
+	  else children.pop_back(); // Maybe should not be reachable
   }
 
   if( this->parentID == GDLWidget::NullID)
@@ -1061,11 +1059,11 @@ GDLWidgetTab::~GDLWidgetTab(){
   std::cout << "in ~GDLWidgetTab(): " << widgetID << std::endl;
 #endif
   // delete all children (in reverse order ?)
-      for( rcIter rc=children.rbegin(); rc!=children.rend(); ++rc) //reverse iterator!
-      {
-          GDLWidget* child = GetWidget( *rc);
-          if( child ) {delete child;}
-      }
+  while (children.size()) {
+      GDLWidget* child = GetWidget(children[children.size() - 1]);
+      if (child) delete child;
+      else children.pop_back(); // Maybe should not be reachable
+  }
 }
 
 

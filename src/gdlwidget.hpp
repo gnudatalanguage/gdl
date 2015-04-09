@@ -486,8 +486,10 @@ public:
    // as this is called in the constructor, no type checking of c can be done
   // hence the AddChild() function should be as simple as that
   void AddChild( WidgetIDT c) { children.push_back( c);}
-  void RemoveChild( WidgetIDT  c) { children.erase( find( children.begin(),
-							  children.end(), c));}
+  void RemoveChild( WidgetIDT  c) {
+      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      children.erase(it);                                                             // ... and remove.
+  }
   DLong NChildren() const
   {
     return children.size( );
@@ -1300,7 +1302,10 @@ public:
     event->SetEventObject( this );
     // only for wWidgets > 2.9 (takes ownership of event)
 //     this->QueueEvent( event);
-    this->AddPendingEvent( *event); // copies event
+    //this->AddPendingEvent( *event); // copies event
+    this->OnShowRequest( *event); // JP Apr 2015: Should block the main thread until the window opens,
+                                  //              so that the following WIDGET_INFO can properly read
+                                  //              the window's properties.
     delete event;
     mapped = TRUE;
     }
