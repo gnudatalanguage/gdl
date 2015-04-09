@@ -266,7 +266,7 @@ print,"Draw widgets:",draw,draw2
 
 ;Set the new widget to be the current graphics window 
  print,"window indexes",index,index2
- file=FILE_SEARCH('*','Saturn.jpg')
+ file='Saturn.jpg'
  image=read_image(file)
  WSET,index
  plot,findgen(100)
