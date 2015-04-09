@@ -488,7 +488,7 @@ public:
   void AddChild( WidgetIDT c) { children.push_back( c);}
   void RemoveChild( WidgetIDT  c) {
       std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
-      children.erase(it);                                                             // ... and remove.
+      if (it != children.end()) children.erase(it);                                   // ... and remove.
   }
   DLong NChildren() const
   {
