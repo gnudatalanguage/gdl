@@ -80,6 +80,9 @@
 
 #endif
 
+#ifndef S_IXUSR
+#	define S_IXUSR S_IEXEC
+#endif
 
 #endif
 
