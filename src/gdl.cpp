@@ -35,7 +35,9 @@
 #endif
 #include <climits> // PATH_MAX
 
+#ifndef _WIN32
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
+#endif
 
 //#include <fenv.h>
 
@@ -113,6 +115,7 @@ void AtExit()
   PurgeContainer(libProList);
 }
 
+#ifndef _WIN32
 void GDLSetLimits()
 {
 #define GDL_PREFERED_STACKSIZE 20480000 //20000*1024 OK for the time being
@@ -123,10 +126,13 @@ struct rlimit* gdlstack=new struct rlimit;
   if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE;
   r=setrlimit(RLIMIT_STACK,gdlstack);
 }
+#endif
 
 void InitGDL()
 {
-  GDLSetLimits();
+#ifndef _WIN32
+	GDLSetLimits();
+#endif
 #ifdef HAVE_LIBREADLINE
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
