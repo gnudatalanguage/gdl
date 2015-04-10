@@ -1257,7 +1257,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   return CC_OK;
 }
 
-#ifdef HAVE_THREAD
+#ifdef HAVE_CXX11THREAD
 void inputThread() {
 #else
 void *inputThread(void*) {
@@ -1276,7 +1276,7 @@ char* DInterpreter::NoReadline( const string& prompt)
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
-#ifdef HAVE_THREAD
+#ifdef HAVE_CXX11THREAD
   thread th(inputThread);
 #else
   pthread_t th;
