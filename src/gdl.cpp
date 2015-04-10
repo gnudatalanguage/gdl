@@ -131,7 +131,7 @@ struct rlimit* gdlstack=new struct rlimit;
 void InitGDL()
 {
 #ifndef _WIN32
-	GDLSetLimits();
+  GDLSetLimits();
 #endif
 #ifdef HAVE_LIBREADLINE
   // initialize readline (own version - not pythons one)
@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
 
   // indicates if the user wants to see the welcome message
   bool quiet = false;
+  bool gdlde = false;
 
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
@@ -274,6 +275,10 @@ int main(int argc, char *argv[])
         string(argv[a]) == "-vm" 
       )
         cerr << argv[0] << ": " << argv[a] << " option ignored." << endl;
+      else if (string(argv[a]) == "-gdlde")
+      {
+          gdlde = true;
+      }
       else if (*argv[a] == '-')
       {
         cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
@@ -296,7 +301,7 @@ int main(int argc, char *argv[])
   // must be after !cpu initialisation
   InitOpenMP();
 
-  if( isatty(0) && !quiet) StartupMessage();
+  if (gdlde || (isatty(0) && !quiet)) StartupMessage();
 
   // instantiate the interpreter
   DInterpreter interpreter;
@@ -306,7 +311,7 @@ int main(int argc, char *argv[])
   if( gdlPath == "")
     {
       gdlPath = "+" GDLDATADIR "/lib";
-      if (isatty(0) && !quiet) cerr <<
+      if (gdlde || (isatty(0) && !quiet)) cerr <<
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;
     }
@@ -316,11 +321,11 @@ int main(int argc, char *argv[])
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
     {
-      if (isatty(0) && !quiet) cerr << 
+      if (gdlde || (isatty(0) && !quiet)) cerr << 
         "- No startup file read (GDL_STARTUP/IDL_STARTUP env. var. not set). " << endl;
     }
 
-  if (isatty(0) && !quiet) 
+  if (gdlde || (isatty(0) && !quiet))
   {
     cerr << "- Please report bugs, feature or help requests and patches at:" << endl <<
       "  http://sourceforge.net/projects/gnudatalanguage/" << endl << endl;
