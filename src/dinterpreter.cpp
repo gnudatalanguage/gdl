@@ -50,9 +50,17 @@
 #include "print_tree.hpp"
 #endif
 
+#if (__cplusplus > 199711L || _MSC_VER >= 1800)
+#   include <thread> // C++11
+#   define HAVE_CXX11THREAD
+#else
+#   include <pthread.h>
+#endif
+
 using namespace std;
 using namespace antlr;
 
+string inputstr;
 bool historyIntialized = false;
 
 // instantiation of static data
@@ -1249,30 +1257,50 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   return CC_OK;
 }
 
+#ifdef HAVE_THREAD
+void inputThread() {
+#else
+void *inputThread(void*) {
+#endif
+    while (1) {
+        char ch = getchar();
+        inputstr += ch;
+        if (ch == '\n')
+            break;
+    }
+}
+
 // if readline is not available or !EDIT_INPUT set to zero
 char* DInterpreter::NoReadline( const string& prompt)
 {
   if (isatty(0)) cout << prompt << flush;
-
-  ostringstream ostr;
-  char ch;
   if( feof(stdin)) return NULL;
-  for(;;)
+
+#ifdef HAVE_THREAD
+  thread th(inputThread);
+#else
+  pthread_t th;
+  pthread_create(&th, NULL, inputThread, NULL);
+#endif
+
+  for (;;)
     {
-      GDLEventHandler(); 
-
-      ch = getchar();
-
-      if( ch == '\n') break;
-      if( feof(stdin)) return NULL;
-      ostr << ch;
+        GDLEventHandler();
+        if (inputstr.size() && inputstr.back() == '\n') break;
+        if (feof(stdin)) return NULL;
+        Sleep(10);
     }
-  ostr << ends;
-  string str = ostr.str();
 
-  char *result = (char*) malloc((str.length()+1) * sizeof(char));
+  char *result = (char*)malloc((inputstr.length() + 1) * sizeof(char));
+  strcpy(result, inputstr.c_str()); // copies including terminating '\0'
+  inputstr.clear();
 
-  strcpy(result,str.c_str()); // copies including terminating '\0'
+#ifdef HAVE_CXX11THREAD
+  th.join();
+#else
+  pthread_join(th, NULL);
+#endif
+
   return result;
 }
 
