@@ -21,7 +21,7 @@
 #ifdef _MSC_VER
 #include <io.h> // isatty, windows
 #else
-#include <unistd.h> // isatty
+#include <unistd.h> // isatty, usleep
 #endif
 
 //#include <wordexp.h>
@@ -1286,9 +1286,13 @@ char* DInterpreter::NoReadline( const string& prompt)
   for (;;)
     {
         GDLEventHandler();
-        if (inputstr.size() && inputstr.back() == '\n') break;
+        if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
         if (feof(stdin)) return NULL;
+#ifdef WIN32
         Sleep(10);
+#else
+        usleep(10);
+#endif
     }
 
   char *result = (char*)malloc((inputstr.length() + 1) * sizeof(char));
