@@ -117,7 +117,7 @@ namespace lib {
 
     /* Load dynamically loaded library */
 #if defined(_WIN32) && !defined(__CYGWIN__)
-    TCHAR u_shrdimgName[255];
+    WCHAR u_shrdimgName[255];
     MultiByteToWideChar(CP_ACP, 0, shrdimgName.c_str(), shrdimgName.length(), u_shrdimgName, 255);
     module[count] = LoadLibraryW(u_shrdimgName);
 
@@ -443,11 +443,11 @@ namespace lib {
     // Load shared object, call function
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	TCHAR* tchr = new TCHAR[image.size() + 1];
-	tchr[image.size()] = 0;
-	std::copy(image.begin(),image.end(),tchr);
-    HMODULE handle =  LoadLibraryW(tchr);
-	delete(tchr);
+	LPWSTR wchr = new WCHAR[image.size() + 1];
+    wchr[image.size()] = 0;
+    std::copy(image.begin(), image.end(), wchr);
+    HMODULE handle = LoadLibraryW(wchr);
+    delete(wchr);
 #else
     // you MUST keep the double "||" to have CALL_EXTERNAL working
     void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);

@@ -5353,7 +5353,7 @@ BaseGDL* strtok_fun(EnvT* e) {
 		  {
 		//		(*env)[i] = SysVar::Dir();
 #ifdef WIN32
-			  TCHAR tmpBuf[MAX_PATH];
+			  WCHAR tmpBuf[MAX_PATH];
 			  GetTempPathW(MAX_PATH, tmpBuf);
 			  char c_tmpBuf[MAX_PATH];
 			  WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
@@ -6697,18 +6697,18 @@ BaseGDL* strtok_fun(EnvT* e) {
   {
     // getting the info 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-    #define MAX_TCHAR_BUF 256
+    #define MAX_WCHAR_BUF 256
 
-    char login[MAX_TCHAR_BUF];
-    char info[MAX_TCHAR_BUF];
+    char login[MAX_WCHAR_BUF];
+    char info[MAX_WCHAR_BUF];
 
-    DWORD N_TCHAR = MAX_TCHAR_BUF;
+    DWORD N_WCHAR = MAX_WCHAR_BUF;
 
-    TCHAR t_buf[MAX_TCHAR_BUF];
-    GetUserNameW(t_buf, &N_TCHAR);
-    WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, login, N_TCHAR, NULL, NULL);
-    GetComputerNameW( t_buf, &N_TCHAR );
-    WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, info, N_TCHAR, NULL, NULL);
+    WCHAR w_buf[MAX_WCHAR_BUF];
+    GetUserNameW(w_buf, &N_WCHAR);
+    WideCharToMultiByte(CP_ACP, 0, w_buf, N_WCHAR, login, N_WCHAR, NULL, NULL);
+    GetComputerNameW(w_buf, &N_WCHAR);
+    WideCharToMultiByte(CP_ACP, 0, w_buf, N_WCHAR, info, N_WCHAR, NULL, NULL);
 #else
     char* login = getlogin();
     if (login == NULL) e->Throw("Failed to get user name from the OS"); 

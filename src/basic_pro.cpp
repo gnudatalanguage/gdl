@@ -2800,7 +2800,7 @@ namespace lib {
 		}
 		*pos = ptr;
 	}
-	DWORD launch_cmd(BOOL hide, BOOL nowait, LPTSTR cmd, LPTSTR title = NULL, DWORD *pid = NULL,
+	DWORD launch_cmd(BOOL hide, BOOL nowait, LPWSTR cmd, LPWSTR title = NULL, DWORD *pid = NULL,
 		vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
 	{
 		DWORD status;
@@ -2951,7 +2951,7 @@ namespace lib {
 
 		if (nParam == 0)
 		{
-			DWORD status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR)(_T("cmd")), (LPTSTR)(_T("Command Prompt")));
+            DWORD status = launch_cmd(hideKeyword, nowaitKeyword, (LPWSTR)L"cmd", (LPWSTR)L"Command Prompt");
 			if (countKeyword)
 				e->SetKW(countIx, new DLongGDL(0));
 			if (exit_statusKeyword)
@@ -2973,20 +2973,20 @@ namespace lib {
 		else
 			ds_cmd = "cmd /c " + cmd;
 
-		wchar_t t_cmd[255];
-		MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), t_cmd, 255);
+		WCHAR w_cmd[255];
+        MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), w_cmd, 255);
 
 		vector<DString> ds_outs;
 		vector<DString> ds_errs;
 		int status;
 		DWORD pid;
 		if (nParam == 1)
-			status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR)t_cmd, NULL, &pid);
+            status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid);
 		else if (nParam == 2) {
-			status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR)t_cmd, NULL, &pid, &ds_outs);
+            status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid, &ds_outs);
 		}
 		else if (nParam == 3) {
-			status = launch_cmd(hideKeyword, nowaitKeyword, (LPTSTR)t_cmd, NULL, &pid, &ds_outs, &ds_errs);
+            status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid, &ds_outs, &ds_errs);
 		}
 
 		if (pidKeyword)
