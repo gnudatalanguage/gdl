@@ -207,10 +207,10 @@ private:
       tmp = "GDL Version " + string(VERSION) + ", Microsoft Windows x32";
       PS_set_info(ps, "Creator", tmp.c_str());
 
-      TCHAR username[257];
+      WCHAR username[257];
       char cusername[257];
       DWORD username_len = 257;
-      GetUserName(username, &username_len);
+      GetUserNameW(username, &username_len);
 
       WideCharToMultiByte(CP_ACP, 0, username, username_len, cusername, username_len, NULL, NULL);
 

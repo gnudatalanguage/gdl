@@ -162,10 +162,10 @@ namespace lib {
 #if defined(_WIN32) && !defined(__CYGWIN__)
     // TODO: Needs error handling with name length > 256
     const char* cname = name.c_str();
-    TCHAR tname[256] = {0,};
+    WCHAR tname[256] = {0,};
 
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cname, strlen(cname),(LPWSTR) tname, 256);
-    HANDLE sem = CreateSemaphore(NULL,1,1,tname);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cname, strlen(cname), tname, 256);
+    HANDLE sem = CreateSemaphoreW(NULL,1,1,tname);
     if (sem == NULL) {
 	owner = false;
 	return new DIntGDL(0);

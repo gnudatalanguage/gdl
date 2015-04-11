@@ -19,8 +19,6 @@
 
 #ifndef _WIN32
 #include <sys/utsname.h>
-#else
-#include <tchar.h>
 #endif
 #include <cmath>
 
@@ -695,7 +693,7 @@ namespace SysVar
 #ifdef _WIN32
 #ifdef __MINGW32__
 	typedef void (WINAPI *GetNativeSystemInfoFunc)(LPSYSTEM_INFO);
-	HMODULE hModule = LoadLibrary(_T("kernel32.dll"));
+	HMODULE hModule = LoadLibraryW(L"kernel32.dll");
 	GetNativeSystemInfoFunc GetNativeSystemInfo =(GetNativeSystemInfoFunc) 
             GetProcAddress(hModule, "GetNativeSystemInfo");
 #endif

@@ -135,17 +135,17 @@ struct CompProName : public std::binary_function < DPro*, DPro*, bool >
 
 #ifdef _WIN32
 bool CompareWithJokers(string names, string sourceFiles) {
-	TCHAR tnames[MAX_PATH];
-	TCHAR tsourceFiles[MAX_PATH];
+	WCHAR wnames[MAX_PATH];
+	WCHAR wsourceFiles[MAX_PATH];
 
 	const char* cnames = names.c_str();
 	const char* csourceFiles = sourceFiles.c_str();
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, cnames, strlen(cnames),
-		(LPWSTR)tnames, MAX_PATH);
+		(LPWSTR)wnames, MAX_PATH);
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, csourceFiles, strlen(csourceFiles),
-		(LPWSTR)tsourceFiles, MAX_PATH);
-	if (PathMatchSpec(tnames, tsourceFiles))
+		(LPWSTR)wsourceFiles, MAX_PATH);
+	if (PathMatchSpecW(wnames, wsourceFiles))
 	{
 		return TRUE;
 	}
