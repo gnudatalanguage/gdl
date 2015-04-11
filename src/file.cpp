@@ -253,8 +253,12 @@ namespace lib {
   using namespace std;
 #ifdef _WIN32
 //
-
+#ifdef _MSC_VER // MSVC uses 64bit internally
+#   define stat64 stat
+#   define lstat64(x,y) stat(x,y) 
+#else
 #    define lstat64(x,y) stat64(x,y)
+#endif
 
 // fstat_win32 used for symlink treatment
 //
@@ -730,8 +734,9 @@ namespace lib {
     int accessmode = 0;
     if( tests[0]) accessmode = R_OK;
     if( tests[1]) accessmode |= W_OK;
+#ifndef _WIN32
     if( tests[2]) accessmode |= X_OK;
-#ifdef _WIN32
+#else
 
     wchar_t patW[MAX_PATH+1];
     wchar_t entryWstr[MAX_PATH+1];
