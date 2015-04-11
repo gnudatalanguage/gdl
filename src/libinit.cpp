@@ -74,7 +74,7 @@ void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
 void LibInit_ng(); // libinit_ng.cpp
-void LibInit_jp(); // libinit_jp.cpp
+void LibInit_jp(){} // libinit_jp.cpp
 
 void LibInit()
 {
@@ -158,8 +158,11 @@ void LibInit()
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
-				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",
-				 "TEST_DIRECTORY","TEST_EXECUTABLE","TEST_REGULAR",KLISTEND};
+                                 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",
+                                "TEST_DIRECTORY", "TEST_EXECUTABLE", "TEST_READ",
+                                 "TEST_REGULAR", "TEST_WRITE", "TEST_ZERO_LENGTH",
+                                 "TEST_SYMLINK",
+                                 KLISTEND};
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 
   const string file_expand_pathKey[]={KLISTEND};
@@ -258,7 +261,7 @@ void LibInit()
   // as the same functions are called "FORMAT" till "MONTH"
   // must be the first four keywords. The inner print_os function is BASED on this ORDER!
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTH"
-  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"STDIO_NON_FINITE",KLISTEND};
+  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
   new DLibPro(lib::print,string("PRINT"),-1,printKey);
   new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
   // allow printing (of expressions) with all keywords 
@@ -269,7 +272,7 @@ void LibInit()
   new DLibPro(lib::read,string("READ"),-1,readKey);
   new DLibPro(lib::readf,string("READF"),-1,readKey);
 
-  const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,KLISTEND}; // no PROMPT
+  const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,	   KLISTEND}; // no PROMPT
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
 
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
