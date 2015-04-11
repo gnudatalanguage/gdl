@@ -50,7 +50,7 @@
 #include "print_tree.hpp"
 #endif
 
-#if (__cplusplus > 199711L || _MSC_VER >= 1800)
+#if (__cplusplus >= 201103L || _MSC_VER >= 1800) && !defined(__MINGW32__)
 #   include <thread> // C++11
 #   define HAVE_CXX11THREAD
 #else
@@ -1294,7 +1294,9 @@ char* DInterpreter::NoReadline( const string& prompt)
         usleep(10);
 #endif
     }
-
+  inputstr = inputstr.substr(0, inputstr.size() - 1); // removes '\n'
+  //if (inputstr[inputstr.size() - 1] == '\r')
+  //    inputstr = inputstr.substr(0, inputstr.size() - 1); // removes '\r' too, if exists
   char *result = (char*)malloc((inputstr.length() + 1) * sizeof(char));
   strcpy(result, inputstr.c_str()); // copies including terminating '\0'
   inputstr.clear();
