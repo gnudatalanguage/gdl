@@ -36,7 +36,6 @@
 #include <sys/wait.h>
 #else
 #include <shlwapi.h>
-#include <tchar.h>
 #endif
 
 #ifndef _WIN32
