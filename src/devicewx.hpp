@@ -340,12 +340,11 @@ public:
         winList[ wIx]->RenewPlplotDefaultCharsize(newsize);
         // sets actWin and updates !D
         SetActWin( wIx);
-        GDLApp * theGDLApp;
-    gdlFrame->SetTheApp(theGDLApp);
-    theGDLApp=new GDLApp;
+        GDLApp* theGDLApp=new GDLApp;
     theGDLApp->OnInit();
     theGDLApp->OnRun();
         gdlFrame->Show();
+        gdlFrame->SetTheApp(theGDLApp);
  
         return true; //winList[ wIx]->Valid(); // Valid() need to called once
     }
