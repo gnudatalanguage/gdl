@@ -94,13 +94,22 @@ LRESULT DeviceWIN::GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 		}
-		if (windowfound && lpWp->message == WM_PAINT) {
-			// Redraw image after the window is finally reactivated.
-			//PAINTSTRUCT ps;
-			//BeginPaint(lpWp->hwnd, &ps);
-			((GDLWINStream *)winList[i])->RedrawTV();
-			//EndPaint(lpWp->hwnd, &ps);
-		}
+        if (windowfound) {
+            if (lpWp->message == WM_PAINT) {
+		    	// Redraw image after the window is finally reactivated.
+			    //PAINTSTRUCT ps;
+			    //BeginPaint(lpWp->hwnd, &ps);
+			    ((GDLWINStream *)winList[i])->RedrawTV();
+			    //EndPaint(lpWp->hwnd, &ps);
+		    }
+            msghookiter iter_msg;
+            GDLWINStream* winstream = (GDLWINStream *)winList[i];
+            for (iter_msg = winstream->msghooks.begin(); iter_msg != winstream->msghooks.end(); ++iter_msg)
+            {
+                if ((*iter_msg).first == lpWp->message)
+                    (winstream->*(*iter_msg).second)(lpWp->message, lpWp->wParam, lpWp->lParam);
+            }
+        }
 	}
 	return retCode;
 }

@@ -26,6 +26,7 @@
 
 #include "gdlgstream.hpp"
 #include <Windows.h>
+#include <map>
 
 // Copied from wingcc.c
 // Struct to hold device-specific info.
@@ -73,6 +74,7 @@ struct wingcc_Dev
 	char              already_erased;  // Used to track first and only first backgroudn erases
 	struct wingcc_Dev  *push;
 };
+
 typedef struct {
 	BITMAPINFO bi;
 	RGBQUAD *lpbitmap;
@@ -89,7 +91,13 @@ class GDLWINStream : public GDLGStream
 	plstream *plst;
 
 	tv_buf_t tv_buf;
+    int _mode;
+    PLGraphicsIn *_gin;
+    POINT GinPoint;
+    bool rbutton, xbutton, mbutton, buttonpressed = false;
 public:
+    std::map<UINT, void (CALLBACK GDLWINStream::*)(UINT, WPARAM, LPARAM)> msghooks;
+
 	GDLWINStream(int nx, int ny) :
 		GDLGStream(nx, ny, "wingcc")
 	{
@@ -130,6 +138,10 @@ public:
 	void SetWindowTitle(char* buf);
 	HWND GetHwnd(void);
 	void RedrawTV();
+
+    void CALLBACK GinCallback(UINT message, WPARAM wParam, LPARAM lParam);
 };
+
+typedef std::map<UINT, void (CALLBACK GDLWINStream::*)(UINT, WPARAM, LPARAM)>::iterator msghookiter;
 
 #endif

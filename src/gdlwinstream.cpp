@@ -23,6 +23,7 @@
 using namespace std;
 #include "gdlwinstream.hpp"
 #include "devicewin.hpp"
+#include "gdleventhandler.hpp"
 #ifndef PLESC_TELLME
 #define PLESC_TELLME  41
 #endif
@@ -93,26 +94,80 @@ void GDLWINStream::EventHandler()
 	plstream::cmd(PLESC_EH, NULL);
 }
 
+void CALLBACK GDLWINStream::GinCallback(UINT message, WPARAM wParam, LPARAM lParam) {
+    wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+    RECT rcClient;
+
+    _gin->button = 0;
+    buttonpressed = false; rbutton = false; xbutton = false; mbutton = false;
+
+    GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
+    ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.left); // http://support.microsoft.com/en-us/kb/11570
+    ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.right);
+
+    switch (message)
+    {
+        case WM_XBUTTONDOWN:  xbutton = true;
+        case WM_RBUTTONDOWN:  rbutton = true;
+        case WM_MBUTTONDOWN:  mbutton = true;
+        case WM_LBUTTONDOWN:
+            if (wParam != MK_LBUTTON && wParam != MK_MBUTTON && wParam != MK_RBUTTON && wParam != MK_XBUTTON1 && wParam != MK_XBUTTON1)
+                return;
+            if (_mode == 4) break;   // Looking for button up
+            _gin->button = 1;
+            GetCursorPos(&GinPoint);
+            buttonpressed = true;
+            break;
+        case WM_XBUTTONUP:	xbutton = true;
+        case WM_RBUTTONUP:	rbutton = true;
+        case WM_MBUTTONUP:  mbutton = true;
+        case WM_LBUTTONUP:
+            if (wParam != MK_LBUTTON && wParam != MK_MBUTTON && wParam != MK_RBUTTON && wParam != MK_XBUTTON1 && wParam != MK_XBUTTON1)
+                return;
+            if (_mode == 3) break;  // Looking for button down
+            _gin->button = 1;
+            GetCursorPos(&GinPoint);
+            buttonpressed = true;
+            break;
+        case WM_CHAR:
+            GetCursorPos(&GinPoint);
+            _gin->keysym = wParam;
+            buttonpressed = true;
+            break;
+        default:
+            if (_mode == 0) {
+                GetCursorPos(&GinPoint);
+                buttonpressed = true;
+            }
+    }
+    if (!buttonpressed || rcClient.left > GinPoint.x || GinPoint.x > rcClient.right || rcClient.top > GinPoint.y || GinPoint.y > rcClient.bottom)
+    {
+        buttonpressed = false;
+        return;
+    }
+
+    ScreenToClient(dev->hwnd, &GinPoint); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
+    _gin->pX = GinPoint.x;
+    _gin->pY = (rcClient.bottom - rcClient.top) - GinPoint.y;
+    if (xbutton) _gin->button = 4; else
+        if (rbutton) _gin->button = 3; else
+            if (mbutton) _gin->button = 2;
+    _gin->dX = ((PLFLT)_gin->pX) / (rcClient.right - rcClient.left - 1);
+    _gin->dY = ((PLFLT)_gin->pY) / (rcClient.bottom - rcClient.top - 1);
+}
+
 bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	LPPOINT lpt;
-
-	enum CursorOpt {
-		NOWAIT = 0,
-		WAIT, //1
-		CHANGE, //2
-		DOWN, //3
-		UP //4
-	};
+    _gin = gin;
+    _mode = mode;
 
 	// plstream::cmd( PLESC_GETC, gin );
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
 	HCURSOR    cursor;
 	HCURSOR    previous;
-	RECT rcClient;
-	//RECT rcOldClip;
-	POINT Point;
-	UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+    UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	HWND resetFG;
 	resetFG = GetForegroundWindow();
 
@@ -136,70 +191,33 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	//SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
 
-	//   NOWAIT = 0,    WAIT, //1    CHANGE, //2    DOWN, //3    UP //4
-	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms645602(v=vs.85).aspx
-	bool rbutton, xbutton, mbutton, buttonpressed = false;
-	gin->button = 0;
-	while (!buttonpressed)
+    buttonpressed = false;
+    msghooks[WM_XBUTTONDOWN] = &GDLWINStream::GinCallback;
+    msghooks[WM_RBUTTONDOWN] = &GDLWINStream::GinCallback;
+    msghooks[WM_MBUTTONDOWN] = &GDLWINStream::GinCallback;
+    msghooks[WM_LBUTTONDOWN] = &GDLWINStream::GinCallback;
+    msghooks[WM_XBUTTONUP] = &GDLWINStream::GinCallback;
+    msghooks[WM_RBUTTONUP] = &GDLWINStream::GinCallback;
+    msghooks[WM_MBUTTONUP] = &GDLWINStream::GinCallback;
+    msghooks[WM_LBUTTONUP] = &GDLWINStream::GinCallback;
+    msghooks[WM_CHAR] = &GDLWINStream::GinCallback;
+
+    while (!buttonpressed)
 	{
-		GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
-		ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.left); // http://support.microsoft.com/en-us/kb/11570
-		ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.right);
-
-		rbutton = false; xbutton = false; mbutton = false;
-		if (PeekMessage(&dev->msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-			if (GetForegroundWindow() == dev->hwnd) {
-				GetMessage(&dev->msg, NULL, 0, 0);
-				TranslateMessage(&dev->msg);
-				switch ((int)dev->msg.message)
-				{
-				case WM_XBUTTONDOWN:  xbutton = true;
-				case WM_RBUTTONDOWN:  rbutton = true;
-				case WM_MBUTTONDOWN:  mbutton = true;
-				case WM_LBUTTONDOWN:
-					if (mode == 4) break;   // Looking for button up
-					gin->button = 1;
-					GetCursorPos(&Point);
-					buttonpressed = true;
-					break;
-				case WM_XBUTTONUP:	xbutton = true;
-				case WM_RBUTTONUP:	rbutton = true;
-				case WM_MBUTTONUP:  mbutton = true;
-				case WM_LBUTTONUP:
-					if (mode == 3) break;  // Looking for button down
-					gin->button = 1;
-					GetCursorPos(&Point);
-					buttonpressed = true;
-					break;
-				case WM_CHAR:
-					GetCursorPos(&Point);
-					gin->keysym = dev->msg.wParam;
-					buttonpressed = true;
-					break;
-				default:
-					if (mode == 0) {
-						GetCursorPos(&Point);
-						buttonpressed = true;
-					}
-				}
-				if (!buttonpressed || rcClient.left > Point.x || Point.x > rcClient.right || rcClient.top > Point.y || Point.y > rcClient.bottom) {
-					if (dev->msg.message != WM_PAINT)
-						DispatchMessage(&dev->msg);
-					buttonpressed = false;
-				}
-			}
-		}
+        GDLEventHandler();
+        RedrawTV();
+        Sleep(10);
 	}
-	ScreenToClient(dev->hwnd, &Point); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
 
-	gin->pX = Point.x;
-	gin->pY = (rcClient.bottom - rcClient.top) - Point.y;
-	if (xbutton) gin->button = 4; else
-		if (rbutton) gin->button = 3; else
-			if (mbutton) gin->button = 2;
-	gin->dX = ((PLFLT)gin->pX) / (rcClient.right - rcClient.left - 1);
-	gin->dY = ((PLFLT)gin->pY) / (rcClient.bottom - rcClient.top - 1);
+    msghooks.erase(WM_XBUTTONDOWN);
+    msghooks.erase(WM_RBUTTONDOWN);
+    msghooks.erase(WM_MBUTTONDOWN);
+    msghooks.erase(WM_LBUTTONDOWN);
+    msghooks.erase(WM_XBUTTONUP);
+    msghooks.erase(WM_RBUTTONUP);
+    msghooks.erase(WM_MBUTTONUP);
+    msghooks.erase(WM_LBUTTONUP);
+    msghooks.erase(WM_CHAR);
 
 	SetForegroundWindow(resetFG);
 	SetCursor(previous);
