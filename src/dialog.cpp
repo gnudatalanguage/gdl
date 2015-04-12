@@ -467,7 +467,7 @@ namespace lib {
     else                         return new DStringGDL("Cancel");
   }
 #else
-  BaseGDL* wxwidgets_exists(EnvT* e) { return new DLongGDL(0) };
+  BaseGDL* wxwidgets_exists(EnvT* e) { return new DLongGDL(0); };
   BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
   BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
 #endif
