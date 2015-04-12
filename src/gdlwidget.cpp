@@ -3076,8 +3076,12 @@ bool editable_ )
         int length=((*static_cast<DStringGDL*> (vValue))[i]).length();
         value += (*static_cast<DStringGDL*> (vValue))[i]; 
         maxlinelength=(length>maxlinelength)?length:maxlinelength;
-        if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
+        if ( !noNewLine ) //&& (i + 1) < vValue->N_Elements( ) )
+#ifdef _WIN32
+        {value += "\r\n"; nlines++;}
+#else
         {value += '\n'; nlines++;}
+#endif
       }
   }
   lastValue = value;
@@ -3124,8 +3128,12 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine)
     for( int i=0; i<valueStr->N_Elements(); ++i)
     {
     value += (*valueStr)[ i];
-    if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) )
+    if ( !noNewLine ) //&& (i + 1) < valueStr->N_Elements( ) )
+#ifdef _WIN32
+    {value += "\r\n"; nlines++;}
+#else
     {value += '\n'; nlines++;}
+#endif
     }
   lastValue = value;
 
@@ -3148,8 +3156,12 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine, bool inser
   nlines=0;
   for ( int i = 0; i < valueStr->N_Elements( ); ++i ) {
     value += (*valueStr)[ i];
-    if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) ) {
+    if ( !noNewLine ) { //&& (i + 1) < valueStr->N_Elements( ) ) {
+#ifdef _WIN32
+      value += "\r\n"; nlines++;
+#else
       value += '\n'; nlines++;
+#endif
     }
   }
   lastValue.replace(from,to-from,value);
