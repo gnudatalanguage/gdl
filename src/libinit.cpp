@@ -74,7 +74,7 @@ void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
 void LibInit_ng(); // libinit_ng.cpp
-void LibInit_jp(){} // libinit_jp.cpp
+void LibInit_jp(); // libinit_jp.cpp
 
 void LibInit()
 {
