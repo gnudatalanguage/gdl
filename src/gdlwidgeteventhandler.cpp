@@ -78,7 +78,7 @@ BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
 //  EVT_SCROLL_THUMBRELEASE(GDLFrame::OnThumbRelease) //handled directly via Connect()
 //  EVT_SCROLL_THUMBTRACK(GDLFrame::OnThumbTrack) //handled directly via Connect()
 //Added: [TLB_]SIZE_EVENTS
-  EVT_SIZE(GDLFrame::OnSize) //should actually restarts a timer...
+//  EVT_SIZE(GDLFrame::OnSize) //should actually restarts a timer...
   EVT_ENTER_WINDOW( GDLFrame::OnEnterWindow)
   EVT_LEAVE_WINDOW( GDLFrame::OnLeaveWindow)
   EVT_MENU(wxID_ANY, GDLFrame::OnMenu) 
