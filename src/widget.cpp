@@ -32,6 +32,36 @@
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
+wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
+  int the_units = 0;
+  static int unitsIx = e->KeywordIx( "UNITS" );
+  e->AssureLongScalarKWIfPresent( unitsIx, the_units );
+  //convert unit to the factor in pixels
+  DDouble sx=wxGetDisplaySizeMM().x;
+  DDouble sy=wxGetDisplaySizeMM().y;
+  sx=wxGetDisplaySize().x/sx; //pix per mm
+  sy=wxGetDisplaySize().y/sy;
+
+  if (the_units==0) return wxRealPoint(1,1);
+  if (the_units==1) return wxRealPoint(sx*25.4,sy*25.4);
+  if (the_units==2) return wxRealPoint(sx*10.0,sy*10.0);
+}
+
+void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
+{
+  int the_units = 0;
+  static int unitsIx = e->KeywordIx( "UNITS" );
+  e->AssureLongScalarKWIfPresent( unitsIx, the_units );
+  //convert unit to the factor in pixels
+  DDouble sx=wxGetDisplaySizeMM().x;
+  DDouble sy=wxGetDisplaySizeMM().y;
+  sx=wxGetDisplaySize().x/sx; //pix per mm
+  sy=wxGetDisplaySize().y/sy;
+
+  if (the_units==0) unitConversionFactor=wxRealPoint(1,1);
+  if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
+  if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
+}
 void GDLWidget::GetCommonKeywords( EnvT* e)
 {
   static int frameIx = e->KeywordIx( "FRAME" );
@@ -48,7 +78,6 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   static int scrollIx = e->KeywordIx( "SCROLL" );
   static int sensitiveIx = e->KeywordIx( "SENSITIVE" );
   static int unameIx = e->KeywordIx( "UNAME" );
-  static int unitsIx = e->KeywordIx( "UNITS" );
   static int uvalueIx = e->KeywordIx( "UVALUE" );
   static int xoffsetIx = e->KeywordIx( "XOFFSET" );
   static int xsizeIx = e->KeywordIx( "XSIZE" );
@@ -87,21 +116,17 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   frame = 0;
   e->AssureLongScalarKWIfPresent( frameIx, frame );
   int the_units = 0;
+  static int unitsIx = e->KeywordIx( "UNITS" );
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
   DDouble sy=wxGetDisplaySizeMM().y;
-  sx/=wxGetDisplaySize().x;
-  sx/=25.4;
-  sy/=wxGetDisplaySize().y;
-  sy/=25.4;
-  if (the_units==0) units=wxSize(1,1);
-  int ix=sx;
-  int iy=sy;
-  if (the_units==1) units=wxSize(ix,iy);
-  ix=sx/2.54;
-  iy=sy/2.54;
-  if (the_units==2) units=wxSize(ix,iy);
+  sx=wxGetDisplaySize().x/sx; //pix per mm
+  sy=wxGetDisplaySize().y/sy;
+    
+  if (the_units==0) unitConversionFactor=wxRealPoint(1,1);
+  if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
+  if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
 
   //SCREEN_XSIZE and YSIZE are equivalent to xSize, ySize for most widgets.
 //the following trick permits to transfer these values to xSize etc.
@@ -1550,6 +1575,9 @@ BaseGDL* widget_info( EnvT* e ) {
   bool tabcurrent = e->KeywordSet(TAB_CURRENT);
   static int TAB_MULTILINE = e->KeywordIx( "TAB_MULTILINE");
   bool tabmultiline = e->KeywordSet(TAB_MULTILINE);
+
+  static int unitsIx = e->KeywordIx( "UNITS" );
+  bool unitsGiven = e->KeywordPresent ( unitsIx );
   
   static int UPDATE = e->KeywordIx( "UPDATE" );
   bool update=e->KeywordSet(UPDATE);
@@ -1714,6 +1742,14 @@ BaseGDL* widget_info( EnvT* e ) {
           test->GetVirtualSize(&xvs,&yvs);
           bord=test->GetWindowBorderSize();
         }
+        //size is in pixels, pass in requested units:
+         if (unitsGiven) {
+           wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+           xs/=fact.x;
+           ys/=fact.y;
+           xvs/=fact.x;
+           yvs/=fact.y;
+         }
         DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
         ex->InitTag("XOFFSET",DFloatGDL(bord.x));  
         ex->InitTag("YOFFSET",DFloatGDL(bord.y)); 
@@ -1741,6 +1777,9 @@ BaseGDL* widget_info( EnvT* e ) {
       static unsigned tag5=ex->Desc()->TagIndex("SCR_XSIZE");
       static unsigned tag6=ex->Desc()->TagIndex("SCR_YSIZE");
       bool atLeastOneFound=false;
+      wxRealPoint fact;
+      if (unitsGiven) fact=GetRequestedUnitConversionFactor(e);
+      else fact=wxRealPoint(1.,1.);
       for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
@@ -1751,6 +1790,10 @@ BaseGDL* widget_info( EnvT* e ) {
           atLeastOneFound=TRUE;
           static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
           static_cast<wxWindow*>(widget->GetWxWidget())->GetVirtualSize(&xvs,&yvs);
+          xs/=fact.x;
+          ys/=fact.y;
+          xvs/=fact.x;
+          yvs/=fact.y;
           bord=(static_cast<wxWindow*>(widget->GetWxWidget()))->GetWindowBorderSize();
           (*static_cast<DFloatGDL*>(ex->GetTag(tag1, i)))[0]=bord.x;
           (*static_cast<DFloatGDL*>(ex->GetTag(tag2, i)))[0]=bord.y;
@@ -1856,10 +1899,22 @@ BaseGDL* widget_info( EnvT* e ) {
         }
       }
       
-      if (giveColumnWidths){
+      if (giveColumnWidths && unitsGiven ){
+        wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+        DFloatGDL* ret;
+        if (useATableSelection) ret=table->GetColumnWidth(tableSelectionToUse); else ret=table->GetColumnWidth();
+        for (SizeT i=0; i< ret->N_Elements(); ++i) (*ret)[i]/=fact.x;
+        return ret;
+      } else if (giveColumnWidths ){
         if (useATableSelection) return table->GetColumnWidth(tableSelectionToUse); else return table->GetColumnWidth();
       }
-      if (giveRowHeights){
+      if (giveRowHeights && unitsGiven){
+        wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+        DFloatGDL* ret;
+        if (useATableSelection) ret=table->GetRowHeight(tableSelectionToUse); else ret=table->GetRowHeight();
+        for (SizeT i=0; i< ret->N_Elements(); ++i) (*ret)[i]/=fact.y;
+        return ret;
+      }else if (giveRowHeights){
         if (useATableSelection) return table->GetRowHeight(tableSelectionToUse); else return table->GetRowHeight();
       }
   }
@@ -2246,6 +2301,9 @@ void widget_control( EnvT* e ) {
   if (dobadid) e->AssureGlobalKW(badidIx);
 
   static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
+
+  static int unitsIx = e->KeywordIx( "UNITS" );
+  bool unitsGiven = e->KeywordPresent ( unitsIx );
   
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
@@ -2451,7 +2509,6 @@ void widget_control( EnvT* e ) {
       StackGuard<EnvStackT> guard( e->Interpreter( )->CallStack( ) );
 
       DString callF = StrUpCase( getFuncName );
-      //      cerr<<"calling funcname="<<callF<<endl;
 
       SizeT funIx = GDLInterpreter::GetFunIx( callF );
       EnvUDT* newEnv = new EnvUDT( e->CallingNode( ), funList[ funIx], (DObjGDL**) NULL );
@@ -2618,25 +2675,29 @@ void widget_control( EnvT* e ) {
           GDLWidget::PushEvent( baseWidgetID, ev);
   }
   
-  if (hasXsize || hasYsize || hasScr_xsize || hasScr_ysize ) {
+  if (hasXsize || hasYsize || hasScr_xsize || hasScr_ysize || hasDraw_xsize || hasDraw_ysize ) {
     DLong xs,ys,xsize, ysize;
     wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     me->GetSize(&xs,&ys);
     xsize=xs;
     ysize=ys;
-    if (hasXsize || hasScr_xsize ) {
+    if (hasXsize || hasScr_xsize || hasDraw_xsize ) {
       if (hasScr_xsize) xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0]; 
       else if (hasXsize) xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
+      else if (hasDraw_xsize) xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0];
       if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
     }
-    if (hasYsize || hasScr_ysize ) {
+    if (hasYsize || hasScr_ysize || hasDraw_ysize ) {
       if (hasScr_ysize) ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0];
       else if (hasYsize) ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
+      else if (hasDraw_ysize) ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0];
       if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
     }
+    if (!(widget->IsList() || widget->IsTable() || widget->IsText()) && unitsGiven) widget->ChangeUnitConversionFactor(e);
     widget->SetSize(xsize,ysize);
   }
+  
   static int FRAME = e->KeywordIx( "FRAME" );
   bool frame=e->KeywordPresent( FRAME );
   if (frame) { if (e->KeywordSet( FRAME)) widget->FrameWidget(); else widget->UnFrameWidget();}
@@ -2801,11 +2862,17 @@ void widget_control( EnvT* e ) {
      }
      if (settlbxoffset) {
        DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
-       me->Move( (*xoffset)[0], me->GetPosition().y );
+       if (unitsGiven) {
+         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+         me->Move( (*xoffset)[0]*fact.x, me->GetPosition().y );
+       } else   me->Move( (*xoffset)[0], me->GetPosition().y );
      }
      if (settlbyoffset) {
        DLongGDL* yoffset=e->GetKWAs<DLongGDL>( tlbsetyoffsetIx );
-       me->Move(me->GetPosition().x, (*yoffset)[0]  );
+       if (unitsGiven) {
+         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+         me->Move(me->GetPosition().x, (*yoffset)[0]*fact.y  );
+       } else  me->Move(me->GetPosition().x, (*yoffset)[0]  );
      }
   }
 
@@ -2819,9 +2886,16 @@ void widget_control( EnvT* e ) {
     DLong *retsize=&(*static_cast<DLongGDL*>(*tlbsizeKW))[0];
     int i,j;
     static_cast<wxWindow*>(tlb->GetWxWidget())->GetSize(&i,&j);
-    retsize[0]=i;
-    retsize[1]=j;
+      retsize[0]=i;
+      retsize[1]=j;
+    //size is in pixels, pass in requested units:
+     if (unitsGiven) {
+       wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+       retsize[0]/=fact.x;
+       retsize[1]/=fact.y;
+     }
   }
+  
   if (givetlboffset) { 
     e->AssureGlobalKW( tlbgetoffsetIx );
     BaseGDL** tlboffsetKW = &e->GetKW( tlbgetoffsetIx );
@@ -2834,16 +2908,29 @@ void widget_control( EnvT* e ) {
     static_cast<wxWindow*>(tlb->GetWxWidget())->GetPosition(&i,&j);
     retoffset[0]=i;
     retoffset[1]=j;
+    //size is in pixels, pass in requested units:
+     if (unitsGiven) {
+       wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+       retoffset[0]/=fact.x;
+       retoffset[1]/=fact.y;
+     }
   }
+  
   if ( setxoffset || setyoffset ) {
      wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
      if (setxoffset) {
        DLongGDL* xoffset=e->GetKWAs<DLongGDL>( setxoffsetIx );
-       me->Move( (*xoffset)[0], me->GetPosition().y );
+       if (unitsGiven) {
+         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+         me->Move( (*xoffset)[0]*fact.x, me->GetPosition().y );
+       } else  me->Move( (*xoffset)[0], me->GetPosition().y );
      }
      if (setyoffset) {
        DLongGDL* yoffset=e->GetKWAs<DLongGDL>( setyoffsetIx );
-       me->Move(me->GetPosition().x, (*yoffset)[0]  );
+         if (unitsGiven) {
+         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+         me->Move(me->GetPosition().x, (*yoffset)[0]*fact.y  );
+       } else  me->Move(me->GetPosition().x, (*yoffset)[0]  );
      }
   }
 
@@ -3102,11 +3189,15 @@ void widget_control( EnvT* e ) {
     }
     bool hasColumnWidth=(columnWidth!=NULL);
     if (hasColumnWidth) {
+      if (unitsGiven) widget->ChangeUnitConversionFactor(e); //pass new conversion factor
+      else widget->SetCurrentUnitConversionFactor(wxRealPoint(1.,1.)); //force to use pixels
       table->SetColumnWidth(columnWidth);
       if (useATableSelection) table->DoColumnWidth(tableSelectionToUse); else  table->DoColumnWidth();
     }
     bool hasRowHeights=(rowHeights!=NULL);
     if (hasRowHeights) {
+      if (unitsGiven) widget->ChangeUnitConversionFactor(e); //pass new conversion factor
+      else widget->SetCurrentUnitConversionFactor(wxRealPoint(1.,1.)); //force to use pixels
       table->SetRowHeights(rowHeights);
       if (useATableSelection) table->DoRowHeights(tableSelectionToUse); else table->DoRowHeights();
     }

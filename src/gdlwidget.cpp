@@ -179,12 +179,12 @@ inline wxSize GDLWidgetList::computeWidgetSize()
 inline wxSize GDLWidget::computeWidgetSize()
 {
   wxSize widgetSize = wxDefaultSize;
-  if ( xSize != widgetSize.x ) widgetSize.x = xSize*units.x;
+  if ( xSize != widgetSize.x ) widgetSize.x = xSize*unitConversionFactor.x;
   else { widgetSize.x = -1; }
 //but..
   if (scrXSize>0) widgetSize.x=scrXSize;
   
-  if ( ySize != widgetSize.y )  widgetSize.y = ySize * units.y; 
+  if ( ySize != widgetSize.y )  widgetSize.y = ySize * unitConversionFactor.y; 
   else widgetSize.y = -1;
 //but..
    if (scrYSize>0) widgetSize.y=scrYSize;
@@ -493,6 +493,7 @@ void GDLWidget::SetSizeHints()
 
 void GDLWidget::SetSize(DLong sizex, DLong sizey)
 {
+  //Sizes are in pixels. Units must be converted before calling this function.
   wxWindow* me=static_cast<wxWindow*>(this->GetWxWidget());
   wxSize currentSize=me->GetSize();
   
@@ -545,6 +546,9 @@ void GDLWidget::Realize( bool map)
     GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
     GDLApp* theGDLApp = new GDLApp;
     theGDLApp->OnInit();
+    // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
+    wxIdleEvent idlevent;
+    theGDLApp->AddPendingEvent(idlevent);
     theGDLApp->OnRun();
     frame->SetTheApp(theGDLApp);
     if (frame->IsMapped() != map)
@@ -781,13 +785,14 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
 
   xmanActCom = false;
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
-  if (x_scroll_size > 0) {scrolled=TRUE;}//x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
-  if (y_scroll_size > 0) {scrolled=TRUE;}//y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size*=unitConversionFactor.x; x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size*=unitConversionFactor.y; y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
   if (scrolled && x_scroll_size <=0) x_scroll_size=-1;
   if (scrolled && y_scroll_size <=0) y_scroll_size=-1;
   
-    if ( xSize <= 0 ) {stretchX=TRUE;}// xSize=100;} //provide a default value!
-    if ( ySize <= 0 ) {stretchY=TRUE;}// ySize=100;} 
+  wxSize widgetSize = wxDefaultSize;
+  if ( xSize == widgetSize.x ) stretchX=TRUE; else xSize*=unitConversionFactor.x; 
+  if ( ySize == widgetSize.y ) stretchY=TRUE; else ySize*=unitConversionFactor.y;
 
   // Set exclusiveMode
   // If exclusive then set to -1 to signal first radiobutton
@@ -803,6 +808,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     wxString titleWxString = wxString( title_.c_str( ), wxConvUTF8 );
     GDLFrame *gdlFrame = new GDLFrame( this, widgetID, titleWxString , wxPoint(xOffset,yOffset));
 
+//it is the FRAME that manage all events. Here we dedicate particularly the tlb_* events:  
    if (eventFlags & GDLWidget::EV_SIZE ) gdlFrame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
    if (eventFlags & GDLWidget::EV_MOVE ) gdlFrame->Connect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
    if (eventFlags & GDLWidget::EV_ICONIFY ) gdlFrame->Connect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
@@ -886,7 +892,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
       widgetPanel->SetBackgroundColour(wxColour(64,128,33)); //for tests!
 #endif
       wxWidget = widgetPanel;
-      widgetPanel->SetSize((xSize>0)?xSize:100, (ySize>0)?ySize:100);
+      widgetPanel->SetSize((xSize>0)?xSize:100, (ySize>0)?ySize:100); //default?
 
       wxString titleWxString = wxString( title_.c_str( ), wxConvUTF8 );
       wxParent->AddPage( widgetPanel, titleWxString );
@@ -1168,7 +1174,7 @@ SizeT grid_ncols=(xSize<=0)?numCols:xSize;
 bool hasColumnWidth=(columnWidth!=NULL);
 if (hasColumnWidth) { //one value set for all?
   if (columnWidth->N_Elements()==1) {
-    grid->SetDefaultColSize((*columnWidth)[0]) ;
+    grid->SetDefaultColSize((*columnWidth)[0]*unitConversionFactor.x) ;
     hasColumnWidth=FALSE;
   }
 }
@@ -1176,7 +1182,7 @@ if (hasColumnWidth) { //one value set for all?
 bool hasRowHeights=(rowHeights!=NULL);
 if (hasRowHeights) { //one value set for all?
   if (rowHeights->N_Elements()==1) {
-    grid->SetDefaultRowSize((*rowHeights)[0]) ;
+    grid->SetDefaultRowSize((*rowHeights)[0]*unitConversionFactor.y) ;
     hasRowHeights=FALSE;
   }
 }
@@ -1251,32 +1257,39 @@ if (columnLabels!=NULL)this->DoColumnLabels();
 if (rowLabels!=NULL) this->DoRowLabels();
 
 //get back on sizes. Do we enforce some size or scroll_size, in columns/rows:
-int currentColWidth=grid->GetDefaultColSize();
-int currentRowHeight=grid->GetDefaultRowSize();
 int currentColLabelHeight = grid->GetColLabelSize();
 int currentRowLabelWidth = grid->GetRowLabelSize();
-int fullsizex=currentColWidth*numCols+currentRowLabelWidth+SCROLL_WIDTH; 
-int fullsizey=currentRowHeight*numRows+currentColLabelHeight+SCROLL_WIDTH; 
+
+int fullsizex=currentRowLabelWidth;
+int fullsizey=currentColLabelHeight; 
+for (SizeT i=0; i< numCols ; ++i) fullsizex+=grid->GetColumnWidth(i); 
+for (SizeT j=0; j< numRows ; ++j) fullsizey+=grid->GetRowHeight(j); 
+
+int visiblesizex=currentRowLabelWidth;
+int visiblesizey=currentColLabelHeight; 
+for (SizeT i=0; i< grid_ncols ; ++i) visiblesizex+=grid->GetColumnWidth(i); 
+for (SizeT j=0; j< grid_nrows ; ++j) visiblesizey+=grid->GetRowHeight(j); 
 
 int sizex=-1;
 int sizey=-1;
 int scr_sizex=-1;
 int scr_sizey=-1;
-  if ( xSize > 0 ) { //columns
-    sizex=min(xSize*currentColWidth+currentRowLabelWidth+SCROLL_WIDTH,fullsizex);
+  if ( xSize > 0 ) { sizex = visiblesizex; //size in columns given
   } else {sizex=fullsizex;}
-  if ( ySize > 0 ) { //rows
-    sizey=min(ySize*currentRowHeight+currentColLabelHeight+SCROLL_WIDTH,fullsizey);
+  if ( ySize > 0 ) { sizey = visiblesizey; //size in rows given
   } else {sizey=fullsizey;}
-  if ( x_scroll_size > 0 ) { //columns
+  if ( x_scroll_size > 0 ) { //scroll size is in columns
     scrolled=TRUE;
-    scr_sizex=min(x_scroll_size*currentColWidth+currentRowLabelWidth+SCROLL_WIDTH,fullsizex);
+    scr_sizex=currentRowLabelWidth+SCROLL_WIDTH;
+    for (SizeT i=0; i< x_scroll_size ; ++i) scr_sizex+=grid->GetColumnWidth(i);
+    scr_sizex=min(scr_sizex,fullsizex);
     if (y_scroll_size <=0) y_scroll_size=x_scroll_size;
   }
   if ( y_scroll_size > 0 ) { //rows
     scrolled=TRUE;
-    scr_sizey=min(y_scroll_size*currentRowHeight+currentColLabelHeight+SCROLL_WIDTH,fullsizey);
-    if (x_scroll_size <=0) {x_scroll_size=y_scroll_size;scr_sizex=min(x_scroll_size*currentColWidth+currentRowLabelWidth,fullsizex);}
+    scr_sizey=currentColLabelHeight+SCROLL_WIDTH;
+    for (SizeT j=0; j< y_scroll_size ; ++j) scr_sizey+=grid->GetRowHeight(j);
+    scr_sizey=min(scr_sizey,fullsizey);
   }
 //fix size if relevant
 if (scrolled && scr_sizex == -1) scr_sizex = (sizex>0)?sizex:fullsizex;
@@ -1290,10 +1303,8 @@ if (scrolled) {
 } else {
   if (xSize>0||ySize>0) grid->SetInitialSize(wxSize(sizex,sizey)); 
 }
-grid->SetScrollLineX(currentColWidth);
-grid->SetScrollLineY(currentRowHeight);
-//grid->SetScrollbar(wxHORIZONTAL,0,xSize,grid_ncols);
-//grid->SetScrollbar(wxVERTICAL,0,ySize,grid_nrows);
+grid->SetScrollLineX(grid->GetColumnWidth(0));
+grid->SetScrollLineY(grid->GetRowHeight(0));
 
 widgetSizer->Add(grid);
 if (frame) this->FrameWidget();
@@ -1610,11 +1621,11 @@ void GDLWidgetTable::DoColumnWidth( ) {
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   int nCols = grid->GetNumberCols( );
   grid->BeginBatch();
-  if ( columnWidth->N_Elements( ) == 1 ) for ( SizeT j = 0; j < nCols; ++j ) grid->SetColSize(j,(*columnWidth)[0]); 
+  if ( columnWidth->N_Elements( ) == 1 ) for ( SizeT j = 0; j < nCols; ++j ) grid->SetColSize(j,(*columnWidth)[0]*unitConversionFactor.x); 
   else {
       for ( SizeT j = 0; j < nCols; ++j ) {
         if ( j > (columnWidth->N_Elements( ) - 1) ) break;
-        grid->SetColSize(j,(*columnWidth)[j]);
+        grid->SetColSize(j,(*columnWidth)[j]*unitConversionFactor.x);
       }
   }
   grid->EndBatch();
@@ -1633,7 +1644,7 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
    wxArrayInt list=grid->GetSortedSelectedColsList();
    //find concerned cols
    for ( int it = 0; it <list.GetCount(); ++it) {
-       grid->SetColSize( list[it], (*columnWidth)[it % nbCols] );
+       grid->SetColSize( list[it], (*columnWidth)[it % nbCols]*unitConversionFactor.x);
     }
   } else { //use the passed selection, mode-dependent:
     if (disjointSelection) { //pairs lists
@@ -1649,7 +1660,7 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
      for ( iter = allCols.begin(); iter !=allCols.end(); ++iter) {
         if ((*iter)!=theCol) {
           theCol=(*iter);
-          grid->SetColSize( theCol, (*columnWidth)[k % nbCols] );
+          grid->SetColSize( theCol, (*columnWidth)[k % nbCols]*unitConversionFactor.x );
           k++;
         }
       }
@@ -1658,7 +1669,7 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
      int colBR = (*selection)[2];
      for (int j=colTL; j<=colBR; ++j)
      {
-       grid->SetColSize( j, (*columnWidth)[k % nbCols] );
+       grid->SetColSize( j, (*columnWidth)[k % nbCols]*unitConversionFactor.x );
        k++;
      }
     }
@@ -1667,20 +1678,20 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
   grid->EndBatch( );
   UPDATE_WINDOW
 }  
-DLongGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
+DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   SizeT k=0;
   int nCols = grid->GetNumberCols( );
   
   if ( selection == NULL) {
-    DLongGDL* res=new DLongGDL(dimension(nCols));
+    DFloatGDL* res=new DFloatGDL(dimension(nCols));
     for ( SizeT j = 0; j < nCols; ++j ) (*res)[j]=grid->GetColSize(j);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
     wxArrayInt list=grid->GetSortedSelectedColsList();
    //find concerned cols
     if (list.GetCount()==0) return NULL;
-   DLongGDL* res=new DLongGDL(dimension(list.GetCount()));
+   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()));
    for ( int it = 0; it <list.GetCount(); ++it) {
        (*res)[it]=grid->GetColSize( list[it] );
     }
@@ -1706,7 +1717,7 @@ DLongGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
       }
      //final list:
      if (theCols.size()==0) return NULL;
-     DLongGDL* res=new DLongGDL(dimension(theCols.size()));
+     DFloatGDL* res=new DFloatGDL(dimension(theCols.size()));
      for ( iter = theCols.begin(); iter !=theCols.end(); ++iter) {
        (*res)[k++]=grid->GetColSize( (*iter));
       }     
@@ -1716,29 +1727,29 @@ DLongGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
      int colBR = (*selection)[2];
      int count = colBR-colTL+1;
      if (count==0) return NULL;
-     DLongGDL* res=new DLongGDL(dimension(count));
+     DFloatGDL* res=new DFloatGDL(dimension(count));
      for (int j=colTL; j<=colBR; ++j)
      {
        (*res)[k++]=grid->GetColSize(j); 
      }
     }
   }
-  return new DLongGDL(0); //to keep compiler happy
+  return new DFloatGDL(0); //to keep compiler happy
 }
-DLongGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
+DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   SizeT k=0;
   int nRows = grid->GetNumberRows( );
   
   if ( selection == NULL) {
-    DLongGDL* res=new DLongGDL(dimension(nRows));
+    DFloatGDL* res=new DFloatGDL(dimension(nRows));
     for ( SizeT i = 0; i < nRows; ++i ) (*res)[i]=grid->GetRowSize(i);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
     wxArrayInt list=grid->GetSortedSelectedRowsList();
    //find concerned rows
     if (list.GetCount()==0) return NULL;
-   DLongGDL* res=new DLongGDL(dimension(list.GetCount()));
+   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()));
    for ( int it = 0; it <list.GetCount(); ++it) {
        (*res)[it]=grid->GetRowSize( list[it] );
     }
@@ -1764,7 +1775,7 @@ DLongGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
       }
      //final list:
      if (theRows.size()==0) return NULL;
-     DLongGDL* res=new DLongGDL(dimension(theRows.size()));
+     DFloatGDL* res=new DFloatGDL(dimension(theRows.size()));
      for ( iter = theRows.begin(); iter !=theRows.end(); ++iter) {
        (*res)[k++]=grid->GetRowSize( (*iter));
       }     
@@ -1774,14 +1785,14 @@ DLongGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
      int rowBR = (*selection)[3];
      int count = rowBR-rowTL+1;
      if (count==0) return NULL;
-     DLongGDL* res=new DLongGDL(dimension(count));
+     DFloatGDL* res=new DFloatGDL(dimension(count));
      for (int j=rowTL; j<=rowBR; ++j)
      {
        (*res)[k++]=grid->GetRowSize(j); 
      }
     }
   }
-  return new DLongGDL(0); //to keep compiler happy
+  return new DFloatGDL(0); //to keep compiler happy
 }
 
 void GDLWidgetTable::DoRowHeights( ) {
@@ -1789,11 +1800,11 @@ void GDLWidgetTable::DoRowHeights( ) {
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   int nRows = grid->GetNumberRows( );
   grid->BeginBatch();
-  if ( rowHeights->N_Elements( ) == 1 ) for ( SizeT i = 0; i < nRows; ++i ) grid->SetRowSize(i,(*rowHeights)[0]); 
+  if ( rowHeights->N_Elements( ) == 1 ) for ( SizeT i = 0; i < nRows; ++i ) grid->SetRowSize(i,(*rowHeights)[0]*unitConversionFactor.y); 
   else {
       for ( SizeT i = 0; i < nRows; ++i ) {
         if ( i > (rowHeights->N_Elements( ) - 1) ) break;
-        grid->SetRowSize(i,(*rowHeights)[i]);
+        grid->SetRowSize(i,(*rowHeights)[i]*unitConversionFactor.y);
       }
   }
   grid->EndBatch();
@@ -1811,7 +1822,7 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
   if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
    wxArrayInt list=grid->GetSortedSelectedRowsList();
    for ( int it = 0; it <list.GetCount(); ++it) {
-       grid->SetRowSize( list[it], (*rowHeights)[it % nbRows] );
+       grid->SetRowSize( list[it], (*rowHeights)[it % nbRows]*unitConversionFactor.y );
     }
   } else { //use the passed selection, mode-dependent:
     if (disjointSelection) { //pairs lists
@@ -1827,7 +1838,7 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
      for ( iter = allRows.begin(); iter !=allRows.end(); ++iter) {
         if ((*iter)!=theRow) {
           theRow=(*iter);
-          grid->SetRowSize( theRow, (*rowHeights)[k % nbRows] );
+          grid->SetRowSize( theRow, (*rowHeights)[k % nbRows] *unitConversionFactor.y);
           k++;
         }
       }
@@ -1836,7 +1847,7 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
      int rowBR = (*selection)[3];
      for (int i=rowTL; i<=rowBR; ++i)
      {
-       grid->SetRowSize( i, (*rowHeights)[k % nbRows] );
+       grid->SetRowSize( i, (*rowHeights)[k % nbRows]*unitConversionFactor.y );
        k++;
      }
     }
@@ -2575,7 +2586,6 @@ GDLWidgetTree::~GDLWidgetTree()
     wxTreeItemId child=tree->GetFirstChild(id, cookie);
     while (child.IsOk()) {
       WidgetIDT childID=static_cast<gdlTreeItemData*>(tree->GetItemData(child))->widgetID;
-      cerr <<childID<<endl;
       GDLWidgetTree* GDLchild= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(childID));
       child=tree->GetNextSibling(child); //nextChild did not find the last (?) nextSibling does the job.
       delete GDLchild;
@@ -3514,14 +3524,14 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
 
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
   if (app_scroll) scrolled=TRUE;
-  if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
-  if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
-  if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size;
+  if (x_scroll_size > 0) {scrolled=TRUE;x_scroll_size*=unitConversionFactor.x; x_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);} 
+  if (y_scroll_size > 0) {scrolled=TRUE;y_scroll_size*=unitConversionFactor.y; y_scroll_size+=(SCROLL_WIDTH+2*DEFAULT_BORDER_SIZE);}
+  if (scrolled) x_scroll_size=(x_scroll_size<100)?100:x_scroll_size; //min values
   if (scrolled) y_scroll_size=(y_scroll_size<100)?100:y_scroll_size;
 
   wxSize widgetSize = wxDefaultSize;
-  if ( xSize == widgetSize.x ) xSize=scrolled?120:100; //provide a default value!
-  if ( ySize == widgetSize.y ) ySize=scrolled?120:100; 
+  if ( xSize == widgetSize.x ) xSize=scrolled?120:100; else xSize*=unitConversionFactor.x; //provide a default value!
+  if ( ySize == widgetSize.y ) ySize=scrolled?120:100; else ySize*=unitConversionFactor.y;
 
   wxWindow *wxParent = NULL;
 

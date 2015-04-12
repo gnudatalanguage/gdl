@@ -241,7 +241,7 @@ protected:
   DInt         widgetType;
   DString      widgetName;
   WidgetIDT    groupLeader;
-  wxSize       units;
+  wxRealPoint  unitConversionFactor;
   DLong        frame;
   DString      font;
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
@@ -323,7 +323,11 @@ public:
   long widgetAlignment();
   long getDefautAlignment();
   void widgetUpdate(bool update);
-
+  void ChangeUnitConversionFactor( EnvT* e);
+  wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
+  wxRealPoint GetCurrentUnitConversionFactor(){return unitConversionFactor;}
+  void SetCurrentUnitConversionFactor(wxRealPoint value){unitConversionFactor = value;}
+  
   GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
@@ -919,12 +923,12 @@ public:
   void SetColumnWidth(DLongGDL* val){GDLDelete(columnWidth); columnWidth=val->Dup();};
   void DoColumnWidth();
   void DoColumnWidth(DLongGDL* selection);
-  DLongGDL* GetColumnWidth(DLongGDL* selection=NULL);
+  DFloatGDL* GetColumnWidth(DLongGDL* selection=NULL);
   
   void SetRowHeights(DLongGDL* val){GDLDelete(rowHeights); rowHeights=val->Dup();};
   void DoRowHeights();
   void DoRowHeights(DLongGDL* selection);
-  DLongGDL* GetRowHeight(DLongGDL* selection=NULL);
+  DFloatGDL* GetRowHeight(DLongGDL* selection=NULL);
 
   bool GetDisjointSelection(){return disjointSelection;}
   void SetDisjointSelection(bool b){disjointSelection = b;}
