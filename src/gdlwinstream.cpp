@@ -201,6 +201,8 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 
     while (!buttonpressed)
 	{
+        if (valid == false)
+            return false; // TODO: Instead this, it should spawn a new window!
         GDLEventHandler();
         RedrawTV();
         Sleep(10);
@@ -442,11 +444,12 @@ HWND GDLWINStream::GetHwnd()
 
 void GDLWINStream::RedrawTV()
 {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	// If tv_buf has data, draw it on screen
-	if (tv_buf.has_data && dev->hwnd)
+    if (!valid) return;
+    wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+    // If tv_buf has data, draw it on screen
+    if (tv_buf.has_data && dev->hwnd)
 	{
-		RECT rt;
+        RECT rt;
 		GetClientRect(dev->hwnd, &rt);
 		if (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -tv_buf.bi.bmiHeader.biHeight != rt.bottom + 1)
 		{
