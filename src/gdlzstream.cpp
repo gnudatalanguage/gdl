@@ -135,7 +135,14 @@ DByteGDL* GDLZStream::GetBitmapData() {
     datadims[2] = 3;
     dimension datadim(datadims, (SizeT) 3);
     DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
-//Z buffer is in order=0 by default, no need to revert Y.    
-    memcpy(&(*bitmap)[0],mem,datadims[0] * datadims[1] * datadims[2] * sizeof(unsigned char));
+    //PADDING is 3BPP -- we revert Y to respect IDL default
+    SizeT kpad = 0;
+    for ( SizeT iy =0; iy < ny ; ++iy ) {
+      for ( SizeT ix = 0; ix < nx; ++ix ) {
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] =  mem[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] =  mem[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] =  mem[kpad++];
+      }
+    }
     return bitmap;
 }
