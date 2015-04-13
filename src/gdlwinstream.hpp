@@ -83,6 +83,7 @@ typedef struct {
 
 class GDLWINStream : public GDLGStream
 {
+private:
 	//Atom wm_protocols;
 	//Atom wm_delete_window;
 	HWND refocus;
@@ -94,6 +95,7 @@ class GDLWINStream : public GDLGStream
     int _mode;
     PLGraphicsIn *_gin;
     POINT GinPoint;
+    HCURSOR CrosshairCursor;
     bool rbutton, xbutton, mbutton, buttonpressed = false;
 public:
     std::map<UINT, void (CALLBACK GDLWINStream::*)(UINT, WPARAM, LPARAM)> msghooks;

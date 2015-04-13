@@ -70,6 +70,9 @@ void GDLWINStream::Init()
 	dev->waiting = 1;
 	UnsetFocus();
 	tv_buf.has_data = false;
+
+    HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(NULL);
+    CrosshairCursor = CreateCursor(hInstance, 15, 14, 32, 32, ANDmaskCursor, XORmaskCursor);
 }
 
 void GDLWINStream::SetWindowTitle(char* buf) {
@@ -90,8 +93,19 @@ void GDLWINStream::EventHandler()
 		return;
 	}
 
-	// plplot event handler
-	plstream::cmd(PLESC_EH, NULL);
+// if wxWidgets is available, then use wxWidgets' event handler instead.
+#ifndef HAVE_LIBWXWIDGETS
+    MSG Message;
+    if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&Message);
+        if (Message.message == WM_DESTROY) {
+            this->SetValid(false);
+            cout << "WM_DESTROY detected in GDLWINSTREAM:: " << endl;
+        }
+        DispatchMessage(&Message);
+    }
+#endif
 }
 
 void CALLBACK GDLWINStream::GinCallback(UINT message, WPARAM wParam, LPARAM lParam) {
@@ -164,32 +178,15 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	// plstream::cmd( PLESC_GETC, gin );
 	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
-	HCURSOR    cursor;
 	HCURSOR    previous;
 
     UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	HWND resetFG;
 	resetFG = GetForegroundWindow();
 
-	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(NULL);
-	// Create a custom cursor at run time. 
-	cursor = CreateCursor(hInstance,   // app. instance 
-		15,                // horizontal position of hot spot 
-		14,                // vertical position of hot spot 
-		32,                // cursor width 
-		32,                // cursor height
-		ANDmaskCursor,     // AND mask 
-		XORmaskCursor);   // XOR mask 
-#ifdef _WIN64
-	SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) cursor );
-#else
-	SetClassLong(dev->hwnd, GCLP_HCURSOR, (LONG)cursor);
-#endif
-	//   SetClassLongPtr( dev->hwnd, GCLP_HCURSOR, (LONG_PTR) dev->cursor );
-	previous = SetCursor(cursor);
-
-	//SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-	SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
+    previous = SetCursor(CrosshairCursor);
+    SetClassLongPtr(dev->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(CrosshairCursor));
+    SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
 
     buttonpressed = false;
     msghooks[WM_XBUTTONDOWN] = &GDLWINStream::GinCallback;
