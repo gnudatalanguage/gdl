@@ -759,15 +759,16 @@ void InitObjects()
   // add internal memeber subroutines
   SetupOverloadSubroutines();
   
-#ifdef HAVE_LIBWXWIDGETS
-
-  // initialize widget system
-  GDLWidget::Init();
-#endif
-
   // graphic devices must be initialized after system variables
   // !D must already exist
   GraphicsDevice::Init();
+
+  // AC 150414 :
+  // this line must be after the previous on Debian/Ubuntu systems.
+#ifdef HAVE_LIBWXWIDGETS
+  // initialize widget system
+  GDLWidget::Init();
+#endif
 
   // preferences
   //  Preferences::Init();
