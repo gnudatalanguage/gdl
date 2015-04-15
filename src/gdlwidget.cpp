@@ -38,6 +38,7 @@
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
 
+GDLApp* theGDLApp;
 
 //#define GDL_DEBUG_WIDGETS
 
@@ -304,7 +305,7 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
 //make one loop for wxWidgets Events...
-  wxTheApp->OnRun();
+  theGDLApp->OnRun();
 //treat our GDL events...
   DStructGDL* ev = NULL;
   while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -398,12 +399,19 @@ BaseGDL* GDLWidget::GetWidgetsList() {
 // Init
 void GDLWidget::Init()
 {
-  wxInitialize( );
+  theGDLApp = new GDLApp;
+  theGDLApp->OnInit();
+  // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
+  wxIdleEvent idlevent;
+  theGDLApp->AddPendingEvent(idlevent);
+  theGDLApp->OnRun();
+  //wxInitialize( );
 }
 // UnInit
 void GDLWidget::UnInit()
 {
-  wxUninitialize( );
+  delete theGDLApp;
+  //wxUninitialize( );
 }
 
 
@@ -543,12 +551,6 @@ void GDLWidget::Realize( bool map)
     wxMessageOutputStderr( ).Printf( _T( "GDLWidget:Realize: %d\n"), this->widgetID );
 #endif
     GDLFrame *frame = static_cast<GDLFrame*> (this->wxWidget);
-    GDLApp* theGDLApp = new GDLApp;
-    theGDLApp->OnInit();
-    // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
-    wxIdleEvent idlevent;
-    theGDLApp->AddPendingEvent(idlevent);
-    theGDLApp->OnRun();
     frame->SetTheApp(theGDLApp);
     if (frame->IsMapped() != map)
     {
