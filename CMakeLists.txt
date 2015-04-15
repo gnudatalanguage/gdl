@@ -96,7 +96,9 @@ set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 set(GSHHS ON CACHE BOOL "GDL: Enable GSHHS ?")
 set(GSHHSDIR "" CACHE PATH "GDL: Specifiy the GSHHS directory tree")
 
-set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
+if(NOT WIN32)
+  set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
+endif(NOT WIN32)
 
 set(OPENMP ON CACHE BOOL "GDL: Enable OpenMP ?")
 
@@ -174,22 +176,8 @@ check_include_file(mpi.h HAVE_MPI_H)
 #     version of antlr in system-wide directories
 include_directories(src)
 
-if(WIN32 AND NOT CYGWIN)
-	# For Win32 find Pdcureses instead of (N)Curses
-	# -DPDCURSESDIR=DIR
-	set(CMAKE_PREFIX_PATH ${PDCURSESDIR})
-	find_package(Pdcurses)
-	if(PDCURSES_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PDCURSES_LIBRARIES})
-		include_directories(${PDCURSES_INCLUDE_DIR})
-		set(HAVE_LIBPDCURSES 1)
-	else(PDCURSES_FOUND)
-		message("${PDCURSES_LIBRARIES}\n${PDCURSES_LIBRARY}\n${PDCURSES_INCLUDE_DIR}\n")
-		message(FATAL_ERROR "PDCurses was not found.\n"
-			"Use -DPDCURSESDIR=DIR to specify the curses directory tree.\n")
-	endif(PDCURSES_FOUND)
-else(WIN32 AND NOT CYGWIN)
-	# Ncurses MANDATORY
+if (NOT WIN32)
+	# Ncurses MANDATORY for readline on POSIX
 	# -DNCURSESDIR=DIR
 	set(CMAKE_PREFIX_PATH ${NCURSESDIR})	
 	set(CURSES_NEED_NCURSES TRUE)
@@ -213,18 +201,20 @@ else(WIN32 AND NOT CYGWIN)
 				"(suitable Debian/Ubuntu package: libncurses-dev)\n")
 		endif(CURSES_FOUND)
 	endif(CURSES_FOUND)
-endif(WIN32 AND NOT CYGWIN)
+endif (NOT WIN32)
 
 # Readline
 # -DREADLINE=ON|OFF
 # -DREADLINEDIR=DIR
 if(READLINE)
-	# readline needs (n)curses
 	set(CMAKE_PREFIX_PATH ${READLINEDIR})
 	find_package(Readline QUIET)
 	set(HAVE_LIBREADLINE ${READLINE_FOUND})
 	if(READLINE_FOUND)
-		set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
+    if(NOT WIN32)
+     	# readline needs (n)curses (not on Windows)
+ 		  set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
+    endif(NOT WIN32)
 		check_library_exists("${READLINE_LIBRARIES}" rl_get_screen_size "" RL_GET_SCREEN_SIZE)
 		if(NOT RL_GET_SCREEN_SIZE)
 			message(STATUS "WARNING: Older GNU readline without rl_get_screen_size was found.\n"
@@ -472,9 +462,8 @@ if(MAGICK)
 	endif(ImageMagick_FOUND)
 endif(MAGICK)
 
-# if GM or IM activated, we check whether Plplot is OK for that.
-
-if(USE_MAGICK)
+# if GM or IM activated, we check whether Plplot is OK for that
+if(USE_MAGICK AND NOT WIN32)
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
 	if(HAVE_PLGETDRVDIR)
 		message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
@@ -482,7 +471,7 @@ if(USE_MAGICK)
 		"use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
 		"use -DMAGICK=OFF here to not use ImageMagick in GDL.")
 	endif(HAVE_PLGETDRVDIR)
-endif(USE_MAGICK)
+endif(USE_MAGICK AND NOT WIN32)
 
 # wxWdigets
 # -DWXWIDGETS=ON|OFF
@@ -796,7 +785,10 @@ if(EIGEN3)
 	find_package(Eigen3 QUIET)
 	set(USE_EIGEN ${EIGEN3_FOUND})
 	if(EIGEN3_FOUND)
-		include_directories(${EIGEN3_INCLUDE_DIR})	
+		include_directories(${EIGEN3_INCLUDE_DIR})
+		if(MINGW)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
+		endif(MINGW)
 	else(EIGEN3_FOUND)
 		message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
 		"Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
@@ -963,7 +955,6 @@ elseif(CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
 	set(FLAGS ${CMAKE_CXX_FLAGS_MINSIZEREL})
 endif(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
 
-
 message(STATUS
 "Summary
 
@@ -999,9 +990,9 @@ set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
 module(PSLIB	 "pslib      ")
 if(WIN32 AND NOT CYGWIN)
-module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")
+  module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)
-module(X11	 "Xlib       ")
+  module(X11	 "Xlib       ")
 endif(WIN32 AND NOT CYGWIN)
 module(PNGLIB    "libpng     ")
 message("")
@@ -1010,11 +1001,15 @@ set(PLPLOT ON)
 set(READLINE ON)
 set(GSL ON)
 set(ZLIB ON)
-set(CURSES ON)
+if(NOT WIN32)
+  set(CURSES ON)
+endif(NOT WIN32)
 module(PLPLOT    "Plplot     ")
 module(OLDPLPLOT "Old Plplot ")
 module(READLINE  "Readline   ")
 module(GSL       "GSL        ")
 module(ZLIB      "Zlib       ")
-module(CURSES    "(N or PD)curses    ")
+if(NOT WIN32)
+  module(CURSES    "(N)curses    ")
+endif(NOT WIN32)
 message("")
