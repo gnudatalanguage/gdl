@@ -1199,41 +1199,65 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
     if( match_all_dot)
       Warning( "FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
 
-    // bool onlyDir = nParam > 1;
+    bool onlyDir = nParam > 1;
 
     FileListT fileList;
 
     int debug=0;
-    if( nParam > 1) {
-        if (debug) cout << ", onlyDir=T >> PatternSearch(nPath): " << nPath
-                            << " Pattern: " << Pattern << endl;
-        for( SizeT f=0; f < nPath; ++f)
-		 PatternSearch( fileList, (*pathSpec)[f], Pattern, accErr, quote,
-			   match_dot,
-                           tests, true);
-    } else {
-	bool onlyDir = false;
+    DLong count;
 #ifndef _WIN32
-	if( nPath == 0) {
-
-	    FileSearch( fileList, "",   environment, tilde, 
+    if( nPath == 0)
+	  FileSearch( fileList, "",
+		environment, tilde, 
                   accErr, mark, noSort, quote, onlyDir,
                         match_dot, forceAbsPath, fold_case,
                         tests);
-		  }
 	else
 	    for( SizeT f=0; f < nPath; ++f) 
 	      FileSearch( fileList, (*pathSpec)[f],  environment, tilde, 
                   accErr, mark, noSort, quote, onlyDir,
                           match_dot, forceAbsPath, fold_case,
                           tests);
-    if (debug) cout << ", onlyDir=F >> FileSearch(glob)(nPath): " << nPath
-                            << " Pattern: " << Pattern << endl;
+    count = fileList.size();
+    if( onlyDir)
+      { // recursive search for recurPattern
+	FileListT fileOut;
+	
+	for( SizeT f=0; f<count; ++f) 
+	  {
+		//    cout <<count<< Pattern <<"Looking in: " << fileList[f] << endl;
+	    PatternSearch( fileOut, fileList[f], Pattern, accErr, quote,
+			   match_dot,
+			   tests, true);
+	  }	
 
-#elif 1
+	DLong pCount = fileOut.size();
+	
+	if( countKW)
+	  e->SetKW( countIx, new DLongGDL( pCount));
 
-    if (debug) cout << ", onlyDir=F >> PatternSearch(nPath): " << nPath
-                            << " Pattern: " << Pattern << endl;
+	if( pCount == 0)
+	  return new DStringGDL("");
+
+	if( !noSort)
+	  sort( fileOut.begin(), fileOut.end());
+    
+	// fileOut -> res
+	DStringGDL* res = new DStringGDL( dimension( pCount), BaseGDL::NOZERO);
+	for( SizeT r=0; r<pCount; ++r)
+	  (*res)[r] = fileOut[ r];
+
+	return res;
+      }
+
+#else
+    if( nParam > 1) {
+        for( SizeT f=0; f < nPath; ++f)
+	    PatternSearch( fileList, (*pathSpec)[f], Pattern, accErr, quote,
+		   match_dot,
+                   tests, true);
+    } else {
+
 	DString DirSpec;
    if(nPath == 0)
         PatternSearch( fileList, "", Pattern, accErr, quote,
@@ -1256,11 +1280,10 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
                match_dot,
                tests, false);
 	}
+    }
 #endif
 
-    }
-
-    DLong count = fileList.size();
+    count = fileList.size();
 
     if( countKW)
       e->SetKW( countIx, new DLongGDL( count));
@@ -1410,13 +1433,21 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 	   tmp2[pos] = '\\';
 	   offset = pos + 1;
    }
-   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back();
+//   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back(); // the following 3 lines to be gnu++98 compatible
+   int size=tmp2.size();
+   if(tmp2[size--] == '\\') 
+	do  	tmp2.resize(size);
+	while((size != 0) && tmp2[size--] =='\\');
 
    _splitpath( tmp2.c_str(),drive,dir,fname,ext);
    dir[strlen(dir) - 1] = 0; // Remove seperator
    DString dname = DString(drive)+dir;
 
-   while (dname[dname.size() - 1] == '\\') dname.pop_back();
+//   while (dname[dname.size() - 1] == '\\') dname.pop_back(); // the following 3 lines to be gnu++98 compatible
+   size = dname.size();
+   if(dname[size--] == '\\')
+      do      dname.resize(size);
+      while((size != 0) && dname[size--] =='\\');
 #else
 	char buf[ PATH_MAX+1];
 	strncpy(buf, tmp.c_str(), PATH_MAX+1);
@@ -1686,40 +1717,6 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
-#if 0
-    for (SizeT f = 0; f < nPath; f++)
-    {
-// This is a random code block thrown in to start programming the routine
-// #elif 1 below begins the actually functional code.
-// I don't know why thbis #if/ifdef/endif/elif  sequennce works the way it was intended!
-	const char* actFile;
-        string tmp;
-        if (!noexpand_path) 
-        {
-          tmp = (*p0S)[f];
-          WordExp(tmp);
-          actFile = tmp.c_str();
-        } 
-        else actFile = (*p0S)[f].c_str();
-
-       struct stat64 statStruct, statlink;
-       int actStat = lstat64(actFile, &statStruct);
-
-//#ifdef _WIN32 commented out just because it looks disturbing.
-	DWORD dwattrib;
-       int addlink = 0;
-       fstat_win32(actFile, addlink, dwattrib);
-       statStruct.st_mode |= addlink;
-//#endif
-
-       bool isASymLink = S_ISLNK(statStruct.st_mode);
-       if (isASymLink ) actStat = stat64(actFile, &statlink);
-// Here begins the (quicky) real code. Looks like it will also double as 
-// a GDL call to realpath() for non-symlinked files, also.
-//
-#elif 1
-    {
-
     for( SizeT r=0; r<nPath ; ++r) {
 	    string tmp=(*p0S)[r];
 
@@ -1739,9 +1736,6 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 	  }
     }
     return res;
-
-	}
-#endif	
 }
 	
 	
