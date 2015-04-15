@@ -511,7 +511,7 @@ DStructGDL* NewResult() const
   BaseGDL* Convert2( DType destTy, 
 		     BaseGDL::Convert2Mode mode = BaseGDL::CONVERT);
   
-#if defined( TEMPLATE_FRIEND_OK_) || (__GNUC__ >= 4)
+#if (defined( TEMPLATE_FRIEND_OK_) || (__GNUC__ >= 4)) && (!__clang__)
   // make all other Convert2 functions friends
   template<class Sp2>  
   friend BaseGDL* Data_<Sp2>::Convert2( DType destTy, 
