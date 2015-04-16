@@ -664,11 +664,16 @@ namespace lib {
     return new DStringGDL( cat);
   }
 
+#ifdef _WIN32
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
+// ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
+// http://msdn.microsoft.com/en-us/library/506720ff.aspx
+#endif
 
   void PatternSearch( FileListT& fL, const DString& dirN, const DString& pat,
 		      bool accErr,
-		      bool quote,
-		      bool match_dot,
+		      bool quote,      bool match_dot, bool  forceAbsPath, bool fold_case,
+		bool onlyDir,
                       bool *tests,  bool recursive)
   {
       enum { testregular=3, testdir, testzero, testsymlink };
@@ -683,6 +688,9 @@ namespace lib {
 
     if( !quote)
       fnFlags |= FNM_NOESCAPE;
+
+    if(fold_case) fnFlags |= FNM_CASEFOLD;
+
 #endif
 
 
@@ -701,21 +709,20 @@ namespace lib {
 	   root = "/";
 // Include a provision for %HOME%:
 #ifdef _WIN32 
-     if( root[0] == '~')
-       {
+     if( root[0] == '~') { 
  	char* homeDir = getenv( "HOME");
-
  	if( homeDir != NULL)
  	    root = string( homeDir) + "/" + root.substr(1);
        }
 #endif
-//
+
       }
     DString prefix="";
     if( root== "") prefix=GetCWD()+"/";
     int debug=0;
-    if(debug) cout << " PatternSearch: DirN='"<<dirN<<"', root='"<<root<<"', :"<<pat<<endl;
-
+    if(debug) {
+	cout << " PatternSearch: DirN='"<<dirN<<"', root='"<<root<<"', :"<<pat<<" onlyDir?"<<onlyDir<<endl;
+	}
     FileListT recurDir;
     
     DIR* dir;
@@ -761,7 +768,9 @@ namespace lib {
 	    DString testDir = root + entryStr;
 
 	    int actStat = lstat64( testDir.c_str(), &statStruct);
+	    if(onlyDir && (S_ISDIR(statStruct.st_mode) == 0) ) continue;
 
+//#if 0 block that I don't know if it can't go ...
 	    if( root != "") // dirs for current ("") already included
 	      {
 		if( S_ISDIR(statStruct.st_mode) != 0) {		      
@@ -778,6 +787,9 @@ namespace lib {
 		}
 	      }
 	    // dirs are also returned if they match
+//#endif block that I don't know if it can't go ...
+
+
 
 #ifdef _WIN32
                 MultiByteToWideChar(CP_UTF8, 0,
@@ -816,11 +828,21 @@ namespace lib {
                     if(accessmode != 0)
                         if(access(entryStr.c_str(), accessmode) != 0 ) continue;
                 }
+		if(forceAbsPath && !onlyDir) {
+		    char *symlinkpath =const_cast<char*> (testDir.c_str());
+		    char actualpath [PATH_MAX+1];
+		    char *ptr;
+		    ptr = realpath(symlinkpath, actualpath);
+		    if( ptr != NULL ) fL.push_back( string(ptr));
+		    else cout << " Failed to convert "+testDir+" to actualpath!!"<< endl;
+		    }
+		else
               fL.push_back( root + entryStr);
+		if(onlyDir) cout << " onlyDir=T:"<<testDir;
             }
             }
       }
-
+    if(debug && onlyDir) cout << " ###\\n"<<endl;
     int c = closedir( dir);
     if( c == -1) {
       if( accErr)
@@ -831,16 +853,17 @@ namespace lib {
     // recursive search
     if( !recursive ) return;
     SizeT nRecur = recurDir.size();
-    if(debug) {
-		cout << " Pdebug mode, #recursive="<<nRecur<<", do at most 1"<<endl;
-    		if(nRecur > 1) nRecur=1;}
+    if(debug) if (nRecur > 0) {
+		cout << " Pdebug mode, #recursive="<<nRecur<<" see only first 2:"<<endl;
+    		}
     for( SizeT d=0; d<nRecur; ++d)
       {
-    if(debug) cout << " recursive search: do now "+recurDir[d]<<endl;
+    if(debug && (d<=2)) cout << " do now "+recurDir[d]<<endl;
 	PatternSearch( fL, recurDir[d], pat, accErr, quote, 
-		       match_dot,
-                        tests, true);
+		   match_dot,  forceAbsPath, fold_case,
+			onlyDir,     tests, true);
       }
+    if(debug && (nRecur > 0) ) cout <<"End PatternSearch recursion section"<< endl;
   }
 
 // Make s string case-insensitive for glob()
@@ -903,33 +926,33 @@ DString makeInsensitive(const DString &s)
     enum { testregular=3, testdir, testzero, testsymlink };
     bool dotest = false;
     for( SizeT i=0; i < NTEST_SEARCH; i++) dotest |= tests[i];
-    int flags = 0;
+    int globflags = 0;
     DString st;
 
     if( environment)
-      flags |= GLOB_BRACE;
+      globflags |= GLOB_BRACE;
     
     if( tilde)
-      flags |= GLOB_TILDE;
+      globflags |= GLOB_TILDE;
 
     if( accErr)
-      flags |= GLOB_ERR;
+      globflags |= GLOB_ERR;
     
     if( mark && !dir) // only mark directory if not in dir mode
-      flags |= GLOB_MARK;
+      globflags |= GLOB_MARK;
 
     if( noSort)
-      flags |= GLOB_NOSORT;
+      globflags |= GLOB_NOSORT;
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
     if( !quote) // n/a on OS X
-      flags |= GLOB_NOESCAPE;
+      globflags |= GLOB_NOESCAPE;
 
     if( dir) // simulate with lstat()
-      flags |= GLOB_ONLYDIR;
+      globflags |= GLOB_ONLYDIR;
 
     if( period) // n/a on OS X
-      flags |= GLOB_PERIOD;
+      globflags |= GLOB_PERIOD;
 #endif
     if( fold_case)
 	st=makeInsensitive(pathSpec);
@@ -940,8 +963,8 @@ DString makeInsensitive(const DString &s)
     int gRes;
     if (!forceAbsPath)
     {
-      if (st != "") gRes = glob(st.c_str(), flags, NULL, &p);
-      else gRes = glob("*", flags, NULL, &p);
+      if (st != "") gRes = glob(st.c_str(), globflags, NULL, &p);
+      else gRes = glob("*", globflags, NULL, &p);
     }
     else 
     {
@@ -951,7 +974,7 @@ DString makeInsensitive(const DString &s)
       if (st == ""){
 	pattern = GetCWD();
 	pattern.append("/*");
-	gRes = glob(pattern.c_str(), flags, NULL, &p);
+	gRes = glob(pattern.c_str(), globflags, NULL, &p);
       } else {
 	if (
 	    st.at(0) != '/' && 
@@ -965,11 +988,11 @@ DString makeInsensitive(const DString &s)
 	    
 	    if (debug) cout << "patern : " << pattern << endl;
 	    
-	    gRes = glob(pattern.c_str(), flags, NULL, &p);
+	    gRes = glob(pattern.c_str(), globflags, NULL, &p);
 	  }
 	else 
 	  {
-	    gRes = glob(st.c_str(), flags, NULL, &p);
+	    gRes = glob(st.c_str(), globflags, NULL, &p);
 	  }
       }
       if (debug) {
@@ -1048,11 +1071,6 @@ DString makeInsensitive(const DString &s)
   // revised by AC on June 28 
   // PRINT, FILE_expand_path([['','.'],['$PWD','src/']])
   // when the path is wrong, wrong output ...
-#ifdef _WIN32
-#define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
-// ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
-// http://msdn.microsoft.com/en-us/library/506720ff.aspx
-#endif
   BaseGDL* file_expand_path( EnvT* e)
   {
     // always 1
@@ -1114,6 +1132,9 @@ DString makeInsensitive(const DString &s)
 		IDL policy states that symlinks are not followed.
 		symlnk references should therefore be returned as found, without resolution, and
 		can be processed by the FILE_READLINK function.
+NOTE: Contrary to above documented intention, acutal IDL behavior is, that
+     when called with two arguments the Dir_specification argument could itself be a pattern-search;
+     hence the dance below where, for Nparam > 1, first duty is to search on the 1st parameter for directories.
 Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
   // not finished yet
 		*/
@@ -1218,17 +1239,44 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
                   accErr, mark, noSort, quote, onlyDir,
                           match_dot, forceAbsPath, fold_case,
                           tests);
+#else
+     if(nPath == 0)
+        PatternSearch( fileList, "", Pattern, accErr, quote,
+ 		   match_dot, forceAbsPath, fold_case,
+			onlyDir,   tests, false);
+      else
+
+        for( SizeT f=0; f < nPath; ++f) {
+	    DString DirSpec;
+	    DString dirsearch;
+             int dirsep=-1;
+            int ii=0;
+            DirSpec = (*pathSpec)[f];
+            int lenpath = DirSpec.length();
+            do
+	       if((DirSpec[ii] == '/') || (DirSpec[ii] == '\\')) dirsep=ii;
+               while( (DirSpec[ii++] != 0) && (ii < lenpath) );
+	    if(debug) if( f==0)
+		cout <<nPath<<"=#paths, 1st call to PatternSearch. onlyDir?"<<onlyDir<<DirSpec<<endl;
+            dirsearch = DirSpec.substr(dirsep+1);
+            DirSpec.resize(dirsep+1);
+	    if(debug) cout << " pathSpec[f]:"<<DirSpec<<"<dirspec pattern>"<<Pattern<<endl;
+            PatternSearch( fileList, DirSpec, dirsearch, accErr, quote,
+		   match_dot, forceAbsPath, fold_case,
+			onlyDir,   tests, false);
+	}
+#endif
+    onlyDir = false; // retire this variable here in place of ( nParam > 1)
     count = fileList.size();
-    if( onlyDir)
+    if( nParam > 1)
       { // recursive search for recurPattern
 	FileListT fileOut;
-	
 	for( SizeT f=0; f<count; ++f) 
 	  {
 		//    cout <<count<< Pattern <<"Looking in: " << fileList[f] << endl;
-	    PatternSearch( fileOut, fileList[f], Pattern, accErr, quote,
-			   match_dot,
-			   tests, true);
+	    PatternSearch( fileOut, fileList[f], Pattern, accErr,
+			 quote,   match_dot, forceAbsPath, fold_case,
+			onlyDir ,   tests, true);
 	  }	
 
 	DLong pCount = fileOut.size();
@@ -1249,41 +1297,6 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 
 	return res;
       }
-
-#else
-    if( nParam > 1) {
-        for( SizeT f=0; f < nPath; ++f)
-	    PatternSearch( fileList, (*pathSpec)[f], Pattern, accErr, quote,
-		   match_dot,
-                   tests, true);
-    } else {
-
-	DString DirSpec;
-   if(nPath == 0)
-        PatternSearch( fileList, "", Pattern, accErr, quote,
-         match_dot,
-         tests, false);
-    else
-
-        for( SizeT f=0; f < nPath; ++f) {
-            int dirsep=-1;
-            int ii=0;
-            DirSpec = (*pathSpec)[f];
-            int lenpath = DirSpec.length();
-            do
-	       if((DirSpec[ii] == '/') || (DirSpec[ii] == '\\')) dirsep=ii;
-               while( (DirSpec[ii++] != 0) && (ii < lenpath) );
-            Pattern = DirSpec.substr(dirsep+1,dirsep+1);
-            DirSpec.resize(dirsep+1);
-
-            PatternSearch( fileList, DirSpec, Pattern, accErr, quote,
-               match_dot,
-               tests, false);
-	}
-    }
-#endif
-
-    count = fileList.size();
 
     if( countKW)
       e->SetKW( countIx, new DLongGDL( count));
@@ -1418,8 +1431,9 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
     for (SizeT i = 0; i < p0S->N_Elements(); i++) {
       //tmp=strdup((*p0S)[i].c_str());
       const string& tmp = (*p0S)[i];
-
+// if 0/ if 1: preference.
 #ifdef _WIN32
+#	if 1
    char path_buffer[_MAX_PATH];
    char drive[_MAX_DRIVE];
    char dir[_MAX_DIR];
@@ -1433,7 +1447,7 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 	   tmp2[pos] = '\\';
 	   offset = pos + 1;
    }
-//   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back(); // the following 3 lines to be gnu++98 compatible
+//   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back();
    int size=tmp2.size();
    if(tmp2[size--] == '\\') 
 	do  	tmp2.resize(size);
@@ -1443,12 +1457,18 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
    dir[strlen(dir) - 1] = 0; // Remove seperator
    DString dname = DString(drive)+dir;
 
-//   while (dname[dname.size() - 1] == '\\') dname.pop_back(); // the following 3 lines to be gnu++98 compatible
+//   while (dname[dname.size() - 1] == '\\') dname.pop_back();
    size = dname.size();
    if(dname[size--] == '\\')
       do      dname.resize(size);
       while((size != 0) && dname[size--] =='\\');
-#else
+#	elif 0
+	char buf[ PATH_MAX+1];
+	strncpy(buf, tmp.c_str(), PATH_MAX+1);
+	string dname = dirname(buf);
+#   endif
+#endif
+#ifndef _WIN32
 	char buf[ PATH_MAX+1];
 	strncpy(buf, tmp.c_str(), PATH_MAX+1);
 	string dname = dirname(buf);
@@ -1717,6 +1737,40 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
+#if 0
+    for (SizeT f = 0; f < nPath; f++)
+    {
+// This is a random code block thrown in to start programming the routine
+// #elif 1 below begins the actually functional code.
+// I don't know why thbis #if/ifdef/endif/elif  sequennce works the way it was intended!
+	const char* actFile;
+        string tmp;
+        if (!noexpand_path) 
+        {
+          tmp = (*p0S)[f];
+          WordExp(tmp);
+          actFile = tmp.c_str();
+        } 
+        else actFile = (*p0S)[f].c_str();
+
+       struct stat64 statStruct, statlink;
+       int actStat = lstat64(actFile, &statStruct);
+
+//#ifdef _WIN32 commented out just because it looks disturbing.
+	DWORD dwattrib;
+       int addlink = 0;
+       fstat_win32(actFile, addlink, dwattrib);
+       statStruct.st_mode |= addlink;
+//#endif
+
+       bool isASymLink = S_ISLNK(statStruct.st_mode);
+       if (isASymLink ) actStat = stat64(actFile, &statlink);
+// Here begins the (quicky) real code. Looks like it will also double as 
+// a GDL call to realpath() for non-symlinked files, also.
+//
+#elif 1
+    {
+
     for( SizeT r=0; r<nPath ; ++r) {
 	    string tmp=(*p0S)[r];
 
@@ -1736,6 +1790,9 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 	  }
     }
     return res;
+
+	}
+#endif	
 }
 	
 	
