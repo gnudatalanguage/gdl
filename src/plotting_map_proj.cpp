@@ -166,6 +166,17 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
     e->Throw( "Projection initialization failed." );
   }
 
+//protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
+//this code one day and make our own certified version!
+#ifdef USE_LIBPROJ4_NEW
+    unsigned projectionTag = map->Desc()->TagIndex("PROJECTION");
+    DLong map_projection = (*static_cast<DLongGDL*> (map->GetTag(projectionTag, 0)))[0];
+    if (map_projection == 49 || map_projection == 12 ) {
+      e->Throw("The proj4 library version you use unfortunately defines no inverse for this projection!");
+      return NULL;
+    }
+#endif
+  
     XYTYPE idata;
     LPTYPE odata;
 
@@ -462,14 +473,6 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
     
     
     if (map_projection <1) return NULL;
-//protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
-//this code one day and make our own certified version!
-#ifdef USE_LIBPROJ4_NEW
-    if (map_projection == 49 || map_projection == 12 ) {
-      cerr<<"Sorry, the proj4 library version you use defines no inverse for this projection."<<endl;
-      return NULL;
-    }
-#endif
     
     char proj[64];
     char p0lon[64];
