@@ -120,8 +120,18 @@ namespace lib
 
         yVal=e->GetParAs< DDoubleGDL>(1);
         yEl=yVal->N_Elements();
-
-        if ( xEl < 3 || yEl < 3  || zEl < 3) e->Throw("Not enough valid and unique points specified.");
+        //Z has no effect if T3D is not active, either through the T3D kw or through the !P.T3D sysvar.
+        
+        if (doT3d) {
+          if ( xEl < 3 || yEl < 3  || zEl < 3) e->Throw("Not enough valid and unique points specified.");
+        } else {
+          if ( xEl < 3 || yEl < 3 ) e->Throw("Not enough valid and unique points specified.");
+          //z will be set at Zero unless Z=value is given
+          zEl=xEl;
+          zVal=new DDoubleGDL(dimension(zEl));
+          zval_guard.Reset(zVal); // delete upon exit
+          for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
+        }
 
         if ( !(xEl==yEl&&yEl==zEl) )
         {
