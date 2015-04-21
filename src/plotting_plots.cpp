@@ -46,7 +46,7 @@ namespace lib
     DDouble az, alt, ay, scale;
   private:
 
-    bool handle_args(EnvT* e) // {{{
+    bool handle_args(EnvT* e)
     {
       gdlGetPsym(e, psym); //PSYM
       if (psym==10) e->Throw("PSYM (plotting symbol) out of range"); //not allowed for PLOTS!
@@ -54,6 +54,7 @@ namespace lib
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e)); 
+
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
       // Then Z is useful only if (doT3d).
       static int zvIx = e->KeywordIx( "Z");
@@ -97,6 +98,7 @@ namespace lib
       {
         xVal=e->GetParAs< DDoubleGDL>(0);
         xEl=xVal->N_Elements();
+
         yVal=e->GetParAs< DDoubleGDL>(1);
         yEl=yVal->N_Elements();
 
@@ -132,7 +134,7 @@ namespace lib
       }
       else if ( nParam()==3 )
       {
-        real3d=true;
+        if (doT3d) real3d=true;
         zVal=e->GetParAs< DDoubleGDL>(2);
         zEl=zVal->N_Elements();
 
@@ -141,6 +143,7 @@ namespace lib
 
         yVal=e->GetParAs< DDoubleGDL>(1);
         yEl=yVal->N_Elements();
+        //Z has no effect if T3D is not active, either through the T3D kw or through the !P.T3D sysvar.
         
         SizeT maxEl;
         maxEl=(xEl>yEl)?xEl:yEl;
@@ -176,7 +179,7 @@ namespace lib
           }
         }
       }
-      if ( doT3d && !real3d) {
+      if ( doT3d && !real3d) { //test to throw before plot values changes 
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL)
         {
@@ -185,8 +188,6 @@ namespace lib
       }
       return false;
     }
-
-  private:
 
     void old_body(EnvT* e, GDLGStream* actStream)
     {
@@ -280,8 +281,6 @@ namespace lib
         for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=tempbox[i];
       }
 
-      actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
-      
       mapSet=false;
 #ifdef USE_LIBPROJ4
       get_mapset(mapSet);
@@ -293,6 +292,11 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
+      }
+#endif
+
+      actStream->OnePageSaveLayout(); // one page
+
         DDouble *sx, *sy;
         GetSFromPlotStructs( &sx, &sy );
 
@@ -301,10 +305,9 @@ namespace lib
 
         DDouble xStart, xEnd, yStart, yEnd;
         DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+
         actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
         actStream->wind( xStart, xEnd, yStart, yEnd );
-      }
-#endif
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
@@ -314,7 +317,6 @@ namespace lib
       }
 
       actStream->vpor(0, 1, 0, 1);
-      
       if ( coordinateSystem==DEVICE )
       {
         actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());
@@ -331,6 +333,7 @@ namespace lib
       {
         actStream->wind(wun, wdeux, wtrois, wquatre);
       }
+
     }
 
   private:
@@ -354,7 +357,7 @@ namespace lib
                                //if the x and y scaling is OK, using !P.T directly permits to use other projections
                                //than those used implicitly by plplot. See @showhaus example for *DL
         // case where we project 2D data on 3D: use plplot-like matrix.
-
+        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
             Data3d.x0=x0;
@@ -396,10 +399,10 @@ namespace lib
       gdlSetSymsize(e, actStream); //SYMSIZE
       gdlSetPenThickness(e, actStream); //THICK
 
-      if (real3d)
-      {
+      if (real3d) {
         //try first if the matrix is a plplot-compatible one
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+
         if (plplot3d == NULL) //use the original !P.T matrix (better than nothing)
         {
           Warning("Using Illegal 3D transformation, continuing. (FIXME)");
