@@ -550,7 +550,7 @@ void GDLWidget::Realize( bool map)
     theGDLApp->AddPendingEvent(idlevent);
     theGDLApp->OnRun();
     frame->SetTheApp(theGDLApp);
-    if (frame->IsMapped() != map)
+    if( frame->IsMapped() != map)
     {
       this->OnRealize( );
       if (map) frame->SendShowRequestEvent(); else frame->SendHideRequestEvent();
@@ -808,7 +808,8 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     GDLFrame *gdlFrame = new GDLFrame( this, widgetID, titleWxString , wxPoint(xOffset,yOffset));
 
 //it is the FRAME that manage all events. Here we dedicate particularly the tlb_* events:  
-   if (eventFlags & GDLWidget::EV_SIZE ) gdlFrame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
+//   if (eventFlags & GDLWidget::EV_SIZE ) gdlFrame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
+   if (eventFlags & GDLWidget::EV_SIZE ) gdlFrame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSizeWithTimer));
    if (eventFlags & GDLWidget::EV_MOVE ) gdlFrame->Connect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
    if (eventFlags & GDLWidget::EV_ICONIFY ) gdlFrame->Connect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
    if (eventFlags & GDLWidget::EV_KILL ) {
@@ -863,7 +864,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     assert( gdlParent != NULL);
     wxWindow* parentWindow=static_cast<wxWindow*>(gdlParent->GetWxWidget());
     wxPopupTransientWindow* transient = new wxPopupTransientWindow(parentWindow );
-
+    
     wxWidget = transient;
     topWidgetSizer = new wxBoxSizer( wxVERTICAL);
     transient->SetSizer( topWidgetSizer);
@@ -1068,7 +1069,7 @@ GDLWidgetTab::~GDLWidgetTab(){
       GDLWidget* child = GetWidget(children[children.size() - 1]);
       if (child) delete child;
       else children.pop_back(); // Maybe should not be reachable
-  }
+      }
 }
 
 
@@ -1168,7 +1169,7 @@ SizeT grid_ncols=(xSize<=0)?numCols:xSize;
   
   gdlGrid *grid = new gdlGrid( widgetPanel, widgetID);
 //important:set wxWidget here.
-  this->wxWidget = grid;
+  this->wxWidget = grid;  
 //Column Width Before creating
 bool hasColumnWidth=(columnWidth!=NULL);
 if (hasColumnWidth) { //one value set for all?
@@ -2549,7 +2550,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
         else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
       }
       else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
-      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
+      else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
     }
     if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
     //dragability inheritance.
@@ -2649,9 +2650,9 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DULong eventFlags_
 //      widgetSizer->Add(sz, 0, wxEXPAND | wxALL); 
       widgetSizer->Add(sz,0,wxEXPAND | wxALL);
     } else {
-  widgetSizer->Add(slider, 0, wxEXPAND | wxALL); 
+      widgetSizer->Add(slider, 0, wxEXPAND | wxALL); 
 //      widgetSizer->Add( slider,0,widgetAlignment());
-  if (frame) this->FrameWidget(wxEXPAND | wxALL);
+      if (frame) this->FrameWidget(wxEXPAND | wxALL);
     } 
   TIDY_WIDGET;
   UPDATE_WINDOW
@@ -2694,7 +2695,7 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
     buttonType = MBAR;
   }
   else
-  {
+  { 
     if ( gdlParent->IsBase( ) && isMenu )
     {      
      //A menu button in a base is a button starting a popup menu
@@ -2726,13 +2727,13 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
         }
         else //only an entry.
         {
-        wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
+          wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
         wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString );
         menu->Append( menuItem );
         this->wxWidget = NULL; // should be menuItem; but is not even a wxWindow!
         buttonType = ENTRY;
         }
-      }
+    }
     else 
     {
       if ( gdlParent->GetExclusiveMode() == BGNORMAL) 
@@ -2837,11 +2838,8 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   for ( SizeT i = 0; i < nlines; ++i ){
     int length=(*val)[i].length();
     maxlinelength=(length>maxlinelength)?length:maxlinelength;
-    choices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
+  choices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
   }
-//  if (ySize<2) {
-//    ySize=(wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize()).y*2; //one line as in *DL -- annoying with the scrollbar, should step by line!
-//  }
   
   wxListBox * list = new wxListBox( gdlParent->GetPanel( ), widgetID, wxPoint( xOffset, yOffset ),
   computeWidgetSize( ),
@@ -3103,7 +3101,7 @@ bool editable_ )
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   long style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|textAlignment();
   if ( nlines > 1 || scrolled ) style |= wxTE_MULTILINE;
-  
+
   wxTextCtrl * text;
   if ( !editable ) {
    style |= wxTE_READONLY; //no, because *DL provides READONLY and still give events.
@@ -3115,6 +3113,8 @@ bool editable_ )
   text->SetInsertionPoint(0);
   text->SetSelection(0,0);
   this->wxWidget = text;
+  text->Connect(widgetID,wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(GDLFrame::OnTextEnter));
+  text->Connect(widgetID,wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(GDLFrame::OnText));
   
   long widgetStyle=(wxEXPAND|wxALL)|widgetAlignment();
   widgetSizer->Add(text, 0,widgetStyle);
@@ -3442,8 +3442,8 @@ GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& tit
 
 GDLFrame::~GDLFrame()
 { 
-    if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); //really necessary, try stopping xdice.pro when rolling dices..
-    if (m_windowTimer->IsRunning()) m_windowTimer->Stop();
+    if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
+    if (m_windowTimer->IsRunning()) m_windowTimer->Stop(); //really necessary, try stopping xdice.pro when rolling dices..
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLFrame: " << this << std::endl;
 #endif  
@@ -3466,6 +3466,8 @@ GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 , pstreamP( NULL )
 , m_dc( NULL)
 , GDLWidgetDrawID(id)
+, newSize(size)
+, drawSize(size)
 {
 //  m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
   // initialization of stream is done in GDLWidgetDraw::OnRealize()
@@ -3551,6 +3553,37 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
     style = wxBORDER_DOUBLE;
   
   GDLDrawPanel* draw = new GDLDrawPanel( widgetPanel, widgetID, wxPoint(xOffset,yOffset), wxSize(xSize,ySize), style);
+ 
+  //these widget specific events are always set:
+   draw->Connect(widgetID, wxEVT_PAINT, wxPaintEventHandler(GDLDrawPanel::OnPaint));
+   draw->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLDrawPanel::OnSize));
+
+  //other set event handling according to flags
+//this one is for the moment defined globally:
+//   if (eventFlags & GDLWidget::EV_TRACKING) { 
+//    draw->Connect(widgetID, wxEVT_ENTER_WINDOW, wxMouseEventHandler(GDLFrame::OnEnterWindow));
+//    draw->Connect(widgetID, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(GDLFrame::OnLeaveWindow));
+//  }
+  if (eventFlags & GDLWidget::EV_MOTION) draw->Connect(widgetID, wxEVT_MOTION, wxMouseEventHandler(GDLDrawPanel::OnMouseMove));
+//  if ( eventFlags & GDLWidget::EV_DROP) nothing to do yet, fixme!;
+//  if ( eventFlags & GDLWidget::EV_EXPOSE) nothing to do yet, fixme!;
+//  if ( eventFlags &  GDLWidget::EV_VIEWPORT) idem;
+  if ( eventFlags &  GDLWidget::EV_WHEEL) draw->Connect(widgetID, wxEVT_MOUSEWHEEL, wxMouseEventHandler(GDLDrawPanel::OnMouseWheel)); 
+  if ( eventFlags &  GDLWidget::EV_BUTTON) {
+      draw->Connect(widgetID, wxEVT_LEFT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_LEFT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Connect(widgetID, wxEVT_LEFT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+  }
+  if (eventFlags &  GDLWidget::EV_KEYBOARD2 || eventFlags & GDLWidget::EV_KEYBOARD){
+       draw->Connect(widgetID, wxEVT_KEY_DOWN, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+       draw->Connect(widgetID, wxEVT_KEY_UP, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+  }
   
   draw->SetCursor(wxCURSOR_CROSS);
   if (drawToolTip) static_cast<wxWindow*>(draw)->SetToolTip( wxString((*drawToolTip)[0].c_str(),wxConvUTF8));
@@ -3566,7 +3599,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   this->vValue = new DLongGDL(pstreamIx);  
   this->SetSensitive(sensitive);
 //here UPDATE_WINDOW is useful.  
-  gdlParent->GetSizer()->Layout();
+//  gdlParent->GetSizer()->Layout();
   if(widgetPanel->IsShownOnScreen()) 
   {
     GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID());
@@ -3574,6 +3607,65 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
     static_cast<wxFrame*>(tlb->GetWxWidget())->Show();
   }
 }
+
+void GDLWidgetDraw::AddEventType( DULong evType){
+  GDLDrawPanel* draw=(GDLDrawPanel*)wxWidget;
+//this one is for the moment defined globally:
+//   if ( evType == GDLWidget::EV_TRACKING) { 
+//    draw->Connect(widgetID, wxEVT_ENTER_WINDOW, wxMouseEventHandler(GDLFrame::OnEnterWindow));
+//    draw->Connect(widgetID, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(GDLFrame::OnLeaveWindow));
+//  } else
+  if ( evType == GDLWidget::EV_MOTION) draw->Connect(widgetID, wxEVT_MOTION, wxMouseEventHandler(GDLDrawPanel::OnMouseMove));
+//else  if ( evType == GDLWidget::EV_DROP) nothing to do yet, fixme!;
+//else  if ( evType == GDLWidget::EV_EXPOSE) nothing to do yet, fixme!;
+//else  if ( evType == GDLWidget::EV_VIEWPORT) idem;
+  else if ( evType == GDLWidget::EV_WHEEL) draw->Connect(widgetID, wxEVT_MOUSEWHEEL, wxMouseEventHandler(GDLDrawPanel::OnMouseWheel)); 
+  else if ( evType == GDLWidget::EV_BUTTON) {
+      draw->Connect(widgetID, wxEVT_LEFT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_LEFT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Connect(widgetID, wxEVT_LEFT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_MIDDLE_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Connect(widgetID, wxEVT_RIGHT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+  }
+  else if (evType == GDLWidget::EV_KEYBOARD2 || evType == GDLWidget::EV_KEYBOARD){
+       draw->Connect(widgetID, wxEVT_KEY_DOWN, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+       draw->Connect(widgetID, wxEVT_KEY_UP, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+  } 
+}
+
+void GDLWidgetDraw::RemoveEventType( DULong evType){
+  GDLDrawPanel* draw=(GDLDrawPanel*)wxWidget;
+//this one is for the moment defined globally:
+//   if ( evType == GDLWidget::EV_TRACKING) { 
+//    draw->Disconnect(widgetID, wxEVT_ENTER_WINDOW, wxMouseEventHandler(GDLFrame::OnEnterWindow));
+//    draw->Disconnect(widgetID, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(GDLFrame::OnLeaveWindow));
+//  } else
+  if ( evType == GDLWidget::EV_MOTION) draw->Disconnect(widgetID, wxEVT_MOTION, wxMouseEventHandler(GDLDrawPanel::OnMouseMove));
+//else  if ( evType == GDLWidget::EV_DROP) nothing to do yet, fixme!;
+//else  if ( evType == GDLWidget::EV_EXPOSE) nothing to do yet, fixme!;
+//else  if ( evType == GDLWidget::EV_VIEWPORT) idem;
+  else if ( evType == GDLWidget::EV_WHEEL) draw->Disconnect(widgetID, wxEVT_MOUSEWHEEL, wxMouseEventHandler(GDLDrawPanel::OnMouseWheel)); 
+  else if ( evType == GDLWidget::EV_BUTTON) {
+      draw->Disconnect(widgetID, wxEVT_LEFT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_LEFT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Disconnect(widgetID, wxEVT_LEFT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_MIDDLE_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_MIDDLE_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_MIDDLE_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+      draw->Disconnect(widgetID, wxEVT_RIGHT_DOWN, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_RIGHT_DCLICK, wxMouseEventHandler(GDLDrawPanel::OnMouseDown)); 
+      draw->Disconnect(widgetID, wxEVT_RIGHT_UP, wxMouseEventHandler(GDLDrawPanel::OnMouseUp)); 
+  }
+  else if (evType == GDLWidget::EV_KEYBOARD2 || evType == GDLWidget::EV_KEYBOARD){
+       draw->Disconnect(widgetID, wxEVT_KEY_DOWN, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+       draw->Disconnect(widgetID, wxEVT_KEY_UP, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
+  } 
+}
+
 
 // GDLApp =================================================
 

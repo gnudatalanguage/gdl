@@ -60,76 +60,70 @@
 DEFINE_EVENT_TYPE(wxEVT_SHOW_REQUEST)
 DEFINE_EVENT_TYPE(wxEVT_HIDE_REQUEST)
 
+//general-purpose events still left to Frame:
 BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_COMMAND(wxID_ANY, wxEVT_SHOW_REQUEST, GDLFrame::OnShowRequest)
   EVT_COMMAND(wxID_ANY, wxEVT_HIDE_REQUEST, GDLFrame::OnHideRequest)
-//  EVT_IDLE( GDLFrame::OnIdle)
-  EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
-//  EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton) //handled directly via Connect()
-//  EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox) //handled directly via Connect()
-//  EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox) //handled directly via Connect()
-//  EVT_CHOICE(wxID_ANY, GDLFrame::OnDropList) //handled directly via Connect()
-//  EVT_LISTBOX_DCLICK(wxID_ANY, GDLFrame::OnListBoxDoubleClicked) //handled directly via Connect()
-//  EVT_LISTBOX(wxID_ANY, GDLFrame::OnListBox) //handled directly via Connect()
-  EVT_TEXT_ENTER(wxID_ANY, GDLFrame::OnTextEnter)
-  EVT_TEXT(wxID_ANY, GDLFrame::OnText)
-//  EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, GDLFrame::OnPageChanged) //handled directly via Connect()
-//   EVT_SLIDER(wxID_ANY,GDLFrame::OnSlider)
-//  EVT_SCROLL_THUMBRELEASE(GDLFrame::OnThumbRelease) //handled directly via Connect()
-//  EVT_SCROLL_THUMBTRACK(GDLFrame::OnThumbTrack) //handled directly via Connect()
-//Added: [TLB_]SIZE_EVENTS
-//  EVT_SIZE(GDLFrame::OnSize) //should actually restarts a timer...
   EVT_ENTER_WINDOW( GDLFrame::OnEnterWindow)
   EVT_LEAVE_WINDOW( GDLFrame::OnLeaveWindow)
+//impossible to replace with Connect() method?
   EVT_MENU(wxID_ANY, GDLFrame::OnMenu) 
   EVT_TIMER(GDLFrame::WINDOW_TIMER, GDLFrame::OnWidgetTimer) 
+  EVT_CONTEXT_MENU(GDLFrame::OnContextEvent) //CONTEXT
 //KBRD_FOCUS:
   EVT_SET_FOCUS(GDLFrame::OnKBRDFocusChange)
   EVT_KILL_FOCUS(GDLFrame::OnKBRDFocusChange)
-//  EVT_TIMER(GDLFrame::RESIZE_TIMER, GDLFrame::OnTimerResize) //... where size event is really done here. But does not work (refresh not OK)
+// frame specific events
+//  EVT_SIZE(wxFrame::OnSize) 
+  EVT_TIMER(GDLFrame::RESIZE_TIMER, GDLFrame::OnTimerResize) //... where size event is really done here. But does not work (refresh not OK)
 //  EVT_SIZE(GDLFrame::OnSizeWithTimer) //use a timer to pass only once the resize event
-//CONTEXT
-  EVT_CONTEXT_MENU(GDLFrame::OnContextEvent)
-//TLB_MOVE_EVENTS
-  EVT_MOVE(GDLFrame::OnMove)
-//please ADD KBRD_FOCUS
-//ICONIFY
-  EVT_ICONIZE(GDLFrame::OnIconize)
-//KILL_REQUEST
-//  EVT_CLOSE(GDLFrame::OnCloseFrame) //handled directly via Connect()
+//  EVT_MOVE(GDLFrame::OnMove) //TLB_MOVE_EVENTS
+//  EVT_ICONIZE(GDLFrame::OnIconize) //ICONIFY
+//  EVT_CLOSE(GDLFrame::OnCloseFrame) //KILL_REQUEST
+
+// widget-specific events
+//  EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
+//  EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
+//  EVT_CHECKBOX(wxID_ANY, GDLFrame::OnCheckBox)
+//  EVT_COMBOBOX(wxID_ANY, GDLFrame::OnComboBox)
+//  EVT_CHOICE(wxID_ANY, GDLFrame::OnDropList) //handled directly
+//  EVT_LISTBOX_DCLICK(wxID_ANY, GDLFrame::OnListBoxDoubleClicked)
+//  EVT_LISTBOX(wxID_ANY, GDLFrame::OnListBox)
+//  EVT_TEXT_ENTER(wxID_ANY, GDLFrame::OnTextEnter)
+//  EVT_TEXT(wxID_ANY, GDLFrame::OnText)
+//  EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, GDLFrame::OnPageChanged)
+//   EVT_SLIDER(wxID_ANY,GDLFrame::OnSlider)
+//  EVT_SCROLL_THUMBRELEASE(GDLFrame::OnThumbRelease)
+//  EVT_SCROLL_THUMBTRACK(GDLFrame::OnThumbTrack)
 END_EVENT_TABLE()
 
-
-BEGIN_EVENT_TABLE(GDLDrawPanel, wxPanel)
-  EVT_PAINT(GDLDrawPanel::OnPaint)
-  EVT_MOTION (GDLDrawPanel::OnMouseMove)
-  EVT_LEFT_DOWN (GDLDrawPanel::OnMouseDown)
-  EVT_LEFT_UP (GDLDrawPanel::OnMouseUp)
-  EVT_LEFT_DCLICK(GDLDrawPanel::OnMouseDown)
-  EVT_MIDDLE_DOWN(GDLDrawPanel::OnMouseDown)
-  EVT_MIDDLE_UP(GDLDrawPanel::OnMouseUp)
-  EVT_MIDDLE_DCLICK(GDLDrawPanel::OnMouseDown)
-  EVT_RIGHT_DOWN(GDLDrawPanel::OnMouseDown)
-  EVT_RIGHT_UP(GDLDrawPanel::OnMouseUp)
-  EVT_RIGHT_DCLICK(GDLDrawPanel::OnMouseDown)
+//BEGIN_EVENT_TABLE(GDLDrawPanel, wxPanel)
+//  EVT_PAINT(GDLDrawPanel::OnPaint)
+//  EVT_MOTION (GDLDrawPanel::OnMouseMove)
+//  EVT_LEFT_DOWN (GDLDrawPanel::OnMouseDown)
+//  EVT_LEFT_UP (GDLDrawPanel::OnMouseUp)
+//  EVT_LEFT_DCLICK(GDLDrawPanel::OnMouseDown)
+//  EVT_MIDDLE_DOWN(GDLDrawPanel::OnMouseDown)
+//  EVT_MIDDLE_UP(GDLDrawPanel::OnMouseUp)
+//  EVT_MIDDLE_DCLICK(GDLDrawPanel::OnMouseDown)
+//  EVT_RIGHT_DOWN(GDLDrawPanel::OnMouseDown)
+//  EVT_RIGHT_UP(GDLDrawPanel::OnMouseUp)
+//  EVT_RIGHT_DCLICK(GDLDrawPanel::OnMouseDown)
+//  
   //EVT_MOUSE_AUX1_DOWN
   //EVT_MOUSE_AUX1_UP
   //EVT_MOUSE_AUX1_DCLICK
   //EVT_MOUSE_AUX2_DOWN
   //EVT_MOUSE_AUX2_UP
   //EVT_MOUSE_AUX2_DCLICK
-  EVT_MOUSEWHEEL(GDLDrawPanel::OnMouseWheel)
-  EVT_KEY_DOWN(GDLDrawPanel::OnKey)
-  EVT_KEY_UP(GDLDrawPanel::OnKey)
-  EVT_CHAR(GDLDrawPanel::OnKey)
-//  EVT_ENTER_WINDOW( GDLDrawPanel::OnEnterWindow)
-//  EVT_LEAVE_WINDOW( GDLDrawPanel::OnLeaveWindow)
+
+//  EVT_MOUSEWHEEL(GDLDrawPanel::OnMouseWheel)
+//  EVT_KEY_DOWN(GDLDrawPanel::OnKey)
+//  EVT_KEY_UP(GDLDrawPanel::OnKey)
 //   EVT_SHOW(GDLWindow::OnShow)
 //   EVT_CLOSE(GDLWindow::OnClose)
-//  EVT_TIMER(GDLDrawPanel::RESIZE_TIMER, GDLDrawPanel::OnTimerResize) //... where size event is really done here. But does not work (refresh not OK)
-//  EVT_SIZE(GDLDrawPanel::OnSizeWithTimer)
-  EVT_SIZE(GDLDrawPanel::OnSize)
-END_EVENT_TABLE()
+//  EVT_SIZE(GDLDrawPanel::OnSize)
+//END_EVENT_TABLE()
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
@@ -747,33 +741,53 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 
 //Timer-filtered resizing are not clever enough for graphics. FIXME!
 // Besides, mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
-//void GDLFrame::OnTimerResize( wxTimerEvent& event)
-// {
-//   wxMouseState mouse=wxGetMouseState();
-//   if (mouse.LeftIsDown()) {
-//    m_resizeTimer->Start(100, wxTIMER_ONE_SHOT);
-//    return;
-//   }
-//#ifdef GDL_DEBUG_EVENTS
-//   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTimerResize: %d\n"),event.GetId());
-//#endif
-//  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
-//  DULong flags=0;
-//  if( owner ) flags=owner->GetEventFlags();
-//  if (flags & GDLWidget::EV_SIZE && !owner->IsUpdating() ) {
-//    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( owner->WidgetID());
-//  // create GDL event struct
-//    DStructGDL* widgbase = new DStructGDL( "WIDGET_BASE" );
-//    widgbase->InitTag( "ID", DLongGDL( owner->WidgetID() ) );
-//    widgbase->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-//    widgbase->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-//    widgbase->InitTag( "X", DLongGDL( newSize.x ) );
-//    widgbase->InitTag( "Y", DLongGDL( newSize.y ) );
-//    GDLWidget::PushEvent( baseWidgetID, widgbase);
-//   }
-// }
+void GDLFrame::OnTimerResize( wxTimerEvent& event)
+ {
+   wxMouseState mouse=wxGetMouseState();
+   if (mouse.LeftDown()) {
+    m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
+    return;
+   }
+#ifdef GDL_DEBUG_EVENTS
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTimerResize: %d\n"),event.GetId());
+#endif
+  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
+  DULong flags=0;
+  if( owner ) flags=owner->GetEventFlags();
+  if (flags & GDLWidget::EV_SIZE && !owner->IsUpdating() ) {
+    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( owner->WidgetID());
+  // create GDL event struct
+    DStructGDL* widgbase = new DStructGDL( "WIDGET_BASE" );
+    widgbase->InitTag( "ID", DLongGDL( owner->WidgetID() ) );
+    widgbase->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+    widgbase->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+    widgbase->InitTag( "X", DLongGDL( frameSize.x ) );
+    widgbase->InitTag( "Y", DLongGDL( frameSize.y ) );
+    GDLWidget::PushEvent( baseWidgetID, widgbase);
+   }
+ }
+ 
+//Timer-filtered resizing are not clever enough for graphcis. FIXME!
+ void GDLFrame::OnSizeWithTimer( wxSizeEvent& event)
+ {
+   if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
+#ifdef GDL_DEBUG_EVENTS
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSizeWithTimer: %d\n"),event.GetId());
+#endif
+  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
+  if (owner->GetParentID() != 0) {
+    event.Skip();
+    return; //ignore non-TLB size events.
+  }
+  int millisecs=50;
+  wxSize newSize=event.GetSize();
+  if (newSize==frameSize){event.Skip();  return;} //saves a looooot of unuseful refreshes...
+  frameSize=newSize;
+  m_resizeTimer->Start(millisecs, wxTIMER_ONE_SHOT);
+  event.Skip(); //important, pass to others!
+}
 
-//risk: override wxWidget's OnSize method?
+//must override wxWidget's OnSize method
  void GDLFrame::OnSize( wxSizeEvent& event)
  {
    if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
@@ -791,7 +805,7 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
   }
 
   wxSize newSize=event.GetSize();
-  if (newSize==frameSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
+  if (newSize==frameSize){event.Skip();  return;} //saves a looooot of unuseful refreshes...
   frameSize=newSize;
   DULong flags=0;
   if( owner ) flags=owner->GetEventFlags();
@@ -809,24 +823,6 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
    }
   event.Skip(); //important, pass to others!
  } 
- 
-//Timer-filtered resizing are not clever enough for graphcis. FIXME!
-// void GDLFrame::OnSizeWithTimer( wxSizeEvent& event)
-// {
-//   if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
-//#ifdef GDL_DEBUG_EVENTS
-//   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSizeWithTimer: %d\n"),event.GetId());
-//#endif
-//  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
-//  if (owner->GetParentID() != 0) {
-//    event.Skip();
-//    return; //ignore non-TLB size events.
-//  }
-//   int millisecs=100;
-//   newSize=(event.GetSize());
-//   m_resizeTimer->Start(millisecs, wxTIMER_ONE_SHOT);
-//  event.Skip(); //important, pass to others!
-//}
 
 void GDLFrame::OnThumbTrack( wxScrollEvent& event)
 {  
@@ -834,7 +830,7 @@ void GDLFrame::OnThumbTrack( wxScrollEvent& event)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnScroll: %d\n"),event.GetId());
 #endif
 
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());  
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
 //only slider for now:
@@ -930,7 +926,7 @@ void GDLFrame::OnLeaveWindow( wxMouseEvent &event ) {
 #endif
  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL) {  
-  if (!gdlOwner) {event.Skip(); return;}
+    if (!gdlOwner) {event.Skip(); return;}
     GDLWidget* owner=static_cast<GDLWidgetBase*>(gdlOwner);
     if( widget == NULL)
    {
@@ -980,7 +976,7 @@ void GDLFrame::OnContextEvent( wxContextMenuEvent& event) {
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnContextMenuEvent: %d\n"),event.GetId());
 #endif
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+ GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL) {  
     if (!gdlOwner) {event.Skip(); return;}
     GDLWidget* owner=static_cast<GDLWidgetBase*>(gdlOwner);
@@ -1103,8 +1099,8 @@ void GDLDrawPanel::OnClose(wxCloseEvent& event)
   event.Skip();
 }
 
-//Timer-filtered resizing are not clever enough. FIXME!
-// Besides mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
+////Timer-filtered resizing are not clever enough. FIXME!
+//// Besides mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
 // void GDLDrawPanel::OnTimerResize( wxTimerEvent& event)
 // {
 //#ifdef GDL_DEBUG_EVENTS
@@ -1126,10 +1122,10 @@ void GDLDrawPanel::OnClose(wxCloseEvent& event)
 //  }
 ////  event.Skip();
 // }
- 
+// 
 ////Timer-filtered resizing are not clever enough. FIXME!
 //void GDLDrawPanel::OnSizeWithTimer( wxSizeEvent & event) {
-//   int millisecs=100;
+//   int millisecs=30;
 //   newSize=(event.GetSize());
 //   m_resizeTimer->Start(millisecs, wxTIMER_ONE_SHOT);
 //  event.Skip(); //important, pass to others!
@@ -1140,14 +1136,14 @@ void GDLDrawPanel::OnSize( wxSizeEvent &event ) {
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnSize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
 #endif
-  wxSize newSize=event.GetSize();
+  newSize=event.GetSize();
   if (newSize==drawSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
   drawSize=newSize;
   if (pstreamP != NULL)
   {
    pstreamP->SetSize(drawSize.x,drawSize.y); 
   }
-  event.Skip();
+//  event.Skip();
 }
 
 void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {
@@ -1372,9 +1368,9 @@ void  gdlGrid::OnTableRangeSelection(wxGridRangeSelectEvent & event){
   //If we are not in disjoint mode, clear previous selection to mimick idl's when the user control-clicked.
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
 
-  DULong eventFlags=table->GetEventFlags();
+ DULong eventFlags=table->GetEventFlags();
   if (eventFlags & GDLWidget::EV_ALL  && !table->IsUpdating() ) {
-    if (event.Selecting()) 
+if (event.Selecting()) 
     {
       WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
       DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_SEL");

@@ -2709,25 +2709,75 @@ void widget_control( EnvT* e ) {
     GDLWidgetBase * w=widget->GetBaseWidget(widgetID);
     if (w!=NULL) w->ClearEvents();
   }
-
-  if (tlb_kill_request_events) {
-    if (e->KeywordSet(TLB_KILL_REQUEST_EVENTS)) widget->AddEventType(GDLWidget::EV_KILL);
-    else widget->RemoveEventType(GDLWidget::EV_KILL);
+  
+  if (tlb_kill_request_events && widget->IsBase() && widget->GetParentID() == 0 ){ //silently ignore other cases.
+    GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
+    if (e->KeywordSet(TLB_KILL_REQUEST_EVENTS)) {
+      if (!(widget->GetEventFlags() && GDLWidget::EV_KILL)) { //do it if not already done
+        frame->Disconnect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnUnhandledCloseFrame));
+        frame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseFrame));
+        widget->AddEventType(GDLWidget::EV_KILL);
+      }
+    }
+    else
+    {
+      if (widget->GetEventFlags() && GDLWidget::EV_KILL) { //do it if not already done
+        frame->Disconnect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseFrame));
+        frame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnUnhandledCloseFrame));
+        widget->RemoveEventType(GDLWidget::EV_KILL);
+      }
+    }
   }
 
-  if (tlb_move_events && widget->IsBase()) {
-    if (e->KeywordSet(TLB_MOVE_EVENTS)) widget->AddEventType(GDLWidget::EV_MOVE);
-    else widget->RemoveEventType(GDLWidget::EV_MOVE);
+  if (tlb_move_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
+    GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
+    if (e->KeywordSet(TLB_MOVE_EVENTS)){
+      if (!(widget->GetEventFlags() && GDLWidget::EV_MOVE)) { //do it if not already done
+        frame->Connect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
+        widget->AddEventType(GDLWidget::EV_MOVE);
+      }      
+    }
+    else
+    {
+      if (widget->GetEventFlags() && GDLWidget::EV_MOVE) { //do it if not already done
+        frame->Disconnect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
+        widget->RemoveEventType(GDLWidget::EV_KILL);
+      }      
+    }
   }
 
-  if (tlb_size_events && widget->IsBase()) {
-    if (e->KeywordSet(TLB_SIZE_EVENTS)) widget->AddEventType(GDLWidget::EV_SIZE);
-    else widget->RemoveEventType(GDLWidget::EV_SIZE);
+  if (tlb_size_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
+    GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
+    if (e->KeywordSet(TLB_SIZE_EVENTS)) {
+      if (!(widget->GetEventFlags() && GDLWidget::EV_SIZE)) { //do it if not already done
+        frame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
+        widget->AddEventType(GDLWidget::EV_SIZE);
+      }
+    }
+    else
+    {
+      if (widget->GetEventFlags() && GDLWidget::EV_SIZE) { //do it if not already done
+        frame->Disconnect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
+        widget->RemoveEventType(GDLWidget::EV_SIZE);
+      }
+    }
   }
 
-  if (tlb_iconify_events && widget->IsBase()) {
-    if (e->KeywordSet(TLB_ICONIFY_EVENTS)) widget->AddEventType(GDLWidget::EV_ICONIFY);
-    else widget->RemoveEventType(GDLWidget::EV_ICONIFY);
+  if (tlb_iconify_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
+    GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
+    if (e->KeywordSet(TLB_ICONIFY_EVENTS)){
+      if (!(widget->GetEventFlags() && GDLWidget::EV_ICONIFY)) { //do it if not already done
+        frame->Connect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
+        widget->AddEventType(GDLWidget::EV_ICONIFY);
+      }
+    }
+    else
+    { 
+      if (widget->GetEventFlags() && GDLWidget::EV_ICONIFY) { //do it if not already done
+        frame->Disconnect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
+        widget->RemoveEventType(GDLWidget::EV_ICONIFY);
+      }
+    }
   }
 
   if ( kbrdfocusevents && ( widget->IsBase() || widget->IsTable() || widget->IsText() ) ) { //globally handled, no need to be more specific
@@ -2745,35 +2795,42 @@ void widget_control( EnvT* e ) {
     else widget->RemoveEventType(GDLWidget::EV_DROP);
   }
   if (draw_motion_events && widget->IsDraw()) {
-    if (e->KeywordSet(DRAW_MOTION_EVENTS)) widget->AddEventType(GDLWidget::EV_MOTION);
-    else widget->RemoveEventType(GDLWidget::EV_MOTION);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(DRAW_MOTION_EVENTS)) draw->AddEventType(GDLWidget::EV_MOTION);
+    else draw->RemoveEventType(GDLWidget::EV_MOTION);
   }
   if (draw_expose_events && widget->IsDraw()) {
-    if (e->KeywordSet(DRAW_EXPOSE_EVENTS)) widget->AddEventType(GDLWidget::EV_EXPOSE);
-    else widget->RemoveEventType(GDLWidget::EV_EXPOSE);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(DRAW_EXPOSE_EVENTS)) draw->AddEventType(GDLWidget::EV_EXPOSE);
+    else draw->RemoveEventType(GDLWidget::EV_EXPOSE);
   }
   if (tracking_events) {
-    if (e->KeywordSet(TRACKING_EVENTS))  widget->AddEventType(GDLWidget::EV_TRACKING);
-    else widget->RemoveEventType(GDLWidget::EV_TRACKING);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(TRACKING_EVENTS))  draw->AddEventType(GDLWidget::EV_TRACKING);
+    else draw->RemoveEventType(GDLWidget::EV_TRACKING);
   }
    if (draw_viewport_events && widget->IsDraw())  {
-    if (e->KeywordSet(DRAW_VIEWPORT_EVENTS))  widget->AddEventType(GDLWidget::EV_VIEWPORT);
-    else widget->RemoveEventType(GDLWidget::EV_VIEWPORT);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(DRAW_VIEWPORT_EVENTS))  draw->AddEventType(GDLWidget::EV_VIEWPORT);
+    else draw->RemoveEventType(GDLWidget::EV_VIEWPORT);
   }
   if (draw_wheel_events && widget->IsDraw())  {
-    if (e->KeywordSet(DRAW_WHEEL_EVENTS))   widget->AddEventType(GDLWidget::EV_WHEEL);
-    else widget->RemoveEventType(GDLWidget::EV_WHEEL);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(DRAW_WHEEL_EVENTS))  draw->AddEventType(GDLWidget::EV_WHEEL);
+    else draw->RemoveEventType(GDLWidget::EV_WHEEL);
   }
   if (draw_button_events && widget->IsDraw())  {
-    if (e->KeywordSet(DRAW_BUTTON_EVENTS))    widget->AddEventType(GDLWidget::EV_BUTTON);
-    else widget->RemoveEventType(GDLWidget::EV_BUTTON);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    if (e->KeywordSet(DRAW_BUTTON_EVENTS))   draw->AddEventType(GDLWidget::EV_BUTTON);
+    else draw->RemoveEventType(GDLWidget::EV_BUTTON);
   }
   if (draw_keyboard_events && widget->IsDraw()) {
-    widget->RemoveEventType(GDLWidget::EV_KEYBOARD2);
-    widget->RemoveEventType(GDLWidget::EV_KEYBOARD);
+    GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
+    draw->RemoveEventType(GDLWidget::EV_KEYBOARD2);
+    draw->RemoveEventType(GDLWidget::EV_KEYBOARD);
     DLong val= (*e->GetKWAs<DLongGDL>(DRAW_KEYBOARD_EVENTS))[0];
-    if (val==2) { widget->SetFocus();  widget->AddEventType(GDLWidget::EV_KEYBOARD2);}
-    else if (val==1)  { widget->SetFocus(); widget->AddEventType(GDLWidget::EV_KEYBOARD);}
+    if (val==2) { widget->SetFocus();  draw->AddEventType(GDLWidget::EV_KEYBOARD2);}
+    else if (val==1)  { widget->SetFocus(); draw->AddEventType(GDLWidget::EV_KEYBOARD);}
   }
   
   if (all_table_events && widget->IsTable()) {

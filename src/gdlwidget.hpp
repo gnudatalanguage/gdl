@@ -1349,8 +1349,8 @@ public:
   void OnHideRequest( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
   void OnMenu( wxCommandEvent& event);
-//  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
-//  void OnTimerResize(wxTimerEvent& event);
+  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
+  void OnTimerResize(wxTimerEvent& event);
   void OnContextEvent( wxContextMenuEvent& event);
   void OnTracking( wxFocusEvent& event);
   void OnWidgetTimer( wxTimerEvent & event);
@@ -1373,7 +1373,7 @@ class GDLDrawPanel : public wxPanel
 
   wxDC*  	m_dc;
   wxWindowID GDLWidgetDrawID;
-//  wxSize   newSize;
+  wxSize   newSize;
 //  wxTimer * m_resizeTimer;
   
 public:
@@ -1436,9 +1436,9 @@ public:
   void OnKey( wxKeyEvent& event);
   void OnSize(wxSizeEvent &event);
 //  void OnSizeWithTimer(wxSizeEvent& event); //not yet ready
-//  void OnTimerResize( wxTimerEvent& event);  DECLARE_EVENT_TABLE()
-private:
-  DECLARE_EVENT_TABLE()
+//  void OnTimerResize( wxTimerEvent& event);
+// private:
+//  DECLARE_EVENT_TABLE()
 };
 
 #endif
