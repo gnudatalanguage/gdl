@@ -24,6 +24,10 @@
 #endif
 // #undef cerr if you want to try it.
 
+#ifdef WIN32
+#  define WIN32_LEAN_AND_MEAN 1
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
