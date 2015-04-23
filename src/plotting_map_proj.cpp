@@ -23,6 +23,7 @@ namespace lib {
   using namespace std;
 
   static bool isRot;
+  static bool noInv;
   static DDouble sRot,cRot;
 
 BaseGDL* map_proj_forward_fun( EnvT* e ) {
@@ -58,12 +59,12 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 
   // keywords "POLYGONS", "POLYLINES" and "FILL"
   static int gonsIx = e->KeywordIx( "POLYGONS" );
-  bool doGons = e->KeywordSet( gonsIx );
+  bool doGons = e->KeywordPresent( gonsIx );
   static int linesIx = e->KeywordIx( "POLYLINES" );
-  bool doLines = e->KeywordSet( linesIx );
+  bool doLines = e->KeywordPresent( linesIx );
   static int fillIx = e->KeywordIx( "FILL" );
   bool doFill = e->KeywordSet( fillIx );
-
+  
   //keyword CONNECTIVITY
   static int connIx = e->KeywordIx( "CONNECTIVITY" );
   bool doConn = e->KeywordPresent( connIx );
@@ -168,14 +169,7 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 
 //protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
 //this code one day and make our own certified version!
-#ifdef USE_LIBPROJ4_NEW
-    unsigned projectionTag = map->Desc()->TagIndex("PROJECTION");
-    DLong map_projection = (*static_cast<DLongGDL*> (map->GetTag(projectionTag, 0)))[0];
-    if (map_projection == 49 || map_projection == 12 ) {
-      e->Throw("The proj4 library version you use unfortunately defines no inverse for this projection!");
-      return NULL;
-    }
-#endif
+    if (noInv )  e->Throw("The proj4 library version you use unfortunately defines no inverse for this projection!");
   
     XYTYPE idata;
     LPTYPE odata;
@@ -242,7 +236,7 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 #ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+#pragma omp for 
 #endif
         for (OMPInt i = 0; i < nEl; ++i) {
         idata.u = (*x)[i];
@@ -473,7 +467,13 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
     
     
     if (map_projection <1) return NULL;
-    
+
+//protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
+//this code one day and make our own certified version!
+    noInv=FALSE;
+    if (map_projection == 12 || map_projection == 13 || map_projection == 47 || map_projection == 49) {
+      noInv=TRUE;
+    }
     char proj[64];
     char p0lon[64];
     char p0lat[64];
@@ -600,6 +600,7 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
       
       //only classical projections here [1..19]
       if (trans){ //use rotation variant, a killer with some projections
+//        if (map_p0lon==180.0) map_p0lon=179.999992;
         if ( map_p0lat > 89.999 ) map_p0lat = 89.999; //take some precautions as PROJ.4 is not proetected!!! 
         if ( map_p0lat < -89.999 ) map_p0lat = -89.999;
         sprintf(ob_lon, "o_lon_p=%lf", proj_p0lon);
@@ -709,6 +710,8 @@ PROJDATA protect_proj_fwd( PROJDATA idata, PROJTYPE proj ) {
 }
 
 PROJDATA protect_proj_inv( PROJDATA idata, PROJTYPE proj ) {
+  if (noInv )  return badProj ;
+//  throw GDLException("The proj4 library version you use unfortunately defines no inverse for this projection!");
   LPTYPE odata;
   DDouble u,v;
   if ( finite( (idata.u)*(idata.v) ) ) {
