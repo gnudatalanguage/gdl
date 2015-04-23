@@ -771,9 +771,6 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
  void GDLFrame::OnSizeWithTimer( wxSizeEvent& event)
  {
    if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
-#ifdef GDL_DEBUG_EVENTS
-   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSizeWithTimer: %d\n"),event.GetId());
-#endif
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   if (owner->GetParentID() != 0) {
     event.Skip();
@@ -782,6 +779,9 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
   int millisecs=50;
   wxSize newSize=event.GetSize();
   if (newSize==frameSize){event.Skip();  return;} //saves a looooot of unuseful refreshes...
+#ifdef GDL_DEBUG_EVENTS
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSizeWithTimer: %d\n"),event.GetId());
+#endif
   frameSize=newSize;
   m_resizeTimer->Start(millisecs, wxTIMER_ONE_SHOT);
   event.Skip(); //important, pass to others!
@@ -791,9 +791,7 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
  void GDLFrame::OnSize( wxSizeEvent& event)
  {
    if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
- #ifdef GDL_DEBUG_EVENTS
-   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSize: %d\n"),event.GetId());
- #endif
+
   // current bug:
   // onsize should not be called 1) when TLB is resized with widget_control
   // and 2) only at the end of a mouse resizing (wxSizeEvent is sent multiple times
@@ -803,9 +801,11 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
     event.Skip();
     return; //ignore non-TLB size events.
   }
-
   wxSize newSize=event.GetSize();
   if (newSize==frameSize){event.Skip();  return;} //saves a looooot of unuseful refreshes...
+ #ifdef GDL_DEBUG_EVENTS
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnSize: %d\n"),event.GetId());
+ #endif
   frameSize=newSize;
   DULong flags=0;
   if( owner ) flags=owner->GetEventFlags();
@@ -1133,17 +1133,17 @@ void GDLDrawPanel::OnClose(wxCloseEvent& event)
 
 //we would not want to override wxWidget's OnSize method ?
 void GDLDrawPanel::OnSize( wxSizeEvent &event ) {
+  wxSize newSize=event.GetSize();
+  if (newSize==drawSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
 #ifdef GDL_DEBUG_EVENTS
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnSize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
 #endif
-  newSize=event.GetSize();
-  if (newSize==drawSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
   drawSize=newSize;
   if (pstreamP != NULL)
   {
    pstreamP->SetSize(drawSize.x,drawSize.y); 
   }
-//  event.Skip();
+  event.Skip();
 }
 
 void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {

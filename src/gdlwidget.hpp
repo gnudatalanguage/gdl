@@ -1373,7 +1373,6 @@ class GDLDrawPanel : public wxPanel
 
   wxDC*  	m_dc;
   wxWindowID GDLWidgetDrawID;
-  wxSize   newSize;
 //  wxTimer * m_resizeTimer;
   
 public:
