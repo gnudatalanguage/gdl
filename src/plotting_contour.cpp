@@ -283,15 +283,15 @@ namespace lib
       // had priority on [xy]log ! (no Ztype)
       
       if (e->KeywordPresent( "XTYPE" )) {
-	xLog=e->KeywordSet ( "XTYPE" );
+        xLog=e->KeywordSet ( "XTYPE" );
       } else {
-	xLog=e->KeywordSet ( "XLOG" );
+        xLog=e->KeywordSet ( "XLOG" );
       }
 
       if (e->KeywordPresent( "YTYPE" )) {
-	yLog=e->KeywordSet ( "YTYPE" );
+        yLog=e->KeywordSet ( "YTYPE" );
       } else {
-	yLog=e->KeywordSet ( "YLOG" );
+        yLog=e->KeywordSet ( "YLOG" );
       }
 
       if (xLog || yLog) isLog=true; else isLog=false;
@@ -355,19 +355,19 @@ namespace lib
 
         if (!doT3d) {
           restorelayout=true;
-      actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
-      
-      DDouble *sx, *sy;
-      GetSFromPlotStructs( &sx, &sy );
+          actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
 
-      DFloat *wx, *wy;
-      GetWFromPlotStructs( &wx, &wy );
+          DDouble *sx, *sy;
+          GetSFromPlotStructs( &sx, &sy );
 
-      DDouble xStart, xEnd, yStart, yEnd;
-      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
+          DFloat *wx, *wy;
+          GetWFromPlotStructs( &wx, &wy );
 
-      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-      actStream->wind( xStart, xEnd, yStart, yEnd );
+          DDouble pxStart, pxEnd, pyStart, pyEnd;
+          DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+
+          actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+          actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
         }
       }
 

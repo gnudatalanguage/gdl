@@ -1318,9 +1318,6 @@ namespace lib
 
     get_mapset(mapSet);
 
-    DDouble xStart, xEnd;
-    gdlGetCurrentAxisRange("X", xStart, xEnd);
-
     if ( mapSet )
     {
       ref=map_init();
@@ -1903,19 +1900,35 @@ namespace lib
           End=(*uvbox)[3];
         }
       } else {
-      static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
-      Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
-      End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
+        static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
+        Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
+        End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
 
-      static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-      if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
-      {
-        Start=pow(10., Start);
-        End=pow(10., End);
-        if ( debug ) cout<<"Get log :"<<Start<<" "<<End<<endl;
+        static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
+        if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
+        {
+          Start=pow(10., Start);
+          End=pow(10., End);
+          if ( debug ) cout<<"Get log :"<<Start<<" "<<End<<endl;
+        }
       }
     }
   }
+
+  void gdlGetCurrentAxisWindow(string axis, DDouble &wStart, DDouble &wEnd)
+  {
+    DStructGDL* Struct=NULL;
+    if ( axis=="X" ) Struct=SysVar::X();
+    if ( axis=="Y" ) Struct=SysVar::Y();
+    if ( axis=="Z" ) Struct=SysVar::Z();
+    wStart=0;
+    wEnd=0;
+    if ( Struct!=NULL )
+    {
+      static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
+      wStart=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0];
+      wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
+    }
   }
 
   //Stores [XYZ].WINDOW, .REGION and .S

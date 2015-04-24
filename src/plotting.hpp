@@ -351,6 +351,7 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
   void gdlGetAxisType(string axis, bool &log);
   //get the !axis.crange vector
   void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End, bool checkMapset=TRUE);
+  void gdlGetCurrentAxisWindow(string axis, DDouble &wStart, DDouble &wEnd);
   void gdlGetDesiredAxisMargin(EnvT *e, string axis,DFloat &start, DFloat &end);
   void gdlGetDesiredAxisCharsize(EnvT* e, string axis, DFloat &charsize);
   void gdlGetDesiredAxisStyle(EnvT *e, string axis,DLong &style);

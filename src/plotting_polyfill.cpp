@@ -261,22 +261,21 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
+
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble pxStart, pxEnd, pyStart, pyEnd;
+        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
       }
 #endif
 
       actStream->OnePageSaveLayout(); // one page
-
-      DDouble *sx, *sy;
-      GetSFromPlotStructs( &sx, &sy );
-
-      DFloat *wx, *wy;
-      GetWFromPlotStructs( &wx, &wy );
-
-      DDouble xStart, xEnd, yStart, yEnd;
-      DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
-
-      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-      actStream->wind( xStart, xEnd, yStart, yEnd );
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with POLYFILL, we can plot *outside* the box(e)s in DATA coordinates.

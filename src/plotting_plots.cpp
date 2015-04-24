@@ -216,20 +216,21 @@ namespace lib
 
       if ((yStart == yEnd) || (xStart == xEnd) || (zStart == zEnd))
       {
-        if (zStart != 0.0 && zStart == zEnd)
+        if (zStart != 0.0 && zStart == zEnd) {
           Message("PLOTS: !Z.CRANGE ERROR, setting to [0,1]");
           zStart = 0;
           zEnd = 1;
-
-        if (yStart != 0.0 && yStart == yEnd)
+        }
+        if (yStart != 0.0 && yStart == yEnd){
           Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
         yStart = 0;
         yEnd = 1;
-
-        if (xStart != 0.0 && xStart == xEnd)
+        }
+        if (xStart != 0.0 && xStart == xEnd){
           Message("PLOTS: !X.CRANGE ERROR, setting to [0,1]");
         xStart = 0;
         xEnd = 1;
+        }
       }
 
       restoreClipBox=false;
@@ -292,22 +293,20 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
-      }
-#endif
-
-      actStream->OnePageSaveLayout(); // one page
-
         DDouble *sx, *sy;
         GetSFromPlotStructs( &sx, &sy );
 
         DFloat *wx, *wy;
         GetWFromPlotStructs( &wx, &wy );
 
-        DDouble xStart, xEnd, yStart, yEnd;
-        DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
-
+        DDouble pxStart, pxEnd, pyStart, pyEnd;
+        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
         actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-        actStream->wind( xStart, xEnd, yStart, yEnd );
+        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+      }
+#endif
+
+      actStream->OnePageSaveLayout(); // one page
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
@@ -347,17 +346,19 @@ namespace lib
       {
         color=e->GetKWAs<DLongGDL>( colorIx ); doColor=true;
       }
-      static DDouble x0,y0,xs,ys; //conversion to normalized coords
-      x0=(xLog)?-log10(xStart):-xStart;
-      y0=(yLog)?-log10(yStart):-yStart;
-      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
 
       if ( doT3d && !real3d) { //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
                                //if the x and y scaling is OK, using !P.T directly permits to use other projections
                                //than those used implicitly by plplot. See @showhaus example for *DL
         // case where we project 2D data on 3D: use plplot-like matrix.
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+
+        static DDouble x0,y0,xs,ys; //conversion to normalized coords
+        x0=(xLog)?-log10(xStart):-xStart;
+        y0=(yLog)?-log10(yStart):-yStart;
+        xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+        ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
             Data3d.x0=x0;

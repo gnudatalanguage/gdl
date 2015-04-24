@@ -84,7 +84,7 @@ namespace lib {
     xLog=xAxisWasLog;
     yLog=yAxisWasLog; //by default logness is similar until another option is set
     zLog=zAxisWasLog;
-
+    
     enum
     {
       DATA=0,
@@ -96,30 +96,43 @@ namespace lib {
     if ( e->KeywordSet("DEVICE") ) coordinateSystem=DEVICE;
     if ( e->KeywordSet("NORMAL") ) coordinateSystem=NORMAL;
 
-    // x and y range, old and new
-    DDouble oxStart, oxEnd;
-    DDouble oyStart, oyEnd;
-    DDouble xStart, xEnd;
-    DDouble yStart, yEnd;
     // get viewport coordinates in normalised units
     PLFLT ovpXL, ovpXR, ovpYB, ovpYT;
-    actStream->gvpd(ovpXL, ovpXR, ovpYB, ovpYT);
-    //undefined previous viewport, seems IDL returns without complain:
-    if ((ovpXL==0.0 && ovpXR==0.0) || (ovpYB==0.0 && ovpYT==0.0)) return;
+    gdlGetCurrentAxisWindow("X", ovpXL, ovpXR);
+    gdlGetCurrentAxisWindow("Y", ovpYB, ovpYT);
+    //undefined or null previous viewport, seems IDL returns without complain:
+    if ((ovpXL==ovpXR) || (ovpYB==ovpYT)) return;
+
+
+    // old x and y range
+    DDouble oxStart, oxEnd;
+    DDouble oyStart, oyEnd;
+
+    // get ![XY].CRANGE
+    gdlGetCurrentAxisRange("X", oxStart, oxEnd, FALSE); //ignore projection limits, convert to linear values if necessary.
+    gdlGetCurrentAxisRange("Y", oyStart, oyEnd, FALSE);
+
+    if ((oyStart == oyEnd) || (oxStart == oxEnd))
+    {
+      if (oyStart != 0.0 && oyStart == oyEnd){
+        oyStart = 0;
+        oyEnd = 1;
+      }
+      if (oxStart != 0.0 && oxStart == oxEnd){
+        oxStart = 0;
+        oxEnd = 1;
+      }
+    }
+
     PLFLT ovpSizeX, ovpSizeY;
     ovpSizeX=ovpXR-ovpXL;
     ovpSizeY=ovpYT-ovpYB;
-    //get wiewport window in world coordinates
-    PLFLT xmin, xmax, ymin, ymax;
-    actStream->gvpw(xmin, xmax, ymin, ymax);
-    xStart=oxStart=xmin;
-    xEnd=oxEnd=xmax;
-    yStart=oyStart=ymin;
-    yEnd=oyEnd=ymax;
-    //convert these values to real values if box was log
-    if (xAxisWasLog) {xStart=pow(10,xStart);xEnd=pow(10,xEnd);}
-    if (yAxisWasLog) {yStart=pow(10,yStart);yEnd=pow(10,yEnd);}
-
+    
+    // new x and y range, real values (not log)
+    DDouble xStart=oxStart;
+    DDouble xEnd=oxEnd;
+    DDouble yStart=oyStart;
+    DDouble yEnd=oyEnd;
 
     // handle Log options passing via Keywords
     static int xTypeIx = e->KeywordIx("XTYPE");
@@ -127,9 +140,6 @@ namespace lib {
     static int xLogIx = e->KeywordIx("XLOG");
     static int yLogIx = e->KeywordIx("YLOG");
 
-    // if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
-    // if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
-    
     if (e->KeywordPresent(xTypeIx )) {
       xLog= ( xLog || e->KeywordSet (xTypeIx ));
     } else {
@@ -142,17 +152,39 @@ namespace lib {
       yLog= ( yLog ||e->KeywordSet (yLogIx));
     }
 
-    //YNOZERO corrects yStart
-    if ( e->KeywordSet( "YNOZERO") && yStart >0 && !yLog ) yStart=0.0;
-	bool setdummy;
-    setdummy=gdlGetDesiredAxisRange( e, "X", xStart, xEnd);
-	setdummy=gdlGetDesiredAxisRange( e, "Y", yStart, yEnd);
-    if (xStart == xEnd && yStart == yEnd) {
-      e->Throw("Invalid plotting ranges.  Set up a plot window first.");
+    //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
+    DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
+    bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
+    bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
+    if (sety)
+    {
+      yStart=yAxisStart;
+      yEnd=yAxisEnd;
     }
+    if (setx)
+    {
+      xStart=xAxisStart;
+      xEnd=xAxisEnd;
+    }
+    //handle Nozero option after all that!
+    if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
+
     gdlHandleUnwantedAxisValue(xStart, xEnd, xLog);
     gdlHandleUnwantedAxisValue(yStart, yEnd, yLog);
 
+    // [XY]STYLE
+    DLong xStyle=0, yStyle=0;
+    gdlGetDesiredAxisStyle(e, "X", xStyle);
+    gdlGetDesiredAxisStyle(e, "Y", yStyle);
+
+     //xStyle and yStyle apply on range values
+    if ((xStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(xStart, xEnd, xLog);
+    }
+    if ((yStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(yStart, yEnd, yLog);
+    }
+    
     DDouble yVal, xVal;
     //in absence of arguments we will have:
     yVal=(standardNumPos)?oyStart:oyEnd;
@@ -186,19 +218,52 @@ namespace lib {
       vpX=xVal;
       vpY=yVal;
     }
-    else
+    else //DATA
     {
+
+#ifdef USE_LIBPROJ4
+      // Map Stuff (xtype = 3)
+      LPTYPE idata;
+      XYTYPE odata;
+      bool mapSet=false;
+      get_mapset(mapSet);
+      mapSet=(mapSet && coordinateSystem==DATA);
+      if ( mapSet )
+      {
+        ref=map_init();
+        if ( ref==NULL )
+        {
+          e->Throw("Projection initialization failed.");
+        }
+        idata.u=xVal * DEG_TO_RAD;
+        idata.v=yVal * DEG_TO_RAD;
+        odata=PJ_FWD(idata, ref);
+        xVal=odata.u;
+        yVal=odata.v;
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
+
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble pxStart, pxEnd, pyStart, pyEnd;
+        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+      }
+#endif
       if (xAxisWasLog) xVal=log10(xVal);
       if (yAxisWasLog) yVal=log10(yVal);
+      if ( !isfinite(xVal)|| !isfinite(yVal) ) return; //no plot
       actStream->WorldToNormedDevice(xVal, yVal, vpX, vpY);
     }
     //compute new temporary viewport in relative coords
 #define ADDEPSILON 0.1
     if ( standardNumPos )
     {
-      vpXL=(xAxis)?ovpXL:vpX;
-      vpXR=(xAxis)?ovpXR:vpX+ovpSizeY;
-      vpYB=(xAxis)?vpY:ovpYB;
+      vpXL=(xAxis)?ovpXL       :vpX;
+      vpXR=(xAxis)?ovpXR       :vpX+ovpSizeY;
+      vpYB=(xAxis)?vpY         :ovpYB;
       vpYT=(xAxis)?vpY+ovpSizeX:ovpYT;
     }
     else
@@ -208,7 +273,7 @@ namespace lib {
       vpYB=(xAxis)?vpY-ovpSizeX:ovpYB;
       vpYT=(xAxis)?vpY:ovpYT;
     }
-
+     
     actStream->OnePageSaveLayout(); // one page
 
     actStream->vpor(vpXL, vpXR, vpYB, vpYT);

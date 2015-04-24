@@ -51,17 +51,17 @@ private:
       doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
 
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
-    static int zvIx = e->KeywordIx( "ZVALUE");
+      static int zvIx = e->KeywordIx( "ZVALUE");
       zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-    zValue=min(zValue,0.999999); //to avoid problems with plplot
-    zValue=max(zValue,0.0);
+      zValue=min(zValue,0.999999); //to avoid problems with plplot
+      zValue=max(zValue,0.0);
 
     // system variable !P.NSUM first
-    DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
+      DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
       e->AssureLongScalarKWIfPresent( "NSUM", nsum);
 
-    bool polar = (e->KeywordSet("POLAR"));
+      bool polar = (e->KeywordSet("POLAR"));
 
 //    DDoubleGDL *yValBis, *xValBis;
 //    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
@@ -171,15 +171,16 @@ private:
 
     if ((yStart == yEnd) || (xStart == xEnd))
     {
-      if (yStart != 0.0 && yStart == yEnd)
+      if (yStart != 0.0 && yStart == yEnd) {
         Message("OPLOT: !Y.CRANGE ERROR, setting to [0,1]");
-      yStart = 0; //yVal->min();
-      yEnd = 1; //yVal->max();
-
-      if (xStart != 0.0 && xStart == xEnd)
+        yStart = 0; 
+        yEnd = 1; 
+      }
+      if (xStart != 0.0 && xStart == xEnd) {
         Message("OPLOT: !X.CRANGE ERROR, setting to [0,1]");
-      xStart = 0; //xVal->min();
-      xEnd = 1; //xVal->max();
+        xStart = 0;
+        xEnd = 1;
+      }
     }
     
     //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
@@ -210,33 +211,26 @@ private:
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
-      get_mapset(mapSet);
-      mapSet=(mapSet);
-      if ( mapSet )
+    get_mapset(mapSet);
+    if ( mapSet )
+    {
+      ref=map_init();
+      if ( ref==NULL )
       {
-        ref=map_init();
-        if ( ref==NULL )
-        {
-          e->Throw("Projection initialization failed.");
-        }
-        DDouble *sx, *sy;
-        GetSFromPlotStructs( &sx, &sy );
-
-        DFloat *wx, *wy;
-        GetWFromPlotStructs( &wx, &wy );
-
-        DDouble xStart, xEnd, yStart, yEnd;
-        DataCoordLimits( sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true );
-        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-        actStream->wind( xStart, xEnd, yStart, yEnd );
+        e->Throw("Projection initialization failed.");
       }
-#endif
-    static DDouble x0,y0,xs,ys; //conversion to normalized coords
-    x0=(xLog)?-log10(xStart):-xStart;
-    y0=(yLog)?-log10(yStart):-yStart;
-    xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-    ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+      DDouble *sx, *sy;
+      GetSFromPlotStructs( &sx, &sy );
 
+      DFloat *wx, *wy;
+      GetWFromPlotStructs( &wx, &wy );
+
+      DDouble pxStart, pxEnd, pyStart, pyEnd;
+      DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+      actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+      actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+    }
+#endif
     if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
     {
       DDoubleGDL* plplot3d;
@@ -248,6 +242,13 @@ private:
       {
         e->Throw("Illegal 3D transformation. (FIXME)");
       }
+      
+      static DDouble x0,y0,xs,ys; //conversion to normalized coords
+      x0=(xLog)?-log10(xStart):-xStart;
+      y0=(yLog)?-log10(yStart):-yStart;
+      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+
       Data3d.zValue = zValue;
       Data3d.Matrix = plplot3d; //try to change for !P.T in future?
             Data3d.x0=x0;
