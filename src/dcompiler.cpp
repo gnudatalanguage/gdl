@@ -245,8 +245,8 @@ void DCompiler::EndPro() // inserts in proList
       }
     }
 
-  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
-    Message( "Compiled module: "+pro->ObjectName()+"."); 
+  if(!pro->isHidden()) {  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
+    Message( "Compiled module: "+pro->ObjectName()+"."); }
 
   // reset pro // will be deleted otherwise
   if( env != NULL) 
@@ -310,9 +310,8 @@ void DCompiler::EndFun() // inserts in funList
     WarnAboutObsoleteRoutine(pro->ObjectName());
   }
 
-  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
-    Message( "Compiled module: "+pro->ObjectName()+"."); 
-
+  if(!pro->isHidden()) {  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
+    Message( "Compiled module: "+pro->ObjectName()+"."); }
   // reset pro // will be deleted otherwise
   if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro()); else pro=NULL;
 }

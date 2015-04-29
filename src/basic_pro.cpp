@@ -619,7 +619,8 @@ namespace lib {
 
 		static int briefKWIx = e->KeywordIx("BRIEF");
 		bool briefKW = e->KeywordSet(briefKWIx);
-
+		static int fullKWIx = e->KeywordIx("FULL");
+		bool fullKW = e->KeywordSet(fullKWIx);
 		static int sysvarKWIx = e->KeywordIx("SYSTEM_VARIABLES");
 		bool sysvarKW = e->KeywordPresent(sysvarKWIx);
 
@@ -907,12 +908,25 @@ namespace lib {
 		//      std::ostringstream ostr;
 
 		// Compiled Procedures & Functions
-		DLong np = proList.size() + 1;
-		DLong nf = funList.size();
 		vector<DString> pList;
 		vector<DString> fList;
 
+		int npro=0, nfun=0;
+		pList.push_back("$MAIN$");
+		for (ProListT::iterator i = proList.begin(); i != proList.end(); i++)
+		  if( fullKW || !((*i)->isHidden()) ) {
+		    pList.push_back((*i)->ObjectName()); npro++; }
+		sort(pList.begin(), pList.end());
+
+		// Get list of user functions
+		for (FunListT::iterator i = funList.begin(); i != funList.end(); i++)
+		  if( fullKW || !((*i)->isHidden()) ) {
+		    fList.push_back((*i)->ObjectName()); nfun++; }
+		sort(fList.begin(), fList.end());
+
 		// If OUTPUT keyword set then set up output string array (outputKW)
+		DLong np = npro + 1;
+		DLong nf = nfun;
 		if (doOutput) {
 			SizeT nlines = 0;
 			if (isKWSetProcedures) {
@@ -979,6 +993,7 @@ namespace lib {
 				}
 			}
 
+#if 0
 			// Get list of user procedures
 			pList.push_back("$MAIN$");
 			for (ProListT::iterator i = proList.begin(); i != proList.end(); i++)
@@ -990,6 +1005,7 @@ namespace lib {
 				fList.push_back((*i)->ObjectName());
 			sort(fList.begin(), fList.end());
 
+#endif
 			// PROCEDURES keyword
 			if (isKWSetProcedures || routinesKW) {
 				if (outputKW == NULL) {
@@ -1002,7 +1018,7 @@ namespace lib {
 				}
 
 				// Loop through procedures
-				for (SizeT i = 0; i < np; i++) {
+				for (SizeT i = 0; i < pList.size(); i++) {
 					// Add $MAIN$
 					if (i == 0) {
 						if (outputKW == NULL) {
@@ -1067,7 +1083,7 @@ namespace lib {
 				}
 
 				// Loop through functions
-				for (SizeT i = 0; i < nf; i++) {
+				for (SizeT i = 0; i < fList.size(); i++) {
 					bool do_output = true;
 
 					// Find DFun pointer for fList[i]
