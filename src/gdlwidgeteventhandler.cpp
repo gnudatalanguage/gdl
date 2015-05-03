@@ -754,7 +754,7 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   DULong flags=0;
   if( owner ) flags=owner->GetEventFlags();
-  if (flags & GDLWidget::EV_SIZE && !owner->IsUpdating() ) {
+  if (flags & GDLWidget::EV_SIZE ) {
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( owner->WidgetID());
   // create GDL event struct
     DStructGDL* widgbase = new DStructGDL( "WIDGET_BASE" );
@@ -770,6 +770,11 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
 //Timer-filtered resizing are not clever enough for graphcis. FIXME!
  void GDLFrame::OnSizeWithTimer( wxSizeEvent& event)
  {
+   wxMouseState mouse=wxGetMouseState();
+   if (!mouse.LeftDown()) {
+     event.Skip();
+     return;
+   }
    if (!gdlOwner) {event.Skip(); return;} //happens for devicewx... to be changed.
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   if (owner->GetParentID() != 0) {
@@ -809,7 +814,7 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
   frameSize=newSize;
   DULong flags=0;
   if( owner ) flags=owner->GetEventFlags();
-  if (flags & GDLWidget::EV_SIZE && !owner->IsUpdating() ) {
+  if (flags & GDLWidget::EV_SIZE ) {
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( owner->WidgetID());
 
   // create GDL event struct
@@ -1368,9 +1373,9 @@ void  gdlGrid::OnTableRangeSelection(wxGridRangeSelectEvent & event){
   //If we are not in disjoint mode, clear previous selection to mimick idl's when the user control-clicked.
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
 
- DULong eventFlags=table->GetEventFlags();
+  DULong eventFlags=table->GetEventFlags();
   if (eventFlags & GDLWidget::EV_ALL  && !table->IsUpdating() ) {
-if (event.Selecting()) 
+    if (event.Selecting()) 
     {
       WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
       DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_SEL");
@@ -1418,18 +1423,20 @@ if (event.Selecting())
   event.Skip();
 }
 
-// void  gdlGrid::OnTableCellSelection(wxGridEvent & event){
-//#ifdef GDL_DEBUG_EVENTS
-//  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
-//#endif
-////This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
-//
-//  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-//  if (!table->GetDisjointSelection()  && event.ControlDown() ) {
-//    this->ClearSelection();
-//  }
-//  event.Skip();
-//}
+ void  gdlGrid::OnTableCellSelection(wxGridEvent & event){
+#ifdef GDL_DEBUG_EVENTS
+  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
+#endif
+//This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
+
+  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
+  if (!table->GetDisjointSelection()  && event.ControlDown() ) {
+    table->ClearSelection();
+  }
+  event.Skip();
+//For compatibility with idl, we should force to select the current table entry.
+  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),FALSE);
+}
 
 
 //Forget this function for the time being!

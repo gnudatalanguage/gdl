@@ -46,7 +46,11 @@
 
 #define SCROLL_WIDTH 20
 #define DEFAULT_BORDER_SIZE 3
-
+#ifdef _WIN32
+  #define NEWLINECHARSIZE 2  //length of <cr><nl>
+#else
+  #define NEWLINECHARSIZE 1  //length of <nl> 
+#endif
 typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
 static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
@@ -245,7 +249,6 @@ protected:
   DLong        frame;
   DString      font;
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
-  bool         updating; //widget is modified by program (avoid sending events)
   long  alignment; //alignment of the widget
   long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
   vector<WidgetIDT> followers; //all the widgets that use me as group_leader
@@ -327,7 +330,7 @@ public:
   wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
   wxRealPoint GetCurrentUnitConversionFactor(){return unitConversionFactor;}
   void SetCurrentUnitConversionFactor(wxRealPoint value){unitConversionFactor = value;}
-  
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
   GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
@@ -456,10 +459,6 @@ public:
   const DString& GetFuncValue() const { return funcValue;}
   void SetFuncValue( const DString& funcvalue){funcValue = StrUpCase(funcvalue);}
   
-  bool IsUpdating(){return updating;}
-  void ClearUpdating(){updating=FALSE;}
-  void SetUpdating(){updating=TRUE;}
-  
   wxSize computeWidgetSize(); 
   BaseGDL * getSystemColours();
 };
@@ -530,6 +529,8 @@ class GDLWidgetBase: public GDLWidgetContainer
   bool stretchY;
   long childrenAlignment;
   long space;
+  long xpad;
+  long ypad;
   bool IsContextMenu;
 
 public:
@@ -577,7 +578,10 @@ public:
   void SetStretchY(bool stretch) {stretchY=stretch;}
   long getChildrenAlignment(){return childrenAlignment;}
   long getSpace(){return space;}
+  long getXPad(){return xpad;}
+  long getYPad(){return ypad;}
   void mapBase(bool val);
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
 };
 
 class gdlMenuButton: public wxButton
@@ -719,6 +723,7 @@ public:
   void SelectEntry(DLong entry_number);
   BaseGDL* GetSelectedEntries();
   wxSize computeWidgetSize();
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
 };
 
 // text widget **************************************************
@@ -766,6 +771,7 @@ public:
   void SetLastValue( const std::string& v) { lastValue = v;}
   std::string GetLastValue() { return lastValue;}
   wxSize computeWidgetSize();
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
 };
 
 
@@ -797,6 +803,7 @@ public:
   bool IsDraw() const { return true;}
   void AddEventType( DULong evType); //specific for draw widgets
   void RemoveEventType( DULong evType);
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
 };
 
 
@@ -859,6 +866,7 @@ class GDLWidgetTable: public GDLWidget
   DLong x_scroll_size;
   DLong y_scroll_size;
   DStringGDL * valueAsStrings;
+  bool         updating; //widget is modified by program (avoid sending events)
 
 public:
  typedef enum TableMajority_ {NONE_MAJOR = 0, ROW_MAJOR, COLUMN_MAJOR} TableMajority;
@@ -952,6 +960,12 @@ public:
   void SetTableNumberOfRows( DLong nrows);
   
   bool IsSomethingSelected();
+  
+  bool IsUpdating(){return updating;}
+  void ClearUpdating(){updating=FALSE;}
+  void SetUpdating(){updating=TRUE;}
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+
 };
 
 
@@ -1110,7 +1124,7 @@ public:
     Connect(id,wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(gdlGrid::OnTableColResizing));
     Connect(id,wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(gdlGrid::OnTableRowResizing));
     Connect(id,wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(gdlGrid::OnTableRangeSelection));
-//    Connect(id,wxEVT_GRID_SELECT_CELL,wxGridEventHandler(gdlGrid::OnTableCellSelection));
+    Connect(id,wxEVT_GRID_SELECT_CELL,wxGridEventHandler(gdlGrid::OnTableCellSelection));
 //    Connect(id,wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(gdlGrid::OnTableCellSelection));
   }
   ~gdlGrid(){
@@ -1246,7 +1260,7 @@ public:
   }
 
 private:
-//  void OnTableCellSelection(wxGridEvent & event);
+  void OnTableCellSelection(wxGridEvent & event);
   void OnTableRangeSelection(wxGridRangeSelectEvent & event);
   void OnTableColResizing(wxGridSizeEvent & event);
   void OnTableRowResizing(wxGridSizeEvent & event); 
@@ -1384,7 +1398,9 @@ public:
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
   
-  void Update()
+ void Resize(int sizex, int sizey);
+ 
+ void Update()
   {
      wxClientDC dc( this);
      dc.SetDeviceClippingRegion( GetUpdateRegion() );

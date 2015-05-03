@@ -127,15 +127,15 @@ inline long GDLWidget::widgetAlignment()
         }
 }
 
-inline wxSizer* GetBaseSizer( DLong col, DLong row, bool grid, long pad) 
+inline wxSizer* GetBaseSizer( DLong col, DLong row, bool grid, long space) 
 {
   wxSizer* sizer = NULL;
-  if ( row <= 0  && col <= 0) {sizer = new wxGridBagSizer(pad,pad); }
-  else if ( row == 0  && col <= 1) {sizer = new wxBoxSizer( wxVERTICAL ); if (pad) sizer->AddSpacer(pad);}
-  else if ( row == 0 && col > 1) {sizer = (grid)?new wxGridSizer( 0, col, pad, pad ):new wxFlexGridSizer( 0, col, pad, pad );}
-  else if ( col == 0 && row <= 1) {sizer = new wxBoxSizer( wxHORIZONTAL );if (pad) sizer->AddSpacer(pad);}
-  else if ( col == 0 && row > 1) {sizer = (grid)?new wxGridSizer( row, 0, pad, pad ):new wxFlexGridSizer( row, 0, pad, pad );}
-  else sizer = new wxFlexGridSizer( row, col, pad, pad ); //which should not happen.
+  if ( row <= 0  && col <= 0) {sizer = new wxGridBagSizer(space,space); }
+  else if ( row == 0  && col <= 1) {sizer = new wxBoxSizer( wxVERTICAL ); if (space) sizer->AddSpacer(space);}
+  else if ( row == 0 && col > 1) {sizer = (grid)?new wxGridSizer( 0, col, space, space ):new wxFlexGridSizer( 0, col, space, space );}
+  else if ( col == 0 && row <= 1) {sizer = new wxBoxSizer( wxHORIZONTAL );if (space) sizer->AddSpacer(space);}
+  else if ( col == 0 && row > 1) {sizer = (grid)?new wxGridSizer( row, 0, space, space ):new wxFlexGridSizer( row, 0, space, space );}
+  else sizer = new wxFlexGridSizer( row, col, space, space ); //which should not happen.
   return sizer;
 }
 
@@ -144,13 +144,14 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   wxSize widgetSize = wxDefaultSize;
-  if ( xSize != widgetSize.x ) widgetSize.x = (xSize+1) * fontSize.x;
-  else { widgetSize.x = (maxlinelength+1) * fontSize.x;  if ( widgetSize.x < 140 ) widgetSize.x=20* fontSize.x; }
+  if ( xSize != widgetSize.x ) widgetSize.x = (xSize+0.5) * fontSize.x;
+  else { widgetSize.x = (maxlinelength+0.5) * fontSize.x;
+  if ( widgetSize.x < 140 ) widgetSize.x=20* fontSize.x; } //TBC
 //but..
   if (scrXSize>0) widgetSize.x=scrXSize;
   
-  if ( ySize != widgetSize.y )  widgetSize.y = (ySize * fontSize.y)+nlines*1; //1 pixel between lines
-  else widgetSize.y = fontSize.y+1; //instead of nlines*fontSize.y to be compliant with *DL
+  if ( ySize != widgetSize.y )  widgetSize.y = ((ySize+0.5) * fontSize.y); //1 pixel between lines
+  else widgetSize.y = fontSize.y*1.5; //instead of nlines*fontSize.y to be compliant with *DL
   if (widgetSize.y < 20) widgetSize.y = 20;
 //but..
    if (scrYSize>0) widgetSize.y=scrYSize;
@@ -297,7 +298,8 @@ void GDLWidget::RefreshWidget( )
       gdlParent = GetWidget( gdlParent->GetParentID( ) );
       if ( gdlParent == GDLWidget::NullID ) break;
     } 
-    static_cast<wxWindow*>(this->GetWxWidget())->Refresh();
+//    static_cast<wxWindow*>(this->GetWxWidget())->Refresh(); //next event loop
+    static_cast<wxWindow*>(this->GetWxWidget())->Update(); //immediate
   }
 }
 
@@ -432,7 +434,6 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 , groupLeader(GDLWidget::NullID)
 , frame(0)
 , valid(TRUE)
-, updating(FALSE)
 {
   if ( e != NULL ) GetCommonKeywords( e ); //defines own alignment.
 
@@ -495,10 +496,9 @@ void GDLWidget::SetSize(DLong sizex, DLong sizey)
   //Sizes are in pixels. Units must be converted before calling this function.
   wxWindow* me=static_cast<wxWindow*>(this->GetWxWidget());
   wxSize currentSize=me->GetSize();
-  
+  sizex*=unitConversionFactor.x;
+  sizey*=unitConversionFactor.y;
   if (currentSize==wxSize(sizex,sizey)) return;
-
-  GDLWidgetBase *tlb = GetTopLevelBaseWidget( this->WidgetID( ) );
   
   //note particular case of 0 for base widgets: 0 means stretch otherwise not.
   if (this->IsBase()) {
@@ -509,12 +509,11 @@ void GDLWidget::SetSize(DLong sizex, DLong sizey)
   ySize=(sizey<=0)?currentSize.y:sizey;
   
   //prevent event
-  updating=TRUE;
   me->SetSize(xSize,ySize);
   widgetSizer->SetItemMinSize(me,xSize,ySize);
   this->RefreshWidget();
+  GDLWidgetBase *tlb = GetTopLevelBaseWidget( this->WidgetID( ) );
   if (tlb->IsStretchable()) {static_cast<wxFrame*> (tlb->GetWxWidget( ))->Fit( );}
-  updating=FALSE;
 }
 
 void GDLWidget::SendWidgetTimerEvent(DDouble secs)
@@ -749,7 +748,35 @@ void GDLWidget::Lower()
     if (win!=NULL)  win->Lower();
 }
 
-GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_, bool map)
+DStructGDL* GDLWidget::GetGeometry( wxRealPoint fact ) {
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  wxWindow* test = static_cast<wxWindow*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  //size is in pixels, pass in requested units (1.0 default)
+  xs /= fact.x;
+  ys /= fact.y;
+  xscr /= fact.x;
+  yscr /= fact.y;  
+
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( xs ) );
+  ex->InitTag( "YSIZE", DFloatGDL( ys ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+  return ex;
+}
+
+  GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_, bool map)
 : GDLWidget( parentID, e, NULL, eventFlags_)
 , map(map)
 {
@@ -766,7 +793,7 @@ bool floating_,
 const DString& resource_name, const DString& rname_mbar,
 const DString& title_,
 const DString& display_name,
-DLong xpad, DLong ypad,
+DLong xpad_, DLong ypad_,
 DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, long space_, bool iscontextmenu)
 : GDLWidgetContainer( parentID, e, eventFlags_, mapWid)
 , modal( modal_ )
@@ -778,8 +805,19 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
 , stretchY(FALSE)
 , childrenAlignment( children_alignment )
 , space(space_)
+, xpad(xpad_)
+, ypad(ypad_)
 , IsContextMenu(iscontextmenu)
 {
+  //Cannot find how to implement the notion of xpad and ypad in the sizer of the child widgets (GetBaseSizer).
+  //Impossible to have different x and y borders for the panel itself, hence the following:
+  int flag;
+  int pad;
+  if (xpad<1 && ypad<1) {flag=0;pad=0;}
+  else if (xpad>0 && ypad>0) {flag=wxALL;pad=min(xpad,ypad);xpad=pad;ypad=pad;}
+  else if (xpad>0 ) {flag=(wxLEFT|wxRIGHT);pad=xpad;}
+  else{flag=(wxTOP|wxBOTTOM);pad=ypad;}
+  
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
 
   xmanActCom = false;
@@ -844,7 +882,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     else if (!stretchY) widgetPanel->SetSizeHints(-1, ySize);
 
     //force frame to wrap around panel
-    topWidgetSizer->Add( widgetPanel, 1, wxEXPAND);
+    topWidgetSizer->Add( widgetPanel, 1, wxEXPAND|flag, pad);
 
     if (scrolled) {
       //do something clever!
@@ -920,7 +958,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
 #endif
       wxWidget = widgetPanel;
       widgetPanel->SetSizeHints((xSize>0)?xSize:-1, (ySize>0)?ySize:-1);
-      parentSizer->Add( widgetPanel,0,widgetAlignment());
+      parentSizer->Add( widgetPanel,0,widgetAlignment()|flag,pad);
         
       if (scrolled) {
         scrollPanel = new wxScrolledWindow(wxParent, wxID_ANY, wxPoint(xOffset,yOffset), wxSize(x_scroll_size, y_scroll_size ), wxBORDER_SUNKEN|wxALWAYS_SHOW_SB);
@@ -934,7 +972,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
         parentSizer->Detach(widgetPanel);
         widgetPanel->Reparent(scrollPanel);
         scrollSizer->Add(widgetPanel);
-        parentSizer->Add(scrollPanel, 0, widgetAlignment());
+        parentSizer->Add(scrollPanel, 0, widgetAlignment()|flag,pad);
         scrollPanel->SetScrollRate(20,20); //show scrollbars
       }
     }
@@ -950,6 +988,46 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     TIDY_WIDGET;
     UPDATE_WINDOW;
   }
+}
+DStructGDL* GDLWidgetBase::GetGeometry( wxRealPoint fact ) {
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  wxWindow* test = static_cast<wxWindow*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  //size is in pixels, pass in requested units (1.0 default)
+  xs /= fact.x;
+  ys /= fact.y;
+  xscr /= fact.x;
+  yscr /= fact.y;  
+
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( xs ) );
+  ex->InitTag( "YSIZE", DFloatGDL( ys ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+
+  DFloat space = 0.0;
+  DFloat xpad = 0.0;
+  DFloat ypad = 0.0;
+  GDLWidgetBase* base = this->GetBaseWidget( widgetID );
+  if ( base ) {
+    space = base->getSpace( );
+    xpad = base->getXPad( );
+    ypad = base->getYPad( );
+  }
+  ex->InitTag( "XPAD", DFloatGDL( xpad ) );
+  ex->InitTag( "YPAD", DFloatGDL( ypad ) );
+  ex->InitTag( "SPACE", DFloatGDL( space ) );
+  return ex;
 }
 
 GDLWidgetBase::~GDLWidgetBase()
@@ -1001,7 +1079,9 @@ void GDLWidgetBase::SelfDestroy()
 }
   void GDLWidgetBase::mapBase(bool val){
     wxWindow* me=static_cast<wxWindow*>(wxWidget);
-    me->Show(val);  
+    me->Show(val);
+    static_cast<wxWindow*>(this->GetWxWidget())->Update(); //immediate
+    if (val) this->RefreshWidget();
   }
 
 /*********************************************************/
@@ -1148,6 +1228,7 @@ DULong eventFlags_
 , x_scroll_size( xScrollSize_ )
 , y_scroll_size( yScrollSize_)
 , valueAsStrings( valueAsStrings_ )
+, updating(FALSE)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
   wxPanel *panel = gdlParent->GetPanel( );
@@ -2423,6 +2504,39 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
   else grid->DeleteRows(nrows,old_nrows-nrows);
   grid->EndBatch( );
 }
+DStructGDL* GDLWidgetTable::GetGeometry(wxRealPoint fact) 
+{
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  int rowsize=1;
+  int rowlabelsize=0;
+  int colsize=1;
+  int collabelsize=0;
+  gdlGrid* test = static_cast<gdlGrid*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+    rowsize=test->GetRowSize(0);
+    rowlabelsize=test->GetRowLabelSize();
+    colsize=test->GetColSize(0);
+    collabelsize=test->GetColLabelSize();
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  xscr /= fact.x;
+  yscr /= fact.y;  
+
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( (xs-rowlabelsize)/colsize ) );
+  ex->InitTag( "YSIZE", DFloatGDL( (ys-collabelsize)/rowsize ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+  return ex;
+}
 
 GDLWidgetTable::~GDLWidgetTable()
 {
@@ -2805,7 +2919,7 @@ GDLWidgetButton::~GDLWidgetButton(){
     
     if ( this->wxWidget != NULL ) {
           (static_cast<wxButton*> (wxWidget))->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-           static_cast<wxButton*> (wxWidget)->Refresh();  //not useful
+//           static_cast<wxButton*> (wxWidget)->Refresh();  //not useful
       } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
   }
   
@@ -2814,7 +2928,7 @@ GDLWidgetButton::~GDLWidgetButton(){
     if (buttonType!=BITMAP) return;
     if ( this->wxWidget != NULL ) {
           (static_cast<wxBitmapButton*> (wxWidget))->SetBitmapLabel(*bitmap_);
-           static_cast<wxBitmapButton*> (wxWidget)->Refresh();  //not useful?
+//           static_cast<wxBitmapButton*> (wxWidget)->Refresh();  //not useful?
       } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetBitmap(), please report!" << std::endl;
   }
   
@@ -2890,6 +3004,32 @@ BaseGDL* GDLWidgetList::GetSelectedEntries(){
  return liste;
 }
 
+DStructGDL* GDLWidgetList::GetGeometry(wxRealPoint fact) 
+{
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  wxListBox* test = static_cast<wxListBox*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  xscr /= fact.x;
+  yscr /= fact.y;  
+
+  wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( xs/fontSize.x ) );
+  ex->InitTag( "YSIZE", DFloatGDL( ys/fontSize.y ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+  return ex;
+}
 GDLWidgetList::~GDLWidgetList(){
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetList: " << this << std::endl;
@@ -3074,7 +3214,7 @@ bool editable_ )
   alignment=wxALIGN_LEFT;
   DString value = "";
   maxlinelength = 0;
-  nlines=0;
+  nlines=0;  
   if (ySize<2 && !scrolled) noNewLine=TRUE;
   if( vValue != NULL)
   {
@@ -3083,7 +3223,7 @@ bool editable_ )
         int length=((*static_cast<DStringGDL*> (vValue))[i]).length();
         value += (*static_cast<DStringGDL*> (vValue))[i]; 
         maxlinelength=(length>maxlinelength)?length:maxlinelength;
-        if ( !noNewLine && (i + 1) < vValue->N_Elements( ) )
+        if ( !noNewLine ) //&& (i + 1) < vValue->N_Elements( ) )
 #ifdef _WIN32
         {value += "\r\n"; nlines++;}
 #else
@@ -3099,8 +3239,9 @@ bool editable_ )
   topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
   
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
-  long style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|textAlignment();
-  if ( nlines > 1 || scrolled ) style |= wxTE_MULTILINE;
+  long style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|wxHSCROLL|textAlignment();
+  if ( ySize > 1 || scrolled ) style |= wxTE_MULTILINE;
+//  else style |= wxTE_NO_VSCROLL;
 
   wxTextCtrl * text;
   if ( !editable ) {
@@ -3133,11 +3274,12 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine)
   delete vValue;
   vValue = valueStr;
   DString value = "";
-  nlines=0;
+  if (ySize < 2 && !scrolled) noNewLine=TRUE;
+  nlines=0; 
     for( int i=0; i<valueStr->N_Elements(); ++i)
     {
     value += (*valueStr)[ i];
-    if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) )
+    if ( !noNewLine )
 #ifdef _WIN32
     {value += "\r\n"; nlines++;}
 #else
@@ -3146,12 +3288,12 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine)
     }
   lastValue = value;
 
-  wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
+  wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   if ( this->wxWidget != NULL ) {
     wxTextCtrl* txt=static_cast<wxTextCtrl*> (wxWidget);
     txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
-    txt->Refresh();
-    txt->Update();
+//    txt->Refresh();
+//    txt->Update();
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
 }
 
@@ -3161,11 +3303,14 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine, bool inser
   wxTextCtrl* txt=static_cast<wxTextCtrl*> (wxWidget);
   txt->GetSelection(&from,&to);
   if (insertAtEnd) {from=txt->GetLastPosition(); to=from;}
+
+  if (ySize < 2 && !scrolled) noNewLine=TRUE;
+
   DString value = "";
   nlines=0;
   for ( int i = 0; i < valueStr->N_Elements( ); ++i ) {
     value += (*valueStr)[ i];
-    if ( !noNewLine && (i + 1) < valueStr->N_Elements( ) ) {
+    if ( !noNewLine ) {
 #ifdef _WIN32
       value += "\r\n"; nlines++;
 #else
@@ -3180,8 +3325,8 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine, bool inser
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   if ( this->wxWidget != NULL ) {
     txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT (neither does *DL).    
-    txt->Refresh();
-    txt->Update();
+//    txt->Refresh();
+//    txt->Update();
     txt->SetSelection(from,from);
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
 }
@@ -3256,6 +3401,34 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , bo
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
+
+DStructGDL* GDLWidgetText::GetGeometry(wxRealPoint fact) 
+{
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  wxTextCtrl* test = static_cast<wxTextCtrl*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  xscr /= fact.x;
+  yscr /= fact.y;  
+
+  wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( xs/fontSize.x ) );
+  ex->InitTag( "YSIZE", DFloatGDL( ys/fontSize.y ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+  return ex;
+}
+
 
 GDLWidgetLabel::~GDLWidgetLabel(){
 #ifdef GDL_DEBUG_WIDGETS
@@ -3369,7 +3542,7 @@ void GDLWidgetLabel::SetLabelValue( const DString& value_)
     if ( this->wxWidget != NULL ) {
       wxWindowID id = static_cast<wxStaticText*> (wxWidget)->GetId( );
       static_cast<wxStaticText*> (wxWidget)->SetLabel( valueWxString ); //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-      static_cast<wxStaticText*> (wxWidget)->Refresh( ); //not useful
+//      static_cast<wxStaticText*> (wxWidget)->Refresh( ); //not useful
   }    else std::cerr << "Null widget in GDLWidgetLabel::SetLabelValue(), please report!" << std::endl;
 }
 //propertysheet
@@ -3490,6 +3663,19 @@ void GDLDrawPanel::InitStream()
   m_dc = pstreamP->GetDC( );
 }
 
+void GDLDrawPanel::Resize(int sizex, int sizey)
+{
+  GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
+  if (!draw) return; //temporary hack for devicewx...
+  this->SetSize(sizex,sizey);
+  if (pstreamP != NULL)
+  {
+    pstreamP->SetSize(sizex,sizey); 
+  }
+  drawSize=wxSize(sizex,sizey);
+  this->Refresh();
+} 
+  
 GDLDrawPanel::~GDLDrawPanel()
 {  
 #ifdef GDL_DEBUG_WIDGETS
@@ -3664,7 +3850,37 @@ void GDLWidgetDraw::RemoveEventType( DULong evType){
        draw->Disconnect(widgetID, wxEVT_KEY_UP, wxKeyEventHandler(GDLDrawPanel::OnKey)); 
   } 
 }
-
+DStructGDL* GDLWidgetDraw::GetGeometry( wxRealPoint fact ) {
+  int xvs, yvs;
+  int xs, ys, xscr,yscr;
+  wxPoint position;
+  GDLDrawPanel* test = static_cast<GDLDrawPanel*> (wxWidget);
+  if ( test != NULL ) {
+    test->GetSize( &xs, &ys );
+    xscr=xs;
+    yscr=ys;
+    position = test->GetPosition( );
+  }
+  if (frameSizer != NULL) framePanel->GetSize(&xscr,&yscr);
+  if (scrollSizer != NULL) scrollPanel->GetSize(&xscr,&yscr);
+  //size is in pixels, pass in requested units (1.0 default)
+  xs /= fact.x;
+  ys /= fact.y;
+  xscr /= fact.x;
+  yscr /= fact.y; 
+  xvs /= fact.x;
+  yvs /= fact.y;
+  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
+  ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
+  ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );
+  ex->InitTag( "XSIZE", DFloatGDL( xs ) );
+  ex->InitTag( "YSIZE", DFloatGDL( ys ) );
+  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
+  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
+  ex->InitTag( "DRAW_XSIZE", DFloatGDL( xvs ) );
+  ex->InitTag( "DRAW_YSIZE", DFloatGDL( yvs ) );
+  return ex;
+}
 
 // GDLApp =================================================
 

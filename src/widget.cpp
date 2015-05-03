@@ -898,8 +898,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   WidgetIDT mBarID = mbarPresent ? 1 : 0;
 
   int exclusiveMode = GDLWidget::BGNORMAL;
-  if ( exclusive ) exclusiveMode = GDLWidget::BGEXCLUSIVE;
-  if ( nonexclusive ) exclusiveMode = GDLWidget::BGNONEXCLUSIVE;
+  if ( exclusive ) { exclusiveMode = GDLWidget::BGEXCLUSIVE; space=0;} //space ignored if mode=exclusive or nonexclusive
+  if ( nonexclusive ) { exclusiveMode = GDLWidget::BGNONEXCLUSIVE;space=0;}
 
   //events:
   //CONTEXT_EVENTS
@@ -1725,45 +1725,21 @@ BaseGDL* widget_info( EnvT* e ) {
   }
   // GEOMETRY keyword
   if ( geometry ) {
+    wxRealPoint fact = wxRealPoint(1.,1.);
+    if ( unitsGiven ) fact = GetRequestedUnitConversionFactor( e );
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL )
         e->Throw("Invalid widget identifier:"+i2s(widgetID));
-      else
-      {
-        int xs,ys;
-        int xvs,yvs;
-        wxSize bord;
-        wxWindow* test=static_cast<wxWindow*>(widget->GetWxWidget());
-        if ( test != NULL) {
-          test->GetSize(&xs,&ys);
-          test->GetVirtualSize(&xvs,&yvs);
-          bord=test->GetWindowBorderSize();
-        }
-        //size is in pixels, pass in requested units:
-         if (unitsGiven) {
-           wxRealPoint fact=GetRequestedUnitConversionFactor(e);
-           xs/=fact.x;
-           ys/=fact.y;
-           xvs/=fact.x;
-           yvs/=fact.y;
-         }
-        DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
-        ex->InitTag("XOFFSET",DFloatGDL(bord.x));  
-        ex->InitTag("YOFFSET",DFloatGDL(bord.y)); 
-        ex->InitTag("XSIZE",DFloatGDL(xs)); 
-        ex->InitTag("YSIZE",DFloatGDL(ys)); 
-        ex->InitTag("SCR_XSIZE",DFloatGDL(xvs)); 
-        ex->InitTag("SCR_YSIZE",DFloatGDL(yvs)); 
-        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
-        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
-        ex->InitTag("MARGIN",DFloatGDL(0.0));  
-        ex->InitTag("XPAD",DFloatGDL(0.0));  
-        ex->InitTag("YPAD",DFloatGDL(0.0));  
-        ex->InitTag("SPACE",DFloatGDL(0.0));
-        return ex; 
+      else {
+        if (widget->IsText()) return static_cast<GDLWidgetText*>(widget)->GetGeometry( fact );
+        else if (widget->IsDraw()) return static_cast<GDLWidgetDraw*>(widget)->GetGeometry( fact );
+        else if (widget->IsBase()) return static_cast<GDLWidgetBase*>(widget)->GetGeometry( fact );
+        else if (widget->IsList()) return static_cast<GDLWidgetList*>(widget)->GetGeometry( fact );
+        else if (widget->IsTable()) return static_cast<GDLWidgetTable*>(widget)->GetGeometry( fact );
+        else return widget->GetGeometry( fact );
       }
     } else {
       // Array Input
@@ -1777,36 +1753,19 @@ BaseGDL* widget_info( EnvT* e ) {
       static unsigned tag5=ex->Desc()->TagIndex("SCR_XSIZE");
       static unsigned tag6=ex->Desc()->TagIndex("SCR_YSIZE");
       bool atLeastOneFound=false;
-      wxRealPoint fact;
-      if (unitsGiven) fact=GetRequestedUnitConversionFactor(e);
-      else fact=wxRealPoint(1.,1.);
       for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
-        int xs,ys;
-        int xvs,yvs;
-        wxSize bord;
         if ( widget != NULL ) {
           atLeastOneFound=TRUE;
-          static_cast<wxWindow*>(widget->GetWxWidget())->GetSize(&xs,&ys);
-          static_cast<wxWindow*>(widget->GetWxWidget())->GetVirtualSize(&xvs,&yvs);
-          xs/=fact.x;
-          ys/=fact.y;
-          xvs/=fact.x;
-          yvs/=fact.y;
-          bord=(static_cast<wxWindow*>(widget->GetWxWidget()))->GetWindowBorderSize();
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag1, i)))[0]=bord.x;
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag2, i)))[0]=bord.y;
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag3, i)))[0]=xs;
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag4, i)))[0]=ys;
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag5, i)))[0]=xvs;
-          (*static_cast<DFloatGDL*>(ex->GetTag(tag6, i)))[0]=yvs;
-//        ex->InitTag("DRAW_XSIZE",DFloatGDL(0.0));  
-//        ex->InitTag("DRAW_YSIZE",DFloatGDL(0.0));  
-//        ex->InitTag("MARGIN",DFloatGDL(0.0));  
-//        ex->InitTag("XPAD",DFloatGDL(0.0));  
-//        ex->InitTag("YPAD",DFloatGDL(0.0));  
-//        ex->InitTag("SPACE",DFloatGDL(0.0));
+          DStructGDL* ret;
+          if (widget->IsText()) ret=static_cast<GDLWidgetText*>(widget)->GetGeometry( fact );
+          else if (widget->IsDraw()) ret=static_cast<GDLWidgetDraw*>(widget)->GetGeometry( fact );
+          else if (widget->IsBase()) ret=static_cast<GDLWidgetBase*>(widget)->GetGeometry( fact );
+          else if (widget->IsList()) ret=static_cast<GDLWidgetList*>(widget)->GetGeometry( fact );
+          else if (widget->IsTable()) ret=static_cast<GDLWidgetTable*>(widget)->GetGeometry( fact );
+          else ret=widget->GetGeometry( fact );
+          for (SizeT itag=0; itag<ret->Desc()->NTags(); ++itag) (*static_cast<DFloatGDL*>(ex->GetTag(itag, i)))[0]=(*static_cast<DFloatGDL*>(ret->GetTag(itag, 0)))[0];
         }
       }
       if (atLeastOneFound) return ex; else e->Throw("Invalid widget identifier:"+i2s((*p0L)[0]));
@@ -2675,27 +2634,72 @@ void widget_control( EnvT* e ) {
           GDLWidget::PushEvent( baseWidgetID, ev);
   }
   
-  if (hasXsize || hasYsize || hasScr_xsize || hasScr_ysize || hasDraw_xsize || hasDraw_ysize ) {
+  if (hasScr_xsize || hasScr_ysize) { //simple: direct sizing in pixels or UNITS for ALL widgets
     DLong xs,ys,xsize, ysize;
     wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     me->GetSize(&xs,&ys);
     xsize=xs;
     ysize=ys;
-    if (hasXsize || hasScr_xsize || hasDraw_xsize ) {
-      if (hasScr_xsize) xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0]; 
-      else if (hasXsize) xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
-      else if (hasDraw_xsize) xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0];
-      if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
+    if (hasScr_xsize) xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0];
+    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
+    if (hasScr_ysize) ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0];
+    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
+    if (unitsGiven) widget->ChangeUnitConversionFactor(e);
+    if (hasScr_xsize && hasScr_ysize) widget->SetSize(xsize,ysize);
+    else if (hasScr_xsize) widget->SetSize(xsize,xs);
+    else if (hasScr_ysize) widget->SetSize(xs,ysize);
+  }
+  
+  if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
+    DLong xs,ys,xsize, ysize;
+    GDLDrawPanel* me=static_cast<GDLDrawPanel*>(widget->GetWxWidget());
+    if (!me) e->Throw("Internal GDL error with widgets, please report.");
+    me->GetSize(&xs,&ys);
+    xsize=xs;
+    ysize=ys;
+    if (hasDraw_xsize) xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0];
+    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
+    if (hasDraw_ysize) ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0];
+    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
+    if (unitsGiven) {
+      widget->ChangeUnitConversionFactor(e);
+      xsize *= widget->GetCurrentUnitConversionFactor().x;
+      ysize *= widget->GetCurrentUnitConversionFactor().y;
     }
-    if (hasYsize || hasScr_ysize || hasDraw_ysize ) {
-      if (hasScr_ysize) ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0];
-      else if (hasYsize) ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
-      else if (hasDraw_ysize) ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0];
-      if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
+    if (hasDraw_xsize && hasDraw_ysize) me->Resize(xsize,ysize);
+    else if (hasDraw_xsize) me->Resize(xsize,ys);
+    else if (hasDraw_ysize) me->Resize(xs,ysize);
+  }
+  
+  if (hasXsize || hasYsize) {
+    DLong xs,ys,xsize, ysize;
+    wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
+    if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
+    me->GetSize(&xs,&ys);
+    xsize=xs;
+    ysize=ys;
+    if (hasXsize) xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
+    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
+    if (hasYsize) ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
+    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
+    if (!(widget->IsList() || widget->IsTable() || widget->IsText())) {
+      if (unitsGiven) widget->ChangeUnitConversionFactor(e);
+    } else {
+      if (widget->IsList()||widget->IsText()) {
+        wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
+        xsize = (xsize+1) * fontSize.x;
+        ysize = ysize * fontSize.y; 
+      } else if ( widget->IsTable()) {
+        gdlGrid* grid=static_cast<gdlGrid*>(widget->GetWxWidget());
+        if (!grid) e->Throw("Internal GDL error with widgets, please report.");
+        xsize=xsize*grid->GetColumnWidth(0)+grid->GetRowLabelSize(); 
+        ysize=ysize*grid->GetRowHeight(0)+grid->GetColLabelSize();
+      }
     }
-    if (!(widget->IsList() || widget->IsTable() || widget->IsText()) && unitsGiven) widget->ChangeUnitConversionFactor(e);
-    widget->SetSize(xsize,ysize);
+    if (hasXsize && hasYsize) widget->SetSize(xsize,ysize);
+    else if (hasXsize) widget->SetSize(xsize,xs);
+    else if (hasYsize) widget->SetSize(xs,ysize);
   }
   
   static int FRAME = e->KeywordIx( "FRAME" );
