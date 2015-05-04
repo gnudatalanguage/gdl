@@ -1884,13 +1884,13 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
           tCharacterSpecial = res->Desc()->TagIndex("CHARACTER_SPECIAL");
           tNamedPipe =        res->Desc()->TagIndex("NAMED_PIPE");
           tExecute =          res->Desc()->TagIndex("EXECUTE"); 
-#ifndef _WIN32
+//#ifndef _WIN32
           tSetuid =           res->Desc()->TagIndex("SETUID");
           tSetgid =           res->Desc()->TagIndex("SETGID");
-#else
-          tSetuid =           res->Desc()->TagIndex("SYSTEM");
-          tSetgid =           res->Desc()->TagIndex("HIDDEN");
-#endif
+//#else
+//          tSetuid =           res->Desc()->TagIndex("SYSTEM");
+//          tSetgid =           res->Desc()->TagIndex("HIDDEN");
+//#endif
 	  tSocket =           res->Desc()->TagIndex("SOCKET");
           tStickyBit =        res->Desc()->TagIndex("STICKY_BIT");
           tSymlink =          res->Desc()->TagIndex("SYMLINK");
@@ -1969,10 +1969,12 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
           statStruct.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX)
         );
 #else
-        *(res->GetTag(tSetuid, f)) =           DByteGDL(
-			(FILE_ATTRIBUTE_SYSTEM & dwattrib) != 0);
-        *(res->GetTag(tSetgid, f)) =           DByteGDL(
-			(FILE_ATTRIBUTE_HIDDEN & dwattrib) != 0);
+        *(res->GetTag(tSetuid, f)) = DByteGDL(0);
+        *(res->GetTag(tSetgid, f)) = DByteGDL(0);
+        //*(res->GetTag(tSetuid, f)) =           DByteGDL(
+		//	(FILE_ATTRIBUTE_SYSTEM & dwattrib) != 0);
+        //*(res->GetTag(tSetgid, f)) =           DByteGDL(
+		//	(FILE_ATTRIBUTE_HIDDEN & dwattrib) != 0);
         *(res->GetTag(tMode, f)) = DLongGDL(dwattrib);
 #endif
 
