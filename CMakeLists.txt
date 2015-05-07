@@ -473,7 +473,7 @@ if(USE_MAGICK AND NOT WIN32)
 	endif(HAVE_PLGETDRVDIR)
 endif(USE_MAGICK AND NOT WIN32)
 
-# wxWdigets
+# wxWidgets
 # -DWXWIDGETS=ON|OFF
 # -DWXWIDGETSDIR=DIR
 set(wxWidgets_USE_DEBUG OFF) # Use release build
@@ -490,7 +490,7 @@ if(WXWIDGETS)
 #        endif(NOT HAVE_PLPLOT_WXWIDGETS)
 	#
 	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-	find_package(wxWidgets REQUIRED base core adv)
+	find_package(wxWidgets COMPONENTS base core adv)
 	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
 	if(wxWidgets_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
