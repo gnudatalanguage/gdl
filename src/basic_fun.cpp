@@ -8,6 +8,10 @@
  strtok_fun, getenv_fun, tag_names_fun, stregex_fun:
  (C) 2004 by Peter Messmer    
  
+ 20150506 Jacco A. de Zwart, National Institutes of Health, Bethesda, MD, USA
+     Changed behavior of COMPLEX() and DCOMPLEX() called with three arguments,
+     aka where type casting is the expected behavoir. 
+
 ***************************************************************************/
 
 /***************************************************************************
@@ -932,14 +936,17 @@ DULong SHAH0[] = {
 //     return NULL; // get rid of compiler warning
   }
 
+// JAdZ 20150506: This is now only for nParsm=2, complex_fun_template redefined several lines below instead
   template< typename ComplexGDL, typename Complex, typename Float>
-  BaseGDL* complex_fun_template( EnvT* e)
+  BaseGDL* complex_fun_template_twopar( EnvT* e)
   {
     SizeT nParam=e->NParam( 1);
-    if( nParam <= 2)
-      {
-	if( nParam == 2)
-	  {
+	// JAdZ 20150506: This should now only be called when nParam=2, see below
+    if( nParam != 2)
+    {
+		e->Throw( "Exception: You should never have been able to get here! Please report this.");
+	}
+
 	    BaseGDL* p0=e->GetParDefined( 0);
 	    BaseGDL* p1=e->GetParDefined( 1);
 
@@ -1013,55 +1020,10 @@ DULong SHAH0[] = {
 }
 		return res;
 	      }
-	  }
-	else
-	  {
-            // SA: see tracker item 3151760 
-	    BaseGDL* p0 = e->GetParDefined( 0);
-            if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) 
-	    {
-	      e->SetPtrToReturnValue( &e->GetPar(0));
-	      return p0;
-	    }
-	    return p0->Convert2( ComplexGDL::t, BaseGDL::COPY);
-	  }
-      }
-    else // COMPLEX( expr, offs, dim1,..,dim8)
-      {
-	BaseGDL* p0 = e->GetParDefined( 0);
-	// *** WRONG: with offs data is converted bytewise
-	Float* p0Float = static_cast<Float*>(p0->Convert2( Float::t,BaseGDL::COPY));
-	Guard<Float> p0FloatGuard(p0Float);
-
-	DLong offs;
-	e->AssureLongScalarPar( 1, offs);
-      
-	dimension dim;
-	arr( e, dim, 2);
-
-	SizeT nElCreate=dim.NDimElements();
-	
-	SizeT nElSource=p0->N_Elements();
-      
-	if( (offs+2*nElCreate) > nElSource)
-	  e->Throw( "Specified offset to"
-		    " array is out of range: "+e->GetParString(0));
-	
-	ComplexGDL* res=new ComplexGDL( dim, BaseGDL::NOZERO);
-
-// #pragma omp parallel if (nElCreate >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElCreate))
-{
-// #pragma omp for
-	for( SizeT i=0; i<nElCreate; i++)
-	  {
-	    SizeT srcIx=2*i+offs;
-	    (*res)[i]=Complex( (*p0Float)[srcIx], (*p0Float)[srcIx+1]);
-	  }
-}	
-	return res;
-      }
   }
 
+// JAdZ 20150506: New functions below
+/*BaseGDL* complex_fun( EnvT* e)
 BaseGDL* complex_fun( EnvT* e)
 {
   if (e->KeywordSet("DOUBLE")) {
@@ -1074,6 +1036,8 @@ BaseGDL* dcomplex_fun( EnvT* e)
 {
   return complex_fun_template< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
 }
+*/
+// END JAdZ 20150506
 
   template< class TargetClass>
   BaseGDL* type_fun( EnvT* e)
@@ -1170,6 +1134,37 @@ BaseGDL* dcomplex_fun( EnvT* e)
   {
     return type_fun<DDoubleGDL>( e);
   }
+// JAdZ 20150506: I defined complex_fun and dcomplex_fun here instead, based on
+//                complex_fun_template_twopar when nParam=2
+  BaseGDL* complex_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1);
+	if( nParam == 2)
+	{
+		if (e->KeywordSet("DOUBLE")) {
+			return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
+		} else {
+			return complex_fun_template_twopar< DComplexGDL, DComplex, DFloatGDL>( e);
+		}      
+	}
+	else
+	{
+		return type_fun<DComplexGDL>( e);
+	}
+  }
+  BaseGDL* dcomplex_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1);
+	if( nParam == 2)
+	{
+		return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
+	}
+	else
+	{
+		return type_fun<DComplexDblGDL>( e);
+	}
+  }
+// END JAdZ 20150506
   // STRING function behaves different
   BaseGDL* string_fun( EnvT* e)
   {
