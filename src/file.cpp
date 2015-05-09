@@ -838,7 +838,7 @@ namespace lib {
 		    }
 		else
               fL.push_back( root + entryStr);
-		if(onlyDir) cout << " onlyDir=T:"<<testDir;
+		if(debug && onlyDir) cout << " onlyDir=T:"<<testDir;
             }
             }
       }
