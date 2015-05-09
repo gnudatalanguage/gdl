@@ -921,6 +921,7 @@ int get_suggested_omp_num_threads() {
 
 
 #elif defined(_WIN32)
+#if 0
   //cout<<"get_suggested_omp_num_threads(): is windows"<<endl;
   iff= _popen("wmic cpu get loadpercentage|more +1", "r");
   if (!iff)
@@ -944,7 +945,9 @@ int get_suggested_omp_num_threads() {
   }
   suggested_num_threads=nbofproc-(int)(avload*((float)nbofproc/100)+0.5);
   return suggested_num_threads;
-
+#elif 1
+   return nbofproc+2;
+#endif
 #else 
   cout<<"Can't define your OS"<<endl;
   return default_num_threads;
