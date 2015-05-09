@@ -226,15 +226,16 @@ namespace lib {
 //        ArrayGuard<char> stGuard( st);
        const char *format="%a %h %d %T %Y";//my IDL date format.
        DStringGDL *S;
-
+#ifdef _WIN32
+	S = new DStringGDL(asctime(tstruct));
+#else
        SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
 
        if(res != 0)
          S=new DStringGDL(st);
        else
          S=new DStringGDL("");
-
-       //delete st; should have been delete[]
+#endif
 
        return S;
       }

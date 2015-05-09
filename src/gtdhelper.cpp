@@ -4,7 +4,13 @@
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
   FILETIME ft;
-  unsigned __int64 tmpres = 0;
+  union {
+  struct {
+      unsigned long Low;
+      unsigned long High;
+      } u;
+  unsigned __int64 tmpres;
+  };
   static int tzflag;
 
   if (NULL != tv)
@@ -13,14 +19,13 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     GetSystemTimeAsFileTime(&ft);
 
     // Make it an unsigned 64 bit
-    tmpres |= ft.dwHighDateTime;
-    tmpres <<= 32;
-    tmpres |= ft.dwLowDateTime;
+    u.High = ft.dwHighDateTime;
+    u.Low  = ft.dwLowDateTime;
     // 100nano -> 1micro,
     // and convert into epoch time
-    tmpres -= DELTA_EPOCH_IN_MICROSECS;    
+    tmpres = tmpres/10UL - DELTA_EPOCH_IN_MICROSECS; 
 
-    // set sec, micorsec
+    // set sec, microsec
     tv->tv_sec = (tmpres / 1000000UL);
     tv->tv_usec = (tmpres % 1000000UL);
   }
