@@ -41,6 +41,7 @@
 ;      * managing input files list
 ;   - 25/03/2014: Alain
 ;      * pb when "~" in filename
+;   - 11/05/2015: Alain : better managment of Directories !
 ;
 ;-
 ; LICENCE:
@@ -72,6 +73,9 @@ for ii=0, N_ELEMENTS(filenames)-1 do begin
     filename=filenames[ii]
     if (FILE_TEST(filename) EQ 0) then begin
        MESSAGE, 'Error opening file. File: '+filename
+    endif
+    if (FILE_TEST(filename,/directory) EQ 1) then begin
+       MESSAGE, 'Unable to open directory. File: '+filename
     endif
     ;;
     ;; subsituting "~" when at first place
