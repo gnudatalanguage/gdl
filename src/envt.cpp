@@ -1113,7 +1113,7 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx)
       DObjGDL* oRef = static_cast<DObjGDL*>(p1);
       DObj objIx;
       if( !oRef->Scalar( objIx))
-	Throw( "Parameter must be a scalar in this context: "+
+	Throw( "Parameter must be a scalar or 1 element array in this context: "+
 	       GetParString(pIx));
       if( objIx == 0)
 	Throw( "Unable to invoke method"
@@ -1470,7 +1470,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
   DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
   Guard<DLong64GDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    Throw("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
@@ -1479,7 +1479,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
   DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
   Guard<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    Throw("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
@@ -1526,7 +1526,7 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
   Guard<DLong64GDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    Throw("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
@@ -1541,7 +1541,7 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
   Guard<DLongGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    Throw("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
 
@@ -1551,7 +1551,7 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
   DDoubleGDL* lp = static_cast<DDoubleGDL*>(p->Convert2( GDL_DOUBLE, BaseGDL::COPY));
   Guard<DDoubleGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    Throw("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
@@ -1583,7 +1583,7 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
   Guard<DDoubleGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    Throw("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
 
@@ -1594,7 +1594,7 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
   DFloatGDL* lp = static_cast<DFloatGDL*>(p->Convert2( GDL_FLOAT, BaseGDL::COPY));
   Guard<DFloatGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    Throw("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
@@ -1626,7 +1626,7 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
   Guard<DFloatGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    Throw("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
 
@@ -1637,7 +1637,7 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
   DStringGDL* lp = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
   Guard<DStringGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    Throw("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
@@ -1667,7 +1667,7 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
   Guard<DStringGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    Throw("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
 

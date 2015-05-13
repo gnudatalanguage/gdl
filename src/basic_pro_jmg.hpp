@@ -28,7 +28,7 @@ namespace lib {
 
   void point_lun( EnvT* e);
   void linkimage( EnvT* e);
-  void wait( EnvT* e);
+  void wait_pro( EnvT* e);
 
   void kwtest( EnvT* e);
 

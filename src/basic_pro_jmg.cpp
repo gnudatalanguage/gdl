@@ -178,7 +178,7 @@ namespace lib {
     }
   }
 
-  void wait( EnvT* e) 
+  void wait_pro( EnvT* e) 
   { 
     e->NParam( 1);//, "WAIT");
 
@@ -187,7 +187,7 @@ namespace lib {
 
     if( waittime < 0)
       throw GDLException( e->CallingNode(), 
-  			  "WAIT:  Argument must be non-negative"
+  			  "WAIT: Argument must be non-negative"
 			  +e->GetParString( 0));
 
 #ifdef _WIN32

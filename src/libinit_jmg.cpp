@@ -217,7 +217,7 @@ void LibInit_jmg()
 
   new DLibPro(lib::linkimage,string("LINKIMAGE"),4);
 
-  new DLibPro(lib::wait,string("WAIT"),1);
+  new DLibPro(lib::wait_pro,string("WAIT"),1);
 
 #if defined(USE_HDF)
   new DLibFunRetNew(lib::hdf_ishdf,string("HDF_ISHDF"),1);
