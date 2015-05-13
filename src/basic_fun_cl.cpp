@@ -164,27 +164,39 @@ namespace lib {
       //1 parameter, 
       //      1->current UTC time seconds
       //      default
-      DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
-      v_guard.Reset( v); //  e->Guard(v);
+      DLong v=0; 
+      e->AssureLongScalarPar(0,v);
 
-      if ( (*v)[0] == 1) //->EqualNoDelete( static_cDIntGDL(1)))
-        ret_seconds=true;
-    } else if (nParam == 2) {
+      //    DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
+      //v_guard.Reset( v); //  e->Guard(v);
+      //if ( (*v)[0] == 1) //->EqualNoDelete( static_cDIntGDL(1)))
+
+      // AC 15/05/14 : in fact, the range goes in ]-1,1[
+      if ((v <= -1) || (v >= 1)) ret_seconds=true;
+
+    }
+
+    if (nParam == 2) {
       if (e->KeywordSet("JULIAN")) e->Throw("Conflicting keywords.");
 
       //2 parameters
       //if the first param is 0, return the date of the second arg
       //if the first param is 1, return the 'double' of the second arg
-      DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
-      v_guard.Reset( v1); //  e->Guard(v1);
-      DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(GDL_DOUBLE,BaseGDL::COPY));
+      DLong v1=0; 
+      e->AssureLongScalarPar(0,v1);
+      DDouble v2=0.0; 
+      e->AssureDoubleScalarPar(1,v2);
 
-      if( (*v1)[0] == 0) { //v1->EqualNoDelete( DIntGDL(0))) { //0, read the second argument as time_t;
-        tval.tv_sec = static_cast<long int>((*v2)[0]);
-        tval.tv_usec = static_cast<long int>(((*v2)[0]-tval.tv_sec)*1e+6);
-        delete v2; // we delete v2 here as it is not guarded. Avoids a "new" in the following "else"
+      //     DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
+      //v_guard.Reset( v1); //  e->Guard(v1);
+      //DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(GDL_DOUBLE,BaseGDL::COPY));
+
+      if (v1 == 0) { //v1->EqualNoDelete( DIntGDL(0))) { //0, read the second argument as time_t;
+	tval.tv_sec = static_cast<long int>(v2);
+        tval.tv_usec = static_cast<long int>((v2-tval.tv_sec)*1e+6);
+        //delete v2; // we delete v2 here as it is not guarded. Avoids a "new" in the following "else"
       } else { //1
-        return v2;
+        return new DDoubleGDL(v2);
       }
     }
 
