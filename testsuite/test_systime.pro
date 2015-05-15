@@ -1,7 +1,8 @@
 ;
 ; Alain Coulais and Sylwester Arabas, during the GHM 2011 in Paris.
-; Copyright 2011
-; This code is under GNU GPL v2 or any later.
+; Copyright 2011. This code is under GNU GPL v2 or any later.
+;
+; * TEST_SYSTIME_LOCALE
 ;
 ; In some cases, when external libraries are compiled with
 ; non "C" locales, this can affect internal procedures in GDL ...
@@ -11,14 +12,31 @@
 ; This test is not perfect because internal locale in GDL are changed
 ; by a call to LOCALE_GET().
 ;
-pro TEST_SYSTIME, help=help, test=test, no_exit=no_exit, verbose=verbose
+; * TEST_SYSTIME_ZERO
+;
+; In fact the input in range inside ]-1,1[ is used as 0 ...
+;
+; -----------------------------------------------
+;
+pro ADD_ERRORS, nb_errors, message
+;
+print, 'Error on operation : '+message
+nb_errors=nb_errors+1
+;
+end
+;
+; -----------------------------------------------
+;
+pro TEST_SYSTIME_LOCALE, cumul_errors, help=help, test=test, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_SYSTIME, help=help, test=test, no_exit=no_exit, verbose=verbose'
-    print, ''
-    print, 'we test whether we use C locale, as internaly needed in GDL'
-    return
+   print, 'pro TEST_SYSTIME_LOCALE, nb_pbs_locale, help=help, test=test, verbose=verbose'
+   print, ''
+   print, 'we test whether we use C locale, as internaly needed in GDL'
+   return
 endif
+;
+nb_pbs_locale=0
 ;
 ; same formating in Unix/Linux/OSX "date"
 ; than IDL/GDL internal SYSTIME
@@ -40,7 +58,8 @@ debut_brut=STRMID(resu,0,7)
 ;
 if (debut_GDL NE debut_C) then begin
    MESSAGE, /continue, 'Problem with LOCALE in GDL'
-   if ~KEYWORD_SET(no_exit) then EXIT, status=1
+   nb_pbs_locale=1
+   ;;if ~KEYWORD_SET(no_exit) then EXIT, status=1
 endif
 ;
 ; this test is not pertinent for GDL,
@@ -53,12 +72,164 @@ endif
 ;endif
 ;
 if KEYWORD_SET(verbose) then begin
-   print, 'first two Lines should be equal, except at second diff !' 
+   print, 'first two Lines should be equal, except may be in the "second" value !' 
    print, 'resu_GDL     : ', resu_GDL
    print, 'resu_LC_ALL  : ', resu_LC_ALL
    print, 'resu (no LC) : ', resu
 endif
 ;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_LOCALE", nb_pbs_locale, short=short
+;
+if ISA(cumul_errors) then cumul_errors=nb_pbs_locale+cumul_errors else cumul_errors=nb_pbs_locale
+;
 if KEYWORD_SET(test) then STOP
 ;
 end
+;
+; -----------------------------------------------
+;
+pro TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test, help=help
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_SYSTIME_LOCALE, nb_pbs_locale, help=help, test=test, verbose=verbose'
+    print, ''
+    print, 'we test whether we use C locale, as internaly needed in GDL'
+    return
+ endif
+;
+; should return something like : Wed May 13 16:19:34 2015
+;
+nb_pbs_zero=0
+;
+resu_vide=SYSTIME()
+;
+; let's say all we be done in less than 5 sec. ...
+; do we need a delay ?
+while (STRMID(resu_vide,17,2) GT 58) do begin   
+   wait, 1
+   resu_vide=SYSTIME()
+endwhile
+;
+prefix=STRMID(resu_vide,0,16)
+;
+; various inputs need to be tested ...
+;
+resu_zero=SYSTIME(0)
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1 i'
+resu_zero=SYSTIME(0.0)
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1 f'
+resu_zero=SYSTIME(0.0d)
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1 d'
+resu_zero=SYSTIME([0])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1 i a'
+resu_zero=SYSTIME([0.0])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1 f a'
+resu_zero=SYSTIME(0.9)
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1+ f'
+resu_zero=SYSTIME(-0.9)
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1- f'
+resu_zero=SYSTIME([0.9])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1+ a'
+resu_zero=SYSTIME([-0.9])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 1- a'
+;
+; testing string conversion
+;
+resu_zero=SYSTIME('0.0')
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2'
+resu_zero=SYSTIME('0.9')
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2+'
+resu_zero=SYSTIME('-0.9')
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2-'
+resu_zero=SYSTIME(['0.0'])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2 a'
+resu_zero=SYSTIME(['0.9'])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2+ a'
+resu_zero=SYSTIME(['-0.9'])
+if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2- a'
+;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_ZERO", nb_pbs_zero, short=short
+;
+if ISA(cumul_errors) then cumul_errors=nb_pbs_zero+cumul_errors else cumul_errors=nb_pbs_zero
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ----------------------------------------------------
+;
+pro TEST_SYSTIME_EPOCH, cumul_errors, verbose=verbose, test=test, help=help
+;
+nb_pbs_epoch=0
+;
+; Unix billennium
+expected='Sun Sep 09 01:46:40 2001'
+value=SYSTIME(0,1000000000,/utc)
+if (expected NE value) then ADD_ERRORS, nb_pbs_epoch, 'Unix billennium conversion failed !'
+;
+; we do have a Float/Double diff here:
+; SYSTIME(0,1234567891,/utc) == SYSTIME(0,1234567891.0d,/utc) != SYSTIME(0,1234567891.0,/utc)
+;
+expected='Fri Feb 13 23:31:30 2009'
+value=SYSTIME(0,1234567890,/utc)
+if (expected NE value) then ADD_ERRORS, nb_pbs_epoch, 'Decimal Row Keyboard conversion failed !'
+;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_EPOCH", nb_pbs_epoch, short=short
+;
+if ISA(cumul_errors) then cumul_errors=nb_pbs_epoch+cumul_errors else cumul_errors=nb_pbs_epoch
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+; ----------------------------------------------------
+;
+pro TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test, help=help
+;
+; not ready now, other pbs found ...
+MESSAGE,/continue, 'Not finished, please contributed !'
+;
+nb_pbs_julian=0
+;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_JULIAN", nb_pbs_julian, short=short
+;
+if ISA(cumul_errors) then cumul_errors=nb_pbs_julian+cumul_errors else cumul_errors=nb_pbs_julian
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ----------------------------------------------------
+;
+pro TEST_SYSTIME, help=help, test=test, no_exit=no_exit, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_SYSTIME, help=help, test=test, no_exit=no_exit, verbose=verbose'
+    print, ''
+    print, 'few tests related to SYSTIME : locale, values ...'
+    return
+endif
+;
+cumul_errors=0
+;
+TEST_SYSTIME_LOCALE, cumul_errors, verbose=verbose, test=test
+;
+TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test
+;
+TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test
+;
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME", cumul_errors
+;
+; if /debug OR /test nodes, we don't want to exit
+if (cumul_errors GT 0) then begin
+    if ~KEYWORD_SET(verbose) then MESSAGE, /continue, 're-run with /verbose for details'
+    if ~(KEYWORD_SET(test) or KEYWORD_SET(no_exit)) then EXIT, status=1
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+
