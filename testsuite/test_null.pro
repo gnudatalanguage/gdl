@@ -143,6 +143,7 @@ endfor
 ;
 ; final message
 ;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
 BANNER_FOR_TESTSUITE, 'TEST_NULL_LOGICAL', total_errors, short=short
 ;
 if ISA(extern_errors) then extern_errors=total_errors+extern_errors else extern_errors=total_errors
@@ -153,10 +154,10 @@ end
 ;
 ; --------------------------------------------------
 ;
-pro TEST_NULL_ARRAY, total_errors, help=help, test=test, verbose=verbose
+pro TEST_NULL_ARRAY, extern_errors, help=help, test=test, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_NULL_ARRAY, help=help, test=test, verbose=verbose'
+    print, 'pro TEST_NULL_ARRAY, extern_errors, help=help, test=test, verbose=verbose'
     return
 endif
 ;
@@ -186,6 +187,7 @@ INCREMENT_ERRORS, total_errors, nb_errors ;, verbose=verbose
 ;
 ; final message
 ;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
 BANNER_FOR_TESTSUITE, 'TEST_NULL_ARRAY', total_errors, short=short
 ;
 if ISA(extern_errors) then extern_errors=total_errors+extern_errors else extern_errors=total_errors
@@ -204,7 +206,6 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 total_errors=0
-nb_errors=0
 ;
 TEST_NULL_LOGICAL, total_errors, help=help, test=test, verbose=verbose
 ;
