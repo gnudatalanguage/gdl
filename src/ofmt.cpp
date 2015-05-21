@@ -45,8 +45,8 @@ std::string binstr( Ty v, int w)
     return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
   } else {
     std::bitset<64>* me=new bitset<64>(v);
-    if (64-first > w) return allstars.substr(0,w); else
     for (SizeT i=0; i<64; ++i) if (me->test(63-i)) {first=i; break;}
+    if (64-first > w) return allstars.substr(0,w); else
     return me->to_string<char,char_traits<char>,allocator<char> >().substr(first);
  }
 }

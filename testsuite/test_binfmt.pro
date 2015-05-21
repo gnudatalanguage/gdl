@@ -26,8 +26,8 @@ pro test_binfmt
     ptr_new(-1), ptr_new('(b)'), ptr_new('1111111111111111'), $
     ptr_new(1l), ptr_new('(b032)'), ptr_new('00000000000000000000000000000001'), $
     ptr_new(1ll), ptr_new('(b1)'), ptr_new('1'), $
-    ;ptr_new(-1ll), ptr_new('(b1)'), ptr_new('*'), $
-    ;ptr_new(1), ptr_new('(b0)'), ptr_new('1'), $
+    ptr_new(-1ll), ptr_new('(b1)'), ptr_new('*'), $
+    ptr_new(1), ptr_new('(b0)'), ptr_new('1'), $
     ptr_new(255b), ptr_new('(b)'), ptr_new('11111111'), $
     ptr_new(-255ll), ptr_new('(B)'), ptr_new('1111111111111111111111111111111111111111111111111111111100000001') $
   ]
