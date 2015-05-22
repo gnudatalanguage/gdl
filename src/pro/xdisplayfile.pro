@@ -7,8 +7,11 @@
 ; CATEGORY: FILE (IO)
 ;
 ; CALLING SEQUENCE:
-;     xdisplayfile, filename, block=block, done_button=done_button, editable=editable, font=font, group=group, $
-;                   grow_to_screen=grow_to_screen, height=height, modal=modal, return_id=return_id, text=text, $
+;
+;     XDISPLAYFILE, filename, block=block, done_button=done_button,
+;                   editable=editable, font=font, group=group,
+;                   grow_to_screen=grow_to_screen, height=height, modal=modal,
+;                   return_id=return_id, text=text, $
 ;                   title=title, width=width, wtext=wtext
 ;
 ; KEYWORD PARAMETERS:
@@ -31,8 +34,10 @@
 ;     wtext          : returns widget id of widget_text.  
 ;
 ; TODO:
-;         Currently xdisplayfile does not automatically resize widget_text.
+;         * Currently XDISPLAYFILE does not automatically resize widget_text.
 ;         grow_to_screen is not implemented yet.
+;         * no new lines can be added using /Editable
+;         * binary files cannot be displayed ...
 ;
 ; PROCEDURE:
 ;         Use widgets to show file contents
@@ -43,6 +48,8 @@
 ;
 ; MODIFICATION HISTORY:
 ;  Written by: Jeongbin Park 2015-04-30
+;  AC 150506: Adding working keyword Editable, ok for basic input on
+;  same line
 ; 
 ;-
 ; LICENCE:
@@ -53,101 +60,137 @@
 ;
 ;-
 ;
-pro xdisplayfile_save, filename, wtop
-  WIDGET_CONTROL, WIDGET_INFO(wtop, FIND_BY_UNAME='text'), GET_VALUE=text
-  OPENW, lun, filename, /GET_LUN
-  PRINTF, lun, text
-  FREE_LUN, lun
+pro XDISPLAYFILE_SAVE, filename, wtop
+;
+WIDGET_CONTROL, WIDGET_INFO(wtop, FIND_BY_UNAME='text'), GET_VALUE=text
+OPENW, lun, filename, /GET_LUN
+PRINTF, lun, text
+FREE_LUN, lun
+;
 end
-
-pro xdisplayfile_event, ev
-  WIDGET_CONTROL, ev.ID, GET_UVALUE=uval
-  case uval of
+;
+pro XDISPLAYFILE_EVENT, ev
+;
+WIDGET_CONTROL, ev.ID, GET_UVALUE=uval
+case uval of
     'done': begin
-      if ev.SELECT then WIDGET_CONTROL, ev.TOP, /DESTROY
+        if ev.SELECT then WIDGET_CONTROL, ev.TOP, /DESTROY
     end
     'saveas': begin
-      if ev.SELECT then begin
-        filename = dialog_pickfile(/WRITE)
-        xdisplayfile_save, filename, ev.TOP
-      endif
+        if ev.SELECT then begin
+            filename = dialog_pickfile(/WRITE)
+            xdisplayfile_save, filename, ev.TOP
+        endif
     end
     else: begin
-      if ev.SELECT then begin
-        case STRMID(uval, 0, 2) of
-          's_': xdisplayfile_save, STRMID(uval, 2), ev.TOP
-          else:
-        endcase
-      endif
+        if ev.SELECT then begin
+            case STRMID(uval, 0, 2) of
+                's_': xdisplayfile_save, STRMID(uval, 2), ev.TOP
+                else:
+            endcase
+        endif
     end
-  endcase
+endcase
 end
-
+;
 ; TODO: grow_to_screen
-pro xdisplayfile, filename, block=block, done_button=done_button, editable=editable, font=font, group=group, $
-                  grow_to_screen=grow_to_screen, height=height, modal=modal, return_id=return_id, text=text, $
-                  title=title, width=width, wtext=wtext
-  if NOT(KEYWORD_SET(width)) then width = 80
-  if NOT(KEYWORD_SET(height)) then height = 24
-  no_block = 0
-  if NOT(KEYWORD_SET(block)) then no_block = 1
-  if NOT(KEYWORD_SET(title)) then title = 'GDL'
-  
-  if KEYWORD_SET(modal) AND NOT(KEYWORD_SET(group)) then group = WIDGET_BASE()
-  if KEYWORD_SET(modal) OR KEYWORD_SET(group) then begin
+;
+pro XDISPLAYFILE, filename, block=block, done_button=done_button, $
+                  editable=editable, font=font, group=group, $
+                  grow_to_screen=grow_to_screen, height=height, $
+                  modal=modal, return_id=return_id, text=text, $
+                  title=title, width=width, wtext=wtext, $
+                  help=help, test=test, debug=debug
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro XDISPLAYFILE, filename, block=block, done_button=done_button, $'
+    print, '                  editable=editable, font=font, group=group, $'
+    print, '                  grow_to_screen=grow_to_screen, height=height, $'
+    print, '                  modal=modal, return_id=return_id, text=text, $'
+    print, '                  title=title, width=width, wtext=wtext, $'
+    print, '                  help=help, test=test, debug=debug'
+    return
+endif
+;
+if N_PARAMS() EQ 0 then MESSAGE, 'Missing Filename !'
+;
+if (FILE_TEST(filename) EQ 0) then begin
+    res=DIALOG_MESSAGE('File <<'+filename+'>> not found, continue ? ',/question)
+    if (res EQ 'No') then return
+endif
+if (FILE_TEST(filename,/directory) EQ 1) then begin
+    res=DIALOG_MESSAGE('This is a Directory !',/error)
+    if (res EQ 'No') then return
+endif
+;
+if NOT(KEYWORD_SET(width)) then width = 80
+if NOT(KEYWORD_SET(height)) then height = 24
+no_block = 0
+if NOT(KEYWORD_SET(block)) then no_block = 1
+if NOT(KEYWORD_SET(title)) then title = 'GDL'
+
+if KEYWORD_SET(modal) AND NOT(KEYWORD_SET(group)) then group = WIDGET_BASE()
+if KEYWORD_SET(modal) OR KEYWORD_SET(group) then begin
     if KEYWORD_SET(modal) then begin
-      base = WIDGET_BASE(MBAR=bar, GROUP_LEADER=group, TITLE=title, /MODAL)
+        base = WIDGET_BASE(MBAR=bar, GROUP_LEADER=group, TITLE=title, /MODAL)
     endif else begin
-      base = WIDGET_BASE(MBAR=bar, GROUP_LEADER=group, TITLE=title)
+        base = WIDGET_BASE(MBAR=bar, GROUP_LEADER=group, TITLE=title)
     endelse
-  endif else begin
+endif else begin
     base = WIDGET_BASE(MBAR=bar, TITLE=title)
-  endelse
-  
-  menu = WIDGET_BUTTON(bar, VALUE='File', /MENU)
-  if KEYWORD_SET(font) then begin
-    wtext = WIDGET_TEXT(base, XSIZE=width, UNAME='text', YSIZE=height, FONT=font, /SCROLL)
-  endif else begin
-    wtext = WIDGET_TEXT(base, XSIZE=width, UNAME='text', YSIZE=height, /SCROLL)
-  endelse
-  
-  if KEYWORD_SET(text) then begin
+endelse
+
+menu = WIDGET_BUTTON(bar, VALUE='File', /MENU)
+if KEYWORD_SET(font) then begin
+    wtext = WIDGET_TEXT(base, editable=editable, XSIZE=width, UNAME='text', $
+                        YSIZE=height, FONT=font, /SCROLL)
+endif else begin
+    wtext = WIDGET_TEXT(base, editable=editable, XSIZE=width, UNAME='text', $
+                        YSIZE=height, /SCROLL)
+endelse
+;
+if KEYWORD_SET(text) then begin
     WIDGET_CONTROL, wtext, SET_VALUE=text
     if NOT(KEYWORD_SET(done_button)) then begin
-      done_button = 'Done with XDisplayFile'
+        done_button = 'Done with XDisplayFile'
     endif
-  endif else begin
-  	if FILE_TEST(filename, /READ) then begin
-  	  OPENR, lun, filename, /GET_LUN
-      line = ''
-      while not EOF(lun) do begin
-        READF, lun, line
-        WIDGET_CONTROL, wtext, SET_VALUE=line, /APPEND
-      endwhile
-      FREE_LUN, lun
+endif else begin
+    if FILE_TEST(filename, /READ) then begin        
+        OPENR, lun, filename, /GET_LUN
+        line = ''
+        while not EOF(lun) do begin
+            READF, lun, line
+            if KEYWORD_SET(debug) then print, STRLEN(line)
+            WIDGET_CONTROL, wtext, SET_VALUE=line, /APPEND
+        endwhile
+        FREE_LUN, lun
     endif else begin
-      ;WIDGET_CONTROL, wtext, SET_VALUE='FILE_LINES: Error opening file.              File: ' + filename, /APPEND
-      WIDGET_CONTROL, wtext, SET_VALUE='Unable to display ' + filename, /APPEND
-  	endelse
+        ;;WIDGET_CONTROL, wtext, SET_VALUE='FILE_LINES: Error opening file.   
+        ;; File: ' + filename, /APPEND
+        WIDGET_CONTROL, wtext, SET_VALUE='Unable to display ' + filename, /APPEND
+    endelse
     if NOT(KEYWORD_SET(done_button)) then begin
-      done_button = 'Done with ' + filename
+        done_button = 'Done with ' + filename
     endif
-  endelse
-  
-  if KEYWORD_SET(editable) then begin
+endelse
+;
+if KEYWORD_SET(editable) then begin
     button = WIDGET_BUTTON(menu, VALUE='Save', UVALUE='s_' + filename)
     button = WIDGET_BUTTON(menu, VALUE='Save As...', UVALUE='saveas')
     button = WIDGET_BUTTON(menu, VALUE=done_button, UVALUE='done', /SEPARATOR)
-  endif else begin
+endif else begin
     button = WIDGET_BUTTON(menu, VALUE=done_button, UVALUE='done')
-  endelse
-  
-  WIDGET_CONTROL, base, /REALIZE
-  if KEYWORD_SET(modal) OR KEYWORD_SET(group) then begin
+endelse
+;
+WIDGET_CONTROL, base, /REALIZE
+if KEYWORD_SET(modal) OR KEYWORD_SET(group) then begin
     XMANAGER, 'xdisplayfile', base, NO_BLOCK=no_block, GROUP_LEADER=group
-  endif else begin
+endif else begin
     XMANAGER, 'xdisplayfile', base, NO_BLOCK=no_block
-  endelse
-  
-  return_id = base
+endelse
+;
+return_id = base
+;
 end
