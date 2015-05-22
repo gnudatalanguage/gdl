@@ -197,8 +197,12 @@ endif else begin
       endif else begin
          kindof='--list --column="selection" "Cancel" "OK"'
       endelse
-   endif else begin
-      kindof='--error'
+   endif else begin 
+      if KEYWORD_SET(error) then begin
+         kindof='--error'    
+      endif else begin
+         kindof='--info'
+      endelse
    endelse
 endelse
 ;
