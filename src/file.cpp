@@ -1711,7 +1711,7 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 #endif
         if( symlink && !isASymLink ) 	  continue;
 
-	if( directory && S_ISDIR(statStruct.st_mode) == 0) 
+	if( directory && ( S_ISDIR(statStruct.st_mode) || S_ISDIR(statlink.st_mode) ) == 0) 
 	  continue;
 
 	if( regular && S_ISREG(statStruct.st_mode) == 0) 

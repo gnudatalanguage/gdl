@@ -92,6 +92,7 @@ TESTS = \
   test_file_delete.pro \
   test_file_dirname.pro \
   test_file_search.pro \
+  test_file_test.pro \
   test_file_which.pro \
   test_finite.pro \
   test_fix.pro \
