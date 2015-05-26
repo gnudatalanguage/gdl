@@ -1,5 +1,5 @@
 ;
-; various basics tests on FILE_TEST()
+; various basic tests on FILE_TEST()
 ; written by NATCHKEBIA Ilia, May 2015
 ; under GNU GPL v2 or any later
 ;
@@ -30,19 +30,19 @@ SPAWN, 'mkdir '+tdir
 ;Test if exists
 if FILE_TEST(tdir) eq 0 then ADD_ERRORS, total_errors, 'Dir. not detected'
 ;Test if it is directory
-if FILE_TEST(tdir,/dir) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tdir,/dir) eq 0 then ADD_ERRORS, total_errors, 'Dir. not considered as Dir'
 ;Test if it is symlink
-if FILE_TEST(tdir,/sym) eq 1 then total_errors = total_errors + 1
+if FILE_TEST(tdir,/sym) eq 1 then ADD_ERRORS, total_errors, 'Dir. is considered as symlink'
 ;
 ;Create test folder symlink
 tdirsym='testSymlinkDirectory_for_FILE_TEST'
 SPAWN, 'ln -s '+tdir+" "+tdirsym
 ;Test if it exists
-if FILE_TEST(tdirsym) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tdirsym) eq 0 then ADD_ERRORS, total_errors, 'symlink of Dir. not detected'
 ;Test if it is symlink of directory
-if FILE_TEST(tdirsym,/dir) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tdirsym,/dir) eq 0 then ADD_ERRORS, total_errors, 'symlink of Dir. not considered as Dir.'
 ;Test if it is symlink
-if FILE_TEST(tdirsym,/sym) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tdirsym,/sym) eq 0 then ADD_ERRORS, total_errors, 'symlink is not considered as symlink'
 ;Remove test directory and symlink
 SPAWN, 'rm -r '+tdir
 SPAWN, 'rm '+tdirsym
@@ -52,21 +52,21 @@ SPAWN, 'rm '+tdirsym
 tfile='tfile_for_FILE_TEST'
 SPAWN, 'touch '+tfile
 ;Test if it exists
-if FILE_TEST(tfile) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tfile) eq 0 then ADD_ERRORS, total_errors, 'file not detected'
 ;Test if it is directory
-if FILE_TEST(tfile,/dir) eq 1 then total_errors = total_errors + 1
+if FILE_TEST(tfile,/dir) eq 1 then ADD_ERRORS, total_errors, 'file is considered as Dir.'
 ;Test if it is symlink
-if FILE_TEST(tfile,/sym) eq 1 then total_errors = total_errors + 1
+if FILE_TEST(tfile,/sym) eq 1 then ADD_ERRORS, total_errors, 'file is considered as symlink'
 ;
 ;Create test file symlink
 tfilesym='testSymlinkFile_for_FILE_TEST'
 SPAWN, 'ln -s '+tfile+" "+tfilesym
 ;Test if it exists
-if FILE_TEST(tfilesym) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tfilesym) eq 0 then ADD_ERRORS, total_errors, 'symlink of file not detected'
 ;Test if it is symlink of directory
-if FILE_TEST(tfilesym,/dir) eq 1 then total_errors = total_errors + 1
+if FILE_TEST(tfilesym,/dir) eq 1 then ADD_ERRORS, total_errors, 'symlink of file is considered as Dir.'
 ;Test if it is symlink
-if FILE_TEST(tfilesym,/sym) eq 0 then total_errors = total_errors + 1
+if FILE_TEST(tfilesym,/sym) eq 0 then ADD_ERRORS, total_errors, 'symlink of file is not considered as symlink'
 ;Remove test file and symlink
 SPAWN, 'rm '+tfile
 SPAWN, 'rm '+tfilesym
