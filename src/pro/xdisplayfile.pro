@@ -116,7 +116,7 @@ endif
 ;
 if N_PARAMS() EQ 0 then MESSAGE, 'Missing Filename !'
 ;
-if (FILE_TEST(filename) EQ 0) then begin
+if (STRCMP(filename, "") EQ 0 AND FILE_TEST(filename) EQ 0) then begin
     res=DIALOG_MESSAGE('File <<'+filename+'>> not found, continue ? ',/question)
     if (res EQ 'No') then return
 endif
