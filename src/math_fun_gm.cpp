@@ -134,27 +134,20 @@
   DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
   									\
   DDoubleGDL* res;							\
-  if (nElp0 == 1 && nElp1 == 1)						\
-  {                                                                     \
-    if (p0->Rank() == 0 && p1->Rank() == 0)                             \
-      res = new DDoubleGDL(BaseGDL::NOZERO);				\
-    else                                                                \
-      res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
-  }                                                                     \
-  else if (nElp0 > 1 && nElp1 == 1)					\
-    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
-  else if (nElp0 == 1 && nElp1 > 1)					\
+									\
+  if (p0->Rank() == 0)							\
     res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-  else if (nElp0 <= nElp1)						\
+  else if (p1->Rank() == 0)						\
     res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else if (p0->N_Elements() > p1->N_Elements())				\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
   else									\
-    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-  									\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
   SizeT nElp = res->N_Elements();					\
+									\
   //cout << "nElp0 : " << nElp0 << std::endl;				\
   //cout << "nElp1 : " << nElp1 << std::endl;				\
   //cout << "nElp  : " << nElp  << std::endl;
-
 
   // Use this macro to convert result in a function with one parameter.
 #define GM_CV1() \
