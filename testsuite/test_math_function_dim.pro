@@ -1,6 +1,7 @@
 ;
 ; Alain C. and Thibaut M.
-; 04 Juillet 2009
+; 04 Juillet 2009, revisited June 1st, 2015 because,
+; at the end, IDL corrected issues in most Math. functions.
 ;
 ; Goal: wide and automatic tests of I/O of math functions in GDL
 ; Do the functions return arrays with good dims ?
@@ -46,23 +47,23 @@ end
 ;
 ; -----------------------------------------
 ;
-pro TEST_MathFunctionsDim, function_name, quiet=quiet, $
-	test=test, help=help
+pro TEST_ONE_MATH_FUNCTION_DIM, function_name, cumul_errors, quiet=quiet, $
+                                test=test, help=help
 ;
-if (N_PARAMS() NE 1) then begin
+if (N_PARAMS() LT 1) then begin
 	print, 'You MUST provide a FUNCTION NAME'
 	help=1
 endif
 ;
 if KEYWORD_SET(help) then begin
-	print, 'pro TEST_MathFunctionsDim, function_name,quiet=quiet, $'
+	print, 'pro TEST_ONE_MATH_FUNCTION_DIM, function_name,quiet=quiet, $'
         print, '                           test=test, help=help'
 	print, ' '
 	print, '"function_name" is a function name (a STRING) like BESELI, VOIGT, ...'
 	return
 endif
 ;
-if KEYWORD_SET(quiet) then print, 'Processing function :',  function_name
+if KEYWORD_SET(quiet) then print, 'Processing function : ',  function_name
 ;
 error=0
 info=STRUPCASE(function_name)+' : Case '
@@ -85,11 +86,12 @@ y=[1.,2,3]
 resu=CALL_FUNCTION(function_name, x, y)
 error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
 ;
+; change in IDL 8.4
 message=info+'[1] vs [3] : '
 x=[1.]
 y=[1.,2,3]
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs N : '
 x=FINDGEN(2,3)+1.
@@ -97,11 +99,12 @@ y=1
 resu=CALL_FUNCTION(function_name, x, y)
 error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
 ;
+; change in IDL 8.4
 message=info+'[2,3] vs [1] : '
 x=FINDGEN(2,3)+1.
 y=[1.]
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs [3] : '
 x=INDGEN(2,3)+1.
@@ -128,19 +131,22 @@ endif else begin
    print, txt+', we have: '+STRING(error)+' ERRORS'
 endelse
 ;
+if ISA(cumul_errors) then cumul_errors=error+cumul_errors else cumul_errors=error
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; -----------------------------------------
 ;
-pro RUN_ALL_TEST_MathFunctionsDim, quiet=quiet, help=help
+pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $
+                            test=test, verbose=verbose, no_exit=no_exit
 ;
 liste=['BESELI','BESELJ','BESELK','BESELY']
 liste=[[liste],'VOIGT','EXPINT','BETA','IGAMMA']
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro RUN_ALL_TEST_MathFunctionsDim, quiet=quiet, help=help'
+   print, 'pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $'
+   print, '                      test=test, verbose=verbose, no_exit=no_exit'
    print, ''
    print, 'This program will run a test suite'
    print, 'for checking the DIMENSIONS of the OUTPUTS'
@@ -151,8 +157,21 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+errors_cumul=0
+;
 for ii=0, N_ELEMENTS(liste)-1 do begin
-   TEST_MATHFUNCTIONSDIM, quiet=quiet, liste[ii]
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=quiet;, $
+;      test=test, verbose=verbose
 endfor
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_MATH_FUNCTION_DIM', errors_cumul
+;
+if ~KEYWORD_SET(verbose) then MESSAGE, /continue, 're-run with /verbose for details'
+
+if (errors_cumul GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
