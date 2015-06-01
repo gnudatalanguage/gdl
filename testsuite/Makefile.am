@@ -114,6 +114,7 @@ TESTS = \
   test_isa.pro \
   test_list.pro \
   test_ludc_lusol.pro \
+  test_math_function_dim.pro \
   test_matrix_multiply.pro \
   test_memory.pro \
   test_modulo.pro \
