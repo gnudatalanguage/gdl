@@ -97,10 +97,34 @@
   //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)			\
   // e->Throw("Complex not implemented (GSL limitation). ");
 
+
+// change by Alain C., June 1st 2015 : IDL 8.4 behavior
 #define GM_DF2()					\
+  							\
+  DDoubleGDL* res;                                      \
+  /*/  cout << p0->Rank() << " " <<p0->Dim() <<" " <<p0->N_Elements() <<endl;*/ \
+  /* //cout << p1->Rank() << " " << p1->Dim()<<" " <<p1->N_Elements() <<endl;*/ \
+									\
+  if (p0->Rank() == 0)							\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  else if (p1->Rank() == 0)						\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else if (p0->N_Elements() > p1->N_Elements())				\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  else									\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  									\
+  /*  cout << res->Rank() << " " << res->Dim()<<" " << res->N_Elements() <<endl;*/ \
+  									\
+  SizeT nElp = res->N_Elements();					\
+  
+#define GM_DF2_OLD()					\
 							\
-  DDoubleGDL* res;					\
-  if (nElp0 == 1 && nElp1 == 1)				\
+  DDoubleGDL* res;							\
+  cout << p0->Rank() << " " << p0->Dim() <<" " <<p0->N_Elements() <<endl; \
+  cout << p1->Rank() << " " << p1->Dim() <<" " <<p1->N_Elements() <<endl; \
+									\
+  if (nElp0 == 1 && nElp1 == 1)						\
     res = new DDoubleGDL(1, BaseGDL::NOZERO);		\
   else if (nElp0 > 1 && nElp1 == 1)			\
     res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);	\
@@ -128,6 +152,7 @@
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);	\
   else							\
     return res;
+
 
 #define GM_CC1()							\
   static DInt coefKWIx = e->KeywordIx("ITER");				\
