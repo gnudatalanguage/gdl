@@ -1,4 +1,4 @@
-function ishft, p1, n, _extra=_extra 
+function ishft, vin, n
   on_error, 2
 ;+ 
 ; 
@@ -56,18 +56,33 @@ function ishft, p1, n, _extra=_extra
 ; GDL> a = ishft(434,+2) 
 ; GDL> print,a 
 ;    1736 
-; 
-; 
+; GDL> print, ishft([1,2,3,4,5], bindgen(8))
+;       1       4      12      32      80
+; GDL> print, ishft([5,5,5,5,5], bindgen(8))
+;       5      10      20      40      80
+; GDL> print, ishft([5,5,5], bindgen(8))   
+;       5      10      20
+; GDL> print, ishft(bindgen(5), 3)
+;    0   8  16  24  32
+; GDL> print, ishft(bindgen(5), [3])
+;    0   1  32  48   8                ; note: IDL apparently wrong on this case.
+; GDL> print, ishft(bindgen(5), [3,3])
+;    0   8
+; but also:
+; GDL> print, ishft([3], bindgen(5))
+;       3
+; GDL> print, ishft(3, bindgen(5))
+;       3       6      12      24      48
 ; 
 ; MODIFICATION HISTORY: 
 ;       Written by: Richard Schwartz, 09-28-2006 
 ;	Revised 12-20-2006, Richard Schwartz - Use out[*] to fill final array instead 
 ;	of out[0] 
-; 
+;       Rewritten 06-0&-2015, Bill Dieckmann + Gilles Duvert 
 ; 
 ;- 
 ; LICENSE: 
-; Copyright (C) 2006, 
+; Copyright (C) 2006, 2015
 ; This program is free software; you can redistribute it and/or modify 
 ; it under the terms of the GNU General Public License as published by 
 ; the Free Software Foundation; either version 2 of the License, or 
@@ -75,67 +90,91 @@ function ishft, p1, n, _extra=_extra
 ; 
 ; 
 ;- 
+  compile_opt strictarr
 
-IF (N_PARAMS() NE 2) THEN BEGIN
-   message, 'Incorrect number of arguments.'
-ENDIF
- 
-x = p1 
-sizen= size(/struct, n) 
-numn   = sizen.n_elements 
-sizex= size(/struct, x) 
-case sizex.type of 
-   1: x=x 
-   2: x=uint(x) 
-   3: x=ulong(x) 
-   else: x=ulong64(x) 
-   endcase 
- 
-scalar = sizex.n_dimensions eq 0 
-out    = make_array(dim =sizex.dimensions>1, type=sizex.type ) 
- 
-h = histogram( [n]>(-1)<0, min=-1, max=.1,r=r) 
-; 
-; Divide them into shift left and shift right 
-if h[0] gt 0 then begin ; negative n, so divide 
-   if sizen.n_dimensions eq 0 then $ 
-   out[*] = out + x / 2ull^((-1)*n) else begin 
-   neg = r[r[0]:r[1]-1] 
-   nsel= 1 ;or more 
-   case 1 of 
-       scalar: xx = x 
-       numn le sizex.n_elements: xx = x[neg] 
-       else: begin 
-       sel = where( neg lt sizex.n_elements, nsel) 
-       if nsel ge 1 then begin 
-           neg = neg[sel] 
-           xx = x[neg] 
-           endif 
-       end 
-       endcase 
-             if nsel gt 0 then out[neg] = out[neg] + xx / 2ull^((-1)*n[neg]) 
-       endelse 
-       endif 
-      if h[1] gt 0 then begin ; positive n, so multiply 
-   if sizen.n_dimensions eq 0 then $ 
-   out[*] = out + x * 2ull^n else begin 
-   pos = r[r[1]:r[2]-1] 
-   nsel= 1 ;or more 
-   case 1 of 
-       scalar: xx = x 
-       numn le sizex.n_elements: xx = x[pos] 
-       else: begin 
-       sel = where( pos lt sizex.n_elements, nsel) 
-       if nsel ge 1 then begin 
-           pos = pos[sel] 
-           xx = x[pos] 
-           endif 
-       end 
-       endcase 
-             if nsel gt 0 then out[pos] = out[pos] + xx * 2ull^n[pos] 
-       endelse 
-       endif 
- 
-  return, scalar ? out[0] : out 
-end 
+  IF (N_PARAMS() NE 2) THEN BEGIN
+     message, 'Incorrect number of arguments.'
+  ENDIF
 
+  v=vin
+  s_v = size(/struct, v)
+  s_n = size(/struct, n)
+  scalarn = s_n.n_elements eq 1
+  scalarv = s_v.n_elements eq 1 && s_v.n_dimensions eq 0
+
+; lets solve the dimensionality problem:
+; if a parameter is a scalar (not array), n_elements of result is the n_elements
+; of the other parameter. If both parameters ARE ARRAYS and have n_elements > 1, the
+; return dimension is the smallest of the two. However note that IDL becomes crazy when
+; n is a 1-element array:
+; IDL> print, ishft([1,2,3], [0])            
+;       1       0      48
+; Obviously GDL should return in this case [1,2,3], as if [0] was '0'.
+
+
+  if (scalarv && ~scalarn) then begin ; if v scalar and n not, push v to the size of n
+      v = reform(replicate(v, s_n.n_elements),s_n.dimensions[0:s_n.n_dimensions-1])
+   endif else if ( ~scalarv && ~scalarn  ) then begin ; else truncate n or v to smallest size
+        if ( s_n.n_elements gt s_v.n_elements ) then n=n[0:s_v.n_elements-1]
+        if ( s_v.n_elements gt s_n.n_elements ) then v=v[0:s_n.n_elements-1]
+   endif else if ( ~scalarv && scalarn  ) then begin ; 
+      n = reform(replicate(n, s_v.n_elements),s_v.dimensions[0:s_v.n_dimensions-1])
+   endif
+
+; recompute aligned values
+  s_v = size(/struct, v)
+  s_n = size(/struct, n)
+  scalarn = s_n.n_elements eq 1
+  scalarv = s_v.n_elements eq 1
+
+  switch s_v.type of
+     1:
+     12:
+     15: begin
+        v = reform(/OVERWRITE, v, s_v.n_elements)
+        break
+     end
+     2: begin
+        v = UINT(v,0,s_v.n_elements)
+        break
+     end
+     13: begin
+        v = ULONG(v,0,s_v.n_elements)
+        break
+     end
+     14: begin
+        v = ULONG64(v,0,s_v.n_elements)
+        break
+     end
+     0:
+     4:
+     5:
+     6:
+     7:
+     8:
+     9:
+     10: message,'ishft is for integers'
+  endswitch
+
+
+  if scalarn then begin
+     if n ge 0 then begin
+        v *= 2ULL^n
+     endif else begin
+        v /= 2ULL^(-n)
+     endelse
+  endif else begin
+     w_neg = where( n lt 0 )
+     w_nneg = where( n ge 0 )
+     if w_neg[0] ne -1L then begin
+        v[w_neg] /= 2ULL^(-n[w_neg])
+     endif
+     if w_nneg[0] ne -1L then begin
+        v[w_nneg] *= 2ULL^(n[w_nneg])
+     endif
+  endelse
+
+  if ( scalarv && scalarn) then return, (fix(v[0], TYPE = s_v.TYPE))[0] $
+  else return, reform(fix(v, TYPE =s_v.TYPE), s_v.dimensions[0:s_v.n_dimensions-1])
+
+end
