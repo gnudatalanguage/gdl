@@ -644,4 +644,4 @@
 	   - new keywords (BOOLEAN,INTEGER,FLOAT,COMPLEX,STRING) in ISA()
 	   - two new system variables: !TRUE and !FALSE
 	   - initial import for SCOPE_TRACEBACK() (/sys and /struct not ready)
-
+           - combination of input arrays in math. special functions now ok with IDL 
