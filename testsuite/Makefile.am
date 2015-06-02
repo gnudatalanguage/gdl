@@ -91,6 +91,7 @@ TESTS = \
   test_file_copy.pro \
   test_file_delete.pro \
   test_file_dirname.pro \
+  test_file_move.pro \
   test_file_search.pro \
   test_file_test.pro \
   test_file_which.pro \
@@ -159,6 +160,7 @@ TESTS = \
   test_suite.pro \
   test_systime.pro \
   test_trisol.pro \
+  test_tv.pro \
   test_typename.pro \
   test_url.pro \
   test_voigt.pro \

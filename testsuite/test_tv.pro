@@ -141,7 +141,14 @@ end
 
 ; -------------------------------------
 ;
-pro TEST_TV, noclose=noclose, test=test
+pro TEST_TV, noclose=noclose, test=test, no_exit=no_exit
+;
+if (!d.name EQ 'NULL') then begin
+   is_X11_ok=EXECUTE('set_plot, "X"')
+   if (is_X11_ok EQ 0) then begin
+      if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
+   endif
+endif
 ;
 xdim=350
 ydim=100

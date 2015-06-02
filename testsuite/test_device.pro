@@ -14,15 +14,25 @@ end
 ;
 ; -------------------------------------------------------------
 ;
-pro TEST_DEVICE_X, nb_errors, test=test, verbose=verbose
+pro TEST_DEVICE_X, nb_errors, test=test, verbose=verbose, window=window
 ;
 errors=0
 ;
-SET_PLOT, 'X'
-if (strlowcase(!d.name) NE 'x') then begin
-    MESSAGE, /continue, 'Unable to switch to X display mode'
-    return
-endif
+mode_stored=!D.name
+;
+if ~KEYWORD_SET(window) then begin
+   test_x11=EXECUTE("SET_PLOT, 'X'")
+   if (test_x11 NE 1) then begin
+      MESSAGE, /continue, 'Unable to switch to X display mode'
+      return
+   endif
+endif else begin
+   test_win=EXECUTE("SET_PLOT, 'WIN'")
+   if (test_win NE 1) then begin
+      MESSAGE, /continue, 'Unable to switch to WIN display mode'
+      return
+   endif
+endelse  
 ;
 xsize=223
 ysize=245
@@ -65,21 +75,20 @@ endif
 ;
 if (xsize NE !D.x_size) then begin
     errors++
-    message,/continue, 'problem with XSIZE'
+    MESSAGE, /continue, 'problem with XSIZE'
 endif
 ;
 if (ysize NE !D.y_size) then begin
     errors++
-    message,/continue, 'problem with YSIZE'
+    MESSAGE, /continue, 'problem with YSIZE'
 endif
 ; test changed as warning since even IDL does not pass it!!!
 if (ABS(xpos-(gwp[0]-gwp_zero[0])) GT tolerance) then begin
-    message,/continue, 'problem with XPOS'
+    MESSAGE, /continue, 'problem with XPOS'
 endif
 if (ABS(ypos-(gwp[1]+gwp_zero[1]-gwp_zero[0])) GT tolerance) then begin
-    message,/continue, 'problem with YPOS'
+    MESSAGE, /continue, 'problem with YPOS'
 endif
-
 ;
 ; AC 19 March 2014: very preliminaly tests, no more idea
 ;
@@ -96,38 +105,42 @@ if KEYWORD_SET(test) then STOP
 ;
 if N_PARAMS() GT 0 then nb_errors=nb_errors+errors
 ;
+; restore initial mode
+SET_PLOT, mode_stored
+;
 end
 ;
 ; -------------------------------------------------------------
 ;
-
 pro TEST_DEVICE_PS, nb_errors, test=test, verbose=verbose
 ;
 errors=0
 ;
+mode_stored=!D.name
+;
 SET_PLOT, 'ps'
 ;
-device, xsize=10
+DEVICE, xsize=10
 if !D.X_SIZE ne 10000 then begin
-    message, '!D.X_SIZE ne 10000', /conti
+    MESSAGE, '!D.X_SIZE ne 10000', /conti
     errors++
 endif
 ;
-device, ysize=20
+DEVICE, ysize=20
 if !D.Y_SIZE ne 20000 then begin
-    message, '!D.Y_SIZE ne 20000', /conti
+    MESSAGE, '!D.Y_SIZE ne 20000', /conti
     errors++
 endif
 ;
-device, xsize=10, /inches
+DEVICE, xsize=10, /inches
 if !D.X_SIZE ne 25400 then begin
-    message, '!D.X_SIZE ne 25400', /conti
+    MESSAGE, '!D.X_SIZE ne 25400', /conti
     errors++
 endif
 ;
-device, ysize=20, /inches
+DEVICE, ysize=20, /inches
 if !D.Y_SIZE ne 50800 then begin
-    message, '!D.Y_SIZE ne 50800', /conti
+    MESSAGE, '!D.Y_SIZE ne 50800', /conti
     errors++
 endif
 ;
@@ -135,15 +148,12 @@ endif
 ;
 print, '!D in PS mode ToDo'
 ;
-INTERNAL_MESSAGES, 'TEST_DEVICE_X', errors
+INTERNAL_MESSAGES, 'TEST_DEVICE_PS', errors
 ;
 if N_PARAMS() GT 0 then nb_errors=nb_errors+errors
 ;
-SET_PLOT, 'X'
-if (strlowcase(!d.name) NE 'x') then begin
-    MESSAGE, /continue, 'Unable to switch to X display mode'
-    return
-endif
+; restore initial mode
+SET_PLOT, mode_stored
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -160,8 +170,13 @@ endif
 ;
 nb_errors=0
 ;
-print, 'Calling TEST_DEVICE_X'
+mode_stored=!D.name
+;
+print, 'Calling TEST_DEVICE_X with X11 on'
 TEST_DEVICE_X, nb_errors, test=test, verbose=verbose
+;
+print, 'Calling TEST_DEVICE_X with WIN on'
+TEST_DEVICE_X, nb_errors, test=test, verbose=verbose,/window
 ;
 print, 'Calling TEST_DEVICE_PS'
 TEST_DEVICE_PS, nb_errors, test=test, verbose=verbose
@@ -174,5 +189,8 @@ endif else begin
 endelse
 ;
 if KEYWORD_SET(test) then STOP
+;
+; restore initial mode
+SET_PLOT, mode_stored
 ;
 end

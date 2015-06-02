@@ -4,6 +4,8 @@
 ; few tests can help to check whether the
 ; computations are in good range or not
 ;
+; this code should be able to run on box without X11,
+; and should be OK for Z, SVG and PS
 ; ---------------------------------------
 ; because regression was introduced between July 17 and October 2
 pro RANDOM_BASICS
@@ -23,12 +25,49 @@ end
 ;
 pro RANDOM_GAMMA
 ;
-window, 1
-;
 PLOT, HISTOGRAM(RANDOMN(SEED, 20000, gamma=1), BINSIZE=0.1)
 OPLOT, HISTOGRAM(RANDOMN(SEED, 20000, gamma=2), BINSIZE=0.1)
 OPLOT, HISTOGRAM(RANDOMN(SEED, 20000, gamma=3), BINSIZE=0.1)
 OPLOT, HISTOGRAM(RANDOMN(SEED, 20000, gamma=4), BINSIZE=0.1)
+;
+end
+;
+; we try to have the output for all the mode
+;
+pro RANDOM_ALL_GAMMA, verbose=verbose
+;
+init_device_mode=!d.name
+;
+list_device_mode=['NULL', 'PS', 'X', 'SVG', 'Z', 'WIN']
+;
+for ii=0, N_ELEMENTS(list_device_mode)-1 do begin
+   ;;
+   command='SET_PLOT, "'+list_device_mode[ii]+'"'
+   test_mode=EXECUTE(command)
+   ;;
+   if KEYWORD_SET(verbose) then begin
+      print, 'Testing mode '+list_device_mode[ii]+', status : ', test_mode
+   endif
+   if (test_mode EQ 0) then begin
+      print, 'Testing mode '+list_device_mode[ii]+' : SKIPPED !'
+      CONTINUE
+   endif
+   ;;
+   if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then WINDOW, 1
+   ;;
+   if (!d.name EQ 'SVG') OR (!d.name EQ 'PS') then begin
+      file='output_test_random_gamma.'+STRLOWCASE(!d.name)
+      DEVICE, file=file
+   endif
+   ;;
+   RANDOM_GAMMA
+   ;;
+   if (!d.name EQ 'SVG') OR (!d.name EQ 'PS') then begin
+      DEVICE, /close
+      if KEYWORD_SET(verbose) then print, 'file generated : <<'+file+'>>'
+   endif
+   print, 'Testing mode '+list_device_mode[ii]+', status : Processed'
+endfor
 ;
 end
 ;
@@ -96,7 +135,8 @@ endif
 ;
 RANDOM_BASICS
 ;
-RANDOM_GAMMA
+; test the various DEVICE ...
+RANDOM_ALL_GAMMA
 ;
 RANDOM_BINOMIAL, verbose=verbose, test=test, no_exit=no_exit, ampl=1.
 RANDOM_BINOMIAL, verbose=verbose, test=test, no_exit=no_exit, ampl=1.5
