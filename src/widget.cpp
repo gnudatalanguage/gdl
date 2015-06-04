@@ -2946,7 +2946,8 @@ void widget_control( EnvT* e ) {
     *tlbsizeKW = new DLongGDL(2,BaseGDL::ZERO);
     DLong *retsize=&(*static_cast<DLongGDL*>(*tlbsizeKW))[0];
     int i,j;
-    static_cast<wxWindow*>(tlb->GetWxWidget())->GetSize(&i,&j);
+    wxWindow *me=static_cast<wxWindow*>(tlb->GetWxWidget());
+    if (me) me->GetSize(&i,&j);
       retsize[0]=i;
       retsize[1]=j;
     //size is in pixels, pass in requested units:
@@ -2966,7 +2967,8 @@ void widget_control( EnvT* e ) {
     *tlboffsetKW = new DLongGDL(2,BaseGDL::ZERO);
     DLong *retoffset=&(*static_cast<DLongGDL*>(*tlboffsetKW))[0];
     int i,j;
-    static_cast<wxWindow*>(tlb->GetWxWidget())->GetPosition(&i,&j);
+    wxWindow *me=static_cast<wxWindow*>(tlb->GetWxWidget());
+    if (me) me->GetPosition(&i,&j);
     retoffset[0]=i;
     retoffset[1]=j;
     //size is in pixels, pass in requested units:
@@ -2979,20 +2981,22 @@ void widget_control( EnvT* e ) {
   
   if ( setxoffset || setyoffset ) {
      wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
-     if (setxoffset) {
-       DLongGDL* xoffset=e->GetKWAs<DLongGDL>( setxoffsetIx );
-       if (unitsGiven) {
-         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
-         me->Move( (*xoffset)[0]*fact.x, me->GetPosition().y );
-       } else  me->Move( (*xoffset)[0], me->GetPosition().y );
-     }
-     if (setyoffset) {
-       DLongGDL* yoffset=e->GetKWAs<DLongGDL>( setyoffsetIx );
+     if (me) {
+       if (setxoffset) {
+         DLongGDL* xoffset=e->GetKWAs<DLongGDL>( setxoffsetIx );
          if (unitsGiven) {
-         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
-         me->Move(me->GetPosition().x, (*yoffset)[0]*fact.y  );
-       } else  me->Move(me->GetPosition().x, (*yoffset)[0]  );
-     }
+           wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+           me->Move( (*xoffset)[0]*fact.x, me->GetPosition().y );
+         } else  me->Move( (*xoffset)[0], me->GetPosition().y );
+       }
+       if (setyoffset) {
+         DLongGDL* yoffset=e->GetKWAs<DLongGDL>( setyoffsetIx );
+           if (unitsGiven) {
+           wxRealPoint fact=GetRequestedUnitConversionFactor(e);
+           me->Move(me->GetPosition().x, (*yoffset)[0]*fact.y  );
+         } else  me->Move(me->GetPosition().x, (*yoffset)[0]  );
+       }
+     } else cerr<<"set offset on non-existent widget!"<<endl;
   }
 
   if ( getuvalue ) {
@@ -3024,11 +3028,12 @@ void widget_control( EnvT* e ) {
   }
 
   if ( setbutton ) {
-      if( !widget->IsButton())
-      {
+    if( !widget->IsButton())
+    {
       e->Throw( "Only WIDGET_BUTTON are allowed with keyword SET_BUTTON." );
     }
     GDLWidgetButton* button = static_cast<GDLWidgetButton*> (widget);
+    assert(button!=NULL);
     DLong buttonVal;
     e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal );
     if ( buttonVal == 0 )
@@ -3332,26 +3337,27 @@ void widget_displaycontextmenu( EnvT* e ) { //Parent, X, Y, ContextBaseID
   GDLWidget *master = GDLWidget::GetWidget( parent );
   if ( master == NULL ) e->Throw( "Widget ID not valid: " + i2s( parent ) );
   wxWindow* parentWindow=static_cast<wxWindow*>(master->GetWxWidget());
-  
-  DLong x=-1; e->AssureLongScalarPar(1,x); if ( x < 0 ) e->Throw( "X position for context menu not valid: " + i2s( x ) );
-  DLong y=-1; e->AssureLongScalarPar(2,y); if ( y < 0 ) e->Throw( "Y position for context menu not valid: " + i2s( y ) );
+  if (parentWindow) {
+    DLong x=-1; e->AssureLongScalarPar(1,x); if ( x < 0 ) e->Throw( "X position for context menu not valid: " + i2s( x ) );
+    DLong y=-1; e->AssureLongScalarPar(2,y); if ( y < 0 ) e->Throw( "Y position for context menu not valid: " + i2s( y ) );
 
-  DLong  id = 0;
-  e->AssureLongScalarPar(3, id); if ( id == 0 ) e->Throw( "Widget ID not valid: " + i2s( id ) );
+    DLong  id = 0;
+    e->AssureLongScalarPar(3, id); if ( id == 0 ) e->Throw( "Widget ID not valid: " + i2s( id ) );
 
-  GDLWidget *slave = GDLWidget::GetWidget( id );
-  if ( slave == NULL ) e->Throw( "Widget ID not valid: " + i2s( id ) );
+    GDLWidget *slave = GDLWidget::GetWidget( id );
+    if ( slave == NULL ) e->Throw( "Widget ID not valid: " + i2s( id ) );
 
-  wxSizer* topSizer=slave->GetTopSizer();
-  wxPopupTransientWindow* transient=static_cast<wxPopupTransientWindow*>(slave->GetWxWidget());
-  if (transient) {
-    topSizer->SetSizeHints(transient);
-    int sizey;
-    sizey=parentWindow->GetSize().y;
-    y=sizey-y;
-    transient->Position(parentWindow->GetScreenPosition()+wxPoint(x,y),wxDefaultSize);
-    transient->Popup(parentWindow);
-  }
+    wxSizer* topSizer=slave->GetTopSizer();
+    wxPopupTransientWindow* transient=static_cast<wxPopupTransientWindow*>(slave->GetWxWidget());
+    if (transient) {
+      topSizer->SetSizeHints(transient);
+      int sizey;
+      sizey=parentWindow->GetSize().y;
+      y=sizey-y;
+      transient->Position(parentWindow->GetScreenPosition()+wxPoint(x,y),wxDefaultSize);
+      transient->Popup(parentWindow);
+    }
+  } else cerr<<"widget_displaycontextmenu(): on non-existent widget!"<<endl;
 #endif
 }
 
