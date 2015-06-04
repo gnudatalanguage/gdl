@@ -614,12 +614,13 @@ private:
 class GDLWidgetButton: public GDLWidget
 {
   typedef enum ButtonType_ {
-  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, MBAR=3, ENTRY=4, BITMAP=5} ButtonType;
+  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, ENTRY=4, BITMAP=5} ButtonType;
 
   ButtonType buttonType;
   bool addSeparatorAbove;
   wxBitmap* buttonBitmap;
-
+  wxMenuItem* menuItem;
+  
 //  bool buttonState; //defined in base class now.
   
 public:
@@ -659,7 +660,19 @@ public:
   }
   
   bool IsButton() const { return true;} 
-
+  
+  void SetSensitive(bool value)
+  {
+    switch(buttonType){
+      case MENU:
+      case ENTRY:
+        if (menuItem) menuItem->Enable(value);
+        break;
+      default:
+      wxWindow *me=static_cast<wxWindow*>(wxWidget); 
+      if (me) { if (value) me->Enable(); else me->Disable();}
+    }
+  }
 //   void SetSelectOff();
 };
 

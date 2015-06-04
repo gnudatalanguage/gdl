@@ -470,8 +470,13 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 
 void GDLWidget::SetSensitive(bool value)
 {
-  wxWindow *me=static_cast<wxWindow*>(this->GetWxWidget()); if (me!=NULL) {if (value) me->Enable(); else me->Disable();} else cerr<<"Making (Un)Sensitive unknown widget!\n";
-}
+    wxWindow *me=static_cast<wxWindow*>(this->GetWxWidget()); 
+    if (me!=NULL) {
+      if (value) me->Enable(); else me->Disable();
+    } else {
+      if (this->IsButton()) static_cast<GDLWidgetButton*>(this)->SetSensitive(value); else cerr<<"Making (Un)Sensitive unknown widget!\n";
+    }
+  }
 
 void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
 {
@@ -685,7 +690,12 @@ GDLWidget::~GDLWidget( ) {
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "in ~GDLWidget(): not destroying WIDGET_TREE container" << widgetName << ": " << widgetID << endl;
 #endif
-  } else if ( parentID != GDLWidget::NullID ) { //not the TLB
+  } else if ( widgetType == GDLWidget::WIDGET_BUTTON ) { 
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "in ~GDLWidget(): not destroying WIDGET_BUTTON (may be container)" << widgetName << ": " << widgetID << endl;
+#endif
+    
+  }  else if ( parentID != GDLWidget::NullID ) { //not the TLB
     //parent is a panel or a tab
     GDLWidget* gdlParent = GetWidget( parentID );
     assert( gdlParent != NULL );
@@ -2844,6 +2854,7 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
 , buttonType( UNDEFINED )
 , addSeparatorAbove(hasSeparatorAbove)
 , buttonBitmap(bitmap_)
+, menuItem(NULL)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = gdlParent->GetPanel( );
@@ -2860,30 +2871,29 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
     wxMenuBar *menuBar = static_cast<wxMenuBar*> (gdlParent->GetWxWidget( ));
     assert( menuBar != NULL);
     wxMenu* menu = new wxMenu( );
-    this->wxWidget = menu;
+    wxWidget = menu;
     wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
     menuBar->Append( menu, valueWxString );
-    buttonType = MBAR;
+    buttonType = MENU;
   }
   else
   { 
     if ( gdlParent->IsBase( ) && isMenu )
     {      
      //A menu button in a base is a button starting a popup menu
-      wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
-      gdlMenuButton *button = new gdlMenuButton( widgetPanel, widgetID, valueWxString,
+      wxString MenuTitle = wxString( value.c_str( ), wxConvUTF8 );
+      gdlMenuButton *button = new gdlMenuButton( widgetPanel, widgetID, MenuTitle,  //actually it IS a wxMenu. 
           wxPoint( xOffset, yOffset ) , computeWidgetSize( ), buttonTextAlignment());
-      wxWidget = button;
-      buttonType = MBAR;
-      wxWindow* win=static_cast<wxWindow*>(wxWidget);
-      if (win) {
-        if (buttonToolTip) win->SetToolTip( wxString((*buttonToolTip)[0].c_str(),wxConvUTF8));
-        widgetSizer->Add( win, 0, widgetAlignment(),0);
-      } else cerr<<"Warning GDLWidgetButton::GDLWidgetButton(): widget type confusion(1)\n";
+      buttonType = NORMAL; //gdlMenuButton is a wxButton --> normal
+      
+      wxWindow* win=static_cast<wxWindow*>(button);
+      if (buttonToolTip) win->SetToolTip( wxString((*buttonToolTip)[0].c_str(),wxConvUTF8));
+      widgetSizer->Add( win, 0, widgetAlignment(),0);
       if (frame) this->FrameWidget();
       widgetSizer->Layout();
       TIDY_WIDGET;
       UPDATE_WINDOW
+      
       wxWidget = button->GetPopupPanel();
       widgetType=GDLWidget::WIDGET_MBAR;
     } 
@@ -2898,16 +2908,16 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
             wxMenu *submenu=new wxMenu( );
             wxWidget = submenu;
             wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
-            menu->AppendSubMenu(submenu, valueWxString );
+            menuItem = menu->AppendSubMenu(submenu, valueWxString );
             buttonType = MENU;
           }
           else //only an entry.
           {
             wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
-          wxMenuItem* menuItem = new wxMenuItem( menu, widgetID, valueWxString );
-          menu->Append( menuItem );
-          this->wxWidget = NULL; // should be menuItem; but is not even a wxWindow!
-          buttonType = ENTRY;
+            menuItem = new wxMenuItem( menu, widgetID, valueWxString );
+            menu->Append( menuItem );
+            wxWidget = NULL; // should be menuItem; but is not even a wxWindow!
+            buttonType = ENTRY;
           }
         } else cerr<<"Warning GDLWidgetButton::GDLWidgetButton(): widget type confusion(2)\n";
     }
@@ -2978,26 +2988,61 @@ GDLWidgetButton::~GDLWidgetButton(){
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "~GDLWidgetButton(): " << widgetID << std::endl;
 #endif
+    switch(buttonType){
+      case MENU:
+      case ENTRY:
+        if (menuItem) {
+          menuItem->GetMenu()->Remove(menuItem); //do not destroy the wxWidgets object, troubles will follow.
+        }
+        break;
+    }
 }
 
 void GDLWidgetButton::SetButtonWidgetLabelText( const DString& value_ ) {
+  if ( buttonType == BITMAP ) return;
+  if ( buttonType == UNDEFINED ) return;
   //update vValue
   delete(vValue);
   vValue = new DStringGDL( value_ );
 
-  if ( this->wxWidget != NULL ) {
-    wxButton *b = static_cast<wxButton*> (wxWidget);
-    if ( b ) b->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) ); else cerr << "Warning GDLWidgetButton::SetButtonWidgetLabelText(): widget type confusion\n";
-    //SetLabel, unless SetLabelText, interprets markup (<b></b> etc)
-    } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
+  if ( buttonType == NORMAL ) {
+    if ( this->wxWidget != NULL ) {
+      wxButton *b = static_cast<wxButton*> (wxWidget);
+      assert(b!=NULL);
+      b->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) );
+      } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
+    return;
+  }
+ if ( buttonType == RADIO ) {
+    if ( this->wxWidget != NULL ) {
+      wxRadioButton *b = static_cast<wxRadioButton*> (wxWidget);
+      assert(b!=NULL);
+      b->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) );
+      } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
+    return;
+  }
+  if ( buttonType == MENU || buttonType ==ENTRY) {
+    if ( menuItem != NULL ) {
+      menuItem->SetItemLabel( wxString( value_.c_str( ), wxConvUTF8 ) );
+      } else std::cerr << "Problem in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
+    return;
+  }
+  if ( buttonType == CHECKBOX ) {
+    if ( this->wxWidget != NULL ) {
+      wxCheckBox *b = static_cast<wxCheckBox*> (wxWidget);
+      assert(b!=NULL);
+      b->SetLabel( wxString( value_.c_str( ), wxConvUTF8 ) );
+      } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetLabelText(), please report!" << std::endl;
+    return;
+  }
 }
 
 void GDLWidgetButton::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
   if ( buttonType != BITMAP ) return;
   if ( this->wxWidget != NULL ) {
     wxBitmapButton *b = static_cast<wxBitmapButton*> (wxWidget);
+    assert(b!=NULL);
     if ( b ) b->SetBitmapLabel( *bitmap_ );
-    else cerr << "Warning GDLWidgetButton::SetButtonWidgetBitmap(): widget type confusion\n";
   } else std::cerr << "Null widget in GDLWidgetButton::SetButtonWidgetBitmap(), please report!" << std::endl;
 }
   
