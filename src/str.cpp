@@ -351,8 +351,8 @@ void WordExp( string& s)
 	 string ss= p.we_wordv[0];
 	 for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
 	    {
-	      while(s[ind++]==' ') ss+=" ";
-	      //s+=" ";
+	      while(s[ind++]==' ') ss+="";
+	      ss+="*";
 	      ss+= p.we_wordv[i];
 	      ind=s.find(" ",ind);
 	      //	      cout<<"in for\n";

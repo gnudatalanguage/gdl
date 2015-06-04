@@ -1652,6 +1652,7 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
     if ( !noexpand_path ) {
 	  string tmp = (*p0S)[f];
           WordExp(tmp);
+	  tmp=tmp.substr(0, tmp.find("*", 0));//take the first file that corresponds the pattern. P.S. changed str.cpp for this
 	  if( tmp.length() > 1 && tmp[ tmp.length()-1] == '/')
 	    actFile = tmp.substr(0,tmp.length()-1);
 	  else
@@ -1711,7 +1712,7 @@ Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOE
 #endif
         if( symlink && !isASymLink ) 	  continue;
 
-	if( directory && ( S_ISDIR(statStruct.st_mode) || S_ISDIR(statlink.st_mode) ) == 0) 
+	if( directory && (S_ISDIR(statStruct.st_mode) || (S_ISDIR(statlink.st_mode) && isASymLink)) == 0) 
 	  continue;
 
 	if( regular && S_ISREG(statStruct.st_mode) == 0) 
