@@ -889,7 +889,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
         if ( oMode == OCT) local_os  << oct << static_cast<long>((*this)[ firstEl++].imag());
         else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long>((*this)[ firstEl++].imag());
         else local_os << hex  << static_cast<long>((*this)[ firstEl++].imag());
-        if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+        if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+        local_os.seekp(0);
       }
       tCount--;
     }
@@ -907,21 +908,27 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     } else if ( oMode == OCT )
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os  << oct << static_cast<long>((*this)[ i].real());
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0);
       local_os  << oct << static_cast<long>((*this)[ i].imag());
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0);
     } else if ( oMode == HEX )
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os << uppercase << hex << static_cast<long> ((*this)[ i].real( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str();  else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0);
       local_os  << uppercase << hex << static_cast<long> ((*this)[ i].imag( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0);
     } else
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os << nouppercase << hex << static_cast<long> ((*this)[ i].real( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0);
       local_os  << nouppercase << hex << static_cast<long> ((*this)[ i].imag( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
+      local_os.seekp(0);
     }
   
   if( tCount & 0x01)
@@ -932,7 +939,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
         if ( oMode == OCT) local_os  << oct << static_cast<long>((*this)[ endEl].real());
         else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long>((*this)[ endEl].real());
         else local_os << hex << static_cast<long>((*this)[ endEl].real());
-        if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+        if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+        local_os.seekp(0); 
       }
   }
   return tCountOut;
@@ -960,7 +968,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
         if ( oMode == OCT) local_os  << oct << static_cast<long int>((*this)[ firstEl++].imag());
         else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long int>((*this)[ firstEl++].imag());
         else local_os << hex  << static_cast<long int>((*this)[ firstEl++].imag());
-        if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+        if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os)<< setw(w) << setfill(f) <<local_os.str().c_str();
+        local_os.seekp(0);
       }
       tCount--;
     }
@@ -978,21 +987,27 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     } else if ( oMode == OCT )
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os  << oct << static_cast<long int>((*this)[ i].real());
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0); 
       local_os  << oct << static_cast<long int>((*this)[ i].imag());
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0); 
     } else if ( oMode == HEX )
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os << uppercase << hex << static_cast<long int> ((*this)[ i].real( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0); 
       local_os  << uppercase << hex << static_cast<long int> ((*this)[ i].imag( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0); 
     } else
     for ( SizeT i = firstEl; i < endEl; ++i ) {
       local_os << nouppercase << hex << static_cast<long int> ((*this)[ i].real( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();
+      local_os.seekp(0); 
       local_os  << nouppercase << hex << static_cast<long int> ((*this)[ i].imag( ));
-      if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
+      if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f ) <<local_os.str().c_str();;
+      local_os.seekp(0);
     }
   
   if( tCount & 0x01)
@@ -1003,7 +1018,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
         if ( oMode == OCT) local_os  << oct << static_cast<long int>((*this)[ endEl].real());
         else if ( oMode == HEX) local_os << uppercase << hex  << static_cast<long int>((*this)[ endEl].real());
         else local_os << hex << static_cast<long int>((*this)[ endEl].real());
-        if (w && local_os.str().size() > w) {(*os) << allstars.substr(0,w).c_str(); local_os.seekp(0);} else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+        if (w && local_os.str().size() > w) (*os) << allstars.substr(0,w).c_str(); else (*os) << setw( w ) << setfill( f )<<local_os.str().c_str();
+        local_os.seekp(0);
       }
   }
   return tCountOut;
