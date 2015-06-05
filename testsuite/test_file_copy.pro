@@ -3,7 +3,11 @@
 ;
 ; Lea Noreskal, June 2010
 ; under GNU GPL 2 or later
-; 
+;
+;
+; -------------------------------------------------------------
+; AC 05-Jun-2015 this code is also in copy in "test_file_delete.pro"
+; the copy is needed for "make check"
 pro DEL_TEST_FILES, to_delete, verbose=verbose
 ;
 ; Delete files and directories

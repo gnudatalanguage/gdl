@@ -15,7 +15,10 @@
 ;
 pro TEST_NETCDF
 ;
-if ~NCDF_EXISTS() then EXIT, status=77
+if ~NCDF_EXISTS() then begin
+    MESSAGE, /cont, 'GDL was compiled without NetCDF !'
+    EXIT, status=77
+endif
 ;
 NC_TEST
 TEST_BUG_3055720

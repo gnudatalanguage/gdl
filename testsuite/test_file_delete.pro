@@ -5,6 +5,33 @@
 ; initial version by AC, 28 Avril 2009
 ; very basic tests for FILE_DELETE
 ;
+; -------------------------------------------------------------
+; AC 05-Jun-2015 this code is also in copy in "test_file_delete.pro"
+; the copy is needed for "make check"
+pro DEL_TEST_FILES, to_delete, verbose=verbose
+;
+; Delete files and directories
+;
+for ii=0, N_ELEMENTS(to_delete)-1 do begin
+   if KEYWORD_SET(verbose) then begin
+      print, 'File or Dir. >>'+to_delete[ii]+'<< to be deleted'
+      print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
+   endif
+   if (FILE_TEST(to_delete[ii]) eq 1) then begin
+      SPAWN , 'rm -rf '+ESCAPE_SPECIAL_CHAR(to_delete[ii])
+      ;; we don't check whether the file is deleted or not
+   endif else begin
+      if KEYWORD_SET(verbose) then begin
+         print, 'File or Dir. >>'+to_delete[ii]+'<< not found'
+         print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
+      endif
+   endelse
+endfor
+;
+end
+;
+; -------------------------------------------------------------
+;
 pro TEST_FILE_DELETE, full_test=full_test, test=test, help=help
 ;
 ;

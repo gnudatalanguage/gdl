@@ -113,6 +113,7 @@ TESTS = \
   test_interpol.pro \
   test_interpolate_missing.pro \
   test_isa.pro \
+  test_ishft.pro \
   test_list.pro \
   test_ludc_lusol.pro \
   test_math_function_dim.pro \
