@@ -306,31 +306,33 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
 //make one loop for wxWidgets Events...
-  wxTheApp->OnRun();
-//treat our GDL events...
-  DStructGDL* ev = NULL;
-  while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
-  {
-    static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-    static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-    static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-    assert( idIx == 0 );
-    assert( topIx == 1 );
-    assert( handlerIx == 2 );
-
-    WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-    
-    ev = CallEventHandler( /*id,*/ ev );
-
-    if( ev != NULL)
+  if (wxTheApp) {
+      wxTheApp->OnRun(); //wxTheApp may not be started
+  //treat our GDL events...
+    DStructGDL* ev = NULL;
+    while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
     {
-      Warning( "Unhandled event. ID: " + i2s( id ) );
-      GDLDelete( ev );
-      ev = NULL;
-      return 0;
-    } 
+      static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
+      static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
+      static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
+      assert( idIx == 0 );
+      assert( topIx == 1 );
+      assert( handlerIx == 2 );
+
+      WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
+
+      ev = CallEventHandler( /*id,*/ ev );
+
+      if( ev != NULL)
+      {
+        Warning( "Unhandled event. ID: " + i2s( id ) );
+        GDLDelete( ev );
+        ev = NULL;
+        return 0;
+      } 
+    }
+    wxEndBusyCursor( );
   }
-  wxEndBusyCursor( );
   return 0;
 }
 
