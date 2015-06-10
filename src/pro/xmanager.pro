@@ -16,9 +16,9 @@
 ;
 ; KEYWORD PARAMETERS:
 ;
-; COMMON BLOCKS:    none
+; COMMON BLOCKS:    "MANAGED"
 ;
-; SIDE EFFECTS:     none
+; SIDE EFFECTS:     ????
 ;
 ; RESTRICTIONS:     incomplete, more functionality to be added.
 ;
@@ -36,9 +36,9 @@
 ;-
 ;
 
-pro tidyManagedCommon
+pro ValidateManagedWidgets
 
-common managed_by_gdl, ids, names
+common managed, ids, names, modalList
 catch,falseinfo
 ; if ids contains only unknown widget ids, remove silently the list
 ; after catching the error:
@@ -65,7 +65,7 @@ end
 
 pro UNXREGISTER, id
 COMPILE_OPT idl2, HIDDEN  
-common managed_by_gdl, ids, names
+common managed, ids, names, modalList
 
 if (n_elements(id) eq 0) then return
 if (n_elements(ids) eq 0) then return
@@ -86,9 +86,9 @@ end
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, $
     CLEANUP=Cleanup, JUST_REG=just_reg, CATCH=catch, MODAL=modal
 
-common managed_by_gdl, ids, names
+common managed, ids, names, modalList
 
-tidyManagedCommon
+ValidateManagedWidgets
 
 if keyword_set(modal) then message,/informational,"The MODAL keyword to the XMANAGER procedure is obsolete."+$
 " It is superseded by the MODAL keyword to the WIDGET_BASE function."

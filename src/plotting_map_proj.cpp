@@ -747,6 +747,7 @@ PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj){
   return badProj;
 }
 PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj){
+  if (noInv )  return badProj ;
   XYTYPE odata;
   DDouble u,v;
   if ( finite( (idata.u)*(idata.v) ) ) {

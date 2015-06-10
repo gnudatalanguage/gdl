@@ -1,11 +1,11 @@
 function xregistered,name,noshow=noshow
 
-common managed_by_gdl, ids, names
-forward_function tidyManagedCommon
+common managed, ids, names, modalList
+forward_function ValidateManagedWidgets
 
 IF ( ~keyword_set(ids)) then return,0
 ;update list of managed widgets
-tidyManagedCommon
+ValidateManagedWidgets
 ;which may result in a zero id:
 if (ids[0] eq 0) then return, 0 
 

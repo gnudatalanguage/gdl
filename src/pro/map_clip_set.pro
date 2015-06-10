@@ -22,6 +22,7 @@
 ;
 ; MODIFICATION HISTORY:
 ;   25-Jul-2006 : written by JMG
+;   2014: modified by GD
 ;
 ; LICENCE:
 ; Copyright (C) 2006, Joel M. Gales
@@ -31,8 +32,9 @@
 ; (at your option) any later version.
 ;
 ;-
-pro map_clip_set,map_structure=map_structure, reset=reset,split=split,clip_plane=clip_plane, $
-                 transform=transform,clip_uv=clip_uv, show=show
+pro map_clip_set,map_structure=map_structure,$
+ reset=reset,split=split,clip_plane=clip_plane,$
+ transform=transform,clip_uv=clip_uv, show=show
 on_error, 2
 giveback=0
 if (n_elements(map_structure) eq 0) then begin
@@ -114,11 +116,15 @@ endif
 if (keyword_set(show)) then begin
   i=0
   while(map_structure.pipeline[0,i] ne 0) do begin
-    case fix(map_structure.pipeline[0,i]) of
-      1: print,"PIPELINE_SPLIT",map_structure.pipeline[1,i],map_structure.pipeline[2,i],map_structure.pipeline[3,i],map_structure.pipeline[4,i]
-      2: print,"PIPELINE_PLANE",map_structure.pipeline[1,i],map_structure.pipeline[2,i],map_structure.pipeline[3,i],map_structure.pipeline[4,i]
-      3: print,"PIPELINE_TRANS",map_structure.pipeline[1,i],map_structure.pipeline[2,i],map_structure.pipeline[3,i],map_structure.pipeline[4,i]
-      4: print,"PIPELINE_UVBOX",map_structure.pipeline[1,i],map_structure.pipeline[2,i],map_structure.pipeline[3,i],map_structure.pipeline[4,i]
+     a=float(map_structure.pipeline[1,i])
+     b=float(map_structure.pipeline[2,i])
+     c=float(map_structure.pipeline[3,i])
+     d=float(map_structure.pipeline[4,i])
+     case fix(map_structure.pipeline[0,i]) of
+      1: print,"PIPELINE_SPLIT",a,b,c,d
+      2: print,"PIPELINE_PLANE",a,b,c,d
+      3: print,"PIPELINE_TRANS",a,b,c,d
+      4: print,"PIPELINE_UVBOX",a,b,c,d
     endcase
     i++
   endwhile
