@@ -40,9 +40,9 @@ namespace lib {
   {
     T* data = new T( dim, BaseGDL::NOZERO);
     if (strideKW == NULL)
-      SDreaddata(sds_id, start, NULL, edges, (VOIDP) &(*data)[0]);
+      SDreaddata(sds_id, start, NULL, edges, data->DataAddr());
     else
-      SDreaddata(sds_id, start, stride, edges, (VOIDP) &(*data)[0]);
+      SDreaddata(sds_id, start, stride, edges, data->DataAddr());
     BaseGDL** p1 = &e->GetPar( 1);
     *p1 = data;
   }
@@ -196,7 +196,7 @@ namespace lib {
     int32 nattrs;
     int32 status;
 
-    DLong sds_id;
+    int32 sds_id;
     e->AssureScalarPar<DLongGDL>( 0, sds_id);
 
     DLongGDL* startKW = e->IfDefGetKWAs<DLongGDL>( 0);
@@ -241,12 +241,11 @@ namespace lib {
 
 
     BaseGDL* p1 = e->GetParDefined( 1);
-    DByteGDL* p1B = static_cast<DByteGDL*>( p1);
 
     if (strideKW == NULL)
-      SDwritedata(sds_id, start, NULL, edges, (VOIDP) &(*p1B)[0]);
+      SDwritedata(sds_id, start, NULL, edges,  p1->DataAddr());
     else
-      SDwritedata(sds_id, start, stride, edges, (VOIDP) &(*p1B)[0]);
+      SDwritedata(sds_id, start, stride, edges, p1->DataAddr());
   }
 
 
@@ -412,37 +411,37 @@ namespace lib {
 
          case DFNT_FLOAT64: {
 	   *dataKW = new DDoubleGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DDoubleGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
          case DFNT_FLOAT32: {
 	   *dataKW = new DFloatGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DFloatGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
          case DFNT_INT32: {
 	   *dataKW = new DLongGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DLongGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
          case DFNT_INT16: {
 	   *dataKW = new DIntGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DIntGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
          case DFNT_UINT32: {
 	   *dataKW = new DULongGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DULongGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
          case DFNT_UINT16: {
 	   *dataKW = new DUIntGDL(dim, BaseGDL::NOZERO);
-	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DUIntGDL*) *dataKW)[0]);
+	   SDreadattr(s_id, attrindex, (*dataKW)->DataAddr());
 	   break;
 	 }
 
@@ -559,8 +558,8 @@ namespace lib {
     *p2L = new DLongGDL(dim, BaseGDL::NOZERO);
 
     Vgettagrefs(vg_id, 
-		(int32 *) &(*(DLongGDL*) *p1L)[0], 
-		(int32 *) &(*(DLongGDL*) *p2L)[0], 
+		(int32 *) (*p1L)->DataAddr(), 
+		(int32 *) (*p2L)->DataAddr(), 
 		nentries);
   }
 
@@ -625,7 +624,7 @@ namespace lib {
   BaseGDL* hdf_sd_getdscl_template(EnvT* e, DLong dim_size, int32 dim_id)
   {
     T* data = new T(dimension(dim_size), BaseGDL::NOZERO);
-    SDgetdimscale(dim_id, (VOIDP) &(*data)[0]);
+    SDgetdimscale(dim_id, data->DataAddr());
     BaseGDL** scaleKW = &e->GetKW(2);
     *scaleKW = data;
   }
