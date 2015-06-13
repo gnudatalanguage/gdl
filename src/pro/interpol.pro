@@ -139,7 +139,11 @@ endif else begin
     ;; linear interpolation case
     if (nbp_inside GT 0) then result=INTERPOLATE(isint ? FLOAT(p0) : p0, ind)
     if (nbp_outside GT 0) then begin
-        tmp=MAKE_ARRAY(p2_info, type=p0_type)
+        if p2_info eq 0 then begin
+            tmp=MAKE_ARRAY(1, type=p0_type)
+        endif else begin
+            tmp=MAKE_ARRAY(p2_info, type=p0_type)
+        endelse
         if (nbp_inside GT 0) then tmp[inside_OK]=result
         last=N_ELEMENTS(p0)-1
         slope_begin=(1.*p0[1]-p0[0])/(p1[1]-p1[0])
@@ -151,6 +155,7 @@ endif else begin
                 tmp[outside_OK[ii]]=slope_end*(outside[ii]-p1[last-1])+p0[last-1]
             endelse
         endfor
+        if p2_info eq 0 then tmp=tmp[0]
         result=tmp
     endif
 endelse
