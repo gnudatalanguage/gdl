@@ -1394,18 +1394,14 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_complex( XDR *xdrs, DComplex *p)  
 { 
-  float preal = p->real();
-  float pimag = p->imag();
-  return(xdr_float(xdrs, &preal) &&  
-         xdr_float(xdrs, &pimag)); 
+//Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
+  return(xdr_float(xdrs, &p->real()) && xdr_float(xdrs, &p->imag()));
 }  
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)  
 {  
-	double preal = p->real();
-	double pimag = p->imag();
-	return(xdr_double(xdrs, &preal) &&  
-           xdr_double(xdrs, &pimag));  
+//Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
+  return(xdr_double(xdrs,  &p->real()) && xdr_double(xdrs,  &p->imag()));
 } 
 
 
