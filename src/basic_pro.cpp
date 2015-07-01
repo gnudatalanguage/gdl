@@ -2525,6 +2525,7 @@ namespace lib {
 		}
 
 		if (nParam == 0) return;
+        if (nParam > 1) {Warning("Named Message Block methods not yet implemented (FIXME!)"); return;}
 
 		DString msg;
 		e->AssureScalarPar<DStringGDL>(0, msg);
