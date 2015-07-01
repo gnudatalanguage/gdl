@@ -117,8 +117,8 @@ void LibInit_jmg()
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
 			    "BINOMIAL","POISSON","UNIFORM",KLISTEND};
-  new DLibFunRetNew(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
-  new DLibFunRetNew(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
+  new DLibFunRetNew(lib::random_fun,string("RANDOMU"),MAXRANK+1,randomKey);
+  new DLibFunRetNew(lib::random_fun,string("RANDOMN"),MAXRANK+1,randomKey);
 
   const string checkmathKey[]={"MASK","NOCLEAR","PRINT",KLISTEND};
   new DLibFunRetNew(lib::check_math_fun,string("CHECK_MATH"),2,checkmathKey);
@@ -212,7 +212,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);
 
   const string reformKey[]={"OVERWRITE",KLISTEND};
-  new DLibFun(lib::reform,string("REFORM"),MAXRANK,reformKey);
+  new DLibFun(lib::reform,string("REFORM"),MAXRANK+1,reformKey);
 
   new DLibPro(lib::point_lun,string("POINT_LUN"),2);
 
