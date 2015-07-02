@@ -377,10 +377,10 @@ void LibInit()
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
-  const string resolve_routineWarnKey[]={"EITHER","IS_FUNCTION","NO_RECOMPILE","COMPILE_FULL_FILE",KLISTEND};
-  const string resolve_routineKey[]={KLISTEND};
+  const string resolve_routineWarnKey[]={"EITHER","COMPILE_FULL_FILE",KLISTEND};
+  const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
-	      NULL, resolve_routineWarnKey);
+	      resolve_routineKey,resolve_routineWarnKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
