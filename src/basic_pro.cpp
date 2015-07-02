@@ -3408,9 +3408,12 @@ bool CompareWithJokers(string names, string sourceFiles) {
 
       SizeT nParam = e->NParam(1);
 
-      //     static int eitherIx = e->KeywordIx( "EITHER");
+      static int eitherIx = e->KeywordIx( "EITHER");
+      bool eitherKeyword = e->KeywordPresent(eitherIx);
+
       static int is_functionIx = e->KeywordIx( "IS_FUNCTION");
       bool isfunctionKeyword = e->KeywordPresent( is_functionIx);
+
       static int no_recompileIx = e->KeywordIx( "NO_RECOMPILE");
       bool norecompileKeyword = e->KeywordPresent( no_recompileIx);
 
@@ -3477,7 +3480,8 @@ bool CompareWithJokers(string names, string sourceFiles) {
 		break;
 	      }
 	    }
-	  if ((!isFunc && isfunctionKeyword) || (isFunc && !isfunctionKeyword && !exists))
+	  if ((!isFunc && isfunctionKeyword && !eitherKeyword) ||
+	      (isFunc && !isfunctionKeyword && !eitherKeyword && !exists))
 	    e->Throw("Attempt to call undefined : " + proFile);
 
 	  if (success){
