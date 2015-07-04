@@ -189,7 +189,7 @@ void LibInit()
 			     "RESET","REISSUE_LAST","TRACEBACK", KLISTEND}; 
   //TRACEBACK is in MESSAGE but obsolete since 5.0. it is used widely in CMSVlib !
   const string messageWarnKey[]={"LEVEL", "NAME", "BLOCK",KLISTEND};
-  new DLibPro(lib::message,string("MESSAGE"),1,messageKey,messageWarnKey);
+  new DLibPro(lib::message,string("MESSAGE"),-1,messageKey,messageWarnKey);
   
   const string cdKey[]={"CURRENT",KLISTEND};
   new DLibPro(lib::cd_pro,string("CD"),1,cdKey);
