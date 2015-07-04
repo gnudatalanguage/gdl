@@ -607,9 +607,9 @@ template <typename longT>
 void ZeroPad( ostream* os, int w, int d, char f, longT dd)
 {
   std::ostringstream ossF;
-  ossF << noshowpoint << setprecision(0);
-  if (f == '+') 
-    ossF << "+";
+  ossF << noshowpoint << noshowpos << setprecision(0);
+  if (f == '+') ossF << showpos ;
+//    ossF << "+";
   ossF << dd;
   int ddLen = ossF.str().size();
 
