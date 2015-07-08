@@ -608,41 +608,37 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
 {
   std::ostringstream ossF;
   ossF << noshowpoint << noshowpos << setprecision(0);
-  if (f == '+') ossF << showpos ;
-//    ossF << "+";
+  if (f == '+' || f == '@') ossF << showpos ;
   ossF << dd;
   int ddLen = ossF.str().size();
-
+//w undefined --> d undefined --> default length = size of ossF.
   if (w == 0) w = ddLen; // I0 -> auto width
-  if (d > 0 && dd < 0) ++d; // minus sign
-  if (f == '0' && d == -1) d = w; // zero padding
-
+//d defined : if sign exist, augment d by 1.
+  if ( d > 0 && ( dd < 0 || (f == '+' || f == '@')))  ++d; // minus or forced plus sign
+//if zero padding and d undef, d=w
+  if ( (f == '0'|| f == '@') && d == -1) d = w; // zero padding
+//print stars if width cannot be respected.
   if( w < ddLen || d > w) 
     {
       OutStars( *os, w);
       return;
     }
-  int skip = 0;
-  if( d <= ddLen)
-    {
-      for( SizeT i = ddLen; i<w; ++i)
-	(*os) << " ";
-    }
-  else
-    {
-      for( SizeT i=0; i<(w-d); ++i)
-	(*os) << " ";
-
-      int nZero = d-ddLen;
-      if (nZero > 0 && dd < 0) // preventing "00-1.00" (instead of -001.00)
-      {
-        skip = 1;
-        (*os) << "-";
-      }
-      for( SizeT i=0; i<nZero; ++i)
-	(*os) << "0";
-    }
-  (*os) << ossF.str().substr(skip);
+//erase ossF, we'll need it again.
+  ossF.str("");
+// set width
+  ossF.width(d);
+//do padding if requested by f or by d > ddLen
+  if ( (f == '0'|| f == '@') || d > ddLen ) {
+    char prev = ossF.fill('0');
+    ossF << std::internal << dd;
+    ossF.fill(prev);
+  } else ossF << dd;
+//set total width: w
+  streamsize oldw = os->width(w);
+//write to os
+  (*os) << ossF.str();
+//reset os width
+  os->width(oldw);
 }
 //                         undf byte int lint real dbl cplx str strct dcplx ptr obj uint ulon int64 uint64
 const int iFmtWidth[] =    { -1,  7,  7,  12,  12,  12,  12, 12,   -1,   12, -1, -1,   7,   12,  22,   22}; 

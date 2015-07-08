@@ -1480,12 +1480,14 @@ void FMTParser::csubcode() {
 	
 	std::istringstream s(num_AST->getText());
 	char c = s.get();
+    char next = s.peek();
 	s.putback(c);
 	s >> n;
 	if (c == '0') 
 	fNode->setFill('0');
-	if (c == '+') 
-	fNode->setFill('+');
+	if (c == '+') { //test if 0 is following, I.e.:+0 something
+      if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
+    }
 	
 	returnAST = nnf_AST;
 	return n;
