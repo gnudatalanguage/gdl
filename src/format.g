@@ -230,6 +230,7 @@ nnf! [ RefFMTNode fNode] returns[ int n]
                fNode->setFill('0');
             if (c == '+') { //test if 0 is following, I.e.:+0 something
                if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
+            }
         }
     ;
 
@@ -339,7 +340,7 @@ X:('x'|'X');
 
 C:('c'|'C');
 
-CMOA: ( C 'M' 'O' A);
+CMOA: ( 'C' 'M' 'O' 'A');
 CMoA: ( C 'M' 'o' A);
 CmoA: ( C 'm' 'o' A);
 
