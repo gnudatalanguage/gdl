@@ -53,7 +53,7 @@ namespace SysVar
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, GshhsDirIx, stimeIx,
-    warnIx, usersymIx, orderIx;
+    warnIx, usersymIx, orderIx, MakeDllIx;
 
   // !D structs
   const int nDevices = 5;
@@ -747,6 +747,15 @@ namespace SysVar
     MouseIx          = sysVarList.size();
     sysVarList.push_back(Mouse);
 
+    // !Make_dll
+    DStructGDL*  MakeDllData = new DStructGDL( "!MAKE_DLL");
+    MakeDllData->NewTag("COMPILE_DIRECTORY", new DStringGDL("/tmp/"));
+    MakeDllData->NewTag("COMPILER_NAME", new DStringGDL("GCC"));
+    MakeDllData->NewTag("CC", new DStringGDL("gcc %X -fPIC -I%Z -c -D_REENTRANT %C -o %O"));
+    MakeDllData->NewTag("LD", new DStringGDL("ld -shared -o %L %O %X"));
+    DVar *MakeDll      = new DVar( "MAKE_DLL", MakeDllData);
+    MakeDllIx          = sysVarList.size();
+    sysVarList.push_back(MakeDll);
 
     // !ERROR_STATE
     DStructGDL*  eStateData = new DStructGDL( "!ERROR_STATE");
