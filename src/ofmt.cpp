@@ -1162,15 +1162,15 @@ void outA( ostream* os, string s, int w)
     }
     else if( cMode == CMOA)
     {
-      outA(os, theMONTH[iMonth], w);//std::cout << theMONTH[iMonth];
+      outA(os, theMONTH[iMonth-1], w);//std::cout << theMONTH[iMonth];
     }
     else if( cMode == CMoA) 
     {
-      outA(os, theMonth[iMonth], w);
+      outA(os, theMonth[iMonth-1], w);
     }
     else if ( cMode == CmoA)
     {
-      outA(os, themonth[iMonth], w);
+      outA(os, themonth[iMonth-1], w);
     }
     else if ( cMode == CDWA) 
     {
@@ -1186,14 +1186,17 @@ void outA( ostream* os, string s, int w)
     }
     else if( cMode == CapA) 
     {
+      if (w==-1) w=2; 
       outA(os, capa[icap], w);
     }
     else if( cMode == CApA) 
     {
+      if (w==-1) w=2; 
       outA(os, cApa[icap], w);
     }
     else if( cMode == CAPA) 
     {
+      if (w==-1) w=2; 
       outA(os, cAPa[icap], w);
     }
     //integer
@@ -1207,12 +1210,12 @@ void outA( ostream* os, string s, int w)
       if (w==-1) w=4; 
       ZeroPad( os, w, d, f, iYear);
     }
-    else if ( cMode == CHI) 
+    else if ( cMode == ChI) 
     {
       if (w==-1) w=2; 
       ZeroPad( os, w, d, f, iHour);
     }
-    else if ( cMode == ChI) 
+    else if ( cMode == CHI) 
     {
       if (w==-1) w=2; 
       ZeroPad( os, w, d, f, iHour%12);
@@ -1230,7 +1233,7 @@ void outA( ostream* os, string s, int w)
     else if ( cMode == CSI) 
     {
       if (w==-1) {w=2; d=0;}; 
-      ZeroPad( os, w, d, f, (DLong)Second);
+      ZeroPad( os, w, d, f, (DLong)(Second+0.5));
     }
     //Float
     else if ( cMode == CSF) 

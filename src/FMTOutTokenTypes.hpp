@@ -1,7 +1,7 @@
 #ifndef INC_FMTOutTokenTypes_hpp_
 #define INC_FMTOutTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (20130425): "format.out.g" -> "FMTOutTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.out.g" -> "FMTOutTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API

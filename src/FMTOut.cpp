@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20130425): "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -1078,12 +1078,12 @@ const char* FMTOut::tokenNames[] = {
 	"CAPA",
 	"CApA",
 	"CapA",
-	"\"cmoi\"",
-	"\"cdi\"",
-	"\"cyi\"",
-	"\"cmi\"",
-	"\"csi\"",
-	"\"csf\"",
+	"CMOI",
+	"CDI",
+	"CYI",
+	"CMI",
+	"CSI",
+	"CSF",
 	"NUMBER",
 	"DOT",
 	"CSTRING",
@@ -1102,7 +1102,7 @@ const unsigned long FMTOut::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
 const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
-// "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
+// CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);
 
 

@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20120518): "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -1480,14 +1480,14 @@ void FMTParser::csubcode() {
 	
 	std::istringstream s(num_AST->getText());
 	char c = s.get();
-    char next = s.peek();
+	char next = s.peek();
 	s.putback(c);
 	s >> n;
 	if (c == '0') 
 	fNode->setFill('0');
 	if (c == '+') { //test if 0 is following, I.e.:+0 something
-      if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
-    }
+	if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
+	}
 	
 	returnAST = nnf_AST;
 	return n;
@@ -1560,12 +1560,12 @@ const char* FMTParser::tokenNames[] = {
 	"CAPA",
 	"CApA",
 	"CapA",
-	"\"cmoi\"",
-	"\"cdi\"",
-	"\"cyi\"",
-	"\"cmi\"",
-	"\"csi\"",
-	"\"csf\"",
+	"CMOI",
+	"CDI",
+	"CYI",
+	"CMI",
+	"CSI",
+	"CSF",
 	"NUMBER",
 	"DOT",
 	"CSTRING",

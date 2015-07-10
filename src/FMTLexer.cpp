@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20120518): "format.g" -> "FMTLexer.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -31,14 +31,8 @@ FMTLexer::FMTLexer(const antlr::LexerSharedInputState& state)
 
 void FMTLexer::initLiterals()
 {
-	literals["cyi"] = 64;
-	literals["csi"] = 66;
-	literals["cmi"] = 65;
 	literals["tl"] = 33;
 	literals["tr"] = 34;
-	literals["cdi"] = 63;
-	literals["cmoi"] = 62;
-	literals["csf"] = 67;
 }
 
 antlr::RefToken FMTLexer::nextToken()
@@ -234,27 +228,47 @@ antlr::RefToken FMTLexer::nextToken()
 				break;
 			}
 			default:
-				if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x4f /* 'O' */ )) {
+				if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x4f /* 'O' */ ) && (LA(4) == 0x41 /* 'A' */ )) {
 					mCMOA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x6f /* 'o' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x4f /* 'O' */ ) && (LA(4) == 0x49 /* 'I' */ )) {
+					mCMOI(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x6f /* 'o' */ )) {
 					mCMoA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x44 /* 'D' */ ) && (LA(3) == 0x57 /* 'W' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x44 /* 'D' */ ) && (LA(3) == 0x49 /* 'I' */ )) {
+					mCDI(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x4d /* 'M' */ ) && (LA(3) == 0x49 /* 'I' */ )) {
+					mCMI(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x53 /* 'S' */ ) && (LA(3) == 0x49 /* 'I' */ )) {
+					mCSI(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x53 /* 'S' */ ) && (LA(3) == 0x46 /* 'F' */ )) {
+					mCSF(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x44 /* 'D' */ ) && (LA(3) == 0x57 /* 'W' */ )) {
 					mCDWA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x44 /* 'D' */ ) && (LA(3) == 0x77 /* 'w' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x44 /* 'D' */ ) && (LA(3) == 0x77 /* 'w' */ )) {
 					mCDwA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x41 /* 'A' */ ) && (LA(3) == 0x50 /* 'P' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x41 /* 'A' */ ) && (LA(3) == 0x50 /* 'P' */ )) {
 					mCAPA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x41 /* 'A' */ ) && (LA(3) == 0x70 /* 'p' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x41 /* 'A' */ ) && (LA(3) == 0x70 /* 'p' */ )) {
 					mCApA(true);
 					theRetToken=_returnToken;
 				}
@@ -262,23 +276,27 @@ antlr::RefToken FMTLexer::nextToken()
 					mCSTRING(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x6d /* 'm' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x6d /* 'm' */ )) {
 					mCmoA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x68 /* 'h' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x59 /* 'Y' */ )) {
+					mCYI(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x68 /* 'h' */ )) {
 					mCHI(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x48 /* 'H' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x48 /* 'H' */ )) {
 					mChI(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x64 /* 'd' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x64 /* 'd' */ )) {
 					mCdwA(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (LA(2) == 0x61 /* 'a' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x61 /* 'a' */ )) {
 					mCapA(true);
 					theRetToken=_returnToken;
 				}
@@ -1021,10 +1039,10 @@ void FMTLexer::mCMOA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('M' /* charlit */ );
 	match('O' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1040,10 +1058,10 @@ void FMTLexer::mCMoA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('M' /* charlit */ );
 	match('o' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1059,10 +1077,119 @@ void FMTLexer::mCmoA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('m' /* charlit */ );
 	match('o' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCMOI(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CMOI;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('M' /* charlit */ );
+	match('O' /* charlit */ );
+	match('I' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCDI(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CDI;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('D' /* charlit */ );
+	match('I' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCMI(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CMI;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('M' /* charlit */ );
+	match('I' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCYI(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CYI;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('Y' /* charlit */ );
+	match('I' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCSI(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CSI;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('S' /* charlit */ );
+	match('I' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mCSF(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CSF;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('C' /* charlit */ );
+	match('S' /* charlit */ );
+	match('F' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1078,9 +1205,9 @@ void FMTLexer::mCHI(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('h' /* charlit */ );
-	mI(false);
+	match('I' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1096,9 +1223,9 @@ void FMTLexer::mChI(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('H' /* charlit */ );
-	mI(false);
+	match('I' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1114,10 +1241,10 @@ void FMTLexer::mCDWA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('D' /* charlit */ );
 	match('W' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1133,10 +1260,10 @@ void FMTLexer::mCDwA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('D' /* charlit */ );
 	match('w' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1152,10 +1279,10 @@ void FMTLexer::mCdwA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('d' /* charlit */ );
 	match('w' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1171,10 +1298,10 @@ void FMTLexer::mCAPA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('A' /* charlit */ );
 	match('P' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1190,10 +1317,10 @@ void FMTLexer::mCApA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('A' /* charlit */ );
 	match('p' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1209,10 +1336,10 @@ void FMTLexer::mCapA(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	mC(false);
+	match('C' /* charlit */ );
 	match('a' /* charlit */ );
 	match('p' /* charlit */ );
-	mA(false);
+	match('A' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1287,18 +1414,18 @@ void FMTLexer::mWHITESPACE(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt120=0;
+	int _cnt132=0;
 	for (;;) {
 		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
-			if ( _cnt120>=1 ) { goto _loop120; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt132>=1 ) { goto _loop132; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt120++;
+		_cnt132++;
 	}
-	_loop120:;
+	_loop132:;
 	}  // ( ... )+
 	_ttype=antlr::Token::SKIP;
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1315,18 +1442,18 @@ void FMTLexer::mDIGITS(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt123=0;
+	int _cnt135=0;
 	for (;;) {
 		if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 			matchRange('0','9');
 		}
 		else {
-			if ( _cnt123>=1 ) { goto _loop123; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt135>=1 ) { goto _loop135; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt123++;
+		_cnt135++;
 	}
-	_loop123:;
+	_loop135:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1419,7 +1546,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 		match('H' /* charlit */ );
 		text.erase(_saveIndex);
 		{ // ( ... )+
-		int _cnt130=0;
+		int _cnt142=0;
 		for (;;) {
 			// init action gets executed even in guessing mode
 			if( i == n )
@@ -1430,12 +1557,12 @@ void FMTLexer::mNUMBER(bool _createToken) {
 				mCHAR(false);
 			}
 			else {
-				if ( _cnt130>=1 ) { goto _loop130; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt142>=1 ) { goto _loop142; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt130++;
+			_cnt142++;
 		}
-		_loop130:;
+		_loop142:;
 		}  // ( ... )+
 	}
 	else {
