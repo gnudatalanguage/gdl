@@ -128,6 +128,7 @@ TESTS = \
   test_netcdf.pro \
   test_null.pro \
   test_obj_new.pro \
+  test_plot_oo.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
