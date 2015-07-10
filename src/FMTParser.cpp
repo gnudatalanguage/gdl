@@ -1423,10 +1423,27 @@ void FMTParser::csubcode() {
 		csubcode_AST = RefFMTNode(currentAST.root);
 		break;
 	}
+	case X:
 	case NUMBER:
 	{
-		n1=nn();
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		{
+		switch ( LA(1)) {
+		case NUMBER:
+		{
+			n1=nn();
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			break;
+		}
+		case X:
+		{
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
 		x = LT(1);
 		x_AST = astFactory->create(x);
 		astFactory->addASTChild(currentAST, antlr::RefAST(x_AST));

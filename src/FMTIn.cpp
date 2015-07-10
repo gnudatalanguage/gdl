@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (2005-12-22): "format.in.g" -> "FMTIn.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.in.g" -> "FMTIn.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -894,12 +894,12 @@ const char* FMTIn::tokenNames[] = {
 	"CAPA",
 	"CApA",
 	"CapA",
-	"\"cmoi\"",
-	"\"cdi\"",
-	"\"cyi\"",
-	"\"cmi\"",
-	"\"csi\"",
-	"\"csf\"",
+	"CMOI",
+	"CDI",
+	"CYI",
+	"CMI",
+	"CSI",
+	"CSF",
 	"NUMBER",
 	"DOT",
 	"CSTRING",
@@ -918,7 +918,7 @@ const unsigned long FMTIn::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
 const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
-// "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
+// CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);
 
 

@@ -1,4 +1,4 @@
-// $ANTLR 2.7.7 (20120518): format.in.g -> FMTInTokenTypes.txt$
+// $ANTLR 2.7.7 (2006-11-01): format.in.g -> FMTInTokenTypes.txt$
 FMTIn    // output token vocab name
 ALL=4
 CSTR=5
@@ -58,12 +58,12 @@ CdwA=58
 CAPA=59
 CApA=60
 CapA=61
-CMOI="cmoi"=62
-CDI="cdi"=63
-CYI="cyi"=64
-CMI="cmi"=65
-CSI="csi"=66
-CSF="csf"=67
+CMOI=62
+CDI=63
+CYI=64
+CMI=65
+CSI=66
+CSF=67
 NUMBER=68
 DOT=69
 CSTRING=70

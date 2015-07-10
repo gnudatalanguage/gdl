@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTInTokenTypes.hpp"
-/* $ANTLR 2.7.6 (2005-12-22): "format.in.g" -> "FMTIn.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.in.g" -> "FMTIn.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 

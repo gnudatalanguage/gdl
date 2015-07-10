@@ -741,8 +741,9 @@ x
             if( _t != static_cast<RefFMTNode>(antlr::nullAST))
             {
                 int    tlVal = #tl->getW();
-                for( int i=tlVal; i>0; --i)
-                (*os) << " ";
+                (*os) << " "; //for format "X" (no width)
+                for( int i=tlVal; i>1; --i)
+                (*os) << " "; //for format "nX"
 //                os->seekp( tlVal, std::ios_base::cur);
             }
             // for( int r=x->getW(); r > 0; r--) (*os) << ' ';

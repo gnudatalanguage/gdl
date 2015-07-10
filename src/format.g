@@ -204,7 +204,7 @@ csubcode
     | c15:CMI w_d[ #c15]
     | c16:CSI w_d[ #c16]
     | c17:CSF w_d[ #c17]
-    | n1=nn x:X { #x->setW( n1);}
+    | (n1=nn|) x:X { #x->setW( n1);}
     | f_csubcode
     ;
 
