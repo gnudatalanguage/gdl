@@ -175,18 +175,9 @@ private:
     if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
     if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
 
-    if (e->KeywordPresent(xTypeIx )) {
-      xLog=e->KeywordSet (xTypeIx );
-    } else {
-      xLog=e->KeywordSet (xLogIx );
-    }
-    
-    if (e->KeywordPresent(yTypeIx )) {
-      yLog=e->KeywordSet (yTypeIx );
-    } else {
-      yLog=e->KeywordSet (yLogIx);
-    }
-    
+    if (e->KeywordPresent(xTypeIx)) xLog=e->KeywordSet(xTypeIx);
+    if (e->KeywordPresent(yTypeIx)) yLog=e->KeywordSet(yTypeIx);
+
     //cout << xLog << " " << yLog << endl;
 
     // compute adequate values for log scale, warn adequately...
