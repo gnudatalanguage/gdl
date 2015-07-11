@@ -110,11 +110,15 @@ if KEYWORD_SET(test) then STOP
 ;;
 end 
 
-PRO TEST_TV_OVER_BOX
+function TEST_TV_OVER_BOX
 filename='Saturn.jpg'
 list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
 file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
 queryStatus = QUERY_IMAGE(file, imageInfo)
+if (queryStatus eq 0) then begin
+ message,/informational,"Image for test (Staurn.jpg) not found, test aborted"
+ return, 0
+end
 image = READ_IMAGE(file)
 redChannel = REFORM(image[0, *, *])
 greenChannel = REFORM(image[1, *, *])
@@ -136,6 +140,7 @@ plot,aa
 TV, image,10,10,/DATA,/true,xsize=50
 end
 !P.MULTI=0
+return, 1
 end
 
 
@@ -171,13 +176,14 @@ MY_WINDOW, 6, REFORM(b3)
 ;
 TEST_TV_DAMIER, 8, /noclose
 TEST_TV_DAMIER_COLOR, 9, /noclose
-TEST_TV_OVER_BOX
+success=TEST_TV_OVER_BOX()
 ;
 if NOT(KEYWORD_SET(noclose)) then begin
    rep=''
    READ, 'press any key to finish (and closing all windows)', rep
    ;;
-   WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9, 11, 12
+   WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9
+   if (success eq 1) then WDELETE, 11, 12
 endif
 ;
 if KEYWORD_SET(test) then STOP
