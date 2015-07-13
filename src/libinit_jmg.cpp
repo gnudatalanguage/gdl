@@ -52,6 +52,7 @@
 
 #if defined(USE_EIGEN)
 #include "matrix_cholesky.hpp"
+#include "least_squares.hpp"
 #endif
 
 #include "matrix_invert.hpp"
@@ -79,14 +80,14 @@ void LibInit_jmg()
 				   KLISTEND};
   new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
   
-  // the 2 following by Alain C. and Levan L.
+  // the 2 following by Alain C. and Levan L., Summer 2014
   const string isaKey[]={"ARRAY","FILE","NULL","NUMBER","SCALAR","BOOLEAN",
 			 "COMPLEX","FLOAT","INTEGER","STRING",KLISTEND};
   new DLibFunRetNew(lib::isa_fun,string("ISA"),2,isaKey);
 
   new DLibFunRetNew(lib::typename_fun,string("TYPENAME"),1);
 
-  // the following (Chol and Invert) by Alain C. and Nodar K.
+  // the following (Chol and Invert) by Alain C. and Nodar K., Summer 2013
   // Since we have a difference between the IDL way and the Eigen way
   // we (temporary) remove these 2 codes in the CVS of GDL
   // Help welcome. 
@@ -100,6 +101,11 @@ void LibInit_jmg()
   new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),1,lacholdcKey);
   const string lacholsolKey[]={"DOUBLE","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),2,lacholsolKey);
+
+  // Ilia N. & Alain C., Summer 2015
+  const string laleastsquaresKey[]={"DOUBLE","METHOD","RANK","RCONDITION","RESIDUAL","STATUS",KLISTEND};
+  new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
+
 #endif
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)

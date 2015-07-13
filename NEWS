@@ -646,3 +646,4 @@
 	   - initial import for SCOPE_TRACEBACK() (/sys and /struct not ready)
            - combination of input arrays in math. special functions now ok with IDL
            - SVSOL(); RESOLVE_ALL, more keywords in RESOLVE_ROUTINE
+           - initial import of LA_LEAST_SQUARES (for Ulyss), required Eigen3

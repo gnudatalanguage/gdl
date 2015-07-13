@@ -116,6 +116,7 @@ TESTS = \
   test_ishft.pro \
   test_list.pro \
   test_ludc_lusol.pro \
+  test_la_least_square.pro \
   test_math_function_dim.pro \
   test_matrix_multiply.pro \
   test_memory.pro \
