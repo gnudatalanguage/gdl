@@ -170,6 +170,8 @@ initsysvar.hpp
 io.cpp
 io.hpp
 lapack.cpp
+least_squares.cpp
+least_squares.hpp
 libinit.cpp
 libinit_ac.cpp
 libinit_cl.cpp
