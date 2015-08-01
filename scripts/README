@@ -12,6 +12,8 @@ Just collecting few useful scripts :
 ** init_gdl_CVS.sh : How to do the first checkout of the CVS of GDL
 ** update_gdl_CVS.sh : How to uptade the CVS
 
+** same for GDLDE, an IDE for GDL: gdlde_init_CVS.sh and gdlde_update_CVS.sh
+
 * The packages side
 
 Which packages you need for a given distro, the mandatory ones
@@ -30,3 +32,8 @@ are using a APT or a RPM based system
 
 ** rpm4gdl.sh : for RPM based systems
 (not that bad on CentOS)
+
+** a minimal script which can work on a very large number of OS :
+most Linux, OSX and MSwin. On Linux, it is better to run before
+"which_packages_to_add.sh". Details here :
+http://aramis.obspm.fr/~coulais/IDL_et_GDL/minimum_script4gdl.html
