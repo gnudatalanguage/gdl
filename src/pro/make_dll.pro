@@ -19,14 +19,14 @@ pro MAKE_DLL, input_files, output_file, Exported_Routine_Names, $
               test=test, help=help
 ;
 print, 'this code is not finished !'
-return
+;return
 ;
 if ~KEYWORD_SET(cc) then cc=!make_dll.cc
 if KEYWORD_SET(LD) then ld=!make_dll.ld
 ;
 locate="locate 'idl_export.h'"
-spawn, locate, result, exit=exit, count=count
-if ((exit_status EQ 1) of (count EQ 0)) then begin
+spawn, locate, result, exit=exit_status, count=count
+if ((exit_status EQ 1) or (count EQ 0)) then begin
    MESSAGE, "header file <idl_export.h> is mandatory ..."
 endif
 ;
@@ -37,20 +37,35 @@ path=STRSPLIT(path, 'idl_export.h', /extract, /regex)
 path=path[0]
 ;
 ref_cc=cc
-step1=STRSPLIT(command, '%Z', /extract, /regex)
+step1=STRSPLIT(cc, '%Z', /extract, /regex)
 ref_cc=step1[0]+' '+path+' '+step1[1]
 ;
 ; if not, use first in input files list
 if ~KEYWORD_SET(output_file) then output_file=input_files[0]
 ;
+;Ignore this parameter
+cc=ref_cc
+step1=STRSPLIT(cc, '%C', /extract, /regex)
+ref_cc=step1[0]+' '+step1[1]
+
+cc=ref_cc
+step1=STRSPLIT(cc, '%O', /extract, /regex)
+ref_cc=step1[0]+' '+ 'out.o'
+
+
 for ii=0, N_ELEMENTS(input_files)-1 do begin
-   command=ref_cc
+   cc=ref_cc
    ;; inserting the C-filename
-   step1=STRSPLIT(command, '%X', /extract, /regex)
-   command=step1[0]+' '+input_files[ii]+' '+step1[1]
+   step1=STRSPLIT(cc, '%X', /extract, /regex)
+   cc=step1[0]+' '+input_files[ii]+' '+step1[1]
    ;;
 endfor
+;print,cc
+spawn, cc
+spawn, "gcc -shared -Wl,-soname,libctest.so.1 -o "+output_file +"  out.o"
 ;
+;gcc -Wall -fPIC -c -I$PWD *.c 
+;gcc -shared -Wl,-soname,libctest.so.1 -o ouput.so  testmodule.o
 if KEYWORD_SET(test) then STOP
 ;
 end
