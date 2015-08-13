@@ -805,10 +805,16 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 //available. accessorily, get a speedup. drawback: those colors are forgotten on window redraw (not important, and similar to IDL's behaviour).
 void GDLXStream::Color( ULong color, DLong decomposed ) {
   if ( decomposed == 0 ) {
-    // AC 2015/08/11
-    // device, dec=0 & loadct, 0
-    // plot, findgen(10), back=255, color=0
-    if (color == 0) color++;
+//    // AC 2015/08/11
+//    // device, dec=0 & loadct, 0 & plot, findgen(10), back=255, color=0
+    if ( (color  & 0xFF ) == 0) { //color++; //color 0 is also the background, which is set separately before
+                      //and has overwritten the value at index 0 in plplot. It is needed to refresh it.
+      DByte r,g,b;
+      PLINT red,green,blue;
+      GraphicsDevice::GetCT()->Get( color & 0xFF, r, g, b);
+      red=r; green=g; blue=b;
+      plstream::scolbg( red, green, blue); //reset index 0 to the pen value, not the background value
+    }
     
     plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
   } else { //decomposed=truecolor? get around plplot's buggy xwin driver which uses only 256 colors max on truecolor displays!
