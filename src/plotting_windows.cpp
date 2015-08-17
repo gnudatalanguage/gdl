@@ -105,6 +105,18 @@ namespace lib {
       success = actDevice->Hide();
     }
     else success = actDevice->UnsetFocus();
+
+    // AC 16 Aug 2015 : we forgot to manage the background for WINDOW !!
+    // for that, we have to read back !p.background value (see ERASE)
+
+    static DStructGDL* pStruct = SysVar::P();
+    DLong bColor =(*static_cast<DLongGDL*>
+		   (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"),0)))[0];
+    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+    GDLGStream *actStream = actDevice->GetStream();
+    actStream->Background( bColor, decomposed);
+    actStream->Clear(); 
+
  }
 
   void wset( EnvT* e)
