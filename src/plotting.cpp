@@ -1355,9 +1355,6 @@ namespace lib
     PLFLT *x_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
     PLFLT *y_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
 
-    // flag to reset Buffer when a NaN or a Infinity are founded
-    int reset=0;
-
     bool isBad=FALSE;
 
     for ( SizeT i=0; i<minEl; ++i ) {
@@ -1399,7 +1396,6 @@ namespace lib
       isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
       if ( isBad )
       {
-        reset=1;
         if ( i_buff>0 )
         {
           if ( line )
@@ -1447,30 +1443,6 @@ namespace lib
         continue;
       }
 
-//#ifdef USE_LIBPROJ4
-//      if ( mapSet&& !e->KeywordSet("NORMAL") ) //IS BROKEN FOR X/YLOG !!!!!!
-//      {
-//        if ( i>0 ) //;&& (i_buff >0))
-//        {
-//          x1=xMapBefore;
-//          if ( !isfinite(xMapBefore)|| !isfinite(yMapBefore) ) continue;
-//
-//          // Break "jumps" across maps (kludge!)
-//          if ( fabs(x-x1)>0.5*(xEnd-xStart) )
-//          {
-//            reset=1;
-//            if ( (i_buff>0)&&(line) )
-//            {
-//              a->line(i_buff, x_buff, y_buff);
-//              //		  x_buff[0]=x_buff[i_buff-1];
-//              //y_buff[0]=y_buff[i_buff-1];
-//              i_buff=0;
-//            }
-//            continue;
-//          }
-//        }
-//      }
-//#endif
       x_buff[i_buff]=x;
       y_buff[i_buff]=y;
       i_buff=i_buff+1;
@@ -3472,7 +3444,7 @@ inline DDouble DistanceOnSphere(DDouble x, DDouble y, DDouble z, DDouble px, DDo
     DDouble c=z2-z1;
     DDouble t=u*a+v*b+w*c;
     t=(-h-u*x1-v*y1-w*z1)/t;
-    if (!finite(t)) {x=x1; y=y1; z=z1; return;}
+    if (!isfinite(t)) {x=x1; y=y1; z=z1; return;}
     if ((t+incr)<PROJEPSILON) {x=x1; y=y1; z=z1; return;}
     if ((t+incr)>(1.0-PROJEPSILON)) {x=x2; y=y2; z=z2; return;}
     x=a*(t+incr)+x1;
@@ -3997,7 +3969,7 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
 //NO NO NO you must interpolate from outside to inside box!
         for (std::list<Polygon>::iterator p=PolygonList.begin(); p != PolygonList.end(); p++) {
           for (std::list<Vertex>::iterator v=(*p).VertexList.begin(); v != (*p).VertexList.end(); v++) {
-            if (finite((*v).x*(*v).y)) if ( (*v).x < a-epsilon || (*v).x > c+epsilon || (*v).y < b-epsilon || (*v).y > d+epsilon ) {
+            if (isfinite((*v).x*(*v).y)) if ( (*v).x < a-epsilon || (*v).x > c+epsilon || (*v).y < b-epsilon || (*v).y > d+epsilon ) {
               (*v).x = bad;
               (*v).y = bad;
             } 

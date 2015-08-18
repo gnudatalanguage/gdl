@@ -694,9 +694,9 @@ BaseGDL* map_proj_forward_fun( EnvT* e ) {
 PROJDATA protect_proj_fwd( PROJDATA idata, PROJTYPE proj ) {
   XYTYPE odata;
   DDouble u,v;
-  if ( finite( (idata.u)*(idata.v) ) ) {
+  if ( isfinite( (idata.u)*(idata.v) ) ) {
     odata = LIB_PJ_FWD( idata, proj );
-    if (finite(odata.u) && odata.u != HUGE_VAL){
+    if (isfinite(odata.u) && odata.u != HUGE_VAL){
       if(isRot) {
         u=odata.u;
         v=odata.v;
@@ -714,9 +714,9 @@ PROJDATA protect_proj_inv( PROJDATA idata, PROJTYPE proj ) {
 //  throw GDLException("The proj4 library version you use unfortunately defines no inverse for this projection!");
   LPTYPE odata;
   DDouble u,v;
-  if ( finite( (idata.u)*(idata.v) ) ) {
+  if ( isfinite( (idata.u)*(idata.v) ) ) {
     odata = LIB_PJ_INV( idata, proj );
-    if (finite(odata.u) && odata.u != HUGE_VAL) {
+    if (isfinite(odata.u) && odata.u != HUGE_VAL) {
       if(isRot) {
         u=odata.u;
         v=odata.v;
@@ -732,9 +732,9 @@ PROJDATA protect_proj_inv( PROJDATA idata, PROJTYPE proj ) {
 PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj){
   XYTYPE odata;
   DDouble u,v;
-  if ( finite( (idata.u)*(idata.v) ) ) {
+  if ( isfinite( (idata.u)*(idata.v) ) ) {
     odata = LIB_PJ_FWD( idata, proj );
-    if (finite(odata.u) && odata.u != HUGE_VAL){
+    if (isfinite(odata.u) && odata.u != HUGE_VAL){
       if(isRot) {
         u=odata.u;
         v=odata.v;
@@ -750,9 +750,9 @@ PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj){
   if (noInv )  return badProj ;
   XYTYPE odata;
   DDouble u,v;
-  if ( finite( (idata.u)*(idata.v) ) ) {
+  if ( isfinite( (idata.u)*(idata.v) ) ) {
     odata = LIB_PJ_INV( idata, proj );
-    if (finite(odata.u) && odata.u != HUGE_VAL) {
+    if (isfinite(odata.u) && odata.u != HUGE_VAL) {
       if(isRot) {
         u=odata.u;
         v=odata.v;
