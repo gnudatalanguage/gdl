@@ -233,7 +233,9 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 }
 
 bool GDLWXStream::SetGraphicsFunction( long value) {
-  cerr<<"Set Graphics Function not ready for wxWindow draw panel, please contribute."<<endl;
+  long what[]={wxCLEAR,wxAND,wxAND_REVERSE,wxCOPY,wxAND_INVERT,wxNO_OP,wxXOR,wxNOR,wxEQUIV,wxINVERT,wxOR_REVERSE,wxSRC_INVERT,wxOR_INVERT,wxNAND,wxSET};
+  value=(value<0)?0:(value>15)?15:value;
+  m_dc->SetLogicalFunction(what[value]);
  return true;
 }
 

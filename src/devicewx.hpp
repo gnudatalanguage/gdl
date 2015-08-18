@@ -489,8 +489,10 @@ public:
         this->GetStream(); //to open a window if none opened.
         bool ret;
         for (int i = 0; i < winList.size(); i++) {
-            if (winList[i] != NULL) ret = winList[i]->SetGraphicsFunction(gcFunction);
-            if (ret == false) return ret;
+            if (winList[i] != NULL) {
+              ret = winList[i]->SetGraphicsFunction(gcFunction);
+              if (ret == false) return ret;
+            }
         }
         return true;
     }
@@ -562,8 +564,10 @@ public:
         this->GetStream(); //to open a window if none opened.
         bool ret;
         for (int i = 0; i < winList.size(); i++) {
-            if (winList[i] != NULL) ret = winList[i]->CursorStandard(cursorNumber);
-            if (ret == false) return ret;
+            if (winList[i] != NULL) {
+              ret = winList[i]->CursorStandard(cursorNumber);
+              if (ret == false) return ret;
+            }
         }
         return true;
     }
