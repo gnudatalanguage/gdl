@@ -148,7 +148,7 @@ void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
 void GDLGStream::Background( ULong color, DLong decomposed)
 {
   if ((*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512 ) {  ;//printer like PostScript
-   plstream::scolbg( WHITEB, WHITEB, WHITEB );
+      GraphicsDevice::GetDevice()->SetDeviceBckColor(WHITEB, WHITEB, WHITEB );
    return;
   }
   DByte r,g,b;
@@ -161,7 +161,27 @@ void GDLGStream::Background( ULong color, DLong decomposed)
     green = (color >> 8)  & 0xFF;
     blue = (color >> 16) & 0xFF;
   }
-  plstream::scolbg( red, green, blue); //set background (col0 in plplot)
+  GraphicsDevice::GetDevice()->SetDeviceBckColor( red, green, blue);
+}
+void GDLGStream::DefaultBackground()
+{
+  if ((*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512 ) {  ;//printer like PostScript
+    GraphicsDevice::GetDevice()->SetDeviceBckColor(WHITEB, WHITEB, WHITEB );
+    return;
+  }
+  static DStructGDL* pStruct=SysVar::P();
+  DLong background=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+  DByte r,g,b;
+  PLINT red,green,blue;
+  if (GraphicsDevice::GetDevice()->GetDecomposed() == 0) { //just an index
+    GraphicsDevice::GetCT()->Get( background & 0xFF, r, g, b);
+    red=r; green=g; blue=b;
+  } else {
+    red = background & 0xFF;
+    green = (background >> 8)  & 0xFF;
+    blue = (background >> 16) & 0xFF;
+  }
+  GraphicsDevice::GetDevice()->SetDeviceBckColor( red, green, blue);
 }
 #undef WHITEB
 void GDLGStream::DefaultCharSize()
@@ -210,7 +230,21 @@ void GDLGStream::NextPlot( bool erase )
     if( erase )
     {
       eop();           // overridden (for Z-buffer)
-      plstream::bop(); // changes charsize
+      //get background value (*not pen 0*, we try to avoid plplot's silly behaviour).
+      //use it for bop(), then reset the pen 0 to correct value.
+
+      PLINT red,green,blue;
+      DByte r,g,b;
+      PLINT red0,green0,blue0;
+      
+      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
+      
+      red0=GraphicsDevice::GetDevice()->BackgroundR();
+      green0=GraphicsDevice::GetDevice()->BackgroundG();
+      blue0=GraphicsDevice::GetDevice()->BackgroundB();
+      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
+      plstream::bop(); // note: changes charsize
+      plstream::scolbg(red,green,blue); //resets col[0]
     }
 
 //    plstream::adv(1); //advance to first subpage

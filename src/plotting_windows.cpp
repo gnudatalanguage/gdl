@@ -96,7 +96,7 @@ namespace lib {
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
     }
-    bool success = actDevice->SetBackingStore(retainType);    
+    bool success = actDevice->SetBackingStore(retainType);  
     success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
       e->Throw(  "Unable to create window.");
@@ -105,17 +105,8 @@ namespace lib {
       success = actDevice->Hide();
     }
     else success = actDevice->UnsetFocus();
-
-    // AC 16 Aug 2015 : we forgot to manage the background for WINDOW !!
-    // for that, we have to read back !p.background value (see ERASE)
-
-    static DStructGDL* pStruct = SysVar::P();
-    DLong bColor =(*static_cast<DLongGDL*>
-		   (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"),0)))[0];
-    DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-    GDLGStream *actStream = actDevice->GetStream();
-    actStream->Background( bColor, decomposed);
-    actStream->Clear(); 
+    actDevice->GetStream()->DefaultBackground();
+    actDevice->GetStream()->Clear();
 
  }
 
@@ -147,7 +138,9 @@ namespace lib {
 	      e->Throw( "Unable to create window.");
 //        success = actDevice->UnsetFocus();  // following a deviceXXX->WOpen
         //FIXME: ADD support for RETAIN (BackingSTORE))
-	    return;
+        actDevice->GetStream()->DefaultBackground();
+        actDevice->GetStream()->Clear();
+        return;
 	  }
       }
 

@@ -694,6 +694,7 @@ public:
   void Thick( DFloat thick);
   virtual void Color( ULong c, DLong decomposed=0);
   void Background( ULong c, DLong decomposed=0);
+  void DefaultBackground();
   void SetColorMap1SingleColor( ULong color);
   //if decomposed, create a red ramp. If not, copy the colormap0 in colormap1
   void SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed=0);

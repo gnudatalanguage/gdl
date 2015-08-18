@@ -1548,7 +1548,7 @@ namespace lib
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
     a->Background(background,decomposed);
   }
-
+  
   //Very special usage only in plotting surface
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a)
   {

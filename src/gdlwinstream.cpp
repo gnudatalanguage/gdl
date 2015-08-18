@@ -426,8 +426,19 @@ bool GDLWINStream::UnsetFocus()
 
 void GDLWINStream::Clear()
 {
-	::c_plbop();
-	::c_plclear();
+      PLINT red,green,blue;
+      DByte r,g,b;
+      PLINT red0,green0,blue0;
+      
+      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
+      
+      red0=GraphicsDevice::GetDevice()->BackgroundR();
+      green0=GraphicsDevice::GetDevice()->BackgroundG();
+      blue0=GraphicsDevice::GetDevice()->BackgroundB();
+      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
+      ::c_plbop();
+      ::c_plclear();
+      plstream::scolbg(red,green,blue); //resets col[0]
 }
 
 HWND GDLWINStream::GetHwnd()

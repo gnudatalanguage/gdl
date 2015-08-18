@@ -111,6 +111,9 @@ int GraphicsDevice::ySTag;
 int GraphicsDevice::xVSTag;
 int GraphicsDevice::yVSTag;
 int GraphicsDevice::n_colorsTag;
+DByte  GraphicsDevice::deviceBckColorR;
+DByte  GraphicsDevice::deviceBckColorG;
+DByte  GraphicsDevice::deviceBckColorB;
 
 GraphicsDevice::~GraphicsDevice() 
 {

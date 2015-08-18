@@ -145,30 +145,24 @@ unsigned long GDLWXStream::GetWindowDepth() {
 }
 
 void GDLWXStream::Clear() {
-  ::c_plbop();
+      PLINT red,green,blue;
+      DByte r,g,b;
+      PLINT red0,green0,blue0;
+      
+      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
+      
+      red0=GraphicsDevice::GetDevice()->BackgroundR();
+      green0=GraphicsDevice::GetDevice()->BackgroundG();
+      blue0=GraphicsDevice::GetDevice()->BackgroundB();
+      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
+      ::c_plbop();
+      ::c_plclear();
+      plstream::scolbg(red,green,blue); //resets col[0]
 }
 
-//FALSE: REPLACE With Clear(DLong chan) as in X
+//FALSE: REPLACE With Clear(DLong chan) as in X //TBD
 void GDLWXStream::Clear(DLong bColor) {
-  PLINT r0, g0, b0;
-  PLINT r1, g1, b1;
-  DByte rb, gb, bb;
-
-  // Get current background color
-  plgcolbg(&r0, &g0, &b0);
-
-  // Get desired background color
-  GDLCT* actCT = GraphicsDevice::GetCT();
-  actCT->Get(bColor, rb, gb, bb);
-
-  // Convert to PLINT from GDL_BYTE
-  r1 = (PLINT) rb;
-  g1 = (PLINT) gb;
-  b1 = (PLINT) bb;
-  // this mimics better the *DL behaviour.
-  ::c_plbop();
-  plscolbg(r1, g1, b1);
-
+  Clear();
 }
 
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,

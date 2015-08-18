@@ -125,6 +125,9 @@ protected:
 
   static std::vector<GDLCT> CT; // predefined colortables
   static GDLCT           actCT; // actual used colortable
+  static DByte           deviceBckColorR;
+  static DByte           deviceBckColorG;
+  static DByte           deviceBckColorB;
 
   std::string         name;
   DStructGDL*         dStruct;
@@ -139,6 +142,7 @@ protected:
     y = (*ySize)[0];
   }
 
+
 public:
   GraphicsDevice();
   virtual ~GraphicsDevice();
@@ -148,6 +152,15 @@ public:
   static void HandleEvents();
 
   static void LoadCT(UInt iCT);
+  void SetDeviceBckColor(DByte r, DByte g, DByte b)
+  {
+    deviceBckColorR=r;
+    deviceBckColorG=g;
+    deviceBckColorB=b;
+  }
+  DByte BackgroundR() {return deviceBckColorR;}
+  DByte BackgroundG() {return deviceBckColorG;}
+  DByte BackgroundB() {return deviceBckColorB;}
   
   static GDLCT*      GetCT() { return &actCT;}
   static GDLCT*      GetCT( SizeT ix) { return &CT[ix];}
@@ -249,17 +262,6 @@ public:
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}
   virtual bool SetResolution( DLong nx, DLong ny)     { return false;}
-
-//  // TVRD function for a device
-//  virtual BaseGDL* TVRD( EnvT* e) 
-//  {
-//    throw GDLException( "Device "+Name()+" does not support TVRD.");
-//  }
-  
-//  virtual void TV( EnvT* e)
-//  {
-//    throw GDLException( "Device "+Name()+" does not support TV.");
-//  }
 
   virtual void ClearStream( DLong bColor)
   {
