@@ -104,7 +104,9 @@ void ResetObjects()
   PurgeContainer(proList);
   PurgeContainer(structList); // now deletes member subroutines (and they in turn common block references
   // hence delete common blocks after structList
-  PurgeContainer(commonList);
+  
+  //avoid purging commonlist-->crash (probably some COMMON structures already destroyed)
+//  PurgeContainer(commonList);
   
   // don't purge library here
 //   PurgeContainer(libFunList);
