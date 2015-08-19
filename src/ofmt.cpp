@@ -1095,12 +1095,11 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 // other
  
  template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, SizeT r, int w, 
-			int d, char f, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
  {
    DDoubleGDL* cVal = static_cast<DDoubleGDL*>
    ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-   SizeT retVal = cVal->OFmtCal( os, offs, r, w, d, f, cMode);
+   SizeT retVal = cVal->OFmtCal( os, offs, w, d, f, cMode);
    delete cVal;
    return retVal;
  }
@@ -1122,8 +1121,7 @@ void outA( ostream* os, string s, int w)
 }
  //double
  template<> SizeT Data_<SpDDouble>::
- OFmtCal( ostream* os, SizeT offs, SizeT r, int w, 
-			int d, char f, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
  {
    static string theMonth[12]={"January","February","March","April","May","June",
       "July","August","September","October","November","December"};
@@ -1140,29 +1138,31 @@ void outA( ostream* os, string s, int w)
    
    DLong iMonth, iDay , iYear , iHour , iMinute, dow, icap;
    DDouble Second;
-   SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
- 
-  
-  for( SizeT i=offs; i<endEl; ++i)
-  {
-    j2ymdhms((*this)[ i], iMonth, iDay, iYear, iHour, iMinute, Second);
+   
+    j2ymdhms((*this)[ offs], iMonth, iDay, iYear, iHour, iMinute, Second);
     // DayOfWeek
-    dow=((DLong)((*this)[i]))%7;
+    dow=((DLong)((*this)[offs]))%7;
+    
     //capa:
     icap=(iHour>11);
     if( cMode == DEFAULT) 
     {
-      fprintf(stderr,"cdef\n");
+      outA(os,theDay[dow], 3);
+      (*os)<<" ";
+      outA(os, theMonth[iMonth-1], 3);
+      (*os)<<" ";
+      ZeroPad( os, 2, 2, '0', iDay);
+      (*os)<<" ";
+      ZeroPad( os, 2, 2, '0', iHour%12);
+      (*os)<<":";
+      ZeroPad( os, 2, 2, '0', iMinute);
+      (*os)<<":";
+      ZeroPad( os, 2, 2, '0', (DLong)(Second+0.5));
+      ZeroPad( os, 5, -1, ' ', iYear);
     }
     else if( cMode == CMOA)
     {
-      outA(os, theMONTH[iMonth-1], w);//std::cout << theMONTH[iMonth];
+      outA(os, theMONTH[iMonth-1], w);
     }
     else if( cMode == CMoA) 
     {
@@ -1238,12 +1238,11 @@ void outA( ostream* os, string s, int w)
     //Float
     else if ( cMode == CSF) 
     {
-      if (w==-1) {w=5; d=4;} 
+      if (w==-1) {w=5; d=2;} 
 //      SetField( w, d, 6,  16, 25);
-      OutAuto( *os, Second, w, d, f);
+      OutFixed( *os, Second, w, d, f);
     }
-  }
-  return tCount;
+  return 1;
  }
 
 //#include "instantiate_templates.hpp"

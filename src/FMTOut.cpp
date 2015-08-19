@@ -423,29 +423,84 @@ void FMTOut::f(RefFMTNode _t) {
 	}
 	case C:
 	{
-		RefFMTNode __t12 = _t;
+		{
+		RefFMTNode __t13 = _t;
 		c = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),C);
 		_t = _t->getFirstChild();
-		{ // ( ... )+
-		int _cnt14=0;
-		for (;;) {
-			if (_t == RefFMTNode(antlr::nullAST) )
-				_t = ASTNULL;
-			if ((_tokenSet_1.member(_t->getType()))) {
-				csubcode(_t);
-				_t = _retTree;
+		
+		int crep = c->getRep(); //unused: cannot prevent \n at end of each print. 
+		// Should be done very differently: Calendar format should be extracted all at once and interpreted
+		// by a different interpreter. Ugh. 
+		if (crep>1) std::cerr<<"Warning, repeat count for Calendar format not supported by GDL (FIXME!)"<<std::endl;
+		if( actPar == NULL) break;
+		
+		{
+		if (_t == RefFMTNode(antlr::nullAST) )
+			_t = ASTNULL;
+		switch ( _t->getType()) {
+		case STRING:
+		case TL:
+		case TR:
+		case X:
+		case CMOA:
+		case CMoA:
+		case CmoA:
+		case CHI:
+		case ChI:
+		case CDWA:
+		case CDwA:
+		case CdwA:
+		case CAPA:
+		case CApA:
+		case CapA:
+		case CMOI:
+		case CDI:
+		case CYI:
+		case CMI:
+		case CSI:
+		case CSF:
+		{
+			{ // ( ... )+
+			int _cnt16=0;
+			for (;;) {
+				if (_t == RefFMTNode(antlr::nullAST) )
+					_t = ASTNULL;
+				if ((_tokenSet_1.member(_t->getType()))) {
+					csubcode(_t);
+					_t = _retTree;
+				}
+				else {
+					if ( _cnt16>=1 ) { goto _loop16; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+				}
+				
+				_cnt16++;
 			}
-			else {
-				if ( _cnt14>=1 ) { goto _loop14; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-			}
-			
-			_cnt14++;
+			_loop16:;
+			}  // ( ... )+
+			break;
 		}
-		_loop14:;
-		}  // ( ... )+
-		_t = __t12;
+		case 3:
+		{
+			
+			if( actPar == NULL) break;
+			SizeT tCount = actPar->OFmtCal( os, valIx, 0, 0, 0, BaseGDL::DEFAULT);
+			
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(antlr::RefAST(_t));
+		}
+		}
+		}
+		
+		NextVal();
+		if( actPar == NULL) break; 
+		
+		_t = __t13;
 		_t = _t->getNextSibling();
+		}
 		break;
 	}
 	default:
@@ -624,18 +679,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		_t = _t->getNextSibling();
 		
 		if( actPar == NULL) break;
-		
-		int r = c1->getRep();
 		int w = c1->getW();
 		int d = c1->getD();
 		int f = c1->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CMOA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMOA);
 		
 		break;
 	}
@@ -647,17 +694,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c2->getRep();
 		int w = c2->getW();
 		int d = c2->getD();
 		int f = c2->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CMoA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMoA);
 		
 		break;
 	}
@@ -669,17 +709,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c3->getRep();
 		int w = c3->getW();
 		int d = c3->getD();
 		int f = c3->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CmoA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CmoA);
 		
 		break;
 	}
@@ -691,17 +724,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c4->getRep();
 		int w = c4->getW();
 		int d = c4->getD();
 		int f = c4->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CHI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CHI);
 		
 		break;
 	}
@@ -713,17 +739,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c5->getRep();
 		int w = c5->getW();
 		int d = c5->getD();
 		int f = c5->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::ChI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::ChI);
 		
 		break;
 	}
@@ -735,17 +754,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c6->getRep();
 		int w = c6->getW();
 		int d = c6->getD();
 		int f = c6->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CDWA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDWA);
 		
 		break;
 	}
@@ -757,17 +769,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c7->getRep();
 		int w = c7->getW();
 		int d = c7->getD();
 		int f = c7->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CDwA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDwA);
 		
 		break;
 	}
@@ -779,17 +784,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c8->getRep();
 		int w = c8->getW();
 		int d = c8->getD();
 		int f = c8->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CdwA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CdwA);
 		
 		break;
 	}
@@ -801,17 +799,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c9->getRep();
 		int w = c9->getW();
 		int d = c9->getD();
 		int f = c9->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CAPA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CAPA);
 		
 		break;
 	}
@@ -823,17 +814,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c10->getRep();
 		int w = c10->getW();
 		int d = c10->getD();
 		int f = c10->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CApA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CApA);
 		
 		break;
 	}
@@ -845,17 +829,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c11->getRep();
 		int w = c11->getW();
 		int d = c11->getD();
 		int f = c11->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CapA);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CapA);
 		
 		break;
 	}
@@ -867,17 +844,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c12->getRep();
 		int w = c12->getW();
 		int d = c12->getD();
 		int f = c12->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CMOI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMOI);
 		
 		break;
 	}
@@ -889,17 +859,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c13->getRep();
 		int w = c13->getW();
 		int d = c13->getD();
 		int f = c13->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CDI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDI);
 		
 		break;
 	}
@@ -911,17 +874,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c14->getRep();
 		int w = c14->getW();
 		int d = c14->getD();
 		int f = c14->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CYI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CYI);
 		
 		break;
 	}
@@ -933,17 +889,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c15->getRep();
 		int w = c15->getW();
 		int d = c15->getD();
 		int f = c15->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CMI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMI);
 		
 		break;
 	}
@@ -955,17 +904,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		
 		if( actPar == NULL) break;
 		
-		int r = c16->getRep();
 		int w = c16->getW();
 		int d = c16->getD();
 		int f = c16->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CSI);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CSI);
 		
 		break;
 	}
@@ -976,18 +918,10 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		_t = _t->getNextSibling();
 		
 		if( actPar == NULL) break;
-		
-		int r = c17->getRep();
 		int w = c17->getW();
 		int d = c17->getD();
 		int f = c17->getFill();
-		do {
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-		BaseGDL::CSF);
-		r -= tCount;
-		NextVal( tCount);
-		if( actPar == NULL) break;
-		} while( r>0);
+		SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CSF);
 		
 		break;
 	}

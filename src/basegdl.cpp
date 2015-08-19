@@ -511,8 +511,8 @@ SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width,
 		      int minN, char fill, BaseGDL::IOMode oM)
 {throw GDLException("BaseGDL::OFmtI(...) called.");}
 
-SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-		      int minN, char fill, BaseGDL::Cal_IOMode oM)
+SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, int width, 
+			int minN, char f, BaseGDL::Cal_IOMode oM)
 {throw GDLException("BaseGDL::OFmtC(...) called.");}
 
 SizeT BaseGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)

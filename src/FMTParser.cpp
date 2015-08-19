@@ -1009,22 +1009,73 @@ void FMTParser::csub() {
 	antlr::ASTPair currentAST;
 	RefFMTNode csub_AST = RefFMTNode(antlr::nullAST);
 	
-	csubcode();
-	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	{ // ( ... )*
-	for (;;) {
-		if ((LA(1) == COMMA)) {
-			match(COMMA);
-			csubcode();
-			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+	{
+	switch ( LA(1)) {
+	case CSTR:
+	case CD:
+	case CE:
+	case CI:
+	case CF:
+	case CG:
+	case CO:
+	case CB:
+	case CS:
+	case CX:
+	case CZ:
+	case CNUMBER:
+	case STRING:
+	case TL:
+	case TR:
+	case X:
+	case CMOA:
+	case CMoA:
+	case CmoA:
+	case CHI:
+	case ChI:
+	case CDWA:
+	case CDwA:
+	case CdwA:
+	case CAPA:
+	case CApA:
+	case CapA:
+	case CMOI:
+	case CDI:
+	case CYI:
+	case CMI:
+	case CSI:
+	case CSF:
+	case NUMBER:
+	{
+		{
+		csubcode();
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		{ // ( ... )*
+		for (;;) {
+			if ((LA(1) == COMMA)) {
+				match(COMMA);
+				csubcode();
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			}
+			else {
+				goto _loop27;
+			}
+			
 		}
-		else {
-			goto _loop25;
+		_loop27:;
+		} // ( ... )*
 		}
-		
+		break;
 	}
-	_loop25:;
-	} // ( ... )*
+	case RBRACE:
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	}
+	}
 	csub_AST = RefFMTNode(currentAST.root);
 	returnAST = csub_AST;
 }

@@ -179,8 +179,11 @@ rep_fmt [ int repeat]
     | c:C^ LBRACE! csub RBRACE! { #c->setRep( repeat);}
     ;   
 
-csub
-    : csubcode (COMMA! csubcode)*
+csub 
+    : (
+      (csubcode (COMMA! csubcode)*)
+      |
+      )
     ;
 
 csubcode

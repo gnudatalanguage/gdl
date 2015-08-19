@@ -454,282 +454,192 @@ f
                 if( actPar == NULL) break;
             } while( r>0);
         }
-    | #(c:C (csubcode)+) 
-    ;   
+    | 
+(
+        #(
+        c:C
+        {
+          int crep = c->getRep(); //unused: cannot prevent \n at end of each print. 
+          // Should be done very differently: Calendar format should be extracted all at once and interpreted
+          // by a different interpreter. Ugh. 
+          if (crep>1) std::cerr<<"Warning, repeat count for Calendar format not supported by GDL (FIXME!)"<<std::endl;
+          if( actPar == NULL) break;
+        }
+
+
+(        
+(csubcode)+ |{
+            if( actPar == NULL) break;
+            SizeT tCount = actPar->OFmtCal( os, valIx, 0, 0, 0, BaseGDL::DEFAULT);
+             }
+)
+
+        {
+            NextVal();
+            if( actPar == NULL) break; 
+        }
+
+        ) 
+//        exception
+//        catch [ antlr::RecognitionException& e] {std::cerr<<e.toString();}
+)
+
+
+
+    ;  
 
 csubcode
     : c1:CMOA
         {
             if( actPar == NULL) break;
-            
-            int r = c1->getRep();
             int w = c1->getW();
             int d = c1->getD();
             int f = c1->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CMOA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMOA);
         }
 
     | c2:CMoA
         {
             if( actPar == NULL) break;
             
-            int r = c2->getRep();
             int w = c2->getW();
             int d = c2->getD();
             int f = c2->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CMoA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMoA);
         }
     | c3:CmoA
         {
             if( actPar == NULL) break;
             
-            int r = c3->getRep();
             int w = c3->getW();
             int d = c3->getD();
             int f = c3->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CmoA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CmoA);
         }
     | c4:CHI
         {
             if( actPar == NULL) break;
             
-            int r = c4->getRep();
             int w = c4->getW();
             int d = c4->getD();
             int f = c4->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CHI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CHI);
         }
     | c5:ChI
         {
             if( actPar == NULL) break;
             
-            int r = c5->getRep();
             int w = c5->getW();
             int d = c5->getD();
             int f = c5->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::ChI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::ChI);
         }
     | c6:CDWA
         {
             if( actPar == NULL) break;
             
-            int r = c6->getRep();
             int w = c6->getW();
             int d = c6->getD();
             int f = c6->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CDWA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDWA);
         }
     | c7:CDwA
         {
             if( actPar == NULL) break;
             
-            int r = c7->getRep();
             int w = c7->getW();
             int d = c7->getD();
             int f = c7->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CDwA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDwA);
         }
     | c8:CdwA
         {
             if( actPar == NULL) break;
             
-            int r = c8->getRep();
             int w = c8->getW();
             int d = c8->getD();
             int f = c8->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CdwA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+                SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CdwA);
         }
     | c9:CAPA
         {
             if( actPar == NULL) break;
             
-            int r = c9->getRep();
             int w = c9->getW();
             int d = c9->getD();
             int f = c9->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CAPA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CAPA);
         }
     | c10:CApA
         {
             if( actPar == NULL) break;
             
-            int r = c10->getRep();
             int w = c10->getW();
             int d = c10->getD();
             int f = c10->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CApA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CApA);
         }
     | c11:CapA
         {
             if( actPar == NULL) break;
             
-            int r = c11->getRep();
             int w = c11->getW();
             int d = c11->getD();
             int f = c11->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CapA);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CapA);
         }
     | c12:CMOI
         {
             if( actPar == NULL) break;
             
-            int r = c12->getRep();
             int w = c12->getW();
             int d = c12->getD();
             int f = c12->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CMOI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMOI);
         }
     | c13:CDI 
         {
             if( actPar == NULL) break;
             
-            int r = c13->getRep();
             int w = c13->getW();
             int d = c13->getD();
             int f = c13->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CDI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CDI);
         }
     | c14:CYI
         {
             if( actPar == NULL) break;
             
-            int r = c14->getRep();
             int w = c14->getW();
             int d = c14->getD();
             int f = c14->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CYI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CYI);
         }
     | c15:CMI
         {
             if( actPar == NULL) break;
             
-            int r = c15->getRep();
             int w = c15->getW();
             int d = c15->getD();
             int f = c15->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CMI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CMI);
         }
     | c16:CSI
         {
             if( actPar == NULL) break;
             
-            int r = c16->getRep();
             int w = c16->getW();
             int d = c16->getD();
             int f = c16->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CSI);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+            SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CSI);
         }
     | c17:CSF
         {
             if( actPar == NULL) break;
-            
-            int r = c17->getRep();
             int w = c17->getW();
             int d = c17->getD();
             int f = c17->getFill();
-            do {
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f,
-                                               BaseGDL::CSF);
-                r -= tCount;
-                NextVal( tCount);
-                if( actPar == NULL) break;
-            } while( r>0);
+                SizeT tCount = actPar->OFmtCal( os, valIx, w, d, f, BaseGDL::CSF);
         }
     | x
     | f_csubcode
