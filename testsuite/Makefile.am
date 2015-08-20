@@ -169,6 +169,7 @@ TESTS = \
   test_voigt.pro \
   test_wait.pro \
   test_wavelet.pro \
+  test_window_background.pro \
   test_where.pro \
   test_zeropoly.pro \
   test_zip.pro \
