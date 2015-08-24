@@ -1044,15 +1044,18 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 }
 
 // C code ****************************************************
-    void j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,
-                  DLong &iHour , DLong &iMinute, DDouble &Second)
+    bool j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,
+                  DLong &iHour , DLong &iMinute, DDouble &Second, DLong &dow, DLong &icap)
     {
     DDouble JD,Z,F,a;
     DLong A,B,C,D,E;
     JD = jd + 0.5;
     Z = floor(JD);
+    if (Z < -1095 || Z > 1827933925 ) return FALSE;
     F = JD - Z;
-
+    
+    if ((DLong)Z > 0) dow = ((DLong)Z) % 7; else dow = ((DLong)Z+1099) % 7; //just translate axis...
+    
     if (Z < 2299161) A = (DLong)Z;
     else {
       a = (DLong) ((Z - 1867216.25) / 36524.25);
@@ -1066,43 +1069,42 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
     // month
     iMonth = E < 14 ? E - 1 : E - 13;
+    iMonth--; //to get a zero-based index;  
     // iday
     iDay=B - D - (DLong)(30.6001 * E);
 
     // year
-    iYear = iMonth > 2 ? C - 4716 : C - 4715;
+//    iYear = iMonth > 2 ? C - 4716 : C - 4715;
+    iYear = iMonth > 1 ? C - 4716 : C - 4715; //with a zero-based index
+    if (iYear < 1) iYear--; //No Year Zero 
     // hours
     iHour = (DLong) (F * 24);
+    { //this prevents interpreting 04:00:00 as 03:59:60 !
+      //this kind of rounding up is explained in IDL doc.
+      DDouble FF=F+6E-10;
+      DLong test= (DLong) (FF * 24);
+      if (test > iHour) {iHour=test;F=FF;}
+    }
+    
+    icap = (iHour > 11);
+
     F -= (DDouble)iHour / 24;
     // minutes
     iMinute = (DLong) (F * 1440);
-    F -= (DDouble)iMinute / 1440;
+    { //this prevents interpreting 04:00:00 as 03:59:60 !
+      //this kind of rounding up is explained in IDL doc.
+      DDouble FF=F+6E-10;
+      DLong test= (DLong) (FF * 1440);
+      if (test > iMinute) {iMinute=test;F=FF;}
+    }
+    F -= (DDouble)iMinute / (DDouble)1440;
     // seconds
     Second = F * 86400;
+    DLong testSecond=Second;
+    if (testSecond > 59) Second=(Second-(DDouble)testSecond)+(DDouble)59.0;
+    return TRUE;
   }
-   static struct 
-   {
-     DLong iMonth;
-     DLong iDay;
-     DLong iYear;
-     DLong iHour;
-     DLong iMinute;
-     DLong dow;
-     DLong icap;
-     DDouble Second;
-   } mytime;
-   
-// other
- 
- template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
- {
-   DDoubleGDL* cVal = static_cast<DDoubleGDL*>
-   ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-   SizeT retVal = cVal->OFmtCal( os, offs, w, d, f, cMode);
-   delete cVal;
-   return retVal;
- }
+
 void outA( ostream* os, string s, int w) 
 {
   if (w==-1) w=3;
@@ -1119,130 +1121,206 @@ void outA( ostream* os, string s, int w)
     (*os) << setw(w) << s.substr(0, w);
   }
 }
- //double
- template<> SizeT Data_<SpDDouble>::
- OFmtCal( ostream* os, SizeT offs, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
+// struct
+SizeT DStructGDL::
+OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_IOMode cMode) 
+{
+  SizeT firstOut, firstOffs, tCount, tCountOut;
+  OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
+
+  SizeT trans = (*this)[ firstOut]->OFmtCal( os, firstOffs, tCount, w, d, f, cMode);
+  if( trans >= tCount) return tCountOut;
+  tCount -= trans;
+
+  SizeT ddSize = dd.size();
+  for( SizeT i = (firstOut+1); i < ddSize; ++i)
+    {
+      trans = (*this)[ i]->OFmtCal( os, 0, tCount, w, d, f, cMode);
+      if( trans >= tCount) return tCountOut;
+      tCount -= trans;
+     }
+
+  return tCountOut;
+}
+
+ template<class Sp> SizeT Data_<Sp>::
+ OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
  {
-   static string theMonth[12]={"January","February","March","April","May","June",
-      "July","August","September","October","November","December"};
-   static string theMONTH[12]={"JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-      "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
-   static string themonth[12]={"january","february","march","april","may","june",
-      "july","august","september","october","november","december"};
-   static string theDAY[7]={"MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"};
-   static string theDay[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
-   static string theday[7]={"monday","tuesday","wednesday","thursday","friday","saturday","sunday"};
-   static string capa[2]={"am","pm"};
-   static string cApa[2]={"Am","Pm"};
-   static string cAPa[2]={"AM","PM"};
-   
-   DLong iMonth, iDay , iYear , iHour , iMinute, dow, icap;
-   DDouble Second;
-   
-    j2ymdhms((*this)[ offs], iMonth, iDay, iYear, iHour, iMinute, Second);
-    // DayOfWeek
-    dow=((DLong)((*this)[offs]))%7;
-    
-    //capa:
-    icap=(iHour>11);
-    if( cMode == DEFAULT) 
-    {
-      outA(os,theDay[dow], 3);
-      (*os)<<" ";
-      outA(os, theMonth[iMonth-1], 3);
-      (*os)<<" ";
-      ZeroPad( os, 2, 2, '0', iDay);
-      (*os)<<" ";
-      ZeroPad( os, 2, 2, '0', iHour%12);
-      (*os)<<":";
-      ZeroPad( os, 2, 2, '0', iMinute);
-      (*os)<<":";
-      ZeroPad( os, 2, 2, '0', (DLong)(Second+0.5));
-      ZeroPad( os, 5, -1, ' ', iYear);
-    }
-    else if( cMode == CMOA)
-    {
-      outA(os, theMONTH[iMonth-1], w);
-    }
-    else if( cMode == CMoA) 
-    {
-      outA(os, theMonth[iMonth-1], w);
-    }
-    else if ( cMode == CmoA)
-    {
-      outA(os, themonth[iMonth-1], w);
-    }
-    else if ( cMode == CDWA) 
-    {
-      outA(os, theDAY[dow], w);
-    }
-    else if ( cMode == CDwA) 
-    {
-      outA(os,theDay[dow], w);
-    }
-    else if ( cMode == CdwA) 
-    {
-      outA(os, theday[dow], w);
-    }
-    else if( cMode == CapA) 
-    {
-      if (w==-1) w=2; 
-      outA(os, capa[icap], w);
-    }
-    else if( cMode == CApA) 
-    {
-      if (w==-1) w=2; 
-      outA(os, cApa[icap], w);
-    }
-    else if( cMode == CAPA) 
-    {
-      if (w==-1) w=2; 
-      outA(os, cAPa[icap], w);
-    }
-    //integer
-    else if ( cMode == CMOI) 
-    {
-      if (w==-1) w=2; 
-      ZeroPad( os, w, d, f, iMonth);
-    }
-    else if ( cMode == CYI) 
-    {
-      if (w==-1) w=4; 
-      ZeroPad( os, w, d, f, iYear);
-    }
-    else if ( cMode == ChI) 
-    {
-      if (w==-1) w=2; 
-      ZeroPad( os, w, d, f, iHour);
-    }
-    else if ( cMode == CHI) 
-    {
-      if (w==-1) w=2; 
-      ZeroPad( os, w, d, f, iHour%12);
-    }
-    else if ( cMode == CDI) 
-    {
-      if (w==-1) w=2; 
-      ZeroPad( os, w, d, f, iDay);
-    }
-    else if ( cMode == CMI) 
-    {
-      if (w==-1) w=2; 
-      ZeroPad( os, w, d, f, iMinute);
-    }
-    else if ( cMode == CSI) 
-    {
-      if (w==-1) {w=2; d=0;}; 
-      ZeroPad( os, w, d, f, (DLong)(Second+0.5));
-    }
-    //Float
-    else if ( cMode == CSF) 
-    {
-      if (w==-1) {w=5; d=2;} 
-//      SetField( w, d, 6,  16, 25);
-      OutFixed( *os, Second, w, d, f);
-    }
-  return 1;
+  static DLong *iMonth, *iDay, *iYear, *iHour, *iMinute, *dow, *icap;
+  static DDouble *Second;
+  static ostringstream **local_os;
+  bool cmplx=FALSE;
+  SizeT nTrans = ToTransfer();
+  // transfer count
+  SizeT tCount = nTrans - offs;  
+  SizeT r=tCount;
+  if ( Data_<Sp>::IS_COMPLEX ) { cmplx=TRUE;} //tCount in this case is twice the size of the complex array 
+
+  switch ( cMode ) {
+    case BaseGDL::WRITE:
+        for (SizeT i=0, j=0; j<r; j++){
+          if (i >= repeat) {i=0; (*os)<<endl;}
+          (*os)<<(local_os[j]->str()).c_str();
+          i++;
+          delete local_os[j];
+        }
+        delete local_os;
+      break;
+    case BaseGDL::COMPUTE:
+      iMonth=(DLong*)calloc(r,sizeof(DLong));
+      iDay=(DLong*)calloc(r,sizeof(DLong));
+      iYear=(DLong*)calloc(r,sizeof(DLong));
+      iHour=(DLong*)calloc(r,sizeof(DLong));
+      iMinute=(DLong*)calloc(r,sizeof(DLong));
+      dow=(DLong*)calloc(r,sizeof(DLong));
+      icap=(DLong*)calloc(r,sizeof(DLong));
+      Second=(DDouble*)calloc(r,sizeof(DDouble));
+      local_os=(ostringstream**)calloc(r,sizeof(ostringstream*));
+      if ( cmplx ) {
+        DComplexDblGDL* cVal = static_cast<DComplexDblGDL*> (this->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY ));
+        for( SizeT i=0, j=0; j<(r/2); ++j)
+        {
+          local_os[i]=new ostringstream();
+          if (!j2ymdhms( (*cVal)[offs +j].real(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          i++;
+          local_os[i]=new ostringstream();
+          if (!j2ymdhms( (*cVal)[offs+j].imag(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          i++;
+        }
+        delete cVal;
+      } else {
+        for ( SizeT i = 0; i < r; i++ ) {
+          local_os[i]=new ostringstream();
+          DDoubleGDL* cVal = static_cast<DDoubleGDL*> (this->Convert2( GDL_DOUBLE, BaseGDL::COPY ));
+          if (!j2ymdhms( (*cVal)[offs + i], iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          delete cVal;
+//          cerr<<"Dow="<<dow[i]<<" iDay="<<iDay[i]<<" iMonth="<<iMonth[i]<<" iYear="<<iYear[i]<<" iHour="<<iHour[i]<<" iMinute="<<iMinute[i]<<" Second="<<Second[i]<<" icap="<<icap[i]<<endl;
+        }
+      }
+      break;
+    case BaseGDL::DEFAULT:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theDay[dow[i]], 3 );
+      (*local_os[i]) << " ";
+      outA( local_os[i], theMonth[iMonth[i]], 3 );
+      (*local_os[i]) << " ";
+      ZeroPad( local_os[i], 2, 2, '0', iDay[i] );
+      (*local_os[i]) << " ";
+      ZeroPad( local_os[i], 2, 2, '0', iHour[i] );
+      (*local_os[i]) << ":";
+      ZeroPad( local_os[i], 2, 2, '0', iMinute[i] );
+      (*local_os[i]) << ":";
+      ZeroPad( local_os[i], 2, 2, '0', (DLong) (Second[i] + 0.5) );
+      ZeroPad( local_os[i], 5, -1, ' ', iYear[i] );
+      }
+      break;
+    case BaseGDL::CMOA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theMONTH[iMonth[i]], w );
+      }
+      break;
+    case BaseGDL::CMoA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theMonth[iMonth[i]], w );
+      }
+      break;
+    case BaseGDL::CmoA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], themonth[iMonth[i]], w );
+      }
+      break;
+    case BaseGDL::CDWA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theDAY[dow[i]], w );
+      }
+      break;
+    case BaseGDL::CDwA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theDay[dow[i]], w );
+      }
+      break;
+    case BaseGDL::CdwA:
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], theday[dow[i]], w );
+      }
+      break;
+    case BaseGDL::CapA:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], capa[icap[i]], w );
+      }
+      break;
+    case BaseGDL::CApA:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], cApa[icap[i]], w );
+      }
+      break;
+    case BaseGDL::CAPA:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      outA( local_os[i], cAPa[icap[i]], w );
+      }
+      break;
+      //integer
+    case BaseGDL::CMOI:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iMonth[i]+1 );
+      }
+      break;
+    case BaseGDL::CYI:
+      if ( w == -1 ) w = 4;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iYear[i] );
+      }
+      break;
+    case BaseGDL::ChI:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iHour[i]%12);
+      }
+      break;
+    case BaseGDL::CHI:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iHour[i] );
+      }
+      break;
+    case BaseGDL::CDI:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iDay[i] );
+      }
+      break;
+    case BaseGDL::CMI:
+      if ( w == -1 ) w = 2;
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, iMinute[i] );
+      }
+      break;
+    case BaseGDL::CSI:
+      if ( w == -1 ) {
+        w = 2;
+        d = 0;
+      }
+      for (SizeT i=0; i<r; i++){
+      ZeroPad( local_os[i], w, d, f, (DLong) (Second[i] + 0.5) );
+      }
+      break;
+      //Float
+    case BaseGDL::CSF:
+      if ( w == -1 ) {
+        w = 5;
+        d = 2;
+      }
+      //      SetField( w, d, 6,  16, 25);
+      for (SizeT i=0; i<r; i++){
+      OutFixed( *local_os[i], Second[i], w, d, f );
+      }
+      break;
+  }
+  return tCount;
  }
 
 //#include "instantiate_templates.hpp"

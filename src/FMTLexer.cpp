@@ -284,11 +284,11 @@ antlr::RefToken FMTLexer::nextToken()
 					mCYI(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x68 /* 'h' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x48 /* 'H' */ )) {
 					mCHI(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x48 /* 'H' */ )) {
+				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x68 /* 'h' */ )) {
 					mChI(true);
 					theRetToken=_returnToken;
 				}
@@ -1206,7 +1206,7 @@ void FMTLexer::mCHI(bool _createToken) {
 	
 	{
 	match('C' /* charlit */ );
-	match('h' /* charlit */ );
+	match('H' /* charlit */ );
 	match('I' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1224,7 +1224,7 @@ void FMTLexer::mChI(bool _createToken) {
 	
 	{
 	match('C' /* charlit */ );
-	match('H' /* charlit */ );
+	match('h' /* charlit */ );
 	match('I' /* charlit */ );
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {

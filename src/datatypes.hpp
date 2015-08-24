@@ -464,14 +464,14 @@ static	void operator delete( void *ptr);
 		int prec, char fill, BaseGDL::IOMode oM = BaseGDL::FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
 		int minN, char fill, BaseGDL::IOMode oM = BaseGDL::DEC);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, int width, 
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
 		 int minN, char f, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   // formatting input functions
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 
   SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
 		BaseGDL::IOMode oM = BaseGDL::DEC);
-
+  SizeT IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
 #ifdef USE_PYTHON
 public:
   PyObject* ToPython();

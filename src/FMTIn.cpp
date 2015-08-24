@@ -418,29 +418,82 @@ void FMTIn::f(RefFMTNode _t) {
 	}
 	case C:
 	{
-		RefFMTNode __t18 = _t;
+		{
+		RefFMTNode __t19 = _t;
 		c = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),C);
 		_t = _t->getFirstChild();
-		{ // ( ... )+
-		int _cnt20=0;
-		for (;;) {
-			if (_t == RefFMTNode(antlr::nullAST) )
-				_t = ASTNULL;
-			if ((_tokenSet_1.member(_t->getType()))) {
-				csubcode(_t);
-				_t = _retTree;
+		
+		int r = c->getRep();  if (r<1) r=1;
+		if( actPar == NULL) break;
+		
+		{
+		if (_t == RefFMTNode(antlr::nullAST) )
+			_t = ASTNULL;
+		switch ( _t->getType()) {
+		case STRING:
+		case TL:
+		case TR:
+		case X:
+		case CMOA:
+		case CMoA:
+		case CmoA:
+		case CHI:
+		case ChI:
+		case CDWA:
+		case CDwA:
+		case CdwA:
+		case CAPA:
+		case CApA:
+		case CapA:
+		case CMOI:
+		case CDI:
+		case CYI:
+		case CMI:
+		case CSI:
+		case CSF:
+		{
+			{ // ( ... )+
+			int _cnt22=0;
+			for (;;) {
+				if (_t == RefFMTNode(antlr::nullAST) )
+					_t = ASTNULL;
+				if ((_tokenSet_1.member(_t->getType()))) {
+					csubcode(_t,r);
+					_t = _retTree;
+				}
+				else {
+					if ( _cnt22>=1 ) { goto _loop22; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+				}
+				
+				_cnt22++;
 			}
-			else {
-				if ( _cnt20>=1 ) { goto _loop20; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-			}
-			
-			_cnt20++;
+			_loop22:;
+			}  // ( ... )+
+			break;
 		}
-		_loop20:;
-		}  // ( ... )+
-		_t = __t18;
+		case 3:
+		{
+			
+			if( actPar == NULL) break;
+			SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 24, BaseGDL::DEFAULT);
+			
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(antlr::RefAST(_t));
+		}
+		}
+		}
+		
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 0, BaseGDL::COMPUTE);
+		NextVal(tCount);
+		if( actPar == NULL) break;
+		
+		_t = __t19;
 		_t = _t->getNextSibling();
+		}
 		break;
 	}
 	default:
@@ -611,6 +664,11 @@ void FMTIn::f_csubcode(RefFMTNode _t) {
 		s = _t;
 		match(antlr::RefAST(_t),STRING);
 		_t = _t->getNextSibling();
+		
+				SizeT actP  = ioss.tellg(); 
+				int  strlen = s->getText().length();
+				ioss.seekg( actP + strlen);
+		
 		break;
 	}
 	case TL:
@@ -657,14 +715,16 @@ void FMTIn::x(RefFMTNode _t) {
 	
 	if( _t != static_cast<RefFMTNode>(antlr::nullAST))
 	{
-	int    tlVal = tl->getW();
+	int    tlVal = tl->getW();if (tlVal<1) tlVal=1;
 	ioss.seekg( tlVal, std::ios_base::cur);
 	}
 	
 	_retTree = _t;
 }
 
-void FMTIn::csubcode(RefFMTNode _t) {
+void FMTIn::csubcode(RefFMTNode _t,
+	SizeT r
+) {
 	RefFMTNode csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode c1 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c2 = RefFMTNode(antlr::nullAST);
@@ -692,6 +752,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c1 = _t;
 		match(antlr::RefAST(_t),CMOA);
 		_t = _t->getNextSibling();
+		
+		int w = c1->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMOA);
+		
 		break;
 	}
 	case CMoA:
@@ -699,6 +763,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c2 = _t;
 		match(antlr::RefAST(_t),CMoA);
 		_t = _t->getNextSibling();
+		
+		int w = c2->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMoA);
+		
 		break;
 	}
 	case CmoA:
@@ -706,6 +774,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c3 = _t;
 		match(antlr::RefAST(_t),CmoA);
 		_t = _t->getNextSibling();
+		
+		int w = c3->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CmoA);
+		
 		break;
 	}
 	case CHI:
@@ -713,6 +785,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c4 = _t;
 		match(antlr::RefAST(_t),CHI);
 		_t = _t->getNextSibling();
+		
+		int w = c4->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CHI);
+		
 		break;
 	}
 	case ChI:
@@ -720,6 +796,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c5 = _t;
 		match(antlr::RefAST(_t),ChI);
 		_t = _t->getNextSibling();
+		
+		int w = c5->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::ChI);
+		
 		break;
 	}
 	case CDWA:
@@ -727,6 +807,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c6 = _t;
 		match(antlr::RefAST(_t),CDWA);
 		_t = _t->getNextSibling();
+		
+		int w = c6->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDWA);
+		
 		break;
 	}
 	case CDwA:
@@ -734,6 +818,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c7 = _t;
 		match(antlr::RefAST(_t),CDwA);
 		_t = _t->getNextSibling();
+		
+		int w = c7->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDwA);
+		
 		break;
 	}
 	case CdwA:
@@ -741,6 +829,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c8 = _t;
 		match(antlr::RefAST(_t),CdwA);
 		_t = _t->getNextSibling();
+		
+		int w = c8->getW(); if(w<1) w=3;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CdwA);
+		
 		break;
 	}
 	case CAPA:
@@ -748,6 +840,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c9 = _t;
 		match(antlr::RefAST(_t),CAPA);
 		_t = _t->getNextSibling();
+		
+		int w = c9->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CAPA);
+		
 		break;
 	}
 	case CApA:
@@ -755,6 +851,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c10 = _t;
 		match(antlr::RefAST(_t),CApA);
 		_t = _t->getNextSibling();
+		
+		int w = c10->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CApA);
+		
 		break;
 	}
 	case CapA:
@@ -762,6 +862,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c11 = _t;
 		match(antlr::RefAST(_t),CapA);
 		_t = _t->getNextSibling();
+		
+		int w = c11->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CapA);
+		
 		break;
 	}
 	case CMOI:
@@ -769,6 +873,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c12 = _t;
 		match(antlr::RefAST(_t),CMOI);
 		_t = _t->getNextSibling();
+		
+		int w = c12->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMOI);
+		
 		break;
 	}
 	case CDI:
@@ -776,6 +884,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c13 = _t;
 		match(antlr::RefAST(_t),CDI);
 		_t = _t->getNextSibling();
+		
+		int w = c13->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDI);
+		
 		break;
 	}
 	case CYI:
@@ -783,6 +895,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c14 = _t;
 		match(antlr::RefAST(_t),CYI);
 		_t = _t->getNextSibling();
+		
+		int w = c14->getW(); if(w<1) w=4;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CYI);
+		
 		break;
 	}
 	case CMI:
@@ -790,6 +906,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c15 = _t;
 		match(antlr::RefAST(_t),CMI);
 		_t = _t->getNextSibling();
+		
+		int w = c15->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMI);
+		
 		break;
 	}
 	case CSI:
@@ -797,6 +917,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c16 = _t;
 		match(antlr::RefAST(_t),CSI);
 		_t = _t->getNextSibling();
+		
+		int w = c16->getW(); if(w<1) w=2;
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CSI);
+		
 		break;
 	}
 	case CSF:
@@ -804,6 +928,10 @@ void FMTIn::csubcode(RefFMTNode _t) {
 		c17 = _t;
 		match(antlr::RefAST(_t),CSF);
 		_t = _t->getNextSibling();
+		
+		int w = c17->getW(); 
+		SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CSF);
+		
 		break;
 	}
 	case X:

@@ -709,14 +709,14 @@ DStructGDL* NewResult() const
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 
   SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
 		BaseGDL::IOMode oM = DEC);
-
+  SizeT IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
 private:
   void IFmtAll( SizeT offs, SizeT r,
 		SizeT& firstOut, SizeT& firstOffs, SizeT& tCount, SizeT& tCountOut);
   
   void OFmtAll( SizeT offs, SizeT r,
 		SizeT& firstOut, SizeT& firstOffs, SizeT& tCount, SizeT& tCountOut);
-  
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_IOMode oMode);   
   // inserts srcIn at ixDim
   // respects the exact structure
   // used by Assign -> old data must be freed

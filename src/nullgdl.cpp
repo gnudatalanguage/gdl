@@ -554,7 +554,10 @@ SizeT NullGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width,
 		      int minN, char fill, NullGDL::IOMode oM)
 {throw GDLException("NullGDL::OFmtI(...) called.");}
 
-SizeT NullGDL::OFmtCal( std::ostream* os, SizeT offs, int width,
+SizeT NullGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)
+{throw GDLException("NullGDL::IFmtCal(...) called.");}
+
+SizeT NullGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width,
 			int minN, char f, NullGDL::Cal_IOMode cM)
 {throw GDLException("NullGDL::OFmtCal(...) called.");}
           

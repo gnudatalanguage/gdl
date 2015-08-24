@@ -347,8 +347,8 @@ CMI: ( 'C' 'M' 'I');
 CYI: ( 'C' 'Y' 'I');
 CSI: ( 'C' 'S' 'I');
 CSF: ( 'C' 'S' 'F');
-CHI: ( 'C' 'h' 'I');
-ChI: ( 'C' 'H' 'I');
+CHI: ( 'C' 'H' 'I');
+ChI: ( 'C' 'h' 'I');
 
 CDWA: ( 'C' 'D' 'W' 'A');
 CDwA: ( 'C' 'D' 'w' 'A');

@@ -151,7 +151,9 @@ public:
 	public: void format_reversion(RefFMTNode _t);
 	public: void f_csubcode(RefFMTNode _t);
 	public: void x(RefFMTNode _t);
-	public: void csubcode(RefFMTNode _t);
+	public: void csubcode(RefFMTNode _t,
+		SizeT r
+	);
 public:
 	antlr::RefAST getAST()
 	{

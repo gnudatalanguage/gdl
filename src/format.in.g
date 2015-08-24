@@ -401,8 +401,12 @@ q
     ;
 
 f_csubcode // note: IDL doesn't allow hollerith strings inside C()
-    : s:STRING // ignored on input
-//    | CSTRING  // ignored on input
+    : s:STRING 
+        {
+		SizeT actP  = ioss.tellg(); 
+		int  strlen = s->getText().length();
+		ioss.seekg( actP + strlen);
+        }
     | tl:TL 
         { 
             SizeT actP  = ioss.tellg(); 
@@ -539,27 +543,122 @@ f
                 if( actPar == NULL) break;
             } while( r>0);
         }
-    | #(c:C (csubcode)+) 
+    |
+(
+        #(
+        c:C
+        {
+          int r = c->getRep();  if (r<1) r=1;
+          if( actPar == NULL) break;
+        }
+
+
+(        
+(csubcode[r])+ |{
+            if( actPar == NULL) break;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 24, BaseGDL::DEFAULT);
+             }
+)
+
+        {
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 0, BaseGDL::COMPUTE);
+            NextVal(tCount);
+            if( actPar == NULL) break;
+        }
+
+        ) 
+//        exception
+//        catch [ antlr::RecognitionException& e] {std::cerr<<e.toString();}
+)
     ;   
 
 csubcode
-    : c1:CMOA
+[SizeT r]
+        : c1:CMOA
+        {
+            int w = c1->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMOA);
+        }
     | c2:CMoA
+        {
+            int w = c2->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMoA);
+        }
     | c3:CmoA
+        {
+            int w = c3->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CmoA);
+        }
     | c4:CHI
+        {
+            int w = c4->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CHI);
+        }
     | c5:ChI
+        {
+            int w = c5->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::ChI);
+        }
     | c6:CDWA
+        {
+            int w = c6->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDWA);
+        }
     | c7:CDwA
+        {
+            int w = c7->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDwA);
+        }
     | c8:CdwA
+        {
+            int w = c8->getW(); if(w<1) w=3;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CdwA);
+        }
     | c9:CAPA
+        {
+            int w = c9->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CAPA);
+        }
     | c10:CApA
+        {
+            int w = c10->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CApA);
+        }
     | c11:CapA
+        {
+            int w = c11->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CapA);
+        }
     | c12:CMOI
+        {
+            int w = c12->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMOI);
+        }
     | c13:CDI 
+        {
+            int w = c13->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CDI);
+        }
     | c14:CYI
+        {
+            int w = c14->getW(); if(w<1) w=4;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CYI);
+        }
     | c15:CMI
+        {
+            int w = c15->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CMI);
+        }
     | c16:CSI
+        {
+            int w = c16->getW(); if(w<1) w=2;
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CSI);
+        }
     | c17:CSF
+        {
+            int w = c17->getW(); 
+            SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CSF);
+        }
     | x
     | f_csubcode
     ;
@@ -569,7 +668,7 @@ x
         {
             if( _t != static_cast<RefFMTNode>(antlr::nullAST))
             {
-                int    tlVal = #tl->getW();
+                int    tlVal = #tl->getW();if (tlVal<1) tlVal=1;
                 ioss.seekg( tlVal, std::ios_base::cur);
             }
         }

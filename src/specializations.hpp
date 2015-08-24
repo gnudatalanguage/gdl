@@ -610,6 +610,13 @@ IFmtF( std::istream* is, SizeT offs, SizeT r, int w);
 template<>  SizeT Data_<SpDComplexDbl>::
 IFmtF( std::istream* is, SizeT offs, SizeT r, int w); 
 
+template<>  SizeT Data_<SpDString>::
+IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
+template<>  SizeT Data_<SpDComplex>::
+IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
+template<>  SizeT Data_<SpDComplexDbl>::
+IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
+
 // ofmt.cpp
 template<>  SizeT Data_<SpDString>::
 OFmtA( std::ostream* os, SizeT offs, SizeT r, int w); 
@@ -647,8 +654,7 @@ OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 template<>  SizeT Data_<SpDComplexDbl>::
 OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
-template<> SizeT Data_<SpDDouble>::
-OFmtCal( std::ostream* os, SizeT offs, int w, int d, char f, BaseGDL::Cal_IOMode cMode);
+
 // template<>
 // void Data_< SpDString>::Construct(); 
 // template<>
