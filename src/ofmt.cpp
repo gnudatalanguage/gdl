@@ -1123,7 +1123,7 @@ void outA( ostream* os, string s, int w)
 }
 // struct
 SizeT DStructGDL::
-OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_IOMode cMode) 
+OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_IOMode cMode) 
 {
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
@@ -1144,7 +1144,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
 }
 
  template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, char f, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, char *f, BaseGDL::Cal_IOMode cMode)
  {
   static DLong *iMonth, *iDay, *iYear, *iHour, *iMinute, *dow, *icap;
   static DDouble *Second;
@@ -1165,6 +1165,14 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
           delete local_os[j];
         }
         delete local_os;
+        delete iMonth;
+        delete iDay ;
+        delete iYear;
+        delete iHour;
+        delete iMinute;
+        delete dow;
+        delete icap;
+        delete Second;
       break;
     case BaseGDL::COMPUTE:
       iMonth=(DLong*)calloc(r,sizeof(DLong));
@@ -1212,6 +1220,11 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
       (*local_os[i]) << ":";
       ZeroPad( local_os[i], 2, 2, '0', (DLong) (Second[i] + 0.5) );
       ZeroPad( local_os[i], 5, -1, ' ', iYear[i] );
+      }
+      break;
+    case BaseGDL::STRING:
+      for (SizeT i=0; i<r; i++){
+      (*local_os[i]) << f;
       }
       break;
     case BaseGDL::CMOA:
@@ -1266,37 +1279,37 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
     case BaseGDL::CMOI:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iMonth[i]+1 );
+      ZeroPad( local_os[i], w, d, *f, iMonth[i]+1 );
       }
       break;
     case BaseGDL::CYI:
       if ( w == -1 ) w = 4;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iYear[i] );
+      ZeroPad( local_os[i], w, d, *f, iYear[i] );
       }
       break;
     case BaseGDL::ChI:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iHour[i]%12);
+      ZeroPad( local_os[i], w, d, *f, iHour[i]%12);
       }
       break;
     case BaseGDL::CHI:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iHour[i] );
+      ZeroPad( local_os[i], w, d, *f, iHour[i] );
       }
       break;
     case BaseGDL::CDI:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iDay[i] );
+      ZeroPad( local_os[i], w, d, *f, iDay[i] );
       }
       break;
     case BaseGDL::CMI:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, iMinute[i] );
+      ZeroPad( local_os[i], w, d, *f, iMinute[i] );
       }
       break;
     case BaseGDL::CSI:
@@ -1305,7 +1318,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
         d = 0;
       }
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, f, (DLong) (Second[i] + 0.5) );
+      ZeroPad( local_os[i], w, d, *f, (DLong) (Second[i] + 0.5) );
       }
       break;
       //Float
@@ -1316,7 +1329,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char f,  BaseGDL::Cal_I
       }
       //      SetField( w, d, 6,  16, 25);
       for (SizeT i=0; i<r; i++){
-      OutFixed( *local_os[i], Second[i], w, d, f );
+      OutFixed( *local_os[i], Second[i], w, d, *f );
       }
       break;
   }

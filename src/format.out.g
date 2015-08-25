@@ -463,7 +463,7 @@ f
           if( actPar == NULL) break;
           SizeT nTrans = actPar->ToTransfer();
           if (r > nTrans) r=nTrans;
-          actPar->OFmtCal( os, valIx, r, 0, 0, 0, BaseGDL::COMPUTE); //convert to hour, min, etc
+          actPar->OFmtCal( os, valIx, r, 0, 0, NULL, BaseGDL::COMPUTE); //convert to hour, min, etc
         }
 
 
@@ -471,13 +471,13 @@ f
 (csubcode[r])+ |
              {
                 if( actPar == NULL) break;
-                actPar->OFmtCal( os, valIx, r, 0, 0, 0, BaseGDL::DEFAULT);
+                actPar->OFmtCal( os, valIx, r, 0, 0, NULL, BaseGDL::DEFAULT);
              }
 )
 
         {
            if( actPar == NULL) break;
-           SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, 0, BaseGDL::WRITE); //Write the complete formatted string to os.
+           SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, NULL, BaseGDL::WRITE); //Write the complete formatted string to os.
            NextVal( tCount);
            if( actPar == NULL) break;
         }
@@ -498,8 +498,8 @@ csubcode
             if( actPar == NULL) break;
             int w = c1->getW();
             int d = c1->getD();
-            int f = c1->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CMOA);
+            char f = c1->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CMOA);
         }
 
     | c2:CMoA
@@ -508,8 +508,8 @@ csubcode
             
             int w = c2->getW();
             int d = c2->getD();
-            int f = c2->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CMoA);
+            char f = c2->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CMoA);
         }
     | c3:CmoA
         {
@@ -517,8 +517,8 @@ csubcode
             
             int w = c3->getW();
             int d = c3->getD();
-            int f = c3->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CmoA);
+            char f = c3->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CmoA);
         }
     | c4:CHI
         {
@@ -526,8 +526,8 @@ csubcode
             
             int w = c4->getW();
             int d = c4->getD();
-            int f = c4->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CHI);
+            char f = c4->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CHI);
         }
     | c5:ChI
         {
@@ -535,8 +535,8 @@ csubcode
             
             int w = c5->getW();
             int d = c5->getD();
-            int f = c5->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::ChI);
+            char f = c5->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::ChI);
         }
     | c6:CDWA
         {
@@ -544,8 +544,8 @@ csubcode
             
             int w = c6->getW();
             int d = c6->getD();
-            int f = c6->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CDWA);
+            char f = c6->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CDWA);
         }
     | c7:CDwA
         {
@@ -553,8 +553,8 @@ csubcode
             
             int w = c7->getW();
             int d = c7->getD();
-            int f = c7->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CDwA);
+            char f = c7->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CDwA);
         }
     | c8:CdwA
         {
@@ -562,8 +562,8 @@ csubcode
             
             int w = c8->getW();
             int d = c8->getD();
-            int f = c8->getFill();
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CdwA);
+            char f = c8->getFill();
+                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CdwA);
         }
     | c9:CAPA
         {
@@ -571,8 +571,8 @@ csubcode
             
             int w = c9->getW();
             int d = c9->getD();
-            int f = c9->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CAPA);
+            char f = c9->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CAPA);
         }
     | c10:CApA
         {
@@ -580,8 +580,8 @@ csubcode
             
             int w = c10->getW();
             int d = c10->getD();
-            int f = c10->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CApA);
+            char f = c10->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CApA);
         }
     | c11:CapA
         {
@@ -589,8 +589,8 @@ csubcode
             
             int w = c11->getW();
             int d = c11->getD();
-            int f = c11->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CapA);
+            char f = c11->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CapA);
         }
     | c12:CMOI
         {
@@ -598,8 +598,8 @@ csubcode
             
             int w = c12->getW();
             int d = c12->getD();
-            int f = c12->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CMOI);
+            char f = c12->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CMOI);
         }
     | c13:CDI 
         {
@@ -607,8 +607,8 @@ csubcode
             
             int w = c13->getW();
             int d = c13->getD();
-            int f = c13->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CDI);
+            char f = c13->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CDI);
         }
     | c14:CYI
         {
@@ -616,8 +616,8 @@ csubcode
             
             int w = c14->getW();
             int d = c14->getD();
-            int f = c14->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CYI);
+            char f = c14->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CYI);
         }
     | c15:CMI
         {
@@ -625,8 +625,8 @@ csubcode
             
             int w = c15->getW();
             int d = c15->getD();
-            int f = c15->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CMI);
+            char f = c15->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CMI);
         }
     | c16:CSI
         {
@@ -634,20 +634,31 @@ csubcode
             
             int w = c16->getW();
             int d = c16->getD();
-            int f = c16->getFill();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CSI);
+            char f = c16->getFill();
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CSI);
         }
     | c17:CSF
         {
             if( actPar == NULL) break;
             int w = c17->getW();
             int d = c17->getD();
-            int f = c17->getFill();
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, f, BaseGDL::CSF);
+            char f = c17->getFill();
+                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, &f, BaseGDL::CSF);
         }
-    | x
-    | f_csubcode
-    ;
+    | c18:X
+        {
+		if( actPar == NULL) break;
+		int    tlVal = c18->getW(); if (tlVal < 1) tlVal=1;
+		std::string *s=new std::string(tlVal,' ');
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)s->c_str(), BaseGDL::STRING);
+                delete s;
+        }
+    | c19:STRING
+        {
+		if( actPar == NULL) break;
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)c19->getText().c_str(), BaseGDL::STRING);
+        }
+    ; //AND NOTHING ELSE PERMITTED!
 
 x
     : tl:X 
