@@ -260,7 +260,8 @@ void LibInit()
   // printKey, readKey and stringKey are closely associated
   // as the same functions are called "FORMAT" till "MONTH"
   // must be the first four keywords. The inner print_os function is BASED on this ORDER!
-  #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTH"
+  //NOTE THAT AM_PM, DAYS_OF_WEEK and MONTHS are silently ignored!!!
+  #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
   const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
   new DLibPro(lib::print,string("PRINT"),-1,printKey);
   new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
