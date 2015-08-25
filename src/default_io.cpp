@@ -1390,34 +1390,45 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
   }
   return o;
 }
-
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_complex( XDR *xdrs, DComplex *p)  
 { 
-//Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
-  float preal = p->real();
-  float pimag = p->imag();
-//this convoluted code should prevent compilation problem with MINGW's GCC
-  bool ret1=xdr_float(xdrs, &preal);
-  bool ret2=xdr_float(xdrs, &pimag);
-  p->real()=preal;
-  p->imag()=pimag;
-  return( (ret1) && (ret2));
+  return(xdr_float(xdrs, reinterpret_cast<float *>(p)) && xdr_float(xdrs, reinterpret_cast<float *>(p) + 1));
 }  
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)  
 {  
-//Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
-  double preal = p->real();
-  double pimag = p->imag();
-//this convoluted code should prevent compilation problem with MINGW's GCC
-  bool ret1=xdr_double(xdrs, &preal);
-  bool ret2=xdr_double(xdrs, &pimag);
-  p->real()=preal;
-  p->imag()=pimag;
-  return( (ret1) && (ret2));
-} 
+  return(xdr_double(xdrs, reinterpret_cast<double *>(p)) && xdr_double(xdrs, reinterpret_cast<double *>(p) + 1));
+}
 
+//Alternate version, having problems on windows (??).
+////this is the routined used by IDL as per the documentation.
+//bool_t xdr_complex( XDR *xdrs, DComplex *p)  
+//{ 
+////Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
+//  DFloat preal = p->real();
+//  DFloat pimag = p->imag();
+////this convoluted code should prevent compilation problem with MINGW's GCC
+//  bool ret1=xdr_float(xdrs, &preal);
+//  bool ret2=xdr_float(xdrs, &pimag);
+//  p->real()=preal;
+//  p->imag()=pimag;
+//  return( (ret1) && (ret2));
+//}  
+////this is the routined used by IDL as per the documentation.
+//bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)  
+//{  
+////Don't you EVER change this code. Refer to gnudatalanguage-devel@lists.sourceforge.net for suggestions/blames.
+//  DDouble preal = p->real();
+//  DDouble pimag = p->imag();
+////this convoluted code should prevent compilation problem with MINGW's GCC
+//  bool ret1=xdr_double(xdrs, &preal);
+//  bool ret2=xdr_double(xdrs, &pimag);
+//  p->real()=preal;
+//  p->imag()=pimag;
+//  return( (ret1) && (ret2));
+//} 
+//
 
 //this is the routined used by IDL as per the documentation.
 //It happens to write twice the number of chars in the file, not very clever.
