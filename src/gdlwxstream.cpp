@@ -233,9 +233,56 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 }
 
 bool GDLWXStream::SetGraphicsFunction( long value) {
-  int what[]={wxCLEAR,wxAND,wxAND_REVERSE,wxCOPY,wxAND_INVERT,wxNO_OP,wxXOR,wxNOR,wxEQUIV,wxINVERT,wxOR_REVERSE,wxSRC_INVERT,wxOR_INVERT,wxNAND,wxSET};
+  //use switch since passing an enum to a function is problematic for some compilers, grrrrrrrrrrrr!
   value=(value<0)?0:(value>15)?15:value;
-  m_dc->SetLogicalFunction(what[value]);
+  switch ( value ) {
+    case 0: //wxCLEAR:
+      m_dc->SetLogicalFunction( wxCLEAR);
+      break;
+    case 1: //wxAND:
+      m_dc->SetLogicalFunction( wxAND);
+      break;
+    case 2: //wxAND_REVERSE:
+      m_dc->SetLogicalFunction( wxAND_REVERSE);
+      break;
+    default:
+    case 3: //wxCOPY:
+      m_dc->SetLogicalFunction( wxCOPY);
+      break;
+    case 4: //wxAND_INVERT:
+      m_dc->SetLogicalFunction( wxAND_INVERT);
+      break;
+    case 5: //wxNO_OP:
+      m_dc->SetLogicalFunction( wxNO_OP);
+      break;
+    case 6: //wxXOR:
+      m_dc->SetLogicalFunction( wxXOR);
+      break;
+    case 7: //wxNOR:
+      m_dc->SetLogicalFunction( wxNOR);
+      break;
+    case 8: //wxEQUIV:
+      m_dc->SetLogicalFunction( wxEQUIV);
+      break;
+    case 9: //wxINVERT:
+      m_dc->SetLogicalFunction( wxINVERT);
+      break;
+    case 10: //wxOR_REVERSE:
+      m_dc->SetLogicalFunction( wxOR_REVERSE);
+      break;
+    case 11: //wxSRC_INVERT:
+      m_dc->SetLogicalFunction( wxSRC_INVERT);
+      break;
+    case 12: //wxOR_INVERT:
+      m_dc->SetLogicalFunction( wxOR_INVERT);
+      break;
+    case 13: //wxNAND:
+      m_dc->SetLogicalFunction( wxNAND);
+      break;
+    case 14: //wxSET:
+      m_dc->SetLogicalFunction( wxSET);
+      break;
+  }
  return true;
 }
 
