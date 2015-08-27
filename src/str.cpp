@@ -5,7 +5,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -25,9 +25,9 @@
 extern "C" {
 #endif
 
-// quoting http://permalink.gmane.org/gmane.os.openbsd.tech/19860 :
-// 'wordexp() will never be in OpenBSD's libc' :)
-// (TODO: perhaps better to implement it using HAVE_WORDEXP_H? + once more below in WordExp())
+  // quoting http://permalink.gmane.org/gmane.os.openbsd.tech/19860 :
+  // 'wordexp() will never be in OpenBSD's libc' :)
+  // (TODO: perhaps better to implement it using HAVE_WORDEXP_H? + once more below in WordExp())
 #if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
 #  include <wordexp.h>
 #endif
@@ -44,13 +44,13 @@ using namespace std;
 
 string GetEnvString(const char* env)
 {
-    char* c=getenv(env);
-    if( !c) return string("");
-    return string(c);
+  char* c=getenv(env);
+  if( !c) return string("");
+  return string(c);
 }
 
 DLong StrPos(const string& s, const string& searchStr, long pos, 
-	      bool reverseOffset, bool reverseSearch)
+	     bool reverseOffset, bool reverseSearch)
 {
   if( s == "") return -1;
 
@@ -99,17 +99,17 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
 string StrMid(const string& s, long first, long len, bool reverse)
 {
 #ifdef STRMID_DEBUG
-cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<") = ";//<<endl
+  cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<") = ";//<<endl
 #endif
 
   // (long)string::npos == -1
   if( len != string::npos && len <= 0)
-  {
+    {
 #ifdef STRMID_DEBUG
-	cout << "." << endl;
+      cout << "." << endl;
 #endif
-	return string("");
-  }
+      return string("");
+    }
   long strLen = s.length();
   if( reverse)
     {
@@ -121,7 +121,7 @@ cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<
   if( first < 0) first = 0; 
 
 #ifdef STRMID_DEBUG
-	cout << s.substr( first, len)<<"." << endl;
+  cout << s.substr( first, len)<<"." << endl;
 #endif
   return s.substr( first, len);
 }
@@ -181,24 +181,24 @@ string StrUpCase(const string& s)
 #ifdef _MSC_VER
     r[i]=toupper(sCStr[i]);
 #else
-    r[i]=std::toupper(sCStr[i]);
+  r[i]=std::toupper(sCStr[i]);
 #endif
   return string(r);
 }
 void StrUpCaseInplace( string& s)
 {
   unsigned len=s.length();
-//   char const *sCStr=s.c_str();
-//   char* r = new char[len+1];
-//   ArrayGuard<char> guard( r);
-//   r[len]=0;
+  //   char const *sCStr=s.c_str();
+  //   char* r = new char[len+1];
+  //   ArrayGuard<char> guard( r);
+  //   r[len]=0;
   for(unsigned i=0;i<len;i++)
 #ifdef _MSC_VER
     s[i]=toupper(s[i]);
 #else
-    s[i]=std::toupper(s[i]);
+  s[i]=std::toupper(s[i]);
 #endif
-//   return string(r);
+  //   return string(r);
 }
 
 string StrLowCase(const string& s)
@@ -212,21 +212,21 @@ string StrLowCase(const string& s)
 #ifdef _MSC_VER
     r[i]=tolower(sCStr[i]);
 #else
-    r[i]=std::tolower(sCStr[i]);
+  r[i]=std::tolower(sCStr[i]);
 #endif
   return string(r);
 }
 void StrLowCaseInplace(string& s)
 {
   unsigned len=s.length();
-//   char const *sCStr=s.c_str();
+  //   char const *sCStr=s.c_str();
   for(unsigned i=0;i<len;i++)
 #ifdef _MSC_VER
     s[i]=tolower(s[i]);
 #else
-    s[i]=std::tolower(s[i]);
+  s[i]=std::tolower(s[i]);
 #endif
-//     s[i]=std::tolower(sCStr[i]);
+  //     s[i]=std::tolower(sCStr[i]);
 }
 
 // replacement for library routine 
@@ -315,59 +315,60 @@ unsigned long int Str2UL( const string& s, int base)
 
 void WordExp( string& s)
 {
-//cout << "WordExp  in: " << s << endl;
+  //cout << "WordExp  in: " << s << endl;
 #if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
-// esc whitespace
-// which is not already escaped
-//   string sEsc;
-//   for( int i=0; i<s.length(); ++i)
-//   {
-//     if( s[i] == ' ')
-// 	sEsc += "\\ ";
-//     else if( s[i] == '\\')
-//       {
-// 	if( (i+1)<s.length())
-// 	{
-// 	  if( s[i+1] == ' ')
-// 	  {
-// 	    sEsc += "\\ ";
-// 	    ++i;
-// 	  }
-// 	}	  
-//       }    
-//     else
-// 	sEsc += s[i];
-//   }
-//cout << "WordExp esc: " << sEsc << endl;
- wordexp_t p;
- int ok0 = wordexp( s.c_str(), &p, 0);
-//  int ok0 = wordexp( sEsc.c_str(), &p, 0);
- if( ok0 == 0)
-   {
-     //        cout<< p.we_wordc<<"word count\n";
-     if( p.we_wordc > 0)
-       {
-	 //	 s="";
-	 string ss= p.we_wordv[0];
-	 for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
+  // esc whitespace
+  // which is not already escaped
+  //   string sEsc;
+  //   for( int i=0; i<s.length(); ++i)
+  //   {
+  //     if( s[i] == ' ')
+  // 	sEsc += "\\ ";
+  //     else if( s[i] == '\\')
+  //       {
+  // 	if( (i+1)<s.length())
+  // 	{
+  // 	  if( s[i+1] == ' ')
+  // 	  {
+  // 	    sEsc += "\\ ";
+  // 	    ++i;
+  // 	  }
+  // 	}	  
+  //       }    
+  //     else
+  // 	sEsc += s[i];
+  //   }
+  //cout << "WordExp esc: " << sEsc << endl;
+  wordexp_t p;
+  int ok0 = wordexp( s.c_str(), &p, 0);
+  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
+  if( ok0 == 0)
+    {
+      //        cout<< p.we_wordc<<"word count\n";
+      if( p.we_wordc > 0)
+	{
+	  //	 s="";
+	  string ss= p.we_wordv[0];
+	  for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
 	    {
 	      while(s[ind++]==' ') ss+="";
-	      ss+="*";
+	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp", same label
+	      ss+="|";
 	      ss+= p.we_wordv[i];
 	      ind=s.find(" ",ind);
 	      //	      cout<<"in for\n";
 	    }
 	  // s=p.we_wordv[0];
-	 s=ss;
-       }
-     //     cout<<s<<"--result\n";
+	  s=ss;
+	}
+      //     cout<<s<<"--result\n";
 #  if defined(__APPLE__)
-     p.we_offs = 0;
+      p.we_offs = 0;
 #  endif
-     wordfree( &p);
-   }
+      wordfree( &p);
+    }
 #endif
-//cout << "WordExp out: " << s << endl;
+  //cout << "WordExp out: " << s << endl;
 }
 
 #if defined (_WIN32)
