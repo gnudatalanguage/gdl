@@ -2345,7 +2345,7 @@ CONSTANT_OR_STRING_LITERAL
 	;	
 
 COMMENT
-  : ';' (options {greedy=true;}: ~('\r'|'\n'))* { _ttype=antlr::Token::SKIP;}
+  : ';' (options {greedy=true;}: ~('\r'|'\n'))* { ++lineContinuation; _ttype=antlr::Token::SKIP;}
   ;
 
 // look here for reserved words

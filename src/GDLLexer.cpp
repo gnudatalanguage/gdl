@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20130428): "gdlc.g" -> "GDLLexer.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -3262,7 +3262,7 @@ void GDLLexer::mCOMMENT(bool _createToken) {
 	_loop465:;
 	} // ( ... )*
 	if ( inputState->guessing==0 ) {
-		_ttype=antlr::Token::SKIP;
+		++lineContinuation; _ttype=antlr::Token::SKIP;
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
