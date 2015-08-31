@@ -156,27 +156,37 @@ private:
 
     // handle Log options passing via Functions names PLOT_IO/OO/OI
     // the behavior can be superseed by [xy]log or [xy]type
-    string ProName=e->GetProName();
-    if (ProName != "PLOT") {
-      if (ProName == "PLOT_IO") yLog=TRUE;
-      if (ProName == "PLOT_OI") xLog=TRUE;
-      if (ProName == "PLOT_OO") {
-	xLog=TRUE;
-	yLog=TRUE;
+    string ProName = e->GetProName( );
+    if ( ProName != "PLOT" ) {
+      if ( ProName == "PLOT_IO" ) yLog = TRUE;
+      if ( ProName == "PLOT_OI" ) xLog = TRUE;
+      if ( ProName == "PLOT_OO" ) {
+        xLog = TRUE;
+        yLog = TRUE;
       }
     }
 
     // handle Log options passing via Keywords
-    static int xTypeIx = e->KeywordIx("XTYPE");
-    static int yTypeIx = e->KeywordIx("YTYPE");
-    static int xLogIx = e->KeywordIx("XLOG");
-    static int yLogIx = e->KeywordIx("YLOG");
+    // note: undocumented keywords [xyz]type still exist and
+    // have priority on [xyz]log !
+    static int xTypeIx = e->KeywordIx( "XTYPE" );
+    static int yTypeIx = e->KeywordIx( "YTYPE" );
+    static int xLogIx = e->KeywordIx( "XLOG" );
+    static int yLogIx = e->KeywordIx( "YLOG" );
+    static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
+    static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
-    if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
+    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
 
-    if (e->KeywordPresent(xTypeIx)) xLog=e->KeywordSet(xTypeIx);
-    if (e->KeywordPresent(yTypeIx)) yLog=e->KeywordSet(yTypeIx);
+    if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      xLog = FALSE;
+    }
+    if ( yLog && e->KeywordSet( yTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      yLog = FALSE;
+    }
 
     //cout << xLog << " " << yLog << endl;
 
@@ -287,10 +297,10 @@ private:
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(xStart, xEnd, xLog);
+      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(yStart, yEnd, yLog);
+      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog);
     }
 
     // MARGIN

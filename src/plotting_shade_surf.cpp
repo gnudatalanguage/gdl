@@ -44,26 +44,35 @@ namespace lib
     bool handle_args (EnvT* e)
     {
 
-      // undocumented keywords [xyz]type still exist and
-      // had priority on [xyz]log !
-      
-      if (e->KeywordPresent( "XTYPE" )) {
-	xLog=e->KeywordSet ( "XTYPE" );
-      } else {
-	xLog=e->KeywordSet ( "XLOG" );
-      }
+    // handle Log options passing via Keywords
+    // note: undocumented keywords [xyz]type still exist and
+    // have priority on [xyz]log ! 
+    static int xTypeIx = e->KeywordIx( "XTYPE" );
+    static int yTypeIx = e->KeywordIx( "YTYPE" );
+    static int zTypeIx = e->KeywordIx( "ZTYPE" );
+    static int xLogIx = e->KeywordIx( "XLOG" );
+    static int yLogIx = e->KeywordIx( "YLOG" );
+    static int zLogIx = e->KeywordIx( "ZLOG" );
+    static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
+    static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
+    static int zTickunitsIx = e->KeywordIx( "ZTICKUNITS" );
 
-      if (e->KeywordPresent( "YTYPE" )) {
-	yLog=e->KeywordSet ( "YTYPE" );
-      } else {
-	yLog=e->KeywordSet ( "YLOG" );
-      }
+    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
+    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
+    if ( e->KeywordPresent( zTypeIx ) ) zLog = e->KeywordSet( zTypeIx ); else zLog = e->KeywordSet( zLogIx );
 
-      if (e->KeywordPresent( "ZTYPE" )) {
-	zLog=e->KeywordSet ( "ZTYPE" );
-      } else {
-	zLog=e->KeywordSet ( "ZLOG" );
-      }
+    if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      xLog = FALSE;
+    }
+    if ( yLog && e->KeywordSet( yTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      yLog = FALSE;
+    }
+    if ( zLog && e->KeywordSet( zTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      zLog = FALSE;
+    }
 
       if ( nParam ( )==1 )
       {
@@ -224,12 +233,12 @@ namespace lib
 
       if ( ( xStyle&1 )!=1 )
       {
-        PLFLT intv=AutoIntvAC ( xStart, xEnd, xLog );
+        PLFLT intv=gdlAdjustAxisRange ( xStart, xEnd, xLog );
       }
 
       if ( ( yStyle&1 )!=1 )
       {
-        PLFLT intv=AutoIntvAC ( yStart, yEnd, yLog );
+        PLFLT intv=gdlAdjustAxisRange ( yStart, yEnd, yLog );
       }
 
       bool hasMinVal=e->KeywordPresent("MIN_VALUE");
@@ -247,7 +256,7 @@ namespace lib
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )
       {
-        PLFLT intv=AutoIntvAC ( zStart, zEnd, zLog );
+        PLFLT intv=gdlAdjustAxisRange ( zStart, zEnd, zLog );
       }
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...

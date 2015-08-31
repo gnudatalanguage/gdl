@@ -135,21 +135,25 @@ namespace lib {
     DDouble yEnd=oyEnd;
 
     // handle Log options passing via Keywords
-    static int xTypeIx = e->KeywordIx("XTYPE");
-    static int yTypeIx = e->KeywordIx("YTYPE");
-    static int xLogIx = e->KeywordIx("XLOG");
-    static int yLogIx = e->KeywordIx("YLOG");
+    // note: undocumented keywords [xyz]type still exist and
+    // have priority on [xyz]log !
+    static int xTypeIx = e->KeywordIx( "XTYPE" );
+    static int yTypeIx = e->KeywordIx( "YTYPE" );
+    static int xLogIx = e->KeywordIx( "XLOG" );
+    static int yLogIx = e->KeywordIx( "YLOG" );
+    static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
+    static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    if (e->KeywordPresent(xTypeIx )) {
-      xLog= ( xLog || e->KeywordSet (xTypeIx ));
-    } else {
-      xLog= ( xLog || e->KeywordSet (xLogIx ));
+    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
+    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
+
+    if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      xLog = FALSE;
     }
-    
-    if (e->KeywordPresent(yTypeIx )) {
-      yLog= ( yLog || e->KeywordSet (yTypeIx ));
-    } else {
-      yLog= ( yLog ||e->KeywordSet (yLogIx));
+    if ( yLog && e->KeywordSet( yTickunitsIx ) ) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      yLog = FALSE;
     }
 
     //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
@@ -179,10 +183,10 @@ namespace lib {
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(xStart, xEnd, xLog);
+      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = AutoIntvAC(yStart, yEnd, yLog);
+      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog);
     }
     
     DDouble yVal, xVal;

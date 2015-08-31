@@ -372,13 +372,10 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
 
-  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, bool log = false);
+  PLFLT gdlAdjustAxisRange(DDouble &val_min, DDouble &val_max, bool log = false);
   PLFLT AutoTick(DDouble x);
   PLFLT gdlComputeTickInterval(EnvT *e, string axis, DDouble &min, DDouble &max, bool log);
   bool gdlYaxisNoZero(EnvT* e);
-  void AdjustAxisOpts(string& xOpt, string& yOpt,
-    DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
-    string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
   bool gdlSetViewPortAndWorldCoordinates( EnvT* e, GDLGStream* actStream, DFloatGDL* boxPosition, bool xLog, bool yLog,
                  DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT,
                  DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal, DLong iso);
