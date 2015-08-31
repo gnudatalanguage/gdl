@@ -852,7 +852,7 @@ int getPosInStringArray(string *array, int nval, string what)
       if (iHour < 0 || iHour > 23) throw GDLException("Unable to apply format code "+fmt+" to input: "+what.substr(11,2)+".");
       iMinute=Str2L( what.substr(14,2).c_str(), 10);
       if (iMinute < 0 || iMinute > 59) throw GDLException("Unable to apply format code "+fmt+" to input: "+what.substr(14,2)+".");
-      Second=Str2L( what.substr(17,2).c_str(), 10);
+      Second=Str2L( what.substr(17,2).c_str(), 10); //Str2D since it is in format integer (CSI2.2)
       if (Second < 0 || Second > 59.0) throw GDLException("Unable to apply format code "+fmt+" to input: "+what.substr(17,2)+".");
       iYear=Str2L( what.substr(20,4).c_str(), 10);
       if (iYear < -4716 || iYear > 5000000 || iYear == 0) throw GDLException("Value of Julian date is out of allowed range.");
@@ -934,8 +934,8 @@ int getPosInStringArray(string *array, int nval, string what)
       //Float
     case BaseGDL::CSF:
       fmt="CSF";
-      Second=Str2L( what.c_str(), 10);
-      if (Second < 0 || Second > 60.0) throw GDLException("Unable to apply format code "+fmt+" to input: "+what+".");
+      Second=Str2D( what.c_str());
+      if (Second < 0.0 || Second > 60.0) throw GDLException("Unable to apply format code "+fmt+" to input: "+what+".");
       break;
   }
   return Value;

@@ -1099,9 +1099,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     }
     F -= (DDouble)iMinute / (DDouble)1440;
     // seconds
-    Second = F * 86400;
-    DLong testSecond=Second;
-    if (testSecond > 59) Second=(Second-(DDouble)testSecond)+(DDouble)59.0;
+    Second = F * 86400; 
     return TRUE;
   }
 
@@ -1318,7 +1316,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_
         d = 0;
       }
       for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, *f, (DLong) (Second[i] + 0.5) );
+      ZeroPad( local_os[i], w, d, *f, (DLong) (Second[i]) );
       }
       break;
       //Float
@@ -1329,6 +1327,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_
       }
       //      SetField( w, d, 6,  16, 25);
       for (SizeT i=0; i<r; i++){
+        //this may print Second as 60.xxx but IDL DOES THE SAME!
       OutFixed( *local_os[i], Second[i], w, d, *f );
       }
       break;
