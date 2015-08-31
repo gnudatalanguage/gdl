@@ -583,7 +583,7 @@ void LibInit()
      "SYMSIZE",   "THICK",    "TICKLEN", "TITLE",
      "MAX_VALUE", "MIN_VALUE",
      "XLOG",      "YLOG",
-     "YNOZERO",   "XTYPE",    "YTYPE",   "POLAR", "NSUM",
+     "YNOZERO",   "XTYPE",    "YTYPE",   "POLAR", "NSUM", //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd.
       "XCHARSIZE", "YCHARSIZE",
       "XGRIDSTYLE", "YGRIDSTYLE",
       "XMARGIN", "YMARGIN",
