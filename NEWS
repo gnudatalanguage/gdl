@@ -647,3 +647,10 @@
            - combination of input arrays in math. special functions now ok with IDL
            - SVSOL(); RESOLVE_ALL, more keywords in RESOLVE_ROUTINE
            - initial import of LA_LEAST_SQUARES (for Ulyss), required Eigen3
+
+support for Calendar format codes in input/output
+better handling of multiaxes in plot
+option --fakerelease for gdl: "$gdl --fakerelease 6.2" will pretend that the software
+release is 6.2 by setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
+procedures to decide whether some function or option should be used. It is sometimes possible to
+use this option to fool a procedure that request a specific value of !VERSION.RELEASE   
