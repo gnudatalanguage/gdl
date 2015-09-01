@@ -5582,70 +5582,80 @@ BaseGDL* strtok_fun(EnvT* e) {
     static int sourceIx = e->KeywordIx( "SOURCE" );
     bool sourceKW = e->KeywordSet(sourceIx );
 
-    if (sourceKW) {
+    if ( sourceKW ) {
 
       // sanity checks
-      if (systemKW) e->Throw("Conflicting keywords.");
+      if ( systemKW ) e->Throw( "Conflicting keywords." );
 
-      // we are not ready to manage the case when no param is provide (routine name)
-      if (nParam == 0) e->Throw("This case is not ready");
-
-      // it seems that the code inside "CREATE_STRUCTURE()" (see here below)
-      // shall be a base to do it (notes by AC, May 16, 2013)
-      
-      /*if (functionsKW) {
-	if (funList.size() == 0) {
-	return new DStringGDL("");
-	} else {
-      */
-
-      // getting the routine name from the first parameter (must be a singleton)
       DString raw_name, name;
-      e->AssureScalarPar<DStringGDL>(0, raw_name);
-      name = StrUpCase(raw_name);
-      
       string FullFileName;
-      bool found=false;
+      bool found = FALSE;
+      DStructGDL* stru;
+      DStructDesc* stru_desc;
+      
+        
+      if ( nParam == 1 ) {
+        // getting the routine name from the first parameter (must be a singleton)
+        e->AssureScalarPar<DStringGDL>(0, raw_name);
+        name = StrUpCase( raw_name );
+        if ( functionsKW ) {
+          for ( FunListT::iterator i = funList.begin( ); i != funList.end( ); ++i ) {
+            if ( (*i)->ObjectName( ) == name ) {
+              found = true;
+              FullFileName = (*i)->GetFilename( );
+              break;
+            }
+          }
+          if ( !found ) e->Throw( "% Attempt to call undefined/not compiled function: '" + raw_name + "'" );
+        } else {
+          for ( ProListT::iterator i = proList.begin( ); i != proList.end( ); ++i ) {
+            if ( (*i)->ObjectName( ) == name ) {
+              found = true;
+              FullFileName = (*i)->GetFilename( );
+              break;
+            }
+          }
+          if ( !found ) e->Throw( "% Attempt to call undefined/not compiled procedure: '" + raw_name + "'" );
+        }
 
-      //      SizeT n = funList.size();
-      //cout << funList.size() << endl;
-      //cout << proList.size() << endl;
+        // creating the output anonymous structure
+        stru_desc = new DStructDesc( "$truct" );
+        SpDString aString;
+        stru_desc->AddTag( "NAME", &aString );
+        stru_desc->AddTag( "PATH", &aString );
+        stru = new DStructGDL( stru_desc, dimension( ) );
 
-      // looking in the compiled functions (if /function keyword provided)
-      // or in the compiled procedures
-      if (functionsKW) {
-	for(FunListT::iterator i=funList.begin(); i != funList.end(); ++i) {
-	  if ((*i)->ObjectName() == name) {
-	    found=true;
-	    FullFileName=(*i)->GetFilename();
-	    break;
-	  }
-	}
-	if (!found) e->Throw("% Attempt to call undefined/not compiled function: '"+raw_name+"'");	
+        // filling the structure with information about the routine 
+        stru->InitTag( "NAME", DStringGDL( name ) );
+        stru->InitTag( "PATH", DStringGDL( FullFileName ) );
+        return stru;
+        
       } else {
-	for(ProListT::iterator i=proList.begin(); i != proList.end(); ++i) {
-	  if ((*i)->ObjectName() == name) {
-	    found=true;
-	    FullFileName=(*i)->GetFilename();
-	    break;
-	  }
-	}
-	if (!found) e->Throw("% Attempt to call undefined/not compiled procedure: '"+raw_name+"'");
+        // creating the output anonymous structure
+        stru_desc = new DStructDesc( "$truct" );
+        SpDString aString;
+        stru_desc->AddTag( "NAME", &aString );
+        stru_desc->AddTag( "PATH", &aString );
+        
+        stru = new DStructGDL( stru_desc, dimension(  (functionsKW)?funList.size():proList.size()) );
+
+        if ( functionsKW ) {
+          SizeT ii=0;
+          for ( FunListT::iterator i = funList.begin( ); i != funList.end( ); ++i ) {
+              (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
+              (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
+              ii++;
+            }
+        } else {
+          SizeT ii=0;
+          for ( ProListT::iterator i = proList.begin( ); i != proList.end( ); ++i ) {
+              (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
+              (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
+              ii++;
+          }
+        }
+        return stru;
       }
-      
-      // creating the output anonymous structure
-      DStructDesc* stru_desc = new DStructDesc("$truct");
-      SpDString aString;
-      stru_desc->AddTag("NAME", &aString);
-      stru_desc->AddTag("PATH", &aString);
-      
-      DStructGDL* stru = new DStructGDL(stru_desc, dimension());
-      // filling the structure with information about the routine 
-      stru->InitTag("NAME", DStringGDL(name));
-      stru->InitTag("PATH", DStringGDL(FullFileName));
-
-      return stru;
-
     }
 
     if (parametersKW)
