@@ -99,6 +99,7 @@ namespace SysVar
   
   // initialize the predefined system variables (!IDNAME)
   void InitSysVar();
+  void SetFakeRelease( DString str);
 }
 
 #endif

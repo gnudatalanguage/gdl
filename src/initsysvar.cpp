@@ -300,6 +300,13 @@ namespace SysVar
   {
     DVar& var = *sysVarList[ vIx];
     return static_cast<DStructGDL*>(var.Data());
+  } 
+  void SetFakeRelease( DString release)
+  {
+    DVar& var = *sysVarList[ vIx];
+    DStructGDL *s=static_cast<DStructGDL*>(var.Data());
+    static int tag = s->Desc()->TagIndex( "RELEASE");
+    (*static_cast<DStringGDL*>( s->GetTag( tag)))[0] = release;
   }
   DStructGDL* Values()
   {

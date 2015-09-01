@@ -189,6 +189,7 @@ int main(int argc, char *argv[])
   // and before entering the interactive mode
   vector<string> batch_files;
   string statement;
+  string pretendRelease;
 
   for( SizeT a=1; a< argc; ++a)
     {
@@ -200,6 +201,7 @@ int main(int argc, char *argv[])
 	  cout << "GDL options:" << endl;
 	  cout << "  --help (-h)        display this message" << endl;
 	  cout << "  --version (-V, -v) show version information" << endl;
+	  cout << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
           cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -279,6 +281,15 @@ int main(int argc, char *argv[])
       {
           gdlde = true;
       }
+      else if (string(argv[a]) == "--fakerelease")
+      {
+        if (a == argc - 1)
+          {
+            cerr << "gdl: --fakerelease must be followed by a string argument like \"6.4\"" << endl;
+            return 0;
+          }
+        pretendRelease = string(argv[++a]);
+      }
       else if (*argv[a] == '-')
       {
         cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
@@ -316,7 +327,9 @@ int main(int argc, char *argv[])
         "  " << gdlPath << endl;
     }
   SysVar::SetGDLPath( gdlPath);
-
+  
+  if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
+  
   string startup=GetEnvString("GDL_STARTUP");
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
