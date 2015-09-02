@@ -198,11 +198,17 @@ public:
       for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
       {
 #ifdef HAVE_OLDPLPLOT
-        devlongnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-        devnames = static_cast<char**>(realloc(devnames, maxnumdevs * sizeof(char*)));
+        //handles gracefully the improbable failure of realloc
+        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
+        if (tmp) devlongnames = static_cast<char**>(tmp); else return FALSE;
+        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
+        if (tmp) devnames = static_cast<char**>(tmp); else return FALSE;
 #else
-        devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-        devnames = static_cast<const char**>(realloc(devnames, maxnumdevs * sizeof(char*)));
+        //handles gracefully the improbable failure of realloc
+        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
+        if (tmp) devlongnames = static_cast<const char**>(tmp); else return FALSE;
+        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
+        if (tmp) devnames = static_cast<const char**>(tmp); else return FALSE;
 #endif
         plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
         numdevs_plus_one++;
