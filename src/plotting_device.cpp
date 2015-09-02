@@ -94,10 +94,9 @@ namespace lib {
        if (fvalue == NULL) 
           e->Throw( "Keyword GET_SCREEN_SIZE not allowed for call to: DEVICE");
        else {
-         DIntGDL* value=new DIntGDL(dimension(2), BaseGDL::NOZERO);
-         (*value)[0]=floor((*fvalue)[0]);
-         (*value)[1]=floor((*fvalue)[1]);
-         e->SetKW( get_screen_sizeIx, value);
+         (*fvalue)[0]=floor((*fvalue)[0]);
+         (*fvalue)[1]=floor((*fvalue)[1]);
+         e->SetKW( get_screen_sizeIx, fvalue);
        }
       }
     }
