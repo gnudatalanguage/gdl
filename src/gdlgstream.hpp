@@ -200,15 +200,15 @@ public:
 #ifdef HAVE_OLDPLPLOT
         //handles gracefully the improbable failure of realloc
         void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<char**>(tmp); else return FALSE;
+        if (tmp) devlongnames = static_cast<char**>(tmp); else return false;
         tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<char**>(tmp); else return FALSE;
+        if (tmp) devnames = static_cast<char**>(tmp); else return false;
 #else
         //handles gracefully the improbable failure of realloc
         void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<const char**>(tmp); else return FALSE;
+        if (tmp) devlongnames = static_cast<const char**>(tmp); else return false;
         tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<const char**>(tmp); else return FALSE;
+        if (tmp) devnames = static_cast<const char**>(tmp); else return false;
 #endif
         plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
         numdevs_plus_one++;
