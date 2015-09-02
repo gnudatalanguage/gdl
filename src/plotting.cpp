@@ -198,7 +198,7 @@ namespace lib
 
     DLong n=static_cast<DLong>(floor(log10(x/3.5)));
     DDouble y=(x/(3.5*pow(10., static_cast<double>(n))));
-    DLong m;
+    DLong m=0;
     if ( y>=1&&y<2 )
       m=1;
     else if ( y>=2&&y<5 )
@@ -220,7 +220,7 @@ namespace lib
 
     DLong n=static_cast<DLong>(floor(log10(x/2.82)));
     DDouble y=(x/(2.82*pow(10., static_cast<double>(n))));
-    DLong m;
+    DLong m=0;
     if ( y>=1&&y<2 )
       m=1;
     else if ( y>=2&&y<4.47 )
@@ -2623,8 +2623,8 @@ namespace lib
     gdlGetDesiredAxisTicks(e, axis, Ticks);
     DStringGDL* TickUnits;
     gdlGetDesiredAxisTickUnits(e, axis, TickUnits);
-    DDoubleGDL *Tickv;
-    gdlGetDesiredAxisTickv(e, axis, Tickv);
+//    DDoubleGDL *Tickv;
+//    gdlGetDesiredAxisTickv(e, axis, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axis, Title);
     
@@ -2880,8 +2880,8 @@ namespace lib
     gdlGetDesiredAxisTicks(e, axis, Ticks);
     DStringGDL* TickUnits;
     gdlGetDesiredAxisTickUnits(e, axis, TickUnits);
-    DDoubleGDL* Tickv;
-    gdlGetDesiredAxisTickv(e, axis, Tickv);
+//    DDoubleGDL* Tickv;
+//    gdlGetDesiredAxisTickv(e, axis, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axis, Title);
 
@@ -3739,7 +3739,7 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
           curr = new Vertex;
           curr->x=(*v).x;
           curr->y=(*v).y;
-          currentVertexList->push_back(*curr);
+          currentVertexList->push_back(*curr); delete curr;
           for (v++; v != (*p).VertexList.end(); v++)
           {
             xe = cos( (*v).x ) * cos( (*v).y );
@@ -3762,13 +3762,13 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
                 curr = new Vertex;
                 curr->x=atan2( y, x );
                 curr->y=asin( z );
-                currentVertexList->push_back(*curr);
+                currentVertexList->push_back(*curr); delete curr;
                 //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
                 if (index==0) {xcut=x; ycut=y; zcut=z;}
                 currentPol->VertexList=(*currentVertexList);
-                tmpPolygonList.push_back(*currentPol);
-
                 int newtype=-1*currentPol->type;
+
+                tmpPolygonList.push_back(*currentPol); delete currentPol;
                 
                 //find intersection epsilon after
                 OnSphereVectorPlaneIntersection( xs, ys, zs, xe, ye, ze, a, b, c, d, x, y, z, +epsilon );
@@ -3793,7 +3793,7 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
             xs=xe;ys=ye;zs=ze; 
           }
           currentPol->VertexList=(*currentVertexList);
-          tmpPolygonList.push_back(*currentPol);
+          tmpPolygonList.push_back(*currentPol); delete currentPol;
           
           //tmpPolygonList contains the current polygon, splitted. It must be stitched if filling occurs.
           //level-0 filling consist in adding last portion at beginning of first one 
@@ -3938,7 +3938,7 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
             curr = new Vertex;
             curr->x=(*v).x;
             curr->y=(*v).y;
-            currentVertexList->push_back(*curr);
+            currentVertexList->push_back(*curr); delete curr;
           }
           for (v++; v != (*p).VertexList.end(); v++)
           {
@@ -3954,10 +3954,10 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
                 curr = new Vertex;
                 curr->x=atan2( y, x );
                 curr->y=asin( z );
-                currentVertexList->push_back(*curr);
+                currentVertexList->push_back(*curr); delete curr;
                 //end of current Pol.
                 currentPol->VertexList=(*currentVertexList);
-                newPolygonList.push_back(*currentPol);
+                newPolygonList.push_back(*currentPol); delete currentPol;
               }
               isVisible=!isVisible;
 
@@ -3971,21 +3971,21 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
                 curr = new Vertex;
                 curr->x=atan2( y, x );
                 curr->y=asin( z );
-                currentVertexList->push_back(*curr);
+                currentVertexList->push_back(*curr); delete curr;
               }
             }
             if (isVisible) {
               curr = new Vertex;
               curr->x=(*v).x;
               curr->y=(*v).y;
-              currentVertexList->push_back(*curr);
+              currentVertexList->push_back(*curr); delete curr;
             }
             before = after;
             xs=xe;ys=ye;zs=ze; 
           }
           if (isVisible) {
             currentPol->VertexList=(*currentVertexList);
-            newPolygonList.push_back(*currentPol);
+            newPolygonList.push_back(*currentPol); delete currentPol;
           }
         }
         //exchange new & old contents and void new
@@ -4116,7 +4116,7 @@ void GDLgrProjectedPolygonPlot( EnvT* e, GDLGStream * a, PROJTYPE ref, DStructGD
     }
     DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
     SizeT nout = res->N_Elements( ) / 2;
-    if (nout < 1) return; //projection clipped totally these values.
+    if (nout < 1) {GDLDelete(res); return;} //projection clipped totally these values.
     res = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (res)->Transpose( NULL ));
     int minpoly;
     if ( doFill ) {
