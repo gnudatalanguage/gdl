@@ -169,15 +169,29 @@ private:
     // handle Log options passing via Keywords
     // note: undocumented keywords [xyz]type still exist and
     // have priority on [xyz]log !
-    static int xTypeIx = e->KeywordIx( "XTYPE" );
-    static int yTypeIx = e->KeywordIx( "YTYPE" );
     static int xLogIx = e->KeywordIx( "XLOG" );
     static int yLogIx = e->KeywordIx( "YLOG" );
+    if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+    if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+
+    // note: undocumented keywords [xyz]type still exist and
+    // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
+    static int xTypeIx = e->KeywordIx( "XTYPE" );
+    static int yTypeIx = e->KeywordIx( "YTYPE" );
+    static int xType, yType;
+    if (e->KeywordPresent(xTypeIx)) {
+      e->AssureLongScalarKWIfPresent( "XTYPE", xType);
+      if ((xType % 2) == 1) xLog= TRUE; else xLog= FALSE;
+    }
+    if (e->KeywordPresent(yTypeIx)) {
+      e->AssureLongScalarKWIfPresent( "YTYPE", yType);
+      if ((yType % 2) == 1) yLog= TRUE; else yLog= FALSE;
+    }
+    
+    //  cout << xType<< " " <<xLog << " "<<yType <<" " << yLog << endl;
+
     static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
     static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
-
-    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
-    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
 
     if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
       Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
@@ -188,7 +202,7 @@ private:
       yLog = FALSE;
     }
 
-    //cout << xLog << " " << yLog << endl;
+    //    cout << xLog << " " << yLog << endl;
 
     // compute adequate values for log scale, warn adequately...
     wasBadxLog = FALSE;
