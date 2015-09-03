@@ -1898,7 +1898,7 @@ namespace lib
       (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
       (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
 
-      if ( log ) {Start=log10(Start); End=log10(End);}
+      //      if ( log ) {Start=log10(Start); End=log10(End);}
       static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
       (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
       (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
