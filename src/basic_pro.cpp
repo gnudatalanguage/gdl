@@ -748,19 +748,22 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  EnvStackT& cS = e->Interpreter()->CallStack();
 
 	  SizeT level = cS.size();
+	  //	  cout << "level"<< level << endl;
 
 	  assert(level > 1); // HELP, $MAIN$
 
-	  DStringGDL* retVal = new DStringGDL(dimension(level - 1), BaseGDL::NOZERO);
+	  DStringGDL* retVal = new DStringGDL(dimension(level), BaseGDL::NOZERO);
 	  SizeT rIx = 0;
 	  // 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
-	  for (long ix = cS.size() - 2; ix >= 0; --ix)
+	  for (long ix = cS.size() - 1; ix >= 0; --ix)
 	    {
 	      EnvUDT** r = &cS[ix];
 	      EnvBaseT* actEnv = *r;
 	      assert(actEnv != NULL);
 
 	      DString actString = actEnv->GetProName();
+
+	      //cout << actString << endl;
 	      DSubUD* actSub = dynamic_cast<DSubUD*>(actEnv->GetPro());
 	      // 	    if( (r+1) != cS.rend() && actSub != NULL)
 	      if ((ix - 1) >= 0 && actSub != NULL)
