@@ -741,48 +741,46 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  return;
 	}
 
-      static int callsKWIx = e->KeywordIx("CALLS");
-      bool callsKW = e->KeywordPresent(callsKWIx);
-      if (callsKW)
-	{
-	  EnvStackT& cS = e->Interpreter()->CallStack();
+  static int callsKWIx = e->KeywordIx( "CALLS" );
+  bool callsKW = e->KeywordPresent( callsKWIx );
+  if ( callsKW ) {
+    EnvStackT& cS = e->Interpreter( )->CallStack( );
 
-	  SizeT level = cS.size();
-	  //	  cout << "level"<< level << endl;
+    SizeT level = cS.size( );
+    //	  cout << "level"<< level << endl;
 
-	  assert(level > 1); // HELP, $MAIN$
+    //	  assert(level > 1); // HELP, $MAIN$
 
-	  DStringGDL* retVal = new DStringGDL(dimension(level), BaseGDL::NOZERO);
-	  SizeT rIx = 0;
-	  // 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
-	  for (long ix = cS.size() - 1; ix >= 0; --ix)
-	    {
-	      EnvUDT** r = &cS[ix];
-	      EnvBaseT* actEnv = *r;
-	      assert(actEnv != NULL);
+    DStringGDL* retVal = new DStringGDL( dimension( level ), BaseGDL::NOZERO );
+    SizeT rIx = 0;
+    // 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
+    for ( long ix = cS.size( ) - 1; ix >= 0; --ix ) {
+      EnvUDT** r = &cS[ix];
+      EnvBaseT* actEnv = *r;
+      assert( actEnv != NULL );
 
-	      DString actString = actEnv->GetProName();
+      DString actString = actEnv->GetProName( );
 
-	      //cout << actString << endl;
-	      DSubUD* actSub = dynamic_cast<DSubUD*>(actEnv->GetPro());
-	      // 	    if( (r+1) != cS.rend() && actSub != NULL)
-	      if ((ix - 1) >= 0 && actSub != NULL)
-		{
-		  actString += " <" + actSub->GetFilename() + "(";
-		  EnvUDT** r_1 = &cS[ix + 1];
-		  if ((*(r_1))->CallingNode() != NULL)
-		    actString += i2s((*(r_1))->CallingNode()->getLine(), 4);
-		  else
-		    actString += "   ?";
-		  actString += ")>";
-		}
+      //cout << actString << endl;
+      DSubUD* actSub = dynamic_cast<DSubUD*> (actEnv->GetPro( ));
+      // 	    if( (r+1) != cS.rend() && actSub != NULL)
+      if ( ix > 0 && actSub != NULL ) {
+        actString += " <" + actSub->GetFilename( ) + "(";
+        EnvUDT** r_1 = &cS[ix];
+        if ( *(r_1) && ((*(r_1))->CallingNode( ) != NULL) ) {
+          actString += i2s( (*(r_1))->CallingNode( )->getLine( ), 4 );
+        } else {
+          actString += "   ?";
+        }
+        actString += ")>";
+      }
 
-	      (*retVal)[rIx++] = actString;
-	    }
+      (*retVal)[rIx++] = actString;
+    }
 
-	  e->SetKW(callsKWIx, retVal);
-	  return;
-	}
+    e->SetKW( callsKWIx, retVal );
+    return;
+  }
 
       if (e->KeywordSet("INFO"))
 	{
