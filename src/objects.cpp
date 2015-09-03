@@ -799,11 +799,13 @@ bool IsFun(antlr::RefToken rT1)
 
   //  cout << "IsFun: Searching for: " << searchName << endl;
 
-  unsigned fLSize=funList.size();
-  for( unsigned f=0; f<fLSize; f++)
-    {
-      if( funList[f]->Name() == searchName) return true;
-    }
+  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
+			       Is_eq<DLibFun>(searchName));
+  if( p != libFunList.end()) if( *p != NULL) return true;
+
+  FunListT::iterator q=find_if(funList.begin(),funList.end(),
+			       Is_eq<DFun>(searchName));
+  if( q != funList.end()) if( *q != NULL) return true;
 
   //  cout << "Not found: " << searchName << endl;
 

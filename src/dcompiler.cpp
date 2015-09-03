@@ -307,7 +307,9 @@ void DCompiler::EndFun() // inserts in funList
   else
   {
     (*searchList).push_back(static_cast<DFun*>(pro));
-    WarnAboutObsoleteRoutine(pro->ObjectName());
+    // sort list again, however item should be inserted at good position in fact (more tricky but would save sort time). TODO.
+   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
+   WarnAboutObsoleteRoutine(pro->ObjectName());
   }
 
   if(!pro->isHidden()) {  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
