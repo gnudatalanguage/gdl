@@ -132,6 +132,7 @@ TESTS = \
   test_plot_oo.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
+  test_pmulti_basic.pro \
   test_product.pro \
   test_ps_decomposed.pro \
   test_ptrarr.pro \
