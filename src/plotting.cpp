@@ -1025,6 +1025,28 @@ namespace lib
     //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
   }
 
+  //This is the good way to get world start end end values.
+  void GetCurrentUserLimits(EnvT* e, GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd)
+  {
+    DDouble *sx, *sy;
+    GetSFromPlotStructs( &sx, &sy );
+    
+    PLFLT x1,x2,y1,y2;
+    a->gvpd( x1, x2, y1, y2 );
+    xStart=(x1-sx[0])/sx[1];
+    xEnd=(x2-sx[0])/sx[1];
+    yStart=(y1-sy[0])/sy[1];
+    yEnd=(y2-sy[0])/sy[1];
+  //probably overkill now...
+    if ((yStart == yEnd) || (xStart == xEnd))
+      {
+        if (yStart != 0.0 && yStart == yEnd){
+          e->Throw("RANGE ERROR in Y.");
+        } else 
+          e->Throw("RANGE ERROR in X.");
+      }
+  }
+  
   void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog)
   {
     PLFLT x, x1, y, y1, val;
