@@ -272,6 +272,7 @@ namespace lib
       }
 
       mapSet=false;
+      actStream->OnePageSaveLayout(); // one page
 #ifdef USE_LIBPROJ4
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
@@ -296,7 +297,6 @@ namespace lib
       }
 #endif
 
-      actStream->OnePageSaveLayout(); // one page
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.

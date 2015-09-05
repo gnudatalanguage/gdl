@@ -194,6 +194,7 @@ private:
     gdlSetLineStyle(e, actStream);
 
     bool mapSet=false;
+      actStream->OnePageSaveLayout(); // one page
 #ifdef USE_LIBPROJ4
     get_mapset(mapSet);
     if ( mapSet )
@@ -204,8 +205,18 @@ private:
         e->Throw("Projection initialization failed.");
       }
     }
-#endif
+        // below code is necessary for PLOTS, however we should try to avoid it. How???
+        DDouble *sx, *sy;
+        GetSFromPlotStructs( &sx, &sy );
 
+        DFloat *wx, *wy;
+        GetWFromPlotStructs( &wx, &wy );
+
+        DDouble pxStart, pxEnd, pyStart, pyEnd;
+        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+#endif
 
     if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
     {
@@ -276,6 +287,7 @@ private:
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
      if (doT3d) actStream->stransform(NULL,NULL);
+      actStream->RestoreLayout();
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 
