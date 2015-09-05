@@ -741,47 +741,33 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  return;
 	}
 
-  static int callsKWIx = e->KeywordIx( "CALLS" );
-  bool callsKW = e->KeywordPresent( callsKWIx );
-  if ( callsKW ) {
-    EnvStackT& cS = e->Interpreter( )->CallStack( );
+      static int callsKWIx = e->KeywordIx( "CALLS" );
+      bool callsKW = e->KeywordPresent( callsKWIx );
 
-    SizeT level = cS.size( );
-    //	  cout << "level"<< level << endl;
+      if ( callsKW ) {
 
-    //	  assert(level > 1); // HELP, $MAIN$
-
-    DStringGDL* retVal = new DStringGDL( dimension( level ), BaseGDL::NOZERO );
-    SizeT rIx = 0;
-    // 	for( EnvStackT::reverse_iterator r = cS.rbegin()+1; r != cS.rend(); ++r)
-    for ( long ix = cS.size( ) - 1; ix >= 0; --ix ) {
-      EnvUDT** r = &cS[ix];
-      EnvBaseT* actEnv = *r;
-      assert( actEnv != NULL );
-
-      DString actString = actEnv->GetProName( );
-
-      //cout << actString << endl;
-      DSubUD* actSub = dynamic_cast<DSubUD*> (actEnv->GetPro( ));
-      // 	    if( (r+1) != cS.rend() && actSub != NULL)
-      if ( ix > 0 && actSub != NULL ) {
-        actString += " <" + actSub->GetFilename( ) + "(";
-        EnvUDT** r_1 = &cS[ix];
-        if ( *(r_1) && ((*(r_1))->CallingNode( ) != NULL) ) {
-          actString += i2s( (*(r_1))->CallingNode( )->getLine( ), 4 );
-        } else {
-          actString += "   ?";
-        }
-        actString += ")>";
+	// this is a code derived from SimpleDumpStack() above
+	EnvStackT& callStack = e->Interpreter()->CallStack();
+	long actIx = callStack.size()-1;
+	DStringGDL* retVal = new DStringGDL(dimension(actIx+1), BaseGDL::NOZERO );
+	SizeT rIx = 0;
+	for (; actIx >= 0; --actIx)
+	  {
+	    EnvStackT::pointer_type upEnv = callStack[actIx];
+	    DString actString= upEnv->GetProName();
+	    std::string file = upEnv->GetFilename();
+	    if (file != "")
+	      {
+		actString += " <" + file + "(";
+		actString += i2s(upEnv->GetLineNumber(), 4 );
+		actString += ")>";
+	      }
+	    (*retVal)[rIx++] = actString;
+	  }
+	e->SetKW( callsKWIx, retVal );
+	return;
       }
-
-      (*retVal)[rIx++] = actString;
-    }
-
-    e->SetKW( callsKWIx, retVal );
-    return;
-  }
-
+  
       if (e->KeywordSet("INFO"))
 	{
 	  kw = true;
@@ -3519,7 +3505,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       // checking if all Julian values fall within the accepted range
       SizeT nEl = p0->N_Elements();
       for (SizeT i = 0; i < nEl; i++) if ((*p0)[i] < -1095 || (*p0)[i] > 1827933925)
-	e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
+					e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
 
       // preparing output (loop order important when all parameters point the same variable)
       //BaseGDL** ret[nParam - 1];
