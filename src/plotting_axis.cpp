@@ -310,6 +310,11 @@ namespace lib {
     }
     // reset the viewport and world coordinates to the original values
     actStream->RestoreLayout();
+    // if save, update world coordinates to the new values
+    if ( e->KeywordSet("SAVE") )
+    {
+      actStream->wind(xStart, xEnd, yStart, yEnd);
+    }
 
   }
 

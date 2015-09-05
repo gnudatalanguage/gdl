@@ -355,8 +355,7 @@ namespace lib
         gdlGetAxisType("X", xLog);
         gdlGetAxisType("Y", yLog);
         gdlGetAxisType("Z", zLog);
-        gdlGetCurrentAxisRange("X", xStart, xEnd);
-        gdlGetCurrentAxisRange("Y", yStart, yEnd);
+        GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
         gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
 
         if (!doT3d) {

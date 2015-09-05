@@ -371,7 +371,7 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
   void gdlStoreCLIP(DLongGDL* clipBox);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
-
+  void GetCurrentUserLimits(EnvT* e, GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
   PLFLT gdlAdjustAxisRange(DDouble &val_min, DDouble &val_max, bool log = false);
   PLFLT AutoTick(DDouble x);
   PLFLT gdlComputeTickInterval(EnvT *e, string axis, DDouble &min, DDouble &max, bool log);

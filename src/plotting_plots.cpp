@@ -209,28 +209,17 @@ namespace lib
       gdlGetAxisType("X", xLog);
       gdlGetAxisType("Y", yLog);
       gdlGetAxisType("Z", zLog);
-      // get ![XY].CRANGE
-      gdlGetCurrentAxisRange("X", xStart, xEnd);
-      gdlGetCurrentAxisRange("Y", yStart, yEnd);
+      
+      //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
+      GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
+      // get !Z.CRANGE
       gdlGetCurrentAxisRange("Z", zStart, zEnd);
 
-      if ((yStart == yEnd) || (xStart == xEnd) || (zStart == zEnd))
+      if (zStart != 0.0 && zStart == zEnd)
       {
-        if (zStart != 0.0 && zStart == zEnd) {
-          Message("PLOTS: !Z.CRANGE ERROR, setting to [0,1]");
-          zStart = 0;
-          zEnd = 1;
-        }
-        if (yStart != 0.0 && yStart == yEnd){
-          Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
-        yStart = 0;
-        yEnd = 1;
-        }
-        if (xStart != 0.0 && xStart == xEnd){
-          Message("PLOTS: !X.CRANGE ERROR, setting to [0,1]");
-        xStart = 0;
-        xEnd = 1;
-        }
+        Message("PLOTS: !Z.CRANGE ERROR, setting to [0,1]");
+        zStart = 0;
+        zEnd = 1;
       }
 
       restoreClipBox=false;
@@ -293,6 +282,7 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
+        // below code is necessary for PLOTS, however we should try to avoid it. How???
         DDouble *sx, *sy;
         GetSFromPlotStructs( &sx, &sy );
 

@@ -28,8 +28,8 @@ namespace lib
 
     DDoubleGDL *xVal, *yVal, *zVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
-    bool xLog, yLog, zLog;
+    DDouble xStart, xEnd, yStart, yEnd;
+    bool xLog, yLog;
     SizeT xEl, yEl, zEl;
     bool doClip;
     bool restoreClipBox;
@@ -177,19 +177,12 @@ namespace lib
       // get_axis_type
       gdlGetAxisType("X", xLog);
       gdlGetAxisType("Y", yLog);
-      gdlGetAxisType("Z", zLog);
       // get ![XY].CRANGE
-      gdlGetCurrentAxisRange("X", xStart, xEnd);
-      gdlGetCurrentAxisRange("Y", yStart, yEnd);
-      gdlGetCurrentAxisRange("Z", zStart, zEnd);
+      GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
+      
 
-      if ((yStart == yEnd) || (xStart == xEnd) || (zStart == zEnd))
+      if ((yStart == yEnd) || (xStart == xEnd))
       {
-        if (zStart != 0.0 && zStart == zEnd)
-          Message("POLYFILL: !Z.CRANGE ERROR, setting to [0,1]");
-          zStart = 0;
-          zEnd = 1;
-
         if (yStart != 0.0 && yStart == yEnd)
           Message("POLYFILL: !Y.CRANGE ERROR, setting to [0,1]");
         yStart = 0;

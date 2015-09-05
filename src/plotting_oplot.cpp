@@ -157,10 +157,6 @@ private:
   {
     DLong psym;
 
-    // get ![XY].CRANGE
-    DDouble xStart, xEnd, yStart, yEnd;
-    gdlGetCurrentAxisRange("X", xStart, xEnd, FALSE); //we want screen coordinates, not projection boundaries
-    gdlGetCurrentAxisRange("Y", yStart, yEnd, FALSE);
     DDouble minVal, maxVal;
     bool doMinMax;
 
@@ -169,20 +165,8 @@ private:
     gdlGetAxisType("X", xLog);
     gdlGetAxisType("Y", yLog);
 
-    if ((yStart == yEnd) || (xStart == xEnd))
-    {
-      if (yStart != 0.0 && yStart == yEnd) {
-        Message("OPLOT: !Y.CRANGE ERROR, setting to [0,1]");
-        yStart = 0; 
-        yEnd = 1; 
-      }
-      if (xStart != 0.0 && xStart == xEnd) {
-        Message("OPLOT: !X.CRANGE ERROR, setting to [0,1]");
-        xStart = 0;
-        xEnd = 1;
-      }
-    }
-    
+   GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
+
     //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
 
     minVal = yStart; //to give a reasonable value...
@@ -222,16 +206,6 @@ private:
     }
 #endif
 
-    DDouble *sx, *sy;
-    GetSFromPlotStructs( &sx, &sy );
-    
-    DFloat *wx, *wy;
-    GetWFromPlotStructs( &wx, &wy );
-    
-    DDouble pxStart, pxEnd, pyStart, pyEnd;
-    DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
 
     if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
     {
@@ -285,10 +259,10 @@ private:
         if ( mapSet && psym < 1) {
           GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
           psym=-psym;
-          if (psym > 0) bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, FALSE);
+          if (psym > 0) bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
         }
         else 
-          bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, FALSE);
+          bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
 #else
     bool valid=draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
 #endif
