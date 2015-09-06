@@ -248,7 +248,6 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    in=(char*)calloc(lin,sizeof(char));
    /* allocate out */
    lout=((lout + 2) / 3 * 4) + 1;
-   out=(char*)calloc(lout,sizeof(char));
    /* bufread, convert, back to char */
    /* rewind */
    rewind(fp);
