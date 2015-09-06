@@ -4004,8 +4004,9 @@ DStructGDL* GDLWidgetDraw::GetGeometry( wxRealPoint fact ) {
   ys /= fact.y;
   xscr /= fact.x;
   yscr /= fact.y; 
-  xvs /= fact.x;
-  yvs /= fact.y;
+  // inaccurate and should be improved:
+  xvs = xscr;
+  yvs = yscr;
   DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
   ex->InitTag( "XOFFSET", DFloatGDL( position.x ) );
   ex->InitTag( "YOFFSET", DFloatGDL( position.y ) );

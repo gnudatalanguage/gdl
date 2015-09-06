@@ -503,7 +503,7 @@ void GDLFrame::OnText( wxCommandEvent& event)
 
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
 
-  bool isModified;
+  bool isModified=false;
   long selStart, selEnd;
   DLong offset;
   std::string lastValue;

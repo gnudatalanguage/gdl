@@ -261,15 +261,15 @@ namespace lib {
     BaseGDL *Steptwo,*Stepthree,*Stepfour;
     SizeT i;
     DDoubleGDL *HH,*H6,*XplusH,*Ytampon,*XH,*Yout,* dym,* dyt;
-    BaseGDL* XplusHO=static_cast<BaseGDL*>(XplusH);
-    BaseGDL* XHO=static_cast<BaseGDL*>(XH);
 
     Ytampon = new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
     Yout = new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
     HH = new DDoubleGDL(H->Dim(),BaseGDL::NOZERO);
     H6 = new DDoubleGDL(H->Dim(),BaseGDL::NOZERO);
     XH = new DDoubleGDL(H->Dim(),BaseGDL::NOZERO);
+    BaseGDL* XHO=static_cast<BaseGDL*>(XH);
     XplusH = new DDoubleGDL(H->Dim(),BaseGDL::NOZERO);
+    BaseGDL* XplusHO=static_cast<BaseGDL*>(XplusH);
     dym= new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
     dyt= new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
     //-------------------------------- Init FIRST STEP -----------------------------------//

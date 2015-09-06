@@ -389,7 +389,7 @@ private:
     searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
     replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
     size_t pos = sbuff.find(searchstr.str());
-    int extralen;
+    int extralen=0;
     if (pos != string::npos) {
       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
       extralen = replstr.str().length()-searchstr.str().length();
@@ -444,7 +444,8 @@ private:
     FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
     FILEGuard fpGuard( fp, fclose);
     if (fp == NULL) { 
-      Warning("Warning: failed to create temporary PostScript file."); 
+      Warning("Warning: failed to create temporary PostScript file.");
+      fclose(feps);
       return;
     }
 

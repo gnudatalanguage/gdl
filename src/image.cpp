@@ -166,15 +166,16 @@ BaseGDL* tvrd( EnvT* e){
     // Reflect about y-axis
     if ( orderVal == 1 ) res->Reverse( 2 );
 
-    DUInt* perm = new DUInt[3];
     if ( tru == 1 ) {
       return res;
     } else if ( tru == 2 ) {
+      DUInt* perm = new DUInt[3];
       perm[0] = 1;
       perm[1] = 0;
       perm[2] = 2;
       return res->Transpose( perm );
     } else if ( tru == 3 ) {
+      DUInt* perm = new DUInt[3];
       perm[0] = 1;
       perm[1] = 2;
       perm[2] = 0;

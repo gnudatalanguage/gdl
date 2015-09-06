@@ -205,6 +205,7 @@ namespace lib {
     { 
       free(name);
       { string msg; e->Throw(hdf5_error_message(msg)); }
+      return NULL;
     }
     DStringGDL* ret = new DStringGDL(name);
     free(name);
