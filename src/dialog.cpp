@@ -173,7 +173,7 @@ namespace lib {
       }
 
     // Set title
-    wxString wxtitlestr = _U("Select File");
+    wxString wxtitlestr = wxT("Select File");
     if (istitle)
       {
 	DString titlestr;
@@ -181,19 +181,19 @@ namespace lib {
       }
     else
       {
-	if (iswrite)     wxtitlestr = _U("Select File to Write");
-	else if (isread) wxtitlestr = _U("Select File to Read");
+	if (iswrite)     wxtitlestr = wxT("Select File to Write");
+	else if (isread) wxtitlestr = wxT("Select File to Read");
       }
  
     // Set default path, with recent Gnome, default path is "the previous"
-    wxString wxpathstr = _U("");
+    wxString wxpathstr = wxT("");
     DString pathstr;
     if (ispath) {
       e->AssureStringScalarKW("PATH", pathstr);
     } else {
       pathstr=GetCWD();
     }
-    wxpathstr = _U(pathstr.c_str());
+    wxpathstr = wxString(pathstr.c_str(), wxConvUTF8);
 
 
     // Show dialog
@@ -225,8 +225,8 @@ namespace lib {
 	      for (int i = 0; i < filterstrarr->Size(); i++)
 		{
 		  DString filterstr = (*filterstrarr)[i];
-		  if (i != 0) wxfilterstr += _U("|");
-		  wxfilterstr += _U((filterstr + "|" + filterstr).c_str());
+		  if (i != 0) wxfilterstr += wxT("|");
+		  wxfilterstr += wxString((filterstr + "|" + filterstr).c_str(), wxConvUTF8);
 		}
 	    }
 	  else // rank == 2
@@ -234,18 +234,18 @@ namespace lib {
 	      long filtercnt = filterstrarr->Dim(0);
 	      for (int i = 0; i < filtercnt; i++)
 		{
-		  if (i != 0) wxfilterstr += _U("|");
-		  wxfilterstr += _U(((DString)((*filterstrarr)[i + filtercnt]) + "|" + (DString)((*filterstrarr)[i])).c_str());
+		  if (i != 0) wxfilterstr += wxT("|");
+		  wxfilterstr += wxString(((DString)((*filterstrarr)[i + filtercnt]) + "|" + (DString)((*filterstrarr)[i])).c_str(), wxConvUTF8);
 		}
 	    }
 	}
-	else wxfilterstr = _U("*.*|*.*");
+	else wxfilterstr = wxT("*.*|*.*");
 
 	wxString wxfilestr;
 	if (isfile) {
 	  DString filestr;
 	  e->AssureStringScalarKW("FILE", filestr);
-	  wxfilestr = _U(filestr.c_str());
+	  wxfilestr = wxString(filestr.c_str(), wxConvUTF8);
 	}
 
 	wxFileDialog gdlFileDialog(parent, wxtitlestr, wxpathstr, wxfilestr, wxfilterstr, style);
@@ -444,14 +444,14 @@ namespace lib {
       {
 	DString titlestr;
 	e->AssureStringScalarKW(titleIx, titlestr);
-	wxtitlestr = _U(titlestr.c_str());
+	wxtitlestr = wxString(titlestr.c_str(), wxConvUTF8);
       }
     else
       {
-	if (iserror)            wxtitlestr = _U("Error");
-	else if (isinformation) wxtitlestr = _U("Information");
-	else if (isquestion)    wxtitlestr = _U("Question");
-	else                    wxtitlestr = _U("Warning");
+	if (iserror)            wxtitlestr = wxT("Error");
+	else if (isinformation) wxtitlestr = wxT("Information");
+	else if (isquestion)    wxtitlestr = wxT("Question");
+	else                    wxtitlestr = wxT("Warning");
       }
     // convert eventual array of strings in a string:
     DString local_string;
@@ -459,7 +459,7 @@ namespace lib {
     // remove last \n
     if (local_string.length() > 1)  local_string.resize(local_string.length()-1);
     // Show dialog
-    wxMessageDialog gdlMessageDialog(parent, _U(local_string.c_str()), wxtitlestr, style);
+    wxMessageDialog gdlMessageDialog(parent, wxString(local_string.c_str(), wxConvUTF8), wxtitlestr, style);
     int rtn = gdlMessageDialog.ShowModal();
     if (wxID_OK == rtn)          return new DStringGDL("OK");
     else if (wxID_YES == rtn)    return new DStringGDL("Yes");

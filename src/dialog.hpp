@@ -19,9 +19,10 @@
 #include "datatypes.hpp"
 #include "dinterpreter.hpp"
 
-#ifndef _U
-#define _U(x) wxString(x, wxConvUTF8)
-#endif
+//#ifndef _U
+//// only in wxWidget 3.0 and after : 
+//#define _U(x) wxString(x, wxConvUTF8)
+//#endif
 #ifndef _D
 #define _D(x) DString((x).mb_str(wxConvUTF8))
 #endif
