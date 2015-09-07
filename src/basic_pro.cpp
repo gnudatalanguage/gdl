@@ -2455,8 +2455,9 @@ bool CompareWithJokers(string names, string sourceFiles) {
     }
 
     // note: this implemetation does not honor all keywords
-    void message(EnvT* e)
+    void message_pro(EnvT* e)
     {
+
       DStructGDL* errorState = SysVar::Error_State();
       static unsigned nameTag = errorState->Desc()->TagIndex("NAME");
       static unsigned blockTag = errorState->Desc()->TagIndex("BLOCK");
@@ -2516,8 +2517,38 @@ bool CompareWithJokers(string names, string sourceFiles) {
       DString msg;
       e->AssureScalarPar<DStringGDL>(0, msg);
 
-      if (!noname)
-	msg = e->Caller()->GetProName() + ": " + msg;
+      if (!noname) {
+	static int levelIx = e->KeywordIx("LEVEL");
+
+	if (!e->KeywordPresent(levelIx)) {	  
+	  msg = e->Caller()->GetProName() + ": " + msg;
+	} else {
+	  DLong level;
+	  e->AssureLongScalarKW(levelIx, level);
+	  
+	  if (level == 0) {
+	    msg = e->Caller()->GetProName() + ": " + msg;
+	  } else {
+	    // this is a code derived from SimpleDumpStack() above
+	    EnvStackT& callStack = e->Interpreter()->CallStack();
+	    long actIx = callStack.size()-1;
+	      
+	    if (level > 0) {
+	      if (level > actIx) level=actIx;
+	      EnvStackT::pointer_type upEnv = callStack[level-1];
+	      DString actString= upEnv->GetProName();
+	      msg =actString+ ": " + msg;
+	    }
+	    if (level < 0) {
+	      DLong value=actIx+level;
+	      if (value < 0) value=0;
+	      EnvStackT::pointer_type upEnv = callStack[value];
+	      DString actString= upEnv->GetProName();
+	      msg =actString+ ": " + msg;
+	    }
+	  }
+	}
+      }
 
       if (!info)
 	{

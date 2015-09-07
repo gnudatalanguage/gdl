@@ -74,7 +74,7 @@ namespace lib {
 
 	void defsysv(EnvT* e);
 
-	void message(EnvT* e);
+	void message_pro(EnvT* e);
 
 	void byteorder(EnvT* e);
 
