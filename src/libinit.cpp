@@ -685,6 +685,7 @@ void LibInit()
   const string shade_surfKey[]=
     {
       "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", 
+      "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "BOTTOM", 
       // ([xyz]type undocumented but still existing in SHADE_SURF ...)
       "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
       //General Graphics KW
