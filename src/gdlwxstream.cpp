@@ -47,10 +47,11 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete m_dc;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
+  
+  if ( GetEnvString("GDL_WX_BACKEND") == "2" )  SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
+  else if ( GetEnvString("GDL_WX_BACKEND") == "1") SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
+  else  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
 
-  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
-//  SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
-//  SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
   spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
