@@ -1041,9 +1041,15 @@ namespace lib
     if ((yStart == yEnd) || (xStart == xEnd))
       {
         if (yStart != 0.0 && yStart == yEnd){
-          e->Throw("RANGE ERROR in Y.");
-        } else 
-          e->Throw("RANGE ERROR in X.");
+          Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
+        yStart = 0;
+        yEnd = 1;
+        }
+        if (xStart != 0.0 && xStart == xEnd){
+          Message("PLOTS: !X.CRANGE ERROR, setting to [0,1]");
+        xStart = 0;
+        xEnd = 1;
+        }
       }
   }
   

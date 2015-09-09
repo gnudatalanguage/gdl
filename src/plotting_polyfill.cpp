@@ -244,6 +244,8 @@ namespace lib
       }
 
       mapSet=false;
+      actStream->OnePageSaveLayout(); // one page
+
 #ifdef USE_LIBPROJ4
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
@@ -263,12 +265,10 @@ namespace lib
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
 
-        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
         actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
       }
 #endif
 
-      actStream->OnePageSaveLayout(); // one page
     
       PLFLT wun, wdeux, wtrois, wquatre;
       if ( coordinateSystem==DATA) //with POLYFILL, we can plot *outside* the box(e)s in DATA coordinates.
@@ -277,7 +277,8 @@ namespace lib
         actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
       }
 
-      actStream->vpor(0, 1, 0, 1);
+      actStream->vpor(0, 1, 0, 1); //ALL PAGE
+
       if ( coordinateSystem==DEVICE )
       {
         actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());

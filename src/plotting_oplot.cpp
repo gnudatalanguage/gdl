@@ -194,7 +194,6 @@ private:
     gdlSetLineStyle(e, actStream);
 
     bool mapSet=false;
-      actStream->OnePageSaveLayout(); // one page
 #ifdef USE_LIBPROJ4
     get_mapset(mapSet);
     if ( mapSet )
@@ -214,6 +213,7 @@ private:
 
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+        actStream->OnePageSaveLayout(); // one page
         actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
         actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
 #endif
@@ -287,7 +287,9 @@ private:
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
      if (doT3d) actStream->stransform(NULL,NULL);
+#ifdef USE_LIBPROJ4
       actStream->RestoreLayout();
+#endif
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 
