@@ -58,7 +58,7 @@
 
 0.8.5:    Fixed bug in STRING with PRINT or FORMAT keywords set.
           Fixed bug in STRMID with 3rd parameter undefined or not given.
-	  Added MESSAGE procedure.
+	  Added MESSAGE procedure (some keywords not enforced)
 	  Added FILE_SEARCH, ARG_PRESENT and EOF functions.
 	  Fixed bug in AssignAt functions.
 	  Fixed subtle bug concerning arrays() and function() which
@@ -647,6 +647,7 @@
            - combination of input arrays in math. special functions now ok with IDL
            - SVSOL(); RESOLVE_ALL, more keywords in RESOLVE_ROUTINE
            - initial import of LA_LEAST_SQUARES (for Ulyss), required Eigen3
+	   - keyword LEVEL in MESSAGE
 
 support for Calendar format codes in input/output
 better handling of multiaxes in plot
