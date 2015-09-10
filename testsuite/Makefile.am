@@ -120,6 +120,7 @@ TESTS = \
   test_math_function_dim.pro \
   test_matrix_multiply.pro \
   test_memory.pro \
+  test_message.pro \
   test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
