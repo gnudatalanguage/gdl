@@ -6757,6 +6757,7 @@ BaseGDL* strtok_fun(EnvT* e) {
 	{
 	  delete ret;
 	  e->Throw("Base64 decoder failed"); 
+      return NULL;
 	}
         return ret;
       }

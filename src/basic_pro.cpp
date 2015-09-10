@@ -777,7 +777,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	  cout << "* #NameOfRoutine for list of params and keywords"
 	    " for a given NameOfRoutine (internal or compiled pro/func)" << endl;
 	  cout << endl;
-	  cout << "* ?NameOfRoutine for starting a browers to access online doc"
+	  cout << "* ?NameOfRoutine for starting a browser to access online doc"
 	    " for a given routine (if exists ! internal or compiled pro/func)";
 	  cout << endl; cout << endl;
 	  cout << "* HELP, /LIB for a list of all internal library "
@@ -888,6 +888,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	cout << "Recall buffer length: " << nEl2 << endl;
 	for (SizeT i = 0; i < nEl2; ++i)
 	  cout << i + 1 << "  " << (*previous_commands)[i] << endl;
+      GDLDelete(previous_commands);
 	return;
       }
 
