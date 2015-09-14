@@ -799,9 +799,12 @@ bool IsFun(antlr::RefToken rT1)
 
   //  cout << "IsFun: Searching for: " << searchName << endl;
 
-  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
-			       Is_eq<DLibFun>(searchName));
-  if( p != libFunList.end()) if( *p != NULL) return true;
+// Looking here for the internal functions is not the good place,
+// although it speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
+// or the 'bar' element of array 'foo'.
+//  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
+//			       Is_eq<DLibFun>(searchName));
+//  if( p != libFunList.end()) if( *p != NULL) return true;
 
   FunListT::iterator q=find_if(funList.begin(),funList.end(),
 			       Is_eq<DFun>(searchName));
