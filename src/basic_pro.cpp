@@ -2536,6 +2536,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	      
 	    if (level > 0) {
 	      if (level > actIx) level=actIx;
+	      if (level == 0) level++;
 	      EnvStackT::pointer_type upEnv = callStack[level-1];
 	      DString actString= upEnv->GetProName();
 	      msg =actString+ ": " + msg;
