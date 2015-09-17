@@ -35,6 +35,7 @@ public:
 #endif
   {
     encapsulated = encaps;
+    page = 0;
   }
 
   ~GDLPSStream()
