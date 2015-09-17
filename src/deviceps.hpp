@@ -180,7 +180,6 @@ private:
     if (fp == NULL) 
     {
       Warning("Warning: failed to create temporary PostScript file.");
-//       PS_delete(ps);
       return;
     }
     if (PS_open_fp(ps, fp) == -1) 
@@ -277,8 +276,11 @@ private:
       PS_end_page(ps);
       PS_close(ps);
     }
-    
     // Replace PageBoundingBox and CropBox and write contents to fileName
+    // To do that we need to remove a few chars of the line of 21 "%" at the begining of the plplot file,
+    // since we ADD characters and that appears to be unsafe (? version dependent? compiler?).
+    // if 21 "%" are not found, it's best to DO NOTHING!
+    // the "%%%%%%%%%%%%%%%%%%%%%" is largely before offset 12000, thus in the first fread.  
     {
       rewind(fp);
       FILE *fp_plplot = fopen(fileName.c_str(), "w");
@@ -294,8 +296,9 @@ private:
 
       // Edit: change the two 0's after the PageBoundingBox
       string pbstr=string("%%PageBoundingBox: ")+offstr;
-      // edits will be in the first 12288 bytes; add the length of offstr-3
-      const size_t buflen=12288 + pbstr.length()-22;
+      long added=pbstr.length()-22; //number of chars to replace, compensated by
+      //removal of equivalent number of "%" elsewhere. 
+      const size_t buflen=12000;
 #ifdef _MSC_VER
       char *buff = (char*)alloca(sizeof(char)*buflen);
 #else      
@@ -306,12 +309,17 @@ private:
       size_t cnt = fread(&buff, 1, buflen, fp);
       std::string sbuff;
       sbuff.assign(buff,cnt);
-
+      //if "%%%%%%%%%%%%%%%%%%%%%" is not found, or 21 chars too small, do nothing:
+      size_t junkbufferloc=sbuff.find("%%%%%%%%%%%%%%%%%%%%%");
+      bool doIt=((junkbufferloc != string::npos) && (added < 22) );
+      
       // find the PageBoundingBox statement
       size_t pos = sbuff.find("%%PageBoundingBox: 0 0");
-      if (pos != string::npos) {
-	sbuff.replace(pos,22,pbstr); // will change the size of sbuff by offstr-3
-	cnt = cnt + pbstr.length()-22;
+      if (doIt && pos != string::npos) { 
+        //shrink "%%%..." by the amount of added chars...
+        sbuff.erase(junkbufferloc,added);
+        //replace, adding some chars:
+        sbuff.replace(pos,22,pbstr); 
       }
 
       // PSlib outputs pdfmarks which resize the PDF to the size of the boundingbox
@@ -319,13 +327,13 @@ private:
       char mychar[60];
       sprintf(mychar,"[ /CropBox [0 0 %i.00 %i.00] /PAGE pdfmark",bbXSize,bbYSize);
       string pdfstr=string(mychar); 
-      string pdfrepl(pdfstr.length(),' ');
       pos = sbuff.find(pdfstr);
-      if (pos != string::npos) {sbuff.replace(pos,pdfstr.length(),pdfrepl);} // will not change size of sbuff
+      // this replacement will shrink only the size of sbuff and is thus safe
+      if (pos != string::npos) sbuff.erase(pos,pdfstr.length());
 
       // write the first buflen to file
       strcpy(buff,sbuff.c_str());
-      if (fwrite(&buff, 1, buflen, fp_plplot) < buflen)
+      if (fwrite(&buff, 1, sbuff.size(), fp_plplot) < sbuff.size()) //and NOT buflen!
         {
           Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
         }
@@ -343,9 +351,7 @@ private:
 //       fclose(fp_plplot);
     }
 
-    cleanup:
-//    PS_delete(ps);
-//     fclose(fp); // this deletes the temporary file as well
+    cleanup: //all closing done by FileGuard now!
     // PSlib changes locale - bug no. 3428043
 #    ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");
