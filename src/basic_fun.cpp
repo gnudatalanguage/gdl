@@ -33,7 +33,7 @@
 #endif
 
 // used to defined GDL_TMPDIR: may have trouble on MSwin, help welcome
-#ifndef WIN32
+#ifndef _WIN32
 #include <paths.h>
 #endif
 
