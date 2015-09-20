@@ -3262,7 +3262,7 @@ void GDLLexer::mCOMMENT(bool _createToken) {
 	_loop465:;
 	} // ( ... )*
 	if ( inputState->guessing==0 ) {
-		++lineContinuation; _ttype=antlr::Token::SKIP;
+		_ttype=antlr::Token::SKIP;
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
