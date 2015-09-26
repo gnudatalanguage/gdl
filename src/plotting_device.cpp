@@ -302,25 +302,43 @@ namespace lib {
     {
       static int portraitIx = e->KeywordIx( "PORTRAIT");
       static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
+    //IDL consider the value of the first typed of the two options, if both are present.
+    //I dunoo how to do that with GDL parsing.
       if (e->KeywordSet(portraitIx) && e->KeywordSet(landscapeIx)) 
         Warning("Warning: both PORTRAIT and LANDSCAPE specified!");
 
       // LANDSCAPE 
       {
-        if (e->GetKW(landscapeIx) != NULL)
-	  {
-	    bool success = actDevice->SetLandscape();
-	    if (!success) e->Throw("Current device does not support keyword LANDSCAPE");
-	  }
+        BaseGDL* landscapeKW=e->GetKW(landscapeIx);
+        if (landscapeKW != NULL)
+        {
+	      DLong isLandscape;
+	      e->AssureLongScalarKW( landscapeIx, isLandscape);
+          if (isLandscape == 0) {
+            bool success = actDevice->SetPortrait();
+            if (!success) e->Throw("Current device does not support keyword LANDSCAPE");
+          } else {
+            bool success = actDevice->SetLandscape();
+            if (!success) e->Throw("Current device does not support keyword LANDSCAPE");
+          }
+        }
       }
 
       // PORTRAIT 
       {
-        if (e->GetKW(portraitIx) != NULL)
-	  {
-	    bool success = actDevice->SetPortrait();
-	    if (!success) e->Throw("Current device does not support keyword PORTRAIT");
-	  }
+        BaseGDL* portraitKW=e->GetKW(portraitIx);
+        if (portraitKW != NULL)
+        {
+	      DLong isPortrait;
+	      e->AssureLongScalarKW( portraitIx, isPortrait);
+          if (isPortrait == 0) {
+            bool success = actDevice->SetLandscape();
+            if (!success) e->Throw("Current device does not support keyword PORTRAIT");
+          } else {
+            bool success = actDevice->SetPortrait();
+            if (!success) e->Throw("Current device does not support keyword PORTRAIT");
+          }
+        }
       }
     }
 
