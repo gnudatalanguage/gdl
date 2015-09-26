@@ -26,6 +26,7 @@ class GDLPSStream: public GDLGStream
 private:
   int page;
   bool encapsulated;
+  bool firstTime; //to enable a PS hack on correspondence postscript pixels - plplot position. 
 public:
   GDLPSStream( int nx, int ny, int pfont, bool encaps, int color):
 #ifdef _MSC_VER
@@ -36,6 +37,7 @@ public:
   {
     encapsulated = encaps;
     page = 0;
+    firstTime=true;
   }
 
   ~GDLPSStream()

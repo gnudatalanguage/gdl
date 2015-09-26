@@ -50,6 +50,30 @@ void GDLPSStream::eop()
 
 bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong channel) {
+  
+  if (firstTime){
+    firstTime=false;
+    this->OnePageSaveLayout();
+    this->vpor(0, 1, 0, 1); //ALL PAGE
+    this->wind(0, 1, 0, 1); //ALL PAGE
+    PLFLT x=0;
+    PLFLT y=0;
+    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
+    this->Flush();
+    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMIN exch def /XMIN exch def\n");
+    x=1;
+    y=1;
+    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
+    this->Flush();
+    this->RestoreLayout();
+//autotest whether PS was rotated + define good sizes.
+    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMAX exch def /XMAX exch def\n");
+    pls->bytecnt += fprintf(pls->OutFile, "YMAX YMIN lt /LAND exch def \n");
+    pls->bytecnt += fprintf(pls->OutFile, "LAND { YMAX /YMAX YMIN def /YMIN exch def /ROT 270 def} {/ROT 0 def} ifelse\n");
+    pls->bytecnt += fprintf(pls->OutFile, "XMAX XMIN sub /XRANGE exch def YMAX YMIN sub /YRANGE exch def\n");
+    pls->bytecnt += fprintf(pls->OutFile, "LAND {/X0 XMIN def /Y0 YMAX def /RX YRANGE def /RY XRANGE def}"
+    "{/X0 XMIN def /Y0 YMIN def /RX XRANGE def /RY YRANGE def} ifelse\n");
+  }
   //need to : check position in file Ok; update bounding box values.
   //test black and white:
   bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); 
@@ -60,25 +84,19 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 #define ENLARGE       5
 #define XPSSIZE       ENLARGE * XSIZE
 #define YPSSIZE       ENLARGE * YSIZE
+  
+  // PostScript with driver 'ps' is scaled to XPSSIZE x YPSSIZE
+  
+  
   static DLong bitsPerPix = 8;
   
-  //position of the image WILL NOT BE ACCURATE. The coordinate transforms of plplot are a mess.
-  double xScale=(pls->diorot==0)?(double)YPSSIZE/(double)xs:(double)XPSSIZE/(double)xs;
-  double yScale=(pls->diorot==0)?(double)XPSSIZE/(double)ys:(double)YPSSIZE/(double)ys;
   if (channel > 0) {
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
   } 
-  pls->bytecnt += fprintf(pls->OutFile, "\n%%BeginObject: Image\n S gsave\n");
-  if (pls->diorot == 1.0) {
-    pls->bytecnt += fprintf(pls->OutFile, "/ratio {%d %d div} def\n/offset {%d %d ratio mul sub 2 div} def\n %f offset %f ratio mul ratio mul add translate\n",XPSSIZE,YPSSIZE,YPSSIZE,XPSSIZE,pos[0]*xScale, pos[2]*yScale);
-  } else {
-    pls->bytecnt += fprintf(pls->OutFile, "%d 0 translate 90 rotate\n", XPSSIZE);
-    pls->bytecnt += fprintf(pls->OutFile, "%f %f translate\n", pos[0]*xScale, pos[2]*yScale);
-  }
-
-  pls->bytecnt += fprintf(pls->OutFile, "%f %f scale\n", pos[1]*xScale, pos[3]*xScale);
-
+  pls->bytecnt += fprintf(pls->OutFile, "%%BeginObject: Image\n S gsave\nX0 Y0 translate ROT rotate RX RY scale\n");
+  pls->bytecnt += fprintf(pls->OutFile, "%d %d div %d %d div translate\n", pos[0], xs, pos[2], ys);
+  pls->bytecnt += fprintf(pls->OutFile, "%d %d div %d %d div scale\n", pos[1], xs, pos[3], ys);
 #define LINEWIDTH 80
 
   if (trueColorOrder == 0) { 

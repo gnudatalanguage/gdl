@@ -96,7 +96,7 @@ class DevicePS: public GraphicsDevice
 
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
-    // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
+    // here we play only with the aspect ratio - size and offset are handled by pslib when device,/close is called
 
     // patch 3611949 by Joanna, 29 Avril 2013
     PLFLT pageRatio=XPageSize/YPageSize;
@@ -152,10 +152,10 @@ class DevicePS: public GraphicsDevice
     // to mimic IDL we must scale char so that the A4 charsize is constant whatever the size of the plot
     PLFLT size = (XPageSize>YPageSize)?XPageSize:YPageSize;
     PLFLT refsize= (xleng/xp>yleng/yp)?xleng/xp:yleng/yp;
-    PLFLT scale=(refsize*in2cm)/size;
+    PLFLT charScale=(refsize*in2cm)/size;
     PLFLT defhmm, scalhmm;
     plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-    actStream->RenewPlplotDefaultCharsize(defhmm * scale);
+    actStream->RenewPlplotDefaultCharsize(defhmm * charScale);
   }
     
 private:
@@ -321,7 +321,14 @@ private:
         //replace, adding some chars:
         sbuff.replace(pos,22,pbstr); 
       }
-
+      pos = sbuff.find("0 setlinecap");
+      if (doIt && pos != string::npos) { 
+        sbuff.replace(pos,1,"1"); 
+      }
+      pos = sbuff.find("0 setlinejoin");
+      if (doIt && pos != string::npos) { 
+        sbuff.replace(pos,1,"1"); 
+      }
       // PSlib outputs pdfmarks which resize the PDF to the size of the boundingbox
       // this is nice, but not IDL behaviour (and anyway, the two 0's are wrong)
       char mychar[60];
@@ -370,36 +377,45 @@ private:
     const size_t buflen=2048;//largely sufficient
     char buffer[buflen]; 
     int cnt;
-    ifstream myfile (fileName.c_str());
     feps=fopen(fileName.c_str(), "r");
     cnt=fread(buffer,sizeof(char),buflen,feps);
 
     //read original boundingbox
     bb = strstr(buffer, "%%BoundingBox:");
-    int offx, offy, width, height;
-    bb += 15;
-    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
-    float hsize = XPageSize*CM2IN*DPI*scale;
-    float vsize = YPageSize*CM2IN*DPI*scale;
-    float newwidth = (width - offx), newheight = (height - offy);
-    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
-    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
-    hscale = min(hscale,vscale)*0.98;
-    vscale = hscale;
-    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
-    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
-
-    //replace with a more sensible boundingbox
+    if (bb==NULL) {
+      Warning("Warning: failed to read temporary PostScript file.");
+      fclose(feps);
+      return;
+    }
+    
     string sbuff = string(buffer);
     stringstream searchstr,replstr;
-    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
-    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
-    size_t pos = sbuff.find(searchstr.str());
+    size_t pos;
     int extralen=0;
-    if (pos != string::npos) {
-      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
-      extralen = replstr.str().length()-searchstr.str().length();
-    }
+
+// Do not change bonding box. It is good now.
+//    int offx, offy, width, height;
+//    bb += 15;
+//    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
+//    float hsize = XPageSize*CM2IN*DPI*scale;
+//    float vsize = YPageSize*CM2IN*DPI*scale;
+//    float newwidth = (width - offx), newheight = (height - offy);
+//    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
+//    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
+////    hscale = min(hscale,vscale)*0.98;
+//    hscale = min(hscale,vscale);
+//    vscale = hscale;
+//    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
+//    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
+//
+//    //replace with a more sensible boundingbox
+//    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
+//    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
+//      pos = sbuff.find(searchstr.str());
+//    if (pos != string::npos) {
+//      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+//      extralen = replstr.str().length()-searchstr.str().length();
+//    }
 
     //replace the values of linecap and linejoin to nice round butts (sic!) more pleasing to the eye.
     searchstr.str("");
@@ -412,28 +428,6 @@ private:
       extralen = extralen + replstr.str().length()-searchstr.str().length();
     }
     
-    //replace values of hscale, vscale
-    searchstr.str("");
-    searchstr << "{hs 3600 div} def" << endl << "/YScale" << endl << "   {vs 2700 div} def";
-    replstr.str("");
-    replstr << hscale << " def" << endl << "/YScale" << endl << "   " << vscale << " def";
-    pos = sbuff.find(searchstr.str());
-    if (pos != string::npos) {
-      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
-      extralen = extralen + replstr.str().length()-searchstr.str().length();
-    }
-
-    //replace the values of hoffset and voffset
-    searchstr.str("");
-    searchstr << "0 @hoffset" << endl << "0 @voffset";
-    replstr.str("");
-    replstr << floor(hoff+0.5) << " " << "@hoffset" << endl << floor(voff+0.5) << " " << "@voffset";
-    pos = sbuff.find(searchstr.str());
-    if (pos != string::npos) {
-      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
-      extralen = extralen + replstr.str().length()-searchstr.str().length();
-    }
-
     //add landscape
     if (!orient_portrait) {
     searchstr.str("%%Page: 1 1");
@@ -492,8 +486,8 @@ private:
 
 public:
   DevicePS(): GraphicsDevice(), fileName( "gdl.ps"), actStream( NULL),
-    XPageSize(17.78), YPageSize(12.7), XOffset(0.0),YOffset(0.0),
-    color(0), decomposed( 0), encapsulated(false), scale(1.)
+    XPageSize(17.78), YPageSize(12.7), XOffset(0.75),YOffset(5.0),
+    color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true)
   {
     name = "PS";
 
@@ -641,10 +635,10 @@ public:
       // no need to update !D
     orient_portrait = true;
 //    nb: IDL defaults to:
-//    XPageSize = 7.25 * in2cm;
-//    YPageSize = 5 * in2cm;
-//    XOffset = .75 * in2cm;
-//    YOffset = 5 * in2cm; 
+//    SetXPageSize(7 * in2cm);
+//    SetYPageSize(5 * in2cm);
+//    SetXOffset(.75 * in2cm);
+//    SetYOffset(5 * in2cm); 
     return true;
   }
 
@@ -652,10 +646,10 @@ public:
   {
       // no need to update !D
     orient_portrait = false;
-//    XPageSize = 9.5 * in2cm;
-//    YPageSize = 7.0 * in2cm;
-//    XOffset = .75 * in2cm;
-//    YOffset = 10.25 * in2cm;
+//    SetXPageSize(9.5 * in2cm);
+//    SetYPageSize(7.0 * in2cm);
+//    SetXOffset(.75 * in2cm);
+//    SetYOffset(10.25 * in2cm);
     return true;
   }
 
