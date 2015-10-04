@@ -245,7 +245,7 @@ public:
   virtual int  getCursorId()                             { return -1;}
   virtual bool UnsetFocus()                           { return false;}
   virtual bool SetFocus()                             { return false;}
-  virtual bool SetBackingStore(int value)          { return false;}
+  virtual bool SetBackingStore(int value)             { return false;}
   virtual int  getBackingStore()                      { return -1;}
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}
@@ -255,7 +255,8 @@ public:
   virtual bool SetYOffset(const float)                { return false;}
   virtual bool SetPortrait()                          { return false;}
   virtual bool SetLandscape()                         { return false;}
-  virtual bool SetEncapsulated(bool)                  { return false;}
+  virtual bool SetEncapsulated(bool val)              { return false;}
+  virtual bool SetBPP(const int bpp)                  { return false;}
   virtual bool Hide()                                 { return false;}
   virtual bool CopyRegion(DLongGDL* me)               { return false;}
 

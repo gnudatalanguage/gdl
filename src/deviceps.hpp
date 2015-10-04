@@ -64,6 +64,7 @@ class DevicePS: public GraphicsDevice
   int              decomposed; // false -> use color table
   bool	           orient_portrait; 
   bool             encapsulated;
+  int              bitsPerPix;
   float	           scale;
 
   GDLStream  *psUnit;
@@ -78,7 +79,7 @@ class DevicePS: public GraphicsDevice
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color);
+    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color, bitsPerPix);
 
     actStream->sfnam( fileName.c_str());
 
@@ -119,15 +120,9 @@ class DevicePS: public GraphicsDevice
     actStream->scmap0( r, g, b, ctSize);
     actStream->scmap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
-
-    if (color == 0)
-    {
-      actStream->SETOPT( "drvopt","text=0,color=0");
-    }
-    else
-    {
-      actStream->SETOPT( "drvopt","text=0,color=1"); //need to pass all options with the same 'setopt' command.
-    }
+    short font=((int)SysVar::GetPFont()>-1)?1:0;
+    string what="text="+i2s(font)+",color="+i2s(color);
+    actStream->SETOPT( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();
@@ -487,7 +482,7 @@ private:
 public:
   DevicePS(): GraphicsDevice(), fileName( "gdl.ps"), actStream( NULL),
     XPageSize(17.78), YPageSize(12.7), XOffset(0.75),YOffset(5.0),
-    color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true)
+    color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true), bitsPerPix(8)
   {
     name = "PS";
 
@@ -665,7 +660,16 @@ public:
     encapsulated = val;
     return true;
   }
-
+  
+  bool SetBPP(const int val)
+  {
+    int bpp = max(min(8,val),1);
+    if (bpp > 4) bpp = 8;
+    else if (bpp > 2) bpp = 4;
+    bitsPerPix = bpp;
+    return true;
+  }
+  
   bool Decomposed( bool value)           
   {   
     decomposed = value;

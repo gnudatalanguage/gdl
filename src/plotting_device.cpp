@@ -451,6 +451,18 @@ namespace lib {
 	  if (!success) e->Throw( "Current device does not support keyword ENCAPSULATED.");
 	} 
     }
+    //BITS_PER_PIXEL
+    {
+      static int bppIx = e->KeywordIx( "BITS_PER_PIXEL");
+      BaseGDL* bppKW = e->GetKW( bppIx);
+      if( bppKW != NULL)
+	{
+	  bool success;
+      
+	  success = actDevice->SetBPP((*e->GetKWAs<DIntGDL>(bppIx))[0]);
+	  if (!success) e->Throw( "Current device does not support keyword BITS_PER_PIXEL.");
+	} 
+    }    
     // COPY
     {
       static int copyIx = e->KeywordIx("COPY");
