@@ -134,6 +134,7 @@ TESTS = \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \
+  test_postscript.pro \
   test_product.pro \
   test_ps_decomposed.pro \
   test_ptrarr.pro \
@@ -145,6 +146,7 @@ TESTS = \
   test_qromo.pro \
   test_random.pro \
   test_readf.pro \
+  test_reads.pro \
   test_rebin.pro \
   test_rk4.pro \
   test_routine_names.pro \

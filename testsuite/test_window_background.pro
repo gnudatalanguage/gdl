@@ -117,7 +117,7 @@ if mm[0] NE back_ref_mod then ADD_ERROR, errors, '(7) read value not EQ to back'
 if ~KEYWORD_SET(verbose) then short=1 else short=0
 BANNER_FOR_TESTSUITE, 'TEST_WIN_BACK_DECOMPOSED', errors, short=short
 ;
-if ISA(cumul_errors) then cumul_errors=0
+if ~ISA(cumul_errors) then cumul_errors=0
 cumul_errors=cumul_errors+errors
 ;
 if KEYWORD_SET(test) then STOP
