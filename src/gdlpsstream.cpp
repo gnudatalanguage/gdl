@@ -121,26 +121,46 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
         fprintf(pls->OutFile, "%2.2X", idata[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
         }
       pls->bytecnt += (nelem*2  + nelem*2/LINEWIDTH);
-    } else { //indexed value 0->255: read in colortable
+    } else {
       pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixString 1 string def ");
       pls->bytecnt += fprintf(pls->OutFile, "%d %d %d ", nx, ny, bitsPerPix);
-      pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] /LUT < \n", nx, ny);
+      pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0]\n", nx, ny);
       PLINT r[ctSize], g[ctSize], b[ctSize];
       GraphicsDevice::GetCT()->Get( r, g, b); //OUR colors, *NOT* plplot's colors (background mess)
+      unsigned char *data=(unsigned char*)malloc(nx*ny*3*sizeof(unsigned char));
       //following is false for bits_per_pix not equal to 8. Colortable must be written differently. FIXME!
-      for (SizeT i = 0, k = 0; i < ctSize; ++i) {
-        fprintf(pls->OutFile, "%2.2x%2.2x%2.2x ", r[i], g[i], b[i]); k++; if( k == 11) {fprintf(pls->OutFile, "\n"); k=0;}
-      }
-      pls->bytecnt += fprintf(pls->OutFile, " > def\n {LUT currentfile gdlImagePixString readhexstring pop 0 get 3 mul 3 getinterval} bind false 3 colorimage\n", nx, ny);
+      for (SizeT i = 0; i < nx*ny; ++i) {data[i*3+0]=r[idata[i]];data[i*3+1]=g[idata[i]];data[i*3+2]=b[idata[i]];}
+      pls->bytecnt += fprintf(pls->OutFile, "{currentfile gdlImagePixString readhexstring pop} bind false 3 colorimage\n", nx, ny);
       //if bpp is not 8, convert to, else use it directly
-      if (bitsPerPix != 8) image_compress(idata,1*nx*ny,bitsPerPix);
+      if (bitsPerPix != 8) image_compress(data,3*nx*ny,bitsPerPix);
       //output data in lines of LINEWIDTH chars:
-      nelem=(int)ceil(1.0 * nx * ny * bitsPerPix / 8.);
+      nelem=(int)ceil(3.0 * nx * ny * bitsPerPix / 8.);
       for (SizeT i = 0, k = 0 ; i < nelem ; ++i) {
-        fprintf(pls->OutFile, "%2.2X", idata[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
+        fprintf(pls->OutFile, "%2.2X", data[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
         }
+      delete(data);
       pls->bytecnt += (nelem*2  + nelem*2/LINEWIDTH);
     }
+//    { //indexed value 0->255: read in colortable
+//      pls->bytecnt += fprintf(pls->OutFile, "/gdlImagePixString 1 string def ");
+//      pls->bytecnt += fprintf(pls->OutFile, "%d %d %d ", nx, ny, bitsPerPix);
+//      pls->bytecnt += fprintf(pls->OutFile, "[%d 0 0 %d 0 0] /LUT < \n", nx, ny);
+//      PLINT r[ctSize], g[ctSize], b[ctSize];
+//      GraphicsDevice::GetCT()->Get( r, g, b); //OUR colors, *NOT* plplot's colors (background mess)
+//      //following is false for bits_per_pix not equal to 8. Colortable must be written differently. FIXME!
+//      for (SizeT i = 0, k = 0; i < ctSize; ++i) {
+//        fprintf(pls->OutFile, "%2.2x%2.2x%2.2x ", r[i], g[i], b[i]); k++; if( k == 11) {fprintf(pls->OutFile, "\n"); k=0;}
+//      }
+//      pls->bytecnt += fprintf(pls->OutFile, " > def\n {LUT currentfile gdlImagePixString readhexstring pop 0 get 3 mul 3 getinterval} bind false 3 colorimage\n", nx, ny);
+//      //if bpp is not 8, convert to, else use it directly
+//      if (bitsPerPix != 8) image_compress(idata,1*nx*ny,bitsPerPix);
+//      //output data in lines of LINEWIDTH chars:
+//      nelem=(int)ceil(1.0 * nx * ny * bitsPerPix / 8.);
+//      for (SizeT i = 0, k = 0 ; i < nelem ; ++i) {
+//        fprintf(pls->OutFile, "%2.2X", idata[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
+//        }
+//      pls->bytecnt += (nelem*2  + nelem*2/LINEWIDTH);
+//    }
   } else { //true color: native value (degrees of R, G and B)
     switch (trueColorOrder) {
       case 1:
