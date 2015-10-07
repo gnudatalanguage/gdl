@@ -5,20 +5,6 @@
 ;
 ; First Bug found thanks to the MIRIM simulator
 ;
-; -----------------------------------------------
-;
-pro ADD_ERROR, nb_errors, message, full=full
-;
-if KEYWORD_SET(full) then begin
-    MESSAGE, level=-1, 'Error on operation : '+message, /continue
-endif else begin
-    print, 'Error on operation : '+message
-endelse
-;
-nb_errors=nb_errors+1
-;
-end
-;
 ; -------------------------------------
 ;
 pro TEST_READS_STRING, cumul_errors, verbose=verbose, test=test
@@ -30,11 +16,11 @@ input= '1000,800,600'
 var=FLTARR(3)
 ok=EXECUTE('READS, input, var')
 ;
-if ~ok then ADD_ERROR, errors, 'EXECUTE failed !', /full
+if ~ok then ADD_ERROR, errors, 'EXECUTE failed !'
 ;
 expected=[1000,800,600]
 if ~ARRAY_EQUAL(expected, var) then $
-   ADD_ERROR, errors, 'bad values !', /full
+   ADD_ERROR, errors, 'bad values !'
 ;
 BANNER_FOR_TESTSUITE, functionname, errors, /short
 ;
@@ -81,11 +67,11 @@ errors1=0
 ;
 ok1=EXECUTE('READS, thisisheader, day, month, year, todaystring1')
 res1=[day, month, year]
-if ~ok1 then ADD_ERROR, errors1, '(1) EXECUTE failed !', /full
+if ~ok1 then ADD_ERROR, errors1, '(1) EXECUTE failed !'
 if ~ARRAY_EQUAL(expected1, res1) then $
-   ADD_ERROR, errors1, '(1) bad numerical values D/M/Y !', /full
+   ADD_ERROR, errors1, '(1) bad numerical values D/M/Y !'
 if ~ARRAY_EQUAL(expected2a, todaystring1) then   $
-   ADD_ERROR, errors1, '(1) bad string value !', /full
+   ADD_ERROR, errors1, '(1) bad string value !'
 if (errors1 EQ 0) then MESSAGE, /continue, 'Case 1 : succesfully done'
 ;
 MESSAGE, /continue, 'Case 2 : separator is a comma >>,<<'
@@ -93,11 +79,11 @@ errors2=0
 ;
 ok2=EXECUTE('READS, thisisheader2, day, month, year, todaystring2')
 res2=[day, month, year]
-if ~ok2 then ADD_ERROR, errors2, '(2) EXECUTE failed !', /full
+if ~ok2 then ADD_ERROR, errors2, '(2) EXECUTE failed !'
 if ~ARRAY_EQUAL(expected1, res2) then $
-   ADD_ERROR, errors2, '(2) bad numerical values D/M/Y !', /full
+   ADD_ERROR, errors2, '(2) bad numerical values D/M/Y !'
 if ~ARRAY_EQUAL(expected2b, todaystring2) then  $
-   ADD_ERROR, errors2, '(2) bad string value !', /full
+   ADD_ERROR, errors2, '(2) bad string value !'
 if (errors2 EQ 0) then MESSAGE, /continue, 'Case 2 : succesfully done'
 ;
 errors=errors1+errors2
