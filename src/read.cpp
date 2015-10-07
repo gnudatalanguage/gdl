@@ -298,91 +298,87 @@ namespace lib {
 	DStringGDL gdlString("");
 	gdlString.FromStream( *is);
       }
-  }
+}
 
+void reads( EnvT* e ) {
+  SizeT nParam = e->NParam( );
+  if ( nParam < 1 ) throw GDLException( e->CallingNode( ), "READS: Incorrect number of arguments." );
 
-  void reads( EnvT* e)
-  {
-    SizeT nParam=e->NParam();
-    if( nParam < 1)
-      throw GDLException( e->CallingNode(),
-			  "READS: Incorrect number of arguments.");
+  BaseGDL* p = e->GetPar( 0 );
+  if ( p == NULL ) throw GDLException( e->CallingNode( ), "Parameter undefined: " + e->GetParString( 0 ) );
+
+  if ( nParam == 1 ) return;
+
+  //  Guard<DStringGDL> guard;
+  stringstream is;
+  bool hasFormat=(e->GetKW( 0 ) != NULL);
+  DStringGDL* iStr;
   
-    BaseGDL* p = e->GetPar( 0);
-    if( p == NULL)
-      throw GDLException( e->CallingNode(), "Parameter undefined: "+
-			  e->GetParString(0));
-  
-    //  Guard<DStringGDL> guard;
-    stringstream is;
+  //not optimal if already string, but simplifies code: iStr can be safely deleted.
+  iStr = static_cast<DStringGDL*> (p->Convert2( GDL_STRING, BaseGDL::COPY ));
+  SizeT nStr = iStr->N_Elements( );
+  for ( SizeT i = 0; i < nStr; i++ )  is << (*iStr)[ i] << '\n';
+  delete iStr;
 
-    if( p->Type() != GDL_STRING)
-      {
-	DStringGDL* iStr = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
+  // FORMAT keyword
+  if ( hasFormat ) {
+    DString fmtString;
+    e->AssureScalarKW<DStringGDL>(0, fmtString);
 
-	SizeT nStr = iStr->N_Elements();
-	for( SizeT i = 0; i < nStr; i++)
-	  is << (*iStr)[ i] << '\n';
+    // removing "$" in input format : not used
+    std::size_t found = fmtString.find( "$" );
+    if ( found != std::string::npos )
+      fmtString.erase( found, 1 );
 
-	delete iStr;
+    RefFMTNode fmtAST = GetFMTAST( fmtString );
+
+    FMTIn Formatter( fmtAST, &is, e, 1, NULL );
+  } else { // default-format input
+    BaseGDL* parIn;
+    for ( SizeT i = 1; i < nParam; i++ ) {
+      BaseGDL** par = &e->GetPar( i );
+      if ( (*par) != NULL ) {
+        if ( e->GlobalPar( i ) ) { // defined global
+          parIn = *par;
+        } else { // defined local
+          throw GDLException( e->CallingNode( ),
+          "Expression must be named variable "
+          "in this context: " + e->GetParString( i ) );
+        }
+      } else { // undefined
+        if ( e->LocalPar( i ) )
+          throw GDLException( e->CallingNode( ),
+        "Internal error: Input: UNDEF is local." );
+
+        (*par) = new DFloatGDL( 0.0 );
+        parIn = *par;
       }
-    else
-      {
-	DStringGDL* iStr = static_cast<DStringGDL*>(p);
-	SizeT nStr = iStr->N_Elements();
-	for( SizeT i = 0; i < nStr; i++)
-	  is << (*iStr)[ i] << '\n';
+      if ((*par)->Type()!=GDL_STRING) { //special treatment for decoding commas
+        stringstream temp;
+        char c;
+        for (SizeT ielem=0; ielem<(*par)->N_Elements(); ++ielem ) { //repeat as many elements necessary, but no more!
+          while ( is.get( c ) ) { //remove starting blanks, commas, tabs, newlines
+            if ( c != ',' && c != ' ' && c != '\t' && c != '\n' ) {
+              temp.put( c );
+              break;
+            }
+          }
+          while ( is.get( c ) ) { //copy until new separator appears.
+            if ( c != ',' && c != ' ' && c != '\t' && c != '\n' ) {
+              temp.put( c );
+            } else {
+              is.unget( );
+              break;
+            }
+          }
+          temp.put( ' ' ); //put a spearator between values
+        }
+        parIn->FromStream( temp );
+      } else { //so much simpler
+        parIn->FromStream( is );
       }
-
-    // FORMAT keyword
-    if( e->GetKW( 0) != NULL)
-      {
-	DString fmtString;
-	e->AssureScalarKW<DStringGDL>( 0, fmtString);
-
-	// removing "$" in input format : not used
-	std::size_t found =fmtString.find("$");
-	if (found!=std::string::npos)
-	  fmtString.erase(found,1); 
-
-	RefFMTNode fmtAST = GetFMTAST( fmtString);
-
-	FMTIn Formatter( fmtAST, &is, e, 1, NULL);
-      }
-    else // default-format input
-      {
-	if( nParam == 1) return; 
-      
-	BaseGDL* parIn;
-	for( SizeT i=1; i<nParam; i++)
-	  {
-            BaseGDL** par = &e->GetPar( i);
-            if( (*par) != NULL)
-	      {
-                if( e->GlobalPar( i))
-		  { // defined global
-                    parIn = *par;
-		  }
-                else
-		  { // defined local
-		    throw GDLException( e->CallingNode(),
-					"Expression must be named variable "
-					"in this context: "+e->GetParString( i));
-		  }
-	      }
-            else
-	      { // undefined
-                if( e->LocalPar( i))
-		  throw GDLException( e->CallingNode(),
-				      "Internal error: Input: UNDEF is local.");
-		
-                (*par) = new DFloatGDL( 0.0);
-                parIn = *par;
-	      }
-
-	    parIn->FromStream( is);
-	  }
-      }
+    }
   }
+}
 
 } // namespace
