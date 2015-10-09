@@ -909,161 +909,203 @@ namespace lib {
 
 
 #ifndef _WIN32
-  void FileSearch( FileListT& fileList, const DString& pathSpec, 
-		   bool environment,
-		   bool tilde,
-		   bool accErr,
-		   bool mark,
-		   bool noSort,
-		   bool quote,
-		   bool dir,
-		   bool period,
-                   bool forceAbsPath,
-                   bool fold_case,
-                   bool *tests)
- 
+  std::string BeautifyPath(std::string st, bool removeMark=true)
   {
-    enum { testregular=3, testdir, testzero, testsymlink };
-    bool dotest = false;
-    for( SizeT i=0; i < NTEST_SEARCH; i++) dotest |= tests[i];
-    int globflags = 0;
-    DString st;
+    //removes series of "//", "/./" and "/.." and adjust path accordingly.
+     if ( st.length( ) > 0 ) {
+      size_t pp;
+      pp=0;
+      do {
+        pp=st.find( "/./");
+        if (pp!=string::npos) { st.erase(pp, 2);}
+      } while (pp!=string::npos);
+      pp=0;
+      do {
+        pp=st.find( "//");
+        if (pp!=string::npos) { st.erase(pp, 1);}
+      } while (pp!=string::npos);
+      //Last "/.."
+      pp=st.rfind( "/.."); //remove and back if last
+      if (pp!=string::npos && pp==st.size()-3) {
+        //erase from previous "/" to pp+3. Unless there is no previous "/"!
+        size_t prevdir = st.rfind("/",pp-1);
+        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+      }
+      //Last "/."
+      pp=st.rfind( "/."); //remove if last
+      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
+      //Last "/" if removeMark is true
+      if (removeMark) {
+        pp=st.rfind( "/"); //remove and back if last
+        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
+      }
+      // other places for "/..": between directories
+      pp=0;
+      do {
+        pp=st.find( "/../");
+        if (pp!=string::npos) {
+          //erase from previous "/" to pp+3. Unless there is no previous "/"!
+          size_t prevdir = st.rfind("/",pp-1);
+          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+          else break; //what should I do?
+        }
+      } while (pp!=string::npos);
+      //First "./" 
+      pp=st.find( "./"); //remove if first
+      if (pp==0) st.erase(pp,2);
+    }
+  return st;
+  }
 
-    if( environment)
-      globflags |= GLOB_BRACE;
-    
-    if( tilde)
-      globflags |= GLOB_TILDE;
+#include <stdlib.h> 
+void FileSearch( FileListT& fileList, const DString& pathSpec,
+bool environment,
+bool tilde,
+bool accErr,
+bool mark,
+bool noSort,
+bool quote,
+bool dir,
+bool period,
+bool forceAbsPath,
+bool fold_case,
+bool *tests )
+ {
 
-    if( accErr)
-      globflags |= GLOB_ERR;
-    
-    if( mark && !dir) // only mark directory if not in dir mode
-      globflags |= GLOB_MARK;
+  enum {
+    testregular = 3, testdir, testzero, testsymlink
+  };
+  bool dotest = false;
+  for ( SizeT i = 0; i < NTEST_SEARCH; i++ ) dotest |= tests[i];
+  int globflags = 0;
+  DString st;
 
-    if( noSort)
-      globflags |= GLOB_NOSORT;
+  if ( environment )
+    globflags |= GLOB_BRACE;
+
+  if ( tilde )
+    globflags |= GLOB_TILDE;
+
+  if ( accErr )
+    globflags |= GLOB_ERR;
+
+  if ( mark && !dir ) // only mark directory if not in dir mode
+    globflags |= GLOB_MARK;
+
+  if ( noSort )
+    globflags |= GLOB_NOSORT;
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
-    if( !quote) // n/a on OS X
-      globflags |= GLOB_NOESCAPE;
+  if ( !quote ) // n/a on OS X
+    globflags |= GLOB_NOESCAPE;
 
-    if( dir) // simulate with lstat()
-      globflags |= GLOB_ONLYDIR;
+  if ( dir ) // simulate with lstat()
+    globflags |= GLOB_ONLYDIR;
 
-    if( period) // n/a on OS X
-      globflags |= GLOB_PERIOD;
+  if ( period ) // n/a on OS X
+    globflags |= GLOB_PERIOD;
 #endif
-    if( fold_case)
+   if( fold_case)
       st=makeInsensitive(pathSpec);
     else
-      st=pathSpec;
+      st=pathSpec;  
+  glob_t p;
+  int gRes;
+  if ( !forceAbsPath ) {
+    if ( st != "" ) gRes = glob( st.c_str( ), globflags, NULL, &p );
+    else gRes = glob( "*", globflags, NULL, &p );
+  } else {
+    int debug = 0;
 
-    glob_t p;
-    int gRes;
-    if (!forceAbsPath)
-      {
-	if (st != "") gRes = glob(st.c_str(), globflags, NULL, &p);
-	else gRes = glob("*", globflags, NULL, &p);
+    string pattern;
+    if ( st == "" ) {
+      pattern = GetCWD( );
+      pattern.append( "/*" );
+      gRes = glob( pattern.c_str( ), globflags, NULL, &p );
+    } else {
+      if (
+      st.at( 0 ) != '/' &&
+      !(tilde && st.at( 0 ) == '~') &&
+      !(environment && st.at( 0 ) == '$')
+      ) {
+        pattern = GetCWD( );
+        pattern.append( "/" );
+        if ( !(st.size( ) == 1 && st.at( 0 ) == '.') ) pattern.append( st );
+
+        if ( debug ) cout << "pattern : " << pattern << endl;
+
+        gRes = glob( pattern.c_str( ), globflags, NULL, &p );
+      } else {
+        gRes = glob( st.c_str( ), globflags, NULL, &p );
       }
-    else 
-      {
-	int debug=0;
-      
-	string pattern;
-	if (st == ""){
-	  pattern = GetCWD();
-	  pattern.append("/*");
-	  gRes = glob(pattern.c_str(), globflags, NULL, &p);
-	} else {
-	  if (
-	      st.at(0) != '/' && 
-	      !(tilde && st.at(0) == '~') && 
-	      !(environment && st.at(0) == '$')
-	      ) 
-	    { 
-	      pattern = GetCWD();
-	      pattern.append("/");
-	      if(!( st.size() ==1 && st.at(0) == '.')) pattern.append(st);
-	    
-	      if (debug) cout << "patern : " << pattern << endl;
-	    
-	      gRes = glob(pattern.c_str(), globflags, NULL, &p);
-	    }
-	  else 
-	    {
-	      gRes = glob(st.c_str(), globflags, NULL, &p);
-	    }
-	}
-	if (debug) {
-	  cout << "gRes : " << gRes << endl;
-	  cout << "st out : " << st << endl;
-	}
-      }
-
-#ifndef __APPLE__
-    if( accErr && (gRes == GLOB_ABORTED || gRes == GLOB_NOSPACE))
-      throw GDLException( "FILE_SEARCH: Read error: "+pathSpec);
-#else
-    if( accErr && (gRes != 0 && p.gl_pathc > 0)) // NOMATCH is no error
-      throw GDLException( "FILE_SEARCH: Read error: "+pathSpec);
-#endif      
-
-    struct stat64    statStruct, statlink;
-    int accessmode = 0;
-    if( tests[0]) accessmode = R_OK;
-    if( tests[1]) accessmode |= W_OK;
-    if( tests[2]) accessmode |= X_OK;
-    int debug=0;
-
-    if( gRes == 0)
-      for( SizeT f=0; f<p.gl_pathc; ++f)
-	{
-          int actStat;
-	  const char* actFile = p.gl_pathv[ f];
-          if(dotest != 0) {
-
-	    actStat = lstat64( actFile, &statStruct);
-	    if( tests[testregular] &&  			// (excludes dirs, sym)
-		(S_ISREG( statStruct.st_mode) == 0)) continue;
-
-	    bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
-	    bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-	    if(isASymLink) {
-	      actStat = stat64( actFile, &statlink);
-	      bool isaDir = (S_ISDIR(statlink.st_mode) != 0);
-	      statStruct.st_mode |= statlink.st_mode;
-	    }
-	    if(debug) cout << isASymLink << isaDir << actFile<< endl;
-	    if( tests[testdir] && !isaDir) continue;
-	    if( tests[testsymlink] && !isASymLink) continue;
-
-	    if( tests[testzero] &&
-		(statStruct.st_size != 0)) continue;
-	    // now read, write, execute:
-	    if(accessmode != 0)
-	      if(access(actFile, accessmode) != 0 ) continue;
-	  }
-
-
-#ifndef __APPLE__
-	  fileList.push_back( actFile);
-#else
-	  if( !dir)
-	    fileList.push_back( actFile);
-	  else
-	    { // push only if dir
-              actStat = lstat64( actFile, &statStruct);
-	      if( S_ISDIR(statStruct.st_mode) != 0)
-		fileList.push_back( actFile);
-	    }
-#endif      
-	}
-    globfree( &p);
-
-    if( st == "" && dir)
-      fileList.push_back( "");
+    }
+    if ( debug ) {
+      cout << "gRes : " << gRes << endl;
+      cout << "st out : " << st << endl;
+    }
   }
+
+#ifndef __APPLE__
+  if ( accErr && (gRes == GLOB_ABORTED || gRes == GLOB_NOSPACE) )
+    throw GDLException( "FILE_SEARCH: Read error: " + pathSpec );
+#else
+  if ( accErr && (gRes != 0 && p.gl_pathc > 0) ) // NOMATCH is no error
+    throw GDLException( "FILE_SEARCH: Read error: " + pathSpec );
+#endif      
+
+  struct stat64 statStruct, statlink;
+  int accessmode = 0;
+  if ( tests[0] ) accessmode = R_OK;
+  if ( tests[1] ) accessmode |= W_OK;
+  if ( tests[2] ) accessmode |= X_OK;
+  int debug = 0;
+
+  if ( gRes == 0 )
+    for ( SizeT f = 0; f < p.gl_pathc; ++f ) {
+      int actStat;
+      std::string actFile = p.gl_pathv[ f];
+      if ( dotest != 0 ) {
+
+        actStat = lstat64( actFile.c_str(), &statStruct );
+        if ( tests[testregular] && // (excludes dirs, sym)
+        (S_ISREG( statStruct.st_mode ) == 0) ) continue;
+
+        bool isaDir = (S_ISDIR( statStruct.st_mode ) != 0);
+        bool isASymLink = (S_ISLNK( statStruct.st_mode ) != 0);
+        if ( isASymLink ) {
+          actStat = stat64( actFile.c_str(), &statlink );
+          bool isaDir = (S_ISDIR( statlink.st_mode ) != 0);
+          statStruct.st_mode |= statlink.st_mode;
+        }
+        if ( debug ) cout << isASymLink << isaDir << actFile << endl;
+        if ( tests[testdir] && !isaDir ) continue;
+        if ( tests[testsymlink] && !isASymLink ) continue;
+
+        if ( tests[testzero] &&
+        (statStruct.st_size != 0) ) continue;
+        // now read, write, execute:
+        if ( accessmode != 0 )
+          if ( access( actFile.c_str(), accessmode ) != 0 ) continue;
+      }
+
+
+#ifndef __APPLE__
+      fileList.push_back( BeautifyPath(actFile, !mark) );
+#else
+      if ( !dir )
+        fileList.push_back(  BeautifyPath(actFile, !mark) );
+      else { // push only if dir
+        actStat = lstat64( actFile.c_str(), &statStruct );
+        if ( S_ISDIR( statStruct.st_mode ) != 0 )
+          fileList.push_back(  BeautifyPath(actFile, !mark) );
+      }
+#endif      
+    }
+  globfree( &p );
+
+  if ( st == "" && dir )
+    fileList.push_back( "" );
+}
 #endif // !def_WIN32
   // ** out of _WIN32 block-off until it fails.
 
