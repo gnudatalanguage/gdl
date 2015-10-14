@@ -242,8 +242,10 @@ if (ImageMagick_FOUND)
     string(STRIP "${IMAGEMAGICK_CXX_FLAGS}" IMAGEMAGICK_CXX_FLAGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGEMAGICK_CXX_FLAGS}")
   else()
-    DBG_MSG_V("MagickCore-config --cxxflags command FAILED with RET=${RET}")
-  endif()
+#    DBG_MSG_V("MagickCore-config --cxxflags command FAILED with RET=${RET}")
+    message(WARNING "MagickCore-config --cxxflags command FAILED with RET=${RET}")
+
+    endif()
 endif()
 
 #---------------------------------------------------------------------

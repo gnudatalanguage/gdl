@@ -63,6 +63,7 @@ struct SpDByte: public BaseGDL
   typedef DByte Ty;
   typedef GDLArray<Ty,IS_POD>    DataT;
 
+  // for SFINAE
   template <typename ReturnType>
   struct IfInteger { typedef ReturnType type; };
   template <typename ReturnType>

@@ -196,9 +196,10 @@ namespace lib {
     int32 nattrs;
     int32 status;
 
-    int32 sds_id;
-    e->AssureScalarPar<DLongGDL>( 0, sds_id);
-
+    DLong sds_idAsDLong;
+    e->AssureScalarPar<DLongGDL>( 0, sds_idAsDLong);
+    int32 sds_id = sds_idAsDLong;
+    
     DLongGDL* startKW = e->IfDefGetKWAs<DLongGDL>( 0);
     DLongGDL* strideKW = e->IfDefGetKWAs<DLongGDL>( 1);
     DLongGDL* countKW = e->IfDefGetKWAs<DLongGDL>( 2);

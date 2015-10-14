@@ -939,7 +939,9 @@ void DInterpreter::ExecuteShellCommand(const string& command)
 string GetLine( istream* in)
 {
   string line = "";
-  while( line == "" && in->good()) 
+  while( in->good() && 
+    (  line == "" 
+    || line[0] == ';' )) // skip also comment lines (bug #663) 
     {
       getline( *in, line);
       StrTrim(line);
@@ -1371,7 +1373,8 @@ string DInterpreter::GetLine()
 #endif
   
     StrTrim(line);
-  } while( line == "");
+  } while( line == "" 
+	|| line[0] == ';'); // skip also comment lines (bug #663)
   
 #ifdef HAVE_LIBREADLINE
   // SA: commented out to comply with IDL behaviour- allowing to 
