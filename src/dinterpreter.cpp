@@ -727,7 +727,7 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 {
   string cmdstr = command;
-  int sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ",0);
   if (sppos == string::npos) 
     {
       cout << "Interactive RUN not implemented yet." << endl;
@@ -741,7 +741,12 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
   while (pos < command.length()) 
     {
       sppos = command.find(" ",pos);
-      if (sppos == string::npos) sppos = command.length();
+      size_t spposComma = command.find(",",pos);
+      if (sppos == string::npos && spposComma == string::npos) 
+	sppos = command.length();
+      else if (sppos == string::npos)
+	sppos = spposComma;
+	
 
       // Found a file
       if ((sppos - pos) > 0) 
