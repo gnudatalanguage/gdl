@@ -376,6 +376,8 @@ void WordExp( string& s)
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
 #endif
 
+#include <climits> // PATH_MAX
+
 #ifdef _MSC_VER
 #define PATH_MAX _MAX_PATH
 #endif
