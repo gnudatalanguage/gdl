@@ -7,10 +7,18 @@
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
 #
-
-
-find_library(PLPLOT_LIBRARY NAMES plplotd)
-find_library(PLPLOTCXX_LIBRARY NAMES plplotcxxd)
+#test of rare case where old and new libraries are still present: terrible trouble!
+find_library(NEW_PLPLOT_LIBRARY NAMES plplot)
+find_library(OLD_PLPLOT_LIBRARY NAMES plplotd)
+if (NEW_PLPLOT_LIBRARY AND OLD_PLPLOT_LIBRARY) 
+  message(WARNING "Two incompatible plplot libraries are installed, probable trouble at compile time ahead.")
+endif (NEW_PLPLOT_LIBRARY AND OLD_PLPLOT_LIBRARY)
+find_library(PLPLOT_LIBRARY NAMES plplot)
+find_library(PLPLOTCXX_LIBRARY NAMES plplotcxx)
+if (NOT PLPLOT_LIBRARY)
+    find_library(PLPLOT_LIBRARY NAMES plplotd)
+    find_library(PLPLOTCXX_LIBRARY NAMES plplotcxxd)
+endif(NOT PLPLOT_LIBRARY)
 set(PLPLOT_LIBRARIES ${PLPLOT_LIBRARY} ${PLPLOTCXX_LIBRARY})
 find_path(PLPLOT_INCLUDE_DIR NAMES plplot/plplot.h)
 include(FindPackageHandleStandardArgs)

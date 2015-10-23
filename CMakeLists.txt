@@ -364,20 +364,22 @@ if(PLPLOT_FOUND)
 	endif(HAVE_PLPLOT_SLABELFUNC)
 	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
 	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+
 #the following does not work with clang (???)
-#	check_cxx_source_compiles("
-##include <plplot/plstream.h>
-#int main(int argc, char **argv) {
-#  plstream *p = new plstream();
-#  PLFLT w = 0.5;
-#  p->width(w);
-#}" HAVE_PLPLOT_WIDTH)
+	check_cxx_source_compiles("#include <plplot/plstream.h>
+                                    int main(int argc, char **argv) {
+                                      plstream *p = new plstream();
+                                      PLFLT w = 0.5;
+                                      p->width(w);
+                                    }" HAVE_PLPLOT_WIDTH)
 
 #give it a 2nd try...
-	 check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
-	if(HAVE_PLPLOT_WIDTH)
-	  set(HAVE_PLPLOT_WIDTH 1)
-	endif(HAVE_PLPLOT_WIDTH)
+        if(NOT HAVE_PLPLOT_WIDTH)
+	    check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
+            if(HAVE_PLPLOT_WIDTH)
+              set(HAVE_PLPLOT_WIDTH 1)
+            endif(HAVE_PLPLOT_WIDTH)
+        endif(NOT HAVE_PLPLOT_WIDTH)
 	check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
 	if(PLPLOT_PRIVATE_NOT_HIDDEN)
 	  set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
@@ -390,6 +392,11 @@ if(PLPLOT_FOUND)
 	else(PLPLOT_HAS_LEGEND)
 	  message(STATUS "Your plplot lib is too old for some gdl functions, please upgrade.")
 	endif(PLPLOT_HAS_LEGEND)
+	check_cxx_source_compiles("#include <plplot/plstream.h>
+				   main(){PLINT n; PLFLT x,y;plcallback::fill(n,&x,&y);}" PLPLOT_HAS_PLCALLBACK)
+	if(PLPLOT_HAS_PLCALLBACK)
+	  set(PLPLOT_HAS_PLCALLBACK 1)
+	endif(PLPLOT_HAS_PLCALLBACK)
 endif(PLPLOT_FOUND)
 	
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
