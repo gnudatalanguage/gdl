@@ -19,8 +19,6 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 
-#include <plplot/plstream.h>
-
 #include "gdlwxstream.hpp"
 
 #ifdef HAVE_OLDPLPLOT
@@ -47,11 +45,13 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete m_dc;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  
+#if ( (PLPLOT_VERSION_MAJOR < 6) && (PLPLOT_VERSION_MINOR < 10) )
   if ( GetEnvString("GDL_WX_BACKEND") == "2" )  SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
   else if ( GetEnvString("GDL_WX_BACKEND") == "1") SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
   else  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
-
+#else
+  else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
+#endif
   spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );

@@ -25,14 +25,12 @@
 #define GDL_DEBUG_PLSTREAM 0
 #endif
 
-#include <plplot/plstream.h>
-#include <plplot/plstrm.h>
-
-
 #ifdef HAVE_CONFIG_H
 // we should not add all the plplot's internal defines (which are 
 // added if HAVE_CONFIG_H is defined) to ours. Makes problem with distros.
 #undef HAVE_CONFIG_H 
+#include <plplot/plstream.h>
+#include <plplot/plstrm.h>
 #include <plplot/plplot.h>
 #define HAVE_CONFIG_H 1
 #endif

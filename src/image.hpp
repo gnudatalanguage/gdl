@@ -18,8 +18,6 @@
 #ifndef IMAGE_HPP_
 #define IMAGE_HPP_
 
-#include <plplot/plstream.h>
-
 #include "envt.hpp"
 #include "initsysvar.hpp"
 
