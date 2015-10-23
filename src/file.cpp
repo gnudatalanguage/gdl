@@ -63,7 +63,7 @@
 //#	define   X_OK    1       /* execute permission - unsupported in windows*/
 #	define F_OK    0       /* Test for existence.  */
 
-#	define PATH_MAX 255
+#	define PATH_MAX 255  //should be _MAX_PATH no? (as in str.cpp) (GD)
 
 #	include <direct.h>
 
