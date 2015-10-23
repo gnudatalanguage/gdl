@@ -1349,7 +1349,7 @@ int selmode = wxGrid::wxGridSelectCells; //wxWidgets's modes do not reflect IDL'
 if (!resizeableColumns) grid->DisableDragColSize();
 if (!resizeableRows) grid->DisableDragRowSize();
 grid->CreateGrid( grid_nrows, grid_ncols, static_cast<wxGrid::wxGridSelectionModes>(selmode));
-// Set grid cell contents as strings. Note that there may be less or more cells than valueAsStrings, du to possibly different xSize,ySize :
+// Set grid cell contents as strings. Note that there may be less or more cells than valueAsStrings, due to possibly different xSize,ySize :
 
       for ( int ival=0, i=0; i<grid_nrows; ++i, ++ival) for (int jval=0, j=0; j<grid_ncols; ++j, ++jval)
       {
@@ -1376,8 +1376,8 @@ int currentRowLabelWidth = grid->GetRowLabelSize();
 
 int fullsizex=currentRowLabelWidth;
 int fullsizey=currentColLabelHeight; 
-for (SizeT i=0; i< numCols ; ++i) fullsizex+=grid->GetColumnWidth(i); 
-for (SizeT j=0; j< numRows ; ++j) fullsizey+=grid->GetRowHeight(j); 
+for (SizeT i=0; i< numCols ; ++i) fullsizex+=(i<grid_ncols)?grid->GetColumnWidth(i):grid->GetDefaultColSize(); 
+for (SizeT j=0; j< numRows ; ++j) fullsizey+=(j<grid_nrows)?grid->GetRowHeight(j):grid->GetDefaultRowSize(); 
 
 int visiblesizex=currentRowLabelWidth;
 int visiblesizey=currentColLabelHeight; 
@@ -2704,7 +2704,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     if ( frame ) this->FrameWidget( );
     draggable=(dragability == 1);
     droppable=(dropability == 1);
-    tree->Expand(treeItemID);
+//    tree->Expand(treeItemID); //do not expand root if hidden
     
     TIDY_WIDGET;
     UPDATE_WINDOW

@@ -744,8 +744,12 @@ void GDLFrame::OnPageChanged( wxNotebookEvent& event)
 void GDLFrame::OnTimerResize( wxTimerEvent& event)
  {
    wxMouseState mouse=wxGetMouseState();
+#if wxCHECK_VERSION(3,0,0)
+   if (mouse.LeftIsDown()) {
+#else
    if (mouse.LeftDown()) {
-    m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
+#endif
+   m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
     return;
    }
 #ifdef GDL_DEBUG_EVENTS
@@ -771,7 +775,11 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
  void GDLFrame::OnSizeWithTimer( wxSizeEvent& event)
  {
    wxMouseState mouse=wxGetMouseState();
-   if (!mouse.LeftDown()) {
+#if wxCHECK_VERSION(3,0,0)
+   if (mouse.LeftIsDown()) {
+#else
+   if (mouse.LeftDown()) {
+#endif
      event.Skip();
      return;
    }
