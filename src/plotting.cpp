@@ -24,8 +24,6 @@
 #include <list>
 #include "envt.hpp"
 #include "dinterpreter.hpp"
-// PLplot is used for direct graphics
-#include <plplot/plstream.h>
 
 #include "initsysvar.hpp"
 #include "graphicsdevice.hpp"
