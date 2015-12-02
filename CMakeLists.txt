@@ -63,6 +63,8 @@ set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 
+set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
+set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
@@ -846,6 +848,24 @@ if(GRIB)
 	endif(GRIB_FOUND)
 endif(GRIB)
 
+# Qhull (enable TRIANGULATE and QHULL commands)
+# -DQHULL=ON|OFF
+# -DQHULLDIR=DIR
+if(QHULL)
+	set(CMAKE_PREFIX_PATH ${QHULLDIR})
+	find_package(QHULL QUIET)
+	set(PL_HAVE_QHULL ${QHULL_FOUND})
+	if(QHULL_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
+		include_directories(${QHULL_INCLUDE_DIR})
+	else(QHULL_FOUND)
+		message(FATAL_ERROR "QHULL is required but was not found.\n"
+		"Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
+		"Use -DQHULL=OFF to not use it.\n"
+                "(suitable Fedora package: libqhull-devel)")
+	endif(QHULL_FOUND)
+endif(QHULL)
+
 # gshhs
 # -DGSHHS=ON|OFF
 if(GSHHS) 	
@@ -993,6 +1013,7 @@ module(UDUNITS   "UDUNITS-2  ")
 module(EIGEN3    "EIGEN3     ")
 module(GRAPHICSMAGICK "GRAPHICSMAGICK")
 module(GRIB      "GRIB       ")
+module(QHULL     "QHULL      ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
 module(PSLIB	 "pslib      ")
