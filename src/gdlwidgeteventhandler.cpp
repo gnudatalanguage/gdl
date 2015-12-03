@@ -132,8 +132,8 @@ void gdlTextCtrl::OnChar(wxKeyEvent& event ) {
   wxMessageOutputStderr().Printf(_T("in gdlTextCtrl::OnChar: %d\n"),event.GetId());
 #endif
 
-  //I cannot get cw_field to work if OnChar is not overwritten -- certainly there is a better way?
-  GDLWidget* txt = GDLWidget::GetWidget( event.GetId());
+  //I cannot get cw_field to work if OnChar is not overwritten as it is here
+  GDLWidgetText* txt = static_cast<GDLWidgetText*>(GDLWidget::GetWidget( event.GetId()));
   if( txt == NULL)
   {
 #ifdef GDL_DEBUG_EVENTS
@@ -144,7 +144,7 @@ void gdlTextCtrl::OnChar(wxKeyEvent& event ) {
   }
   DStructGDL* widg;
   bool report = txt->HasEventType( GDLWidget::EV_ALL );
-  bool edit = this->IsEditable( );
+  bool edit = txt->IsEditable( );
   WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
   if ( !report ) {
     if ( !edit ) {
@@ -753,7 +753,7 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
     return;
    }
 #ifdef GDL_DEBUG_EVENTS
-   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTimerResize: %d\n"),event.GetId());
+   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnTimerResize: %d (%d,%d)\n"),event.GetId(),frameSize.x,frameSize.y);
 #endif
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   DULong flags=0;
@@ -776,6 +776,9 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
  {
    wxMouseState mouse=wxGetMouseState();
 #if wxCHECK_VERSION(3,0,0)
+   //ignore this for the moment. Does not work in wxWidgets 3.0
+     event.Skip();
+     return;
    if (mouse.LeftIsDown()) {
 #else
    if (mouse.LeftDown()) {
@@ -1097,7 +1100,7 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 {
 //   cout <<"in OnPaint: "<< event.GetId() << endl;
 #ifdef GDL_DEBUG_EVENTS
-  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnPaint: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
 #endif
   wxPaintDC dc( this);
   dc.SetDeviceClippingRegion( GetUpdateRegion());
@@ -1731,4 +1734,3 @@ void gdlTreeCtrl::OnItemCollapsed(wxTreeEvent & event){
 }
   
 #endif
-

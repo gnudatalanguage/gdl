@@ -45,6 +45,9 @@
 #include "plotting.hpp"
 
 #define SCROLL_WIDTH 20
+#define DEFAULT_XSIZE 100
+#define DEFAULT_YSIZE 100
+#define DEFAULT_SCROLL_SIZE DEFAULT_XSIZE+SCROLL_WIDTH
 #define DEFAULT_BORDER_SIZE 3
 #ifdef _WIN32
   #define NEWLINECHARSIZE 2  //length of <cr><nl>
@@ -358,7 +361,7 @@ public:
       CallEventPro( RIP, new DLongGDL( widgetID));
     }
   }
-  
+  virtual void ReorderWidgets(){} //do Nothing, only for Base.
   virtual void AddToFollowers(WidgetIDT him)
   {
     followers.insert( followers.end( ), him );
@@ -377,7 +380,7 @@ public:
   WidgetIDT GetParentID() const { return parentID;}
   
   wxObject* GetWxWidget() const { return wxWidget;}
-  void FrameWidget(long style=0);
+  void FrameWidget();
   void ScrollWidget(DLong x_scroll_size,  DLong y_scroll_size);
   void UnFrameWidget();
   void UnScrollWidget();
@@ -478,6 +481,9 @@ public:
   bool IsContainer() const { return true;}
   void OnRealize() 
   {
+      if(this->IsBase()){
+          this->ReorderWidgets();
+      }
     for( cIter c=children.begin(); c!=children.end(); ++c)
     {
       GDLWidget* w = GetWidget( *c);
@@ -582,6 +588,9 @@ public:
   long getYPad(){return ypad;}
   void mapBase(bool val);
   DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+
+//Apparently children of a base are plotted in reverse order in IDL (last first)
+  void ReorderWidgets();  
 };
 
 class gdlMenuButton: public wxButton
@@ -753,7 +762,7 @@ public:
                const wxString &name = wxTextCtrlNameStr):
    wxTextCtrl(parent, id,value,pos,size,style,validator,name){
   Connect(id,wxEVT_CHAR, wxKeyEventHandler(gdlTextCtrl::OnChar));
- }
+   }
  ~ gdlTextCtrl(){}
 private:
   void OnChar(wxKeyEvent& event );

@@ -78,6 +78,7 @@ void GDLWXStream::Update()
 
 void GDLWXStream::SetSize( int width, int height )
 {
+  if ( width<1 || height <1) return;
   m_dc->SelectObject( wxNullBitmap );
   delete m_bitmap;
   m_bitmap = new wxBitmap( width, height, 32 );
