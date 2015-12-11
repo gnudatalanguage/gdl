@@ -42,6 +42,10 @@
 #include <sys/time.h>
 #endif
 
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
+#endif
+
 namespace SysVar
 {
 
@@ -496,11 +500,11 @@ namespace SysVar
     gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
 
     // creating an explicit build date in !GDL (also exist in !version)
-    gdlStruct->NewTag("BUILD_DATE", new DStringGDL(__DATE__)); 
+    gdlStruct->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
 
     // creating and Epoch entry in order to have a simple incremental number 
     int CompilationMonth =0, CompilationYear=0, CompilationDay=0;
-    string MyDate= __DATE__;
+    string MyDate= BUILD_DATE;
     string SCompilationYear;
     SCompilationYear=MyDate.substr(7,4);
     CompilationYear=atoi(SCompilationYear.c_str());
@@ -736,7 +740,7 @@ namespace SysVar
     ver->NewTag("OS", new DStringGDL(SysName));    
     ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
     ver->NewTag("RELEASE", new DStringGDL( "6.5")); //we are at least 6.4
-    ver->NewTag("BUILD_DATE", new DStringGDL(__DATE__)); 
+    ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE)); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8)); 
     DVar *v            = new DVar( "VERSION", ver);
