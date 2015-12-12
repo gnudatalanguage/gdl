@@ -149,7 +149,8 @@ if ((step <= 4 )) ; then
     mkdir Compilation
     cd Compilation
     $RACINE/cmake-2.8.12/bin/cmake .. -DCMAKE_INSTALL_PREFIX=. \
-	-DENABLE_python=OFF -DENABLE_java=off -DENABLE_tk=off -DENABLE_tcl=off \
+	-DENABLE_python=OFF -DENABLE_java=off -DENABLE_qt=off \
+	-DENABLE_tk=off -DENABLE_tcl=off \
 	-DPLD_aqt=off -DPLD_psttf=off -DPLD_wxwidgets=OFF -DDEFAULT_NO_CAIRO_DEVICES=ON
     make -j $cpus
     make install 
