@@ -790,21 +790,28 @@ endif(UDUNITS)
 # -DEIGEN3=ON|OFF
 # -DEIGEN3DIR=DIR
 if(EIGEN3)
-	set(CMAKE_PREFIX_PATH ${EIGEN3DIR})
-	find_package(Eigen3 QUIET)
+      set(CMAKE_PREFIX_PATH ${EIGEN3DIR})
+      find_package(Eigen3 3.2.4 QUIET)
+      if(EIGEN3_TOO_OLD)
+	# on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
+	message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
+	  " Please download a recent version (>=3.2.4) in a local directory."
+	  " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n")
+      else(EIGEN3_TOO_OLD)	 
 	set(USE_EIGEN ${EIGEN3_FOUND})
 	if(EIGEN3_FOUND)
-		include_directories(${EIGEN3_INCLUDE_DIR})
-		if(MINGW)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
-		endif(MINGW)
+	  include_directories(${EIGEN3_INCLUDE_DIR})
+	  if(MINGW)
+	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
+	  endif(MINGW)
 	else(EIGEN3_FOUND)
-		message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
-		"Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
-		"Use -DEIGEN3=OFF to not use it.\n"
-                "(suitable Fedora package: eigen3-devel)\n"
-                "(suitable Debian/Ubuntu package: libeigen3-dev)")
+	  message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
+	    "Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
+	    "Use -DEIGEN3=OFF to not use it.\n"
+            "(suitable Fedora package: eigen3-devel)\n"
+            "(suitable Debian/Ubuntu package: libeigen3-dev)")
 	endif(EIGEN3_FOUND)
+      endif(EIGEN3_TOO_OLD)
 endif(EIGEN3)
 
 # pslib
