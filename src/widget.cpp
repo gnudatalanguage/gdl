@@ -86,16 +86,21 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   static int ALIGN_CENTER = e->KeywordIx( "ALIGN_CENTER" );
   static int ALIGN_LEFT = e->KeywordIx( "ALIGN_LEFT" );
   static int ALIGN_RIGHT = e->KeywordIx( "ALIGN_RIGHT" );
+  static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
+  static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
   static int FONT = e->KeywordIx( "FONT" );
 //  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
 
-  font="";
-    e->AssureStringScalarKWIfPresent( FONT, font );
-    
-  alignment=-1;
-  if (e->KeywordSet(ALIGN_LEFT)) alignment=wxALIGN_LEFT;
-  if (e->KeywordSet(ALIGN_CENTER)) alignment=wxALIGN_CENTER;
-  if (e->KeywordSet(ALIGN_RIGHT)) alignment=wxALIGN_RIGHT;
+  string inputfont="";
+  e->AssureStringScalarKWIfPresent( FONT, inputfont );
+  if (inputfont.length() > 0) font=wxFont(wxString(inputfont.c_str( ), wxConvLibc)); else font=wxNullFont;
+  
+  alignment=gdlwALIGN_NOT;
+  if (e->KeywordSet(ALIGN_LEFT)) alignment|=gdlwALIGN_LEFT;
+  if (e->KeywordSet(ALIGN_CENTER)) alignment|=gdlwALIGN_CENTER;
+  if (e->KeywordSet(ALIGN_RIGHT)) alignment|=gdlwALIGN_RIGHT;
+  if (e->KeywordSet(ALIGN_TOP)) alignment|=gdlwALIGN_TOP;
+  if (e->KeywordSet(ALIGN_BOTTOM)) alignment|=gdlwALIGN_BOTTOM;
   
   scrolled = e->KeywordSet( scrollIx );
 
@@ -130,19 +135,13 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 
   //SCREEN_XSIZE and YSIZE are equivalent to xSize, ySize for most widgets.
 //the following trick permits to transfer these values to xSize etc.
-  scrXSize = -1;
-  xSize = -1;
   e->AssureLongScalarKWIfPresent( scr_xsizeIx, xSize );
   e->AssureLongScalarKWIfPresent( scr_xsizeIx, scrXSize );
   e->AssureLongScalarKWIfPresent( xsizeIx, xSize );
-  scrYSize = -1;
-  ySize = -1;
   e->AssureLongScalarKWIfPresent( scr_ysizeIx, ySize );
   e->AssureLongScalarKWIfPresent( scr_ysizeIx, scrYSize );
   e->AssureLongScalarKWIfPresent( ysizeIx, ySize );
-  xOffset = 0;
   e->AssureLongScalarKWIfPresent( xoffsetIx, xOffset );
-  yOffset = 0;
   e->AssureLongScalarKWIfPresent( yoffsetIx, yOffset );
 
   uValue = e->GetKW( uvalueIx );
@@ -743,19 +742,14 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   // handle some more keywords over widget
   
-//  static int align_bottomIx = e->KeywordIx( "ALIGN_BOTTOM" );
-//  static int align_centerIx = e->KeywordIx( "ALIGN_CENTER" );
-//  static int align_leftIx = e->KeywordIx( "ALIGN_LEFT" );
-//  static int align_rightIx = e->KeywordIx( "ALIGN_RIGHT" );
-//  static int align_topIx = e->KeywordIx( "ALIGN_TOP" );
   static int mbarIx = e->KeywordIx( "MBAR" );
   static int obsolete_app_mbarIx = e->KeywordIx( "APP_MBAR" );
   static int modalIx = e->KeywordIx( "MODAL" );
-//  static int base_align_bottomIx = e->KeywordIx( "BASE_ALIGN_BOTTOM" );
+  static int base_align_bottomIx = e->KeywordIx( "BASE_ALIGN_BOTTOM" );
   static int base_align_centerIx = e->KeywordIx( "BASE_ALIGN_CENTER" );
   static int base_align_leftIx = e->KeywordIx( "BASE_ALIGN_LEFT" );
   static int base_align_rightIx = e->KeywordIx( "BASE_ALIGN_RIGHT" );
-//  static int base_align_topIx = e->KeywordIx( "BASE_ALIGN_TOP" );
+  static int base_align_topIx = e->KeywordIx( "BASE_ALIGN_TOP" );
   static int columnIx = e->KeywordIx( "COLUMN" );
   static int rowIx = e->KeywordIx( "ROW" );
   static int context_eventsIx = e->KeywordIx( "CONTEXT_EVENTS" );
@@ -787,21 +781,12 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int display_nameIx = e->KeywordIx( "DISPLAY_NAME" );
   static int rname_mbarIx = e->KeywordIx( "RNAME_MBAR" );
 
-//  // own alignment: done in SetCommonKeywords
-//  bool align_bottom = e->KeywordSet( align_bottomIx );
-//  bool align_center = e->KeywordSet( align_centerIx );
-//  bool align_left = e->KeywordSet( align_leftIx );
-//  bool align_right = e->KeywordSet( align_rightIx );
-//  bool align_top = e->KeywordSet( align_topIx );
-//
-//  // children default alignment
-//  bool base_align_bottom = e->KeywordSet( base_align_bottomIx );
-//  bool base_align_top = e->KeywordSet( base_align_topIx );
-
-  long children_alignment=wxALIGN_NOT;
-  if (e->KeywordSet(base_align_leftIx )) children_alignment=wxALIGN_LEFT;
-  if (e->KeywordSet(base_align_centerIx)) children_alignment=wxALIGN_CENTER;
-  if (e->KeywordSet(base_align_rightIx)) children_alignment=wxALIGN_RIGHT;
+  long children_alignment=GDLWidget::gdlwALIGN_NOT;
+  if (e->KeywordSet(base_align_topIx )) children_alignment|=GDLWidget::gdlwALIGN_TOP;
+  if (e->KeywordSet(base_align_bottomIx )) children_alignment|=GDLWidget::gdlwALIGN_BOTTOM;
+  if (e->KeywordSet(base_align_leftIx )) children_alignment|=GDLWidget::gdlwALIGN_LEFT;
+  if (e->KeywordSet(base_align_centerIx)) children_alignment|=GDLWidget::gdlwALIGN_CENTER;
+  if (e->KeywordSet(base_align_rightIx)) children_alignment|=GDLWidget::gdlwALIGN_RIGHT;
 
   bool modal = e->KeywordSet( modalIx );
 
@@ -898,8 +883,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   WidgetIDT mBarID = mbarPresent ? 1 : 0;
 
   int exclusiveMode = GDLWidget::BGNORMAL;
-  if ( exclusive ) { exclusiveMode = GDLWidget::BGEXCLUSIVE; space=0;} //space ignored if mode=exclusive or nonexclusive
-  if ( nonexclusive ) { exclusiveMode = GDLWidget::BGNONEXCLUSIVE;space=0;}
+  if ( exclusive ) { exclusiveMode = GDLWidget::BGEXCLUSIVE;} //space ignored if mode=exclusive or nonexclusive
+  if ( nonexclusive ) { exclusiveMode = GDLWidget::BGNONEXCLUSIVE;}
 
   //events:
   //CONTEXT_EVENTS
@@ -1201,7 +1186,7 @@ BaseGDL* widget_list( EnvT* e ) {
   if ( value != NULL )  value = value->Dup( ); else value = new DStringGDL(""); //protect!
 
   DLong style = 0;
-  GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style );
+  GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style);
   if (droplist->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   droplist->SetWidgetType( GDLWidget::WIDGET_DROPLIST );
   droplist->SetEventFlags(eventFlags);
   return new DLongGDL( droplist->WidgetID( ) );
@@ -1627,13 +1612,14 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (name) return new DStringGDL(widget->GetWidgetName());
         else if (eventfun) return new DStringGDL(widget->GetEventFun());
         else if (eventpro) return new DStringGDL(widget->GetEventPro());
-        // else if (fontname) //not programmed yet
+        else if (fontname) { wxWindow* ww=static_cast<wxWindow*>(widget->GetWxWidget()); 
+          if (ww) return new DStringGDL( std::string(ww->GetFont().GetNativeFontInfoDesc().mb_str()) );}
       }
     } else {
       // Array Input
       DStringGDL* res = new DStringGDL( p0L->Dim( ), BaseGDL::NOZERO );
       bool atLeastOneFound=false;
-      for ( SizeT i = 1; i < nEl; i++ ) {
+      for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
         DString result = "";
@@ -1643,7 +1629,8 @@ BaseGDL* widget_info( EnvT* e ) {
           else if (name) result = widget->GetWidgetName();
           else if (eventfun) result = widget->GetEventFun();
           else if (eventpro) result = widget->GetEventPro();
-          // else if (fontname) //not programmed yet
+          else if (fontname)  { wxWindow* ww=static_cast<wxWindow*>(widget->GetWxWidget()); 
+          if (ww) result = std::string(ww->GetFont().GetNativeFontInfoDesc().mb_str());}
         }
         (*res)[i] = result;
       }
@@ -1679,7 +1666,7 @@ BaseGDL* widget_info( EnvT* e ) {
       // Array Input
       DLongGDL* res = new DLongGDL( p0L->Dim( ), BaseGDL::NOZERO );
       bool atLeastOneFound=false;
-      for ( SizeT i = 1; i < nEl; i++ ) {
+      for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
         if ( widget == NULL ) {
@@ -2635,71 +2622,81 @@ void widget_control( EnvT* e ) {
   }
   
   if (hasScr_xsize || hasScr_ysize) { //simple: direct sizing in pixels or UNITS for ALL widgets
-    DLong xs,ys,xsize, ysize;
+    DLong xs,ys,xsize=-1, ysize=-1;
     wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     me->GetSize(&xs,&ys);
-    xsize=xs;
-    ysize=ys;
     if (hasScr_xsize) xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0];
-    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
     if (hasScr_ysize) ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0];
-    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
-    if (unitsGiven) widget->ChangeUnitConversionFactor(e);
-    if (hasScr_xsize && hasScr_ysize) widget->SetSize(xsize,ysize);
-    else if (hasScr_xsize) widget->SetSize(xsize,xs);
-    else if (hasScr_ysize) widget->SetSize(xs,ysize);
+    wxRealPoint fact = wxRealPoint(1.,1.);
+    if ( unitsGiven ) {
+      fact = GetRequestedUnitConversionFactor( e );
+      if (hasScr_xsize) xsize*=fact.x;
+      if (hasScr_ysize) ysize*=fact.y;
+    }    
+    if (widget->IsDraw()) { // special treatment, proving our oo programming is not good!
+      GDLDrawPanel* me2=static_cast<GDLDrawPanel*>(widget->GetWxWidget());
+      if (!me2) e->Throw("Internal GDL error with widgets, please report.");      
+      if (hasScr_xsize && hasScr_ysize) me2->Resize(xsize,ysize);
+      else if (hasScr_xsize) me2->Resize(xsize,ys);
+      else if (hasScr_ysize) me2->Resize(xs,ysize);
+    } else { 
+      if (hasScr_xsize && hasScr_ysize) widget->SetSize(xsize,ysize);
+      else if (hasScr_xsize) widget->SetSize(xsize,xs);
+      else if (hasScr_ysize) widget->SetSize(xs,ysize);
+    }
   }
   
   if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
-    DLong xs,ys,xsize, ysize;
+    DLong xs,ys,xsize=-1, ysize=-1;
     GDLDrawPanel* me=static_cast<GDLDrawPanel*>(widget->GetWxWidget());
     if (!me) e->Throw("Internal GDL error with widgets, please report.");
     me->GetSize(&xs,&ys);
-    xsize=xs;
-    ysize=ys;
     if (hasDraw_xsize) xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0];
-    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
     if (hasDraw_ysize) ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0];
-    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
-    if (unitsGiven) {
-      widget->ChangeUnitConversionFactor(e);
-      xsize *= widget->GetCurrentUnitConversionFactor().x;
-      ysize *= widget->GetCurrentUnitConversionFactor().y;
-    }
+    wxRealPoint fact = wxRealPoint(1.,1.);
+    if ( unitsGiven ) {
+      fact = GetRequestedUnitConversionFactor( e );
+      if (hasDraw_xsize) xsize*=fact.x;
+      if (hasDraw_ysize) ysize*=fact.y;
+    }     
     if (hasDraw_xsize && hasDraw_ysize) me->Resize(xsize,ysize);
     else if (hasDraw_xsize) me->Resize(xsize,ys);
     else if (hasDraw_ysize) me->Resize(xs,ysize);
   }
   
   if (hasXsize || hasYsize) {
-    DLong xs,ys,xsize, ysize;
+    DLong xs,ys,xsize=-1, ysize=-1;
     wxWindow* me=static_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
-    me->GetSize(&xs,&ys);
-    xsize=xs;
-    ysize=ys;
+    me->GetClientSize(&xs,&ys);
     if (hasXsize) xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
-    if (xsize < 0) xsize=xs; //0 means: stretch for base widgets
     if (hasYsize) ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
-    if (ysize < 0) ysize=ys; //0 means:stretch for base widgets
     if (!(widget->IsList() || widget->IsTable() || widget->IsText())) {
-      if (unitsGiven) widget->ChangeUnitConversionFactor(e);
+    wxRealPoint fact = wxRealPoint(1.,1.);
+      if ( unitsGiven ) {
+        fact = GetRequestedUnitConversionFactor( e );
+        if (hasXsize) xsize*=fact.x;
+        if (hasYsize) ysize*=fact.y;
+      }     
+      if (hasXsize && hasYsize) widget->SetSize(xsize,ysize);
+      else if (hasXsize) widget->SetSize(xsize,ys);
+      else if (hasYsize) widget->SetSize(xs,ysize);
     } else {
       if (widget->IsList()||widget->IsText()) {
-        wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
-        xsize = (xsize+1) * fontSize.x;
-        ysize = ysize * fontSize.y; 
+        wxSize fontSize = me->GetFont().GetPixelSize(); // was wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
+        if (hasXsize) xsize *= fontSize.x;
+        if (hasYsize) ysize *= fontSize.y; 
       } else if ( widget->IsTable()) {
         gdlGrid* grid=static_cast<gdlGrid*>(widget->GetWxWidget());
         if (!grid) e->Throw("Internal GDL error with widgets, please report.");
-        xsize=xsize*grid->GetColumnWidth(0)+grid->GetRowLabelSize(); 
-        ysize=ysize*grid->GetRowHeight(0)+grid->GetColLabelSize();
+        if (hasXsize) xsize=xsize*grid->GetColumnWidth(0)+grid->GetRowLabelSize(); 
+        if (hasYsize) ysize=ysize*grid->GetRowHeight(0)+grid->GetColLabelSize();
       }
+      if (hasXsize && hasYsize) widget->SetSize(xsize,ysize);
+      else if (hasXsize) widget->SetSize(xsize,ys);
+      else if (hasYsize) widget->SetSize(xs,ysize);
     }
-    if (hasXsize && hasYsize) widget->SetSize(xsize,ysize);
-    else if (hasXsize) widget->SetSize(xsize,xs);
-    else if (hasYsize) widget->SetSize(xs,ysize);
   }
   
   static int FRAME = e->KeywordIx( "FRAME" );
@@ -2754,15 +2751,15 @@ void widget_control( EnvT* e ) {
     GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
     if (e->KeywordSet(TLB_SIZE_EVENTS)) {
       if (!(widget->GetEventFlags() && GDLWidget::EV_SIZE)) { //do it if not already done
-        frame->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
+        frame->Connect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
         widget->AddEventType(GDLWidget::EV_SIZE);
       }
     }
     else
     {
       if (widget->GetEventFlags() && GDLWidget::EV_SIZE) { //do it if not already done
-        frame->Disconnect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLFrame::OnSize));
-        widget->RemoveEventType(GDLWidget::EV_SIZE);
+       frame->Disconnect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
+       widget->RemoveEventType(GDLWidget::EV_SIZE);
       }
     }
   }
@@ -2947,7 +2944,7 @@ void widget_control( EnvT* e ) {
     DLong *retsize=&(*static_cast<DLongGDL*>(*tlbsizeKW))[0];
     int i,j;
     wxWindow *me=static_cast<wxWindow*>(tlb->GetWxWidget());
-    if (me) me->GetSize(&i,&j);
+    if (me) me->GetClientSize(&i,&j);
       retsize[0]=i;
       retsize[1]=j;
     //size is in pixels, pass in requested units:
@@ -3352,7 +3349,7 @@ void widget_displaycontextmenu( EnvT* e ) { //Parent, X, Y, ContextBaseID
     if (transient) {
       topSizer->SetSizeHints(transient);
       int sizey;
-      sizey=parentWindow->GetSize().y;
+      sizey=parentWindow->GetClientSize().y;
       y=sizey-y;
       transient->Position(parentWindow->GetScreenPosition()+wxPoint(x,y),wxDefaultSize);
       transient->Popup(parentWindow);

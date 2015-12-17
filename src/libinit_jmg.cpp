@@ -338,7 +338,7 @@ void LibInit_jmg()
     , "SCR_XSIZE" , "SCR_YSIZE" , "SCROLL" , "SENSITIVE" \
     , "UNAME" , "UNITS" , "UVALUE" , "XOFFSET" \
     , "XSIZE" , "YOFFSET" , "YSIZE" , "FRAME" \
-    , "ALIGN_LEFT", "ALIGN_RIGHT", "ALIGN_CENTER", "FONT","RESOURCE_NAME"
+    , "ALIGN_LEFT", "ALIGN_RIGHT", "ALIGN_CENTER", "ALIGN_BOTTOM", "ALIGN_TOP", "FONT","RESOURCE_NAME"
 
 //ACTIVEX
 //BASE  
@@ -346,10 +346,8 @@ void LibInit_jmg()
   "EXCLUSIVE","NONEXCLUSIVE","FLOATING","MAP","TITLE","XPAD","X_SCROLL_SIZE","YPAD","Y_SCROLL_SIZE","DISPLAY_NAME",
   "RNAME_MBAR","TAB_MODE","CONTEXT_EVENTS","KBRD_FOCUS_EVENTS","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS",
   "TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TRACKING_EVENTS","GRID_LAYOUT",
-  "BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","SPACE","CONTEXT_MENU",KLISTEND};
-  const string widget_baseWarnKey[] = {"ALIGN_BOTTOM","ALIGN_TOP",
-  "BASE_ALIGN_BOTTOM","BASE_ALIGN_TOP",
-  "TLB_FRAME_ATTR",  "TOOLBAR","BITMAP", KLISTEND};
+  "BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_BOTTOM","BASE_ALIGN_TOP","SPACE","CONTEXT_MENU",KLISTEND};
+  const string widget_baseWarnKey[] = {"TLB_FRAME_ATTR",  "TOOLBAR", "BITMAP", KLISTEND};
   new DLibFunRetNew(lib::widget_base,string("WIDGET_BASE"),1,widget_baseKey,widget_baseWarnKey);
 //BUTTON
   const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"MENU","VALUE","HELP","SEPARATOR","INPUT_FOCUS","BITMAP","TOOLTIP", "TRACKING_EVENTS",KLISTEND};
@@ -475,9 +473,8 @@ void LibInit_jmg()
 //STUB
 //TAB
   const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS,"MULTILINE","LOCATION","TRACKING_EVENTS", KLISTEND};
-  const string widget_tabWarnKey[] = {WIDGET_COMMON_KEYWORDS,"ALIGN_BOTTOM",
-  "ALIGN_TOP","TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey,widget_tabWarnKey);
+//  const string widget_tabWarnKey[] = {WIDGET_COMMON_KEYWORDS,"TAB_MODE", KLISTEND};
+  new DLibFunRetNew(lib::widget_tab,string("WIDGET_TAB"),1,widget_tabKey); //,widget_tabWarnKey);
 //TABLE
   const string widget_tableKey[] = {WIDGET_COMMON_KEYWORDS
   , "ALIGNMENT"
@@ -519,9 +516,7 @@ void LibInit_jmg()
   const string widget_textWarnKey[] = {"IGNORE_ACCELERATORS","TAB_MODE","WRAP",KLISTEND};
   new DLibFunRetNew(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey,widget_textWarnKey);
 //TREE
-  const string widget_treeWarnKey[] = { "ALIGN_BOTTOM"
-  , "ALIGN_TOP"
-  , "DRAG_NOTIFY"
+  const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
   , "MASK"
   , "MULTIPLE"
   , "TAB_MODE"

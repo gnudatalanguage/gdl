@@ -44,15 +44,22 @@
 #include "widget.hpp"
 #include "plotting.hpp"
 
-#define SCROLL_WIDTH 20
-#define DEFAULT_XSIZE 100
-#define DEFAULT_YSIZE 100
-#define DEFAULT_SCROLL_SIZE DEFAULT_XSIZE+SCROLL_WIDTH
-#define DEFAULT_BORDER_SIZE 3
+#define gdlSCROLL_RATE 20
+#define gdlSCROLL_WIDTH 20
+#define gdlDEFAULT_XSIZE 100
+#define gdlDEFAULT_YSIZE 100
+#define gdlDEFAULT_SCROLL_SIZE gdlDEFAULT_XSIZE+gdlSCROLL_WIDTH
+#define gdlFRAME_MARGIN 2
 #ifdef _WIN32
   #define NEWLINECHARSIZE 2  //length of <cr><nl>
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
+#endif
+#if wxCHECK_VERSION(3,0,0)
+#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnIgnoreSize) //takes all size events
+//#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnSize) //takes all size events
+#else
+#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
 #endif
 typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
@@ -250,7 +257,7 @@ protected:
   WidgetIDT    groupLeader;
   wxRealPoint  unitConversionFactor;
   DLong        frame;
-  DString      font;
+  wxFont       font;
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
   long  alignment; //alignment of the widget
   long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
@@ -316,7 +323,15 @@ public:
      ,WIDGET_COMBOBOX
      ,WIDGET_PROPERTYSHEET
     } WidgetTypes;
- 
+    enum {
+        gdlwALIGN_NOT=0,
+        gdlwALIGN_LEFT=1,
+        gdlwALIGN_CENTER=2,
+        gdlwALIGN_RIGHT=4,
+        gdlwALIGN_TOP=8,
+        gdlwALIGN_BOTTOM=16
+    } gdlAlignmentPossibilities;
+    
   DULong GetEventFlags()  const { return eventFlags;}
   void SetEventFlags( DULong evFlags) { eventFlags = evFlags;}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
@@ -1311,6 +1326,7 @@ class GDLFrame : public wxFrame
   GDLWidgetBase* gdlOwner;
   wxTimer * m_resizeTimer;
   wxTimer * m_windowTimer;
+  bool updating;
 
   // called from ~GDLWidgetBase
   void NullGDLOwner() { gdlOwner = NULL;}
@@ -1374,7 +1390,7 @@ public:
   void OnTextEnter( wxCommandEvent& event);
   void OnThumbTrack( wxScrollEvent& event);
   void OnThumbRelease( wxScrollEvent& event);
-  void OnSize( wxSizeEvent& event);
+  void OnSize( wxSizeEvent& event); //unused.
   void OnIconize( wxIconizeEvent & event);
   void OnMove( wxMoveEvent & event);
   void OnCloseFrame( wxCloseEvent & event);
@@ -1385,7 +1401,8 @@ public:
   void OnHideRequest( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
   void OnMenu( wxCommandEvent& event);
-  void OnSizeWithTimer( wxSizeEvent& event); //not yet ready
+  void OnSizeWithTimer( wxSizeEvent& event);
+  void OnIgnoreSize( wxSizeEvent& event); //dummy for wx 3.0 and up... FIXME.
   void OnTimerResize(wxTimerEvent& event);
   void OnContextEvent( wxContextMenuEvent& event);
   void OnTracking( wxFocusEvent& event);
