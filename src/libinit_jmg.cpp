@@ -350,14 +350,14 @@ void LibInit_jmg()
   const string widget_baseWarnKey[] = {"TLB_FRAME_ATTR",  "TOOLBAR", "BITMAP", KLISTEND};
   new DLibFunRetNew(lib::widget_base,string("WIDGET_BASE"),1,widget_baseKey,widget_baseWarnKey);
 //BUTTON
-  const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"MENU","VALUE","HELP","SEPARATOR","INPUT_FOCUS","BITMAP","TOOLTIP", "TRACKING_EVENTS",KLISTEND};
-  const string widget_buttonWarnKey[] ={"ACCELERATOR","CHECKED_MENU","DYNAMIC_RESIZE",
+  const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS,"MENU","VALUE","HELP","SEPARATOR","INPUT_FOCUS","BITMAP","TOOLTIP", "TRACKING_EVENTS","DYNAMIC_RESIZE",KLISTEND};
+  const string widget_buttonWarnKey[] ={"ACCELERATOR","CHECKED_MENU",
  "X_BITMAP_EXTRA","TAB_MODE","NO_RELEASE",KLISTEND};
   new DLibFunRetNew(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey,widget_buttonWarnKey);
 //COMBOBOX
-  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","TITLE","VALUE","TRACKING_EVENTS",KLISTEND};
-  const string widget_comboboxWarnKey[] = {"DYNAMIC_RESIZE","TAB_MODE",KLISTEND};
-  new DLibFunRetNew(lib::widget_combobox,string("WIDGET_COMBOBOX"),1,widget_comboboxKey,widget_comboboxWarnKey);
+  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS,"EDITABLE","TITLE","VALUE","TRACKING_EVENTS","DYNAMIC_RESIZE",KLISTEND};
+//  const string widget_comboboxWarnKey[] = {"TAB_MODE",KLISTEND};
+  new DLibFunRetNew(lib::widget_combobox,string("WIDGET_COMBOBOX"),1,widget_comboboxKey);//,widget_comboboxWarnKey);
 //CONTROL
   const string widget_ControlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
   "XMANAGER_ACTIVE_COMMAND","DESTROY","DELAY_DESTROY",
@@ -382,12 +382,10 @@ void LibInit_jmg()
   "AM_PM", "DAYS_OF_WEEK", "MONTHS",  "SET_TABLE_SELECT","SET_TABLE_VIEW",
   "UPDATE","FORMAT","EDIT_CELL",  "TABLE_XSIZE","TABLE_YSIZE","SEND_EVENT","BAD_ID",
   "GROUP_LEADER", "COMBOBOX_ADDITEM" ,"COMBOBOX_DELETEITEM" ,"COMBOBOX_INDEX", 
-  "GET_DRAW_VIEW","SET_TAB_CURRENT", "UNITS",
+  "GET_DRAW_VIEW","SET_TAB_CURRENT", "UNITS","DYNAMIC_RESIZE",
   KLISTEND};
   const string widget_WarnControlKey[] ={"DEFAULT_FONT",
-  "DYNAMIC_RESIZE","PUSHBUTTON_EVENTS",
-  "TABLE_BLANK","TAB_MODE","SET_TAB_MULTILINE",
-  KLISTEND}; //LIST NOT CLOSE!!!  
+  "PUSHBUTTON_EVENTS","TABLE_BLANK","TAB_MODE","SET_TAB_MULTILINE",KLISTEND}; //LIST NOT CLOSE!!!  
   //IMPORTANT :   
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_ControlKey,widget_WarnControlKey);
@@ -418,9 +416,9 @@ void LibInit_jmg()
     ,KLISTEND};
   new DLibFunRetNew(lib::widget_draw,string("WIDGET_DRAW"),1,widget_drawKey,widget_drawWarnKey);
  //DROPLIST 
-  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS,"TITLE","VALUE","TRACKING_EVENTS",KLISTEND};
-  const string widget_droplistWarnKey[] = {"DYNAMIC_RESIZE","TAB_MODE",KLISTEND};
-  new DLibFunRetNew(lib::widget_droplist,string("WIDGET_DROPLIST"),1,widget_droplistKey,widget_droplistWarnKey);
+  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS,"TITLE","VALUE","TRACKING_EVENTS","DYNAMIC_RESIZE",KLISTEND};
+//  const string widget_droplistWarnKey[] = {"TAB_MODE",KLISTEND};
+  new DLibFunRetNew(lib::widget_droplist,string("WIDGET_DROPLIST"),1,widget_droplistKey);//,widget_droplistWarnKey);
 //EVENT  
   const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY","SAVE_HOURGLASS","NOWAIT","BAD_ID",KLISTEND};
   new DLibFunRetNew(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey); //complete!!
@@ -452,9 +450,8 @@ void LibInit_jmg()
   "TAB_MODE",KLISTEND};
   new DLibFunRetNew(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey,widget_infoWarnKey);
 //LABEL
-  const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"VALUE","SUNKEN_FRAME","TRACKING_EVENTS",KLISTEND};
-  const string widget_labelWarnKey[] = {"DYNAMIC_RESIZE",KLISTEND};
-  new DLibFunRetNew(lib::widget_label,string("WIDGET_LABEL"),1,widget_labelKey,widget_labelWarnKey);
+  const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS,"VALUE","SUNKEN_FRAME","TRACKING_EVENTS","DYNAMIC_RESIZE",KLISTEND};
+  new DLibFunRetNew(lib::widget_label,string("WIDGET_LABEL"),1,widget_labelKey);
 //LIST
   const string widget_listKey[] = {WIDGET_COMMON_KEYWORDS,"MULTIPLE","VALUE","CONTEXT_EVENTS","TRACKING_EVENTS",KLISTEND};
   const string widget_listWarnKey[] = {"TAB_MODE",KLISTEND};

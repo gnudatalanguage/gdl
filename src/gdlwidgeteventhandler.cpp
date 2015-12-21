@@ -42,9 +42,6 @@
 //  #define GDL_DEBUG_SIZE_EVENTS
 //  #define GDL_DEBUG_TEXT_EVENTS
 //  #define GDL_DEBUG_OTHER_EVENTS
-//  #define GDL_DEBUG_OTHER_EVENTS
-//  #define GDL_DEBUG_OTHER_EVENTS
-//  #define GDL_DEBUG_OTHER_EVENTS
 
 //TO BE DONE: CONTINUE to REPLACE ALL STATIC CONNECTS WITH DYNAMIC. SEE http://wxwidgets.blogspot.com/2007/01/in-praise-of-connect.html
 // replace, e.g;
@@ -796,16 +793,28 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
     event.Skip();
     return; //ignore non-TLB size events.
   }
-  int millisecs=50;
   wxSize newSize=event.GetSize();
-  if (newSize==frameSize){/*event.Skip();*/return;} //saves a looooot of unuseful refreshes...
-#ifdef GDL_DEBUG_TIMER_EVENTS
-   wxMessageOutputStderr().Printf(_T("Processed.\n"));
+  //is it a resize of frame due to a manual intervention?
+  wxMouseState mouse=wxGetMouseState();
+#if wxCHECK_VERSION(3,0,0)
+   if (mouse.LeftIsDown()) {
+#else
+   if (mouse.LeftDown()) {
 #endif
-  frameSize=newSize;
-  m_resizeTimer->Start(millisecs, wxTIMER_ONE_SHOT);
-  event.Skip(); //absolutelt vital to pass to others!
-}
+    if (newSize==frameSize){event.Skip();return;} //saves a looooot of unuseful refreshes...
+  #ifdef GDL_DEBUG_TIMER_EVENTS
+     wxMessageOutputStderr().Printf(_T("framesize was %d %d , set to %d %d & Processed.\n"),frameSize.x,frameSize.y,newSize.x,newSize.y);
+  #endif
+    frameSize=newSize;
+    m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
+  event.Skip(); //absolutely vital to pass to others!
+    return;
+   } else {
+    frameSize=newSize;
+    event.Skip(); //absolutely vital to pass to others!
+   }
+ }
+   
 //Unitil the resize problem of ATV with wxWidgets 3 has not been understood, use a fake method
   void GDLFrame::OnIgnoreSize( wxSizeEvent& event)
  {

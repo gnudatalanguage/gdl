@@ -118,8 +118,8 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
     }
   }
 
-  frame = 0;
-  e->AssureLongScalarKWIfPresent( frameIx, frame );
+  frameWidth = 0;
+  e->AssureLongScalarKWIfPresent( frameIx, frameWidth );
   int the_units = 0;
   static int unitsIx = e->KeywordIx( "UNITS" );
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
@@ -971,7 +971,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   DULong eventFlags=0;
   if (trackingevents)  eventFlags |= GDLWidget::EV_TRACKING;
 
-//  To get the equivalent of pushbutton_events (push and release) with wxWidgets and have a better coverage, use ToggleButtons (wx 2.9 and after)
+  static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
+  bool dynres = e->KeywordSet( dynamicResizeIx );
+
+  //  To get the equivalent of pushbutton_events (push and release) with wxWidgets and have a better coverage, use ToggleButtons (wx 2.9 and after)
 //  static int PUSHBUTTON_EVENTS = e->KeywordIx( "PUSHBUTTON_EVENTS" );
 //  bool pushbuttonevents = e->KeywordSet( PUSHBUTTON_EVENTS );
   
@@ -1028,6 +1031,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   
   if (button->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
   button->SetEventFlags(eventFlags);
+  if (dynres) button->authorizeDynamicResize();
   return new DLongGDL( button->WidgetID( ) );
 #endif
 }
@@ -1181,6 +1185,9 @@ BaseGDL* widget_list( EnvT* e ) {
   DString title = "";
   e->AssureStringScalarKWIfPresent( titleIx, title );
 
+  static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
+  bool dynres = e->KeywordSet( dynamicResizeIx );
+
   static int valueIx = e->KeywordIx( "VALUE" );
   BaseGDL* value = e->GetKW( valueIx );
   if ( value != NULL )  value = value->Dup( ); else value = new DStringGDL(""); //protect!
@@ -1189,6 +1196,7 @@ BaseGDL* widget_list( EnvT* e ) {
   GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style);
   if (droplist->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   droplist->SetWidgetType( GDLWidget::WIDGET_DROPLIST );
   droplist->SetEventFlags(eventFlags);
+  if (dynres) droplist->authorizeDynamicResize();
   return new DLongGDL( droplist->WidgetID( ) );
 #endif
 }
@@ -1221,7 +1229,9 @@ BaseGDL* widget_combobox( EnvT* e ) {
   
   static int editableIx = e->KeywordIx( "EDITABLE" );
   bool editable = e->KeywordSet( editableIx );
-
+  static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
+  bool dynres = e->KeywordSet( dynamicResizeIx );
+ 
   //common for all widgets. Only that for combobox.
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
   bool trackingevents = e->KeywordSet( TRACKING_EVENTS );
@@ -1235,6 +1245,7 @@ BaseGDL* widget_combobox( EnvT* e ) {
   GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, title, style );
   if (combobox->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   combobox->SetWidgetType( GDLWidget::WIDGET_COMBOBOX );
   combobox->SetEventFlags(eventFlags);
+  if (dynres) combobox->authorizeDynamicResize();
   return new DLongGDL( combobox->WidgetID( ) );
 #endif
 }
@@ -1416,6 +1427,9 @@ BaseGDL* widget_slider( EnvT* e ) {
   static int sunkenIx = e->KeywordIx( "SUNKEN_FRAME" );
   bool isSunken=e->KeywordSet(sunkenIx);
   
+  static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
+  bool dynres = e->KeywordSet( dynamicResizeIx );  
+
   //common for all widgets
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
   bool trackingevents = e->KeywordSet( TRACKING_EVENTS );
@@ -1425,6 +1439,7 @@ BaseGDL* widget_slider( EnvT* e ) {
   GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value , isSunken);
   if (label->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   label->SetWidgetType( GDLWidget::WIDGET_LABEL );
   label->SetEventFlags(eventFlags);
+  if (dynres) label->authorizeDynamicResize();
   return new DLongGDL( label->WidgetID( ) );
 #endif
 }
@@ -2250,6 +2265,9 @@ void widget_control( EnvT* e ) {
 
   static int unitsIx = e->KeywordIx( "UNITS" );
   bool unitsGiven = e->KeywordPresent ( unitsIx );
+
+  static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
+  bool dynres = e->KeywordPresent( dynamicResizeIx );  
   
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
@@ -2311,15 +2329,18 @@ void widget_control( EnvT* e ) {
 	//	std::cout << "setlabelvalue: " << value.c_str() << std::endl;
       GDLWidgetLabel *labelWidget = (GDLWidgetLabel *) widget;
       labelWidget->SetLabelValue( value );
+      if (labelWidget->IsDynamicResize()) labelWidget->RefreshWidget();
     } else if ( wType == "COMBOBOX" ) {
       GDLWidgetComboBox *combo = static_cast<GDLWidgetComboBox*> (widget);
       combo->SetValue(value);
+      if (combo->IsDynamicResize()) combo->RefreshWidget();
     } else if ( wType == "LIST" ) {
       GDLWidgetList *list = static_cast<GDLWidgetList*> (widget);
       list->SetValue(value);
     } else if ( wType == "DROPLIST" ) {
       GDLWidgetDropList *droplist = static_cast<GDLWidgetDropList*> (widget);
       droplist->SetValue(value);
+      if (droplist->IsDynamicResize()) droplist->RefreshWidget();
     } else if ( wType == "BUTTON" ) {
       DString value = "";
       wxBitmap * bitmap=NULL;
@@ -2335,10 +2356,12 @@ void widget_control( EnvT* e ) {
         value.clear();
         GDLWidgetButton *bb = (GDLWidgetButton *) widget;
         bb->SetButtonWidgetBitmap( bitmap );
+        if (bb->IsDynamicResize()) bb->RefreshWidget();
       } else if (valueKW->Type()==GDL_STRING) {
         e->AssureStringScalarKWIfPresent( setvalueIx, value );
         GDLWidgetButton *bb = (GDLWidgetButton *) widget;
         bb->SetButtonWidgetLabelText( value );
+        if (bb->IsDynamicResize()) bb->RefreshWidget();
       } else {
         DByteGDL* testByte=e->GetKWAs<DByteGDL>(setvalueIx);
         if (testByte) { //must be n x m or n x m x 3
@@ -2354,6 +2377,7 @@ void widget_control( EnvT* e ) {
           }
           GDLWidgetButton *bb = (GDLWidgetButton *) widget;
           bb->SetButtonWidgetBitmap( bitmap );
+          if (bb->IsDynamicResize()) bb->RefreshWidget();
         } else  e->Throw( "Unsupported VALUE Keyword type, please report!" );
       }
 
@@ -2587,6 +2611,12 @@ void widget_control( EnvT* e ) {
   
   //at that point, invalid widgets will not respond to widget_control.
   if (!widget->IsValid()) return;
+
+  if (dynres) {
+      DLong allowDynRes=0;
+      e->AssureLongScalarKWIfPresent( dynamicResizeIx, allowDynRes );
+      if (allowDynRes==1) widget->SetDynamicResize(); else widget->UnsetDynamicResize();
+  }
 
   DLong groupLeader = 0;
   if (e->KeywordPresent( group_leaderIx )){

@@ -49,7 +49,7 @@ if (!font.IsSameAs(wxNullFont)) {\
 #define UPDATE_WINDOW {\
   GDLWidgetBase *tlb = GetTopLevelBaseWidget( this->WidgetID( ) );\
   GDLFrame *tlbFrame=static_cast<GDLFrame*> (tlb->GetWxWidget( ));\
-  this->RefreshWidget();\
+/*  this->RefreshWidget();*/ \
   if (tlb->IsStretchable()) {\
   tlbFrame->Fit( );\
   }\
@@ -178,6 +178,8 @@ inline wxSize GDLWidgetList::computeWidgetSize()
 }
 inline wxSize GDLWidget::computeWidgetSize()
 {
+//here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
+  if (xSize > 0 || ySize > 0 || scrXSize > 0 || scrYSize > 0) dynamicResize=-1;
   wxSize widgetSize;
   if ( xSize > 0 ) widgetSize.x = xSize*unitConversionFactor.x;
   else widgetSize.x = wxDefaultSize.x;
@@ -422,9 +424,10 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 , framePanel( NULL )
 , widgetType(GDLWidget::WIDGET_UNKNOWN)
 , groupLeader(GDLWidget::NullID)
-, frame(0)
+, frameWidth(-1)
 , widgetStyle(0)
 , valid(TRUE)
+, dynamicResize(-1) //not permitted
 {
   if ( e != NULL ) GetCommonKeywords( e ); //defines own alignment.
 
@@ -888,7 +891,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     gdlFrame->SetSizer( topWidgetSizer );
 
     //create the first panel, fix size. Offset is not taken into account.
-    widgetPanel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxDefaultSize, frame?wxBORDER_SUNKEN:wxBORDER_NONE);
+    widgetPanel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxDefaultSize);// no FRAME here! , (frameWidth>0)?wxBORDER_SUNKEN:wxBORDER_NONE);
 #ifdef GDL_DEBUG_WIDGETS
     widgetPanel->SetBackgroundColour(wxColour(255,0,0)); //rouge
 #endif
@@ -898,7 +901,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     else if (!stretchY) widgetPanel->SetSizeHints(-1, ySize);
 
     //force frame to wrap around panel
-    topWidgetSizer->Add( widgetPanel, 1, widgetAlignment()|panelBorderFlag, pad);
+    topWidgetSizer->Add( widgetPanel, 1, widgetAlignment()|panelBorderFlag, (frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
 
     //I cannot succeed to have a correct size if the
     //base sizer is gridbag and no sizes are given. Thus in the case xsize=ysize=undefined and col=0,
@@ -920,7 +923,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
       topWidgetSizer->Detach(widgetPanel);
       widgetPanel->Reparent(scrollPanel);
       scrollSizer->Add(widgetPanel);
-      topWidgetSizer->Add(scrollPanel, 0, wxEXPAND|widgetAlignment()|panelBorderFlag,pad);
+      topWidgetSizer->Add(scrollPanel, 0, wxEXPAND|widgetAlignment()|panelBorderFlag,(frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
       scrollPanel->SetScrollRate(gdlSCROLL_RATE,gdlSCROLL_RATE); //show scrollbars
     }
     TIDY_WIDGET;
@@ -940,7 +943,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     topWidgetSizer = new wxBoxSizer( wxVERTICAL);
     transient->SetSizer( topWidgetSizer);
     
-    widgetPanel = new wxPanel( transient, widgetID , wxDefaultPosition, wxDefaultSize, frame?wxBORDER_SUNKEN:wxBORDER_NONE);
+    widgetPanel = new wxPanel( transient, widgetID , wxDefaultPosition, wxDefaultSize); // no frame also! , (frameWidth>0)?wxBORDER_SUNKEN:wxBORDER_NONE);
 #ifdef GDL_DEBUG_WIDGETS
     widgetPanel->SetBackgroundColour(wxColour(255,0,0)); //rouge
 #endif
@@ -950,7 +953,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     else if (!stretchY) widgetPanel->SetSizeHints(-1, ySize);
 
     //force frame to wrap around panel
-    topWidgetSizer->Add( widgetPanel, 1, wxEXPAND|wxALL, 0);
+    topWidgetSizer->Add( widgetPanel, 1, wxEXPAND|wxALL, (frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
 
     //I cannot succeed to have a correct size if the
     //base sizer is gridbag and no sizes are given. Thus in the case xsize=ysize=undefined and col=0,
@@ -973,7 +976,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
       topWidgetSizer->Detach(widgetPanel);
       widgetPanel->Reparent(scrollPanel);
       scrollSizer->Add(widgetPanel);
-      topWidgetSizer->Add(scrollPanel, 0, wxEXPAND|wxALL,0);
+      topWidgetSizer->Add(scrollPanel, 0, wxEXPAND|wxALL,(frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
       scrollPanel->SetScrollRate(gdlSCROLL_RATE, gdlSCROLL_RATE); //show scrollbars
     }
     TIDY_WIDGET;
@@ -995,7 +998,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
       assert( wxParent != NULL);
 
       //create the panel, fix size. Offset is not taken into account unless we create an intermediate container panel.
-      widgetPanel = new wxPanel( wxParent, widgetID , wxPoint(xOffset,yOffset), wxDefaultSize, frame?wxBORDER_SUNKEN:wxBORDER_NONE);
+      widgetPanel = new wxPanel( wxParent, widgetID , wxPoint(xOffset,yOffset), wxDefaultSize, (frameWidth>0)?wxBORDER_SUNKEN:wxBORDER_NONE);
 #ifdef GDL_DEBUG_WIDGETS
       widgetPanel->SetBackgroundColour(wxColour(64,128,33)); //for tests!
 #endif
@@ -1037,7 +1040,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     {
       wxWindow* wxParent = static_cast<wxWindow*> (gdlParent->GetPanel());
       assert( wxParent != NULL);
-      widgetPanel = new wxPanel( wxParent, widgetID , wxPoint(xOffset,yOffset), wxDefaultSize, frame?wxBORDER_SUNKEN:wxBORDER_NONE);
+      widgetPanel = new wxPanel( wxParent, widgetID , wxPoint(xOffset,yOffset), wxDefaultSize, (frameWidth>0)?wxBORDER_SUNKEN:wxBORDER_NONE);
 #ifdef GDL_DEBUG_WIDGETS
       widgetPanel->SetBackgroundColour(wxColour(255,255,0)); //jaune
 #endif
@@ -1047,7 +1050,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
       else if (!stretchX) widgetPanel->SetSizeHints(xSize, -1);
       else if (!stretchY) widgetPanel->SetSizeHints(-1, ySize);
 
-      parentSizer->Add( widgetPanel, 0, widgetAlignment()|panelBorderFlag, pad);
+      parentSizer->Add( widgetPanel, 0, widgetAlignment()|panelBorderFlag, (frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
 
       //if no cols or rows are given, MUST at least fix one IF wxWidgets 3
       if (ncols==0 && nrows==0) ncols=1;
@@ -1067,7 +1070,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
         parentSizer->Detach(widgetPanel);
         widgetPanel->Reparent(scrollPanel);
         scrollSizer->Add(widgetPanel);
-        parentSizer->Add(scrollPanel, 0, widgetAlignment()|panelBorderFlag, pad);
+        parentSizer->Add(scrollPanel, 0, widgetAlignment()|panelBorderFlag, (frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
         scrollPanel->SetScrollRate(gdlSCROLL_RATE, gdlSCROLL_RATE); //show scrollbars
       }
     TIDY_WIDGET;
@@ -1511,7 +1514,7 @@ grid->SetScrollLineX(grid->GetColumnWidth(0));
 grid->SetScrollLineY(grid->GetRowHeight(0));
 widgetStyle=widgetAlignment();
 widgetSizer->Add(grid, 0, widgetStyle, 0 );
-if (frame) this->FrameWidget();
+if ((frameWidth>0)) this->FrameWidget();
 TIDY_WIDGET;
 UPDATE_WINDOW
 }
@@ -2805,7 +2808,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     }    
     widgetStyle=widgetAlignment( );
     widgetSizer->Add( tree, 0, widgetStyle, 0  ); 
-    if ( frame ) this->FrameWidget( );
+    if ( (frameWidth>0) ) this->FrameWidget( );
     draggable=(dragability == 1);
     droppable=(dropability == 1);
 //    tree->Expand(treeItemID); //do not expand root if hidden
@@ -2939,7 +2942,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DULong eventFlags_
     } else {
       widgetSizer->Add(slider, 0, widgetStyle, 0 ); 
       widgetStyle=(wxEXPAND | wxALL);
-      if (frame) this->FrameWidget();
+      if ((frameWidth>0)) this->FrameWidget();
     } 
   TIDY_WIDGET;
   UPDATE_WINDOW
@@ -2972,7 +2975,7 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
   //update vValue
   delete(vValue);
   vValue = new DStringGDL( value );
-  
+
   if ( gdlParent->IsMenuBar( ) )
   {
     //A button in a menubar is automatically a MENU
@@ -2997,7 +3000,7 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
       wxWindow* win=static_cast<wxWindow*>(button);
       if (buttonToolTip) win->SetToolTip( wxString((*buttonToolTip)[0].c_str(),wxConvUTF8));
       widgetSizer->Add( win, 0, widgetAlignment(), 0);
-      if (frame) { widgetStyle= widgetAlignment(); this->FrameWidget();}
+      if ((frameWidth>0)) { widgetStyle= widgetAlignment(); this->FrameWidget();}
       widgetSizer->Layout();
       TIDY_WIDGET;
       UPDATE_WINDOW
@@ -3086,7 +3089,7 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
         if (buttonToolTip) win->SetToolTip( wxString((*buttonToolTip)[0].c_str(),wxConvUTF8));
         widgetSizer->Add( win, 0, widgetAlignment(), 0);
       } else cerr<<"Warning GDLWidgetButton::GDLWidgetButton(): widget type confusion(4)\n";
-      if (frame) { widgetStyle= widgetAlignment(); this->FrameWidget();}
+      if ((frameWidth>0)) { widgetStyle= widgetAlignment(); this->FrameWidget();}
       widgetSizer->Layout();
       TIDY_WIDGET;
       UPDATE_WINDOW
@@ -3187,7 +3190,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(GDLFrame::OnListBox));
 
   widgetStyle=widgetAlignment();
-  if (frame) this->FrameWidget();  else  widgetSizer->Add(list, 0, widgetStyle, 0); 
+  if ((frameWidth>0)) this->FrameWidget();  else  widgetSizer->Add(list, 0, widgetStyle, 0); 
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
@@ -3295,7 +3298,7 @@ const DString& title_, DLong style_ )
     wxPanel *panel = new wxPanel( widgetPanel, wxID_ANY
     , wxDefaultPosition
     , wxDefaultSize
-    , (frame)?wxBORDER_SUNKEN:wxBORDER_NONE 
+    , ((frameWidth>0))?wxBORDER_SUNKEN:wxBORDER_NONE 
     );
     wxSizer * box = new wxBoxSizer(wxHORIZONTAL);
     panel->SetSizer(box);
@@ -3320,7 +3323,7 @@ const DString& title_, DLong style_ )
       widgetSizer->Add(sz, 0, widgetStyle, 0);
     } else {
       widgetSizer->Add( droplist, 0, widgetStyle, 0);
-      if (frame) this->FrameWidget();
+      if ((frameWidth>0)) this->FrameWidget();
     } 
     droplist->Connect(widgetID, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(GDLFrame::OnDropList));
 
@@ -3389,7 +3392,7 @@ const DString& title_, DLong style_ )
   combo->Connect(widgetID,wxEVT_COMMAND_COMBOBOX_SELECTED,wxCommandEventHandler(GDLFrame::OnComboBox));
   widgetStyle=widgetAlignment();
   widgetSizer->Add(combo, 0, widgetStyle, 0);
-  if (frame) this->FrameWidget();
+  if ((frameWidth>0)) this->FrameWidget();
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
@@ -3501,7 +3504,7 @@ bool editable_ )
   text->Connect(widgetID,wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(GDLFrame::OnText));
   widgetStyle=widgetAlignment();  
   widgetSizer->Add(text, 0, widgetStyle , 0);
-  if (frame) this->FrameWidget(); 
+  if ((frameWidth>0)) this->FrameWidget(); 
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
@@ -3644,12 +3647,11 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , bo
 
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
   wxStaticText* label = new wxStaticText( widgetPanel, widgetID, valueWxString,
-  wxPoint( xOffset, yOffset ), computeWidgetSize(), textAlignment()|wxST_NO_AUTORESIZE );
+  wxPoint( xOffset, yOffset ), computeWidgetSize(), textAlignment()|wxST_NO_AUTORESIZE|(sunken)?wxBORDER_SUNKEN:0 );
   this->wxWidget = label;
   widgetStyle=widgetAlignment();
-  if (sunken) widgetStyle|=wxBORDER_SUNKEN;
   widgetSizer->Add(label,0,widgetStyle, 0);
-  if (frame||sunken) this->FrameWidget();     
+  if ((frameWidth>0)) this->FrameWidget();     
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
@@ -3700,27 +3702,29 @@ GDLWidgetLabel::~GDLWidgetLabel(){
 
 void GDLWidget::FrameWidget()
 {
+  //to frame a widget, create a panel and a staticBoxSizer as panel's child. Put the widget inside the panel
+  //an replace the widget wby the panel in the parent sizer.
   if (this->IsBase()) return; //function invalid with base widgets.
   if (frameSizer==NULL) { //protect against potential problems
     //panel style:
-    long panelStyle=wxBORDER_NONE;
-    panelStyle=widgetStyle&wxBORDER_MASK; //wxBORDER_MASK selects only the 'border' part of the Style, to pass to wxPanel
-    framePanel = new wxPanel(this->widgetPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, panelStyle);
-    if (!panelStyle) { wxStaticBox *box = new wxStaticBox( framePanel, wxID_ANY, wxEmptyString);
-    frameSizer = new wxStaticBoxSizer( box, wxVERTICAL );} else frameSizer = new wxBoxSizer(wxVERTICAL );
+//    long panelStyle=widgetStyle&wxBORDER_MASK; //wxBORDER_MASK selects only the 'border' part of the Style, to pass to wxPanel
+    long alignment=widgetStyle&wxALIGN_MASK; //same for alignment
+    framePanel = new wxPanel(this->widgetPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
+    frameSizer = new wxBoxSizer( wxHORIZONTAL );
     framePanel->SetSizer( frameSizer );
+
     if (scrollSizer==NULL) {
       widgetSizer->Detach(static_cast<wxWindow*>(this->wxWidget));
       static_cast<wxWindow*>(this->wxWidget)->Reparent(framePanel);
-      frameSizer->Add(static_cast<wxWindow*>(this->wxWidget), 0,widgetStyle, gdlFRAME_MARGIN);
+      frameSizer->Add(static_cast<wxWindow*>(this->wxWidget),0,wxALL,(frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
     } else { 
       widgetSizer->Detach(scrollPanel);
       static_cast<wxWindow*>(this->scrollPanel)->Reparent(framePanel);
-      frameSizer->Add(static_cast<wxWindow*>(this->scrollPanel), 0,widgetStyle, gdlFRAME_MARGIN);
+      frameSizer->Add(static_cast<wxWindow*>(this->scrollPanel), 0,wxALL,(frameWidth>-1?gdlFRAME_MARGIN:frameWidth ));
     }
-    widgetSizer->Add(framePanel,0,widgetAlignment(), 0);
-    frameSizer->Layout();
-    widgetSizer->Layout();
+    widgetSizer->Add(framePanel, 0, alignment, 0);
+//    frameSizer->Layout();
+//    widgetSizer->Layout();
   }
 }
 
@@ -3728,20 +3732,22 @@ void GDLWidget::UnFrameWidget()
 {
   if (this->IsBase()) return; //function invalid with base widgets.
   if (frameSizer!=NULL) { //protect against potential problems
+    widgetSizer->Detach(framePanel);
+//    long panelStyle=widgetStyle&wxBORDER_MASK; //wxBORDER_MASK selects only the 'border' part of the Style, to pass to wxPanel
+    long alignment=widgetStyle&wxALIGN_MASK; //same for alignment
     if (scrollSizer==NULL) {
       frameSizer->Detach(static_cast<wxWindow*>(this->wxWidget));
       static_cast<wxWindow*>(this->wxWidget)->Reparent(widgetPanel);
-      widgetSizer->Add(static_cast<wxWindow*>(this->wxWidget), 0,widgetAlignment(), 0);
+      widgetSizer->Add(static_cast<wxWindow*>(this->wxWidget), 0, alignment, 0);
     } else {
       frameSizer->Detach(static_cast<wxWindow*>(this->scrollPanel));
       static_cast<wxWindow*>(this->scrollPanel)->Reparent(widgetPanel);
-      widgetSizer->Add(static_cast<wxWindow*>(this->scrollPanel), 0,widgetAlignment(), 0);
+      widgetSizer->Add(static_cast<wxWindow*>(this->scrollPanel),0, alignment, 0);
     }
-    widgetSizer->Detach(framePanel);
     delete framePanel;
     frameSizer=NULL;
     framePanel=NULL;
-    widgetSizer->Layout();
+//    widgetSizer->Layout();
   }
 }
 
@@ -4031,7 +4037,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   widgetStyle= widgetAlignment();
   widgetSizer->Add( draw , 0, widgetStyle, 0);
   if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
-  if (frame) this->FrameWidget();
+  if ((frameWidth>0)) this->FrameWidget();
 
   static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
   

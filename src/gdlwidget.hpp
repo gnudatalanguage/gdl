@@ -55,12 +55,12 @@
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
 #endif
-#if wxCHECK_VERSION(3,0,0)
-#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnIgnoreSize) //takes all size events
-//#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnSize) //takes all size events
-#else
+//#if wxCHECK_VERSION(3,0,0)
+//#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnIgnoreSize) //takes all size events
+////#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnSize) //takes all size events
+//#else
 #define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(GDLFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
-#endif
+//#endif
 typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
 static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
@@ -256,11 +256,12 @@ protected:
   DString      widgetName;
   WidgetIDT    groupLeader;
   wxRealPoint  unitConversionFactor;
-  DLong        frame;
+  DLong        frameWidth;
   wxFont       font;
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
   long  alignment; //alignment of the widget
   long widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer) 
+  int dynamicResize; //for some widgets, will enable resizing: -1: not resizable, 0/1 resizable
   vector<WidgetIDT> followers; //all the widgets that use me as group_leader
 
   
@@ -389,8 +390,12 @@ public:
   DLong GetXPos(){return static_cast<wxWindow*>(wxWidget)->GetPosition().x;}
   DLong GetYPos(){return static_cast<wxWindow*>(wxWidget)->GetPosition().y;}
   bool IsValid(){return valid;}
-  void SetUnValid(){valid=FALSE;}
-  void SetValid(){valid=TRUE;}
+  void SetUnValid(){valid=false;}
+  void SetValid(){valid=true;}
+  bool IsDynamicResize(){return dynamicResize>0;}
+  void SetDynamicResize(){if (dynamicResize > -1) dynamicResize=1;}
+  void UnsetDynamicResize(){if (dynamicResize > -1) dynamicResize=0;}
+  void authorizeDynamicResize(){dynamicResize=1;}
   
   WidgetIDT GetParentID() const { return parentID;}
   
