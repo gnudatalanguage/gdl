@@ -604,14 +604,14 @@ void LibInit()
       "ZCHARSIZE", "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
       "ZRANGE", "ZSTYLE", "ZTHICK", "ZTICK_GET", "ZTICKFORMAT", "ZTICKINTERVAL",
       "ZTICKLAYOUT", "ZTICKLEN", "ZTICKNAME", "ZTICKS", "ZTICKUNITS", "ZTICKV",
-      "ZTITLE", "T3D", "ZVALUE", KLISTEND
+      "ZTITLE", "T3D", "ZVALUE", "FONT", "CHANNEL", KLISTEND
     };
   //
-  const string plotWarnKey[]= { "FONT","CHANNEL", KLISTEND };
-  new DLibPro(lib::plot,string("PLOT"),2,plotKey,plotWarnKey);
-  new DLibPro(lib::plot_io,string("PLOT_IO"),2,plotKey,plotWarnKey);
-  new DLibPro(lib::plot_oo,string("PLOT_OO"),2,plotKey,plotWarnKey);
-  new DLibPro(lib::plot_oi,string("PLOT_OI"),2,plotKey,plotWarnKey);
+//  const string plotWarnKey[]= { "FONT","CHANNEL", KLISTEND };
+  new DLibPro(lib::plot,string("PLOT"),2,plotKey);//,plotWarnKey);
+  new DLibPro(lib::plot_io,string("PLOT_IO"),2,plotKey);//,plotWarnKey);
+  new DLibPro(lib::plot_oo,string("PLOT_OO"),2,plotKey);//,plotWarnKey);
+  new DLibPro(lib::plot_oi,string("PLOT_OI"),2,plotKey);//,plotWarnKey);
 
   const string axisKey[]=
   {
@@ -641,11 +641,10 @@ void LibInit()
     "ZAXIS", "ZLOG", "ZVALUE", "ZCHARSIZE", "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
     "ZRANGE", "ZSTYLE", "ZTHICK", "ZTICK_GET", "ZTICKFORMAT", "ZTICKINTERVAL",
     "ZTICKLAYOUT", "ZTICKLEN", "ZTICKNAME", "ZTICKS", "ZTICKUNITS", "ZTICKV",
-    "ZTITLE",
+    "ZTITLE", "CHANNEL",
     KLISTEND
   };
-  const string axisWarnKey[]={"CHANNEL",KLISTEND};
-  new DLibPro(lib::axis,string("AXIS"),3,axisKey,axisWarnKey);
+  new DLibPro(lib::axis,string("AXIS"),3,axisKey);
 
   const string oplotKey[]=
     {
@@ -656,10 +655,9 @@ void LibInit()
       "PSYM", "SYMSIZE",  "T3D",  "ZVALUE", "THICK",
       // 8
       "MAX_VALUE", "MIN_VALUE", "NSUM", "POLAR",
-      KLISTEND
+      "CHANNEL", KLISTEND
     };
-  const string oplotWarnKey[]={"CHANNEL",KLISTEND};
-  new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey,oplotWarnKey);
+  new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey);
 
   const string plotsKey[]=
     {
@@ -711,11 +709,11 @@ void LibInit()
       "ZTICK_GET", "YTICK_GET", "XTICK_GET",
       "ZTITLE", "YTITLE", "XTITLE",
       //3D KW
-      "ZVALUE","T3D", "SAVE", "SKIRT", "ZAXIS", KLISTEND
+      "ZVALUE","T3D", "SAVE", "SKIRT", "ZAXIS", "CHANNEL", KLISTEND
     };
   const string shade_surfWarnKey[]=
   {
-      "IMAGE", "PIXELS", "CHANNEL", KLISTEND
+      "IMAGE", "PIXELS", KLISTEND
   };
   new DLibPro(lib::shade_surf,string("SHADE_SURF"),3,shade_surfKey, shade_surfWarnKey);
 
@@ -744,18 +742,18 @@ void LibInit()
      // ([xyz]type undocumented but still existing in SURFACE ...)
      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
      "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "SHADES", "ZAXIS",  "BOTTOM", 
-     "SKIRT", "SAVE", "T3D",  "ZVALUE", KLISTEND
+     "SKIRT", "SAVE", "T3D",  "ZVALUE", "CHANNEL", KLISTEND
     };
   const string surfaceWarnKey[]=
   {
-      "LEGO", "CHANNEL",KLISTEND
+      "LEGO", KLISTEND
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
   const string contourKey[]=
     {
       "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
-      "COLOR",     "DATA",    "DEVICE",   "FONT",
+      "COLOR",     "DATA",    "DEVICE",
       "NOCLIP",  "NODATA",   "NOERASE",
       "NORMAL",    "POSITION", "SUBTITLE",
       "T3D",     "THICK",    "TICKLEN",
@@ -786,7 +784,7 @@ void LibInit()
       "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE",
       "C_LABELS", "C_CHARTHICK", "C_ORIENTATION", "C_SPACING", "C_THICK",
       "PATH_INFO","PATH_XY",
-      "ZLOG","IRREGULAR", //ZLOG is an addition for GDL only
+      "ZLOG","IRREGULAR", "CHANNEL", "FONT", //ZLOG is an addition for GDL only & FONT is not permitted apparently
       KLISTEND
     };
    // NO SUPPORT AT ALL for:,"CLOSED","DOWNHILL","IRREGULAR","PATH_DATA_COORDS","PATH_FILENAME",
@@ -794,10 +792,9 @@ void LibInit()
   // "CHANNEL" is supposed to be passed from CONTOUR, PLOT, OPLOT, SHADE_SURF etc to ERASE
    const string contourWarnKey[]=
     {
-      
       "CELL_FILL","C_ANNOTATIONS","CLOSED","DOWNHILL",
       "PATH_DATA_COORDS","PATH_FILENAME",
-      "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE","CHANNEL",KLISTEND
+      "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE",KLISTEND
     };
    new DLibPro(lib::contour,string("CONTOUR"),3,contourKey,contourWarnKey);
 
