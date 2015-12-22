@@ -118,7 +118,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
     }
   }
 
-  frameWidth = 0;
+  frameWidth = -1;
   e->AssureLongScalarKWIfPresent( frameIx, frameWidth );
   int the_units = 0;
   static int unitsIx = e->KeywordIx( "UNITS" );
@@ -2940,13 +2940,13 @@ void widget_control( EnvT* e ) {
  
   if (settlbtitle || settlbxoffset || settlbyoffset ) {
      GDLWidgetBase* tlb = widget->GetTopLevelBaseWidget(widgetID );
-     wxWindow* me=static_cast<wxWindow*>(tlb->GetWxWidget());
+     GDLFrame* me=static_cast<GDLFrame*>(tlb->GetWxWidget());
      //following should not happen I believe
      if ( tlb == NULL ) e->Throw("Widget "+i2s( widgetID )+" has no top-level Base (please report!).");
      if (settlbtitle) {
        DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
        wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
-       me->SetName(tlbName);
+       me->SetTitle(tlbName);
      }
      if (settlbxoffset) {
        DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
