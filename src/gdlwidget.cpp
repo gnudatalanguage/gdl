@@ -150,7 +150,7 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   } //TBC
 //but..
   if (scrXSize > 0) widgetSize.x=scrXSize;
-  if ( ySize > 0 )  {widgetSize.y = ((ySize+0.5) * fontSize.y);  if ( widgetSize.y < 20 ) widgetSize.y=20;}
+  if ( ySize > 0 )  widgetSize.y = (ySize * 1.5 * fontSize.y); 
   else widgetSize.y = fontSize.y*1.5; //instead of nlines*fontSize.y to be compliant with *DL
   if (widgetSize.y < 20) widgetSize.y = 20;
 //but..
@@ -171,7 +171,7 @@ inline wxSize GDLWidgetList::computeWidgetSize()
 //but..
   if (scrXSize > 0) widgetSize.x=scrXSize;
   
-  if ( ySize > 0 )  {widgetSize.y = ((ySize+0.5) * fontSize.y); if ( widgetSize.y < 20 ) widgetSize.y=20;}
+  if ( ySize > 0 )  widgetSize.y = (ySize * 1.5 * fontSize.y); 
   else widgetSize.y = fontSize.y+0.5; //instead of nlines*fontSize.y to be compliant with *DL
   if (widgetSize.y < 20) widgetSize.y = 20;
 //but..
@@ -3198,7 +3198,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
 
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,wxCommandEventHandler(GDLFrame::OnListBoxDoubleClicked));
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(GDLFrame::OnListBox));
-
+  list->SetSelection(0);//necessary to avoid spurious event on first click.
   widgetStyle=widgetAlignment();
   if ((frameWidth>0)) this->FrameWidget();  else  widgetSizer->Add(list, 0, widgetStyle, 0); 
   TIDY_WIDGET;
