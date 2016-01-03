@@ -1,3 +1,1390 @@
+GDL 0.9.6
+2015-12-29  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* README: update on widget status
+
+	* src/gdlwidget.cpp: minor adjustments for cosmetics (2).
+
+2015-12-22  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/widget.cpp: minor adjustments for cosmetics.
+
+2015-12-21  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/libinit.cpp: removed unnecessary warnings about FONT
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	Resizing affects (via TLB_SIZE_EVENT) ok now. Added DYNAMIC_RESIZE and changed way FRAME is handled.
+
+2015-12-17  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	added  FONT= support. Also widget_info(/geometry) and alignments should be OK. Still pb with resizing (e.g.: ATV) when wxWidgets > 2.9 .  Note that FONT values are wxWidgets/Windows names (like "Helvetica Oblique 32").
+
+2015-12-12  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt, CMakeModules/FindEigen3.cmake:
+	because old Eigen3 is not OK for moderm iCore 3/5/7, we check Eigen version (>= 3.2.4) now
+
+2015-12-11  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/initsysvar.cpp:
+	patch 88 to have reproducably buildable in Debian (__DATE__ changed as BUILD_DATE)
+
+2015-12-03  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/gdlwxstream.cpp:
+	Correct some bugs. Tested with wxWidgets 2.8 and 3.0 , plplot 5.9.9 and 5.11.1 (plplot-5.11.1 needs to be compiled with -DOLD_WXWIDGETS:BOOL=ON), their new wxdriver is too unstable
+
+2015-12-02  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_array_indices.pro: Test file for array_indices.
+
+	* src/pro/array_indices.pro: R. Stockli added /DIMENSION Keyword.
+
+	* CMakeLists.txt, config.h.cmake:
+	Added finding QHULL, needed to have TRIANGULATE, QHULL et commands working at a future time.
+
+	* CMakeModules/FindQHULL.cmake:
+	New for finding QHULL, needed to have TRIANGULATE, QHULL et commands working at a future time.
+
+2015-11-13  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/CMakeLists.txt, src/libinit_ac.cpp:
+	Temporary removed reference to unfinished "smooth.cpp" work, whose compilation
+	is not... smooth on some machines. To be removed when this function is deemed OK.
+
+2015-10-23  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.cpp:
+	patches for plplot compatibility: invalid use of HAVE_CONFIG in plplot public include.
+
+	* src/gdlwidget.cpp, src/gdlwidgeteventhandler.cpp:
+	patches for wxWidgets 3.x compatibility (more to come).
+
+	* src/gdlgstream.hpp, src/gdlwxstream.cpp, src/image.hpp:
+	patches for plplot compatibility: invalid use of HAVE_CONFIG in plplot public include.
+
+	* CMakeLists.txt, CMakeModules/FindPlplot.cmake, config.h.cmake, src/plotting_contour.cpp:
+	patches for plplot compatibility (library names, functions api, etc that keep changing with plot's whims). Thanks to Orion and Greg.
+
+	* src/smooth.cpp:
+	saved temporary version of smooth (better, but not yet useable)
+
+	* src/file.cpp: added comment about PATH_MAX for Windows gurus
+
+2015-10-21  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/str.cpp: solves bug #673
+
+2015-10-14  m_schellens  <m_schellens@kunbuntu1404>
+
+	* src/dinterpreter.cpp:
+	Fixed bug #667: Accept comma separated file names in .RUN command
+
+	* CMakeModules/FindImageMagick.cmake, src/GDLLexer.cpp, src/dinterpreter.cpp, src/hdf_pro.cpp, src/typetraits.hpp:
+	Fixed bug #663: Skip in GetLine functions comment lines like empty lines
+
+2015-10-09  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/file.cpp: solves bug #672
+
+2015-10-07  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/read.cpp: solves bug #670
+
+2015-10-07  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/test_file_search.pro:
+	revisiting "test_file_search.pro", adding 2 problematic new cases (bug 672)
+
+	* testsuite/add_error.pro, testsuite/test_reads.pro:
+	iinitial import of ADD_ERROR, use to increment errors count and print a message
+
+2015-10-06  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlpsstream.cpp: pacify fussy (dumb?) compilers.
+
+	* testsuite/test_bits_per_pix.pro:
+	Test for support for BITS_PER_PIXEL in PostScript device. Not automatic: provides a ps file for each case, to be examined by eye.
+
+2015-10-05  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlpsstream.cpp:
+	support for BITS_PER_PIXEL in PostScript device (correct now).
+
+2015-10-04  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_fun.cpp:
+	trying to correct bug 669 : a=SHFIT(dist(10), [2,3]) should work !
+
+	* testsuite/Makefile.am, testsuite/test_window_background.pro:
+	2 new files for "make check" : "test_reads" and "test_postscript". For the PS,
+	just to give a chance to look at the outputs ...
+	A typo corrected in "test_window_background.pro".
+
+2015-10-04  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/deviceps.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp, src/graphicsdevice.hpp, src/libinit.cpp, src/plotting_device.cpp:
+	support for BITS_PER_PIXEL and !P.FONT in PostScript device.
+
+2015-10-04  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/test_reads.pro:
+	initial import of TEST_READS (READS is currently not working with "," (comma) as separator)
+
+2015-09-26  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/deviceps.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp:
+	This revision should permit to plot images at the correct location for PostScript output.
+
+	* src/plotting_device.cpp:
+	corrected bug interpretation landscape or portrait
+
+	* testsuite/test_tv_ps.pro: better test
+
+2015-09-20  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/GDLLexer.cpp, src/gdlc.g:
+	corrected bug where PSlibHacks was messing up the (otherwise correct) PostScript output.
+
+2015-09-18  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/basic_fun.cpp: Changing WIN32 -> _WIN32.
+	WIN32 (without underscore) is not defined in some compilers.
+
+2015-09-17  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/deviceps.hpp:
+	corrected bug where PSlibHacks was messing up the (otherwise correct) PostScript output.
+
+	* src/gdlpsstream.hpp: minor changes to keep cppcheck happy.
+
+2015-09-16  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_pro.cpp:
+	fixing bug reported by EH on: message,'here', level=1, /info
+	when we are already at the main level
+
+2015-09-14  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/objects.cpp:
+	reverted the change of IsFun(), we gained speed in procedure compilation, alas it had sideeffects.
+
+2015-09-10  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_fun.cpp, src/basic_pro.cpp:
+	minor changes to keep cppcheck happy.
+
+2015-09-10  alaingdl  <alaingdl@kunbuntu1404>
+
+	* NEWS: update
+
+	* testsuite/Makefile.am, testsuite/test_message.pro:
+	updating the code for "test_message.pro", add it to automatic "make check"
+
+2015-09-09  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/libinit.cpp:
+	Added dummy options to SHADE_SURF to gain compatibility. (noticeably with XSURFACE).
+
+	* src/gdlwxstream.cpp:
+	Enable plplot's wxWidgets backends 0,1 or 2 by setting env variable GDL_WX_BACKEND
+
+	* src/plotting.cpp, src/plotting_oplot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp:
+	Do we get both correct positioning & clipping, in !P.MULTI modes as well as when a projection is active?
+
+2015-09-07  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/dialog.hpp, src/dialog.cpp:
+	replaced macro to be compatible with wxWidgets ver. 2.8 according to https://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
+
+2015-09-07  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	adding LEVEL keyword in MESSAGE
+
+	* testsuite/test_message.pro:
+	initial import of "test_message.pro", a draft.
+
+	* testsuite/test_xdr.pro:
+	revisiting "test_xdr.pro", I had some troubles.
+
+2015-09-06  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/deviceps.hpp, src/gdlwidget.cpp, src/gdlwidgeteventhandler.cpp, src/hdf5_fun.cpp, src/image.cpp, src/math_fun_ng.cpp:
+	minor changes to keep cppcheck happy.
+
+2015-09-06  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/gdl_idl_fl.pro, testsuite/test_formats.pro, testsuite/test_plot_oo.pro:
+	updating "test_plot_oo" in such a way it can count plotting types.
+	SVG and PS outputs also possible. IDL and FL possible too.
+
+2015-09-06  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlsvgstream.cpp: removed memory leak
+
+2015-09-05  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_oplot.cpp, src/plotting_plots.cpp:
+	Enabled correct positioning in !P.MULTI mode + projections (hopefully)
+
+	* src/plotting.cpp:
+	Plotting routines that do not clear the plot must take care solely of changes in ![X|Y].S . AXIS should reset the plplot box if the SAVE argument is used.
+
+2015-09-05  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_pro.cpp:
+	New version for HELP, calls=c based on SimpleDumpStack() in the same file.
+
+2015-09-05  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_oplot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp:
+	Plotting routines that do not clear the plot must take care solely of changes in ![X|Y].S . AXIS should reset the plplot box if the SAVE argument is used.
+
+2015-09-05  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_pmulti_basic.pro:
+	simple graphical test to see whether we introduce regression related
+	to !p.multi and OPLOT. May be extensible for other Devices (PS, SVG ...) ?
+
+2015-09-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/plotting.cpp, src/plotting_oplot.cpp:
+	correcting OPLOT with log scale. Pb detected via Coyote Lib.
+	and test case "additional_axes_plot" in debian/test/test_coyote.pro
+
+2015-09-03  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_pro.cpp: corrected regression introduced by 1.192
+
+2015-09-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/plotting_plot.cpp:
+	improving the way xLog and Ylog are managed (plot_oo or /xlog or /xtype)
+	see "test_plot_oo.pro" for test case
+
+2015-09-03  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/dcompiler.cpp, src/dcompiler.hpp, src/objects.cpp:
+	by modifying the IsFun() method we gain speed in procedure compilation.
+
+2015-09-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_pro.cpp:
+	change in Help, Calls=callStack to return also the current level !
+
+2015-09-02  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlgstream.hpp: replaced FALSE by false
+
+	* src/plotting.cpp: corrected memory leaks...
+
+	* src/gdlgstream.hpp, src/plotting_device.cpp: corrected memory leak
+
+2015-09-01  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdl.cpp, src/initsysvar.cpp, src/initsysvar.hpp:
+	added gdl commandline option --fakerelease  to have !VERSION.RELEASE match any value requested by a script.
+
+	* NEWS, src/basic_fun.cpp:
+	update routine_info to report all routines/functions if so desired.
+
+2015-08-31  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/ifmt.cpp, src/ofmt.cpp:
+	corrected calendar format for seconds in input/output.
+
+	* src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_plot.cpp, src/plotting_shade_surf.cpp, src/plotting_surface.cpp:
+	takes care of xtickunits option, better (but far from ideal) multi axis (option [XYZ]units) support.
+
+	* src/libinit.cpp: added comment
+
+2015-08-28  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlc.g, src/GDLLexer.cpp: solves bug #663
+
+2015-08-27  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/file.cpp, src/str.cpp:
+	more changes related to wordexp in "file_info" and "file_test", related to
+	problems in FILE_DELETE.
+
+2015-08-26  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwxstream.cpp:
+	Workaround try for pacifying fussy compilers arguing about an invalid type of parameter for SetLogicalFunction().
+
+2015-08-25  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/FMTOut.cpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.hpp, src/dstructgdl.hpp, src/format.out.g, src/nullgdl.cpp, src/nullgdl.hpp, src/ofmt.cpp:
+	Formats X and strings were not correctly handled in the subcase of output calendar format.
+
+	* src/libinit.cpp: option name MONTH -> MONTHS
+
+	* src/gdlwxstream.cpp:
+	corrected invalid type of parameter for SetLogicalFunction().
+
+	* src/default_io.cpp:
+	changed again xdr complex-handling functions to pacify windows-based compilers. use testsuite/test_xdr.pro to check correctness.
+
+2015-08-24  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/FMTOut.hpp, src/datatypes.hpp, src/format.out.g, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTLexer.cpp, src/FMTOut.cpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/dstructgdl.hpp, src/format.g, src/format.in.g, src/ifmt.cpp, src/nullgdl.cpp, src/nullgdl.hpp, src/ofmt.cpp, src/specializations.hpp:
+	Completed support of calendar format codes, including repeat count for output format, still some unfinished work for input format.
+	Also, corrected a bug in input formatting that preventing correct parsing in the presence of the "X" code or strings.
+
+	* src/default_io.cpp:
+	changed xdr complex-handling functions to prevent compiler problems.
+
+2015-08-20  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_window_background.pro:
+	initial import to check whether the background color is OK
+	for WINDOW or PLOT (as it was already OK with ERASE)
+	The automatic test is working for DEVICE, /decomposed
+	Visual test OK for DEVICE, decomposed=0
+
+2015-08-19  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTParser.cpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.hpp, src/format.g, src/format.out.g, src/nullgdl.cpp, src/nullgdl.hpp, src/ofmt.cpp, src/specializations.hpp:
+	Support of calendar format codes: output formatting OK with the exception of repeat count ( e.g.: in FORMAT='(2C())',  the repeat count 2 is ignored)
+
+2015-08-18  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.cpp, src/plotting_map_proj.cpp:
+	replaced obsoleted finite() with isfinite()
+
+	* src/devicewx.hpp, src/devicex.hpp, src/gdlwxstream.cpp:
+	Added SET_GRAPHICS_FUNCTION for WXWidgets (e.g., use of cursor in astrolib's look.pro). Also corrected a logic bug that prevented setting graphic functions or cursor in some cases.
+
+	* src/objects.cpp:
+	temporary avoid to purge the memory reserved by commons during final exit (double delete for structures in common not handled would make GDL crash on exit in some cases). This tidying is not really necessary anyway.
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp, src/gdlwxstream.cpp, src/graphicsdevice.cpp, src/graphicsdevice.hpp, src/plotting.cpp, src/plotting_windows.cpp, src/gdlwinstream.cpp, src/gdlxstream.cpp, src/plotting_erase.cpp:
+	Solved problems related to concurrency of background color and index 0 of current palette (a plplot "feature") by reserving the background color separately and using it only for the plplot equivalent of ERASE (bop()). The reserved background color should now be properly initialized in  graphic windows creations (WINDOW, WSET) at least for X,WX and WIN (PS background is always white). Corrected also a bug related to improper use of CHANNEL value for per-channel ERASE.
+
+2015-08-17  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/plotting_windows.cpp:
+	In fact, it was not realized that we need to manage the background color
+	in WINDOW. Should work now. This come from tests within Nika pipeline
+	and HEALPix feedbacks.
+
+2015-08-13  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlxstream.cpp: should better correct color=0 bug
+
+2015-08-11  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/gdlxstream.cpp:
+	trying to solve the famous bug of white on white in Device, decomposed=0
+	plot, findgen(10), back=255, color=0
+	(mainy famous codes are suffering from that : PSM, Nika, Ulyss)
+
+2015-08-01  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/least_squares.cpp:
+	B argument to LA_LEAST_SQUARES can now be an array. Other details fixed.
+
+	* src/pro/make_dll.pro:
+	better version for MAKE_DLL, this one should works on Linux, may be OSX,
+	please report any improvment. Needed by Nika2 pipeline.
+	First commit after SourceForce crash in July 2015
+
+2015-07-14  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_la_least_square.pro, testsuite/test_la_least_squares.pro:
+	bad name ... moving ...
+
+	* src/CMakeLists.txt: I forgot to update it for LA_LEAST_SQUARES
+
+2015-07-13  alaingdl  <alaingdl@kunbuntu1404>
+
+	* NEWS, src/least_squares.cpp, src/least_squares.hpp, src/libinit_jmg.cpp, testsuite/Makefile.am, testsuite/test_la_least_square.pro:
+	initial import of LA_LEAST_SQUARES (+ tests), based on Eigen3.
+	This code was need for Ulyss
+
+2015-07-11  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_tv.pro: Patched for bug #659
+	TEST_TV_OVER_BOX returns gracefully when "Saturn.jpg" is not found.
+	And corresponding windows are not closed (which would generate an error).
+
+2015-07-10  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTParser.cpp, src/format.g, src/format.out.g:
+	en route to correct support of calendar format codes (bis).
+
+	* src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/format.g, src/ofmt.cpp:
+	en route to correct support of calendar format codes.
+
+2015-07-10  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_plot_oo.pro:
+	checking whether the /Xlog and /Xtype keywords are enforced, in PLOT, PLOT_IO/OI/OO
+
+	* src/pro/make_dll.pro:
+	initial import of MAKE_DLL. This code is NOT finished.
+	!Make_DLL already available in GDL.
+
+	* src/initsysvar.cpp: adding !MAKE_DLL structure, code itself not ready
+
+	* src/plotting_plot.cpp:
+	correcting the logic for log related keywords in PLOT, PLOT_IO, PLOT_OI and PLOT_OO
+
+2015-07-09  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/format.g: oops forgotten closing brace
+
+2015-07-08  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/FMTParser.cpp, src/format.g, src/ofmt.cpp:
+	definitely solves bug #660
+
+2015-07-04  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/ofmt.cpp: partially solves bug #660
+
+	* src/libinit.cpp:
+	make MESSAGE compatible with more than 1 argument (reloaded).
+
+2015-07-02  alaingdl  <alaingdl@kunbuntu1404>
+
+	* NEWS, src/basic_pro.cpp, src/libinit.cpp, src/pro/resolve_all.pro:
+	initial import of RESOLVE_ALL (*.pro), more keywords in RESOLVE_ROUTINE.
+	This was needed for code Ulyss. Work by Ilia N.
+
+	* src/basic_pro.cpp, src/libinit.cpp:
+	various improvments in RESOLVE_ROUTINE (by Ilia N.)
+
+	* src/pro/svsol.pro:
+	initial import of SVSOL() as a pro file. Thanks to Eric H. Work and tests by Ilia N.
+
+2015-07-01  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/libinit_jmg.cpp:
+	max number of arguments was wrong for randomu, randomn and reform.
+
+	* src/basic_pro.cpp:
+	make MESSAGE compatible with more than 1 argument, but do nothing more that signal this is not supported. Solves some compatibilty issues.
+
+2015-06-30  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/libinit_jmg.cpp:
+	added L64 as ignored option, dirty-patching bug #662
+
+2015-06-29  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/pro/handle_info.pro: patch by Jonathan W.
+
+2015-06-13  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/default_io.cpp:
+	removed patches that prevented test_xdr to run correctly on linux. Further changes for other architectures must be surrounded by #ifdef and well documented.
+
+	* src/pro/interpol.pro:
+	Applied Kalith's patch #86 to make INTERPOL support out-of-bounds scalar third argument
+
+2015-06-11  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/hdf_pro.cpp:
+	solves bug 649. Simplified some expressions equivalent to pointer on data.
+
+2015-06-10  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.cpp, src/plotting_map_proj.cpp, src/pro/map_clip_set.pro, src/pro/xmanager.pro, src/pro/xregistered.pro:
+	better support, although far from final, of map projections splitting and contour closing/filling.
+	aligned more xmanager common on what idl does.
+
+	* src/gdlwidget.cpp:
+	solves temporary bug #655. See comments in bug report
+
+2015-06-05  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_file_copy.pro, testsuite/test_file_delete.pro, testsuite/test_ishft.pro, testsuite/test_netcdf.pro:
+	fixing various details in codes in testsuite/
+
+2015-06-04  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/file.cpp, src/str.cpp:
+	trying to solve the dynamic cast issue for input with wildmarks in various FILE* functions
+	(patch bye Ilia N.)
+
+2015-06-04  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/ofmt.cpp: corrected bug #654
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp:
+	added code to handle better all types of buttons.
+
+	* src/gdlwidget.cpp, src/widget.cpp:
+	added tests whenever a static cast for a wxWidget is attempted.
+
+2015-06-02  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/Makefile.am, testsuite/test_bug_3275334.pro, testsuite/test_device.pro, testsuite/test_random.pro, testsuite/test_tv.pro:
+	cleaning up few tests (being able to run on systems without X11 and WIN, only NULL)
+
+2015-06-01  alaingdl  <alaingdl@kunbuntu1404>
+
+	* NEWS: update
+
+	* src/math_fun_gm.cpp:
+	correcting arrays combinations for few extra Math functions (cf "test_math_function_dim.pro")
+
+	* src/pro/file_move.pro: initial import of pro FILE_MOVE (By Ilia N.)
+
+	* testsuite/Makefile.am, testsuite/test_file_move.pro:
+	initial import of "test_file_move.pro"
+
+	* testsuite/test_math_function_dim.pro, testsuite/test_MathFunctionsDim.pro:
+	renaming "test_MathFunctionsDim.pro" into "test_math_function_dim.pro"
+
+2015-06-01  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/pro/ishft.pro:
+	rewritten ishft using inputs from B. Dieckmann and new test cases. Should be written in C++ for performance.
+
+2015-06-01  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/math_fun_ac.cpp, src/math_fun_ng.cpp:
+	correcting Besel functions and Voigt to follow changes in IDL 8.4
+	for input ([1],[N]), which return now [1]. More to come : other Math. functions.
+
+2015-05-29  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/pro/xdisplayfile.pro:
+	Allows zero-length string ("") for filename in Xdisplayfile.
+
+2015-05-26  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/test_file_info.pro, testsuite/test_file_test.pro:
+	initial import of "test_file_info" (by Ilia), to be extend.
+	Better messages for "test_file_test". Not tested on OSX and MSwin.
+
+	* testsuite/Makefile.am, testsuite/test_file_test.pro, src/file.cpp:
+	initial import of "test_file_test.pro", symlink now well detected in FILE_TEST().
+	work by I. Natchkebia
+
+2015-05-22  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/ofmt.cpp: pass new (complete?) format test test_formats.pro
+
+2015-05-22  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/pro/xdisplayfile.pro:
+	adding /editable keyword in "xdisplayfile.pro". unfortunately we cannot add new lines :(
+	few others tests added.
+
+	* src/pro/dialog_message.pro:
+	having same messages in boxes if wxwidgets or zenity
+
+2015-05-21  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/formats.idl, testsuite/test_formats.pro:
+	rewriting of "test_formats.pro", adding a positive case (+12),
+	regenerating the reference "formats.idl"
+
+2015-05-21  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_binfmt.pro, src/ofmt.cpp: solves bug #646
+
+	* src/ofmt.cpp: solves regression reported in #650
+
+2015-05-15  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/test_null.pro: correcting details in TEST_NULL
+
+	* testsuite/test_systime.pro:
+	more tests case for SYSTIME, a bug was pending due to lack of tests.
+
+2015-05-13  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_fun_cl.cpp:
+	dimensions and range for input parameters were not properly tested in SYSTIME() ...
+
+	* src/basic_pro_jmg.cpp, src/basic_pro_jmg.hpp, src/envt.cpp, src/libinit_jmg.cpp:
+	better message for (scalar or 1 element array)
+	But we have cases where we got (e.g) :
+	 wait, ['-1.01','12']
+	% WAIT: Parameter must be a scalar or 1 element array in this context: <Expression> <STRING    Array[2]>
+
+	instead :
+	% WAIT: Expression must be a scalar or 1 element array in this context: <STRING    Array[2]>.
+
+2015-05-10  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/pro/file_lines.pro:
+	at the end, managing Directories in FILE_LINES() !
+
+2015-05-09  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/objects.cpp:
+	Patch by GJ to have #threads computation faster for windows
+
+	* src/gtdhelper.cpp, src/basic_fun_cl.cpp:
+	Patch by GJ to have SYSTIME(1) working in windows
+
+	* src/file.cpp: typo: debug print line was always printed
+
+2015-05-08  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/basic_fun.cpp: Applied patch #85 (bugfix) by Jacco A. de Zwart.
+
+2015-05-07  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt:
+	the message returned if REQUIRED is used instead of COMPONENTS is not clear
+
+2015-05-04  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/file.cpp:
+	Reverted HIDDEN and SYSTEM in FILE_INFO, which makes GDL crash.
+
+2015-05-03  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/widget.cpp:
+	Better treatment of xpad,ypad and what widget_info(./geometry ) returns.
+	Patch should avoid size events to be propagated if they are due to an internal (e.g., widget_control) resize. (XDisplayFile working)
+	plus a few improvements.
+
+2015-04-30  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/pro/xdisplayfile.pro: Added xdisplayfile
+
+2015-04-29  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_pro.cpp, src/dcompiler.cpp, src/libinit.cpp:
+	Patch by GJ: HELP, /FULL and HIDDEN compilation option of procedures/functions
+	basic_pro.cpp - (help_pro re-arranged a bit; isHidden() and fullKW used)
+	libinit.cpp   - (keyword FULL to help_pro)
+	dcompiler.cpp - (omit notification of compilation)
+
+2015-04-24  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gshhs.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_oplot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_xyouts.cpp:
+	added map projection support for axis; minor changes in other plotting routines, although they could have side-effects (please report). note: 3D plots and projections not yet compatible; contour splitting and closing when a projection is present are not reliable (do not report!).
+
+2015-04-23  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_map_proj.cpp:
+	final (?) solution to protect GDL from projections that have no inverse (proj.4 or libproj have tons of them): permits MAP_SET to work on all projections, and calling MAP_PROJ_INVERSE or PROJ_INV will not crash gdl. Too bad there is no internal function in libproj to test the absence of inverse. We are going to avoid using this library.
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp:
+	correction to appropriately treat size events for widget_draw
+
+2015-04-22  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/includefirst.hpp:
+	Added WIN32_LEAN_AND_MEAN to suppress warnings and reduce compilation time on Windows.
+
+2015-04-21  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_plots.cpp, src/plotting_polyfill.cpp:
+	aligned plotting_plots and plotting_polyfill codes since they are almost equivalent, adding in passing clip/noclip support for polyfill and removing a plots bug.
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/widget.cpp:
+	Now using dynamic Connect() methods for most widgets events.
+	Use a two-step method with timer to trigger a resize event only when user has finished resizing a frame.
+
+2015-04-20  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_polyfill.cpp:
+	polyfill was testing wrongly the Z variable size in the absence of a T3D keyword.
+
+2015-04-17  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_map_proj.cpp:
+	found a better place to protect GDL from projections that have no inverse in proj.4: permits MAP_SET to work on all projections, but  MAP_PROJ_INVERSE throws an exception if the inverse function is not defined (*P->inv=0) in the proj.4 library.
+
+2015-04-16  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_map_proj.cpp:
+	protect against two projections that have no inverse in proj.4 (was killing GDL).
+
+2015-04-16  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/file.cpp: Greg's patch for file_search on Windows #2.
+
+2015-04-15  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp:
+	reverted to  1.91 version, 1.92 was crashing (under linux at least)
+
+2015-04-15  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwidget.cpp:
+	Moved initialization code of theGDLApp to GDLWidget::Init(). Removed wxInitialize() and wxUninitialize().
+
+	* src/dstructgdl.hpp: Patch for clang++.
+
+	* src/file.cpp:
+	File.cpp patch by Greg Jung (Reverted the old filesearch/Patternsearch procedure).
+
+	* CMakeLists.txt:
+	Added compliation flag for Eigen3 on Windows (MinGW). Removed PDCurses dependency.
+
+2015-04-14  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/pro/handle_create.pro, src/pro/handle_free.pro, src/pro/handle_info.pro, src/pro/handle_value.pro:
+	Handle_*** pro files are here to mimic at lowest price old functions not supported anymore in IDL, but present in some old codes (cmsvlibn ps_form used by atv...)
+
+	* src/pro/widget_message.pro:
+	widget_message is just an old name of dialog_message. this file passes the arguments to dialog_message.
+
+	* src/gdlwidget.cpp:
+	gdl was writing a superfluous "end of line" in (multi-line) text widgets (ugly character in some implementation).
+
+2015-04-14  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/objects.cpp:
+	interverting 2 lines in "object.cpp" should solve a "widget" bug in Debin/Ubuntu OS
+
+2015-04-13  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlzstream.cpp: corrected bug #638
+
+2015-04-13  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwinstream.cpp:
+	Return 'false' when user close plot window while CURSOR is active.
+
+	* src/gdlwinstream.hpp, src/gdlwinstream.cpp:
+	This solves Plplot window hang issue while CURSOR is active, when wxWidgets is not compiled with GDL.
+
+2015-04-12  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/libinit_jmg.cpp, src/widget.cpp:
+	UNITS keyword now correctly taken into account in widget creation and in WIDGET_CONTROL and WIDGET_INFO. Columns and Rows sizes of TABLE widget OK now.
+
+	* src/devicewx.hpp: cosmetic changes
+
+	* src/gdlwidgeteventhandler.cpp:
+	wxFrame size event handling freezes some implementations. removed for the moment.
+
+2015-04-12  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/devicewin.cpp, src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Patch to CURSOR on Windows. GDL does not hang anymore while clicking on another plot window.
+
+	* src/gdlwidget.cpp:
+	Changed set_value to always add newline (which is IDL's behavior). Also added code for proper handling of line ending on Windows (works with wx3.0 and above).
+
+	* src/dialog.cpp: Added missing semicolon.
+
+	* src/libinit.cpp: Correction of wrong definition of libinit_jp.
+
+2015-04-11  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/initsysvar.cpp, src/semshm.cpp:
+	TCHAR -> WCHAR to compile non-unicode build of GDL.
+
+	* src/basic_pro.cpp: Removed redundant tchar.h.
+
+	* src/basic_pro.cpp, src/deviceps.hpp, src/basic_fun.cpp, src/basic_pro_jmg.cpp:
+	TCHAR -> WCHAR to compile non-unicode build of GDL.
+
+	* src/file.cpp: MSVC patch, and excluded checking of X_OK on Windows
+
+2015-04-11  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/file.cpp, src/libinit.cpp:
+	patch by Greg J. for file.cpp including several new TEST_ keywords.
+
+2015-04-11  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/dinterpreter.cpp:
+	This patch removes trailing '\n' during no-readline mode.
+
+2015-04-10  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/dinterpreter.cpp:
+	Changed to get the last char with brackets. Also added usleep for POSIX.
+
+	* src/dinterpreter.cpp: Corrected wrong ifdef block.
+
+	* src/gdl.cpp: Added an option for upcoming IDE.
+
+	* src/dinterpreter.cpp:
+	Changed DInterpreter::NoReadline() to properly handle events (using c++11 thread or pthread).
+
+2015-04-09  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/demo_widgets.pro: bug correction.
+
+2015-04-09  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwidget.hpp: Added missing if block.
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp:
+	Moved GDLApp initialization code before the events sending part. Alternative removing method is implemented for 'children' and 'followers'.
+
+	* src/file.cpp:
+	Added code to let MSVC check the fils is executable or not properly.
+
+	* src/gdl.cpp: Changes due to Windows don't have set/getrlimits.
+
+2015-04-08  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/pro/dialog_message.pro:
+	explicitly splitting DIALOG_MESSAGE in two functions: DIALOG_MESSAGE_ZENITY and DIALOG_MESSAGE_WXWIDGETS
+
+	* src/dialog.cpp:
+	in DIALOG_PICKFILE(), in the WX version, when the path is not provided,
+	we should work in current directory. But recent Gnome/Wx is using
+	by default the previous path is no path provided ...
+	(but case " DIALOG_PICKFILE(path='..')" and "FILE_SEARCH('..',/full)" are not working well now)
+
+	* src/pro/dialog_pickfile.pro:
+	in order to be able to run the Zenity-based version (e.g. regression tests),
+	splitting DIALOG_PICKFILE in two: DIALOG_PICKFILE_WXWIDGETS and DIALOG_PICKFILE_ZENITY
+
+2015-04-08  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp: bug correction.
+
+	* src/gdl.cpp:
+	added routine to augment stack size (at least up to the needs of the test_dicom procedure). Thanks to OP and discussion #338693.
+
+	* src/dialog.cpp:
+	DIALOG_MESSAGE_WXWIDGETS now accepts array of strings.
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	Added WIDGET_INFO /REALIZED.
+
+2015-04-07  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/file.cpp, src/libinit.cpp:
+	adding 3 keywords to FILE_SEARCH: TEST_DIRECTORY, TEST_REGULAR and TEST_EXECUTABLE.
+	Not sure /test_exe is OK. May be the code could be factorized ?!
+
+2015-04-07  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.cpp, src/plotting.hpp, src/plotting_oplot.cpp, src/plotting_plots.cpp, src/plotting_xyouts.cpp, src/plotting_plot.cpp:
+	solves bug #639 and a few unreported others... Removed templating of a few graphic functions since we accept only doubles.
+
+	* testsuite/test_map.pro: noted a potential problem.
+
+	* src/basic_pro.cpp: prevent throw on not-found files
+
+2015-04-07  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/dialog.cpp:
+	Added code to support wx2.8, which does not have wxCANCEL_DEFAULT.
+
+2015-04-07  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt:
+	desactivating a test for wxwidgets in plplot, not working widely now.
+
+2015-04-07  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/dialog.cpp, src/dialog.hpp:
+	Added conversion code for all strings, assuming that all strings are encoded in UTF-8.
+
+2015-04-06  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/pro/polywarp.pro: Corrected typos
+
+2015-04-05  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting.cpp:
+	added protection against invalid POSITION kw values.
+
+2015-04-05  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/pro/dialog_message.pro, src/pro/dialog_pickfile.pro:
+	Added "on_error, 2".
+
+	* src/pro/polywarp.pro: Added POLYWARP.
+
+	* src/dialog.cpp, src/dialog.hpp, src/libinit_jp.cpp, src/pro/dialog_message.pro:
+	New implenentation with wxWidgets is added.
+
+	* src/pro/dialog_pickfile.pro: Corrected a typo
+
+	* src/gdlwinstream.cpp: Bug fix on GetHwnd()
+
+2015-04-04  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwinstream.cpp:
+	Manually destoy window when GDLWinstream is deleted.
+
+	* src/file.cpp: Modified PatternSearch() to use proper path seperator.
+
+	* src/libinit_jp.cpp, src/CMakeLists.txt, src/dialog.cpp, src/dialog.hpp, src/libinit.cpp:
+	Added new implementaion of DIALOG_PICKFILE using wxWidgets.
+
+	* testsuite/CMakeLists.txt: Added support for MSVC
+
+	* src/pro/dialog_pickfile.pro:
+	New implenentation with wxWidgets is added.
+
+	* src/file.cpp: Updated FILE_DIRNAME, like IDL's behavior.
+
+2015-04-04  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* README: update section on widgets
+
+	* testsuite/demo_widgets.pro:
+	removed test_widgets.pro and added demo_widgets.pro
+
+2015-04-04  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt: hope to have smater message
+
+	* CMakeLists.txt:
+	this one seems to be a better test ! (if plplot compiled with wxwidgets !)
+
+2015-04-04  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/basic_fun.cpp: Removed _UNICODE blocks.
+
+	* src/basic_pro_jmg.cpp, src/libinit.cpp, src/basic_pro.cpp:
+	Removed _UNICODE blocks. Also added new 'wait' implementation on Windows (need test).
+
+	* src/gdlwinstream.cpp: Removed redundant HBITMAP
+
+2015-04-03  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/pro/xmanager.pro, src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp:
+	last batch of widget support --- almost complete now.
+
+	* src/initsysvar.cpp:
+	for some scripts we need to pretend to be better than 6.4 (and we are!)
+
+2015-04-03  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/pro/write_tiff.pro: Naive implementation of write_tiff
+
+	* src/devicewin.cpp, src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Improved redraw code
+
+2015-04-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt: 2 typos found
+
+	* CMakeLists.txt:
+	various changes : test if plplot is ON for wxwidgets, order of IM/GM tests
+
+2015-04-03  pjb7687  <pjb7687@kunbuntu1404>
+
+	* CMakeLists.txt:
+	Changed CMake to link libgomp and libpthread, instead vcomp, with MinGW.
+
+2015-04-02  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/devicewin.cpp, src/devicewin.hpp:
+	Put whole file into #ifdef _WIN32 block.
+
+2015-04-02  alaingdl  <alaingdl@kunbuntu1404>
+
+	* CMakeLists.txt: better message when wXwidgets devel is not available.
+
+2015-04-02  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/file.cpp:
+	Removed _UNICODE. Small correction on FILE_SERACH on Windows.
+
+	* src/devicewin.cpp, src/devicewin.hpp, src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Autoredraw TV image. Corrected several miswritten parts on PaintImage. More corrections are needed.
+
+2015-04-01  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwinstream.cpp: Removed debug purpose cout.
+
+	* src/gdlwinstream.cpp:
+	GIN now accepts mouse click events only in active window. Also paintimage will draw image with proper offset.
+
+	* src/devicewin.cpp: Do not process event if no window opened.
+
+	* src/devicewin.cpp:
+	Rewrote code for setting intitial window size, using plplot intenal functions.
+
+	* src/gdlwinstream.cpp: Changed color code to be unsigned char.
+
+	* src/devicewin.cpp, src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Removed 'resizing' code, which is duplicate with the original (in devicewin.cpp). Instead, set proper MaxSizes. Added code to set window title manually on Windows.
+
+2015-03-31  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/devicewin.cpp, src/devicewin.hpp: Tab correction
+
+	* src/devicewin.cpp, src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Moved resize / move code to WOpen.
+
+	* src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Moved cursor data to gdlwinstream.cpp, in order to support MSVC.
+
+	* src/default_io.cpp: A small patch for the last commit
+
+	* src/gdlwinstream.cpp, src/gdlwinstream.hpp: Tab correction
+
+	* src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Resize/repositions window after drawing image.
+	Calculates more accurate cursor position using proper WINAPIs.
+	Minor cursor correction (cosmetic).
+
+	* src/gdlwinstream.cpp, src/gdlwinstream.hpp:
+	Updated crosshair cursor to be more like as IDL's one. Also removed ClipCursor, which makes wrong behavior.
+
+2015-03-30  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwinstream.cpp: Removed redundant HDC.
+
+	* src/gdlwinstream.cpp:
+	Faster TV using GetDIBits and SetDIBitsToDevice.
+
+	* src/plotting_windows.cpp:
+	Initialize 'retainType' to be a proper value (=0) before using it.
+
+	* src/basic_pro.cpp:
+	On Windows, openr, openw, and openu now open file in binary mode.
+
+2015-03-29  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/str.cpp:
+	std::toupper and std:: tolower -> toupper and tolower for Visual Studio
+
+	* src/includefirst.hpp:
+	Disable error C4716 (function must return a value) for Visual Studio
+
+	* src/file.cpp: Enabled commented part of lib::file_readlink()
+
+	* src/basic_pro.cpp, src/basic_pro.hpp: Tab correction
+
+2015-03-28  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp:
+	improving widget_tree.
+
+2015-03-27  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/ofmt.cpp:
+	lots of change to exactly replicate (all?) the b,o,z,Z,i formatting. solves bug 634. Possible side-effects for windows port, to be tested.
+
+	* testsuite/Makefile.am, testsuite/formats.idl, testsuite/test_formats.pro:
+	added test_formats that test at once quite a large number of format pitfalls...
+
+	* src/file.hpp:
+	added necessary definition of new file_readlink function to permit compilation ;^)
+
+2015-03-27  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/file.cpp: Applied Greg Jung's 'small fix' (2015 Feb 02)
+
+	* src/libinit.cpp:
+	Merging Greg Jung's patch (2015 Jan 28) regarding FILE_SEARCH on Windows, and FILE_READLINK.
+
+	* src/file.cpp:
+	Merging Greg Jung's patch (2015 Jan 28) regarding FILE_SEARCH on Windows, and FILE_READLINK.
+	(except the TEST keywords of FILE_SEARCH, because some part of the code conflicts with the current CVS.)
+
+2015-03-26  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/gdlwidget.cpp: Explicit cast of null pointer to (GDLWidgetBase*)
+
+	* src/devicewin.hpp:
+	Comment out DeviceWIN::WAddFree() which is not implemented yet.
+
+2015-03-25  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gsl_matrix.cpp: patched bug #636
+
+	* src/widget.cpp: removed unwanted reference to wx2.8/popupwin.h
+
+2015-03-25  pjb7687  <pjb7687@kunbuntu1404>
+
+	* src/devicewin.hpp:
+	Added missing declaration of member function DeviceWIN::WAdd().
+
+	* src/file.cpp:
+	Removing S_ISLNK check on Windows. Also fixes bugs on Windows part pattern matching (the original code tries to match two empty array, instead of actual contents).
+
+2015-03-25  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp: bug correction
+
+2015-03-25  pjb7687  <pjb7687@kunbuntu1404>
+
+	* testsuite/CMakeLists.txt: Testsuite patch for Windows
+
+2015-03-25  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/pro/Makefile.am: updated to most recent list of procedures.
+
+	* src/pro/cw_bgroup.pro:
+	incompatible with current widget support (only idl's cw_bgroup works). temporarily removed to avoid problems.
+
+	* src/default_io.cpp, testsuite/Makefile.am, testsuite/idl.xdr, testsuite/test_xdr.pro:
+	fixed all XDR and compressed XDR I/O problems (on linux, that is). reads and writes all types of values, structs etc maintaining compatibility with IDL xdr files. Added test_xdr in testsuite and in make check.
+
+2015-03-23  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_bug_635.f90, testsuite/test_bug_635.pro, testsuite/test_bug_635.dat:
+	added test_bug_635 and related data. Test reading of structs in unformatted fortran data. Not inserted in 'make check' suite, however.
+
+	* src/pro/unxregister.pro:
+	important widget-related procedure to siletly remove a widget in the list of managed widgets.
+
+	* src/basic_pro.cpp, src/dstructgdl.hpp:
+	handles gracefully structures for unformatted fortran IO
+
+2015-03-22  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_pro.cpp:
+	solves bug in readu when reading structs (byte length of struct is not sum of size of elements, due to, e.g., alignment padding)
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp, src/widget.hpp:
+	widgets: added support for context_events and popups.
+
+2015-03-20  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/CMakeLists.txt, src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgetdraw.cpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp:
+	widgets: removed gdlwidgetdraw.cpp (merged in gdlwidget.cpp). GROUP_LEADER OK. WIDGET_TREE partially written. Bugs corrections, etc.
+
+	* src/devicewx.hpp:
+	slightly better version of a pure wxWidgets 'X' device (to be continued, yet incompatible with pure X11 support).
+
+2015-03-16  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlxstream.cpp, src/gdlxstream.hpp:
+	Better patch to speedup plots on X11 in decomposed=1 (practically the default for all displays). Will benefit only simple (line) plots, not filled contours. Goes around the limitation of plplot that handle truecolor or static displays as if they had only 256 colors available...
+
+2015-03-14  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/hdf_fun.cpp, src/hdf_fun.hpp, src/libinit_jmg.cpp:
+	added hdf_ishdf
+
+	* src/hdf5_fun.cpp: h5f_is_hdf5 should not give error message.
+
+2015-03-12  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/devicex.hpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp:
+	patch (to be tested) to speedup plots on X11.
+
+2015-03-11  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	more  widget_control options. removed some code clashing with old versions of wxWidgets.
+
+	* src/graphicsdevice.hpp: more compliant with fussy compilers
+
+	* src/image.cpp: cosmetic changes
+
+2015-03-10  alaingdl  <alaingdl@kunbuntu1404>
+
+	* testsuite/test_moment.pro:
+	because it seems that X11 output have been strongly slow down in "test_moment" since last year (june 2014),
+	I separate the output display type. With set_plot, 'null' we can access to the computation time only.
+
+2015-03-08  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/libinit_jmg.cpp, src/widget.cpp:
+	added widget options delay_destroy, group_leader
+
+2015-03-07  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/devicex.hpp, src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgetdraw.cpp, src/gdlwidgeteventhandler.cpp, src/gdlwxstream.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	much improved widget support. widget_table complete.
+
+	* src/devicewx.hpp: cosmetic change
+
+	* src/hdf5_fun.cpp: use now the true H5F_is_hdf5
+
+	* src/libinit.cpp: cosmetic changes for readability and robustness
+
+	* src/objects.cpp: new structures for widget support
+
+	* src/default_io.cpp, src/dstructgdl.hpp:
+	added ToStreamRaw in default_io to help structure read/write in widget_table (and elsewhere, too)
+
+2015-03-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/base64.hpp, src/basic_fun.cpp, src/gsl_fun.cpp, src/str.cpp:
+	some extra std:: are needed to compile the CVS on OSX 9/10 with CLang 6
+	(std::tolower, std::toupper, std::isspace)
+
+	* src/objects.cpp, src/basic_fun.cpp:
+	preliminary version for SCOPE_TRACEBACK(/structure), but I did not find
+	a way to provide the IS_FUNCTION information : help welcome !
+
+2015-03-02  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/basic_pro.cpp: adding HELP, /PATH, out=out
+
+	* NEWS, src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp:
+	initial import of SCOPE_TRACEBACK(), based on HELP, /traceback.
+	/System and /Structure keywords are not ready. This feature
+	was requested by Nika team (http://ipag.osug.fr/nika2/).
+
+2015-02-25  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/gdlwidget.hpp, src/gdlwidgetdraw.cpp, src/gdlwidgeteventhandler.cpp, src/gdlwxstream.cpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp, src/devicewx.hpp, src/devicex.hpp, src/gdlgstream.hpp, src/gdlwidget.cpp:
+	Large modification for Widgets from G. Duvert.
+	ATV is working fine for me !
+
+2015-02-24  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/image.hpp:
+	this include is needed on some Ubuntu/Debian recent systems (not needed on Fedora ...)
+
+2014-12-28  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_pro.cpp, src/devicewin.cpp, src/devicewin.hpp, src/gdleventhandler.cpp, src/gdlsvgstream.cpp, src/gdlwinstream.cpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/initsysvar.cpp, src/plotting_windows.cpp:
+	Last Windows version patches by Greg Jung
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp:
+	GDL now correctly detects symlinked directories and dangling symlinks. On unix-like systems, anyway.
+
+2014-12-21  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/gdlwidget.cpp: explicit cast apparently needed by some compilers
+
+2014-12-20  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* README: commented about the current widget status.
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgetdraw.cpp, src/gdlwidgeteventhandler.cpp, src/widget.cpp:
+	Removed threading in widgets, resulting in stable performances and causality in crashes;^). Complex widgets are now possible (ex:atv.pro). Creation and destruction of widgets are OK. Table and Tree definitely need more work.
+
+	* src/devicewin.hpp, src/devicewx.hpp, src/devicex.hpp, src/graphicsdevice.cpp, src/graphicsdevice.hpp, src/plotting_windows.cpp:
+	reset number of windows to IDL value. Changed number of 'free' windows (window,/free). A temporary hack, renaming the "WX" device in "MAC", permits to avoid failing a test in coyotegraphics library. "WX", the wxWidgets X-like device should ultimately replace the 'X' device anyway.
+
+	* src/pro/xmanager.pro: catch a possible error
+
+2014-12-03  alaingdl  <alaingdl@kunbuntu1404>
+
+	* NEWS, doc/www/_news.inc.php: updating NEWS file.
+
+	* src/initsysvar.cpp: adding new sys. var. !TRUE and !FALSE
+
+	* src/basic_pro.cpp:
+	temporary patch in HELP,/path when the !path is badbly formated. If a path
+	is several times in !path is not managed now. HELP, /path, output=res
+	is also not ready.
+
+	* src/basic_fun_jmg.cpp, src/libinit_jmg.cpp:
+	in ISA(), adding new keywords : BOOLEAN,INTEGER,FLOAT,COMPLEX,STRING
+
+2014-11-27  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/image.cpp:
+	insure that tvrd always returns data with correct (unPurged) dimensions.
+
+	* src/datatypes.cpp:
+	reset dim.Purge() in array constructors (was a very bad idea to remove them...)
+
+2014-11-24  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_widgets.pro: added several new events
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlwidgetdraw.cpp, src/gdlwidgeteventhandler.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	much improved widget support with all basic facilities present. Needs further work on thread safety and screen updating of widgets.
+
+	* src/pro/cw_bgroup.pro, src/pro/xmanager.pro: corrected bug
+
+	* src/objects.cpp: added new structures for widget events
+
+	* src/plotting.cpp: cosmetic changes to improve readability
+
+	* src/plotting_cursor.cpp: no message
+
+	* src/magick_cl.cpp: use PaletteType instead of magic numbers
+
+	* src/plotting_misc.cpp: correct behaviour of tvlct
+
+	* src/plotting_device.cpp, src/plotting_windows.cpp, src/libinit.cpp:
+	support for DEVICE,/COPY.
+
+	* src/image.cpp, src/image.hpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code for tv(), tvrd().
+
+	* src/graphicsdevice.cpp, src/graphicsdevice.hpp:
+	support for DEVICE,/COPY.
+
+	* src/gdlzstream.hpp, src/gdlzstream.cpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code for tv(), tvrd().
+
+	* src/gdlxstream.cpp, src/gdlxstream.hpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code for tv(), tvrd(). Support for WINDOW,/PIXMAP
+
+	* src/gdlwxstream.cpp, src/gdlwxstream.hpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code for tv(), tvrd().
+
+	* src/gdlgstream.hpp, src/gdlgstream.cpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code. Also, trick silly plplot driver to keep fontsize constant whatever the page size.
+
+	* src/dinterpreter.cpp: patch to have ".s" equivalent to ".step"
+
+	* src/devicex.hpp, src/devicez.hpp, src/devicewx.hpp:
+	removed all instances of TVRD, added DEVICE,/COPY and factorized code.
+
+	* src/deviceps.hpp:
+	trick silly plplot driver to keep fontsize constant whatever the page size.
+
+	* src/datatypes.cpp:
+	removed dim.Purge() in array constructors, since they conflict with several behaviours (like in tvrd). purge of superflous dimensions should be done case-by-case. *This patch may have unwanted effect elsewhere*
+
+	* src/basic_fun.cpp:
+	setting !err to the number of elements of "where" (compatibility with old *DL versions, not doing that creates unexpected problems with old procedures that still use !err).
+
+2014-10-23  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/plotting_convert_coord.cpp:
+	insure coordinate system type are initialised to some default value.
+
+2014-10-13  alaingdl  <alaingdl@kunbuntu1404>
+
+	* doc/www/_news.inc.php: news in GDL web page
+
+	* doc/www/_news.inc.php: 0.9.5 !
+
+2014-10-12  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* testsuite/test_widgets.pro, src/gdlwidget.hpp, src/libinit_jmg.cpp, src/objects.cpp, src/pro/xmanager.pro, src/widget.cpp, src/basic_pro.cpp, src/gdlwidget.cpp, src/gdlwidgetdraw.cpp, src/pro/xregistered.pro:
+	improvements in widgets. see test_widgets.pro as example.
+
+2014-10-11  pjb7687  <pjb7687@kunbuntu1404>
+
+	* CMakeModules/FindXportmingw.cmake, testsuite/CMakeLists.txt, CMakeLists.txt, config.h.cmake:
+	Preliminary Xlib support for Win32
+
+	* src/smooth.cpp: To resolve MSVC's error C2668
+
+2014-10-10  opoplawski  <opoplawski@kunbuntu1404>
+
+	* CMakeLists.txt: Fix Fedora hdf5-devel package name.
+
+2014-10-07  m_schellens  <m_schellens@kunbuntu1404>
+
+	* CMakeLists.txt, ChangeLog: 0.9.5 release
+
+2014-10-07  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/math_fun_jmg.cpp:
+	simplified finite_helper since BaseGDL::ZERO works now.
+
+	* src/initsysvar.cpp:
+	Patched f_nan and d_nan to use the facility of the #NAN macro, see bug #621.
+	Also, !error is not readonly at least from 6.4
+
+2014-10-02  gilles-duvert  <gilles-duvert@kunbuntu1404>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	Added scope_level (works) and pref_set (dummy procedure).
+
+	* testsuite/test_postscript.pro:
+	update to reflect our progress in compatibility. PostScript Image is correctly scaled at the size of the DATA coordinates.
+
+2014-10-02  alaingdl  <alaingdl@kunbuntu1404>
+
+	* src/file.cpp, src/initsysvar.cpp:
+	reverting change in expansion of GDL_PATH. Order in the GDL_PATH is again enforced.
+
+
 GDL 0.9.5:
 2014-10-02  gilles-duvert  <gilles-duvert@ubuntu>
 
