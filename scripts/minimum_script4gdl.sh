@@ -4,6 +4,7 @@
 #
 # Changes:
 # 2015-11-06 : cmake is now in httpS, allow to junp to a given step via $1
+# 2016-01-04 : move to 0.9.6
 #
 # The purpose of this shell script is to compile a minimum GDL
 #
@@ -19,8 +20,8 @@
 # step 2 : GSL
 # step 3 : CMake
 # step 4 : Plplot
-# step 5 : GDL 0.9.5 vanilla
-# step 6 : GDL 0.9.5 CVS
+# step 5 : GDL 0.9.6 vanilla
+# step 6 : GDL 0.9.6 CVS
 #
 step=$1
 if [ -z "$1" ] ; then
@@ -159,13 +160,13 @@ else
     echo "Plplot SKIPPED !"
 fi
 
-# starting GDL : 2 cases : with the CVS or the 0.9.5 vanilla version
+# starting GDL : 2 cases : with the CVS or the 0.9.6 vanilla version
 # we don't need to manage the step here ... (always 5 or 6)
 cd $RACINE
 
 if [ "$gdl_cvs" -eq 1 ] ; then
     echo "preparing to compiled the CVS version"
-    gdl_path='gdl-0.9.5cvs'`date +%y%m%d`
+    gdl_path='gdl-0.9.6cvs'`date +%y%m%d`
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	if [ $use_curl -eq 1 ] ; then
@@ -179,8 +180,8 @@ if [ "$gdl_cvs" -eq 1 ] ; then
     mv gnudatalanguage/gdl $gdl_path
     rmdir gnudatalanguage
 else 
-    echo "preparing to compiled the 0.9.5 version"
-    gdl_path='gdl-0.9.5'
+    echo "preparing to compiled the 0.9.6 version"
+    gdl_path='gdl-0.9.6'
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	if [ $use_curl -eq 1 ] ; then
