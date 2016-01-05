@@ -84,6 +84,12 @@ batch files)
 (only partially working now) setting using external text file few
 variables including default preferences (e.g. X11 Windows Size)
 .TP
+.B \-\-fakerelease version
+setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
+procedures to decide whether some function or option should be used. It is
+sometimes possible to use this option to fool a procedure that request a
+specific value of !VERSION.RELEASE
+.TP
 The \-demo, \-em, \-novm, \-queue, \-rt, \-ulicense and \-vm options
 are ignored for compatibility with IDL.
 .TP
@@ -145,6 +151,30 @@ Override the default location of PLplot dynamic drivers.
 .B LC_*
 The locale\-related settings accessible via LOCALE_GET() (GDL always
 uses the C locale internally)
+.TP
+.B GDL_GR_WIN_HEIGHT
+Sets the preference for the default height of a Windows(tm) graphic window
+.TP
+.B GDL_GR_WIN_QSCREEN
+if set to true (1) this will prevent the use of the GDL_GR_WIN_HEIGHT and GDL_GR_WIN_WIDTH preferences and the default dimensions of graphic windows will be 1/4 of the screen dimensions
+.TP
+.B GDL_GR_WIN_WIDTH
+Sets the preference for the default width of a Windows(tm) graphic window
+.TP
+.B GDL_GR_X_HEIGHT
+Sets the preference for the default height of an X11 graphic window
+.TP
+.B GDL_GR_X_QSCREEN
+if set to true (1) this will prevent the use of the GDL_GR_X_HEIGHT and GDL_GR_X_WIDTH preferences and the default dimensions of graphic windows will be 1/4 of the screen dimensions
+.TP
+.B GDL_GR_X_WIDTH
+Sets the preference for the default width of an X11 graphic window
+.TP
+.B GDL_WX_BACKEND
+can be set to [0,1,2] which will select, respectively, the backends 0,1 or 2 of plplot's old wxWidgets driver (plplot versions < 5.10). Backend 2 has antialiasing enabled.
+.TP
+.B GSHHS_DATA_DIR
+If not automatically found, tells GDL where the gshhs files (coasts rivers, etc) are located.
 .SH BUGS
 Please report bugs, comments, patches or feature requests at
 http://sf.net/projects/gnudatalanguage/
