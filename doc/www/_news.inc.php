@@ -1,8 +1,8 @@
 
 <h2>GDL 0.9.6 released</h2>
 <p> 2016-01-04: GDL 0.9.6 source tarball released.<br />
- <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.6/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>
-
+ <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.6/README/download">release notes</a> | <a href="downloads.php">downloads</a></span><br/>
+2016-01-05: <a href="https://sourceforge.net/projects/gnudatalanguage-win32/">MSwin port</a><br />
 
 <h2>GDL 0.9.5 released</h2>
 <p> 2014-10-12:
