@@ -31,7 +31,7 @@ if (Not KEYWORD_SET(noexpand_path)) then begin
         res=FILE_SEARCH(dir, FILE_BASENAME(source[ii]), /fully)
 
         for jj=0,N_ELEMENTS(res)-1 do begin
-            if(FILE_DIRNAME(res[jj], /MARK_DIRECTORY) eq dir) then flist=[flist, res[jj]] ;
+            if(FILE_DIRNAME(res[jj]) eq dir) then flist=[flist, res[jj]] ;
             ;print, 'dir ', dir, ' res ', FILE_DIRNAME(res[jj])
         endfor
 
