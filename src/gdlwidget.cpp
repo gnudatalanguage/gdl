@@ -395,7 +395,7 @@ BaseGDL* GDLWidget::GetWidgetsList() {
 // Init
 void GDLWidget::Init()
 {
-  wxInitialize( );
+ if( ! wxInitialize( ) ) cerr << "WARNING: wxWidgets not initializing" <<endl;
 }
 // UnInit
 void GDLWidget::UnInit()
@@ -2928,32 +2928,31 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DULong eventFlags_
     style |= wxSL_LABELS;
 #endif
   }
-  wxSlider * slider = new wxSlider( widgetPanel, widgetID, value, minimum, maximum,
-  wxPoint( xOffset, yOffset ),
-  computeWidgetSize( ),
-  style );
+  wxSlider * slider;
+
+  widgetStyle=widgetAlignment();
+  if (title.size()>0){
+    wxBoxSizer *sz = new wxBoxSizer(wxVERTICAL);
+    wxPanel *p = new wxPanel(widgetPanel, wxID_ANY , wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
+    slider = new wxSlider( p, widgetID, value, minimum, maximum, wxPoint( xOffset, yOffset ), computeWidgetSize( ), style );
+    wxStaticText *st=new wxStaticText(p,wxID_ANY,wxString( title.c_str( ), wxConvUTF8 ));
+    sz->Add(slider);
+    sz->Add(st);  
+    p->SetSizer(sz);
+    widgetSizer->Add(p, 0, widgetStyle, 0);
+//      if ((frameWidth>0)) this->FrameWidget(); //do not frame (problems: would need a different widget): already framed by default.
+
+  } else {
+    slider = new wxSlider( widgetPanel , widgetID, value, minimum, maximum, wxPoint( xOffset, yOffset ), computeWidgetSize( ), style );
+    widgetSizer->Add(slider, 0, widgetStyle, 0 ); 
+    widgetStyle=(wxEXPAND | wxALL);
+    if ((frameWidth>0)) this->FrameWidget();
+  } 
   this->wxWidget = slider;
   slider->Connect(widgetID,wxEVT_SCROLL_CHANGED,wxScrollEventHandler(GDLFrame::OnThumbRelease));
   //dynamically select drag, saves resources! (note: there is no widget_control,/drag for sliders)
   if ( eventFlags & GDLWidget::EV_DRAG ) slider->Connect(widgetID,wxEVT_SCROLL_THUMBTRACK,wxScrollEventHandler(GDLFrame::OnThumbTrack));
 
-  widgetStyle=widgetAlignment();
-  if (title.size()>0){
-      wxBoxSizer *sz = new wxBoxSizer(wxVERTICAL);
-      wxPanel *p = new wxPanel(widgetPanel, wxID_ANY , wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
-      slider->Reparent(p);
-      wxStaticText *st=new wxStaticText(p,wxID_ANY,wxString( title.c_str( ), wxConvUTF8 ));
-      sz->Add(slider);
-      sz->Add(st);  
-      p->SetSizer(sz);
-      widgetSizer->Add(p, 0, widgetStyle, 0);
-//      if ((frameWidth>0)) this->FrameWidget(); //do not frame (problems: would need a different widget): already framed by default.
-
-    } else {
-      widgetSizer->Add(slider, 0, widgetStyle, 0 ); 
-      widgetStyle=(wxEXPAND | wxALL);
-      if ((frameWidth>0)) this->FrameWidget();
-    } 
   TIDY_WIDGET;
   UPDATE_WINDOW
 }
@@ -3020,7 +3019,13 @@ const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, D
     } 
     else if( gdlParent->IsButton())
     {
-      if ( dynamic_cast<wxMenu*> (gdlParent->GetWxWidget( )) == NULL ) e->Throw("Parent is of incorrect type.");
+      if ( dynamic_cast<wxMenu*> (gdlParent->GetWxWidget( )) == NULL ) {
+        if (e!=NULL) { 
+          e->Throw("Parent is of incorrect type.");
+        } else { //yes, e may be null. Not here, but for draw windows.
+          cerr<<"Impossible case of null environment, please report to authors!"<<endl;
+        }
+      }
 
         wxMenu *menu = static_cast<wxMenu*> (gdlParent->GetWxWidget( ));
         if (menu) {
@@ -3482,7 +3487,7 @@ bool editable_ )
   topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
   
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
-  long style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|wxHSCROLL|textAlignment();
+  long style = wxTE_NOHIDESEL|wxTE_PROCESS_ENTER|textAlignment();
   if ( ySize > 1 || scrolled ) style |= wxTE_MULTILINE;
 //  else style |= wxTE_NO_VSCROLL;
 
@@ -4038,15 +4043,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   GDLDelete( vValue);
   this->vValue = new DLongGDL(pstreamIx);  
   this->SetSensitive(sensitive);
-//here UPDATE_WINDOW is useful.
-UPDATE_WINDOW  
-//  gdlParent->GetSizer()->Layout();
-//  if(widgetPanel->IsShownOnScreen()) 
-//  {
-//    GDLWidgetBase *tlb=GetTopLevelBaseWidget(this->WidgetID());
-////    tlb->GetSizer()->Layout();
-//    static_cast<wxFrame*>(tlb->GetWxWidget())->Show();
-//  }
+  UPDATE_WINDOW  
 }
 
 void GDLWidgetDraw::AddEventType( DULong evType){
