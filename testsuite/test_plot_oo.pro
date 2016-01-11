@@ -13,6 +13,9 @@
 ; - a way to count the type is used
 ; - PS or SVG outputs
 ;
+; 2016-01-11 AC : better way to manage if GDL not compile with X11
+;                 preparing WIN tests (not checked)
+;
 pro INIT_DATA, x, y, range
 ;
 x=FINDGEN(100)+1
@@ -145,20 +148,44 @@ save_dname=!d.name
 ;
 errors=0
 ;
-SET_PLOT, 'X'
-if (!d.name NE 'NULL') OR (GETENV('DISPLAY') NE '') then begin
-    TEST_PLOT_OO_CALL, errors
-endif
+test=EXECUTE('SET_PLOT, ''X''')
+if (test) then begin
+   if (!d.name NE 'NULL') OR (GETENV('DISPLAY') NE '') then begin
+      TEST_PLOT_OO_CALL, errors
+      print, 'X11 tests done !'
+   endif else begin
+      print, 'GDL compiled with X11 support but we got a problem (Display ?)'
+   endelse
+endif else begin
+   print, 'X11 tests not done, GDL compiled without X11 support'
+endelse
+;
+test=EXECUTE('SET_PLOT, ''WIN''')
+if (test) then begin
+   if (!d.name NE 'NULL') OR (GETENV('DISPLAY') NE '') then begin
+      TEST_PLOT_OO_CALL, errors
+      print, 'WIN tests done !'
+   endif else begin
+      print, 'GDL compiled with WIN support but we got a problem (Display ?)'
+   endelse
+endif else begin
+   print, 'WIN tests not done, GDL compiled without WIN support'
+endelse
 ;
 ; IDL/FL don't have SVG
 DEFSYSV, '!gdl', exists=exists
 if (exists) then begin
-    SET_PLOT, 'svg'
-    TEST_PLOT_OO_CALL, errors
-endif
+   SET_PLOT, 'svg'
+   TEST_PLOT_OO_CALL, errors
+   print, 'SVG tests done !'
+endif else begin
+   print, 'no test within SVG output'
+endelse
 ;
+; this mode should be always available
 SET_PLOT, 'ps'
 TEST_PLOT_OO_CALL, errors
+print, 'PS tests done !'
 ;
 ; reset the initial !p env.
 ;
