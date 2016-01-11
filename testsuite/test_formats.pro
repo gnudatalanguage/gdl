@@ -104,7 +104,17 @@ soft=GDL_IDL_FL(/verbose)
 ;
 GENERATE_FORMATS_FILE, nb_cases, verbose=verbose
 ;
-if (soft NE 'idl') AND ~FILE_TEST("formats.idl") then MESSAGE, "missing reference file <<formats.idl>>"
+; locating then read back the reference idl.xdr:
+;
+filename='formats.idl'
+list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+file_fmt_idl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+;
+if (soft NE 'idl') AND ~FILE_TEST(file_fmt_idl) then begin
+    MESSAGE, 'reference file <<'+filename+'>> not found in the !PATH', /continue
+    if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
+    EXIT, status=1
+endif
 ;
 if (soft EQ 'idl') then begin
    if ~FILE_TEST("formats.gdl") then MESSAGE, /cont, "missing file <<formats.gdl>>"
