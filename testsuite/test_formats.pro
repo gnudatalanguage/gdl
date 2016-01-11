@@ -13,6 +13,10 @@
 ;    is OK for negative input, wrong for positive one !!
 ; -- extra "\ ^J" added in GDL between the Re/Im parts for (D)Complex
 ;
+; Changes: 
+; 2016-01612 : AC various changes for better managing paths,
+;              expecially for Cmake automatic tests !
+;
 ; md5sum of current version of "formats.idl" (-1 et 12 ...)
 ; 5d1cfbc31312a833f62033e297f986a2  formats.idl
 ;
@@ -53,7 +57,10 @@ end
 pro GENERATE_FORMATS_FILE, nb_cases, verbose=verbose, test=test
 ;
 filename='formats.'+GDL_IDL_FL()
-;
+if FILE_TEST(filename) then begin
+    FILE_MOVE, filename, filename+'_old', /overwrite
+    MESSAGE,/cont, 'Copy of old file <<'+filename+'_old'+'>> done.'
+endif
 ; value to be write : one negative, one positive
 ;
 struct_neg = {BYTE:-1b,short:-1us,ushort:-1us, $
@@ -106,25 +113,51 @@ GENERATE_FORMATS_FILE, nb_cases, verbose=verbose
 ;
 ; locating then read back the reference idl.xdr:
 ;
+; we need to add the current dir. into the path because new file(s)
+; are writtent in it. Do we have a simple way to check whether a dir
+; is already in !PATH ?
+;
+CD, current=current
+new_path=!path+PATH_SEP(/SEARCH_PATH)+current
+list_of_dirs=STRSPLIT(new_path, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+;
+; only this reference file is mandatory !
+;
 filename='formats.idl'
-list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
 file_fmt_idl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
 ;
-if (soft NE 'idl') AND ~FILE_TEST(file_fmt_idl) then begin
+if (soft NE 'idl') AND (STRLEN(file_fmt_idl) EQ 0) then begin
     MESSAGE, 'reference file <<'+filename+'>> not found in the !PATH', /continue
     if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
     EXIT, status=1
 endif
+if N_ELEMENTS(file_fmt_idl) GT 1 then print, 'multiple reference file <<'+filename+'>> found !'
+file_fmt_idl=file_fmt_idl[0]
+;
+filename='formats.gdl'
+file_fmt_gdl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+if N_ELEMENTS(file_fmt_gdl) GT 1 then begin
+    print, 'multiple reference file <<'+filename+'>> found ! First used !!'
+    print, TRANSPOSE(file_fmt_gdl)
+    file_fmt_gdl=file_fmt_gdl[0]
+endif
+;
+filename='formats.fl'
+file_fmt_fl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+if N_ELEMENTS(file_fmt_fl) GT 1 then begin
+    print, 'multiple reference file <<'+filename+'>> found !'
+    print, TRANSPOSE(file_fmt_fl)
+    file_fmt_fl=file_fmt_fl[0]
+endif
 ;
 if (soft EQ 'idl') then begin
-   if ~FILE_TEST("formats.gdl") then MESSAGE, /cont, "missing file <<formats.gdl>>"
-   if ~FILE_TEST("formats.fl") then MESSAGE, /cont, "missing file <<formats.fl>>"
-   if ~FILE_TEST("formats.gdl") AND ~FILE_TEST("formats.fl") then begin
-      MESSAGE, /cont, "No useful file found for comparison. Just Reference file written."
-   endif
-   if FILE_TEST("formats.gdl") then soft='gdl' else begin
-         if FILE_TEST("formats.fl") then soft='fl'
-   endelse
+    soft=''
+    if ~FILE_TEST(file_fmt_fl) then MESSAGE, /cont, "missing file <<formats.fl>>" else soft='fl'
+    if ~FILE_TEST(file_fmt_gdl) then MESSAGE, /cont, "missing file <<formats.gdl>>" else soft='gdl'
+    if (soft EQ '') then begin
+        MESSAGE, /cont, "No useful file found for comparison. Just Reference file written."
+        return
+    endif
 endif
 ;
 ; reading back the 2 files : one created ("formats.gdl" or
@@ -133,9 +166,10 @@ endif
 print, "Files to be compared : formats.idl, formats."+soft
 ;
 GET_LUN, lun1
-OPENR, lun1, "formats.idl"
+OPENR, lun1, file_fmt_idl
 GET_LUN, lun2
-OPENR, lun2, "formats."+soft
+if (soft EQ 'gdl') then OPENR, lun2, file_fmt_gdl
+if (soft EQ 'fl') then OPENR, lun2, file_fmt_fl
 ;
 ref=STRING("")
 val=STRING("")
@@ -165,7 +199,7 @@ CLOSE, lun1, lun2
 FREE_LUN, lun1, lun2
 ;
 if (nb_errors GT 0) then begin
-   MESSAGE, /continue, 'Using a "diff formats.idl formats.gdl" in a shell'
+   MESSAGE, /continue, 'Using a "diff formats.idl formats.{gdl|fl}" in a shell'
    MESSAGE, /continue, 'should help to debug !'
 endif
 ;
