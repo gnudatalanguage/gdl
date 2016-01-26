@@ -54,20 +54,31 @@ BYTE XORmaskCursor[128] =
 
 GDLWINStream::~GDLWINStream()
 {
-	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+//
+// wingdi.c is a plplot driver in development which may
+// in future be preferable to the use of wingcc.
+// The macro USE_WINGDI_NOT_WINGCC is sufficient to
+// accomodate that driver in this same code 
+// that uses wingcc.c.  GetHwnd() and GetHdc() allow
+// access to the window and device context handles,
+// respectively, for either case.
+//
 	if (tv_buf.has_data) {
 		tv_buf.has_data = false;
 		delete[] tv_buf.lpbitmap;
 	}
-	DestroyWindow(dev->hwnd); // Manually destroy window
+	DestroyWindow(GetHwnd()); // Manually destroy window
 }
 
 void GDLWINStream::Init()
 {
 	this->plstream::init();
 	plgpls(&pls);
+#ifdef USE_WINGDI_NOT_WINGCC
+#else
 	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 	dev->waiting = 1;
+#endif
 	UnsetFocus();
 	tv_buf.has_data = false;
 
@@ -76,11 +87,8 @@ void GDLWINStream::Init()
 }
 
 void GDLWINStream::SetWindowTitle(char* buf) {
-	wchar_t wbuf[256] = { 0, };
-	MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, 256);
-	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
 
-	SetWindowTextW(dev->hwnd, wbuf);
+	SetWindowTextA(GetHwnd(), buf);
 }
 
 void GDLWINStream::EventHandler()
@@ -107,44 +115,56 @@ void GDLWINStream::EventHandler()
     }
 #endif
 }
+void GDLWINStream::Load_gin(HWND window){
+    RECT rcClient;
+
+    GetClientRect(window, &rcClient);
+    ScreenToClient(window, &GinPoint);
+    _gin->pX = GinPoint.x;
+    _gin->pY = (rcClient.bottom - rcClient.top) - GinPoint.y;
+    if (xbutton) _gin->button = 4; else
+        if (rbutton) _gin->button = 3; else
+            if (mbutton) _gin->button = 2;
+    _gin->dX = ((PLFLT)_gin->pX) / (rcClient.right - rcClient.left - 1);
+    _gin->dY = ((PLFLT)_gin->pY) / (rcClient.bottom - rcClient.top - 1);
+	return;
+}
 
 void CALLBACK GDLWINStream::GinCallback(UINT message, WPARAM wParam, LPARAM lParam) {
-    wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+    HWND window = GetHwnd();
     RECT rcClient;
 
     _gin->button = 0;
     buttonpressed = false; rbutton = false; xbutton = false; mbutton = false;
 
-    GetClientRect(dev->hwnd, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
-    ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.left); // http://support.microsoft.com/en-us/kb/11570
-    ClientToScreen(dev->hwnd, (LPPOINT)&rcClient.right);
+    GetClientRect(window, &rcClient); // https://msdn.microsoft.com/library/windows/desktop/ms633503%28v=vs.85%29.aspx
+    ClientToScreen(window, (LPPOINT)&rcClient.left); // http://support.microsoft.com/en-us/kb/11570
+    ClientToScreen(window, (LPPOINT)&rcClient.right);
 
     switch (message)
     {
-        case WM_XBUTTONDOWN:  xbutton = true;
-        case WM_RBUTTONDOWN:  rbutton = true;
-        case WM_MBUTTONDOWN:  mbutton = true;
+        case WM_XBUTTONDOWN:  xbutton = true; break;
+        case WM_RBUTTONDOWN:  rbutton = true; break;
+        case WM_MBUTTONDOWN:  mbutton = true; break;
         case WM_LBUTTONDOWN:
-            if (wParam != MK_LBUTTON && wParam != MK_MBUTTON && wParam != MK_RBUTTON && wParam != MK_XBUTTON1 && wParam != MK_XBUTTON1)
+            if (wParam != MK_LBUTTON && wParam != MK_MBUTTON && 
+	        wParam != MK_RBUTTON && wParam != MK_XBUTTON1 && wParam != MK_XBUTTON1)
                 return;
             if (_mode == 4) break;   // Looking for button up
             _gin->button = 1;
-            GetCursorPos(&GinPoint);
             buttonpressed = true;
             break;
-        case WM_XBUTTONUP:	xbutton = true;
-        case WM_RBUTTONUP:	rbutton = true;
-        case WM_MBUTTONUP:  mbutton = true;
+        case WM_XBUTTONUP:	xbutton = true; break;
+        case WM_RBUTTONUP:	rbutton = true; break;
+        case WM_MBUTTONUP:  mbutton = true;  break;
         case WM_LBUTTONUP:
             if (wParam != MK_LBUTTON && wParam != MK_MBUTTON && wParam != MK_RBUTTON && wParam != MK_XBUTTON1 && wParam != MK_XBUTTON1)
                 return;
             if (_mode == 3) break;  // Looking for button down
             _gin->button = 1;
-            GetCursorPos(&GinPoint);
             buttonpressed = true;
             break;
         case WM_CHAR:
-            GetCursorPos(&GinPoint);
             _gin->keysym = wParam;
             buttonpressed = true;
             break;
@@ -154,20 +174,19 @@ void CALLBACK GDLWINStream::GinCallback(UINT message, WPARAM wParam, LPARAM lPar
                 buttonpressed = true;
             }
     }
-    if (!buttonpressed || rcClient.left > GinPoint.x || GinPoint.x > rcClient.right || rcClient.top > GinPoint.y || GinPoint.y > rcClient.bottom)
-    {
+    if (_mode == 2)  buttonpressed = true;
+    GetCursorPos(&GinPoint);
+    if (!buttonpressed ||
+		 rcClient.left > GinPoint.x ||
+         GinPoint.x > rcClient.right ||
+		 rcClient.top > GinPoint.y    ||
+		GinPoint.y > rcClient.bottom)
+    			{
         buttonpressed = false;
         return;
-    }
-
-    ScreenToClient(dev->hwnd, &GinPoint); // https://msdn.microsoft.com/library/windows/desktop/dd162952%28v=vs.85%29.aspx
-    _gin->pX = GinPoint.x;
-    _gin->pY = (rcClient.bottom - rcClient.top) - GinPoint.y;
-    if (xbutton) _gin->button = 4; else
-        if (rbutton) _gin->button = 3; else
-            if (mbutton) _gin->button = 2;
-    _gin->dX = ((PLFLT)_gin->pX) / (rcClient.right - rcClient.left - 1);
-    _gin->dY = ((PLFLT)_gin->pY) / (rcClient.bottom - rcClient.top - 1);
+    			}
+	Load_gin(window);
+	return;
 }
 
 bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
@@ -175,18 +194,25 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
     _gin = gin;
     _mode = mode;
 
-	// plstream::cmd( PLESC_GETC, gin );
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+	HWND window = GetHwnd();
 
 	HCURSOR    previous;
 
-    UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-	HWND resetFG;
-	resetFG = GetForegroundWindow();
+	UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+ 	HWND resetFG = GetForegroundWindow();
 
-    previous = SetCursor(CrosshairCursor);
-    SetClassLongPtr(dev->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(CrosshairCursor));
-    SetWindowPos(dev->hwnd, HWND_TOP, 0, 0, 0, 0, SWP);
+	previous = SetCursor(CrosshairCursor);
+	SetClassLongPtr(window, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(CrosshairCursor));
+    BringWindowToTop(window);
+
+
+	if(_mode == 0) {
+        GetCursorPos(&GinPoint);
+        buttonpressed = true;
+	    Load_gin(window);
+	    SetCursor(previous); Sleep(2);
+	    return true;	
+	    }
 
     buttonpressed = false;
     msghooks[WM_XBUTTONDOWN] = &GDLWINStream::GinCallback;
@@ -222,7 +248,7 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 	SetCursor(previous);
 
 	Sleep(2);
-	BringWindowToTop(dev->hwnd);
+	BringWindowToTop(window);
 	Sleep(2);
 	SetFocus(resetFG);
 
@@ -234,10 +260,6 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 {
 	plstream::cmd(PLESC_FLUSH, NULL);
 	
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-
-	HDC hdc = dev->hdc;
-	HDC hMemDC;
 
 	RECT rt;
 
@@ -257,7 +279,7 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 	if (nx > 0 && ny > 0) {
 		unsigned char iclr1, ired, igrn, iblu;
 
-		GetClientRect(dev->hwnd, &rt);
+		GetClientRect(GetHwnd(), &rt);
 		if (tv_buf.has_data && (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -(tv_buf.bi.bmiHeader.biHeight) != rt.bottom + 1))
 		{
 			// Resize tv_buf.lpbitmap
@@ -328,9 +350,9 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 				} // if (tru == 0  && chan == 0) else
 			} // for() inner (indent error)
 		} // for() outer
-		SetDIBitsToDevice(hdc, 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+		SetDIBitsToDevice(GetHdc(), 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
 
-		BringWindowToTop(dev->hwnd);
+		BringWindowToTop(GetHwnd()); UnsetFocus();
 		tv_buf.has_data = true;
 	}
 	return true;
@@ -338,26 +360,26 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 
 void GDLWINStream::Raise()
 {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	BringWindowToTop(dev->hwnd);
+  BringWindowToTop(GetHwnd());
 	return;
 }
 void GDLWINStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
 	// GetGeometry is called from
 	//  1. 'plotting_contour.cpp' to calculate plot area,
 	//  2. 'initsysvar.cpp' to update '!D'.
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
 
 	// http://support.microsoft.com/en-us/kb/11570
 	RECT Rect;
-	GetClientRect(dev->hwnd, &Rect);
-	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.left);
-	ClientToScreen(dev->hwnd, (LPPOINT)&Rect.right);
+    HWND window = GetHwnd();
+	GetClientRect(window, &Rect);
+	ClientToScreen(window, (LPPOINT)&Rect.left);
+	ClientToScreen(window, (LPPOINT)&Rect.right);
 
 	xSize = Rect.right - Rect.left + 1;
 	ySize = Rect.bottom - Rect.top + 1;
 	xoff = Rect.left;
 	yoff = GetSystemMetrics(SM_CYSCREEN) - Rect.bottom;
+    return;
 }
 bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
 	/* 
@@ -367,10 +389,10 @@ bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
 	 containing the (X,Y) position of the lower left corner of the current window
 	 on the screen. The origin is also in the lower left corner of the screen.
 	*/
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+
 	RECT rt;
 
-	GetWindowRect(dev->hwnd, &rt);
+	GetWindowRect(GetHwnd(), &rt);
 	xpos = rt.left + 1;
 	ypos = GetSystemMetrics(SM_CYSCREEN) - rt.bottom + 1;
 
@@ -379,29 +401,30 @@ bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
 
 void GDLWINStream::Lower()
 {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	UINT SWP = (SWP_NOMOVE | SWP_NOSIZE);
-	SetWindowPos(dev->hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP);
+
+  SetWindowPos(GetHwnd(), HWND_BOTTOM,
+    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE));
+
 	return;
 }
 
 void GDLWINStream::Iconic() {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_HIDEWINDOW);  // this does nothinc
-	SetWindowPos(dev->hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP);
+
+
+  SetWindowPos(GetHwnd(), HWND_BOTTOM,
+    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_HIDEWINDOW));
+  return;
 	return;
 }
 
 void GDLWINStream::DeIconic() {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	UINT SWP = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-	SetWindowPos(dev->hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP);
-	return;
+
+  SetWindowPos(GetHwnd(), HWND_BOTTOM,
+    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW));  return;
 
 }
 void GDLWINStream::CheckValid() {
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	if (!IsWindow(dev->hwnd)) this->SetValid(false);
+  if(!IsWindow(GetHwnd())) this->SetValid(false);
 }
 
 void GDLWINStream::Flush() {
@@ -409,8 +432,7 @@ void GDLWINStream::Flush() {
 }
 
 DLong GDLWINStream::GetVisualDepth(){
-	wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
-	return GetDeviceCaps(dev->hdc, PLANES);
+  return GetDeviceCaps(GetHdc(),PLANES);
 }
 
 unsigned long  GDLWINStream::GetWindowDepth(){
@@ -436,32 +458,52 @@ void GDLWINStream::Clear()
       green0=GraphicsDevice::GetDevice()->BackgroundG();
       blue0=GraphicsDevice::GetDevice()->BackgroundB();
       plstream::scolbg(red0,green0,blue0); //overwrites col[0]
-      ::c_plbop();
-      ::c_plclear();
+	::c_plbop();
+ //     ::c_plclear();
       plstream::scolbg(red,green,blue); //resets col[0]
 }
 
 HWND GDLWINStream::GetHwnd()
 {
+
 	if (pls) {
-		wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+       #ifdef USE_WINGDI_NOT_WINGCC
+        	wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
+        #else
+        	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+        #endif
+
 		if (dev)
 			return dev->hwnd;
 		else
 			return 0;
+	}
+
+}
+HDC GDLWINStream::GetHdc()
+{
+
+	if (pls) {
+        #ifdef USE_WINGDI_NOT_WINGCC
+        	wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
+        #else
+        	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+        #endif
+		if (dev)	return dev->hdc;
+		else return 0;
 	}
 	else return 0;
 }
 
 void GDLWINStream::RedrawTV()
 {
-    if (!valid) return;
-    wingcc_Dev *dev = (wingcc_Dev *)pls->dev;
+	RECT rt;
+    HWND tvwnd = GetHwnd();
+
     // If tv_buf has data, draw it on screen
-    if (tv_buf.has_data && dev->hwnd)
+	if (tv_buf.has_data && tvwnd)
 	{
-        RECT rt;
-		GetClientRect(dev->hwnd, &rt);
+	    GetClientRect(tvwnd, &rt);
 		if (tv_buf.bi.bmiHeader.biWidth != rt.right + 1 || -tv_buf.bi.bmiHeader.biHeight != rt.bottom + 1)
 		{
 			// Resize tv_buf.lpbitmap
@@ -475,6 +517,6 @@ void GDLWINStream::RedrawTV()
 			tv_buf.bi.bmiHeader.biWidth = rt.right + 1;
 			tv_buf.bi.bmiHeader.biHeight = -(rt.bottom + 1);
 		}
-		SetDIBitsToDevice(dev->hdc, 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
+		SetDIBitsToDevice(GetHdc(), 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
 	}
 }

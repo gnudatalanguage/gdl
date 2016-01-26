@@ -25,12 +25,35 @@
 #define GDLWINSTREAM_HPP_
 
 #include "gdlgstream.hpp"
+/* 
+  For mingw-org, setting WINVER to at least Win2k (windef.h)
+  This is required for the cursor callback method.
+*/
+#ifndef WINVER
+#  define WINVER 0x0500
+#else
+#  if (WINVER < 0x0500)
+#    define WINVER 0x0500
+#  endif
+#endif
+
 #include <Windows.h>
 #include <map>
 
+#ifdef USE_WINGDI_NOT_WINGCC
+
+struct wingdi_Dev
+{
+    //
+    // WIN32 API variables
+    //
+	HWND     	  hwnd;       // Handle for the plot area
+	HDC               hdc;        // Plot window device context
+};
+
+#else
 // Copied from wingcc.c
 // Struct to hold device-specific info.
-
 struct wingcc_Dev
 {
 	PLFLT scale;                     // scaling factor to "blow up" to the "virtual" page in removing hidden lines
@@ -74,6 +97,7 @@ struct wingcc_Dev
 	char              already_erased;  // Used to track first and only first backgroudn erases
 	struct wingcc_Dev  *push;
 };
+#endif
 
 typedef struct {
 	BITMAPINFO bi;
@@ -96,15 +120,21 @@ private:
     PLGraphicsIn *_gin;
     POINT GinPoint;
     HCURSOR CrosshairCursor;
-    bool rbutton, xbutton, mbutton, buttonpressed = false;
+    bool rbutton, xbutton, mbutton, buttonpressed;
 public:
     std::map<UINT, void (CALLBACK GDLWINStream::*)(UINT, WPARAM, LPARAM)> msghooks;
 
 	GDLWINStream(int nx, int ny) :
+#ifdef USE_WINGDI_NOT_WINGCC
+		GDLGStream(nx, ny, "wingdi")
+#else
 		GDLGStream(nx, ny, "wingcc")
+#endif
 	{
 		pls = 0;
 		// get the command interpreter window's handle
+//		plsetopt("drvopt","nofocus"); // avoid stealing focus on window creation
+//		plsetopt("drvopt","text");  // use freetype fonts
 		refocus = GetForegroundWindow();
 	}
 
@@ -139,6 +169,8 @@ public:
 
 	void SetWindowTitle(char* buf);
 	HWND GetHwnd(void);
+	HDC GetHdc(void);
+    void Load_gin(HWND window);
 	void RedrawTV();
 
     void CALLBACK GinCallback(UINT message, WPARAM wParam, LPARAM lParam);
