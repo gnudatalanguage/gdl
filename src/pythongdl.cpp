@@ -537,6 +537,15 @@ extern "C" {
     // instantiate the interpreter (creates $MAIN$ environment)
     interpreter = new DInterpreter();
 
+    // Ole: enable GDL PATH!
+    string gdlPath=GetEnvString("GDL_PATH");
+    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
+    if( gdlPath == "")
+      {
+        gdlPath = "+" GDLDATADIR "/lib";
+      }
+    SysVar::SetGDLPath( gdlPath);
+    
     PyObject* m = Py_InitModule("GDL", GDLMethods);
 
     gdlError = PyErr_NewException((char*)"GDL.error", NULL, NULL);
