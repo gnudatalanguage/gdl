@@ -257,6 +257,12 @@ namespace lib {
 #   define stat64 stat
 #   define lstat64(x,y) stat(x,y) 
 #else
+      // Patch by Greg Jung: Using _stati64 is acceptable down to winXP version and will
+      // result in a 64-bit st_size for both mingw-org and for mingw-w64.
+      // The times st_atime, st_mtime, etc. will be 32-bit in mingw-org.
+      #ifndef stat64 /* case of mingw-org .vs. mingw-w64 */
+      # define stat64 _stati64
+      #endif
 #    define lstat64(x,y) stat64(x,y)
 #endif
 
