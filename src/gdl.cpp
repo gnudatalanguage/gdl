@@ -17,9 +17,6 @@
 
 #include "includefirst.hpp"
 
-// should (Makefile.am) not be used anyway for the python module
-#ifndef PYTHON_MODULE
-
 // #ifndef VERSION
 // #define VERSION "0.9"
 // #endif
@@ -174,7 +171,7 @@ void InitGDL()
 
 // SA: for use in COMMAND_LINE_ARGS()
 namespace lib {
-  std::vector<char*> command_line_args;
+  extern std::vector<char*> command_line_args;
 }
 
 int main(int argc, char *argv[])
@@ -386,5 +383,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
-#endif

@@ -98,6 +98,9 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 #endif
 
 namespace lib {
+  
+  // for use in COMMAND_LINE_ARGS()
+  std::vector<char*> command_line_args;
 
   //  using namespace std;
   using std::isnan;
@@ -6690,11 +6693,7 @@ namespace lib {
   //     defined and filled with data (pointers) in gdl.cpp
   BaseGDL* command_line_args_fun(EnvT* e)
   {
-#ifdef PYTHON_MODULE
-    e->Throw("no command line arguments available (GDL built as a Python module)");
-#else
     static int countIx = e->KeywordIx("COUNT");
-    extern std::vector<char*> command_line_args; 
 
     // setting the COUNT keyword value
     if (e->KeywordPresent(countIx))
@@ -6712,7 +6711,6 @@ namespace lib {
 	  (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
 	return ret;
       }
-#endif
   }
 
   // SA: relies in the uname() from libc (must be there if POSIX)
