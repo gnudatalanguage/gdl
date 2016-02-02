@@ -31,9 +31,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-//#else
-//#error "config.h required. Compile with -DHAVE_CONFIG_H"
-//#endif
 #ifdef _MSC_VER
 #define NOMINMAX
 #define _WINSOCKAPI_
@@ -43,22 +40,11 @@
 // Python.h must be included before everything else
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
-// save HAVE_LIBREADLINE status (Python.h defines HAVE_LIBREADLINE)
 #ifndef HAVE_LIBREADLINE
 #define GDL_NOT_HAVE_READLINE
 #endif
 
-//#undef _POSIX_C_SOURCE // get rid of warning
 #include <Python.h>
-//#ifndef _POSIX_C_SOURCE 
-//#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
-//#endif
-
-// for the python module pyhton's readline is used
-// this is ok as long as there is no GDL prompt within python
-#ifdef PYTHON_MODULE
-#undef HAVE_LIBREADLINE
-#endif
 
 #ifdef GDL_NOT_HAVE_READLINE
 #undef HAVE_LIBREADLINE
@@ -66,7 +52,6 @@
 
 #undef GDL_NOT_HAVE_READLINE
 
-//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 #endif
 
 #if defined(USE_EIGEN)
