@@ -235,7 +235,7 @@ private:
   
   Guard& operator=( Guard& r)
   {
-    if( &r == this) return;
+    if( &r == this) return *this;
     delete guarded;
     guarded = r.guarded;
     r.guarded = NULL;
