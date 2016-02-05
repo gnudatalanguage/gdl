@@ -824,6 +824,7 @@ void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
 
   //const DStructGDL* srcArr=static_cast<const DStructGDL*>(srcIn->Convert2( t));
   dimension srcDim=srcIn->Dim();
+  srcDim.Purge(); // newly inserted: variant of ticket #675
     
   //  SizeT nDim   =RankIx(ixDim.Rank());
   SizeT srcNDim=RankIx(srcDim.Rank()); // number of source dimensions

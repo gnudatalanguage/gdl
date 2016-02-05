@@ -3812,6 +3812,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   nDim--;
 
   dimension srcDim=srcIn->Dim();
+  srcDim.Purge(); // newly inserted: ticket #675
   SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
 
   //  SizeT nDim   =RankIx(ixDim.Rank());  

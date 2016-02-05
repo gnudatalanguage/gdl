@@ -116,6 +116,7 @@ void Data_<SpDPtr>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   nDim--;
 
   dimension srcDim=srcIn->Dim();
+  srcDim.Purge(); // newly inserted: variant of ticket #675
   SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
 
   //  SizeT nDim   =RankIx(ixDim.Rank());
@@ -231,6 +232,7 @@ void Data_<SpDObj>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   nDim--;
 
   dimension srcDim=srcIn->Dim();
+  srcDim.Purge(); // newly inserted: variant of ticket #675
   SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
 
   //  SizeT nDim   =RankIx(ixDim.Rank());
