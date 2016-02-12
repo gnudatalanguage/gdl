@@ -1172,11 +1172,18 @@ namespace lib {
   BaseGDL* string_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-
+    
     if( nParam == 0)
       e->Throw( "Incorrect number of arguments.");
+    
+    // AC 2016/02/12 we check now here if params are defined to avoid future problems
+    // print, string(kk, 12, ee) said "ee" undefined because of VMS hack (should say kk undefined before !)
+    // print, string(kk, 12, ee, format='()') did not complains
+    //
+    for (SizeT i=0; i<nParam; ++i)
+      BaseGDL* p = e->GetParDefined( i);
 
-    bool printKey =  e->KeywordSet( 4);
+    bool printKey =  e->KeywordSet("PRINT");
     int parOffset = 0; 
 
     // SA: handling special VMS-compatibility syntax, e.g.: string(1,'$(F)')
@@ -1199,7 +1206,7 @@ namespace lib {
 	  }    
       }    
 
-    BaseGDL* format_kw = e->GetKW( 0);
+    BaseGDL* format_kw = e->GetKW("FORMAT");
     bool formatKey = format_kw != NULL;
 
     if (formatKey && format_kw->Type() == GDL_STRING && (*static_cast<DStringGDL*>(format_kw))[0] == "") formatKey = false;
