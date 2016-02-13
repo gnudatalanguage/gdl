@@ -1204,9 +1204,10 @@ namespace lib {
 						       ));
 	      }
 	  }    
-      }    
-
-    BaseGDL* format_kw = e->GetKW("FORMAT");
+      }
+    
+    int formatIx=e->KeywordIx ("FORMAT"); 
+    BaseGDL* format_kw = e->GetKW(formatIx);
     bool formatKey = format_kw != NULL;
 
     if (formatKey && format_kw->Type() == GDL_STRING && (*static_cast<DStringGDL*>(format_kw))[0] == "") formatKey = false;
