@@ -70,6 +70,7 @@ TESTS = \
   test_bug_n000607.pro \
   test_bug_n000608.pro \
   test_call_function.pro \
+  test_call_function_extra.pro \
   test_call_procedure.pro \
   test_call_procedure_extra.pro \
   test_ce.pro \
