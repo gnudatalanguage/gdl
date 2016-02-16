@@ -88,21 +88,26 @@ public:
     listEnv.push_back(val);
   }
 
+  //previous version used class String_abbref_eq = find first occurence of string starting with name
+  //however this may be good for cases where _extra passes arguments are function keywords (disambiguation)
+  //but certainly not for _extra passing variables, e.g., in the following case
+  //extra={a:[1,2],aa:33L} one needs to find what is pointed by a and not by aa which may be returned first
+  //if we use String_abbref_eq. String_eq on the contrary calls for the *exact* match.
   int Find( const std::string& name)
   {
-    String_abbref_eq strAbbrefEq_name(name);
+    String_eq strEq_name(name);
 
     // search keyword
     IDList::iterator f=std::find_if(listName.begin(),
 			       listName.end(),
-			       strAbbrefEq_name);
+			       strEq_name);
     if( f == listName.end()) return -1;
 
     // Note: there might be duplicate extra keyword names, return first one
 //     // continue search (for ambiguity)
 //     IDList::iterator ff=std::find_if(f+1,
 // 				listName.end(),
-// 				strAbbrefEq_name);
+// 				strEq_name);
 //     if( ff != listName.end())
 //       {
 // 	throw GDLException("Ambiguous keyword abbreviation in _EXTRA: "+name);

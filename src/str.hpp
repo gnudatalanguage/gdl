@@ -93,6 +93,17 @@ public:
   }
 };
 
+class String_eq: public std::unary_function< std::string, bool>
+{
+  std::string s;
+public:
+  explicit String_eq(const std::string& s_): s(s_) {}
+
+  bool operator() (const std::string& p) const 
+  {
+    return p == s;
+  }
+};
 // replacement for library routine 
 // double strtod( const char* cStart, char** cEnd);
 // to hanlde d/D instead of e/E (e. g. 1.2D5)
