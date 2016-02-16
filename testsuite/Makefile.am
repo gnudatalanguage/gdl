@@ -109,6 +109,7 @@ TESTS = \
   test_get_screen_size.pro \
   test_grib.pro \
   test_hist_2d.pro \
+  test_hdf5.pro \
   test_idl8.pro \
   test_idl_validname.pro \
   test_image_statistics.pro \
