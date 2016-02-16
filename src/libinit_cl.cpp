@@ -57,6 +57,9 @@ void LibInit_cl()
   new DLibFunRetNew(lib::gsl_exp, string("GSL_EXP"),1);
 
   new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
+  new DLibFunRetNew(lib::hdf_exists,string("HDF_EXISTS"));
+  new DLibFunRetNew(lib::hdf5_exists,string("HDF5_EXISTS"));
+  new DLibFunRetNew(lib::eigen_exists,string("EIGEN_EXISTS"));
   new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
 
   new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));

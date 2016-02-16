@@ -27,6 +27,9 @@ namespace lib {
   BaseGDL* gsl_exp(EnvT* e);
   
   BaseGDL* ncdf_exists(EnvT* e);
+  BaseGDL* hdf_exists(EnvT* e);
+  BaseGDL* hdf5_exists(EnvT* e);
+  BaseGDL* eigen_exists(EnvT* e);
   BaseGDL* magick_exists(EnvT* e);
 
   BaseGDL* gshhg_exists(EnvT* e);

@@ -80,6 +80,33 @@ namespace lib {
 #endif
   }
 
+  BaseGDL* hdf_exists(EnvT* e)
+  {
+#ifdef USE_HDF
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+  
+  BaseGDL* hdf5_exists(EnvT* e)
+  {
+#ifdef USE_HDF5
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
+  BaseGDL* eigen_exists(EnvT* e)
+  {
+#ifdef USE_EIGEN
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
   BaseGDL* gshhg_exists( EnvT* e )
   {
 #ifdef USE_GSHHS
