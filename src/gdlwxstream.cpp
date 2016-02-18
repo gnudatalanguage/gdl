@@ -209,17 +209,17 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
               mem[p++] = idata[nx * (1 * ny + iy) + ix];
               mem[p++] = idata[nx * (2 * ny + iy) + ix];
             }
-          } else {
+          } else { //1 byte bitmap passed.
             if ( chan == 1 ) {
               mem[p++] = idata[1 * (iy * nx + ix) + 0];
               p += 2;
             } else if ( chan == 2 ) {
               p ++;
-              mem[p++] = idata[1 * (iy * nx + ix) + 1];
+              mem[p++] = idata[1 * (iy * nx + ix) + 0];
               p ++;
             } else if ( chan == 3 ) {
               p += 2;
-              mem[p++] = idata[1 * (iy * nx + ix) + 2];
+              mem[p++] = idata[1 * (iy * nx + ix) + 0];
             }
           }
         }

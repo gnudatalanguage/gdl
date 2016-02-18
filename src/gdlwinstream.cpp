@@ -335,16 +335,16 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbGreen = igrn;
 						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbRed = ired;
 					}
-					else if (chan == 1) {
+					else if (chan == 1) { //1 byte bitmap passed
 						ired = idata[1 * (iy * nx + ix) + 0];
 						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbRed = ired;
 					}
 					else if (chan == 2) {
-						igrn = idata[1 * (iy * nx + ix) + 1];
+						igrn = idata[1 * (iy * nx + ix) + 0];
 						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbGreen = igrn;
 					}
 					else if (chan == 3) {
-						iblu = idata[1 * (iy * nx + ix) + 2];
+						iblu = idata[1 * (iy * nx + ix) + 0];
 						tv_buf.lpbitmap[ky * (rt.right + 1) + kx].rgbBlue = iblu;
 					} // if (chan == 0) else
 				} // if (tru == 0  && chan == 0) else

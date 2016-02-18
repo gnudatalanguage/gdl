@@ -789,17 +789,17 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
           curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
         }else{
           unsigned long pixel = XGetPixel(ximg, kx, dev->height - 1 - ky);
-          if (chan == 1) {
+          if (chan == 1) { //1 byte bitmap passed
             pixel &= 0x00ffff;
             ired = idata[1 * (iy * nx + ix) + 0];
             curcolor.pixel = ired * 256 * 256 + pixel;
           } else if (chan == 2) {
             pixel &= 0xff00ff;
-            igrn = idata[1 * (iy * nx + ix) + 1];
+            igrn = idata[1 * (iy * nx + ix) + 0];
             curcolor.pixel = igrn * 256 + pixel;
           } else if (chan == 3) {
             pixel &= 0xffff00;
-            iblu = idata[1 * (iy * nx + ix) + 2];
+            iblu = idata[1 * (iy * nx + ix) + 0];
             curcolor.pixel = iblu + pixel;
           }
         }
