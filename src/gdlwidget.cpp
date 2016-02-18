@@ -324,7 +324,7 @@ int GDLWidget::HandleEvents()
         return 0;
       } 
     }
-    wxEndBusyCursor( );
+    if (wxIsBusy()) wxEndBusyCursor( );
   }
   return 0;
 }

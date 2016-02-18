@@ -1962,7 +1962,7 @@ BaseGDL* widget_event( EnvT* e ) {
   bool savehourglass = e->KeywordSet( savehourglassIx );
   // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
   // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
-  if ( !savehourglass ) wxEndBusyCursor( );
+  if ( !savehourglass ) if (wxIsBusy()) wxEndBusyCursor( );
   //xmanager_block (not a *DL standard) is used to block until TLB is killed
   static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK" );
   bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx );
@@ -2100,7 +2100,7 @@ void widget_control( EnvT* e ) {
   
   if (sethourglass){ //Ignore it for the moment!
     if (e->KeywordSet( hourglassIx )) wxBeginBusyCursor();
-    else wxEndBusyCursor();
+    else  if (wxIsBusy()) wxEndBusyCursor();
     return;} //need to return immediately if /HOURGLASS!
 
   static int showIx = e->KeywordIx( "SHOW" );
