@@ -37,13 +37,10 @@ public:
   DVar(const std::string& n, BaseGDL* = 0); 
   ~DVar();
 
+  void Delete(); // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
+  
   const std::string& Name() const {return name;}
 
-  void Delete() // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
-  {
-    GDLDelete( d);
-    d = NULL;
-  }
   BaseGDL*& Data() 
   {
     return d;

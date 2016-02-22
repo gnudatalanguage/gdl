@@ -40,6 +40,12 @@ DVar::~DVar()
   GDLDelete(d);
 }
 
+void DVar::Delete() // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
+{
+  GDLDelete( d);
+  d = NULL;
+}
+
 DVar* FindInVarList(VarListT& v, const string& s)
 {
   VarListT::iterator f=find_if(v.begin(),v.end(),DVar_eq(s));
