@@ -44,6 +44,8 @@ public:
   DCommon(const std::string&);
   ~DCommon();
 
+  void DeleteData(); // deletes only COMMON data, COMMON block itself is kept
+
   const std::string& VarName(const unsigned i)
   {
     if( i >= var.size())

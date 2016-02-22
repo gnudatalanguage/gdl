@@ -39,6 +39,11 @@ public:
 
   const std::string& Name() const {return name;}
 
+  void Delete() // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
+  {
+    delete d;
+    d = NULL;
+  }
   BaseGDL*& Data() 
   {
     return d;

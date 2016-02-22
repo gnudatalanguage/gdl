@@ -38,6 +38,15 @@ DCommon::~DCommon()
   PurgeContainer( var);
 }
 
+void DCommon::DeleteData()
+{
+  int vSize=var.size();
+  for( int i=0; i<vSize; i++)
+    {
+      var[i]->Delete();
+    }
+}
+
 void DCommon::AddVar(const string& v)
 {
   var.push_back(new DVar(v));

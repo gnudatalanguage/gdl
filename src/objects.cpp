@@ -102,11 +102,17 @@ void ResetObjects()
   PurgeContainer(sysVarList);
   PurgeContainer(funList);
   PurgeContainer(proList);
-  PurgeContainer(structList); // now deletes member subroutines (and they in turn common block references
+
+  // delete common block data (which might be of type STRUCT)
+  CommonListT::iterator i;
+  for(i = commonList.begin(); i != commonList.end(); ++i) 
+    { (*i)->DeleteData();}
+
+  PurgeContainer(structList); // now deletes member subroutines (and they in turn common block references)
   // hence delete common blocks after structList
-  
-  //avoid purging commonlist-->crash (probably some COMMON structures already destroyed)
-//  PurgeContainer(commonList);
+ 
+  // should be ok now as data is already deleted //avoid purging commonlist-->crash (probably some COMMON structures already destroyed)
+  PurgeContainer(commonList);
   
   // don't purge library here
 //   PurgeContainer(libFunList);
