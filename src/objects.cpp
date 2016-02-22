@@ -90,7 +90,7 @@ void ResetObjects()
 {
 #ifdef HAVE_LIBWXWIDGETS
 
-  // initialize widget system
+  // un-initialize widget system
   GDLWidget::UnInit();
 #endif
   

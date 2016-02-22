@@ -41,7 +41,7 @@ public:
 
   void Delete() // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
   {
-    delete d;
+    GDLDelete( d);
     d = NULL;
   }
   BaseGDL*& Data() 
