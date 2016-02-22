@@ -40,11 +40,9 @@ DCommon::~DCommon()
 
 void DCommon::DeleteData()
 {
-  int vSize=var.size();
-  for( int i=0; i<vSize; i++)
-    {
-      var[i]->Delete();
-    }
+  typename VarListT::iterator i;
+  for(i = var.begin(); i != var.end(); ++i) 
+    (*i)->Delete();
 }
 
 void DCommon::AddVar(const string& v)
