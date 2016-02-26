@@ -64,7 +64,7 @@ namespace lib {
 
   BaseGDL* n_elements( EnvT* e);
 
-  BaseGDL* execute( EnvT* e);
+  BaseGDL* execute_fun( EnvT* e);
 
   BaseGDL* assoc( EnvT* e);
   

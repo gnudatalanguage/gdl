@@ -1430,12 +1430,12 @@ namespace lib {
 
 
 
-  BaseGDL* execute( EnvT* e)
+  BaseGDL* execute_fun( EnvT* e)
   {
     int nParam=e->NParam( 1);
 
-    bool quietCompile = false;
-    if( nParam == 2)
+    bool compileFlags = false;
+    if( nParam >= 2)
       {
 	BaseGDL* p1 = e->GetParDefined( 1);
 
@@ -1443,7 +1443,21 @@ namespace lib {
 	  e->Throw( "Expression must be scalar in this context: "+
 		    e->GetParString(1));
 
-	quietCompile = p1->True();
+	// we do not enforce the case of Implied Print, then only 2 states
+	compileFlags = p1->LogTrue();
+      }
+
+    bool quietExecution = false;
+    if( nParam == 3)
+      {
+	BaseGDL* p2 = e->GetParDefined( 2);
+
+	if( !p2->Scalar())
+	  e->Throw( "Expression must be scalar in this context: "+
+		    e->GetParString(2));
+
+	quietExecution = p2->LogTrue();
+	Warning("This third argument is not enforce now !");
       }
 
     if (e->GetParDefined(0)->Rank() != 0)
@@ -1473,12 +1487,12 @@ namespace lib {
     }
     catch( GDLException& ex)
       {
-	if( !quietCompile) GDLInterpreter::ReportCompileError( ex);
+	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
       }
     catch( ANTLRException ex)
       {
-	if( !quietCompile) cerr << "EXECUTE: Lexer/Parser exception: " <<  
+	if( !compileFlags) cerr << "EXECUTE: Lexer/Parser exception: " <<  
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }
@@ -1496,13 +1510,13 @@ namespace lib {
       }
     catch( GDLException& ex)
       {
-	if( !quietCompile) GDLInterpreter::ReportCompileError( ex);
+	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
       }
 
     catch( ANTLRException ex)
       {
-	if( !quietCompile) cerr << "EXECUTE: Compiler exception: " <<  
+	if( !compileFlags) cerr << "EXECUTE: Compiler exception: " <<  
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }
@@ -1520,6 +1534,9 @@ namespace lib {
 
 	progAST->setLine( e->GetLineNumber());
 
+	// AC 2016-02-26 : bug report #692 always verbose in EXECUTE()
+	// Do we have a way not to *always* issue a message here 
+	// in case of problem ???
 	RetCode retCode = caller->Interpreter()->execute( progAST);
 
 	caller->ResizeForLoops( nForLoopsIn);
@@ -1534,7 +1551,7 @@ namespace lib {
 	caller->ResizeForLoops( nForLoopsIn);
 	// are we throwing to target environment?
 	// 		if( ex.GetTargetEnv() == NULL)
-	if( !quietCompile) cerr << "EXECUTE: " <<
+	if( !compileFlags) cerr << "EXECUTE: " <<
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }
@@ -1542,7 +1559,7 @@ namespace lib {
       {
 	caller->ResizeForLoops( nForLoopsIn);
 		
-	if( !quietCompile) cerr << "EXECUTE: Interpreter exception: " <<
+	if( !compileFlags) cerr << "EXECUTE: Interpreter exception: " <<
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }

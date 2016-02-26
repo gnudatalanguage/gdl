@@ -342,7 +342,7 @@ void LibInit()
 
   new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true,1);
 
-  new DLibFun(lib::execute,string("EXECUTE"),2);
+  new DLibFun(lib::execute_fun,string("EXECUTE"),3);
 
   const string openKey[]={"APPEND","COMPRESS","BUFSIZE",
 			  "DELETE","ERROR","F77_UNFORMATTED",
