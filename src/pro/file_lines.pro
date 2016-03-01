@@ -56,9 +56,21 @@ function FILE_LINES, filenames, compress=compress, noexpand_path=noexpand_path, 
                      verbose=verbose, test=test
 ;
 ON_ERROR, 2    ;Return to caller
+;
 if KEYWORD_SET(compress) then begin
-    print, 'Sorry, Keyword COMPRESS is not available now.'
-    return, -1
+    ;; we consider 2 solutions : zgrep and zcat
+    zcommand=['']
+    SPAWN, 'zgrep --help', res, error, exit_status=status
+    if (status EQ 0) then begin
+        zcommand=['zgrep -Ec "$" ']
+    endif else begin
+        SPAWN, 'zcat --help', res, error, exit_status=status
+        if (status EQ 0) then zcommand=['zcat ','| wc -l']
+    endelse
+    if (STRLEN(zcommand[0]) EQ 0) then begin
+        print, 'Sorry, no solution found for Keyword COMPRESS (please help !)'
+        return, -1
+    endif
 endif
 ;
 if KEYWORD_SET(noexpand_path) then begin
@@ -85,16 +97,26 @@ for ii=0, N_ELEMENTS(filenames)-1 do begin
        filename=GETENV('HOME')+STRMID(filename,1)
     endif
     ;;
-    commande=["wc", "-l",filename]
-    SPAWN, commande, resultat, /NOSHELL
-    nbp[ii]=(LONG((STRSPLIT(resultat,' ',/extract))[0]))
-    ;;nbp[ii]=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
-    ;;
-    ;; checking remaining missing bad endline
-    commande=["tail","-c 1",filename]
-    SPAWN, commande, resultat, /NOSHELL
-    nbp[ii] += resultat NE ''
-    ;;
+    if KEYWORD_SET(compress) then begin
+        ;; we consider 2 solutions : zgrep and zcat
+        if N_ELEMENTS(zcommand) EQ 1 then begin
+            commande=zcommand[0]+filename
+        endif else begin
+            commande=zcommand[0]+filename+zcommand[1]
+        endelse        
+        SPAWN, commande, resultat
+        nbp[ii]=(LONG((STRSPLIT(resultat,' ',/extract))[0]))
+    endif else begin
+        commande=["wc", "-l",filename]
+        SPAWN, commande, resultat, /NOSHELL
+        nbp[ii]=(LONG((STRSPLIT(resultat,' ',/extract))[0]))
+        ;;nbp[ii]=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
+        ;;
+        ;; checking remaining missing bad endline
+        commande=["tail","-c 1",filename]
+        SPAWN, commande, resultat, /NOSHELL
+        nbp[ii] += resultat NE ''
+    endelse
     if KEYWORD_SET(verbose) then print, filename, '  :  ', nbp[ii]
 endfor
 ;
