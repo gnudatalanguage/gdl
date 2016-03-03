@@ -19,34 +19,27 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
-; Do we have access to ImageMagick functionnalities ??
+;  for IDL compatibility
+FORWARD_FUNCTION MAGICK_EXISTS
 ;
-if (MAGICK_EXISTS() EQ 0) then begin
-    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
-    EXIT, status=77
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl EQ 1) then begin
+    ;; Do we have access to ImageMagick functionnalities ??
+    ;;
+    if (MAGICK_EXISTS() EQ 0) then begin
+        MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+        MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
+        EXIT, status=77
+    endif
 endif
 ;
-filename='Saturn.jpg'
-path=!path
+one_file_and_path=FILE_SEARCH_FOR_TESTSUITE('Saturn.jpg')
 ;
-liste_of_files=FILE_SEARCH(STRSPLIT(path,':',/ex),filename)
-;
-if (N_ELEMENTS(liste_of_files) EQ 1) then begin
-   if (STRLEN(liste_of_files) EQ 0) then begin
-      MESSAGE, /continue, 'No file founded ...'
-      MESSAGE, /continue, 'File : '+filename
-      MESSAGE, /continue, 'Path : '+path
-      return
-   endif else begin
-      one_file_and_path=liste_of_files[0]
-   endelse
-endif
-if N_ELEMENTS(liste_of_files) GT 1 then begin
-   MESSAGE, /continue, $
-            'Warning: more than one file found, we used the first one !'
-   one_file_and_path=liste_of_files[0]
-endif
+queryStatus = QUERY_IMAGE(one_file_and_path, imageInfo)
+if (queryStatus eq 0) then begin
+    MESSAGE, /info, "Image for test (Saturn.jpg) not found, test aborted"
+    return
+end
 ;
 READ_JPEG, one_file_and_path, cube
 ;
@@ -69,7 +62,7 @@ IMAGE_STATISTICS, cube, COUNT = pixelNumber, $
                   MEAN = pixelMean, MINIMUM = pixelMin, $  
                   STDDEV = pixelDeviation, $  
                   SUM_OF_SQUARES = pixelSquareSum, $  
-                  VARIANCE = pixelVariance, verbose=verbose
+                  VARIANCE = pixelVariance
 ;
 ; we know the expected values
 ;
@@ -84,12 +77,11 @@ if ~DIFF_BELOW_TOL(pixelDeviation, 65.5660, 0.0001) then nb_errors=nb_errors+1
 if ~DIFF_BELOW_TOL(pixelSquareSum, 3.10312e+09, 1e4) then nb_errors=nb_errors+1
 if ~DIFF_BELOW_TOL(pixelVariance, 4298.91, 0.01) then nb_errors=nb_errors+1
 ;
-if (nb_errors GT 0) then begin
-   MESSAGE, /continue, 'Number of Errors: '+STRING(nb_errors)
-   if ~KEYWORD_SET(test) then EXIT, status=1
-endif else begin
-   MESSAGE, /continue, 'No Errors founded'
-endelse
+; final message
+;
+BANNER_FOR_TESTSUITE, 'TEST_IMAGE_STATISTICS', nb_errors, short=short
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

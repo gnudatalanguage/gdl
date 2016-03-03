@@ -29,28 +29,20 @@ title0='the 3 channels in Grayscale'
 title1='<<'+filename+'>> in Colors'
 title2='read in Grayscale only'
 ;
-liste_of_files=FILE_SEARCH(STRSPLIT(path,':',/ex),filename)
+full_file=FILE_SEARCH_FOR_TESTSUITE(filename, /quiet)
 ;
-if (N_ELEMENTS(liste_of_files) EQ 1) then begin
-   if (STRLEN(liste_of_files) EQ 0) then begin
+if (STRLEN(full_file) EQ 0) then begin
       MESSAGE, /continue, 'No file founded ...'
       MESSAGE, /continue, 'File : '+filename
-      MESSAGE, /continue, 'Path : '+path
+      HELP, /PATH
       return
-   endif
-   one_file_and_path=liste_of_files
-endif
-if N_ELEMENTS(liste_of_files) GT 1 then begin
-   MESSAGE, /continue, $
-            'Warning: more than one file found, we used the first one !'
-   one_file_and_path=liste_of_files[0]
 endif
 ;
 if KEYWORD_SET(verbose) then begin
-   MESSAGE, 'reading : '+one_file_and_path, /continue
+   MESSAGE, 'reading : '+full_file, /continue
 endif
 ;
-READ_JPEG, one_file_and_path, image
+READ_JPEG, full_file, image
 ;
 xy_img=(SIZE(image,/dim))[1:2]
 xy_screen=GET_SCREEN_SIZE()
@@ -109,7 +101,7 @@ TVSCL, image, /true
 ;
 ; is the /Grayscale keyword OK ?
 ;
-READ_JPEG, one_file_and_path, image_gray, /GRAY
+READ_JPEG, full_file, image_gray, /GRAY
 WINDOW, 2, xsize=xy_win1[0], ysize=xy_win1[1], title=title2
 image_gray=REBIN(image_gray[0:xy_win1[0]*factor-1,0:xy_win1[1]*factor-1],xy_win1[0],xy_win1[1])
 TVSCL, image_gray

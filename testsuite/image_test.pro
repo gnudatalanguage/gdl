@@ -9,13 +9,6 @@
 pro IMAGE_TEST, filename=filename, path=path, no_cleaning=no_cleaning, $
                 help=help, test=test, debug=debug, verbose=verbose
 ;
-; Do we have access to ImageMagick functionnalities ??
-;
-if (MAGICK_EXISTS() EQ 0) then begin
-    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, "You must have ImageMagick support to use this functionaly."
-endif
-;
 if KEYWORD_SET(help) then begin
    print, 'pro IMAGE_TEST, filename=filename, path=path, no_cleaning=no_cleaning, $'
    print, '                help=help, test=test, debug=debug, verbose=verbose'
@@ -25,39 +18,46 @@ endif
 if N_ELEMENTS(path) EQ 0 then path=!path
 if N_ELEMENTS(filename) EQ 0 then filename='Saturn.jpg'
 ;
-liste_of_files=FILE_SEARCH(STRSPLIT(path,':',/ex),filename)
+one_file_and_path=FILE_SEARCH_FOR_TESTSUITE(filename, /quiet)
 ;
-if (N_ELEMENTS(liste_of_files) EQ 1) then begin
-   if (STRLEN(liste_of_files) EQ 0) then begin
-      MESSAGE, /continue, 'No file founded ...'
-      MESSAGE, /continue, 'File : '+filename
-      MESSAGE, /continue, 'Path : '+path
-      return
-   endif else begin
-      one_file_and_path=liste_of_files[0]
-   endelse
-endif
-if N_ELEMENTS(liste_of_files) GT 1 then begin
-   MESSAGE, /continue, $
-            'Warning: more than one file found, we used the first one !'
-   one_file_and_path=liste_of_files[0]
+if (STRLEN(one_file_and_path) EQ 0) then begin
+    MESSAGE, /continue, 'No file founded ...'
+    MESSAGE, /continue, 'File : '+filename
+    HELP, /PATH
+    return
 endif
 ;
 if KEYWORD_SET(verbose) then begin
    MESSAGE, /continue, 'reading : '+one_file_and_path
 endif
 ;
+;  for IDL compatibility
+FORWARD_FUNCTION MAGICK_EXISTS
+;
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl EQ 1) then begin
+    ;; Do we have access to ImageMagick functionnalities ??
+    ;;
+    if (MAGICK_EXISTS() EQ 0) then begin
+        MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+        MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
+        EXIT, status=77
+    endif
+endif
+;
 ; Copy of the file to have a simple way to remove all derivatives
 ; at the end
-
-possep=STRPOS(one_file_and_path,PATH_SEP(),/reverse_search)
-mypath=STRMID(one_file_and_path, 0, possep+1)
-myname=STRMID(one_file_and_path, possep+1)
 ;
-prefixe='GDL_copy4test_'
+mypath=FILE_DIRNAME(one_file_and_path,/mark_dir)
+myname=FILE_BASENAME(one_file_and_path) 
+;
+DEFSYSV, '!gdl', exists=isGDL
+if isGDL then prefix='GDL_' else prefix='IDL_'
+prefixe=prefix+'image_test_'
+;
 old_one_file_and_path=one_file_and_path
 one_file_and_path=mypath+prefixe+myname
-SPAWN, 'cp '+old_one_file_and_path+' '+one_file_and_path, resu, error
+FILE_COPY, old_one_file_and_path, one_file_and_path, /overwrite
 ;
 if KEYWORD_SET(debug) then STOP
 ;
@@ -78,8 +78,25 @@ if KEYWORD_SET(debug) then STOP
 suffixe='.jpg'
 READ_JPEG, one_file_and_path, image
 MESSAGE, /continue, "internal READING of JPEG TrueColor DONE"
-WRITE_JPEG, no_suffixe+'_jpeg.jpeg', image
+WRITE_JPEG, no_suffixe+'_jpeg.jpeg', image, /TRUE
 MESSAGE, /continue, "internal WRITING of JPEG TrueColor DONE"
+;
+; the following tests need "convert" utility
+; On some Linux system (eg Ubuntu) one lib. migth be missing for IDL
+; Solution on Ubuntu : sudo apt-get install libjpeg62
+; Tested by Alain C., March 2016 on Ubuntu 14.04
+;
+SPAWN, 'convert -version', resu, error, exit_status=exit_status
+;
+if (exit_status NE 0) then begin
+    MESSAGE, /cont, 'A problem arrises, related to "convert" utility'
+    MESSAGE, /cont, 'please check is "convert" and lib. are well install'
+    MESSAGE, /cont, 'The error message is :'
+    print, format='(%"\N",A,%"\N")', error
+    MESSAGE, /cont, 'If error message is related to "libjpeg.so.62"'
+    MESSAGE, /cont, 'You have to add it on Ubuntu : sudo apt-get install libjpeg62'
+    EXIT, status=77
+endif
 ;
 ; the BMP case
 ;
@@ -146,10 +163,8 @@ endif
 ; maybe not doing a cleaning is better to check created Images ?
 ;
 if ~KEYWORD_SET(no_cleaning) then begin
-   command='\rm '+mypath+prefixe+'*'
-   SPAWN, command, result, error
-   if STRLEN(error) EQ 0 then MESSAGE, /continue, 'cleaning OK' $
-   else MESSAGE, /continue, 'problem during cleaning'
+    liste_to_delete=FILE_SEARCH(mypath+prefixe+'*')
+    FILE_DELETE, liste_to_delete
 endif
 ;
 if KEYWORD_SET(test) then STOP

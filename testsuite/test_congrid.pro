@@ -64,23 +64,13 @@ if (is_it_gdl EQ 1) then begin
 endif
 ;
 if (N_ELEMENTS(image) EQ 0) then begin
-    if (N_ELEMENTS(filename) EQ 0) then begin
-        ;; we know we have "Saturn" in testsuite/, which should be in !PATH
-        filename='Saturn.jpg'
-        list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-        file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
-    endif else begin
-        file=FILE_SEARCH(filename)
-        if STRLEN(file) EQ 0 then begin
-            list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-            file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
-        endif
-    endelse
+    ;; we know we have "Saturn" in testsuite/, which should be in !PATH
+    if (N_ELEMENTS(filename) EQ 0) then filename='Saturn.jpg'
+    file=FILE_SEARCH_FOR_TESTSUITE(filename,/quiet)
     ;;
-    if STRLEN(file) EQ 0 then MESSAGE, 'File not found :'+filename
-    file=file[0]
-    ;;   
     status=QUERY_IMAGE(file, info)
+    if (status EQ 0) then MESSAGE, 'File not found :'+filename
+    ;;
     CASE info.type OF
         'JPEG' : READ_JPEG, file, image, /gray
         'GIF'  : READ_GIF, file, image, /gray

@@ -24,9 +24,11 @@ list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
 ;
 list_of_dirs=[current,list_of_dirs]
 ;
-full_file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+; it i s important to work in current directory !!
+full_file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename, /nosort)
 ;
-; We may have multiplicity ... we select the first one
+; We may have multiplicity ... we select the first one (priority to
+; current dir. thanks to /nosort)
 ;
 if (N_ELEMENTS(full_file) GT 1) then begin
     if ~KEYWORD_SET(quiet) then begin
