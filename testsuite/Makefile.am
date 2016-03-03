@@ -169,6 +169,7 @@ TESTS = \
   test_structures.pro \
   test_suite.pro \
   test_systime.pro \
+  test_tic_toc.pro \
   test_trisol.pro \
   test_tv.pro \
   test_typename.pro \
