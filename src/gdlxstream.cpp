@@ -188,7 +188,7 @@ void GDLXStream::Clear() {
   blue0 = GraphicsDevice::GetDevice( )->BackgroundB( );
   plstream::scolbg( red0, green0, blue0 ); //overwrites col[0]
   ::c_plbop( );
-  ::c_plclear( );
+//  ::c_plclear( );
   plstream::scolbg( red, green, blue ); //resets col[0]
 }
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
@@ -687,7 +687,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   XFlush(xwd->display);
 
   int (*oldErrorHandler)(Display*, XErrorEvent*);
-  oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
+  oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
   if (dev->write_to_pixmap==1) {
     ximg = XGetImage(xwd->display, dev->pixmap, 0, 0,
             dev->width, dev->height,
@@ -870,7 +870,7 @@ DByteGDL* GDLXStream::GetBitmapData() {
   unsigned int ny = win_attr.height;
 
     int (*oldErrorHandler)(Display*, XErrorEvent*);
-    oldErrorHandler = XSetErrorHandler(DeviceX::GetImageErrorHandler);
+    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
     if (dev->write_to_pixmap==1) {
       ximg = XGetImage(xwd->display, dev->pixmap, 0, 0, nx, ny, AllPlanes, ZPixmap);
     } else {

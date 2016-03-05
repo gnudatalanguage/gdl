@@ -177,8 +177,30 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
+  
+//if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
+// no ther device is defined.
+  std::string useWX=GetEnvString("GDL_USE_WX");
+  if (useWX == "YES" || useWX == "yes") {
 #ifdef HAVE_LIBWXWIDGETS
-  deviceList.push_back( new DeviceWX());
+#ifdef HAVE_X
+  deviceList.push_back( new DeviceWX("X"));
+#else
+#ifdef _WIN32
+  deviceList.push_back( new DeviceWX("WIN"));
+#endif
+#endif  
+#else
+#ifdef HAVE_X
+  deviceList.push_back( new DeviceX());
+#endif
+#ifdef _WIN32
+  deviceList.push_back( new DeviceWIN());
+#endif
+#endif
+  } else {
+#ifdef HAVE_LIBWXWIDGETS
+  deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
 #endif
 #ifdef HAVE_X
   deviceList.push_back( new DeviceX());
@@ -186,7 +208,7 @@ void GraphicsDevice::Init()
 #ifdef _WIN32
   deviceList.push_back( new DeviceWIN());
 #endif
-
+  }
   // we try to set X, WIN or WX as default 
   // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
 #if defined(HAVE_X) // Check X11 first
@@ -215,17 +237,28 @@ void GraphicsDevice::Init()
 #endif
 #endif
   int index=0;
-  // setting the GUI dev. (before, X/win was the first but X might be not defined now
-    if (ExistDevice( "X", index)) {
-      actGUIDevice = deviceList[index];
+  // setting the GUI dev. There is only ONE possibility: the wxWidgets.
+  // depending on how we build GDL, wxWidgets may replace X and WIN entirely, or not.
+  // If not, it will be called "MAC" (temporarily).
+  // If yes (replaces either X or WIN) it will be called 'X' or 'WIN' accordingly.
+  if (ExistDevice( "MAC", index)) { //wxWidgets present, in concurrence with others.
+    actGUIDevice = deviceList[index];
+  } else if (ExistDevice( "X", index)) {
+#ifdef HAVE_LIBWXWIDGETS    
+      actGUIDevice = deviceList[index]; //true existing device
+#else
+      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
+#endif
   } else if (ExistDevice("WIN", index)) {
-    actGUIDevice = deviceList[index];
-  } else if (ExistDevice( "MAC", index)) {
-    actGUIDevice = deviceList[index];
-    } else {
-      actGUIDevice = deviceList[0];
-    }
+#ifdef HAVE_LIBWXWIDGETS  
+      actGUIDevice = deviceList[index]; //true existing device
+#else
+      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
+#endif
+  } else {
+      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
   }
+}
 
 void GraphicsDevice::DestroyDevices()
 {
@@ -287,4 +320,297 @@ void GraphicsDevice::HandleEvents()
 void GraphicsDevice::LoadCT( UInt iCT)
 {
   actCT = CT[iCT];
+}
+
+
+//---------------Multi-Windows Device-------------------------------------------
+int GraphicsMultiDevice::actWin;
+WindowListT GraphicsMultiDevice::winList;
+std::vector<long> GraphicsMultiDevice::oList;
+int GraphicsMultiDevice::oIx;
+
+void GraphicsMultiDevice::Init()
+{
+  GraphicsDevice::Init();
+  
+  //populate the one and only list of windows.
+  winList.reserve(max_win_reserve);
+  winList.resize(max_win);
+  for (int i = 0; i < max_win; i++) winList[i] = NULL;
+  oList.reserve(max_win_reserve);
+  oList.resize(max_win);
+  for (int i = 0; i < max_win; i++) oList[i] = 0;
+  
+  actWin=-1;
+  oIx=-1;
+}
+
+DByteGDL* GraphicsMultiDevice::WindowState() {
+  int maxwin = MaxWin();
+  if (maxwin > 0) {
+    DByteGDL* ret = new DByteGDL(dimension(maxwin < 65 ? 65 : maxwin), BaseGDL::ZERO);
+    for (int i = 0; i < maxwin; i++) (*ret)[i] = WState(i);
+    return ret;
+  } else return NULL;
+}
+
+bool GraphicsMultiDevice::WState(int wIx) {
+  return wIx >= 0 && wIx < oList.size() && oList[wIx] != 0;
+}
+
+int GraphicsMultiDevice::MaxWin() {
+  TidyWindowsList();
+  return winList.size();
+}
+
+void GraphicsMultiDevice::SetActWin(int wIx) {
+  // update !D
+  if (wIx >= 0 && wIx < winList.size()) {
+    assert(winList[ wIx] != NULL);
+    long xsize, ysize, xoff, yoff;
+    winList[ wIx]->GetGeometry(xsize, ysize, xoff, yoff);
+    (*static_cast<DLongGDL*> (dStruct->GetTag(xSTag)))[0] = xsize;
+    (*static_cast<DLongGDL*> (dStruct->GetTag(ySTag)))[0] = ysize;
+    (*static_cast<DLongGDL*> (dStruct->GetTag(xVSTag)))[0] = xsize;
+    (*static_cast<DLongGDL*> (dStruct->GetTag(yVSTag)))[0] = ysize;
+    // number of colors
+    //        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
+
+    // set !D.N_COLORS and !P.COLORS according to decomposed value.
+    unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
+    unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+    unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+    if (this->GetDecomposed() == 1 && oldNColor == 256) {
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
+      if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+    } else if (this->GetDecomposed() == 0 && oldNColor == nSystemColors) {
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
+      if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+    }
+  }
+  // window number
+  (*static_cast<DLongGDL*> (dStruct->GetTag(wTag)))[0] = wIx;
+
+  actWin = wIx;
+}
+    // process user deleted windows
+    // should be done in a thread
+
+void GraphicsMultiDevice::TidyWindowsList() {
+  int wLSize = winList.size();
+
+  for (int i = 0; i < wLSize; i++)
+    if (winList[i] != NULL && !winList[i]->GetValid()) {
+      delete winList[i];
+      winList[i] = NULL;
+      oList[i] = 0;
+    }
+  // set new actWin IF NOT VALID ANY MORE
+  if (actWin < 0 || actWin >= wLSize ||
+    winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+    // set to most recently created
+    std::vector< long>::iterator mEl =
+      std::max_element(oList.begin(), oList.end());
+
+    // no window open
+    if (*mEl == 0) {
+      SetActWin(-1);
+      oIx = 1;
+    } else
+      SetActWin(std::distance(oList.begin(), mEl));
+  }
+}
+
+void GraphicsMultiDevice::RaiseWin(int wIx) {
+  if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Raise();
+}
+
+void GraphicsMultiDevice::LowerWin(int wIx) {
+  if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Lower();
+}
+
+void GraphicsMultiDevice::IconicWin(int wIx) {
+  if (wIx >= 0 && wIx < winList.size()) winList[wIx]->Iconic();
+}
+
+void GraphicsMultiDevice::DeIconicWin(int wIx) {
+  if (wIx >= 0 && wIx < winList.size()) winList[wIx]->DeIconic();
+}
+
+void GraphicsMultiDevice::EventHandler() {
+  if (actWin < 0) return; //would this have side effects?  
+  int wLSize = winList.size();
+  for (int i = 0; i < wLSize; i++)
+    if (winList[i] != NULL)
+      winList[i]->EventHandler();
+
+ // TidyWindowsList();
+}
+
+bool GraphicsMultiDevice::WDelete(int wIx) {
+  TidyWindowsList();
+
+  int wLSize = winList.size();
+  if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
+    return false;
+//delete  Nothing
+  cerr << "You should not be here, in GraphicsMultiDevice::WDelete()" << endl; 
+
+  // set to most recently created
+  std::vector< long>::iterator mEl =
+    std::max_element(oList.begin(), oList.end());
+
+  // no window open
+  if (*mEl == 0) {
+    SetActWin(-1);
+    oIx = 1;
+  } else
+    SetActWin(std::distance(oList.begin(), mEl));
+
+  return true;
+}
+
+bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos) {
+  TidyWindowsList();
+
+  int wLSize = winList.size();
+  if (wIx > wLSize || wIx < 0)
+    return false;
+
+  long xleng, yleng;
+  long xoff, yoff;
+  winList[wIx]->GetGeometry(xleng, yleng, xoff, yoff);
+
+  *xSize = xleng;
+  *ySize = yleng;
+  *xPos = xoff;
+  *yPos = yoff;
+
+  return true;
+}
+
+bool GraphicsMultiDevice::WSet(int wIx) {
+  TidyWindowsList();
+
+  int wLSize = winList.size();
+  if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
+    return false;
+
+  SetActWin(wIx);
+  return true;
+}
+
+bool GraphicsMultiDevice::WShow(int ix, bool show, bool iconic) {
+  TidyWindowsList();
+
+  int wLSize = winList.size();
+  if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
+
+  if (show) RaiseWin(ix);
+  else LowerWin(ix);
+
+  if (iconic) IconicWin(ix);
+  else DeIconicWin(ix);
+
+  UnsetFocus();
+
+  return true;
+}
+
+int GraphicsMultiDevice::WAddFree() {
+  TidyWindowsList();
+
+  int wLSize = winList.size();
+  // plplot allows only 101 windows
+  if (wLSize == 101) return -1;
+
+  for (int i = max_win; i < wLSize; i++)
+    if (winList[i] == NULL) return i;
+
+  winList.push_back(NULL);
+  oList.push_back(0);
+  return wLSize;
+}
+
+GDLGStream* GraphicsMultiDevice::GetStreamAt(int wIx) const {
+  return winList[wIx];
+}
+
+bool GraphicsMultiDevice::UnsetFocus() {
+  return winList[actWin]->UnsetFocus();
+}
+
+bool GraphicsMultiDevice::Decomposed(bool value) {
+  decomposed = value;
+  if (actWin < 0) return true;
+  //update relevant values --- this should not be done at window level, but at Display level!!!!
+  unsigned long nSystemColors = (1 << winList[actWin]->GetWindowDepth());
+  unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+  unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+  if (this->decomposed == 1 && oldNColor == 256) {
+    (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
+    if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+  } else if (this->decomposed == 0 && oldNColor == nSystemColors) {
+    (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
+    if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+  }
+  return true;
+}
+
+DLong GraphicsMultiDevice::GetDecomposed() {
+  // initial setting (information from the X-server needed)
+  if (this->decomposed == -1) {
+    if (actWin < 0) { cerr << "requesting GetDecomposed() on unexistent window " << endl; return 0;} //should not happen
+    unsigned long Depth = winList[actWin]->GetWindowDepth();
+    decomposed = (Depth >= 15 ? true : false);
+    unsigned long nSystemColors = (1 << Depth);
+    unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+    unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+    if (this->decomposed == 1 && oldNColor == 256) {
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
+      if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+    } else if (this->decomposed == 0 && oldNColor == nSystemColors) {
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
+      if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+    }
+  }
+  if (decomposed) return 1;
+  return 0;
+}
+
+bool GraphicsMultiDevice::SetBackingStore(int value) {
+  backingStoreMode = value;
+  return true;
+}
+
+bool GraphicsMultiDevice::Hide() //used as a substitute for /PIXMAP in DEVICE
+{
+  TidyWindowsList();
+  winList[ actWin]->UnMapWindow();
+  return true;
+}
+
+int GraphicsMultiDevice::MaxNonFreeWin() {
+  return max_win;
+}
+
+int GraphicsMultiDevice::ActWin() {
+  TidyWindowsList();
+  return actWin;
+}
+
+bool GraphicsMultiDevice::CopyRegion(DLongGDL* me) {
+  TidyWindowsList();
+  DLong xs, ys, nx, ny, xd, yd;
+  DLong source;
+  xs = (*me)[0];
+  ys = (*me)[1];
+  nx = (*me)[2];
+  ny = (*me)[3];
+  xd = (*me)[4];
+  yd = (*me)[5];
+  if (me->N_Elements() == 7) source = (*me)[6];
+  else source = actWin;
+  if (!winList[ source]->GetRegion(xs, ys, nx, ny)) return false;
+  return winList[ actWin ]->SetRegion(xd, yd, nx, ny);
 }

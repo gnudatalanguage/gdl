@@ -40,8 +40,21 @@ public:
   void Init();
   void EventHandler();
 
-  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
-
+  /*------------------------------------------------------------------------*\
+   * GetImageErrorHandler()
+   *
+   * Error handler used in XGetImage() to catch errors when pixmap or window
+   * are not completely viewable.
+   \*-----------------------------------------------------------------------*/
+  static int   GetImageErrorHandler(Display *display, XErrorEvent *error)
+  {
+    if (error->error_code != BadMatch) {
+      char buffer[256];
+      XGetErrorText(display, error->error_code, buffer, 256);
+      std::cerr << "xwin: Error in XGetImage: " << buffer << std::endl;
+    }
+    return 1;
+  }
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();
@@ -72,6 +85,9 @@ public:
   void UnMapWindow();
   DByteGDL* GetBitmapData();
   void Color( ULong color, DLong decomposed);
+
+
+
 };
 
 #endif

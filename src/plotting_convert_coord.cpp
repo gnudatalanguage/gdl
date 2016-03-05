@@ -85,19 +85,16 @@ namespace lib {
     gdlGetAxisType("Z", zLog);
         
     int xSize, ySize, xPos, yPos;
+    //give default values
+    DStructGDL* dStruct = SysVar::D();
+    static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
+    static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
+    xSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xsizeTag, 0)))[0];
+    ySize = (*static_cast<DLongGDL*>( dStruct->GetTag( ysizeTag, 0)))[0];
     // Use Size in lieu of VSize
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     DLong wIx = actDevice->ActWin();
-    if( wIx == -1) {
-      Message(e->GetProName()+": Window is closed and unavailable.");
-      DStructGDL* dStruct = SysVar::D();
-      static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
-      static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
-      xSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xsizeTag, 0)))[0];
-      ySize = (*static_cast<DLongGDL*>( dStruct->GetTag( ysizeTag, 0)))[0];
-    } else {
-      bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
-    }
+    if( wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos); //on failure, sizes are ot changed by WSize.
     
     //projection?
       bool mapSet=false;

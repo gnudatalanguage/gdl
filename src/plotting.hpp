@@ -286,7 +286,7 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
       isDB = actStream->HasSafeDoubleBuffering();
       if (isDB) actStream->SetDoubleBuffering();
 
-      if (name == "X") 
+      if (name == "X" || name == "MAC" || name == "WIN" ) 
       {       
           actStream->updatePageInfo(); //since window size can change
           long xsize,ysize,xoff,yoff;

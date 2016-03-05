@@ -51,6 +51,11 @@ SVG - a SVG compliant file.
 #include "dstructgdl.hpp"
 #include "gdlgstream.hpp"
 
+#define MAX_WIN 33  //IDL free and widgets start at 33 ...
+#define MAX_WIN_RESERVE 256
+
+const UInt max_win = MAX_WIN;
+const UInt max_win_reserve = MAX_WIN_RESERVE;
 const UInt ctSize = 256;
 
 class GDLCT
@@ -107,7 +112,6 @@ class GDLGStream;
 class   GraphicsDevice;
 typedef std::vector< GraphicsDevice*> DeviceListT;
 
-// class wxDC;
 class GraphicsDevice
 {
   static void InitCT();         // preset CT and actCT
@@ -196,7 +200,7 @@ public:
   // for plot windows
   virtual bool WOpen( int ix, const std::string& title,
 		      int xsize, int ysize, 
-		      int xpos, int ypos)             { return false;}
+		      int xpos, int ypos, bool hide)  { return false;}
   virtual bool WSize( int ix,
 		      int* xsize, int* ysize, 
 		      int* xpos, int* ypos)           { return false;}
@@ -204,6 +208,8 @@ public:
   virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
+  virtual void TidyWindowsList()                      {}
+  virtual int  MaxNonFreeWin()                        { return 0;}
   virtual int  ActWin()                               { return -1;}
   virtual void EventHandler() {}
   virtual void DefaultXYSize(DLong *xsize, DLong *ysize) {
@@ -268,6 +274,65 @@ public:
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
   }
+};
+
+
+typedef std::vector< GDLGStream*> WindowListT;
+
+class GraphicsMultiDevice : public GraphicsDevice {
+private:
+public:
+    int decomposed; // false -> use color table
+    int cursorId; //should be 3 by default.
+    long gcFunction;
+    int backingStoreMode;
+
+  int getCursorId(){return cursorId;}
+  long getGCFunction(){return gcFunction;}
+  int GetBackingStore(){return backingStoreMode;}
+
+  static int actWin;
+  static WindowListT winList;
+  static std::vector<long> oList;
+  static int oIx;
+  static void Init();
+  GraphicsMultiDevice( int _decomposed, int _cursorId, long _gcFunction, int _backingStoreMode) : GraphicsDevice(),
+  decomposed(_decomposed),
+  cursorId(_cursorId),
+  gcFunction(_gcFunction),
+  backingStoreMode(_backingStoreMode)
+  {
+      //pretty much nothing to do...
+  }
+  ~GraphicsMultiDevice() {
+        WindowListT::iterator i;
+        for (i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {delete *i; *i = NULL;  } 
+  }
+  DByteGDL* WindowState();
+  bool WState( int ix);
+  int  MaxWin();
+  void SetActWin(int wIx);
+  void TidyWindowsList();
+  void RaiseWin(int wIx);
+  void LowerWin(int wIx);
+  void IconicWin(int wIx);
+  void DeIconicWin(int wIx);
+  void EventHandler();
+  bool WDelete(int wIx);
+  bool WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos);
+  bool WSet(int wIx);
+  bool WShow(int ix, bool show, bool iconic);
+  int WAddFree();
+  GDLGStream* GetStreamAt(int wIx) const;
+  bool UnsetFocus();
+  bool Decomposed(bool value);
+  DLong GetDecomposed();
+  bool SetBackingStore(int value);
+  bool Hide(); 
+  int MaxNonFreeWin();
+  int ActWin();
+  bool CopyRegion(DLongGDL* me);
+  
 };
 
 #endif

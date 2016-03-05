@@ -1400,6 +1400,7 @@ public:
   void OnMove( wxMoveEvent & event);
   void OnCloseFrame( wxCloseEvent & event);
   void OnUnhandledCloseFrame( wxCloseEvent & event);
+  void OnCloseWindow( wxCloseEvent & event);
   void OnEnterWindow(wxMouseEvent& event);
   void OnLeaveWindow(wxMouseEvent& event);
   void OnShowRequest( wxCommandEvent& event);
@@ -1426,7 +1427,7 @@ class GDLDrawPanel : public wxPanel
   enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   int		pstreamIx;
   GDLWXStream*	pstreamP;
-
+  GDLFrame*     container;
   wxSize 	drawSize;
 
   wxDC*  	m_dc;
@@ -1441,7 +1442,8 @@ public:
 	    long style = 0, 
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
-  
+ GDLFrame* GetContainer(){return container;}
+ void SetContainer(GDLFrame* f){container=f;}
  void Resize(int sizex, int sizey);
  
  void Update()
@@ -1449,7 +1451,9 @@ public:
      wxClientDC dc( this);
      dc.SetDeviceClippingRegion( GetUpdateRegion() );
      dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
-     wxPanel::Update();
+     if (wxTheApp) wxTheApp->ProcessIdle();
+
+//     wxPanel::Update();
 //      this->Refresh();
   }
   
@@ -1470,8 +1474,8 @@ public:
 //  void GetEventFlags(DULong eventFlags);
   int PStreamIx() { return pstreamIx;}
 
-  void InitStream();
-  
+  void InitStream(int windowIndex=-1);
+  void AssociateStream(GDLWXStream* stream);
 
   void SendPaintEvent()
   {
@@ -1487,6 +1491,7 @@ public:
   
   // event handlers (these functions should _not_ be virtual)
   void OnPaint(wxPaintEvent& event);
+  void OnErase(wxEraseEvent& event);
   void OnClose(wxCloseEvent& event);
   void OnMouseMove( wxMouseEvent& event);
   void OnMouseDown( wxMouseEvent& event);

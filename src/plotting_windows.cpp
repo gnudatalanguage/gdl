@@ -44,9 +44,9 @@ namespace lib {
 	if( nParam == 1)
 	  {
 	    e->AssureLongScalarPar( 0, wIx);
-	    if( wIx < 0 || wIx >= maxWin)
+	    if( wIx < 0 || wIx >= actDevice->MaxNonFreeWin()) //to comply with IDL
 	      e->Throw( "Window number "+i2s(wIx)+
-			" out of range.");
+			" out of range or no more windows.");
 	  }
       }
 
@@ -96,8 +96,9 @@ namespace lib {
     {
       e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
     }
-    bool success = actDevice->SetBackingStore(retainType);  
-    success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
+    bool success = actDevice->SetBackingStore(retainType);
+    bool hide=e->KeywordSet( "PIXMAP");
+    success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos, hide);
     if( !success)
       e->Throw(  "Unable to create window.");
     if ( e->KeywordSet( "PIXMAP"))
@@ -133,7 +134,7 @@ namespace lib {
 	  {
             DLong xSize, ySize;
             actDevice->DefaultXYSize(&xSize, &ySize);
-	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, -1, -1);
+	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, -1, -1, false);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
 //        success = actDevice->UnsetFocus();  // following a deviceXXX->WOpen

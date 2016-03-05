@@ -51,6 +51,7 @@ public:
     void RenewPlot();   //!< Redo plot.
     void Update();
     void SetGDLDrawPanel(GDLDrawPanel*);
+    GDLDrawPanel* GetGDLDrawPanel(){return gdlWindow;}
 
     void Init();
     //void EventHandler(); //    
@@ -60,23 +61,22 @@ public:
     void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
     unsigned long GetWindowDepth() ;   
 
-  //bool SetFocus();
-  //bool UnsetFocus();
-  //bool SetBackingStore(int value);
-  void Clear();
-  void Clear( DLong bColor);
-  //void Raise();
-  //void Lower();
-  //void Iconic();
-  //void DeIconic();
-  //bool GetGin(PLGraphicsIn *gin, int mode);
-  //bool GetExtendedGin(PLGraphicsIn *gin, int mode);
-  void WarpPointer(DLong x, DLong y);
-  //void Flush();
-  //void SetDoubleBuffering();
-  //void UnSetDoubleBuffering();
-  //bool HasDoubleBuffering();
-  //bool HasSafeDoubleBuffering();
+    bool UnsetFocus();
+    bool SetBackingStore(int value){return true;}
+    void Clear();
+    void Clear( DLong bColor);
+    void Raise();
+    void Lower();
+    void Iconic();
+    void DeIconic();
+    bool GetGin(PLGraphicsIn *gin, int mode);
+    //bool GetExtendedGin(PLGraphicsIn *gin, int mode);
+    void WarpPointer(DLong x, DLong y);
+    void Flush(){  plstream::cmd( PLESC_FLUSH, NULL );}
+    //void SetDoubleBuffering();
+    //void UnSetDoubleBuffering();
+    bool HasDoubleBuffering(){return true;}
+    bool HasSafeDoubleBuffering(){return ( m_dc->GetLogicalFunction() == wxCOPY);};
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 		   DLong trueColorOrder, DLong channel);
     virtual bool HasCrossHair() {return true;}

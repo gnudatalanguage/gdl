@@ -767,9 +767,10 @@ void InitObjects()
   // add internal memeber subroutines
   SetupOverloadSubroutines();
   
-  // graphic devices must be initialized after system variables
+  // graphic devices must be initialized after system variables.
   // !D must already exist
-  GraphicsDevice::Init();
+  // We need to initialize the multi-device object that inherits from the single-device object.
+  GraphicsMultiDevice::Init();
 
   // AC 150414 :
   // this line must be after the previous on Debian/Ubuntu systems.

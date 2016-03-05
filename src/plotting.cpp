@@ -435,7 +435,8 @@ namespace lib
     a->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
     if ((wdeux-wun)<0) UsymConvX*=-1.0;
     if ((wquatre-wtrois)<0) UsymConvY*=-1.0;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetUserSymSize(%f,%f)\n",a->wCharLength(),a->wCharHeight());
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetUserSymSize(%f,%f), charlen=%f, charheight=%f, charscale=%f\n",
+      UsymConvX, UsymConvY,a->wCharLength(),a->wCharHeight(),a->charScale());
   }
 
   void CheckMargin(EnvT* e, GDLGStream* actStream,
@@ -3567,9 +3568,18 @@ struct Polygon {
   std::list<Vertex> VertexList;
   int type; //+1 before cut, -1 after cut
   int index; //keep cut index
+  DDouble xcut; //x coord for 1st cut
+  DDouble ycut; //y coord ..
+  DDouble zcut; //z ..
   DDouble cutDistAtStart; //cut distance for reordering
   DDouble cutDistAtEnd; //cut distance for reordering
  };
+ 
+ DDouble distFromCut(const Polygon& p, DDouble x, DDouble y, DDouble z)
+ {
+    return DistanceOnSphere(p.xcut, p.ycut, p.zcut,  x, y, z ); 
+ } 
+ 
  bool OrderPolygonsAfter(const Polygon& first, const Polygon & second){
    return (first.cutDistAtStart < second.cutDistAtStart);
  }
@@ -3578,13 +3588,17 @@ struct Polygon {
  }
  
  bool IsPolygonInsideBefore(const Polygon * first, const Polygon * second){ //is second inside first?
-   cerr<<first->cutDistAtEnd/DEG_TO_RAD<<"<="<< second->cutDistAtEnd/DEG_TO_RAD<<"? && "<<first->cutDistAtStart/DEG_TO_RAD<<" >= "<<second->cutDistAtStart/DEG_TO_RAD<<"?";
+   cerr<<"("<<second<<"in"<<first<<")? "<<first->cutDistAtEnd/DEG_TO_RAD<<"<="<< second->cutDistAtEnd/DEG_TO_RAD<<"? && "
+   <<first->cutDistAtStart/DEG_TO_RAD<<" >= "<<second->cutDistAtStart/DEG_TO_RAD<<"? ";
    bool ret = (first->cutDistAtEnd <= second->cutDistAtEnd && first->cutDistAtStart >= second->cutDistAtStart);
+   if (ret) cerr<<"YES"<<endl; else cerr<<"NO"<<endl;
    return ret;
  }
   bool IsPolygonInsideAfter(const Polygon * first, const Polygon * second){ //is second inside first?
-   cerr<<first->cutDistAtStart/DEG_TO_RAD<<"<="<< second->cutDistAtStart/DEG_TO_RAD<<"? && "<<first->cutDistAtEnd/DEG_TO_RAD<<" >= "<<second->cutDistAtEnd/DEG_TO_RAD<<"?";
+    cerr<<"("<<second<<"in"<<first<<")? "<<first->cutDistAtStart/DEG_TO_RAD<<"<="<< second->cutDistAtStart/DEG_TO_RAD<<"? && "
+    <<first->cutDistAtEnd/DEG_TO_RAD<<" >= "<<second->cutDistAtEnd/DEG_TO_RAD<<"? ";
    bool ret = (first->cutDistAtStart <= second->cutDistAtStart && first->cutDistAtEnd >= second->cutDistAtEnd);
+   if (ret) cerr<<"YES"<<endl; else cerr<<"NO"<<endl;
    return ret;
  }
  
@@ -3617,6 +3631,41 @@ struct Polygon {
       }
     }
     p->VertexList.push_back(*start); //close contour
+}
+ void StitchTwoPolygonsOnGreatCircle(Polygon *p, Polygon *q){ //stich end of p to start of q
+  DDouble x, y, z, xs, ys, zs, xe, ye, ze;
+    Vertex *start=new Vertex (p->VertexList.back()); //end of p
+    xs = cos( start->x ) * cos( start->y );
+    ys = sin( start->x ) * cos( start->y);
+    zs = sin( start->y );
+    Vertex *end=new Vertex (q->VertexList.front());
+    xe = cos( end->x ) * cos( end->y );
+    ye = sin( end->x ) * cos( end->y );
+    ze = sin( end->y );
+    DDouble dist=DistanceOnSphere( xs, ys, zs, xe, ye, ze);
+    int nvertex=abs(dist/DELTA);
+    if (nvertex > 0) {
+      DDouble dx=(xe-xs)/nvertex;
+      DDouble dy=(ye-ys)/nvertex;
+      DDouble dz=(ze-zs)/nvertex;
+      for (int k=0; k<nvertex; k++) {
+        Vertex *stitch=new Vertex;
+        x=xe-k*dx;
+        y=ye-k*dy;
+        z=ze-k*dz;
+        DDouble norm=sqrt(x*x+y*y+z*z);
+        x/=norm;y/=norm;z/=norm;
+        stitch->x=atan2( y, x );
+        stitch->y=asin( z ); 
+        p->VertexList.push_back(*stitch); //add all supplementary vertices to p 
+      }
+    }
+    if (p==q) {
+      p->VertexList.push_back(*start); //stick p to start of q
+    } else { //add all of q at end of p; remove q
+      p->VertexList.splice(p->VertexList.end(),q->VertexList);
+      p->cutDistAtEnd=q->cutDistAtEnd;
+    }
 }
 DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
 bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill ) {
@@ -3790,8 +3839,9 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
                 curr->y=asin( z );
                 currentVertexList->push_back(*curr); delete curr;
                 //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
-                if (index==0) {xcut=x; ycut=y; zcut=z;}
                 currentPol->VertexList=(*currentVertexList);
+                //save first cut position
+                if (index==0) {currentPol->xcut=x; currentPol->ycut=y; currentPol->zcut=z;}
                 int newtype=-1*currentPol->type;
 
                 tmpPolygonList.push_back(*currentPol); delete currentPol;
@@ -3842,13 +3892,13 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
               x = cos( v.x ) * cos( v.y );
               y = sin( v.x ) * cos( v.y );
               z = sin( v.y );              
-              (*p).cutDistAtStart=DistanceOnSphere(xcut, ycut, zcut,  x, y, z ); 
+              (*p).cutDistAtStart=distFromCut((*p),  x, y, z ); 
 //              (*p).cutDistAtStart=v.y; 
               v = (*p).VertexList.back();
               x = cos( v.x ) * cos( v.y );
               y = sin( v.x ) * cos( v.y );
               z = sin( v.y );              
-              (*p).cutDistAtEnd=DistanceOnSphere(xcut, ycut, zcut,  x, y, z ); 
+              (*p).cutDistAtEnd=distFromCut((*p),  x, y, z ); 
 //              (*p).cutDistAtEnd=v.y; 
             }
             //b) zero index, it will serve anew after.
@@ -3861,72 +3911,110 @@ bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines,
               if ((*p).type==1) {
                 beforePolygonList.push_back((*p)); //on side of first vertex.
               } else {
-                afterPolygonList.push_back((*p)); //on side of first vertex.
+                afterPolygonList.push_back((*p)); //on other side.
               }
             }
             tmpPolygonList.clear();
 
-            //d) sort the 2 lists by increasing distance from first cut position:
-            beforePolygonList.sort(OrderPolygonsBefore);
-            afterPolygonList.sort(OrderPolygonsAfter);
+            //d) sort each list by increasing distance from first cut position, and remove each polygon after stiching.
+            // Stitching alog uses a complexity number: number of polygons surrounding the polygon. replaces index which is not useful anymore.
 
-              //e) compute a complexity number: number of polygons surrounding the polygon. replaces index which is not useful anymore.
-              cerr<<"Before"<<endl;
-              for (std::list<Polygon>::iterator p=beforePolygonList.begin(); p != beforePolygonList.end(); p++) {
-                Polygon * pi=&(*p);
-                for (std::list<Polygon>::iterator q=beforePolygonList.begin(); q != beforePolygonList.end(); q++) { 
-                  Polygon * pj=&(*q);
-                  bool isin=IsPolygonInsideBefore(pj,pi);
-                  if (isin) pi->index+=1;
+            do {
+
+              beforePolygonList.sort(OrderPolygonsBefore);
+
+              cerr << "Before" << endl;
+              //establish complexity number
+              for ( std::list<Polygon>::iterator p = beforePolygonList.begin( ); p != beforePolygonList.end( ); p++ ) {
+                Polygon * pi = &(*p);
+                for ( std::list<Polygon>::iterator q = beforePolygonList.begin( ); q != beforePolygonList.end( ); q++ ) {
+                  Polygon * pj = &(*q);
+                  bool isin = IsPolygonInsideBefore( pj, pi );
+                  if ( isin ) pi->index += 1;
                 }
               }
-              for (std::list<Polygon>::iterator p=beforePolygonList.begin(); p != beforePolygonList.end(); p++) cerr<<"("<<(*p).type<<","<<(*p).index<<"),"; cerr<<endl;
+//              for ( std::list<Polygon>::iterator p = beforePolygonList.begin( ); p != beforePolygonList.end( ); p++ )
+//                cerr << "(" << (*p).type << "," << (*p).index << "),";
+//              cerr << endl;
 
-              cerr<<"After"<<endl;
-              for (std::list<Polygon>::iterator p=afterPolygonList.begin(); p != afterPolygonList.end(); p++) {
-                Polygon * pi=&(*p);
-                for (std::list<Polygon>::iterator q=afterPolygonList.begin(); q != afterPolygonList.end(); q++) { 
-                  Polygon * pj=&(*q);
-                  bool isin=IsPolygonInsideAfter(pj,pi);
-                  if (isin) pi->index+=1;
-                }
+              //stitch end to start for first polygon:
+              std::list<Polygon>::iterator q = beforePolygonList.begin( );
+              Polygon * p = &(*q);
+              if ( p->index == 1 ) {
+                StitchOnePolygonOnGreatCircle( p );
+                //add closed polygon to end of newPolygonList
+                newPolygonList.push_back( *q );
+              } else {
+                  beforePolygonList.erase(q);
+//                StitchTwoPolygonsOnGreatCircle( p, p );
+//                newPolygonList.push_back( *q );
               }
-
-              for (std::list<Polygon>::iterator p=afterPolygonList.begin(); p != afterPolygonList.end(); p++) cerr<<"("<<(*p).type<<","<<(*p).index<<"),"; cerr<<endl;
-
+            } while (!beforePolygonList.empty());
+                
+//            cerr<<"Before"<<endl;
+//              for (std::list<Polygon>::iterator p=beforePolygonList.begin(); p != beforePolygonList.end(); p++) {
+//                Polygon * pi=&(*p);
+//                for (std::list<Polygon>::iterator q=beforePolygonList.begin(); q != beforePolygonList.end(); q++) { 
+//                  Polygon * pj=&(*q);
+//                  bool isin=IsPolygonInsideBefore(pj,pi);
+//                  if (isin) pi->index+=1;
+//                }
+//              }
+//              for (std::list<Polygon>::iterator p=beforePolygonList.begin(); p != beforePolygonList.end(); p++) 
+//                cerr<<"("<<(*p).type<<","<<(*p).index<<"),"; cerr<<endl;
+//
 //              //stitch end to start:
-              for (std::list<Polygon>::iterator q=beforePolygonList.begin(); q != beforePolygonList.end(); q++) {
-                Polygon * p=&(*q);
-                if (p->index==1) {
-                  StitchOnePolygonOnGreatCircle(p);
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
-                } 
-                //code below must be changed! WORK IN PROGRESS
-                else {
-                  StitchOnePolygonOnGreatCircle(p);
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
-                }
-              }
-//               
-              for (std::list<Polygon>::iterator q=afterPolygonList.begin(); q != afterPolygonList.end(); q++) {
-                Polygon * p=&(*q);
-                if (p->index==1) {
-                  StitchOnePolygonOnGreatCircle(p);
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
-                } 
-                //code below must be changed! WORK IN PROGRESS
-                else {
-                  StitchOnePolygonOnGreatCircle(p);
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
-                }
-              }
+//              for (std::list<Polygon>::iterator q=beforePolygonList.begin(); q != beforePolygonList.end(); q++) {
+//                Polygon * p=&(*q);
+//                if (p->index==1) {
+//                  StitchOnePolygonOnGreatCircle(p);
+//                  //add closed polygon to end of newPolygonList
+//                  newPolygonList.push_back(*q);
+//                } 
+//                //code below must be changed! WORK IN PROGRESS
+//                else {
+//                  StitchTwoPolygonsOnGreatCircle(p,p);
+////                  StitchOnePolygonOnGreatCircle(p);
+//                  //add closed polygon to end of newPolygonList
+//                  newPolygonList.push_back(*q);
+//                }
+//              }
+              
+//              beforePolygonList.clear();
+            do {
 
-              beforePolygonList.clear();
-              afterPolygonList.clear();
+                afterPolygonList.sort( OrderPolygonsAfter );
+
+                cerr << "After" << endl;
+                //establish complexity number
+                for ( std::list<Polygon>::iterator p = afterPolygonList.begin( ); p != afterPolygonList.end( ); p++ ) {
+                  Polygon * pi = &(*p);
+                  for ( std::list<Polygon>::iterator q = afterPolygonList.begin( ); q != afterPolygonList.end( ); q++ ) {
+                    Polygon * pj = &(*q);
+                    bool isin = IsPolygonInsideAfter( pj, pi );
+                    if ( isin ) pi->index += 1;
+                  }
+                }
+//
+//                for ( std::list<Polygon>::iterator p = afterPolygonList.begin( ); p != afterPolygonList.end( ); p++ )
+//                  cerr << "(" << (*p).type << "," << (*p).index << "),";
+//                cerr << endl;
+
+                std::list<Polygon>::iterator q = afterPolygonList.begin( );
+                Polygon * p = &(*q);
+                if ( p->index == 1 ) {
+                  StitchOnePolygonOnGreatCircle( p );
+                  //add closed polygon to end of newPolygonList
+                  newPolygonList.push_back( *q );
+                }
+                else {
+                  afterPolygonList.erase(q);
+//                  StitchTwoPolygonsOnGreatCircle( p, p );
+//                  newPolygonList.push_back( *q );
+                }
+              } while (!beforePolygonList.empty());
+//
+//              afterPolygonList.clear();
               
             
           } else {

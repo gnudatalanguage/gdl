@@ -3910,19 +3910,20 @@ GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 , pstreamP( NULL )
 , m_dc( NULL)
 , GDLWidgetDrawID(id)
+, container(NULL)
 , drawSize(wxDefaultSize)
 {
 //  m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
   // initialization of stream is done in GDLWidgetDraw::OnRealize()
 }
 
-void GDLDrawPanel::InitStream()
+void GDLDrawPanel::InitStream(int windowIndex)
 {
-  pstreamIx = GraphicsDevice::GetGUIDevice( )->WAddFree( );
+  if (windowIndex < 0)  pstreamIx = GraphicsDevice::GetGUIDevice( )->WAddFree( );
+  else  pstreamIx = windowIndex;
   if ( pstreamIx == -1 )
   throw GDLException( "Failed to allocate GUI stream." );
 
-//  drawSize = this->GetClientSize( ); //do not set drawsize here, needs to be initialized only in size event handler.
   bool success = GraphicsDevice::GetGUIDevice( )->GUIOpen( pstreamIx, this->GetClientSize( ).x, this->GetClientSize( ).y );
   if( !success)
   {
@@ -3933,6 +3934,14 @@ void GDLDrawPanel::InitStream()
 
   m_dc = pstreamP->GetDC( );
 }
+
+void GDLDrawPanel::AssociateStream(GDLWXStream* stream)
+{
+  pstreamP = stream;
+  pstreamP->SetGDLDrawPanel( this );
+  m_dc = pstreamP->GetDC( );
+}
+
 
 void GDLDrawPanel::Resize(int sizex, int sizey)
 {
@@ -4001,6 +4010,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   //these widget specific events are always set:
    draw->Connect(widgetID, wxEVT_PAINT, wxPaintEventHandler(GDLDrawPanel::OnPaint));
    draw->Connect(widgetID, wxEVT_SIZE, wxSizeEventHandler(GDLDrawPanel::OnSize));
+   draw->Connect(widgetID, wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(GDLDrawPanel::OnErase));
 
   //other set event handling according to flags
 //this one is for the moment defined globally:

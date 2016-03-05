@@ -42,11 +42,9 @@ int GDLEventHandler()
 
 #ifdef HAVE_LIBWXWIDGETS
   GDLWidget::HandleEvents();
-  const long OS_X_DELAY_NS = 5000000; // 5ms
-#else
-  const long OS_X_DELAY_NS = 20000000; // 20ms
 #endif
-
+  const long OS_X_DELAY_NS = 20000000; // 20ms
+//ONLY APPLE? or WIN? Why? (GD)
 #ifdef __APPLE__
   // under OS X the event loop burns to much CPU time
   struct timespec delay;

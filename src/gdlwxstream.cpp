@@ -52,9 +52,14 @@ GDLWXStream::GDLWXStream( int width, int height )
 #else
   else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
 #endif
-  spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
+//  spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
+//        PLFLT pageRatio=width/height;
+//        std::string as = i2s( pageRatio);
+//        SETOPT( "a", as.c_str());
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
+//  bool fixed=true;  //only for plplot_version_major > 10
+//  plstream::cmd(PLESC_FIXASPECT, (void*)&fixed );
   plstream::set_stream();
 }
 
@@ -93,21 +98,21 @@ void GDLWXStream::SetSize( int width, int height )
 //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
   wxSize size = wxSize( width, height);
 
-  PLFLT def,cur,ofact,fact;
-  plgchr(&def,&cur); //cerr<<"before: "<<def;
-  ofact = 80.0/pls->ydpi;
-//  cerr<<", ofact= "<<ofact; 
+//  PLFLT def,cur,ofact,fact;
+//  plgchr(&def,&cur); //cerr<<"before: "<<def;
+//  ofact = 80.0/pls->ydpi;
+////  cerr<<", ofact= "<<ofact; 
 
   plstream::cmd(PLESC_RESIZE, (void*)&size );
   m_width = width;
   m_height = height;
-  plgchr(&def,&cur); // cerr<<" ,after= "<<def;
-  fact = 80.0/pls->ydpi;
-//  cerr<<", fact= "<<fact;
-  def *= fact/ofact;
-//  cerr<<", new: " <<def<<endl;
-////  cerr << xp << ", " << yp << ", " << xleng * xp << ", " << yleng * yp << ", " << xoff << ", " << yoff << "," << &event << endl;
-  this->RenewPlplotDefaultCharsize( def );
+//  plgchr(&def,&cur); // cerr<<" ,after= "<<def;
+//  fact = 80.0/pls->ydpi;
+////  cerr<<", fact= "<<fact;
+//  def *= fact/ofact;
+////  cerr<<", new: " <<def<<endl;
+//////  cerr << xp << ", " << yp << ", " << xleng * xp << ", " << yleng * yp << ", " << xoff << ", " << yoff << "," << &event << endl;
+//  this->RenewPlplotDefaultCharsize( def );
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
@@ -143,7 +148,7 @@ void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 }
 
 unsigned long GDLWXStream::GetWindowDepth() {
-  return 24;
+  return wxDisplayDepth();
 }
 
 void GDLWXStream::Clear() {
@@ -158,7 +163,7 @@ void GDLWXStream::Clear() {
       blue0=GraphicsDevice::GetDevice()->BackgroundB();
       plstream::scolbg(red0,green0,blue0); //overwrites col[0]
       ::c_plbop();
-      ::c_plclear();
+//      ::c_plclear();
       plstream::scolbg(red,green,blue); //resets col[0]
 }
 
@@ -230,7 +235,8 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   m_dc->DrawBitmap(image,0,0);
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
-  *m_bitmap = m_dc->GetAsBitmap(); 
+  *m_bitmap = m_dc->GetAsBitmap();
+  Update();
   return true;
 }
 
@@ -344,4 +350,114 @@ DByteGDL* GDLWXStream::GetBitmapData() {
     image.Destroy();
     return bitmap;
 }
+
+void GDLWXStream::Raise() {
+  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+  if (tl) tl->Raise();
+}
+
+void GDLWXStream::Lower() {
+  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+  if (tl) tl->Lower();
+}
+
+void GDLWXStream::Iconic() {
+  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+  if (tl) tl->Iconize(true);
+}
+
+void GDLWXStream::DeIconic() {
+  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+  if (tl) tl->Iconize(false);
+}
+bool GDLWXStream::UnsetFocus(){  
+  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+  if (tl) tl->Disable();
+    return true;}
+
+bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
+
+  enum CursorOpt {
+    NOWAIT = 0,
+    WAIT, //1
+    CHANGE, //2
+    DOWN, //3
+    UP //4
+  };
+  wxMouseState mouse=wxGetMouseState();
+  wxPoint mousePoint = wxGetMousePosition ();
+  unsigned int state=0, ostate=0; //start with null state
+  unsigned int button=0; //gets the button state 1,2,3
+  int x,y;
+  x = mouse.GetX();
+  y = mouse.GetY();
+  gin->pX = x;
+  gin->pY = y;
+
+  //state is like the button state value, combination of all buttonstate masks of X11. It is merely to know what buttons are down
+  if (mouse.LeftIsDown())  {button = 1; ostate |= 1;}
+  if (mouse.MiddleIsDown()){button = 2; ostate |= 2;}
+  if (mouse.RightIsDown()) {button = 3; ostate |= 4;}
+#if wxCHECK_VERSION(3,0,0)
+  if (mouse.Aux1IsDown())  {button = 4; ostate |= 8;}
+  if (mouse.Aux2IsDown())  {button = 5; ostate |= 16;}  
+#endif
+  //return if NOWAIT or WAIT and Button pressed
+  UnsetFocus();  // first try to get out of focus.
+  if ((mode == NOWAIT) || (mode == WAIT && button > 0)) {
+    state=ostate;
+    goto end; //else wait below for a down...
+  }
+  while (1) { //poll repeatedly -- waiting for event would be better but needs start locally the wx eventloop.
+     if (gdlWindow->GetScreenRect().Contains(wxGetMousePosition())) { //if cursor is in the window...
+       mouse=wxGetMouseState();
+       x = mouse.GetX();
+       y = mouse.GetY();
+       if (mouse.LeftIsDown())   {button = 1; state |= 1;}
+       if (mouse.MiddleIsDown()) {button = 2; state |= 2;}
+       if (mouse.RightIsDown())  {button = 3; state |= 4;}
+#if wxCHECK_VERSION(3,0,0)
+       if (mouse.Aux1IsDown())   {button = 4; state |= 8;}
+       if (mouse.Aux2IsDown())   {button = 5; state |= 16;}
+#endif
+       int change=(state^ostate);
+       //is it a button up or down?
+       int diff=(state&change)-(ostate&change);
+       bool ButtonRelease=( diff < 0 ); //from 1 to 0: negative
+       if (change > 0) { //press or release
+         gin->pX = x;
+         gin->pY = y;
+         if (mode==CHANGE) goto end;
+         if (mode==UP && ButtonRelease) goto end;
+         if (!ButtonRelease && (mode==WAIT || mode==DOWN) ) goto end;
+       }
+       if ( (pow(x-gin->pX,2)+pow(y-gin->pY,2) > 0) && mode==CHANGE) {
+         gin->pX = x;
+         gin->pY = y;
+         goto end;
+       }
+       ostate=state; //update state
+       state=0; 
+       gin->pX = x; //update new position
+       gin->pY = y;
+     }
+  //We must get out of this loop sometime!
+       wxMilliSleep( 50 );      // Sleep a bit to prevent CPU overuse
+        
+        if ( sigControlC )
+          return false;
+  }
+end:
+  //convert screen to client coord
+  gdlWindow->ScreenToClient(&x,&y); //now in coordinates
+  gin->pX = x;
+  gin->pY = gdlWindow->GetSize().y - y;
+  gin->dX = (PLFLT) gin->pX / ( gdlWindow->GetSize().x - 1);
+  gin->dY = (PLFLT) gin->pY / ( gdlWindow->GetSize().y - 1);
+  gin->string[0] = '\0';
+  gin->keysym = 0x20;
+  gin->button = button;
+  return true;
+}
+
 #endif
