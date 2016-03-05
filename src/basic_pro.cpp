@@ -533,7 +533,7 @@ bool CompareWithJokers(string names, string sourceFiles) {
       bool helpKW = e->KeywordPresent(helpKWIx);
       if (helpKW) {
 	string inline_help[] = { "Usage: " + e->GetProName() + ", expr1, ..., exprN,",
-				 "          /ALL_KEYS, /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
+				 "          /ALL_KEYS, /BRIEF, /CALLS, /COMMON, /FUNCTIONS, /HELP, /INFO,",
 				 "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
 				 "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE,",
 				 "          /PREFERENCES, /PROCEDURES, /RECALL_COMMANDS, /ROUTINES,",
@@ -1248,20 +1248,21 @@ bool CompareWithJokers(string names, string sourceFiles) {
 	      helpStr.insert(ss.str());
 	    }
 
-
-	  CommonListT::iterator it;
-	  for (it = commonList.begin(); it != commonList.end(); it++)
-	    {
-	      SizeT nVar = (*it)->NVar();
-	      for (SizeT vIx = 0; vIx < nVar; ++vIx)
-		{
-		  DString parString = (*it)->VarName(vIx) + " (" + (*it)->Name() + ')';
-		  stringstream ss;
-		  DVar* var = (*it)->Var(vIx);
-		  help_item(ss, var->Data(), parString, false);
-		  helpStr.insert(ss.str());
-		}
-	    }
+      static int commonKWIx = e->KeywordIx("COMMON");
+      bool commonKW = e->KeywordSet(commonKWIx);
+      if (commonKW) {
+       CommonListT::iterator it;
+       for (it = commonList.begin(); it != commonList.end(); it++) {
+        SizeT nVar = (*it)->NVar();
+        for (SizeT vIx = 0; vIx < nVar; ++vIx) {
+         DString parString = (*it)->VarName(vIx) + " (" + (*it)->Name() + ')';
+         stringstream ss;
+         DVar* var = (*it)->Var(vIx);
+         help_item(ss, var->Data(), parString, false);
+         helpStr.insert(ss.str());
+        }
+       }
+      }
 
 	  if (outputKW == NULL) {
 	    copy(helpStr.begin(), helpStr.end(),
