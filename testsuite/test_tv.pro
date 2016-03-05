@@ -45,10 +45,12 @@ end
 ; -------------------------------------
 ;
 pro TEST_TV_DAMIER, numwin, color=color, benchmark=benchmark, $
+                    nb_cells_max=nb_cells_max, $
                     test=test, debug=debug, help=help
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro TEST_TV_DAMIER, numwin, color=color, benchmark=benchmark, $'
+    print, '                    nb_cells_max=nb_cells_max, $'
     print, '                    test=test, debug=debug, help=help'
     print, ''
     print, 'Three levels of time benchmarking : 0 no, =1 global, =2 detail'
@@ -76,6 +78,12 @@ vignette=DIST(units)
 ;
 offset_line=0
 nb_cells=nbx*nby
+if KEYWORD_SET(nb_cells_max) then begin
+    if (nb_cells_max GT 0) AND (nb_cells_max LT nb_cells/2) then begin
+        nb_cells=nb_cells_max*2
+    endif
+endif
+;
 for ii=0, (nb_cells/2-1)  do begin
     offset_line=(ii / (nbx/2)) mod 2
     if KEYWORD_SET(debug) then print, ii, offset_line, 2*ii+offset_line
