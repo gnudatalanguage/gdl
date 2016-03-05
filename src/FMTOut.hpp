@@ -30,7 +30,11 @@ public:
 	valIx(0), termFlag(false), nonlFlag(false), nElements(0)
     {
         std::ostringstream* osLocal;
+#if (__cplusplus >= 201103L)
+std::unique_ptr<std::ostream> osLocalGuard;
+#else
         std::auto_ptr<std::ostream> osLocalGuard;
+#endif
         //if( *os_ == std::cout) // SA: this did not work with win32
         if( os_->rdbuf() == std::cout.rdbuf())
             {
