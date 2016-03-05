@@ -40,7 +40,7 @@ DCommon::~DCommon()
 
 void DCommon::DeleteData()
 {
-  typename VarListT::iterator i;
+  VarListT::iterator i;
   for(i = var.begin(); i != var.end(); ++i) 
     (*i)->Delete();
 }
