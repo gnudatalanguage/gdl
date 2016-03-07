@@ -129,7 +129,9 @@ r_curr = r_orig
 g_curr = g_orig
 b_curr = b_orig
 ;
-TVLCT, r_curr, g_curr, b_curr
+; loadct_gdlinternal has already changed all colormaps. Calling TVLCT will
+; only double the load (very slow on X11).
+;TVLCT, r_curr, g_curr, b_curr
 ;
 end
 
