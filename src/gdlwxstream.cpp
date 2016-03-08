@@ -431,7 +431,7 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
          if (mode==UP && ButtonRelease) goto end;
          if (!ButtonRelease && (mode==WAIT || mode==DOWN) ) goto end;
        }
-       if ( (pow(x-gin->pX,2)+pow(y-gin->pY,2) > 0) && mode==CHANGE) {
+       if ( (pow((float)x-gin->pX,2)+pow((float)y-gin->pY,2) > 0) && mode==CHANGE) {
          gin->pX = x;
          gin->pY = y;
          goto end;
