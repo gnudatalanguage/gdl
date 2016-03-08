@@ -315,7 +315,7 @@ namespace lib {
 //  cout << devicebox[0] << "," << devicebox[1] << "," << devicebox[2] << ","<< devicebox[3] << endl;
 
       Guard<BaseGDL> chan_guard;
-      actStream->flush();
+//      actStream->flush();
       if (channel == 0) {
         if (!actStream->PaintImage(&(*byteImage)[0], imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
       } else if (rank == 3) {

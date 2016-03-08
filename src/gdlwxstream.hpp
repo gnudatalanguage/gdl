@@ -72,7 +72,7 @@ public:
     bool GetGin(PLGraphicsIn *gin, int mode);
     //bool GetExtendedGin(PLGraphicsIn *gin, int mode);
     void WarpPointer(DLong x, DLong y);
-    void Flush(){  plstream::cmd( PLESC_FLUSH, NULL );}
+    void Flush(){ }// plstream::cmd( PLESC_FLUSH, NULL );}
     //void SetDoubleBuffering();
     //void UnSetDoubleBuffering();
     bool HasDoubleBuffering(){return true;}

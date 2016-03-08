@@ -174,7 +174,7 @@ void GDLWXStream::Clear(DLong bColor) {
 
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
-  plstream::cmd( PLESC_FLUSH, NULL );
+//  plstream::cmd( PLESC_FLUSH, NULL );
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
   wxImage image=m_bitmap->ConvertToImage();
@@ -322,7 +322,7 @@ return visual;
 }
 
 DByteGDL* GDLWXStream::GetBitmapData() {
-    plstream::cmd( PLESC_FLUSH, NULL );
+//    plstream::cmd( PLESC_FLUSH, NULL );
     wxMemoryDC temp_dc;
     temp_dc.SelectObject(*m_bitmap);
     wxImage image=m_bitmap->ConvertToImage();
