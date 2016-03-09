@@ -78,19 +78,11 @@ public:
   bool WOpen( int wIx, const std::string& title, 
             int xSize, int ySize, int xPos, int yPos, bool hide=false) 
     {
+        if( wIx >= winList.size() || wIx < 0) return false;
+
+        if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
+
         TidyWindowsList();
-
-        int wLSize = winList.size();
-        if( wIx >= wLSize || wIx < 0)
-          return false;
-
-        if( winList[ wIx] != NULL)
-          {
-            delete winList[ wIx];
-            winList[ wIx] = NULL;
-            TidyWindowsList();
-          }
-
 
         // set initial window size
         int xleng; int yleng;
@@ -320,18 +312,10 @@ public:
     
     bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
   {
-//    int xPos=0; int yPos=0;
+    if( wIx >= winList.size() || wIx < 0) return false;
+
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
     TidyWindowsList();
-
-    int wLSize = winList.size();
-    if( wIx >= wLSize || wIx < 0)
-      return false;
-
-    if( winList[ wIx] != NULL)
-      {
-        delete winList[ wIx];
-        winList[ wIx] = NULL;
-      }
 
     winList[ wIx] = new GDLWXStream( xSize, ySize);
     oList[ wIx]   = oIx++;
@@ -369,38 +353,8 @@ public:
   } // GUIOpen
 
     bool WDelete(int wIx) {
-        TidyWindowsList();
-        GDLFrame* container=NULL;
-        GDLDrawPanel* panel=NULL;
-        bool isAWindow=false;
-        
-        int wLSize = winList.size();
-        if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)  return false;
-
-        if (dynamic_cast<GDLWXStream*> (winList[wIx]) != NULL) {
-            panel=dynamic_cast<GDLDrawPanel*>(static_cast<GDLWXStream*>(winList[wIx])->GetGDLDrawPanel());
-            if (panel!= NULL) {
-             container=panel->GetContainer();
-             isAWindow=true;
-            }  
-        }
-
-        delete winList[wIx];
-        winList[wIx] = NULL;
-        oList[wIx] = 0;
-
-        if (container) { delete container;}
-        
-        // set to most recently created if it is a window, not a draw widget
-        std::vector< long>::iterator mEl =
-                std::max_element(oList.begin(), oList.end());
-        // no window open
-        if (!isAWindow || *mEl == 0) {
-            SetActWin(-1);
-            oIx = 1;
-        } else
-            SetActWin(std::distance(oList.begin(), mEl));
-
+  winList[ wIx]->SetValid(false);
+    TidyWindowsList();
         return true;
     }
 
@@ -415,16 +369,23 @@ public:
                 if (!winList[i]->GetValid()) {
                     if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
                         panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
-                        if (panel != NULL) {
+                        if (panel != NULL) {  //2 cases: 1) container is not null: it is a window, we delete the container 
+                         //or, container is null: it is a GDLDrawPanel, itself child of a GDLWidgetDraw, that we destroy (isAWindow=false)
                             container = panel->GetContainer();
                             isAWindow = true;
                         }
                     }
-
-                    delete winList[i];
+                    if (container) { 
+                      delete winList[i]; //will be deleted with the removal of GDLWidgetDraw below
+                      delete container;
+                    }else {
+                      GDLWidget *draw=panel->GetGDLWidgetDraw();
+                      if (draw) {
+                       delete draw; 
+                      }
+                    }
                     winList[i] = NULL;
                     oList[i] = 0;
-                    if (container) delete container;
                 }
             }
             // set new actWin IF NOT VALID ANY MORE

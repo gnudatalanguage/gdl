@@ -1443,6 +1443,7 @@ public:
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
  GDLFrame* GetContainer(){return container;}
+ GDLWidgetDraw* GetGDLWidgetDraw(){ return static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));}
  void SetContainer(GDLFrame* f){container=f;}
  void Resize(int sizex, int sizey);
  

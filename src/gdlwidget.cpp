@@ -3972,7 +3972,7 @@ GDLWidgetDraw::~GDLWidgetDraw()
 {
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetDraw: " << this << std::endl;
-#endif  
+#endif 
   // handled in GDLDrawPanel (which is deleted by wxWidgets)
 //   GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
 }

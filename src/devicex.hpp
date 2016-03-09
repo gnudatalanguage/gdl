@@ -83,21 +83,12 @@ public:
 	      int xSize, int ySize, int xPos, int yPos, bool hide=false)
   {
 
-    //cout << "WOpen : " << xSize <<" "<< ySize<<" "<< xPos<<" "<< yPos<<endl;
+
+    if( wIx >= winList.size() || wIx < 0) return false;
+
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
+
     TidyWindowsList();
-
-    int wLSize = winList.size();
-    if( wIx >= wLSize || wIx < 0)
-      return false;
-
-    if( winList[ wIx] != NULL)
-      {
-	      delete winList[ wIx];
-       	winList[ wIx] = NULL;
-        TidyWindowsList();
-      }
-
-
 
     // set initial window size
     PLFLT xp; PLFLT yp; 
