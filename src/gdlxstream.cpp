@@ -698,16 +698,16 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     int (*oldErrorHandler)(Display*, XErrorEvent*);
     oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
     if (dev->write_to_pixmap == 1) {
-      ximg = XGetImage(xwd->display, dev->pixmap, xoff, yoff, xmax, ymax, AllPlanes, ZPixmap);
+      ximg = XGetImage(xwd->display, dev->pixmap, xoff, dev->height-yoff-ymax, xmax, ymax, AllPlanes, ZPixmap);
     } else {
-      ximg = XGetImage(xwd->display, dev->window, xoff, yoff, xmax, ymax, AllPlanes, ZPixmap);
+      ximg = XGetImage(xwd->display, dev->window, xoff, dev->height-yoff-ymax, xmax, ymax, AllPlanes, ZPixmap);
     }
     if (ximg == NULL) { //last chance!!!
       XSync(xwd->display, 0); //could be overkill...
       x = 0;
       y = 0;
       if (dev->write_to_pixmap == 1) {
-        XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc, xoff, yoff, xmax, ymax, x, y);
+        XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc, xoff, dev->height-yoff-ymax, xmax, ymax, x, y);
         XSync(xwd->display, 0); //could be overkill...
       }
     }
@@ -716,8 +716,8 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
       cerr << "Unhandled unsuccessful XCopyArea, returning." << endl;
       return false;
     }
-  } else { 
-    void *imgData=malloc(xmax*ymax*3);
+  } else {
+    void *imgData=malloc(xmax*ymax*4); //too much size allocated, but keeps X11 happy (no need of scanline length computation)
     ximg = XCreateImage(xwd->display, xwd->visual, xwd->depth, ZPixmap, 0, (char*)imgData , xmax, ymax, 8, 0); //8 seems reasonable, see XCreateImage doc.
   }
 
@@ -760,8 +760,8 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
               iblu = idata[nx * (2 * ny + iy) + ix];
             }
             curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
-          } else {
-            unsigned long pixel = XGetPixel(ximg, ix, iy);
+          } else { //channel mode -> ximg was got from display -> is reversed
+            unsigned long pixel = XGetPixel(ximg, ix, ymax-1-iy);
             if (chan == 1) { //1 byte bitmap passed
               pixel &= 0x00ffff;
               ired = idata[1 * (iy * nx + ix) + 0];
@@ -778,155 +778,22 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
           }
         }
       }
-        XPutPixel(ximg, ix, iy, curcolor.pixel);
+      XPutPixel(ximg, ix, ymax-1-iy, curcolor.pixel); //ximg IS reversed allways.
     }
   }
   //  } //end parallelize 
   if (dev->write_to_pixmap == 1)
     XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
-    xoff, yoff, xmax, ymax);
+    xoff, dev->height-yoff-ymax, xmax, ymax);
 
   if (1) //(dev->write_to_window==1) //always write
     XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
-    xoff, yoff, xmax, ymax);
+    xoff, dev->height-yoff-ymax, xmax, ymax);
 
   XDestroyImage(ximg);
   return true;
 }
 
-//bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
-//  DLong trueColorOrder, DLong chan) {
-//
-//  PLINT ix, iy;
-//  XwDev *dev = (XwDev *) pls->dev;
-//  XwDisplay *xwd = (XwDisplay *) dev->xwd;
-//  XImage *ximg = NULL;
-//
-//  if (chan>0) { //we need to get the current image back to write on it
-//    int x, y;
-//    XFlush(xwd->display); //could be overkill...
-//
-//    int (*oldErrorHandler)(Display*, XErrorEvent*);
-//    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
-//    if (dev->write_to_pixmap == 1) {
-//      ximg = XGetImage(xwd->display, dev->pixmap, 0, 0,
-//        dev->width, dev->height,
-//        AllPlanes, ZPixmap);
-//    } else {
-//      ximg = XGetImage(xwd->display, dev->window, 0, 0,
-//        dev->width, dev->height,
-//        AllPlanes, ZPixmap);
-//    }
-//    if (ximg == NULL) { //last chance!!!
-//      XSync(xwd->display, 0); //could be overkill...
-//      x = 0;
-//      y = 0;
-//      if (dev->write_to_pixmap == 1) {
-//        XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc,
-//          x, y, dev->width, dev->height, x, y);
-//        XSync(xwd->display, 0); //could be overkill...
-//      }
-//    }
-//    XSetErrorHandler(oldErrorHandler);
-//    if (ximg == NULL) {
-//      cerr << "Unhandled unsuccessful XCopyArea, returning." << endl;
-//      return false;
-//    }
-//  } else { //XCreateImage( g_vc.display, g_vc.visual, g_vc.depth, ZPixmap, 0, sdata, sx, sy, 8, 0);
-//    void *imgData=malloc(dev->width*dev->height*3);
-//    ximg = XCreateImage(xwd->display, xwd->visual, xwd->depth, ZPixmap, 0, (char*)imgData , dev->width, dev->height, 8, 0);
-//  }
-//  PLINT iclr1, ired, igrn, iblu;
-//  PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
-//  PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
-//  PLINT kx, ky;
-//
-//  XColor curcolor;
-//
-//  PLINT kxLimit = dev->width - xoff;
-//  PLINT kyLimit = dev->height - yoff;
-//
-//  if (nx < kxLimit) kxLimit = nx;
-//  if (ny < kyLimit) kyLimit = ny;
-//
-//  curcolor = xwd->fgcolor; //default
-//
-//  // parallelize does not work when using XGet[Put]Pixel in the loop below, otherwise would be OK!
-//  // please allow parallelization only after removing this problem ;^)
-//  //#ifdef _OPENMP
-//  //  SizeT nOp = kxLimit * kyLimit;
-//  //#endif
-//  //  #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
-//  //  {
-//  //  #pragma omp for
-//  for (ix = 0; ix < kxLimit; ++ix) {
-//    for (iy = 0; iy < kyLimit; ++iy) {
-//
-//      kx = xoff + ix;
-//      ky = yoff + iy;
-//
-//      if (xwd->color) {
-//        if (trueColorOrder == 0 && chan == 0) {
-//          iclr1 = idata[iy * nx + ix];
-//
-//          ired = pls->cmap0[iclr1].r;
-//          igrn = pls->cmap0[iclr1].g;
-//          iblu = pls->cmap0[iclr1].b;
-//          curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
-//        } else {
-//          if (chan == 0) {
-//            if (trueColorOrder == 1) {
-//              ired = idata[3 * (iy * nx + ix) + 0];
-//              igrn = idata[3 * (iy * nx + ix) + 1];
-//              iblu = idata[3 * (iy * nx + ix) + 2];
-//            } else if (trueColorOrder == 2) {
-//              ired = idata[nx * (iy * 3 + 0) + ix];
-//              igrn = idata[nx * (iy * 3 + 1) + ix];
-//              iblu = idata[nx * (iy * 3 + 2) + ix];
-//            } else if (trueColorOrder == 3) {
-//              ired = idata[nx * (0 * ny + iy) + ix];
-//              igrn = idata[nx * (1 * ny + iy) + ix];
-//              iblu = idata[nx * (2 * ny + iy) + ix];
-//            }
-//            curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
-//          } else {
-//            unsigned long pixel = XGetPixel(ximg, kx, dev->height - 1 - ky);
-//            if (chan == 1) { //1 byte bitmap passed
-//              pixel &= 0x00ffff;
-//              ired = idata[1 * (iy * nx + ix) + 0];
-//              curcolor.pixel = ired * 256 * 256 + pixel;
-//            } else if (chan == 2) {
-//              pixel &= 0xff00ff;
-//              igrn = idata[1 * (iy * nx + ix) + 0];
-//              curcolor.pixel = igrn * 256 + pixel;
-//            } else if (chan == 3) {
-//              pixel &= 0xffff00;
-//              iblu = idata[1 * (iy * nx + ix) + 0];
-//              curcolor.pixel = iblu + pixel;
-//            }
-//          }
-//        }
-//      }
-//      // do not forget to invert Y:
-//      if (ky < dev->height && kx < dev->width)
-//        XPutPixel(ximg, kx, dev->height - 1 - ky, curcolor.pixel);
-//    }
-//  }
-//  //  } //end parallelize 
-//  if (dev->write_to_pixmap == 1)
-//    XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
-//    0, 0, dev->width, dev->height);
-//
-//  if (1) //(dev->write_to_window==1) //always write
-//    XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
-//    0, 0, dev->width, dev->height);
-//
-//  XDestroyImage(ximg);
-//  return true;
-//}
-
-//try to bypass plplot's ignoring the existence of truecolor and other static displays where there is more than 256 colors
-//available. accessorily, get a speedup. drawback: those colors are forgotten on window redraw (not important, and similar to IDL's behaviour).
 void GDLXStream::Color( ULong color, DLong decomposed ) {
   if ( decomposed == 0 ) {
     plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
