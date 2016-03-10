@@ -30,32 +30,93 @@ end
 ;
 pro MY_WINDOW, indice, data
 ;
-tmp_data=reform(data)
+tmp_data=REFORM(data)
 xdim=(SIZE(tmp_data))(1)
 ydim=(SIZE(tmp_data))(2)
 ;
-print, xdim, ydim
+;print, xdim, ydim
 yoffset=50+indice*(ydim+20)
 xoffset=10
 ;
 WINDOW, indice, title=STRING(indice)+' '+TITLE4TEST_TV(data), $
         xpos=xoffset, ypos=yoffset, xsize=xdim, ysize=ydim
 TVSCL, data
+;
 end
+;
+; -------------------------------------
+; We need to test that when changing the color table,
+; this table will be propagated in other windows 
+; when they will be active via WSET
+;
+pro TEST_TV_WSET, errors, test=test
+;
+; Read "Saturn.jpg" and return content in "image"
+status=GET_IMAGE_FOR_TESTSUITE(image)
+if (status eq 0) then return
+;
+xdim=(SIZE(image))(2)
+ydim=(SIZE(image))(3)
+;
+image=TOTAL(image,1)
+;
+DEVICE, decomposed=0
+;
+LOADCT, 13
+;
+WINDOW, 0, xsize=xdim, ysize=3*ydim
+WINDOW, 2, xsize=xdim, ysize=3*ydim
+;
+WSET, 0
+;
+TV, image, 0
+LOADCT, 20
+TV, image, 1
+LOADCT, 30
+TV, image, 2
+;
+; switching to window 2
+WSET, 2
+TV, image, 2
+LOADCT, 20
+TV, image, 1
+LOADCT, 13
+TV, image, 0
+;
+; reading contents of the 2 windows : should have the same
+;
+content_win2=TVRD()
+;
+WSET, 0
+content_win0=TVRD()
+;
+if ~ISA(errors) then errors=0
+;
+if ~ARRAY_EQUAL(content_win0,content_win2) then begin
+    errors++
+    BANNER_FOR_TESTSUITE, "TEST_TV_WSET", 1, /SHORT
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; -------------------------------------
 ;
 pro TEST_TV_DAMIER, numwin, color=color, benchmark=benchmark, $
-                    nb_cells_max=nb_cells_max, $
+                    nb_cells_max=nb_cells_max, silent=silent, $
                     test=test, debug=debug, help=help
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro TEST_TV_DAMIER, numwin, color=color, benchmark=benchmark, $'
-    print, '                    nb_cells_max=nb_cells_max, $'
+    print, '                    nb_cells_max=nb_cells_max, silent=silent, $'
     print, '                    test=test, debug=debug, help=help'
     print, ''
     print, 'Three levels of time benchmarking : 0 no, =1 global, =2 detail'
     return
 end
+;
+if ~ISA(silent) then silent=1
 ;
 if KEYWORD_SET(color) then DEVICE, decompose=0
 ;
@@ -94,7 +155,7 @@ for ii=0, (nb_cells/2-1)  do begin
             print, 'Before loading Color Table '
             TIC
         endif
-        LOADCT, ii
+        LOADCT, ii, silent=silent
         if (benchmark GT 1) then TOC
     endif
     ;;
@@ -116,14 +177,10 @@ end
 ;
 function TEST_TV_OVER_BOX
 ;
-filename='Saturn.jpg'
-file=FILE_SEARCH_FOR_TESTSUITE(filename,/quiet)
-queryStatus = QUERY_IMAGE(file, imageInfo)
-if (queryStatus eq 0) then begin
-    MESSAGE, /info, "Image for test (Saturn.jpg) not found, test aborted"
-    return, 0
-end
-image = READ_IMAGE(file)
+; Read "Saturn.jpg" and return content in "image"
+status=GET_IMAGE_FOR_TESTSUITE(image)
+if (status eq 0) then return, 0
+;
 redChannel = REFORM(image[0, *, *])
 greenChannel = REFORM(image[1, *, *])
 blueChannel = REFORM(image[2, *, *])
@@ -184,6 +241,9 @@ TEST_TV_DAMIER, 9, /COLOR
 ;
 success=TEST_TV_OVER_BOX()
 ;
+; only this test gives a feedback now
+TEST_TV_WSET, errors
+;
 if KEYWORD_SET(noclose) then begin
    rep=''
    READ, 'press any key to finish (and closing all windows)', rep
@@ -193,6 +253,12 @@ endelse
 ;;
 WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9
 if (success eq 1) then WDELETE, 11, 12
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_TV', errors
+;
+if (errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;
