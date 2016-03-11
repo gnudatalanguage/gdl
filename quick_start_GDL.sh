@@ -7,6 +7,10 @@
 #
 # AC 01/10/2010: we can keep the current $GDL_PATH using -g [--gdl_path]
 #
+
+Absolute_PATH="`dirname \"$0\"`" 
+Absolute_PATH="`( cd \"$Absolute_PATH\" && pwd )`"
+#
 if [ $BASH_SOURCE != $0 ] ; then
    echo "Please run this script throw one in the 2 next commands:"
    echo "1/    ./quick_run_GDL.sh"
@@ -71,9 +75,9 @@ if [ "$flag_quiet" -eq 0 ] ; then
 fi
 #
 if [ "$flag_gdl_path" -eq 0 ] ; then
-    export GDL_PATH='+'${PWD}'/src/pro/:+'${PWD}'/testsuite/'
+    export GDL_PATH='+'${Absolute_PATH}'/src/pro/:+'${Absolute_PATH}'/testsuite/'
 else
-    export GDL_PATH='+'${PWD}'/src/pro/:+'${PWD}'/testsuite/:'${REF_GDL_PATH}
+    export GDL_PATH='+'${Absolute_PATH}'/src/pro/:+'${Absolute_PATH}'/testsuite/:'${REF_GDL_PATH}
 fi
 #
 if [ "$flag_quiet" -eq 0 ] ; then
@@ -81,9 +85,9 @@ if [ "$flag_quiet" -eq 0 ] ; then
 fi
 #
 if [ "$flag_valgrind" -eq 1 ] ; then
-    valgrind ./src/gdl
+    valgrind ${Absolute_PATH}/src/gdl
 else
-    ./src/gdl
+    ${Absolute_PATH}/src/gdl
 fi
 #
 # restoring initial envionment

@@ -257,20 +257,24 @@ namespace lib {
 	e->SetKW( rgbtableIx, rgbtable);
 	return; //correct behaviour.
       }
-    //    AC 2016-03-10 : who remember why we must *really* do it ??
-    int nbActiveStreams=actDevice->MaxWin();
-    //new colormap must be given to *all* streams.
-    for (int i=0; i<nbActiveStreams; ++i) {
-      actStream = actDevice->GetStreamAt(i);
-      if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
-    }
+
+    // AC 2016-03-10 : who remember why we must *really* do it ??
+    // but for sure, we need to do it when WSET is called !!
     
-    /* this code is about 10% faster on TEST_TV_DANIER,/color but fails
-       (crashes) on TEST_TV_WSET ...
-       DLong wIx = actDevice->ActWin();
-       actStream = actDevice->GetStreamAt(wIx);
-       if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);    
+    // new colormap must be given to *all* streams.
+    /*    int nbActiveStreams=actDevice->MaxWin();
+	  for (int i=0; i<nbActiveStreams; ++i) {
+	  actStream = actDevice->GetStreamAt(i);
+	  if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
+	  }
     */
+    
+    //  this code is about 10% faster (local) on TEST_TV_DANIER, /color
+       DLong wIx = actDevice->ActWin();
+       if (wIx >= 0) {
+	 actStream = actDevice->GetStreamAt(wIx);
+	 if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
+       }
   }
 } // namespace
      
