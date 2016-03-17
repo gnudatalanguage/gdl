@@ -244,10 +244,10 @@ namespace lib {
         // AC 2011/11/06, bug 3433502
         if (nPerPageX > 0) {
           ix = positionOnPage % nPerPageX;
-        } else ix = 0;
+        } else {nPerPageX = 1; ix = 0;}
         if (nPerPageY > 0) {
           iy = (positionOnPage / nPerPageX) % nPerPageY;
-        } else iy = 0;
+        } else {nPerPageY=1; iy = 0;}
         botLeftPixelX = imageWidth*ix;
         botLeftPixelY = yPageSize - imageHeight * (iy + 1);
       } else if (nParam >= 3) {
