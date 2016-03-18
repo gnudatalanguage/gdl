@@ -43,6 +43,8 @@
 #include "typedefs.hpp"
 #include "gdlexception.hpp"
 
+#include "initsysvar.hpp"
+
 #ifdef _MSC_VER
 #include <algorithm>
 #endif
@@ -155,7 +157,6 @@ protected:
   gdlpage thePage;
   PLStream* pls;
   DFloat thickFactor;
-  
 public:
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
@@ -167,6 +168,9 @@ public:
     thePage.nbPages=0;
     theBox.initialized=false;
     plgpls( &pls);
+    //you can debug plplot things with
+    //    pls->verbose=1;
+
 	if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=%p \n", nx, ny, driver, (void *)pls);
 
   }
@@ -221,9 +225,6 @@ public:
       free(devnames);
     }
 
-    // for debug
-    std::vector<std::string> devnamesDbg = devNames;
-
     return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
   }
 
@@ -232,7 +233,8 @@ public:
   virtual void Init()=0;
 
   // called after draw operation
-  virtual void Update() {}
+  //virtual void Update() {}
+  virtual void Update(){plstream::cmd(PLESC_EXPOSE, NULL);}
   
   virtual void EventHandler() {}
 
@@ -249,7 +251,7 @@ public:
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}
   virtual void UnSetDoubleBuffering() {}
-  virtual bool HasDoubleBuffering() {return false;}
+  virtual bool HasDoubleBuffering() {return pls->db;}
   virtual bool HasSafeDoubleBuffering() {return false;}
   virtual void Raise()         {}
   virtual void Lower()        {}
@@ -588,10 +590,15 @@ public:
     if (thePage.nbPages==0) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            FAILED\n");return false;}
     long xsize,ysize,xoff,yoff;
     GetGeometry(xsize,ysize,xoff,yoff);
+    if (thePage.length==xsize && thePage.height==ysize && thePage.plxoff==xoff && thePage.plyoff==yoff) return true;
     thePage.length=xsize;
     thePage.height=ysize;
     thePage.plxoff=xoff;
     thePage.plyoff=yoff;
+    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
+    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
+    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
+    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f device units.\n",thePage.length, thePage.height);
     return true;
   }
@@ -839,6 +846,26 @@ public:
   {
       thickFactor=tf;
   }
+
+  //GD: enables overloading scmap0,1... to accelerate plots for X11 and possibly others
+  // Set color map 0 colors by 8 bit RGB values
+  virtual void SetColorMap0( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol0 ) {
+   plstream::scmap0( r, g, b, ncol0);
+  }
+  // Set color map 1 colors by 8 bit RGB values
+  virtual void SetColorMap1( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol1 ) {
+   plstream::scmap1( r, g, b, ncol1);
+  }
+  // Set color map 1 colors using a piece-wise linear relationship between
+  // intensity [0,1] (cmap 1 index) and position in HLS or RGB color space.
+  virtual void SetColorMap1l( bool itype, PLINT npts, const PLFLT *intensity, const PLFLT *coord1, const PLFLT *coord2, const PLFLT *coord3, const bool *rev = NULL ) {
+   plstream::scmap1l(itype,npts,intensity,coord1,coord2,coord3,rev);
+  }
+  // Set number of colors in cmap 1
+  virtual void SetColorMap1n( PLINT ncol1 ){
+   plstream::scmap1n(ncol1);
+  }
+
 
 };
 

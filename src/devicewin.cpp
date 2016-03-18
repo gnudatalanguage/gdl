@@ -198,7 +198,7 @@ bool DeviceWIN::GUIOpen(int wIx, int xSize, int ySize)
 
 	PLINT r[ctSize], g[ctSize], b[ctSize];
 	actCT.Get(r, g, b);
-	winList[wIx]->scmap0(r, g, b, ctSize); //set colormap 0 to 256 values
+	winList[wIx]->SetColorMap0(r, g, b, ctSize); //set colormap 0 to 256 values
 
 	// need to be called initially. permit to fix things
 	winList[wIx]->ssub(1, 1);
@@ -329,7 +329,7 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	PLINT r[256], g[256], b[256];
 	actCT.Get(r, g, b);
 	// winList[ wIx]->scmap0( r, g, b, actCT.size());
-	winList[wIx]->scmap1(r, g, b, ctSize);
+	winList[wIx]->SetColorMap1(r, g, b, ctSize);
 
 	if (debug) cout << "; WOpen:winList[ wIx]->Init(";
 

@@ -152,7 +152,7 @@ public:
 
         PLINT r[ctSize], g[ctSize], b[ctSize];
         actCT.Get( r, g, b);
-        winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
+        winList[ wIx]->SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
         // need to be called initially. permit to fix things
         winList[ wIx]->ssub(1,1);
@@ -331,7 +331,7 @@ public:
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
+    winList[ wIx]->SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
     // need to be called initially. permit to fix things
     winList[ wIx]->ssub(1,1);

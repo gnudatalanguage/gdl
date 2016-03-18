@@ -214,7 +214,7 @@ void tvlct( EnvT* e ) {
     int nbActiveStreams = actDevice->MaxWin( ); //new colormap must be given to *all* streams.
     for ( int i = 0; i < nbActiveStreams; ++i ) {
       GDLGStream* actStream = actDevice->GetStreamAt( i );
-      if ( actStream != NULL ) actStream->scmap0( red, green, blue, ctSize );
+      if ( actStream != NULL ) actStream->SetColorMap0( red, green, blue, ctSize );
     }
   }
 }

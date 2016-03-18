@@ -117,8 +117,8 @@ class DevicePS: public GraphicsDevice
     
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-    actStream->scmap0( r, g, b, ctSize);
-    actStream->scmap1( r, g, b, ctSize);
+    actStream->SetColorMap0( r, g, b, ctSize);
+    actStream->SetColorMap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
     short font=((int)SysVar::GetPFont()>-1)?1:0;
     string what="text="+i2s(font)+",color="+i2s(color);

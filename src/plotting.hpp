@@ -286,21 +286,13 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
       isDB = actStream->HasSafeDoubleBuffering();
       if (isDB) actStream->SetDoubleBuffering();
 
-      if (name == "X" || name == "MAC" || name == "WIN" ) 
-      {       
-          actStream->updatePageInfo(); //since window size can change
-          long xsize,ysize,xoff,yoff;
-          actStream->GetGeometry(xsize,ysize,xoff,yoff);
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
-          (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
-      }
+      if (name == "X" || name == "MAC" || name == "WIN" )  actStream->updatePageInfo(); //since window size can change
+
       old_body(e, actStream); // TODO: to be removed!
       call_plplot(e, actStream);
 
       post_call(e, actStream);
-      if (isDB) actStream->eop(); else actStream->flush();
+//      if (isDB) actStream->eop(); else actStream->flush();
       if (isDB) actStream->UnSetDoubleBuffering();
       actStream->Update();
     } // }}}

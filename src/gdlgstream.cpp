@@ -83,7 +83,7 @@ void GDLGStream::SetColorMap1SingleColor( ULong color)
     red[0] =red[1] = color & 0xFF;
     green[0] = green[1] =(color >> 8)  & 0xFF;
     blue[0]= blue[1]=(color >> 16) & 0xFF;
-    plstream::scmap1(red, green, blue, 2); 
+    SetColorMap1(red, green, blue, 2); 
 }
 
 void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)
@@ -91,15 +91,15 @@ void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)
   if (decomposed == 0) { //just copy Table0 to Table1 so that scale from 0 to 1 in table 1 goes through the whole table
     PLINT r[ctSize], g[ctSize], b[ctSize];
     GraphicsDevice::GetCT()->Get( r, g, b); 
-    plstream::scmap1(r, g, b, ctSize); 
+    SetColorMap1(r, g, b, ctSize); 
   } else {
     PLFLT r[2], g[2], b[2], pos[2];
     r[0] = pos[0] = 0.0;
     r[1] = pos[1] = 1.0;
     g[0] = g[1] = 0.0;
     b[0] = b[1] = 0.0;
-    plstream::scmap1n(ncolors);
-    plstream::scmap1l(TRUE,2,pos,r, g, b, NULL); 
+    SetColorMap1n(ncolors);
+    SetColorMap1l(TRUE,2,pos,r, g, b, NULL); 
   }
 }
 
@@ -132,7 +132,7 @@ void GDLGStream::SetColorMap1Table( PLINT tableSize, BaseGDL *passed_colors,  DL
       b[i] = (col >> 16) & 0xFF;   
      }
   }
-  plstream::scmap1(r, g, b, tableSize); 
+  SetColorMap1(r, g, b, tableSize); 
 }
 
 void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
@@ -141,8 +141,8 @@ void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
     h[0] = h[1] = s[0] = s[1] = pos[0] = 0.0;
     l[0] = minlight;
     l[1] = pos[1] = 1.0;
-    plstream::scmap1n(256);
-    plstream::scmap1l(FALSE,2,pos,h, l, s, NULL); 
+    SetColorMap1n(256);
+    SetColorMap1l(FALSE,2,pos,h, l, s, NULL); 
 }
 #define WHITEB 255
 void GDLGStream::Background( ULong color, DLong decomposed)

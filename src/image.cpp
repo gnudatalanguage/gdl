@@ -256,25 +256,17 @@ namespace lib {
 	  }
 	e->SetKW( rgbtableIx, rgbtable);
 	return; //correct behaviour.
-      }
-
-    // AC 2016-03-10 : who remember why we must *really* do it ??
-    // but for sure, we need to do it when WSET is called !!
-    
-    // new colormap must be given to *all* streams.
-    /*    int nbActiveStreams=actDevice->MaxWin();
-	  for (int i=0; i<nbActiveStreams; ++i) {
-	  actStream = actDevice->GetStreamAt(i);
-	  if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
-	  }
-    */
-    
-    //  this code is about 10% faster (local) on TEST_TV_DANIER, /color
-       DLong wIx = actDevice->ActWin();
-       if (wIx >= 0) {
-	 actStream = actDevice->GetStreamAt(wIx);
-	 if (actStream != NULL) actStream->scmap0( rint, gint, bint, ctSize);
-       }
+    }
+    // GD:
+    // new colormap must be given to *all* streams since plplot has a colormap PER STREAM.
+    // (IDL has a colormap PER Device, i.e., all Windows of multiWindow devices.)
+    // However plplot using the crazy old rw color scheme, uses heavily XAllocColor which is a killer for X11 speed.
+    // SetColorMap0() is thus overloaded for X11 devices to *do nothing* (devicex do tricks behind plplot's back most of the time)
+    int nbActiveStreams = actDevice->MaxWin();
+    for (int i = 0; i < nbActiveStreams; ++i) {
+      actStream = actDevice->GetStreamAt(i);
+      if (actStream != NULL) actStream->SetColorMap0(rint, gint, bint, ctSize);
+    }
   }
 } // namespace
      

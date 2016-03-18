@@ -148,14 +148,12 @@ public:
 //    winList[ wIx]->setopt( "db", 0); //handled elsewhere
 //    winList[ wIx]->setopt( "debug", 0);
     winList[ wIx]->SETOPT( "plwindow", buf);
+// Do not init colors --- we handle colors ourseves, very much faster!
+    winList[ wIx]->SETOPT( "drvopt","noinitcolors=1");
 
-//    // we use our own window handling
-//    winList[ wIx]->SETOPT( "drvopt","usepth=0");
-// to be tested further    winList[ wIx]->SETOPT( "drvopt","usepth=1");
+// Please no threads, no gain especially in remote X11 
+   winList[ wIx]->SETOPT( "drvopt","usepth=0");
 
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
 //all the options must be passed BEFORE INIT=plinit.
     winList[ wIx]->Init();
     // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)

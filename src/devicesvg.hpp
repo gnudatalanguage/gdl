@@ -68,8 +68,8 @@ class DeviceSVG : public GraphicsDevice
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
-    actStream->scmap0( r, g, b, ctSize);
-    actStream->scmap1( r, g, b, ctSize);
+    actStream->SetColorMap0( r, g, b, ctSize);
+    actStream->SetColorMap1( r, g, b, ctSize);
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();

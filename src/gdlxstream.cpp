@@ -167,57 +167,59 @@ void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOff
     XDefineCursor(xwd->display,dev->window,XCreateFontCursor(xwd->display,num));
     return true;
   }
-  
+
 // plplot 5.3 does not provide the clear function for c++
 
 void GDLXStream::Clear() {
-  // this mimics better the *DL behaviour but plbop create a new page, etc..
-  //plclear clears only the current subpage. But it clears it. One has
-  //just to set the number of subpages to 1
-  PLINT red, green, blue;
-  DByte r, g, b;
-  PLINT red0, green0, blue0;
-
-  GraphicsDevice::GetCT( )->Get( 0, r, g, b );
-  red = r;
-  green = g;
-  blue = b;
-//we get around the index 0=background color "feature" of plplot. GDL uses a separate backgroud color.
-  red0 = GraphicsDevice::GetDevice( )->BackgroundR( );
-  green0 = GraphicsDevice::GetDevice( )->BackgroundG( );
-  blue0 = GraphicsDevice::GetDevice( )->BackgroundB( );
-  plstream::scolbg( red0, green0, blue0 ); //overwrites col[0]
-  ::c_plbop( );
-//  ::c_plclear( );
-  plstream::scolbg( red, green, blue ); //resets col[0]
+  Clear(-1);
+//  // this mimics better the *DL behaviour but plbop create a new page, etc..
+//  //plclear clears only the current subpage. But it clears it. One has
+//  //just to set the number of subpages to 1
+//  PLINT red, green, blue;
+//  DByte r, g, b;
+//  PLINT red0, green0, blue0;
+//
+//  GraphicsDevice::GetCT( )->Get( 0, r, g, b );
+//  red = r;
+//  green = g;
+//  blue = b;
+////we get around the index 0=background color "feature" of plplot. GDL uses a separate backgroud color.
+//  red0 = GraphicsDevice::GetDevice( )->BackgroundR( );
+//  green0 = GraphicsDevice::GetDevice( )->BackgroundG( );
+//  blue0 = GraphicsDevice::GetDevice( )->BackgroundB( );
+//  plstream::scolbg( red0, green0, blue0 ); //overwrites col[0]
+//  ::c_plbop( );
+////  ::c_plclear( );
+//  plstream::scolbg( red, green, blue ); //resets col[0]
 }
-#define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
 void GDLXStream::Clear(DLong chan) {
-  static const unsigned long planemask[3]={0xFF0000,0x00FF00,0x0000FF}; //like that...
-//fill screen with background value on channel chan
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  PLINT red0,green0,blue0;
-  red0=GraphicsDevice::GetDevice()->BackgroundR();
-  green0=GraphicsDevice::GetDevice()->BackgroundG();
-  blue0=GraphicsDevice::GetDevice()->BackgroundB();
-  XColor myColor;
-  unsigned char r = (red0 & 0xFF);
-  unsigned char g = (green0 & 0xFF);
-  unsigned char b = (blue0 & 0xFF);
 
-  myColor.red = ToXColor( r );
-  myColor.green = ToXColor( g );
-  myColor.blue = ToXColor( b );
-  myColor.flags = DoRed | DoGreen | DoBlue;
+  DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
+  DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
+  DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
+  unsigned long curcolor= ( (unsigned long) (r) << ffs(xwd->visual->red_mask)-1) +
+    ((unsigned long)(g) << ffs(xwd->visual->green_mask)-1 ) +
+    ((unsigned long)(b) << ffs(xwd->visual->blue_mask)-1 );
 
-  if (XAllocColor( xwd->display, xwd->map, &myColor )) XSetForeground( xwd->display, dev->gc, myColor.pixel ); else return; 
+  XSetForeground( xwd->display, dev->gc, curcolor); // myColor.pixel );
 
-  XSetPlaneMask(xwd->display,dev->gc,planemask[chan]);
+  switch(chan){
+      case 0:
+        XSetPlaneMask(xwd->display,dev->gc,xwd->visual->red_mask);
+        break;
+      case 1:
+        XSetPlaneMask(xwd->display,dev->gc,xwd->visual->green_mask);
+        break;
+      case 2:
+        XSetPlaneMask(xwd->display,dev->gc,xwd->visual->blue_mask);
+        break;
+    }
   if (dev->write_to_pixmap==1)
     XFillRectangle(xwd->display, dev->pixmap, dev->gc, 0, 0, dev->width, dev->height);
-  if (1) // not (dev->write_to_window): always!
+  if (dev->write_to_window)
     XFillRectangle(xwd->display, dev->window, dev->gc, 0, 0, dev->width, dev->height);
   XSetForeground(xwd->display,dev->gc,dev->curcolor.pixel);
   XSetPlaneMask(xwd->display,dev->gc,AllPlanes);
@@ -367,9 +369,6 @@ void GDLXStream::UnSetDoubleBuffering() {
   pls->db = 0;
 }
 
-bool GDLXStream::HasDoubleBuffering() {
-  return true;
-}
 //modified version. Will not tell double buffering is available if current graphic function is not pure "copy".
 bool GDLXStream::HasSafeDoubleBuffering() {
     XwDev *dev = (XwDev *) pls->dev;
@@ -689,6 +688,11 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   if (nx < xmax) xmax = nx;
   if (ny < ymax) ymax = ny;
 
+  PLINT rint[ctSize], gint[ctSize], bint[ctSize];
+  //load original table
+  GDLCT* actCT = GraphicsDevice::GetCT();
+  actCT->Get(rint,gint,bint,ctSize);
+
 //define & populate if necessary XImage img.  
   XImage *ximg = NULL;
   if (chan>0) { //we need to get the destination part of screen image back to write on it
@@ -738,11 +742,17 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 
       if (xwd->color) {
         if (trueColorOrder == 0 && chan == 0) {
+           
           iclr1 = idata[iy * nx + ix];
-
-          ired = pls->cmap0[iclr1].r;
-          igrn = pls->cmap0[iclr1].g;
-          iblu = pls->cmap0[iclr1].b;
+          if (xwd->rw_cmap==0) {
+            ired = rint[iclr1];
+            igrn = gint[iclr1];
+            iblu = bint[iclr1];
+          } else {
+            ired = pls->cmap0[iclr1].r;
+            igrn = pls->cmap0[iclr1].g;
+            iblu = pls->cmap0[iclr1].b;
+          }
           curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
         } else {
           if (chan == 0) {
@@ -786,7 +796,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
     xoff, dev->height-yoff-ymax, xmax, ymax);
 
-  if (1) //(dev->write_to_window==1) //always write
+  if (dev->write_to_window==1) //always write
     XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
     xoff, dev->height-yoff-ymax, xmax, ymax);
 
@@ -795,29 +805,34 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
 }
 
 void GDLXStream::Color( ULong color, DLong decomposed ) {
-  if ( decomposed == 0 ) {
-    plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
-  } else { //decomposed=truecolor? get around plplot's buggy xwin driver which uses only 256 colors max on truecolor displays!
-    XwDev *dev = (XwDev *) pls->dev;
-    XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    if (xwd->rw_cmap)  { //not treated here, revert to safety with plplot's overhead.
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  if (xwd->rw_cmap)  { //not treated here, revert to safety with plplot's overhead.
+    if ( decomposed == 0 ) { //get current colormap
+      plstream::col0( color & 0xFF ); //just set color index [0..255]. simple and fast.
+    } else {
       GDLGStream::SetColorMap1SingleColor(color);
-      plstream::col1(1); 
+      plstream::col1(1);
     }
-    XColor myColor;
-    unsigned char r = (color & 0xFF);
-    unsigned char g = (color >> 8 & 0xFF);
-    unsigned char b = (color >> 16 & 0xFF);
-
-    myColor.red = ToXColor( r );
-    myColor.green = ToXColor( g );
-    myColor.blue = ToXColor( b );
-    myColor.flags = DoRed | DoGreen | DoBlue;
-
-    if (XAllocColor( xwd->display, xwd->map, &myColor )) XSetForeground( xwd->display, dev->gc, myColor.pixel ); //process silently
+    return;
   }
+  unsigned int curcolor;
+  DByte r, g, b;
+  if ( decomposed == 0 ) { //get current colormap
+    //load original table
+    GDLCT* actCT = GraphicsDevice::GetCT();
+    actCT->Get(color & 0xFF,r,g,b);
+  } else { 
+  //truecolor=decomposed case
+    r = (color & 0xFF);
+    g = (color >> 8 & 0xFF);
+    b = (color >> 16 & 0xFF);
+  }
+  curcolor= ( (unsigned long) (r) << ffs(xwd->visual->red_mask)-1) +
+    ((unsigned long)(g) << ffs(xwd->visual->green_mask)-1 ) +
+    ((unsigned long)(b) << ffs(xwd->visual->blue_mask)-1 );
+  XSetForeground( xwd->display, dev->gc, curcolor);
 }
-#undef ToXColor
 
 //Read X11 bitmapdata -- normally on 4BPP=Allplanes, return 3BPP ignoring Alpha plane.
 DByteGDL* GDLXStream::GetBitmapData() {

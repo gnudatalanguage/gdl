@@ -233,7 +233,7 @@ void GraphicsDevice::Init()
 #ifdef HAVE_LIBWXWIDGETS
   // some X error message suggested this call
 #ifdef HAVE_X
-  XInitThreads();
+//  XInitThreads();
 #endif
 #endif
   int index=0;

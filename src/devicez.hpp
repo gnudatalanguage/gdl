@@ -110,7 +110,7 @@ class DeviceZ: public GraphicsDevice
     PLINT r[ctSize], g[ctSize], b[ctSize];
     for( PLINT i = 0; i<ctSize; ++i)
       { r[ i] = g[ i] = b[ i] = i;}
-    actStream->scmap1( r, g, b, ctSize); 
+    actStream->SetColorMap1( r, g, b, ctSize); 
 
     actStream->SETOPT( "drvopt","text=0"); // clear drvopt
 

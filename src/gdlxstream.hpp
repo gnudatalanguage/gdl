@@ -78,16 +78,29 @@ public:
   void Flush();
   void SetDoubleBuffering();
   void UnSetDoubleBuffering();
-  bool HasDoubleBuffering();
   bool HasSafeDoubleBuffering();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   virtual bool HasCrossHair() {return true;}
   void UnMapWindow();
   DByteGDL* GetBitmapData();
   void Color( ULong color, DLong decomposed);
+//  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);}
+  
+  //GD: overloading scmap0 to accelerate plots for X11 and possibly others
 
-
-
+ void SetColorMap0(const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol0) {
+ } //DO NOTHING!
+ //GD probably impossible to avoid plplot's XAllocColor for contours (since plcol is called inside driver) unless
+ //we make our own contouring function (quite easy in fact). 
+// void SetColorMap1(const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol1) {
+// } //DO NOTHING!
+//
+// void SetColorMap1l(bool itype, PLINT npts, const PLFLT *intensity, const PLFLT *coord1, 
+//   const PLFLT *coord2, const PLFLT *coord3, const bool *rev = NULL) {
+// } //DO NOTHING
+//
+// void SetColorMap1n(PLINT ncol1) {
+// } //DO NOTHING
 };
 
 #endif
