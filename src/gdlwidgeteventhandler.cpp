@@ -1054,6 +1054,8 @@ void GDLFrame::OnIconize( wxIconizeEvent & event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnIconize: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;}  
   if (!gdlOwner) {event.Skip(); return;}
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   DULong flags=0;
@@ -1074,6 +1076,8 @@ void GDLFrame::OnMove( wxMoveEvent & event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnMove: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   if (!gdlOwner) {event.Skip(); return;}
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
   DULong flags=0;
@@ -1096,6 +1100,8 @@ void GDLFrame::OnCloseFrame( wxCloseEvent & event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnCloseFrame: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   if (!gdlOwner) {event.Skip(); return;}
   GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
     WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
@@ -1111,6 +1117,8 @@ void GDLFrame::OnUnhandledCloseFrame( wxCloseEvent & event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnUnhandledCloseFrame: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   if (!gdlOwner) {event.Skip(); return;}
     //destroy TLB widget
     static_cast<GDLWidgetBase*>(gdlOwner)->SelfDestroy();
@@ -1120,11 +1128,13 @@ void GDLFrame::OnCloseWindow( wxCloseEvent & event)
 {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnCloseWindow: %d\n"),event.GetId());
+#endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   wxWindowList childrenList=this->GetChildren();
   wxWindowList::iterator iter = childrenList.begin();
   GDLDrawPanel* draw =static_cast<GDLDrawPanel*>(*iter);
   delete draw;
-#endif
 }
 
 void GDLDrawPanel::OnErase(wxEraseEvent& event)
@@ -1134,7 +1144,9 @@ void GDLDrawPanel::OnErase(wxEraseEvent& event)
 
 void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 {
-//   cout <<"in OnPaint: "<< event.GetId() << endl;
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
+  //   cout <<"in OnPaint: "<< event.GetId() << endl;
   if (drawSize.x<1||drawSize.y<1) return;
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_PAINT_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
@@ -1146,6 +1158,8 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 
 void GDLDrawPanel::OnClose(wxCloseEvent& event)
 {
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnClose: %d\n"),event.GetId());
 #endif
@@ -1154,6 +1168,8 @@ void GDLDrawPanel::OnClose(wxCloseEvent& event)
 
 
 void GDLDrawPanel::OnSize( wxSizeEvent &event ) {
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   wxSize newSize=event.GetSize();
   if (newSize.x<1||newSize.y<1) return;
   if (newSize==drawSize){/*event.Skip();*/ return;} //saves a looooot of unuseful refreshes...
@@ -1172,6 +1188,8 @@ void GDLDrawPanel::OnMouseMove( wxMouseEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseMove: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
   if (!draw) return; //temporary hack for devicewx...
   DULong eventFlags=draw->GetEventFlags();
@@ -1193,6 +1211,8 @@ void GDLDrawPanel::OnMouseDown( wxMouseEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseDown: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
   if (!draw) return; //temporary hack for devicewx...
   DULong eventFlags=draw->GetEventFlags();
@@ -1221,6 +1241,8 @@ void GDLDrawPanel::OnMouseUp( wxMouseEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseUp: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
   if (!draw) return; //temporary hack for devicewx...
   DULong eventFlags=draw->GetEventFlags();
@@ -1249,6 +1271,8 @@ void GDLDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnMouseWheel: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
   if (!draw) return; //temporary hack for devicewx...
   DULong eventFlags=draw->GetEventFlags();
@@ -1276,6 +1300,8 @@ void GDLDrawPanel::OnKey( wxKeyEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnKey: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
   if (!draw) return; //temporary hack for devicewx...
   DULong eventFlags=draw->GetEventFlags();
@@ -1345,6 +1371,8 @@ void gdlGrid::OnTableRowResizing(wxGridSizeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableRowResizing: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
   DULong eventFlags=table->GetEventFlags();
   if (eventFlags & GDLWidget::EV_ALL) {
@@ -1366,6 +1394,8 @@ void gdlGrid::OnTableColResizing(wxGridSizeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableColResizing: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
   DULong eventFlags=table->GetEventFlags();
   if (eventFlags & GDLWidget::EV_ALL) {
@@ -1386,6 +1416,8 @@ void  gdlGrid::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableRangeSelection: %d\n"),event.GetId());
 #endif
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   //this event is called when a selection is added or changed (control-click, etc).
   //If we are not in disjoint mode, clear previous selection to mimick idl's when the user control-clicked.
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
@@ -1445,7 +1477,8 @@ void  gdlGrid::OnTableRangeSelection(wxGridRangeSelectEvent & event){
   wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
 #endif
 //This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
-
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
   if (!table->GetDisjointSelection()  && event.ControlDown() ) {
     table->ClearSelection();
@@ -1616,7 +1649,9 @@ void gdlTreeCtrl::OnItemActivated(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
 #endif
-    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     gdlTreeCtrl* me=static_cast<gdlTreeCtrl*>(event.GetEventObject());
@@ -1636,7 +1671,9 @@ void gdlTreeCtrl::OnItemSelected(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
 #endif
-    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     gdlTreeCtrl* me=static_cast<gdlTreeCtrl*>(event.GetEventObject());
@@ -1657,7 +1694,8 @@ void gdlTreeCtrl::OnItemSelected(wxTreeEvent & event){
 }
 
 void gdlTreeCtrl::OnBeginDrag(wxTreeEvent & event){
-
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   //largely useful protection!!!
   if (!event.GetItem().IsOk()) return;
 
@@ -1674,7 +1712,8 @@ void gdlTreeCtrl::OnBeginDrag(wxTreeEvent & event){
 }
 
 void gdlTreeCtrl::OnItemDropped(wxTreeEvent & event){
-    
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;}     
   if (!event.GetItem().IsOk()) return;
 
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -1701,6 +1740,8 @@ void gdlTreeCtrl::OnItemDropped(wxTreeEvent & event){
   }
 }
 void gdlTreeCtrl::OnItemExpanded(wxTreeEvent & event){
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   if (!event.GetItem().IsOk()) return;
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemExpanded: %d\n"),event.GetId());
@@ -1720,6 +1761,8 @@ void gdlTreeCtrl::OnItemExpanded(wxTreeEvent & event){
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
 }
 void gdlTreeCtrl::OnItemCollapsed(wxTreeEvent & event){
+  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
+  if( widget == NULL) {event.Skip(); return;} 
   if (!event.GetItem().IsOk()) return;
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemCollapsed: %d\n"),event.GetId());
