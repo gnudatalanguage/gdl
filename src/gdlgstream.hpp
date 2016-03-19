@@ -849,16 +849,16 @@ public:
 
   //GD: enables overloading scmap0,1... to accelerate plots for X11 and possibly others
   // Set color map 0 colors by 8 bit RGB values
-  virtual void SetColorMap0( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol0 ) {
+  virtual void SetColorMap0( PLINT *r, PLINT *g, PLINT *b, PLINT ncol0 ) {
    plstream::scmap0( r, g, b, ncol0);
   }
   // Set color map 1 colors by 8 bit RGB values
-  virtual void SetColorMap1( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol1 ) {
+  virtual void SetColorMap1( PLINT *r, PLINT *g, PLINT *b, PLINT ncol1 ) {
    plstream::scmap1( r, g, b, ncol1);
   }
   // Set color map 1 colors using a piece-wise linear relationship between
   // intensity [0,1] (cmap 1 index) and position in HLS or RGB color space.
-  virtual void SetColorMap1l( bool itype, PLINT npts, const PLFLT *intensity, const PLFLT *coord1, const PLFLT *coord2, const PLFLT *coord3, const bool *rev = NULL ) {
+  virtual void SetColorMap1l( bool itype, PLINT npts,  PLFLT *intensity,  PLFLT *coord1,  PLFLT *coord2,  PLFLT *coord3,  bool *rev = NULL ) {
    plstream::scmap1l(itype,npts,intensity,coord1,coord2,coord3,rev);
   }
   // Set number of colors in cmap 1

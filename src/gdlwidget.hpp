@@ -1350,7 +1350,7 @@ public:
   void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
   {
       WidgetIDT* id=new WidgetIDT(winId);
-      int millisecs=secs*1000;
+      int millisecs=floor(secs*1000.0);
       this->GetEventHandler()->SetClientData(id);
       m_windowTimer->SetOwner(this->GetEventHandler(),WINDOW_TIMER);
       m_windowTimer->Start(millisecs, wxTIMER_ONE_SHOT);
