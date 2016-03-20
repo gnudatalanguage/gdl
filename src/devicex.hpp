@@ -38,8 +38,9 @@
 #define SETOPT setopt
 #endif
 
-#define MAX_WIN 33  //IDL free and widgets start at 33 ...
-#define MAX_WIN_RESERVE 256
+//defined in graphicsdevice.hpp
+//#define MAX_WIN 32  //IDL free and widgets start at 32 ...
+//#define MAX_WIN_RESERVE 256
 
 class DeviceX : public GraphicsMultiDevice {
     
@@ -359,8 +360,8 @@ bool WDelete(int wIx) {
   
 };
 
-#undef MAX_WIN
-#undef MAX_WIN_RESERVE
+//#undef MAX_WIN
+//#undef MAX_WIN_RESERVE
 
 #endif
 

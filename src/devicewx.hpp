@@ -40,8 +40,8 @@
 #define SETOPT setopt
 #endif
 
-#define MAX_WIN 33  //IDL free and widgets start at 33 ...
-#define MAX_WIN_RESERVE 256
+//#define MAX_WIN 32  //IDL free and widgets start at 32 ...
+//#define MAX_WIN_RESERVE 256
 
 class DeviceWX : public GraphicsMultiDevice {
   
@@ -114,8 +114,6 @@ public:
           xoff  = xPos;
           yoff  = yMaxSize-yPos-yleng;
         }
-        //apparently this is OK to get same results as IDL on X11...
-        yoff+=1;
 
         WidgetIDT widgetID=wxWindow::NewControlId();
         WidgetIDT drawID=wxWindow::NewControlId();
@@ -126,7 +124,7 @@ public:
         } else {
           gdlFrame = new GDLFrame( NULL, widgetID, titleWxString);
         }
-        gdlFrame->Connect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
+//        gdlFrame->Connect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER); //currently window is not handled
         gdlFrame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseWindow));
 
         wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
@@ -135,8 +133,8 @@ public:
         GDLDrawPanel* draw = new GDLDrawPanel(gdlFrame, drawID, wxDefaultPosition, wxSize(xleng,yleng));
         draw->SetContainer(gdlFrame); //to be able to delete the surrounding widget
         //connect to event handlers
-        draw->Connect(drawID, wxEVT_SIZE, wxSizeEventHandler(GDLDrawPanel::OnSize)); 
-        draw->Connect(drawID, wxEVT_PAINT, wxPaintEventHandler(GDLDrawPanel::OnPaint));
+//        draw->Connect(drawID, wxEVT_SIZE, wxSizeEventHandler(GDLDrawPanel::OnSize)); 
+//        draw->Connect(drawID, wxEVT_PAINT, wxPaintEventHandler(GDLDrawPanel::OnPaint));
         
         winList[ wIx] = new GDLWXStream( xleng, yleng);
         oList[ wIx]   = oIx++;
@@ -172,7 +170,7 @@ public:
         SetActWin( wIx);
 
         draw->AssociateStream(static_cast<GDLWXStream*>(winList[ wIx]));
-        topSizer->Add(draw, 1, wxEXPAND|wxALL, 2);
+        topSizer->Add(draw, 1, wxEXPAND|wxALL, 0);
         gdlFrame->Fit();
         draw->SetCursor(wxCURSOR_CROSS); 
 
@@ -194,7 +192,7 @@ public:
     }
 
     // should check for valid streams
-
+     
     GDLGStream* GetStream(bool open = true) {
         TidyWindowsList();
         if (actWin == -1) {
@@ -346,7 +344,7 @@ public:
     {
       winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
     }
-    winList[ wIx]->schr(2.5,1);
+//    winList[ wIx]->schr(2.5,1);
     // sets actWin and updates !D
     SetActWin( wIx);
     return true; 

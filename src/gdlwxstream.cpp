@@ -52,7 +52,7 @@ GDLWXStream::GDLWXStream( int width, int height )
 #else
   else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
 #endif
-//  spage( 0.0, 0.0, 0, 0, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
+  spage( 4.0, 4.0, width, height, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
 //        PLFLT pageRatio=width/height;
 //        std::string as = i2s( pageRatio);
 //        SETOPT( "a", as.c_str());
@@ -175,6 +175,7 @@ void GDLWXStream::Clear(DLong bColor) {
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
 //  plstream::cmd( PLESC_FLUSH, NULL );
+//  Update();
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
   wxImage image=m_bitmap->ConvertToImage();
@@ -236,7 +237,6 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
   *m_bitmap = m_dc->GetAsBitmap();
-  Update();
   return true;
 }
 

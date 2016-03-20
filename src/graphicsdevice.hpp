@@ -51,7 +51,7 @@ SVG - a SVG compliant file.
 #include "dstructgdl.hpp"
 #include "gdlgstream.hpp"
 
-#define MAX_WIN 33  //IDL free and widgets start at 33 ...
+#define MAX_WIN 32  //IDL free and widgets start at 32 ...
 #define MAX_WIN_RESERVE 256
 
 const UInt max_win = MAX_WIN;

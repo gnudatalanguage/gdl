@@ -442,7 +442,8 @@ namespace SysVar
     // plotting
     // !P
     SizeT clipDim = 6;
-    DLong p_clipInit[] = { 0, 0, 1024, 1024, 0, 1000};
+//    DLong p_clipInit[] = { 0, 0, 1024, 1024, 0, 1000};
+    DLong p_clipInit[] = { 0, 0, 639, 511, 0, 0};
     DLongGDL* p_clip = new DLongGDL( dimension( &clipDim, one));
     for( UInt i=0; i<clipDim; i++) (*p_clip)[ i] = p_clipInit[ i];
     SizeT multiDim = 5;
@@ -454,7 +455,7 @@ namespace SysVar
     plt->NewTag("CHARSIZE", new DFloatGDL( 0.0)); 
     plt->NewTag("CHARTHICK", new DFloatGDL( 0.0)); 
     plt->NewTag("CLIP", p_clip); 
-    plt->NewTag("COLOR", new DLongGDL( -1)); 
+    plt->NewTag("COLOR", new DLongGDL( 255)); 
     plt->NewTag("FONT", new DLongGDL( -1)); 
     plt->NewTag("LINESTYLE", new DLongGDL( 0)); 
     plt->NewTag("MULTI", new DLongGDL( dimension( &multiDim, one))); 
