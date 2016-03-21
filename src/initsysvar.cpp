@@ -1042,7 +1042,7 @@ namespace SysVar
     DVar *color = new DVar( "COLOR", colorData);
     colorIx     = sysVarList.size();
     sysVarList.push_back(color);
- 
+    sysVarRdOnlyList.push_back( color); //Is Readonly.  
   }
 
 }
