@@ -46,20 +46,22 @@ GDLWXStream::GDLWXStream( int width, int height )
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
 #if ( (PLPLOT_VERSION_MAJOR < 6) && (PLPLOT_VERSION_MINOR < 10) )
-  if ( GetEnvString("GDL_WX_BACKEND") == "2" )  SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
-  else if ( GetEnvString("GDL_WX_BACKEND") == "1") SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
-  else  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
+//  if ( GetEnvString("GDL_WX_BACKEND") == "2" )  
+    SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
+//  else if ( GetEnvString("GDL_WX_BACKEND") == "1") SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
+//  else  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
 #else
   else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
 #endif
-  spage( 4.0, 4.0, width, height, 0, 0 ); //width and height have no importance, they are recomputed inside driver anyway!
-//        PLFLT pageRatio=width/height;
-//        std::string as = i2s( pageRatio);
-//        SETOPT( "a", as.c_str());
+  spage( 90.0, 90.0, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
-//  bool fixed=true;  //only for plplot_version_major > 10
+  //Apparently no effect on fonts!!!
+//#if ( (PLPLOT_VERSION_MAJOR > 4) && (PLPLOT_VERSION_MINOR > 10) )
+//  bool fixed=true;
+//  cerr << "fixed\n";
 //  plstream::cmd(PLESC_FIXASPECT, (void*)&fixed );
+//#endif
   plstream::set_stream();
 }
 
@@ -98,21 +100,13 @@ void GDLWXStream::SetSize( int width, int height )
 //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
   wxSize size = wxSize( width, height);
 
-//  PLFLT def,cur,ofact,fact;
-//  plgchr(&def,&cur); //cerr<<"before: "<<def;
-//  ofact = 80.0/pls->ydpi;
-////  cerr<<", ofact= "<<ofact; 
-
   plstream::cmd(PLESC_RESIZE, (void*)&size );
   m_width = width;
   m_height = height;
-//  plgchr(&def,&cur); // cerr<<" ,after= "<<def;
-//  fact = 80.0/pls->ydpi;
-////  cerr<<", fact= "<<fact;
-//  def *= fact/ofact;
-////  cerr<<", new: " <<def<<endl;
-//////  cerr << xp << ", " << yp << ", " << xleng * xp << ", " << yleng * yp << ", " << xoff << ", " << yoff << "," << &event << endl;
-//  this->RenewPlplotDefaultCharsize( def );
+  PLFLT size1=sqrt(640.*640.+512.*512);
+  PLFLT size2=sqrt(width*width+height*height);
+  PLFLT fact=size1/size2;
+  this->RenewPlplotDefaultCharsize( fact*2.5 );
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
@@ -370,10 +364,10 @@ void GDLWXStream::DeIconic() {
   wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
   if (tl) tl->Iconize(false);
 }
-bool GDLWXStream::UnsetFocus(){  
-  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-  if (tl) tl->Disable();
-    return true;}
+//bool GDLWXStream::UnsetFocus(){  
+//  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
+//  if (tl) tl->Disable();
+//    return true;}
 
 bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
 
@@ -403,7 +397,6 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
   if (mouse.Aux2IsDown())  {button = 5; ostate |= 16;}  
 #endif
   //return if NOWAIT or WAIT and Button pressed
-  UnsetFocus();  // first try to get out of focus.
   if ((mode == NOWAIT) || (mode == WAIT && button > 0)) {
     state=ostate;
     goto end; //else wait below for a down...

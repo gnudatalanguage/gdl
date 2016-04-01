@@ -166,6 +166,18 @@ bool GraphicsDevice::SetDevice( const string& device)
   return false;
 }
 
+ DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
+{
+  int size = deviceList.size();
+  for( int i=0; i<size; i++)
+    {
+      if( deviceList[ i]->Name() == device)
+	{
+	  return deviceList[ i]->DStruct();
+	}
+    }
+  return NULL;
+}
 void GraphicsDevice::Init()
 {
   InitCT();
@@ -364,30 +376,49 @@ int GraphicsMultiDevice::MaxWin() {
 }
 
 void GraphicsMultiDevice::SetActWin(int wIx) {
-  // update !D
+  // update !P and !D . See special behaviour for !D.WINDOW etc at end.
   if (wIx >= 0 && wIx < winList.size()) {
     assert(winList[ wIx] != NULL);
-    long xsize, ysize, xoff, yoff;
-    winList[ wIx]->GetGeometry(xsize, ysize, xoff, yoff);
-    (*static_cast<DLongGDL*> (dStruct->GetTag(xSTag)))[0] = xsize;
-    (*static_cast<DLongGDL*> (dStruct->GetTag(ySTag)))[0] = ysize;
-    (*static_cast<DLongGDL*> (dStruct->GetTag(xVSTag)))[0] = xsize;
-    (*static_cast<DLongGDL*> (dStruct->GetTag(yVSTag)))[0] = ysize;
-    // number of colors
-    //        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 1 << winList[ wIx]->GetWindowDepth();
-
     // set !D.N_COLORS and !P.COLORS according to decomposed value.
     unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
     if (this->GetDecomposed() == 1) {
-      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
       (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
     } else {
-      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
       (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
     }
   }
-  // window number
-  (*static_cast<DLongGDL*> (dStruct->GetTag(wTag)))[0] = wIx;
+  
+  // Update window number in all equivalent !D: !D is local to the Device, and sysvar's !D point to it. 
+  // So there are actually several !D per GraphicsMultiDevice!
+  // we need to update *all* the different !D in action, which are 2 if widgets + X11 device, and ony one if widget + wX device.
+  // another option would be to make !D static like !P.
+  // At the moment only "sharing" !D.WINDOW seems useful.
+  string listOfEquivalentDevices[]={"X","MAC","WIN"};
+  for (int i=0; i<3; ++i) {
+    DStructGDL *s=GraphicsDevice::GetDeviceStruct( listOfEquivalentDevices[i]);
+    if (s) {
+       //most important: window number, which CAN BE -1
+      (*static_cast<DLongGDL*> (s->GetTag(wTag)))[0] = wIx;
+       //Rest of informations 
+      if (wIx >= 0 && wIx < winList.size()) {
+        assert(winList[ wIx] != NULL);
+        long xsize, ysize, xoff, yoff;
+        winList[ wIx]->GetGeometry(xsize, ysize, xoff, yoff);
+        (*static_cast<DLongGDL*> (s->GetTag(xSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*> (s->GetTag(ySTag)))[0] = ysize;
+        (*static_cast<DLongGDL*> (s->GetTag(xVSTag)))[0] = xsize;
+        (*static_cast<DLongGDL*> (s->GetTag(yVSTag)))[0] = ysize;
+        // set !D.N_COLORS and !P.COLORS according to decomposed value.
+        unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
+        if (this->GetDecomposed() == 1) {
+          (*static_cast<DLongGDL*> (s->GetTag(n_colorsTag)))[0] = nSystemColors;
+        } else {
+          (*static_cast<DLongGDL*> (s->GetTag(n_colorsTag)))[0] = 256;
+        }
+      }
+ 
+    }
+  }
 
   actWin = wIx;
 }
@@ -397,25 +428,37 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
 void GraphicsMultiDevice::TidyWindowsList() {
   int wLSize = winList.size();
 
-  for (int i = 0; i < wLSize; i++)
-    if (winList[i] != NULL && !winList[i]->GetValid()) {
+  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
+    
+  //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
+  //in case winList groups X11 streams (or WIN streams) *and* wxWidgets streams (GDL_USE_WX="NO") the following
+  //permits to delete the widget_draw also, not only the plplot stream.
+#ifdef HAVE_LIBWXWIDGETS
+    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
+     GDLDrawPanel* panel = NULL;
+     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
+     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
+     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
+     if (draw) {
+      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
+      GDLWidgetBase* container = NULL;
+      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
+      else delete draw;
+     } else delete winList[i];
+    } else
+#endif     
       delete winList[i];
       winList[i] = NULL;
       oList[i] = 0;
     }
   // set new actWin IF NOT VALID ANY MORE
-  if (actWin < 0 || actWin >= wLSize ||
-    winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-    // set to most recently created
-    std::vector< long>::iterator mEl =
-      std::max_element(oList.begin(), oList.end());
-
-    // no window open
-    if (*mEl == 0) {
+  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
+    if (*mEl == 0) { // no window open
       SetActWin(-1);
       oIx = 1;
-    } else
-      SetActWin(std::distance(oList.begin(), mEl));
+    } else SetActWin(std::distance(oList.begin(), mEl));
   }
 }
 
@@ -445,29 +488,13 @@ void GraphicsMultiDevice::EventHandler() {
  // TidyWindowsList();
 }
 
-bool GraphicsMultiDevice::WDelete(int wIx) {
-  TidyWindowsList();
-
-  int wLSize = winList.size();
-  if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL)
-    return false;
-//delete  Nothing
-  cerr << "You should not be here, in GraphicsMultiDevice::WDelete()" << endl; 
-
-  // set to most recently created
-  std::vector< long>::iterator mEl =
-    std::max_element(oList.begin(), oList.end());
-
-  // no window open
-  if (*mEl == 0) {
-    SetActWin(-1);
-    oIx = 1;
-  } else
-    SetActWin(std::distance(oList.begin(), mEl));
-
-  return true;
-}
-
+    bool GraphicsMultiDevice::WDelete(int wIx) {
+     if (actWin<0) return false;
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
+    TidyWindowsList();
+        return true;
+    }
+   
 bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos) {
   TidyWindowsList();
 

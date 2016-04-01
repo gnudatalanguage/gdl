@@ -73,123 +73,58 @@ public:
         dStruct->InitTag("ORIGIN",     origin);
         dStruct->InitTag("ZOOM",       zoom);
 
-    }
+ }
 
-  bool WOpen( int wIx, const std::string& title, 
-            int xSize, int ySize, int xPos, int yPos, bool hide=false) 
-    {
-        if( wIx >= winList.size() || wIx < 0) return false;
+ bool WOpen(int wIx, const std::string& title,
+   int xSize, int ySize, int xPos, int yPos, bool hide = false) {
+  if (wIx >= winList.size() || wIx < 0) return false;
 
-        if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
+  if (winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
 
-        TidyWindowsList();
+  TidyWindowsList();
 
-        // set initial window size
-        int xleng; int yleng;
-        int xoff; int yoff;
+  // set initial window size
+  int xleng;
+  int yleng;
+  int xoff;
+  int yoff;
 
-        DLong xMaxSize, yMaxSize;
-        DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
+  DLong xMaxSize, yMaxSize;
+  DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
 
-        bool noPosx=(xPos==-1);
-        bool noPosy=(yPos==-1);
-        xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
-        yPos=max(1,yPos);
+  bool noPosx = (xPos == -1);
+  bool noPosy = (yPos == -1);
+  xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
+  yPos = max(1, yPos);
 
-        xleng = min(xSize,xMaxSize); if (xPos+xleng > xMaxSize) xPos=xMaxSize-xleng-1;
-        yleng = min(ySize,yMaxSize); if (yPos+yleng > yMaxSize) yPos=yMaxSize-yleng-1;
-    // dynamic allocation needed!    
-        PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
-        PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
-        if (noPosx && noPosy) { //no init given, use 4 quadrants:
-          xoff = Quadx[wIx%4];
-          yoff = Quady[wIx%4];
-        } else if (noPosx) {
-          xoff = Quadx[wIx%4];
-          yoff = yMaxSize-yPos-yleng;
-        } else if (noPosy) {
-          xoff = xPos;
-          yoff = Quady[wIx%4];
-        } else {
-          xoff  = xPos;
-          yoff  = yMaxSize-yPos-yleng;
-        }
+  xleng = min(xSize, xMaxSize);
+  if (xPos + xleng > xMaxSize) xPos = xMaxSize - xleng - 1;
+  yleng = min(ySize, yMaxSize);
+  if (yPos + yleng > yMaxSize) yPos = yMaxSize - yleng - 1;
+  // dynamic allocation needed!    
+  PLINT Quadx[4] = {xMaxSize - xleng - 1, xMaxSize - xleng - 1, 1, 1};
+  PLINT Quady[4] = {1, yMaxSize - yleng - 1, 1, yMaxSize - yleng - 1};
+  if (noPosx && noPosy) { //no init given, use 4 quadrants:
+   xoff = Quadx[wIx % 4];
+   yoff = Quady[wIx % 4];
+  } else if (noPosx) {
+   xoff = Quadx[wIx % 4];
+   yoff = yMaxSize - yPos - yleng;
+  } else if (noPosy) {
+   xoff = xPos;
+   yoff = Quady[wIx % 4];
+  } else {
+   xoff = xPos;
+   yoff = yMaxSize - yPos - yleng;
+  }
 
-        WidgetIDT widgetID=wxWindow::NewControlId();
-        WidgetIDT drawID=wxWindow::NewControlId();
-        wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-        GDLFrame *gdlFrame;
-        if (xoff>-1&&yoff>-1) {
-          gdlFrame = new GDLFrame( NULL, widgetID, titleWxString , wxPoint(xoff,yoff));
-        } else {
-          gdlFrame = new GDLFrame( NULL, widgetID, titleWxString);
-        }
-//        gdlFrame->Connect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER); //currently window is not handled
-        gdlFrame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseWindow));
-
-        wxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
-        gdlFrame->SetSizer( topSizer );
-
-        GDLDrawPanel* draw = new GDLDrawPanel(gdlFrame, drawID, wxDefaultPosition, wxSize(xleng,yleng));
-        draw->SetContainer(gdlFrame); //to be able to delete the surrounding widget
-        //connect to event handlers
-//        draw->Connect(drawID, wxEVT_SIZE, wxSizeEventHandler(GDLDrawPanel::OnSize)); 
-//        draw->Connect(drawID, wxEVT_PAINT, wxPaintEventHandler(GDLDrawPanel::OnPaint));
-        
-        winList[ wIx] = new GDLWXStream( xleng, yleng);
-        oList[ wIx]   = oIx++;
-
-        // no pause on win destruction
-        winList[ wIx]->spause( false);
-
-        // extended fonts
-        winList[ wIx]->fontld( 1);
-
-        // we want color
-        winList[ wIx]->scolor( 1);
-
-        PLINT r[ctSize], g[ctSize], b[ctSize];
-        actCT.Get( r, g, b);
-        winList[ wIx]->SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
-
-        // need to be called initially. permit to fix things
-        winList[ wIx]->ssub(1,1);
-        winList[ wIx]->adv(0);
-        // load font
-        winList[ wIx]->font( 1);
-        winList[ wIx]->vpor(0,1,0,1);
-        winList[ wIx]->wind(0,1,0,1);
-        winList[ wIx]->DefaultCharSize();
-        //in case these are not initalized, here is a good place to do it.
-        if (winList[ wIx]->updatePageInfo()==true)
-        {
-          winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-        }
-        winList[ wIx]->schr(2.5,1);
-        // sets actWin and updates !D
-        SetActWin( wIx);
-
-        draw->AssociateStream(static_cast<GDLWXStream*>(winList[ wIx]));
-        topSizer->Add(draw, 1, wxEXPAND|wxALL, 0);
-        gdlFrame->Fit();
-        draw->SetCursor(wxCURSOR_CROSS); 
-
-        GDLApp* theGDLApp=new GDLApp;
-        gdlFrame->SetTheApp(theGDLApp);
-        theGDLApp->OnInit();
-        theGDLApp->OnRun();
-        if (hide) {
-        gdlFrame->Hide();
-        } else {
-        gdlFrame->Show();
-        gdlFrame->Raise();
-        }
-        
-        //make one loop
-        GDLWidget::HandleEvents();
-
-        return true; 
-    }
+  WidgetIDT mbarID = 0;
+  GDLWidgetGraphicWindowBase* base = new GDLWidgetGraphicWindowBase(mbarID, xoff, yoff, title);
+  GDLWidgetDraw* draw = new GDLWidgetDraw(base->WidgetID(), NULL, wIx, xleng, yleng, -1, -1, false, 0);
+  base->setWindow(static_cast<GDLDrawPanel*>(draw->GetWxWidget()));
+  base->Realize(!hide);
+  return true;
+ }
 
     // should check for valid streams
      
@@ -344,67 +279,48 @@ public:
     {
       winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
     }
-//    winList[ wIx]->schr(2.5,1);
+    PLFLT size1=sqrt(640.*640.+512.*512);
+    PLFLT size2=sqrt(xSize*xSize+ySize*ySize);
+    PLFLT fact=size1/size2;
+    winList[wIx]->RenewPlplotDefaultCharsize( fact*2.5 );
+  //    winList[ wIx]->schr(2.5,1);
     // sets actWin and updates !D
     SetActWin( wIx);
     return true; 
   } // GUIOpen
 
-    bool WDelete(int wIx) {
-  winList[ wIx]->SetValid(false);
-    TidyWindowsList();
-        return true;
-    }
+    //specialized version, probably not very useful since the wxWidgets case is already tretaed in the overrided version.
+ void TidyWindowsList() {
+  int wLSize = winList.size();
 
-    void TidyWindowsList() {
-        int wLSize = winList.size();
-        GDLFrame* container = NULL;
-        GDLDrawPanel* panel = NULL;
-        bool isAWindow = false;
-
-        for (int i = 0; i < wLSize; i++) {
-            if (winList[i] != NULL) {
-                if (!winList[i]->GetValid()) {
-                    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
-                        panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
-                        if (panel != NULL) {  //2 cases: 1) container is not null: it is a window, we delete the container 
-                         //or, container is null: it is a GDLDrawPanel, itself child of a GDLWidgetDraw, that we destroy (isAWindow=false)
-                            container = panel->GetContainer();
-                            isAWindow = true;
-                        }
-                    }
-                    if (container) { 
-                      delete winList[i]; //will be deleted with the removal of GDLWidgetDraw below
-                      delete container;
-                    }else {
-                      GDLWidget *draw=panel->GetGDLWidgetDraw();
-                      if (draw) {
-                       delete draw; 
-                      }
-                    }
-                    winList[i] = NULL;
-                    oList[i] = 0;
-                }
-            }
-            // set new actWin IF NOT VALID ANY MORE
-            if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-                // set to most recently created
-                std::vector< long>::iterator mEl =
-                        std::max_element(oList.begin(), oList.end());
-
-                // no window open
-                if (!isAWindow || *mEl == 0) {
-                    SetActWin(-1);
-                    oIx = 1;
-                } else
-                    SetActWin(std::distance(oList.begin(), mEl));
-            }
-        }
-    }
-
+  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
+    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
+     GDLDrawPanel* panel = NULL;
+     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
+     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
+     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
+     if (draw) {
+      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
+      GDLWidgetBase* container = NULL;
+      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
+      else delete draw;
+     } else delete winList[i];
+    } else delete winList[i];
+    winList[i] = NULL;
+    oList[i] = 0;
+   }
+  // set new actWin IF NOT VALID ANY MORE
+  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+   // set to most recently created
+   std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end());
+   if (*mEl == 0) { // no window open
+    SetActWin(-1);
+    oIx = 1;
+   } else SetActWin(std::distance(oList.begin(), mEl));
+  }
+ }
 };
-#undef MAX_WIN
-#undef MAX_WIN_RESERVE
 #endif
 
 #endif

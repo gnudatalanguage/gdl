@@ -62,6 +62,34 @@ void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
   if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
 }
+void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directly from inside gdl.
+{
+  font=wxNullFont;
+  
+  alignment=gdlwALIGN_NOT;
+  scrolled = false;
+  sensitive=TRUE;
+  groupLeader = 0;
+  frameWidth = -1;
+  unitConversionFactor=wxRealPoint(1,1);
+
+//the following trick permits to transfer these values to xSize etc.
+  xSize=-1 ;
+  scrXSize=-1;
+  ySize=-1;
+  scrYSize=-1;
+  xOffset=0;
+  yOffset=0;
+
+  uValue = NULL;
+  eventFun = "";
+  eventPro = "";
+  killNotify = "";
+  notifyRealize = "";
+  proValue = "";
+  funcValue = "";
+  uName = "";
+}
 void GDLWidget::GetCommonKeywords( EnvT* e)
 {
   static int frameIx = e->KeywordIx( "FRAME" );
@@ -520,7 +548,6 @@ BaseGDL* widget_table( EnvT* e)
   eventFlags
   );
   if (table->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )  table->SetWidgetType( GDLWidget::WIDGET_TABLE );
-//  table->SetEventFlags(eventFlags);
   // return widget ID
   return new DLongGDL( table->WidgetID( ) );
 #endif
@@ -714,9 +741,9 @@ BaseGDL* widget_draw( EnvT* e ) {
   GDLWidgetDraw* draw;
   if (e->KeywordPresent(TOOLTIP)) {
    DStringGDL* tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
-   draw = new GDLWidgetDraw( parentID, e,  x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
+   draw = new GDLWidgetDraw( parentID, e, -1, -1, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   }
-  else draw = new GDLWidgetDraw( parentID, e,  x_scroll_size, y_scroll_size, app_scroll, eventFlags);
+  else draw = new GDLWidgetDraw( parentID, e, -1, -1, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags);
 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
   if (keyboard_events) draw->SetFocus();
@@ -1025,12 +1052,11 @@ BaseGDL* widget_draw( EnvT* e ) {
   GDLWidgetButton* button;
   if (e->KeywordPresent(TOOLTIP)) {
    DStringGDL* tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
-   button = new GDLWidgetButton( parentID, e, value, isMenu, hasSeparatorAbove, bitmap, tooltipgdl);
+   button = new GDLWidgetButton( parentID, e, value, eventFlags, isMenu, hasSeparatorAbove, bitmap, tooltipgdl);
   }
-  else button = new GDLWidgetButton( parentID, e, value, isMenu, hasSeparatorAbove, bitmap);
+  else button = new GDLWidgetButton( parentID, e, value, eventFlags, isMenu, hasSeparatorAbove, bitmap);
   
   if (button->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
-  button->SetEventFlags(eventFlags);
   if (dynres) button->authorizeDynamicResize();
   return new DLongGDL( button->WidgetID( ) );
 #endif
@@ -1193,9 +1219,8 @@ BaseGDL* widget_list( EnvT* e ) {
   if ( value != NULL )  value = value->Dup( ); else value = new DStringGDL(""); //protect!
 
   DLong style = 0;
-  GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, title, style);
+  GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, e, value, eventFlags, title, style);
   if (droplist->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   droplist->SetWidgetType( GDLWidget::WIDGET_DROPLIST );
-  droplist->SetEventFlags(eventFlags);
   if (dynres) droplist->authorizeDynamicResize();
   return new DLongGDL( droplist->WidgetID( ) );
 #endif
@@ -1242,9 +1267,8 @@ BaseGDL* widget_combobox( EnvT* e ) {
   DLong style = wxCB_SIMPLE;
   if ( !editable )
     style = wxCB_READONLY;
-  GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, title, style );
+  GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, eventFlags, title, style );
   if (combobox->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   combobox->SetWidgetType( GDLWidget::WIDGET_COMBOBOX );
-  combobox->SetEventFlags(eventFlags);
   if (dynres) combobox->authorizeDynamicResize();
   return new DLongGDL( combobox->WidgetID( ) );
 #endif
@@ -1332,8 +1356,8 @@ BaseGDL* widget_slider( EnvT* e ) {
   static int titleIx = e->KeywordIx( "TITLE" );
   e->AssureStringScalarKWIfPresent( titleIx, title );
 
-  GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e, eventFlags,
-  value, minimum, maximum,
+  GDLWidgetSlider* sl = new GDLWidgetSlider( parentID, e, value, eventFlags,
+  minimum, maximum,
   vertical,
   suppressValue,
   title
@@ -1395,9 +1419,8 @@ BaseGDL* widget_slider( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( editableIx, edit );
   bool editable = (edit == 1);
   
-  GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, noNewLine, editable);
+  GDLWidgetText* text = new GDLWidgetText( parentID, e, valueStr, eventFlags, noNewLine, editable);
   if (text->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   text->SetWidgetType( GDLWidget::WIDGET_TEXT );
-  text->SetEventFlags(eventFlags);
 
   return new DLongGDL( text->WidgetID( ) );
 #endif
@@ -1436,9 +1459,8 @@ BaseGDL* widget_slider( EnvT* e ) {
   DULong eventFlags=0;
   if (trackingevents)  eventFlags |= GDLWidget::EV_TRACKING;
 
-  GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value , isSunken);
+  GDLWidgetLabel* label = new GDLWidgetLabel( parentID, e, value , eventFlags, isSunken);
   if (label->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   label->SetWidgetType( GDLWidget::WIDGET_LABEL );
-  label->SetEventFlags(eventFlags);
   if (dynres) label->authorizeDynamicResize();
   return new DLongGDL( label->WidgetID( ) );
 #endif

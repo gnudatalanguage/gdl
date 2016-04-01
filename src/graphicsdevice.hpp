@@ -172,6 +172,7 @@ public:
   static void        ListDevice();
   static bool        ExistDevice( const std::string& device, int &index);
   static bool        SetDevice( const std::string& devName);
+  DStructGDL*        GetDeviceStruct( const std::string& device);
   static GraphicsDevice*   GetDevice() { return actDevice;}
   static GraphicsDevice*   GetGUIDevice() { return actGUIDevice;}
   static DStructGDL* DStruct()   { return actDevice->dStruct;} 

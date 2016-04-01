@@ -50,7 +50,7 @@ public:
     void SetSize( int width, int height );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
-    void SetGDLDrawPanel(GDLDrawPanel*);
+    void SetGDLDrawPanel(GDLDrawPanel* w);
     GDLDrawPanel* GetGDLDrawPanel(){return gdlWindow;}
 
     void Init();
@@ -61,7 +61,7 @@ public:
     void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
     unsigned long GetWindowDepth() ;   
 
-    bool UnsetFocus();
+//    bool UnsetFocus(); UnsetFocus is dangerous: it prevents using wxEvents correctly.
     bool SetBackingStore(int value){return true;}
     void Clear();
     void Clear( DLong bColor);

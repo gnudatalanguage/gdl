@@ -45,6 +45,7 @@
 if (!font.IsSameAs(wxNullFont)) {\
     wxWindow* ww=static_cast<wxWindow*>(wxWidget); if (ww) ww->SetFont(font);\
   }\
+    ConnectToDesiredEvents();\
 }
 #define UPDATE_WINDOW {\
   GDLWidgetBase *tlb = GetTopLevelBaseWidget( this->WidgetID( ) );\
@@ -403,9 +404,19 @@ void GDLWidget::UnInit()
   wxUninitialize( );
 }
 
+void GDLWidget::ConnectToDesiredEvents(){
+  if ( eventFlags & GDLWidget::EV_TRACKING ) {
+    static_cast<wxWindow*>(wxWidget)->Connect(widgetID,wxEVT_ENTER_WINDOW, wxMouseEventHandler(GDLFrame::OnEnterWindow));
+    static_cast<wxWindow*>(wxWidget)->Connect(widgetID,wxEVT_LEAVE_WINDOW, wxMouseEventHandler(GDLFrame::OnLeaveWindow));
+  }
+  if ( eventFlags & GDLWidget::EV_CONTEXT ) static_cast<wxWindow*>(wxWidget)->Connect(widgetID,wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(GDLFrame::OnContextEvent));
+  if ( eventFlags & GDLWidget::EV_KBRD_FOCUS ) {
+      static_cast<wxWindow*>(wxWidget)->Connect(widgetID,wxEVT_SET_FOCUS, wxFocusEventHandler(GDLFrame::OnKBRDFocusChange));
+      static_cast<wxWindow*>(wxWidget)->Connect(widgetID,wxEVT_KILL_FOCUS, wxFocusEventHandler(GDLFrame::OnKBRDFocusChange));
+  }
+}
 
-
-GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFlags_/*=0*/ )
+GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 : wxWidget( NULL )
 , widgetID (0)
 , parentID( p )
@@ -426,13 +437,17 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV/*=NULL*/, DULong eventFl
 , frameSizer( NULL )
 , framePanel( NULL )
 , widgetType(GDLWidget::WIDGET_UNKNOWN)
+, widgetName("")
 , groupLeader(GDLWidget::NullID)
+, unitConversionFactor(wxRealPoint(1.0,1.0)) //no conversion at start.
 , frameWidth(-1)
-, widgetStyle(0)
+, font(wxNullFont)
 , valid(TRUE)
+, alignment(gdlwALIGN_NOT)
+, widgetStyle(wxSTRETCH_NOT)
 , dynamicResize(-1) //not permitted
 {
-  if ( e != NULL ) GetCommonKeywords( e ); //defines own alignment.
+  if ( e != NULL ) GetCommonKeywords( e ); else DefaultValuesInAbsenceofEnv();
 
   widgetID = wxWindow::NewControlId( );
 
@@ -802,6 +817,25 @@ DStructGDL* GDLWidget::GetGeometry( wxRealPoint fact ) {
 , map(map)
 {
 }
+ GDLWidgetGraphicWindowBase::GDLWidgetGraphicWindowBase(WidgetIDT mbarID, int xoff, int yoff, DString title)
+ : GDLWidgetBase(GDLWidget::NullID, NULL, (ULong) GDLWidget::EV_NONE,
+    false,
+    /*ref*/ mbarID, false,
+    1, 0,
+    BGNORMAL,
+    true,
+    "", "",
+    title,
+    "",
+    0, 0,
+    -1, -1, false, 0, 0, false),
+   child(NULL)
+{
+   GDLFrame* f=static_cast<GDLFrame*>(wxWidget);
+  f->SetPosition(wxPoint(xoff,yoff));
+  f->Connect(f->GetId(), wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
+}
+
 /*********************************************************/
 // for WIDGET_BASE
 /*********************************************************/
@@ -895,6 +929,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
 
     //create the first panel, fix size. Offset is not taken into account.
     widgetPanel = new wxPanel( gdlFrame, wxID_ANY , wxDefaultPosition, wxDefaultSize);// no FRAME here! , (frameWidth>0)?wxBORDER_SUNKEN:wxBORDER_NONE);
+//note: wxWidget should probably be widgetPanel, not gdlFrame.
 #ifdef GDL_DEBUG_WIDGETS
     widgetPanel->SetBackgroundColour(wxColour(255,0,0)); //rouge
 #endif
@@ -1205,9 +1240,9 @@ void GDLWidgetBase::SelfDestroy()
           }
         }
       }
+      widgetSizer->Layout();
+      widgetPanel->Refresh();
     }
-    widgetSizer->Layout();
-    widgetPanel->Refresh();
   }
 /*********************************************************/
 // for WIDGET_TAB
@@ -2898,8 +2933,8 @@ void GDLWidgetTree::SetValue(DString val)
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/
-GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DULong eventFlags_
-, DLong value_
+GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
+, DULong eventFlags_
 , DLong minimum_
 , DLong maximum_
 , bool vertical
@@ -2969,8 +3004,8 @@ GDLWidgetSlider::~GDLWidgetSlider(){
 }
 
 GDLWidgetButton::GDLWidgetButton( WidgetIDT p, EnvT* e,
-const DString& value , bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, DStringGDL* buttonToolTip)
-: GDLWidget( p, e )
+const DString& value , DULong eventflags, bool isMenu, bool hasSeparatorAbove, wxBitmap* bitmap_, DStringGDL* buttonToolTip)
+: GDLWidget( p, e, NULL, eventflags )
 , buttonType( UNDEFINED )
 , addSeparatorAbove(hasSeparatorAbove)
 , buttonBitmap(bitmap_)
@@ -3174,7 +3209,9 @@ void GDLWidgetButton::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
 }
   
 GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style, DULong eventflags )
-    : GDLWidget( p, e, value, eventflags), maxlinelength(0), nlines(0)
+    : GDLWidget( p, e, value, eventflags)
+, maxlinelength(0)
+, nlines(0)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = gdlParent->GetPanel( );
@@ -3291,9 +3328,9 @@ GDLWidgetList::~GDLWidgetList(){
 #endif  
 }
 
-GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
+GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value, DULong eventflags ,
 const DString& title_, DLong style_ )
-: GDLWidget( p, e, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )) )
+: GDLWidget( p, e, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )), eventflags)
 , title( title_ )
 , style( style_)
 {
@@ -3369,9 +3406,9 @@ GDLWidgetDropList::~GDLWidgetDropList(){
 #endif  
 }
   
-GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
+GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULong eventflags,
 const DString& title_, DLong style_ )
-: GDLWidget( p, e, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )) )
+: GDLWidget( p, e, static_cast<DStringGDL*> (value->Convert2( GDL_STRING, BaseGDL::CONVERT )) , eventflags)
 , title( title_ )
 , style( style_)
 {
@@ -3454,9 +3491,9 @@ GDLWidgetComboBox::~GDLWidgetComboBox(){
 #endif
 }
 
-GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, bool noNewLine_,
+GDLWidgetText::GDLWidgetText( WidgetIDT p, EnvT* e, DStringGDL* valueStr, DULong eventflags, bool noNewLine_,
 bool editable_ )
-: GDLWidget( p, e, valueStr )
+: GDLWidget( p, e, valueStr, eventflags )
 , noNewLine( noNewLine_ )
 , editable(editable_)
 {
@@ -3638,8 +3675,8 @@ DStringGDL* GDLWidgetText::GetSelectedText()
 return new DStringGDL(txt->GetStringSelection().mb_str(wxConvUTF8).data());
 }
 
-GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , bool sunken)
-: GDLWidget( p, e )
+GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DULong eventflags, bool sunken)
+: GDLWidget( p, e , NULL, eventflags )
 , value(value_)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
@@ -3820,7 +3857,7 @@ void GDLWidgetLabel::SetLabelValue( const DString& value_)
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 
  GDLWidgetPropertySheet::GDLWidgetPropertySheet( WidgetIDT parentID, EnvT* e)
- : GDLWidget( p, e )
+ : GDLWidget( p, e , value, eventflag)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = gdlParent->GetPanel( );
@@ -3876,7 +3913,7 @@ UPDATE_WINDOW
 GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos )
 : wxFrame( NULL, id, title, pos, wxDefaultSize, wxDEFAULT_FRAME_STYLE )
 , mapped( false )
-, frameSize(wxDefaultSize)
+, frameSize(wxSize(0,0))
 , gdlOwner( gdlOwner_)
 , appOwner(NULL)
 {
@@ -3910,11 +3947,8 @@ GDLDrawPanel::GDLDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 , pstreamP( NULL )
 , m_dc( NULL)
 , GDLWidgetDrawID(id)
-, container(NULL)
-, drawSize(wxDefaultSize)
+, drawSize(size)
 {
-//  m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
-  // initialization of stream is done in GDLWidgetDraw::OnRealize()
 }
 
 void GDLDrawPanel::InitStream(int windowIndex)
@@ -3935,25 +3969,21 @@ void GDLDrawPanel::InitStream(int windowIndex)
   m_dc = pstreamP->GetDC( );
 }
 
-void GDLDrawPanel::AssociateStream(GDLWXStream* stream)
-{
-  pstreamP = stream;
-  pstreamP->SetGDLDrawPanel( this );
-  m_dc = pstreamP->GetDC( );
-}
+//void GDLDrawPanel::AssociateStream(GDLWXStream* stream)
+//{
+//  pstreamP = stream;
+//  pstreamP->SetGDLDrawPanel( this );
+//  m_dc = pstreamP->GetDC( );
+//}
 
 
 void GDLDrawPanel::Resize(int sizex, int sizey)
 {
-  GDLWidgetDraw* draw = static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));
-  if (!draw) return; //temporary hack for devicewx...
-  this->SetClientSize(sizex,sizey);
-  drawSize=this->GetClientSize();
   if (pstreamP != NULL)
   {
-    pstreamP->SetSize(drawSize.x,drawSize.y); 
+    pstreamP->SetSize(sizex,sizey); 
   }
-//  draw->RefreshWidget();
+  drawSize=wxSize(sizex,sizey);
 } 
   
 GDLDrawPanel::~GDLDrawPanel()
@@ -3964,29 +3994,21 @@ GDLDrawPanel::~GDLDrawPanel()
 #endif
 //  if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
   if ( pstreamP != NULL )
-  pstreamP->SetValid( false );
+  pstreamP->SetValid( false ); //eventLoop will destroy panel.
 }
 
-//why overcast inherited ~GDLWidget????
-GDLWidgetDraw::~GDLWidgetDraw()
-{
-#ifdef GDL_DEBUG_WIDGETS
-    std::cout << "~GDLWidgetDraw: " << this << std::endl;
-#endif 
-  // handled in GDLDrawPanel (which is deleted by wxWidgets)
-//   GraphicsDevice::GetGUIDevice()->WDelete( pstreamIx);
-}
-
-
-GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
+GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex, DLong special_xsize, DLong special_ysize,
 			      DLong x_scroll_size_, DLong y_scroll_size_, bool app_scroll, DULong eventFlags_, DStringGDL* drawToolTip)
   : GDLWidget( p, e, NULL, eventFlags_)
-  , pstreamIx(-1)
+  , pstreamIx(windowIndex)
   , x_scroll_size(x_scroll_size_)
   , y_scroll_size(y_scroll_size_)
 {
   //  std::cout << "In GDLWidgetDraw::GDLWidgetDraw: " << widgetID << std::endl
   assert( parentID != GDLWidget::NullID);
+
+  if (xSize <= 0 && special_xsize > 0) xSize = special_xsize; //override in case this is a graphic window (no env kw used since no command)
+  if (ySize <= 0 && special_ysize > 0) ySize = special_ysize; //override in case this is a graphic window (no env kw used since no command)
 
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
   if (app_scroll) scrolled=TRUE;
@@ -3998,7 +4020,6 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   if ( xSize <= 0 ) xSize=scrolled?100+gdlSCROLL_WIDTH:100; else xSize*=unitConversionFactor.x; //provide a default value!
   if ( ySize <= 0 ) ySize=scrolled?100+gdlSCROLL_WIDTH:100; else ySize*=unitConversionFactor.y;
 
-  // If parent base widget exists ....
   GDLWidget* gdlParent = GetWidget( parentID);
   widgetPanel = gdlParent->GetPanel( );
   widgetSizer = gdlParent->GetSizer( );
@@ -4013,11 +4034,6 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
    draw->Connect(widgetID, wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(GDLDrawPanel::OnErase));
 
   //other set event handling according to flags
-//this one is for the moment defined globally:
-//   if (eventFlags & GDLWidget::EV_TRACKING) { 
-//    draw->Connect(widgetID, wxEVT_ENTER_WINDOW, wxMouseEventHandler(GDLFrame::OnEnterWindow));
-//    draw->Connect(widgetID, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(GDLFrame::OnLeaveWindow));
-//  }
   if (eventFlags & GDLWidget::EV_MOTION) draw->Connect(widgetID, wxEVT_MOTION, wxMouseEventHandler(GDLDrawPanel::OnMouseMove));
 //  if ( eventFlags & GDLWidget::EV_DROP) nothing to do yet, fixme!;
 //  if ( eventFlags & GDLWidget::EV_EXPOSE) nothing to do yet, fixme!;
@@ -4047,12 +4063,13 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e,
   if (scrolled) this->ScrollWidget(x_scroll_size, y_scroll_size );
   if ((frameWidth>0)) this->FrameWidget();
 
-  static_cast<GDLDrawPanel*>(wxWidget)->InitStream();
+  static_cast<GDLDrawPanel*>(wxWidget)->InitStream(windowIndex);
   
   pstreamIx = static_cast<GDLDrawPanel*>(wxWidget)->PStreamIx();
   GDLDelete( vValue);
   this->vValue = new DLongGDL(pstreamIx);  
   this->SetSensitive(sensitive);
+  TIDY_WIDGET;
   UPDATE_WINDOW  
 }
 

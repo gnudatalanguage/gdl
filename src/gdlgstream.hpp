@@ -166,6 +166,10 @@ public:
       ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
     gdlDefaultCharInitialized=0;
     thePage.nbPages=0;
+    thePage.length=0;
+    thePage.height=0;
+    thePage.plxoff=0;
+    thePage.plyoff=0;
     theBox.initialized=false;
     plgpls( &pls);
     //you can debug plplot things with
@@ -819,7 +823,7 @@ public:
         thePage.xsizemm=thePage.length/thePage.xdpmm;
         thePage.ysizemm=thePage.height/thePage.ydpmm;
         if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         device resolution [%f,%f]mm^-1, device size [%f,%f], [%f,%f] mm\n",
-                thePage.xdpmm,thePage.ydpmm,thePage.length,thePage.height,thePage.xsizemm,thePage.ysizemm);
+         thePage.xdpmm,thePage.ydpmm,thePage.length,thePage.height,thePage.xsizemm,thePage.ysizemm);
         thePage.subpage.dxoff=offx_mm*thePage.xdpmm;
         thePage.subpage.dyoff=offy_mm*thePage.ydpmm;
         thePage.subpage.dxsize=bxsize_mm*thePage.xdpmm;

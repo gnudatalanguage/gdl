@@ -129,7 +129,6 @@ public:
     
     winList[ wIx] = new GDLXStream( xleng, yleng);
     
-    // as wxwidgets never set this, they can be intermixed
     oList[ wIx]   = oIx++;    
     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff); //must be before 'Init'
 
@@ -185,31 +184,6 @@ public:
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
     }
   
-bool WDelete(int wIx) {
-  TidyWindowsList();
-
-  int wLSize = winList.size();
-  if (wIx >= wLSize || wIx < 0 || winList[wIx] == NULL) return false;
-
-  delete winList[wIx];
-  winList[wIx] = NULL;
-  oList[wIx] = 0;
-
-  // set to most recently created
-  std::vector< long>::iterator mEl =
-    std::max_element(oList.begin(), oList.end());
-
-  // no window open
-  if (*mEl == 0) {
-    SetActWin(-1);
-    oIx = 1;
-  } else
-    SetActWin(std::distance(oList.begin(), mEl));
-
-  return true;
-}
-    // should check for valid streams
-
     GDLGStream* GetStream(bool open = true) {
         TidyWindowsList();
         if (actWin == -1) {

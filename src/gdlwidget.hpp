@@ -276,7 +276,7 @@ private:
   DString      killNotify;
   
   void GetCommonKeywords( EnvT* e);
-
+  void DefaultValuesInAbsenceofEnv();
   
 public:
   typedef enum BGroupMode_ 
@@ -334,7 +334,6 @@ public:
     } gdlAlignmentPossibilities;
     
   DULong GetEventFlags()  const { return eventFlags;}
-  void SetEventFlags( DULong evFlags) { eventFlags = evFlags;}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
   void AddEventType( DULong evType) { eventFlags |= evType;}
   void RemoveEventType( DULong evType) { eventFlags &= ~evType;}
@@ -427,6 +426,7 @@ public:
   virtual bool IsDraw() const { return false;}
   virtual bool IsMenuBar() const { return false;}
   virtual bool IsPropertySheet() const { return false;}
+  virtual bool IsGraphicWindowFrame() const { return false;}
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const { return 0;}
@@ -484,6 +484,9 @@ public:
   
   wxSize computeWidgetSize(); 
   BaseGDL * getSystemColours();
+  
+  void ConnectToDesiredEvents();
+
 };
 
 class GDLWidgetContainer: public GDLWidget
@@ -653,7 +656,7 @@ class GDLWidgetButton: public GDLWidget
 //  bool buttonState; //defined in base class now.
   
 public:
-  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, bool isMenu, bool hasSeparatorAbove=FALSE, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
+  GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, DULong eventflags, bool isMenu, bool hasSeparatorAbove=FALSE, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
   ~GDLWidgetButton();
   // for WIDGET_CONTROL
   void SetButtonWidget( bool onOff)
@@ -714,7 +717,7 @@ class GDLWidgetDropList: public GDLWidget
   DLong style;
   
 public:
-  GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value,
+  GDLWidgetDropList( WidgetIDT p, EnvT* e, BaseGDL *value, DULong eventflags,
 		     const DString& title, DLong style);
   ~GDLWidgetDropList();
   bool IsDropList() const { return true;} 
@@ -735,7 +738,7 @@ class GDLWidgetComboBox: public GDLWidget
   DLong style;
   
 public:
-  GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value,
+  GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULong eventflags,
 		     const DString& title, DLong style);
  ~GDLWidgetComboBox();
 //  void OnShow();
@@ -796,7 +799,7 @@ class GDLWidgetText: public GDLWidget
   int maxlinelength;
   int nlines;
 public:
-  GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, bool noNewLine,
+  GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool noNewLine,
 		 bool editable);
   ~GDLWidgetText();
   
@@ -822,7 +825,7 @@ class GDLWidgetLabel: public GDLWidget
 {
   DString value;
 public:
-  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_, bool sunken);
+  GDLWidgetLabel( WidgetIDT parentID, EnvT* e, const DString& value_, DULong eventflags, bool sunken);
  ~GDLWidgetLabel();
   void SetLabelValue( const DString& value_);
   bool IsLabel() const { return true;} 
@@ -836,10 +839,10 @@ class GDLWidgetDraw: public GDLWidget
   DLong x_scroll_size;
   DLong y_scroll_size;
 public:
-  GDLWidgetDraw( WidgetIDT parentID, EnvT* e,
-		  DLong x_scroll_size, DLong y_scroll_size, bool app_scroll, DULong eventFlags, DStringGDL* drawToolTip=NULL);
+  GDLWidgetDraw( WidgetIDT parentID, EnvT* e, int windowIndex,
+		  DLong special_xsize, DLong special_ysize, DLong x_scroll_size, DLong y_scroll_size, bool app_scroll, DULong eventFlags, DStringGDL* drawToolTip=NULL);
 
-  ~GDLWidgetDraw();
+//  ~GDLWidgetDraw();
 
 //  void OnRealize();
   bool IsDraw() const { return true;}
@@ -1125,8 +1128,9 @@ class GDLWidgetSlider: public GDLWidget
   DLong maximum;
   DString title;
 public:
-  GDLWidgetSlider( WidgetIDT parentID, EnvT* e, DULong eventFlags_ ,
-		   DLong value_,DLong minimum_, DLong maximum_,
+  GDLWidgetSlider( WidgetIDT parentID, EnvT* e, DLong value_,
+       DULong eventFlags_ ,
+		   DLong minimum_, DLong maximum_,
 		   bool vertical,
 		   bool suppressValue,
 		   DString title
@@ -1344,7 +1348,7 @@ public:
   GDLApp* GetTheApp(){return appOwner;}
   void SetTheApp(GDLApp* myApp){appOwner=myApp;}
   
-
+  GDLWidgetBase* GetGDLOwner(){return gdlOwner;}
   bool IsMapped() const { return mapped;}
   
   void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
@@ -1408,7 +1412,6 @@ public:
   void OnIdle( wxIdleEvent& event);
   void OnMenu( wxCommandEvent& event);
   void OnSizeWithTimer( wxSizeEvent& event);
-  void OnIgnoreSize( wxSizeEvent& event); //dummy for wx 3.0 and up... FIXME.
   void OnTimerResize(wxTimerEvent& event);
   void OnContextEvent( wxContextMenuEvent& event);
   void OnTracking( wxFocusEvent& event);
@@ -1424,15 +1427,12 @@ class GDLWXStream;
 
 class GDLDrawPanel : public wxPanel
 {
-  enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   int		pstreamIx;
   GDLWXStream*	pstreamP;
-  GDLFrame*     container;
   wxSize 	drawSize;
 
   wxDC*  	m_dc;
   wxWindowID GDLWidgetDrawID;
-//  wxTimer * m_resizeTimer;
   
 public:
   // ctor(s)
@@ -1442,9 +1442,7 @@ public:
 	    long style = 0, 
 	    const wxString& name = wxPanelNameStr);
  ~GDLDrawPanel();
- GDLFrame* GetContainer(){return container;}
  GDLWidgetDraw* GetGDLWidgetDraw(){ return static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(GDLWidgetDrawID));}
- void SetContainer(GDLFrame* f){container=f;}
  void Resize(int sizex, int sizey);
  
  void Update()
@@ -1476,7 +1474,7 @@ public:
   int PStreamIx() { return pstreamIx;}
 
   void InitStream(int windowIndex=-1);
-  void AssociateStream(GDLWXStream* stream);
+//  void AssociateStream(GDLWXStream* stream);
 
   void SendPaintEvent()
   {
@@ -1504,6 +1502,16 @@ public:
 //  void OnTimerResize( wxTimerEvent& event);
 // private:
 //  DECLARE_EVENT_TABLE()
+};
+
+class GDLWidgetGraphicWindowBase: public GDLWidgetBase
+{
+ GDLDrawPanel* child;
+public:
+ GDLDrawPanel* getWindow(){return child;}
+ void setWindow(GDLDrawPanel* w){child=w;}
+ GDLWidgetGraphicWindowBase(WidgetIDT mbarID, int xoff=0, int yoff=0, DString title="");
+ bool IsGraphicWindowFrame() const { return true;}
 };
 
 #endif
