@@ -55,7 +55,8 @@ public:
     }
     return 1;
   }
-  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+  void Update();
+  void GetGeometry( long& xSize, long& ySize);
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();
   DString GetVisualName();

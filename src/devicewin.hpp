@@ -67,7 +67,7 @@ private:
 	bool WOpen(int, const std::string&,
 		int, int, int, int);
 	bool WState(int);
-	bool WSize(int, int*, int*, int*, int*);
+	bool WSize(int, int*, int*);
 	bool WSet(int);
 	bool WShow(int, bool, bool);
 	int WAdd();
@@ -89,8 +89,8 @@ private:
 	{
 		// update !D
 		if (wIx >= 0 && wIx < winList.size()) {	// window size and pos
-			long xsize, ysize, xoff, yoff;
-			winList[wIx]->GetGeometry(xsize, ysize, xoff, yoff);
+			long xsize, ysize;
+			winList[wIx]->GetGeometry(xsize, ysize);
 
 			(*static_cast<DLongGDL*>(dStruct->GetTag(xSTag)))[0] = xsize;
 			(*static_cast<DLongGDL*>(dStruct->GetTag(ySTag)))[0] = ysize;

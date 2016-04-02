@@ -375,7 +375,7 @@ bool DeviceWIN::WState(int wIx)
 	return wIx >= 0 && wIx < oList.size() && oList[wIx] != 0;
 }
 
-bool DeviceWIN::WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
+bool DeviceWIN::WSize(int wIx, int *xSize, int *ySize)
 {
 	TidyWindowsList();
 
@@ -384,13 +384,10 @@ bool DeviceWIN::WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
 		return false;
 
 	long xleng, yleng;
-	long xoff, yoff;
-	winList[wIx]->GetGeometry(xleng, yleng, xoff, yoff);
+	winList[wIx]->GetGeometry(xleng, yleng);
 
 	*xSize = xleng;
 	*ySize = yleng;
-	*xPos = xoff;
-	*yPos = yoff;
 
 	return true;
 }

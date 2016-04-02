@@ -203,8 +203,7 @@ public:
 		      int xsize, int ysize, 
 		      int xpos, int ypos, bool hide)  { return false;}
   virtual bool WSize( int ix,
-		      int* xsize, int* ysize, 
-		      int* xpos, int* ypos)           { return false;}
+		      int* xsize, int* ysize)           { return false;}
   virtual bool WShow( int ix, bool show, bool iconic) { return false;}
   virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
@@ -320,7 +319,7 @@ public:
   void DeIconicWin(int wIx);
   void EventHandler();
   bool WDelete(int wIx);
-  bool WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos);
+  bool WSize(int wIx, int *xSize, int *ySize);
   bool WSet(int wIx);
   bool WShow(int ix, bool show, bool iconic);
   int WAddFree();

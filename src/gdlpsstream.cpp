@@ -94,8 +94,8 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   //need to : check position in file Ok; update bounding box values.
   //test black and white:
   bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); 
-  long xs, ys, xo, yo;
-  GDLPSStream::GetGeometry(xs, ys, xo, yo);
+  long xs, ys;
+  GDLPSStream::GetGeometry(xs, ys);
   SizeT nelem;
   if (channel > 0) {
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;

@@ -242,7 +242,7 @@ public:
   
   virtual void EventHandler() {}
 
-  virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+  virtual void GetGeometry( long& xSize, long& ySize);
   virtual unsigned long GetWindowDepth () {return 0;}
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
@@ -593,12 +593,10 @@ public:
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updatePageInfo():\n");
     if (thePage.nbPages==0) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            FAILED\n");return false;}
     long xsize,ysize,xoff,yoff;
-    GetGeometry(xsize,ysize,xoff,yoff);
-    if (thePage.length==xsize && thePage.height==ysize && thePage.plxoff==xoff && thePage.plyoff==yoff) return true;
+    GetGeometry(xsize,ysize);
+    if (thePage.length==xsize && thePage.height==ysize ) return true;
     thePage.length=xsize;
     thePage.height=ysize;
-    thePage.plxoff=xoff;
-    thePage.plyoff=yoff;
     (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
     (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
     (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;

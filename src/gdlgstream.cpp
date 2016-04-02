@@ -285,7 +285,7 @@ void GDLGStream::NoSub()
 
 
 // default is a wrapper for gpage(). Is overriden by, e.g., X driver.
-void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
+void GDLGStream::GetGeometry( long& xSize, long& ySize)
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::GetGeometry()\n");
   PLFLT xp; PLFLT yp; 
@@ -302,13 +302,9 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
   if (name == "PS") { 
     xSize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
     ySize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
-    xoff = 0;
-    yoff = 0;
   } else {
     xSize = xleng;
     ySize = yleng;
-    xoff = plxoff;
-    yoff = plyoff;
   }
   if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
   {
@@ -316,10 +312,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
     plstream::gspa(xmin,xmax,ymin,ymax); //subpage in mm
     xSize=min(1.0,xmax-xmin);
     ySize=min(1.0,ymax-ymin);
-    xoff=0.0;
-    yoff=0.0;
   }
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%ld %ld %ld %ld)\n", xSize, ySize);
 
 }
 

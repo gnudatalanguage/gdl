@@ -363,7 +363,7 @@ void GDLWINStream::Raise()
   BringWindowToTop(GetHwnd());
 	return;
 }
-void GDLWINStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff) {
+void GDLWINStream::GetGeometry(long& xSize, long& ySize) {
 	// GetGeometry is called from
 	//  1. 'plotting_contour.cpp' to calculate plot area,
 	//  2. 'initsysvar.cpp' to update '!D'.
@@ -377,8 +377,8 @@ void GDLWINStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff)
 
 	xSize = Rect.right - Rect.left + 1;
 	ySize = Rect.bottom - Rect.top + 1;
-	xoff = Rect.left;
-	yoff = GetSystemMetrics(SM_CYSCREEN) - Rect.bottom;
+//	xoff = Rect.left;
+//	yoff = GetSystemMetrics(SM_CYSCREEN) - Rect.bottom;
     return;
 }
 bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {

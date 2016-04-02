@@ -270,7 +270,7 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
     private: virtual void post_call(EnvT*, GDLGStream*) = 0;
 
     // all steps combined (virtual methods cannot be called from ctor)
-    public: void call(EnvT* e, SizeT n_params_required) // {{{
+    public: void call(EnvT* e, SizeT n_params_required)
     {
       // when !d.name == Null  we do nothing !
       DString name = (*static_cast<DStringGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
@@ -282,9 +282,13 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
 
       GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
-      //double buffering kills the logic and operation of XOR modes. Use HasSafeDoubleBuffering() that tests this feature.)
-      isDB = actStream->HasSafeDoubleBuffering();
-      if (isDB) actStream->SetDoubleBuffering();
+      
+      //ALL THE DoubleBuffering and Flush() code below introduces terrible slowness in remote X displays, as well as a lot of time lost
+      //for displays on the same server. They are completely removed now.
+      
+//      //double buffering kills the logic and operation of XOR modes. Use HasSafeDoubleBuffering() that tests this feature.)
+//      isDB = actStream->HasSafeDoubleBuffering();
+//      if (isDB) actStream->SetDoubleBuffering();
 
       if (name == "X" || name == "MAC" || name == "WIN" )  actStream->updatePageInfo(); //since window size can change
 
@@ -292,10 +296,15 @@ DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap);
       call_plplot(e, actStream);
 
       post_call(e, actStream);
+// IDEM: SLOW
 //      if (isDB) actStream->eop(); else actStream->flush();
-      if (isDB) actStream->UnSetDoubleBuffering();
+//      if (isDB) actStream->UnSetDoubleBuffering();
+      
+//this is absolutely necessary for widgets as for windows. However the virtual Update function
+//i.e., calling  plstream::cmd(PLESC_EXPOSE, NULL) is very slow.
+// See how to overload it by a faster function such as in GDLXStream::Update() . 
       actStream->Update();
-    } // }}}
+    }
   };
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=FALSE, DDouble minVal=0, DDouble maxVal=0);
   bool draw_polyline(EnvT *e,  GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, 

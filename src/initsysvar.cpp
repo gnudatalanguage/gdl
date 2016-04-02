@@ -161,10 +161,10 @@ namespace SysVar
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     GDLGStream* actStream = actDevice->GetStream();
 
-    long xSizeGG,ySizeGG,xOff,yOff;
-    actStream->GetGeometry(xSizeGG,ySizeGG,xOff,yOff);
+    long xSizeGG,ySizeGG;
+    actStream->GetGeometry(xSizeGG,ySizeGG);
     int debug=0;
-    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG <<" "<< xOff <<" "<< yOff << endl;
+    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG << endl;
     
     (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
     (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;

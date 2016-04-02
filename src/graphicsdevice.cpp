@@ -402,8 +402,8 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
        //Rest of informations 
       if (wIx >= 0 && wIx < winList.size()) {
         assert(winList[ wIx] != NULL);
-        long xsize, ysize, xoff, yoff;
-        winList[ wIx]->GetGeometry(xsize, ysize, xoff, yoff);
+        long xsize, ysize;
+        winList[ wIx]->GetGeometry(xsize, ysize);
         (*static_cast<DLongGDL*> (s->GetTag(xSTag)))[0] = xsize;
         (*static_cast<DLongGDL*> (s->GetTag(ySTag)))[0] = ysize;
         (*static_cast<DLongGDL*> (s->GetTag(xVSTag)))[0] = xsize;
@@ -495,7 +495,7 @@ void GraphicsMultiDevice::EventHandler() {
         return true;
     }
    
-bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize, int *xPos, int *yPos) {
+bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize) {
   TidyWindowsList();
 
   int wLSize = winList.size();
@@ -503,13 +503,10 @@ bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize, int *xPos, int 
     return false;
 
   long xleng, yleng;
-  long xoff, yoff;
-  winList[wIx]->GetGeometry(xleng, yleng, xoff, yoff);
+  winList[wIx]->GetGeometry(xleng, yleng);
 
   *xSize = xleng;
   *ySize = yleng;
-  *xPos = xoff;
-  *yPos = yoff;
 
   return true;
 }

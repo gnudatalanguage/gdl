@@ -131,14 +131,12 @@ void GDLWXStream::RenewPlot()
   replot();
 }
 
-void GDLWXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
+void GDLWXStream::GetGeometry( long& xSize, long& ySize)
 {
   // plplot does not return the real size
   xSize = m_width;
   ySize = m_height;
-  xoff =  0; //false with X11
-  yoff =  0; //false with X11
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize, xoff, yoff);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize);
 }
 
 unsigned long GDLWXStream::GetWindowDepth() {

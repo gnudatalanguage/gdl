@@ -572,8 +572,8 @@ namespace lib
         {
           //x-y ranges:
           DDouble xmin,xmax,ymin,ymax;
-          long xsize,ysize,xoff,yoff;        
-          actStream->GetGeometry(xsize,ysize,xoff,yoff);
+          long xsize,ysize;        
+          actStream->GetGeometry(xsize,ysize);
           GetMinMaxVal ( xValTemp, &xmin, &xmax );
           GetMinMaxVal ( yValTemp, &ymin, &ymax );
           // find a good compromise for default size of gridded map...

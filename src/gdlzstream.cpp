@@ -46,12 +46,10 @@ void GDLZStream::Init()
    this->plstream::init();
 }
 
-void GDLZStream::GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff)
+void GDLZStream::GetGeometry(long& xSize, long& ySize)
 {
   xSize=pls->phyxma;
   ySize=pls->phyyma;
-  xoff=0;
-  yoff=0;
 }
   
 unsigned long GDLZStream::GetWindowDepth(){

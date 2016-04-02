@@ -58,7 +58,7 @@ public:
     
     //static int   GetImageErrorHandler(Display *display, XErrorEvent *error); //
 
-    void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
+    void GetGeometry( long& xSize, long& ySize);
     unsigned long GetWindowDepth() ;   
 
 //    bool UnsetFocus(); UnsetFocus is dangerous: it prevents using wxEvents correctly.

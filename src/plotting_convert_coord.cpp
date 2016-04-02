@@ -84,7 +84,7 @@ namespace lib {
     gdlGetAxisType("Y", yLog);
     gdlGetAxisType("Z", zLog);
         
-    int xSize, ySize, xPos, yPos;
+    int xSize, ySize;
     //give default values
     DStructGDL* dStruct = SysVar::D();
     static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
@@ -94,7 +94,7 @@ namespace lib {
     // Use Size in lieu of VSize
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     DLong wIx = actDevice->ActWin();
-    if( wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos); //on failure, sizes are ot changed by WSize.
+    if( wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize); //on failure, sizes are ot changed by WSize.
     
     //projection?
       bool mapSet=false;

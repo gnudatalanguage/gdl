@@ -124,39 +124,11 @@ bool GDLXStream::GetWindowPosition(long& xpos, long& ypos ) {
   } else return false;
 }
 
-void GDLXStream::GetGeometry(long& xSize, long& ySize, long& xOffset, long& yOffset) {
-
+void GDLXStream::GetGeometry(long& xSize, long& ySize) {
+//for some reason, with the x11 driver, this is better than plstream::gpage to get actual sizes.
   XwDev *dev = (XwDev *) pls->dev;
-  XwDisplay *xwd = (XwDisplay *) dev->xwd;
-  XWindowAttributes wa;
-  /* query the window's attributes. */
-  if (XGetWindowAttributes(xwd->display, dev->window, &wa)){
-    int addx,addy;
-    Window child;
-    XTranslateCoordinates( xwd->display, dev->window, wa.root, 0, 0, &addx, &addy, &child );
-    xSize=wa.width;
-    ySize=wa.height;
-    xOffset = addx-wa.x;
-    yOffset = dev->height-addy+wa.y+1;
-  } else GDLGStream::GetGeometry(xSize, ySize, xOffset, yOffset);
-  
-  int debug=0;
-  if (debug) {
-    int screen_num, screen_width, screen_height;
-    screen_num = DefaultScreen(xwd->display);
-    screen_width = DisplayWidth(xwd->display, screen_num);
-    screen_height = DisplayHeight(xwd->display, screen_num);
-    cout << "---- Begin Inside GetX11Geometry ----" << endl;
-    cout << "display size : " << screen_width << " " << screen_height << endl;
-    cout << "win_attributes W/H: " << wa.width << " " << wa.height << endl;
-    cout << "win_attributes border width: " << wa.border_width << endl;
-    cout << "win_attributes X/Y: " << wa.x << " " << wa.y << endl;
-    cout << "results: " << endl;
-    cout << "xSize/ySize: " << xSize << " " << ySize << endl;
-    cout << "xOffset/yOffset: " << xOffset << " " << yOffset << endl;
-    cout << "---- End Inside GetX11Geometry ----" << endl;
-  }
-
+  xSize=dev->width;
+  ySize=dev->height;
 }
 
   bool GDLXStream::CursorStandard(int cursorNumber)
@@ -350,7 +322,9 @@ void GDLXStream::Flush() {
 //  XwDisplay *xwd = (XwDisplay *) dev->xwd;
 //  XFlush(xwd->display);
 }
-
+void GDLXStream::Update() {
+  XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
+}
 void GDLXStream::WarpPointer(DLong x, DLong y) {
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;

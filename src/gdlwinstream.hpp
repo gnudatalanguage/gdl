@@ -144,7 +144,7 @@ public:
 
 	//	  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
-	void GetGeometry(long& xSize, long& ySize, long& xoff, long& yoff);
+	void GetGeometry(long& xSize, long& ySize);
 	bool GetGin(PLGraphicsIn *gin, int mode);
 
 	unsigned long GetWindowDepth();
