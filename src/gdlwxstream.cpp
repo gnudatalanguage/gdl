@@ -63,6 +63,36 @@ GDLWXStream::GDLWXStream( int width, int height )
 //  plstream::cmd(PLESC_FIXASPECT, (void*)&fixed );
 //#endif
   plstream::set_stream();
+      // no pause on win destruction
+    spause( false);
+
+    // extended fonts
+    fontld( 1);
+
+    // we want color
+    scolor( 1);
+
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
+    myCT->Get( r, g, b);
+    SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
+
+    // need to be called initially. permit to fix things
+    ssub(1,1);
+    adv(0);
+    // load font
+    font( 1);
+    vpor(0,1,0,1);
+    wind(0,1,0,1);
+    DefaultCharSize();
+    //in case these are not initalized, here is a good place to do it.
+    if (updatePageInfo()==true) GetPlplotDefaultCharSize(); //initializes everything in fact..
+    PLFLT size1=sqrt(640.*640.+512.*512);
+    PLFLT size2=sqrt(width*width+height*height);
+    PLFLT fact=size1/size2;
+    RenewPlplotDefaultCharsize( fact*2.5 );
+  //schr(2.5,1);
+
 }
 
 GDLWXStream::~GDLWXStream()
@@ -136,7 +166,7 @@ void GDLWXStream::GetGeometry( long& xSize, long& ySize)
   // plplot does not return the real size
   xSize = m_width;
   ySize = m_height;
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld %ld %ld)\n", xSize, ySize);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLWXStream::GetGeometry(%ld %ld)\n", xSize, ySize);
 }
 
 unsigned long GDLWXStream::GetWindowDepth() {

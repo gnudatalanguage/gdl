@@ -191,6 +191,7 @@ public:
 
   
   virtual GDLGStream* GetStreamAt( int wIx) const     { return NULL;}
+  virtual void ChangeStreamAt(int wIx, GDLGStream* newStream){};
   virtual GDLGStream* GetStream( bool open=true)      { return NULL;}
   virtual bool WSet( int ix)                          { return false;}
   virtual int  WAddFree()                                 { return false;}
@@ -324,6 +325,7 @@ public:
   bool WShow(int ix, bool show, bool iconic);
   int WAddFree();
   GDLGStream* GetStreamAt(int wIx) const;
+  void ChangeStreamAt(int wIx, GDLGStream* newStream);
   bool UnsetFocus();
   bool Decomposed(bool value);
   DLong GetDecomposed();

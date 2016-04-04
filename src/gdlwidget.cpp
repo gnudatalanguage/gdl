@@ -3981,11 +3981,18 @@ void GDLDrawPanel::Resize(int sizex, int sizey)
 {
   if (pstreamP != NULL)
   {
-    pstreamP->SetSize(sizex,sizey); 
+//    pstreamP->SetSize(sizex,sizey);
+  //get a new stream with good dimensions. Only possibility (better than resize) to have correct size of fonts and symbols.
+    GDLWXStream * newStream =  new GDLWXStream(sizex, sizey);
+  // replace old by new, called function destroys old:
+    GraphicsDevice::GetGUIDevice( )->ChangeStreamAt( pstreamIx, newStream );  
+    pstreamP = static_cast<GDLWXStream*> (GraphicsDevice::GetGUIDevice( )->GetStreamAt( pstreamIx ));
+    pstreamP->SetGDLDrawPanel( this );
+    m_dc = pstreamP->GetDC( );
   }
   drawSize=wxSize(sizex,sizey);
 } 
-  
+
 GDLDrawPanel::~GDLDrawPanel()
 {  
 #ifdef GDL_DEBUG_WIDGETS

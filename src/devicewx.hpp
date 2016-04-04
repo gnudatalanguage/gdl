@@ -253,37 +253,6 @@ public:
     winList[ wIx] = new GDLWXStream( xSize, ySize);
     oList[ wIx]   = oIx++;
     
-    // no pause on win destruction
-    winList[ wIx]->spause( false);
-
-    // extended fonts
-    winList[ wIx]->fontld( 1);
-
-    // we want color
-    winList[ wIx]->scolor( 1);
-
-    PLINT r[ctSize], g[ctSize], b[ctSize];
-    actCT.Get( r, g, b);
-    winList[ wIx]->SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
-
-    // need to be called initially. permit to fix things
-    winList[ wIx]->ssub(1,1);
-    winList[ wIx]->adv(0);
-    // load font
-    winList[ wIx]->font( 1);
-    winList[ wIx]->vpor(0,1,0,1);
-    winList[ wIx]->wind(0,1,0,1);
-    winList[ wIx]->DefaultCharSize();
-    //in case these are not initalized, here is a good place to do it.
-    if (winList[ wIx]->updatePageInfo()==true)
-    {
-      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-    }
-    PLFLT size1=sqrt(640.*640.+512.*512);
-    PLFLT size2=sqrt(xSize*xSize+ySize*ySize);
-    PLFLT fact=size1/size2;
-    winList[wIx]->RenewPlplotDefaultCharsize( fact*2.5 );
-  //    winList[ wIx]->schr(2.5,1);
     // sets actWin and updates !D
     SetActWin( wIx);
     return true; 

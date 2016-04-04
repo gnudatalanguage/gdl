@@ -592,7 +592,7 @@ public:
   {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updatePageInfo():\n");
     if (thePage.nbPages==0) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            FAILED\n");return false;}
-    long xsize,ysize,xoff,yoff;
+    long xsize,ysize;
     GetGeometry(xsize,ysize);
     if (thePage.length==xsize && thePage.height==ysize ) return true;
     thePage.length=xsize;

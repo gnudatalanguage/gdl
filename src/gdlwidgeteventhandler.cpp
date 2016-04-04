@@ -775,6 +775,9 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
     GDLDrawPanel* w=static_cast<GDLWidgetGraphicWindowBase*>(owner)->getWindow();
     wxSize sizeleft=this->GetClientSize();
     w->Resize(sizeleft.x,sizeleft.y);
+    w->SetMinSize(sizeleft); //must enforce min size to work==>General wrong use of sizers.
+    w->GetGDLWidgetDraw()->GetPanel()->Layout();
+    this->Fit();
   } else {
   DULong flags=0;
   if( owner ) flags=owner->GetEventFlags();
@@ -806,7 +809,11 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
     event.Skip();
     return; //ignore non-TLB size events.
   }
+//this is a good position to suppress a minimum default size on frame.
+  this->SetMinSize(wxDefaultSize);
+
   if (newSize==frameSize){  event.Skip(); return;} //saves a looooot of unuseful refreshes...
+
   //is it a resize of frame due to a manual intervention?
   wxMouseState mouse=wxGetMouseState();
 #if wxCHECK_VERSION(3,0,0)
@@ -845,14 +852,18 @@ void GDLFrame::OnTimerResize( wxTimerEvent& event)
   }
   wxSize newSize=event.GetSize();
   if (newSize==frameSize){event.Skip(); return;} //saves a looooot of unuseful refreshes...
+  this->SetMinSize(wxDefaultSize);
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
    wxMessageOutputStderr().Printf(_T("Processed.\n"));
  #endif
   frameSize=newSize;
   if (owner->IsGraphicWindowFrame()) { //do something clever
-    GDLDrawPanel* w=static_cast<GDLWidgetGraphicWindowBase*>(owner)->getWindow();
-    wxSize sizeleft=this->GetClientSize();
-    w->Resize(sizeleft.x,sizeleft.y);
+      GDLDrawPanel* w=static_cast<GDLWidgetGraphicWindowBase*>(owner)->getWindow();
+      wxSize sizeleft=this->GetClientSize();
+      w->Resize(sizeleft.x,sizeleft.y);
+      w->SetMinSize(sizeleft); //must enforce min size to work==>General wrong use of sizers.
+      w->GetGDLWidgetDraw()->GetPanel()->Layout();
+      this->Fit();
   } else {
     DULong flags=0;
     if( owner ) flags=owner->GetEventFlags();
@@ -1153,6 +1164,7 @@ void GDLFrame::OnCloseWindow( wxCloseEvent & event)
   wxWindowList::iterator iter = childrenList.begin();
   GDLDrawPanel* draw =static_cast<GDLDrawPanel*>(*iter);
   delete draw;
+  event.Skip();
 }
 
 void GDLDrawPanel::OnErase(wxEraseEvent& event)
@@ -1160,6 +1172,7 @@ void GDLDrawPanel::OnErase(wxEraseEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLFrame::OnErase: %d\n"),event.GetId());
 #endif
+  event.Skip();
 }
 //Draw
 
@@ -1169,9 +1182,8 @@ void GDLDrawPanel::OnPaint(wxPaintEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_PAINT_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
 #endif
-  wxPaintDC dc( this);
-  dc.SetDeviceClippingRegion( GetUpdateRegion());
-  dc.Blit( 0, 0, drawSize.x, drawSize.y, m_dc, 0, 0 );
+  this->Update();
+  event.Skip();
 }
 
 void GDLDrawPanel::OnClose(wxCloseEvent& event)
@@ -1190,11 +1202,7 @@ void GDLDrawPanel::OnSize( wxSizeEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
   wxMessageOutputStderr().Printf(_T("in GDLDrawPanel::OnSize: %d (%d,%d)\n"),event.GetId(),event.GetSize().x,event.GetSize().y);
 #endif
-  drawSize=newSize;
-  if (pstreamP != NULL)
-  {
-    pstreamP->SetSize(drawSize.x,drawSize.y); 
-  }
+  Resize(newSize.x,newSize.y);
   event.Skip();
 }
 

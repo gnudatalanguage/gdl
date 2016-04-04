@@ -558,6 +558,13 @@ GDLGStream* GraphicsMultiDevice::GetStreamAt(int wIx) const {
   return winList[wIx];
 }
 
+void GraphicsMultiDevice::ChangeStreamAt(int wIx, GDLGStream* newStream) {
+  if (winList[wIx]==NULL) return;
+  GDLGStream* oldStream=winList[wIx];
+  winList[wIx]=newStream;
+  delete oldStream;
+}
+
 bool GraphicsMultiDevice::UnsetFocus() {
   return winList[actWin]->UnsetFocus();
 }
