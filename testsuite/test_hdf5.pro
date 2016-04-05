@@ -8,37 +8,6 @@
 ; Some users are already using the HDF5 functionnalities
 ; but it was reported that the STRING field is not well managed.
 ;
-function FILE_IN_TESTSUITE, filename, add_currrent_dir=add_currrent_dir
-;
-list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-;
-; adding the current directory if needed
-;
-if KEYWORD_SET(add_currrent_dir) then begin
-    CD, current=current
-    index=STRPOS(list_of_dirs, current)
-    already=WHERE(index EQ 0, nb_already)
-    ;; adding at the end to avoid conflict with other choices
-    if nb_already EQ 0 then begin
-        !PATH=!PATH+PATH_SEP(/SEARCH_PATH)+current
-        list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-    endif
-endif
-;
-fullfile=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
-;
-if (N_ELEMENTS(fullfile) GT 1) then fullfile=fullfile[0]
-;
-if ~FILE_TEST(fullfile) then begin
-    MESSAGE, 'file <<'+file+'>> not found in the !PATH', /continue
-;    if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
-    EXIT, status=1
-endif
-;
-return, fullfile
-;
-end
-;
 ; -----------------------------------------------
 ;
 pro TEST_HDF5_BYTE_ARRAY, cumul_errors, test=test
@@ -46,7 +15,11 @@ pro TEST_HDF5_BYTE_ARRAY, cumul_errors, test=test
 errors=0
 ;
 file='byte_array.h5'
-fullfile=FILE_IN_TESTSUITE(file, /add_cur)
+fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
+if (STRLEN(fullfile) EQ 0) then begin
+    cumul_errors++
+    return
+endif
 ;
 file_id = H5F_OPEN(fullfile)
 data_id = H5D_OPEN(file_id, 'g1/d1')
@@ -84,7 +57,11 @@ pro TEST_HDF5_STRING, cumul_errors, test=test
 errors=0
 ;
 file='string.h5'
-fullfile=FILE_IN_TESTSUITE(file, /add_cur)
+fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
+if (STRLEN(fullfile) EQ 0) then begin
+    cumul_errors++
+    return
+endif
 ;
 file_id = H5F_OPEN(fullfile)
 data_id = H5D_OPEN(file_id, 'mystring')

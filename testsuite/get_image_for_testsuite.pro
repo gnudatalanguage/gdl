@@ -8,9 +8,10 @@ function GET_IMAGE_FOR_TESTSUITE, image, filename=filename, $
                                   test=test, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
-    print, 'function FILE_SEARCH_FOR_TESTSUITE, filename, help=help, test=test, $'
-    print, '                                    quiet=quiet, verbose=verbose'
-    return, ''
+    print, 'function FILE_SEARCH_FOR_TESTSUITE, image, filename=filename, $'
+    print, '                                    quiet=quiet, verbose=verbose, $'
+    print, '                                    help=help, test=test'
+    return, -1
 endif 
 ;
 ; The default filename is 'Saturn.jpg',

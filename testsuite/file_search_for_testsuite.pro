@@ -1,21 +1,23 @@
 ;
 ; Alain C., March 3, 2016
 ;
-; Because of various usages (comaprison with other interpretors,
-; locale tests), we may be in a situation where the current path
+; Because of various usages (comparison with other interpretors,
+; local tests), we may be in a situation where the current path
 ; (ie testsuite/) is not in the !PATH
 ; then we add it at the first position when looking for file !
 ;
 ; When more than one file is found, we always return the first one
 ;
-function FILE_SEARCH_FOR_TESTSUITE, filename, help=help, test=test, $
+function FILE_SEARCH_FOR_TESTSUITE, filename, warning=warning, $
+                                    help=help, test=test, $
                                     quiet=quiet, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-    print, 'function FILE_SEARCH_FOR_TESTSUITE, filename, help=help, test=test, $'
+    print, 'function FILE_SEARCH_FOR_TESTSUITE, filename, warning=warning, $'
+    print, '                                    help=help, test=test, $'
     print, '                                    quiet=quiet, verbose=verbose'
     return, ''
-endif 
+endif
 ;
 ; we will add current dir. to the !Path in first position
 CD, current=current
@@ -46,6 +48,11 @@ if KEYWORD_SET(verbose) then begin
     endif else begin
         print, 'No File <<'+filename+'>> in !Path + current dir.'
     endelse
+endif
+;
+if KEYWORD_SET(warning) AND (STRLEN(full_file) EQ 0) then begin
+    MESSAGE, /continue, level=-1, $
+             'Missing file <<'+filename+'>> in !Path + current dir.'
 endif
 ;
 if KEYWORD_SET(test) then STOP

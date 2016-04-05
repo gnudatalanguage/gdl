@@ -65,31 +65,31 @@ help,ev,/str
   endif
 end
 
-pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname
-common mycount,count
+pro test_widgets, table, nocanvas=nocanvas, notree=notree, $
+                  block=block,fontname=fontname, help=help
+common mycount, count
 count=0
 if ~keyword_set(fontname) then fontname="Fixed 32"
 if ~keyword_set(block) then block=0
 if keyword_set(help) then begin
-print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
-print,"Will display some examples of currently available widgets"
-print,"if table is passed as argument and is a structure, tab 3 will show the"
-print,"elements of the structure as buttons in a scrolled panel"
-print,"options: /nocanvas removes the widget_draw"
-print,"              /notree remove the tree widget"
-print,"              fontname=""Helvetica Narrow 32"" to change a test text font."
-
+    print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
+    print,"Will display some examples of currently available widgets"
+    print,"if table is passed as argument and is a structure, tab 3 will show the"
+    print,"elements of the structure as buttons in a scrolled panel"
+    print,"options: /nocanvas removes the widget_draw"
+    print,"         /notree remove the tree widget"
+    print,"         fontname=""Helvetica Narrow 32"" to change a test text font."
 return
 endif
-
-
+;
 ev = {vEv,type:'',pos:[0,0]}
 ;Create a base widget. 
-base = WIDGET_BASE(MBAR=mbar,title="gdl widget examples",event_pro='event_in_base',kill_notify='cleanup')
- 
-menu = widget_button(mbar,VALUE="Menu")
-ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui")
-siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui")
+base = WIDGET_BASE(MBAR=mbar,title="gdl widget examples", $
+                   event_pro='event_in_base',kill_notify='cleanup')
+;
+menu = WIDGET_BUTTON(mbar,VALUE="Menu")
+ex = WIDGET_BUTTON(menu,VALUE="Exit",EVENT_PRO="exit_gui")
+siz= WIDGET_BUTTON(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui")
 ;buttons as menu buttons
         fileID = Widget_Button(mbar, Value='Complicated Menu')
         saveID = Widget_Button(fileID, Value='submenu 1', /MENU)
@@ -268,24 +268,28 @@ WIDGET_CONTROL, /REALIZE, base
  
 ;Obtain the window index. 
 if ~keyword_set(nocanvas) then begin
-print,"Draw widgets:",draw,draw2
- WIDGET_CONTROL, draw, GET_VALUE = index 
-  WIDGET_CONTROL, draw2, GET_VALUE = index2 
-
+    print,"Draw widgets:",draw,draw2
+    WIDGET_CONTROL, draw, GET_VALUE = index 
+    WIDGET_CONTROL, draw2, GET_VALUE = index2 
     ;;
     ;; Set the new widget to be the current graphics window 
- print,"window indexes",index,index2
-    file='../testsuite/Saturn.jpg'
- image=read_image(file)
- WSET,index
- plot,findgen(100)
- tv,image,10,10,/data,/true
-
+    print,"window indexes",index,index2
+    WSET,index
+    PLOT, FINDGEN(100)
+    ;; we try to TV an image, skipped if not found ...
+    ;; Read "Saturn.jpg" and return content in "image"
+    status=GET_IMAGE_FOR_TESTSUITE(image)
+    if status EQ 0 then begin
+        print, 'Test Image not found, skipped ...'
+    endif else begin
+        TV, image,10,10, /data, /true    
+    endelse
     ;;
- WSET, index2 
- f=findgen(1000)/100.
- contour,cos(dist(100,100)/10.)
-
+    WSET, index2 
+    f=FINDGEN(1000)/100.
+    CONTOUR, COS(DIST(100,100)/10.)
 end
+;
 xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block
+;
 end
