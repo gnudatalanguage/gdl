@@ -381,10 +381,16 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
     assert(winList[ wIx] != NULL);
     // set !D.N_COLORS and !P.COLORS according to decomposed value.
     unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
-    if (this->GetDecomposed() == 1) {
-      (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-    } else {
-      (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+    unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+    unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+
+
+    if (this->GetDecomposed() == 1 && oldNColor == 256) {
+          (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
+      if (oldColor == 255)  (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+    } else if (this->GetDecomposed() == 0 && oldNColor == nSystemColors) {
+          (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
+      if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
     }
   }
   
@@ -408,13 +414,6 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
         (*static_cast<DLongGDL*> (s->GetTag(ySTag)))[0] = ysize;
         (*static_cast<DLongGDL*> (s->GetTag(xVSTag)))[0] = xsize;
         (*static_cast<DLongGDL*> (s->GetTag(yVSTag)))[0] = ysize;
-        // set !D.N_COLORS and !P.COLORS according to decomposed value.
-        unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
-        if (this->GetDecomposed() == 1) {
-          (*static_cast<DLongGDL*> (s->GetTag(n_colorsTag)))[0] = nSystemColors;
-        } else {
-          (*static_cast<DLongGDL*> (s->GetTag(n_colorsTag)))[0] = 256;
-        }
       }
  
     }
