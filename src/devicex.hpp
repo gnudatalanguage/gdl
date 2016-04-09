@@ -279,7 +279,14 @@ public:
         this->GetStream(); //to open a window if none opened.
         return winList[actWin]->GetVisualName();
     }
-    
+    BaseGDL* GetFontnames(){
+        this->GetStream(); //to open a window if none opened.
+        return winList[actWin]->GetFontnames(fontname);
+    }
+    DLong GetFontnum(){
+        this->GetStream(); //to open a window if none opened.
+        return winList[actWin]->GetFontnum(fontname);
+    }    
     bool CursorStandard(int cursorNumber) {
         cursorId = cursorNumber;
     this->GetStream(); //to open a window if none opened.

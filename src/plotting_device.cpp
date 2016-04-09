@@ -42,8 +42,52 @@ namespace lib {
           e->SetKW( get_decomposedIx, new DLongGDL( value ) );
       }
     }
-    
-    //GET_FONTNAMES? //TODO
+
+//The font-related commands will not really work in graphic widgets unitil the plplot-related part is taken into account (PLESC font).
+//But all the elements are there.    
+    //SET_FONT?  //must be before GET_FONTNAME if in same commandline.
+    {
+    static int set_fontIx = e->KeywordIx( "SET_FONT" );
+    if ( e->KeywordPresent( set_fontIx ) )
+      {
+	    DStringGDL* pattern = e->GetKWAs<DStringGDL>( set_fontIx);
+        if (!actDevice->SetFont((*pattern)[0])) e->Throw( "Keyword SET_FONT not allowed for call to: DEVICE" ) ;
+      }
+    }
+
+    //GET_FONTNAMES? 
+    {
+    static int get_fontnamesIx = e->KeywordIx( "GET_FONTNAMES" );
+    if ( e->KeywordPresent( get_fontnamesIx ) )
+      {
+        BaseGDL* value = actDevice->GetFontnames( );
+        if ( value == NULL )
+          e->Throw( "Keyword GET_FONTNAMES not allowed for call to: DEVICE" );
+        else
+          e->SetKW( get_fontnamesIx, value->Dup() );
+      }
+    }
+    //GET_FONTNUM? 
+    {
+    static int get_fontnumIx = e->KeywordIx( "GET_FONTNUM" );
+    if ( e->KeywordPresent( get_fontnumIx ) )
+      {
+        DLong value = actDevice->GetFontnum( );
+        if ( value < 0 )
+          e->Throw( "Keyword GET_FONTNUM not allowed for call to: DEVICE" );
+        else
+          e->SetKW( get_fontnumIx, new DLongGDL( value) );
+      }
+    }
+    //GET_CURRENT_FONT? 
+    {
+    static int get_current_fontIx = e->KeywordIx( "GET_CURRENT_FONT" );
+    if ( e->KeywordPresent( get_current_fontIx ) )
+      {
+        DString value = actDevice->GetCurrentFont( );
+        e->SetKW( get_current_fontIx, new DStringGDL( value) );
+      }
+    }
     //GET_FONTNUM? //TODO
     
     // GET_GRAPHICS_FUNCTION

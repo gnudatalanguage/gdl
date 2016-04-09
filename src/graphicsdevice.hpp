@@ -218,6 +218,10 @@ public:
   virtual void MaxXYSize(DLong *xsize, DLong *ysize) {
 							*xsize=1200, *ysize=800; return;}
   virtual DLong GetDecomposed()                       { return -1;}
+  virtual BaseGDL* GetFontnames()                     { return NULL;}
+  virtual DLong GetFontnum()                     { return -1;}
+  virtual bool SetFont(DString f)                 {return false;}
+  virtual DString GetCurrentFont()                 {return NULL;}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}
@@ -287,6 +291,7 @@ public:
     int cursorId; //should be 3 by default.
     long gcFunction;
     int backingStoreMode;
+    DString fontname;
 
   int getCursorId(){return cursorId;}
   long getGCFunction(){return gcFunction;}
@@ -301,7 +306,8 @@ public:
   decomposed(_decomposed),
   cursorId(_cursorId),
   gcFunction(_gcFunction),
-  backingStoreMode(_backingStoreMode)
+  backingStoreMode(_backingStoreMode),
+  fontname("")
   {
       //pretty much nothing to do...
   }
@@ -329,6 +335,10 @@ public:
   bool UnsetFocus();
   bool Decomposed(bool value);
   DLong GetDecomposed();
+  BaseGDL* GetFontnames(){return NULL;}
+  DLong GetFontnum(){return -1;}
+  bool SetFont(DString f) {fontname=f; return true;}
+  DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
   bool Hide(); 
   int MaxNonFreeWin();

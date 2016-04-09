@@ -338,6 +338,25 @@ bool GDLWXStream::CursorStandard(int cursorNumber)
 DLong GDLWXStream::GetVisualDepth() {
 return 24;
 }
+BaseGDL* GDLWXStream::GetFontnames(DString pattern) {
+  if (pattern.length()<=0) return NULL;
+  wxFontEnumerator fontEnumerator;
+  fontEnumerator.EnumerateFacenames();
+  int nFacenames = fontEnumerator.GetFacenames().GetCount();
+  DStringGDL* myList=new DStringGDL(dimension(nFacenames));
+  for (int i=0; i< nFacenames; ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(i).mb_str(wxConvUTF8));
+  return myList;
+}
+DLong GDLWXStream::GetFontnum(DString pattern){
+  if (pattern.length()<=0) return -1;
+  return this->GetFontnames(pattern)->N_Elements();
+}
+void GDLWXStream::SetCurrentFont(std::string fontname){
+  if (fontname.size() > 0) {
+   wxFont font=wxFont(wxString(fontname.c_str( ), wxConvLibc));
+   if (!font.IsSameAs(wxNullFont)) m_dc->SetFont(font);
+  }
+}
 DString GDLWXStream::GetVisualName() {
 static const char* visual="TrueColor";
 return visual;

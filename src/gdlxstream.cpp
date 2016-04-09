@@ -209,6 +209,22 @@ DLong GDLXStream::GetVisualDepth() {
   if(XGetWindowAttributes( xwd->display, dev->window, &wa )) return (long)wa.depth;
   else return -1;
 }
+BaseGDL* GDLXStream::GetFontnames(DString pattern) {
+  if (pattern.length()<=0) return NULL;
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  int actual_count_return;
+  char **list= XListFonts(xwd->display, pattern.c_str(), 30000, &actual_count_return);
+  if (!actual_count_return) return NULL;
+  DStringGDL* myList=new DStringGDL(dimension(actual_count_return));
+  for (int i=0; i< actual_count_return; ++i) (*myList)[i].assign(list[i]);
+  XFreeFontNames(list);
+  return myList;
+}
+DLong GDLXStream::GetFontnum(DString pattern){
+  if (pattern.length()<=0) return -1;
+  return this->GetFontnames(pattern)->N_Elements();
+}
 DString GDLXStream::GetVisualName() {
   static const char* visual_classes_names[] = {
    "StaticGray" , 

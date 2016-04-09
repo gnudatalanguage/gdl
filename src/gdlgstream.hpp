@@ -246,6 +246,8 @@ public:
   virtual unsigned long GetWindowDepth () {return 0;}
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
+  virtual BaseGDL* GetFontnames(DString pattern) {return NULL;}
+  virtual DLong GetFontnum(DString pattern) {return -1;}
   virtual bool UnsetFocus(){return false;}
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
@@ -270,6 +272,7 @@ public:
   virtual bool HasCrossHair() {return false;}
   virtual void UnMapWindow() {}
   virtual BaseGDL* GetBitmapData(){return NULL;}
+  virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
   bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}
 

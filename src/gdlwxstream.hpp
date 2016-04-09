@@ -25,6 +25,8 @@
 #include "gdlgstream.hpp"
 #include "gdlwidget.hpp"
 
+#include <wx/fontenum.h>
+#include <wx/fontmap.h>
 //#include <wx/dc.h>
 //#include <wx/rawbmp.h>
 class GDLDrawPanel;
@@ -84,6 +86,9 @@ public:
     bool GetWindowPosition(long& xpos, long& ypos );
     bool CursorStandard(int cursorNumber);
     DLong GetVisualDepth();
+    BaseGDL* GetFontnames(DString pattern);
+    DLong GetFontnum(DString pattern);
+    void SetCurrentFont(std::string fontname);
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();

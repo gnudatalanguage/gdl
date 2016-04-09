@@ -60,6 +60,8 @@ public:
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();
   DString GetVisualName();
+  BaseGDL* GetFontnames(DString pattern);
+  DLong GetFontnum(DString pattern);
   bool setFocus(bool value);
 
   bool UnsetFocus();
