@@ -1,11 +1,11 @@
-/* *************************************************************************
-     graphicsdevice.cpp  -  GDL base class for all graphic devices
-renamed from: graphics.cpp                          
-                             -------------------
-    begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
-    email                : m_schellens@users.sf.net
- ***************************************************************************/
+/**************************************************************************
+   graphicsdevice.cpp  -  GDL base class for all graphic devices
+   renamed from: graphics.cpp                          
+   -------------------
+   begin                : July 22 2002
+   copyright            : (C) 2002 by Marc Schellens
+   email                : m_schellens@users.sf.net
+***************************************************************************/
 
 /* *************************************************************************
  *                                                                         *
@@ -155,18 +155,17 @@ bool GraphicsDevice::SetDevice( const string& device)
     {
       if( deviceList[ i]->Name() == device)
 	{
-	  actDevice   = deviceList[ i];
-
+	  actDevice=deviceList[ i];
 	  // update !D
 	  SysVar::SetD( actDevice->DStruct());
-
+	  
 	  return true;
 	}
     }
   return false;
 }
 
- DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
+DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
 {
   int size = deviceList.size();
   for( int i=0; i<size; i++)
@@ -190,35 +189,35 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-//if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
-// no ther device is defined.
+  //if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
+  // no ther device is defined.
   std::string useWX=GetEnvString("GDL_USE_WX");
   if (useWX == "YES" || useWX == "yes") {
 #ifdef HAVE_LIBWXWIDGETS
 #ifdef HAVE_X
-  deviceList.push_back( new DeviceWX("X"));
+    deviceList.push_back( new DeviceWX("X"));
 #else
 #ifdef _WIN32
-  deviceList.push_back( new DeviceWX("WIN"));
+    deviceList.push_back( new DeviceWX("WIN"));
 #endif
 #endif  
 #else
 #ifdef HAVE_X
-  deviceList.push_back( new DeviceX());
+    deviceList.push_back( new DeviceX());
 #endif
 #ifdef _WIN32
-  deviceList.push_back( new DeviceWIN());
+    deviceList.push_back( new DeviceWIN());
 #endif
 #endif
   } else {
 #ifdef HAVE_LIBWXWIDGETS
-  deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
+    deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
 #endif
 #ifdef HAVE_X
-  deviceList.push_back( new DeviceX());
+    deviceList.push_back( new DeviceX());
 #endif
 #ifdef _WIN32
-  deviceList.push_back( new DeviceWIN());
+    deviceList.push_back( new DeviceWIN());
 #endif
   }
   // we try to set X, WIN or WX as default 
@@ -226,15 +225,15 @@ void GraphicsDevice::Init()
 #if defined(HAVE_X) // Check X11 first
   if( !SetDevice( "X")) 
 #elif defined(_WIN32) // If Windows enable WinGCC driver 
-  if( !SetDevice( "WIN")) 
+    if( !SetDevice( "WIN")) 
 #elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
-  if (!SetDevice("MAC"))
+      if (!SetDevice("MAC"))
 #else
-  if( !SetDevice( "NULL")) 
+	if( !SetDevice( "NULL")) 
 #  endif
 #  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
-  {
-  }
+	  {
+	  }
 #  else
   {
     cerr << "Error initializing graphics." << endl;
@@ -245,7 +244,7 @@ void GraphicsDevice::Init()
 #ifdef HAVE_LIBWXWIDGETS
   // some X error message suggested this call
 #ifdef HAVE_X
-//  XInitThreads();
+  //  XInitThreads();
 #endif
 #endif
   int index=0;
@@ -257,18 +256,18 @@ void GraphicsDevice::Init()
     actGUIDevice = deviceList[index];
   } else if (ExistDevice( "X", index)) {
 #ifdef HAVE_LIBWXWIDGETS    
-      actGUIDevice = deviceList[index]; //true existing device
+    actGUIDevice = deviceList[index]; //true existing device
 #else
-      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
+    actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
 #endif
   } else if (ExistDevice("WIN", index)) {
 #ifdef HAVE_LIBWXWIDGETS  
-      actGUIDevice = deviceList[index]; //true existing device
+    actGUIDevice = deviceList[index]; //true existing device
 #else
-      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
+    actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
 #endif
   } else {
-      actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
+    actGUIDevice = deviceList[0];  //will be a fake GUI and procedures will complain.
   }
 }
 
@@ -386,10 +385,10 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
 
 
     if (this->GetDecomposed() == 1 && oldNColor == 256) {
-          (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
-      if (oldColor == 255)  (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
+      if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
     } else if (this->GetDecomposed() == 0 && oldNColor == nSystemColors) {
-          (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
+      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
       if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
     }
   }
@@ -403,9 +402,9 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
   for (int i=0; i<3; ++i) {
     DStructGDL *s=GraphicsDevice::GetDeviceStruct( listOfEquivalentDevices[i]);
     if (s) {
-       //most important: window number, which CAN BE -1
+      //most important: window number, which CAN BE -1
       (*static_cast<DLongGDL*> (s->GetTag(wTag)))[0] = wIx;
-       //Rest of informations 
+      //Rest of informations 
       if (wIx >= 0 && wIx < winList.size()) {
         assert(winList[ wIx] != NULL);
         long xsize, ysize;
@@ -421,36 +420,36 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
 
   actWin = wIx;
 }
-    // process user deleted windows
-    // should be done in a thread
+// process user deleted windows
+// should be done in a thread
 
 void GraphicsMultiDevice::TidyWindowsList() {
   int wLSize = winList.size();
 
   for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
     
-  //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
-  //in case winList groups X11 streams (or WIN streams) *and* wxWidgets streams (GDL_USE_WX="NO") the following
-  //permits to delete the widget_draw also, not only the plplot stream.
+    //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
+    //in case winList groups X11 streams (or WIN streams) *and* wxWidgets streams (GDL_USE_WX="NO") the following
+    //permits to delete the widget_draw also, not only the plplot stream.
 #ifdef HAVE_LIBWXWIDGETS
     if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
-     GDLDrawPanel* panel = NULL;
-     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
-     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
-     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
-     if (draw) {
-      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
-      GDLWidgetBase* container = NULL;
-      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
-      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
-      else delete draw;
-     } else delete winList[i];
+      GDLDrawPanel* panel = NULL;
+      panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
+      //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
+      GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
+      if (draw) {
+	//parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
+	GDLWidgetBase* container = NULL;
+	container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+	if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
+	else delete draw;
+      } else delete winList[i];
     } else
 #endif     
       delete winList[i];
-      winList[i] = NULL;
-      oList[i] = 0;
-    }
+    winList[i] = NULL;
+    oList[i] = 0;
+  }
   // set new actWin IF NOT VALID ANY MORE
   if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
     std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
@@ -484,15 +483,15 @@ void GraphicsMultiDevice::EventHandler() {
     if (winList[i] != NULL)
       winList[i]->EventHandler();
 
- // TidyWindowsList();
+  // TidyWindowsList();
 }
 
-    bool GraphicsMultiDevice::WDelete(int wIx) {
-     if (actWin<0) return false;
-    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-    TidyWindowsList();
-        return true;
-    }
+bool GraphicsMultiDevice::WDelete(int wIx) {
+  if (actWin<0) return false;
+  if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
+  TidyWindowsList();
+  return true;
+}
    
 bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize) {
   TidyWindowsList();
@@ -573,15 +572,18 @@ bool GraphicsMultiDevice::Decomposed(bool value) {
   if (actWin < 0) return true;
   //update relevant values --- this should not be done at window level, but at Display level!!!!
   unsigned long nSystemColors = (1 << winList[actWin]->GetWindowDepth());
-  if (this->decomposed == 1) {
+  unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+  unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+  if (this->decomposed == 1 && oldNColor == 256) {
     (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
-    (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-  } else {
+    if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+  } else if (this->decomposed == 0 && oldNColor == nSystemColors) {
     (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
-    (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+    if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
   }
   return true;
 }
+
 
 DLong GraphicsMultiDevice::GetDecomposed() {
   // initial setting (information from the X-server needed)
@@ -590,12 +592,14 @@ DLong GraphicsMultiDevice::GetDecomposed() {
     unsigned long Depth = winList[actWin]->GetWindowDepth();
     decomposed = (Depth >= 15 ? true : false);
     unsigned long nSystemColors = (1 << Depth);
-    if (this->decomposed == 1) {
+    unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
+    unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
+    if (this->decomposed == 1 && oldNColor == 256) {
       (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
-      (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-    } else if (this->decomposed == 0 ) {
+      if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
+    } else if (this->decomposed == 0 && oldNColor == nSystemColors) {
       (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
-      (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
+      if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
     }
   }
   if (decomposed) return 1;
