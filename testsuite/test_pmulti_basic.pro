@@ -32,6 +32,11 @@ endif
 ;
 if GETENV('DISPLAY') eq '' then EXIT, status=77
 ;
+; we must be in Decomposed mode for colors ...
+;
+SET_PLOT, 'X'
+DEVICE, /decomposed
+;
 ; creating a circular symbol
 AA = FINDGEN(17) * (!PI*2/16.) & USERSYM, COS(AA), SIN(AA)
 ;
@@ -68,6 +73,8 @@ if ~KEYWORD_set(no_wdelete) then begin
     WAIT, 2
     WDELETE, 0,1,2,3
 endif
+;
+!p.multi=0
 ;
 end
 

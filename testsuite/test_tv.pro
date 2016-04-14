@@ -118,7 +118,8 @@ end
 ;
 if ~ISA(silent) then silent=1
 ;
-if KEYWORD_SET(color) then DEVICE, decompose=0
+; AC 2016-04-14 seems not to be useful
+; if KEYWORD_SET(color) then DEVICE, decompose=0
 ;
 ; Three levels of time benchmarking : 0 non, 1 global, 2 detail
 ;
@@ -134,6 +135,9 @@ units=64
 nbx=10
 nby=8
 WINDOW, numwin, xsi=units*nbx, ysi=units*nby
+;
+; AC 2016-04-14 useful to have W&B reproducible !
+LOADCT, 0
 ;
 vignette=DIST(units)
 ;
