@@ -455,7 +455,7 @@ namespace SysVar
     plt->NewTag("CHARSIZE", new DFloatGDL( 0.0)); 
     plt->NewTag("CHARTHICK", new DFloatGDL( 0.0)); 
     plt->NewTag("CLIP", p_clip); 
-    plt->NewTag("COLOR", new DLongGDL( 255)); 
+    plt->NewTag("COLOR", new DLongGDL( -1)); 
     plt->NewTag("FONT", new DLongGDL( -1)); 
     plt->NewTag("LINESTYLE", new DLongGDL( 0)); 
     plt->NewTag("MULTI", new DLongGDL( dimension( &multiDim, one))); 
