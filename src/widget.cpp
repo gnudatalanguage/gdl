@@ -2219,7 +2219,7 @@ void widget_control( EnvT* e ) {
   bool setxoffset = e->KeywordPresent( setxoffsetIx );  
   static int setyoffsetIx =  e->KeywordIx( "YOFFSET" );
   bool setyoffset = e->KeywordPresent( setyoffsetIx );  
-
+ 
   static int SEND_EVENT = e->KeywordIx( "SEND_EVENT" );
   static int CLEAR_EVENTS = e->KeywordIx( "CLEAR_EVENTS" );
 //  static int PUSHBUTTON_EVENTS = e->KeywordIx( "PUSHBUTTON_EVENTS" );
@@ -3112,6 +3112,23 @@ void widget_control( EnvT* e ) {
       droplist->SelectEntry((*droplistSelection)[0]);
     }    
   }
+
+    if (widget->IsSlider()) {
+      GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
+
+      static int setsliderminIx = e->KeywordIx("SET_SLIDER_MIN");
+      bool setslidermin = e->KeywordPresent(setsliderminIx);
+      static int setslidermaxIx = e->KeywordIx("SET_SLIDER_MAX");
+      bool setslidermax = e->KeywordPresent(setslidermaxIx);
+      if (setslidermin) {
+        DLongGDL* value = e->GetKWAs<DLongGDL>(setsliderminIx);
+        s->ControlSetMinValue((*value)[0]);
+      }
+      if (setslidermax) {
+        DLongGDL* value = e->GetKWAs<DLongGDL>(setslidermaxIx);
+        s->ControlSetMaxValue((*value)[0]);
+      }
+    }
   
   if (widget->IsList()){
     GDLWidgetList *list = (GDLWidgetList *) widget;

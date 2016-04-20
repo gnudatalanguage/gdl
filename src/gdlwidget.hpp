@@ -1140,6 +1140,8 @@ public:
 
   void SetValue( DLong v) { value = v;}
   void ControlSetValue ( DLong v );
+  void ControlSetMinValue ( DLong v );
+  void ControlSetMaxValue ( DLong v );
   DLong GetValue() const { return value;}
   
   bool IsSlider() const { return true;}

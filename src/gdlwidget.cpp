@@ -2981,7 +2981,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
     slider = new wxSlider( widgetPanel , widgetID, value, minimum, maximum, wxPoint( xOffset, yOffset ), computeWidgetSize( ), style );
     widgetSizer->Add(slider, 0, widgetStyle, 0 ); 
     widgetStyle=(wxEXPAND | wxALL);
-    if ((frameWidth>0)) this->FrameWidget();
+//    if ((frameWidth>0)) this->FrameWidget(); //do not frame, crashes on a bug (FIXME).
   } 
   this->wxWidget = slider;
   slider->Connect(widgetID,wxEVT_SCROLL_CHANGED,wxScrollEventHandler(GDLFrame::OnThumbRelease));
@@ -2997,6 +2997,21 @@ void GDLWidgetSlider::ControlSetValue(DLong v){
   assert( s != NULL);
   s->SetValue(v);
 }
+
+void GDLWidgetSlider::ControlSetMinValue(DLong v) {
+  value = v;
+  wxSlider* s = static_cast<wxSlider*> (wxWidget);
+  assert(s != NULL);
+  s->SetRange(v, s->GetMax());
+}
+
+void GDLWidgetSlider::ControlSetMaxValue(DLong v) {
+  value = v;
+  wxSlider* s = static_cast<wxSlider*> (wxWidget);
+  assert(s != NULL);
+  s->SetRange(s->GetMin(),v);
+}
+
 GDLWidgetSlider::~GDLWidgetSlider(){
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "~GDLWidgetSlider(): " << widgetID << std::endl;
