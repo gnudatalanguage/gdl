@@ -293,6 +293,7 @@ namespace lib
 
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
         actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
       }
 #endif
@@ -302,6 +303,9 @@ namespace lib
       if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
                                    // convert to device coords in this case
       {
+        //All this is too complicated. IDL writes the plots in the NORMALIZED mode always using !X/Y.S and !X/Y.WINDOW. But we have to use plplot's
+        // wind and vpor and keep trace of the size changes (for symbols) etc... Perhaps it is possible to avoid all those changes and use only
+        // normalized coordinates. TO BE CHECKED.
         actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
       }
 

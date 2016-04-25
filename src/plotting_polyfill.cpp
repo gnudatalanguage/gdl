@@ -264,7 +264,7 @@ namespace lib
 
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-
+	actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
         actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
       }
 #endif
