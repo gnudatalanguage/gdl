@@ -1509,7 +1509,6 @@ BaseGDL* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
-#ifdef USE_EIGEN
     bool at = atranspose;
     bool bt = btranspose;
 
@@ -1517,38 +1516,17 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 
     long NbCol0, NbRow0, NbCol1, NbRow1;//, NbCol2, NbRow2;
     SizeT rank0 = this->Rank();
+    if (rank0 > 2)
+		throw GDLException("Array must have 1 or 2 dimensions",true,false);  
     SizeT rank1 = par1->Rank();
-    if (rank0 == 2)
-      {
-	NbCol0 = this->Dim(0);
-	NbRow0 = this->Dim(1);
-      } 
-    else if (rank0 > 2)
-      {
-	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
-      }
-    else // rank0 0 or 1
-      {
-	NbCol0 = this->Dim(0);
-	if( NbCol0 == 0) NbCol0=1;
-	NbRow0 = 1;
-      }
-      
-    if (rank1 == 2)
-      {
-	NbCol1 = par1->Dim(0);
-	NbRow1 = par1->Dim(1);
-      } 
-    else if (rank1 > 2)
-      {
-	throw GDLException("Array must have 1 or 2 dimensions",true,false);  
-      }
-    else // rank1 0 or 1
-      {
-	NbCol1 = par1->Dim(0);
-	if( NbCol1 == 0) NbCol1=1;
-	NbRow1 = 1;
-      }
+	if (rank1 > 2)
+		throw GDLException("Array must have 1 or 2 dimensions",true,false);  
+
+	NbCol0 = this->Dim(0);	if( NbCol0 == 0) NbCol0 = 1;
+	NbRow0 = 		(rank0 == 2) ? this->Dim(1): 1;
+
+	NbCol1 = par1->Dim(0);	if( NbCol1 == 0) NbCol1 = 1;
+	NbRow1 = 		(rank1 == 2) ? par1->Dim(1): 1;
     // NbCol0, NbRow0, NbCol1, NbRow1 are properly set now
 
     // vector cases (possible degeneration)
@@ -1574,6 +1552,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
       } 
     } 
     
+#ifdef USE_EIGEN
+
     Map<Matrix<Ty,-1,-1>,Aligned> m0(&(*this)[0], NbCol0, NbRow0);
     Map<Matrix<Ty,-1,-1>,Aligned> m1(&(*par1)[0], NbCol1, NbRow1);
 
@@ -1645,30 +1625,31 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 #else
 
   Data_* right=static_cast<Data_*>(r);
-
-  //   ULong rEl=right->N_Elements();
-  //   ULong nEl=N_Elements();
-  //   assert( rEl);
-  //   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  
   Data_* res;
-
-  if( this->dim.Rank() <= 1 && right->dim.Rank() <= 1)
-    {
-      // use transposed r if rank of both is <= 1
-      // result dim
-      SizeT nCol=this->dim[0];
-      SizeT nRow=right->dim[0]; // transpose
-
-      if( nCol == 0) nCol=1;
-      if( nRow == 0) nRow=1;
+      // right op 1st
+	SizeT nRow, nRowEl;
+      if(bt) {
+		  nRow = NbCol1; nRowEl = NbRow1; }
+		else {
+		  nRow = NbRow1; nRowEl = NbCol1; }
+		  
+	SizeT nCol, nColEl;
+      if(at) {
+		  nCol = NbRow0; nColEl = NbCol0; }
+		else {
+		  nCol = NbCol0; nColEl = NbRow0; }
+	
+      if( nColEl != nRowEl)
+	throw GDLException("Operands of matrix multiply have"
+			   " incompatible dimensions.",true,false);  
 
       if( nRow > 1)
-	res=New(dimension(nCol,nRow)); // zero values
-      else
-	res=New(dimension(nCol)); // zero values
-      //      res->Purge(); // in case nRow == 1
+		res=New(dimension(nCol,nRow),  BaseGDL::NOZERO);
+	  else
+		res=New(dimension(nCol),  BaseGDL::NOZERO);
+/*
+   if( rank0 <= 1 && rank1 <= 1)
+    {
 #ifdef _OPENMP 
       SizeT nOp = nRow * nCol;
 #endif
@@ -1680,94 +1661,15 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 	    for( OMPInt rowB=0; rowB < nRow; rowB++) // res dim 1
 	      (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
 	}
+	return res;
     }
-  else
-    {
-      // [n] # [1,n] -> [n,n] ([n] -> [n,1]) 
-      // [n] # [n,m] -> [1,m] ([n] -> [1,n])
-
-      // right op 1st
-      SizeT nRow=btranspose ? right->dim[0] : right->dim[1];
-      if( nRow == 0) nRow=1;
-
-      // loop dim
-      SizeT nRowEl=btranspose ? right->dim[1] : right->dim[0];
-      if( nRowEl == 0) nRowEl=1;
-
-      // result dim
-      SizeT nCol, nColEl;
-      if( !atranspose)
-      {
-	if( this->dim.Rank() <= 1)
-	  {
-	    nColEl=this->dim[0];
-	    if( nColEl == 0) // scalar
-	      {
-		nColEl=1;
-		nCol  =1;
-	      }
-	    else if( nRowEl == 1)
-	      {
-		nCol   = nColEl;
-		nColEl = 1;
-	      }
-	    else
-	      {
-		nCol = 1;
-	      }
-	  }
-	else
-	  { 
-	    nCol=this->dim[0];
-	    nColEl=this->dim[1];
-	    assert( nColEl > 0); // rank is two -> cannot be zero
-	    //	  if( nColEl == 0) nColEl=1;
-	  }
-      }
-      else
-      {
-	if( this->dim.Rank() <= 1)
-	  {
-	    nColEl=this->dim[0];
-	    if( nColEl == 0) // scalar
-	      {
-		nColEl=1;
-		nCol  =1;
-	      }
-	    else if( nRowEl == 1)
-	      {
-		nCol   = nColEl;
-		nColEl = 1;
-	      }
-	    else
-	      {
-		nCol = 1;
-	      }
-	  }
-	else
-	  { 
-	    nCol=this->dim[1];
-	    nColEl=this->dim[0];
-	    assert( nColEl > 0); // rank is two -> cannot be zero
-	    //	  if( nColEl == 0) nColEl=1;
-	  }
-      }
-	
-      if( nColEl != nRowEl)
-	throw GDLException("Operands of matrix multiply have"
-			   " incompatible dimensions.",true,false);  
-
-      if( nRow > 1)
-	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
-      else
-	res=New(dimension(nCol),BaseGDL::NOZERO);
-     
-      SizeT rIxEnd = nRow * nColEl;
-      //#ifdef _OPENMP 
-      SizeT nOp = rIxEnd * nCol;
+*/ 
+	SizeT rIxEnd = nRow * nColEl;
+	//#ifdef _OPENMP 
+	SizeT nOp = rIxEnd * nCol;
 
 #ifdef USE_STRASSEN_MATRIXMULTIPLICATION
-      if( !btranspose && !atranspose && strassen)
+      if( !bt && !at && strassen)
 	//if( nOp > 1000000)
 	{
 	  SizeT maxDim;
@@ -1796,9 +1698,9 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 	}
 #endif
 
-      if( !atranspose) // normal
+      if( !at) // normal
 	{
-	  if( !btranspose) // normal
+	  if( !bt) // normal
 	    {
 	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
@@ -1834,7 +1736,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 	}
       else // atranspose
 	{
-	  if( !btranspose) // normal
+	  if( !bt) // normal
 	    {
 	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
@@ -1873,9 +1775,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 	    }
 	}
 
-
-    }
   return res;
+
 #endif // #elseif USE_EIGEN 
 }
 
