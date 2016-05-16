@@ -1507,12 +1507,12 @@ int currentRowLabelWidth = grid->GetRowLabelSize();
 
 int fullsizex=currentRowLabelWidth;
 int fullsizey=currentColLabelHeight; 
-for (SizeT i=0; i< numCols ; ++i) fullsizex+=(i<grid_ncols)?grid->GetColumnWidth(i):grid->GetDefaultColSize(); 
+for (SizeT i=0; i< numCols ; ++i) fullsizex+=(i<grid_ncols)?grid->GetColSize(i):grid->GetDefaultColSize(); 
 for (SizeT j=0; j< numRows ; ++j) fullsizey+=(j<grid_nrows)?grid->GetRowHeight(j):grid->GetDefaultRowSize(); 
 
 int visiblesizex=currentRowLabelWidth;
 int visiblesizey=currentColLabelHeight; 
-for (SizeT i=0; i< grid_ncols ; ++i) visiblesizex+=grid->GetColumnWidth(i); 
+for (SizeT i=0; i< grid_ncols ; ++i) visiblesizex+=grid->GetColSize(i); 
 for (SizeT j=0; j< grid_nrows ; ++j) visiblesizey+=grid->GetRowHeight(j); 
 
 int sizex=-1;
@@ -1526,7 +1526,7 @@ int scr_sizey=-1;
   if ( x_scroll_size > 0 ) { //scroll size is in columns
     scrolled=TRUE;
     scr_sizex=currentRowLabelWidth+gdlSCROLL_WIDTH;
-    for (SizeT i=0; i< x_scroll_size ; ++i) scr_sizex+=grid->GetColumnWidth(i);
+    for (SizeT i=0; i< x_scroll_size ; ++i) scr_sizex+=grid->GetColSize(i);
     scr_sizex=min(scr_sizex,fullsizex);
     if (y_scroll_size <=0) y_scroll_size=x_scroll_size;
   }
@@ -1548,7 +1548,7 @@ if (scrolled) {
 } else {
   if (xSize>0||ySize>0) grid->SetInitialSize(wxSize(sizex,sizey)); 
 }
-grid->SetScrollLineX(grid->GetColumnWidth(0));
+grid->SetScrollLineX(grid->GetColSize(0));
 grid->SetScrollLineY(grid->GetRowHeight(0));
 widgetStyle=widgetAlignment();
 widgetSizer->Add(grid, 0, widgetStyle, 0 );
