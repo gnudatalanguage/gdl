@@ -197,12 +197,8 @@ endif else begin
       endif else begin
          kindof='--list --column="selection" "Cancel" "OK"'
       endelse
-   endif else begin 
-      if KEYWORD_SET(error) then begin
-         kindof='--error'    
-      endif else begin
-         kindof='--info'
-      endelse
+   endif else begin
+      kindof='--error'
    endelse
 endelse
 ;
@@ -280,7 +276,7 @@ endif
 ;
 if (N_params() NE 1) then MESSAGE, 'Incorrect number of arguments.'
 ;
-wxwidget_available = WXWIDGETS_EXISTS()
+wxwidget_available = (!version.OS eq 'Windows') ? 0 : WXWIDGETS_EXISTS()
 ;
 if (wxwidget_available) and not(KEYWORD_SET(FORCE_ZENITY)) then begin
     return, DIALOG_MESSAGE_WXWIDGETS(Message_Text, TITLE=title, CANCEL=cancel, $
@@ -288,6 +284,8 @@ if (wxwidget_available) and not(KEYWORD_SET(FORCE_ZENITY)) then begin
                                      DEFAULT_CANCEL=defaul_cancel, DEFAULT_NO=default_no, $
                                      CENTER=center, DIALOG_PARENT=dialog_parent, $
                                      DISPLAY_NAME=display_name, RESOURCE_NAME=resource_name)
+endif else if (!version.OS eq 'Windows') then begin
+    print,Message_text
 endif else begin
    return, DIALOG_MESSAGE_ZENITY(Message_Text, TITLE=title, CANCEL=cancel, $
                                  ERROR=error, INFORMATION=information, QUESTION=question, $
