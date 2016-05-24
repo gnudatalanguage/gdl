@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 
 #include <memory>
+#include <limits>
 
 #include <string>
 #include <fstream>
@@ -53,9 +54,6 @@ namespace lib
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
   static gdlbox saveBox;
-  static DDouble epsDouble=0.0;
-  static DDouble absoluteMinVal=0.0;
-  static DDouble absoluteMaxVal=0.0;
   static DFloat sym1x[5]={1, -1, 0, 0, 0}; // +
   static DFloat sym1y[5]={0, 0, 0, -1, 1}; // +
   static DFloat sym2x[11]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1}; //*
@@ -98,50 +96,6 @@ namespace lib
     DStringGDL* TickUnits;
     bool isLog;
   };
-
-  // local helper function
-  DDouble gdlEpsDouble()
-  {
-    static bool done=FALSE;
-    if (!done)
-      {
-	long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
-	double epsD, epsnegD, xminD, xmaxD;
-	machar_d(&ibeta, &it, &irnd, &ngrd, &machep,
-		 &negep, &iexp, &minexp, &maxexp,
-		 &epsDouble, &epsnegD, &xminD, &xmaxD );
-	done=TRUE;
-      }
-    return epsDouble;
-  }
-  DDouble gdlAbsoluteMinValueDouble()
-  {
-    static bool done=FALSE;
-    if (!done)
-      {
-	long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
-	double epsD, epsnegD, xminD, xmaxD;
-	machar_d(&ibeta, &it, &irnd, &ngrd, &machep,
-		 &negep, &iexp, &minexp, &maxexp,
-		 &epsD, &epsnegD, &absoluteMinVal, &xmaxD );
-	done=TRUE;
-      }
-    return absoluteMinVal;
-  }
-  DDouble gdlAbsoluteMaxValueDouble()
-  {
-    static bool done=FALSE;
-    if (!done)
-      {
-	long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
-	double epsD, epsnegD, xminD, xmaxD;
-	machar_d(&ibeta, &it, &irnd, &ngrd, &machep,
-		 &negep, &iexp, &minexp, &maxexp,
-		 &epsD, &epsnegD, &xminD, &absoluteMaxVal );
-	done=TRUE;
-      }
-    return absoluteMaxVal;
-  }
 
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
   {
@@ -322,104 +276,89 @@ namespace lib
   // and "epsilon" is a coefficient if "extended range" is expected
   // input: linear min and max, output: linear min and max.
 
-  PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log)
-  {
+  PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log) {
     gdlHandleUnwantedAxisValue(start, end, log);
 
     DDouble min, max;
-    bool invert=FALSE;
+    bool invert = FALSE;
 
-    if(end-start >= 0)
-      {
-	min=start;
-	max=end;
-	invert=FALSE;
-      } else {
-      min=end;
-      max=start;
-      invert=TRUE;
+    if (end - start >= 0) {
+      min = start;
+      max = end;
+      invert = FALSE;
+    } else {
+      min = end;
+      max = start;
+      invert = TRUE;
     }
 
-    PLFLT intv=1.;
-    int cas=0;
+    PLFLT intv = 1.;
+    int cas = 0;
     DDouble x;
-    bool debug=false;
-    if ( debug )
-      {
-	cout<<"init: "<<min<<" "<<max<<endl;
-      }
-    //retrieve eps Double
-    // case "all below ABS((MACHAR()).xmin)
-    if ( !log && (abs(min)<=gdlEpsDouble()) && (abs(max)<gdlEpsDouble()) )
-      {
-	min=DDouble(0.);
-	max=DDouble(1.);
-	intv=(PLFLT)(2.);
-	cas=1;
-      }
+    bool debug = false;
+    if (debug) {
+      cout << "init: " << min << " " << max << endl;
+    }
+    // case "all below ABS((MACHAR()).xmin)"
+    if (!log && (abs(max) <= std::numeric_limits<DDouble>::min())) {
+      min = DDouble(0.);
+      max = DDouble(1.);
+      intv = (PLFLT) (2.);
+      cas = 1;
+    }
 
-    if(log)
-      {
-	min=log10(min);
-	max=log10(max);
-      }
+    if (log) {
+      min = log10(min);
+      max = log10(max);
+    }
 
     // case "all values are equal"
-    if ( cas==0 )
-      {
-	x=max-min;
-	if ( abs(x)<1e-30 )
-	  {
-	    DDouble val_ref;
-	    val_ref=max;
-	    if ( 0.98*min<val_ref )
-	      { // positive case
-		max=1.02*val_ref;
-		min=0.98*val_ref;
-	      }
-	    else
-	      { // negative case
-		max=0.98*val_ref;
-		min=1.02*val_ref;
-	      }
-	    if ( debug )
-	      {
-		cout<<"Rescale : "<<min<<" "<<max<<endl;
-	      }
-	  }
+    if (cas == 0) {
+      x = max - min;
+      if (abs(x) <= std::numeric_limits<DDouble>::min()) {
+        DDouble val_ref;
+        val_ref = max;
+        if (0.98 * min < val_ref) { // positive case
+          max = 1.02 * val_ref;
+          min = 0.98 * val_ref;
+        } else { // negative case
+          max = 0.98 * val_ref;
+          min = 1.02 * val_ref;
+        }
+        if (debug) {
+          cout << "Rescale : " << min << " " << max << endl;
+        }
       }
+    }
 
     // general case (only negative OR negative and positive)
-    if ( cas==0 ) //rounding is not aka idl due to use of ceil and floor. TBD.
-      {
-	x=max-min;
-	intv=AutoIntv(x);
-	if ( log ) {
-	  max=ceil((max/intv)*intv);
-	  min=floor((min/intv)*intv);        
-	} else {
-	  max=ceil(max/intv)*intv;
-	  min=floor(min/intv)*intv;
-	}
-      }
-
-    if ( debug )
-      {
-	cout<<"cas: "<<cas<<" new range: "<<min<<" "<<max<<endl;
-      }
-    //give back non-log values
-    if ( log )
-      {
-	min=pow(10, min);
-	max=pow(10, max);
-      }
-    if (invert)
-      {
-	start=max;
-	end=min;
+    if (cas == 0) //rounding is not aka idl due to use of ceil and floor. TBD.
+    {
+      x = max - min;
+      intv = AutoIntv(x);
+      if (log) {
+        max = ceil((max / intv) * intv);
+        min = floor((min / intv) * intv);
       } else {
-      start=min;
-      end=max;
+        max = ceil(max / intv) * intv;
+        min = floor(min / intv) * intv;
+      }
+    }
+
+    if (debug) {
+      cout << "cas: " << cas << " new range: " << min << " " << max << endl;
+    }
+    //give back non-log values
+    if (log) {
+      min = pow(10, min);
+      max = pow(10, max);
+    }
+    if (invert) {
+      start = max;
+      end = min;
+    } else {
+      start = min;
+      end = max;
     }
     return intv;
   }
@@ -617,8 +556,7 @@ namespace lib
       {
 	for ( SizeT i=0; i<4&&i<boxPosition->N_Elements(); ++i ) position[i]=(*boxPosition)[i];
       }
-    // modify positionP and/or boxPosition to NORMAL if DEVICE is present
-    if (coordinateSystem==DEVICE)
+    // modify positionP and/or boxPosition to NORMAL if DEVICE is present    if (coordinateSystem==DEVICE)
       {
 	PLFLT normx;
 	PLFLT normy;
@@ -659,8 +597,7 @@ namespace lib
 	    position[1]=0+2*(yMB/yMarginB); //subtitle
 	    position[2]=1.0;
 	    position[3]=1.0-2*(yMT/yMarginT); //title
-	    actStream->vpor(position[0], position[2], position[1], position[3]);
-	  }
+	    actStream->vpor(position[0], position[2], position[1], position[3]);	  }
 	else
 	  {
 	    // Use !P.position values.
@@ -780,8 +717,7 @@ namespace lib
       {
 	for ( SizeT i=0; i<4&&i<boxPosition->N_Elements(); ++i ) position[i]=(*boxPosition)[i];
       }
-    // modify positionP and/or boxPosition to NORMAL if DEVICE is present
-    if (coordinateSystem==DEVICE)
+    // modify positionP and/or boxPosition to NORMAL if DEVICE is present    if (coordinateSystem==DEVICE)
       {
 	PLFLT normx;
 	PLFLT normy;
@@ -1171,8 +1107,7 @@ namespace lib
       }
     //if new box is in error, return it:
     if (dClipBox[0]>=dClipBox[2]||dClipBox[1]>=dClipBox[3]) return FALSE;
-    //compute and set corresponding world coords before using whole page:
-    a->DeviceToWorld(dClipBox[0], dClipBox[1],tempbox[0], tempbox[1]);
+    //compute and set corresponding world coords before using whole page:    a->DeviceToWorld(dClipBox[0], dClipBox[1],tempbox[0], tempbox[1]);
     a->DeviceToWorld(dClipBox[2], dClipBox[3],tempbox[2], tempbox[3]);
 
     a->NoSub();
@@ -1428,8 +1363,7 @@ namespace lib
 			}
 		      if (docolor)
 			{
-			  a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);
-			  plotIndex++;
+			  a->Color ( ( *color )[plotIndex%color->N_Elements ( )], decomposed);			  plotIndex++;
 			}
 		      if ( *do_fill==1 )
 			{
@@ -1521,8 +1455,7 @@ namespace lib
     static DStructGDL* pStruct=SysVar::P();
     DLong background=
       (*static_cast<DLongGDL*>
-       (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
-    if ( kw )
+       (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];    if ( kw )
       e->AssureLongScalarKWIfPresent("BACKGROUND", background);
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
     a->Background(background,decomposed);
@@ -1585,8 +1518,7 @@ namespace lib
 
   //NOERASE
 
-  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe)
-  {
+  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe)  {
     bool noErase=FALSE;
     static DStructGDL* pStruct=SysVar::P();
 
@@ -1885,8 +1817,7 @@ namespace lib
 	  End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
 
 	  static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-	  if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
-	    {
+	  if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )	    {
 	      Start=pow(10., Start);
 	      End=pow(10., End);
 	      if ( debug ) cout<<"Get log :"<<Start<<" "<<End<<endl;
@@ -1923,9 +1854,7 @@ namespace lib
     if ( Struct!=NULL )
       {
 	unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
-	DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
-	DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
-	static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+	DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];	DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];	static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
 	(*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
 	(*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
 
@@ -1986,8 +1915,7 @@ namespace lib
     if ( Struct!=NULL )
       {
 	static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-	(*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]=(mapset)?3:0;
-      }
+	(*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]=(mapset)?3:0;      }
   }
 
 
@@ -2438,7 +2366,7 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
-    if (sgn*value<gdlEpsDouble()) 
+    if (sgn*value<std::numeric_limits<PLFLT>::min()) 
       {
 	snprintf(label, length, ((ptr->isLog)?"1":"0")); 
 	return;
@@ -2475,8 +2403,12 @@ namespace lib
 	    ns--;
 	  }
 	ns-=2;ns=(ns>6)?6:ns;
-	if (floor(sgn*z)==1 && ns==0) snprintf( label, length, specialfmt.c_str(),e); else snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
+	if (floor(sgn*z)==1 && ns==0)
+	  snprintf( label, length, specialfmt.c_str(),e);
+	else
+	  snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
       }
+    //    cout << label << endl;
     free(test);
   }
 
@@ -2693,9 +2625,9 @@ namespace lib
 	// to avoid writing tick marks here (they will be written after)
 	// I hope old plplots were clever enough to ignore 'x'
 	// if they did not understand 'x'
-	if ( Log ) Opt+="l"; //"l" for log; otherOpt is never in log I believe
-	if (TickName->NBytes()>0) // /TICKNAME=[array]
-	  {
+	if ( Log ) {
+	  Opt+="l"; //"l" for log; otherOpt is never in log I believe	if (TickName->NBytes()>0) // /TICKNAME=[array]
+	  
 	    data.counter=0;
 	    data.TickName=TickName;
 	    data.nTickName=TickName->N_Elements();
@@ -3745,8 +3677,7 @@ namespace lib
   bool OrderPolygonsAfter(const Polygon& first, const Polygon & second){
     return (first.cutDistAtStart < second.cutDistAtStart);
   }
-  bool OrderPolygonsBefore(const Polygon& first, const Polygon & second){
-    return (first.cutDistAtEnd < second.cutDistAtEnd);
+  bool OrderPolygonsBefore(const Polygon& first, const Polygon & second){    return (first.cutDistAtEnd < second.cutDistAtEnd);
   }
  
   bool IsPolygonInside(const Polygon * first, const Polygon * second){ //is second inside first?
@@ -3969,14 +3900,14 @@ namespace lib
               while (abs(measure) < avoidance) {
                 ++w;
                 if (w == (*p).VertexList.end()) {
-                  if (DEBUG_CONTOURS) cerr << "aborted 1\n";
-                  goto jump;
+                  before = -before;
+                  break;
                 }
                 xs = cos(w->lon) * cos(w->lat);
                 ys = sin(w->lon) * cos(w->lat);
                 zs = sin(w->lat);
                 measure = a * xs + b * ys + c * zs + d;
-              };
+              }
               //here w is the first OK. Displace all between v and w-1 in the same direction:
               if (before < 0) CorrectionForAvoidance = 10 * avoidance;
               else CorrectionForAvoidance = -10 * avoidance;
@@ -3984,7 +3915,7 @@ namespace lib
                 t->lon += CorrectionForAvoidance;
               }
               //recompute 'before':
-              xs = cos(v->lon) * cos(v->lat);
+jump2:              xs = cos(v->lon) * cos(v->lat);
               ys = sin(v->lon) * cos(v->lat);
               zs = sin(v->lat);
               before = a * xs + b * ys + c * zs + d;
