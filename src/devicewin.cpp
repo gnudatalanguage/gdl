@@ -498,14 +498,14 @@ DString DeviceWIN::GetVisualName()
 	this->GetStream(); //to open a window if none opened.
 	return winList[actWin]->GetVisualName();
 }
-
-DLong DeviceWIN::GetPixelDepth()
-{
-	HDC hscreenDC = GetWindowDC(GetDesktopWindow());
-	int bitsperpixel = GetDeviceCaps(hscreenDC, BITSPIXEL);
-	ReleaseDC(NULL, hscreenDC);
-	return bitsperpixel;
-}
+//This function is reserved to device Z, should not exist for WIN!
+//DLong DeviceWIN::GetPixelDepth()
+//{
+//	HDC hscreenDC = GetWindowDC(GetDesktopWindow());
+//	int bitsperpixel = GetDeviceCaps(hscreenDC, BITSPIXEL);
+//	ReleaseDC(NULL, hscreenDC);
+//	return bitsperpixel;
+//}
 
 DByteGDL* DeviceWIN::WindowState()
 {

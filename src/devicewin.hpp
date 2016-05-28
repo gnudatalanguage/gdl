@@ -75,7 +75,8 @@ private:
 	DIntGDL* GetWindowPosition();
 	DLong GetVisualDepth();
 	DString GetVisualName();
-	DLong GetPixelDepth();
+//This function is reserved to device Z, should not exist for WIN!
+//	DLong GetPixelDepth();
 	DByteGDL* WindowState();
 	bool UnsetFocus();
 	int MaxWin();
