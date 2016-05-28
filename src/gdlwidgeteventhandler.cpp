@@ -316,7 +316,16 @@ void gdlMenuButton::OnButton( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlMenuButton::OnButton: %d\n"),event.GetId());
 #endif
- this->PopupMenu(static_cast<wxMenu*>(popupPanel));
+ this->PopupMenu(static_cast<wxMenu*>(popupMenu));
+ event.Skip();
+}
+
+void gdlMenuButtonBitmap::OnButton( wxCommandEvent& event)
+{
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlMenuButtonBitmap::OnButton: %d\n"),event.GetId());
+#endif
+ this->PopupMenu(static_cast<wxMenu*>(popupMenu));
  event.Skip();
 }
 
@@ -338,6 +347,7 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   GDLWidget::PushEvent( baseWidgetID, widgbut);
 }
 
+//change bitmap or parent button?
 void GDLFrame::OnMenu( wxCommandEvent& event)
 {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)

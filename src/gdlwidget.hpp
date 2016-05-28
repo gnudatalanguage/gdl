@@ -64,6 +64,7 @@
 typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
 static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
+static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
 
 class DStructGDL;
 
@@ -196,12 +197,12 @@ class GDLWidget
 { 
   // static part is used for the abstraction
   // all widgets are refered to as IDs
+  static int gdl_lastControlId;
 private:
   // the global widget list 
   // a widget is added by the constructor and removed by the destructor
   // so no other action is necessary for list handling
   static WidgetListT widgetList;
-
 public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
@@ -224,7 +225,11 @@ public:
 
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
-
+  static int  GDLNewControlId(){
+   gdl_lastControlId++;
+   if (gdl_lastControlId >= wxID_LOWEST && gdl_lastControlId <= wxID_HIGHEST) gdl_lastControlId=wxID_HIGHEST+1;
+   return gdl_lastControlId;
+  }
 
 protected:
   
@@ -332,7 +337,7 @@ public:
         gdlwALIGN_TOP=8,
         gdlwALIGN_BOTTOM=16
     } gdlAlignmentPossibilities;
-    
+  
   DULong GetEventFlags()  const { return eventFlags;}
   bool HasEventType( DULong evType) const { return (eventFlags & evType) != 0;}
   void AddEventType( DULong evType) { eventFlags |= evType;}
@@ -618,7 +623,7 @@ public:
 
 class gdlMenuButton: public wxButton
 {
-  wxMenu* popupPanel;
+  wxMenu* popupMenu;
 //  wxPoint* popupPosition;
 public: 
   gdlMenuButton(wxWindow *parent, 
@@ -629,36 +634,64 @@ public:
           long style=0,
           const wxValidator &validator=wxDefaultValidator,
           const wxString &name=wxButtonNameStr):
-    wxButton(parent,id,label,pos,size,style,validator,name){
-      popupPanel=new wxMenu();
+      wxButton(parent,id,label,pos,size,style,validator,name){
+      popupMenu=new wxMenu();
       Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(gdlMenuButton::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(gdlMenuButton::OnButton));
     }
-  ~gdlMenuButton(){}
-  wxMenu* GetPopupPanel(){return popupPanel;}
-  void SetPopupPanel(wxMenu* panel){popupPanel=panel;}
-//  void SetPopupPosition(wxPoint* pos){popupPosition=pos;}
+//  ~gdlMenuButton(){delete popupMenu;}
+  wxMenu* GetPopupMenu(){return popupMenu;}
+  void SetPopupMenu(wxMenu* menu){popupMenu=menu;}
 private:
  void OnButton(wxCommandEvent& event);
-//DECLARE_EVENT_TABLE()
+};
+
+class gdlMenuButtonBitmap: public wxBitmapButton
+{
+  wxMenu* popupMenu;
+//  wxPoint* popupPosition;
+public: 
+  gdlMenuButtonBitmap(wxWindow *parent, 
+          wxWindowID id, 
+          const wxBitmap &bitmap_,
+          const wxPoint &pos=wxDefaultPosition,
+          const wxSize &size=wxDefaultSize,
+          long style=wxBU_AUTODRAW,
+          const wxValidator &validator=wxDefaultValidator,
+          const wxString &name=wxButtonNameStr):
+      wxBitmapButton(parent,id,bitmap_,pos,size,style,validator,name){
+      popupMenu=new wxMenu();
+      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(gdlMenuButtonBitmap::OnButton));
+      Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(gdlMenuButtonBitmap::OnButton));
+    }
+//  ~gdlMenuButtonBitmap(){delete popupMenu;}
+  wxMenu* GetPopupMenu(){return popupMenu;}
+  void SetPopupMenu(wxMenu* menu){popupMenu=menu;}
+private:
+ void OnButton(wxCommandEvent& event);
 };
 
 class GDLWidgetButton: public GDLWidget
 {
   typedef enum ButtonType_ {
-  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, ENTRY=4, BITMAP=5} ButtonType;
+  UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, ENTRY=4, BITMAP=5, POPUP_NORMAL=6, POPUP_BITMAP=7} ButtonType;
 
   ButtonType buttonType;
   bool addSeparatorAbove;
   wxBitmap* buttonBitmap;
   wxMenuItem* menuItem;
-  
+protected:
+  typedef std::deque<WidgetIDT>::iterator cIter;
+  typedef std::deque<WidgetIDT>::reverse_iterator rcIter;
+  std::deque<WidgetIDT>                   children;  //as for Containers since buttons may be menus and thus containers.
 //  bool buttonState; //defined in base class now.
   
 public:
   GDLWidgetButton( WidgetIDT parentID, EnvT* e, const DString& value, DULong eventflags, bool isMenu, bool hasSeparatorAbove=FALSE, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
   ~GDLWidgetButton();
   // for WIDGET_CONTROL
+  bool IsBitmapButton(){return ( buttonType==POPUP_BITMAP || buttonType==BITMAP);}
+  bool IsEntry(){return ( buttonType==ENTRY);}
   void SetButtonWidget( bool onOff)
   {
     if( wxWidget != NULL)
@@ -705,7 +738,29 @@ public:
       if (me) { if (value) me->Enable(); else me->Disable();}
     }
   }
-//   void SetSelectOff();
+  //same as containers
+  void AddChild( WidgetIDT c) { children.push_back( c);}
+  void RemoveChild( WidgetIDT  c) {
+      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      if (it != children.end()) children.erase(it);                                   // ... and remove.
+  }
+  DLong NChildren() const
+  {
+    return children.size( );
+  }
+  WidgetIDT GetChild( DLong childIx) const
+  {
+    assert( childIx >= 0 );
+    assert( childIx < children.size( ) );
+    return children[childIx];
+  }
+  DLongGDL* GetChildrenList() {
+    DLong size=children.size( );
+    if (size<1) return new DLongGDL(0);
+    DLongGDL* ret=new DLongGDL(dimension(size),BaseGDL::ZERO);
+    for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
+    return ret;   
+  }
 };
 
 

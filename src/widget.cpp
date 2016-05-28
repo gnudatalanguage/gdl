@@ -245,7 +245,14 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
   BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
 }
 
-DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev ) {
+DStructGDL* CallEventHandler( DStructGDL* ev ) {
+  // Must work in good harmony with WIDGET_EVENT requirements.
+  // for one event, start from the originating widget and go through the list of parents, 
+  // and process the first event-related procedure associated.
+  // If the event handling found is a PROCEDURE, do it, and return NULL.
+  // If the event handling found is FUNCTION, use it and return the result.
+  // If the top of the hierarchy is attained without ev being swallowed by an event handler, return ev.
+  // Empty events (success) are returned in any other case.
 #ifdef HAVE_LIBWXWIDGETS
   static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
   static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
@@ -253,6 +260,9 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev ) {
 
   DLong actID = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
 
+//Do we also protect against noevent widgets??
+//  if ( ev->Desc( )->Name( ) == "WIDGET_NOEVENT" ) return ev;
+  
   // note that such a struct name is illegal in GDL
   // therefore it cannot be used in user code.
   // This is safer than choosing a legal name
@@ -274,49 +284,49 @@ DStructGDL* CallEventHandler( /*DLong id,*/ DStructGDL* ev ) {
 
     assert( widget->IsBase( ) );
 
-    //     std::cout << "CallEventHandler: *WIDGET_DESTROY*: Deleting widget: "+i2s(actID) << std::endl;
-
     delete widget; // removes itself from widgetList
 
-    return NULL;
+    return NULL; //= OK 
   }
 
   do {
-    GDLWidget *widget = GDLWidget::GetWidget( actID );
-    if ( widget == NULL ) {
-      Warning( "CallEventHandler: Widget no longer valid. ID: " + i2s( actID ) );
-      actID = GDLWidget::NullID;
-    } else {
-      DString eventHandlerPro = widget->GetEventPro( );
-      if ( eventHandlerPro != "" ) {
-        (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0] = actID;
-        CallEventPro( eventHandlerPro, ev ); // grabs ev
-        ev = NULL;
-        break; // out of while
-      }
-      DString eventHandlerFun = widget->GetEventFun( );
-      if ( eventHandlerFun != "" ) {
-        (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0] = actID;
-        BaseGDL* retVal = CallEventFunc( eventHandlerFun, ev ); // grabs ev
-        if ( retVal->Type( ) == GDL_STRUCT ) {
-          // ev is already deleted
-          ev = static_cast<DStructGDL*> (retVal);
-          if ( ev->Desc( )->TagIndex( "ID" ) != idIx ||
-          ev->Desc( )->TagIndex( "TOP" ) != topIx ||
-          ev->Desc( )->TagIndex( "HANDLER" ) != handlerIx ) {
-            GDLDelete( ev );
-            throw GDLException( eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags." );
-          }
-          // no break!
-        } else {
-          GDLDelete( retVal );
+      GDLWidget *widget = GDLWidget::GetWidget( actID );
+      if ( widget == NULL ) {
+        Warning( "CallEventHandler: Widget no longer valid. ID: " + i2s( actID ) );
+        actID = GDLWidget::NullID;
+        ev=NULL;
+        break; //out of while
+      } else {
+        DString eventHandlerPro = widget->GetEventPro( );
+        if ( eventHandlerPro != "" ) {
+          (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0] = actID;
+          CallEventPro( eventHandlerPro, ev ); // grabs ev
           ev = NULL;
-          break; // out of while   
+          break; // out of while
         }
-      }
-      actID = widget->GetParentID( );
-    }
-  }  while ( actID != GDLWidget::NullID );
+        DString eventHandlerFun = widget->GetEventFun( );
+        if (eventHandlerFun != "") {
+          (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
+          BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
+          if (retVal->Type() == GDL_STRUCT) {
+            // ev is already deleted
+            ev = static_cast<DStructGDL*> (retVal);
+            if (ev->Desc()->TagIndex("ID") != idIx ||
+              ev->Desc()->TagIndex("TOP") != topIx ||
+              ev->Desc()->TagIndex("HANDLER") != handlerIx) {
+              GDLDelete(ev);
+              throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
+            }
+            // FUNCTION --> no break, will go up to the top or exit if consumed.!
+          } else {
+            GDLDelete(retVal);
+            ev = NULL;
+            break; //end of FUNCTION (finally consumed) --> out of while   
+          }
+        }
+        actID = widget->GetParentID( ); //go upper in hierarchy
+        }
+      }  while ( actID != GDLWidget::NullID );
 #endif
   return ev;
 }
@@ -1020,7 +1030,9 @@ BaseGDL* widget_draw( EnvT* e ) {
     if (isBitmap) {
       e->AssureStringScalarKWIfPresent( valueIx, value ); //value is a filename
       //try loading file
-      wxInitAllImageHandlers();
+      {
+        if (!handlersInited) {wxInitAllImageHandlers(); handlersInited=true;}
+      }
       wxImage * tryImage=new wxImage(wxString(value.c_str(),wxConvUTF8),wxBITMAP_TYPE_ANY);
       if (tryImage->IsOk()) {
         bitmap = new wxBitmap(*tryImage);
@@ -1038,13 +1050,15 @@ BaseGDL* widget_draw( EnvT* e ) {
         if (testByte->Rank() == 3 && testByte->Dim(2) != 3) e->Throw( "Array must be a [X,Y] or [X,Y,3] array." );
         if (testByte->Rank() == 2) {
           bitmap = new wxBitmap(static_cast<char*>(testByte->DataAddr()),testByte->Dim(0)*8,testByte->Dim(1),1);
+          value.clear();
         } else {
           BaseGDL* transpose=testByte->Transpose(NULL);
           wxImage * tryImage=new wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),TRUE); //STATIC DATA I BELIEVE.
           GDLDelete( transpose );
           bitmap = new wxBitmap(*tryImage);
+          value.clear();
         }
-      } else  e->Throw( "Unsupported VALUE Keyword type, please report!" );
+      } else  e->Throw( "Value must be string or byte." );
     }
   }
   //    cout << value << ",  ParentID : "<<  parentID <<  endl;
@@ -1974,142 +1988,134 @@ BaseGDL* widget_info( EnvT* e ) {
 
 // WIDGET_EVENT
 
-BaseGDL* widget_event( EnvT* e ) {
+  BaseGDL* widget_event(EnvT* e) {
+  // 1) for a specific event, start from the originating widget and go through the list of parents, 
+  // and process the first event-related procedure associated.
+  // 2) If the event handling found is a PROCEDURE, do it, and go back looking for another event.
+  // 3) If the event handling found is FUNCTION, use it and examine return:
+  //  3a- if the return is NOT A STRUCTURE, discard it, and (as above) go back looking for an event.
+  //  3b- if the return IS A STRUCTURE, check this structure is OK (3 fields ID, TOP, HANDLER) else issue an error. 
+  //  3c- Otherwise, the return value replaces the initial event, and the process of looking for another event handling continues.
+  // 4) If the top of the hierarchy is attained without being swallowed by an event handler, it is returned as the value of WIDGET_EVENT.
+  // 5) Empty events are returned in any other case.
+
 #ifndef HAVE_LIBWXWIDGETS
-  e->Throw( "GDL was compiled without support for wxWidgets" );
-  return NULL;
+    e->Throw("GDL was compiled without support for wxWidgets");
+    return NULL;
 #else
-  DStructGDL* defaultRes = new DStructGDL( "WIDGET_NOEVENT" );
-  static int savehourglassIx = e->KeywordIx( "SAVE_HOURGLASS" );
-  bool savehourglass = e->KeywordSet( savehourglassIx );
-  // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
-  // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
-  if ( !savehourglass ) if (wxIsBusy()) wxEndBusyCursor( );
-  //xmanager_block (not a *DL standard) is used to block until TLB is killed
-  static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK" );
-  bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx );
-  static int nowaitIx = e->KeywordIx( "NOWAIT" );
-  bool nowait = e->KeywordSet( nowaitIx );
-  static int badidIx = e->KeywordIx( "BAD_ID" );
-  bool dobadid = e->KeywordPresent( badidIx );
-  if (dobadid) e->AssureGlobalKW(badidIx);
-  
-  SizeT nParam = e->NParam( );
-  std::vector<WidgetIDT> widgetID;
-  DLongGDL* p0L = NULL;
-  SizeT nEl = 0;
-  SizeT rank = 0;
+    DStructGDL* defaultRes = new DStructGDL("WIDGET_NOEVENT");
+    static int savehourglassIx = e->KeywordIx("SAVE_HOURGLASS");
+    bool savehourglass = e->KeywordSet(savehourglassIx);
+    // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
+    // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
+    if (!savehourglass) if (wxIsBusy()) wxEndBusyCursor();
+    //xmanager_block (not a *DL standard) is used to block until TLB is killed
+    static int xmanagerBlockIx = e->KeywordIx("XMANAGER_BLOCK");
+    bool xmanagerBlock = e->KeywordSet(xmanagerBlockIx);
+    static int nowaitIx = e->KeywordIx("NOWAIT");
+    bool nowait = e->KeywordSet(nowaitIx);
+    static int badidIx = e->KeywordIx("BAD_ID");
+    bool dobadid = e->KeywordPresent(badidIx);
+    if (dobadid) e->AssureGlobalKW(badidIx);
 
-  bool all = true;
-  if ( nParam > 0 ) {
-    p0L = e->GetParAs<DLongGDL>(0);
-    all = false;
-    nEl = p0L->N_Elements( );
-    for ( SizeT i = 0; i < nEl; i++ ) {
-      GDLWidget *widget = GDLWidget::GetWidget( (*p0L)[i] );
-      if ( widget == NULL ) {
-        if (dobadid) { 
-          e->SetKW( badidIx, new DLongGDL( (*p0L)[i]  ) );
-          return defaultRes; //important!!!
-        } else { e->Throw( "Invalid widget identifier:" + i2s( (*p0L)[i] ) ); }
-      }
-      widgetID.push_back( (*p0L)[i] );
-    }
-  }
+    SizeT nParam = e->NParam();
+    std::vector<WidgetIDT> widgetID;
+    std::vector<bool> container;
+    DLongGDL* p0L = NULL;
+    SizeT nEl = 0;
 
-  if (dobadid) e->SetKW( badidIx, new DLongGDL(0) ); //if id is OK, but BAD_ID was given, we must return 0 in BAD_ID.
-
-  EnvBaseT* caller;
-
-  DLong id;
-  DLong tlb;
-  int infinity = 1;
-  while ( infinity ) { // outer while loop, will run once if NOWAIT
-    if ( nowait ) {
-      infinity = 0;
-//      std::cout << "WIDGET_EVENT: Polling event queue only once (/NOWAIT) ..." << std::endl;
-    } // else std::cout << "WIDGET_EVENT: Polling event queue ..." << std::endl;
-
-    DStructGDL* ev = NULL;
-
-    if ( !all ) { //specific widget(s)
-      while ( 1 ) {
-        //note: when a widgetId is passed, all the other events in IDL block until the good one is found (or ^C).
-        //Apparently this behaviour is not dependent on GetXmanagerActiveCommand( ) status, so I check both eventLists.
-        if ( (ev = GDLWidget::eventQueue.Pop( )) != NULL ) {
-          static int idIx = ev->Desc( )->TagIndex( "ID" ); // examine it
-          id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-
-          for ( SizeT i = 0; i < widgetID.size( ); i++ ) {
-            if ( widgetID.at( i ) == id ) {
-              static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-              static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-              tlb = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
-              return ev ;
-            } 
-          }
-        } else if ( (ev = GDLWidget::readlineEventQueue.Pop( )) != NULL ) {
-          static int idIx = ev->Desc( )->TagIndex( "ID" ); // examine it
-          id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-
-          for ( SizeT i = 0; i < widgetID.size( ); i++ ) {
-            if ( widgetID.at( i ) == id ) {
-              static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-              static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-              tlb = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
-              return ev ;
-            } 
+    bool all = true;
+    if (nParam > 0) { //specific widget, or array of widgets. Note that ALL THE CHILDREN of the widget are searched.
+      p0L = e->GetParAs<DLongGDL>(0);
+      all = false;
+      nEl = p0L->N_Elements();
+      for (SizeT i = 0; i < nEl; i++) {
+        GDLWidget *widget = GDLWidget::GetWidget((*p0L)[i]);
+        if (widget == NULL) {
+          if (dobadid) {//if id is OK, but BAD_ID was given, we must return 0 in BAD_ID.
+            e->SetKW(badidIx, new DLongGDL((*p0L)[i]));
+            return defaultRes; //important!!!
+          } else {
+            e->Throw("Invalid widget identifier:" + i2s((*p0L)[i]));
           }
         }
-          
-        wxMilliSleep( 50 );      // Sleep a bit to prevent CPU overuse
-        
-        if ( sigControlC )
-          return defaultRes;//new DLongGDL( 0 );
+        widgetID.push_back((*p0L)[i]);
+        if (widget->IsContainer()) container.push_back(true);
+        else container.push_back(false);
       }
-    } else { //wait for ALL (and /XMANAGER_BLOCK for example) 
-      while ( 1 ) {
-        // handle global GUI events as well as plot events
-        // handling is completed on return
-        // calls GDLWidget::HandleEvents()
-        // which calls GDLWidget::CallEventHandler()
-        GDLEventHandler( );
-
-        // the polling event handler
-        if ( (ev = GDLWidget::eventQueue.Pop( )) != NULL ) {
-          // ev = GDLWidget::eventQueue.Pop();
-          static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-          static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-          static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-
-          id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-          tlb = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
-          break;
-        } 
-        // if poll event handler found an event this is not reached due to the
-        // 'break' statement
-        wxMilliSleep( 50 );      // Sleep a bit to prevent CPU overuse
-
-        if ( sigControlC )
-          return defaultRes; //new DLongGDL( 0 );
-
-      } // inner while
-    } //ALL
-
-    ev = CallEventHandler( /*id,*/ ev ); //will block waiting for XMANAGER 
-    if ( ev != NULL ) {
-      Warning( "WIDGET_EVENT: No event handler found. ID: " + i2s( id ) );
-      GDLDelete( ev );
-      ev = NULL;
+      //loop on this list, and add recursively all children when widget is a container.
+      SizeT currentVectorSize = widgetID.size();
+      while (1) {
+        for (SizeT i = 0; i < currentVectorSize; i++) {
+          if (container.at(i)) {
+            container.at(i) = false;
+            GDLWidget *widget = GDLWidget::GetWidget(widgetID.at(i));
+            if (static_cast<GDLWidgetContainer*> (widget)->NChildren() > 0) {
+              DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
+              for (SizeT j = 0; j < list->N_Elements(); j++) {
+                widgetID.push_back((*list)[j]);
+                if (GDLWidget::GetWidget((*list)[j])->IsContainer()) container.push_back(true);
+                else container.push_back(false);
+              }
+            }
+          }
+        }
+        if (widgetID.size() == currentVectorSize) break; //no changes
+        currentVectorSize = widgetID.size();
+      }
     }
-    GDLWidget *tlw = GDLWidget::GetWidget( tlb );
-    if ( tlw == NULL ) { //possible if a kill_notify procedure was called 
-//      std::cout << "WIDGET_EVENT: widget no longer valid." << std::endl;  //no use to report, then.
-      break;
-    }
-  } // outer while loop
+    if (dobadid) e->SetKW(badidIx, new DLongGDL(0)); //if id is OK, but BAD_ID was given, we must return 0 in BAD_ID.
 
-  return defaultRes; //new DLongGDL( 0 );
+    DLong id;
+    int infinity = (nowait)?0:1;
+    DStructGDL* ev;
+
+    do { // outer while loop, will run once if NOWAIT
+      while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
+        GDLApp* theGDLApp = new GDLApp;
+        theGDLApp->OnInit();
+        theGDLApp->MainLoop();
+        if (!all) { //specific widget(s)
+            // note: when a widgetId is passed, all the other events in IDL block until the good one is found (or ^C).
+            // Apparently this behaviour is not dependent on GetXmanagerActiveCommand( ) status, so I check both eventLists.
+          while ((ev = GDLWidget::eventQueue.Pop()) != NULL) { // get event
+            static int idIx = ev->Desc()->TagIndex("ID");
+            id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
+            for (SizeT i = 0; i < widgetID.size(); i++) { //is ID corresponding to any widget in list?
+              if (widgetID.at(i) == id) { //if yes
+                goto endwait;
+              }
+            }
+          }
+          while ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) { // get event
+            static int idIx = ev->Desc()->TagIndex("ID");
+            id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
+            for (SizeT i = 0; i < widgetID.size(); i++) { //is ID corresponding to any widget in list?
+              if (widgetID.at(i) == id) { //if yes
+                goto endwait;
+              }
+            }
+          }
+        } else { //wait for ALL (and /XMANAGER_BLOCK for example) 
+          if ((ev = GDLWidget::eventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) goto endwait;
+        }
+
+        if (nowait) return defaultRes;
+        if (sigControlC) return defaultRes;
+
+        wxMilliSleep(50); // Sleep a bit to prevent CPU overuse
+      } //end inner loop
+      //here we got a real event, process it
+endwait:
+      ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler
+      // examine return:
+      if (ev == NULL) { //either 2) or 3a) 
+        if (nowait) return defaultRes; //else will loop again
+      } else { // 3b) or 4)
+        return ev;
+      }
+    } while (infinity); 
 #endif
 }
 
@@ -2371,7 +2377,9 @@ void widget_control( EnvT* e ) {
       if (isBitmap) {
         e->AssureStringScalarKWIfPresent( setvalueIx, value ); //value is a filename
         //try loading file
-        wxInitAllImageHandlers();
+        {
+          if (!handlersInited) {wxInitAllImageHandlers(); handlersInited=true;}
+        }
         wxImage * tryImage=new wxImage(wxString(value.c_str(),wxConvUTF8),wxBITMAP_TYPE_JPEG);
         if (tryImage->IsOk()) bitmap = new wxBitmap(*tryImage);
         else e->Throw( "Unable to read image file: " + value );
@@ -2400,7 +2408,7 @@ void widget_control( EnvT* e ) {
           GDLWidgetButton *bb = (GDLWidgetButton *) widget;
           bb->SetButtonWidgetBitmap( bitmap );
           if (bb->IsDynamicResize()) bb->RefreshWidget();
-        } else  e->Throw( "Unsupported VALUE Keyword type, please report!" );
+        } else  e->Throw( "Value must be string or byte." );
       }
 
     } else if (widget->IsTable( )) {
@@ -2603,7 +2611,15 @@ void widget_control( EnvT* e ) {
         GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
         if (valueKW) GDLDelete( (*valueKW) );
         *valueKW = new DLongGDL(s->GetValue());
-      } else if ( widget->IsTree( ) ||  widget->IsLabel( ) || widget->IsDropList( ) || widget->IsComboBox( ) || widget->IsDraw() || widget->IsButton() ) { 
+      } else if ( widget->IsTree( ) ||  widget->IsLabel( ) || widget->IsDropList( ) || widget->IsComboBox( ) || widget->IsDraw() ) { 
+        BaseGDL *widval = widget->GetVvalue( );
+        if ( widval != NULL ) {
+          if (valueKW) GDLDelete( (*valueKW) );
+          *valueKW = widval->Dup( );
+        }
+      } else if ( widget->IsButton( ) ) { //bitmap buttons return an error on this call.
+        GDLWidgetButton *s = (GDLWidgetButton *) widget;
+        if ( s->IsBitmapButton() ) e->Throw("Unable to obtain non-string button value.");
         BaseGDL *widval = widget->GetVvalue( );
         if ( widval != NULL ) {
           if (valueKW) GDLDelete( (*valueKW) );
