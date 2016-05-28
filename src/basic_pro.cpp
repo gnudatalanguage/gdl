@@ -1787,39 +1787,58 @@ bool CompareWithJokers(string names, string sourceFiles) {
       // we need something more sophisticated here
       fileUnits[lun - 1].PutVarLenVMS(false);
 
-      try{
-	fileUnits[lun - 1].Open(name, mode, swapEndian, deleteKey,
-				xdr, width, f77, compress);
+    try {
+      fileUnits[lun - 1].Open(name, mode, swapEndian, deleteKey,
+        xdr, width, f77, compress);
 
-	if (e->KeywordSet("GET_LUN"))
-	  {
-	    BaseGDL** retLun = &e->GetPar(0);
-	    GDLDelete((*retLun));
-	    *retLun = new DLongGDL(lun);
-	    // par 0 contains now the LUN
-	  }
+      if (e->KeywordSet("GET_LUN")) {
+        BaseGDL** retLun = &e->GetPar(0);
+        GDLDelete((*retLun));
+        *retLun = new DLongGDL(lun);
+        // par 0 contains now the LUN
       }
+    }
+    //GD: If GDLIOException is not catched here BEFORE GDLException, 
+    catch (GDLIOException& ex) {
+      if (e->KeywordSet("GET_LUN")) {
+        fileUnits[lun - 1].Free();
+      }
+
+      DString errorMsg = ex.getMessage() + // getMessage gets the non-decorated error message
+        " Unit: " + i2s(lun) + ", File: " +name; //+ fileUnits[lun - 1].Name();
+
+      if (!errorKeyword) {
+        throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg); //go above and be catched
+      }
+
+      BaseGDL** err = &e->GetKW(errorIx);
+
+      GDLDelete(*err);
+      //    if( *err != e->Caller()->Object()) delete (*err); 
+
+      *err = new DLongGDL(ex.ErrorCode());
+      return;
+    }
+      
       catch (GDLException& ex) {
-
-	if (e->KeywordSet("GET_LUN"))
-	  {
-	    fileUnits[lun - 1].Free();
-	  }
-
-	DString errorMsg = ex.getMessage() + // getMessage gets the non-decorated error message
-	  " Unit: " + i2s(lun) + ", File: " + fileUnits[lun - 1].Name();
-
-	if (!errorKeyword) e->Throw(errorMsg);
-	//				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
-
-	BaseGDL** err = &e->GetKW(errorIx);
-
-	GDLDelete(*err);
-	//    if( *err != e->Caller()->Object()) delete (*err); 
-
-	*err = new DLongGDL(ex.ErrorCode());
-	return;
+      if (e->KeywordSet("GET_LUN")) {
+        fileUnits[lun - 1].Free();
       }
+
+      DString errorMsg = ex.getMessage() + // getMessage gets the non-decorated error message
+        " Unit: " + i2s(lun) + ", File: " + name;// + fileUnits[lun - 1].Name();
+
+      if (!errorKeyword) e->Throw(errorMsg);
+      //				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
+
+      BaseGDL** err = &e->GetKW(errorIx);
+
+      GDLDelete(*err);
+      //    if( *err != e->Caller()->Object()) delete (*err); 
+
+      *err = new DLongGDL(ex.ErrorCode());
+      return;
+    }
 
       if (errorKeyword)
 	{
