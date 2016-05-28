@@ -28,7 +28,6 @@ namespace lib {
 
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     //GET functions are examined BEFORE setting functions.
-    //GET_CURRENT_FONT ? //TODO
     
     // GET_DECOMPOSED ?
     {
@@ -84,7 +83,7 @@ namespace lib {
     static int get_current_fontIx = e->KeywordIx( "GET_CURRENT_FONT" );
     if ( e->KeywordPresent( get_current_fontIx ) )
       {
-        DString value = actDevice->GetCurrentFont( );
+        DString value = actDevice->GetCurrentFont( ); //should NOT open graphic window
         e->SetKW( get_current_fontIx, new DStringGDL( value) );
       }
     }
@@ -95,7 +94,7 @@ namespace lib {
     static int get_graphics_FunctionIx = e->KeywordIx( "GET_GRAPHICS_FUNCTION");
     if( e->KeywordPresent( get_graphics_FunctionIx)) 
       {
-        DLong value = actDevice->GetGraphicsFunction();
+        DLong value = actDevice->GetGraphicsFunction(); //OPENS A WINDOW IF NONE EXIST
         if(value == -1)
           e->Throw( "Keyword GET_GRAPHICS_FUNCTION not allowed for call to: DEVICE");
         else 
@@ -176,7 +175,7 @@ namespace lib {
      static int get_window_positionIx = e->KeywordIx("GET_WINDOW_POSITION");
       if( e->KeywordPresent( get_window_positionIx)) 
       {
-       DIntGDL* value = actDevice->GetWindowPosition();
+       DIntGDL* value = actDevice->GetWindowPosition(); //OPENS A WINDOW IF NONE EXISTS
        if (value == NULL) 
           e->Throw( "Keyword GET_WINDOW_POSITION not allowed for call to: DEVICE");
        else 
