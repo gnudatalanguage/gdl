@@ -73,6 +73,7 @@ namespace lib
   struct GDL_TICKDATA
   {
     bool isLog;
+    DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   };
 
   struct GDL_TICKNAMEDATA
@@ -2366,7 +2367,7 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
-    if (sgn*value<std::numeric_limits<PLFLT>::min()) 
+    if (sgn*value<ptr->axisrange*1e-6) 
       {
 	snprintf(label, length, ((ptr->isLog)?"1":"0")); 
 	return;
@@ -2543,6 +2544,7 @@ namespace lib
 
     static GDL_TICKDATA tdata;
     tdata.isLog=Log;
+    tdata.axisrange=End-Start;
 
     data.nTickName=0;
     muaxdata.e=e;
@@ -2798,6 +2800,7 @@ namespace lib
 
     static GDL_TICKDATA tdata;
     tdata.isLog=Log;
+    tdata.axisrange=End-Start;
 
     data.nTickName=0;
     muaxdata.e=e;
