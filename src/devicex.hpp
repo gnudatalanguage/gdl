@@ -217,7 +217,7 @@ public:
   }
   
     DLong GetGraphicsFunction() {
-    this->GetStream(); //to open a window if none opened.
+    this->GetStream(); //MUST open a window if none opened (even  if it is not useful with GDL, this is to mimic IDL).
     return gcFunction;
   }
   
@@ -259,7 +259,7 @@ public:
     }
 
     DIntGDL* GetWindowPosition() {
-        this->GetStream(); //to open a window if none opened.
+        this->GetStream(); //MUST open a window if none opened.
         long xpos, ypos;
         if (winList[actWin]->GetWindowPosition(xpos, ypos)) {
             DIntGDL* res;
@@ -271,21 +271,49 @@ public:
         }
     
     DLong GetVisualDepth() {
-        this->GetStream(); //to open a window if none opened.
-        return winList[actWin]->GetVisualDepth();
+        TidyWindowsList();
+        if (actWin == -1) {
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          DLong val=winList[actWin]->GetVisualDepth();
+          WDelete(actWin);
+          return val;
+        } else {
+          return winList[actWin]->GetVisualDepth();
+        }
     }
 
     DString GetVisualName() {
-        this->GetStream(); //to open a window if none opened.
-        return winList[actWin]->GetVisualName();
+        TidyWindowsList();
+        if (actWin == -1) {
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          DString val=winList[actWin]->GetVisualName();
+          WDelete(actWin);
+          return val;
+        } else {
+          return winList[actWin]->GetVisualName();
+        }
     }
     BaseGDL* GetFontnames(){
-        this->GetStream(); //to open a window if none opened.
-        return winList[actWin]->GetFontnames(fontname);
+        TidyWindowsList();
+        if (actWin == -1) {
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
+          WDelete(actWin);
+          return val;
+        } else {
+          return winList[actWin]->GetFontnames(fontname);
+        }
     }
     DLong GetFontnum(){
-        this->GetStream(); //to open a window if none opened.
-        return winList[actWin]->GetFontnum(fontname);
+        TidyWindowsList();
+        if (actWin == -1) {
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          DLong val=winList[actWin]->GetFontnum(fontname);
+          WDelete(actWin);
+          return val;
+        } else {
+          return winList[actWin]->GetFontnum(fontname);
+        }
     }    
     bool CursorStandard(int cursorNumber) {
         cursorId = cursorNumber;
