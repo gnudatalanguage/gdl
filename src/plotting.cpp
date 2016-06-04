@@ -2230,6 +2230,17 @@ namespace lib
     if ( e->GetKW ( axisticknameIx )!=NULL )
     {
       axisTicknameVect=e->GetKWAs<DStringGDL>( axisticknameIx );
+      //translate format codes here:
+      for (SizeT iname=0; iname < axisTicknameVect->N_Elements(); ++iname) {
+        std::string out = std::string("");
+        GDLGStream* tmpstream;
+//        cerr<<"\""<<(*axisTicknameVect)[iname]<<"\"-> ";
+        tmpstream->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
+//TBD: not finished, see cases not treated in TransmateFormatCodes (gdlgstream.cpp)
+//        cerr<<"\""<<out<<"\""<<endl;
+
+        (*axisTicknameVect)[iname]=out;
+      }
     }
 
   }

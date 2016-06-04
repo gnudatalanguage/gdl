@@ -471,7 +471,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
           curr_lev--;
           out += "#d";
           // continues!
-        case 'D' : case 'd' : // subscript
+        case 'B' : case 'b' : case 'D' : case 'd' : // subscript
         case 'I' : case 'i' : // index
           curr_lev--;
           out += "#d";
@@ -479,10 +479,10 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
         case 'R' : case 'r' : // restore position
           for (; save_pos < curr_pos; curr_pos--) out += "#b";
           // continues!
-        case 'A' : case 'a' : // shift above the division line
-          //TODO: plplot seems not to support it 
-        case 'B' : case 'b' : // shift below the division line
-          //TODO: plplot seems not to support it
+        //case 'A' : case 'a' : // shift above the division line
+          //TODO: plplot seems not to support it ----> treated as upperscript for the moment
+       // case 'B' : case 'b' : // shift below the division line
+          //TODO: plplot seems not to support it ----> treated as subscript for the moment
         case 'N' : case 'n' : // back to normal size
           while (curr_lev != 0) 
           {
@@ -492,7 +492,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
           // assumed from examples in documentation
           if (in[i + 1] == 'N' || in[i + 1] == 'n') out += fonts[curr_fnt = next_fnt = default_fnt];
           break;
-        case 'U' : case 'u' : // superscript
+        case 'A' : case 'a' : case 'U' : case 'u' : // superscript
         case 'E' : case 'e' : // exponent
           curr_lev++;
           out += "#u";
