@@ -361,7 +361,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::widget_combobox,string("WIDGET_COMBOBOX"),1,widget_comboboxKey);//,widget_comboboxWarnKey);
 //CONTROL
   const string widget_ControlKey[] = {"REALIZE","MANAGED","EVENT_FUNC","EVENT_PRO",
-  "XMANAGER_ACTIVE_COMMAND","DESTROY","DELAY_DESTROY",
+  "XMANAGER_ACTIVE_COMMAND","DESTROY",
   "GET_UVALUE","SET_UVALUE","SET_VALUE",
   "MAP","FUNC_GET_VALUE","PRO_SET_VALUE",
   "SET_UNAME","NO_COPY","SET_BUTTON",
@@ -385,7 +385,7 @@ void LibInit_jmg()
   "GROUP_LEADER", "COMBOBOX_ADDITEM" ,"COMBOBOX_DELETEITEM" ,"COMBOBOX_INDEX", 
   "GET_DRAW_VIEW","SET_TAB_CURRENT", "UNITS","DYNAMIC_RESIZE","SET_SLIDER_MIN","SET_SLIDER_MAX",
   "X_BITMAP_EXTRA",KLISTEND};
-  const string widget_WarnControlKey[] ={"DEFAULT_FONT",
+  const string widget_WarnControlKey[] ={"DELAY_DESTROY", "DEFAULT_FONT",
   "PUSHBUTTON_EVENTS","TABLE_BLANK","TAB_MODE","SET_TAB_MULTILINE",KLISTEND}; //LIST NOT CLOSE!!!  
   //IMPORTANT :   
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 

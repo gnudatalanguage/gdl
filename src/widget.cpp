@@ -2153,8 +2153,10 @@ void widget_control( EnvT* e ) {
   bool xmanActCom = e->KeywordSet( xmanActComIx );
 
   static int destroyIx = e->KeywordIx( "DESTROY" );
-  static int delay_destroyIx = e->KeywordIx( "DELAY_DESTROY" );
-  bool destroy = (e->KeywordSet( destroyIx ) || e->KeywordSet( delay_destroyIx )); //silently ignore 'delay' and maintain 'destroy'.
+  bool destroy = e->KeywordSet( destroyIx );
+// Better signaling it is ignored for the moment.  
+//  static int delay_destroyIx = e->KeywordIx( "DELAY_DESTROY" );
+//  bool delay_destroy = e->KeywordSet( delay_destroyIx ); //TBD, this seems tricky.
   
   static int timerIx = e->KeywordIx( "TIMER" );
   bool doTimer = e->KeywordPresent( timerIx );
