@@ -259,6 +259,7 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
   *m_bitmap = m_dc->GetAsBitmap();
+  Update();
   return true;
 }
 
