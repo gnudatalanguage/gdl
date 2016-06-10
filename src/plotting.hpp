@@ -134,7 +134,8 @@ namespace lib {
   void cursor( EnvT* e);
   void tvcrs( EnvT* e);
   void empty(EnvT* e);
-
+  BaseGDL* format_axis_values(EnvT *e);
+  
   // Map stuff
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);

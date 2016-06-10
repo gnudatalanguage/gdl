@@ -885,6 +885,8 @@ void LibInit()
   const string eraseKey[]= {"CHANNEL","COLOR",KLISTEND};
   new DLibPro(lib::erase,string("ERASE"),1, eraseKey);
   
+  new DLibFunRetNew(lib::format_axis_values,string("FORMAT_AXIS_VALUES"),1);
+  
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
   new DLibFunRetNew(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
 

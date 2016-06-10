@@ -82,6 +82,7 @@ namespace lib
     SizeT nTickName;
     DStringGDL* TickName;
     bool isLog;
+    DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   };
 
   struct GDL_MULTIAXISTICKDATA
@@ -96,6 +97,7 @@ namespace lib
     SizeT nTickUnits;
     DStringGDL* TickUnits;
     bool isLog;
+    DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   };
 
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
@@ -2441,7 +2443,71 @@ namespace lib
     }
     free(test);
   }
-
+  void doFormatAxisValue(DDouble value, string &label)
+  {
+    static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.2fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
+    static string specialfmt="10^%d";
+    static const int length=20;
+    PLFLT z;
+    int ns;
+    char *i;
+    int sgn=(value<0)?-1:1;
+    //special cases, since plplot gives approximate zero values, not strict zeros.
+    if (sgn*value< std::numeric_limits<DDouble>::min()) 
+    {
+      label="0"; 
+      return;
+    }
+    
+    int e=floor(log10(value*sgn));
+    char *test=(char*)calloc(2*length, sizeof(char)); //be safe
+    if (!isfinite(e)||(e<4 && e>-4)) 
+    {
+      snprintf(test, length, "%f",value);
+      ns=strlen(test);
+      i=strrchr (test,'0');
+      while (i==(test+ns-1)) //remove trailing zeros...
+      {
+          *i='\0';
+        i=strrchr(test,'0');
+        ns--;
+      }
+      i=strrchr(test,'.'); //remove trailing '.'
+      if (i==(test+ns-1)) {*i='\0'; ns--;}
+    }
+    else
+    {
+      z=value*sgn/pow(10.,e);
+      snprintf(test,20,"%7.6f",z);
+      ns=strlen(test);
+      i=strrchr(test,'0');
+      while (i==(test+ns-1))
+      {
+          *i='\0';
+        i=strrchr(test,'0');
+        ns--;
+      }
+      ns-=2;ns=(ns>6)?6:ns;
+	if (floor(sgn*z)==1 && ns==0)
+	  snprintf( test, length, specialfmt.c_str(),e);
+	else
+	  snprintf( test, length, normalfmt[ns].c_str(),sgn*z,e);
+    }
+    label=test;
+    free(test);
+  }
+  
+  BaseGDL* format_axis_values(EnvT *e){
+    DDoubleGDL* p0D = e->GetParAs<DDoubleGDL>( 0);
+    DStringGDL* res = new DStringGDL( p0D->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0D->N_Elements();
+    for( SizeT i=0; i<nEl; ++i)
+	  {
+	    doFormatAxisValue((*p0D)[i], (*res)[i]);
+	  }
+  return res;
+  }
+  
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     static GDL_TICKDATA tdata;
@@ -2555,6 +2621,7 @@ namespace lib
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
     tdata.isLog=ptr->isLog;
+    tdata.axisrange=ptr->axisrange;
     if (ptr->counter > ptr->nTickName-1)
     {
       doOurOwnFormat(axis, value, label, length, &tdata);
@@ -2576,12 +2643,14 @@ namespace lib
     tdata.axisrange=abs(End-Start);
 
     data.nTickName=0;
+    data.axisrange=abs(End-Start);
     muaxdata.e=e;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
+    muaxdata.axisrange=abs(End-Start);
 
     //special values
     PLFLT OtherAxisSizeInMm;
@@ -2832,12 +2901,14 @@ namespace lib
     tdata.axisrange=abs(End-Start);
 
     data.nTickName=0;
+    data.axisrange=abs(End-Start);
     muaxdata.e=e;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
+    muaxdata.axisrange=abs(End-Start);
     
     //special values
     PLFLT OtherAxisSizeInMm;
