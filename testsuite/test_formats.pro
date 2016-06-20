@@ -126,13 +126,13 @@ list_of_dirs=STRSPLIT(new_path, PATH_SEP(/SEARCH_PATH), /EXTRACT)
 filename='formats.idl'
 file_fmt_idl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
 ;
-if (soft NE 'idl') AND (STRLEN(file_fmt_idl) EQ 0) then begin
+if N_ELEMENTS(file_fmt_idl) GT 1 then print, 'multiple reference file <<'+filename+'>> found !'
+file_fmt_idl=file_fmt_idl[0]
+if (soft NE 'idl') AND (STRLEN(file_fmt_idl[0]) EQ 0) then begin
     MESSAGE, 'reference file <<'+filename+'>> not found in the !PATH', /continue
     if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
     EXIT, status=1
 endif
-if N_ELEMENTS(file_fmt_idl) GT 1 then print, 'multiple reference file <<'+filename+'>> found !'
-file_fmt_idl=file_fmt_idl[0]
 ;
 filename='formats.gdl'
 file_fmt_gdl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
