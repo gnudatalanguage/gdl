@@ -77,24 +77,31 @@ inline void OutStars( std::ostream& os, int n)
 template <typename T>
 inline void OutFixedZero( std::ostream& os, int w, int d, char f)
 {
+  bool plus=( f == '+' || f == '@' );
+  if ( (f == '0'|| f == '@')  ) f='0';
+  if ( f == '+' ) f=' ';
+   
   if( w == 1) 
     os << "*";
   else if( d >= w)
     OutStars( os, w);
-  else if( d == 1) 
-    os << std::setw( w) << std::setfill(f) << std::right << "0.";
-  else 
-    {
-      os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; 
-      for( int i=1; i<d; ++i) os << "0";
-    }
+  else if( plus && d >= w-1)
+    OutStars( os, w);
+  else {
+   if (f == '0' && plus ) os << "+" << std::setw( (w-1)-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; // preventing "00+0.00"
+   else if (plus)  os << std::setw( (w-1)-(d<=0?1:d)+1) << std::setfill(f) << std::right << "+0."; 
+   else  os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; 
+   for( int i=1; i<d; ++i) os << "0";
+  }
 }
 
 inline void OutFixFill(std::ostream& os, std::string str, int w, char f)
 {
-  os << std::setfill(f);
-  if (f == '0' && str.substr(0, 1) == "-") // preventing "00-1.00"
-    os << "-" << std::setw(w - 1) << str.substr(1);
+  if ( (f == '0'|| f == '@')  ) f='0';
+  if ( f == '+' ) f=' ';
+  os << std::setfill(f); //which is '0' or blank at this point.
+  if (f == '0' && ( ( str.substr(0, 1) == "-" ) || ( str.substr(0, 1) == "+" ) ) ) // preventing "00-1.00" or "00+1.00"
+    os << str.substr(0, 1) << std::setw(w - 1) << str.substr(1);
   else
     os << std::setw(w) << str;
 }
@@ -107,10 +114,11 @@ void OutFixed( std::ostream& os, T val, int w, int d, char f)
       if( w == 0)
 	os << "0.000000";
       else
-	OutFixedZero<T>( os, w, d+1, f);
-    return;
+      	OutFixedZero<T>( os, w, d+1, f);
+      return;
     }
   std::ostringstream oss;
+  if (f == '+' || f == '@') oss << std::showpos ;
   oss << std::fixed << std::setprecision(d) << val;
   if( w == 0)
     os << oss.str();
@@ -131,6 +139,7 @@ void OutScientific( std::ostream& os, T val, int w, int d, char f)
 {
   std::ostringstream oss; 
   // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
+  if (f == '+' || f == '@') oss << std::showpos ;
   oss << std::scientific << std::uppercase << std::setprecision(d) << val; 
   if( w == 0)
     os << oss.str();
@@ -150,6 +159,7 @@ void OutAuto( std::ostream& os, T val, int w, int d, char f)
 {
   if( val == T(0.0)) // handle 0.0
     {
+  if (f == '+' || f == '@') os << std::showpos ;
       if( w == 0)
 	os << "0";
       else
@@ -165,6 +175,9 @@ void OutAuto( std::ostream& os, T val, int w, int d, char f)
   // as its used now, if w == 0 -> d != 0 (SetField())
   // static cast here is needed for OS X, without we get a *linker* error
   // (but only if GDL is compiled with Magick)
+
+  if (f == '+' || f == '@') ossF << std::showpos ;
+
   if( w == 0 && (powTen < d && powTen > -d) &&
       (val - std::floor( val) < std::pow( 10.0, static_cast<double>(-d))))
     ossF << std::fixed << std::setprecision(0) << val; 
@@ -178,6 +191,7 @@ void OutAuto( std::ostream& os, T val, int w, int d, char f)
     fixLen = 0; // marker to force scientific output
   
   std::ostringstream ossS;
+  if (f == '+' || f == '@') ossS << std::showpos ;
   ossS << std::scientific << std::setprecision(d>0?d-1:0) << val;
   
   if( fixLen == 0 || ossF.tellp() > ossS.tellp())
