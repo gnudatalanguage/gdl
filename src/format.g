@@ -213,26 +213,41 @@ csubcode
 
 // no nodes for numbers
 nn! returns[ int n]
-    : num:NUMBER 
+{ 
+  int sgn=1;
+}
+    : ( (PM|MP)  {sgn=-1;})? num:NUMBER 
         { 
             std::istringstream s(#num->getText());
             s >> n;
+            n*=sgn;
         }
     ;
 
 // no nodes for numbers with zero padding
 nnf! [ RefFMTNode fNode] returns[ int n]
-    : num:NUMBER 
+{
+    fNode->setFill(' ');
+    int sgn=1;
+}
+    : ( (PM|MP) {
+                  fNode->setFill('+');
+                   sgn=-1; //will be left-aligned
+                 } )?  num:NUMBER 
         { 
             std::istringstream s(#num->getText());
             char c = s.get();
             char next = s.peek();
             s.putback(c);
             s >> n;
-            if (c == '0') 
-               fNode->setFill('0');
-            if (c == '+') { //test if 0 is following, I.e.:+0 something
-               if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
+            n*=sgn;
+            if (fNode->getFill() == '+') {
+               //do nothing: ignore eventual '0' format flag.
+            } else {
+               if (c == '0') fNode->setFill('0');
+               if (c == '+') { //test if 0 is following, I.e.:+0 something
+                 if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
+               }
             }
         }
     ;
@@ -361,6 +376,8 @@ CapA: ( 'C' 'a' 'p' 'A');
 PERCENT:'%';
 
 DOT:'.';
+PM: ('+' '-');
+MP: ('-' '+');
 
 protected     
 W
