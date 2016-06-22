@@ -2,7 +2,7 @@
 #define INC_FMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTLexer.hpp"$ */
+/* $ANTLR 2.7.7 (20130428): "format.g" -> "FMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
@@ -93,6 +93,8 @@ public:
 	public: void mCapA(bool _createToken);
 	public: void mPERCENT(bool _createToken);
 	public: void mDOT(bool _createToken);
+	public: void mPM(bool _createToken);
+	public: void mMP(bool _createToken);
 	protected: void mW(bool _createToken);
 	public: void mWHITESPACE(bool _createToken);
 	protected: void mDIGITS(bool _createToken);
@@ -104,6 +106,8 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_FMTLexer_hpp_*/

@@ -1,7 +1,7 @@
 #ifndef INC_FMTTokenTypes_hpp_
 #define INC_FMTTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (20130428): "format.g" -> "FMTTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API
@@ -76,16 +76,18 @@ struct CUSTOM_API FMTTokenTypes {
 		CMI = 65,
 		CSI = 66,
 		CSF = 67,
-		NUMBER = 68,
-		DOT = 69,
-		CSTRING = 70,
-		H = 71,
-		L = 72,
-		R = 73,
-		PERCENT = 74,
-		W = 75,
-		WHITESPACE = 76,
-		CHAR = 77,
+		PM = 68,
+		MP = 69,
+		NUMBER = 70,
+		DOT = 71,
+		CSTRING = 72,
+		H = 73,
+		L = 74,
+		R = 75,
+		PERCENT = 76,
+		W = 77,
+		WHITESPACE = 78,
+		CHAR = 79,
 		NULL_TREE_LOOKAHEAD = 3
 	};
 #ifdef __cplusplus

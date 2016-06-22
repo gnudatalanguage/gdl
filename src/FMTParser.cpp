@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.7 (20130428): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
