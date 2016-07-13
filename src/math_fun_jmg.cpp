@@ -57,6 +57,12 @@ namespace lib {
   using std::isnan;
 #endif
 
+#ifdef PL_HAVE_QHULL
+extern "C" {
+    #include <libqhull/qhull_a.h>
+}
+#endif
+
   BaseGDL* machar_fun( EnvT* e)
   {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
@@ -758,20 +764,114 @@ namespace lib {
 #ifdef PL_HAVE_QHULL
   void triangulate ( EnvT* e)
   {
+    
+    // Template 2016 by Reto Stockli
+    // Todo: 
+    // 1. Check input for missing values (NAN/FNAN)
+    // 2. Return tr array from vertex loop at the end
+    // 3. Implement keywords: [, B] [, CONNECTIVITY=variable] [, SPHERE=variable 
+    //    [/DEGREES]] [, FVALUE=variable] [, REPEATS=variable] [, TOLERANCE=value]
+
+    char hidden_options[]=" d n v H U Qb QB Qc Qf Qg Qi Qm Qr QR Qv Qx TR E V FC Fi Fo Ft Fp FV Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 Q9 ";
+
+    int DIMENSION = 2;
+    int dimqhull = DIMENSION + 1;
+
+    int i,j;
+
+    coordT *points;
+
+    facetT *facetlist;
+    facetT *facet;
+
+    setT *vertices;
+    vertexT *vertex;
+    vertexT **vertexp;
+
+    char flags[25];
+    boolT ismalloc;
+
+    int numfacets;
+    int numvertices;
+
     DDoubleGDL *yVal, *xVal;
     int npts;
     SizeT nParam=e->NParam();
     if( nParam < 3)
     {
       e->Throw("Incorrect number of arguments.");
-    }
+    } else  {
+	  e->AssureGlobalPar(2); //since we return values in it?  
+	} 
     yVal = e->GetParAs< DDoubleGDL > (0);
     if (yVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
     npts=yVal->N_Elements();
     xVal = e->GetParAs< DDoubleGDL > (1);
     if (xVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(1));
     if (xVal->N_Elements()!=npts) e->Throw("X & Y arrays must have same number of points.");
-    e->Throw("Writing in progress.");
+
+    /* init QHULL */
+    sprintf (flags, "qdelaunay i Qt");
+ 
+    qh_meminit(NULL);
+    qh NOerrexit = False;
+    qh_init_A(stdin, stdout, stderr, 0, NULL);
+    qh_option("delaunay", NULL, NULL);
+    qh DELAUNAY= True;     /* 'd'   */
+    qh SCALElast= True;    /* 'Qbb' */
+    qh KEEPcoplanar= True; /* 'Qc', to keep coplanars in 'p' */
+    qh_checkflags(flags, hidden_options);
+    qh_initflags(flags);
+
+    /* assign X/Y coordinates to QHULL points structure */
+    /* QHULL requires a vector of points including the squared sum of X/Y points */
+    ismalloc=True;
+    points= (coordT*)qh_malloc((npts)*(dimqhull)*sizeof(coordT));
+
+    for (i=0;i<npts;i++) {
+      points[i*3]   = (*yVal)[i]; 
+      points[i*3+1] = (*xVal)[i];
+      points[i*3+2] = (*yVal)[i] * (*yVal)[i] + (*xVal)[i] * (*xVal)[i];
+    }
+
+    /* run QHULL */
+    qh_init_B(points, npts, dimqhull, ismalloc);
+    qh_qhull();
+    qh_check_output();
+    qh_prepare_output();
+
+    /* get QHULL output */
+    facetlist = qh facet_list;
+  
+    numvertices = qh hull_dim;
+    numfacets = 0;
+    FORALLfacet_(facetlist) {
+      if (!qh_skipfacet(facet)) numfacets++;
+    }
+
+    printf("# facets: %i; # vertices: %i \n",numfacets,numvertices);
+    if (numfacets<1) e->Throw("Triangulation failed.");
+    if (numvertices!=3) e->Throw("Invalid Number of Facets returned bu QHULL!");
+    SizeT d[2];
+    d[0]=numvertices;
+    d[1]=numfacets;
+    DLongGDL* returned_triangles=new DLongGDL(dimension(d,2), BaseGDL::NOZERO);
+
+    {
+      SizeT k=0;
+      FORALLfacet_(facetlist) {
+        if (!qh_skipfacet(facet)) {
+          vertices = qh_facet3vertex(facet);
+          FOREACHvertex_(vertices)
+          (*returned_triangles)[k++]=qh_pointid(vertex->point);
+        }
+      }
+    }
+    //pass back to GDL env:
+    e->SetPar(2, returned_triangles);
+    /* free QHULL memory */
+    qh_freeqhull(!qh_ALL);
+    
   }
   void qhull ( EnvT* e)
   {
