@@ -405,6 +405,19 @@ bool DSubUD::GetCommonVarName(const BaseGDL* p, std::string& varName)
   return false;
 }
 
+BaseGDL* DSubUD::GetCommonVarNameList()
+{
+  DStringGDL* res = new DStringGDL(dimension(this->CommonsSize()), BaseGDL::NOZERO);
+  CommonBaseListT::iterator it;
+  SizeT iname=0;
+  for( it=common.begin(); it != common.end(); it++)
+    {
+    SizeT nVar=(*it)->NVar();
+    for (SizeT i=0; i< nVar ; ++i) (*res)[iname++]=(*it)->VarName(i);
+    }
+  return res;
+}
+
 bool DSubUD::GetCommonVarName4Help(const BaseGDL* p, std::string& varName)
 {
   CommonBaseListT::iterator it;

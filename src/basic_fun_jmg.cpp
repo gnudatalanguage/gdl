@@ -1008,245 +1008,253 @@ namespace lib {
   // note: changes here MUST be reflected in routine_names_reference() as well
   // because DLibFun of this function is used for routine_names_reference() the keyword
   // indices must match
-  BaseGDL* routine_names_value( EnvT* e) 
-  {
-    SizeT nParam=e->NParam();
+
+  BaseGDL* routine_names_value(EnvT* e) {
+    SizeT nParam = e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
     //     DLong curlevnum = callStack.size()-1;
     // 'e' is not on the stack
     DLong curlevnum = callStack.size();
 
-    if (e->KeywordSet( "S_FUNCTIONS")) {
+    if (e->KeywordSet("S_FUNCTIONS")) {
       vector<DString> subList;
 
       SizeT nFun = libFunList.size();
-      for( SizeT i = 0; i<nFun; ++i) {
-	DString s = libFunList[ i]->ToString();
-	s = s.substr(4);  // Remove "res="
+      for (SizeT i = 0; i < nFun; ++i) {
+        DString s = libFunList[ i]->ToString();
+        s = s.substr(4); // Remove "res="
 
-	size_t left_paren = s.find_first_of("(");
-	subList.push_back( s.substr( 0, left_paren));
+        size_t left_paren = s.find_first_of("(");
+        subList.push_back(s.substr(0, left_paren));
       }
 
-      sort( subList.begin(), subList.end());
+      sort(subList.begin(), subList.end());
 
-      DStringGDL* res = new DStringGDL( dimension( nFun), BaseGDL::NOZERO);
-      for( SizeT i = 0; i<nFun; ++i) {
-	(*res)[i] = subList[ i];
+      DStringGDL* res = new DStringGDL(dimension(nFun), BaseGDL::NOZERO);
+      for (SizeT i = 0; i < nFun; ++i) {
+        (*res)[i] = subList[ i];
       }
       return res;
     }
 
-    if (e->KeywordSet( "S_PROCEDURES")) {
+    if (e->KeywordSet("S_PROCEDURES")) {
       vector<DString> subList;
 
       SizeT nPro = libProList.size();
-      for( SizeT i = 0; i<nPro; ++i) {
-	DString s = libProList[ i]->ToString();
+      for (SizeT i = 0; i < nPro; ++i) {
+        DString s = libProList[ i]->ToString();
 
-	size_t comma_brac = s.find_first_of(",[");
-	subList.push_back( s.substr( 0, comma_brac));
+        size_t comma_brac = s.find_first_of(",[");
+        subList.push_back(s.substr(0, comma_brac));
       }
 
-      sort( subList.begin(), subList.end());
+      sort(subList.begin(), subList.end());
 
-      DStringGDL* res = new DStringGDL( dimension( nPro), BaseGDL::NOZERO);
-      for( SizeT i = 0; i<nPro; ++i) {
-	(*res)[i] = subList[ i];
+      DStringGDL* res = new DStringGDL(dimension(nPro), BaseGDL::NOZERO);
+      for (SizeT i = 0; i < nPro; ++i) {
+        (*res)[i] = subList[ i];
       }
       return res;
     }
 
-    if (e->KeywordSet( "LEVEL")) {
-      return new DLongGDL( curlevnum );
+    if (e->KeywordSet("LEVEL")) {
+      return new DLongGDL(curlevnum);
     }
 
-    static int variablesIx = e->KeywordIx( "VARIABLES" );
-    static int fetchIx = e->KeywordIx( "FETCH" );
-    static int arg_namesIx = e->KeywordIx( "ARG_NAME" );
-    static int storeIx = e->KeywordIx( "STORE" );
-    bool var=false, fetch=false, arg=false, store=false;
+    static int variablesIx = e->KeywordIx("VARIABLES");
+    static int fetchIx = e->KeywordIx("FETCH");
+    static int arg_namesIx = e->KeywordIx("ARG_NAME");
+    static int storeIx = e->KeywordIx("STORE");
+    bool var = false, fetch = false, arg = false, store = false;
 
     DLongGDL* level;
-    level = e->IfDefGetKWAs<DLongGDL>( variablesIx);
-    if (level != NULL) 
-    {
+    level = e->IfDefGetKWAs<DLongGDL>(variablesIx);
+    if (level != NULL) {
       var = true;
-    } 
-    else 
-    {
-      level = e->IfDefGetKWAs<DLongGDL>( fetchIx);
+    }
+    else {
+      level = e->IfDefGetKWAs<DLongGDL>(fetchIx);
       if (level != NULL) {
-	fetch = true;
+        fetch = true;
       } else {
-	level = e->IfDefGetKWAs<DLongGDL>( arg_namesIx);
-	if (level != NULL) {
-	  arg = true;
-	} else {
-	  level = e->IfDefGetKWAs<DLongGDL>( storeIx);
-	  if (level != NULL) {
-	    store = true;
-	  }
-	}
+        level = e->IfDefGetKWAs<DLongGDL>(arg_namesIx);
+        if (level != NULL) {
+          arg = true;
+        } else {
+          level = e->IfDefGetKWAs<DLongGDL>(storeIx);
+          if (level != NULL) {
+            store = true;
+          }
+        }
       }
     }
 
     DString varName;
 
-    if (level != NULL) 
-    {
+    if (level != NULL) {
       DLong desiredlevnum = (*level)[0];
-      if (desiredlevnum <= 0) 
-	desiredlevnum += curlevnum;
-      if (desiredlevnum < 1) 
-	return new DStringGDL("");
-      if (desiredlevnum > curlevnum) 
-	desiredlevnum = curlevnum;
+      if (desiredlevnum <= 0)
+        desiredlevnum += curlevnum;
+      if (desiredlevnum < 1)
+        return new DStringGDL("");
+      if (desiredlevnum > curlevnum)
+        desiredlevnum = curlevnum;
 
-      DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
-
+      DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
+      SizeT nComm = pro->CommonsSize(); // # has commons?
+      SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
       int nKey = pro->NKey();
       //cout << "nKey:" << nKey << endl;
       //cout << "nVar:" << nVar << endl;
       //cout << pro->Name() << endl;
 
-      if (var) 
-      {
-	if( nVar == 0) return new DStringGDL("");
-
-	DStringGDL* res = new DStringGDL( dimension( nVar), BaseGDL::NOZERO);
-	for( SizeT i = 0; i<nVar; ++i) {
-	  string vname = pro->GetVarName( i);
-	  (*res)[i] = vname;
-	}
-	return res;
-      } 
-      else if (fetch) 
-      { // FETCH
-
-	e->AssureScalarPar<DStringGDL>( 0, varName);
-	varName = StrUpCase( varName);
-	int xI = pro->FindVar( varName);
-	//cout << xI << " " << varName << " " << pro->Size() << endl;
-	if (xI != -1) {
-	  // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-
-	  // Keywords are already counted (in FindVar)
-	  // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
-
-	  if( par == NULL)
-	    e->Throw( "Variable is undefined: " + varName);
-	  // 		return NULL;
-	  //	  char* addr = static_cast<char*>(par->DataAddr());
-
-	  // no retnew function BUT: ret value is not from current environment
-	  // which is ok with the new ref return value handling introdcuced with 0.9.4
-	  // note that the _reference version does not need par to be defined and is hence still necessary
-	  e->SetPtrToReturnValue( &par); // <-  HERE IS THE DIFFERENCE
-	  return par; // <-  HERE IS THE DIFFERENCE 
-	  // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
-	}
-	
-	if( e->Interpreter()->InterruptEnable())
-	  Message( "Variable not found: " + varName);
-
-	return NULL;
-
+      if (var) {
+        if (nTotVar == 0) return new DStringGDL("");
+        DStringGDL* res = new DStringGDL(dimension(nTotVar), BaseGDL::NOZERO);
+        SizeT ivar=0;
+        if (nVar > 0) {
+          for (SizeT i = 0; i < nVar; ++i) {
+            string vname = pro->GetVarName(i);
+            (*res)[ivar++] = vname;
+          }
+        }
+        if (nComm > 0) {
+          DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
+          for (SizeT i = 0; i < list->N_Elements(); ++i) {
+            (*res)[ivar++] = (*list)[i];
+          }
+        }
+        return res; //TODO: sort by alphabetical order.
       }
-      else if (arg) { // ARG_NAME
+      else if (fetch) { // FETCH
 
-	if( nParam == 0) return new DStringGDL("");
+        e->AssureScalarPar<DStringGDL>(0, varName);
+        varName = StrUpCase(varName);
+        int xI = pro->Find(varName);
+        //cout << xI << " " << varName << " " << pro->Size() << endl;
+        if (xI != -1) {
+          // 	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
 
-	DStringGDL* res = new DStringGDL( dimension( nParam), BaseGDL::NOZERO);
+          // Keywords are already counted (in FindVar)
+          // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
 
-	//	cout << "nVar:" << nVar << endl;
-	EnvBaseT* desiredCallStack;
-	if( desiredlevnum >= callStack.size())
-	  desiredCallStack = e;
-	else
-	  desiredCallStack = callStack[ desiredlevnum];
-	
-	SizeT nCall = desiredCallStack->NParam();
-	
-	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
-	// search for all given parameters of this call
-	for( SizeT i = 0; i<nParam; ++i) {
+          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+          // 		return NULL;
+          //	  char* addr = static_cast<char*>(par->DataAddr());
 
-	  // search all parameters of target environment
-	  for( SizeT j = 0; j<nCall; ++j) {
+          // no retnew function BUT: ret value is not from current environment
+          // which is ok with the new ref return value handling introdcuced with 0.9.4
+          // note that the _reference version does not need par to be defined and is hence still necessary
+          e->SetPtrToReturnValue(&par); // <-  HERE IS THE DIFFERENCE
+          return par; // <-  HERE IS THE DIFFERENCE 
+          // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
+        } else {
+          BaseGDL** par = pro->GetCommonVarPtr(varName);
+          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+          return *par; // <-  HERE IS THE DIFFERENCE          
+        }
+      if (e->Interpreter()->InterruptEnable())
+          Message("Variable not found: " + varName);
 
-	    if (e->GetParString(i) == desiredCallStack->GetParString(j)) 
-	    {
-	      //	      cout << "Calling param: " << j+1 << endl;
-	      BaseGDL*& p = e->GetPar( i);
-	      if (p == NULL) {
-		(*res)[i]="UNDEFINED";
-		// 		break;
-	      }
-	      //	      cout << "p:" << p << endl;
+        return NULL;
 
-	      SizeT xI=0;
-	      for( ; xI<nVar; ++xI) 
-	      {
-		string vname = pro->GetVarName( xI);
-		BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-		//    cout << "xI:" << xI << " " << vname.c_str() << endl;
-		//    cout << "par:" << par << endl;
-		if (&par == &p) {
-		  (*res)[i] = vname;
-		  break;
-		}
-	      } // xI loop
-	      if( xI == nVar) // not found -> search common
-	      {
-		string vname;
-		bool success = pro->GetCommonVarName( p, vname);
-		if( success)
-		  (*res)[i] = vname;
-	      }
-	      break;
-	    }
-	  } // j loop
-	} // i loop
+      } else if (arg) { // ARG_NAME
 
-	return res;
+        if (nParam == 0) return new DStringGDL("");
+
+        DStringGDL* res = new DStringGDL(dimension(nParam), BaseGDL::NOZERO);
+
+        //	cout << "nVar:" << nVar << endl;
+        EnvBaseT* desiredCallStack;
+        if (desiredlevnum >= callStack.size())
+          desiredCallStack = e;
+        else
+          desiredCallStack = callStack[ desiredlevnum];
+
+        SizeT nCall = desiredCallStack->NParam();
+
+        //	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
+        // search for all given parameters of this call
+        for (SizeT i = 0; i < nParam; ++i) {
+
+          // search all parameters of target environment
+          for (SizeT j = 0; j < nCall; ++j) {
+
+            if (e->GetParString(i) == desiredCallStack->GetParString(j)) {
+              //	      cout << "Calling param: " << j+1 << endl;
+              BaseGDL*& p = e->GetPar(i);
+              if (p == NULL) {
+                (*res)[i] = "UNDEFINED";
+                // 		break;
+              }
+              //	      cout << "p:" << p << endl;
+
+              SizeT xI = 0;
+              for (; xI < nVar; ++xI) {
+                string vname = pro->GetVarName(xI);
+                BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetPar(xI - nKey);
+                //    cout << "xI:" << xI << " " << vname.c_str() << endl;
+                //    cout << "par:" << par << endl;
+                if (&par == &p) {
+                  (*res)[i] = vname;
+                  break;
+                }
+              } // xI loop
+              if (xI == nVar) // not found -> search common
+              {
+                string vname;
+                bool success = pro->GetCommonVarName(p, vname);
+                if (success)
+                  (*res)[i] = vname;
+              }
+              break;
+            }
+          } // j loop
+        } // i loop
+
+        return res;
       } else { // STORE
 
-	if( nParam != 2)
-	  throw GDLException( e->CallingNode(),
-			      "ROUTINE_NAMES: Incorrect number of arguments.");
+        if (nParam != 2)
+          throw GDLException(e->CallingNode(),
+          "ROUTINE_NAMES: Incorrect number of arguments.");
 
-	// "res" points to variables to be restored
-	BaseGDL* res = e->GetParDefined( 1);
+        // "res" points to variables to be restored
+        BaseGDL* res = e->GetParDefined(1);
 
-	SizeT s;
-	e->AssureScalarPar<DStringGDL>( 0, varName); 
-	int xI = pro->FindVar(StrUpCase( varName));
-	// cout << "varName: " << StrUpCase( varName) << " xI: " << xI << endl;
-	if (xI == -1) {
+        SizeT s;
+        e->AssureScalarPar<DStringGDL>(0, varName);
+        varName=StrUpCase(varName);
+        int xI = pro->FindVar(varName);
+        // cout << "varName: " << varName << " xI: " << xI << endl;
+        if (xI != -1) {
+          s = xI;
+          // cout << "FindVar s: " << s << endl;
+        } else {
+          BaseGDL** varPtr = pro->GetCommonVarPtr(varName);
+          // cout << "FindCommonVar s: " << varPtr << endl;
+          if (varPtr) {
+            if (pro->ReplaceExistingCommonVar(varName, res->Dup())) return new DIntGDL(1);
+            else return new DIntGDL(0);
+          } else {
+            SizeT u = pro->AddVar(varName);
+            s = callStack[desiredlevnum - 1]->AddEnv();
+          //  cout << "AddVar u: " << u << endl;
+          //  cout << "AddEnv s: " << s << endl;
+          }
+        }
+        // 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
-	  SizeT u = pro->AddVar(StrUpCase(varName));
-	  s = callStack[desiredlevnum-1]->AddEnv();
-	  //cout << "AddVar u: " << u << endl;
-	  //cout << "AddEnv s: " << s << endl;
+        // 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+        ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(s) = res->Dup();
 
-	} else {
-	  s = xI;
-	  //cout << "FindVar s: " << s << endl;
-	}
+        //	cout << "par: " << &par << endl << endl;
+        // 	memcpy(&par, &res, sizeof(par)); 
 
-	// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
-
-	// 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
-	((EnvT*)(callStack[desiredlevnum-1]))->GetKW( s) = res->Dup();
-
-	//	cout << "par: " << &par << endl << endl;
-	// 	memcpy(&par, &res, sizeof(par)); 
-
-	return new DIntGDL( 1);
+        return new DIntGDL(1);
       }
     } else {
       // Get Compiled Procedures & Functions 
@@ -1257,74 +1265,74 @@ namespace lib {
       pfList.push_back("$MAIN$");
 
       // Procedures
-      for( ProListT::iterator i=proList.begin(); i != proList.end(); i++) {
-	pfList.push_back((*i)->ObjectName());
+      for (ProListT::iterator i = proList.begin(); i != proList.end(); i++) {
+        pfList.push_back((*i)->ObjectName());
       }
 
       // Functions
-      for( FunListT::iterator i=funList.begin(); i != funList.end(); i++) {
-	pfList.push_back((*i)->ObjectName());
+      for (FunListT::iterator i = funList.begin(); i != funList.end(); i++) {
+        pfList.push_back((*i)->ObjectName());
       }
 
       // Sort
-      sort( pfList.begin(), pfList.end());
+      sort(pfList.begin(), pfList.end());
 
       // Fill return variable
       dimension dim(&n, (size_t) 1);
       DStringGDL* res = new DStringGDL(dim, BaseGDL::NOZERO);
-      for( SizeT i = 0; i<n; ++i) {
-	(*res)[i] = pfList[ i];
+      for (SizeT i = 0; i < n; ++i) {
+        (*res)[i] = pfList[ i];
       }
       return res;
     }
   }
 
   // this version does not need the return value pointing to a defined value and is hence necessary  
-  BaseGDL** routine_names_reference( EnvT* e) 
-  {
-    SizeT nParam=e->NParam();
+
+  BaseGDL** routine_names_reference(EnvT* e) {
+    SizeT nParam = e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
     //     DLong curlevnum = callStack.size()-1;
     // 'e' is not on the stack
     DLong curlevnum = callStack.size();
 
-    if (e->KeywordSet( "S_FUNCTIONS")) {
+    if (e->KeywordSet("S_FUNCTIONS")) {
       return NULL;
     }
 
-    if (e->KeywordSet( "S_PROCEDURES")) {
+    if (e->KeywordSet("S_PROCEDURES")) {
       return NULL;
     }
 
-    if (e->KeywordSet( "LEVEL")) {
+    if (e->KeywordSet("LEVEL")) {
       return NULL;
     }
 
-    static int variablesIx = e->KeywordIx( "VARIABLES" );
-    static int fetchIx = e->KeywordIx( "FETCH" );
-    static int arg_namesIx = e->KeywordIx( "ARG_NAME" );
-    static int storeIx = e->KeywordIx( "STORE" );
-    bool var=false, fetch=false, arg=false, store=false;
+    static int variablesIx = e->KeywordIx("VARIABLES");
+    static int fetchIx = e->KeywordIx("FETCH");
+    static int arg_namesIx = e->KeywordIx("ARG_NAME");
+    static int storeIx = e->KeywordIx("STORE");
+    bool var = false, fetch = false, arg = false, store = false;
 
     DLongGDL* level;
-    level = e->IfDefGetKWAs<DLongGDL>( variablesIx);
+    level = e->IfDefGetKWAs<DLongGDL>(variablesIx);
     if (level != NULL) {
       var = true;
     } else {
-      level = e->IfDefGetKWAs<DLongGDL>( fetchIx);
+      level = e->IfDefGetKWAs<DLongGDL>(fetchIx);
       if (level != NULL) {
-	fetch = true;
+        fetch = true;
       } else {
-	level = e->IfDefGetKWAs<DLongGDL>( arg_namesIx);
-	if (level != NULL) {
-	  arg = true;
-	} else {
-	  level = e->IfDefGetKWAs<DLongGDL>( storeIx);
-	  if (level != NULL) {
-	    store = true;
-	  }
-	}
+        level = e->IfDefGetKWAs<DLongGDL>(arg_namesIx);
+        if (level != NULL) {
+          arg = true;
+        } else {
+          level = e->IfDefGetKWAs<DLongGDL>(storeIx);
+          if (level != NULL) {
+            store = true;
+          }
+        }
       }
     }
 
@@ -1336,9 +1344,12 @@ namespace lib {
       if (desiredlevnum < 1) return NULL;
       if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
 
-      DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
+      DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
 
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
+      SizeT nComm = pro->CommonsSize(); // # has commons?
+      SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
+
       int nKey = pro->NKey();
       //cout << "nKey:" << nKey << endl;
       //cout << "nVar:" << nVar << endl;
@@ -1346,38 +1357,41 @@ namespace lib {
 
       if (fetch) { // FETCH
 
-	e->AssureScalarPar<DStringGDL>( 0, varName);
-	varName = StrUpCase( varName);
-	int xI = pro->FindVar( varName);
-	//	cout << xI << endl;
-	if (xI != -1) {
-	  // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetKW( xI);
-	  return &par; // <-  HERE IS THE DIFFERENCE
-	}
-	
-	e->Throw( "Variable not found: " + varName);
-	return NULL;
+        e->AssureScalarPar<DStringGDL>(0, varName);
+        varName = StrUpCase(varName);
+        int xI = pro->FindVar(varName);
+        //	cout << xI << endl;
+        if (xI != -1) {
+          // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          return &par; // <-  HERE IS THE DIFFERENCE
+        } else {
+          BaseGDL** par = pro->GetCommonVarPtr(varName);
+          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+          return par; // <-  HERE IS THE DIFFERENCE           
+        }
+
+        e->Throw("Variable not found: " + varName);
+        return NULL;
 
       } else if (var) { // ARG_NAME
 
-	return NULL;
+        return NULL;
 
       } else if (arg) { // ARG_NAME
 
-	return NULL;
+        return NULL;
 
-      } 
+      }
       else { // STORE
 
-	return NULL;
+        return NULL;
       }
-    } 
-    else 
-      {
-	// Get Compiled Procedures & Functions 
-	return NULL;
-      }
+    }
+    else {
+      // Get Compiled Procedures & Functions 
+      return NULL;
+    }
   }
 
   

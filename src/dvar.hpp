@@ -49,6 +49,7 @@ public:
   {
     return d;
   }
+  void SetData(BaseGDL* val){d=val;}
 };
 
 typedef std::vector<DVar*>        VarListT;

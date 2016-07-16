@@ -344,8 +344,14 @@ public:
 
   void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 
-  SizeT Size() { return var.size();}
-
+  SizeT Size() {return var.size();}
+  SizeT CommonsSize() {
+   SizeT commonsize=0;
+   CommonBaseListT::iterator c = common.begin();
+   for(; c != common.end(); ++c) commonsize+=(*c)->NVar();
+   return commonsize;
+   }
+  
   int NForLoops() const { return nForLoops;}
   
   // search for variable returns true if its found in var or common blocks
@@ -389,6 +395,7 @@ public:
     return key[ix];
   }
 
+  BaseGDL* GetCommonVarNameList();
   bool GetCommonVarName(const BaseGDL* p, std::string& varName);
   bool GetCommonVarName4Help(const BaseGDL* p, std::string& varName);
 
@@ -406,7 +413,32 @@ public:
       }
     return NULL;
   }
-
+  
+  BaseGDL** GetCommonVarPtr(std::string& s)
+  {
+    for(CommonBaseListT::iterator c=common.begin();
+   	c != common.end(); c++)
+      {
+       	DVar* v=(*c)->Find(s);
+       	if (v) return &(v->Data());
+      }
+    return NULL;
+  }
+  
+  bool ReplaceExistingCommonVar(std::string& s, BaseGDL* val)
+  {
+    for(CommonBaseListT::iterator c=common.begin();
+   	c != common.end(); c++)
+      {
+       	DVar* v=(*c)->Find(s);
+       	if (v) { 
+         delete (v)->Data();
+         (v)->SetData(val);
+         return true;
+        }
+      }
+    return false;
+  }  
   // returns the variable index (-1 if not found)
   int FindVar(const std::string& s)
   {
