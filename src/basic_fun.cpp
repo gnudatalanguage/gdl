@@ -447,7 +447,8 @@ namespace lib {
 	    DPtr heapID= e->NewHeap();
 	    return new DPtrGDL( heapID);
 	  }	
-	if (e->KeywordSet("NO_COPY")) // NO_COPY
+    static int no_copyIx=e->KeywordIx("NO_COPY");
+	if (e->KeywordSet(no_copyIx)) // NO_COPY
 	  {
 	    BaseGDL** p= &e->GetPar( 0);
 	    // 	    if( *p == NULL)
@@ -1144,7 +1145,8 @@ namespace lib {
     SizeT nParam=e->NParam( 1);
     if( nParam == 2)
       {
-	if (e->KeywordSet("DOUBLE")) {
+      static int doubleIx=e->KeywordIx("DOUBLE");
+	if (e->KeywordSet(doubleIx)) {
 	  return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
 	} else {
 	  return complex_fun_template_twopar< DComplexGDL, DComplex, DFloatGDL>( e);
@@ -1182,8 +1184,8 @@ namespace lib {
     //
     for (SizeT i=0; i<nParam; ++i)
       BaseGDL* p = e->GetParDefined( i);
-
-    bool printKey =  e->KeywordSet("PRINT");
+    static int printKeyIx=e->KeywordIx("PRINT");
+    bool printKey =  e->KeywordSet(printKeyIx);
     int parOffset = 0; 
 
     // SA: handling special VMS-compatibility syntax, e.g.: string(1,'$(F)')
@@ -3432,8 +3434,9 @@ namespace lib {
   {
     SizeT nParam = e->NParam( 1);
     BaseGDL* searchArr = e->GetParDefined( 0);
-
-    bool omitNaN = e->KeywordSet( "NAN");
+    
+    static int omitNaNIx = e->KeywordIx( "NAN");
+    bool omitNaN = e->KeywordSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
     bool subMax = e->KeywordPresent(subIx);  
@@ -3541,8 +3544,9 @@ namespace lib {
     SizeT nParam = e->NParam( 1);
     BaseGDL* searchArr = e->GetParDefined( 0);
 
-    bool omitNaN = e->KeywordSet( "NAN");
-
+    static int omitNaNIx = e->KeywordIx( "NAN");
+    bool omitNaN = e->KeywordSet(omitNaNIx);
+    
     static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
     bool subMin = e->KeywordPresent(subIx);  
 
@@ -3941,12 +3945,13 @@ namespace lib {
     if( nParam == 1) {
       
       static int evenIx = e->KeywordIx( "EVEN");
-	
-      // TYPE
+
+            // TYPE
+      static int doubleIx=e->KeywordIx("DOUBLE");
       bool dbl = 
 	p0->Type() == GDL_DOUBLE || 
 	p0->Type() == GDL_COMPLEXDBL || 
-	e->KeywordSet(e->KeywordIx("DOUBLE"));
+	e->KeywordSet(doubleIx);
       DType type = dbl ? GDL_DOUBLE : GDL_FLOAT;
       bool noconv = (dbl && p0->Type() == GDL_DOUBLE) ||
 	(!dbl && p0->Type() == GDL_FLOAT);
@@ -5101,11 +5106,14 @@ namespace lib {
     //static int lengthIx = e->KeywordIx( "DATA_LENGTH");
     //bool length = e->KeywordSet( lengthIx);
     
-    // we don't know now how to distinghuis the 2 following cases
-    if(e->KeywordSet("DATA_LENGTH"))
+    // we don't know now how to distinguish the 2 following cases
+    static int datalengthIx=e->KeywordIx("DATA_LENGTH");
+    static int lengthIx=e->KeywordIx("LENGTH");
+    
+    if(e->KeywordSet(datalengthIx))
       return new DLongGDL( s->Sizeof());
     
-    if(e->KeywordSet("LENGTH"))
+    if(e->KeywordSet(lengthIx))
       return new DLongGDL( s->Sizeof());
 
     return new DLongGDL( s->Desc()->NTags());
@@ -5923,10 +5931,12 @@ namespace lib {
     SizeT nParam=e->NParam( 0); 
 
     BaseGDL* ret;
-    bool kw_l64 = e->KeywordSet(e->KeywordIx("L64"));
+    static int kw_l64_Ix = e->KeywordIx("L64");
+    bool kw_l64 = e->KeywordSet(kw_l64_Ix);
     // TODO: IDL-doc mentions about automatically switching to L64 if needed
 
-    if (e->KeywordSet(e->KeywordIx("STRUCTURE")))
+    static int structureIx=e->KeywordIx("STRUCTURE");
+    if (e->KeywordSet(structureIx))
       {
 	// returning structure
 	if (kw_l64) 
@@ -5950,10 +5960,15 @@ namespace lib {
       }
     else 
       {
-	bool kw_current = e->KeywordSet(e->KeywordIx("CURRENT"));
-	bool kw_num_alloc = e->KeywordSet(e->KeywordIx("NUM_ALLOC"));
-	bool kw_num_free = e->KeywordSet(e->KeywordIx("NUM_FREE"));
-	bool kw_highwater = e->KeywordSet(e->KeywordIx("HIGHWATER"));
+	static int Ix_kw_current   = e->KeywordIx("CURRENT");
+	static int Ix_kw_num_alloc = e->KeywordIx("NUM_ALLOC");
+	static int Ix_kw_num_free  = e->KeywordIx("NUM_FREE");
+	static int Ix_kw_highwater = e->KeywordIx("HIGHWATER");
+
+	bool kw_current =   e->KeywordSet( Ix_kw_current  );
+	bool kw_num_alloc = e->KeywordSet( Ix_kw_num_alloc);
+	bool kw_num_free =  e->KeywordSet( Ix_kw_num_free );
+	bool kw_highwater = e->KeywordSet( Ix_kw_highwater);
 
 	// Following the IDL documentation: mutually exclusive keywords
 	// IDL behaves different, incl. segfaults with selected kw combinations

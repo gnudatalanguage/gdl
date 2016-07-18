@@ -202,9 +202,11 @@ namespace lib {
       if ((v <= -1) || (v >= 1)) ret_seconds=true;
 
     }
-
+    static int julianIx=e->KeywordIx("JULIAN");
+    static int secondsIx=e->KeywordIx("SECONDS");
+    static int utcIx=e->KeywordIx("UTC");
     if (nParam == 2) {
-      if (e->KeywordSet("JULIAN")) e->Throw("Conflicting keywords.");
+      if (e->KeywordSet(julianIx)) e->Throw("Conflicting keywords.");
 
       //2 parameters
       //if the first param is 0, return the date of the second arg
@@ -230,11 +232,11 @@ namespace lib {
     //return the variable in seconds, either JULIAN, JULIAN+UTC,
     //or no other keywords
     struct tm *tstruct;
-    if( ret_seconds || e->KeywordSet("SECONDS") )
+    if( ret_seconds || e->KeywordSet(secondsIx) )
       {
-       if( e->KeywordSet("JULIAN") )
+       if( e->KeywordSet(julianIx) )
          {
-           if( e->KeywordSet("UTC") )
+           if( e->KeywordSet(utcIx) )
              tstruct=gmtime((time_t *)&tval.tv_sec);
            else
              tstruct=localtime((time_t *)&tval.tv_sec);
@@ -473,7 +475,8 @@ namespace lib {
 	}
 	
       //convert things back
-      if(xvals->Type() != GDL_DOUBLE && !e->KeywordSet("DOUBLE"))
+      static int doubleIx=e->KeywordIx("DOUBLE");
+      if(xvals->Type() != GDL_DOUBLE && !e->KeywordSet(doubleIx))
 	{
 	  return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT);
 	}
