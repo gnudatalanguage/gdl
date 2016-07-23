@@ -59,10 +59,11 @@ namespace lib {
     
     static int method = 3;  //default Method is 3 that give identic result as idl
     static int isDouble = 0;   //default double is 0
-    e->AssureLongScalarKWIfPresent( e->KeywordIx("METHOD"), method);
-    if (e->KeywordSet("DOUBLE")) isDouble = e->KeywordIx( "DOUBLE");
+    static int methodIx=e->KeywordIx("METHOD");
+    e->AssureLongScalarKWIfPresent(methodIx , method);
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) isDouble = methodIx;
     
-    SizeT nParam=e->NParam(2);
     BaseGDL* p0 = e->GetParDefined( 0);
     BaseGDL* p1 = e->GetParDefined( 1);
 
@@ -104,7 +105,7 @@ namespace lib {
     NbRow2=p1->Dim(0);
     Map<Matrix<double,Dynamic,Dynamic,RowMajor> > m0(&(*p0D)[0], NbCol1,NbRow1);
     Map<Matrix<double,Dynamic,Dynamic,RowMajor> > m2(&(*p2D)[0], NbCol2,NbRow2);
-    LLT<MatrixXf>solver;
+//    LLT<MatrixXf>solver; //solver is not USED! and...
     Map<VectorXd> m3(&(*p2D)[0], NbRow2); //for one B when it's vector
     MatrixXd tmp_res;
     /**************Methods******************/	
@@ -121,16 +122,17 @@ namespace lib {
     else if (method >= 2 && !p1->Dim(1)) 
       tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
 
-    if(solver.info()==NumericalIssue) 
-      {
-	e->Throw( "Array is not positive definite: " + e->GetParString(0));
-	return 0;
-      }
-    if(solver.info()!=Success) 
-      {
-	e->Throw( "Decomposition has failed: " + e->GetParString(0));
-	return 0;
-      }
+    // AND if SOLVER is not USED, The following crash on an assertion in debug mode!!!
+//    if(solver.info()==NumericalIssue) 
+//      {
+//	e->Throw( "Array is not positive definite: " + e->GetParString(0));
+//	return 0;
+//      }
+//    if(solver.info()!=Success) 
+//      {
+//	e->Throw( "Decomposition has failed: " + e->GetParString(0));
+//	return 0;
+//      }
     /***********************Return Values******************/
     if(p1->Dim(1)) {
       SizeT dims[3];
@@ -138,7 +140,7 @@ namespace lib {
       dims[0] = NbRow2;
       dimension dim( dims, (SizeT) 2 );
 
-      if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE")) {
+      if(( p0->Type() == GDL_DOUBLE) || isDouble) {
 	DDoubleGDL* resD =new DDoubleGDL(dim, BaseGDL::NOZERO);
 	Map<MatrixXd>(&(*resD)[0], NbRow2,NbRow1) = tmp_res.transpose().cast<double>();
 	return resD;
@@ -149,7 +151,7 @@ namespace lib {
 	return resF;
       }
     } else { //when B is a vector
-      if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE")) {
+      if(( p0->Type() == GDL_DOUBLE) || isDouble) {
 	DDoubleGDL* resD =new DDoubleGDL(NbRow1, BaseGDL::NOZERO);
 	Map<VectorXd>(&(*resD)[0], NbRow1) = tmp_res.cast<double>();
 	return resD;
