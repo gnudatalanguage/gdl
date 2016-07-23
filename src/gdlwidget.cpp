@@ -142,6 +142,8 @@ inline wxSize GDLWidgetText::computeWidgetSize()
 {
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxSize widgetSize = wxDefaultSize;
+  //note: apparently GetPixelSize can return 0 at least under windows. Here this will only put widgetsize to 20 x 20. In other places;
+  //it should be protected agains zero divides.
   wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize(); 
   if ( xSize > 0 ) { widgetSize.x = (xSize+0.5) * fontSize.x; if ( widgetSize.x < 20 ) widgetSize.x=20;}
@@ -155,12 +157,15 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   else widgetSize.y = fontSize.y*1.5; //instead of nlines*fontSize.y to be compliant with *DL
   if (widgetSize.y < 20) widgetSize.y = 20;
 //but..
+   if (scrYSize > 0) widgetSize.y=scrYSize;
   
   return widgetSize;
 }
 inline wxSize GDLWidgetList::computeWidgetSize()
 {
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
+  //note: apparently GetPixelSize can return 0 at least under windows. Here this will only put widgetsize to 20 x 20. In other places;
+  //it should be protected agains zero divides.
   wxSize fontSize = wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize(); //wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
   wxSize widgetSize = wxDefaultSize;
@@ -3380,6 +3385,11 @@ DStructGDL* GDLWidgetList::GetGeometry(wxRealPoint fact)
     position = test->GetPosition( );
     fontSize = test->GetFont().GetPixelSize(); 
   }
+  //Apparently Windows may return 0 for fontsize.x (probably if too small)?
+  if (fontSize.x == 0) fontSize.x=0.65*fontSize.y; //last chance to get a correct value
+  if (fontSize.x == 0) fontSize.x=1;
+  if (fontSize.y == 0) fontSize.y=1;
+  
   if (frameSizer != NULL) {framePanel->GetSize(&ixscr,&iyscr);  margin = gdlFRAME_MARGIN / fact.x;}
   if (scrollSizer != NULL) {scrollPanel->GetSize(&ixscr,&iyscr);ixs=ixscr-gdlSCROLL_WIDTH;iys=iyscr-gdlSCROLL_WIDTH;}
   //size is in pixels, pass in requested units (1.0 default)
@@ -3789,6 +3799,11 @@ DStructGDL* GDLWidgetText::GetGeometry(wxRealPoint fact)
     position = txt->GetPosition( );
     fontSize = txt->GetFont().GetPixelSize(); 
   }
+  //Apparently Windows may return 0 for fontsize.x (probably if too small)?
+  if (fontSize.x == 0) fontSize.x=0.65*fontSize.y; //last chance to get a correct value
+  if (fontSize.x == 0) fontSize.x=1;
+  if (fontSize.y == 0) fontSize.y=1;
+
   if (frameSizer != NULL) {framePanel->GetSize(&ixscr,&iyscr);  margin = gdlFRAME_MARGIN / fact.x;}
   if (scrollSizer != NULL) {scrollPanel->GetSize(&ixscr,&iyscr);ixs=ixscr-gdlSCROLL_WIDTH;iys=iyscr-gdlSCROLL_WIDTH;}
   //size is in pixels, pass in requested units (1.0 default)

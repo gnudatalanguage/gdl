@@ -2108,7 +2108,7 @@ BaseGDL* widget_info( EnvT* e ) {
       } //end inner loop
       //here we got a real event, process it
 endwait:
-      ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler
+      ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
       // examine return:
       if (ev == NULL) { //either 2) or 3a) 
         if (nowait) return defaultRes; //else will loop again
@@ -2755,6 +2755,10 @@ void widget_control( EnvT* e ) {
     } else {
       if (widget->IsList()||widget->IsText()) {
         wxSize fontSize = me->GetFont().GetPixelSize(); // was wxSystemSettings::GetFont( wxSYS_SYSTEM_FONT ).GetPixelSize();
+        //Apparently Windows may return 0 for fontsize.x (probably if too small)?
+        if (fontSize.x == 0) fontSize.x=0.65*fontSize.y; //last chance to get a correct value
+        if (fontSize.x == 0) fontSize.x=1;
+        if (fontSize.y == 0) fontSize.y=1;
         if (hasXsize) xsize *= fontSize.x;
         if (hasYsize) ysize *= fontSize.y; 
       } else if ( widget->IsTable()) {
