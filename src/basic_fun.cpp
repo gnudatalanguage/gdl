@@ -1208,7 +1208,7 @@ namespace lib {
 	  }    
       }
     
-    int formatIx=e->KeywordIx ("FORMAT"); 
+    static int formatIx=e->KeywordIx ("FORMAT"); 
     BaseGDL* format_kw = e->GetKW(formatIx);
     bool formatKey = format_kw != NULL;
 
