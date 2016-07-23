@@ -1212,6 +1212,7 @@ bool *tests )
       "TEST_REGULAR", "TEST_DIRECTORY", "TEST_ZERO_LENGTH",
       "TEST_SYMLINK"};
     bool tests[NTEST_SEARCH];
+    //TODO: check following (static int vs. multiple choices)
     static int keyindex;
     for( SizeT i=0; i < NTEST_SEARCH; i++) {
       tests[i] = false;
@@ -1524,8 +1525,8 @@ bool *tests )
       (*res)[i] = dname;
 
     }
-    
-    if (e->KeywordSet("MARK_DIRECTORY")) {
+    static int file_dirnameIx=e->KeywordIx("MARK_DIRECTORY");
+    if (e->KeywordSet(file_dirnameIx)) {
       for (SizeT i = 0; i < p0S->N_Elements(); i++) {
 	(*res)[i]=(*res)[i] + PathSeparator();
       }
@@ -1586,7 +1587,8 @@ bool *tests )
 	// expanding if needed (tilde, shell variables, etc)
 	const char *file0, *file1;
 	string tmp0, tmp1;
-	if (!e->KeywordSet(e->KeywordIx("NOEXPAND_PATH"))) 
+    static int noexpoand_pathIx=e->KeywordIx("NOEXPAND_PATH");
+	if (!e->KeywordSet(noexpoand_pathIx)) 
 	  {
 	    tmp0 = (*p0S)[p0idx];
 	    WordExp(tmp0);
@@ -1783,9 +1785,13 @@ bool *tests )
     if( p0S == NULL)
       e->Throw( "String expression required in this context: "+e->GetParString(0));
 	  
-    bool noexpand_path = e->KeywordSet(e->KeywordIx( "NOEXPAND_PATH"));
-    bool allow_nonexist = e->KeywordSet(e->KeywordIx( "ALLOW_NONEXISTENT"));
-    bool allow_nonsymlink = e->KeywordSet(e->KeywordIx( "ALLOW_NONSYMLINK"));
+    static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet(noexpand_pathIx);
+    static int allow_nonexistIx = e->KeywordIx( "ALLOW_NONEXISTENT");
+    bool allow_nonexist = e->KeywordSet(allow_nonexistIx);
+    static int allow_nonsymlinkIx = e->KeywordIx( "ALLOW_NONSYMLINK");
+    bool allow_nonsymlink = e->KeywordSet(allow_nonsymlinkIx);
+    
     SizeT nPath = p0S->N_Elements();
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
@@ -1857,7 +1863,8 @@ bool *tests )
 	e->Throw( "String expression required in this context: "+
 		  e->GetParString(0));
 
-      bool noexpand_path = e->KeywordSet(e->KeywordIx( "NOEXPAND_PATH"));
+      static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
+      bool noexpand_path = e->KeywordSet(noexpand_pathIx);
 
       DStructGDL* res = new DStructGDL(
 				       FindInStructList(structList, "FILE_INFO"), 
