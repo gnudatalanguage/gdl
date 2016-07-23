@@ -828,11 +828,11 @@ namespace lib {
     if (debug) cout << "inside random_template" << endl;
 
     // testing Exclusive Keywords ...
-    int exclusiveKW= e->KeywordPresent(e->KeywordIx("GAMMA"));
-    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("NORMAL"));
-    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("BINOMIAL"));
-    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("POISSON"));
-    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("UNIFORM"));
+    int exclusiveKW= e->KeywordPresent(e->KeywordIx("GAMMA")); //intentionally NOT static: double use of routine.
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("NORMAL")); //intentionally NOT static: double use of routine.
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("BINOMIAL")); //intentionally NOT static: double use of routine.
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("POISSON")); //intentionally NOT static: double use of routine.
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("UNIFORM")); //intentionally NOT static: double use of routine.
 
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
@@ -1103,8 +1103,8 @@ namespace lib {
     if( p0->Type() == GDL_COMPLEX || p0->Type() == GDL_COMPLEXDBL)
       e->Throw( "Complex expression not allowed in this context: "
 		+e->GetParString(0));
-    
-    BaseGDL* binsizeKW = e->GetKW(e->KeywordIx("BINSIZE"));
+    static int binsizeIx=e->KeywordIx("BINSIZE");
+    BaseGDL* binsizeKW = e->GetKW(binsizeIx);
     DDouble bsize = 1.0;
     if( binsizeKW != NULL)
       {
@@ -1113,14 +1113,16 @@ namespace lib {
 	  e->Throw( "Illegal BINSIZE.");
       }
 
-    BaseGDL* maxKW = e->GetKW(e->KeywordIx("MAX"));
-    BaseGDL* minKW = e->GetKW(e->KeywordIx("MIN"));
-
-    BaseGDL* nbinsKW = e->GetKW(e->KeywordIx("NBINS"));
+    static int maxIx=e->KeywordIx("MAX");
+    BaseGDL* maxKW = e->GetKW(maxIx);
+    static int minIx=e->KeywordIx("MIN");
+    BaseGDL* minKW = e->GetKW(minIx);
+    static int nbinsIx=e->KeywordIx("NBINS");
+    BaseGDL* nbinsKW = e->GetKW(nbinsIx);
     DLong nbins;
     if( nbinsKW != NULL)
       {
-	e->AssureLongScalarKW(e->KeywordIx("NBINS"), nbins);
+	e->AssureLongScalarKW(nbinsIx, nbins);
 	if( nbins < 0)
 	  e->Throw( "Illegal NBINS (<0).");
 	if( nbins == 0) // NBINS=0 is ignored
@@ -1146,7 +1148,8 @@ namespace lib {
 
     DDouble minVal, maxVal;
 
-    if( e->KeywordSet( "NAN")) {
+    static int nanIx=e->KeywordIx("NAN");
+    if( e->KeywordSet(nanIx)) {
       DLong minEl, maxEl;
       p0D->MinMax( &minEl, &maxEl, NULL, NULL, true);
       minVal=(*p0D)[minEl];
@@ -1179,7 +1182,7 @@ namespace lib {
 	  a = minVal;
       } 
     else 
-      e->AssureDoubleScalarKW(e->KeywordIx("MIN"), a);
+      e->AssureDoubleScalarKW(minIx, a);
     // max
     if (maxKW == NULL) 
       {	
@@ -1199,7 +1202,7 @@ namespace lib {
       } 
     else
       {
-	e->AssureDoubleScalarKW(e->KeywordIx("MAX"), b);
+	e->AssureDoubleScalarKW(maxIx, b);
 
 	// MAX && !BINSIZE && NBINS -> determine BINSIZE
 	if( binsizeKW == NULL && nbinsKW != NULL)
@@ -1247,7 +1250,7 @@ namespace lib {
     gdl_make_uniform (hh, hh->n, a, b);
 
     // Set maxVal from keyword if present
-    if (maxKW != NULL) e->AssureDoubleScalarKW(e->KeywordIx("MAX"), maxVal);
+    if (maxKW != NULL) e->AssureDoubleScalarKW(maxIx, maxVal);
 
     // Generate histogram
     for( SizeT i=0; i<nEl; ++i) {
@@ -1269,18 +1272,21 @@ namespace lib {
     // SA: using aOri/bOri instead of gsl_histogram_min(hh) (as in calculation of LOCATIONS) 
     //     otherwise, when converting e.g. to GDL_INT the conversion might give bad results
     // OMAX
-    if( e->KeywordPresent(e->KeywordIx("OMAX"))) {
+      static int omaxIx=e->KeywordIx("OMAX");
+    if( e->KeywordPresent(omaxIx)) {
       // e->SetKW( 5, (new DDoubleGDL( gsl_histogram_max(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
-      e->SetKW(e->KeywordIx("OMAX"), (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW(omaxIx, (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
     // OMIN
-    if( e->KeywordPresent(e->KeywordIx("OMIN"))) {
+      static int ominIx=e->KeywordIx("OMIN");
+      if( e->KeywordPresent(ominIx)) {
       // e->SetKW( 6, (new DDoubleGDL( gsl_histogram_min(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
-      e->SetKW(e->KeywordIx("OMIN"), (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW(ominIx, (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
 
     // REVERSE_INDICES
-    if( e->KeywordPresent(e->KeywordIx("REVERSE_INDICES"))) {
+      static int reverse_indicesIx=e->KeywordIx("REVERSE_INDICES");
+    if( e->KeywordPresent(reverse_indicesIx)) {
 
       if (input != NULL)
 	e->Throw("Conflicting keywords.");
@@ -1350,12 +1356,13 @@ namespace lib {
 	(*revindKW)[i] = k + nbins + 1;
       }
 
-      e->SetKW(e->KeywordIx("REVERSE_INDICES"), revindKW);
+      e->SetKW(reverse_indicesIx, revindKW);
     }
     
     // LOCATIONS
-    if( e->KeywordPresent(e->KeywordIx("LOCATIONS"))) {
-      BaseGDL** locationsKW = &e->GetKW(e->KeywordIx("LOCATIONS"));
+      static int locationsIx=e->KeywordIx("LOCATIONS");
+    if( e->KeywordPresent(locationsIx)) {
+      BaseGDL** locationsKW = &e->GetKW(locationsIx);
       GDLDelete((*locationsKW));
 
       dimension dim( nbins);
@@ -2634,7 +2641,7 @@ namespace lib {
     DLong wsize =static_cast<DLong>(pow(2.0, (20-1)));
     if(e->KeywordSet("JMAX"))
       {
-	pos = e->KeywordIx("JMAX");
+	pos = e->KeywordIx("JMAX"); //intentionally NOT static: double use of routine.
 	e->AssureLongScalarKWIfPresent(pos, wsize);
 	wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
       }
@@ -2645,7 +2652,7 @@ namespace lib {
     if (isDouble) {eps_default=1.e-12;} else {eps_default=1.e-6;}
     
     if (e->KeywordSet("EPS")) {
-      pos = e->KeywordIx("EPS");
+      pos = e->KeywordIx("EPS"); //intentionally NOT static: double use of routine.
       e->AssureDoubleScalarKWIfPresent(pos, eps);
       if (eps < 0.0) {
 	Message(e->GetProName() + ": EPS must be positive ! Value set to Default.");
@@ -2730,7 +2737,8 @@ namespace lib {
       }
 
     // do we need to compute/return in double ?
-    bool isDouble =  e->KeywordSet("DOUBLE") || p1->Type() == GDL_DOUBLE;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    bool isDouble =  e->KeywordSet(doubleIx) || p1->Type() == GDL_DOUBLE;
     if (!do_midexp)
       if (p2->Type() == GDL_DOUBLE) isDouble=true;
 
@@ -2806,10 +2814,10 @@ namespace lib {
     double eps, eps_default;
     if (isDouble) {eps_default=1.e-12;} else {eps_default=1.e-6;}
     int pos;
-
-    if (e->KeywordSet("EPS")) {
-      pos = e->KeywordIx("EPS");
-      e->AssureDoubleScalarKWIfPresent(pos, eps);
+    
+    static int epsIx=e->KeywordIx("EPS");
+    if (e->KeywordSet(epsIx)) {
+      e->AssureDoubleScalarKWIfPresent(epsIx, eps);
       if (eps < 0.0) {
 	Message(e->GetProName() + ": EPS must be positive ! Value set to Default.");
 	eps=eps_default;
@@ -2824,10 +2832,10 @@ namespace lib {
 
     // Definition of JMAX
     DLong wsize =static_cast<DLong>(pow(2.0, (20-1)));
-    if(e->KeywordSet("JMAX"))
+    static int jmaxIx=e->KeywordIx("JMAX");
+    if(e->KeywordSet(jmaxIx))
       {
-	pos = e->KeywordIx("JMAX");
-	e->AssureLongScalarKWIfPresent(pos, wsize);
+	e->AssureLongScalarKWIfPresent(jmaxIx, wsize);
 	wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
       }
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (wsize);
@@ -2843,15 +2851,22 @@ namespace lib {
       
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
       
+      static int midinfIx=e->KeywordIx("MIDINF");
+      static int midpntIx=e->KeywordIx("MIDPNT");
+      static int midsqlIx=e->KeywordIx("MIDSQL");
+      static int midsquIx=e->KeywordIx("MIDSQU");
+      static int jmaxIx=e->KeywordIx("JMAX");
+      static int kkkIx=e->KeywordIx("K");
       // intregation on open range [first,+inf[
       if (do_midexp)
 	{	 
 	  gsl_integration_qagiu(&F, first, 0, eps, 
 				wsize, w, &result, &error);
 	} 
-      else if (e->KeywordSet("MIDINF") || e->KeywordSet("MIDPNT") ||
-	       e->KeywordSet("MIDSQL") || e->KeywordSet("MIDSQU") ||
-	       e->KeywordSet("JMAX") || e->KeywordSet("K"))
+
+      else if (e->KeywordSet(midinfIx) || e->KeywordSet(midpntIx) ||
+	       e->KeywordSet(midsqlIx) || e->KeywordSet(midsquIx) ||
+	       e->KeywordSet(jmaxIx) || e->KeywordSet(kkkIx))
 	{
 	  gsl_integration_qag(&F, first, last, 0, eps,
 			      wsize, GSL_INTEG_GAUSS61, w, &result, &error);
