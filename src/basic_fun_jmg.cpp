@@ -1016,8 +1016,10 @@ namespace lib {
     //     DLong curlevnum = callStack.size()-1;
     // 'e' is not on the stack
     DLong curlevnum = callStack.size();
-
-    if (e->KeywordSet("S_FUNCTIONS")) {
+    static int sfunctionsIx=e->KeywordIx("S_FUNCTIONS");
+    static int sproceduresIx=e->KeywordIx("S_PROCEDURES");
+    static int levelIx=e->KeywordIx("LEVEL");
+    if (e->KeywordSet(sfunctionsIx)) {
       vector<DString> subList;
 
       SizeT nFun = libFunList.size();
@@ -1038,7 +1040,7 @@ namespace lib {
       return res;
     }
 
-    if (e->KeywordSet("S_PROCEDURES")) {
+    if (e->KeywordSet(sproceduresIx)) {
       vector<DString> subList;
 
       SizeT nPro = libProList.size();
@@ -1058,7 +1060,7 @@ namespace lib {
       return res;
     }
 
-    if (e->KeywordSet("LEVEL")) {
+    if (e->KeywordSet(levelIx)) {
       return new DLongGDL(curlevnum);
     }
 
@@ -1104,6 +1106,7 @@ namespace lib {
       DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
       SizeT nComm = pro->CommonsSize(); // # has commons?
+      //cerr<<"nComm= "<<nComm<<" in " <<pro->NumberOfCommons()<<" commons"<<endl;
       SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
       int nKey = pro->NKey();
       //cout << "nKey:" << nKey << endl;
@@ -1113,20 +1116,23 @@ namespace lib {
       if (var) {
         if (nTotVar == 0) return new DStringGDL("");
         DStringGDL* res = new DStringGDL(dimension(nTotVar), BaseGDL::NOZERO);
-        SizeT ivar=0;
+        set<string> sortedList;  // "Sorted List" 
         if (nVar > 0) {
           for (SizeT i = 0; i < nVar; ++i) {
             string vname = pro->GetVarName(i);
-            (*res)[ivar++] = vname;
+            sortedList.insert(vname);
           }
         }
         if (nComm > 0) {
           DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
           for (SizeT i = 0; i < list->N_Elements(); ++i) {
-            (*res)[ivar++] = (*list)[i];
+            sortedList.insert((*list)[i]);
           }
         }
-        return res; //TODO: sort by alphabetical order.
+        SizeT ivar=0;
+        set<string>::iterator it = sortedList.begin();
+	    while (it != sortedList.end()) (*res)[ivar++] = *it++;
+        return res; 
       }
       else if (fetch) { // FETCH
 
@@ -1293,19 +1299,19 @@ namespace lib {
     SizeT nParam = e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
-    //     DLong curlevnum = callStack.size()-1;
-    // 'e' is not on the stack
     DLong curlevnum = callStack.size();
-
-    if (e->KeywordSet("S_FUNCTIONS")) {
+    static int sfunctionsIx=e->KeywordIx("S_FUNCTIONS");
+    static int sproceduresIx=e->KeywordIx("S_PROCEDURES");
+    static int levelIx=e->KeywordIx("LEVEL");
+    if (e->KeywordSet(sfunctionsIx)) {
       return NULL;
     }
 
-    if (e->KeywordSet("S_PROCEDURES")) {
+    if (e->KeywordSet(sproceduresIx)) {
       return NULL;
     }
 
-    if (e->KeywordSet("LEVEL")) {
+    if (e->KeywordSet(levelIx)) {
       return NULL;
     }
 
