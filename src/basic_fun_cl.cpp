@@ -203,10 +203,12 @@ namespace lib {
 
     }
     static int julianIx=e->KeywordIx("JULIAN");
+    bool isjulian=e->KeywordSet(julianIx);
     static int secondsIx=e->KeywordIx("SECONDS");
     static int utcIx=e->KeywordIx("UTC");
+    bool isutc=e->KeywordSet(utcIx);
     if (nParam == 2) {
-      if (e->KeywordSet(julianIx)) e->Throw("Conflicting keywords.");
+      if (isjulian) e->Throw("Conflicting keywords.");
 
       //2 parameters
       //if the first param is 0, return the date of the second arg
@@ -234,9 +236,9 @@ namespace lib {
     struct tm *tstruct;
     if( ret_seconds || e->KeywordSet(secondsIx) )
       {
-       if( e->KeywordSet(julianIx) )
+       if( isjulian )
          {
-           if( e->KeywordSet(utcIx) )
+           if( isutc )
              tstruct=gmtime((time_t *)&tval.tv_sec);
            else
              tstruct=localtime((time_t *)&tval.tv_sec);
@@ -252,13 +254,13 @@ namespace lib {
       }
 
     //return a string of the time, either UTC or local (default)
-    if(e->KeywordSet("UTC"))
+    if(isutc)
       tstruct= gmtime((time_t *)&tval.tv_sec);
     else
       tstruct= localtime((time_t *)&tval.tv_sec);
 
     //Convert the time to JULIAN or NOT
-    if(e->KeywordSet("JULIAN"))
+    if(isjulian)
         return new DDoubleGDL(Gregorian2Julian(tstruct));
     else 
       {
