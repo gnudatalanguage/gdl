@@ -125,12 +125,12 @@ GraphicsDevice::GraphicsDevice(): dStruct( NULL), CopyBufferSize(0)
 {
 }
 
-void GraphicsDevice::ListDevice()
+void GraphicsDevice::ListDevice(std::ostream& oss)
 {
   int size = deviceList.size();
-  cout << "Available Graphics Devices: ";
-  for( int i=0; i<size; i++) cout << deviceList[ i]->Name() << " ";
-  cout << endl;
+  oss << "Available Graphics Devices: ";
+  for( int i=0; i<size; i++) oss << deviceList[ i]->Name() << " ";
+  oss << endl;
 }
 
 bool GraphicsDevice::ExistDevice( const string& device, int &index)

@@ -169,7 +169,7 @@ public:
   static GDLCT*      GetCT() { return &actCT;}
   static GDLCT*      GetCT( SizeT ix) { return &CT[ix];}
   static SizeT       N_CT() { return CT.size();}
-  static void        ListDevice();
+  static void        ListDevice(std::ostream& oss=cout);
   static bool        ExistDevice( const std::string& device, int &index);
   static bool        SetDevice( const std::string& devName);
   DStructGDL*        GetDeviceStruct( const std::string& device);
