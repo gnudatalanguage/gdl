@@ -3960,7 +3960,9 @@ namespace lib {
       DLong dim = 0;
       DLong nmed = 1;
       BaseGDL *res;
-      e->AssureLongScalarKWIfPresent( "DIMENSION", dim);
+      
+      static int dimensionIx=e->KeywordIx("DIMENSION");
+      e->AssureLongScalarKWIfPresent( dimensionIx , dim);
 
       //	cout << "dim : "<< dim << endl;
 	

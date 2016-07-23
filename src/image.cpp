@@ -48,12 +48,16 @@ namespace lib {
     GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
     if (actStream == NULL) e->Throw("Unable to create window.");
  
-    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
+    static int wordsIx=e->KeywordIx("WORDS");
+    static int orderIx=e->KeywordIx("ORDER");
+    static int trueIx=e->KeywordIx("TRUE");
+    static int channelIx=e->KeywordIx("CHANNEL");
+    if (e->KeywordSet(wordsIx)) e->Throw( "WORDS keyword not yet supported.");
     DLong orderVal=SysVar::TV_ORDER();
-    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    e->AssureLongScalarKWIfPresent(orderIx, orderVal);
 
     DLong tru=0;
-    e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    e->AssureLongScalarKWIfPresent( trueIx, tru);
     if (tru > 3 || tru < 0) e->Throw("Value of TRUE keyword is out of allowed range.");
     //GetBitMapData is device-dependent and insures that image is by default ORDER=0 now.
     DByteGDL *bitmap = static_cast<DByteGDL*>(actStream->GetBitmapData());
@@ -93,7 +97,7 @@ namespace lib {
       DLongGDL* ChannelGdl = e->GetParAs<DLongGDL>(4);
       channel=(*ChannelGdl)[0]; 
     }
-    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    e->AssureLongScalarKWIfPresent( channelIx, channel);
     if (channel > 3) {GDLDelete(bitmap); e->Throw("Value of Channel is out of allowed range.");}
 
     if (!(hasXsize))nx_gdl-=x_gdl; 
@@ -228,8 +232,10 @@ namespace lib {
     //actually update colors in col0 if needed:
     DLong bottom=0;
     DLong ncolors=ctSize;
-    if ( e->KeywordSet ( "BOTTOM" ) ) e->AssureLongScalarKWIfPresent ( "BOTTOM", bottom );
-    if ( e->KeywordSet ( "NCOLORS" ) ) e->AssureLongScalarKWIfPresent ( "NCOLORS", ncolors );
+    static int bottomIx=e->KeywordIx("BOTTOM");
+    static int ncolorsIx=e->KeywordIx("NCOLORS");
+    if ( e->KeywordSet ( bottomIx ) ) e->AssureLongScalarKWIfPresent ( bottomIx, bottom );
+    if ( e->KeywordSet ( ncolorsIx ) ) e->AssureLongScalarKWIfPresent ( ncolorsIx, ncolors );
     if (bottom < 0) bottom=0;
     if (bottom > ctSize-1) bottom=ctSize-1;
     if (ncolors < 1) ncolors=1;

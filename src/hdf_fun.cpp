@@ -100,9 +100,11 @@ namespace lib {
     DLong vg_ref;
     e->AssureScalarPar<DLongGDL>( 1, vg_ref);
 
-    if (e->KeywordSet( "READ"))
+    static int readIx=e->KeywordIx("READ");
+    static int writeIx=e->KeywordIx("WRITE");
+    if (e->KeywordSet( readIx ))
       return new DLongGDL( Vattach(hdf_id, vg_ref, "r"));
-    else if (e->KeywordSet( "WRITE"))
+    else if (e->KeywordSet( writeIx ))
       return new DLongGDL( Vattach(hdf_id, vg_ref, "w"));
   }
 
@@ -116,10 +118,12 @@ namespace lib {
     DLong vd_ref;
     e->AssureScalarPar<DLongGDL>( 1, vd_ref);
 
-    if (e->KeywordSet( "WRITE") || vd_ref == -1)
+    static int readIx=e->KeywordIx("READ");
+    static int writeIx=e->KeywordIx("WRITE");
+    if (e->KeywordSet( writeIx ) || vd_ref == -1)
       return new DLongGDL( VSattach(hdf_id, vd_ref, "w"));
 
-    if (e->KeywordSet( "READ"))
+    if (e->KeywordSet(readIx ))
       return new DLongGDL( VSattach(hdf_id, vd_ref, "r"));
 
     return new DLongGDL( VSattach(hdf_id, vd_ref, "r"));
@@ -319,8 +323,9 @@ namespace lib {
     DLongGDL* dims = static_cast<DLongGDL*>
       (p2->Convert2( GDL_LONG, BaseGDL::COPY));
 
+    static int hdftypeIx=e->KeywordIx("HDF_TYPE");
     DLong hdfType=0;
-    e->AssureLongScalarKWIfPresent( "HDF_TYPE", hdfType);
+    e->AssureLongScalarKWIfPresent( hdftypeIx , hdfType);
 
     DLong sds_id;
 
