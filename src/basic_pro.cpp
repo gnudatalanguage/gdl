@@ -555,7 +555,9 @@ namespace lib {
       return;
     }
 
-    if (e->KeywordSet("ALL_KEYS") || e->KeywordSet("KEYS")) { // ALL_KEYS is an obsolete keyword
+    static int allkeysIx=e->KeywordIx("ALL_KEYS");
+    static int keysIx=e->KeywordIx("KEYS");
+    if (e->KeywordSet(allkeysIx) || e->KeywordSet(keysIx)) { // ALL_KEYS is an obsolete keyword
       ostr << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
       ostr << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
       ostr << endl;
@@ -750,7 +752,8 @@ namespace lib {
       return;
     }
 
-    if (e->KeywordSet("INFO")) {
+    static int infoIx=e->KeywordIx("INFO");
+    if (e->KeywordSet(infoIx)) {
 
       cout << "* Homepage: http://gnudatalanguage.sf.net" << endl;
       cout << endl;
@@ -771,7 +774,8 @@ namespace lib {
       return;
     }
 
-    bool kwLib = e->KeywordSet("LIB");
+    static int kwlibIx=e->KeywordIx("LIB");
+    bool kwLib = e->KeywordSet(kwlibIx);
     if (kwLib) {
 
       vector<DString> subList;
@@ -806,7 +810,8 @@ namespace lib {
     }
 
     // internal library functions
-    bool kwLibInternal = e->KeywordSet("INTERNAL_LIB_GDL");
+    static int INTERNAL_LIB_GDLIx=e->KeywordIx("INTERNAL_LIB_GDL");
+    bool kwLibInternal = e->KeywordSet(INTERNAL_LIB_GDLIx);
     if (kwLibInternal) {
 
       vector<DString> subList;
@@ -840,11 +845,13 @@ namespace lib {
       return;
     }
 
-    bool isKWSetMemory = e->KeywordSet("MEMORY");
-    bool isKWSetRecall = e->KeywordSet("RECALL_COMMANDS");
+    static int MEMORYIx  = e->KeywordIx("MEMORY");
+    bool isKWSetMemory = e->KeywordSet(MEMORYIx);
+    static int RECALL_COMMANDSIx = e->KeywordIx("RECALL_COMMANDS");
+    bool isKWSetRecall = e->KeywordSet(RECALL_COMMANDSIx);
 
-
-    bool isKWSetStructures = e->KeywordSet("STRUCTURES");
+    static int STRUCTURESIx = e->KeywordIx("STRUCTURES");
+    bool isKWSetStructures = e->KeywordSet(STRUCTURESIx);
     if (isKWSetStructures) kw = true;
     
     if (isKWSetStructures && isKWSetMemory) isKWSetMemory=false; //just like that
@@ -859,7 +866,8 @@ namespace lib {
     if (isKWSetRecall && (isKWSetProcedures || isKWSetFunctions))
       e->Throw("Conflicting keywords.");
 
-    bool isKWSetPreferences = e->KeywordSet("PREFERENCES");
+    static int PREFERENCESIx = e->KeywordIx("PREFERENCES");
+    bool isKWSetPreferences = e->KeywordSet(PREFERENCESIx);
     if (isKWSetPreferences && (isKWSetProcedures || isKWSetFunctions))
       e->Throw("Conflicting keywords.");
 
@@ -1390,7 +1398,9 @@ namespace lib {
     int nParam = e->NParam(2);
 
     DLong lun;
-    if (e->KeywordSet("GET_LUN")) {
+    static int getlunIx=e->KeywordIx("GET_LUN"); //works because index of GET_LUN is same for all 3 functions using it. 
+    bool getlunIsSet=e->KeywordSet(getlunIx);
+    if (getlunIsSet) {
       //     get_lun( e);
       // not using SetPar later gives a better error message
       e->AssureGlobalPar(0);
@@ -1495,7 +1505,7 @@ namespace lib {
       fileUnits[lun - 1].Open(name, mode, swapEndian, deleteKey,
         xdr, width, f77, compress);
 
-      if (e->KeywordSet("GET_LUN")) {
+      if (getlunIsSet) {
         BaseGDL** retLun = &e->GetPar(0);
         GDLDelete((*retLun));
         *retLun = new DLongGDL(lun);
@@ -1503,7 +1513,7 @@ namespace lib {
       }
     }    //GD: If GDLIOException is not catched here BEFORE GDLException,
     catch (GDLIOException& ex) {
-      if (e->KeywordSet("GET_LUN")) {
+      if (getlunIsSet) {
         fileUnits[lun - 1].Free();
       }
 
@@ -1522,7 +1532,7 @@ namespace lib {
       *err = new DLongGDL(ex.ErrorCode());
       return;
     } catch (GDLException& ex) {
-      if (e->KeywordSet("GET_LUN")) {
+      if (getlunIsSet) {
         fileUnits[lun - 1].Free();
       }
 
@@ -1579,7 +1589,9 @@ namespace lib {
   void socket(EnvT* e) {
     int nParam = e->NParam(3);
 
-    if (e->KeywordSet("GET_LUN")) get_lun(e);
+    static int getlunIx=e->KeywordIx("GET_LUN"); 
+    bool getlunIsSet=e->KeywordSet(getlunIx);
+    if (getlunIsSet) get_lun(e);
     // par 0 contains now the LUN
 
     DLong lun;
@@ -1615,19 +1627,25 @@ namespace lib {
 
     // endian
     bool swapEndian = false;
-    if (e->KeywordSet("SWAP_ENDIAN"))
+    static int swapIx = e->KeywordIx("SWAP_ENDIAN");
+    static int swapIfBigIx = e->KeywordIx("SWAP_IF_BIG_ENDIAN");
+    static int swapIfLittleIx = e->KeywordIx("SWAP_IF_LITTLE_ENDIAN");
+    if (e->KeywordSet(swapIx))
       swapEndian = true;
     else if (BigEndian())
-      swapEndian = e->KeywordSet("SWAP_IF_BIG_ENDIAN");
+      swapEndian = e->KeywordSet(swapIfBigIx);
     else
-      swapEndian = e->KeywordSet("SWAP_IF_LITTLE_ENDIAN");
+      swapEndian = e->KeywordSet(swapIfLittleIx);
 
+    static int connect_timeoutIx = e->KeywordIx("CONNECT_TIMEOUT");
     DDouble c_timeout = 0.0;
-    e->AssureDoubleScalarKWIfPresent("CONNECT_TIMEOUT", c_timeout);
+    e->AssureDoubleScalarKWIfPresent(connect_timeoutIx, c_timeout);
+    static int read_timeoutIx = e->KeywordIx("READ_TIMEOUT");
     DDouble r_timeout = 0.0;
-    e->AssureDoubleScalarKWIfPresent("READ_TIMEOUT", r_timeout);
+    e->AssureDoubleScalarKWIfPresent(read_timeoutIx, r_timeout);
+    static int write_timeoutIx = e->KeywordIx("WRITE_TIMEOUT");
     DDouble w_timeout = 0.0;
-    e->AssureDoubleScalarKWIfPresent("WRITE_TIMEOUT", w_timeout);
+    e->AssureDoubleScalarKWIfPresent(write_timeoutIx, w_timeout);
 
     static int errorIx = e->KeywordIx("ERROR");
     bool errorKeyword = e->KeywordPresent(errorIx);
@@ -1694,7 +1712,7 @@ namespace lib {
     DLong journalLUN = SysVar::JournalLUN();
 
     // within GDL, always lun+1 is used
-    if (e->KeywordSet("ALL"))
+    if (e->KeywordSet("ALL")) //necessary: ALL is not part of free_lun list.
       for (int p = maxUserLun; p < maxLun; ++p) {
         if ((journalLUN - 1) != p) {
           fileUnits[p].Close();
@@ -1703,7 +1721,7 @@ namespace lib {
         }
       }
 
-    if (e->KeywordSet("FILE") || e->KeywordSet("ALL"))
+    if (e->KeywordSet("FILE") || e->KeywordSet("ALL")) //necessary, not parts of free_lun list.
       for (int p = 0; p < maxUserLun; ++p) {
         fileUnits[p].Close();
         // freeing not necessary as get_lun does not use them
