@@ -150,7 +150,7 @@ namespace lib {
     DString name;
     e->AssureStringScalarPar(0, name); // IDL accepts null-string name
 
-    int destroyIx = e->KeywordIx("DESTROY_SEMAPHORE");
+    static int destroyIx = e->KeywordIx("DESTROY_SEMAPHORE");
     bool destroyKWPresent = e->KeywordPresent(destroyIx);
     DLong destroy = 0;
     if (destroyKWPresent) 

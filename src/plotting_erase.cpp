@@ -58,7 +58,7 @@ namespace lib {
       static int bColorIx = e->KeywordIx( "COLOR" );
 
       if ( nParam( ) == 0 ) {
-        if ( e->KeywordPresent( e->KeywordIx( "COLOR" ) ) ) {
+        if ( e->KeywordPresent( bColorIx ) ) {
           e->AssureLongScalarKWIfPresent( bColorIx, bColor );
         } else
           // we have to read back !p.background value

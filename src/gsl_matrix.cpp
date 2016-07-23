@@ -109,7 +109,8 @@ namespace lib {
 
     int double_flag=0;
     if (p0->Type() == GDL_DOUBLE) double_flag=1;
-    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) double_flag=1;
     
     // this code will always return GDL_DOUBLE because I don't know how to do :(
     // AC 13-Feb-2012 : this is not working and I don't know how to do :(
@@ -241,7 +242,8 @@ namespace lib {
 
     int double_flag=0;
     if (p0->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) double_flag=1;
-    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) double_flag=1;
 
     if (double_flag)
       {	return res; }
@@ -250,7 +252,6 @@ namespace lib {
   }
 
   BaseGDL* determ_fun( EnvT* e) {
-    SizeT nParam=e->NParam(1);
     
     // managing first input: Square Matrix
     
@@ -300,7 +301,8 @@ namespace lib {
 
     int double_flag=0;
     if (p0->Type() == GDL_DOUBLE) double_flag=1;
-    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) double_flag=1;
 
     if (double_flag)
       {	return res; }
@@ -309,7 +311,6 @@ namespace lib {
   }
   
   BaseGDL* trisol_fun( EnvT* e) {
-    //    SizeT nParam=e->NParam(1);
     
     // managing first input: Square Matrix
     
@@ -393,7 +394,8 @@ namespace lib {
     int double_flag=0;
     if (p0->Type() == GDL_DOUBLE || p1->Type() == GDL_DOUBLE) double_flag=1;
     if (p2->Type() == GDL_DOUBLE || p3->Type() == GDL_DOUBLE) double_flag=1;
-    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) double_flag=1;
     
     DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
     memcpy(&(*res)[0], x->data, nEl*szdbl);
