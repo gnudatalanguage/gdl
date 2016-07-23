@@ -358,7 +358,7 @@ namespace lib {
 	for (i=0;i<Yvals->N_Elements();++i)
 	  (*Yout)[i]= (*Yvals)[i] + (*H6)[0] * ( (*dydxvals)[i]+(*dyt)[i]+ 2.00000*(*dym)[i] );
 	  
-	static DInt doubleKWIx = e->KeywordIx("DOUBLE");
+	static int doubleKWIx = e->KeywordIx("DOUBLE");
 
 	//if need, convert things back
 	if( !e->KeywordSet(doubleKWIx))
