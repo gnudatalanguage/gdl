@@ -163,7 +163,8 @@ namespace lib {
     int nElem = p0->N_Elements();
 
     // determine the reduction operation
-    int mpi_op = 0;
+    /    int mpi_op = 0;  Patch by Takeshi 2016/08/03
+    MPI_Op mpi_op = 0;
 
     static int opSumIx = e->KeywordIx("SUM");
     if( e->KeywordSet( opSumIx)) mpi_op = MPI_SUM;
