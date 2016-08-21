@@ -369,11 +369,13 @@ void LibInit()
 
   new DLibPro(lib::flush_lun,string("FLUSH"),-1);
 
-  const string closeKey[]={"EXIT_STATUS","FORCE","FILE","ALL",KLISTEND};
-  new DLibPro(lib::close_lun,string("CLOSE"),-1,closeKey);
+  const string close_lunKey[]={"FORCE","FILE","ALL",KLISTEND};
+  const string close_lunWarnKey[]={"EXIT_STATUS",KLISTEND};
+  new DLibPro(lib::close_lun,string("CLOSE"),-1,close_lunKey,close_lunWarnKey);
   
-  const string free_lunKey[]={"EXIT_STATUS","FORCE",KLISTEND};
-  new DLibPro(lib::free_lun,string("FREE_LUN"),-1,free_lunKey);
+  const string free_lunKey[]={"FORCE",KLISTEND};
+  const string free_lunWarnKey[]={"EXIT_STATUS",KLISTEND};
+  new DLibPro(lib::free_lun,string("FREE_LUN"),-1,free_lunKey,free_lunWarnKey);
 
   const string writeuKey[]={"TRANSFER_COUNT",KLISTEND};
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
@@ -618,10 +620,13 @@ void LibInit()
 
   const string usersymKey[]= 
   {
-    "COLOR","FILL","THICK",
-    KLISTEND
+    "FILL", KLISTEND
    };
-  new DLibPro(lib::usersym,string("USERSYM"),2, usersymKey);
+    const string usersymWarnKey[]= 
+  {
+    "COLOR","THICK", KLISTEND
+   };
+  new DLibPro(lib::usersym,string("USERSYM"),2, usersymKey, usersymWarnKey);
 
   const string plotKey[]=
     {
@@ -736,7 +741,7 @@ void LibInit()
       // ([xyz]type undocumented but still existing in SHADE_SURF ...)
       "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
       //General Graphics KW
-      "BACKGROUND", "NOERASE", "CLIP",
+      "BACKGROUND", "NOERASE", "CLIP", "NOCLIP",
       "CHARSIZE", "CHARTHICK", "COLOR", "DATA", "DEVICE", "NORMAL", "FONT",
       "NODATA", "POSITION", "SUBTITLE", "THICK", "TICKLEN", "TITLE",
       //Axis KW
@@ -903,9 +908,10 @@ void LibInit()
   const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", "HYBRID", KLISTEND };
   const string newtonWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN", KLISTEND};
   new DLibFunRetNew(lib::newton_broyden, string("NEWTON"), 2, newtonKey, newtonWarnKey);
-
-  const string broydenKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", KLISTEND };
-  const string broydenWarnKey[] = {"CHECK", "EPS", "STEPMAX", "TOLMIN", KLISTEND};
+  //WARNING: THESE FUNCTIONS MUST HAVE THE SAME OPTION LIST. NOTE THAT /HYBRID is not part of either functions,
+  //it is used by imsl_zerosys.pro
+  const string broydenKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", "HYBRID", KLISTEND };
+  const string broydenWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN",  "EPS",  KLISTEND};
   new DLibFunRetNew(lib::newton_broyden, string("BROYDEN"), 2, broydenKey, broydenWarnKey);
 
   new DLibFunRetNew(lib::parse_url, string("PARSE_URL"), 1);

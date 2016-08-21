@@ -94,7 +94,8 @@ namespace lib {
    long NbCol,NbRow;
 
 /*************************Double**************************************/
-    if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE"))
+    static int DOUBLEIx=e->KeywordIx("DOUBLE");
+    if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet(DOUBLEIx))
       {
 
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
@@ -175,7 +176,8 @@ namespace lib {
 
 
 /*************************Double**************************************/
-    if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE"))
+    static int DOUBLEIx=e->KeywordIx("DOUBLE");
+    if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet(DOUBLEIx))
       {
 
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
@@ -209,7 +211,7 @@ namespace lib {
       }
 
 /*************************Complex**************************************/
-    if( p0->Type() == GDL_COMPLEX && !e->KeywordSet("DOUBLE")) 
+    if( p0->Type() == GDL_COMPLEX && !e->KeywordSet(DOUBLEIx)) 
       {
 
       DComplexGDL* p0C = static_cast<DComplexGDL*>
@@ -386,9 +388,10 @@ void la_choldc_pro( EnvT* e)
 
 
     long NbCol,NbRow;
-
+    static int DOUBLEIx=e->KeywordIx("DOUBLE");
+    static int UPPERIx=e->KeywordIx("UPPER");
 /*************************Complex_Double**************************************/
-    if( p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && e->KeywordSet("DOUBLE"))) {
+    if( p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && e->KeywordSet(DOUBLEIx))) {
 
       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>
 	(p0->Convert2(GDL_COMPLEXDBL , BaseGDL::COPY));
@@ -397,7 +400,7 @@ void la_choldc_pro( EnvT* e)
       Map<Matrix<complex<double>,Dynamic,Dynamic> > m0(&(*p0C)[0], NbCol,NbRow);
       MatrixXcd tmp_res;
 
-      if(e->KeywordSet("UPPER"))
+      if(e->KeywordSet(UPPERIx))
 	{
 	  LLT<MatrixXcd,Upper>solver;
 	  solver.compute(m0);
@@ -436,7 +439,7 @@ void la_choldc_pro( EnvT* e)
       Map<Matrix<complex<float>,Dynamic,Dynamic> > m0(&(*p0C)[0], NbCol,NbRow);
       MatrixXcf tmp_res;
 
-      if(e->KeywordSet("UPPER"))
+      if(e->KeywordSet(UPPERIx))
 	{
 	  LLT<MatrixXcf,Upper>solver;
 	  solver.compute(m0);
@@ -465,7 +468,7 @@ void la_choldc_pro( EnvT* e)
     }
 
 /*************************Double**************************************/
-    else  if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE")) {
+    else  if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet(DOUBLEIx)) {
       
       DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
@@ -474,7 +477,7 @@ void la_choldc_pro( EnvT* e)
       Map<Matrix<double,Dynamic,Dynamic> > m0(&(*p0D)[0], NbCol,NbRow);
       MatrixXd tmp_res;   
 
-      if(e->KeywordSet("UPPER"))
+      if(e->KeywordSet(UPPERIx))
 	{
 	  LLT<MatrixXd,Upper>solver;
 	  solver.compute(m0);
@@ -519,7 +522,7 @@ void la_choldc_pro( EnvT* e)
 	Map<Matrix<float,Dynamic,Dynamic> > m0(&(*p0SS)[0], NbCol,NbRow);
 	MatrixXf tmp_res;
 
-	if(e->KeywordSet("UPPER"))
+	if(e->KeywordSet(UPPERIx))
 	  {
 	    LLT<MatrixXf,Upper>solver;
 	    solver.compute(m0);
@@ -585,10 +588,10 @@ void la_choldc_pro( EnvT* e)
     long NbCol,NbRow;
 
     //   cout <<  p0->Type() << endl;
-
+    static int DOUBLEIx=e->KeywordIx("DOUBLE");
 
 /*************************Complex**************************************/
-    if( p0->Type() == GDL_COMPLEX && !e->KeywordSet("DOUBLE")) {
+    if( p0->Type() == GDL_COMPLEX && !e->KeywordSet(DOUBLEIx)) {
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2(GDL_COMPLEX , BaseGDL::COPY));  
       NbCol=p0->Dim(0);
@@ -660,7 +663,7 @@ void la_choldc_pro( EnvT* e)
     }
 
 /*************************Double**************************************/
-    else  if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet("DOUBLE")) {
+    else  if(( p0->Type() == GDL_DOUBLE) || e->KeywordSet(DOUBLEIx)) {
       
       DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
@@ -755,43 +758,43 @@ void la_choldc_pro( EnvT* e)
 
 
 
-
-  template< typename T>
-  int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
-			SizeT offset, SizeT stride_in, SizeT stride_out)
-  {
-    switch ( p0->Type()) {
-    case GDL_DOUBLE: 
-      cp2data2_template< DDoubleGDL, T>( p0, data, nEl, offset, 
-					 stride_in, stride_out);
-      break;
-    case GDL_FLOAT: 
-      cp2data2_template< DFloatGDL, T>( p0, data, nEl, offset, 
-					stride_in, stride_out);
-      break;
-    case GDL_LONG:
-      cp2data2_template< DLongGDL, T>( p0, data, nEl, offset, 
-				       stride_in, stride_out);
-      break;
-    case GDL_ULONG: 
-      cp2data2_template< DULongGDL, T>( p0, data, nEl, offset, 
-					stride_in, stride_out);
-      break;
-    case GDL_INT: 
-      cp2data2_template< DIntGDL, T>( p0, data, nEl, offset, 
-				      stride_in, stride_out);
-      break;
-    case GDL_UINT: 
-      cp2data2_template< DUIntGDL, T>( p0, data, nEl, offset, 
-				       stride_in, stride_out);
-      break;
-    case GDL_BYTE: 
-      cp2data2_template< DByteGDL, T>( p0, data, nEl, offset, 
-				       stride_in, stride_out);
-      break;
-    }
-    return 0;
-  }
+// UNUSED, copy of gsl_fun: bad habit!
+//  template< typename T>
+//  int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
+//			SizeT offset, SizeT stride_in, SizeT stride_out)
+//  {
+//    switch ( p0->Type()) {
+//    case GDL_DOUBLE: 
+//      cp2data2_template< DDoubleGDL, T>( p0, data, nEl, offset, 
+//					 stride_in, stride_out);
+//      break;
+//    case GDL_FLOAT: 
+//      cp2data2_template< DFloatGDL, T>( p0, data, nEl, offset, 
+//					stride_in, stride_out);
+//      break;
+//    case GDL_LONG:
+//      cp2data2_template< DLongGDL, T>( p0, data, nEl, offset, 
+//				       stride_in, stride_out);
+//      break;
+//    case GDL_ULONG: 
+//      cp2data2_template< DULongGDL, T>( p0, data, nEl, offset, 
+//					stride_in, stride_out);
+//      break;
+//    case GDL_INT: 
+//      cp2data2_template< DIntGDL, T>( p0, data, nEl, offset, 
+//				      stride_in, stride_out);
+//      break;
+//    case GDL_UINT: 
+//      cp2data2_template< DUIntGDL, T>( p0, data, nEl, offset, 
+//				       stride_in, stride_out);
+//      break;
+//    case GDL_BYTE: 
+//      cp2data2_template< DByteGDL, T>( p0, data, nEl, offset, 
+//				       stride_in, stride_out);
+//      break;
+//    }
+//    return 0;
+//  }
 
 #endif
 } //namespace lib

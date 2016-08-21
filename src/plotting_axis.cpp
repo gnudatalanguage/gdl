@@ -40,7 +40,7 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
     //T3D
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e));
+    doT3d=(e->KeywordSet(t3dIx) || T3Denabled());
 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
 
@@ -54,17 +54,17 @@ namespace lib {
     //IDL behaviour for XAXIS and YAXIS and ZAXIS options: only one option is considered, and ZAXIS above YAXIS above XAXIS
     if( (e->GetKW( xaxisIx) != NULL) ) {
       xAxis = true;
-      e->AssureLongScalarKWIfPresent( "XAXIS", xaxis_value);
+      e->AssureLongScalarKWIfPresent(xaxisIx, xaxis_value);
       if (xaxis_value == 0) {standardNumPos = true;} else {standardNumPos = false;}
     }      
     if( e->GetKW( yaxisIx) != NULL) {
       yAxis = true; xAxis = false; // like in IDL, yaxis overrides xaxis
-      e->AssureLongScalarKWIfPresent( "YAXIS", yaxis_value);
+      e->AssureLongScalarKWIfPresent( yaxisIx, yaxis_value);
       if (yaxis_value == 0) {standardNumPos = true;} else {standardNumPos = false;}
     }
     if( e->GetKW( zaxisIx) != NULL) {
       zAxis = true; xAxis = false; yAxis=false; // like in IDL, zaxis overrides all
-      e->AssureLongScalarKWIfPresent( "ZAXIS", zaxis_value);
+      e->AssureLongScalarKWIfPresent( zaxisIx, zaxis_value);
     }
     if( (e->GetKW( xaxisIx) == NULL) && (e->GetKW( yaxisIx) == NULL )  && ((e->GetKW( zaxisIx) == NULL )||!doT3d))  {
       xAxis = true; standardNumPos = true; 
@@ -91,10 +91,14 @@ namespace lib {
       NORMAL,
       DEVICE
     } coordinateSystem=DATA;
+    static int DATAIx=e->KeywordIx("DATA");
+    static int DEVICEIx=e->KeywordIx("DEVICE");
+    static int NORMALIx=e->KeywordIx("NORMAL");
+    static int SAVEIx=e->KeywordIx("SAVE");
     //check presence of DATA,DEVICE and NORMAL options
-    if ( e->KeywordSet("DATA") ) coordinateSystem=DATA;
-    if ( e->KeywordSet("DEVICE") ) coordinateSystem=DEVICE;
-    if ( e->KeywordSet("NORMAL") ) coordinateSystem=NORMAL;
+    if ( e->KeywordSet(DATAIx) ) coordinateSystem=DATA;
+    if ( e->KeywordSet(DEVICEIx) ) coordinateSystem=DEVICE;
+    if ( e->KeywordSet(NORMALIx) ) coordinateSystem=NORMAL;
 
     // get viewport coordinates in normalised units
     PLFLT ovpXL, ovpXR, ovpYB, ovpYT;
@@ -289,7 +293,7 @@ namespace lib {
     { //special name "axisX" needed because we artificially changed size of box
       gdlAxis(e, actStream, "axisX", xStart, xEnd, xLog, standardNumPos?1:2, ovpSizeY);
 
-      if ( e->KeywordSet("SAVE") )
+      if ( e->KeywordSet(SAVEIx) )
       {
         gdlStoreAxisCRANGE("X", xStart, xEnd, xLog);
         gdlStoreAxisType("X", xLog);
@@ -301,7 +305,7 @@ namespace lib {
     {//special name "axisY" needed because we artificially changed size of box
       gdlAxis(e, actStream, "axisY", yStart, yEnd, yLog, standardNumPos?1:2, ovpSizeX);
 
-      if ( e->KeywordSet("SAVE") )
+      if ( e->KeywordSet(SAVEIx) )
       {
         gdlStoreAxisCRANGE("Y", yStart, yEnd, yLog);
         gdlStoreAxisType("Y", yLog);
@@ -311,7 +315,7 @@ namespace lib {
     // reset the viewport and world coordinates to the original values
     actStream->RestoreLayout();
     // if save, update world coordinates to the new values
-    if ( e->KeywordSet("SAVE") )
+    if ( e->KeywordSet(SAVEIx) )
     {
       actStream->wind(xStart, xEnd, yStart, yEnd);
     }

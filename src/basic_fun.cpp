@@ -5233,7 +5233,8 @@ namespace lib {
     int strLen = stringIn.length();
 
     DString escape = "";
-    e->AssureStringScalarKWIfPresent("ESCAPE", escape);
+    static int ESCAPEIx=e->KeywordIx("ESCAPE");
+    e->AssureStringScalarKWIfPresent(ESCAPEIx, escape);
     vector<long> escList;
     long pos = 0;
     while (pos != string::npos) {

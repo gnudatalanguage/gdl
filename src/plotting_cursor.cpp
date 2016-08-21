@@ -70,7 +70,10 @@ void tvcrs( EnvT* e)
 
   PLFLT ix,iy;
 
-  if (e->KeywordSet("DATA")) // /DATA
+  static int DATA = e->KeywordIx("DATA");
+  static int NORMAL = e->KeywordIx("NORMAL");
+  static int DEVICE = e->KeywordIx("DEVICE");
+  if (e->KeywordSet(DATA)) // /DATA
   {
     DDouble tempx,tempy;
     tempx=(*x)[0];
@@ -106,11 +109,11 @@ void tvcrs( EnvT* e)
      if(yLog) tempy=pow(10,tempy);
     actStream->WorldToDevice(tempx,tempy,ix,iy);
   }
-  else if (e->KeywordSet("NORMAL"))
+  else if (e->KeywordSet(NORMAL))
   {
     actStream->NormedDeviceToDevice((*x)[0],(*y)[0],ix,iy);
   }
-  else // (e->KeywordSet("DEVICE"))
+  else // (e->KeywordSet(DEVICE))
   {
     ix=(*x)[0];
     iy=(*y)[0];
@@ -172,11 +175,19 @@ void cursor(EnvT* e){
   {
     e->AssureLongScalarPar(2, wait);
   }
-  if (e->KeywordSet("NOWAIT")) wait=NOWAIT;
-  if (e->KeywordSet("CHANGE")) wait=CHANGE;
-  if (e->KeywordSet("WAIT")) wait=WAIT;
-  if (e->KeywordSet("DOWN")) wait=DOWN;
-  if (e->KeywordSet("UP")) wait=UP;
+  static int NOWAITIx = e->KeywordIx("NOWAIT");
+  static int CHANGEIx = e->KeywordIx("CHANGE");
+  static int WAITIx   = e->KeywordIx("WAIT");
+  static int DOWNIx   = e->KeywordIx("DOWN");
+  static int UPIx     = e->KeywordIx("UP");
+  static int DEVICEIx = e->KeywordIx("DEVICE");
+  static int NORMALIx = e->KeywordIx("NORMAL");
+  
+  if (e->KeywordSet(NOWAITIx)) wait=NOWAIT;
+  if (e->KeywordSet(CHANGEIx)) wait=CHANGE;
+  if (e->KeywordSet(WAITIx)) wait=WAIT;
+  if (e->KeywordSet(DOWNIx)) wait=DOWN;
+  if (e->KeywordSet(UPIx)) wait=UP;
   if(actStream->GetGin(&gin, wait)==false) return;
   // outside window report -1 -1 at least for DEVICE values
   if (gin.pX < 0 || gin.pX > actStream->xPageSize() || gin.pY < 0 || gin.pY > actStream->yPageSize())
@@ -184,7 +195,7 @@ void cursor(EnvT* e){
     gin.pX = -1;
     gin.pY = -1;
   }
-  if (e->KeywordSet("DEVICE"))
+  if (e->KeywordSet(DEVICEIx))
   {
     DLongGDL* xLong;
     DLongGDL* yLong;
@@ -198,7 +209,7 @@ void cursor(EnvT* e){
   {
     DDoubleGDL* x;
     DDoubleGDL* y;
-    if (e->KeywordSet("NORMAL"))
+    if (e->KeywordSet(NORMALIx))
     {
       x = new DDoubleGDL(gin.dX);
       y = new DDoubleGDL(gin.dY);

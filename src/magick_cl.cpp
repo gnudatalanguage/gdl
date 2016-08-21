@@ -974,24 +974,29 @@ namespace lib {
       if(nParam>1) e->AssureLongScalarPar(1,ncol);
       image.quantizeColors(ncol);
 
-      if(e->KeywordSet("TRUECOLOR")) 
+      static int TRUECOLORIx=e->KeywordIx("TRUECOLOR");
+	  static int DITHERIx = e->KeywordIx("DITHER"); 
+	  static int YUVIx = e->KeywordIx("YUV");
+	  static int GRAYSCALEIx = e->KeywordIx("GRAYSCALE");
+      
+      if(e->KeywordSet(TRUECOLORIx))
 	{
 	  image.quantizeColorSpace(RGBColorspace);
 	  image.quantizeColors((long)256*(long)256*(long)256-1);
-	  if(e->KeywordSet("DITHER")) 
+	  if(e->KeywordSet(DITHERIx)) 
 	    image.quantizeDither(true);
 	  image.quantize();
 	  image.classType(DirectClass);
 	}
       else
 	{
-	  if(e->KeywordSet("YUV"))//YUV
+	  if (e->KeywordSet(YUVIx)) //YUV
 	    image.quantizeColorSpace(YUVColorspace);
-	  else if(e->KeywordSet("GRAYSCALE"))//Grayscale
+	  else if (e->KeywordSet(GRAYSCALEIx)) //Grayscale
 	    image.quantizeColorSpace(GRAYColorspace);
 	  else
 	    image.quantizeColorSpace(RGBColorspace);
-	  if(e->KeywordSet("DITHER")) 
+	  if (e->KeywordSet(DITHERIx)) 
 	    image.quantizeDither(true);
 	  image.quantize();
 	  image.classType(PseudoClass);

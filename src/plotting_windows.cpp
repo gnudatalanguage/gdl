@@ -33,7 +33,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     DLong wIx = 0;
-    if( e->KeywordSet("FREE"))
+    static int FREEIx = e->KeywordIx("FREE");
+    static int TITLEIx = e->KeywordIx("TITLE");
+    static int XPOSIx = e->KeywordIx("XPOS");
+    static int YPOSIx = e->KeywordIx("YPOS");
+    static int XSIZEIx = e->KeywordIx("XSIZE");
+    static int YSIZEIx = e->KeywordIx("YSIZE");
+    static int RETAINIx = e->KeywordIx("RETAIN");
+    static int PIXMAPIx = e->KeywordIx("PIXMAP");
+    if( e->KeywordSet(FREEIx))
       {
 	wIx = actDevice->WAddFree();
 	if( wIx == -1)
@@ -51,9 +59,9 @@ namespace lib {
       }
 
     DString title;
-    if( e->KeywordPresent( "TITLE"))
+    if( e->KeywordPresent(TITLEIx))
       {
-	e->AssureStringScalarKWIfPresent( "TITLE", title);
+	e->AssureStringScalarKWIfPresent( TITLEIx, title);
       }
     else
       {
@@ -61,15 +69,15 @@ namespace lib {
       }
 
     DLong xPos=-1, yPos=-1; //NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!
-    e->AssureLongScalarKWIfPresent( "XPOS", xPos);
-    e->AssureLongScalarKWIfPresent( "YPOS", yPos);
+    e->AssureLongScalarKWIfPresent( XPOSIx, xPos);
+    e->AssureLongScalarKWIfPresent( YPOSIx, yPos);
 
     DLong xSize, ySize;
 
     actDevice->DefaultXYSize(&xSize, &ySize);
 
-    e->AssureLongScalarKWIfPresent( "XSIZE", xSize);
-    e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
+    e->AssureLongScalarKWIfPresent( XSIZEIx, xSize);
+    e->AssureLongScalarKWIfPresent( YSIZEIx, ySize);
 
     int debug=0;
     if (debug) {
@@ -92,16 +100,16 @@ namespace lib {
 //		 "(BadValue (integer parameter out of range for operation)).");
     
     DLong retainType = 0; 
-    if( e->KeywordPresent( "RETAIN"))
+    if( e->KeywordPresent( RETAINIx))
     {
-      e->AssureLongScalarKWIfPresent( "RETAIN", retainType);
+      e->AssureLongScalarKWIfPresent( RETAINIx, retainType);
     }
     bool success = actDevice->SetBackingStore(retainType);
-    bool hide=e->KeywordSet( "PIXMAP");
+    bool hide=e->KeywordSet( PIXMAPIx);
     success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos, hide);
     if( !success)
       e->Throw(  "Unable to create window.");
-    if ( e->KeywordSet( "PIXMAP"))
+    if ( e->KeywordSet( PIXMAPIx))
     {
       success = actDevice->Hide();
     }
@@ -180,7 +188,8 @@ namespace lib {
     //GD: it is not a sub-window, but a screen number: xwd->screen, but that does not make window iconic any better!
 
     bool iconic = false;
-    if( e->KeywordSet("ICONIC")) iconic=true;
+    static int ICONICIx = e->KeywordIx("ICONIC");
+    if( e->KeywordSet(ICONICIx)) iconic=true;
 
     if (!actDevice->WShow( wIx, show, iconic)) 
       e->Throw( "Window number "+i2s(wIx)+" out of range or no more windows.");

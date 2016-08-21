@@ -163,7 +163,8 @@
     }
 
 #define AC_HELP()							\
-  if (e->KeywordSet("HELP")) {						\
+  static int HELPIx=e->KeywordIx("HELP"); \
+  if (e->KeywordSet(HELPIx)) {						\
     string inline_help[]={						\
       "Usage: res="+e->GetProName()+"(x, [n,] double=double)",		\
       " -- x is a number or an array",					\
@@ -528,7 +529,8 @@ using namespace Eigen;
 
   BaseGDL* spl_init_fun( EnvT* e)
   {
-    if (e->KeywordSet("HELP")) {
+    static int HELPIx=e->KeywordIx("HELP");
+    if (e->KeywordSet(HELPIx)) {
       string inline_help[]={
 	"Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
 	" -- xa is a N elements *ordered* array",
@@ -666,7 +668,8 @@ using namespace Eigen;
   
   BaseGDL* spl_interp_fun( EnvT* e)
   {
-    if (e->KeywordSet("HELP")) {
+    static int HELPIx=e->KeywordIx("HELP");
+    if (e->KeywordSet(HELPIx)) {
       //  string inline_help[]={};
       // e->Help(inline_help, 0);
       string inline_help[]={

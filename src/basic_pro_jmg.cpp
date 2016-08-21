@@ -309,17 +309,34 @@ namespace lib {
     if (KWReturnType != NULL && (*KWReturnType)[0] != 0) {
 	myReturnType = (DType) (*KWReturnType)[0];
     }
-
-    string TypeKW[16] = {
+    
+    static int B_VALUEIx = e->KeywordIx("B_VALUE");
+    static int I_VALUEIx = e->KeywordIx("I_VALUE");
+    static int L_VALUEIx = e->KeywordIx("L_VALUE");
+    static int F_VALUEIx = e->KeywordIx("F_VALUE");
+    static int D_VALUEIx = e->KeywordIx("D_VALUE");
+	static int S_VALUEIx = e->KeywordIx("S_VALUE");
+	static int UI_VALUEIx = e->KeywordIx("UI_VALUE");
+    static int UL_VALUEIx = e->KeywordIx("UL_VALUE");
+    static int L64_VALUEIx = e->KeywordIx("L64_VALUE");
+    static int UL64_VALUEIx = e->KeywordIx("UL64_VALUE");
+      
+    static string TypeKW[16] = {
 	"", "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
 	"", "S_VALUE", "", "", "", "",
 	"UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE"
     };
-
+    static int TypeKWIx[16] = {
+	-1, B_VALUEIx, I_VALUEIx, L_VALUEIx, F_VALUEIx, D_VALUEIx,
+	-1, S_VALUEIx, -1 , -1, -1, -1,
+	UI_VALUEIx, UL_VALUEIx, L64_VALUEIx, UL64_VALUEIx
+    };
     for (int i=0; i<16; i++) {
-	if (strcmp(TypeKW[i].c_str(), "") == 0) {continue;}
-	int kwIxType = e->KeywordIx(TypeKW[i]);
-	if (e->KeywordSet(kwIxType)) {
+//	if (strcmp(TypeKW[i].c_str(), "") == 0) {continue;}
+	if (TypeKWIx[i] == -1) {continue;}
+//	int kwIxType = e->KeywordIx(TypeKW[i]); //should be made static to speed up
+//	if (e->KeywordSet(kwIxType)) {
+	if (e->KeywordSet(TypeKWIx[i])) {
 	    if (myReturnType != GDL_UNDEF) {
 		e->Throw("Multiple requests of return type not allowed: "
 			 + TypeKW[i] );

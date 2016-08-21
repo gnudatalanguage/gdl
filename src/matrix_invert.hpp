@@ -35,8 +35,8 @@ The GSL is mandatory. Eigen3 is not mandatory.
 
 namespace lib {
 
-  BaseGDL* invert_eigen_fun( EnvT* e);
-  BaseGDL* invert_gsl_fun( EnvT* e);
+  BaseGDL* invert_eigen_fun( EnvT* e, bool hasDouble);
+  BaseGDL* invert_gsl_fun( EnvT* e, bool hasDouble);
 
   BaseGDL* AC_invert_fun( EnvT* e);
  

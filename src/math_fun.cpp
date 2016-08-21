@@ -1690,7 +1690,7 @@ namespace lib {
       e->Throw( 
 	       "Variable is undefined: "+e->GetParString(0));
 
-    bool isKWSetL64 = e->KeywordSet( "L64");
+    bool isKWSetL64 = e->KeywordSet(0); //L64, same place in ceil and floor.
 
     if( p0->Type() == GDL_COMPLEX)
       {
@@ -1882,7 +1882,7 @@ namespace lib {
       e->Throw( 
 	       "Variable is undefined: "+e->GetParString(0));
 
-    bool isKWSetL64 = e->KeywordSet( "L64");
+    bool isKWSetL64 = e->KeywordSet( 0 ); //L64, same place in ceil and floor.
 
     if( p0->Type() == GDL_COMPLEX)
       {
@@ -2464,7 +2464,7 @@ namespace lib {
 			       (*static_cast<DFloatGDL*>(p0))[0], 
 			       (*static_cast<DFloatGDL*>(rt))[1], 
 			       (*static_cast<DFloatGDL*>(rt))[0],
-			       e->KeywordSet("DEGREES")
+			       e->KeywordSet(0) //DEGREES (sole option)
 			       );
       }
     else
@@ -2476,7 +2476,7 @@ namespace lib {
 			       (*static_cast<DDoubleGDL*>(p0))[0], 
 			       (*static_cast<DDoubleGDL*>(rt))[1], 
 			       (*static_cast<DDoubleGDL*>(rt))[0],
-			       e->KeywordSet("DEGREES")
+			       e->KeywordSet(0)
 			       );
       }
 

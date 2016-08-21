@@ -643,7 +643,7 @@ namespace lib {
     bool isKWSetNames = e->KeywordPresent(namesKWIx);
     DString names = "";
     if (isKWSetNames) {
-      e->AssureStringScalarKWIfPresent("NAMES", names);
+      e->AssureStringScalarKWIfPresent(namesKWIx, names);
       // since routines and var. are stored in Maj, we convert ...
       names = StrUpCase(names);
     }
@@ -1708,25 +1708,91 @@ namespace lib {
     }
   }
 
-  void close_free_lun(EnvT* e, bool freeLun) {
-    DLong journalLUN = SysVar::JournalLUN();
+//  void close_free_lun(EnvT* e, bool freeLun) {
+//    DLong journalLUN = SysVar::JournalLUN();
+//
+//    // within GDL, always lun+1 is used
+//    if (e->KeywordSet("ALL")) //necessary: ALL is not part of free_lun list.
+//      for (int p = maxUserLun; p < maxLun; ++p) {
+//        if ((journalLUN - 1) != p) {
+//          fileUnits[p].Close();
+//          //	      if( freeLun)
+//          fileUnits[p].Free();
+//        }
+//      }
+//
+//    if (e->KeywordSet("FILE") || e->KeywordSet("ALL")) //necessary, not parts of free_lun list.
+//      for (int p = 0; p < maxUserLun; ++p) {
+//        fileUnits[p].Close();
+//        // freeing not necessary as get_lun does not use them
+//        //if( freeLun) fileUnits[ p].Free();
+//      }
+//
+//    int nParam = e->NParam();
+//    for (int p = 0; p < nParam; p++) {
+//      DLong lun;
+//      e->AssureLongScalarPar(p, lun);
+//      if (lun > maxLun)
+//        e->Throw("File unit is not within allowed range: " +
+//        i2s(lun) + ".");
+//      if (lun < 1)
+//        e->Throw("File unit does not allow this operation."
+//        " Unit: " + i2s(lun) + ".");
+//
+//      if (lun == journalLUN)
+//        e->Throw("Reserved file cannot be closed in this manner. Unit: " +
+//        i2s(lun));
+//
+//      fileUnits[lun - 1].Close();
+//      if (freeLun) fileUnits[lun - 1].Free();
+//    }
+//  }
 
+  void close_lun(EnvT* e) {
+    DLong journalLUN = SysVar::JournalLUN();
+    static int ALLIx=e->KeywordIx("ALL");
+    static int FILEIx=e->KeywordIx("FILE");
     // within GDL, always lun+1 is used
-    if (e->KeywordSet("ALL")) //necessary: ALL is not part of free_lun list.
+    if (e->KeywordSet(ALLIx)) {
       for (int p = maxUserLun; p < maxLun; ++p) {
         if ((journalLUN - 1) != p) {
           fileUnits[p].Close();
-          //	      if( freeLun)
           fileUnits[p].Free();
         }
       }
+    }
 
-    if (e->KeywordSet("FILE") || e->KeywordSet("ALL")) //necessary, not parts of free_lun list.
+    if (e->KeywordSet(FILEIx) || e->KeywordSet(ALLIx)) {
       for (int p = 0; p < maxUserLun; ++p) {
         fileUnits[p].Close();
         // freeing not necessary as get_lun does not use them
         //if( freeLun) fileUnits[ p].Free();
       }
+    }
+    
+    int nParam = e->NParam();
+    for (int p = 0; p < nParam; p++) {
+      DLong lun;
+      e->AssureLongScalarPar(p, lun);
+      if (lun > maxLun)
+        e->Throw("File unit is not within allowed range: " +
+        i2s(lun) + ".");
+      if (lun < 1)
+        e->Throw("File unit does not allow this operation."
+        " Unit: " + i2s(lun) + ".");
+
+      if (lun == journalLUN)
+        e->Throw("Reserved file cannot be closed in this manner. Unit: " +
+        i2s(lun));
+
+      fileUnits[lun - 1].Close();
+    }
+  }
+
+  void free_lun(EnvT* e) {
+    DLong journalLUN = SysVar::JournalLUN();
+
+    // within GDL, always lun+1 is used
 
     int nParam = e->NParam();
     for (int p = 0; p < nParam; p++) {
@@ -1744,16 +1810,8 @@ namespace lib {
         i2s(lun));
 
       fileUnits[lun - 1].Close();
-      if (freeLun) fileUnits[lun - 1].Free();
+      fileUnits[lun - 1].Free();
     }
-  }
-
-  void close_lun(EnvT* e) {
-    close_free_lun(e, false);
-  }
-
-  void free_lun(EnvT* e) {
-    close_free_lun(e, true);
   }
 
   void writeu(EnvT* e) {

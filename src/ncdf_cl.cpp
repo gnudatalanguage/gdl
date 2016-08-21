@@ -284,7 +284,8 @@ namespace lib {
     
     int cdfid,status;
     
-    if(e->KeywordSet("WRITE") &&!e->KeywordSet("NOWRITE"))
+    if(e->KeywordSet(0) //"WRITE"
+      &&!e->KeywordSet(1)) //NOWRITE
       {
 	status=nc_open(s.c_str(), NC_WRITE, &cdfid);
       }
@@ -383,12 +384,15 @@ namespace lib {
 
     int format;
     format = NC_FORMAT_CLASSIC;
-    if (e->KeywordSet("NETCDF3_64BIT")) 
+    
+    enum { CLOBBER, NOCLOBBER,NETCDF3_64BIT,NETCDF4_FORMAT };   
+
+    if (e->KeywordSet(NETCDF3_64BIT)) 
       {
 	Warning("keyword NETCDF3_64BIT not ready.");
 	format= NC_FORMAT_64BIT;
       }
-    if (e->KeywordSet("NETCDF4_FORMAT"))
+    if (e->KeywordSet(NETCDF4_FORMAT))
       {
 #ifndef USE_NETCDF4
 	e->Throw("GDL was compiled without support to new NetCDF-4 format(s)");
@@ -401,7 +405,7 @@ namespace lib {
 
     status=nc_set_default_format(format, NULL);
 
-    if(e->KeywordSet("CLOBBER") &&!e->KeywordSet("NOCLOBBER"))
+    if(e->KeywordSet(CLOBBER) &&!e->KeywordSet(NOCLOBBER))
       {
 	status=nc_create(s.c_str(),
 			 NC_CLOBBER,

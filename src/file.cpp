@@ -621,8 +621,8 @@ namespace lib {
     static int countIx = e->KeywordIx( "COUNT");
 
     DString pattern;
-    if(e->KeywordPresent( "PATTERN")) {
-      static int typeIx = e->KeywordIx( "PATTERN");
+    static int typeIx = e->KeywordIx( "PATTERN");
+    if(e->KeywordPresent(typeIx)) {
       e->AssureStringScalarKWIfPresent( typeIx, pattern);
     }
     else      pattern = "*.pro";
@@ -1206,18 +1206,29 @@ bool *tests )
 	if( nParam > 1)   e->AssureScalarPar< DStringGDL>( 1, Pattern);
        
       } 
- 
-    const string test_kw[]={
-      "TEST_READ", "TEST_WRITE",  "TEST_EXECUTABLE",
-      "TEST_REGULAR", "TEST_DIRECTORY", "TEST_ZERO_LENGTH",
-      "TEST_SYMLINK"};
+      static int TEST_READIx = e->KeywordIx("TEST_READ");
+      static int TEST_WRITEIx = e->KeywordIx("TEST_WRITE");
+      static int TEST_EXECUTABLEIx = e->KeywordIx("TEST_EXECUTABLE");
+      static int TEST_REGULARIx = e->KeywordIx("TEST_REGULAR");
+      static int TEST_DIRECTORYIx = e->KeywordIx("TEST_DIRECTORY");
+      static int TEST_ZERO_LENGTHIx = e->KeywordIx("TEST_ZERO_LENGTH");
+      static int TEST_SYMLINKIx = e->KeywordIx("TEST_SYMLINK");
+    const int test_kwIx[]={
+      TEST_READIx, TEST_WRITEIx, TEST_EXECUTABLEIx,
+      TEST_REGULARIx, TEST_DIRECTORYIx, TEST_ZERO_LENGTHIx,
+      TEST_SYMLINKIx};
+    
+//    const string test_kw[]={
+//      "TEST_READ", "TEST_WRITE",  "TEST_EXECUTABLE",
+//      "TEST_REGULAR", "TEST_DIRECTORY", "TEST_ZERO_LENGTH",
+//      "TEST_SYMLINK"};
     bool tests[NTEST_SEARCH];
-    //TODO: check following (static int vs. multiple choices)
     static int keyindex;
     for( SizeT i=0; i < NTEST_SEARCH; i++) {
       tests[i] = false;
-      keyindex = e->KeywordIx(test_kw[i]);
-      if (e->KeywordPresent(keyindex)) tests[i] = e->KeywordSet(keyindex);
+//      keyindex = e->KeywordIx(test_kw[i]); //TODO: check following (static int vs. multiple choices)
+//      if (e->KeywordPresent(keyindex)) tests[i] = e->KeywordSet(keyindex);
+      if (e->KeywordPresent(test_kwIx[i])) tests[i] = e->KeywordSet(test_kwIx[i]);
     }
     // keywords
     bool tilde = true;

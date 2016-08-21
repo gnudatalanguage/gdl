@@ -57,11 +57,14 @@ void LibInit_ac()
   const string trisolKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::trisol_fun,string("TRISOL"),4,trisolKey);
 
-  // QSIMP/QROMB/QROMO (we used same code for QSIMP and QROMB)
+  // QSIMP/QROMB (we share code for QSIMP and QROMB)
   const string qsimpKey[]={"DOUBLE","EPS","JMAX",KLISTEND};
-  new DLibFunRetNew(lib::qromb_fun,string("QSIMP"),3,qsimpKey);
-  const string qrombKey[]={"DOUBLE","EPS","JMAX","K",KLISTEND};
-  new DLibFunRetNew(lib::qromb_fun,string("QROMB"),3,qrombKey);
+  const string qsimpWarnKey[]={"K",KLISTEND}; //RSIMP has no 'K'
+  new DLibFunRetNew(lib::qromb_fun,string("QSIMP"),3,qsimpKey,qsimpWarnKey);
+  const string qrombKey[]={"DOUBLE","EPS","JMAX",KLISTEND};
+  const string qrombWarnKey[]={"K",KLISTEND}; //QROMB code does not make use of 'K' key
+  new DLibFunRetNew(lib::qromb_fun,string("QROMB"),3,qrombKey,qrombWarnKey);
+  //QROMO
   const string qromoKey[]={"DOUBLE","EPS","JMAX","K","MIDEXP",
 			   "MIDINF","MIDPNT","MIDSQL","MIDSQU",KLISTEND};
   new DLibFunRetNew(lib::qromo_fun,string("QROMO"),3,qromoKey);

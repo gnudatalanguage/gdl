@@ -44,12 +44,19 @@ namespace lib {
     
     COORDSYS icoordinateSystem=DATA, ocoordinateSystem=DATA ;
     //check presence of DATA,DEVICE and NORMAL options
-    if ( e->KeywordSet("DATA") ) icoordinateSystem=DATA;
-    if ( e->KeywordSet("DEVICE") ) icoordinateSystem=DEVICE;
-    if ( e->KeywordSet("NORMAL") ) icoordinateSystem=NORMAL;
-    if ( e->KeywordSet("TO_DATA") ) ocoordinateSystem=DATA;
-    if ( e->KeywordSet("TO_DEVICE") ) ocoordinateSystem=DEVICE;
-    if ( e->KeywordSet("TO_NORMAL") ) ocoordinateSystem=NORMAL;
+    static int DATAIx=e->KeywordIx("DATA");
+    static int DEVICEIx=e->KeywordIx("DEVICE");
+    static int NORMALIx=e->KeywordIx("NORMAL");
+    static int TO_DATAIx=e->KeywordIx("TO_DATA");
+    static int TO_DEVICEIx=e->KeywordIx("TO_DEVICE");
+    static int TO_NORMALIx=e->KeywordIx("TO_NORMAL");
+    
+    if ( e->KeywordSet(DATAIx) ) icoordinateSystem=DATA;
+    if ( e->KeywordSet(DEVICEIx) ) icoordinateSystem=DEVICE;
+    if ( e->KeywordSet(NORMALIx) ) icoordinateSystem=NORMAL;
+    if ( e->KeywordSet(TO_DATAIx) ) ocoordinateSystem=DATA;
+    if ( e->KeywordSet(TO_DEVICEIx) ) ocoordinateSystem=DEVICE;
+    if ( e->KeywordSet(TO_NORMALIx) ) ocoordinateSystem=NORMAL;
     
     DLong dims[2] = {3, 0};
 
@@ -224,7 +231,7 @@ namespace lib {
     //T3D
     bool doT3d;
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e));
+    doT3d=(e->KeywordSet(t3dIx) || T3Denabled());
     DDoubleGDL *xValou;
     DDoubleGDL *yValou;
     Guard<BaseGDL> xvalou_guard, yvalou_guard;
@@ -238,7 +245,8 @@ namespace lib {
     BaseGDL* p2;
     
     DType type=GDL_FLOAT;
-    if (e->KeywordSet("DOUBLE")) type=GDL_DOUBLE;
+    static int doubleIx = e->KeywordIx( "DOUBLE");
+    if (e->KeywordSet(doubleIx)) type=GDL_DOUBLE;
 
     p0 = e->GetParDefined( 0);
     if (p0->Type() == GDL_DOUBLE) type=GDL_DOUBLE;
@@ -739,7 +747,7 @@ namespace lib {
     //check repeatedly rotations & translations
     if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
     {
-      code=NORMAL;   goto done; // 0
+      code=NORMAL3D;   goto done; // 0
     }
     SelfExch3d(t3dMatrix,01); //XY, 1
     if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
@@ -820,10 +828,12 @@ done:
     const double invsqrt3=1.0/sqrt(3.0);
     //AX
     DDouble ax=30.0;
-    e->AssureDoubleScalarKWIfPresent("AX", ax);
+    static int AX=e->KeywordIx("AX");
+    e->AssureDoubleScalarKWIfPresent(AX, ax);
     //AZ
     DDouble az=30.0;
-    e->AssureDoubleScalarKWIfPresent("AZ", az);
+    static int AZ=e->KeywordIx("AZ");
+    e->AssureDoubleScalarKWIfPresent(AZ, az);
     DDoubleGDL* mat=(new DDoubleGDL(dimension(4,4),BaseGDL::NOZERO));
     SelfReset3d(mat);
     static DDouble mytrans[3]={-0.5, -0.5, -0.5};

@@ -150,7 +150,7 @@ namespace lib {
     e->AssureLongScalarPar( 0, grpid);
 
     int include_parents=0;
-    if (e->KeywordSet("INCLUDE_PARENTS")) {include_parents=1;}
+    if (e->KeywordSet(0)) {include_parents=1;} //"INCLUDE_PARENTS"
 
     int status;
     int ndims;

@@ -1320,7 +1320,12 @@ namespace lib {
     static int arg_namesIx = e->KeywordIx("ARG_NAME");
     static int storeIx = e->KeywordIx("STORE");
     bool var = false, fetch = false, arg = false, store = false;
-
+    var=e->KeywordPresent(variablesIx);
+    arg=e->KeywordPresent(arg_namesIx);
+    store=e->KeywordPresent(storeIx);
+    fetch=e->KeywordPresent(fetchIx);
+    if (fetch && nParam < 1) e->Throw("Incorrect number of arguments.");
+    if ( var + fetch + store + arg > 1 ) e->Throw("Incorrect number of arguments.");
     DLongGDL* level;
     level = e->IfDefGetKWAs<DLongGDL>(variablesIx);
     if (level != NULL) {

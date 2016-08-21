@@ -197,7 +197,7 @@ namespace lib
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
+      bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
       //ZVALUE
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
@@ -241,12 +241,15 @@ namespace lib
         PLFLT intv=gdlAdjustAxisRange ( yStart, yEnd, yLog );
       }
 
-      bool hasMinVal=e->KeywordPresent("MIN_VALUE");
-      bool hasMaxVal=e->KeywordPresent("MAX_VALUE");
+      static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
+      static int MAX_VALUEIx = e->KeywordIx( "MAX_VALUE");
+
+      bool hasMinVal=e->KeywordPresent(MIN_VALUEIx);
+      bool hasMaxVal=e->KeywordPresent(MAX_VALUEIx);
       DDouble minVal=datamin;
       DDouble maxVal=datamax;
-      e->AssureDoubleScalarKWIfPresent ( "MIN_VALUE", minVal );
-      e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
+      e->AssureDoubleScalarKWIfPresent ( MIN_VALUEIx, minVal );
+      e->AssureDoubleScalarKWIfPresent ( MAX_VALUEIx, maxVal );
 
       if (!setZrange) {
         zStart=max(minVal,zStart);
@@ -272,7 +275,8 @@ namespace lib
       PLFLT az=30.0;
       //set az and ax (alt)
       DFloat alt_change=alt;
-      e->AssureFloatScalarKWIfPresent("AX", alt_change);
+      static int AXIx=e->KeywordIx("AX");
+      e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
       alt=alt_change;
 
       alt=fmod(alt,360.0); //restrict between 0 and 90 for plplot!
@@ -281,7 +285,8 @@ namespace lib
         e->Throw ( "SHADE_SURF: AX restricted to [0-90] range by plplot (fix plplot!)" );
       }
       DFloat az_change=az;
-      e->AssureFloatScalarKWIfPresent("AZ", az_change);
+      static int AZIx=e->KeywordIx("AZ");
+      e->AssureFloatScalarKWIfPresent(AZIx, az_change);
       az=az_change;
 
       //now we are in plplot different kind of 3d
@@ -377,15 +382,18 @@ namespace lib
         if (yLog) for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
 
         // Important: make all clipping computations BEFORE setting graphic properties (color, size)
-        bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));
+        static int NOCLIPIx = e->KeywordIx("NOCLIP");
+        static int CLIPIx = e->KeywordIx("CLIP");
+        bool doClip=(e->KeywordSet(CLIPIx)||e->KeywordSet(NOCLIPIx));
         bool stopClip=false;
-        if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
+        if ( doClip )  if ( startClipping(e, actStream)==false ) stopClip=true;
 
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
         PLINT meshOpt;
         meshOpt=(doShade)?MAG_COLOR:0;
-        if (e->KeywordSet ( "SKIRT" )) meshOpt+=DRAW_SIDES;
+        static int SKIRTIx = e->KeywordIx("SKIRT");
+        if (e->KeywordSet ( SKIRTIx )) meshOpt+=DRAW_SIDES;
 
         // Get decomposed value for shades
         DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();

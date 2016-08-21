@@ -915,7 +915,7 @@ void EnvT::Help(const std::string s_help[], int size_of_s)
     throw GDLException( CallingNode(), pro->ObjectName()+": call to inline help");
   }
 }
-
+//TODO: variant enabling static ints in lieu of const string& (speedup!)
 void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 {
   int varIx=GetKeywordIx( k);
@@ -943,6 +943,7 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 
   env.Set( varIx,val);
 }
+//TODO: variant enabling static ints in lieu of const string& (speedup!)
 
 void EnvBaseT::SetKeyword( const string& k, BaseGDL** const val) // reference
 {
@@ -1171,8 +1172,9 @@ int EnvT::KeywordIx( const std::string& k)
 {
   //  cout << pro->ObjectName() << "  Key: " << k << endl;
   assert( pro != NULL);
-  assert( pro->FindKey( k) != -1);
-  return pro->FindKey( k);
+  int val=pro->FindKey( k);
+  assert( val != -1);
+  return val;
 }
 
 bool EnvT::KeywordPresent( const std::string& kw)

@@ -189,7 +189,7 @@ namespace lib {
     wxString wxpathstr = wxT("");
     DString pathstr;
     if (ispath) {
-      e->AssureStringScalarKW("PATH", pathstr);
+      e->AssureStringScalarKW(pathIx, pathstr);
     } else {
       pathstr=GetCWD();
     }
@@ -244,7 +244,7 @@ namespace lib {
 	wxString wxfilestr;
 	if (isfile) {
 	  DString filestr;
-	  e->AssureStringScalarKW("FILE", filestr);
+	  e->AssureStringScalarKW(fileIx, filestr);
 	  wxfilestr = wxString(filestr.c_str(), wxConvUTF8);
 	}
 
