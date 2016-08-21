@@ -94,7 +94,145 @@ namespace lib {
     ~hdf5_type_guard() { H5Tclose(type); }
   };
   // --------------------------------------------------------------------
+  DLong mapH5DatatypesToGDL(DLong h5type){
+//must be in order, from most complicated to simplest, string at end
 
+if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
+if (H5Tequal(h5type , H5T_NATIVE_DOUBLE )) return GDL_DOUBLE;
+if (H5Tequal(h5type , H5T_NATIVE_FLOAT )) return GDL_FLOAT;
+
+if (H5Tequal(h5type , H5T_NATIVE_ULLONG )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_ALPHA_U64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_INTEL_U64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_MIPS_U64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_NATIVE_UINT64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST64 )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_STD_U64BE )) return GDL_ULONG64;
+if (H5Tequal(h5type , H5T_STD_U64LE )) return GDL_ULONG64;
+
+
+if (H5Tequal(h5type , H5T_NATIVE_LLONG )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_IEEE_F64BE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_IEEE_F64LE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_INTEL_B64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_INTEL_F64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_INTEL_I64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_MIPS_B64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_MIPS_F64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_MIPS_I64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_NATIVE_B64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_NATIVE_INT64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_NATIVE_INT_FAST64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_STD_B64BE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_STD_B64LE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_STD_I64BE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_STD_I64LE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_UNIX_D64BE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_UNIX_D64LE )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_ALPHA_B64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_ALPHA_F64 )) return GDL_LONG64;
+if (H5Tequal(h5type , H5T_ALPHA_I64 )) return GDL_LONG64;
+
+
+if (H5Tequal(h5type , H5T_NATIVE_ULONG )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_ALPHA_U32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_INTEL_U32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_MIPS_U32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_NATIVE_UINT32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST32 )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
+if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
+
+if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_ALPHA_I32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_IEEE_F32BE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_IEEE_F32LE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_INTEL_B32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_INTEL_F32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_INTEL_I32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_MIPS_B32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_MIPS_F32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_MIPS_I32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_NATIVE_B32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_NATIVE_INT32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_NATIVE_INT_FAST32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST32 )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_STD_B32BE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_STD_B32LE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_STD_I32BE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_STD_I32LE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_UNIX_D32BE )) return GDL_LONG;
+if (H5Tequal(h5type , H5T_UNIX_D32LE )) return GDL_LONG;
+
+
+if (H5Tequal(h5type , H5T_NATIVE_UINT )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_NATIVE_UINT16 )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST16 )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST16 )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_STD_U16BE )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_STD_U16LE )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_ALPHA_U16 )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_INTEL_U16 )) return GDL_UINT;
+if (H5Tequal(h5type , H5T_MIPS_U16 )) return GDL_UINT;
+
+
+if (H5Tequal(h5type , H5T_NATIVE_INT )) return GDL_INT;
+if (H5Tequal(h5type , H5T_NATIVE_INT16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_NATIVE_INT_FAST16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_STD_B16BE )) return GDL_INT;
+if (H5Tequal(h5type , H5T_STD_B16LE )) return GDL_INT;
+if (H5Tequal(h5type , H5T_STD_I16BE )) return GDL_INT;
+if (H5Tequal(h5type , H5T_STD_I16LE )) return GDL_INT;
+if (H5Tequal(h5type , H5T_ALPHA_B16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_ALPHA_I16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_INTEL_B16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_INTEL_I16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_MIPS_B16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_MIPS_I16 )) return GDL_INT;
+if (H5Tequal(h5type , H5T_NATIVE_B16 )) return GDL_INT;
+
+if (H5Tequal(h5type , H5T_ALPHA_U8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_MIPS_U8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_INTEL_U8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_UINT8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_U8BE )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_U8LE )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_USHORT )) return GDL_BYTE;
+
+if (H5Tequal(h5type , H5T_NATIVE_INT8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_ALPHA_B8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_ALPHA_I8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_INTEL_B8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_INTEL_I8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_MIPS_I8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_B8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_INT_FAST8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_NATIVE_SHORT )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_MIPS_B8 )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_B8BE )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_B8LE )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_I8BE )) return GDL_BYTE;
+if (H5Tequal(h5type , H5T_STD_I8LE )) return GDL_BYTE;
+
+if (H5Tequal(h5type , H5T_C_S1 )) return GDL_STRING;
+if (H5Tequal(h5type , H5T_FORTRAN_S1 )) return GDL_STRING;
+if (H5Tequal(h5type , H5T_STRING )) return GDL_STRING;
+
+if (H5Tequal(h5type , H5T_NATIVE_CHAR )) return GDL_STRING;
+if (H5Tequal(h5type , H5T_NATIVE_SCHAR )) return GDL_STRING;
+if (H5Tequal(h5type , H5T_NATIVE_UCHAR )) return GDL_STRING;
+return GDL_UNDEF;
+  }
   BaseGDL* h5_get_libversion_fun( EnvT* e)
   {
     unsigned int majnum, minnum, relnum;
@@ -374,18 +512,80 @@ namespace lib {
     // create the IDL datatypes
     dimension dim(count_s, rank);
 
-    // TODO!
-    // this would be the way to select different datatypes and
-    // read them    
-    //    if(datatype == H5T_IEEE_F64LE){
-      DDoubleGDL* data_out = new DDoubleGDL(dim);
-      if (H5Aread(h5a_id, H5T_IEEE_F64LE, &(*data_out)[0]) < 0)
-        { string msg; e->Throw(hdf5_error_message(msg)); }
+    BaseGDL *res;
+    DLong ourType = mapH5DatatypesToGDL(datatype);
+    hsize_t type;
 
-      return data_out;
-   // } else {
-   //   printf("not supported data format %d\n", datatype);
-   // }
+    if (ourType == GDL_BYTE) {
+      res = new DByteGDL(dim);
+      type = H5T_NATIVE_UINT8;
+    } else if (ourType == GDL_INT) {
+      res = new DIntGDL(dim);
+      type = H5T_NATIVE_INT16;
+    } else if (ourType == GDL_UINT) {
+      res = new DUIntGDL(dim);
+      type = H5T_NATIVE_UINT16;
+    } else if (ourType == GDL_LONG) {
+      res = new DLongGDL(dim);
+      type = H5T_NATIVE_INT32;
+    } else if (ourType == GDL_ULONG) {
+      res = new DULongGDL(dim);
+      type = H5T_NATIVE_UINT32;
+    } else if (ourType == GDL_LONG64) {
+      res = new DLong64GDL(dim);
+      type = H5T_NATIVE_INT64;
+    } else if (ourType == GDL_LONG64) {
+      res = new DULong64GDL(dim);
+      type = H5T_NATIVE_UINT64;
+    } else if (ourType == GDL_FLOAT) {
+      res = new DFloatGDL(dim);
+      type = H5T_NATIVE_FLOAT;
+    } else if (ourType == GDL_DOUBLE) {
+      res = new DDoubleGDL(dim);
+      type = H5T_NATIVE_DOUBLE;
+    } else if (ourType == GDL_STRING) {
+      
+      ///******* BELOW CODE IS NOT TESTED! ********///
+      
+      // a bit special, lets follow the example on h5 site:
+      res = new DStringGDL(dim);
+      type = H5T_C_S1;
+      hid_t filetype = H5Dget_type(h5a_id);
+      SizeT sdim = H5Tget_size(filetype);
+      sdim++; /* Make room for null terminator */
+      char **rdata;
+      /*
+       * Allocate array of pointers to rows.
+       */
+      rdata = (char **) malloc(count_s[0] * sizeof (char *));
+      /*
+       * Allocate space for integer data.
+       */
+      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char));
+      /*
+       * Set the rest of the pointers to rows to the correct addresses.
+       */
+      for (int i = 1; i < count_s[0]; i++)
+        rdata[i] = rdata[0] + i * sdim;
+      /*
+       * Create the memory datatype.
+       */
+      hid_t memtype = H5Tcopy(H5T_C_S1);
+      hid_t status = H5Tset_size(memtype, sdim);
+      if (H5Aread(h5a_id, type, rdata[0]) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+      for (int i = 0; i < count_s[0]; i++)
+        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
+      free (rdata); //but not rdata[0]
+      status = H5Tclose (filetype);
+      status = H5Tclose (memtype);
+      return res;
+    } else {
+      e->Throw("Unsupported data format" + i2s(datatype));
+    }
+    if (H5Aread(h5a_id, type, res->DataAddr()) < 0)
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+    
+      return res;
 
     return new DIntGDL(-1);
   }
@@ -394,31 +594,40 @@ namespace lib {
   /**
    * h5d_read_fun
    * CAUTION: compatibility only fractional
-   * - Supports only one HDF5 data type
    * - Does not allow to select hyperslabs
    */
-  BaseGDL* h5d_read_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam(1);
+  BaseGDL* h5d_read_fun(EnvT* e) {
+    SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
 
     hid_t h5d_id;
     e->AssureLongScalarPar(0, h5d_id);
-    
+
     hid_t h5s_id = H5Dget_space(h5d_id);
-    if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    if (h5s_id < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
     hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
 
     hid_t datatype = H5Dget_type(h5d_id);
-    if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    if (datatype < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
-    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    if (rank < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
 
-    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) 
-      { string msg; e->Throw(hdf5_error_message(msg)); }
+    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
 
     // define hyperslab in dataset
 #if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
@@ -427,18 +636,23 @@ namespace lib {
     hsize_t offset[MAXRANK];
 #endif
     hsize_t count[MAXRANK];
- 
-    for(int i=0; i<rank;i++) offset[i]=0;
-    for(int i=0; i<rank;i++) count[i] = dims_out[i];
 
-    if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0)
-      { string msg; e->Throw(hdf5_error_message(msg)); }
+    for (int i = 0; i < rank; i++) offset[i] = 0;
+    for (int i = 0; i < rank; i++) count[i] = dims_out[i];
+
+    if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
 
     // define memory dataspace
-    hid_t memspace = H5Screate_simple(rank, count, NULL); 
-    if (memspace < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    hid_t memspace = H5Screate_simple(rank, count, NULL);
+    if (memspace < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
     hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
-   
+
     // define memory hyperslab
 #if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
     hssize_t offset_out[MAXRANK];
@@ -446,39 +660,107 @@ namespace lib {
     hsize_t offset_out[MAXRANK];
 #endif
     hsize_t count_out[MAXRANK];
-    for(int i=0; i<rank; i++) offset_out[i] = 0;
-    for(int i=0; i<rank; i++) count_out[i] = dims_out[i];
-    if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, count_out, NULL) < 0)
-      { string msg; e->Throw(hdf5_error_message(msg)); }
+    for (int i = 0; i < rank; i++) offset_out[i] = 0;
+    for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
+    if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, count_out, NULL) < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
-   
+
     rank_s = (SizeT) rank;
     // need to reverse indices for column major format
-    for(int i=0; i<rank; i++) 
-      count_s[i] = (SizeT)count_out[rank - 1  - i ];
+    for (int i = 0; i < rank; i++)
+      count_s[i] = (SizeT) count_out[rank - 1 - i ];
 
     // create the IDL datatypes
     dimension dim(count_s, rank_s);
     //std::cout << dim << std::endl;
+    BaseGDL *res;
 
-    // TODO!
-    // this would be the way to select different datatypes and
-    // read them    
-    //    if(datatype == H5T_IEEE_F64LE){
-      DDoubleGDL* data_out = new DDoubleGDL(dim);
-      if (H5Dread(h5d_id, H5T_IEEE_F64LE, memspace, h5s_id, H5P_DEFAULT, &(*data_out)[0]) < 0)
-        { string msg; e->Throw(hdf5_error_message(msg)); }
+    DLong ourType = mapH5DatatypesToGDL(datatype);
+    hsize_t type;
 
-      return data_out;
-   // } else {
-   //   printf("not supported data format %d\n", datatype);
-   // }
+    if (ourType == GDL_BYTE) {
+      res = new DByteGDL(dim);
+      type = H5T_NATIVE_UINT8;
+    } else if (ourType == GDL_INT) {
+      res = new DIntGDL(dim);
+      type = H5T_NATIVE_INT16;
+    } else if (ourType == GDL_UINT) {
+      res = new DUIntGDL(dim);
+      type = H5T_NATIVE_UINT16;
+    } else if (ourType == GDL_LONG) {
+      res = new DLongGDL(dim);
+      type = H5T_NATIVE_INT32;
+    } else if (ourType == GDL_ULONG) {
+      res = new DULongGDL(dim);
+      type = H5T_NATIVE_UINT32;
+    } else if (ourType == GDL_LONG64) {
+      res = new DLong64GDL(dim);
+      type = H5T_NATIVE_INT64;
+    } else if (ourType == GDL_LONG64) {
+      res = new DULong64GDL(dim);
+      type = H5T_NATIVE_UINT64;
+    } else if (ourType == GDL_FLOAT) {
+      res = new DFloatGDL(dim);
+      type = H5T_NATIVE_FLOAT;
+    } else if (ourType == GDL_DOUBLE) {
+      res = new DDoubleGDL(dim);
+      type = H5T_NATIVE_DOUBLE;
+    } else if (ourType == GDL_STRING) {
+      // a bit special, lets follow the example on h5 site:
+      res = new DStringGDL(dim);
+      type = H5T_C_S1;
+      hid_t filetype = H5Dget_type(h5d_id);
+      SizeT sdim = H5Tget_size(filetype);
+      sdim++; /* Make room for null terminator */
+      char **rdata;
+      /*
+       * Allocate array of pointers to rows.
+       */
+      rdata = (char **) malloc(count_s[0] * sizeof (char *));
+      /*
+       * Allocate space for integer data.
+       */
+      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char));
+      /*
+       * Set the rest of the pointers to rows to the correct addresses.
+       */
+      for (int i = 1; i < count_s[0]; i++)
+        rdata[i] = rdata[0] + i * sdim;
+      /*
+       * Create the memory datatype.
+       */
+      hid_t memtype = H5Tcopy(H5T_C_S1);
+      hid_t status = H5Tset_size(memtype, sdim);
 
-    return new DIntGDL(-1);
+
+      status = H5Dread(h5d_id, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, rdata[0]);
+      if (status < 0) {
+        string msg;
+        e->Throw(hdf5_error_message(msg));
+      }
+      for (int i = 0; i < count_s[0]; i++)
+        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
+        free (rdata); //but not rdata[0]
+        status = H5Tclose (filetype);
+        status = H5Tclose (memtype);
+      return res;
+    } else {
+      e->Throw("Unsupported data format" + i2s(datatype));
+    }
+
+    if (H5Dread(h5d_id, type, memspace, h5s_id, H5P_DEFAULT, res->DataAddr()) < 0) {
+      string msg;
+      e->Throw(hdf5_error_message(msg));
+    }
+
+    return res;
   }
- 
+
   
   void h5s_close_pro( EnvT* e)
   {
