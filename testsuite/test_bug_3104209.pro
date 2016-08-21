@@ -1,3 +1,4 @@
+; is that really a bug? 
 pro test_bug_3104209
   spawn, 'echo ".compile test_bug_3104209.pro ' + string(10b) + 'continue" | ../src/gdl'
 end
