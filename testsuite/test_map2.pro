@@ -16,7 +16,8 @@ TV, result, Startx, Starty
 MAP_CONTINENTS, /coasts
 MAP_GRID, latdel=10, londel=10, /LABEL, /HORIZON, CHARS=2
 plots,[30,30,120,120,30],[0,-40,-40,0,0],color='FFFF00'x,thick=8
-xyouts,0.7,0.1,"plots",/norm
+polyfill,[32,32,118,118,32],[-2,-38,-38,-2,-2],color='FFFF00'x,thick=8
+xyouts,0.7,0.1,"plots+polyfill",/norm
 xyouts,0,45,"greenwich",ori=90,chars=3,color='FFFF00'x
 oplot,[-120,-120,-30,-30,-120],[0,-40,-40,0,0],color='00FFFF'x,thick=3
 xyouts,0.3,0.1,"oplot",/norm
