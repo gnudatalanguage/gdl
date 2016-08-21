@@ -45,9 +45,19 @@ namespace lib {
 using namespace std;
 
 class map_continents_call: public plotting_routine_call {
+bool doT3d;
+DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    DDouble zValue;
+    DDoubleGDL* plplot3d;
+    Guard<BaseGDL> plplot3d_guard;
+    ORIENTATION3D axisExchangeCode;
+    DDouble az, alt, ay, scale;
 private:
 
   bool handle_args( EnvT* e ) {
+      //T3D
+      doT3d=(e->KeywordSet("T3D") || T3Denabled());
+
     return true;
   }
 
@@ -109,9 +119,57 @@ private:
     files[rivers] = dir + "wdb_rivers" + sufix;
     files[coasts] = dir + "gshhs" + sufix;
     bool do_fill = false;
+    
+          //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
+      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+      // get !Z.CRANGE
+      gdlGetCurrentAxisRange("Z", zStart, zEnd);
+      
+if ( doT3d ) { //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
+                               //if the x and y scaling is OK, using !P.T directly permits to use other projections
+                               //than those used implicitly by plplot. See @showhaus example for *DL
+        // case where we project 2D data on 3D: use plplot-like matrix.
+        static DDouble x0,y0,xs,ys; //conversion to normalized coords
 
-    actStream->OnePageSaveLayout(); // one page
-//    
+          x0=-xStart;
+          y0=-yStart;
+          xs=xEnd-xStart;xs=1.0/xs;
+          ys=yEnd-yStart;ys=1.0/ys;
+        // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
+        zValue /= (zEnd - zStart);
+        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        Data3d.zValue = zValue;
+        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
+        Data3d.x0 = x0;
+        Data3d.y0 = y0;
+        Data3d.xs = xs;
+        Data3d.ys = ys;
+        switch (axisExchangeCode) {
+          case NORMAL3D: //X->X Y->Y plane XY
+            Data3d.code = code012;
+            break;
+          case XY: // X->Y Y->X plane XY
+            Data3d.code = code102;
+            break;
+          case XZ: // Y->Y X->Z plane YZ
+            Data3d.code = code210;
+            break;
+          case YZ: // X->X Y->Z plane XZ
+            Data3d.code = code021;
+            break;
+          case XZXY: //X->Y Y->Z plane YZ
+            Data3d.code = code120;
+            break;
+          case XZYZ: //X->Z Y->X plane XZ
+            Data3d.code = code201;
+            break;
+        }
+        actStream->stransform(gdl3dTo2dTransform, &Data3d);
+      }
+else
+{
+    actStream->OnePageSaveLayout(); // do not use in projections
+  
     gdlSetGraphicsForegroundColorFromKw( e, actStream );
     actStream->NoSub( );
 
@@ -126,6 +184,7 @@ private:
 
     actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
     actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+}
 
     for ( int i = 0; i < files.size( ); ++i ) {
 
@@ -217,7 +276,7 @@ private:
             (*lats)[k] = p.y * GSHHS_SCL;
           }
 
-          GDLgrProjectedPolygonPlot(e, actStream, ref, map, lons, lats, false, do_fill, NULL);
+          GDLgrProjectedPolygonPlot(actStream, ref, map, lons, lats, false, do_fill, NULL);
 
           max_east = 180000000; /* Only Eurasia needs 270 */
           GDLDelete( lons );
@@ -229,7 +288,7 @@ private:
 
     actStream->lsty( 1 ); //reset linestyle
 //    // reset the viewport and world coordinates to the original values
-    actStream->RestoreLayout();
+    if (!doT3d) actStream->RestoreLayout();
 #endif
   } // old_body
 
@@ -241,6 +300,11 @@ private:
 private:
 
   void post_call( EnvT* e, GDLGStream * actStream ) {
+      if (doT3d)
+      {
+        plplot3d_guard.Reset(plplot3d);
+        actStream->stransform(NULL,NULL);
+      }
   }
 
 }; // class definition

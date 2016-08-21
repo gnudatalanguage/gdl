@@ -34,8 +34,7 @@ namespace lib
     SizeT xEl, yEl, zEl;
     bool append;
     bool doClip;
-    bool restoreClipBox;
-    PLFLT savebox[4];
+    bool restorelayout;
     bool doT3d, real3d;
     DDouble zValue;
     DDoubleGDL* plplot3d;
@@ -44,6 +43,15 @@ namespace lib
     bool mapSet;
     ORIENTATION3D axisExchangeCode;
     DDouble az, alt, ay, scale;
+
+      enum
+      {
+        DATA=0,
+        NORMAL,
+        DEVICE
+      } coordinateSystem;
+      
+      
   private:
 
     bool handle_args(EnvT* e)
@@ -53,7 +61,7 @@ namespace lib
       real3d=false;
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      doT3d=(e->KeywordSet(t3dIx) || T3Denabled(e)); 
+      doT3d=(e->KeywordSet(t3dIx) || T3Denabled()); 
 
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
       // Then Z is useful only if (doT3d).
@@ -61,7 +69,8 @@ namespace lib
       zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
 
-      append=e->KeywordSet("CONTINUE");
+      static int continueIx = e->KeywordIx( "CONTINUE");
+      append=e->KeywordSet(continueIx);
       if ( nParam()==1 )
       {
         BaseGDL* p0;
@@ -191,27 +200,27 @@ namespace lib
 
     void old_body(EnvT* e, GDLGStream* actStream)
     {
-      int clippingix=e->KeywordIx("CLIP");
-      DFloatGDL* clipBox=NULL;
 
-      enum
-      {
-        DATA=0,
-        NORMAL,
-        DEVICE
-      } coordinateSystem=DATA;
       //check presence of DATA,DEVICE and NORMAL options
-      if ( e->KeywordSet("DATA") ) coordinateSystem=DATA;
-      if ( e->KeywordSet("DEVICE") ) coordinateSystem=DEVICE;
-      if ( e->KeywordSet("NORMAL") ) coordinateSystem=NORMAL;
-
+      static int DATAIx=e->KeywordIx("DATA");
+      static int DEVICEIx=e->KeywordIx("DEVICE");
+      static int NORMALIx=e->KeywordIx("NORMAL");
+      coordinateSystem = DATA;
+    //check presence of DATA,DEVICE and NORMAL options
+      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+      
+    //T3D incompatible with DEVICE option.
+      if (coordinateSystem == DEVICE) doT3d =false;
+      
       // get_axis_type
       gdlGetAxisType("X", xLog);
       gdlGetAxisType("Y", yLog);
       gdlGetAxisType("Z", zLog);
       
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
+      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
       // get !Z.CRANGE
       gdlGetCurrentAxisRange("Z", zStart, zEnd);
 
@@ -221,59 +230,16 @@ namespace lib
         zStart = 0;
         zEnd = 1;
       }
+    // it is important to fix symsize before changing vpor or win 
+      gdlSetSymsize(e, actStream); //SYMSIZE
 
-      restoreClipBox=false;
       int noclipvalue=1;
-      e->AssureLongScalarKWIfPresent( "NOCLIP", noclipvalue);
-      doClip=(noclipvalue==0); //PLOTS by default does not clip, even if clip is defined by CLIP= or !P.CLIP
-      clipBox=e->IfDefGetKWAs<DFloatGDL>(clippingix);
-      if (doClip && clipBox!=NULL && clipBox->N_Elements()>=4 ) //clipbox exist, will be used: convert to device coords
-                                   //and save in !P.CLIP...
-      {
-        restoreClipBox=true; //restore later
-        // save current !P.CLIP box, replace by our current clipbox in whatever coordinates, will
-        // give back the !P.CLIP box at end...
-        static DStructGDL* pStruct=SysVar::P();
-        static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP"); //must be in device coordinates
-        static PLFLT tempbox[4];
-        for ( int i=0; i<4; ++i ) savebox[i]=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i];
-        if ( coordinateSystem==DEVICE )
-        {
-          for ( int i=0; i<4; ++i ) tempbox[i]=(*clipBox)[i];
-        }
-        else if ( coordinateSystem==DATA )
-        {
-          //handle log: if existing box is already in log, use log of clipbox values.
-          PLFLT worldbox[4];
-          for ( int i=0; i<4; ++i ) worldbox[i]=(*clipBox)[i];
-          if (xLog) {worldbox[0]=log10(worldbox[0]); worldbox[2]=log10(worldbox[2]);}
-          if (yLog) {worldbox[1]=log10(worldbox[1]); worldbox[3]=log10(worldbox[3]);}
-          bool okClipBox=true;
-          for ( int i=0; i<4; ++i )
-          {
-            if (!isfinite(worldbox[i])) //NaN
-            {
-              okClipBox=false;restoreClipBox=false;doClip=false;
-            }
-          }
-          if (okClipBox)
-          {
-            actStream->WorldToDevice(worldbox[0], worldbox[1], tempbox[0], tempbox[1]);
-            actStream->WorldToDevice(worldbox[2], worldbox[3], tempbox[2], tempbox[3]);
-          }
-        }
-        else
-        {
-          actStream->NormedDeviceToDevice((*clipBox)[0],(*clipBox)[1], tempbox[0], tempbox[1]);
-          actStream->NormedDeviceToDevice((*clipBox)[2],(*clipBox)[3], tempbox[2], tempbox[3]);
-        }
-        //place in !P.CLIP
-        for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=tempbox[i];
-      }
+      static int NOCLIPIx = e->KeywordIx("NOCLIP");
+      e->AssureLongScalarKWIfPresent( NOCLIPIx, noclipvalue);
+      doClip=(noclipvalue==0); //PLOTS by default does not clip, even if clip is defined by CLIP=
+      restorelayout=true;
 
       mapSet=false;
-      actStream->OnePageSaveLayout(); // one page
-
 #ifdef USE_LIBPROJ4
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
@@ -284,50 +250,38 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
-        // below code is necessary for PLOTS, however we should try to avoid it. How???
-        DDouble *sx, *sy;
-        GetSFromPlotStructs( &sx, &sy );
+        restorelayout=true;
 
-        DFloat *wx, *wy;
-        GetWFromPlotStructs( &wx, &wy );
-
-        DDouble pxStart, pxEnd, pyStart, pyEnd;
-        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
       }
 #endif
+      if ( doT3d && !real3d) {
+        doClip=false; //impossible to clip in 3d using plplot. we should do it ourselves.
+        restorelayout=false;
+        if ( coordinateSystem==NORMAL ){ xLog=false; yLog=false;}
+      } else {
+        
+        if (restorelayout) actStream->OnePageSaveLayout(); // one page
 
-    
-      PLFLT wun, wdeux, wtrois, wquatre;
-      if ( coordinateSystem==DATA) //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
-                                   // convert to device coords in this case
-      {
-        //All this is too complicated. IDL writes the plots in the NORMALIZED mode always using !X/Y.S and !X/Y.WINDOW. But we have to use plplot's
-        // wind and vpor and keep trace of the size changes (for symbols) etc... Perhaps it is possible to avoid all those changes and use only
-        // normalized coordinates. TO BE CHECKED.
-        actStream->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
-      }
+        actStream->vpor(0, 1, 0, 1); //ALL PAGE
 
-      actStream->vpor(0, 1, 0, 1); //ALL PAGE
-      
-      if ( coordinateSystem==DEVICE )
-      {
-        actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());
-        xLog=false;
-        yLog=false;
+        if ( coordinateSystem==DEVICE )
+        {
+          actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());
+          xLog=false;
+          yLog=false;
+        }
+        else if ( coordinateSystem==NORMAL )
+        {
+          actStream->wind(0, 1, 0, 1);
+          xLog=false;
+          yLog=false;
+        }
+        else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
+        {
+          setPlplotScale(actStream);
+        }
       }
-      else if ( coordinateSystem==NORMAL )
-      {
-        actStream->wind(0, 1, 0, 1);
-        xLog=false;
-        yLog=false;
-      }
-      else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
-      {
-        actStream->wind(wun, wdeux, wtrois, wquatre);
-      }
-
+        actStream->setSymbolSizeConversionFactors();
     }
 
   private:
@@ -336,32 +290,39 @@ namespace lib
     {
       // start drawing. Graphic Keywords accepted: CLIP(YES), COLOR(OK), DATA(YES), DEVICE(YES),
       //LINESTYLE(OK), NOCLIP(YES), NORMAL(YES), PSYM(OK), SYMSIZE(OK), T3D(NO), THICK(OK), Z(NO)
-      int colorIx=e->KeywordIx ( "COLOR" ); bool doColor=false;
+      static int colorIx=e->KeywordIx ( "COLOR" ); bool doColor=false;
       if ( e->GetKW ( colorIx )!=NULL )
       {
         color=e->GetKWAs<DLongGDL>( colorIx ); doColor=true;
       }
 
+
       if ( doT3d && !real3d) { //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
                                //if the x and y scaling is OK, using !P.T directly permits to use other projections
                                //than those used implicitly by plplot. See @showhaus example for *DL
         // case where we project 2D data on 3D: use plplot-like matrix.
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-
         static DDouble x0,y0,xs,ys; //conversion to normalized coords
-        x0=(xLog)?-log10(xStart):-xStart;
-        y0=(yLog)?-log10(yStart):-yStart;
-        xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-        ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
 
+        if (coordinateSystem==NORMAL) {
+          //TODO: THIS IS NOT CORRECT. The conversion is limited to the world box, not the 3d-projected normalized coordinates. 
+          x0=0;y0=0;xs=1.0;ys=1.0;
+        } else {
+          x0=(xLog)?-log10(xStart):-xStart;
+          y0=(yLog)?-log10(yStart):-yStart;
+          xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+          ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+        }
+        // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
+        zValue /= (zEnd - zStart);
+        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
+        Data3d.x0 = x0;
+        Data3d.y0 = y0;
+        Data3d.xs = xs;
+        Data3d.ys = ys;
         switch (axisExchangeCode) {
-          case NORMAL: //X->X Y->Y plane XY
+          case NORMAL3D: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
           case XY: // X->Y Y->X plane XY
@@ -384,7 +345,8 @@ namespace lib
       }
       // make all clipping computations BEFORE setting graphic properties (color, size)
       bool stopClip=false;
-      if ( doClip )  if ( startClipping(e, actStream, true)==TRUE ) stopClip=true;
+      if ( doClip )  if ( startClipping(e, actStream, true)==true ) stopClip=true;  //will use pClip if needed
+
       //properties
       if (!doColor || color->N_Elements() == 1){ //if no KW or only 1 color, no need to complicate things
                                                 //at draw_polyline level!
@@ -392,9 +354,8 @@ namespace lib
         doColor=false;
       }
       gdlSetLineStyle(e, actStream); //LINESTYLE
-      gdlSetSymsize(e, actStream); //SYMSIZE
       gdlSetPenThickness(e, actStream); //THICK
-
+      
       if (real3d) {
         //try first if the matrix is a plplot-compatible one
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
@@ -408,7 +369,7 @@ namespace lib
         } else
         {
           switch (axisExchangeCode) {
-          case NORMAL: //X->X Y->Y plane XY
+          case NORMAL3D: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
           case XY: // X->Y Y->X plane XY
@@ -435,28 +396,30 @@ namespace lib
         yval_guard.reset(yValou);
         //rescale to normalized box before conversions --- works for both matrices.
         gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
+        
+        ///TODO: Get proper USerSymSize in 3D.
+        
 #ifdef USE_LIBPROJ4
-        if ( mapSet ) GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
-        else 
-          bool valid=draw_polyline(e, actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+        if ( mapSet && psym < 1) {
+          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xValou, yValou, false, false, NULL);
+          psym=-psym;
+          if (psym > 0) draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
+        }
+        else draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
       }
       else
       {
         if ( mapSet && psym < 1) {
-          GDLgrProjectedPolygonPlot(e, actStream, ref, NULL, xVal, yVal, false, false, NULL);
+          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL); //connect lines correctly
           psym=-psym;
-          if (psym > 0) bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+          if (psym > 0) draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet,  append, doColor?color:NULL);
         }
-        else 
-          bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+        else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
       }
 #else
-          bool valid=draw_polyline(e, actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+          draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
       }
-      else
-      {
-          bool valid=draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
-      }
+      else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
 #endif
       if (stopClip) stopClipping(actStream);
     }
@@ -470,14 +433,8 @@ namespace lib
         plplot3d_guard.Reset(plplot3d);
         actStream->stransform(NULL,NULL);
       }
-      actStream->RestoreLayout();
-      actStream->lsty(1); //reset linestyle
-      if (restoreClipBox)
-      {
-        static DStructGDL* pStruct=SysVar::P();
-        static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP"); //must be in device coordinates
-        for ( int i=0; i<4; ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=savebox[i];
-      }
+      if (restorelayout) actStream->RestoreLayout();
+      actStream->lsty(1); 
     }
 
   }; 

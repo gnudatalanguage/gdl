@@ -40,7 +40,6 @@ namespace lib
   // shared parameter
   bool xLog;
   bool yLog;
-  bool restorelayout;
   void myrecordingfunction(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data)
   {
     *xt=x;
@@ -53,7 +52,7 @@ namespace lib
     if (yLog && y<=0 ) return 0;
     return 1;
   }
-
+  
   class contour_call: public plotting_routine_call
   {
 
@@ -74,8 +73,9 @@ namespace lib
     bool doT3d;
     bool irregular;
     bool setZrange;
+    bool restorelayout;
 
-    //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
+  //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
     //disentangle positive and negative contours with their rotation signature.
   private:
     bool handle_args (EnvT* e)
@@ -244,12 +244,12 @@ namespace lib
       restorelayout=false;
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      doT3d=(e->KeywordSet(t3dIx)|| T3Denabled(e));
+      doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
       //ZVALUE
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
       bool hasZvalue=false;
-      if( e->KeywordSet(zvIx))
+      if( e->KeywordPresent(zvIx))
 	{
 	  e->AssureDoubleScalarKW( zvIx, zValue );
 	  zValue=min(zValue,0.999999); //to avoid problems with plplot
@@ -274,7 +274,9 @@ namespace lib
       //      else actStream->stransform(NULL, NULL);
       //ISOTROPIC
       DLong iso=0;
-      e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
+      
+      static int ISOTROPIC=e->KeywordIx("ISOTROPIC");
+      e->AssureLongScalarKWIfPresent( ISOTROPIC, iso);
 
       // [XY]STYLE
       DLong xStyle=0, yStyle=0, zStyle=0; ;
@@ -295,6 +297,7 @@ namespace lib
       static int yTypeIx = e->KeywordIx( "YTYPE" );
       static int xLogIx = e->KeywordIx( "XLOG" );
       static int yLogIx = e->KeywordIx( "YLOG" );
+      static int zLogIx = e->KeywordIx( "ZLOG" );
       static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
       static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
@@ -312,7 +315,7 @@ namespace lib
       if (xLog || yLog) isLog=true; else isLog=false;
 
       // ztype does not exist in IDL
-      zLog=e->KeywordSet ( "ZLOG" );
+      zLog=e->KeywordSet ( zLogIx );
 
       if ( ( xStyle&1 )!=1 )
 	{
@@ -324,12 +327,14 @@ namespace lib
 	  PLFLT intv=gdlAdjustAxisRange ( yStart, yEnd, yLog );
 	}
 
-      bool hasMinVal=e->KeywordPresent("MIN_VALUE");
-      bool hasMaxVal=e->KeywordPresent("MAX_VALUE");
+      static int MIN_VALUE=e->KeywordIx("MIN_VALUE");
+      static int MAX_VALUE=e->KeywordIx("MAX_VALUE");
+      bool hasMinVal=e->KeywordPresent(MIN_VALUE);
+      bool hasMaxVal=e->KeywordPresent(MAX_VALUE);
       DDouble minVal=datamin;
       DDouble maxVal=datamax;
-      e->AssureDoubleScalarKWIfPresent ( "MIN_VALUE", minVal );
-      e->AssureDoubleScalarKWIfPresent ( "MAX_VALUE", maxVal );
+      e->AssureDoubleScalarKWIfPresent ( MIN_VALUE, minVal );
+      e->AssureDoubleScalarKWIfPresent ( MAX_VALUE, maxVal );
 
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )
@@ -364,7 +369,7 @@ namespace lib
 	  gdlGetAxisType("X", xLog);
 	  gdlGetAxisType("Y", yLog);
 	  gdlGetAxisType("Z", zLog);
-	  GetCurrentUserLimits(e, actStream, xStart, xEnd, yStart, yEnd);
+	  GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
 	  gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
 
 	  if (!doT3d) {
@@ -403,13 +408,9 @@ namespace lib
 
       if(make2dBox) {       //start a plot
         // viewport and world coordinates
-        // use POSITION
-        static int positionIx = e->KeywordIx( "POSITION");
-        DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
-        if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
         // set the PLOT charsize before computing box, see plot command.
         gdlSetPlotCharsize(e, actStream);
-        if ( gdlSetViewPortAndWorldCoordinates(e, actStream, boxPosition, xLog, yLog,
+        if ( gdlSetViewPortAndWorldCoordinates(e, actStream, xLog, yLog,
 					       xMarginL, xMarginR, yMarginB, yMarginT,
 					       xStart, xEnd, yStart, yEnd, iso)==FALSE )
 	  return; //no good: should catch an exception to get out of this mess.
@@ -430,7 +431,7 @@ namespace lib
 	Data3d.ys=ys;
  
         switch (axisExchangeCode) {
-	case NORMAL: //X->X Y->Y plane XY
+	case NORMAL3D: //X->X Y->Y plane XY
 	  Data3d.code = code012;
 	  break;
 	case XY: // X->Y Y->X plane XY
@@ -477,8 +478,15 @@ namespace lib
       // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
       // C_THICK=vector of thickness. repated if less than contours. defaults to !P.THICK or THICK
 
-      bool label=( e->KeywordSet ( "FOLLOW" ) || e->KeywordSet ( "C_CHARSIZE" ) || e->KeywordSet("C_CHARTHICK") || e->KeywordSet("C_LABELS") );
-      bool fill=( e->KeywordSet("FILL") || e->KeywordSet ("C_SPACING") || e->KeywordSet ("C_ORIENTATION") );
+      static int FOLLOW=e->KeywordIx("FOLLOW");
+      static int C_CHARSIZE=e->KeywordIx("C_CHARSIZE");
+      static int C_CHARTHICK=e->KeywordIx("C_CHARTHICK");
+	  static int C_LABELS=e->KeywordIx ( "C_LABELS" ); bool dolabels=false;
+      static int FILL=e->KeywordIx("FILL");
+	  static int C_SPACING=e->KeywordIx ( "C_SPACING" ); bool dospacing=false;
+	  static int C_ORIENTATION=e->KeywordIx ( "C_ORIENTATION" ); bool doori=false;
+      bool label=( e->KeywordSet ( FOLLOW ) || e->KeywordSet ( C_CHARSIZE ) || e->KeywordSet( C_CHARTHICK ) || e->KeywordSet( C_LABELS ) );
+      bool fill=( e->KeywordSet(FILL) || e->KeywordSet (C_SPACING) || e->KeywordSet (C_ORIENTATION) );
       if (fill) label=false; //mutually exclusive
       if (recordPath) {fill=true;}
 
@@ -511,10 +519,11 @@ namespace lib
 	  // first, compute autolevel interval...
 	  zintv=AutoTick ( mapmax-mapmin); //zintv never null.
 
-	  if ( e->KeywordSet ( "NLEVELS" ) )
+      static int NLEVELS=e->KeywordIx("NLEVELS");
+	  if ( e->KeywordSet ( NLEVELS ) )
 	    {
 	      DLong l_nlevel=nlevel; // GCC 3.4.4 needs that
-	      e->AssureLongScalarKWIfPresent ( "NLEVELS", l_nlevel );
+	      e->AssureLongScalarKWIfPresent ( NLEVELS, l_nlevel );
 	      nlevel=l_nlevel;
 	      if ( nlevel<0) nlevel=2; //as IDL
 	      if (nlevel==0) nlevel=3; //idem
@@ -554,10 +563,10 @@ namespace lib
       // PlPlot default: .3
       // should be: DFloat label_size=.75*actStream->charScale(); however IDL doc false (?).
       DFloat label_size=0.9; //IDL behaviour, IDL doc is false, label of contours is not 3/4 of !P.CHARSIZE or CHARSIZE
-      if ( e->KeywordSet ( "C_CHARSIZE" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARSIZE", label_size );
+      if ( e->KeywordSet ( C_CHARSIZE ) ) e->AssureFloatScalarKWIfPresent ( C_CHARSIZE, label_size );
       // set up after:      actStream->setcontlabelparam ( LABELOFFSET, (PLFLT) label_size, LABELSPACING, (label)?1:0 );
       DFloat label_thick=1; 
-      if ( e->KeywordSet ( "C_CHARTHICK" ) ) e->AssureFloatScalarKWIfPresent ( "C_CHARTHICK", label_thick );
+      if ( e->KeywordSet ( C_CHARTHICK ) ) e->AssureFloatScalarKWIfPresent ( C_CHARTHICK, label_thick );
       actStream->setcontlabelformat (4, 3 );
 
       // PLOT ONLY IF NODATA=0
@@ -710,9 +719,6 @@ namespace lib
 
 	  static int c_linestyleIx=e->KeywordIx ( "C_LINESTYLE" ); bool dostyle=false;
 	  static int c_thickIx=e->KeywordIx ( "C_THICK" ); bool dothick=false;
-	  static int c_labelsIx=e->KeywordIx ( "C_LABELS" ); bool dolabels=false;
-	  static int c_orientationIx=e->KeywordIx ( "C_ORIENTATION" ); bool doori=false;
-	  static int c_spacingIx=e->KeywordIx ( "C_SPACING" ); bool dospacing=false;
 
 	  if ( e->GetKW ( c_thickIx )!=NULL )
 	    {
@@ -724,9 +730,9 @@ namespace lib
 	    static DStructGDL* pStruct=SysVar::P();
 	    thick=static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)); dothick=false;          
 	  }
-	  if ( e->GetKW ( c_labelsIx )!=NULL )
+	  if ( e->GetKW ( C_LABELS )!=NULL )
 	    {
-	      labels=e->GetKWAs<DLongGDL>( c_labelsIx ); dolabels=true;
+	      labels=e->GetKWAs<DLongGDL>( C_LABELS ); dolabels=true;
 	    }
 	  else //every other level
 	    {
@@ -739,9 +745,9 @@ namespace lib
 	    {
 	      style=e->GetKWAs<DLongGDL>( c_linestyleIx ); dostyle=true;
 	    }
-	  if ( e->GetKW ( c_orientationIx )!=NULL )
+	  if ( e->GetKW ( C_ORIENTATION )!=NULL )
 	    {
-	      orientation=e->GetKWAs<DFloatGDL>( c_orientationIx ); doori=true;
+	      orientation=e->GetKWAs<DFloatGDL>( C_ORIENTATION ); doori=true;
 	    }
 	  else
 	    {
@@ -749,9 +755,9 @@ namespace lib
 	      orientation_guard.Init( orientation);
 	      (*orientation)[0]=0;
 	    }
-	  if ( e->GetKW ( c_spacingIx )!=NULL )
+	  if ( e->GetKW ( C_SPACING )!=NULL )
 	    {
-	      spacing=e->GetKWAs<DFloatGDL>( c_spacingIx ); dospacing=true;
+	      spacing=e->GetKWAs<DFloatGDL>( C_SPACING ); dospacing=true;
 	    }
 	  else
 	    {
@@ -762,9 +768,12 @@ namespace lib
 	  bool hachures=(dospacing || doori);
 
 	  // Important: make all clipping computations BEFORE setting graphic properties (color, size)
-	  bool doClip=(e->KeywordSet("CLIP")||e->KeywordSet("NOCLIP"));
+      static int CLIP=e->KeywordIx("CLIP");
+      static int NOCLIP=e->KeywordIx("NOCLIP");
+
+	  bool doClip=(e->KeywordSet(CLIP) && !(e->KeywordSet(NOCLIP)));
 	  bool stopClip=false;
-	  if ( doClip )  if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
+	  if ( doClip )  if ( startClipping(e, actStream)==true ) stopClip=true;
 
 	  //provides some defaults:
 	  if (!docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
@@ -927,7 +936,7 @@ namespace lib
       if(make3dBox) {  //overplot box
         DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
         switch (axisExchangeCode) {
-	case NORMAL: //X->X Y->Y plane XY
+	case NORMAL3D: //X->X Y->Y plane XY
 	  t3xStart=(xLog)?log10(xStart):xStart,
             t3xEnd=(xLog)?log10(xEnd):xEnd,
             t3yStart=(yLog)?log10(yStart):yStart,
