@@ -380,179 +380,181 @@ print, 'Exemple 7: Should plot World using Robinson projection'
 MAP_SET,0,180,/robinson,/grid,/cont,/iso,titl='Robinson Projection, Centered on Greenwich Meridian'
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
 ;
-MAP_SET, /AITOFF, /ISOTROPIC,  TITLE='AITOFF'
+!P.MULTI=[0,2,2]
+MAP_SET,/ADVANCE, /AITOFF, /ISOTROPIC,  TITLE='AITOFF'
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /AITOFF, 60, 180, 30, /ISOTROPIC,  TITLE='AITOFF OFFSET ROTATION'
+MAP_SET,/ADVANCE, /AITOFF, 60, 180, 30, /ISOTROPIC,  TITLE='AITOFF OFFSET ROTATION'
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ALBERS, /ISOTROPIC,  TITLE='ALBERS',STANDARD_PARALLELS=[-20,10]
+MAP_SET,/ADVANCE, /ALBERS, /ISOTROPIC,  TITLE='ALBERS',STANDARD_PARALLELS=[-20,10]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ALBERS, 30, 180, 45,/ISOTROPIC,  TITLE='ALBERS OFFSET ROTATED',STANDARD_PARALLELS=[-20,10]
+MAP_SET,/ADVANCE, /ALBERS, 30, 180, 45,/ISOTROPIC,  TITLE='ALBERS OFFSET ROTATED',STANDARD_PARALLELS=[-20,10]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /AZIM, /ISOTROPIC,  TITLE='AZIM',STANDARD_PARALLELS=[-20,10] 
+MAP_SET,/ADVANCE, /AZIM, /ISOTROPIC,  TITLE='AZIM',STANDARD_PARALLELS=[-20,10] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /AZIM, 30, 180, 45,/ISOTROPIC,  TITLE='AZIM OFFSET ROTATED',STANDARD_PARALLELS=[-20,10] 
+MAP_SET,/ADVANCE, /AZIM, 30, 180, 45,/ISOTROPIC,  TITLE='AZIM OFFSET ROTATED',STANDARD_PARALLELS=[-20,10] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /CONIC, /ISOTROPIC,  TITLE='CONIC',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /CONIC, /ISOTROPIC,  TITLE='CONIC',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /CONIC, 30, 180, 45,/ISOTROPIC,  TITLE='CONIC OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /CONIC, 30, 180, 45,/ISOTROPIC,  TITLE='CONIC OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /CYLIN, /ISOTROPIC,  TITLE='CYLIN',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /CYLIN, /ISOTROPIC,  TITLE='CYLIN',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /CYLIN, 30, 180, 45,/ISOTROPIC,  TITLE='CYLIN OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /CYLIN, 30, 180, 45,/ISOTROPIC,  TITLE='CYLIN OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /GNOM, /ISOTROPIC,  TITLE='GNOM',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /GNOM, /ISOTROPIC,  TITLE='GNOM',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /GNOM, 30, 180, 45,/ISOTROPIC,  TITLE='GNOM OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /GNOM, 30, 180, 45,/ISOTROPIC,  TITLE='GNOM OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /GOODES, /ISOTROPIC,  TITLE='GOODES',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /GOODES, /ISOTROPIC,  TITLE='GOODES',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /GOODES, 30, 180, 45,/ISOTROPIC,  TITLE='GOODES OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /GOODES, 30, 180, 45,/ISOTROPIC,  TITLE='GOODES OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /HAMMER, /ISOTROPIC,  TITLE='HAMMER',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /HAMMER, /ISOTROPIC,  TITLE='HAMMER',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /HAMMER, 30, 180, 45,/ISOTROPIC,  TITLE='HAMMER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /HAMMER, 30, 180, 45,/ISOTROPIC,  TITLE='HAMMER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /LAMBERT, /ISOTROPIC,  TITLE='LAMBERT',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /LAMBERT, /ISOTROPIC,  TITLE='LAMBERT',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /LAMBERT, 0, 180, 45,/ISOTROPIC,  TITLE='LAMBERT OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /LAMBERT, 0, 180, 45,/ISOTROPIC,  TITLE='LAMBERT OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MERCATOR, /ISOTROPIC,  TITLE='MERCATOR',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MERCATOR, /ISOTROPIC,  TITLE='MERCATOR',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MERCATOR, 30, 180, 45,/ISOTROPIC,  TITLE='MERCATOR OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MERCATOR, 30, 180, 45,/ISOTROPIC,  TITLE='MERCATOR OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MILLER, /ISOTROPIC,  TITLE='MILLER',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MILLER, /ISOTROPIC,  TITLE='MILLER',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MILLER, 30, 180, 45,/ISOTROPIC,  TITLE='MILLER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MILLER, 30, 180, 45,/ISOTROPIC,  TITLE='MILLER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MOLL, /ISOTROPIC,  TITLE='MOLL',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MOLL, /ISOTROPIC,  TITLE='MOLL',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /MOLL, 30, 180, 45,/ISOTROPIC,  TITLE='MOLL OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /MOLL, 30, 180, 45,/ISOTROPIC,  TITLE='MOLL OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ORTHO, /ISOTROPIC,  TITLE='ORTHO',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /ORTHO, /ISOTROPIC,  TITLE='ORTHO',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ORTHO, 30, 180, 45,/ISOTROPIC,  TITLE='ORTHO OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /ORTHO, 30, 180, 45,/ISOTROPIC,  TITLE='ORTHO OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ROBIN,/ISOTROPIC,  TITLE='ROBIN',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /ROBIN,/ISOTROPIC,  TITLE='ROBIN',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /ROBIN, 30, 180, 45,/ISOTROPIC,  TITLE='ROBIN OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /ROBIN, 30, 180, 45,/ISOTROPIC,  TITLE='ROBIN OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /SATELL, SAT_P=[1.0251, 55, 150], 41.5, -74.,LIMIT=[39, -74, 33, -80, 40, -77, 41,-74], /ISOTROPIC,  TITLE='Satellite, Tilted Perspective'
+MAP_SET,/ADVANCE, /SATELL, SAT_P=[1.0251, 55, 150], 41.5, -74.,LIMIT=[39, -74, 33, -80, 40, -77, 41,-74], /ISOTROPIC,  TITLE='Satellite, Tilted Perspective'
 MAP_CONTINENTS,/HIRES
 MAP_GRID, /LABEL, LATLAB=-75, LONLAB=39, LATDEL=1, LONDEL=1
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /SINUS,/ISOTROPIC,  TITLE='SINUS',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /SINUS,/ISOTROPIC,  TITLE='SINUS',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /SINUS, 30, 180, 45,/ISOTROPIC,  TITLE='SINUS OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
+MAP_SET,/ADVANCE, /SINUS, 30, 180, 45,/ISOTROPIC,  TITLE='SINUS OFFSET ROTATED',STANDARD_PARALLELS=[20,60] 
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /STEREO, /ISOTROPIC,  TITLE='STEREO',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /STEREO, /ISOTROPIC,  TITLE='STEREO',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /STEREO, 30, 180, 45,/ISOTROPIC,  TITLE='STEREO OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /STEREO, 30, 180, 45,/ISOTROPIC,  TITLE='STEREO OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
 MAP_GRID
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /TRANSVER, /ISOTROPIC,  TITLE='TRANSVER',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /TRANSVER, /ISOTROPIC,  TITLE='TRANSVER',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
-;MAP_GRID ; hyper long?
+MAP_GRID ; hyper long?
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
-MAP_SET, /TRANSVER, 30, 180, 45,/ISOTROPIC,  TITLE='TRANSVER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
+MAP_SET,/ADVANCE, /TRANSVER, 30, 180, 45,/ISOTROPIC,  TITLE='TRANSVER OFFSET ROTATED',STANDARD_PARALLELS=[20,60]
 MAP_CONTINENTS
 MAP_HORIZON
-;MAP_GRID
+MAP_GRID
+!P.MULTI=0
 ;a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
 ;mapStruct = MAP_PROJ_INIT(129, LIMIT=[0,-180,90,180],SPHERE_RADIUS=1, CENTER_LONGITUDE=180)
 a='' & read, 'Press F for filling continents else press Enter', a & if (a eq 'f') then begin map_continents,/fill & read,a &end
