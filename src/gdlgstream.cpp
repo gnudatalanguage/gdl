@@ -313,7 +313,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     xSize=min(1.0,xmax-xmin);
     ySize=min(1.0,ymax-ymin);
   }
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%ld %ld %ld %ld)\n", xSize, ySize);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"    found (%ld %ld)\n", xSize, ySize);
 
 }
 
@@ -885,6 +885,14 @@ retrn:
   return true; 
 }
 
+void GDLGStream::setSymbolSize( PLFLT scale )
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setSymbolScale(%f)\n",scale);
+  plstream::ssym(0.0, scale);
+  theCurrentSymSize=scale;
+}
+PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
+
 void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                        const char *text)
 {
@@ -917,6 +925,8 @@ void GDLGStream::sizeChar( PLFLT scale )
 void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
+  //note that plplot apparently does not write the y=0 line of pixels (in device coords). IDL page is on the contrary limited to
+  // [0..1[ in both axes (normalized coordinates)
   plstream::vpor(xmin, xmax, ymin, ymax);
   theBox.nx1=xmin;
   theBox.nx2=xmax;

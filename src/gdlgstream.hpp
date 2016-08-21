@@ -54,30 +54,30 @@ const double MMToINCH = 0.039370078 ; // 1./2.54;
 using namespace std;
 
 // Graphic Structures:
-  typedef struct _P_GRAPHICS {
-    DLong background;
-    DFloat charSize;
-    DFloat charThick;
-    DLong clip[6];
-    DLong color;
-    DLong font;
-    DLong lineStyle;
-    DLong multi[5];
-    DLong noClip;
-    DLong noErase;
-    DLong nsum;
-    DFloat position[4];
-    DLong psym;
-    DFloat region[4];
-    DString subTitle;
-    DFloat symSize;
-    DDouble t[4][4];
-    DLong t3d;
-    DFloat thick;
-    DString title;
-    DFloat ticklen;
-    DLong channel;
-  } pstruct ;
+//  typedef struct _P_GRAPHICS {
+//    DLong background;
+//    DFloat charSize;
+//    DFloat charThick;
+//    DLong clip[6];
+//    DLong color;
+//    DLong font;
+//    DLong lineStyle;
+//    DLong multi[5];
+//    DLong noClip;
+//    DLong noErase;
+//    DLong nsum;
+//    DFloat position[4];
+//    DLong psym;
+//    DFloat region[4];
+//    DString subTitle;
+//    DFloat symSize;
+//    DDouble t[4][4];
+//    DLong t3d;
+//    DFloat thick;
+//    DString title;
+//    DFloat ticklen;
+//    DLong channel;
+//  } pstruct ;
 
   typedef struct GDL_BOX {
     bool initialized;
@@ -138,6 +138,8 @@ using namespace std;
     DDouble mmsy; //
     PLFLT wsx;  //in current world coordinates
     PLFLT wsy;
+    PLFLT convx; //symbol size conversion factor, (for PSYMs, not characters: PSYMs are handled by GDL, CHARS by plplot)
+    PLFLT convy; //set only while in 2D mode, used in 2D or 3D mode.
   } gdlCharInfo;
 
 class GDLGStream: public plstream
@@ -157,6 +159,7 @@ protected:
   gdlpage thePage;
   PLStream* pls;
   DFloat thickFactor;
+  PLFLT theCurrentSymSize;
 public:
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
@@ -289,6 +292,16 @@ public:
     if (((theBox.nx1==0) && (theBox.nx2==0)) 
 	|| ((theBox.ny1==0) && (theBox.ny2==0))) return false; else return true;
   }
+  inline PLFLT getPsymConvX(){return theCurrentChar.convx;}
+  inline PLFLT getPsymConvY(){return theCurrentChar.convy;}
+  inline void setSymbolSizeConversionFactors(){
+    PLFLT symsize=this->getSymbolSize();
+    theCurrentChar.convx=(0.5*symsize*(this->wCharLength()/this->charScale())); //be dependent only on symsize!
+    theCurrentChar.convy=(0.5*symsize*(this->wCharHeight()/this->charScale()));
+    PLFLT wun, wdeux, wtrois, wquatre; //take care of axes world orientation!
+    this->pageWorldCoordinates(wun, wdeux, wtrois, wquatre);
+    if ((wdeux-wun)<0) theCurrentChar.convx*=-1.0;
+    if ((wquatre-wtrois)<0) theCurrentChar.convy*=-1.0;} 
   inline PLFLT charScale(){return theCurrentChar.scale;}
   inline PLFLT nCharWidth(){return theCurrentChar.ndsx;}
   inline PLFLT nCharHeight(){return theCurrentChar.ndsy;}
@@ -790,6 +803,8 @@ public:
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
   bool TranslateFormatCodes(const char *text, std::string &out);
+  void setSymbolSize( PLFLT scale );
+  PLFLT getSymbolSize();
   void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
