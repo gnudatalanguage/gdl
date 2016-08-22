@@ -279,7 +279,7 @@ private:
         }
         else draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
 #else
-    bool draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
+    draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
 #endif
     if (stopClip) stopClipping(actStream);
   } 
