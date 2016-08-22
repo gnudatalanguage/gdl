@@ -831,7 +831,7 @@ namespace lib {
     }
   }
 
- static void gdlGetDesiredAxisTickName(EnvT* e, string axis, DStringGDL* &axisTicknameVect)
+ static void gdlGetDesiredAxisTickName(EnvT* e, GDLGStream* a, string axis, DStringGDL* &axisTicknameVect)
   {
 
     static int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
@@ -853,12 +853,8 @@ namespace lib {
       //translate format codes here:
       for (SizeT iname=0; iname < axisTicknameVect->N_Elements(); ++iname) {
         std::string out = std::string("");
-        GDLGStream* tmpstream;
-//        cerr<<"\""<<(*axisTicknameVect)[iname]<<"\"-> ";
-        tmpstream->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
+        a->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
 //TBD: not finished, see cases not treated in TransmateFormatCodes (gdlgstream.cpp)
-//        cerr<<"\""<<out<<"\""<<endl;
-
         (*axisTicknameVect)[iname]=out;
       }
     }
@@ -1736,7 +1732,7 @@ namespace lib {
     DFloat TickLen;
     gdlGetDesiredAxisTickLen(e, axis, TickLen);
     DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, axis, TickName);
+    gdlGetDesiredAxisTickName(e, a, axis, TickName);
     DLong Ticks;
     gdlGetDesiredAxisTicks(e, axis, Ticks);
     DStringGDL* TickUnits;
@@ -1996,7 +1992,7 @@ namespace lib {
     DFloat TickLen;
     gdlGetDesiredAxisTickLen(e, axis, TickLen);
     DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, axis, TickName);
+    gdlGetDesiredAxisTickName(e, a, axis, TickName);
     DLong Ticks;
     gdlGetDesiredAxisTicks(e, axis, Ticks);
     DStringGDL* TickUnits;
