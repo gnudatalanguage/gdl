@@ -161,7 +161,7 @@ public:
     String_abbref_eq searchKey(s);
     int ix=0;
     for(KeyVarListT::iterator i=key.begin();
-	i != key.end(); i++, ix++) if( searchKey(*i)) {
+	i != key.end(); ++i, ++ix) if( searchKey(*i)) {
 	  return ix;
 	}
     return -1;
@@ -402,7 +402,7 @@ public:
   BaseGDL** GetCommonVarPtr(const BaseGDL* p)
   {
     for( CommonBaseListT::iterator c=common.begin();
-	 c != common.end(); c++)
+	 c != common.end(); ++c)
       {
 	int vIx = (*c)->Find( p);
 	if( vIx >= 0) 
@@ -417,7 +417,7 @@ public:
   BaseGDL** GetCommonVarPtr(std::string& s)
   {
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); c++)
+   	c != common.end(); ++c)
       {
        	DVar* v=(*c)->Find(s);
        	if (v) return &(v->Data());
@@ -428,7 +428,7 @@ public:
   bool ReplaceExistingCommonVar(std::string& s, BaseGDL* val)
   {
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); c++)
+   	c != common.end(); ++c)
       {
        	DVar* v=(*c)->Find(s);
        	if (v) { 
@@ -449,7 +449,7 @@ public:
   DVar* FindCommonVar(const std::string& s) 
   { 
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); c++)
+   	c != common.end(); ++c)
       {
        	DVar* v=(*c)->Find(s);
        	if( v) return v;
