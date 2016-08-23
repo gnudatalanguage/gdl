@@ -64,6 +64,10 @@ void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 }
 void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directly from inside gdl.
 {
+  if (!wxIsStarted) {
+    if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+    wxIsStarted=true;
+  }
   font=wxNullFont;
   
   alignment=gdlwALIGN_NOT;
@@ -92,6 +96,10 @@ void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directl
 }
 void GDLWidget::GetCommonKeywords( EnvT* e)
 {
+  if (!wxIsStarted) {
+    if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
+    wxIsStarted=true;
+  }
   static int frameIx = e->KeywordIx( "FRAME" );
   static int event_funcIx = e->KeywordIx( "EVENT_FUNC" );
   static int event_proIx = e->KeywordIx( "EVENT_PRO" );
@@ -2520,8 +2528,7 @@ void widget_control( EnvT* e ) {
       e->Interpreter( )->CallStack( ).push_back( newEnv );
 
       // make the call
-      BaseGDL* res = new BaseGDL;
-      res = e->Interpreter( )->call_fun( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+      BaseGDL* res = e->Interpreter( )->call_fun( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
 
       // set the keyword to the function's return value which can be anything!!!
       if (valueKW) GDLDelete( (*valueKW) );

@@ -398,15 +398,11 @@ BaseGDL* GDLWidget::GetWidgetsList() {
   }
   return result;
 }
-// Init
-void GDLWidget::Init()
-{
- if( ! wxInitialize( ) ) cerr << "WARNING: wxWidgets not initializing" <<endl;
-}
 // UnInit
 void GDLWidget::UnInit()
 {
   wxUninitialize( );
+  wxIsStarted=false;
 }
 
 void GDLWidget::ConnectToDesiredEvents(){
@@ -3994,12 +3990,6 @@ pg->Append( new wxFileProperty("FileProperty", wxPG_LABEL, wxEmptyString) );
 TIDY_WIDGET;
 UPDATE_WINDOW
 }
-
- GDLWidgetPropertySheet::~GDLWidgetPropertySheet(){
-#ifdef GDL_DEBUG_WIDGETS
-  std::cout << "~GDLWidgetPropertySheet(): " << widgetID << std::endl;
-#endif
-
 #endif
 // GDL widgets =====================================================
 // GDLFrame ========================================================

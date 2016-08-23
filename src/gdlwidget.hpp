@@ -65,7 +65,7 @@ typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
 static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
-
+static bool wxIsStarted=false; //starts wxInit() as soon as needed but not before (speedup).
 class DStructGDL;
 
 class GDLApp;

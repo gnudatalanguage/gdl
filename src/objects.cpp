@@ -772,13 +772,6 @@ void InitObjects()
   // We need to initialize the multi-device object that inherits from the single-device object.
   GraphicsMultiDevice::Init();
 
-  // AC 150414 :
-  // this line must be after the previous on Debian/Ubuntu systems.
-#ifdef HAVE_LIBWXWIDGETS
-  // initialize widget system
-  GDLWidget::Init();
-#endif
-
   // preferences
   //  Preferences::Init();
 }
