@@ -1175,7 +1175,6 @@ namespace lib {
       yMT/=yMMult*1.5;
     }
 
-    static bool kwP=FALSE;
     static PLFLT positionP[4]={0, 0, 0, 0};
     static PLFLT regionP[4]={0, 0, 0, 0};
     static PLFLT position[4]={0,0,1,1};
@@ -1253,7 +1252,6 @@ namespace lib {
     // New plot without POSITION=[] as argument
     if ( boxPosition==(DFloatGDL*)0xF )
     {
-      kwP=false;
       // If !P.position not set use default values. coordinatesSystem not used even if present!
       if ( positionP[0]==0&&positionP[1]==0&&
            positionP[2]==0&&positionP[3]==0 )
@@ -1273,7 +1271,6 @@ namespace lib {
     }
     else // Position keyword set
     {
-      kwP=true;
       actStream->vpor(position[0], position[2], position[1], position[3]);
     }
     //adjust 'world' values to give room to axis labels. Could be better if we take
