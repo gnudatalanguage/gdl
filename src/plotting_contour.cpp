@@ -57,7 +57,7 @@ namespace lib
   {
 
     DDoubleGDL *zVal, *yVal, *xVal;
-    Guard<BaseGDL> xval_guard, yval_guard, p0_guard;
+    Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
     DDoubleGDL *yValTemp, *xValTemp;
     Guard<BaseGDL> xval_temp_guard, yval_temp_guard;
     SizeT xEl, yEl, zEl, ixEl, iyEl;
@@ -97,10 +97,10 @@ namespace lib
 	else 
 	  {
 	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    
-	    zVal=static_cast<DDoubleGDL*>
-	      ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-	    p0_guard.Init ( p0 ); // delete upon exit
+        p0_guard.Init ( p0 ); // delete upon exit
+
+	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        zval_guard.Init ( zVal ); // delete upon exit
 	    
 	    xEl=zVal->Dim ( 1 );
 	    yEl=zVal->Dim ( 0 );
@@ -121,9 +121,11 @@ namespace lib
 	  { 
 	    //ZVal will be treated as 1 dim array and X and Y must have the same number of elements.
 	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    zVal=static_cast<DDoubleGDL*>
-	      ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
 	    p0_guard.Init( p0 ); // delete upon exit
+
+	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        zval_guard.Init ( zVal ); // delete upon exit
+
 	    xValTemp=e->GetParAs< DDoubleGDL>( 1 );
 	    yValTemp=e->GetParAs< DDoubleGDL>( 2 );
 	    
@@ -139,9 +141,10 @@ namespace lib
 	else
 	  {
 	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    zVal=static_cast<DDoubleGDL*>
-	      ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
 	    p0_guard.Init( p0 ); // delete upon exit
+        
+	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        zval_guard.Init ( zVal ); // delete upon exit
 
 	    if ( zVal->Dim ( 0 )==1 )
 	      e->Throw ( "Array must have 2 dimensions: "

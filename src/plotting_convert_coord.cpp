@@ -381,7 +381,6 @@ namespace lib {
     DDoubleGDL* mat=(new DDoubleGDL(dimension(dim1,dim0),BaseGDL::NOZERO));
     for (int j=0; j < dim0; ++j) for (int i=0; i < dim1; ++i)(*mat)[i*dim1+j]=(*me)[j*dim0 + i];
     memcpy(me->DataAddr(),mat->DataAddr(),dim0*dim1*sizeof(double));
-//    for (int i=0; i < dim0; ++i) for (int j=0; j < dim1; ++j)(*me)[i*dim0+j]=(*mat)[i*dim0 + j];
     GDLDelete(mat);
   }
   void SelfReset3d(DDoubleGDL* me)
@@ -413,7 +412,9 @@ namespace lib {
     DDoubleGDL* mat=(new DDoubleGDL(dimension(dim0,dim1)));
     SelfReset3d(mat); //identity Matrix
     for(SizeT i=0; i<3; ++i) {(*mat)[3*dim1+i]=trans[i];}
-    memcpy(me->DataAddr(),(mat->MatrixOp(me,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+    DDoubleGDL* intermediary=mat->MatrixOp(me,false,false);
+    memcpy(me->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+    GDLDelete(intermediary);
     GDLDelete(mat);
   }
   DDoubleGDL* Scale3d(DDoubleGDL* me, DDouble *scale)
@@ -435,7 +436,9 @@ namespace lib {
     DDoubleGDL* mat=(new DDoubleGDL(dimension(dim0,dim1)));
     SelfReset3d(mat); //identity Matrix
     for(SizeT i=0; i<3; ++i) {(*mat)[i*dim1+i]=scale[i];}
-    memcpy(me->DataAddr(),(mat->MatrixOp(me,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+    DDoubleGDL* intermediary=mat->MatrixOp(me,false,false);
+    memcpy(me->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+    GDLDelete(intermediary);
     GDLDelete(mat);
 }
 #define DPI (double)(4*atan(1.0))
@@ -474,7 +477,9 @@ namespace lib {
             (*maty)[0 * ncols + 2] = -s;
             (*maty)[2 * ncols + 0] = s;
             (*maty)[2 * ncols + 2] = c;
-            memcpy(mat->DataAddr(),(maty->MatrixOp(mat,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+            DDoubleGDL* intermediary=maty->MatrixOp(mat,false,false);
+            memcpy(mat->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+            GDLDelete(intermediary);
             break;
           }
           case 2:
@@ -483,12 +488,16 @@ namespace lib {
             (*matz)[0 * ncols + 1] = s;
             (*matz)[1 * ncols + 0] = -s;
             (*matz)[1 * ncols + 1] = c;
-            memcpy(mat->DataAddr(),(matz->MatrixOp(mat,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+            DDoubleGDL* intermediary=matz->MatrixOp(mat,false,false);
+            memcpy(mat->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+            GDLDelete(intermediary);
           }
         }
       }
 
-    memcpy(me->DataAddr(),(mat->MatrixOp(me,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+    DDoubleGDL* intermediary=mat->MatrixOp(me,false,false);
+    memcpy(me->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+    GDLDelete(intermediary);
     GDLDelete(matz);
     GDLDelete(maty);
     GDLDelete(mat);
@@ -503,7 +512,9 @@ namespace lib {
     DDoubleGDL* mat=(new DDoubleGDL(dimension(dim0,dim1)));
     SelfReset3d(mat); //identity Matrix
     (*mat)[2*dim1+3]=-1.0/zdist;
-    memcpy(me->DataAddr(),(mat->MatrixOp(me,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+    DDoubleGDL* intermediary=mat->MatrixOp(me,false,false);
+    memcpy(me->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+    GDLDelete(intermediary);
     GDLDelete(mat);
  }
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle)
@@ -516,7 +527,9 @@ namespace lib {
     (*mat)[2*dim1+2]=0.0;
     (*mat)[2*dim1+0]=dist*cos(angle*DEGTORAD);
     (*mat)[2*dim1+1]=dist*sin(angle*DEGTORAD);
-    memcpy(me->DataAddr(),(mat->MatrixOp(me,false,false))->DataAddr(),dim0*dim1*sizeof(double));
+    DDoubleGDL* intermediary=mat->MatrixOp(me,false,false);
+    memcpy(me->DataAddr(),intermediary->DataAddr(),dim0*dim1*sizeof(double));
+    GDLDelete(intermediary);
     GDLDelete(mat);
   }
   void SelfExch3d(DDoubleGDL* me, DLong code)

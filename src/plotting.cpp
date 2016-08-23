@@ -763,6 +763,8 @@ namespace lib
                 a->line(*userSymArrayDim, xx, yy);
               }
             }
+            delete[] xx;
+            delete[] yy;
           }
           if ( psym_==10 )
           {
@@ -816,6 +818,8 @@ namespace lib
               a->line(*userSymArrayDim, xx, yy);
             }
           }
+          delete[] xx;
+          delete[] yy;
         }
         if ( psym_==10 )
         {
@@ -1873,6 +1877,7 @@ static DDouble bad=sqrt(-1);
     Vertex* v = new Vertex;
     v->lon = atan2(p->y, p->x);
     v->lat = atan2(p->z, sqrt(p->x * p->x + p->y * p->y));
+    delete p;
     return v;
   }
   
@@ -1960,7 +1965,8 @@ inline DDouble DistanceOnSphere(DDouble x, DDouble y, DDouble z, DDouble px, DDo
     Point3d* cut1=crossP(p1p2,cutplane);
     Point3d* cut2=crossP(cutplane,p1p2);
     //general case: we choose depending on the direction we travel from p1 to p2.
-    if (dotP(crossP(cutplane,p2),cut1) > 0) return cut2; else return cut1;
+    delete p1p2;
+    if (dotP(crossP(cutplane,p2),cut1) > 0) {delete cut1;return cut2;} else {delete cut2; return cut1;}
   }
   
   inline Vertex* CutPosition(const Vertex* v1, const Vertex* v2, DDouble u,DDouble v,DDouble w){
@@ -2004,7 +2010,9 @@ inline DDouble DistanceOnSphere(DDouble x, DDouble y, DDouble z, DDouble px, DDo
     x=p->x;
     y=p->y;
     z=p->z;
-
+    delete p1;
+    delete p2;
+    delete p;
     return;
   }
   
@@ -2098,15 +2106,19 @@ struct Polygon {
       }
     }
     p->VertexList.push_back(*start); //close contour
-    delete[] end;
+    delete end;
 }
   void StitchTwoPolygonsOnGreatCircle(Polygon *p, Polygon *q){ //stich end of p to start of q
     DDouble x, y, z, xs, ys, zs, xe, ye, ze;
-    Vertex *start=new Vertex (p->VertexList.back()); //end of p
+    Vertex *start=new Vertex;
+    start->lat=(p->VertexList.back()).lat; //end of p
+    start->lon=(p->VertexList.back()).lon; //end of p
     xs = cos( start->lon ) * cos( start->lat );
     ys = sin( start->lon ) * cos( start->lat);
     zs = sin( start->lat );
-    Vertex *end=new Vertex (q->VertexList.front());
+    Vertex *end=new Vertex;
+    end->lat=(q->VertexList.front()).lat;
+    end->lon=(q->VertexList.front()).lon;
     xe = cos( end->lon ) * cos( end->lat );
     ye = sin( end->lon ) * cos( end->lat );
     ze = sin( end->lat );
@@ -2132,143 +2144,147 @@ struct Polygon {
     if (p==q) {
       p->VertexList.push_back(*start); //stick p to start of q
     } else { //add all of q at end of p;
-      delete[] start;
+      delete start;
       p->VertexList.splice(p->VertexList.end(),q->VertexList);
       p->cutDistAtEnd=q->cutDistAtEnd;
     }
-    delete[] end;
+    delete end;
   }
-DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
+
+  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
     bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill) {
 
-//DATA MUST BE IN RADIANS
+    //DATA MUST BE IN RADIANS
 #ifdef USE_LIBPROJ4
-  LPTYPE idata;
-  XYTYPE odata;
+    LPTYPE idata;
+    XYTYPE odata;
 #endif
-  
+
     unsigned pTag = map->Desc()->TagIndex("PIPELINE");
     DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
-  DLong dims[2];
+    DLong dims[2];
 
-  enum {
-    EXIT = 0,
-    SPLIT,
-    CLIP_PLANE,
-    TRANSFORM,
-    CLIP_UV
-  };
-  
+    enum {
+      EXIT = 0,
+      SPLIT,
+      CLIP_PLANE,
+      TRANSFORM,
+      CLIP_UV
+    };
+
     dims[0] = pipeline->Dim(0);
     dims[1] = pipeline->Dim(1);
-  int line = 0;
-//if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
+    int line = 0;
+    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
     bool PerformTransform = (pipeline->Sum() == 0);
     if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
     bool fill = (doFill || doGons);
-  
-  int icode = (*pipeline)[dims[0] * line + 0];
-  DDouble a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
-  DDouble b = (*pipeline)[dims[0] * line + 2];
-  DDouble c = (*pipeline)[dims[0] * line + 3];
-  DDouble d = (*pipeline)[dims[0] * line + 4];
-  DDouble px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
-  DDouble py = (*pipeline)[dims[0] * line + 6];
-  DDouble pz = (*pipeline)[dims[0] * line + 7];
-  DDouble x, y, z, before, after, xs, ys, zs, xe, ye, ze, xcut, ycut, zcut;
-  DDouble CorrectionForAvoidance;
-  OMPInt in;
-  DDoubleGDL *lons;
-  DDoubleGDL *lats;
-  DLongGDL *currentConn;
-  bool isVisible;
-  //interpolations for GONS on cuts is every 2.5 degrees.
-  //Gons takes precedence on Lines
-  
-    SizeT nEl = lonsIn->N_Elements();
-  //if connectivity does not exist, fake a simple one
-  if (!doConn) {
-      currentConn = new DLongGDL(dimension(nEl + 1), BaseGDL::INDGEN);
-    currentConn->Dec(); 
-      (*currentConn)[0] = nEl; //[nEl,0,1...nEl]  very important!
-  } else { //just copy
-      currentConn = connIn->Dup();
-  }
 
-  //copy Input
+    int icode = (*pipeline)[dims[0] * line + 0];
+    DDouble a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
+    DDouble b = (*pipeline)[dims[0] * line + 2];
+    DDouble c = (*pipeline)[dims[0] * line + 3];
+    DDouble d = (*pipeline)[dims[0] * line + 4];
+    DDouble px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
+    DDouble py = (*pipeline)[dims[0] * line + 6];
+    DDouble pz = (*pipeline)[dims[0] * line + 7];
+    DDouble x, y, z, before, after, xs, ys, zs, xe, ye, ze, xcut, ycut, zcut;
+    DDouble CorrectionForAvoidance;
+    OMPInt in;
+    DDoubleGDL *lons;
+    DDoubleGDL *lats;
+    DLongGDL *currentConn;
+    bool isVisible;
+    //interpolations for GONS on cuts is every 2.5 degrees.
+    //Gons takes precedence on Lines
+
+    SizeT nEl = lonsIn->N_Elements();
+    //if connectivity does not exist, fake a simple one
+    if (!doConn) {
+      currentConn = new DLongGDL(dimension(nEl + 1), BaseGDL::INDGEN);
+      currentConn->Dec();
+      (*currentConn)[0] = nEl; //[nEl,0,1...nEl]  very important!
+    } else { //just copy
+      currentConn = connIn->Dup();
+    }
+
+    //copy Input
     lons = lonsIn->Dup();
     lats = latsIn->Dup();
 
 
-  //convert to lists
-  SizeT index;
-  SizeT size;
-  SizeT start;
-  SizeT k;
+    //convert to lists
+    SizeT index;
+    SizeT size;
+    SizeT start;
+    SizeT k;
 
-  std::list<Polygon> PolygonList;
-  //explore conn and construct polygon list
+    std::list<Polygon> PolygonList;
+    //explore conn and construct polygon list
     index = 0;
     SizeT num = 0;
     while (index >= 0 && index < currentConn->N_Elements()) {
       size = (*currentConn)[index];
       if (size < 0) break;
       if (size > 0) {
-      Polygon currentPol;
+        Polygon currentPol;
         start = index + 1; //start new chunk...
-      num++;
-      std::list<Vertex> currentVertexList;
+        num++;
+        std::list<Vertex> currentVertexList;
 
         k = (*currentConn)[start + 0];
-      Vertex currstart;
+        Vertex currstart;
         currstart.lon = (*lons)[k];
         currstart.lat = (*lats)[k];
-      currentVertexList.push_back(currstart);
+        currentVertexList.push_back(currstart);
         for (in = 1; in < size; in++) {
           k = (*currentConn)[start + in]; //conn is a list of indexes...
-        Vertex curr;
+          Vertex curr;
           curr.lon = (*lons)[k];
           curr.lat = (*lats)[k];
-        currentVertexList.push_back(curr);
-      }
-      if (fill) {
+          currentVertexList.push_back(curr);
+        }
+        if (fill) {
           Vertex last = currentVertexList.back();
           if (!((last.lon - currstart.lon == 0.0) && (last.lat - currstart.lat == 0.0))) {//close polygon.
-         Vertex curr;
+            Vertex curr;
             curr.lon = currstart.lon;
             curr.lat = currstart.lat;
-         currentVertexList.push_back(curr);
+            currentVertexList.push_back(curr);
+          }
         }
-      }
         currentPol.VertexList = currentVertexList;
         currentPol.type = 1; //before cut
-      PolygonList.push_back(currentPol);
-    }
+        currentPol.xcut = sqrt(-1); //just to have a frank effect if following code is not correct.
+        currentPol.ycut = sqrt(-1);
+        currentPol.zcut = sqrt(-1);
+        PolygonList.push_back(currentPol);
+      }
       index += (size + 1);
-  }
-  GDLDelete(lons);
-  GDLDelete(lats);
-  GDLDelete(currentConn);
+    }
+    GDLDelete(lons);
+    GDLDelete(lats);
+    GDLDelete(currentConn);
 
-  std::list<Polygon> newPolygonList;
-  std::list<Polygon> tmpPolygonList;
+    std::list<Polygon> newPolygonList;
+    std::list<Polygon> tmpPolygonList;
     while (icode > 0) {
       switch (icode) {
-      case SPLIT:
+        case SPLIT:
           if (PolygonList.empty()) break;
           for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-          
-          //cut current polygon, copy in a new polygon list the cuts
-          Polygon * currentPol;
+
+            //cut current polygon, copy in a new polygon list the cuts
+            Polygon * currentPol;
             index = 0;
-          std::list<Vertex> * currentVertexList;
+            std::list<Vertex> * currentVertexList;
             Vertex* curr;
 
             std::list<Vertex>::iterator v = p->VertexList.begin();
             xs = cos(v->lon) * cos(v->lat);
             ys = sin(v->lon) * cos(v->lat);
             zs = sin(v->lat);
-          before = a * xs + b * ys + c * zs + d;
+            before = a * xs + b * ys + c * zs + d;
             //Let's start correctly: if the first point is on the cut plane, we MUST displace it by several epsilons in
             //the direction of the next point, to put them on the same 'side' (and avoid unnecessary cuts). Of course if the
             //second point, etc are on the cut, one must shift them all together as long we have found a 'good' vertex not on the cut.
@@ -2295,29 +2311,29 @@ DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DD
                 t->lon += CorrectionForAvoidance;
               }
               //recompute 'before':
-jump2:              xs = cos(v->lon) * cos(v->lat);
+              xs = cos(v->lon) * cos(v->lat);
               ys = sin(v->lon) * cos(v->lat);
               zs = sin(v->lat);
-            before = a * xs + b * ys + c * zs + d;
-          }
+              before = a * xs + b * ys + c * zs + d;
+            }
 
-            if (abs(before) < avoidance) if (DEBUG_CONTOURS)  cerr << "trouble 1" << endl;
+            if (abs(before) < avoidance) if (DEBUG_CONTOURS) cerr << "trouble 1" << endl;
 
             currentPol = new Polygon;
             currentPol->type = (*p).type; //inherit type at start
             currentPol->index = index;
             currentPol->valid = true;
-          currentVertexList = new std::list<Vertex>;
-          curr = new Vertex;
+            currentVertexList = new std::list<Vertex>;
+            curr = new Vertex;
             curr->lon = v->lon;
             curr->lat = v->lat;
             currentVertexList->push_back(*curr);
             delete curr;
-            for (v++; v != (*p).VertexList.end(); ++v) {
+            for (++v; v != (*p).VertexList.end(); ++v) {
               xe = cos(v->lon) * cos(v->lat);
               ye = sin(v->lon) * cos(v->lat);
               ze = sin(v->lat);
-            after = a * xe + b * ye + c * ze + d;
+              after = a * xe + b * ye + c * ze + d;
               if (abs(after) < avoidance) { //we are here, so 'before' is out of avoidance. Just push this point out of the zone, in the same side as 'before'
                 if (before > 0) CorrectionForAvoidance = 10 * avoidance;
                 else CorrectionForAvoidance = -10 * avoidance;
@@ -2325,8 +2341,8 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                 xe = cos(v->lon) * cos(v->lat);
                 ye = sin(v->lon) * cos(v->lat);
                 ze = sin(v->lat);
-              after = a * xe + b * ye + c * ze + d;
-            }             
+                after = a * xe + b * ye + c * ze + d;
+              }
               if (abs(after) < avoidance) {
                 if (DEBUG_CONTOURS) cerr << "trouble 2" << endl;
                 if (DEBUG_CONTOURS) cerr << "culprit:" << after << "," << v->lon / DEG_TO_RAD << ", ys=" << v->lat / DEG_TO_RAD << endl;
@@ -2335,7 +2351,7 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                 //find intersection 
                 OnSphereVectorPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcut, ycut, zcut);
                 if (1) {//fill || fmod(DistanceOnSphere( x, y, z, px, py, pz)+2*GDL_PI, GDL_PI) > (GDL_HALFPI-epsilon)) { //need to cut everywhere for current dumb(?) polygon filling 
-                curr = new Vertex;
+                  curr = new Vertex;
                   x = xs + (1. - 0.5)*(xcut - xs);
                   y = ys + (1. - 0.5)*(ycut - ys);
                   z = zs + (1. - 0.5)*(zcut - zs);
@@ -2344,91 +2360,92 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
 
                   currentVertexList->push_back(*curr);
                   delete curr;
-                //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
+                  //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
                   currentPol->VertexList = (*currentVertexList);
                   //save first cut position
-                  if (index == 0) {
-                    currentPol->xcut = x;
-                    currentPol->ycut = y;
-                    currentPol->zcut = z;
-                  }
+                  currentPol->xcut = x;
+                  currentPol->ycut = y;
+                  currentPol->zcut = z;
                   int newtype = -1 * currentPol->type;
 
                   tmpPolygonList.push_back(*currentPol);
                   delete currentPol;
-                
-                //create a new polygon list
+
+                  //create a new polygon list
                   currentPol = new Polygon;
-                index++;
+                  index++;
                   currentPol->type = newtype; //inherit type at start
                   currentPol->index = index;
                   currentPol->valid = true;
-                currentVertexList = new std::list<Vertex>;
-                curr = new Vertex;
+                  currentVertexList = new std::list<Vertex>;
+                  curr = new Vertex;
                   x = xcut + (1. - 0.5)*(xe - xcut);
                   y = ycut + (1. - 0.5)*(ye - ycut);
                   z = zcut + (1. - 0.5)*(ze - zcut);
+                  currentPol->xcut = x;
+                  currentPol->ycut = y;
+                  currentPol->zcut = z;
                   curr->lon = atan2(y, x);
                   curr->lat = atan2(z, sqrt(x * x + y * y));
-                currentVertexList->push_back(*curr);
+                  currentVertexList->push_back(*curr);
                   delete curr;
-              } 
-            }
-            curr = new Vertex;
+                }
+              }
+              curr = new Vertex;
               curr->lon = v->lon;
               curr->lat = v->lat;
-            currentVertexList->push_back(*curr);
+              currentVertexList->push_back(*curr);
               delete curr;
-            before = after;
+              before = after;
               xs = xe;
               ys = ye;
               zs = ze;
-          }
+            }
             currentPol->VertexList = (*currentVertexList);
             tmpPolygonList.push_back(*currentPol);
             delete currentPol;
-          
-          //tmpPolygonList contains the current polygon, splitted. It must be stitched if filling occurs.
-          //level-0 filling consist in adding last portion at beginning of first one 
-          if (fill && tmpPolygonList.size() > 1) {
+
+            //tmpPolygonList contains the current polygon, splitted. It must be stitched if filling occurs.
+            //level-0 filling consist in adding last portion at beginning of first one 
+            if (fill && tmpPolygonList.size() > 1) {
               std::list<Polygon>::iterator beg = tmpPolygonList.begin();
               std::list<Polygon>::reverse_iterator end = tmpPolygonList.rbegin();
               (*beg).VertexList.splice((*beg).VertexList.begin(), (*end).VertexList); //concatenate
-//            (*end).type=1;
-            tmpPolygonList.pop_back();
-          }
-        
-          if (fill && tmpPolygonList.size() > 1) { // else already stitched!
-            //stitch polygons. "West" are the polygons on the side of the first polygon. East on the other side;
-            //polygons are 1 2 3 4 .. N. 1..N is sorted relatively with distance from (nearest?) pole .
-            //all polygons are closed on themselves following an arc of meridian sampled every 1 degree.
-            
-            //a) compute distances from first cut, start & end:
+              //            (*end).type=1;
+              tmpPolygonList.pop_back();
+            }
+
+            if (fill && tmpPolygonList.size() > 1) { // else already stitched!
+              //stitch polygons. "West" are the polygons on the side of the first polygon. East on the other side;
+              //polygons are 1 2 3 4 .. N. 1..N is sorted relatively with distance from (nearest?) pole .
+              //all polygons are closed on themselves following an arc of meridian sampled every 1 degree.
+
+              //a) compute distances from first cut, start & end:
               for (std::list<Polygon>::iterator p = tmpPolygonList.begin(); p != tmpPolygonList.end(); ++p) {
-              Vertex v = (*p).VertexList.front();
+                Vertex v = (*p).VertexList.front();
                 x = cos(v.lon) * cos(v.lat);
                 y = sin(v.lon) * cos(v.lat);
                 z = sin(v.lat);
                 (*p).cutDistAtStart = distFromCut((*p), x, y, z);
-//              (*p).cutDistAtStart=v.y; 
-              v = (*p).VertexList.back();
+                //              (*p).cutDistAtStart=v.y; 
+                v = (*p).VertexList.back();
                 x = cos(v.lon) * cos(v.lat);
                 y = sin(v.lon) * cos(v.lat);
                 z = sin(v.lat);
                 (*p).cutDistAtEnd = distFromCut((*p), x, y, z);
-            }
+              }
 
-            //c) now produce 2 lists: before and after cut
-            std::list<Polygon> beforePolygonList;
-            std::list<Polygon> afterPolygonList;
+              //c) now produce 2 lists: before and after cut
+              std::list<Polygon> beforePolygonList;
+              std::list<Polygon> afterPolygonList;
               for (std::list<Polygon>::iterator p = tmpPolygonList.begin(); p != tmpPolygonList.end(); ++p) {
                 if ((*p).type == 1) {
-                beforePolygonList.push_back((*p)); //on side of first vertex.
-              } else {
+                  beforePolygonList.push_back((*p)); //on side of first vertex.
+                } else {
                   afterPolygonList.push_back((*p)); //on other side.
+                }
               }
-            }
-            tmpPolygonList.clear();
+              tmpPolygonList.clear();
 
               //d) sort each list by increasing distance from first cut position, and remove each polygon after stiching.
               // Stitching alog uses a complexity number: number of polygons surrounding the polygon. 
@@ -2450,8 +2467,8 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                           if (DEBUG_CONTOURS) cerr << "ZERO:" << &(*p) << endl;
                           (*p).inside = 0;
                           (*p).outside = 0;
-                }
-              }
+                        }
+                      }
 
                       Polygon * cur = &(*q);
                       //establish its complexity number: either the polygon does not contain others, nor it is contained, and we stitch it alone
@@ -2463,14 +2480,14 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                         if (!(pt == cur) && pt->valid) { //consider only others than current && valids
                           if (IsPolygonInside(cur, pt)) cur->inside += 1;
                           if (IsPolygonInside(pt, cur)) cur->outside += 1;
-                }
-              }
+                        }
+                      }
 
                       if (cur->inside == 0 && cur->outside == 0) { //if the polygon is alone, stitch it and pop it
                         if (DEBUG_CONTOURS) cerr << "CLOSING 1: " << cur << endl;
                         StitchOnePolygonOnGreatCircle(cur);
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
+                        //add closed polygon to end of newPolygonList
+                        newPolygonList.push_back(*q);
                         (*q).valid = false;
                       } else if (cur->inside == 1 && cur->outside == 0) {
                         std::list<Polygon>::iterator next;
@@ -2483,13 +2500,13 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                             if (dist < distref) {
                               distref = dist;
                               next = t;
-                } 
-                }
-              }
+                            }
+                          }
+                        }
                         if (DEBUG_CONTOURS) cerr << "STITCHING: " << cur << " with " << &(*next) << endl;
                         StitchTwoPolygonsOnGreatCircle(cur, &(*next));
-                  //add closed polygon to end of newPolygonList
-                  newPolygonList.push_back(*q);
+                        //add closed polygon to end of newPolygonList
+                        newPolygonList.push_back(*q);
                         (*q).valid = false;
                         (*next).valid = false;
                       } else {
@@ -2497,9 +2514,9 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                         //if the polygon contains other (complexity >1), find the one with starting point closest to end of current
                         //stitch the two. --> complexity decreases.
                         // aliasList->erase( q ); //temporary remove
-                } 
-                }
-              }
+                      }
+                    }
+                  }
                   //will break on empty list
                   int erase_all = 1;
                   for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
@@ -2514,109 +2531,107 @@ jump2:              xs = cos(v->lon) * cos(v->lat);
                   if (erase_all == 1 || maxloop > 20) aliasList->clear();
                 } while (!aliasList->empty());
               }
-          } else {
-            //just add tmpPolygonList content to end of newPolygonList
+            } else {
+              //just add tmpPolygonList content to end of newPolygonList
               newPolygonList.splice(newPolygonList.end(), tmpPolygonList);
-            //clear tmp (normally should be empty!)
-            tmpPolygonList.clear();
+              //clear tmp (normally should be empty!)
+              tmpPolygonList.clear();
+            }
           }
-jump:
-            continue;
-        }
-        //end of all the input list of polygons, newPolygonList contains cut and stitched polygons:
-        //exchange new & old contents and void new
-        PolygonList.swap(newPolygonList);
-        newPolygonList.clear();
+          //end of all the input list of polygons, newPolygonList contains cut and stitched polygons:
+          //exchange new & old contents and void new
+          PolygonList.swap(newPolygonList);
+          newPolygonList.clear();
 
-        //Should remove empty polygons: TODO
-        break;
-      case CLIP_PLANE:
+          //Should remove empty polygons: TODO
+          break;
+        case CLIP_PLANE:
           if (PolygonList.empty()) break;
 
-        //copy & cut...
+          //copy & cut...
           for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-          Polygon * currentPol;
-          std::list<Vertex> * currentVertexList;
-          Vertex *curr;
+            Polygon * currentPol;
+            std::list<Vertex> * currentVertexList;
+            Vertex *curr;
 
             std::list<Vertex>::iterator v = (*p).VertexList.begin();
             xs = cos(v->lon) * cos(v->lat);
             ys = sin(v->lon) * cos(v->lat);
             zs = sin(v->lat);
-          before = a * xs + b * ys + c * zs + d;
+            before = a * xs + b * ys + c * zs + d;
             isVisible = (before >= 0.0);
-          if (isVisible) {
+            if (isVisible) {
               currentPol = new Polygon;
-            currentVertexList = new std::list<Vertex>;
-            curr = new Vertex;
+              currentVertexList = new std::list<Vertex>;
+              curr = new Vertex;
               curr->lon = v->lon;
               curr->lat = v->lat;
               currentVertexList->push_back(*curr);
               delete curr;
-          }
-            for (v++; v != (*p).VertexList.end(); v++) {
+            }
+            for (++v; v != (*p).VertexList.end(); v++) {
               xe = cos(v->lon) * cos(v->lat);
               ye = sin(v->lon) * cos(v->lat);
               ze = sin(v->lat);
-            after = a * xe + b * ye + c * ze + d;
+              after = a * xe + b * ye + c * ze + d;
 
               if (before * after < 0.0) { //cut and start a new polygon
-              //find intersection epsilon before  
-                OnSphereVectorPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcut, ycut, zcut);//, -avoidance);
-              if (isVisible) {
+                //find intersection epsilon before  
+                OnSphereVectorPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcut, ycut, zcut); //, -avoidance);
+                if (isVisible) {
                   x = xs + (1. - 0.5)*(xcut - xs);
                   y = ys + (1. - 0.5)*(ycut - ys);
                   z = zs + (1. - 0.5)*(zcut - zs);
-                curr = new Vertex;
+                  curr = new Vertex;
                   curr->lon = atan2(y, x);
                   curr->lat = atan2(z, sqrt(x * x + y * y));
                   currentVertexList->push_back(*curr);
                   delete curr;
-                //end of current Pol.
+                  //end of current Pol.
                   currentPol->VertexList = (*currentVertexList);
                   newPolygonList.push_back(*currentPol);
                   delete currentPol;
-              }
+                }
                 isVisible = !isVisible;
-              if (isVisible) {
-                //create a new polygon list
+                if (isVisible) {
+                  //create a new polygon list
                   currentPol = new Polygon;
-                currentVertexList = new std::list<Vertex>;
-                curr = new Vertex;
-                  x = xcut + (1. - 0.5)*(xe-xcut);
-                  y = ycut + (1. - 0.5)*(ye-ycut);
-                  z = zcut + (1. - 0.5)*(ze-zcut);
+                  currentVertexList = new std::list<Vertex>;
+                  curr = new Vertex;
+                  x = xcut + (1. - 0.5)*(xe - xcut);
+                  y = ycut + (1. - 0.5)*(ye - ycut);
+                  z = zcut + (1. - 0.5)*(ze - zcut);
                   curr->lon = atan2(y, x);
                   curr->lat = atan2(z, sqrt(x * x + y * y)); //asin( z );
                   currentVertexList->push_back(*curr);
                   delete curr;
+                }
               }
-            }
-            if (isVisible) {
-              curr = new Vertex;
+              if (isVisible) {
+                curr = new Vertex;
                 curr->lon = v->lon;
                 curr->lat = v->lat;
                 currentVertexList->push_back(*curr);
                 delete curr;
-            }
-            before = after;
+              }
+              before = after;
               xs = xe;
               ys = ye;
               zs = ze;
-          }
-          if (isVisible) {
+            }
+            if (isVisible) {
               currentPol->VertexList = (*currentVertexList);
               newPolygonList.push_back(*currentPol);
               delete currentPol;
+            }
           }
-        }
-        //exchange new & old contents and void new
+          //exchange new & old contents and void new
           if (newPolygonList.empty()) PolygonList.clear();
           else PolygonList.swap(newPolygonList);
-        newPolygonList.clear();          
+          newPolygonList.clear();
 
-        break;
-      case TRANSFORM:
+          break;
+        case TRANSFORM:
           if (PolygonList.empty()) break;
 
 #ifdef USE_LIBPROJ4
@@ -2627,54 +2642,54 @@ jump:
               odata = PJ_FWD(idata, ref);
               v->lon = odata.u;
               v->lat = odata.v;
-         }
-       }
+            }
+          }
 #endif   //USE_LIBPROJ4 
-        break;
-      case CLIP_UV:
+          break;
+        case CLIP_UV:
           if (PolygonList.empty()) break;
-//NO NO NO you must interpolate from outside to inside box!
+          //NO NO NO you must interpolate from outside to inside box!
           for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
             for (std::list<Vertex>::iterator v = (*p).VertexList.begin(); v != (*p).VertexList.end(); ++v) {
               if (isfinite(v->lon * v->lat)) if (v->lon < a - avoidance || v->lon > c + avoidance || v->lat < b - avoidance || v->lat > d + avoidance) {
                   v->lon = bad;
                   v->lat = bad;
-            } 
+                }
+            }
           }
-        }
-        break;
-      default:
-        continue;
+          break;
+        default:
+          continue;
+      }
+      line++;
+      icode = (*pipeline)[dims[0] * line + 0];
+      a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
+      b = (*pipeline)[dims[0] * line + 2];
+      c = (*pipeline)[dims[0] * line + 3];
+      d = (*pipeline)[dims[0] * line + 4];
+      px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
+      py = (*pipeline)[dims[0] * line + 6];
+      pz = (*pipeline)[dims[0] * line + 7];
     }
-    line++;
-    icode = (*pipeline)[dims[0] * line + 0];
-    a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
-    b = (*pipeline)[dims[0] * line + 2];
-    c = (*pipeline)[dims[0] * line + 3];
-    d = (*pipeline)[dims[0] * line + 4];
-    px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
-    py = (*pipeline)[dims[0] * line + 6];
-    pz = (*pipeline)[dims[0] * line + 7];
-  }
 
-  //recreate lons, lats, gons, ..
+    //recreate lons, lats, gons, ..
     if (PolygonList.empty()) {
       if (doGons) gonsOut = new DLongGDL(-1);
       else linesOut = new DLongGDL(-1);
-    return new DDoubleGDL(-1);
-  }
+      return new DDoubleGDL(-1);
+    }
 
-  //size
+    //size
     SizeT nelem = 0;
     SizeT ngons = 0;
 
     for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
       if ((*p).VertexList.size() > 0) {
-      ngons++;
+        ngons++;
         ngons += (*p).VertexList.size();
         nelem += (*p).VertexList.size();
+      }
     }
-  }
     lons = new DDoubleGDL(nelem, BaseGDL::NOZERO);
     lats = new DDoubleGDL(nelem, BaseGDL::NOZERO);
     currentConn = new DLongGDL(ngons, BaseGDL::NOZERO);
@@ -2687,16 +2702,16 @@ jump:
           (*lons)[i] = v->lon;
           (*lats)[i] = v->lat;
           (*currentConn)[j++] = i;
+        }
       }
     }
-  }
 
     nEl = lons->N_Elements();
-  DLong odims[2];
-  odims[0] = 2;
-  odims[1] = nEl;
-  dimension dim(odims, 2);
-  DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+    DLong odims[2];
+    odims[0] = 2;
+    odims[1] = nEl;
+    dimension dim(odims, 2);
+    DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
@@ -2705,15 +2720,15 @@ jump:
         (*res)[2 * i + 1] = (*lats)[i];
       }
     }
-  //cleanup
-  GDLDelete(lons);
-  GDLDelete(lats);
+    //cleanup
+    GDLDelete(lons);
+    GDLDelete(lats);
     if (doGons || doLines) {
       if (doGons) gonsOut = currentConn;
       else linesOut = currentConn;
     } else GDLDelete(currentConn);
-  return res;
-}
+    return res;
+  }
   
 
 void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
