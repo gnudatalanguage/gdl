@@ -243,6 +243,6 @@ void LibInit_cl()
   new DLibFunRetNew(lib::magick_ping, string("MAGICK_PING"), 2, magick_pingKey);
 
   // see bug no. 3376577
-  Magick::InitializeMagick(NULL); 
+//  Magick::InitializeMagick(NULL); 
 #endif
 }

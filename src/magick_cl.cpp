@@ -44,6 +44,17 @@
 #define GDL_DEBUG
 //#undef GDL_DEBUG
 
+// If Magick has not been initialized, do it here, instead of initilizing it in the main program (speedup and avoid strange backtraces)
+// Also warn about limitations due to local implementation of Magick library.
+//We should do more, by example hat octave people do in their code (they circumvent some other limitations)
+#define START_MAGICK  \
+    if (notInitialized ) { \
+      notInitialized = false; \
+        Magick::InitializeMagick(NULL);  \
+      if ( QuantumDepth < 32) fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n", \
+              MagickPackageName, QuantumDepth); \
+    }
+
 namespace lib {
 
   using namespace std;
@@ -53,7 +64,7 @@ namespace lib {
   Image gImage[40];
   unsigned int gValid[40];
   unsigned int gCount=0;
-  static bool notWarned=true;
+  static bool notInitialized=true;
 
   
   void magick_setup()
@@ -98,13 +109,7 @@ namespace lib {
 
   BaseGDL* magick_open(EnvT* e)
 {
-//warn about limitations due to local implementation of Magick library.
-//We should do more, by example hat octave people do in their code (they circumvent some other limitations)
-    if (notWarned && QuantumDepth < 32) {
-      fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n",
-              MagickPackageName, QuantumDepth);
-      notWarned = false;
-    }
+    START_MAGICK ;
     try{
       DString filename;
       e->AssureScalarPar<DStringGDL>(0,filename);
@@ -142,11 +147,7 @@ namespace lib {
     //  e->Warning("SUPPORTED_READ and SUPPORTED_WRITE keywords not supported yet");
 
     // TODO: JPEG2000- and TIFF-related additional fields in the INFO structure
-    if (notWarned && QuantumDepth < 32) {
-      fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n",
-              MagickPackageName, QuantumDepth);
-      notWarned = false;
-    }
+   START_MAGICK ;
     SizeT nParam=e->NParam(1);
  
     try 
@@ -332,6 +333,7 @@ namespace lib {
 
   BaseGDL* magick_create(EnvT* e)
   {
+    START_MAGICK;
     try{
       size_t nParam=e->NParam(2);
       DString col;
@@ -368,6 +370,7 @@ namespace lib {
 
   void magick_close(EnvT *e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -390,6 +393,7 @@ namespace lib {
 
   BaseGDL* magick_readindexes(EnvT *e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -452,6 +456,7 @@ namespace lib {
 
   void magick_readcolormapRGB(EnvT* e)
   {
+    START_MAGICK;
     try{
       size_t nParam=e->NParam(1);
       DUInt mid;
@@ -537,6 +542,7 @@ namespace lib {
 
   BaseGDL* magick_read(EnvT *e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -625,6 +631,7 @@ namespace lib {
 
   void magick_write(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 
@@ -699,6 +706,7 @@ namespace lib {
 
   void magick_writefile(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	size_t nParam=e->NParam(2);
@@ -728,6 +736,7 @@ namespace lib {
   //Attributes
   BaseGDL* magick_colormapsize(EnvT* e)
   {
+    START_MAGICK;
     try{
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0,mid);    
@@ -751,6 +760,7 @@ namespace lib {
 
   BaseGDL* magick_magick(EnvT* e)
   {
+    START_MAGICK;
     try{
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0,mid);    
@@ -775,6 +785,7 @@ namespace lib {
 
   BaseGDL* magick_rows(EnvT* e)
   {
+    START_MAGICK;
     try{
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0,mid);    
@@ -789,6 +800,7 @@ namespace lib {
 
   BaseGDL* magick_columns(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -805,6 +817,7 @@ namespace lib {
     
   BaseGDL* magick_IndexedColor(EnvT* e)
   {
+    START_MAGICK;
     try{
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0,mid);    
@@ -824,6 +837,7 @@ namespace lib {
 
   void magick_quality(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -848,6 +862,7 @@ namespace lib {
     //manipulations
   void magick_flip(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -864,6 +879,7 @@ namespace lib {
 
   void magick_matte(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -883,6 +899,7 @@ namespace lib {
 
   void magick_interlace(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -911,6 +928,7 @@ namespace lib {
 
   void magick_addNoise(EnvT* e)
   {
+    START_MAGICK;
     try
       {
 	DUInt mid;
@@ -962,6 +980,7 @@ namespace lib {
     
   void magick_quantize(EnvT* e)
   {
+    START_MAGICK;
     try{
       size_t nParam=e->NParam();
 
@@ -1013,6 +1032,7 @@ namespace lib {
   //
   void magick_display(EnvT* e)
   {
+    START_MAGICK;
     DUInt mid;
     e->AssureScalarPar<DUIntGDL>(0,mid);    
     Image image=magick_image(e,mid);
@@ -1022,7 +1042,7 @@ namespace lib {
 
   void magick_writeIndexes(EnvT* e)
   {
-
+    START_MAGICK;
     try{
     DUInt mid;
     e->AssureScalarPar<DUIntGDL>(0,mid);    
@@ -1064,6 +1084,7 @@ SizeT nEl = columns*rows;
 
   void magick_writeColorTable(EnvT* e)
   {
+    START_MAGICK;
     try{
     DUInt mid;
     e->AssureScalarPar<DUIntGDL>(0,mid);    
