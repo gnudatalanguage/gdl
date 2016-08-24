@@ -357,7 +357,7 @@ void InitStructs()
   // insert into structList
   structList.push_back( dmachar);
 
-  // for internal usage
+  // for internal usage. make event handler destroy the TLB widget
   // attention: $WIDGET_DESTROY would identify this as an unnamed struct
   // see DStructDesc constructor
   DStructDesc* widgdestroy = new DStructDesc( "*WIDGET_DESTROY*");
@@ -367,7 +367,16 @@ void InitStructs()
   widgdestroy->AddTag("MESSAGE", &aLong);
   // insert into structList
   structList.push_back( widgdestroy);
-
+  
+  // for internal usage. make event handler exit form event loop on TLB destruction without destroying (again) the TLB widget
+  DStructDesc* toplevelISdestroyed = new DStructDesc( "*TOPLEVEL_DESTROYED*");
+  toplevelISdestroyed->AddTag("ID", &aLong);
+  toplevelISdestroyed->AddTag("TOP", &aLong);
+  toplevelISdestroyed->AddTag("HANDLER", &aLong);
+  toplevelISdestroyed->AddTag("MESSAGE", &aLong);
+  // insert into structList
+  structList.push_back( toplevelISdestroyed);
+  
   DStructDesc* widgbut = new DStructDesc( "WIDGET_BUTTON");
   widgbut->AddTag("ID", &aLong);
   widgbut->AddTag("TOP", &aLong);
