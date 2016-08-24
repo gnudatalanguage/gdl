@@ -495,10 +495,9 @@ namespace lib {
   
    static void gdlSetPlotCharthick(EnvT *e, GDLGStream *a)
   {
-    DFloat charthick=1;
      // get !P preference
     static DStructGDL* pStruct=SysVar::P();
-    charthick=(*static_cast<DFloatGDL*>
+    DFloat charthick=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
                (pStruct->Desc()->TagIndex("CHARTHICK"), 0)))[0];
     static int charthickIx=e->KeywordIx ( "CHARTHICK" ); //Charthick values may be vector in GDL, not in IDL!
@@ -566,9 +565,8 @@ namespace lib {
 
     if ( Struct!=NULL )
     {
-      DFloat axisCharsizeMultiplier=1.0;
       static unsigned charsizeTag=Struct->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
-      axisCharsizeMultiplier=(*static_cast<DFloatGDL*>(Struct->GetTag(charsizeTag, 0)))[0];
+      DFloat axisCharsizeMultiplier=(*static_cast<DFloatGDL*>(Struct->GetTag(charsizeTag, 0)))[0];
       e->AssureFloatScalarKWIfPresent(choosenIx, axisCharsizeMultiplier); //option [XYZ]CHARSIZE overloads ![XYZ].CHARSIZE
       if (axisCharsizeMultiplier>0.0) charsize*=axisCharsizeMultiplier; //IDL Behaviour...
     }
@@ -824,8 +822,7 @@ namespace lib {
     if ( Struct!=NULL )
     {
       static unsigned ticklenTag=Struct->Desc()->TagIndex("TICKLEN");
-      DFloat axisTicklen=0.0;
-      axisTicklen=(*static_cast<DFloatGDL*>(Struct->GetTag(ticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
+      DFloat axisTicklen=(*static_cast<DFloatGDL*>(Struct->GetTag(ticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
       e->AssureFloatScalarKWIfPresent(choosenIx, axisTicklen); //overriden by kw
       if (axisTicklen!=0.0) ticklen=axisTicklen;
     }
