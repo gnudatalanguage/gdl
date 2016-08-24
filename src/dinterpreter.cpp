@@ -356,7 +356,7 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   if( !found) return false;
   
   // file already opened?
-  for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); i++)
+  for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); ++i)
     {
       if( proFile == *i) return false;
     }
@@ -1678,7 +1678,7 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
   {
     // execute batch files (e.g. $ gdl script.pro)
     // before entering the interactive mode
-    for (vector<string>::iterator it = batch_files.begin(); it < batch_files.end(); it++) 
+    for (vector<string>::iterator it = batch_files.begin(); it < batch_files.end(); ++it) 
       ExecuteFile(*it);
     batch_files.clear(); // not needed anymore...
   }

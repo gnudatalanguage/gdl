@@ -401,7 +401,7 @@ namespace lib {
     os << path.size() << " directories)" << endl;
     lines_count = 1;
 
-    for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); CurrentDir++) {
+    for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
       //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
       NbProFilesInCurrentDir = 0;
       dirp = opendir((*CurrentDir).c_str());
@@ -915,7 +915,7 @@ namespace lib {
 
     int npro = 0, nfun = 0;
     pList.push_back("$MAIN$");
-    for (ProListT::iterator i = proList.begin(); i != proList.end(); i++)
+    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i)
       if (fullKW || !((*i)->isHidden())) {
         pList.push_back((*i)->ObjectName());
         npro++;
@@ -923,7 +923,7 @@ namespace lib {
     sort(pList.begin(), pList.end());
 
     // Get list of user functions
-    for (FunListT::iterator i = funList.begin(); i != funList.end(); i++)
+    for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i)
       if (fullKW || !((*i)->isHidden())) {
         fList.push_back((*i)->ObjectName());
         nfun++;
@@ -3137,7 +3137,7 @@ namespace lib {
 
       // file already opened?
       bool open = false;
-      for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); j++) {
+      for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
         cout << *j << endl;
         if (proFile == *j) {
           open = true;
@@ -3148,7 +3148,7 @@ namespace lib {
         continue;
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); i++) {
+      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
         if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
           //cout << "Routine is compiled,so won't recompile " << (*i)->ObjectName() <<endl;
           exists = true;
@@ -3167,7 +3167,7 @@ namespace lib {
 
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
-      for (FunListT::iterator i = funList.begin(); i != funList.end(); i++) {
+      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
         if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
           //cout << "exists function " << (*i)->ObjectName() <<endl;
           isFunc = true;
