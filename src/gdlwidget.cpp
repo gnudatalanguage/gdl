@@ -304,7 +304,7 @@ void GDLWidget::RefreshWidget( )
 
 int GDLWidget::HandleEvents()
 {
-//make one loop for wxWidgets Events...
+  //make one loop for wxWidgets Events...
   if (wxTheApp) {
       wxTheApp->OnRun(); //wxTheApp may not be started
   //treat our GDL events...
@@ -340,10 +340,10 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID );
   if ( baseWidget != NULL ) {
     bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
-    if ( !xmanActCom ) {
+    if ( !xmanActCom ) { //Not blocking: events in eventQueue.
       //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
       eventQueue.Push( ev );
-    } else {
+    } else { //Blocking: events in readlineeventQueue.
       //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
       readlineEventQueue.Push( ev );
     }
@@ -1175,7 +1175,11 @@ GDLWidgetBase::~GDLWidgetBase()
 	  if (child) delete child;
 	  else children.pop_back(); // Maybe should not be reachable
   }
-
+  
+  // remove all widgets still in the queue for current TLB
+  eventQueue.Purge( widgetID);
+  readlineEventQueue.Purge( widgetID);
+  
   if( this->parentID == GDLWidget::NullID)
   {
       // Close widget frame (might be already closed)
@@ -1185,11 +1189,22 @@ GDLWidgetBase::~GDLWidgetBase()
         delete static_cast<GDLFrame*> (this->wxWidget); //closes the frame etc.
       }
       //IMPORTANT: unxregister TLB if was managed 
-      CallEventPro( "UNXREGISTER" , new DLongGDL(widgetID)); 
+      CallEventPro( "UNXREGISTER" , new DLongGDL(widgetID));
+
+      //send RIP 
+        // create GDL event struct
+        DStructGDL* ev = new DStructGDL( "*TOPLEVEL_DESTROYED*" );
+        ev->InitTag( "ID", DLongGDL( widgetID ) );
+        ev->InitTag( "TOP", DLongGDL( widgetID ) );
+        ev->InitTag( "HANDLER", DLongGDL( 0 ) );
+        ev->InitTag( "MESSAGE", DLongGDL( 0 ) );
+        if ( this->GetXmanagerActiveCommand( ) || !this->GetManaged() ){
+          readlineEventQueue.PushFront( ev ); // push front (will be handled next)
+        } else {
+          eventQueue.PushFront( ev ); // push front (will be handled next)
+        }
+
   }
-  // remove all widgets still in the queue for current TLB
-  eventQueue.Purge( widgetID);
-  readlineEventQueue.Purge( widgetID);
 }
 
 
@@ -1376,7 +1391,7 @@ DStringGDL* valueAsStrings_,
 DULong eventFlags_
 )
 : GDLWidget( p, e, value_, eventFlags_ )
-, alignment( alignment_ )
+, table_alignment( alignment_ )
 , amPm( amPm_ )
 , backgroundColor( backgroundColor_ )
 , foregroundColor( foregroundColor_ )
@@ -1439,10 +1454,10 @@ if (hasRowHeights) { //one value set for all?
   }
 }
 //Alignment
-bool hasAlignment=(alignment!=NULL);
+bool hasAlignment=(table_alignment!=NULL);
 if (hasAlignment) {
-  if (alignment->N_Elements()==1) { //singleton case
-    switch( (*alignment)[0] ){
+  if (table_alignment->N_Elements()==1) { //singleton case
+    switch( (*table_alignment)[0] ){
       case 0:
         grid->SetDefaultCellAlignment(wxALIGN_LEFT,wxALIGN_CENTRE); break;
       case 1:
@@ -1640,7 +1655,7 @@ UPDATE_WINDOW
 }
 
 void GDLWidgetTable::DoAlign() {
-  if (alignment->N_Elements( )==0) {return;}
+  if (table_alignment->N_Elements( )==0) {return;}
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   assert( grid != NULL);
   int nRows = grid->GetNumberRows( );
@@ -1649,7 +1664,7 @@ void GDLWidgetTable::DoAlign() {
   grid->BeginBatch();
   for ( SizeT i = 0; i < nRows; ++i ) {
     for ( SizeT j = 0; j < nCols; ++j ) {
-      switch ( (*alignment)[k % alignment->N_Elements( )] ) {
+      switch ( (*table_alignment)[k % table_alignment->N_Elements( )] ) {
         case 0:
           grid->SetCellAlignment( i, j, wxALIGN_LEFT, wxALIGN_CENTRE );
           break;
@@ -1660,16 +1675,16 @@ void GDLWidgetTable::DoAlign() {
           grid->SetCellAlignment( i, j, wxALIGN_RIGHT, wxALIGN_CENTRE );
       }
       k++;
-      if ( alignment->N_Elements( ) > 1 ) if ( k == alignment->N_Elements( ) ) break;
+      if ( table_alignment->N_Elements( ) > 1 ) if ( k == table_alignment->N_Elements( ) ) break;
     }
-    if ( alignment->N_Elements( ) > 1 ) if ( k == alignment->N_Elements( ) ) break;
+    if ( table_alignment->N_Elements( ) > 1 ) if ( k == table_alignment->N_Elements( ) ) break;
   }
   grid->EndBatch();
 UPDATE_WINDOW
 }
 
 void GDLWidgetTable::DoAlign(DLongGDL* selection) {
-  if (alignment->N_Elements( )==0) {return;}
+  if (table_alignment->N_Elements( )==0) {return;}
   gdlGrid * grid = static_cast<gdlGrid*> (wxWidget);
   assert( grid != NULL);
   SizeT k = 0;
@@ -1678,7 +1693,7 @@ void GDLWidgetTable::DoAlign(DLongGDL* selection) {
    std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
    for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
      int ali;
-      switch ( (*alignment)[k % alignment->N_Elements( )] ) {
+      switch ( (*table_alignment)[k % table_alignment->N_Elements( )] ) {
         case 0:
           ali = wxALIGN_LEFT;
           break;
@@ -1697,7 +1712,7 @@ void GDLWidgetTable::DoAlign(DLongGDL* selection) {
         int col = (*selection)[l++];
         int row = (*selection)[l++];
         int ali;
-        switch ( (*alignment)[k % alignment->N_Elements( )] ) {
+        switch ( (*table_alignment)[k % table_alignment->N_Elements( )] ) {
           case 0:
             ali = wxALIGN_LEFT;
             break;
@@ -1718,7 +1733,7 @@ void GDLWidgetTable::DoAlign(DLongGDL* selection) {
      for ( int i=rowTL; i<=rowBR; ++i) for (int j=colTL; j<=colBR; ++j)
      {
         int ali;
-        switch ( (*alignment)[k % alignment->N_Elements( )] ) {
+        switch ( (*table_alignment)[k % table_alignment->N_Elements( )] ) {
           case 0:
             ali = wxALIGN_LEFT;
             break;
@@ -2759,7 +2774,7 @@ GDLWidgetTable::~GDLWidgetTable()
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~GDLWidgetTable: " << this << std::endl;
 #endif  
-  GDLDelete( alignment );
+  GDLDelete( table_alignment );
   GDLDelete( editable );
   GDLDelete( amPm );
   GDLDelete( backgroundColor );
