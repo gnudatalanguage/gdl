@@ -943,7 +943,7 @@ public:
 // table widget **************************************************
 class GDLWidgetTable: public GDLWidget
 {
-  DByteGDL* alignment;
+  DByteGDL* table_alignment;
   DStringGDL* amPm;
   DByteGDL* backgroundColor;
   DByteGDL* foregroundColor;
@@ -1010,7 +1010,7 @@ public:
 
   DLongGDL* GetSelection();
   
-  void SetAlignment(DByteGDL* val){GDLDelete(alignment); alignment=val->Dup();};
+  void SetAlignment(DByteGDL* val){GDLDelete(table_alignment); table_alignment=val->Dup();};
   void DoAlign();
   void DoAlign(DLongGDL* selection);
   
@@ -1392,7 +1392,7 @@ class GDLFrame : public wxFrame
   GDLWidgetBase* gdlOwner;
   wxTimer * m_resizeTimer;
   wxTimer * m_windowTimer;
-  bool updating;
+//  bool updating;
 
   // called from ~GDLWidgetBase
   void NullGDLOwner() { gdlOwner = NULL;}
