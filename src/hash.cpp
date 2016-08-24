@@ -25,7 +25,7 @@
 #include "dinterpreter.hpp"
 #include "list.hpp"
 
-std::string ValidTagName( const std::string in)
+std::string ValidTagName( const std::string& in) // (performance) Function parameter 'in' should be passed by reference.
 {
   if( in.length() == 0)
     return "_";

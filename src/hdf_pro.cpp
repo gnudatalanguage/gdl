@@ -451,7 +451,7 @@ namespace lib {
 	   memset(attrstr, 0, count+1);
 	   SDreadattr(s_id, attrindex, (VOIDP) attrstr);
 	   *dataKW = new DStringGDL( attrstr);
-	   delete attrstr;
+	   delete[] attrstr;
 	 }
       }
     }
