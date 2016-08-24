@@ -138,7 +138,7 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
       for (SizeT i = 0, k = 0 ; i < nelem ; ++i) {
         fprintf(pls->OutFile, "%2.2X", data[i]); k+=2; if( (k % LINEWIDTH) == 0 ) fprintf(pls->OutFile, "\n");
         }
-      delete(data);
+      free(data);
       pls->bytecnt += (nelem*2  + nelem*2/LINEWIDTH);
     }
   } else { //true color: native value (degrees of R, G and B)

@@ -46,7 +46,7 @@ namespace lib {
 
   template <typename T> void ncdf_att_handle_error(EnvT *e, int status, const char *function,T* data) // {{{
   {
-    if (data != NULL and status != NC_NOERR) delete data;
+    if (data != NULL and status != NC_NOERR) delete[] data;
     ncdf_handle_error(e, status, function);
   } // }}}
 
@@ -237,7 +237,7 @@ namespace lib {
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", ip);
           temp = length == 1 ? new DLongGDL(BaseGDL::NOZERO) : new DLongGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DLongGDL*>(temp))[0], &(*ip), length * sizeof(int));	      
-          delete ip;
+          delete[] ip;
           break;
         }
         case NC_SHORT : 
@@ -247,7 +247,7 @@ namespace lib {
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", sp);
           temp = length == 1 ? new DIntGDL(BaseGDL::NOZERO) : new DIntGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DIntGDL*>(temp))[0], &(*sp), length * sizeof(DInt));	      
-          delete sp;
+          delete[] sp;
           break;
         }
         case NC_FLOAT :
@@ -257,7 +257,7 @@ namespace lib {
           ncdf_att_handle_error(e,status,"NCDF_ATTGET",fp);
           temp = length == 1 ? new DFloatGDL(BaseGDL::NOZERO) : new DFloatGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DFloatGDL*>(temp))[0], &(*fp), length * sizeof(DFloat));	      
-          delete fp;
+          delete[] fp;
           break;
         }
         case NC_DOUBLE :
@@ -267,7 +267,7 @@ namespace lib {
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", dp);
           temp = length == 1 ? new DDoubleGDL(BaseGDL::NOZERO) : new DDoubleGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DDoubleGDL*>(temp))[0], &(*dp), length * sizeof(DDouble));	      	 
-          delete dp;
+          delete[] dp;
           break;
         }
         case NC_BYTE :
@@ -277,7 +277,7 @@ namespace lib {
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", bp);
           temp = length == 1 ? new DByteGDL(BaseGDL::NOZERO) : new DByteGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DByteGDL*>(temp))[0], &(*bp), length * sizeof(DByte));	      	 
-          delete bp;
+          delete[] bp;
           break;
         }
       }
