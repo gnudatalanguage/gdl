@@ -988,7 +988,7 @@ namespace SysVar
     DStructGDL* usersymData = new DStructGDL( "!USERSYM");
     usersymData->NewTag("DIM", new DLongGDL(0));
     usersymData->NewTag("FILL", new DIntGDL(0));
-    SizeT usersymDim = 1024;
+    SizeT usersymDim = 49;
     {
       DFloatGDL* tmp = new DFloatGDL( dimension( &usersymDim, one));
       usersymData->NewTag("X", tmp); 

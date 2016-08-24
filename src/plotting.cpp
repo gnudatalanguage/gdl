@@ -586,6 +586,9 @@ namespace lib
     //usersym and other syms as well!
     DFloat *userSymX, *userSymY;
     DLong *userSymArrayDim;
+    //initialize symbol vertex list
+    static PLFLT xSym[49];
+    static PLFLT ySym[49];
     DInt *do_fill;
     static DInt nofill=0;
     if ( psym_==8 )
@@ -740,14 +743,12 @@ namespace lib
           }
           if (psym_>0&&psym_<9)
           {
-            PLFLT *xx=new PLFLT[*userSymArrayDim];
-            PLFLT *yy=new PLFLT[*userSymArrayDim];
             for ( int j=0; j<i_buff; ++j )
             {
               for ( int kk=0; kk < *userSymArrayDim; kk++ )
               {
-                xx[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-                yy[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+                xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
+                ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
               }
               if (docolor)
               {
@@ -756,15 +757,13 @@ namespace lib
               }
               if ( *do_fill==1 )
               {
-                a->fill(*userSymArrayDim, xx, yy);
+                a->fill(*userSymArrayDim, xSym, ySym);
               }
               else
               {
-                a->line(*userSymArrayDim, xx, yy);
+                a->line(*userSymArrayDim, xSym, ySym);
               }
             }
-            delete[] xx;
-            delete[] yy;
           }
           if ( psym_==10 )
           {
@@ -795,14 +794,12 @@ namespace lib
         }
         if ( psym_>0&&psym_<9 )
         {
-          PLFLT *xx=new PLFLT[*userSymArrayDim];
-          PLFLT *yy=new PLFLT[*userSymArrayDim];
           for ( int j=0; j<i_buff; ++j )
           {
             for ( int kk=0; kk < *userSymArrayDim; kk++ )
             {
-              xx[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-              yy[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+              xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
+              ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
             }
             if (docolor)
             {
@@ -811,15 +808,14 @@ namespace lib
             }
             if ( *do_fill==1 )
             {
-              a->fill(*userSymArrayDim, xx, yy);
+              a->fill(*userSymArrayDim, xSym, ySym);
             }
             else
             {
-              a->line(*userSymArrayDim, xx, yy);
+              a->line(*userSymArrayDim, xSym, ySym);
             }
           }
-          delete[] xx;
-          delete[] yy;
+
         }
         if ( psym_==10 )
         {
@@ -1419,7 +1415,7 @@ namespace lib
 
     if ( nParam==1 )
     {
-      BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [1024,2]
+      BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]
 
       xyVal=static_cast<DFloatGDL*>
       (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
@@ -1428,9 +1424,9 @@ namespace lib
       if ( xyVal->Rank()!=2||xyVal->Dim(1)!=2 )
         e->Throw(e->GetParString(0)+" must be a 2-dim array of type [2,N] in this context.");
 
-      if ( xyVal->Dim(0)>1024 )
+      if ( xyVal->Dim(0)>49 )
       {
-        e->Throw("Max array size for USERSYM is 1024");
+        e->Throw("Max array size for USERSYM is 49");
       }
       n=xyVal->Dim(0);
       // array is in the good order for direct C assignement
@@ -1452,9 +1448,9 @@ namespace lib
         e->Throw("Arrays must have same size ");
       }
 
-      if ( xVal->Dim(0)>1024 )
+      if ( xVal->Dim(0)>49 )
       {
-        e->Throw("Max array size for USERSYM is 1024");
+        e->Throw("Max array size for USERSYM is 49");
       }
       n=xVal->Dim(0);
       x=&(*xVal)[0];
@@ -2569,7 +2565,7 @@ struct Polygon {
               currentVertexList->push_back(*curr);
               delete curr;
             }
-            for (++v; v != (*p).VertexList.end(); v++) {
+            for (++v; v != (*p).VertexList.end(); ++v) {
               xe = cos(v->lon) * cos(v->lat);
               ye = sin(v->lon) * cos(v->lat);
               ze = sin(v->lat);
