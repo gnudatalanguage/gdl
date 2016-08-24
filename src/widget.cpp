@@ -262,6 +262,11 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
   // If the top of the hierarchy is attained without ev being swallowed by an event handler, return ev.
   // Empty events (success) are returned in any other case.
 #ifdef HAVE_LIBWXWIDGETS
+  
+  if (ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {
+    GDLDelete( ev );
+    return NULL;
+  }
   static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
   static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
   static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
@@ -2116,6 +2121,7 @@ BaseGDL* widget_info( EnvT* e ) {
       } //end inner loop
       //here we got a real event, process it
 endwait:
+      if (xmanagerBlock && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {GDLDelete(ev); return defaultRes;}
       ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
       // examine return:
       if (ev == NULL) { //either 2) or 3a) 
@@ -3023,11 +3029,12 @@ void widget_control( EnvT* e ) {
     if (tlbsizeKW) GDLDelete((*tlbsizeKW));
     *tlbsizeKW = new DLongGDL(2,BaseGDL::ZERO);
     DLong *retsize=&(*static_cast<DLongGDL*>(*tlbsizeKW))[0];
-    int i,j;
+    int i=0;
+    int j=0;
     wxWindow *me=static_cast<wxWindow*>(tlb->GetWxWidget());
     if (me) me->GetClientSize(&i,&j);
-      retsize[0]=i;
-      retsize[1]=j;
+    retsize[0]=i;
+    retsize[1]=j;
     //size is in pixels, pass in requested units:
      if (unitsGiven) {
        wxRealPoint fact=GetRequestedUnitConversionFactor(e);
@@ -3044,7 +3051,8 @@ void widget_control( EnvT* e ) {
     if (tlboffsetKW) GDLDelete((*tlboffsetKW));
     *tlboffsetKW = new DLongGDL(2,BaseGDL::ZERO);
     DLong *retoffset=&(*static_cast<DLongGDL*>(*tlboffsetKW))[0];
-    int i,j;
+    int i=0;
+    int j=0;
     wxWindow *me=static_cast<wxWindow*>(tlb->GetWxWidget());
     if (me) me->GetPosition(&i,&j);
     retoffset[0]=i;
