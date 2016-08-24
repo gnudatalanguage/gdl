@@ -291,7 +291,7 @@ public:
   void setType( int t) { ttype=t;}
 //   std::string getText() { return text;}
   const std::string& getText() const { return text;}
-  void setText(const std::string t) { text = t;}
+  void setText(const std::string& t) { text = t;} // (performance) Function parameter 't' should be passed by reference.
   int getLine() const { return lineNumber;}
   void setLine( int l) { lineNumber = l;}
   void SetGotoIx( int ix) { targetIx=ix;}
