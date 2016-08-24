@@ -114,9 +114,10 @@ namespace lib {
     
     matrix_input_check_dims(e);
 
-    bool Eigen_flag=FALSE;
 #if defined(USE_EIGEN)
-    Eigen_flag=TRUE;
+    bool Eigen_flag=TRUE;
+#else
+    bool Eigen_flag=FALSE;
 #endif
 
     if (e->KeywordSet(EIGENIx) && (!Eigen_flag))
