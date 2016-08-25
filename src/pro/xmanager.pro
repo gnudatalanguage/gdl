@@ -24,11 +24,7 @@
 ;
 ;
 ; MODIFICATION HISTORY:
-;  - 05/11/2013: inital version
-;  - 25/08/2016: removed UNXREGISTER function (now in unxregister.pro):
-;                Indeed, Toplevel widgets can be managed by user, without use of xmanager.
-;                however, at Top Level widget destruction, function UNXREGISTER is called by the deletion of the widget.
-;                So UNXREGISTER must exist in the path indedently from xmanager. 
+;  - 05/11/2013: inital version 
 ;
 ;-
 ; LICENCE:
@@ -66,6 +62,26 @@ endelse
 return
 
 end
+
+pro UNXREGISTER, id
+COMPILE_OPT idl2, HIDDEN  
+common managed, ids, names, modalList
+
+if (n_elements(id) eq 0) then return
+if (n_elements(ids) eq 0) then return
+if (ids[0] eq 0) then return
+occurences=where(ids eq id, count, complement=complement, ncomplement=ncomp)
+if (count le 0) then return
+if ( ncomp gt 0 ) then begin ; there are others
+ names=names[complement]
+ ids=ids[complement]
+ return
+endif else begin ; there are no others, clear lists
+ names = 0
+ ids = 0
+endelse
+end
+
 
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, $
     CLEANUP=Cleanup, JUST_REG=just_reg, CATCH=catch, MODAL=modal
