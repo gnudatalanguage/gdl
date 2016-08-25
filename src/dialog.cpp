@@ -38,6 +38,10 @@ namespace lib {
 
   BaseGDL* dialog_pickfile_wxwidgets(EnvT* e)
   {
+    if (!wxIsStarted) {
+      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+      wxIsStarted=true;
+    }
     /*
       results = DIALOG_PICKFILE_WXWIDGETS(DEFAULT_EXTENSION=default_extension, $
       DIRECTORY=directory, DIALOG_PARENT=dialog_parent, $
@@ -338,6 +342,12 @@ namespace lib {
 
   BaseGDL* dialog_message_wxwidgets(EnvT* e)
   {
+    
+    if (!wxIsStarted) {
+      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+      wxIsStarted=true;
+    }
+
     DStringGDL* messagestr;
     bool iscancel = false;
     bool iscenter = false;
