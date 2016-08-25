@@ -1189,7 +1189,7 @@ GDLWidgetBase::~GDLWidgetBase()
         delete static_cast<GDLFrame*> (this->wxWidget); //closes the frame etc.
       }
       //IMPORTANT: unxregister TLB if was managed 
-      CallEventPro( "UNXREGISTER" , new DLongGDL(widgetID));
+      if (this->GetManaged()) CallEventPro( "UNXREGISTER" , new DLongGDL(widgetID));
 
       //send RIP 
         // create GDL event struct
