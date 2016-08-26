@@ -39,7 +39,6 @@
 #include "graphicsdevice.hpp"
 
 
-//#define GDL_DEBUG_WIDGETS
 
 #define TIDY_WIDGET {this->SetSensitive(sensitive);\
 if (!font.IsSameAs(wxNullFont)) {\
@@ -465,10 +464,12 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
     } else if ( gdlParent->IsTab( ) ) {
       GDLWidgetTab* base = static_cast<GDLWidgetTab*> (gdlParent);
       base->AddChild( widgetID );
-    } else if ( gdlParent->IsButton( ) )
+    }
+    else 
     { 
-      GDLWidgetButton* base = static_cast<GDLWidgetButton*> (gdlParent);
-      base->AddChild( widgetID );
+      GDLWidget* w = GetBaseWidget( parentID );
+      if (w && w->IsBase())  static_cast<GDLWidgetBase*>(w)->AddChild( widgetID );
+      if (w && w->IsTab())   static_cast<GDLWidgetTab*>(w)->AddChild( widgetID );
     }
   }
   
@@ -700,7 +701,7 @@ GDLWidget::~GDLWidget( ) {
 #endif
     } else this->UnFrameWidget( );
   }
-
+  
   //destroy, unless...
   if ( widgetType == GDLWidget::WIDGET_MBAR ) { //widget is a MBAR ---> do nothing? deleted with TLB
 #ifdef GDL_DEBUG_WIDGETS
@@ -3157,7 +3158,8 @@ const DString& value , DULong eventflags, bool isMenu, bool hasSeparatorAbove, w
     }
     else 
     {
-      if ( gdlParent->GetExclusiveMode() == BGNORMAL) 
+      //we deliberately prevent exclusive buttons when bitmap are present (exclusive buttons w/ pixmap do not exist in wxWidgets.
+      if ( gdlParent->GetExclusiveMode() == BGNORMAL || bitmap_ ) 
       {
         if (bitmap_){
           wxBitmapButton *button = new wxBitmapButton( widgetPanel, widgetID, *bitmap_,

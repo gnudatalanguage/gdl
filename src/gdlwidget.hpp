@@ -21,6 +21,8 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 
+// #define GDL_DEBUG_WIDGETS
+
 #include <wx/wx.h>
 #include <wx/treebase.h>
 #include <wx/treectrl.h>
