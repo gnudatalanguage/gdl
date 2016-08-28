@@ -22,8 +22,8 @@
 #define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
 #define TONORMCOORDY( in, out, log) out = (log) ? sy[0] + sy[1] * log10(in) : sy[0] + sy[1] * in;
 #define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
-#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
-#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
+#define TONORMCOORDZ( in, out, log, doT3d) out = (doT3d)? (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in   : (log) ? log10(in)    : in;
+#define TODATACOORDZ( in, out, log, doT3d) out = (doT3d)? (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1] : (log) ? pow(10.0,in) : in;
 namespace lib {
 
   using namespace std;
@@ -57,7 +57,8 @@ namespace lib {
     if ( e->KeywordSet(TO_DATAIx) ) ocoordinateSystem=DATA;
     if ( e->KeywordSet(TO_DEVICEIx) ) ocoordinateSystem=DEVICE;
     if ( e->KeywordSet(TO_NORMALIx) ) ocoordinateSystem=NORMAL;
-    
+    static int t3dIx = e->KeywordIx( "T3D");
+    bool doT3d=(e->KeywordSet(t3dIx) || T3Denabled());   
     DLong dims[2] = {3, 0};
 
     DDoubleGDL* res;
@@ -144,7 +145,7 @@ namespace lib {
         for (OMPInt i = 0; i < nrows; ++i) {
           TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
           TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog);
+          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
         }
       }
         break;
@@ -171,7 +172,7 @@ namespace lib {
         for (OMPInt i = 0; i < nrows; ++i) {
           TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
           TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog);
+          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
         }
       }
       
@@ -229,9 +230,8 @@ namespace lib {
     //minimum set of dimensions of arrays. singletons expanded to dimension,
 
     //T3D
-    bool doT3d;
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=(e->KeywordSet(t3dIx) || T3Denabled());
+    bool doT3d=(e->KeywordSet(t3dIx) || T3Denabled());
     DDoubleGDL *xValou;
     DDoubleGDL *yValou;
     Guard<BaseGDL> xvalou_guard, yvalou_guard;
