@@ -252,11 +252,13 @@ namespace lib
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
       bool hasZvalue=false;
-	  e->AssureDoubleScalarKWIfPresent( zvIx, zValue );
+      if (e->GetKW(zvIx) !=NULL)
+	{
+	  e->AssureDoubleScalarKW( zvIx, zValue );
 	  zValue=min(zValue,0.999999); //to avoid problems with plplot
 	  zValue=max(zValue,0.0);
 	  hasZvalue=true;
-
+	}
       //NODATA
       static int nodataIx = e->KeywordIx( "NODATA");
       nodata=e->KeywordSet(nodataIx);
