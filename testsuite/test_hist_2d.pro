@@ -36,6 +36,7 @@ pro test_hist_2d
   mins = [ptr_new(10b), ptr_new(-.1)]
   maxs = [ptr_new(12b), ptr_new(13.)]
   for i = 0, n_elements(data) - 1 do begin; first data array
+      stop
     message, 'case ' + strtrim(string(i + 1), 2) + ' / ' + strtrim(string(n_elements(data)), 2), /conti
     for j = 0, n_elements(data) - 1 do begin; second data array
       for mi1=0,1 do for mi2=0,1 do for ma1=0,1 do for ma2=0,1 do for bi1=0,1 do for bi2=0,1 do begin
