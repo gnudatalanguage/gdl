@@ -15,25 +15,32 @@
 # Then, when PLPLOTDIR is provide, it must be *strickly enforce*,
 # not looking at the lib. provided by Brew or Fink
 # 
-#message(" ${PLPLOTDIR}")
-#  find_library(NEW_PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
-#  find_library(OLD_PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
-#message("new ${NEW_PLPLOT_LIBRARY}")
-#message("old ${OLD_PLPLOT_LIBRARY}")
+
+set(PLPLOT_DEBUG off)
+
+if(PLPLOT_DEBUG)
+	message(" ${PLPLOTDIR}")
+	find_library(NEW_PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+	find_library(OLD_PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+	message("new ${NEW_PLPLOT_LIBRARY}")
+	message("old ${OLD_PLPLOT_LIBRARY}")
+endif(PLPLOT_DEBUG)
 
 if(PLPLOTDIR)
   message("Strickly enforce PLPLOTDIR=${PLPLOTDIR}")
-  find_library(NEW_PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
+  find_library(NEW_PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
   if(NEW_PLPLOT_LIBRARY)
-      find_library(PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
-      find_library(PLPLOTCXX_LIBRARY NAMES plplotcxx PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
+      find_library(PLPLOT_LIBRARY NAMES plplot PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+      find_library(PLPLOTCXX_LIBRARY NAMES plplotcxx PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
   endif(NEW_PLPLOT_LIBRARY)
   #
-  find_library(OLD_PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
+  find_library(OLD_PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
   if(OLD_PLPLOT_LIBRARY)
-      find_library(PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
-      find_library(PLPLOTCXX_LIBRARY NAMES plplotcxxd PATHS ${PLPLOTDIR} NO_DEFAULT_PATH)
+      find_library(PLPLOT_LIBRARY NAMES plplotd PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+      find_library(PLPLOTCXX_LIBRARY NAMES plplotcxxd PATHS ${PLPLOTDIR} PATH_SUFFIXES lib NO_DEFAULT_PATH)
   endif(OLD_PLPLOT_LIBRARY)
+  #
+  find_path(PLPLOT_INCLUDE_DIR NAMES plplot/plplot.h PATHS ${PLPLOTDIR} PATH_SUFFIXES include NO_DEFAULT_PATH)
 else(PLPLOTDIR)
   message("Use fuzzy detection for PLplot lib. (e.g. in /usr/lib)")
   find_library(NEW_PLPLOT_LIBRARY NAMES plplot)
@@ -47,6 +54,8 @@ else(PLPLOTDIR)
       find_library(PLPLOT_LIBRARY NAMES plplotd)
       find_library(PLPLOTCXX_LIBRARY NAMES plplotcxxd)
   endif(OLD_PLPLOT_LIBRARY)
+  #
+  find_path(PLPLOT_INCLUDE_DIR NAMES plplot/plplot.h)
 endif(PLPLOTDIR)
 
 #message("new ${NEW_PLPLOT_LIBRARY}")
@@ -65,7 +74,7 @@ endif (NEW_PLPLOT_LIBRARY AND OLD_PLPLOT_LIBRARY)
 # must be the same !!
 
 set(PLPLOT_LIBRARIES ${PLPLOT_LIBRARY} ${PLPLOTCXX_LIBRARY})
-find_path(PLPLOT_INCLUDE_DIR NAMES plplot/plplot.h)
+#find_path(PLPLOT_INCLUDE_DIR NAMES plplot/plplot.h)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PLPLOT DEFAULT_MSG PLPLOT_LIBRARIES PLPLOT_INCLUDE_DIR)
 
