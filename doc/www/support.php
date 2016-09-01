@@ -23,9 +23,9 @@
   Which functionality are you missing/would appreciate most for comming versions.
 
   Please send your bug reports, complaints, suggestions and comments using the
-  <a href="http://sourceforge.net/tracker/?group_id=97659">trackers</a>
+  <a href="https://sourceforge.net/p/gnudatalanguage/_list/tickets">trackers</a>
   or
-  <a href="http://sourceforge.net/projects/gnudatalanguage/forums">forums</a>.
+  <a href="https://sourceforge.net/p/gnudatalanguage/discussion/">forums</a>.
 </p>
 
 <h2><a href="index.html">How to contribute?</a></h2>
@@ -53,7 +53,7 @@
 </ul>
 
 <p>
-  Please send your contributions using the <a href="http://sourceforge.net/tracker/?group_id=97659">trackers</a>.
+  Please send your contributions using the <a href="https://sourceforge.net/p/gnudatalanguage/_list/tickets">trackers</a>.
 </p>
 
 <?php require('_footer.inc.php'); ?>
