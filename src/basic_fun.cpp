@@ -4686,6 +4686,147 @@ namespace lib {
 
   }// end of median
 
+  BaseGDL* ishft_fun(EnvT* e) {
+    Guard<BaseGDL>ga;
+    Guard<BaseGDL>gb;
+    
+    DType typ = (e->GetParDefined(0))->Type();
+    //types are norally correct, so do not loose time looking for wrong types
+    if ((typ == GDL_BYTE) || (typ == GDL_UINT) || (typ == GDL_INT) || (typ == GDL_LONG) ||
+      (typ == GDL_ULONG) || (typ == GDL_LONG64) || (typ == GDL_ULONG64)) {
+      dimension finalDim;
+      //behaviour: minimum set of dimensions of arrays. singletons expanded to dimension,
+      //keep array trace.
+      SizeT nEl, maxEl = 1, minEl, finalN = 1;
+      for (int i = 0; i < 2; ++i) {
+        nEl = e->GetPar(i)->N_Elements();
+        if ((nEl > 1) && (nEl > maxEl)) {
+          maxEl = nEl;
+          finalN = maxEl;
+          finalDim = e->GetPar(i)->Dim();
+        }
+      } //first max - but we need first min:
+      minEl = maxEl;
+      for (int i = 0; i < 2; ++i) {
+        nEl = e->GetPar(i)->N_Elements();
+        if ((nEl > 1) && (nEl < minEl)) {
+          minEl = nEl;
+          finalN = minEl;
+          finalDim = e->GetPar(i)->Dim();
+        }
+      } 
+      //now get pointers to a and b, and increment (0 if b is singleton)
+      switch (typ) {
+        case GDL_BYTE:
+        {
+          DByteGDL* ret = new     DByteGDL(finalDim, BaseGDL::NOZERO);
+          DByteGDL* a=e->GetParAs<DByteGDL>(0);
+          DByteGDL* b=e->GetParAs<DByteGDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_UINT:
+        {
+          DUIntGDL* ret = new     DUIntGDL(finalDim, BaseGDL::NOZERO);
+          DUIntGDL* a=e->GetParAs<DUIntGDL>(0);
+          DUIntGDL* b=e->GetParAs<DUIntGDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_INT:
+        {
+          DIntGDL* ret = new     DIntGDL(finalDim, BaseGDL::NOZERO);
+          DIntGDL* a=e->GetParAs<DIntGDL>(0);
+          DIntGDL* b=e->GetParAs<DIntGDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_LONG:
+        {
+          DLongGDL* ret = new     DLongGDL(finalDim, BaseGDL::NOZERO);
+          DLongGDL* a=e->GetParAs<DLongGDL>(0);
+          DLongGDL* b=e->GetParAs<DLongGDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_ULONG:
+        {
+          DULongGDL* ret = new     DULongGDL(finalDim, BaseGDL::NOZERO);
+          DULongGDL* a=e->GetParAs<DULongGDL>(0);
+          DULongGDL* b=e->GetParAs<DULongGDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_LONG64:
+        {
+          DLong64GDL* ret = new     DLong64GDL(finalDim, BaseGDL::NOZERO);
+          DLong64GDL* a=e->GetParAs<DLong64GDL>(0);
+          DLong64GDL* b=e->GetParAs<DLong64GDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+        case GDL_ULONG64:
+        {
+          DULong64GDL* ret = new     DULong64GDL(finalDim, BaseGDL::NOZERO);
+          DULong64GDL* a=e->GetParAs<DULong64GDL>(0);
+          DULong64GDL* b=e->GetParAs<DULong64GDL>(1);
+          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
+          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
+#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
+          {
+#pragma omp for
+            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
+          }
+          return ret;
+        }
+        break;
+      }
+
+    } else e->Throw("Operand must be integer:" + e->GetParString(0));
+  }
+  
   BaseGDL* shift_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);

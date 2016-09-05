@@ -218,6 +218,7 @@ void LibInit()
   new DLibPro(lib::file_mkdir,string("FILE_MKDIR"),-1,file_mkdirKey);
 
   new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9,NULL,NULL,true);
+  new DLibFunRetNew(lib::ishft_fun,string("ISHFT"),2,NULL,NULL,true);
 
   const string sortKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey,NULL,true);

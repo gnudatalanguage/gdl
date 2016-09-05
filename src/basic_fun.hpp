@@ -115,6 +115,8 @@ namespace lib {
 
   BaseGDL* shift_fun( EnvT* e);
 
+  BaseGDL* ishft_fun( EnvT* e);
+
   BaseGDL* arg_present( EnvT* e);
 
   BaseGDL* eof_fun( EnvT* e);
