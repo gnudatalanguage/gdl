@@ -22,6 +22,7 @@
 ;-----------------------------------------------------------------------------
 ;
 function MATRIX_MULTIPLY, a, b, ATRANSPOSE=atr, BTRANSPOSE=btr, help=help
+Message,"Unconsitent GDL Install: Matrix_multpily is now and INTERNAL function, please report"
 ;
 ON_ERROR, 2
 ;
