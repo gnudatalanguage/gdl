@@ -671,11 +671,11 @@ namespace lib {
       static unsigned rangeTag=Struct->Desc()->TagIndex("RANGE");
       test1=(*static_cast<DDoubleGDL*>(Struct->GetTag(rangeTag, 0)))[0];
       test2=(*static_cast<DDoubleGDL*>(Struct->GetTag(rangeTag, 0)))[1];
-      if ( !(test1==0.0&&test2==0.0) )
+      if ( !((test1-test2)==0.0) )
       {
         start=test1;
         end=test2;
-        set=TRUE;
+        set=true;
       }
     }
     BaseGDL* Range=e->GetKW(choosenIx);
@@ -686,9 +686,12 @@ namespace lib {
       Guard<DDoubleGDL> guard;
       DDoubleGDL* RangeF=static_cast<DDoubleGDL*>(Range->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       guard.Reset(RangeF);
-      start=(*RangeF)[0];
-      end=(*RangeF)[1];
-      set=TRUE;
+      if (!((*RangeF)[0]-(*RangeF)[1])==0.0)
+      {
+        start=(*RangeF)[0];
+        end=(*RangeF)[1];
+        set=true;
+      }
     }
     return set;
   }

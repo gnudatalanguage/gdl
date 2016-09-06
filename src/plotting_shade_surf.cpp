@@ -146,26 +146,15 @@ namespace lib
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
       bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
       bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
-      if(setx && sety)
+      if (setx)
       {
         xStart=xAxisStart;
         xEnd=xAxisEnd;
-        yStart=yAxisStart;
-        yEnd=yAxisEnd;
       }
-      else if (sety)
+      if (sety)
       {
         yStart=yAxisStart;
         yEnd=yAxisEnd;
-      }
-      else if (setx)
-      {
-        xStart=xAxisStart;
-        xEnd=xAxisEnd;
-        //must compute min-max for other axis!
-        {
-          gdlDoRangeExtrema(xVal,yVal,yStart,yEnd,xStart,xEnd);
-        }
       }
   #undef UNDEF_RANGE_VALUE
       // z range
