@@ -2828,8 +2828,8 @@ void widget_control( EnvT* e ) {
       } else if ( widget->IsTable()) {
         gdlGrid* grid=static_cast<gdlGrid*>(widget->GetWxWidget());
         if (!grid) e->Throw("Internal GDL error with widgets, please report.");
-        if (hasXsize) xsize=xsize*grid->GetColumnWidth(0)+grid->GetRowLabelSize(); 
-        if (hasYsize) ysize=ysize*grid->GetRowHeight(0)+grid->GetColLabelSize();
+        if (hasXsize) xsize=xsize*grid->GetColSize(0)+grid->GetRowLabelSize(); 
+        if (hasYsize) ysize=ysize*grid->GetRowSize(0)+grid->GetColLabelSize();
       }
       if (hasXsize && hasYsize) widget->SetSize(xsize,ysize);
       else if (hasXsize) widget->SetSize(xsize,ys);
