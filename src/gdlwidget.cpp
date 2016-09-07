@@ -288,13 +288,13 @@ WidgetIDT GDLWidget::GetTopLevelBase( WidgetIDT widID)
 void GDLWidget::RefreshWidget( )
 {
   if ( widgetPanel->IsShownOnScreen( ) ) {
+    if ( this->parentID == GDLWidget::NullID ) return;
     GDLWidget* gdlParent = GetWidget( parentID );
-    if ( gdlParent == GDLWidget::NullID ) return;
     while ( gdlParent->IsBase() ) {
       wxSizer * s = gdlParent->GetSizer( );
       if ( s ) s->Layout( );
+      if ( gdlParent->parentID == GDLWidget::NullID ) break;
       gdlParent = GetWidget( gdlParent->GetParentID( ) );
-      if ( gdlParent == GDLWidget::NullID ) break;
     } 
     static_cast<wxWindow*>(this->GetWxWidget())->Refresh(); //next event loop
 //    wxWindow* me=static_cast<wxWindow*>(this->GetWxWidget()); if (me) me->Update(); else cerr<<"Refresh unknown widget!\n"; //immediate
