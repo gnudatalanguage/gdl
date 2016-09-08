@@ -18,6 +18,7 @@
 #ifndef ENVT_HPP_
 #define ENVT_HPP_
 
+#include <limits>
 #include <vector>
 #include <cstdlib>
 
