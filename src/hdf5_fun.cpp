@@ -332,10 +332,10 @@ return GDL_UNDEF;
 
     // querying for the length of the name
     char tmp;
-    size_t len = H5Aget_name(h5a_id, 1, &tmp);
+    ssize_t len = H5Aget_name(h5a_id, 1, &tmp);
     if (len < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    // acquireing the name
+    // acquiring the name
     len++;
     char* name = static_cast<char*>(malloc(len * sizeof(char)));
     if (name == NULL) e->Throw("Failed to allocate memory!");

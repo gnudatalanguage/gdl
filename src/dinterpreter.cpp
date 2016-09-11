@@ -791,7 +791,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 
   // actual run is perfomed in InterpreterLoop()
   RetAll( RetAllException::RUN); // throws (always)
-  //  return CC_OK;
+  return CC_OK; //avoid warnings
 }
 
 // execute GDL command (.run, .step, ...)
@@ -1275,6 +1275,9 @@ void *inputThread(void*) {
         if (ch == '\n')
             break;
     }
+#ifndef HAVE_CXX11THREAD
+    return NULL;
+#endif
 }
 
 // if readline is not available or !EDIT_INPUT set to zero

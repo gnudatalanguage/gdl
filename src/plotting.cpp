@@ -16,20 +16,10 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
-#include <memory>
-#include <limits>
-
-#include <string>
-#include <fstream>
-#include <list>
-#include "envt.hpp"
 #include "dinterpreter.hpp"
-
-#include "initsysvar.hpp"
-#include "graphicsdevice.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
+
+#include <list>
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
@@ -2068,7 +2058,7 @@ struct Polygon {
     if (DEBUG_CONTOURS) cerr<<"("<<second<<" in "<<first<<")? "<<first->cutDistAtStart/DEG_TO_RAD<<" < "<< second->cutDistAtStart/DEG_TO_RAD<<"? && "
 	<<first->cutDistAtEnd/DEG_TO_RAD<<" > "<<second->cutDistAtEnd/DEG_TO_RAD<<"? ";
     bool ret = (first->cutDistAtStart < second->cutDistAtStart && first->cutDistAtEnd > second->cutDistAtEnd);
-    if (ret) if (DEBUG_CONTOURS) cerr<<"YES"<<endl; else if (DEBUG_CONTOURS) cerr<<"NO"<<endl;
+    if (DEBUG_CONTOURS) { if (ret)  cerr<<"YES"<<endl; else cerr<<"NO"<<endl; }
    return ret;
  }
  
@@ -2219,9 +2209,8 @@ struct Polygon {
     //explore conn and construct polygon list
     index = 0;
     SizeT num = 0;
-    while (index >= 0 && index < currentConn->N_Elements()) {
+    while (index < currentConn->N_Elements()) {
       size = (*currentConn)[index];
-      if (size < 0) break;
       if (size > 0) {
         Polygon currentPol;
         start = index + 1; //start new chunk...
@@ -2255,7 +2244,7 @@ struct Polygon {
         currentPol.ycut = sqrt(-1);
         currentPol.zcut = sqrt(-1);
         PolygonList.push_back(currentPol);
-      }
+      } else break;
       index += (size + 1);
     }
     GDLDelete(lons);
@@ -2765,16 +2754,17 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     SizeT index = 0;
     SizeT size;
     SizeT start;
-    while ( index >= 0 && index < conn->N_Elements( ) ) {
+    while ( index < conn->N_Elements( ) ) {
       size = (*conn)[index];
-      if ( size < 0 ) break;
+      if ( size == 0 ) break; //cannot be negative!
       start = (*conn)[index + 1];
-      if ( size >= minpoly )
+      if ( size >= minpoly ) {
         if ( doFill ) {
           a->fill( size, (PLFLT*) &((*res)[start]), (PLFLT*) &((*res)[start + nout]) );
         } else {
           a->line( size, (PLFLT*) &((*res)[start]), (PLFLT*) &((*res)[start + nout]) );
         }
+      }
       index += (size + 1);
     }
     GDLDelete( res );

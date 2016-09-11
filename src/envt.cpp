@@ -1099,35 +1099,29 @@ void EnvBaseT::AssureGlobalKW( SizeT ix)
   }
 }
 
-DStructGDL* EnvT::GetObjectPar( SizeT pIx)
-{
-  BaseGDL* p1= GetParDefined( pIx);
-  
-  if( p1->Type() != GDL_OBJ)
-    {
-      Throw( "Parameter must be an object reference"
-	     " in this context: "+
-	     GetParString(pIx));
+DStructGDL* EnvT::GetObjectPar( SizeT pIx) {
+  BaseGDL* p1 = GetParDefined(pIx);
+
+  if (p1->Type() != GDL_OBJ) {
+    Throw("Parameter must be an object reference in this context: " +
+      GetParString(pIx));
+  } else {
+    DObjGDL* oRef = static_cast<DObjGDL*> (p1);
+    DObj objIx;
+    if (!oRef->Scalar(objIx))
+      Throw("Parameter must be a scalar or 1 element array in this context: " +
+      GetParString(pIx));
+    if (objIx == 0)
+      Throw("Unable to invoke method"
+      " on NULL object reference: " + GetParString(pIx));
+
+    try {
+      return GetObjHeap(objIx);
+    } catch (GDLInterpreter::HeapException) {
+      Throw("Object not valid: " + GetParString(pIx));
     }
-  else
-    {
-      DObjGDL* oRef = static_cast<DObjGDL*>(p1);
-      DObj objIx;
-      if( !oRef->Scalar( objIx))
-	Throw( "Parameter must be a scalar or 1 element array in this context: "+
-	       GetParString(pIx));
-      if( objIx == 0)
-	Throw( "Unable to invoke method"
-	       " on NULL object reference: "+GetParString(pIx));
-      
-      try {
-	return GetObjHeap( objIx);
-      }
-      catch ( GDLInterpreter::HeapException)
-	{
-	  Throw( "Object not valid: "+GetParString(pIx));
-	}
-    }
+  }
+  return NULL; //keep clang happy.
 }
 
 // for exclusive use by lib::catch_pro

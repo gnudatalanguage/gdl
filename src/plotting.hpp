@@ -60,6 +60,7 @@
 #include "envt.hpp"
 #include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
+#include <limits>
 
 struct GDL_3DTRANSFORMDATA
 {
@@ -686,7 +687,7 @@ namespace lib {
       Guard<DDoubleGDL> guard;
       DDoubleGDL* RangeF=static_cast<DDoubleGDL*>(Range->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       guard.Reset(RangeF);
-      if (!((*RangeF)[0]-(*RangeF)[1])==0.0)
+      if (!(((*RangeF)[0]-(*RangeF)[1])==0.0))
       {
         start=(*RangeF)[0];
         end=(*RangeF)[1];
@@ -1572,15 +1573,7 @@ namespace lib {
     static int clippingix=e->KeywordIx("CLIP");
     DFloatGDL* clipBox=NULL;
     clipBox=e->IfDefGetKWAs<DFloatGDL>(clippingix);
-    if (clipBox!=NULL)
-    {
-      if (clipBox->N_Elements()<4) return false;
-      if ( (*clipBox)[0]==(*clipBox)[2] ||(*clipBox)[1]==(*clipBox)[3] ) return false; 
-      if ( (*clipBox)[0]>(*clipBox)[2] ||(*clipBox)[1]>(*clipBox)[3] ) { 
-       //EVERYTHING MUST BE CLIPPED, not this! TBC!
-       return false;
-      }
-    }
+
     //Get saveBox
     gdlSavebox* saveBox=getSaveBox();
     //Save current box
@@ -1616,14 +1609,6 @@ namespace lib {
      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
     }
 
-//    {
-//        dClipBox[2]=a->xPageSize();
-//        dClipBox[3]=a->yPageSize();
-//        if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "using  NOCLIP, i.e. [%f,%f,%f,%f]\n", dClipBox[0], dClipBox[1], dClipBox[2], dClipBox[3]);
-//    }
-//    else
-//    {
-
     if ( clipBox==NULL && canUsePClip ) //get !P.CLIP. Coordinates are always DEVICE
       {
         DStructGDL* pStruct=SysVar::P();
@@ -1634,7 +1619,14 @@ namespace lib {
       }
       else //get units, convert to world coords for plplot, take care of axis direction
       {
-        for ( int i=0; i<4&&i<clipBox->N_Elements(); ++i ) tempbox[i]=dClipBox[i]=(*clipBox)[i];
+        if ( (*clipBox)[0]>=(*clipBox)[2] ||(*clipBox)[1]>=(*clipBox)[3] ) {
+         coordinateSystem=NORMAL;
+         tempbox[0]=0.0;
+         tempbox[1]=0.0;
+         tempbox[2]=0.00001; //ridiculous but works.
+         tempbox[3]=0.00001;
+        } else for ( int i=0; i<4&&i<clipBox->N_Elements(); ++i ) tempbox[i]=dClipBox[i]=(*clipBox)[i];
+        
         if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "using given CLIP=[%f,%f,%f,%f]\n", dClipBox[0], dClipBox[1], dClipBox[2], dClipBox[3]);
         if ( coordinateSystem==DATA )
         {

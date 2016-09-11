@@ -172,9 +172,8 @@ void GDLXStream::Clear(DLong chan) {
   DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
   DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
   DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
-  unsigned long curcolor= ( (unsigned long) (r) << ffs(xwd->visual->red_mask)-1) +
-    ((unsigned long)(g) << ffs(xwd->visual->green_mask)-1 ) +
-    ((unsigned long)(b) << ffs(xwd->visual->blue_mask)-1 );
+  unsigned long curcolor= ( (unsigned long) (r) << (ffs(xwd->visual->red_mask)-1) ) +
+    ((unsigned long)(g) << (ffs(xwd->visual->green_mask)-1) ) +
 
   XSetForeground( xwd->display, dev->gc, curcolor); // myColor.pixel );
 
@@ -818,9 +817,9 @@ void GDLXStream::Color( ULong color, DLong decomposed ) {
     g = (color >> 8 & 0xFF);
     b = (color >> 16 & 0xFF);
   }
-  curcolor= ( (unsigned long) (r) << ffs(xwd->visual->red_mask)-1) +
-    ((unsigned long)(g) << ffs(xwd->visual->green_mask)-1 ) +
-    ((unsigned long)(b) << ffs(xwd->visual->blue_mask)-1 );
+  curcolor= ( (unsigned long) (r) << (ffs(xwd->visual->red_mask)-1)) +
+    ((unsigned long)(g) << (ffs(xwd->visual->green_mask)-1) ) +
+    ((unsigned long)(b) << (ffs(xwd->visual->blue_mask)-1) );
   XSetForeground( xwd->display, dev->gc, curcolor);
 }
 

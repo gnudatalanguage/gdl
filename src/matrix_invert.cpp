@@ -12,7 +12,7 @@ At the beginning, this code was only available using the GSL library.
 At that time, it was included in the "gsl_fun.hpp/cpp" code
 
 In 2013 we start to use Eigen3 in conjonction with the GSL.
-The GSL is mandatory. Eigen3 is not mandatory.
+The GSL is mandatory. Eigen3 is not mandatory. */
 
 /***************************************************************************
  *                                                                         *
