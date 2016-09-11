@@ -64,3 +64,18 @@ $ make install
 Other useful commands include `make help' to view a list
 of targets and `make edit_cache' to edit cache results 
 (variables defined in advanced mode shouldn't be edited).
+
+examples:
+mkdir gdl-clang
+cd gdl-clang
+cmake -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format -O3 " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF  ../gdl-lastversionfromcvs
+make -j 4
+sudo make install
+
+or 
+mkdir gdl-gcc
+cd gdl-gcc
+cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format -O3 " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF  ../gdl-lastversionfromcvs
+make -j 4
+sudo make install
+

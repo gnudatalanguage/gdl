@@ -357,6 +357,7 @@ else(PLPLOT_FOUND)
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
+    message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
 	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
 	if(HAVE_PLPLOT_SLABELFUNC)
 	  set(HAVE_PLPLOT_SLABELFUNC 1)

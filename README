@@ -130,7 +130,7 @@ You can get it at:
 http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 
 For the graphics support of GDL, the plplot library version 5.9
-is necessary. PLplot >= 5.9.9 is recommended.
+is necessary. PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
 See below if you have an older version of plplot.
 To download plplot please look here:
 http://plplot.sourceforge.net/source/index.html
@@ -145,7 +145,15 @@ dynamic drivers.
 The current solution is to disable dynamic drivers for plplot
 (-DENABLE_DYNDRIVERS=OFF option for cmake).
 Current ubuntu/debian distributions are using dynamic drivers, so plplot
-needs to be compiled from source there.
+needs to be compiled from source there. Disabling dyndrivers apparently is not necessary anymore.
+
+plplot > 5.11 needs absolutely to be compiled with its "old" wxWidgets driver,
+using the Cmake switch -DOLD_WXWIDGETS:BOOL=ON . Otherwise the WIDGET_DRAW and possibly the graphics window *will not work*.
+Plplot is not flexible enough to provide both drivers, and the new driver insists on making its own windows!
+Distributions that provide plplot and plplot-devel have probably not used -DOLD_WXWIDGETS:BOOL=ON
+so you'll need to compile plplot yourself with this option
+(and the options -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' for efficiency), install it somewhere
+(so add also the with option -DCMAKE_INSTALL_PREFIX="somewhere"), and provide -DPLPLOTDIR="somewhere" while cmaking GDL.
 
 Furthermore you need the GNU Scientific Library (GSL).
 Please see file HACKING if you want to write functions extending GDL (i. e.
