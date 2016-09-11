@@ -802,6 +802,8 @@ namespace lib
 				  1, value, 
 				  static_cast<PLFLT>(( *thick )[i%thick->N_Elements()]),
 				  0,0,0,0,
+          //NOTE TO DISCOURAGE CORRECTIONS: if trick with plcallback does not work, it is because Cmake did not set correctly 
+          //the PLPLOT_HAS_PLCALLBACK ifdef, not beacuse the following code is wrong.
 				  (PLCALLBACK::fill), (oneDim),
 				  (oneDim)?(PLCALLBACK::tr1):(PLCALLBACK::tr2), (oneDim)?(void *)&cgrid1:(void *)&cgrid2);
 	      }

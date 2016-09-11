@@ -49,6 +49,8 @@ using namespace std;
 
 void GDLGStream::Thick(DFloat thick)
 {
+  //note that 'cmake' may not able to find correct value of HAVE_PLPLOT_WIDTH. Please report.
+  // in the meantime, you may edit "config.h" by hand.
 #ifdef HAVE_PLPLOT_WIDTH
     plstream::width(static_cast<PLFLT>(thick*thickFactor));
 #else
