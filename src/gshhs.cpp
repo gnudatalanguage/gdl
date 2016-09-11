@@ -170,7 +170,6 @@ else
 {
     actStream->OnePageSaveLayout(); // do not use in projections
   
-    gdlSetGraphicsForegroundColorFromKw( e, actStream );
     actStream->NoSub( );
 
     DDouble *sx, *sy;
@@ -185,6 +184,8 @@ else
     actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
     actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
 }
+
+    gdlSetGraphicsForegroundColorFromKw( e, actStream );
 
     for ( int i = 0; i < files.size( ); ++i ) {
 
