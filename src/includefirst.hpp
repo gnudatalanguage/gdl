@@ -24,6 +24,8 @@
 #endif
 // #undef cerr if you want to try it.
 
+//According the to Windows Dev Center WIN32_LEAN_AND_MEAN excludes APIs such as Cryptography, DDE, RPC, Shell, and Windows Sockets.
+//It speeds the build process  by excluding some of the less frequently used APIs. VC_EXTRALEAN is possibly another option still "leaner"
 #ifdef WIN32
 #  define WIN32_LEAN_AND_MEAN 1
 #endif
