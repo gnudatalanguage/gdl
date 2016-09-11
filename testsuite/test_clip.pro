@@ -25,44 +25,40 @@ pro test_clip
 
   erase
   plot,findgen(10),/nodata,xstyle=4,ystyle=4
-  plots, [-.5,-.5], [1,4]
+  plots, [-.5,-.5], [1,4] 
   if total(tvrd()) eq 0 then begin
     message, 'failed with PLOTS', /conti
     errcnt++
   endif
 
-; TODO: still to be fixed
-;  erase
-;  plot, findgen(10), clip=[6,6,5,5], xstyle=4, ystyle=4
-;  if total(tvrd()) ne 0 then begin
-;    message, 'failed with PLOT', /conti
-;    errcnt++
-;  endif
+  erase
+  plot, findgen(10), clip=[6,6,5,5], xstyle=4, ystyle=4
+  if total(tvrd()) ne 0 then begin &$
+    message, 'failed with PLOT', /conti &$
+    errcnt++ &$
+  endif
 
-; TODO: still to be fixed
-;  erase
-;  plot, [0], [0], /nodata, xstyle=4, ystyle=4
-;  oplot, findgen(10), clip=[6,6,5,5]
-;  if total(tvrd()) ne 0 then begin
-;    message, 'failed with OPLOT', /conti
-;    errcnt++
-;  endif
-  
-; TODO: still to be fixed
-;  erase
-;  contour, findgen(10,10), clip=[6,6,5,5], xstyle=4, ystyle=4
-;  if total(tvrd()) ne 0 then begin
-;    message, 'failed with CONTOUR', /conti
-;    errcnt++
-;  endif
+  erase
+  plot, [0], [0], /nodata, xstyle=4, ystyle=4
+  oplot, findgen(10), clip=[6,6,5,5]
+  if total(tvrd()) ne 0 then begin &$
+    message, 'failed with OPLOT', /conti &$
+    errcnt++ &$
+  endif
  
-; TODO: still to be fixed
-;  erase
-;  surface, findgen(10,10), clip=[6,6,5,5], xstyle=4, ystyle=4, zstyle=4
-;  if total(tvrd()) ne 0 then begin
-;    message, 'failed with SURFACE', /conti
-;    errcnt++
-;  endif
+  erase
+  contour, findgen(10,10), clip=[6,6,5,5], xstyle=4, ystyle=4
+  if total(tvrd()) ne 0 then begin &$
+    message, 'failed with CONTOUR', /conti &$
+    errcnt++ &$
+  endif
+
+  erase
+  surface, findgen(10,10), clip=[6,6,5,5], xstyle=4, ystyle=4, zstyle=4
+  if total(tvrd()) ne 0 then begin &$
+    message, 'failed with SURFACE', /conti &$
+    errcnt++ &$
+  endif
   
   if errcnt ne 0 then exit, status=1
 
