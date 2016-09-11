@@ -466,8 +466,10 @@ namespace lib {
     HMODULE handle = LoadLibraryW(wchr);
     delete(wchr);
 #else
-    // you MUST keep the double "||" to have CALL_EXTERNAL working
-    void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
+    // note following code line is correct for gcc and linux.
+    // in case of trouble on some architecture, find the correct option and make an #ifdef.
+    // Do *not* modify the following line. GD.
+    void* handle =  dlopen(image.c_str(),  RTLD_NOW | RTLD_GLOBAL);
 #endif
     if (handle == NULL) {
 #if !defined(_WIN32) || defined(__CYGWIN__)
