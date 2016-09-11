@@ -4736,7 +4736,7 @@ namespace lib {
         {
           DUIntGDL* ret = new     DUIntGDL(finalDim, BaseGDL::NOZERO);
           DUIntGDL* a=e->GetParAs<DUIntGDL>(0);
-          DUIntGDL* b=e->GetParAs<DUIntGDL>(1);
+          DIntGDL* b=e->GetParAs<DIntGDL>(1);
           if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
           if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
 #pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
@@ -4781,7 +4781,7 @@ namespace lib {
         {
           DULongGDL* ret = new     DULongGDL(finalDim, BaseGDL::NOZERO);
           DULongGDL* a=e->GetParAs<DULongGDL>(0);
-          DULongGDL* b=e->GetParAs<DULongGDL>(1);
+          DLongGDL* b=e->GetParAs<DLongGDL>(1);
           if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
           if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
 #pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
@@ -4811,7 +4811,7 @@ namespace lib {
         {
           DULong64GDL* ret = new     DULong64GDL(finalDim, BaseGDL::NOZERO);
           DULong64GDL* a=e->GetParAs<DULong64GDL>(0);
-          DULong64GDL* b=e->GetParAs<DULong64GDL>(1);
+          DLong64GDL* b=e->GetParAs<DLong64GDL>(1);
           if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
           if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
 #pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
