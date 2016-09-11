@@ -187,13 +187,13 @@ namespace lib
             for (SizeT i=0; i< minEl ; ++i) (*zVal)[i]=(*tmpzVal)[0];
           }
         }
-      }
-      if ( doT3d && !real3d) { //test to throw before plot values changes 
+      } 
+      if ( doT3d && !real3d) { //test to avois passing a non-rotation matrix to plplots's stransform. plplot limitation-> FIXME!
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL)
         {
           e->Throw("Illegal 3D transformation. (FIXME)");
-        }
+        } else GDLDelete(plplot3d);
       }
       return false;
     }
@@ -323,7 +323,7 @@ namespace lib
         Data3d.ys = ys;
         switch (axisExchangeCode) {
           case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
+        Data3d.code = code012;
             break;
           case XY: // X->Y Y->X plane XY
             Data3d.code = code102;
@@ -395,7 +395,8 @@ namespace lib
         xval_guard.reset(xValou);
         yval_guard.reset(yValou);
         //rescale to normalized box before conversions --- works for both matrices.
-        gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
+//        gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
+        gdl3dto2dProjectDDouble(plplot3d,xVal,yVal,zVal,xValou,yValou,Data3d.code);
         
         ///TODO: Get proper USerSymSize in 3D.
         

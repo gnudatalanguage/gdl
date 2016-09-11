@@ -78,7 +78,7 @@ namespace lib
       // Then Z is useful only if (doT3d).
       static int zvIx = e->KeywordIx( "Z");
       zValue=0.0;
-      e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+      if (doT3d) e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
       singleArg=false;
       if ( nParam()==1 )
       {
@@ -142,6 +142,13 @@ namespace lib
       {
         e->Throw("Not enough parameters. Either 1 parameter or 3 "
                  "parameters valid.");
+      }
+      if ( doT3d ) { //test to avois passing a non-rotation matrix to plplots's stransform. plplot limitation-> FIXME!
+        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+        if (plplot3d == NULL)
+        {
+          e->Throw("Illegal 3D transformation. (FIXME)");
+        } else GDLDelete(plplot3d);
       }
       return true;
     }
@@ -316,6 +323,7 @@ namespace lib
         // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
         zValue /= (zEnd - zStart);
         plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        //if matrix was not checked to be ok at start, we could authorize a non_rotation matrix, but would have to avoid using stransform.
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
         Data3d.x0 = x0;
