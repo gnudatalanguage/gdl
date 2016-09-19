@@ -1,7 +1,7 @@
 #ifndef INC_GDLTokenTypes_hpp_
 #define INC_GDLTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (20130428): "gdlc.g" -> "GDLTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API
