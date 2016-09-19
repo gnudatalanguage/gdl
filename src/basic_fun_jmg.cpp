@@ -1145,10 +1145,11 @@ namespace lib {
 
           // Keywords are already counted (in FindVar)
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
+          if (((EnvT*)(callStack[desiredlevnum - 1]))->NParam() < 1) return NULL; //meaning this fetch level is not initialized. Avoids throwing an #assert in debug mode
           BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
 
-          if (par == NULL) e->Throw("Variable is undefined: " + varName);
-          // 		return NULL;
+// not IDL behaviour                    if (par == NULL) e->Throw("Variable is undefined: " + varName);
+           if (par == NULL) return NULL;
           //	  char* addr = static_cast<char*>(par->DataAddr());
 
           // no retnew function BUT: ret value is not from current environment
@@ -1159,7 +1160,8 @@ namespace lib {
           // return par->Dup(); // <-  HERE IS THE DIFFERENCE // no retnew function BUT: ret value is not from current environment
         } else {
           BaseGDL** par = pro->GetCommonVarPtr(varName);
-          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+// not IDL behaviour          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+          if (par == NULL) return NULL;
           return *par; // <-  HERE IS THE DIFFERENCE          
         }
       if (e->Interpreter()->InterruptEnable())
@@ -1375,10 +1377,12 @@ namespace lib {
         if (xI != -1) {
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
           BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          if (par == NULL) return NULL;
           return &par; // <-  HERE IS THE DIFFERENCE
         } else {
           BaseGDL** par = pro->GetCommonVarPtr(varName);
-          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+// not IDL behaviour          if (par == NULL) e->Throw("Variable is undefined: " + varName);
+          if (par == NULL)  return NULL;
           return par; // <-  HERE IS THE DIFFERENCE           
         }
 
