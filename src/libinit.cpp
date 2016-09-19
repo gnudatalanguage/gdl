@@ -52,18 +52,6 @@
 // for extensions
 #include "new.hpp"
 
-// for sorting lists by name
-struct CompLibFunName: public std::binary_function< DLibFun*, DLibFun*, bool>
-{
-  bool operator() ( DLibFun* f1, DLibFun* f2) const
-  { return f1->ObjectName() < f2->ObjectName();}
-};
-
-struct CompLibProName: public std::binary_function< DLibPro*, DLibPro*, bool>
-{
-  bool operator() ( DLibPro* f1, DLibPro* f2) const
-  { return f1->ObjectName() < f2->ObjectName();}
-};
 
 using namespace std;
 
@@ -975,9 +963,5 @@ void LibInit()
   new DLibPro(lib::sem_delete, string("SEM_DELETE"), 1);
   new DLibFunRetNew(lib::sem_lock, string("SEM_LOCK"), 1);
   new DLibPro(lib::sem_release, string("SEM_RELEASE"), 1);
-
-  // sort lists
-  sort( libFunList.begin(), libFunList.end(), CompLibFunName());
-  sort( libProList.begin(), libProList.end(), CompLibProName());
 }
 
