@@ -179,12 +179,14 @@ DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_,
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
+//  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
+//  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
@@ -192,6 +194,7 @@ DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_,
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
+//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
@@ -199,6 +202,7 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
+//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
 			      const string& o, const int nPar_, 
