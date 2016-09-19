@@ -1219,14 +1219,9 @@ arrayindex_list
 {		
     int rank = 1;
 }
-	: LSQUARE! arrayindex (COMMA! arrayindex)* RSQUARE!
-	| LBRACE! arrayindex 
+	: LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
+	| { IsRelaxed()}? LBRACE! arrayindex 
         ({++rank <= MAXRANK}? COMMA! arrayindex
-            // {   // this is needed here because an ARRAYEXPR_FN which 
-            //     // is a function call might have more paremeters
-            //     if( 
-            //         throw antlr::NoViableAltException(LT(1), getFilename());
-            // }
         )* RBRACE!
 	;	
 
@@ -1529,7 +1524,7 @@ primary_expr_tail
     |
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
-		(
+		( 
 
 			// already known function 
 			// (could be reordered, but this is conform to original)

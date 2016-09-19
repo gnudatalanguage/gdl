@@ -67,6 +67,7 @@ GDLFileListT  fileUnits;
 // flag for control-c
 volatile bool sigControlC;
 int           debugMode;
+bool  strictInterpreter;
 
 namespace structDesc {
   // set in InitStructs()
@@ -797,6 +798,8 @@ DLong GetLUN()
   
   return 0;
 }
+bool IsRelaxed(){return !strictInterpreter;}
+void SetStrict(bool value){strictInterpreter=value;}
 
 // for semantic predicate
 bool IsFun(antlr::RefToken rT1)
@@ -806,14 +809,13 @@ bool IsFun(antlr::RefToken rT1)
   // search for T1.getText() in function table and path
   string searchName=StrUpCase(T1.getText());
 
-  //  cout << "IsFun: Searching for: " << searchName << endl;
+//  cout << "IsFun: Searching for: " << searchName << endl;
 
-// Looking here for the internal functions is not the good place,
-// although it speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
+// Speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
 // or the 'bar' element of array 'foo'.
-//  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
-//			       Is_eq<DLibFun>(searchName));
-//  if( p != libFunList.end()) if( *p != NULL) return true;
+  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
+			       Is_eq<DLibFun>(searchName));
+  if( p != libFunList.end()) if( *p != NULL) return true;
 
   FunListT::iterator q=find_if(funList.begin(),funList.end(),
 			       Is_eq<DFun>(searchName));

@@ -187,6 +187,8 @@ int main(int argc, char *argv[])
   vector<string> batch_files;
   string statement;
   string pretendRelease;
+  bool strict_syntax=false;
+  bool syntaxOptionSet=false;
 
   for( SizeT a=1; a< argc; ++a)
     {
@@ -199,6 +201,12 @@ int main(int argc, char *argv[])
 	  cout << "  --help (-h)        display this message" << endl;
 	  cout << "  --version (-V, -v) show version information" << endl;
 	  cout << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
+	  cout << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." <<endl;
+      cout << "                     This speeds up (sometimes terribly) compilation but choke on every use of \"()\" with arrays." << endl;
+      cout << "                     Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure." << endl;
+      cout << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
+	  cout << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
+      cout << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
           cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -278,6 +286,16 @@ int main(int argc, char *argv[])
       {
           gdlde = true;
       }
+      else if (string(argv[a]) == "--fussy")
+      {
+          strict_syntax = true;
+          syntaxOptionSet = true;
+      }
+      else if (string(argv[a]) == "--sloppy")
+      {
+          strict_syntax = false;
+          syntaxOptionSet = true;
+      }      
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -326,6 +344,13 @@ int main(int argc, char *argv[])
   SysVar::SetGDLPath( gdlPath);
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
+  //fussyness setup and change if switch at start
+  if (syntaxOptionSet) { //take it no matters any env. var.
+    if (strict_syntax == true) SetStrict(true);
+  } else {
+    if (GetEnvString("GDL_IS_FUSSY").size()> 0) SetStrict(true);
+  }
+  
   
   string startup=GetEnvString("GDL_STARTUP");
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
