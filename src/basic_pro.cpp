@@ -1071,9 +1071,12 @@ namespace lib {
       for (SizeT i = 0; i < nParam; i++) {
         BaseGDL*& par = e->GetPar(i);
         DString parString = e->Caller()->GetString(par, true);
-        // NON-STRUCTURES except if one and only one param is a Struct.
+        // NON-STRUCTURES except if one and only one param is a Struct of 1 element.
         if (nParam == 1) {
-          isKWSetStructures = true;
+          if (par->Type() == GDL_STRUCT) {
+            isKWSetStructures = (par->N_Elements() == 1);
+          }
+          else isKWSetStructures = true;
         }
 
         if (!par || !isKWSetStructures || par->Type() != GDL_STRUCT) {
