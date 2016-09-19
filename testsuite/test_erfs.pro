@@ -40,7 +40,7 @@ print, format="(a18, 10(' ',g10.7))", 'expected erf(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erf(x):', yc
 
 for i = 0, 4 do begin
-    if abs(ye(i) - yc(i)) ge 1e-6 then begin
+    if abs(ye[i] - yc[i]) ge 1e-6 then begin
         print, 'erf: float: warning: the difference between idl calculus and gdl calculus is greater than or equal to 1e-6!'
     endif
 endfor
@@ -57,12 +57,12 @@ print, format="(a18, 10(' ',g10.7))", 'expected erf(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erf(x):', yc
 
 for i = 0, 1 do begin
-    if ye(i) ne yc(i) then begin
+    if ye[i] ne yc[i] then begin
 	print, 'erf: float: warning: limit ' + strtrim(i,1) + ' is wrong!'
     endif
 endfor
 
-if finite(yc(2),/nan) ne 1 then begin
+if finite(yc[2],/nan) ne 1 then begin
     print, 'erf: float: warning: limit 2 is wrong!'
 endif
 
@@ -79,7 +79,7 @@ print, format="(a18, 10(' ',g10.7))", 'expected erf(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erf(x):', yc
 
 for i = 0, 4 do begin
-    if abs(ye(i) - yc(i)) ge 1d-6 then begin
+    if abs(ye[i] - yc[i]) ge 1d-6 then begin
         print, 'erf: double: warning: the difference between idl calculus and gdl calculus is greater than or equal to 1e-6!'
     endif
 endfor
@@ -97,12 +97,12 @@ print, format="(a18, 10(' ',g10.7))", 'expected erf(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erf(x):', yc
 
 for i = 0, 1 do begin
-    if ye(i) ne yc(i) then begin
+    if ye[i] ne yc[i] then begin
 	print, 'erf: double: warning: limit ' + strtrim(i,1) + ' is wrong!'
     endif
 endfor
 
-if finite(yc(2),/nan) ne 1 then begin
+if finite(yc[2],/nan) ne 1 then begin
     print, 'erf: double: warning: limit 2 is wrong!'
 endif
 
@@ -125,7 +125,7 @@ print, format="(a18, 10(' ',g10.7))", 'expected erfc(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erfc(x):', yc
 
 for i = 0, 4 do begin
-    if abs(ye(i) - yc(i)) ge 1e-6 then begin
+    if abs(ye[i] - yc[i]) ge 1e-6 then begin
         print, 'erf: float: warning: the difference between idl calculus and gdl calculus is greater than or equal to 1e-6!'
     endif
 endfor
@@ -142,12 +142,12 @@ print, format="(a18, 10(' ',g10.7))", 'expected erfc(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erfc(x):', yc
 
 for i = 0, 1 do begin
-    if ye(i) ne yc(i) then begin
+    if ye[i] ne yc[i] then begin
 	print, 'erf: float: warning: limit ' + strtrim(i,1) + ' is wrong!'
     endif
 endfor
 
-if finite(yc(2),/nan) ne 1 then begin
+if finite(yc[2],/nan) ne 1 then begin
     print, 'erf: float: warning: limit 2 is wrong!'
 endif
 
@@ -165,7 +165,7 @@ print, format="(a18, 10(' ',g10.7))", 'expected erfc(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erfc(x):', yc
 
 for i = 0, 4 do begin
-    if abs(ye(i) - yc(i)) ge 1d-6 then begin
+    if abs(ye[i] - yc[i]) ge 1d-6 then begin
         print, 'erf: double: warning: the difference between idl calculus and gdl calculus is greater than or equal to 1e-6!'
     endif
 endfor
@@ -183,12 +183,12 @@ print, format="(a18, 10(' ',g10.7))", 'expected erfc(x):', ye
 print, format="(a18, 10(' ',g10.7))", 'computed erfc(x):', yc
 
 for i = 0, 1 do begin
-    if ye(i) ne yc(i) then begin
+    if ye[i] ne yc[i] then begin
 	print, 'erf: double: warning: limit ' + strtrim(i,1) + ' is wrong!'
     endif
 endfor
 
-if finite(yc(2),/nan) ne 1 then begin
+if finite(yc[2],/nan) ne 1 then begin
     print, 'erf: double: warning: limit 2 is wrong!'
 endif
 

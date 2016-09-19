@@ -64,10 +64,10 @@ function FINDEX, u, v, test=test
 nu=N_ELEMENTS(u)
 nv=N_ELEMENTS(v)
 ;
-if nu eq 2 then return,(v-u(0))/(u(1)-u(0))
+if nu eq 2 then return,(v-u[0])/(u[1]-u[0])
 ;
 us=u-SHIFT(u,+1)
-us=us(1:*)
+us=us[1:*]
 umx=max(us,min=umn)
 if umx gt 0 and umn lt 0 then MESSAGE,'u must be monotonic'
 if umx gt 0 then inc=1 else inc=0
@@ -77,15 +77,15 @@ maxcomp=FIX(ALOG(FLOAT(nu))/ALOG(2.)+.5)
 ; maxcomp = maximum number of binary search iteratios
 ;
 jlim=LONARR(2,nv)
-jlim(0,*)=0                     ; array of lower limits
-jlim(1,*)=nu-1                  ; array of upper limits
+jlim[0,*]=0                     ; array of lower limits
+jlim[1,*]=nu-1                  ; array of upper limits
 ;
 iter=0
 repeat begin
-   jj=(jlim(0,*)+jlim(1,*))/2
-   ii=WHERE(v ge u(jj),n) & if n gt 0 then jlim(1-inc,ii)=jj(ii)
-   ii=WHERE(v lt u(jj),n) & if n gt 0 then jlim(inc,ii)=jj(ii)
-   jdif=max(jlim(1,*)-jlim(0,*))
+   jj=(jlim[0,*]+jlim[1,*])/2
+   ii=WHERE(v ge u[jj],n) & if n gt 0 then jlim[1-inc,ii]=jj[ii]
+   ii=WHERE(v lt u[jj],n) & if n gt 0 then jlim[inc,ii]=jj[ii]
+   jdif=max(jlim[1,*]-jlim[0,*])
    if iter gt maxcomp then begin
       print, maxcomp, iter, jdif
       MESSAGE, 'binary search failed'
@@ -94,7 +94,7 @@ repeat begin
 endrep until jdif eq 1 
 ;
 w=v-v
-w(*)=(v-u(jlim(0,*)))/(u(jlim(0,*)+1)-u(jlim(0,*)))+jlim(0,*)
+w[*]=(v-u[jlim[0,*]])/(u[jlim[0,*]+1]-u[jlim[0,*]])+jlim[0,*]
 ;
 if KEYWORD_SET(test) then STOP
 ;

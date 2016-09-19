@@ -46,25 +46,25 @@ tab=[[1.,!VALUES.F_INFINITY,1],$
      [-!VALUES.F_INFINITY,-!VALUES.F_NAN,100]]
 ;
 a=FINITE(tab) 
-if a(1,0) NE 0 then nb_errors=nb_errors + 1
+if a[1,0] NE 0 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /INF) 
-if a(1,0) NE 1 then nb_errors=nb_errors + 1
+if a[1,0] NE 1 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /NAN) 
-if a(1,1) NE 1 then nb_errors=nb_errors + 1
+if a[1,1] NE 1 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /INF, SIGN=1) 
-if a(1,0) NE 1 then nb_errors=nb_errors + 1
+if a[1,0] NE 1 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /INF, SIGN=-1) 
-if a(0,2) NE 1 then nb_errors=nb_errors + 1
+if a[0,2] NE 1 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /NAN, SIGN=1) 
-if a(1,1) NE 1 then nb_errors=nb_errors + 1
+if a[1,1] NE 1 then nb_errors=nb_errors + 1
 ;
 a=FINITE(tab, /NAN, SIGN=-1) 
-if a(1,2) NE 1 then nb_errors=nb_errors + 1
+if a[1,2] NE 1 then nb_errors=nb_errors + 1
 ;
 if KEYWORD_SET(debug) then STOP
 ;
@@ -113,8 +113,8 @@ if ~ARG_PRESENT(nbp) then nbp=1e7
 
 a=randomu(seed, nbp)
 
-a(where(a GT 0.75))=!values.f_nan
-a(where(a LT 0.25))=-!values.f_nan
+a[where(a GT 0.75)]=!values.f_nan
+a[where(a LT 0.25)]=-!values.f_nan
 
 print, 'finite only'
 t0=systime(1) & b=finite(a) & print, systime(1)-t0

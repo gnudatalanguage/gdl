@@ -195,7 +195,7 @@ SPAWN, spawn_options, resultat, /noshell
 ; We have to process the COUNT keyword parameter
 ;
 info_resultat=SIZE(resultat)
-if (info_resultat(0) EQ 0) then begin
+if (info_resultat[0] EQ 0) then begin
     count=0
 endif else begin
     count=N_ELEMENTS(resultat)

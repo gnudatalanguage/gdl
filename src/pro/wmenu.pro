@@ -135,8 +135,8 @@ if (N_ELEMENTS(title) EQ 1) then begin
             print, 'Title : ', list_of_choice[title]
             ;; updated choice' list and creation of index list
             indices_flag(title)=0
-            local_choice=list_of_choice(WHERE(indices_flag GT 0))
-            indices=indices(WHERE(indices_flag GT 0))
+            local_choice=list_of_choice[WHERE(indices_flag GT 0)]
+            indices=indices[WHERE(indices_flag GT 0)]
         endelse
     endif else begin
         print, mess.warning+'bad TYPE for Title Keyword (no keyword managed)'

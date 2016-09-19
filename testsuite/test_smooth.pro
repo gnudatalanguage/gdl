@@ -130,7 +130,7 @@ temp=SMOOTH(a,[3,3])
 ; common checks on calculations
 ;
 a=REPLICATE(1.,nbp)
-a(2*indgen(nbp))=a(2*indgen(nbp))+1
+a[2*indgen(nbp)]=a[2*indgen(nbp)]+1
 ;
 print, '------------- 1D test, no edge trunc. ------------'
 print, a
@@ -154,7 +154,7 @@ nbp=256
 a=fltarr(nbp,nbp)
 for i=1,3 do begin
     width=2*i+1
-    a(nbp/2,nbp/2)=width^2
+    a[nbp/2,nbp/2]=width^2
     print, 'Expected: ', TOTAL(a), ', Comp1: ', TOTAL(SMOOTH(a,width)), ', Comp2: ', TOTAL(SMOOTH(a,width*2))
 endfor
 print, 'second run with background'
@@ -163,7 +163,7 @@ level=3.
 a=REPLICATE(level,nbp,nbp)
 for i=1,3 do begin
     width=2*i+1
-    a(nbp/2,nbp/2)=level+width^2
+    a[nbp/2,nbp/2]=level+width^2
     print, 'Expected: ', width^2, ', Computed: ', TOTAL(SMOOTH(a,width))-nbp*nbp*level
 endfor
 ;
@@ -174,9 +174,9 @@ nbp=256
 a=fltarr(nbp,nbp*2)
 for i=1,3 do begin
     width=2*i+1
-    a(nbp/2,nbp)=width^2
-    a(nbp/4,nbp)=width^2
-    a(3*nbp/4,nbp)=width^2
+    a[nbp/2,nbp]=width^2
+    a[nbp/4,nbp]=width^2
+    a[3*nbp/4,nbp]=width^2
     print, 'Expected: ', TOTAL(a), ', Comp1: ', TOTAL(SMOOTH(a,width)), ', Comp2: ', TOTAL(SMOOTH(a,width*2))
 endfor
 ;
@@ -186,7 +186,7 @@ nbp=64
 a=fltarr(nbp,nbp,nbp)
 for i=1,3 do begin
     width=2*i+1
-    a(nbp/2,nbp/2,nbp/2)=width^3
+    a[nbp/2,nbp/2,nbp/2]=width^3
     print, TOTAL(a), TOTAL(SMOOTH(a,width)), TOTAL(SMOOTH(a,width*2))
 endfor
 ;
@@ -217,21 +217,21 @@ return
 print, '---------------- How SMOOTH manage NaN ? -------------'
 nbp=9
 a=REPLICATE(1.,nbp)
-a(2*indgen(nbp))=a(2*indgen(nbp))+1
+a[2*indgen(nbp)]=a[2*indgen(nbp)]+1
 b=a
-b(4)=1./0.
+b[4]=1./0.
 print, SMOOTH(a,3)
 print, SMOOTH(b,3,/nan)
 ;
 c=replicate(0.,10)
-c(6)=20/0.
-c(5)=20
+c[6]=20/0.
+c[5]=20
 print, SMOOTH(c,3,/nan)
 print,c
 
 c=replicate(0.,10)
-c(5)=20/0.
-c(6)=20
+c[5]=20/0.
+c[6]=20
 print, SMOOTH(c,3,/nan)
 print,c
 
@@ -239,12 +239,12 @@ print,c
 print, '---------------- 2D and NaN -------------'
 ;
 a=REPLICATE(0.,7,7)
-a(2,3)=1./0.
-a(3,3)=20.
+a[2,3]=1./0.
+a[3,3]=20.
 ;
 b=REPLICATE(0.,7,7)
-b(3,2)=1./0.
-b(3,3)=20.
+b[3,2]=1./0.
+b[3,3]=20.
 ;
 print, SMOOTH(a,3,/nan,/edg)
 print, SMOOTH(b,3,/nan,/edg)

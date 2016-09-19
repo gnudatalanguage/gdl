@@ -117,7 +117,7 @@
 ;   Added forward_function declaration for safety, CM 08 Apr 2001
 ;   Print more info about POINTER type, CM 08 Apr 2001
 ;
-; $Id: helpform.pro,v 1.1 2006-03-04 14:56:55 jomoga Exp $
+; $Id: helpform.pro,v 1.2 2016-09-19 21:29:57 gilles-duvert Exp $
 ;
 ;-
 ; Copyright (C) 2000-2001, Craig Markwardt
@@ -138,20 +138,20 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
                'LONG64', 'ULONG64', 'UNKNOWN']
   blanks = string(replicate(32b,80))
   if n_elements(sz) LT 3 then sz = size(value)
-  tp = sz(sz(0)+1) < 16
+  tp = sz[sz[0]+1] < 16
 
   if n_elements(name0) EQ 0 then name0 = ''
-  name = strtrim(name0(0),2)
+  name = strtrim(name0[0],2)
 
   nlen = 15  ;; Length of name
   tlen = 9   ;; Length of type name
 
   if n_elements(width0) EQ 0 then width0 = 80
-  width = floor(width0(0))
+  width = floor(width0[0])
 
   if tp EQ 8 AND keyword_set(struct) then begin
       sz1 = size(value)
-      if sz1(sz1(0)+1) NE 8 then goto, NOT_STRUCT
+      if sz1[sz1[0]+1] NE 8 then goto, NOT_STRUCT
       nt = n_tags(value)
       len = n_tags(value, /length)
       tn = tag_names(value)
@@ -163,7 +163,7 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
              format='("** Structure ",A0,", ",I0," tags, length=",I0,":")')
 
       for i = 0, nt-1 do begin
-          a = [a, '   '+helpform(tn(i), value(0).(i), /tagform)]
+          a = [a, '   '+helpform(tn[i], value[0].(i), /tagform)]
       endfor
 
       return, a
@@ -183,20 +183,20 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
           a1 = strmid(name+blanks,0,nlen)+' '
       endelse
       
-      a1 = a1 + strmid(typenames(tp)+blanks,0,tlen)
+      a1 = a1 + strmid(typenames[tp]+blanks,0,tlen)
       if NOT keyword_set(tagform) then $
         a1 = a1 +' = '        
   endif else begin
-      a1 = strmid(typenames(tp)+blanks,0,tlen)
+      a1 = strmid(typenames[tp]+blanks,0,tlen)
   endelse
 
-  ndims = sz(0)
+  ndims = sz[0]
   if ndims GT 0 then begin
       ;; It is an array, compose the dimensions
-      dims = sz(1:ndims)  
+      dims = sz[1:ndims]  
       v = 'Array['
       for i = 0L, ndims-1 do begin
-          v = v + strtrim(dims(i),2)
+          v = v + strtrim(dims[i],2)
           if i LT ndims-1 then v = v + ', '
       endfor
       v = v + ']'
@@ -206,11 +206,11 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
       if NOT keyword_set(short) AND tp EQ 8 then begin
           ;; Protect against empty value
           if n_elements(stname) EQ 0 then begin
-              if n_elements(value) GT 0 then v0 = value(0) else v0 = {dummy:0}
+              if n_elements(value) GT 0 then v0 = value[0] else v0 = {dummy:0}
               sn = tag_names(v0, /structure_name)
-              sn = sn(0)
+              sn = sn[0]
           endif else begin
-              sn = strtrim(stname(0),2)
+              sn = strtrim(stname[0],2)
           endelse
           if sn EQ '' then sn = '<Anonymous>'
           v = '-> '+sn+' ' + v 
@@ -220,7 +220,7 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
 
       ;; Protect against empty or vector value
       if n_elements(value) GT 0 then begin
-          v0 = value(0) 
+          v0 = value[0] 
       endif else begin
           if tp NE 10 AND tp NE 11 then tp = 0
       endelse
@@ -237,17 +237,17 @@ function helpform, name0, value, size=sz, single=single, shortform=short, $
           end
           10: begin
               sz = size(v0)
-              if sz(sz(0)+1) EQ 10 then v = string(v0(0), /print) $
+              if sz[sz[0]+1] EQ 10 then v = string(v0[0], /print) $
               else                      v = '<PtrHeapVar>'
           end
           11: begin
               if n_elements(stname) EQ 0 then begin
                   forward_function obj_class
                   sz = size(v0)
-                  if sz(sz(0)+1) EQ 11 then sn = '('+obj_class(v0)+')' $
+                  if sz[sz[0]+1] EQ 11 then sn = '('+obj_class(v0)+')' $
                   else                      sn = ''
               endif else begin
-                  sn = '('+strupcase(strtrim(stname(0),2))+')'
+                  sn = '('+strupcase(strtrim(stname[0],2))+')'
               endelse
               v = '<ObjHeapVar'+sn+'>'
           end

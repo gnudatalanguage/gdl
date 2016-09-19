@@ -60,18 +60,18 @@ khi = klo + 1
 ; KLO and KHI now bracket the input value of X
 ;
 
-if MIN(xa(khi)-xa(klo)) eq 0 then $
+if MIN(xa[khi]-xa[klo]) eq 0 then $
   message, 'SPLINT - XA inputs must be distinct'
 ;
 ; Cubic spline polynomial is now evaluated
 ;
-h = xa(khi) - xa(klo)
+h = xa[khi] - xa[klo]
 
-a = ( xa(khi) - x ) / h
-b = ( x - xa(klo) ) / h
+a = ( xa[khi] - x ) / h
+b = ( x - xa[klo] ) / h
 
-return, a * ya(klo) + b * ya(khi) + $
-    ( ( a^3 - a ) * y2a(klo) + ( b^3 - b ) * y2a(khi) ) * ( h^2 ) / 6.D
+return, a * ya[klo] + b * ya[khi] + $
+    ( ( a^3 - a ) * y2a[klo] + ( b^3 - b ) * y2a[khi] ) * ( h^2 ) / 6.D
 
 end	; spl_interp.pro
 

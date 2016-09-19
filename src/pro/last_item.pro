@@ -50,6 +50,6 @@ function last_item, item
     message, 'Use: xlast = last_item(x)'
   endif
 
-  return,item(n_elements(item)-1)
+  return,item[n_elements(item)-1]
 
 end

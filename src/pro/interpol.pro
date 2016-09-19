@@ -58,7 +58,7 @@ if N_PARAMS() eq 3 then begin
       MESSAGE, 'In the three-parameter case the first and second argument must be of equal length'
     ;;
     ;; note by AC, 27-02-2012: is it really true ??
-    all_equal_test=ABS((p1 - SHIFT(p1,+1))(1:*))
+    all_equal_test=ABS((p1 - SHIFT(p1,+1))[1:*])
     if MIN(TEMPORARY(all_equal_test)) eq 0 then begin
         MESSAGE, /cont, $  ; usually only triggered for integer arrays
           'In the three-parameter case, the second argument must be strictly increasing or strictly decreasing.'

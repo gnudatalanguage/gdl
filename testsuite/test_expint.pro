@@ -53,7 +53,7 @@ yc = expint(n, x)
 test_numeric2, n, x, ye, yc, 'numerical', 'n', 'x', 'ExpInt', 'E_n(x)'
 
 for i = 0, 3 do begin
-    if abs(ye(i) - yc(i)) ge 1e-6 then begin
+    if abs(ye[i] - yc[i]) ge 1e-6 then begin
         print, 'EXPINT: FLOAT: WARNING: the difference between expected values and computed values is greater than or equal to 1e-6!'
     endif
 endfor
@@ -68,7 +68,7 @@ yc = expint(n, x)
 test_numeric2, n, x, ye, yc, 'numerical', 'n', 'x', 'ExpInt', 'E_n(x)'
 
 for i = 0, 3 do begin
-    if abs(ye(i) - yc(i)) ge 1d-6 then begin
+    if abs(ye[i] - yc[i]) ge 1d-6 then begin
         print, 'EXPINT: DOUBLE: WARNING: the difference between expected values and computed values is greater than or equal to 1d-6!'
     endif
 endfor

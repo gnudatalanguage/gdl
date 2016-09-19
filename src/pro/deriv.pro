@@ -184,7 +184,7 @@ if (N_PARAMS() EQ 2) then begin
       ;; some checks : sorting, no-nul steps, no-constant steps, ...
       ;;
       dx=x-SHIFT(x,1)
-      dx=dx(1:*)
+      dx=dx[1:*]
       dx_min=MIN(dx)
       dx_max=MAX(dx)
       ;;

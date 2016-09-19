@@ -104,7 +104,7 @@ if KEYWORD_SET(dimension) then begin
    if KEYWORD_SET(NaN) then begin 
       n = TOTAL(FINITE(x), dimension)
    endif else begin
-      n = dim(dimension-1)
+      n = dim[dimension-1]
    endelse
 endif else begin
    dimension = 0
@@ -135,10 +135,10 @@ if dimension EQ 0 THEN BEGIN
 endif ELSE BEGIN
    mean = TOTAL(x, dimension, DOUBLE=double, NaN=NaN)/n
    dim2 = dim
-   dim2(dimension-1) = 1
+   dim2[dimension-1] = 1
    if KEYWORD_SET(double) then nan1 = DBLARR(SIZE(mean, /DIMENSION)) 
    if ~KEYWORD_SET(double) then nan1= FLTARR(SIZE(mean, /DIMENSION))
-   nan1(*) = !VALUES.F_NAN
+   nan1[*] = !VALUES.F_NAN
    x0 = (x-REBIN(REFORM(mean, dim2), dim))
    variance = maxmoment GE 2 ? TOTAL((x0)^2, dimension, NaN=NaN)/(n-1)        : nan1
    sdev     = maxmoment GE 2 ? SQRT(variance)                                 : nan1

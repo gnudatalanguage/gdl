@@ -1,4 +1,4 @@
-;$Id: identity.pro,v 1.3 2011-12-30 02:02:47 alaingdl Exp $
+;$Id: identity.pro,v 1.4 2016-09-19 21:29:57 gilles-duvert Exp $
 function IDENTITY, n, double=double_keyword, help=help
 ;+
 ;
@@ -61,7 +61,7 @@ endif else begin
     id=FLTARR(n,n)
 endelse
 ;
-id(diag,diag)=1
+id[diag,diag]=1
 ;
 return, id
 ;

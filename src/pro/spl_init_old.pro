@@ -70,14 +70,14 @@ u = DBLARR(n)
 ; The lower boundary condition is set either to be "natural"
 ;
 if (N_ELEMENTS(yp1) EQ 0) then begin
-    y2(0) = 0.
-    u(0) = 0.
+    y2[0] = 0.
+    u[0] = 0.
     ;;
     ;; or else to have a specified first derivative
     ;;
 endif else begin
-    y2(0) = -0.5
-    u(0) = ( 3. / ( x(1)-x(0) ) ) * ( ( y(1)-y(0) ) / ( x(1)-x(0) ) - yp1 )
+    y2[0] = -0.5
+    u[0] = ( 3. / ( x[1]-x[0] ) ) * ( ( y[1]-y[0] ) / ( x[1]-x[0] ) - yp1 )
 endelse
 
 ; I suppose we can also take advantage here of the TRISOL function
@@ -101,9 +101,9 @@ pu = (DOUBLE(SHIFT(y,-1) - y) / (SHIFT(x,-1) - x) - $
       (y - SHIFT(y,1)) / (x - SHIFT(x,1))) / (SHIFT(x,-1)- SHIFT(x,1))
 
 for i=1,n-2 do begin
-    p = psig(i) * y2(i-1) + 2.0D
-    y2(i) = ( psig(i)-1.0D ) / p
-    u(i)=( 6.0D * pu(i) - psig(i)*u(i-1) ) / p
+    p = psig[i] * y2[i-1] + 2.0D
+    y2[i] = ( psig[i]-1.0D ) / p
+    u[i]=( 6.0D * pu[i] - psig[i]*u[i-1] ) / p
     ;;if KEYWORD_SET(debug) then print, i, psig[i], pu[i], p
 endfor
 
@@ -122,7 +122,7 @@ endif else begin
     un=(3./dx)*(ypn-(y[n-1]-y[n-2])/dx)
 endelse
 ;
-y2(n-1) = ( un - qn * u[n-2] ) / ( qn * y2[n-2] + 1. )
+y2[n-1] = ( un - qn * u[n-2] ) / ( qn * y2[n-2] + 1. )
 
 ;
 ; This is the backsubstitution loop of the tridiagonal algorithm
@@ -130,11 +130,11 @@ y2(n-1) = ( un - qn * u[n-2] ) / ( qn * y2[n-2] + 1. )
 if KEYWORD_SET(debug) then begin
    print, "psig:",psig
    print, "pu:",pu
-   for ii=0, n-1 do print, ii, y2(ii) , u(ii)
+   for ii=0, n-1 do print, ii, y2[ii] , u[ii]
 endif
 
 for k=n-2,0,-1 do begin
-    y2(k) = y2(k) * y2(k+1) + u(k)
+    y2[k] = y2[k] * y2[k+1] + u[k]
 endfor
 
 ;
