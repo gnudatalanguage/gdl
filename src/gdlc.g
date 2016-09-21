@@ -1231,16 +1231,16 @@ all!
 
 // used only from arrayindex_list
 arrayindex
-  : ((ASTERIX (COMMA|RBRACE|RSQUARE))=> all
+  : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all
 	| expr
 	  (COLON! 
 		(
-		  (ASTERIX (COMMA|RBRACE|RSQUARE|COLON))=> all
+		  (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE|COLON))=> all
 		| expr
 		)
                 (COLON! 
                     (
-                      (ASTERIX (COMMA|RBRACE|RSQUARE))=> ASTERIX!
+                      (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> ASTERIX!
                         {
                         throw 
                             GDLException( "n:n:* subscript form not allowed.");
