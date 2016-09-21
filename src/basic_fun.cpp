@@ -6993,10 +6993,6 @@ namespace lib {
     static int structureIx = e->KeywordIx("STRUCTURE");
     bool structureKW = e->KeywordSet(structureIx);
  
-    if (structureKW) {
-      Warning("keyword STRUCTURE is not finished (IS_FUNCTION not OK), please contribute !");
-    }
-
     static int systemIx = e->KeywordIx("SYSTEM");
     bool systemKW = e->KeywordSet(systemIx);
     if (systemKW) {
@@ -7072,8 +7068,15 @@ namespace lib {
 	// I don't know how to know if we use Pro or Func
 	// we do have a long way in "dinterpreter.cpp" with 
 	// if( firstChar == "#")
-	*(res->GetTag(tFunction, i)) = DByteGDL(0);
-
+    bool isFunc = false;
+      for (FunListT::iterator ifunc = funList.begin(); ifunc != funList.end(); ++ifunc) {
+        if (StrUpCase(tmp).find((*ifunc)->ObjectName()) != std::string::npos) {
+          isFunc = true;
+          break;
+        }
+      }
+	*(res->GetTag(tFunction, i)) = (isFunc)?DByteGDL(1):DByteGDL(0);
+//all others 0 for the time being
 	*(res->GetTag(tMethod, i)) = DByteGDL(0);
 	*(res->GetTag(tRestored, i)) = DByteGDL(0);
 	*(res->GetTag(tSystem, i)) = DByteGDL(0);

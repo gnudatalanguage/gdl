@@ -751,6 +751,18 @@ void InitStructs()
   treeexpandstruct->AddTag("EXPAND", &aLong);
   // insert into structList
   structList.push_back( treeexpandstruct); 
+  
+ DStructDesc* idltracebackstruct = new DStructDesc( "IDL_TRACEBACK");
+  idltracebackstruct->AddTag("ROUTINE", &aString);
+  idltracebackstruct->AddTag("FILENAME", &aString);
+  idltracebackstruct->AddTag("LINE", &aLong);
+  idltracebackstruct->AddTag("LEVEL", &aLong);
+  idltracebackstruct->AddTag("IS_FUNCTION", &aByte);
+  idltracebackstruct->AddTag("METHOD", &aByte);
+  idltracebackstruct->AddTag("RESTORED", &aByte);
+  idltracebackstruct->AddTag("SYSTEM", &aByte);
+  // insert into structList
+  structList.push_back( idltracebackstruct); 
 
 //template for future uses:
 // DStructDesc* struct = new DStructDesc( "WIDGET_DROP");
