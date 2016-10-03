@@ -1390,9 +1390,11 @@ namespace lib {
 	
 	// make the call
 	// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
-	newEnv->SetCallContext( EnvUDT::LRFUNCTION);
+    //GD: changed LRFUNCTION to RFUNCTION and removed e->SetPtrToReturnValue() below.
+    //this solved bug #706
+	newEnv->SetCallContext( EnvUDT::RFUNCTION);
 	BaseGDL* res = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-	e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+//GD: removed	e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
 	// 	BaseGDL* ppp = res->Dup();
 	// 	cout << " res = " << res << "  p to res = " << newEnv->GetPtrToReturnValue() << endl;
 	return res;
