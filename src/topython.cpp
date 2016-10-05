@@ -67,7 +67,7 @@ PyObject* Data_<Sp>::ToPython()
     // TODO: free the memory:  PyArray_Free(PyObject* op, void* ptr) ?
     throw GDLException("Failed to convert array to python.");
   }
-  memcpy(PyArray_DATA(ret), DataAddr(), this->N_Elements() * sizeof(Sp::t));
+  memcpy(PyArray_DATA(ret), DataAddr(), this->N_Elements() * Data_<Sp>::Sizeof());
   return ret;
 }
 
