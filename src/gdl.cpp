@@ -103,7 +103,8 @@ void InitOpenMP() {
 
 void AtExit()
 {
-//   cerr << "AtExit()" << endl;
+  //this function probably cleans otherwise cleaned objets and should be called only for debugging purposes.
+  cerr << "Using AtExit() for debugging" << endl;
   cerr << flush; cout << flush; clog << flush;
   // clean up everything
   // (for debugging memory leaks)
@@ -176,8 +177,9 @@ namespace lib {
 
 int main(int argc, char *argv[])
 {
+#if GDL_DEBUG
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
-
+#endif
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
