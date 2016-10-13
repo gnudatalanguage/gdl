@@ -1094,7 +1094,7 @@ namespace lib {
     double b;
     DULong nri;
 
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
 
     BaseGDL* p0 = e->GetNumericParDefined( 0);
 
@@ -2583,7 +2583,7 @@ namespace lib {
     int debug=0;
 
     // sanity check (for number of parameters)
-    SizeT nParam = e->NParam();
+    SizeT nParam = e->NParam(3);
 
     // 2-nd argument : initial bound
     BaseGDL* p1 = e->GetParDefined(1);
@@ -2716,6 +2716,7 @@ namespace lib {
     int debug=0;
 
     // sanity check (for number of parameters)
+    // AC 2016/10/13 : we cannot test here 2 or 3 since both are possible
     SizeT nParam = e->NParam();
 
     static int midexpIx=e->KeywordIx("MIDEXP");
@@ -2868,7 +2869,17 @@ namespace lib {
       static int midsqlIx=e->KeywordIx("MIDSQL");
       static int midsquIx=e->KeywordIx("MIDSQU");
       static int jmaxIx=e->KeywordIx("JMAX");
+      
+      // Mimic IDL behavior for K
       static int kkkIx=e->KeywordIx("K");
+      if (e->KeywordPresent(kkkIx)) {
+	DLong k=0;
+	DFloat kk;
+	e->AssureFloatScalarKW(kkkIx, kk);
+	k=(long) floor(kk);
+	if (k < 1) e->Throw("K value must be >= 1 (not used).");
+      }
+      
       // intregation on open range [first,+inf[
       if (do_midexp)
 	{	 
