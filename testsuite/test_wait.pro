@@ -25,7 +25,7 @@ endif
 ;
 if ~KEYWORD_SET(tol_error) then tol_error=5e-3
 ;
-if STRLOWCASE(!version.os_name) EQ 'darwin' then tol_error=8e-3
+if STRLOWCASE(!version.os_name) EQ 'darwin' then tol_error=1.5e-2
 ;
 nb_errors=0
 ;
