@@ -31,7 +31,10 @@
 #include <unistd.h> // isatty
 #endif
 #include <climits> // PATH_MAX
-
+//patch #90
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 #ifndef _WIN32
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
 #endif

@@ -957,7 +957,10 @@ namespace SysVar
 #ifdef _MSC_VER
 	#define PATH_MAX MAX_PATH
 #endif
-
+//patch #90
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
     char actualpath [PATH_MAX+1];
     char *ptr;
     ptr = realpath(symlinkpath, actualpath);

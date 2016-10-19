@@ -37,7 +37,10 @@
 #include "objects.hpp"
 
 #include <climits> // PATH_MAX
-
+//patch #90
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif 
 //#ifndef _MSC_VER
 #ifndef _WIN32
 #	include <fnmatch.h>

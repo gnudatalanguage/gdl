@@ -381,7 +381,10 @@ void WordExp( string& s)
 #ifdef _MSC_VER
 #define PATH_MAX _MAX_PATH
 #endif
-
+//patch #90
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 string FullPathFileName(string in_file)
 {
   
