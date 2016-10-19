@@ -329,7 +329,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 		  }
 	      }
 	  
-	    sub = proList[ proIx];
+	    sub = funList[ proIx];
 	  }
       }
     else
