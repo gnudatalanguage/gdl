@@ -271,10 +271,13 @@ add_subdirectory(antlr)
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
-if(PYTHON_MODULE) #libgdl
+if(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} pythongdl.cpp)
 	add_library(gdl SHARED ${SOURCES})
-else(PYTHON_MODULE) #gdl
+	SET_TARGET_PROPERTIES(pythongdl PROPERTIES PREFIX "")
+	SET_TARGET_PROPERTIES(pythongdl PROPERTIES OUTPUT_NAME GDL)
+	SET_TARGET_PROPERTIES(pythongdl PROPERTIES NO_SONAME TRUE)
+else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
 endif(PYTHON_MODULE)
@@ -288,8 +291,18 @@ target_link_libraries(gdl ${LIBRARIES})
 add_definitions(-DHAVE_CONFIG_H)
 
 if(PYTHON_MODULE)
-#	TODO: this library should go to Python library path (site-packages?)
-#	install(TARGETS gdl DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+	find_package( PythonInterp REQUIRED )
+	execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
+		"import site, sys; sys.stdout.write(site.PREFIXES[-1])"
+			OUTPUT_VARIABLE PYTHON_PREFIX)
+	file( TO_CMAKE_PATH "${PYTHON_PREFIX}" PYTHON_PREFIX)
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
+		"import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
+			OUTPUT_VARIABLE PYTHON_SITE_DIR)
+	file( TO_CMAKE_PATH "${PYTHON_SITE_DIR}" PYTHON_SITE_DIR )
+	string( REGEX REPLACE "^${PYTHON_PREFIX}/" ""
+	       PYTHON_SITE_DIR "${PYTHON_SITE_DIR}")
+	install(TARGETS gdl DESTINATION ${PYTHON_SITE_DIR})
 else(PYTHON_MODULE)
 	install(TARGETS gdl DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 	set_target_properties(gdl PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
