@@ -42,7 +42,8 @@ file='test_zip.gz'
 txt='"GDL - GNU Data Language\nA free IDL (Interactive Data Language) compatible incremental\n'
 txt=txt+'compiler (i. e. runs IDL programs)."'
 ;
-SPAWN, 'echo -e '+txt+' | gzip > '+file
+;SPAWN, 'echo -e '+txt+' | gzip > '+file
+SPAWN, 'printf '+txt+' | gzip > '+file
 OPENR, fd, file, /get, /compress, /delete
 ;
 ; Size test (FSTAT)

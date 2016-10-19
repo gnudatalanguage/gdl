@@ -132,7 +132,8 @@ filename='TestReadF_'+soft+'_'+suffixe
 ;
 ; generating the ASCII file
 ;
-SPAWN, 'echo -e "testl1'+char+'testl2" > '+filename
+;SPAWN, 'echo -e "testl1'+char+'testl2" > '+filename
+SPAWN, 'printf "testl1'+char+'testl2" > '+filename
 ;
 ; reading back the generated ASCII file
 ;
