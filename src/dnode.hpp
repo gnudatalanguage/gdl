@@ -26,7 +26,7 @@
 
 #include "GDLTokenTypes.hpp"
 
-#include "antlr/CommonAST.hpp"
+#include <antlr/CommonAST.hpp>
 
 //ANTLR_USING_NAMESPACE(std)
 //ANTLR_USING_NAMESPACE(antlr)

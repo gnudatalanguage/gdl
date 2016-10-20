@@ -23,7 +23,7 @@
 
 #include "prognode.hpp"
 
-#include "antlr/ANTLRException.hpp"
+#include <antlr/ANTLRException.hpp>
 
 //using namespace std;
 

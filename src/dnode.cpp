@@ -20,8 +20,8 @@
 #include <string>
 #include <limits>
 
-#include "antlr/TreeParser.hpp"
-#include "antlr/Token.hpp"
+#include <antlr/TreeParser.hpp>
+#include <antlr/Token.hpp>
 
 #include "dnode.hpp"
 #include "datatypes.hpp"

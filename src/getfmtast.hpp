@@ -22,7 +22,7 @@
 
 #include "basegdl.hpp"
 
-#include "antlr/ASTFactory.hpp"
+#include <antlr/ASTFactory.hpp>
 
 extern antlr::ASTFactory FMTNodeFactory;
 

@@ -15,8 +15,8 @@
 #include "typedefs.hpp"
 #include "prognode.hpp"
 
-#include "antlr/ASTRefCount.hpp"
-#include "antlr/AST.hpp"
+#include <antlr/ASTRefCount.hpp>
+#include <antlr/AST.hpp>
 
 namespace antlr {
 

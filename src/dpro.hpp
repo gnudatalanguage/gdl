@@ -30,7 +30,7 @@
 #include "prognode.hpp"
 #include "str.hpp"
 
-#include "antlr/Token.hpp"
+#include <antlr/Token.hpp>
 
 template<typename T>  class Is_eq: public std::unary_function<T,bool>
 {

@@ -27,7 +27,7 @@
 #include "FMTLexer.hpp"
 #include "FMTParser.hpp"
 
-#include "antlr/ASTFactory.hpp"
+#include <antlr/ASTFactory.hpp>
 
 using namespace std;
 

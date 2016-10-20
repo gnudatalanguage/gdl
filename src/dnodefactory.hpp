@@ -21,7 +21,7 @@
 
 #include "dnode.hpp"
 
-#include "antlr/ASTFactory.hpp"
+#include <antlr/ASTFactory.hpp>
 
 //ANTLR_USING_NAMESPACE(std)
 //ANTLR_USING_NAMESPACE(antlr)
