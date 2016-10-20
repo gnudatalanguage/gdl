@@ -35,7 +35,11 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 
   // Stuff for include files (@filename)
   private:
-    std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
+#if (__cplusplus >= 201103L)
+    std::unique_ptr<std::ifstream>    inputFile; // stores ifstream* and deletes 
+#else
+     std::auto_ptr<std::ifstream>    inputFile; // stores ifstream* and deletes 
+#endif
                                      // it when it is deleted itself
   
     antlr::TokenStreamSelector*     selector; 
