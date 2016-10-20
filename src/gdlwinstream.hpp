@@ -162,6 +162,7 @@ public:
 	void DeIconic();
 	void Flush();
 	void CheckValid();
+  void Update(){ this->eop();}
 	bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan);
 
 	//  bool SetGraphicsFunction(long value );

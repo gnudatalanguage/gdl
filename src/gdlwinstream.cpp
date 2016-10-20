@@ -95,7 +95,7 @@ void GDLWINStream::EventHandler()
 {
 	if (!valid) return;
 
-	if (pls->dev == NULL) {
+	if (GetHwnd() == NULL) {
 		cerr << "Invalid window." << endl;
 		valid = false;
 		return;
@@ -414,7 +414,6 @@ void GDLWINStream::Iconic() {
   SetWindowPos(GetHwnd(), HWND_BOTTOM,
     0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_HIDEWINDOW));
   return;
-	return;
 }
 
 void GDLWINStream::DeIconic() {
@@ -475,10 +474,8 @@ HWND GDLWINStream::GetHwnd()
 
 		if (dev)
 			return dev->hwnd;
-		else
-			return 0;
 	}
-
+    return NULL;
 }
 HDC GDLWINStream::GetHdc()
 {
@@ -490,9 +487,8 @@ HDC GDLWINStream::GetHdc()
         	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
         #endif
 		if (dev)	return dev->hdc;
-		else return 0;
 	}
-	else return 0;
+    return NULL;
 }
 
 void GDLWINStream::RedrawTV()

@@ -65,13 +65,12 @@ private:
 
 	bool WDelete(int);
 	bool WOpen(int, const std::string&,
-		int, int, int, int);
+		int, int, int, int, bool);
 	bool WState(int);
 	bool WSize(int, int*, int*);
 	bool WSet(int);
 	bool WShow(int, bool, bool);
 	int WAdd();
-	//int WAddFree();
 	DIntGDL* GetWindowPosition();
 	DLong GetVisualDepth();
 	DString GetVisualName();
@@ -173,7 +172,7 @@ public:
 			DLong xSize, ySize;
 			DefaultXYSize(&xSize, &ySize);
 
-			bool success = WOpen(0, title, xSize, ySize, -1, -1);
+			bool success = WOpen(0, title, xSize, ySize, -1, -1, false);
 			if (!success)	  return NULL;
 			if (actWin == -1)	  {
 				std::cerr << "Internal error: plstream not set." << std::endl;

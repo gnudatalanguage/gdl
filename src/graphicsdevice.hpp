@@ -210,7 +210,7 @@ public:
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
   virtual void TidyWindowsList()                      {}
-  virtual int  MaxNonFreeWin()                        { return 0;}
+  virtual int  MaxNonFreeWin()                        { return MaxWin();}
   virtual int  ActWin()                               { return -1;}
   virtual void EventHandler() {}
   virtual void DefaultXYSize(DLong *xsize, DLong *ysize) {
@@ -255,7 +255,6 @@ public:
   virtual bool CursorCrosshair()                      { return false;}
   virtual int  getCursorId()                             { return -1;}
   virtual bool UnsetFocus()                           { return false;}
-  virtual bool SetFocus()                             { return false;}
   virtual bool SetBackingStore(int value)             { return false;}
   virtual int  getBackingStore()                      { return -1;}
   virtual bool SetXPageSize( const float xs)          { return false;}

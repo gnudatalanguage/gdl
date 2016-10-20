@@ -223,7 +223,7 @@ bool DeviceWIN::GUIOpen(int wIx, int xSize, int ySize)
 
 
 bool DeviceWIN::WOpen(int wIx, const std::string& title,
-	int xSize, int ySize, int xPos, int yPos)
+	int xSize, int ySize, int xPos, int yPos, bool hide)
 {
 
 	int debug = 0;
