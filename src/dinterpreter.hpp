@@ -77,6 +77,8 @@ extern int __cdecl __MINGW_NOTHROW fetestexcept (int excepts);
 
 #ifdef HAVE_LIBEDITLINE
 #include <editline/readline.h>
+extern VFunction *rl_event_hook;    /* missing from editline/readline.h */
+// see https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/src/main.c
 #endif
 
 #include <fstream>
