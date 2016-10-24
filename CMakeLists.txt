@@ -35,8 +35,12 @@ set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
 set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
+# GNU Readline or BSD Editline ? if Readline OK, we don't look for Editline.
 set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
-set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU readline directory tree")
+set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
+
+set(EDITLINE ON CACHE BOOL "GDL: Enable BSD Editline ?")
+set(EDITLINEDIR "" CACHE PATH "GDL: Specify the BSD Editline directory tree")
 
 set(OLDPLPLOT OFF CACHE BOOL "GDL: Enable old plplot ?")
 set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
@@ -66,12 +70,12 @@ set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
 
-set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
-set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
-
-# GraphicsMagick is a good alternative to ImageMagick
+# GraphicsMagick is a good alternative to ImageMagick, if GM OK, we don't look for IM
 set(GRAPHICSMAGICK ON CACHE BOOL "GDL: Enable GraphicsMagick ?")
 set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory tree")
+
+set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
+set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
@@ -111,12 +115,10 @@ set(SZIPDIR "" CACHE PATH "GDL: Specify the SZip directory tree")
 
 set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relative to CMAKE_INSTALL_PREFIX")
 
-
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 	set(HAVE_64BIT_OS 1)
 endif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-
 
 #### check headers and libraries
 
@@ -205,34 +207,70 @@ if (NOT WIN32)
 	endif(CURSES_FOUND)
 endif (NOT WIN32)
 
-# Readline
+# GNU Readline (GNU/Linux or OSX) or BSD Editline (OSX)
+
 # -DREADLINE=ON|OFF
-# -DREADLINEDIR=DIR
+# -DREADLINEDIR=DIR or -DEDITLINEDIR=DIR
 if(READLINE)
-	set(CMAKE_PREFIX_PATH ${READLINEDIR})
-	find_package(Readline QUIET)
-	set(HAVE_LIBREADLINE ${READLINE_FOUND})
-	if(READLINE_FOUND)
+  set(CMAKE_PREFIX_PATH ${READLINEDIR})
+  find_package(Readline QUIET)
+  set(HAVE_LIBREADLINE ${READLINE_FOUND})
+  if(READLINE_FOUND)
     if(NOT WIN32)
-     	# readline needs (n)curses (not on Windows)
- 		  set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
+      # readline needs (n)curses (not on Windows)
+      set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
     endif(NOT WIN32)
-		check_library_exists("${READLINE_LIBRARIES}" rl_get_screen_size "" RL_GET_SCREEN_SIZE)
-		if(NOT RL_GET_SCREEN_SIZE)
-			message(STATUS "WARNING: Older GNU readline without rl_get_screen_size was found.\n"
-			"For resized terminals the size might not be updated correctly.\n"
-			"If this is a problem please install a recent version of readline.")
-		endif(NOT RL_GET_SCREEN_SIZE)
-		set(LIBRARIES ${LIBRARIES} ${READLINE_LIBRARIES})
-		include_directories(${READLINE_INCLUDE_DIR})
-		set(CMAKE_REQUIRED_LIBRARIES)
-	else(READLINE_FOUND)
-		message(FATAL_ERROR "GNU readline was not found.\n"
-		  "Use -DREADLINEDIR=no to explicitely disable it.\n"
-                  "(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
-                  "(suitable Fedora package: readline-devel)")
-	endif(READLINE_FOUND)
+    check_library_exists("${READLINE_LIBRARIES}" rl_get_screen_size "" RL_GET_SCREEN_SIZE)
+    if(NOT RL_GET_SCREEN_SIZE)
+      message(STATUS "WARNING: Older GNU readline without rl_get_screen_size was found.\n"
+	"For resized terminals the size might not be updated correctly.\n"
+	"If this is a problem please install a recent version of readline.")
+    endif(NOT RL_GET_SCREEN_SIZE)
+    set(LIBRARIES ${LIBRARIES} ${READLINE_LIBRARIES})
+    include_directories(${READLINE_INCLUDE_DIR})
+    set(CMAKE_REQUIRED_LIBRARIES)
+  else(READLINE_FOUND)
+    if(EDITLINE)
+      message(STATUS "WARNING: GNU readline was not found, now looking for BSD Editline.\n")
+    else(EDITLINE)
+      message(FATAL_ERROR "GNU readline was not found.\n"
+	"Use -DREADLINEDIR=no to explicitely disable it.\n"
+	"(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
+	"(suitable Fedora package: readline-devel)")
+    endif(EDITLINE)    
+  endif(READLINE_FOUND)
 endif(READLINE)
+#
+# if Readline found, we do not look for Editline
+#
+if(READLINE_FOUND)
+  if (EDITLINE)
+    message(STATUS "INFO: We prefer to use Readline than Editline.\n"
+      "Feedback welcome on OSX Readline ...")
+    set(EDITLINE OFF)
+  endif(EDITLINE)
+endif(READLINE_FOUND)
+
+# BSD Editline (a BSD clone of GNU Readline, present by default on OSX)
+# -DEDITLINE=ON|OFF
+# -DEDITLINEDIR=DIR
+if(EDITLINE)
+  set(CMAKE_PREFIX_PATH ${EDITLINEDIR})
+  find_package(Editline QUIET)
+  set(HAVE_EDITLINE ${EDITLINE_FOUND})
+  if(EDITLINE_FOUND)
+    if(NOT WIN32)
+      # readline needs (n)curses (not on Windows)
+      set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
+    endif(NOT WIN32)
+    set(LIBRARIES ${LIBRARIES} ${EDITLINE_LIBRARIES})
+    include_directories(${EDITLINE_INCLUDE_DIR})
+    set(CMAKE_REQUIRED_LIBRARIES)
+  else(EDITLINE_FOUND)
+    message(FATAL_ERROR "requested BSD Editline was not found.\n"
+      "Use -DEDITLINE=no to explicitely disable it.\n")
+  endif(EDITLINE_FOUND)
+endif(EDITLINE)
 
 # zlib MANDATORY
 # -DZLIBDIR=DIR
@@ -428,11 +466,9 @@ if(GRAPHICSMAGICK)
 		"Looking for ImageMagick")
 	endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
-
 #
 # if GM found, we do not look for IM
 #
-
 if(GRAPHICSMAGICK_FOUND)
 	if (MAGICK)
 	   message(STATUS "INFO: We prefer to use GraphicsMagick than ImageMagick")
@@ -443,46 +479,45 @@ endif(GRAPHICSMAGICK_FOUND)
 # ImageMagick
 # -DMAGICK=ON|OFF
 # -DMAGICKDIR=DIR
-
 if(MAGICK)
-	set(CMAKE_PREFIX_PATH ${MAGICKDIR})
-	find_package(ImageMagick QUIET COMPONENTS Magick++ MagickWand MagickCore)
-	mark_as_advanced(ImageMagick_EXECUTABLE_DIR ImageMagick_Magick++_INCLUDE_DIR ImageMagick_Magick++_LIBRARY
-	ImageMagick_MagickCore_INCLUDE_DIR ImageMagick_MagickCore_LIBRARY ImageMagick_MagickWand_INCLUDE_DIR ImageMagick_MagickWand_LIBRARY)
-	set(USE_MAGICK ${ImageMagick_FOUND})
-	if(ImageMagick_FOUND)
-		find_program(MAGICKXXCONFIG Magick++-config)
-		if(MAGICKXXCONFIG)
-			execute_process(COMMAND ${MAGICKXXCONFIG} "--libs" OUTPUT_VARIABLE MAGICKXXCONFIGLIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-			set(LIBRARIES ${LIBRARIES} ${MAGICKXXCONFIGLIBS})		
-		else(MAGICKXXCONFIG)
-			message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
-			"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-			"Use -DMAGICK=OFF to not use it.\n"
-                        "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
-                        "(suitable Fedora package: ImageMagick-c++-devel)")
-		endif(MAGICKXXCONFIG)
-		set(LIBRARIES ${LIBRARIES} ${ImageMagick_LIBRARIES})
-		include_directories(${ImageMagick_INCLUDE_DIRS})
-		set(MAGICK_LIBRARIES ${ImageMagick_LIBRARIES})
-	else(ImageMagick_FOUND)
-		message(FATAL_ERROR "ImageMagick is required but was not found.\n"
-		"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-		"Use -DMAGICK=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
-                "(suitable Fedora package: ImageMagick-c++-devel)")
-	endif(ImageMagick_FOUND)
+  set(CMAKE_PREFIX_PATH ${MAGICKDIR})
+  find_package(ImageMagick QUIET COMPONENTS Magick++ MagickWand MagickCore)
+  mark_as_advanced(ImageMagick_EXECUTABLE_DIR ImageMagick_Magick++_INCLUDE_DIR ImageMagick_Magick++_LIBRARY
+    ImageMagick_MagickCore_INCLUDE_DIR ImageMagick_MagickCore_LIBRARY ImageMagick_MagickWand_INCLUDE_DIR ImageMagick_MagickWand_LIBRARY)
+  set(USE_MAGICK ${ImageMagick_FOUND})
+  if(ImageMagick_FOUND)
+    find_program(MAGICKXXCONFIG Magick++-config)
+    if(MAGICKXXCONFIG)
+      execute_process(COMMAND ${MAGICKXXCONFIG} "--libs" OUTPUT_VARIABLE MAGICKXXCONFIGLIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+      set(LIBRARIES ${LIBRARIES} ${MAGICKXXCONFIGLIBS})		
+    else(MAGICKXXCONFIG)
+      message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
+	"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
+	"Use -DMAGICK=OFF to not use it.\n"
+        "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
+        "(suitable Fedora package: ImageMagick-c++-devel)")
+    endif(MAGICKXXCONFIG)
+    set(LIBRARIES ${LIBRARIES} ${ImageMagick_LIBRARIES})
+    include_directories(${ImageMagick_INCLUDE_DIRS})
+    set(MAGICK_LIBRARIES ${ImageMagick_LIBRARIES})
+  else(ImageMagick_FOUND)
+    message(FATAL_ERROR "ImageMagick is required but was not found.\n"
+      "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
+      "Use -DMAGICK=OFF to not use it.\n"
+      "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
+      "(suitable Fedora package: ImageMagick-c++-devel)")
+  endif(ImageMagick_FOUND)
 endif(MAGICK)
 
 # if GM or IM activated, we check whether Plplot is OK for that
 if(USE_MAGICK AND NOT WIN32)
-	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-	if(HAVE_PLGETDRVDIR)
-		message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-		"To make plplot work with ImageMagick:\n"
-		"use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-		"use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-	endif(HAVE_PLGETDRVDIR)
+  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
+  if(HAVE_PLGETDRVDIR)
+    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
+      "To make plplot work with ImageMagick:\n"
+      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
+      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
+  endif(HAVE_PLGETDRVDIR)
 endif(USE_MAGICK AND NOT WIN32)
 
 # wxWidgets
@@ -1044,7 +1079,8 @@ if(NOT WIN32)
 endif(NOT WIN32)
 module(PLPLOT    "Plplot     ")
 module(OLDPLPLOT "Old Plplot ")
-module(READLINE  "Readline   ")
+module(READLINE  "GNU Readline   ")
+module(EDITLINE  "BSD Editline   ")
 module(GSL       "GSL        ")
 module(ZLIB      "Zlib       ")
 if(NOT WIN32)

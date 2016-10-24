@@ -18,6 +18,7 @@
 #cmakedefine HAVE_LIBNCURSES 1
 #cmakedefine HAVE_LIBPLPLOTCXXD 1
 #cmakedefine HAVE_LIBREADLINE 1
+#cmakedefine HAVE_LIBEDITLINE 1
 #cmakedefine HAVE_LIBWXWIDGETS 1
 #cmakedefine HAVE_LIBZ 1
 #cmakedefine HAVE_LOCALE_H 1
