@@ -12,7 +12,7 @@
 # but we do have access to a BSB clone, the Editline Lib.
 # Unfortunatly, few functions are not visible in Editline Lib. !!
 
-find_library(EDITLINE_LIBRARY NAMES editline)
+find_library(EDITLINE_LIBRARY NAMES edit)
 set(EDITLINE_LIBRARIES ${EDITLINE_LIBRARY})
 find_path(EDITLINE_INCLUDE_DIR NAMES editline/readline.h)
 include(FindPackageHandleStandardArgs)
