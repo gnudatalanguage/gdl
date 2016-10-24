@@ -798,22 +798,6 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
       targetIx = -1;
     DPtr actP = GetLISTNode( e, self, targetIx);
 
-//     DPtr actP;// = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
-//     if( targetIx == (listSize-1)) // 0
-//     {
-//       actP = (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0];
-//     }
-//     else
-//     {
-//       actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
-//       for( SizeT elIx = 0; elIx < targetIx; ++elIx)
-//       {
-// 	DStructGDL* actPStruct = GetStruct( e, actP);
-// 
-// 	actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
-//       }
-//     }
-//    DStructGDL* actPStruct = GetStruct( e, actP);
     DStructGDL* actPStruct = GetLISTStruct( e, actP);   
 
     actP = (*static_cast<DPtrGDL*>(actPStruct->GetTag( pDataTag, 0)))[0];
@@ -865,7 +849,7 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
   }
   
   (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
-  (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = listSize + allIx->size();      
+  (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = allIx->size();      
 
   newObjGuard.Release();
   return newObj;
@@ -1932,7 +1916,7 @@ BaseGDL* list__count( EnvUDT* e)
 	DPtr pTail = (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0];	      
 	
 	(*static_cast<DPtrGDL*>( cStruct->GetTag( pNextTag, 0)))[0] = pTail;
-	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTail, 0)))[0] = firstID;	      
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = firstID;	      
       }
       else
       {
@@ -1982,7 +1966,7 @@ BaseGDL* list__count( EnvUDT* e)
 	DPtr pTail = (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0];	      
 	
 	(*static_cast<DPtrGDL*>( cStruct->GetTag( pNextTag, 0)))[0] = pTail;
-	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTail, 0)))[0] = cID;	      
+	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
       }
       else
       {
