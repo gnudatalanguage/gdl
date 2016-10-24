@@ -1335,7 +1335,7 @@ string DInterpreter::GetLine()
 {
   clog << flush; cout << flush;
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
   int edit_input = SysVar::Edit_Input() && isatty(0);
 #endif
 
@@ -1348,7 +1348,7 @@ string DInterpreter::GetLine()
 
     lineEdit = true;
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
     
     if( edit_input != 0)
       cline = readline(const_cast<char*>(actualPrompt.c_str()));
@@ -1384,7 +1384,7 @@ string DInterpreter::GetLine()
   } while( line == "" 
 	|| line[0] == ';'); // skip also comment lines (bug #663)
   
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
   // SA: commented out to comply with IDL behaviour- allowing to 
   //     set the history-file length only in the startup file
   //if( edit_input > 20)
@@ -1686,7 +1686,7 @@ RetCode DInterpreter::InterpreterLoop( const string& startup,
     batch_files.clear(); // not needed anymore...
   }
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
 
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module

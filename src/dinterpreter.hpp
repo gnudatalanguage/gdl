@@ -75,6 +75,10 @@ extern int __cdecl __MINGW_NOTHROW fetestexcept (int excepts);
 #include <readline/history.h>
 #endif
 
+#ifdef HAVE_LIBEDITLINE
+#include <editline/readline.h>
+#endif
+
 #include <fstream>
 #include <vector>
 
@@ -117,7 +121,7 @@ private:
 public:
   ~DInterpreter() 
   {
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
     // seems to cause valgrind to complain
     clear_history(); // for testing of memory leaks (in GDL)
 #endif

@@ -361,7 +361,9 @@ namespace lib {
 
   DStringGDL* recall_commands_internal()
   {
-#if defined(HAVE_LIBREADLINE) && !defined(__APPLE__)
+    // maybe obsolete ??? to be check 
+    // AC 24 Oct 2016 if defined(HAVE_LIBREADLINE) && !defined(__APPLE__)
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
     //status=1;
     // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
     HIST_ENTRY **the_list;
@@ -1101,7 +1103,7 @@ namespace lib {
 
   void exitgdl(EnvT* e) {
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,

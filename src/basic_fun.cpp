@@ -5988,6 +5988,11 @@ namespace lib {
 #include <readline/readline.h>
     rl_prep_terminal (0);
 #endif
+#if defined(HAVE_EDITLINE)
+#include <editline/readline.h>
+    rl_prep_terminal (0);
+#endif
+      
       
     SizeT nParam=e->NParam();
 
@@ -6049,7 +6054,7 @@ namespace lib {
 #if !defined(_WIN32) || defined(__CYGWIN__)
     (void)tcsetattr(fd, TCSANOW, &orig); 
 #endif
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
     rl_deprep_terminal ();
 #endif
 

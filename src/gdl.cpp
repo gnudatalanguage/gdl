@@ -134,7 +134,7 @@ void InitGDL()
 #ifndef _WIN32
   GDLSetLimits();
 #endif
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
   rl_initialize();
