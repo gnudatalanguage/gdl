@@ -3139,6 +3139,8 @@ BaseGDL** FCALL_LIB_N_ELEMENTSNode::LEval()
 
 BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
 {
+    if( this->getFirstChild()->getNextSibling() != 0) 
+              throw GDLException(this,"Keyword parameters not allowed in call.");
     try
     {
         BaseGDL* param;
