@@ -13,13 +13,24 @@ pro READ_4B_FILE, file, compress=compress
 
 x = BYTARR(1)
 
-print,'reading 4 times the 1st character of '+file
-print,'compress ',compress
+print,'reading 4 times the 1st character of '+file+', compress option set to '+strtrim(compress,2)+'...', format='($,a)'
 openr, lun, file, /get_lun, compress=compress
+err=0
 for i=0,3 do begin 
     point_lun, lun, 0L  ; <<< rewind
-    readu,lun,x & print,string(x)
-endfor
+    readu,lun,x & if (string(x) ne 'a') then err++
+ endfor
+if (err) then print,"read error: "+string(x) else print,"OK"
+print,"reading 13 elements at position 7...", format='($,a)'
+y=bytarr(7)
+point_lun, lun, 0L  ; <<< rewind
+point_lun, lun, 7L  ; <<< goto 7
+readu,lun,y & if (string(y) ne 'hijklmn') then print,"read error:"+string(y) else print,"OK"
+print,"position status as per fstat() function:"
+lunstat=fstat(lun)
+help,lunstat,/struct
+if (lunstat.cur_ptr ne 14) then print,"Error: wrong CUR_PTR returned by fstat()."
+
 free_lun, lun
 
 return
@@ -31,7 +42,7 @@ pro TEST_POINT_LUN
 file = '/tmp/file.txt'
 filegz = file+'.gz'
 openw,lun,file,/get_lun
-printf,lun,'abcd'
+printf,lun,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 free_lun,lun
 
 ; read raw file
