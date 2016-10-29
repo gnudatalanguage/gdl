@@ -1191,7 +1191,15 @@ namespace lib {
         if (actPtrID == 0)
           continue;
 
-        BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+        //correct bug #708. Avoid exiting on HeapException.
+        BaseGDL* derefPtr;
+        try{
+          derefPtr = DInterpreter::GetHeap(actPtrID);
+        }
+            catch(DInterpreter::HeapException)
+        {
+              return;
+        }
         HeapFreeObj(env, derefPtr, verbose);
       }
     } else if (var->Type() == GDL_OBJ) {
@@ -1232,8 +1240,15 @@ namespace lib {
         DPtr actPtrID = (*varPtr)[e];
         if (actPtrID == 0)
           continue;
-
-        BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+        //correct bug #708. Avoid exiting on HeapException.
+        BaseGDL* derefPtr;
+        try{
+          derefPtr = DInterpreter::GetHeap(actPtrID);
+        }
+            catch(DInterpreter::HeapException)
+        {
+              return;
+        }
         if (verbose) {
           help_item(cout,
             derefPtr, DString("<PtrHeapVar") +
