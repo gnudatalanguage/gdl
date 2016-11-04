@@ -294,40 +294,31 @@ private:
   }
 
   // intializes dim (implicitely checks rank)
-  void SetupDim()
-  {
-    // calculate dimension
+  void SetupDim() {
+  // calculate dimension
     SizeT nDot=tag.size();
-    SizeT d;
-    for( d=0; d<nDot; ++d)
-    {
-      if( ix[d] == NULL)
-      { // loop over all elements
-	if( dStruct[d]->N_Elements() > 1)
-		dim >> dStruct[d]->Dim();
-      }
-      else
-      {
-	ix[d]->SetVariable( dStruct[d]);
-	if( ix[d]->N_Elements() > 1)
-		dim >> ix[d]->GetDim();
-      }
-    }
-    //     dimension topDim;
-    if( ix[d] == NULL)
-    { // loop over all elements
-    // 	topDim=top->Dim();
-    // 	dim >> topDim;
-	    dim >> top->Dim();
-    }
-    else
-    {
-	    ix[d]->SetVariable( top);
-    // 	topDim=ix[d]->GetDim();
-    // 	dim >> topDim;
-	    dim >> ix[d]->GetDim();
-    }
+  SizeT d;
+  for (d = 0; d < nDot; ++d) {
+   if (ix[d] == NULL) { // loop over all elements
+    if (dStruct[d]->N_Elements() > 1) dim >> dStruct[d]->Dim();
+   } else {
+    ix[d]->SetVariable(dStruct[d]);
+    if (ix[d]->N_Elements() > 1)      dim >> ix[d]->GetDim();
+   }
   }
+  //     dimension topDim;
+  if (ix[d] == NULL) { // loop over all elements
+   // 	topDim=top->Dim();
+   // 	dim >> topDim;
+   dim >> top->Dim();
+  } else {
+   ix[d]->SetVariable(top);
+   // 	topDim=ix[d]->GetDim();
+   // 	dim >> topDim;
+   dim >> ix[d]->GetDim();
+  }
+  dim.Purge();
+ }
   
 private:
   DotAccessDescT() {} 
@@ -383,82 +374,75 @@ public:
   }
 
   // assigns r to (structure hierarchy described by) this
-  void ADAssign( BaseGDL* r)
-  {
-    SetupDim();
 
-    SizeT lRank=dim.Rank();
-    SizeT rRank=r->Rank();
+ void ADAssign(BaseGDL* r) {
+  SetupDim();
 
-//     if( rRank > lRank)
-//       throw GDLException(-1,NULL,"Conflicting data structures (rank).",true,false);
+  SizeT lRank = dim.Rank();
+  SizeT rRank = r->Rank();
 
-    SizeT topRank=top->Rank();
+  //     if( rRank > lRank)
+  //       throw GDLException(-1,NULL,"Conflicting data structures (rank).",true,false);
 
-    SizeT rElem=r->N_Elements();
+  SizeT topRank=top->Rank();
 
-    SizeT topElem;
+  SizeT rElem = r->N_Elements();
 
-    if( ix.back() == NULL)
-      topElem=top->N_Elements();
-    else
-      topElem=ix.back()->N_Elements();
-    
-    if( rElem <= topElem)
-      {
-	 // IDL seems to allow a maximum of one rank more for the r-value
-// 	if( rRank > (topRank+1))
-// 	  throw GDLException(-1,NULL,"Conflicting data structures (top-rank).",true,false);
+  SizeT topElem;
 
-	// inplace copy to every instance of top
-	// just loop over all top elements and insert (at appropriate indices)
-	rStride=0;
-	rOffset=0;
-	
-	if( r->Type() != top->Type())
-	  {
-	    BaseGDL* rConv = r->Convert2( top->Type(), BaseGDL::COPY);
-	    Guard<BaseGDL> conv_guard( rConv);
+  if (ix.back() == NULL)
+   topElem = top->N_Elements();
+  else
+   topElem = ix.back()->N_Elements();
 
-	    DoAssign( dStruct[0], rConv);
-	  }
-	else
-	  DoAssign( dStruct[0], r);
-      }
-    else
-      {
-	// different slices into different top element instances
-	// all dimensions must match here
-	for( SizeT i=0; i<rRank; i++)
-	  if( dim[i] != r->Dim(i))
-	    throw GDLException(-1,NULL,"Conflicting data structures (dim).",true,false);
+  if (rElem <= topElem) {
+   // IDL seems to allow a maximum of one rank more for the r-value
+   // 	if( rRank > (topRank+1))
+   // 	  throw GDLException(-1,NULL,"Conflicting data structures (top-rank).",true,false);
 
-	// copy only topRank dimensions each time (topElem elements)
-	// topRank is the dim to start the outer loop with
-/*	if( ix[ tag.size()]->N_Elements() == 1 &&
-	    ix[ tag.size()]->NDim() == 1)
-		rStride = 1;
-	else*/
-		rStride=r->Stride(topRank);
-	rOffset=0;
+   // inplace copy to every instance of top
+   // just loop over all top elements and insert (at appropriate indices)
+   rStride = 0;
+   rOffset = 0;
 
-	if( r->Type() != top->Type())
-	  {
-	    BaseGDL* rConv = r->Convert2( top->Type(), BaseGDL::COPY);
-	    Guard<BaseGDL> conv_guard( rConv);
+   if (r->Type() != top->Type()) {
+    BaseGDL* rConv = r->Convert2(top->Type(), BaseGDL::COPY);
+    Guard<BaseGDL> conv_guard(rConv);
 
-	    DoAssign( dStruct[0], rConv);
-	  }
-	else
-	  DoAssign( dStruct[0], r);
-      }
-/*#ifdef _OPENMP
-    if( dStruct[0] == SysVar::Cpu())
-	{
-		SysVar::CPUChanged();
-	}
-#endif*/
+    DoAssign(dStruct[0], rConv);
+   } else
+    DoAssign(dStruct[0], r);
+  } else {
+   // different slices into different top element instances
+   // all dimensions must match here
+   for (SizeT i = 0; i < rRank; i++)
+    if (dim[i] != r->Dim(i))
+     throw GDLException(-1, NULL, "Conflicting data structures (dim).", true, false);
+
+   // copy only topRank dimensions each time (topElem elements)
+   // topRank is the dim to start the outer loop with
+   /*	if( ix[ tag.size()]->N_Elements() == 1 &&
+         ix[ tag.size()]->NDim() == 1)
+       rStride = 1;
+     else*/
+   rStride = r->Stride(topRank);
+   rOffset = 0;
+
+   if (r->Type() != top->Type()) {
+    BaseGDL* rConv = r->Convert2(top->Type(), BaseGDL::COPY);
+    Guard<BaseGDL> conv_guard(rConv);
+
+    DoAssign(dStruct[0], rConv);
+   } else
+    DoAssign(dStruct[0], r);
   }
+  /*#ifdef _OPENMP
+      if( dStruct[0] == SysVar::Cpu())
+    {
+      SysVar::CPUChanged();
+    }
+  #endif*/
+ }
 
   void Dec()
   {

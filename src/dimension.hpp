@@ -378,7 +378,13 @@ public:
   // throw away unused ranks (ie. ranks == 1)
   void Purge()
   {
-    for(; rank>1 && dim[rank-1] <= 1; --rank);
+   //old version: produce bug #709
+//    for(; rank>1 && dim[rank-1] <= 1; --rank);
+   int m=rank-1;
+   for (; m>0; --m) if (dim[m]<=1) {
+    for (int j=m; j<rank-1; ++j) dim[j]=dim[j+1];
+    rank--;
+   }
   }
 
   // set the rank to r (pads 1s) if it is smaller than r
