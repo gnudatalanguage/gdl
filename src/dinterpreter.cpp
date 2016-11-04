@@ -1270,7 +1270,7 @@ void inputThread() {
 void *inputThread(void*) {
 #endif
     while (1) {
-        char ch = getchar();
+        char ch = getchar(); if (ch==EOF) return NULL;
         inputstr += ch;
         if (ch == '\n')
             break;
