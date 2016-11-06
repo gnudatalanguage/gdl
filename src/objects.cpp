@@ -27,7 +27,6 @@
 
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
-#include "preferences.hpp"
 #include "overload.hpp"
 
 //#include "dinterpreter.hpp"
@@ -794,8 +793,10 @@ void InitObjects()
   // We need to initialize the multi-device object that inherits from the single-device object.
   GraphicsMultiDevice::Init();
 
-  // preferences
-  //  Preferences::Init();
+  string gdlPath=GetEnvString("GDL_PATH");
+  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
+  if( gdlPath == "") gdlPath = "+" GDLDATADIR "/lib";
+  SysVar::SetGDLPath( gdlPath);
 }
 
 // returns GDL lun, 0 on failure
