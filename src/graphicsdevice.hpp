@@ -220,7 +220,7 @@ public:
   virtual DLong GetDecomposed()                       { return -1;}
   virtual BaseGDL* GetFontnames()                     { return NULL;}
   virtual DLong GetFontnum()                     { return -1;}
-  virtual bool SetFont(DString f)                 {return false;}
+  virtual bool SetFont(DString f)                 {static int warning_sent=1; if (warning_sent) {Warning("SET_FONT not active for this device (FIXME)."); warning_sent=0;} return true;}
   virtual DString GetCurrentFont()                 {return NULL;}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
