@@ -59,6 +59,8 @@ namespace lib {
 
 #ifdef PL_HAVE_QHULL
 extern "C" {
+  //prevent qhull using its own memory tricks. Stay on the safe side.
+#define qh_NOmem
     #include <libqhull/qhull_a.h>
 }
 #endif
@@ -882,7 +884,16 @@ extern "C" {
     //pass back to GDL env:
     e->SetPar(2, returned_triangles);
     /* free QHULL memory */
-    qh_freeqhull(!qh_ALL);
+#ifdef qh_NOmem
+  qh_freeqhull(qh_ALL);
+#else
+  qh_freeqhull(!qh_ALL);
+  int curlong, totlong; /* used !qh_NOmem */
+  qh_memfreeshort(&curlong, &totlong);
+  if (curlong || totlong)
+    qh_fprintf_stderr(6263, "qhull internal warning (main): did not free %d bytes of long memory(%d pieces)\n",
+       totlong, curlong);
+#endif
     
   }
   void qhull ( EnvT* e)
