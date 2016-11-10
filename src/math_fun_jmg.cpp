@@ -60,7 +60,7 @@ namespace lib {
 #ifdef PL_HAVE_QHULL
 extern "C" {
   //prevent qhull using its own memory tricks. Stay on the safe side.
-#define qh_NOmem
+    #define qh_NOmem 1
     #include <libqhull/qhull_a.h>
 }
 #endif
@@ -776,7 +776,11 @@ extern "C" {
 
 // see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
 #ifdef PL_HAVE_QHULL
-  void triangulate ( EnvT* e)
+void    qh_errexit(int exitcode, facetT *, ridgeT *)
+{
+      ThrowGDLException("Qhull error.");
+}
+void triangulate ( EnvT* e)
   {
     
     // Template 2016 by Reto Stockli
@@ -826,7 +830,6 @@ extern "C" {
 
     /* init QHULL */
     sprintf (flags, "qdelaunay i Qt");
- 
     qh_meminit(NULL);
     qh NOerrexit = False;
     qh_init_A(stdin, stdout, stderr, 0, NULL);
@@ -888,13 +891,13 @@ extern "C" {
   qh_freeqhull(qh_ALL);
 #else
   qh_freeqhull(!qh_ALL);
+#if 0
   int curlong, totlong; /* used !qh_NOmem */
   qh_memfreeshort(&curlong, &totlong);
   if (curlong || totlong)
-    qh_fprintf_stderr(6263, "qhull internal warning (main): did not free %d bytes of long memory(%d pieces)\n",
-       totlong, curlong);
+    cerr<<"qhull internal warning (main): did not free "<<totlong<<" bytes of long memory("<<curlong<<" pieces)"<<endl;
 #endif
-    
+#endif
   }
   void qhull ( EnvT* e)
   {
