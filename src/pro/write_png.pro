@@ -130,7 +130,7 @@ if (nb_channels eq 1) then begin
                         [[blue[image]]],$
                         [[transparent]]],$
                        [2,0,1])
-      MAGICK_MATTE, mid,/true
+      MAGICK_MATTE, mid
    endif else begin
       _image=TRANSPOSE([[[red[image]]],$
                         [[green[image]]],$

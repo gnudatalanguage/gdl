@@ -21,12 +21,6 @@
 ;     TRUE        ; 1=pixel interleaving, 2=row, 3=column interleaving
 ;           
 ;
-; OPTIONAL INPUTS: For pseudocolor only
-;        red  : the Red colormap vector (for PseudoColor images)
-;        green: the Green colormap vector (for PseudoColor images)
-;        blue : the Blue colormap vector (for PseudoColor images)
-;
-;
 ; RESTRICTIONS:
 ;         Requires ImageMagick (tested)
 ;

@@ -72,7 +72,14 @@ if KEYWORD_SET(help) then begin
    print, '               help=help, test=test, debug=debug'
    return
 endif
-;
+nr=n_elements(red)
+ng=n_elements(green)
+nb=n_elements(blue)
+if (nr ne 0) then do_rgb=1 else do_rgb=0
+if (do_rgb && ng eq 0) then Message,'usage: WRITE_GIF, file, image, [red, green, blue]' 
+if (do_rgb && nb eq 0) then Message,'usage: WRITE_GIF, file, image, [red, green, blue]' 
+if (do_rgb && ng ne nr) then Message,'Red, Green, & Blue must all have the same length.'
+if (do_rgb && nb ne nr) then Message,'Red, Green, & Blue must all have the same length.'
 ; Do we have access to ImageMagick functionnalities ??
 ;
 if (MAGICK_EXISTS() EQ 0) then begin
@@ -89,28 +96,19 @@ if KEYWORD_SET(user_input) then GIF_MESSAGE, 'user_input'
 if KEYWORD_SET(transparent) then GIF_MESSAGE, 'transparent'
 if KEYWORD_SET( user_input) then GIF_MESSAGE, ' user_input'
 ;
-MESSAGE, /continue, 'This is a very preliminary procedure, please report problems'
-MESSAGE, /continue, '(if possible with link to the input image/test case)'
-;
 n=SIZE(image, /n_dimensions)
 s=SIZE(image, /dimensions)
 ;
 if KEYWORD_SET(test) then STOP
 ;
-if (n LT 2) then begin
-   MESSAGE, 'Image must be 2D or 3D'
+if (n NE 2) then begin
+   MESSAGE, 'Image must be a byte matrix'
 endif
 ;
-if (n GT 3) then begin
-   MESSAGE, 'We don''t know how to manage a >3D image, please contribute'
-endif
+mid=MAGICK_CREATE(s[0],s[1])
 ;
-if n EQ 2 then mid=MAGICK_CREATE(s[0],s[1])
-if n EQ 3 then mid=MAGICK_CREATE(s[1],s[2])
-;
-;TVLCT,r,g,b,/GET
-rgb=1
-MAGICK_WRITE, mid, image, rgb=rgb
+MAGICK_WRITE, mid, image
+if (do_rgb) then MAGICK_WRITECOLORTABLE,mid,red,green,blue else MAGICK_WRITECOLORTABLE,mid
 MAGICK_WRITEFILE, mid, filename,"GIF"
 MAGICK_CLOSE, mid
 ;
