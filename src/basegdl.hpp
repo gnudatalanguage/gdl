@@ -344,7 +344,17 @@ public:
     // Linux case for example
     static struct mallinfo mi;
     mi = mallinfo();
-    Current = mi.uordblks;
+//         printf("Total non-mmapped bytes (arena):       %d\n", mi.arena);
+//           printf("# of free chunks (ordblks):            %d\n", mi.ordblks);
+//           printf("# of free fastbin blocks (smblks):     %d\n", mi.smblks);
+//           printf("# of mapped regions (hblks):           %d\n", mi.hblks);
+//           printf("Bytes in mapped regions (hblkhd):      %d\n", mi.hblkhd);
+//           printf("Max. total allocated space (usmblks):  %d\n", mi.usmblks);
+//           printf("Free bytes held in fastbins (fsmblks): %d\n", mi.fsmblks);
+//           printf("Total allocated space (uordblks):      %d\n", mi.uordblks);
+//           printf("Total free space (fordblks):           %d\n", mi.fordblks);
+//           printf("Topmost releasable block (keepcost):   %d\n", mi.keepcost);
+      Current = mi.arena+mi.hblkhd; //was mi.uordblks;
 #elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
     // Mac OS X case for example
     static malloc_statistics_t stats;

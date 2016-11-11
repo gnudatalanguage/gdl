@@ -47,24 +47,12 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 
-pro TEST_FFT_LEAK, force=force, no_exit=no_exit, $
+pro TEST_FFT_LEAK, no_exit=no_exit, $
                    verbose=verbose, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_LEAK, force=force, no_exit=no_exit, $'
+   print, 'pro TEST_FFT_LEAK, no_exit=no_exit, $'
    print, '                   help=help, test=test, verbose=verbose'
-endif
-;
-; /FORCE will allow to skip the test on OS type ...
-if NOT(KEYWORD_SET(force)) then begin
-   if (STRLOWCASE(!version.OS) NE 'darwin') then begin
-      txt='AC and LN 2010/06/07: '
-        MESSAGE, /continue, txt+'because MEMORY() not working now on Linux'
-        MESSAGE, /continue, txt+'we cannot do these tests ...'
-        MESSAGE, /continue, txt+'you can overpass this by using /FORCE'
-        ;;
-        if KEYWORD_SET(no_exit) then return else EXIT, status=77
-    endif
 endif
 ;
 nb_pb=0
