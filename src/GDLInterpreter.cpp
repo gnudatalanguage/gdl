@@ -432,7 +432,7 @@ GDLInterpreter::GDLInterpreter()
 		throw e; // WRAPPED_... nodes should not stop inside
 		
 		// set !ERROR_STATE sys var 
-		static DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();
+		DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();   //MUST NOT BE STATIC, due to .reset 
 		static unsigned nameTag = errorStateDesc->TagIndex( "NAME");
 		static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
 		static unsigned msgTag = errorStateDesc->TagIndex( "MSG");

@@ -3938,7 +3938,7 @@ namespace lib {
     SizeT nEl = p0->N_Elements();
     
     // "f_nan" and "d_nan" used by both parts ...
-    static DStructGDL *Values = SysVar::Values();
+    DStructGDL *Values = SysVar::Values();   //MUST NOT BE STATIC, due to .reset 
     DFloat f_nan=(*static_cast<DFloatGDL*>(Values->GetTag(Values->Desc()->TagIndex("F_NAN"), 0)))[0];
     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
     
@@ -4221,7 +4221,7 @@ namespace lib {
 	
       static int evenIx = e->KeywordIx( "EVEN");
       static int doubleIx = e->KeywordIx( "DOUBLE");
-      static DStructGDL *Values =  SysVar::Values();                                                
+      DStructGDL *Values =  SysVar::Values();   //MUST NOT BE STATIC, due to .reset                                             
       DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
       DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; 
  
@@ -5202,37 +5202,36 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* obj_isa( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 2);
-
-    BaseGDL* p0 = e->GetPar( 0);
-    if( p0 == NULL || p0->Type() != GDL_OBJ)
-      e->Throw( "Object reference type required in this context: "+
-		e->GetParString(0));
-
+  BaseGDL* obj_isa(EnvT* e) {
     DString className;
-    e->AssureScalarPar<DStringGDL>( 1, className);
-    className = StrUpCase( className);
+    e->AssureScalarPar<DStringGDL>(1, className);
+    className = StrUpCase(className);
 
-    DObjGDL* pObj = static_cast<DObjGDL*>( p0);
+    BaseGDL* p0 = e->GetPar(0);
+    //nObjects is the number of objects or strings passed in array format.
+    SizeT nElem = p0->N_Elements();
 
-    DByteGDL* res = new DByteGDL( pObj->Dim()); // zero 
+    DByteGDL* res = new DByteGDL(p0->Dim()); // zero 
 
-    GDLInterpreter* interpreter = e->Interpreter();
-
-    SizeT nElem = pObj->N_Elements();
-    for( SizeT i=0; i<nElem; ++i)
-      {
-	if( interpreter->ObjValid( (*pObj)[ i])) 
-	  {
-	    DStructGDL* oStruct = e->GetObjHeap( (*pObj)[i]);
-	    if( oStruct->Desc()->IsParent( className))
-	      (*res)[i] = 1;
-	  }
+    if (p0->Type() == GDL_OBJ) {
+      DObjGDL* pObj = static_cast<DObjGDL*> (p0);
+      if (pObj) { //pObj protection probably overkill.
+        for (SizeT i = 0; i < nElem; ++i) { 
+          if (e->Interpreter()->ObjValid((*pObj)[ i])) {
+            DStructGDL* oStruct = e->GetObjHeap((*pObj)[i]);
+            if (oStruct->Desc()->IsParent(className))
+              (*res)[i] = 1;
+          }
+        }
+        return res;
       }
-    
-    return res;
+    } else if (p0->Type() == GDL_STRING) {
+      std::cerr << "OBJ_ISA: not implemented for strings, only objects (FIXME)." << endl;
+      for (SizeT i = 0; i < nElem; ++i) {
+        (*res)[i] = 0;
+      }
+      return res;
+    } else e->Throw("Object reference type required in this context: " + e->GetParString(0));
   }
 
   BaseGDL* n_tags( EnvT* e)

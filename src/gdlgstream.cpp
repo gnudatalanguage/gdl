@@ -171,7 +171,7 @@ void GDLGStream::DefaultBackground()
     GraphicsDevice::GetDevice()->SetDeviceBckColor(WHITEB, WHITEB, WHITEB );
     return;
   }
-  static DStructGDL* pStruct=SysVar::P();
+  DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
   DLong background=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
   DByte r,g,b;
   PLINT red,green,blue;
