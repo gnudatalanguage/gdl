@@ -133,7 +133,7 @@ void LibInit()
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
   new DLibFunRetNew(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
 
-  new DLibFunRetNew(lib::obj_isa,string("OBJ_ISA"),2);
+  new DLibFunRetNew(lib::obj_isa,string("OBJ_ISA"),2,NULL,NULL,false,2);
 
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
