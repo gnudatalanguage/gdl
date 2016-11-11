@@ -62,6 +62,8 @@ WidgetListT GDLWidget::widgetList;
 
 GDLEventQueue GDLWidget::eventQueue; // the event queue
 GDLEventQueue GDLWidget::readlineEventQueue; // for process at command line level
+bool GDLWidget::wxIsOn=false;
+bool GDLWidget::handlersOk=false;
 
 void GDLEventQueue::Purge()
 {
@@ -304,7 +306,7 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
   //make one loop for wxWidgets Events...
-  if (wxTheApp) {
+  if (wxIsStarted() && wxTheApp) {
       wxTheApp->OnRun(); //wxTheApp may not be started
   //treat our GDL events...
     DStructGDL* ev = NULL;
@@ -400,8 +402,17 @@ BaseGDL* GDLWidget::GetWidgetsList() {
 // UnInit
 void GDLWidget::UnInit()
 {
-  wxUninitialize( );
-  wxIsStarted=false;
+  if (wxIsStarted()) {
+   WidgetListT::iterator it;
+   for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
+     GDLWidget* w=(*it).second;
+     if ( w != NULL) delete w;
+      }
+    GDLWidget::HandleEvents();
+// the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.
+//    wxUninitialize( );
+    UnsetWxStarted();//reset handlersOk too.
+  }
 }
 
 void GDLWidget::ConnectToDesiredEvents(){

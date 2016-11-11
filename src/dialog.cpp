@@ -38,9 +38,9 @@ namespace lib {
 
   BaseGDL* dialog_pickfile_wxwidgets(EnvT* e)
   {
-    if (!wxIsStarted) {
-      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
-      wxIsStarted=true;
+    if (!GDLWidget::wxIsStarted()){
+      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
+      GDLWidget::SetWxStarted();
     }
     /*
       results = DIALOG_PICKFILE_WXWIDGETS(DEFAULT_EXTENSION=default_extension, $
@@ -343,9 +343,9 @@ namespace lib {
   BaseGDL* dialog_message_wxwidgets(EnvT* e)
   {
     
-    if (!wxIsStarted) {
-      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
-      wxIsStarted=true;
+    if (!GDLWidget::wxIsStarted()){
+      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
+      GDLWidget::SetWxStarted();
     }
 
     DStringGDL* messagestr;

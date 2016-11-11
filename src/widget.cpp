@@ -64,9 +64,9 @@ void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 }
 void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directly from inside gdl.
 {
-  if (!wxIsStarted) {
+  if (!GDLWidget::wxIsStarted()){
     if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
-    wxIsStarted=true;
+    GDLWidget::SetWxStarted();
   }
   font=wxNullFont;
   
@@ -96,9 +96,9 @@ void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directl
 }
 void GDLWidget::GetCommonKeywords( EnvT* e)
 {
-  if (!wxIsStarted) {
-    if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
-    wxIsStarted=true;
+  if (!GDLWidget::wxIsStarted()){
+    if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+    GDLWidget::SetWxStarted();
   }
   static int frameIx = e->KeywordIx( "FRAME" );
   static int event_funcIx = e->KeywordIx( "EVENT_FUNC" );
@@ -1073,7 +1073,7 @@ BaseGDL* widget_draw( EnvT* e ) {
       e->AssureStringScalarKWIfPresent( valueIx, value ); //value is a filename
       //try loading file
       {
-        if (!handlersInited) {wxInitAllImageHandlers(); handlersInited=true;}
+        if (!GDLWidget::AreWxHandlersOk()) {wxInitAllImageHandlers(); GDLWidget::SetWxHandlersOk();}
       }
       wxImage * tryImage=new wxImage(wxString(value.c_str(),wxConvUTF8),wxBITMAP_TYPE_ANY);
       if (tryImage->IsOk()) {
@@ -1563,6 +1563,9 @@ BaseGDL* widget_info( EnvT* e ) {
   
   static int activeIx = e->KeywordIx( "ACTIVE" );
   bool active = e->KeywordSet( activeIx );
+
+  static int debugIx = e->KeywordIx( "DEBUG" );
+  bool debug = e->KeywordSet( debugIx );
   
   static int validIx = e->KeywordIx( "VALID_ID" );
   bool valid = e->KeywordSet( validIx );
@@ -1705,13 +1708,19 @@ BaseGDL* widget_info( EnvT* e ) {
   //only possible with ACTIVE, VERSION or MANAGED.  
   }
 
-  //active is also used for the moment to list all windows hierarchy for debug purposes.
   if (active) {
       DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
       if ((*res)[0]==0) return new DLongGDL(0);
-      cerr<<" widgets: "; for ( SizeT i = 0; i < res->N_Elements(); i++ ) cerr<<(*res)[i]<<","; cerr<<endl;
       return new DLongGDL( (GDLWidget::GetNumberOfWidgets( ) > 0)?1:0 );
     }
+  
+  //debug is used for the moment to list all windows hierarchy for debug purposes.
+  if (debug) {
+      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
+      cerr<<" wxstarted: "<<GDLWidget::wxIsStarted()<<endl;
+      cerr<<" widgets: "; for ( SizeT i = 0; i < res->N_Elements(); i++ ) cerr<<(*res)[i]<<","; cerr<<endl;
+      return new DLongGDL( (GDLWidget::GetNumberOfWidgets( ) > 0)?1:0 );
+  }
   
   // Returns a String, empty if no result:
   // UNAME, FONTNAME keywords
@@ -2445,7 +2454,7 @@ void widget_control( EnvT* e ) {
         e->AssureStringScalarKWIfPresent( setvalueIx, value ); //value is a filename
         //try loading file
         {
-          if (!handlersInited) {wxInitAllImageHandlers(); handlersInited=true;}
+          if (!GDLWidget::AreWxHandlersOk()) {wxInitAllImageHandlers(); GDLWidget::SetWxHandlersOk();}
         }
         wxImage * tryImage=new wxImage(wxString(value.c_str(),wxConvUTF8),wxBITMAP_TYPE_JPEG);
         if (tryImage->IsOk()) bitmap = new wxBitmap(*tryImage);

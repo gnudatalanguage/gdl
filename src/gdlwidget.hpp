@@ -67,7 +67,6 @@ typedef DLong WidgetIDT;
 static string widgetNameList[14]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET"};
 static int    widgetTypeList[14]={0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
-static bool wxIsStarted=false; //starts wxInit() as soon as needed but not before (speedup).
 class DStructGDL;
 
 class GDLApp;
@@ -200,6 +199,8 @@ class GDLWidget
   // static part is used for the abstraction
   // all widgets are refered to as IDs
   static int gdl_lastControlId;
+  static bool wxIsOn; //tells if wx is started, permits to starts wxInit() as soon as needed but not before (speedup).
+  static bool handlersOk; //tells if wx is started, permits to starts wxInit() as soon as needed but not before (speedup).
 private:
   // the global widget list 
   // a widget is added by the constructor and removed by the destructor
@@ -227,6 +228,11 @@ public:
 
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
+  static bool wxIsStarted(){return (wxIsOn);}
+  static void SetWxStarted(){wxIsOn=true;}
+  static bool AreWxHandlersOk(){return (handlersOk);}
+  static void SetWxHandlersOk(){handlersOk=true;}
+  static void UnsetWxStarted(){gdl_lastControlId=0;/* not possible: wxWidgets library does not survive wxUniitiailze() ... wxIsOn=false; handlersOk=false;*/}
   static int  GDLNewControlId(){
    gdl_lastControlId++;
    if (gdl_lastControlId >= wxID_LOWEST && gdl_lastControlId <= wxID_HIGHEST) gdl_lastControlId=wxID_HIGHEST+1;
