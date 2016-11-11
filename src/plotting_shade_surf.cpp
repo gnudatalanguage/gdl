@@ -172,7 +172,7 @@ namespace lib
         shades=e->GetKWAs<DLongGDL>( shadesIx ); doShade=true;
       } else {
         // Get COLOR from PLOT system variable
-        static DStructGDL* pStruct=SysVar::P();
+        DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
         shades=new DLongGDL( 1, BaseGDL::NOZERO );
         shades_guard.Init ( shades ); // delete upon exit
         shades=static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)); doShade=false;
@@ -300,7 +300,7 @@ namespace lib
         {
           DDoubleGDL* t3dMatrix=plplot3d->Dup();
           SelfTranspose3d(t3dMatrix);
-          static DStructGDL* pStruct=SysVar::P();
+          DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
           static unsigned tTag=pStruct->Desc()->TagIndex("T");
           for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i]=(*t3dMatrix)[i];
           GDLDelete(t3dMatrix);

@@ -47,7 +47,7 @@ namespace lib
 
     if ( device=="PS" ||device=="SVG" )
     {
-      static DStructGDL* pStruct=SysVar::P();
+      DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
       // SA: this does not comply with IDL behaviour, see testsuite/test_pmulti.pro
       //static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
       //(*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 1;
@@ -59,7 +59,7 @@ namespace lib
     }
     else
     {
-      static DStructGDL* pStruct=SysVar::P();
+      DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
       static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
       (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=16777215;
         static unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");

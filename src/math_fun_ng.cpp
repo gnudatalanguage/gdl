@@ -48,7 +48,7 @@ namespace lib {
       e->Throw(" no complex : ");
 
     // Use to define NaN which is returned if one parameter of humlik function is Not A Number 
-    static DStructGDL *Values =  SysVar::Values();                                                
+    DStructGDL *Values =  SysVar::Values();   //MUST NOT BE STATIC, due to .reset                                                 
     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
     DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];  
     // we don't use Gregory formalism (see macros in "math_fun_gm.cpp")

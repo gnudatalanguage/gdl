@@ -119,9 +119,9 @@
     e->Throw("Complex not implemented (GSL limitation). ");
 
 
-// Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.
+// Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.  Note no STATIC for SysVar::, due to .reset 
 #define GM_DF1()							\
-  static DStructGDL *Values =  SysVar::Values();			\
+  DStructGDL *Values =  SysVar::Values();			\
   DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
   DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
   									\
@@ -129,7 +129,7 @@
 
 // Use this macro to define Inf and NaN, number of elements and result in a function with two parameters.
 #define GM_DF2()							\
-  static DStructGDL *Values =  SysVar::Values();			\
+  DStructGDL *Values =  SysVar::Values();			\
   DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
   DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
   									\

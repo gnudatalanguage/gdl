@@ -44,12 +44,12 @@ namespace lib {
         e->AssureLongScalarKWIfPresent( chanIx, chan );
         if ( (chan > 3) || (chan < 0) ) e->Throw( "Value of Channel is out of allowed range." );
       } else { //get !P.CHANNEL value
-          static DStructGDL* pStruct = SysVar::P( );
+          DStructGDL* pStruct = SysVar::P( );   //MUST NOT BE STATIC, due to .reset 
           chan = (*static_cast<DLongGDL*>
           (pStruct->GetTag( pStruct->Desc( )->TagIndex( "CHANNEL" ), 0 )))[0];
       }
 
-      static DStructGDL* dStruct = SysVar::D( );
+      DStructGDL* dStruct = SysVar::D( );   //MUST NOT BE STATIC, due to .reset 
       DLong MaxColorIdx;
       MaxColorIdx = (*static_cast<DLongGDL*>
       (dStruct->GetTag( dStruct->Desc( )->TagIndex( "N_COLORS" ), 0 )))[0];
@@ -63,7 +63,7 @@ namespace lib {
         } else
           // we have to read back !p.background value
         {
-          static DStructGDL* pStruct = SysVar::P( );
+          DStructGDL* pStruct = SysVar::P( );   //MUST NOT BE STATIC, due to .reset 
           bColor = (*static_cast<DLongGDL*>
           (pStruct->GetTag( pStruct->Desc( )->TagIndex( "BACKGROUND" ), 0 )))[0];
         }

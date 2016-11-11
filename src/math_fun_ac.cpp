@@ -563,7 +563,7 @@ using namespace Eigen;
     SizeT count, count1;
 
     // before all, we check wether inputs arrays does contains NaN or Inf
-    static DStructGDL *Values =  SysVar::Values();
+    DStructGDL *Values =  SysVar::Values();   //MUST NOT BE STATIC, due to .reset 
     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
 
     for (count = 0; count < nElpXpos; ++count) {

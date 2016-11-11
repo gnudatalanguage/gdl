@@ -223,7 +223,7 @@ namespace lib
     void old_body (EnvT* e, GDLGStream* actStream) // {{{
     {
       // we need to define the NaN value
-      static DStructGDL *Values=SysVar::Values ( );
+      DStructGDL *Values=SysVar::Values ( );   //MUST NOT BE STATIC, due to .reset 
       static DDouble d_nan=( *static_cast<DDoubleGDL*> ( Values->GetTag ( Values->Desc ( )->TagIndex ( "D_NAN" ), 0 ) ) )[0];
       static DDouble minmin=std::numeric_limits<PLFLT>::min();
       static DDouble maxmax=std::numeric_limits<PLFLT>::max();
@@ -689,8 +689,8 @@ namespace lib
 	    }
 
 	  //Colors.
-	  static DStructGDL* pStruct=SysVar::P();
-	  static DStructGDL* dStruct=SysVar::D();
+	  DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+	  DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
 	  DLong n_colors=(*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"), 0)))[0];
 	  static int c_colorsIx=e->KeywordIx ( "C_COLORS" ); bool docolors=false;
 	  // Get decomposed value for colors
@@ -717,7 +717,7 @@ namespace lib
 	    // Get THICK from PLOT system variable
 	    thick=new DFloatGDL( 1, BaseGDL::NOZERO );
 	    thick_guard.Init ( thick ); // delete upon exit
-	    static DStructGDL* pStruct=SysVar::P();
+	    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
 	    thick=static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)); dothick=false;          
 	  }
 	  if ( e->GetKW ( C_LABELS )!=NULL )

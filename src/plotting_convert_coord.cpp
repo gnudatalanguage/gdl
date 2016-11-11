@@ -615,7 +615,7 @@ namespace lib {
  DDoubleGDL* gdlGetT3DMatrix()
  {
     DDoubleGDL* t3dMatrix=(new DDoubleGDL(dimension(4,4),BaseGDL::NOZERO));
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     static unsigned tTag=pStruct->Desc()->TagIndex("T");
     for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*t3dMatrix)[i]=(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i];
     SelfTranspose3d(t3dMatrix);
@@ -753,7 +753,7 @@ namespace lib {
     //returns NULL if error!
     DDoubleGDL* t3dMatrix=(new DDoubleGDL(dimension(4,4)));
     //retrieve !P.T and find az, alt, inversions, and (possibly) scale and roty
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     static unsigned tTag=pStruct->Desc()->TagIndex("T");
     for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*t3dMatrix)[i]=(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i];
     SelfTranspose3d(t3dMatrix);
