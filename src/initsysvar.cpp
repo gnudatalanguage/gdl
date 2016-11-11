@@ -262,14 +262,14 @@ namespace SysVar
 
   DLongGDL* GetPMulti()
   {
-    static DStructGDL* pStruct = SysVar::P();
+    DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     static int tag = pStruct->Desc()->TagIndex( "MULTI");
     return static_cast<DLongGDL*>( pStruct->GetTag( tag, 0));
   }
 
   DLong GetPFont()
   {
-    static DStructGDL* pStruct = SysVar::P();
+    DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     static int tag = pStruct->Desc()->TagIndex( "FONT");
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
   }
@@ -366,12 +366,6 @@ namespace SysVar
     static_cast<DLongGDL&>(*jSysVar.Data())[0] = jLUN;
   }
   
-  DStructGDL* USYM()
-  {
-    DVar& pSysVar = *sysVarList[ usersymIx];
-    return static_cast<DStructGDL*>(pSysVar.Data());
-  }
-
   DLong TV_ORDER()
   {
     DVar& orderVar=*sysVarList[orderIx];
@@ -987,25 +981,8 @@ namespace SysVar
     warnIx     = sysVarList.size();
     sysVarList.push_back(warn);
 
-    // !USERSYM (sorry if this is not how to do the job!
-    DStructGDL* usersymData = new DStructGDL( "!USERSYM");
-    usersymData->NewTag("DIM", new DLongGDL(0));
-    usersymData->NewTag("FILL", new DIntGDL(0));
-    SizeT usersymDim = 49;
-    {
-      DFloatGDL* tmp = new DFloatGDL( dimension( &usersymDim, one));
-      usersymData->NewTag("X", tmp); 
-    }
-    {
-      DFloatGDL* tmp = new DFloatGDL( dimension( &usersymDim, one));
-      usersymData->NewTag("Y", tmp); 
-    }
-    DVar *usym = new DVar ("USERSYM", usersymData);
-    usersymIx  = sysVarList.size();
-    sysVarList.push_back( usym);
-    
     //!COLOR
-    int col[]={240,248,255,250,235,215,0,255,255,127,255,212,240,255,255,245,245,220,255,228,196,0,0,0,255,235,205,0,0,255,138,43,
+    static const int col[]={240,248,255,250,235,215,0,255,255,127,255,212,240,255,255,245,245,220,255,228,196,0,0,0,255,235,205,0,0,255,138,43,
 226,165,42,42,222,184,135,95,158,160,127,255,0,210,105,30,255,127,80,100,149,237,255,248,220,220,20,60,0,255,255,0,
 0,139,0,139,139,184,134,11,169,169,169,0,100,0,169,169,169,189,183,107,139,0,139,85,107,47,255,140,0,153,50,204,
 139,0,0,233,150,122,143,188,143,72,61,139,47,79,79,47,79,79,0,206,209,148,0,211,255,20,147,0,191,255,105,105,
@@ -1019,7 +996,7 @@ namespace SysVar
 224,230,127,0,127,255,0,0,188,143,143,65,105,225,139,69,19,250,128,114,244,164,96,46,139,87,255,245,238,160,82,45,
 192,192,192,135,206,235,106,90,205,112,128,144,112,128,144,255,250,250,0,255,127,70,130,180,210,180,140,0,128,128,216,191,
 216,255,99,71,64,224,208,238,130,238,245,222,179,255,255,255,245,245,245,255,255,0,154,205,50};
-    string coln[]={"ALICE_BLUE","ANTIQUE_WHITE","AQUA","AQUAMARINE","AZURE","BEIGE","BISQUE","BLACK","BLANCHED_ALMOND",
+    static const string coln[]={"ALICE_BLUE","ANTIQUE_WHITE","AQUA","AQUAMARINE","AZURE","BEIGE","BISQUE","BLACK","BLANCHED_ALMOND",
     "BLUE","BLUE_VIOLET","BROWN","BURLYWOOD","CADET_BLUE","CHARTREUSE","CHOCOLATE","CORAL","CORNFLOWER","CORNSILK",
     "CRIMSON","CYAN","DARK_BLUE","DARK_CYAN","DARK_GOLDENROD","DARK_GRAY","DARK_GREEN","DARK_GREY","DARK_KHAKI",
     "DARK_MAGENTA","DARK_OLIVE_GREEN","DARK_ORANGE","DARK_ORCHID","DARK_RED","DARK_SALMON","DARK_SEA_GREEN",

@@ -60,7 +60,13 @@ namespace lib
   static DFloat sym7y[5]= {1,-1,0,-1,1}; //x
   DLong syml[7]={5,11,2,5,4,5,5};
 
-
+  struct LOCALUSYM {
+    DLong nusym;
+    DInt fill;
+    DFloat usymx[49];
+    DFloat usymy[49];
+  };
+  static LOCALUSYM localusym;
   
   gdlSavebox* getSaveBox(){return &saveBox;} 
 
@@ -356,9 +362,9 @@ namespace lib
 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)
   {
-    static DStructGDL* xStruct=SysVar::X();
-    static DStructGDL* yStruct=SysVar::Y();
-    static DStructGDL* zStruct=SysVar::Z();
+    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
     unsigned sxTag=xStruct->Desc()->TagIndex("S");
     unsigned syTag=yStruct->Desc()->TagIndex("S");
     unsigned szTag=zStruct->Desc()->TagIndex("S");
@@ -369,8 +375,8 @@ namespace lib
 
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy)
   {
-    static DStructGDL* xStruct=SysVar::X();
-    static DStructGDL* yStruct=SysVar::Y();
+    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
     unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
     unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
     *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
@@ -414,37 +420,22 @@ namespace lib
 
   void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y)
   {
-    static DStructGDL* usymStruct=SysVar::USYM();
-    unsigned nTag=usymStruct->Desc()->TagIndex("DIM");
-    unsigned fillTag=usymStruct->Desc()->TagIndex("FILL");
-    unsigned xTag=usymStruct->Desc()->TagIndex("X");
-    unsigned yTag=usymStruct->Desc()->TagIndex("Y");
-
-    *n= &(*static_cast<DLongGDL*>(usymStruct->GetTag(nTag, 0)))[0];
-    *do_fill= &(*static_cast<DIntGDL*>(usymStruct->GetTag(fillTag, 0)))[0];
-    *x= &(*static_cast<DFloatGDL*>(usymStruct->GetTag(xTag, 0)))[0];
-    *y= &(*static_cast<DFloatGDL*>(usymStruct->GetTag(yTag, 0)))[0];
+    *n= &(localusym.nusym);
+    *do_fill= &(localusym.fill);
+    *x=localusym.usymx;
+    *y=localusym.usymy;
   }
 
   void SetUsym(DLong n, DInt do_fill, DFloat *x, DFloat *y)
   {
-    static DStructGDL* usymStruct=SysVar::USYM();
-    unsigned xTag=usymStruct->Desc()->TagIndex("X");
-    unsigned yTag=usymStruct->Desc()->TagIndex("Y");
-    unsigned nTag=usymStruct->Desc()->TagIndex("DIM");
-    unsigned fillTag=usymStruct->Desc()->TagIndex("FILL");
-
-    (*static_cast<DLongGDL*>(usymStruct->GetTag(nTag, 0)))[0]=n;
-    (*static_cast<DIntGDL*>(usymStruct->GetTag(fillTag, 0)))[0]=do_fill;
-
+    localusym.nusym=n;
+    localusym.fill=do_fill;
     for ( int i=0; i<n; i++ )
     {
-      (*static_cast<DFloatGDL*>(usymStruct->GetTag(xTag, 0)))[i]=x[i];
-      (*static_cast<DFloatGDL*>(usymStruct->GetTag(yTag, 0)))[i]=y[i];
+      localusym.usymx[i]=x[i];
+      localusym.usymy[i]=y[i];
     }
   }
-
-
 
   //This is the good way to get world start end end values.
   void GetCurrentUserLimits(GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd)
@@ -947,7 +938,7 @@ namespace lib
       bool isProj;
       get_mapset(isProj);
       if (checkMapset && isProj && axis!="Z") {
-        static DStructGDL* mapStruct=SysVar::Map();
+        DStructGDL* mapStruct=SysVar::Map();   //MUST NOT BE STATIC, due to .reset 
         static unsigned uvboxTag=mapStruct->Desc()->TagIndex("UV_BOX");
         static DDoubleGDL *uvbox;
         uvbox=static_cast<DDoubleGDL*>(mapStruct->GetTag(uvboxTag, 0));
@@ -1023,7 +1014,7 @@ namespace lib
 
   void gdlStoreCLIP(DLongGDL* clipBox)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     int i;
     static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
     for ( i=0; i<clipBox->N_Elements(); ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=(*clipBox)[i];
@@ -1047,7 +1038,7 @@ namespace lib
 
   void get_mapset(bool &mapset)
   {
-    DStructGDL* Struct=SysVar::X();
+    DStructGDL* Struct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
     if ( Struct!=NULL )
     {
       static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
@@ -1061,7 +1052,7 @@ namespace lib
 
   void set_mapset(bool mapset)
   {
-    DStructGDL* Struct=SysVar::X();
+    DStructGDL* Struct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
     if ( Struct!=NULL )
     {
       static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
@@ -1389,7 +1380,7 @@ namespace lib
 
   bool T3Denabled()
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DLong ok4t3d=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("T3D"), 0)))[0];
     if (ok4t3d==0) return false; else return true;
   }

@@ -3192,7 +3192,7 @@ namespace lib {
     bool twoparams=false;
     if (e->NParam(1) == 2) twoparams=true;
 
-    static DStructGDL *Values = SysVar::Values();
+    DStructGDL *Values = SysVar::Values();   //MUST NOT BE STATIC, due to .reset 
     static double nan = (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
 #ifdef USE_UDUNITS
     string unit;

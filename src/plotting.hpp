@@ -387,7 +387,7 @@ namespace lib {
 //static (for speed) but private for each graphic command.
   static void gdlSetGraphicsBackgroundColorFromKw(EnvT *e, GDLGStream *a, bool kw=true)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DLong background=
     (*static_cast<DLongGDL*>
      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
@@ -401,7 +401,7 @@ namespace lib {
   static void gdlSetGraphicsForegroundColorFromKw(EnvT *e, GDLGStream *a, string OtherColorKw="")
   {
     // Get COLOR from PLOT system variable
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DLong color=
     (*static_cast<DLongGDL*>
      (pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
@@ -423,7 +423,7 @@ namespace lib {
   
   static void gdlGetPsym(EnvT *e, DLong &psym)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     psym=(*static_cast<DLongGDL*>
           (pStruct->GetTag(pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
     static int PSYMIx=e->KeywordIx("PSYM");
@@ -434,7 +434,7 @@ namespace lib {
   }
    static void gdlSetSymsize(EnvT *e, GDLGStream *a)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DFloat symsize=(*static_cast<DFloatGDL*>
                     (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
                     //NOTE THAT AS OF IDL 8.2 !P.SYMSIZE, HOWEVER EXISTING, IS NOT TAKEN INTO ACCOUNT. We however do not want
@@ -447,7 +447,7 @@ namespace lib {
 //  static void GetUserSymSize(EnvT *e, GDLGStream *a, DDouble& UsymConvX, DDouble& UsymConvY)
 //  {
 //    //get symsize
-//    static DStructGDL* pStruct=SysVar::P();
+//    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
 //    DFloat symsize=(*static_cast<DFloatGDL*>
 //                    (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
 //    static int SYMSIZEIx = e->KeywordIx("SYMSIZE");
@@ -468,7 +468,7 @@ namespace lib {
     PLFLT charsize;
     DDouble pmultiscale=1.0;
     // get !P preference
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     charsize=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
                (pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
@@ -497,7 +497,7 @@ namespace lib {
    static void gdlSetPlotCharthick(EnvT *e, GDLGStream *a)
   {
      // get !P preference
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DFloat charthick=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
                (pStruct->Desc()->TagIndex("CHARTHICK"), 0)))[0];
@@ -546,7 +546,7 @@ namespace lib {
     //default:
     charsize=1.0;
     // get !P preference. Even if [xyz]charsize is absent, presence of charsize or !P.charsize must be taken into account.
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     charsize=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
               (pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
@@ -808,7 +808,7 @@ namespace lib {
   {
     // order: !P.TICKLEN, TICKLEN, !X.TICKLEN, /XTICKLEN
     // get !P preference
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     ticklen=(*static_cast<DFloatGDL*>
             (pStruct->GetTag
             (pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]; //!P.TICKLEN, always exist, may be 0
@@ -950,7 +950,7 @@ namespace lib {
 
     static void gdlSetLineStyle(EnvT *e, GDLGStream *a)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DLong linestyle=
     (*static_cast<DLongGDL*>
      (pStruct->GetTag(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
@@ -986,7 +986,7 @@ namespace lib {
   
   static DFloat gdlGetPenThickness(EnvT *e, GDLGStream *a)
   {
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     DFloat thick=(*static_cast<DFloatGDL*>
                   (pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)))[0];
 
@@ -1060,7 +1060,7 @@ namespace lib {
   static void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe=0)
   {
     bool noErase=FALSE;
-    static DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
 
     if ( !noe )
     {
@@ -1179,7 +1179,7 @@ namespace lib {
     static PLFLT positionP[4]={0, 0, 0, 0};
     static PLFLT regionP[4]={0, 0, 0, 0};
     static PLFLT position[4]={0,0,1,1};
-    DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if ( pStruct!=NULL )
     {
@@ -1345,7 +1345,7 @@ namespace lib {
     static PLFLT positionP[4]={0, 0, 0, 0};
     static PLFLT regionP[4]={0, 0, 0, 0};
     static PLFLT position[4]={0,0,1,1};
-    DStructGDL* pStruct=SysVar::P();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if ( pStruct!=NULL )
     {
@@ -1611,7 +1611,7 @@ namespace lib {
 
     if ( clipBox==NULL && canUsePClip ) //get !P.CLIP. Coordinates are always DEVICE
       {
-        DStructGDL* pStruct=SysVar::P();
+        DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
         unsigned clipTag=pStruct->Desc()->TagIndex("CLIP"); //is in device coordinates
         for ( int i=0; i<4; ++i ) tempbox[i]=dClipBox[i]=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i];
         coordinateSystem = DEVICE; //is in device coordinates
