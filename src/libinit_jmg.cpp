@@ -425,7 +425,7 @@ void LibInit_jmg()
   const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY","SAVE_HOURGLASS","NOWAIT","BAD_ID",KLISTEND};
   new DLibFunRetNew(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey); //complete!!
 //INFO
-  const string widget_infoKey[] = {  "ACTIVE","VALID_ID","MODAL","MANAGED",
+  const string widget_infoKey[] = {  "DEBUG","ACTIVE","VALID_ID","MODAL","MANAGED",
   "XMANAGER_BLOCK", //only GDL, used in xmanager.pro , may even not be useful now.
   "CHILD","VERSION","GEOMETRY","UNAME",
   "FONTNAME",//not really supported - returns "".
