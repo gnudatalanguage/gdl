@@ -111,13 +111,9 @@
 
   DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx)
   {
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
-    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
-    static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
   
     DPtr actP;
     if( targetIx == -1)
@@ -157,10 +153,6 @@
 
   void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
   {	  
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
-// 	  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
-// 	  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
     static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
@@ -176,8 +168,7 @@
       if( data == NULL) data = NullGDL::GetSingleInstance();
       
       data->ToStream( o, w, actPosPtr);
-      if( (i+1) < nList)
-	o << std::endl;
+      if( (i+1) < nList) o << std::endl;
 
       pActNode = (*static_cast<DPtrGDL*>(actNode->GetTag( pNextTag, 0)))[0];
     }
@@ -190,9 +181,6 @@
     DStructGDL* self = listStruct;
 
     // here static is fine
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
-    static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
@@ -229,13 +217,10 @@
   void LISTCleanup( EnvUDT* e, DStructGDL* self)
   {
     // here static is fine
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
-    static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
   
@@ -311,10 +296,6 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   if( nParam < 3) // consider implicit SELF
     ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
-  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
-  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
   static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
   static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
@@ -558,8 +539,6 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
     if( nParam < 3) 
       ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -686,8 +665,6 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 //   // because of .RESET_SESSION, we cannot use static here
 //   DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
 
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
   static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
   static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -899,12 +876,7 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   DObj selfID = (*selfObj)[0];
   DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
 
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
-  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
-  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-  static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
   static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 
   // default behavior: Exact like scalar indexing
@@ -1132,10 +1104,8 @@ BaseGDL* list__toarray( EnvUDT* e)
     assert( containerDesc != NULL && containerDesc->NTags() > 0);
 
     // here static is fine
-    static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-    static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
     static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
@@ -1273,12 +1243,7 @@ BaseGDL* list__count( EnvUDT* e)
 {
     static int kwSELFIx = 0;
     static int kwVALUEIx = 1;
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-
-    // because of .RESET_SESSION, we cannot use static here
-    DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
 
     SizeT nParam = e->NParam(1); // minimum SELF
 	
@@ -1392,8 +1357,6 @@ BaseGDL* list__count( EnvUDT* e)
 //   DStructDesc* containerDesc= structDesc::GDL_CONTAINER_NODE;
 
   // here static is fine
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
   static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
   static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -1764,13 +1727,10 @@ BaseGDL* list__count( EnvUDT* e)
 
     DStructGDL* self = GetSELF( e->GetKW( 0), e);
   
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
-    static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
     
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
 
@@ -1821,8 +1781,6 @@ BaseGDL* list__count( EnvUDT* e)
   
   DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
   
-  static DString listName("LIST");
-  static DString cNodeName("GDL_CONTAINER_NODE");
   static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
   static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -2005,22 +1963,8 @@ BaseGDL* list__count( EnvUDT* e)
 	listLength = 0;
     }
     
-    ProgNodeP cN = e->CallingNode();
     DInterpreter* ip = e->Interpreter();
     
-//     static DString listName("LIST");
-//     static DString cNodeName("GDL_CONTAINER_NODE");
-//     
-// 
-//     // here static is fine
-//     static unsigned pHeadTag = listDesc->TagIndex( "PHEAD");
-//     static unsigned pTailTag = listDesc->TagIndex( "PTAIL");
-//     static unsigned nListTag = listDesc->TagIndex( "NLIST");
-// 
-//     static unsigned pNextTag = containerDesc->TagIndex( "PNEXT");
-//     static unsigned pDataTag = containerDesc->TagIndex( "PDATA");
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
     static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
     static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -2147,9 +2091,6 @@ BaseGDL* list__count( EnvUDT* e)
       }
     }
 
-//     if( cStruct != NULL)
-//       (*static_cast<DPtrGDL*>( cStruct->GetTag( pNextTag, 0)))[0] = 0;
-	    
     (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
     (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = added;	      
 

@@ -224,11 +224,9 @@ void LibInit_cl()
   //manipulation
   new DLibPro(lib::magick_flip,string("MAGICK_FLIP"),1);
 
-  const string magick_matteKey[]={"TRUE","FALSE",KLISTEND};
   new DLibPro(lib::magick_matte,string("MAGICK_MATTE"),1);
 
   const string magick_interlaceKey[]={"NOINTERLACE","LINEINTERLACE","PLANEINTERLACE",KLISTEND};
-
   new DLibPro(lib::magick_interlace,string("MAGICK_INTERLACE"),1,magick_interlaceKey);
   
   const string magick_addnoiseKey[]={"UNIFORMNOISE","GAUSSIANNOISE","MULTIPLICATIVEGAUSSIANNOISE","IMPULSENOISE","LAPLACIANNOISE","POISSONNOISE","NOISE",KLISTEND};
