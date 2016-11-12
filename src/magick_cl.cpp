@@ -30,9 +30,6 @@
 #include <string>
 #include <fstream>
 #include <memory>
-#include <GraphicsMagick/Magick++/Color.h>
-#include <GraphicsMagick/magick/image.h>
-//#include <Magick++.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
