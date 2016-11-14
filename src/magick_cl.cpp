@@ -375,8 +375,8 @@ namespace lib {
         dimension dim(c, 2);
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
 
-        PixelPacket* pixel;
-        IndexPacket* index;
+        const PixelPacket* pixel;
+        const IndexPacket* index;
         pixel = image.getPixels(0, 0, columns, rows);
         index = image.getIndexes();
 
@@ -642,22 +642,16 @@ namespace lib {
         DByteGDL * bImage =
           static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
         Guard<DByteGDL> bImageGuard(bImage);
-        image.read(columns, rows, "R", CharPixel, &(*bImage)[0]);
-//        
-//        if (ctSize < 256) e->Throw("Internal error on Colortable size, please report!");
-//        PLINT r[ctSize], g[ctSize], b[ctSize];
-//        GDLCT* myCT = GraphicsDevice::GetDevice()->GetCT();
-//        myCT->Get(r, g, b);
-//        std::vector<Color*> rgb;
-//        for (SizeT i = 0; i < ctSize; ++i) {
-//          rgb.push_back(new ColorRGB(r[i] / 255., g[i] / 255., b[i] / 255.));
-//        }
-//        image.size(Geometry(columns, rows));
-//        SizeT k = 0;
-//        for (SizeT j = 0; j < rows; ++j) for (SizeT i = 0; i < columns; ++i) {
-//            image.pixelColor(i, j, *(rgb.at(static_cast<int> ((*bImage)[k++]))));
-//          }
-//        rgb.empty();
+        // Ensure that there are no other references to this image.
+        image.modifyImage();
+        // Set the image type to TrueColor DirectClass representation.
+        image.type(PaletteType);
+//
+        if (image.colorMapSize() < 1) e->Throw("GDL internal: destination image has no colormap!");
+        image.size(Geometry(columns, rows));
+        image.setPixels(0,0,columns, rows);
+        image.readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
+        image.syncPixels();
       }
       image.flip();
       magick_replace(e, mid, image);
@@ -827,6 +821,23 @@ namespace lib {
       e->Throw(error_.what());
     }
   }
+  //MAGICK_MATTECOLOR, mid, index
+  void magick_mattecolor(EnvT* e) {
+    START_MAGICK;
+    try {
+      DUInt mid, index;
+      e->AssureScalarPar<DUIntGDL>(0, mid);
+      Image image = magick_image(e, mid);
+      e->AssureScalarPar<DUIntGDL>(1, index);
+      if (index >= 0 && index < image.colorMapSize()) {
+        image.transparent(image.colorMap(index));
+
+        magick_replace(e, mid, image);
+      }
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
+  }
 //MAGICK_INTERLACE, mid, /NOINTERLACE, /LINEINTERLACE, /PLANEINTERLACE
   void magick_interlace(EnvT* e) {
     START_MAGICK;
@@ -966,7 +977,7 @@ namespace lib {
 
       Image image = magick_image(e, mid);
 
-      PixelPacket* pixels;
+      const PixelPacket* pixels;
       IndexPacket* index;
 
       unsigned int columns, rows;
@@ -1027,6 +1038,7 @@ namespace lib {
           Red->N_Elements() == Blue->N_Elements()) {
           unsigned long n = Red->N_Elements();
           image.colorMapSize(n);
+          image.quantize(n);
           for (unsigned long c = 0; c < n; ++c) {
             Color col;
             col.redQuantum(static_cast<Magick::Quantum> ((*Red)[c] / scale * MaxRGB));
@@ -1041,7 +1053,8 @@ namespace lib {
         unsigned long n = ctSize;
         image.colorSpace(RGBColorspace);
         image.colorMapSize(n);
-        for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)b[c] / 255., (double)g[c] / 255., (double)r[c] / 255.));
+        image.quantize(n);
+        for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)r[c] / 255., (double)g[c] / 255., (double)b[c] / 255.));
       }
       magick_replace(e, mid, image);
     } catch (Exception &error_) {

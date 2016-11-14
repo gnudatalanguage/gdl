@@ -122,14 +122,10 @@ if (nb_channels eq 1) then begin
    ;;
    ;;colorvectors provided
    mid=MAGICK_CREATE(im_size[0],im_size[1])
-   if (ARRAY_EQUAL(SIZE(image,/dimensions),$
-                   SIZE(transparent,/dimensions))) then begin
-      print, "TRANSPARENT KEYWORD IS UNTESTED"
-      _image=TRANSPOSE([[[red[image]]],$
-                        [[green[image]]],$
-                        [[blue[image]]],$
-                        [[transparent]]],$
-                       [2,0,1])
+   if (n_elements(transparent) gt 0) then begin
+      alpha=image*0+255
+      for i=0,n_elements(transparent)-1 do alpha[where(image eq transparent[i])]=0
+      _image=TRANSPOSE([[[red[image]]],[[green[image]]],[[blue[image]]],[[alpha]]],[2,0,1])
       MAGICK_MATTE, mid
    endif else begin
       _image=TRANSPOSE([[[red[image]]],$
@@ -139,19 +135,11 @@ if (nb_channels eq 1) then begin
    endelse
    ;;
    MAGICK_WRITECOLORTABLE, mid, red, green, blue
-;   MAGICK_WRITE, mid, reform(image,1,im_size[0],im_size[1]) ;, rgb=rgb
    MAGICK_WRITE, mid, _image, rgb=rgb
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid
-   ;;
-   ;;    if(N_ELEMENTS(red) eq N_ELEMENTS(green) and $
-   ;;        N_ELEMENTS(red) eq N_ELEMENTS(blue)) then begin
-   ;;        MAGICK_QUANTIZE,mid,long(N_ELEMENTS(red))
-   ;;        MAGICK_WRITEfile,mid,filename,"PNG"
-   ;;        MAGICK_CLOSE,mid    
-   ;;    endif
-   ;;
+   return
 endif
 ;
 ; usual 3D case [3,N,M]
@@ -162,6 +150,7 @@ if(nb_channels EQ 3) then begin
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename,"PNG"
    MAGICK_CLOSE, mid
+   return
 endif
 ;
 ; transparent 3D case [2,N,M] or [4,N,M]
@@ -173,6 +162,7 @@ if (nb_channels EQ 4) then begin
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid
+   return
 endif
 if (nb_channels EQ 2) then begin
    mid=MAGICK_CREATE(im_size[1],im_size[2])
@@ -181,6 +171,7 @@ if (nb_channels EQ 2) then begin
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid
+   return
 endif
 ;
 if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP

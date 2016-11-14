@@ -94,7 +94,6 @@ endif else begin
         _image=TRANSPOSE([[[blue[image]]],[[green[image]]],[[red[image]]]],[2,0,1])
         ;;
         MAGICK_WRITE, mid,_image,rgb=rgb
-        MAGICK_FLIP, mid
         if (N_ELEMENTS(red) eq N_ELEMENTS(green) and $
             N_ELEMENTS(red) eq N_ELEMENTS(blue)) then begin
             MAGICK_QUANTIZE,mid,long(N_ELEMENTS(red))

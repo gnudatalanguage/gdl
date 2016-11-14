@@ -55,6 +55,7 @@ namespace lib {
   //manipulations
   void magick_flip(EnvT* e);
   void magick_matte(EnvT* e);
+  void magick_mattecolor(EnvT* e);
   void magick_interlace(EnvT* e);
   void magick_addNoise(EnvT* e);
   void magick_quantize(EnvT* e);

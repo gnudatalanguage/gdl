@@ -93,9 +93,7 @@ if KEYWORD_SET(delay_time) then GIF_MESSAGE, 'delay_time'
 if KEYWORD_SET(disposal_method) then GIF_MESSAGE, 'disposal_method'
 if KEYWORD_SET(multiple) then GIF_MESSAGE, 'multiple'
 if KEYWORD_SET(user_input) then GIF_MESSAGE, 'user_input'
-if KEYWORD_SET(transparent) then GIF_MESSAGE, 'transparent'
-if KEYWORD_SET( user_input) then GIF_MESSAGE, ' user_input'
-;
+
 n=SIZE(image, /n_dimensions)
 s=SIZE(image, /dimensions)
 ;
@@ -106,9 +104,10 @@ if (n NE 2) then begin
 endif
 ;
 mid=MAGICK_CREATE(s[0],s[1])
-;
-MAGICK_WRITE, mid, image
+; add colortable
 if (do_rgb) then MAGICK_WRITECOLORTABLE,mid,red,green,blue else MAGICK_WRITECOLORTABLE,mid
+if ( N_ELEMENTS(transparent) eq 1 && n eq 2 ) then MAGICK_MATTECOLOR, mid, uint(transparent)
+MAGICK_WRITE, mid, image
 MAGICK_WRITEFILE, mid, filename,"GIF"
 MAGICK_CLOSE, mid
 ;
