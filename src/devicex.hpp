@@ -366,7 +366,26 @@ public:
 	XCloseDisplay(display);
       }
     }
-  
+void TidyWindowsList() {
+  int wLSize = winList.size();
+  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
+    
+    //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
+    //in case winList groups X11 streams (or WIN streams) *and* wxWidgets streams (GDL_USE_WX="NO") the following
+    //permits to delete the widget_draw also, not only the plplot stream.    
+      delete winList[i];
+    winList[i] = NULL;
+    oList[i] = 0;
+  }
+  // set new actWin IF NOT VALID ANY MORE
+  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
+    if (*mEl == 0) { // no window open
+      SetActWin(-1);
+      oIx = 1;
+    } else SetActWin(std::distance(oList.begin(), mEl));
+  }
+}  
 };
 
 //#undef MAX_WIN

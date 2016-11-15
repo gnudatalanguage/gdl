@@ -93,6 +93,7 @@ void GDLXStream::EventHandler() {
     if (event.xclient.message_type == wm_protocols &&
             event.xclient.data.l[0] == wm_delete_window) {
       valid = false;
+      GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
       return; // no more event handling
     } else
       XPutBackEvent(xwd->display, &event);
