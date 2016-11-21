@@ -146,6 +146,7 @@ TESTS = \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \
+  test_qhull.pro \
   test_qromb.pro \
   test_qromo.pro \
   test_random.pro \
