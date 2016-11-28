@@ -399,6 +399,21 @@ BaseGDL* GDLWidget::GetWidgetsList() {
   }
   return result;
 }
+BaseGDL* GDLWidget::GetManagedWidgetsList() {
+  DLong nw=GetNumberOfWidgets();
+  if (nw<=0) return new DLongGDL(0);
+  WidgetListT::iterator it;
+  SizeT index;
+  for (index=0, it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
+    if ((*it).second->GetManaged() == true) index++;
+  }
+  if (index<=0) return new DLongGDL(0);
+  DLongGDL* result=new DLongGDL(index,BaseGDL::NOZERO);
+  for (index=0, it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
+    if ((*it).second->GetManaged() == true) (*result)[index++]=(*it).second->widgetID;
+  }
+  return result;
+}
 // UnInit
 void GDLWidget::UnInit()
 {
@@ -4112,7 +4127,8 @@ GDLDrawPanel::~GDLDrawPanel()
 #endif
 //  if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
   if ( pstreamP != NULL )
-  pstreamP->SetValid( false ); //eventLoop will destroy panel.
+  pstreamP->SetValid( false ); //eventLoop will destroy panel<-no more!
+     GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
 }
 
 GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex, DLong special_xsize, DLong special_ysize,

@@ -459,6 +459,7 @@ public:
   static bool GetXmanagerBlock();
   static DLong GetNumberOfWidgets();
   static BaseGDL* GetWidgetsList();
+  static BaseGDL* GetManagedWidgetsList();
   
   WidgetIDT WidgetID() { return widgetID;}
 

@@ -1705,13 +1705,22 @@ BaseGDL* widget_info( EnvT* e ) {
     nEl = p0L->N_Elements( );
     rank = p0L->Rank( );
   } else {
-  //only possible with ACTIVE, VERSION or MANAGED.  
+  //only possible with ACTIVE, VERSION or MANAGED.
+    if (!(active || managed || version ) ) e->Throw("Specified keyword requires ID argument.");
+  // special case of MANAGED without any widget number
+    if ( managed ) {
+      return GDLWidget::GetManagedWidgetsList( );
+    }
   }
-
+  
   if (active) {
-      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
-      if ((*res)[0]==0) return new DLongGDL(0);
-      return new DLongGDL( (GDLWidget::GetNumberOfWidgets( ) > 0)?1:0 );
+    //must return 1 if there is at last one REALIZED MANAGED TOP-LEVEL WIDGET ON THE SCREEN 
+      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetManagedWidgetsList( ) );//which is not what is expected! FIXME!
+      long actnumber;
+      if ((*res)[0]==0) actnumber=0; else actnumber=1;
+      //allocated non-returned memory should be deallocated:
+      GDLDelete(res);
+      return new DLongGDL(actnumber); 
     }
   
   //debug is used for the moment to list all windows hierarchy for debug purposes.
