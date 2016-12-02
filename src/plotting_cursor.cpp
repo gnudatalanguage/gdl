@@ -27,7 +27,7 @@ void empty(EnvT* e)
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   if (actDevice->Name() == "X")
   {
-    GDLGStream *actStream = actDevice->GetStream();
+    GDLGStream *actStream = actDevice->GetStream(false);//this command SHOULD NOT open a window if none opened.
     if (actStream != NULL) actStream->Flush();
   }
 }
