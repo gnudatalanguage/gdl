@@ -317,7 +317,8 @@ namespace lib {
 
       overplot = handle_args(e);
 
-      GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();      if (actStream == NULL) e->Throw("Unable to create window.");
+      GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
+      if (actStream == NULL) e->Throw("Unable to create window.");
       
       //ALL THE DoubleBuffering and Flush() code below introduces terrible slowness in remote X displays, as well as a lot of time lost
       //for displays on the same server. They are completely removed now.      
