@@ -346,6 +346,8 @@ int main(int argc, char *argv[])
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;
     }
+  std::string useWX=GetEnvString("GDL_USE_WX");
+  if (useWX == "YES" || useWX == "yes") cerr << "- Using WxWidgets as graphics library (windows and widgets)." <<endl;
   SysVar::SetGDLPath( gdlPath);
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
