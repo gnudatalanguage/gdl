@@ -122,7 +122,8 @@ public:
   GDLWidgetGraphicWindowBase* base = new GDLWidgetGraphicWindowBase(mbarID, xoff, yoff, title);
   GDLWidgetDraw* draw = new GDLWidgetDraw(base->WidgetID(), NULL, wIx, xleng, yleng, -1, -1, false, 0);
   base->setWindow(static_cast<GDLDrawPanel*>(draw->GetWxWidget()));
-  base->Realize(!hide);
+  base->Realize(!hide); //just avoid to map the widget.
+  if(hide) winList[ wIx]->UnMapWindow(); //needed: will set the "pixmap" property
   return true;
  }
 
@@ -217,7 +218,7 @@ public:
         DLong GetVisualDepth() {
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DLong val=winList[actWin]->GetVisualDepth();
           WDelete(actWin);
           return val;
@@ -229,7 +230,7 @@ public:
     DString GetVisualName() {
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DString val=winList[actWin]->GetVisualName();
           WDelete(actWin);
           return val;
@@ -240,7 +241,7 @@ public:
     BaseGDL* GetFontnames(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           BaseGDL* val=winList[actWin]->GetFontnames(fontname);
           WDelete(actWin);
           return val;
@@ -251,7 +252,7 @@ public:
     DLong GetFontnum(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DLong val=winList[actWin]->GetFontnum(fontname);
           WDelete(actWin);
           return val;
@@ -311,37 +312,37 @@ public:
     return true; 
   } // GUIOpen
 
-    //specialized version, probably not very useful since the wxWidgets case is already tretaed in the overrided version.
- void TidyWindowsList() {
-  int wLSize = winList.size();
-
-  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
-    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
-     GDLDrawPanel* panel = NULL;
-     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
-     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
-     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
-     if (draw) {
-      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
-      GDLWidgetBase* container = NULL;
-      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
-      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
-      else delete draw;
-     } else delete winList[i];
-    } else delete winList[i];
-    winList[i] = NULL;
-    oList[i] = 0;
-   }
-  // set new actWin IF NOT VALID ANY MORE
-  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-   // set to most recently created
-   std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end());
-   if (*mEl == 0) { // no window open
-    SetActWin(-1);
-    oIx = 1;
-   } else SetActWin(std::distance(oList.begin(), mEl));
-  }
- }
+//Please find how to specialize TidyWindowsList for wx and x11 widgets when this function is called
+//as GraphicsDevice::GetDevice()->TidyWindowsList(); which does not return a specialized version.
+// Util then, do not uncomment the following.
+// void TidyWindowsList() {
+//  int wLSize = winList.size();
+//  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
+//    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
+//     GDLDrawPanel* panel = NULL;
+//     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
+//     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
+//     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
+//     if (draw) {
+//      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
+//      GDLWidgetBase* container = NULL;
+//      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+//      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
+//      else delete draw;
+//     } else delete winList[i];
+//    } else delete winList[i];
+//    winList[i] = NULL;
+//    oList[i] = 0;
+//   }
+//  // set new actWin IF NOT VALID ANY MORE
+//  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+//   // set to most recently created
+//   std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end());
+//   if (*mEl == 0) { // no window open
+//    SetActWin(-1); //sets    oIx = 1;
+//   } else SetActWin(GraphicsDevice::GetDevice()->GetNonManagedWidgetActWin(false)); //get first non-managed window. false is needed. 
+//  }
+// }
 };
 #endif
 

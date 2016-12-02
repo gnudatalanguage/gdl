@@ -194,6 +194,9 @@ void GraphicsDevice::Init()
   std::string useWX=GetEnvString("GDL_USE_WX");
   if (useWX == "YES" || useWX == "yes") {
 #ifdef HAVE_LIBWXWIDGETS
+    //start wxWidgets here instead of first call of a widget function.
+      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+      GDLWidget::SetWxStarted();
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
 #else
@@ -419,6 +422,7 @@ void GraphicsMultiDevice::SetActWin(int wIx) {
   }
 
   actWin = wIx;
+  if (actWin == -1) oIx=1; //better set it here instead of in all places where actwin is called.
 }
 // process user deleted windows
 // should be done in a thread
@@ -438,25 +442,24 @@ void GraphicsMultiDevice::TidyWindowsList() {
       //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
       GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
       if (draw) {
-	//parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
-	GDLWidgetBase* container = NULL;
-	container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
-	if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
-	else delete draw;
+        //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
+        GDLWidgetBase* container = NULL;
+        container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+        if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
+        else delete draw;
       } else delete winList[i];
     } else
 #endif     
-      delete winList[i];
+    delete winList[i];
     winList[i] = NULL;
     oList[i] = 0;
   }
   // set new actWin IF NOT VALID ANY MORE
   if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
+    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // most recently created
     if (*mEl == 0) { // no window open
-      SetActWin(-1);
-      oIx = 1;
-    } else SetActWin(std::distance(oList.begin(), mEl));
+      SetActWin(-1); //sets    oIx = 1;
+    } else SetActWin(GraphicsDevice::GetDevice()->GetNonManagedWidgetActWin(false)); //get first non-managed window. false is needed. 
   }
 }
 
@@ -483,14 +486,14 @@ void GraphicsMultiDevice::EventHandler() {
     if (winList[i] != NULL)
       winList[i]->EventHandler();
 
-  // TidyWindowsList();
+  // TidyWindowsList(); //removing it here removes a lot of loops but needs TidyWindowsList() to be called at all places needed.
 }
 
 bool GraphicsMultiDevice::WDelete(int wIx) {
-  if (actWin<0) return false;
-  if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-  TidyWindowsList();
-  return true;
+  if( wIx >= 0 && winList[ wIx] != NULL) {winList[ wIx]->SetValid(false);
+    TidyWindowsList();//if WDelete is always called with a valid wIx and is always a window, not a widget, this should be OK.
+    return true;
+  } else return false;
 }
    
 bool GraphicsMultiDevice::WSize(int wIx, int *xSize, int *ySize) {
@@ -625,6 +628,42 @@ int GraphicsMultiDevice::MaxNonFreeWin() {
 int GraphicsMultiDevice::ActWin() {
   TidyWindowsList();
   return actWin;
+}
+
+int GraphicsMultiDevice::GetNonManagedWidgetActWin(bool doTidyWindowList) { //for case of "WSET,-1" or cases where the program has to find
+  //by itself the first available window: this window must not be an active managed widget.
+  //where the returned actwin is the first NON-MANAGED-WIDGET_DRAW available.
+
+  if (doTidyWindowList) TidyWindowsList(); //bool is used in cas this function is called from... TidyWindowList itself
+
+#ifndef HAVE_LIBWXWIDGETS
+  for (int i = 0; i < winList.size(); i++) if (winList[i] != NULL ) {
+    if (!(winList[i]->IsPixmapWindow())) {return i;}//first non-pixmap window.
+  }
+  return -1;
+#else
+  for (int i = 0; i < winList.size(); i++) if (winList[i] != NULL ) {
+    if (!(winList[i]->IsPixmapWindow())) {//forget a pixmap window.
+      if (dynamic_cast<GDLWXStream*> (winList[i]) == NULL) {
+        //found non-widget window, probably an X11 one. Will return it if it is not a PIXMAP window
+        if (!(winList[i]->IsPixmapWindow())) return i;
+      } else { //special case of a graphic window which is either a draw widget (needs to be not managed) 
+        // or a wxWindow "normal window" (in which case we return it immediately).
+        GDLDrawPanel* panel = NULL;
+        panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
+        //test if stream is associated to graphic window or widget_draw. If graphic, return. If widget, return if not managed.
+        GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
+        if (draw) { //panel. Managed?
+          //parent of panel may be a GDLFrame. 
+          GDLWidgetBase* container = NULL;
+          container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
+          if (container && !(container->GetManaged())) return i; //first non-managed draw widget
+        } else return i; //a wxWidgets "plot" (as opposed to) "widget" bona fide window to be returned.
+      } 
+    }
+  }
+  return -1; //nothing found
+#endif     
 }
 
 bool GraphicsMultiDevice::CopyRegion(DLongGDL* me) {

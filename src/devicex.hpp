@@ -273,7 +273,7 @@ public:
     DLong GetVisualDepth() {
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DLong val=winList[actWin]->GetVisualDepth();
           WDelete(actWin);
           return val;
@@ -285,7 +285,7 @@ public:
     DString GetVisualName() {
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DString val=winList[actWin]->GetVisualName();
           WDelete(actWin);
           return val;
@@ -296,7 +296,7 @@ public:
     BaseGDL* GetFontnames(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           BaseGDL* val=winList[actWin]->GetFontnames(fontname);
           WDelete(actWin);
           return val;
@@ -307,7 +307,7 @@ public:
     DLong GetFontnum(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened.
+          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
           DLong val=winList[actWin]->GetFontnum(fontname);
           WDelete(actWin);
           return val;
@@ -366,26 +366,28 @@ public:
 	XCloseDisplay(display);
       }
     }
-void TidyWindowsList() {
-  int wLSize = winList.size();
-  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
-    
-    //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
-    //in case winList groups X11 streams (or WIN streams) *and* wxWidgets streams (GDL_USE_WX="NO") the following
-    //permits to delete the widget_draw also, not only the plplot stream.    
-      delete winList[i];
-    winList[i] = NULL;
-    oList[i] = 0;
-  }
-  // set new actWin IF NOT VALID ANY MORE
-  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
-    if (*mEl == 0) { // no window open
-      SetActWin(-1);
-      oIx = 1;
-    } else SetActWin(std::distance(oList.begin(), mEl));
-  }
-}  
+//Please find how to specialize TidyWindowsList for wx and x11 widgets when this function is called
+//as GraphicsDevice::GetDevice()->TidyWindowsList(); which does not return a specialized version.
+// Util then, do not uncomment the following.
+//void TidyWindowsList() {
+//  int wLSize = winList.size();
+//  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
+//    
+//    //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
+//    //X11 case only. For some bad programming reason, sometimes the parent classe (graphicmultidevice) version is 
+//   // used.
+//    delete winList[i];
+//    winList[i] = NULL;
+//    oList[i] = 0;
+//  }
+//  // set new actWin IF NOT VALID ANY MORE
+//  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
+//    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
+//    if (*mEl == 0) { // no window open
+//      SetActWin(-1); //sets   oIx = 1;
+//    } else SetActWin(GraphicsDevice::GetDevice()->GetNonManagedWidgetActWin(false)); //get first non-managed window. false is needed. 
+//  }
+//}  
 };
 
 //#undef MAX_WIN

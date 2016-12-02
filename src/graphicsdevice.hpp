@@ -212,6 +212,8 @@ public:
   virtual void TidyWindowsList()                      {}
   virtual int  MaxNonFreeWin()                        { return MaxWin();}
   virtual int  ActWin()                               { return -1;}
+  virtual int  GetNonManagedWidgetActWin(bool doTidy=true)            {return -1;}
+  virtual void SetActWin(int wIx) {}
   virtual void EventHandler() {}
   virtual void DefaultXYSize(DLong *xsize, DLong *ysize) {
 							*xsize=640, *ysize=480; return;}
@@ -342,6 +344,7 @@ public:
   bool Hide(); 
   int MaxNonFreeWin();
   int ActWin();
+  int GetNonManagedWidgetActWin(bool doTidyWindowList=true);
   bool CopyRegion(DLongGDL* me);
   
 };

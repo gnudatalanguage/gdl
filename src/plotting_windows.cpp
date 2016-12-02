@@ -117,45 +117,45 @@ namespace lib {
     actDevice->GetStream()->DefaultBackground();
     actDevice->GetStream()->Clear();
 
- }
+  }
 
-  void wset( EnvT* e)
-  {
+  void wset(EnvT* e) {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     int maxWin = actDevice->MaxWin();
-    if( maxWin == 0)
-      e->Throw( "Routine is not defined for current graphics device.");
+    if (maxWin == 0)
+      e->Throw("Routine is not defined for current graphics device.");
 
-    SizeT nParam=e->NParam();
+    SizeT nParam = e->NParam();
     DLong wIx = 0;
-    if( nParam != 0)
-      {
-	e->AssureLongScalarPar( 0, wIx);
+    if (nParam != 0) {
+      e->AssureLongScalarPar(0, wIx);
+    }
+    //special case for "WSET,-1"
+    if (wIx == -1) {
+      wIx = actDevice->GetNonManagedWidgetActWin();
+      if (wIx == -1) {//set !D.WINDOW to -1: no windows available, only *managed* widgets are eventually present.
+        actDevice->SetActWin(wIx); //this simply sets !D.WINDOW to -1.
+        return;
       }
-    if( wIx == -1) wIx = actDevice->ActWin();
-    if( wIx == -1) 
-      e->Throw( "Window is closed and unavailable.");
-
-    if( wIx == 0)
-      {
-	if( actDevice->ActWin() == -1)
-	  {
-            DLong xSize, ySize;
-            actDevice->DefaultXYSize(&xSize, &ySize);
-	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, -1, -1, false);
-	    if( !success)
-	      e->Throw( "Unable to create window.");
-//        success = actDevice->UnsetFocus();  // following a deviceXXX->WOpen
+    }
+    if (wIx == 0) {
+      if (actDevice->ActWin() == -1) {
+        DLong xSize, ySize;
+        actDevice->DefaultXYSize(&xSize, &ySize);
+        bool success = actDevice->WOpen(0, "GDL 0", xSize, ySize, -1, -1, false);
+        if (!success)
+          e->Throw("Unable to create window.");
+        //        success = actDevice->UnsetFocus();  // following a deviceXXX->WOpen
         //FIXME: ADD support for RETAIN (BackingSTORE))
         actDevice->GetStream()->DefaultBackground();
         actDevice->GetStream()->Clear();
         return;
-	  }
       }
+    }
 
-    bool success = actDevice->WSet( wIx);
-    if( !success)
-      e->Throw( "Window is closed and unavailable.");
+    bool success = actDevice->WSet(wIx);
+    if (!success)
+      e->Throw("Window is closed and unavailable.");
   }
 
   void wshow( EnvT* e)

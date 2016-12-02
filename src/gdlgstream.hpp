@@ -160,10 +160,11 @@ protected:
   PLStream* pls;
   DFloat thickFactor;
   PLFLT theCurrentSymSize;
+  bool usedAsPixmap; //for WINDOW,/PIXMAP retains the fact that this is a pixmap (invisible) window.
 public:
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
-    : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0)
+    : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0), usedAsPixmap(false)
   {
     if (!checkPlplotDriver(driver))
       ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
@@ -273,7 +274,8 @@ public:
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
   virtual bool HasCrossHair() {return false;}
-  virtual void UnMapWindow() {}
+  virtual void UnMapWindow() {usedAsPixmap=true;} 
+  bool IsPixmapWindow() {return usedAsPixmap;}
   virtual BaseGDL* GetBitmapData(){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}

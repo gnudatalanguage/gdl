@@ -3027,6 +3027,8 @@ void widget_control( EnvT* e ) {
 
   if ( destroy ) {
     delete widget;
+    //necessary since we have removed Tidy(...) from eventloop (too time consuming).
+    GraphicsDevice::GetDevice()->TidyWindowsList(); 
     return;
   }
 

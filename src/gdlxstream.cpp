@@ -334,6 +334,7 @@ void GDLXStream::UnMapWindow() {
   dev->write_to_window=0;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XWithdrawWindow(xwd->display, dev->window, xwd->screen);
+  usedAsPixmap=true;
 }
 void GDLXStream::Flush() {
 //  XwDev *dev = (XwDev *) pls->dev;

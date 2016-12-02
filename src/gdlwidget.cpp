@@ -694,7 +694,8 @@ GDLWidget::~GDLWidget( ) {
   std::cout << "in ~GDLWidget(): " << widgetID << std::endl;
 #endif
 
-  assert( this->IsValid( ) );
+  assert( this->IsValid( ) ); //for debug
+  if (!this->IsValid()) return; //to avoid crashing if asserts are not honored
   //unvalidate widget to prevent some further actions
   this->SetUnValid( );
 
@@ -4127,8 +4128,7 @@ GDLDrawPanel::~GDLDrawPanel()
 #endif
 //  if (m_resizeTimer->IsRunning()) m_resizeTimer->Stop(); 
   if ( pstreamP != NULL )
-  pstreamP->SetValid( false ); //eventLoop will destroy panel<-no more!
-     GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
+  pstreamP->SetValid( false ); //panel destroyed in future call to TidyWindowsList().
 }
 
 GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex, DLong special_xsize, DLong special_ysize,
