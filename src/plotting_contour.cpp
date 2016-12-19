@@ -690,8 +690,6 @@ namespace lib
 
 	  //Colors.
 	  DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-	  DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
-	  DLong n_colors=(*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"), 0)))[0];
 	  static int c_colorsIx=e->KeywordIx ( "C_COLORS" ); bool docolors=false;
 	  // Get decomposed value for colors
 	  DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
