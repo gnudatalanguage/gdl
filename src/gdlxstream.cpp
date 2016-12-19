@@ -685,12 +685,12 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   //load original table
   GDLCT* actCT = GraphicsDevice::GetCT();
   actCT->Get(rint,gint,bint,ctSize);
-
+  DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 //define & populate if necessary XImage img.  
   XImage *ximg = NULL;
   if (chan>0) { //we need to get the destination part of screen image back to write on it
     int x, y;
-    XFlush(xwd->display); //could be overkill...
+//   XFlush(xwd->display); //could be overkill...
 
     int (*oldErrorHandler)(Display*, XErrorEvent*);
     oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
@@ -700,12 +700,12 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
       ximg = XGetImage(xwd->display, dev->window, xoff, dev->height-yoff-ymax, xmax, ymax, AllPlanes, ZPixmap);
     }
     if (ximg == NULL) { //last chance!!!
-      XSync(xwd->display, 0); //could be overkill...
+//      XSync(xwd->display, 0); //could be overkill...
       x = 0;
       y = 0;
       if (dev->write_to_pixmap == 1) {
         XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc, xoff, dev->height-yoff-ymax, xmax, ymax, x, y);
-        XSync(xwd->display, 0); //could be overkill...
+//        XSync(xwd->display, 0); //could be overkill...
       }
     }
     XSetErrorHandler(oldErrorHandler);
@@ -737,16 +737,20 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
         if (trueColorOrder == 0 && chan == 0) {
            
           iclr1 = idata[iy * nx + ix];
-          if (xwd->rw_cmap==0) {
-            ired = rint[iclr1];
-            igrn = gint[iclr1];
-            iblu = bint[iclr1];
+          if (decomposed == 1){
+            curcolor.pixel = iclr1 * 256 * 256 + iclr1 * 256 + iclr1;
           } else {
-            ired = pls->cmap0[iclr1].r;
-            igrn = pls->cmap0[iclr1].g;
-            iblu = pls->cmap0[iclr1].b;
+            if (xwd->rw_cmap==0) {
+              ired = rint[iclr1];
+              igrn = gint[iclr1];
+              iblu = bint[iclr1];
+            } else {
+              ired = pls->cmap0[iclr1].r;
+              igrn = pls->cmap0[iclr1].g;
+              iblu = pls->cmap0[iclr1].b;
+            }
+            curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
           }
-          curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
         } else {
           if (chan == 0) {
             if (trueColorOrder == 1) {
