@@ -522,7 +522,19 @@ namespace lib {
        if (!doesTheCopy) e->Throw( "Keyword COPY not allowed for call to: DEVICE");
        }
     }
- 
+     // SET_PIXEL_DEPTH ?
+    {
+      static int set_pixel_depthIx = e->KeywordIx( "SET_PIXEL_DEPTH");
+      if( e->KeywordPresent( set_pixel_depthIx)) 
+      {
+        BaseGDL* depthKW = e->GetKW(set_pixel_depthIx);
+        if( depthKW != NULL)
+        {
+          bool success = actDevice->SetPixelDepth((*e->GetKWAs<DIntGDL>(set_pixel_depthIx))[0]);
+          if(!success) e->Throw( "Keyword SET_PIXEL_DEPTH not allowed for call to: DEVICE");
+        }
+      }
+    }
   }
 
 } // namespace
