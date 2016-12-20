@@ -45,24 +45,22 @@ namespace lib
       e->Throw("Device not supported/unknown: "+device);
     }
 
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+    unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
+    unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
     if ( device=="PS" ||device=="SVG" )
     {
-      DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-      // SA: this does not comply with IDL behaviour, see testsuite/test_pmulti.pro
-      //static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
-      //(*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 1;
-        static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=0; //PLEASE DO NOT CHANGE values here until a better color
-                                                                        // handling has been found.
-         static unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
-        (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=255; //PLEASE DO NOT CHANGE values here. This default is OK.
+      (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=0;
+      (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=255;
+    }
+    else if ( device=="X" || device=="MAC" || device=="WIN")
+    {
+      (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=16777215;
+      (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0;
     }
     else
     {
-      DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-      static unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
-      (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=16777215;
-        static unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
+      (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=255;
       (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0;
     }
 }
