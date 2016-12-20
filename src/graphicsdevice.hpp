@@ -227,6 +227,7 @@ public:
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}
+  virtual bool SetPixelDepth(DInt depth)               { return false;}
   virtual DDoubleGDL* GetScreenResolution(char* disp=NULL)  //fake a basic screen if not implemented:
   {
     DDoubleGDL* res;
