@@ -34,8 +34,11 @@ void GDLXStream::Init() {
   {
     Display* display = XOpenDisplay(NULL);
     if (display == NULL) {
+      display = XOpenDisplay(":0");//IDL also opens :0 when DISPLAY is not set.
+      if (display == NULL) {
       valid = false;
       ThrowGDLException("Cannot connect to X server");
+      }
     }
     XGetInputFocus(display, &term_window, &revert_to);
     XCloseDisplay(display);

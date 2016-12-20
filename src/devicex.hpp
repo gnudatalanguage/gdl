@@ -57,6 +57,13 @@ public:
             int Depth;
             Depth=DefaultDepth(display, DefaultScreen(display));      
             decomposed = (Depth >= 15 ? 1 : 0);
+        } else { //try ":0" //IDL also opens :0 when DISPLAY is not set.
+            display = XOpenDisplay(":0");
+            if (display != NULL) {
+            int Depth;
+            Depth=DefaultDepth(display, DefaultScreen(display));      
+            decomposed = (Depth >= 15 ? 1 : 0);
+          } 
         }
 
         dStruct = new DStructGDL("!DEVICE");

@@ -29,7 +29,7 @@ class GDLXStream: public GDLGStream
   Window term_window;
 public:
   GDLXStream( int nx, int ny)
-    : GDLGStream( nx, ny, "xwin")
+    : GDLGStream( nx, ny, "xwin",XOpenDisplay(NULL)==NULL?":0":NULL) //IDL also opens :0 when DISPLAY is not set.
     , term_window(0)
   {
   }
