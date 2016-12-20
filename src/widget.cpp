@@ -65,7 +65,7 @@ void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directly from inside gdl.
 {
   if (!GDLWidget::wxIsStarted()){
-    if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+    if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
     GDLWidget::SetWxStarted();
   }
   font=wxNullFont;
@@ -97,7 +97,7 @@ void GDLWidget::DefaultValuesInAbsenceofEnv() //needed to create widgets directl
 void GDLWidget::GetCommonKeywords( EnvT* e)
 {
   if (!GDLWidget::wxIsStarted()){
-    if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+    if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
     GDLWidget::SetWxStarted();
   }
   static int frameIx = e->KeywordIx( "FRAME" );

@@ -191,11 +191,11 @@ void GraphicsDevice::Init()
   
   //if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no ther device is defined.
-  std::string useWX=GetEnvString("GDL_USE_WX");
-  if (useWX == "YES" || useWX == "yes") {
+  std::string useWX=StrUpCase(GetEnvString("GDL_USE_WX"));
+  if (useWX == "YES" ) {
 #ifdef HAVE_LIBWXWIDGETS
     //start wxWidgets here instead of first call of a widget function.
-      if( ! wxInitialize( ) ) cerr<<"Unable to initialize wxWidgets\n";
+      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
       GDLWidget::SetWxStarted();
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
@@ -243,7 +243,17 @@ void GraphicsDevice::Init()
     exit( EXIT_FAILURE);
   }
 #  endif
-
+// GDL (at least with device X and Wx) handle equally any types of screens,
+// with an equivalent depth of 24 (tested and true). So there is no
+// need to return any depth, color number etc that would be anything
+// else than a truecolor (24 bits). So we force !P.color to be set 
+// to the depth of a truecolor screen. This
+// is what 'set_plot' does, but set_plot is not called by default.
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+    unsigned colorTag=pStruct->Desc()->TagIndex("COLOR");
+    unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
+    (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=16777215;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0;
 #ifdef HAVE_LIBWXWIDGETS
   // some X error message suggested this call
 #ifdef HAVE_X
@@ -378,24 +388,7 @@ int GraphicsMultiDevice::MaxWin() {
 }
 
 void GraphicsMultiDevice::SetActWin(int wIx) {
-  // update !P and !D . See special behaviour for !D.WINDOW etc at end.
-  if (wIx >= 0 && wIx < winList.size()) {
-    assert(winList[ wIx] != NULL);
-    // set !D.N_COLORS and !P.COLORS according to decomposed value.
-    unsigned long nSystemColors = (1 << winList[wIx]->GetWindowDepth());
-    unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
-    unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
-
-
-    if (this->GetDecomposed() == 1 && oldNColor == 256) {
-      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
-      if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-    } else if (this->GetDecomposed() == 0 && oldNColor == nSystemColors) {
-      (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
-      if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
-    }
-  }
-  
+  // Special behaviour for !D.WINDOW etc:
   // Update window number in all equivalent !D: !D is local to the Device, and sysvar's !D point to it. 
   // So there are actually several !D per GraphicsMultiDevice!
   // we need to update *all* the different !D in action, which are 2 if widgets + X11 device, and ony one if widget + wX device.
@@ -572,18 +565,6 @@ bool GraphicsMultiDevice::UnsetFocus() {
 
 bool GraphicsMultiDevice::Decomposed(bool value) {
   decomposed = value;
-  if (actWin < 0) return true;
-  //update relevant values --- this should not be done at window level, but at Display level!!!!
-  unsigned long nSystemColors = (1 << winList[actWin]->GetWindowDepth());
-  unsigned long oldColor = (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0];
-  unsigned long oldNColor = (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0];
-  if (this->decomposed == 1 && oldNColor == 256) {
-    (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = nSystemColors;
-    if (oldColor == 255) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = nSystemColors - 1;
-  } else if (this->decomposed == 0 && oldNColor == nSystemColors) {
-    (*static_cast<DLongGDL*> (dStruct->GetTag(n_colorsTag)))[0] = 256;
-    if (oldColor == nSystemColors - 1) (*static_cast<DLongGDL*> (SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0)))[0] = 255;
-  }
   return true;
 }
 
