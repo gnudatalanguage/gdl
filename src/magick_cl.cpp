@@ -644,7 +644,7 @@ namespace lib {
         Guard<DByteGDL> bImageGuard(bImage);
         // Ensure that there are no other references to this image.
         image.modifyImage();
-        // Set the image type to TrueColor DirectClass representation.
+        // Set the image type to Palette.
         image.type(PaletteType);
 //
         if (image.colorMapSize() < 1) e->Throw("GDL internal: destination image has no colormap!");
@@ -1037,16 +1037,11 @@ namespace lib {
         if (Red->N_Elements() == Green->N_Elements() &&
           Red->N_Elements() == Blue->N_Elements()) {
           unsigned long n = Red->N_Elements();
+          image.colorSpace(RGBColorspace);
           image.colorMapSize(n);
           image.quantize(n);
-          for (unsigned long c = 0; c < n; ++c) {
-            Color col;
-            col.redQuantum(static_cast<Magick::Quantum> ((*Red)[c] / scale * MaxRGB));
-            col.greenQuantum(static_cast<Magick::Quantum> ((*Green)[c] / scale * MaxRGB));
-            col.blueQuantum(static_cast<Magick::Quantum> ((*Blue)[c] / scale * MaxRGB));
-            image.colorMap(c, col);
+          for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)(*Red)[c] / 255., (double)(*Green)[c] / 255., (double)(*Blue)[c] / 255.));
           }
-        }
       } else { //GET current LOADCT LUT
         PLINT r[ctSize], g[ctSize], b[ctSize];
         GraphicsDevice::GetDevice()->GetCT()->Get(r, g, b);
