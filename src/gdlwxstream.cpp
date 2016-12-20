@@ -198,6 +198,7 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
         DLong trueColorOrder, DLong chan) {
 //  plstream::cmd( PLESC_FLUSH, NULL );
 //  Update();
+  DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(*m_bitmap);
   wxImage image=m_bitmap->ConvertToImage();
@@ -219,9 +220,15 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
       p += xoff*3;
       for ( int ix = 0; ix < kxLimit; ++ix ) {
         if ( trueColorOrder == 0 && chan == 0 ) {
-          mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
-          mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
-          mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
+          if (decomposed == 1){
+            mem[p++] = idata[iy * nx + ix];
+            mem[p++] = idata[iy * nx + ix];
+            mem[p++] = idata[iy * nx + ix];
+          } else {
+            mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
+            mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
+            mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
+          }
         } else {
           if ( chan == 0 ) {
             if ( trueColorOrder == 1 ) {
