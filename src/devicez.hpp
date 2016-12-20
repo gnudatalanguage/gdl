@@ -49,6 +49,7 @@ class DeviceZ: public GraphicsDevice
 
   char*  memBuffer;
   DInt*  zBuffer;
+  int    decomposed;
   
   void SetZBuffer( DLong x, DLong y)
   {
@@ -132,7 +133,7 @@ class DeviceZ: public GraphicsDevice
   }
 
 public:
-  DeviceZ(): GraphicsDevice(), actStream( NULL), memBuffer( NULL), zBuffer( NULL)
+  DeviceZ(): GraphicsDevice(), actStream( NULL), memBuffer( NULL), zBuffer( NULL), decomposed(0)
   {
     name = "Z";
 
@@ -151,7 +152,7 @@ public:
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 12)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 26.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 26.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
+    dStruct->InitTag("N_COLORS",   DLongGDL( 256*256*256)); //our default is 24bpp 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 1)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
@@ -236,6 +237,30 @@ public:
   }
 
   DLong GetPixelDepth() { return 24;}  
+  
+  bool SetPixelDepth(DInt value) {
+   static int displayed=0;
+   if (!displayed) {displayed=1; cerr<<"Pixel Depth changes ignored in GDL, stays at 24."<<endl;}
+   //this command should nevertheless reset Zbuffer:
+   DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+   DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
+	
+   SetZBuffer( actX, actY);  
+   return true;
+  }
+  
+  bool Decomposed( bool value)           
+  {   
+    decomposed = value;
+//    if (decomposed==1) (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256*256*256;
+//    else (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256;
+    return true;
+  }
+  
+    DLong GetDecomposed()        
+  {
+    return decomposed;  
+  }
 };
 
 #endif
