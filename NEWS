@@ -653,4 +653,24 @@
 	   - option --fakerelease for gdl: "$gdl --fakerelease 6.2" will pretend that the software
 	     release is 6.2 by setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
 	     procedures to decide whether some function or option should be used. It is sometimes possible to
-	     use this option to fool a procedure that request a specific value of !VERSION.RELEASE   
+	     use this option to fool a procedure that request a specific value of !VERSION.RELEASE
+0.9.7
+           - Huge gains in plotting speed for X device by bypassing plplot's X11 color handling. Especially
+             noticeable for remote X11 displays.
+           - Widget numbering scheme aligned to IDL's.
+           - Patched several buggy output formats (PRINT, etc).
+           - better report of memory size (MEMORY command) for unix.
+           - .RESET_SESSION OK.
+           - better behaviour of WRITE_GIF and WRITE_PNG as well as other graphic formats.
+           - Correct setup of !D.N_COLORS and !P.COLOR when switching devices and decomposed state.
+           - Window-related commands (WSET,EMPTY,WINDOW...) now correctly handle the managed/widget/free/absent cases.
+           - ISHFT() now an internal C++ function (for speed).
+           - Begun implementation of TRIANGULATE when GDL is compiled with the QHULL library. Only the most basic
+	     support is provided. 
+           - Experimental: use device wxWidgets as replacement of X11 and WIN devices (of course when GDL is
+             linked with the wxWidgets library). This is at the moment triggered by the environment variable 
+             GDL_USE_WX="YES" : setting this variable, the device 'X' or 'WIN' will actually be a wxWidgets device,
+             with antialiasing and trueType fonts.
+           - Experimental: calling GDL with option "--fussy" or setting the environment variable "GDL_IS_FUSSY"
+             enforces the STRICTARR compiling scheme (array index always between "[]"). This generally speeds up
+             procedure compilation.
