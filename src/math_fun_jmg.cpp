@@ -776,11 +776,10 @@ extern "C" {
 
 // see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
 #ifdef PL_HAVE_QHULL
-  // AC 2016/12/21 : the 4 lines below work only on very few case ... (Magea)
-  //void    qh_errexit(int exitcode, facetT *, ridgeT *)
-  //{
-  //    ThrowGDLException("Qhull error.");
-  //}
+  void    qh_errexit(int exitcode, facetT *facet, ridgeT *ridge)
+  {
+      ThrowGDLException("Qhull error.");
+  }
 void triangulate ( EnvT* e)
   {
     
