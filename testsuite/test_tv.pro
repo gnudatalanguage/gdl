@@ -57,6 +57,19 @@ if (status eq 0) then return
 ;
 xdim=(SIZE(image))(2)
 ydim=(SIZE(image))(3)
+; this test, as it is now, is wrong when the screen is too small (use
+; Xvfb :1 -screen 0 1024x768x24 & for example)
+; I return if window sizes are too big
+device,get_screen_size=scrsize
+scrsizex=scrsize[0]
+scrsizey=scrsize[1]
+
+if (2*xdim ge scrsizex or 3*ydim ge scrsizey) then begin
+   print,"test TEST_TV_WSET not executed, screen size to small (FIXME)"
+   if ~ISA(errors) then errors=0
+   return
+end
+
 ;
 image=TOTAL(image,1)
 ;
