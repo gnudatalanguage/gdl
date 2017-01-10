@@ -1270,10 +1270,19 @@ void inputThread() {
 void *inputThread(void*) {
 #endif
     while (1) {
-        char ch = getchar(); if (ch==EOF) return NULL;
-        inputstr += ch;
-        if (ch == '\n')
-            break;
+      // patch by Ole, 2017-01-06
+      //char ch = getchar(); if (ch==EOF) return NULL;
+      char ch = getchar();
+      if (ch==EOF) {
+#ifdef HAVE_CXX11THREAD
+	return;
+#else
+	return NULL;
+#endif
+      }        
+      inputstr += ch;
+      if (ch == '\n')
+	break;
     }
 #ifndef HAVE_CXX11THREAD
     return NULL;
