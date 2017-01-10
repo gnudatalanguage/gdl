@@ -41,6 +41,8 @@ void GDLXStream::Init() {
       }
     }
     XGetInputFocus(display, &term_window, &revert_to);
+    //avoid doing impossible things if term_window is *not* a bona fide window.
+    if (term_window == PointerRoot || term_window == None) term_window=0;
     XCloseDisplay(display);
   }
 
