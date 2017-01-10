@@ -1047,7 +1047,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     bool j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,
                   DLong &iHour , DLong &iMinute, DDouble &Second, DLong &dow, DLong &icap)
     {
-    DDouble JD,Z,F,a;
+    DDouble JD,Z,F;
     DLong A,B,C,D,E;
     JD = jd + 0.5;
     Z = floor(JD);
@@ -1058,6 +1058,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     
     if (Z < 2299161) A = (DLong)Z;
     else {
+      DDouble a;
       a = (DLong) ((Z - 1867216.25) / 36524.25);
       A = (DLong) (Z + 1 + a - (DLong)(a / 4));
     }
@@ -1282,8 +1283,12 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_
       break;
     case BaseGDL::CYI:
       if ( w == -1 ) w = 4;
-      for (SizeT i=0; i<r; i++){
-      ZeroPad( local_os[i], w, d, *f, iYear[i] );
+      for (SizeT i=0; i<r; i++){ //convert to string before outing only the w last characters as this is what IDL does.
+        std::stringbuf buffer; // empty buffer
+        std::ostream os (&buffer); // associate stream buffer to stream
+        os.width(w);
+        os << iYear[i];
+        outA( local_os[i], buffer.str().substr(buffer.str().size()-w,w), w ); //CYI2.2 selects the two last digits of year.
       }
       break;
     case BaseGDL::ChI:
