@@ -8,11 +8,30 @@
 ;
 ; AC 16 mai 2014: adding test cases for FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
 ; AC 07 Oct 2015: adding cases related to '.', '..' and '~'
+; AC 11 Jan 2017: adding a temporary path ('TMPDIR_FILE_SEARCH')
 ;
-pro TEST_FILE_SEARCH_FREE,  fd
-for i=0, N_ELEMENTS(fd)-1 do begin
-    CLOSE, fd[i]
-    FREE_LUN, fd[i]
+; ----------------------------------------
+; generate a list of files with special chars ([ and *)
+;
+pro TEST_FILE_SEARCH_CREATE, list_luns
+;
+OPENW, lun1, /delete, /get_lun, ']foo.txt'
+OPENW, lun2, /delete, /get_lun, 'foo\*.txt'
+OPENW, lun3, /delete, /get_lun, 'foobar.txt'
+OPENW, lun4, /delete, /get_lun, 'afoo.txt'
+OPENW, lun5, /delete, /get_lun, 'Afoo.txt'
+OPENW, lun6, /delete, /get_lun, 'AfoO.txt'
+OPENW, lun7, /delete, /get_lun, '[Foo'
+;
+list_luns=[lun1, lun2, lun3, lun4, lun5, lun6, lun7]
+;
+end
+;
+pro TEST_FILE_SEARCH_REMOVE, list_luns
+;
+for i=0, N_ELEMENTS(list_luns)-1 do begin
+;;    CLOSE, list_luns[i]
+    FREE_LUN, list_luns[i]
 endfor
 end
 ;
@@ -22,16 +41,8 @@ pro TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
 ;
 errors=0
 ;
-OPENW, fd1, /delete, /get_lun, ']foo.txt'
-OPENW, fd2, /delete, /get_lun, 'foo\*.txt'
-OPENW, fd3, /delete, /get_lun, 'foobar.txt'
-OPENW, fd4, /delete, /get_lun, 'afoo.txt'
-OPENW, fd5, /delete, /get_lun, 'Afoo.txt'
-OPENW, fd6, /delete, /get_lun, 'AfoO.txt'
-OPENW, fd7, /delete, /get_lun, '[Foo'
-
-fd=[fd1, fd2, fd3, fd4, fd5, fd6, fd7]
-
+TEST_FILE_SEARCH_CREATE, list_luns
+;
 if FILE_SEARCH(']foo.txt') ne ']foo.txt' then begin 
     ADD_ERROR, errors, 'Fail with ]foo.txt'
 endif
@@ -68,7 +79,7 @@ if FILE_SEARCH('[foo', /fold_case) ne '[Foo' then begin
     ADD_ERROR, errors, 'Fail with [foo,  /fold_case'
 endif
 ;
-if ~KEYWORD_SET(no_erase) then TEST_FILE_SEARCH_FREE, fd
+if ~KEYWORD_SET(no_erase) then TEST_FILE_SEARCH_REMOVE, list_luns
 ;
 BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH_GLOB", errors, /short
 ;
@@ -83,6 +94,8 @@ end
 pro TEST_FULLY_QUALIFY_PATH, nb_errors, no_erase=no_erase, test=test
 ;
 errors=0
+;
+TEST_FILE_SEARCH_CREATE, list_luns
 ;
 ; a way to catch a reference (maybe not the best !)
 ;
@@ -122,6 +135,8 @@ endif else begin
         ADD_ERROR, errors, 'pb with content of RES1 vs RES3'
     endif
 endelse
+;
+if ~KEYWORD_SET(no_erase) then TEST_FILE_SEARCH_REMOVE, list_luns
 ;
 BANNER_FOR_TESTSUITE, "TEST_FULLY_QUALIFY_PATH", errors, /short
 ;
@@ -178,11 +193,19 @@ endif
 ;
 nb_errors=0
 ;
+tmp_dir='TMPDIR_FILE_SEARCH'
+FILE_MKDIR, tmp_dir
+CD, tmp_dir, cur=cur
+;
 TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
 ;
 TEST_FULLY_QUALIFY_PATH, nb_errors, no_erase=no_erase, test=test
 ;
 TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
+;
+;CLOSE, /All
+CD, cur
+if ~KEYWORD_SET(no_erase) then FILE_DELETE, tmp_dir
 ;
 BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH", nb_errors, short=short
 ;

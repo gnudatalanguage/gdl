@@ -131,8 +131,9 @@ end
 ;
 if ~ISA(silent) then silent=1
 ;
-; AC 2016-04-14 seems not to be useful
-; if KEYWORD_SET(color) then DEVICE, decompose=0
+; AC 2016-04-14 : seems not to be useful
+; AC 2017-01-11 : useful now ! better support of DEVICE, decomposed=0|1
+if KEYWORD_SET(color) then DEVICE, decomposed=0
 ;
 ; Three levels of time benchmarking : 0 non, 1 global, 2 detail
 ;
@@ -225,7 +226,12 @@ end
 ;
 ; -------------------------------------
 ;
-pro TEST_TV, noclose=noclose, test=test, no_exit=no_exit
+pro TEST_TV, help=help, noclose=noclose, test=test, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_TV, help=help, noclose=noclose, test=test, no_exit=no_exit'
+    return
+endif
 ;
 if (!d.name EQ 'NULL') then begin
    is_X11_ok=EXECUTE('set_plot, "X"')
