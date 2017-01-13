@@ -828,12 +828,17 @@ endif(UDUNITS)
 # -DEIGEN3=ON|OFF
 # -DEIGEN3DIR=DIR
 if(EIGEN3)
-      set(CMAKE_PREFIX_PATH ${EIGEN3DIR})
-      find_package(Eigen3 3.2.4 QUIET)
-      if(EIGEN3_TOO_OLD)
-	# on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
-	message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
-	  " Please download a recent version (>=3.2.4) in a local directory."
+  # cleaning Cache ...
+  if (EIGEN3DIR)
+    unset(EIGEN3_INCLUDE_DIR CACHE)
+  endif(EIGEN3DIR)
+  #
+  set(CMAKE_PREFIX_PATH ${EIGEN3DIR})
+  find_package(Eigen3 3.2.4 QUIET)
+  if(EIGEN3_TOO_OLD)
+    # on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
+    message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
+          " Please download a recent version (>=3.2.4) in a local directory."
 	  " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n")
       else(EIGEN3_TOO_OLD)	 
 	set(USE_EIGEN ${EIGEN3_FOUND})
@@ -1055,9 +1060,11 @@ set(MPICH_LIBRARIES ${MPI_LIBRARIES})
 module(MPICH     "MPICH      ")
 module(PYTHON    "Python     ")
 module(UDUNITS   "UDUNITS-2  ")
+set(EIGEN3_LIBRARIES ${EIGEN3_INCLUDE_DIR})
 module(EIGEN3    "EIGEN3     ")
 module(GRAPHICSMAGICK "GRAPHICSMAGICK")
 module(GRIB      "GRIB       ")
+set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
 module(QHULL     "QHULL      ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
