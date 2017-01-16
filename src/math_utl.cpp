@@ -33,6 +33,8 @@ namespace lib {
 
   //**********************************************************************
 // special pragma to prevent optimization by the zealous compiler icc. (when optimized, loops forever on the 'while')
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 #pragma optimize("", off)
   void machar_s ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
@@ -465,7 +467,10 @@ namespace lib {
     return;
 
   }
+#pragma GCC pop_options  
 // special pragma to prevent optimization by the zealous compiler icc. (when optimized, loops forever on the 'while')
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 #pragma optimize("", off) 
   void machar_d ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
@@ -778,6 +783,7 @@ namespace lib {
     return;
 
   }
+#pragma GCC pop_options  
 } // namespace
 
 
