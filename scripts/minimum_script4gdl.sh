@@ -3,8 +3,9 @@
 # Alain Coulais, 3 Mars 2015, script under GNU GPL v3
 #
 # Changes:
-# 2015-11-06 : cmake is now in httpS, allow to junp to a given step via $1
+# 2015-11-06 : cmake is now in httpS, allow to junp to a given step via $1
 # 2016-01-04 : move to 0.9.6
+# 2017-01-21 : move to 0.9.7
 #
 # The purpose of this shell script is to compile a minimum GDL
 #
@@ -20,8 +21,8 @@
 # step 2 : GSL
 # step 3 : CMake
 # step 4 : Plplot
-# step 5 : GDL 0.9.6 vanilla
-# step 6 : GDL 0.9.6 CVS
+# step 5 : GDL 0.9.7 vanilla
+# step 6 : GDL 0.9.7 CVS
 #
 #
 # $1 == $use_curl, $2 = $URL, $3 = $filename
@@ -67,7 +68,7 @@ READLINE_URL="ftp://ftp.gnu.org/gnu/readline/readline-6.3.tar.gz"
 GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
 CMAKE_URL="https://cmake.org/files/v2.8/cmake-2.8.12.tar.gz"
 PLPLOT_URL="https://sourceforge.net/projects/plplot/files/plplot/5.9.11%20Source/plplot-5.9.11.tar.gz/download?use_mirror=autoselect"
-GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.6/gdl-0.9.6v2.tgz"
+GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.7/gdl-0.9.7.tgz"
 GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
 #
 step=$1
@@ -217,13 +218,13 @@ else
     echo "Plplot SKIPPED !"
 fi
 
-# starting GDL : 2 cases : with the CVS or the 0.9.6 vanilla version
+# starting GDL : 2 cases : with the CVS or the 0.9.7 vanilla version
 # we don't need to manage the step here ... (always 5 or 6)
 cd $RACINE
 
 if [ "$gdl_cvs" -eq 1 ] ; then
-    echo "preparing to compiled GDL 0.9.6 CVS version"
-    gdl_path='gdl-0.9.6cvs'`date +%y%m%d`
+    echo "preparing to compiled GDL 0.9.7 CVS version"
+    gdl_path='gdl-0.9.7cvs'`date +%y%m%d`
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_CVS_URL $gdl_name
@@ -232,9 +233,9 @@ if [ "$gdl_cvs" -eq 1 ] ; then
     tar -zxf $gdl_name
     mv gdl $gdl_path
 else 
-    echo "preparing to compiled GDL 0.9.6 VANILLA version"
-    gdl_path='gdl-0.9.6'
-    gdl_name=${gdl_path}'v2.tgz'
+    echo "preparing to compiled GDL 0.9.7 VANILLA version"
+    gdl_path='gdl-0.9.7'
+    gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_VANILLA_URL $gdl_name
     fi
