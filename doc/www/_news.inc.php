@@ -1,4 +1,10 @@
 
+<h2>GDL 0.9.7 released</h2>
+<p> 2017-01-21: GDL 0.9.7 source tarball released.<br />
+ <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.7/README/download">release notes</a> | <a href="downloads.php">downloads</a> | <a href="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.7/gdl-0.9.7.tgz">source 0.9.7.tgz</a></span><br/>
+2017-01-11: <a href="https://packages.debian.org/experimental/gnudatalanguage">Debian Experimental port updated</a><br />
+</p>
+
 <h2>GDL 0.9.6 released</h2>
 <p> 2016-01-04: GDL 0.9.6 source tarball released.<br />
  <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.6/README/download">release notes</a> | <a href="downloads.php">downloads</a></span><br/>
