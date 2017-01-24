@@ -317,7 +317,8 @@ private:
    // 	dim >> topDim;
    dim >> ix[d]->GetDim();
   }
-  dim.Purge();
+// Was added to solve bug 709 but may have side effects.
+//  dim.Purge();
  }
   
 private:
