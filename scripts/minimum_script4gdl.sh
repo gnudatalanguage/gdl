@@ -3,11 +3,17 @@
 # Alain Coulais, 3 Mars 2015, script under GNU GPL v3
 #
 # Changes:
-# 2015-11-06 : cmake is now in httpS, allow to junp to a given step via $1
+# 2015-11-06 : cmake is now in httpS, allow to jump to a given step via $1
 # 2016-01-04 : move to 0.9.6
 # 2017-01-21 : move to 0.9.7
+# 2017-01-31 : fixing various improvments, 
+#              properly skipping Readline/GSL/Cmake if available
 #
-# The purpose of this shell script is to compile a minimum GDL
+# The purpose of this shell script is to automaticaly compile a minimum GDL
+# as a basic user even if mandatory packages are not available
+#
+# Since FFTw and Eigen3 are not used, it does not reflect
+# the best performances you can have with GDL.
 #
 # To do that, the TGZ of useful dependancies are downloaded then compiled
 # (with "curl" because Curl is by default on OSX)
@@ -15,9 +21,12 @@
 # you can fix the script and run it again, downloading is not done again,
 # and succesfull compilations not done again
 #
-# Since  Nov. 6, we can jump over steps already done
-# no step : all is done
-# step 1 : readline
+# We prefer to strongly limit the use of options and flags ...
+# Please remove manually local directories if needed (if troubles)
+#
+# Since 2015 Nov. 6, we can jump over steps already done
+# no step : all is done
+# step 1 : readline
 # step 2 : GSL
 # step 3 : CMake
 # step 4 : Plplot
@@ -81,7 +90,7 @@ export RACINE=$PWD
 #
 # switch it to 1 to have the CVS snapshot
 gdl_cvs=0
-if (( step == 6 )) ; then gdl_cvs=1 ; fi
+if [[ $step == 6 ]] ; then gdl_cvs=1 ; fi
 
 # switch it to 1 to have the final checks for GDL
 gdl_check=0 
@@ -109,9 +118,24 @@ if [ "${use_curl}" = "0" ] &&  [ "${use_wget}" = "0" ] ; then
     exit
 fi
 
-# starting READLINE
+# ----------------------------------- READLINE -----------------------
+# starting READLINE : if READLINE not found in default places or
+# already compile locally, we compile it
 cd $RACINE
-if ((step <= 1 )) ; then 
+#
+readline_ok=0
+if [ -d "/usr/include/readline" ] ; then
+    READLINE_PATH=/usr
+    readline_ok=1
+elif [ -d "/usr/local/include/readline" ] ; then
+    READLINE_PATH=/usr/local
+    readline_ok=1
+elif [ -d $RACINE/readline-6.3/Compilation/ ] ; then
+    READLINE_PATH=$RACINE/readline-6.3/Compilation/
+    readline_ok=1
+fi
+#
+if [[ $step -le 1 && $readline_ok -eq 0 ]] ; then
     if [ ! -e readline-6.3.tar.gz ] ; then
 	run_wget_or_curl $use_curl $READLINE_URL
     fi
@@ -121,45 +145,56 @@ if ((step <= 1 )) ; then
     ./configure --prefix=$RACINE/readline-6.3/Compilation/
     make
     make install
-    echo "readline done"
+    READLINE_PATH=$RACINE/readline-6.3/Compilation/
+    echo "readline Compilation done"
 else
-    echo "readline SKIPPED !"
+    echo "readline already exists, then SKIPPED !"
 fi
 
-# starting GSL
+# ----------------------------------- GSL -----------------------
+# starting GSL : if GSL not found in default places or 
+# already locally compiled, we compile it locally.
+#
 cd $RACINE
-if ((step <= 2 )) ; then 
-    gsl_ok=`which -a gsl-config`
-    if [ ! -e $gsl_ok ] ; then 
-	if [ ! -e gsl-1.16.tar.gz ] ; then
-	    run_wget_or_curl $use_curl $GSL_URL
-	fi
-	tar -zxf gsl-1.16.tar.gz
-	cd gsl-1.16
-	mkdir Compilation
-	./configure --prefix=$RACINE/gsl-1.16/Compilation/
-	make
-	make install 
-	GSL_PATH=$RACINE/gsl-1.16
-	echo "GSL compilation done, version : 1.16"
+GSL_CONFIG=`which -a gsl-config`
+if [ -z $GSL_CONFIG ] ; then 
+    if [ -x $RACINE/gsl-1.16/Compilation/bin/gsl-config ] ; then
+	GSL_PATH=`$RACINE/gsl-1.16/Compilation/bin/gsl-config --prefix`
     else
-	GSL_PATH=`gsl-config --prefix`
-	echo "GSL found, version : "`gsl-config --version`
+	GSL_PATH=""
     fi
 else
     GSL_PATH=`gsl-config --prefix`
-    if [ ! -d $GSL_PATH ] ; then 
-	GSL_PATH=$RACINE/gsl-1.16
+fi
+if [ -n $GSL_PATH ] ; then
+    echo "GSL PATH : "$GSL_PATH
+    echo "GSL found, version : "`$GSL_PATH/bin/gsl-config --version`
+    echo "GSL compilation SKIPPED !"
+fi
+#
+if [[ $step -le 2 && -z $GSL_PATH ]] ; then
+    if [ ! -e gsl-1.16.tar.gz ] ; then
+	run_wget_or_curl $use_curl $GSL_URL
     fi
-    echo "GSL SKIPPED !"
+    tar -zxf gsl-1.16.tar.gz
+    cd gsl-1.16
+    mkdir Compilation
+    ./configure --prefix=$RACINE/gsl-1.16/Compilation/
+    make
+    make install 
+    GSL_PATH=$RACINE/gsl-1.16
+    echo "GSL compilation done, version : 1.16"
 fi
 
-# starting CMAKE
+# ----------------------------------- CMAKE -----------------------
+# starting CMAKE : if the sytem is using an old version of CMake
+# we want to use 2.8.12 ...
 cd $RACINE
-if ((step <= 3 )) ; then
+#
+if [[ $step -le 3 ]] ; then
     do_cmake_compil=0
     CmakeEXE=`which -a cmake`
-    echo $CmakeEXE
+    echo "CMake exe : " $CmakeEXE
     if [ -e $CmakeEXE ] ; then 
 	cmake_version=`cmake --version | head -1 | awk -F " " '{print $3}'`
 	echo $cmake_version
@@ -195,9 +230,12 @@ else
     echo "CMake SKIPPED !"
 fi
 
-# starting PLPLOT
+# ----------------------------------- PLPLOT -----------------------
+# starting PLPLOT : we don't want to use packaged PLplot version
+# because of various issues. The options used here ensure stable results.
 cd $RACINE
-if ((step <= 4 )) ; then 
+#
+if [[ $step -le 4 ]] ; then 
     if [ ! -e plplot-5.9.11.tar.gz ] ; then
 	run_wget_or_curl_no_check $use_curl $PLPLOT_URL plplot-5.9.11.tar.gz
     fi
@@ -218,10 +256,11 @@ else
     echo "Plplot SKIPPED !"
 fi
 
+# ----------------------------------- GDL -----------------------
 # starting GDL : 2 cases : with the CVS or the 0.9.7 vanilla version
 # we don't need to manage the step here ... (always 5 or 6)
 cd $RACINE
-
+#
 if [ "$gdl_cvs" -eq 1 ] ; then
     echo "preparing to compiled GDL 0.9.7 CVS version"
     gdl_path='gdl-0.9.7cvs'`date +%y%m%d`
@@ -250,7 +289,7 @@ else
 fi
 cd build
 $CmakeEXE .. \
-   -DREADLINEDIR=$RACINE/readline-6.3/Compilation/ \
+   -DREADLINEDIR=$READLINE_PATH \
    -DGSLDIR=$GSL_PATH \
    -DPLPLOTDIR=$RACINE/plplot-5.9.11/Compilation/ \
    -DWXWIDGETS=off -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF \
@@ -260,3 +299,10 @@ make -j $cpus
 if [ "$gdl_check" -eq 1 ] ; then
     make check
 fi
+#
+cd $RACINE
+
+echo "Compilation of GDL is finished"
+echo "Please remember it does not reflect the full capabilities of GDL"
+echo -e "\nYou can run GDL calling : \n"
+echo -e "\tsh "$gdl_path"/quick_start_GDL.sh\n"
