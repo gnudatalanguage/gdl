@@ -123,23 +123,30 @@ fi
 # already compile locally, we compile it
 cd $RACINE
 #
-readline_ok=0
-if [ -d "/usr/include/readline" ] ; then
-    READLINE_PATH=/usr
-    readline_ok=1
-elif [ -d "/usr/local/include/readline" ] ; then
-    READLINE_PATH=/usr/local
-    readline_ok=1
-elif [ -d $RACINE/readline-6.3/Compilation/ ] ; then
-    READLINE_PATH=$RACINE/readline-6.3/Compilation/
-    readline_ok=1
+READLINE_PATH=""
+#
+# "official" READLINE on OSX is a mess
+#
+os_type=`uname -s`
+if [ $os_type != Darwin ] ; then 
+    if [ -d "/usr/include/readline" ] ; then
+	READLINE_PATH=/usr
+    elif [ -d "/usr/local/include/readline" ] ; then
+	READLINE_PATH=/usr/local
+    fi
 fi
-if [ -n $READLIN_PATH ] ; then
+# Do we have already locally compile Readline ?
+if [ -n $READLINE_PATH ] ; then
+    if [ -d $RACINE/readline-6.3/Compilation/ ] ; then
+	READLINE_PATH=$RACINE/readline-6.3/Compilation/
+    fi
+fi
+if [ -n $READLINE_PATH ] ; then
     echo "READLINE PATH : "$READLINE_PATH
     echo "READLINE (re)compilation SKIPPED !"
 fi
 #
-if [[ $step -le 1 && $readline_ok -eq 0 ]] ; then
+if [[ $step -le 1 && -z $READLINE_PATH ]] ; then
     if [ ! -e readline-6.3.tar.gz ] ; then
 	run_wget_or_curl $use_curl $READLINE_URL
     fi
@@ -190,7 +197,7 @@ fi
 
 # ----------------------------------- CMAKE -----------------------
 # starting CMAKE : if the sytem is using an old version of CMake
-# we want to use 2.8.12 ...
+# we want to use 2.8.12 ... but 2.8.9 is OK too
 cd $RACINE
 #
 do_cmake_compil=1
@@ -198,7 +205,7 @@ CmakeEXE=`which -a cmake`
 #echo "CMake exe : " $CmakeEXE
 if [ -x $CmakeEXE ] ; then 
     cmake_version=`cmake --version | head -1 | awk -F " " '{print $3}'`
-    if [[ $cmake_version < "2.8.12" ]] ; then
+    if [[ $cmake_version < "2.8" ]] ; then
 	echo "old CMake version ("$cmake_version") found, a new one must be used"
     else
 	do_cmake_compil=0
