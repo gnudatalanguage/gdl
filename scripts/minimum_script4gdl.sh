@@ -134,6 +134,10 @@ elif [ -d $RACINE/readline-6.3/Compilation/ ] ; then
     READLINE_PATH=$RACINE/readline-6.3/Compilation/
     readline_ok=1
 fi
+if [ -n $READLIN_PATH ] ; then
+    echo "READLINE PATH : "$READLINE_PATH
+    echo "READLINE (re)compilation SKIPPED !"
+fi
 #
 if [[ $step -le 1 && $readline_ok -eq 0 ]] ; then
     if [ ! -e readline-6.3.tar.gz ] ; then
@@ -147,8 +151,6 @@ if [[ $step -le 1 && $readline_ok -eq 0 ]] ; then
     make install
     READLINE_PATH=$RACINE/readline-6.3/Compilation/
     echo "readline Compilation done"
-else
-    echo "readline already exists, then SKIPPED !"
 fi
 
 # ----------------------------------- GSL -----------------------
@@ -169,7 +171,7 @@ fi
 if [ -n $GSL_PATH ] ; then
     echo "GSL PATH : "$GSL_PATH
     echo "GSL found, version : "`$GSL_PATH/bin/gsl-config --version`
-    echo "GSL compilation SKIPPED !"
+    echo "GSL (re)compilation SKIPPED !"
 fi
 #
 if [[ $step -le 2 && -z $GSL_PATH ]] ; then
@@ -191,43 +193,41 @@ fi
 # we want to use 2.8.12 ...
 cd $RACINE
 #
-if [[ $step -le 3 ]] ; then
+do_cmake_compil=1
+CmakeEXE=`which -a cmake`
+#echo "CMake exe : " $CmakeEXE
+if [ -x $CmakeEXE ] ; then 
+    cmake_version=`cmake --version | head -1 | awk -F " " '{print $3}'`
+    if [[ $cmake_version < "2.8.12" ]] ; then
+	echo "old CMake version ("$cmake_version") found, a new one must be used"
+    else
+	do_cmake_compil=0
+    fi
+fi
+if [[ $do_cmake_compil -eq 1 && -x $RACINE/cmake-2.8.12/bin/cmake ]] ; then
+    CmakeEXE=$RACINE/cmake-2.8.12/bin/cmake
+    cmake_version=`$CmakeEXE --version | head -1 | awk -F " " '{print $3}'`
     do_cmake_compil=0
-    CmakeEXE=`which -a cmake`
-    echo "CMake exe : " $CmakeEXE
-    if [ -e $CmakeEXE ] ; then 
-	cmake_version=`cmake --version | head -1 | awk -F " " '{print $3}'`
-	echo $cmake_version
-	if [[ $cmake_version < "2.8.12" ]] ; then
-	    echo "old CMake version ("$cmake_version") found, a new one must be used"
-	    do_cmake_compil=1
-	fi
-    else
-	echo "coucou"
-	do_cmake_compil=1
+fi
+if [ -n $CmakeEXE ] ; then
+    echo "CMake EXE : "$CmakeEXE
+    echo "CMake found, version : "$cmake_version
+    echo "CMake (re)compilation SKIPPED !"
+fi
+#
+if [[ $step -le 3 && $do_cmake_compil -eq 1 ]] ; then
+    if [ ! -e cmake-2.8.12.tar.gz ] ; then
+	## since Nov. 6, we do have a problem with KitWare certificate ...
+	run_wget_or_curl_no_check $use_curl $CMAKE_URL cmake-2.8.12.tar.gz
     fi
-    if [ $do_cmake_compil -eq 1 ] ; then 
-	if [ ! -e cmake-2.8.12.tar.gz ] ; then
-	    ## since Nov. 6, we do have a problem with KitWare certificate ...
-	    run_wget_or_curl_no_check $use_curl $CMAKE_URL cmake-2.8.12.tar.gz
-	fi
-        check_md5sum cmake-2.8.12.tar.gz "105bc6d21cc2e9b6aff901e43c53afea"
-        #
-	tar -zxf cmake-2.8.12.tar.gz
-	cd cmake-2.8.12
-	./bootstrap
-	make
-	echo "CMake compilation done, version 2.8.12"
-	CmakeEXE=$PWD/bin/cmake
-    else
-	echo "CMake found, version : "$cmake_version
-    fi
-else
-    CmakeEXE=`which -a cmake`
-    if [ ! -e $CmakeEXE ] ; then 
-	CmakeEXE=$PWD/bin/cmake
-    fi
-    echo "CMake SKIPPED !"
+    check_md5sum cmake-2.8.12.tar.gz "105bc6d21cc2e9b6aff901e43c53afea"
+    #
+    tar -zxf cmake-2.8.12.tar.gz
+    cd cmake-2.8.12
+    ./bootstrap
+    make
+    echo "CMake compilation done, version 2.8.12"
+    CmakeEXE=$PWD/bin/cmake
 fi
 
 # ----------------------------------- PLPLOT -----------------------
@@ -302,7 +302,12 @@ fi
 #
 cd $RACINE
 
-echo "Compilation of GDL is finished"
-echo "Please remember it does not reflect the full capabilities of GDL"
-echo -e "\nYou can run GDL calling : \n"
-echo -e "\tsh "$gdl_path"/quick_start_GDL.sh\n"
+if [ -x $gdl_path/src/gdl ] ; then
+    echo -e "\nCompilation of GDL is finished"
+    echo "Please remember it does not reflect the full capabilities of GDL"
+    echo -e "\nYou can run GDL calling : \n"
+    echo -e "\tsh "$gdl_path"/quick_start_GDL.sh\n"
+else 
+    echo -e "\nIt seems a problem occured during the compilation of GDL"
+    echo "Please check carrefully the outputs"
+fi
