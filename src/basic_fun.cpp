@@ -5351,15 +5351,12 @@ namespace lib {
 
     static int extractIx = e->KeywordIx( "EXTRACT");
     bool extract = e->KeywordSet( extractIx);
-      
+
+    static int countIx = e->KeywordIx( "COUNT");
+    bool countPresent = e->KeywordPresent( countIx);
+     
     static int lengthIx = e->KeywordIx( "LENGTH");
     bool lengthPresent = e->KeywordPresent( lengthIx);
-
-    static int foldCaseIx = e->KeywordIx( "FOLD_CASE" );
-    bool foldCaseKW = e->KeywordSet( foldCaseIx );
-
-    if (extract && lengthPresent)
-      e->Throw("Conflicting keywords.");
 
     static int pre0Ix = e->KeywordIx("PRESERVE_NULL");
     bool pre0 = e->KeywordSet(pre0Ix);
@@ -5369,6 +5366,11 @@ namespace lib {
     char err_msg[MAX_REGEXPERR_LENGTH];
     regex_t regexp;
 
+    static int foldCaseIx = e->KeywordIx( "FOLD_CASE" );
+    bool foldCaseKW = e->KeywordSet( foldCaseIx );
+    //FOLD_CASE can only be specified if the REGEX keyword is set
+    if (!regex && foldCaseKW)   e->Throw("Conflicting keywords.");
+
     vector<long> tokenStart;
     vector<long> tokenLen;
 
@@ -5376,6 +5378,11 @@ namespace lib {
 
     DString escape = "";
     static int ESCAPEIx=e->KeywordIx("ESCAPE");
+    
+    //ESCAPE cannot be specified with the FOLD_CASE or REGEX keywords.
+    if (regex && e->KeywordPresent(ESCAPEIx))   e->Throw("Conflicting keywords.");
+    if (foldCaseKW && e->KeywordPresent(ESCAPEIx))   e->Throw("Conflicting keywords.");
+
     e->AssureStringScalarKWIfPresent(ESCAPEIx, escape);
     vector<long> escList;
     long pos = 0;
@@ -5393,7 +5400,19 @@ namespace lib {
     long tokE;
     long nextE = 0;
     long actLen;
-
+    //special case: pattern void string
+    if (pattern.size()==0) {
+      if (lengthPresent) {
+        e->AssureGlobalKW(lengthIx);
+        e->SetKW(lengthIx, new DLongGDL(0));
+      }
+     if (countPresent) {
+        e->AssureGlobalKW(countIx);
+        e->SetKW(countIx, new DLongGDL(0));
+      }   
+      if (!extract) return new DLongGDL(0); else return new DStringGDL("");
+    }
+      
     // If regex then compile regex. 
     // set the compile flags to use the REG_ICASE facility in case /FOLD_CASE is given.
     int cflags = REG_EXTENDED;
@@ -5411,8 +5430,7 @@ namespace lib {
     }
 
     if (foldCaseKW && !regex) { //duplicate pattern with ascii chars upcased
-      string tmp=StrUpCase(pattern);
-      pattern=pattern+tmp;
+      pattern=pattern+StrUpCase(pattern);
     }
     for (;;) {
       regmatch_t pmatch[1];
@@ -5449,8 +5467,16 @@ namespace lib {
     if (regex) regfree(&regexp);
 
     SizeT nTok = tokenStart.size();
-
-    if (!extract) {
+    if (countPresent) {
+        e->AssureGlobalKW(countIx);
+         if (nTok > 0) {
+          DLongGDL* count = new DLongGDL(nTok);
+          e->SetKW(countIx, count);
+        } else {
+          e->SetKW(countIx, new DLongGDL(0));
+        }
+      }
+     
       if (lengthPresent) {
         e->AssureGlobalKW(lengthIx);
 
@@ -5465,6 +5491,8 @@ namespace lib {
           e->SetKW(lengthIx, new DLongGDL(0));
         }
       }
+    
+    if (!extract) {
 
       if (nTok == 0) return new DLongGDL(0);
 
@@ -5473,7 +5501,7 @@ namespace lib {
       for (int i = 0; i < nTok; i++)
         (*d)[i] = tokenStart[i];
       return d;
-    }
+    } else {
 
     // EXTRACT
     if (nTok == 0) return new DStringGDL("");
@@ -5492,6 +5520,7 @@ namespace lib {
       }
     }
     return d;
+    }
   }
 
   BaseGDL* getenv_fun( EnvT* e)
