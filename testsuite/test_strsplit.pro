@@ -38,6 +38,7 @@ str4='../foo.txt' ; [2,7]
 str5=' t e s t '
 str6='qwerty'
 str7='aa;aaaaaaaaa;aaaaaaaaaa'  ; cf bug 554
+strarray=[str,str1,str2,str3,str4,str5,str6,str7]
 ;
 ; When Search Pattern is not in Input String (default Search pattern
 ; is white space ' ')
@@ -339,7 +340,8 @@ if (SIZE(tab, /n_dim) NE 1) then begin
    if KEYWORD_SET(verbose) then MESSAGE, 'bad size for 2 elements STRARR', /continue
    nb_pbs=nb_pbs+1
 endif
-;
+
+;textoidl uses strstrans which uses strsplit
 vide=''
 if (EXECUTE('res=TEXTOIDL(vide)') EQ 0) then begin
    MESSAGE, /CONTINUE, "Missing TexToIDL in your GDL_PATH or IDL_PATH"
@@ -351,6 +353,9 @@ endif else begin
       nb_pbs=nb_pbs+1
    endif
 endelse
+
+;new version: supports arrays:
+res=strsplit(strarray,COUNT=c, LENGTH=l)
 ;
 line="======================================="
 MESSAGE, /Continue, line

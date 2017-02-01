@@ -28,12 +28,14 @@
 ;   not present simultaneously, return correct length in cases such as
 ;   strsplit('aaaaaaaaaaaaaaaaaaaaaa','b',leng=leng) and 
 ;   strsplit('aaaaaaaaaaaaaaaaaaaaaa','a',leng=leng).
+;   01-Feb-2016 : rewrote after change in STRTOK to handle arrays.
 ;
 ; LICENCE:
 ; Copyright (C)
 ; 2004, Pierre Chanial
 ; 2010, Alain Coulais and Lea Noreskal; 2012 :AC
 ; 2013, Marc Schellens
+; 2016, Gilles Duvert
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
@@ -44,106 +46,50 @@
 ;
 ; ----------------------------------------
 ;
-function STRSPLIT, input1, pattern, count=count, length=length, $
-                   extract=extract, regex=regex, escape=escape, $
-                   fold_case=fold_case, preserve_null=preserve_null, $
-                   test=test, help=help
+function STRSPLIT, strin, pattern, count=count, length=length, extract=extract, _REF_EXTRA=extra
+; note: _REF_EXTRA is *really* important here.
 ;
-ON_ERROR, 2
+  compile_opt idl2, hidden
+  ON_ERROR, 2
 ;
-if KEYWORD_SET(help) then begin
-   print, 'function STRSPLIT, input1, pattern, count=count, length=length, $'
-   print, '                   extract=extract, regex=regex, escape=escape, $'
-   print, '                   fold_case=fold_case, preserve_null=preserve_null, $'
-   print, '                   test=test, help=help'
-   return, -1
-endif
+  if KEYWORD_SET(help) then begin
+     print, 'function STRSPLIT, strin, pattern, count=count, length=length, $'
+     print, '                   extract=extract, regex=regex, escape=escape, $'
+     print, '                   fold_case=fold_case, preserve_null=preserve_null, $'
+     print, '                   test=test, help=help'
+     return, -1
+  endif
 ;
-if N_PARAMS() EQ 0 then begin
-   MESSAGE, 'Variable is undefined: STRINGIN'
-endif
+  if N_PARAMS() EQ 0 then begin
+     MESSAGE, 'Variable is undefined: STRINGIN'
+  endif
 ;
-if N_ELEMENTS(input1) EQ 0 then MESSAGE, 'Variable is undefined: STRINGIN.'
-if N_ELEMENTS(input1) GT 1 then $
-   MESSAGE, 'Expression must be a scalar or 1 element array in this context: STRINGIN.'
-;
-if (N_PARAMS() EQ 2) then begin
-   if N_ELEMENTS(pattern) EQ 0 then MESSAGE, 'Variable is undefined: PATTERN.'
-endif
-;
-;
-;; AC 14-Oct-2010: may be not fully OK (see below)
-;if KEYWORD_SET(regex) and KEYWORD_SET(preserve_null) then begin
-;    MESSAGE, /continue, 'Keywords /REGEX and /PRESERVE_NULL are incompatible, /PRESERVE_NULL is ignored' 
-;endif
-;
-if (SIZE(input1, /type) NE 7) then begin
-   local_input1=STRING(input1)
-   ;;MESSAGE, 'Invalid input string.'
-endif else begin
-   local_input1=input1
-endelse
-;
-if ARG_PRESENT(length) and KEYWORD_SET(extract) then MESSAGE, "Conflicting keywords."
-; we explicitely change String [1] array into pure String.
-local_input1=local_input1[0]
-;
-; When no Pattern is provided, default pattern is white space (' ')
-;
-short_cut=0
-;
-if (STRLEN(local_input1) EQ 0) then begin
-   short_cut=1
-   if KEYWORD_SET(extract) then resu='' else resu=0
-endif
-if (N_PARAMS() EQ 2) then begin
-   if (STRLEN(pattern) EQ 0) then begin
-      short_cut=1
-      if KEYWORD_SET(extract) then resu='' else resu=0
-   endif else begin
-      local_pattern=pattern[0]
-   endelse
-endif
-;
-; When no Pattern is provided, default pattern is white space (' ' and
-; tab)
-;
-if ((short_cut EQ 0) AND (N_PARAMS() EQ 1)) then begin
-   resu=STRTOK(local_input1, extract=extract,$
-               REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
-; 2nd pass for length
-if ARG_PRESENT(length) then  temp=STRTOK(local_input1, LENGTH=length, REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
-endif
-;
-if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
-   resu=STRTOK(local_input1, local_pattern, extract=extract,$
-               REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
-; 2nd pass for length.
- if ARG_PRESENT(length) then temp=STRTOK(local_input1, local_pattern, LENGTH=length, REGEX=regex, preserve_null=preserve_null, escape=escape, fold_case=fold_case)
-endif
-;
-if  ARG_PRESENT(count) then begin
-   if (short_cut EQ 1) then begin
-      count=0
-   endif else begin
-      count=N_ELEMENTS(resu)
-   endelse
-endif
-;
-if KEYWORD_SET(test) then STOP
-;
-if (SIZE(resu,/type) NE 7) then begin
-   resu=LONG(resu)
-endif else begin
-   ;; when we have a non null (not '') string singleton
-   ;; we must return an array
-   if (SIZE(resu,/n_dim) EQ 0) then begin
-      if (STRLEN(resu) GT 0) then resu=REFORM(resu,1)
-   endif
-endelse
-;
-if KEYWORD_SET(test) then STOP
-;
-return, resu
-;
+  n = N_ELEMENTS(strin) 
+  dolength = ARG_PRESENT(length)
+  if N GT 1 then begin
+                                ; new: array input. result is a list,
+                                ; length is a list and count is an
+                                ; array
+    nel=n_elements(pattern)
+    if (nel gt 1 and nel ne n) then message, 'PATTERN must be a scalar or have the same number of elements as STRING.'
+    if (nel eq 1 ) then pattern=replicate(pattern,n)
+
+    out=list()
+    count=lonarr(n)
+    if (dolength) then length = list()
+
+    for i=0,n-1 do begin
+     if (n_params() eq 1) then tmp=strtok(strin[i], count=cnt, length=len, extract=extract, _strict_extra=extra) $
+     else  tmp=strtok(strin[i], pattern[i], count=cnt, length=len, extract=extract, _strict_extra=extra)
+     out.add,tmp
+     count[i]=cnt
+     if (dolength) then length.add,len
+    endfor
+    return, out
+ endif else begin
+; scalar
+     if (n_params() eq 1) then out=strtok(strin, count=count, length=length, extract=extract, _strict_extra=extra) $
+     else  out=strtok(strin, pattern, count=count, length=length, extract=extract, _strict_extra=extra)
+     return,out
+ endelse
 end
