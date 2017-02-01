@@ -85,10 +85,25 @@ endif else begin
     if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 2b OK'
 endelse
 
-print, 'not ready', STREGEX(str, '^f[^o]*t$', /EXTRACT)
-print, 'not ready', STREGEX(str, '^f[^o]*t$', /EXTRACT, /FOLD_CASE)
+resu=STREGEX(str, '^f[^o]*t$', /EXTRACT)
+expected=['' , '' , '' , '' , 'ferret' , '']
+if ~ARRAY_EQUAL(resu, expected) then begin
+    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 3a FAILED'
+    nb_errors=nb_errors+1
+endif else begin
+    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 3a OK'
+endelse
 
-; res: Feet FAST ferret  
+
+resu=STREGEX(str, '^f[^o]*t$', /EXTRACT, /FOLD_CASE)
+expected=['' , 'Feet', '' ,'FAST', 'ferret' ,'']
+if ~ARRAY_EQUAL(resu, expected) then begin
+    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 3b FAILED'
+    nb_errors=nb_errors+1
+endif else begin
+    if KEYWORD_SET(verbose) then MESSAGE, /continue, 'test 3b OK'
+endelse
+
 if (nb_errors GT 0) then begin
     MESSAGE, /continue, STRING(nb_errors)+' Errors found'
     if ~KEYWORD_SET(test) then EXIT, status=1
