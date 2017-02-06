@@ -8,6 +8,9 @@
 # 2017-01-21 : move to 0.9.7
 # 2017-01-31 : fixing various improvments, 
 #              properly skipping Readline/GSL/Cmake if available
+# 2017-02-01 : plplot 5.9.11 had critical problem with CMake 3+
+#              --> if CMake 3.2 around (OSX), use plplot 5.11.1
+#              (different policy on Linux)
 #
 # The purpose of this shell script is to automaticaly compile a minimum GDL
 # as a basic user even if mandatory packages are not available
@@ -76,7 +79,8 @@ check_md5sum(){
 READLINE_URL="ftp://ftp.gnu.org/gnu/readline/readline-6.3.tar.gz"
 GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
 CMAKE_URL="https://cmake.org/files/v2.8/cmake-2.8.12.tar.gz"
-PLPLOT_URL="https://sourceforge.net/projects/plplot/files/plplot/5.9.11%20Source/plplot-5.9.11.tar.gz/download?use_mirror=autoselect"
+PLPLOT_URL59="https://sourceforge.net/projects/plplot/files/plplot/5.9.11%20Source/plplot-5.9.11.tar.gz/download?use_mirror=autoselect"
+PLPLOT_URL511="https://sourceforge.net/projects/plplot/files/plplot/5.11.1%20Source/plplot-5.11.1.tar.gz/download?use_mirror=autoselect"
 GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.7/gdl-0.9.7.tgz"
 GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
 #
@@ -121,6 +125,7 @@ fi
 # ----------------------------------- READLINE -----------------------
 # starting READLINE : if READLINE not found in default places or
 # already compile locally, we compile it
+echo "** preparing READLINE"
 cd $RACINE
 #
 READLINE_PATH=""
@@ -154,7 +159,7 @@ if [[ $step -le 1 && -z $READLINE_PATH ]] ; then
     cd readline-6.3
     mkdir Compilation
     ./configure --prefix=$RACINE/readline-6.3/Compilation/
-    make
+    make -s
     make install
     READLINE_PATH=$RACINE/readline-6.3/Compilation/
     echo "readline Compilation done"
@@ -164,6 +169,7 @@ fi
 # starting GSL : if GSL not found in default places or 
 # already locally compiled, we compile it locally.
 #
+echo "** preparing GSL"
 cd $RACINE
 GSL_CONFIG=`which -a gsl-config`
 if [ -z $GSL_CONFIG ] ; then 
@@ -189,7 +195,7 @@ if [[ $step -le 2 && -z $GSL_PATH ]] ; then
     cd gsl-1.16
     mkdir Compilation
     ./configure --prefix=$RACINE/gsl-1.16/Compilation/
-    make
+    make -s
     make install 
     GSL_PATH=$RACINE/gsl-1.16
     echo "GSL compilation done, version : 1.16"
@@ -198,6 +204,7 @@ fi
 # ----------------------------------- CMAKE -----------------------
 # starting CMAKE : if the sytem is using an old version of CMake
 # we want to use 2.8.12 ... but 2.8.9 is OK too
+echo "** preparing CMAKE"
 cd $RACINE
 #
 do_cmake_compil=1
@@ -232,31 +239,46 @@ if [[ $step -le 3 && $do_cmake_compil -eq 1 ]] ; then
     tar -zxf cmake-2.8.12.tar.gz
     cd cmake-2.8.12
     ./bootstrap
-    make
+    make -s
     echo "CMake compilation done, version 2.8.12"
     CmakeEXE=$PWD/bin/cmake
+    cmake_version=`$CmakeEXE --version | head -1 | awk -F " " '{print $3}'`
 fi
 
 # ----------------------------------- PLPLOT -----------------------
 # starting PLPLOT : we don't want to use packaged PLplot version
 # because of various issues. The options used here ensure stable results.
+echo "** preparing PLPLOT"
 cd $RACINE
 #
+if [[ ${cmake_version:0:3} < "3.2" ]] ; then
+    PLPLOT_URL=$PLPLOT_URL59
+    PLPLOT_MD5="153782509a13938230f740ee446389d0"
+    PLPLOT_NAME=plplot-5.9.11.tar.gz
+    PLPLOT_DIR=plplot-5.9.11
+else
+    PLPLOT_URL=$PLPLOT_URL511
+    PLPLOT_MD5="7a3dbbe49a00f925b095bc06cadbaf63"
+    # for 5.12.0 : PLPLOT_MD5="998a05be218e5de8f2faf988b8dbdc51"
+    PLPLOT_NAME=plplot-5.11.1.tar.gz    
+    PLPLOT_DIR=plplot-5.11.1
+fi
+#
 if [[ $step -le 4 ]] ; then 
-    if [ ! -e plplot-5.9.11.tar.gz ] ; then
-	run_wget_or_curl_no_check $use_curl $PLPLOT_URL plplot-5.9.11.tar.gz
+    if [ ! -e $PLPLOT_NAME ] ; then
+	run_wget_or_curl_no_check $use_curl $PLPLOT_URL $PLPLOT_NAME
     fi
-    check_md5sum plplot-5.9.11.tar.gz "153782509a13938230f740ee446389d0"
+    check_md5sum $PLPLOT_NAME $PLPLOT_MD5
     #
-    tar -zxf plplot-5.9.11.tar.gz
-    cd plplot-5.9.11/
+    tar -zxf $PLPLOT_NAME
+    cd $PLPLOT_DIR
     mkdir Compilation
     cd Compilation
     $CmakeEXE .. -DCMAKE_INSTALL_PREFIX=. \
 	-DENABLE_python=OFF -DENABLE_java=off -DENABLE_qt=off \
-	-DENABLE_tk=off -DENABLE_tcl=off \
-	-DPLD_aqt=off -DPLD_psttf=off -DPLD_wxwidgets=OFF -DDEFAULT_NO_CAIRO_DEVICES=ON
-    make -j $cpus
+	-DENABLE_tk=off -DENABLE_tcl=off -DPLD_aqt=off \
+	-DPLD_psttf=off -DPLD_wxwidgets=OFF -DDEFAULT_NO_CAIRO_DEVICES=ON
+    make -s -j $cpus
     make install 
     echo "Plplot done"
 else 
@@ -266,6 +288,7 @@ fi
 # ----------------------------------- GDL -----------------------
 # starting GDL : 2 cases : with the CVS or the 0.9.7 vanilla version
 # we don't need to manage the step here ... (always 5 or 6)
+echo "** preparing GDL"
 cd $RACINE
 #
 if [ "$gdl_cvs" -eq 1 ] ; then
@@ -298,10 +321,10 @@ cd build
 $CmakeEXE .. \
    -DREADLINEDIR=$READLINE_PATH \
    -DGSLDIR=$GSL_PATH \
-   -DPLPLOTDIR=$RACINE/plplot-5.9.11/Compilation/ \
+   -DPLPLOTDIR=$RACINE/$PLPLOT_DIR/Compilation/ \
    -DWXWIDGETS=off -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF \
    -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPSLIB=OFF -DPYTHON=OFF
-make -j $cpus
+make -s -j $cpus
 #
 if [ "$gdl_check" -eq 1 ] ; then
     make check
