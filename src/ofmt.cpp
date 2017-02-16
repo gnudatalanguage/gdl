@@ -1043,67 +1043,6 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   return tCountOut;
 }
 
-// C code ****************************************************
-    bool j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,
-                  DLong &iHour , DLong &iMinute, DDouble &Second, DLong &dow, DLong &icap)
-    {
-    DDouble JD,Z,F;
-    DLong A,B,C,D,E;
-    JD = jd + 0.5;
-    Z = floor(JD);
-    if (Z < -1095 || Z > 1827933925 ) return FALSE;
-    F = JD - Z;
-    
-    if ((DLong)Z > 0) dow = ((DLong)Z) % 7; else dow = ((DLong)Z+1099) % 7; //just translate axis...
-    
-    if (Z < 2299161) A = (DLong)Z;
-    else {
-      DDouble a;
-      a = (DLong) ((Z - 1867216.25) / 36524.25);
-      A = (DLong) (Z + 1 + a - (DLong)(a / 4));
-    }
-
-    B = A + 1524;
-    C = (DLong) ((B - 122.1) / 365.25);
-    D = (DLong) (365.25 * C);
-    E = (DLong) ((B - D) / 30.6001);
-
-    // month
-    iMonth = E < 14 ? E - 1 : E - 13;
-    iMonth--; //to get a zero-based index;  
-    // iday
-    iDay=B - D - (DLong)(30.6001 * E);
-
-    // year
-//    iYear = iMonth > 2 ? C - 4716 : C - 4715;
-    iYear = iMonth > 1 ? C - 4716 : C - 4715; //with a zero-based index
-    if (iYear < 1) iYear--; //No Year Zero 
-    // hours
-    iHour = (DLong) (F * 24);
-    { //this prevents interpreting 04:00:00 as 03:59:60 !
-      //this kind of rounding up is explained in IDL doc.
-      DDouble FF=F+6E-10;
-      DLong test= (DLong) (FF * 24);
-      if (test > iHour) {iHour=test;F=FF;}
-    }
-    
-    icap = (iHour > 11);
-
-    F -= (DDouble)iHour / 24;
-    // minutes
-    iMinute = (DLong) (F * 1440);
-    { //this prevents interpreting 04:00:00 as 03:59:60 !
-      //this kind of rounding up is explained in IDL doc.
-      DDouble FF=F+6E-10;
-      DLong test= (DLong) (FF * 1440);
-      if (test > iMinute) {iMinute=test;F=FF;}
-    }
-    F -= (DDouble)iMinute / (DDouble)1440;
-    // seconds
-    Second = F * 86400; 
-    return TRUE;
-  }
-
 void outA( ostream* os, string s, int w) 
 {
   if (w==-1) w=3;
@@ -1188,10 +1127,10 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_
         for( SizeT i=0, j=0; j<(r/2); ++j)
         {
           local_os[i]=new ostringstream();
-          if (!j2ymdhms( (*cVal)[offs +j].real(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          if (!j2ymdhms( (*cVal)[offs +j].real(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
           i++;
           local_os[i]=new ostringstream();
-          if (!j2ymdhms( (*cVal)[offs+j].imag(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          if (!j2ymdhms( (*cVal)[offs+j].imag(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
           i++;
         }
         delete cVal;
@@ -1199,7 +1138,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_
         for ( SizeT i = 0; i < r; i++ ) {
           local_os[i]=new ostringstream();
           DDoubleGDL* cVal = static_cast<DDoubleGDL*> (this->Convert2( GDL_DOUBLE, BaseGDL::COPY ));
-          if (!j2ymdhms( (*cVal)[offs + i], iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range."); ;
+          if (!j2ymdhms( (*cVal)[offs + i], iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
           delete cVal;
 //          cerr<<"Dow="<<dow[i]<<" iDay="<<iDay[i]<<" iMonth="<<iMonth[i]<<" iYear="<<iYear[i]<<" iHour="<<iHour[i]<<" iMinute="<<iMinute[i]<<" Second="<<Second[i]<<" icap="<<icap[i]<<endl;
         }

@@ -3253,96 +3253,33 @@ namespace lib {
         else if ((*ret[i])->Rank() != p0->Rank()) (*ret[i])->SetDim(p0->Dim());
       }
     }
-    int A, a, B, C, D, E, hours, minutes, months;
-    double JD, F, Z;
     // loop over input elements
     for (SizeT i = 0; i < nEl; i++) {
-      JD = (*p0)[i] + 0.5;
-      Z = floor(JD);
-      F = JD - Z;
+      DLong iMonth, iDay, iYear, iHour, iMinute, dow, icap;
+      DDouble Second;
+      if (!j2ymdhms( (*p0)[i], iMonth, iDay, iYear, iHour, iMinute, Second, dow, icap )) throw GDLException("Value of Julian date is out of allowed range.");     
 
-      if (Z < 2299161) A = (int) Z;
-      else {
-        a = (int) ((Z - 1867216.25) / 36524.25);
-        A = (int) (Z + 1 + a - (int) (a / 4));
-      }
-
-      B = A + 1524;
-      C = (int) ((B - 122.1) / 365.25);
-      D = (int) (365.25 * C);
-      E = (int) ((B - D) / 30.6001);
-
-      // months
-      months = E < 14 ? E - 1 : E - 13;
-      if (global[1 - 1])
-        (*static_cast<DLongGDL*> (*ret[1 - 1]))[i] = months;
+      if (global[1 - 1]) (*static_cast<DLongGDL*> (*ret[1 - 1]))[i] = iMonth+1;
 
       // days
-      if (global[2 - 1])
-        (*static_cast<DLongGDL*> (*ret[2 - 1]))[i] = B - D - (int) (30.6001 * E);
+      if (global[2 - 1]) (*static_cast<DLongGDL*> (*ret[2 - 1]))[i] = iDay;
 
       // years
-      if (global[3 - 1]) {
-        (*static_cast<DLongGDL*> (*ret[3 - 1]))[i] = months > 2 ? C - 4716 : C - 4715;
-        if ((*static_cast<DLongGDL*> (*ret[3 - 1]))[i] < 0)
-          (*static_cast<DLongGDL*> (*ret[3 - 1]))[i] -= 1;
-      }
+      if (global[3 - 1]) (*static_cast<DLongGDL*> (*ret[3 - 1]))[i] = iYear;
 
       if (!(global[4 - 1] || global[5 - 1] || global[6 - 1])) continue;
 
       // hours
-      hours = (int) (F * 24);
-      F -= (double) hours / 24;
-      if (global[4 - 1])
-        (*static_cast<DLongGDL*> (*ret[4 - 1]))[i] = hours;
+      if (global[4 - 1]) (*static_cast<DLongGDL*> (*ret[4 - 1]))[i] = iHour;
 
       // minutes
-      minutes = (int) (F * 1440);
-      F -= (double) minutes / 1440;
-      if (global[5 - 1])
-        (*static_cast<DLongGDL*> (*ret[5 - 1]))[i] = minutes;
+      if (global[5 - 1]) (*static_cast<DLongGDL*> (*ret[5 - 1]))[i] = iMinute;
 
       // seconds
-      if (global[6 - 1])
-        (*static_cast<DDoubleGDL*> (*ret[6 - 1]))[i] = F * 86400;
+      if (global[6 - 1]) (*static_cast<DDoubleGDL*> (*ret[6 - 1]))[i] = Second;
     }
     // now guarded. s. a.
     //     free((void *)ret);
-  }
-
-  bool dateToJD(DDouble &jd, DLong &day, DLong &month, DLong &year, DLong &hour, DLong &minute, DDouble &second) {
-    if (year < -4716 || year > 5000000 || year == 0) return false;
-
-    // the following tests seem to be NOT active in IDL. We choose to mimic it.
-    //    if (month < 1 || month > 12) return false;
-    //    if (day < 0 || day > 31) return false;
-    //these one too...
-    // if (hour < 0 || hour > 24) return false;
-    // if (minute < 0 || minute > 60) return false;
-    // if (second < 0 || second > 60) return false;
-
-    DDouble a, y, b;
-    DLong m;
-    y = (year > 0) ? year : year + 1; //we use here a calendar with no year 0 (not astronomical)
-    m = month;
-    b = 0.0;
-    if (month <= 2) {
-      y = y - 1.0;
-      m = m + 12;
-    }
-    if (y >= 0) {
-      if (year > 1582 || (year == 1582 && (month > 10 ||
-        (month == 10 && day > 14)))) {
-        a = floor(y / 100.0);
-        b = 2.0 - a + floor(a / 4.0);
-      } else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
-        jd = 2299161; //date does not move
-        return true;
-      }
-    }
-    jd = floor(365.25 * y) + floor(30.6001 * (m + 1)) + day + (hour * 1.0) / 24.0 + (minute * 1.0) / 1440.0 +
-      (second * 1.0) / 86400.0 + 1720994.50 + b;
-    return true;
   }
 
   BaseGDL* julday(EnvT* e) {

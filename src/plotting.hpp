@@ -368,7 +368,7 @@ namespace lib {
   void gdlStoreCLIP(DLongGDL* clipBox);
   void GetCurrentUserLimits(GDLGStream *a, 
 			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
-  PLFLT gdlAdjustAxisRange(DDouble &val_min, DDouble &val_max, bool log = false);
+  PLFLT gdlAdjustAxisRange(DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
@@ -884,7 +884,38 @@ namespace lib {
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisTicks);
   }
-
+  
+  static void gdlGetCalendarCode(EnvT* e, string axis, int &code)
+  {
+    static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
+    static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
+    static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
+    int choosenIx;
+    DStructGDL* Struct=NULL;
+    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
+    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
+    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
+    DStringGDL* axisTickunitsVect=NULL;
+    if ( Struct!=NULL )
+    {
+      static unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
+      axisTickunitsVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTickunitsTag,0));
+    }
+    if ( e->GetKW ( choosenIx )!=NULL )
+    {
+      axisTickunitsVect=e->GetKWAs<DStringGDL>( choosenIx );
+    }
+    code=0;
+    DString what=StrUpCase((*axisTickunitsVect)[0]);
+    if (what.substr(0,4)=="YEAR") code=1;
+    else if (what.substr(0,5)=="MONTH") code=2;
+    else if (what.substr(0,3)=="DAY") code=3;
+    else if (what.substr(0,4)=="HOUR") code=4;
+    else if (what.substr(0,6)=="MINUTE") code=5;
+    else if (what.substr(0,6)=="SECOND") code=6;
+    else if (what.substr(0,4)=="TIME") code=7;
+  }
+ 
  static void gdlGetDesiredAxisTickUnits(EnvT* e, string axis, DStringGDL* &axisTickunitsVect)
   {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
@@ -1810,7 +1841,55 @@ namespace lib {
           if (axis=="X") 
           {
             a->smaj(a->mmCharHeight(), 1.0 );
-            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3*a->nCharHeight()),quatre);
+            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
+            DString what=StrUpCase((*TickUnits)[i]);
+            int convcode=0;
+            if (what.substr(0,4)=="YEAR") convcode=1;
+            else if (what.substr(0,5)=="MONTH") convcode=2;
+            else if (what.substr(0,3)=="DAY") convcode=3;
+            else if (what.substr(0,4)=="HOUR") convcode=4;
+            else if (what.substr(0,6)=="MINUTE") convcode=5;
+            else if (what.substr(0,6)=="SECOND") convcode=6;
+            else if (what.substr(0,4)=="TIME")
+            {
+              if(muaxdata.axisrange>=366)  convcode=1;
+              else if(muaxdata.axisrange>=32)  convcode=2;
+              else if(muaxdata.axisrange>=1.1)  convcode=3;
+              else if(muaxdata.axisrange*24>=1.1)  convcode=4;
+              else if(muaxdata.axisrange*24*60>=1.1)  convcode=5;
+              else convcode=6;
+            }
+            PLFLT xa,xb;
+            switch(convcode){
+             case 1:
+              xa=xun/365.25;
+              xb=xdeux/365.25;
+              break;
+             case 2:
+              xa=xun/30.;
+              xb=xdeux/30.;
+              break;
+             case 3:
+              xa=xun;
+              xb=xdeux;
+              break;
+             case 4:
+              xa=xun*24.;
+              xb=xdeux*24.;
+              break;
+             case 5:
+              xa=xun*(24.*60.);
+              xb=xdeux*(24.*60.);
+              break;
+             case 6:
+              xa=xun*(86400.);
+              xb=xdeux*(86400.);
+              break;
+             default:
+              break;
+            }
+            a->plstream::wind(xa,xb,xtrois,xquatre);
+            a->box(Opt.c_str(), 0, Minor, "", 0.0, 0);
             a->plstream::wind(xun,xdeux,xtrois,xquatre);
             a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
           }

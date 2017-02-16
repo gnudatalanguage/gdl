@@ -29,6 +29,7 @@
 #include "dstructgdl.hpp"
 #include "datalistt.hpp"
 #include "extrat.hpp"
+#include "calendar.hpp"
 
 //#define GDL_DEBUG
 #undef GDL_DEBUG

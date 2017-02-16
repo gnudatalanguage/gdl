@@ -194,15 +194,14 @@ namespace lib
   }
 #undef EXTENDED_DEFAULT_LOGRANGE
 
-
-  //improved version of "AutoIntv" for:
+   //improved version of "AutoIntv" for:
   // 1/ better managing ranges when all the data have same value
   // 2/ mimic IDL behavior when data are all positive
   // please notice that (val_min, val_max) will be changed
   // and "epsilon" is a coefficient if "extended range" is expected
   // input: linear min and max, output: linear min and max.
 
-  PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log) {
+  PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
     gdlHandleUnwantedAxisValue(start, end, log);
 
     DDouble min, max;
@@ -261,14 +260,84 @@ namespace lib
     if (cas == 0) //rounding is not aka idl due to use of ceil and floor. TBD.
     {
       x = max - min;
-      intv = AutoIntv(x);
-      if (log) {
-        max = ceil((max / intv) * intv);
-        min = floor((min / intv) * intv);
-      } else {
-        max = ceil(max / intv) * intv;
-        min = floor(min / intv) * intv;
+      //correct this for calendar values (round to nearest year, month, etc)
+      if ( code > 0) {
+        if (code ==7 ) {
+              if(x>=366)  code=1;
+              else if(x>=32)  code=2;
+              else if(x>=1.1)  code=3;
+              else if(x*24>=1.1)  code=4;
+              else if(x*24*60>=1.1)  code=5;
+              else code=6;
+        }
+        static int monthSize[]={31,28,31,30,31,30,31,31,30,31,30,31};
+        DLong Day1,Day2 , Year1,Year2 , Hour1,Hour2 , Minute1,Minute2, MonthNum1,MonthNum2;
+        DLong idow1,icap1,idow2,icap2;
+        DDouble Seconde1,Seconde2;
+        j2ymdhms(min, MonthNum1 , Day1 , Year1 , Hour1 , Minute1, Seconde1, idow1, icap1);
+        j2ymdhms(max, MonthNum2 , Day2 , Year2 , Hour2 , Minute2, Seconde2, idow2, icap2);
+        switch(code){
+             case 1:
+               //           day mon year h m s.s
+               dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
+               dateToJD(max, 1, 1, Year2+1, 0, 0, 0.0);
+              break;
+             case 2:
+               dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
+               MonthNum2++;
+               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
+               dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
+               break;
+             case 3:
+               dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
+               Day2++;
+               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
+               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
+               dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
+               break;
+             case 4:
+               dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
+               Hour2++;
+               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
+               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
+               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
+               dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
+               break;
+             case 5:
+               dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
+               Minute2++;
+               if (Minute2 > 59) {Minute2-=60; Hour2+=1;}
+               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
+               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
+               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
+               dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
+               break;
+             case 6:
+               dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
+               Seconde2++;
+               if (Seconde2 > 59) {Seconde2-=60; Minute2+=1;}
+               if (Minute2 > 59) {Minute2-=60; Hour2+=1;}
+               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
+               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
+               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
+               dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
+               break;
+             default:
+              break;
+            }
+      } 
+      else {      
+        intv = AutoIntv(x);
+        if (log) {
+          max = ceil((max / intv) * intv);
+          min = floor((min / intv) * intv);
+        } else {
+          max = ceil(max / intv) * intv;
+          min = floor(min / intv) * intv;
+        }
       }
+      
+
     }
 
     if (debug) {
@@ -1076,56 +1145,6 @@ namespace lib
     } 
   }
 
-   void tickformat_date(PLFLT juliandate, string &Month , PLINT &Day , PLINT &Year , PLINT &Hour , PLINT &Minute, PLFLT &Second)
-    {
-    static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-    PLFLT JD,Z,F,a;
-    PLINT A,B,C,D,E,month;
-    JD = juliandate + 0.5;
-    Z = floor(JD);
-    F = JD - Z;
-
-    if (Z < 2299161) A = (PLINT)Z;
-    else {
-      a = (PLINT) ((Z - 1867216.25) / 36524.25);
-      A = (PLINT) (Z + 1 + a - (PLINT)(a / 4));
-    }
-
-    B = A + 1524;
-    C = (PLINT) ((B - 122.1) / 365.25);
-    D = (PLINT) (365.25 * C);
-    E = (PLINT) ((B - D) / 30.6001);
-
-    // month
-    month = E < 14 ? E - 1 : E - 13;
-    Month=theMonth[month-1];
-    // day
-    Day=B - D - (PLINT)(30.6001 * E);
-    // year
-    Year = month > 1 ? C - 4716 : C - 4715; //with a zero-based index
-    if (Year < 1 ) Year--; //No Year Zero
-    // hours
-    Hour = (PLINT) (F * 24);
-    { //this prevents interpreting 04:00:00 as 03:59:60 !
-      //this kind of rounding up is explained in IDL doc.
-      DDouble FF=F+6E-10;
-      PLINT test= (PLINT) (FF * 24);
-      if (test > Hour) {Hour=test;F=FF;}
-    }
-    F -= (DDouble)Hour / 24;
-    // minutes
-    Minute = (PLINT) (F * 1440);
-    { //this prevents interpreting 04:00:00 as 03:59:60 !
-      //this kind of rounding up is explained in IDL doc.
-      DDouble FF=F+6E-10;
-      DLong test= (DLong) (FF * 1440);
-      if (test > Minute) {Minute=test;F=FF;}
-    }
-    F -= (DDouble)Minute / (DDouble)1440;
-    // seconds
-    Second = F * 86400;
-  }
-
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
@@ -1258,8 +1277,8 @@ namespace lib
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
     static DLong lastUnits=0;
-    string Month;
-    PLINT Day , Year , Hour , Minute;
+    static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+    PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )data;
     tdata.isLog=ptr->isLog;
@@ -1289,7 +1308,7 @@ namespace lib
           newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
           // make the call
           BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-          strcpy(label,(*static_cast<DStringGDL*>(res))[0].c_str()); 
+          strncpy(label,(*static_cast<DStringGDL*>(res))[0].c_str(),1000); 
         }
         else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
           //    else pass also Level(int)
@@ -1318,26 +1337,24 @@ namespace lib
           BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree()); 
           // we are the owner of the returned value
           Guard<BaseGDL> retGuard( retValGDL);
-          strcpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str()); 
+          strncpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str(),1000); 
         }
       }
     }
-    else if (ptr->what==GDL_TICKUNITS)
+    else if (ptr->what==GDL_TICKUNITS || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter >= ptr->nTickFormat))
     {
       if (ptr->counter > ptr->nTickUnits-1)
       {
         doOurOwnFormat(axis, value, label, length, &tdata);
-//        snprintf( label, length, "%f", value );
       }
       else
       {
         DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
-        DDouble range=abs(ptr->axismax-ptr->axismin);
-        tickformat_date(value, Month , Day , Year , Hour , Minute, Second);
+        j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
         if (what.substr(0,4)=="YEAR")
           snprintf( label, length, "%d", Year);
         else if (what.substr(0,5)=="MONTH")
-          snprintf( label, length, "%s", Month.c_str());
+          snprintf( label, length, "%s", theMonth[Month].c_str());
         else if (what.substr(0,3)=="DAY")
           snprintf( label, length, "%d", Day);
         else if (what.substr(0,4)=="HOUR")
@@ -1348,11 +1365,11 @@ namespace lib
           snprintf( label, length, "%f", Second);
         else if (what.substr(0,4)=="TIME")
         {
-          if(range>=366) snprintf( label, length, "%d", Year);
-          else if(range>=32) snprintf( label, length, "%s", Month.c_str());
-          else if(range>=1.1) snprintf( label, length, "%d", Day);
-          else if(range*24>=1.1) snprintf( label, length, "%d", Hour);
-          else if(range*24*60>=1.1) snprintf( label, length, "%d", Minute);
+          if(ptr->axisrange>=366) snprintf( label, length, "%d", Year);
+          else if(ptr->axisrange>=32) snprintf( label, length, "%s", theMonth[Month].c_str());
+          else if(ptr->axisrange>=1.1) snprintf( label, length, "%d", Day);
+          else if(ptr->axisrange*24>=1.1) snprintf( label, length, "%d", Hour);
+          else if(ptr->axisrange*24*60>=1.1) snprintf( label, length, "%d", Minute);
           else snprintf( label, length, "%04.1f",Second);
         }
         else snprintf( label, length, "%g", value );

@@ -42,6 +42,8 @@ basic_fun_cl.hpp
 basic_fun_jmg.cpp
 basic_fun_jmg.hpp
 basic_op.cpp
+calendar.hpp
+calendar.cpp
 cformat.g
 color.cpp
 color.hpp

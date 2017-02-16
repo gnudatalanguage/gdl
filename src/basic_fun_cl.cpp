@@ -136,38 +136,6 @@ namespace lib {
 #endif
   }
 
-
-  double Gregorian2Julian(struct tm *ts)
-  {
-    double jd;
-    // SA: gives bad results, e.g.: 
-    // IDL> print, systime(/julian), f='(G)'
-    //    2454995.131712963
-    // GDL> print, systime(/julian), f='(G)'
-    //    2454994.527534722
-    //
-    // jd = 367.0*(1900.+ts->tm_year) 
-    //   - (7.0*((1900.+ts->tm_year) + ((1+ts->tm_mon+9.0)/12.0))/4.0)
-    //   + (275.0*(1+ts->tm_mon)/9.0)+ts->tm_mday 
-    //   + (ts->tm_hour + (ts->tm_min + ts->tm_sec/60.0)/60.0)/24.0 
-    //   + 1721013.5;
-    //
-    // SA: an alterntive from the NOVAS library 
-    //     (http://aa.usno.navy.mil/software/novas/novas_c/novasc_info.php)
-    jd = ts->tm_mday - 32075L + 1461L * (ts->tm_year + 1900 + 4800L
-      + (1 + ts->tm_mon - 14L) / 12L) / 4L 
-      + 367L * (1 + ts->tm_mon - 2L - (1 + ts->tm_mon - 14L) / 12L * 12L) 
-      / 12L - 3L * ((1900 + ts->tm_year + 4900L + (1 + ts->tm_mon - 14L) / 12L) 
-      / 100L) / 4L
-      + (ts->tm_hour + (ts->tm_min + ts->tm_sec/60.0)/60.0)/24.0 - .5;
-    // SA: end of modifications, the code below was here before
-    
-    if ((100.0*(1900.+ts->tm_year)  + 1+ts->tm_mon - 190002.5) < 0) jd=jd+1.0;
-
-    return jd;
-
-  }
-
   BaseGDL* systime(EnvT* e)
   {
     struct timeval tval;

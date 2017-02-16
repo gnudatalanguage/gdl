@@ -41,7 +41,8 @@ namespace lib {
     DLong iso;
     bool doT3d;
     DFloat  UsymConvX, UsymConvY;
-
+    int calendar_codex;
+    int calendar_codey;
 private:
 
   bool handle_args(EnvT* e) 
@@ -196,14 +197,23 @@ private:
     static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
     static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      xLog = FALSE;
+    calendar_codex = 0;
+    calendar_codey = 0;
+    if ( e->KeywordSet( xTickunitsIx ) ) {
+      if (xLog) {
+        Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+        xLog = FALSE;
+      }
+      gdlGetCalendarCode(e,"X",calendar_codex);
     }
-    if ( yLog && e->KeywordSet( yTickunitsIx ) ) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      yLog = FALSE;
+    if ( e->KeywordSet( yTickunitsIx ) ) {
+      if (yLog) {
+        Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+        yLog = FALSE;
+      }
+       gdlGetCalendarCode(e,"Y",calendar_codey);
     }
+
 
     //    cout << xLog << " " << yLog << endl;
 
@@ -301,10 +311,10 @@ private:
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog);
+      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog, calendar_codex);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog);
+      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog, calendar_codey);
     }
 
     // MARGIN

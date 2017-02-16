@@ -770,43 +770,6 @@ int getPosInStringArray(string *array, int nval, string what)
   }
   return -1;
 }
-    bool convertDateToJD(DDouble &jd, DLong &day, DLong &month, DLong &year, DLong &hour, DLong &minute, DDouble &second)
-    {
-      if (year < -4716 || year > 5000000 || year == 0) return false;
-
-      // the following tests seem to be NOT active in IDL. We choose to mimic it.
-      //    if (month < 1 || month > 12) return false;
-      //    if (day < 0 || day > 31) return false;
-      //these one too...
-      // if (hour < 0 || hour > 24) return false;
-      // if (minute < 0 || minute > 60) return false;
-      // if (second < 0 || second > 60) return false;
-
-      DDouble a, y, b;
-      DLong m;
-      y = (year > 0) ? year : year + 1; //we use here a calendar with no year 0 (not astronomical)
-      m = month;
-      b = 0.0;
-      if (month <= 2)
-	{
-	  y = y - 1.0;
-	  m = m + 12;
-	}
-      if (y >= 0) {
-	if (year > 1582 || (year == 1582 && (month > 10 ||
-					     (month == 10 && day > 14)))) {
-	  a = floor(y / 100.0);
-	  b = 2.0 - a + floor(a / 4.0);
-	}
-	else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
-	  jd = 2299161; //date does not move 
-	  return true;
-	}
-      }
-      jd = floor(365.25*y) + floor(30.6001*(m + 1)) + day + (hour*1.0) / 24.0 + (minute*1.0) / 1440.0 +
-	(second*1.0) / 86400.0 + 1720994.50 + b;
-      return true;
-    }
 
  static string theMonth[12]={"January","February","March","April","May","June",
     "July","August","September","October","November","December"};
@@ -838,8 +801,7 @@ int getPosInStringArray(string *array, int nval, string what)
       if (iHour < 13 && icap == 2) {//sole case icap plays a role
         iHour += 12;
       }
-      convertDateToJD(Value, iDay, iMonth, iYear, iHour, iMinute, Second);
-//      cerr<<"Value="<<Value<<" iDay="<<iDay<<" iMonth="<<iMonth<<" iYear="<<iYear<<" iHour"<<iHour<<" iMinute"<<iMinute<<" Second"<<Second<<endl;
+      if (!dateToJD(Value, iDay, iMonth, iYear, iHour, iMinute, Second)) throw GDLException("Invalid Julian date input.");
       iMonth=1; iDay=1; iYear=1; iHour=12; iMinute=0; Second=0.0; icap=0; //IDL default...
       break;
     case BaseGDL::DEFAULT:
