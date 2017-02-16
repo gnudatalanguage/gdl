@@ -31,7 +31,7 @@
 struct SpDByte: public BaseGDL
 {
   SpDByte();
-  SpDByte( const dimension& dim_);
+  explicit SpDByte( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -82,7 +82,7 @@ struct SpDByte: public BaseGDL
 struct SpDInt: public BaseGDL
 {
   SpDInt();
-  SpDInt( const dimension& dim_);
+  explicit SpDInt( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -132,7 +132,7 @@ struct SpDInt: public BaseGDL
 struct SpDUInt: public BaseGDL
 {
   SpDUInt();
-  SpDUInt( const dimension& dim_);
+  explicit SpDUInt( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -183,7 +183,7 @@ struct SpDUInt: public BaseGDL
 struct SpDLong: public BaseGDL
 {
   SpDLong();
-  SpDLong( const dimension& dim_);
+  explicit SpDLong( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -234,7 +234,7 @@ struct SpDLong: public BaseGDL
 struct SpDULong: public BaseGDL
 {
   SpDULong();
-  SpDULong( const dimension& dim_);
+  explicit SpDULong( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -285,7 +285,7 @@ struct SpDULong: public BaseGDL
 struct SpDLong64: public BaseGDL
 {
   SpDLong64();
-  SpDLong64( const dimension& dim_);
+  explicit  SpDLong64( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -336,7 +336,7 @@ struct SpDLong64: public BaseGDL
 struct SpDULong64: public BaseGDL
 {
   SpDULong64();
-  SpDULong64( const dimension& dim_);
+  explicit SpDULong64( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -387,7 +387,7 @@ struct SpDULong64: public BaseGDL
 struct SpDFloat: public BaseGDL
 {
   SpDFloat();
-  SpDFloat( const dimension& dim_);
+  explicit SpDFloat( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -437,7 +437,7 @@ struct SpDFloat: public BaseGDL
 struct SpDDouble: public BaseGDL
 {
   SpDDouble();
-  SpDDouble( const dimension& dim_);
+  explicit SpDDouble( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -488,7 +488,7 @@ struct SpDDouble: public BaseGDL
 struct SpDString: public BaseGDL
 {
   SpDString();
-  SpDString( const dimension& dim_);
+  explicit SpDString( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -541,7 +541,7 @@ struct SpDStruct: public BaseGDL
 protected:
   DStructDesc* desc;
 
-  SpDStruct( DStructDesc* desc_=NULL);
+  explicit SpDStruct( DStructDesc* desc_=NULL);
   SpDStruct( DStructDesc* desc_, const dimension& dim_);
 
   void MakeOwnDesc()
@@ -603,7 +603,7 @@ public:
 struct SpDPtr: public BaseGDL
 {
   SpDPtr();
-  SpDPtr( const dimension& dim_);
+  explicit SpDPtr( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -654,7 +654,7 @@ struct SpDPtr: public BaseGDL
 struct SpDObj: public BaseGDL
 {
   SpDObj();
-  SpDObj( const dimension& dim_);
+  explicit SpDObj( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -704,7 +704,7 @@ struct SpDObj: public BaseGDL
 struct SpDComplex: public BaseGDL
 {
   SpDComplex();
-  SpDComplex( const dimension& dim_);
+  explicit SpDComplex( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
@@ -755,7 +755,7 @@ struct SpDComplex: public BaseGDL
 struct SpDComplexDbl: public BaseGDL
 {
   SpDComplexDbl();
-  SpDComplexDbl( const dimension& dim_);
+  explicit SpDComplexDbl( const dimension& dim_);
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;

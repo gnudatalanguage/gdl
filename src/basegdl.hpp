@@ -450,7 +450,7 @@ public:
   virtual ~BaseGDL(); // defined in basegdl.cpp
 
   BaseGDL();//: dim() {} 
-  BaseGDL(const dimension& dim_);//: dim(dim_) {} 
+  explicit BaseGDL(const dimension& dim_);//: dim(dim_) {} 
 
 
   // provide access to dim member

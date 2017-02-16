@@ -141,7 +141,7 @@ private:
 public:
   ProgNode();
 
-  ProgNode( const RefDNode& refNode);
+  explicit ProgNode( const RefDNode& refNode);
 
   // tree translation takes place here
   // see newprognode.cpp
@@ -339,7 +339,7 @@ class DefaultNode: public ProgNode
 public:
   DefaultNode(): ProgNode()  {}  
 
-  DefaultNode( const RefDNode& refNode): ProgNode( refNode) 
+  explicit DefaultNode( const RefDNode& refNode): ProgNode( refNode) 
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
@@ -360,7 +360,7 @@ public:
 public:
   RETPNode(): DefaultNode()  {}
 	
-  RETPNode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit RETPNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class RETFNode: public DefaultNode
@@ -371,7 +371,7 @@ public:
 public:
   RETFNode(): DefaultNode()  {}
 	
-  RETFNode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit RETFNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class GOTONode: public DefaultNode
@@ -391,7 +391,7 @@ public:
 public:
   GOTONode(): DefaultNode()  {}
 	
-  GOTONode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit GOTONode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class CONTINUENode: public DefaultNode
@@ -413,7 +413,7 @@ public:
 public:
   CONTINUENode(): DefaultNode()  {}
 	
-  CONTINUENode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit CONTINUENode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class BREAKNode: public DefaultNode
@@ -438,7 +438,7 @@ public:
 public:
   BREAKNode(): DefaultNode(), breakTargetSet(false)  {}
 	
-  BREAKNode( const RefDNode& refNode): DefaultNode( refNode), breakTargetSet(false)
+  explicit BREAKNode( const RefDNode& refNode): DefaultNode( refNode), breakTargetSet(false)
   {}
 };
 class LABELNode: public DefaultNode
@@ -450,7 +450,7 @@ public:
 public:
   LABELNode(): DefaultNode()  {}
 	
-  LABELNode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit LABELNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class ON_IOERROR_NULLNode: public DefaultNode
@@ -462,7 +462,7 @@ public:
 public:
   ON_IOERROR_NULLNode(): DefaultNode()  {}
 	
-  ON_IOERROR_NULLNode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit ON_IOERROR_NULLNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 class ON_IOERRORNode: public DefaultNode
@@ -474,7 +474,7 @@ public:
 public:
   ON_IOERRORNode(): DefaultNode()  {}
 	
-  ON_IOERRORNode( const RefDNode& refNode): DefaultNode( refNode)
+  explicit ON_IOERRORNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
 
@@ -504,7 +504,7 @@ public:
 public:
   BreakableNode(): ProgNode()  {}
 
-  BreakableNode( const RefDNode& refNode): ProgNode( refNode)
+  explicit BreakableNode( const RefDNode& refNode): ProgNode( refNode)
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
@@ -611,7 +611,7 @@ public:
 public:
   FORNode(): BreakableNode()  {}
 
-  FORNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit FORNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     ProgNodeP keep = down->GetNextSibling();
     down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling());
@@ -719,7 +719,7 @@ public:
 public:
   FOR_STEPNode(): BreakableNode()  {}
 
-  FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     ProgNodeP keep = down->GetNextSibling();
     down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling());
@@ -823,7 +823,7 @@ public:
 public:
   FOREACHNode(): BreakableNode()  {}
 
-  FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     ProgNodeP keep = down->GetNextSibling();
     down->SetRight( down->GetNextSibling()->GetNextSibling());
@@ -926,7 +926,7 @@ public:
 public:
   FOREACH_INDEXNode(): BreakableNode()  {}
 
-  FOREACH_INDEXNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit FOREACH_INDEXNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     // down is variable,array,variable
     ProgNodeP keep = down->GetNextSibling(); // the array to loop over
@@ -970,7 +970,7 @@ public:
 public:
   WHILENode(): BreakableNode()  {}
 
-  WHILENode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit WHILENode( const RefDNode& refNode): BreakableNode( refNode)
   {
     assert( down != NULL);
   
@@ -1047,7 +1047,7 @@ public:
 public:
   REPEATNode(): BreakableNode()  {}
 
-  REPEATNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit REPEATNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     REPEAT_LOOPNode* repeatLoop = new REPEAT_LOOPNode( NULL, down);
     repeatLoop->KeepRight( right);
@@ -1103,7 +1103,7 @@ public:
 public:
   CASENode(): BreakableNode()  {}
 
-  CASENode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit CASENode( const RefDNode& refNode): BreakableNode( refNode)
   {
     assert( down != NULL);
 	
@@ -1191,7 +1191,7 @@ public:
 public:
   SWITCHNode(): BreakableNode()  {}
 
-  SWITCHNode( const RefDNode& refNode): BreakableNode( refNode)
+  explicit SWITCHNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     assert( down != NULL);
 
@@ -1261,7 +1261,7 @@ public:
 public:
   BLOCKNode(): ProgNode()  {}
 
-  BLOCKNode( const RefDNode& refNode): ProgNode( refNode)
+  explicit BLOCKNode( const RefDNode& refNode): ProgNode( refNode)
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
@@ -1298,7 +1298,7 @@ public:
 public:
   IFNode(): ProgNode()  {}
 
-  IFNode( const RefDNode& refNode): ProgNode( refNode)
+  explicit IFNode( const RefDNode& refNode): ProgNode( refNode)
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
@@ -1353,7 +1353,7 @@ public:
 public:
   IF_ELSENode(): ProgNode()  {}
 
-  IF_ELSENode( const RefDNode& refNode): ProgNode( refNode)
+  explicit IF_ELSENode( const RefDNode& refNode): ProgNode( refNode)
   {
     // 	std::cout << "IF_ELSENode" << std::endl;
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
@@ -1398,7 +1398,7 @@ class EnvBaseT;
 class ParameterNode: public DefaultNode
 {
 public:
-  ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  explicit ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
   virtual void Parameter( EnvBaseT* actEnv);
   virtual bool ParameterDirect( BaseGDL*& paramP); // returns isReference
   //   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
@@ -1407,7 +1407,7 @@ public:
 class ParameterVNNode: public ParameterNode
 {
 public:
-  ParameterVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit ParameterVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1415,7 +1415,7 @@ public:
 class KEYDEF_REFNode: public ParameterNode
 {
 public:
-  KEYDEF_REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit KEYDEF_REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1423,7 +1423,7 @@ public:
 class KEYDEF_REF_EXPRNode: public ParameterNode
 {
 public:
-  KEYDEF_REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit KEYDEF_REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1431,7 +1431,7 @@ public:
 class KEYDEF_REF_CHECKNode: public ParameterNode
 {
 public:
-  KEYDEF_REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit KEYDEF_REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1439,7 +1439,7 @@ public:
 class KEYDEFNode: public ParameterNode
 {
 public:
-  KEYDEFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit KEYDEFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1447,7 +1447,7 @@ public:
 class REF_EXPRNode: public ParameterNode
 {
 public:
-  REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);// returns isReference
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
@@ -1455,7 +1455,7 @@ public:
 class REF_EXPRVNNode: public ParameterNode
 {
 public:
-  REF_EXPRVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REF_EXPRVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1463,7 +1463,7 @@ public:
 class REF_CHECKNode: public ParameterNode
 {
 public:
-  REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);// returns isReference
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
@@ -1471,7 +1471,7 @@ public:
 class REF_CHECKVNNode: public ParameterNode
 {
 public:
-  REF_CHECKVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REF_CHECKVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1479,7 +1479,7 @@ public:
 class REFNode: public ParameterNode
 {
 public:
-  REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);// returns isReference
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
@@ -1487,7 +1487,7 @@ public:
 class REFVNNode: public ParameterNode
 {
 public:
-  REFVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  explicit REFVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
@@ -1499,7 +1499,7 @@ class CommandNode: public DefaultNode
 protected:
   CommandNode(): DefaultNode() {}
 public:
-  CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  explicit CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
 };
 
 // call C++ function as GDL FUNCTION
@@ -1516,7 +1516,7 @@ class WRAPPED_FUNNode: public CommandNode
   BaseGDL* (*fun)( EnvUDT*);
 public:
   bool IsWrappedNode() { return true;}
-  WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
+  explicit WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
   RetCode Run();
 };
 // call C++ function as GDL PRO
@@ -1525,14 +1525,14 @@ class WRAPPED_PRONode: public CommandNode
   void (*pro)( EnvUDT*);
 public:
   bool IsWrappedNode() { return true;}
-  WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
+  explicit WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
   RetCode Run();
 };
 
 class ASSIGNNode: public CommandNode
 {
 public:
-  ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
@@ -1541,7 +1541,7 @@ public:
 class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
 {
 public:
-  ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
@@ -1550,7 +1550,7 @@ public:
 class ASSIGN_REPLACENode: public CommandNode
 {
 public:
-  ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
@@ -1560,30 +1560,30 @@ public:
 class PCALL_LIBNode: public CommandNode
 {
 public:
-  PCALL_LIBNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit PCALL_LIBNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
 };
 class MPCALLNode: public CommandNode
 {
 public:
-  MPCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit MPCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
 };
 class MPCALL_PARENTNode: public CommandNode
 {
 public:
-  MPCALL_PARENTNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit MPCALL_PARENTNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
 };
 class PCALLNode: public CommandNode
 {
 public:
-  PCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
+  explicit PCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
 };
 class DECNode: public CommandNode
 { public:
-  DECNode( const RefDNode& refNode): CommandNode( refNode){}
+  explicit DECNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
@@ -1591,7 +1591,7 @@ class DECNode: public CommandNode
 };
 class INCNode: public CommandNode
 { public:
-  INCNode( const RefDNode& refNode): CommandNode( refNode){}
+  explicit INCNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
@@ -1599,13 +1599,13 @@ class INCNode: public CommandNode
 };
 class POSTDECNode: public CommandNode
 { public:
-  POSTDECNode( const RefDNode& refNode): CommandNode( refNode){}
+  explicit POSTDECNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL* Eval();
 //   BaseGDL** LEval();
 };
 class POSTINCNode: public CommandNode
 { public:
-  POSTINCNode( const RefDNode& refNode): CommandNode( refNode){}
+  explicit POSTINCNode( const RefDNode& refNode): CommandNode( refNode){}
   BaseGDL* Eval();
 //   BaseGDL** LEval();
 };
@@ -1613,7 +1613,7 @@ class POSTINCNode: public CommandNode
 class ARRAYEXPRNode: public DefaultNode
 {
 public:
-  ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  explicit ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
   BaseGDL* Eval(); // caller receives ownership
   BaseGDL** LExpr(BaseGDL* r);
   //BaseGDL** LEval(); 
@@ -1622,7 +1622,7 @@ public:
 class EXPRNode: public DefaultNode
 {
 public:
-  EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  explicit EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
   BaseGDL** EvalRefCheck( BaseGDL*& rEval); // calls LEval()
   BaseGDL** LEval();
 };
@@ -1630,7 +1630,7 @@ public:
 class DOTNode: public DefaultNode
 {
 public:
-  DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  explicit DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
 

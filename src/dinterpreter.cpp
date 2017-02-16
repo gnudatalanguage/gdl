@@ -1362,10 +1362,10 @@ string DInterpreter::GetLine()
     if( edit_input != 0)
       cline = readline(const_cast<char*>(actualPrompt.c_str()));
     else
-      cline = NoReadline(actualPrompt.c_str());
+      cline = NoReadline(actualPrompt);
 #else
     
-    cline = NoReadline(actualPrompt.c_str());
+    cline = NoReadline(actualPrompt);
 #endif
     
     lineEdit = false;
