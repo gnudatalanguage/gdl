@@ -111,6 +111,7 @@ TESTS = \
   test_hist_2d.pro \
   test_hdf5.pro \
   test_idl8.pro \
+  test_idlneturl.pro \
   test_idl_validname.pro \
   test_image_statistics.pro \
   test_interpol.pro \
