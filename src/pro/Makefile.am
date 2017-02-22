@@ -1,4 +1,4 @@
-SUBDIRS = dicom envi
+SUBDIRS = dicom envi utilities
 prolibdir = $(GDLDATADIR)/lib
 prolib_DATA = \
   appleman.pro \
@@ -107,7 +107,7 @@ prolib_DATA = \
   trace.pro \
   tvscl.pro \
   uniq.pro \
-  unxregister.pro \ 
+  unxregister.pro \
   value_locate.pro \
   variance.pro \
   wmenu.pro \
