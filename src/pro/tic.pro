@@ -7,6 +7,7 @@
 ; 
 pro TIC, vide, profiler=profiler, help=help, test=test
 ;
+compile_opt idl2, hidden
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
@@ -34,6 +35,7 @@ end
 ;
 function TIC, name, profiler=profiler, help=help, test=test
 ;
+compile_opt idl2, hidden
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin

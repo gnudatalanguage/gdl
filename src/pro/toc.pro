@@ -5,6 +5,7 @@
 ;
 pro TOC, list_of_clocks, report=report, help=help, test=test
 ;
+compile_opt idl2, hidden
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
@@ -50,6 +51,7 @@ end
 ;
 function TOC, list_of_clocks, report=report, help=help, test=test
 ;
+compile_opt idl2, hidden
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
