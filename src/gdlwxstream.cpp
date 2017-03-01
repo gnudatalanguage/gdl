@@ -356,7 +356,8 @@ BaseGDL* GDLWXStream::GetFontnames(DString pattern) {
   return myList;
 }
 DLong GDLWXStream::GetFontnum(DString pattern){
-  if (pattern.length()<=0) return -1;
+  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }
 void GDLWXStream::SetCurrentFont(std::string fontname){

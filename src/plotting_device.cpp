@@ -61,7 +61,8 @@ namespace lib {
       {
         BaseGDL* value = actDevice->GetFontnames( );
         if ( value == NULL )
-          e->Throw( "Keyword GET_FONTNAMES not allowed for call to: DEVICE" );
+          // e->Throw( "Keyword GET_FONTNAMES not allowed for call to: DEVICE" );
+	  e->SetKW( get_fontnamesIx, new DStringGDL(""));
         else
           e->SetKW( get_fontnamesIx, value->Dup() );
       }
@@ -72,10 +73,12 @@ namespace lib {
     if ( e->KeywordPresent( get_fontnumIx ) )
       {
         DLong value = actDevice->GetFontnum( );
-        if ( value < 0 )
-          e->Throw( "Keyword GET_FONTNUM not allowed for call to: DEVICE" );
-        else
-          e->SetKW( get_fontnumIx, new DLongGDL( value) );
+	//	cout << value << endl;
+        if ( value < 0 ) {
+	  // we have to return UNDEFINED here
+	  e->SetKW( get_fontnumIx, NULL);
+	} else
+          e->SetKW( get_fontnumIx, new DLongGDL(value) );
       }
     }
     //GET_CURRENT_FONT? 
