@@ -21,6 +21,8 @@
 ;	/nan	If set, then treat non-numbers (infinity & nan) as
 ;		missing data.
 ;
+;       top=
+;
 ;	Any keyword accepted by TV is also accepted by TVSCL.
 ;
 ; SIDE EFFECTS:
@@ -45,6 +47,7 @@
 ; 2012-06-12: Alain Coulais. When first field in array is NaN,
 ; we don't known how the range will be compute --> we decide
 ; not to follow this rule ...
+; 2017-03-01 : AC: adding TOP= (bug report 717)
 ;
 ; LICENCE:
 ; Copyright (C) 2005, SJT; 2012, A. Coulais
@@ -54,7 +57,7 @@
 ; (at your option) any later version.                                   
 ; 
 ;-
-pro TVSCL, image, x, y, NaN=NaN, $
+pro TVSCL, image, x, y, NaN=NaN, top=top, $
            help=help, verbose=verbose, test=test, _extra = _extra
 ;
 ON_ERROR, 2                     ; Return to caller on error.
@@ -91,6 +94,8 @@ endif else begin
 endelse
 ;
 if !d.table_size eq 0 then imax = !d.n_colors-1 else imax = !d.table_size-1
+;
+if KEYWORD_SET(top) then imax=top
 ;
 if KEYWORD_SET(verbose) then print, 'Range, imax :', dmin, dmax, imax
 ;
