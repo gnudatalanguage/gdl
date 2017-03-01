@@ -18,15 +18,6 @@
 ;
 ; -----------------------------------------------
 ;
-pro ADD_ERRORS, nb_errors, message
-;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
-;
-end
-;
-; -----------------------------------------------
-;
 pro TEST_SYSTIME_LOCALE, cumul_errors, help=help, test=test, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
@@ -78,10 +69,9 @@ if KEYWORD_SET(verbose) then begin
    print, 'resu (no LC) : ', resu
 endif
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, "TEST_SYSTIME_LOCALE", nb_pbs_locale, short=short
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_LOCALE", nb_pbs_locale, /short, verb=verbose
 ;
-if ISA(cumul_errors) then cumul_errors=nb_pbs_locale+cumul_errors else cumul_errors=nb_pbs_locale
+ERRORS_CUMUL, cumul_errors, nb_pbs_locale
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -149,10 +139,9 @@ if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2+ a'
 resu_zero=SYSTIME(['-0.9'])
 if (prefix NE STRMID(resu_zero,0,16)) then ADD_ERRORS, nb_pbs_zero, 'case 2- a'
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, "TEST_SYSTIME_ZERO", nb_pbs_zero, short=short
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_ZERO", nb_pbs_zero, /short, verb=verbose
 ;
-if ISA(cumul_errors) then cumul_errors=nb_pbs_zero+cumul_errors else cumul_errors=nb_pbs_zero
+ERRORS_CUMUL, cumul_errors, nb_pbs_zero
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -176,10 +165,9 @@ expected='Fri Feb 13 23:31:30 2009'
 value=SYSTIME(0,1234567890,/utc)
 if (expected NE value) then ADD_ERRORS, nb_pbs_epoch, 'Decimal Row Keyboard conversion failed !'
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, "TEST_SYSTIME_EPOCH", nb_pbs_epoch, short=short
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_EPOCH", nb_pbs_epoch, short=short, verb=verbose
 ;
-if ISA(cumul_errors) then cumul_errors=nb_pbs_epoch+cumul_errors else cumul_errors=nb_pbs_epoch
+ERRORS_CUMUL, cumul_errors, nb_pbs_epoch
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -189,14 +177,15 @@ end
 pro TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test, help=help
 ;
 ; not ready now, other pbs found ...
+MESSAGE,/continue, 'Not finished'
 MESSAGE,/continue, 'Not finished, please contributed !'
+MESSAGE,/continue, 'Not finished'
 ;
 nb_pbs_julian=0
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, "TEST_SYSTIME_JULIAN", nb_pbs_julian, short=short
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_JULIAN", nb_pbs_julian, /short, verb=verbose
 ;
-if ISA(cumul_errors) then cumul_errors=nb_pbs_julian+cumul_errors else cumul_errors=nb_pbs_julian
+ERRORS_CUMUL, cumul_errors, nb_pbs_julian
 ;
 if KEYWORD_SET(test) then STOP
 ;

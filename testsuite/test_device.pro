@@ -1,16 +1,9 @@
 ;
 ; Sylwester: initial version for PostScript outputs
-; Alain, 18 March 2014: extention to basic tests around X11
+; Alain, 18 March 2014 : extention to basic tests around X11
 ;
-pro INTERNAL_MESSAGES, message, errors
-;
-if (errors EQ 0) then begin
-    print, 'no errors in '+message
-endif else begin
-    print, STRING(errors)+' errors in '+message
-endelse
-;
-end
+; Alain, 28 Feb 2017 : basic tests around Fonts (GET_FONTNAME,
+; GET_FONTNUM, SET_FONTNAME, ...) [not finish do to problem in C++ code]
 ;
 ; -------------------------------------------------------------
 ;
@@ -99,14 +92,15 @@ if (strlowcase(gvn) NE 'truecolor') then begin
     MESSAGE, /continue, 'Warning: unexpected Visual Name (please contribute)'
 endif
 ;
-INTERNAL_MESSAGES, 'TEST_DEVICE_X', errors
+BANNER_FOR_TESTSUITE, 'TEST_DEVICE_X', errors, /short, verb=verbose
 ;
-if KEYWORD_SET(test) then STOP
-;
-if N_PARAMS() GT 0 then nb_errors=nb_errors+errors
+ERRORS_CUMUL, nb_errors, errors
 ;
 ; restore initial mode
 SET_PLOT, mode_stored
+while (!D.window GT 0) do WDELETE
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
@@ -148,12 +142,29 @@ endif
 ;
 print, '!D in PS mode ToDo'
 ;
-INTERNAL_MESSAGES, 'TEST_DEVICE_PS', errors
+BANNER_FOR_TESTSUITE, 'TEST_DEVICE_PS', errors, /short, verb=verbose
 ;
-if N_PARAMS() GT 0 then nb_errors=nb_errors+errors
+ERRORS_CUMUL, nb_errors, errors
 ;
 ; restore initial mode
 SET_PLOT, mode_stored
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------------------------------
+;
+pro TEST_DEVICE_FONTS, cumul_errors, help=help, test=test, verbose=verbose
+;
+errors=0
+;
+DEVICE, GET_FONTNUMBER=fnum
+if ISA(fnum) print, 'error 1'
+;
+BANNER_FOR_TESTSUITE, 'TEST_DEVICE_FONTS', errors, /short, verb=verbose
+;
+ERRORS_CUMUL, nb_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -181,12 +192,11 @@ TEST_DEVICE_X, nb_errors, test=test, verbose=verbose,/window
 print, 'Calling TEST_DEVICE_PS'
 TEST_DEVICE_PS, nb_errors, test=test, verbose=verbose
 ;
-if (nb_errors EQ 0) then begin
-    MESSAGE, /continue, 'No error found in TEST_DEVICE'
-endif else begin
-    MESSAGE, /continue, STRING(nb_errors)+' errors found in TEST_DEVICE'
-    if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endelse
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_DEVICE', nb_errors
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;
