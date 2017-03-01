@@ -1686,6 +1686,11 @@ BaseGDL* widget_info( EnvT* e ) {
   bool update=e->KeywordSet(UPDATE);
   if (update) return new DLongGDL(1); //pretend that update works always (fixme: yet another property to add, get,set to GDLWidget::)
 
+  static int tlb_size_eventsIdx = e->KeywordIx( "TLB_SIZE_EVENTS" );
+  bool tlb_size_events=e->KeywordSet(tlb_size_eventsIdx);
+  if (tlb_size_events) return new DLongGDL(0); //pretend that never resized ... (fixme: )
+
+
   //find a string, return a long
   if (findbyuname) {
     DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
