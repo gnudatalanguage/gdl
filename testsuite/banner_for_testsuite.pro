@@ -2,7 +2,10 @@
 ; Alain C., 23 April 2014: just moving this code
 ; from outside TEST_ARRAY_EQUAL to be common
 ;
-pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, short=short, help=help
+; hierarchy : Wide (default) > verbose > short
+;
+pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, help=help, $
+                          short=short, verbose=verbose, wide=wide
 ;
 if (N_PARAMS() NE 2) then begin
    MESSAGE, /continue, 'First mandatory param: procedure name (string)'
@@ -16,14 +19,15 @@ endif else begin
 endelse
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, short=short, help=help'
+   print, 'pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, help=help, $'
+   print, '                          short=short, verbose=verbose, wide=wide'
    return
 endif
 ;
 prefixe='% '+STRUPCASE(case_name)+': '
 ;
 indent="  "
-message=' errors encoutered during '+STRUPCASE(case_name)+' tests'
+message=' errors encountered during '+STRUPCASE(case_name)+' tests'
 if (nb_pbs GT 0) then begin
    message=STRCOMPRESS(STRING(nb_pbs),/remove_all)+message
 endif else begin
@@ -31,9 +35,29 @@ endif else begin
 endelse
 message=indent+message+indent
 ;
-if KEYWORD_SET(short) then begin
-   print, prefixe, message
-   return
+; managing Keywords hierarchy. Default is "isWide"
+;
+isWide=1
+isVerbose=0
+isShort=0
+;
+if ~KEYWORD_SET(wide) then begin
+    if KEYWORD_SET(verbose) then begin
+        isWide=0
+        isVerbose=1
+        isShort=0
+    endif else begin
+        if KEYWORD_SET(short) then begin
+            isWide=0
+            isVerbose=0
+            isShort=1
+        endif
+    endelse
+endif
+;
+if (isShort) then begin
+    print, prefixe, message
+    return
 endif
 ;
 lenght=STRLEN(message)
@@ -47,9 +71,9 @@ for ii=0,lenght-1 do begin
 endfor
 ;
 print, prefixe, sep+line+sep
-print, prefixe, sep+blanc+sep
+if (isWide) then print, prefixe, sep+blanc+sep
 print, prefixe, sep+message+sep
-print, prefixe, sep+blanc+sep
+if (isWide) then print, prefixe, sep+blanc+sep
 print, prefixe, sep+line+sep
 ;
 end
