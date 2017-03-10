@@ -5272,7 +5272,8 @@ namespace lib {
     static int minIx = e->KeywordIx( "MIN");
     static int maxIx = e->KeywordIx( "MAX");
     static int topIx = e->KeywordIx( "TOP");
-    bool omitNaN = e->KeywordPresent( 3);
+    static int nanIx = e->KeywordIx( "NAN");
+    bool omitNaN = e->KeywordPresent( nanIx);
 
     DLong topL=255;
     if( e->GetKW( topIx) != NULL)
@@ -5321,11 +5322,14 @@ namespace lib {
     if( !maxSet)
       max = (*dRes)[ maxEl];
 
+    //    cout << "Min/max :" << min << " " << max << endl;
+
     SizeT nEl = dRes->N_Elements();
     for( SizeT i=0; i<nEl; ++i)
       {
 	DDouble& d = (*dRes)[ i];
-	if( d <= min) (*dRes)[ i] = 0;
+	if(omitNaN &&( isnan(d) || isinf(d))) (*dRes)[ i] = 0;
+	else if( d <= min) (*dRes)[ i] = 0;
 	else if( d >= max) (*dRes)[ i] = dTop;
 	else
 	  {
