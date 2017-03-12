@@ -37,6 +37,58 @@ for ii=1,4 do begin
 endfor
 ;
 end
+; ------------------------
+; https://sourceforge.net/p/gnudatalanguage/bugs/586/
+; just to prevent any future regression
+;
+pro TEST_BYTE_BUG_586, Cumul_errors, test=test, verbose=verbose
+;
+nb_errors=0
+;
+nb_fields=5
+;
+; putting a BYTE into a STRING array
+;
+expected_lenghts=REPLICATE(0,5)
+expected_lenghts[1]=4
+expected_strings=REPLICATE('',5)
+expected_strings[1]='  32'
+;
+v=32b
+vs=replicate('',5)
+vs[1]=v
+;
+if ARRAY_EQUAL(expected_lenghts, STRLEN(vs)) NE 1 then begin
+   ADD_ERROR, nb_errors, 'bad lenght of converted output (BYTE)'
+endif
+;
+if ARRAY_EQUAL(expected_strings, vs) NE 1 then begin
+   ADD_ERROR, nb_errors, 'bad content of converted output (BYTE)'
+endif
+;
+; the same but for LONG ...
+;
+expected_lenghts[1]=12
+expected_strings[1]='          22'
+;
+v=22L
+vs[1]=v
+;
+if ARRAY_EQUAL(expected_lenghts, STRLEN(vs)) NE 1 then begin
+   ADD_ERROR, nb_errors, 'bad lenght of converted output (LONG)'
+endif
+;
+if ARRAY_EQUAL(expected_strings, vs) NE 1 then begin
+   ADD_ERROR, nb_errors, 'bad content of converted output (LONG)'
+endif
+;
+BANNER_FOR_TESTSUITE, 'TEST_BYTE_BUG_586', nb_errors, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; ------------------------
 ;
@@ -171,6 +223,10 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+; old test, to avoid any regression
+TEST_BYTE_BUG_586, Cumul_errors, test=test, verbose=verbose
+;
+; very clear test on current problem (bug in GDL)
 ;
 TEST_BYTE_BASIC_32768, nb_errors, test=test, verbose=verbose
 ; the same but with negative values ...
