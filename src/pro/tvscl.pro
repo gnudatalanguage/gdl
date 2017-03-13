@@ -47,7 +47,7 @@
 ; 2012-06-12: Alain Coulais. When first field in array is NaN,
 ; we don't known how the range will be compute --> we decide
 ; not to follow this rule ...
-; 2017-03-01 : AC: adding TOP= (bug report 717)
+; 2017-03-01 : AC: adding TOP= (bug report 717) + details
 ;
 ; LICENCE:
 ; Copyright (C) 2005, SJT; 2012, A. Coulais
@@ -63,7 +63,7 @@ pro TVSCL, image, x, y, NaN=NaN, top=top, $
 ON_ERROR, 2                     ; Return to caller on error.
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TVSCL, image, x, y, NaN=NaN, $'
+   print, 'pro TVSCL, image, x, y, NaN=NaN, top=top, $'
    print, '           help=help, verbose=verbose, test=test, _extra = _extra'
    return
 endif
@@ -95,7 +95,7 @@ endelse
 ;
 if !d.table_size eq 0 then imax = !d.n_colors-1 else imax = !d.table_size-1
 ;
-if KEYWORD_SET(top) then imax=top
+if (N_ELEMENTS(top) GT 0) then imax=top
 ;
 if KEYWORD_SET(verbose) then print, 'Range, imax :', dmin, dmax, imax
 ;
