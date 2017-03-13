@@ -15,6 +15,45 @@
 ; WARNING ! in idlwave 6.1, indentation problems !!
 ; ForEach/EndForEach loops indentation are not managed
 ;
+; ------------------------
+;
+; AC 2017-03-13
+; testing the TOP keyword, no clear idea now ...
+; how to solve the differences between IDL & GDL
+;
+pro TEST_BYTSCL_TOP, cumul_errors, test=test, verbose=verbose
+;
+nb_errors=0
+;
+input=DIST(512)
+;
+; just testing min/max now, more to do when basics will be fixed !!
+;
+top_list=[600, 256, 255, 128, 0, -128]
+expect_max=[255, 255, 255, 128, 0, 255]
+expect_min=0 ; always
+;
+for ii=0, N_ELEMENTS(top_list)-1 do begin
+   calculus=BYTSCL(input, top=top_list[ii])
+   result=[MIN(calculus), MAX(calculus)]
+   expected=[expect_min,expect_max[ii]]
+   ;;
+   if ARRAY_EQUAL(expected, result) NE 1 then begin
+      mess=', min/max : '+STRING(FIX(result[0]))+', '+STRING(FIX(result[1]))
+      ADD_ERROR, nb_errors, 'Pb with top= '+STRING(top_list[ii])+mess
+   endif
+endfor
+;
+BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS', nb_errors, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; ------------------------
+;
 pro TEST_BYTSCL_RAMPS, cumul_errors, test=test, verbose=verbose
 ;
 nb_errors=0
@@ -196,6 +235,8 @@ endif
 ;
 nl=STRING(10B)
 print, nl+"PLEASE contribute to add tests on MIN, MAX, TOP keywords"+nl
+;
+TEST_BYTSCL_TOP, nb_errors, test=test
 ;
 TEST_BYTSCL_RAMPS, nb_errors, test=test
 ;
