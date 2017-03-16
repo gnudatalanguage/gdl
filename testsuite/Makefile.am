@@ -7,6 +7,7 @@ TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir) $(top_builddir)
 TESTS = \
   test_angles.pro \
   test_array_equal.pro \
+  test_array_indices.pro \
   test_base64.pro \
   test_binfmt.pro \
   test_bug_1779553.pro \
