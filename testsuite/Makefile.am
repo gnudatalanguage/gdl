@@ -71,6 +71,7 @@ TESTS = \
   test_bug_n000607.pro \
   test_bug_n000608.pro \
   test_bug_635.pro \
+  test_bug_719.pro \
   test_bytscl.pro \
   test_byte_conversion.pro \
   test_call_function.pro \
@@ -86,6 +87,7 @@ TESTS = \
   test_correlate.pro \
   test_deriv.pro \
   test_device.pro \
+  test_diag_matrix.pro \
   test_dicom.pro \
   test_erfinv.pro \
   test_execute.pro \
