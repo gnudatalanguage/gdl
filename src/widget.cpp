@@ -1686,10 +1686,14 @@ BaseGDL* widget_info( EnvT* e ) {
   bool update=e->KeywordSet(UPDATE);
   if (update) return new DLongGDL(1); //pretend that update works always (fixme: yet another property to add, get,set to GDLWidget::)
 
-  static int tlb_size_eventsIdx = e->KeywordIx( "TLB_SIZE_EVENTS" );
-  bool tlb_size_events=e->KeywordSet(tlb_size_eventsIdx);
-  if (tlb_size_events) return new DLongGDL(0); //pretend that never resized ... (fixme: )
-
+  static int tlb_iconify_eventsIx = e->KeywordIx( "TLB_ICONIFY_EVENTS" );
+  bool tlb_iconify_events=e->KeywordSet(tlb_iconify_eventsIx);
+  static int tlb_kill_request_eventsIx = e->KeywordIx( "TLB_KILL_REQUEST_EVENTS" );
+  bool tlb_kill_request_events=e->KeywordSet(tlb_kill_request_eventsIx);
+  static int tlb_move_eventsIx = e->KeywordIx( "TLB_MOVE_EVENTS" );
+  bool tlb_move_events=e->KeywordSet(tlb_move_eventsIx);
+  static int tlb_size_eventsIx = e->KeywordIx( "TLB_SIZE_EVENTS" );
+  bool tlb_size_events=e->KeywordSet(tlb_size_eventsIx);
 
   //find a string, return a long
   if (findbyuname) {
@@ -1904,7 +1908,8 @@ BaseGDL* widget_info( EnvT* e ) {
   // End /MODAL
 
   // VALID , MANAGED, BUTTONSET etc keywords giving back 0 or 1
-  if ( valid || managed || realized || buttonset) {
+  if ( valid || managed || realized || buttonset || tlb_size_events ||
+       tlb_iconify_events || tlb_kill_request_events || tlb_move_events ) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1917,6 +1922,14 @@ BaseGDL* widget_info( EnvT* e ) {
       else if (managed) result=( widget->GetManaged( ) == true );
       else if (realized) result=( widget->GetRealized( ) == true );
       else if (buttonset) result=( widget->GetButtonSet() == true );
+        else { //tlb only for base widget
+          if (widget->IsBase()) {
+            if (tlb_size_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_SIZE) == 1);
+            else if (tlb_iconify_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_ICONIFY) == 1);
+            else if (tlb_kill_request_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_KILL) == 1);
+            else if (tlb_move_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_MOVE) == 1);
+          }
+        }
       if ( result ) return new DLongGDL( 1 ); 
       else          return new DLongGDL( 0 );
     } else {
@@ -1934,7 +1947,15 @@ BaseGDL* widget_info( EnvT* e ) {
           if (valid) result=( widget != NULL );
           else if (managed) result=( widget->GetManaged( ) == true );
           else if (realized) result=( widget->GetRealized( ) == true );
-          else if (buttonset) result=( widget->GetButtonSet( ) == true );         
+          else if (buttonset) result=( widget->GetButtonSet( ) == true );
+          else { //tlb only for base widget
+            if (widget->IsBase()) {
+              if (tlb_size_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_SIZE) == 1);
+              else if (tlb_iconify_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_ICONIFY) == 1);
+              else if (tlb_kill_request_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_KILL) == 1);
+              else if (tlb_move_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_MOVE) == 1);
+            }
+          }
           if ( result ) ( *res )[ i] = (DLong) 1;
           else          ( *res )[ i] = (DLong) 0;
         }
