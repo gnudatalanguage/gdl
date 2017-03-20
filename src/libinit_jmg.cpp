@@ -122,7 +122,7 @@ void LibInit_jmg()
 #endif
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
-			    "BINOMIAL","POISSON","UNIFORM",KLISTEND};
+			    "BINOMIAL","POISSON","UNIFORM","ULONG",KLISTEND};
   const string randomWarnKey[]={"RAN1", KLISTEND}; //since IDL 8.2, change of random algo (we used already the good one).
   new DLibFunRetNew(lib::random_fun,string("RANDOMU"),MAXRANK+1,randomKey,randomWarnKey);
   new DLibFunRetNew(lib::random_fun,string("RANDOMN"),MAXRANK+1,randomKey,randomWarnKey);
