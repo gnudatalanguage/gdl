@@ -61,8 +61,8 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
     }
 
     // main lexer constructor
-    GDLLexer( std::istream& in, const std::string f, unsigned int compileOptIn,
-        const std::string pro="", bool searchForPro=true) 
+    GDLLexer( std::istream& in, const std::string &f, unsigned int compileOptIn,
+        const std::string &pro="", bool searchForPro=true) 
     : antlr::CharScanner(new antlr::CharBuffer(in),false),
       lineContinuation( 0)
 //    : antlr::CharScanner(in)

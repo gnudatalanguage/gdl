@@ -51,7 +51,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     }
     
     private:
-    void AddCompileOpt( const std::string opt)
+    void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;

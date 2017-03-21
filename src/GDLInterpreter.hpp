@@ -638,7 +638,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 
     // interpreter
-    static void ReportError( GDLException& e, const std::string emsg, 
+    static void ReportError( GDLException& e, const std::string &emsg, 
                              bool dumpStack=true)
     {
         DString msgPrefix = SysVar::MsgPrefix();
