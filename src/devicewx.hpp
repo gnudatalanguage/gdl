@@ -241,9 +241,8 @@ public:
     BaseGDL* GetFontnames(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+          this->GetStream();
           BaseGDL* val=winList[actWin]->GetFontnames(fontname);
-          WDelete(actWin);
           return val;
         } else {
           return winList[actWin]->GetFontnames(fontname);
@@ -252,9 +251,8 @@ public:
     DLong GetFontnum(){
         TidyWindowsList();
         if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+          this->GetStream(); 
           DLong val=winList[actWin]->GetFontnum(fontname);
-          WDelete(actWin);
           return val;
         } else {
           return winList[actWin]->GetFontnum(fontname);

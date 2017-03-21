@@ -220,8 +220,8 @@ public:
   virtual void MaxXYSize(DLong *xsize, DLong *ysize) {
 							*xsize=1200, *ysize=800; return;}
   virtual DLong GetDecomposed()                       { return -1;}
-  virtual BaseGDL* GetFontnames()                     { return NULL;}
-  virtual DLong GetFontnum()                     { return -1;}
+  virtual BaseGDL* GetFontnames()                     { ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );}//{return NULL;}
+  virtual DLong GetFontnum()                          { ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );}//{return -1;}
   virtual bool SetFont(DString f)                 {static int warning_sent=1; if (warning_sent) {Warning("SET_FONT not active for this device (FIXME)."); warning_sent=0;} return true;}
   virtual DString GetCurrentFont()                 {return NULL;}
   virtual DLong GetGraphicsFunction()                 { return -1;}
@@ -337,8 +337,8 @@ public:
   bool UnsetFocus();
   bool Decomposed(bool value);
   DLong GetDecomposed();
-  BaseGDL* GetFontnames(){return NULL;}
-  DLong GetFontnum(){return -1;}
+  BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );}//{return NULL;}
+  DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );}//{return -1;}
   bool SetFont(DString f) {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
