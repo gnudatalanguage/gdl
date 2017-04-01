@@ -100,6 +100,7 @@ void ResetObjects()
   cerr << flush; cout << flush; clog << flush;
 
   PurgeContainer(sysVarList);
+//   sysVarRdOnlyList.clear(); // data is owned by sysVarList
   PurgeContainer(funList);
   PurgeContainer(proList);
 

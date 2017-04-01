@@ -1436,6 +1436,8 @@ public:
 	  }
 	if( ixNParam == 1) 
 	  {
+// 	    BaseGDL* debugP = ix[ pIX];
+// 	    ixList[ i]->Init( debugP);
 	    ixList[ i]->Init( ix[ pIX]);
 	    pIX += 1;
 	    continue;
@@ -1774,7 +1776,7 @@ public:
     // normal case
     Init( ix);//, NULL);
     SetVariable( var);
-    if( nIx == 1)// && !var->IsAssoc())
+    if( nIx == 1 && accessType != ALLINDEXED)// && !var->IsAssoc())
     {
       BaseGDL* res = var->NewIx( baseIx);
       if( accessType != ALLONE)
