@@ -189,6 +189,33 @@ public:
     stride[0] = 0; // not set
   }
 
+  // cat add to left
+  void AddLeft(const dimension& add, int nRank = 0)
+  { 
+    int thisRank = rank;
+    int addRank = add.rank;
+    if( nRank != 0 && nRank < addRank)
+    {
+	addRank = nRank;
+    }
+     
+    rank += addRank;
+    if( rank > static_cast<int>(MAXRANK))
+      throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
+
+    // shift dim by addRank
+    for( int i=thisRank-1; i>=0; i--)
+      {
+	dim[i+addRank]=dim[i];
+      }
+
+    // insert add on the left
+    for( int i=0; i<addRank; ++i)
+      dim[i]=add.dim[i];
+    
+    stride[0] = 0; // not set
+  }
+
   // remove dimesion ix (used by total function)
   SizeT Remove( SizeT ix)
   {

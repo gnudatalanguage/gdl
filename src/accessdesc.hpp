@@ -307,15 +307,23 @@ private:
    }
   }
   //     dimension topDim;
-  if (ix[d] == NULL) { // loop over all elements
+  if (ix[d] == NULL) 
+  { // loop over all elements
    // 	topDim=top->Dim();
    // 	dim >> topDim;
    dim >> top->Dim();
-  } else {
-   ix[d]->SetVariable(top);
-   // 	topDim=ix[d]->GetDim();
-   // 	dim >> topDim;
-   dim >> ix[d]->GetDim();
+  } 
+  else 
+  {
+    ix[d]->SetVariable(top);
+    // 	topDim=ix[d]->GetDim();
+    // 	dim >> topDim;
+    if( top->Rank() < ix[d]->GetDim().Rank())
+    {
+      dim.AddLeft( ix[d]->GetDim(), top->Rank());
+    }
+    else
+	dim >> ix[d]->GetDim();
   }
 // Was added to solve bug 709 but may have side effects.
 //  dim.Purge();
