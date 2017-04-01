@@ -318,9 +318,9 @@ private:
     ix[d]->SetVariable(top);
     // 	topDim=ix[d]->GetDim();
     // 	dim >> topDim;
-    dimension addRank = ix[d]->GetDim();
-    addRank.Purge();
-    dim >> addRank;
+    dimension addVarDim = ix[d]->GetDim();
+    addVarDim.Purge();
+    dim >> addVarDim;
 //     if( top->Rank() < ix[d]->GetDim().Rank())
 //     {
 //       dim.AddLeft( ix[d]->GetDim(), top->Rank());

@@ -403,17 +403,9 @@ public:
   }
 
   // throw away unused ranks (ie. ranks == 1)
-  void Purge()
+  inline void Purge()
   {
-   //The following line produces bug #709
     for(; rank>1 && dim[rank-1] <= 1; --rank);
-// However those following lines are too strict: test=fltarr(1, 1, 114) & help,test 
-// gives: TEST FLOAT = Array[1, 114] instead of good answer TEST FLOAT = Array[1, 1, 114]
-//   int m=rank-1;
-//   for (; m>0; --m) if (dim[m]<=1) {
-//    for (int j=m; j<rank-1; ++j) dim[j]=dim[j+1];
-//    rank--;
-//   }
   }
 
   // set the rank to r (pads 1s) if it is smaller than r
