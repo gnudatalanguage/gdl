@@ -1008,6 +1008,7 @@ namespace lib {
       } else {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(r, 1.0); //does reproduct IDL values.
         modified_gsl_ran_gaussian_d(r, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+        return 0;
       }
     }
     assert(false);
@@ -3313,7 +3314,7 @@ namespace lib {
       DString tmpname;
       e->AssureScalarPar<DStringGDL>(0, tmpname);    
       name.reserve(tmpname.length());
-      for (string::iterator it = tmpname.begin(); it < tmpname.end(); it++) 
+      for (string::iterator it = tmpname.begin(); it < tmpname.end(); ++it) 
         if (*it != ' ' && *it != '_') name.append(1, (char)std::tolower(*it));
     }
 
