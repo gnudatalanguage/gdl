@@ -318,12 +318,15 @@ private:
     ix[d]->SetVariable(top);
     // 	topDim=ix[d]->GetDim();
     // 	dim >> topDim;
-    if( top->Rank() < ix[d]->GetDim().Rank())
-    {
-      dim.AddLeft( ix[d]->GetDim(), top->Rank());
-    }
-    else
-	dim >> ix[d]->GetDim();
+    dimension addRank = ix[d]->GetDim();
+    addRank.Purge();
+    dim >> addRank;
+//     if( top->Rank() < ix[d]->GetDim().Rank())
+//     {
+//       dim.AddLeft( ix[d]->GetDim(), top->Rank());
+//     }
+//     else
+// 	dim >> ix[d]->GetDim();    
   }
 // Was added to solve bug 709 but may have side effects.
 //  dim.Purge();
