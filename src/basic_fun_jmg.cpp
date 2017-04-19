@@ -507,8 +507,11 @@ namespace lib {
 	res = new DStructGDL( "IDL_SIZE");
       }
       
-      if ( p0 == NULL) return res;
-
+      if ( p0 == NULL) {
+	res->InitTag("TYPE_NAME", DStringGDL("UNDEFINED"));
+	return res;
+      }
+      
       DString tname;
       DString sname;
       if (vType == GDL_STRUCT) {
