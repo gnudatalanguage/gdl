@@ -32,8 +32,7 @@
 
 using namespace std;
 
-
-#define CONVERT_CONVOL_TO_ORIG   if(res_a>CONVOL_TRUNCATE_MIN){if(res_a<CONVOL_TRUNCATE_MAX){(*res)[a]=res_a;}else{(*res)[a]=CONVOL_TRUNCATE_MAX;}}else{(*res)[a]=CONVOL_TRUNCATE_MIN;}
+#define CONVERT_CONVOL_TO_ORIG   if(res_a>CONVOL_TRUNCATE_MIN){if(res_a<CONVOL_TRUNCATE_MAX){(*res)[ia + aInitIx0]=res_a;}else{(*res)[ia + aInitIx0]=CONVOL_TRUNCATE_MAX;}}else{(*res)[ia + aInitIx0]=CONVOL_TRUNCATE_MIN;}
 //modify bias will not be used with *INT* type (documentation).
 #define CONVERT_MODIFY_BIAS  bias=(scale==0)?0:otfBias*CONVOL_TRUNCATE_MAX/scale;if(bias<CONVOL_TRUNCATE_MIN){bias=CONVOL_TRUNCATE_MIN;}else{if( bias>CONVOL_TRUNCATE_MAX) bias=CONVOL_TRUNCATE_MAX;}
 
@@ -166,12 +165,12 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   
 
   SizeT nA = N_Elements();
-  SizeT nK = kernel->N_Elements();
+  SizeT nKel = kernel->N_Elements();
 
   if(normalize)
     { 
       scale = this->zero;
-      for ( SizeT ind=0; ind<nK; ind++ )
+      for ( SizeT ind=0; ind<nKel; ind++ )
       { //abs(kern) needed when normalizing:
         absker[ind]=abs(ker[ind]);
         scale+=absker[ind];
@@ -179,7 +178,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
       bias=this->zero;
 #if defined(CONVOL_BYTE__)||defined (CONVOL_UINT__)
       DDouble tmp=0; 
-      for ( SizeT ind=0; ind<nK; ind++ ) { if(ker[ind]<0) biasker[ind]=absker[ind]; tmp+=biasker[ind];}
+      for ( SizeT ind=0; ind<nKel; ind++ ) { if(ker[ind]<0) biasker[ind]=absker[ind]; tmp+=biasker[ind];}
 	  bias=tmp*CONVOL_TRUNCATE_MAX/scale;
 	  if( bias<CONVOL_TRUNCATE_MIN) bias=CONVOL_TRUNCATE_MIN; else if( bias>CONVOL_TRUNCATE_MAX) bias=CONVOL_TRUNCATE_MAX;
 #endif
@@ -194,11 +193,11 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   SizeT kStride[MAXRANK+1];
   kernel->Dim().Stride( kStride, nDim);
 
-  // setup kIxArr[ nDim * nK] the offset array
+  // setup kIxArr[ nDim * nKel] the offset array
   // this handles center
-  long* kIxArr = new long[ nDim * nK];
+  long* kIxArr = new long[ nDim * nKel];
   ArrayGuard<long> kIxArrGuard( kIxArr); // guard it
-  for( SizeT k=0; k<nK; ++k)
+  for( SizeT k=0; k<nKel; ++k)
     {
       kIxArr[ k * nDim + 0] = -(k % kernel->Dim( 0));
       if( center) kIxArr[ k * nDim + 0] = -(kIxArr[ k * nDim + 0] + 
@@ -216,11 +215,6 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   SizeT  aStride[ MAXRANK + 1];
   this->dim.Stride( aStride, nDim);
 
-  long  aInitIx[ MAXRANK+1];
-  for( SizeT aSp=0; aSp<=nDim; ++aSp) aInitIx[ aSp] = 0;
-
-  bool  regArr[ MAXRANK];
-
   long  aBeg[ MAXRANK];
   long  aEnd[ MAXRANK];
   for( SizeT aSp=0; aSp<nDim; ++aSp) 
@@ -228,16 +222,28 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
       SizeT kDim = kernel->Dim( aSp);
       if( kDim == 0) kDim = 1;
       aBeg[ aSp] = (center) ? kDim/2 : kDim-1; // >= 
-      regArr[ aSp] = !aBeg[ aSp];
       aEnd[ aSp] = (center) ? this->dim[aSp]-(kDim-1)/2 : this->dim[aSp]; // <
     }
 
   Ty* ddP = &(*this)[0];
-  
+ 
 //test if array has nans when donan is present (treatment would be shorter if array had no nans)
-  if(doNan)
+  if(doNan && doInvalid)
   {
-    doNan=false;
+    doNan = false;
+    doInvalid=false;
+#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
+    {
+#pragma omp for
+    for( OMPInt i=0; i<nA; ++i)  {
+        if (!gdlValid(ddP[i])) {doNan=true;}
+        if (ddP[i] == invalidValue) {doInvalid=true;}
+      }
+    }
+  }
+  else if(doNan)
+  {
+    doNan = false;
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for
@@ -245,7 +251,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
     }
   }
 //same for invalid. a real gain of time if no values are invalid, a small loss if not.
-  if(doInvalid)
+  else if(doInvalid)
   {
     doInvalid=false;
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
@@ -262,43 +268,358 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   SizeT dim0_aEnd0 = dim0 - aEnd[0];
   SizeT kDim0      = kernel->Dim( 0);
   SizeT	kDim0_nDim = kDim0 * nDim;
+  
 
+  
+#define INCLUDE_CONVOL_INC_CPP  //to make the include files behave.
 
-#define INCLUDE_CONVOL_INC_CPP 
-          
-  if( edgeMode == 0)
-    {
-    if (!doInvalid && !doNan) {
-        //special version to speed up in this case
-#include "convol_inc2.cpp"
-    } else {
+if (normalize) {
+#define CONVOL_NORMALIZE
+  if (edgeMode == 0) {
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
 #include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
     }
-  }
-  else if( edgeMode == 1)
-    {
+  } 
+  else if (edgeMode == 1) {
 #define CONVOL_EDGE_WRAP
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
 #include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
 #undef CONVOL_EDGE_WRAP
-    }
-  else if( edgeMode == 2)
-    {
+  } else if (edgeMode == 2) {
 #define CONVOL_EDGE_TRUNCATE
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
 #include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
 #undef CONVOL_EDGE_TRUNCATE
-    }
-  else if( edgeMode == 3)
-    {
+  } else if (edgeMode == 3) {
 #define CONVOL_EDGE_ZERO
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
 #include "convol_inc1.cpp"
-#include "basegdl.hpp"
-#include "envt.hpp"
-#undef CONVOL_EDGE_ZERO
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
     }
-#undef INCLUDE_CONVOL_INC_CPP
+#undef CONVOL_EDGE_ZERO
+  }
+#undef CONVOL_NORMALIZE
+} else {
+  if (edgeMode == 0) {
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc0.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc0.cpp"
+      }
+    }
+  } 
+  else if (edgeMode == 1) {
+#define CONVOL_EDGE_WRAP
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
+#undef CONVOL_EDGE_WRAP
+  } else if (edgeMode == 2) {
+#define CONVOL_EDGE_TRUNCATE
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
+#undef CONVOL_EDGE_TRUNCATE
+  } else if (edgeMode == 3) {
+#define CONVOL_EDGE_ZERO
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
+#undef CONVOL_EDGE_ZERO
+  }
+}  
 
+    
+#undef INCLUDE_CONVOL_INC_CPP
   return res;
- }//end of template convol
+} //end of template convol
+
 #undef CONVOL_TRUNCATE_MIN 
 #undef CONVOL_TRUNCATE_MAX
 
@@ -309,7 +630,7 @@ namespace lib {
 /*****************************************convol_fun*********************************************************/
   BaseGDL* convol_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam( 2); 
+    long nParam=e->NParam( 2); 
 
     /************************************Checking_parameters************************************************/
 
@@ -327,18 +648,73 @@ namespace lib {
       e->Throw( "Incompatible dimensions for Array and Kernel.");
 
     // rank 1 for kernel works always
-    if( p1->Rank() != 1)
-      {
-	SizeT rank = p0->Rank();
-	if( rank != p1->Rank())
-	  e->Throw( "Incompatible dimensions for Array and Kernel.");
+    if( p1->Rank() != 1) {
+      long rank = p0->Rank();
+      if (rank != p1->Rank())
+        e->Throw("Incompatible dimensions for Array and Kernel.");
 
-	for( SizeT r=0; r<rank; ++r)
-	  if( p0->Dim( r) < p1->Dim( r))
-	    e->Throw( "Incompatible dimensions for Array and Kernel.");
+      for (long r = 0; r < rank; ++r)
+        if (p0->Dim(r) < p1->Dim(r))
+          e->Throw("Incompatible dimensions for Array and Kernel.");
+    } else { //check however that kernel is not too big...
+      if (p0->Dim(0) <  p1->Dim(0)) e->Throw("Incompatible dimensions for Array and Kernel.");
+    }
+
+    //compute some interesting values about kernel and array dimensions
+    int maxposK=0,curdimK,sumofdimsK=0,maxdimK=-1;
+    int maxpos=0, curdimprod, maxdimprod=-1;
+
+    for (int i=0; i<p1->Rank(); ++i) {
+      curdimK=p1->Dim(i);
+      sumofdimsK+=curdimK;
+      if (curdimK>maxdimK) {
+        maxdimK=curdimK;
+        maxposK=i;
       }
+    }
+    // if kernel is [1,1,...] return unconvolved (protect algo which would crash otherwise).
+    if (sumofdimsK == (p1->Rank())) return p0->Dup();
+    // If kernel is not 1-D, test which dimension is larger. Transposing the data and kernel to have this dimension first is faster since
+    // it is the kernel sum which is parallelized here.
+    // Probably there is a minimum difference in size (magicfactor=1.2 ? 1.5?) at which one would benefit given the added complexity of transposition.
+    bool doTranspose=false;
+    if (sumofdimsK > maxdimK+(p1->Rank())-1) {
+      
+      // Now about dimensions.
+      // convolution code (in convol_inc*.pro) is quite tricky. Only the inner part of the loop can be safely parallelized.
+      // It is a double loop on the first dimension of kernel (kDim0) times the first dimension of the array (dim0 or aEnd0-aBeg0).
+      // To benefit from this speedup, we need to have dim0*kDim0 maximum:
+      // find largest array or kernel dimension; transpose array, makes for faster convol, will be
+      // transposed back at end.
 
+      // find maximum of dim0xkDim0
+      for (int i = 0; i < p1->Rank(); ++i) { //0->Rank and p1->Rank same here
+        curdimprod = p1->Dim(i)*p0->Dim(i);
+        if (curdimprod > maxdimprod) {
+          maxdimprod = curdimprod;
+          maxpos = i;
+        }
+      }
+      float magicfactor=2.0;
+      if ( maxdimprod > magicfactor*p1->Dim(0)*p0->Dim(0) ) doTranspose=true;   
+    }
+    // array of dims for transpose
+    DUInt* perm = new DUInt[p0->Rank()]; //direct
+    DUInt* mrep = new DUInt[p0->Rank()]; //reverse
+    ArrayGuard<DUInt> perm_guard(perm);
+    ArrayGuard<DUInt> mrep_guard(mrep);
+    if (doTranspose) {
 
+        DUInt i = 0, j = 0;
+        for (i = 0; i < p0->Rank(); ++i) if (i != maxpos) {
+            perm[j + 1] = i;
+            j++;
+          }
+        perm[0] = maxpos;
+        for (i = 0; i < p0->Rank(); ++i) mrep[i]=i; //populate reverse
+        for (i = 0; i < maxpos+1; ++i) mrep[i]=i+1; //this and the following line should give the reverse transpose order.
+        mrep[maxpos]=0;
+    }
     /***************************************Preparing_matrices*************************************************/
     // convert kernel to array type
     Guard<BaseGDL> p1Guard;
@@ -351,7 +727,7 @@ namespace lib {
       p1 = p1->Convert2(p0->Type(), BaseGDL::COPY);
       p1Guard.Reset(p1);
     }
-
+    
     BaseGDL* scale;
     Guard<BaseGDL> scaleGuard;
     if (nParam > 2) {
@@ -453,7 +829,18 @@ namespace lib {
     if (!doMissing && (p0->Type()==GDL_DOUBLE ||p0->Type()==GDL_COMPLEXDBL))
       missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("D_NAN"), 0);
     
-    return p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid,doInvalid);
+    //handle transpositions
+    if (doTranspose) {
+      BaseGDL* input;
+      Guard<BaseGDL> inputGuard;
+      input = p0->Transpose(perm);
+      inputGuard.Reset(input);
+      BaseGDL* transpP1;
+      Guard<BaseGDL> transpP1Guard;
+      transpP1=p1->Transpose(perm);
+      transpP1Guard.Reset(transpP1);
+      return input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
+    } else return p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
   } //end of convol_fun
 
 
