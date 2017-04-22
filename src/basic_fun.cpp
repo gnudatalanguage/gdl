@@ -3930,58 +3930,6 @@ namespace lib {
  */
 #define ELEM_SWAP(a,b) { register DDouble t=(a);(a)=(b);(b)=t; }
   
-  DDouble quick_select_d_checknan(DDouble array[], SizeT arraySize, int even, bool &hasnan) {
-    hasnan=false;
-    if (arraySize==1) return array[0];
-
-    SizeT high, low, middle;
-    SizeT median=(arraySize)/2; 
-    SizeT ll, hh;
-    register DDouble pivot;
-    low = 0;
-    high = arraySize-1;
-
-    for (;;) {
-      if ( isnan(array[low]) ) {hasnan=true; return array[low];}
-      if ( isnan(array[high]) ) {hasnan=true; return array[high];}
-      if (high <= low + 1) {
-        if (high == low + 1 && array[high] < array[low]) {
-          ELEM_SWAP(array[low], array[high])
-        }
-        if (even) return 0.5*(array[median]+array[median-1]); else return array[median]; 
-      } else {
-        middle = (low + high) /2 ;
-        if ( isnan(array[middle]) ) {hasnan=true; return array[middle];}
-        if ( isnan(array[low+1]) ) {hasnan=true; return array[low+1];}
-        ELEM_SWAP(array[middle], array[low + 1])
-        if (array[low] > array[high]) {
-          ELEM_SWAP(array[low], array[high])
-        }
-        if (array[low + 1] > array[high]) {
-          ELEM_SWAP(array[low + 1], array[high])
-        }
-        if (array[low] > array[low + 1]) {
-          ELEM_SWAP(array[low], array[low + 1])
-        }
-        ll = low + 1;
-        hh = high;
-        pivot = array[low + 1];
-        for (;;) {
-          do ll++; while (array[ll] < pivot);
-          do hh--; while (array[hh] > pivot);
-          if (hh < ll) break;
-          ELEM_SWAP(array[ll], array[hh])
-        }
-        array[low + 1] = array[hh];
-        array[hh] = pivot;
-        if (hh >= median) high = hh - 1;
-        if (hh <= median) low = ll;
-        if ( isnan(array[low]) ) {hasnan=true; return array[low];}
-        if ( isnan(array[high]) ) {hasnan=true; return array[high];}
-      }
-    }
-  }
-  
   DDouble quick_select_d(DDouble array[], SizeT arraySize, int even) {
 
     if (arraySize==1) return array[0];
@@ -4030,58 +3978,6 @@ namespace lib {
 
 #undef ELEM_SWAP
 #define ELEM_SWAP(a,b) { register DFloat t=(a);(a)=(b);(b)=t; }
-  
-  DFloat quick_select_f_checknan(DFloat array[], SizeT arraySize, int even, bool &hasnan) {
-    hasnan=false;
-    if (arraySize==1) return array[0];
-
-    SizeT high, low, middle;
-    SizeT median=(arraySize)/2; 
-    SizeT ll, hh;
-    register DFloat pivot;
-    low = 0;
-    high = arraySize-1;
-
-    for (;;) {
-      if ( isnan(array[low]) ) {hasnan=true; return array[low];}
-      if ( isnan(array[high]) ) {hasnan=true; return array[high];}
-      if (high <= low + 1) {
-        if (high == low + 1 && array[high] < array[low]) {
-          ELEM_SWAP(array[low], array[high])
-        }
-        if (even) return 0.5*(array[median]+array[median-1]); else return array[median]; 
-      } else {
-        middle = (low + high) /2 ;
-        if ( isnan(array[middle]) ) {hasnan=true; return array[middle];}
-        if ( isnan(array[low+1]) ) {hasnan=true; return array[low+1];}
-        ELEM_SWAP(array[middle], array[low + 1])
-        if (array[low] > array[high]) {
-          ELEM_SWAP(array[low], array[high])
-        }
-        if (array[low + 1] > array[high]) {
-          ELEM_SWAP(array[low + 1], array[high])
-        }
-        if (array[low] > array[low + 1]) {
-          ELEM_SWAP(array[low], array[low + 1])
-        }
-        ll = low + 1;
-        hh = high;
-        pivot = array[low + 1];
-        for (;;) {
-          do ll++; while (array[ll] < pivot);
-          do hh--; while (array[hh] > pivot);
-          if (hh < ll) break;
-          ELEM_SWAP(array[ll], array[hh])
-        }
-        array[low + 1] = array[hh];
-        array[hh] = pivot;
-        if (hh >= median) high = hh - 1;
-        if (hh <= median) low = ll;
-        if ( isnan(array[low]) ) {hasnan=true; return array[low];}
-        if ( isnan(array[high]) ) {hasnan=true; return array[high];}
-      }
-    }
-  }
   
   DFloat quick_select_f(DFloat array[], SizeT arraySize, int even) {
 
@@ -4144,18 +4040,6 @@ namespace lib {
     return res;
   }
   
-  //simple median for double arrays where NaN are possible. Returns as soon a Nan is detected. Return value invalid.
-  inline BaseGDL* mymedian_d_checknan(EnvT* e, bool &hasnan) {
-    DDoubleGDL* array = e->GetParAs<DDoubleGDL>(0)->Dup();
-    SizeT nEl = array->N_Elements();
-    static int evenIx = e->KeywordIx("EVEN");
-    int iseven = ((nEl % 2) == 0 && e->KeywordSet(evenIx));
-    BaseGDL *res = new DDoubleGDL(quick_select_d_checknan((DDouble*) array->DataAddr(), nEl, iseven, hasnan));
-
-    delete array;
-
-    return res;
-  }  
   //simple median for double arrays whith NaNs. Remove the Nans before doing the median.
   inline BaseGDL* mymedian_d_nan(EnvT* e) {
     DDoubleGDL* data = e->GetParAs<DDoubleGDL>(0);
@@ -4178,7 +4062,7 @@ namespace lib {
     free(array);
     return res;
   }
-
+  //simple median for double arrays whith NaNs. Remove the Nans before doing the median.
   inline DDouble quick_select_d_filter_nan( DDouble* arr, SizeT nEl, int even) {
     DLong iEl = 0;
     DDouble* array=(DDouble*)malloc(nEl*sizeof(DDouble));
@@ -4196,6 +4080,11 @@ namespace lib {
     free(array);
     return res;
   }
+
+  inline bool hasnan_d( DDouble* arr, SizeT nEl) {
+    for (SizeT i=0; i< nEl; ++i) if (isnan( arr[i])) return true;
+    return false;
+  }
   
  inline BaseGDL* mymedian_f(EnvT* e) {
     DFloatGDL* array = e->GetParAs<DFloatGDL>(0)->Dup();
@@ -4210,19 +4099,6 @@ namespace lib {
     return res;
  }
  
- inline BaseGDL* mymedian_f_checknan(EnvT* e, bool &hasnan) {
-    DFloatGDL* array = e->GetParAs<DFloatGDL>(0)->Dup();
-    SizeT nEl = array->N_Elements();
-
-    static int evenIx = e->KeywordIx("EVEN");
-    int iseven=((nEl % 2) == 0 && e->KeywordSet(evenIx));
-    BaseGDL *res = new DFloatGDL(quick_select_f_checknan((DFloat*) array->DataAddr(), nEl, iseven, hasnan));
-
-    delete array;
-
-    return res;
- }
-
   inline BaseGDL* mymedian_f_nan(EnvT* e) {
     DFloatGDL* data = e->GetParAs<DFloatGDL>(0);
     SizeT nEl = data->N_Elements();
@@ -4261,6 +4137,11 @@ namespace lib {
     DFloat res = quick_select_f(array, iEl, even);
     free(array);
     return res;
+  }
+
+  inline bool hasnan_f(DFloat* arr, SizeT nEl) {
+    for (SizeT i = 0; i < nEl; ++i) if (isnan(arr[i])) return true;
+    return false;
   }
   
   BaseGDL* SlowReliableMedian(EnvT* e); //see below.
@@ -4347,8 +4228,8 @@ namespace lib {
             //probably overkill to start multithreading in some easy cases. TBD.
 #pragma omp for private(i,hasnan) nowait
             for (SizeT i = 0; i < nEl; ++i) {
-              (*res)[i] = quick_select_d_checknan(&(*input)[i * stride], stride, iseven, hasnan);
-              if (hasnan) (*res)[i] = quick_select_d_filter_nan(&(*input)[i * stride], stride, iseven); //redo if nan.
+              if (hasnan_d(&(*input)[i * stride], stride)) (*res)[i] = quick_select_d_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
+              else (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
             }
             if (clean_array) delete input;
             return res;
@@ -4362,9 +4243,8 @@ namespace lib {
             //probably overkill to start multithreading in some easy cases. TBD.
 #pragma omp for private(i) nowait
             for (SizeT i = 0; i < nEl; ++i) {
-              (*res)[i] = quick_select_f_checknan(&(*input)[i * stride], stride, iseven, hasnan);
-              if (hasnan) (*res)[i] = quick_select_f_filter_nan(&(*input)[i * stride], stride, iseven); //redo if nan.
-            }
+              if (hasnan_f(&(*input)[i * stride], stride)) (*res)[i] = quick_select_f_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
+              else (*res)[i] = quick_select_f(&(*input)[i * stride], stride, iseven);            }
             if (clean_array) delete input;
             return res;
           }
@@ -4380,7 +4260,6 @@ namespace lib {
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
-
           } else {
             DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
             if (medianDim != 0) {
@@ -4397,17 +4276,9 @@ namespace lib {
       } else {
         if (possibleNaN) {
           if (dbl) {
-            BaseGDL * res = mymedian_d_checknan(e, possibleNaN); //good result if no nan was found.
-            if (possibleNaN) {
-              delete res;
               return mymedian_d_nan(e);
-            } else return res; //try again if nan was here.
           } else {
-            BaseGDL * res = mymedian_f_checknan(e, possibleNaN);
-            if (possibleNaN) {
-              delete res;
               return mymedian_f_nan(e);
-            } else return res;
           }
         } else {
           if (dbl) return mymedian_d(e);
@@ -4809,7 +4680,7 @@ namespace lib {
         if ((*p0)[ii] > max) max = ((*p0)[ii]);
       }
 
-      //---------------------------- END d'acquisistion des paramÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¯ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¿ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ½?tres -------------------------------------	
+      //---------------------------- END d'acquisistion des parametres -------------------------------------
 
 
       static int evenIx = e->KeywordIx("EVEN");
