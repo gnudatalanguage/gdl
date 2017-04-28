@@ -3677,7 +3677,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 
   SizeT dimSum=0;
   ExprListIterT i=exprList.begin();
-  for(; i != exprList.end(); i++)
+  for(; i != exprList.end(); ++i)
     {
       // conversion done already here to throw if type is Assoc_<>
       (*i)=(*i)->Convert2( this->t);
@@ -3705,7 +3705,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   Data_<Sp>* catArr=New(catArrDim, BaseGDL::NOZERO);
   
   SizeT at=0;
-  for( i=exprList.begin(); i != exprList.end(); i++)
+  for( i=exprList.begin(); i != exprList.end(); ++i)
     {
       catArr->CatInsert(static_cast<Data_<Sp>*>( (*i)),
 			catRankIx,at); // advances 'at'
