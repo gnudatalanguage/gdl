@@ -29,7 +29,6 @@
 namespace lib {
 
   BaseGDL* convol_fun( EnvT* e);
-  BaseGDL* smooth_fun( EnvT* e);
 
 } // namespace
 

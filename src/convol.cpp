@@ -2,7 +2,7 @@
                           convol.cpp  -  convol function
                              -------------------
     begin                : Sep 19 2004
-    copyright            : (C) 2004 by Marc Schellens
+    copyright            : (C) 2004 by Marc Schellens, 2017 by G. Duvert
     email                : m_schellens@users.sourceforge.net
  ***************************************************************************/
 
@@ -161,8 +161,8 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 #endif
 
   Ty missingValue = (*static_cast<Data_*>( missing))[0];
-  Ty invalidValue = (*static_cast<Data_*>( invalid))[0];
-  
+  Ty invalidValue = (*static_cast<Data_*> (invalid))[0];
+
 
   SizeT nA = N_Elements();
   SizeT nKel = kernel->N_Elements();
@@ -265,11 +265,61 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   SizeT aBeg0 = aBeg[0];
   SizeT aEnd0 = aEnd[0];
   SizeT dim0_1     = dim0 - 1;
-  SizeT dim0_aEnd0 = dim0 - aEnd[0];
   SizeT kDim0      = kernel->Dim( 0);
   SizeT	kDim0_nDim = kDim0 * nDim;
   
-
+// Parallel acceleration:
+// first have static addresses for reference to the acceleratore below:
+static long* aInitIxRef[33]; //32 threads +1!
+static bool* regArrRef[33];
+// Compute nchunk using parallel max number of cpu, but chunksize must be a multiple of dim0 and not zero.
+// We limit the number of parallel threads to 33 given the size of the array of pointers above.
+// It can be extended at will, but if someone is in a position to augment '33' then it's probably beacuse the problem
+// should be treated by another algorithm than this one.
+// The whole purpose of this stuff with these static arrays of pointers is to insure that the compiler does not overoptimize
+// the code in the conv_inc* includes regarding the accelerator. AND to keep the code in conv_inc* more or less identical to the
+// historical version, slow but true and tested (well, a few bugs were cured along with this version). 
+  long chunksize=nA;
+  long nchunk=1;
+  if (nA > 1000) { //no use start parallel threading for small numbers.
+    chunksize=nA/((CpuTPOOL_NTHREADS>32)?32:CpuTPOOL_NTHREADS);
+    long n_dim0=chunksize/dim0; chunksize=dim0*n_dim0; //ensures chunksize integer number of dim0.
+    if (chunksize>0) {
+      nchunk=nA/chunksize;
+      if (chunksize*nchunk < nA) ++nchunk;
+    } else {nchunk=1; chunksize=nA;}
+  }
+// build a nchunk times copy of the master offset table (accelerator). Each thread will use its own copy, properly initialized.
+// GD: could the offset accelerator be made easier? This would certainly simplify the code.
+  long  aInitIxT[ MAXRANK+1]; //T for template
+  for ( long aSp=0; aSp<=nDim; ++aSp) aInitIxT[ aSp] = 0;
+  bool  regArrT[ MAXRANK];for ( long aSp=0; aSp<MAXRANK; ++aSp) regArrT[aSp] = !aBeg[ aSp];
+  long  aInitIxPool[nchunk][ MAXRANK+1];
+  for ( long aSp=0; aSp<=nDim; ++aSp) for (int iloop=0; iloop< nchunk; ++iloop) aInitIxPool[iloop][ aSp] = 0;
+  bool  regArrPool[nchunk][ MAXRANK]; 
+  for ( long aSp=0; aSp<MAXRANK; ++aSp) for (int iloop=0; iloop< nchunk; ++iloop) regArrPool[iloop][ aSp] = !aBeg[ aSp];
+  
+   for (long iloop = 0; iloop < nchunk; ++iloop) {
+   //memorize current state accelerator for chunk iloop:
+   for ( long aSp=0; aSp<=nDim; ++aSp) aInitIxPool[iloop][ aSp] = aInitIxT[ aSp]; 
+   for ( long aSp=0; aSp<MAXRANK; ++aSp) regArrPool[iloop][ aSp] = regArrT[ aSp];
+   //store addresses in static part
+   aInitIxRef[iloop]=aInitIxPool[iloop];
+   regArrRef[iloop]=regArrPool[iloop];
+   // continue with next table
+   for (long ia = iloop*chunksize; (ia < (iloop+1)*chunksize && ia < nA) ; ia += dim0) {
+    for (long aSp = 1; aSp < nDim;) {
+      if (aInitIxT[ aSp] < this->dim[ aSp]) {
+        regArrT[ aSp] = (aInitIxT[aSp] >= aBeg[aSp] && aInitIxT[aSp] < aEnd[ aSp]);
+        break;
+      }
+      aInitIxT[ aSp] = 0;
+      regArrT[ aSp] = !aBeg[ aSp];
+      ++aInitIxT[ ++aSp];
+    }
+    ++aInitIxT[1];
+   }
+  }
   
 #define INCLUDE_CONVOL_INC_CPP  //to make the include files behave.
 
@@ -400,8 +450,50 @@ if (normalize) {
       }
     }
 #undef CONVOL_EDGE_TRUNCATE
-  } else if (edgeMode == 3) {
+    } else if (edgeMode == 3) {
 #define CONVOL_EDGE_ZERO
+      if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+        if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+        } else {
+#include "convol_inc1.cpp"
+        }
+#undef CONVOL_NAN_INVALID
+      } else if (doInvalid) {
+#define CONVOL_INVALID
+        if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+        } else {
+#include "convol_inc1.cpp"
+        }
+#undef CONVOL_INVALID
+      } else if (doNan) {
+#define CONVOL_NAN
+        if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+        } else {
+#include "convol_inc1.cpp"
+        }
+#undef CONVOL_NAN
+      } else {
+        if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+        } else {
+#include "convol_inc1.cpp"
+        }
+      }
+#undef CONVOL_EDGE_ZERO
+    } else if (edgeMode == 4) {
+#define CONVOL_EDGE_MIRROR
     if (doInvalid && doNan) {
 #define CONVOL_NAN_INVALID
       if (center) {
@@ -441,7 +533,7 @@ if (normalize) {
 #include "convol_inc1.cpp"
       }
     }
-#undef CONVOL_EDGE_ZERO
+#undef CONVOL_EDGE_MIRROR
   }
 #undef CONVOL_NORMALIZE
 } else {
@@ -612,7 +704,50 @@ if (normalize) {
       }
     }
 #undef CONVOL_EDGE_ZERO
+    } else if (edgeMode == 4) {
+#define CONVOL_EDGE_MIRROR
+    if (doInvalid && doNan) {
+#define CONVOL_NAN_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN_INVALID
+    } else if (doInvalid) {
+#define CONVOL_INVALID
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_INVALID
+    } else if (doNan) {
+#define CONVOL_NAN
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+#undef CONVOL_NAN
+    } else {
+      if (center) {
+#define CONVOL_CENTER   // /CENTER option
+#include "convol_inc1.cpp"
+#undef CONVOL_CENTER   // /CENTER option
+      } else {
+#include "convol_inc1.cpp"
+      }
+    }
+#undef CONVOL_EDGE_MIRROR
   }
+#undef CONVOL_NORMALIZE
 }  
 
     
@@ -659,7 +794,7 @@ namespace lib {
     } else { //check however that kernel is not too big...
       if (p0->Dim(0) <  p1->Dim(0)) e->Throw("Incompatible dimensions for Array and Kernel.");
     }
-
+   
     //compute some interesting values about kernel and array dimensions
     int maxposK=0,curdimK,sumofdimsK=0,maxdimK=-1;
     int maxpos=0, curdimprod, maxdimprod=-1;
@@ -672,8 +807,7 @@ namespace lib {
         maxposK=i;
       }
     }
-    // if kernel is [1,1,...] return unconvolved (protect algo which would crash otherwise).
-    if (sumofdimsK == (p1->Rank())) return p0->Dup();
+    
     // If kernel is not 1-D, test which dimension is larger. Transposing the data and kernel to have this dimension first is faster since
     // it is the kernel sum which is parallelized here.
     // Probably there is a minimum difference in size (magicfactor=1.2 ? 1.5?) at which one would benefit given the added complexity of transposition.
@@ -716,6 +850,25 @@ namespace lib {
         mrep[maxpos]=0;
     }
     /***************************************Preparing_matrices*************************************************/
+     
+    //Computations for REAL and COMPLEX are better made in double precision if we do not want to lose precision
+    //Apparently IDL has severe problems regarding this loss of precision.
+    // try for example the following, which should give exactly ZERO:
+    // C=32*32*0.34564 & a=findgen(100,100)*0.0+1 & b=convol(a,fltarr(32,32)+0.34564) & print,(b-c)[20:80,50],format='(4(F20.12))' 
+    //So, we convert p0 to Double precision if necessary and convert back result.
+    //Do it here since all other parameters are converted to  p0's type.
+    Guard<BaseGDL> p0Guard;
+    bool deprecise=false;
+    if (p0->Type() == GDL_FLOAT) {
+        p0 = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        p0Guard.Reset(p0);
+        deprecise=true;
+    } else if (p0->Type() == GDL_COMPLEX) {
+        p0 = p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
+        p0Guard.Reset(p0);
+        deprecise=true;
+    }
+ 
     // convert kernel to array type
     Guard<BaseGDL> p1Guard;
     if (p0->Type() == GDL_BYTE || p0->Type() == GDL_UINT || p0->Type() == GDL_INT) {
@@ -761,6 +914,8 @@ namespace lib {
     bool edge_truncate = e->KeywordSet( edge_truncateIx);
     static int edge_zeroIx = e->KeywordIx( "EDGE_ZERO");
     bool edge_zero = e->KeywordSet( edge_zeroIx);
+    static int edge_mirrorIx = e->KeywordIx( "EDGE_MIRROR");
+    bool edge_mirror = e->KeywordSet( edge_mirrorIx);
     int edgeMode = 0; 
     if( edge_wrap)
       edgeMode = 1;
@@ -768,6 +923,8 @@ namespace lib {
       edgeMode = 2;
     else if( edge_zero)
       edgeMode = 3;
+    else if(edge_mirror)
+      edgeMode = 4;
     
     // p0, p1 and scale have same type
     // p1 has rank of 1 or same rank as p0 with each dimension smaller than p0
@@ -801,7 +958,7 @@ namespace lib {
     
     /***********************************Parameter MISSING************************************/
     static int missingIx = e->KeywordIx("MISSING");
-    bool doMissing = e->KeywordSet(missingIx);
+    bool doMissing = e->KeywordPresent(missingIx);
     BaseGDL* missing;
     Guard<BaseGDL> missGuard;
     if (doMissing) {
@@ -813,7 +970,7 @@ namespace lib {
     } else missing = p0->New(1, BaseGDL::ZERO);
    /***********************************Parameter INVALID************************************/
     static int invalidIx = e->KeywordIx("INVALID");
-    bool doInvalid = e->KeywordSet( invalidIx );
+    bool doInvalid = e->KeywordPresent( invalidIx );
     BaseGDL* invalid;
     Guard<BaseGDL> invalGuard;
     if (doInvalid) {
@@ -824,11 +981,22 @@ namespace lib {
         }
     } else invalid = p0->New(1, BaseGDL::ZERO);
     if (!doNan && !doInvalid) doMissing=false;
-    if (!doMissing && (p0->Type()==GDL_FLOAT ||p0->Type()==GDL_COMPLEX))
+    if (!doMissing && p0->Type()==GDL_FLOAT)
       missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("F_NAN"), 0);
-    if (!doMissing && (p0->Type()==GDL_DOUBLE ||p0->Type()==GDL_COMPLEXDBL))
+    if (!doMissing && p0->Type()==GDL_DOUBLE)
       missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("D_NAN"), 0);
-    
+    //populating a Complex with Nans is not easy as there is no objective method for that.
+    if (!doMissing && p0->Type()==GDL_COMPLEX) {
+      DComplex tmp;
+      tmp.real()=tmp.imag()=std::numeric_limits<float>::quiet_NaN();
+      memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
+    }
+    if (!doMissing && p0->Type()==GDL_COMPLEXDBL) {
+      DComplexDbl tmp;
+      tmp.real()=tmp.imag()=std::numeric_limits<double>::quiet_NaN();
+      memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
+    }
+    BaseGDL* result;
     //handle transpositions
     if (doTranspose) {
       BaseGDL* input;
@@ -839,8 +1007,19 @@ namespace lib {
       Guard<BaseGDL> transpP1Guard;
       transpP1=p1->Transpose(perm);
       transpP1Guard.Reset(transpP1);
-      return input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
-    } else return p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
+      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
+    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
+    
+    if (deprecise) {
+      Guard<BaseGDL> resultGuard;
+      resultGuard.reset(result);
+      if (p0->Type() == GDL_DOUBLE) return result->Convert2(GDL_FLOAT, BaseGDL::COPY);
+      else if (p0->Type() == GDL_COMPLEXDBL) return result->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+      else return result; //should not happen!
+    } else 
+      
+      return result; 
+    
   } //end of convol_fun
 
 

@@ -138,9 +138,12 @@ void LibInit()
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
-  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO",
+  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR",
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
+
+//  const string smoothKey[]={"NAN", "EDGE_MIRROR", "EDGE_WRAP","EDGE_TRUNCATE", "MISSING", KLISTEND};
+//  new DLibFunRetNew(lib::smooth_fun,string("SMOOTH"),2,smoothKey);
 
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
