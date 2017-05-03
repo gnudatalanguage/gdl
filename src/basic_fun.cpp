@@ -1241,7 +1241,7 @@ namespace lib {
 	  {
 	    string line;
 	    getline( os, line);
-	    if( os.good()) buf.push_back( line);
+	    if(!line.empty()) buf.push_back( line); //should save the day for the formats with '$' at end.
 	  }
 
 	SizeT bufSize = buf.size();
