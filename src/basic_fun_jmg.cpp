@@ -338,36 +338,37 @@ namespace lib {
 
       default: e->Throw("This should never happen, please report");
       }
- 
+
     if (redo) {
       //      cout << "here we are " <<p0->Type() << endl;
       if (p0->Type() == GDL_STRUCT) {
-	DStructGDL* s = static_cast<DStructGDL*>(p0);
-	if (s->Desc()->IsUnnamed()) {
-	  type="ANONYMOUS";
-	} else {
-	  type=s->Desc()->Name();
-	}
+        DStructGDL* s = static_cast<DStructGDL*> (p0);
+        if (s->Desc()->IsUnnamed()) {
+          type = "ANONYMOUS";
+        } else {
+          type = s->Desc()->Name();
+        }
       }
       // here we manage : {Objects, LIST, HASH}
       if (p0->Type() == GDL_OBJ) {
-	
-	// see case in "basic_pro.cpp", in help_item()
-	if (!p0->StrictScalar())
-	  e->Throw("We don't know how to do here, please provide exemple !");
 
-	DObj s = (*static_cast<DObjGDL*>(p0))[0]; // is StrictScalar()
-	if( s != 0)  // no overloads for null object
-	  {
-	    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-	    if (oStructGDL->Desc()->IsUnnamed()) 
-	      e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide exemple !");
-	    
-	    type= oStructGDL->Desc()->Name();
-	  }else {
-	  type = "UNDEFINED";
-	}
-	 
+        // see case in "basic_pro.cpp", in help_item()
+        if (!p0->StrictScalar()) {
+          type = "OBJREF";
+        } else {
+
+          DObj s = (*static_cast<DObjGDL*> (p0))[0]; // is StrictScalar()
+          if (s != 0) // no overloads for null object
+          {
+            DStructGDL* oStructGDL = GDLInterpreter::GetObjHeapNoThrow(s);
+            if (oStructGDL->Desc()->IsUnnamed())
+              e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide exemple !");
+
+            type = oStructGDL->Desc()->Name();
+          } else {
+            type = "UNDEFINED";
+          }
+        }
       }
     }
     return new DStringGDL(type);
