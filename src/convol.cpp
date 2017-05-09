@@ -988,12 +988,14 @@ namespace lib {
     //populating a Complex with Nans is not easy as there is no objective method for that.
     if (!doMissing && p0->Type()==GDL_COMPLEX) {
       DComplex tmp;
-      tmp.real()=tmp.imag()=std::numeric_limits<float>::quiet_NaN();
+      tmp.real()=std::numeric_limits<float>::quiet_NaN();
+      tmp.imag()=std::numeric_limits<float>::quiet_NaN();
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
     if (!doMissing && p0->Type()==GDL_COMPLEXDBL) {
       DComplexDbl tmp;
-      tmp.real()=tmp.imag()=std::numeric_limits<double>::quiet_NaN();
+      tmp.real()=std::numeric_limits<double>::quiet_NaN();
+      tmp.imag()=std::numeric_limits<double>::quiet_NaN();
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
     BaseGDL* result;
