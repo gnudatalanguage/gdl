@@ -64,21 +64,13 @@ namespace lib {
   BaseGDL* sph_scat_fun ( EnvT* e);
 #endif
   BaseGDL* poly_2d_fun( EnvT* e);
+  BaseGDL* poly_2d_funnew( EnvT* e);
   BaseGDL* rk4jmg_fun( EnvT* e);
 
   double ipow(double x, int p);
-  double sinc(double x);
+//  double sinc(double x);
   double poly2d_compute(poly2d *p, double x, double y);
-  double * generate_interpolation_kernel(char * kernel_type, DDouble cubic);
-
-  image_t * image_warp(SizeT, SizeT, SizeT, SizeT, DType, void*, 
-		       char *kernel_type,
-		       DDouble *param, poly2d *poly_u, poly2d *poly_v, 
-		       DLong interp, DDouble cubic, DLong warpType, DDouble initvalue,
-               bool doMissing);
-
-  image_t * image_new(int size_x, int size_y, DDouble initvalue);
-  void image_del(image_t *d);
+  DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubic);
 
 } // namespace
 
