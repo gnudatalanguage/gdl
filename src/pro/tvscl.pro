@@ -28,16 +28,6 @@
 ; SIDE EFFECTS:
 ;	An image is displayed on the current graphics device.
 ;
-; REESTRICTIONS: (obsolete mention)
-;       Has to use a slightly cumbersome procedure as the nan key is
-;	not yet implemented in MIN, MAX and BYTSCL.
-; REESTRICTIONS: (current version)
-;       When data contains NaN, we have no way to know what will
-;       happen in basic arithmetic ( a > 0 if a contains NaN may
-;       return 0. or NaN ...). Then we decide not to follow the rule
-;       and to manage NaN when /Nan not set ... Result becomes more
-;       predictable ...
-;
 ; MODIFICATION HISTORY:
 ;     Original: 14/03/2005; SJT
 ;     Modifications:
@@ -48,6 +38,8 @@
 ; we don't known how the range will be compute --> we decide
 ; not to follow this rule ...
 ; 2017-03-01 : AC: adding TOP= (bug report 717) + details
+; 2017-05-10 : GD: uses the fact that min is not needed and BYTSCL has Nan option now.
+;                  remove options not supported by IDL.
 ;
 ; LICENCE:
 ; Copyright (C) 2005, SJT; 2012, A. Coulais
@@ -57,9 +49,10 @@
 ; (at your option) any later version.                                   
 ; 
 ;-
-pro TVSCL, image, x, y, NaN=NaN, top=top, $
-           help=help, verbose=verbose, test=test, _extra = _extra
-;
+pro TVSCL, image, x, y, NaN=NaN, top=top, _extra = _extra
+
+; silent:
+compile_opt idl2, hidden
 ON_ERROR, 2                     ; Return to caller on error.
 ;
 if KEYWORD_SET(help) then begin
@@ -77,36 +70,16 @@ if (SIZE(image,/n_elements) EQ 0) then begin
    return
 endif
 ;
-if KEYWORD_SET(nan) then begin
-   locs = WHERE(FINITE(image), nf)
-   if (nf EQ 0) then MESSAGE, "No finite values found in image"
-   dmin = MIN(image[locs], max = dmax)
-endif else begin
-   ;; unpredictable result if image does contain NaN values (see MIN
-   ;; doc. or Minimum and Maximum Operators in IDL doc.)
-   ;;
-   ;; this case is not well managed in IDL too (no warning)
-   dmin = MIN(image, max = dmax)
-   if ~FINITE(dmin) OR ~FINITE(dmax) then begin
-      MESSAGE, /continue, 'Data range is wrong due to NaN/Inf, we used /NaN'
-      dmin = MIN(image, max = dmax, /nan)
-   endif
-endelse
-;
 if !d.table_size eq 0 then imax = !d.n_colors-1 else imax = !d.table_size-1
 ;
 if (N_ELEMENTS(top) GT 0) then imax=top
 ;
-if KEYWORD_SET(verbose) then print, 'Range, imax :', dmin, dmax, imax
-;
-img = BYTSCL(image, min = dmin, max = dmax, top = imax)
+if KEYWORD_SET(nan) then img = BYTSCL(image, max = dmax, top = imax, /nan) else img = BYTSCL(image, max = dmax, top = imax)
 
 case N_PARAMS() of
    1: TV, img, _extra = _extra
    2: TV, img, x, _extra = _extra
    3: TV, img, x, y, _extra = _extra
 endcase
-;
-if KEYWORD_SET(test) then STOP
 ;
 end
