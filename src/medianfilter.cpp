@@ -23,7 +23,6 @@ namespace fastmedian{  //make it apart from the rest...
 #include <limits>
 #include <stdexcept>
 #include <stdint.h>
-#include <x86intrin.h>
 
 const uint64_t ONE64 = 1;
 
