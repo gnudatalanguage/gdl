@@ -401,7 +401,7 @@ namespace lib {
 
     SizeT nEl=ret->N_Elements();
     SizeT sIx=e->NewHeap(nEl);
-    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    // not a thread pool function #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
       // #pragma omp for
       for( SizeT i=0; i<nEl; i++)
@@ -5675,85 +5675,94 @@ namespace lib {
     return new DLongGDL( s->Desc()->NTags());
   }
 
-  BaseGDL* bytscl( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);
+  BaseGDL* bytscl(EnvT* e) {
+    SizeT nParam = e->NParam(1);
 
-    BaseGDL* p0=e->GetNumericParDefined( 0);
+    BaseGDL* p0 = e->GetNumericParDefined(0);
 
-    static int minIx = e->KeywordIx( "MIN");
-    static int maxIx = e->KeywordIx( "MAX");
-    static int topIx = e->KeywordIx( "TOP");
-    static int nanIx = e->KeywordIx( "NAN");
-    bool omitNaN = e->KeywordPresent( nanIx);
+    static int minIx = e->KeywordIx("MIN");
+    static int maxIx = e->KeywordIx("MAX");
+    static int topIx = e->KeywordIx("TOP");
+    static int nanIx = e->KeywordIx("NAN");
+    bool omitNaN = e->KeywordPresent(nanIx);
 
-    DLong topL=255;
-    if( e->GetKW( topIx) != NULL)
-      e->AssureLongScalarKW( topIx, topL);
-    if (topL > 255) topL=255; // Bug corrected!
-    DByte top = static_cast<DByte>(topL);
-    DDouble dTop = static_cast<DDouble>(top);
+    //the following is going to be wrong in cases where TOP is so negative that a Long does not suffice.
+    //Besides, a template version for each different tyep would be faster and probably the only solution to get the
+    //correct behavior in all cases.
+    DLong topL = 255;
+    if (e->GetKW(topIx) != NULL)
+      e->AssureLongScalarKW(topIx, topL);
+    if (topL > 255) topL = 255; // Bug corrected: Topl cannot be > 255.
+    DDouble dTop = static_cast<DDouble> (topL); //Topl can be extremely negative.
 
     DDouble min;
     bool minSet = false;
     // SA: handling 3 parameters to emulate undocumented IDL behaviour 
     //     of translating second and third arguments to MIN and MAX, respectively
     //     (parameters have precedence over keywords)
-    if (nParam >= 2)
-      {
-	e->AssureDoubleScalarPar(1, min);
-	minSet = true;
-      } 
-    else if (e->GetKW(minIx) != NULL)
-      {
-	e->AssureDoubleScalarKW(minIx, min);
-	minSet = true;
-      }
+    if (nParam >= 2) {
+      e->AssureDoubleScalarPar(1, min);
+      minSet = true;
+    }
+    else if (e->GetKW(minIx) != NULL) {
+      e->AssureDoubleScalarKW(minIx, min);
+      minSet = true;
+    }
 
     DDouble max;
     bool maxSet = false;
-    if (nParam == 3)
-      {
-	e->AssureDoubleScalarPar(2, max);
-	maxSet = true;
-      }
-    else if (e->GetKW(maxIx) != NULL)
-      {
-	e->AssureDoubleScalarKW(maxIx, max);
-	maxSet = true;
-      }
+    if (nParam == 3) {
+      e->AssureDoubleScalarPar(2, max);
+      maxSet = true;
+    } else if (e->GetKW(maxIx) != NULL) {
+      e->AssureDoubleScalarKW(maxIx, max);
+      maxSet = true;
+    }
 
-    DDoubleGDL* dRes = 
-      static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+    DDoubleGDL* dRes =
+      static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
 
     DLong maxEl, minEl;
-    if( !maxSet || !minSet)
-      dRes->MinMax( &minEl, &maxEl, NULL, NULL, omitNaN);
-    if( !minSet)
+    if (!maxSet || !minSet)
+      dRes->MinMax(&minEl, &maxEl, NULL, NULL, omitNaN);
+    if (!minSet)
       min = (*dRes)[ minEl];
-    if( !maxSet)
+    if (!maxSet)
       max = (*dRes)[ maxEl];
 
     //    cout << "Min/max :" << min << " " << max << endl;
 
     SizeT nEl = dRes->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	DDouble& d = (*dRes)[ i];
-	if(omitNaN &&( isnan(d) || isinf(d))) (*dRes)[ i] = 0;
-	else if( d <= min) (*dRes)[ i] = 0;
-	else if( d >= max) (*dRes)[ i] = dTop;
-	else
-	  {
-	    // SA: floor is used for integer types to simulate manipulation on input data types
-	    if (IntType(p0->Type())) (*dRes)[ i] = floor(((dTop + 1.)*(d - min) - 1.) / (max-min));
-	    // SA (?): here floor is used (instead of round) to simulate IDL behaviour
-	    else (*dRes)[ i] = floor((d - min) / (max-min) * (dTop + .9999));
-	  }
-      }
 
-    return dRes->Convert2( GDL_BYTE);
+    if (IntType(p0->Type())) {
+        //Is a thread pool function
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        for (SizeT i = 0; i < nEl; ++i) {
+          DDouble& d = (*dRes)[ i];
+          if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
+          else if (d <= min) (*dRes)[ i] = 0;
+          else if (d >= max) (*dRes)[ i] = dTop;
+          else {
+            // SA: floor is used for integer types to simulate manipulation on input data types
+            (*dRes)[ i] = floor(((dTop + 1.)*(d - min) - 1.) / (max - min));
+          }
+        }
+      } else {
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        for (SizeT i = 0; i < nEl; ++i) {
+          DDouble& d = (*dRes)[ i];
+          if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
+          else if (d <= min) (*dRes)[ i] = 0;
+          else if (d >= max) (*dRes)[ i] = dTop;
+          else {
+              // SA (?): here floor is used (instead of round) to simulate IDL behaviour
+            (*dRes)[ i] = floor(((dTop + .9999)*(d - min)) / (max - min) );
+          }
+        }
+      }
+    return dRes->Convert2(GDL_BYTE);
   } 
+  
   BaseGDL* strtok_fun(EnvT* e) {
     SizeT nParam = e->NParam(1);
 
