@@ -40,19 +40,7 @@ IntT Real2Int( RealT r)
 template< typename RealT>
 DByte Real2DByte( RealT r)
 {
- return static_cast< DByte>( Real2Int<DInt, RealT>( r));
+ return static_cast< DByte>( Real2Int<DLong, RealT>( r));
 }
-
-// //template< typename RealT>
-// DByte Real2DByte(float  r)
-// {
-//   return static_cast< DByte>( Real2Int<DInt, float>( fmod(r,256.0)));
-// }
-
-// //template< typename RealT>
-// DByte Double2DByte(double r)
-// {
-//   return static_cast< DByte>( Real2Int<DInt, double >( fmod(r,256.0)));
-// }
 
 #endif
