@@ -981,21 +981,21 @@ namespace lib {
         }
     } else invalid = p0->New(1, BaseGDL::ZERO);
     if (!doNan && !doInvalid) doMissing=false;
-    if (!doMissing && p0->Type()==GDL_FLOAT)
-      missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("F_NAN"), 0);
-    if (!doMissing && p0->Type()==GDL_DOUBLE)
-      missing = SysVar::Values()->GetTag(SysVar::Values()->Desc()->TagIndex("D_NAN"), 0);
+    if (!doMissing && p0->Type()==GDL_FLOAT) {
+      DFloat tmp=std::numeric_limits<float>::quiet_NaN();
+      memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
+    }
+    if (!doMissing && p0->Type()==GDL_DOUBLE){
+      DDouble tmp=std::numeric_limits<double>::quiet_NaN();
+      memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
+    }
     //populating a Complex with Nans is not easy as there is no objective method for that.
     if (!doMissing && p0->Type()==GDL_COMPLEX) {
-      DComplex tmp;
-      tmp.real()=std::numeric_limits<float>::quiet_NaN();
-      tmp.imag()=std::numeric_limits<float>::quiet_NaN();
+      DComplex tmp=std::complex<DFloat>(std::numeric_limits<float>::quiet_NaN(),std::numeric_limits<float>::quiet_NaN());
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
     if (!doMissing && p0->Type()==GDL_COMPLEXDBL) {
-      DComplexDbl tmp;
-      tmp.real()=std::numeric_limits<double>::quiet_NaN();
-      tmp.imag()=std::numeric_limits<double>::quiet_NaN();
+      DComplexDbl tmp=std::complex<DDouble>(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
     BaseGDL* result;
