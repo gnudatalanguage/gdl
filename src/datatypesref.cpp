@@ -132,11 +132,11 @@ void Data_<SpDPtr>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   SizeT nCp=srcIn->Stride(nDim+1)/len; // number of OVERALL copy actions
 
   // as lines are copied, we need the stride from 2nd dim on
-  SizeT retStride[MAXRANK];
+  SizeT retStride[MAXRANK+1];
   for( SizeT a=0; a <= nDim; ++a) retStride[a]=srcDim.Stride(a+1)/len;
 	
   // a magic number, to reset destStart for this dimension
-  SizeT resetStep[MAXRANK];
+  SizeT resetStep[MAXRANK+1];
   for( SizeT a=1; a <= nDim; ++a)
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*this->dim.Stride(a);
 	
