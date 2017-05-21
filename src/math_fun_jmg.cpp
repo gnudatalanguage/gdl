@@ -945,7 +945,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -953,7 +953,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1026,7 +1026,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -1034,7 +1034,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1152,7 +1152,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -1160,7 +1160,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1243,7 +1243,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -1251,7 +1251,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1334,7 +1334,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -1342,7 +1342,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1468,7 +1468,7 @@ void triangulate ( EnvT* e)
     if (doMissing) {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for nowait
+#pragma omp for
         for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
@@ -1476,7 +1476,7 @@ void triangulate ( EnvT* e)
     /* Double loop on the output image  */
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for nowait
+#pragma omp for collapse(2)
       for (DLong j = 0; j < nRows; ++j) {
         for (DLong i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.

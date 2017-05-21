@@ -23,7 +23,7 @@ edgemode = 0 (skip)
 // for all result elements
 #pragma omp parallel num_threads(nchunk) firstprivate(scale,bias) shared(ker,kIxArr,res,aInitIxRef,regArrRef,nchunk,chunksize,aBeg,aEnd,nDim,aBeg0,aStride,ddP,invalidValue,kDim0,kDim0_nDim,nKel,missingValue,aEnd0,dim0,nA,absker,biasker) //default(none)
   {
-#pragma omp for nowait
+#pragma omp for
   for (long iloop = 0; iloop < nchunk; ++iloop) {
   long* aInitIx=aInitIxRef[iloop]; //permits to keep code more or less the same as before.
   bool* regArr=regArrRef[iloop];   //idem.

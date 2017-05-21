@@ -4226,7 +4226,7 @@ namespace lib {
             }
             DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
             //probably overkill to start multithreading in some easy cases. TBD.
-#pragma omp for private(i,hasnan) nowait
+#pragma omp for private(i,hasnan)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_d(&(*input)[i * stride], stride)) (*res)[i] = quick_select_d_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
               else (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
@@ -4241,7 +4241,7 @@ namespace lib {
             }
             DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
             //probably overkill to start multithreading in some easy cases. TBD.
-#pragma omp for private(i) nowait
+#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_f(&(*input)[i * stride], stride)) (*res)[i] = quick_select_f_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
               else (*res)[i] = quick_select_f(&(*input)[i * stride], stride, iseven);            }
@@ -4256,7 +4256,7 @@ namespace lib {
               clean_array = true;
             }
             DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
-#pragma omp for private(i) nowait
+#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
@@ -4267,7 +4267,7 @@ namespace lib {
               clean_array = true;
             }
             DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
-#pragma omp for private(i) nowait
+#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_f(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
