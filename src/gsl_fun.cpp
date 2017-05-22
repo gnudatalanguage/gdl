@@ -838,7 +838,7 @@ namespace lib {
  */
   
   inline double high_prec_gsl_rng_uniform_pos_d(const gsl_rng * r) {
-    ulong A, B;
+    unsigned long A, B;
     long double C;
     A = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
     B = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
@@ -985,7 +985,7 @@ namespace lib {
         return 0;
       } else {
         //as for IDL, make a more precise random number from 2 successive ones:
-        ulong A,B;
+        unsigned long A,B;
         long double C;
          for (SizeT i = 0; i < nEl; ++i) {
           A = gsl_rng_uniform(r)*0xFFFFFFFFUL;
