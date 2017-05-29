@@ -404,8 +404,11 @@ return GDL_UNDEF;
     SizeT nParam=e->NParam(1);
     
     DLong h5a_id;
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
+#else
     e->AssureLongScalarPar(0, h5a_id);
-    
+#endif
     DLong h5a_space_id;
     h5a_space_id = H5Aget_space( h5a_id );
     if (h5a_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
@@ -487,7 +490,11 @@ return GDL_UNDEF;
     hsize_t dims_out[MAXRANK];
 
     hid_t h5a_id;
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
+#else
     e->AssureLongScalarPar(0, h5a_id);
+#endif
     
     hid_t h5s_id = H5Aget_space(h5a_id);
     if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
@@ -601,7 +608,11 @@ return GDL_UNDEF;
     hsize_t dims_out[MAXRANK];
 
     hid_t h5d_id;
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5d_id);
+#else
     e->AssureLongScalarPar(0, h5d_id);
+#endif
 
     hid_t h5s_id = H5Dget_space(h5d_id);
     if (h5s_id < 0) {
@@ -766,7 +777,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5s_id;
-    e->AssureLongScalarPar( 0, h5s_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5s_id);
+#else
+    e->AssureLongScalarPar(0, h5s_id);
+#endif
     if (H5Sclose(h5s_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
@@ -775,7 +790,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5d_id;
-    e->AssureLongScalarPar( 0, h5d_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5d_id);
+#else
+    e->AssureLongScalarPar(0, h5d_id);
+#endif
     if (H5Dclose(h5d_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
@@ -784,7 +803,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5f_id;
-    e->AssureLongScalarPar( 0, h5f_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5f_id);
+#else
+    e->AssureLongScalarPar(0, h5f_id);
+#endif
     if (H5Fclose(h5f_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -793,7 +816,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5t_id;
-    e->AssureLongScalarPar( 0, h5t_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5t_id);
+#else
+    e->AssureLongScalarPar(0, h5t_id);
+#endif
     if (H5Tclose(h5t_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -802,7 +829,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5g_id;
-    e->AssureLongScalarPar( 0, h5g_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5g_id);
+#else
+    e->AssureLongScalarPar(0, h5g_id);
+#endif
     if (H5Gclose(h5g_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -811,7 +842,11 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     DLong h5a_id;
-    e->AssureLongScalarPar( 0, h5a_id);
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
+#else
+    e->AssureLongScalarPar(0, h5a_id);
+#endif
     if (H5Aclose(h5a_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
