@@ -125,7 +125,7 @@ namespace lib
 	int success = gethostname(gethost, lgethost);
 	if( success != 0)
 	  // we are here only if all 3 methods failed
-	  {e->Throw( "Unknow hostname !");}
+	  {e->Throw( "Unknown hostname !");}
 	else {
 	  host=string(gethost);
 	  //if (debug) cout << "lgethost: [" << lgethost << "]"<< endl;

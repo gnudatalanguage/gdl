@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
           cout << "             the following argument (may be specified more than once)" << endl;
 	  cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
           cout << "             all following arguments" << endl;
-          cout << "  -e value   execute given statement and exit (last occurance taken into account only," << endl;
+          cout << "  -e value   execute given statement and exit (last occurence taken into account only," << endl;
           cout << "             executed after startup file, may not be specified together with batch files)" << endl;
 	  cout << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
 	  cout << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
