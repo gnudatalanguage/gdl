@@ -40,7 +40,7 @@ pro TEST_BUG_FFT, verbose=verbose
 ;
 if KEYWORD_SET(verbose) then begin
     print, 'Old version of GDL do have, in the important FFT procedure,'
-    print, 'some bugs and bad managment of some type (Integer, Complex) in input'
+    print, 'some bugs and bad management of some type (Integer, Complex) in input'
     print, 'This call helps you to quickly know if you must upgrade to version >= gdl-0.9rc4'
 endif
 ;

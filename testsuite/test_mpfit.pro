@@ -3,7 +3,7 @@
 ; Simple way to test if MPFIT is working ...
 ; Examples derived from Craig Markwardt WEB site
 ;
-; AC 26/10/2010: better managment of error when CMSV lib. or MPFIT
+; AC 26/10/2010: better management of error when CMSV lib. or MPFIT
 ; lib. are not in the path ...
 ;
 ; 16-Nov-2011

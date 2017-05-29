@@ -3639,7 +3639,7 @@ GDL 0.9.4:
 
 	* src/pro/idl_validname.pro:
 	three improvments in pro IDL_VALIDNAME: 1/ input as list of string OK,
-	2/ thanks to patch 66, better managment of 3 special chars: $, ! and \,
+	2/ thanks to patch 66, better management of 3 special chars: $, ! and \,
 	3/ "!" at first place and /convert_all is well managed.
 
 2013-08-05  alaingdl  <alaingdl@sf.net>
@@ -3886,7 +3886,7 @@ GDL 0.9.4:
 	switching back the default history to 200: convenient, and similar behavior on the other side ;-)
 
 	* src/gsl_fun.cpp:
-	In QROMB and QROMO, better managment of keyword EPS=, thanks to patch 67.
+	In QROMB and QROMO, better management of keyword EPS=, thanks to patch 67.
 	At the same time, correcting a long living bug in the order of parameters
 	when calling GSL function : gsl_integration_qag(). Please report pbs !!
 
@@ -4200,7 +4200,7 @@ GDL 0.9.4:
 	* src/basic_fun.cpp: removing extra "cout <<"
 
 	* src/basic_fun.cpp, src/libinit.cpp:
-	Initial managment of /source keyword in ROUTINE_INFO() [bug report 3612842].
+	Initial management of /source keyword in ROUTINE_INFO() [bug report 3612842].
 	Not ready when no parameter provided (in that case, all compiled procedures or functions
 	name/path informations must returned)
 
@@ -5791,7 +5791,7 @@ GDL 0.9.3:
 	update test cases for QROMO (we should now cover all the cases)
 
 	* src/gsl_fun.cpp:
-	revised version of QROMO by M. Pinter. Should cover all the cases. Good managment of NaN/Inf ...
+	revised version of QROMO by M. Pinter. Should cover all the cases. Good management of NaN/Inf ...
 
 	* testsuite/test_fz_roots.pro:
 	tests cases for FZ_ROOTS (preliminary version, errors accumulation not managed !)
@@ -5912,7 +5912,7 @@ GDL 0.9.3:
 2012-03-15  alaingdl  <alaingdl@sf.net>
 
 	* src/devicex.hpp, src/pro/loadct.pro:
-	better managment for color tables in LOADCT (good resultS around Coyote lib.)
+	better management for color tables in LOADCT (good resultS around Coyote lib.)
 
 2012-03-13  alaingdl  <alaingdl@sf.net>
 
@@ -6181,7 +6181,7 @@ GDL 0.9.3:
 	QROMO: initial import of limited version only for range [a,+inf]; help welcome.
 
 	* src/gsl_fun.cpp:
-	QROMB: better managment of inputs (vectors, matrix); IDL doc. is wrong for that ([1],[8]) return [8], not [1]
+	QROMB: better management of inputs (vectors, matrix); IDL doc. is wrong for that ([1],[8]) return [8], not [1]
 
 2012-01-12  alaingdl  <alaingdl@sf.net>
 
@@ -6213,7 +6213,7 @@ GDL 0.9.3:
 2012-01-04  alaingdl  <alaingdl@sf.net>
 
 	* src/gsl_fun.cpp:
-	in RANDOM(U/N), better managment of GAMMA values (exit if <= 0.; put to 1 if 0.0 < Gamma < 1.0)
+	in RANDOM(U/N), better management of GAMMA values (exit if <= 0.; put to 1 if 0.0 < Gamma < 1.0)
 
 2012-01-03  slayoo  <slayoo@sf.net>
 
@@ -6259,7 +6259,7 @@ GDL 0.9.3:
 	initial import of TEST_GET_KBRD. 3 main cases are tested.
 
 	* src/basic_fun.cpp:
-	in GET_KBRD(), better managment of GET_KBRD(0) (see testsuite/test_get_kbrd.pro) [should be retest on OSX]
+	in GET_KBRD(), better management of GET_KBRD(0) (see testsuite/test_get_kbrd.pro) [should be retest on OSX]
 
 	* src/pro/identity.pro: in IDENTITY, bug corrected when N=1
 
@@ -6507,7 +6507,7 @@ GDL 0.9.3:
 	initial import of a fake USERSYM to avoid stopping codes just because we don't know how to write USERSYM
 
 	* src/pro/read_ascii.pro, src/pro/read_jpeg.pro, src/pro/read_png.pro, src/pro/read_xwd.pro:
-	better managment when we try to read a directory when a real file is expected.
+	better management when we try to read a directory when a real file is expected.
 
 	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test-read_ascii.pro, testsuite/test_image_statistics.pro:
 	initial import of TEST_IMAGE_STATISTICS; correction in TEST-READ_ASCII to be able to go to the end.
@@ -8111,7 +8111,7 @@ GDL 0.9.1:
 	Still improving the CMake alternative. Now target (gdl) don't loose PATH to alternative librairies (pb on Debian where we need dedicated Image Magick version).
 
 	* CMake.tar.gz, gdl/CMake.tar.gz:
-	better managment of alternative path to ImageMagick lib. (need a "by-hand" Image Magick Lib. under Debian to avoid a known pb with Plplot (two seccessive calls to WINDOW will crash, see testsuite/test_known_bugs.pro))
+	better management of alternative path to ImageMagick lib. (need a "by-hand" Image Magick Lib. under Debian to avoid a known pb with Plplot (two seccessive calls to WINDOW will crash, see testsuite/test_known_bugs.pro))
 
 2010-08-27  slayoo  <slayoo@DaMachineInDaMachine>
 
@@ -8509,7 +8509,7 @@ GDL 0.9:
 	LUDC.pro: initial import of a fake one to be able to run the full time_test3 suite
 
 	* src/file.cpp:
-	trying to manage "~" in GDL_PATH, also for EXPAND_PATH. No managment of redundant entry (like ".");
+	trying to manage "~" in GDL_PATH, also for EXPAND_PATH. No management of redundant entry (like ".");
 	not sure path expansion always done ...
 
 2010-04-21  slayoo  <slayoo@DaMachineInDaMachine>
@@ -8619,7 +8619,7 @@ GDL 0.9:
 	in TVSCL, return when input array not given or without elements
 
 	* testsuite/test_read_jpeg.pro:
-	better managment of big images/small screen (and vertical/horizontal modes)
+	better management of big images/small screen (and vertical/horizontal modes)
 
 2010-04-13  m_schellens  <m_schellens@DaMachineInDaMachine>
 
@@ -9004,7 +9004,7 @@ GDL 0.9:
 	Wider tests for PRODUCT(), including /int, /nan, and dim param.
 
 	* src/basic_fun.cpp:
-	dding managment of keyword /Integer to PRODUCT function (see test_product.pro)
+	dding management of keyword /Integer to PRODUCT function (see test_product.pro)
 	This Keyword is used in current Astron Lib.
 
 2010-02-09  alaingdl  <alaingdl@DaMachineInDaMachine>
@@ -9990,7 +9990,7 @@ GDL 0.9rc3:
 2009-07-30  alaingdl  <alaingdl@DaMachineInDaMachine>
 
 	* TODO, src/math_fun_ac.cpp, testsuite/test_besel.pro, testsuite/test_tv.pro:
-	BESEL family functions: non integer order, X neg, Complex, and better managment of arrays dimensions
+	BESEL family functions: non integer order, X neg, Complex, and better management of arrays dimensions
 
 2009-07-29  alaingdl  <alaingdl@DaMachineInDaMachine>
 
@@ -10841,7 +10841,7 @@ GDL 0.9pre6:
 2007-12-21  alaingdl  <alaingdl at users.sourceforge.net>
 
 	* INSTALL, NEWS, src/basic_pro.cpp, src/dinterpreter.cpp, src/gdljournal.cpp:
-	history file managment (~/.gdl/history)
+	history file management (~/.gdl/history)
 
 2007-12-09  m_schellens  <m_schellens at users.sourceforge.net>
 

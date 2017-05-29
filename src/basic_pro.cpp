@@ -399,7 +399,7 @@ namespace lib {
 
     StrArr path = SysVar::GDLPath();
 
-    os << "!PATH (no cache managment --now-- in GDL, ";
+    os << "!PATH (no cache management --now-- in GDL, ";
     os << path.size() << " directories)" << endl;
     lines_count = 1;
 

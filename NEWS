@@ -186,7 +186,7 @@
 	  Add 6 linestyles (via !p.linestyle or keyword) for PLOT, OPLOT, PLOTS
 	  Improved memory management.
 	  Improved new implementation of struct arrays.
-	  Managment of an history (ASCII) file save in ~/.gdl/history (with memory of previous sessions)
+	  Management of an history (ASCII) file save in ~/.gdl/history (with memory of previous sessions)
 	  Add initial CURSOR, limited but functionnal (know
 	  limitations documented in program) and !mouse
  
@@ -234,7 +234,7 @@
            - ATAN: precision fixes (atan(float, float) -> float(atan(double, double))),
              /PHASE keyword support, array-scalar argument combination support, 
              two-complex-arguments case support
-           - BESEL*: non integer order, X neg, Complex, and better managment of arrays dimensions
+           - BESEL*: non integer order, X neg, Complex, and better management of arrays dimensions
            - BETA: better management of the dimensions of output arrays
            - BROYDEN: initial import
            - CALENDAR: initial import
@@ -572,7 +572,7 @@
 0.9.4:
            - when compiled with Eigen3 library, significant speed improvement
 	     in MATRIX_MULTIPLY() (and # operators), especially on multi-cores
-	     Basic loading managment included (if some core are busy).
+	     Basic loading management included (if some core are busy).
            - LIST and HASH are fully supported
 	     even left-side struct access is possible e. g.: 
 	       GDL> h = HASH('key',{tag1:1})  &  h['key'].tag1 = 3
