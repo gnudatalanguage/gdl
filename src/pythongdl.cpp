@@ -392,25 +392,31 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
     
     BaseGDL* retValGDL = NULL;
     Guard<BaseGDL> retValGDL_guard;
-    if( functionCall)
-      {
-	if( libCall) 
-	  retValGDL = static_cast<DLibFun*>(static_cast<EnvT*>(e)->
-					    GetPro())->Fun()( static_cast<EnvT*>(e));
-	else
-	  retValGDL = interpreter->call_fun(static_cast<DSubUD*>
-					    (static_cast<EnvUDT*>(e)
-					     ->GetPro())->GetTree());
-	retValGDL_guard.Reset( retValGDL);
-      }
-    else
-      {
-	if( libCall) 
-	  static_cast<DLibPro*>(e->GetPro())->Pro()(static_cast<EnvT*>(e)); // throws
-	else
-	  interpreter->call_pro(static_cast<DSubUD*>
-				(e->GetPro())->GetTree()); //throws
-      }
+
+    if (functionCall) {
+        DLibFun* sub_fun_chk = dynamic_cast<DLibFun *>(static_cast<EnvT *>(e)->GetPro());
+        if (sub_fun_chk) {
+            //handle direct call function first
+            if (sub_fun_chk->DirectCall()) {
+                BaseGDL* directCallParameter = e->GetParDefined(0);
+                retValGDL = static_cast<DLibFunDirect*>(sub_fun_chk)->FunDirect()(directCallParameter, true /*isReference*/);
+            }
+        } else if (libCall)
+        retValGDL = static_cast<DLibFun *>(static_cast<EnvT *>(e)->GetPro())
+                        ->Fun()(static_cast<EnvT *>(e));
+      else
+        retValGDL = interpreter->call_fun(
+            static_cast<DSubUD *>(static_cast<EnvUDT *>(e)->GetPro())
+                ->GetTree());
+      retValGDL_guard.Reset(retValGDL);
+    } else {
+      if (libCall)
+        static_cast<DLibPro *>(e->GetPro())
+            ->Pro()(static_cast<EnvT *>(e)); // throws
+      else
+        interpreter->call_pro(
+            static_cast<DSubUD *>(e->GetPro())->GetTree()); // throws
+    }
 
     // copy back args and keywords
     success = CopyArgToPython( parRef, kwRef, *e, argTuple, kwDict);
