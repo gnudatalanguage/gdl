@@ -169,7 +169,7 @@
       "Usage: res="+e->GetProName()+"(x, [n,] double=double)",		\
       " -- x is a number or an array",					\
       " -- n is a number or an array (if missing, set to 0)",		\
-      " If x and n dimensions differ, reasonnable rules applied"};	\
+      " If x and n dimensions differ, reasonable rules applied"};	\
     int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	\
     e->Help(inline_help, size_of_s);					\
   }

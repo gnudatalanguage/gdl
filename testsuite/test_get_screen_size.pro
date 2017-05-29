@@ -45,7 +45,7 @@ taille=GET_SCREEN_SIZE(resolution=resolution)
 print, 'Screen Size (in pixels) :', taille
 print, 'Pixel Size (in mm) :', resolution
 ;
-; are the values "reasonnables" ?
+; are the values "reasonables" ?
 ; 1/ positives values
 ; 2/ (non blocking) quasi square pixels
 ; 3/ (non blocking) non excessive aspect ratio for the whole screen
