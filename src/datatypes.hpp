@@ -293,6 +293,8 @@ static	void operator delete( void *ptr);
 		   bool center, bool normalize, int edgeMode,
                    bool doNan, BaseGDL* missing, bool doMissing,
                    BaseGDL* invalid, bool doInvalid);
+  BaseGDL* Smooth(DLong* width, int edgeMode,
+                   bool doNan, BaseGDL* missing);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
 
   void Assign( BaseGDL* src, SizeT nEl);

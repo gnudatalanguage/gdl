@@ -1357,110 +1357,116 @@ DUInt* InitPermDefault()
   return res;
 }
 template<class Sp> 
-BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
-{
+BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
   SizeT rank = this->Rank();
 
-  if( rank == 1) // special case: vector
+  if (rank == 1) // special case: vector
+  {
+    if (perm != NULL) // must be [0]
     {
-      if( perm != NULL) // must be [0]
-	{
-	  return Dup();
-	}
-      else
-	{
-	  Data_* res = Dup();
-	  res->dim >> 1;
-	  return res;
-	}
+      return Dup();
+    } else {
+      Data_* res = Dup();
+      res->dim >> 1;
+      return res;
     }
+  }
 
   // 2 - MAXRANK
-  static DUInt* permDefault = InitPermDefault(); 
-  if( perm == NULL)
-    {
-      if( rank == 2)
-	{
-	  SizeT srcDim0 = this->dim[0]; 
-	  SizeT srcDim1 = this->dim[1];
-	  Data_* res = new Data_( dimension( srcDim1, srcDim0), BaseGDL::NOZERO);
+  static DUInt* permDefault = InitPermDefault();
+  if (perm == NULL) {
+    
+// following 2D code is now slower than multi-dim multicore solution below. 
+//    if (rank == 2) {
+//      SizeT srcDim0 = this->dim[0];
+//      SizeT srcDim1 = this->dim[1];
+//      Data_* res = new Data_(dimension(srcDim1, srcDim0), BaseGDL::NOZERO);
+//
+//      SizeT srcIx = 0;
+//      for (SizeT srcIx1 = 0; srcIx1 < srcDim1; ++srcIx1) // src dim 1
+//      {
+//        SizeT resIx = srcIx1;
+//        SizeT srcLim = srcIx + srcDim0; // src dim 0
+//        for (; srcIx < srcLim; ++srcIx) {
+//          (*res)[ resIx] = (*this)[ srcIx];
+//          resIx += srcDim1;
+//        }
+//      }
+//      return res;
+//    }
 
-	  SizeT srcIx = 0;
-	  for(SizeT srcIx1 = 0; srcIx1<srcDim1; ++srcIx1) // src dim 1
-	    {
-	      SizeT resIx = srcIx1;
-	      SizeT srcLim = srcIx + srcDim0; // src dim 0
-	      for(; srcIx<srcLim; ++srcIx)
-		{
-		  (*res)[ resIx] = (*this)[ srcIx];
-		  resIx += srcDim1;
-		}
-	    }
-	
-	  // 	SizeT srcStride1 = this->dim[0]; //.Stride( 1);
-	  // 	SizeT nElem = dd.size();
-	  // 	SizeT srcDim0 = 0;
-	  // 	SizeT e = 0;
-	  // 	SizeT resDim0 = this->dim[1];
-	  // 	for(; srcDim0<srcStride1; srcDim0++)
-	  // 	{
-	  // 		SizeT s = srcDim0;
-	  // 		SizeT eLim = e + resDim0;
-	  // 		for(; e<eLim; ++e, s += srcStride1)
-	  // 		{
-	  // 			(*res)[ e] = (*this)[ s];
-	  // 		}
-	  // 	}
+    // perm == NULL, rank != 2
+    perm = &permDefault[ MAXRANK - rank];
+  }
 
-	  // 	  for( SizeT e = 0; e<nElem;)
-	  // 	    {
-	  // 		for( SizeT s=srcDim0++; s<nElem; s+= srcStride1)
-	  // 			(*res)[ e++] = (*this)[ s];
-	  // 	    }
-	  return res;
-	}
+  //new version, parallell the job on a multithreaded machine. Gain is 3/4 number of threads.  
+  SizeT resDim[ MAXRANK]; // permutated!
+  for (SizeT d = 0; d < rank; ++d) {
+    resDim[ d] = this->dim[ perm[ d]];
+  }
 
-      // perm == NULL, rank != 2
-      perm = &permDefault[ MAXRANK - rank];
-    }
-	
-  SizeT this_dim[ MAXRANK]; // permutated!
-  for( SizeT d=0; d<rank; ++d)
-    {
-      this_dim[ d] = this->dim[ perm[ d]];
-      //    newDim.Set( d, this_dim[ d]);
-    }
-  
-  Data_* res = new Data_( dimension( this_dim, rank), BaseGDL::NOZERO);
+  Data_* res = new Data_(dimension(resDim, rank), BaseGDL::NOZERO);
 
   // src stride
-  SizeT srcStride[ MAXRANK];
-  this->dim.Stride( srcStride, rank);
-
-  // src multi dim
-  SizeT srcDim[MAXRANK];
-  for( SizeT i=0; i<rank; ++i) srcDim[i]=0;
+  SizeT srcStride[ MAXRANK+1];
+  this->dim.Stride(srcStride, rank);
 
   SizeT nElem = dd.size();
-  for( SizeT e=0; e<nElem; ++e)
-    {
-      // multi src dim to one dim index
-      SizeT ix = 0;
-      for( SizeT i=0; i < rank; ++i)
-	ix += srcDim[i] * srcStride[i];
-      
-      (*res)[ e] = (*this)[ ix];
+  long chunksize = nElem;
+  long nchunk = 1;
+  if (nElem > CpuTPOOL_MIN_ELTS) { //no use start parallel threading for small numbers.
+    chunksize = nElem / ((CpuTPOOL_NTHREADS > 32) ? 32 : CpuTPOOL_NTHREADS);
+    nchunk = nElem / chunksize;
+    if (chunksize * nchunk < nElem) ++nchunk;
+  } else {
+    nchunk = 1;
+    chunksize = nElem;
+  }
+  //compute start parameter for each multiWalk chunks:
+  // pool of accelerators
+  SizeT srcDimPool[nchunk][MAXRANK];
+  for (SizeT i = 0; i < rank; ++i) for (int iloop = 0; iloop < nchunk; ++iloop) srcDimPool[iloop][i] = 0;
+  //template accelerator
+  SizeT templateDim[MAXRANK];
+  for (SizeT i = 0; i < rank; ++i) templateDim[i] = 0;
 
-      // update dest multi dim
-      for( SizeT i=0; i < rank; ++i)
-	{
-	  DUInt pi = perm[i];
-	  srcDim[pi]++;
-	  if( srcDim[pi] < this_dim[i]) break;
-	  srcDim[pi]=0;
-	}
+  //compute iloop's accelerator with fast direct method
+  for (long iloop = 0; iloop < nchunk; ++iloop) {
+    SizeT e = iloop*chunksize;
+    SizeT sizeleft = e;
+    for (long i = 0; i < rank; ++i) {
+      DUInt pi = perm[i]; //note the transpose effect.
+      sizeleft /= resDim[i];
+      templateDim[pi] = e - sizeleft * resDim[i];
+      e = sizeleft;
     }
-  
+    //memorize current state accelerator for chunk iloop:
+    for (long j = 0; j < rank; ++j) srcDimPool[iloop][j] = templateDim[j];
+  }
+
+#pragma omp parallel num_threads(nchunk) 
+  {
+#pragma omp for 
+    for (long iloop = 0; iloop < nchunk; ++iloop) {
+      // populate src multi dim
+      SizeT srcDim[MAXRANK];
+      for (SizeT i = 0; i < rank; ++i) srcDim[i] = srcDimPool[iloop][i];
+      //inner loop
+      for (SizeT e = iloop * chunksize; (e < (iloop + 1) * chunksize && e < nElem); ++e) {
+        // src multi dim to one dim src offset index
+        SizeT ix = 0;
+        for (SizeT i = 0; i < rank; ++i) ix += srcDim[i] * srcStride[i];
+        (*res)[ e] = (*this)[ ix];
+        // update src multi dim for next dest offset index: here is the transpose effect.
+        for (SizeT i = 0; i < rank; ++i) {
+          DUInt pi = perm[i];
+          srcDim[pi]++;
+          if (srcDim[pi] < resDim[i]) break;
+          srcDim[pi] = 0;
+        }
+      }
+    }
+  }
   return res;
 }
 
@@ -3828,11 +3834,11 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   SizeT nCp=srcIn->Stride(nDim+1)/len; // number of OVERALL copy actions
 
   // as lines are copied, we need the stride from 2nd dim on
-  SizeT retStride[MAXRANK];
+  SizeT retStride[MAXRANK+1];
   for( SizeT a=0; a <= nDim; ++a) retStride[a]=srcDim.Stride(a+1)/len;
     
   // a magic number, to reset destStart for this dimension
-  SizeT resetStep[MAXRANK];
+  SizeT resetStep[MAXRANK+1];
   for( SizeT a=1; a <= nDim; ++a) 
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*this->dim.Stride(a);
 	
@@ -4908,6 +4914,535 @@ BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
 #undef CONVOL_ULONG64__
 
 #include "convol.cpp"
+
+//compute index when srcDim of rank rank is tranposed by [1,2,3...,0]. destStride must have been computed externally (accelerator).
+inline static SizeT transposed1Index(const SizeT inputindex, const SizeT* srcDim, const SizeT* destStride, const long rank)
+{
+  SizeT dim[MAXRANK];
+  SizeT index=inputindex;
+  SizeT sizeleft = index;
+  SizeT dim0;
+  for (SizeT i = 0; i < rank; ++i) {
+    dim0= srcDim[i];
+    sizeleft /= dim0;
+    dim[i] = index - sizeleft * dim0; //the corresponding index in src data.
+    index = sizeleft;
+  }
+  SizeT ix = 0;
+  for (SizeT i = 0; i < rank-1; ++i) ix += dim[i+1] * destStride[i]; ix+=dim[0]*destStride[rank-1]; //note dim has been rotated by 1
+
+  return ix;
+}
+#define INCLUDE_SMOOTH_POLYD
+template<typename T>
+void SmoothPolyD(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+ #include "smoothPolyD.hpp" 
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void SmoothPolyDWrap(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_WRAP
+#include "smoothPolyD.hpp" 
+#undef EDGE_WRAP
+}
+template<typename T>
+void SmoothPolyDTruncate(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_TRUNCATE
+#include "smoothPolyD.hpp" 
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void SmoothPolyDZero(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_ZERO
+#include "smoothPolyD.hpp" 
+#undef EDGE_ZERO
+}
+template<typename T>
+void SmoothPolyDMirror(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_MIRROR
+#include "smoothPolyD.hpp" 
+#undef EDGE_MIRROR
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_POLYD
+
+#define INCLUDE_SMOOTH_POLYD_NAN
+template<typename T>
+void SmoothPolyDNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+//  //silly: what if there is no smoothing at all?
+//  SizeT sum=0; for (int i = 0; i < datain->Rank(); ++i) sum+=width[i]; //at this point width min value is 1.
+//  if (sum==datain->Rank()) return;
+//  
+//  T1* src = datain->Dup();
+//  
+//  SizeT nEl = src->N_Elements();
+//  long rank = src->Rank();
+//  DUInt perm[rank]; //turntable transposition index list
+//
+//  for (int i = 0; i < rank; ++i) perm[i] = ((i + 1)%rank); //[1,2,...,0] 
+//
+//  SizeT destStride[ MAXRANK+1];
+//  datain->Dim().Stride(destStride,rank);
+//  SizeT srcDim[MAXRANK];
+//  for (int i = 0; i < rank; ++i) srcDim[i] = src->Dim()[i];
+//  
+//  SizeT destDim[ MAXRANK]; //use destDim mainly to turn resDim each time
+//  for (int i = 0; i < rank; ++i) destDim[i] = srcDim[i];
+//
+//  // successively apply smooth 1d and write perm-transposed values in res, then copy back res in data for next iteration.
+//  // the trick is to update srcDim and resStride each time.
+//  for (int r = 0; r < rank; ++r) {
+//    //accelerator: compute destStride from a perm-uted srcDim:
+//    destStride[0] = 1;
+//    destStride[1] = srcDim[perm[0]];
+//    int m = 1;
+//    for (; m < rank; ++m) destStride[m + 1] = destStride[m] * srcDim[perm[m]];
+//    for (; m < MAXRANK; ++m) destStride[m + 1] = destStride[rank];
+//
+//    SizeT dimx = srcDim[0]; //which has been permutated 
+//    SizeT dimy = nEl / dimx;
+//    SizeT w = width[r] / 2;
+//    if (w==0) {//fast transpose
+//  #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//      {
+//  #pragma omp for nowait
+//        for (SizeT i=0; i<nEl; ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
+//      }
+//    } else { //smooth & transpose
+//  #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//      {
+//        //transpose-only first and end lines
+//  #pragma omp for nowait
+//        for (SizeT j = 0; j < dimy; ++j) for (SizeT i = j*dimx; i < j*dimx+w; ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
+//
+//  #pragma omp for nowait
+//        for (SizeT j = 0; j < dimy; ++j)  for (SizeT i = (dimx-w + j*dimx); i < (dimx+j*dimx); ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
+//
+//  #pragma omp for nowait
+//        for (SizeT j = 0; j < dimy; ++j) {
+//          //initiate mean of Width first values:
+//          DDouble z;
+//          DDouble n = 0;
+//          T2 mean=0;
+//          for (SizeT i = j * dimx; i < j*dimx + (2*w+1) ; ++i) {
+//            T2 v=(*src)[i];
+//            if (gdlValid(v)) {
+//              n += 1.0;
+//              z = 1. / n;
+//              mean= (1. - z) * mean + z * v;
+//            }
+//          }
+//          for (SizeT i = w + j*dimx, ibef= j*dimx, iend=2*w+1+j*dimx; i < dimx - w - 1+ j*dimx; ++i,++ibef,++iend) {
+//            SizeT ix = transposed1Index(i, srcDim, destStride, rank);
+//            (*dest)[ix] =  (n>0)?mean:(*src)[i];
+//            T2 v=(*src)[ibef];
+//            if (gdlValid(v)) {
+//                mean *= n;
+//                mean -= v; 
+//                n -= 1.0;
+//                mean /= n;
+//            }
+//
+//            if (n<=0) mean=0;
+//
+//            v = (*src)[iend];
+//            if (gdlValid(v)) {
+//              mean *= n;
+//              if (n< 2*w+1) n += 1.0;  
+//              mean += v;
+//              mean /= n;
+//            }            
+//          }
+//          SizeT index = dimx - 1 - w + j*dimx;
+//          SizeT ix = transposed1Index(index, srcDim, destStride, rank);
+//          (*dest)[ix] = (n>0)?mean:(*src)[index];
+//        }
+//      }
+//    }
+//    //pseudo-dim of src is now rotated by 1
+//    SizeT tempSize[MAXRANK];
+//    for (int i = 0; i < rank ; ++i) tempSize[i]=srcDim[i];
+//    for (int i = 0; i < rank ; ++i) srcDim[i]=tempSize[perm[i]];
+//// fast copy back data for next iteration
+//    if (r < rank - 1) memcpy(src->DataAddr(), dest->DataAddr(), nEl * sizeof ((*src)[0])); //no use copy back for last loop element
+//  }
+////clean:
+//  GDLDelete(src);
+ #include "smoothPolyDnans.hpp" 
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void SmoothPolyDWrapNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_WRAP
+#include "smoothPolyDnans.hpp" 
+#undef EDGE_WRAP
+}
+template<typename T>
+void SmoothPolyDTruncateNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_TRUNCATE
+#include "smoothPolyDnans.hpp" 
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void SmoothPolyDZeroNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_ZERO
+#include "smoothPolyDnans.hpp" 
+#undef EDGE_ZERO
+}
+template<typename T>
+void SmoothPolyDMirrorNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
+#define EDGE_MIRROR
+#include "smoothPolyDnans.hpp" 
+#undef EDGE_MIRROR
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_POLYD_NAN
+
+
+#define INCLUDE_SMOOTH_1D
+template<typename T>
+void Smooth1D(T* data, T* res, SizeT dimx, SizeT w) {
+#include "smooth1d.hpp"
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void Smooth1DWrap(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_WRAP
+#include "smooth1d.hpp"
+#undef EDGE_WRAP
+}
+template<typename T>
+void Smooth1DTruncate(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_TRUNCATE
+#include "smooth1d.hpp"
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void Smooth1DMirror(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_MIRROR
+#include "smooth1d.hpp"
+#undef EDGE_MIRROR
+}
+template<typename T>
+void Smooth1DZero(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_ZERO
+#include "smooth1d.hpp"
+#undef EDGE_ZERO
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_1D
+
+//smooth 1d functions for Nans.
+#define INCLUDE_SMOOTH_1D_NAN
+template<typename T>
+void Smooth1DNan(T* data, T* res, SizeT dimx, SizeT w) {
+#include "smooth1dnans.hpp"
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void Smooth1DWrapNan(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_WRAP
+#include "smooth1dnans.hpp"
+#undef EDGE_WRAP
+}
+template<typename T>
+void Smooth1DTruncateNan(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_TRUNCATE
+#include "smooth1dnans.hpp"
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void Smooth1DMirrorNan(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_MIRROR
+#include "smooth1dnans.hpp"
+#undef EDGE_MIRROR
+}
+template<typename T>
+void Smooth1DZeroNan(T* data, T* res, SizeT dimx, SizeT w) {
+#define EDGE_ZERO
+#include "smooth1dnans.hpp"
+#undef EDGE_ZERO
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_1D_NAN
+
+//smooth 2d functions.
+#define INCLUDE_SMOOTH_2D
+template<typename T>
+void Smooth2D(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#include "smooth2d.hpp"
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void Smooth2DWrap(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_WRAP
+#include "smooth2d.hpp"
+#undef EDGE_WRAP
+}
+template<typename T>
+void Smooth2DTruncate(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_TRUNCATE
+#include "smooth2d.hpp"
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void Smooth2DMirror(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_MIRROR
+#include "smooth2d.hpp"
+#undef EDGE_MIRROR
+}
+template<typename T>
+void Smooth2DZero(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_ZERO
+#include "smooth2d.hpp"
+#undef EDGE_ZERO
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_2D
+
+//smooth 2d functions for Nans.
+#define INCLUDE_SMOOTH_2D_NAN
+template<typename T>
+void Smooth2DNan(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#include "smooth2dnans.hpp"
+}
+//subset having edges
+#define USE_EDGE
+template<typename T>
+void Smooth2DWrapNan(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_WRAP
+#include "smooth2dnans.hpp"
+#undef EDGE_WRAP
+}
+template<typename T>
+void Smooth2DTruncateNan(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_TRUNCATE
+#include "smooth2dnans.hpp"
+#undef EDGE_TRUNCATE
+}
+template<typename T>
+void Smooth2DMirrorNan(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_MIRROR
+#include "smooth2dnans.hpp"
+#undef EDGE_MIRROR
+}
+template<typename T>
+void Smooth2DZeroNan(const T* src, T* dest, const SizeT dimx, const SizeT dimy, const DLong* width) {
+#define EDGE_ZERO
+#include "smooth2dnans.hpp"
+#undef EDGE_ZERO
+}
+#undef USE_EDGE
+#undef INCLUDE_SMOOTH_2D_NAN
+
+//Note: Values for ULong types return differently as IDL, but it should be proven that IDL is right...
+template<class Sp>
+BaseGDL* Data_<Sp>::Smooth(DLong* width, int edgeMode,
+                                bool doNan, BaseGDL* missing)
+{
+  Ty missingValue = (*static_cast<Data_*>( missing))[0];
+  SizeT nA = N_Elements();
+  
+  SizeT srcRank = this->Rank();
+  
+  BaseGDL* data = this;
+  BaseGDL* res = this->Dup();
+  
+  SizeT sum = 0;
+  SizeT mydims[srcRank]; //memory of dimensions, done one after the other
+  for (int i = 0; i < srcRank; ++i) 
+  {
+    mydims[i] = this->Dim(i);
+    sum += width[i];
+  }
+  if (sum == srcRank) return res;
+  
+  DUInt rotate1[srcRank]; //turntable transposition index list
+  
+  //doNan only meaningful for real and double (complex are real and double here)
+  doNan=(doNan && (this->Type()==GDL_FLOAT ||this->Type()==GDL_DOUBLE));
+
+  for (int i = 0; i < srcRank-1; ++i) rotate1[i] = i+1; rotate1[srcRank-1]=0; //[1,2,...,0] 
+ 
+  if (doNan) {
+    if (srcRank==1) {
+      SizeT dimx = nA;
+      SizeT w = width[0] / 2;
+      if (edgeMode==0){
+        Smooth1DNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==1) {
+        Smooth1DWrapNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==2) {
+        Smooth1DTruncateNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==3) {
+        Smooth1DZeroNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==4) {
+        Smooth1DMirrorNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      }
+    } else if (srcRank==2) {
+      SizeT dimx = data->Dim(0);
+      SizeT dimy = data->Dim(1);
+      if (edgeMode==0){
+        Smooth2DNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==1) {
+        Smooth2DWrapNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==2) {
+        Smooth2DTruncateNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==3) {
+        Smooth2DZeroNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==4) {
+        Smooth2DMirrorNan((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      }
+    } else {
+      long rank = data->Rank();
+      SizeT srcDim[MAXRANK];
+      for (int i = 0; i < rank; ++i) srcDim[i] = data->Dim()[i];
+      BaseGDL* dataw = this->Dup();
+      if (edgeMode==0){
+        SmoothPolyDNan((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==1) {
+        SmoothPolyDWrapNan((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==2) {
+        SmoothPolyDTruncateNan((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==3) {
+        SmoothPolyDZeroNan((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==4) {
+        SmoothPolyDMirrorNan((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      }
+      GDLDelete(dataw);
+    }
+   //additional loop to replace left Nans by missing, if nans are left anyway
+    if (gdlValid(missingValue))  {
+      Ty* resty=(Ty*)res->DataAddr();
+#pragma omp for 
+      for (SizeT i=0; i<nA; ++i) if (!gdlValid(resty[i])) resty[i]=missingValue;
+      }
+  } else {
+    if (srcRank==1) {
+      SizeT dimx = nA;
+      SizeT w = width[0] / 2;
+      if (edgeMode==0){
+        Smooth1D((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==1) {
+        Smooth1DWrap((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==2) {
+        Smooth1DTruncate((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==3) {
+        Smooth1DZero((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      } else if (edgeMode==4) {
+        Smooth1DMirror((Ty*)data->DataAddr(), (Ty*)res->DataAddr(),  dimx, w);
+      }
+    } else if (srcRank==2) {
+      SizeT dimx = data->Dim(0);
+      SizeT dimy = data->Dim(1);
+      if (edgeMode==0){
+        Smooth2D((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==1) {
+        Smooth2DWrap((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==2) {
+        Smooth2DTruncate((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==3) {
+        Smooth2DZero((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      } else if (edgeMode==4) {
+        Smooth2DMirror((Ty*)data->DataAddr(), (Ty*)res->DataAddr(), dimx, dimy,  width);
+      }
+    } else  {
+      long rank = data->Rank();
+      SizeT srcDim[MAXRANK];
+      for (int i = 0; i < rank; ++i) srcDim[i] = data->Dim()[i];
+      BaseGDL* dataw = this->Dup();
+      if (edgeMode==0){
+        SmoothPolyD((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==1) {
+        SmoothPolyDWrap((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==2) {
+        SmoothPolyDTruncate((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==3) {
+        SmoothPolyDZero((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      } else if (edgeMode==4) {
+        SmoothPolyDMirror((Ty*)dataw->DataAddr(), (Ty*)res->DataAddr(), srcDim, rank, width);
+      }
+      GDLDelete(dataw);
+    }
+  }
+  return res;
+}
+
+template<>
+BaseGDL* Data_<SpDString>::Smooth( DLong* width, int edgeMode,
+                                   bool doNan, BaseGDL* missing)
+{
+  throw GDLException("String expression not allowed in this context.");
+}
+template<>
+BaseGDL* Data_<SpDObj>::Smooth( DLong* width, int edgeMode,
+                                bool doNan, BaseGDL* missing)
+{
+  throw GDLException("Object expression not allowed in this context.");
+}
+template<>
+BaseGDL* Data_<SpDPtr>::Smooth( DLong* width, int edgeMode,
+                                bool doNan, BaseGDL* missing)
+{
+  throw GDLException("Pointer expression not allowed in this context.");
+}
+template<>
+BaseGDL* Data_<SpDComplexDbl>::Smooth( DLong* width, int edgeMode,
+                                bool doNan, BaseGDL* missing)
+{
+  Ty missingValue = (*static_cast<Data_*>( missing))[0];
+  DDoubleGDL* missr=new DDoubleGDL(missingValue.real());
+  DDoubleGDL* missi=new DDoubleGDL(missingValue.imag());
+  Data_* res = this->Dup();
+  DDoubleGDL* re=new DDoubleGDL(this->Dim(), BaseGDL::NOZERO);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*re)[i]=(*this)[i].real();
+  BaseGDL* resr=re->Smooth(width, edgeMode, doNan, missr);
+  DDoubleGDL* im=new DDoubleGDL(this->Dim(), BaseGDL::NOZERO);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*im)[i]=(*this)[i].imag();
+  BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
+  DDouble* dresi=(DDouble*)resi->DataAddr();  
+  DDouble* dresr=(DDouble*)resr->DataAddr();  
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].imag()=dresi[i];
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].real()=dresr[i];
+  GDLDelete (resr);
+  GDLDelete (re);
+  GDLDelete (missr);
+  GDLDelete (resi);
+  GDLDelete (im);
+  GDLDelete (missi);
+  return res;
+}
+template<>
+BaseGDL* Data_<SpDComplex>::Smooth( DLong* width, int edgeMode,
+                                bool doNan, BaseGDL* missing)
+{
+  Ty missingValue = (*static_cast<Data_*>( missing))[0];
+  DFloatGDL* missr=new DFloatGDL(missingValue.real());
+  DFloatGDL* missi=new DFloatGDL(missingValue.imag());
+  Data_* res = this->Dup();
+  DFloatGDL* re=new DFloatGDL(this->Dim(), BaseGDL::NOZERO);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*re)[i]=(*this)[i].real();
+  BaseGDL* resr=re->Smooth(width, edgeMode, doNan, missr);
+  DFloatGDL* im=new DFloatGDL(this->Dim(), BaseGDL::NOZERO);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*im)[i]=(*this)[i].imag();
+  BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
+  DFloat* fresi=(DFloat*)resi->DataAddr();  
+  DFloat* fresr=(DFloat*)resr->DataAddr();  
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].imag()=fresi[i];
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].real()=fresr[i];
+  GDLDelete (resr);
+  GDLDelete (re);
+  GDLDelete (missr);
+  GDLDelete (resi);
+  GDLDelete (im);
+  GDLDelete (missi);
+  return res;
+}
 
 template<>
 BaseGDL* Data_<SpDString>::Rebin( const dimension& newDim, bool sample)

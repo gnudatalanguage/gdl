@@ -14,14 +14,21 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
+
+
+#ifndef SMOOTH_HPP_
+#define SMOOTH_HPP_
 
 #include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {
 
-  BaseGDL* smooth2_fun( EnvT* e);
-  BaseGDL* smooth3_fun( EnvT* e);
+ BaseGDL* smooth_fun( EnvT* e);
 
 } // namespace
 
+#endif

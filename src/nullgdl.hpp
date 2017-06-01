@@ -170,6 +170,8 @@ class NullGDL: public BaseGDL
 			       bool center, bool normalize, int edgeMode,
                                bool doNan, BaseGDL* missing, bool doMissing,
                                BaseGDL* invalid, bool doInvalid);
+  /*virtual*/ BaseGDL* Smooth( DLong* width, int edgeMode,
+                               bool doNan, BaseGDL* missing);
   /*virtual*/ BaseGDL* Rebin( const dimension& newDim, bool sample);
   // for STRUCT_ASSIGN
   /*virtual*/ void Assign( BaseGDL* src, SizeT nEl);

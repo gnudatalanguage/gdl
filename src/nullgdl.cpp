@@ -578,6 +578,11 @@ BaseGDL* NullGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 {
   throw GDLException("NullGDL::Convol(...) called.");
 }
+BaseGDL* NullGDL::Smooth( DLong* width, int edgeMode,
+                          bool doNan, BaseGDL* missing)
+{
+  throw GDLException("NullGDL::Smooth(...) called.");
+}
 BaseGDL* NullGDL::Rebin( const dimension& newDim, bool sample)
 {
   throw GDLException("NullGDL::Rebin(...) called.");

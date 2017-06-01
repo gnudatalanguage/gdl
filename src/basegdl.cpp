@@ -535,6 +535,11 @@ BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
+BaseGDL* BaseGDL::Smooth( DLong* width, int edgeMode,
+                          bool doNan, BaseGDL* missing)
+{
+  throw GDLException("BaseGDL::Smooth(...) called.");
+}
 BaseGDL* BaseGDL::Rebin( const dimension& newDim, bool sample)
 {
   throw GDLException("BaseGDL::Rebin(...) called.");

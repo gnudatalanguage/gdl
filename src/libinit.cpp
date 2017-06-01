@@ -41,6 +41,7 @@
 #include "gsl_fun.hpp"
 
 #include "convol.hpp"
+#include "smooth.hpp"
 
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
@@ -142,8 +143,8 @@ void LibInit()
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
-//  const string smoothKey[]={"NAN", "EDGE_MIRROR", "EDGE_WRAP","EDGE_TRUNCATE", "MISSING", KLISTEND};
-//  new DLibFunRetNew(lib::smooth_fun,string("SMOOTH"),2,smoothKey);
+  const string smoothKey[]={"NAN", "EDGE_MIRROR", "EDGE_WRAP","EDGE_TRUNCATE", "EDGE_ZERO", "MISSING", KLISTEND};
+  new DLibFunRetNew(lib::smooth_fun,string("SMOOTH"),2,smoothKey);
 
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
