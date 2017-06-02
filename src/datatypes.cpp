@@ -4970,105 +4970,6 @@ void SmoothPolyDMirror(T* srcIn, T* destIn, const SizeT* datainDim, const int ra
 #define INCLUDE_SMOOTH_POLYD_NAN
 template<typename T>
 void SmoothPolyDNan(T* srcIn, T* destIn, const SizeT* datainDim, const int rank, const DLong* width) {
-//  //silly: what if there is no smoothing at all?
-//  SizeT sum=0; for (int i = 0; i < datain->Rank(); ++i) sum+=width[i]; //at this point width min value is 1.
-//  if (sum==datain->Rank()) return;
-//  
-//  T1* src = datain->Dup();
-//  
-//  SizeT nEl = src->N_Elements();
-//  long rank = src->Rank();
-//  DUInt perm[rank]; //turntable transposition index list
-//
-//  for (int i = 0; i < rank; ++i) perm[i] = ((i + 1)%rank); //[1,2,...,0] 
-//
-//  SizeT destStride[ MAXRANK+1];
-//  datain->Dim().Stride(destStride,rank);
-//  SizeT srcDim[MAXRANK];
-//  for (int i = 0; i < rank; ++i) srcDim[i] = src->Dim()[i];
-//  
-//  SizeT destDim[ MAXRANK]; //use destDim mainly to turn resDim each time
-//  for (int i = 0; i < rank; ++i) destDim[i] = srcDim[i];
-//
-//  // successively apply smooth 1d and write perm-transposed values in res, then copy back res in data for next iteration.
-//  // the trick is to update srcDim and resStride each time.
-//  for (int r = 0; r < rank; ++r) {
-//    //accelerator: compute destStride from a perm-uted srcDim:
-//    destStride[0] = 1;
-//    destStride[1] = srcDim[perm[0]];
-//    int m = 1;
-//    for (; m < rank; ++m) destStride[m + 1] = destStride[m] * srcDim[perm[m]];
-//    for (; m < MAXRANK; ++m) destStride[m + 1] = destStride[rank];
-//
-//    SizeT dimx = srcDim[0]; //which has been permutated 
-//    SizeT dimy = nEl / dimx;
-//    SizeT w = width[r] / 2;
-//    if (w==0) {//fast transpose
-//  #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//      {
-//  #pragma omp for nowait
-//        for (SizeT i=0; i<nEl; ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
-//      }
-//    } else { //smooth & transpose
-//  #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//      {
-//        //transpose-only first and end lines
-//  #pragma omp for nowait
-//        for (SizeT j = 0; j < dimy; ++j) for (SizeT i = j*dimx; i < j*dimx+w; ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
-//
-//  #pragma omp for nowait
-//        for (SizeT j = 0; j < dimy; ++j)  for (SizeT i = (dimx-w + j*dimx); i < (dimx+j*dimx); ++i) (*dest)[transposed1Index(i, srcDim, destStride, rank)] = (*src)[i];
-//
-//  #pragma omp for nowait
-//        for (SizeT j = 0; j < dimy; ++j) {
-//          //initiate mean of Width first values:
-//          DDouble z;
-//          DDouble n = 0;
-//          T2 mean=0;
-//          for (SizeT i = j * dimx; i < j*dimx + (2*w+1) ; ++i) {
-//            T2 v=(*src)[i];
-//            if (gdlValid(v)) {
-//              n += 1.0;
-//              z = 1. / n;
-//              mean= (1. - z) * mean + z * v;
-//            }
-//          }
-//          for (SizeT i = w + j*dimx, ibef= j*dimx, iend=2*w+1+j*dimx; i < dimx - w - 1+ j*dimx; ++i,++ibef,++iend) {
-//            SizeT ix = transposed1Index(i, srcDim, destStride, rank);
-//            (*dest)[ix] =  (n>0)?mean:(*src)[i];
-//            T2 v=(*src)[ibef];
-//            if (gdlValid(v)) {
-//                mean *= n;
-//                mean -= v; 
-//                n -= 1.0;
-//                mean /= n;
-//            }
-//
-//            if (n<=0) mean=0;
-//
-//            v = (*src)[iend];
-//            if (gdlValid(v)) {
-//              mean *= n;
-//              if (n< 2*w+1) n += 1.0;  
-//              mean += v;
-//              mean /= n;
-//            }            
-//          }
-//          SizeT index = dimx - 1 - w + j*dimx;
-//          SizeT ix = transposed1Index(index, srcDim, destStride, rank);
-//          (*dest)[ix] = (n>0)?mean:(*src)[index];
-//        }
-//      }
-//    }
-//    //pseudo-dim of src is now rotated by 1
-//    SizeT tempSize[MAXRANK];
-//    for (int i = 0; i < rank ; ++i) tempSize[i]=srcDim[i];
-//    for (int i = 0; i < rank ; ++i) srcDim[i]=tempSize[perm[i]];
-//// fast copy back data for next iteration
-//    if (r < rank - 1) memcpy(src->DataAddr(), dest->DataAddr(), nEl * sizeof ((*src)[0])); //no use copy back for last loop element
-//  }
-////clean:
-//  GDLDelete(src);
  #include "smoothPolyDnans.hpp" 
 }
 //subset having edges
@@ -5407,8 +5308,7 @@ BaseGDL* Data_<SpDComplexDbl>::Smooth( DLong* width, int edgeMode,
   BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
   DDouble* dresi=(DDouble*)resi->DataAddr();  
   DDouble* dresr=(DDouble*)resr->DataAddr();  
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].imag()=dresi[i];
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].real()=dresr[i];
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DDouble>(dresr[i], dresr[i]);
   GDLDelete (resr);
   GDLDelete (re);
   GDLDelete (missr);
@@ -5433,8 +5333,7 @@ BaseGDL* Data_<SpDComplex>::Smooth( DLong* width, int edgeMode,
   BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
   DFloat* fresi=(DFloat*)resi->DataAddr();  
   DFloat* fresr=(DFloat*)resr->DataAddr();  
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].imag()=fresi[i];
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i].real()=fresr[i];
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DFloat>(fresr[i], fresr[i]);
   GDLDelete (resr);
   GDLDelete (re);
   GDLDelete (missr);
