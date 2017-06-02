@@ -217,7 +217,10 @@ void LibInit()
 
   const string medianKey[]={"EVEN","DOUBLE","DIMENSION",KLISTEND};
   new DLibFunRetNew(lib::median,string("MEDIAN"),2,medianKey);
-  
+
+  const string meanKey[]={"DOUBLE","DIMENSION","NAN",KLISTEND};
+  new DLibFunRetNew(lib::mean_fun,string("MEAN"),1,meanKey);  
+
   new DLibFunRetNew(lib::transpose,string("TRANSPOSE"),2,NULL,NULL,true);
 
   new DLibPro(lib::retall,string("RETALL"));

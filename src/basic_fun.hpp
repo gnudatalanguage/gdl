@@ -124,8 +124,6 @@ namespace lib {
 
   BaseGDL* strjoin( EnvT* e);
 
-  //  BaseGDL* convol( EnvT* e);
-
   BaseGDL* rebin_fun( EnvT* e);
 
   BaseGDL* obj_class( EnvT* e);
@@ -168,7 +166,7 @@ namespace lib {
   BaseGDL* scope_traceback( EnvT* e);
   BaseGDL* scope_varfetch_value( EnvT* e); // regular library function
   BaseGDL** scope_varfetch_reference( EnvT* e); // special version for LEval()
-
+  BaseGDL* mean_fun(EnvT* e); 
 } // namespace
 
 #endif

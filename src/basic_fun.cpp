@@ -4711,9 +4711,9 @@ namespace lib {
       }
 
       // for 2D arrays, we use the algorithm described in paper
-      // from T. Huang, G. Yang, and G. Tang, ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂA Fast Two-Dimensional Median
-      // Filtering Algorithm,ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ IEEE Trans. Acoust., Speech, Signal Processing,
-      // vol. 27, no. 1, pp. 13ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ18, 1979.
+      // from T. Huang, G. Yang, and G. Tang, Fast Two-Dimensional Median Filtering Algorithm,
+      // IEEE Trans. Acoust., Speech, Signal Processing,
+      // vol. 27, no. 1, pp. 13--18, 1979.
 
       if ((e->GetParDefined(0)->Type() == GDL_BYTE ||
         e->GetParDefined(0)->Type() == GDL_INT ||
@@ -5100,6 +5100,202 @@ namespace lib {
 
   }// end of median
 
+  static inline DDouble mean_d(DDouble data[], SizeT sz) {
+    DDouble mean = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:mean)
+    for (SizeT i = 0; i < sz; ++i) mean += data[i];
+    }
+    return mean/sz;
+  }
+  
+  static inline DFloat mean_f(DFloat data[], SizeT sz) {
+    DFloat mean = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:mean)
+    for (SizeT i = 0; i < sz; ++i) mean += data[i];
+    }
+    return mean/sz;
+  }
+  
+  static inline DDouble mean_d_nan(DDouble data[], SizeT sz) {
+    DDouble mean = 0;
+    SizeT n = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:mean,n)
+     for (SizeT i = 0; i < sz; ++i) {
+        DDouble v = data[i];
+        if (isfinite(v)) {
+          n++,
+          mean += v;
+        }
+      }
+    }
+    return mean/n;
+  }
+  
+  static inline DFloat mean_f_nan(DFloat data[], SizeT sz) {
+    DFloat mean = 0;
+    SizeT n = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:mean,n)
+      for (SizeT i = 0; i < sz; ++i) {
+        DFloat v = data[i];
+        if (isfinite(v)) {
+          n ++;
+          mean += v;
+        }
+      }
+    }
+    return mean/n;
+  }  
+  
+  BaseGDL* mean_fun(EnvT* e) {
+    BaseGDL* p0 = e->GetParDefined(0);
+
+    if (p0->Type() == GDL_PTR)
+      e->Throw("Pointer expression not allowed in this context: " + e->GetParString(0));
+    if (p0->Type() == GDL_OBJ)
+      e->Throw("Object expression not allowed in this context: " + e->GetParString(0));
+    if (p0->Type() == GDL_STRUCT)
+      e->Throw("Struct expression not allowed in this context: " + e->GetParString(0));
+
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    bool dbl =
+      (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_COMPLEXDBL ||
+      e->KeywordSet(doubleIx));
+    
+    static int nanIx = e->KeywordIx("NAN");
+    // Check possibility of Nan (not useful to speed down mean on integer data which
+    // will never produce NaNs).
+    bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_FLOAT ||
+      p0->Type() == GDL_COMPLEX ||
+      p0->Type() == GDL_COMPLEXDBL);
+    bool omitNaN = (e->KeywordPresent(nanIx)&&possibleNaN);
+
+      //DIMENSION Kw  
+      static int dimIx = e->KeywordIx("DIMENSION");
+      bool dimSet = e->KeywordSet(dimIx);
+
+      DLong meanDim;
+      if (dimSet) {
+        e->AssureLongScalarKW(dimIx, meanDim);
+        if (meanDim < 0 || meanDim > p0->Rank())
+          e->Throw("Illegal keyword value for DIMENSION");
+      }
+      
+      if (dimSet && p0->Rank() > 1) {
+        meanDim -= 1; // user-supplied dimensions start with 1!
+
+        // output dimension: copy srcDim to destDim
+        dimension destDim = p0->Dim();
+        // make array of dims for transpose
+        DUInt* perm = new DUInt[p0->Rank()];
+        ArrayGuard<DUInt> perm_guard(perm);
+        //useful to reorder dims for transpose to order data in continuous order.
+        DUInt i = 0, j = 0;
+        for (i = 0; i < p0->Rank(); ++i) if (i != meanDim) {
+            perm[j + 1] = i;
+            j++;
+          }
+        perm[0] = meanDim;
+        // resize destDim
+        destDim.Remove(meanDim); //will be one dimension less
+        //compute stride and number of elements of result:
+        SizeT stride = p0->Dim(meanDim);
+
+        SizeT nEl = destDim.NDimElementsConst();
+
+        //transpose p0 to arrange dimensions if meanDim is > 0. Do not forget to remove transposed array.
+        bool clean_array = false;
+        if (omitNaN) {
+          if (dbl) {
+            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+            if (meanDim != 0) {
+              input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+              clean_array = true;
+            }
+            DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_nan(&(*input)[i * stride], stride);
+            }
+            if (clean_array) delete input;
+            return res;
+          } else {
+            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+            if (meanDim != 0) {
+              input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+              clean_array = true;
+            }
+            DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_nan(&(*input)[i * stride], stride);
+            }
+            if (clean_array) delete input;
+            return res;
+          }
+        } else {
+          if (dbl) {
+            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+            if (meanDim != 0) {
+              input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+              clean_array = true;
+            }
+            DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d(&(*input)[i * stride], stride);
+            }
+            if (clean_array) delete input;
+            return res;
+          } else {
+            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+            if (meanDim != 0) {
+              input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+              clean_array = true;
+            }
+            DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f(&(*input)[i * stride], stride);
+            }
+            if (clean_array) delete input;
+            return res;
+          }
+        }
+      } else {
+        if (omitNaN) {
+          if (dbl) {
+            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+            return new DDoubleGDL(mean_d_nan(&(*input)[0], input->N_Elements()));
+          } else {
+            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+            return new DFloatGDL(mean_f_nan(&(*input)[0], input->N_Elements()));
+          }
+        } else {
+          if (dbl) {
+            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+            return new DDoubleGDL(mean_d(&(*input)[0], input->N_Elements()));
+          } else {
+            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+            return new DFloatGDL(mean_f(&(*input)[0], input->N_Elements()));
+          }
+        }
+      }
+  }
+  
   BaseGDL* ishft_fun(EnvT* e) {
     Guard<BaseGDL>ga;
     Guard<BaseGDL>gb;
