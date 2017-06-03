@@ -114,14 +114,20 @@ BaseGDL* smooth_fun( EnvT* e)
     //populating a Complex with Nans is not easy as there is no objective method for that.
     if (!doMissing && p0->Type()==GDL_COMPLEX) {
       DComplex tmp;
-      tmp.real()=std::numeric_limits<float>::quiet_NaN();
-      tmp.imag()=std::numeric_limits<float>::quiet_NaN();
+      DFloat tmpNaN;
+      tmpNaN=std::numeric_limits<float>::quiet_NaN();
+      tmp=complex<float>(tmpNaN,tmpNaN);
+      // real(tmp)=std::numeric_limits<double>::quiet_NaN();
+      // imag(tmp)=std::numeric_limits<double>::quiet_NaN();
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
     if (!doMissing && p0->Type()==GDL_COMPLEXDBL) {
       DComplexDbl tmp;
-      tmp.real()=std::numeric_limits<double>::quiet_NaN();
-      tmp.imag()=std::numeric_limits<double>::quiet_NaN();
+      DDouble tmpNaN;
+      tmpNaN=std::numeric_limits<double>::quiet_NaN();
+      tmp=complex<double>(tmpNaN,tmpNaN);
+      // tmp.real()=std::numeric_limits<double>::quiet_NaN();
+      // tmp.imag()=std::numeric_limits<double>::quiet_NaN();
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
 
