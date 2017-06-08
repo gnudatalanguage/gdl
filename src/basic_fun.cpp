@@ -5102,22 +5102,47 @@ namespace lib {
 
   static inline DDouble mean_d(DDouble data[], SizeT sz) {
     DDouble mean = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+#pragma omp parallel
     {
 #pragma omp for reduction(+:mean)
     for (SizeT i = 0; i < sz; ++i) mean += data[i];
     }
     return mean/sz;
   }
+  static inline DComplexDbl mean_d_cpx(DComplexDbl data[], SizeT sz) {
+    DDouble meanr = 0;
+    DDouble meani = 0;
+#pragma omp parallel
+    {
+#pragma omp for reduction(+:meanr)
+    for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
+#pragma omp for reduction(+:meani)
+    for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
+    }
+    return std::complex<double>(meanr/sz,meani/sz);
+  }
   
   static inline DFloat mean_f(DFloat data[], SizeT sz) {
     DFloat mean = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+#pragma omp parallel
     {
 #pragma omp for reduction(+:mean)
     for (SizeT i = 0; i < sz; ++i) mean += data[i];
     }
     return mean/sz;
+  }
+
+  static inline DComplex mean_f_cpx(DComplex data[], SizeT sz) {
+    DFloat meani = 0;
+    DFloat meanr = 0;
+#pragma omp parallel
+    {
+#pragma omp for reduction(+:meanr)
+    for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
+#pragma omp for reduction(+:meanr)
+    for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
+    }
+    return std::complex<float>(meanr/sz,meani/sz);
   }
   
   static inline DDouble mean_d_nan(DDouble data[], SizeT sz) {
@@ -5136,6 +5161,33 @@ namespace lib {
     }
     return mean/n;
   }
+
+  static inline DComplexDbl mean_d_cpx_nan(DComplexDbl data[], SizeT sz) {
+    DDouble meanr = 0;
+    DDouble meani = 0;
+    SizeT nr = 0;
+    SizeT ni = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:meanr,nr)
+     for (SizeT i = 0; i < sz; ++i) {
+        DDouble v = data[i].real();
+        if (isfinite(v)) {
+          nr++,
+          meanr += v;
+        }
+      }
+#pragma omp for reduction(+:meani,ni)
+     for (SizeT i = 0; i < sz; ++i) {
+        DDouble v = data[i].imag();
+        if (isfinite(v)) {
+          ni++,
+          meani += v;
+        }
+      }
+    }    
+    return std::complex<double>(meanr/nr,meani/ni);
+  }
   
   static inline DFloat mean_f_nan(DFloat data[], SizeT sz) {
     DFloat mean = 0;
@@ -5153,7 +5205,33 @@ namespace lib {
     }
     return mean/n;
   }  
-  
+  static inline DComplex mean_f_cpx_nan(DComplex data[], SizeT sz) {
+    DFloat meanr = 0;
+    DFloat meani = 0;
+    SizeT nr = 0;
+    SizeT ni = 0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:meanr,nr)
+     for (SizeT i = 0; i < sz; ++i) {
+        DFloat v = data[i].real();
+        if (isfinite(v)) {
+          nr++,
+          meanr += v;
+        }
+      }
+#pragma omp for reduction(+:meani,ni)
+     for (SizeT i = 0; i < sz; ++i) {
+        DFloat v = data[i].imag();
+        if (isfinite(v)) {
+          ni++,
+          meani += v;
+        }
+      }
+    }
+    return std::complex<float>(meanr/nr,meani/ni);
+  }
+
   BaseGDL* mean_fun(EnvT* e) {
     BaseGDL* p0 = e->GetParDefined(0);
 
@@ -5169,7 +5247,7 @@ namespace lib {
       (p0->Type() == GDL_DOUBLE ||
       p0->Type() == GDL_COMPLEXDBL ||
       e->KeywordSet(doubleIx));
-    
+
     static int nanIx = e->KeywordIx("NAN");
     // Check possibility of Nan (not useful to speed down mean on integer data which
     // will never produce NaNs).
@@ -5177,123 +5255,155 @@ namespace lib {
       p0->Type() == GDL_FLOAT ||
       p0->Type() == GDL_COMPLEX ||
       p0->Type() == GDL_COMPLEXDBL);
-    bool omitNaN = (e->KeywordPresent(nanIx)&&possibleNaN);
+    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
 
-      //DIMENSION Kw  
-      static int dimIx = e->KeywordIx("DIMENSION");
-      bool dimSet = e->KeywordSet(dimIx);
+    //DIMENSION Kw  
+    static int dimIx = e->KeywordIx("DIMENSION");
+    bool dimSet = e->KeywordSet(dimIx);
 
-      DLong meanDim;
-      if (dimSet) {
-        e->AssureLongScalarKW(dimIx, meanDim);
-        if (meanDim < 0 || meanDim > p0->Rank())
-          e->Throw("Illegal keyword value for DIMENSION");
-      }
-      
-      if (dimSet && p0->Rank() > 1) {
-        meanDim -= 1; // user-supplied dimensions start with 1!
+    DLong meanDim;
+    if (dimSet) {
+      e->AssureLongScalarKW(dimIx, meanDim);
+      if (meanDim < 0 || meanDim > p0->Rank())
+        e->Throw("Illegal keyword value for DIMENSION");
+    }
 
-        // output dimension: copy srcDim to destDim
-        dimension destDim = p0->Dim();
-        // make array of dims for transpose
-        DUInt* perm = new DUInt[p0->Rank()];
-        ArrayGuard<DUInt> perm_guard(perm);
-        //useful to reorder dims for transpose to order data in continuous order.
-        DUInt i = 0, j = 0;
-        for (i = 0; i < p0->Rank(); ++i) if (i != meanDim) {
-            perm[j + 1] = i;
-            j++;
-          }
-        perm[0] = meanDim;
-        // resize destDim
-        destDim.Remove(meanDim); //will be one dimension less
-        //compute stride and number of elements of result:
-        SizeT stride = p0->Dim(meanDim);
+    if (dimSet && p0->Rank() > 1) {
+      meanDim -= 1; // user-supplied dimensions start with 1!
 
-        SizeT nEl = destDim.NDimElementsConst();
+      // output dimension: copy srcDim to destDim
+      dimension destDim = p0->Dim();
+      // make array of dims for transpose
+      DUInt* perm = new DUInt[p0->Rank()];
+      ArrayGuard<DUInt> perm_guard(perm);
+      //useful to reorder dims for transpose to order data in continuous order.
+      DUInt i = 0, j = 0;
+      for (i = 0; i < p0->Rank(); ++i) if (i != meanDim) {
+          perm[j + 1] = i;
+          j++;
+        }
+      perm[0] = meanDim;
+      // resize destDim
+      destDim.Remove(meanDim); //will be one dimension less
+      //compute stride and number of elements of result:
+      SizeT stride = p0->Dim(meanDim);
 
-        //transpose p0 to arrange dimensions if meanDim is > 0. Do not forget to remove transposed array.
-        bool clean_array = false;
+      SizeT nEl = destDim.NDimElementsConst();
+
+      //transpose p0 to arrange dimensions if meanDim is > 0. Do not forget to remove transposed array.
+      bool clean_array = false;
+      if (p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && dbl)) {
+        DComplexDblGDL* input = e->GetParAs<DComplexDblGDL>(0);
+        if (meanDim != 0) {
+          input = static_cast<DComplexDblGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+          clean_array = true;
+        }
+        DComplexDblGDL* res = new DComplexDblGDL(destDim, BaseGDL::NOZERO);
         if (omitNaN) {
-          if (dbl) {
-            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
-            if (meanDim != 0) {
-              input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
-              clean_array = true;
-            }
-            DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_cpx_nan(&(*input)[i * stride], stride);
+          }
+        } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_cpx(&(*input)[i * stride], stride);
+          }
+        }
+        if (clean_array) delete input;
+        return res;          
+      } else if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
+        if (meanDim != 0) {
+          input = static_cast<DComplexGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+          clean_array = true;
+        }
+        DComplexGDL* res = new DComplexGDL(destDim, BaseGDL::NOZERO);
+        if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_cpx_nan(&(*input)[i * stride], stride);
+          }
+        } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_cpx(&(*input)[i * stride], stride);
+          }
+        }
+        if (clean_array) delete input;
+        return res;          
+      } else {
+        if (dbl) {
+          DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+          if (meanDim != 0) {
+            input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+            clean_array = true;
+          }
+          DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
+          if (omitNaN) {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_nan(&(*input)[i * stride], stride);
             }
-            if (clean_array) delete input;
-            return res;
           } else {
-            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
-            if (meanDim != 0) {
-              input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
-              clean_array = true;
-            }
-            DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
-              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_nan(&(*input)[i * stride], stride);
-            }
-            if (clean_array) delete input;
-            return res;
-          }
-        } else {
-          if (dbl) {
-            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
-            if (meanDim != 0) {
-              input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
-              clean_array = true;
-            }
-            DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d(&(*input)[i * stride], stride);
             }
-            if (clean_array) delete input;
-            return res;
-          } else {
-            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
-            if (meanDim != 0) {
-              input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
-              clean_array = true;
+          }
+          if (clean_array) delete input;
+          return res;          
+        } else {
+          DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+          if (meanDim != 0) {
+            input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+            clean_array = true;
+          }
+          DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
+          if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_nan(&(*input)[i * stride], stride);
             }
-            DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
+          } else {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f(&(*input)[i * stride], stride);
             }
-            if (clean_array) delete input;
-            return res;
           }
-        }
-      } else {
-        if (omitNaN) {
-          if (dbl) {
-            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
-            return new DDoubleGDL(mean_d_nan(&(*input)[0], input->N_Elements()));
-          } else {
-            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
-            return new DFloatGDL(mean_f_nan(&(*input)[0], input->N_Elements()));
-          }
-        } else {
-          if (dbl) {
-            DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
-            return new DDoubleGDL(mean_d(&(*input)[0], input->N_Elements()));
-          } else {
-            DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
-            return new DFloatGDL(mean_f(&(*input)[0], input->N_Elements()));
-          }
+          if (clean_array) delete input;
+          return res;          
         }
       }
+    } else {
+      if (p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && dbl)) {
+        DComplexDblGDL* input = e->GetParAs<DComplexDblGDL>(0);
+        if (omitNaN) return new DComplexDblGDL(mean_d_cpx_nan(&(*input)[0], input->N_Elements()));
+        else return new DComplexDblGDL(mean_d_cpx(&(*input)[0], input->N_Elements()));
+      } else if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
+        if (omitNaN) return new DComplexGDL(mean_f_cpx_nan(&(*input)[0], input->N_Elements()));
+        else return new DComplexGDL(mean_f_cpx(&(*input)[0], input->N_Elements()));
+      } else {
+        if (dbl) {
+          DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+          if (omitNaN) return new DDoubleGDL(mean_d_nan(&(*input)[0], input->N_Elements()));
+          else return new DDoubleGDL(mean_d(&(*input)[0], input->N_Elements()));
+        } else {
+          DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+          if (omitNaN) return new DFloatGDL(mean_f_nan(&(*input)[0], input->N_Elements()));
+          else return new DFloatGDL(mean_f(&(*input)[0], input->N_Elements()));
+        }
+      }
+    }
   }
   
   BaseGDL* ishft_fun(EnvT* e) {
