@@ -1701,24 +1701,38 @@ Data_<SpDString>::Ty Data_<SpDString>::Sum() const
 template<> 
 Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const 
 {
-  Ty s= dd[ 0];
+  DDouble sr= dd[ 0].real();
+  DDouble si= dd[ 0].imag();
   SizeT nEl = dd.size();
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+    {
+#pragma omp for reduction(+:si,sr)
   for( SizeT i=1; i<nEl; ++i)
     {
-      s += dd[ i];
+      sr += dd[i].real();
+      si += dd[i].imag();
     }
-  return s;
+  }
+  return std::complex<double>(sr,si);
 }
 template<> 
 Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const 
 {
-  Ty s= dd[ 0];
+  DFloat sr= dd[ 0].real();
+  DFloat si= dd[ 0].imag();
   SizeT nEl = dd.size();
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+    {
+#pragma omp for reduction(+:si,sr)
   for( SizeT i=1; i<nEl; ++i)
     {
-      s += dd[ i];
+      sr += dd[i].real();
+      si += dd[i].imag();
     }
-  return s;
+  }
+  return std::complex<float>(sr,si);
 }
 
 // template<class Sp> 
