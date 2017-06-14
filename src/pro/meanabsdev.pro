@@ -1,4 +1,4 @@
-;$Id: meanabsdev.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
+;$Id: meanabsdev.pro,v 1.3 2017-06-14 16:09:04 gilles-duvert Exp $
 
 function meanabsdev, x, double=double, NaN=NaN
 
@@ -58,7 +58,7 @@ function meanabsdev, x, double=double, NaN=NaN
 
  on_error, 2
  
- junk = moment(x, mdev=mdev, double=double, NaN=NaN)
+ junk = moment(x, maxmoment=2, mdev=mdev, double=double, NaN=NaN)
  return, mdev
 
 end
