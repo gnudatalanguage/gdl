@@ -219,7 +219,10 @@ void LibInit()
   new DLibFunRetNew(lib::median,string("MEDIAN"),2,medianKey);
 
   const string meanKey[]={"DOUBLE","DIMENSION","NAN",KLISTEND};
-  new DLibFunRetNew(lib::mean_fun,string("MEAN"),1,meanKey);  
+  new DLibFunRetNew(lib::mean_fun,string("MEAN"),1,meanKey);
+  
+  const string momentKey[]={"DOUBLE","DIMENSION","NAN","KURTOSIS","MAXMOMENT","MDEV","MEAN","SDEV","SKEWNESS","VARIANCE",KLISTEND};
+  new DLibFunRetNew(lib::moment_fun,string("MOMENT"),1,momentKey);
 
   new DLibFunRetNew(lib::transpose,string("TRANSPOSE"),2,NULL,NULL,true);
 

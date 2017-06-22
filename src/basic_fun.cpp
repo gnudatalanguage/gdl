@@ -2247,69 +2247,61 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* where( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);//, "WHERE");
+  BaseGDL* where(EnvT* e) {
+    SizeT nParam = e->NParam(1); //, "WHERE");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "WHERE");
 
     SizeT nEl = p0->N_Elements();
 
     SizeT count;
-    
+
     static int nullIx = e->KeywordIx("NULL");
     bool nullKW = e->KeywordSet(nullIx);
 
-    DLong* ixList = p0->Where( e->KeywordPresent( 0), count);
-    ArrayGuard<DLong> guard( ixList);
+    DLong* ixList = p0->Where(e->KeywordPresent(0), count);
+    ArrayGuard<DLong> guard(ixList);
     SizeT nCount = nEl - count;
 
-    if( e->KeywordPresent( 0)) // COMPLEMENT
-      {
-	if( nCount == 0)
-	  {
-	    if( nullKW)
-	      e->SetKW( 0, NullGDL::GetSingleInstance());
-	    else
-	      e->SetKW( 0, new DLongGDL( -1));
-	  }
-	else
-	  {
-	    DLongGDL* cIxList = new DLongGDL( dimension( &nCount, 1), 
-					      BaseGDL::NOZERO);
-	    
-	    SizeT cIx = nEl - 1;
-	    // #pragma omp parallel if (nCount >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCount))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i<nCount; ++i)
-		(*cIxList)[ i] = ixList[ cIx - i];
-	      // 	      (*cIxList)[ i] = ixList[ --cIx];
-	    }
-	    e->SetKW( 0, cIxList);
-	  }
-      }
+    if (e->KeywordPresent(0)) // COMPLEMENT
+    {
+      if (nCount == 0) {
+        if (nullKW)
+          e->SetKW(0, NullGDL::GetSingleInstance());
+        else
+          e->SetKW(0, new DLongGDL(-1));
+      } else {
+        DLongGDL* cIxList = new DLongGDL(dimension(&nCount, 1),
+          BaseGDL::NOZERO);
 
-    if( e->KeywordPresent( 1)) // NCOMPLEMENT
-      {
-	e->SetKW( 1, new DLongGDL( nCount));
+        SizeT cIx = nEl - 1;
+#pragma omp parallel if (nCount >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCount))
+        {
+#pragma omp for
+          for (SizeT i = 0; i < nCount; ++i)  (*cIxList)[ i] = ixList[ cIx - i];
+        }
+        e->SetKW(0, cIxList);
       }
+    }
 
-    if( nParam == 2)
-      {
-	e->SetPar( 1, new DLongGDL( count));
-      }
+    if (e->KeywordPresent(1)) // NCOMPLEMENT
+    {
+      e->SetKW(1, new DLongGDL(nCount));
+    }
+
+    if (nParam == 2) {
+      e->SetPar(1, new DLongGDL(count));
+    }
     //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-    DVar *err=FindInVarList(sysVarList, "ERR");
-    (static_cast<DLongGDL*>(err->Data()))[0]= count;
-    if( count == 0) 
-      {
-	if( nullKW)
-	  return NullGDL::GetSingleInstance();
-	return new DLongGDL( -1);
-      }
-    
-    return new DLongGDL( ixList, count);
+    DVar *err = FindInVarList(sysVarList, "ERR");
+    (static_cast<DLongGDL*> (err->Data()))[0] = count;
+    if (count == 0) {
+      if (nullKW)
+        return NullGDL::GetSingleInstance();
+      return new DLongGDL(-1);
+    }
+
+    return new DLongGDL(ixList, count);
 
     //     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
     // 				  BaseGDL::NOZERO);
@@ -2395,19 +2387,17 @@ namespace lib {
   
   // cumulative over all dims
   template<typename T>
-  BaseGDL* total_cu_template( T* res, bool omitNaN)
-  {
+  BaseGDL* total_cu_template( T* res, bool omitNaN) {
     SizeT nEl = res->N_Elements();
-    if (omitNaN)
+    if (omitNaN) {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-	// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    NaN2Zero((*res)[i]);
-	}
+        // #pragma omp for
+        for (SizeT i = 0; i < nEl; ++i)
+          NaN2Zero((*res)[i]);
       }
-    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
+    }
+    for (SizeT i = 1, ii = 0; i < nEl; ++i, ++ii)
       (*res)[i] += (*res)[ii];
     return res;
   }
@@ -2416,39 +2406,49 @@ namespace lib {
   template< typename T>
   BaseGDL* total_over_dim_template( T* src, 
 				    const dimension& srcDim,
-				    SizeT sumDimIx,
-                                    bool omitNaN)
-  {
+				    SizeT sumDimIx, bool omitNaN) {
     SizeT nEl = src->N_Elements();
-    
+
     // get dest dim and number of summations
     dimension destDim = srcDim;
-    SizeT nSum = destDim.Remove( sumDimIx);
+    SizeT nSum = destDim.Remove(sumDimIx);
 
-    T* res = new T( destDim); // zero fields
+    T* res = new T(destDim); // zero fields
 
     // sumStride is also the number of linear src indexing
-    SizeT sumStride = srcDim.Stride( sumDimIx); 
-    SizeT outerStride = srcDim.Stride( sumDimIx + 1);
+    SizeT sumStride = srcDim.Stride(sumDimIx);
+    SizeT outerStride = srcDim.Stride(sumDimIx + 1);
     SizeT sumLimit = nSum * sumStride;
-    SizeT rIx=0;
-    for( SizeT o=0; o < nEl; o += outerStride)
-      for( SizeT i=0; i < sumStride; ++i)
-	{
-	  SizeT oi = o+i;
-	  SizeT oiLimit = sumLimit + oi;
-          if( omitNaN)
-            {
-              for( SizeT s=oi; s<oiLimit; s += sumStride)
-                AddOmitNaN((*res)[ rIx], (*src)[ s]);
-	    }
-          else
-            {
-  	      for( SizeT s=oi; s<oiLimit; s += sumStride)
-	        (*res)[ rIx] += (*src)[ s];
-            }
-	  ++rIx;
-	}
+
+    if (omitNaN) {
+#pragma omp parallel if ((nEl/outerStride)*sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*sumStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * sumStride;
+          for (SizeT i = 0; i < sumStride; ++i) {
+            SizeT oi = o + i;
+            SizeT oiLimit = sumLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += sumStride) AddOmitNaN((*res)[ rIx], (*src)[ s]);
+            ++rIx;
+          }
+        }
+      }
+    } else {
+#pragma omp parallel if ((nEl/outerStride)*sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*sumStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * sumStride;
+          for (SizeT i = 0; i < sumStride; ++i) {
+            SizeT oi = o + i;
+            SizeT oiLimit = sumLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += sumStride) (*res)[ rIx] += (*src)[ s];
+            ++rIx;
+          }
+        }
+      }
+    }
     return res;
   }
 
@@ -2456,408 +2456,357 @@ namespace lib {
   template< typename T>
   BaseGDL* total_over_dim_cu_template( T* res, 
 				       SizeT sumDimIx,
-                                       bool omitNaN)
-  {
+                                       bool omitNaN) {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
-    if (omitNaN)
-      {
-        for( SizeT i=0; i<nEl; ++i)
-          NaN2Zero((*res)[i]);
-      }
-    SizeT cumStride = resDim.Stride( sumDimIx); 
-    SizeT outerStride = resDim.Stride( sumDimIx + 1);
-    for( SizeT o=0; o < nEl; o += outerStride)
-      {
-	SizeT cumLimit = o+outerStride;
-	for( SizeT i=o+cumStride, ii=o; i<cumLimit; ++i, ++ii)
-	  (*res)[ i] += (*res)[ ii];
-      }
+    if (omitNaN) {
+      for (SizeT i = 0; i < nEl; ++i)
+        NaN2Zero((*res)[i]);
+    }
+    SizeT cumStride = resDim.Stride(sumDimIx);
+    SizeT outerStride = resDim.Stride(sumDimIx + 1);
+    for (SizeT o = 0; o < nEl; o += outerStride) {
+      SizeT cumLimit = o + outerStride;
+      for (SizeT i = o + cumStride, ii = o; i < cumLimit; ++i, ++ii)
+        (*res)[ i] += (*res)[ ii];
+    }
     return res;
   }
 
 
-  BaseGDL* total( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);//, "TOTAL");
+  BaseGDL* total( EnvT* e) {
+    SizeT nParam = e->NParam(1); //, "TOTAL");
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "TOTAL");
+    BaseGDL* p0 = e->GetParDefined(0); //, "TOTAL");
 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
+    if (nEl == 0)
+      e->Throw("Variable is undefined: " + e->GetParString(0));
 
-    if( p0->Type() == GDL_STRING)
-      e->Throw( "String expression not allowed "
-		"in this context: "+e->GetParString(0));
-    
-    static int cumIx = e->KeywordIx( "CUMULATIVE");
+    if (p0->Type() == GDL_STRING)
+      e->Throw("String expression not allowed "
+      "in this context: " + e->GetParString(0));
+
+    static int cumIx = e->KeywordIx("CUMULATIVE");
     static int intIx = e->KeywordIx("INTEGER");
-    static int doubleIx = e->KeywordIx( "DOUBLE");
-    static int nanIx = e->KeywordIx( "NAN");
-    static int preserveIx = e->KeywordIx( "PRESERVE_TYPE");
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    static int nanIx = e->KeywordIx("NAN");
+    static int preserveIx = e->KeywordIx("PRESERVE_TYPE");
 
-    bool cumulative = e->KeywordSet( cumIx);
-    bool intRes  = e->KeywordSet( intIx);
-    bool doubleRes  = e->KeywordSet( doubleIx);
-    bool nan        = e->KeywordSet( nanIx);
-    bool preserve   = e->KeywordSet( preserveIx);
+    bool cumulative = e->KeywordSet(cumIx);
+    bool intRes = e->KeywordSet(intIx);
+    bool doubleRes = e->KeywordSet(doubleIx);
+    bool nan = e->KeywordSet(nanIx);
+    bool preserve = e->KeywordSet(preserveIx);
 
     DLong sumDim = 0;
-    if( nParam == 2)
-      e->AssureLongScalarPar( 1, sumDim);
+    if (nParam == 2)
+      e->AssureLongScalarPar(1, sumDim);
 
-    if( sumDim == 0)
+    if (sumDim == 0) {
+      if (!cumulative) {
+        if (preserve) {
+          switch (p0->Type()) {
+            case GDL_BYTE: return total_template<DByteGDL>(static_cast<DByteGDL*> (p0), false);
+            case GDL_INT: return total_template<DIntGDL>(static_cast<DIntGDL*> (p0), false);
+            case GDL_UINT: return total_template<DUIntGDL>(static_cast<DUIntGDL*> (p0), false);
+            case GDL_LONG: return total_template<DLongGDL>(static_cast<DLongGDL*> (p0), false);
+            case GDL_ULONG: return total_template<DULongGDL>(static_cast<DULongGDL*> (p0), false);
+            case GDL_LONG64: return total_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
+            case GDL_ULONG64: return total_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
+            case GDL_FLOAT: return total_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), nan);
+            case GDL_DOUBLE: return total_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
+            case GDL_COMPLEX: return total_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
+            case GDL_COMPLEXDBL: return total_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan);
+            default: assert(false);
+          }
+        }
+
+        // Integer parts by Erin Sheldon
+        // In IDL total(), the INTEGER keyword takes precedence 
+        if (intRes) {
+          // We use GDL_LONG64 unless the input is GDL_ULONG64
+          if (p0->Type() == GDL_LONG64) {
+            return total_template<DLong64GDL>
+              (static_cast<DLong64GDL*> (p0), nan);
+          }
+          if (p0->Type() == GDL_ULONG64) {
+            return total_template<DULong64GDL>
+              (static_cast<DULong64GDL*> (p0), nan);
+          }
+
+          // Conver to Long64
+          DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+            (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+          Guard<DLong64GDL> guard(p0L64);
+          return total_template<DLong64GDL>(p0L64, nan);
+
+        } // integer results
+
+
+        if (p0->Type() == GDL_DOUBLE) {
+          return total_template<DDoubleGDL>
+            (static_cast<DDoubleGDL*> (p0), nan);
+        }
+        if (p0->Type() == GDL_COMPLEXDBL) {
+          return total_template<DComplexDblGDL>
+            (static_cast<DComplexDblGDL*> (p0), nan);
+        }
+
+        if (!doubleRes) {
+          if (p0->Type() == GDL_FLOAT) {
+            return total_template<DFloatGDL>
+              (static_cast<DFloatGDL*> (p0), nan);
+          }
+          if (p0->Type() == GDL_COMPLEX) {
+            return total_template<DComplexGDL>
+              (static_cast<DComplexGDL*> (p0), nan);
+          }
+          DFloatGDL* p0F = static_cast<DFloatGDL*>
+            (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+          Guard<DFloatGDL> guard(p0F);
+          return total_template<DFloatGDL>(p0F, false);
+        }
+        if (p0->Type() == GDL_COMPLEX) {
+          DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+            (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+          Guard<DComplexDblGDL> p0D_guard(p0D);
+          return total_template<DComplexDblGDL>(p0D, nan);
+        }
+
+        DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+          (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        Guard<DDoubleGDL> p0D_guard(p0D);
+        return total_template<DDoubleGDL>(p0D, nan);
+      } else // cumulative
       {
-	if( !cumulative)
-	  {
-            if (preserve) 
-	      {
-		switch (p0->Type())
-		  {
-		  case GDL_BYTE: return total_template<DByteGDL>(static_cast<DByteGDL*>(p0), false);
-		  case GDL_INT: return total_template<DIntGDL>(static_cast<DIntGDL*>(p0), false);
-		  case GDL_UINT: return total_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), false);
-		  case GDL_LONG: return total_template<DLongGDL>(static_cast<DLongGDL*>(p0), false);
-		  case GDL_ULONG: return total_template<DULongGDL>(static_cast<DULongGDL*>(p0), false);
-		  case GDL_LONG64: return total_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), false);
-		  case GDL_ULONG64: return total_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), false);
-		  case GDL_FLOAT: return total_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), nan);
-		  case GDL_DOUBLE: return total_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), nan);
-		  case GDL_COMPLEX: return total_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), nan);
-		  case GDL_COMPLEXDBL: return total_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), nan);
-		  default: assert(false);
-		  }
-	      }
+        if (preserve) {
+          switch (p0->Type()) {
+            case GDL_BYTE: return total_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), false);
+            case GDL_INT: return total_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), false);
+            case GDL_UINT: return total_cu_template<DUIntGDL>(static_cast<DUIntGDL*> (p0->Dup()), false);
+            case GDL_LONG: return total_cu_template<DLongGDL>(static_cast<DLongGDL*> (p0->Dup()), false);
+            case GDL_ULONG: return total_cu_template<DULongGDL>(static_cast<DULongGDL*> (p0->Dup()), false);
+            case GDL_LONG64: return total_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), false);
+            case GDL_ULONG64: return total_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), false);
+            case GDL_FLOAT: return total_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), nan);
+            case GDL_DOUBLE: return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan);
+            case GDL_COMPLEX: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), nan);
+            case GDL_COMPLEXDBL: return total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), nan);
+            default: assert(false);
+          }
+        }
 
-	    // Integer parts by Erin Sheldon
-	    // In IDL total(), the INTEGER keyword takes precedence 
-	    if( intRes )
-	      {
-		// We use GDL_LONG64 unless the input is GDL_ULONG64
-		if ( p0->Type() == GDL_LONG64 )
-		  {
-		    return total_template<DLong64GDL>
-		      ( static_cast<DLong64GDL*>(p0), nan );
-		  }
-		if ( p0->Type() == GDL_ULONG64 )
-		  {
-		    return total_template<DULong64GDL>
-		      ( static_cast<DULong64GDL*>(p0), nan );
-		  }
+        // INTEGER keyword takes precedence
+        if (intRes) {
+          // We use GDL_LONG64 unless the input is GDL_ULONG64
+          if (p0->Type() == GDL_LONG64) {
+            return total_cu_template<DLong64GDL>
+              (static_cast<DLong64GDL*> (p0->Dup()), nan);
+          }
+          if (p0->Type() == GDL_ULONG64) {
+            return total_cu_template<DULong64GDL>
+              (static_cast<DULong64GDL*> (p0->Dup()), nan);
+          }
 
-		// Conver to Long64
-		DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-		  (p0->Convert2( GDL_LONG64, BaseGDL::COPY));
-		Guard<DLong64GDL> guard( p0L64);
-		return total_template<DLong64GDL>( p0L64, nan);
+          // Convert to Long64
+          return total_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*>
+            (p0->Convert2(GDL_LONG64, BaseGDL::COPY)), nan);
 
-	      } // integer results
+        } // integer results
 
 
-	    if( p0->Type() == GDL_DOUBLE)
-	      {
-		return total_template<DDoubleGDL>
-                  ( static_cast<DDoubleGDL*>(p0), nan); 
-	      }
-	    if( p0->Type() == GDL_COMPLEXDBL)
-	      {
-		return total_template<DComplexDblGDL>
-                  ( static_cast<DComplexDblGDL*>(p0), nan); 
-	      }
-
-	    if( !doubleRes)
-	      {
-		if( p0->Type() == GDL_FLOAT)
-		  {
-		    return total_template<DFloatGDL>
-		      ( static_cast<DFloatGDL*>(p0), nan); 
-		  }
-		if( p0->Type() == GDL_COMPLEX)
-		  {
-		    return total_template<DComplexGDL>
-		      ( static_cast<DComplexGDL*>(p0), nan); 
-		  }
- 		DFloatGDL* p0F = static_cast<DFloatGDL*>
- 		  (p0->Convert2( GDL_FLOAT,BaseGDL::COPY));
- 		Guard<DFloatGDL> guard( p0F);
-		return total_template<DFloatGDL>( p0F, false);
-	      }
-	    if( p0->Type() == GDL_COMPLEX)
-	      {
-		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-		  (p0->Convert2( GDL_COMPLEXDBL,BaseGDL::COPY));
-		Guard<DComplexDblGDL> p0D_guard( p0D);
-		return total_template<DComplexDblGDL>( p0D, nan); 
-	      }
-	    
-	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	      (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	    Guard<DDoubleGDL> p0D_guard( p0D);
-	    return total_template<DDoubleGDL>( p0D, nan);
-	  }
-	else // cumulative
-	  {
-            if (preserve) 
-	      {
-		switch (p0->Type())
-		  {
-		  case GDL_BYTE: return total_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0->Dup()), false);
-		  case GDL_INT: return total_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0->Dup()), false);
-		  case GDL_UINT: return total_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0->Dup()), false);
-		  case GDL_LONG: return total_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0->Dup()), false);
-		  case GDL_ULONG: return total_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0->Dup()), false);
-		  case GDL_LONG64: return total_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0->Dup()), false);
-		  case GDL_ULONG64: return total_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0->Dup()), false);
-		  case GDL_FLOAT: return total_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0->Dup()), nan);
-		  case GDL_DOUBLE: return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0->Dup()), nan);
-		  case GDL_COMPLEX: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0->Dup()), nan);
-		  case GDL_COMPLEXDBL: return total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0->Dup()), nan);
-		  default: assert(false);
-		  }
-	      }
-
-	    // INTEGER keyword takes precedence
-	    if( intRes )
-	      {
-		// We use GDL_LONG64 unless the input is GDL_ULONG64
-		if ( p0->Type() == GDL_LONG64 )
-		  {
-		    return total_cu_template<DLong64GDL>
-		      ( static_cast<DLong64GDL*>(p0->Dup()), nan );
-		  }
-		if ( p0->Type() == GDL_ULONG64 )
-		  {
-		    return total_cu_template<DULong64GDL>
-		      ( static_cast<DULong64GDL*>(p0->Dup()), nan );
-		  }
-
-		// Convert to Long64
-		return total_cu_template<DLong64GDL>
-		  ( static_cast<DLong64GDL*>
-		    (p0->Convert2( GDL_LONG64, BaseGDL::COPY)), nan);
-						     
-	      } // integer results
-
-
-	    // special case as GDL_DOUBLE type overrides /GDL_DOUBLE
-	    if( p0->Type() == GDL_DOUBLE)
-	      {
-  	        return total_cu_template< DDoubleGDL>
-		  ( static_cast<DDoubleGDL*>(p0->Dup()), nan);
-	      }
-	    if( p0->Type() == GDL_COMPLEXDBL)
-	      {
-  	        return total_cu_template< DComplexDblGDL>
-		  ( static_cast<DComplexDblGDL*>(p0->Dup()), nan);
-	      }
+        // special case as GDL_DOUBLE type overrides /GDL_DOUBLE
+        if (p0->Type() == GDL_DOUBLE) {
+          return total_cu_template< DDoubleGDL>
+            (static_cast<DDoubleGDL*> (p0->Dup()), nan);
+        }
+        if (p0->Type() == GDL_COMPLEXDBL) {
+          return total_cu_template< DComplexDblGDL>
+            (static_cast<DComplexDblGDL*> (p0->Dup()), nan);
+        }
 
 
 
-	    if( !doubleRes)
-	      {
-		// special case for GDL_FLOAT has no advantage here
-		if( p0->Type() == GDL_COMPLEX)
-		  {
-		    return total_cu_template< DComplexGDL>
-                      ( static_cast<DComplexGDL*>(p0->Dup()), nan);
-		  }
-    	        return total_cu_template< DFloatGDL>
-		  ( static_cast<DFloatGDL*>( p0->Convert2(GDL_FLOAT, 
-							  BaseGDL::COPY)), nan);
-	      }
-	    if( p0->Type() == GDL_COMPLEX)
-	      {
-		return total_cu_template< DComplexDblGDL>
-		  ( static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, 
-							       BaseGDL::COPY)), nan);
-	      }
-    	    return total_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, 
-						       BaseGDL::COPY)), nan);
-	  }
+        if (!doubleRes) {
+          // special case for GDL_FLOAT has no advantage here
+          if (p0->Type() == GDL_COMPLEX) {
+            return total_cu_template< DComplexGDL>
+              (static_cast<DComplexGDL*> (p0->Dup()), nan);
+          }
+          return total_cu_template< DFloatGDL>
+            (static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT,
+            BaseGDL::COPY)), nan);
+        }
+        if (p0->Type() == GDL_COMPLEX) {
+          return total_cu_template< DComplexDblGDL>
+            (static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL,
+            BaseGDL::COPY)), nan);
+        }
+        return total_cu_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE,
+          BaseGDL::COPY)), nan);
       }
+    }
 
     // total over sumDim
     dimension srcDim = p0->Dim();
     SizeT srcRank = srcDim.Rank();
 
-    if( sumDim < 1 || sumDim > srcRank)
-      e->Throw( 
-	       "Array must have "+i2s(sumDim)+
-	       " dimensions: "+e->GetParString(0));
+    if (sumDim < 1 || sumDim > srcRank)
+      e->Throw(
+      "Array must have " + i2s(sumDim) +
+      " dimensions: " + e->GetParString(0));
 
-    if( !cumulative)
-      {
-        if (preserve) 
-	  {
-	    switch (p0->Type())
-	      {
-	      case GDL_BYTE: return total_over_dim_template<DByteGDL>(static_cast<DByteGDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_INT: return total_over_dim_template<DIntGDL>(static_cast<DIntGDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_UINT: return total_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_LONG: return total_over_dim_template<DLongGDL>(static_cast<DLongGDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_ULONG: return total_over_dim_template<DULongGDL>(static_cast<DULongGDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_LONG64: return total_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_ULONG64: return total_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, false);
-	      case GDL_FLOAT: return total_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, nan);
-	      case GDL_DOUBLE: return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
-	      case GDL_COMPLEX: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, nan);
-	      case GDL_COMPLEXDBL: return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
-	      default: assert(false);
-	      }
-	  }
-
-	// INTEGER keyword takes precedence 
-	if( intRes )
-	  {
-	    // We use GDL_LONG64 unless the input is GDL_ULONG64
-	    if ( p0->Type() == GDL_LONG64 )
-	      {
-		return total_over_dim_template<DLong64GDL>
-		  ( static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nan );
-	      }
-	    if ( p0->Type() == GDL_ULONG64 )
-	      {
-		return total_over_dim_template<DULong64GDL>
-		  ( static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nan );
-	      }
-	    
-	    // Conver to Long64
-	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-	      (p0->Convert2( GDL_LONG64, BaseGDL::COPY));
-
-	    Guard<DLong64GDL> p0L64_guard( p0L64);
-	    return total_over_dim_template<DLong64GDL>
-	      ( p0L64, srcDim, sumDim-1, nan);
-	    
-	  } // integer results
-
-
-	if( p0->Type() == GDL_DOUBLE)
-	  {
-	    return total_over_dim_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
-	  }
-	if( p0->Type() == GDL_COMPLEXDBL)
-	  {
-	    return total_over_dim_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
-	  }
-	if( !doubleRes)
-	  {
-	    if( p0->Type() == GDL_FLOAT)
-	      {
-		return total_over_dim_template< DFloatGDL>
-		  ( static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, nan);
-	      }
-	    if( p0->Type() == GDL_COMPLEX)
-	      {
-		return total_over_dim_template< DComplexGDL>
-		  ( static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, nan);
-	      }
-	    // default for NOT /GDL_DOUBLE
-	    DFloatGDL* p0F = static_cast<DFloatGDL*>
-	      (p0->Convert2( GDL_FLOAT,BaseGDL::COPY));
-	    Guard<DFloatGDL> p0F_guard( p0F);
-	    //	    p0F_guard.Reset( p0F);
-	    return total_over_dim_template< DFloatGDL>
-	      ( p0F, srcDim, sumDim-1, false);
-	  }
-	if( p0->Type() == GDL_COMPLEX)
-	  {
-	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-	      (p0->Convert2( GDL_COMPLEXDBL,BaseGDL::COPY));
-	    Guard<DComplexDblGDL> p0D_guard( p0D);
-	    // 	    p0D_guard.Reset( p0D);
-	    return total_over_dim_template< DComplexDblGDL>
-	      ( p0D, srcDim, sumDim-1, nan);
-	  }
-	// default for /GDL_DOUBLE
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2( GDL_DOUBLE,BaseGDL::COPY));
-	Guard<DDoubleGDL> p0D_guard( p0D);
-	//p0D_guard.Reset( p0D);
-	return total_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
+    if (!cumulative) {
+      if (preserve) {
+        switch (p0->Type()) {
+          case GDL_BYTE: return total_over_dim_template<DByteGDL>(static_cast<DByteGDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_INT: return total_over_dim_template<DIntGDL>(static_cast<DIntGDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_UINT: return total_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_LONG: return total_over_dim_template<DLongGDL>(static_cast<DLongGDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_ULONG: return total_over_dim_template<DULongGDL>(static_cast<DULongGDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_LONG64: return total_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_ULONG64: return total_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, false);
+          case GDL_FLOAT: return total_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), srcDim, sumDim - 1, nan);
+          case GDL_DOUBLE: return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
+          case GDL_COMPLEX: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
+          case GDL_COMPLEXDBL: return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
+          default: assert(false);
+        }
       }
-    else // cumulative
-      {
-        if (preserve) 
-	  {
-	    switch (p0->Type())
-	      {
-	      case GDL_BYTE: return total_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_INT: return total_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_UINT: return total_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_LONG: return total_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_ULONG: return total_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_LONG64: return total_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_ULONG64: return total_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0->Dup()), sumDim-1, false);
-	      case GDL_FLOAT: return total_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0->Dup()), sumDim-1, nan);
-	      case GDL_DOUBLE: return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0->Dup()), sumDim-1, nan);
-	      case GDL_COMPLEX: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0->Dup()), sumDim-1, nan);
-	      case GDL_COMPLEXDBL: return total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0->Dup()), sumDim-1, nan);
-	      default: assert(false);
-	      }
-	  }
 
-	// INTEGER keyword takes precedence
-	if( intRes )
-	  {
-	    // We use GDL_LONG64 unless the input is GDL_ULONG64
-	    if ( p0->Type() == GDL_LONG64 )
-	      {
-		return total_over_dim_cu_template<DLong64GDL>
-		  ( static_cast<DLong64GDL*>(p0->Dup()), sumDim-1, nan );
-	      }
-	    if ( p0->Type() == GDL_ULONG64 )
-	      {
-		return total_over_dim_cu_template<DULong64GDL>
-		  ( static_cast<DULong64GDL*>(p0->Dup()), sumDim-1, nan );
-	      }
-	    
-	    // Convert to Long64
-	    return total_over_dim_cu_template<DLong64GDL>
-	      ( static_cast<DLong64GDL*>
-		(p0->Convert2( GDL_LONG64, BaseGDL::COPY)), sumDim-1, nan);
-	    
-	  } // integer results
+      // INTEGER keyword takes precedence 
+      if (intRes) {
+        // We use GDL_LONG64 unless the input is GDL_ULONG64
+        if (p0->Type() == GDL_LONG64) {
+          return total_over_dim_template<DLong64GDL>
+            (static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, nan);
+        }
+        if (p0->Type() == GDL_ULONG64) {
+          return total_over_dim_template<DULong64GDL>
+            (static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, nan);
+        }
+
+        // Conver to Long64
+        DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+          (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+
+        Guard<DLong64GDL> p0L64_guard(p0L64);
+        return total_over_dim_template<DLong64GDL>
+          (p0L64, srcDim, sumDim - 1, nan);
+
+      } // integer results
 
 
-	if( p0->Type() == GDL_DOUBLE)
-	  {
-	    return total_over_dim_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0->Dup()), sumDim-1, nan);
-	  }
-	if( p0->Type() == GDL_COMPLEXDBL)
-	  {
-	    return total_over_dim_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0->Dup()), sumDim-1, nan);
-	  }
-	if( !doubleRes)
-	  {
-	    // special case for GDL_FLOAT has no advantage here
-	    if( p0->Type() == GDL_COMPLEX)
-	      {
-		return total_over_dim_cu_template< DComplexGDL>
-		  ( static_cast<DComplexGDL*>(p0->Dup()), sumDim-1, nan);
-	      }
-	    // default for NOT /GDL_DOUBLE
-	    return total_over_dim_cu_template< DFloatGDL>
-	      ( static_cast<DFloatGDL*>( p0->Convert2( GDL_FLOAT, 
-						       BaseGDL::COPY)), sumDim-1, nan);
-	  }
-	if( p0->Type() == GDL_COMPLEX)
-	  {
-	    return total_over_dim_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL,
-							   BaseGDL::COPY)), sumDim-1, nan);
-	  }
-	// default for /GDL_DOUBLE
-	return total_over_dim_cu_template< DDoubleGDL>
-	  ( static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE,
-						   BaseGDL::COPY)), sumDim-1, nan);
+      if (p0->Type() == GDL_DOUBLE) {
+        return total_over_dim_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
       }
+      if (p0->Type() == GDL_COMPLEXDBL) {
+        return total_over_dim_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
+      }
+      if (!doubleRes) {
+        if (p0->Type() == GDL_FLOAT) {
+          return total_over_dim_template< DFloatGDL>
+            (static_cast<DFloatGDL*> (p0), srcDim, sumDim - 1, nan);
+        }
+        if (p0->Type() == GDL_COMPLEX) {
+          return total_over_dim_template< DComplexGDL>
+            (static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
+        }
+        // default for NOT /GDL_DOUBLE
+        DFloatGDL* p0F = static_cast<DFloatGDL*>
+          (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+        Guard<DFloatGDL> p0F_guard(p0F);
+        //	    p0F_guard.Reset( p0F);
+        return total_over_dim_template< DFloatGDL>
+          (p0F, srcDim, sumDim - 1, false);
+      }
+      if (p0->Type() == GDL_COMPLEX) {
+        DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+          (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+        Guard<DComplexDblGDL> p0D_guard(p0D);
+        // 	    p0D_guard.Reset( p0D);
+        return total_over_dim_template< DComplexDblGDL>
+          (p0D, srcDim, sumDim - 1, nan);
+      }
+      // default for /GDL_DOUBLE
+      DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+        (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      Guard<DDoubleGDL> p0D_guard(p0D);
+      //p0D_guard.Reset( p0D);
+      return total_over_dim_template< DDoubleGDL>(p0D, srcDim, sumDim - 1, nan);
+    } else // cumulative
+    {
+      if (preserve) {
+        switch (p0->Type()) {
+          case GDL_BYTE: return total_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_INT: return total_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_UINT: return total_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_LONG: return total_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_ULONG: return total_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_LONG64: return total_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_ULONG64: return total_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, false);
+          case GDL_FLOAT: return total_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), sumDim - 1, nan);
+          case GDL_DOUBLE: return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
+          case GDL_COMPLEX: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
+          case GDL_COMPLEXDBL: return total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan);
+          default: assert(false);
+        }
+      }
+
+      // INTEGER keyword takes precedence
+      if (intRes) {
+        // We use GDL_LONG64 unless the input is GDL_ULONG64
+        if (p0->Type() == GDL_LONG64) {
+          return total_over_dim_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, nan);
+        }
+        if (p0->Type() == GDL_ULONG64) {
+          return total_over_dim_cu_template<DULong64GDL>
+            (static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, nan);
+        }
+
+        // Convert to Long64
+        return total_over_dim_cu_template<DLong64GDL>
+          (static_cast<DLong64GDL*>
+          (p0->Convert2(GDL_LONG64, BaseGDL::COPY)), sumDim - 1, nan);
+
+      } // integer results
+
+
+      if (p0->Type() == GDL_DOUBLE) {
+        return total_over_dim_cu_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
+      }
+      if (p0->Type() == GDL_COMPLEXDBL) {
+        return total_over_dim_cu_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan);
+      }
+      if (!doubleRes) {
+        // special case for GDL_FLOAT has no advantage here
+        if (p0->Type() == GDL_COMPLEX) {
+          return total_over_dim_cu_template< DComplexGDL>
+            (static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
+        }
+        // default for NOT /GDL_DOUBLE
+        return total_over_dim_cu_template< DFloatGDL>
+          (static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT,
+          BaseGDL::COPY)), sumDim - 1, nan);
+      }
+      if (p0->Type() == GDL_COMPLEX) {
+        return total_over_dim_cu_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL,
+          BaseGDL::COPY)), sumDim - 1, nan);
+      }
+      // default for /GDL_DOUBLE
+      return total_over_dim_cu_template< DDoubleGDL>
+        (static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE,
+        BaseGDL::COPY)), sumDim - 1, nan);
+    }
   }
 
 
@@ -2895,92 +2844,74 @@ namespace lib {
 
   // product over all elements
   template<class T>
-  BaseGDL* product_template( T* src, bool omitNaN)
-  {
-    typename T::Ty sum = 1;
+  BaseGDL* product_template( T* src, bool omitNaN) {
+    typename T::Ty prod = 1;
     SizeT nEl = src->N_Elements();
-    if( !omitNaN) 
+    if (!omitNaN) {
+
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(prod)
       {
-	TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
-	  {
-#pragma omp for reduction(*:sum)
-	    for ( OMPInt i=0; i<nEl; ++i)
-	      {
-		sum *= (*src)[ i];
-	      }
-	  }
+#pragma omp for reduction(*:prod)
+        for (OMPInt i = 0; i < nEl; ++i) {
+          prod *= (*src)[ i];
+        }
       }
-    else
+    } else {
+
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(prod)
       {
-	TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
-	  {
-#pragma omp for reduction(*:sum)
-	    for ( OMPInt i=0; i<nEl; ++i)
-	      {
-		MultOmitNaN( sum, (*src)[ i]);
-	      }
-	  }
+#pragma omp for reduction(*:prod)
+        for (OMPInt i = 0; i < nEl; ++i) {
+          MultOmitNaN(prod, (*src)[ i]);
+        }
       }
-    return new T( sum);
+    }
+    return new T(prod);
   }
 
   template<>
-  BaseGDL* product_template( DComplexGDL* src, bool omitNaN)
-  {
-    DComplexGDL::Ty sum = 1;
+  BaseGDL* product_template( DComplexGDL* src, bool omitNaN) {
+    DComplexGDL::Ty prod = 1;
     SizeT nEl = src->N_Elements();
-    if( !omitNaN) 
-      {
-	for ( SizeT i=0; i<nEl; ++i)
-	  {
-	    sum *= (*src)[ i];
-	  }
+    if (!omitNaN) {
+      for (SizeT i = 0; i < nEl; ++i) {
+        prod *= (*src)[ i];
       }
-    else
-      {
-	for ( SizeT i=0; i<nEl; ++i)
-	  {
-	    MultOmitNaN( sum, (*src)[ i]);
-	  }
+    } else {
+      for (SizeT i = 0; i < nEl; ++i) {
+        MultOmitNaN(prod, (*src)[ i]);
       }
-    return new DComplexGDL( sum);
+    }
+    return new DComplexGDL(prod);
   }
   
   template<>
-  BaseGDL* product_template( DComplexDblGDL* src, bool omitNaN)
-  {
-    DComplexDblGDL::Ty sum = 1;
+  BaseGDL* product_template( DComplexDblGDL* src, bool omitNaN) {
+    DComplexDblGDL::Ty prod = 1;
     SizeT nEl = src->N_Elements();
-    if( !omitNaN) 
-      {
-	for ( SizeT i=0; i<nEl; ++i)
-	  {
-	    sum *= (*src)[ i];
-	  }
+    if (!omitNaN) {
+      for (SizeT i = 0; i < nEl; ++i) {
+        prod *= (*src)[ i];
       }
-    else
-      {
-	for ( SizeT i=0; i<nEl; ++i)
-	  {
-	    MultOmitNaN( sum, (*src)[ i]);
-	  }
+    } else {
+      for (SizeT i = 0; i < nEl; ++i) {
+        MultOmitNaN(prod, (*src)[ i]);
       }
-    return new DComplexDblGDL( sum);
+    }
+    return new DComplexDblGDL(prod);
   }
   
   // cumulative over all dims
   template<typename T>
-  BaseGDL* product_cu_template( T* res, bool omitNaN)
-  {
+  BaseGDL* product_cu_template( T* res, bool omitNaN) {
     SizeT nEl = res->N_Elements();
-    if( omitNaN)
-      {
-        for( SizeT i=0; i<nEl; ++i)
-          Nan2One( (*res)[i]);
-      }
-    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
+    if (omitNaN) {
+      for (SizeT i = 0; i < nEl; ++i)
+        Nan2One((*res)[i]);
+    }
+    for (SizeT i = 1, ii = 0; i < nEl; ++i, ++ii)
       (*res)[i] *= (*res)[ii];
     return res;
   }
@@ -2989,40 +2920,51 @@ namespace lib {
   template< typename T>
   BaseGDL* product_over_dim_template( T* src, 
 				      const dimension& srcDim, 
-				      SizeT sumDimIx,
-				      bool omitNaN)
-  {
+				      SizeT prodDimIx,
+				      bool omitNaN) {
     SizeT nEl = src->N_Elements();
-    
-    // get dest dim and number of summations
+
+    // get dest dim and number of products
     dimension destDim = srcDim;
-    SizeT nSum = destDim.Remove( sumDimIx);
+    SizeT nProd = destDim.Remove(prodDimIx);
 
-    T* res = new T( destDim, BaseGDL::NOZERO);
+    T* res = new T(destDim, BaseGDL::NOZERO);
 
-    // sumStride is also the number of linear src indexing
-    SizeT sumStride = srcDim.Stride( sumDimIx); 
-    SizeT outerStride = srcDim.Stride( sumDimIx + 1);
-    SizeT sumLimit = nSum * sumStride;
-    SizeT rIx=0;
-    for( SizeT o=0; o < nEl; o += outerStride)
-      for( SizeT i=0; i < sumStride; ++i)
-	{
-	  (*res)[ rIx] = 1;
-	  SizeT oi = o+i;
-	  SizeT oiLimit = sumLimit + oi;
-          if( omitNaN)
-            {
-              for( SizeT s=oi; s<oiLimit; s += sumStride)
-                MultOmitNaN((*res)[ rIx], (*src)[ s]);
-	    }
-          else
-            {
-  	      for( SizeT s=oi; s<oiLimit; s += sumStride)
-	        (*res)[ rIx] *= (*src)[ s];
-            }
-	  ++rIx;
-	}
+    // prodStride is also the number of linear src indexing
+    SizeT prodStride = srcDim.Stride(prodDimIx);
+    SizeT outerStride = srcDim.Stride(prodDimIx + 1);
+    SizeT prodLimit = nProd * prodStride;
+    if (omitNaN) {
+#pragma omp parallel if ((nEl/outerStride)*prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*prodStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * prodStride;
+          for (SizeT i = 0; i < prodStride; ++i) {
+            (*res)[ rIx] = 1;
+            SizeT oi = o + i;
+            SizeT oiLimit = prodLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += prodStride) MultOmitNaN((*res)[ rIx], (*src)[ s]);
+            ++rIx;
+          }
+        }
+      }
+    } else {
+#pragma omp parallel if ((nEl/outerStride)*prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*prodStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * prodStride;
+          for (SizeT i = 0; i < prodStride; ++i) {
+            (*res)[ rIx] = 1;
+            SizeT oi = o + i;
+            SizeT oiLimit = prodLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += prodStride) (*res)[ rIx] *= (*src)[ s];
+            ++rIx;
+          }
+        }
+      }
+    }
     return res;
   }
 
@@ -3030,374 +2972,359 @@ namespace lib {
   template< typename T>
   BaseGDL* product_over_dim_cu_template( T* res, 
 					 SizeT sumDimIx,
-					 bool omitNaN)
-  {
+					 bool omitNaN) {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
-    if (omitNaN)
-      {
-        for( SizeT i=0; i<nEl; ++i)
-          Nan2One((*res)[i]);
-      }
-    SizeT cumStride = resDim.Stride( sumDimIx); 
-    SizeT outerStride = resDim.Stride( sumDimIx + 1);
-    for( SizeT o=0; o < nEl; o += outerStride)
-      {
-	SizeT cumLimit = o+outerStride;
-	for( SizeT i=o+cumStride, ii=o; i<cumLimit; ++i, ++ii)
-	  (*res)[ i] *= (*res)[ ii];
-      }
+    if (omitNaN) {
+      for (SizeT i = 0; i < nEl; ++i)
+        Nan2One((*res)[i]);
+    }
+    SizeT cumStride = resDim.Stride(sumDimIx);
+    SizeT outerStride = resDim.Stride(sumDimIx + 1);
+    for (SizeT o = 0; o < nEl; o += outerStride) {
+      SizeT cumLimit = o + outerStride;
+      for (SizeT i = o + cumStride, ii = o; i < cumLimit; ++i, ++ii)
+        (*res)[ i] *= (*res)[ ii];
+    }
     return res;
   }
 
-  BaseGDL* product( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);
-    
-    BaseGDL* p0 = e->GetParDefined( 0);
-    
+  BaseGDL* product( EnvT* e) {
+    SizeT nParam = e->NParam(1);
+
+    BaseGDL* p0 = e->GetParDefined(0);
+
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
-    
-    if( p0->Type() == GDL_STRING)
-      e->Throw( "String expression not allowed "
-		"in this context: "+e->GetParString(0));
-    
-    static int cumIx = e->KeywordIx( "CUMULATIVE");
-    static int nanIx = e->KeywordIx( "NAN");
+    if (nEl == 0)
+      e->Throw("Variable is undefined: " + e->GetParString(0));
+
+    if (p0->Type() == GDL_STRING)
+      e->Throw("String expression not allowed "
+      "in this context: " + e->GetParString(0));
+
+    static int cumIx = e->KeywordIx("CUMULATIVE");
+    static int nanIx = e->KeywordIx("NAN");
     static int intIx = e->KeywordIx("INTEGER");
     static int preIx = e->KeywordIx("PRESERVE_TYPE");
-    bool KwCumul     = e->KeywordSet( cumIx);
-    bool KwNaN       = e->KeywordSet( nanIx);
-    bool KwInt       = e->KeywordSet( intIx);
-    bool KwPre       = e->KeywordSet( preIx);
-    bool nanInt=false;
-    
+    bool KwCumul = e->KeywordSet(cumIx);
+    bool KwNaN = e->KeywordSet(nanIx);
+    bool KwInt = e->KeywordSet(intIx);
+    bool KwPre = e->KeywordSet(preIx);
+    bool nanInt = false;
+
     DLong sumDim = 0;
-    if( nParam == 2)
-      e->AssureLongScalarPar( 1, sumDim);
-    
-    if( sumDim == 0) {
-      if( !KwCumul) {
-	if (KwPre) 
-          {
-            switch (p0->Type())
-	      {
-              case GDL_BYTE: return product_template<DByteGDL>(static_cast<DByteGDL*>(p0), nanInt);
-              case GDL_INT: return product_template<DIntGDL>(static_cast<DIntGDL*>(p0), nanInt);
-              case GDL_UINT: return product_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), nanInt);
-              case GDL_LONG: return product_template<DLongGDL>(static_cast<DLongGDL*>(p0), nanInt);
-              case GDL_ULONG: return product_template<DULongGDL>(static_cast<DULongGDL*>(p0), nanInt);
-              case GDL_LONG64: return product_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), nanInt);
-              case GDL_ULONG64: return product_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), nanInt);
-              case GDL_FLOAT: return product_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), KwNaN);
-              case GDL_DOUBLE: return product_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), KwNaN);
-              case GDL_COMPLEX: return product_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), KwNaN);
-              case GDL_COMPLEXDBL: return product_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), KwNaN);
-              default: assert(false);
-	      }
+    if (nParam == 2)
+      e->AssureLongScalarPar(1, sumDim);
+
+    if (sumDim == 0) {
+      if (!KwCumul) {
+        if (KwPre) {
+          switch (p0->Type()) {
+            case GDL_BYTE: return product_template<DByteGDL>(static_cast<DByteGDL*> (p0), nanInt);
+            case GDL_INT: return product_template<DIntGDL>(static_cast<DIntGDL*> (p0), nanInt);
+            case GDL_UINT: return product_template<DUIntGDL>(static_cast<DUIntGDL*> (p0), nanInt);
+            case GDL_LONG: return product_template<DLongGDL>(static_cast<DLongGDL*> (p0), nanInt);
+            case GDL_ULONG: return product_template<DULongGDL>(static_cast<DULongGDL*> (p0), nanInt);
+            case GDL_LONG64: return product_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), nanInt);
+            case GDL_ULONG64: return product_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), nanInt);
+            case GDL_FLOAT: return product_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), KwNaN);
+            case GDL_DOUBLE: return product_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), KwNaN);
+            case GDL_COMPLEX: return product_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), KwNaN);
+            case GDL_COMPLEXDBL: return product_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), KwNaN);
+            default: assert(false);
+          }
+        }
+
+        // Integer parts derivated from Total code by Erin Sheldon
+        // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+        if (KwInt) {
+          // We use GDL_LONG64 unless the input is GDL_ULONG64
+          if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
+            return product_template<DLong64GDL>
+              (static_cast<DLong64GDL*> (p0), nanInt);
+          }
+          if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
+            return product_template<DULong64GDL>
+              (static_cast<DULong64GDL*> (p0), nanInt);
           }
 
-	// Integer parts derivated from Total code by Erin Sheldon
-	// In IDL PRODUCT(), the INTEGER keyword takes precedence 
-	if (KwInt) {
-	  // We use GDL_LONG64 unless the input is GDL_ULONG64
-	  if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
-	    return product_template<DLong64GDL>
-	      ( static_cast<DLong64GDL*>(p0), nanInt );
-	  }
-	  if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
-	    return product_template<DULong64GDL>
-	      (static_cast<DULong64GDL*>(p0), nanInt );
-	  }
-	    
-	  // Convert to Long64
-	  DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-	    (p0->Convert2( GDL_LONG64, BaseGDL::COPY));
-	  Guard<DLong64GDL> guard( p0L64);
-	  if (KwNaN) {
-	    DFloatGDL* p0f = static_cast<DFloatGDL*>
-	      (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	    Guard<DFloatGDL> guard( p0f);
-	    for( SizeT i=0; i<nEl; ++i) {
-	      if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
-	    }
-	  }
-	  return product_template<DLong64GDL>( p0L64, nanInt);	      
-	} // integer results
-	  
-	if( p0->Type() == GDL_DOUBLE) {
-	  return product_template<DDoubleGDL>
-	    ( static_cast<DDoubleGDL*>(p0), KwNaN); 
-	}
-	if( p0->Type() == GDL_COMPLEXDBL) {
-	  return product_template<DComplexDblGDL>
-	    ( static_cast<DComplexDblGDL*>(p0), KwNaN); 
-	}
-	if( p0->Type() == GDL_COMPLEX) {
-	  DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-	    (p0->Convert2( GDL_COMPLEXDBL,BaseGDL::COPY));
-	  Guard<DComplexDblGDL> p0D_guard( p0D);
-	  //p0D_guard.Reset( p0D);
-	  return product_template<DComplexDblGDL>( p0D, KwNaN); 
-	}
-	  
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-	Guard<DDoubleGDL> p0D_guard( p0D);
-	//	    p0D_guard.Reset( p0D);
-	return product_template<DDoubleGDL>( p0D, KwNaN);
-      } 
-      else
-	{ // KwCumul
-
-	  if (KwPre) 
-            {
-              switch (p0->Type())
-		{
-                case GDL_BYTE: return product_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0->Dup()), nanInt);
-                case GDL_INT: return product_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0->Dup()), nanInt);
-                case GDL_UINT: return product_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0->Dup()), nanInt);
-                case GDL_LONG: return product_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0->Dup()), nanInt);
-                case GDL_ULONG: return product_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0->Dup()), nanInt);
-                case GDL_LONG64: return product_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0->Dup()), nanInt);
-                case GDL_ULONG64: return product_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0->Dup()), nanInt);
-                case GDL_FLOAT: return product_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0->Dup()), KwNaN);
-                case GDL_DOUBLE: return product_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0->Dup()), KwNaN);
-                case GDL_COMPLEX: return product_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0->Dup()), KwNaN);
-                case GDL_COMPLEXDBL: return product_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0->Dup()), KwNaN);
-                default: assert(false);
-		}
+          // Convert to Long64
+          DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+            (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+          Guard<DLong64GDL> guard(p0L64);
+          if (KwNaN) {
+            DFloatGDL* p0f = static_cast<DFloatGDL*>
+              (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+            Guard<DFloatGDL> guard(p0f);
+            for (SizeT i = 0; i < nEl; ++i) {
+              if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
             }
+          }
+          return product_template<DLong64GDL>(p0L64, nanInt);
+        } // integer results
 
-	  // Integer parts derivated from Total code by Erin Sheldon
-	  // In IDL PRODUCT(), the INTEGER keyword takes precedence 
-	  if (KwInt) {
-	    // We use GDL_LONG64 unless the input is GDL_ULONG64
-	    if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
-	      return product_cu_template<DLong64GDL>
-		( static_cast<DLong64GDL*>(p0->Dup()), nanInt);
-	    }
-	    if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
-	      return product_cu_template<DULong64GDL>
-		( static_cast<DULong64GDL*>(p0->Dup()), nanInt);
-	    }
-	    // Convert to Long64
-	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-	      (p0->Convert2( GDL_LONG64, BaseGDL::COPY));
-	    Guard<DLong64GDL> guard( p0L64);
-	    if (KwNaN) {
-	      DFloatGDL* p0f = static_cast<DFloatGDL*>
-		(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	      Guard<DFloatGDL> guard( p0f);
-	      for( SizeT i=0; i<nEl; ++i) {
-		if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
-	      }
-	    }
-	    return product_cu_template<DLong64GDL>
-	      (static_cast<DLong64GDL*>(p0L64->Dup()), nanInt);	      
-	  } // integer results
-	      
-	  // special case as GDL_DOUBLE type overrides /GDL_DOUBLE
-	  if (p0->Type() == GDL_DOUBLE) {
-	    return product_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0->Dup()), KwNaN);
-	  }
-	  if (p0->Type() == GDL_COMPLEXDBL) {
-	    return product_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0->Dup()), KwNaN);
-	  }
-	  if (p0->Type() == GDL_COMPLEX) {
-	    return product_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>
-		(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY)), KwNaN);
-	  }
-	  return product_cu_template< DDoubleGDL>
-	    ( static_cast<DDoubleGDL*>
-	      (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY)), KwNaN);
-	}
+        if (p0->Type() == GDL_DOUBLE) {
+          return product_template<DDoubleGDL>
+            (static_cast<DDoubleGDL*> (p0), KwNaN);
+        }
+        if (p0->Type() == GDL_COMPLEXDBL) {
+          return product_template<DComplexDblGDL>
+            (static_cast<DComplexDblGDL*> (p0), KwNaN);
+        }
+        if (p0->Type() == GDL_COMPLEX) {
+          DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+            (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+          Guard<DComplexDblGDL> p0D_guard(p0D);
+          //p0D_guard.Reset( p0D);
+          return product_template<DComplexDblGDL>(p0D, KwNaN);
+        }
+
+        DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+          (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        Guard<DDoubleGDL> p0D_guard(p0D);
+        //	    p0D_guard.Reset( p0D);
+        return product_template<DDoubleGDL>(p0D, KwNaN);
+      }
+      else { // KwCumul
+
+        if (KwPre) {
+          switch (p0->Type()) {
+            case GDL_BYTE: return product_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), nanInt);
+            case GDL_INT: return product_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), nanInt);
+            case GDL_UINT: return product_cu_template<DUIntGDL>(static_cast<DUIntGDL*> (p0->Dup()), nanInt);
+            case GDL_LONG: return product_cu_template<DLongGDL>(static_cast<DLongGDL*> (p0->Dup()), nanInt);
+            case GDL_ULONG: return product_cu_template<DULongGDL>(static_cast<DULongGDL*> (p0->Dup()), nanInt);
+            case GDL_LONG64: return product_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), nanInt);
+            case GDL_ULONG64: return product_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), nanInt);
+            case GDL_FLOAT: return product_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), KwNaN);
+            case GDL_DOUBLE: return product_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), KwNaN);
+            case GDL_COMPLEX: return product_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), KwNaN);
+            case GDL_COMPLEXDBL: return product_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), KwNaN);
+            default: assert(false);
+          }
+        }
+
+        // Integer parts derivated from Total code by Erin Sheldon
+        // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+        if (KwInt) {
+          // We use GDL_LONG64 unless the input is GDL_ULONG64
+          if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
+            return product_cu_template<DLong64GDL>
+              (static_cast<DLong64GDL*> (p0->Dup()), nanInt);
+          }
+          if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
+            return product_cu_template<DULong64GDL>
+              (static_cast<DULong64GDL*> (p0->Dup()), nanInt);
+          }
+          // Convert to Long64
+          DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+            (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+          Guard<DLong64GDL> guard(p0L64);
+          if (KwNaN) {
+            DFloatGDL* p0f = static_cast<DFloatGDL*>
+              (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+            Guard<DFloatGDL> guard(p0f);
+            for (SizeT i = 0; i < nEl; ++i) {
+              if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
+            }
+          }
+          return product_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*> (p0L64->Dup()), nanInt);
+        } // integer results
+
+        // special case as GDL_DOUBLE type overrides /GDL_DOUBLE
+        if (p0->Type() == GDL_DOUBLE) {
+          return product_cu_template< DDoubleGDL>
+            (static_cast<DDoubleGDL*> (p0->Dup()), KwNaN);
+        }
+        if (p0->Type() == GDL_COMPLEXDBL) {
+          return product_cu_template< DComplexDblGDL>
+            (static_cast<DComplexDblGDL*> (p0->Dup()), KwNaN);
+        }
+        if (p0->Type() == GDL_COMPLEX) {
+          return product_cu_template< DComplexDblGDL>
+            (static_cast<DComplexDblGDL*>
+            (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY)), KwNaN);
+        }
+        return product_cu_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*>
+          (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY)), KwNaN);
+      }
     }
-    
+
     // product over sumDim
     dimension srcDim = p0->Dim();
     SizeT srcRank = srcDim.Rank();
-    
-    if( sumDim < 1 || sumDim > srcRank)
-      e->Throw( "Array must have "+i2s(sumDim)+
-		" dimensions: "+e->GetParString(0));
-    
+
+    if (sumDim < 1 || sumDim > srcRank)
+      e->Throw("Array must have " + i2s(sumDim) +
+      " dimensions: " + e->GetParString(0));
+
     if (!KwCumul) {
 
-      if (KwPre) 
-	{
-	  switch (p0->Type())
-	    {
-	    case GDL_BYTE: return product_over_dim_template<DByteGDL>(static_cast<DByteGDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_INT: return product_over_dim_template<DIntGDL>(static_cast<DIntGDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_UINT: return product_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_LONG: return product_over_dim_template<DLongGDL>(static_cast<DLongGDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_ULONG: return product_over_dim_template<DULongGDL>(static_cast<DULongGDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_LONG64: return product_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_ULONG64: return product_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nanInt);
-	    case GDL_FLOAT: return product_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, KwNaN);
-	    case GDL_DOUBLE: return product_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, KwNaN);
-	    case GDL_COMPLEX: return product_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, KwNaN);
-	    case GDL_COMPLEXDBL: return product_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, KwNaN);
-	    default: assert(false);
-	    }
-	}
+      if (KwPre) {
+        switch (p0->Type()) {
+          case GDL_BYTE: return product_over_dim_template<DByteGDL>(static_cast<DByteGDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_INT: return product_over_dim_template<DIntGDL>(static_cast<DIntGDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_UINT: return product_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_LONG: return product_over_dim_template<DLongGDL>(static_cast<DLongGDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_ULONG: return product_over_dim_template<DULongGDL>(static_cast<DULongGDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_LONG64: return product_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_ULONG64: return product_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, nanInt);
+          case GDL_FLOAT: return product_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), srcDim, sumDim - 1, KwNaN);
+          case GDL_DOUBLE: return product_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, KwNaN);
+          case GDL_COMPLEX: return product_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, KwNaN);
+          case GDL_COMPLEXDBL: return product_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, KwNaN);
+          default: assert(false);
+        }
+      }
 
       // Integer parts derivated from Total code by Erin Sheldon
       // In IDL PRODUCT(), the INTEGER keyword takes precedence 
-      if (KwInt) {	  
-	// We use GDL_LONG64 unless the input is GDL_ULONG64
-	if ((p0->Type() == GDL_LONG64 ) && (!KwNaN)) {
-	  return product_over_dim_template<DLong64GDL>
-	    ( static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nanInt);
-	}
-	if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
-	  return product_over_dim_template<DULong64GDL>
-	    ( static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nanInt);
-	}
-	
-	// Conver to Long64
-	DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-	  (p0->Convert2( GDL_LONG64, BaseGDL::COPY));
-	Guard<DLong64GDL> guard( p0L64);
-	if (KwNaN) {
-	  DFloatGDL* p0f = static_cast<DFloatGDL*>
-	    (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	  Guard<DFloatGDL> guard( p0f);
-	  for( SizeT i=0; i<nEl; ++i) {
-	    if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
-	  }
-	}
-	return product_over_dim_template<DLong64GDL>
-	  ( p0L64, srcDim, sumDim-1, nanInt);
+      if (KwInt) {
+        // We use GDL_LONG64 unless the input is GDL_ULONG64
+        if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
+          return product_over_dim_template<DLong64GDL>
+            (static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, nanInt);
+        }
+        if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
+          return product_over_dim_template<DULong64GDL>
+            (static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, nanInt);
+        }
+
+        // Conver to Long64
+        DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+          (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+        Guard<DLong64GDL> guard(p0L64);
+        if (KwNaN) {
+          DFloatGDL* p0f = static_cast<DFloatGDL*>
+            (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+          Guard<DFloatGDL> guard(p0f);
+          for (SizeT i = 0; i < nEl; ++i) {
+            if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
+          }
+        }
+        return product_over_dim_template<DLong64GDL>
+          (p0L64, srcDim, sumDim - 1, nanInt);
       } // integer results
-      
-      if( p0->Type() == GDL_DOUBLE) {
-	return product_over_dim_template< DDoubleGDL>
-	  ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, KwNaN);
+
+      if (p0->Type() == GDL_DOUBLE) {
+        return product_over_dim_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, KwNaN);
       }
-      if( p0->Type() == GDL_COMPLEXDBL) {
-	return product_over_dim_template< DComplexDblGDL>
-	  ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, KwNaN);
+      if (p0->Type() == GDL_COMPLEXDBL) {
+        return product_over_dim_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, KwNaN);
       }
-      if( p0->Type() == GDL_COMPLEX) {
-	DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-	  (p0->Convert2( GDL_COMPLEXDBL,BaseGDL::COPY));
-	Guard<DComplexDblGDL> p0D_guard( p0D);
-	//	    p0D_guard.Reset( p0D);
-	return product_over_dim_template< DComplexDblGDL>
-	  ( p0D, srcDim, sumDim-1, KwNaN);
+      if (p0->Type() == GDL_COMPLEX) {
+        DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+          (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+        Guard<DComplexDblGDL> p0D_guard(p0D);
+        //	    p0D_guard.Reset( p0D);
+        return product_over_dim_template< DComplexDblGDL>
+          (p0D, srcDim, sumDim - 1, KwNaN);
       }
-	
+
       DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	(p0->Convert2( GDL_DOUBLE,BaseGDL::COPY));
-      Guard<DDoubleGDL> p0D_guard( p0D);
+        (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      Guard<DDoubleGDL> p0D_guard(p0D);
       //p0D_guard.Reset( p0D);
       return product_over_dim_template< DDoubleGDL>
-	( p0D, srcDim, sumDim-1,KwNaN);
-    } 
-    else
-      { // KwCumul
+        (p0D, srcDim, sumDim - 1, KwNaN);
+    }
+    else { // KwCumul
 
-        if (KwPre) 
-	  {
-	    switch (p0->Type())
-	      {
-	      case GDL_BYTE: return product_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_INT: return product_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_UINT: return product_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_LONG: return product_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_ULONG: return product_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_LONG64: return product_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_ULONG64: return product_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0->Dup()), sumDim-1, nanInt);
-	      case GDL_FLOAT: return product_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	      case GDL_DOUBLE: return product_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	      case GDL_COMPLEX: return product_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	      case GDL_COMPLEXDBL: return product_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	      default: assert(false);
-	      }
-	  }
-
-	// Integer parts derivated from Total code by Erin Sheldon
-	// In IDL PRODUCT(), the INTEGER keyword takes precedence 
-	if (KwInt) {
-	  // We use GDL_LONG64 unless the input is GDL_ULONG64
-	  if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
-	    return product_over_dim_cu_template<DLong64GDL>
-	      ( static_cast<DLong64GDL*>(p0->Dup()), sumDim-1, nanInt);
-	  }
-	  if ((p0->Type() == GDL_ULONG64 ) && (!KwNaN)) {
-	    return product_over_dim_cu_template<DULong64GDL>
-	      ( static_cast<DULong64GDL*>(p0->Dup()), sumDim-1, nanInt);
-	  }
-	  
-	  // Convert to Long64
-	  if (KwNaN) {
-	    DFloatGDL* p0f = static_cast<DFloatGDL*>
-	      (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	    Guard<DFloatGDL> guard( p0f);
-	    for( SizeT i=0; i<nEl; ++i) {
-	      if (!isfinite((*p0f)[i])) (*p0f)[i]=1;
-	    }
-	    return product_over_dim_cu_template<DLong64GDL>
-	      ( static_cast<DLong64GDL*>
-		(p0f->Convert2( GDL_LONG64, BaseGDL::COPY)), sumDim-1, nanInt);  
-	  } else {
-	    return product_over_dim_cu_template<DLong64GDL>
-	      ( static_cast<DLong64GDL*>
-		(p0->Convert2( GDL_LONG64, BaseGDL::COPY)), sumDim-1, nanInt);
-	  }
-	} // integer results
-	
-	if( p0->Type() == GDL_DOUBLE) {
-	  return product_over_dim_cu_template< DDoubleGDL>
-	    ( static_cast<DDoubleGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	}
-	if( p0->Type() == GDL_COMPLEXDBL) {
-	  return product_over_dim_cu_template< DComplexDblGDL>
-	    ( static_cast<DComplexDblGDL*>(p0->Dup()), sumDim-1, KwNaN);
-	}
-	if( p0->Type() == GDL_COMPLEX) {
-	  return product_over_dim_cu_template< DComplexDblGDL>
-	    ( static_cast<DComplexDblGDL*>
-	      (p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY)), sumDim-1, KwNaN);
-	}
-      
-	return product_over_dim_cu_template< DDoubleGDL>
-	  ( static_cast<DDoubleGDL*>
-	    (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY)), sumDim-1, KwNaN);
+      if (KwPre) {
+        switch (p0->Type()) {
+          case GDL_BYTE: return product_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_INT: return product_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_UINT: return product_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_LONG: return product_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_ULONG: return product_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_LONG64: return product_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_ULONG64: return product_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, nanInt);
+          case GDL_FLOAT: return product_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+          case GDL_DOUBLE: return product_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+          case GDL_COMPLEX: return product_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+          case GDL_COMPLEXDBL: return product_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+          default: assert(false);
+        }
       }
+
+      // Integer parts derivated from Total code by Erin Sheldon
+      // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+      if (KwInt) {
+        // We use GDL_LONG64 unless the input is GDL_ULONG64
+        if ((p0->Type() == GDL_LONG64) && (!KwNaN)) {
+          return product_over_dim_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, nanInt);
+        }
+        if ((p0->Type() == GDL_ULONG64) && (!KwNaN)) {
+          return product_over_dim_cu_template<DULong64GDL>
+            (static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, nanInt);
+        }
+
+        // Convert to Long64
+        if (KwNaN) {
+          DFloatGDL* p0f = static_cast<DFloatGDL*>
+            (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+          Guard<DFloatGDL> guard(p0f);
+          for (SizeT i = 0; i < nEl; ++i) {
+            if (!isfinite((*p0f)[i])) (*p0f)[i] = 1;
+          }
+          return product_over_dim_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*>
+            (p0f->Convert2(GDL_LONG64, BaseGDL::COPY)), sumDim - 1, nanInt);
+        } else {
+          return product_over_dim_cu_template<DLong64GDL>
+            (static_cast<DLong64GDL*>
+            (p0->Convert2(GDL_LONG64, BaseGDL::COPY)), sumDim - 1, nanInt);
+        }
+      } // integer results
+
+      if (p0->Type() == GDL_DOUBLE) {
+        return product_over_dim_cu_template< DDoubleGDL>
+          (static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+      }
+      if (p0->Type() == GDL_COMPLEXDBL) {
+        return product_over_dim_cu_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, KwNaN);
+      }
+      if (p0->Type() == GDL_COMPLEX) {
+        return product_over_dim_cu_template< DComplexDblGDL>
+          (static_cast<DComplexDblGDL*>
+          (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY)), sumDim - 1, KwNaN);
+      }
+
+      return product_over_dim_cu_template< DDoubleGDL>
+        (static_cast<DDoubleGDL*>
+        (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY)), sumDim - 1, KwNaN);
+    }
   }
 
-  BaseGDL* array_equal( EnvT* e)
-  {
-    e->NParam( 2);//, "ARRAY_EQUAL");
+  BaseGDL* array_equal( EnvT* e) {
+    e->NParam(2); //, "ARRAY_EQUAL");
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "ARRAY_EQUAL");
-    BaseGDL* p1 = e->GetParDefined( 1);//, "ARRAY_EQUAL");
+    BaseGDL* p0 = e->GetParDefined(0); //, "ARRAY_EQUAL");
+    BaseGDL* p1 = e->GetParDefined(1); //, "ARRAY_EQUAL");
 
-    if( p0 == p1) return new DByteGDL( 1);
+    if (p0 == p1) return new DByteGDL(1);
 
     SizeT nEl0 = p0->N_Elements();
     SizeT nEl1 = p1->N_Elements();
 
     // first case : arrays with differents size (>1)
-    if( nEl0 != nEl1 && nEl0 != 1 && nEl1 != 1)
-      return new DByteGDL( 0);
-  
+    if (nEl0 != nEl1 && nEl0 != 1 && nEl1 != 1)
+      return new DByteGDL(0);
+
     // if one of input has only one element, it should NOt be an array
     // ARRAY_EQUAL(1,[1,1]) True, ARRAY_EQUAL([1],[1,1]) False !!
-    if( nEl0 != nEl1) {
+    if (nEl0 != nEl1) {
       if (nEl0 == 1 && nEl1 != 1) {
-	if (!p0->StrictScalar()) return new DByteGDL( 0);
+        if (!p0->StrictScalar()) return new DByteGDL(0);
       }
       if (nEl0 != 1 && nEl1 == 1) {
-	if (!p1->StrictScalar()) return new DByteGDL( 0);
+        if (!p1->StrictScalar()) return new DByteGDL(0);
       }
     }
 
@@ -3406,151 +3333,141 @@ namespace lib {
 
     Guard<BaseGDL> p0_guard;
     Guard<BaseGDL> p1_guard;
-    if( p0->Type() != p1->Type())
-      {
-	if( e->KeywordSet( 0)) // NO_TYPECONV
-	  return new DByteGDL( 0);
-	else
-	  {
-	    DType aTy=p0->Type();
-	    DType bTy=p1->Type();
-	    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
-	      {
-		p1 = p1->Convert2( aTy, BaseGDL::COPY);
-		p1_guard.Reset( p1);
-	      }
-	    else
-	      {
-		p0 = p0->Convert2( bTy, BaseGDL::COPY);
-		p0_guard.Reset( p0);
-	      }
-	  }
+    if (p0->Type() != p1->Type()) {
+      if (e->KeywordSet(0)) // NO_TYPECONV
+        return new DByteGDL(0);
+      else {
+        DType aTy = p0->Type();
+        DType bTy = p1->Type();
+        if (DTypeOrder[aTy] >= DTypeOrder[bTy]) {
+          p1 = p1->Convert2(aTy, BaseGDL::COPY);
+          p1_guard.Reset(p1);
+        } else {
+          p0 = p0->Convert2(bTy, BaseGDL::COPY);
+          p0_guard.Reset(p0);
+        }
       }
-    
-    if( p0->ArrayEqual( p1)) return new DByteGDL( 1);
+    }
 
-    return new DByteGDL( 0);
+    if (p0->ArrayEqual(p1)) return new DByteGDL(1);
+
+    return new DByteGDL(0);
   }
 
-  BaseGDL* min_fun( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);
-    BaseGDL* searchArr = e->GetParDefined( 0);
-    
-    static int omitNaNIx = e->KeywordIx( "NAN");
+  BaseGDL* min_fun( EnvT* e) {
+    SizeT nParam = e->NParam(1);
+    BaseGDL* searchArr = e->GetParDefined(0);
+
+    static int omitNaNIx = e->KeywordIx("NAN");
     bool omitNaN = e->KeywordSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
-    bool subMax = e->KeywordPresent(subIx);  
-    
+    bool subMax = e->KeywordPresent(subIx);
+
     static int dimIx = e->KeywordIx("DIMENSION");
     bool dimSet = e->KeywordSet(dimIx);
 
     static int maxIx = e->KeywordIx("MAX");
     bool maxSet = e->KeywordPresent(maxIx);
 
-    DLong searchDim; 
+    DLong searchDim;
     if (dimSet) {
       e->AssureLongScalarKW(dimIx, searchDim);
       if (searchDim < 0 || searchDim > searchArr->Rank())
         e->Throw("Illegal keyword value for DIMENSION");
     }
 
-    if (dimSet && searchArr->Rank() > 1) 
-      {
-	searchDim -= 1; // user-supplied dimensions start with 1!
+    if (dimSet && searchArr->Rank() > 1) {
+      searchDim -= 1; // user-supplied dimensions start with 1!
 
-	// here destDim is in fact the srcDim...
-	dimension destDim = searchArr->Dim();
-	SizeT searchStride = destDim.Stride(searchDim);
-	SizeT outerStride = destDim.Stride(searchDim + 1);
-	// ... and now becomes the destDim
-	SizeT nSearch = destDim.Remove(searchDim);
-	SizeT searchLimit = nSearch * searchStride;
-	SizeT nEl = searchArr->N_Elements();
+      // here destDim is in fact the srcDim...
+      dimension destDim = searchArr->Dim();
+      SizeT searchStride = destDim.Stride(searchDim);
+      SizeT outerStride = destDim.Stride(searchDim + 1);
+      // ... and now becomes the destDim
+      SizeT nSearch = destDim.Remove(searchDim);
+      SizeT searchLimit = nSearch * searchStride;
+      SizeT nEl = searchArr->N_Elements();
 
-	// memory allocation
-	BaseGDL *maxVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-	DLongGDL *minElArr, *maxElArr;
+      // memory allocation
+      BaseGDL *maxVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
+      DLongGDL *minElArr, *maxElArr;
 
-	if (maxSet) 
-	  {
-	    e->AssureGlobalKW(maxIx); // instead of using a guard pointer
-	    maxVal = searchArr->New(destDim, BaseGDL::NOZERO);
-	  }
-
-	if (subMax) 
-	  { 
-	    e->AssureGlobalKW(subIx); // instead of using a guard pointer
-	    maxElArr = new DLongGDL(destDim);
-	  }
-
-	if (nParam == 2) 
-	  {
-	    e->AssureGlobalPar(1);    // instead of using a guard pointer
-	    minElArr = new DLongGDL(destDim);
-	  }
-
-	SizeT rIx = 0;
-	for (SizeT o = 0; o < nEl; o += outerStride) for (SizeT i = 0; i < searchStride; ++i)
-						       {
-							 searchArr->MinMax(
-									   (nParam == 2 ? &((*minElArr)[rIx]) : NULL), 
-									   (subMax      ? &((*maxElArr)[rIx]) : NULL), 
-									   &resArr, 
-									   (maxSet      ? &maxVal             : NULL), 
-									   omitNaN, o + i, searchLimit + o + i, searchStride, rIx
-									   );
-							 rIx++;
-						       }
-
-	if (nParam == 2) e->SetPar(1, minElArr);
-	if (subMax) e->SetKW(subIx, maxElArr);
-	if (maxSet) e->SetKW(maxIx, maxVal);
-
-	return resArr;
-      } 
-    else 
-      {
-	DLong minEl;
-	BaseGDL* res;
-
-	if (maxSet) // MAX keyword given
-	  {
-	    e->AssureGlobalKW( 0);
-	    GDLDelete(e->GetKW( 0));
-	    DLong maxEl;
-	    searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0), omitNaN);
-	    if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
-	  }
-	else // no MAX keyword
-	  {
-	    if (subMax)
-	      {
-		DLong maxEl;
-		searchArr->MinMax( &minEl, &maxEl, &res, NULL, omitNaN);
-		e->SetKW(subIx, new DLongGDL(maxEl));
-	      }
-	    else searchArr->MinMax(&minEl, NULL, &res, NULL, omitNaN);
-	  }
-    
-	// handle index
-	if (nParam == 2) e->SetPar(1, new DLongGDL( minEl));
-	else SysVar::SetC( minEl);
-	return res;
+      if (maxSet) {
+        e->AssureGlobalKW(maxIx); // instead of using a guard pointer
+        maxVal = searchArr->New(destDim, BaseGDL::NOZERO);
       }
+
+      if (subMax) {
+        e->AssureGlobalKW(subIx); // instead of using a guard pointer
+        maxElArr = new DLongGDL(destDim);
+      }
+
+      if (nParam == 2) {
+        e->AssureGlobalPar(1); // instead of using a guard pointer
+        minElArr = new DLongGDL(destDim);
+      }
+
+      SizeT rIx = 0;
+#pragma omp parallel if ((nEl/outerStride)*searchStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*searchStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * searchStride;
+          for (SizeT i = 0; i < searchStride; ++i) {
+            searchArr->MinMax(
+              (nParam == 2 ? &((*minElArr)[rIx]) : NULL),
+              (subMax ? &((*maxElArr)[rIx]) : NULL),
+              &resArr,
+              (maxSet ? &maxVal : NULL),
+              omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+              );
+            rIx++;
+          }
+        }
+      }
+      if (nParam == 2) e->SetPar(1, minElArr);
+      if (subMax) e->SetKW(subIx, maxElArr);
+      if (maxSet) e->SetKW(maxIx, maxVal);
+
+      return resArr;
+    }
+    else {
+      DLong minEl;
+      BaseGDL* res;
+
+      if (maxSet) // MAX keyword given
+      {
+        e->AssureGlobalKW(0);
+        GDLDelete(e->GetKW(0));
+        DLong maxEl;
+        searchArr->MinMax(&minEl, &maxEl, &res, &e->GetKW(0), omitNaN);
+        if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
+      } else // no MAX keyword
+      {
+        if (subMax) {
+          DLong maxEl;
+          searchArr->MinMax(&minEl, &maxEl, &res, NULL, omitNaN);
+          e->SetKW(subIx, new DLongGDL(maxEl));
+        } else searchArr->MinMax(&minEl, NULL, &res, NULL, omitNaN);
+      }
+
+      // handle index
+      if (nParam == 2) e->SetPar(1, new DLongGDL(minEl));
+      else SysVar::SetC(minEl);
+      return res;
+    }
   }
 
-  BaseGDL* max_fun( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);
-    BaseGDL* searchArr = e->GetParDefined( 0);
+  BaseGDL* max_fun( EnvT* e) {
+    SizeT nParam = e->NParam(1);
+    BaseGDL* searchArr = e->GetParDefined(0);
 
-    static int omitNaNIx = e->KeywordIx( "NAN");
+    static int omitNaNIx = e->KeywordIx("NAN");
     bool omitNaN = e->KeywordSet(omitNaNIx);
-    
+
     static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
-    bool subMin = e->KeywordPresent(subIx);  
+    bool subMin = e->KeywordPresent(subIx);
 
     static int dimIx = e->KeywordIx("DIMENSION");
     bool dimSet = e->KeywordSet(dimIx);
@@ -3558,97 +3475,91 @@ namespace lib {
     static int minIx = e->KeywordIx("MIN");
     bool minSet = e->KeywordPresent(minIx);
 
-    DLong searchDim; 
-    if (dimSet) 
-      {
-	e->AssureLongScalarKW(dimIx, searchDim);
-	if (searchDim < 0 || searchDim > searchArr->Rank())
-	  e->Throw("Illegal keyword value for DIMENSION");
+    DLong searchDim;
+    if (dimSet) {
+      e->AssureLongScalarKW(dimIx, searchDim);
+      if (searchDim < 0 || searchDim > searchArr->Rank())
+        e->Throw("Illegal keyword value for DIMENSION");
+    }
+
+    if (dimSet && searchArr->Rank() > 1) {
+      searchDim -= 1; // user-supplied dimensions start with 1!
+
+      // here destDim is in fact the srcDim...
+      dimension destDim = searchArr->Dim();
+      SizeT searchStride = destDim.Stride(searchDim);
+      SizeT outerStride = destDim.Stride(searchDim + 1);
+      // ... and now becomes the destDim
+      SizeT nSearch = destDim.Remove(searchDim);
+      SizeT searchLimit = nSearch * searchStride;
+      SizeT nEl = searchArr->N_Elements();
+
+      // memory allocation
+      BaseGDL *minVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
+      DLongGDL *minElArr, *maxElArr;
+
+      if (minSet) {
+        e->AssureGlobalKW(minIx); // instead of using a guard pointer
+        minVal = searchArr->New(destDim, BaseGDL::NOZERO);
       }
 
-    if (dimSet && searchArr->Rank() > 1) 
-      {
-	searchDim -= 1; // user-supplied dimensions start with 1!
-
-	// here destDim is in fact the srcDim...
-	dimension destDim = searchArr->Dim();
-	SizeT searchStride = destDim.Stride(searchDim);
-	SizeT outerStride = destDim.Stride(searchDim + 1);
-	// ... and now becomes the destDim
-	SizeT nSearch = destDim.Remove(searchDim);
-	SizeT searchLimit = nSearch * searchStride;
-	SizeT nEl = searchArr->N_Elements();
-
-	// memory allocation
-	BaseGDL *minVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-	DLongGDL *minElArr, *maxElArr;
-
-	if (minSet) 
-	  {    
-	    e->AssureGlobalKW(minIx); // instead of using a guard pointer
-	    minVal = searchArr->New(destDim, BaseGDL::NOZERO);
-	  }    
-
-	if (subMin) 
-	  {    
-	    e->AssureGlobalKW(subIx); // instead of using a guard pointer
-	    minElArr = new DLongGDL(destDim);
-	  }    
-
-	if (nParam == 2) 
-	  {    
-	    e->AssureGlobalPar(1);    // instead of using a guard pointer
-	    maxElArr = new DLongGDL(destDim);
-	  }
-
-	SizeT rIx = 0;
-	for (SizeT o = 0; o < nEl; o += outerStride) for (SizeT i = 0; i < searchStride; ++i)
-						       {
-							 searchArr->MinMax(
-									   (subMin      ? &((*minElArr)[rIx]) : NULL),
-									   (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
-									   (minSet      ? &minVal             : NULL),
-									   &resArr,
-									   omitNaN, o + i, searchLimit + o + i, searchStride, rIx
-									   );
-							 rIx++;
-						       }
-
-	if (nParam == 2) e->SetPar(1, maxElArr);
-	if (subMin) e->SetKW(subIx, minElArr);
-	if (minSet) e->SetKW(minIx, minVal);
-
-	return resArr;
+      if (subMin) {
+        e->AssureGlobalKW(subIx); // instead of using a guard pointer
+        minElArr = new DLongGDL(destDim);
       }
-    else 
-      {
-	DLong maxEl;
-	BaseGDL* res;
 
-	if (minSet) // MIN keyword given
-	  {
-	    e->AssureGlobalKW( 0);
-	    GDLDelete(e->GetKW( 0));
-	    DLong minEl;
-	    searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res, omitNaN);
-	    if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
-	  }
-	else // no MIN keyword
-	  {
-	    if (subMin)
-	      {
-		DLong minEl;
-		searchArr->MinMax( &minEl, &maxEl, NULL, &res, omitNaN);
-		e->SetKW(subIx, new DLongGDL(minEl));
-	      }
-	    else searchArr->MinMax(NULL, &maxEl, NULL, &res, omitNaN);
-	  }
-
-	// handle index
-	if (nParam == 2) e->SetPar(1, new DLongGDL( maxEl));
-	else SysVar::SetC(maxEl);
-	return res;
+      if (nParam == 2) {
+        e->AssureGlobalPar(1); // instead of using a guard pointer
+        maxElArr = new DLongGDL(destDim);
       }
+
+#pragma omp parallel if ((nEl/outerStride)*searchStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*searchStride))
+      {
+#pragma omp for
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o/outerStride)*searchStride;
+          for (SizeT i = 0; i < searchStride; ++i) {
+            searchArr->MinMax(
+              (subMin ? &((*minElArr)[rIx]) : NULL),
+              (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
+              (minSet ? &minVal : NULL),
+              &resArr,
+              omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+              );
+            rIx++;
+          }
+        }
+      }
+      if (nParam == 2) e->SetPar(1, maxElArr);
+      if (subMin) e->SetKW(subIx, minElArr);
+      if (minSet) e->SetKW(minIx, minVal);
+
+      return resArr;
+    } else {
+      DLong maxEl;
+      BaseGDL* res;
+
+      if (minSet) // MIN keyword given
+      {
+        e->AssureGlobalKW(0);
+        GDLDelete(e->GetKW(0));
+        DLong minEl;
+        searchArr->MinMax(&minEl, &maxEl, &e->GetKW(0), &res, omitNaN);
+        if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
+      } else // no MIN keyword
+      {
+        if (subMin) {
+          DLong minEl;
+          searchArr->MinMax(&minEl, &maxEl, NULL, &res, omitNaN);
+          e->SetKW(subIx, new DLongGDL(minEl));
+        } else searchArr->MinMax(NULL, &maxEl, NULL, &res, omitNaN);
+      }
+
+      // handle index
+      if (nParam == 2) e->SetPar(1, new DLongGDL(maxEl));
+      else SysVar::SetC(maxEl);
+      return res;
+    }
   }
  
   BaseGDL* transpose( EnvT* e)
@@ -5099,9 +5010,28 @@ namespace lib {
     return NULL;
 
   }// end of median
+  
+template <typename Ty>  static inline Ty do_max(const Ty* data, const SizeT sz) {
+    Ty maxval = data[0];
+#pragma omp parallel
+    {
+#pragma omp for reduction(max:maxval)
+    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
+    }
+    return maxval;
+  }
+template <typename Ty>  static inline Ty do_max_nan(const Ty* data, const SizeT sz) {
+    Ty maxval = data[0];
+#pragma omp parallel
+    {
+#pragma omp for reduction(max:maxval)
+    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
+    }
+    return maxval;
+  }  
 
-  static inline DDouble mean_d(DDouble data[], SizeT sz) {
-    DDouble mean = 0;
+template <typename Ty>  static inline Ty do_mean(const Ty* data, const SizeT sz) {
+    Ty mean = 0;
 #pragma omp parallel
     {
 #pragma omp for reduction(+:mean)
@@ -5109,9 +5039,10 @@ namespace lib {
     }
     return mean/sz;
   }
-  static inline DComplexDbl mean_d_cpx(DComplexDbl data[], SizeT sz) {
-    DDouble meanr = 0;
-    DDouble meani = 0;
+
+template <typename Ty, typename T2>  static inline Ty do_mean_cpx(const Ty* data, const SizeT sz) {
+    T2 meanr = 0;
+    T2 meani = 0;
 #pragma omp parallel
     {
 #pragma omp for reduction(+:meanr)
@@ -5119,40 +5050,17 @@ namespace lib {
 #pragma omp for reduction(+:meani)
     for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
     }
-    return std::complex<double>(meanr/sz,meani/sz);
+    return std::complex<T2>(meanr/sz,meani/sz);
   }
-  
-  static inline DFloat mean_f(DFloat data[], SizeT sz) {
-    DFloat mean = 0;
-#pragma omp parallel
-    {
-#pragma omp for reduction(+:mean)
-    for (SizeT i = 0; i < sz; ++i) mean += data[i];
-    }
-    return mean/sz;
-  }
-
-  static inline DComplex mean_f_cpx(DComplex data[], SizeT sz) {
-    DFloat meani = 0;
-    DFloat meanr = 0;
-#pragma omp parallel
-    {
-#pragma omp for reduction(+:meanr)
-    for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
-#pragma omp for reduction(+:meanr)
-    for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
-    }
-    return std::complex<float>(meanr/sz,meani/sz);
-  }
-  
-  static inline DDouble mean_d_nan(DDouble data[], SizeT sz) {
-    DDouble mean = 0;
+ 
+template <typename Ty>  static inline Ty do_mean_nan(const Ty* data, const SizeT sz) {
+    Ty mean = 0;
     SizeT n = 0;
 #pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for reduction(+:mean,n)
      for (SizeT i = 0; i < sz; ++i) {
-        DDouble v = data[i];
+        Ty v = data[i];
         if (isfinite(v)) {
           n++,
           mean += v;
@@ -5162,16 +5070,16 @@ namespace lib {
     return mean/n;
   }
 
-  static inline DComplexDbl mean_d_cpx_nan(DComplexDbl data[], SizeT sz) {
-    DDouble meanr = 0;
-    DDouble meani = 0;
+template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* data, const SizeT sz) {
+    T2 meanr = 0;
+    T2 meani = 0;
     SizeT nr = 0;
     SizeT ni = 0;
 #pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for reduction(+:meanr,nr)
      for (SizeT i = 0; i < sz; ++i) {
-        DDouble v = data[i].real();
+        T2 v = data[i].real();
         if (isfinite(v)) {
           nr++,
           meanr += v;
@@ -5179,57 +5087,14 @@ namespace lib {
       }
 #pragma omp for reduction(+:meani,ni)
      for (SizeT i = 0; i < sz; ++i) {
-        DDouble v = data[i].imag();
+        T2 v = data[i].imag();
         if (isfinite(v)) {
           ni++,
           meani += v;
         }
       }
     }    
-    return std::complex<double>(meanr/nr,meani/ni);
-  }
-  
-  static inline DFloat mean_f_nan(DFloat data[], SizeT sz) {
-    DFloat mean = 0;
-    SizeT n = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:mean,n)
-      for (SizeT i = 0; i < sz; ++i) {
-        DFloat v = data[i];
-        if (isfinite(v)) {
-          n ++;
-          mean += v;
-        }
-      }
-    }
-    return mean/n;
-  }  
-  static inline DComplex mean_f_cpx_nan(DComplex data[], SizeT sz) {
-    DFloat meanr = 0;
-    DFloat meani = 0;
-    SizeT nr = 0;
-    SizeT ni = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:meanr,nr)
-     for (SizeT i = 0; i < sz; ++i) {
-        DFloat v = data[i].real();
-        if (isfinite(v)) {
-          nr++,
-          meanr += v;
-        }
-      }
-#pragma omp for reduction(+:meani,ni)
-     for (SizeT i = 0; i < sz; ++i) {
-        DFloat v = data[i].imag();
-        if (isfinite(v)) {
-          ni++,
-          meani += v;
-        }
-      }
-    }
-    return std::complex<float>(meanr/nr,meani/ni);
+    return std::complex<T2>(meanr/nr,meani/ni);
   }
 
   BaseGDL* mean_fun(EnvT* e) {
@@ -5271,7 +5136,7 @@ namespace lib {
     if (dimSet && p0->Rank() > 1) {
       meanDim -= 1; // user-supplied dimensions start with 1!
 
-      // output dimension: copy srcDim to destDim
+    // output dimension: copy srcDim to destDim
       dimension destDim = p0->Dim();
       // make array of dims for transpose
       DUInt* perm = new DUInt[p0->Rank()];
@@ -5303,17 +5168,17 @@ namespace lib {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           {
 #pragma omp for
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_cpx_nan(&(*input)[i * stride], stride);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx_nan<DComplexDbl, double>(&(*input)[i * stride], stride);
           }
         } else {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           {
 #pragma omp for
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_cpx(&(*input)[i * stride], stride);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx<DComplexDbl, double>(&(*input)[i * stride], stride);
           }
         }
         if (clean_array) delete input;
-        return res;          
+        return res;
       } else if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
         if (meanDim != 0) {
@@ -5325,17 +5190,17 @@ namespace lib {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           {
 #pragma omp for
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_cpx_nan(&(*input)[i * stride], stride);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx_nan<DComplex, float>(&(*input)[i * stride], stride);
           }
         } else {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           {
 #pragma omp for
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_cpx(&(*input)[i * stride], stride);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx<DComplex, float>(&(*input)[i * stride], stride);
           }
         }
         if (clean_array) delete input;
-        return res;          
+        return res;
       } else {
         if (dbl) {
           DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
@@ -5348,19 +5213,20 @@ namespace lib {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
-              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d_nan(&(*input)[i * stride], stride);
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_nan(&(*input)[i * stride], stride);
             }
           } else {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
-              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_d(&(*input)[i * stride], stride);
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean(&(*input)[i * stride], stride);
             }
           }
           if (clean_array) delete input;
-          return res;          
+          return res;
         } else {
           DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+
           if (meanDim != 0) {
             input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
             clean_array = true;
@@ -5370,37 +5236,747 @@ namespace lib {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
-              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f_nan(&(*input)[i * stride], stride);
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_nan(&(*input)[i * stride], stride);
             }
           } else {
 #pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             {
 #pragma omp for
-              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = mean_f(&(*input)[i * stride], stride);
+              for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean(&(*input)[i * stride], stride);
             }
           }
           if (clean_array) delete input;
-          return res;          
+          return res;
         }
       }
     } else {
       if (p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && dbl)) {
         DComplexDblGDL* input = e->GetParAs<DComplexDblGDL>(0);
-        if (omitNaN) return new DComplexDblGDL(mean_d_cpx_nan(&(*input)[0], input->N_Elements()));
-        else return new DComplexDblGDL(mean_d_cpx(&(*input)[0], input->N_Elements()));
+        if (omitNaN) return new DComplexDblGDL(do_mean_cpx_nan<DComplexDbl, double>(&(*input)[0], input->N_Elements()));
+        else return new DComplexDblGDL(do_mean_cpx<DComplexDbl, double>(&(*input)[0], input->N_Elements()));
       } else if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
-        if (omitNaN) return new DComplexGDL(mean_f_cpx_nan(&(*input)[0], input->N_Elements()));
-        else return new DComplexGDL(mean_f_cpx(&(*input)[0], input->N_Elements()));
+        if (omitNaN) return new DComplexGDL(do_mean_cpx_nan<DComplex, float>(&(*input)[0], input->N_Elements()));
+        else return new DComplexGDL(do_mean_cpx<DComplex, float>(&(*input)[0], input->N_Elements()));
       } else {
         if (dbl) {
           DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
-          if (omitNaN) return new DDoubleGDL(mean_d_nan(&(*input)[0], input->N_Elements()));
-          else return new DDoubleGDL(mean_d(&(*input)[0], input->N_Elements()));
+          if (omitNaN) return new DDoubleGDL(do_mean_nan(&(*input)[0], input->N_Elements()));
+          else return new DDoubleGDL(do_mean(&(*input)[0], input->N_Elements()));
         } else {
           DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
-          if (omitNaN) return new DFloatGDL(mean_f_nan(&(*input)[0], input->N_Elements()));
-          else return new DFloatGDL(mean_f(&(*input)[0], input->N_Elements()));
+          if (omitNaN) return new DFloatGDL(do_mean_nan(&(*input)[0], input->N_Elements()));
+          else return new DFloatGDL(do_mean(&(*input)[0], input->N_Elements()));
+        }
+      }
+    }
+  }
+  
+  template<typename Ty>
+  static inline void do_moment(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
+    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment){
+    Ty meanl=do_mean(data,sz);
+    mean=meanl;
+    if (maxmoment==1) {
+      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+
+    Ty var=0;
+    Ty md=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:var,md)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; var += cdata*cdata; md+=fabs(cdata);}
+    }
+    var/=(sz-1);
+    variance=var;
+    sdev=sqrt(var);
+    mdev=md/sz;
+    
+    if (maxmoment==2 || var==0 ) {
+      skewness=kurtosis=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+    Ty skew=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:skew)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; skew += (cdata*cdata*cdata)/(var*sdev); }
+    }
+    skewness=skew/sz;
+    if (maxmoment==3) {
+      kurtosis=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+    Ty kurt=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:kurt)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; kurt += (cdata*cdata*cdata*cdata)/(var*var);}
+    }
+    kurtosis=(kurt/sz)-3; 
+  }
+  
+  template<typename Ty, typename T2>
+  static inline void do_moment_cpx(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
+    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment){
+    Ty meanl=do_mean_cpx<Ty, T2>(data,sz);
+    mean=meanl;
+    if (maxmoment == 1) {
+      variance = skewness = kurtosis = sdev =
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
+      mdev = std::numeric_limits<T2>::quiet_NaN();
+      return;
+    }
+
+    T2 mdr=0;
+    T2 varr=0;
+    T2 vari=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:varr,vari,mdr)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+        T2 cdatar=cdata.real();
+        T2 cdatai=cdata.imag();
+        varr += (cdatar*cdatar)-(cdatai*cdatai);
+        vari += 2*cdatar*cdatai;
+        mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
+      }
+    }
+    varr/=(sz-1);
+    vari/=(sz-1);
+    mdr/=sz;
+    variance=std::complex<T2>(varr,vari);
+    sdev=sqrt(variance);
+    mdev=mdr;
+
+    if (maxmoment==2) {
+      skewness=kurtosis=
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+      return;
+    }
+    T2 skewr=0;
+    T2 skewi=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:skewr,skewi)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+        T2 cdatar=cdata.real();
+        T2 cdatai=cdata.imag();
+        skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
+          exp(-0.75*log(varr*varr+vari*vari))*
+          cos(0.15E1*atan2(vari,varr))+(3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
+          exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+
+        skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
+          exp(-0.75*log(varr*varr+vari*vari))*cos(1.5*atan2(vari,varr))-
+          (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
+          exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+      }
+    }
+    skewness=std::complex<T2>(skewr/sz,skewi/sz);
+    if (maxmoment==3) {
+      kurtosis=std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+      return;
+    }
+    T2 kurtr=0;
+    T2 kurti=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:kurtr,kurti)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+        T2 cdatar=cdata.real();
+        T2 cdatai=cdata.imag();
+        kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
+          cdatai*cdatai*cdatai)*(varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+
+          4.0*varr*varr*vari*vari)+2.0*(4.0*cdatar*cdatar*cdatar*cdatai-
+          4.0*cdatar*cdatai*cdatai*cdatai)*varr*vari/
+          (pow(varr*varr-vari*vari,2.0)+
+          4.0*varr*varr*vari*vari);
+        kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
+          (varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+4.0*varr*varr*vari*vari)-
+          2.0*(cdatar*cdatar*cdatar*cdatar-
+          6.0*cdatar*cdatar*cdatai*cdatai+cdatai*cdatai*cdatai*cdatai)*varr*vari/
+          (pow(varr*varr-vari*vari,2.0)+
+          4.0*varr*varr*vari*vari);
+      }
+    }
+    kurtosis=std::complex<T2>((kurtr/sz)-3,(kurti/sz)-3); 
+  }
+  
+  template<typename Ty>
+  static inline void do_moment_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
+    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment){
+    Ty meanl=do_mean_nan(data,sz);
+    mean=meanl;
+    if (maxmoment==1 || !isfinite(mean)) {
+      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+
+    Ty var=0;
+    Ty md=0;
+    SizeT k=0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:var,md,k)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) {var += cdata*cdata; md+=fabs(cdata); k+=1;} }
+    }
+    if (k>1) var/=(k-1); else {
+      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+    variance=var;
+    sdev=sqrt(var);
+    mdev=md/k;
+    if (maxmoment==2 || var==0 ) {
+      skewness=kurtosis=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+    Ty skew=0;
+#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:skew)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) skew += (cdata*cdata*cdata)/(var*sdev); }
+    }
+    skewness=skew/k;
+    if (maxmoment==3) {
+      kurtosis=std::numeric_limits<float>::quiet_NaN();
+      return;
+    }
+    Ty kurt=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:kurt)
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) kurt += (cdata*cdata*cdata*cdata)/(var*var);}
+    }
+    kurtosis=(kurt/k)-3; 
+  }
+  
+  template<typename Ty, typename T2>
+  static inline void do_moment_cpx_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
+    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment){
+    Ty meanl=do_mean_cpx_nan<Ty, T2>(data,sz);
+    mean=meanl;
+    if (maxmoment==1) {
+      variance=skewness=kurtosis=sdev=
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+        mdev=std::numeric_limits<T2>::quiet_NaN();
+      return;
+    }
+    SizeT kr=0;
+    SizeT ki=0;
+    T2 mdr=0;
+    T2 varr=0;
+    T2 vari=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:varr,vari,mdr,kr,ki)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+          T2 cdatar=cdata.real();
+          T2 cdatai=cdata.imag();
+        if (finite(cdatar)) {varr += cdatar*cdatar; kr++;}
+        if (finite(cdatai)) {vari += cdatai*cdatai; ki++;}
+        if (finite(cdatar))  mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
+        }
+    }
+    varr/=(kr-1);
+    vari/=(ki-1);
+    mdr/=kr;
+    variance=std::complex<T2>(varr,vari);    
+    sdev=sqrt(variance);
+    mdev=mdr;
+
+    if (maxmoment==2) {
+      skewness=kurtosis=
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+      return;
+    }
+    T2 skewr=0;
+    T2 skewi=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:skewr,skewi)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+          T2 cdatar=cdata.real();
+          T2 cdatai=cdata.imag();
+          if (finite(cdatar)) skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
+            exp(-0.75*log(varr*varr+vari*vari))*
+            cos(0.15E1*atan2(vari,varr))+(3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
+            exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+
+          if (finite(cdatai)) skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
+            exp(-0.75*log(varr*varr+vari*vari))*cos(1.5*atan2(vari,varr))-
+            (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
+            exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+        }
+    }
+    skewness=std::complex<T2>(skewr/kr,skewi/ki);
+    if (maxmoment==3) {
+      kurtosis=std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+      return;
+    }
+    T2 kurtr=0;
+    T2 kurti=0;
+#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for reduction(+:kurtr,kurti)
+      for (SizeT i = 0; i < sz; ++i) { 
+        Ty cdata=data[i]-meanl;
+          T2 cdatar=cdata.real();
+          T2 cdatai=cdata.imag();
+          if (finite(cdatar)) kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
+            cdatai*cdatai*cdatai)*(varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+
+            4.0*varr*varr*vari*vari)+2.0*(4.0*cdatar*cdatar*cdatar*cdatai-
+            4.0*cdatar*cdatai*cdatai*cdatai)*varr*vari/
+            (pow(varr*varr-vari*vari,2.0)+
+            4.0*varr*varr*vari*vari);
+          if (finite(cdatai)) kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
+            (varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+4.0*varr*varr*vari*vari)-
+            2.0*(cdatar*cdatar*cdatar*cdatar-
+            6.0*cdatar*cdatar*cdatai*cdatai+cdatai*cdatai*cdatai*cdatai)*varr*vari/
+            (pow(varr*varr-vari*vari,2.0)+
+            4.0*varr*varr*vari*vari);
+        }
+    }
+    kurtosis=std::complex<T2>((kurtr/kr)-3,(kurti/kr)-3); 
+  }
+  
+  BaseGDL* moment_fun(EnvT* e) {
+    BaseGDL* p0 = e->GetParDefined(0);
+
+    if (p0->Type() == GDL_PTR)
+      e->Throw("Pointer expression not allowed in this context: " + e->GetParString(0));
+    if (p0->Type() == GDL_OBJ)
+      e->Throw("Object expression not allowed in this context: " + e->GetParString(0));
+    if (p0->Type() == GDL_STRUCT)
+      e->Throw("Struct expression not allowed in this context: " + e->GetParString(0));
+
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    bool dbl =
+      (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_COMPLEXDBL ||
+      e->KeywordSet(doubleIx));
+
+    static int nanIx = e->KeywordIx("NAN");
+    // Check possibility of Nan (not useful to speed down moment on integer data which
+    // will never produce NaNs).
+    bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_FLOAT ||
+      p0->Type() == GDL_COMPLEX ||
+      p0->Type() == GDL_COMPLEXDBL);
+    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
+
+    //DIMENSION Kw  
+    static int dimIx = e->KeywordIx("DIMENSION");
+    bool dimSet = e->KeywordSet(dimIx);
+
+    //MAXMOMENT Kw. It limits the computation, even if a modifying kw of higher moment, such as "kurtosis" is present
+    
+    static int maxmIx = e->KeywordIx("MAXMOMENT");
+    DLong maxmoment = 4;
+    if (e->KeywordPresent(maxmIx)) e->AssureLongScalarKW(maxmIx, maxmoment);
+    if (maxmoment > 4) maxmoment=4;
+    if (maxmoment < 1) maxmoment=4;
+    
+    //MEAN Kw
+    static int meanIx = e->KeywordIx("MEAN");
+    int domean = e->KeywordPresent(meanIx);
+        //KURTOSIS Kw
+    static int kurtIx = e->KeywordIx("KURTOSIS");
+    int dokurt = e->KeywordPresent(kurtIx);
+        //SDEV Kw
+    static int sdevIx = e->KeywordIx("SDEV");
+    int dosdev = e->KeywordPresent(sdevIx);
+        //MDEV Kw
+    static int mdevIx = e->KeywordIx("MDEV");
+    int domdev = e->KeywordPresent(mdevIx);
+        //VARIANCE Kw
+    static int varIx = e->KeywordIx("VARIANCE");
+    int dovar = e->KeywordPresent(varIx);
+        //SKEWNESS Kw
+    static int skewIx = e->KeywordIx("SKEWNESS");
+    int doskew = e->KeywordPresent(skewIx);    
+
+    
+    DLong momentDim;
+    if (dimSet) {
+      e->AssureLongScalarKW(dimIx, momentDim);
+      if (momentDim < 0 || momentDim > p0->Rank())
+        e->Throw("Illegal keyword value for DIMENSION");
+    }
+
+    if (dimSet && p0->Rank() > 1) {
+      momentDim -= 1; // user-supplied dimensions start with 1!
+
+      // output dimension: copy srcDim to destDim
+      dimension destDim = p0->Dim();
+      dimension auxiliaryDim;
+      // make array of dims for transpose
+      DUInt* perm = new DUInt[p0->Rank()];
+      ArrayGuard<DUInt> perm_guard(perm);
+      //useful to reorder dims for transpose to order data in continuous order.
+      DUInt i = 0, j = 0;
+      for (i = 0; i < p0->Rank(); ++i) if (i != momentDim) {
+          perm[j + 1] = i;
+          j++;
+        }
+      perm[0] = momentDim;
+      // resize destDim
+      destDim.Remove(momentDim); //will be one dimension less
+      SizeT nEl = destDim.NDimElementsConst(); //need to compute that here, before adding last dim.
+      auxiliaryDim=destDim;
+      
+      destDim<<4; //add 4 as last dim
+      //compute stride and number of elements of result:
+      SizeT stride = p0->Dim(momentDim);
+
+
+      //transpose p0 to arrange dimensions if momentDim is > 0. Do not forget to remove transposed array.
+      bool clean_array = false;
+      if (p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && dbl)) {
+        DComplexDblGDL* input = e->GetParAs<DComplexDblGDL>(0);
+        if (momentDim != 0) {
+          input = static_cast<DComplexDblGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+          clean_array = true;
+        }
+        DComplexDblGDL* res = new DComplexDblGDL(destDim, BaseGDL::NOZERO);
+        DComplexDblGDL* mean;
+        DComplexDblGDL* var;
+        DComplexDblGDL* skew;
+        DComplexDblGDL* kurt;
+        DComplexDblGDL* sdev;
+        DDoubleGDL* mdev;
+        if (domean) mean = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dovar)   var = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (doskew) skew = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dokurt) kurt = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dosdev) sdev = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) {
+              DDouble mdevl;
+              DComplexDbl sdevl;
+              do_moment_cpx_nan<DComplexDbl, double>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }
+          }
+        } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) {
+              DDouble mdevl;
+              DComplexDbl sdevl;
+              do_moment_cpx<DComplexDbl, double>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }
+          }
+        }
+        if (clean_array) delete input;
+        if (domean) e->SetKW( meanIx, mean );
+        if (dovar ) e->SetKW( varIx, var );
+        if (doskew) e->SetKW( skewIx, skew );
+        if (dokurt) e->SetKW( kurtIx, kurt );
+        if (dosdev) e->SetKW( sdevIx, sdev );
+        if (domdev) e->SetKW( mdevIx, mdev );
+        return res;
+      } else if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
+        if (momentDim != 0) {
+          input = static_cast<DComplexGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+          clean_array = true;
+        }
+        DComplexGDL* res = new DComplexGDL(destDim, BaseGDL::NOZERO);
+        DComplexGDL* mean;
+        DComplexGDL* var;
+        DComplexGDL* skew;
+        DComplexGDL* kurt;
+        DComplexGDL* sdev;
+        DFloatGDL* mdev;
+        if (domean) mean = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dovar)   var = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (doskew) skew = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dokurt) kurt = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (dosdev) sdev = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+        if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) {
+              DFloat mdevl;
+              DComplex sdevl;
+              do_moment_cpx_nan<DComplex, float>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }
+          }
+        } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (SizeT i = 0; i < nEl; ++i) {
+              DFloat mdevl;
+              DComplex sdevl;
+              do_moment_cpx<DComplex, float>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }
+          }
+        }
+        if (clean_array) delete input;
+        if (domean) e->SetKW( meanIx, mean );
+        if (dovar ) e->SetKW( varIx, var );
+        if (doskew) e->SetKW( skewIx, skew );
+        if (dokurt) e->SetKW( kurtIx, kurt );
+        if (dosdev) e->SetKW( sdevIx, sdev );
+        if (domdev) e->SetKW( mdevIx, mdev );
+        return res;        
+      } else {
+        if (dbl) {
+          DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+          if (momentDim != 0) {
+            input = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+            clean_array = true;
+          }
+          DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
+          DDoubleGDL* mean;
+          DDoubleGDL* var;
+          DDoubleGDL* skew;
+          DDoubleGDL* kurt;
+          DDoubleGDL* sdev;
+          DDoubleGDL* mdev;
+          if (domean) mean = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dovar)   var = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (doskew) skew = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dokurt) kurt = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dosdev) sdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) {
+                DDouble mdevl;
+                DDouble sdevl;
+                do_moment_nan(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            }
+          } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) {
+                DDouble mdevl;
+                DDouble sdevl;
+                do_moment(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            }
+          }
+          if (clean_array) delete input;
+          if (domean) e->SetKW( meanIx, mean );
+          if (dovar ) e->SetKW( varIx, var );
+          if (doskew) e->SetKW( skewIx, skew );
+          if (dokurt) e->SetKW( kurtIx, kurt );
+          if (dosdev) e->SetKW( sdevIx, sdev );
+          if (domdev) e->SetKW( mdevIx, mdev );
+          return res;
+        } else {
+          DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+          if (momentDim != 0) {
+            input = static_cast<DFloatGDL*> (static_cast<BaseGDL*> (input)->Transpose(perm));
+            clean_array = true;
+          }
+          DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
+          DFloatGDL* mean;
+          DFloatGDL* var;
+          DFloatGDL* skew;
+          DFloatGDL* kurt;
+          DFloatGDL* sdev;
+          DFloatGDL* mdev;
+          if (domean) mean = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dovar)   var = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (doskew) skew = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dokurt) kurt = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (dosdev) sdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
+          if (omitNaN) {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) {
+                DFloat mdevl;
+                DFloat sdevl;
+                do_moment_nan(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            }
+          } else {
+#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+            {
+#pragma omp for
+              for (SizeT i = 0; i < nEl; ++i) {
+                DFloat mdevl;
+                DFloat sdevl;
+                do_moment(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            }
+          }
+          if (clean_array) delete input;
+          if (domean) e->SetKW( meanIx, mean );
+          if (dovar ) e->SetKW( varIx, var );
+          if (doskew) e->SetKW( skewIx, skew );
+          if (dokurt) e->SetKW( kurtIx, kurt );
+          if (dosdev) e->SetKW( sdevIx, sdev );
+          if (domdev) e->SetKW( mdevIx, mdev );
+          return res;
+        }
+      }
+    } else {
+      if (p0->Type() == GDL_COMPLEXDBL || (p0->Type() == GDL_COMPLEX && dbl)) {
+        DComplexDblGDL* input = e->GetParAs<DComplexDblGDL>(0);
+        DComplexDbl mean;
+        DComplexDbl var;
+        DComplexDbl skew;
+        DComplexDbl kurt;
+        DComplexDbl sdev;
+        DDouble mdev;
+        if (omitNaN) do_moment_cpx_nan<DComplexDbl, double>(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+        else  do_moment_cpx<DComplexDbl, double>(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+        if (domean) e->SetKW( meanIx,new DComplexDblGDL( mean) );
+        if (dovar ) e->SetKW( varIx, new DComplexDblGDL( var ) );
+        if (doskew) e->SetKW( skewIx,new DComplexDblGDL( skew) );
+        if (dokurt) e->SetKW( kurtIx,new DComplexDblGDL( kurt) );
+        if (dosdev) e->SetKW( sdevIx,new DComplexDblGDL( sdev) );
+        if (domdev) e->SetKW( mdevIx,new DDoubleGDL( mdev) );
+        DComplexDblGDL* res = new DComplexDblGDL(4, BaseGDL::NOZERO);
+        (*res)[0]=mean;
+        (*res)[1]=var;
+        (*res)[2]=skew;
+        (*res)[3]=kurt;
+        return res;
+      } else if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* input = e->GetParAs<DComplexGDL>(0);
+        DComplex mean;
+        DComplex var;
+        DComplex skew;
+        DComplex kurt;
+        DComplex sdev;
+        DFloat mdev;
+        if (omitNaN) do_moment_cpx_nan<DComplex, float>(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+        else  do_moment_cpx<DComplex, float>(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+        if (domean) e->SetKW( meanIx,new DComplexGDL( mean) );
+        if (dovar ) e->SetKW( varIx, new DComplexGDL( var ) );
+        if (doskew) e->SetKW( skewIx,new DComplexGDL( skew) );
+        if (dokurt) e->SetKW( kurtIx,new DComplexGDL( kurt) );
+        if (dosdev) e->SetKW( sdevIx,new DComplexGDL( sdev) );
+        if (domdev) e->SetKW( mdevIx,new DFloatGDL( mdev) );
+        DComplexGDL* res = new DComplexGDL(4, BaseGDL::NOZERO);
+        (*res)[0]=mean;
+        (*res)[1]=var;
+        (*res)[2]=skew;
+        (*res)[3]=kurt;
+        return res;
+      } else {
+        if (dbl) {
+          DDoubleGDL* input = e->GetParAs<DDoubleGDL>(0);
+          DDouble mean;
+          DDouble var;
+          DDouble skew;
+          DDouble kurt;
+          DDouble sdev;
+          DDouble mdev;
+          if (omitNaN) do_moment_nan(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+          else  do_moment(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+          if (domean) e->SetKW( meanIx,new DDoubleGDL( mean) );
+          if (dovar ) e->SetKW( varIx, new DDoubleGDL( var ) );
+          if (doskew) e->SetKW( skewIx,new DDoubleGDL( skew) );
+          if (dokurt) e->SetKW( kurtIx,new DDoubleGDL( kurt) );
+          if (dosdev) e->SetKW( sdevIx,new DDoubleGDL( sdev) );
+          if (domdev) e->SetKW( mdevIx,new DDoubleGDL( mdev) );
+          DDoubleGDL* res = new DDoubleGDL(4, BaseGDL::NOZERO);
+          (*res)[0]=mean;
+          (*res)[1]=var;
+          (*res)[2]=skew;
+          (*res)[3]=kurt;
+          return res;
+        } else {
+          DFloatGDL* input = e->GetParAs<DFloatGDL>(0);
+          DFloat mean;
+          DFloat var;
+          DFloat skew;
+          DFloat kurt;
+          DFloat sdev;
+          DFloat mdev;
+          if (omitNaN) do_moment_nan(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+          else  do_moment(&(*input)[0], input->N_Elements(), mean, var, skew, kurt, mdev, sdev, maxmoment);
+          if (domean) e->SetKW( meanIx,new DFloatGDL( mean) );
+          if (dovar ) e->SetKW( varIx, new DFloatGDL( var ) );
+          if (doskew) e->SetKW( skewIx,new DFloatGDL( skew) );
+          if (dokurt) e->SetKW( kurtIx,new DFloatGDL( kurt) );
+          if (dosdev) e->SetKW( sdevIx,new DFloatGDL( sdev) );
+          if (domdev) e->SetKW( mdevIx,new DFloatGDL( mdev) );
+          DFloatGDL* res = new DFloatGDL(4, BaseGDL::NOZERO);
+          (*res)[0]=mean;
+          (*res)[1]=var;
+          (*res)[2]=skew;
+          (*res)[3]=kurt;
+          return res;
         }
       }
     }
@@ -5547,53 +6123,49 @@ namespace lib {
     } else e->Throw("Operand must be integer:" + e->GetParString(0));
   }
   
-  BaseGDL* shift_fun( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 2);
-    
-    BaseGDL* p0 = e->GetParDefined( 0);
-    
+  BaseGDL* shift_fun( EnvT* e) {
+    SizeT nParam = e->NParam(2);
+
+    BaseGDL* p0 = e->GetParDefined(0);
+
     SizeT nShift = nParam - 1;
-    
+
     DLong sIx[ MAXRANK];
-    
+
     // in fact, the second param can be a singleton or an array ...
-    if( nShift == 1)
-      {
-	DLongGDL* s1v = e->GetParAs<DLongGDL>(1);
-	
-	if (s1v->N_Elements() == 1) {
-	  DLong s1;
-	  e->AssureLongScalarPar( 1, s1);
-	  
-	  // IncRef[Obj] done for GDL_PTR and GDL_OBJ
-	  return p0->CShift( s1);
-	}
-	
-	if (p0->Rank() != s1v->N_Elements())
-	  e->Throw( "Incorrect number of arguments.");
-	
-	for( SizeT i=0; i< s1v->N_Elements(); i++)
-	  sIx[ i]= (*s1v)[i];       
-      }
-    else 
-      {
-    
-	if( p0->Rank() != nShift)
-	  e->Throw( "Incorrect number of arguments.");
-    
-	//    DLong sIx[ MAXRANK];
-	for( SizeT i=0; i< nShift; i++)
-	  e->AssureLongScalarPar( i+1, sIx[ i]);
-    
-	if( p0->Type() == GDL_OBJ)
-	  GDLInterpreter::IncRefObj( static_cast<DObjGDL*>(p0));
-	else if( p0->Type() == GDL_PTR)
-	  GDLInterpreter::IncRef( static_cast<DPtrGDL*>(p0));
-    
+    if (nShift == 1) {
+      DLongGDL* s1v = e->GetParAs<DLongGDL>(1);
+
+      if (s1v->N_Elements() == 1) {
+        DLong s1;
+        e->AssureLongScalarPar(1, s1);
+
+        // IncRef[Obj] done for GDL_PTR and GDL_OBJ
+        return p0->CShift(s1);
       }
 
-    return p0->CShift( sIx);
+      if (p0->Rank() != s1v->N_Elements())
+        e->Throw("Incorrect number of arguments.");
+
+      for (SizeT i = 0; i < s1v->N_Elements(); i++)
+        sIx[ i] = (*s1v)[i];
+    } else {
+
+      if (p0->Rank() != nShift)
+        e->Throw("Incorrect number of arguments.");
+
+      //    DLong sIx[ MAXRANK];
+      for (SizeT i = 0; i < nShift; i++)
+        e->AssureLongScalarPar(i + 1, sIx[ i]);
+
+      if (p0->Type() == GDL_OBJ)
+        GDLInterpreter::IncRefObj(static_cast<DObjGDL*> (p0));
+      else if (p0->Type() == GDL_PTR)
+        GDLInterpreter::IncRef(static_cast<DPtrGDL*> (p0));
+
+    }
+
+    return p0->CShift(sIx);
   }
 
   BaseGDL* arg_present( EnvT* e)
@@ -5643,112 +6215,6 @@ namespace lib {
     return new DIntGDL( 0);
   }
 
-  /* see convol.cpp 
-     BaseGDL* convol( EnvT* e)
-     {
-     SizeT nParam=e->NParam( 2); 
-
-     BaseGDL* p0 = e->GetNumericParDefined( 0);
-     if( p0->Rank() == 0) 
-     e->Throw( "Expression must be an array in this context: "+
-     e->GetParString(0));
-    
-     BaseGDL* p1 = e->GetNumericParDefined( 1);
-     if( p1->Rank() == 0) 
-     e->Throw( "Expression must be an array in this context: "+
-     e->GetParString(1));
-    
-     if( p0->N_Elements() < p1->N_Elements())
-     e->Throw( "Incompatible dimensions for Array and Kernel.");
-
-     // rank 1 for kernel works always
-     if( p1->Rank() != 1)
-     {
-     SizeT rank = p0->Rank();
-     if( rank != p1->Rank())
-     e->Throw( "Incompatible dimensions for Array and Kernel.");
-
-     for( SizeT r=0; r<rank; ++r)
-     if( p0->Dim( r) < p1->Dim( r))
-     e->Throw( "Incompatible dimensions for Array and Kernel.");
-     }
-
-     // convert kernel to array type
-     Guard<BaseGDL> p1Guard;
-     if( p0->Type() == GDL_BYTE)
-     {
-     if( p1->Type() != GDL_INT)
-     {
-     p1 = p1->Convert2( GDL_INT, BaseGDL::COPY); 
-     p1Guard.Reset( p1);
-     }
-     }
-     else if( p0->Type() != p1->Type())
-     {
-     p1 = p1->Convert2( p0->Type(), BaseGDL::COPY); 
-     p1Guard.Reset( p1);
-     }
-
-     BaseGDL* scale;
-     Guard<BaseGDL> scaleGuard;
-     if( nParam > 2)
-     {
-     scale = e->GetParDefined( 2);
-     if( scale->Rank() > 0)
-     e->Throw( "Expression must be a scalar in this context: "+
-     e->GetParString(2));
-
-     // p1 here handles GDL_BYTE case also
-     if( p1->Type() != scale->Type())
-     {
-     scale = scale->Convert2( p1->Type(),BaseGDL::COPY); 
-     scaleGuard.Reset( scale);
-     }
-     }
-     else
-     {
-     scale = p1->New( dimension(), BaseGDL::ZERO);
-     }
-
-     bool center = true;
-     static int centerIx = e->KeywordIx( "CENTER");
-     if( e->KeywordPresent( centerIx))
-     {
-     DLong c;
-     e->AssureLongScalarKW( centerIx, c);
-     center = (c != 0);
-     }
-
-     // overrides EDGE_TRUNCATE
-     static int edge_wrapIx = e->KeywordIx( "EDGE_WRAP");
-     bool edge_wrap = e->KeywordSet( edge_wrapIx);
-     static int edge_truncateIx = e->KeywordIx( "EDGE_TRUNCATE");
-     bool edge_truncate = e->KeywordSet( edge_truncateIx);
-
-     int edgeMode = 0; 
-     if( edge_wrap)
-     edgeMode = 1;
-     else if( edge_truncate)
-     edgeMode = 2;
-
-     // p0, p1 and scale have same type
-     // p1 has rank of 1 or same rank as p0 with each dimension smaller than p0
-     // scale is a scalar
-
-     static int biasIx = e->KeywordIx("BIAS");
-     bool statusBias = e->KeywordPresent( biasIx );
-     DLong bias=0;
-     if(statusBias)
-     e->AssureLongScalarKW( biasIx, bias);
-
-
-     if(statusBias)cout<<"bias is present: "<<bias<<endl;
-
-     // TODO: for now to be able to compile
-     return p0->Convol( p1, scale, NULL, center, false, edgeMode);
-        
-     }
-  */
   BaseGDL* rebin_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);
@@ -7338,36 +7804,35 @@ namespace lib {
       }
   }
 
-  BaseGDL* rotate( EnvT* e)
-  {
+  BaseGDL* rotate(EnvT* e) {
     e->NParam(2);
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetParDefined(0);
 
-    if( p0->Rank() == 0)
-      e->Throw( "Expression must be an array in this context: " + e->GetParString( 0));
+    if (p0->Rank() == 0)
+      e->Throw("Expression must be an array in this context: " + e->GetParString(0));
 
-    if( p0->Rank() != 1 && p0->Rank() != 2)
-      e->Throw( "Only 1 or 2 dimensions allowed: " + e->GetParString( 0));
+    if (p0->Rank() != 1 && p0->Rank() != 2)
+      e->Throw("Only 1 or 2 dimensions allowed: " + e->GetParString(0));
 
-    if( p0->Type() == GDL_STRUCT)
-      e->Throw( "STRUCT expression not allowed in this context: "+
-		e->GetParString( 0));
-    
+    if (p0->Type() == GDL_STRUCT)
+      e->Throw("STRUCT expression not allowed in this context: " +
+      e->GetParString(0));
+
     DLong dir;
-    e->AssureLongScalarPar( 1, dir);
+    e->AssureLongScalarPar(1, dir);
 
-    return p0->Rotate( dir);
+    return p0->Rotate(dir);
   }
 
   // SA: based on the code of rotate() (above)
-  BaseGDL* reverse( EnvT* e)
-  {
+
+  BaseGDL* reverse(EnvT* e) {
     e->NParam(1);
     BaseGDL* p0 = e->GetParDefined(0);
     if (p0->Rank() == 0) return p0->Dup();
 
     DLong dim = 1;
-    if (e->GetPar(1) != NULL) 
+    if (e->GetPar(1) != NULL)
       e->AssureLongScalarPar(1, dim);
     if (p0->Rank() != 0 && (dim > p0->Rank() || dim < 1))
       e->Throw("Subscript_index must be positive and less than or equal to number of dimensions.");
@@ -7377,17 +7842,15 @@ namespace lib {
     // but it seems to behave differently
     // if (p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0))
     static int overwriteIx = e->KeywordIx("OVERWRITE");
-    if (e->KeywordSet(overwriteIx))
-      {
-	p0->Reverse(dim-1);
-	bool stolen = e->StealLocalPar( 0);
-	//    if( !stolen) 
-	// 	e->GetPar(0) = NULL;
-	if( !stolen) 
-	  e->SetPtrToReturnValue( &e->GetPar(0));
-	return p0;
-      }
-    else 
+    if (e->KeywordSet(overwriteIx)) {
+      p0->Reverse(dim - 1);
+      bool stolen = e->StealLocalPar(0);
+      //    if( !stolen) 
+      // 	e->GetPar(0) = NULL;
+      if (!stolen)
+        e->SetPtrToReturnValue(&e->GetPar(0));
+      return p0;
+    } else
       ret = p0->DupReverse(dim - 1);
     return ret;
   }
