@@ -100,6 +100,12 @@ TEST_FILE_SEARCH_CREATE, list_luns
 ; a way to catch a reference (maybe not the best !)
 ;
 SPAWN, 'ls', res0
+;; res0 may contain 'broken symlinks' that GLIBC's glob() do not see
+;; due to a IMHO ANNOYING bug. We need to take care of that since GDL
+;; uses glob().
+;; unofrtunaltely, the following code does not pass well an all machines
+;SPAWN, 'find . -xtype l', badlinks
+;nbadlinks=n_elements(badlinks)
 CD, current=path
 path=path+PATH_SEP()
 ;
@@ -110,7 +116,9 @@ res3=FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
 res0=res0[SORT(res0)]
 ;
 if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)) then begin
-    ADD_ERROR, errors, 'pb with N_elements RES1'
+    if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)+nbadlinks) then begin
+      ADD_ERROR, errors, 'pb with N_elements RES1'
+   endif else print,"Dangling symlinks in a directory prevent one test."
 endif else begin
     res1=res1[SORT(res1)]
     if ~ARRAY_EQUAL(path+res0, res1) then begin
@@ -118,21 +126,21 @@ endif else begin
     endif
 endelse
 ;
-if (N_ELEMENTS(res0) NE N_ELEMENTS(res2)) then begin
+if (N_ELEMENTS(res1) NE N_ELEMENTS(res2)) then begin
     ADD_ERROR, errors, 'pb with N_elements RES2'
 endif else begin
     res2=res2[SORT(res2)]
-    if ~ARRAY_EQUAL(path+res0, res2) then begin
-        ADD_ERROR, errors, 'pb with content of RES2 vs RES0'
+    if ~ARRAY_EQUAL(res1, res2) then begin
+        ADD_ERROR, errors, 'pb with content of RES2 vs RES1'
     endif
 endelse
 ;
-if (N_ELEMENTS(res0) NE N_ELEMENTS(res3)) then begin
+if (N_ELEMENTS(res2) NE N_ELEMENTS(res3)) then begin
     ADD_ERROR, errors, 'pb with N_elements RES3'
 endif else begin
     res3=res3[SORT(res3)]
-    if ~ARRAY_EQUAL(path+res0, res3) then begin
-        ADD_ERROR, errors, 'pb with content of RES1 vs RES3'
+    if ~ARRAY_EQUAL(res2, res3) then begin
+        ADD_ERROR, errors, 'pb with content of RES3 vs RES2'
     endif
 endelse
 ;
