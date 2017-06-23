@@ -1924,10 +1924,10 @@ BaseGDL* widget_info( EnvT* e ) {
       else if (buttonset) result=( widget->GetButtonSet() == true );
         else { //tlb only for base widget
           if (widget->IsBase()) {
-            if (tlb_size_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_SIZE) == 1);
-            else if (tlb_iconify_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_ICONIFY) == 1);
-            else if (tlb_kill_request_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_KILL) == 1);
-            else if (tlb_move_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_MOVE) == 1);
+            if (tlb_size_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE);
+            else if (tlb_iconify_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_ICONIFY) == GDLWidget::EV_ICONIFY);
+            else if (tlb_kill_request_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KILL) == GDLWidget::EV_KILL);
+            else if (tlb_move_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_MOVE) == GDLWidget::EV_MOVE);
           }
         }
       if ( result ) return new DLongGDL( 1 ); 
@@ -1950,10 +1950,10 @@ BaseGDL* widget_info( EnvT* e ) {
           else if (buttonset) result=( widget->GetButtonSet( ) == true );
           else { //tlb only for base widget
             if (widget->IsBase()) {
-              if (tlb_size_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_SIZE) == 1);
-              else if (tlb_iconify_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_ICONIFY) == 1);
-              else if (tlb_kill_request_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_KILL) == 1);
-              else if (tlb_move_events) result = ((widget->GetEventFlags()&&(DULong) GDLWidget::EV_MOVE) == 1);
+              if (tlb_size_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE);
+              else if (tlb_iconify_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_ICONIFY) == GDLWidget::EV_ICONIFY);
+              else if (tlb_kill_request_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KILL) == GDLWidget::EV_KILL);
+              else if (tlb_move_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_MOVE) == GDLWidget::EV_MOVE);
             }
           }
           if ( result ) ( *res )[ i] = (DLong) 1;
@@ -2896,7 +2896,7 @@ void widget_control( EnvT* e ) {
   if (tlb_kill_request_events && widget->IsBase() && widget->GetParentID() == 0 ){ //silently ignore other cases.
     GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
     if (e->KeywordSet(TLB_KILL_REQUEST_EVENTS)) {
-      if (!(widget->GetEventFlags() && GDLWidget::EV_KILL)) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_KILL) == 0) { //bit was not set
         frame->Disconnect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnUnhandledCloseFrame));
         frame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseFrame));
         widget->AddEventType(GDLWidget::EV_KILL);
@@ -2904,7 +2904,7 @@ void widget_control( EnvT* e ) {
     }
     else
     {
-      if (widget->GetEventFlags() && GDLWidget::EV_KILL) { //do it if not already done
+      if ((widget->GetEventFlags() & GDLWidget::EV_KILL) == GDLWidget::EV_KILL ) { //if was enabled
         frame->Disconnect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnCloseFrame));
         frame->Connect(widgetID, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(GDLFrame::OnUnhandledCloseFrame));
         widget->RemoveEventType(GDLWidget::EV_KILL);
@@ -2915,16 +2915,16 @@ void widget_control( EnvT* e ) {
   if (tlb_move_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
     GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
     if (e->KeywordSet(TLB_MOVE_EVENTS)){
-      if (!(widget->GetEventFlags() && GDLWidget::EV_MOVE)) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_MOVE) == 0 ) { //was not set
         frame->Connect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
         widget->AddEventType(GDLWidget::EV_MOVE);
       }      
     }
     else
     {
-      if (widget->GetEventFlags() && GDLWidget::EV_MOVE) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_MOVE) == GDLWidget::EV_MOVE) { //was set
         frame->Disconnect(widgetID, wxEVT_MOVE, wxMoveEventHandler(GDLFrame::OnMove));
-        widget->RemoveEventType(GDLWidget::EV_KILL);
+        widget->RemoveEventType(GDLWidget::EV_MOVE);
       }      
     }
   }
@@ -2932,14 +2932,14 @@ void widget_control( EnvT* e ) {
   if (tlb_size_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
     GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
     if (e->KeywordSet(TLB_SIZE_EVENTS)) {
-      if (!(widget->GetEventFlags() && GDLWidget::EV_SIZE)) { //do it if not already done
+      if ((widget->GetEventFlags() & GDLWidget::EV_SIZE) == 0) { 
         frame->Connect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
         widget->AddEventType(GDLWidget::EV_SIZE);
       }
     }
     else
     {
-      if (widget->GetEventFlags() && GDLWidget::EV_SIZE) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE) { 
        frame->Disconnect(widgetID, wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);
        widget->RemoveEventType(GDLWidget::EV_SIZE);
       }
@@ -2949,14 +2949,14 @@ void widget_control( EnvT* e ) {
   if (tlb_iconify_events && widget->IsBase() && widget->GetParentID() == 0 ){//silently ignore other cases.
     GDLFrame* frame=static_cast<GDLFrame*>(widget->GetWxWidget());
     if (e->KeywordSet(TLB_ICONIFY_EVENTS)){
-      if (!(widget->GetEventFlags() && GDLWidget::EV_ICONIFY)) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_ICONIFY) == 0) {
         frame->Connect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
         widget->AddEventType(GDLWidget::EV_ICONIFY);
       }
     }
     else
     { 
-      if (widget->GetEventFlags() && GDLWidget::EV_ICONIFY) { //do it if not already done
+      if ( (widget->GetEventFlags() & GDLWidget::EV_ICONIFY) == GDLWidget::EV_ICONIFY) { //do it if not already done
         frame->Disconnect(widgetID, wxEVT_ICONIZE, wxIconizeEventHandler(GDLFrame::OnIconize)); 
         widget->RemoveEventType(GDLWidget::EV_ICONIFY);
       }

@@ -557,7 +557,7 @@ void GDLWidget::SetSize(DLong sizex, DLong sizey) //in pixels. Always.
   GDLWidgetBase *tlb = GetTopLevelBaseWidget( this->WidgetID( ) );
   GDLFrame *tlbFrame=static_cast<GDLFrame*>(tlb->GetWxWidget( ));
 //we should prevent resize event
-//  if (tlb->GetEventFlags() & GDLWidget::EV_SIZE ) tlbFrame->Disconnect(tlb->WidgetID(), wxEVT_SIZE, GDL_SIZE_EVENT_HANDLER); //(GDLFrame::OnSizeWithTimer));
+  if ( (tlb->GetEventFlags() & GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE ) tlbFrame->Disconnect(tlb->WidgetID(), wxEVT_SIZE, gdlSIZE_EVENT_HANDLER); //(GDLFrame::OnSizeWithTimer));
   me->SetClientSize(xSize,ySize);
   widgetSizer->SetItemMinSize(me,xSize,ySize);
   this->RefreshWidget();
@@ -565,7 +565,7 @@ void GDLWidget::SetSize(DLong sizex, DLong sizey) //in pixels. Always.
     tlbFrame->SetMinSize(wxDefaultSize); 
     tlbFrame->Fit( ); //makes a mess in atv.pro while resizing. TB checked.
   }
-//  if (tlb->GetEventFlags() & GDLWidget::EV_SIZE ) tlbFrame->Connect(tlb->WidgetID(), wxEVT_SIZE, GDL_SIZE_EVENT_HANDLER);//wxSizeEventHandler(GDLFrame::OnSizeWithTimer));
+  if ((tlb->GetEventFlags() & GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE) tlbFrame->Connect(tlb->WidgetID(), wxEVT_SIZE, gdlSIZE_EVENT_HANDLER);//wxSizeEventHandler(GDLFrame::OnSizeWithTimer));
 }
 
 void GDLWidget::SendWidgetTimerEvent(DDouble secs)
