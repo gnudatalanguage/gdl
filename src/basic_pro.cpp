@@ -622,7 +622,7 @@ namespace lib {
       } else {
         for (SizeT v = 0; v < nVar; ++v) {
           DVar* var = sysVarList[v];
-          DStructGDL* tmp = tmp = static_cast<DStructGDL*> (var->Data());
+          DStructGDL* tmp = static_cast<DStructGDL*> (var->Data());
           help_item(ostr, tmp, "!" + var->Name(), false);
         }
       }
