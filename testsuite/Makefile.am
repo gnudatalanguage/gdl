@@ -142,6 +142,7 @@ TESTS = \
   test_obj_isa.pro \
   test_obj_new.pro \
   test_plot_oo.pro \
+  test_plot_range.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \
