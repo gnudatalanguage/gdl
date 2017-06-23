@@ -254,7 +254,6 @@ smooth.hpp
 specializations.hpp
 str.cpp
 str.hpp
-strassenmatrix.hpp
 terminfo.cpp
 terminfo.hpp
 topython.cpp
