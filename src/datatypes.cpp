@@ -4096,7 +4096,7 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
       if( (*this)[i] != 0.0f)
       {
 	  ixList[ count++] = i;
-  }
+      }
     } // omp
   n = count;
   return ixList;

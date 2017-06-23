@@ -60,9 +60,9 @@ namespace lib {
   template< typename srcT, typename destT>
   void FromToGSL(  srcT* src, destT* dest, SizeT nEl)
   {
-    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-      // #pragma omp for
+    #pragma omp for
       for( SizeT d = 0; d<nEl; ++d)
 	{
 	  dest[ d] = src[ d];
@@ -2092,9 +2092,9 @@ namespace lib {
       {
 	DComplexGDL* c0 = static_cast<DComplexGDL*>(p0);
 	DFloatGDL* res = new DFloatGDL( c0->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-	  // #pragma omp for
+	  #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = (*c0)[i].imag();
@@ -2106,9 +2106,9 @@ namespace lib {
       {
 	DComplexDblGDL* c0 = static_cast<DComplexDblGDL*>(p0);
 	DDoubleGDL* res = new DDoubleGDL( c0->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-	  // #pragma omp for
+	  #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = (*c0)[i].imag();
