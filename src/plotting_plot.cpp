@@ -223,7 +223,7 @@ private:
     if (xLog)
     {
       DLong minEl, maxEl;
-      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,xEl); //restrict minmax to xEl fist elements!!!!
       if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
       xValBis = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
       xvalBis_guard.Reset(xValBis); // delete upon exit
@@ -233,7 +233,7 @@ private:
     if (yLog)
     {
       DLong minEl, maxEl;
-      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,yEl);
       if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
       yValBis = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
       yvalBis_guard.Reset(yValBis); // delete upon exit
@@ -244,14 +244,14 @@ private:
 #define UNDEF_RANGE_VALUE 1E-12
     {
       DLong minEl, maxEl;
-      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
       xStart = (*xVal)[minEl];
       xEnd = (*xVal)[maxEl];
       if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
       if (isnan(xEnd)) xEnd = 1.0;
       if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
-      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
       yStart = (*yVal)[minEl];
       yEnd = (*yVal)[maxEl];
       if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
