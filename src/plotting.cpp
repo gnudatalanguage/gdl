@@ -201,6 +201,10 @@ namespace lib
   // and "epsilon" is a coefficient if "extended range" is expected
   // input: linear min and max, output: linear min and max.
 
+  // NOTE GD: this function should be rewritten, documented and tested correctly. Most often, the
+  // plots are not exactly what IDL does in the same conditions. The reasons for the choices should be
+  // clearly described in the code, to be checked by others.
+  
   PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
     gdlHandleUnwantedAxisValue(start, end, log);
 
@@ -211,7 +215,7 @@ namespace lib
       min = start;
       max = end;
       invert = FALSE;
-    } else {
+    } else { //never happens by construction!!!!!!!!!!!!!!!!!!!!!!!
       min = end;
       max = start;
       invert = TRUE;
@@ -225,12 +229,14 @@ namespace lib
       cout << "init: " << min << " " << max << endl;
     }
     // case "all below ABS((MACHAR()).xmin)"
-    if (!log && (abs(max) <= std::numeric_limits<DDouble>::min())) {
-      min = DDouble(0.);
-      max = DDouble(1.);
-      intv = (PLFLT) (2.);
-      cas = 1;
-    }
+    //needs example.
+    
+//    if (!log && (abs(max) <= -std::numeric_limits<DDouble>::max())) {
+//      min = DDouble(0.);
+//      max = DDouble(1.);
+//      intv = (PLFLT) (2.);
+//      cas = 1;
+//    }
 
     if (log) {
       min = log10(min);
