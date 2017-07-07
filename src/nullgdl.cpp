@@ -258,6 +258,11 @@ DLong* NullGDL::Where( bool, SizeT&)
   throw GDLException("Operation not defined for !NULL 4b.");
 }
 
+DByte* NullGDL::TagWhere(SizeT&)
+{
+  throw GDLException("Operation not defined for !NULL 4b.");
+}
+
 BaseGDL* NullGDL::LogNeg()
 {
   throw GDLException("Operation not defined for !NULL 4c.");

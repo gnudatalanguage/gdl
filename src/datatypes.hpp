@@ -273,6 +273,7 @@ static	void operator delete( void *ptr);
   bool LogTrue();
   bool LogTrue( SizeT ix);
   DLong* Where( bool comp, SizeT& count);
+  DByte* TagWhere(SizeT& count);
   Data_<SpDByte>* LogNeg();
   int  Sgn(); // returns -1,0,1
   bool Equal( BaseGDL*) const;

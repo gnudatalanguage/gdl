@@ -545,6 +545,7 @@ public:
   virtual bool LogTrue();
   virtual bool LogTrue( SizeT ix);
   virtual DLong* Where( bool comp, SizeT& count);
+  virtual DByte* TagWhere(SizeT& count);
   virtual BaseGDL* LogNeg();
   virtual int Sgn(); // -1,0,1
   virtual bool Equal( BaseGDL*) const;

@@ -4018,6 +4018,118 @@ bool Data_<SpDObj>::LogTrue(SizeT i)
   return (*this)[i] != 0;
 }
 // structs are not allowed
+template<class Sp>
+DByte* Data_<Sp>::TagWhere(SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DByte tmp=(dd[i]!=0);
+      ixList[i]=tmp;
+      count +=tmp;
+    }
+    }
+  n = count;
+  return ixList;    
+}
+
+template<>
+DByte* Data_<SpDFloat>::TagWhere(SizeT& n) {
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DByte tmp = (dd[i] != 0.0f);
+      ixList[i] = tmp;
+      count += tmp;
+    }
+  }
+  n = count;
+  return ixList;
+}
+
+template<>
+DByte* Data_<SpDDouble>::TagWhere(SizeT& n) {
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DByte tmp = (dd[i] != 0.0);
+      ixList[i] = tmp;
+      count += tmp;
+    }
+  }
+  n = count;
+  return ixList;
+}
+template<>
+DByte* Data_<SpDString>::TagWhere(SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DByte tmp=((*this)[i]!="");
+      ixList[i]=tmp;
+      count +=tmp;
+    }
+    }
+  n = count;
+  return ixList;    
+}
+template<>
+DByte* Data_<SpDComplex>::TagWhere(SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DFloat re=(*this)[i].real();
+      DFloat im=(*this)[i].imag();
+      DByte tmp=(re!=0.0f || im!=0.0f);
+      ixList[i]=tmp;
+      count +=tmp;
+    }
+    }
+  n = count;
+  return ixList;    
+}
+template<>
+DByte* Data_<SpDComplexDbl>::TagWhere(SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DByte* ixList = new DByte[ nEl];
+  SizeT count = 0;
+#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for 
+    for (SizeT i = 0; i < nEl; ++i) {
+      DDouble re=(*this)[i].real();
+      DDouble im=(*this)[i].imag();
+      DByte tmp=(re!=0.0 || im!=0.0);
+      ixList[i]=tmp;
+      count +=tmp;
+    }
+    }
+  n = count;
+  return ixList;    
+}
 
 // AC: see bug report #592 : it was found on 2014 March, 18,
 // that WHERE was buggy due to OpenMP option

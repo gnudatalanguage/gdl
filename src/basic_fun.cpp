@@ -2247,41 +2247,106 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* where(EnvT* e) {
+BaseGDL* where(EnvT* e) {
     SizeT nParam = e->NParam(1); //, "WHERE");
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "WHERE");
+    BaseGDL* p0p = e->GetParDefined(0); //, "WHERE");
 
-    SizeT nEl = p0->N_Elements();
+    SizeT nEl = p0p->N_Elements();
 
-    SizeT count;
+    SizeT count=0;
+
+    DByte* p0 = p0p->TagWhere(count);
+    ArrayGuard<DByte> guardp0(p0); //delete on exit
+    SizeT nCount = nEl - count;
 
     static int nullIx = e->KeywordIx("NULL");
     bool nullKW = e->KeywordSet(nullIx);
 
-    DLong* ixList = p0->Where(e->KeywordPresent(0), count);
-    ArrayGuard<DLong> guard(ixList);
-    SizeT nCount = nEl - count;
+// the following is a tentative to parallelize the loop below.
+// It is not effeicient because cache misses when adressing portions of 'yes' or 'no'
+// non openmp code is better optimised by compiler.
+    
+//    int nchunk=CpuTPOOL_NTHREADS*4;
+//    SizeT countyes[nchunk]={0};
+//    SizeT countno[nchunk]={0};
+//    SizeT startyes[nchunk]={0};
+//    SizeT startno[nchunk]={0};
+//    SizeT chunksize=nEl/nchunk;
+//    for (int iloop=0; iloop<nchunk; ++iloop) {
+//      for (SizeT j=iloop*chunksize; j<(iloop+1)*chunksize; ++j) {
+//        countyes[iloop]+=p0[j];
+//      }
+//      countno[iloop]=chunksize-countyes[iloop];
+//    }
+//    for (int iloop=1; iloop<nchunk; ++iloop) {
+//      startyes[iloop]=startyes[iloop-1]+countyes[iloop-1];
+//      startno[iloop]=startno[iloop-1]+countno[iloop-1];
+//    }
+//    
+//    DLong* distributed[nchunk][2];
+//    DLongGDL* yes;
+//    DLong* zyes;
+//    if (count > 0) {
+//      yes = new DLongGDL(dimension(count),BaseGDL::NOZERO);
+//      zyes=(DLong*)yes->DataAddr();
+//      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][1] = &(zyes[startyes[iloop]]);
+//    }
+//    DLongGDL* no;
+//    DLong* zno;
+//    if (nCount > 0) {
+//      no = new DLongGDL(dimension(nCount),BaseGDL::NOZERO);
+//      zno=(DLong*)no->DataAddr();
+//      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][0] = &(zno[startno[iloop]]);
+//    }
+//    SizeT districount[nchunk][2]={0};
+//    
+//    //distribute accordingly! removing the if clause makes the loop 2 times faster.
+//#pragma omp parallel num_threads(nchunk) firstprivate(nchunk,chunksize) shared(districount,distributed,p0) 
+//  {
+//#pragma omp for schedule (static)
+//    for (int iloop=0; iloop<nchunk; ++iloop) {
+//      SizeT j=iloop*chunksize;
+//      for (; j<(iloop+1)*chunksize;) {
+//         distributed[iloop][p0[j]][districount[iloop][p0[j]]++] = j++;
+//      }
+//    }
+//  }
+
+    DLong* distributed[2];
+    DLongGDL* yes;
+    if (count > 0) {
+      yes = new DLongGDL(dimension(count),BaseGDL::NOZERO);
+      distributed[1] = (DLong*)yes->DataAddr();
+    }
+    DLongGDL* no;
+    if (nCount > 0) {
+      no = new DLongGDL(dimension(nCount),BaseGDL::NOZERO);
+      distributed[0] = (DLong*)no->DataAddr();
+    }
+
+    SizeT districount[2] = {0,0};
+    
+ //distribute accordingly! 
+    register DByte tmp;
+    for (SizeT i = 0; i < nEl; ++i) {
+      tmp=p0[i];
+      distributed[tmp][districount[tmp]] = i;
+      districount[tmp]++;
+    }
 
     if (e->KeywordPresent(0)) // COMPLEMENT
     {
-      if (nCount == 0) {
+      if (nCount == 0) { //'no' is not malloc'ed. 
         if (nullKW)
           e->SetKW(0, NullGDL::GetSingleInstance());
         else
           e->SetKW(0, new DLongGDL(-1));
       } else {
-        DLongGDL* cIxList = new DLongGDL(dimension(&nCount, 1),
-          BaseGDL::NOZERO);
-
-        SizeT cIx = nEl - 1;
-#pragma omp parallel if (nCount >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCount))
-        {
-#pragma omp for
-          for (SizeT i = 0; i < nCount; ++i)  (*cIxList)[ i] = ixList[ cIx - i];
-        }
-        e->SetKW(0, cIxList);
+        e->SetKW(0, no);
       }
+    } else {
+      if (nCount > 0) GDLDelete(no); //tidy!
     }
 
     if (e->KeywordPresent(1)) // NCOMPLEMENT
@@ -2301,14 +2366,7 @@ namespace lib {
       return new DLongGDL(-1);
     }
 
-    return new DLongGDL(ixList, count);
-
-    //     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
-    // 				  BaseGDL::NOZERO);
-    //     for( SizeT i=0; i<count; ++i)
-    //       (*res)[ i] = ixList[ i];
-
-    //     return res;
+    return yes;
   }
 
   BaseGDL* n_params( EnvT* e) 
