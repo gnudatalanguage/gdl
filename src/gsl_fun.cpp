@@ -47,6 +47,7 @@
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_multimin.h>
 
 // newton/broyden
 #include <gsl/gsl_multiroots.h>
@@ -2450,14 +2451,14 @@ namespace lib {
   };
   int n_b_function(const gsl_vector* x, void* params, gsl_vector* f)
   {
-    n_b_param *p = static_cast<n_b_param*>(params);
+    n_b_param *p = static_cast<n_b_param*> (params);
     // copying from GSL to GDL
     for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
     // executing GDL code
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-					   static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree()
-					   );
+      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+      );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -2466,30 +2467,30 @@ namespace lib {
     // sanity checks
     //   if (res->Rank() != 1 || res->N_Elements() != x->size) 
     //AC for iCosmo
-    if (res->N_Elements() != x->size) 
-      {
-	p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
-	return GSL_EBADFUNC;
-      }
+    if (res->N_Elements() != x->size)
+    {
+      p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
+      return GSL_EBADFUNC;
+    }
     DDoubleGDL* dres;
     try
-      {
-	// BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-	dres = static_cast<DDoubleGDL*>(
-					res->Convert2( GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
-					);
-      }
-    catch (GDLIOException& ex) 
-      {
-	p->errmsg = "failed to convert the result of the user-defined function to double";
-	return GSL_EBADFUNC;
-      }
+    {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+      dres = static_cast<DDoubleGDL*> (
+        res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
+        );
+    }    
+    catch (GDLIOException& ex)
+    {
+      p->errmsg = "failed to convert the result of the user-defined function to double";
+      return GSL_EBADFUNC;
+    }
     if (res != dres)
-      {
-	// prevent 'res' from being deleted again
-	res_guard.Release();
-	res_guard.Init(dres);
-      }
+    {
+      // prevent 'res' from being deleted again
+      res_guard.Release();
+      res_guard.Init(dres);
+    }
     // copying from GDL to GSL
     for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
     return GSL_SUCCESS;
@@ -2644,7 +2645,563 @@ namespace lib {
 			 BaseGDL::CONVERT
 			 );
   }
+  
+    // gsl_multiroot_function-compatible function serving as a wrapper to the 
+  // user-defined function passed (by name) as the second arg. to NEWTON or BROYDEN
+  class param_for_minim 
+  { 
+  public: 
+    EnvT* envt; 
+    EnvUDT* nenvt; 
+    string funcname;
+    DDoubleGDL* arg;
+    bool failed;
+    string errmsg; 
+  };
+  
+  double minim_function(const gsl_vector* x, void* params_minim) {
+    param_for_minim *p = static_cast<param_for_minim*> (params_minim);
+    p->failed=false;
+    // copying from GSL to GDL
+    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    // executing GDL code
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(
+      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+      );
+    // TODO: no guarding if res is an optimized constant
+    // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+    // From 0.9.4 on, call_fun can return left and right values dependent on the call context
+    // which is by default EnvUDT::RFUNCTION, hence the above is *here* correct.
+    Guard<BaseGDL> res_guard(res);
+    if (res->N_Elements() != 1) {
+      p->failed=true;
+      p->errmsg = "user-defined function \""+p->funcname+"\" must return a single non-string value";
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+    DDoubleGDL* dres;
+    try {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+      dres = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
+    }    
+    catch (GDLIOException& ex) {
+      p->failed=true;
+      p->errmsg = "failed to convert the result of the user-defined function \""+p->funcname+"\" to double";
+      dres=new DDoubleGDL(std::numeric_limits<double>::quiet_NaN()); //we do not return, dres MUST exist!
+    }
+    if (res != dres) {
+      // prevent 'res' from being deleted again
+      res_guard.Release();
+      res_guard.Init(dres);
+    }
+    // copying from GDL to GSL
+    return (*dres)[0];
+  }
 
+  BaseGDL* amoeba(EnvT* e) {
+    DDouble ftol = 1e-7;
+    e->AssureDoubleScalarPar(0, ftol);
+
+    BaseGDL* test;
+
+    // name of user function defining the system
+    static int fnameIx = e->KeywordIx("FUNCTION_NAME");
+    DString fun;
+    if(e->KeywordPresent(fnameIx)) e->AssureScalarKW<DStringGDL>(fnameIx, fun); else fun="FUNC";
+    fun = StrUpCase(fun);
+    if (LibFunIx(fun) != -1)
+      e->Throw("only user-defined functions allowed (library-routine name given)");
+
+    static int P0Ix = e->KeywordIx("P0");
+    bool hasp0=false;
+    if(e->KeywordPresent(P0Ix)){
+      test=e->GetKW(P0Ix);
+      if (test != NULL) hasp0=true;
+    }
+    static int SCALEIx = e->KeywordIx("SCALE");
+    bool hasScale=false;
+    if (e->KeywordPresent(SCALEIx)){
+      test=e->GetKW(SCALEIx);
+      if (test != NULL) hasScale=true;
+    }
+    static int SIMPLEXIx = e->KeywordIx("SIMPLEX");
+    bool hasSimplex=false;
+    if (e->KeywordPresent(SIMPLEXIx)){
+      test=e->GetKW(SIMPLEXIx);
+      if (test != NULL) hasSimplex=true;
+    }
+    
+//scale implies p0 and fails reading p0 if it is not present
+//if p0 is present, and scale is not present, use Simplex if present, silently else throw.
+    bool useSimplex=false;
+    
+    BaseGDL* par0;
+    BaseGDL* p0;
+    Guard<BaseGDL> p0_guard;
+    BaseGDL* par1;
+    BaseGDL* scale;
+    Guard<BaseGDL> scale_guard;
+    BaseGDL* par2;
+    BaseGDL* simplex;
+    Guard<BaseGDL> simplex_guard;
+    
+    if (hasScale) { //suppose p0 exist, and get both Scale and p0
+      if (hasp0) {
+        par0 = e->GetKW(P0Ix);
+        p0 = par0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        p0_guard.Reset(p0);
+      } else e->Throw("Variable is undefined: P0."); //not exactly IDL. IDL throws on P0 not being defined.
+      par1 = e->GetKW(SCALEIx);
+      if (par1->N_Elements() != par0->N_Elements()) {
+        scale=new DDoubleGDL(dimension(par0->N_Elements()));
+        scale_guard.Reset(scale);
+        DDoubleGDL* tmpscale=static_cast<DDoubleGDL*>(par1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        Guard<BaseGDL> tmpscale_guard(tmpscale); //deleted immediately when loop exits.
+        SizeT n=tmpscale->N_Elements();
+        for (SizeT i=0; i<scale->N_Elements() ; ++i) (*(DDoubleGDL*)scale)[i]=(*tmpscale)[i%n]; 
+      } else {
+        scale = par1->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        scale_guard.Reset(scale);
+      }
+      //Now that we have p0 and Scale, create a simplex, useful in some cases below.
+      SizeT dims[2];
+      dims[0] = p0->Dim(0);
+      dims[1] = dims[0]+1;
+      simplex = new DDoubleGDL(dimension(dims,2), BaseGDL::NOZERO);
+      //guard this temporary simplex
+      simplex_guard.Reset(simplex);
+      //populate simplex as p0, p0 + [1,0,...,0] * scale, p0 + [0,1,0,...,0] * scale, ...
+      for (SizeT j = 0; j < dims[0]; ++j) (*(DDoubleGDL*)simplex)[j] = (*(DDoubleGDL*)p0)[j]; //p0
+      for (SizeT i = 1; i < dims[1]; ++i)
+      {
+        DDouble sc=(*(DDoubleGDL*)scale)[i-1];
+        for (SizeT j = 0; j < dims[0]; ++j) {
+        (*(DDoubleGDL*)simplex)[j+i*dims[0]] = (*(DDoubleGDL*)p0)[j]+(j==(i-1))?sc:0.0; 
+        }
+      }
+    } else {
+      if (hasSimplex) useSimplex=true;
+      else e->Throw("Either (SCALE,P0) or SIMPLEX must be initialized");
+    }
+    
+    //if simplex, convert to p0 and scale
+    if (useSimplex) {
+      static int make_warning=true;
+      if (make_warning) {
+        Warning("AMOEBA% SIMPLEX values will be converted to P0 and SCALE, not used directly.");
+        make_warning=false;
+      }
+      par2 = e->GetKW(SIMPLEXIx);
+      //check dimensionality
+      if (par2->Rank()!=2) e->Throw("Simplex is not a 2D array.");
+      SizeT n=par2->Dim(0);
+      if (par2->Dim(1) != n+1) e->Throw("Simplex has wrong dimensions.");
+      simplex = par2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+      //do not guard simplex, it will be given back
+      //create (temporary) p0 and scale
+      p0 = new DDoubleGDL(dimension(n));
+      p0_guard.Reset(p0);
+      for (SizeT j=0; j<n ; ++j) { //p0 coords is mean of coords
+        DDouble mean=0;
+        for (SizeT i=0; i<n+1 ; ++i) {
+          mean+=(*(DDoubleGDL*)simplex)[j+i*n];
+        }
+        (*(DDoubleGDL*)p0)[j]=mean/(n+1); 
+      }
+      scale = new DDoubleGDL(dimension(n));
+      scale_guard.Reset(scale);
+      for (SizeT j=0; j<n ; ++j) {
+        DDouble charScale=0;
+        for (SizeT i=0; i<n+1 ; ++i) {
+          DDouble val=(*(DDoubleGDL*)simplex)[j+i*n]-(*(DDoubleGDL*)p0)[j];
+          charScale+=val*val;
+        }
+        (*(DDoubleGDL*)scale)[j]=sqrt(charScale/(n+1)); //sort of characteristic nD ball radius.
+      }
+    }
+    
+    DLong nmax = 5000;
+
+    static int NMAXIx = e->KeywordIx("NMAX");
+    e->AssureLongScalarKWIfPresent(NMAXIx, nmax);
+
+    static int NCALLSIx = e->KeywordIx("NCALLS");
+    bool returnNCalls=e->KeywordPresent(NCALLSIx);
+
+    static int FUNVALIx = e->KeywordIx("FUNCTION_VALUE");
+    bool doFunVal=e->KeywordPresent(FUNVALIx);
+
+    // GDL magick
+    StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (DObjGDL**) NULL);
+    newEnv->SetNextPar(&p0);
+    e->Interpreter()->CallStack().push_back(newEnv);
+
+    // GSL function parameter initialization
+    param_for_minim param_minim;
+    param_minim.envt = e;
+    param_minim.nenvt = newEnv;
+    param_minim.funcname = fun;
+    param_minim.arg = static_cast<DDoubleGDL*> (p0);
+
+    // GSL function initialization
+    gsl_multimin_function minex_func;
+    minex_func.f = &minim_function;
+    minex_func.n = p0->N_Elements();
+    minex_func.params = &param_minim;
+
+    // GSL error handling
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&n_b_gslerrhandler);
+    // now: reinstall previous error handler (was: GSL ensuring memory de-allocation)
+    n_b_gslguard gslguard = n_b_gslguard(old_handler);
+    n_b_gslerrhandler(e->GetProName().c_str(), NULL, -1, -1);
+
+
+    // solution values at start
+    gsl_vector *x = gsl_vector_alloc(minex_func.n);
+    GDLGuard<gsl_vector> g1(x, gsl_vector_free);
+    for (SizeT i = 0; i < minex_func.n; ++i) gsl_vector_set(x, i, (*(DDoubleGDL*)p0)[i]);
+
+    // initial step sizes
+    gsl_vector *ss = gsl_vector_alloc(minex_func.n);
+    for (SizeT i = 0; i < minex_func.n; ++i) gsl_vector_set(ss, i, (*(DDoubleGDL*)scale)[i]);
+    GDLGuard<gsl_vector> g2(ss, gsl_vector_free);
+
+    const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
+    gsl_multimin_fminimizer *s = NULL;
+
+    size_t iter = 0;
+    int status;
+    double size;
+
+    s = gsl_multimin_fminimizer_alloc(T, minex_func.n);
+    gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+
+    do {
+      iter++;
+      status = gsl_multimin_fminimizer_iterate(s);
+
+      if (status)
+        break;
+      size = gsl_multimin_fminimizer_size(s);
+      status = gsl_multimin_test_size(size, ftol);
+      
+    } while (status == GSL_CONTINUE && iter < nmax);
+
+    // handling errors from GDL via GSL
+    if (param_minim.failed) e->Throw(param_minim.errmsg);
+
+    if (returnNCalls) e->SetKW(NCALLSIx, new DLongGDL(iter));
+
+    bool isDouble;
+    //Caution par0 may not be defined if simplex.
+    if (useSimplex) isDouble=par2->Type()==GDL_DOUBLE; else isDouble=(par0->Type() == GDL_DOUBLE);
+
+    BaseGDL* ret;
+    if (isDouble) {
+      if (status == GSL_SUCCESS) {
+        ret  = new DDoubleGDL(dimension(minex_func.n));
+        for (SizeT i = 0; i < minex_func.n; ++i) (*(DDoubleGDL*)ret)[i] = gsl_vector_get(s->x, i);
+      } else ret = new DDoubleGDL(-1);
+    } else {
+      if (status == GSL_SUCCESS) {
+        ret  = new DFloatGDL(dimension(minex_func.n));
+        for (SizeT i = 0; i < minex_func.n; ++i) (*(DFloatGDL*)ret)[i] = gsl_vector_get(s->x, i);
+      } else ret = new DFloatGDL(-1);
+    }
+    
+    //give back optimized simplex
+    if (useSimplex) {
+      SizeT n = simplex->Dim(0); //simplex always exist
+      SizeT p = simplex->Dim(1);
+      for (SizeT j = 0; j < n; ++j) (*(DDoubleGDL*)simplex)[j] = gsl_vector_get(s->x, j);
+      for (SizeT i = 1; i < p; ++i)
+      {
+        for (SizeT j = 0; j < n; ++j) {
+        (*(DDoubleGDL*)simplex)[j+i*n] = (*(DDoubleGDL*)simplex)[j]+(j==(i-1))?size:0.0; 
+        }
+      }
+      if (isDouble) e->SetKW(SIMPLEXIx, simplex);
+      else {
+        simplex_guard.Reset(simplex);
+        e->SetKW(SIMPLEXIx, simplex->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      }
+    }
+    
+    // function_value for each simplex. Warning: Destroys ss.
+    if (doFunVal) 
+    {
+      gsl_vector_set_all(ss, 0.0);
+      BaseGDL* funval;
+      SizeT n = simplex->Dim(0); //simplex always exist
+      SizeT p = simplex->Dim(1);
+      if (isDouble)
+      {
+        funval = new DDoubleGDL(dimension(p), BaseGDL::NOZERO);
+        for (SizeT i = 0; i < p; ++i)
+        {
+          for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
+          gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+          (*(DDoubleGDL*) funval)[i] = s->fval;
+        }
+      } else {
+        funval = new DFloatGDL(dimension(p), BaseGDL::NOZERO);
+        for (SizeT i = 0; i < p; ++i)
+        {
+          for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
+          gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+          (*(DFloatGDL*) funval)[i] = s->fval;
+        }
+      }
+      e->SetKW(FUNVALIx, funval);
+    }
+
+    gsl_multimin_fminimizer_free(s);
+    return ret;
+  }
+  
+  class param_for_minim_fdf 
+  { 
+  public: 
+    EnvT* envt; 
+    EnvUDT* nenvt; 
+    string funcname_f;
+    string funcname_df;
+    DDoubleGDL* arg;
+    DIntGDL* code;
+    bool failed;
+    string errmsg; 
+  };
+  double minim_function_f(const gsl_vector* x, void* params_minim) {
+    param_for_minim_fdf *p = static_cast<param_for_minim_fdf*> (params_minim);
+    p->failed=false;
+    // copying from GSL to GDL
+    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    (*(p->code))[0]=0;
+    // executing our wrapper function with code 0
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(
+      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+      );
+    // TODO: no guarding if res is an optimized constant
+    // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+    // From 0.9.4 on, call_fun can return left and right values dependent on the call context
+    // which is by default EnvUDT::RFUNCTION, hence the above is *here* correct.
+    Guard<BaseGDL> res_guard(res);
+    if (res->N_Elements() != 1) {
+      p->failed=true;
+      p->errmsg = "user-defined function \""+p->funcname_f+"\" must return a single non-string value";
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+    DDoubleGDL* dres;
+    try {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+      dres = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
+    }    
+    catch (GDLIOException& ex) {
+      p->failed=true;
+      p->errmsg = "failed to convert the result of the user-defined function \""+p->funcname_f+"\" to double";
+      dres=new DDoubleGDL(std::numeric_limits<double>::quiet_NaN()); //we do not return, dres MUST exist!
+    }
+    if (res != dres) {
+      // prevent 'res' from being deleted again
+      res_guard.Release();
+      res_guard.Init(dres);
+    }
+    // copying from GDL to GSL
+    return (*dres)[0];
+  }
+  void minim_function_df(const gsl_vector* x, void* params_minim,gsl_vector * g)  {
+    param_for_minim_fdf *p = static_cast<param_for_minim_fdf*> (params_minim);
+    p->failed=false;
+    // copying from GSL to GDL
+    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    (*(p->code))[0]=1;
+    // executing our wrapper function with code 0
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(
+      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+      );
+    // TODO: no guarding if res is an optimized constant
+    // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+    // From 0.9.4 on, call_fun can return left and right values dependent on the call context
+    // which is by default EnvUDT::RFUNCTION, hence the above is *here* correct.
+    Guard<BaseGDL> res_guard(res);
+    if (res->N_Elements() != x->size) {
+      p->failed=true;
+      p->errmsg = "user-defined function \""+p->funcname_df+"\" must return "+i2s(x->size)+" value";
+    }
+    DDoubleGDL* dres;
+    try {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+      dres = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
+    }    
+    catch (GDLIOException& ex) {
+      p->failed=true;
+      p->errmsg = "failed to convert the result of the user-defined function \""+p->funcname_df+"\" to double";
+      dres=new DDoubleGDL(dimension(x->size),BaseGDL::ZERO); //we do not return, dres MUST exist!
+    }
+    if (res != dres) {
+      // prevent 'res' from being deleted again
+      res_guard.Release();
+      res_guard.Init(dres);
+    }
+    // copying from GDL to GSL:
+    for (SizeT i = 0; i < dres->N_Elements(); ++i) gsl_vector_set(g, i, (*(DDoubleGDL*)dres)[i]);
+  }
+  void minim_function_fdf(const gsl_vector* x, void* params_minim, double *f, gsl_vector * g)  {
+    param_for_minim_fdf *p = static_cast<param_for_minim_fdf*> (params_minim);
+    p->failed=false;
+    // copying from GSL to GDL
+    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    (*(p->code))[0]=2;
+    // executing our wrapper function with code 0
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(
+      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+      );
+    // TODO: no guarding if res is an optimized constant
+    // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+    // From 0.9.4 on, call_fun can return left and right values dependent on the call context
+    // which is by default EnvUDT::RFUNCTION, hence the above is *here* correct.
+    Guard<BaseGDL> res_guard(res);
+    if (res->N_Elements() != x->size+1) {
+      p->failed=true;
+      p->errmsg = "problem in \""+p->funcname_f+"\" or \""+p->funcname_df+"\".";
+      return;
+    }
+    DDoubleGDL* dres;
+    try {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+      dres = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
+    }    
+    catch (GDLIOException& ex) {
+      p->failed=true;
+      p->errmsg = "failed to convert the result of your function(s) to double";
+      dres=new DDoubleGDL(dimension(x->size),BaseGDL::ZERO); //we do not return, dres MUST exist!
+    }
+    if (res != dres) {
+      // prevent 'res' from being deleted again
+      res_guard.Release();
+      res_guard.Init(dres);
+    }
+    // copying from GDL to GSL:
+    *f=(*(DDoubleGDL*)dres)[0];
+    for (SizeT i = 0; i < dres->N_Elements()-1; ++i) gsl_vector_set(g, i, (*(DDoubleGDL*)dres)[i+1]);
+  }
+  
+  void dfpmin(EnvT* e) {
+    // sanity check (for number of parameters)
+    SizeT nParam = e->NParam();
+    if (nParam != 5) e->Throw("Incorrect number of arguments.");
+    // 1-st argument : initial guess vector
+    BaseGDL* p0 = e->GetParDefined(0);
+    BaseGDL* xVal = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+    // 2nd argument : gtol
+    DDouble gtol = 0;
+    e->AssureDoubleScalarPar(1,gtol);
+    // 3rd argument : fmin. will be set on exit.
+
+    //4th argument: function 
+    BaseGDL* fun= e->GetParDefined(3);
+    DString sfun = StrUpCase((*(DStringGDL*)fun)[0]);
+    if (LibFunIx(sfun) != -1) 
+      e->Throw("only user-defined functions allowed (library-routine name "+sfun+" given)");
+    //5th argument: derivative function 
+    BaseGDL* dfun= e->GetParDefined(4);
+    DString sdfun = StrUpCase((*(DStringGDL*)dfun)[0]);
+    if (LibFunIx(sdfun) != -1) 
+      e->Throw("only user-defined functions allowed (library-routine name "+sdfun+" given)");
+    //but we will use only this special crafted function that accompanies GDL:
+    DStringGDL* gdlFun=new DStringGDL("GDL_MULTIMIN_FDF");
+    
+    static int DOUBLEIx = e->KeywordIx("DOUBLE");
+    bool isDouble=(p0->Type()==GDL_DOUBLE);
+    if(e->KeywordSet(DOUBLEIx)) isDouble=true;
+
+    static int EPSIx = e->KeywordIx("EPS");
+    DDouble eps=isDouble?3E-10:3E-8;
+    if (e->KeywordPresent(EPSIx)) e->AssureDoubleScalarKW(EPSIx,eps);
+    static int ITMAXIx = e->KeywordIx("ITMAX");
+    DLong itmax=200;
+    if (e->KeywordPresent(ITMAXIx)) e->AssureLongScalarKW(ITMAXIx,itmax);
+    static int TOLXIx = e->KeywordIx("TOLX");
+    DDouble tolx=4*eps;
+    if (e->KeywordPresent(TOLXIx)) e->AssureDoubleScalarKW(TOLXIx,tolx);
+    static int STEPMAXIx = e->KeywordIx("STEPMAX");
+    DDouble stepmax=100.0;
+    if (e->KeywordPresent(STEPMAXIx)) e->AssureDoubleScalarKW(STEPMAXIx,stepmax);
+    BaseGDL* code=new DIntGDL(0);
+    // GDL magick
+    StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+    EnvUDT* newEnvfun = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx((*gdlFun)[0])], (DObjGDL**) NULL);
+    newEnvfun->SetNextPar(&xVal); //x in function(x,'f','df',code)
+    newEnvfun->SetNextPar(&fun); //f
+    newEnvfun->SetNextPar(&dfun); //df
+    newEnvfun->SetNextPar(&code); //code    
+    e->Interpreter()->CallStack().push_back(newEnvfun);
+
+    // GSL function parameter initialization
+    param_for_minim_fdf param_minim_fdf;
+    param_minim_fdf.envt = e;
+    param_minim_fdf.nenvt = newEnvfun;
+    param_minim_fdf.funcname_f = sfun;
+    param_minim_fdf.funcname_df = sdfun;
+    param_minim_fdf.arg = static_cast<DDoubleGDL*> (xVal);
+    param_minim_fdf.code = static_cast<DIntGDL*>(code);
+
+    // GSL function initialization
+    gsl_multimin_function_fdf minex_func_fdf;
+    minex_func_fdf.f = &minim_function_f;
+    minex_func_fdf.df = &minim_function_df;
+    minex_func_fdf.fdf = &minim_function_fdf;
+    minex_func_fdf.n = p0->N_Elements();
+    minex_func_fdf.params = &param_minim_fdf;
+
+    // GSL error handling
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&n_b_gslerrhandler);
+    // now: reinstall previous error handler (was: GSL ensuring memory de-allocation)
+    n_b_gslguard gslguard = n_b_gslguard(old_handler);
+    n_b_gslerrhandler(e->GetProName().c_str(), NULL, -1, -1);
+
+
+    // solution values at start
+    gsl_vector *x = gsl_vector_alloc(minex_func_fdf.n);
+    GDLGuard<gsl_vector> g1(x, gsl_vector_free);
+    for (SizeT i = 0; i < minex_func_fdf.n; ++i) gsl_vector_set(x, i, (*(DDoubleGDL*)xVal)[i]);
+
+
+    size_t iter = 0;
+    int status;
+
+    const gsl_multimin_fdfminimizer_type *T =  gsl_multimin_fdfminimizer_vector_bfgs2;
+    gsl_multimin_fdfminimizer *s = gsl_multimin_fdfminimizer_alloc(T, minex_func_fdf.n);
+    gsl_multimin_fdfminimizer_set (s, &minex_func_fdf, x, stepmax, gtol);
+    do {
+      iter++;
+      status = gsl_multimin_fdfminimizer_iterate(s);
+
+      if (status)
+        break;
+      status = gsl_multimin_test_gradient(s->gradient, gtol);
+     
+    } while (status == GSL_CONTINUE && iter < itmax);
+
+    // handling errors from GDL via GSL
+    if (param_minim_fdf.failed) e->Throw(param_minim_fdf.errmsg);
+    for (SizeT j = 0; j < p0->N_Elements(); ++j) (*(DDoubleGDL*)xVal)[j] = gsl_vector_get(s->x, j);
+    if (isDouble) {
+      e->SetPar(0, xVal);
+      e->SetPar(2, new DDoubleGDL(s->f));
+    }
+    else {
+      Guard<BaseGDL> xval_guard(xVal);
+      e->SetPar(0, xVal->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      e->SetPar(2, new DFloatGDL(s->f));
+    }
+
+    gsl_multimin_fdfminimizer_free(s);
+  }
   // -------------------------------------------------------------------------
   // GSL don't have implementations of QROMB and QROMO but alternatives
 

@@ -57,6 +57,8 @@ namespace lib {
 
   // the following by SA
   BaseGDL* newton_broyden(EnvT* e);
+  BaseGDL* amoeba(EnvT* e);
+  void     dfpmin(EnvT* e);
   BaseGDL* constant(EnvT* e);
   BaseGDL* binomialcoef(EnvT* e);
   BaseGDL* wtn(EnvT* e);

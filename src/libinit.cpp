@@ -915,6 +915,13 @@ void LibInit()
   const string broydenWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN",  "EPS",  KLISTEND};
   new DLibFunRetNew(lib::newton_broyden, string("BROYDEN"), 2, broydenKey, broydenWarnKey);
 
+
+  const string amoebaKey[] = {"FUNCTION_NAME", "FUNCTION_VALUE", "NCALLS", "NMAX", "P0", "SCALE" , "SIMPLEX", KLISTEND };
+  new DLibFunRetNew(lib::amoeba, string("AMOEBA"), 1, amoebaKey);
+  const string dfpminKey[] = { "DOUBLE", "EPS", "ITER", "ITMAX", "STEPMAX", "TOLX", KLISTEND };
+  new DLibPro(lib::dfpmin, string("DFPMIN"), 5, dfpminKey);
+
+
   new DLibFunRetNew(lib::parse_url, string("PARSE_URL"), 1);
   new DLibFunRetNew(lib::locale_get, string("LOCALE_GET"), 0);
   new DLibFunRetNew(lib::get_login_info, string("GET_LOGIN_INFO"), 0);
