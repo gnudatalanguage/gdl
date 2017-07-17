@@ -237,6 +237,7 @@ plotting_windows.cpp
 plotting_xyouts.cpp
 plotting.cpp
 plotting.hpp
+brent.cpp
 print.cpp
 print_tree.cpp
 print_tree.hpp

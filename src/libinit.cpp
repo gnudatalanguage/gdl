@@ -42,6 +42,7 @@
 
 #include "convol.hpp"
 #include "smooth.hpp"
+#include "brent.hpp"
 
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
@@ -905,7 +906,7 @@ void LibInit()
   new DLibPro(lib::caldat, string("CALDAT"), 7);
   new DLibFunRetNew(lib::julday, string("JULDAY"), 6);
 
-  // SA: the HYBRID key is used in imsl_zerosys.pro to switch to the modif. Powell algo. 
+  // SA: the HYBRID key is used in imsl_zerosys.pro to switch to the modif. brent algo. 
   const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", "HYBRID", KLISTEND };
   const string newtonWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN", KLISTEND};
   new DLibFunRetNew(lib::newton_broyden, string("NEWTON"), 2, newtonKey, newtonWarnKey);
@@ -920,6 +921,8 @@ void LibInit()
   new DLibFunRetNew(lib::amoeba, string("AMOEBA"), 1, amoebaKey);
   const string dfpminKey[] = { "DOUBLE", "EPS", "ITER", "ITMAX", "STEPMAX", "TOLX", KLISTEND };
   new DLibPro(lib::dfpmin, string("DFPMIN"), 5, dfpminKey);
+  const string brentKey[] = { "DOUBLE", "ITER", "ITMAX", KLISTEND };
+  new DLibPro(lib::brent, string("POWELL"), 5, brentKey);
 
 
   new DLibFunRetNew(lib::parse_url, string("PARSE_URL"), 1);
