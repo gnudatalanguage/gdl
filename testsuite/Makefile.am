@@ -5,6 +5,7 @@ libtest_ce_la_LDFLAGS = -rpath $(abs_srcdir)/testsuite/.libs
 #TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
 TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir) $(top_builddir)
 TESTS = \
+  test_arg_present.pro \
   test_angles.pro \
   test_array_equal.pro \
   test_array_indices.pro \
@@ -138,6 +139,7 @@ TESTS = \
   test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
   test_netcdf.pro \
+  test_norm.pro \
   test_null.pro \
   test_obj_isa.pro \
   test_obj_new.pro \
