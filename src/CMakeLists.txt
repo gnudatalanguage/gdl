@@ -143,6 +143,7 @@ basic_pro.cpp
 basic_pro.hpp
 basic_pro_jmg.cpp
 basic_pro_jmg.hpp
+brent.cpp
 grib.cpp
 grib.hpp
 gshhs.cpp
@@ -179,6 +180,7 @@ libinit_jmg.cpp
 libinit_mes.cpp
 libinit_ng.cpp
 libinit_jp.cpp
+linearprogramming.cpp
 list.cpp
 list.hpp
 magick_cl.cpp
@@ -237,7 +239,6 @@ plotting_windows.cpp
 plotting_xyouts.cpp
 plotting.cpp
 plotting.hpp
-brent.cpp
 print.cpp
 print_tree.cpp
 print_tree.hpp

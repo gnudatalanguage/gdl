@@ -43,6 +43,7 @@
 #include "convol.hpp"
 #include "smooth.hpp"
 #include "brent.hpp"
+#include "linearprogramming.hpp"
 
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
@@ -924,6 +925,10 @@ void LibInit()
   const string brentKey[] = { "DOUBLE", "ITER", "ITMAX", KLISTEND };
   new DLibPro(lib::brent, string("POWELL"), 5, brentKey);
 
+#ifdef HAVE_GLPK
+  const string simplexKey[] = { "DOUBLE", "EPS", "STATUS", KLISTEND };
+  new DLibFunRetNew(lib::simplex, string("SIMPLEX"), 8, simplexKey);
+#endif
 
   new DLibFunRetNew(lib::parse_url, string("PARSE_URL"), 1);
   new DLibFunRetNew(lib::locale_get, string("LOCALE_GET"), 0);

@@ -70,6 +70,9 @@ set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
 
+set(GLPK OFF CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
+set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
+
 # GraphicsMagick is a good alternative to ImageMagick, if GM OK, we don't look for IM
 set(GRAPHICSMAGICK ON CACHE BOOL "GDL: Enable GraphicsMagick ?")
 set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory tree")
@@ -916,6 +919,24 @@ if(QHULL)
 	endif(QHULL_FOUND)
 endif(QHULL)
 
+# GLPK for Simplex ( Linear programming )
+# GLPK (enable SIMPLEX command)
+# -DGLPK=ON|OFF
+# -DGLPKDIR=DIR
+if(GLPK)
+  set(CMAKE_PREFIX_PATH ${GLPKDIR})
+  find_package(GLPK QUIET)
+  if(HAVE_GLPK)
+      set(LIBRARIES ${LIBRARIES} ${GLPK_LIBRARIES})
+      include_directories(${GLPK_INCLUDE_DIR})
+  else(HAVE_GLPK)
+		message(FATAL_ERROR "GLPK (Gnu Linear Programming Kit) is required but was not found.\n"
+		"Use -DGLPKDIR=DIR to specify the GLPK-devel directory tree.\n"
+		"Use -DGLPK=OFF to not use it.\n")
+  endif(HAVE_GLPK)
+endif(GLPK)
+#check_include_file(glpk.h HAVE_GLPK)
+
 # gshhs
 # -DGSHHS=ON|OFF
 if(GSHHS) 	
@@ -1066,6 +1087,8 @@ module(GRAPHICSMAGICK "GRAPHICSMAGICK")
 module(GRIB      "GRIB       ")
 set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
 module(QHULL     "QHULL      ")
+set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
+module(GLPK      "GLPK       ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
 module(PSLIB	 "pslib      ")
