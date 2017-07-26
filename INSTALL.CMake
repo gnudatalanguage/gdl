@@ -68,14 +68,16 @@ of targets and `make edit_cache' to edit cache results
 examples:
 mkdir gdl-clang
 cd gdl-clang
-cmake -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format -O3 " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF  ../gdl-lastversionfromcvs
+cmake -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format -O3 " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF -DGLPK=OFF  ../gdl-lastversionfromcvs
 make -j 4
 sudo make install
 
-or 
+or
 mkdir gdl-gcc
 cd gdl-gcc
-cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format -O3 " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF  ../gdl-lastversionfromcvs
+cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON=NO -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-return-type -Wno-switch -Wno-format " -DPLPLOTDIR="somewhere"  -DLIBPROJ4=YES -DGSHHS=YES -DGSHHSDIR="/where/is/gshhs" -DHDF=YES -DUDUNITS=YES  -DUDUNITSDIR=/usr/include/udunits2 -DQHULL=OFF -DGLPK=OFF ../gdl-lastversionfromcvs
 make -j 4
 sudo make install
 
+For a special compilation with all the options for fast code, including targeting the machine's processor type, use:
+-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -march=native -DNDEBUG"
