@@ -3,8 +3,7 @@
 
 A free IDL (Interactive Data Language) compatible incremental compiler
 (capable of running programs written in IDL/GDL).
-IDL is a registered trademark of ITT Visual Information Solutions 
-(see: http://www.ittvis.com).
+IDL is a registered trademark of Harris Geospatial (see: http://harrisgeospatial.com/).
 
 
 HOMEPAGE:
@@ -16,7 +15,8 @@ http://gnudatalanguage.sourceforge.net
 FEATURES:
 =========
 
-Full syntax compatibility with IDL up to version 7.1 (for 8.0 and later see below).
+Full syntax compatibility with IDL up to version 7.1...
+...    and trying to be up-to-date with 8.x, see below.
 
 All IDL language elements up to IDL version 7.1 are supported, including:
 
@@ -41,8 +41,8 @@ LIST and HASH types
 Not yet supported:
 simplified property access on objects (e. g. object.aProperty = value & print,object.aProperty)
 
-In general GDL should run correctly an IDL procedure, even one from the /lib folder of an IDL distro
-(note that most of theses procedures have not yet been rewritten for GDL, help is welcome.).
+In general GDL should run correctly an IDL procedure, even one from the /lib folder of an IDL distribution.
+(Note that most of theses procedures---some can be found on the web---have not yet been rewritten for GDL, help is welcome.).
 
 
 The file input output system is fully implemented including full support of
@@ -96,216 +96,251 @@ GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html
 GSHHS       (consult the MAP_INSTALL file)
 wxWidgets   http://www.wxwidgets.org/
 pslib       http://pslib.sourceforge.net/
+glpk        https://www.gnu.org/software/glpk/  : only to have the linear programming function SIMPLEX() available.
 
 Only with python:
 numpy          http://numpy.scipy.org/
 
 *) please see below for potential problems using netCDF and HDF4
 
-NOTE: If you install the libraries as precompiled
-packages rather than compiling them from sources, please note that
-depending on your distribution, you may need development packages
-as well. Examples are (for Fedora):
-plplot-devel
-ImageMagick-devel
-ImageMagick-c++-devel
+COMPILING:
+----------
+  At least g++ 3.2 (or a similar C++ standard conforming
+  compiler) is needed for compiling GDL.
+  Note that due to problems with static casts g++ 3.3.1
+  does NOT compile GDL, but 3.3.2 and 3.4.1 work fine again.
+  GDL compiles under Mac OS X (10.2, 10.3) with g++ 3.3 . 
+   
+  If you install the libraries as precompiled
+  packages rather than compiling them from sources, please note that
+  depending on your distribution, you may need development packages
+  as well. Examples are (for Fedora):
+  plplot-devel
+  ImageMagick-devel
+  ImageMagick-c++-devel
 
-Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
-If installed, the SAVE and RESTORE commands (data only) are
-available through wrapper routines. You get CMSVLIB here: 
-http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz
-You must add yourself the CMSVLIB path in the GDL_PATH.
-CMSVLIB provides a test suite: please run CMSV_TEST.
+  Look at the *INSTALL* files.
+  
+CMSVLIB:
+--------
+  Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
+  If installed, the SAVE and RESTORE commands (data only) are
+  available through wrapper routines. You get CMSVLIB here: 
+  http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz
+  You must add yourself the CMSVLIB path in the GDL_PATH.
+  CMSVLIB provides a test suite: please run CMSV_TEST.
 
-At least g++ 3.2 (or a similar C++ standard conforming
-compiler) is needed for compiling GDL.
-Note that due to problems with static casts g++ 3.3.1
-does NOT compile GDL, but 3.3.2 and 3.4.1 work fine again.
-GDL compiles under Mac OS X (10.2, 10.3) with g++ 3.3 . 
 
-The GNU readline library 4.3 is needed (actually GDL should compile
-without, but its very inconvenient to use that way, furthermore
-proper event handling for graphic windows requires readline).
-You can get it at:
-http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 
-For the graphics support of GDL, the plplot library version 5.9
-is necessary. PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
-See below if you have an older version of plplot.
-To download plplot please look here:
-http://plplot.sourceforge.net/source/index.html
+LINE EDITING:
+-------------
+  Better than IDL, GDL has modern line editing and line history features.
+  The GNU readline library 4.3 is needed (actually GDL should compile
+  without, but its very inconvenient to use that way, furthermore
+  proper event handling for graphic windows requires readline).
+  You can get it at:
+  http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
+  
+GRAPHICS AND DEPENDENCIES:
+--------------------------
+  For the graphics support of GDL, the plplot library version 5.9
+  is necessary. PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
+  See below if you have an older version of plplot.
+  To download plplot please look here:
+  http://plplot.sourceforge.net/source/index.html
+  
+  If you have plplot older than 5.9.6 use the configure
+  option --enable-oldplplot (configure) or -DOLDPLPLOT=on (CMake)
+  With this option, plplot down to 5.9 should work.
+  A possible problem was reported:
+  On opening more than one window, plplot causes a segmentation fault
+  if GDL is compiled with ImageMagick. This happens if plplot uses 
+  dynamic drivers.
+  The current solution is to disable dynamic drivers for plplot
+  (-DENABLE_DYNDRIVERS=OFF option for cmake).
+  Current ubuntu/debian distributions are using dynamic drivers, so plplot
+  needs to be compiled from source there. Disabling dyndrivers apparently is not necessary anymore.
+  
+  plplot > 5.11 needs absolutely to be compiled with its "old" wxWidgets driver,
+  using the Cmake switch -DOLD_WXWIDGETS:BOOL=ON . Otherwise the WIDGET_DRAW and possibly the graphics window *will not work*.
+  Plplot is not flexible enough to provide both drivers, and the new driver insists on making its own windows!
+  Distributions that provide plplot and plplot-devel have probably not used -DOLD_WXWIDGETS:BOOL=ON
+  so you'll need to compile plplot yourself with this option
+  (and the options -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' for efficiency), install it somewhere
+  (so add also the with option -DCMAKE_INSTALL_PREFIX="somewhere"), and provide -DPLPLOTDIR="somewhere" while cmaking GDL.
 
-If you have plplot older than 5.9.6 use the configure
-option --enable-oldplplot (configure) or -DOLDPLPLOT=on (CMake)
-With this option, plplot down to 5.9 should work.
-A possible problem was reported:
-On opening more than one window, plplot causes a segmentation fault
-if GDL is compiled with ImageMagick. This happens if plplot uses 
-dynamic drivers.
-The current solution is to disable dynamic drivers for plplot
-(-DENABLE_DYNDRIVERS=OFF option for cmake).
-Current ubuntu/debian distributions are using dynamic drivers, so plplot
-needs to be compiled from source there. Disabling dyndrivers apparently is not necessary anymore.
+MATCH FUNCTIONS & MORE:
+-----------------------
+  GDL uses the GNU Scientific Library (GSL).
+  Please see file HACKING if you want to write functions extending GDL (i. e.
+  add a library subroutine) which use GSL for proper handling of GSL
+  obects in GDL.
+  (Minimal version is 1.7, which is now checked via "gsl.m4".
+  Note that version 1.1.1 was reported to NOT work with GDL)
+  You find it at:
+  http://www.gnu.org/software/gsl
 
-plplot > 5.11 needs absolutely to be compiled with its "old" wxWidgets driver,
-using the Cmake switch -DOLD_WXWIDGETS:BOOL=ON . Otherwise the WIDGET_DRAW and possibly the graphics window *will not work*.
-Plplot is not flexible enough to provide both drivers, and the new driver insists on making its own windows!
-Distributions that provide plplot and plplot-devel have probably not used -DOLD_WXWIDGETS:BOOL=ON
-so you'll need to compile plplot yourself with this option
-(and the options -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' for efficiency), install it somewhere
-(so add also the with option -DCMAKE_INSTALL_PREFIX="somewhere"), and provide -DPLPLOTDIR="somewhere" while cmaking GDL.
+MAKE GDL FASTER:
+----------------
+  GDL uses Eigen for fast matrix multiplication. (optional)
 
-Furthermore you need the GNU Scientific Library (GSL).
-Please see file HACKING if you want to write functions extending GDL (i. e.
-add a library subroutine) which use GSL for proper handling of GSL
-obects in GDL.
-(Minimal version is 1.7, which is now checked via "gsl.m4".
-Note that version 1.1.1 was reported to NOT work with GDL)
-You find it at:
-http://www.gnu.org/software/gsl
+  The Eigen library version 3.1 or later is highly recommended for a performance
+  boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org, 
+  but is probably installed on your computer and will be found by the installer.
 
-The Eigen library version 3.1 or later is highly recommended for a performance
-boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org
+  The simpliest way to compile with it is to copy all the header files
+  under sub-directory src/Eigen. Another solution is to provide full path
+  to the include files (e.g. --with-eigen=/home/toto/Eigen3.1.4/include/eigen3/
+  in that case Eigen would have been prepared using:
+  cmake . -DCMAKE_INSTALL_PREFIX=/home/toto/Eigen3.1.4/ )
+
+  The FFTW library is (optionally) used for the FFT function.
+  It is available at: http://www.fftw.org/download.html
+  It is NOT used by default.
+  If you want to use it, use --with-fftw=DIR 
+  as a command line option to 'configure', where DIR denotes the
+  directory into which FFTW was installed
+  ('/lib' is appended for the library, '/include' for the include files).
+  Using FFTW results in an about double as fast FFT function.
+  Take care that you have to compile the "normal" and the "single"
+  version of the library (resp. libfftw3.a and libfftw3f.a).
+  First one is the default. You have to activate the single flag
+  (./configure --enable-single) when recompiling FFTw3.
+  Please also notice that the test when runnig GDL configure
+  "checking for fftw_malloc in -lfftw3... yes"
+  will failed if libfftw3f.a is missing.
+  As mentionned in the log. of ./configure,
+  if FFTw is not used, the default (GSL) fft routine is used instead.
 
 WIDGETS:
 --------
-GDL supports GUI (widget) programming (initial effort by Joel Gales rewritten by Gilles Duvert)
-using the wxWidgets library. It is required by default.
-If you don't want to use it, use
---with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
-wxWidgets can be obtained from:
-http://www.wxwidgets.org/downloads
+  GDL supports GUI (widget) programming (initial effort by Joel Gales rewritten by Gilles Duvert)
+  using the wxWidgets library. It is required by default.
+  If you don't want to use it, use
+  --with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
+  wxWidgets can be obtained from:
+  http://www.wxwidgets.org/downloads
+  
+  The wxWidget version must be 2.8.1 or higher. Unfortunately the wxWidget implementation of the plplot graphic library
+  has changed between plplot 5.9.9 and plplot 5.11, and there are incompatibilities between plplot versions ans wxWidget versions.
+  Stable behaviour has been obtained with plplot 5.9.9 and wxWidgets 2.8.  
+  
+  The WIDGET_*... functions are all implemented (use HELP,/LIB for an overview). Only a few
+  rarely seen options have not been written yet (please report in case of need). They have
+  not been tested outside the linux "mageia" distribution yet, so errors and crashes are possible.
+  Most procedures using widgets available (e.g., in the astrolib library) use so-called
+  "compound widgets" (CW_xxxxx functions that are written in IDL, like CW_FIELD). Those have not
+  been rewritten in GDL (and some have not been thoroughly tested). Those are not present
+  in the GDL distribution (copyright issues), must be obtained separately (google is your friend) and put
+  in the GDL path before use.
 
-The wxWidget version must be 2.8.1 or higher. Unfortunately the wxWidget implementation of the plplot graphic library
-has changed between plplot 5.9.9 and plplot 5.11, and there are incompatibilities between plplot versions ans wxWidget versions.
-Stable behaviour has been obtained with plplot 5.9.9 and wxWidgets 2.8.  
+DATA FORMATS:
+=============
 
-The WIDGET_*... functions are all implemented (use HELP,/LIB for an overview). Only a few
-rarely seen options have not been written yet (please report in case of need). They have
-not been tested outside the linux "mageia" distribution yet, so errors and crashes are possible.
-Most procedures using widgets available (e.g., in the astrolib library) use so-called
-"compound widgets" (CW_xxxxx functions that are written in IDL, like CW_FIELD). Those have not
-been rewritten in GDL (and some have not been thoroughly tested). Those are not present
-in the GDL distribution (copyright issues), must be obtained separately (google is your friend) and put
-in the GDL path before use.
+  HDF4 Files:
+  ----------
+    The HDF4 format is (not completely yet) supported (thanks to Joel Gales).
+    If you want to use it, you need the HDF library (here HDF
+    always means version 4).
+    Note that if you plan to use netCDF also, it might be necessary to
+    install HDF4 before netCDF due to same named but different header
+    files which are overwritten by the HDF4 version otherwise.
+    HDF4 is required by default. If you don't want to use it, use 
+    --with-hdf=no (configure) or -DHDF=off (CMake)
+    Note that HDF in turn needs other libraries. Check out the
+    homepage for more information:
+    http://hdf.ncsa.uiuc.edu/
+    The HDF library can be downloaded from:
+    ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 
-HDF4 Files:
-----------
-The HDF4 format is (not completely yet) supported (thanks to Joel Gales).
-If you want to use it, you need the HDF library (here HDF
-always means version 4).
-Note that if you plan to use netCDF also, it might be necessary to
-install HDF4 before netCDF due to same named but different header
-files which are overwritten by the HDF4 version otherwise.
-HDF4 is required by default. If you don't want to use it, use 
---with-hdf=no (configure) or -DHDF=off (CMake)
-Note that HDF in turn needs other libraries. Check out the
-homepage for more information:
-http://hdf.ncsa.uiuc.edu/
-The HDF library can be downloaded from:
-ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+  HDF5:
+  -----
+    Basic support for HDF5 is now provided (thanks to Peter Messmer).
+    If you want to use it, you need the HDF5 library.
+    It is required by default. If you don't want to use it, use 
+    --with-hdf5=no (configure) or -DHDF5=off (CMake)
+    Note that HDF5 in turn needs other libraries. Check out the
+    homepage for more information:
+    http://hdf.ncsa.uiuc.edu/HDF5
+    The HDF5 library can be downloaded from:
+    ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 
-Basic support for HDF5 is now provided (thanks to Peter Messmer).
-If you want to use it, you need the HDF5 library.
-It is required by default. If you don't want to use it, use 
---with-hdf5=no (configure) or -DHDF5=off (CMake)
-Note that HDF5 in turn needs other libraries. Check out the
-homepage for more information:
-http://hdf.ncsa.uiuc.edu/HDF5
-The HDF5 library can be downloaded from:
-ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+  NETCDF:
+  -------
+    The netCDF format is fully supported (thanks to Christopher Lee). If
+    you want to use netCDF, you need the netCDF library (even if HDF4 is
+    used, the netCDF library is needed, as the HDF library does not
+    contain all needed netCDF functions. Note that it might be necessary
+    to install netCDF after HDF4 due to same named, but different header
+    files. If the header files of HDF4 and netCDF are in different directories 
+    make sure, that the directory containing netCDF's version gets searched first,
+    ie. put an explicit path for netCDF even if it is in the default include path,
+    eg: --with-netcdf=/usr (configure) or -DNETCDFDIR=/usr (CMake)) 
+    netCDF is used by default. If you don't want to use it, use 
+    --with-netcdf=no (configure) or -DNETCDF=off (CMake)
+    as a command line option to 'configure'.
+    netCDF is available from:
+    ftp://ftp.unidata.ucar.edu/pub/netcdf
 
-The netCDF format is fully supported (thanks to Christopher Lee). If
-you want to use netCDF, you need the netCDF library (even if HDF4 is
-used, the netCDF library is needed, as the HDF library does not
-contain all needed netCDF functions. Note that it might be necessary
-to install netCDF after HDF4 due to same named, but different header
-files. If the header files of HDF4 and netCDF are in different directories 
-make sure, that the directory containing netCDF's version gets searched first,
-ie. put an explicit path for netCDF even if it is in the default include path,
-eg: --with-netcdf=/usr (configure) or -DNETCDFDIR=/usr (CMake)) 
-netCDF is used by default. If you don't want to use it, use 
---with-netcdf=no (configure) or -DNETCDF=off (CMake)
-as a command line option to 'configure'.
-netCDF is available from:
-ftp://ftp.unidata.ucar.edu/pub/netcdf
+  From the HDF4 INSTALL file:
+     To use the HDF/MFHDF libraries (libdf.a, libmfhdf.a) with the original
+     netCDF library (libnetcdf.a), the HDF4 distribution must be configured 
+     with the --disable-netcdf configuration flag.  This will rename the HDF 
+     version of the C interface (ncxxx) of the HDF4 netCDF APIs to sd_ncxxx 
+     and will disable the HDF4 NC Fortran interfaces to avoid name clashes 
+     with the original netCDF C and Fortran APIs from libnetcdf.a.  
 
-From the HDF4 INSTALL file:
-   To use the HDF/MFHDF libraries (libdf.a, libmfhdf.a) with the original
-   netCDF library (libnetcdf.a), the HDF4 distribution must be configured 
-   with the --disable-netcdf configuration flag.  This will rename the HDF 
-   version of the C interface (ncxxx) of the HDF4 netCDF APIs to sd_ncxxx 
-   and will disable the HDF4 NC Fortran interfaces to avoid name clashes 
-   with the original netCDF C and Fortran APIs from libnetcdf.a.  
+  IMAGE FORMATS:
+  --------------
+    In order to read and write images in several formats
+    (e.g. JPEG, PNG), GDL uses ImageMagick.
+    It is required by default. If you don't want to use it, use 
+    --with-Magick=no
+    ImageMagick can be obtained from:
+    http://www.imagemagick.org/www/download.html
 
-In order to read and write images in several formats
-(e.g. JPEG, PNG), GDL uses ImageMagick.
-It is required by default. If you don't want to use it, use 
---with-Magick=no
-ImageMagick can be obtained from:
-http://www.imagemagick.org/www/download.html
+MAP PROJECTIONS and GEOPHYSICS:
+----------------
+  GDL contains now a complete support to MAP projection,
+  using the proj4 or libproj library. Please see MAP_INSTALL file.
+  It is NOT used by default.
+  If you want to use it, use --with-libproj4=DIR
 
-The FFTW library is (optionally) used for the FFT function.
-It is available at: http://www.fftw.org/download.html
-It is NOT used by default.
-If you want to use it, use --with-fftw=DIR 
-as a command line option to 'configure', where DIR denotes the
-directory into which FFTW was installed
-('/lib' is appended for the library, '/include' for the include files).
-Using FFTW results in an about double as fast FFT function.
-Take care that you have to compile the "normal" and the "single"
-version of the library (resp. libfftw3.a and libfftw3f.a).
-First one is the default. You have to activate the single flag
-(./configure --enable-single) when recompiling FFTw3.
-Please also notice that the test when runnig GDL configure
-"checking for fftw_malloc in -lfftw3... yes"
-will failed if libfftw3f.a is missing.
-As mentionned in the log. of ./configure,
-if FFTw is not used, the default (GSL) fft routine is used instead.
+  GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
 
-GDL contains now a complete support to MAP projection,
-using the proj4 or libproj library. Please see MAP_INSTALL file.
-It is NOT used by default.
-If you want to use it, use --with-libproj4=DIR
+PYTHON INTERFACE:
+-----------------
+  GDL has an interface to python (see http://www.python.org). 
+  GDL can be used as a python module and python can be used from
+  within GDL. See INSTALL for details on how to build each version.
+  As so far there are only two example GDL extensions written in python its
+  use is optional for now but required by default. If you don't want to use
+  it, use  
+  --with-python=no
+  as a command line option to 'configure'.
+  If you want to use it you need python and the python package Numpy.
+  (http://numpy.scipy.org/).
+  The GDL configure script will determine the installed python version
+  automatically. For this the python executable must be installed.
+  The python version can be explictely set with 
+  --enable-python_version=VERSION# (eg. --enable-python_version=2.3).
+  Note: For embedding python as it is done by GDL, the python dynamic
+  library is needed which is *not* build by default. You need to run
+  'configure' for python with the '--enable-shared' option. Please see
+  the python README file for details.
+  For nice graphical output the python package matplotlib
+  (http://matplotlib.sourceforge.net) is used in one of the examples.
+  See the file PYTHON.txt for more details.
 
-GDL has an interface to python (see http://www.python.org). 
-GDL can be used as a python module and python can be used from
-within GDL. See INSTALL for details on how to build each version.
-As so far there are only two example GDL extensions written in python its
-use is optional for now but required by default. If you don't want to use
-it, use  
---with-python=no
-as a command line option to 'configure'.
-If you want to use it you need python and the python package Numpy.
-(http://numpy.scipy.org/).
-The GDL configure script will determine the installed python version
-automatically. For this the python executable must be installed.
-The python version can be explictely set with 
---enable-python_version=VERSION# (eg. --enable-python_version=2.3).
-Note: For embedding python as it is done by GDL, the python dynamic
-library is needed which is *not* build by default. You need to run
-'configure' for python with the '--enable-shared' option. Please see
-the python README file for details.
-For nice graphical output the python package matplotlib
-(http://matplotlib.sourceforge.net) is used in one of the examples.
-See the file PYTHON.txt for more details.
-
+OTHER SUPPORT LIBRARIES:
+------------------------
 GDL supports unit converion in IMSL_CONSTANT using the UDUNITS-2
 library (http://www.unidata.ucar.edu/software/udunits/)
 If you want to use it, use --with-udunits=DIR
 
 GDL supports the GRIB file format - see README_GRIB (optional)
 
-GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
-
 GDL uses pslib for fine-tuning PostScript output. (optional)
-
-GDL uses Eigen for fast matrix multiplication. (optional)
-The simpliest way to compile with it is to copy all the header files
-under sub-directory src/Eigen. Another solution is to provide full path
-to the include files (e.g. --with-eigen=/home/toto/Eigen3.1.4/include/eigen3/
-in that case Eigen would have been prepared using:
-cmake . -DCMAKE_INSTALL_PREFIX=/home/toto/Eigen3.1.4/ )
 
 GDL 0.9 was developed using ANTLR 2.7,   
 but unless you want to change the grammar (*.g files) you don't need
@@ -319,20 +354,19 @@ and run through ANTLR. All source files generated by ANTLR start with a capital
 character. All regular source files start with a small character.
 For more information on ANTRL see: http://www.antlr.org
 
-GDL is currently developed using KDevelop 3.5.5 under the GNU/Linux
-distribution Kubuntu. The KDevelop project file
-is included in the tarball, so if you have KDevelop you should be able
-to use it with GDL seamlessly.
+GDL is developed by some using NetBeans (https://netbeans.org/)
+although a KDevelop project file is included in the tarball, 
+so if you have KDevelop you should be able to use it with GDL seamlessly.
 
 
 INSTALLATION:
 =============
 
-Please see the INSTALL file for details.
+Please see the *INSTALL* file(s) for details.
 For an alternative installation using CMake see INSATLL.CMake .
 
 For french readers, please have a look to
-http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL0.8.11.html
+http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL.html
 which explain how to install GDL and most libraries
 from scratch and without being root.
 
@@ -341,19 +375,16 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.9 is actively developed, but due to the vast amount of subroutines
-to implement still in beta state as of December 2010.
-Even though it can already be used for several tasks, there are many
+to implement, GDL is still in beta state.
+Even though it is commonly used by clever people for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would
 like to join this project are welcome.
 Extensions to GDL can be made in C++, GDL or python.
  
 Urgent things to do are:
-Library functions and procedures,
-Porting GDL to other platforms,
-Completing the graphical output system,
+THE DOCUMENTATION!
 Testing and test routines written in GDL,
-Implementing GUI library functions.
 
 
 HACKING:
