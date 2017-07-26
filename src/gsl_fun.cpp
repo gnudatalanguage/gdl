@@ -3719,7 +3719,7 @@ namespace lib {
 	DDouble tol = 0.0001;
       }
      
-    //MÃÂ¯ÃÂ¿ÃÂ½ller method
+    //Mueller method
     //Initialization and interpolation 
   
     complex<double> x0((*init)[0].real(),(*init)[0].imag());
@@ -4469,7 +4469,7 @@ namespace lib {
     res_guard.release();
     return res;
   }
-
+  
 } // namespace
 
 
