@@ -2,9 +2,12 @@
 ; Alain C. 24/Feb/2009
 ; fast way to check whether TV works in all cases of permutation in [1,N,M]
 ;
-; AC 2016-03-03 : merging TEST_TV_DAMIER and TEST_TV_DAMIER_COLOR,
+; Modifications history :
+;
+; * AC 2016-03-03 : merging TEST_TV_DAMIER and TEST_TV_DAMIER_COLOR,
 ; adding tic/toc to check X11 bottleneck(s) on network (remote TV/plot
 ; are too slow)
+; * AC 2017-08-17 : details when files missing, errors count, banner ...
 ;
 function TITLE4TEST_TV, data, debug=debug
 ;
@@ -51,6 +54,8 @@ end
 ;
 pro TEST_TV_WSET, errors, test=test
 ;
+if ~ISA(errors) then errors=0
+;
 ; Read "Saturn.jpg" and return content in "image"
 status=GET_IMAGE_FOR_TESTSUITE(image)
 if (status eq 0) then return
@@ -66,7 +71,6 @@ scrsizey=scrsize[1]
 
 if (2*xdim ge scrsizex or 3*ydim ge scrsizey) then begin
    print,"test TEST_TV_WSET not executed, screen size to small (FIXME)"
-   if ~ISA(errors) then errors=0
    return
 end
 
@@ -103,11 +107,9 @@ content_win2=TVRD()
 WSET, 0
 content_win0=TVRD()
 ;
-if ~ISA(errors) then errors=0
-;
 if ~ARRAY_EQUAL(content_win0,content_win2) then begin
     errors++
-    BANNER_FOR_TESTSUITE, "TEST_TV_WSET", 1, /SHORT
+    BANNER_FOR_TESTSUITE, "TEST_TV_WSET", errors, /SHORT
 endif
 ;
 if KEYWORD_SET(test) then STOP

@@ -8,6 +8,10 @@
 ;
 ; When more than one file is found, we always return the first one
 ;
+; Modifications history :
+;
+; * AC 2017-08-17 : adding a shortcut when file is directly located !!
+;
 function FILE_SEARCH_FOR_TESTSUITE, filename, warning=warning, $
                                     help=help, test=test, $
                                     quiet=quiet, verbose=verbose
@@ -19,15 +23,18 @@ if KEYWORD_SET(help) then begin
     return, ''
 endif
 ;
-; we will add current dir. to the !Path in first position
-CD, current=current
-;
-list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-;
-list_of_dirs=[current,list_of_dirs]
-;
-; it i s important to work in current directory !!
-full_file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename, /nosort)
+if FILE_TEST(filename) then begin
+   full_file=(FILE_INFO(filename)).name
+endif else begin
+   ;;
+   ;; we will add current dir. to the !Path in first position
+   CD, current=current
+   list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+   list_of_dirs=[current,list_of_dirs]
+   ;;
+   ;; it is important to work in current directory !!
+   full_file=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename, /nosort)
+endelse
 ;
 ; We may have multiplicity ... we select the first one (priority to
 ; current dir. thanks to /nosort)
