@@ -26,7 +26,7 @@ status=1
 ;
 if (MAGICK_EXISTS() EQ 0) then begin
     MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, "You must have ImageMagick support to use this functionaly."
+    MESSAGE, /continue, "You must have ImageMagick support to use this functionaly."
     status=0
     if ~KEYWORD_SET(debug) then return, 0
 endif
