@@ -623,13 +623,9 @@ void LibInit()
 
   const string usersymKey[]= 
   {
-    "FILL", KLISTEND
+    "FILL", "COLOR","THICK", KLISTEND
    };
-    const string usersymWarnKey[]= 
-  {
-    "COLOR","THICK", KLISTEND
-   };
-  new DLibPro(lib::usersym,string("USERSYM"),2, usersymKey, usersymWarnKey);
+  new DLibPro(lib::usersym,string("USERSYM"),2, usersymKey);
 
   const string plotKey[]=
     {

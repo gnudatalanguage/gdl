@@ -65,6 +65,10 @@ namespace lib
     DInt fill;
     DFloat usymx[49];
     DFloat usymy[49];
+    bool hasColor;
+    DLong color;
+    bool hasThick;
+    DFloat thick;
   };
   static LOCALUSYM localusym;
   
@@ -493,15 +497,19 @@ namespace lib
     //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
   }
 
-  void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y)
+  void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y, bool **do_color, DLong **usymColor , bool **do_thick, DFloat **usymThick)
   {
     *n= &(localusym.nusym);
     *do_fill= &(localusym.fill);
+    *do_color= &(localusym.hasColor);
+    *do_thick= &(localusym.hasThick);
+    *usymColor=&(localusym.color);
+    *usymThick=&(localusym.thick);
     *x=localusym.usymx;
     *y=localusym.usymy;
   }
 
-  void SetUsym(DLong n, DInt do_fill, DFloat *x, DFloat *y)
+  void SetUsym(DLong n, DInt do_fill, DFloat *x, DFloat *y, bool usersymhascolor, DLong usymColor , bool usersymhasthick, DFloat usymThick )
   {
     localusym.nusym=n;
     localusym.fill=do_fill;
@@ -510,6 +518,10 @@ namespace lib
       localusym.usymx[i]=x[i];
       localusym.usymy[i]=y[i];
     }
+    localusym.hasColor=usersymhascolor;
+    localusym.hasThick=usersymhasthick;
+    localusym.color=usymColor;
+    localusym.thick=usymThick;
   }
 
   //This is the good way to get world start end end values.
@@ -646,10 +658,14 @@ namespace lib
     static PLFLT xSym[49];
     static PLFLT ySym[49];
     DInt *do_fill;
+    bool *usersymhascolor;
+    bool *usersymhasthick;
+    DLong *usymColor;
+    DFloat *usymThick;
     static DInt nofill=0;
     if ( psym_==8 )
     {
-      GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY);
+      GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY, &usersymhascolor, &usymColor , &usersymhasthick, &usymThick );
       if ( *userSymArrayDim==0 )
       {
         ThrowGDLException("No user symbol defined.");
@@ -797,7 +813,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
           }
-          if (psym_>0&&psym_<9)
+          if (psym_>0&&psym_<8)
           {
             for ( int j=0; j<i_buff; ++j )
             {
@@ -821,7 +837,33 @@ namespace lib
               }
             }
           }
-          if ( psym_==10 )
+        else if ( psym_==8 )
+        {
+          if (*usersymhascolor)
+          {
+            a->Color(*usymColor, decomposed);
+          }
+          if (*usersymhasthick)
+          {
+            a->Thick(*usymThick);
+          }
+          for (int j = 0; j < i_buff; ++j)
+          {
+            for (int kk = 0; kk < *userSymArrayDim; kk++)
+            {
+              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
+              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+            }
+            if (*do_fill == 1)
+            {
+              a->fill(*userSymArrayDim, xSym, ySym);
+            } else
+            {
+              a->line(*userSymArrayDim, xSym, ySym);
+            }
+          }
+        }
+        else if ( psym_==10 )
           {
             ac_histo(a, i_buff, x_buff, y_buff, xLog);
           }
@@ -848,7 +890,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
         }
-        if ( psym_>0&&psym_<9 )
+        if ( psym_>0&&psym_<8 )
         {
           for ( int j=0; j<i_buff; ++j )
           {
@@ -873,7 +915,33 @@ namespace lib
           }
 
         }
-        if ( psym_==10 )
+        else if ( psym_==8 )
+        {
+          if (*usersymhascolor)
+          {
+            a->Color(*usymColor, decomposed);
+          }
+          if (*usersymhasthick)
+          {
+            a->Thick(*usymThick);
+          }
+          for (int j = 0; j < i_buff; ++j)
+          {
+            for (int kk = 0; kk < *userSymArrayDim; kk++)
+            {
+              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
+              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+            }
+            if (*do_fill == 1)
+            {
+              a->fill(*userSymArrayDim, xSym, ySym);
+            } else
+            {
+              a->line(*userSymArrayDim, xSym, ySym);
+            }
+          }
+        }
+        else if ( psym_==10 )
         {
           ac_histo(a, i_buff, x_buff, y_buff, xLog);
         }
@@ -1414,6 +1482,10 @@ namespace lib
     Guard<BaseGDL> p0_guard;
     DLong n;
     DInt do_fill;
+    bool do_color;
+    bool do_thick;
+    DFloat thethick;
+    DLong thecolor;
     DFloat *x, *y;
     SizeT nParam=e->NParam();
 
@@ -1466,7 +1538,23 @@ namespace lib
     {
       do_fill=1;
     }
-    SetUsym(n, do_fill, x, y);
+    do_color=false;
+    thecolor=0;
+    static int COLORIx = e->KeywordIx("COLOR");
+    if ( e->KeywordPresent(COLORIx) )
+    {
+      do_color=true;
+      e->AssureLongScalarKW(COLORIx, thecolor);
+    }
+    do_thick=false;
+    thethick=0;
+    static int THICKIx = e->KeywordIx("THICK");
+    if ( e->KeywordPresent(THICKIx) )
+    {
+      do_thick=true;
+      e->AssureFloatScalarKW(THICKIx, thethick);
+    }    
+    SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
   
   BaseGDL* trigrid_fun( EnvT* e)
