@@ -1538,21 +1538,27 @@ namespace lib
     {
       do_fill=1;
     }
+    //IDL does not complain if color is undefined.
     do_color=false;
     thecolor=0;
     static int COLORIx = e->KeywordIx("COLOR");
-    if ( e->KeywordPresent(COLORIx) )
+    if ( e->KeywordPresent(COLORIx))
     {
-      do_color=true;
-      e->AssureLongScalarKW(COLORIx, thecolor);
+      if (e->IfDefGetKWAs<DLongGDL>( COLORIx )) {
+        e->AssureLongScalarKW(COLORIx, thecolor);
+        do_color=true;
+      }
     }
+    //IDL does not complain if thick is undefined.
     do_thick=false;
     thethick=0;
     static int THICKIx = e->KeywordIx("THICK");
-    if ( e->KeywordPresent(THICKIx) )
+    if ( e->KeywordPresent(THICKIx))
     {
-      do_thick=true;
-      e->AssureFloatScalarKW(THICKIx, thethick);
+      if (e->IfDefGetKWAs<DFloatGDL>( THICKIx )) {
+        e->AssureFloatScalarKW(THICKIx, thethick);
+        do_thick=true;
+      }
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
