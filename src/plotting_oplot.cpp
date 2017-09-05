@@ -200,6 +200,7 @@ private:
     gdlSetPenThickness(e, actStream);
     gdlSetSymsize(e, actStream);
     gdlSetLineStyle(e, actStream);
+    actStream->setSymbolSizeConversionFactors();
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
