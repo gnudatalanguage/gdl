@@ -2082,6 +2082,12 @@ BaseGDL* widget_info( EnvT* e ) {
   // if code pointer arrives here, give WIDGET_VERSION:
   // if you get here and should not, you forgot to return the value you got...
   //it is as if /version was set.
+  
+  //it may happen that we are here and wx is not initialized. Just do it to get valid values.
+  if (!GDLWidget::wxIsStarted()){
+    if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
+    GDLWidget::SetWxStarted();
+  }
   DStructGDL* res = new DStructGDL( "WIDGET_VERSION" );
   res->InitTag("STYLE",DStringGDL(std::string(wxPlatformInfo::Get().GetPortIdName().mb_str(wxConvUTF8))));
   res->InitTag("TOOLKIT",DStringGDL("wxWidgets"));
