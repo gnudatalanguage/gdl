@@ -259,6 +259,7 @@ str.hpp
 terminfo.cpp
 terminfo.hpp
 topython.cpp
+triangulation.cpp
 typedefs.hpp
 typetraits.cpp
 typetraits.hpp

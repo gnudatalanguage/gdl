@@ -56,13 +56,6 @@ namespace lib {
   BaseGDL* finite_fun( EnvT* e);
   BaseGDL* check_math_fun( EnvT* e);
   BaseGDL* radon_fun( EnvT* e);
-#ifdef PL_HAVE_QHULL
-  void     triangulate( EnvT* e);
-  void qhull ( EnvT* e);
-  void grid_input (EnvT* e);
-  BaseGDL* qgrid3_fun ( EnvT* e);
-  BaseGDL* sph_scat_fun ( EnvT* e);
-#endif
   BaseGDL* poly_2d_fun( EnvT* e);
   BaseGDL* poly_2d_funnew( EnvT* e);
   BaseGDL* rk4jmg_fun( EnvT* e);

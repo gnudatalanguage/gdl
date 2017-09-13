@@ -61,6 +61,8 @@
 #include "gshhs.hpp"
 #endif
 
+#include "triangulation.hpp"
+
 using namespace std;
 
 void LibInit_jmg()
@@ -187,22 +189,26 @@ void LibInit_jmg()
 			   "GRAY","LINEAR","NRHO","NTHETA","NX","NY",
 			   "RHO","RMIN","THETA","XMIN","YMIN",KLISTEND};
   new DLibFunRetNew(lib::radon_fun,string("RADON"),1,radonKey);
+  
+
+  const string grid_inputKey[]={"SPHERE", "POLAR", "DEGREES", "DUPLICATES", "EPSILON", "EXCLUDE", KLISTEND};
+  new DLibPro(lib::grid_input,string("GRID_INPUT"),6,grid_inputKey);
+  
+  const string triangulateKey[]={"CONNECTIVITY", "SPHERE", "DEGREES", "FVALUE",KLISTEND};
+  const string triangulateWarnKey[]={"REPEATS", "TOLERANCE",KLISTEND};
+  new DLibPro(lib::GDL_Triangulate,string("TRIANGULATE"),4,triangulateKey,triangulateWarnKey);
+
+  
 #ifdef PL_HAVE_QHULL
-  const string triangulateKey[]={"CONNECTIVITY", "SPHERE", "DEGREES", "FVALUE", "REPEATS", "TOLERANCE",KLISTEND};
-  new DLibPro(lib::triangulate,string("TRIANGULATE"),4,triangulateKey);
 
   const string qhullKey[]={"BOUNDS", "CONNECTIVITY", "DELAUNAY", "SPHERE", "VDIAGRAM" ,"VNORMALS", "VVERTICES", KLISTEND};
   new DLibPro(lib::qhull,string("QHULL"),8,qhullKey);
 
-  const string sph_scatKey[]={"BOUNDS", "BOUT", "GOUT", "GS", "NLON", "NLAT", KLISTEND};
-  new DLibFunRetNew(lib::sph_scat_fun,string("SPH_SCAT"),3,sph_scatKey);
-
-  const string grid_inputKey[]={"SPHERE", "POLAR", "DEGREES", "DUPLICATES", "EPSILON", "EXCLUDE", KLISTEND};
-  new DLibPro(lib::grid_input,string("GRID_INPUT"),6,grid_inputKey);
 
   const string qgrid3Key[]={"DELTA", "DIMENSION", "MISSING", "START", KLISTEND};
   new DLibFunRetNew(lib::qgrid3_fun,string("QGRID3"),5,qgrid3Key);
 #endif
+  
   const string trigridWarnKey[]={"EXTRAPOLATE", "INPUT", "QUINTIC",KLISTEND}; //not really dangerous
   // "XGRID", "XOUT", "YGRID", "YOUT" , "SPHERE","DEGREES", should not be warnings since not implemented and dangerous 
   const string trigridKey[]={ "MIN_VALUE","MAX_VALUE","MISSING","NX","NY","MAP",

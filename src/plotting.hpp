@@ -186,7 +186,6 @@ namespace lib {
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
   BaseGDL* convert_coord( EnvT* e);
-  BaseGDL* trigrid_fun( EnvT* e);
   //dummy functions for compatibility support of GCTP projections 
   void map_proj_gctp_forinit (EnvT* e);
   void map_proj_gctp_revinit (EnvT* e);
