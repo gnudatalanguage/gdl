@@ -27,7 +27,6 @@ using namespace std;
 //if we ever want to use the TRIANGLE library, even if it fails on gridded data? This code is a starting point.
 //#define USE_TRIANGLE 1
 #define USE_TRIPACK 1
-#define NEWCODE 1
 
 #ifdef USE_TRIANGLE
 
@@ -661,94 +660,7 @@ namespace lib {
     }
 #endif
   }
-#ifdef NEWCODE
-  BaseGDL* trigrid_fun(EnvT* e) {
-    bool isSphere=false;
-    int sphereIx = e->KeywordIx( "SPHERE");
-    if(e->KeywordSet(sphereIx)) isSphere = true;
-    
-    SizeT nParam = e->NParam();
-    if (isSphere && nParam < 3) e->Throw("Incorrect number of arguments.");
-    if (!isSphere && nParam < 4) e->Throw("Incorrect number of arguments.");
-    //OK, trigrid does not care if more than 3 args in sphere mode. Limit at 6 is done at interpreter level.
 
-    // Get NX, NY values if present
-    DLong nx = 50;
-    DLong ny = 50;
-    static int nxIx = e->KeywordIx("NX");
-    static int nyIx = e->KeywordIx("NY");
-    if (e->KeywordSet(nxIx)) e->AssureLongScalarKW(nxIx, nx);
-    if (e->KeywordSet(nyIx)) e->AssureLongScalarKW(nyIx, ny);
-    // define GS, 
-    
-    if (isSphere) { //do something sensible
-    } else {
-    BaseGDL* p0 = e->GetParDefined(0);
-    BaseGDL* p1 = e->GetParDefined(1);
-    BaseGDL* p2 = e->GetParDefined(2);
-    BaseGDL* p3 = e->GetParDefined(3);
-
-    if (p0->N_Elements() != p1->N_Elements() ||
-      p0->N_Elements() != p2->N_Elements() ||
-      p1->N_Elements() != p2->N_Elements())
-      e->Throw("X, Y, or Z array dimensions are incompatible.");
-
-    if (p3->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(0));
-    if (p3->N_Elements() % 3 != 0)
-      e->Throw("Array of triangles incorrectly dimensioned.");
-    DLong n_tri = p3->N_Elements() / 3;
-
-    if (p0->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(0));
-    if (p0->N_Elements() < 3)
-      e->Throw("Value of Bounds is out of allowed range.");
-
-    if (p1->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(1));
-
-    if (p2->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(2));
-
-    if (p2->Rank() < 1 || p2->Rank() > 2)
-      e->Throw("Array must have 1 or 2 dimensions: "
-      + e->GetParString(0));
-
-    DDoubleGDL* GS = NULL;
-    DDoubleGDL* limits = NULL;
-    if (nParam > 4)
-    {
-      BaseGDL* p4 = e->GetParDefined(4);
-      if (p4->Rank() == 0)
-        e->Throw("Expression must be an array "
-        "in this context: " + e->GetParString(4));
-      if (p4->N_Elements() != 2)
-        e->Throw("Array must have 2 elements: "
-        + e->GetParString(4));
-      GS = static_cast<DDoubleGDL*>
-        (p4->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-
-      if (nParam == 6)
-      {
-        BaseGDL* p5 = e->GetParDefined(5);
-        if (p5->Rank() == 0)
-          e->Throw("Expression must be an array "
-          "in this context: " + e->GetParString(4));
-        if (p5->N_Elements() != 4)
-          e->Throw("Array must have 4 elements: "
-          + e->GetParString(5));
-        limits = static_cast<DDoubleGDL*>
-          (p5->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      }
-    }
-
-
-  }
-#else
   BaseGDL* trigrid_fun(EnvT* e) {
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
@@ -1121,7 +1033,7 @@ namespace lib {
     delete[] found;
     return res;
   }
-#endif
+
   void grid_input(EnvT* e) {
     e->Throw("Writing in progress.");
   }
