@@ -2080,6 +2080,11 @@ namespace lib {
         else if (Ticks>1) TickInterval=(End-Start)/Ticks;
         else TickInterval=(End-Start);
       }
+      //Following hopefully corrects a bug in plplot when TickInterval is very very tiny. The only solution
+      // is to avoid plotting the axis!
+      if (TickInterval < 10*std::numeric_limits<double>::epsilon()) {
+       return 0;
+      }
       string Opt;
       //first write labels only:
       gdlSetAxisCharsize(e, a, axis);
