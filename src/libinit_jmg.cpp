@@ -209,10 +209,8 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::qgrid3_fun,string("QGRID3"),5,qgrid3Key);
 #endif
   
-  const string trigridWarnKey[]={"EXTRAPOLATE", "INPUT", "QUINTIC",KLISTEND}; //not really dangerous
-  // "XGRID", "XOUT", "YGRID", "YOUT" , "SPHERE","DEGREES", should not be warnings since not implemented and dangerous 
-  const string trigridKey[]={ "MIN_VALUE","MAX_VALUE","MISSING","NX","NY","MAP",
-			     KLISTEND};
+  const string trigridKey[]={"DEGREES","NX","NY","SPHERE","XGRID","XOUT","YGRID","YOUT","MAX_VALUE","MIN_VALUE","MISSING",KLISTEND};
+  const string trigridWarnKey[]={"EXTRAPOLATE","INPUT","QUINTIC",KLISTEND};
   new DLibFunRetNew(lib::trigrid_fun,string("TRIGRID"),6,trigridKey,trigridWarnKey);
 
   const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};

@@ -96,6 +96,7 @@ static void triangulateio_destroy( struct triangulateio* io )
 //default is use tripack and stripack
 #include "tripack.c"
 #include "stripack.c"
+#include "ssrfpack.c"
 #endif
 
 namespace lib {
@@ -104,7 +105,7 @@ namespace lib {
 
   void GDL_Triangulate(EnvT* e) {
 
-    DDoubleGDL *xVal, *yVal;
+    DDoubleGDL *xVal, *yVal, *fvalue;
     DLong npts;
     SizeT nParam = e->NParam();
     if (nParam < 2) e->Throw("Incorrect number of arguments."); //actually IDL permits to *not* have the 3rd argument.
@@ -140,8 +141,9 @@ namespace lib {
     if (yVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(1));
     if (yVal->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points.");
     if (reorderFvalue) {
-      BaseGDL* f=e->GetKW(fvalueIx);
-      if (f->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points."); //yes yes.
+      fvalue=e->GetKWAs<DDoubleGDL>(fvalueIx);
+      if (fvalue->Rank() == 0) e->Throw("Expression must be an array in this context: " +  e->GetString( fvalueIx)+".");
+      if (fvalue->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points."); //yes yes.
     }
     if (npts<3)  e->Throw("Not enough valid and unique points specified.");
     //compute default tol
@@ -462,7 +464,8 @@ namespace lib {
       DDoubleGDL* x=new DDoubleGDL(npts,BaseGDL::NOZERO);
       DDoubleGDL* y=new DDoubleGDL(npts,BaseGDL::NOZERO);
       DDoubleGDL* z=new DDoubleGDL(npts,BaseGDL::NOZERO);
-      DLong ret0=stripack::trans_(&npts, (DDouble*)sc_xVal->DataAddr(), (DDouble*)sc_yVal->DataAddr(),(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr()); 
+      //Stripack is lat, lon and IDL lon,lat
+      DLong ret0=stripack::trans_(&npts, (DDouble*)sc_yVal->DataAddr(), (DDouble*)sc_xVal->DataAddr(),(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr()); 
       SizeT listsize=6*npts-12;
       DLongGDL* list=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lptr=new DLongGDL(listsize,BaseGDL::NOZERO);
@@ -550,12 +553,18 @@ namespace lib {
         free(nodes);
       }
       if (reorderFvalue) {
-// do nothing until TRIGRID has been rewritten!        
-//        //get fvalue
-//        DDoubleGDL* f=e->GetKWAs<DDoubleGDL>(fvalueIx);
+        //No need to reorder whatever.
 //        //create a dummy array of same size
 //        DDoubleGDL* ret=new DDoubleGDL(npts,BaseGDL::NOZERO);
-//        //do not forget remove 1 to get C array indexes.
+//        //do not forget remove 1 to get C array indexes
+//        DLong index_lend, index_list; //can be negative.
+//        (*ret)[0]=(*fvalue)[(*list)[0]-1];
+//        for (SizeT i=0; i<npts-1; ++i) {
+//          index_lend=(*lend)[i]; //as it starts at 1, is the next point, not the end of current point neighbours.
+//          index_list=(*list)[index_lend]; //can be negative
+//          if (index_list < 0) index_list=-index_list-1; else index_list--; //remove negative values and set as C index.
+//          (*ret)[i+1]=(*fvalue)[index_list]; //next point
+//        }
 //        e->SetKW(fvalueIx,ret);
       }
        //no connectivity in SPHERE mode
@@ -661,7 +670,200 @@ namespace lib {
 #endif
   }
 
-  BaseGDL* trigrid_fun(EnvT* e) {
+  
+  BaseGDL* trigrid_fun_spherical(EnvT* e) {
+    //NOT USED in this case: EXTRAPOLATE, MAX_VALUE, MIN_VALUE, QUINTIC, XOUT, YOUT
+    static DDouble DToR=double(3.1415926535897932384626433832795)/180.0;
+    SizeT nParam = e->NParam();
+    if (nParam < 3) e->Throw("Incorrect number of arguments.");
+    //OK, trigrid does not care if more than 3 args in sphere mode. Limit at 6 is done at interpreter level.
+
+    // Get NX, NY values if present
+    DLong nx = 51;
+    DLong ny = 51;
+
+    static int degreeIx=e->KeywordIx( "DEGREES");
+    bool doDegree=(e->KeywordPresent(degreeIx));
+
+    // in difference with IDL we accept xout and yout for spherical data.
+    static int xoutIx=e->KeywordIx( "XOUT");
+    bool doXout=(e->KeywordSet(xoutIx)); //and not "present"
+    static int youtIx=e->KeywordIx( "YOUT");
+    bool doYout=(e->KeywordSet(youtIx));
+    if ((doXout && !doYout) || (doYout && !doXout)) e->Throw("Incorrect number of arguments.");
+    static int xgridIx=e->KeywordIx( "XGRID");
+    bool doXgrid=(e->KeywordPresent(xgridIx));
+    static int ygridIx=e->KeywordIx( "YGRID");
+    bool doYgrid=(e->KeywordPresent(ygridIx));
+
+    static int nxIx = e->KeywordIx("NX");
+    static int nyIx = e->KeywordIx("NY");
+    bool canUseLimitsx=true;
+    bool canUseLimitsy=true;
+    if (e->KeywordSet(nxIx)) { canUseLimitsx=false; e->AssureLongScalarKW(nxIx, nx);}
+    if (e->KeywordSet(nyIx)) { canUseLimitsy=false; e->AssureLongScalarKW(nyIx, ny);}
+    if (nx < 1 || ny < 1) e->Throw("Array dimensions must be greater than 0.");
+    // we will further on define GS, whose value may overwrite the nx, ny.
+    
+    BaseGDL* p0 = e->GetParDefined(0); //F
+    if (p0->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+    DDoubleGDL* fval=static_cast<DDoubleGDL*>(p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+    BaseGDL* p1 = e->GetParDefined(1);
+    if (p1->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+    if (p1->N_Elements() != 2) e->Throw("Array must have 2 elements: " + e->GetParString(1));
+    DDoubleGDL* GS = static_cast<DDoubleGDL*>(p1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+
+    BaseGDL* p2 = e->GetParDefined(2);
+    if (p2->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(2));
+    if (p2->N_Elements() != 4) e->Throw("Array must have 4 elements: " + e->GetParString(2));
+    DDoubleGDL* limits = static_cast<DDoubleGDL*> (p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));      
+
+    //Sphere is present since we are called. Test it.
+    DStructGDL* sphere=NULL;
+    static int sphereIx = e->KeywordIx( "SPHERE");
+    BaseGDL* test=e->GetKW(sphereIx);
+    
+    int xTag,yTag,zTag,listTag,lptrTag,lendTag;
+    
+    if (test->Type() == GDL_STRUCT)
+    {
+      sphere = static_cast<DStructGDL*> (test);
+
+      xTag = sphere->Desc()->TagIndex("X");
+      yTag = sphere->Desc()->TagIndex("Y");
+      zTag = sphere->Desc()->TagIndex("Z");
+      listTag = sphere->Desc()->TagIndex("LIST");
+      lptrTag = sphere->Desc()->TagIndex("LPTR");
+      lendTag = sphere->Desc()->TagIndex("LEND");
+      if (xTag < 0 || yTag < 0 || zTag < 0 || listTag < 0 ||lptrTag < 0 || lendTag < 0) e->Throw("Invalid structure for the SPHERE keyword.");
+    } else {
+      e->Throw("SPHERE keyword must be a structure.");
+    }
+
+    DDoubleGDL* xVal = static_cast<DDoubleGDL*>(sphere->GetTag(xTag,0));
+    DDoubleGDL* yVal = static_cast<DDoubleGDL*>(sphere->GetTag(yTag,0));
+    DDoubleGDL* zVal = static_cast<DDoubleGDL*>(sphere->GetTag(zTag,0));
+    if (xVal->N_Elements() != yVal->N_Elements())e->Throw("Invalid structure for the SPHERE keyword.");
+    if (xVal->N_Elements() != zVal->N_Elements())e->Throw("Invalid structure for the SPHERE keyword.");
+    DLongGDL* list = static_cast<DLongGDL*>(sphere->GetTag(listTag,0));
+    DLongGDL* lptr = static_cast<DLongGDL*>(sphere->GetTag(lptrTag,0));
+    DLongGDL* lend = static_cast<DLongGDL*>(sphere->GetTag(lendTag,0));
+    
+    //get npts
+    DLong npts=fval->N_Elements();
+    if (xVal->N_Elements()<npts) npts=xVal->N_Elements();
+    
+//    //get min max X Y.
+//    DLong minxEl,maxxEl,minyEl,maxyEl;
+//    xVal->MinMax(&minxEl, &maxxEl, NULL, NULL, true);
+//    yVal->MinMax(&minyEl, &maxyEl, NULL, NULL, true);
+    // Determine grid range
+    DDouble xref=0.0, yref=0.0;
+    DDouble xval, xinc;
+    DDouble yval, yinc;
+    DDouble xrange; // = (*xVal)[maxxEl] - (*xVal)[minxEl];
+    DDouble yrange; // = (*yVal)[maxyEl] - (*yVal)[minyEl];
+    //compute World positions of each pixels.
+    if ((*limits)[0]==(*limits)[2] || (*limits)[0]==(*limits)[2]) e->Throw("Inconsistent coordinate bounds.");
+    xval = (*limits)[0];
+    if (doDegree) {
+      xval*=DToR;
+      xrange = (*limits)[2]*DToR - xval;
+    } else xrange = (*limits)[2] - xval;
+    yval = (*limits)[1];
+    if (doDegree) {
+      yval*=DToR;
+      yrange = (*limits)[3]*DToR - yval;
+    } else yrange = (*limits)[3] - yval;
+    // Determine grid spacing
+    xinc = xrange / (nx-1);
+    yinc = yrange / (ny-1);
+    if (canUseLimitsx && (*GS)[0] > 0.0)
+    {
+      xinc = (*GS)[0];
+      if (doDegree) xinc*=DToR;
+      nx = (xrange / xinc) +1;
+    }
+    if (canUseLimitsy && (*GS)[1] > 0.0)
+    {
+      yinc = (*GS)[1];
+      if (doDegree) yinc*=DToR;
+      ny = (yrange / yinc) +1;
+    }
+    DDouble *plon, *plat;
+    bool cleanplon=false;
+    bool cleanplat=false;
+
+    if (doXout) {
+      DDoubleGDL* xOut=e->GetKWAs<DDoubleGDL>(xoutIx);
+      nx=xOut->N_Elements();
+      if (nx < 1) e->Throw("XOUT must have >1 elements.");
+      plon=(DDouble*)xOut->DataAddr();
+      if (doDegree) for (int i=0; i<nx; ++i) plon[i]*=DToR;
+    } else {
+      plon = (DDouble*)malloc(nx*sizeof(DDouble));
+      for (int i=0; i<nx; ++i) plon[i]=(i-xref)*xinc+xval;
+      cleanplon=true;
+    }
+
+    if (doYout) {
+      DDoubleGDL* yOut=e->GetKWAs<DDoubleGDL>(youtIx);
+      ny=yOut->N_Elements();
+      if (ny < 1) e->Throw("YOUT must have >1 elements.");
+      plat=(DDouble*)yOut->DataAddr();
+      if (doDegree) for (int j=0; j<ny; ++j) plat[j]*=DToR;
+    } else {
+      plat = (DDouble*)malloc(ny*sizeof(DDouble));
+      for (int j=0; j<ny; ++j) plat[j]=(j-yref)*yinc+yval;
+      cleanplat=true;
+    }
+
+    // Setup return array
+    DLong dims[2];
+    dims[0] = ny;
+    dims[1] = nx;
+    dimension dim((DLong *) dims, 2);
+    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::ZERO);
+    DLong ier=0;
+
+    //must be done here, unif_() below messes with plat and plon...
+    if (doXgrid) {
+      DDoubleGDL *xgrid=new DDoubleGDL(nx, BaseGDL::NOZERO);
+      for (int i=0; i<nx; ++i) (*xgrid)[i]=plon[i];
+      if (doDegree) for (int i=0; i<nx; ++i) (*xgrid)[i]/=DToR;
+      e->SetKW(xgridIx, xgrid);
+    }
+    if (doYgrid) {
+      DDoubleGDL *ygrid=new DDoubleGDL(ny, BaseGDL::NOZERO);
+      for (int i=0; i<ny; ++i) (*ygrid)[i]=plat[i];
+      if (doDegree) for (int i=0; i<ny; ++i) (*ygrid)[i]/=DToR;
+      e->SetKW(ygridIx, ygrid);
+    }
+    
+    DLong iflgs=0;
+    DLong iflgg=0;
+    DDouble grad=0.0;
+    DDouble sigma=1.;
+    DLong ret2=ssrfpack::unif_ (&npts,(DDouble*)xVal->DataAddr(), (DDouble*)yVal->DataAddr(),
+              (DDouble*)zVal->DataAddr(), (DDouble*)fval->DataAddr(),(DLong*)list->DataAddr(), (DLong*)lptr->DataAddr(),
+              (DLong*)lend->DataAddr(), &iflgs, &sigma, &ny, &ny, &nx, plat, plon, &iflgg, 
+	&grad, (DDouble*)res->DataAddr() , &ier);
+    if (cleanplon) free(plon);
+    if (cleanplat) free(plat);
+    if (ret2 != 0) {
+      if (ret2==-1) e->Throw("Error in SSRFPACK unif_() function: \"N, NI, NJ, or IFLGG is outside its valid range\".");
+      if (ret2==-2) e->Throw("Error in SSRFPACK unif_() function: Nodes are colinear");
+      if (ret2==-3) e->Throw("Error in SSRFPACK unif_() function: extrapolation failed due to the uniform grid extending too far beyond the triangulation boundary.");
+    }
+
+    return res->Transpose(NULL);
+  }
+
+  template< typename T1, typename T2>
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res) {
+
+
+
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
     //   z = A + Bx + Cy
@@ -678,83 +880,12 @@ namespace lib {
     //
     //   where ^x21 = x2 - x1, etc.
 
-    SizeT nParam = e->NParam();
-    if (nParam < 4)
-      e->Throw("Incorrect number of arguments.");
+    bool *found = new bool [nx * ny];
+    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
 
-    BaseGDL* p0 = e->GetParDefined(0);
-    BaseGDL* p1 = e->GetParDefined(1);
-    BaseGDL* p2 = e->GetParDefined(2);
-    BaseGDL* p3 = e->GetParDefined(3);
-
-    if (p0->N_Elements() != p1->N_Elements() ||
-      p0->N_Elements() != p2->N_Elements() ||
-      p1->N_Elements() != p2->N_Elements())
-      e->Throw("X, Y, or Z array dimensions are incompatible.");
-
-    if (p3->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(0));
-    if (p3->N_Elements() % 3 != 0)
-      e->Throw("Array of triangles incorrectly dimensioned.");
-    DLong n_tri = p3->N_Elements() / 3;
-
-    if (p0->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(0));
-    if (p0->N_Elements() < 3)
-      e->Throw("Value of Bounds is out of allowed range.");
-
-    if (p1->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(1));
-
-    if (p2->Rank() == 0)
-      e->Throw("Expression must be an array "
-      "in this context: " + e->GetParString(2));
-
-    if (p2->Rank() < 1 || p2->Rank() > 2)
-      e->Throw("Array must have 1 or 2 dimensions: "
-      + e->GetParString(0));
-
-    DDoubleGDL* GS = NULL;
-    DDoubleGDL* limits = NULL;
-    if (nParam > 4)
-    {
-      BaseGDL* p4 = e->GetParDefined(4);
-      if (p4->Rank() == 0)
-        e->Throw("Expression must be an array "
-        "in this context: " + e->GetParString(4));
-      if (p4->N_Elements() != 2)
-        e->Throw("Array must have 2 elements: "
-        + e->GetParString(4));
-      GS = static_cast<DDoubleGDL*>
-        (p4->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-
-      if (nParam == 6)
-      {
-        BaseGDL* p5 = e->GetParDefined(5);
-        if (p5->Rank() == 0)
-          e->Throw("Expression must be an array "
-          "in this context: " + e->GetParString(4));
-        if (p5->N_Elements() != 4)
-          e->Throw("Array must have 4 elements: "
-          + e->GetParString(5));
-        limits = static_cast<DDoubleGDL*>
-          (p5->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      }
-    }
-
-    DLong n_segx = 50;
-    DLong n_segy = 50;
-
+    // *** LOOP THROUGH TRIANGLES *** //
     DDouble diff[3][2];
     DDouble edge[3][3];
-
-    DDouble diff_pl[3][3];
-    DDouble edge_pl[3][3];
-    DDouble uv_tri[3][3];
-    DDouble uv_gridpt[3];
 
     DDouble delx10;
     DDouble delx21;
@@ -762,278 +893,537 @@ namespace lib {
     DDouble dely21;
     DDouble delz10;
     DDouble delz21;
-
-    DDouble A;
-    DDouble B;
-    DDouble C;
-
-    bool vertx = false;
-    bool verty = false;
-
-    DDouble lon;
-    DDouble lat;
-
-    DLong minxEl;
-    DLong maxxEl;
-    DLong minyEl;
-    DLong maxyEl;
-
-    // Get NX, NY values if present
-    static int nxix = e->KeywordIx("NX");
-    if (e->KeywordSet(nxix))
-    {
-      e->AssureLongScalarKW(nxix, n_segx);
-    }
-    static int nyix = e->KeywordIx("NY");
-    if (e->KeywordSet(nyix))
-    {
-      e->AssureLongScalarKW(nyix, n_segy);
-    }
-
-    DDoubleGDL* x_tri = static_cast<DDoubleGDL*>
-      (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-    DDoubleGDL* y_tri = static_cast<DDoubleGDL*>
-      (p1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-    DDoubleGDL* z = static_cast<DDoubleGDL*>
-      (p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-    DLongGDL* triangles = static_cast<DLongGDL*>
-      (p3->Convert2(GDL_LONG, BaseGDL::COPY));
-
-
-    //    bool sphere=false;
-    //int sphereix = e->KeywordIx( "SPHERE");
-    //if(e->KeywordSet(sphereix)) sphere = true;
-
-    DDouble xvsx[2];
-    DDouble yvsy[2];
-    bool map = false;
-
-//#ifdef USE_LIBPROJ4
-//    // Map Stuff (xtype = 3)
-//
-//    // Stuff needed for MAP keyword processing
-//    static int mapix = e->KeywordIx("MAP"); //trigrid_fun is standalone.
-//    BaseGDL* Map = e->GetKW(mapix);
-//    if (Map != NULL)
-//    {
-//      if (Map->N_Elements() != 4)
-//        e->Throw("Keyword array parameter MAP"
-//        "must have 4 elements.");
-//      map = true;
-//      Guard<DDoubleGDL> guard;
-//      DDoubleGDL* mapD = static_cast<DDoubleGDL*>
-//        (Map->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-//      guard.Reset(mapD);
-//      xvsx[0] = (*mapD)[0];
-//      xvsx[1] = (*mapD)[1];
-//      yvsy[0] = (*mapD)[2];
-//      yvsy[1] = (*mapD)[3];
-//    }
-//
-//    LPTYPE idata;
-//    XYTYPE odata;
-//
-//    if (map)
-//    {
-//      ref = map_init();
-//      if (ref == NULL)
-//      {
-//        e->Throw("Projection initialization failed.");
-//      }
-//
-//      // Convert lon/lat to x/y device coord
-//      for (SizeT i = 0; i < x_tri->N_Elements(); ++i)
-//      {
-//        idata.u = (*x_tri)[i] * DEG_TO_RAD;
-//        idata.v = (*y_tri)[i] * DEG_TO_RAD;
-//        odata = PJ_FWD(idata, ref);
-//        (*x_tri)[i] = odata.u * xvsx[1] + xvsx[0];
-//        (*y_tri)[i] = odata.v * yvsy[1] + yvsy[0];
-//      }
-//    }
-//#endif
-
-    // Determine grid range
-    x_tri->MinMax(&minxEl, &maxxEl, NULL, NULL, true);
-    y_tri->MinMax(&minyEl, &maxyEl, NULL, NULL, true);
-
-    DDouble x0;
-    DDouble y0;
-    DDouble x_span = (*x_tri)[maxxEl] - (*x_tri)[minxEl];
-    DDouble y_span = (*y_tri)[maxyEl] - (*y_tri)[minyEl];
-    if (limits != NULL)
-    {
-      x_span = (*limits)[2] - (*limits)[0];
-      y_span = (*limits)[3] - (*limits)[1];
-      x0 = (*limits)[0];
-      y0 = (*limits)[1];
-    } else
-    {
-      x0 = (*x_tri)[minxEl];
-      y0 = (*y_tri)[minyEl];
-    }
-
-    // Determine grid spacing
-    DDouble x_spacing = x_span / n_segx;
-    DDouble y_spacing = y_span / n_segy;
-    if (GS != NULL && !e->KeywordSet(nxix))
-    {
-      x_spacing = (*GS)[0];
-      n_segx = (DLong) (x_span / x_spacing);
-    }
-    if (GS != NULL && !e->KeywordSet(nyix))
-    {
-      y_spacing = (*GS)[1];
-      n_segy = (DLong) (y_span / y_spacing);
-    }
-    if (e->KeywordSet(nxix) && n_segx == 1) n_segx = 0;
-    if (e->KeywordSet(nyix) && n_segy == 1) n_segy = 0;
-
-    // Setup return array
-    DLong dims[2];
-    dims[0] = n_segx + 1;
-    dims[1] = n_segy + 1;
-    dimension dim((DLong *) dims, 2);
-    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::ZERO);
-
-    bool *found = new bool [(n_segx + 1)*(n_segy + 1)];
-    for (SizeT i = 0; i < (n_segx + 1)*(n_segy + 1); ++i) found[i] = false;
-
-    // *** LOOP THROUGH TRIANGLES *** //
+    DDouble A, B, C;
 
     // Loop through all triangles
-    for (SizeT i = 0; i < n_tri; ++i)
+    for (SizeT i = 0; i < ntri; ++i)
     {
 
-      DLong tri0 = (*triangles)[3 * i + 0];
-      DLong tri1 = (*triangles)[3 * i + 1];
-      DLong tri2 = (*triangles)[3 * i + 2];
+      DLong tri0 = (*tri)[3 * i + 0];
+      DLong tri1 = (*tri)[3 * i + 1];
+      DLong tri2 = (*tri)[3 * i + 2];
 
-      /*
-      // Convert lon/lat to x/y device coord
-      if ( map) {
-    idata.lam = (*x_tri)[tri0] * DEG_TO_RAD;
-    idata.phi = (*y_tri)[tri0] * DEG_TO_RAD;
-    odata = pj_fwd(idata, ref);
-    (*x_tri)[tri0] = odata.x *  xvsx[1] + xvsx[0];
-    (*y_tri)[tri0] = odata.y *  yvsy[1] + yvsy[0];
+      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
+      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
-    idata.lam = (*x_tri)[tri1] * DEG_TO_RAD;
-    idata.phi = (*y_tri)[tri1] * DEG_TO_RAD;
-    odata = pj_fwd(idata, ref);
-    (*x_tri)[tri1] = odata.x *  xvsx[1] + xvsx[0];
-    (*y_tri)[tri1] = odata.y *  yvsy[1] + yvsy[0];
+      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
+      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
 
-    idata.lam = (*x_tri)[tri2] * DEG_TO_RAD;
-    idata.phi = (*y_tri)[tri2] * DEG_TO_RAD;
-    odata = pj_fwd(idata, ref);
-    (*x_tri)[tri2] = odata.x *  xvsx[1] + xvsx[0];
-    (*y_tri)[tri2] = odata.y *  yvsy[1] + yvsy[0];
-      }
-       */
-      // *** PLANE INTERPOLATION *** //
-
-      delx10 = (*x_tri)[tri1] - (*x_tri)[tri0];
-      delx21 = (*x_tri)[tri2] - (*x_tri)[tri1];
-
-      dely10 = (*y_tri)[tri1] - (*y_tri)[tri0];
-      dely21 = (*y_tri)[tri2] - (*y_tri)[tri1];
-
-      delz10 = (*z)[tri1] - (*z)[tri0];
-      delz21 = (*z)[tri2] - (*z)[tri1];
+      delz10 = (*zVal)[tri1] - (*zVal)[tri0];
+      delz21 = (*zVal)[tri2] - (*zVal)[tri1];
 
       // Compute grid array
       for (SizeT j = 0; j < 3; ++j)
       {
-        DLong itri = (*triangles)[3 * i + j];
-        DLong ktri = (*triangles)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*x_tri)[ktri] - (*x_tri)[itri];
-        edge[j][1] = (*y_tri)[ktri] - (*y_tri)[itri];
+        DLong itri = (*tri)[3 * i + j];
+        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
+        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
+        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
       }
 
       C = (delx21 * delz10 - delx10 * delz21) /
         (delx21 * dely10 - delx10 * dely21);
       B = (delz10 - C * dely10) / delx10;
-      A = (*z)[tri0] - B * (*x_tri)[tri0] - C * (*y_tri)[tri0];
+      A = (*zVal)[tri0] - B * (*xVal)[tri0] - C * (*yVal)[tri0];
 
 
       // *** LOOP THROUGH GRID POINTS *** //
-
-      // Loop through all y-grid values
-      for (SizeT iy = 0; iy < n_segy + 1; ++iy)
+      if (domaxvalue || dominvalue)
       {
-        DDouble devy = y0 + iy * y_spacing;
-
-        // Loop through all x-grid values
-        for (SizeT ix = 0; ix < n_segx + 1; ++ix)
+        // Loop through all y-grid values
+        for (SizeT iy = 0; iy < ny; ++iy)
         {
-
-          if (found[iy * (n_segx + 1) + ix]) continue;
-
-          bool inside = true;
-          DDouble devx = x0 + ix * x_spacing;
-
-          // *** PLANE INTERPOLATION *** //
-
-          // Compute diff array for xy-values
-          for (SizeT j = 0; j < 3; ++j)
+          // Loop through all x-grid values
+          for (SizeT ix = 0; ix < nx; ++ix)
           {
-            DLong itri = (*triangles)[3 * i + j];
-            diff[j][0] = (*x_tri)[itri] - devx;
-            diff[j][1] = (*y_tri)[itri] - devy;
-          }
+            if (found[iy * nx + ix]) continue;
 
+            bool inside = true;
 
-          // Determine if inside triangle
-          for (SizeT ivert = 0; ivert < 3; ++ivert)
-          {
-            DLong kvert = (ivert + 1) % 3;
+            // *** PLANE INTERPOLATION *** //
 
-            DDouble crs1;
-            DDouble crs2;
-            crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-            crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-            if (crs1 * crs2 > 0)
+            // Compute diff array for xy-values
+            for (SizeT j = 0; j < 3; ++j)
             {
-              inside = false;
-              break;
+              DLong itri = (*tri)[3 * i + j];
+              diff[j][0] = (*xVal)[itri] - x[ix];
+              diff[j][1] = (*yVal)[itri] - y[iy];
             }
-          }
 
-          if (inside == true)
-          {
-            found[iy * (n_segx + 1) + ix] = true;
-            (*res)[iy * (n_segx + 1) + ix] = A + B * devx + C*devy;
-            if (map)
+
+            // Determine if inside triangle
+            for (SizeT ivert = 0; ivert < 3; ++ivert)
             {
-              //	      cout << setiosflags(ios::fixed);
-              //cout << setw(2);
-              //cout << setprecision(2);
-              //cout << left << "lon: "   << setw(10) << right << lon;
-              //cout << left << "  lat: " << setw(10) << right << lat; 
-              //cout << " in triangle: " << i << endl;
-            }
-          }
+              DLong kvert = (ivert + 1) % 3;
 
-        } // ix loop
-      } // iy loop
+              DDouble crs1;
+              DDouble crs2;
+              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
+              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
+              if (crs1 * crs2 > 0)
+              {
+                inside = false;
+                break;
+              }
+            }
+
+            if (inside == true)
+            {
+              found[iy * nx + ix] = true;
+              DDouble dres = A + B * x[ix] + C * y[iy];
+              if (dominvalue && dres < minVal) dres = missVal;
+              if (domaxvalue && dres > maxVal) dres = missVal;
+              (*res)[iy * nx + ix] = dres;
+            }
+
+          } // ix loop
+        } // iy loop
+      }//if minmax
+      else
+      {
+        // Loop through all y-grid values
+        for (SizeT iy = 0; iy < ny; ++iy)
+        {
+          // Loop through all x-grid values
+          for (SizeT ix = 0; ix < nx; ++ix)
+          {
+            if (found[iy * nx + ix]) continue;
+
+            bool inside = true;
+
+            // *** PLANE INTERPOLATION *** //
+
+            // Compute diff array for xy-values
+            for (SizeT j = 0; j < 3; ++j)
+            {
+              DLong itri = (*tri)[3 * i + j];
+              diff[j][0] = (*xVal)[itri] - x[ix];
+              diff[j][1] = (*yVal)[itri] - y[iy];
+            }
+
+
+            // Determine if inside triangle
+            for (SizeT ivert = 0; ivert < 3; ++ivert)
+            {
+              DLong kvert = (ivert + 1) % 3;
+
+              DDouble crs1;
+              DDouble crs2;
+              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
+              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
+              if (crs1 * crs2 > 0)
+              {
+                inside = false;
+                break;
+              }
+            }
+
+            if (inside == true)
+            {
+              found[iy * nx + ix] = true;
+              (*res)[iy * nx + ix] = A + B * x[ix] + C * y[iy];
+            }
+
+          } // ix loop
+        }
+      }
     } // i (triangle) loop
 
-    for (SizeT i = 0; i < (n_segx + 1)*(n_segy + 1); ++i)
+    delete[] found;
+
+  }
+  template<>
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
+    DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res) {
+
+
+
+    //   Compute plane parameters A,B,C given 3 points on plane.
+    //
+    //   z = A + Bx + Cy
+    //
+    //       (^x21^z10 - ^x10^z21)
+    //   C = --------------------- 
+    //       (^x21^y10 - ^x10^y21)
+    //
+    //       (^z10 - C*^y10)
+    //   B = ---------------
+    //            ^x10
+    //
+    //   A = z - Bx -Cy
+    //
+    //   where ^x21 = x2 - x1, etc.
+
+    bool *found = new bool [nx * ny];
+    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
+
+    // *** LOOP THROUGH TRIANGLES *** //
+    DDouble diff[3][2];
+    DDouble edge[3][3];
+
+    DDouble delx10;
+    DDouble delx21;
+    DDouble dely10;
+    DDouble dely21;
+    DDouble delz10r;
+    DDouble delz10i;
+    DDouble delz21r;
+    DDouble delz21i;
+    DDouble Ar, Br, Cr, Ai, Bi, Ci;
+
+    // Loop through all triangles
+    for (SizeT i = 0; i < ntri; ++i)
     {
-      if (found[i] == false && map)
+
+      DLong tri0 = (*tri)[3 * i + 0];
+      DLong tri1 = (*tri)[3 * i + 1];
+      DLong tri2 = (*tri)[3 * i + 2];
+
+      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
+      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
+
+      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
+      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
+
+      delz10r = (*zVal)[tri1].real() - (*zVal)[tri0].real();
+      delz10i = (*zVal)[tri1].imag() - (*zVal)[tri0].imag();
+      delz21r = (*zVal)[tri2].real() - (*zVal)[tri1].real();
+      delz21i = (*zVal)[tri2].imag() - (*zVal)[tri1].imag();
+
+      // Compute grid array
+      for (SizeT j = 0; j < 3; ++j)
       {
-        //	cout << i/(n_segy+1) << " ";
-        //cout << i - (i/(n_segy+1))*(n_segy+1);
-        //cout << " NOT in triangles." << endl;
-        //(*res)[i] = 0;
+        DLong itri = (*tri)[3 * i + j];
+        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
+        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
+        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
       }
-    }
+
+      Cr = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
+      Br = (delz10r - Cr * dely10) / delx10;
+      Ar = (*zVal)[tri0].real() - Br * (*xVal)[tri0] - Cr * (*yVal)[tri0];
+      Ci = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
+      Bi = (delz10i - Ci * dely10) / delx10;
+      Ai = (*zVal)[tri0].imag() - Bi * (*xVal)[tri0] - Ci * (*yVal)[tri0];
+
+
+      // *** LOOP THROUGH GRID POINTS *** //
+      if (domaxvalue || dominvalue)
+      {
+        // Loop through all y-grid values
+        for (SizeT iy = 0; iy < ny; ++iy)
+        {
+          // Loop through all x-grid values
+          for (SizeT ix = 0; ix < nx; ++ix)
+          {
+            if (found[iy * nx + ix]) continue;
+
+            bool inside = true;
+
+            // *** PLANE INTERPOLATION *** //
+
+            // Compute diff array for xy-values
+            for (SizeT j = 0; j < 3; ++j)
+            {
+              DLong itri = (*tri)[3 * i + j];
+              diff[j][0] = (*xVal)[itri] - x[ix];
+              diff[j][1] = (*yVal)[itri] - y[iy];
+            }
+
+
+            // Determine if inside triangle
+            for (SizeT ivert = 0; ivert < 3; ++ivert)
+            {
+              DLong kvert = (ivert + 1) % 3;
+
+              DDouble crs1;
+              DDouble crs2;
+              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
+              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
+              if (crs1 * crs2 > 0)
+              {
+                inside = false;
+                break;
+              }
+            }
+
+            if (inside == true)
+            {
+              found[iy * nx + ix] = true;
+              DDouble dres = Ar + Br * x[ix] + Cr * y[iy];
+              if (dominvalue && dres < minVal.real()) dres = missVal.real();
+              if (domaxvalue && dres > maxVal.real()) dres = missVal.real();
+              (*res)[iy * nx + ix].real() = dres;
+
+              dres = Ai + Bi * x[ix] + Ci * y[iy];
+              if (dominvalue && dres < minVal.imag()) dres = missVal.imag();
+              if (domaxvalue && dres > maxVal.imag()) dres = missVal.imag();
+              (*res)[iy * nx + ix].imag() = dres;
+            }
+
+          } // ix loop
+        } // iy loop
+      }//if minmax
+      else
+      {
+        // Loop through all y-grid values
+        for (SizeT iy = 0; iy < ny; ++iy)
+        {
+          // Loop through all x-grid values
+          for (SizeT ix = 0; ix < nx; ++ix)
+          {
+            if (found[iy * nx + ix]) continue;
+
+            bool inside = true;
+
+            // *** PLANE INTERPOLATION *** //
+
+            // Compute diff array for xy-values
+            for (SizeT j = 0; j < 3; ++j)
+            {
+              DLong itri = (*tri)[3 * i + j];
+              diff[j][0] = (*xVal)[itri] - x[ix];
+              diff[j][1] = (*yVal)[itri] - y[iy];
+            }
+
+
+            // Determine if inside triangle
+            for (SizeT ivert = 0; ivert < 3; ++ivert)
+            {
+              DLong kvert = (ivert + 1) % 3;
+
+              DDouble crs1;
+              DDouble crs2;
+              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
+              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
+              if (crs1 * crs2 > 0)
+              {
+                inside = false;
+                break;
+              }
+            }
+
+            if (inside == true)
+            {
+              found[iy * nx + ix] = true;
+              (*res)[iy * nx + ix].real() = Ar + Br * x[ix] + Cr * y[iy];
+              (*res)[iy * nx + ix].imag() = Ai + Bi * x[ix] + Ci * y[iy];;
+            }
+
+          } // ix loop
+        }
+      }
+    } // i (triangle) loop
 
     delete[] found;
-    return res;
+
   }
 
+  BaseGDL* trigrid_fun_plane(EnvT* e) {
+    SizeT nParam = e->NParam();
+    if (nParam < 4) e->Throw("Incorrect number of arguments.");
+    //OK, trigrid does not care if more than 3 args in sphere mode. Limit at 6 is done at interpreter level.
+
+
+    BaseGDL* p0 = e->GetParDefined(0); //x
+    BaseGDL* p1 = e->GetParDefined(1); //y
+    BaseGDL* p2 = e->GetParDefined(2); //z
+
+    DType type=GDL_FLOAT;
+    bool isComplex=(p2->Type()==GDL_COMPLEX || p2->Type()==GDL_COMPLEXDBL);
+    if (p2->Type()==GDL_DOUBLE || p2->Type()==GDL_COMPLEXDBL) type=GDL_DOUBLE;
+
+    BaseGDL* p3 = e->GetParDefined(3); //triangles
+
+    if (p0->N_Elements() != p1->N_Elements() ||
+      p0->N_Elements() != p2->N_Elements() ||
+      p1->N_Elements() != p2->N_Elements())
+      e->Throw("X, Y, or Z array dimensions are incompatible.");
+
+    if (p0->N_Elements() < 3) e->Throw("Value of Bounds is out of allowed range.");
+
+    if (p3->Rank() == 0)            e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+    if (p3->N_Elements() % 3 != 0)  e->Throw("Array of triangles incorrectly dimensioned.");
+
+    DLong ntri = p3->N_Elements() / 3;
+
+    if (p0->Rank() == 0)      e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+    if (p1->Rank() == 0)      e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+    if (p2->Rank() == 0)      e->Throw("Expression must be an array in this context: " + e->GetParString(2));
+
+    static int xoutIx=e->KeywordIx( "XOUT");
+    bool doXout=(e->KeywordSet(xoutIx)); 
+    static int youtIx=e->KeywordIx( "YOUT");
+    bool doYout=(e->KeywordSet(youtIx));
+    if ((doXout && !doYout) || (doYout && !doXout)) e->Throw("Incorrect number of arguments.");
+    static int xgridIx=e->KeywordIx( "XGRID");
+    bool doXgrid=(e->KeywordPresent(xgridIx));
+    static int ygridIx=e->KeywordIx( "YGRID");
+    bool doYgrid=(e->KeywordPresent(ygridIx));
+
+    // Get NX, NY values if present
+    DLong nx = 51;
+    DLong ny = 51;
+    static int nxIx = e->KeywordIx("NX");
+    static int nyIx = e->KeywordIx("NY");
+    bool canUseLimitsx=true;
+    bool canUseLimitsy=true;
+    if (e->KeywordSet(nxIx)) { canUseLimitsx=false; e->AssureLongScalarKW(nxIx, nx);}
+    if (e->KeywordSet(nyIx)) { canUseLimitsy=false; e->AssureLongScalarKW(nyIx, ny);}
+    if (nx < 1 || ny < 1) e->Throw("Array dimensions must be greater than 0.");
+    // we will further on define GS, whose value may overwrite the nx, ny.
+ 
+    DDoubleGDL* GS = NULL;
+    DDoubleGDL* limits = NULL;
+    if (nParam > 4)
+    {
+      BaseGDL* p4 = e->GetParDefined(4);
+      if (p4->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(4));
+      if (p4->N_Elements() != 2) e->Throw("Array must have 2 elements: " + e->GetParString(4));
+      GS = static_cast<DDoubleGDL*>(p4->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+    }
+    if (nParam == 6)
+    {
+      BaseGDL* p5 = e->GetParDefined(5);
+      if (p5->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(5));
+      if (p5->N_Elements() != 4) e->Throw("Array must have 4 elements: " + e->GetParString(5));
+      limits = static_cast<DDoubleGDL*> (p5->Convert2(GDL_DOUBLE, BaseGDL::COPY));      
+    }
+    DLong minxEl;
+    DLong maxxEl;
+    DLong minyEl;
+    DLong maxyEl;
+    DDoubleGDL* xVal = static_cast<DDoubleGDL*>(p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+    DDoubleGDL* yVal = static_cast<DDoubleGDL*>(p1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+    DLongGDL* tri = static_cast<DLongGDL*>(p3->Convert2(GDL_LONG, BaseGDL::COPY));
+    //get min max X Y.
+    xVal->MinMax(&minxEl, &maxxEl, NULL, NULL, true);
+    yVal->MinMax(&minyEl, &maxyEl, NULL, NULL, true);
+    // Determine grid range
+    DLong xref=0, yref=0;
+    DDouble xval = (*xVal)[minxEl];
+    DDouble yval = (*yVal)[minyEl];
+    DDouble xrange = (*xVal)[maxxEl] - (*xVal)[minxEl];
+    DDouble yrange = (*yVal)[maxyEl] - (*yVal)[minyEl];
+    //compute World positions of each pixels.
+    if (limits != NULL)
+    {
+      if (canUseLimitsx) {
+        xval = (*limits)[0];
+        xrange = (*limits)[2] - xval;
+      }
+      if (canUseLimitsy) {
+        yval = (*limits)[1];
+        yrange = (*limits)[3] - yval;
+      }
+    }
+    // Determine grid spacing
+    DDouble xinc = xrange / (nx-1);
+    DDouble yinc = yrange / (ny-1);
+    if (GS != NULL && canUseLimitsx)
+    {
+      xinc = (*GS)[0];
+      nx = (DLong) (xrange / xinc) +1;
+    }
+    if (GS != NULL && canUseLimitsy)
+    {
+      yinc = (*GS)[1];
+      ny = (DLong) (yrange / yinc) +1;
+    }
+
+    DDouble *x, *y;
+    bool cleanx=false;
+    bool cleany=false;
+
+    if (doXout) {
+      DDoubleGDL* xOut=e->GetKWAs<DDoubleGDL>(xoutIx);
+      nx=xOut->N_Elements();
+      if (nx < 1) e->Throw("XOUT must have >1 elements.");
+      x=(DDouble*)xOut->DataAddr();
+    } else {
+      x = (DDouble*)malloc(nx*sizeof(DDouble));
+      for (int i=0; i<nx; ++i) x[i]=(i-xref)*xinc+xval;
+      cleanx=true;
+    }
+
+    if (doYout) {
+      DDoubleGDL* yOut=e->GetKWAs<DDoubleGDL>(youtIx);
+      ny=yOut->N_Elements();
+      if (ny < 1) e->Throw("YOUT must have >1 elements.");
+      y=(DDouble*)yOut->DataAddr();
+    } else {
+      y = (DDouble*)malloc(ny*sizeof(DDouble));
+      for (int j=0; j<ny; ++j) y[j]=(j-yref)*yinc+yval;
+      cleany=true;
+    }
+
+    //must be done here
+    if (doXgrid) {
+      DDoubleGDL *xgrid=new DDoubleGDL(nx, BaseGDL::NOZERO);
+      for (int i=0; i<nx; ++i) (*xgrid)[i]=x[i];
+      e->SetKW(xgridIx, xgrid);
+    }
+    if (doYgrid) {
+      DDoubleGDL *ygrid=new DDoubleGDL(ny, BaseGDL::NOZERO);
+      for (int i=0; i<ny; ++i) (*ygrid)[i]=y[i];
+      e->SetKW(ygridIx, ygrid);
+    }
+
+
+    // Setup return array
+    DLong dims[2];
+    dims[0] = nx;
+    dims[1] = ny;
+    dimension dim((DLong *) dims, 2);
+
+    if (isComplex) {
+      DComplexDblGDL* minValG=NULL;
+      static int minvalueIx=e->KeywordIx( "MIN_VALUE");
+      bool dominvalue=(e->KeywordPresent(minvalueIx));
+      if (dominvalue) minValG=e->GetKWAs<DComplexDblGDL>(minvalueIx);
+      DComplexDblGDL* maxValG=NULL;
+      static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
+      bool domaxvalue=(e->KeywordPresent(maxvalueIx));
+      if (domaxvalue) maxValG=e->GetKWAs<DComplexDblGDL>(maxvalueIx);
+      DComplexDblGDL* missValG=NULL;
+      static int missvalueIx=e->KeywordIx( "MISSING");
+      if (e->KeywordPresent(missvalueIx)) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
+      DComplexDblGDL* zVal = static_cast<DComplexDblGDL*>(p2->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::ZERO);
+      DComplexDbl minVal=std::complex<double>(0,0);
+      if (minValG!=NULL) minVal=std::complex<double>((*minValG)[0].real(),(*minValG)[0].imag());
+      DComplexDbl maxVal=std::complex<double>(0,0);
+      if (maxValG!=NULL) maxVal=std::complex<double>((*maxValG)[0].real(),(*maxValG)[0].imag());
+      DComplexDbl missVal=std::complex<double>(0,0);
+      if (missValG!=NULL) missVal=std::complex<double>((*missValG)[0].real(),(*missValG)[0].imag());
+      gdlGrid2DData< DComplexDblGDL, DComplexDbl>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res);
+      if (type==GDL_FLOAT) return res->Convert2(GDL_COMPLEX,BaseGDL::CONVERT); else return res;
+    }else{
+      DDouble minVal=0;
+      static int minvalueIx=e->KeywordIx( "MIN_VALUE");
+      bool dominvalue=(e->KeywordPresent(minvalueIx));
+      if (dominvalue) e->AssureDoubleScalarKW(minvalueIx, minVal);
+      DDouble maxVal=0;
+      static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
+      bool domaxvalue=(e->KeywordPresent(maxvalueIx));
+      if (domaxvalue) e->AssureDoubleScalarKW(maxvalueIx, maxVal);
+      DDouble missVal=0.0;
+      static int missvalueIx=e->KeywordIx( "MISSING");
+      e->AssureDoubleScalarKWIfPresent(missvalueIx, missVal);
+      DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::ZERO);    
+      gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res);
+      if (type==GDL_FLOAT) return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT); else return res;
+    }
+  }
+  
+
+  BaseGDL* trigrid_fun(EnvT* e) {
+    //just send to normal or spherical based on presence of SPHERE argument
+    static int sphereIx = e->KeywordIx( "SPHERE");
+    if(e->KeywordPresent(sphereIx)) return trigrid_fun_spherical(e); else return trigrid_fun_plane(e);
+  }
+  
   void grid_input(EnvT* e) {
     e->Throw("Writing in progress.");
   }
