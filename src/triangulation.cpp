@@ -24,80 +24,11 @@
 
 using namespace std;
 
-//if we ever want to use the TRIANGLE library, even if it fails on gridded data? This code is a starting point.
-//#define USE_TRIANGLE 1
-#define USE_TRIPACK 1
-
-#ifdef USE_TRIANGLE
-
-#define REAL double //as in triangle.c by default!
-#include "triangle.c"
-
-static void triangulateio_init( struct triangulateio* io )
-{
-    io->pointlist                  = NULL;
-    io->pointattributelist         = NULL;
-    io->pointmarkerlist            = NULL;
-    io->numberofpoints             = 0;
-    io->numberofpointattributes    = 0;
-    io->trianglelist               = NULL;
-    io->triangleattributelist      = NULL;
-    io->trianglearealist           = NULL;
-    io->neighborlist               = NULL;
-    io->numberoftriangles          = 0;
-    io->numberofcorners            = 0;
-    io->numberoftriangleattributes = 0;
-    io->segmentlist                = 0;
-    io->segmentmarkerlist          = NULL;
-    io->numberofsegments           = 0;
-    io->holelist        = NULL;
-    io->numberofholes   = 0;
-    io->regionlist      = NULL;
-    io->numberofregions = 0;
-    io->edgelist        = NULL;
-    io->edgemarkerlist  = NULL;
-    io->normlist        = NULL;
-    io->numberofedges   = 0;
-}
-
-static void triangulateio_destroy( struct triangulateio* io )
-{
-    if ( io->pointlist != NULL )
-        free( io->pointlist );
-    if ( io->pointattributelist != NULL )
-        free( io->pointattributelist );
-    if ( io->pointmarkerlist != NULL )
-        free( io->pointmarkerlist );
-    if ( io->trianglelist != NULL )
-        free( io->trianglelist );
-    if ( io->triangleattributelist != NULL )
-        free( io->triangleattributelist );
-    if ( io->trianglearealist != NULL )
-        free( io->trianglearealist );
-    if ( io->neighborlist != NULL )
-        free( io->neighborlist );
-    if ( io->segmentlist != NULL )
-        free( io->segmentlist );
-    if ( io->segmentmarkerlist != NULL )
-        free( io->segmentmarkerlist );
-    if ( io->holelist != NULL )
-        free( io->holelist );
-    if ( io->regionlist != NULL )
-        free( io->regionlist );
-    if ( io->edgelist != NULL )
-        free( io->edgelist );
-    if ( io->edgemarkerlist != NULL )
-        free( io->edgemarkerlist );
-    if ( io->normlist != NULL )
-        free( io->normlist );
-}
-#endif 
-#if USE_TRIPACK
-//default is use tripack and stripack
 #include "tripack.c"
 #include "stripack.c"
 #include "ssrfpack.c"
-#endif
+//#include "akima760.c"
+//#include "akima761.c"
 
 namespace lib {
 
@@ -157,280 +88,6 @@ namespace lib {
 // TOLERANCE KW not useful.
 //    if (e->KeywordPresent(tolIx)) e->AssureDoubleScalarKW(tolIx,tol); if (tol<=0.0) tol=1e-12*maxVal;
 
-#ifdef USE_TRIANGLE
-    struct triangulateio in, out;
-    triangulateio_init(&in);
-    triangulateio_init(&out);
-    in.numberofpoints = npts;
-    in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof (REAL));
-    for (SizeT i = 0, k = 0; i < npts; ++i)
-    {
-      in.pointlist[k++] = (*yVal)[i]; //inverted x and y to insure ccw order in the following code.
-      in.pointlist[k++] = (*xVal)[i];
-    }
-    char tristring[32] = "ceznCQ";
-
-    triangulate(tristring, &in, &out, NULL);
-    if (out.numberoftriangles < 1) e->Throw("Triangulation failed.");
-
-    SizeT d[2];
-    d[1] = out.numberoftriangles;
-    d[0] = out.numberofcorners;
-    DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
-
-    for (SizeT itri = 0, k = 0; itri < out.numberoftriangles; ++itri)
-    {
-      (*returned_triangles)[k] = out.trianglelist[k++];
-      (*returned_triangles)[k] = out.trianglelist[k++];
-      (*returned_triangles)[k] = out.trianglelist[k++];
-    }
-    //pass back to GDL env:
-    e->SetPar(2, returned_triangles);
-    
-    if (wantsEdge) {
-      //create a list of triangles having two external points
-      std::list<DLong> trianglelist;
-      for (SizeT jtri = 0; jtri < out.numberoftriangles; ++jtri) {
-        int ngood=0;
-        for (int ipos=0; ipos< 3; ++ipos) {
-            DLong corner=out.trianglelist[jtri*3 +ipos];
-            if (out.pointmarkerlist[corner]>0) ngood++; //good one
-        }
-        if (ngood > 1) trianglelist.push_back(jtri);
-      }
-      //start with any external point
-      DLong next=-1;
-      DLong curr=-1;
-      for (SizeT i = 0; i < out.numberofpoints; ++i) {
-        if (out.pointmarkerlist[i]>0) {
-          curr=i;
-          next=curr;
-          break;
-        }
-      }
-      std::list<DLong> vertexlist;
-      //find sucessively in triangles the "next" of next
-      do
-      { //find triangle containing next and another external point.
-        for (std::list<DLong>::iterator it = trianglelist.begin(); it != trianglelist.end(); it++)
-        {
-          bool found=false;
-          int pos=-1;
-          for (int ipos=0; ipos< 3; ++ipos) {
-            DLong corner=out.trianglelist[(*it)*3 +ipos];
-            if (corner == curr) {found=true;} //good one
-            if (corner != curr && out.pointmarkerlist[corner]>0) pos=ipos;
-          }
-          if (found && pos>-1) {
-            vertexlist.push_front(curr);
-            next=out.trianglelist[(*it)*3 + pos];
-            break;
-          }
-        }
-        //remove all triangles containing the old point curr:
-        for (std::list<DLong>::iterator it = trianglelist.begin(); it != trianglelist.end(); it++)
-        {
-          bool erase=false;
-          for (int ipos=0; ipos< 3; ++ipos) {
-            DLong corner=out.trianglelist[(*it)*3 +ipos];
-            if (corner == curr) erase=true;
-          }
-          if (erase) it=trianglelist.erase(it);
-        }
-        curr=next;
-      } while (trianglelist.size());
-      vertexlist.push_front(next); //last of its kind
-      //if we started on the "wrong" side, this array may still be in cw order. check and transpose eventually.
-      bool cw=false;
-      DDouble x[3];
-      DDouble y[3];
-      DDouble rot=0;
-      std::list<DLong>::iterator it = vertexlist.begin();
-      do {
-        for (int k=0; (k<3 && it!=vertexlist.end()) ; ++k) {
-          x[k]=out.pointlist[2*(*it)];
-          y[k]=out.pointlist[2*(*it)+1];
-          it++;
-        }
-        rot=(((x[2]-x[0])*(y[1]-y[0]))-((x[1]-x[0])*(y[2]-y[0])));
-      } while (rot==0.0);
-      if (rot<0) { //we are in the wrong order, note it
-        cw=true;
-      }
-      
-      DLongGDL* returned_edges = new DLongGDL(vertexlist.size(), BaseGDL::NOZERO);
-      if (cw) {DLong k=vertexlist.size(); for (std::list<DLong>::iterator it = vertexlist.begin(); it != vertexlist.end(); it++) (*returned_edges)[--k]=(*it);}
-      else {DLong k=0; for (std::list<DLong>::iterator it = vertexlist.begin(); it != vertexlist.end(); it++) (*returned_edges)[k++]=(*it);}
-      e->SetPar(3, returned_edges);
-      vertexlist.clear();
-    }
-    if (doConnectivity) {
-      DLong hugearray[npts*npts];
-      DLong startindex=0; //runinng index of the npts+1 values for the intervals
-      DLong hugearrayindex=npts+1; //running index in hugearray: starts;
-      for (SizeT ipoint = 0; ipoint < out.numberofpoints;  ++ipoint) {
-        std::list<DLong> vertexlist;
-        std::list<DLong> trianglelist;
-        DLong nconnects=0;
-        bool externalpoint = ( out.pointmarkerlist[ipoint]>0 ); //special procedure in this case
-
-        //find all triangles containing ipoint
-        for (SizeT jtri = 0; jtri < out.numberoftriangles; ++jtri)
-        {
-          for (int ipos=0; ipos< 3; ++ipos) if (out.trianglelist[jtri*3+ipos]==ipoint) {trianglelist.push_back(jtri); break;}
-        }
-
-// for tests
-//        cerr <<trianglelist.size()<<endl;
-//        for (std::list<DLong>::iterator it = trianglelist.begin(); it != trianglelist.end(); it++) {for (SizeT ncor=0; ncor< 3; ++ncor) cerr<<out.trianglelist[(*it)*3 +ncor]<<","; cerr<<endl;} 
-
-        DLong element=ipoint;
-        DLong next;
-        // take first triangle, get the 2 other points, they start the ordered list of neighbours. In the case ipoint
-        // is on a boundary (hull) we must start with the most external triangle, not the first
-        std::list<DLong>::iterator firsttriangle=trianglelist.begin();
-        DLong jtriangle=(*firsttriangle); //by default
-        if ( externalpoint ) { //find triangle j where there is an other external point
-          for (std::list<DLong>::iterator it = trianglelist.begin(); it != trianglelist.end(); it++) {
-            bool fnd=false;
-            for (SizeT ncor=0; ncor< 3; ++ncor) {
-              DLong corner=out.trianglelist[(*it)*3 +ncor];
-              if (corner!=ipoint && out.pointmarkerlist[corner]>0) {
-                firsttriangle=it;
-                jtriangle=(*firsttriangle);
-                fnd=true;
-                break;
-              }
-            }
-            if (fnd) break;
-          }
-        }
-        int centerpos;
-        for (int ipos=0; ipos< 3; ++ipos) if (out.trianglelist[jtriangle*3 +ipos] == ipoint) {centerpos=ipos; break;}
-        switch (centerpos)
-        {
-          case 0:
-            element = out.trianglelist[jtriangle * 3 + 1];
-            if (!externalpoint || out.pointmarkerlist[element]>0) //we should use the other point as next and write this one which is on the border.
-            {
-              vertexlist.push_front(element); //triangle.c writes triangles clockwise. IDL writes them ccwise.
-              next = out.trianglelist[jtriangle * 3 + 2]; // next triangle to find contains [ipoint,next]. next will be added to list and the 3rd element will be next, etc.
-            }
-            else //external point which is not the next-in-line in triangle
-            {
-              vertexlist.push_front(out.trianglelist[jtriangle * 3 + 2]); //triangle.c writes triangles clockwise. IDL writes them ccwise.
-              next = element; // next triangle to find contains [ipoint,next]. next will be added to list and the 3rd element will be next, etc.
-            }
-            break;
-          case 1:
-            element = out.trianglelist[jtriangle * 3 + 2];
-            if (!externalpoint || out.pointmarkerlist[element]>0) 
-            {
-              vertexlist.push_front(element);
-              next = out.trianglelist[jtriangle * 3 ];
-            } 
-            else
-            {
-              vertexlist.push_front(out.trianglelist[jtriangle * 3 ]);
-              next = element;
-            }
-            break;
-          case 2:
-            element = out.trianglelist[jtriangle * 3];
-            if (!externalpoint || out.pointmarkerlist[element]>0) 
-            {
-              vertexlist.push_front(element);
-              next = out.trianglelist[jtriangle * 3 + 1];
-            }
-            else
-            {
-              vertexlist.push_front(out.trianglelist[jtriangle * 3 + 1]);
-              next = element;
-            }
-            break;
-        }
-        //remove this triangle;
-        trianglelist.erase(firsttriangle);  
-        do
-        { //find triangle containing next.
-
-          for (std::list<DLong>::iterator it = trianglelist.begin(); it != trianglelist.end(); it++)
-          {
-            bool found=false;
-            int pos1,pos2;
-            for (int ipos=0; ipos< 3; ++ipos) {
-              if (out.trianglelist[(*it)*3 +ipos] == next) {pos2=ipos; found=true;} //good one
-              if (out.trianglelist[(*it)*3 +ipos] == ipoint) pos1=ipos;
-            }
-            if (found) {
-              vertexlist.push_front(next);
-              int tot=pos1+pos2;
-              switch (tot) {
-                case 1:  next=out.trianglelist[(*it)*3 + 2]; break;
-                case 2:  next=out.trianglelist[(*it)*3 + 1]; break;
-                case 3:  next=out.trianglelist[(*it)*3 + 0]; break;
-              }
-              trianglelist.erase(it);
-              break;
-            }
-          }
-        } while (trianglelist.size());
-
-        //close last triangle if we are on a border, and we must:
-        bool cw=false;
-        if ( externalpoint ) {
-          assert( out.pointlist[next] > 0 );
-          vertexlist.push_front(next);
-        //start with ipoint if ipoint is on the border. This is the sign in IDL that the point lies on the border.
-          vertexlist.push_front(ipoint);
-        //if we started on the "wrong" side, this array may still be in cw order. check and transpose eventually.
-          DDouble x[3];
-          DDouble y[3];
-          DDouble rot=0;
-          std::list<DLong>::iterator it = vertexlist.begin();
-          do {
-            for (int k=0; (k<3 && it!=vertexlist.end()) ; ++k) {
-              x[k]=out.pointlist[2*(*it)];
-              y[k]=out.pointlist[2*(*it)+1];
-              it++;
-            }
-            rot=(((x[2]-x[0])*(y[1]-y[0]))-((x[1]-x[0])*(y[2]-y[0])));
-          } while (rot==0.0);
-          if (rot<0) { //we are in the wrong order, note it
-            cw=true;
-          }
-//          cerr<<"point "<<ipoint<<" rot= "<<rot<<" cw="<<cw<<endl;
-        }
-
-
-// for tests
-//        cerr<<"point "<<ipoint<<": "; for (std::list<DLong>::iterator it = vertexlist.begin(); it != vertexlist.end(); it++) cerr<<(*it)<<","; cerr<<endl;
-                
-        //write list values in hugearray
-        nconnects=vertexlist.size();
-        DLong currentnodesstartindex=hugearrayindex;
-        hugearray[startindex++]=hugearrayindex;
-        for (std::list<DLong>::iterator it = vertexlist.begin(); it != vertexlist.end(); it++) hugearray[hugearrayindex++]=*it;
-        hugearray[startindex]=hugearrayindex;
-        //if cw, rewrite it in reverse order (simpler than changing lines above. First element should not be changed (it is ipoint) according to IDL's unwritten rules:
-        if (cw) {
-          DLong reverse_index=hugearrayindex;
-          std::list<DLong>::iterator it = vertexlist.begin(); it++;
-          for (; it != vertexlist.end(); it++) hugearray[--reverse_index]=(*it);
-        }
-        vertexlist.clear();
-        trianglelist.clear();
-      }
-      DLongGDL* connections = new DLongGDL(hugearrayindex, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < hugearrayindex; ++i) (*connections)[i]=hugearray[i];
-      e->SetKW(connIx,connections);
-    }
-
-    triangulateio_destroy(&out);
-    triangulateio_destroy(&in);
-#endif
-
-#ifdef USE_TRIPACK
     //Insure first triangle is not colinear. If it is, move first point infinitesimally. Revert to initial value at end of triangulation...
     bool revertToInitialPoint=false;
     DDouble x[3];
@@ -470,15 +127,15 @@ namespace lib {
       DLongGDL* list=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lptr=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lend=new DLongGDL(npts,BaseGDL::NOZERO);
-      DLong* near=(DLong*)malloc(npts*sizeof(DLong));
+      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //initial name "near" would not work as this is reserved in Windows C. 
       DLong* next=(DLong*)malloc(npts*sizeof(DLong));
       DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
       DLong ier=0;
       DLong lnew=0;
-      DLong ret1=stripack::sph_trmesh_(&npts,(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr(), (DLong*)list->DataAddr(), (DLong*)lptr->DataAddr(), (DLong*)lend->DataAddr(), &lnew, near, next, dist, &ier);
+      DLong ret1=stripack::sph_trmesh_(&npts,(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr(), (DLong*)list->DataAddr(), (DLong*)lptr->DataAddr(), (DLong*)lend->DataAddr(), &lnew, near__, next, dist, &ier);
       free(dist);
       free(next);
-      free(near);
+      free(near__);
       if (ier !=0) {
         GDLDelete(list);
         GDLDelete(lptr);
@@ -574,14 +231,14 @@ namespace lib {
       DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
       DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
       DLong* lend=(DLong*)malloc(npts*sizeof(DLong));
-      DLong* near=(DLong*)malloc(npts*sizeof(DLong));
+      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //"near" is reserved in Windows C.
       DLong* next=(DLong*)malloc(npts*sizeof(DLong));
       DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
       DLong ier=0;
       DLong lnew=0;
 
-      DLong ret1=tripack::trmesh_(&npts, (DDouble*)xVal->DataAddr() , (DDouble*)yVal->DataAddr(), list, lptr, lend, &lnew, near, next, dist, &ier);
-      free(near);
+      DLong ret1=tripack::trmesh_(&npts, (DDouble*)xVal->DataAddr() , (DDouble*)yVal->DataAddr(), list, lptr, lend, &lnew, near__, next, dist, &ier);
+      free(near__);
       free(next);
       free(dist);
       if (ier !=0) {
@@ -667,7 +324,6 @@ namespace lib {
       (*xVal)[0]-=tol;
       (*yVal)[0]+=tol;
     }
-#endif
   }
 
   
@@ -753,16 +409,12 @@ namespace lib {
     DLong npts=fval->N_Elements();
     if (xVal->N_Elements()<npts) npts=xVal->N_Elements();
     
-//    //get min max X Y.
-//    DLong minxEl,maxxEl,minyEl,maxyEl;
-//    xVal->MinMax(&minxEl, &maxxEl, NULL, NULL, true);
-//    yVal->MinMax(&minyEl, &maxyEl, NULL, NULL, true);
     // Determine grid range
     DDouble xref=0.0, yref=0.0;
     DDouble xval, xinc;
     DDouble yval, yinc;
-    DDouble xrange; // = (*xVal)[maxxEl] - (*xVal)[minxEl];
-    DDouble yrange; // = (*yVal)[maxyEl] - (*yVal)[minyEl];
+    DDouble xrange; 
+    DDouble yrange;
     //compute World positions of each pixels.
     if ((*limits)[0]==(*limits)[2] || (*limits)[0]==(*limits)[2]) e->Throw("Inconsistent coordinate bounds.");
     xval = (*limits)[0];
@@ -861,9 +513,6 @@ namespace lib {
 
   template< typename T1, typename T2>
   void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res) {
-
-
-
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
     //   z = A + Bx + Cy
@@ -1032,12 +681,10 @@ namespace lib {
     delete[] found;
 
   }
+//version for Complex Values.
   template<>
   void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
     DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res) {
-
-
-
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
     //   z = A + Bx + Cy
