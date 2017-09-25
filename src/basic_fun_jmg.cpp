@@ -754,149 +754,164 @@ namespace lib {
     return NULL;
   }
 
-  BaseGDL* make_array( EnvT* e)
-  {
-    DLong type=0;
-    static int typeIx = e->KeywordIx( "TYPE"); 
-    e->AssureLongScalarKWIfPresent( typeIx, type);
+  BaseGDL* make_array(EnvT* e) {
+    DLong type = 0;
+    static int typeIx = e->KeywordIx("TYPE");
+    e->AssureLongScalarKWIfPresent(typeIx, type);
 
-    DLongGDL* dimKey=NULL;
+    DLongGDL* dimKey = NULL;
     Guard<DLongGDL> dimKey_guard;
 
-    static int sizeix = e->KeywordIx( "SIZE"); 
-    static int dimensionix = e->KeywordIx( "DIMENSION"); 
-    static int indexix = e->KeywordIx( "INDEX"); 
+    static int sizeix = e->KeywordIx("SIZE");
+    static int dimensionix = e->KeywordIx("DIMENSION");
+    static int indexix = e->KeywordIx("INDEX");
 
     BaseGDL* size = e->GetKW(sizeix);
     BaseGDL* b_dimension = e->GetKW(dimensionix);
-    if(b_dimension != NULL)
+    if (b_dimension != NULL)
+    {
+      DLongGDL* l_dimension = e->GetKWAs<DLongGDL>(dimensionix);
+      //check null dimensions, its an error:
+      for (int i = 0; i < l_dimension->N_Elements(); ++i) if ((*l_dimension)[i] < 1) e->Throw("Array dimensions must be greater than 0.");
+      if (e->NParam() == 0 && size == NULL)
       {
-	DLongGDL* l_dimension = e->GetKWAs<DLongGDL>( dimensionix);
-	if(e->NParam() == 0 && size == NULL) 
-	  {
-	    dimension dim(l_dimension->N_Elements(),1);
-	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
-	    dimKey_guard.Reset( dimKey); //e->Guard( dimKey);
-	    for (int i=0;i<l_dimension->N_Elements();++i)
-	      (*dimKey)[i]=(*l_dimension)[i];
-	  }
-	  
-      } 
-    else if(size != NULL)
-      {
-	DLongGDL* l_size = e->GetKWAs<DLongGDL>( sizeix);
-	if( l_size->N_Elements() < 4 || l_size->N_Elements() > 11)
-	  e->Throw("Keyword array parameter SIZE must have from "
-		   "4 to 11 elements.");
-	type=(*l_size)[(*l_size)[0]+1];
-	if(e->NParam() == 0) 
-	  {
-	    dimension dim((*l_size)[0],1);
-	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
-	    dimKey_guard.Reset( dimKey); //e->Guard( dimKey);
-	    //	    e->Guard( dimKey);
-	    for (int i=1;i<=(*l_size)[0];++i)
-	      (*dimKey)[i-1]=(*l_size)[i];
-	  }
-	    
+        dimension dim(l_dimension->N_Elements(), 1);
+        dimKey = new DLongGDL(dim, BaseGDL::NOZERO);
+        dimKey_guard.Reset(dimKey); //e->Guard( dimKey);
+        for (int i = 0; i < l_dimension->N_Elements(); ++i)
+          (*dimKey)[i] = (*l_dimension)[i];
       }
 
-    if( type < 0 || type > GDL_ULONG64 || type == GDL_STRUCT)
+    }
+    else if (size != NULL)
+    {
+      DLongGDL* l_size = e->GetKWAs<DLongGDL>(sizeix);
+      if (l_size->N_Elements() < 4 || l_size->N_Elements() > 11)
+        e->Throw("Keyword array parameter SIZE must have from "
+        "4 to 11 elements.");
+      DLong expectedDim=l_size->N_Elements()-3;
+      type = (*l_size)[expectedDim + 1];
+      if (e->NParam() == 0)
       {
-	e->Throw("Invalid type specified for result.");
+        dimension dim(expectedDim, 1);
+        dimKey = new DLongGDL(dim, BaseGDL::NOZERO);
+        dimKey_guard.Reset(dimKey); //e->Guard( dimKey);
+        //	    e->Guard( dimKey);
+        for (int i = 1; i <= expectedDim; ++i) {
+          if ((*l_size)[i] < 1) e->Throw("Array dimensions must be greater than 0.");
+          (*dimKey)[i - 1] = (*l_size)[i];
+        }
       }
- 
+
+    }
+
+    if (type < 0 || type > GDL_ULONG64 || type == GDL_STRUCT)
+    {
+      e->Throw("Invalid type specified for result.");
+    }
+
     // TODO: sanity check on dimKey & arguments - if all are > 0, otherwise:
     //       e->Throw("Array dimensions must be greater than 0.");
 
     if (e->KeywordSet(indexix))
-      {
-	if (type == GDL_PTR || e->KeywordSet(18)) 
-	  e->Throw("Index initialization of pointer array is invalid.");
-	if (type == GDL_OBJ || e->KeywordSet(19)) 
-	  e->Throw("Index initialization of object reference array is invalid..");
-      }
+    {
+      if (type == GDL_PTR || e->KeywordSet(18))
+        e->Throw("Index initialization of pointer array is invalid.");
+      if (type == GDL_OBJ || e->KeywordSet(19))
+        e->Throw("Index initialization of object reference array is invalid..");
+    }
 
-    static int valueix = e->KeywordIx( "VALUE"); 
-    BaseGDL* value = e->GetKW( valueix);
+    static int valueix = e->KeywordIx("VALUE");
+    BaseGDL* value = e->GetKW(valueix);
     Guard<BaseGDL> value_guard;
-    if( value != NULL)
+    if (value != NULL)
+    {
+      if (!value->Scalar())
+        e->Throw("Keyword must be a scalar in this context: " +
+        e->GetString(valueix));
+      if (type == 0)
+        type = value->Type();
+      else
       {
-	if( !value->Scalar())
-	  e->Throw("Keyword must be a scalar in this context: "+
-		   e->GetString(valueix));
-	if( type == 0)
-	  type = value->Type();
-	else
-	  {
-	    value = value->Convert2( static_cast<DType>(type), BaseGDL::COPY);
-	    value_guard.Reset(value);//e->Guard( value);
-	  }
+        value = value->Convert2(static_cast<DType> (type), BaseGDL::COPY);
+        value_guard.Reset(value); //e->Guard( value);
       }
+    }
 
     // BYTEDComplexDblGDL
-    if (e->KeywordSet(6) || type == GDL_BYTE) {
+    if (e->KeywordSet(6) || type == GDL_BYTE)
+    {
 
-      return make_array_template< DByteGDL>( e, dimKey, value);
+      return make_array_template< DByteGDL>(e, dimKey, value);
 
       //GDL_INT
-    } else if (e->KeywordSet(7) || type == GDL_INT) {
+    } else if (e->KeywordSet(7) || type == GDL_INT)
+    {
 
-      return make_array_template< DIntGDL>( e, dimKey, value);
+      return make_array_template< DIntGDL>(e, dimKey, value);
 
       // GDL_UINT
-    } else if (e->KeywordSet(8) || type == GDL_UINT) {
+    } else if (e->KeywordSet(8) || type == GDL_UINT)
+    {
 
-      return make_array_template< DUIntGDL>( e, dimKey, value);
+      return make_array_template< DUIntGDL>(e, dimKey, value);
 
       // GDL_LONG
-    } else if (e->KeywordSet(9) || type == GDL_LONG) {
+    } else if (e->KeywordSet(9) || type == GDL_LONG)
+    {
 
-      return make_array_template< DLongGDL>( e, dimKey, value);
+      return make_array_template< DLongGDL>(e, dimKey, value);
 
       // GDL_ULONG
-    } else if (e->KeywordSet(10) || type == GDL_ULONG) {
+    } else if (e->KeywordSet(10) || type == GDL_ULONG)
+    {
 
-      return make_array_template< DULongGDL>( e, dimKey, value);
+      return make_array_template< DULongGDL>(e, dimKey, value);
 
       // GDL_LONG64
-    } else if (e->KeywordSet(11) || type == GDL_LONG64) {
+    } else if (e->KeywordSet(11) || type == GDL_LONG64)
+    {
 
-      return make_array_template< DLong64GDL>( e, dimKey, value);
+      return make_array_template< DLong64GDL>(e, dimKey, value);
 
       // GDL_ULONG64
-    } else if (e->KeywordSet(12) || type == GDL_ULONG64) {
+    } else if (e->KeywordSet(12) || type == GDL_ULONG64)
+    {
 
-      return make_array_template< DULong64GDL>( e, dimKey, value);
-      
+      return make_array_template< DULong64GDL>(e, dimKey, value);
+
       // GDL_DOUBLE
-    } else if (e->KeywordSet(14) || type == GDL_DOUBLE) {
+    } else if (e->KeywordSet(14) || type == GDL_DOUBLE)
+    {
 
-      return make_array_template< DDoubleGDL>( e, dimKey, value);
+      return make_array_template< DDoubleGDL>(e, dimKey, value);
 
       // GDL_COMPLEX
-    } else if (e->KeywordSet(15) || type == GDL_COMPLEX) {
+    } else if (e->KeywordSet(15) || type == GDL_COMPLEX)
+    {
 
-      return make_array_template< DComplexGDL>( e, dimKey, value);
+      return make_array_template< DComplexGDL>(e, dimKey, value);
 
       // DCOMPLEX
-    } else if (e->KeywordSet(16) || type == GDL_COMPLEXDBL) {
+    } else if (e->KeywordSet(16) || type == GDL_COMPLEXDBL)
+    {
 
-      return make_array_template< DComplexDblGDL>( e, dimKey, value);
+      return make_array_template< DComplexDblGDL>(e, dimKey, value);
 
       // GDL_STRING (added by MS 29.10.2005)
-    } else if (e->KeywordSet(17) || type == GDL_STRING) {
+    } else if (e->KeywordSet(17) || type == GDL_STRING)
+    {
 
       if (!e->KeywordSet(indexix))
-	return make_array_template< DStringGDL>( e, dimKey, value);
-      
+        return make_array_template< DStringGDL>(e, dimKey, value);
+
       // 'true' for ignoring /INDEX keyword 
       // BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
       //       if (e->KeywordSet(indexix))
       //       {
 
-      BaseGDL* ret = make_array_template< DULongGDL>( e, dimKey, value); //, true);
-      return ret->Convert2( GDL_STRING);
+      BaseGDL* ret = make_array_template< DULongGDL>(e, dimKey, value); //, true);
+      return ret->Convert2(GDL_STRING);
 
       //         for (DLong i = 0; i < ret->N_Elements(); ++i)
       //         {
@@ -908,32 +923,38 @@ namespace lib {
       //       return ret;
 
       // GDL_PTR (added by SA 15.08.2009)
-    } else if (e->KeywordSet(18) || type == GDL_PTR) {
+    } else if (e->KeywordSet(18) || type == GDL_PTR)
+    {
 
-      return make_array_template< DPtrGDL>( e, dimKey, value);
+      return make_array_template< DPtrGDL>(e, dimKey, value);
 
       // OBJ (added by SA 15.08.2009)
-    } else if (e->KeywordSet(19) || type == GDL_OBJ) {
+    } else if (e->KeywordSet(19) || type == GDL_OBJ)
+    {
 
-      return make_array_template< DObjGDL>( e, dimKey, value);
+      return make_array_template< DObjGDL>(e, dimKey, value);
 
       // GDL_STRUCT
-    } else if ( type == GDL_STRUCT) {
-      
-      assert( value != NULL);
+    } else if (type == GDL_STRUCT)
+    {
 
-      DStructGDL* v = static_cast<DStructGDL*>( value);
-      if (dimKey != NULL) {
-	SizeT ndim = dimKey->N_Elements();
-	dimension dim((DLong *) &(*dimKey)[0], (SizeT) ndim);
-	return v->New( dim, BaseGDL::INIT);
-      } else {
-	dimension dim;
-	arr( e, dim);
-	return v->New( dim, BaseGDL::INIT);
-      } 
-    } else {
-      return make_array_template< DFloatGDL>( e, dimKey, value);
+      assert(value != NULL);
+
+      DStructGDL* v = static_cast<DStructGDL*> (value);
+      if (dimKey != NULL)
+      {
+        SizeT ndim = dimKey->N_Elements();
+        dimension dim((DLong *) &(*dimKey)[0], (SizeT) ndim);
+        return v->New(dim, BaseGDL::INIT);
+      } else
+      {
+        dimension dim;
+        arr(e, dim);
+        return v->New(dim, BaseGDL::INIT);
+      }
+    } else
+    {
+      return make_array_template< DFloatGDL>(e, dimKey, value);
     }
     return 0;
   }
