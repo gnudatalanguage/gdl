@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <list>
-
 #include "includefirst.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -512,7 +510,9 @@ namespace lib {
   }
 
   template< typename T1, typename T2>
-  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res) {
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, 
+      DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, 
+      bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res, bool input) {
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
     //   z = A + Bx + Cy
@@ -620,9 +620,13 @@ namespace lib {
             {
               found[iy * nx + ix] = true;
               DDouble dres = A + B * x[ix] + C * y[iy];
-              if (dominvalue && dres < minVal) dres = missVal;
-              if (domaxvalue && dres > maxVal) dres = missVal;
-              (*res)[iy * nx + ix] = dres;
+              if ((dominvalue && dres < minVal) || (domaxvalue && dres > maxVal))
+              {
+                if (!input) (*res)[iy * nx + ix] = missVal;
+              } else
+              {
+                (*res)[iy * nx + ix] = dres;
+              }
             }
 
           } // ix loop
@@ -683,8 +687,10 @@ namespace lib {
   }
 //version for Complex Values.
   template<>
-  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
-    DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res) {
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, 
+    DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
+    DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal,
+    DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res, bool input) {
     //   Compute plane parameters A,B,C given 3 points on plane.
     //
     //   z = A + Bx + Cy
@@ -798,16 +804,13 @@ namespace lib {
             {
               found[iy * nx + ix] = true;
               DDouble dres = Ar + Br * x[ix] + Cr * y[iy];
-              if (dominvalue && dres < minVal.real()) dres = missVal.real();
-              if (domaxvalue && dres > maxVal.real()) dres = missVal.real();
-              (*res)[iy * nx + ix].real() = dres;
+              if ((dominvalue && dres < minVal.real()) || (domaxvalue && dres > maxVal.real())) if (!input) (*res)[iy * nx + ix].real(missVal.real());
+              else (*res)[iy * nx + ix].real(dres);
 
               dres = Ai + Bi * x[ix] + Ci * y[iy];
-              if (dominvalue && dres < minVal.imag()) dres = missVal.imag();
-              if (domaxvalue && dres > maxVal.imag()) dres = missVal.imag();
-              (*res)[iy * nx + ix].imag() = dres;
+              if ((dominvalue && dres < minVal.imag()) || (domaxvalue && dres > maxVal.imag())) if (!input) (*res)[iy * nx + ix].imag(missVal.imag());
+              else (*res)[iy * nx + ix].imag(dres);
             }
-
           } // ix loop
         } // iy loop
       }//if minmax
@@ -853,8 +856,8 @@ namespace lib {
             if (inside == true)
             {
               found[iy * nx + ix] = true;
-              (*res)[iy * nx + ix].real() = Ar + Br * x[ix] + Cr * y[iy];
-              (*res)[iy * nx + ix].imag() = Ai + Bi * x[ix] + Ci * y[iy];;
+              (*res)[iy * nx + ix].real(Ar + Br * x[ix] + Cr * y[iy]);
+              (*res)[iy * nx + ix].imag(Ai + Bi * x[ix] + Ci * y[iy]);
             }
 
           } // ix loop
@@ -908,6 +911,9 @@ namespace lib {
     static int ygridIx=e->KeywordIx( "YGRID");
     bool doYgrid=(e->KeywordPresent(ygridIx));
 
+    static int inputIx=e->KeywordIx( "INPUT");
+    bool doInput=(e->KeywordPresent(inputIx));
+    
     // Get NX, NY values if present
     DLong nx = 51;
     DLong ny = 51;
@@ -1015,13 +1021,24 @@ namespace lib {
       for (int i=0; i<ny; ++i) (*ygrid)[i]=y[i];
       e->SetKW(ygridIx, ygrid);
     }
-
-
+    
     // Setup return array
     DLong dims[2];
     dims[0] = nx;
     dims[1] = ny;
     dimension dim((DLong *) dims, 2);
+
+    // if INPUT kw, test if input is an existing variable
+    BaseGDL* inputKwData=NULL;
+    DDoubleGDL* inputArray=NULL;
+    bool inputArrayPresent=false;
+    if (doInput) {
+      inputKwData=e->GetKW(inputIx);
+      if (!(inputKwData==NULL)) { //does exist, check compatibility 
+        if (inputKwData->Dim() != dim) e->Throw("Array has a corrupted descriptor");
+        inputArrayPresent=true;
+      }
+    }
 
     if (isComplex) {
       DComplexDblGDL* minValG=NULL;
@@ -1036,14 +1053,17 @@ namespace lib {
       static int missvalueIx=e->KeywordIx( "MISSING");
       if (e->KeywordPresent(missvalueIx)) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
       DComplexDblGDL* zVal = static_cast<DComplexDblGDL*>(p2->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-      DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::ZERO);
+      DComplexDblGDL* res;
+      if (inputArrayPresent) res=static_cast<DComplexDblGDL*>(inputKwData->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+      else res= new DComplexDblGDL(dim, BaseGDL::ZERO);
+
       DComplexDbl minVal=std::complex<double>(0,0);
       if (minValG!=NULL) minVal=std::complex<double>((*minValG)[0].real(),(*minValG)[0].imag());
       DComplexDbl maxVal=std::complex<double>(0,0);
       if (maxValG!=NULL) maxVal=std::complex<double>((*maxValG)[0].real(),(*maxValG)[0].imag());
       DComplexDbl missVal=std::complex<double>(0,0);
       if (missValG!=NULL) missVal=std::complex<double>((*missValG)[0].real(),(*missValG)[0].imag());
-      gdlGrid2DData< DComplexDblGDL, DComplexDbl>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res);
+      gdlGrid2DData< DComplexDblGDL, DComplexDbl>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_COMPLEX,BaseGDL::CONVERT); else return res;
     }else{
       DDouble minVal=0;
@@ -1058,8 +1078,10 @@ namespace lib {
       static int missvalueIx=e->KeywordIx( "MISSING");
       e->AssureDoubleScalarKWIfPresent(missvalueIx, missVal);
       DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::ZERO);    
-      gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res);
+      DDoubleGDL* res;
+      if (inputArrayPresent) res = res=static_cast<DDoubleGDL*>(inputKwData->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      else res =new DDoubleGDL(dim, BaseGDL::ZERO);
+      gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT); else return res;
     }
   }

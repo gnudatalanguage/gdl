@@ -1,7 +1,11 @@
-/* $Id: ssrfpack.c,v 1.1 2017-09-22 17:43:21 gilles-duvert Exp $
+/* $Id: ssrfpack.c,v 1.2 2017-10-06 06:41:30 gilles-duvert Exp $
  * ssrfpack.c: Translated via f2c then massaged so that f2c include and lib
  * are not required to compile and link the sph supplement.
  */
+#ifdef __APPLE__
+#define sincos(x, s, c) __sincos(x, s, c)
+#define sincosf(x, s, c) __sincosf(x, s, c)
+#endif
 
 #ifdef __cplusplus
 extern "C" {

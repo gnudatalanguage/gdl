@@ -1215,8 +1215,8 @@ L1:
 /*   of the same constraint (IMIN >= LCC(I)), and (IMIN,IMAX) */
 /*   is (I1,I3), (I2,I1), or (I3,I2). */
 
-    ret_val = imin >= lcc[i__] && (imin == *i1 && imax == *i3 || imin == *i2 
-	    && imax == *i1 || imin == *i3 && imax == *i2);
+    ret_val = imin >= lcc[i__] && ((imin == *i1 && imax == *i3) ||
+      (imin == *i2 && imax == *i1) || (imin == *i3 && imax == *i2));
     return ret_val;
 
 /* NCC .LE. 0 or all vertices are non-constraint nodes. */
@@ -2425,8 +2425,8 @@ L12:
     swap_(&next, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__1 = iwl;
     for (i__ = iwcp1; i__ <= i__1; ++i__) {
-	iwk[(i__ - 1 << 1) + 1] = iwk[(i__ << 1) + 1];
-	iwk[(i__ - 1 << 1) + 2] = iwk[(i__ << 1) + 2];
+	iwk[((i__ - 1) << 1) + 1] = iwk[(i__ << 1) + 1];
+	iwk[((i__ - 1) << 1) + 2] = iwk[(i__ << 1) + 2];
 /* L13: */
     }
     iwk[(iwl << 1) + 1] = n0;
@@ -2479,8 +2479,8 @@ L17:
     swap_(&next, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__1 = iwf;
     for (i__ = iwc - 1; i__ >= i__1; --i__) {
-	iwk[(i__ + 1 << 1) + 1] = iwk[(i__ << 1) + 1];
-	iwk[(i__ + 1 << 1) + 2] = iwk[(i__ << 1) + 2];
+	iwk[((i__ + 1) << 1) + 1] = iwk[(i__ << 1) + 1];
+	iwk[((i__ + 1) << 1) + 2] = iwk[(i__ << 1) + 2];
 /* L18: */
     }
     iwk[(iwf << 1) + 1] = n0;
@@ -2541,8 +2541,8 @@ L22:
     swap_(&n2, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__ = iwl;
 L23:
-    iwk[(i__ << 1) + 1] = iwk[(i__ - 1 << 1) + 1];
-    iwk[(i__ << 1) + 2] = iwk[(i__ - 1 << 1) + 2];
+    iwk[(i__ << 1) + 1] = iwk[((i__ - 1 )<< 1) + 1];
+    iwk[(i__ << 1) + 2] = iwk[((i__ - 1 )<< 1) + 2];
     --i__;
     if (i__ > iwf) {
 	goto L23;
@@ -2581,7 +2581,7 @@ L24:
 	nit = (iwend - iwc) * 3;
 	i__1 = iwend - iwc;
 	optim_(&x[1], &y[1], &i__1, &list[1], &lptr[1], &lend[1], &nit, &iwk[(
-		iwc + 1 << 1) + 1], &ierr);
+		(iwc + 1) << 1) + 1], &ierr);
 	if (ierr != 0) {
 	    goto L34;
 	}
@@ -2996,7 +2996,7 @@ L8:
 /*   The last constraint arc in the constraint need not be */
 /*     tested if none of the arcs have been skipped. */
 
-		    if (sksav || skip || nf2 == ilast && ! ncf && ! njf) {
+		    if (sksav || skip || ((nf2 == ilast) && (! ncf) && (! njf))) {
 			goto L9;
 		    }
 		    if (intsec_(&x[nf1], &y[nf1], &x[nf2], &y[nf2], &xc, &yc, 
@@ -3034,7 +3034,7 @@ L9:
 		lft2 = (x[nf2] - xc) * (yj - yc) >= (xj - xc) * (y[nf2] - yc);
 		lft12 = (x[nf1] - x[nf2]) * (yc - y[nf2]) >= (xc - x[nf2]) * (
 			y[nf1] - y[nf2]);
-		if (lft1 && lft2 || ! lft12 && (lft1 || lft2)) {
+		if ((lft1 && lft2) || (! lft12 && (lft1 || lft2))) {
 		    goto L12;
 		}
 L11:
@@ -3421,10 +3421,10 @@ logical intsec_(doublereal *x1, doublereal *y1, doublereal *x2, doublereal *
 /*   contain the line segments and have sides parallel to */
 /*   the axes. */
 
-    if (*x1 < *x3 && *x1 < *x4 && *x2 < *x3 && *x2 < *x4 || *x1 > *x3 && *x1 
-	    > *x4 && *x2 > *x3 && *x2 > *x4 || *y1 < *y3 && *y1 < *y4 && *y2 <
-	     *y3 && *y2 < *y4 || *y1 > *y3 && *y1 > *y4 && *y2 > *y3 && *y2 > 
-	    *y4) {
+    if ((*x1 < *x3 && *x1 < *x4 && *x2 < *x3 && *x2 < *x4 )|| (*x1 > *x3 && *x1 
+	    > *x4 && *x2 > *x3 && *x2 > *x4) || (*y1 < *y3 && *y1 < *y4 && *y2 <
+	     *y3 && *y2 < *y4 )||( *y1 > *y3 && *y1 > *y4 && *y2 > *y3 && *y2 > 
+	    *y4)) {
 	ret_val = FALSE_;
 	return ret_val;
     }
@@ -5071,7 +5071,7 @@ L17:
 
     /* Function Body */
     nn = *n;
-    if (*ncc < 0 || *nrow != 6 && *nrow != 9) {
+    if ((*ncc < 0) || (*nrow != 6 && *nrow != 9)) {
 	goto L12;
     }
     lcc1 = nn + 1;
@@ -5157,7 +5157,7 @@ L3:
 /*   on pass 2. */
 
 	cstri = n1 >= lcc1 && n2 < n3 && n3 <= jlast;
-	if (cstri && ! pass2 || ! cstri && pass2) {
+	if ((cstri && ! pass2) || (! cstri && pass2)) {
 	    goto L10;
 	}
 
