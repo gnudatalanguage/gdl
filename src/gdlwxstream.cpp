@@ -402,28 +402,24 @@ DByteGDL* GDLWXStream::GetBitmapData() {
 }
 
 void GDLWXStream::Raise() {
-  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-  if (tl) tl->Raise();
+  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Raise();
 }
 
 void GDLWXStream::Lower() {
-  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-  if (tl) tl->Lower();
+  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Lower();
 }
 
 void GDLWXStream::Iconic() {
-  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-  if (tl) tl->Iconize(true);
+  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize();
 }
 
 void GDLWXStream::DeIconic() {
-  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-  if (tl) tl->Iconize(false);
+  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(false);
 }
-//bool GDLWXStream::UnsetFocus(){  
-//  wxTopLevelWindow *tl = static_cast<wxTopLevelWindow*>(gdlWindow->GetParent());
-//  if (tl) tl->Disable();
-//    return true;}
+
+//bool GDLWXStream::UnsetFocus(){  //UnsetFocus is dangerous: it prevents using wxEvents correctly.
+//  return static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Disable();
+//}
 
 bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
 
