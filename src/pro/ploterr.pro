@@ -67,7 +67,8 @@
 ; ploterr, x, y, yerr, yerr/3., /hat
 ;
 ; MODIFICATION HISTORY:
-;   - 26/02/2006 created by Alain Coulais (ARSC)
+;   - 26/02/2006 : created by Alain Coulais (ARSC)
+;   - 10/10/2007 : REFORM() needed :(
 ;
 ;-
 ; LICENCE:
@@ -112,8 +113,8 @@ endif
 ; Here, we have ONLY Y and Y_error
 ;
 if (nb_inputs EQ 2) then begin
-    y_new=x
-    y_err=y
+    y_new=REFORM(x)
+    y_err=REFORM(y)
     nbp_y=N_ELEMENTS(y_new)
     nbp_ey=N_ELEMENTS(y_err)
     ;; the 2 missing fields
@@ -126,9 +127,9 @@ endif
 ; We have X, Y and Y_error
 ;
 if (nb_inputs EQ 3) then begin
-    x_new=x
-    y_new=y
-    y_err=ABS(y_error)
+    x_new=REFORM(x)
+    y_new=REFORM(y)
+    y_err=ABS(REFORM(y_error))
     nbp_x=N_ELEMENTS(x_new)
     nbp_y=N_ELEMENTS(y_new)
     nbp_ey=N_ELEMENTS(y_err)
@@ -144,10 +145,10 @@ flag_x=0
 if (nb_inputs EQ 4) then begin
     ;; if we have X_error, we switch on the flag
     flag_x=1 
-    x_new=x
-    y_new=y
-    y_err=ABS(y_error)
-    x_err=ABS(x_error)
+    x_new=REFORM(x)
+    y_new=REFORM(y)
+    y_err=ABS(REFORM(y_error))
+    x_err=ABS(REFORM(x_error))
     nbp_x=N_ELEMENTS(x_new)
     nbp_y=N_ELEMENTS(y_new)
     nbp_ey=N_ELEMENTS(y_err)
