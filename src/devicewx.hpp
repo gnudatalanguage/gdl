@@ -123,7 +123,8 @@ public:
   GDLWidgetDraw* draw = new GDLWidgetDraw(base->WidgetID(), NULL, wIx, xleng, yleng, -1, -1, false, 0);
   base->setWindow(static_cast<GDLDrawPanel*>(draw->GetWxWidget()));
   base->Realize(!hide); //just avoid to map the widget.
-  if(hide) winList[ wIx]->UnMapWindow(); //needed: will set the "pixmap" property
+  if(hide) winList[ wIx]->UnMapWindow();   //needed: will set the "pixmap" property
+  else { winList[ wIx]->UnsetFocus(); winList[wIx]->Raise();}
   return true;
  }
 
