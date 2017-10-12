@@ -114,7 +114,6 @@ endif
 if KEYWORD_SET(verbose) then print, 'readf after point_lun(position=0); '
 POINT_LUN, fd, 0
 READF, fd, str ; At this point, readf works well, so we can test point_lun (except that stat() uses an equivalent of point_lun!!!)
-stop
 if (str ne head1) then begin
    MESSAGE, /continue, 'Point_lun doesn''t work on zipped file (read mode)'
    CATCH_EXIT, nb_pbs, no_exit=no_exit
