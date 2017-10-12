@@ -114,13 +114,15 @@ endif
 if KEYWORD_SET(verbose) then print, 'readf after point_lun(position=0); '
 POINT_LUN, fd, 0
 READF, fd, str ; At this point, readf works well, so we can test point_lun (except that stat() uses an equivalent of point_lun!!!)
+stop
 if (str ne head1) then begin
    MESSAGE, /continue, 'Point_lun doesn''t work on zipped file (read mode)'
    CATCH_EXIT, nb_pbs, no_exit=no_exit
 endif
 if KEYWORD_SET(verbose) then print, 'readf after point_lun(position=end of first line); '
 POINT_LUN, fd, strlen(str) ; position at end of first line
-READF, fd, str ; should read 2nd line --- was not the case before!
+READF, fd, str ; should return '' since it reads the end of line.
+READF, fd, str ; should read 2nd line
 if (str ne head2) then begin
    MESSAGE, /continue, 'Point_lun doesn''t work on zipped file (read mode) when point is not 0!'
    CATCH_EXIT, nb_pbs, no_exit=no_exit
