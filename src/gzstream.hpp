@@ -18,8 +18,8 @@
 // ============================================================================
 //
 // File          : gzstream.h
-// Revision      : $Revision: 1.3 $
-// Revision_date : $Date: 2010-06-29 09:17:52 $
+// Revision      : $Revision: 1.4 $
+// Revision_date : $Date: 2017-10-12 21:29:17 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 
@@ -53,7 +53,7 @@ private:
     char             buffer[bufferSize]; // data buffer
     char             opened;             // open/close state of stream
     int              mode;               // I/O mode
-
+    std::streampos   position;
     int flush_buffer();
 public:
     gzstreambuf() : opened(0) {
@@ -61,7 +61,6 @@ public:
         setg( buffer + buf4,     // beginning of putback area
               buffer + buf4,     // read position
               buffer + buf4);    // end position      
-//               buffer + buf4);    // end position      
         // ASSERT: both input & output capabilities will not be used together
     }
     int is_open() { return opened; }
@@ -74,7 +73,11 @@ public:
     virtual int     sync();
     std::streampos pubseekpos(std::streampos sp, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
     std::streampos pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
-
+    //hacks for not being lost with input gzipped streams
+    std::streampos getPosition(){return position;}
+    std::streampos setPosition(long pos){position=pos;} 
+    std::streampos incrementPosition(long pos=1){position+=pos;}
+    std::streampos decrementPosition(long pos=1){position-=pos;}
 };
 
 class gzstreambase : virtual public std::ios {

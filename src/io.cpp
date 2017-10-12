@@ -698,6 +698,7 @@ namespace GZSTREAM_NAMESPACE {
 gzstreambuf* gzstreambuf::open( const char* name, int open_mode) {
     if ( is_open())
         return (gzstreambuf*)0;
+    position = 0;
     mode = open_mode;
     // no append nor read/write mode
     if ((mode & std::ios::ate) || (mode & std::ios::app)
@@ -784,37 +785,39 @@ int gzstreambuf::sync() {
             return -1;
     }
     return 0;
-}
+  }
 
-std::streampos gzstreambuf::pubseekpos(std::streampos sp, std::ios_base::openmode which)
-{
-		if(is_open())
-	{
-		if((which==std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
-			(which==std::ios_base::out && this->mode & std::ios::out &&
-			static_cast<z_off_t>(sp)>=gztell(this->file))) /* write mode : seek forward only */
-		{
-		    z_off_t off=gzseek(this->file,static_cast<z_off_t>(sp),SEEK_SET);
-//                    fprintf(stderr,"%d=pubseekpos(sp=%d)\n",off,static_cast<z_off_t>(sp));
-// GD. seems reset of buffer is needed only when rewinded at 0.
-			if(which==std::ios_base::in && off==0)
-                           setg(buffer+buf4,buffer+buf4,buffer+buf4);
-                    return off;
-		}
-		else
-                {
-                    z_off_t off=static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
-//                    fprintf(stderr,"%d=pubseekpos(sp=%d)\n",off,static_cast<z_off_t>(sp));
-                    return off; 
-                }
-	}
-//        fprintf(stderr,"-1=pubseekpos(sp=%d)\n",static_cast<z_off_t>(sp));
-	return -1;
-}
+  std::streampos gzstreambuf::pubseekpos(std::streampos sp, std::ios_base::openmode which) {
+    if (is_open())
+    {
+//      cerr<<"seeking "<<sp<<" when we are at "<<gztell(this->file)<<endl;
+      if ((which == std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
+        (which == std::ios_base::out && this->mode & std::ios::out &&
+        static_cast<z_off_t> (sp) >= gztell(this->file))) /* write mode : seek forward only */
+      {
+        z_off_t off = gzseek(this->file, static_cast<z_off_t> (0), SEEK_SET); //absolutely necessary to rewind!!!
+        position = 0;
+        setg(buffer + buf4, buffer + buf4, buffer + buf4);
+        if (sp != 0) off = gzseek(this->file, static_cast<z_off_t> (sp), SEEK_SET);
+//        fprintf(stderr, "Seek: %d=pubseekpos(sp=%d)\n", off, static_cast<z_off_t> (sp));
+        // GD. seems reset of buffer is needed only when rewinded at 0.
+        if (which == std::ios_base::in && off == 0) setg(buffer + buf4, buffer + buf4, buffer + buf4);
+        position = off;
+        return off;
+      } else
+      {
+        z_off_t off=static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
+//        fprintf(stderr, "Tell: %d=pubseekpos(sp=%d)\n", off, static_cast<z_off_t> (sp));
+        position = off;
+        return off;
+      }
+    }
+//    fprintf(stderr, "EOF: -1=pubseekpos(sp=%d)\n", static_cast<z_off_t> (sp));
+    return -1;
+  }
 
-std::streampos gzstreambuf::pubseekoff(std::streamoff offIn, std::ios_base::seekdir way, std::ios_base::openmode which)
-{
-// debug aid
+  std::streampos gzstreambuf::pubseekoff(std::streamoff offIn, std::ios_base::seekdir way, std::ios_base::openmode which) {
+    // debug aid
 //    string str;
 //    switch(way)
 //    {
@@ -825,30 +828,30 @@ std::streampos gzstreambuf::pubseekoff(std::streamoff offIn, std::ios_base::seek
 //        case std::ios_base::end:
 //            str="end"; break;
 //    }
-	if(is_open() && way!=std::ios_base::end) /* No seek with SEEK_END */
-	{
-		if((which==std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
-			(which==std::ios_base::out && this->mode & std::ios::out && /* write mode : ok if */
-			((way==std::ios_base::cur && offIn>=0) || /* SEEK_CUR with positive offset */
-				(way==std::ios_base::beg && static_cast<z_off_t>(offIn)>=gztell(this->file))))) /* or SEEK_SET which go forward */
-		{
-                    z_off_t off=gzseek(this->file,static_cast<z_off_t>(offIn),(way==std::ios_base::beg?SEEK_SET:SEEK_CUR));
-//fprintf(stderr,"%d=pubseekoff(offIn=%d,way=%s)\n",off,static_cast<z_off_t>(offIn),str.c_str());
-// GD. seems reset of buffer is needed only when rewinded at 0.
-		    if(which==std::ios_base::in && off==0)
-		    setg(buffer+buf4,buffer+buf4,buffer+buf4);
-                    return off;
-		}
-		else
-                {
-                    z_off_t off=static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
-//                    fprintf(stderr,"%d=pubseekoff(offIn=%d,way=%s)\n",off,static_cast<z_off_t>(offIn),str.c_str());
-                return off;
-                }
-        }
-//        fprintf(stderr,"-1=pubseekoff(offIn=%d,way=%s)\n",static_cast<z_off_t>(offIn),str.c_str());
-        return -1;
-}
+    if (is_open() && way != std::ios_base::end) /* No seek with SEEK_END */
+    {
+      if ((which == std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
+        (which == std::ios_base::out && this->mode & std::ios::out && /* write mode : ok if */
+        ((way == std::ios_base::cur && offIn >= 0) || /* SEEK_CUR with positive offset */
+        (way == std::ios_base::beg && static_cast<z_off_t> (offIn) >= gztell(this->file))))) /* or SEEK_SET which go forward */
+      {
+        z_off_t off = gzseek(this->file, static_cast<z_off_t> (offIn), (way == std::ios_base::beg ? SEEK_SET : SEEK_CUR));
+//        fprintf(stderr, "WRONG? Seek: %d=pubseekoff(offIn=%d,way=%s)\n", off, static_cast<z_off_t> (offIn), str.c_str());
+        // GD. seems reset of buffer is needed only when rewinded at 0.
+        if (which == std::ios_base::in && off == 0) setg(buffer + buf4, buffer + buf4, buffer + buf4);
+        position = off;
+        return off;
+      } else
+      {
+        z_off_t off=static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
+//        fprintf(stderr, "WRONG? Tell: %d=pubseekoff(offIn=%d,way=%s)\n", off, static_cast<z_off_t> (offIn), str.c_str());
+        position = off;
+        return off;
+      }
+    }
+//    fprintf(stderr, "EOF: -1=pubseekoff(offIn=%d,way=%s)\n", static_cast<z_off_t> (offIn), str.c_str());
+    return -1;
+  }
 
 // --------------------------------------
 // class gzstreambase:

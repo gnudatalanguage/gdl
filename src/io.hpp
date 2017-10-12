@@ -167,35 +167,31 @@ public:
       }
     return true;
   }
-  void Seek( std::streampos pos)
-  {
-    if( fStream == NULL && igzStream == NULL && ogzStream == NULL)
-      throw GDLException("inner file unit is not open.");
+  void Seek( std::streampos pos) {
+  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
+   throw GDLException("inner file unit is not open.");
 
-    if( fStream != NULL)
-      {
-	if( fStream->eof())
-	  fStream->clear();
+  if (fStream != NULL) {
+   if (fStream->eof())
+    fStream->clear();
 
-	fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
-      }
-    if( igzStream != NULL)
-      {
-	if( igzStream->eof())
-	  igzStream->clear();
-
-	igzStream->seekg( pos);
-// 	igzStream->rdbuf()->pubseekpos( pos, std::ios_base::in);
-      }
-    if( ogzStream != NULL)
-      {
-	if( ogzStream->eof())
-	  ogzStream->clear();
-
-	ogzStream->seekp( pos);
-// 	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::out);
-      }
+   fStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
   }
+  if (igzStream != NULL) {
+   if (igzStream->eof())
+    igzStream->clear();
+
+   igzStream->seekg(pos);
+   // 	igzStream->rdbuf()->pubseekpos( pos, std::ios_base::in);
+  }
+  if (ogzStream != NULL) {
+   if (ogzStream->eof())
+    ogzStream->clear();
+
+   ogzStream->seekp(pos);
+   // 	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::out);
+  }
+ }
   std::streampos Size()
   {  
     if( fStream != NULL)
@@ -234,7 +230,7 @@ public:
     if (fStream != NULL)
       return( fStream->tellg());
     else if(igzStream != NULL)
-      return igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+      return igzStream->rdbuf()->getPosition(); //igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
     else if( ogzStream != NULL)
       return ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
     else

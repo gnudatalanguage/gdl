@@ -623,12 +623,13 @@ namespace lib {
     bool big = false;
 
     if (lun > 0)
+    {
+      if (fileUnits[ lun - 1].IsOpen() && !fileUnits[ lun - 1].Compress() ) //due to bug in gzTell, we DO NOT WANT to get the size here.
       {
-	if(fileUnits[ lun-1].IsOpen())  {
-	  size = fileUnits[ lun-1].Size();
-	  big = (DLong(size) != size);
-	}
+        size = fileUnits[ lun - 1].Size();
+        big = (DLong(size) != size);
       }
+    }
 
     DStructGDL* fstat;
     if (big) fstat = new DStructGDL( "FSTAT64");
@@ -700,7 +701,7 @@ namespace lib {
 	fstat->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
 	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
 	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
-	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime)); 
+	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
 	if (big) fstat->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
 	else fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
       }

@@ -1557,6 +1557,13 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool compress, XDR *xdr
       os.write( buf, bufsize );
     }
     free( buf );
+  } else if (compress)
+  {
+    (static_cast<ogzstream&>(os)).write(reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty));
+    if (!(static_cast<ogzstream&> (os)).good())
+    {
+      throw GDLIOException("Error writing data.");
+    }
   } else {
     os.write( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   }
@@ -1587,6 +1594,13 @@ bool compress, XDR *xdrs ) {
     for ( SizeT i = 0; i < count; i++ ) buf[i + 4] = (*this)[i];
     os.write( buf, bufsize );
     free( buf );
+  } else if (compress)
+  {
+    (static_cast<ogzstream&>(os)).write( reinterpret_cast<char*> (&(*this)[0]), count );
+    if (!(static_cast<ogzstream&> (os)).good())
+    {
+      throw GDLIOException("Error writing data.");
+    }
   } else {
     os.write( reinterpret_cast<char*> (&(*this)[0]), count );
   }
@@ -1615,6 +1629,13 @@ bool compress, XDR *xdrs ) {
       xdr_destroy( xdrs );
       os.write( buf, bufsize );
       free( buf );
+    } else if (compress)
+    {
+      (static_cast<ogzstream&> (os)).write((*this)[i].c_str( ), (*this)[i].size( ));
+      if (!(static_cast<ogzstream&>(os)).good())
+      {
+        throw GDLIOException("Error writing data.");
+      }
     } else {
       os.write( (*this)[i].c_str( ), (*this)[i].size( ) );
     }
@@ -1667,19 +1688,20 @@ bool compress, XDR *xdrs ) {
       xdr_destroy( xdrs );
     }
     free( buf );
-  } else if ( compress ) {
-    /* modifications by Maxime Lenoir June 2010
-   this modification was succesfully checked on bigs PDS files ...
-   Nevertheless we decided not to merge the two bloks in case other
-   problems will be found later ...
-
-    char* cData = reinterpret_cast<char*>(&(*this)[0]);
-    SizeT cCount = count * sizeof(Ty);
-    char c;
-    for( SizeT i=0; i<cCount; i += sizeof(Ty))
-    os.get( cData[ i]);
-     */
-    os.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+  } else if ( compress )
+    /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
+  {
+    int typesize=sizeof(Ty);
+    SizeT totCount = count * typesize;
+    char curVal[typesize];    
+    for (SizeT i = 0; i < count; ++i) 
+    { 
+      for (int k=0; k<typesize; ++k) os.get(curVal[k]);
+      char* cData = reinterpret_cast<char*>(&(*this)[i]);
+      for (int k=0; k<typesize; ++k) cData[k]=curVal[k];
+    }
+    (static_cast<igzstream&> (os)).rdbuf()->incrementPosition(totCount); //ugly patch to maintain position        
+//was:    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   } else {
     os.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   }
@@ -1723,7 +1745,11 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
     for ( SizeT i = 0; i < nChar; i++ ) ( *this )[i] = buf[i];
     free( buf );
   } else if ( compress ) {
-    os.read( reinterpret_cast<char*> (&(*this)[0]), count );
+    /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
+    char* cData = reinterpret_cast<char*> (&(*this)[0]);
+    for (SizeT i = 0; i < count; ++i) (static_cast<igzstream&> (os)).get(cData[ i]);
+    (static_cast<igzstream&> (os)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
+//    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count );
   } else {
     os.read( reinterpret_cast<char*> (&(*this)[0]), count );
   }
@@ -1777,12 +1803,14 @@ bool compress, XDR *xdrs ) {
           vbuf.resize( maxLen );
         }
         if ( compress ) {
+        /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
           char c;
           vbuf.clear( );
           for ( SizeT i = 0; i < nChar; i++ ) {
-            os.get( c );
+            (static_cast<igzstream&>(os)).get( c ); //which does nothing more than os.get(c)...
             vbuf.push_back( c );
           }
+          (static_cast<igzstream&>(os)).rdbuf()->incrementPosition(nChar);  //ugly patch to maintain position        
         } else {
           os.read( &vbuf[0], nChar );
         }
