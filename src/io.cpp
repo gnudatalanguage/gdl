@@ -720,9 +720,13 @@ gzstreambuf* gzstreambuf::open( const char* name, int open_mode) {
 }
 
 gzstreambuf * gzstreambuf::close() {
-    if ( is_open()) {
-        sync();
+    if ( is_open()) { //reset buf to 0 position: solves bug #724
+        setg( buffer + buf4,     // beginning of putback area
+              buffer + buf4,     // read position
+              buffer + buf4);    // end position      
+         sync();
         opened = 0;
+        position=0;
         if ( gzclose( file) == Z_OK)
             return this;
     }
