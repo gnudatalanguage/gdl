@@ -6837,7 +6837,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 		  WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
 		  (*env)[i] = c_tmpBuf;
 #else
-		  (*env)[i] = _PATH_VARTMP ;
+		  // AC 2017/10/19 : why _PATH_VARTMP_, not just _PATH_TMP_
+		  (*env)[i] = _PATH_TMP ;
 #endif
 		}
 	      
