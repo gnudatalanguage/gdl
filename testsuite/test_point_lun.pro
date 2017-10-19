@@ -9,54 +9,122 @@
 ;
 ; Works in IDL and in GDL (CVS version since 29 june 2010)
 ;
-pro READ_4B_FILE, file, compress=compress
-
-x = BYTARR(1)
-
-print,'reading 4 times the 1st character of '+file+', compress option set to '+strtrim(compress,2)+'...', format='($,a)'
-openr, lun, file, /get_lun, compress=compress
+; Surprisingly, as noted in bug report 712
+; https://sourceforge.net/p/gnudatalanguage/bugs/712/
+; this code is not working for POINT_LUN
+; and this code is not in the Makefile.am :(
+;
+; Modifications history :
+;
+;* AC 2017-10-01 : 
+; - add this file in the list of tests (Makefile.am)
+; - small change to keep the files (compress or not),
+;   more easy to manage if problems
+; - formated as a true test case !
+;
+pro READ_4B_FILE, file, errors, compress=compress, test=test
+;
 err=0
+x = BYTARR(1)
+;
+mess='reading 4 times the 1st character of '+file
+mess=mess+' compress option set to '+strtrim(compress,2)+'...'
+;
+print, mess, format='($,a)'
+OPENR, lun, file, /get_lun, compress=compress
+;
 for i=0,3 do begin 
-    point_lun, lun, 0L  ; <<< rewind
-    readu,lun,x & if (string(x) ne 'a') then err++
- endfor
-if (err) then print,"read error: "+string(x) else print,"OK"
+   POINT_LUN, lun, 0L           ; <<< rewind
+   READU, lun, x 
+   if (STRING(x) NE 'a') then err++
+endfor
+;
+if (err) then print, "read error: "+STRING(x) else print, "OK"
+;
 print,"reading 13 elements at position 7...", format='($,a)'
-y=bytarr(7)
-point_lun, lun, 0L  ; <<< rewind
-point_lun, lun, 7L  ; <<< goto 7
-readu,lun,y & if (string(y) ne 'hijklmn') then print,"read error:"+string(y) else print,"OK"
+y=BYTARR(7)
+POINT_LUN, lun, 0L  ; <<< rewind
+POINT_LUN, lun, 7L  ; <<< goto 7
+READU,lun,y 
+;
+if (STRING(y) ne 'hijklmn') then begin
+   err++
+   print,"read error:"+STRING(y)
+endif else print,"OK (POINT_LUN 0 then 7)"
+;
 print,"position status as per fstat() function:"
-lunstat=fstat(lun)
-help,lunstat,/struct
-if (lunstat.cur_ptr ne 14) then print,"Error: wrong CUR_PTR returned by fstat()."
-
-free_lun, lun
-
-return
+lunstat=FSTAT(lun)
+;help,lunstat,/struct
+if (lunstat.cur_ptr ne 14) then begin
+   err++
+   print, lunstat.cur_ptr
+   print,"Error: wrong CUR_PTR returned by fstat()."
+endif else begin
+   print,"OK: good CUR_PTR returned by fstat()."
+endelse
+;
+FREE_LUN, lun
+;
+ERRORS_CUMUL, errors, err
+BANNER_FOR_TESTSUITE, "READ_4B_FILE", errors, /SHORT
+;
+if KEYWORD_SET(test) then STOP
+;
 end
-
-pro TEST_POINT_LUN
-
+;
+; ---------------------------------------------------
+;
+pro TEST_POINT_LUN, test=test, no_exit=no_exit, verbose=verbose, help=help
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_POINT_LUN, no_exit=no_exit, help=help, test=test, verbose=verbose, quiet=quiet'
+   return
+end
+;
+errors=0
+;
+tmpdir=GETENV('IDL_TMPDIR')
+if STRLEN(tmpdir) GT 0 then begin
+   tmpdir=tmpdir+PATH_SEP()
+   MESSAGE, /continue, 'working in IDL_TMPDIR'
+endif else begin
+   MESSAGE, /continue, 'IDL_TMPDIR undefined, working in current directory'
+endelse
+;
 ; file creation
-file = '/tmp/file.txt'
-filegz = file+'.gz'
-openw,lun,file,/get_lun
-printf,lun,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-free_lun,lun
-
+file1=tmpdir+'file1.txt'
+file2=tmpdir+'file2.txt'
+file2gz=tmpdir+'file2.txt.gz'
+;
+data='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+;
+OPENW, lun, file1, /get_lun
+PRINTF, lun, data
+FREE_LUN, lun
+;
+; recopy "file1" into "file2"
+FILE_COPY, file1, file2
+; compress "file2"
+; maybe not OK on MSwin
+SPAWN, 'gzip -f '+file2, /sh
+;
 ; read raw file
-read_4b_file, file, compress=0
-
-; read raw file
-read_4b_file, file, compress=1
-
-; compress file
-spawn,'gzip -f '+file,/sh
-
+READ_4B_FILE, file1, errors, compress=0
+;
+; read raw file as a compressed one
+; This is working for IDL, GDL & FL
+;
+READ_4B_FILE, file1, compress=1
+;
 ; read compressed file
-read_4b_file, filegz, compress=1
-
-return
+READ_4B_FILE, file2gz, errors, compress=1
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_POINT_LUN', errors
+;
+if (errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end
-

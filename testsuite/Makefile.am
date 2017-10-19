@@ -148,6 +148,7 @@ TESTS = \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \
+  test_point_lun.pro \
   test_postscript.pro \
   test_product.pro \
   test_ps_decomposed.pro \
