@@ -22,13 +22,19 @@ endif
 ;
 status=1
 ;
-; Do we have access to ImageMagick functionnalities ??
+;  for IDL compatibility
+FORWARD_FUNCTION MAGICK_EXISTS
 ;
-if (MAGICK_EXISTS() EQ 0) then begin
-    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, /continue, "You must have ImageMagick support to use this functionaly."
-    status=0
-    if ~KEYWORD_SET(debug) then return, 0
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl EQ 1) then begin
+    ;; Do we have access to ImageMagick functionnalities ??
+   ;;
+   if (MAGICK_EXISTS() EQ 0) then begin
+      MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+      MESSAGE, /continue, "You must have ImageMagick support to use this functionaly."
+      status=0
+      if ~KEYWORD_SET(debug) then return, 0
+   endif
 endif
 ;
 ; The default filename is 'Saturn.jpg',
