@@ -2278,19 +2278,19 @@ void widget_control( EnvT* e ) {
 
   DString eventPro = "";
   static int eventproIx = e->KeywordIx( "EVENT_PRO" );
-  bool eventpro = e->KeywordSet( eventproIx );
+  bool eventpro = e->KeywordPresent( eventproIx );
 
   DString eventFun = "";
   static int eventfunIx = e->KeywordIx( "EVENT_FUNC" );
-  bool eventfun = e->KeywordSet( eventfunIx );
+  bool eventfun = e->KeywordPresent( eventfunIx );
 
   DString killNotifyFunName = "";
   static int killnotifyIx = e->KeywordIx( "KILL_NOTIFY" );
-  bool killnotify = e->KeywordSet( killnotifyIx );
+  bool killnotify = e->KeywordPresent( killnotifyIx );
 
   DString notifyRealizeFunName = "";
   static int notifyrealizeIx = e->KeywordIx( "NOTIFY_REALIZE" );
-  bool notifyrealize = e->KeywordSet(notifyrealizeIx);
+  bool notifyrealize = e->KeywordPresent(notifyrealizeIx);
 
   static int getuvalueIx = e->KeywordIx( "GET_UVALUE" );
   bool getuvalue = e->KeywordPresent( getuvalueIx );
@@ -2531,7 +2531,7 @@ void widget_control( EnvT* e ) {
     } else if (widget->IsTable( )) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
-        bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
+        bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
         DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 
         if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
@@ -2644,7 +2644,7 @@ void widget_control( EnvT* e ) {
         if ( widget->IsTable( ) ) { //TABLE
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx( "USE_TABLE_SELECT" );
-        bool useATableSelection = e->KeywordSet( USE_TABLE_SELECT );
+        bool useATableSelection = e->KeywordPresent( USE_TABLE_SELECT );
         DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 
         if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 && !table->IsSomethingSelected( ) ) {
@@ -2818,17 +2818,9 @@ void widget_control( EnvT* e ) {
       if (hasScr_xsize) xsize*=fact.x;
       if (hasScr_ysize) ysize*=fact.y;
     }    
-    if (widget->IsDraw()) { // special treatment, proving our oo programming is not good!
-      GDLDrawPanel* me2=static_cast<GDLDrawPanel*>(widget->GetWxWidget());
-      if (!me2) e->Throw("Internal GDL error with widgets, please report.");      
-      if (hasScr_xsize && hasScr_ysize) me2->Resize(xsize,ysize);
-      else if (hasScr_xsize) me2->Resize(xsize,ys);
-      else if (hasScr_ysize) me2->Resize(xs,ysize);
-    } else { 
       if (hasScr_xsize && hasScr_ysize) widget->SetSize(xsize,ysize);
       else if (hasScr_xsize) widget->SetSize(xsize,xs);
       else if (hasScr_ysize) widget->SetSize(xs,ysize);
-    }
   }
   
   if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
@@ -3246,7 +3238,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetDropList *droplist = (GDLWidgetDropList *) widget;
     
     static int SET_DROPLIST_SELECT = e->KeywordIx( "SET_DROPLIST_SELECT" );
-    if (e->KeywordSet(SET_DROPLIST_SELECT)) {
+    if (e->KeywordPresent(SET_DROPLIST_SELECT)) {
       DLongGDL* droplistSelection =  e->GetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
       if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       droplist->SelectEntry((*droplistSelection)[0]);
@@ -3274,7 +3266,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetList *list = (GDLWidgetList *) widget;
     
     static int SET_LIST_SELECT = e->KeywordIx( "SET_LIST_SELECT" );
-    if (e->KeywordSet(SET_LIST_SELECT)) {
+    if (e->KeywordPresent(SET_LIST_SELECT)) {
       DLongGDL* listSelection =  e->GetKWAs<DLongGDL>(SET_LIST_SELECT);
       if (listSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       list->SelectEntry((*listSelection)[0]);
@@ -3285,7 +3277,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetComboBox *combo = (GDLWidgetComboBox *) widget;
     
     static int SET_COMBOBOX_SELECT = e->KeywordIx( "SET_COMBOBOX_SELECT" );
-    if (e->KeywordSet(SET_COMBOBOX_SELECT)) {
+    if (e->KeywordPresent(SET_COMBOBOX_SELECT)) {
       DLongGDL* comboSelection =  e->GetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
       if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       combo->SelectEntry((*comboSelection)[0]);
@@ -3293,7 +3285,7 @@ void widget_control( EnvT* e ) {
     static int COMBOBOX_ADDITEM = e->KeywordIx( "COMBOBOX_ADDITEM" );
     static int COMBOBOX_DELETEITEM = e->KeywordIx( "COMBOBOX_DELETEITEM" );
     static int COMBOBOX_INDEX = e->KeywordIx( "COMBOBOX_INDEX" );
-    if (e->KeywordSet(COMBOBOX_ADDITEM)) {
+    if (e->KeywordPresent(COMBOBOX_ADDITEM)) {
       DLong pos=-1;
       DString value="";
       e->AssureStringScalarKWIfPresent(COMBOBOX_ADDITEM, value);
@@ -3378,11 +3370,11 @@ void widget_control( EnvT* e ) {
     bool hasColumnsToDelete = e->KeywordPresent(DELETE_COLUMNS); //Present is sufficient to trig column deletion (IDL feature).
     bool hasRowsToDelete = e->KeywordPresent(DELETE_ROWS); //Present is sufficient to trig column deletion (IDL feature).
 
-    bool insertColumns = e->KeywordSet(INSERT_COLUMNS);
+    bool insertColumns = e->KeywordPresent(INSERT_COLUMNS);
     int columnsToInsert = 0;
     if (insertColumns) e->AssureLongScalarKWIfPresent(INSERT_COLUMNS,columnsToInsert);
 
-    bool insertRows = e->KeywordSet(INSERT_ROWS);
+    bool insertRows = e->KeywordPresent(INSERT_ROWS);
     int rowsToInsert = 0;
     if (insertRows) e->AssureLongScalarKWIfPresent(INSERT_ROWS,rowsToInsert);
     
@@ -3390,13 +3382,13 @@ void widget_control( EnvT* e ) {
     DLongGDL* rowHeights = GetKeywordAs<DLongGDL>(e, ROW_HEIGHTS);
     DStringGDL* rowLabels = GetKeywordAs<DStringGDL>(e, ROW_LABELS);
 
-    bool setATableView = e->KeywordSet(SET_TABLE_VIEW);
+    bool setATableView = e->KeywordPresent(SET_TABLE_VIEW);
     DLongGDL* tableView = GetKeywordAs<DLongGDL>(e, SET_TABLE_VIEW);
 
-    bool editcell = e->KeywordSet(EDIT_CELL);
+    bool editcell = e->KeywordPresent(EDIT_CELL);
     DLongGDL* cellToEdit = GetKeywordAs<DLongGDL>(e, EDIT_CELL);
    
-    bool setATableSelection = e->KeywordSet(SET_TABLE_SELECT);
+    bool setATableSelection = e->KeywordPresent(SET_TABLE_SELECT);
     DLongGDL* tableSelectionToSet = GetKeywordAs<DLongGDL>(e, SET_TABLE_SELECT);
     if (setATableSelection) { //check further a bit...
       if (table->GetDisjointSelection()) {
@@ -3407,7 +3399,7 @@ void widget_control( EnvT* e ) {
       table->SetSelection(tableSelectionToSet);
     }
     
-    bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
+    bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
     DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
     if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
       { e->Throw( "USE_TABLE_SELECT value out of range.");}

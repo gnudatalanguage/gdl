@@ -3491,7 +3491,7 @@ const DString& title_, DLong style_ )
     } else {
       widgetSizer->Add( droplist, 0, widgetStyle, 0);
       if ((frameWidth>0)) this->FrameWidget();
-    } 
+    }
     droplist->Connect(widgetID, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(GDLFrame::OnDropList));
 
     TIDY_WIDGET;   
@@ -3579,7 +3579,7 @@ void GDLWidgetComboBox::SetValue(BaseGDL *value){
   assert( combo != NULL);
   combo->Clear();
   combo->Append(newchoices);
-  combo->SetSelection(0);
+  combo->SetSelection(0,0);
 }
 
 void GDLWidgetComboBox::AddItem(DString value, DLong pos) {
