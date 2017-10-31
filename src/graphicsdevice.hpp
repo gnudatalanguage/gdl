@@ -294,10 +294,12 @@ public:
     long gcFunction;
     int backingStoreMode;
     DString fontname;
+    int staticDisplay;
 
   int getCursorId(){return cursorId;}
   long getGCFunction(){return gcFunction;}
   int GetBackingStore(){return backingStoreMode;}
+  bool isStatic(){return staticDisplay==1;}
 
   static int actWin;
   static WindowListT winList;
@@ -309,7 +311,8 @@ public:
   cursorId(_cursorId),
   gcFunction(_gcFunction),
   backingStoreMode(_backingStoreMode),
-  fontname("")
+  fontname(""),
+  staticDisplay(1)
   {
       //pretty much nothing to do...
   }

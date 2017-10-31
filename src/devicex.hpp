@@ -65,7 +65,18 @@ public:
             decomposed = (Depth >= 15 ? 1 : 0);
           } 
         }
-
+        Visual *visual=DefaultVisual( display, DefaultScreen(display) ); 
+        switch ( visual->c_class )
+        {
+         case TrueColor:
+         case StaticColor:
+         case StaticGray:
+          staticDisplay=1;
+             break; //ok, are static
+         default: //dynamic: problems if cmaps not initialized.
+          staticDisplay=0;
+        }
+ 
         dStruct = new DStructGDL("!DEVICE");
         dStruct->InitTag("NAME",       DStringGDL(name));
         dStruct->InitTag("X_SIZE",     DLongGDL(640));
@@ -148,12 +159,22 @@ public:
     // we want color
     winList[ wIx]->scolor( 1);
 
+    //if plplot uses a non-staticColor device [TrueColor, StaticColor, StaticGray] 
+    //(because it does not ask for a static even if it exists), we must initialize here colormaps
+    //otherwise our direct X11 color commands work well and are faster than plplot's.
+    if (!this->isStatic()){
+     PLINT r[ctSize], g[ctSize], b[ctSize];
+     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
+     myCT->Get( r, g, b);
+     winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
+    }
+
     // window title
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
 //    winList[ wIx]->setopt( "db", 0); //handled elsewhere
-//    winList[ wIx]->setopt( "debug", 0);
+//    winList[ wIx]->SETOPT( "debug", "1"); //useful for debugging plplot!
     winList[ wIx]->SETOPT( "plwindow", buf);
 // Do not init colors --- we handle colors ourseves, very much faster!
     winList[ wIx]->SETOPT( "drvopt","noinitcolors=1");
