@@ -80,6 +80,7 @@ TESTS = \
   test_call_procedure.pro \
   test_call_procedure_extra.pro \
   test_ce.pro \
+  test_chisqr_cvf.pro \
   test_clip.pro \
   test_common.pro \
   test_congrid.pro \
