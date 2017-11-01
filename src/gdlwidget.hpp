@@ -1457,6 +1457,7 @@ public:
   void OnListBox( wxCommandEvent& event);
   void OnListBoxDoubleClicked( wxCommandEvent& event);
   void OnComboBox( wxCommandEvent& event);
+  void OnComboBoxTextEnter( wxCommandEvent& event);
   void OnButton( wxCommandEvent& event);
   void OnRadioButton( wxCommandEvent& event);
   void OnCheckBox( wxCommandEvent& event);

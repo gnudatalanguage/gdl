@@ -456,7 +456,28 @@ void GDLFrame::OnComboBox( wxCommandEvent& event)
 
   GDLWidget::PushEvent( baseWidgetID, widgcbox);
 }
+void GDLFrame::OnComboBoxTextEnter( wxCommandEvent& event)
+{
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TEXT_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in GDLFrame::OnComboBoxTextEvent: %d\n"),event.GetId());
+#endif
 
+  WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId());
+  int selectValue = event.GetSelection();
+  
+  // create GDL event struct
+  DStructGDL*  widgcbox;
+  wxString strValue = event.GetString();
+
+  widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
+  widgcbox->InitTag("ID", DLongGDL( event.GetId()));
+  widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
+  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+  widgcbox->InitTag("INDEX", DLongGDL( selectValue));
+  widgcbox->InitTag("STR", DStringGDL( string(strValue.mb_str(wxConvUTF8)) ));
+
+  GDLWidget::PushEvent( baseWidgetID, widgcbox);
+}
 void GDLFrame::OnDropList( wxCommandEvent& event)
 {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)

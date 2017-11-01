@@ -3363,7 +3363,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
 
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,wxCommandEventHandler(GDLFrame::OnListBoxDoubleClicked));
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(GDLFrame::OnListBox));
-  list->SetSelection(0);//necessary to avoid spurious event on first click.
+  list->SetSelection(wxNOT_FOUND);//necessary to avoid spurious event on first click.
   widgetStyle=widgetAlignment();
   if ((frameWidth>0)) this->FrameWidget();  else  widgetSizer->Add(list, 0, widgetStyle, 0); 
   TIDY_WIDGET;
@@ -3386,7 +3386,7 @@ void GDLWidgetList::SetValue(BaseGDL *value){
   
   list->Clear();
   list->InsertItems(newchoices,0);
-  list->SetSelection(0);
+  list->SetSelection(wxNOT_FOUND);
 }
 
 void GDLWidgetList::SelectEntry(DLong entry_number){
@@ -3557,6 +3557,7 @@ const DString& title_, DLong style_ )
   wxPoint( xOffset, yOffset ), computeWidgetSize( ), choices, style );
   this->wxWidget = combo;
   combo->Connect(widgetID,wxEVT_COMMAND_COMBOBOX_SELECTED,wxCommandEventHandler(GDLFrame::OnComboBox));
+  if (style & wxTE_PROCESS_ENTER) combo->Connect(widgetID,wxEVT_COMMAND_TEXT_ENTER,wxCommandEventHandler(GDLFrame::OnComboBoxTextEnter));
   widgetStyle=widgetAlignment();
   widgetSizer->Add(combo, 0, widgetStyle, 0);
   if ((frameWidth>0)) this->FrameWidget();

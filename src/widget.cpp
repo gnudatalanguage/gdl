@@ -1329,8 +1329,7 @@ BaseGDL* widget_combobox( EnvT* e ) {
 
 
   DLong style = wxCB_SIMPLE;
-  if ( !editable )
-    style = wxCB_READONLY;
+  if ( !editable ) style |= wxCB_READONLY; else style |= wxTE_PROCESS_ENTER;
   GDLWidgetComboBox* combobox = new GDLWidgetComboBox( parentID, e, value, eventFlags, title, style );
   if (combobox->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   combobox->SetWidgetType( GDLWidget::WIDGET_COMBOBOX );
   if (dynres) combobox->authorizeDynamicResize();
