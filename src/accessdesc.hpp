@@ -316,20 +316,19 @@ private:
   else 
   {
     ix[d]->SetVariable(top);
-    // 	topDim=ix[d]->GetDim();
-    // 	dim >> topDim;
-    dimension addVarDim = ix[d]->GetDim();
-    addVarDim.Purge();
-    dim >> addVarDim;
-//     if( top->Rank() < ix[d]->GetDim().Rank())
-//     {
-//       dim.AddLeft( ix[d]->GetDim(), top->Rank());
-//     }
-//     else
-// 	dim >> ix[d]->GetDim();    
+// Following code was causing problem #10 in test_bug_709.
+//    dimension addVarDim = ix[d]->GetDim();
+//    addVarDim.Purge();
+//    dim >> addVarDim;
+     if( top->Rank() < ix[d]->GetDim().Rank())
+     {
+      dimension addVarDim = ix[d]->GetDim();
+      addVarDim.Purge();
+      dim >> addVarDim;
+      //dim.AddLeft( ix[d]->GetDim(), top->Rank());
+     }
+     else dim >> ix[d]->GetDim();    
   }
-// Was added to solve bug 709 but may have side effects.
-//  dim.Purge();
  }
   
 private:
