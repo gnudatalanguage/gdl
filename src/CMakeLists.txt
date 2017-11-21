@@ -122,6 +122,7 @@ set(SOURCES
 ${SOURCES}
 gdljournal.cpp
 gdljournal.hpp
+gdlhelp.cpp
 gdlpsstream.cpp
 gdlpsstream.hpp
 gdlpython.cpp
