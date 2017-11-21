@@ -1446,7 +1446,7 @@ bool_t xdr_counted_string(XDR *xdrs, char **p)
   if (input)  
   {  
       *p = (char*) malloc((unsigned) (length + 1));  
-         *p[length] = '\0'; /* Null termination */  
+         (*p)[length] = '\0'; /* Null termination */  
   }  
   /* If the string length is nonzero, transfer it */  
   return(length ? xdr_string(xdrs, p, length) : TRUE);  
