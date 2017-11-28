@@ -62,6 +62,24 @@ namespace lib {
   using namespace std;
   using namespace antlr;
 
+  BaseGDL* glpk_exists(EnvT *e)
+  {
+#ifdef USE_GLPK
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
+  BaseGDL* grib_exists(EnvT *e)
+  {
+#ifdef USE_GRIB
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
   BaseGDL* magick_exists(EnvT *e)
   {
 #ifdef USE_MAGICK

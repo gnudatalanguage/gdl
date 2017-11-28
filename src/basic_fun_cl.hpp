@@ -26,6 +26,8 @@ namespace lib {
   BaseGDL* interpol(EnvT* e);
   BaseGDL* gsl_exp(EnvT* e);
   
+  BaseGDL* grib_exists(EnvT *e);
+  BaseGDL* glpk_exists(EnvT *e);
   BaseGDL* ncdf_exists(EnvT* e);
   BaseGDL* hdf_exists(EnvT* e);
   BaseGDL* hdf5_exists(EnvT* e);

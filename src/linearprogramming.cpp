@@ -21,13 +21,24 @@
 #include "dinterpreter.hpp"
 
 
-#if defined(HAVE_GLPK)
+//#if defined(HAVE_GLPK)
 namespace lib {
 
   using namespace std;
 
+#ifdef HAVE_GLPK
+#define USE_GLPK 1
 #include <glpk.h>
+#else
+#define USE_GLPK 0
+#endif
+
   BaseGDL* simplex(EnvT* e) {
+
+#ifndef USE_GLPK
+    e->Throw("GDL was compiled without support for GLPK");
+    return NULL;
+#else
     // sanity check (for number of parameters)
     SizeT nParam = e->NParam();
     if (nParam < 5) e->Throw("Incorrect number of arguments.");
@@ -184,6 +195,8 @@ namespace lib {
         for (int i = 1; i < n+1; ++i) (*(DFloatGDL*)ret)[i] = glp_get_col_prim(theProblem, i);
     }
     return ret;
+#endif
   }
 }
-#endif
+
+
