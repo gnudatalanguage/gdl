@@ -12,5 +12,7 @@ print, 'Eigen3 ? : ', eigen_exists()
 print, 'HDF ? : ', hdf_exists()
 print, 'NetCDf ? : ', ncdf_exists()
 print, 'HDF5 ? : ', hdf5_exists()
+print, 'GRIB ? : ', grib_exists()
+print, 'GLPK ? : ', glpk_exists()
 ;
 end
