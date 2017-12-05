@@ -44,6 +44,7 @@
 #include "smooth.hpp"
 #include "brent.hpp"
 #include "linearprogramming.hpp"
+#include "saverestore.hpp"
 
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
