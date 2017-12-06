@@ -140,7 +140,7 @@ namespace lib {
   }
 
   int getVersion(XDR* xdrs) {
-    DLong format;
+    int format;
     if (!xdr_convert(xdrs, &format)) return 0;
     //    cerr << "Format: " << format << endl;
     char* arch = 0;
@@ -268,7 +268,7 @@ namespace lib {
     return 1;
   }
 
-  DStructGDL* getDStruct(EnvT* e, XDR* xdrs, dimension* inputdims = NULL) {
+  DStructGDL* getDStruct(EnvT* e, XDR* xdrs, dimension* inputdims) {
     int structstart;
     if (!xdr_convert(xdrs, &structstart)) return NULL;
     if (structstart != 9)
@@ -357,32 +357,15 @@ namespace lib {
         if (tagdimensions[i] == NULL) return NULL;
       }
 
-      DStructGDL * substruct[nstructs + 1]; //Always >0: FIXME IF MEMORY LEAK!
       std::string stru_name = std::string(structname);
       DStructDesc* stru_desc = new DStructDesc((stru_name.length() == 0) ? "$truct" : stru_name);
-      DStructGDL* res_stru = new DStructGDL(stru_desc);
 
-      //if there are any tag flags indicating the tag is a STRUCTURE, read the STRUCTDESC
-      for (int i = 0; i < nstructs; ++i)
-      {
-        substruct[i] = getDStruct(e, xdrs);
-        if (substruct[i] == NULL) return NULL;
-      }
       //summary & tag population:
       for (int i = 0, j = 0, k = 0; i < ntags; ++i)
       {
-        //reserve a DStruct
-        DStructGDL* parStruct = NULL;
         //reserved a dimension
         dimension pardim = dimension();
-        //        cerr << "Tag " << tag_name[i] << " is " << codes[tag_typecode[i]];
-        if (tag_flag[i] & 0x20)
-        {
-          //          cerr << " Structure";
-          // attribute parstruct and push struct index:
-          parStruct = substruct[k++];
-        }
-        //        if (tag_flag[i] & 0x10) cerr << " Pointer to array";
+
         if (tag_flag[i] & 0x04)
         {
           // modify pardim and push index;
@@ -440,6 +423,8 @@ namespace lib {
             break;
           case 8: //	Structure (never a scalar)
           {
+            DStructGDL* parStruct = getDStruct(e, xdrs, &pardim);
+            if (parStruct == NULL) return NULL;
             stru_desc->AddTag(tag_name[i], parStruct);
           }
             break;
@@ -522,7 +507,7 @@ namespace lib {
           for (int i = 0; i < nsupclasses; ++i)
           {
             cerr << "OBJECT Definition not handled, fixme!" << endl;
-            DStructGDL* toto = getDStruct(e, xdrs);
+            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1));
             if (toto == NULL) return NULL; else GDLDelete(toto);
           }
         }
@@ -658,32 +643,32 @@ namespace lib {
         break;
       case GDL_INT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DInt), (xdrproc_t) xdr_int)) cerr << "error GDL_INT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DInt), (xdrproc_t) xdr_short)) cerr << "error GDL_INT" << endl;
       }
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_int)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_short)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong), (xdrproc_t) xdr_long)) cerr << "error GDL_LONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong), (xdrproc_t) xdr_int)) cerr << "error GDL_LONG" << endl;
       }
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_long)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong64), (xdrproc_t) xdr_u_longlong_t)) cerr << "error GDL_LONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong64), (xdrproc_t) xdr_hyper)) cerr << "error GDL_LONG64" << endl;
       }
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_longlong_t)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_hyper)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
