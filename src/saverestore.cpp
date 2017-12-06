@@ -856,15 +856,16 @@ namespace lib {
     if (expanded) free(expanded);
     uLong compsz = nextptr - currentptr;
     char* expandable = (char*) malloc(compsz);
-    fread(expandable, 1, compsz, fid);
+    size_t retval=fread(expandable, 1, compsz, fid);
     int iloop = 1;
     uLong uncompsz;
+    //of course one should never do like that. One should do as in gzstream.hpp...
     while (1)
     {
-      uncompsz = 10 * iloop*compsz;
-      expanded = (char*) malloc(uncompsz); //more than 9 compress with zlib is impossible.
+      uncompsz = 10 * iloop*compsz; //a default starting value...
+      expanded = (char*) malloc(uncompsz); 
       int retval=uncompress((Bytef *) expanded, &uncompsz, (Bytef *) expandable, compsz);
-      if ( retval == Z_OK) break;
+      if ( retval == Z_OK) break; //ok length was sufficient
       free(expanded);
       if ( retval != Z_BUF_ERROR) throw GDLException("fatal error when uncompressing data.");
       iloop++;
