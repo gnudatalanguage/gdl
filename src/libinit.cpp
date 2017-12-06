@@ -80,6 +80,10 @@ void LibInit()
   LibInit_jp();
   const char KLISTEND[] = "";
 
+  const string restoreKey[]={ "FILENAME","DESCRIPTION","VERBOSE", KLISTEND};
+  const string restoreWarnKey[]={"NO_COMPILE", "RELAXED_STRUCTURE_ASSIGNMENT", "RESTORED_OBJECTS" , KLISTEND};
+  new DLibPro(lib::gdl_restore,string("RESTORE"),1,restoreKey,restoreWarnKey);
+  
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
 
