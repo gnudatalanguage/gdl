@@ -906,6 +906,8 @@ namespace lib {
       e->AssureScalarKW<DStringGDL>(FILENAME, name);
     } else name = "idlsave.dat";
 
+    WordExp(name);
+
     FILE *fid;
     fid = fopen(name.c_str(), "r");
     if (fid == NULL) e->Throw("Error opening file. Unit: XXXX, File: " + name + ".");
