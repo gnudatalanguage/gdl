@@ -1,5 +1,7 @@
-Alain C. and Ilia N.
-July 2015
+Alain C. and Ilia N., July 2015
+
+Nov. 2017 : CVS discontinued at SourceForge, force move to SVN.
+
 
 Please post improvments on the Discussion
 http://sourceforge.net/p/gnudatalanguage/discussion/338691/
@@ -7,12 +9,12 @@ or here http://sourceforge.net/p/gnudatalanguage/patches/
 
 Just collecting few useful scripts :
 
-* The CVS side :
+* The SVN side :
 
-** init_gdl_CVS.sh : How to do the first checkout of the CVS of GDL
-** update_gdl_CVS.sh : How to uptade the CVS
+** init_gdl_SVN.sh : How to do the first checkout of the SVN of GDL
+** update_gdl_SVN.sh : How to uptade the SVN
 
-** same for GDLDE, an IDE for GDL: gdlde_init_CVS.sh and gdlde_update_CVS.sh
+** same for GDLDE, an IDE for GDL: gdlde_init_SVN.sh and gdlde_update_SVN.sh
 
 * The packages side
 
