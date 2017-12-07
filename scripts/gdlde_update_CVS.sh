@@ -3,6 +3,13 @@
 # update an already existing CVS with sub-directories 
 # should be run at top of the root of the CVS (e.g. gdlde/)
 #
+echo '------------------------------------------------------------'
+echo 'CVS disconnected on SourceForge since end of November 2017 '
+echo ''
+echo 'You must use the SVN version !'
+echo '------------------------------------------------------------'
+exit
+
 echo 'This is for the GDLDE part : IDE for GDL'
 echo ''
 #
