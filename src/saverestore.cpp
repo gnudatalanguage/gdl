@@ -49,50 +49,11 @@ namespace lib {
   static char* saveFileDatestring;
   static char* saveFileUser;
   static char* saveFileHost;
+  
+  static bool safetyTested=false;
+  static bool isSafe=false;
 
 #include <rpc/xdr.h>
-
-  int xdr_convert(XDR *xdrs, DInt *buf) {
-    return (xdr_short(xdrs, buf));
-  }
-
-  int xdr_convert(XDR *xdrs, DUInt *buf) {
-    return (xdr_u_short(xdrs, buf));
-  }
-
-  int xdr_convert(XDR *xdrs, DLong *buf) {
-#if defined(__APPLE__) && defined(__LP64__)
-    /* xdr_long actually takes an int on 64bit darwin */
-    return (xdr_long(xdrs, buf));
-#else
-    return (xdr_int(xdrs, buf));
-#endif
-  }
-
-  int xdr_convert(XDR *xdrs, DULong *buf) {
-#if defined(__APPLE__) && defined(__LP64__)
-    /* xdr_u_long actually takes an unsigned int on 64bit darwin */
-    return (xdr_u_long(xdrs, buf));
-#else
-    return (xdr_u_int(xdrs, buf));
-#endif
-  }
-
-  bool_t xdr_convert(XDR *xdrs, DLong64 *buf) {
-    return (xdr_longlong_t(xdrs, (quad_t *) (buf)));
-  }
-
-  bool_t xdr_convert(XDR *xdrs, DULong64 *buf) {
-    return (xdr_u_longlong_t(xdrs, (u_quad_t *) (buf)));
-  }
-
-  int xdr_convert(XDR *xdrs, DFloat *buf) {
-    return (xdr_float(xdrs, buf));
-  }
-
-  int xdr_convert(XDR *xdrs, DDouble *buf) {
-    return (xdr_double(xdrs, buf));
-  }
 
   //this is the routined used by IDL as per the documentation.
 
@@ -106,8 +67,8 @@ namespace lib {
   }
 
   void getTimeUserHost(XDR *xdrs) {
-    int UnknownLong;
-    for (int i = 0; i < 256; ++i) if (!xdr_convert(xdrs, &UnknownLong)) break;
+    int32_t UnknownLong;
+    for (int i = 0; i < 256; ++i) if (!xdr_int32_t(xdrs, &UnknownLong)) break;
     {
       free(saveFileDatestring);
       saveFileDatestring = 0;
@@ -129,8 +90,8 @@ namespace lib {
   }
 
   char* getDescription(XDR *xdrs) {
-    int length = 0;
-    if (!xdr_int(xdrs, &length)) cerr << "error reading description string length" << endl;
+    int32_t length = 0;
+    if (!xdr_int32_t(xdrs, &length)) cerr << "error reading description string length" << endl;
     if (length > 0)
     {
       char* chars = 0;
@@ -140,8 +101,8 @@ namespace lib {
   }
 
   int getVersion(XDR* xdrs) {
-    int format;
-    if (!xdr_convert(xdrs, &format)) return 0;
+    int32_t format;
+    if (!xdr_int32_t(xdrs, &format)) return 0;
     //    cerr << "Format: " << format << endl;
     char* arch = 0;
     if (!xdr_string(xdrs, &arch, 2048)) return 0;
@@ -177,38 +138,38 @@ namespace lib {
   }
 
   dimension* getArrDesc(XDR* xdrs) {
-    int arrstart;
-    int UnknownLong;
-    if (!xdr_convert(xdrs, &arrstart)) return NULL;
+    int32_t arrstart;
+    int32_t UnknownLong;
+    if (!xdr_int32_t(xdrs, &arrstart)) return NULL;
     if (arrstart != 8)
     {
       cerr << "array is not a array! abort." << endl;
       return 0;
     }
-    if (!xdr_convert(xdrs, &UnknownLong)) return NULL;
+    if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
     ;
-    int nbytes;
-    if (!xdr_convert(xdrs, &nbytes)) return NULL;
+    int32_t nbytes;
+    if (!xdr_int32_t(xdrs, &nbytes)) return NULL;
     ;
-    int nEl;
-    if (!xdr_convert(xdrs, &nEl)) return NULL;
+    int32_t nEl;
+    if (!xdr_int32_t(xdrs, &nEl)) return NULL;
     ;
-    int nDims;
-    if (!xdr_convert(xdrs, &nDims)) return NULL;
+    int32_t nDims;
+    if (!xdr_int32_t(xdrs, &nDims)) return NULL;
     ;
-    if (!xdr_convert(xdrs, &UnknownLong)) return NULL;
+    if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
+    if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
     ;
-    int nmax;
-    if (!xdr_convert(xdrs, &nmax)) return NULL;
+    int32_t nmax;
+    if (!xdr_int32_t(xdrs, &nmax)) return NULL;
     ;
     //    cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
-    int* dims = 0;
-    uint sizep = 8;
-    if (!xdr_array(xdrs, (char**) &dims, &sizep, 8, sizeof (int), (xdrproc_t) xdr_int)) return NULL;
+    int32_t dims[nmax];
+    if (!xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) return NULL;
     ;
     SizeT k = dims[0];
     dimension* theDim = new dimension(k);
-    for (int i = 1; i < sizep; ++i)
+    for (int i = 1; i < nmax; ++i)
     {
       k = dims[i];
       *theDim << k;
@@ -219,8 +180,8 @@ namespace lib {
   }
 
   int defineCommonBlock(EnvT* e, XDR* xdrs, bool verbose) {
-    int ncommonvars;
-    if (!xdr_convert(xdrs, &ncommonvars)) return 0;
+    int32_t ncommonvars;
+    if (!xdr_int32_t(xdrs, &ncommonvars)) return 0;
     char* commonname = 0;
     if (!xdr_string(xdrs, &commonname, 2048)) return 0;
     char* varnames[ncommonvars];
@@ -236,7 +197,7 @@ namespace lib {
     //the common variables become just normal variables:
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
-    DLong curlevnum = callStack.size();
+    int32_t curlevnum = callStack.size();
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
 
     for (int i = 0; i < ncommonvars; ++i)
@@ -269,8 +230,8 @@ namespace lib {
   }
 
   DStructGDL* getDStruct(EnvT* e, XDR* xdrs, dimension* inputdims) {
-    int structstart;
-    if (!xdr_convert(xdrs, &structstart)) return NULL;
+    int32_t structstart;
+    if (!xdr_int32_t(xdrs, &structstart)) return NULL;
     if (structstart != 9)
     {
       cerr << "structure is not a structure! abort." << endl;
@@ -278,8 +239,8 @@ namespace lib {
     }
     char* structname = 0;
     if (!xdr_string(xdrs, &structname, 2048)) return NULL;
-    int structure_def_flags;
-    if (!xdr_convert(xdrs, &structure_def_flags)) return NULL;
+    int32_t structure_def_flags;
+    if (!xdr_int32_t(xdrs, &structure_def_flags)) return NULL;
     bool ispredef = false;
     if (structure_def_flags & 0x1)
     {
@@ -306,10 +267,10 @@ namespace lib {
     //      cerr << ", unknown 0x08 flag for structure_def_flags";
     //    }
     //    cerr << endl;
-    int ntags;
-    if (!xdr_convert(xdrs, &ntags)) return NULL;
-    int struct_nbytes;
-    if (!xdr_convert(xdrs, &struct_nbytes)) return NULL;
+    int32_t ntags;
+    if (!xdr_int32_t(xdrs, &ntags)) return NULL;
+    int32_t struct_nbytes;
+    if (!xdr_int32_t(xdrs, &struct_nbytes)) return NULL;
     //    cerr << "ntags=" << ntags << ",nbytes=" << struct_nbytes << endl;
     //if predef == 1 this ends the Struct_desc, meaning that the definition of such a
     //structure has already been presented and we should reuse it.
@@ -326,17 +287,17 @@ namespace lib {
     } else
     {
       //TAG_DESC repated ntags times:
-      int tag_typecode[ntags];
+      int32_t tag_typecode[ntags];
       char* tag_name[ntags];
-      int tag_flag[ntags];
-      int tag_offset[ntags];
+      int32_t tag_flag[ntags];
+      int32_t tag_offset[ntags];
       for (int i = 0; i < ntags; ++i) tag_name[i] = 0;
       for (int i = 0; i < ntags; ++i)
       {
         //TAG_DESC:
-        if (!xdr_convert(xdrs, &tag_offset[i])) break;
-        if (!xdr_convert(xdrs, &tag_typecode[i])) break;
-        if (!xdr_convert(xdrs, &tag_flag[i])) break;
+        if (!xdr_int32_t(xdrs, &tag_offset[i])) break;
+        if (!xdr_int32_t(xdrs, &tag_typecode[i])) break;
+        if (!xdr_int32_t(xdrs, &tag_flag[i])) break;
       }
       for (int i = 0; i < ntags; ++i)
       {
@@ -344,8 +305,8 @@ namespace lib {
         if (!xdr_string(xdrs, &tag_name[i], 2048)) break;
       }
 
-      int narrays = 0;
-      int nstructs = 0;
+      int32_t narrays = 0;
+      int32_t nstructs = 0;
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x20) nstructs++;
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x04) narrays++;
       dimension * tagdimensions[narrays + 1]; //Always >0: FIXME IF MEMORY LEAK!
@@ -493,8 +454,8 @@ namespace lib {
         if (!xdr_string(xdrs, &classname, 2048)) return NULL;
         cerr << "CLASSNAME: \"" << classname << "\"" << endl;
         //NSUPCLASSES:
-        int nsupclasses = 0;
-        if (!xdr_convert(xdrs, &nsupclasses)) return NULL;
+        int32_t nsupclasses = 0;
+        if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
         cerr << "NSUPCLASSES=" << nsupclasses << endl;
         if (nsupclasses > 0)
         {
@@ -522,11 +483,11 @@ namespace lib {
     // start of TYPEDESC
     // common for VARIABLE, SYSTEM_VARIABLE and HEAP_DATA:
     // 1) TYPECODE
-    int typecode;
-    if (!xdr_convert(xdrs, &typecode)) return NULL;
+    int32_t typecode;
+    if (!xdr_int32_t(xdrs, &typecode)) return NULL;
     // 2) VARFLAGS
-    int varflags;
-    if (!xdr_convert(xdrs, &varflags)) return NULL;
+    int32_t varflags;
+    if (!xdr_int32_t(xdrs, &varflags)) return NULL;
 
     if (varflags & 0x02) //defines a system variable.
     {
@@ -551,9 +512,9 @@ namespace lib {
     //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02) here, that we skip.
     if (isSysVar & 0x02)
     {
-      int dummy;
-      if (!xdr_convert(xdrs, &dummy)) return NULL;
-      if (!xdr_convert(xdrs, &dummy)) return NULL;
+      int32_t dummy;
+      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
     }
     //we gonnna create a BaseGDL:
 
@@ -643,32 +604,32 @@ namespace lib {
         break;
       case GDL_INT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DInt), (xdrproc_t) xdr_short)) cerr << "error GDL_INT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DInt), (xdrproc_t) xdr_int16_t)) cerr << "error GDL_INT" << endl;
       }
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_short)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_uint16_t)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong), (xdrproc_t) xdr_int)) cerr << "error GDL_LONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) cerr << "error GDL_LONG" << endl;
       }
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_uint32_t)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong64), (xdrproc_t) xdr_hyper)) cerr << "error GDL_LONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DLong64), (xdrproc_t) xdr_int64_t)) cerr << "error GDL_LONG64" << endl;
       }
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_hyper)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_uint64_t)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
@@ -697,8 +658,8 @@ namespace lib {
       {
         for (SizeT i = 0; i < nEl; ++i)
         {
-          int length;
-          if (!xdr_int(xdrs, &length)) cerr << "error reading string length" << endl;
+          int32_t length;
+          if (!xdr_int32_t(xdrs, &length)) cerr << "error reading string length" << endl;
           if (length > 0)
           {
             char* chars = 0;
@@ -717,9 +678,9 @@ namespace lib {
       }
       case GDL_PTR:
       {
-        int heapNumber[nEl];
+        int32_t heapNumber[nEl];
         DPtrGDL* ptr = static_cast<DPtrGDL*> (var);
-        for (SizeT ix = 0; ix < nEl; ++ix) xdr_int(xdrs, &(heapNumber[ix]));
+        for (SizeT ix = 0; ix < nEl; ++ix) xdr_int32_t(xdrs, &(heapNumber[ix]));
         for (SizeT ix = 0; ix < nEl; ++ix)
         {
           DPtr heapptr = heapIndexMap.find(heapNumber[ix])->second;
@@ -738,7 +699,6 @@ namespace lib {
     EnvStackT& callStack = e->Interpreter()->CallStack();
     DLong curlevnum = callStack.size();
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
-    SizeT nVar = pro->Size(); // # var in GDL for desired level 
     int nKey = pro->NKey();
     //    cout << "nKey:" << nKey << endl;
     //    cout << "nVar:" << nVar << endl;
@@ -860,9 +820,36 @@ namespace lib {
     return xdrsmem;
   }
   
+  bool testSafety() {
+    if (sizeof(int8_t) != sizeof(DByte)) return false;
+    if (sizeof(int16_t) != sizeof(DInt)) return false;
+    if (sizeof(int32_t) != sizeof(DLong)) return false;
+    if (sizeof(int64_t) != sizeof(DLong64)) return false;
+    if (sizeof(uint16_t) != sizeof(DUInt)) return false;
+    if (sizeof(uint32_t) != sizeof(DULong)) return false;
+    if (sizeof(uint64_t) != sizeof(DULong64)) return false;    
+    if (sizeof(double) != sizeof(DDouble)) return false;    
+    if (sizeof(float) != sizeof(DFloat)) return false;    
+    return true;
+  }
+  
   // new fast restore.
 
   void gdl_restore(EnvT* e) {
+    
+    // xdr() is used through all the following. I program here xdr to use the 8, 16, 32 and 64 bits length
+    // types of GDL/IDL (BYTE,INT,LONG,LONG64). However, a risk exist in some architectures that the real length
+    // of DInt, DLong etc is not really the expected one (16 and 32 respectively). So the following is a test on these
+    // lengths. If the test fails, 1) GDL is false for this architecture and that needs to be reported and
+    // 2) gdl_restore cannot work.
+    
+    if(safetyTested==false){
+      isSafe=testSafety();
+      if (!isSafe) e->Throw("Severe: internal representation of integers in this version of GDL is wrong, please report. Aborting unsafe use of RESTORE.");
+      safetyTested==true;
+    }
+    //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
+    
 
     static int VERBOSE = e->KeywordIx("VERBOSE");
     static int FILENAME = e->KeywordIx("FILENAME");
@@ -913,7 +900,7 @@ namespace lib {
       e->Throw("Not a valid save file: " + name + ".");
     }
 //    if (signature[3]==0x06) cerr<<"probably compressed"<<endl;
-#define LONG sizeof(DLong) //sizeof(DInt)
+#define LONG sizeof(int32_t) //sizeof(DInt)
 #define ULONG LONG 
 
 
@@ -923,11 +910,11 @@ namespace lib {
     bool isStructure = false;
     bool isCompress = false;
     //will start at TMESTAMP
-    DULong64 currentptr = 0;
-    DULong64 nextptr = LONG;
-    DULong ptrs0, ptrs1;
-    DLong rectype;
-    DLong UnknownLong;
+    uint64_t currentptr = 0;
+    uint64_t nextptr = LONG;
+    uint32_t ptrs0, ptrs1;
+    int32_t rectype;
+    int32_t UnknownLong;
     bool SomethingFussyHappened = true;
 
     //pass twice. First to define heap variables only (and ancillary data).
@@ -936,7 +923,7 @@ namespace lib {
     {
       xdrs=xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
       if (fseek(fid, nextptr, SEEK_SET)) break;
-      if (!xdr_convert(xdrs, &rectype)) break;
+      if (!xdr_int32_t(xdrs, &rectype)) break;
 
 //      if (isCompress) cerr << "\nOffset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
@@ -947,14 +934,16 @@ namespace lib {
       }
       if (isHdr64)
       {
-        if (!xdr_convert(xdrs, &nextptr)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
+        uint64_t my_ulong64;
+        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+        nextptr = my_ulong64;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else
       {
-        if (!xdr_convert(xdrs, &ptrs0)) break;
-        if (!xdr_convert(xdrs, &ptrs1)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
+        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
+        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         nextptr = ptrs0;
         if (ptrs1 > 0)
         {
@@ -1033,10 +1022,10 @@ namespace lib {
         case 15: //HEAP_HEADER. IS BEFORE ANY REFERENCE TO HEAP.
           if (isCompress) xdrs=compress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
-          u_int elementcount;
-          if (!xdr_convert(xdrs, &elementcount)) break;
-          int indices[elementcount];
-          if (!xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int), (xdrproc_t) xdr_int)) break;
+          int32_t elementcount;
+          if (!xdr_int32_t(xdrs, &elementcount)) break;
+          int32_t indices[elementcount];
+          if (!xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) break;
           //          cerr << "Heap indexes, " << elementcount << " elements: ";
           //          for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
           //          cerr << endl;
@@ -1046,18 +1035,18 @@ namespace lib {
         case 16: //HEAP_DATA
           if (isCompress) xdrs=compress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
-          int heap_index = 0;
-          if (!xdr_convert(xdrs, &heap_index)) break;
-          int heap_unknown = 0;
-          if (!xdr_convert(xdrs, &heap_unknown)) break; // start of TYPEDESC
+          int32_t heap_index = 0;
+          if (!xdr_int32_t(xdrs, &heap_index)) break;
+          int32_t heap_unknown = 0;
+          if (!xdr_int32_t(xdrs, &heap_unknown)) break; // start of TYPEDESC
           BaseGDL* ret = getVariable(e, xdrs, isSysVar);
           if (ret == NULL) {
             fclose(fid);  delete xdrsmem; delete xdrsfile;
             e->Throw("error reading heap variable data.");
           }
           // should be at varstat=7 to read data
-          int varstart = 0;
-          if (!xdr_convert(xdrs, &varstart)) break;
+          int32_t varstart = 0;
+          if (!xdr_int32_t(xdrs, &varstart)) break;
           if (varstart != 7)
           {
             fclose(fid);  delete xdrsmem; delete xdrsfile;
@@ -1099,7 +1088,7 @@ namespace lib {
 
       xdrs=xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
       if (fseek(fid, nextptr, SEEK_SET)) break;
-      if (!xdr_convert(xdrs, &rectype)) break;
+      if (!xdr_int32_t(xdrs, &rectype)) break;
 
 //      if (isCompress) cerr << "\nOffset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
@@ -1110,14 +1099,16 @@ namespace lib {
       }
       if (isHdr64)
       {
-        if (!xdr_convert(xdrs, &nextptr)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
+        uint64_t my_ulong64;
+        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+        nextptr=my_ulong64;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else
       {
-        if (!xdr_convert(xdrs, &ptrs0)) break;
-        if (!xdr_convert(xdrs, &ptrs1)) break;
-        if (!xdr_convert(xdrs, &UnknownLong)) break;
+        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
+        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         nextptr = ptrs0;
         if (ptrs1 > 0)
         {
@@ -1149,8 +1140,8 @@ namespace lib {
           }
 
           // should be at varstat=7 to read data
-          int varstart = 0;
-          if (!xdr_convert(xdrs, &varstart)) break;
+          int32_t varstart = 0;
+          if (!xdr_int32_t(xdrs, &varstart)) break;
           if (varstart != 7)
           {
             fclose(fid);  delete xdrsmem; delete xdrsfile;
