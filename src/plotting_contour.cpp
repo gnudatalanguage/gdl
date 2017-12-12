@@ -521,7 +521,7 @@ namespace lib
 	  else
 	    {
 	      nlevel=(PLINT) floor ( ( mapmax-mapmin )/zintv );
-	      if ( nlevel<0 ) nlevel=1; //never happens i guess
+	      if ( nlevel<=0 ) nodata=true; //yes, happens if image has constant value...
 	    }
 	  //levels values tries to be as rounded as possible aka IDL.
 
