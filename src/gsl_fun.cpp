@@ -544,6 +544,7 @@ namespace lib {
 
   BaseGDL* fft_fun( EnvT* e)
   {
+    static bool warning_done=false;
     /*
       Program Flow
       ------------
@@ -595,7 +596,10 @@ namespace lib {
     if( e->KeywordSet(0)) dbl = 1;
     if( e->KeywordSet(1)) direct = +1.0;
     if( e->KeywordSet(2)) overwrite = 1;
-
+    if( e->KeywordSet(4) && !warning_done) {
+      warning_done=true; 
+      cerr<<"Warning, keyword CENTER ignored, fixme!"<<endl; //(recenter not handled here)
+    }
     // Check for dimension keyword
     DLong dimension=0;  // the general case
 
