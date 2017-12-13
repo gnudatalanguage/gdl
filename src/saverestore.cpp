@@ -856,7 +856,7 @@ namespace lib {
     if(safetyTested==false){
       isSafe=testSafety();
       if (!isSafe) e->Throw("Severe: internal representation of integers in this version of GDL is wrong, please report. Aborting unsafe use of RESTORE.");
-      safetyTested==true;
+      safetyTested=true;
     }
     //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
     
