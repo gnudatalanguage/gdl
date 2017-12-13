@@ -30,7 +30,7 @@ namespace lib {
 #define USE_GLPK 1
 #include <glpk.h>
 #else
-#define USE_GLPK 0
+  //#define USE_GLPK 0
 #endif
 
   BaseGDL* simplex(EnvT* e) {
