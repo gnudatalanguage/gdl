@@ -4,6 +4,8 @@
 # update an already existing SVN with sub-directories 
 # should be run at top of the root of the CVS (e.g. gdl/)
 #
+cd gdl
 svn update
+cd ..
 #
 
