@@ -24,6 +24,9 @@ GDLTokenTypes.hpp
 GDLTreeParser.cpp
 GDLTreeParser.hpp
 GDLTreeParserTokenTypes.hpp
+datatypes.cpp
+datatypes.hpp
+datatypesref.cpp
 accessdesc.hpp
 allix.hpp
 allix.cpp
@@ -50,9 +53,6 @@ color.hpp
 convert2.cpp
 convol.cpp
 datalistt.hpp
-datatypes.cpp
-datatypes.hpp
-datatypesref.cpp
 dcommon.cpp
 dcommon.hpp
 dcompiler.cpp
