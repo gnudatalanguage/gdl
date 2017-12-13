@@ -926,14 +926,15 @@ endif(QHULL)
 if(GLPK)
   set(CMAKE_PREFIX_PATH ${GLPKDIR})
   find_package(GLPK QUIET)
-  if(HAVE_GLPK)
-      set(LIBRARIES ${LIBRARIES} ${GLPK_LIBRARIES})
-      include_directories(${GLPK_INCLUDE_DIR})
-  else(HAVE_GLPK)
-		message(FATAL_ERROR "GLPK (Gnu Linear Programming Kit) is required but was not found.\n"
-		"Use -DGLPKDIR=DIR to specify the GLPK-devel directory tree.\n"
-		"Use -DGLPK=OFF to not use it.\n")
-  endif(HAVE_GLPK)
+  set(USE_GLPK ${GLPK_FOUND})
+  if(GLPK_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${GLPK_LIBRARIES})
+    include_directories(${GLPK_INCLUDE_DIR})
+  else(GLPK_FOUND)
+    message(FATAL_ERROR "GLPK (Gnu Linear Programming Kit) is required but was not found.\n"
+      "Use -DGLPKDIR=DIR to specify the GLPK-devel directory tree.\n"
+      "Use -DGLPK=OFF to not use it.\n")
+  endif(GLPK_FOUND)
 endif(GLPK)
 #check_include_file(glpk.h HAVE_GLPK)
 

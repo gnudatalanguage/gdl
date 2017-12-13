@@ -68,7 +68,7 @@
 #cmakedefine USE_FFTW 1
 #cmakedefine USE_GRIB 1
 #cmakedefine PL_HAVE_QHULL 1
-#cmakedefine HAVE_GLPK 1
+#cmakedefine USE_GLPK 1
 #cmakedefine USE_GSHHS 1
 #cmakedefine USE_HDF 1
 #cmakedefine USE_HDF5 1
