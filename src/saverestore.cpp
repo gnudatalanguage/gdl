@@ -55,6 +55,16 @@ namespace lib {
 
 #include <rpc/xdr.h>
 
+  // AC 2017-12-13 : missing in  <rpc/xdr.h> for OSX
+  // Following https://www.gnu.org/software/gnulib/manual/html_node/xdr_005fint16_005ft.html
+  // it may be needed for others OS : Cygwin, Mingw (seems to be OK for *BSD)
+
+#ifdef __APPLE__
+#define xdr_uint16_t xdr_u_int16_t
+#define xdr_uint32_t xdr_u_int32_t
+#define xdr_uint64_t xdr_u_int64_t
+#endif
+
   //this is the routined used by IDL as per the documentation.
 
   bool_t xdr_complex(XDR *xdrs, DComplex *p) {
