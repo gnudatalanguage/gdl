@@ -26,10 +26,11 @@ namespace lib {
 
   using namespace std;
 
-#ifdef HAVE_GLPK
-#define USE_GLPK 1
+  //#ifdef HAVE_GLPK
+#ifdef USE_GLPK
+  //#define USE_GLPK 1
 #include <glpk.h>
-#else
+  //#else
   //#define USE_GLPK 0
 #endif
 

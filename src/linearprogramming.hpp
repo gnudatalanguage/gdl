@@ -23,13 +23,13 @@
 #ifndef GDLGLPK_HPP_
 #define GDLGLPK_HPP_
 
-#if defined(HAVE_GLPK)
+//#ifdef USE_GLPK
 #include "datatypes.hpp"
 #include "envt.hpp"
 namespace lib {
   BaseGDL* simplex(EnvT* e);
 }
-#endif
+//#endif
 
 
 #endif
