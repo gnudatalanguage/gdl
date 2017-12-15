@@ -4,6 +4,10 @@
 ; bug reported by Gilles on Jan. 23, 2013
 ; http://sourceforge.net/tracker/?func=detail&aid=3601949&group_id=97659&atid=618683
 ;
+; Modifications history :
+; - 2017-12-14 : AC. updating final message,
+;      creating a raleted test for SIZE (test_size.pro)
+;
 pro TEST_STRUCTURES, no_exit=no_exit, verbose=verbose, $
                      help=help, test=test, debug=debug
 ;
@@ -73,14 +77,12 @@ if (ARRAY_EQUAL(tab, 1.*[7,8,9]) NE 1) then begin
     nb_errors=nb_errors+1
 endif
 ;
-if (nb_errors GT 0) then begin
-    MESSAGE, STRING(nb_errors)+' Errors found', /continue
-endif else begin
-    MESSAGE, ' No Errors found', /continue
-endelse
+; ----------------- final message ----------
 ;
-if KEYWORD_SET(test) then STOP
+BANNER_FOR_TESTSUITE, 'TEST_STRUCTURES', nb_errors
 ;
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
