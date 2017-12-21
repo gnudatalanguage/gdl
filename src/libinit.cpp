@@ -84,6 +84,11 @@ void LibInit()
   const string restoreWarnKey[]={"NO_COMPILE", "RELAXED_STRUCTURE_ASSIGNMENT", "RESTORED_OBJECTS" , KLISTEND};
   new DLibPro(lib::gdl_restore,string("RESTORE"),1,restoreKey,restoreWarnKey);
   
+  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES",KLISTEND};
+  const string saveWarnKey[]={"EMBEDDED","ROUTINES", KLISTEND};
+  new DLibPro(lib::gdl_save,string("SAVE"),-1,saveKey,saveWarnKey);
+
+
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
 
