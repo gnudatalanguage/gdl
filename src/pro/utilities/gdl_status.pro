@@ -8,11 +8,16 @@
 ;
 pro GDL_STATUS
 ;
-print, 'Eigen3 ? : ', eigen_exists()
-print, 'HDF ? : ', hdf_exists()
-print, 'NetCDf ? : ', ncdf_exists()
-print, 'HDF5 ? : ', hdf5_exists()
-print, 'GRIB ? : ', grib_exists()
-print, 'GLPK ? : ', glpk_exists()
+print, 'Eigen3 ? : ', EIGEN_EXISTS()
+print, 'HDF ?    : ', HDF_EXISTS()
+print, 'NetCDf ? : ', NCDF_EXISTS()
+print, 'HDF5 ?   : ', HDF5_EXISTS()
+print, 'GRIB ?   : ', GRIB_EXISTS()
+print, 'GLPK ?   : ', GLPK_EXISTS()
+print, 'Magick ? : ', MAGICK_EXISTS()
+print, 'Proj4 ?  : ', PROJ4_EXISTS()
+print, 'Proj4 new: ', PROJ4NEW_EXISTS()
+print, 'GSHHG ?  : ', GSHHG_EXISTS()
+print, 'wxwidgets: ', WXWIDGETS_EXISTS()
 ;
 end
