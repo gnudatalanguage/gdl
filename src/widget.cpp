@@ -663,11 +663,11 @@ BaseGDL* widget_tree( EnvT* e)
     testByte = e->GetKWAs<DByteGDL>( BITMAP );
     if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
       BaseGDL* transpose=testByte->Transpose(NULL);
-      wxImage * tryImage=new wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),TRUE); //STATIC DATA I BELIEVE.
+      wxImage tryImage=wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),TRUE); //STATIC DATA I BELIEVE.
+      bitmap = new wxBitmap(tryImage.Rotate90(false).Mirror(false));
       GDLDelete( transpose );
-      bitmap = new wxBitmap(*tryImage);
     } else {
-      if (testByte->Rank() == 0 && (*testByte)[0]==0 ) { //do nothing! yet another IDL trick.
+      if (testByte->Rank() == 0 && (*testByte)[0]==0 ) { //do nothing! yet another IDL trick: will use a default system bitmap.
     } else e->Throw( "Bitmap must be a [16,16,3] array." );
   }
   }
@@ -2413,6 +2413,15 @@ void widget_control( EnvT* e ) {
   static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
   bool dynres = e->KeywordPresent( dynamicResizeIx );  
   
+//  static int TREE_SELECT = e->KeywordIx( "SET_TREE_SELECT");
+//  bool treeselect = e->KeywordSet(TREE_SELECT);
+//  static int TREE_INDEX = e->KeywordIx( "SET_TREE_INDEX");
+//  bool treeindex = e->KeywordSet(TREE_INDEX);
+//  static int TREE_EXPANDED = e->KeywordIx( "SET_TREE_EXPANDED");
+//  bool treeexpanded = e->KeywordSet(TREE_EXPANDED);
+//  static int TREE_BITMAP = e->KeywordIx( "SET_TREE_BITMAP");
+//  bool treebitmap = e->KeywordSet(TREE_BITMAP);
+
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
