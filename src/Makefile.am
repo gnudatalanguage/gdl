@@ -28,12 +28,14 @@ cpp_hpp_files = datatypes.cpp datatypes.hpp  \
 		gdlwinstream.cpp gdlwinstream.hpp \
 		gdlwxstream.cpp gdlwxstream.hpp \
 		gdlxstream.cpp gdlxstream.hpp \
-		getfmtast.cpp \
-		getfmtast.hpp graphicsdevice.cpp graphicsdevice.hpp \
+		getfmtast.cpp getfmtast.hpp \
+		graphicsdevice.cpp graphicsdevice.hpp \
 		gsl_fun.cpp gsl_fun.hpp gsl_matrix.cpp gsl_matrix.hpp \
 		gstream.hpp ifmt.cpp \
-		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
+		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp \
+		libinit_cl.cpp libinit.cpp libinit_exists.cpp \
 		libinit_jmg.cpp \
+		exists_fun.cpp exists_fun.hpp \
 		matrix_cholesky.hpp matrix_cholesky.cpp \
 		matrix_invert.hpp matrix_invert.cpp \
 	        smooth.hpp smooth.cpp \

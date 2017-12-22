@@ -41,7 +41,6 @@
 #endif
 
 using namespace std;
-
 void LibInit_cl()
 {
   const char KLISTEND[] = "";
@@ -55,19 +54,6 @@ void LibInit_cl()
   new DLibFunRetNew(lib::legendre,string("LEGENDRE"),3,legendreKey);
 
   new DLibFunRetNew(lib::gsl_exp, string("GSL_EXP"),1);
-
-  new DLibFunRetNew(lib::grib_exists,string("GRIB_EXISTS"));
-  new DLibFunRetNew(lib::glpk_exists,string("GLPK_EXISTS"));
-  new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
-  new DLibFunRetNew(lib::hdf_exists,string("HDF_EXISTS"));
-  new DLibFunRetNew(lib::hdf5_exists,string("HDF5_EXISTS"));
-  new DLibFunRetNew(lib::eigen_exists,string("EIGEN_EXISTS"));
-  new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
-
-  new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));
-  new DLibFunRetNew(lib::proj4new_exists,string("PROJ4NEW_EXISTS"));
-  new DLibFunRetNew(lib::gshhg_exists,string("GSHHG_EXISTS"));
-
 
 #ifdef USE_NETCDF
   //open NetCDF

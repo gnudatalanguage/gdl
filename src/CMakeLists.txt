@@ -81,6 +81,8 @@ envt.cpp
 envt.hpp
 extrat.cpp
 extrat.hpp
+exists_fun.cpp
+exists_fun.hpp
 fftw.cpp
 fftw.hpp
 file.cpp
@@ -181,6 +183,7 @@ libinit_jmg.cpp
 libinit_mes.cpp
 libinit_ng.cpp
 libinit_jp.cpp
+libinit_exists.cpp
 linearprogramming.cpp
 list.cpp
 list.hpp

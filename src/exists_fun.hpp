@@ -19,12 +19,23 @@
 #define BASIC_FUN_HPP_CL
 
 namespace lib {
-
-  double Gregorian2Julian(struct tm ts);
-  BaseGDL* systime(EnvT* e);
-  BaseGDL* legendre(EnvT* e);
-  BaseGDL* interpol(EnvT* e);
-  BaseGDL* gsl_exp(EnvT* e);
+  
+ BaseGDL* eigen_exists(EnvT *e);
+ BaseGDL* fftw_exists(EnvT *e);
+ BaseGDL* glpk_exists(EnvT *e);
+ BaseGDL* grib_exists(EnvT *e);
+ BaseGDL* gshhg_exists(EnvT *e);
+ BaseGDL* hdf5_exists(EnvT *e);
+ BaseGDL* hdf_exists(EnvT *e);
+ BaseGDL* magick_exists(EnvT *e);
+ BaseGDL* ncdf_exists(EnvT *e);
+ BaseGDL* openmp_exists(EnvT *e);
+ BaseGDL* pnglib_exists(EnvT *e);
+ BaseGDL* proj4_exists(EnvT *e);
+ BaseGDL* proj4new_exists(EnvT *e);
+ BaseGDL* pslib_exists(EnvT *e);
+ BaseGDL* python_exists(EnvT *e);
+ BaseGDL* udunits_exists(EnvT *e);
 
 } // namespace
 

@@ -67,6 +67,7 @@ void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
 void LibInit_ng(); // libinit_ng.cpp
 void LibInit_jp(); // libinit_jp.cpp
+void LibInit_exists(); // libinit_exists.cpp
 
 void LibInit()
 {
@@ -78,6 +79,8 @@ void LibInit()
   LibInit_gm();
   LibInit_ng(); 
   LibInit_jp();
+  LibInit_exists();
+
   const char KLISTEND[] = "";
 
   const string restoreKey[]={ "FILENAME","DESCRIPTION","VERBOSE", KLISTEND};

@@ -23,16 +23,14 @@ using namespace std;
 
 void LibInit_jp()
 {
-	const char KLISTEND[] = "";
-
-	new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
-
-	const string dialog_pickFile_wxwidgetsKey[] = { "DEFAULT_EXTENSION", "DIRECTORY", "DIALOG_PARENT",
-		"DISPLAY_NAME", "FILE", "FILTER", "FIX_FILTER", "GET_PATH", "GROUP", "MULTIPLE_FILES",
-		"MUST_EXIST", "OVERWRITE_PROMPT", "PATH", "READ", "WRITE", "RESOURCE_NAME", "TITLE", KLISTEND };
-	new DLibFunRetNew(lib::dialog_pickfile_wxwidgets, string("DIALOG_PICKFILE_WXWIDGETS"), 0, dialog_pickFile_wxwidgetsKey);
-
-	const string dialog_message_wxwidgetsKey[] = { "CANCEL", "CENTER", "DEFAULT_CANCEL", "DEFAULT_NO",
-		"DIALOG_PARENT", "DISPLAY_NAME", "ERROR", "INFORMATION", "QUESTION", "RESOURCE_NAME", "TITLE", KLISTEND };
-	new DLibFunRetNew(lib::dialog_message_wxwidgets, string("DIALOG_MESSAGE_WXWIDGETS"), 1, dialog_message_wxwidgetsKey);
+  const char KLISTEND[] = "";
+  
+  const string dialog_pickFile_wxwidgetsKey[] = { "DEFAULT_EXTENSION", "DIRECTORY", "DIALOG_PARENT",
+						  "DISPLAY_NAME", "FILE", "FILTER", "FIX_FILTER", "GET_PATH", "GROUP", "MULTIPLE_FILES",
+						  "MUST_EXIST", "OVERWRITE_PROMPT", "PATH", "READ", "WRITE", "RESOURCE_NAME", "TITLE", KLISTEND };
+  new DLibFunRetNew(lib::dialog_pickfile_wxwidgets, string("DIALOG_PICKFILE_WXWIDGETS"), 0, dialog_pickFile_wxwidgetsKey);
+  
+  const string dialog_message_wxwidgetsKey[] = { "CANCEL", "CENTER", "DEFAULT_CANCEL", "DEFAULT_NO",
+						 "DIALOG_PARENT", "DISPLAY_NAME", "ERROR", "INFORMATION", "QUESTION", "RESOURCE_NAME", "TITLE", KLISTEND };
+  new DLibFunRetNew(lib::dialog_message_wxwidgets, string("DIALOG_MESSAGE_WXWIDGETS"), 1, dialog_message_wxwidgetsKey);
 }
