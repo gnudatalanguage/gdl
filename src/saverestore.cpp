@@ -47,6 +47,7 @@ namespace lib {
   using namespace std;
 
   static std::map<long, DPtr> heapIndexMap;
+  static std::vector<std::string> predeflist;
   static char* saveFileAuthor;
   static char* saveFileDatestring;
   static char* saveFileUser;
@@ -382,22 +383,23 @@ namespace lib {
     if (structure_def_flags & 0x1)
     {
       ispredef = true;
-//      cerr << ", PREDEF ";
     }
-    bool inherits = false;
+    bool definesAnObject = false;
     if (structure_def_flags & 0x2)
     {
-      inherits = true;
-//      cerr << ", INHERITS ";
+      definesAnObject = true;
     }
     bool is_super = false;
     if (structure_def_flags & 0x4)
     {
       is_super = true;
-//      cerr << ", IS_SUPER ";
     }
 
-//    if (ispredef || inherits || is_super) cerr << "Structure name:\"" << structname << "\"" << endl;
+//     if (ispredef || definesAnObject || is_super) cerr << "Structure name:\"" << structname << "\"";
+//     if (ispredef) cerr << ", Predef";
+//     if (definesAnObject) cerr << ", is an Object";
+//     if (is_super) cerr << ", Is_Super";
+//     cerr<<endl;
 
     //    if (structure_def_flags & 0x8)
     //    {
@@ -456,8 +458,24 @@ namespace lib {
       }
 
       std::string stru_name = std::string(structname);
-      DStructDesc* stru_desc = new DStructDesc((stru_name.length() == 0) ? "$truct" : stru_name);
+      DStructDesc* stru_desc;
+      DStructDesc* ref_desc;
+      bool checkStruct=false;
+      //take care of named structures
+      if (stru_name.length() > 0 && stru_name[0] != '$')
+      {
+        stru_desc = FindInStructList(structList, stru_name);
 
+        if (stru_desc == NULL)
+        {
+          stru_desc = new DStructDesc(stru_name);
+          structList.push_back(stru_desc);
+        } else {
+          checkStruct=true;
+          ref_desc=stru_desc;
+          stru_desc=new DStructDesc("$truct"); //make it anonymous, test if equality at end!
+        }
+      } else stru_desc=new DStructDesc("$truct");
       //summary & tag population:
       for (int i = 0, j = 0, k = 0; i < ntags; ++i)
       {
@@ -585,29 +603,39 @@ namespace lib {
       }
 
       //Then there should be CLASSNAME if INHERITS or IS_SUPER 
-      if (inherits || is_super)
+      if (definesAnObject || is_super)
       {
         char* classname = 0;
         if (!xdr_string(xdrs, &classname, 2048)) return NULL;
-        cerr << "CLASSNAME: \"" << classname << "\"" << endl;
+        //cerr << "CLASSNAME: \"" << classname << "\"" << endl;
         //NSUPCLASSES:
         int32_t nsupclasses = 0;
         if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
-        cerr << "NSUPCLASSES=" << nsupclasses << endl;
+        //cerr << "NSUPCLASSES=" << nsupclasses << endl;
         if (nsupclasses > 0)
         {
           for (int i = 0; i < nsupclasses; ++i)
           {
             char* supclassname = 0;
             if (!xdr_string(xdrs, &supclassname, 2048)) return NULL;
-            cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
+            //cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
           }
           for (int i = 0; i < nsupclasses; ++i)
           {
-            cerr << "OBJECT Definition not handled, fixme!" << endl;
-            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1));
-            if (toto == NULL) return NULL; else GDLDelete(toto);
+            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1)); // will define the class as an object.
+            if (toto != NULL) GDLDelete(toto);
           }
+        }
+      }
+      if (checkStruct)
+      {
+        try
+        {
+          ref_desc->AssureIdentical(stru_desc);
+          stru_desc=ref_desc; //OK, switch back.
+        }        catch (GDLException& ex)
+        {
+          return NULL;
         }
       }
       return new DStructGDL(stru_desc, *inputdims);
@@ -627,6 +655,19 @@ namespace lib {
       xdr_string(xdrs,(char**)&voidchar, 0);
       }
     else xdr_string(xdrs, (char**) &structname, str->Name().size());
+    //now, did we already define this nemed structure in the file?
+    //if no, add name to list of defined (for furtehr use) and remove is_predef (to write it).
+    if (ispredef) {
+      bool found=false;
+      for (SizeT i=0; i<predeflist.size(); ++i)
+      {
+        if (predeflist[i]==str->Name()) {found=true; break;}
+      }
+      if (!found) {
+        predeflist.push_back(str->Name());
+        ispredef=false;
+      }
+    }
     //flags.
 
 //    bool inherits = false; //FIXME: OBJ   
@@ -638,7 +679,7 @@ namespace lib {
     xdr_int32_t(xdrs, &ntags);
     int32_t struct_nbytes=str->NBytes();
     xdr_int32_t(xdrs, &struct_nbytes);
-    //if predef == 1 this ends the Struct_desc, meaning that we have already presented this structure.
+    //if predef == 1  this ends the Struct_desc, meaning that we have already presented this structure.
     if (ispredef) return;
     //TAG_DESC repated ntags times:
     int32_t tag_typecode[ntags];
@@ -1597,10 +1638,8 @@ namespace lib {
           BaseGDL* ret = getVariable(e, xdrs, isSysVar);
           if (ret == NULL)
           {
-            fclose(fid);
-            delete xdrsmem;
-            delete xdrsfile;
-            e->Throw("error reading variable data.");
+            Message("Unable to restore " + varName +".");
+            break;
           }
 
           // should be at varstat=7 to read data
@@ -1771,7 +1810,9 @@ namespace lib {
       safetyTested = true;
     }
     //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
-
+  
+    predeflist.clear();
+    
     bool debug; //unused
     static int VERBOSE = e->KeywordIx("VERBOSE");
     bool verbose = e->KeywordSet(VERBOSE);
