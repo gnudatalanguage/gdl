@@ -100,8 +100,9 @@ void LibInit()
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
 
-  const string scope_varfetchKey[]={"LEVEL", KLISTEND};
-  new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
+  const string scope_varfetchKey[]={"LEVEL","ENTER", KLISTEND};
+  const string scope_varfetchWarnKey[]={"COMMON","REF_EXTRA", KLISTEND};
+  new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey,scope_varfetchWarnKey);
   const string scope_tracebackKey[]={"STRUCTURE","SYSTEM", KLISTEND};
   new DLibFunRetNew(lib::scope_traceback,string("SCOPE_TRACEBACK"),0,scope_tracebackKey);
 
