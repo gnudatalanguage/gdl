@@ -628,10 +628,10 @@ namespace SysVar
     constantList ->NewTag("R", new DDoubleGDL(8.3144621));
     // Earth radius (assuming spherical) [m]
     constantList ->NewTag("R_EARTH", new DDoubleGDL(6378136.6));
-    // classical electron radius [m]
-    constantList ->NewTag("RE", new DDoubleGDL(2.8179403267e-15));
     // Radians to degrees
     constantList ->NewTag("RTOD", new DDoubleGDL(180./(*dpiData)[0]));
+    // classical electron radius [m]
+    constantList ->NewTag("RE", new DDoubleGDL(2.8179403267e-15));
     // Rydberg constant R∞ [1/m]
     constantList ->NewTag("RYDBERG", new DDoubleGDL(10973731.568539));
     // Stefan-Boltzmann constant [W/m^2/K^4]
@@ -721,7 +721,9 @@ namespace SysVar
 		arch = new DStringGDL("unknown");
 	}
 	ver->NewTag("ARCH", arch); 
-    ver->NewTag("OS_FAMILY", new DStringGDL( "Windows")); 
+    ver->NewTag("OS", new DStringGDL(SysName));    
+    ver->NewTag("OS_FAMILY", new DStringGDL(SysName)); 
+    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
 #else
     struct utsname uts;
     uname(&uts);
@@ -729,11 +731,11 @@ namespace SysVar
     const char *SysName=uts.sysname;
     if (strcmp(SysName,"Linux") ==0) SysName="linux";
     if (strcmp(SysName,"Darwin") ==0) SysName="darwin";
+    ver->NewTag("OS", new DStringGDL(SysName));    //correct IDL order
     ver->NewTag("OS_FAMILY", new DStringGDL( "unix")); 
+    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
 #endif
 
-    ver->NewTag("OS", new DStringGDL(SysName));    
-    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
     ver->NewTag("RELEASE", new DStringGDL( "6.5")); //we are at least 6.4
     ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE)); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
@@ -768,7 +770,7 @@ namespace SysVar
     eStateData->NewTag("NAME", new DStringGDL( "IDL_M_SUCCESS")); 
     eStateData->NewTag("BLOCK", new DStringGDL( "IDL_MBLK_CORE")); 
     eStateData->NewTag("CODE", new DLongGDL( 0)); 
-    eStateData->NewTag("RANGE", new DLongGDL( dimension( &dim2,one))); 
+    eStateData->NewTag("SYS_CODE", new DLongGDL( dimension( &dim2,one))); //idl 8
     eStateData->NewTag("SYS_CODE_TYPE", new DStringGDL( "")); 
     eStateData->NewTag("MSG", new DStringGDL( "")); 
     eStateData->NewTag("SYS_MSG", new DStringGDL( "")); 
