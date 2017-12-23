@@ -367,7 +367,8 @@ namespace lib {
     return 1;
   }
   
-  DStructGDL* getDStruct(EnvT* e, XDR* xdrs, dimension* inputdims) {
+  DStructGDL* getDStruct(EnvT* e, XDR* xdrs, dimension* inputdims, bool &isObjStruct) {
+    isObjStruct=false;
     int32_t structstart;
     if (!xdr_int32_t(xdrs, &structstart)) return NULL;
     if (structstart != 9)
@@ -384,10 +385,9 @@ namespace lib {
     {
       ispredef = true;
     }
-    bool definesAnObject = false;
     if (structure_def_flags & 0x2)
     {
-      definesAnObject = true;
+      isObjStruct = true;
     }
     bool is_super = false;
     if (structure_def_flags & 0x4)
@@ -395,9 +395,9 @@ namespace lib {
       is_super = true;
     }
 
-//     if (ispredef || definesAnObject || is_super) cerr << "Structure name:\"" << structname << "\"";
+//     if (ispredef || isObjStruct || is_super) cerr << "Structure name:\"" << structname << "\"";
 //     if (ispredef) cerr << ", Predef";
-//     if (definesAnObject) cerr << ", is an Object";
+//     if (isObjStruct) cerr << ", is an Object";
 //     if (is_super) cerr << ", Is_Super";
 //     cerr<<endl;
 
@@ -539,7 +539,8 @@ namespace lib {
             break;
           case 8: //	Structure (never a scalar)
           {
-            DStructGDL* parStruct = getDStruct(e, xdrs, &pardim);
+            bool dummy;
+            DStructGDL* parStruct = getDStruct(e, xdrs, &pardim, dummy);
             if (parStruct == NULL) return NULL;
             stru_desc->AddTag(tag_name[i], parStruct);
           }
@@ -603,7 +604,7 @@ namespace lib {
       }
 
       //Then there should be CLASSNAME if INHERITS or IS_SUPER 
-      if (definesAnObject || is_super)
+      if (isObjStruct || is_super)
       {
         char* classname = 0;
         if (!xdr_string(xdrs, &classname, 2048)) return NULL;
@@ -622,7 +623,8 @@ namespace lib {
           }
           for (int i = 0; i < nsupclasses; ++i)
           {
-            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1)); // will define the class as an object.
+            bool dummy;
+            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
             if (toto != NULL) GDLDelete(toto);
           }
         }
@@ -755,7 +757,7 @@ namespace lib {
  }
   
   
-  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar) {
+  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar, bool &isObjStruct) {
     bool isStructure = false;
     bool isArray = false;
     // start of TYPEDESC
@@ -803,7 +805,7 @@ namespace lib {
     {//if This was a Structure, it has an ARRAY_DESC plus a STRUCT_DESC 
       dims = getArrDesc(xdrs);
       if (dims == NULL) return NULL;
-      var = getDStruct(e, xdrs, dims);
+      var = getDStruct(e, xdrs, dims, isObjStruct);
     } else
     {
       if (isArray)
@@ -846,8 +848,7 @@ namespace lib {
           var = new DPtrGDL(*dims);
           break;
         case 11: //	Object Reference (not supported by CMSVLIB) 
-          cerr << "Should not happen: object." << endl;
-          return NULL;
+          var = new DObjGDL(*dims);
           break;
         case 12: //	16-bit Unsigned Integer 
           var = new DUIntGDL(*dims);
@@ -967,8 +968,17 @@ namespace lib {
         break;
       }
       case GDL_OBJ:
-        cerr<<"object reading not done"<<endl;
+      {
+        int32_t heapNumber[nEl];
+        DObjGDL* ptr = static_cast<DObjGDL*> (var);
+        for (SizeT ix = 0; ix < nEl; ++ix) xdr_int32_t(xdrs, &(heapNumber[ix]));
+        for (SizeT ix = 0; ix < nEl; ++ix)
+        {
+          DObj heapptr = heapIndexMap.find(heapNumber[ix])->second;
+          (*ptr)[ix] = heapptr;
+        }
         break;
+      }
       default: assert(false);
     }
   }
@@ -1532,13 +1542,14 @@ namespace lib {
           if (!xdr_int32_t(xdrs, &heap_index)) break;
           int32_t heap_unknown = 0;
           if (!xdr_int32_t(xdrs, &heap_unknown)) break; // start of TYPEDESC
-          BaseGDL* ret = getVariable(e, xdrs, isSysVar);
+          bool isObjStruct=false;
+          BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
           if (ret == NULL)
           {
             fclose(fid);
             delete xdrsmem;
             delete xdrsfile;
-            e->Throw("error reading heap variable data.");
+            e->Throw("error reading heap variable definition.");
           }
           // should be at varstat=7 to read data
           int32_t varstart = 0;
@@ -1557,10 +1568,11 @@ namespace lib {
           guard->Reset(ret);
           guardVector.push_back(guard);
           //allocate corresponding heap entries and store in saveFileHeapMap:
-          DPtr ptr = e->NewHeap(1, ret);
+          //if ret is a struct defining an object, put in ObjHeap.
+          DPtr ptr;
+          if (isObjStruct) ptr = e->NewObjHeap(1, static_cast<DStructGDL*>(ret));
+          else ptr = e->NewHeap(1, ret);
           heapIndexMap.insert(std::pair<long, DPtr>(heap_index, ptr));
-          //          //insert in heap index map at good place
-          //          heapIndexMap.insert(heapIndexMap.find(heap_index),std::pair<long,DPtr>(heap_index,ptr));
         }
           break;
         default:
@@ -1635,7 +1647,8 @@ namespace lib {
           char* varname = 0;
           if (!xdr_string(xdrs, &varname, 2048)) break;
           string varName(varname);
-          BaseGDL* ret = getVariable(e, xdrs, isSysVar);
+          bool dummy=false;
+          BaseGDL* ret = getVariable(e, xdrs, isSysVar, dummy);
           if (ret == NULL)
           {
             Message("Unable to restore " + varName +".");
@@ -1721,6 +1734,19 @@ namespace lib {
         }
       }
     }
+    else if (var->Type() == GDL_OBJ)
+    {
+      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem)
+      {
+        DObj subptr = (*static_cast<DObjGDL*> (var))[ielem];
+        if (subptr)
+        {
+          list.insert(subptr);
+          BaseGDL* v = e->GetObjHeap(subptr);
+          if (v) addToHeapList(e, v, list);
+        }
+      }
+    }
     else if (var->Type() == GDL_STRUCT)
     {
       DStructGDL* str = static_cast<DStructGDL*> (var);
@@ -1741,6 +1767,18 @@ namespace lib {
                 {
                   list.insert(subptr);
                   BaseGDL* v = e->GetHeap(subptr);
+                  if (v) addToHeapList(e, v, list);
+                }
+              }
+              break;
+            case GDL_OBJ:
+              for (SizeT i = 0; i < subvar->N_Elements(); ++i)
+              {
+                DObj subptr = (*static_cast<DObjGDL*> (subvar))[i];
+                if (subptr)
+                {
+                  list.insert(subptr);
+                  BaseGDL* v = e->GetObjHeap(subptr);
                   if (v) addToHeapList(e, v, list);
                 }
               }
