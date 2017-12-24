@@ -160,9 +160,17 @@ FILE_MKDIR, dir_name
 CD, dir_name
 CD, current=new_current
 ;
+if KEYWORD_SET(debug) then STOP
+;
+; 
+old_html='http://idlastro.gsfc.nasa.gov/ftp/exelislib/'
+new_html='http://www.lancesimms.com/programs/IDL/lib/'
+list_todo=lines[OK]
+list_todo=new_html+STRMID(list_todo,STRLEN(new_html))
+;
 ; downloading the files
-for ii=0, nb_ok-1 do begin
-   spawn, "curl -O "+lines[OK[ii]]
+for ii=0, N_ELEMENTS(list_todo)-1 do begin
+   spawn, "curl -O "+list_todo[ii]
 endfor
 ;
 CD, old_current

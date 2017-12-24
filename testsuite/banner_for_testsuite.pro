@@ -39,7 +39,7 @@ endif else begin
    ;;
    if help EQ 200 then MESSAGE, /continue, mess2+mess3
    if help EQ 213 then MESSAGE, /continue, 'second param must be a positive integer or a string'
-   if help EQ 214 then MESSAGE, /continue, 'Number of errrors must be >= 0 !'
+   if help EQ 214 then MESSAGE, /continue, 'Number of errors must be >= 0 !'
    if help EQ 215 then MESSAGE, /continue, 'second param as a complex type not OK !'
    if help EQ 216 then MESSAGE, /continue, 'second param must be a scalar-like input'
 endelse
