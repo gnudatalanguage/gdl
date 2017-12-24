@@ -169,6 +169,7 @@ TESTS = \
   test_rk4.pro \
   test_routine_names.pro \
   test_same_name.pro \
+  test_save_restore.pro \
   test_scope_varfetch.pro \
   test_sem.pro \
   test_simplex.pro \
