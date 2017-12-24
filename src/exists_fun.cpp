@@ -1,15 +1,9 @@
 /***************************************************************************
-
-                          basic_fun.cpp  -  basic GDL library function
-
+                   exists_fun.hpp  -  basic GDL library functions
                              -------------------
-
-    begin                : March 14 2004
-
-    copyright            : (C) 2004 by Christopher Lee
-
-    email                : leec_gdl@publius.co.uk
-
+    begin                : December 2017
+    copyright            : (C) 2017 by Alain Coulais
+    email                :  alaingdl@users.sourceforge.net
  ***************************************************************************/
 
 /***************************************************************************
@@ -34,14 +28,6 @@
 #include <string>
 #include <fstream>
 #include <memory>
-
-/*
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_sf.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
-*/
 
 #include "initsysvar.hpp"
 #include "datatypes.hpp"
@@ -204,6 +190,15 @@ namespace lib {
   BaseGDL* udunits_exists( EnvT* e )
   {
 #if defined(USE_UDUNITS)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
+  BaseGDL* x11_exists( EnvT* e )
+  {
+#if defined(USE_X)
     return new DIntGDL(1);
 #else
     return new DIntGDL(0);

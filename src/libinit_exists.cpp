@@ -67,4 +67,6 @@ void LibInit_exists()
   new DLibFunRetNew(lib::python_exists,string("PYTHON_EXISTS"));
   new DLibFunRetNew(lib::udunits_exists,string("UDUNITS_EXISTS"));
   new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
+  new DLibFunRetNew(lib::x11_exists, string("X11_EXISTS"));
+
 }

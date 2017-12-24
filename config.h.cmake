@@ -84,4 +84,5 @@
 #cmakedefine USE_PSLIB 1
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
+#cmakedefine USE_X 1
 #endif

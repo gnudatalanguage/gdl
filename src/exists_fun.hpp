@@ -1,9 +1,9 @@
 /***************************************************************************
-                          basic_fun.hpp  -  basic GDL library functions
+                   exists_fun.hpp  -  basic GDL library functions
                              -------------------
-    begin                : March 14 2004
-    copyright            : (C) 2004 by Christopher Lee
-    email                : leec_gdl@publius.co.uk
+    begin                : December 2017
+    copyright            : (C) 2017 by Alain Coulais
+    email                :  alaingdl@users.sourceforge.net
  ***************************************************************************/
 
 /***************************************************************************
@@ -36,6 +36,8 @@ namespace lib {
  BaseGDL* pslib_exists(EnvT *e);
  BaseGDL* python_exists(EnvT *e);
  BaseGDL* udunits_exists(EnvT *e);
+  // only exception wxwidgets_exists in "dialop.hpp"
+ BaseGDL* x11_exists(EnvT *e);
 
 } // namespace
 
