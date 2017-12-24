@@ -24,5 +24,6 @@ print, 'PSlib ?  : ', PSLIB_EXISTS()
 print, 'Python ? : ', PYTHON_EXISTS()
 print, 'UDUNITS  : ', UDUNITS_EXISTS()
 print, 'wxwidgets: ', WXWIDGETS_EXISTS()
+print, 'x11      : ', X11_EXISTS()
 ;
 end
