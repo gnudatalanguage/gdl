@@ -47,6 +47,15 @@ if (soft EQ 'IDL') then begin
    return
 endif
 ;
+if (soft EQ 'GDL') THEN BEGIN
+   ;; 26-dec-2017 : we changed CVS to SVN in !GDL.release ...
+   if ((GDL_VERSION() GE 908) OR (STRPOS(!GDL.release, 'SVN') GT 0)) then begin
+      DEFSYSV, '!save_restore', 1
+      if KEYWORD_SET(verbose) then print, 'GDL with S/R detected as native lib.'
+      return
+   endif
+endif
+;
 if (soft EQ 'FL') then begin
    ;; we need to assume we use FL >= 0.79.38
    if KEYWORD_SET(verbose) then $
