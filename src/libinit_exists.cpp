@@ -1,9 +1,9 @@
 /***************************************************************************
             libinit_exists.cpp  -  initialization of GDL library routines
-                             -------------------
-    begin                : March 18 2004
-    copyright            : (C) 2017 by Alain C.
-    email                : 
+            -------------------
+    begin                : 25 December 2017
+    copyright            : (C) 2017 by Alain Coulais
+    email                :  alaingdl@users.sourceforge.net
  ***************************************************************************/
 
 /***************************************************************************

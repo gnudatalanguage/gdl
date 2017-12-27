@@ -1,6 +1,6 @@
 /***************************************************************************
-                   exists_fun.hpp  -  basic GDL library functions
-                             -------------------
+                 exists_fun.hpp  -  basic GDL library functions
+                 -------------------
     begin                : December 2017
     copyright            : (C) 2017 by Alain Coulais
     email                :  alaingdl@users.sourceforge.net
