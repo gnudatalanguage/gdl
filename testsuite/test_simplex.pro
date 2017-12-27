@@ -5,15 +5,6 @@
 ;
 ; -----------------------------------------------
 ;
-pro ADD_ERRORS, nb_errors, message
-;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
-;
-end
-;
-; -----------------------------------------------
-;
 pro TEST_SIMPLEX, test=test, no_exit=no_exit, help=help
 ;
 if KEYWORD_SET(help) then begin
