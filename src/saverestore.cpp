@@ -382,16 +382,16 @@ namespace lib {
     int32_t structure_def_flags;
     if (!xdr_int32_t(xdrs, &structure_def_flags)) return NULL;
     bool ispredef = false;
-    if (structure_def_flags & 0x1)
+    if (structure_def_flags & 0x01)
     {
       ispredef = true;
     }
-    if (structure_def_flags & 0x2)
+    if (structure_def_flags & 0x02)
     {
       isObjStruct = true;
     }
     bool is_super = false;
-    if (structure_def_flags & 0x4)
+    if (structure_def_flags & 0x04)
     {
       is_super = true;
     }
@@ -624,9 +624,11 @@ namespace lib {
           }
           for (int i = 0; i < nsupclasses; ++i)
           {
-            bool dummy;
-            DStructGDL* toto = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
-            if (toto != NULL) GDLDelete(toto);
+            //define all parent classes in objheap.
+            DStructGDL* superclass = getDStruct(e, xdrs, new dimension(1), isObjStruct); // will define the class as an object.
+            if (isObjStruct)  {
+              DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
+            }
           }
         }
       }
@@ -760,12 +762,18 @@ namespace lib {
       std::vector< std::string> pNames;
       str->GetParentNames(pNames);
 //TBD: get super classes and write structs accordingly.      
-      int32_t nsupclasses=0; //pNames.size();
-//      cerr<<pNames.size()<<endl;for (int i=0 ; i< pNames.size();++i) cerr<<pNames[i]<<endl;
+      int32_t nsupclasses=pNames.size();
       xdr_int32_t(xdrs, &nsupclasses);
-//      for (int i=0 ; i< nsupclasses;++i) xdr_string(xdrs, pNames[i].data(), pNames[i].size());
-//      DStructGDL* s=NULL;
-//      for (int i=0 ; i< nsupclasses;++i) s=str->
+      char* pnames[nsupclasses];
+      for (int i=0 ; i< nsupclasses;++i) pnames[i]=(char*)pNames[i].data();
+      for (int i=0 ; i< nsupclasses;++i) xdr_string(xdrs, &pnames[i], pNames[i].size());
+      for (int i=0 ; i< nsupclasses;++i) {
+        DStructGDL* parent = new DStructGDL( pNames[i]);
+        if (parent != NULL) {
+	      Guard<DStructGDL> parent_guard(parent);
+          writeStructDesc(xdrs, parent, true);
+        }
+      }
     }
  }
   
