@@ -7,12 +7,175 @@
 ; this code should be able to run on box without X11,
 ; and should be OK for Z, SVG and PS
 ;
+; Nota-bene : IDL moved to Mersemme Twister since 8.2.2
+;
+; ---------------------------------------
 ; Modifications history :
-; - 2017-12-13 : AC. ading TEST_RANDOM_POISSON, num. tests found.
+;
+; - 2017-11-09 : AC (uncommited at that time)
+;  * renaming with prefix "TEST_"; 
+;  * adding error counting for TEST_RANDOM_BINOMIAL.
+;  * adding TEST_RANDOM_MERSENNE since GDL can now have 
+;    same numerical outputs than IDL since 8.4 (and FL since 0.79.41)
+;  * adding TEST_RANDOM_ULONG
+;
+; - 2017-12-13 : AC. adding TEST_RANDOM_POISSON, num. tests found.
+;
+;
+; ----------------------------------------------
+;
+function STATUS_VERSION_OF_RANDOM, verbose=verbose, test=test
+;
+status=1
+;
+DEFSYSV, '!gdl', exists=isGDL
+;
+; Mersenne Twister in GDL since March 20, 2017 ... 
+; rev. 1.143 in "gsl_fin.cpp", GDL 0.9.7 CVS, Epoch ~1490047893
+;
+mess1_GDL_obsolete='Obsolete GDL version, Mersenne Twister Random not in use'
+mess2a_GDL_maybe='MAY BE Obsolete GDL version'
+mess2b_GDL_maybe='MAY BE Mersenne Twister Random not in use'
+mess3_IDL_obsolete='Obsolete IDL version, Mersenne Twister Random not in use'
+;
+if isGDL then begin
+   ;; testing the GDL side/version
+   ;; 
+   if KEYWORD_SET(verbose) then begin
+      MESSAGE, /continue, 'GDL detected'
+      help, /struct, !gdl
+      help, /struct, !version
+   endif
+   ;;
+   gdl_version=GDL_VERSION()
+   ;;
+   ;; before 0.9.7, always not OK; since 0.9.8 always OK
+   ;; always OK since 0.9.7 SVN, 
+   ;;
+   if (gdl_version LT 907) then begin
+      MESSAGE, /Continue, mess1_GDL_obsolete
+      status=0
+   endif else begin
+      if (gdl_version EQ 907) then begin
+         if (!gdl.epoch LT 1490047893L) then begin            
+            MESSAGE, /Continue, mess1_GDL_obsolete
+            status=0
+         endif else begin
+            if (STRPOS(!GDL.release, 'SVN') LT 0) then begin
+               ;; we don't put status wrong but result may be wrong !!
+               MESSAGE, /Continue, mess2a_GDL_maybe
+               MESSAGE, /Continue, mess2b_GDL_maybe
+            endif
+         endelse
+      endif
+   endelse
+endif else begin
+   if KEYWORD_SET(verbose) then begin
+      MESSAGE, /continue, 'IDL detected'
+      help, /struct, !version
+   endif
+   ;; testing IDL side
+   if (!version.release LT '8.2.2') then begin
+      MESSAGE, /Continue, mess3_IDL_obsolete
+      MESSAGE, /Continue, 'Required IDL version > 8.2.2'
+      MESSAGE, /Continue, 'Detected IDL version '+!version.release      
+      status=0
+   endif
+endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+return, status
+;
+end
+;
+; ----------------------------------------------
+; Warning ! We have to carrefully manage SEED to
+; be able to call multiple times the code ...
+; OK in FL 41, IDL 84 and GDL 0.9.8 (0.9.7 CVS/SVN)
+;
+pro TEST_RANDOM_MERSENNE, cumul_errors, test=test, verbose=verbose 
+;
+nb_errors=0
+;
+; tolerance
+eps = 1e-5
+;
+; seed value : not a parameter because fixed numerical outputs ...
+seed=10
+;
+nbp=20
+indices=4*INDGEN(5)
+;
+exptd_u_f=[0.771321, 0.633648, 0.498507, 0.198063, 0.169111]
+exptd_u_d=[0.77132064, 0.49850701, 0.16911084, 0.0039482663, 0.72175532]
+exptd_n_f=[-0.746100, -0.872054, 2.67669, -0.797426, 1.13531]
+exptd_n_d=[1.3315865, 0.62133597, 0.0042914309, -0.96506567, -1.1366022]
+;
+fseed=seed
+res=RANDOMU(fseed, nbp) & res=res[indices]
+if (MAX(ABS(exptd_u_f-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand U & Float'
+;
+fseed=seed
+res=RANDOMU(fseed, nbp, /double) & res=res[indices]
+if (MAX(ABS(exptd_u_d-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand U & Double'
+;
+fseed=seed
+res=RANDOMN(fseed, nbp) & res=res[indices]
+if (MAX(ABS(exptd_n_f-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand N & Float'
+;
+fseed=seed
+res=RANDOMN(fseed, nbp, /double) & res=res[indices]
+if (MAX(ABS(exptd_n_d-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand N & Double'
+;
+; ------
+;
+BANNER_FOR_TESTSUITE, 'TEST_RANDOM_MERSENNE', nb_errors, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+;
+; ---------------------------------------
+; ULONG keyword appeared in IDL 8.2.2
+;
+pro TEST_RANDOM_ULONG, cumul_errors, test=test, verbose=verbose
+;
+nb_errors=0
+seed=10
+nbp=5
+;
+; these values are the same for all 4 cases ...
+exp_ul10=[3312796937, 1283169405, 89128932, 2124247567, 2721498432]
+;
+txt='case ULong '
+;
+; we need to reset "seed" to avoid it to be changed
+;
+seed=10 & res_ul10uf=RANDOMU(seed, nbp, /ULong)
+seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong)
+seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong)
+seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong)
+;
+if ~ARRAY_EQUAL(res_ul10uf, exp_ul10) then ADD_ERROR, nb_errors, txt+'U Float'
+if ~ARRAY_EQUAL(res_ul10ud, exp_ul10) then ADD_ERROR, nb_errors, txt+'U Double'
+if ~ARRAY_EQUAL(res_ul10nf, exp_ul10) then ADD_ERROR, nb_errors, txt+'N Float'
+if ~ARRAY_EQUAL(res_ul10nd, exp_ul10) then ADD_ERROR, nb_errors, txt+'n Double'
+;
+BANNER_FOR_TESTSUITE, 'TEST_RANDOM_ULONG', nb_errors, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; ---------------------------------------
 ; because regression was introduced between July 17 and October 2
-pro RANDOM_BASICS
+pro TEST_RANDOM_BASICS
 ;
 a=RANDOMU(seed)
 a=RANDOMU(1)
@@ -107,7 +270,7 @@ end
 ; note by AC 2017-12-13 : can be extend as "test_random_poison" above
 ; (but different numerical values !) no time to do it now :(
 ;
-pro RANDOM_GAMMA, test=test
+pro TEST_RANDOM_GAMMA, test=test
 ;
 nbps=200000
 nbps_f=FLOAT(nbps)
@@ -124,7 +287,7 @@ end
 ; ---------------------------------------
 ; we try to have the output for all the mode
 ;
-pro RANDOM_ALL_GAMMA, verbose=verbose
+pro TEST_RANDOM_ALL_GAMMA, verbose=verbose
 ;
 init_device_mode=!d.name
 ;
@@ -150,7 +313,7 @@ for ii=0, N_ELEMENTS(list_device_mode)-1 do begin
       DEVICE, file=file
    endif
    ;;
-   RANDOM_GAMMA
+   TEST_RANDOM_GAMMA
    ;;
    if (!d.name EQ 'SVG') OR (!d.name EQ 'PS') then begin
       DEVICE, /close
@@ -214,12 +377,12 @@ BANNER_FOR_TESTSUITE, "TEST_RANDOM_BINOMIAL", errors, /short, verb=verbose
 ;
 ERRORS_CUMUL, cumul_errors, errors
 ;
-if KEYWORD_SET(test) then stop
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; ------------------------------------------
-; extensions welcome
+; testable extensions welcome
 ;
 pro TEST_RANDOM, no_exit=no_exit, help=help, verbose=verbose, test=test
 ;
@@ -231,17 +394,27 @@ cumul_errors=0
 ;
 TEST_RANDOM_POISSON, cumul_errors, verbose=verbose
 ;
-RANDOM_BASICS
+TEST_RANDOM_BASICS
 ;
 ; test the various DEVICE ...
-RANDOM_ALL_GAMMA
+TEST_RANDOM_ALL_GAMMA
 ;
 TEST_RANDOM_BINOMIAL, cumul_errors, verbose=verbose, ampl=1.
 TEST_RANDOM_BINOMIAL, cumul_errors, verbose=verbose, ampl=1.5
 TEST_RANDOM_BINOMIAL, cumul_errors, verbose=verbose, ampl=10.
 TEST_RANDOM_BINOMIAL, cumul_errors, verbose=verbose, ampl=100.
 ;
-; ------------------------
+; testing the SEEDs ... (Mersenne) IDL 8.2.2+, GDL 0.9.7 SVN+
+;
+if STATUS_VERSION_OF_RANDOM() then begin
+   TEST_RANDOM_ULONG, cumul_errors, test=test, verbose=verbose
+   TEST_RANDOM_MERSENNE, cumul_errors, test=test, verbose=verbose
+endif else begin
+   BANNER_FOR_TESTSUITE, 'TEST_RANDOM_ULONG', 'Too old version detected'
+   BANNER_FOR_TESTSUITE, 'TEST_RANDOM_SEED', 'Too old version detected'
+endelse
+;
+; ----------------- final message ----------
 ;
 BANNER_FOR_TESTSUITE, "TEST_RANDOM", cumul_errors
 ;
@@ -249,7 +422,8 @@ BANNER_FOR_TESTSUITE, "TEST_RANDOM", cumul_errors
 if (cumul_errors GT 0) then begin
     if ~KEYWORD_SET(verbose) then MESSAGE, /continue, 're-run with /verbose for details'
     if ~(KEYWORD_SET(test) or KEYWORD_SET(no_exit)) then EXIT, status=1
-endif
+ endif
+;
 if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
 ;
 end
