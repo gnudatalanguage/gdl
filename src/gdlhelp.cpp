@@ -749,15 +749,22 @@ BaseGDL* recall_commands( EnvT* e)
 
     if (sourceFilesKW) {
       if (do_pro) {
-        sort(proList.begin(), proList.end(), CompProName());
+	// AC 2018-01-09 : Duplicating the pro list to avoid messing up the order of "proList"
+	// otherwise, a call to HELP,/source created in future calls
+	// e.g. of crashing sequence : TEST_TV & HELP, /source & TEST_TV
+	//
+	ProListT proList_tmp;
+	proList_tmp=proList;
+        sort(proList_tmp.begin(), proList_tmp.end(), CompProName());
+
         ostr << "Compiled Procedures:" << endl;
         if (briefKW) {
           ostr << "$MAIN$" << endl;
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
             ostr << setw(25) << left << (*i)->ObjectName() << setw(0) <<endl;
           }
         } else if (isKWSetNames) {
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
             if (CompareWithJokers(names, (*i)->ObjectName())) {
               ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
               ostr << (*i)->GetFilename() << endl;
@@ -765,29 +772,34 @@ BaseGDL* recall_commands( EnvT* e)
           }
         } else {
           ostr << "$MAIN$" << endl;
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
             ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
             ostr << (*i)->GetFilename() << endl;
           }
-        }      
+        }
       }
 
       if (do_fun) {
-        if (do_pro) ostr << endl;
-        sort(funList.begin(), funList.end(), CompFunName());
-        ostr << "Compiled Functions:" << endl;
+	// AC 2018-01-09 : Duplicating the fun list to avoid messing up the order of "funList"
+	// see above in (do_pro).
+	FunListT funList_tmp;
+	funList_tmp=funList;
+        sort(funList_tmp.begin(), funList_tmp.end(), CompFunName());
+
+	if (do_pro) ostr << endl;
+	ostr << "Compiled Functions:" << endl;
         if (briefKW) {
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i) {
             ostr << setw(25) << left << (*i)->ObjectName() << setw(0) <<endl;
           }
         } else if (isKWSetNames) {
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i)
+          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i)
             if (CompareWithJokers(names, (*i)->ObjectName())) {
               ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
               ostr << (*i)->GetFilename() << endl;
             }
         } else {
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i) {
             ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
             ostr << (*i)->GetFilename() << endl;
           }
