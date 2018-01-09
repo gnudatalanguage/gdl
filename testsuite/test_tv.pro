@@ -8,6 +8,7 @@
 ; adding tic/toc to check X11 bottleneck(s) on network (remote TV/plot
 ; are too slow)
 ; * AC 2017-08-17 : details when files missing, errors count, banner ...
+; * AC 2018-01-09 : clarifying details, should extendable easily for bench
 ;
 function TITLE4TEST_TV, data, debug=debug
 ;
@@ -52,20 +53,21 @@ end
 ; this table will be propagated in other windows 
 ; when they will be active via WSET
 ;
-pro TEST_TV_WSET, errors, test=test
-;
-if ~ISA(errors) then errors=0
+pro TEST_TV_WSET, cumul_errors, test=test
 ;
 ; Read "Saturn.jpg" and return content in "image"
 status=GET_IMAGE_FOR_TESTSUITE(image)
-if (status eq 0) then return
+if (status eq 0) then begin
+   ERRORS_CUMUL, cumul_errors, 0
+   return
+endif
 ;
 xdim=(SIZE(image))(2)
 ydim=(SIZE(image))(3)
 ; this test, as it is now, is wrong when the screen is too small (use
 ; Xvfb :1 -screen 0 1024x768x24 & for example)
 ; I return if window sizes are too big
-device,get_screen_size=scrsize
+DEVICE, get_screen_size=scrsize
 scrsizex=scrsize[0]
 scrsizey=scrsize[1]
 
@@ -73,7 +75,6 @@ if (2*xdim ge scrsizex or 3*ydim ge scrsizey) then begin
    print,"test TEST_TV_WSET not executed, screen size to small (FIXME)"
    return
 end
-
 ;
 image=TOTAL(image,1)
 ;
@@ -107,10 +108,12 @@ content_win2=TVRD()
 WSET, 0
 content_win0=TVRD()
 ;
-if ~ARRAY_EQUAL(content_win0,content_win2) then begin
-    errors++
-    BANNER_FOR_TESTSUITE, "TEST_TV_WSET", errors, /SHORT
-endif
+local_error=0
+if ~ARRAY_EQUAL(content_win0,content_win2) then local_error++
+;
+ERRORS_CUMUL, cumul_errors, local_error
+;
+BANNER_FOR_TESTSUITE, "TEST_TV_WSET", local_error, /SHORT
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -189,17 +192,19 @@ endfor
 ;
 if KEYWORD_SET(benchmark) then TOC, t_glob
 ;
+BANNER_FOR_TESTSUITE, "TEST_TV_DAMIER", 0, /SHORT
+;
 if KEYWORD_SET(test) then STOP
 ;;
 end 
 ;
 ; -------------------------------------
 ;
-function TEST_TV_OVER_BOX
+pro TEST_TV_OVER_BOX
 ;
 ; Read "Saturn.jpg" and return content in "image"
 status=GET_IMAGE_FOR_TESTSUITE(image)
-if (status eq 0) then return, 0
+if (status eq 0) then return
 ;
 redChannel = REFORM(image[0, *, *])
 greenChannel = REFORM(image[1, *, *])
@@ -223,24 +228,17 @@ for i=0,5 do begin
     TV, image, 10,10,/DATA,/true,xsize=50
 end
 !P.MULTI=0
-return, 1
+;
+BANNER_FOR_TESTSUITE, "TEST_TV_OVER_BOX", 0, /SHORT
+;
 end
 ;
 ; -------------------------------------
+; should display (from bottom on the left) 6 small windows in grey
 ;
-pro TEST_TV, help=help, noclose=noclose, test=test, no_exit=no_exit
+pro TEST_TV_REFORM
 ;
-if KEYWORD_SET(help) then begin
-    print, 'pro TEST_TV, help=help, noclose=noclose, test=test, no_exit=no_exit'
-    return
-endif
-;
-if (!d.name EQ 'NULL') then begin
-   is_X11_ok=EXECUTE('set_plot, "X"')
-   if (is_X11_ok EQ 0) then begin
-      if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
-   endif
-endif
+DEVICE, /decomposed
 ;
 xdim=350
 ydim=100
@@ -261,23 +259,39 @@ MY_WINDOW, 4, REFORM(b2)
 MY_WINDOW, 5, b3
 MY_WINDOW, 6, REFORM(b3)
 ;
+BANNER_FOR_TESTSUITE, "TEST_TV_REFORM", 0, /SHORT
+;
+end
+;
+; -------------------------------------
+;
+pro TEST_TV, help=help, no_close=no_close, test=test, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_TV, help=help, no_close=no_close, test=test, no_exit=no_exit'
+    return
+endif
+;
+if (!d.name EQ 'NULL') then begin
+   is_X11_ok=EXECUTE('set_plot, "X"')
+   if (is_X11_ok EQ 0) then begin
+      if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
+   endif
+endif
+;
+TEST_TV_REFORM
+;
 TEST_TV_DAMIER, 8
 TEST_TV_DAMIER, 9, /COLOR
 ;
-success=TEST_TV_OVER_BOX()
+TEST_TV_OVER_BOX
 ;
 ; only this test gives a feedback now
 TEST_TV_WSET, errors
 ;
-if KEYWORD_SET(noclose) then begin
-   rep=''
-   READ, 'press any key to finish (and closing all windows)', rep
-endif else begin
-    print, 'You can use keyword /NoClose to de-activate auto closing'
-endelse
-;;
-WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9
-if (success eq 1) then WDELETE, 11, 12
+;stop
+if ~KEYWORD_SET(noclose) then while !d.window GE 0 do WDELETE
+print, 'You can use keyword /No_Close to de-activate auto closing'
 ;
 ; ----------------- final message ----------
 ;
