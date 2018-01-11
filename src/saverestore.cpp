@@ -1411,7 +1411,7 @@ namespace lib {
     bool isCompress = false;
 
     FILE *fid;
-    fid = fopen(name.c_str(), "r");
+    fid = fopen(name.c_str(), "rb");
     if (fid == NULL) e->Throw("Error opening file. Unit: XXXX, File: " + name + ".");
 
     XDR* xdrsmem = new XDR;
@@ -2055,7 +2055,7 @@ namespace lib {
 
     WordExp(name);
 
-    save_fid = fopen(name.c_str(), "w+");
+    save_fid = fopen(name.c_str(), "wb+");
     if (save_fid == NULL) e->Throw("Error opening file. Unit: XXXX, File: " + name + ".");
 
     XDR* xdrs = new XDR;
