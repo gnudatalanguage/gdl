@@ -1261,7 +1261,7 @@ namespace lib {
     static unsigned nameTag = errorState->Desc()->TagIndex("NAME");
     static unsigned blockTag = errorState->Desc()->TagIndex("BLOCK");
     static unsigned codeTag = errorState->Desc()->TagIndex("CODE");
-    static unsigned rangeTag = errorState->Desc()->TagIndex("RANGE");
+    static unsigned sys_codeTag = errorState->Desc()->TagIndex("SYS_CODE");
     static unsigned sys_code_typeTag = errorState->Desc()->TagIndex("SYS_CODE_TYPE");
     static unsigned msgTag = errorState->Desc()->TagIndex("MSG");
     static unsigned sys_msgTag = errorState->Desc()->TagIndex("SYS_MSG");
