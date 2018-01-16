@@ -163,7 +163,7 @@
     }
 
 #define AC_HELP()							\
-  static int HELPIx=e->KeywordIx("HELP"); \
+  static int HELPIx=e->KeywordIx("HELP");				\
   if (e->KeywordSet(HELPIx)) {						\
     string inline_help[]={						\
       "Usage: res="+e->GetProName()+"(x, [n,] double=double)",		\

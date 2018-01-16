@@ -81,31 +81,24 @@
 //
 //                   Note that macros suite is incomplete.
 //                   See below for examples.
+
 #define GM_2P0(a)							\
   e->NParam(a);								\
-									\
+  									\
   DIntGDL* p0 = e->GetParAs<DIntGDL>(0);				\
   SizeT nElp0 = p0->N_Elements();					\
-									\
+  									\
   if (nElp0 == 0)							\
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
-									\
-  DType t0 = e->GetParDefined(0)->Type();				\
-                     if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
-		       e->Throw("Complex not implemented (GSL limitation). ");
 
 #define GM_5P0(a)							\
   e->NParam(a);								\
-									\
+  									\
   DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);				\
   SizeT nElp0 = p0->N_Elements();					\
-									\
+  									\
   if (nElp0 == 0)							\
-    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
-									\
-  DType t0 = e->GetParDefined(0)->Type();				\
-  if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)				\
-    e->Throw("Complex not implemented (GSL limitation). ");
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0)); \
 
 #define GM_5P1()							\
   DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);				\
@@ -113,26 +106,29 @@
   									\
   if (nElp1 == 0)							\
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1));	\
-  									\
+
+#define GM_CheckComplex_P0(flag)						\
+  DType t0 = e->GetParDefined(0)->Type();				\
+  if (flag == 1 && (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL))		\
+    e->Throw("Complex not implemented (GSL limitation). ");		\
+
+#define GM_CheckComplex_P1(flag)						\
   DType t1 = e->GetParDefined(1)->Type();				\
-  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)				\
-    e->Throw("Complex not implemented (GSL limitation). ");
+  if (flag == 1 && (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL))		\
+    e->Throw("Complex not implemented (GSL limitation). ");		\
 
-
-// Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.  Note no STATIC for SysVar::, due to .reset 
-#define GM_DF1()							\
-  DStructGDL *Values =  SysVar::Values();			\
+// Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.
+// Note no STATIC for SysVar::, due to .reset 
+#define GM_NaN_Inf()							\
+  DStructGDL *Values =  SysVar::Values();				\
   DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
   DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
-  									\
+
+#define GM_DF1()							\
   DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
 
 // Use this macro to define Inf and NaN, number of elements and result in a function with two parameters.
 #define GM_DF2()							\
-  DStructGDL *Values =  SysVar::Values();			\
-  DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
-  DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
-  									\
   DDoubleGDL* res;							\
 									\
   if (p0->Rank() == 0)							\
@@ -199,8 +195,10 @@ using std::isnan;
 
   BaseGDL* erf_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
     GM_5P0(1);
     GM_DF1();
+    GM_NaN_Inf();
 
     for (SizeT c = 0; c < nElp0; ++c)
     {
@@ -217,29 +215,92 @@ using std::isnan;
     GM_CV1();
   } // erf_fun
 
+    // ERRORF is the IDL old name of the ERF function. It is implemented to keep old syntax active.
   BaseGDL* errorf_fun(EnvT* e)
   {
-
-    // ERRORF is the IDL old name of the ERF function. It is implemented to keep old syntax active.
-
     return erf_fun(e);
   } // errorf_fun
 
+  // this a separable function : GAUSSINT(a,b)=GAUSSINT(a)*GAUSSINT(b)
   BaseGDL* gaussint_fun(EnvT* e)
   {
-    GM_5P0(1);
-    GM_DF1();
+    GM_NaN_Inf();
 
+    SizeT nParam = e->NParam();
+    cout << nParam << endl;
+
+    // real part of Complex inputs are used
+    GM_CheckComplex_P0(0);
+    GM_5P0();
+
+    DDoubleGDL* tmp0;
+    tmp0=new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+
+    DDoubleGDL* tmp1;
+    DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);			\
+    SizeT nElp1 = p1->N_Elements();					\
+
+    if (nParam == 2) {
+      GM_CheckComplex_P1(0);
+      p1 = e->GetParAs<DDoubleGDL>(1);
+      SizeT nElp1 = p1->N_Elements();
+      tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
+    } else {
+      nElp1=1;
+      tmp1=new DDoubleGDL(1.);
+      
+    }
+
+    // computation for X input
     for (SizeT c = 0; c < nElp0; ++c)
     {
         if ((*p0)[c] == d_infinity)
-            (*res)[c] = 1.0;
+            (*tmp0)[c] = 1.0;
         else if ((*p0)[c] == -d_infinity)
-            (*res)[c] = 0.0;
+            (*tmp0)[c] = 0.0;
         else if (isnan((*p0)[c]) == 1)
-            (*res)[c] = d_nan;
+            (*tmp0)[c] = d_nan;
         else
-            (*res)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
+            (*tmp0)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
+    }
+    if (nParam == 2) {
+
+    // computation for Y input 
+    for (SizeT c = 0; c < nElp1; ++c)
+    {
+        if ((*p1)[c] == d_infinity)
+            (*tmp1)[c] = 1.0;
+        else if ((*p1)[c] == -d_infinity)
+            (*tmp1)[c] = 0.0;
+        else if (isnan((*p1)[c]) == 1)
+            (*tmp1)[c] = d_nan;
+        else
+            (*tmp1)[c] = 0.5*(1.+gsl_sf_erf((*p1)[c]/sqrt(2.)));
+    }
+    }    
+    DDoubleGDL* res;
+
+    if (p0->Rank() == 0) {
+      res =new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
+      for (SizeT c = 0; c < nElp1; ++c) 
+	(*res)[c] =(*tmp1)[c]*(*tmp0)[0];
+    } else {
+      if (p1->Rank() == 0) {
+	res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+	for (SizeT c = 0; c < nElp0; ++c) 
+	  (*res)[c] =(*tmp0)[c]*(*tmp1)[0];
+      } else {
+	SizeT nbp;
+	if (nElp0 > nElp1) {
+	  nbp=nElp1;
+	  res =new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
+	} else {
+	  nbp=nElp0;
+	  res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+	}
+	for (SizeT c = 0; c < nbp; ++c) 
+	  (*res)[c] =(*tmp0)[c]*(*tmp1)[c];
+      }
     }
 
     GM_CV1();
@@ -247,8 +308,10 @@ using std::isnan;
 
   BaseGDL* erfc_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
     GM_5P0(1);
     GM_DF1();
+    GM_NaN_Inf();
 
     for (SizeT c = 0; c < nElp0; ++c)
     {
@@ -267,8 +330,10 @@ using std::isnan;
 
   BaseGDL* gamma_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
     GM_5P0(1);
     GM_DF1();
+    GM_NaN_Inf();
 
     for (SizeT c = 0; c < nElp0; ++c)
         if (((*p0)[c] == 0.0) || (((*p0)[c] < 0.0) && ((int)(*p0)[c] == (*p0)[c])) || (*p0)[c] >= GSL_SF_GAMMA_XMAX)
@@ -283,8 +348,10 @@ using std::isnan;
 
   BaseGDL* lngamma_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
     GM_5P0(1);
     GM_DF1();
+    GM_NaN_Inf();
 
     for (SizeT c = 0; c < nElp0; ++c)
         if ((*p0)[c] == 0.0 || (*p0)[c] < 0.0)
@@ -299,9 +366,12 @@ using std::isnan;
 
   BaseGDL* igamma_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
+    GM_CheckComplex_P1(1);
     GM_5P0(2);
     GM_5P1();
     GM_DF2();
+    GM_NaN_Inf();
 
     if (nElp0 == 1)
     {
@@ -371,9 +441,12 @@ using std::isnan;
 
   BaseGDL* beta_fun(EnvT* e)
   {
+    GM_CheckComplex_P0(1);
+    GM_CheckComplex_P1(1);
     GM_5P0(2);
     GM_5P1();
     GM_DF2();
+    GM_NaN_Inf();
 
     if (nElp0 == 1)
     {
@@ -399,7 +472,6 @@ using std::isnan;
     {
         bool flag0 = false;
         bool flag1 = false;
-
 
         if (isfinite((*p1)[0]) == 0)
             flag0 = true;
@@ -434,9 +506,14 @@ using std::isnan;
 
   BaseGDL* expint_fun(EnvT* e)
   {
+    // real part of Complex inputs are used
+    GM_CheckComplex_P0(0);
+    GM_CheckComplex_P1(0);
+
     GM_2P0(2);
     GM_5P1();
     GM_DF2();
+    GM_NaN_Inf();
 
     //Tests -----------------
     if (nElp0 == 1)

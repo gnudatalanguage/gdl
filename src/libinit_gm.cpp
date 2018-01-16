@@ -65,7 +65,7 @@ void LibInit_gm()
   new DLibFunRetNew(lib::expint_fun,string("EXPINT"),2,expintKey);
 
   const string gaussintKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::gaussint_fun,string("GAUSSINT"),1,gaussintKey);
+  new DLibFunRetNew(lib::gaussint_fun,string("GAUSSINT"),2,gaussintKey);
 
 #endif
 
