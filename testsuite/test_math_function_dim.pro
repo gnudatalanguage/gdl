@@ -21,7 +21,12 @@
 ; ....
 ;
 ; It must be noticed that NO test on numerical values are done here.
-; Please refer to dedicated tests (i.e. "test_voigt.pro")
+; Please refer to dedicated tests (i.e. "test_voigt.pro",
+; "test_expint.pro", "test_besel.pro", "test_gammas.pro" ...)
+;
+;
+; Modifications history :
+; 2018-01-16 : AC, adding GAUSSINT
 ;
 ; -----------------------------------------
 ;
@@ -142,7 +147,7 @@ pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $
                             test=test, verbose=verbose, no_exit=no_exit
 ;
 liste=['BESELI','BESELJ','BESELK','BESELY']
-liste=[[liste],'VOIGT','EXPINT','BETA','IGAMMA']
+liste=[[liste],'VOIGT','EXPINT','GAUSSINT','BETA','IGAMMA']
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $'
@@ -157,10 +162,13 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+use_quiet=1
+if KEYWORD_SET(verbose) then use_quiet=0
+;
 errors_cumul=0
 ;
 for ii=0, N_ELEMENTS(liste)-1 do begin
-    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=quiet;, $
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet;, $
 ;      test=test, verbose=verbose
 endfor
 ;
