@@ -1290,9 +1290,8 @@ namespace lib {
     if (reset) {
       (*static_cast<DStringGDL*> (errorState->GetTag(nameTag)))[0] = "IDL_M_SUCCESS";
       (*static_cast<DStringGDL*> (errorState->GetTag(blockTag)))[0] = "IDL_MBLK_CORE";
-      (*static_cast<DLongGDL*> (errorState->GetTag(codeTag)))[0] = 0;
-      (*static_cast<DLongGDL*> (errorState->GetTag(rangeTag)))[0] = 0;
-      (*static_cast<DLongGDL*> (errorState->GetTag(rangeTag)))[1] = 0;
+      (*static_cast<DLongGDL*> (errorState->GetTag(sys_codeTag)))[0] = 0;
+      (*static_cast<DLongGDL*> (errorState->GetTag(sys_codeTag)))[1] = 0;
       (*static_cast<DStringGDL*> (errorState->GetTag(sys_code_typeTag)))[0] = "";
       (*static_cast<DStringGDL*> (errorState->GetTag(msgTag)))[0] = "";
       (*static_cast<DStringGDL*> (errorState->GetTag(sys_msgTag)))[0] = "";
