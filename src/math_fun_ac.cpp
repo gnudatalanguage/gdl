@@ -63,8 +63,10 @@
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
   									\
   DType t0 = e->GetParDefined(0)->Type();				\
-  //if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)			\
-  //  e->Throw("Complex not implemented (GSL limitation). ");
+
+//no "//" comments in macro !!!!
+//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
+//  e->Throw("Complex not implemented (GSL limitation). ");
 
 #define AC_2P1()							\
   SizeT nElp1;								\
@@ -148,11 +150,22 @@
 #define GM_CV1()					\
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
 							\
-  if (t0 != GDL_DOUBLE && !e->KeywordSet(doubleKWIx))	\
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&	\
+      !e->KeywordSet(doubleKWIx))			\
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);	\
   else							\
     return res;
 
+#define GM_CV2()							\
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
+									\
+  /*cout << t0 << t1 << endl;					*/	\
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&			\
+      t1 != GDL_DOUBLE && t1 != GDL_COMPLEXDBL &&			\
+      !e->KeywordSet(doubleKWIx))					\
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
+  else									\
+    return res;
 
 #define GM_CC1()							\
   static DInt coefKWIx = e->KeywordIx("ITER");				\
@@ -263,7 +276,7 @@ using namespace Eigen;
 	  }
       }
     GM_CC1();
-    GM_CV1();
+    GM_CV2();
   }
 
 
@@ -332,7 +345,7 @@ using namespace Eigen;
 	  }
       }
     GM_CC1();
-    GM_CV1();
+    GM_CV2();
   }
 
   // very preliminary version:
@@ -427,7 +440,7 @@ using namespace Eigen;
 	  }
       }
     GM_CC1();
-    GM_CV1();
+    GM_CV2();
   }
     
   // very preliminary version:
@@ -521,7 +534,7 @@ using namespace Eigen;
 	  }
       }
     GM_CC1();
-    GM_CV1();
+    GM_CV2();
   }
 
   // SPLINE

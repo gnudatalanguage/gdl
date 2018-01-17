@@ -40,12 +40,13 @@ namespace lib {
       e->Throw(" function VOIGT takes 2 params: 'Result = VOIGT(A,U)'  ");
 
     DFloatGDL* A = e->GetParAs<DFloatGDL>(0);
-    if(e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
-      e->Throw(" no complex : ");
+
+    //AC2018    if(e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
+    // e->Throw(" no complex : ");
     
     DFloatGDL* U = e->GetParAs<DFloatGDL>(1);
-    if(e->GetParDefined(1)->Type() == GDL_COMPLEX || e->GetParDefined(1)->Type() == GDL_COMPLEXDBL)
-      e->Throw(" no complex : ");
+    //AC2018 if(e->GetParDefined(1)->Type() == GDL_COMPLEX || e->GetParDefined(1)->Type() == GDL_COMPLEXDBL)
+    //e->Throw(" no complex : ");
 
     // Use to define NaN which is returned if one parameter of humlik function is Not A Number 
     DStructGDL *Values =  SysVar::Values();   //MUST NOT BE STATIC, due to .reset                                                 
@@ -194,9 +195,16 @@ namespace lib {
 	  }		
       }
 
-    if( e->GetParDefined(0)->Type() == GDL_DOUBLE ||e->GetParDefined(1)->Type() == GDL_DOUBLE ) 
+    // fake Double promotion if needed ...
+    DType t0=e->GetParDefined(0)->Type();
+    DType t1=e->GetParDefined(1)->Type();
+    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
+
+    if (t0 == GDL_DOUBLE || t0 == GDL_COMPLEXDBL ||
+	t1 == GDL_DOUBLE || t1 == GDL_COMPLEXDBL ||
+	e->KeywordSet(doubleKWIx))		
       return res->Convert2(GDL_DOUBLE,BaseGDL::CONVERT);
-    
+
     return res;
 
   } //end of voigt_fun

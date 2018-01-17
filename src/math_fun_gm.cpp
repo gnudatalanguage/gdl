@@ -149,23 +149,26 @@
 #define GM_CV1() \
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
   									\
-  if (t0 != GDL_DOUBLE && !e->KeywordSet(doubleKWIx))			\
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&			\
+      !e->KeywordSet(doubleKWIx))					\
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
   else									\
     return res;								\
   									\
-  return new DByteGDL(0);
+  // AC2018 why do we had that ??  return new DByteGDL(0);
 
 // Use this macro to convert result in a function with two parameters.
 #define GM_CV2() \
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
   									\
-  if (t0 != GDL_DOUBLE && t1 != GDL_DOUBLE && !e->KeywordSet(doubleKWIx))	\
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&			\
+      t1 != GDL_DOUBLE && t1 != GDL_COMPLEXDBL &&			\
+      !e->KeywordSet(doubleKWIx))					\
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
   else									\
     return res;								\
   									\
-  return new DByteGDL(0);
+  // AC2018 why do we had that ??  return new DByteGDL(0);
 
 #include "includefirst.hpp"
 #include "initsysvar.hpp"  // Used to define Double Infinity and Double NaN
@@ -227,7 +230,7 @@ using std::isnan;
     GM_NaN_Inf();
 
     SizeT nParam = e->NParam();
-    //    cout << nParam << endl;
+    //   cout << nParam << endl;
 
     // real part of Complex inputs are used
     GM_CheckComplex_P0(0);
@@ -236,20 +239,31 @@ using std::isnan;
     DDoubleGDL* tmp0;
     tmp0=new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
 
+    DType t1  = GDL_LONG;
     DDoubleGDL* tmp1;
-    DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);			\
-    SizeT nElp1 = p1->N_Elements();					\
+    DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);
+    SizeT nElp1 = p1->N_Elements();
+
+    DType t1bis;
 
     if (nParam == 2) {
       GM_CheckComplex_P1(0);
       p1 = e->GetParAs<DDoubleGDL>(1);
       SizeT nElp1 = p1->N_Elements();
       tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
+      t1bis = e->GetParDefined(1)->Type();
+      //cout << "type : "<< t1 << endl;
+
     } else {
       nElp1=1;
       tmp1=new DDoubleGDL(1.);
-      
+      //      DType 
+      t1bis = GDL_FLOAT;
     }
+    
+    t1=t1bis;
+    // cout << "type : "<< t1bis << endl;
+    // cout << "type : "<< t1 << endl;
 
     // computation for X input
     for (SizeT c = 0; c < nElp0; ++c)
@@ -303,7 +317,8 @@ using std::isnan;
       }
     }
 
-    GM_CV1();
+    GM_CV2();
+
   } // gaussint_fun
 
   BaseGDL* erfc_fun(EnvT* e)
