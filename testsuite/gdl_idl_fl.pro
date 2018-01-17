@@ -2,14 +2,16 @@
 ; Alain C., March 2015
 ;
 ; * AC 2017-JUL-27 adding /uppercase
+; * AC 2017-JUL-27 adding /prefix
 ;
-; Easy way to generate prefix for outputs files (e.g. running test suite)
+; Easy way to generate prefix/suffix for outputs files
+; (e.g. running test suite)
 ;
 ; Most tests in the testsuite are running well
 ; in GDL, IDL and FL. But we have few differences ...
-; 
 ;
-function GDL_IDL_FL, uppercase=uppercase, verbose=verbose, test=test
+function GDL_IDL_FL, uppercase=uppercase, prefix=prefix, $
+                     verbose=verbose, test=test
 ;
 DEFSYSV, '!gdl', exists=isGDL
 ;
@@ -27,7 +29,9 @@ endelse
 ;
 if KEYWORD_SET(uppercase) then suffix=STRUPCASE(suffix)
 ;
-if KEYWORD_SET(verbose) then MESSAGE,/cont, 'Detected Software : '+suffix
+if KEYWORD_SET(prefix) then suffix=STRUPCASE(suffix)+'_'
+;
+if KEYWORD_SET(verbose) then MESSAGE, /cont, 'Detected Software : '+suffix
 ;
 if KEYWORD_SET(test) then STOP
 ;
