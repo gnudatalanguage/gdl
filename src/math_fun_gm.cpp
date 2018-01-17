@@ -227,7 +227,7 @@ using std::isnan;
     GM_NaN_Inf();
 
     SizeT nParam = e->NParam();
-    cout << nParam << endl;
+    //    cout << nParam << endl;
 
     // real part of Complex inputs are used
     GM_CheckComplex_P0(0);
