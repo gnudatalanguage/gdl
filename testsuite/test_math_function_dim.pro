@@ -24,9 +24,14 @@
 ; Please refer to dedicated tests (i.e. "test_voigt.pro",
 ; "test_expint.pro", "test_besel.pro", "test_gammas.pro" ...)
 ;
+; One way to improve/generalize it :
+; If "input1" is of type INT, LONG, FLOAT, COMPLEX, result must be
+; FLOAT
+; If "input1" is of type DOUBLE or DCOMPLEX, result must be DOUBLE
 ;
 ; Modifications history :
 ; 2018-01-16 : AC, adding GAUSSINT
+; 2018-01-17 : AC, including test done in (former) "test_bug_3298378.pro"
 ;
 ; -----------------------------------------
 ;
@@ -52,8 +57,8 @@ end
 ;
 ; -----------------------------------------
 ;
-pro TEST_ONE_MATH_FUNCTION_DIM, function_name, cumul_errors, quiet=quiet, $
-                                test=test, help=help
+pro TEST_ONE_MATH_FUNCTION_DIM, function_name, cumul_errors, type=type, $
+                                quiet=quiet, test=test, help=help
 ;
 if (N_PARAMS() LT 1) then begin
 	print, 'You MUST provide a FUNCTION NAME'
@@ -61,76 +66,98 @@ if (N_PARAMS() LT 1) then begin
 endif
 ;
 if KEYWORD_SET(help) then begin
-	print, 'pro TEST_ONE_MATH_FUNCTION_DIM, function_name,quiet=quiet, $'
-        print, '                           test=test, help=help'
+	print, 'pro TEST_ONE_MATH_FUNCTION_DIM, function_name, cumul_errors, type=type, $'
+        print, '                                quiet=quiet, test=test, help=help'
 	print, ' '
 	print, '"function_name" is a function name (a STRING) like BESELI, VOIGT, ...'
 	return
 endif
 ;
-if KEYWORD_SET(quiet) then print, 'Processing function : ',  function_name
+if ~KEYWORD_SET(quiet) then print, 'processing for input TYPE = ', TYPENAME(FIX(1.,type=type))
+if ~KEYWORD_SET(quiet) then print, 'Processing function : ',  function_name
 ;
 error=0
 info=STRUPCASE(function_name)+' : Case '
 ;
-message=info+'[2] vs N   : '
-x=[1.,2]
+if ~KEYWORD_SET(type) then type=4 ;; double =5, Dcomplex=9
+if ((type EQ 5) OR (type EQ 9)) then expected_type=5 else expected_type=4
+if ~KEYWORD_SET(quiet) then print, 'expected for output TYPE = ', TYPENAME(FIX(1.,type=expected_type))
+;
+message=info+'M vs N   : '
+x=FIX(1., type=type) ;; remember the type must be the returned TYPE (to be expand)
 y=1
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
+;
+message=info+'[2] vs N   : '
+x=FIX([1.,2], type=type)
+y=1
+expected_size=SIZE(FIX(x, type=expected_type))
+resu=CALL_FUNCTION(function_name, x, y)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2] vs [3] : '
-x=[1.,2]
+x=FIX([1.,2], type=type)
 y=[1.,2,3]
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'N vs [3]   : '
 x=1.
-y=[1.,2,3]
+y=FIX([1.,2,3], type=type)
+expected_size=SIZE(FIX(y, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 ; change in IDL 8.4
 message=info+'[1] vs [3] : '
-x=[1.]
+x=FIX([1.], type=type)
 y=[1.,2,3]
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs N : '
-x=FINDGEN(2,3)+1.
+x=FIX(FINDGEN(2,3)+1., type=type)
 y=1
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 ; change in IDL 8.4
 message=info+'[2,3] vs [1] : '
 x=FINDGEN(2,3)+1.
-y=[1.]
+y=FIX([1.], type=type)
+expected_size=SIZE(FIX(y, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs [3] : '
 x=INDGEN(2,3)+1.
-y=[1.,2,3]
+y=FIX([1.,2,3], type=type)
+expected_size=SIZE(FIX(y, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(y), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs [2,3] : '
-x=FINDGEN(2,3)+1.
+x=FIX(FINDGEN(2,3)+1., type=type)
 y=x
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 message=info+'[2,3] vs [1,2,3] : '
-x=FINDGEN(2,3)+1.
+x=FIX(FINDGEN(2,3)+1., type=type)
 y=FINDGEN(1,2,3)+1.
+expected_size=SIZE(FIX(x, type=expected_type))
 resu=CALL_FUNCTION(function_name, x, y)
-error=error+COMPARE_2SIZE(SIZE(x), SIZE(resu), message, quiet=quiet)
+error=error+COMPARE_2SIZE(expected_size, SIZE(resu), message, quiet=quiet)
 ;
 if (error EQ 0) then begin
-   print, 'all Dims Tests done with SUCCESS for function : '+function_name
+   txt='all Dims Tests done with SUCCESS for function : '
+   print, txt+function_name+' and TYPE : '+TYPENAME(FIX(1.,type=type))
 endif else begin
    txt='when processing function : '+function_name
    print, txt+', we have: '+STRING(error)+' ERRORS'
@@ -148,6 +175,10 @@ pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $
 ;
 liste=['BESELI','BESELJ','BESELK','BESELY']
 liste=[[liste],'VOIGT','EXPINT','GAUSSINT','BETA','IGAMMA']
+;
+flags_complex=REPLICATE(1, N_ELEMENTS(liste))
+flags_complex[WHERE(STRPOS(liste, 'BETA') EQ 0)]=0
+flags_complex[WHERE(STRPOS(liste, 'IGAMMA') EQ 0)]=0
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_MATH_FUNCTION_DIM, quiet=quiet, help=help, $'
@@ -168,8 +199,15 @@ if KEYWORD_SET(verbose) then use_quiet=0
 errors_cumul=0
 ;
 for ii=0, N_ELEMENTS(liste)-1 do begin
-    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet;, $
-;      test=test, verbose=verbose
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=2
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=3
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=4
+    TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=5
+    ;;
+    if flags_complex[ii] then begin
+       TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=6
+       TEST_ONE_MATH_FUNCTION_DIM, liste[ii], errors_cumul, quiet=use_quiet, type=9
+    endif
 endfor
 ;
 ; ----------------- final message ----------
