@@ -42,3 +42,16 @@ benchmark_generate_filename.pro : standardized ouptup files name (+date)
 benchmark_graphic_style.pro     : GDL : green, IDL : red, FL : magenta
 benchmark_plot_cartouche.pro    : ploting a "cartouche"
 benchmark_svg.pro               : opening and closing SVG files (only in GDL)
+
+
+
+Nota Bene : Obviously, benchmarks are very sensitive to the load of
+the machines. On multi-core machines, it is on critical importance not
+to allow all the cores in !CPU if some cores are already busy. Strong
+discrepencies in IDL and GDL performances in such a case.
+
+Due to the way how !cpu is initialized in GDL, taking into the *recent
+load* of the machine, the bench may start in sub-optinal case.
+
+--> in the future, we need to careffully store such informations in
+the XDR files and manage them when inter-comparing
