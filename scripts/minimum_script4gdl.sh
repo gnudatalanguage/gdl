@@ -11,6 +11,7 @@
 # 2017-02-01 : plplot 5.9.11 had critical problem with CMake 3+
 #              --> if CMake 3.2 around (OSX), use plplot 5.11.1
 #              (different policy on Linux)
+# 2018-01-19 : move from CVS (deprecated at SF) to SVN
 #
 # The purpose of this shell script is to automaticaly compile a minimum GDL
 # as a basic user even if mandatory packages are not available
@@ -34,7 +35,7 @@
 # step 3 : CMake
 # step 4 : Plplot
 # step 5 : GDL 0.9.7 vanilla
-# step 6 : GDL 0.9.7 CVS
+# step 6 : GDL 0.9.7 SVN
 #
 #
 # $1 == $use_curl, $2 = $URL, $3 = $filename
@@ -83,6 +84,7 @@ PLPLOT_URL59="https://sourceforge.net/projects/plplot/files/plplot/5.9.11%20Sour
 PLPLOT_URL511="https://sourceforge.net/projects/plplot/files/plplot/5.11.1%20Source/plplot-5.11.1.tar.gz/download?use_mirror=autoselect"
 GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.7/gdl-0.9.7.tgz"
 GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
+GDL_SVN_URL="https://svn.code.sf.net/p/gnudatalanguage/svn/trunk/gdl"
 #
 step=$1
 if [ -z "$1" ] ; then
@@ -92,9 +94,12 @@ fi
 #
 export RACINE=$PWD
 #
-# switch it to 1 to have the CVS snapshot
-gdl_cvs=0
-if [[ $step == 6 ]] ; then gdl_cvs=1 ; fi
+# switch it to 1 to have the SVN snapshot
+gdl_svn=0
+if [[ $step == 6 ]] ; then
+    command -v svn >/dev/null 2>&1 || { echo >&2 "SVN (Subversion) not found." ; exit;}
+    gdl_svn=1
+fi
 
 # switch it to 1 to have the final checks for GDL
 gdl_check=0 
@@ -286,21 +291,15 @@ else
 fi
 
 # ----------------------------------- GDL -----------------------
-# starting GDL : 2 cases : with the CVS or the 0.9.7 vanilla version
+# starting GDL : 2 cases : with the SVN or the 0.9.7 vanilla version
 # we don't need to manage the step here ... (always 5 or 6)
 echo "** preparing GDL"
 cd $RACINE
 #
-if [ "$gdl_cvs" -eq 1 ] ; then
-    echo "preparing to compiled GDL 0.9.7 CVS version"
-    gdl_path='gdl-0.9.7cvs'`date +%y%m%d`
-    gdl_name=${gdl_path}'.tgz'
-    if [ ! -e $gdl_name ] ; then
-	run_wget_or_curl_v2 $use_curl $GDL_CVS_URL $gdl_name
-    fi
-# the GDL CVS TGZ file comes with a gnudatalanguage/gdl/ path inside ... we manage it
-    tar -zxf $gdl_name
-    mv gdl $gdl_path
+if [ "$gdl_svn" -eq 1 ] ; then
+    echo "preparing to compiled GDL 0.9.7 SVN version"
+    gdl_path='gdl-0.9.7svn'`date +%y%m%d`
+    svn checkout $GDL_SVN_URL $gdl_path
 else 
     echo "preparing to compiled GDL 0.9.7 VANILLA version"
     gdl_path='gdl-0.9.7'
