@@ -29,8 +29,9 @@ using namespace std;
 
 namespace lib {
 
+  // AC 2018 : since 8.4, IDL made change and solved ambiguities related to this problem.
   // important comment: as for Besel family, in IDL, VOIGT([2.],[0,1,2]) !=  VOIGT(2.,[0,1,2])
-  // We don't follow this dangerous situation, we do have   VOIGT([2.],[0,1,2]) ==  VOIGT(2.,[0,1,2])
+  // We now follow this situation in GDL too (see "test_math_function_dim.pro")
 
   BaseGDL* voigt_fun(EnvT* e)
   { 
@@ -267,8 +268,7 @@ namespace lib {
 
     //-------------------------------- Allocation -----------------------------------//
     BaseGDL *Steptwo,*Stepthree,*Stepfour;
-    SizeT i;
-    DDoubleGDL *HH,*H6,*XplusH,*Ytampon,*XH,*Yout,* dym,* dyt;
+    DDoubleGDL *HH,*H6,*XplusH,*Ytampon,*XH,*Yout,*dym,*dyt;
 
     Ytampon = new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
     Yout = new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
@@ -312,7 +312,7 @@ namespace lib {
 	funIx = GDLInterpreter::GetFunIx(RK_Diff );
 	
 	//-----------------FIRST STEP-------------------//
-	for (i=0;i<Yvals->N_Elements();++i)
+	for (SizeT i=0;i<Yvals->N_Elements();++i)
 	  (*Ytampon)[i]=(*Yvals)[i]+(*HH)[0]*(*dydxvals)[i]; 
 
 	BaseGDL* Ytmp=static_cast<BaseGDL*>(Ytampon);
@@ -326,13 +326,10 @@ namespace lib {
 	  
 	//Conversion BaseGDL*-> DDoubleGDL* in order to use the RK_Diff function result.
 	dyt= static_cast<DDoubleGDL*>(Steptwo->Convert2(GDL_DOUBLE,BaseGDL::CONVERT));
-	  
-	  
 
 	//-------------SECOND STEP-------------------//	
-	for (i=0;i<Yvals->N_Elements();++i)
+	for (SizeT i=0;i<Yvals->N_Elements();++i)
 	  (*Ytampon)[i]=(*Yvals)[i]+(*HH)[0]*(*dyt)[i];
-
 	  	  
 	//  2nd CALL to user function "differentiate"
 	PushNewEnvRK(e, funList[ funIx],&XHO,&Ytmp);	
@@ -346,12 +343,11 @@ namespace lib {
 	  
 	  
 	//--------------THIRD STEP-------------------//
-	for (i=0;i<Yvals->N_Elements();++i)
+	for (SizeT i=0;i<Yvals->N_Elements();++i)
 	  {
 	    (*Ytampon)[i]=(*Yvals)[i]+ (*H)[0]*(*dym)[i];
 	    (*dym)[i] += (*dyt)[i];
 	  }
-
 	  
 	// 3rd CALL to user function "differentiate"
 	PushNewEnvRK(e, funList[ funIx],&XplusHO,&Ytmp);
@@ -363,7 +359,7 @@ namespace lib {
 	dyt= static_cast<DDoubleGDL*>(Stepfour->Convert2(GDL_DOUBLE,BaseGDL::CONVERT));
 	  
 	//--------------FOURTH STEP-------------------//
-	for (i=0;i<Yvals->N_Elements();++i)
+	for (SizeT i=0;i<Yvals->N_Elements();++i)
 	  (*Yout)[i]= (*Yvals)[i] + (*H6)[0] * ( (*dydxvals)[i]+(*dyt)[i]+ 2.00000*(*dym)[i] );
 	  
 	static int doubleKWIx = e->KeywordIx("DOUBLE");
