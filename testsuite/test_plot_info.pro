@@ -10,7 +10,8 @@
 ; please run the last procedure "TEST_PLOT_INFO" to have informations ...
 ;
 ;
-
+pro TEST_PLOT_INFO
+;
 ; some informations about the programs ...
 ;
 print, ' -------- very basic tests for PLOT (listyle, psym ...) -------------'

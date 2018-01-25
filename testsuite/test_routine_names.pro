@@ -130,10 +130,12 @@ end
 ;
 ; ----------------------------------------------------
 ;
-pro TEST_ROUTINE_NAMES, verbose=verbose, short=short, debug=debug, test=test, no_exit=no_exit
+pro TEST_ROUTINE_NAMES, help=help, verbose=verbose, short=short, $
+                        debug=debug, test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_ROUTINE_NAMES, verbose=verbose, short=short, debug=debug, test=test, no_exit=no_exit'
+    print, 'pro TEST_ROUTINE_NAMES, help=help, verbose=verbose, short=short, $'
+    print, '                        debug=debug, test=test, no_exit=no_exit'
     return
 endif
 ;

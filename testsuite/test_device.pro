@@ -160,7 +160,7 @@ pro TEST_DEVICE_FONTS, cumul_errors, help=help, test=test, verbose=verbose
 errors=0
 ;
 DEVICE, GET_FONTNUMBER=fnum
-if ISA(fnum) print, 'error 1'
+if ISA(fnum) then print, 'error 1'
 ;
 BANNER_FOR_TESTSUITE, 'TEST_DEVICE_FONTS', errors, /short, verb=verbose
 ;

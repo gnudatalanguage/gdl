@@ -22,5 +22,5 @@ c2= INTERPOLATE(b, [3.3,5.255],[4.2,2.55],/gri,cubic=-0.3)
 if (TOTAL(c1-good1)/4/4/3 ge 1E-4 or TOTAL(c2-good2)/5/2/2 ge 1E-4) then begin
     MESSAGE, /continue, 'Error in interpolate, bug 3483402'
     if ~KEYWORD_SET(test) then EXIT, status=1
-end if
+endif
 end

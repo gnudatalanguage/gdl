@@ -13,6 +13,8 @@
 pro ERRORS_CUMUL, cumul_errors, new_errors, help=help, $
                   debug=debug, verbose=verbose, test=test
 ;
+; this case /debug should be call BEFORE or OUTSIDE
+;
 if KEYWORD_SET(debug) then begin
     DEFSYSV, '!cumul', 1
     MESSAGE, /continue, 'Fake error will be added now'
