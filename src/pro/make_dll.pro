@@ -41,13 +41,13 @@ idlInclude=STRSPLIT(idlInclude, 'idl_export.h', /extract, /regex)
 idlInclude=idlInclude[0]
 ;
 ;
-if ~ARG_PRESENT(cc) then ref_cc=!make_dll.cc
-if ~ARG_PRESENT(LD) then ref_ld=!make_dll.ld
-if ~ARG_PRESENT(EXTRA_CFLAGS) then EXTRA_CFLAGS=' '
-if ~ARG_PRESENT(EXTRA_LFLAGS) then EXTRA_LFLAGS=' '
-if ~ARG_PRESENT(COMPILE_DIRECTORY) then COMPILE_DIRECTORY=!make_dll.COMPILE_DIRECTORY
-if ~ARG_PRESENT(INPUT_DIRECTORY) then INPUT_DIRECTORY=COMPILE_DIRECTORY
-if ~ARG_PRESENT(OUTPUT_DIRECTORY) then OUTPUT_DIRECTORY= COMPILE_DIRECTORY
+if ~KEYWORD_SET(cc) then ref_cc=!make_dll.cc
+if ~KEYWORD_SET(LD) then ref_ld=!make_dll.ld
+if ~KEYWORD_SET(EXTRA_CFLAGS) then EXTRA_CFLAGS=' '
+if ~KEYWORD_SET(EXTRA_LFLAGS) then EXTRA_LFLAGS=' '
+if ~KEYWORD_SET(COMPILE_DIRECTORY) then COMPILE_DIRECTORY=!make_dll.COMPILE_DIRECTORY
+if ~KEYWORD_SET(INPUT_DIRECTORY) then INPUT_DIRECTORY=COMPILE_DIRECTORY
+if ~KEYWORD_SET(OUTPUT_DIRECTORY) then OUTPUT_DIRECTORY= COMPILE_DIRECTORY
 
 
 if ( n_params() eq 2 ) then begin 
@@ -73,7 +73,7 @@ end
 ;
 ; insert location of "idl_export.h"
 cc=ref_cc
-step1=STRSPLIT(ref_cc, '%Z', /extract, /regex)
+step1=STRSPLIT(cc, '%Z', /extract, /regex)
 cc=step1[0]+' '+idlInclude+' '+step1[1]
 ;
 ; CFLAGS parameter
@@ -105,6 +105,7 @@ ld=step1[0]+EXTRA_LFLAGS
 step1=STRSPLIT(ld, '%O', /extract, /regex)
 ld=step1[0]+strjoin(obj,' ')+step1[1]
 
+   print,ld
 ; spawn
 spawn, ld
 if (givedll) then DLL_PATH=lib
