@@ -89,7 +89,7 @@ for i=0, N_ELEMENTS(source)-1 do begin
    ;;insert the obj %O
    step1=STRSPLIT(cc, '%O', /extract, /regex)
    cc=step1[0]+' '+obj[i]
-   print,cc
+   ;print,cc
    ; spawn
    spawn, cc
 endfor
@@ -105,7 +105,7 @@ ld=step1[0]+EXTRA_LFLAGS
 step1=STRSPLIT(ld, '%O', /extract, /regex)
 ld=step1[0]+strjoin(obj,' ')+step1[1]
 
-   print,ld
+   ;print,ld
 ; spawn
 spawn, ld
 if (givedll) then DLL_PATH=lib
