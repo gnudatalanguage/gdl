@@ -166,6 +166,7 @@ TESTS = \
   test_readf.pro \
   test_reads.pro \
   test_rebin.pro \
+  test_resolve_routine.pro \
   test_rk4.pro \
   test_routine_names.pro \
   test_same_name.pro \
