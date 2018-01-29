@@ -276,6 +276,21 @@ public:
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}
   virtual bool SetResolution( DLong nx, DLong ny)     { return false;}
+  bool SetCharacterSize( DLong x, DLong y)     {
+   static bool doesnotwork=true;
+   if (doesnotwork) {
+    doesnotwork=false;
+    Warning("SET_CHARACTER_SIZE is not fully implemented in GDL, please FIXME!");
+   }
+   int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
+   int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
+   DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
+   DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
+   (*newxch)[0]=x;
+   (*newych)[0]=y;
+   //IT WOULD BE NECESSARY HERE TO HAVE FOR EACH Streams winList[ wIx]->NewCharSize() which would use the new values of !D.X_CH_SIZE, etc.
+    return true;
+  }
 
   virtual void ClearStream( DLong bColor)
   {
