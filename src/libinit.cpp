@@ -580,6 +580,7 @@ void LibInit()
       "GET_WINDOW_POSITION","GET_PIXEL_DEPTH","GET_VISUAL_DEPTH","GET_VISUAL_NAME",
       "GET_WRITE_MASK", "COPY","GET_FONTNAMES","SET_FONT","GET_CURRENT_FONT","GET_FONTNUM",
       "SET_PIXEL_DEPTH", //Z
+      "SET_CHARACTER_SIZE", //(all)
       KLISTEND
     };
   const string deviceWarnKey[] = {
@@ -617,7 +618,6 @@ void LibInit()
   //"RESET_STRING", (TEK)
   //"RESOLUTION", (PCL)
   //"SET_COLORMAP",(PCL)
-  "SET_CHARACTER_SIZE", //(all)
   "SET_COLORS", //Z
   //"SET_STRING", (TEK)
   "SET_TRANSLATION", //X
