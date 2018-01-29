@@ -247,6 +247,28 @@ namespace lib {
 	}
     }
 
+
+    // SET_CHARACTER_SIZE 
+    {
+      static int set_character_sizeIx = e->KeywordIx( "SET_CHARACTER_SIZE"); 
+      BaseGDL* set_character_size = e->GetKW( set_character_sizeIx);
+      if( set_character_size != NULL)
+	{
+	  DLongGDL* character_size = e->GetKWAs<DLongGDL>( set_character_sizeIx);
+	  if( character_size->N_Elements() != 2)
+	    e->Throw( "Keyword array parameter SET_CHARACTER_SIZE must have 2 elements.");
+	  DLong x = (*character_size)[0];
+	  DLong y = (*character_size)[1];
+
+	  if( x<0 || y<0)
+	    e->Throw( "Value of Character Size is out of allowed range.");
+
+	  bool success = actDevice->SetCharacterSize( x, y);
+	  if( !success)
+	    e->Throw( "Current device does not support keyword SET_CHARACTER_SIZE.");
+	}
+    }
+
     // DECOMPOSED 
     {
       static int decomposedIx = e->KeywordIx( "DECOMPOSED"); 
