@@ -408,6 +408,14 @@ namespace lib {
     }
     GDLGuard<void*,void,void> argvGuard(argv, free);
     
+    /* test if we pass sufficently wide values in case some INT values are shorter than this machine's C "int".
+     * (it would be better to handle silently this special case of course) */
+    for(SizeT i =2; i < nParam; i++){
+      BaseGDL* par = e->GetParDefined(i);
+      DType    pType  = par->Type();
+      if ( pType==GDL_INT && par->Sizeof() < sizeof(int)) e->Throw(e->GetParString(i)+" is of type INT, too short to be passed to the called function, use LONG");
+      if ( pType==GDL_UINT && par->Sizeof() < sizeof(unsigned int)) e->Throw(e->GetParString(i)+" is of type UINT, too short to be passed to the called function, use ULONG");
+    }
     // Fill argv with the parameters
 
     for(SizeT i =2; i < nParam; i++){
