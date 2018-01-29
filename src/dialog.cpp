@@ -54,6 +54,10 @@ namespace lib {
       TITLE=title)
     */
 
+#ifdef HAVE_LOCALE_H
+    setlocale(LC_ALL, "C");
+#endif
+
     bool isdefault_extension = false;
     bool isdirectory = false;
     bool isdialog_parent = false;
@@ -348,6 +352,10 @@ namespace lib {
       if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
       GDLWidget::SetWxStarted();
     }
+
+#ifdef HAVE_LOCALE_H
+    setlocale(LC_ALL, "C");
+#endif
 
     DStringGDL* messagestr;
     bool iscancel = false;
