@@ -19,11 +19,24 @@ but if any problem, just write to me !
 // or a "mg_idl_export.h" (for OSX) to use that
 //#include "idl_export.h"
 
-typedef int IDL_LONG;
+typedef int IDL_INT;
+typedef long IDL_LONG;
+typedef float IDL_FLOAT;
 
-IDL_LONG add
-  (int      argc,
-   void *   argv[])
+IDL_INT add_int (int argc, void *argv[])
+{
+  IDL_INT a;
+  IDL_INT b;
+  IDL_INT retval;
+
+  a=*((IDL_INT *)argv[0]);
+  b=*((IDL_INT *)argv[1]);
+
+  retval=a+b;
+  return retval;
+}
+
+IDL_LONG add_long (int argc, void *argv[])
 {
   IDL_LONG a;
   IDL_LONG b;
@@ -35,3 +48,34 @@ IDL_LONG add
   retval=a+b;
   return retval;
 }
+
+IDL_FLOAT add_float (int argc, void *argv[])
+{
+  IDL_FLOAT a;
+  IDL_FLOAT b;
+  IDL_FLOAT retval;
+
+  a=*((IDL_FLOAT *)argv[0]);
+  b=*((IDL_FLOAT *)argv[1]);
+
+  //  printf << a << endl;
+  //  printf("ici %f", a);
+
+  retval=a+b;
+  return retval;
+}
+
+/*
+void main()
+{
+  int a;
+  long b;
+  float c;
+  a=add_int((int)5,(int)6);
+  b=add_long((long)5,(long)6);
+  c=add_float(5,6);
+  c=add_float(5.5,6.6);
+
+}
+
+*/

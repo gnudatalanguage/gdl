@@ -76,11 +76,11 @@ TESTS = \
   test_bug_719.pro \
   test_bytscl.pro \
   test_byte_conversion.pro \
+  test_call_external.pro \
   test_call_function.pro \
   test_call_function_extra.pro \
   test_call_procedure.pro \
   test_call_procedure_extra.pro \
-  test_ce.pro \
   test_chisqr_cvf.pro \
   test_clip.pro \
   test_common.pro \
@@ -132,6 +132,7 @@ TESTS = \
   test_la_least_squares.pro \
   test_math_function_dim.pro \
   test_matrix_multiply.pro \
+  test_make_dll.pro \
   test_memory.pro \
   test_message.pro \
   test_modulo.pro \
