@@ -14,7 +14,12 @@ but if any problem, just write to me !
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "idl_export.h"
+
+// As Gilles mentionned, we don't need a "idl_export.h"
+// or a "mg_idl_export.h" (for OSX) to use that
+//#include "idl_export.h"
+
+typedef int IDL_LONG;
 
 IDL_LONG add
   (int      argc,

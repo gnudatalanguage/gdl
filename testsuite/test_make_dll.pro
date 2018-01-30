@@ -10,7 +10,8 @@
 ; 
 ; ---------------------------------------
 ;
-pro TEST_MAKE_DLL, no_exit=no_exit, help=help, test=test, verbose=verbose
+pro TEST_MAKE_DLL, no_exit=no_exit, help=help, test=test, debug=debug, $
+                   verbose=verbose
 ;
 ; Looking for the path of the C file "test_make_dll.c",
 ; which is also the path where is store "test_make_dll.pro" (testsuite/)
@@ -38,10 +39,12 @@ print, 'Working here : ', out_dir
 ;
 ; calling the code !
 ;
+if KEYWORD_SET(debug) then STOP
+;
 MAKE_DLL, radical, tmp, '',$
           input_directory=in_dir, $
           output_directory=out_dir, $
-          /SHOW_ALL_OUTPUT, /verbose
+          /SHOW_ALL_OUTPUT, /verbose, debug=debug
 ;
 ; Must add some test here whether the compilation + linking
 ; were ok or not ...
