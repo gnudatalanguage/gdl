@@ -6830,7 +6830,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 	      else
 		{
 		  //		(*env)[i] = SysVar::Dir();
-#ifdef WIN32
+#if defined(_WIN32)
 		  WCHAR tmpBuf[MAX_PATH];
 		  GetTempPathW(MAX_PATH, tmpBuf);
 		  char c_tmpBuf[MAX_PATH];

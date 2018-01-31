@@ -24,7 +24,7 @@
 #include <string>
 #include <csignal>
 #include <cstdlib>
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined (_WIN32)
 #include <io.h>
 #define isatty _isatty
 #else
