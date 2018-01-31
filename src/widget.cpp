@@ -1714,7 +1714,7 @@ BaseGDL* widget_info( EnvT* e ) {
     rank = p0L->Rank( );
   } else {
   //only possible with ACTIVE, VERSION or MANAGED.
-    if (!(active || managed || version ) ) e->Throw("Specified keyword requires ID argument.");
+    if (!(active || managed || version || debug ) ) e->Throw("Specified keyword requires ID argument.");
   // special case of MANAGED without any widget number
     if ( managed ) {
       return GDLWidget::GetManagedWidgetsList( );
