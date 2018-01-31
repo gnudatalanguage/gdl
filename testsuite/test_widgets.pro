@@ -225,6 +225,7 @@ text3=widget_text(tab5,VALUE=["right align text"],/EDIT,/align_right);
 list=widget_list(tab5,value=["A","list","created","with","WIDGET_LIST","(no YSIZE)"])
 list=widget_list(tab5,value=["An aligned","list","created","with","WIDGET_LIST","(no YSIZE)"],/align_right)
 droplist=widget_droplist(tab5,VALUE=["A","droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],title="A droplist")
+droplist=widget_droplist(tab5,VALUE=["ib","pt"],title="A droplist")
 droplist=widget_droplist(tab5,VALUE=["An aligned","droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],/align_right)
 combo=widget_combobox(tab5,VALUE=["A not-aligned","not editable","combobox","created","with","WIDGET_COMBOBOX","(no YSIZE)"])
 combo=widget_combobox(tab5,VALUE=["A right-aligned","combobox","created","with","WIDGET_COMBOBOX","(no YSIZE)"],/editable,/align_right)
