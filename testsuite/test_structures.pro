@@ -6,7 +6,8 @@
 ;
 ; Modifications history :
 ; - 2017-12-14 : AC. updating final message,
-;      creating a raleted test for SIZE (test_size.pro)
+;      creating a related test for SIZE (test_size.pro)
+; - 2018-01-31 : AC. change of test 0a
 ;
 pro TEST_STRUCTURES, no_exit=no_exit, verbose=verbose, $
                      help=help, test=test, debug=debug
@@ -29,10 +30,14 @@ HELP, structarray.value
 ;
 ; basic tests using SIZE() & co.
 ;
-if (TYPENAME(structarray) NE "TEST") then begin
+; this test was change by Alain C., 2018-01-31 because
+; different result than in IDL 8.2 & 8.4. 
+; C code of "typename" also changed
+if (TYPENAME(structarray) NE "STRUCT") then begin
    message,/continue, '(0a) unexpected results in TYPENAME() !' 
    nb_errors=nb_errors+1
 endif
+;
 if (SIZE(structarray,/sname) NE "TEST") then begin
    message,/continue, '(0b) unexpected results in SIZE(... ,/sname) !' 
    nb_errors=nb_errors+1

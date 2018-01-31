@@ -340,13 +340,19 @@ namespace lib {
       }
 
     if (redo) {
-      //      cout << "here we are " <<p0->Type() << endl;
+      //cout << "here we are " <<p0->Type() << endl;
       if (p0->Type() == GDL_STRUCT) {
         DStructGDL* s = static_cast<DStructGDL*> (p0);
         if (s->Desc()->IsUnnamed()) {
           type = "ANONYMOUS";
         } else {
-          type = s->Desc()->Name();
+	  // AC 2018-jan-31 : no ! only if StrictScalar 
+	  // (see "test_structures.pro", case 0a)
+	  if (p0->StrictScalar()) {
+	    type = s->Desc()->Name();
+	  } else {
+	    type = "STRUCT";
+	  }
         }
       }
       // here we manage : {Objects, LIST, HASH}
