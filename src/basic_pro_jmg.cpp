@@ -410,11 +410,15 @@ namespace lib {
     
     /* test if we pass sufficently wide values in case some INT values are shorter than this machine's C "int".
      * (it would be better to handle silently this special case of course) */
+    bool upgrade[nParam-2];
+    bool small_int= (sizeof(DInt) < sizeof(int));
+    bool small_uint= (sizeof(DUInt) < sizeof(int)); //expendable, UInt and Int have same size!
     for(SizeT i =2; i < nParam; i++){
       BaseGDL* par = e->GetParDefined(i);
       DType    pType  = par->Type();
-      if ( pType==GDL_INT && par->Sizeof() < sizeof(int)) e->Throw(e->GetParString(i)+" is of type INT, too short to be passed to the called function, use LONG");
-      if ( pType==GDL_UINT && par->Sizeof() < sizeof(unsigned int)) e->Throw(e->GetParString(i)+" is of type UINT, too short to be passed to the called function, use ULONG");
+      upgrade[i-2]=false;
+      if ( pType==GDL_INT && small_int) upgrade[i]=true; //Warning(e->GetParString(i)+" is of type INT, too short to be passed to the called function, use LONG");}
+      if ( pType==GDL_UINT && small_uint) upgrade[i]=true; //Warning(e->GetParString(i)+" is of type UINT, too short to be passed to the called function, use ULONG");}
     }
     // Fill argv with the parameters
 
@@ -429,12 +433,17 @@ namespace lib {
 		);
 	    }
 
-	    if (NumericType(pType)) {
+	    if (NumericType(pType)) { //contains INT and UINT
 		if (par->Sizeof() > sizeof(void*)) {
 		    e->Throw("Parameter is larger than pointer: "
 			     + e->GetParString(i)
 		    );
 		}
+        if (upgrade[i-2]) {
+          DLong intpar=0; e->AssureLongScalarPar(i,intpar);
+          memcpy(&argv[i-2], (void*) &intpar, sizeof(DLong));
+        }
+        else
 		memcpy(&argv[i-2], (void*) par->DataAddr(), par->Sizeof());
 	    }
 	    else if (pType == GDL_STRING) {
@@ -450,9 +459,16 @@ namespace lib {
 	    argv[i-2] = (void*) par;
 	}
 	else {					// By reference (default)
-	    if (NumericType(pType) || pType == GDL_PTR || pType == GDL_OBJ ) {
-		argv[i-2] = (void*) par->DataAddr();
-	    }
+        if (NumericType(pType) || pType == GDL_PTR || pType == GDL_OBJ)
+        {
+          if (upgrade[i - 2]) //INT or UINT too small. Need to change the type of par!
+          {
+            DLongGDL * newint = e->GetParAs<DLongGDL>(i); //by def this is a copy since the types are different. Hence the Guard.
+            Guard<DLongGDL> guard_newint(newint);
+            argv[i - 2] = (void*) newint->DataAddr();
+          } else
+            argv[i - 2] = (void*) par->DataAddr();
+        }
 	    else if (pType == GDL_STRING) {
 		argv[i-2] = (void*) ce_StringGDLtoIDL(e, par);
 	    }
@@ -511,7 +527,9 @@ namespace lib {
     switch (myReturnType) {
 	case GDL_BYTE:    ret.d_byte    = ((DByte(*)   (int, void**))func)(argc, argv);
 		      break;
-	case GDL_INT:     ret.d_int     = ((DInt(*)    (int, void**))func)(argc, argv);
+	case GDL_INT:
+      if (small_int)   ret.d_long     = ((DLong(*)    (int, void**))func)(argc, argv);
+      else    ret.d_int     = ((DInt(*)    (int, void**))func)(argc, argv);
 		      break;
 	case GDL_LONG:    ret.d_long    = ((DLong(*)   (int, void**))func)(argc, argv);
 		      break;
@@ -519,7 +537,9 @@ namespace lib {
 		      break;
 	case GDL_DOUBLE:  ret.d_double  = ((DDouble(*) (int, void**))func)(argc, argv);
 		      break;
-	case GDL_UINT:    ret.d_uint    = ((DUInt(*)   (int, void**))func)(argc, argv);
+	case GDL_UINT:
+      if (small_uint)   ret.d_ulong     = ((DULong(*)    (int, void**))func)(argc, argv);
+      else        ret.d_uint    = ((DUInt(*)   (int, void**))func)(argc, argv);
 		      break;
 	case GDL_ULONG:   ret.d_ulong   = ((DULong(*)  (int, void**))func)(argc, argv);
 		      break;
@@ -533,6 +553,32 @@ namespace lib {
 		      break;
     }
 
+    //After return, give back [U]Ints passed by reference if necessary. Nobody knows if they were changed during the call.
+    for (SizeT i = 2; i < nParam; i++)
+    {
+      if (upgrade[i - 2]) //INT or UINT too small
+      { 
+        if (byValue[i - 2] == 0) // NOT by GDL pointer but By reference (default)
+        { 
+          BaseGDL* par = e->GetParDefined(i);
+          DType pType = par->Type();
+          SizeT n = par->N_Elements();
+          if (pType == GDL_INT)
+          {
+            DLong * intvals = (DLong*) argv[i - 2];
+            DInt* intpar = (DInt*) par->DataAddr();
+            for (SizeT i = 0; i < n; ++i) intpar[i] = intvals[i];
+          } 
+          else if (pType == GDL_UINT)
+          {
+            DULong * uintvals = (DULong*) argv[i - 2];
+            DUInt* uintpar = (DUInt*) par->DataAddr();
+            for (SizeT i = 0; i < n; ++i) uintpar[i] = uintvals[i];
+          }
+        }
+      }
+    }
+    
     if (flagUnload) {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	while (! FreeLibrary(handle) ) {}
@@ -556,15 +602,13 @@ namespace lib {
       }
     }
 
-    // now guarded. s. a.
-    //free(argv);
-
     // Return the return value
 
     switch (myReturnType) {
         case GDL_BYTE:      return new DByteGDL(ret.d_byte);
 			break;
-        case GDL_INT:       return new DIntGDL(ret.d_int);
+        case GDL_INT:
+          if (small_int) return new DIntGDL(ret.d_long); else return new DIntGDL(ret.d_int); //with all troubles that would go with it.
 			break;
         case GDL_LONG:      return new DLongGDL(ret.d_long);
 			break;
@@ -572,7 +616,8 @@ namespace lib {
 			break;
         case GDL_DOUBLE:    return new DDoubleGDL(ret.d_double);
 			break;
-        case GDL_UINT:      return new DUIntGDL(ret.d_uint);
+        case GDL_UINT:
+          if (small_uint) return new DUIntGDL(ret.d_ulong);else return new DUIntGDL(ret.d_uint); //with all troubles that would go with it.
 			break;
         case GDL_ULONG:     return new DULongGDL(ret.d_ulong);
 			break;
