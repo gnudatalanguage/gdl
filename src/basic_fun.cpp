@@ -3995,10 +3995,25 @@ BaseGDL* where(EnvT* e) {
   }
 
 #undef ELEM_SWAP
-
+  //input-protected versions of above
+   DFloat quick_select_f_protect_input(const DFloat data[], SizeT arraySize, int even) { 
+    DFloat * array=(DFloat*)malloc(arraySize*sizeof(DFloat));
+    for (SizeT i = 0; i < arraySize; ++i) array[i]=data[i];
+    DFloat res=quick_select_f(array, arraySize, even);
+    free(array);
+    return res;
+   } 
+   DDouble quick_select_d_protect_input(const DDouble data[], SizeT arraySize, int even) {
+    DDouble * array=(DDouble*)malloc(arraySize*sizeof(DDouble));
+    for (SizeT i = 0; i < arraySize; ++i) array[i]=data[i];
+    DDouble res=quick_select_d(array, arraySize, even);
+    free(array);
+    return res;
+   }
+  
   //simple median for double arrays with no NaNs.
   inline BaseGDL* mymedian_d(EnvT* e) {
-    DDoubleGDL* array = e->GetParAs<DDoubleGDL>(0)->Dup();
+    DDoubleGDL* array = e->GetParAs<DDoubleGDL>(0)->Dup(); //original array is protected
     SizeT nEl = array->N_Elements();
     static int evenIx = e->KeywordIx("EVEN");
     int iseven = ((nEl % 2) == 0 && e->KeywordSet(evenIx));
@@ -4011,7 +4026,7 @@ BaseGDL* where(EnvT* e) {
   
   //simple median for double arrays whith NaNs. Remove the Nans before doing the median.
   inline BaseGDL* mymedian_d_nan(EnvT* e) {
-    DDoubleGDL* data = e->GetParAs<DDoubleGDL>(0);
+    DDoubleGDL* data = e->GetParAs<DDoubleGDL>(0); //original array is protected
     SizeT nEl = data->N_Elements();
     DLong iEl = 0;
     DDouble * array=(DDouble*)malloc(nEl*sizeof(DDouble));
@@ -4032,7 +4047,7 @@ BaseGDL* where(EnvT* e) {
     return res;
   }
   //simple median for double arrays whith NaNs. Remove the Nans before doing the median.
-  inline DDouble quick_select_d_filter_nan( DDouble* arr, SizeT nEl, int even) {
+  inline DDouble quick_select_d_filter_nan( const DDouble* arr, SizeT nEl, int even) {
     DLong iEl = 0;
     DDouble* array=(DDouble*)malloc(nEl*sizeof(DDouble));
     for (SizeT i = 0; i < nEl; ++i) {
@@ -4056,7 +4071,7 @@ BaseGDL* where(EnvT* e) {
   }
   
  inline BaseGDL* mymedian_f(EnvT* e) {
-    DFloatGDL* array = e->GetParAs<DFloatGDL>(0)->Dup();
+    DFloatGDL* array = e->GetParAs<DFloatGDL>(0)->Dup(); //original array is protected
     SizeT nEl = array->N_Elements();
 
     static int evenIx = e->KeywordIx("EVEN");
@@ -4069,7 +4084,7 @@ BaseGDL* where(EnvT* e) {
  }
  
   inline BaseGDL* mymedian_f_nan(EnvT* e) {
-    DFloatGDL* data = e->GetParAs<DFloatGDL>(0);
+    DFloatGDL* data = e->GetParAs<DFloatGDL>(0); //original array is protected
     SizeT nEl = data->N_Elements();
     DLong iEl = 0;
     DFloat * array=(DFloat*)malloc(nEl*sizeof(DFloat));
@@ -4090,7 +4105,7 @@ BaseGDL* where(EnvT* e) {
     return res;
   }
   
-  inline DFloat quick_select_f_filter_nan(DFloat* arr, SizeT nEl, int even){
+  inline DFloat quick_select_f_filter_nan(const DFloat* arr, SizeT nEl, int even){
     DLong iEl = 0;
     DFloat * array=(DFloat*)malloc(nEl*sizeof(DFloat));
     for (SizeT i = 0; i < nEl; ++i) {
@@ -4198,7 +4213,7 @@ BaseGDL* where(EnvT* e) {
 #pragma omp for private(i,hasnan)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_d(&(*input)[i * stride], stride)) (*res)[i] = quick_select_d_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
-              else (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
+              else (*res)[i] = quick_select_d_protect_input(&(*input)[i * stride], stride, iseven);
             }
             if (clean_array) delete input;
             return res;
@@ -4213,7 +4228,7 @@ BaseGDL* where(EnvT* e) {
 #pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_f(&(*input)[i * stride], stride)) (*res)[i] = quick_select_f_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
-              else (*res)[i] = quick_select_f(&(*input)[i * stride], stride, iseven);            }
+              else (*res)[i] = quick_select_f_protect_input(&(*input)[i * stride], stride, iseven);            }
             if (clean_array) delete input;
             return res;
           }
@@ -4226,7 +4241,7 @@ BaseGDL* where(EnvT* e) {
             }
             DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
 #pragma omp for private(i)
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_d(&(*input)[i * stride], stride, iseven);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_d_protect_input(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
           } else {
@@ -4237,7 +4252,7 @@ BaseGDL* where(EnvT* e) {
             }
             DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
 #pragma omp for private(i)
-            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_f(&(*input)[i * stride], stride, iseven);
+            for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_f_protect_input(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
           }
