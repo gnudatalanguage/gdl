@@ -1908,6 +1908,7 @@ namespace lib {
 
 
   BaseGDL* interpolate_fun(EnvT* e){
+
     SizeT nParam = e->NParam();
     // options
     static int cubicIx = e->KeywordIx("CUBIC");
@@ -1921,6 +1922,15 @@ namespace lib {
 
     static int gridIx = e->KeywordIx("GRID");
     bool grid = e->KeywordSet(gridIx);
+
+    // AC 2018-feb-01 : NB !! Double Keyword is related to Grid Keyword
+    //
+    // due to our "bug" report to IDL, /Double was add in IDL since 8.2.3
+    // but we don't managed it (/double) in GDL because we always
+    // compute Grid related stuffs in Double ....
+    //
+    //    static int dblIx = e->KeywordIx("DOUBLE");
+    // bool dbl = e->KeywordSet(dblIx);
 
     static int missingIx = e->KeywordIx("MISSING");
     bool use_missing = e->KeywordSet(missingIx);
@@ -2062,7 +2072,10 @@ namespace lib {
         res[iloop]= static_cast<DDoubleGDL*>(res[iloop]->Rebin(resDim, true)); //Rebin to the extra number of dims.
       }
     }
-    
+
+    // AC 2018-feb-01 : don't put here a conversion with /Double : not need !!
+    // in IDL since 8.2.3, /Double is related to grid keyword
+
     if (p0->Type() == GDL_DOUBLE)
       {
 	return res[0];
@@ -3623,7 +3636,7 @@ namespace lib {
     }
     DComplexDblGDL* result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
     for (SizeT i = 0; i < resultSize; ++i) 
-      {
+     {
 	(*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
       }
       

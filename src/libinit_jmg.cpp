@@ -138,7 +138,7 @@ void LibInit_jmg()
   const string histogramWarnKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey,histogramWarnKey);
 
-  const string interpolateKey[]={"CUBIC","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
+  const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
   new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
