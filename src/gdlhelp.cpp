@@ -1169,7 +1169,8 @@ BaseGDL* recall_commands( EnvT* e)
           ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" :
             s->Desc()->Name());
           ostr << ", " << nTags << " tags";
-          ostr << ", data length=" << s->Sizeof();
+          ostr << ", length=" << s->Sizeof();
+          ostr << ", data length=" << s->SizeofTags();
           ostr << ":" << endl;
           for (SizeT t = 0; t < nTags; ++t) {
             DString tagString = s->Desc()->TagName(t);

@@ -279,7 +279,16 @@ SizeT NBytesToTransfer() // number of elements for IO transfer without padding
 //       }
 //     return nB;
   }
-
+  SizeT SizeofTags() const
+  {
+     SizeT nB = 0;
+     SizeT nTags=NTags();
+     for( SizeT i=0; i < nTags; i++)
+       {
+ 	       nB += this->GetTag(i)->NBytes();
+       }
+     return nB;
+  }
 private:
   void ClearTag( SizeT t)
   {

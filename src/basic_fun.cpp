@@ -6512,7 +6512,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     static int lengthIx=e->KeywordIx("LENGTH");
     
     if(e->KeywordSet(datalengthIx))
-      return new DLongGDL( s->Sizeof());
+      return new DLongGDL( s->SizeofTags());
     
     if(e->KeywordSet(lengthIx))
       return new DLongGDL( s->Sizeof());
