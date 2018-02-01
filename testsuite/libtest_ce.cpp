@@ -2,8 +2,8 @@
  test suite for IDL/GDL call_external 
 
  Generate a shared object with something like
- cc -o test_ce.so test_ce.c -shared -fPIC   (gcc)
- cc -o test_ce.so test_ce.c -G      -KPIC   (sunstudio cc)
+ cc -o libtest_ce.so libtest_ce.cpp -shared -fPIC   (gcc)
+ cc -o libtest_ce.so libtest_ce.cpp -G      -KPIC   (sunstudio cc)
 
  then run GDL/IDL and call test_ce (from the file test_ce.pro)
 
