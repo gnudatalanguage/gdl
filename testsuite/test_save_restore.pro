@@ -9,24 +9,6 @@
 ;
 ; -----------------------------------------------
 ;
-pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, verbose=verbose
-;
-; http://www.harrisgeospatial.com/docs/size.html
-;
-list_numeric_types=[1,2,3,4,5,6,9,12,13,14,15]
-list_numeric_names=['byte','int', 'long', 'float','double','complex','dcomplex', $
-                    'uint','ulong','long64','ulong64']
-;
-if KEYWORD_SET(verbose) then begin
-   for ii=0, N_ELEMENTS(list_numeric_names)-1 do begin
-      print, format='(A8,A3,i5)',list_numeric_names[ii], ':', list_numeric_types[ii]
-   endfor
-endif
-;
-end
-;
-; -----------------------------------------------
-;
 pro TEST_RESTORE_NUMERIC, cumul_errors, file=file, dim1ref=dim1ref, dim2ref=dim2ref, $
                           help=help, verbose=verbose, test=test
 ;

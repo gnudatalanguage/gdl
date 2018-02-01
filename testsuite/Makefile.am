@@ -124,7 +124,7 @@ TESTS = \
   test_idl_validname.pro \
   test_image_statistics.pro \
   test_interpol.pro \
-  test_interpolate_missing.pro \
+  test_interpolate.pro \
   test_isa.pro \
   test_ishft.pro \
   test_list.pro \
@@ -143,6 +143,7 @@ TESTS = \
   test_nestedloop.pro \
   test_netcdf.pro \
   test_norm.pro \
+  test_n_tags.pro \
   test_null.pro \
   test_obj_isa.pro \
   test_obj_new.pro \
