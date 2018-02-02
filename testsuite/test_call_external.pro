@@ -15,7 +15,6 @@ if ~FILE_TEST(image) then begin
    EXIT, status=1
 endif
 MESSAGE, /info, 'using library file: ' + image
-error = 0
 ;
 end
 ;
@@ -205,7 +204,7 @@ if (    size(ret5, /type) ne 5              $
    print, '          Expected: ', 11.11D
    print, 'Second arg     Got: ', p2
    print, '          Expected: ', [12.12D, 13.13D]
-   errors = errors + 1
+   errors++
 endif
 ;
 BANNER_FOR_TESTSUITE, 'TEST_CE_DOUBLE', errors, /short
@@ -244,7 +243,7 @@ if (    size(ret12, /type) ne 12              $
    print, '          Expected: ', [12U, 13U]
    print, 'Third arg      Got: ', p3
    print, '          Expected: ', 4U
-   errors = errors + 1
+   errors++
 endif
 ;
 BANNER_FOR_TESTSUITE, 'TEST_CE_UINT', errors, /short
@@ -283,7 +282,7 @@ if (    size(ret13, /type) ne 13              $
    print, '          Expected: ', [12UL, 13UL]
    print, 'Third arg      Got: ', p3
    print, '          Expected: ', 4UL
-   errors = errors + 1
+   errors++
 endif
 ;
 BANNER_FOR_TESTSUITE, 'TEST_CE_ULONG', errors, /short
@@ -392,7 +391,7 @@ if (    size(ret7, /type) ne 7            $
    print, '          Expected: ', ["  owT", "eerhT"]
    errors++
 endif else begin
-   print, 'back in IDL: OK'
+   print, 'back in IDL: OK' ;; keep this, special case
    if (c1 ne "One"+"  ") then begin
       print, "(But constant string changed as well: '", c1, "' instead of 'One  ')"
    endif

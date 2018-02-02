@@ -58,7 +58,6 @@ TESTS = \
   test_bug_3394430.pro \
   test_bug_3426399.pro \
   test_bug_3453775.pro \
-  test_bug_3483402.pro \
   test_bug_3488003.pro \
   test_bug_3559291.pro \
   test_bug_3572473.pro \

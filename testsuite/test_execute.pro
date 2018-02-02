@@ -1,7 +1,7 @@
 ;
 ; Alain C., 22 June 2012
 ;
-; More systematic tests on EXECUTE, CALL_FUNCTION and CALL_PROCEDURE
+; More systematic tests on EXECUTE
 ;
 pro PRO_MY_PRO, x, y
 ;
@@ -16,36 +16,55 @@ return, x+5
 end
 ;
 ; ---------------------
-; old temporay bug
+; old  (corrected) bug
 ;
-pro TEST_BUG_3441031
-;; this caused a segfault
+pro TEST_BUG_3441031, cumul_errors, test=test
+;;
+errors=0
+;
+; this caused a segfault, we don't care of the result
+;
 res=EXECUTE("a = STRJOIN(STRSPLIT((['a'])[1],'a'),'a')")
+;
+if (res EQ 1) then ADD_ERRORS, errors, 'Case STRJOIN'
+;
+BANNER_FOR_TESTSUITE, 'TEST_BUG_3441031', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
-; another old temporay bug
+; ---------------------
+; another old (corrected) bug
 ;
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
-pro OLD_TEST_EXECUTE
-
-if EXECUTE('print, EXECUTE([''''])') then begin
-   MESSAGE, 'EXECUTE should not accept array arguments', /conti
-   EXIT, status=1
-endif
+pro TEST_EXECUTE_OLD, cumul_errors, test=test
+;
+errors=0
+;
+res=EXECUTE('print, EXECUTE([''''])')
+;
+txt='EXECUTE should not accept array arguments'
+if (res EQ 1) then ADD_ERRORS, errors, txt
+;
+BANNER_FOR_TESTSUITE, 'TEST_EXECUTE_OLD', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
 ; --------------------
 ;
-pro BASIC_EXECUTE, help=help, test=test, no_exit=no_exit, verbose=verbose
+pro TEST_BASIC_EXECUTE, cumul_errors, help=help, test=test, $
+                        verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro BASIC_EXECUTE, help=help, test=test, no_exit=no_exit, verbose=verbose'
+    print, 'pro TEST_BASIC_EXECUTE, cumul_errors, help=help, test=test, $'
+    print, '                        verbose=verbose'
     return
 endif
 ;
-nb_errors = 0
+errors = 0
 tolerance=1e-5
 ;
 ; internal intrinsic function, single value
@@ -53,8 +72,8 @@ com='a=COS(!pi)'
 expected=-1.
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
-if (ABS(a-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'Cos Status'
+if (ABS(a-expected) GT tolerance)  then ADD_ERRORS, errors, 'Cos value'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic function, array
@@ -63,8 +82,9 @@ com='a=COS(REPLICATE(!pi,10))'
 expected=REPLICATE(-1.,10)
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
-if (TOTAL(ABS(a-expected)) GT tolerance)  then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'Cos Status (arr)'
+if (TOTAL(ABS(a-expected)) GT tolerance) then $
+   ADD_ERRORS, errors, 'Cos Value (arr)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic procedure (better idea welcome !)
@@ -72,7 +92,8 @@ if KEYWORD_SET(verbose) then print, com, status, a, expected
 com='plot, SIN(!pi*findgen(100)/10.)'
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'Sin Status'
+WDELETE
 ;
 ; external function, single element
 ;
@@ -80,8 +101,9 @@ com='a=FUNC_MY_FUNC(12.)'
 expected=17.
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
-if (ABS(a-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'FUNC_MY_FUNC Status'
+if (ABS(a-expected) GT tolerance) then $
+   ADD_ERRORS, errors, 'FUNC_MY_FUNC valeur 12'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; external function, value 2D array
@@ -90,8 +112,9 @@ com='a=FUNC_MY_FUNC(REPLICATE(-5,12,3))'
 expected=REPLICATE(0.,12,3)
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
-if (TOTAL(ABS(a-expected)) GT tolerance)  then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'FUNC_MY_FUNC Status (arr)'
+if (TOTAL(ABS(a-expected)) GT tolerance) then $
+   ADD_ERRORS, errors, 'FUNC_MY_FUNC valeur (arr)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; external function, named' 2D array
@@ -101,23 +124,16 @@ com='a=FUNC_MY_FUNC(input)'
 expected=input+5.
 status=EXECUTE(com)
 ;
-if (status NE 1) then nb_errors=nb_errors+1
-if (TOTAL(ABS(a-expected)) GT tolerance)  then nb_errors=nb_errors+1
+if (status NE 1) then ADD_ERRORS, errors, 'FUNC_MY_FUNC Status (input)'
+if (TOTAL(ABS(a-expected)) GT tolerance) then $
+   ADD_ERRORS, errors, 'FUNC_MY_FUNC valeur (input)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
+; ----- final ----
 ;
-;
-if (nb_errors GT 0) then begin
-    MESSAGE, STRING(nb_errors)+' Errors founded when testing EXECUTE', /continue
-endif else begin
-    MESSAGE, 'testing EXECUTE: No Errors founded', /continue
-endelse
-;
-if KEYWORD_SET(test) then STOP
-;
-if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
-;
-WDELETE
+BANNER_FOR_TESTSUITE, 'TEST_BASIC_EXECUTE', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
@@ -130,9 +146,18 @@ if KEYWORD_SET(help) then begin
     return
 endif;
 ;
-TEST_BUG_3441031
-OLD_TEST_EXECUTE
+TEST_BUG_3441031, cumul_errors
+TEST_EXECUTE_OLD, cumul_errors
 ;
-BASIC_EXECUTE, help=help, test=test, no_exit=no_exit, verbose=verbose
+TEST_BASIC_EXECUTE, cumul_errors, test=test, verbose=verbose
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_EXECUTE', cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+
 ;
 end

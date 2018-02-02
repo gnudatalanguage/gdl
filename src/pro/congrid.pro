@@ -83,6 +83,7 @@ ON_ERROR, 2                   ;Return to caller if error
 ndim = SIZE(t, /N_DIMENSIONS)
 dims = SIZE(t, /DIMENSIONS)
 ;
+if(ndim EQ 0) then MESSAGE, 'Array must have 1, 2, or 3 dimensions.'
 if(ndim gt 3) then $
   MESSAGE, 'Warning, array dimensions >3, using non-standard CONGRID extension.', /informational
 ;
