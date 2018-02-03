@@ -343,18 +343,25 @@ namespace lib {
       //cout << "here we are " <<p0->Type() << endl;
       if (p0->Type() == GDL_STRUCT) {
         DStructGDL* s = static_cast<DStructGDL*> (p0);
-        if (s->Desc()->IsUnnamed()) {
-          type = "ANONYMOUS";
-        } else {
-	  // AC 2018-jan-31 : no ! only if StrictScalar 
-	  // (see "test_structures.pro", case 0a)
-	  if (p0->StrictScalar()) {
-	    type = s->Desc()->Name();
+	// AC 2018-Feb-02 : order is : Array (struct), name, anon
+	bool debug=false;
+	if (debug) {
+	  cout << "Rank  :" << p0->Rank() << endl;
+	  cout << "Dim   :" << p0->Dim() << endl;
+	  cout << "Size  :" << p0->Size() << endl;
+	  cout << "StrictScalar :" << p0->StrictScalar() << endl;
+	}
+	if (p0->Dim(0) > 1) {
+	  type = "STRUCT";
+	} else {
+	  if (s->Desc()->IsUnnamed()) {
+	    type = "ANONYMOUS";
 	  } else {
-	    type = "STRUCT";
+	    type = s->Desc()->Name();
 	  }
-        }
+	}
       }
+
       // here we manage : {Objects, LIST, HASH}
       if (p0->Type() == GDL_OBJ) {
 
