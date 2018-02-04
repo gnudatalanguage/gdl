@@ -2593,6 +2593,7 @@ BaseGDL* where(EnvT* e) {
               (static_cast<DULong64GDL*> (p0), nan);
           }
 
+	  // cout << "hello /int" << endl;
           // Conver to Long64
           DLong64GDL* p0L64 = static_cast<DLong64GDL*>
             (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
@@ -2620,6 +2621,21 @@ BaseGDL* where(EnvT* e) {
             return total_template<DComplexGDL>
               (static_cast<DComplexGDL*> (p0), nan);
           }
+
+	  // cout << "hello default general  case" << endl;
+	  // the ulong64 is missing 
+
+          if (p0->Type() == GDL_BYTE || p0->Type() == GDL_INT ||
+	      p0->Type() == GDL_LONG || p0->Type() == GDL_LONG64) {
+	    // Conver to Long64
+	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+	      (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+	    Guard<DLong64GDL> guard(p0L64);
+	    BaseGDL* tmp;
+	    tmp= total_template<DLong64GDL>(p0L64, nan);
+	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
+	  }
+	
           DFloatGDL* p0F = static_cast<DFloatGDL*>
             (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
           Guard<DFloatGDL> guard(p0F);
