@@ -97,6 +97,14 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 #include <sys/utsname.h>
 #endif
 
+//#if defined(__GNUC__)
+//#define GCC_VERSION (__GNUC__ * 10000 \
+//                     + __GNUC_MINOR__ * 100 \
+//                     + __GNUC_PATCHLEVEL__)
+//#if GCC_VERSION > 40600
+//#define OMP_HAS_MAX 1
+//#endif
+//#endif
 namespace lib {
   
   // for use in COMMAND_LINE_ARGS()
@@ -5100,24 +5108,33 @@ BaseGDL* where(EnvT* e) {
 
   }// end of median
   
-template <typename Ty>  static inline Ty do_max(const Ty* data, const SizeT sz) {
-    Ty maxval = data[0];
-#pragma omp parallel
-    {
-#pragma omp for reduction(max:maxval)
-    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
-    }
-    return maxval;
-  }
-template <typename Ty>  static inline Ty do_max_nan(const Ty* data, const SizeT sz) {
-    Ty maxval = data[0];
-#pragma omp parallel
-    {
-#pragma omp for reduction(max:maxval)
-    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
-    }
-    return maxval;
-  }  
+//template <typename Ty>  static inline Ty do_max(const Ty* data, const SizeT sz) {
+//    Ty maxval = data[0];
+//
+//#if OMP_HAS_MAX
+//#pragma omp parallel
+//    {
+//#pragma omp for reduction(max:maxval)
+//#endif
+//    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
+//#if OMP_HAS_MAX
+//    }
+//#endif
+//    return maxval;
+//  }
+//template <typename Ty>  static inline Ty do_max_nan(const Ty* data, const SizeT sz) {
+//    Ty maxval = data[0];
+//#if OMP_HAS_MAX
+//#pragma omp parallel
+//    {
+//#pragma omp for reduction(max:maxval)
+//#endif
+//      for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
+//#if OMP_HAS_MAX
+//    }
+//#endif
+//    return maxval;
+//  }  
 
 template <typename Ty>  static inline Ty do_mean(const Ty* data, const SizeT sz) {
     Ty mean = 0;
