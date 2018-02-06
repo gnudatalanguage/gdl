@@ -42,8 +42,13 @@ if (TYPENAME(LIST(1,2,3)) NE "LIST") then ADD_ERROR, nb_errors, 'bad type with L
 ;
 ; this class should be in the GDL_PATH, or in src/pro/dicom
 ;
-tmp=OBJ_NEW('gdlffdicom')
-if (TYPENAME(tmp) NE "GDLFFDICOM") then ADD_ERROR, nb_errors, 'bad type with Dicom Obj'
+res=EXECUTE("tmp=OBJ_NEW('gdlffdicom')")
+if res EQ 0 then begin
+   MESSAGE, /continue, 'skipping test on OBJ_NEW'
+   MESSAGE, /continue, 'please check whether "gdlffdicom" class is in the path ...'
+endif else  begin
+   if (TYPENAME(tmp) NE "GDLFFDICOM") then ADD_ERROR, nb_errors, 'bad type with Dicom Obj'
+endelse
 ;
 ; structures : 4 cases to be tested : array or not, ANONYMOUS or NAMED
 ;
@@ -58,6 +63,11 @@ struct_anon_arr=REPLICATE({zz1:1},10)
 if (TYPENAME(struct_anon_arr) NE "STRUCT") then ADD_ERROR, nb_errors, txt+'ANONYMOUS (array)'
 struct_name_arr=REPLICATE({gdl_arr,zz2:2},10)
 if (TYPENAME(struct_name_arr) NE "STRUCT") then ADD_ERROR, nb_errors, txt+'NAME (array)'
+if (TYPENAME(struct_name_arr[*]) NE "STRUCT") then ADD_ERROR, nb_errors, txt+'NAME (array[*])'
+;
+expect='GDL_ARR' ; name of the fiels in the array struct.
+for ii=0, n_elements(STRUCT_NAME_ARR)-1 do $
+   if (TYPENAME(struct_name_arr[ii]) NE expect) then ADD_ERROR, nb_errors, txt+'sub NAME at '+string(ii)
 ;
 ; ---- Final message ----
 ;
