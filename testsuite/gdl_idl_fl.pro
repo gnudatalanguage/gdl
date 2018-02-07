@@ -10,7 +10,15 @@
 ; Most tests in the testsuite are running well
 ; in GDL, IDL and FL. But we have few differences ...
 ;
+; ----------------------------------------------------
+; Modifications history :
+;
+; 2018-Feb-05 : AC. Default return now UpperCase
+;
+; ----------------------------------------------------
+;
 function GDL_IDL_FL, uppercase=uppercase, prefix=prefix, $
+                     lowercase=lowercase, $
                      verbose=verbose, test=test
 ;
 DEFSYSV, '!gdl', exists=isGDL
@@ -27,9 +35,13 @@ if isGDL then suffix='gdl' else begin
    if isFL then suffix='fl' else suffix='idl'
 endelse
 ;
-if KEYWORD_SET(uppercase) then suffix=STRUPCASE(suffix)
+; AC 2018-02-07 : we decided the default is now UpperCase
+; We even don't test the /upperCase keyword (compatility)
+suffix=STRUPCASE(suffix)
 ;
-if KEYWORD_SET(prefix) then suffix=STRUPCASE(suffix)+'_'
+if KEYWORD_SET(prefix) then suffix=suffix+'_'
+;
+if KEYWORD_SET(lowercase) then suffix=STRLOWCASE(suffix)
 ;
 if KEYWORD_SET(verbose) then MESSAGE, /cont, 'Detected Software : '+suffix
 ;
