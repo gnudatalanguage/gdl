@@ -74,10 +74,11 @@ endelse
 ;
 end
 ;
-; ----;------------------------------------------------
-
-pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, help=help, test=test, $
-                          short=short, verbose=verbose, wide=wide
+;------------------------------------------------
+;
+pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $
+                          short=short, wide=wide, $
+                          help=help, test=test, verbose=verbose
 ;
 verbose=1
 ;
@@ -117,8 +118,9 @@ endelse
 ;
 if (help GT 0) then begin
    print, ''
-   print, 'pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, help=help, test=test, $'
-   print, '                          short=short, verbose=verbose, wide=wide'
+   print, 'pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $'
+   print, '                          short=short, wide=wide, $'
+   print, '                          help=help, test=test, verbose=verbose'
    print, ''
    print, 'both parameters are mandatory, second one must be a positive integer or a string'
    return
@@ -128,7 +130,11 @@ endif
 if SIZE(case_name,/n_dim) EQ 1 then case_name=case_name[0]
 if SIZE(nb_pbs,/n_dim) EQ 1 then nb_pbs=nb_pbs[0]
 ;
-prefixe='% '+STRUPCASE(case_name)+': '
+if ~KEYWORD_SET(prefix) then begin
+   prefix='% '+STRUPCASE(case_name)+': '
+endif else begin
+   prefix='% '+STRUPCASE(prefix)+': '   
+endelse
 indent="  "
 ;
 if ISA_INTERNAL(nb_pbs,/number) then begin
@@ -165,7 +171,7 @@ if ~KEYWORD_SET(wide) then begin
 endif
 ;
 if (isShort) then begin
-    print, prefixe, message
+    print, prefix, message
     return
 endif
 ;
@@ -179,11 +185,11 @@ for ii=0,lenght-1 do begin
    blanc=blanc+vide
 endfor
 ;
-print, prefixe, sep+line+sep
-if (isWide) then print, prefixe, sep+blanc+sep
-print, prefixe, sep+message+sep
-if (isWide) then print, prefixe, sep+blanc+sep
-print, prefixe, sep+line+sep
+print, prefix, sep+line+sep
+if (isWide) then print, prefix, sep+blanc+sep
+print, prefix, sep+message+sep
+if (isWide) then print, prefix, sep+blanc+sep
+print, prefix, sep+line+sep
 ;
 if KEYWORD_SET(test) then STOP
 ;

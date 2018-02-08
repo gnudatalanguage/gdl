@@ -1,47 +1,33 @@
 ;
-; Initial work by  Gilles D., March 2015
+; Initial work by Gilles D., March 2015
 ;
-; Few cleaning up by AC end of August 2015
-; (better way to locate the reference file "idl.xdr")
+; ---------------------------------
+; 
+; Modifications history :
 ;
-; -----------------------------------------------
+; - 2015-August : AC. Few cleaning
+;   (better way to locate the reference file "idl.xdr")
 ;
-pro ADD_ERROR, nb_errors, message
-;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
-;
-end
+; - 2018-02-05 : AC. cleaning ... and working in TMPDIR
 ;
 ; -----------------------------------------------
 ;
-pro TEST_WRITE_XDR
+pro TEST_XDR_WRITE, file, compress=compress
 common testxdr,datar,dataw
 ;
 GET_LUN, nlun
-OPENW, nlun, /XDR, 'gdl.xdr'
+OPENW, nlun, /XDR, file, compress=compress 
 WRITEU, nlun, dataw
 CLOSE, nlun
 FREE_LUN, nlun
 ;
-end
-;
-; -----------------------------------------------
-;
-pro TEST_WRITE_COMPRESSED_XDR
-common testxdr,datar,dataw
-;
-GET_LUN, nlun
-OPENW, nlun, /XDR, 'gdl.xdr.gz', /COMPRESS
-WRITEU, nlun, dataw
-CLOSE, nlun
-FREE_LUN, nlun
+if FILE_TEST(file) then MESSAGE, /continue, 'Succesfully write of : '+file
 ;
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_READ_XDR, file, errors, compress=compress, test=test
+pro TEST_XDR_READ, file, cumul_errors, compress=compress, txt=txt, test=test
 common testxdr,datar,dataw
 ;
 GET_LUN, nlun
@@ -50,14 +36,20 @@ READU, nlun, datar
 CLOSE, nlun
 FREE_LUN, nlun
 ;
-if ~ISA(errors) then errors=0
+; being able to read does not means the data inside are OK !
+if FILE_TEST(file) then MESSAGE, /continue, 'Succesfully read of : '+file
+;
+errors=0
 ;
 for i=0,N_TAGS(dataw)-1 do begin
-    if (TOTAL(dataw.(i) eq datar.(i)) ne N_ELEMENTS(dataw.(i)) ) then begin
-        MESSAGE, 'FAILED at tag #'+string(i)+" in file "+file, /continue
-        errors++
-    endif
+   if (TOTAL(dataw.(i) eq datar.(i)) ne N_ELEMENTS(dataw.(i)) ) then begin
+      mess='FAILED at tag #'+string(i)+" in file "+file
+      ERRORS_ADD, errors, mess
+   endif
 endfor
+;
+BANNER_FOR_TESTSUITE, txt, errors, /short, prefix="TEST_XDR_READ"
+ERRORS_RESET, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -101,39 +93,66 @@ list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
 file_idl_xdr=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
 ;
 if ~FILE_TEST(file_idl_xdr) then begin
-    MESSAGE, 'file <<'+filename+'>> not found in the !PATH', /continue
-    if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
-    EXIT, status=1
+   ;; just in case, testing the current dir.
+   file_idl_xdr=FILE_SEARCH(GETENV('PWD')+PATH_SEP()+filename)
 endif
 ;
+if ~FILE_TEST(file_idl_xdr) then begin
+   MESSAGE, 'file <<'+filename+'>> not found in the !PATH', /continue
+   if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
+   EXIT, status=1
+endif else begin
+   if (N_ELEMENTS(file_idl_xdr) GT 1) then begin
+      file_idl_xdr=file_idl_xdr[0]
+      print, 'more than one file found, read the first one ...'
+   endif
+   print, 'Reading back : '+file_idl_xdr
+endelse
+;
 ; counting the errors
-errors=0
+cumul_errors=0
 ;
-; do we agree with the input file ?
+; test 1 : reading back the reference file, checking content
+; do we agree with the content of the input file ?
 ;
-TEST_READ_XDR, file_idl_xdr, errors, test=test
-BANNER_FOR_TESTSUITE, 'Testing the input file', errors, /short
+txt='Testing reading back the input file'
+TEST_XDR_READ, file_idl_xdr, cumul_errors, test=test, txt=txt
 ;
-; WRITE our own
-TEST_WRITE_XDR
+; tmpdir
+tmpdir=GETENV('IDL_TMPDIR')
+if STRLEN(tmpdir) GT 0 then begin
+   last=STRMID(tmpdir, STRLEN(tmpdir)-1, 1)
+   if (last NE PATH_SEP()) then tmpdir=tmpdir+PATH_SEP()
+endif
 ;
-; counting the errors
-errors=0
+radix=GDL_IDL_FL(/lower)
+;
+file_out1=tmpdir+radix+'.xdr'
+file_out2=tmpdir+radix+'.xdr.gz'
+;
+; test 2 : writing and reading back a normal one, checking content
+;
+; WRITE our own XDR files in TMPDIR
+TEST_XDR_WRITE, file_out1
 ;
 ; reread it and compare
-TEST_READ_XDR, 'gdl.xdr', errors, test=test
-BANNER_FOR_TESTSUITE, 'Testing the generated XDR file', errors, /short
+txt='Testing the generated XDR file'
+TEST_XDR_READ, file_out1, cumul_errors, test=test, txt=txt
+;
+; test 3 : writing and reading back a compressed one, checking content
 ;
 ; WRITE our own compressed
-TEST_WRITE_COMPRESSED_XDR
+TEST_XDR_WRITE, file_out2, /compress
 ;
 ; reread it and compare
-TEST_READ_XDR, 'gdl.xdr.gz', errors, test=test, /compress
-BANNER_FOR_TESTSUITE, 'Testing the generated XDR (compress) file', errors, /short
+txt='Testing the generated XDR (compress) file'
+TEST_XDR_READ, file_out2, cumul_errors, test=test, txt=txt, /compress
 ;
-BANNER_FOR_TESTSUITE, 'TEST_XDR', errors, short=short
+; ----------------- final message ----------
 ;
-if (errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+BANNER_FOR_TESTSUITE, 'TEST_XDR', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

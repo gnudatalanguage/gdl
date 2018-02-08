@@ -13,21 +13,39 @@
 ;
 ; more exhaustive tests on July 2014. Ideas still welcome !!
 ;
+; http://www.harrisgeospatial.com/docs/The_Null_Variable.html
 ; -----------------------------------------------
-; this procedure adds running "nb_errors" into "total_errors"
-; then reset "nb_errors" to 0 for next block of tests.
+; 
+; Modifications history :
 ;
-pro INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
-if KEYWORD_SET(verbose) then print, total_errors, nb_errors
-total_errors=total_errors+nb_errors
-nb_errors=0
-end
+; - 2018-02-05 : AC. 
+;   * renaming ADD_ERRORS into ERRORS_ADD
+;   * renaming INCREMENT_ERRORS into ERRORS_RESET
 ;
 ; -----------------------------------------------
-pro ADD_ERRORS, nb_errors, message
 ;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
+pro TEST_NULL_CREATE, cumul_errors, help=help, test=test, verbose=verbose
+;
+errors=0
+;
+FORWARD_FUNCTION ISA
+;
+a1=!null
+if ~ISA(a1,/null) then ERRORS_ADD, errors, 'cas a1 isa'
+if (a1 NE !null) then ERRORS_ADD, errors, 'cas a1 eq !null'
+;
+a2=[]
+if ~ISA(a1,/null) then ERRORS_ADD, errors, 'cas a2 isa'
+if (a2 NE !null) then ERRORS_ADD, errors, 'cas a2 eq !null'
+;
+a3={}
+if ~ISA(a3,/null) then ERRORS_ADD, errors, 'cas a3 isa'
+if (a3 NE !null) then ERRORS_ADD, errors, 'cas a3 eq !null'
+;
+if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, 'TEST_NULL_CREATE', errors, short=short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
@@ -51,17 +69,17 @@ txt='(1) Testing Undefined EQ/NE !null'
 if (verb) then MESSAGE, /cont, txt
 ;
 test1EQleft=(a EQ !null)
-if (test1EQleft NE 1) then ADD_ERRORS, nb_errors, 'undefined EQ !null'
+if (test1EQleft NE 1) then ERRORS_ADD, nb_errors, 'undefined EQ !null'
 test1EQright=(!null EQ a)
-if (test1EQright NE 1) then ADD_ERRORS, nb_errors, '!null EQ undefined'
+if (test1EQright NE 1) then ERRORS_ADD, nb_errors, '!null EQ undefined'
 test1NEleft=(a NE !null)
-if (test1NEleft NE 0) then ADD_ERRORS, nb_errors, 'undefined NE !null'
+if (test1NEleft NE 0) then ERRORS_ADD, nb_errors, 'undefined NE !null'
 test1NEright=(!null NE a)
-if (test1NEright NE 0) then ADD_ERRORS, nb_errors, '!null NE undefined'
+if (test1NEright NE 0) then ERRORS_ADD, nb_errors, '!null NE undefined'
 ;
 if (nb_errors GT 0) then MESSAGE, /cont, 'Errors in '+txt else $
 if (verb) then MESSAGE, /cont, 'Success in '+txt
-INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+ERRORS_RESET, total_errors, nb_errors, verbose=verbose
 ;
 ; second series of tests : comparing !Null with !Null
 ;
@@ -69,26 +87,26 @@ txt='(2) Testing !Null EQ/NE !null'
 if (verb) then MESSAGE, /cont, txt
 ;
 test2eq=(!null EQ !null)
-if (test2eq NE 1) then ADD_ERRORS, nb_errors, '!null EQ !Null'
+if (test2eq NE 1) then ERRORS_ADD, nb_errors, '!null EQ !Null'
 test2ne=(!null NE !null)
-if (test2ne NE 0) then ADD_ERRORS, nb_errors, '!null NE !Null'
+if (test2ne NE 0) then ERRORS_ADD, nb_errors, '!null NE !Null'
 ;
 left=!null
 test2eq=(left EQ !null)
-if (test2eq NE 1) then ADD_ERRORS, nb_errors, 'Left EQ !Null'
+if (test2eq NE 1) then ERRORS_ADD, nb_errors, 'Left EQ !Null'
 test2ne=(left NE !null)
-if (test2ne NE 0) then ADD_ERRORS, nb_errors, 'Left NE !Null'
+if (test2ne NE 0) then ERRORS_ADD, nb_errors, 'Left NE !Null'
 
 ;
 right=!null
 test2eq=(!null EQ right)
-if (test2eq NE 1) then ADD_ERRORS, nb_errors, '!Null EQ right'
+if (test2eq NE 1) then ERRORS_ADD, nb_errors, '!Null EQ right'
 test2ne=(!null NE right)
-if (test2ne NE 0) then ADD_ERRORS, nb_errors, '!Null NE right'
+if (test2ne NE 0) then ERRORS_ADD, nb_errors, '!Null NE right'
 ;
 if (nb_errors GT 0) then MESSAGE, /cont, 'Errors in '+txt else $
 if (verb) then MESSAGE, /cont, 'Success in '+txt
-INCREMENT_ERRORS, total_errors, nb_errors, verbose=verbose
+ERRORS_RESET, total_errors, nb_errors, verbose=verbose
 ;
 ; third series of tests : comparing !Null with Defined variable
 ; (EQ/NE and Left/Right operations)
@@ -103,17 +121,17 @@ for ii=1, 15 do begin
     if (verb) then MESSAGE, /cont, 'current type is : '+TYPENAME(b)
     ;;
     test3eqleft=(b EQ !null)
-    if (test3eqleft NE 0) then ADD_ERRORS, nb_errors, 'x EQ !null'
+    if (test3eqleft NE 0) then ERRORS_ADD, nb_errors, 'x EQ !null'
     test3eqright=(!null EQ b)
-    if (test3eqright NE 0) then ADD_ERRORS, nb_errors, '!null EQ x'
+    if (test3eqright NE 0) then ERRORS_ADD, nb_errors, '!null EQ x'
     test3neleft=(b NE !null)
-    if (test3neleft NE 1) then ADD_ERRORS, nb_errors, 'x NE !null'
+    if (test3neleft NE 1) then ERRORS_ADD, nb_errors, 'x NE !null'
     test3neright=(!null NE b)
-    if (test3neright NE 1) then ADD_ERRORS, nb_errors, '!null NE x'
+    if (test3neright NE 1) then ERRORS_ADD, nb_errors, '!null NE x'
     ;;
     if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt+'TYPE '+TYPENAME(b) else $
-      if (verb) then MESSAGE, /cont, 'Success in '+txt+'TYPE '+TYPENAME(b)
-    INCREMENT_ERRORS, total_errors, nb_errors;, verbose=verbose
+      if (verb) then MESSAGE, /cont, 'Success in '+txt+'TYPE '+TYPENAME(b)    
+    ERRORS_RESET, total_errors, nb_errors;, verbose=verbose
 endfor
 ;
 ; forth series of tests : comparing !Null with exotic types: Object and Pointer
@@ -128,17 +146,17 @@ for ii=10, 11 do begin
     if (verb) then MESSAGE, /cont, 'current type is : '+TYPENAME(b)
     ;;
     test4eqleft=(b EQ !null)
-    if (test4eqleft NE 1) then ADD_ERRORS, nb_errors, 'x EQ !null'
+    if (test4eqleft NE 1) then ERRORS_ADD, nb_errors, 'x EQ !null'
     test4eqright=(!null EQ b)
-    if (test4eqright NE 1) then ADD_ERRORS, nb_errors, '!null EQ x'
+    if (test4eqright NE 1) then ERRORS_ADD, nb_errors, '!null EQ x'
     test4neleft=(b NE !null)
-    if (test4neleft NE 0) then ADD_ERRORS, nb_errors, 'x NE !null'
+    if (test4neleft NE 0) then ERRORS_ADD, nb_errors, 'x NE !null'
     test4neright=(!null NE b)
-    if (test4neright NE 0) then ADD_ERRORS, nb_errors, '!null NE x'
+    if (test4neright NE 0) then ERRORS_ADD, nb_errors, '!null NE x'
     ;;
     if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt+'TYPE '+TYPENAME(b) else $
       if (verb) then MESSAGE, /cont, 'Success in '+txt+'TYPE '+TYPENAME(b)
-    INCREMENT_ERRORS, total_errors, nb_errors;, verbose=verbose
+    ERRORS_RESET, total_errors, nb_errors;, verbose=verbose
 endfor
 ;
 ; final message
@@ -177,13 +195,13 @@ res1=SIZE([1,!null,!values.f_nan])
 expected2=[2L,2,2,2,4]
 res2=SIZE([[0,1],[0,!null,3]])
 ;
-if ~ARRAY_EQUAL(expected1,res0) then ADD_ERRORS, nb_errors, '[!null,1,!values.f_nan]'
-if ~ARRAY_EQUAL(expected1,res1) then ADD_ERRORS, nb_errors, '[1,!null,!values.f_nan]'
-if ~ARRAY_EQUAL(expected2,res2) then ADD_ERRORS, nb_errors, '2d case'
+if ~ARRAY_EQUAL(expected1,res0) then ERRORS_ADD, nb_errors, '[!null,1,!values.f_nan]'
+if ~ARRAY_EQUAL(expected1,res1) then ERRORS_ADD, nb_errors, '[1,!null,!values.f_nan]'
+if ~ARRAY_EQUAL(expected2,res2) then ERRORS_ADD, nb_errors, '2d case'
 ;
 if nb_errors gt 0 then MESSAGE, /cont, 'Errors in '+txt else $
   if (verb) then MESSAGE, /cont, 'Success in '+txt
-INCREMENT_ERRORS, total_errors, nb_errors ;, verbose=verbose
+ERRORS_RESET, total_errors, nb_errors ;, verbose=verbose
 ;
 ; final message
 ;
@@ -201,11 +219,22 @@ end
 pro TEST_NULL, help=help, test=test, verbose=verbose, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_NULL, help=help, test=test, verbose=verbose, no_exit=no_exit'
-    return
+   print, 'pro TEST_NULL, help=help, test=test, verbose=verbose, no_exit=no_exit'
+   return
+endif
+;
+; in IDL, !null appeared in 8+
+if (GDL_IDL_FL() EQ 'IDL') then begin
+   majeur=STRMID(!VERSION.RELEASE,0,1)
+   if (majeur LT 8) then begin
+      MESSAGE,/continue, '!NULL does not exist in IDL before 8'
+      EXIT, status=77
+   endif
 endif
 ;
 total_errors=0
+;
+TEST_NULL_CREATE, total_errors, help=help, test=test, verbose=verbose
 ;
 TEST_NULL_LOGICAL, total_errors, help=help, test=test, verbose=verbose
 ;
