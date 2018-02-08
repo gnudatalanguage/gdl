@@ -1,12 +1,22 @@
 ;
 ; Alain C., 28 Feb. 2017
 ;
-; managing Errors Accumulation
+; Feb. 2018 : Change in naming convention : 
+; ERRORS_CUMUL, ERRORS_ADD, ERRORS_RESET
 ;
+; -----------------------------------------------
+;
+; Purpose : managing Errors Accumulation
+; This procedure adds running "new_errors" into "cumul_errors"
+;
+; It would surprising if "new_errors" is undefined
+; It is *not* surprising that "cumul_errors" may be undefined
+; 
+; -----------------------------------------------
 ; In order to test fake errors accumulations in the tests, 
-; you can use :
+; you can use : ERRORS_CUMUL, /debug 
 ;
-; ERRORS_CUMUL, /debug 
+; BUT we will have to change it for a better ON/Off triggering
 ;
 ; -----------------------------------------------
 ;
