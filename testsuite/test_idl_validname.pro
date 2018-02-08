@@ -1,9 +1,14 @@
 ;
 ; Alain Coulais 20/08/2011, under GNP v2 or later
 ;
-; quick test for IDL_VALIDNAME function
+; Quick test for IDL_VALIDNAME function
 ;
 ; Since August 2013, we have to test also input as a list
+;
+; ---------------------------------
+; Modifications history :
+;
+; 2018-Feb-08: AC. cleaning ... (keyword /verbose not working ...)
 ;
 ;---------------------------------------------
 ;
@@ -13,14 +18,15 @@ txt='input: >>'+input+'<<, expected: >>'+expected+'<<, '
 print, txt+'resu: >>'+resu+'<<'
 end
 ;
+; ---------------------------------
+;
 pro INTERNAL_TEST, input, expected, kwverb, nb_pbs, _extra=_extra
 ;
 resu=IDL_VALIDNAME(input, _extra=_extra)
 ;
-if (STRCMP(expected, resu) NE 1) then begin
-   if (kwverb EQ 1) then SMART_MESSAGE, input, expected, resu
-   nb_pbs=nb_pbs+1
-endif
+if (STRCMP(expected, resu) NE 1) then ERRORS_ADD, nb_pbs, 'case : '+input
+if (kwverb EQ 1) then SMART_MESSAGE, input, expected, resu
+;
 end
 ;
 ;---------------------------------------------
@@ -79,23 +85,17 @@ INTERNAL_TEST, a, '', kwverb, nb_pbs
 INTERNAL_TEST, a, '', kwverb, nb_pbs, /convert_spaces
 INTERNAL_TEST, a, res, kwverb, nb_pbs, /convert_all
 ;
-if (nb_pbs GT 0) then begin
-   MESSAGE, /continue, 'Number of problems detected: '+STRING(nb_pbs)
-   ;; now the EXIT code is managed at the end
-   ;; if ~KEYWORD_SET(test) then EXIT, status=1
-endif else begin
-   MESSAGE, /Continue, "No problem found"
-endelse
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_IDL_VALIDNAME_SINGLE', nb_pbs, /short
+ERRORS_CUMUL, errors_in_single, nb_pbs
 if KEYWORD_SET(test) then STOP
-;
-errors_in_single=nb_pbs
 ;
 end
 ;
 ;---------------------------------------------
 ;
-pro TEST_IDL_VALIDNAME_MULTI,errors_in_multi, test=test, verbose=verbose
+pro TEST_IDL_VALIDNAME_MULTI, errors_in_multi, test=test, verbose=verbose
 ;
 nb_pbs=0
 ;
@@ -120,21 +120,15 @@ if ~ARRAY_EQUAL(STRCMP(result,expected),filtre) then begin
    endif
 endif
 ;
-if (nb_pbs GT 0) then begin
-   MESSAGE, /continue, 'Number of problems detected: '+STRING(nb_pbs)
-   ;; now the EXIT code is managed at the end
-   ;; if ~KEYWORD_SET(test) then EXIT, status=1
-endif else begin
-   MESSAGE, /Continue, "No problem found"
-endelse
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_IDL_VALIDNAME_MULTI', nb_pbs, /short
+ERRORS_CUMUL, errors_in_multi, nb_pbs
 if KEYWORD_SET(test) then STOP
 ;
-errors_in_multi=nb_pbs
-;
 end
-;---------------------------------------------
 ;
+;---------------------------------------------
 ;
 pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help, no_exit=no_exit
 ;
@@ -143,16 +137,22 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+cumul_errors=0
+;
 print, 'This testsuite for IDL_VALIDNAME is not finished ...'
 print, 'Please contribute'
 ;
-TEST_IDL_VALIDNAME_SINGLE, errors_in_single, test=test, verbose=verbose
+TEST_IDL_VALIDNAME_SINGLE, cumul_errors, test=test, verbose=verbose
 ;
-TEST_IDL_VALIDNAME_MULTI, errors_in_multi, test=test, verbose=verbose
+TEST_IDL_VALIDNAME_MULTI, cumul_errors, test=test, verbose=verbose
 ;
-if ((errors_in_single GT 0) OR (errors_in_multi GT 0)) then begin
-   if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endif
+; ---- Final message ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_IDL_VALIDNAME', cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 
