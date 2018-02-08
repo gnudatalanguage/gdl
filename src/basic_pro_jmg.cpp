@@ -293,7 +293,10 @@ namespace lib {
   
   BaseGDL* call_external( EnvT* e)
   {
-    DString image, entry;
+const int i = 1;
+#define is_littlendian() ( (*(char*)&i) != 0 )
+
+DString image, entry;
     static std::string s;
     SizeT myAlign      = defaultAlign;
     DType myReturnType = GDL_UNDEF;
@@ -412,8 +415,8 @@ namespace lib {
       BaseGDL* par = e->GetParDefined(i);
       DType    pType  = par->Type();
       upgrade[i-2]=false;
-      if ( (byValue[i-2] > 0 ) && pType==GDL_INT && small_int) upgrade[i]=true; //Warning(e->GetParString(i)+" is of type INT, too short to be passed to the called function, use LONG");}
-      if ( (byValue[i-2] > 0 ) && pType==GDL_UINT && small_uint) upgrade[i]=true; //Warning(e->GetParString(i)+" is of type UINT, too short to be passed to the called function, use ULONG");}
+      if ( pType==GDL_INT && small_int) upgrade[i-2]=true; //Warning(e->GetParString(i)+" is of type INT, too short to be passed to the called function, use LONG");}
+      if ( pType==GDL_UINT && small_uint) upgrade[i-2]=true; //Warning(e->GetParString(i)+" is of type UINT, too short to be passed to the called function, use ULONG");}
     }
     // Fill argv with the parameters
 
@@ -456,6 +459,18 @@ namespace lib {
 	else {					// By reference (default)
         if (NumericType(pType) || pType == GDL_PTR || pType == GDL_OBJ)
         {
+          if (upgrade[i - 2] && (par->N_Elements() < 2) && is_littlendian()) //apparently IDL widens non-arrays passed by reference. 
+            //This costs nothing and is inocuous, but saves some troubles. It cannot be done for arrays, though.
+            //NB: IDL does not go as to convert back to short ints if this passed value was changed in the called C code.
+          { //will fail for big-endian, in which case: pray!
+            if (pType == GDL_INT) {
+              DLongGDL * newint = e->GetParAs<DLongGDL>(i); //by def this is a copy since the types are different. Hence the Guard.
+              argv[i - 2] = (void*) newint->DataAddr();
+            } else if (pType == GDL_UINT) {
+              DULongGDL * newuint = e->GetParAs<DULongGDL>(i); //by def this is a copy since the types are different. Hence the Guard.
+              argv[i - 2] = (void*) newuint->DataAddr();
+            }
+          } else
           argv[i - 2] = (void*) par->DataAddr();
         }
 	    else if (pType == GDL_STRING) {
