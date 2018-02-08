@@ -1,24 +1,35 @@
 ;
 ; AC 2017-Dec-24
 ;
-; used in "test_save_restore.pro" and revised version of "test_ntags.pro"
+; used in "test_save_restore.pro" and revised version of
+; "test_n_tags.pro", "test_fix.pro", ...
 ;
 ; ----------------------------------------------------
 ; Modifications history :
 ;
 ; 2018-Feb-07 : AC. 
-; 1/ Since now, default is Upper. 
+; 1/ Since now, default is UpperCase.
 ; 2/ being able to select Integer types only
+; 3/ if not 64b, no l64 & ul64 ...
 ;
 ; -----------------------------------------------
 ;
 pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $
-                       list_numeric_size, verbose=verbose, $
-                       integer=integer, lowercase=lowercase
+                       list_numeric_size, verbose=verbose, help=help, $
+                       integer=integer, lowercase=lowercase, test=test
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $'
+   print, '                       list_numeric_size, verbose=verbose, help=help, $'
+   print, '                       integer=integer, lowercase=lowercase, test=test'
+   return
+endif
 ;
 ; http://www.harrisgeospatial.com/docs/size.html
 ;
+; internal use ...
 list_integer_types=[1,1,1,0,0,0,0,1,1,1,1]
+;
 list_numeric_types=[1,2,3,4,5,6,9,12,13,14,15]
 list_numeric_size =[1,2,4,4,8,8,16,2,4,8,8]
 list_numeric_names=['byte','int','long',$
@@ -26,11 +37,25 @@ list_numeric_names=['byte','int','long',$
                     'uint','ulong','long64','ulong64']
 ;
 if KEYWORD_SET(integer) then begin
+   if KEYWORD_SET(verbose) then print, 'Only INTEGER types selected'
    ok=WHERE(list_integer_types GT 0)
    list_numeric_types=list_numeric_types[ok]
    list_numeric_size=list_numeric_size[ok]
    list_numeric_names=list_numeric_names[ok]
 endif
+;
+; the good way to test if we are on a 64b system is
+; a test on : !VERSION.MEMORY_BITS
+;
+if (!version.memory_bits NE 64) then begin
+   ;; removing Long64 & ULong64
+   ;; we don't use [0,-3] because of the old IDL/GDL
+   ok=WHERE(STRPOS(list_numeric_names,'64') LT 0)
+   list_numeric_types=list_numeric_types[ok]
+   list_numeric_size=list_numeric_size[ok]
+   list_numeric_names=list_numeric_names[ok]
+endif
+if (!version.memory_bits GT 64) then MESSAGE, 'Please report  !!'
 ;
 ; default is UpperCase
 list_numeric_names=STRUPCASE(list_numeric_names)
@@ -46,5 +71,6 @@ if KEYWORD_SET(verbose) then begin
    endfor
 endif
 ;
-end
+if KEYWORD_SET(verbose) then STOP
 ;
+end
