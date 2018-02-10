@@ -491,13 +491,13 @@ void LibInit()
   new DLibPro(lib::strput,string("STRPUT"),3,NULL,NULL,2);
   
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL",KLISTEND};
-  new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
+  new DLibFunRetNew(lib::where_fun,string("WHERE"),2,whereKey);
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,NULL,true);
+  new DLibFunRetNew(lib::total_fun,string("TOTAL"),2,totalKey,NULL,true);
 
   const string productKey[]={"CUMULATIVE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,NULL,true);
+  new DLibFunRetNew(lib::product_fun,string("PRODUCT"),2,productKey,NULL,true);
 
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);

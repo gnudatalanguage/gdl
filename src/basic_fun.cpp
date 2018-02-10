@@ -2255,7 +2255,7 @@ namespace lib {
     return res;
   }
 
-BaseGDL* where(EnvT* e) {
+BaseGDL* where_fun(EnvT* e) {
     SizeT nParam = e->NParam(1); //, "WHERE");
 
     BaseGDL* p0p = e->GetParDefined(0); //, "WHERE");
@@ -2540,7 +2540,7 @@ BaseGDL* where(EnvT* e) {
   }
 
 
-  BaseGDL* total( EnvT* e) {
+  BaseGDL* total_fun( EnvT* e) {
     SizeT nParam = e->NParam(1); //, "TOTAL");
 
     BaseGDL* p0 = e->GetParDefined(0); //, "TOTAL");
@@ -2620,6 +2620,7 @@ BaseGDL* where(EnvT* e) {
             (static_cast<DComplexDblGDL*> (p0), nan);
         }
 
+	// AC 2018-feb  doc. said Long64 & ULong64 too, but when ?! TBC !
         if (!doubleRes) {
           if (p0->Type() == GDL_FLOAT) {
             return total_template<DFloatGDL>
@@ -2630,6 +2631,7 @@ BaseGDL* where(EnvT* e) {
               (static_cast<DComplexGDL*> (p0), nan);
           }
 
+	  // AC 2018-feb 
 	  // cout << "hello default general  case" << endl;
 	  // the ulong64 is missing 
 
@@ -2643,6 +2645,16 @@ BaseGDL* where(EnvT* e) {
 	    tmp= total_template<DLong64GDL>(p0L64, nan);
 	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
 	  }
+          if (p0->Type() == GDL_ULONG || p0->Type() == GDL_ULONG64) {
+	    // Conver to ULong64
+	    DULong64GDL* p0UL64 = static_cast<DULong64GDL*>
+	      (p0->Convert2(GDL_ULONG64, BaseGDL::COPY));
+	    Guard<DULong64GDL> guard(p0UL64);
+	    BaseGDL* tmp;
+	    tmp= total_template<DULong64GDL>(p0UL64, nan);
+	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
+	  }
+	  
 	
           DFloatGDL* p0F = static_cast<DFloatGDL*>
             (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
@@ -3071,7 +3083,7 @@ BaseGDL* where(EnvT* e) {
     return res;
   }
 
-  BaseGDL* product( EnvT* e) {
+  BaseGDL* product_fun( EnvT* e) {
     SizeT nParam = e->NParam(1);
 
     BaseGDL* p0 = e->GetParDefined(0);
