@@ -15,20 +15,25 @@
 ; -----------------------------------------------
 ;
 pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $
-                       list_numeric_size, verbose=verbose, help=help, $
-                       integer=integer, lowercase=lowercase, test=test
+                       list_numeric_size, name=name, $
+                       integer=integer, lowercase=lowercase, $
+                       verbose=verbose, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $'
-   print, '                       list_numeric_size, verbose=verbose, help=help, $'
-   print, '                       integer=integer, lowercase=lowercase, test=test'
+   print, '                       list_numeric_size, name=name, $'
+   print, '                       integer=integer, lowercase=lowercase, $'
+   print, '                       verbose=verbose, help=help, test=test'
    return
 endif
 ;
-; http://www.harrisgeospatial.com/docs/size.html
-;
 ; internal use ...
 list_integer_types=[1,1,1,0,0,0,0,1,1,1,1]
+;
+; http://www.harrisgeospatial.com/docs/idl_data_types.html
+list_names=['b','s','l','.','d','__','__','u/us','ul','ll','ull']
+;
+; http://www.harrisgeospatial.com/docs/size.html
 ;
 list_numeric_types=[1,2,3,4,5,6,9,12,13,14,15]
 list_numeric_size =[1,2,4,4,8,8,16,2,4,8,8]
@@ -42,6 +47,7 @@ if KEYWORD_SET(integer) then begin
    list_numeric_types=list_numeric_types[ok]
    list_numeric_size=list_numeric_size[ok]
    list_numeric_names=list_numeric_names[ok]
+   list_names=list_names[ok]
 endif
 ;
 ; the good way to test if we are on a 64b system is
@@ -63,11 +69,11 @@ if KEYWORD_SET(lowercase) then begin
    list_numeric_names=STRLOWCASE(list_numeric_names)
 endif
 ;
-if KEYWORD_SET(verbose) then begin
-   print, format='(A11,A6, A6)', 'Type :', 'val.', 'size' 
+if KEYWORD_SET(verbose) or KEYWORD_SET(names) then begin
+   print, format='(A11,A6, A6)', 'Type :', 'val.', 'size', 'name' 
    for ii=0, N_ELEMENTS(list_numeric_names)-1 do begin
-      print, format='(A1,A8,A2,2i6)',' ',list_numeric_names[ii], ':', $
-             list_numeric_types[ii], list_numeric_size[ii]
+      print, format='(A1,A8,A2,2i6,A6)',' ',list_numeric_names[ii], ':', $
+             list_numeric_types[ii], list_numeric_size[ii], list_names[ii]
    endfor
 endif
 ;
