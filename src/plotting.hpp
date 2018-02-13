@@ -102,12 +102,14 @@ enum ORIENTATION3D
 #define GDL_TICKFORMAT_AND_UNITS 2
   struct GDL_TICKDATA
   {
+    GDLGStream *a;
     bool isLog;
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   };
 
   struct GDL_TICKNAMEDATA
   {
+    GDLGStream *a;
     SizeT counter;
     SizeT nTickName;
     DStringGDL* TickName;
@@ -118,6 +120,7 @@ enum ORIENTATION3D
   struct GDL_MULTIAXISTICKDATA
   {
     EnvT *e;
+    GDLGStream *a;
     SizeT counter;
     int what;
     SizeT nTickFormat;
@@ -852,12 +855,12 @@ namespace lib {
     {
       axisTicknameVect=e->GetKWAs<DStringGDL>( choosenIx );
       //translate format codes here:
-      for (SizeT iname=0; iname < axisTicknameVect->N_Elements(); ++iname) {
-        std::string out = std::string("");
-        a->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
-//TBD: not finished, see cases not treated in TransmateFormatCodes (gdlgstream.cpp)
-        (*axisTicknameVect)[iname]=out;
-      }
+//      for (SizeT iname=0; iname < axisTicknameVect->N_Elements(); ++iname) {
+//        std::string out = std::string("");
+//        a->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
+////TBD: not finished, see cases not treated in TransmateFormatCodes (gdlgstream.cpp)
+//        (*axisTicknameVect)[iname]=out;
+//      }
     }
 
   }
@@ -1710,12 +1713,15 @@ namespace lib {
     static GDL_MULTIAXISTICKDATA muaxdata;
 
     static GDL_TICKDATA tdata;
+    tdata.a=a;
     tdata.isLog=Log;
     tdata.axisrange=abs(End-Start);
 
+    data.a=a;
     data.nTickName=0;
     data.axisrange=abs(End-Start);
     muaxdata.e=e;
+    muaxdata.a=a;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
@@ -1999,10 +2005,10 @@ namespace lib {
 
   static bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog)
   {
+    gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, "X", xStart, xEnd, xLog);
     gdlAxis(e, a, "Y", yStart, yEnd, yLog);
     // title and sub title
-    gdlWriteTitleAndSubtitle(e, a);
     return true;
   }
   static bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0, DDouble NormedLength=0)
@@ -2016,12 +2022,15 @@ namespace lib {
     static GDL_MULTIAXISTICKDATA muaxdata;
 
     static GDL_TICKDATA tdata;
+    tdata.a=a;
     tdata.isLog=Log;
     tdata.axisrange=abs(End-Start);
 
+    data.a=a;
     data.nTickName=0;
     data.axisrange=abs(End-Start);
     muaxdata.e=e;
+    muaxdata.a=a;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;

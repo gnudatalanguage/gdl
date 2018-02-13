@@ -91,7 +91,7 @@ public:
   
   //GD: overloading scmap0 to accelerate plots for X11 and possibly others
 
- void SetColorMap0(const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol0) {
+ void SetColorMap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0) {
  } //DO NOTHING!
  //GD probably impossible to avoid plplot's XAllocColor for contours (since plcol is called inside driver) unless
  //we make our own contouring function (quite easy in fact). 

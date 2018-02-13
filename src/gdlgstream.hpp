@@ -52,7 +52,39 @@
 const double MMToINCH = 0.039370078 ; // 1./2.54;
 
 using namespace std;
-
+static std::string internalFontCodes[] = {
+    "#fn",      // !0  : unused
+    "#fn",      // !1  : unused
+    "#fn",      // !2  : unused
+    "#fn",      // !3  : simplex Roman (default)
+    "#fn",      // !4  : simplex Greek
+    "#fn",      // !5  : duplex Roman
+    "#fr",      // !6  : complex Roman
+    "#fr",      // !7  : complex Greek
+    "#fi",      // !8  : complex italic 
+    "#fn",      // !9  : math/special characters
+    "#fn",      // !10 : special characters
+    "#fn",      // !11 : Gothic English 
+    "#fs",      // !12 : simplex script
+    "#fs",      // !13 : complex script
+    "#fn",      // !14 : Gothic Italian
+    "#fn",      // !15 : Gothic German
+    "#fn",      // !16 : Cyrillic
+    "#fr",      // !17 : triplex Roman
+    "#fi",      // !18 : triplex Italic
+    "#fn",      // !19 : 
+    "#fn",      // !20 : miscellaneous
+    "#fn",      // !21 :
+    "#fn",      // !22 :
+    "#fn",      // !23 :
+    "#fn",      // !24 :
+    "#fn",      // !25 :
+    "#fn",      // !26 :
+    "#fn",      // !27 :
+    "#fn",      // !28 :
+    "#fn",      // !29 :
+  };
+  
 // Graphic Structures:
 //  typedef struct _P_GRAPHICS {
 //    DLong background;
@@ -161,10 +193,11 @@ protected:
   DFloat thickFactor;
   PLFLT theCurrentSymSize;
   bool usedAsPixmap; //for WINDOW,/PIXMAP retains the fact that this is a pixmap (invisible) window.
+  int activeFontCodeNum; //simplex Roman by default.
 public:
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
-    : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0), usedAsPixmap(false)
+    : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0), usedAsPixmap(false), activeFontCodeNum(3)
   {
     if (!checkPlplotDriver(driver))
       ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
@@ -235,7 +268,10 @@ public:
 
     return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
   }
-
+   std::string getActiveFontCode(){
+   return internalFontCodes[activeFontCodeNum];
+  }
+  
   static void SetErrorHandlers();
 
   virtual void Init()=0;
@@ -804,10 +840,12 @@ public:
   }
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
-  bool TranslateFormatCodes(const char *text, std::string &out);
+  std::string TranslateFormatCodes(const char *text);
   void setSymbolSize( PLFLT scale );
   PLFLT getSymbolSize();
   void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
+                         const char *text);
+  void mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text);
@@ -871,16 +909,16 @@ public:
 
   //GD: enables overloading scmap0,1... to accelerate plots for X11 and possibly others
   // Set color map 0 colors by 8 bit RGB values
-  virtual void SetColorMap0( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol0 ) {
+  virtual void SetColorMap0( PLINT *r, PLINT *g, PLINT *b, PLINT ncol0 ) {
    plstream::scmap0( r, g, b, ncol0);
   }
   // Set color map 1 colors by 8 bit RGB values
-  virtual void SetColorMap1( const PLINT *r, const PLINT *g, const PLINT *b, PLINT ncol1 ) {
+  virtual void SetColorMap1( PLINT *r, PLINT *g, PLINT *b, PLINT ncol1 ) {
    plstream::scmap1( r, g, b, ncol1);
   }
   // Set color map 1 colors using a piece-wise linear relationship between
   // intensity [0,1] (cmap 1 index) and position in HLS or RGB color space.
-  virtual void SetColorMap1l( bool itype, PLINT npts, const PLFLT *intensity, const PLFLT *coord1, const PLFLT *coord2, const PLFLT *coord3, const bool *rev = NULL ) {
+  virtual void SetColorMap1l( bool itype, PLINT npts, PLFLT *intensity, PLFLT *coord1, PLFLT *coord2, PLFLT *coord3, const bool *rev = NULL ) {
    plstream::scmap1l(itype,npts,intensity,coord1,coord2,coord3,rev);
   }
   // Set number of colors in cmap 1

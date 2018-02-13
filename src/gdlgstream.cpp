@@ -320,7 +320,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 }
 
 // SA: embedded font attributes handling (IDL to plPlot syntax translation)
-bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out) 
+ std::string GDLGStream::TranslateFormatCodes(const char *in) 
 {
   bool debug = false;
   static char errmsg[] = "Invalid graphtext command: ...!  ";
@@ -337,48 +337,17 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
   size_t len = strlen(in);
 
   // skip conversion if the string is empty
-  if (len == 0) return false;
-
-  const std::string fonts[] = {
-    "#fn",      // !0  : unused
-    "#fn",      // !1  : unused
-    "#fn",      // !2  : unused
-    "#fn",      // !3  : simplex Roman (default)
-    "#fn",      // !4  : simplex Greek
-    "#fn",      // !5  : duplex Roman
-    "#fr",      // !6  : complex Roman
-    "#fr",      // !7  : complex Greek
-    "#fi",      // !8  : complex italic 
-    "#fn",      // !9  : math/special characters
-    "#fn",      // !10 : special characters
-    "#fn",      // !11 : Gothic English 
-    "#fs",      // !12 : simplex script
-    "#fs",      // !13 : complex script
-    "#fn",      // !14 : Gothic Italian
-    "#fn",      // !15 : Gothic German
-    "#fn",      // !16 : Cyrillic
-    "#fr",      // !17 : triplex Roman
-    "#fi",      // !18 : triplex Italic
-    "#fn",      // !19 : 
-    "#fn",      // !20 : miscellaneous
-    "#fn",      // !21 :
-    "#fn",      // !22 :
-    "#fn",      // !23 :
-    "#fn",      // !24 :
-    "#fn",      // !25 :
-    "#fn",      // !26 :
-    "#fn",      // !27 :
-    "#fn",      // !28 :
-    "#fn",      // !29 :
-  };
+  if (len == 0) return "";
 
   const int default_fnt = 3;
+//no, take current value, initialized to 3. was:  activeFontCodeNum = default_fnt; // (current font number from the above table)
   int curr_fnt = default_fnt; // (current font number from the above table)
   int next_fnt = default_fnt; // (next letter font - same as curr_fnt save for the case of !G, !W and !M commands)
   int curr_lev = 0; // (incremented with #u, decremented with #d)
   int curr_pos = 0; // (current position in string)
   int save_pos = 0; // (position in string used in !S/!R save/restore)
-//  std::string out = std::string("");
+
+  std::string out = std::string(internalFontCodes[activeFontCodeNum]);
 
   for (size_t i = 0; i < len; i++) {
     if (in[i] == '!' && in[i + 1] != '!')
@@ -401,7 +370,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
             case '8' : // !18 : Triplex Italic
             case '9' : // !19 : 
               j++; 
-              out += fonts[curr_fnt = next_fnt = 10 - 48 + in[i + 2]]; 
+              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 10 - 48 + in[i + 2]]; 
               break;
             default : // illegal command / end of string
               errmsg[errmsglen - 2] = in[i + 1];
@@ -426,7 +395,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
             case '8' :
             case '9' :
               j++;
-              out += fonts[curr_fnt = next_fnt = 20 - 48 + in[i + 2]];
+              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 20 - 48 + in[i + 2]];
               break;
             default : // illegal command / end of string
               errmsg[errmsglen - 2] = in[i + 1];
@@ -444,7 +413,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
         case '7' : // complex greek
         case '8' : // complex italic
         case '9' : // Math/special characters
-          out += fonts[next_fnt = curr_fnt = in[i + 1] - 48];
+          out += internalFontCodes[next_fnt = curr_fnt = activeFontCodeNum = in[i + 1] - 48];
           break;
 
         case 'M' : case 'm' : // one Math/special character
@@ -462,7 +431,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
           break;
 
         case 'X' : case 'x' : // reversion to entry font 
-          out += fonts[curr_fnt = next_fnt = default_fnt];
+          out += internalFontCodes[curr_fnt = next_fnt = default_fnt];
           break;
 
         case 'S' : case 's' : // save position
@@ -492,7 +461,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
             else out += "#u", curr_lev++;
           }
           // assumed from examples in documentation
-          if (in[i + 1] == 'N' || in[i + 1] == 'n') out += fonts[curr_fnt = next_fnt = default_fnt];
+          if (in[i + 1] == 'N' || in[i + 1] == 'n') out += internalFontCodes[curr_fnt = next_fnt = default_fnt];
           break;
         case 'A' : case 'a' : case 'U' : case 'u' : // superscript
         case 'E' : case 'e' : // exponent
@@ -559,13 +528,13 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
       // handling plplot number sign escape '##'
       if 
       (
-        curr_fnt !=  9 && 
-        curr_fnt != 10 && 
-        curr_fnt != 16 && 
-        curr_fnt != 20 && 
+        activeFontCodeNum !=  9 && 
+        activeFontCodeNum != 10 && 
+        activeFontCodeNum != 16 && 
+        activeFontCodeNum != 20 && 
         in[i] == '#'
       ) out += "##"; 
-      else switch (curr_fnt)
+      else switch (activeFontCodeNum)
       {
         case 9 : // math symbols
           switch (in[i])
@@ -596,22 +565,22 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
             case 'P' : out += "#(2147)"; break; // phi
             case 'p' : 
               out += "#fsp"; 
-              out += fonts[curr_fnt];    break; // p script
+              out += internalFontCodes[activeFontCodeNum];    break; // p script
             case 'q' : 
               out += "#fsq"; 
-              out += fonts[curr_fnt];    break; // q script
+              out += internalFontCodes[activeFontCodeNum];    break; // q script
             case ':' : out += "#(2240)"; break; // equal by definition sign
             case '.' : out += "#(850)";  break; // filled dot
             case 'B' : out += "#(841)";  break; // empty square
             case 'F' : 
               out += "#fsF"; 
-              out += fonts[curr_fnt];    break; // F script
+              out += internalFontCodes[activeFontCodeNum];    break; // F script
             case 'J' : out += "#(2269)"; break; // closed path integral
             case 'O' : out += "#(2277)"; break; // 'upper' cross sign
             case 'o' : out += "#(2278)"; break; // double cross sign
             case 'j' : 
               out += "#fsj"; 
-              out += fonts[curr_fnt];    break; // j italic
+              out += internalFontCodes[activeFontCodeNum];    break; // j italic
             case 's' : out += "#(687)";  break; // some greek zig-zag 
             case 't' : 
               out += "#fs#(634)";        break; // theta-like greek zig-zag 
@@ -868,7 +837,7 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
             case 189u : out += "#(261)"; break; // 1/2
             case 190u : out += "#(271)"; break; // 3/4
             case 215u : out += "#(846)"; break; // cross sign
-            case 223u : out += "#fs#gb"; out += fonts[curr_fnt]; break; // beta script
+            case 223u : out += "#fs#gb"; out += internalFontCodes[curr_fnt]; break; // beta script
             default : 
               out.append(in, i, 1);
               break;
@@ -881,10 +850,10 @@ bool GDLGStream::TranslateFormatCodes(const char *in, std::string & out)
       curr_fnt = next_fnt;
     }
   }  
-
+  return out;
 retrn:
   if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
-  return true; 
+  return ""; 
 }
 
 void GDLGStream::setSymbolSize( PLFLT scale )
@@ -898,15 +867,18 @@ PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
 void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                        const char *text)
 {
-  std::string out = std::string("");
-  if (TranslateFormatCodes(text,out)) plstream::mtex(side,disp,pos,just,out.c_str());
+  plstream::mtex(side,disp,pos,just,TranslateFormatCodes(text).c_str());
 }
 
+void GDLGStream::mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
+                       const char *text)
+{
+  plstream::mtex3(side,disp,pos,just,TranslateFormatCodes(text).c_str());
+}
 void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                        const char *text)
 {
-  std::string out = std::string("");
-  if (TranslateFormatCodes(text,out)) plstream::ptex(x,y,dx,dy,just,out.c_str());
+  plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text).c_str());
 }
 
 void GDLGStream::schr( PLFLT def, PLFLT scale )

@@ -1229,6 +1229,9 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
+    //copy current font change and offset label(! danger)!
+    strncpy(label,ptr->a->getActiveFontCode().c_str(),4);
+    label+=3;
     //special cases, since plplot gives approximate zero values, not strict zeros.
     if (!(ptr->isLog) && (sgn*value<ptr->axisrange*1e-6)) 
     {
@@ -1449,6 +1452,10 @@ namespace lib
         else snprintf( label, length, "%g", value );
       }
     }
+    //translate format codes (as in mtex).
+    std::string out = ptr->a->TranslateFormatCodes(label);
+    strncpy(label,out.c_str(),out.length());
+
     internalIndex++;
   }
 
@@ -1466,6 +1473,10 @@ namespace lib
     {
       snprintf( label, length, "%s", ((*ptr->TickName)[ptr->counter]).c_str() );
     }
+    //translate format codes (as in mtex).
+    std::string out = ptr->a->TranslateFormatCodes(label);
+    strncpy(label,out.c_str(),out.length());
+
     ptr->counter++;
   }
 
