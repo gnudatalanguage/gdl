@@ -18,6 +18,8 @@ pro TEST_MAKE_DLL, no_exit=no_exit, help=help, test=test, debug=debug, $
 ;
 radical='test_make_dll'
 ;
+errors=0
+;
 info=ROUTINE_INFO(radical, /source)
 in_dir=FILE_DIRNAME(info.path)+PATH_SEP()
 ;

@@ -42,13 +42,13 @@ if KEYWORD_SET(verbose) then begin
     print, 'Value of >>new_errors<<   : ', new_errors
 endif
 ;
-if ISA(cumul_errors) then begin
-    if ISA(new_errors) then begin
+if (SIZE(cumul_errors, /type) GT 0) then begin
+    if (SIZE(new_errors, /type) GT 0) then begin
         cumul_errors=cumul_errors+new_errors
     endif
     ;; nothing to add if "new_errors" not defined
 endif else begin
-    if ISA(new_errors) then begin
+    if (SIZE(new_errors, /type) GT 0) then begin
         cumul_errors=new_errors
     endif
 endelse
@@ -59,7 +59,11 @@ endif
 ;
 ; debug mode
 DEFSYSV, '!cumul', exist=exist
-if (exist) then if ISA(cumul_errors) then cumul_errors++ else cumul_errors=1
+if (exist) then begin
+   if (!cumul GT 0) then begin
+      if (SIZE(cumul_errors,/type) GT 0) then cumul_errors++ else cumul_errors=1
+   endif
+endif
 ;
 if KEYWORD_SET(verbose) then begin
     print, 'NEW Value of >>cumul_errors<< : ', cumul_errors

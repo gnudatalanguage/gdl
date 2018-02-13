@@ -18,6 +18,7 @@ pro ERRORS_RESET, cumul_errors, nb_errors, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro ERRORS_RESET, cumul_errors, nb_errors, verbose=verbose, help=help'
+   return
 endif
 ;
 if N_PARAMS() NE 2 then begin
@@ -28,18 +29,18 @@ endif
 if KEYWORD_SET(verbose) then print, cumul_errors, nb_errors
 ;
 ; it would be surprising if "nb_errors" don't have a value ...
-if ~ISA(nb_errors) then $
+if (SIZE(nb_errors, /type) EQ 0) then $
    MESSAGE, /continue, 'Please check why Nb_Errors is not defined ...'
 ;
 ; it is *not* surprining that "cumul_errors" may be undefined
 ;
-if ISA(cumul_errors) then begin
-   if ISA(nb_errors) then begin
+if (SIZE(cumul_errors, /type) GT 0) then begin
+   if (SIZE(nb_errors, /type) GT 0) then begin
       cumul_errors=cumul_errors+nb_errors
    endif
    ;; no else needed, no change to "cumul_errors"
 endif else begin
-  if ISA(nb_errors) then cumul_errors=nb_errors else cumul_errors=0
+   if (SIZE(nb_errors, /type) GT 0) then cumul_errors=nb_errors else cumul_errors=0
 endelse
 ;
 ; reset the running "nb_errors" number

@@ -18,26 +18,32 @@
 ; 
 ; -----------------------------------------------
 ;
-pro ERRORS_ADD, nb_errors, message
+pro ERRORS_ADD, nb_errors, message, help=help
 ;
-if N_PARAMS() NE 2 then begin
+if KEYWORD_SET(help) then begin
+   print, 'pro ERRORS_ADD, nb_errors, message, help=help'
+   return
+endif
+;
+; at least one param !
+;
+if N_PARAMS() LT 1 then begin
    print, 'Usage : pro ERRORS_ADD, nb_errors, message'
    return
 endif
 ;
-if ISA(message) then begin
-   txt=STRING(message) 
-endif else begin
+if (SIZE(message,/type) EQ 0) then 
    MESSAGE, /continue, 'We advice to defined a message !'
    txt='Missing Message !'
-endelse
+endif
+txt=STRING(message) 
 ;
 MESSAGE, level=-1, 'Error on operation : '+txt, /continue
 ;
 ; we will have to change this code for old IDL versions
 ; (no ISA before 8)
 ;
-if ISA(nb_errors) then nb_errors=nb_errors+1 else nb_errors=1
+if (SIZE(nb_errors,/type) GT 0) then nb_errors=nb_errors+1 else nb_errors=1
 ;
 end
 

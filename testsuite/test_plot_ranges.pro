@@ -19,8 +19,7 @@ x=FINDGEN(10)
 extended_ranges=[-0.001,0.,0.001]
 expected=[[-2.,10],[0,10],[0,10]]
 ;
-if KEYWORD_SET(negative) then begin
-   
+if KEYWORD_SET(negative) then begin   
    x=-x
    expected=[[-10.,0],[-10,0],[-10,2]]
    sign='**NEGATIVE**'
@@ -38,17 +37,20 @@ for ii=0, N_ELEMENTS(extended_ranges)-1 do begin
    endif
    ;;
    if ~ARRAY_EQUAL(expected[*,ii], !y.crange) then begin
-      ADD_ERROR, nb_errors, STRCOMPRESS(message+sign+' : '+string(ii))
+      ERRORS_ADD, nb_errors, STRCOMPRESS(message+sign+' : '+string(ii))
    endif
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_PLOT_YRANGES '+sign, nb_errors, /short, verb=verbose
+txt='TEST_PLOT_YRANGES '
+BANNER_FOR_TESTSUITE, txt+sign, nb_errors, pref=txt, /short, verb=verbose
 ;
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
+;
+; -------------------------------------------
 ;
 pro TEST_PLOT_RANGES, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
@@ -59,7 +61,7 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 TEST_PLOT_YRANGES, nb_errors
-TEST_PLOT_YRANGES, nb_errors,/negative
+TEST_PLOT_YRANGES, nb_errors, /negative
 ;
 ; ----------------- final message ----------
 ;
