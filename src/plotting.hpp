@@ -380,6 +380,7 @@ namespace lib {
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
 			   DDouble yEnd, bool xLog, bool yLog);
   gdlSavebox* getSaveBox();
+  void gdlSimpleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlSingleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
@@ -1934,7 +1935,7 @@ namespace lib {
       else
       {
 #if (HAVE_PLPLOT_SLABELFUNC)
-        a->slabelfunc( doOurOwnFormat, &tdata );
+        a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
@@ -2180,7 +2181,7 @@ namespace lib {
       else
       {
 #if (HAVE_PLPLOT_SLABELFUNC)
-        a->slabelfunc( doOurOwnFormat, &tdata );
+        a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
 #endif
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);

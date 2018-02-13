@@ -1229,9 +1229,6 @@ namespace lib
     int ns;
     char *i;
     int sgn=(value<0)?-1:1;
-    //copy current font change and offset label(! danger)!
-    strncpy(label,ptr->a->getActiveFontCode().c_str(),4);
-    label+=3;
     //special cases, since plplot gives approximate zero values, not strict zeros.
     if (!(ptr->isLog) && (sgn*value<ptr->axisrange*1e-6)) 
     {
@@ -1262,7 +1259,7 @@ namespace lib
       if (i==(test+ns-1)) {*i='\0'; ns--;}
       if (ptr->isLog) snprintf( label, length, specialfmtlog.c_str(),test);
       else
-      strncpy(label, test, length);
+      strcpy(label, test);
     }
     else
     {
@@ -1348,6 +1345,15 @@ namespace lib
 	  }
   return res;
   }
+  //just a wrapper for doOurOwnFormat() adding general font code translation.
+  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  {
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
+    doOurOwnFormat(axis, value, label, length, data);
+    //translate format codes (as in mtex).
+    std::string out = ptr->a->TranslateFormatCodes(label);
+    strcpy(label,out.c_str());
+  }
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
@@ -1358,6 +1364,7 @@ namespace lib
     PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )data;
+    tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
     if (ptr->counter != lastUnits)
     {
@@ -1454,7 +1461,7 @@ namespace lib
     }
     //translate format codes (as in mtex).
     std::string out = ptr->a->TranslateFormatCodes(label);
-    strncpy(label,out.c_str(),out.length());
+    strcpy(label,out.c_str());
 
     internalIndex++;
   }
@@ -1475,7 +1482,8 @@ namespace lib
     }
     //translate format codes (as in mtex).
     std::string out = ptr->a->TranslateFormatCodes(label);
-    strncpy(label,out.c_str(),out.length());
+    strcpy(label,out.c_str());
+    
 
     ptr->counter++;
   }

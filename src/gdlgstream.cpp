@@ -849,7 +849,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
       }
       curr_fnt = next_fnt;
     }
-  }  
+  }
   return out;
 retrn:
   if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
