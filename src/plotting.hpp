@@ -530,7 +530,7 @@ namespace lib {
 
     if ( Struct!=NULL )
     {
-      static unsigned tickTag=Struct->Desc()->TagIndex("TICKS");
+      unsigned tickTag=Struct->Desc()->TagIndex("TICKS");
       nticks=(*static_cast<DLongGDL*>(Struct->GetTag(tickTag, 0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, nticks);
@@ -570,7 +570,7 @@ namespace lib {
 
     if ( Struct!=NULL )
     {
-      static unsigned charsizeTag=Struct->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
+      unsigned charsizeTag=Struct->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
       DFloat axisCharsizeMultiplier=(*static_cast<DFloatGDL*>(Struct->GetTag(charsizeTag, 0)))[0];
       e->AssureFloatScalarKWIfPresent(choosenIx, axisCharsizeMultiplier); //option [XYZ]CHARSIZE overloads ![XYZ].CHARSIZE
       if (axisCharsizeMultiplier>0.0) charsize*=axisCharsizeMultiplier; //IDL Behaviour...
@@ -604,7 +604,7 @@ namespace lib {
 
     if ( Struct!=NULL )
     {
-      static unsigned gridstyleTag=Struct->Desc()->TagIndex("GRIDSTYLE");
+      unsigned gridstyleTag=Struct->Desc()->TagIndex("GRIDSTYLE");
       axisGridstyle=(*static_cast<DLongGDL*>(Struct->GetTag(gridstyleTag, 0)))[0];
       e->AssureLongScalarKWIfPresent(choosenIx, axisGridstyle);
     }
@@ -654,7 +654,7 @@ namespace lib {
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZMINORIx; }
    if ( Struct!=NULL )
     {
-      static unsigned AxisMinorTag=Struct->Desc()->TagIndex("MINOR");
+      unsigned AxisMinorTag=Struct->Desc()->TagIndex("MINOR");
       axisMinor=(*static_cast<DLongGDL*>(Struct->GetTag(AxisMinorTag,0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisMinor);
@@ -673,7 +673,7 @@ namespace lib {
     if ( Struct!=NULL )
     {
       DDouble test1, test2;
-      static unsigned rangeTag=Struct->Desc()->TagIndex("RANGE");
+      unsigned rangeTag=Struct->Desc()->TagIndex("RANGE");
       test1=(*static_cast<DDoubleGDL*>(Struct->GetTag(rangeTag, 0)))[0];
       test2=(*static_cast<DDoubleGDL*>(Struct->GetTag(rangeTag, 0)))[1];
       if ( !((test1-test2)==0.0) )
@@ -758,7 +758,7 @@ namespace lib {
 
    if ( Struct!=NULL )
     {
-      static unsigned AxisTickformatTag=Struct->Desc()->TagIndex("TICKFORMAT");
+      unsigned AxisTickformatTag=Struct->Desc()->TagIndex("TICKFORMAT");
       axisTickformatVect = static_cast<DStringGDL*>(Struct->GetTag(AxisTickformatTag,0));
     }
     if ( e->GetKW ( choosenIx )!=NULL )
@@ -829,7 +829,7 @@ namespace lib {
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKLENIx; }
     if ( Struct!=NULL )
     {
-      static unsigned ticklenTag=Struct->Desc()->TagIndex("TICKLEN");
+      unsigned ticklenTag=Struct->Desc()->TagIndex("TICKLEN");
       DFloat axisTicklen=(*static_cast<DFloatGDL*>(Struct->GetTag(ticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
       e->AssureFloatScalarKWIfPresent(choosenIx, axisTicklen); //overriden by kw
       if (axisTicklen!=0.0) ticklen=axisTicklen;
@@ -849,7 +849,7 @@ namespace lib {
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKNAMEIx; }
     if ( Struct!=NULL )
     {
-      static unsigned AxisTicknameTag=Struct->Desc()->TagIndex("TICKNAME");
+      unsigned AxisTicknameTag=Struct->Desc()->TagIndex("TICKNAME");
       axisTicknameVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTicknameTag,0));
     }
     if ( e->GetKW ( choosenIx )!=NULL )
@@ -901,7 +901,7 @@ namespace lib {
     DStringGDL* axisTickunitsVect=NULL;
     if ( Struct!=NULL )
     {
-      static unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
+      unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTickunitsTag,0));
     }
     if ( e->GetKW ( choosenIx )!=NULL )
@@ -931,7 +931,7 @@ namespace lib {
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
    if ( Struct!=NULL )
     {
-      static unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
+      unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTickunitsTag,0));
     }
     if ( e->GetKW ( choosenIx )!=NULL )
@@ -952,7 +952,7 @@ namespace lib {
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKVIx; }
     if ( Struct!=NULL )
     {
-      static unsigned AxisTickvTag=Struct->Desc()->TagIndex("TICKV");
+      unsigned AxisTickvTag=Struct->Desc()->TagIndex("TICKV");
       axisTickvVect=static_cast<DDoubleGDL*>(Struct->GetTag(AxisTickvTag,0));
 
     }
@@ -975,7 +975,7 @@ namespace lib {
 
     if ( Struct!=NULL )
     {
-      static unsigned titleTag=Struct->Desc()->TagIndex("TITLE");
+      unsigned titleTag=Struct->Desc()->TagIndex("TITLE");
       title=
       (*static_cast<DStringGDL*>(Struct->GetTag(titleTag, 0)))[0];
     }
@@ -1038,8 +1038,8 @@ namespace lib {
   
   static void gdlWriteTitleAndSubtitle(EnvT* e, GDLGStream *a)
   {
-    static unsigned titleTag=SysVar::P()->Desc()->TagIndex("TITLE");
-    static unsigned subTitleTag=SysVar::P()->Desc()->TagIndex("SUBTITLE");
+    unsigned titleTag=SysVar::P()->Desc()->TagIndex("TITLE");
+    unsigned subTitleTag=SysVar::P()->Desc()->TagIndex("SUBTITLE");
     DString title=(*static_cast<DStringGDL*>(SysVar::P()->GetTag(titleTag, 0)))[0];
     DString subTitle=(*static_cast<DStringGDL*>(SysVar::P()->GetTag(subTitleTag, 0)))[0];
 
@@ -1070,7 +1070,7 @@ namespace lib {
   {
     //no explict range given?
     DDouble test1, test2;
-    static unsigned rangeTag=SysVar::Y()->Desc()->TagIndex("RANGE");
+    unsigned rangeTag=SysVar::Y()->Desc()->TagIndex("RANGE");
     test1=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[0];
     test2=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[1];
     if(!(test1==0.0 && test2==0.0)) return TRUE;
@@ -1191,12 +1191,12 @@ namespace lib {
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
     gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-    PLFLT scl=actStream->nCharWidth(); //current char width
-    xML=xMarginL*scl; //margin as percentage of subpage
-    xMR=xMarginR*scl;
-    scl=actStream->nCharHeight(); //current char height
-    yMB=(yMarginB)*scl;
-    yMT=(yMarginT)*scl;
+    PLFLT sclx=actStream->nCharWidth(); //current char width
+    xML=xMarginL*sclx; //margin as percentage of subpage
+    xMR=xMarginR*sclx;
+    PLFLT scly=actStream->nLineSpacing();
+    yMB=(yMarginB)*scly;
+    yMT=(yMarginT)*scly;
 
     if ( xML+xMR>=1.0 )
     {
@@ -1219,9 +1219,9 @@ namespace lib {
     if ( pStruct!=NULL )
     {
       
-      static unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
+      unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
       for ( SizeT i=0; i<4; ++i ) regionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(regionTag, 0)))[i];
-      static unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
+      unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
       for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(positionTag, 0)))[i];
     }
     if (regionP[0]!=regionP[2] && positionP[0]==positionP[2]) //if not ignored, and will be used, as 
@@ -1229,9 +1229,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
+        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();//nCharHeight();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
+        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();//nCharHeight();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1316,9 +1316,9 @@ namespace lib {
     //compute world Charsize
     PLFLT xb, xe, yb, ye;
     xb=xmin-xMarginL*actStream->wCharLength();
-    xe=xmax+xMarginR*actStream->wCharLength();
+    xe=xmax+xMarginR*actStream->wLineSpacing();
     yb=ymin-yMarginB*actStream->wCharHeight();
-    ye=ymax-yMarginT*actStream->wCharHeight();
+    ye=ymax-yMarginT*actStream->wLineSpacing();
     actStream->wind(xb, xe, yb, ye);
 
 
@@ -1385,9 +1385,9 @@ namespace lib {
     if ( pStruct!=NULL )
     {
       
-      static unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
+      unsigned regionTag=pStruct->Desc()->TagIndex("REGION");
       for ( SizeT i=0; i<4; ++i ) regionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(regionTag, 0)))[i];
-      static unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
+      unsigned positionTag=pStruct->Desc()->TagIndex("POSITION");
       for ( SizeT i=0; i<4; ++i ) positionP[i]=(PLFLT)(*static_cast<DFloatGDL*>(pStruct->GetTag(positionTag, 0)))[i];
     }
     if (regionP[0]!=regionP[2] && positionP[0]==positionP[2]) //if not ignored, and will be used, as 
@@ -1395,9 +1395,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
+        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
+        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1847,7 +1847,8 @@ namespace lib {
           if (axis=="X") 
           {
             a->smaj(a->mmCharHeight(), 1.0 );
-            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
+//            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
+            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
             DString what=StrUpCase((*TickUnits)[i]);
             int convcode=0;
             if (what.substr(0,4)=="YEAR") convcode=1;
