@@ -294,10 +294,7 @@ namespace lib {
   
   BaseGDL* call_external( EnvT* e)
   {
-const int i = 1;
-#define is_littlendian() ( (*(char*)&i) != 0 )
-
-DString image, entry;
+    DString image, entry;
     static std::string s;
     SizeT myAlign      = defaultAlign;
     DType myReturnType = GDL_UNDEF;
@@ -460,18 +457,6 @@ DString image, entry;
 	else {					// By reference (default)
         if (NumericType(pType) || pType == GDL_PTR || pType == GDL_OBJ)
         {
-          if (upgrade[i - 2] && (par->N_Elements() < 2) && is_littlendian()) //apparently IDL widens non-arrays passed by reference. 
-            //This costs nothing and is inocuous, but saves some troubles. It cannot be done for arrays, though.
-            //NB: IDL does not go as to convert back to short ints if this passed value was changed in the called C code.
-          { //will fail for big-endian, in which case: pray!
-            if (pType == GDL_INT) {
-              DLongGDL * newint = e->GetParAs<DLongGDL>(i); //by def this is a copy since the types are different. Hence the Guard.
-              argv[i - 2] = (void*) newint->DataAddr();
-            } else if (pType == GDL_UINT) {
-              DULongGDL * newuint = e->GetParAs<DULongGDL>(i); //by def this is a copy since the types are different. Hence the Guard.
-              argv[i - 2] = (void*) newuint->DataAddr();
-            }
-          } else
           argv[i - 2] = (void*) par->DataAddr();
         }
 	    else if (pType == GDL_STRING) {
