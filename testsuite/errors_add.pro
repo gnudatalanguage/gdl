@@ -32,7 +32,7 @@ if N_PARAMS() LT 1 then begin
    return
 endif
 ;
-if (SIZE(message,/type) EQ 0) then 
+if (SIZE(message,/type) EQ 0) then begin
    MESSAGE, /continue, 'We advice to defined a message !'
    txt='Missing Message !'
 endif

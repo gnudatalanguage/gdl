@@ -70,7 +70,7 @@ if KEYWORD_SET(lowercase) then begin
 endif
 ;
 if KEYWORD_SET(verbose) or KEYWORD_SET(names) then begin
-   print, format='(A11,A6, A6)', 'Type :', 'val.', 'size', 'name' 
+   print, format='(A11,A6, A6, A6)', 'Type :', 'val.', 'size', 'name' 
    for ii=0, N_ELEMENTS(list_numeric_names)-1 do begin
       print, format='(A1,A8,A2,2i6,A6)',' ',list_numeric_names[ii], ':', $
              list_numeric_types[ii], list_numeric_size[ii], list_names[ii]

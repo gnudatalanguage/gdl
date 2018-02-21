@@ -32,7 +32,11 @@ ON_ERROR, 2
 ;
 DEFSYSV, '!save_restore', exist=exist
 if (exist EQ 1) then begin
-   if (!save_restore EQ 1) then return
+   if (!save_restore EQ 1) then begin
+      if KEYWORD_SET(verbose) then $
+         print, 'Flag <<!save_restore>> already active, with status : ', !save_restore
+      return
+   endif
    flag_sr=!save_restore
 endif else begin
    flag_sr=0

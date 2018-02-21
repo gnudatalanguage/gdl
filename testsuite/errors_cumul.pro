@@ -27,11 +27,11 @@ pro ERRORS_CUMUL, cumul_errors, new_errors, help=help, $
 ;
 if KEYWORD_SET(debug) then begin
     DEFSYSV, '!cumul', 1
-    MESSAGE, /continue, 'Fake error will be added now'
+    MESSAGE, /continue, 'Fake error has be added now'
     return
 endif
 ;
-if N_PARAMS() NE 2 then begin
+if KEYWORD_SET(help) OR (N_PARAMS() NE 2) then begin
     print, 'Usage : pro ERRORS_CUMUL, cumul_errors, new_errors, help=help, $'
     print, '                          debug=debug, verbose=verbose, test=test'
     return
