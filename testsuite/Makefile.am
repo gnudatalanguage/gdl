@@ -146,6 +146,7 @@ TESTS = \
   test_null.pro \
   test_obj_isa.pro \
   test_obj_new.pro \
+  test_parse_url.pro \
   test_plot_oo.pro \
   test_plot_ranges.pro \
   test_plotting_ranges.pro \
@@ -194,7 +195,6 @@ TESTS = \
   test_trisol.pro \
   test_tv.pro \
   test_typename.pro \
-  test_url.pro \
   test_voigt.pro \
   test_wait.pro \
   test_wavelet.pro \
