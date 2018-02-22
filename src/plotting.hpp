@@ -1194,7 +1194,8 @@ namespace lib {
     PLFLT sclx=actStream->nCharWidth(); //current char width
     xML=xMarginL*sclx; //margin as percentage of subpage
     xMR=xMarginR*sclx;
-    PLFLT scly=actStream->nLineSpacing();
+    PLFLT scly=actStream->nCharHeight();
+//    PLFLT scly=actStream->nLineSpacing();
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly;
 
@@ -1229,9 +1230,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();//nCharHeight();
+        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight(); //nLineSpacing();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();//nCharHeight();
+        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight(); //nLineSpacing();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1316,9 +1317,9 @@ namespace lib {
     //compute world Charsize
     PLFLT xb, xe, yb, ye;
     xb=xmin-xMarginL*actStream->wCharLength();
-    xe=xmax+xMarginR*actStream->wLineSpacing();
+    xe=xmax+xMarginR*actStream->wCharLength(); //xe=xmax+xMarginR*actStream->wLineSpacing();
     yb=ymin-yMarginB*actStream->wCharHeight();
-    ye=ymax-yMarginT*actStream->wLineSpacing();
+    ye=ymax-yMarginT*actStream->wCharHeight(); //ye=ymax-yMarginT*actStream->wLineSpacing();
     actStream->wind(xb, xe, yb, ye);
 
 
@@ -1395,9 +1396,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
+        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();//positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
+        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();//positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1848,7 +1849,7 @@ namespace lib {
           {
             a->smaj(a->mmCharHeight(), 1.0 );
 //            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
-            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
+a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->getLineSpacing()),quatre);//            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
             DString what=StrUpCase((*TickUnits)[i]);
             int convcode=0;
             if (what.substr(0,4)=="YEAR") convcode=1;
