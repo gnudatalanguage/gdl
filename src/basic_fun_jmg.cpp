@@ -432,6 +432,9 @@ namespace lib {
       vType = p0->Type();
     }
 
+    bool forceL64=false;
+    if (nEl > 2147483647UL) forceL64=true;
+
     bool isObjectContainer = false;
     if( vType == GDL_OBJ)
       {
@@ -463,14 +466,14 @@ namespace lib {
     // DIMENSIONS
     if( e->KeywordSet( dimIx)) { 
       if( LogicalRank == 0) {
-	if( e->KeywordSet(L64Ix))
+	if( e->KeywordSet(L64Ix) || forceL64)
 	  return new DLong64GDL( 0);
 	else
 	  return new DLongGDL( 0);
       }
       dimension dim( LogicalRank);
 
-      if( e->KeywordSet(L64Ix)) { // L64
+      if( e->KeywordSet(L64Ix) || forceL64) { // L64
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
 	(*res)[0] = 0;
 	for( SizeT i=0; i<Rank; ++i) (*res)[ i] = p0->Dim(i);
@@ -503,10 +506,9 @@ namespace lib {
 
     //N_ELEMENTS
     if( e->KeywordSet(N_ELEMENTSIx)) { 
-      
-      if( e->KeywordSet(0))
-	return new DULongGDL( nEl);
-      else
+      if( e->KeywordSet(L64Ix) || forceL64)
+	return new DLong64GDL(nEl);
+      else 
 	return new DLongGDL( nEl);
     }
 
@@ -515,7 +517,7 @@ namespace lib {
 
       DStructGDL* res;
 
-      if (e->KeywordSet(L64Ix)) {
+      if (e->KeywordSet(L64Ix) || forceL64 ) {
 	res = new DStructGDL( "IDL_SIZE64");
       } else {
 	res = new DStructGDL( "IDL_SIZE");
@@ -544,7 +546,7 @@ namespace lib {
       res->InitTag("STRUCTURE_NAME", DStringGDL(sname));
       res->InitTag("TYPE", DIntGDL(vType));
       res->InitTag("FILE_LUN", DIntGDL(0));
-      if (e->KeywordSet(L64Ix)) {
+      if (e->KeywordSet(L64Ix) || forceL64) {
 	res->InitTag("FILE_OFFSET", DLong64GDL(0));
 	res->InitTag("N_ELEMENTS",  DLong64GDL(nEl));
       } else {
@@ -554,7 +556,7 @@ namespace lib {
       res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
 
       // Initialize dimension values to 0
-      if (e->KeywordSet(L64Ix)) {
+      if (e->KeywordSet(L64Ix) || forceL64 ) {
 	DLong64GDL *dims_res = new DLong64GDL(dimension(MAXRANK), BaseGDL::ZERO);
 	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
 	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
@@ -596,7 +598,7 @@ namespace lib {
 
     dimension dim( 3 + LogicalRank);
     
-    if( e->KeywordSet(L64Ix)) {
+    if( e->KeywordSet(L64Ix) || forceL64 ) {
       DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
       (*res)[ 0] = LogicalRank;
       for( SizeT i=0; i<Rank; ++i) (*res)[ i+1] = p0->Dim(i);
