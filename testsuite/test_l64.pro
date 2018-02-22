@@ -1,0 +1,111 @@
+;
+; Under GNU GPL V3 or later
+;
+; AC 2018-Feb-22 during a MIRI workshop at IAP
+;
+; Several bugs related to /L64 found,
+; thanks to the use of WHERE( ..., /L64) by a colleague.
+;
+; ---------------------------------
+; 
+; Modifications history :
+;
+; - 2018-01-22 : AC. creation. Ideas welcome ...
+;
+; ---------------------------------
+;
+pro TEST_L64_SIZE, cumul_errors, array_2pow32, test=test
+;
+nb_errors=0
+txt1=' : bad self-promotion into L64'
+txt2=' : bad forced-promotion into L64'
+;
+; First we test the auto-promotion into L64
+; which should happen because the size of the array
+; is above "Max Long"
+;
+if (TYPENAME(SIZE(array_2pow32)) NE 'LONG64') then begin
+   ERRORS_ADD, nb_errors, 'bad TYPENAME for SIZE'+txt1
+endif
+if (TYPENAME(SIZE(array_2pow32, /l64)) NE 'LONG64') then begin
+   ERRORS_ADD, nb_errors, 'bad TYPENAME for SIZE'+txt2
+endif
+;
+expected_size=[1LL,4294967296LL,1LL,4294967296LL]
+;
+if ~ARRAY_EQUAL(expected_size,SIZE(array_2pow32),/no_typeconv) then begin
+   ERRORS_ADD, nb_errors, 'bad value inside SIZE'+txt1
+endif
+;
+if ~ARRAY_EQUAL(expected_size,SIZE(array_2pow32, /l64),/no_typeconv) then begin
+   ERRORS_ADD, nb_errors, 'bad value inside SIZE'+txt2
+endif
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_L64_SIZE', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------
+; AC : I don't have more idea now ... help welcome !
+; very basic test on N_ELEMENTS()
+; Should auto/self promote into L64 if the size is above Max Long
+;
+pro TEST_L64_N_ELEMENTS, cumul_errors, the_array, test=test
+;
+nb_errors=0
+txt1=' : bad self-promotion into L64'
+;
+get_nbp=N_ELEMENTS(the_array)
+;
+nbp=4294967296ll
+;
+if (TYPENAME(get_nbp) NE 'LONG64') then begin
+   ERRORS_ADD, nb_errors, 'bad TYPENAME for N_ELEMENTS'+txt1
+endif
+if (get_nbp NE nbp) then begin
+   ERRORS_ADD, nb_errors, 'bad value for N_ELEMENTS'+txt1
+endif
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_L64_N_ELEMENTS', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------
+;
+pro TEST_L64, help=help, test=test, no_exit=no_exit, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_L64, help=help, test=test, $'
+   print, '              no_exit=no_exit, verbose=verbose'
+   return
+endif
+;
+print, 'Be patient, this code will allocate LARGE arrays (2LL^32 size)'
+print, 'The code may fail or swap if not enough memory'
+;
+cumul_errors=0
+;
+; creating the array
+;
+array_2pow32=bytarr(2LL^32)
+;
+TEST_L64_SIZE, cumul_errors, array_2pow32, test=test
+TEST_L64_N_ELEMENTS, cumul_errors, array_2pow32, test=test
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_L64', cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
+end

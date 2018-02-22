@@ -6,12 +6,16 @@
 ; bug 1 reported after 0.9.7 delivery
 ; bug 2 reported by Marteen R on Dec 13, 2017
 ;
+; ------------------------
+;
 ; Modifications history :
 ; - 2017-12-14 : AC. initial version
+; - 2018-02-22 : AC : a test on self-promotion in L64 when needed is
+;   in "test_l64.pro"
 ;
 ; ------------------------
 ; reported by Giloo in 2015-10-30
-; https://sourceforge.net/p/gnudatalanguage/bugs/675/
+; https://sourceforge.net/p/gnudatalanguage/bugs/675/ 
 ;
 pro TEST_BUG_675, cumul_errors, verbose=verbose, $
                   help=help, test=test, debug=debug
@@ -39,9 +43,7 @@ if ~res then ADD_ERROR, nb_errors, 'bad assigantion [0]'
 ; -----------
 ;
 BANNER_FOR_TESTSUITE, 'TEST_BUG_675', nb_errors, /short
-;
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -52,6 +54,8 @@ pro TEST_SIZE_STRUCTURE, cumul_errors, verbose=verbose, $
                          help=help, test=test, debug=debug
 ;
 ; note by AC: yes I have a snippet somewhere (;-;)
+BANNER_FOR_TESTSUITE, 'TEST_SIZE_STRUCTURE', $
+                      'missing code, please fix it !', /wide
 ;
 end
 ;
@@ -104,9 +108,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
 endfor
 ;
 BANNER_FOR_TESTSUITE, 'TEST_SIZE_ARRAY', nb_errors, /short
-;
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -114,11 +116,11 @@ end
 ; ------------------------
 ;
 pro TEST_SIZE, no_exit=no_exit, verbose=verbose, $
-                     help=help, test=test, debug=debug
+               help=help, test=test, debug=debug
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro TEST_SIZE, no_exit=no_exit, verbose=verbose, $'
-    print, '                     help=help, test=test, debug=debug, $'
+    print, '               help=help, test=test, debug=debug, $'
     return
 endif
 ;
