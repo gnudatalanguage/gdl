@@ -16,6 +16,8 @@
 ;
 pro TEST_L64_SIZE, cumul_errors, array_2pow32, test=test
 ;
+if ~ISA(array_2pow32) then MESSAGE, 'input array be defined before'
+;
 nb_errors=0
 txt1=' : bad self-promotion into L64'
 txt2=' : bad forced-promotion into L64'
@@ -41,6 +43,20 @@ if ~ARRAY_EQUAL(expected_size,SIZE(array_2pow32, /l64),/no_typeconv) then begin
    ERRORS_ADD, nb_errors, 'bad value inside SIZE'+txt2
 endif
 ;
+; testing SIZE( /n_elements) ...
+;
+exp_nbp64=4294967296LL
+;
+res1=SIZE(array_2pow32, /n_elements)
+res2=SIZE(array_2pow32, /n_elements, /l64)
+;
+if (TYPENAME(res1) NE 'LONG64') then ERRORS_ADD, nb_errors, 'bad type case 1'
+if (TYPENAME(res2) NE 'LONG64') then ERRORS_ADD, nb_errors, 'bad type case 2'
+if ~ARRAY_EQUAL(res1,exp_nbp64,/no_typeconv) then $
+   ERRORS_ADD, nb_errors, 'bad value case 1 (SIZE(/n_elem))'
+if ~ARRAY_EQUAL(res2,exp_nbp64,/no_typeconv) then $
+   ERRORS_ADD, nb_errors, 'bad value case 2 (SIZE(/n_elem))'
+;
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_L64_SIZE', nb_errors, /short
@@ -56,6 +72,8 @@ end
 ;
 pro TEST_L64_N_ELEMENTS, cumul_errors, the_array, test=test
 ;
+if ~ISA(the_array) then MESSAGE, 'input array be defined before'
+;
 nb_errors=0
 txt1=' : bad self-promotion into L64'
 ;
@@ -68,6 +86,17 @@ if (TYPENAME(get_nbp) NE 'LONG64') then begin
 endif
 if (get_nbp NE nbp) then begin
    ERRORS_ADD, nb_errors, 'bad value for N_ELEMENTS'+txt1
+endif
+;
+; the same using "CALL_FUNCTION" which is a special case for ()N_ELEMENTS
+;
+get_nbp_cf=CALL_FUNCTION('N_ELEMENTS', the_array)
+;
+if (TYPENAME(get_nbp_cf) NE 'LONG64') then begin
+   ERRORS_ADD, nb_errors, 'bad TYPENAME for CALL_FUNCTION & N_ELEMENTS'+txt1
+endif
+if (get_nbp_cf NE nbp) then begin
+   ERRORS_ADD, nb_errors, 'bad value for CALL_FUNCTION & N_ELEMENTS'+txt1
 endif
 ;
 ; ----- final ----
@@ -97,8 +126,8 @@ cumul_errors=0
 ;
 array_2pow32=bytarr(2LL^32)
 ;
-TEST_L64_SIZE, cumul_errors, array_2pow32, test=test
-TEST_L64_N_ELEMENTS, cumul_errors, array_2pow32, test=test
+TEST_L64_SIZE, cumul_errors, array_2pow32
+TEST_L64_N_ELEMENTS, cumul_errors, array_2pow32
 ;
 ; ----------------- final message ----------
 ;
