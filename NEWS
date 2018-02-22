@@ -674,3 +674,11 @@
            - Experimental: calling GDL with option "--fussy" or setting the environment variable "GDL_IS_FUSSY"
              enforces the STRICTARR compiling scheme (array index always between "[]"). This generally speeds up
              procedure compilation.
+
+0.9.8
+          - internal SAVE and RESTORE
+          - better L64 support (N_ELEMENTS, SIZE)
+          - better TOTAL for large numbers or special types
+	  - update RANDOM ...
+          - revisited MAKE_DLL & CALL_EXTERNAL
+	  
