@@ -3129,7 +3129,10 @@ BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
         if( param->IsAssoc())
             return new DLongGDL( 1);
 
-        return new DLongGDL( param->N_Elements());
+	if (param->N_Elements() > 2147483647UL) 
+	  return new DLong64GDL( param->N_Elements()); 
+	else 
+	  return new DLongGDL( param->N_Elements()); 
     }
     catch( GDLException& e)
     {

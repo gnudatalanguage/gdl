@@ -941,8 +941,11 @@ namespace lib {
     if( p0->IsAssoc())
       return new DLongGDL( 1);
      
-    return new DLongGDL( p0->N_Elements()); 
-    
+    if (p0->N_Elements() > 2147483647UL) 
+      return new DLong64GDL( p0->N_Elements()); 
+    else 
+      return new DLongGDL( p0->N_Elements()); 
+
     //     assert( 0);
     //     e->Throw("Internal error: lib::n_elements called.");
     //     return NULL; // get rid of compiler warning
