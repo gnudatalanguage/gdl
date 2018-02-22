@@ -1848,9 +1848,12 @@ namespace lib {
           if (axis=="X") 
           {
             a->smaj(a->mmCharHeight(), 1.0 );
-//            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
-a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->getLineSpacing()),quatre);//            a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
-            DString what=StrUpCase((*TickUnits)[i]);
+
+	    // AC: to be fix by GD
+// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
+// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->getLineSpacing()),quatre);
+// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
+	    DString what=StrUpCase((*TickUnits)[i]);
             int convcode=0;
             if (what.substr(0,4)=="YEAR") convcode=1;
             else if (what.substr(0,5)=="MONTH") convcode=2;
