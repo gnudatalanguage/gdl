@@ -1222,9 +1222,15 @@ namespace lib
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
-    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
-    static string specialfmt="10#u%d#d";
-    static string specialfmtlog="10#u%s#d";
+    //was:
+//    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
+//    static string specialfmt="10#u%d#d";
+//    static string specialfmtlog="10#u%s#d";
+    
+    //we need !3x!X to insure the x sign is always written in single roman.
+    static string normalfmt[7]={"%1.0f!3x!X10!E%d!N","%2.1f!3x!X10!E%d!N","%3.2f!3x!X10!E%d!N","%4.2f!3x!X10!E%d!N","%5.4f!3x!X10!E%d!N","%6.5f!3x!X10!E%d!N","%7.6f!3x!X10!E%d!N"};
+    static string specialfmt="10!E%d!N";
+    static string specialfmtlog="10!E%s!N";
     PLFLT z;
     int ns;
     char *i;
