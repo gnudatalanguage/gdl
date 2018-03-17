@@ -77,7 +77,7 @@ end
 ;------------------------------------------------
 ;
 pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $
-                          short=short, wide=wide, $
+                          short=short, wide=wide, line=line, noline=noline, $
                           help=help, test=test, verbose=verbose
 ;
 verbose=1
@@ -119,7 +119,7 @@ endelse
 if (help GT 0) then begin
    print, ''
    print, 'pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $'
-   print, '                          short=short, wide=wide, $'
+   print, '                          short=short, wide=wide, line=line, noline=noline, $'
    print, '                          help=help, test=test, verbose=verbose'
    print, ''
    print, 'both parameters are mandatory, second one must be a positive integer or a string'
@@ -177,19 +177,23 @@ endif
 ;
 lenght=STRLEN(message)
 sep ="="
-line=""
+ligne=""
 vide=" "
 blanc=""
 for ii=0,lenght-1 do begin
-   line=line+sep
+   ligne=ligne+sep
    blanc=blanc+vide
 endfor
 ;
-print, prefix, sep+line+sep
-if (isWide) then print, prefix, sep+blanc+sep
-print, prefix, sep+message+sep
-if (isWide) then print, prefix, sep+blanc+sep
-print, prefix, sep+line+sep
+if KEYWORD_SET(line) then begin
+   print, prefix, sep+ligne+sep 
+endif else begin
+   if ~KEYWORD_SET(noline) then print, prefix, sep+ligne+sep
+   if (isWide) then print, prefix, sep+blanc+sep
+   print, prefix, sep+message+sep
+   if (isWide) then print, prefix, sep+blanc+sep
+   if ~KEYWORD_SET(noline) then print, prefix, sep+ligne+sep
+endelse
 ;
 if KEYWORD_SET(test) then STOP
 ;
