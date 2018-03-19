@@ -33,7 +33,7 @@ if N_ELEMENTS(nb_iter_max) EQ 0 then nb_iter_max=1000
 Resu_mem=FLTARR(nb_iter_max)
 ;
 for i=0L, nb_iter_max-1 do begin
-    x += FFT(y)
+    x += FFT(y,-1)
     resu_mem[i]=(MEMORY())[0]
 endfor
 ;
@@ -56,7 +56,7 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 nb_pb=0
-;
+;; 
 for ii=0, 15 do begin
    if ii EQ 8 then CONTINUE   ;; Struc
    if ii EQ 10 then CONTINUE  ;; Pointer
