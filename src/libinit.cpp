@@ -505,9 +505,9 @@ void LibInit()
   const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
-  const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION",KLISTEND};
+  const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION","ABSOLUTE",KLISTEND};
   new DLibFunRetNew(lib::min_fun,string("MIN"),2,minKey,NULL,true);
-  const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN","DIMENSION",KLISTEND};
+  const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN","DIMENSION","ABSOLUTE",KLISTEND};
   new DLibFunRetNew(lib::max_fun,string("MAX"),2,maxKey,NULL,true);
 
   // retConstant: structs are tricky: struct resolution depends from !PATH

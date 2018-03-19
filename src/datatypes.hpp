@@ -175,7 +175,7 @@ static	void operator delete( void *ptr);
   // for use by MIN and MAX functions
   void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal,
 	       bool omitNaN, 
-               SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1);
+               SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1, bool useAbs = false);
   
   bool EqType( const BaseGDL* r) const;
 

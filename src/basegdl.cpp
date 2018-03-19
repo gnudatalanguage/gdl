@@ -91,9 +91,9 @@ BaseGDL* BaseGDL::Transpose( DUInt* perm)
   throw GDLException("BaseGDL::Transpose(...) called.");
 }
 
-void BaseGDL::MinMax( DLong* minE, DLong* maxE, 
-		      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
-		      SizeT start, SizeT stop, SizeT step, DLong valIx)
+void BaseGDL::MinMax(DLong* minE, DLong* maxE,
+              BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+              SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs)
 {
   throw GDLException("BaseGDL::MinMax(...) called.");
 }

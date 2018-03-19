@@ -94,7 +94,7 @@ BaseGDL* NullGDL::Transpose( DUInt* perm)
 
 void NullGDL::MinMax( DLong* minE, DLong* maxE, 
 		      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
-		      SizeT start, SizeT stop, SizeT step, DLong valIx)
+              SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs)
 {
   throw GDLException("NullGDL::MinMax(...) called.");
 }

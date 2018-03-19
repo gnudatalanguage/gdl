@@ -494,7 +494,7 @@ public:
 
   virtual void MinMax( DLong* minE, DLong* maxE, 
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
-		       SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1);
+               SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1, bool useAbs = false);
 
   virtual void Clear();
   virtual void Construct();

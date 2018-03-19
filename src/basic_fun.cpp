@@ -3467,6 +3467,9 @@ BaseGDL* where_fun(EnvT* e) {
     static int maxIx = e->KeywordIx("MAX");
     bool maxSet = e->KeywordPresent(maxIx);
 
+    static int absIx= e->KeywordIx("ABSOLUTE");
+    bool absSet = e->KeywordPresent(absIx);
+
     DLong searchDim;
     if (dimSet) {
       e->AssureLongScalarKW(dimIx, searchDim);
@@ -3517,7 +3520,7 @@ BaseGDL* where_fun(EnvT* e) {
               (subMax ? &((*maxElArr)[rIx]) : NULL),
               &resArr,
               (maxSet ? &maxVal : NULL),
-              omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+              omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
               );
             rIx++;
           }
@@ -3538,15 +3541,15 @@ BaseGDL* where_fun(EnvT* e) {
         e->AssureGlobalKW(0);
         GDLDelete(e->GetKW(0));
         DLong maxEl;
-        searchArr->MinMax(&minEl, &maxEl, &res, &e->GetKW(0), omitNaN);
+        searchArr->MinMax(&minEl, &maxEl, &res, &e->GetKW(0), omitNaN, 0, 0, 1, -1, absSet);
         if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
       } else // no MAX keyword
       {
         if (subMax) {
           DLong maxEl;
-          searchArr->MinMax(&minEl, &maxEl, &res, NULL, omitNaN);
+          searchArr->MinMax(&minEl, &maxEl, &res, NULL, omitNaN, 0, 0, 1, -1, absSet);
           e->SetKW(subIx, new DLongGDL(maxEl));
-        } else searchArr->MinMax(&minEl, NULL, &res, NULL, omitNaN);
+        } else searchArr->MinMax(&minEl, NULL, &res, NULL, omitNaN, 0, 0, 1, -1, absSet);
       }
 
       // handle index
@@ -3571,6 +3574,9 @@ BaseGDL* where_fun(EnvT* e) {
 
     static int minIx = e->KeywordIx("MIN");
     bool minSet = e->KeywordPresent(minIx);
+
+    static int absIx= e->KeywordIx("ABSOLUTE");
+    bool absSet = e->KeywordPresent(absIx);
 
     DLong searchDim;
     if (dimSet) {
@@ -3621,7 +3627,7 @@ BaseGDL* where_fun(EnvT* e) {
               (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
               (minSet ? &minVal : NULL),
               &resArr,
-              omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+              omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
               );
             rIx++;
           }
@@ -3641,15 +3647,15 @@ BaseGDL* where_fun(EnvT* e) {
         e->AssureGlobalKW(0);
         GDLDelete(e->GetKW(0));
         DLong minEl;
-        searchArr->MinMax(&minEl, &maxEl, &e->GetKW(0), &res, omitNaN);
+        searchArr->MinMax(&minEl, &maxEl, &e->GetKW(0), &res, omitNaN, 0, 0, 1, -1, absSet);
         if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
       } else // no MIN keyword
       {
         if (subMin) {
           DLong minEl;
-          searchArr->MinMax(&minEl, &maxEl, NULL, &res, omitNaN);
+          searchArr->MinMax(&minEl, &maxEl, NULL, &res, omitNaN, 0, 0, 1, -1, absSet);
           e->SetKW(subIx, new DLongGDL(minEl));
-        } else searchArr->MinMax(NULL, &maxEl, NULL, &res, omitNaN);
+        } else searchArr->MinMax(NULL, &maxEl, NULL, &res, omitNaN, 0, 0, 1, -1, absSet);
       }
 
       // handle index
