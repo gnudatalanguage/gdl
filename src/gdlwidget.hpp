@@ -587,7 +587,7 @@ public:
 		 const DString& title,
 		 const DString& display_name,
 		 DLong xpad, DLong ypad,
-		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment=wxALIGN_LEFT, long space=0, bool iscontextmenu=FALSE);
+		 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment=wxALIGN_LEFT, long space=0, bool iscontextmenu=false, bool isAGraphicWindow=false);
   
   ~GDLWidgetBase();
 
@@ -1396,6 +1396,7 @@ class GDLFrame : public wxFrame
 {
   enum {WINDOW_TIMER = wxID_HIGHEST, RESIZE_TIMER};
   bool mapped;
+  bool noFocus;
   wxSize frameSize;
   GDLApp* appOwner;
   GDLWidgetBase* gdlOwner;
@@ -1408,7 +1409,7 @@ class GDLFrame : public wxFrame
   friend class GDLWidgetBase;
 public:
   // ctor(s)
-  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition);
+  GDLFrame(GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title, const bool nofocus=false, const wxPoint& pos=wxDefaultPosition);
   ~GDLFrame();
 
   GDLApp* GetTheApp(){return appOwner;}
@@ -1416,6 +1417,7 @@ public:
   
   GDLWidgetBase* GetGDLOwner(){return gdlOwner;}
   bool IsMapped() const { return mapped;}
+  bool focusNotPermitted() const {return noFocus;}
   
   void SendWidgetTimerEvent(DDouble secs, WidgetIDT winId)
   {

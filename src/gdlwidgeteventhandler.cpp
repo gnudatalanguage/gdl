@@ -284,7 +284,12 @@ void GDLFrame::OnShowRequest( wxCommandEvent& event)
   if( !frame->IsShown())
   {
     widget->SetSizeHints(); //fundamental, insure main frame wrapping around widgets.
-    bool stat = frame->Show(true);
+//    //I though found it: how to not have the focus for graphic windows. But this has adverse effects. 
+//    if (frame->focusNotPermitted()) {
+//      frame->ShowWithoutActivating();
+//    }
+//    else 
+      bool stat = frame->Show(true);
   }
   event.Skip();
 }

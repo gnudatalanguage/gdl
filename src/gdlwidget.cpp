@@ -172,14 +172,14 @@ inline wxSize GDLWidgetList::computeWidgetSize()
   wxSize widgetSize = wxDefaultSize;
   if ( xSize > 0 ) {widgetSize.x = (xSize+0.5) * fontSize.x;if ( widgetSize.x < 20 ) widgetSize.x=20;}
   else {
-    widgetSize.x = (maxlinelength+0.5) * fontSize.x;
+    widgetSize.x = (maxlinelength+1.5) * fontSize.x;
     if ( widgetSize.x < 140 ) widgetSize.x=20* fontSize.x;
   }
 //but..
   if (scrXSize > 0) widgetSize.x=scrXSize;
   
   if ( ySize > 0 )  widgetSize.y = (ySize * 1.5 * fontSize.y); 
-  else widgetSize.y = fontSize.y+0.5; //instead of nlines*fontSize.y to be compliant with *DL
+  else widgetSize.y = fontSize.y+1.5; //instead of nlines*fontSize.y to be compliant with *DL
   if (widgetSize.y < 20) widgetSize.y = 20;
 //but..
    if (scrYSize > 0) widgetSize.y=scrYSize;
@@ -863,7 +863,7 @@ DStructGDL* GDLWidget::GetGeometry( wxRealPoint fact ) {
     title,
     "",
     0, 0,
-    -1, -1, false, 0, 0, false),
+    -1, -1, false, 0, 0, false, true),
    child(NULL)
 {
    GDLFrame* f=static_cast<GDLFrame*>(wxWidget);
@@ -884,7 +884,7 @@ const DString& resource_name, const DString& rname_mbar,
 const DString& title_,
 const DString& display_name,
 DLong xpad_, DLong ypad_,
-DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, long space_, bool iscontextmenu)
+DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, long space_, bool iscontextmenu, bool isagraphicwindow)
 : GDLWidgetContainer( parentID, e, eventFlags_, mapWid)
 , modal( modal_ )
 , mbarID( mBarIDInOut )
@@ -932,9 +932,9 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid, long children_alignment, lo
     wxString titleWxString = wxString( title_.c_str( ), wxConvUTF8 );
     GDLFrame *gdlFrame; 
     if (xOffset>-1&&yOffset>-1) {
-      gdlFrame = new GDLFrame( this, widgetID, titleWxString , wxPoint(xOffset,yOffset));
+      gdlFrame = new GDLFrame( this, widgetID, titleWxString , isagraphicwindow, wxPoint(xOffset,yOffset));
     } else {
-      gdlFrame = new GDLFrame( this, widgetID, titleWxString);
+      gdlFrame = new GDLFrame( this, widgetID, titleWxString, isagraphicwindow);
     }
 //it is the FRAME that manage all events. Here we dedicate particularly the tlb_* events:
 // note that we have the choice for Size Event Handler for Frames, but need to change also is widgets.cpp
@@ -4038,9 +4038,10 @@ UPDATE_WINDOW
 #endif
 // GDL widgets =====================================================
 // GDLFrame ========================================================
-GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos )
-: wxFrame( NULL, id, title, pos, wxDefaultSize, wxDEFAULT_FRAME_STYLE )
+GDLFrame::GDLFrame( GDLWidgetBase* gdlOwner_, wxWindowID id, const wxString& title , const bool nofocus, const wxPoint& pos )
+: wxFrame( NULL, id, title, pos, wxDefaultSize, (nofocus)? wxMINIMIZE_BOX|wxMAXIMIZE_BOX|wxCLOSE_BOX|wxFRAME_TOOL_WINDOW:wxDEFAULT_FRAME_STYLE )
 , mapped( false )
+, noFocus ( nofocus ) //for graphic windows. They do not have focus. Never.
 , frameSize(wxSize(0,0))
 , gdlOwner( gdlOwner_)
 , appOwner(NULL)
@@ -4109,7 +4110,12 @@ void GDLDrawPanel::Resize(int sizex, int sizey)
 {
   if (pstreamP != NULL)
   {
+// not useful as long we recreate a wxstream!    
 //    pstreamP->SetSize(sizex,sizey);
+    
+//The following should not be necessary . It is a bad idea to create a new stream, but font size handling
+//with plplot's wx implementation that is too awkward to do anything else now.
+    
   //get a new stream with good dimensions. Only possibility (better than resize) to have correct size of fonts and symbols.
     GDLWXStream * newStream =  new GDLWXStream(sizex, sizey);
   // replace old by new, called function destroys old:
