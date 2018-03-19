@@ -189,6 +189,8 @@ namespace lib {
       DDoubleGDL* direction = 
 	static_cast<DDoubleGDL*>(p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
+      //remove this copy that eats memory!
+      Guard<BaseGDL> guard_direction(direction);
     }
 
     if( e->KeywordSet(0)) dbl = 1;
@@ -206,11 +208,10 @@ namespace lib {
 
       DComplexDblGDL *p0C;
 
-      Guard<BaseGDL> guard_p0C;
 
       if( p0->Type() != GDL_COMPLEXDBL) {
-	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
-        guard_p0C.Init(p0C); 
+	  p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
+      Guard<BaseGDL> guard_p0C( p0C);
       } else
       {
 	  if( overwrite)
