@@ -136,21 +136,21 @@ class DevicePS: public GraphicsDevice
     actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
    //in case these are not initalized, here is a good place to do it.
-    if (actStream->updatePageInfo()==true)
-    {
-        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-    }
-    PLFLT xp, yp;
-    PLINT xleng, yleng, xoff, yoff;
-    actStream->gpage(xp, yp, xleng, yleng, xoff, yoff);
-    // to mimic IDL we must scale char so that the A4 charsize is constant whatever the size of the plot
-    PLFLT size = (XPageSize>YPageSize)?XPageSize:YPageSize;
-    PLFLT refsize= (xleng/xp>yleng/yp)?xleng/xp:yleng/yp;
-    PLFLT charScale=(refsize*in2cm)/size;
-    PLFLT defhmm, scalhmm;
-    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-    actStream->RenewPlplotDefaultCharsize(defhmm * charScale);
+//    if (actStream->updatePageInfo()==true)
+//    {
+//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
+//
+//    }
+//    PLFLT xp, yp;
+//    PLINT xleng, yleng, xoff, yoff;
+//    actStream->gpage(xp, yp, xleng, yleng, xoff, yoff);
+//    // to mimic IDL we must scale char so that the A4 charsize is constant whatever the size of the plot
+//    PLFLT size = (XPageSize>YPageSize)?XPageSize:YPageSize;
+//    PLFLT refsize= (xleng/xp>yleng/yp)?xleng/xp:yleng/yp;
+//    PLFLT charScale=(refsize*in2cm)/size;
+//    PLFLT defhmm, scalhmm;
+//    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+//    actStream->RenewPlplotDefaultCharsize(defhmm * charScale);
   }
     
 private:
@@ -497,8 +497,8 @@ public:
     dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*RESOL));
     dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*RESOL));
     dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*RESOL));
-    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 360));
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 360));
+    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 222));
+    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 352));
     dStruct->InitTag("X_PX_CM",    DFloatGDL( RESOL)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( RESOL)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
