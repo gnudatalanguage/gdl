@@ -105,6 +105,7 @@ enum ORIENTATION3D
     GDLGStream *a;
     bool isLog;
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
+    double nchars; //length of string *returned* after formatting. Can be non-integer.
   };
 
   struct GDL_TICKNAMEDATA
@@ -115,6 +116,7 @@ enum ORIENTATION3D
     DStringGDL* TickName;
     bool isLog;
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
+    double nchars; //length of string *returned* after formatting. Can be non-integer.
   };
 
   struct GDL_MULTIAXISTICKDATA
@@ -131,6 +133,7 @@ enum ORIENTATION3D
     DStringGDL* TickUnits;
     bool isLog;
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
+    double nchars; //length of string *returned* after formatting. Can be non-integer.
   };
   
   typedef struct GDL_SAVEBOX {
@@ -370,7 +373,7 @@ namespace lib {
   void gdlStoreCLIP(DLongGDL* clipBox);
   void GetCurrentUserLimits(GDLGStream *a, 
 			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
-  PLFLT gdlAdjustAxisRange(DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
+  PLFLT gdlAdjustAxisRange(EnvT* e, string axis, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
@@ -380,8 +383,9 @@ namespace lib {
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
 			   DDouble yEnd, bool xLog, bool yLog);
   gdlSavebox* getSaveBox();
+  gdlSavebox* getTempBox();
   void gdlSimpleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
-  void gdlSingleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
 //
@@ -886,9 +890,14 @@ namespace lib {
                 (Struct->Desc()->TagIndex("TICKS"), 0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisTicks);
+    if (axisTicks > 59) e->Throw("Value of number of ticks is out of allowed range.");
   }
   
-  static void gdlGetCalendarCode(EnvT* e, string axis, int &code)
+  
+  //if axis tick units is specified, first tickunit determines how the automatic limits are computed.
+  // for example, if tickunits=['year','day'] the limits will be on a round nuber of years.
+  // This is conveyed by the code
+  static int gdlGetCalendarCode(EnvT* e, string axis)
   {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
@@ -908,15 +917,17 @@ namespace lib {
     {
       axisTickunitsVect=e->GetKWAs<DStringGDL>( choosenIx );
     }
-    code=0;
+    int code=0;
     DString what=StrUpCase((*axisTickunitsVect)[0]);
     if (what.substr(0,4)=="YEAR") code=1;
     else if (what.substr(0,5)=="MONTH") code=2;
     else if (what.substr(0,3)=="DAY") code=3;
+    else if (what.substr(0,7)=="NUMERIC") code=3;
     else if (what.substr(0,4)=="HOUR") code=4;
     else if (what.substr(0,6)=="MINUTE") code=5;
     else if (what.substr(0,6)=="SECOND") code=6;
     else if (what.substr(0,4)=="TIME") code=7;
+    return code;
   }
  
  static void gdlGetDesiredAxisTickUnits(EnvT* e, string axis, DStringGDL* &axisTickunitsVect)
@@ -938,7 +949,7 @@ namespace lib {
     {
       axisTickunitsVect=e->GetKWAs<DStringGDL>( choosenIx );
     }
-  }
+      }
 
   static void gdlGetDesiredAxisTickv(EnvT* e, string axis, DDoubleGDL* axisTickvVect)
   {
@@ -1061,7 +1072,8 @@ namespace lib {
     if (!subTitle.empty()) 
     {
       e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
-      a->mtex("b", 5.4, 0.5, 0.5, subTitle.c_str());
+      DFloat step=a->mmLineSpacing()/a->mmCharHeight();
+      a->mtex("b", 5*step, 0.5, 0.5, subTitle.c_str());
     }
  }
   //call this function if Y data is strictly >0.
@@ -1191,11 +1203,10 @@ namespace lib {
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
     gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-    PLFLT sclx=actStream->nCharWidth(); //current char width
+    PLFLT sclx=actStream->nCharLength(); //current char width
     xML=xMarginL*sclx; //margin as percentage of subpage
     xMR=xMarginR*sclx;
-    PLFLT scly=actStream->nCharHeight();
-//    PLFLT scly=actStream->nLineSpacing();
+    PLFLT scly=actStream->nLineSpacing();
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly;
 
@@ -1229,10 +1240,10 @@ namespace lib {
                 //a surrogate of !P.Position:
     {
         //compute position removing margins
-        positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight(); //nLineSpacing();
-        positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight(); //nLineSpacing();
+        positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
+        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();//nCharHeight();
+        positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
+        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();//nCharHeight();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1317,9 +1328,9 @@ namespace lib {
     //compute world Charsize
     PLFLT xb, xe, yb, ye;
     xb=xmin-xMarginL*actStream->wCharLength();
-    xe=xmax+xMarginR*actStream->wCharLength(); //xe=xmax+xMarginR*actStream->wLineSpacing();
+    xe=xmax+xMarginR*actStream->wLineSpacing();
     yb=ymin-yMarginB*actStream->wCharHeight();
-    ye=ymax-yMarginT*actStream->wCharHeight(); //ye=ymax-yMarginT*actStream->wLineSpacing();
+    ye=ymax-yMarginT*actStream->wLineSpacing();
     actStream->wind(xb, xe, yb, ye);
 
 
@@ -1395,10 +1406,10 @@ namespace lib {
                 //a surrogate of !P.Position:
     {
         //compute position removing margins
-        positionP[0]=regionP[0]+xMarginL*actStream->nCharWidth();
-        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();//positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
-        positionP[2]=regionP[2]-xMarginR*actStream->nCharWidth();
-        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();//positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
+        positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
+        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
+        positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
+        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1739,12 +1750,8 @@ namespace lib {
     if (axis=="axisX") {axis="X"; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
     if (axis=="axisY") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
     
-//    DFloat Charsize; //done in gdlSetAxisCharsize() below
-//    gdlGetDesiredAxisCharsize(e, axis, Charsize);
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axis, GridStyle);
-//    DFloat MarginL, MarginR;
-//    gdlGetDesiredAxisMargin(e, axis, MarginL, MarginR);
     DLong Minor;
     gdlGetDesiredAxisMinor(e, axis, Minor);
     DLong Style;
@@ -1772,9 +1779,26 @@ namespace lib {
     
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
-
+    
+    //For labels we need ticklen in current character size, for ticks we need it in mm
+    DFloat ticklen_in_mm= TickLen;
+    if (TickLen<0) ticklen_in_mm*=-1;
+    //ticklen in a percentage of box x or y size, to be expressed in mm 
+    if (axis=="X") ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
+    if (axis=="Y") ticklen_in_mm=a->mmxPageSize()*(a->boxnXSize())*ticklen_in_mm;
+    DFloat ticklen_as_norm=(axis=="X")?a->mm2ndy(ticklen_in_mm):a->mm2ndx(ticklen_in_mm); //in normed coord
+    //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
+    DFloat interligne_as_char;
+    DFloat interligne_as_norm;
+    DFloat typical_char_size_mm= (axis=="X")?a->mmCharHeight():a->mmCharLength();
+    interligne_as_char=(axis=="X")?a->mmLineSpacing()/typical_char_size_mm:a->mmCharLength()/typical_char_size_mm; //in normed coord
+    interligne_as_norm=(axis=="X")?a->nLineSpacing():a->nCharLength(); //in normed coord
+    DFloat displacement_of_new_axis_as_norm=2*interligne_as_norm+ticklen_as_norm;
+    DFloat current_displacement=0;
+    DFloat title_position=0;
     if ( (Style&4)!=4 ) //if we write the axis...
     {
+      double nchars; //max number of chars written in label of axis. 
       string Opt;
       string otherOpt;
       if (TickInterval==0)
@@ -1782,22 +1806,13 @@ namespace lib {
         if (Ticks<=0) TickInterval=gdlComputeTickInterval(e, axis, Start, End, Log);
         else if (Ticks>1) TickInterval=(End-Start)/Ticks;
         else TickInterval=(End-Start);
+      } else { //check that tickinterval does not make more than 59 ticks:
+       if (abs((End-Start)/TickInterval) > 59) TickInterval=(End-Start)/59;
       }
       //first write labels only:
       gdlSetAxisCharsize(e, a, axis);
       gdlSetPlotCharthick(e, a);
-      // axis legend if box style, else do not draw. Take care writing BELOW/ABOVE all axis if tickunits present:actStream->wCharHeight()
-      DDouble displacement=(tickUnitArraySize>1)?2.5*tickUnitArraySize:0;
-      if (modifierCode==0 ||modifierCode==1)
-      {
-        if (axis=="X") a->mtex("b",3.5+displacement, 0.5, 0.5, Title.c_str());
-        else if (axis=="Y") a->mtex("l",5.0+displacement,0.5,0.5,Title.c_str());
-      }
-      else if (modifierCode==2)
-      {
-        if (axis=="X") a->mtex("t", 3.5+displacement, 0.5, 0.5, Title.c_str());
-        else if (axis=="Y") a->mtex("r",5.0+displacement,0.5,0.5,Title.c_str());
-      }
+
       //axis, 1st time: labels
       Opt="tvx";otherOpt="tv"; //draw major ticks "t" + v:values perp to Y axis + x:
       // the x option is in plplot 5.9.8 but not before. It permits
@@ -1808,15 +1823,18 @@ namespace lib {
       if (TickName->NBytes()>0) // /TICKNAME=[array]
       {
         data.counter=0;
+        data.nchars=0;
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
 #if (HAVE_PLPLOT_SLABELFUNC)
-        a->slabelfunc( gdlSingleAxisTickFunc, &data );
+        a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        nchars=data.nchars;
+        if (axis=="Y") title_position=nchars+2.5; else title_position=3.5;
 #if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
 #endif
@@ -1839,82 +1857,36 @@ namespace lib {
         Opt+="o";otherOpt+="o"; //use external func custom labeling
 #endif
         if (modifierCode==2) {Opt+="m"; otherOpt+="m";} else {Opt+="n"; otherOpt+="n";} //m: write numerical/right above, n: below/left (normal)
+        PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
+        a->getCurrentNormBox(un,deux,trois,quatre);
+        a->getCurrentWorldBox(xun,xdeux,xtrois,xquatre);
+        a->smaj(ticklen_in_mm, 1.0 );
         for (SizeT i=0; i< muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
         {
-          if (i>0) Opt=otherOpt+"bc"; //supplementary axes are to be wwritten with ticks, no smallticks;
-          PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
-          a->plstream::gvpd(un,deux,trois,quatre);
-          a->plstream::gvpw(xun,xdeux,xtrois,xquatre);
+          muaxdata.nchars=0; //set nchars to 0, at the end nchars will be the maximum size.
+          if (i>0) Opt=otherOpt+"b"; //supplementary axes are to be wwritten with ticks, no smallticks;
           if (axis=="X") 
           {
-            a->smaj(a->mmCharHeight(), 1.0 );
-
-	    // AC: to be fix by GD
-// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nCharHeight()),quatre);
-// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->getLineSpacing()),quatre);
-// a->plstream::vpor(un,deux,(PLFLT)(trois-i*3.5*a->nLineSpacing()),quatre);
-	    DString what=StrUpCase((*TickUnits)[i]);
-            int convcode=0;
-            if (what.substr(0,4)=="YEAR") convcode=1;
-            else if (what.substr(0,5)=="MONTH") convcode=2;
-            else if (what.substr(0,3)=="DAY") convcode=3;
-            else if (what.substr(0,4)=="HOUR") convcode=4;
-            else if (what.substr(0,6)=="MINUTE") convcode=5;
-            else if (what.substr(0,6)=="SECOND") convcode=6;
-            else if (what.substr(0,4)=="TIME")
-            {
-              if(muaxdata.axisrange>=366)  convcode=1;
-              else if(muaxdata.axisrange>=32)  convcode=2;
-              else if(muaxdata.axisrange>=1.1)  convcode=3;
-              else if(muaxdata.axisrange*24>=1.1)  convcode=4;
-              else if(muaxdata.axisrange*24*60>=1.1)  convcode=5;
-              else convcode=6;
-            }
-            PLFLT xa,xb;
-            switch(convcode){
-             case 1:
-              xa=xun/365.25;
-              xb=xdeux/365.25;
-              break;
-             case 2:
-              xa=xun/30.;
-              xb=xdeux/30.;
-              break;
-             case 3:
-              xa=xun;
-              xb=xdeux;
-              break;
-             case 4:
-              xa=xun*24.;
-              xb=xdeux*24.;
-              break;
-             case 5:
-              xa=xun*(24.*60.);
-              xb=xdeux*(24.*60.);
-              break;
-             case 6:
-              xa=xun*(86400.);
-              xb=xdeux*(86400.);
-              break;
-             default:
-              break;
-            }
-            a->plstream::wind(xa,xb,xtrois,xquatre);
-            a->box(Opt.c_str(), 0, Minor, "", 0.0, 0);
-            a->plstream::wind(xun,xdeux,xtrois,xquatre);
-            a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+            a->vpor(un,deux,trois-current_displacement,quatre);
+            a->wind(xun,xdeux,xtrois,xquatre);
+            a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+            title_position=current_displacement/a->nCharHeight()+3.5;
+            current_displacement+=displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
           }
           else if (axis=="Y") 
           {
-            a->smaj(a->mmCharLength(), 1.0 );
-            a->plstream::vpor(un-i*3*a->nCharWidth(),deux,trois,quatre);
-            a->plstream::wind(xun,xdeux,xtrois,xquatre);
-            a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+            a->vpor(un-current_displacement,deux,trois,quatre);
+            a->wind(xun,xdeux,xtrois,xquatre);
+            a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+            nchars=muaxdata.nchars;
+            title_position=current_displacement/a->nCharLength()+nchars+2.5;
+            current_displacement+=(nchars-1)*a->nCharLength(); //we'll skip what was written
+            current_displacement+=displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
           }
-          a->plstream::vpor(un,deux,trois,quatre);
-          a->plstream::wind(xun,xdeux,xtrois,xquatre);
           muaxdata.counter++;
         }
+        a->vpor(un,deux,trois,quatre);
+        a->wind(xun,xdeux,xtrois,xquatre);
 #if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
 #endif
@@ -1922,6 +1894,7 @@ namespace lib {
       else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
       {
         muaxdata.counter=0;
+        muaxdata.nchars=0;
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
         muaxdata.nTickFormat=1;
@@ -1932,7 +1905,8 @@ namespace lib {
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
-        
+        nchars=muaxdata.nchars;
+        if (axis=="Y") title_position=nchars+2; else title_position=3.5;
 #if (HAVE_PLPLOT_SLABELFUNC)        
         a->slabelfunc( NULL, NULL );
 #endif
@@ -1940,21 +1914,35 @@ namespace lib {
       else
       {
 #if (HAVE_PLPLOT_SLABELFUNC)
+        tdata.nchars=0;
         a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
 #endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        nchars=tdata.nchars;
+        if (axis=="Y") title_position=nchars+2; else title_position=3.5;
 #if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
 #endif
       }
+
+      if (modifierCode==0 ||modifierCode==1)
+      {
+        if (axis=="X") a->mtex("b",title_position, 0.5, 0.5, Title.c_str());
+        else if (axis=="Y") a->mtex("l",title_position,0.5,0.5,Title.c_str());
+      }
+      else if (modifierCode==2)
+      {
+        if (axis=="X") a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
+        else if (axis=="Y") a->mtex("r",title_position,0.5,0.5,Title.c_str());
+      }      
       
       if (TickLayout==0)
       {
-        a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-        a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
+        a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
+        a->smin(ticklen_in_mm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->Thick(Thick);
 
@@ -1972,17 +1960,11 @@ namespace lib {
           case 0:
             if ( (Style&8)==8 ) Opt+="b"; else Opt+="bc";
         }
-        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj (0.0, (PLFLT)TickLen); //relative value
-        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
         if ( Log ) Opt+="l";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
-        //reset ticks to default plplot value...
-        a->smaj( 3.0, 1.0 );//back to default values
-        a->smin( 1.5, 1.0 );
         //reset gridstyle
         gdlLineStyle(a,0);
         // pass over with outer box, with thick. No style applied, only ticks
@@ -2087,6 +2069,17 @@ namespace lib {
 
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
+    //For labels we need ticklen in current character size, for ticks we need it in mm
+    DFloat ticklen_in_mm= TickLen;
+    if (TickLen<0) ticklen_in_mm*=-1;
+    //ticklen in a percentage of box x or y size, to be expressed in mm 
+    if (axis=="X") ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
+    if (axis=="Y") ticklen_in_mm=a->mmyPageSize()*(a->boxnXSize())*ticklen_in_mm;
+    //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
+    DFloat interligne;
+    if (axis=="X") interligne=a->mmLineSpacing()/a->mmCharHeight(); //in units of character size      
+    if (axis=="Y") interligne=a->mmLineSpacing()/a->mmCharLength(); //in units of character size 
+
     if ( (Style&4)!=4 ) //if we write the axis...
     {
       if (TickInterval==0)
@@ -2121,7 +2114,7 @@ namespace lib {
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
 #if (HAVE_PLPLOT_SLABELFUNC)
-        a->slabelfunc( gdlSingleAxisTickFunc, &data );
+        a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
 #endif
         if      (axis=="X") a->box3(Opt.c_str(), "" , TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
@@ -2199,8 +2192,8 @@ namespace lib {
 
       if (TickLayout==0)
       {
-        a->smaj((PLFLT)OtherAxisSizeInMm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-        a->smin((PLFLT)OtherAxisSizeInMm/2.0,1.0); //idem min (plplt defaults)
+        a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
+        a->smin(ticklen_in_mm/2.0,1.0); //idem min (plplt defaults)
         //thick for box and ticks.
         a->Thick(Thick);
         
@@ -2208,20 +2201,13 @@ namespace lib {
         if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
         
-        //no modifier code...
-        
-        bool bloatsmall=(TickLen<0.3);
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        a->smaj (0.0, (PLFLT)TickLen); //relative value
-        if (bloatsmall) a->smin (0.0, (PLFLT)TickLen); else a->smin( 1.5, 1.0 );
         if ( Log ) Opt+="l";
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         //reset ticks to default plplot value...
-        a->smaj( 3.0, 1.0 );
-        a->smin( 1.5, 1.0 );
         //reset gridstyle
         gdlLineStyle(a,0);
         // pass over with outer box, with thick. No style applied, only ticks
