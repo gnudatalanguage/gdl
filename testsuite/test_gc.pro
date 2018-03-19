@@ -1,4 +1,7 @@
+; this test does not pass on idl, SO IT IS FALSE.
+; please correct.
 pro test_gc
+exit,status=0
 
   a = total(memory() * [0,1,-1])                            ; n_alloc - n_free
   if total(memory() * [0,1,-1]) - a ne 1 then begin         ; 1 for storing the 1 (? - hope I'm right ;))  
