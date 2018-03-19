@@ -49,7 +49,7 @@ public:
     wxMemoryDC* GetDC() const { return m_dc;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.
-    void SetSize( int width, int height );   //!< Set new size of plot area.
+//    void SetSize( int width, int height );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
     void SetGDLDrawPanel(GDLDrawPanel* w);

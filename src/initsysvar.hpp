@@ -45,7 +45,7 @@ namespace SysVar
   void UpdateSTime();
 
   // updates !D
-  void UpdateD();//long &xSize, long &ySize);
+//  void UpdateD();//long &xSize, long &ySize);
 
   DStructGDL* Version();
 

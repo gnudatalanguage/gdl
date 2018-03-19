@@ -82,11 +82,11 @@ class DeviceSVG : public GraphicsDevice
     actStream->vpor(0,1,0,1);
     actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
-   //in case these are not initalized, here is a good place to do it.
-    if (actStream->updatePageInfo()==true)
-    {
-        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-    }
+//   //in case these are not initalized, here is a good place to do it.
+//    if (actStream->updatePageInfo()==true)
+//    {
+//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
+//    }
   }
 
 public:
@@ -108,7 +108,7 @@ public:
     dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*SVG_RESOL)); 
     dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*SVG_RESOL)); 
     dStruct->InitTag("X_CH_SIZE",  DLongGDL( 0.25*scale*SVG_RESOL)); 
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 0.25*scale*SVG_RESOL)); 
+    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 1.5*0.25*scale*SVG_RESOL)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( SVG_RESOL)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( SVG_RESOL)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 16777216)); 

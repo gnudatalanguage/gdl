@@ -15,9 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-// try because of segfault in magick
-// #include "gdlgstream.hpp"
-
 #include "includefirst.hpp"
 
 #include <iostream>
@@ -186,26 +183,65 @@ void GDLGStream::DefaultBackground()
   GraphicsDevice::GetDevice()->SetDeviceBckColor( red, green, blue);
 }
 #undef WHITEB
-void GDLGStream::DefaultCharSize()
-{
-  DString name = (*static_cast<DStringGDL*>(
-    SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
-  ))[0];
-//values must be those that plplot think are good. Most of the time they are not.
-  if (name == "PS" || name=="SVG") schr( 2.5, 1.0);
-  else 
-#if defined(_WIN32)
-    schr(2.1, 1.4);  // from 1.5, 1.0 2014/09/18 //This is a feature of windows --- or of windows plplot -- to be confirmed.
-#else
-    schr(1.5, 1.0); //is 6 pixels because plplot supposes 4ppm, which is not always true and never exact.
-    //Note that IDL 1) write strings of characters a bit wider than plplot and 2) also wider than one would suppose
-    //based on the value of !D.X_CH_SIZE and !D.Y_CH_SIZE
-#endif
-  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_CH_SIZE"), 0)))[0]=
-  ceil(theCurrentChar.dsx);
-  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_CH_SIZE"), 0)))[0]=
-  ceil(theCurrentChar.dsx)*10.0/6.0;
+void GDLGStream::DefaultCharSize() {
+  DStructGDL* d = SysVar::D();
+  DStructDesc* s = d->Desc();
+  int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
+  int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
+  int X_PX_CM = s->TagIndex("X_PX_CM");
+  int Y_PX_CM = s->TagIndex("Y_PX_CM");
+  //  int NAME = s->TagIndex("NAME");
+  //  DString name = (*static_cast<DStringGDL*>(d->GetTag(NAME, 0)))[0];
+  ////values must be those that plplot think are good. Most of the time they are not.
+  //  if (name == "PS" || name=="SVG") schr( 2.5, 1.0, 2.5);
+  //  else {
+  //#if defined(_WIN32)
+  //    schr(2.1, 1.4, 2.1);  // from 1.5, 1.0 2014/09/18 //This is a feature of windows --- or of windows plplot -- to be confirmed.
+  //#else
+  DLong chx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
+  DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
+  DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
+  DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
+  DFloat xchsizemm = chx * CM_IN_MM / xpxcm;
+  DFloat linespacingmm = chy * CM_IN_MM / ypxcm;
+  schr(xchsizemm, 1.0, linespacingmm);
+  //#endif
+  //  }
 }
+  void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
+  {
+    plstream::schr(newMmSize, 1.0);
+    gdlDefaultCharInitialized=0;
+    GetPlplotDefaultCharSize();
+  }
+  
+  void GDLGStream::GetPlplotDefaultCharSize()
+  {
+        
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetPlPlotDefaultCharsize()\n");
+    if (thePage.nbPages==0)   {return;}
+    //dimensions in normalized, device and millimetres
+    if (gdlDefaultCharInitialized==1) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     Already initialized\n"); return;}
+    theDefaultChar.scale=1.0;
+    theDefaultChar.mmsx=pls->chrht; //millimeter
+    theDefaultChar.mmsy=pls->chrht;
+    theDefaultChar.ndsx=mm2ndx(theDefaultChar.mmsx); //normalized device
+    theDefaultChar.ndsy=mm2ndy(theDefaultChar.mmsy);
+    theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
+    theDefaultChar.dsx=theDefaultChar.ndsx*thePage.length;
+    theDefaultChar.mmspacing=theLineSpacing_in_mm;
+    theDefaultChar.nspacing=mm2ndy(theDefaultChar.mmspacing);
+    theDefaultChar.dspacing=theDefaultChar.nspacing*thePage.height;
+    theDefaultChar.wspacing=mm2wy(theDefaultChar.mmspacing);
+    
+    theDefaultChar.wsx=mm2wx(theDefaultChar.mmsx); //world
+    theDefaultChar.wsy=mm2wy(theDefaultChar.mmsy);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (mm)\n",theDefaultChar.mmsx   ,theDefaultChar.mmsy ,theDefaultChar.mmspacing);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (norm)\n",theDefaultChar.ndsx ,theDefaultChar.ndsy ,theDefaultChar.nspacing);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (dev)\n",theDefaultChar.dsx   ,theDefaultChar.dsy  ,theDefaultChar.dspacing);
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (world)\n",theDefaultChar.wsx ,theDefaultChar.wsy  ,theDefaultChar.wspacing);
+    gdlDefaultCharInitialized=1;
+  }
 
 void GDLGStream::NextPlot( bool erase )
 {
@@ -320,11 +356,13 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 }
 
 // SA: embedded font attributes handling (IDL to plPlot syntax translation)
- std::string GDLGStream::TranslateFormatCodes(const char *in) 
+ std::string GDLGStream::TranslateFormatCodes(const char *in, double *stringLength=NULL) 
 {
   bool debug = false;
-  static char errmsg[] = "Invalid graphtext command: ...!  ";
+  static char errmsg[] = "No such font:   ";
   static const size_t errmsglen = strlen(errmsg);
+  static double fact[]={1.,0.9,0.666,0.5,0.45,0.33,0.2};
+  double base=1.0;
 
   // TODO: 
   // - in IDL the D.FLAGS bit value ((!D.FLAGS AND 4096) EQ 0)
@@ -335,19 +373,19 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   // - ... a look-up table instead of the long switch/case blocks ...
  
   size_t len = strlen(in);
-
+  if (stringLength) *stringLength=0;
   // skip conversion if the string is empty
   if (len == 0) return "";
 
-  const int default_fnt = 3;
+
+  int default_fnt = activeFontCodeNum;
+  std::string out = std::string(internalFontCodes[default_fnt]);
 //no, take current value, initialized to 3. was:  activeFontCodeNum = default_fnt; // (current font number from the above table)
   int curr_fnt = default_fnt; // (current font number from the above table)
   int next_fnt = default_fnt; // (next letter font - same as curr_fnt save for the case of !G, !W and !M commands)
   int curr_lev = 0; // (incremented with #u, decremented with #d)
   int curr_pos = 0; // (current position in string)
   int save_pos = 0; // (position in string used in !S/!R save/restore)
-
-  std::string out = std::string(internalFontCodes[activeFontCodeNum]);
 
   for (size_t i = 0; i < len; i++) {
     if (in[i] == '!' && in[i + 1] != '!')
@@ -359,18 +397,27 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
         {
           switch (in[i + 2])
           {
+            case '6' : // !16 : Cyrillic
+              base=17./15.;//approx size of a hershey char with this font.
+              j++; 
+              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 10 - 48 + in[i + 2]];
+              break;
+            case '8' : // !18 : Triplex Italic
+              base=16.5/15.;//approx size of a hershey char with this font.
+              j++; 
+              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 10 - 48 + in[i + 2]];
+              break;
             case '0' : // !10 : Special characters
             case '1' : // !11 : Gothic English
             case '2' : // !12 : Simplex Script
             case '3' : // !13 : Complex Script
             case '4' : // !14 : Gothic Italian
             case '5' : // !15 : Gothic German
-            case '6' : // !16 : Cyrillic
             case '7' : // !17 : Triplex Roman
-            case '8' : // !18 : Triplex Italic
             case '9' : // !19 : 
+              base=1.0;
               j++; 
-              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 10 - 48 + in[i + 2]]; 
+              out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 10 - 48 + in[i + 2]];
               break;
             default : // illegal command / end of string
               errmsg[errmsglen - 2] = in[i + 1];
@@ -385,15 +432,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
           switch (in[i + 2])
           {
             case '0' : // !20 : Miscellaneous
-            case '1' :
-            case '2' :
-            case '3' :
-            case '4' :
-            case '5' :
-            case '6' :
-            case '7' :
-            case '8' :
-            case '9' :
+              base=17.5/15.;//approx size of a hershey char with this font.
               j++;
               out += internalFontCodes[activeFontCodeNum = curr_fnt = next_fnt = 20 - 48 + in[i + 2]];
               break;
@@ -406,14 +445,19 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
           break;
         }
 
+        case '7' : // complex greek
+        case '8' : // complex italic
+          base=16.5/15.; //approx size of a hershey char with these fonts.
+          out += internalFontCodes[activeFontCodeNum = next_fnt = curr_fnt = in[i + 1] - 48];
+          break;
+
         case '3' : // simplex roman
         case '4' : // greek script
         case '5' : // duplex roman
         case '6' : // complex roman
-        case '7' : // complex greek
-        case '8' : // complex italic
         case '9' : // Math/special characters
-          out += internalFontCodes[next_fnt = curr_fnt = activeFontCodeNum = in[i + 1] - 48];
+          base=1.0;
+          out += internalFontCodes[activeFontCodeNum = next_fnt = curr_fnt = in[i + 1] - 48];
           break;
 
         case 'M' : case 'm' : // one Math/special character
@@ -461,7 +505,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             else out += "#u", curr_lev++;
           }
           // assumed from examples in documentation
-          if (in[i + 1] == 'N' || in[i + 1] == 'n') out += internalFontCodes[curr_fnt = next_fnt = default_fnt];
+          //if (in[i + 1] == 'N' || in[i + 1] == 'n') out += internalFontCodes[curr_fnt = next_fnt = default_fnt];
           break;
         case 'A' : case 'a' : case 'U' : case 'u' : // superscript
         case 'E' : case 'e' : // exponent
@@ -522,19 +566,23 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     }
     else 
     {
+      if (stringLength) *stringLength+=base*fact[curr_lev%7];
       curr_pos++;
       // handling IDL exclamation mark escape '!!'
-      if (in[i] == '!') i++;
+      if (in[i] == '!') {
+        i++;
+        if (stringLength) *stringLength+=base*fact[curr_lev%7];
+      }
       // handling plplot number sign escape '##'
       if 
       (
-        activeFontCodeNum !=  9 && 
-        activeFontCodeNum != 10 && 
-        activeFontCodeNum != 16 && 
-        activeFontCodeNum != 20 && 
+        curr_fnt !=  9 && 
+        curr_fnt != 10 && 
+        curr_fnt != 16 && 
+        curr_fnt != 20 && 
         in[i] == '#'
       ) out += "##"; 
-      else switch (activeFontCodeNum)
+      else switch (curr_fnt)
       {
         case 9 : // math symbols
           switch (in[i])
@@ -565,22 +613,22 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'P' : out += "#(2147)"; break; // phi
             case 'p' : 
               out += "#fsp"; 
-              out += internalFontCodes[activeFontCodeNum];    break; // p script
+              out += internalFontCodes[curr_fnt];    break; // p script
             case 'q' : 
               out += "#fsq"; 
-              out += internalFontCodes[activeFontCodeNum];    break; // q script
+              out += internalFontCodes[curr_fnt];    break; // q script
             case ':' : out += "#(2240)"; break; // equal by definition sign
             case '.' : out += "#(850)";  break; // filled dot
             case 'B' : out += "#(841)";  break; // empty square
             case 'F' : 
               out += "#fsF"; 
-              out += internalFontCodes[activeFontCodeNum];    break; // F script
+              out += internalFontCodes[curr_fnt];    break; // F script
             case 'J' : out += "#(2269)"; break; // closed path integral
             case 'O' : out += "#(2277)"; break; // 'upper' cross sign
             case 'o' : out += "#(2278)"; break; // double cross sign
             case 'j' : 
               out += "#fsj"; 
-              out += internalFontCodes[activeFontCodeNum];    break; // j italic
+              out += internalFontCodes[curr_fnt];    break; // j italic
             case 's' : out += "#(687)";  break; // some greek zig-zag 
             case 't' : 
               out += "#fs#(634)";        break; // theta-like greek zig-zag 
@@ -850,8 +898,15 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
       curr_fnt = next_fnt;
     }
   }
+  activeFontCodeNum = curr_fnt;
+  //if gdlGetStringLength function is available, use it to give back a better value ("X" and "I" do not have the same width in hershey format!)
+#if PLPLOT_PRIVATE_NOT_HIDDEN
+  if (stringLength) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
+#endif
   return out;
 retrn:
+  activeFontCodeNum = curr_fnt;
+  if (stringLength) *stringLength=0;
   if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
   return ""; 
 }
@@ -862,8 +917,12 @@ void GDLGStream::setSymbolSize( PLFLT scale )
   plstream::ssym(0.0, scale);
   theCurrentSymSize=scale;
 }
-PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
 
+void GDLGStream::setLineSpacing(PLFLT newSpacing)
+{
+  theLineSpacing_in_mm=newSpacing;
+}
+PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
 void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                        const char *text)
 {
@@ -876,22 +935,24 @@ void GDLGStream::mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
   plstream::mtex3(side,disp,pos,just,TranslateFormatCodes(text).c_str());
 }
 void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
-                       const char *text)
+                       const char *text , double *stringCharLength)
 {
-  plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text).c_str());
+  plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
 }
 
-void GDLGStream::schr( PLFLT def, PLFLT scale )
+void GDLGStream::schr( PLFLT charwidthmm, PLFLT scale , PLFLT lineSpacingmm)
 {
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(%f,%f)\n",def,scale);
-  plstream::schr(def, scale);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(%f,%f,%f)\n",charwidthmm,scale,lineSpacingmm);
+  plstream::schr(charwidthmm, scale);
+  this->setLineSpacing(lineSpacingmm);
+  gdlDefaultCharInitialized=0;
   CurrentCharSize(scale);
 }
 
 void GDLGStream::sizeChar( PLFLT scale )
 {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
-  plstream::schr(theDefaultChar.mmsy, scale);
+  plstream::schr(theDefaultChar.mmsx, scale);
 //  plstream::schr(0, scale);
   CurrentCharSize(scale);
 }

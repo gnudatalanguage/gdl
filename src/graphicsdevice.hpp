@@ -205,7 +205,7 @@ public:
 		      int xpos, int ypos, bool hide)  { return false;}
   virtual bool WSize( int ix,
 		      int* xsize, int* ysize)           { return false;}
-  virtual bool WShow( int ix, bool show, bool iconic) { return false;}
+  virtual bool WShow( int ix, bool show, int iconic) { return false;}
   virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
@@ -276,22 +276,27 @@ public:
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}
   virtual bool SetResolution( DLong nx, DLong ny)     { return false;}
-  bool SetCharacterSize( DLong x, DLong y)     {
-   static bool doesnotwork=true;
-   if (doesnotwork) {
-    doesnotwork=false;
-    Warning("SET_CHARACTER_SIZE is not fully implemented in GDL, please FIXME!");
-   }
+//  virtual bool SetCharacterSize( DLong x, DLong y)    { return false;}
+  
+  virtual bool SetCharacterSize( DLong x, DLong y)     {
    int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
    int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
    DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
    DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
    (*newxch)[0]=x;
    (*newych)[0]=y;
-   //IT WOULD BE NECESSARY HERE TO HAVE FOR EACH Streams winList[ wIx]->NewCharSize() which would use the new values of !D.X_CH_SIZE, etc.
-    return true;
-  }
 
+   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
+   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
+   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
+   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
+
+   PLFLT newsize=x/xppm;
+   PLFLT newSpacing=y/yppm;
+   GDLGStream* actStream=GetStream(false);
+   if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
+   return true;
+  }
   virtual void ClearStream( DLong bColor)
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
@@ -348,7 +353,7 @@ public:
   bool WDelete(int wIx);
   bool WSize(int wIx, int *xSize, int *ySize);
   bool WSet(int wIx);
-  bool WShow(int ix, bool show, bool iconic);
+  bool WShow(int ix, bool show, int iconic);
   int WAddFree();
   GDLGStream* GetStreamAt(int wIx) const;
   void ChangeStreamAt(int wIx, GDLGStream* newStream);
@@ -365,7 +370,24 @@ public:
   int ActWin();
   int GetNonManagedWidgetActWin(bool doTidyWindowList=true);
   bool CopyRegion(DLongGDL* me);
-  
+  virtual bool SetCharacterSize( DLong x, DLong y)     {
+   int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
+   int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
+   DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
+   DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
+   (*newxch)[0]=x;
+   (*newych)[0]=y;
+   WindowListT::iterator i;
+   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
+   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
+   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
+   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
+
+   PLFLT newsize=x/xppm;
+   PLFLT newSpacing=y/yppm;
+   for (i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {(*i)->setLineSpacing(newSpacing); (*i)->RenewPlplotDefaultCharsize(newsize);}
+   return true;
+  }  
 };
 
 #endif

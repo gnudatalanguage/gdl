@@ -95,8 +95,8 @@ namespace lib {
     int xSize, ySize;
     //give default values
     DStructGDL* dStruct = SysVar::D();
-    static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
-    static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
+    unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
+    unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
     xSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xsizeTag, 0)))[0];
     ySize = (*static_cast<DLongGDL*>( dStruct->GetTag( ysizeTag, 0)))[0];
     // Use Size in lieu of VSize

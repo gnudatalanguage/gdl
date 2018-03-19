@@ -187,10 +187,10 @@ namespace lib {
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog);
+      PLFLT intv = gdlAdjustAxisRange(e, "X", xStart, xEnd, xLog);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog);
+      PLFLT intv = gdlAdjustAxisRange(e, "Y", yStart, yEnd, yLog);
     }
     
     DDouble yVal, xVal;

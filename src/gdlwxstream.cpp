@@ -53,7 +53,9 @@ GDLWXStream::GDLWXStream( int width, int height )
 #else
   else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
 #endif
-  spage( 90.0, 90.0, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
+    PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
+    PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
+    spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
   //Apparently no effect on fonts!!!
@@ -62,8 +64,10 @@ GDLWXStream::GDLWXStream( int width, int height )
 //  cerr << "fixed\n";
 //  plstream::cmd(PLESC_FIXASPECT, (void*)&fixed );
 //#endif
-  plstream::set_stream();
-      // no pause on win destruction
+
+//  plstream::set_stream();
+
+   // no pause on win destruction
     spause( false);
 
     // extended fonts
@@ -85,14 +89,9 @@ GDLWXStream::GDLWXStream( int width, int height )
     vpor(0,1,0,1);
     wind(0,1,0,1);
     DefaultCharSize();
-    //in case these are not initalized, here is a good place to do it.
-    if (updatePageInfo()==true) GetPlplotDefaultCharSize(); //initializes everything in fact..
-    PLFLT size1=sqrt(640.*640.+512.*512);
-    PLFLT size2=sqrt(width*width+height*height);
-    PLFLT fact=size1/size2;
-    RenewPlplotDefaultCharsize( fact*2.5 );
-  //schr(2.5,1);
-
+//    PLFLT defhmm, scalhmm;
+//    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
+//    RenewPlplotDefaultCharsize(defhmm /1.5 );    
 }
 
 GDLWXStream::~GDLWXStream()
@@ -113,31 +112,28 @@ void GDLWXStream::Update()
     gdlWindow->Update();
 }
 
-void GDLWXStream::SetSize( int width, int height )
-{
-  if ( width<1 || height <1) return;
-  m_dc->SelectObject( wxNullBitmap );
-  delete m_bitmap;
-  m_bitmap = new wxBitmap( width, height, 32 );
-  m_dc->SelectObject( *m_bitmap);
-  if( !m_dc->IsOk())
-  {
-    m_dc->SelectObject( wxNullBitmap );
-    delete m_bitmap;
-    delete m_dc;
-    throw GDLException("GDLWXStream: Failed to resize DC.");
-  }
-//  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
-  wxSize size = wxSize( width, height);
-
-  plstream::cmd(PLESC_RESIZE, (void*)&size );
-  m_width = width;
-  m_height = height;
-  PLFLT size1=sqrt(640.*640.+512.*512);
-  PLFLT size2=sqrt(width*width+height*height);
-  PLFLT fact=size1/size2;
-  this->RenewPlplotDefaultCharsize( fact*2.5 );
-}
+////should be used when one does not recreate a wxstream each time size changes...
+//void GDLWXStream::SetSize( int width, int height )
+//{
+//  if ( width<1 || height <1) return;
+//  m_dc->SelectObject( wxNullBitmap );
+//  delete m_bitmap;
+//  m_bitmap = new wxBitmap( width, height, 32 );
+//  m_dc->SelectObject( *m_bitmap);
+//  if( !m_dc->IsOk())
+//  {
+//    m_dc->SelectObject( wxNullBitmap );
+//    delete m_bitmap;
+//    delete m_dc;
+//    throw GDLException("GDLWXStream: Failed to resize DC.");
+//  }
+//  //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
+//  wxSize size = wxSize( width, height);
+//
+//  plstream::cmd(PLESC_RESIZE, (void*)&size );
+//  m_width = width;
+//  m_height = height;
+//}
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
   int xx=x;
@@ -150,7 +146,7 @@ void GDLWXStream::Init()
 {
   this->plstream::init();
 
-  set_stream(); // private
+//  set_stream(); // private
 // test :  gdlFrame->Show();
 }
 
@@ -410,7 +406,7 @@ void GDLWXStream::Lower() {
 }
 
 void GDLWXStream::Iconic() {
-  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize();
+  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(true);
 }
 
 void GDLWXStream::DeIconic() {

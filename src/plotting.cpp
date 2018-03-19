@@ -209,7 +209,7 @@ namespace lib
   // plots are not exactly what IDL does in the same conditions. The reasons for the choices should be
   // clearly described in the code, to be checked by others.
   
-  PLFLT gdlAdjustAxisRange(DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
+  PLFLT gdlAdjustAxisRange(EnvT* e, string axis, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
     gdlHandleUnwantedAxisValue(start, end, log);
 
     DDouble min, max;
@@ -285,7 +285,9 @@ namespace lib
         DLong idow1,icap1,idow2,icap2;
         DDouble Seconde1,Seconde2;
         j2ymdhms(min, MonthNum1 , Day1 , Year1 , Hour1 , Minute1, Seconde1, idow1, icap1);
+        MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
         j2ymdhms(max, MonthNum2 , Day2 , Year2 , Hour2 , Minute2, Seconde2, idow2, icap2);
+        MonthNum2++;
         switch(code){
              case 1:
                //           day mon year h m s.s
@@ -358,6 +360,12 @@ namespace lib
       min = pow(10, min);
       max = pow(10, max);
     }
+
+    //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
+    DDouble TickInterval;
+    gdlGetDesiredAxisTickInterval(e, axis, TickInterval);
+    if ( TickInterval > 0.0 ) if ((max-min)/TickInterval > 59) max=min+59.0*TickInterval;
+
     if (invert) {
       start = max;
       end = min;
@@ -365,6 +373,8 @@ namespace lib
       start = min;
       end = max;
     }
+
+
     return intv;
   }
 
@@ -378,12 +388,12 @@ namespace lib
                    PLFLT& yMB,
                    PLFLT& yMT)
   {
-    PLFLT scl=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
-    xML=xMarginL*scl; //margin as percentage of subpage
-    xMR=xMarginR*scl;
-    scl=actStream->dCharHeight()/actStream->ySubPageSize(); //current char length/subpage size
-    yMB=(yMarginB+1.85)*scl;
-    yMT=(yMarginT+1.85)*scl; //to allow subscripts and superscripts (as in IDL)
+    PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
+    xML=xMarginL*sclx; //margin as percentage of subpage
+    xMR=xMarginR*sclx;
+    PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
+    yMB=(yMarginB)*scly;
+    yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
 
     if ( xML+xMR>=1.0 )
     {
@@ -1130,9 +1140,9 @@ namespace lib
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharWidth();}
+    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
     if ( axis=="Y" ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
-    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharWidth();}
+    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
     if ( Struct!=NULL )
     {
       unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
@@ -1238,7 +1248,7 @@ namespace lib
     //special cases, since plplot gives approximate zero values, not strict zeros.
     if (!(ptr->isLog) && (sgn*value<ptr->axisrange*1e-6)) 
     {
-      snprintf(label, length, "0"); 
+      snprintf(label, length, "0");
       return;
     }
     //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
@@ -1250,7 +1260,7 @@ namespace lib
     
     int e=floor(log10(value*sgn));
     char *test=(char*)calloc(2*length, sizeof(char)); //be safe
-    if (!isfinite(e)||(e<4 && e>-4)) 
+    if (!isfinite(log10(value*sgn))||(e<4 && e>-4)) 
     {
       snprintf(test, length, "%f",value);
       ns=strlen(test);
@@ -1263,9 +1273,13 @@ namespace lib
       }
       i=strrchr(test,'.'); //remove trailing '.'
       if (i==(test+ns-1)) {*i='\0'; ns--;}
-      if (ptr->isLog) snprintf( label, length, specialfmtlog.c_str(),test);
+      if (ptr->isLog) {
+        snprintf( label, length, specialfmtlog.c_str(),test);
+      }
       else
-      strcpy(label, test);
+      {
+        strcpy(label, test);
+      }
     }
     else
     {
@@ -1280,10 +1294,11 @@ namespace lib
         ns--;
       }
       ns-=2;ns=(ns>6)?6:ns;
-	if (floor(sgn*z)==1 && ns==0)
-	  snprintf( label, length, specialfmt.c_str(),e);
-	else
-	  snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
+      if (floor(sgn*z)==1 && ns==0) {
+        snprintf( label, length, specialfmt.c_str(),e);
+      } else {
+        snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
+      }
     }
     free(test);
   }
@@ -1357,11 +1372,13 @@ namespace lib
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
     doOurOwnFormat(axis, value, label, length, data);
     //translate format codes (as in mtex).
-    std::string out = ptr->a->TranslateFormatCodes(label);
+    double nchars;
+    std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
+    ptr->nchars=max(ptr->nchars,nchars);
     strcpy(label,out.c_str());
   }
   
-  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
   {
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
@@ -1369,7 +1386,7 @@ namespace lib
     static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
-    struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )data;
+    struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
     tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
     if (ptr->counter != lastUnits)
@@ -1382,7 +1399,6 @@ namespace lib
       if (ptr->counter > ptr->nTickFormat-1)
       {
         doOurOwnFormat(axis, value, label, length, &tdata);
-//        snprintf( label, length, "%f", value );
       }
       else
       {
@@ -1398,7 +1414,7 @@ namespace lib
           newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
           // make the call
           BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-          strncpy(label,(*static_cast<DStringGDL*>(res))[0].c_str(),1000); 
+          strncpy(label,(*static_cast<DStringGDL*>(res))[0].c_str(),1000);
         }
         else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
           //    else pass also Level(int)
@@ -1427,52 +1443,79 @@ namespace lib
           BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree()); 
           // we are the owner of the returned value
           Guard<BaseGDL> retGuard( retValGDL);
-          strncpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str(),1000); 
+          strncpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str(),1000);
         }
       }
     }
     else if (ptr->what==GDL_TICKUNITS || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter >= ptr->nTickFormat))
     {
-      if (ptr->counter > ptr->nTickUnits-1)
+      if (ptr->counter > ptr->nTickUnits-1 )
       {
         doOurOwnFormat(axis, value, label, length, &tdata);
       }
       else
       {
         DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
-        j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
-        if (what.substr(0,4)=="YEAR")
-          snprintf( label, length, "%d", Year);
-        else if (what.substr(0,5)=="MONTH")
-          snprintf( label, length, "%s", theMonth[Month].c_str());
-        else if (what.substr(0,3)=="DAY")
-          snprintf( label, length, "%d", Day);
-        else if (what.substr(0,4)=="HOUR")
-          snprintf( label, length, "%d", Hour);
-        else if (what.substr(0,6)=="MINUTE")
-          snprintf( label, length, "%d", Minute);
-        else if (what.substr(0,6)=="SECOND")
-          snprintf( label, length, "%f", Second);
-        else if (what.substr(0,4)=="TIME")
-        {
-          if(ptr->axisrange>=366) snprintf( label, length, "%d", Year);
-          else if(ptr->axisrange>=32) snprintf( label, length, "%s", theMonth[Month].c_str());
-          else if(ptr->axisrange>=1.1) snprintf( label, length, "%d", Day);
-          else if(ptr->axisrange*24>=1.1) snprintf( label, length, "%d", Hour);
-          else if(ptr->axisrange*24*60>=1.1) snprintf( label, length, "%d", Minute);
-          else snprintf( label, length, "%04.1f",Second);
+        if (what.length()<1) {
+          doOurOwnFormat(axis, value, label, length, &tdata);
         }
-        else snprintf( label, length, "%g", value );
+        else if (what.substr(0,7)=="NUMERIC") {
+          doOurOwnFormat(axis, value, label, length, &tdata);
+     } else {
+          j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
+          int convcode=0;
+          if (what.length()<1) convcode=7;
+          else if (what.substr(0,4)=="YEAR") convcode=1;
+          else if (what.substr(0,5)=="MONTH") convcode=2;
+          else if (what.substr(0,3)=="DAY") convcode=3;
+          else if (what.substr(0,4)=="HOUR") convcode=4;
+          else if (what.substr(0,6)=="MINUTE") convcode=5;
+          else if (what.substr(0,6)=="SECOND") convcode=6;
+          else if (what.substr(0,4)=="TIME")
+          {
+            if(ptr->axisrange>=366)  convcode=1;
+            else if(ptr->axisrange>=32)  convcode=2;
+            else if(ptr->axisrange>=1.1)  convcode=3;
+            else if(ptr->axisrange*24>=1.1)  convcode=4;
+            else if(ptr->axisrange*24*60>=1.1)  convcode=5;
+            else convcode=6;
+          } else convcode=7;
+          switch(convcode){
+            case 1:
+              snprintf( label, length, "%d", Year);
+            break;
+            case 2:
+              snprintf( label, length, "%s", theMonth[Month].c_str());
+              break;
+            case 3:
+              snprintf( label, length, "%d", Day);
+              break;
+            case 4:
+              snprintf( label, length, "%02d", Hour);
+              break;
+            case 5:
+              snprintf( label, length, "%02d", Minute);
+              break;
+            case 6:
+              snprintf( label, length, "%05.2f", Second);
+              break;
+            case 7:
+              doOurOwnFormat(axis, value, label, length, &tdata);
+              break;
+          }
+          
+        }
       }
     }
     //translate format codes (as in mtex).
-    std::string out = ptr->a->TranslateFormatCodes(label);
+    double nchars;
+    std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
+    ptr->nchars=max(ptr->nchars,nchars);
     strcpy(label,out.c_str());
-
     internalIndex++;
   }
 
-  void gdlSingleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
@@ -1487,10 +1530,10 @@ namespace lib
       snprintf( label, length, "%s", ((*ptr->TickName)[ptr->counter]).c_str() );
     }
     //translate format codes (as in mtex).
-    std::string out = ptr->a->TranslateFormatCodes(label);
+    double nchars;
+    std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
+    ptr->nchars=max(ptr->nchars,nchars);
     strcpy(label,out.c_str());
-    
-
     ptr->counter++;
   }
 
@@ -1513,7 +1556,7 @@ namespace lib
     DLong thecolor;
     DFloat *x, *y;
     SizeT nParam=e->NParam();
-
+    if (nParam==0) e->Throw("Incorrect number of arguments.");
     if ( nParam==1 )
     {
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]

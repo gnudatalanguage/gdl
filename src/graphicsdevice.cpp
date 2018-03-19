@@ -516,16 +516,20 @@ bool GraphicsMultiDevice::WSet(int wIx) {
   return true;
 }
 
-bool GraphicsMultiDevice::WShow(int ix, bool show, bool iconic) {
+bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
   TidyWindowsList();
 
   int wLSize = winList.size();
   if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
-// not exactly the IDL behaviour. Iconic is a state, not a bool.
-  if (iconic) IconicWin(ix); else DeIconicWin(ix);
+
+  if (iconic!=-1) { //iconic asked. do nothing else.
+    if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
+    return true;
+  }
+  
   if (show) RaiseWin(ix);  else LowerWin(ix);
 
-  UnsetFocus();
+  //UnsetFocus();
 
   return true;
 }

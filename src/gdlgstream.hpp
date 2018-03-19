@@ -50,6 +50,7 @@
 #endif
 
 const double MMToINCH = 0.039370078 ; // 1./2.54;
+const double CM_IN_MM = 10.00000000 ; 
 
 using namespace std;
 static std::string internalFontCodes[] = {
@@ -172,6 +173,10 @@ static std::string internalFontCodes[] = {
     PLFLT wsy;
     PLFLT convx; //symbol size conversion factor, (for PSYMs, not characters: PSYMs are handled by GDL, CHARS by plplot)
     PLFLT convy; //set only while in 2D mode, used in 2D or 3D mode.
+    PLFLT dspacing; // spacing of line, device units, 2nd element of device,set_character_size
+    PLFLT nspacing; // in normalized units 
+    PLFLT mmspacing; // in mm 
+    PLFLT wspacing; // in world 
   } gdlCharInfo;
 
 class GDLGStream: public plstream
@@ -192,6 +197,7 @@ protected:
   PLStream* pls;
   DFloat thickFactor;
   PLFLT theCurrentSymSize;
+  PLFLT theLineSpacing_in_mm;
   bool usedAsPixmap; //for WINDOW,/PIXMAP retains the fact that this is a pixmap (invisible) window.
   int activeFontCodeNum; //simplex Roman by default.
 public:
@@ -325,10 +331,22 @@ public:
     if (((theBox.wx1==0) && (theBox.wx2==0)) 
 	|| ((theBox.wy1==0) && (theBox.wy2==0))) return false; else return true;
   }
+  void getCurrentWorldBox(PLFLT &xmin, PLFLT &xmax, PLFLT &ymin, PLFLT &ymax) {
+   xmin=theBox.wx1;
+   ymin=theBox.wy1;
+   xmax=theBox.wx2;
+   ymax=theBox.wy2;
+  }
   bool validNormdBox()
   {
     if (((theBox.nx1==0) && (theBox.nx2==0)) 
 	|| ((theBox.ny1==0) && (theBox.ny2==0))) return false; else return true;
+  }
+  void getCurrentNormBox(PLFLT &xmin, PLFLT &xmax, PLFLT &ymin, PLFLT &ymax) {
+   xmin=theBox.nx1;
+   ymin=theBox.ny1;
+   xmax=theBox.nx2;
+   ymax=theBox.ny2;
   }
   inline PLFLT getPsymConvX(){return theCurrentChar.convx;}
   inline PLFLT getPsymConvY(){return theCurrentChar.convy;}
@@ -341,14 +359,18 @@ public:
     if ((wdeux-wun)<0) theCurrentChar.convx*=-1.0;
     if ((wquatre-wtrois)<0) theCurrentChar.convy*=-1.0;} 
   inline PLFLT charScale(){return theCurrentChar.scale;}
-  inline PLFLT nCharWidth(){return theCurrentChar.ndsx;}
+  inline PLFLT nCharLength(){return theCurrentChar.ndsx;}
   inline PLFLT nCharHeight(){return theCurrentChar.ndsy;}
+  inline PLFLT nLineSpacing(){return theCurrentChar.nspacing;}
   inline PLFLT dCharLength(){return theCurrentChar.dsx;}
   inline PLFLT dCharHeight(){return theCurrentChar.dsy;}
+  inline PLFLT dLineSpacing(){return theCurrentChar.dspacing;}
   inline PLFLT wCharLength(){return theCurrentChar.wsx;}
   inline PLFLT wCharHeight(){return theCurrentChar.wsy;}
+  inline PLFLT wLineSpacing(){return theCurrentChar.wspacing;}
   inline DDouble mmCharLength(){return theCurrentChar.mmsx;}
   inline DDouble mmCharHeight(){return theCurrentChar.mmsy;}
+  inline DDouble mmLineSpacing(){return theCurrentChar.mmspacing;}
   inline PLFLT xResolution(){return thePage.xdpmm;}
   inline PLFLT yResolution(){return thePage.ydpmm;}
   inline PLFLT mmxPageSize(){return thePage.xsizemm;} //size in mm
@@ -454,89 +476,10 @@ public:
 
 #if PLPLOT_PRIVATE_NOT_HIDDEN
   //use simple internal function
-  PLFLT gdlGetmmStringLength(const char *string)
+  PLFLT gdlGetStringLength(const std::string s)
   {
-    return plstrl(string);
+    return plstrl(s.c_str());
   }
-#else
-#ifdef PLPLOT_HAS_LEGEND
-  //use trick to extract desired value hidden in pllegend!
-  PLFLT gdlGetmmStringLength(const char *string)
-  {
-    if ( pls->has_string_length )
-    {
-        pls->get_string_length = 1;
-        c_plmtex( "t", 0.0, 0.0, 0.0, string );
-        pls->get_string_length = 0;
-        return (PLFLT) mm2ndx(pls->string_length);
-    }
-    //else use only possibility without using Private function plstrl(): pllegend!
-    PLFLT text_scale = pls->chrht / pls->chrdef;
-    PLFLT xwmin_save, xwmax_save, ywmin_save, ywmax_save;
-    plgvpw(&xwmin_save, &xwmax_save, &ywmin_save, &ywmax_save);
-    PLFLT xdmin_save, xdmax_save, ydmin_save, ydmax_save;
-    xdmin_save = ( pls->vpdxmi - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi );
-    xdmax_save = ( pls->vpdxma - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi );
-    ydmin_save = ( pls->vpdymi - pls->spdymi ) / ( pls->spdyma - pls->spdymi );
-    ydmax_save = ( pls->vpdyma - pls->spdymi ) / ( pls->spdyma - pls->spdymi );
-    PLFLT mxmin, mxmax, mymin, mymax;
-    plgspa( &mxmin, &mxmax, &mymin, &mymax );
-    PLFLT x_subpage_per_mm, y_subpage_per_mm;
-    x_subpage_per_mm = 1. / ( mxmax - mxmin );
-    y_subpage_per_mm = 1. / ( mymax - mymin );
-    PLFLT def_mm, charheight_mm;
-    plgchr( &def_mm, &charheight_mm );
-    PLFLT character_width=charheight_mm/(mymax-mymin );
-
-    plvpor( 0., 1., 0., 1. );
-    plwind( 0., 1., 0., 1. );
-    PLFLT xdmin_adopted, xdmax_adopted, ydmin_adopted, ydmax_adopted;
-    xdmin_adopted = ( pls->vpdxmi - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi );
-    xdmax_adopted = ( pls->vpdxma - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi );
-    ydmin_adopted = ( pls->vpdymi - pls->spdymi ) / ( pls->spdyma - pls->spdymi );
-    ydmax_adopted = ( pls->vpdyma - pls->spdymi ) / ( pls->spdyma - pls->spdymi );
-// we have all info, give back box values:
-    plvpor( xdmin_save, xdmax_save, ydmin_save, ydmax_save );
-    plwind( xwmin_save, xwmax_save, ywmin_save, ywmax_save );
-//call pllegend (outside plot)
-    PLINT opt_array[1];
-    PLINT text_colors[1];
-    PLINT line_colors[1];
-    PLINT line_styles[1];
-    PLINT line_widths[1];
-    PLFLT legend_width, legend_height;
-    PLFLT plot_width=1.0;
-    const char *text[1];
-    opt_array[0]   = 0;
-    text_colors[0] = 0;
-    line_colors[0] = 0;
-    line_styles[0] = 1;
-    line_widths[0] = 1;
-    text[0]=string;
-    pllegend (&legend_width , &legend_height ,
-            PL_LEGEND_NONE,
-            PL_POSITION_VIEWPORT|PL_POSITION_TOP|PL_POSITION_OUTSIDE,
-	        1.0 , -0.1 , plot_width , //moved the position farther away since it shows up in postscripts;
-            0 , 0 , 1 ,
-            1 , 1 ,
-            1 , opt_array ,
-            0.0 , text_scale , 0.0 , 0.0 , text_colors ,
-            text , NULL , NULL , NULL , NULL , NULL ,
-            NULL , NULL , NULL , NULL , NULL , NULL);
-//with these values: legend_width = 2. * 0.4 *character_width + text_width ;
-    //invert pllegend work:
-#define subpage_to_adopted_x( nx )    ( ( nx - xdmin_adopted ) / ( ( xdmax_adopted ) - ( xdmin_adopted ) ) )
-#define adopted_to_subpage_x( nx )    ( ( xdmin_adopted ) + ( nx ) * ( ( xdmax_adopted ) - ( xdmin_adopted ) ) )
-    PLFLT tempsize=adopted_to_subpage_x(legend_width+subpage_to_adopted_x( 0. ));
-    tempsize=tempsize-0.8*character_width-adopted_to_subpage_x(plot_width) + adopted_to_subpage_x( 0. );
-    return tempsize/x_subpage_per_mm;
-  }
-#else //we are desperate at this point since the value returned will be false since fonts are proportional fonts.
-   PLFLT gdlGetmmStringLength(const char *string)
-  {
-    return (strlen(string))*theCurrentChar.mmsx;
-  }
-#endif
 #endif
 
 //  void  currentPhysicalPos(PLFLT &x, PLFLT &y)
@@ -793,6 +736,10 @@ public:
     theCurrentChar.mmsy=scale*theDefaultChar.mmsy;
     theCurrentChar.wsx=scale*theDefaultChar.wsx;
     theCurrentChar.wsy=scale*theDefaultChar.wsy;
+    theCurrentChar.mmspacing=scale*theDefaultChar.mmspacing;
+    theCurrentChar.nspacing=scale*theDefaultChar.nspacing;
+    theCurrentChar.dspacing=scale*theDefaultChar.dspacing;
+    theCurrentChar.wspacing=scale*theDefaultChar.wspacing;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            sized by %f is %fx%f mm or %fx%f device or %fx%f world\n",scale,theCurrentChar.mmsx,theCurrentChar.mmsy,theCurrentChar.dsx,theCurrentChar.dsy,theCurrentChar.wsx, theCurrentChar.wsy);
   }
 
@@ -805,51 +752,31 @@ public:
     theDefaultChar.wsy=abs(dy-y);
     theCurrentChar.wsx=theCurrentChar.scale*theDefaultChar.wsx;
     theCurrentChar.wsy=theCurrentChar.scale*theDefaultChar.wsy;
+
+    DeviceToWorld(0,theDefaultChar.dspacing, dx, dy);
+    theDefaultChar.wspacing=abs(dy-y);
+    
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"UpdateCurrentCharWorldSize(%f,%f)\n",
                                     theCurrentChar.wsx,theCurrentChar.wsy);
   }
   
-  inline void RenewPlplotDefaultCharsize(PLFLT newMmSize)
-  {
-    plstream::schr(newMmSize, 1.0);
-    gdlDefaultCharInitialized=0;
-    GetPlplotDefaultCharSize();
-  }
+  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
-  void GetPlplotDefaultCharSize()
-  {
-        
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GetPlPlotDefaultCharsize()\n");
-    if (thePage.nbPages==0)   {return;}
-    //dimensions in normalized, device and millimetres
-    if (gdlDefaultCharInitialized==1) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     Already initialized\n"); return;}
-    theDefaultChar.scale=1.0;
-    theDefaultChar.mmsx=pls->chrht; //millimeter
-    theDefaultChar.mmsy=pls->chrht;
-    theDefaultChar.ndsx=mm2ndx(theDefaultChar.mmsx); //normalized device
-    theDefaultChar.ndsy=mm2ndy(theDefaultChar.mmsy);
-    theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
-    theDefaultChar.dsx=theDefaultChar.ndsx*thePage.length;
-    theDefaultChar.wsx=mm2wx(theDefaultChar.mmsx); //world
-    theDefaultChar.wsy=mm2wy(theDefaultChar.mmsy);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(mm)\n",theDefaultChar.mmsx,theDefaultChar.mmsy);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(norm)\n",theDefaultChar.ndsx,theDefaultChar.ndsy);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(dev)\n",theDefaultChar.dsx,theDefaultChar.dsy);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f(world)\n",theDefaultChar.wsx,theDefaultChar.wsy);
-    gdlDefaultCharInitialized=1;
-  }
+  void GetPlplotDefaultCharSize();
+
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
-  std::string TranslateFormatCodes(const char *text);
+  std::string TranslateFormatCodes(const char *text, double *stringLength);
   void setSymbolSize( PLFLT scale );
+  void setLineSpacing( PLFLT spacing );
   PLFLT getSymbolSize();
   void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                          const char *text);
   void mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
-                         const char *text);
-  void schr( PLFLT def, PLFLT scale );
+                         const char *text, double *stringCharLength=NULL );
+  void schr( PLFLT charwidthmm, PLFLT scale, PLFLT lineSpacingmm);
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );

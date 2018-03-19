@@ -74,10 +74,10 @@ namespace SysVar
     return var == sysVarList[ stimeIx];
   }
    
-  bool IsD( DVar* var)
-  { 
-    return var == sysVarList[ dIx];
-  }
+//  bool IsD( DVar* var)
+//  { 
+//    return var == sysVarList[ dIx];
+//  }
 
   void SetGDLPath( const DString& newPath)
   {
@@ -150,27 +150,27 @@ namespace SysVar
     return static_cast<DStructGDL*>(var.Data());
   }
 
-  // updates !D in all modes (should insure correct update if Win, XWidgets ...)
-  void UpdateD()
-  {
-    DStructGDL* dD = D();
-
-    DLong windowIdx=(*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("WINDOW"), 0)))[0];
-    if( windowIdx <0)  return;    
-    
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    GDLGStream* actStream = actDevice->GetStream();
-
-    long xSizeGG,ySizeGG;
-    actStream->GetGeometry(xSizeGG,ySizeGG);
-    int debug=0;
-    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG << endl;
-    
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSizeGG;
-    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;	    
-  }
+//  // updates !D in all modes (should insure correct update if Win, XWidgets ...)
+//  void UpdateD()
+//  {
+//    DStructGDL* dD = D();
+//
+//    DLong windowIdx=(*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("WINDOW"), 0)))[0];
+//    if( windowIdx <0)  return;    
+//    
+//    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+//    GDLGStream* actStream = actDevice->GetStream();
+//
+//    long xSizeGG,ySizeGG;
+//    actStream->GetGeometry(xSizeGG,ySizeGG);
+//    int debug=0;
+//    if (debug) cout << "GetX11Geo in SysVar::UpdateD : " << xSizeGG <<" "<< ySizeGG << endl;
+//    
+//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
+//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;
+//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSizeGG;
+//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;	    
+//  }
 
   // returns array of path strings
   const StrArr& GDLPath()
@@ -736,7 +736,7 @@ namespace SysVar
     ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
 #endif
 
-    ver->NewTag("RELEASE", new DStringGDL( "6.5")); //we are at least 6.4
+    ver->NewTag("RELEASE", new DStringGDL( "8.2")); //we are at least 6.4
     ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE)); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8)); 

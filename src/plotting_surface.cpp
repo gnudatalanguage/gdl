@@ -217,12 +217,12 @@ namespace lib
 
       if ( ( xStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange ( xStart, xEnd, xLog );
+        PLFLT intv=gdlAdjustAxisRange (e,"X",  xStart, xEnd, xLog );
       }
 
       if ( ( yStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange ( yStart, yEnd, yLog );
+        PLFLT intv=gdlAdjustAxisRange (e, "Y", yStart, yEnd, yLog );
       }
 
       static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
@@ -243,7 +243,7 @@ namespace lib
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange ( zStart, zEnd, zLog );
+        PLFLT intv=gdlAdjustAxisRange (e, "Z", zStart, zEnd, zLog );
       }
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...

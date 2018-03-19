@@ -142,13 +142,13 @@ public:
     }
     //apparently this is OK to get same results as IDL on X11...
     yoff+=1;
-    xp=1;
-    yp=1;
+    xp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
+    yp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
     
     winList[ wIx] = new GDLXStream( xleng, yleng);
     
     oList[ wIx]   = oIx++;    
-    winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff); //must be before 'Init'
+    winList[ wIx]->spage( xp , yp, xleng, yleng, xoff, yoff); //must be before 'Init'
 
     // no pause on win destruction
     winList[ wIx]->spause( false);
@@ -196,11 +196,11 @@ public:
     winList[ wIx]->vpor(0,1,0,1);
     winList[ wIx]->wind(0,1,0,1);
     winList[ wIx]->DefaultCharSize();
-    //in case these are not initalized, here is a good place to do it.
-    if (winList[ wIx]->updatePageInfo()==true)
-    {
-      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-    }
+//    //in case these are not initalized, here is a good place to do it.
+//    if (winList[ wIx]->updatePageInfo()==true)
+//    {
+//      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
+//    }
     // sets actWin and updates !D
     SetActWin( wIx);
     bool success;

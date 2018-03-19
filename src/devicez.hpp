@@ -124,12 +124,12 @@ class DeviceZ: public GraphicsDevice
     actStream->vpor(0,1,0,1);
     actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
-   //in case these are not initalized, here is a good place to do it.
-    if (actStream->updatePageInfo()==true)
-    {
-        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-
-    }
+//   //in case these are not initalized, here is a good place to do it.
+//    if (actStream->updatePageInfo()==true)
+//    {
+//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
+//
+//    }
   }
 
 public:

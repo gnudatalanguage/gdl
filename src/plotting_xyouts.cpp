@@ -419,14 +419,14 @@ namespace lib
         actStream->WorldToDevice(x, y, dx, dy);
         actStream->DeviceToWorld(dx-chsize*sinOriD,dy+chsize*cosOriD,dispx,dispy);
         string out=(*strVal)[i%strVal->N_Elements ( )];
-        actStream->ptex(dispx, dispy, cosOriW, sinOriW*aspectw/aspectd, align, out.c_str());
+        double returnedStringCharLength;
+        actStream->ptex(dispx, dispy, cosOriW, sinOriW*aspectw/aspectd, align, out.c_str(), &returnedStringCharLength);
 
         if (singleArg || (i==minEl-1 ) ) //then x and y are not given and whatever the number of strings, are retrieved
                        // from lastTextPos. We must thus remember lastTextPos.
         {
-          width=actStream->gdlGetmmStringLength(out.c_str()); //in mm
           //we want normed size:
-          width=actStream->mm2ndx(width);
+          width=returnedStringCharLength*actStream->nCharLength();
           //save position - compute must be in DEVICE coords, or in normed*aspect!
           actStream->WorldToNormedDevice(x, y, dx, dy); //normed
           actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOriD,dy+(1.0-align)*width*sinOriD/aspectd,dispx,dispy);

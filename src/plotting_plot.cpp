@@ -197,21 +197,15 @@ private:
     static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
     static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    calendar_codex = 0;
-    calendar_codey = 0;
-    if ( e->KeywordSet( xTickunitsIx ) ) {
-      if (xLog) {
-        Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-        xLog = FALSE;
-      }
-      gdlGetCalendarCode(e,"X",calendar_codex);
+    calendar_codex = gdlGetCalendarCode(e,"X");
+    calendar_codey = gdlGetCalendarCode(e,"Y");
+    if ( e->KeywordSet( xTickunitsIx ) && xLog) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      xLog = FALSE;
     }
-    if ( e->KeywordSet( yTickunitsIx ) ) {
-      if (yLog) {
-        Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-        yLog = FALSE;
-      }
-       gdlGetCalendarCode(e,"Y",calendar_codey);
+    if ( e->KeywordSet( yTickunitsIx ) && yLog) {
+      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
+      yLog = FALSE;
     }
 
 
@@ -311,10 +305,10 @@ private:
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(xStart, xEnd, xLog, calendar_codex);
+      PLFLT intv = gdlAdjustAxisRange(e, "X", xStart, xEnd, xLog, calendar_codex);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(yStart, yEnd, yLog, calendar_codey);
+      PLFLT intv = gdlAdjustAxisRange(e, "Y", yStart, yEnd, yLog, calendar_codey);
     }
 
     // MARGIN
@@ -519,7 +513,7 @@ private:
     {
       //current pen color...
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+//      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
     }
   } 
   
@@ -543,7 +537,8 @@ private:
 
     private: void post_call(EnvT* e, GDLGStream* actStream) 
     {
-     if (doT3d) actStream->stransform(NULL,NULL);
+      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+      if (doT3d) actStream->stransform(NULL,NULL);
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 

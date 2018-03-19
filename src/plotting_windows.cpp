@@ -181,15 +181,9 @@ namespace lib {
       show = (*showval)[0] != 0;
     }
 
-    // note by AC on 2012-Aug-16
-    // I don't know how to find the sub-window number (third parametre
-    // in call XIconifyWindow())
-    // Help/suggestions welcome
-    //GD: it is not a sub-window, but a screen number: xwd->screen, but that does not make window iconic any better!
-
-    bool iconic = false;
+    int iconic = -1; //signals absent parameter
     static int ICONICIx = e->KeywordIx("ICONIC");
-    if( e->KeywordSet(ICONICIx)) iconic=true;
+    if( e->KeywordPresent(ICONICIx)) iconic=e->KeywordSet(ICONICIx);
 
     if (!actDevice->WShow( wIx, show, iconic)) 
       e->Throw( "Window number "+i2s(wIx)+" out of range or no more windows.");

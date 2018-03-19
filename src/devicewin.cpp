@@ -404,14 +404,17 @@ bool DeviceWIN::WSet(int wIx)
 	return true;
 }
 
-bool DeviceWIN::WShow(int ix, bool show, bool iconic)
+bool DeviceWIN::WShow(int ix, bool show, int iconic)
 {
 	TidyWindowsList();
 
 	int wLSize = winList.size();
 	if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
-	if (iconic) winList[ix]->Iconic();   else winList[ix]->DeIconic();
+  if (iconic!=-1) { //iconic asked. do nothing else.
+    if (iconic==1) winList[ix]->Iconic();  else winList[ix]->DeIconic();
+    return true;
+  }
 	if (show) winList[ix]->Raise();      else winList[ix]->Lower();
 
 	UnsetFocus();
