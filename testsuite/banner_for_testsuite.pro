@@ -131,9 +131,9 @@ if SIZE(case_name,/n_dim) EQ 1 then case_name=case_name[0]
 if SIZE(nb_pbs,/n_dim) EQ 1 then nb_pbs=nb_pbs[0]
 ;
 if ~KEYWORD_SET(prefix) then begin
-   prefix='% '+STRUPCASE(case_name)+': '
+   prefixe='% '+STRUPCASE(case_name)+': '
 endif else begin
-   prefix='% '+STRUPCASE(prefix)+': '   
+   prefixe='% '+STRUPCASE(prefix)+': '   
 endelse
 indent="  "
 ;
@@ -171,7 +171,7 @@ if ~KEYWORD_SET(wide) then begin
 endif
 ;
 if (isShort) then begin
-    print, prefix, message
+    print, prefixe, message
     return
 endif
 ;
@@ -186,13 +186,13 @@ for ii=0,lenght-1 do begin
 endfor
 ;
 if KEYWORD_SET(line) then begin
-   print, prefix, sep+ligne+sep 
+   print, prefixe, sep+ligne+sep 
 endif else begin
-   if ~KEYWORD_SET(noline) then print, prefix, sep+ligne+sep
-   if (isWide) then print, prefix, sep+blanc+sep
-   print, prefix, sep+message+sep
-   if (isWide) then print, prefix, sep+blanc+sep
-   if ~KEYWORD_SET(noline) then print, prefix, sep+ligne+sep
+   if ~KEYWORD_SET(noline) then print, prefixe, sep+ligne+sep
+   if (isWide) then print, prefixe, sep+blanc+sep
+   print, prefixe, sep+message+sep
+   if (isWide) then print, prefixe, sep+blanc+sep
+   if ~KEYWORD_SET(noline) then print, prefixe, sep+ligne+sep
 endelse
 ;
 if KEYWORD_SET(test) then STOP
