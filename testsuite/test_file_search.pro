@@ -199,7 +199,6 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
-resolve_routine,"Banner_for_testsuite" 
 nb_errors=0
 ;
 tmp_dir='TMPDIR_FILE_SEARCH'
