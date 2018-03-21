@@ -4,7 +4,7 @@
 ; June 2009 and February 2010.
 ;
 ; Testing the FFT function : 
-; do the FFT computes :
+; does the FFT compute :
 ; -- (1) somethings
 ; -- (2) at the expected place
 ; We need such a function because one version of GDL rc2
@@ -16,23 +16,30 @@
 ;
 ; This is a preliminary but important version of TEST_FFT 
 ;
+; ---------------------------------
+; 
+; Modifications history :
+;
+; - 2018-03-21 : AC. 
+;  1/ cleaning ... using up-to-date messages & errors management
+;  2/ testing the types (Dcomplex if Double or Dcomplex only)
+;
 ; -------------------------------------------
 ;
 ; expected types for outputs from FFT are "6" (complex) or "9" (Dcomplex)
 ;
-pro TEST_FFT_ALL_TYPES, test=test, help=help, no_exit=no_exit, $
-                        verbose=verbose, quiet=quiet
+pro TEST_FFT_ALL_TYPES, cumul_errors, test=test, help=help, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, no_exit=no_exit, $'
-   print, '                        verbose=verbose, quiet=quiet'
+   print, 'pro TEST_FFT_ALL_TYPES, cumul_errors, test=test, help=help, verbose=verbose'
    return
 endif
 ;
 print, 'Running TEST_FFT_ALL_TYPES (for 13 input types)'
 ;
-nb_pb=0
-for ii=0, 15 do begin
+nb_errors=0
+;
+for ii=1, 15 do begin
    if ii EQ 8 then CONTINUE   ;; Struc
    if ii EQ 10 then CONTINUE  ;; Pointer
    if ii EQ 11 then CONTINUE  ;; Objref
@@ -40,47 +47,53 @@ for ii=0, 15 do begin
    input=MAKE_ARRAY(1024,type=ii)
    result=FFT(input)
    type=SIZE(result,/type)
-   if ((type EQ 6) or (type EQ 9)) then begin
-      message=', OK'
+   ;;
+   information='Input Type : '+STRING(TYPENAME(input), format='(A8)')
+   information=information+'; Output Type : '
+   information=information+STRING(TYPENAME(result), format='(A8)')
+   ;;
+   message='; Status : OK'
+   ;; if input is Double or DComplex, output must be DComplex
+   if (ii EQ 5) OR (ii EQ 9) then begin
+      if (type NE 9) then begin
+         ERRORS_ADD, nb_errors, information
+         message='; Status : Problem'
+      endif
    endif else begin
-      message=', Problem'
-      nb_pb=nb_pb+1
+      ;; all other cases yeld to Complex ... (string included)
+      if (type NE 6) then begin
+         ERRORS_ADD, nb_errors, information
+         message='; Status : Problem'
+      endif
    endelse
-   if NOT(KEYWORD_SET(quiet)) OR KEYWORD_SET(verbose) then begin
-      print, 'Input type :', ii, ', Output type :', type, message
+   ;;
+   if KEYWORD_SET(verbose) then begin
+      print, information, message
    endif
 endfor
 ;
-if (nb_pb GT 0) then begin
-   MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_ALL_TYPES',/continue
-   if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endif else begin
-   MESSAGE, 'No problem found in TEST_FFT_ALL_TYPES',/continue
-endelse
+; ----- final ----
 ;
-if KEYWORD_SET(test) then STOP
+BANNER_FOR_TESTSUITE, 'TEST_FFT_ALL_TYPES', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $
-                          verbose=verbose, quiet=quiet, no_exit=no_exit, $
-                          test=test, help=help, debug=debug
+pro TEST_FFT_GO_AND_BACK, cumul_errors, dimension=dimension, nbp=nbp, $
+                          verbose=verbose, test=test, help=help, debug=debug
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $'
-   print, '                          verbose=verbose, quiet=quiet, no_exit=no_exit, $'
-   print, '                          test=test, help=help, debug=debug'
+   print, 'pro TEST_FFT_GO_AND_BACK, cumul_errors, dimension=dimension, nbp=nbp, $'
+   print, '                          verbose=verbose, test=test, help=help, debug=debug'
    return
 end
 ;
 print, '' &
-mess='Running TEST_FFT_GO_AND_BACK (for 13 input types)'
-;;if N_ELEMENTS(dimension) GT 3 then begin
-;;   MESSAGE, 'Sorry, we are not ready for high Dimensions cases'
-;;   EXIT, status=1
-;;end
+mess='Running TEST_FFT_GO_AND_BACK (for 11 numeric input types + string)'
+;
 if N_ELEMENTS(dimension) EQ 0 then begin
    if N_ELEMENTS(nbp) EQ 0 then nbp=1024
    if nbp LE 0 then begin
@@ -89,10 +102,11 @@ if N_ELEMENTS(dimension) EQ 0 then begin
    endif
    dimension=[nbp]
 endif
-mess=mess+' in '+STRING(N_ELEMENTS(dimension))+'D case, with size:'
-print, STRCOMPRESS(mess), dimension
+mess=mess+' in '+STRING(N_ELEMENTS(dimension))+'D case'
+print, STRCOMPRESS(mess)
+print, 'with size: ', dimension
 ;
-nb_pb=0
+nb_errors=0
 ;
 ; We will point a Dirac somewhere in the array ...
 glitch=[5,7,12]
@@ -102,7 +116,7 @@ for ii=1, N_ELEMENTS(dimension)-1 do begin
 endfor
 if KEYWORD_SET(debug) then print, glitch_index
 ;
-for ii=0, 15 do begin
+for ii=1, 15 do begin
    if ii EQ 8 then CONTINUE   ;; Struc
    if ii EQ 10 then CONTINUE  ;; Pointer
    if ii EQ 11 then CONTINUE  ;; Objref
@@ -118,46 +132,47 @@ for ii=0, 15 do begin
    message=', OK'
    if (error GT 1e-3) then begin
       message=', Problems'
-      nb_pb=nb_pb+1
-   endif
-   if NOT(KEYWORD_SET(quiet)) OR KEYWORD_SET(verbose) then begin
+      ERRORS_ADD, nb_errors, 'Type : '+TYPENAME(input)
+    endif
+   if KEYWORD_SET(verbose) then begin
       print, format='(A,i4,A,i4,A,G10.4,A,G10.4)', 'Input type :', ii, $
              ', Output type :', SIZE(result2,/type), ', error: ', error, message+'; time : ', sub_t0
    endif
 endfor
 ;
-if (nb_pb GT 0) then begin
-   MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_GO_AND_BACK', /continue
-   if ~KEYWORD_SET(no_exit) then EXIT, status=1
-endif else begin
-   MESSAGE, 'No problem found in TEST_FFT_GO_AND_BACK', /continue
-endelse
+; ----- final ----
 ;
-if KEYWORD_SET(test) then STOP
+BANNER_FOR_TESTSUITE, 'TEST_FFT_GO_AND_BACK', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT, help=help, no_exit=no_exit, test=test, $
-              quiet=quiet, verbose=verbose
+pro TEST_FFT, help=help, no_exit=no_exit, test=test, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT, help=help, no_exit=no_exit, quiet=quiet, verbose=verbose'
+   print, 'pro TEST_FFT, help=help, no_exit=no_exit, verbose=verbose'
    return
 endif
 ;
-if NOT(KEYWORD_SET(quiet)) AND NOT(KEYWORD_SET(verbose)) then quiet=1
+cumul_errors=0
 ;
-TEST_FFT_ALL_TYPES, quiet=quiet, verbose=verbose, no_exit=no_exit
-TEST_FFT_GO_AND_BACK, quiet=quiet, verbose=verbose, no_exit=no_exit
-TEST_FFT_GO_AND_BACK, dim=[1024,1024], $
-                      quiet=quiet, verbose=verbose, no_exit=no_exit
-TEST_FFT_GO_AND_BACK, dim=[512,2048], $
-                      quiet=quiet, verbose=verbose, no_exit=no_exit
-TEST_FFT_GO_AND_BACK, dim=[128,64,128], $
-                      quiet=quiet, verbose=verbose, no_exit=no_exit
+TEST_FFT_ALL_TYPES, cumul_errors, verbose=verbose
+;
+TEST_FFT_GO_AND_BACK, cumul_errors, verbose=verbose
+TEST_FFT_GO_AND_BACK, cumul_errors, dim=[1024,1024], verbose=verbose
+TEST_FFT_GO_AND_BACK, cumul_errors, dim=[512,2048], verbose=verbose
+TEST_FFT_GO_AND_BACK, cumul_errors, dim=[128,64,128], verbose=verbose 
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_FFT', cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
+

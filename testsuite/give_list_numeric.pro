@@ -12,16 +12,20 @@
 ; 2/ being able to select Integer types only
 ; 3/ if not 64b, no l64 & ul64 ...
 ;
+; 2018-Mar-21 : AC.
+; 1/ typo in name/names keyword
+; 2/ /verb --> /test to stop at the end !
+;
 ; -----------------------------------------------
 ;
 pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $
-                       list_numeric_size, name=name, $
+                       list_numeric_size, names=names, $
                        integer=integer, lowercase=lowercase, $
                        verbose=verbose, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $'
-   print, '                       list_numeric_size, name=name, $'
+   print, '                       list_numeric_size, names=names, $'
    print, '                       integer=integer, lowercase=lowercase, $'
    print, '                       verbose=verbose, help=help, test=test'
    return
@@ -69,7 +73,7 @@ if KEYWORD_SET(lowercase) then begin
    list_numeric_names=STRLOWCASE(list_numeric_names)
 endif
 ;
-if KEYWORD_SET(verbose) or KEYWORD_SET(names) then begin
+if KEYWORD_SET(verbose) or KEYWORD_SET(name) then begin
    print, format='(A11,A6, A6, A6)', 'Type :', 'val.', 'size', 'name' 
    for ii=0, N_ELEMENTS(list_numeric_names)-1 do begin
       print, format='(A1,A8,A2,2i6,A6)',' ',list_numeric_names[ii], ':', $
@@ -77,6 +81,6 @@ if KEYWORD_SET(verbose) or KEYWORD_SET(names) then begin
    endfor
 endif
 ;
-if KEYWORD_SET(verbose) then STOP
+if KEYWORD_SET(test) then STOP
 ;
 end
