@@ -80,7 +80,7 @@ pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $
                           short=short, wide=wide, line=line, noline=noline, $
                           help=help, test=test, verbose=verbose
 ;
-verbose=1
+;verbose=1
 ;
 mess1='First mandatory param: procedure name (string)'
 mess2='Second mandatory param: errors number (>=0 integer) or string message'
