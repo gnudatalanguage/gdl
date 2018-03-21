@@ -133,6 +133,7 @@ for ii=1, 15 do begin
    if (error GT 1e-3) then begin
       message=', Problems'
       ERRORS_ADD, nb_errors, 'Type : '+TYPENAME(input)
+      if KEYWORD_SET(debug) then STOP
     endif
    if KEYWORD_SET(verbose) then begin
       print, format='(A,i4,A,i4,A,G10.4,A,G10.4)', 'Input type :', ii, $
