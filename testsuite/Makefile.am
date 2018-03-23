@@ -73,6 +73,7 @@ TESTS = \
   test_bug_635.pro \
   test_bug_709.pro \
   test_bug_719.pro \
+  test_bug_n000720.pro \
   test_bytscl.pro \
   test_byte_conversion.pro \
   test_call_external.pro \
@@ -202,6 +203,7 @@ TESTS = \
   test_wavelet.pro \
   test_window_background.pro \
   test_where.pro \
+  test_wordexp.pro \
   test_zeropoly.pro \
   test_zip.pro \
   test_xdr.pro \
