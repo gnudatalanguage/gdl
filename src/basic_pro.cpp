@@ -486,6 +486,9 @@ namespace lib {
     //     if (name.substr(0,2) == "~/")
     //       name = getenv("HOME") + name.substr(1,name.size()-1);
 
+    // AC 2018-mars-22 : at the end, correcting bug 720
+    WordExp(name);
+
     // endian
     bool swapEndian = false;
     static int swapIx = e->KeywordIx("SWAP_ENDIAN");
