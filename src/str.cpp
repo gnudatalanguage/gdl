@@ -41,7 +41,9 @@ extern "C" {
 #include "initsysvar.hpp" // GDLPath();
 
 using namespace std;
-
+//namespace lib {
+//bool trace_arg();
+//}
 string GetEnvString(const char* env)
 {
   char* c=getenv(env);
@@ -312,35 +314,59 @@ unsigned long int Str2UL( const string& s, int base)
   const char* cStart = s.c_str();
   return Str2UL( cStart, base);
 }
-
-void WordExp( string& s)
+void WordExp( std::string& s)
 {
-  //cout << "WordExp  in: " << s << endl;
+  bool trace_me =false; // lib::trace_arg();
 #if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
-  // esc whitespace
-  // which is not already escaped
-  //   string sEsc;
-  //   for( int i=0; i<s.length(); ++i)
-  //   {
-  //     if( s[i] == ' ')
-  // 	sEsc += "\\ ";
-  //     else if( s[i] == '\\')
-  //       {
-  // 	if( (i+1)<s.length())
-  // 	{
-  // 	  if( s[i+1] == ' ')
-  // 	  {
-  // 	    sEsc += "\\ ";
-  // 	    ++i;
-  // 	  }
-  // 	}	  
-  //       }    
-  //     else
-  // 	sEsc += s[i];
-  //   }
-  //cout << "WordExp esc: " << sEsc << endl;
+//  cout << "WordExp  in: " << s ;
+//   escape whitespace, before passing it to WordExp,
+//   which is not already escaped
   wordexp_t p;
+     string sEsc="";
+     for( int i=0; i<s.length(); ++i)
+     {
+		char achar = s[i];
+       if( achar == ' ')
+   	sEsc += string("\\ ");
+       else if( achar == '\\')
+         {
+   	if( (i+1)<s.length())
+   	{
+   	  if( s[i+1] == ' ')
+   	  {
+   	    sEsc += string("\\ ");
+   	    ++i;
+   	  }
+   	}	  
+         }
+       else if( achar != '$')  sEsc.push_back(achar);
+       else { // $
+		   
+		   int ind = s.find(" ",i);
+		   string name = s.substr(i+1,ind-i-1);
+		if(trace_me) cout << name << i << " i, ind "<< ind << endl;
+		   char* subst = getenv(name.c_str());
+		   if( subst != NULL) {
+				sEsc += string(subst);
+				i = ind-1;
+			} else sEsc.push_back(achar);
+	   }
+     }
+#if 1
+	if(trace_me) 
+		cout << "WordExp  in: " << s 
+			<< " -(modified original)- WordExp esc: " << sEsc << endl;
+  int ok0 = wordexp( sEsc.c_str(), &p, 0);
+  if(ok0 == 0) {
+	   s=p.we_wordv[0];
+
+	   /*
+
+#elif 0
   int ok0 = wordexp( s.c_str(), &p, 0);
+	if(trace_me) 
+		cout << "WordExp  in: " << s 
+			<< " -(cvs 0.9.7)-  WordExp esc: " << sEsc << endl;
   //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
   if( ok0 == 0)
     {
@@ -361,12 +387,65 @@ void WordExp( string& s)
 	  // s=p.we_wordv[0];
 	  s=ss;
 	}
-      //     cout<<s<<"--result\n";
+ 
+#elif 0
+	if(trace_me) 
+		cout << "WordExp  in: " << s 
+			<< "WordExp esc: " << sEsc << endl;
+  int ok0 = wordexp( sEsc.c_str(), &p, 0);
+  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
+  if( ok0 == 0)
+    {
+      //        cout<< p.we_wordc<<"word count\n";
+      if( p.we_wordc > 0)
+	{
+	  //	 s="";
+	  string ss= p.we_wordv[0];
+	  for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
+	    {
+	      while(s[ind++]==' ') ss+="";
+	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp", same label
+	      ss+="|";
+	      ss+= p.we_wordv[i];
+	      ind=s.find(" ",ind);
+	      //	      cout<<"in for\n";
+	    }
+	  // s=p.we_wordv[0];
+	  s=ss;
+	}
+#elif 0
+  string t = "";
+  size_t start=0;
+  size_t ind = s.find(" ",start);
+  size_t slen = s.length();
+  if( ind == string::npos) 
+		t = s;
+  else {
+	  while( ind != string::npos ) {
+		t += s.substr(start,ind-start);
+		if(s[ind-1] != '\\') t.push_back('\\');
+		while(ind < slen) {		// account for multiple spaces between words.
+			t.push_back(' ');
+			if(s[++ind] != ' ') break;
+			t.push_back('\\');
+		}
+		start = ind;
+		ind = s.find(" ",start);
+		}
+		t+= s.substr(start,slen-start);
+	}
+	cout <<" WordExp: s=<" << s <<"> t=<"<<t<<">" << endl;
+  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
+  if( wordexp( t.c_str(), &p, 0) == 0)	{ 
+	  s = p.we_wordv[0];
+	   */
+#endif // 0/1
+      
 #  if defined(__APPLE__)
       p.we_offs = 0;
 #  endif
       wordfree( &p);
-    }
+  }
 #endif
   //cout << "WordExp out: " << s << endl;
 }
