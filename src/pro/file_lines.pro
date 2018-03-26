@@ -14,7 +14,7 @@
 ; KEYWORD PARAMETERS:  /compress is not available now
 ;                      /noexpand_path is not available now
 ;
-; OUTPUTS: -- the line number, in Long type
+; OUTPUTS: -- the line number, in Long64 type
 ;
 ; OPTIONAL OUTPUTS: none
 ;
@@ -31,17 +31,18 @@
 ; EXAMPLE:   print, FILE_LINES("/etc/passwd")
 ;
 ; MODIFICATION HISTORY:
-;   - 26/07/2006: created by Alain Coulais (ARSC)
-;   - 30/05/2008: Michael Mueller (U of Arizona) fixed inconsistent
+;  - 26/07/2006: created by Alain Coulais (ARSC)
+;  - 30/05/2008: Michael Mueller (U of Arizona) fixed inconsistent
 ;     handling of files that don't end in newline
-;   - 14/01/2010: Lucio Baggio (LATMOS/CNRS) avoided shell interaction
-;   - 04/07/2012: Alain 
+;  - 14/01/2010: Lucio Baggio (LATMOS/CNRS) avoided shell interaction
+;  - 04/07/2012: Alain 
 ;      * Correcting bug 3189065 : better message when no-existing file !
 ;      * Correcting bug 3175753 : bad value when filename begin with number
 ;      * managing input files list
-;   - 25/03/2014: Alain
+;  - 25/03/2014: Alain
 ;      * pb when "~" in filename
-;   - 11/05/2015: Alain : better managment of Directories !
+;  - 11/05/2015: Alain : better managment of Directories !
+;  - 26/03/2018: must be Long64 !
 ;
 ;-
 ; LICENCE:
@@ -78,7 +79,7 @@ if KEYWORD_SET(noexpand_path) then begin
     return, -1
 endif
 ;
-nbp=LONARR(N_ELEMENTS(filenames))
+nbp=LON64ARR(N_ELEMENTS(filenames))
 ;
 for ii=0, N_ELEMENTS(filenames)-1 do begin
     ;;
@@ -105,11 +106,11 @@ for ii=0, N_ELEMENTS(filenames)-1 do begin
             commande=zcommand[0]+filename+zcommand[1]
         endelse        
         SPAWN, commande, resultat
-        nbp[ii]=(LONG((STRSPLIT(resultat,' ',/extract))[0]))
+        nbp[ii]=(LONG64((STRSPLIT(resultat,' ',/extract))[0]))
     endif else begin
         commande=["wc", "-l",filename]
         SPAWN, commande, resultat, /NOSHELL
-        nbp[ii]=(LONG((STRSPLIT(resultat,' ',/extract))[0]))
+        nbp[ii]=(LONG64((STRSPLIT(resultat,' ',/extract))[0]))
         ;;nbp[ii]=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
         ;;
         ;; checking remaining missing bad endline
