@@ -676,7 +676,7 @@
              procedure compilation.
 
 0.9.8
-          - internal SAVE and RESTORE
+          - internal SAVE and RESTORE. CMSVLIB not required anymore, and references to it removed in the documentation.
           - better L64 support (N_ELEMENTS, SIZE)
           - better TOTAL for large numbers or special types
 	  - update RANDOM ...
