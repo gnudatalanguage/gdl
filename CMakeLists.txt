@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(GDL)
 
 # X.X.X CVS becomes release X.X.X+1
-set(VERSION "0.9.7 SVN")
+set(VERSION "0.9.8 svn")
 enable_testing()
 
 include(CheckIncludeFile)
