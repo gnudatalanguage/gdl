@@ -681,4 +681,6 @@
           - better TOTAL for large numbers or special types
 	  - update RANDOM ...
           - revisited MAKE_DLL & CALL_EXTERNAL
+          - MIN, MAX /ABSOLUTE.
+          - support of DEVICE,SET_CHARACTER_SIZE, and consequently a better positioning and sizes of plots.     
 	  
