@@ -120,17 +120,6 @@ COMPILING:
   ImageMagick-c++-devel
 
   Look at the *INSTALL* files.
-  
-CMSVLIB:
---------
-  Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
-  If installed, the SAVE and RESTORE commands (data only) are
-  available through wrapper routines. You get CMSVLIB here: 
-  http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz
-  You must add yourself the CMSVLIB path in the GDL_PATH.
-  CMSVLIB provides a test suite: please run CMSV_TEST.
-
-
 
 LINE EDITING:
 -------------
