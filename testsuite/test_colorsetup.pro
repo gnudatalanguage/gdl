@@ -1,8 +1,6 @@
 ; tests compliance of !D.n_colors, !P.color and !P.background
 ; when changing devices and setups.
-; NOT TO BE USED with WINDOWS unless checking what devices are available,
-; NOT to be added to test list: depends on cmsave.pro/cmrestore.pro which
-; is not distributed with GDL. 
+; NOT TO BE USED with WINDOWS unless checking what devices are available
 
 function do_test_colorsetup,device
   value=lonarr(9)
