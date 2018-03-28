@@ -111,6 +111,7 @@ class DeviceZ: public GraphicsDevice
     PLINT r[ctSize], g[ctSize], b[ctSize];
     for( PLINT i = 0; i<ctSize; ++i)
       { r[ i] = g[ i] = b[ i] = i;}
+    actStream->SetColorMap0( r, g, b, ctSize); 
     actStream->SetColorMap1( r, g, b, ctSize); 
 
     actStream->SETOPT( "drvopt","text=0"); // clear drvopt
@@ -152,7 +153,7 @@ public:
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 12)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 26.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 26.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 256*256*256)); //our default is 24bpp 
+    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); //our default is 24bpp 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 1)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
