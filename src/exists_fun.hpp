@@ -29,6 +29,7 @@ namespace lib {
  BaseGDL* hdf_exists(EnvT *e);
  BaseGDL* magick_exists(EnvT *e);
  BaseGDL* ncdf_exists(EnvT *e);
+ BaseGDL* ncdf4_exists(EnvT *e);
  BaseGDL* openmp_exists(EnvT *e);
  BaseGDL* pnglib_exists(EnvT *e);
  BaseGDL* proj4_exists(EnvT *e);

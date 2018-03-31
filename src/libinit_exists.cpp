@@ -59,6 +59,7 @@ void LibInit_exists()
   new DLibFunRetNew(lib::hdf_exists,string("HDF_EXISTS"));
   new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
   new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
+  new DLibFunRetNew(lib::ncdf4_exists,string("NCDF4_EXISTS"));
   new DLibFunRetNew(lib::openmp_exists,string("OPENMP_EXISTS"));
   new DLibFunRetNew(lib::pnglib_exists,string("PNGLIB_EXISTS"));
   new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));

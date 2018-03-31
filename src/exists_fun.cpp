@@ -133,6 +133,15 @@ namespace lib {
 #endif
   }
 
+  BaseGDL* ncdf4_exists(EnvT* e)
+  {
+#ifdef USE_NETCDF4
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
   BaseGDL* openmp_exists(EnvT* e)
   {
 #ifdef USE_OPENMP
