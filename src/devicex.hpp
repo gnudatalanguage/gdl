@@ -65,15 +65,19 @@ public:
             decomposed = (Depth >= 15 ? 1 : 0);
           } 
         }
-        Visual *visual=DefaultVisual( display, DefaultScreen(display) ); 
-        switch ( visual->c_class )
-        {
-         case TrueColor:
-         case StaticColor:
-         case StaticGray:
-          staticDisplay=1;
-             break; //ok, are static
-         default: //dynamic: problems if cmaps not initialized.
+        if (display != NULL) {
+          Visual *visual=DefaultVisual( display, DefaultScreen(display) );
+          switch ( visual->c_class )
+          {
+           case TrueColor:
+           case StaticColor:
+           case StaticGray:
+            staticDisplay=1;
+               break; //ok, are static
+           default: //dynamic: problems if cmaps not initialized.
+            staticDisplay=0;
+          }
+        } else {
           staticDisplay=0;
         }
  
