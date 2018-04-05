@@ -3468,7 +3468,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool maxSet = e->KeywordPresent(maxIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordPresent(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
@@ -3576,7 +3576,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool minSet = e->KeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx);
 
     DLong searchDim;
     if (dimSet) {
