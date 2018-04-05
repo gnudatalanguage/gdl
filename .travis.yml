@@ -8,12 +8,10 @@ matrix:
   include:
     - os: linux
       env: COMPILER=icc
-#    - os: linux
-#      env: COMPILER=clang
-#    - os: linux
-#      env: COMPILER=gcc
-#    - os: osx
-
+    - os: linux
+      env: COMPILER=gcc
+    - os: osx
+      env: COMPILER=clang
 
 before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
@@ -65,7 +63,8 @@ script:
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
     - make
-    - make check || cat testsuite/Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    # TODO: temporarily running tests only on OSX
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; make check || cat testsuite/Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
 
 after_script:
