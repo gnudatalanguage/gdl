@@ -1,15 +1,20 @@
 language: cpp
 dist: trusty
 
-os: 
-#    - linux #TODO!
-    - osx
-compiler:
-    - gcc
-#    - clang # TODO!
 env:
     - CMAKE_BUILD_TYPE=Debug
 #    - CMAKE_BUILD_TYPE=Release #TODO!
+
+matrix:
+  include:
+    - os: linux
+      env: COMPILER=icc
+#    - os: linux
+#      env: COMPILER=clang
+#    - os: linux
+#      env: COMPILER=gcc
+#    - os: osx
+
 
 before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
@@ -40,6 +45,12 @@ install:
     # https://github.com/Homebrew/brew/issues/1742#issuecomment-277308817
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
 
+    # https://github.com/nemequ/icc-travis
+    - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
+    - if [ $COMPILER == icc ]; then sudo sh install-icc.sh; fi
+    - if [ $COMPILER == icc ]; then source ~/.bashrc; fi
+    - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
+
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y wget cmake libncurses-dev libreadline-gplv2-dev zlib1g-dev libgsl0-dev libplplot-dev libgraphicsmagick++1-dev libwxgtk2.8-dev libnetcdf-dev libhdf4-alt-dev libhdf5-serial-dev libfftw3-dev python-dev python-numpy-dev libudunits2-dev pslib-dev libgrib-api-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gsl graphicsmagick udunits fftw eigen plplot wxwidgets netcdf hdf5; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF -DPSLIB=OFF -DEDITLINE=OFF -DREADLINE=OFF"; fi #TODO!
@@ -55,3 +66,6 @@ script:
     - make
     - make check || cat testsuite/Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
+
+after_script:
+    - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
