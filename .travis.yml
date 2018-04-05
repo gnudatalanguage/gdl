@@ -6,7 +6,7 @@ os:
     - osx
 compiler:
     - gcc
-#    - clang # TODO!
+    - clang
 env:
     - CMAKE_BUILD_TYPE=Debug
 #    - CMAKE_BUILD_TYPE=Release #TODO!
