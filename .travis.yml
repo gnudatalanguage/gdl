@@ -3,10 +3,10 @@ dist: trusty
 
 os: 
     - linux
-#    - osx # TEMPORARILY disabled!!!
+    - osx # TEMPORARILY disabled!!!
 compiler:
-    - gcc
-#    - clang # TODO!
+#    - gcc
+    - clang 
 env:
     - CMAKE_BUILD_TYPE=Debug
 #    - CMAKE_BUILD_TYPE=Release #TODO!
@@ -55,6 +55,5 @@ script:
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
     - make
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make; fi # TODO: why this is needed???
     - make check || cat testsuite/Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
