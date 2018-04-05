@@ -1,5 +1,4 @@
 language: cpp
-dist: trusty
 
 env:
     - CMAKE_BUILD_TYPE=Debug
@@ -18,25 +17,27 @@ matrix:
 
 before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - sed -i '' '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_finite.pro/d'           testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_total.pro/d'            testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
+    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
+    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_finite.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
 install:
     # https://github.com/travis-ci/travis-ci/issues/8613
