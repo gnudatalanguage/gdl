@@ -1,37 +1,41 @@
 language: cpp
-dist: trusty
 
-os: 
-#    - linux #TODO!
-    - osx
-compiler:
-    - gcc
-    - clang
 env:
     - CMAKE_BUILD_TYPE=Debug
 #    - CMAKE_BUILD_TYPE=Release #TODO!
 
+matrix:
+  include:
+    - os: linux
+      env: COMPILER=icc
+    - os: linux
+      env: COMPILER=gcc
+    - os: osx
+      env: COMPILER=clang
+
 before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - sed -i '' '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_finite.pro/d'           testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_total.pro/d'            testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
-    - sed -i '' '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
+    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
+    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_finite.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
 install:
     # https://github.com/travis-ci/travis-ci/issues/8613
@@ -39,6 +43,12 @@ install:
 
     # https://github.com/Homebrew/brew/issues/1742#issuecomment-277308817
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
+
+    # https://github.com/nemequ/icc-travis
+    - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
+    - if [ $COMPILER == icc ]; then sudo sh install-icc.sh; fi
+    - if [ $COMPILER == icc ]; then source ~/.bashrc; fi
+    - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y wget cmake libncurses-dev libreadline-gplv2-dev zlib1g-dev libgsl0-dev libplplot-dev libgraphicsmagick++1-dev libwxgtk2.8-dev libnetcdf-dev libhdf4-alt-dev libhdf5-serial-dev libfftw3-dev python-dev python-numpy-dev libudunits2-dev pslib-dev libgrib-api-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gsl graphicsmagick udunits fftw eigen plplot wxwidgets netcdf hdf5; fi
@@ -52,6 +62,12 @@ script:
     - mkdir build
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
-    - make
-    - make check || cat testsuite/Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - travis_wait 30 make
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then make check; fi # TODO: temporarily running tests only on OSX
     - sudo make install
+
+after_script:
+    - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
+
+after_failure:
+    - cat testsuite/Testing/Temporary/LastTest.log
