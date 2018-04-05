@@ -1,11 +1,11 @@
 language: cpp
-dist: trusty
+#dist: trusty
 
 os: 
     - linux
-    - osx # TEMPORARILY disabled!!!
+#    - osx # TEMPORARILY disabled!!!
 compiler:
-#    - gcc
+    - gcc
     - clang 
 env:
     - CMAKE_BUILD_TYPE=Debug
