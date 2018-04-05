@@ -2,8 +2,8 @@ language: cpp
 dist: trusty
 
 os: 
-#    - linux #TODO!
-    - osx
+    - linux
+#    - osx # TEMPORARILY disabled!!!
 compiler:
     - gcc
 #    - clang # TODO!
