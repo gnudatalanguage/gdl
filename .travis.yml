@@ -1,17 +1,17 @@
 language: cpp
 
-env:
-    - CMAKE_BUILD_TYPE=Debug
-#    - CMAKE_BUILD_TYPE=Release #TODO!
-
 matrix:
   include:
     - os: linux
-      env: COMPILER=icc
+      env: COMPILER=icc CMAKE_BUILD_TYPE=Debug
     - os: linux
-      env: COMPILER=gcc
+      env: COMPILER=gcc CMAKE_BUILD_TYPE=Debug
+    - os: linux
+      env: COMPILER=gcc CMAKE_BUILD_TYPE=Release
     - os: osx
-      env: COMPILER=clang
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug
+    - os: osx
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Release
 
 before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
