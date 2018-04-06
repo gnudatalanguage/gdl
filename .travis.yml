@@ -5,8 +5,6 @@ matrix:
     - os: linux
       env: COMPILER=icc CMAKE_BUILD_TYPE=Debug
     - os: linux
-      env: COMPILER=icc CMAKE_BUILD_TYPE=Release
-    - os: linux
       env: COMPILER=gcc CMAKE_BUILD_TYPE=Debug
     - os: linux
       env: COMPILER=gcc CMAKE_BUILD_TYPE=Release
