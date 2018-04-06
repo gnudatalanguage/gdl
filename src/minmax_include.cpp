@@ -94,7 +94,9 @@
         }
       }
 #endif
-    } else
+    }
+#ifdef _OPENMP
+    else
     {
       Ty maxVArray[CpuTPOOL_NTHREADS];
       SizeT maxElArray[CpuTPOOL_NTHREADS];
@@ -175,6 +177,7 @@
           }
       }
     }
+#endif //_OPENMP
 
     if (maxE != NULL) *maxE = maxEl;
     if (maxVal != NULL)
@@ -207,7 +210,9 @@
         }
       }
 #endif
-    } else
+    }
+#ifdef _OPENMP
+    else
     {
       Ty maxVArray[CpuTPOOL_NTHREADS];
       SizeT maxElArray[CpuTPOOL_NTHREADS];
@@ -288,7 +293,7 @@
           }
       }
     }
-
+#endif //OPENMP
     if (minE != NULL) *minE = minEl;
     if (minVal != NULL)
     {
@@ -325,7 +330,9 @@
         }
       }
 #endif
-    } else
+    }
+#ifdef _OPENMP
+    else
     {
 
       Ty maxVArray[CpuTPOOL_NTHREADS];
@@ -427,7 +434,7 @@
         }        
       }
     }
-    
+#endif //OPENMP
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL)
   {
