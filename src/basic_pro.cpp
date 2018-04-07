@@ -344,21 +344,17 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-    int nParam = e->NParam();
-    if (nParam == 0) return;
+      int n_Param=e->NParam();
+      if( n_Param == 0) return;
 
-    BaseGDL* p = e->GetParDefined(0);
-
-    if (p->Type() != GDL_OBJ)
-      e->Throw("Parameter must be an object in"
-      " this context: " +
-      e->GetParString(0));
-    DObjGDL* op = static_cast<DObjGDL*> (p);
-
+	  for( SizeT ipar=0; ipar<n_Param; ipar++) {
+		BaseGDL*& par=e->GetPar( ipar);
+		if( par == NULL or
+			par->Type() != GDL_OBJ) continue;
+		DObjGDL* op= static_cast<DObjGDL*>(par);
     SizeT nEl = op->N_Elements();
-    for (SizeT i = 0; i < nEl; i++) {
-      DObj actID = (*op)[i];
-      e->ObjCleanup(actID);
+		for( SizeT i=0; i<nEl; i++)	
+			e->ObjCleanup( (*op)[i]);
     }
   }
 
@@ -538,6 +534,9 @@ namespace lib {
         mode |= fstream::ate;
       }
     }
+#ifdef _WIN32
+      mode |= ios::binary;
+#endif
 
     static int f77Ix = e->KeywordIx("F77_UNFORMATTED");
     bool f77 = e->KeywordSet(f77Ix);
@@ -626,27 +625,15 @@ namespace lib {
   }
 
   void openr(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::binary);
-#else
     open_lun(e, fstream::in);
-#endif
   }
 
   void openw(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::trunc | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out | fstream::trunc);
-#endif
   }
 
   void openu(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out);
-#endif
   }
 
   void socket(EnvT* e) {
