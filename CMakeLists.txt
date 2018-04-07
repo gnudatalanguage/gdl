@@ -10,6 +10,7 @@
 # tested with 2.4 and doesn't seem to run.
 # SA: 2.6 supports simplified if constructs, e.g. endif()
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_policy(SET CMP0012 OLD)
 
 project(GDL)
 
@@ -28,7 +29,6 @@ include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
-
 #### Default cached values
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
