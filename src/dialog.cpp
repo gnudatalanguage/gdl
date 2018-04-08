@@ -30,6 +30,14 @@
 
 using namespace std;
 
+static string PathSeparator()
+{
+    #ifdef _WIN32
+    return string ("\\");
+    #else
+    return string ("/");
+    #endif
+}
 namespace lib {
 #ifdef HAVE_LIBWXWIDGETS
   BaseGDL* wxwidgets_exists(EnvT* e)
