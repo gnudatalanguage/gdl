@@ -102,6 +102,9 @@ namespace lib {
   BaseGDL* n_params( EnvT* e);
   BaseGDL* keyword_set( EnvT* e);
 
+  bool array_equal_bool( BaseGDL* p0, BaseGDL* p1,
+			bool notypeconv=false, bool not_equal=false,
+			bool quiet=true);
   BaseGDL* array_equal( EnvT* e);
 
   BaseGDL* min_fun( EnvT* e);
