@@ -67,7 +67,7 @@ script:
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
     - if [[ $COMPILER == 'icc' ]]; then travis_wait 60 make; fi
     - if [[ $COMPILER != 'icc' ]]; then                make; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then make check; fi # TODO: temporarily running tests only on OSX
+    - if [[ $TRAVIS_OS_NAME != 'gcc' ]]; then make check; fi # TODO: temporarily running tests only on OSX and Linux/icc
     - sudo make install
 
 after_script:
