@@ -2429,4 +2429,149 @@ namespace lib {
     DStringGDL* p0 = e->GetParAs<DStringGDL>(0);
     cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
   }
+// delvar_pro used to live in gdlhelp.cpp
+
+void delvar_pro( EnvT* e)
+    {
+//	static volatile bool debug(false);
+	static bool message_needed(false);
+	static volatile SizeT numEnv;
+	std::vector<int>  delvar, delcommon;
+//	  trace_me = trace_arg(); 
+	SizeT n_Param = e->NParam();
+	set<string> showStr;  // "Sorted List" 
+// 2016.05.16: message is taken down since errors have been attributed to 
+// other aspects, not delvar specifically.
+	if(message_needed) {
+		std::cout << " ** DELVAR - Warning -- experimental routine !! " << std::endl
+		<< "  o- Not 100 % robust: should NOT be used for objects"   << std::endl;
+		message_needed = false;
+	}
+	EnvBaseT* caller = e->Caller();
+	if(caller->CallingNode() != 0) return;
+//			e->Throw(" DELVAR may only  be called from $MAIN$");
+			
+    SizeT pIndex;
+	int todel[33];
+	static int itest,ndel;
+    ndel=0;
+	delvar.clear();  delcommon.clear();
+	for( SizeT ip=0; ip<n_Param; ip++)
+		{
+		BaseGDL*& par=e->GetPar( ip);
+		if(par == 0) continue;
+		DString parString = caller->GetString( par,true);
+		itest= caller->findvar(parString);
+		if ( itest < 0) {delcommon.push_back(ip); continue;}
+/*		if( par->Type() == GDL_OBJ) { // same procedure use in obj_destroy
+			if(trace_me) 
+				std::cout << " ** delvar on object "<< parString<< std::endl;
+			else {
+				std::cout << " ** DELVAR - object " + parString + 
+				"	skipped !! use obj_destroy for now." << std::endl;
+				continue;
+				}
+				* seems to work ok now that list::cleanup is more bullet-proof.
+*/
+/*	GDLDelete seems to be adequate for cleanup.  Problems calling this way.
+ *	 		DObjGDL* op= static_cast<DObjGDL*>(par);
+			SizeT nEl=op->N_Elements();
+			for( SizeT i=0; i<nEl; i++)	
+				e->ObjCleanup( (*op)[i]);
+
+ 			} */
+		delvar.push_back(itest); ndel++;
+		if (ndel == 32) break;
+		pIndex = caller->findvar(par);
+//		if(debug) cout << " delvar_pro: "+parString+" pro.var, .env= "
+//		  <<itest << " : "<< pIndex <<endl;
+			  
+		}
+	if(!delvar.empty()) {
+			sort(delvar.begin(), delvar.end());
+        	int ndel=0;
+			for (std::vector<int>::iterator ix=delvar.begin();
+			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
+//			if(trace_me) std::cout << " ** delvar x-"<< ndel;
+			todel[ndel] = -1;
+			caller->Remove(todel);
+//			if(trace_me) std::cout << std::endl;
+		}
+	if(delcommon.empty()) return;
+	unsigned cIx;
+	int ncmnfound=0;
+	std::vector<DCommonBase*> c;
+	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
+	proUD->commonPtrs(c);
+	for (std::vector<int>::iterator ix=delcommon.begin();
+			                           ix< delcommon.end(); ix++) {
+		int i;
+		BaseGDL*& par=e->GetPar(*ix);
+		for( i=0; i < c.size(); i++) {
+			cIx = c[i]->Find(par);
+			if(cIx >= 0) break;
+		  }
+		if(cIx >= 0) {
+		    DString parString = c[i]->VarName( cIx) +" ("+c[i]->Name()+')';
+		    help_item( cout , par, parString, false);
+ 		    c[i]->Var(cIx)->Delete(); // this would delete the variable. 
+		    ncmnfound++;			// but 
+			} else {
+				cout << " lost variable" << endl;
+			}
+		}
+//	if(ncmnfound > 0) 
+//		    cout << "( delvar will not handle common-block variables)"<< endl;
+	if(ncmnfound != delcommon.size())
+			cout << "( delvar did not find common block variables that it should have!"<<endl;
+    }
+#if 1
+void findvar_pro( EnvT* e) { cout << " debugger routine: edit/recompile to use" << endl; return;}
+#elif 0   
+void findvar_pro( EnvT* e)
+    {
+      static volatile bool debug(true);
+      static volatile SizeT numEnv;
+      
+	  SizeT n_Param = e->NParam();
+	  //bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
+	bool isKWSetStructures = (n_Param == 0);
+	  static EnvBaseT* caller = e->Caller();
+
+	  bool foundit=false;
+	  int sIndex,pIndex;
+	  for( SizeT i=0; i<n_Param; i++)
+	    {
+	      BaseGDL*& par=e->GetPar( i);
+		DString parString = caller->GetString( par,true);
+	      if(debug) {
+			help_item(cout, par, parString, false);
+			}
+		sIndex = caller->findvar(parString);
+		pIndex = caller->findvar(par);
+		cout << " findvar: "+parString+" pro.var, .env= "
+			  <<sIndex << " : "<< pIndex <<endl;
+		
+		foundit = (sIndex >= 0);
+	  
+//	  if(foundit) continue;
+		  
+	    }
+	if(!isKWSetStructures) return;
+	std::string name;
+	bool started = false;
+	for(StructListT::iterator is = structList.begin(); 
+		is != structList.end(); is++) {
+		name = (*is)->Name();
+		if(started) {
+			if((*is)->IsUnnamed()) name ="Anonymous";
+			cout << "{"+name+"} (" << (*is)->NTags() <<" tags) " ;
+			}
+			else started = (name.compare("!DEVICE") == 0);
+			}
+		cout << endl;
+
+    }
+#endif
+
 } // namespace

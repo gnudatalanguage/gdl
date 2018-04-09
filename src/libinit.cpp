@@ -264,6 +264,9 @@ void LibInit()
   const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","HEAP_VARIABLES","MESSAGES",
 			      "OBJECTS","SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
+  new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
+  DLibPro* hide = new DLibPro(lib::findvar_pro,string("FINDVAR"),-1,NULL,NULL);
+  hide->SetHideHelp(true);
   
   //stub to avoid setting errors on pref_set. One may want to really write pref_set,
   // but this function is just here to prevent setting !ERR=-1 when stumbling on a pref_set command,
@@ -304,6 +307,9 @@ void LibInit()
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
   new DLibPro(lib::heap_free,string("HEAP_FREE"),1,heap_gcKey);
+
+  const string heap_refcount[]={"DISABLE","ENABLE","IS_ENABLED",KLISTEND};
+  new DLibFunRetNew(lib::heap_refcount,string("HEAP_REFCOUNT"),1,heap_refcount);
 
 
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);
