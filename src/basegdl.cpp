@@ -284,6 +284,11 @@ bool BaseGDL::ArrayEqual( BaseGDL*)
   throw GDLException("Operation not defined for UNDEF 6b.");
 }
 
+bool BaseGDL::ArrayNeverEqual( BaseGDL*)
+{
+  throw GDLException("Operation not defined for UNDEF 6b.");
+}
+
 // for statement compliance (int types , float types scalar only)
 void BaseGDL::ForCheck( BaseGDL**, BaseGDL**)
 {

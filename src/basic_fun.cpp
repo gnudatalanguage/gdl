@@ -3401,45 +3401,72 @@ BaseGDL* where_fun(EnvT* e) {
         (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY)), sumDim - 1, KwNaN);
     }
   }
+//  servicing array_equal and also gdl_container::equals
+  bool array_equal_bool( BaseGDL* p0, BaseGDL* p1,
+	bool notypeconv=false, bool not_equal=false,
+	bool quiet=true)
+   {
 
-  BaseGDL* array_equal( EnvT* e) {
-    e->NParam(2); //, "ARRAY_EQUAL");
-
-    BaseGDL* p0 = e->GetParDefined(0); //, "ARRAY_EQUAL");
-    BaseGDL* p1 = e->GetParDefined(1); //, "ARRAY_EQUAL");
-
-    if (p0 == p1) return new DByteGDL(1);
-
+      if( p0 == p1) return true;
+      if( p0==0 or p1==0) return false;
     SizeT nEl0 = p0->N_Elements();
     SizeT nEl1 = p1->N_Elements();
 
     // first case : arrays with differents size (>1)
     if (nEl0 != nEl1 && nEl0 != 1 && nEl1 != 1)
-      return new DByteGDL(0);
+      return false;
 
     // if one of input has only one element, it should NOt be an array
     // ARRAY_EQUAL(1,[1,1]) True, ARRAY_EQUAL([1],[1,1]) False !!
     if (nEl0 != nEl1) {
       if (nEl0 == 1 && nEl1 != 1) {
-        if (!p0->StrictScalar()) return new DByteGDL(0);
+	if (!p0->StrictScalar()) return false;
       }
       if (nEl0 != 1 && nEl1 == 1) {
-        if (!p1->StrictScalar()) return new DByteGDL(0);
+	if (!p1->StrictScalar()) return false;
       }
     }
 
     //cout << "pO "<< p0->Dim() << " p1 "<< p1->Dim() << endl;
     //cout << "pO "<< p0->StrictScalar() << " p1 "<< p1->StrictScalar() << endl;
+    DType aTy=p0->Type();
+    DType bTy=p1->Type();
+
+    if( aTy==GDL_STRUCT or bTy==GDL_STRUCT) {
+      if(quiet) return false;
+      throw GDLException("array_equal: inconvertable GDL_STRUCT");
+      }
 
     Guard<BaseGDL> p0_guard;
     Guard<BaseGDL> p1_guard;
-    if (p0->Type() != p1->Type()) {
-      if (e->KeywordSet(0)) // NO_TYPECONV
-        return new DByteGDL(0);
-      else {
-        DType aTy = p0->Type();
-        DType bTy = p1->Type();
-        if (DTypeOrder[aTy] >= DTypeOrder[bTy]) {
+    
+    if( ( aTy==GDL_PTR and bTy==GDL_PTR) or
+	( aTy==GDL_OBJ and bTy==GDL_OBJ) ) {
+	Data_<SpDULong64>* p0t =
+	      static_cast<Data_<SpDULong64>* >( p0);
+	if( not_equal) return p0t->ArrayNeverEqual( p1);
+	else 	   return p0t->ArrayEqual( p1);
+	}
+    else if( aTy==GDL_PTR or bTy==GDL_PTR) {
+      if(quiet) return false;
+      throw GDLException("array_equal: GDL_PTR only with PTR");
+      }
+    else if( aTy==GDL_OBJ or bTy==GDL_OBJ) {
+      if(quiet) return false;
+      throw GDLException("array_equal: GDL_OBJ only with OBJ");
+      }
+    else if( aTy != bTy)
+      {
+	if( notypeconv) // NO_TYPECONV
+	  return false;
+	else
+	  {
+	    if( !ConvertableType( aTy) or !ConvertableType( bTy)) {
+	      if(quiet) return false;
+	      throw GDLException("array_equal: inconvertable type");
+	      }
+	    else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+	      {
           p1 = p1->Convert2(aTy, BaseGDL::COPY);
           p1_guard.Reset(p1);
         } else {
@@ -3448,10 +3475,26 @@ BaseGDL* where_fun(EnvT* e) {
         }
       }
     }
+    if( not_equal) return p0->ArrayNeverEqual( p1);
+    else 	   return p0->ArrayEqual( p1);
+  }
 
-    if (p0->ArrayEqual(p1)) return new DByteGDL(1);
+  BaseGDL* array_equal( EnvT* e)
+  {
+    e->NParam( 2);
+//    trace_me = trace_arg();
+    static int notypeconvIx = e->KeywordIx("NO_TYPECONV");
+    static int notequalIx = e->KeywordIx("NOT_EQUAL");
+    static int quietIx = e->KeywordIx("QUIET");
+//    if(trace_me) cout << " array=? ";
+    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p1 = e->GetParDefined( 1);
 
-    return new DByteGDL(0);
+    bool result = array_equal_bool(p0, p1,
+      e->KeywordSet( notypeconvIx), e->KeywordSet( notequalIx),
+      e->KeywordSet( quietIx));
+//    if(trace_me) cout << result<< endl;
+    return new DByteGDL( result ? 1 : 0 );
   }
 
   BaseGDL* min_fun( EnvT* e) {

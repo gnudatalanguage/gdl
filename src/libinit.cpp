@@ -505,7 +505,7 @@ void LibInit()
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
-  const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
+  const string array_equalKey[]={"NO_TYPECONV","NOT_EQUAL","QUIET",KLISTEND};
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
   const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION","ABSOLUTE",KLISTEND};
