@@ -36,6 +36,8 @@
 #include "file.hpp"
 #include "objects.hpp"
 
+#include <zlib.h>
+
 #include <climits> // PATH_MAX
 //patch #90
 #ifndef PATH_MAX
@@ -1791,7 +1793,56 @@ bool *tests )
       }
     return res;
   }
-  // Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
+
+  BaseGDL* file_lines( EnvT* e) {
+    SizeT nParam = e->NParam(1); //, "FILE_LINES");
+    DStringGDL* p0S = e->GetParAs<DStringGDL>(0); //, "FILE_LINES");
+
+    SizeT nEl = p0S->N_Elements();
+    if (nEl == 0)
+      e->Throw("invalid argument");
+
+    static int compressIx = e->KeywordIx("COMPRESS");
+    bool compressed = e->KeywordSet(compressIx); // we actually don't use it. zlib does it all for us!
+    static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
+    bool noExp = e->KeywordSet(noExpIx);
+    
+    DLongGDL* res = new DLongGDL( nEl, BaseGDL::NOZERO);
+
+    gzFile gfd = NULL;
+    char newinput, lastchar = 0;
+    SizeT lines;
+
+      for( SizeT i=0; i<nEl; ++i)
+    {
+          std::string fname = (*p0S)[i];
+
+          if (!noExp) WordExp(fname);
+
+          if ((gfd = gzopen(fname.c_str(), "rb")) == NULL) {
+              e->Throw("Could not open file for reading ");// + p0[i]);
+          }
+          lines = 0;
+          while (gzread(gfd, &newinput, 1) == 1) {
+              if (newinput == '\r') lines++;
+              if (newinput == '\n') lines++;
+//                  if (newinput == '\r' && lastchar == '\n') length--;
+              if (newinput == '\n' && lastchar == '\r') lines--;
+              lastchar = newinput;
+          }
+          gzclose(gfd);
+      if (lastchar != '\n' && lastchar != '\r') lines++;
+
+      (*res)[ i] = lines;
+    }
+
+    return res;
+  }
+
+
+
+
+// Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
   BaseGDL* file_readlink( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 

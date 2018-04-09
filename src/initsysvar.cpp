@@ -135,7 +135,8 @@ namespace SysVar
     struct tm *tstruct;
 
     gettimeofday(&tval,&tzone);
-    tstruct= localtime((time_t *)&tval.tv_sec);
+    time_t ttime = tval.tv_sec;
+    tstruct= localtime(&ttime);
 
     char st[MAX_STIME_STRING_LENGTH];
     const char *format="%d-%h-%Y %T.00";// !STIME format.
