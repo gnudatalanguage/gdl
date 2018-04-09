@@ -163,6 +163,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 	  }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot(structR, aL); 
+      return;
   }
   else
   {
@@ -243,6 +244,7 @@ if( r->Type() == GDL_STRUCT)
 	  }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot( structR, aL); 
+      return;
   }
 else
   {
@@ -437,6 +439,12 @@ void GDLInterpreter::SetFunIx( ProgNodeP f)
   if( f->funIx == -1)
     f->funIx=GetFunIx(f);
 }
+static int StructIx( const string& name) {
+	SizeT nS=structList.size();
+	for( SizeT i=0; i<nS; i++) if( DStruct_eq(name)(structList[i]))
+			return i;
+	return -1;
+}
 
 int GDLInterpreter::GetFunIx( ProgNodeP f)
 {
@@ -450,7 +458,13 @@ int GDLInterpreter::GetFunIx( ProgNodeP f)
       funIx=FunIx(subName);
       if( funIx == -1)
 	{
+	  int Ix = StructIx(subName); // signal back if function name has a class defined.
+	  if( Ix <= 1) //return -1;  // First two list entries don't play well :(
 	  throw GDLException(f, "Function not found: "+subName, true, false);
+// unenlightened action:
+//	  throw GDLException(f, "AutoObject Function call not implemented: "+subName, true, false);
+	cout<<"AutoObject Function call not implemented: "+subName<<Ix<<endl;
+		return -Ix;
 	}
     }
   return funIx;
@@ -466,7 +480,7 @@ int GDLInterpreter::GetFunIx( const string& subName)
       funIx=FunIx(subName);
       if( funIx == -1)
 	{
-	  throw GDLException("Function not found: "+subName);
+	  throw GDLException("Function not found%%: "+subName);
 	}
     }
   return funIx;
@@ -852,8 +866,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RNEW"))
     {
-      cout << "RNEW not implemented yet." << endl;
-      return CC_OK;
+	    EnvUDT* mainEnv = 
+		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
+			  SizeT nEnv = mainEnv->EnvSize();
+
+		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
+		if(!mainEnv->Removeall()) 
+			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+
+      return CmdRun( command);
     }
   // GD:Here to have ".s" giving ".step"
   if( cmd( "STEP"))
