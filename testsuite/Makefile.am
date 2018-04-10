@@ -117,6 +117,7 @@ TESTS = \
   test_get_lun.pro \
   test_get_screen_size.pro \
   test_grib.pro \
+  test_heap_refcount.pro \
   test_hist_2d.pro \
   test_hdf5.pro \
   test_idl8.pro \
