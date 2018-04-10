@@ -74,10 +74,9 @@ install:
 
         # GSL
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-latest.tar.gz
-        tar zxf gsl-latest.tar.gz
-        dir
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /mnt/c/projects/gdl/win32libs/gsl-latest && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /mnt/c/projects/gdl/win32libs && make -j4 && make install'
+        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        tar zxf gsl-2.4.tar.gz
+        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/mnt/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /mnt/c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /mnt/c/projects/gdl/win32libs && make -j4 && make install'
         
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\win32libs
