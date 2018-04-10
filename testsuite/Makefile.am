@@ -88,6 +88,7 @@ TESTS = \
   test_constants.pro \
   test_convert_coord.pro \
   test_correlate.pro \
+  test_delvarrnew.pro \
   test_deriv.pro \
   test_device.pro \
   test_diag_matrix.pro \

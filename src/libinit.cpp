@@ -261,6 +261,10 @@ void LibInit()
   const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","HEAP_VARIABLES","MESSAGES",
 			      "OBJECTS","SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
+
+  new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
+  DLibPro* hide = new DLibPro(lib::findvar_pro,string("FINDVAR"),-1,NULL,NULL);
+  hide->SetHideHelp(true);
   
   //stub to avoid setting errors on pref_set. One may want to really write pref_set,
   // but this function is just here to prevent setting !ERR=-1 when stumbling on a pref_set command,

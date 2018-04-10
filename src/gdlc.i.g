@@ -67,6 +67,9 @@ header {
 //#undef GDL_DEBUG
 //#define GDL_DEBUG_HEAP
 
+bool IsEnabledGC(); // defined in GDLInterpreter.cpp with EnableGC(bool);
+void EnableGC(bool);
+
 }
 
 options {

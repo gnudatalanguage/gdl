@@ -852,8 +852,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RNEW"))
     {
-      cout << "RNEW not implemented yet." << endl;
-      return CC_OK;
+	    EnvUDT* mainEnv = 
+		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
+			  SizeT nEnv = mainEnv->EnvSize();
+
+		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
+		if(!mainEnv->Removeall()) 
+			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+
+      return CmdRun( command);
     }
   // GD:Here to have ".s" giving ".step"
   if( cmd( "STEP"))
