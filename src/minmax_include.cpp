@@ -15,12 +15,16 @@
  *                                                                         *
  ***************************************************************************/
 
-// for all varaints of MinMax(), to be included from datatypes.cpp
+// for all variants of MinMax(), to be included from datatypes.cpp
 
   // default: start = 0, stop = 0, step = 1, valIx = -1
   if (stop == 0) stop = dd.size();
  
-
+#ifdef _OPENMP
+#define MINMAX_THREAD_NUM omp_get_thread_num()
+#else
+#define MINMAX_THREAD_NUM 0
+#endif
 //permits to treat the complex types by ading .Real() to (*this)[i]
 #ifdef MINMAX_IS_COMPLEX
 #define REAL_PART(x) (x).real()
@@ -28,7 +32,6 @@
 #else
 #define REAL_PART(x) (x)
 #define COMPLEX_ABS(x) (x)
-
 #endif
     
   
@@ -110,7 +113,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -136,7 +139,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -223,7 +226,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -249,7 +252,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -342,7 +345,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -372,7 +375,7 @@
       {
 #pragma omp parallel
         {
-          int thread_id = omp_get_thread_num();
+          int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
           if (thread_id != (CpuTPOOL_NTHREADS - 1))
@@ -450,3 +453,4 @@
 #undef REAL_PART
 #undef COMPLEX_ABS
 #undef FUNCABS
+#undef MINMAX_THREAD_NUM
