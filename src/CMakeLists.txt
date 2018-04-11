@@ -27,6 +27,7 @@ GDLTreeParserTokenTypes.hpp
 datatypes.cpp
 datatypes.hpp
 datatypesref.cpp
+datatypes_minmax.cpp
 accessdesc.hpp
 allix.hpp
 allix.cpp
@@ -268,6 +269,7 @@ triangulation.cpp
 typedefs.hpp
 typetraits.cpp
 typetraits.hpp
+where.cpp
 widget.cpp
 widget.hpp
 )
