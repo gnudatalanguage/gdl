@@ -41,8 +41,12 @@
   
 
   SizeT nElem = (stop - start) / step;
+//trap existence of ABSFUNC and create something that stands cppchekck useage (needed by contiunous integration scripts!) 
 #ifndef ABSFUNC
+#define FUNCABS
   useAbs=false;
+#else
+#define FUNCABS ABSFUNC
 #endif
 #ifdef MINMAX_HAS_OMITNAN
   if (omitNaN) //get first not-nan. Rest of processing will ignore nans since logical expressions must be true.
@@ -90,7 +94,7 @@
       {
         for (SizeT i = start+step; i < stop; i += step) {
           AVOID_INF 
-          if (ABSFUNC((*this)[i]) > ABSFUNC(maxV)) maxV = (*this)[maxEl = i];
+          if (FUNCABS((*this)[i]) > FUNCABS(maxV)) maxV = (*this)[maxEl = i];
         }
       }
 #endif
@@ -147,7 +151,7 @@
           for (SizeT i = start_index; i < stop_index; i += step)
           {
             AVOID_INF 
-            if (ABSFUNC((*this)[i]) > ABSFUNC(local_max)) local_max = (*this)[local_pos = i];
+            if (FUNCABS((*this)[i]) > FUNCABS(local_max)) local_max = (*this)[local_pos = i];
           }
           maxElArray[thread_id] = local_pos;
           maxVArray[thread_id] = local_max;
@@ -159,7 +163,7 @@
 #ifdef ABSFUNC
       if (useAbs)
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (ABSFUNC(maxVArray[i]) > ABSFUNC(maxV))
+        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (FUNCABS(maxVArray[i]) > FUNCABS(maxV))
           {
             maxV = maxVArray[i];
             maxEl = maxElArray[i];
@@ -203,7 +207,7 @@
       {
         for (SizeT i = start+step; i < stop; i += step) {
           AVOID_INF
-          if (ABSFUNC((*this)[i]) < ABSFUNC(minV)) minV = (*this)[minEl = i];
+          if (FUNCABS((*this)[i]) < FUNCABS(minV)) minV = (*this)[minEl = i];
         }
       }
 #endif
@@ -260,7 +264,7 @@
           for (SizeT i = start_index; i < stop_index; i += step)
           {
             AVOID_INF 
-            if (ABSFUNC((*this)[i]) < ABSFUNC(local_min)) local_min = (*this)[local_pos = i];
+            if (FUNCABS((*this)[i]) < FUNCABS(local_min)) local_min = (*this)[local_pos = i];
           }
           minElArray[thread_id] = local_pos;
           minVArray[thread_id] = local_min;
@@ -272,7 +276,7 @@
 #ifdef ABSFUNC
       if (useAbs)
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (ABSFUNC(minVArray[i]) < ABSFUNC(minV))
+        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (FUNCABS(minVArray[i]) < FUNCABS(minV))
           {
             minV = minVArray[i];
             minEl = minElArray[i];
@@ -320,8 +324,8 @@
       {
         for (SizeT i = start+step; i < stop; i += step) {
           AVOID_INF
-          if (ABSFUNC((*this)[i]) < ABSFUNC(minV)) minV = (*this)[minEl = i];
-          if (ABSFUNC((*this)[i]) > ABSFUNC(maxV)) maxV = (*this)[maxEl = i];
+          if (FUNCABS((*this)[i]) < FUNCABS(minV)) minV = (*this)[minEl = i];
+          if (FUNCABS((*this)[i]) > FUNCABS(maxV)) maxV = (*this)[maxEl = i];
         }
       }
 #endif
@@ -384,8 +388,8 @@
           Ty local_max = maxV;
           for (SizeT i = start_index; i < stop_index; i += step) {
             AVOID_INF 
-            if (ABSFUNC((*this)[i]) < ABSFUNC(local_min)) local_min = (*this)[local_pos_min = i];
-            if (ABSFUNC((*this)[i]) > ABSFUNC(local_max)) local_max = (*this)[local_pos_max = i];
+            if (FUNCABS((*this)[i]) < FUNCABS(local_min)) local_min = (*this)[local_pos_min = i];
+            if (FUNCABS((*this)[i]) > FUNCABS(local_max)) local_max = (*this)[local_pos_max = i];
           }
           minElArray[thread_id] = local_pos_min;
           minVArray[thread_id] = local_min;
@@ -402,11 +406,11 @@
       if (useAbs)
       {
         for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) {
-          if (ABSFUNC(minVArray[i]) < ABSFUNC(minV)) {
+          if (FUNCABS(minVArray[i]) < FUNCABS(minV)) {
             minV = minVArray[i];
             minEl = minElArray[i];
           }
-          if (ABSFUNC(maxVArray[i]) > ABSFUNC(maxV)) {
+          if (FUNCABS(maxVArray[i]) > FUNCABS(maxV)) {
             maxV = maxVArray[i];
             maxEl = maxElArray[i];
           }
@@ -445,3 +449,4 @@
 #undef AVOID_INF 
 #undef REAL_PART
 #undef COMPLEX_ABS
+#undef FUNCABS
