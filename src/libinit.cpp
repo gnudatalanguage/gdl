@@ -40,6 +40,7 @@
 
 #include "gsl_fun.hpp"
 
+#include "where.hpp"
 #include "convol.hpp"
 #include "smooth.hpp"
 #include "brent.hpp"
