@@ -132,11 +132,11 @@ namespace lib {
       {
        if( isjulian )
          {
+           time_t ttime = tval.tv_sec;
            if( isutc )
-             tstruct=gmtime((time_t *)&tval.tv_sec);
+             tstruct=gmtime(&ttime);
            else
-             tstruct=localtime((time_t *)&tval.tv_sec);
-
+             tstruct=localtime(&ttime);
            return new DDoubleGDL(Gregorian2Julian(tstruct));
          }
        else
@@ -148,10 +148,11 @@ namespace lib {
       }
 
     //return a string of the time, either UTC or local (default)
+    time_t ttime = tval.tv_sec;
     if(isutc)
-      tstruct= gmtime((time_t *)&tval.tv_sec);
+      tstruct= gmtime(&ttime);
     else
-      tstruct= localtime((time_t *)&tval.tv_sec);
+      tstruct= localtime(&ttime);
 
     //Convert the time to JULIAN or NOT
     if(isjulian)

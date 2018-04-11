@@ -1961,7 +1961,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+                if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1982,7 +1983,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+            if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -2002,7 +2004,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-		if( last == (*p0S)[ i].npos)
+//		if( last == (*p0S)[ i].npos)
+            if (last >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -3579,7 +3582,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool maxSet = e->KeywordPresent(maxIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
@@ -3687,7 +3690,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool minSet = e->KeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx);
 
     DLong searchDim;
     if (dimSet) {
