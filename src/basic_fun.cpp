@@ -1505,7 +1505,7 @@ namespace lib {
 	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
       }
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	if( !compileFlags) cerr << "EXECUTE: Lexer/Parser exception: " <<  
 			     ex.getMessage() << endl;
@@ -1529,7 +1529,7 @@ namespace lib {
 	return new DIntGDL( 0);
       }
 
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	if( !compileFlags) cerr << "EXECUTE: Compiler exception: " <<  
 			     ex.getMessage() << endl;
@@ -1570,7 +1570,7 @@ namespace lib {
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	caller->ResizeForLoops( nForLoopsIn);
 		
@@ -1850,7 +1850,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+                if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1871,7 +1872,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+            if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1891,7 +1893,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-		if( last == (*p0S)[ i].npos)
+//		if( last == (*p0S)[ i].npos)
+            if (last >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -6456,7 +6459,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 	    try {
 	      oStruct = e->GetObjHeap( objRef);
 	    }
-	    catch ( GDLInterpreter::HeapException )
+	    catch ( GDLInterpreter::HeapException& )
 	      { // non valid object
 		if( count)
 		  e->SetKW( countIx, new DLongGDL( 0));
