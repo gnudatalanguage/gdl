@@ -1,8 +1,8 @@
-/***************************************************************************
-                          convol.hpp  -  Convolution GDL library function
+ /***************************************************************************
+                          where.hpp  -  WHERE() GDL library function
                              -------------------
     begin                : Jun 21 2013
-    copyright            : (C) 2013, G. Duvert 2017
+    copyright            : (C) 2013, 2017 G. Duvert
     email                : 
  ***************************************************************************/
 
@@ -20,15 +20,15 @@
  #endif
 
 
-#ifndef CONVOL_HPP_
-#define CONVOL_HPP_
+#ifndef WHERE_HPP_
+#define WHERE_HPP_
 
 #include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {
 
-  BaseGDL* convol_fun( EnvT* e);
+  BaseGDL* where_fun( EnvT* e);
 
 } // namespace
 
