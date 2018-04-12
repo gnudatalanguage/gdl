@@ -151,6 +151,7 @@ void LibInit()
   new DLibFunRetNew(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
 
   new DLibFunRetNew(lib::obj_isa,string("OBJ_ISA"),2,NULL,NULL,false,2);
+  new DLibFunRetNew(lib::obj_hasmethod,string("OBJ_HASMETHOD"),2);
 
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
@@ -330,7 +331,7 @@ void LibInit()
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
 
-  const string obj_validKey[]={"CAST","COUNT",KLISTEND};
+  const string obj_validKey[]={"CAST","COUNT","GET_HEAP_IDENTIFIER",KLISTEND};
   new DLibFunRetNew(lib::ptr_valid,string("PTR_VALID"),1,obj_validKey);
   new DLibFunRetNew(lib::obj_valid,string("OBJ_VALID"),1,obj_validKey);
   
@@ -404,6 +405,10 @@ void LibInit()
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      resolve_routineKey,resolve_routineWarnKey);
+
+  const string routine_filepathKey[]={"EITHER","IS_FUNCTION", KLISTEND};
+  new DLibFunRetNew(lib::routine_filepath,string("ROUTINE_FILEPATH"),1,
+				routine_filepathKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
@@ -506,7 +511,7 @@ void LibInit()
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
-  const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
+  const string array_equalKey[]={"NO_TYPECONV","NOT_EQUAL","QUIET",KLISTEND};
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
   const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION","ABSOLUTE",KLISTEND};
@@ -951,7 +956,7 @@ void LibInit()
 
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFunRetNew(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
-
+//  const string command_line_argsKey[] = {"COUNT","RESET","SET", KLISTEND };
   const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 

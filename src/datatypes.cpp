@@ -2843,6 +2843,38 @@ bool DStructGDL::ArrayEqual( BaseGDL* r)
   return false;
 }
 
+// For array_equal r must be of same type
+template<class Sp>
+bool Data_<Sp>::ArrayNeverEqual( BaseGDL* rIn)
+{
+  Data_<Sp>* r = static_cast< Data_<Sp>*>( rIn);
+  SizeT nEl = N_Elements();
+  SizeT rEl = r->N_Elements();
+  if( rEl == 1)
+    {
+      for( SizeT i=0; i<nEl; ++i)
+	if( (*this)[i] == (*r)[0]) return false;
+      return true;
+    }
+  if( nEl == 1)
+    {
+      for( SizeT i=0; i<rEl; ++i)
+	if( (*this)[0] == (*r)[i]) return false;
+      return true;
+    }
+  if( nEl != rEl) return true;
+  for( SizeT i=0; i<nEl; ++i)
+    if( (*this)[i] == (*r)[i]) return false;
+  return true;
+}
+
+bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
+{
+  throw GDLException("Struct expression not allowed in this context.");
+  return false;
+}
+
+
 
 template<class Sp>
 bool Data_<Sp>::OutOfRangeOfInt() const 

@@ -102,6 +102,9 @@ namespace lib {
   BaseGDL* n_params( EnvT* e);
   BaseGDL* keyword_set( EnvT* e);
 
+  bool array_equal_bool( BaseGDL* p0, BaseGDL* p1,
+			bool notypeconv=false, bool not_equal=false,
+			bool quiet=true);
   BaseGDL* array_equal( EnvT* e);
 
   BaseGDL* min_fun( EnvT* e);
@@ -127,6 +130,9 @@ namespace lib {
   BaseGDL* rebin_fun( EnvT* e);
 
   BaseGDL* obj_class( EnvT* e);
+
+  BaseGDL* obj_hasmethod( EnvT* e);
+
   BaseGDL* obj_isa( EnvT* e);
 
   BaseGDL* n_tags( EnvT* e);
@@ -151,6 +157,8 @@ namespace lib {
   BaseGDL* create_struct( EnvT* e);
 
   BaseGDL* rotate( EnvT* e);
+
+  BaseGDL* routine_filepath( EnvT* e);
 
   // the following by Sylwester Arabas 
   // (slayoo@users.sourceforge.net)
