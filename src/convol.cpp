@@ -18,10 +18,6 @@
 
 #include "includefirst.hpp"
 
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numpy/arrayobject.h>
-#endif
-
 #include "nullgdl.hpp"
 #include "dstructgdl.hpp"
 #include "dinterpreter.hpp"

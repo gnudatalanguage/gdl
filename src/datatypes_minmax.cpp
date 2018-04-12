@@ -18,9 +18,6 @@
 
 #include "includefirst.hpp"
 
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numpy/arrayobject.h>
-#endif
 
 #include "nullgdl.hpp"
 #include "dstructgdl.hpp"
@@ -43,9 +40,9 @@ template<>
 void Data_<SpDULong64>::MinMax( DLong* minE, DLong* maxE, 
 			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
             SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs) {
-#define ABSFUNC llabs
+//#define ABSFUNC llabs //NO as comparison is always ABS for UNSIGNEDs!
 #include "minmax_include.cpp"
-#undef ABSFUNC
+//#undef ABSFUNC
 }
 template<>
 void Data_<SpDLong64>::MinMax( DLong* minE, DLong* maxE, 
@@ -59,9 +56,9 @@ template<>
 void Data_<SpDUInt>::MinMax( DLong* minE, DLong* maxE, 
 			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
             SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs) {
-#define ABSFUNC llabs
+//#define ABSFUNC llabs //NO as comparison is always ABS for UNSIGNEDs!
 #include "minmax_include.cpp"
-#undef ABSFUNC
+//#undef ABSFUNC
 }
 template<>
 void Data_<SpDInt>::MinMax( DLong* minE, DLong* maxE, 
@@ -75,9 +72,9 @@ template<>
 void Data_<SpDULong>::MinMax( DLong* minE, DLong* maxE, 
 			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
             SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs) {
-#define ABSFUNC llabs
+//#define ABSFUNC llabs
 #include "minmax_include.cpp"
-#undef ABSFUNC
+//#undef ABSFUNC
 }
 template<>
 void Data_<SpDLong>::MinMax( DLong* minE, DLong* maxE, 
