@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-// for all varaints of MinMax(), to be included from datatypes.cpp
+// for all variants of MinMax(), to be included from datatypes.cpp
 
   // default: start = 0, stop = 0, step = 1, valIx = -1
   if (stop == 0) stop = dd.size();

@@ -3459,7 +3459,7 @@ namespace lib {
     bool minSet = e->KeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordSet(absIx);
+    bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
