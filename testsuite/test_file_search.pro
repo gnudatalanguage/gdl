@@ -15,24 +15,33 @@
 ;
 pro TEST_FILE_SEARCH_CREATE, list_luns
 ;
-OPENW, lun1, /delete, /get_lun, ']foo.txt'
-OPENW, lun2, /delete, /get_lun, 'foo\*.txt'
-OPENW, lun3, /delete, /get_lun, 'foobar.txt'
-OPENW, lun4, /delete, /get_lun, 'afoo.txt'
-OPENW, lun5, /delete, /get_lun, 'Afoo.txt'
-OPENW, lun6, /delete, /get_lun, 'AfoO.txt'
-OPENW, lun7, /delete, /get_lun, '[Foo'
 ;
-list_luns=[lun1, lun2, lun3, lun4, lun5, lun6, lun7]
+easynames = [ ']foo.txt', 'foobar.txt', $
+	'afoo.txt',  $
+	'[Foo' ]
+neasy = n_elements(easynames)
+
+list_luns = lonarr(neasy)
+for k=0,neasy-1 do begin &$
+	openw, lu, /delete,/get_lun, easynames[k] &$
+	list_luns[k] = lu & endfor
+;
+if(!version.OS_FAMILY eq "Windows") then return
+
+morefiles = [ 'Afoo.txt', 'AfoO.txt', 'foo\*.txt']
+nmore = n_elements(morefiles)
+list_luns = [list_luns, lonarr(nmore)]
+for k=0,nmore-1 do begin &$
+	openw, lu, /delete,/get_lun, morefiles[k] &$
+	list_luns[k+neasy] = lu & endfor
 ;
 end
 ;
 pro TEST_FILE_SEARCH_REMOVE, list_luns
 ;
-for i=0, N_ELEMENTS(list_luns)-1 do begin
-;;    CLOSE, list_luns[i]
-    FREE_LUN, list_luns[i]
-endfor
+
+for i=0, N_ELEMENTS(list_luns)-1 do FREE_LUN, list_luns[i]
+
 end
 ;
 ; --------------------------------------
@@ -105,10 +114,11 @@ SPAWN, 'ls', res0
 ;; uses glob().
 ;; unofrtunaltely, the following code does not pass well an all machines
 ;SPAWN, 'find . -xtype l', badlinks
-;nbadlinks=n_elements(badlinks)
-CD, current=path
-path=path+PATH_SEP()
+nbadlinks=n_elements(badlinks)
 ;
+;path_sep() cannot be used for Windows because file_search uses forward slash
+CD, current=path & path=path+'/'
+;   
 res1=FILE_SEARCH(/FULLY_QUALIFY_PATH)
 res2=FILE_SEARCH('',/FULLY_QUALIFY_PATH)
 res3=FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
@@ -160,7 +170,8 @@ pro TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
 ;
 errors=0
 ;
-CD, current=current
+CD,'..', current=current
+CD, current, current=updir
 home=GETENV('HOME')
 ;
 res1=FILE_SEARCH('.', /FULLY_QUALIFY_PATH)
@@ -173,10 +184,16 @@ if ~ARRAY_EQUAL(current, res1) then begin
     print, 'output : ', res1
 endif
 if ARRAY_EQUAL(current+PATH_SEP()+'..', res2) then begin
-    ADD_ERROR, errors, 'pb with ..'
+    ADD_ERROR, errors, 'pb with .. has wrong path'
     print, 'input :  ', current+PATH_SEP()+'..'
     print, 'output : ', res2
 endif
+if ~ARRAY_EQUAL(updir, res2) then begin
+    ADD_ERROR, errors, 'pb with ..'
+    print, 'input  : ', updir
+    print, 'output : ', res2
+endif
+
 if ~ARRAY_EQUAL(home, res3) then ADD_ERROR, errors, 'pb with ~'
 ;
 BANNER_FOR_TESTSUITE, "TEST_SPECIAL_PATHS", errors, /short
@@ -205,15 +222,18 @@ tmp_dir='TMPDIR_FILE_SEARCH'
 FILE_MKDIR, tmp_dir
 CD, tmp_dir, cur=cur
 ;
-TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
+;
+if(!version.OS_FAMILY eq "Windows") then $
+	message,' Windows System: no glob test done ',/continue $
+   else TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
 ;
 TEST_FULLY_QUALIFY_PATH, nb_errors, no_erase=no_erase, test=test
 ;
-TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
+ TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
 ;
-;CLOSE, /All
+
 CD, cur
-if ~KEYWORD_SET(no_erase) then FILE_DELETE, tmp_dir
+if ~KEYWORD_SET(no_erase) then FILE_DELETE, tmp_dir, /recursive
 ;
 BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH", nb_errors, short=short
 ;

@@ -1,8 +1,11 @@
 ;
-; various basic tests on FILE_MOVE()
+; various basic tests on FILE_T_MOVE()
 ; written by NATCHKEBIA Ilia, May 2015
 ; under GNU GPL v2 or any later
 ;
+; 2018 G.Jung - adapted to use file_T_MOVE
+;   Runs ok in windows if GDL is started in an MSYS shell.
+;   If failure, check the host directory for stranded files.
 ; -----------------------------------------------
 ;
 pro ADD_ERRORS, nb_errors, message

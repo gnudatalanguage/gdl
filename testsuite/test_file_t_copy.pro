@@ -90,7 +90,9 @@ dest=FILE_INFO(f1)
 ; if files1 et f1 have same size , cp ok
 ;
 
-if ~array_equal(sce.size, dest.size) then begin &$
+total_errors = 0
+
+if ~array_equal(sce.size, dest.size) then begin & total_errors++ &$
       MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
 ;
@@ -109,7 +111,7 @@ dest=FILE_INFO(f1)
 ;
 ; if files1 et f1 don't have same size , because overwrite is not allowed
 ;
-if array_equal(sce.size, dest.size) then begin &$
+if array_equal(sce.size, dest.size) then begin &total_errors++ &$
       MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
 ;
@@ -120,7 +122,7 @@ print , '/OVERWRITE test'
 FILE_T_COPY, files1 , tdir , /overwrite , verbose=verbose
 dest=FILE_INFO(f1) 
 sce=FILE_INFO(files1)
-if ~array_equal(sce.size, dest.size) then begin &$
+if ~array_equal(sce.size, dest.size) then begin &total_errors++ &$
       MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
 
@@ -135,7 +137,7 @@ FILE_T_COPY, files1 , files2 , /require_dir, verbose=verbose
 ; if files2 exist : error
 ;
 ;	print,file_test(files2)
-if(total(file_test(files2)) ne 0)  then begin &$
+if(total(file_test(files2)) ne 0)  then begin &total_errors++ &$
       MESSAGE, 'error require_dir', /continue &   DEL_TEST_FILES, all_files_and_directories   &$             
    endif
 ;
@@ -145,7 +147,7 @@ FILE_T_COPY, files1 , files2, verbose=verbose
 ;
 dest=FILE_INFO(files2) 
 sce=FILE_INFO(files1)
-if ~array_equal(sce.size, dest.size) then begin &$
+if ~array_equal(sce.size, dest.size) then begin &total_errors++ &$
       MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
 ;
@@ -188,10 +190,9 @@ FILE_T_COPY, tdir2 , tdir , verbose=verbose
 ;
 ;tdir/tdir2 : copy not allowed
 ;
-if ~array_equal( FILE_TEST(td2cp), 0 ) then begin &$
-      MESSAGE, 'error whtout rec', /continue &$
+if ~array_equal( FILE_TEST(td2cp), 0 ) then begin &total_errors++ &$
+      MESSAGE, 'error without rec', /continue &$
       DEL_TEST_FILES, all_files_and_directories &$
-      STOP &$
    endif
 
 ;
@@ -199,16 +200,22 @@ print , 'WITH RECURSIVE'
 FILE_T_COPY, tdir2 , tdir , /recursive, verbose=verbose
 ;copy ok
 ;
-if ~array_equal(FILE_TEST(td2cp),1) then begin  &$
+if ~array_equal(FILE_TEST(td2cp),1) then begin  &total_errors++ &$
       MESSAGE, 'error recursive', /continue &$
-      DEL_TEST_FILES, all_files_and_directories & stop &$
+      DEL_TEST_FILES, all_files_and_directories &$
    endif
 
 ;
 ;delete all
 DEL_TEST_FILES, all_files_and_directories
+
+; final message
 ;
-print, 'All tests done'
+BANNER_FOR_TESTSUITE, 'TEST_FILE_T_COPY', total_errors
+;
+if KEYWORD_SET(test) then STOP
+;
+if (total_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

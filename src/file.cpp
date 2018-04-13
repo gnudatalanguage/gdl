@@ -21,7 +21,7 @@
 #	include <libgen.h>
 #	include <sys/types.h>
 #endif
-
+#include <sys/fcntl.h>
 #include <sys/stat.h>
 
 #ifndef _MSC_VER
@@ -66,7 +66,7 @@
 //#	define   X_OK    1       /* execute permission - unsupported in windows*/
 #	define F_OK    0       /* Test for existence.  */
 
-#	define PATH_MAX 255  //should be _MAX_PATH no? (as in str.cpp) (GD)
+#	define PATH_MAX 255  // MAX_PATH is a windows-only macro.
 
 #	include <direct.h>
 
@@ -215,7 +215,7 @@ extern "C"
     return result;
   }
 
-  void rewinddir(DIR *dir)
+static void rewinddir(DIR *dir)
   {
     if(dir && dir->handle != -1)
       {
@@ -250,10 +250,10 @@ extern "C"
 // for religious reasons, CYGWIN doesn't do lstat64
 // FreeBSD doesn't do lstat64 because there is no need for it
 #endif
-
-namespace lib {
-
   using namespace std;
+
+
+
 #ifdef _WIN32
   //
 #ifdef _MSC_VER // MSVC uses 64bit internally
@@ -269,9 +269,9 @@ namespace lib {
 #    define lstat64(x,y) stat64(x,y)
 #endif
 
+//     modifications        : 2014, 2015 by Greg Jung
   // fstat_win32 used for symlink treatment
-  //
-  void fstat_win32(const DString& DSpath, int& st_mode, DWORD &dwattrib)
+static void fstat_win32(const DString& DSpath, int& st_mode, DWORD &dwattrib)
   {
     DWORD      reparsetag;
     WCHAR	filepath[MAX_PATH+1];
@@ -331,6 +331,7 @@ namespace lib {
 
 #endif
 
+namespace lib {
   string PathSeparator()
   {
 #ifdef _WIN32
@@ -359,7 +360,17 @@ namespace lib {
 
     DString cur( buf);
     delete[] buf;
-    
+#ifdef _WIN32
+      size_t pp;  // This is to make path names uniform w.r.t. Unix
+				//			 and compliant with posix shell.
+      pp=0;
+    for(;;){
+        pp=cur.find( "\\",pp);
+        if (pp==string::npos) break;
+        cur[pp]='/';
+      }
+#endif
+ /* */   
     return cur;
   }
 
@@ -385,9 +396,18 @@ namespace lib {
     if( dir[0] == '~')
       {
  	char* homeDir = getenv( "HOME");
+ 	if( homeDir == NULL) homeDir = getenv("HOMEPATH");
 
- 	if( homeDir != NULL)
+ 	if( homeDir != NULL){
 	  dir = string( homeDir) + "/" + dir.substr(1);
+		  size_t pp; 
+		  pp=0;
+		for(;;){
+			pp=dir.find( "\\",pp);
+			if (pp==string::npos) break;
+			dir[pp]='/';
+		  }
+       }
       }
 #endif
 
@@ -397,10 +417,8 @@ namespace lib {
       e->Throw( "Unable to change current directory to: "+dir+".");
   }
 
-  bool FindInDir( const DString& dirN, const DString& pat)
+static bool FindInDir( const DString& dirN, const DString& pat)
   {
-    DString root = dirN;
-    AppendIfNeeded( root, "/");
 
     DIR* dir = opendir( dirN.c_str());
     if( dir == NULL) return false;
@@ -414,6 +432,8 @@ namespace lib {
     wchar_t patW[PATH_MAX+1] = {0,};
     MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, MAX_PATH+1);
 #endif
+    DString root = dirN;
+    AppendIfNeeded( root, "/");
 
     for(;;)
       {
@@ -421,8 +441,7 @@ namespace lib {
 	if( entry == NULL) break;
 	
 	DString entryStr( entry->d_name);
-	if( entryStr != "." && entryStr != "..")
-	  {
+		if( entryStr == "." || entryStr == "..") continue;
 	    DString testFile = root + entryStr;
 
 	    int actStat = lstat64( testFile.c_str(), &statStruct);
@@ -442,7 +461,7 @@ namespace lib {
 		    closedir( dir);
 		    return true;
 		  }
-	      }
+
 	  }
       }
 
@@ -450,10 +469,11 @@ namespace lib {
     return false;
   }
   
-  void ExpandPathN( FileListT& result,
+static void ExpandPathN( FileListT& result, 
 		    const DString& dirN, 
 		    const DString& pat,
-		    bool all_dirs ) {
+		    bool all_dirs )
+{
     // expand "+"
  
     int fnFlags = 0;
@@ -473,8 +493,7 @@ namespace lib {
     DIR* dir = opendir( dirN.c_str());
  
     if( dir == NULL) return;
-    int debug=0;
-    if ( debug ) cout << "ExpandPathN: " << dirN << endl;
+
 
     // JP Mar 2015: Below code block is inspired by Greg's code to improve speed
 #if defined (_WIN32)
@@ -488,7 +507,8 @@ namespace lib {
       if( entry == NULL) break;
 
       DString entryStr( entry->d_name);
-      if ( entryStr != "." && entryStr != ".." ) {
+		if( entryStr == "." || entryStr == "..") continue;
+
 	DString testDir = root + entryStr;
 
         int actStat = lstat64(testDir.c_str(), &statStruct);
@@ -504,7 +524,7 @@ namespace lib {
 	//
 	if(isASymLink) actStat = stat64(testDir.c_str(), &statStruct);
         if( S_ISDIR(statStruct.st_mode) != 0) {
-	  if( debug && isASymLink ) cout << " following a symlink directory: " << testDir << endl;
+//	  if( debug && isASymLink ) cout << " following a symlink directory: " << testDir << endl;
           recurDir.push_back( testDir);
 	}     else if( notAdded)
 	  {
@@ -520,7 +540,7 @@ namespace lib {
 	      notAdded = false;
 	  }
       }
-    }
+
 
     int c = closedir( dir);
     if( c == -1) return;
@@ -535,13 +555,13 @@ namespace lib {
       result.push_back( dirN);
   }
 
+//     modifications        : 2014, 2015 by Greg Jung
   void ExpandPath( FileListT& result,
 		   const DString& dirN, 
 		   const DString& pat,
 		   bool all_dirs)
   {
-    int debug=0;
-    if(debug) 	cout << " ExpandPath(,dirN.pat,bool) " << dirN << endl;
+
     if( dirN == "") 
       return;
 
@@ -593,7 +613,7 @@ namespace lib {
     globfree( &p);
 
 #endif
-    //   cout << "ExpandPath: initDir:" << initDir << dirN << endl;
+ 
     if (dirN[0] == '+')
       { 
 	ExpandPathN( result, initDir, pat, all_dirs);
@@ -679,15 +699,16 @@ namespace lib {
   // http://msdn.microsoft.com/en-us/library/506720ff.aspx
 #endif
 
-  void PatternSearch( FileListT& fL, const DString& dirN, const DString& pat,
-		      bool accErr,
-		      bool quote,      bool match_dot, bool  forceAbsPath, bool fold_case,
-		      bool onlyDir,
-                      bool *tests,  bool recursive)
+//     modifications        : 2014, 2015 by Greg Jung
+static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pat,
+		bool recursive,
+		bool accErr,   bool mark,  bool quote, 
+		bool match_dot,bool forceAbsPath,bool fold_case,
+		bool onlyDir,  bool *tests = NULL)
   {
     enum { testregular=3, testdir, testzero, testsymlink };
     bool dotest = false;
-    for( SizeT i=0; i < NTEST_SEARCH; i++) dotest |= tests[i];
+      if(tests != NULL) for( SizeT i=0; i < NTEST_SEARCH; i++) dotest |= tests[i];
     int fnFlags = 0;
 
 #ifndef _WIN32
@@ -702,36 +723,20 @@ namespace lib {
 
 #endif
 
-
-    DString root = dirN;
-    if( root != "")
-      {
-	long endR; 
-	for( endR = root.length()-1; endR >= 0; --endR)
-	  {
-	    if( root[ endR] != '/')
-	      break;
-	  }
-	if( endR >= 0)
-	  root = root.substr( 0, endR+1) + "/";
-	else
-	  root = "/";
-	// Include a provision for %HOME%:
+    char PS =  '/';
 #ifdef _WIN32 
-	if( root[0] == '~') { 
-	  char* homeDir = getenv( "HOME");
-	  if( homeDir != NULL)
- 	    root = string( homeDir) + "/" + root.substr(1);
-	}
+    PS = '\\';
 #endif
 
-      }
-    DString prefix="";
-    if( root== "") prefix=GetCWD()+"/";
-    int debug=0;
-    if(debug) {
-      cout << " PatternSearch: DirN='"<<dirN<<"', root='"<<root<<"', :"<<pat<<" onlyDir?"<<onlyDir<<endl;
-    }
+    std::string root = dirN;
+
+	const char *rootC = root.c_str();
+	int endR = root.length()-1;
+	while(  (endR > 0) && 		// find end of root's viable name.
+		( (rootC[ endR] == PS) ||  (rootC[ endR] == '/')
+								|| (rootC[ endR] == ' '))) endR--;
+	if( endR >= 0)   root = root.substr( 0, endR+1);
+
     FileListT recurDir;
     
     DIR* dir;
@@ -741,28 +746,45 @@ namespace lib {
       dir = opendir( ".");
     if( dir == NULL) {
       if( accErr)
-	throw GDLException( "FILE_SEARCH: Error opening dir: "+dirN);
+		throw GDLException( "FILE_SEARCH: Error opening dir: "+root);
       else
 	return;
     }
 
+    DString prefix = root;
 
+    if(root != "") AppendIfNeeded(prefix,"/");
+// If Dir_specification does not have a "/" at end then we will include <dirspec>/.. 
+// but this is a fix for other issues.
+//    if(onlyDir) fL.push_back(prefix);
+	if( onlyDir && (pat == "" ) ) {
+		fL.push_back(prefix); return;
+	}
+// file_search('nn','') != file_search('nn/','')
+// 	where 'nn' is a directory in CWD.
+//
+    if(prefix == "./") prefix="";
     int accessmode = 0;
+    if(dotest) {
     if( tests[0]) accessmode = R_OK;
     if( tests[1]) accessmode |= W_OK;
 #ifndef _WIN32
     if( tests[2]) accessmode |= X_OK;
-#else
-
+#endif
+	  }
+	const char* patC = pat.c_str();
+//	if(pat == "") patC = "*";   // pat="" can be done by sending pat=" "
+	while(*patC == ' ')patC++;  // doesn't work with leading blanks.
+#ifdef _WIN32
     wchar_t patW[MAX_PATH+1];
     wchar_t entryWstr[MAX_PATH+1];
-    patW[1]=0;
-    if(pat == "") patW[0] = '*'; else
       MultiByteToWideChar(CP_UTF8, 0,
-			  (LPCSTR)pat.c_str(), -1,
+                  (LPCSTR)patC, -1,
 			  patW, MAX_PATH+1);
 #endif
-
+	DString filepath;
+	const char* fpC;
+//		if(trace_me) std::cout << " prefix:" << prefix;	
     struct stat64    statStruct, statlink;
     for(;;)
       {
@@ -771,62 +793,47 @@ namespace lib {
 	  break;
 
 	DString entryStr( entry->d_name);
-	if( entryStr != "." && entryStr != "..")
-	  {
+		if( entryStr == "." || entryStr == "..") continue;
+		const char* entryStrC = entryStr.c_str();
 
-	    DString testDir = root + entryStr;
+	    filepath = prefix + entryStr; fpC = filepath.c_str();
+//		if(trace_me) std::cout << "| "<< entryStr;
 
-	    int actStat = lstat64( testDir.c_str(), &statStruct);
-	    if(onlyDir && (S_ISDIR(statStruct.st_mode) == 0) ) continue;
-
-	    //#if 0 block that I don't know if it can't go ...
-	    if( root != "") // dirs for current ("") already included
-	      {
-		if( S_ISDIR(statStruct.st_mode) != 0) {		      
-		  // (symlinked directories are not followed)
-#ifdef _WIN32
-		  //  This is probably superfluous.  A directory wont show as symlink
-		  DWORD dwattrib;
-		  int addlink = 0;
-		  fstat_win32(testDir, addlink, dwattrib);
-		  statStruct.st_mode |= addlink;
-#endif
-		  // again, probably superfluous
-		  if( S_ISLNK(statStruct.st_mode) == 0) recurDir.push_back( testDir);
-		}
-	      }
-	    // dirs are also returned if they match
-	    //#endif block that I don't know if it can't go ...
-
-
+	    int actStat = lstat64( fpC, &statStruct);
 
 #ifdef _WIN32
+		if(*entryStrC == '.' && !match_dot) continue;
 	    MultiByteToWideChar(CP_UTF8, 0,
-                                (LPCSTR)entryStr.c_str(), -1,
+						(LPCSTR)entryStrC, -1,
                                 entryWstr, MAX_PATH+1);
 	    int match = !PathMatchSpecW(entryWstr, patW);
 #else
-	    int match = fnmatch( pat.c_str(), entryStr.c_str(), fnFlags);
+	    int match = fnmatch( patC, entryStrC, fnFlags);
 #endif
  
             if( match == 0) {
-	      if(dotest != 0) {
-		if( tests[testregular] &&  // only take regulars (excludes dirs, sym)
-		    (S_ISREG( statStruct.st_mode) == 0)) continue;
+			if(  onlyDir ) {
+				if( mark ) filepath.append("/");
+				if(S_ISDIR(statStruct.st_mode) != 0) fL.push_back( filepath);
+				continue;
+			}
 #ifdef _WIN32
 		DWORD dwattrib;
 		int addlink = 0;
-		fstat_win32(testDir, addlink, dwattrib);
+			fstat_win32(filepath, addlink, dwattrib);
 		statStruct.st_mode |= addlink;
 #endif
 
 		bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
 		bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
 		if(isASymLink) {
-		  actStat = stat64( testDir.c_str(), &statlink);
+				actStat = stat64( fpC, &statlink);
 		  statStruct.st_mode |= statlink.st_mode;
 		  isaDir = (S_ISDIR(statlink.st_mode) != 0);
 		}   
+			if(dotest) {
+				if( tests[testregular] &&
+					(S_ISREG( statStruct.st_mode) == 0)) continue;
 		if( tests[testdir] && !isaDir) continue;
 		if( tests[testsymlink] && !isASymLink) continue;
 
@@ -834,24 +841,34 @@ namespace lib {
 		if( tests[testzero] &&
 		    (statStruct.st_size != 0)) continue;
 		// now read, write, execute:
-		if(accessmode != 0)
-		  if(access(entryStr.c_str(), accessmode) != 0 ) continue;
+				if(accessmode != 0 &&
+					(access(fpC, accessmode) != 0) ) continue;
+                }
+			if( isaDir and mark) {
+				 filepath.append("/"); fpC = filepath.c_str();
 	      }
-	      if(forceAbsPath && !onlyDir) {
-		char *symlinkpath =const_cast<char*> (testDir.c_str());
+			if(forceAbsPath) {
 		char actualpath [PATH_MAX+1];
 		char *ptr;
-		ptr = realpath(symlinkpath, actualpath);
-		if( ptr != NULL ) fL.push_back( string(ptr));
-		else cout << " Failed to convert "+testDir+" to actualpath!!"<< endl;
+				ptr = realpath(fpC, actualpath);
+				if( ptr != NULL ) {
+#ifdef _WIN32
+	for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+#endif			
+					fL.push_back( string(ptr));
+				}
 	      }
 	      else
-		fL.push_back( root + entryStr);
-	      if(debug && onlyDir) cout << " onlyDir=T:"<<testDir;
+				  fL.push_back( filepath);
             }
+#ifndef _WIN32
+		if( root == "") continue;
+#endif
+		if( (S_ISDIR(statStruct.st_mode) != 0) && 
+		   ( S_ISLNK(statStruct.st_mode) == 0)
+				 ) recurDir.push_back( filepath);
 	  }
-      }
-    if(debug && onlyDir) cout << " ###\\n"<<endl;
+
     int c = closedir( dir);
     if( c == -1) {
       if( accErr)
@@ -862,21 +879,21 @@ namespace lib {
     // recursive search
     if( !recursive ) return;
     SizeT nRecur = recurDir.size();
-    if(debug) if (nRecur > 0) {
-	cout << " Pdebug mode, #recursive="<<nRecur<<" see only first 2:"<<endl;
-      }
+
+
     for( SizeT d=0; d<nRecur; ++d)
       {
-	if(debug && (d<=2)) cout << " do now "+recurDir[d]<<endl;
-	PatternSearch( fL, recurDir[d], pat, accErr, quote, 
-		       match_dot,  forceAbsPath, fold_case,
-		       onlyDir,     tests, true);
+
+	PatternSearch( fL, recurDir[d], pat, true, 
+			  accErr,  mark, quote,
+			  match_dot,  forceAbsPath,fold_case,
+			onlyDir,     tests);
       }
-    if(debug && (nRecur > 0) ) cout <<"End PatternSearch recursion section"<< endl;
+    return;
   }
 
   // Make s string case-insensitive for glob()
-  DString makeInsensitive(const DString &s)
+static DString makeInsensitive(const DString &s)
   {
     DString insen="";
     char coupleBracket[5]={'[',0,0,']',0};
@@ -967,18 +984,11 @@ namespace lib {
   }
 
 #include <stdlib.h> 
-void FileSearch( FileListT& fileList, const DString& pathSpec,
-bool environment,
-bool tilde,
-bool accErr,
-bool mark,
-bool noSort,
-bool quote,
-bool dir,
-bool period,
-bool forceAbsPath,
-bool fold_case,
-bool *tests )
+static void FileSearch( FileListT& fileList, const DString& pathSpec, 
+		   bool environment,   bool tilde,
+		   bool accErr,  bool mark,  bool noSort,  bool quote,
+		   bool period,  bool forceAbsPath,   bool fold_case,
+		   bool dir,   bool *tests=NULL)
  {
 
   enum {
@@ -1001,7 +1011,7 @@ bool *tests )
   if ( mark && !dir ) // only mark directory if not in dir mode
     globflags |= GLOB_MARK;
 
-  if ( noSort )
+//    if( noSort) sorting is done again later in file_search.
     globflags |= GLOB_NOSORT;
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
@@ -1024,7 +1034,6 @@ bool *tests )
     if ( st != "" ) gRes = glob( st.c_str( ), globflags, NULL, &p );
     else gRes = glob( "*", globflags, NULL, &p );
   } else {
-    int debug = 0;
 
     string pattern;
     if ( st == "" ) {
@@ -1036,22 +1045,21 @@ bool *tests )
       st.at( 0 ) != '/' &&
       !(tilde && st.at( 0 ) == '~') &&
       !(environment && st.at( 0 ) == '$')
-      ) {
+	    ) 
+	  { 
         pattern = GetCWD( );
         pattern.append( "/" );
         if ( !(st.size( ) == 1 && st.at( 0 ) == '.') ) pattern.append( st );
 
-        if ( debug ) cout << "pattern : " << pattern << endl;
+
 
         gRes = glob( pattern.c_str( ), globflags, NULL, &p );
       } else {
         gRes = glob( st.c_str( ), globflags, NULL, &p );
       }
     }
-    if ( debug ) {
-      cout << "gRes : " << gRes << endl;
-      cout << "st out : " << st << endl;
-    }
+
+
   }
 
 #ifndef __APPLE__
@@ -1067,7 +1075,6 @@ bool *tests )
   if ( tests[0] ) accessmode = R_OK;
   if ( tests[1] ) accessmode |= W_OK;
   if ( tests[2] ) accessmode |= X_OK;
-  int debug = 0;
 
   if ( gRes == 0 )
     for ( SizeT f = 0; f < p.gl_pathc; ++f ) {
@@ -1078,15 +1085,9 @@ bool *tests )
         actStat = lstat64( actFile.c_str(), &statStruct );
         if ( tests[testregular] && // (excludes dirs, sym)
         (S_ISREG( statStruct.st_mode ) == 0) ) continue;
-
+			  bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
+			  if(isASymLink)  actStat = stat64( actFile.c_str(), &statStruct);
         bool isaDir = (S_ISDIR( statStruct.st_mode ) != 0);
-        bool isASymLink = (S_ISLNK( statStruct.st_mode ) != 0);
-        if ( isASymLink ) {
-          actStat = stat64( actFile.c_str(), &statlink );
-          bool isaDir = (S_ISDIR( statlink.st_mode ) != 0);
-          statStruct.st_mode |= statlink.st_mode;
-        }
-        if ( debug ) cout << isASymLink << isaDir << actFile << endl;
         if ( tests[testdir] && !isaDir ) continue;
         if ( tests[testsymlink] && !isASymLink ) continue;
 
@@ -1114,7 +1115,105 @@ bool *tests )
 
   if ( st == "" && dir )
     fileList.push_back( "" );
+}  // ifndef _WIN32
+// the unix version (as of Oct 2017) is copied to here 
+  std::string BeautifyPath(std::string st, bool removeMark=true)
+  {
+    //removes series of "//", "/./" and "/.." and adjust path accordingly.
+     if ( st.length( ) > 0 ) {
+      size_t pp;
+      pp=0;
+      do {
+        pp=st.find( "/./");
+        if (pp!=string::npos) { st.erase(pp, 2);}
+      } while (pp!=string::npos);
+      pp=0;
+      do {
+        pp=st.find( "//");
+        if (pp!=string::npos) { st.erase(pp, 1);}
+      } while (pp!=string::npos);
+      //Last "/.."
+      pp=st.rfind( "/.."); //remove and back if last
+      if (pp!=string::npos && pp==st.size()-3) {
+        //erase from previous "/" to pp+3. Unless there is no previous "/"!
+        size_t prevdir = st.rfind("/",pp-1);
+        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+      }
+      //Last "/."
+      pp=st.rfind( "/."); //remove if last
+      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
+      //Last "/" if removeMark is true
+      if (removeMark) {
+        pp=st.rfind( "/"); //remove and back if last
+        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
+      }
+      // other places for "/..": between directories
+      pp=0;
+      do {
+        pp=st.find( "/../");
+        if (pp!=string::npos) {
+          //erase from previous "/" to pp+3. Unless there is no previous "/"!
+          size_t prevdir = st.rfind("/",pp-1);
+          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+          else break; //what should I do?
+        }
+      } while (pp!=string::npos);
+      //First "./" 
+      pp=st.find( "./"); //remove if first
+      if (pp==0) st.erase(pp,2);
+    }
+  return st;
+  }
 }
+#elif 1  // !def_WIN32
+// the unix version (as of Oct 2017) is copied to here 
+  std::string BeautifyPath(std::string st, bool removeMark=true)
+  {
+    //removes series of "//", "/./" and "/.." and adjust path accordingly.
+     if ( st.length( ) > 0 ) {
+      size_t pp;
+      pp=0;
+      do {
+        pp=st.find( "/./");
+        if (pp!=string::npos) { st.erase(pp, 2);}
+      } while (pp!=string::npos);
+      pp=0;
+      do {
+        pp=st.find( "//");
+        if (pp!=string::npos) { st.erase(pp, 1);}
+      } while (pp!=string::npos);
+      //Last "/.."
+      pp=st.rfind( "/.."); //remove and back if last
+      if (pp!=string::npos && pp==st.size()-3) {
+        //erase from previous "/" to pp+3. Unless there is no previous "/"!
+        size_t prevdir = st.rfind("/",pp-1);
+        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+      }
+      //Last "/."
+      pp=st.rfind( "/."); //remove if last
+      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
+      //Last "/" if removeMark is true
+      if (removeMark) {
+        pp=st.rfind( "/"); //remove and back if last
+        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
+      }
+      // other places for "/..": between directories
+      pp=0;
+      do {
+        pp=st.find( "/../");
+        if (pp!=string::npos) {
+          //erase from previous "/" to pp+3. Unless there is no previous "/"!
+          size_t prevdir = st.rfind("/",pp-1);
+          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+          else break; //what should I do?
+        }
+      } while (pp!=string::npos);
+      //First "./" 
+      pp=st.find( "./"); //remove if first
+      if (pp==0) st.erase(pp,2);
+    }
+  return st;
+  }
 #endif // !def_WIN32
   // ** out of _WIN32 block-off until it fails.
 
@@ -1122,6 +1221,187 @@ bool *tests )
   // revised by AC on June 28 
   // PRINT, FILE_expand_path([['','.'],['$PWD','src/']])
   // when the path is wrong, wrong output ...
+
+static std::string Dirname(const string& tmp,
+	bool mark_dir = false)
+{
+
+	char buf[ PATH_MAX+1];
+
+// G. Jung Simplify the alternatives to psalt, PS using same processing.
+// for mark_dir, always just place a "/"
+
+	char PS='\\';
+	char psalt[] = "/";
+
+#ifndef _WIN32
+	strncpy(buf, tmp.c_str(), PATH_MAX+1);
+	string dname = dirname(buf);
+#else
+   char drive[_MAX_DRIVE];
+   char dir[_MAX_DIR];
+   char fname[_MAX_FNAME];
+   char ext[_MAX_EXT];
+   DString::size_type pos = 0, offset = 0;
+   DString tmp2(tmp);
+// if 0/ if 1: by preference.
+   while ((pos = tmp2.find(psalt, offset)) != string::npos)
+   {
+	   tmp2[pos] = PS;
+	   offset = pos + 1;
+   }
+	
+   int size=tmp2.size();
+   if(tmp2[size--] == PS) 
+		do  	tmp2.resize(size);
+		while((size != 0) && tmp2[size--] == PS);
+        
+   _splitpath( tmp2.c_str(),drive,dir,fname,ext);
+   dir[strlen(dir) - 1] = 0; // Remove separator
+   DString dname = DString(drive) + dir;
+   
+   if( dname == "" ) dname = string(".");
+
+ //  if( trace_me ) std::cout << " dirname(win32) drive=" << drive <<
+ //		" dir: "<< dir << std::endl;
+   size = dname.size();
+   if(dname[size--] == PS)
+		  do      dname.resize(size);
+		  while((size != 0) && dname[size--] == PS);
+
+      size_t pp;  // This is to make path names uniform w.r.t. Unix
+				//			 and compliant with posix shell.
+      pp=0;
+    for(;;){
+        pp=dname.find( "\\",pp);
+        if (pp==string::npos) break;
+        dname[pp]='/';
+      }
+		
+#endif
+    if (mark_dir) dname = dname + string("/");
+    return dname;
+  }
+
+//     modifications        : 2014, 2015 by Greg Jung
+static void PathSearch( FileListT& fileList,  const DString& pathSpec,
+	bool noexpand_path=false,
+		bool recursive=false, bool accErr=false, bool mark=false,
+		bool quote=false, 
+		bool match_dot=false,
+		bool  forceAbsPath=false,
+		bool fold_case=false,
+		bool onlyDir=false,   bool *tests = NULL)
+{               
+	string dir = pathSpec;
+
+
+    if( forceAbsPath ) {
+		size_t dlen = dir.length();
+		if( dlen > 0) {
+		  if( dir[0] == '.' ) {
+			if(dlen == 1) dir = GetCWD();
+			else if (dir[1] == '/') dir = GetCWD() + dir.substr(1);
+		#ifdef _WIN32
+			else if (dir[1] == '\\') dir = GetCWD() + dir.substr(1);
+		#endif
+			else if (dlen >= 2 && dir[1] =='.') {
+				if( dlen == 2) dir = Dirname(GetCWD());
+				else if (dir[2] == '/') dir = Dirname(GetCWD()) + dir.substr(2);
+			#ifdef _WIN32
+				else if (dir[2] == '\\') dir = Dirname(GetCWD()) + dir.substr(2);				
+			#endif
+				} 	// (dlen >= 2 && dir[1]='.')
+			}	// dir[0] == '.'
+		} 	// dlen > 0
+		if ( dir.substr(0,2) == "./")
+			dir = GetCWD() + dir.substr(1);
+		else
+		if( dir.substr(0,3) == "../") {
+			char actualpath [PATH_MAX+1];
+			char *ptr;
+			ptr = realpath("../", actualpath);
+#ifdef _WIN32
+	for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+#endif			
+			dir = string(ptr) + dir.substr(2);
+			}
+		}		// forceAbsPath
+	size_t pp =  dir.rfind( " ");
+	if (pp!=string::npos && pp== dir.size()-1)  dir.erase(pp);
+	
+//		if(trace_me) std::cout << "PathSearch, dir=" << dir ;
+	if(!noexpand_path) WordExp(dir);
+	
+// always expanding tilde in same manner, WIN32 or not, ignoring "noexpand"
+    if( dir[0] == '~') {
+		char* homeDir = getenv( "HOME");
+		if( homeDir == NULL) homeDir = getenv("HOMEPATH");
+
+		if( homeDir != NULL) {
+				dir = string( homeDir) + "/" + dir.substr(1);
+		#ifdef _WIN32
+			  size_t pp;  // This is to make path names uniform w.r.t. Unix
+						//			 and compliant with posix shell.
+			  pp=0;
+			for(;;){
+				pp=dir.find( "\\",pp);
+				if (pp==string::npos) break;
+				dir[pp]='/';
+			  }
+		#endif
+	}
+		}
+	if( fold_case)
+	  dir = BeautifyPath(makeInsensitive(dir));
+	else
+	  dir = BeautifyPath(dir);
+	DString dirsearch = "";
+
+// Look for the last dir-separator at end of string.  i.e. file_search('/d/bld/gdl*')
+	char PS0 = '/';
+	char PS1 = '/';
+	// win32 could be either PathSeparator, or both:
+	#ifdef _WIN32
+    PS1 =  '\\';
+	#endif
+	int dirsep=-1;
+	int lenpath = dir.length();
+	int ii=0;
+	do {
+		if((dir[ii] == PS0) || (dir[ii] == PS1)) dirsep=ii;
+	   } while( ii++ < lenpath );
+	if( dirsep != lenpath) {
+		struct stat64    statStruct;
+		int dirStat = lstat64( dir.c_str(), &statStruct);
+		if( dirStat == 0) {
+//		if(trace_me) cout << "PathSearch:"<<  "quicky "
+//				<< pathSpec <<" -simple? "<< dirStat<<dir<< endl ;
+		fileList.push_back(dir);
+		return;
+		} else {
+			dirsearch = dir.substr(dirsep+1);
+			if(dirsep >= 0) dir.resize(dirsep);
+			}
+		}
+	  
+	if(dirsep == -1) {
+		dir = ".";
+		dirsearch = pathSpec;
+	}
+
+//	if(trace_me) std::cout << "PathSearch:"<<pathSpec <<
+//		" dir:" << dir << ",search:" <<  dirsearch  << std::endl;
+
+	PatternSearch( fileList, dir, dirsearch, false,
+	  accErr,   mark,  quote,  match_dot,  forceAbsPath,fold_case,
+	onlyDir,   tests);
+//		if(trace_me) std::cout << "PathSearch: fileList.size()="
+//			<< fileList.size() << std::endl;
+}
+
+
+//     modifications        : 2014, 2015 by Greg Jung
   BaseGDL* file_expand_path( EnvT* e)
   {
     // always 1
@@ -1186,17 +1466,17 @@ bool *tests )
     NOTE: Contrary to above documented intention, acutal IDL behavior is, that
     when called with two arguments the Dir_specification argument could itself be a pattern-search;
     hence the dance below where, for Nparam > 1, first duty is to search on the 1st parameter for directories.
-    Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
-    // not finished yet
+//     modifications        : 2014, 2015 by Greg Jung
     */
   BaseGDL* file_search( EnvT* e)
   {
+       enum { testregular=3, testdir, testzero, testsymlink };
     SizeT nParam=e->NParam(); // 0 -> "*"
     
     DStringGDL* pathSpec;
-    DString     Pattern = "";
     SizeT nPath = 0;
-
+	bool recursive_dirsearch = true;
+    DString     Pattern = "";
     if( nParam > 0)
       {
 	BaseGDL* p0 = e->GetParDefined( 0);
@@ -1205,9 +1485,15 @@ bool *tests )
 	  e->Throw( "String expression required in this context.");
 
 	nPath = pathSpec->N_Elements();
-
-	if( nParam > 1)   e->AssureScalarPar< DStringGDL>( 1, Pattern);
-       
+		bool leading_nullst = ((*pathSpec)[0] == "");
+		if( leading_nullst ) Pattern = "*";
+// If Path_Specification is not supplied, or if it is supplied as an empty string, FILE_SEARCH uses a 
+// default pattern of '*', which matches all files in the current directory       
+		if( nParam > 1)  {
+			 e->AssureScalarPar< DStringGDL>( 1, Pattern);
+// 'If Dir_Specification is supplied as an empty string, FILE_SEARCH searches the current directory.'
+			if( (nPath == 1) && leading_nullst ) recursive_dirsearch = false;
+			} 
       } 
       static int TEST_READIx = e->KeywordIx("TEST_READ");
       static int TEST_WRITEIx = e->KeywordIx("TEST_WRITE");
@@ -1216,6 +1502,10 @@ bool *tests )
       static int TEST_DIRECTORYIx = e->KeywordIx("TEST_DIRECTORY");
       static int TEST_ZERO_LENGTHIx = e->KeywordIx("TEST_ZERO_LENGTH");
       static int TEST_SYMLINKIx = e->KeywordIx("TEST_SYMLINK");
+	  static int REGULARIx = e->KeywordIx("REGULAR");
+	  static int DIRECTORYIx = e->KeywordIx("DIRECTORY");
+	  static int ZERO_LENGTHIx = e->KeywordIx("ZERO_LENGTH");
+	  static int SYMLINKIx = e->KeywordIx("SYMLINK");
     const int test_kwIx[]={
       TEST_READIx, TEST_WRITEIx, TEST_EXECUTABLEIx,
       TEST_REGULARIx, TEST_DIRECTORYIx, TEST_ZERO_LENGTHIx,
@@ -1228,28 +1518,35 @@ bool *tests )
     bool tests[NTEST_SEARCH];
     static int keyindex;
     for( SizeT i=0; i < NTEST_SEARCH; i++) {
-      tests[i] = false;
-//      keyindex = e->KeywordIx(test_kw[i]); //TODO: check following (static int vs. multiple choices)
-//      if (e->KeywordPresent(keyindex)) tests[i] = e->KeywordSet(keyindex);
       if (e->KeywordPresent(test_kwIx[i])) tests[i] = e->KeywordSet(test_kwIx[i]);
+										else tests[i] = false;
     }
+// extra options for convenience:
+   if( e->KeywordSet( DIRECTORYIx )) tests[testdir]=true;
+   if( e->KeywordSet( SYMLINKIx )) tests[testsymlink]=true;
+   if( e->KeywordSet( REGULARIx )) tests[testregular]=true;
+   if( e->KeywordSet( ZERO_LENGTHIx )) tests[testzero]=true;
     // keywords
     bool tilde = true;
-    bool environment = true;
     bool fold_case = false;
     // next three have default behaviour
     static int tildeIx = e->KeywordIx( "EXPAND_TILDE");
     bool tildeKW = e->KeywordPresent( tildeIx);
     if( tildeKW) tilde = e->KeywordSet( tildeIx);
 
+
+    bool environment = true;
     static int environmentIx = e->KeywordIx( "EXPAND_ENVIRONMENT");
     bool environmentKW = e->KeywordPresent( environmentIx);
     if( environmentKW) 
       {
-	environment = e->KeywordSet( environmentIx);
-	if( environment) // only warn when expiclitely set
-	  Warning( "FILE_SEARCH: EXPAND_ENVIRONMENT not supported.");
+	bool Set = e->KeywordSet( environmentIx);
+	if( Set) {
+		environment = true; ;}
+	else environment = false;
       }
+
+	bool noexpand_path = !environment;
 
     static int fold_caseIx = e->KeywordIx( "FOLD_CASE");
     bool fold_caseKW = e->KeywordPresent( fold_caseIx);
@@ -1287,59 +1584,58 @@ bool *tests )
 
     FileListT fileList;
 
-    int debug=0;
     DLong count;
 #ifndef _WIN32
+ // The alternative can be used in Linux, also. 
+ // replace above with #if 0 to unify methods.
+ //  Differences? please notify me (GVJ)
+//#if 0
     if( nPath == 0)
       FileSearch( fileList, "",
 		  environment, tilde, 
-                  accErr, mark, noSort, quote, onlyDir,
+			accErr, mark, noSort, quote, 
 		  match_dot, forceAbsPath, fold_case,
-		  tests);
+			onlyDir, tests);
     else
+		if( !recursive_dirsearch ) fileList.push_back(string("./"));
+		else  // it appears glob is incapable of returning a symlink.!
       for( SizeT f=0; f < nPath; ++f) 
-	FileSearch( fileList, (*pathSpec)[f],  environment, tilde, 
-		    accErr, mark, noSort, quote, onlyDir,
+		  FileSearch( fileList, (*pathSpec)[f],
+			environment, tilde, 
+				accErr, mark, noSort, quote,
 		    match_dot, forceAbsPath, fold_case,
-		    tests);
+				onlyDir, tests);
 #else
+	//	if(trace_me) std::cout << "file_search: fileList.size()="
+	//		<< fileList.size() << std::endl;
+
     if(nPath == 0)
-      PatternSearch( fileList, "", Pattern, accErr, quote,
-		     match_dot, forceAbsPath, fold_case,
-		     onlyDir,   tests, false);
+			PathSearch(  fileList, "./*",   noexpand_path, false,
+					  accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
+							onlyDir,   tests);
+      else if( !recursive_dirsearch ) fileList.push_back(string("./"));
     else
 
       for( SizeT f=0; f < nPath; ++f) {
-	DString DirSpec;
-	DString dirsearch;
-	int dirsep=-1;
-	int ii=0;
-	DirSpec = (*pathSpec)[f];
-	int lenpath = DirSpec.length();
-	do
-	  if((DirSpec[ii] == '/') || (DirSpec[ii] == '\\')) dirsep=ii;
-	while( (DirSpec[ii++] != 0) && (ii < lenpath) );
-	if(debug) if( f==0)
-		    cout <<nPath<<"=#paths, 1st call to PatternSearch. onlyDir?"<<onlyDir<<DirSpec<<endl;
-	dirsearch = DirSpec.substr(dirsep+1);
-	DirSpec.resize(dirsep+1);
-	if(debug) cout << " pathSpec[f]:"<<DirSpec<<"<dirspec pattern>"<<Pattern<<endl;
-	PatternSearch( fileList, DirSpec, dirsearch, accErr, quote,
-		       match_dot, forceAbsPath, fold_case,
-		       onlyDir,   tests, false);
+			PathSearch(  fileList, (*pathSpec)[f],   noexpand_path, false,
+					  accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
+							onlyDir,   tests);
       }
 #endif
-    onlyDir = false; // retire this variable here in place of ( nParam > 1)
+    onlyDir = false;
     count = fileList.size();
-    if( nParam > 1)
-      { // recursive search for recurPattern
+
+
 	FileListT fileOut;
 	for( SizeT f=0; f<count; ++f) 
 	  {
-	    //    cout <<count<< Pattern <<"Looking in: " << fileList[f] << endl;
-	    PatternSearch( fileOut, fileList[f], Pattern, accErr,
-			   quote,   match_dot, forceAbsPath, fold_case,
-			   onlyDir ,   tests, true);
+		if( nParam > 1)
+			PatternSearch( fileOut, fileList[f], Pattern, recursive_dirsearch,
+			  accErr,   mark,   quote, 
+			   match_dot,  forceAbsPath,fold_case,
+				onlyDir ,   tests);
+		else
+			fileOut.push_back(fileList[f]);
 	  }	
 
 	DLong pCount = fileOut.size();
@@ -1347,6 +1643,11 @@ bool *tests )
 	if( countKW)
 	  e->SetKW( countIx, new DLongGDL( pCount));
 
+    if(nParam > 2) {  // provision for a third parameter = filecount return.
+		e->AssureGlobalPar(2);
+		e->SetPar(2, new DLongGDL(pCount));
+	} // use this only for interactive sessions: not an IDL feature.
+	
 	if( pCount == 0)
 	  return new DStringGDL("");
 
@@ -1360,23 +1661,6 @@ bool *tests )
 
 	return res;
       }
-
-    if( countKW)
-      e->SetKW( countIx, new DLongGDL( count));
-
-    if( count == 0)
-      return new DStringGDL("");
-    
-    if( !noSort)
-      sort( fileList.begin(), fileList.end());
-
-    // fileList -> res
-    DStringGDL* res = new DStringGDL( dimension( count), BaseGDL::NOZERO);
-    for( SizeT r=0; r<count; ++r)
-      (*res)[r] = fileList[ r];
-
-    return res;
-  }
 
 
 
@@ -1414,14 +1698,10 @@ bool *tests )
 
     for (SizeT i = 0; i < p0S->N_Elements(); i++) {
 
-      //tmp=strdup((*p0S)[i].c_str());
       const string& tmp=(*p0S)[i];
-
-      //      cout << ">>"<<(*p0S)[i].c_str() << "<<" << endl;
       if (tmp.length() > 0) {
 
 #ifdef _WIN32
-	char path_buffer[_MAX_PATH];
 	char drive[_MAX_DRIVE];
 	char dir[_MAX_DIR];
 	char fname[_MAX_FNAME];
@@ -1438,10 +1718,8 @@ bool *tests )
 	(*res)[i] = bname;
       } 
       else
-	{
 	  (*res)[i]="";
 	}
-    }
 
     // managing suffixe
     if (DoRemoveSuffix) {
@@ -1466,12 +1744,10 @@ bool *tests )
 	  fin_tmp=tmp1.substr(tmp1.length()-suffLength);
 	  
 	  if (fold_case) fin_tmp=StrUpCase(fin_tmp);
-	  
-	  if (fin_tmp.compare(suffixe) == 0) {
+		  if (fin_tmp.compare(suffixe) == 0) 
 	    (*res)[i]=tmp1.substr(0,tmp1.length()-suffLength);
 	  }	 	  
 	}
-      }
       
     }
 
@@ -1486,66 +1762,17 @@ bool *tests )
     if( p0->Type() != GDL_STRING)
       e->Throw("String expression required in this context: " + e->GetParString(0));
     DStringGDL* p0S = static_cast<DStringGDL*>(p0);
-
+	bool mark_dir;
     dimension resDim;
     resDim=p0S->Dim();
     DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
 
+    static int mark_dirIx	=	e->KeywordIx("MARK_DIRECTORY");
+    mark_dir	= e->KeywordSet(mark_dirIx);// mark_dir = add a "/" at end of result.
     for (SizeT i = 0; i < p0S->N_Elements(); i++) {
-      //tmp=strdup((*p0S)[i].c_str());
       const string& tmp = (*p0S)[i];
-      // if 0/ if 1: preference.
-#ifdef _WIN32
-#	if 1
-      char path_buffer[_MAX_PATH];
-      char drive[_MAX_DRIVE];
-      char dir[_MAX_DIR];
-      char fname[_MAX_FNAME];
-      char ext[_MAX_EXT];
-
-      DString::size_type pos = 0, offset = 0;
-      DString tmp2(tmp);
-      while ((pos = tmp2.find("/", offset)) != string::npos)
-	{
-	  tmp2[pos] = '\\';
-	  offset = pos + 1;
+		 (*res)[i] = Dirname(tmp, mark_dir); 
 	}
-      //   while (tmp2[tmp2.size() - 1] == '\\') tmp2.pop_back();
-      int size=tmp2.size();
-      if(tmp2[size--] == '\\') 
-	do  	tmp2.resize(size);
-	while((size != 0) && tmp2[size--] =='\\');
-
-      _splitpath( tmp2.c_str(),drive,dir,fname,ext);
-      dir[strlen(dir) - 1] = 0; // Remove seperator
-      DString dname = DString(drive)+dir;
-
-      //   while (dname[dname.size() - 1] == '\\') dname.pop_back();
-      size = dname.size();
-      if(dname[size--] == '\\')
-	do      dname.resize(size);
-	while((size != 0) && dname[size--] =='\\');
-#	elif 0
-      char buf[ PATH_MAX+1];
-      strncpy(buf, tmp.c_str(), PATH_MAX+1);
-      string dname = dirname(buf);
-#   endif
-#endif
-#ifndef _WIN32
-      char buf[ PATH_MAX+1];
-      strncpy(buf, tmp.c_str(), PATH_MAX+1);
-      string dname = dirname(buf);
-#endif
-      (*res)[i] = dname;
-
-    }
-    static int file_dirnameIx=e->KeywordIx("MARK_DIRECTORY");
-    if (e->KeywordSet(file_dirnameIx)) {
-      for (SizeT i = 0; i < p0S->N_Elements(); i++) {
-	(*res)[i]=(*res)[i] + PathSeparator();
-      }
-    }
-    
     return res;
 
   }
@@ -1601,8 +1828,8 @@ bool *tests )
 	// expanding if needed (tilde, shell variables, etc)
 	const char *file0, *file1;
 	string tmp0, tmp1;
-    static int noexpoand_pathIx=e->KeywordIx("NOEXPAND_PATH");
-	if (!e->KeywordSet(noexpoand_pathIx)) 
+    static int noexpand_pathIx=e->KeywordIx("NOEXPAND_PATH");
+	if (!e->KeywordSet(noexpand_pathIx)) 
 	  {
 	    tmp0 = (*p0S)[p0idx];
 	    WordExp(tmp0);
@@ -1738,19 +1965,20 @@ bool *tests )
         struct stat64 statStruct, statlink;
 
         int actStat = lstat64(actFile.c_str(), &statStruct);
+        int addlink = 0;
 #ifdef _WIN32
 	DWORD dwattrib;
-        int addlink = 0;
         fstat_win32(actFile, addlink, dwattrib);
         statStruct.st_mode |= addlink;
 #endif
         bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-        if (isASymLink ) actStat = stat64(actFile.c_str(), &statlink);
+        if (isASymLink ) addlink = stat64(actFile.c_str(), &statlink);
 	//
 	//be more precise in case of symlinks --- use stat
-	// to check if target exists or is a dangling symlink!
-	//
-        bool isADanglingSymLink = (actStat != 0 && isASymLink);
+// to check if target exists or is a dangling symlink
+// keep result in addlink
+
+        bool isADanglingSymLink = (addlink != 0 && isASymLink);
 
 	if( actStat != 0) 	  continue;
 
@@ -1775,12 +2003,13 @@ bool *tests )
 
 	if( socket && S_ISSOCK(statStruct.st_mode) == 0) 	  continue;
 
-	if( dsymlink && !isADanglingSymLink ) 	  continue;
-
 #endif
+
+	if( dsymlink && !isADanglingSymLink ) 	  continue;
         if( symlink && !isASymLink ) 	  continue;
 
-	if( directory && (S_ISDIR(statStruct.st_mode) || (S_ISDIR(statlink.st_mode) && isASymLink)) == 0) 
+	if( directory && ( S_ISDIR(statStruct.st_mode) ||
+		 S_ISDIR(statlink.st_mode) ) == 0)
 	  continue;
 
 	if( regular && S_ISREG(statStruct.st_mode) == 0) 
@@ -1792,6 +2021,7 @@ bool *tests )
     return res;
   }
   // Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
+ 
   BaseGDL* file_readlink( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
@@ -1810,38 +2040,7 @@ bool *tests )
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
-#if 0
-    for (SizeT f = 0; f < nPath; f++)
-      {
-	// This is a random code block thrown in to start programming the routine
-	// #elif 1 below begins the actually functional code.
-	// I don't know why thbis #if/ifdef/endif/elif  sequennce works the way it was intended!
-	const char* actFile;
-        string tmp;
-        if (!noexpand_path) 
-	  {
-	    tmp = (*p0S)[f];
-	    WordExp(tmp);
-	    actFile = tmp.c_str();
-	  } 
-        else actFile = (*p0S)[f].c_str();
 
-	struct stat64 statStruct, statlink;
-	int actStat = lstat64(actFile, &statStruct);
-
-	//#ifdef _WIN32 commented out just because it looks disturbing.
-	DWORD dwattrib;
-	int addlink = 0;
-	fstat_win32(actFile, addlink, dwattrib);
-	statStruct.st_mode |= addlink;
-	//#endif
-
-	bool isASymLink = S_ISLNK(statStruct.st_mode);
-	if (isASymLink ) actStat = stat64(actFile, &statlink);
-	// Here begins the (quicky) real code. Looks like it will also double as 
-	// a GDL call to realpath() for non-symlinked files, also.
-	//
-#elif 1
 	{
 
 	  for( SizeT r=0; r<nPath ; ++r) {
@@ -1850,11 +2049,42 @@ bool *tests )
 	    if (tmp.length() == 0) {
 	      (*res)[r]=""; //( errors are not managed ...)
 	    } else {
-	      WordExp(tmp);
+	    if( !noexpand_path) WordExp(tmp);
+		struct stat64 statStruct;
+		int actStat = lstat64(tmp.c_str(), &statStruct);
+		if(actStat != 0) {
+			if(!allow_nonexist) e->Throw(" Link path does not exist "+tmp);
+			(*res)[r]=""; 
+			continue;
+		}
+#ifdef _WIN32
+	DWORD dwattrib;
+        int addlink = 0;
+        fstat_win32(tmp, addlink, dwattrib);
+        statStruct.st_mode |= addlink;
+#endif
+		SizeT lenpath = statStruct.st_size;
+        bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
+        if(!isASymLink ) {
+			if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
+			(*res)[r]=""; 
+			continue;
+		}			
 	      char *symlinkpath =const_cast<char*> (tmp.c_str());
 	      char actualpath [PATH_MAX+1];
 	      char *ptr;
+#ifndef _WIN32
+//		SizeT len; // doesn't work this way (opengroup doc):
+//		if( len = readlink(symlinkpath, actualpath, PATH_MAX) != -1)
+//							actualpath[len] = '\0';
+		if( readlink(symlinkpath, actualpath, PATH_MAX) != -1)
+				actualpath[lenpath]='\0';
+		ptr = &actualpath[0];
+#else
 	      ptr = realpath(symlinkpath, actualpath);
+	for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+		
+#endif
 	      if( ptr != NULL ){
 		(*res)[r] =string(ptr);
 	      } else {
@@ -1865,7 +2095,7 @@ bool *tests )
 	  return res;
 
 	}
-#endif	
+	
       }
 	
 	
@@ -1877,76 +2107,18 @@ bool *tests )
 	e->Throw( "String expression required in this context: "+
 		  e->GetParString(0));
 
-      static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
-      bool noexpand_path = e->KeywordSet(noexpand_pathIx);
+    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
 
       DStructGDL* res = new DStructGDL(
 				       FindInStructList(structList, "FILE_INFO"), 
 				       p0S->Rank() == 0 ? dimension(1) : p0S->Dim()
 				       ); 
 
-      int tName = res->Desc()->TagIndex("NAME");
-      int tExists, tRead, tWrite, tExecute, tRegular, tDirectory, tBlockSpecial, 
+    static int tName = tName = res->Desc()->TagIndex("NAME");
+    static int tExists, tRead, tWrite, tExecute, tRegular, tDirectory, tBlockSpecial, 
 	tCharacterSpecial, tNamedPipe, tSetuid, tSetgid, tSocket, tStickyBit, 
 	tSymlink, tDanglingSymlink, tMode, tAtime, tCtime, tMtime, tSize;
-      int indices_known = false;
-
-      SizeT nEl = p0S->N_Elements();
-
-      for (SizeT f = 0; f < nEl; f++)
-	{
-	  // NAME
-	  const char* actFile;
-	  string tmp;
-	  if (!noexpand_path) 
-	    {
-	      tmp = (*p0S)[f];
-	      WordExp(tmp);
-	  
-	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp",
-	      // and one place in "str.cpp" same label
-	      tmp=tmp.substr(0, tmp.find("|", 0)); //take the first file that corresponds the pattern.
-	      if( tmp.length() > 1 && tmp[ tmp.length()-1] == '/')
-		actFile = tmp.substr(0,tmp.length()-1).c_str();
-	      else
-		actFile = tmp.c_str();
-	    }
-	  else actFile = (*p0S)[f].c_str();
-	  *(res->GetTag(tName, f)) = DStringGDL(actFile);
-
-	  // stating the file (and moving on to the next file if failed)
-	  struct stat64 statStruct, statlink;
-
-	  int actStat = lstat64(actFile, &statStruct);
-
-#ifdef _WIN32
-	  DWORD dwattrib;
-	  int addlink = 0;
-	  fstat_win32(actFile, addlink, dwattrib);
-	  statStruct.st_mode |= addlink;
-#endif
-
-	  bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
-	  bool isASymLink = S_ISLNK(statStruct.st_mode);
-
-#ifdef _WIN32
-	  if(isASymLink && (statStruct.st_size > 0))
-	    statStruct.st_size = (statStruct.st_size -12)/2 - 1;
-#else
-	  if (isASymLink ) {
-	    actStat = stat64(actFile, &statlink);
-	    isaDir = (S_ISDIR(statlink.st_mode) != 0);
-	    // This works ok here but fails in FileSearch
-	  }
-#endif
-
-	  //
-	  //be more precise in case of symlinks --- use stat
-	  // to check if target exists or is a dangling symlink!
-	  //
-	  bool isADanglingSymLink = (actStat != 0 && isASymLink); 
-
-
+    static int indices_known = false;
 	  // checking struct tag indices (once)
 
 	  if (!indices_known) 
@@ -1988,13 +2160,62 @@ bool *tests )
 	      indices_known = true;
 
 	    }
+
+    SizeT nEl = p0S->N_Elements();
+
+    for (SizeT f = 0; f < nEl; f++)
+    {
+        // NAME
+		const char* actFile;
+        string p0Sf = (*p0S)[f];
+        while(p0Sf.compare(0,1," ")==0) p0Sf.erase(p0Sf.begin()); // remove leading whitespaces
+        if (!noexpand_path) 
+        {
+//          p0Sf = (*p0S)[f];
+          WordExp(p0Sf);
+	  
+	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp",
+	      // and one place in "str.cpp" same label
+	      p0Sf=p0Sf.substr(0, p0Sf.find("|", 0)); //take the first file that corresponds the pattern.
+	      if( p0Sf.length() > 1 && p0Sf[ p0Sf.length()-1] == '/')
+					p0Sf = p0Sf.substr(0,p0Sf.length()-1);
+			}
+        actFile = p0Sf.c_str();
+        
+		*(res->GetTag(tName, f)) = DStringGDL(p0Sf);
+
+        // stating the file (and moving on to the next file if failed)
+       struct stat64 statStruct, statlink;
+
+       int actStat = lstat64(actFile, &statStruct);
+       int addlink = 0;
+
+#ifdef _WIN32
+	DWORD dwattrib;
+       fstat_win32(actFile, addlink, dwattrib);
+       statStruct.st_mode |= addlink;
+#endif
+
+       bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
+       bool isASymLink = S_ISLNK(statStruct.st_mode);
+		SizeT lenpath = statStruct.st_size; // if a symlink, this is path size.
+
+       if (isASymLink ) {
+		 addlink = stat64(actFile, &statlink); // preserving the original actStat
+		 isaDir = (S_ISDIR(statlink.st_mode) != 0);
+// This works ok here but fails in FileSearch
+	    }
+
+     bool isADanglingSymLink = (addlink != 0 && isASymLink); 
+
+
 	  // DANGLING_SYMLINK good place
 	  // SYMLINK
 
 	  if (isASymLink)
 	    {
 	      *(res->GetTag(tSymlink, f)) = DByteGDL(1);
-	      if( actStat != 0 )
+          if( addlink != 0 )
 		*(res->GetTag(tDanglingSymlink, f)) = DByteGDL(1);
 	    }
 
@@ -2050,12 +2271,10 @@ bool *tests )
 					      statStruct.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX)
 					      );
 #else
-	  *(res->GetTag(tSetuid, f)) = DByteGDL(0);
-	  *(res->GetTag(tSetgid, f)) = DByteGDL(0);
-	  //*(res->GetTag(tSetuid, f)) =           DByteGDL(
-	  //	(FILE_ATTRIBUTE_SYSTEM & dwattrib) != 0);
-	  //*(res->GetTag(tSetgid, f)) =           DByteGDL(
-	  //	(FILE_ATTRIBUTE_HIDDEN & dwattrib) != 0);
+        if(tSetuid != 0) *(res->GetTag(tSetuid, f)) = 
+          DByteGDL(	(FILE_ATTRIBUTE_SYSTEM & dwattrib) != 0);
+        if(tSetgid != 0) *(res->GetTag(tSetgid, f)) = 
+          DByteGDL(	(FILE_ATTRIBUTE_HIDDEN & dwattrib) != 0);
 	  *(res->GetTag(tMode, f)) = DLongGDL(dwattrib);
 #endif
 
