@@ -164,6 +164,7 @@ namespace lib {
   
   uint32_t writeEnd(XDR *xdrs) {
     uint32_t cur=writeNewRecordHeader(xdrs, 6);
+    return cur;
   }
 
   int getVersion(XDR* xdrs) {
@@ -312,7 +313,7 @@ namespace lib {
     int i=0;
     for (; i < nDims; ++i) dims[i]=var->Dim(i);
     for (; i < nmax; ++i) dims[i]=1; //yes.
-    !xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
+    xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
   }
   
   int defineCommonBlock(EnvT* e, XDR* xdrs, int verboselevel) {
