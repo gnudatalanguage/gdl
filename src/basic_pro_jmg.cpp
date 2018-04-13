@@ -23,6 +23,7 @@
 
 #include "envt.hpp"
 #include "dinterpreter.hpp"
+#include "prognode.hpp"
 #include "basic_pro_jmg.hpp"
 
 #define MAXNDLL 40
@@ -38,8 +39,8 @@ namespace lib {
 
   using namespace std;
 
-  void (*dynPro[MAXNDLL/2])( EnvT* e);
-  BaseGDL*(*dynFun[MAXNDLL/2])( EnvT* e);
+  LibPro dynPro[MAXNDLL/2];
+  LibFun dynFun[MAXNDLL/2];
 
   void point_lun( EnvT* e) 
   { 
@@ -141,11 +142,11 @@ namespace lib {
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
     if (funcType == 0) {
-      (void* &) dynPro[count_pro] = 
-	(void *) GetProcAddress(module[count], entryName.c_str());
+      dynPro[count_pro] = 
+	(LibPro) GetProcAddress(module[count], entryName.c_str());
     } else if (funcType == 1) {
-      (BaseGDL* &) dynFun[count_fun] = 
-	(BaseGDL*) GetProcAddress(module[count], entryName.c_str());
+      dynFun[count_fun] = 
+	(LibFun) GetProcAddress(module[count], entryName.c_str());
     } else {
       printf("Improper function type: %d\n", funcType);
       FreeLibrary(module[count]);
@@ -153,11 +154,11 @@ namespace lib {
     }
 #else
     if (funcType == 0) {
-      (void* &) dynPro[count_pro] = 
-	(void *) dlsym(module[count], entryName.c_str());
+      dynPro[count_pro] = 
+        (LibPro) dlsym(module[count], entryName.c_str());
     } else if (funcType == 1) {
-      (BaseGDL* &) dynFun[count_fun] = 
-	(BaseGDL*) dlsym(module[count], entryName.c_str());
+      dynFun[count_fun] = 
+	(LibFun) dlsym(module[count], entryName.c_str());
     } else {
       printf("Improper function type: %d\n", funcType);
       dlclose(module[count]);
