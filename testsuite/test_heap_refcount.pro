@@ -14,6 +14,6 @@ kptr = ptrarr(4)
 for k=0,3 do kptr[k] = jptr[k]
 if(total(heap_refcount(jptr)) ne 3+3+4) then err++
 
-if err ne 0 then exit 1
+if err ne 0 then exit, status=1
 
 end
