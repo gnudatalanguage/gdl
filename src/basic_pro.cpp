@@ -49,8 +49,6 @@
 #include "basic_pro.hpp"
 #include "semshm.hpp"
 #include "graphicsdevice.hpp"
-//#include "dcommon.hpp"
-//#include "dpro.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
@@ -213,6 +211,8 @@ namespace lib {
       doObj = doPtr = true;
 
     e->HeapGC(doPtr, doObj, verbose);
+      if( GDLInterpreter::HeapSize() == 0 and (GDLInterpreter::ObjHeapSize() == 0)  )
+				GDLInterpreter::ResetHeap();
   }
 
   void HeapFreeObj(EnvT* env, BaseGDL* var, bool verbose) {
@@ -231,18 +231,9 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
 
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
-        {
-              return;
-        }
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
         HeapFreeObj(env, derefPtr, verbose);
       }
     } else if (var->Type() == GDL_OBJ) {
@@ -281,29 +272,27 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
+
+
+//GJ 2016.05.12 Replaced "if (actPtrID == 0)" for a more restrictive condition:
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
+
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+	      if (verbose)
         {
-              return;
-        }
-        if (verbose) {
           help_item(cout,
             derefPtr, DString("<PtrHeapVar") +
             i2s(actPtrID) + ">",
             false);
         }
+
+	      if (derefPtr == NULL)	continue;
         HeapFreePtr(derefPtr, verbose); // recursive call
-      }
       // 2. free pointer
       DInterpreter::FreeHeap(varPtr);
     }
   }
+    }
 
   void heap_free(EnvT* e) {
     static int objIx = e->KeywordIx("OBJ");
@@ -344,21 +333,17 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-    int nParam = e->NParam();
-    if (nParam == 0) return;
+      int n_Param=e->NParam();
+      if( n_Param == 0) return;
 
-    BaseGDL* p = e->GetParDefined(0);
-
-    if (p->Type() != GDL_OBJ)
-      e->Throw("Parameter must be an object in"
-      " this context: " +
-      e->GetParString(0));
-    DObjGDL* op = static_cast<DObjGDL*> (p);
-
+	  for( SizeT ipar=0; ipar<n_Param; ipar++) {
+		BaseGDL*& par=e->GetPar( ipar);
+		if( par == NULL or
+			par->Type() != GDL_OBJ) continue;
+		DObjGDL* op= static_cast<DObjGDL*>(par);
     SizeT nEl = op->N_Elements();
-    for (SizeT i = 0; i < nEl; i++) {
-      DObj actID = (*op)[i];
-      e->ObjCleanup(actID);
+		for( SizeT i=0; i<nEl; i++)	
+			e->ObjCleanup( (*op)[i]);
     }
   }
 
@@ -538,6 +523,9 @@ namespace lib {
         mode |= fstream::ate;
       }
     }
+#ifdef _WIN32
+      mode |= ios::binary;
+#endif
 
     static int f77Ix = e->KeywordIx("F77_UNFORMATTED");
     bool f77 = e->KeywordSet(f77Ix);
@@ -626,27 +614,15 @@ namespace lib {
   }
 
   void openr(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::binary);
-#else
     open_lun(e, fstream::in);
-#endif
   }
 
   void openw(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::trunc | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out | fstream::trunc);
-#endif
   }
 
   void openu(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out);
-#endif
   }
 
   void socket(EnvT* e) {
@@ -1077,6 +1053,10 @@ namespace lib {
 
           DLong nRec2;
           memcpy(&nRec2, hdr, 4);
+// 2018 April 14
+// G.Jung I don't think this works right for stuctures.
+//   I have a method (RealBytes) that computes the actual byte count,
+//  it needs entries across several different files.
           SizeT nBytes = p->NBytes();
 
           // In variable length VMS files, each record is prefixed
