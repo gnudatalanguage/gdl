@@ -49,6 +49,7 @@ namespace lib {
 
   // SA:
   void file_mkdir( EnvT* e);
+  void file_delete( EnvT* e);
 
 } // namespace
 

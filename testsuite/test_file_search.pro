@@ -220,6 +220,9 @@ nb_errors=0
 ;
 tmp_dir='TMPDIR_FILE_SEARCH'
 FILE_MKDIR, tmp_dir
+;
+if KEYWORD_SET(test) then STOP,' after file_mkdir tmp_dir='+tmp_dir
+
 CD, tmp_dir, cur=cur
 ;
 ;

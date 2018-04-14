@@ -81,7 +81,9 @@ tmpdir=GETENV('IDL_TMPDIR')
 ; does this directory realy exist ?
 ; if not, working in /tmp
 if ~FILE_TEST(tmpdir, /directory) then begin
-   MESSAGE, 'IDL_TMPDIR dir. does not exist ?!'
+   MESSAGE, 'IDL_TMPDIR dir. does not exist ?! creating a local IDL_TMPDIR',/continue
+   tmpdir = 'IDL_TMPDIR'
+   file_mkdir,tmpdir
 endif
 ;
 CD, tmpdir, current=initial_dir
@@ -96,6 +98,7 @@ print, 'Working here : ', working_dir
 ; creating three SubDirs
 ;
 subdirs=['normal','spa ce','q!mark','mix,ing :s']
+if(!version.os_family eq 'Windows') then subdirs = subdirs[0:2]
 FILE_MKDIR, subdirs
 print, 'creating subdirs : ', subdirs+PATH_SEP()
 ;
@@ -105,7 +108,7 @@ print, 'creating subdirs : ', subdirs+PATH_SEP()
 res=FILE_TEST(working_dir+PATH_SEP()+subdirs)
 ;
 if TOTAL(res) EQ N_ELEMENTS(subdirs) then begin
-   print, 'All subdirs well created'
+   print, 'All subdirs were created'
 endif else begin
    for ii=0, N_ELEMENTS(subdirs)-1 do begin
       if res[ii] EQ 0 then $

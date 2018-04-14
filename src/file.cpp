@@ -932,7 +932,7 @@ static DString makeInsensitive(const DString &s)
 	}
     return insen;
   }
-
+#ifndef _WIN32
   std::string BeautifyPath(std::string st, bool removeMark=true)
   {
     //removes series of "//", "/./" and "/.." and adjust path accordingly.
@@ -981,8 +981,6 @@ static DString makeInsensitive(const DString &s)
   return st;
   }
 
-
-#ifndef _WIN32
 #include <stdlib.h> 
 static void FileSearch( FileListT& fileList, const DString& pathSpec, 
 		   bool environment,   bool tilde,
@@ -1116,14 +1114,59 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
   if ( st == "" && dir )
     fileList.push_back( "" );
 }  // static void FileSearch
-#endif // !def_WIN32
+#endif
+#ifdef _WIN32
 
+// the unix version (as of Oct 2017) is copied to here 
+  std::string BeautifyPath(std::string st, bool removeMark=true)
+  {
+    //removes series of "//", "/./" and "/.." and adjust path accordingly.
+     if ( st.length( ) > 0 ) {
+      size_t pp;
+      pp=0;
+      do {
+        pp=st.find( "/./");
+        if (pp!=string::npos) { st.erase(pp, 2);}
+      } while (pp!=string::npos);
+      pp=0;
+      do {
+        pp=st.find( "//");
+        if (pp!=string::npos) { st.erase(pp, 1);}
+      } while (pp!=string::npos);
+      //Last "/.."
+      pp=st.rfind( "/.."); //remove and back if last
+      if (pp!=string::npos && pp==st.size()-3) {
+        //erase from previous "/" to pp+3. Unless there is no previous "/"!
+        size_t prevdir = st.rfind("/",pp-1);
+        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+      }
+      //Last "/."
+      pp=st.rfind( "/."); //remove if last
+      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
+      //Last "/" if removeMark is true
+      if (removeMark) {
+        pp=st.rfind( "/"); //remove and back if last
+        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
+      }
+      // other places for "/..": between directories
+      pp=0;
+      do {
+        pp=st.find( "/../");
+        if (pp!=string::npos) {
+          //erase from previous "/" to pp+3. Unless there is no previous "/"!
+          size_t prevdir = st.rfind("/",pp-1);
+          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
+          else break; //what should I do?
+        }
+      } while (pp!=string::npos);
+      //First "./" 
+      pp=st.find( "./"); //remove if first
+      if (pp==0) st.erase(pp,2);
+    }
+  return st;
+  }
 
-
-  // AC 16 May 2014 : preliminary (and no MSwin support !)
-  // revised by AC on June 28 
-  // PRINT, FILE_expand_path([['','.'],['$PWD','src/']])
-  // when the path is wrong, wrong output ...
+#endif
 
 static std::string Dirname(const string& tmp,
 	bool mark_dir = false)
@@ -1338,6 +1381,9 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	char actualpath [PATH_MAX+1];
 	char *ptr;
 	ptr = realpath(symlinkpath, actualpath);
+#ifdef _WIN32
+	for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+#endif			
 	if( ptr != NULL ){
 	  (*res)[r] =string(ptr);
 	} else {
@@ -1366,7 +1412,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     IDL policy states that symlinks are not followed.
     symlnk references should therefore be returned as found, without resolution, and
     can be processed by the FILE_READLINK function.
-    NOTE: Contrary to above documented intention, acutal IDL behavior is, that
+    NOTE: Contrary to above documented intention, acutal IDL behavior is that
     when called with two arguments the Dir_specification argument could itself be a pattern-search;
     hence the dance below where, for Nparam > 1, first duty is to search on the 1st parameter for directories.
 //     modifications        : 2014, 2015 by Greg Jung
@@ -2192,10 +2238,10 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
       return res;
 
-    } // file_info
+} // file_info
 
-    void file_mkdir( EnvT* e)
-    {
+void file_mkdir( EnvT* e)
+{
       // sanity checks
       SizeT nParam=e->NParam( 1);
       for (int i=0; i<nParam; i++)
@@ -2206,30 +2252,110 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
       static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
       bool noexpand_path = e->KeywordSet( noexpand_pathIx);
-#ifndef _WIN32
-      string cmd = "mkdir -p";
-#else
-      string cmd = "mkdir";
-#endif
+
       for (int i=0; i<nParam; i++)
 	{
 	  DStringGDL* pi = dynamic_cast<DStringGDL*>(e->GetParDefined(i));
 	  for (int j=0; j<pi->N_Elements(); j++)
 	    {
 	      string tmp = (*pi)[j];
-	      //	cout<<tmp<<"--tmp\n";
 	      if (!noexpand_path) WordExp(tmp);
-	      tmp="'"+tmp+"'";
-	      cmd.append(" " + tmp);
+		#ifndef _WIN32
+        int status = mkdir(tmp.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		#else
+        int status = mkdir(tmp.c_str());
+		#endif
 	    }
 	}
-#ifndef _WIN32
-      cmd.append(" 2>&1 | awk '{print \"% FILE_MKDIR: \" $0; exit 1}'");
-#endif
-      // SA: calling system(), mkdir and awk is surely not the most efficient way, 
-      //     but copying a bunch of code from coreutils does not seem elegant either
-      //    system("echo 'hello world'");
-      if (system(cmd.c_str()) != 0) e->Throw("failed to create a directory (or execute mkdir).");
-    }  // file_mkdir
+} // file_mkdir
+  
+static void FileDelete( DString& name, bool verbose, bool recursive)
+{
+	struct stat64 statStruct;
+	int actStat = lstat64(name.c_str(), &statStruct);
+	if(actStat != 0) {
+ 		cout << " (status="<<actStat<<") FileDelete ERROR: malformed: "+name<<std::endl;
+		return;
+	}
+//	if(trace_me) printf(" trace: FileDelete= %s \n",name.c_str());
+	bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
+	if(isaDir) {
+		DIR* dir = opendir( name.c_str());
+		if( dir == NULL) return;
+		struct dirent* entry;
+		int nument=0;
+		while( (entry = readdir( dir)) != NULL) nument++;
+		closedir( dir);
+		if(nument > 2 && recursive) {
+			dir = opendir( name.c_str());
+			while( (entry = readdir( dir)) != NULL) {
+				DString entryStr( entry->d_name);
+				if( entryStr == "." || entryStr == "..") continue;
+				entryStr = name+"/"+entryStr;
+				FileDelete( entryStr, verbose, recursive);
+				}
+			closedir(dir);
+			}
+		else if(nument > 2) {
+			if(verbose) 
+				cout << " /RECURSIVE keyword needed to remove non-empty directory"<<endl;
+			return;
+			 }
+	  rmdir(name.c_str());
+	 if(verbose) cout << " FILE_DELETE: directory "+name<<endl;
+		 }
+	else 
+	  remove(name.c_str());
 
-  }// namespace lib
+	 if(verbose) cout << " FILE_DELETE: deleted "+name<<endl;
+} // static void FileDelete
+void file_delete( EnvT* e)
+{
+    // sanity checks
+    SizeT nParam=e->NParam( 1);
+    static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet( noexpand_pathIx);
+    static int noexistokIx = e->KeywordIx( "ALLOW_NONEXISTENT");
+    bool noexistok = e->KeywordSet( noexistokIx);
+    static int recursiveIx = e->KeywordIx( "RECURSIVE");
+    bool recursive = e->KeywordSet( recursiveIx);
+    static int quietIx = e->KeywordIx( "QUIET");
+    bool quiet = e->KeywordSet( quietIx);
+    static int verboseIx = e->KeywordIx( "VERBOSE");
+    bool verbose = e->KeywordSet( verboseIx);
+    
+
+	EnvBaseT* caller = e->Caller();
+
+//	trace_me = trace_arg(); // set trace
+
+    for (int i=0; i<nParam; i++)
+    {
+      DStringGDL* pi = dynamic_cast<DStringGDL*>(e->GetParDefined(i));
+
+      if (pi == NULL) {
+		  if (quiet) continue;
+//		  par = e->GetPar(i);
+		  cout << " file_delete: error parameter "
+		       << caller->GetString( e->GetPar(i),false)
+		       <<" is not a string "<<endl;
+		       continue;
+	  }
+//	  if(verbose) cout << " file_delete: parameter value " This works,
+// to read just the parameter name (undefined)
+//						<< caller->GetString( e->GetPar(i),false);
+
+      for (SizeT j=0; j<pi->N_Elements(); j++) {
+		DString srctmp = (*pi)[j];
+		FileListT fileList;
+		PathSearch( fileList, srctmp, noexpand_path );
+ 		for(SizeT k=0; k < fileList.size(); k++) {
+			if(!noexpand_path) WordExp(fileList[k]);
+		   FileDelete( fileList[k], verbose, recursive);
+		   }    
+		}
+	}
+
+}
+
+} // namespace lib
