@@ -217,6 +217,18 @@ void LibInit()
   new DLibFunRetNew(lib::file_dirname,string("FILE_DIRNAME"),1,file_dirnameKey);
 
 
+  const string file_moveKey[]={"ALLOW_SAME", "OVERWRITE", "REQUIRE_DIRECTORY", 
+			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+  new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
+  
+  const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
+			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+  new DLibPro(lib::file_link,string("FILE_LINK"),2,file_linkKey);
+  
+  const string file_copyKey[]={"ALLOW_SAME", "OVERWRITE","FORCE", "REQUIRE_DIRECTORY", 
+			"VERBOSE", "NOEXPAND_PATH","RECURSIVE","COPY_SYMLINK",KLISTEND};
+  new DLibPro(lib::file_copy,string("FILE_COPY"),2,file_copyKey);
+
   const string file_deleteKey[]={"ALLOW_NONEXISTENT","NOEXPAND_PATH","RECURSIVE",
 			"QUIET","VERBOSE",KLISTEND};
   new DLibPro(lib::file_delete,string("FILE_DELETE"),-1,file_deleteKey);

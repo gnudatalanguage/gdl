@@ -2358,4 +2358,634 @@ void file_delete( EnvT* e)
 
 }
 
+#include <utime.h>
+
+static int copy_basic(const char *source, const char *dest) 
+{
+	u_int64_t tsize;
+    size_t size;
+
+    struct stat64 statStruct;
+	int status = stat64(source, &statStruct);
+	if(status != 0) return status;
+	time_t src_mtime = statStruct.st_mtime;  // get mod time to stamp on dest
+	tsize = statStruct.st_size;
+	FILE* src = fopen(source, "rb");
+// overwrite is prevented in calling procedure (unless /OVERWRITE)
+	FILE* dst = fopen(dest, "w+b");
+    int doneyet = 0;
+    int bufsize = BUFSIZ;
+ //   if(trace_me) printf(" copy_basic: %s	to: %s size = %d \n",source,dest, tsize);
+ 	if(tsize < BUFSIZ*16) {
+		char buf[BUFSIZ];
+		while ((size = fread( buf, 1, BUFSIZ, src )) > 0) {
+//				if( trace_me) printf(" 0:%d ",size );
+			fwrite( buf, 1, size, dst);
+		}
+	}
+	else if( tsize < BUFSIZ*1024) {
+		char buf[BUFSIZ*16];
+		while(1) {
+			size = fread( buf, 1, BUFSIZ*16, src );
+//				if( trace_me) printf(" 1:%d ",size );
+			if (size <= 0) break;
+			fwrite( buf, 1, size, dst);
+		}
+	}
+	else {
+		char buf[BUFSIZ*1024];
+		while ((size = fread( buf, 1, BUFSIZ*1024, src )) > 0) {
+//				if( trace_me) printf(" 2:%d ",size );
+			fwrite( buf, 1, size, dst);
+		}
+    }
+//	if( trace_me) printf(" done \n");
+    fclose(src);
+	struct utimbuf times[2];
+	times[0].actime = statStruct.st_atime;
+	times[1].actime = statStruct.st_atime;
+	times[0].modtime = statStruct.st_mtime;
+	times[1].modtime = statStruct.st_mtime;
+    fclose(dst);
+	status = utime( dest, times);
+
+	int srcmode = statStruct.st_mode;
+	status = lstat64(dest, &statStruct);
+	if( statStruct.st_mode != srcmode) 
+		status = chmod(dest, srcmode);
+
+	return status;
+}
+
+static void FileCopy(	FileListT& fileList, const DString& destdir,
+			bool overwrite, bool recursive=false,
+			bool copy_symlink=false,
+			bool verbose = true)	
+{
+//	trace_me = trace_arg();
+	DString destination;
+    string srctmp;
+    struct stat64 statStruct;
+	SizeT nmove = fileList.size();
+	std::string PS = string("/");
+	#ifdef _WIN32
+		 PS = string("\\");
+	#endif
+	string bname, dname;
+	for(SizeT isrc = 0; isrc < nmove; isrc++) {
+		char actualpath [PATH_MAX+1];
+		const char* fileC = fileList[isrc].c_str(); 
+		#ifdef _WIN32
+			char drive[_MAX_DRIVE];
+			char dir[_MAX_DIR];
+			char fname[_MAX_FNAME];
+			char ext[_MAX_EXT];
+			_splitpath( fileC ,drive,dir,fname,ext);
+			bname = string(fname)+ext;
+		#else
+			char buf[ PATH_MAX+1];
+			strncpy(buf, fileC , PATH_MAX+1);
+			bname = basename(buf);
+		#endif
+//		if(trace_me && (isrc ==0)) cout << 
+//					" fileCopy[0]: bname>"<< bname << 
+//					" destdir>"<< destdir <<
+//					" recursive?"<< recursive << std::endl;
+	    int actStat = lstat64(fileC , &statStruct);
+		#ifdef _WIN32
+			DWORD dwattrib;
+			int addlink = 0;
+			fstat_win32(fileList[isrc], addlink, dwattrib);
+			statStruct.st_mode |= addlink;
+		#endif
+		bool isalink = S_ISLNK(statStruct.st_mode);
+		bool isaDir = false;
+		SizeT lenpath= statStruct.st_size;
+			
+		if(isalink) actStat = stat64(fileC , &statStruct);
+		int srcmode = statStruct.st_mode;
+		if(actStat == 0)  isaDir = (S_ISDIR(srcmode) != 0);
+		if(!isaDir) {
+			destination = destdir + PS + bname;
+			int dstStat = lstat64(destination.c_str(), &statStruct);
+			int result = 1;
+			if(dstStat != 0 || overwrite) {
+				if( isalink && copy_symlink) {
+					if(verbose) cout << " FILE_COPY: symlink " << fileList[isrc];
+				#ifndef _WIN32
+					if(readlink(fileC, actualpath, PATH_MAX) != -1) {
+						actualpath[lenpath] = '\0';
+						result = symlink(actualpath,destination.c_str());
+					}
+					if(verbose) 
+					   printf(" to %s ->%s \n",destination.c_str(),actualpath);
+				#else
+					if(verbose) 
+					   cout << " detected for  _WIN32. no /copy_symlink option ! "<<endl;
+			#endif
+				} else {
+					if(verbose) std::cout << " FILE_COPY: copy "
+					<< fileList[isrc]+" to "<< destination;
+					
+					result = copy_basic(fileC,destination.c_str());
+					if(verbose) cout << " done " << endl;
+				}
+
+				if(result != 0 && verbose) 
+				   std::cout << " FILE_COPYr: FAILED to copy "
+						<< fileList[isrc]+" to "<< destination << endl;
+				} // (dstStat != 0 || overwrite)
+				else
+				printf(" FILE_COPY: %s overwrite not allowed \n",fileC);
+		 } // !isadir
+		  else {
+			if(!recursive) {
+				if(verbose) cout << " FILE_COPY: it is an error to list "
+					<< " a directory to copy and not include a /recursive"
+					<< " keyword "<<endl;
+			continue;
+			}
+// -----
+// code to make "copy, srcdir/, newdir" create a new directory at same level.
+			actStat = lstat64(destdir.c_str() , &statStruct);
+			if(actStat == 0) destination = destdir + PS + bname;
+			else destination = destdir;	// + PS;
+// -----
+			FileListT fL;
+			PathSearch( fL, fileList[isrc]+"/*");
+			#ifndef _WIN32
+			int status = mkdir(destination.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			#else
+			int status = mkdir(destination.c_str());
+			#endif
+			if(status != 0) continue;
+
+			FileCopy(fL, destination, overwrite, recursive,  copy_symlink,verbose);// || trace_me );
+			}
+		}
+	return;
+}
+
+void file_copy( EnvT* e)
+{
+    SizeT nParam=e->NParam( 2); 
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
+    if( p0S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(0));
+    DStringGDL* p1S = dynamic_cast<DStringGDL*>(e->GetParDefined(1));
+    if( p1S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(1));
+
+    struct stat64 statStruct, srcStruct;
+
+//    trace_me = trace_arg();     
+    bool recursive = e->KeywordSet( "RECURSIVE");
+    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
+    bool copy_symlink = e->KeywordSet( "COPY_SYMLINK");
+    bool allow_same = e->KeywordSet( "ALLOW_SAME");
+    bool overwrite = e->KeywordSet( "OVERWRITE");
+    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
+    bool verbose = e->KeywordSet( "VERBOSE");
+    int nsrc = p0S->N_Elements();
+    int ndest = p1S->N_Elements();
+    string dsttmp = string("");
+    string srctmp = string("");
+    string dstdir = string("");
+    string cwd = GetCWD();
+    if(ndest > 0) dstdir = (*p1S)[0];
+//   	trace_me = trace_arg();
+/*	if(trace_me) {
+		string test = dstdir;
+		 if(!noexpand_path) WordExp(test);
+ 		std::cout << " file_copy:dstdir=<" << dstdir <<"> WordExp("")=<"
+			<< test <<">"<<std::endl;
+	}*/
+
+  	 if(!noexpand_path) WordExp(dstdir);
+     if( dstdir[0] == '~')
+       {
+ 	char* homeDir = getenv( "HOME");
+ 	if( homeDir == NULL) homeDir = getenv("HOMEPATH");
+
+ 	if( homeDir != NULL)
+ 		    dstdir = string( homeDir) + "/" + dstdir.substr(1);
+       }
+	if(nsrc > 0) srctmp = (*p0S)[0];
+    bool dest_is_directory= false;  // when parameter 2 is an existing directory.
+    int actStat, result, dstStat;
+    if(ndest == 1) {
+//		if(trace_me) std::cout << " dstdir: " << dstdir;
+		size_t dlen = dstdir.length();
+		if( dlen > 0) {
+		  if( dstdir[0] == '.' ) {
+			if(dlen == 1) dstdir = GetCWD();
+			else if (dstdir[1] == '/') dstdir = GetCWD() + dstdir.substr(1);
+		#ifdef _WIN32
+			else if (dstdir[1] == '\\') dstdir = GetCWD() + dstdir.substr(1);
+		#endif
+			else if (dlen >= 2 && dstdir[1] =='.') {
+				if( dlen == 2) dstdir = Dirname(GetCWD());
+				else if (dstdir[2] == '/') dstdir = Dirname(GetCWD()) + dstdir.substr(2);
+			#ifdef _WIN32
+				else if (dstdir[2] == '\\') dstdir = Dirname(GetCWD()) + dstdir.substr(2);				
+			#endif
+				} // (dlen >= 2 && dstdir[1]='.')
+			}// dstdir[0] == '.'
+	// Now trim any marks off the trailing string
+//		if(trace_me) std::cout << " dstdir: " << dstdir;
+			size_t pp = dstdir.rfind( "/"); //remove and back if last
+			if (pp!=string::npos && pp==dstdir.size()-1) dstdir.erase(pp);
+				#ifdef _WIN32
+				pp = dstdir.rfind("\\");
+			if (pp!=string::npos && pp==dstdir.size()-1) dstdir.erase(pp);
+				#endif
+//		if(trace_me) std::cout << " dstdir: " << dstdir 
+//		 << std::endl;
+		 }  // dlen > 0
+		 actStat = lstat64(dstdir.c_str(), &statStruct);
+		 if(actStat == 0) {
+			 dest_is_directory = (S_ISDIR(statStruct.st_mode) != 0);
+			 if(require_directory && !dest_is_directory)
+				 e->Throw(" destination (arg #2) is not a directory, /REQUIRE_DIRECTORY specified");				
+				}
+		 } // ndest == 1
+
+//	if(trace_me) {
+//		printf(" file_copy: nsrc= %d , 1st=%s ",nsrc,srctmp.c_str());
+//		printf("\n      ... ndest= %d dstdir = %s \n",ndest, dstdir.c_str());
+//		}
+	if(nsrc != ndest && !dest_is_directory)
+		e->Throw(" destination array must be same size as source ");
+	for(int k=0; k < nsrc; k++) { 
+
+		srctmp = (*p0S)[k];
+		FileListT fileList;
+		PathSearch( fileList, srctmp, noexpand_path);
+		SizeT nmove=fileList.size();
+//		if( trace_me) 
+//			printf(" file_copy: srctmp=%s ; nmove= %d",srctmp.c_str(),nmove);
+		if(nmove == 0) {
+			cout << " FILE_COPY: Invalid source file specified:"+srctmp<<endl;
+			continue;
+			}
+
+		bool dst_isadir = true;
+		dstStat = 0;
+		if( !dest_is_directory)  // Ruling out the single directory case.
+		{	// parameter 2 is not an existing directory (scalar)
+			dsttmp = (*p1S)[k];
+			if(!noexpand_path)	WordExp(dsttmp);
+			dstStat = stat64(dsttmp.c_str(), &statStruct);
+			dst_isadir = (dstStat == 0) &&
+					(S_ISDIR(statStruct.st_mode) != 0);
+//			if( trace_me) cout << " XX dstStat, dsttmp " << dstStat, dsttmp ;
+			} 
+			else
+				dsttmp = dstdir;
+		// dsttmp = destination = a) the one and only directory (=dstdir, dst_isadir = true)
+		//          b) an existing directory name (=(*p1S)[k], dst_isadir = true)
+		//	c) a name of non-existant file/directory
+		//
+		//  d) 
+//		if(trace_me)
+//			printf(" dest_is_directory? %d dst_isadir? %d \n",dest_is_directory, dst_isadir);
+		if( !dst_isadir && recursive ) {
+//			if(trace_me) cout << " !dst_isadir && recursive " << std::endl;
+			; } else
+		if( !dst_isadir ) {
+//			if( trace_me) cout << " !dst_isadir " << std::endl;
+			if(require_directory )  {
+				printf(" FILE_COPY: require_directory, %s%s\n"
+						,dsttmp.c_str()," is not a valid directory");
+				if(!verbose) continue;
+			}
+			if(nmove > 1) {
+				cout << " FILE_COPY: target for "<<nmove<<" multiple sources ("
+				<<srctmp<<") is not a directory:"+dsttmp<<endl;
+				continue;
+				}
+
+			result = 1;
+			char actualpath [PATH_MAX+1];
+			const char* fileC = fileList[0].c_str();
+			actStat = lstat64(fileC, &statStruct);
+		#ifdef _WIN32
+			DWORD dwattrib;
+			int addlink = 0;
+			fstat_win32(fileList[0], addlink, dwattrib);
+			statStruct.st_mode |= addlink;
+		#endif
+			bool isalink = S_ISLNK(statStruct.st_mode);
+			SizeT lenpath= statStruct.st_size;
+			if(isalink) actStat = stat64(fileC , &statStruct);
+				
+			if(S_ISDIR(statStruct.st_mode) != 0) {
+				if(verbose) cout << " FILE_COPY: FAILED to copy (directory) "
+				    << fileList[0]+" to "+dsttmp << endl;
+				    continue;
+				}
+			if( (strcmp(fileC, dsttmp.c_str()) == 0) ) {
+				if( allow_same && (dstStat == 0) ) continue;
+				printf(" FILE_COPY: '%s' and '%s' are the same file \n",
+					fileC, dsttmp.c_str());
+				continue;
+			}
+
+			if(!require_directory && ((dstStat != 0) || overwrite)) 
+			  if( isalink && copy_symlink) {
+		#ifndef _WIN32
+				if(verbose) cout << " FILE_COPY: symlink " << srctmp;
+				if( readlink(fileC, actualpath, PATH_MAX) != -1) {
+						actualpath[lenpath] = '\0';
+					result = symlink(actualpath,dsttmp.c_str());
+					if(verbose) printf(" to %s->%s \n",
+						dsttmp.c_str(),actualpath);
+				}
+		#else
+				if(verbose) 
+				   cout << " detected. WIN32 copy_symlink doesn't work"<<endl;
+		#endif
+				} else {
+					if(verbose) cout << " FILE_COPY: copy "
+					<< srctmp+" to "<< dsttmp << endl;
+					result = copy_basic(fileC,dsttmp.c_str());
+				} // (!require_directory && ((dstStat != 0) || overwrite)
+
+			else if(result!=0) 
+			   cout << " FILE_COPY0: we FAILED to copy "
+					<< srctmp+" to "<< dsttmp << std::endl;
+// no dstdir
+			continue;
+			}  // !dst_isadir. We've provided a name, that is not a file, as target to directory.
+			else {  // dst_isadir || dstStat != 0
+//			if( trace_me) cout << " dst_isadir " << dst_isadir 
+//							<< " dsttmp: "<< dsttmp << 
+//							 " dstStat: "<< dstStat << 	std::endl;
+				if( dest_is_directory) ; else
+				if( dst_isadir && !recursive) continue;			// require /recursive, if appropriate, in FileCopy
+//			 if(trace_me) cout << " file_copy, /recursive, dsttmp=" << dsttmp << std::endl;
+			}
+
+		FileCopy(fileList, dsttmp, overwrite, recursive,  copy_symlink, verbose);
+		}
+		return;
+  }
+
+void file_link( EnvT* e)
+{ // code mostly originates in file_move (rename)
+    SizeT nParam=e->NParam( 2); 
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
+    if( p0S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(0));
+    DStringGDL* p1S = dynamic_cast<DStringGDL*>(e->GetParDefined(1));
+    if( p1S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(1));
+    string srctmp, dsttmp, dstdir;
+    struct stat64 statStruct;
+
+    #ifdef _WIN32
+    if(nParam == 2) e->Throw(" FILE_LINK is not featured for windows systems");
+    #endif
+    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
+    bool allow_same = e->KeywordSet( "ALLOW_SAME");
+    bool hardlink = e->KeywordSet( "HARDLINK");
+    bool verbose = e->KeywordSet( "VERBOSE");
+    int nsrc = p0S->N_Elements();
+    int ndest = p1S->N_Elements(); 
+    bool dest_is_directory= false;
+    int actStat, result, dststat;
+     if(ndest == 1) {
+		  dstdir = (*p1S)[0];
+		  if(!noexpand_path) WordExp(dstdir);
+		 actStat = lstat64(dstdir.c_str(), &statStruct);
+		 if(actStat == 0) {
+			dest_is_directory = (S_ISDIR(statStruct.st_mode) != 0);
+
+			if(dest_is_directory) 
+				 AppendIfNeeded(dstdir,"/");
+			else
+				 e->Throw(" destination (arg #2) is not a directory, /REQUIRE_DIRECTORY specified");
+			
+		}
+	 }
+
+	if(nsrc != ndest && !dest_is_directory)
+		e->Throw(" destination array must be same size as source ");
+	for(int k=0; k < nsrc; k++) { 
+		srctmp = (*p0S)[k];
+
+		FileListT fileList;
+		PathSearch( fileList, srctmp, noexpand_path);
+		
+		SizeT nmove=fileList.size();
+		if(nmove == 0) {
+			cout << " FILE_LINK: Invalid source file to link:"+srctmp<<endl;
+			continue;
+		}
+		char actualpath [PATH_MAX+1];
+		const char* fileC = fileList[0].c_str();
+
+		bool dst_isadir = true;
+		int dstStat = 0;
+		if(dest_is_directory)
+		    dsttmp = dstdir;
+		else {
+			dsttmp = (*p1S)[k];
+			if(!noexpand_path)	WordExp(dsttmp);
+			dstStat = lstat64(dsttmp.c_str(), &statStruct);
+			dst_isadir = (dstStat == 0) &&
+					(S_ISDIR(statStruct.st_mode) != 0);
+			}
+		result = 1;
+		if(!dst_isadir) {
+
+			if(nmove > 1) {
+				cout << " FILE_LINK: target for "<<nmove<<" multiple sources ("
+				<<srctmp<<") is not a directory:"+dsttmp<<endl;
+				continue;
+			}
+// (Single file) 
+			if((dstStat != 0)) {
+//
+// this is not right but these links work much better:
+//				if(!noexpand_path) fileC = realpath(fileC, actualpath);
+#ifndef _WIN32
+				if(hardlink)
+					result = link(fileC,dsttmp.c_str());
+				else
+				    result = symlink(fileC,dsttmp.c_str());
+#endif
+				if(verbose && result==0) cout << " FILE_LINK: linked "
+						<< srctmp+" to "<< dsttmp << endl;
+				if(result != 0) cout << " FILE_LINK0: FAILED to link "
+						<< srctmp+" to "<< dsttmp << endl;
+				}
+			continue;
+			}
+
+		AppendIfNeeded(dsttmp,"/");
+		for(SizeT isrc = 0; isrc < nmove; isrc++) {
+			fileC = fileList[isrc].c_str();
+//
+// this is not right but these links work much better:
+//			if(!noexpand_path) fileC = realpath(fileC, actualpath);			
+#ifndef _WIN32
+			char buf[ PATH_MAX+1];
+			strncpy(buf, fileC, PATH_MAX+1);
+			string bname = basename(buf);
+			srctmp = dsttmp+bname;
+			if(hardlink)
+				result = link(fileC,srctmp.c_str());
+			else
+				result = symlink(fileC,srctmp.c_str());
+#endif
+			if(verbose && result==0) printf(" FILE_LINK: linked %s %s %s \n"
+				,fileC, " to ", srctmp.c_str());
+			if(result != 0) cout << " FILE_LINK1: FAILED to link "
+					<< fileList[isrc]+" to "<< srctmp << endl;
+			}
+		}
+		return;
+//
+}
+	
+void file_move( EnvT* e)
+{
+    SizeT nParam=e->NParam( 2); 
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
+    if( p0S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(0));
+    DStringGDL* p1S = dynamic_cast<DStringGDL*>(e->GetParDefined(1));
+    if( p1S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(1));
+    string srctmp, dsttmp, dstdir;
+    struct stat64 statStruct;
+        
+    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
+    bool allow_same = e->KeywordSet( "ALLOW_SAME");
+    bool overwrite = e->KeywordSet( "OVERWRITE");
+    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
+    bool verbose = e->KeywordSet( "VERBOSE");
+    int nsrc = p0S->N_Elements();
+    int ndest = p1S->N_Elements(); 
+    if(ndest > 0) dstdir = (*p1S)[0];
+  	if(!noexpand_path) WordExp(dstdir);
+    if( dstdir[0] == '~') {
+		char* homeDir = getenv( "HOME");
+		if( homeDir == NULL) homeDir = getenv("HOMEPATH");
+		if( homeDir != NULL)
+ 		    dstdir = string( homeDir) + "/" + dstdir.substr(1);
+       }
+    bool dest_is_directory= false;
+    int actStat, result, dststat;
+    if(ndest == 1) {
+		size_t dlen = dstdir.length();
+		if( dlen > 0) {
+		  if( dstdir[0] == '.' ) {
+			if(dlen == 1) dstdir = GetCWD();
+			else if (dstdir[1] == '/') dstdir = GetCWD() + dstdir.substr(1);
+		#ifdef _WIN32
+			else if (dstdir[1] == '\\') dstdir = GetCWD() + dstdir.substr(1);
+		#endif
+			else if (dlen >= 2 && dstdir[1] =='.') {
+				if( dlen == 2) dstdir = Dirname(GetCWD());
+				else if (dstdir[2] == '/') dstdir = Dirname(GetCWD()) + dstdir.substr(2);
+			#ifdef _WIN32
+				else if (dstdir[2] == '\\') dstdir = Dirname(GetCWD()) + dstdir.substr(2);				
+			#endif
+				} // (dlen >= 2 && dstdir[1]='.')
+			}// dstdir[0] == '.'
+			size_t pp = dstdir.rfind( "/"); //remove and back if last
+			if (pp!=string::npos && pp==dstdir.size()-1) dstdir.erase(pp);
+				#ifdef _WIN32
+				pp = dstdir.rfind("\\");
+			if (pp!=string::npos && pp==dstdir.size()-1) dstdir.erase(pp);
+			#endif
+		 }  // dlen > 0
+		actStat = lstat64(dstdir.c_str(), &statStruct);
+      	if(actStat == 0) {
+      		 dest_is_directory = (S_ISDIR(statStruct.st_mode) != 0);
+      		 if(require_directory && !dest_is_directory)
+      			 e->Throw(" destination (arg #2) is not a directory, /REQUIRE_DIRECTORY specified");
+      		 if(dest_is_directory) 
+      			 AppendIfNeeded(dstdir,"/");
+			}
+		} // (ndest == 1)
+
+    if(nsrc != ndest && !dest_is_directory) { // Throw replaced by do-nothing & print.
+//  	e->Throw(" destination array must be same size as source ");
+		cout << " FILE_MOVE:  destination array must be same size as source " << std::endl;
+		return;
+	}
+    for(int k=0; k < nsrc; k++) { 
+      	srctmp = (*p0S)[k];
+      	FileListT fileList;
+      	PathSearch( fileList, srctmp, noexpand_path );
+      	SizeT nmove=fileList.size();
+      	if(nmove == 0) {
+      		cout << " FILE_MOVE: Invalid source file to move:"+srctmp<<endl;
+      		continue;
+      	}
+      	bool dst_isadir = true;
+      	int dstStat = 0;
+      	if(dest_is_directory)
+      	    dsttmp = dstdir;
+      	else {
+      		dsttmp = (*p1S)[k];
+      		if(!noexpand_path)	WordExp(dsttmp);
+      		dstStat = lstat64(dsttmp.c_str(), &statStruct);
+      		dst_isadir = (dstStat == 0) &&
+      				(S_ISDIR(statStruct.st_mode) != 0);
+      	}
+      	result = 1;
+      	if(!dst_isadir) {
+      		if(require_directory && !verbose) continue;
+      		if(nmove > 1) {
+      			cout << " FILE_MOVE: target for "<<nmove<<" multiple sources ("
+      			<<srctmp<<") is not a directory:"+dsttmp<<endl;
+      			continue;
+      		}
+// Single file rename: rename(source, destination)
+      		if(!require_directory && ((dstStat != 0) || overwrite)) {
+      			result = rename(fileList[0].c_str(),dsttmp.c_str());
+      			if(verbose && result==0) cout << " FILE_MOVE: moved "
+      					<< srctmp+" to "<< dsttmp << endl;
+      			if(result != 0) cout << " FILE_MOVE: FAILED to move "
+      					<< srctmp+" to "<< dsttmp << endl;
+      			}
+      		continue;
+      		}
+//
+		AppendIfNeeded(dsttmp,"/");
+		for(SizeT isrc = 0; isrc < nmove; isrc++) {
+		#ifdef _WIN32
+			char drive[_MAX_DRIVE];
+			char dir[_MAX_DIR];
+			char fname[_MAX_FNAME];
+			char ext[_MAX_EXT];
+
+			_splitpath( fileList[isrc].c_str(),drive,dir,fname,ext);
+			string bname = string(fname)+ext;
+		#else
+			char buf[ PATH_MAX+1];
+			strncpy(buf, fileList[isrc].c_str(), PATH_MAX+1);
+			string bname = basename(buf);
+		#endif
+			srctmp = dsttmp+bname;
+			result = rename(fileList[isrc].c_str(),srctmp.c_str());
+			if(verbose && result==0) cout << " FILE_MOVE: moved "
+					<< fileList[isrc]+" to "<< srctmp << endl;
+			if(result != 0) cout << " FILE_MOVE: FAILED to move "
+					<< fileList[isrc]+" to "<< srctmp << endl;
+			}
+		}
+		return;
+  }
+
 } // namespace lib

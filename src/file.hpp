@@ -38,6 +38,9 @@ namespace lib {
   BaseGDL* file_basename( EnvT* e);
   BaseGDL* file_dirname( EnvT* e);
   BaseGDL* file_readlink( EnvT* e);
+  void file_copy( EnvT* e);
+  void file_move( EnvT* e);
+  void file_link( EnvT* e);
   
   // helper functions
   void ExpandPath( FileListT& result,
