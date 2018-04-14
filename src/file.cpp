@@ -933,8 +933,6 @@ static DString makeInsensitive(const DString &s)
     return insen;
   }
 
-
-#ifndef _WIN32
   std::string BeautifyPath(std::string st, bool removeMark=true)
   {
     //removes series of "//", "/./" and "/.." and adjust path accordingly.
@@ -983,6 +981,8 @@ static DString makeInsensitive(const DString &s)
   return st;
   }
 
+
+#ifndef _WIN32
 #include <stdlib.h> 
 static void FileSearch( FileListT& fileList, const DString& pathSpec, 
 		   bool environment,   bool tilde,
@@ -1115,107 +1115,10 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
 
   if ( st == "" && dir )
     fileList.push_back( "" );
-}  // ifndef _WIN32
-// the unix version (as of Oct 2017) is copied to here 
-  std::string BeautifyPath(std::string st, bool removeMark=true)
-  {
-    //removes series of "//", "/./" and "/.." and adjust path accordingly.
-     if ( st.length( ) > 0 ) {
-      size_t pp;
-      pp=0;
-      do {
-        pp=st.find( "/./");
-        if (pp!=string::npos) { st.erase(pp, 2);}
-      } while (pp!=string::npos);
-      pp=0;
-      do {
-        pp=st.find( "//");
-        if (pp!=string::npos) { st.erase(pp, 1);}
-      } while (pp!=string::npos);
-      //Last "/.."
-      pp=st.rfind( "/.."); //remove and back if last
-      if (pp!=string::npos && pp==st.size()-3) {
-        //erase from previous "/" to pp+3. Unless there is no previous "/"!
-        size_t prevdir = st.rfind("/",pp-1);
-        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
-      }
-      //Last "/."
-      pp=st.rfind( "/."); //remove if last
-      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
-      //Last "/" if removeMark is true
-      if (removeMark) {
-        pp=st.rfind( "/"); //remove and back if last
-        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
-      }
-      // other places for "/..": between directories
-      pp=0;
-      do {
-        pp=st.find( "/../");
-        if (pp!=string::npos) {
-          //erase from previous "/" to pp+3. Unless there is no previous "/"!
-          size_t prevdir = st.rfind("/",pp-1);
-          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
-          else break; //what should I do?
-        }
-      } while (pp!=string::npos);
-      //First "./" 
-      pp=st.find( "./"); //remove if first
-      if (pp==0) st.erase(pp,2);
-    }
-  return st;
-  }
-}
-#elif 1  // !def_WIN32
-// the unix version (as of Oct 2017) is copied to here 
-  std::string BeautifyPath(std::string st, bool removeMark=true)
-  {
-    //removes series of "//", "/./" and "/.." and adjust path accordingly.
-     if ( st.length( ) > 0 ) {
-      size_t pp;
-      pp=0;
-      do {
-        pp=st.find( "/./");
-        if (pp!=string::npos) { st.erase(pp, 2);}
-      } while (pp!=string::npos);
-      pp=0;
-      do {
-        pp=st.find( "//");
-        if (pp!=string::npos) { st.erase(pp, 1);}
-      } while (pp!=string::npos);
-      //Last "/.."
-      pp=st.rfind( "/.."); //remove and back if last
-      if (pp!=string::npos && pp==st.size()-3) {
-        //erase from previous "/" to pp+3. Unless there is no previous "/"!
-        size_t prevdir = st.rfind("/",pp-1);
-        if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
-      }
-      //Last "/."
-      pp=st.rfind( "/."); //remove if last
-      if (pp!=string::npos && pp==st.size()-2) st.erase(pp);
-      //Last "/" if removeMark is true
-      if (removeMark) {
-        pp=st.rfind( "/"); //remove and back if last
-        if (pp!=string::npos && pp==st.size()-1) st.erase(pp);
-      }
-      // other places for "/..": between directories
-      pp=0;
-      do {
-        pp=st.find( "/../");
-        if (pp!=string::npos) {
-          //erase from previous "/" to pp+3. Unless there is no previous "/"!
-          size_t prevdir = st.rfind("/",pp-1);
-          if (prevdir != string::npos) {st.erase(prevdir, pp+3-prevdir);}
-          else break; //what should I do?
-        }
-      } while (pp!=string::npos);
-      //First "./" 
-      pp=st.find( "./"); //remove if first
-      if (pp==0) st.erase(pp,2);
-    }
-  return st;
-  }
+}  // static void FileSearch
 #endif // !def_WIN32
-  // ** out of _WIN32 block-off until it fails.
+
+
 
   // AC 16 May 2014 : preliminary (and no MSwin support !)
   // revised by AC on June 28 
@@ -2289,7 +2192,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
       return res;
 
-    }
+    } // file_info
 
     void file_mkdir( EnvT* e)
     {
@@ -2327,8 +2230,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       //     but copying a bunch of code from coreutils does not seem elegant either
       //    system("echo 'hello world'");
       if (system(cmd.c_str()) != 0) e->Throw("failed to create a directory (or execute mkdir).");
-    }
+    }  // file_mkdir
 
-  }
-
-  //#endif
+  }// namespace lib
