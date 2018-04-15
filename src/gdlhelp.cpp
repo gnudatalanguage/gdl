@@ -1156,6 +1156,7 @@ Set this keyword to display information on defined object classes.
 				help_item( *ostrp , var->Data(), parString, false);
 			}
 		    }
+     if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout << ostr.str();
 		if(nParam == 0) return;
  	    }
 
