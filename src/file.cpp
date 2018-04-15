@@ -1971,11 +1971,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       }
     return res;
   }
-/*// <<<<<<< HEAD
-  // Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
- // file_lines will be added in its own separate commit.
- // also requires zlib.h
-=======
 
   BaseGDL* file_lines( EnvT* e) {
     SizeT nParam = e->NParam(1); //, "FILE_LINES");
@@ -2026,7 +2021,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
 
 // Result = FILE_READLINK(Path [, /ALLOW_NONEXISTENT] [, /ALLOW_NONSYMLINK] [, /NOEXPAND_PATH] )
- >>>>>>> master */
+
   BaseGDL* file_readlink( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
