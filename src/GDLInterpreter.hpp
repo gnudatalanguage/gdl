@@ -613,6 +613,8 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             delete (*it).second.get();
             objHeap.erase( it->first); 
         }
+       heapIx = 1;		// reset numbering to human-readable levels.
+       objHeapIx = 1;
     }
 
     // name of data
