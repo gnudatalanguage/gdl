@@ -223,6 +223,9 @@ void LibInit()
   const string file_infoKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_info,string("FILE_INFO"),2,file_infoKey);
 
+  const string file_linesKey[]={"NOEXPAND_PATH","COMPRESS",KLISTEND};
+  new DLibFunRetNew(lib::file_lines,string("FILE_LINES"),1,file_linesKey);
+
   const string file_mkdirKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_mkdir,string("FILE_MKDIR"),-1,file_mkdirKey);
 
@@ -306,6 +309,9 @@ void LibInit()
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
   new DLibPro(lib::heap_free,string("HEAP_FREE"),1,heap_gcKey);
+
+  const string heap_refcount[]={"DISABLE","ENABLE","IS_ENABLED",KLISTEND};
+  new DLibFunRetNew(lib::heap_refcount,string("HEAP_REFCOUNT"),1,heap_refcount);
 
 
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);
