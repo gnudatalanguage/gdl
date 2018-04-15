@@ -676,6 +676,117 @@ namespace lib {
     return newObj;
   }
 
+  BaseGDL* heap_refcount( EnvT* e)
+  {
+    static int DISABLEIx = e->KeywordIx("DISABLE");
+    static int ENABLEIx = e->KeywordIx("ENABLE");
+    static int IS_ENABLEDIx = e->KeywordIx("IS_ENABLED");
+//    trace_me = trace_arg();
+    int nParam=e->NParam();
+    
+	GDLInterpreter* interpreter = e->Interpreter();
+
+    if( nParam == 0) {
+	if( e->KeywordSet(DISABLEIx)) {
+	  EnableGC(false);
+	  }
+	else if( e->KeywordSet(ENABLEIx)) {
+	  EnableGC(true);
+	  interpreter->EnableAllGC();
+	}
+	if(e->KeywordPresent(IS_ENABLEDIx)) 
+	      e->SetKW( IS_ENABLEDIx,
+			new DByteGDL( IsEnabledGC()) );
+	return new DIntGDL( 0);
+	}
+
+    BaseGDL* p = e->GetPar( 0);
+    if( p == NULL)
+      {
+	return new DIntGDL( 0);
+      } 
+
+    DIntGDL* ret = new DIntGDL(p->Dim());
+    Guard<DIntGDL> ret_guard(ret);
+    DType pType = p->Type();
+    SizeT nEl = p->N_Elements();
+    if(pType == GDL_OBJ) {
+	DObjGDL* pObj = static_cast<DObjGDL*>( p);
+	for( SizeT i=0; i<nEl; ++i)
+		(*ret)[ i] = interpreter->RefCountHeapObj( (*pObj)[ i]);
+	if( e->KeywordSet(DISABLEIx) or
+	    e->KeywordSet(ENABLEIx) ) {
+	      bool set = e->KeywordSet(ENABLEIx) ? true: false;
+	      interpreter->EnableGCObj( pObj, set);
+	    }
+	}
+    else {
+      if( pType == GDL_PTR) {
+      
+	  DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+	  for( SizeT i=0; i<nEl; ++i)
+		  (*ret)[ i] = interpreter->RefCountHeap( (*pPtr)[ i]);
+	  if( e->KeywordSet(DISABLEIx) or
+	      e->KeywordSet(ENABLEIx) ) {
+		bool set = e->KeywordSet(ENABLEIx) ? true: false;
+//	if(trace_me) cout <<" GC set? "<<set<<endl;
+		interpreter->EnableGC( pPtr, set);
+	      }
+	} else {
+	  DLongGDL* pL;
+	  Guard<DLongGDL> pL_guard(pL);
+	  if( pType != GDL_LONG)
+	  {
+	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+	    pL_guard.Init( pL);
+	  }
+	  else
+	  {
+	    pL = static_cast<DLongGDL*>(p);
+	  }
+	  for( SizeT i=0; i<nEl; ++i)
+		  (*ret)[ i] = interpreter->RefCountHeap( (*pL)[ i]);
+	}
+      }
+// #if 1 
+    if(e->KeywordPresent(IS_ENABLEDIx)) {
+      DByteGDL* enabled;
+//     	if(trace_me) 
+//	cout << "  heap_refcount( prm, KeywordPresent(IS_ENABLEDIx)) "<< endl;
+      if(pType == GDL_OBJ) {
+	enabled = interpreter->IsEnabledGCObj(static_cast<DObjGDL*>( p));
+	}
+      else {
+      if( pType == GDL_PTR) {
+	  enabled = interpreter->IsEnabledGC(static_cast<DPtrGDL*>( p));
+	} else {
+//	if(trace_me) 
+//	cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
+	  DLongGDL* pL;
+	  Guard<DLongGDL> pL_guard(pL);
+	  if( pType != GDL_LONG)
+	  {
+	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+	    pL_guard.Init( pL);
+	  }
+	  else
+	  {
+	    pL = static_cast<DLongGDL*>(p);
+	  }
+	  DPtrGDL* ptr = new DPtrGDL( p->Dim());
+	  Guard<DPtrGDL> ptr_guard(ptr);
+	  for( SizeT i=0; i<nEl; ++i)
+	        (*ptr)[ i] = (*pL)[ i];
+
+	  enabled = interpreter->IsEnabledGC(ptr);
+	}
+      }
+      e->SetKW( IS_ENABLEDIx, enabled);
+    }
+// #endif
+    return ret_guard.release();
+  }
+  
   BaseGDL* bindgen( EnvT* e)
   {
     dimension dim;
@@ -1850,7 +1961,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+                if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1871,7 +1983,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+            if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1891,7 +2004,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-		if( last == (*p0S)[ i].npos)
+//		if( last == (*p0S)[ i].npos)
+            if (last >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -3468,7 +3582,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool maxSet = e->KeywordPresent(maxIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
@@ -3576,7 +3690,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool minSet = e->KeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx);
 
     DLong searchDim;
     if (dimSet) {

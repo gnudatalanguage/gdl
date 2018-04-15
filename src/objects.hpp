@@ -106,7 +106,11 @@ template <typename T> class RefHeap {
   private:
     T* ptr;
     SizeT count;
-      
+    // 2016.05.13 GJ:
+    bool doSave; // IDL 6.1 flag whether to include in a SAVE operation (HEAP_SAVE)
+    // access via HEAP_SAVE( Heapvars) and HEAP_NOSAVE( Heapvars [,SET=[0/1]])
+    bool enableGC;   // IDL 8.0 flag whether to perform automatic garbage collection 
+    // access via HEAP_REFCOUNT([,/ENABLE] [,/DISABLE] [,IS_ENABLED=])
     // prevent usage
     RefHeap<T>& operator=(const RefHeap<T>& other) {	return *this;}
     template<class newType> operator RefHeap<newType>() {return RefHeap<newType>(ptr);}
@@ -116,16 +120,22 @@ template <typename T> class RefHeap {
 
     SizeT Count() const { return count;}
 
+	bool IsEnabledGC() const {	return enableGC; }
+	void EnableGC( bool set=true) { enableGC = set; }
+	
+	bool IsEnabledSave() const { return doSave; }
+	void EnableSave( bool set=true) { doSave = set; }
+	
     void Inc() {++count;}
     void Add( SizeT add) {count += add;}
     bool Dec() {assert(count > 0); return (--count==0);}
 
     RefHeap(T* p = 0)
-    : ptr(p), count(1)
+    : ptr(p), count(1), doSave(false), enableGC(true)
     {}
 
     RefHeap( const RefHeap<T>& other)
-    : ptr( other.ptr), count( other.count) 
+    : ptr( other.ptr), count( other.count),  doSave( other.doSave), enableGC( other.enableGC)
     {}
 
     ~RefHeap()

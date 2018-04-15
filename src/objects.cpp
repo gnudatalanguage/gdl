@@ -67,11 +67,18 @@ GDLFileListT  fileUnits;
 volatile bool sigControlC;
 int           debugMode;
 bool  strictInterpreter;
+//	global garbage collection flag in support of HEAP_REFCOUNT:
+static bool enabled_GC=true;
+	bool IsEnabledGC()  // Referenced from GDLInterpreter.hpp
+	 { return enabled_GC; }
+	void EnableGC( bool set=true) // same names, many contexts.
+	 { enabled_GC = set; }
 
 namespace structDesc {
   // set in InitStructs()
   DStructDesc* LIST = NULL;
   DStructDesc* HASH = NULL;
+  DStructDesc* GDL_CONTAINER = NULL;
   DStructDesc* GDL_CONTAINER_NODE = NULL;
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
 }
@@ -203,6 +210,16 @@ void InitStructs()
   structList.push_back(gdlContainerNode);
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
+  DStructDesc* gdlContainer = new DStructDesc( "GDL_CONTAINER");
+  gdlContainer->AddTag("GDL_CONTAINER_TOP", &aLong64);
+  gdlContainer->AddTag("GDLCONTAINERVERSION", &aInt);
+  gdlContainer->AddTag("PHEAD", &aPtrRef);
+  gdlContainer->AddTag("PTAIL", &aPtrRef);
+  gdlContainer->AddTag("NLIST", &aLong);
+  gdlContainer->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+//  gdlContainer->AddParent(gdl_object);// no operator overloading
+  structList.push_back(gdlContainer);
+  structDesc::GDL_CONTAINER = gdlContainer;
   DStructDesc* gdlHash = new DStructDesc( "HASH");
   gdlHash->AddTag("TABLE_BITS", &aULong);
   gdlHash->AddTag("TABLE_SIZE", &aULong);
