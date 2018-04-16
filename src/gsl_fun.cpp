@@ -185,6 +185,8 @@ namespace lib {
       cp2data2_template< DByteGDL, T>( p0, data, nEl, offset, 
 				       stride_in, stride_out);
       break;
+    default:
+      std::cerr<<"internal error, please report."<<std::endl;
     }
     return 0;
   }
@@ -2399,6 +2401,7 @@ namespace lib {
 	  case GDL_INT:   f64 = (double) (*p0I)[i]; break;
 	  case GDL_UINT:  f64 = (double) (*p0UI)[i]; break;
 	  case GDL_BYTE:  f64 = (double) (*p0B)[i]; break;
+        default: break; //pacify -Wswitch.
 	  }
 	  memcpy(&mat->data[i], &f64, szdbl);
 	}
@@ -2793,7 +2796,7 @@ namespace lib {
       {
         DDouble sc=(*(DDoubleGDL*)scale)[i-1];
         for (SizeT j = 0; j < dims[0]; ++j) {
-        (*(DDoubleGDL*)simplex)[j+i*dims[0]] = (*(DDoubleGDL*)p0)[j]+(j==(i-1))?sc:0.0; 
+        (*(DDoubleGDL*)simplex)[j+i*dims[0]] = (*(DDoubleGDL*)p0)[j]+((j==(i-1))?sc:0.0); //warnings about operator precedence solved.
         }
       }
     } else {
@@ -2935,7 +2938,7 @@ namespace lib {
       for (SizeT i = 1; i < p; ++i)
       {
         for (SizeT j = 0; j < n; ++j) {
-        (*(DDoubleGDL*)simplex)[j+i*n] = (*(DDoubleGDL*)simplex)[j]+(j==(i-1))?size:0.0; 
+        (*(DDoubleGDL*)simplex)[j+i*n] = (*(DDoubleGDL*)simplex)[j]+((j==(i-1))?size:0.0); //warning about operator precedence solved.
         }
       }
       if (isDouble) e->SetKW(SIMPLEXIx, simplex);

@@ -37,7 +37,7 @@
   
 //permits to filter NaNs and Infs if the Type needs it AND if the context (omitNaN=true) needs it.
 #ifdef MINMAX_HAS_OMITNAN
-#define AVOID_INF if (omitNaN && !finite(COMPLEX_ABS((*this)[i]))) continue; 
+#define AVOID_INF if (omitNaN && !std::isfinite(COMPLEX_ABS((*this)[i]))) continue; 
 #else
 #define AVOID_INF 
 #endif 
@@ -56,7 +56,7 @@
   {
     SizeT j = start;
     for (; j < stop; j += step) {
-      if (finite(COMPLEX_ABS((*this)[j]))) break;
+      if (std::isfinite(COMPLEX_ABS((*this)[j]))) break;
     }
     start = j;
     nElem = (stop - start) / step;
@@ -103,10 +103,8 @@
 #endif
     } else
     {
-      Ty maxVArray[CpuTPOOL_NTHREADS];
+      Ty* maxVArray= new Ty[CpuTPOOL_NTHREADS];
       SizeT maxElArray[CpuTPOOL_NTHREADS];
-      Ty minVArray[CpuTPOOL_NTHREADS];
-      SizeT minElArray[CpuTPOOL_NTHREADS];
 
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
@@ -182,7 +180,7 @@
           }
       }
     }
-
+    
     if (maxE != NULL) *maxE = maxEl;
     if (maxVal != NULL)
     {
@@ -216,9 +214,7 @@
 #endif
     } else
     {
-      Ty maxVArray[CpuTPOOL_NTHREADS];
-      SizeT maxElArray[CpuTPOOL_NTHREADS];
-      Ty minVArray[CpuTPOOL_NTHREADS];
+      Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
       SizeT minElArray[CpuTPOOL_NTHREADS];
       
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
@@ -335,9 +331,9 @@
     } else
     {
 
-      Ty maxVArray[CpuTPOOL_NTHREADS];
+      Ty* maxVArray=new Ty[CpuTPOOL_NTHREADS];
       SizeT maxElArray[CpuTPOOL_NTHREADS];
-      Ty minVArray[CpuTPOOL_NTHREADS];
+      Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
       SizeT minElArray[CpuTPOOL_NTHREADS];
 
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
