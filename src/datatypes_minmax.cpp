@@ -89,9 +89,9 @@ template<>
 void Data_<SpDByte>::MinMax( DLong* minE, DLong* maxE, 
 			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
             SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs) {
-#define ABSFUNC llabs
+//#define ABSFUNC llabs
 #include "minmax_include.cpp"
-#undef ABSFUNC
+//#undef ABSFUNC
 }
 //string is identical, has no absfunc.
 template<>
