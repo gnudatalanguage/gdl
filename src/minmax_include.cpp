@@ -56,7 +56,7 @@
   {
     SizeT j = start;
     for (; j < stop; j += step) {
-      if (finite(COMPLEX_ABS((*this)[j]))) break;
+      if (std::isfinite(COMPLEX_ABS((*this)[j]))) break;
     }
     start = j;
     nElem = (stop - start) / step;
