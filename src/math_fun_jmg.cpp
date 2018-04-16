@@ -23,6 +23,7 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
+#include "dinterpreter.hpp"
 #include "initsysvar.hpp"
 #include "math_utl.hpp"
 #include "math_fun_jmg.hpp"
