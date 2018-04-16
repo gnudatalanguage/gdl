@@ -170,7 +170,7 @@ void LibInit()
                                 "TEST_DIRECTORY", "TEST_EXECUTABLE", "TEST_READ",
                                  "TEST_REGULAR", "TEST_WRITE", "TEST_ZERO_LENGTH",
                                  "TEST_SYMLINK",
-                                 "DIRECTORY","SYMLINK","REGULAR","ZERO",
+                                 "DIRECTORY","SYMLINK","REGULAR","ZERO_LENGTH",
                                  KLISTEND};
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),3,file_searchKey);
 
