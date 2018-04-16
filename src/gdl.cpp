@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
   if (gdlde || (isatty(0) && !quiet))
   {
     cerr << "- Please report bugs, feature or help requests and patches at:" << endl <<
-      "  https://github.com/gnudatalanguage/gdl/issues" << endl << endl;
+      "  https://github.com/gnudatalanguage/gdl" << endl << endl;
   }
 //   else
 //     {
