@@ -465,7 +465,7 @@ void push_back( T p)
 	{
 // /* #ifdef CVS_VERSION
 //  		only for CVS version
-//   		std::cerr << "PreAllocPListT: Resize triggered ("+i2s(sz)+"). All Ok! But please report at: http://sourceforge.net/tracker/?group_id=97659&atid=618683" << std::endl;
+//   		std::cerr << "PreAllocPListT: Resize triggered ("+i2s(sz)+"). All Ok! But please report at: https://github.com/gnudatalanguage/gdl/issues" << std::endl;
 // #endif*/
 		actLen *= 2;
 		T* newArr = new T[ actLen];
