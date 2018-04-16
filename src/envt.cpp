@@ -1233,7 +1233,9 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   SizeT ix = i + pro->key.size();
 
   // cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-  if( ix >= env.size() || env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
+  if( ix >= env.size())
+    Throw("Incorrect number of arguments.");
+  if( env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
     Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
@@ -1355,7 +1357,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 				       pro->warnKey.end(),
 				       strAbbrefEq_k);
       if( wf == pro->warnKey.end()) 
-	Throw(  "Keyword parameter "+k+" not allowed in call "
+	Throw(  "Keyword parameter -"+k+"- not allowed in call "
 		"to: "+pro->Name());
       // 	throw GDLException(callingNode,
       // 			   "Keyword parameter "+k+" not allowed in call "
@@ -1384,7 +1386,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 					   pro->warnKey.end(),
 					   strAbbrefEq_k);
 	  if( wf == pro->warnKey.end()) 
-	    Throw( "Keyword parameter "+k+" not allowed in call "
+	    Throw( "Keyword parameter <"+k+"> not allowed in call "
 		   "to: "+pro->Name());
 	  /*	    throw GDLException(callingNode,
 	    "Keyword parameter "+k+" not allowed in call "
@@ -1416,10 +1418,12 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 
   // already set? -> Warning 
   // (move to Throw by AC on June 25, 2014, bug found by Levan.)
-  if( KeywordPresent(varIx)) // just a message in the original
-    {
-      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
-    }
+// Removed G. Jung 2016:
+// mungs things up.  Could not determine 2014 bug.
+//  if( KeywordPresent(varIx)) // just a message in the original
+//    {
+//      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
+//    }
 
   return varIx;
 }
