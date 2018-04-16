@@ -7,5 +7,5 @@ pps[1] = ptr_new(mlist)
 rcbeg = heap_refcount(pps)
 obj_destroy,llist,mlist
 rcend = heap_refcount(pps)
-if(obj_valid(llist) or obj_valid(mlist)) then exit 1
+if (obj_valid(llist) or obj_valid(mlist)) then exit, status=1
 end
