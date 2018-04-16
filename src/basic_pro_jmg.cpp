@@ -592,6 +592,7 @@ namespace lib {
         break;  //already exited due to throw above.
     }
     assert( false);
+    return NULL; //no -Wreturn-type warnings.
   }
 
 
