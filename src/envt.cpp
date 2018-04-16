@@ -1167,7 +1167,12 @@ int EnvT::KeywordIx( const std::string& k)
   //  cout << pro->ObjectName() << "  Key: " << k << endl;
   assert( pro != NULL);
   int val=pro->FindKey( k);
-  assert( val != -1);
+  if( val == -1) {		//  assert( val != -1);
+    cout << pro->ObjectName() << "  Key: " << k << endl;
+    cout << "Invalid Keyword lookup (EnvT::KeywordIx) ! " << endl
+		<< " Returning the wrong (but a valid) key index of zero" << endl;
+		val = 0;
+	}
   return val;
 }
 
