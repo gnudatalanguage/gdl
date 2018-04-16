@@ -1053,6 +1053,9 @@ else if(var_type == NC_LONG)
       case GDL_OBJ : 
         e->Throw("Object reference expression not allowed in this context: " 
           + e->GetParString(2));
+      default:
+        e->Throw("GDL internal error, please report!" 
+          + e->GetParString(2));
     }
     ncdf_handle_error(e, status, "NCDF_VARPUT");
   }

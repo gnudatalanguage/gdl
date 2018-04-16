@@ -899,6 +899,8 @@ int getPosInStringArray(string *array, int nval, string what)
       Second=Str2D( what.c_str());
       if (Second < 0.0 || Second > 60.0) throw GDLException("Unable to apply format code "+fmt+" to input: "+what+".");
       break;
+    default:
+      std::cerr<<"unhandled switch statement, please report!"<<std::endl;
   }
   return Value;
  }

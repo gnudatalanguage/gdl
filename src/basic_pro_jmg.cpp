@@ -588,6 +588,8 @@ namespace lib {
 			break;
         case GDL_STRING:    return new DStringGDL(s);
 			break;
+        default:
+        break;  //already exited due to throw above.
     }
     assert( false);
   }

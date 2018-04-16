@@ -804,12 +804,27 @@ namespace lib {
             {
               found[iy * nx + ix] = true;
               DDouble dres = Ar + Br * x[ix] + Cr * y[iy];
-              if ((dominvalue && dres < minVal.real()) || (domaxvalue && dres > maxVal.real())) if (!input) (*res)[iy * nx + ix].real(missVal.real());
-              else ((*res)[iy * nx + ix]).real(dres);
-
+              if ((dominvalue && dres < minVal.real()) || (domaxvalue && dres > maxVal.real()))
+              {
+                if (!input)
+                {
+                  (*res)[iy * nx + ix].real(missVal.real());
+                } else
+                {
+                  ((*res)[iy * nx + ix]).real(dres);
+                }
+              }
               dres = Ai + Bi * x[ix] + Ci * y[iy];
-              if ((dominvalue && dres < minVal.imag()) || (domaxvalue && dres > maxVal.imag())) if (!input) (*res)[iy * nx + ix].imag(missVal.imag());
-              else ((*res)[iy * nx + ix]).imag(dres);
+              if ((dominvalue && dres < minVal.imag()) || (domaxvalue && dres > maxVal.imag()))
+              {
+                if (!input)
+                {
+                  (*res)[iy * nx + ix].imag(missVal.imag());
+                } else
+                {
+                  ((*res)[iy * nx + ix]).imag(dres);
+                }
+              }
             }
           } // ix loop
         } // iy loop
@@ -1108,6 +1123,7 @@ namespace lib {
   BaseGDL* qgrid3_fun ( EnvT* e)
   {
     e->Throw("Please Write this function in GDL.");
+    return NULL;
   }
 #endif  
   }
