@@ -26,8 +26,8 @@ if (fr NE expect) then $
 if (fr NE expect) then numerror++;
 
 ;
-fr = FILE_DIRNAME('GDLTokenTy/*') & expect = 'GDLTokenTy*'
-if(!Version.OS_family) eq 'Windows' then expect='GDLTokenTy'
+fr = FILE_DIRNAME('GDLTokenTy/*') & expect = 'GDLTokenTy'
+
 if (fr NE expect) then $
    MESSAGE, /continue, 'FILE_DIRNAME(GDLTokenTy/*) NE '+expect
 if (fr NE expect) then numerror++;

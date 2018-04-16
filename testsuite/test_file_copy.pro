@@ -1,5 +1,5 @@
 ;
-; Testing FILE_COPY function
+; Testing  FILE_COPY function
 ;
 ; Lea Noreskal, June 2010
 ; under GNU GPL 2 or later
@@ -18,7 +18,10 @@ for ii=0, N_ELEMENTS(to_delete)-1 do begin
       print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
    endif
    if (FILE_TEST(to_delete[ii]) eq 1) then begin
-      SPAWN , 'rm -rf '+ESCAPE_SPECIAL_CHAR(to_delete[ii])
+;      SPAWN , 'rm -rf '+ESCAPE_SPECIAL_CHAR(to_delete[ii])
+
+	file_delete,to_delete[ii],/recursive
+
       ;; we don't check whether the file is deleted or not
    endif else begin
       if KEYWORD_SET(verbose) then begin
@@ -29,15 +32,26 @@ for ii=0, N_ELEMENTS(to_delete)-1 do begin
 endfor
 ;
 end
+pro create_dummyfile, filename
+openw,lun,/get, filename & free_lun,lun
+return
+end
+pro FILE_APPEND,filename, more
+openw,lun,/get, filename, /append
+printf,lun,more
+free_lun,lun
+return
+end
 ;
 ; --------------------------------
 ;
-pro TEST_FILE_COPY, test=test
+pro TEST_FILE_COPY, test=test, verbose=verbose
 ;
-; Create test directory
+
+; Clean up any residue and create test directory
 tdir='tdir_test_f_copy_gdl'
-if FILE_TEST(tdir) EQ 0 then SPAWN, 'mkdir '+tdir
-;if (FILE_TEST(tdir,/directory) EQ 1 and FILE_TEST(rep) EQ 0) then SPAWN, 'mkdir '+rep
+file_delete,tdir,/recursive
+file_mkdir,tdir
 
 all_files_and_directories=tdir 
 
@@ -49,53 +63,43 @@ file2='$chops &up str*ings_gdltest.'
 
 all_files_and_directories=[all_files_and_directories,files1]
 all_files_and_directories=[all_files_and_directories,files2]
-all_files_and_directories=[all_files_and_directories,file2]
+if !version.os_family eq 'unix' then $
+   all_files_and_directories=[all_files_and_directories,file2] $
+   else $
+   message,/continue,' Not unix OS_family and so weird named file2 test not done'
 
 more='more text , more more '
 
-f1=[tdir+'/gdlfd_test1a',tdir+'/gdlfd_test1b']
+f1=tdir+'/'+files1
 
-if FILE_TEST(files1[0]) EQ 0 then SPAWN, 'touch '+files1[0]
-if FILE_TEST(files1[1]) EQ 0 then SPAWN, 'touch '+files1[1]
-if FILE_TEST(file2) EQ 0 then SPAWN, 'touch '+ESCAPE_SPECIAL_CHAR(file2)
-;
-;
-sce=MAKE_ARRAY(N_ELEMENTS(files1))
-dest=MAKE_ARRAY(N_ELEMENTS(files1))
+if ~FILE_TEST(files1[0]) then CREATE_DUMMYFILE,files1[0]
+if ~FILE_TEST(files1[1]) then CREATE_DUMMYFILE,files1[1]
+if !version.os_family eq 'unix' then $
+   if FILE_TEST(file2) EQ 0 then CREATE_DUMMYFILE,ESCAPE_SPECIAL_CHAR(file2)
 ;
 ; Add elements to files
-for ii=0, N_ELEMENTS(files1)-1 do begin
-   SPAWN , 'echo '+more+' >> '+files1[ii]
-endfor
+for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 print , 'COPY N1'
 ; Copy files1 into tdir
-FILE_COPY, files1 , tdir
+ FILE_COPY, files1 , tdir, verbose=verbose
 ;
 sce=FILE_INFO(files1)
 dest=FILE_INFO(f1) 
 ;
-;print, 'Size sce',  sce[0].size
-;print, 'Size dest', dest[0].size
-;
 ; if files1 et f1 have same size , cp ok
 ;
-for ii=0, N_ELEMENTS(sce)-1 do begin
-   if(sce[ii].size ne dest[ii].size ) then begin
-      MESSAGE, 'error cp', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
+
+if ~array_equal(sce.size, dest.size) then begin &$
+      MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
-endfor
 ;
 ; add elements to files
-for ii=0, N_ELEMENTS(files1)-1 do begin
-   SPAWN, 'echo '+more+' >> '+files1[ii]
-endfor
+for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 print , 'COPY N2'
 ; Copy files1 into tdir again
-FILE_COPY, files1 , tdir
+ FILE_COPY, files1 , tdir, verbose=verbose
 ;
 sce=FILE_INFO(files1)
 dest=FILE_INFO(f1) 
@@ -105,130 +109,101 @@ dest=FILE_INFO(f1)
 ;
 ; if files1 et f1 don't have same size , because overwrite is not allowed
 ;
-for ii=0, N_ELEMENTS(sce)-1 do begin
-   if(sce[ii].size eq dest[ii].size ) then begin
-      MESSAGE, 'error cp', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
+if array_equal(sce.size, dest.size) then begin &$
+      MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
-endfor
 ;
-for ii=0, N_ELEMENTS(files1)-1 do begin
-   SPAWN, 'echo '+more+' >> '+files1[ii]
-endfor
+for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
-; Overwrite -  maj :::: t0 < t1
-print , 'OVERWRITE' 
-FILE_COPY, files1 , tdir , /overwrite 
+; Overwrite - 
+print , '/OVERWRITE test' 
+ FILE_COPY, files1 , tdir , /overwrite , verbose=verbose
 dest=FILE_INFO(f1) 
 sce=FILE_INFO(files1)
-;print, 'Size sce',  sce[0].size
-;print, 'Size dest', dest[0].size
-;
-; if files1 et f1 have same size , cp ok
-for ii=0, N_ELEMENTS(sce)-1 do begin
-   if(sce[ii].size ne dest[ii].size ) then begin
-      MESSAGE, 'error cp', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
+if ~array_equal(sce.size, dest.size) then begin &$
+      MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
    endif
-endfor
+
 ;
-for ii=0, N_ELEMENTS(files1)-1 do begin
-   SPAWN, 'echo '+more+' >> '+files1[ii]
-endfor
+for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 ; CP files > files
 ;
-print , 'Require_dir ' 
-FILE_COPY, files1 , files2 , /require_dir
+print , 'Require_dir (but not a dir)' 
+
+ FILE_COPY, files1 , files2 , /require_dir, verbose=verbose
 ; if files2 exist : error
 ;
-for ii=0, N_ELEMENTS(files2)-1 do begin
-   if(FILE_TEST(files2[ii]) eq 1 ) then begin
-      MESSAGE, 'error require_dir', /continue
-      DEL_TEST_FILES, all_files_and_directories                
-      EXIT, status=1
+;	print,file_test(files2)
+if(total(file_test(files2)) ne 0)  then begin &$
+      MESSAGE, 'error require_dir', /continue &   DEL_TEST_FILES, all_files_and_directories   &$             
    endif
-endfor
 ;
-;print , 'Sce=tab of files Dest=file ' 
-FILE_COPY, files1 , file2 , /require_dir
 ;
-print , 'files to files' 
-FILE_COPY, files1 , files2
+print , 'files1 to files2' 
+ FILE_COPY, files1 , files2, verbose=verbose
 ;
-sce=FILE_INFO(files2)
-dest=FILE_INFO(files1) 
+dest=FILE_INFO(files2) 
+sce=FILE_INFO(files1)
+if ~array_equal(sce.size, dest.size) then begin &$
+      MESSAGE, 'error cp', /continue &      DEL_TEST_FILES, all_files_and_directories &$
+   endif
 ;
-;print, 'Size sce', sce[0].size
-;print, 'Size dest',  dest[0].size
 ; if files1 et files2 have same size , cp ok
-;
-for ii=0, N_ELEMENTS(sce)-1 do begin
-   if(sce[ii].size ne dest[ii].size ) then begin
-      MESSAGE, 'error cp', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
-   endif
-endfor
 ;
 ;;;;;;;;;;;;;;;;;;;;;
 ; How to verify with allow_same?
 ;
 ; Without allow_same
-print , 'WITHOUT ALLOW_SAME' 
-FILE_COPY, files1 , files1
+print , 'WITHOUT ALLOW_SAME: files1 , files1'
+;'
+ FILE_COPY, files1 , files1, verbose=verbose
 ;
 ; With Allow_same
-print , 'WITH ALLOW_SAME' 
-FILE_COPY, files1 , files1 , /allow_same
+print , 'WITH ALLOW_SAME  :files1 , files1'
+; 
+ FILE_COPY, files1 , files1 , /allow_same, verbose=verbose
 ;
 ;;;;;;;;;;;;;;;;;;;;;
 ;recursive
 ;
 ; Test with directories
-tdir3=['test_dir1' , '$&dir2_&-spec$'] ; 
+ 
 tdir2=['td2_1' , 'td2_2'] ; 
-td2cp=[tdir+'/td2_1' , tdir+'/td2_2'] ; 
+td2cp = tdir[0]+'/'+tdir2
 ;
 all_files_and_directories=[all_files_and_directories,tdir2]
 ;
-if FILE_TEST(tdir2[0], /directory) EQ 0 then SPAWN, 'mkdir '+tdir2[0]
-if FILE_TEST(tdir2[1], /directory) EQ 0 then SPAWN, 'mkdir '+tdir2[1]
+if ~FILE_TEST(tdir2[0], /directory) then file_mkdir,tdir2[0]
+if ~FILE_TEST(tdir2[1], /directory) then file_mkdir,tdir2[1]
 ;
-for ii=0,N_ELEMENTS(tdir2)-1 do begin
-   for jj=0, 5 do begin
-      fname = tdir2[ii]+'/'+STRCOMPRESS('fi' + string(jj), /remove_all)
-      SPAWN , 'touch '+fname
-   endfor
-endfor
+strname = strCOMPRESS('fi' + sindgen(6), /remove_all)
+for ii=0,N_ELEMENTS(tdir2)-1 do $
+   for jj=0, 5 do $
+      CREATE_DUMMYFILE,tdir2[ii]+'/'+strname[jj]
 ;
 print , 'WITHOUT RECURSIVE'
-FILE_COPY, tdir2 , tdir
+;	if KEYWORD_SET(test) then STOP
+ FILE_COPY, tdir2 , tdir , verbose=verbose
+;
 ;tdir/tdir2 : copy not allowed
 ;
-for ii=0, N_ELEMENTS(td2cp)-1 do begin
-   if(FILE_TEST(td2cp[ii]) eq 1 ) then begin
-      MESSAGE, 'error whtout rec', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
+if ~array_equal( FILE_TEST(td2cp), 0 ) then begin &$
+      MESSAGE, 'error whtout rec', /continue &$
+      DEL_TEST_FILES, all_files_and_directories &$
+      STOP &$
    endif
-endfor
+
 ;
 print , 'WITH RECURSIVE'
-FILE_COPY, tdir2 , tdir , /recursive
+ FILE_COPY, tdir2 , tdir , /recursive, verbose=verbose
 ;copy ok
-sce=FILE_INFO(tdir2)
-dest=FILE_INFO(td2cp) 
 ;
-for ii=0, N_ELEMENTS(td2cp)-1 do begin
-   if(FILE_TEST(td2cp[ii]) eq 0 ) then begin
-      MESSAGE, 'error recursive', /continue
-      DEL_TEST_FILES, all_files_and_directories
-      EXIT, status=1
+if ~array_equal(FILE_TEST(td2cp),1) then begin  &$
+      MESSAGE, 'error recursive', /continue &$
+      DEL_TEST_FILES, all_files_and_directories & stop &$
    endif
-endfor
+
 ;
 ;delete all
 DEL_TEST_FILES, all_files_and_directories
