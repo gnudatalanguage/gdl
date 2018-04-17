@@ -76,7 +76,7 @@ script:
     - travis_wait 60 make -j 2 # travis_wait needed for icc
     - cp `which python` python.local
     - cp `which python`2.7 python.local2.7
-    - PYTHONPATH=`find . -name GDL.so | xargs dirname` lldb python.local -o 'run -c "import GDL"'
+    - PYTHONPATH=`find . -name GDL.so | xargs dirname` lldb python.local -o 'run -c "import GDL"' -k bt
 #    - PYTHONPATH=`find . -name GDL.so | xargs dirname` py.test ../testsuite/python/test-GDL.py 
 
 after_script:
