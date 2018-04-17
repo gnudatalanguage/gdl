@@ -45,7 +45,7 @@ class GDLFile (object):
         fp.write(self.code)
         fp.close()
         return self.name or self.fname
-        
+
     def __exit__(self, t, value, trace):
         os.unlink(self.fname)
 
@@ -127,7 +127,7 @@ def test_pro_user():
 
 
 @pytest.mark.parametrize('arg', [
-    'Hello, world', '', 
+    'Hello, world', '',
 #    u'Hello, world',
     -1.2, 1e-39, 0.0, 0.05, 1.0, 1e128, float('inf'), float('-inf'),
     -1, 0, 1, 1000, 2**31-1, -2**31,
@@ -186,7 +186,6 @@ def test_script():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         fname = os.tmpnam()
-        scriptname = os.tmpnam()
     arg = 'Hello, world!'
     code = '''openw, 5, '{0}'
     printf, 5, '{1}'
