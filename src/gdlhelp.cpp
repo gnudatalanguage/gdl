@@ -1160,56 +1160,6 @@ Set this keyword to display information on defined object classes.
 		if(nParam == 0) return;
  	    }
 
-    std::ostringstream parameters_ostringstream;
-    static int levelIx = e->KeywordIx("LEVEL");
-    DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
-
-    //will list (all) variables, incl. common defined, at desired level.
-    EnvStackT& callStack = e->Interpreter()->CallStack();
-    DLong curlevnum = callStack.size();
-    DLong desiredlevnum = curlevnum;
-    if (level != NULL) {
-      desiredlevnum = (*level)[0];
-      if (desiredlevnum <= 0) desiredlevnum += curlevnum;
-      if (desiredlevnum < 1) desiredlevnum = 0;
-      if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
-    }
-      
-    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum-1]->GetPro());
-
-    SizeT nVar = pro->Size(); // # var in GDL for desired level 
-    SizeT nComm = pro->CommonsSize(); // # has commons?
-    SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
-    if(debugKW)	cout << " Level section: nTotVar=" << nTotVar << endl;
-    if (nTotVar > 0) {
-      set<string> helpStr;  // "Sorted List" 
-      if (nVar > 0) {
-        for (SizeT i = 0; i < nVar; ++i) {
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(i);
-          if (par != NULL) {
-            stringstream ss;
-            string parName = pro->GetVarName(i);
-            help_item(ss, par, parName, false);
-            helpStr.insert(ss.str());
-          }
-        }
-      }
-
-      if (nComm > 0) {
-        DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
-        for (SizeT i = 0; i < list->N_Elements(); ++i) {
-          BaseGDL** par =  pro->GetCommonVarPtr((*list)[i]);
-          DCommonBase* common = pro->FindCommon((*list)[i]);
-          DString parName =  (*list)[i] + " (" + common->Name() + ')';
-          stringstream ss;
-          help_item(ss, (*par), parName, false);
-          helpStr.insert(ss.str());
-        }
-      }
-      copy(helpStr.begin(), helpStr.end(),ostream_iterator<string>(parameters_ostringstream));
-    }
-
-
 	if(debugKW) std::cout << " help_pro: nParam=" << nParam ;
 	const string objectnotfound = ": Object not found";
 	bool objectsKW = e->KeywordSet(objectsIx);
@@ -1300,9 +1250,61 @@ Set this keyword to display information on defined object classes.
 	}
 	if(debugKW) std::cout << " :=:" << std::endl;
 	if(nParam > 0) {
-	    help_Output(outputKW, ostr, OutputLines, doOutput);
+      if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout<<ostr.str();
       return;
     }
+ 
+
+    static int levelIx = e->KeywordIx("LEVEL");
+	if(e->KeywordPresent(levelIx) ) {
+		std::ostringstream parameters_ostringstream;
+		 DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
+
+		//will list (all) variables, incl. common defined, at desired level.
+		EnvStackT& callStack = e->Interpreter()->CallStack();
+		DLong curlevnum = callStack.size();
+		DLong desiredlevnum = curlevnum;
+		if (level != NULL) {
+		  desiredlevnum = (*level)[0];
+		  if (desiredlevnum <= 0) desiredlevnum += curlevnum;
+		  if (desiredlevnum < 1) desiredlevnum = 0;
+		  if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+		}
+		  
+		DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum-1]->GetPro());
+
+		SizeT nVar = pro->Size(); // # var in GDL for desired level 
+		SizeT nComm = pro->CommonsSize(); // # has commons?
+		SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
+		if(debugKW)	cout << " Level section: nTotVar=" << nTotVar << endl;
+		if (nTotVar > 0) {
+		  set<string> helpStr;  // "Sorted List" 
+		  if (nVar > 0) {
+			for (SizeT i = 0; i < nVar; ++i) {
+			  BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(i);
+			  if (par != NULL) {
+				stringstream ss;
+				string parName = pro->GetVarName(i);
+				help_item(ss, par, parName, false);
+				helpStr.insert(ss.str());
+			  }
+			}
+		  }
+
+		  if (nComm > 0) {
+			DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
+			for (SizeT i = 0; i < list->N_Elements(); ++i) {
+			  BaseGDL** par =  pro->GetCommonVarPtr((*list)[i]);
+			  DCommonBase* common = pro->FindCommon((*list)[i]);
+			  DString parName =  (*list)[i] + " (" + common->Name() + ')';
+			  stringstream ss;
+			  help_item(ss, (*par), parName, false);
+			  helpStr.insert(ss.str());
+			}
+		  }
+		  copy(helpStr.begin(), helpStr.end(),ostream_iterator<string>(parameters_ostringstream));
+		}
+	}
 //					 if /brief and /routines then no var. to be shown
 	if( routinesKW and briefKW) kw = true;
 
