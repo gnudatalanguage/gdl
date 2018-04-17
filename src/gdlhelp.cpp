@@ -156,7 +156,7 @@ extern GDLFileListT  fileUnits;
 // gdlhelper.hpp
 static void help_files(ostream& os,
 					EnvT* e) {
-  for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); lun++)
+  for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); ++lun)
     if( fileUnits[ lun-1].InUse() || fileUnits[ lun-1].GetGetLunLock())
     {
 		os << 
@@ -245,7 +245,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 	if(doOutput) {
 
 	  do {
-		nOut++;
+		++nOut;
 		found=s.find( delimiter,found);
 	     }   while( (found++ != std::string::npos) );
 
@@ -261,7 +261,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 		token = s.substr(pos, found-pos);
 		if( doOutput and (nOut not_eq nlines)) (*(DStringGDL *) *outputKW)[nOut] = token;
 		else cout << token << endl;
-		nOut++;
+		++nOut;
 		pos = found+1;
 		}
 	    ostr.str("");
@@ -297,11 +297,11 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
           found = tmp_fname.rfind(ProSuffix);
           if (found != std::string::npos) {
             if ((found + ProSuffixLen) == tmp_fname.length())
-              NbProFilesInCurrentDir++;
+              ++NbProFilesInCurrentDir;
           }
         }
         closedir(dirp);
-        lines_count++;
+        ++lines_count;
         ostr << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
       }
     }
@@ -520,7 +520,7 @@ static void help_lastmsg(EnvT* e)
 
     if (the_list) {
       DStringGDL* retVal = new DStringGDL(history_length - 1, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < history_length - 1; i++)
+      for (SizeT i = 0; i < history_length - 1; ++i)
         (*retVal)[i] = the_list[i]->line;
       return retVal;
     } else return new DStringGDL("");
@@ -665,7 +665,7 @@ void help_struct(ostream& ostr,  BaseGDL* par, int indent=0, bool debug=false)
 	   DStructGDL* s = static_cast<DStructGDL*>( par);
 	   SizeT nTags = s->Desc()->NTags();
 
-		for(int i=0; i < indent; i++) ostr <<"   ";
+		for(int i=0; i < indent; ++i) ostr <<"   ";
 		ostr << "** Structure ";
 		ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" : s->Desc()->Name());
 		ostr << ", " << nTags << " tags";
@@ -678,7 +678,7 @@ void help_struct(ostream& ostr,  BaseGDL* par, int indent=0, bool debug=false)
 		ostr << ":" << endl;
 
 		for (SizeT t=0; t < nTags; ++t) {
-			for(int i=0; i < indent; i++) ostr <<"   ";
+			for(int i=0; i < indent; ++i) ostr <<"   ";
 			if(debug) ostr.width(18);
 			if(debug) ostr <<"dbg: OFFSET="<<s->Desc()->Offset(t);
 		    help_item( ostr, s->GetTag(t), s->Desc()->TagName(t), true);
@@ -750,7 +750,7 @@ void help_help(EnvT* e)
     int nlines = 0;
     size_t pos = 0;
     while ((pos = oss.str().find(delimiter, pos + 1)) != std::string::npos) {
-      nlines++;
+      ++nlines;
     }
     if (!nlines) return new DStringGDL("");
 
@@ -923,7 +923,7 @@ Set this keyword to display information on defined object classes.
         sort(proList_tmp.begin(), proList_tmp.end(), CompProName());
 	    *ostrp << "Compiled Procedures:" << endl;
 	    *ostrp << "$MAIN$" << endl;	  OutputLines += 2;
-		for( SizeT i = 0; i < proList_tmp.size(); i++)
+		for( SizeT i = 0; i < proList_tmp.size(); ++i)
 		  {
 		  if( proList_tmp[i]->isHidden()  and !fullKW  )  continue;
 		  if (isKWSetNames and 
@@ -940,14 +940,14 @@ Set this keyword to display information on defined object classes.
 	FunListT funList_tmp;
 	funList_tmp=funList;
         sort(funList_tmp.begin(), funList_tmp.end(), CompFunName());
-	    *ostrp << "Compiled Functions:" << endl; OutputLines++;
-		for( SizeT i = 0; i < funList_tmp.size(); i++)
+	    *ostrp << "Compiled Functions:" << endl; ++OutputLines;
+		for( SizeT i = 0; i < funList_tmp.size(); ++i)
 		  {
 		  if( funList_tmp[i]->isHidden()  and !fullKW  )  continue;
 		  if (isKWSetNames and 
 				!(CompareWithJokers(names,funList_tmp[i]->ObjectName()))) continue;
 			*ostrp << setw(25) << left << funList_tmp[i]->ObjectName() << setw(0);
-			*ostrp << funList_tmp[i]->GetFilename() << endl;  OutputLines++;
+			*ostrp << funList_tmp[i]->GetFilename() << endl;  ++OutputLines;
           }
             }
       if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  cout<<ostr.str();
@@ -958,17 +958,17 @@ Set this keyword to display information on defined object classes.
 
 	vector<DString> fList;
 	static  volatile int npro = 0, nfun =0;
-	for( FunListT::iterator i=funList.begin(); i != funList.end(); i++)
+	for( FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
 		if( fullKW  or  !((*i)->isHidden() ) ) {
-		  	  fList.push_back((*i)->ObjectName()); nfun++; }
+		  	  fList.push_back((*i)->ObjectName()); ++nfun; }
 	sort( fList.begin(), fList.end());
 	  if(debugKW) cout << " #functions=" << nfun; 
 
 	vector<DString> pList;
 	pList.push_back("$MAIN$");
-	for( ProListT::iterator i=proList.begin(); i != proList.end(); i++)
+	for( ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
 		if( fullKW  or  !((*i)->isHidden() ) ) {
-		  	  pList.push_back((*i)->ObjectName()); npro++; }
+		  	  pList.push_back((*i)->ObjectName()); ++npro; }
 	sort( pList.begin(), pList.end());
 	  if(debugKW) cout << " #procedures=" << npro;
 	  if(debugKW) cout << " #env:" << e->Caller()->EnvSize() << endl;
@@ -1079,7 +1079,7 @@ Set this keyword to display information on defined object classes.
 	    if (isKWSetProcedures or routinesKW) {
 			*ostrp << "Compiled Procedures:" << endl << "$MAIN$" << endl;
 			OutputLines += 2;
-			for( SizeT i=1; i<pList.size(); i++) {
+			for( SizeT i=1; i<pList.size(); ++i) {
 
         // Find DPro pointer for pList[i]
 		        ProListT::iterator p=std::find_if(proList.begin(),proList.end(),
@@ -1094,19 +1094,19 @@ Set this keyword to display information on defined object classes.
 		        int nPar = pro->NPar();
 		        int nKey = pro->NKey();
 // Loop through parameters and keywords
-		        for( SizeT j=0; j<pro->NPar(); j++)
+		        for( SizeT j=0; j<pro->NPar(); ++j)
 				    *ostrp << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-				for( SizeT j=0; j<pro->NKey(); j++)
+				for( SizeT j=0; j<pro->NKey(); ++j)
 					*ostrp << StrUpCase(pro->GetVarName(j)) << " ";
-				*ostrp << endl; OutputLines++;
+				*ostrp << endl; ++OutputLines;
 				}
           }
 
 	    if (isKWSetFunctions or routinesKW) {	
 		    *ostrp << "Compiled Functions:" << endl;
-			OutputLines++;
+			++OutputLines;
 	  // Loop through functions
-			for( SizeT i=0; i<fList.size(); i++) {	  
+			for( SizeT i=0; i<fList.size(); ++i) {	  
 	    // Find DFun pointer for fList[i]
 				FunListT::iterator p=std::find_if(funList.begin(),funList.end(),
 					      Is_eq<DFun>(fList[i]));
@@ -1118,9 +1118,9 @@ Set this keyword to display information on defined object classes.
             int nKey = pro->NKey();
 		    *ostrp << setw(25) << left << pro->ObjectName() << setw(0);
 
-              for (SizeT j = 0; j < nPar; j++)
+              for (SizeT j = 0; j < nPar; ++j)
 		      *ostrp << StrLowCase(pro->GetVarName(nKey+j)) << " ";
-              for (SizeT j = 0; j < nKey; j++)
+              for (SizeT j = 0; j < nKey; ++j)
 		      *ostrp << StrUpCase(pro->GetVarName(j)) << " ";
 		    *ostrp << endl; OutputLines++;
             }
@@ -1144,7 +1144,7 @@ Set this keyword to display information on defined object classes.
     static int commonIx = e->KeywordIx( "COMMON");
   	if(e->KeywordSet( commonIx)) {  // list in internal order
 		CommonListT::iterator it;
-		for( it=commonList.begin(); it != commonList.end(); it++)
+		for( it=commonList.begin(); it != commonList.end(); ++it)
 		{
 		    SizeT nVar = (*it)->NVar(); if(nVar == 0) continue;
 		    *ostrp << " Common block (" << (*it)->Name() << 
@@ -1163,7 +1163,7 @@ Set this keyword to display information on defined object classes.
 	if(debugKW) std::cout << " help_pro: nParam=" << nParam ;
 	const string objectnotfound = ": Object not found";
 	bool objectsKW = e->KeywordSet(objectsIx);
-	for( SizeT i=0; i<nParam; i++)  {
+	for( SizeT i=0; i<nParam; ++i)  {
 	  BaseGDL*& par=e->GetPar( i);
 		DString parString = e->Caller()->GetString( par, true);//= string(" ??? ");
 	if(debugKW) std::cout << ". " ;
@@ -1178,7 +1178,7 @@ Set this keyword to display information on defined object classes.
           }
 		if(objectsKW && par->Type() != GDL_OBJ) {
 			if(par->Type() == GDL_STRING) {
-				for( SizeT kobj=0; kobj < par->N_Elements(); kobj++) 
+				for( SizeT kobj=0; kobj < par->N_Elements(); ++kobj) 
 					help_object( ostr,
 						(*static_cast<DStringGDL*>(par))[kobj], !briefKW);
 				continue;}
@@ -1240,7 +1240,7 @@ Set this keyword to display information on defined object classes.
 				else if( pNames.size() == 1) parents = "  parent:";
 				else  						 parents = " parents:";
 				ostr << left << parents;
-				for (SizeT i=0; i < pNames.size(); i++)  ostr << " " << pNames[i];
+				for (SizeT i=0; i < pNames.size(); ++i)  ostr << " " << pNames[i];
 				ostr << endl;
 			  }  else 
 					help_item( ostr,  NULL, nameobj, false);  
@@ -1342,7 +1342,7 @@ Set this keyword to display information on defined object classes.
 	  DSubUD* proUD = dynamic_cast<DSubUD*>(caller->GetPro());
 	  proUD->commonPtrs(cptr);
 	  std::vector<DCommonBase*>::iterator ic;
-	  for( ic=cptr.begin(); ic != cptr.end(); ic++)
+	  for( ic=cptr.begin(); ic != cptr.end(); ++ic)
 		{
 		    SizeT nVar = (*ic)->NVar();
 		    for( SizeT vIx = 0; vIx < nVar; ++vIx)	{
@@ -1368,10 +1368,10 @@ Set this keyword to display information on defined object classes.
 	    if (!isKWSetProcedures and !isKWSetFunctions) {
 
 		*ostrp << "Compiled Procedures:" << endl;
-		for( SizeT i=0; i<pList.size(); i++) *ostrp << pList[i] << " ";
+		for( SizeT i=0; i<pList.size(); ++i) *ostrp << pList[i] << " ";
 		*ostrp << endl << endl; 
 		*ostrp << "Compiled Functions:" << endl;
-		for( SizeT i=0; i<fList.size(); i++) *ostrp << fList[i] << " ";
+		for( SizeT i=0; i<fList.size(); ++i) *ostrp << fList[i] << " ";
 		*ostrp << endl;  
 		OutputLines += 4;
         }
