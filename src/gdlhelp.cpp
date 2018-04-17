@@ -1281,7 +1281,7 @@ Set this keyword to display information on defined object classes.
 		  set<string> helpStr;  // "Sorted List" 
 		  if (nVar > 0) {
 			for (SizeT i = 0; i < nVar; ++i) {
-			  BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(i);
+			  BaseGDL*& par = (static_cast<EnvT*> (callStack[desiredlevnum - 1]))->GetKW(i);
 			  if (par != NULL) {
 				stringstream ss;
 				string parName = pro->GetVarName(i);
