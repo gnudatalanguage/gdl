@@ -72,11 +72,11 @@ extern "C" char **environ;
 
 #ifdef _MSC_VER
 #if _MSC_VER < 1800
-#define isfinite _finite
+#define std::isfinite _finite
 #define isnan _isnan
 #define round(f) floor(f+0.5)
 #endif
-#define isfinite(x) isfinite((double) x)
+#define std::isfinite(x) std::isfinite((double) x)
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
   if (n == 0)
@@ -111,6 +111,7 @@ namespace lib {
   std::vector<char*> command_line_args;
 
   //  using namespace std;
+  using std::isinf;
   using std::isnan;
   using namespace antlr;
 
@@ -676,6 +677,117 @@ namespace lib {
     return newObj;
   }
 
+  BaseGDL* heap_refcount( EnvT* e)
+  {
+    static int DISABLEIx = e->KeywordIx("DISABLE");
+    static int ENABLEIx = e->KeywordIx("ENABLE");
+    static int IS_ENABLEDIx = e->KeywordIx("IS_ENABLED");
+//    trace_me = trace_arg();
+    int nParam=e->NParam();
+    
+	GDLInterpreter* interpreter = e->Interpreter();
+
+    if( nParam == 0) {
+	if( e->KeywordSet(DISABLEIx)) {
+	  EnableGC(false);
+	  }
+	else if( e->KeywordSet(ENABLEIx)) {
+	  EnableGC(true);
+	  interpreter->EnableAllGC();
+	}
+	if(e->KeywordPresent(IS_ENABLEDIx)) 
+	      e->SetKW( IS_ENABLEDIx,
+			new DByteGDL( IsEnabledGC()) );
+	return new DIntGDL( 0);
+	}
+
+    BaseGDL* p = e->GetPar( 0);
+    if( p == NULL)
+      {
+	return new DIntGDL( 0);
+      } 
+
+    DIntGDL* ret = new DIntGDL(p->Dim());
+    Guard<DIntGDL> ret_guard(ret);
+    DType pType = p->Type();
+    SizeT nEl = p->N_Elements();
+    if(pType == GDL_OBJ) {
+	DObjGDL* pObj = static_cast<DObjGDL*>( p);
+	for( SizeT i=0; i<nEl; ++i)
+		(*ret)[ i] = interpreter->RefCountHeapObj( (*pObj)[ i]);
+	if( e->KeywordSet(DISABLEIx) or
+	    e->KeywordSet(ENABLEIx) ) {
+	      bool set = e->KeywordSet(ENABLEIx) ? true: false;
+	      interpreter->EnableGCObj( pObj, set);
+	    }
+	}
+    else {
+      if( pType == GDL_PTR) {
+      
+	  DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+	  for( SizeT i=0; i<nEl; ++i)
+		  (*ret)[ i] = interpreter->RefCountHeap( (*pPtr)[ i]);
+	  if( e->KeywordSet(DISABLEIx) or
+	      e->KeywordSet(ENABLEIx) ) {
+		bool set = e->KeywordSet(ENABLEIx) ? true: false;
+//	if(trace_me) cout <<" GC set? "<<set<<endl;
+		interpreter->EnableGC( pPtr, set);
+	      }
+	} else {
+	  DLongGDL* pL;
+	  Guard<DLongGDL> pL_guard(pL);
+	  if( pType != GDL_LONG)
+	  {
+	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+	    pL_guard.Init( pL);
+	  }
+	  else
+	  {
+	    pL = static_cast<DLongGDL*>(p);
+	  }
+	  for( SizeT i=0; i<nEl; ++i)
+		  (*ret)[ i] = interpreter->RefCountHeap( (*pL)[ i]);
+	}
+      }
+// #if 1 
+    if(e->KeywordPresent(IS_ENABLEDIx)) {
+      DByteGDL* enabled;
+//     	if(trace_me) 
+//	cout << "  heap_refcount( prm, KeywordPresent(IS_ENABLEDIx)) "<< endl;
+      if(pType == GDL_OBJ) {
+	enabled = interpreter->IsEnabledGCObj(static_cast<DObjGDL*>( p));
+	}
+      else {
+      if( pType == GDL_PTR) {
+	  enabled = interpreter->IsEnabledGC(static_cast<DPtrGDL*>( p));
+	} else {
+//	if(trace_me) 
+//	cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
+	  DLongGDL* pL;
+	  Guard<DLongGDL> pL_guard(pL);
+	  if( pType != GDL_LONG)
+	  {
+	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+	    pL_guard.Init( pL);
+	  }
+	  else
+	  {
+	    pL = static_cast<DLongGDL*>(p);
+	  }
+	  DPtrGDL* ptr = new DPtrGDL( p->Dim());
+	  Guard<DPtrGDL> ptr_guard(ptr);
+	  for( SizeT i=0; i<nEl; ++i)
+	        (*ptr)[ i] = (*pL)[ i];
+
+	  enabled = interpreter->IsEnabledGC(ptr);
+	}
+      }
+      e->SetKW( IS_ENABLEDIx, enabled);
+    }
+// #endif
+    return ret_guard.release();
+  }
+  
   BaseGDL* bindgen( EnvT* e)
   {
     dimension dim;
@@ -1505,7 +1617,7 @@ namespace lib {
 	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
       }
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	if( !compileFlags) cerr << "EXECUTE: Lexer/Parser exception: " <<  
 			     ex.getMessage() << endl;
@@ -1529,7 +1641,7 @@ namespace lib {
 	return new DIntGDL( 0);
       }
 
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	if( !compileFlags) cerr << "EXECUTE: Compiler exception: " <<  
 			     ex.getMessage() << endl;
@@ -1570,7 +1682,7 @@ namespace lib {
 			     ex.getMessage() << endl;
 	return new DIntGDL( 0);
       }
-    catch( ANTLRException ex)
+    catch( ANTLRException& ex)
       {
 	caller->ResizeForLoops( nForLoopsIn);
 		
@@ -1850,7 +1962,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+                if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1871,7 +1984,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-		if( first == (*p0S)[ i].npos)
+//		if( first == (*p0S)[ i].npos)
+            if (first >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -1891,7 +2005,8 @@ namespace lib {
 	    for( OMPInt i=0; i<nEl; ++i)
 	      {
 		unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-		if( last == (*p0S)[ i].npos)
+//		if( last == (*p0S)[ i].npos)
+            if (last >= (*p0S)[i].length())
 		  {
 		    (*p0S)[ i] = "";
 		  }
@@ -2258,127 +2373,6 @@ namespace lib {
     return res;
   }
 
-BaseGDL* where_fun(EnvT* e) {
-    SizeT nParam = e->NParam(1); //, "WHERE");
-
-    BaseGDL* p0p = e->GetParDefined(0); //, "WHERE");
-
-    SizeT nEl = p0p->N_Elements();
-
-    SizeT count=0;
-
-    DByte* p0 = p0p->TagWhere(count);
-    ArrayGuard<DByte> guardp0(p0); //delete on exit
-    SizeT nCount = nEl - count;
-
-    static int nullIx = e->KeywordIx("NULL");
-    bool nullKW = e->KeywordSet(nullIx);
-
-// the following is a tentative to parallelize the loop below.
-// It is not effeicient because cache misses when adressing portions of 'yes' or 'no'
-// non openmp code is better optimised by compiler.
-    
-//    int nchunk=CpuTPOOL_NTHREADS*4;
-//    SizeT countyes[nchunk]={0};
-//    SizeT countno[nchunk]={0};
-//    SizeT startyes[nchunk]={0};
-//    SizeT startno[nchunk]={0};
-//    SizeT chunksize=nEl/nchunk;
-//    for (int iloop=0; iloop<nchunk; ++iloop) {
-//      for (SizeT j=iloop*chunksize; j<(iloop+1)*chunksize; ++j) {
-//        countyes[iloop]+=p0[j];
-//      }
-//      countno[iloop]=chunksize-countyes[iloop];
-//    }
-//    for (int iloop=1; iloop<nchunk; ++iloop) {
-//      startyes[iloop]=startyes[iloop-1]+countyes[iloop-1];
-//      startno[iloop]=startno[iloop-1]+countno[iloop-1];
-//    }
-//    
-//    DLong* distributed[nchunk][2];
-//    DLongGDL* yes;
-//    DLong* zyes;
-//    if (count > 0) {
-//      yes = new DLongGDL(dimension(count),BaseGDL::NOZERO);
-//      zyes=(DLong*)yes->DataAddr();
-//      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][1] = &(zyes[startyes[iloop]]);
-//    }
-//    DLongGDL* no;
-//    DLong* zno;
-//    if (nCount > 0) {
-//      no = new DLongGDL(dimension(nCount),BaseGDL::NOZERO);
-//      zno=(DLong*)no->DataAddr();
-//      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][0] = &(zno[startno[iloop]]);
-//    }
-//    SizeT districount[nchunk][2]={0};
-//    
-//    //distribute accordingly! removing the if clause makes the loop 2 times faster.
-//#pragma omp parallel num_threads(nchunk) firstprivate(nchunk,chunksize) shared(districount,distributed,p0) 
-//  {
-//#pragma omp for schedule (static)
-//    for (int iloop=0; iloop<nchunk; ++iloop) {
-//      SizeT j=iloop*chunksize;
-//      for (; j<(iloop+1)*chunksize;) {
-//         distributed[iloop][p0[j]][districount[iloop][p0[j]]++] = j++;
-//      }
-//    }
-//  }
-
-    DLong* distributed[2];
-    DLongGDL* yes;
-    if (count > 0) {
-      yes = new DLongGDL(dimension(count),BaseGDL::NOZERO);
-      distributed[1] = (DLong*)yes->DataAddr();
-    }
-    DLongGDL* no;
-    if (nCount > 0) {
-      no = new DLongGDL(dimension(nCount),BaseGDL::NOZERO);
-      distributed[0] = (DLong*)no->DataAddr();
-    }
-
-    SizeT districount[2] = {0,0};
-    
- //distribute accordingly! 
-    register DByte tmp;
-    for (SizeT i = 0; i < nEl; ++i) {
-      tmp=p0[i];
-      distributed[tmp][districount[tmp]] = i;
-      districount[tmp]++;
-    }
-
-    if (e->KeywordPresent(0)) // COMPLEMENT
-    {
-      if (nCount == 0) { //'no' is not malloc'ed. 
-        if (nullKW)
-          e->SetKW(0, NullGDL::GetSingleInstance());
-        else
-          e->SetKW(0, new DLongGDL(-1));
-      } else {
-        e->SetKW(0, no);
-      }
-    } else {
-      if (nCount > 0) GDLDelete(no); //tidy!
-    }
-
-    if (e->KeywordPresent(1)) // NCOMPLEMENT
-    {
-      e->SetKW(1, new DLongGDL(nCount));
-    }
-
-    if (nParam == 2) {
-      e->SetPar(1, new DLongGDL(count));
-    }
-    //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-    DVar *err = FindInVarList(sysVarList, "ERR");
-    (static_cast<DLongGDL*> (err->Data()))[0] = count;
-    if (count == 0) {
-      if (nullKW)
-        return NullGDL::GetSingleInstance();
-      return new DLongGDL(-1);
-    }
-
-    return yes;
-  }
 
   BaseGDL* n_params( EnvT* e) 
   {
@@ -2406,7 +2400,7 @@ BaseGDL* where_fun(EnvT* e) {
   // but incur some overhead for the complex class.
   template<class T> inline void AddOmitNaN(T& dest, T value)
   {
-    if (isfinite(value)) 
+    if (std::isfinite(value)) 
       {
 	// #pragma omp atomic
 	dest += value; 
@@ -2415,8 +2409,8 @@ BaseGDL* where_fun(EnvT* e) {
   template<class T> inline void AddOmitNaNCpx(T& dest, T value)
   {
     // #pragma omp atomic
-    dest += T(isfinite(value.real())? value.real() : 0,
-	      isfinite(value.imag())? value.imag() : 0);
+    dest += T(std::isfinite(value.real())? value.real() : 0,
+	      std::isfinite(value.imag())? value.imag() : 0);
   }
   template<> inline void AddOmitNaN(DComplex& dest, DComplex value)
   { AddOmitNaNCpx<DComplex>(dest, value); }
@@ -2424,11 +2418,11 @@ BaseGDL* where_fun(EnvT* e) {
   { AddOmitNaNCpx<DComplexDbl>(dest, value); }
 
   template<class T> inline void NaN2Zero(T& value)
-  { if (!isfinite(value)) value = 0; }
+  { if (!std::isfinite(value)) value = 0; }
   template<class T> inline void NaN2ZeroCpx(T& value)
   {
-    value = T(isfinite(value.real())? value.real() : 0, 
-              isfinite(value.imag())? value.imag() : 0);
+    value = T(std::isfinite(value.real())? value.real() : 0, 
+              std::isfinite(value.imag())? value.imag() : 0);
   }
   template<> inline void NaN2Zero(DComplex& value)
   { NaN2ZeroCpx< DComplex>(value); }
@@ -2911,7 +2905,7 @@ BaseGDL* where_fun(EnvT* e) {
   // but incur some overhead for the complex class.
   template<class T> inline void MultOmitNaN(T& dest, T value)
   { 
-    if (isfinite(value)) 
+    if (std::isfinite(value)) 
       {
 	// #pragma omp atomic
 	dest *= value; 
@@ -2919,8 +2913,8 @@ BaseGDL* where_fun(EnvT* e) {
   }
   template<class T> inline void MultOmitNaNCpx(T& dest, T value)
   {
-    dest *= T(isfinite(value.real())? value.real() : 1,
-	      isfinite(value.imag())? value.imag() : 1);
+    dest *= T(std::isfinite(value.real())? value.real() : 1,
+	      std::isfinite(value.imag())? value.imag() : 1);
   }
   template<> inline void MultOmitNaN(DComplex& dest, DComplex value)
   { MultOmitNaNCpx<DComplex>(dest, value); }
@@ -2928,11 +2922,11 @@ BaseGDL* where_fun(EnvT* e) {
   { MultOmitNaNCpx<DComplexDbl>(dest, value); }
 
   template<class T> inline void Nan2One(T& value)
-  { if (!isfinite(value)) value = 1; }
+  { if (!std::isfinite(value)) value = 1; }
   template<class T> inline void Nan2OneCpx(T& value)
   {
-    value = T(isfinite(value.real())? value.real() : 1, 
-              isfinite(value.imag())? value.imag() : 1);
+    value = T(std::isfinite(value.real())? value.real() : 1, 
+              std::isfinite(value.imag())? value.imag() : 1);
   }
   template<> inline void Nan2One(DComplex& value)
   { Nan2OneCpx< DComplex>(value); }
@@ -3154,7 +3148,7 @@ BaseGDL* where_fun(EnvT* e) {
               (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
             Guard<DFloatGDL> guard(p0f);
             for (SizeT i = 0; i < nEl; ++i) {
-              if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
+              if (!std::isfinite((*p0f)[i])) (*p0L64)[i] = 1;
             }
           }
           return product_template<DLong64GDL>(p0L64, nanInt);
@@ -3222,7 +3216,7 @@ BaseGDL* where_fun(EnvT* e) {
               (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
             Guard<DFloatGDL> guard(p0f);
             for (SizeT i = 0; i < nEl; ++i) {
-              if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
+              if (!std::isfinite((*p0f)[i])) (*p0L64)[i] = 1;
             }
           }
           return product_cu_template<DLong64GDL>
@@ -3298,7 +3292,7 @@ BaseGDL* where_fun(EnvT* e) {
             (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
           Guard<DFloatGDL> guard(p0f);
           for (SizeT i = 0; i < nEl; ++i) {
-            if (!isfinite((*p0f)[i])) (*p0L64)[i] = 1;
+            if (!std::isfinite((*p0f)[i])) (*p0L64)[i] = 1;
           }
         }
         return product_over_dim_template<DLong64GDL>
@@ -3367,7 +3361,7 @@ BaseGDL* where_fun(EnvT* e) {
             (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
           Guard<DFloatGDL> guard(p0f);
           for (SizeT i = 0; i < nEl; ++i) {
-            if (!isfinite((*p0f)[i])) (*p0f)[i] = 1;
+            if (!std::isfinite((*p0f)[i])) (*p0f)[i] = 1;
           }
           return product_over_dim_cu_template<DLong64GDL>
             (static_cast<DLong64GDL*>
@@ -3468,7 +3462,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool maxSet = e->KeywordPresent(maxIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
@@ -3576,7 +3570,7 @@ BaseGDL* where_fun(EnvT* e) {
     bool minSet = e->KeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
-    bool absSet = e->KeywordPresent(absIx);
+    bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
 
     DLong searchDim;
     if (dimSet) {
@@ -3845,7 +3839,7 @@ BaseGDL* where_fun(EnvT* e) {
 	DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
 	for( DLong i=nEl-1; i >= 0; --i)
 	  {
-	    if( isnan((*p0F)[ i]) )//|| !isfinite((*p0F)[ i]))
+	    if( isnan((*p0F)[ i]) )//|| !std::isfinite((*p0F)[ i]))
 	      {
 		--nanIx;
 		(*res)[i] = (*res)[nanIx];
@@ -3866,7 +3860,7 @@ BaseGDL* where_fun(EnvT* e) {
 	DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
 	for( DLong i=nEl-1; i >= 0; --i)
 	  {
-	    if( isnan((*p0F)[ i]))// || !isfinite((*p0F)[ i]))
+	    if( isnan((*p0F)[ i]))// || !std::isfinite((*p0F)[ i]))
 	      {
 		--nanIx;
 		(*res)[i] = (*res)[nanIx];
@@ -3879,8 +3873,8 @@ BaseGDL* where_fun(EnvT* e) {
 	DComplexGDL* p0F = static_cast<DComplexGDL*>(p0);
 	for( DLong i=nEl-1; i >= 0; --i)
 	  {
-	    if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-		isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+	    if( isnan((*p0F)[ i].real()) || //!std::isfinite((*p0F)[ i].real()) ||
+		isnan((*p0F)[ i].imag()))// || !std::isfinite((*p0F)[ i].imag()) )
 	      {
 		--nanIx;
 		(*res)[i] = (*res)[nanIx];
@@ -3893,8 +3887,8 @@ BaseGDL* where_fun(EnvT* e) {
 	DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0);
 	for( DLong i=nEl-1; i >= 0; --i)
 	  {
-	    if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-		isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+	    if( isnan((*p0F)[ i].real()) || //!std::isfinite((*p0F)[ i].real()) ||
+		isnan((*p0F)[ i].imag()))// || !std::isfinite((*p0F)[ i].imag()) )
 	      {
 		--nanIx;
 		(*res)[i] = (*res)[nanIx];
@@ -4332,7 +4326,7 @@ BaseGDL* where_fun(EnvT* e) {
         if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth = p0->Dim(1);
       } else MaxAllowedWidth = p0->N_Elements();
 
-      if (!isfinite((*p1d)[0]))
+      if (!std::isfinite((*p1d)[0]))
         e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
       if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth)
         e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
@@ -4419,6 +4413,7 @@ BaseGDL* where_fun(EnvT* e) {
         }
       }
     }
+    return NULL; //pacifies dumm compilers.
   }
 // uses MergeSort
   // 2 parts in the code: without "width" or with "width" (limited to 1D and 2D)
@@ -4694,7 +4689,7 @@ BaseGDL* where_fun(EnvT* e) {
         cout << "y dim " << p0->Dim(1) << endl;
         cout << "MaxAllowedWidth " << MaxAllowedWidth << endl;
       }
-      if (!isfinite((*p1d)[0]))
+      if (!std::isfinite((*p1d)[0]))
         e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
 
       DLongGDL* p1 = e->GetParAs<DLongGDL>(1);
@@ -4897,7 +4892,7 @@ BaseGDL* where_fun(EnvT* e) {
               SizeT ctl_NaN = 0;
               SizeT kk = 0;
               for (SizeT ind = col - lim; ind < col + lim; ++ind) {
-                if ((*p0)[ind] != d_infinity && (*p0)[ind] != -d_infinity && isfinite((*p0)[ind]) == 0)
+                if ((*p0)[ind] != d_infinity && (*p0)[ind] != -d_infinity && std::isfinite((*p0)[ind]) == 0)
                   ctl_NaN++;
                 else {
                   (*Mask1D)[kk] = (*p0)[ind];
@@ -4952,7 +4947,7 @@ BaseGDL* where_fun(EnvT* e) {
 
                   for (jj = initMask + k * larg; jj < (initMask + k * larg) + 2 * lim; ++jj) // elements of mask
                   {
-                    if ((*p0)[jj] != d_infinity && (*p0)[jj] != -d_infinity && isfinite((*p0)[jj]) == 0)
+                    if ((*p0)[jj] != d_infinity && (*p0)[jj] != -d_infinity && std::isfinite((*p0)[jj]) == 0)
                       ctl_NaN++;
                     else {
                       (*Mask)[kk] = (*p0)[jj];
@@ -5001,7 +4996,7 @@ BaseGDL* where_fun(EnvT* e) {
               SizeT kk = 0;
               SizeT ctl_NaN = 0;
               for (SizeT ind = col - lim; ind <= col + lim; ++ind) {
-                if ((*p0)[ind] != d_infinity && (*p0)[ind] != -d_infinity && isfinite((*p0)[ind]) == 0)
+                if ((*p0)[ind] != d_infinity && (*p0)[ind] != -d_infinity && std::isfinite((*p0)[ind]) == 0)
                   ctl_NaN++;
                 else {
                   (*Mask1D)[kk] = (*p0)[ind];
@@ -5048,7 +5043,7 @@ BaseGDL* where_fun(EnvT* e) {
               for (SizeT yy = 0; yy < width; yy++) {
                 for (SizeT ii = initial + yy * larg; ii < initial + yy * larg + width; ++ii) {
 
-                  if ((*p0)[ii] != d_infinity && (*p0)[ii] != -d_infinity && isfinite((*p0)[ii]) == 0)
+                  if ((*p0)[ii] != d_infinity && (*p0)[ii] != -d_infinity && std::isfinite((*p0)[ii]) == 0)
                     ctl_NaN_init++;
                   else
                     (*Mask)[dd] = (*p0)[ii];
@@ -5067,7 +5062,7 @@ BaseGDL* where_fun(EnvT* e) {
 
                   for (jj = initMask + k * larg; jj <= (initMask + k * larg) + 2 * lim; ++jj) // elements of mask
                   {
-                    if ((*p0)[jj] != d_infinity && (*p0)[jj] != -d_infinity && isfinite((*p0)[jj]) == 0)
+                    if ((*p0)[jj] != d_infinity && (*p0)[jj] != -d_infinity && std::isfinite((*p0)[jj]) == 0)
                       ctl_NaN++;
 
                     else {
@@ -5188,7 +5183,7 @@ template <typename Ty>  static inline Ty do_mean_nan(const Ty* data, const SizeT
 #pragma omp for reduction(+:mean,n)
      for (SizeT i = 0; i < sz; ++i) {
         Ty v = data[i];
-        if (isfinite(v)) {
+        if (std::isfinite(v)) {
           n++,
           mean += v;
         }
@@ -5207,7 +5202,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 #pragma omp for reduction(+:meanr,nr)
      for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].real();
-        if (isfinite(v)) {
+        if (std::isfinite(v)) {
           nr++,
           meanr += v;
         }
@@ -5215,7 +5210,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 #pragma omp for reduction(+:meani,ni)
      for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].imag();
-        if (isfinite(v)) {
+        if (std::isfinite(v)) {
           ni++,
           meani += v;
         }
@@ -5540,7 +5535,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment){
     Ty meanl=do_mean_nan(data,sz);
     mean=meanl;
-    if (maxmoment==1 || !isfinite(mean)) {
+    if (maxmoment==1 || !std::isfinite(mean)) {
       variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
       return;
     }
@@ -5551,7 +5546,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 #pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for reduction(+:var,md,k)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) {var += cdata*cdata; md+=fabs(cdata); k+=1;} }
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) {var += cdata*cdata; md+=fabs(cdata); k+=1;} }
     }
     if (k>1) var/=(k-1); else {
       variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
@@ -5568,7 +5563,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 #pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for reduction(+:skew)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) skew += (cdata*cdata*cdata)/(var*sdev); }
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) skew += (cdata*cdata*cdata)/(var*sdev); }
     }
     skewness=skew/k;
     if (maxmoment==3) {
@@ -5579,7 +5574,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 #pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for reduction(+:kurt)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (finite(cdata)) kurt += (cdata*cdata*cdata*cdata)/(var*var);}
+    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) kurt += (cdata*cdata*cdata*cdata)/(var*var);}
     }
     kurtosis=(kurt/k)-3; 
   }
@@ -5607,9 +5602,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         Ty cdata=data[i]-meanl;
           T2 cdatar=cdata.real();
           T2 cdatai=cdata.imag();
-        if (finite(cdatar)) {varr += cdatar*cdatar; kr++;}
-        if (finite(cdatai)) {vari += cdatai*cdatai; ki++;}
-        if (finite(cdatar))  mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
+        if (std::isfinite(cdatar)) {varr += cdatar*cdatar; kr++;}
+        if (std::isfinite(cdatai)) {vari += cdatai*cdatai; ki++;}
+        if (std::isfinite(cdatar))  mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
         }
     }
     varr/=(kr-1);
@@ -5633,12 +5628,12 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         Ty cdata=data[i]-meanl;
           T2 cdatar=cdata.real();
           T2 cdatai=cdata.imag();
-          if (finite(cdatar)) skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
+          if (std::isfinite(cdatar)) skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
             exp(-0.75*log(varr*varr+vari*vari))*
             cos(0.15E1*atan2(vari,varr))+(3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
             exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
 
-          if (finite(cdatai)) skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
+          if (std::isfinite(cdatai)) skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
             exp(-0.75*log(varr*varr+vari*vari))*cos(1.5*atan2(vari,varr))-
             (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
             exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
@@ -5658,13 +5653,13 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         Ty cdata=data[i]-meanl;
           T2 cdatar=cdata.real();
           T2 cdatai=cdata.imag();
-          if (finite(cdatar)) kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
+          if (std::isfinite(cdatar)) kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
             cdatai*cdatai*cdatai)*(varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+
             4.0*varr*varr*vari*vari)+2.0*(4.0*cdatar*cdatar*cdatar*cdatai-
             4.0*cdatar*cdatai*cdatai*cdatai)*varr*vari/
             (pow(varr*varr-vari*vari,2.0)+
             4.0*varr*varr*vari*vari);
-          if (finite(cdatai)) kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
+          if (std::isfinite(cdatai)) kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
             (varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+4.0*varr*varr*vari*vari)-
             2.0*(cdatar*cdatar*cdatar*cdatar-
             6.0*cdatar*cdatar*cdatai*cdatai+cdatai*cdatai*cdatai*cdatai)*varr*vari/
@@ -6245,9 +6240,12 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           return ret;
         }
         break;
+        default:
+          cerr<<"Internal Error, please report"<<endl;
       }
 
     } else e->Throw("Operand must be integer:" + e->GetParString(0));
+    return NULL; //pacify dumb compilers.
   }
   
   BaseGDL* shift_fun( EnvT* e) {
@@ -6456,7 +6454,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 	    try {
 	      oStruct = e->GetObjHeap( objRef);
 	    }
-	    catch ( GDLInterpreter::HeapException )
+	    catch ( GDLInterpreter::HeapException& )
 	      { // non valid object
 		if( count)
 		  e->SetKW( countIx, new DLongGDL( 0));
@@ -6542,7 +6540,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         (*res)[i] = 0;
       }
       return res;
-    } else e->Throw("Object reference type required in this context: " + e->GetParString(0));
+    } else e->Throw("Object reference type required in this context: " + e->GetParString(0)); return NULL;
   }
 
   BaseGDL* n_tags( EnvT* e)
@@ -8327,6 +8325,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 	  } 
       }
     e->Throw("Expecting string or byte array as a first parameter");
+    return NULL; //pacify dumb compilers
   }
 
   BaseGDL* get_drive_list(EnvT* e)
@@ -8439,8 +8438,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 	*(res->GetTag(tSystem, i)) = DByteGDL(0);
       }
       return res;
-
     }
+    return NULL; //pacify, etc.
   }
 
   // note: changes here MUST be reflected in scope_varfetch_reference() as well

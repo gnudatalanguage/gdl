@@ -75,9 +75,9 @@ public:
     std::streampos pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
     //hacks for not being lost with input gzipped streams
     std::streampos getPosition(){return position;}
-    std::streampos setPosition(long pos){position=pos;} 
-    std::streampos incrementPosition(long pos=1){position+=pos;}
-    std::streampos decrementPosition(long pos=1){position-=pos;}
+    void setPosition(long pos){position=pos;} 
+    void incrementPosition(long pos=1){position+=pos;}
+    void decrementPosition(long pos=1){position-=pos;}
 };
 
 class gzstreambase : virtual public std::ios {

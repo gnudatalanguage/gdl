@@ -5,8 +5,8 @@ libtest_ce_la_LDFLAGS = -rpath $(abs_srcdir)/testsuite/.libs
 #TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
 TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir) $(top_builddir)
 TESTS = \
-  test_arg_present.pro \
   test_angles.pro \
+  test_arg_present.pro \
   test_array_equal.pro \
   test_array_indices.pro \
   test_base64.pro \
@@ -62,6 +62,9 @@ TESTS = \
   test_bug_3559291.pro \
   test_bug_3572473.pro \
   test_bug_3595172.pro \
+  test_bug_635.pro \
+  test_bug_709.pro \
+  test_bug_719.pro \
   test_bug_n000542.pro \
   test_bug_n000580.pro \
   test_bug_n000581.pro \
@@ -70,12 +73,9 @@ TESTS = \
   test_bug_n000599.pro \
   test_bug_n000607.pro \
   test_bug_n000608.pro \
-  test_bug_635.pro \
-  test_bug_709.pro \
-  test_bug_719.pro \
   test_bug_n000720.pro \
-  test_bytscl.pro \
   test_byte_conversion.pro \
+  test_bytscl.pro \
   test_call_external.pro \
   test_call_function.pro \
   test_call_function_extra.pro \
@@ -117,34 +117,35 @@ TESTS = \
   test_get_lun.pro \
   test_get_screen_size.pro \
   test_grib.pro \
-  test_hist_2d.pro \
   test_hdf5.pro \
+  test_heap_refcount.pro \
+  test_hist_2d.pro \
   test_idl8.pro \
-  test_idlneturl.pro \
   test_idl_validname.pro \
+  test_idlneturl.pro \
   test_image_statistics.pro \
   test_interpol.pro \
   test_interpolate.pro \
   test_isa.pro \
   test_ishft.pro \
+  test_l64.pro \
   test_la_least_squares.pro \
   test_list.pro \
   test_ludc_lusol.pro \
-  test_l64.pro \
+  test_make_dll.pro \
   test_math_function_dim.pro \
   test_matrix_multiply.pro \
-  test_make_dll.pro \
   test_memory.pro \
   test_message.pro \
   test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
   test_multiroots.pro \
+  test_n_tags.pro \
   test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
   test_netcdf.pro \
   test_norm.pro \
-  test_n_tags.pro \
   test_null.pro \
   test_obj_isa.pro \
   test_obj_new.pro \
@@ -201,10 +202,10 @@ TESTS = \
   test_voigt.pro \
   test_wait.pro \
   test_wavelet.pro \
-  test_window_background.pro \
   test_where.pro \
+  test_window_background.pro \
   test_wordexp.pro \
+  test_xdr.pro \
   test_zeropoly.pro \
   test_zip.pro \
-  test_xdr.pro \
   checks

@@ -133,7 +133,7 @@
     return actP;
   }
   
-  DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e)
+  DStructGDL* GetSELF( BaseGDL* selfP, EnvUDT* e)
   {
     // TODO remove this checks (SELF is set always internally)
     if( selfP == NULL || selfP->Type() != GDL_OBJ)
@@ -149,6 +149,7 @@
     {
       ThrowFromInternalUDSub( e, "SELF object ID <"+i2s(selfID)+"> not found.");      
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
