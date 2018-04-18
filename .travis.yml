@@ -48,16 +48,20 @@ install:
     # https://github.com/Homebrew/brew/issues/1742#issuecomment-277308817
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
 
+    # https://stackoverflow.com/questions/25276329/cant-load-python-modules-installed-via-pip-from-site-packages-directory
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages; fi 
+
     # https://github.com/nemequ/icc-travis
     - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
     - if [ $COMPILER == icc ]; then sudo sh install-icc.sh; fi
     - if [ $COMPILER == icc ]; then source ~/.bashrc; fi
     - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y wget cmake libncurses-dev libreadline-gplv2-dev zlib1g-dev libgsl0-dev libplplot-dev libgraphicsmagick++1-dev libwxgtk2.8-dev libnetcdf-dev libhdf4-alt-dev libhdf5-serial-dev libfftw3-dev python-dev python-numpy-dev libudunits2-dev pslib-dev libgrib-api-dev libgrib-api-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y wget cmake libncurses-dev libreadline-gplv2-dev zlib1g-dev libgsl0-dev libplplot-dev libgraphicsmagick++1-dev libwxgtk2.8-dev libnetcdf-dev libhdf4-alt-dev libhdf5-serial-dev libfftw3-dev python-dev python-numpy-dev python-pytest libudunits2-dev pslib-dev libgrib-api-dev libgrib-api-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON -DUDUNITS=ON"; fi #TODO!
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gsl graphicsmagick udunits fftw eigen plplot wxwidgets netcdf hdf5; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF -DPSLIB=OFF -DEDITLINE=OFF -DREADLINE=OFF"; fi #TODO!
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip2 install pytest; fi 
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget http://bitbucket.org/eigen/eigen/get/3.3.2.zip; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then unzip 3.3.2.zip; fi
@@ -70,6 +74,10 @@ script:
     - travis_wait 60 make -j 2 # travis_wait needed for icc
     - make check
     - sudo make install
+
+    - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHON_MODULE=ON ../ 
+    - travis_wait 60 make -j 2 # travis_wait needed for icc
+    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python -m pytest ../testsuite/python/test-GDL.py 
 
 after_script:
     - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
