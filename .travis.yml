@@ -49,7 +49,7 @@ install:
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
 
     # https://stackoverflow.com/questions/25276329/cant-load-python-modules-installed-via-pip-from-site-packages-directory
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages; fi 
 
     # https://github.com/nemequ/icc-travis
     - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
