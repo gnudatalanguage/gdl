@@ -288,10 +288,10 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
       //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
-      int NbProFilesInCurrentDir = 0;
       DIR* dirp = opendir((*CurrentDir).c_str());
       //cout << "2>>" << dirp << "<<" <<endl;
       if (dirp != NULL) {
+		int NbProFilesInCurrentDir = 0;
         while ((dp = readdir(dirp)) != NULL) {
           tmp_fname = dp->d_name;
           found = tmp_fname.rfind(ProSuffix);
