@@ -114,9 +114,11 @@ cformat
     : (w=cnnf { if (w<0) { w *= -1; f = '0'; } } (CDOT! d=cnn)?)?
         (
            c:CD {  #c->setW( w);  #c->setD( d);  #c->setType( I);  #c->setFill( f); }
+        |  se:CSE {  #se->setW( w);  #se->setD( d);  #se->setType( SE);  #se->setFill( f); }
         |  e:CE {  #e->setW( w);  #e->setD( d);  #e->setType( E);  #e->setFill( f); }
         |  i:CI {  #i->setW( w);  #i->setD( d);  #i->setType( I);  #i->setFill( f); }
         | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F); #ff->setFill( f); }
+        |  sg:CSG {  #sg->setW( w);  #sg->setD( d);  #sg->setType( SG);  #sg->setFill( f); }
         |  g:CG {  #g->setW( w);  #g->setD( d);  #g->setType( G);  #g->setFill( f); }
         |  o:CO {  #o->setW( w);  #o->setD( d);  #o->setType( O);  #o->setFill( f); }
         |  b:CB {  #b->setW( w);  #b->setD( d);  #b->setType( B);  #b->setFill( f); }

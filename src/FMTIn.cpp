@@ -996,9 +996,11 @@ const char* FMTIn::tokenNames[] = {
 	"HEXESC",
 	"HDIGIT",
 	"CD",
+	"CSE",
 	"CE",
 	"CI",
 	"CF",
+	"CSG",
 	"CG",
 	"CO",
 	"CB",
@@ -1067,10 +1069,10 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 134217728UL, 2096127UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 536870912UL, 8384508UL, 0UL, 0UL };
 // FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4292870279UL, 63UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4286579228UL, 255UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);

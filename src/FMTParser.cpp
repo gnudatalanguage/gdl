@@ -83,9 +83,11 @@ void FMTParser::qfq() {
 	switch ( LA(1)) {
 	case CSTR:
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -237,9 +239,11 @@ void FMTParser::f() {
 	}
 	case CSTR:
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -363,9 +367,11 @@ void FMTParser::f_csubcode() {
 	}
 	case CSTR:
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -432,9 +438,11 @@ void FMTParser::cstring() {
 			break;
 		}
 		case CD:
+		case CSE:
 		case CE:
 		case CI:
 		case CF:
+		case CSG:
 		case CG:
 		case CO:
 		case CB:
@@ -529,12 +537,16 @@ void FMTParser::cformat() {
 	RefFMTNode cformat_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  c = antlr::nullToken;
 	RefFMTNode c_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  se = antlr::nullToken;
+	RefFMTNode se_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  e = antlr::nullToken;
 	RefFMTNode e_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  i = antlr::nullToken;
 	RefFMTNode i_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  ff = antlr::nullToken;
 	RefFMTNode ff_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  sg = antlr::nullToken;
+	RefFMTNode sg_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  g = antlr::nullToken;
 	RefFMTNode g_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  o = antlr::nullToken;
@@ -570,9 +582,11 @@ void FMTParser::cformat() {
 			break;
 		}
 		case CD:
+		case CSE:
 		case CE:
 		case CI:
 		case CF:
+		case CSG:
 		case CG:
 		case CO:
 		case CB:
@@ -591,9 +605,11 @@ void FMTParser::cformat() {
 		break;
 	}
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -618,6 +634,15 @@ void FMTParser::cformat() {
 		astFactory->addASTChild(currentAST, antlr::RefAST(c_AST));
 		match(CD);
 		c_AST->setW( w);  c_AST->setD( d);  c_AST->setType( I);  c_AST->setFill( f);
+		break;
+	}
+	case CSE:
+	{
+		se = LT(1);
+		se_AST = astFactory->create(se);
+		astFactory->addASTChild(currentAST, antlr::RefAST(se_AST));
+		match(CSE);
+		se_AST->setW( w);  se_AST->setD( d);  se_AST->setType( SE);  se_AST->setFill( f);
 		break;
 	}
 	case CE:
@@ -645,6 +670,15 @@ void FMTParser::cformat() {
 		astFactory->addASTChild(currentAST, antlr::RefAST(ff_AST));
 		match(CF);
 		ff_AST->setW( w); ff_AST->setD( d); ff_AST->setType( F); ff_AST->setFill( f);
+		break;
+	}
+	case CSG:
+	{
+		sg = LT(1);
+		sg_AST = astFactory->create(sg);
+		astFactory->addASTChild(currentAST, antlr::RefAST(sg_AST));
+		match(CSG);
+		sg_AST->setW( w);  sg_AST->setD( d);  sg_AST->setType( SG);  sg_AST->setFill( f);
 		break;
 	}
 	case CG:
@@ -1099,9 +1133,11 @@ void FMTParser::csub() {
 	switch ( LA(1)) {
 	case CSTR:
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -1615,9 +1651,11 @@ void FMTParser::csubcode() {
 	}
 	case CSTR:
 	case CD:
+	case CSE:
 	case CE:
 	case CI:
 	case CF:
+	case CSG:
 	case CG:
 	case CO:
 	case CB:
@@ -1724,7 +1762,7 @@ void FMTParser::csubcode() {
 
 void FMTParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(81);
+	factory.setMaxNodeType(83);
 }
 const char* FMTParser::tokenNames[] = {
 	"<0>",
@@ -1741,9 +1779,11 @@ const char* FMTParser::tokenNames[] = {
 	"HEXESC",
 	"HDIGIT",
 	"CD",
+	"CSE",
 	"CE",
 	"CI",
 	"CF",
+	"CSG",
 	"CG",
 	"CO",
 	"CB",
@@ -1812,7 +1852,7 @@ const char* FMTParser::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTParser::_tokenSet_0_data_[] = { 3758096384UL, 2048UL, 448UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTParser::_tokenSet_0_data_[] = { 2147483648UL, 8195UL, 1792UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA RBRACE SLASH E PM MP NUMBER 
 const antlr::BitSet FMTParser::_tokenSet_0(_tokenSet_0_data_,8);
 
