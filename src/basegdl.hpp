@@ -713,7 +713,7 @@ public:
   // virtual formatting output functions
   virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
   virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-			int prec, char fill, IOMode oM = FIXED); 
+			int prec, char fill, IOMode oM = FIXED, bool upper=false); 
   virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
 			int minN, char fill, BaseGDL::IOMode oM = DEC);
   virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 

@@ -70,7 +70,7 @@ void FMTOut::format(RefFMTNode _t) {
 	case TERM:
 	case NONL:
 	case Q: case T: case X: case A:
-	case F: case D: case E: case G:
+	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	if( actPar == NULL && termFlag) goto endFMT;
@@ -136,7 +136,9 @@ void FMTOut::q(RefFMTNode _t) {
 	case A:
 	case F:
 	case E:
+	case SE:
 	case G:
+	case SG:
 	case I:
 	case O:
 	case B:
@@ -160,7 +162,9 @@ void FMTOut::f(RefFMTNode _t) {
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
+	RefFMTNode se = RefFMTNode(antlr::nullAST);
 	RefFMTNode ee = RefFMTNode(antlr::nullAST);
+	RefFMTNode sg = RefFMTNode(antlr::nullAST);
 	RefFMTNode g = RefFMTNode(antlr::nullAST);
 	RefFMTNode i = RefFMTNode(antlr::nullAST);
 	RefFMTNode o = RefFMTNode(antlr::nullAST);
@@ -267,6 +271,28 @@ void FMTOut::f(RefFMTNode _t) {
 		
 		break;
 	}
+	case SE:
+	{
+		se = _t;
+		match(antlr::RefAST(_t),SE);
+		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = se->getRep();
+		int w = se->getW();
+		int d = se->getD();
+		char f = se->getFill();
+		do {
+		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
+		BaseGDL::SCIENTIFIC);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
+		break;
+	}
 	case E:
 	{
 		ee = _t;
@@ -281,7 +307,29 @@ void FMTOut::f(RefFMTNode _t) {
 		char f = ee->getFill();
 		do {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
-		BaseGDL::SCIENTIFIC);
+		BaseGDL::SCIENTIFIC, true); //uppercase
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
+		break;
+	}
+	case SG:
+	{
+		sg = _t;
+		match(antlr::RefAST(_t),SG);
+		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = sg->getRep();
+		int w = sg->getW();
+		int d = sg->getD();
+		int f = sg->getFill();
+		do {
+		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
+		BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
 		if( actPar == NULL) break;
@@ -303,7 +351,7 @@ void FMTOut::f(RefFMTNode _t) {
 		int f = g->getFill();
 		do {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
-		BaseGDL::AUTO);
+		BaseGDL::AUTO, true);
 		r -= tCount;
 		NextVal( tCount);
 		if( actPar == NULL) break;
@@ -556,7 +604,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	case TERM:
 	case NONL:
 	case Q: case T: case X: case A:
-	case F: case D: case E: case G:
+	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
@@ -1010,7 +1058,9 @@ const char* FMTOut::tokenNames[] = {
 	"F",
 	"D",
 	"E",
+	"SE",
 	"G",
+	"SG",
 	"I",
 	"O",
 	"B",
@@ -1034,6 +1084,8 @@ const char* FMTOut::tokenNames[] = {
 	"CMI",
 	"CSI",
 	"CSF",
+	"PM",
+	"MP",
 	"NUMBER",
 	"DOT",
 	"CSTRING",
@@ -1047,10 +1099,10 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 134217728UL, 2096127UL, 0UL, 0UL };
+// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4294443137UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4292870273UL, 63UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 
 // CYI CMI CSI CSF 
 const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);

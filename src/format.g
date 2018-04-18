@@ -170,7 +170,9 @@ rep_fmt [ int repeat]
     | ff:F w_d  [ #ff] { #ff->setRep( repeat);} // F and D are the same -> D->F
     | d:D w_d  [ #d] { #d->setRep( repeat); #d->setText("f"); #d->setType(F);}
     | e:E w_d_e[ #e] { #e->setRep( repeat);}
+    | se:SE w_d_e[ #se] { #se->setRep( repeat);}
     | g:G w_d_e[ #g] { #g->setRep( repeat);}
+    | sg:SG w_d_e[ #sg] { #sg->setRep( repeat);}
     | i:I w_d  [ #i] { #i->setRep( repeat);}
     | o:O w_d  [ #o] { #o->setRep( repeat);}
     | b:B w_d  [ #b] { #b->setRep( repeat);}
@@ -330,8 +332,10 @@ TERM:':';
 NONL:'$';
 F:('f'|'F');
 D:('d'|'D');
-E:('e'|'E');
-G:('g'|'G');
+E:('E');
+SE:('e');
+G:('G');
+SG:('g');
 
 I:('i'|'I');
 O:('o'|'O');

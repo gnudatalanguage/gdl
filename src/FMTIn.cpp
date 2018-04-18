@@ -77,7 +77,7 @@ void FMTIn::format(RefFMTNode _t) {
 	case TERM:
 	case NONL:
 	case Q: case T: case X: case A:
-	case F: case D: case E: case G:
+	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
@@ -132,7 +132,9 @@ void FMTIn::q(RefFMTNode _t) {
 	case A:
 	case F:
 	case E:
+	case SE:
 	case G:
+	case SG:
 	case I:
 	case O:
 	case B:
@@ -157,7 +159,9 @@ void FMTIn::f(RefFMTNode _t) {
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
 	RefFMTNode ee = RefFMTNode(antlr::nullAST);
+	RefFMTNode se = RefFMTNode(antlr::nullAST);
 	RefFMTNode g = RefFMTNode(antlr::nullAST);
+	RefFMTNode sg = RefFMTNode(antlr::nullAST);
 	RefFMTNode i = RefFMTNode(antlr::nullAST);
 	RefFMTNode o = RefFMTNode(antlr::nullAST);
 	RefFMTNode b = RefFMTNode(antlr::nullAST);
@@ -257,7 +261,9 @@ void FMTIn::f(RefFMTNode _t) {
 	}
 	case F:
 	case E:
+	case SE:
 	case G:
+	case SG:
 	{
 		{
 		if (_t == RefFMTNode(antlr::nullAST) )
@@ -279,12 +285,28 @@ void FMTIn::f(RefFMTNode _t) {
 			actNode = ee;
 			break;
 		}
+		case SE:
+		{
+			se = _t;
+			match(antlr::RefAST(_t),SE);
+			_t = _t->getNextSibling();
+			actNode = se;
+			break;
+		}
 		case G:
 		{
 			g = _t;
 			match(antlr::RefAST(_t),G);
 			_t = _t->getNextSibling();
 			actNode = g;
+			break;
+		}
+		case SG:
+		{
+			sg = _t;
+			match(antlr::RefAST(_t),SG);
+			_t = _t->getNextSibling();
+			actNode = sg;
 			break;
 		}
 		default:
@@ -562,7 +584,7 @@ void FMTIn::format_recursive(RefFMTNode _t) {
 	case TERM:
 	case NONL:
 	case Q: case T: case X: case A:
-	case F: case D: case E: case G:
+	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
@@ -631,7 +653,7 @@ void FMTIn::format_reversion(RefFMTNode _t) {
 	case TERM:
 	case NONL:
 	case Q: case T: case X: case A:
-	case F: case D: case E: case G:
+	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
@@ -1004,7 +1026,9 @@ const char* FMTIn::tokenNames[] = {
 	"F",
 	"D",
 	"E",
+	"SE",
 	"G",
+	"SG",
 	"I",
 	"O",
 	"B",
@@ -1028,6 +1052,8 @@ const char* FMTIn::tokenNames[] = {
 	"CMI",
 	"CSI",
 	"CSF",
+	"PM",
+	"MP",
 	"NUMBER",
 	"DOT",
 	"CSTRING",
@@ -1041,10 +1067,10 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 134217728UL, 2096127UL, 0UL, 0UL };
+// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4292870279UL, 63UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);

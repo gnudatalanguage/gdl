@@ -194,13 +194,13 @@ void OutFixed<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, cha
 
 
 template <typename T>
-void OutScientific(std::ostream& os, T val, int w, int d, char f) {
+void OutScientific(std::ostream& os, T val, int w, int d, char f, bool upper=false) {
  if (std::isfinite(val)) {
   std::ostringstream oss;
   // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
   if (f == '+' || f == '@') oss << std::showpos;
-//  oss << std::scientific << std::uppercase << std::setprecision(d) << val << std::nouppercase;
-  oss << std::scientific << std::setprecision(d) << val;
+  if (upper) oss << std::scientific << std::uppercase << std::setprecision(d) << val << std::nouppercase;
+  else oss << std::scientific << std::setprecision(d) << val;
   if (w == 0)
    os << oss.str();
   else if (oss.tellp() > w)
@@ -212,12 +212,12 @@ void OutScientific(std::ostream& os, T val, int w, int d, char f) {
 }
 
 template <>
-void OutScientific<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
+void OutScientific<DComplex>( std::ostream& os, DComplex val, int w, int d, char f, bool upper);
 template <>
-void OutScientific<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
+void OutScientific<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f, bool upper);
 
 template <typename T>
-void OutAuto(std::ostream& os, T val, int w, int d, char f) {
+void OutAuto(std::ostream& os, T val, int w, int d, char f, bool upper=false) {
  if (val == T(0.0)) // handle 0.0
  {
   if (f == '+' || f == '@') os << std::showpos;
@@ -252,8 +252,8 @@ void OutAuto(std::ostream& os, T val, int w, int d, char f) {
 
   std::ostringstream ossS;
   if (f == '+' || f == '@') ossS << std::showpos;
-//  ossS << std::scientific << std::uppercase << std::setprecision(d > 0 ? d - 1 : 0) << val << std::nouppercase;
-  ossS << std::scientific << std::setprecision(d > 0 ? d - 1 : 0) << val;
+  if (upper) ossS << std::scientific << std::uppercase << std::setprecision(d > 0 ? d - 1 : 0) << val << std::nouppercase;
+  else ossS << std::scientific << std::setprecision(d > 0 ? d - 1 : 0) << val;
 
   if (fixLen == 0 || ossF.tellp() > ossS.tellp()) {
    if (w == 0) os << ossS.str();
@@ -270,9 +270,9 @@ void OutAuto(std::ostream& os, T val, int w, int d, char f) {
 }
 
 template <>
-void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
+void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d, char f, bool upper);
 template <>
-void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
+void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f, bool upper);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const AsComplex<T>& a) 
