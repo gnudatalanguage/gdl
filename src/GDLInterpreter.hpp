@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20130428): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -34,8 +34,7 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 //#define GDL_DEBUG_HEAP
-bool IsEnabledGC(); // defined in GDLInterpreter.hpp with EnableGC(bool);
-void EnableGC(bool);
+
 
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
 {
@@ -224,8 +223,7 @@ public:
 //             }
 //         return false;
 //     }
- //   static bool IsEnabledGC() { return enable_GC;}
-	static bool IsEnabledGC() { return true;}
+
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {
@@ -304,90 +302,9 @@ public:
        }
     }
 
-   static DByteGDL* IsEnabledGC( DPtrGDL* p)
-   {
-		SizeT nEl=p->N_Elements();
-		if( nEl == 0) return new DByteGDL( 0);
-		DByteGDL* ret = new DByteGDL( p->Dim());
-		Guard<DByteGDL> guard(ret);
-		for( SizeT ix=0; ix < nEl; ix++)
-		{
-			DPtr id= (*p)[ix];
-		   if( id != 0)
-			   {
-			   HeapT::iterator it=heap.find( id);
-			   if( it != heap.end() and (*it).second.IsEnabledGC())
-					(*ret)[ix] = 1;
-			   }
-		}
-		return guard.release();
-   }
-   static DByteGDL* IsEnabledGCObj( DObjGDL* p)
-   {
-        SizeT nEl=p->N_Elements();
-        if( nEl == 0) return new DByteGDL( 0);
-        DByteGDL* ret = new DByteGDL( p->Dim());
-        Guard<DByteGDL> guard(ret);
-        for( SizeT ix=0; ix < nEl; ix++)
-   {
-            DObj id= (*p)[ix];
-		   if( id != 0)
-			   {
-			   ObjHeapT::iterator it=objHeap.find( id);
-			   if( it != objHeap.end() and (*it).second.IsEnabledGC())
-					(*ret)[ix] = 1;
-			   }
-        }
-        return guard.release();
-   }
-
-   static void EnableGC( DPtr id, bool set=true)
-   {
-       if( id != 0)
-           {
-		   HeapT::iterator it=heap.find( id);
-		   if( it != heap.end()) (*it).second.EnableGC(set);
-           }
-   }
-   static void EnableGC( DPtrGDL* p, bool set=true)
-   {
-        SizeT nEl=p->N_Elements();
-        for( SizeT ix=0; ix < nEl; ix++)
-        {
-            DPtr id= (*p)[ix];
-            EnableGC( id, set);
-       }
-   }
-   static void EnableAllGC() {
-        SizeT nEl = heap.size();
-        for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
-			it->second.EnableGC(true);
-        nEl = objHeap.size();
-        for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
-			it->second.EnableGC(true);
-   }
-
-   static void EnableGCObj( DObj id, bool set=true)
-   {
-       if( id != 0)
-           {
-		   ObjHeapT::iterator it=objHeap.find( id);
-		   if( it != objHeap.end()) (*it).second.EnableGC(set);
-           }
-   }
-   static void EnableGCObj( DObjGDL* p, bool set=true)
-   {
-        SizeT nEl=p->N_Elements();
-        for( SizeT ix=0; ix < nEl; ix++)
-        {
-            DObj id= (*p)[ix];
-            EnableGCObj( id, set);
-       }
-   }
-
    static void DecRef( DPtr id)
    {
-       if( id != 0 and IsEnabledGC())
+       if( id != 0)
            {
 #ifdef GDL_DEBUG_HEAP
                std::cout << "-- <PtrHeapVar" << id << ">" << std::endl; 
@@ -395,7 +312,7 @@ public:
                HeapT::iterator it=heap.find( id);
                if( it != heap.end()) 
                    { 
-					   if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
+                       if( (*it).second.Dec())
                            {
 #ifdef GDL_DEBUG_HEAP
                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id 
@@ -424,7 +341,7 @@ public:
     }
    static void DecRefObj( DObj id)
     {
-        if( id != 0 and IsEnabledGC())
+        if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
 std::cout << "-- <ObjHeapVar" << id << ">" << std::endl; 
@@ -432,7 +349,7 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
-					   if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
+                       if( (*it).second.Dec())
                            {
 #ifdef GDL_DEBUG_HEAP
                                std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
@@ -463,7 +380,7 @@ std::cout << "<ObjHeapVar" << id << "> = " << (*it).second.Count() << std::endl;
     }
    static void IncRef( DPtr id)
     {
-        if( id != 0 and IsEnabledGC())
+        if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
 std::cout << "++ <PtrHeapVar" << id << ">" << std::endl; 
@@ -492,26 +409,6 @@ std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl;
                     }
             }
     }
-   static SizeT RefCountHeap( DPtr id)
-    {
-		SizeT result = 0;
-        if( id != 0)
-            {
-                HeapT::iterator it=heap.find( id);
-                if( it != heap.end()) result = (*it).second.Count();
-			}
-		return result;
-	   }
-   static SizeT RefCountHeapObj( DObj id)
-    {
-		SizeT result = 0;
-        if( id != 0)
-            {
-                ObjHeapT::iterator it=objHeap.find( id);
-                if( it != objHeap.end()) result = (*it).second.Count();
-			}
-		return result;
-	   }
    static void IncRef( DPtrGDL* p)
     {
         SizeT nEl=p->N_Elements();
@@ -523,13 +420,14 @@ std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl;
     }
    static void IncRefObj( DObj id)
     {
-        if( id != 0 and IsEnabledGC())
+        if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
 std::cout << "++ <ObjHeapVar" << id << ">" << std::endl; 
 #endif
                 ObjHeapT::iterator it=objHeap.find( id);
-                if( it != objHeap.end())   { 
+                if( it != objHeap.end()) 
+                    { 
                         (*it).second.Inc(); 
                     }
             }
@@ -565,12 +463,6 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         HeapT::iterator it=heap.find( ID);
         if( it == heap.end()) 
             throw HeapException();
-        return it->second.get();
-    }
-    static BaseGDL* GetHeapNoThrow( DPtr ID)
-    {
-        HeapT::iterator it=heap.find( ID);
-        if( it == heap.end())  return NULL;
         return it->second.get();
     }
     static DStructGDL*& GetObjHeap( DObj ID)
@@ -721,9 +613,6 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             delete (*it).second.get();
             objHeap.erase( it->first); 
         }
-// The counters are reset for easier human readability.
-       heapIx = 1;
-       objHeapIx = 1;
     }
 
     // name of data
@@ -749,7 +638,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 
     // interpreter
-    static void ReportError( GDLException& e, const std::string emsg, 
+    static void ReportError( GDLException& e, const std::string &emsg, 
                              bool dumpStack=true)
     {
         DString msgPrefix = SysVar::MsgPrefix();
