@@ -9,7 +9,7 @@
 #include "CFMTTokenTypes.hpp"
 #include <antlr/CharScanner.hpp>
 
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
     
 //    using namespace antlr;
 

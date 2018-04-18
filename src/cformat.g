@@ -21,7 +21,7 @@ header "pre_include_cpp" {
 }
 
 header {
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
     
 //    using namespace antlr;
 }

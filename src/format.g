@@ -28,7 +28,7 @@ header {
 
 #include "CFMTLexer.hpp"
 
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
 
 //using namespace antlr;
 }
