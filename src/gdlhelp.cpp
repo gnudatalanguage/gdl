@@ -272,11 +272,11 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 
     // showing HELP, /path_cache
   void help_path_cached(ostream& ostr, SizeT &lines_count) {
-    DIR *dirp;
+
     struct dirent *dp;
     const char *ProSuffix = ".pro";
     int ProSuffixLen = strlen(ProSuffix);
-    int NbProFilesInCurrentDir;
+
     string tmp_fname;
     size_t found;
 
@@ -288,8 +288,8 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
       //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
-      NbProFilesInCurrentDir = 0;
-      dirp = opendir((*CurrentDir).c_str());
+      int NbProFilesInCurrentDir = 0;
+      DIR* dirp = opendir((*CurrentDir).c_str());
       //cout << "2>>" << dirp << "<<" <<endl;
       if (dirp != NULL) {
         while ((dp = readdir(dirp)) != NULL) {
@@ -1281,7 +1281,7 @@ Set this keyword to display information on defined object classes.
 		  set<string> helpStr;  // "Sorted List" 
 		  if (nVar > 0) {
 			for (SizeT i = 0; i < nVar; ++i) {
-			  BaseGDL*& par = (static_cast<EnvT*> (callStack[desiredlevnum - 1]))->GetKW(i);
+			  BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetKW(i);
 			  if (par != NULL) {
 				stringstream ss;
 				string parName = pro->GetVarName(i);
