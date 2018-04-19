@@ -77,7 +77,7 @@ install:
     - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
 
     # codecov
-    - if [[ -v CODECOV && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="$APT_PACKAGES lcov" ;fi
+    - if [ -v CODECOV ]; then export APT_PACKAGES="$APT_PACKAGES lcov"; fi
     - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
     - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
     - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
@@ -222,7 +222,8 @@ install:
     - if [[ $COMPILER != icc && $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
     #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} qhull"; fi
-    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
+    #- if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
+    - if [[ $COMPILER != icc && $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=OFF"; fi 
 
     # GLPK
