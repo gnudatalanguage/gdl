@@ -48,6 +48,7 @@ before_install:
     - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
@@ -76,7 +77,7 @@ install:
     - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
 
     # codecov
-    - if [ -v CODECOV && $TRAVIS_OS_NAME == 'linux' ]; then export APT_PACKAGES="$APT_PACKAGES lcov" ;fi
+    - if [[ -v CODECOV && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="$APT_PACKAGES lcov" ;fi
     - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
     - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
     - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
@@ -210,10 +211,11 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
 
-    # GRIB API
+    # GRIB API (only Linux - TODO!)
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} grib-api"; fi
-    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} grib-api"; fi
+    #- if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=OFF"; fi 
 
     # QHULL
