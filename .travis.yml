@@ -10,14 +10,16 @@ matrix:
       env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
     - os: linux
       env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
+
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
-    - os: osx
+    - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
+
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
     - os: osx
@@ -158,8 +160,8 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf4-alt-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
     # TODO - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf4"; fi
-    # TODO - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=OFF"; fi 
+    # TODO - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
 
     # hdf5
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf5-serial-dev"; fi
