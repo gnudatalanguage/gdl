@@ -226,6 +226,11 @@ install:
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
 
+    # diagnostics
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then echo "APT_PACKAGES: $APT_PACKAGES"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo "BREW_PACKAGES: $BREW_PACKAGES"; fi
+    - echo "CMAKE_ARGS: ${CMAKE_ARGS}"
+
     # apt-get/brew invocation
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
