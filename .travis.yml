@@ -137,12 +137,12 @@ install:
     # OpenMP (for DEPS=FULL only if supported by the compile)
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DOPENMP=OFF"; fi 
 
-    # ImageMagick (OSX) / GraphicsMagick (Linux) - just to try both
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgraphicsmagick++1-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
+    # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
 
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} imagemagick"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
 
