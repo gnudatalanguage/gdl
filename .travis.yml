@@ -213,7 +213,8 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} pslib-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
-
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
+ 
     # GRIB API (only Linux - TODO!)
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
     #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} grib-api"; fi
