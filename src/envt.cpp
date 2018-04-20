@@ -1099,13 +1099,18 @@ void EnvBaseT::AssureGlobalKW( SizeT ix)
   }
 }
 
-DStructGDL* EnvT::GetObjectPar( SizeT pIx) {
+DStructGDL* EnvT::GetObjectPar( SizeT pIx)
+{
   BaseGDL* p1 = GetParDefined(pIx);
 
-  if (p1->Type() != GDL_OBJ) {
-    Throw("Parameter must be an object reference in this context: " +
+  if( p1->Type() != GDL_OBJ)
+    {
+      Throw( "Parameter must be an object reference"
+	     " in this context: "+
       GetParString(pIx));
-  } else {
+    }
+  else
+    {
     DObjGDL* oRef = static_cast<DObjGDL*> (p1);
     DObj objIx;
     if (!oRef->Scalar(objIx))
@@ -1117,7 +1122,9 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx) {
 
     try {
       return GetObjHeap(objIx);
-    } catch (GDLInterpreter::HeapException) {
+      }
+      catch ( GDLInterpreter::HeapException)
+	{
       Throw("Object not valid: " + GetParString(pIx));
     }
   }
@@ -1312,7 +1319,7 @@ bool EnvBaseT::Remove(int* rindx)
 	while( ix >= 0)
 	{
 		inrem++;
-		if(debug)	printf(" env.now.size() = %d  env[%d] = 0x%x ",
+//		if(debug)	printf(" env.now.size() = %d  env[%d] = 0x%x ",
 				osz - inrem,
 				ix,static_cast <const void *>(env[ix]) );
 		if ( env[ix] != NULL) GDLDelete( env[ix]);
@@ -1346,7 +1353,7 @@ int EnvBaseT::findvar(const std::string& s)
 
 int EnvBaseT::findvar(BaseGDL* delP)
 {
-  static BaseGDL* null=NULL;
+//  static BaseGDL* null=NULL;
 	for(int Ix=0; Ix < env.size(); Ix++) {
 		if(delP != env[ Ix] ) continue;
 	return Ix;
