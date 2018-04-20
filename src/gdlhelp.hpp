@@ -36,9 +36,6 @@ namespace lib {
 
   void help_pro( EnvT* e);
 
-//  void delvar_pro( EnvT* e);
-//  void findvar_pro( EnvT* e);
-
   } // namespace
 
 #endif

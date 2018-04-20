@@ -1545,6 +1545,12 @@ namespace lib {
     if (nCount > 0) return new DByteGDL( 0); else return new DByteGDL(1);
   }
 
+
+  SizeT HASH_count( DStructGDL* hash)
+  {
+    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    return (*static_cast<DLongGDL*>( hash->GetTag( TableCountTag, 0)))[0];	      
+  }
   BaseGDL* hash__count( EnvUDT* e)
   {
     const int kwSELFIx = 0;

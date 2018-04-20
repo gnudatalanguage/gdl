@@ -45,6 +45,8 @@ namespace lib {
   BaseGDL* hash__tostruct( EnvUDT* e);
 
   BaseGDL* hash__count( EnvUDT* e);
+  SizeT HASH_count( DStructGDL* oStructGDL);
+
   BaseGDL* hash__isempty( EnvUDT* e);
   BaseGDL* hash__where( EnvUDT* e);
 
