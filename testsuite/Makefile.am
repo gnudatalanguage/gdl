@@ -116,6 +116,7 @@ TESTS = \
   test_gc.pro \
   test_get_lun.pro \
   test_get_screen_size.pro \
+  test_gh00196.pro \
   test_gh00178.pro \
   test_grib.pro \
   test_hdf5.pro \
