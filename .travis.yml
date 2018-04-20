@@ -51,6 +51,7 @@ before_install:
     - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
@@ -124,7 +125,7 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=OFF"; fi 
 
