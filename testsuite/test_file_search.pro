@@ -9,17 +9,16 @@
 ; AC 16 mai 2014: adding test cases for FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
 ; AC 07 Oct 2015: adding cases related to '.', '..' and '~'
 ; AC 11 Jan 2017: adding a temporary path ('TMPDIR_FILE_SEARCH')
-; GJ 15 Apr 2018: Keep it easy for Windows
 ;
 ; ----------------------------------------
 ; generate a list of files with special chars ([ and *)
 ;
-pro TEST_FILE_SEARCH_CREATE, list_luns, test=test
+pro TEST_FILE_SEARCH_CREATE, list_luns
 ;
 ;
-easynames = [ ']foo.txt', 'foobar.txt', $
+easynames = [ ']foo.txt', $
 	'afoo.txt',  $
-	'[Foo' ]
+	'[Foo', 'foobar.txt' ]
 neasy = n_elements(easynames)
 
 list_luns = lonarr(neasy)
@@ -28,17 +27,21 @@ for k=0,neasy-1 do begin &$
 	list_luns[k] = lu & endfor
 ;
 if(!version.OS_FAMILY eq "Windows") then return
-if KEYWORD_SET(test) then STOP,' easynames created'
 
-morefiles = [ 'Afoo.txt', 'AfoO.txt', 'foo\*.txt']
+;
+; we can't create a foo\* file and then create a foobar.txt
+; So delete the foobar.txt, back up the lun array and fudge the 
+;  numbers for the add-on files.
+;
+neasy = neasy-1
+free_lun,list_luns[neasy]
+morefiles = [ 'Afoo.txt', 'AfoO.txt', 'foo\*.txt', 'foobar.txt']
 nmore = n_elements(morefiles)
-list_luns = [list_luns, lonarr(nmore)]
+list_luns = [list_luns, lonarr(nmore-1)]
 for k=0,nmore-1 do begin &$
 	openw, lu, /delete,/get_lun, morefiles[k] &$
 	list_luns[k+neasy] = lu & endfor
-if KEYWORD_SET(test) then STOP,' morefiles created'
 ;
-return
 end
 ;
 pro TEST_FILE_SEARCH_REMOVE, list_luns
@@ -53,10 +56,8 @@ end
 pro TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
 ;
 errors=0
-
-TEST_FILE_SEARCH_CREATE, list_luns
 ;
-; afoo.txt  Afoo.txt  AfoO.txt  [Foo  foobar.txt  ]foo.txt
+TEST_FILE_SEARCH_CREATE, list_luns
 ;
 if FILE_SEARCH(']foo.txt') ne ']foo.txt' then begin 
     ADD_ERROR, errors, 'Fail with ]foo.txt'
@@ -66,35 +67,27 @@ if FILE_SEARCH('[]]foo.txt') ne ']foo.txt' then begin
     ADD_ERROR, errors, 'Fail with []]foo.txt'
 endif
 
-f1=FILE_SEARCH('foo*.txt')
-if f1 ne 'foobar.txt'then begin
+f=FILE_SEARCH('foo*.txt')
+if WHERE(f eq 'foo*.txt') eq -1 or WHERE(f eq 'foobar.txt') eq -1 then begin 
     ADD_ERROR, errors, 'Fail with foo*.txt'
 endif
-; foobar.txt is a file created, and it matches foo*.txt
-;if WHERE(f1 eq 'foo*.txt') eq -1 or WHERE(f1 eq 'foobar.txt') eq -1 then begin 
-;    ADD_ERROR, errors, 'Fail with foo*.txt'
-;endif
-;
-; results from sub-process:
-;ls foo[*].txt
-; ls: cannot access 'foo[*].txt': No such file or directory
-	;if FILE_SEARCH('foo[*].txt') ne 'foo*.txt' then begin 
-	;    ADD_ERROR, errors, 'Fail with foo[*].txt'
-	;endif
 
-f2=FILE_SEARCH('[]a]foo*')
-if WHERE(f2 eq ']foo.txt') eq -1 or WHERE(f2 eq 'afoo.txt') eq -1 then begin 
+if FILE_SEARCH('foo[*].txt') ne 'foo*.txt' then begin 
+    ADD_ERROR, errors, 'Fail with foo[*].txt'
+endif
+
+f=FILE_SEARCH('[]a]foo*')
+if WHERE(f eq ']foo.txt') eq -1 or WHERE(f eq 'afoo.txt') eq -1 then begin 
     ADD_ERROR, errors, 'Fail with []a]foo*'
 endif
 
-f3=FILE_SEARCH('afoo.txt', /fold_case)
-if WHERE(f3 eq 'AfoO.txt') eq -1 or WHERE(f3 eq 'Afoo.txt') eq -1 then begin
+f=FILE_SEARCH('afoo.txt', /fold_case)
+if WHERE(f eq 'AfoO.txt') eq -1 or WHERE(f eq 'Afoo.txt') eq -1 then begin
     ADD_ERROR, errors, 'Fail with afoo.txt,  /fold_case'
 endif
 
-f4=FILE_SEARCH('[]a]foo*', /fold_case)
-if WHERE(f4 eq 'Afoo.txt') eq -1 or WHERE(f4 eq ']foo.txt') eq -1 or $
-	WHERE(f4 eq 'afoo.txt') eq -1 or WHERE(f4 eq 'AfoO.txt') then begin 
+f=FILE_SEARCH('[]a]foo*', /fold_case)
+if WHERE(f eq 'Afoo.txt') eq -1 or WHERE(f eq ']foo.txt') eq -1 or WHERE(f eq 'afoo.txt') eq -1 or WHERE(f eq 'AfoO.txt') then begin 
     ADD_ERROR, errors, 'Fail with []a]foo*,  /fold_case'
 endif
 
@@ -108,17 +101,8 @@ BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH_GLOB", errors, /short
 ;
 nb_errors=nb_errors+errors
 ;
-if KEYWORD_SET(test) then STOP,' errors (GLOB) = ',errors
-
-return
- print,FILE_SEARCH(']foo.txt') 
- print,FILE_SEARCH('[]]foo.txt') 
- f1=FILE_SEARCH('foo*.txt')
- f2=FILE_SEARCH('[]a]foo*')
- f3=FILE_SEARCH('afoo.txt', /fold_case)
- f4=FILE_SEARCH('[]a]foo*', /fold_case)
- print,FILE_SEARCH('[foo', /fold_case)
-; 
+if KEYWORD_SET(test) then STOP
+;
 end
 ;
 ; --------------------------------------------
@@ -138,10 +122,10 @@ SPAWN, 'ls', res0
 ;; unofrtunaltely, the following code does not pass well an all machines
 ;SPAWN, 'find . -xtype l', badlinks
 nbadlinks=n_elements(badlinks)
-CD, current=path
-path=path+PATH_SEP()
-
 ;
+;path_sep() cannot be used for Windows because file_search uses forward slash
+CD, current=path & path=path+'/'
+;   
 res1=FILE_SEARCH(/FULLY_QUALIFY_PATH)
 res2=FILE_SEARCH('',/FULLY_QUALIFY_PATH)
 res3=FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
