@@ -164,7 +164,7 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
     # TODO - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf4"; fi
     # TODO - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=ON"; fi 
-    - if [[ $TRAVIS_OS_NAME' == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
 
     # hdf5
