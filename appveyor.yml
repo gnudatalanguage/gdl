@@ -79,6 +79,28 @@ install:
         tar zxf gsl-2.4.tar.gz
         c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
         
+        # FFTW
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile http://www.fftw.org/fftw-3.3.7.tar.gz
+        tar zxf fftw-3.3.7.tar.gz
+        md fftw-3.3.7/build
+        cd fftw-3.3.7/build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs
+        sed -i "s:/\* #undef WITH_OUR_MALLOC \*/:#define WITH_OUR_MALLOC 1:g" config.h
+        mingw32-make install
+        
+        # PSLIB
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://downloads.sourceforge.net/project/pslib/pslib/0.4.5/pslib-0.4.5.tar.gz
+        tar zxf pslib-0.4.5.tar.gz
+        md pslib-0.4.5/build
+        cd pslib-0.4.5/build
+        sed -i "1s/^/#define max(X,Y) (((X) > (Y)) ? (X) : (Y))/" ../src/ps_strbuf.c
+        cmake .. -G "MinGW Makefiles"
+        mingw32-make
+        move libpslib.dll c:\projects\gdl\win32libs\bin
+        move libpslib.dll.a c:\projects\gdl\win32libs\lib
+        
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
@@ -107,14 +129,14 @@ build_script:
   - cd c:\projects\gdl\build
   - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
-  - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DPYTHON=OFF
   - mingw32-make -j4
   - mingw32-make install
 
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - copy c:\projects\gdl\wxWidgets-3.0.4\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
+  - copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl\install
   - 7z a gdl_build.zip gdl
   # - ctest -C Release --output-on-failure
