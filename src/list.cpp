@@ -1229,202 +1229,358 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
 }
 
 
-
-
 template< typename DTypeGDL>
-BaseGDL* LIST__ToArray( DLong nList, DPtr actP, BaseGDL* missingKW)
+BaseGDL* LIST__ToArray( EnvUDT* e, 	dimension& newdim)
 {
-  static DString cNodeName("GDL_CONTAINER_NODE");
-  // because of .RESET_SESSION, we cannot use static here
-  static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
-  static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
+//
+// "resultype" == DtypeGDL::t
+//
+    GDL_LIST_STRUCT()
+	GDL_CONTAINER_NODE()
+	if(trace_me) std::cout << " ToArray.";	
+    static int kwTYPEIx = e->GetKeywordIx("TYPE");
+    static int kwSELFIx = kwTYPEIx + 1;
+    static int kwMISSINGIx = e->GetKeywordIx("MISSING"); 
+    static int kwDIMENSIONIx = e->GetKeywordIx("DIMENSION");
+    static int kwNO_COPYIx = e->GetKeywordIx("NO_COPY");
+ 	static int kwTRANSPOSEIx = e->GetKeywordIx("TRANSPOSE");
 
-  DTypeGDL* missingT = NULL;
-  Guard<DTypeGDL> missingTGuard;
-  DTypeGDL* result = new DTypeGDL( dimension( nList), BaseGDL::NOZERO);
-  Guard<DTypeGDL> resultGuard( result);
-  for( SizeT i=0; i<nList; ++i)
-  {
+	DTypeGDL* missingT = NULL;
+	Guard<DTypeGDL> missingTGuard;
+/*
+ * DIMENSION
+ Set this keyword to the dimension over which to concatenate the arrays contained within the list.
+*  For this keyword to work correctly, each element of the list must have the same number of elements in each dimension except for the dimension given by DIMENSION. For example, assume your list contains three arrays and you wish to concatenate over the second dimension:
+l = LIST(FLTARR(3,10,5), FLTARR(3,12,5), FLTARR(3,7,5))
+result = l.ToArray(DIMENSION=2)
+help, result
+IDL prints:
+RESULT          FLOAT     = Array[3, 29, 5]
+Note: If the DIMENSION keyword is specified, the MISSING and TRANSPOSE keywords are ignored.
+*/
+    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
 
-    DStructGDL* actNode = GetLISTStruct(NULL, actP);  
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+    DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
+    DPtr pNext = pTail;
 
-    DPtr pData = (*static_cast<DPtrGDL*>( actNode->GetTag( pDataTag, 0)))[0];   
-    BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
+    BaseGDL* dimensionKW = e->GetKW( kwDIMENSIONIx);
+    BaseGDL* missingKW = (dimensionKW != 0)? 0:e->GetKW( kwMISSINGIx);
+    BaseGDL* transposeKW = (dimensionKW != 0)? 0:e->GetKW( kwTRANSPOSEIx);
 
-    if( data == NULL)
-    {
-      if( missingT == NULL)
-      {
-	if( missingKW == NULL)
-	  throw GDLException( "Unable to convert to type : Element "+i2s(i));
-	if( missingKW->Type() == DTypeGDL::t)
-	  missingT = static_cast<DTypeGDL*>(missingKW);
-	else
-	{
-	  missingT = static_cast<DTypeGDL*>(missingKW->Convert2(DTypeGDL::t,BaseGDL::COPY));
-	  missingTGuard.Init( missingT);
+	SizeT dimkw=0;
+    MAKE_LONGGDL(dimensionKW, dimkwLong)
+    if(dimensionKW != 0) dimkw = (*dimkwLong)[0];
+
+	SizeT Rank = newdim.Rank();
+	SizeT Stride = newdim.Stride(Rank-1);
+	if(dimkw > 0) Stride = newdim.Stride(dimkw-1);
+
+	if(missingKW != 0 && missingKW->Rank() != 0 &&
+				(Stride != missingKW->N_Elements()) )
+				ThrowFromInternalUDSub( e, " 'missing' keyword array does not match elements' structure");
+
+	DTypeGDL* result = new DTypeGDL( newdim, BaseGDL::NOZERO);
+	Guard<DTypeGDL> resultGuard( result);
+    bool transposekw = (transposeKW != 0) || (dimensionKW != 0) ;
+	if(trace_me) {
+		std::cout << " newdim stride 0...Rank-1 = " << Rank-1 << ": " ;	
+		for (int i=0; i < Rank; i++) std::cout << "["<<i<<"]= "
+		  << newdim.Stride(i) << ". ";
+		  std::cout<< std::endl;
+		std::cout << " Transpose? " << transposekw << std::endl;
 	}
-      }
-      data = missingT;
-    }
-    assert( data != NULL);
-    
-    if( data->N_Elements() != 1)
-    {
-      throw GDLException( "Unable to convert to type (N_ELEMENTS > 1): Element "+i2s(i));		    
-    }
-    
-    // we are not owner of 'data' here
-    if( data->Type() == DTypeGDL::t)
-      (*result)[i] = (*static_cast<DTypeGDL*>(data))[0];
-    else
-    {
-      DTypeGDL* dataT = static_cast<DTypeGDL*>(data->Convert2(DTypeGDL::t,BaseGDL::COPY));
-      (*result)[i] = (*static_cast<DTypeGDL*>(dataT))[0];
-      delete dataT;
-    }
 
-    actP = (*static_cast<DPtrGDL*>( actNode->GetTag( pNextTag, 0)))[0];     		  
-  }
+	SizeT Toffset = 0; // A counter for the sandbox 
+	
+	SizeT catrankIx = (dimkw ==0) ? RankIx(newdim.Rank()) : dimkw-1 ;
+
+	pNext = pTail;
+	SizeT inlist = 0;
+	for( SizeT i =0; i <nList; ++i )
+	{
+		DStructGDL* Node = GetLISTStruct(NULL, pNext);    
+		BaseGDL* data = BaseGDL::interpreter->GetHeap(
+						(*static_cast<DPtrGDL*>( Node->GetTag( pDataTag, 0)))[0]);
+		pNext = (*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0];     		  
+
+		if( data == 0 ||
+					data == NullGDL::GetSingleInstance())
+		{ 
+		  if(missingKW == 0 ||
+				missingKW == NullGDL::GetSingleInstance()) continue;
+		  if( missingT == 0)
+		  {
+			missingT = new DTypeGDL( dimension(Stride) , BaseGDL::NOZERO);
+			missingTGuard.Init( missingT);
+			BaseGDL* fill = missingKW->Convert2( result->Type() ,BaseGDL::COPY);
+			missingT->AssignAt( fill, NULL, 0);
+		  }
+		  result->InsertAt( Stride*inlist , missingT, NULL);
+		   ++inlist;		  continue;
+
+		} else {
+		DTypeGDL* src = static_cast<DTypeGDL*>(data);
+		DType theType = data->Type();
+//		if( ( theType == resultType) || !ConvertableType( theType) ) continue;
+		if( data->Type() != DTypeGDL::t )
+			src = static_cast<DTypeGDL*>(data->Convert2( DTypeGDL::t , BaseGDL::COPY));
+// inlist will be incremented in CatInsert and gaps, strides are all good.
+		result->CatInsert(src, catrankIx, inlist);
+		
+		} // ( data == NULL)
+	} // for i <nList; ++i
+
+	if( e->KeywordSet( kwNO_COPYIx)) LISTCleanup( e, self); // For NO_COPY keyword
+
   resultGuard.Release();
-  return result;
+  if( transposekw)   return result;
+  else { // The result is composed (via CatInsert) in transposed form.
+	     // If keyword TRANSPOSE not set, need to transpose back.
+		DUInt* perm = new DUInt[Rank];
+		ArrayGuard<DUInt> perm_guard( perm);
+		perm[0] = Rank - 1;
+		for( SizeT i=1; i< Rank; ++i) perm[i] = i-1;
+		return result->Transpose( perm);
+	}
 }
-
-BaseGDL* list__toarray( EnvUDT* e)
+#if 0
+// currently a void, Standard GDLobject help provided in gdlhelp.
+void list__help( EnvUDT* e)
   {
-    static int kwMISSINGIx = 0; 
-    static int kwTYPEIx = 1;
-    static int kwSELFIx = 2;
+	  
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+    
+    static int kwMAXITEMIx = e->GetKeywordIx("MAXITEM");
+    static int kwSELFIx = kwMAXITEMIx + 1;
 
+		trace_me = false; // lib::trace_arg();
     SizeT nParam = e->NParam(1); // SELF
 	
-    DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
-    DStructDesc* listDesc= self->Desc();
+    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
 
-    static DString listName("LIST");
-    static DString cNodeName("GDL_CONTAINER_NODE");
+    if(trace_me) std::cout << " list.help():";
+}
+#endif
+BaseGDL* list__toarray( EnvUDT* e)
+  {
+	  
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+    
+    static int kwTYPEIx = e->GetKeywordIx("TYPE");
+    static int kwSELFIx = kwTYPEIx + 1;
+    static int kwMISSINGIx = e->GetKeywordIx("MISSING"); 
+    static int kwDIMENSIONIx = e->GetKeywordIx("DIMENSION");
+    static int kwNO_COPYIx = e->GetKeywordIx("NO_COPY");
+ 	static int kwTRANSPOSEIx = e->GetKeywordIx("TRANSPOSE");
+    static int kwPROMOTE_TYPEIx = e->GetKeywordIx("PROMOTE_TYPE");
 
-    // because of .RESET_SESSION, we cannot use static here
-    DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
+    
 
-    assert( listDesc != NULL && listDesc->NTags() > 0);
-    assert( containerDesc != NULL && containerDesc->NTags() > 0);
+		trace_me = false; // lib::trace_arg();
+    SizeT nParam = e->NParam(1); // SELF
+	
+    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
 
-    // here static is fine
-    static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
-    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-    static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
+    if(trace_me) std::cout << " list.toarray():";
+
+// define the standard LIST struct = listDesc:
+   DStructDesc* listDesc = structDesc::LIST;
+
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
   
     if( nList == 0)
       return NullGDL::GetSingleInstance();
 
-    BaseGDL* missingKW = e->GetKW( kwMISSINGIx);
-    BaseGDL* typeKW = e->GetKW( kwTYPEIx);
-    
-    DType resultType = GDL_UNDEF;
-    
     DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
-    DStructGDL* tailNode = GetLISTStruct(e, pTail);  
-    
-    DPtr pData = (*static_cast<DPtrGDL*>( tailNode->GetTag( pDataTag, 0)))[0];   
-    BaseGDL* data = BaseGDL::interpreter->GetHeap( pData);
-    
+    DPtr pNext = pTail;
+    int inlist = 0;
+    BaseGDL* data;
+      do {
+		DStructGDL* Node = GetLISTStruct(e, pNext);
+		DPtr Ptr = (*static_cast<DPtrGDL*>( Node->GetTag( pDataTag, 0)))[0];   
+		data = BaseGDL::interpreter->GetHeap( Ptr);
+		pNext = (*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0];
+	} while ( data == NULL and ++inlist != nList );
+	if( data == NULL ) 
+	   ThrowFromInternalUDSub( e, " no data in list to make array");   	   
+
+    BaseGDL* typeKW = e->GetKW( kwTYPEIx);
+    BaseGDL* promote_typeKW = e->GetKW( kwPROMOTE_TYPEIx);
+	bool promote_type = e->KeywordSet(kwPROMOTE_TYPEIx);
+
+    BaseGDL* dimensionKW = e->GetKW( kwDIMENSIONIx);
+    BaseGDL* missingKW = (dimensionKW != NULL)? NULL:e->GetKW( kwMISSINGIx);
+	Guard<BaseGDL> missingKWGuard(missingKW);
+	
+//	    value_guard.Reset(value);//e->Guard( value);
+    DType resultType = GDL_UNDEF;
     if( typeKW == NULL)
     {
-      if( data != NULL)
-	resultType = data->Type();
-      else if( missingKW != NULL)
-	resultType = missingKW->Type();
+	  if( missingKW != NULL)
+		resultType = missingKW->Type();
       else
-	ThrowFromInternalUDSub( e, "Unable to convert to type : Element zero");      	
+		resultType = data->Type();
     }
     else
     {
+	  promote_type = false;
       if( typeKW->Type() == GDL_STRING)
       {
-	DString typeStr = StrUpCase( (*static_cast<DStringGDL*>(typeKW))[0]);
-	     if( SpDByte().TypeStr() == typeStr) resultType = GDL_BYTE;
-	else if( SpDInt().TypeStr() == typeStr) resultType = GDL_INT;
-	else if( SpDLong().TypeStr() == typeStr) resultType = GDL_LONG;
-	else if( SpDFloat().TypeStr() == typeStr) resultType = GDL_FLOAT;
-	else if( SpDDouble().TypeStr() == typeStr) resultType = GDL_DOUBLE;
-	else if( SpDComplex().TypeStr() == typeStr) resultType = GDL_COMPLEX;
-	else if( SpDString().TypeStr() == typeStr) resultType = GDL_STRING;
-	else if( SpDComplexDbl().TypeStr() == typeStr) resultType = GDL_COMPLEXDBL;
-	else if( SpDUInt().TypeStr() == typeStr) resultType = GDL_UINT;
-	else if( SpDULong().TypeStr() == typeStr) resultType = GDL_ULONG;
-	else if( SpDLong64().TypeStr() == typeStr) resultType = GDL_LONG64;
-	else if( SpDULong64().TypeStr() == typeStr) resultType = GDL_ULONG64;
-	else 
-	  ThrowFromInternalUDSub( e, "Unknown or unable to convert to type " + typeStr);      	
+		DString typeStr = StrUpCase( (*static_cast<DStringGDL*>(typeKW))[0]);
+			 if( SpDByte().TypeStr() == typeStr) resultType = GDL_BYTE;
+		else if( SpDInt().TypeStr() == typeStr) resultType = GDL_INT;
+		else if( SpDLong().TypeStr() == typeStr) resultType = GDL_LONG;
+		else if( SpDFloat().TypeStr() == typeStr) resultType = GDL_FLOAT;
+		else if( SpDDouble().TypeStr() == typeStr) resultType = GDL_DOUBLE;
+		else if( SpDComplex().TypeStr() == typeStr) resultType = GDL_COMPLEX;
+		else if( SpDString().TypeStr() == typeStr) resultType = GDL_STRING;
+		else if( SpDComplexDbl().TypeStr() == typeStr) resultType = GDL_COMPLEXDBL;
+		else if( SpDUInt().TypeStr() == typeStr) resultType = GDL_UINT;
+		else if( SpDULong().TypeStr() == typeStr) resultType = GDL_ULONG;
+		else if( SpDLong64().TypeStr() == typeStr) resultType = GDL_LONG64;
+		else if( SpDULong64().TypeStr() == typeStr) resultType = GDL_ULONG64;
+		else 
+		  ThrowFromInternalUDSub( e, "Unknown or unable to convert to type " + typeStr);      	
       }
       else
       {
-	DLongGDL* typeCodeKW;
-	Guard<DLongGDL> typeCodeGuard;
-	if( typeKW->Type() == GDL_LONG)
-	{
-	  typeCodeKW = static_cast<DLongGDL*>(typeKW);
-	}
-	else
-	{
-	  try{
-	    typeCodeKW = static_cast<DLongGDL*>(typeKW->Convert2(GDL_LONG,BaseGDL::COPY));
-	    typeCodeGuard.Init(typeCodeKW);
-	  }
-	  catch( GDLException& ex)
-	  {
-	    ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-	  }
-	}
-	DLong typeCode = (*typeCodeKW)[0];
-	if( typeCode < GDL_BYTE || typeCode > GDL_ULONG64)
-	  ThrowFromInternalUDSub( e, "Illegal value for TYPE: " + i2s(typeCode));      	
-	resultType = static_cast<DType>(typeCode);  
-      }
+		
+		MAKE_LONGGDL(typeKW, typeCodeKW)
+		DLong typeCode = (*typeCodeKW)[0];
+		if( typeCode < GDL_BYTE || typeCode > GDL_ULONG64)
+		  ThrowFromInternalUDSub( e, "Illegal value for TYPE: " + i2s(typeCode));      	
+		resultType = static_cast<DType>(typeCode);  
+	   }
     }
-    if( resultType == GDL_UNDEF)
-	ThrowFromInternalUDSub( e, "Result type is UNDEF. Please report.");      	
-      
+	if( resultType == GDL_UNDEF)
+		ThrowFromInternalUDSub( e, "Result type is UNDEF. Please report."); 
+	DLong dimkw=0;
+    MAKE_LONGGDL(dimensionKW, dimkwLong)
+    if(dimensionKW != NULL) dimkw = (*dimkwLong)[0];
+    if(dimkw > 8) ThrowFromInternalUDSub( e, 
+			" DIMENSION keyword can only go up to 8" );
+	SizeT nel0 = data->N_Elements();
+	dimension refdim(data->Dim());
+	if( dimkw == refdim.Rank() +1) refdim << 1; // one-time deal
+	SizeT Rank0 = refdim.Rank();
+	SizeT Rank0Ix = RankIx(Rank0);
+	if( dimkw > Rank0) 	ThrowFromInternalUDSub( e, 
+			" DIMENSION keyword exceeds plausible rank of first element" );
+
+	SizeT newSize = 0;
+	pNext = pTail;
+
+	for( SizeT inlist=0; inlist<nList; ++inlist)
+	{
+      DStructGDL* Node = GetLISTStruct(NULL, pNext);  
+      data = BaseGDL::interpreter->GetHeap(
+				(*static_cast<DPtrGDL*>( 
+				Node->GetTag( pDataTag, 0)))[0]);
+      pNext = (*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0];     		  
+
+		if( data == NULL) {
+			if( dimkw > 0 || missingKW == NULL) continue; // will be quietly bypassed.
+			++newSize;
+			continue;
+		}
+
+      if(Rank0 != 0)
+      {
+		dimension thedim(data->Dim());
+		if( thedim.Rank() != Rank0 ) {  // kick with one exception
+		  if(dimkw == 0 ) ThrowFromInternalUDSub( e, 
+			" all elements must be Rank "+i2s( (long) Rank0) );
+		  if( !((dimkw == Rank0) and
+			( thedim.Rank() == Rank0-1)) ) ThrowFromInternalUDSub( e, 
+			" all elements must be Rank "+i2s( (long) Rank0) );
+		  thedim << 1;
+		}
+		for(int i=0; i < Rank0; ++i)
+		  {
+			if(trace_me) std::cout << thedim[i];
+			if( dimkw == (i+1)) continue;
+			if(thedim[i] != refdim[i])
+				ThrowFromInternalUDSub(e, " dimensions dont agree "
+				+i2s(i+1)+" List item #"+i2s(inlist)+"\n "
+				+i2s(thedim[i]) +" # "+i2s(refdim[i]));
+			}
+			if( dimkw > 0) newSize += thedim[dimkw-1];
+			else ++newSize;
+		} 
+// 1-d arrays an mix with scalars by defining array[10] = array[1,10]
+		else  // (Rank0Ix != 0)
+		{
+			if( (data->N_Elements() != nel0) && (dimkw != 1) ) 
+				ThrowFromInternalUDSub(e, " 1-d Sizes don't agree "
+				+i2s(nel0)+" List item #"+i2s(inlist));
+			else newSize += data->N_Elements();
+		}
+// Dimensionality seems ok. Now check for type.		
+		DType theType = data->Type();
+		if( ( theType == resultType) || !ConvertableType( theType) ) continue;
+		if( promote_type ) 
+		{ 
+		  if( theType == GDL_STRING) resultType = GDL_STRING;
+		  if( NumericType( theType) && (resultType != GDL_STRING)) 
+			{
+			if ( theType == GDL_COMPLEXDBL) resultType = GDL_COMPLEXDBL;
+			else if (resultType == GDL_COMPLEXDBL) continue;
+			else if (( theType == GDL_COMPLEX) && (resultType == GDL_DOUBLE)
+			  || ( theType == GDL_DOUBLE) && (resultType == GDL_COMPLEX) )
+				resultType = GDL_COMPLEXDBL;
+			else if (resultType == GDL_COMPLEX ) continue;
+			else if (theType == GDL_DOUBLE ) resultType = GDL_DOUBLE;
+			else if (theType == GDL_COMPLEX ) resultType = GDL_COMPLEX;
+			else if ( DTypeOrder[ theType] >= DTypeOrder[ resultType] && 
+					( theType > resultType) ) resultType = theType;
+			  }
+
+		}
+	  }
+  	dimension newdim = refdim;
+  	
+	if( dimkw > 0) {
+		newdim.SetOneDim( dimkw-1, newSize);
+	} else {
+		newdim << newSize;
+	}
+
+	SizeT catrankIx = (dimkw ==0) ? RankIx(newdim.Rank()) : dimkw-1 ;
+    if(trace_me)
+		std::cout <<" catrankIx, newdim.Rank()"<< catrankIx<<newdim.Rank()
+		 <<" Resulttype:"<<resultType<<" newdim:" << newdim << std::endl;
+  {
     try{
 	     if( resultType == GDL_BYTE)
-	       return LIST__ToArray<DByteGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DByteGDL>( e, newdim);       
 	else if( resultType == GDL_INT)
-	       return LIST__ToArray<DIntGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DIntGDL>( e, newdim);
 	else if( resultType == GDL_LONG)
-	       return LIST__ToArray<DLongGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DLongGDL>( e, newdim);
 	else if( resultType == GDL_FLOAT)
-	       return LIST__ToArray<DFloatGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DFloatGDL>( e, newdim);
 	else if( resultType == GDL_DOUBLE)
-	       return LIST__ToArray<DDoubleGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DDoubleGDL>( e, newdim);
 	else if( resultType == GDL_COMPLEX)
-	       return LIST__ToArray<DComplexGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DComplexGDL>( e, newdim);
 	else if( resultType == GDL_STRING)
-	       return LIST__ToArray<DStringGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DStringGDL>( e, newdim);
 	else if( resultType == GDL_COMPLEXDBL)
-	       return LIST__ToArray<DComplexDblGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DComplexDblGDL>( e, newdim);
 	else if( resultType == GDL_UINT)
-	       return LIST__ToArray<DUIntGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DUIntGDL>( e, newdim);
 	else if( resultType == GDL_ULONG)
-	       return LIST__ToArray<DULongGDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DULongGDL>( e, newdim);
 	else if( resultType == GDL_LONG64)
-	       return LIST__ToArray<DLong64GDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DLong64GDL>( e, newdim);
 	else if( resultType == GDL_ULONG64)
-	       return LIST__ToArray<DULong64GDL>( nList, pTail, missingKW);
-	       
+	       return LIST__ToArray<DULong64GDL>( e, newdim);
+	else if( resultType == GDL_STRUCT)
+	       throw GDLException( " unable to extract arrays of GDL_STRUCT");
 	else 
 	  throw GDLException( "Unknown or unable to convert to type code: " + i2s(resultType));      	
       
@@ -1435,6 +1591,8 @@ BaseGDL* list__toarray( EnvUDT* e)
       }
     assert(false);
     return NULL;
+}
+
   }
 
 BaseGDL* list__isempty( EnvUDT* e)

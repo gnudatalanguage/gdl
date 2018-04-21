@@ -566,16 +566,36 @@ void SetupOverloadSubroutines()
   listDesc->ProList().push_back(DProLIST__REVERSE);
 // LIST::ToArray()
   DFun *DFunLIST__TOARRAY = new DFun("TOARRAY","LIST",INTERNAL_LIBRARY_STR);
-  DFunLIST__TOARRAY->AddKey("TYPE","TYPE");
-  DFunLIST__TOARRAY->AddKey("MISSING","MISSING");
+  DFunLIST__TOARRAY->AddKey("TYPE","TYPE")->AddKey("MISSING","MISSING");
+  DFunLIST__TOARRAY->AddKey("DIMENSION","DIMENSION")->AddKey("NO_COPY","NO_COPY");
+  DFunLIST__TOARRAY->AddKey("PROMOTE_TYPE","PROMOTE_TYPE")->AddKey("TRANSPOSE","TRANSPOSE");
+  
   treeFun = new WRAPPED_FUNNode( lib::list__toarray);
   DFunLIST__TOARRAY->SetTree( treeFun);
   listDesc->FunList().push_back(DFunLIST__TOARRAY);
+  #if 0
+// LIST::HELP()
+  DFun *DFunLIST__HELP = new DFun("HELP","LIST",INTERNAL_LIBRARY_STR);
+  DFunLIST__TOHELP->AddKey("MAXITEM","MAXITEM");
+  treeFun = new WRAPPED_FUNNode( lib::list__help);
+  DFunLIST__TOHELP->SetTree( treeFun);
+  listDesc->FunList().push_back(DFunLIST__TOHELP);
+  #endif
+  #if 0
+// LIST::HELP
+  DPro *DProLIST__HELP = new DPro("HELP","LIST",INTERNAL_LIBRARY_STR);
+  DProLIST__HELP->AddKey("MAXITEM","MAXITEM");
+  treePro = new WRAPPED_PRONode( lib::list__help);
+  DProLIST__HELP->SetTree( treePro);
+  listDesc->ProList().push_back(DProLIST__HELP);
+  #endif
 // LIST::CLEANUP
+// 
+/*2017-Dec-23 GVJ Omit this routine and see if GDL takes care of things.
   DPro *DProLIST__CLEANUP = new DPro("CLEANUP","LIST",INTERNAL_LIBRARY_STR);
   treePro = new WRAPPED_PRONode( lib::list__cleanup);
   DProLIST__CLEANUP->SetTree( treePro);
-  listDesc->ProList().push_back(DProLIST__CLEANUP);
+	  listDesc->ProList().push_back(DProLIST__CLEANUP);*/
 // LIST::MOVE
   DPro *DProLIST__MOVE = new DPro("MOVE","LIST",INTERNAL_LIBRARY_STR);
   DProLIST__MOVE->AddPar("SOURCE")->AddPar("DESTINATION");

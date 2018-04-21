@@ -127,7 +127,10 @@ if(~isgit) then begin
 	tl = alist[nl,2:4]
 	jj = where(tl ne igen[2:4],nc)
 	if(nc ne 0) then MYMESS, nb_errors, txt0+'- simple [nl,2:4]'
-	endif
+	endif else begin
+		if keyword_set(verbose) then $
+			message,/continue,' git: legacylist not expected to left insert correctly'
+	endelse
 if KEYWORD_SET(test) then stop,' stop 1'
 ;alist=0
 empty_list = 0
@@ -156,6 +159,34 @@ ll=0
 if lines.a ne stab.a or lines.b ne stab.b then $
 	MYMESS, nb_errors, ' moving a structure item'
 ;
+aa=strsplit(['This is an example',$
+' of a string array that will go','for a test'],/extract,length=len)
+nline = n_elements(aa)
+strall = aa.toarray(dim=1)
+wordlength = len.toarray(dim=1)
+slen = strlen(aa[0])
+for k=1,nline-1 do slen = [slen,strlen(aa[k])]
+ko = where(wordlength ne slen, nc) & if nc ne 0 then message,' (wordlength ne slen'
+ll=list()
+for k=0,14 do ll.add,k+1
+;       legacy bug for k=0,14 do ll[k]=k+1
+igen = 1+indgen(15)
+jj=where((ll.toarray()) ne igen, nj) & if(nj ne 0) then $
+        MYMESS, nb_errors, ' for k=0,14 do ll[k]=k+1'
+lnew=ll[2:5]
+jj=where((lnew.toarray()) ne igen[2:5], nj) & if(nj ne 0) then $
+        MYMESS, nb_errors, ' lnew=ll[2:5]'
+lnew = 0
+subList = LIST('zero', 1, 2.0)
+for k=0,sublist.count()-1 do ll.add,subList[k],k
+                        ;       ll.Add, subList, 0, /EXTRACT
+if KEYWORD_SET(test) then stop,' testing list: sublist, ll'
+itst = intarr(sublist.count())
+for k=0,sublist.count()-1 do itst[k] = (sublist[k] eq ll[k])
+
+;% LIST::_OVERLOADEQ (internal): LIST container node ID <0> not found.
+;alttst = sublist eq ll
+
 if KEYWORD_SET(verbose) then print,' Done checking '+txt
 ;
 if KEYWORD_SET(verbose) then $
@@ -165,6 +196,8 @@ if(isgit) then begin
 BANNER_FOR_TESTSUITE, 'TEST_LIST(legacy)', nb_errors, short=short
     return
     endif
+; ~isgit can handle this:
+alttst = sublist eq ll
 
 ; Change the values in the list
 nalist = alist.count()
@@ -211,27 +244,18 @@ if KEYWORD_SET(verbose) then $
   foreach el,ll3 do print,el
 if KEYWORD_SET(test) then stop,' stop 3'
 ;
+; TOARRAY tested:
 ll=list()
 for k=0,14 do ll.add,-1
 for k=0,14 do ll[k]=k+1
 igen = 1+indgen(15)
 jj=where((ll.toarray()) ne igen, nj) & if(nj ne 0) then $
 	MYMESS, nb_errors, ' for k=0,14 do ll[k]=k+1'
-lnew=ll[2:5]
-jj=where((lnew.toarray()) ne igen[2:5], nj) & if(nj ne 0) then $
-	MYMESS, nb_errors, ' lnew=ll[2:5]'
-lnew = 0
-subList = LIST('zero', 1, 2.0)
-for k=0,sublist.count()-1 do ll.add,subList[k],k
-			;	ll.Add, subList, 0, /EXTRACT
-if KEYWORD_SET(test) then stop,' testing list: sublist, ll'
-itst = intarr(sublist.count())
-for k=0,sublist.count()-1 do itst[k] = (sublist[k] eq ll[k])
-alttst = sublist eq ll
+
 if KEYWORD_SET(verbose) then $
    print,' ll.Add, subList, 0, /EXTRACT & print, sublist eq ll >>', alttst
-;if KEYWORD_SET(test) then stop,' testing list: sublist=0 & ll=0'
-;   sublist=0 & ll = 0 ; ll=0 kills it here.
+
+
 ll=list(indgen(20),/extract)
 vv=[2,3,6,8]
 dd=ll[vv]
