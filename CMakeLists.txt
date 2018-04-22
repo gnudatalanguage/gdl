@@ -361,7 +361,7 @@ set(CMAKE_PREFIX_PATH ${XDRDIR})
 find_package(Xdr)
 set(HAVE_LIBXDR ${XDR_FOUND})
 if(XDR_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
+	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
 	include_directories(${XDR_INCLUDE_DIR})
 else(XDR_FOUND)
 	message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
@@ -378,7 +378,7 @@ else(PCRE_FOUND)
 	message(FATAL_ERROR "pcre library is required but was not found.\n"
 	"Use -DPCREDIR=DIR to specify the pcre directory tree.")
 endif(PCRE_FOUND)
-	LINK_LIBRARIES(shlwapi gnurx)
+LINK_LIBRARIES(shlwapi)
 endif(WIN32 AND NOT CYGWIN)
 
 # PLplot MANDATORY
