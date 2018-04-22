@@ -1747,6 +1747,28 @@ namespace lib {
     if (nCount > 0) return new DByteGDL( 0); else return new DByteGDL(1);
   }
 
+  BaseGDL* hash__isordered( EnvUDT* e)
+  {
+	static unsigned ordmask = 0x00000010;
+    static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
+    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    static int kwSELFIx = 0;
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    DStructGDL* self = GetOBJ( selfP, e);
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
+    if(trace_me) std::cout << "isordered: nCount=" << nCount << std::endl;
+    DLong bits = (*static_cast<DLongGDL*>( self->GetTag( TableBitsTag , 0)))[0];
+    if(trace_me) std::cout << "isordered: bits=" << bits << std::endl;
+    if ( (bits & ordmask) == 0) return new DByteGDL( 0); else return new DByteGDL(1);
+  }
+  BaseGDL* hash__isfoldcase( EnvUDT* e)
+  {
+	static unsigned fold_case_mask = 0x00000001;
+    static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
+    
+    if ( Hashisfoldcase( GetOBJ( e->GetKW( 0), e)) ) return new DByteGDL(1);
+     else return new DByteGDL(0);
+  }
 
   SizeT HASH_count( DStructGDL* hash)
   {

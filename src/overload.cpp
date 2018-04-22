@@ -435,6 +435,8 @@ void SetupOverloadSubroutines()
   assert( hashDesc != NULL);
   
   WRAPPED_FUNNode *tree;
+  WRAPPED_FUNNode *treeFun;
+  WRAPPED_PRONode *treePro;
   
   // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,INTERNAL_LIBRARY_STR);
@@ -677,10 +679,10 @@ void SetupOverloadSubroutines()
   hashDesc->FunList().push_back(DFunHASH__VALUES);
 // HASH::TOSTRUCT()
   DFun *DFunHASH__TOSTRUCT = new DFun("TOSTRUCT","HASH",INTERNAL_LIBRARY_STR);
-  DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED");
-  DFunHASH__TOSTRUCT->AddKey("MISSING","MISSING");
-  tree = new WRAPPED_FUNNode( lib::hash__tostruct);
-  DFunHASH__TOSTRUCT->SetTree( tree);
+  DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED")->AddKey("MISSING","MISSING");
+  DFunHASH__TOSTRUCT->AddKey("NO_COPY","NO_COPY")->AddKey("RECURSIVE","RECURSIVE");
+  treeFun = new WRAPPED_FUNNode( lib::hash__tostruct);
+  DFunHASH__TOSTRUCT->SetTree( treeFun);
   hashDesc->FunList().push_back(DFunHASH__TOSTRUCT);
 // HASH::COUNT()
   DFun *DFunHASH__COUNT = new DFun("COUNT","HASH",INTERNAL_LIBRARY_STR);
@@ -693,6 +695,16 @@ void SetupOverloadSubroutines()
   tree = new WRAPPED_FUNNode( lib::hash__isempty);
   DFunHASH__ISEMPTY->SetTree( tree);
   hashDesc->FunList().push_back(DFunHASH__ISEMPTY);
+// HASH::ISORDERED()
+  DFun *DFunHASH__ISORDERED = new DFun("ISORDERED","HASH",INTERNAL_LIBRARY_STR);
+  treeFun = new WRAPPED_FUNNode( lib::hash__isordered);
+  DFunHASH__ISORDERED->SetTree( treeFun);
+  hashDesc->FunList().push_back(DFunHASH__ISORDERED);
+// HASH::ISFOLDCASE()
+  DFun *DFunHASH__ISFOLDCASE = new DFun("ISFOLDCASE","HASH",INTERNAL_LIBRARY_STR);
+  treeFun = new WRAPPED_FUNNode( lib::hash__isfoldcase);
+  DFunHASH__ISFOLDCASE->SetTree( treeFun);
+  hashDesc->FunList().push_back(DFunHASH__ISFOLDCASE);
 // HASH::WHERE()
   DFun *DFunHASH__WHERE = new DFun("WHERE","HASH",INTERNAL_LIBRARY_STR);
   DFunHASH__WHERE->AddKey("COMPLEMENT","COMPLEMENT");
