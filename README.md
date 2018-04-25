@@ -51,13 +51,11 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | | [Fedora](https://src.fedoraproject.org/rpms/gdl) | [Debian](https://packages.debian.org/sid/gnudatalanguage) | [Ubuntu](http://packages.ubuntu.com/gnudatalanguage) | [Gentoo](https://packages.gentoo.org/packages/dev-lang/gdl) | [Arch](https://aur.archlinux.org/packages/gnudatalanguage/)  | [FreeBSD](https://svnweb.freebsd.org/ports/head/science/gnudatalanguage/) | [Homebrew](http://braumeister.org/repos/Homebrew/homebrew-science/formula/gnudatalanguage) | [Macports](https://github.com/macports/macports-ports/tree/master/math/gnudatalanguage) |
 | --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | lastest release                                                                         | 0.9.7  | **0.9.8**  | 0.9.7  | 0.9.6   | 0.9.7 | **0.9.8** | 0.9.7 | 0.9.7 |
-| --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)       | + (r)  |    + (r)   |  + (r) | + (r)   | + (r) |   + (r)   | + (r) |   +   |
 | [\[n\]curses](https://www.gnu.org/software/ncurses/)                                    | + (n)  |    + (n)   |  + (n) | + (n)   |   +   |   + (n)   | + (n) | + (n) |
 | [zlib](https://zlib.net/)                                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [GSL](https://www.gnu.org/software/gsl/)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [plplot](https://plplot.sourceforge.net)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | [OpenMP](http://www.openmp.org/)                                                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | \[[Image](https://imagemagick.org/)/[Graphics](http://graphicsmagick.org/)\] Magick     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
 | [wxWidgets](https://www.wxwidgets.org/)                                                 |   +    |    +       |   +    | +       |   +   |    +      |   -   |   -   |
