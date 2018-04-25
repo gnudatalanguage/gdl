@@ -36,7 +36,7 @@ Other open-source numerical data analysis tools similar to GDL include
 [PDL](http://pdl.perl.org/),
 [NCL](http://www.ncl.ucar.edu/),
 [R](http://www.r-project.org/),
-[Yorick](http://yorick.sourceforge.net/), ...
+[Yorick](http://yorick.sourceforge.net/).
 
 Package availability
 --------------------
@@ -58,7 +58,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [GSL](https://www.gnu.org/software/gsl/)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [plplot](https://plplot.sourceforge.net)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [OpenMP](http://www.openmp.org/)                                                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| \[[Image](https://imagemagick.org/)/[Graphics](http://graphicsmagick.org/)\]Magick      | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
+| \[[Image](https://imagemagick.org/)/[Graphics](http://graphicsmagick.org/)\] Magick     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
 | [wxWidgets](https://www.wxwidgets.org/)                                                 |   +    |    +       |   +    | +       |   +   |    +      |   -   |   -   |
 | [netCDF](https://www.unidata.ucar.edu/software/netcdf/)                                 |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [HDF4](https://support.hdfgroup.org/products/hdf4/)                                     |   +    |    +       |   +    | +       |   -   |    -      |   -   |   +   |
