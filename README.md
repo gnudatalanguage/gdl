@@ -28,6 +28,7 @@ Graphical output is handled by X11, PostScript, SVG or z-buffer terminals, the l
 GDL features integrated debugging facilities. 
 Build-in widget functionality enables development of GUI-based software.
 GDL has also a Python bridge (Python code can be called from GDL; GDL can be compiled as a Python module). 
+Development and maintanance of GDL is carried out targetting mainly Linux, BSD, OSX and Windows (MinGW, Cygwin).
 
 Other open-source numerical data analysis tools similar to GDL include
 [SciPy](http://www.scipy.org/),
@@ -38,25 +39,25 @@ Other open-source numerical data analysis tools similar to GDL include
 [R](http://www.r-project.org/),
 [Yorick](http://yorick.sourceforge.net/).
 
-Package availability
---------------------
+Dependencies and package availability
+-------------------------------------
 
 Packaged versions of GDL are available for several Linux distributions, BSD and Mac OS X. 
-The source code compiles on Windows (mingw), as well on other UNIX systems, including Solaris. 
-
 Please note that several features of GDL depend on compile-time configuration, and might not 
   be available in pre-built or pre-configured packages. 
 The table below summarises GDL mandatory and optional dependencies along with the availability 
-  of optional functionalities in packages (as of April 2018):
+  of the optional functionalities in packages (as of April 2018):
 
 | | [Fedora](https://src.fedoraproject.org/rpms/gdl) | [Debian](https://packages.debian.org/sid/gnudatalanguage) | [Ubuntu](http://packages.ubuntu.com/gnudatalanguage) | [Gentoo](https://packages.gentoo.org/packages/dev-lang/gdl) | [Arch](https://aur.archlinux.org/packages/gnudatalanguage/)  | [FreeBSD](https://svnweb.freebsd.org/ports/head/science/gnudatalanguage/) | [Homebrew](http://braumeister.org/repos/Homebrew/homebrew-science/formula/gnudatalanguage) | [Macports](https://github.com/macports/macports-ports/tree/master/math/gnudatalanguage) |
 | --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | lastest release                                                                         | 0.9.7  | **0.9.8**  | 0.9.7  | 0.9.6   | 0.9.7 | **0.9.8** | 0.9.7 | 0.9.7 |
+| --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)       | + (r)  |    + (r)   |  + (r) | + (r)   | + (r) |   + (r)   | + (r) |   +   |
 | [\[n\]curses](https://www.gnu.org/software/ncurses/)                                    | + (n)  |    + (n)   |  + (n) | + (n)   |   +   |   + (n)   | + (n) | + (n) |
 | [zlib](https://zlib.net/)                                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [GSL](https://www.gnu.org/software/gsl/)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [plplot](https://plplot.sourceforge.net)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
+| --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
 | [OpenMP](http://www.openmp.org/)                                                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | \[[Image](https://imagemagick.org/)/[Graphics](http://graphicsmagick.org/)\] Magick     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
 | [wxWidgets](https://www.wxwidgets.org/)                                                 |   +    |    +       |   +    | +       |   +   |    +      |   -   |   -   |
@@ -76,4 +77,48 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    -       |   -    | -       |   -   |    +      |   -   |   -   |
 | [Python](https://www.python.org/) module                                                |   +    |    +       |   +    | +       |   -   |    -      |   -   |   -   |
 
+Build-time dependencies
+-----------------------
 
+Build and test automation is carried out using [CMake](http://cmake.org/).
+
+GDL interpreter has been developed using [ANTLR v2](http://www.antlr2.org) but unless you want 
+  to change the grammar (\*.g files) you don't need ANTLR. 
+All relevant ANTLR files are included in the source tree.
+
+Support and feedback
+--------------------
+
+Your comments are welcome! Let us know what you use GDL for. Or if you don't, why not. 
+Which functionality are you missing/would appreciate most for comming versions. 
+Please use the github issue-tracking system to report 
+  bugs, complaints, suggestions and comments.
+
+Code enhancements in the form of pull requests are very welcome!
+Note that contributions can be made in C/C++, IDL/GDL as well as Python.
+
+Information resources
+---------------------
+
+As GDL is almost 100% compatible with IDL (although not complete as many subroutines are waiting to be implemented), 
+  resources for IDL constitute valuable sources of information for GDL users as well.
+These include:
+- the [ofiicial IDL documentation](https://www.harrisgeospatial.com/docs/)
+- the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
+- the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
+- Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_(programming_language) and references therein
+- websites of IDL gurus including [David Fanning](http://www.idlcoyote.com/) and [Michael Galloy](http://michaelgalloy.com/)
+- numerous [tutorials and lecture notes](https://www.google.com/search?q=interactive+data+language) introducing IDL
+
+There are several open source packages compatible or interoperable with GDL, including:
+- the [gdlde](github.com/gnudatalanguage/gdlde) IDE
+- the [IDL/GDL Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)
+- the [IDLWAVE Emacs mode](https://www.gnu.org/software/emacs/manual/html_mono/idlwave.html)
+- IDL [syntax highlighting module for Vim](https://github.com/vim/vim/blob/master/runtime/syntax/idlang.vim)
+- the [SingleCompile extension for Vim](https://github.com/vim-scripts/SingleCompile)
+
+Alain Coulais maintains the [GDL-accounces mailing list](https://sympa.obspm.fr/wws/info/gdl-announces).
+
+There have been quite some [mentions of GDL in scientific literature](https://scholar.google.com/scholar?q="gnu+data+language") 
+  which also provide example use cases.
+The Coulais et al. papers from the ADASS conferences are the best way to cite GDL as of now.
