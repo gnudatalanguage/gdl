@@ -306,7 +306,7 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
   //make one loop for wxWidgets Events...
-  if (wxIsStarted() && wxTheApp) {
+  if( wxTheApp) { // if (wxIsStarted() && wxTheApp) { //wxIsStarted==false causes (race?) issues.
       wxTheApp->OnRun(); //wxTheApp may not be started
   //treat our GDL events...
     DStructGDL* ev = NULL;
@@ -413,6 +413,11 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
     if ((*it).second->GetManaged() == true) (*result)[index++]=(*it).second->widgetID;
   }
   return result;
+}
+// Init
+void GDLWidget::Init()
+{
+ if( ! wxInitialize( ) ) cerr << "WARNING: wxWidgets not initializing" <<endl;
 }
 // UnInit
 void GDLWidget::UnInit()
