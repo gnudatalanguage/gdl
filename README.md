@@ -7,7 +7,7 @@
 GDL - GNU Data Language
 =======================
 
-GDL is a free/libre/open source incremental compiler compatible with IDL and to some extent with PV-WAVE. 
+GDL is a free/libre/open source incremental compiler compatible with IDL (Interactive Data Language) and to some extent with PV-WAVE. 
 Together with its library routines it serves as a tool for data analysis and visualization in such disciplines 
   as astronomy, geosciences and medical imaging. 
 GDL development had been started by **Marc Schellens** back in early noughties and has since continued 
@@ -19,7 +19,9 @@ PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com)
 Overview
 --------
 
-GDL as a language is dynamically-typed, vectorized and has object-oriented programming capabilities. 
+GDL is a domain-specific language and data analysis environment.
+As a programming language, GDL is dynamically-typed, array-oriented, vectorized and has 
+  object-oriented programming capabilities. 
 GDL library routines handle numerical calculations, data visualisation, signal/image processing, 
   interaction with host OS and data input/output. 
 GDL supports several data formats such as netCDF, HDF4, HDF5, GRIB, PNG, TIFF, DICOM, etc. 
@@ -73,7 +75,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [GRIB](https://software.ecmwf.int/wiki/display/GRIB)                                    |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [QHULL](http://www.qhull.org/)                                                          |   +    |    +       |   +    | -       |   -   |    +      |   -   |   -   |
 | [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    -       |   -    | -       |   -   |    +      |   -   |   -   |
-| [Python](https://www.python.org/) module                                                |   +    |    +       |   +    | +       |   -   |    -      |   -   |   -   |
+| [Python](https://www.python.org/) module                                                | + ([python-gdl](https://packages.debian.org/python-gdl)) | + ([python-gdl](https://packages.ubuntu.com/python-gdl)) | +    | +       |   -   |    -      |   -   |   -   |
 
 Build-time dependencies
 -----------------------
@@ -84,8 +86,8 @@ GDL interpreter has been developed using [ANTLR v2](http://www.antlr2.org) but u
   to change the grammar (\*.g files) you don't need ANTLR. 
 All relevant ANTLR files are included in the source tree.
 
-Support and feedback
---------------------
+Support, feedback and contributions
+-----------------------------------
 
 Your comments are welcome! Let us know what you use GDL for. Or if you don't, why not. 
 Which functionality are you missing/would appreciate most for comming versions. 
@@ -93,7 +95,15 @@ Please use the github issue-tracking system to report
   bugs, complaints, suggestions and comments.
 
 Code enhancements in the form of pull requests are very welcome!
-Note that contributions can be made in C/C++, IDL/GDL as well as Python.
+Note that contributions can be made in C/C++, IDL/GDL or Python, as well as
+  by providing enhancements and extensions of the README files, diagnostic messages, etc.
+
+Among the major challenges GDL development is facing there are:
+- [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writting test programs in GDL
+- coming up with a viable workflow for developing and maintaining GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
+- bringing in into the team the needed know-how to address the [backlog of ANTLR-related issues](https://github.com/gnudatalanguage/gdl/labels/antlr)
+- incresing presence within and interoperability with the Python ecosystem (including adding support for Python 3 - calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
+Help welcome!
 
 Information resources
 ---------------------
@@ -101,15 +111,19 @@ Information resources
 As GDL is almost 100% compatible with IDL (although not complete as many subroutines are waiting to be implemented), 
   resources for IDL constitute valuable sources of information for GDL users as well.
 These include:
-- the [ofiicial IDL documentation](https://www.harrisgeospatial.com/docs/)
+- the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
 - the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
-- Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_(programming_language) and references therein
+- Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\)) and references therein
 - websites of IDL gurus including [David Fanning](http://www.idlcoyote.com/) and [Michael Galloy](http://michaelgalloy.com/)
 - numerous [tutorials and lecture notes](https://www.google.com/search?q=interactive+data+language) introducing IDL
 
 There are several open source packages compatible or interoperable with GDL, including:
-- the [gdlde](github.com/gnudatalanguage/gdlde) IDE
+- the [MPFIT]() curve fitting library written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-mpfit))
+- the [IDL Astronomy User's Library](https://idlastro.gsfc.nasa.gov/) written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-idlastro))
+- the [Coyote](https://www.idlcoyote.com) library of IDL-written utilities (also available as a [Debian package](https://packages.debian.org/gdl-coyote))
+- the [TeXtoIDL](http://physics.mnstate.edu/craig/textoidl/) package 
+- the [gdlde](https://github.com/gnudatalanguage/gdlde) IDE
 - the [IDL/GDL Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)
 - the [IDLWAVE Emacs mode](https://www.gnu.org/software/emacs/manual/html_mono/idlwave.html)
 - IDL [syntax highlighting module for Vim](https://github.com/vim/vim/blob/master/runtime/syntax/idlang.vim)
@@ -120,3 +134,8 @@ Alain Coulais maintains the [GDL-accounces mailing list](https://sympa.obspm.fr/
 There have been quite some [mentions of GDL in scientific literature](https://scholar.google.com/scholar?q="gnu+data+language") 
   which also provide example use cases.
 The Coulais et al. papers from the ADASS conferences are the best way to cite GDL as of now.
+
+Acknowledgements
+----------------
+
+GDL development had been carried out at [SourceForge](http://sourceforge.net/) in years 2003-2018 - thank you!
