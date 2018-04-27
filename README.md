@@ -13,14 +13,14 @@ Together with its library routines it serves as a tool for data analysis and vis
 GDL development had been started by **Marc Schellens** back in early noughties and has since continued 
   with help of a team of maintainers, developers, packagers and thanks to feedback from users.
 
-IDL is a registered trademark of [Harris Geospatial Solutions](https://www.harrisgeospatial.com)
-PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com)
+IDL is a registered trademark of [Harris Geospatial Solutions](https://www.harrisgeospatial.com).
+PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com).
 
 Overview
 --------
 
-GDL is a domain-specific language and data analysis environment.
-As a programming language, GDL is dynamically-typed, array-oriented, vectorised and has 
+GDL is a domain-specific programming language and a data analysis environment.
+As a language, it is dynamically-typed, array-oriented, vectorised and has 
   object-oriented programming capabilities. 
 GDL library routines handle numerical calculations, data visualisation, signal/image processing, 
   interaction with host OS and data input/output. 
@@ -95,20 +95,21 @@ Please use the github issue-tracking system to report
   bugs, complaints, suggestions and comments.
 
 Code enhancements in the form of pull requests are very welcome!
-Note that contributions can be made in C/C++, IDL/GDL or Python, as well as
+Note that contributions can be made in C++, IDL/GDL or Python, as well as
   by providing enhancements and extensions of the README files, diagnostic messages, etc.
 
-Among the major challenges GDL development is facing there are:
+Among the major challenges GDL development is facing currently, there are:
 - [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writing test programs in GDL
-- coming up with a viable workflow for developing and maintaining GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
+- streamlining development and maintainance of GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
 - bringing in into the team the needed know-how to address the [backlog of ANTLR-related issues](https://github.com/gnudatalanguage/gdl/labels/antlr)
-- increasing presence within and interoperability with the Python ecosystem (including adding support for Python 3 - calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
+- increasing presence within and interoperability with the Python ecosystem, including adding support for Python 3 (calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
+
 Help welcome!
 
 Information resources
 ---------------------
 
-As GDL is almost 100% compatible with IDL (although not complete as many subroutines are waiting to be implemented), 
+As GDL is aimed as a drop-in replacement for IDL,
   resources for IDL constitute valuable sources of information for GDL users as well.
 These include:
 - the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
