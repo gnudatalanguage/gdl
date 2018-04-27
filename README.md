@@ -20,7 +20,7 @@ Overview
 --------
 
 GDL is a domain-specific language and data analysis environment.
-As a programming language, GDL is dynamically-typed, array-oriented, vectorized and has 
+As a programming language, GDL is dynamically-typed, array-oriented, vectorised and has 
   object-oriented programming capabilities. 
 GDL library routines handle numerical calculations, data visualisation, signal/image processing, 
   interaction with host OS and data input/output. 
@@ -30,7 +30,7 @@ Graphical output is handled by X11, PostScript, SVG or z-buffer terminals, the l
 GDL features integrated debugging facilities. 
 Build-in widget functionality enables development of GUI-based software.
 GDL has also a Python bridge (Python code can be called from GDL; GDL can be compiled as a Python module). 
-Development and maintanance of GDL is carried out targetting mainly Linux, BSD, OSX and Windows (MinGW, Cygwin).
+Development and maintenance of GDL is carried out targeting Linux, BSD, OSX and Windows (MinGW, Cygwin).
 
 Other open-source numerical data analysis tools similar to GDL include
 [SciPy](http://www.scipy.org/),
@@ -52,7 +52,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 
 | | [Fedora](https://src.fedoraproject.org/rpms/gdl) | [Debian](https://packages.debian.org/sid/gnudatalanguage) | [Ubuntu](http://packages.ubuntu.com/gnudatalanguage) | [Gentoo](https://packages.gentoo.org/packages/dev-lang/gdl) | [Arch](https://aur.archlinux.org/packages/gnudatalanguage/)  | [FreeBSD](https://svnweb.freebsd.org/ports/head/science/gnudatalanguage/) | [Homebrew](http://braumeister.org/repos/Homebrew/homebrew-science/formula/gnudatalanguage) | [Macports](https://github.com/macports/macports-ports/tree/master/math/gnudatalanguage) |
 | --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
-| lastest release                                                                         | 0.9.7  | **0.9.8**  | 0.9.7  | 0.9.6   | 0.9.7 | **0.9.8** | 0.9.7 | 0.9.7 |
+| latest release                                                                          | 0.9.7  | **0.9.8**  | 0.9.7  | 0.9.6   | 0.9.7 | **0.9.8** | 0.9.7 | 0.9.7 |
 | [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)       | + (r)  |    + (r)   |  + (r) | + (r)   | + (r) |   + (r)   | + (r) |   +   |
 | [\[n\]curses](https://www.gnu.org/software/ncurses/)                                    | + (n)  |    + (n)   |  + (n) | + (n)   |   +   |   + (n)   | + (n) | + (n) |
 | [zlib](https://zlib.net/)                                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
@@ -90,7 +90,7 @@ Support, feedback and contributions
 -----------------------------------
 
 Your comments are welcome! Let us know what you use GDL for. Or if you don't, why not. 
-Which functionality are you missing/would appreciate most for comming versions. 
+Which functionality are you missing/would appreciate most for coming versions. 
 Please use the github issue-tracking system to report 
   bugs, complaints, suggestions and comments.
 
@@ -99,10 +99,10 @@ Note that contributions can be made in C/C++, IDL/GDL or Python, as well as
   by providing enhancements and extensions of the README files, diagnostic messages, etc.
 
 Among the major challenges GDL development is facing there are:
-- [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writting test programs in GDL
+- [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writing test programs in GDL
 - coming up with a viable workflow for developing and maintaining GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
 - bringing in into the team the needed know-how to address the [backlog of ANTLR-related issues](https://github.com/gnudatalanguage/gdl/labels/antlr)
-- incresing presence within and interoperability with the Python ecosystem (including adding support for Python 3 - calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
+- increasing presence within and interoperability with the Python ecosystem (including adding support for Python 3 - calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
 Help welcome!
 
 Information resources
