@@ -383,7 +383,7 @@ namespace lib {
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
 			   DDouble yEnd, bool xLog, bool yLog);
   gdlSavebox* getSaveBox();
-  gdlSavebox* getTempBox();
+//  gdlSavebox* getTempBox();
   void gdlSimpleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);

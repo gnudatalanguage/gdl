@@ -195,8 +195,9 @@ void GraphicsDevice::Init()
   if (useWX == "YES" ) {
 #ifdef HAVE_LIBWXWIDGETS
     //start wxWidgets here instead of first call of a widget function.
-      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
+//      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
+//      GDLWidget::SetWxStarted();
+//  above moved back to objects.cpp
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
 #else

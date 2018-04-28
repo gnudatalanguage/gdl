@@ -815,6 +815,12 @@ void InitObjects()
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
   if( gdlPath == "") gdlPath = "+" GDLDATADIR "/lib";
   SysVar::SetGDLPath( gdlPath);
+  // AC 150414 :
+  // this line must be after the previous on Debian/Ubuntu systems.
+#ifdef HAVE_LIBWXWIDGETS
+  // initialize widget system. Make any changes in gdlwidget.cpp
+  GDLWidget::Init();
+#endif
 }
 
 // returns GDL lun, 0 on failure

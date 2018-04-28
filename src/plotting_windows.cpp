@@ -181,9 +181,15 @@ namespace lib {
       show = (*showval)[0] != 0;
     }
 
-    int iconic = -1; //signals absent parameter
+
     static int ICONICIx = e->KeywordIx("ICONIC");
+#ifdef _WIN32
+    bool iconic = false; // this works ok even though the routine call takes an int.
+    if( e->KeywordSet(ICONICIx)) iconic=true;
+#else // MSWin can lose windows if the following is used to call
+    int iconic = -1; //signals absent parameter
     if( e->KeywordPresent(ICONICIx)) iconic=e->KeywordSet(ICONICIx);
+#endif
 
     if (!actDevice->WShow( wIx, show, iconic)) 
       e->Throw( "Window number "+i2s(wIx)+" out of range or no more windows.");

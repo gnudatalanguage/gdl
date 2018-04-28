@@ -418,6 +418,7 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
 void GDLWidget::Init()
 {
  if( ! wxInitialize( ) ) cerr << "WARNING: wxWidgets not initializing" <<endl;
+ SetWxStarted();
 }
 // UnInit
 void GDLWidget::UnInit()
