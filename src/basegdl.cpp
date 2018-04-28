@@ -508,7 +508,7 @@ SizeT BaseGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width)
 {throw GDLException("BaseGDL::OFmtA(...) called.");}
 
 SizeT BaseGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-		      int prec, char fill, IOMode oM) 
+		      int prec, char fill, IOMode oM, bool upper) 
 {throw GDLException("BaseGDL::OFmtF(...) called.");}
 
 SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 

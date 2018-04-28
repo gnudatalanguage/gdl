@@ -28,7 +28,7 @@ header {
 
 #include "CFMTLexer.hpp"
 
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
 
 //using namespace antlr;
 }
@@ -114,9 +114,11 @@ cformat
     : (w=cnnf { if (w<0) { w *= -1; f = '0'; } } (CDOT! d=cnn)?)?
         (
            c:CD {  #c->setW( w);  #c->setD( d);  #c->setType( I);  #c->setFill( f); }
+        |  se:CSE {  #se->setW( w);  #se->setD( d);  #se->setType( SE);  #se->setFill( f); }
         |  e:CE {  #e->setW( w);  #e->setD( d);  #e->setType( E);  #e->setFill( f); }
         |  i:CI {  #i->setW( w);  #i->setD( d);  #i->setType( I);  #i->setFill( f); }
         | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F); #ff->setFill( f); }
+        |  sg:CSG {  #sg->setW( w);  #sg->setD( d);  #sg->setType( SG);  #sg->setFill( f); }
         |  g:CG {  #g->setW( w);  #g->setD( d);  #g->setType( G);  #g->setFill( f); }
         |  o:CO {  #o->setW( w);  #o->setD( d);  #o->setType( O);  #o->setFill( f); }
         |  b:CB {  #b->setW( w);  #b->setD( d);  #b->setType( B);  #b->setFill( f); }
@@ -170,7 +172,9 @@ rep_fmt [ int repeat]
     | ff:F w_d  [ #ff] { #ff->setRep( repeat);} // F and D are the same -> D->F
     | d:D w_d  [ #d] { #d->setRep( repeat); #d->setText("f"); #d->setType(F);}
     | e:E w_d_e[ #e] { #e->setRep( repeat);}
+    | se:SE w_d_e[ #se] { #se->setRep( repeat);}
     | g:G w_d_e[ #g] { #g->setRep( repeat);}
+    | sg:SG w_d_e[ #sg] { #sg->setRep( repeat);}
     | i:I w_d  [ #i] { #i->setRep( repeat);}
     | o:O w_d  [ #o] { #o->setRep( repeat);}
     | b:B w_d  [ #b] { #b->setRep( repeat);}
@@ -330,8 +334,10 @@ TERM:':';
 NONL:'$';
 F:('f'|'F');
 D:('d'|'D');
-E:('e'|'E');
-G:('g'|'G');
+E:('E');
+SE:('e');
+G:('G');
+SG:('g');
 
 I:('i'|'I');
 O:('o'|'O');

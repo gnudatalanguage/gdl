@@ -200,7 +200,7 @@ format
                         case TERM:
                         case NONL:
                         case Q: case T: case X: case A:
-                        case F: case D: case E: case G:
+                        case F: case D: case E: case SE: case G: case SG:
                         case I: case O: case B: case Z: case ZZ: case C:
                             {
                                 if( actPar == NULL && termFlag) goto endFMT;
@@ -252,7 +252,7 @@ format_reversion
                 case TERM:
                 case NONL:
                 case Q: case T: case X: case A:
-                case F: case D: case E: case G:
+                case F: case D: case E: case SE: case G: case SG:
                 case I: case O: case B: case Z: case ZZ: case C:
                     {
                         f(_t);
@@ -346,6 +346,22 @@ f
             } while( r>0);
         }
 //  | d:D // D is transformed to F
+    | se:SE
+        {
+            if( actPar == NULL) break;
+            
+            int r = se->getRep();
+            int w = se->getW();
+            int d = se->getD();
+            char f = se->getFill();
+            do {
+                SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
+                                               BaseGDL::SCIENTIFIC);
+                r -= tCount;
+                NextVal( tCount);
+                if( actPar == NULL) break;
+            } while( r>0);
+        }
     | ee:E
         {
             if( actPar == NULL) break;
@@ -356,7 +372,23 @@ f
             char f = ee->getFill();
             do {
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
-                                               BaseGDL::SCIENTIFIC);
+                                               BaseGDL::SCIENTIFIC, true); //uppercase
+                r -= tCount;
+                NextVal( tCount);
+                if( actPar == NULL) break;
+            } while( r>0);
+        }
+    | sg:SG
+        {
+            if( actPar == NULL) break;
+            
+            int r = sg->getRep();
+            int w = sg->getW();
+            int d = sg->getD();
+            int f = sg->getFill();
+            do {
+                SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
+                                               BaseGDL::AUTO);
                 r -= tCount;
                 NextVal( tCount);
                 if( actPar == NULL) break;
@@ -372,7 +404,7 @@ f
             int f = g->getFill();
             do {
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
-                                               BaseGDL::AUTO);
+                                               BaseGDL::AUTO, true);
                 r -= tCount;
                 NextVal( tCount);
                 if( actPar == NULL) break;

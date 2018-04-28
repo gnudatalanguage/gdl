@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20130428): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -224,8 +224,10 @@ public:
 //             }
 //         return false;
 //     }
- //   static bool IsEnabledGC() { return enable_GC;}
+
+//   static bool IsEnabledGC() { return enable_GC;}
 	static bool IsEnabledGC() { return true;}
+
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {
@@ -395,7 +397,7 @@ public:
                HeapT::iterator it=heap.find( id);
                if( it != heap.end()) 
                    { 
-					   if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
+                       if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
                            {
 #ifdef GDL_DEBUG_HEAP
                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id 
@@ -432,7 +434,7 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
-					   if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
+                       if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
                            {
 #ifdef GDL_DEBUG_HEAP
                                std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
@@ -529,7 +531,8 @@ std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl;
 std::cout << "++ <ObjHeapVar" << id << ">" << std::endl; 
 #endif
                 ObjHeapT::iterator it=objHeap.find( id);
-                if( it != objHeap.end())   { 
+                if( it != objHeap.end()) 
+                    { 
                         (*it).second.Inc(); 
                     }
             }
@@ -749,7 +752,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 
     // interpreter
-    static void ReportError( GDLException& e, const std::string emsg, 
+    static void ReportError( GDLException& e, const std::string &emsg, 
                              bool dumpStack=true)
     {
         DString msgPrefix = SysVar::MsgPrefix();

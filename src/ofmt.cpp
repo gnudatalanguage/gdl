@@ -70,31 +70,31 @@ void OutFixed<DComplexDbl>( ostream& os, DComplexDbl val, int w, int d, char f)
 }
 
 template <>
-void OutScientific<DComplex>( ostream& os, DComplex val, int w, int d, char f)
+void OutScientific<DComplex>( ostream& os, DComplex val, int w, int d, char f, bool upper)
 {
-  OutScientific( os, val.real(), w, d, f);
-  OutScientific( os, val.imag(), w, d, f);
+  OutScientific( os, val.real(), w, d, f, upper);
+  OutScientific( os, val.imag(), w, d, f, upper);
 }
 
 template <>
-void OutScientific<DComplexDbl>( ostream& os, DComplexDbl val, int w, int d, char f)
+void OutScientific<DComplexDbl>( ostream& os, DComplexDbl val, int w, int d, char f, bool upper)
 {
-  OutScientific( os, val.real(), w, d, f);
-  OutScientific( os, val.imag(), w, d, f);
+  OutScientific( os, val.real(), w, d, f, upper);
+  OutScientific( os, val.imag(), w, d, f, upper);
 }
 
 template <>
-void OutAuto<DComplex>( ostream& os, DComplex val, int w, int d, char f)
+void OutAuto<DComplex>( ostream& os, DComplex val, int w, int d, char f, bool upper)
 {
-  OutAuto( os, val.real(), w, d, f);
-  OutAuto( os, val.imag(), w, d, f);
+  OutAuto( os, val.real(), w, d, f, upper);
+  OutAuto( os, val.imag(), w, d, f, upper);
 }
 
 template <>
-void OutAuto<DComplexDbl>( ostream& os, DComplexDbl val, int w, int d, char f)
+void OutAuto<DComplexDbl>( ostream& os, DComplexDbl val, int w, int d, char f, bool upper)
 {
-  OutAuto( os, val.real(), w, d, f);
-  OutAuto( os, val.imag(), w, d, f);
+  OutAuto( os, val.real(), w, d, f, upper);
+  OutAuto( os, val.imag(), w, d, f, upper);
 }
 
 void SetField( int& w, int& d, SizeT defPrec, SizeT maxPrec, SizeT wDef)
@@ -345,18 +345,18 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
 // other
 template<class Sp> SizeT Data_<Sp>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   DDoubleGDL* cVal = static_cast<DDoubleGDL*>
     ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-  SizeT retVal = cVal->OFmtF( os, offs, r, w, d, f, oMode);
+  SizeT retVal = cVal->OFmtF( os, offs, r, w, d, f, oMode, upper);
   delete cVal;
   return retVal;
 }
 // double
 template<> SizeT Data_<SpDDouble>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   SizeT nTrans = ToTransfer();
 
@@ -371,7 +371,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   if( oMode == AUTO) // G
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutAuto( *os, (*this)[ i], w, d, f);
+	OutAuto( *os, (*this)[ i], w, d, f, upper);
     }
   else if( oMode == FIXED) // F, D
     {
@@ -381,7 +381,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   else if ( oMode == SCIENTIFIC) // E 
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutScientific( *os, (*this)[ i], w, d, f);
+	OutScientific( *os, (*this)[ i], w, d, f, upper);
     }
   
   return tCount;
@@ -389,7 +389,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 // float (same code as double)
 template<> SizeT Data_<SpDFloat>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   SizeT nTrans = ToTransfer();
 
@@ -404,7 +404,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   if( oMode == AUTO) // G
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutAuto( *os, (*this)[ i], w, d, f);
+	OutAuto( *os, (*this)[ i], w, d, f, upper);
     }
   else if( oMode == FIXED) // F, D
     {
@@ -414,7 +414,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   else if ( oMode == SCIENTIFIC) // E 
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutScientific( *os, (*this)[ i], w, d, f);
+	OutScientific( *os, (*this)[ i], w, d, f, upper);
     }
 
   return tCount;
@@ -422,7 +422,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 // complex
 template<> SizeT Data_<SpDComplex>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   SizeT nTrans = ToTransfer();
 
@@ -439,7 +439,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     {
       if( offs & 0x01)
 	{
-	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, f);
+	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, f, upper);
 	  tCount--;
 	}
 
@@ -447,12 +447,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
       
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutAuto( *os, (*this)[ i], w, d, f);
+	  OutAuto( *os, (*this)[ i], w, d, f, upper);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutAuto( *os, (*this)[ endEl].real(), w, d, f);
+	  OutAuto( *os, (*this)[ endEl].real(), w, d, f, upper);
 	}
     }
   else if( oMode == FIXED)
@@ -479,7 +479,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     {
       if( offs & 0x01)
 	{
-	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, f);
+	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, f, upper);
 	  tCount--;
 	}
 
@@ -487,12 +487,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutScientific( *os, (*this)[ i], w, d, f);
+	  OutScientific( *os, (*this)[ i], w, d, f, upper);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutScientific( *os, (*this)[ endEl].real(), w, d, f);
+	  OutScientific( *os, (*this)[ endEl].real(), w, d, f, upper);
 	}
     }
   
@@ -501,7 +501,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 // same code a float
 template<> SizeT Data_<SpDComplexDbl>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   SizeT nTrans = ToTransfer();
 
@@ -518,7 +518,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     {
       if( offs & 0x01)
 	{
-	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, f);
+	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, f, upper);
 	  tCount--;
 	}
 
@@ -526,12 +526,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
       
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutAuto( *os, (*this)[ i], w, d, f);
+	  OutAuto( *os, (*this)[ i], w, d, f, upper);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutAuto( *os, (*this)[ endEl].real(), w, d, f);
+	  OutAuto( *os, (*this)[ endEl].real(), w, d, f, upper);
 	}
     }
   else if( oMode == FIXED)
@@ -558,7 +558,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
     {
       if( offs & 0x01)
 	{
-	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, f);
+	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, f, upper);
 	  tCount--;
 	}
 
@@ -566,12 +566,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutScientific( *os, (*this)[ i], w, d, f);
+	  OutScientific( *os, (*this)[ i], w, d, f, upper);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutScientific( *os, (*this)[ endEl].real(), w, d, f);
+	  OutScientific( *os, (*this)[ endEl].real(), w, d, f, upper);
 	}
     }
   
@@ -580,19 +580,19 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 // struct
 SizeT DStructGDL::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode) 
+       BaseGDL::IOMode oMode, bool upper) 
 {
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = (*this)[ firstOut]->OFmtF( os, firstOffs, tCount, w, d, f, oMode);
+  SizeT trans = (*this)[ firstOut]->OFmtF( os, firstOffs, tCount, w, d, f, oMode, upper);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = (*this)[ i]->OFmtF( os, 0, tCount, w, d, f, oMode);
+      trans = (*this)[ i]->OFmtF( os, 0, tCount, w, d, f, oMode, upper);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
     }

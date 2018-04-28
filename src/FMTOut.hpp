@@ -33,7 +33,7 @@ public:
 #if (__cplusplus >= 201103L)
 std::unique_ptr<std::ostream> osLocalGuard;
 #else
-        std::auto_ptr<std::ostream> osLocalGuard;
+std::auto_ptr<std::ostream> osLocalGuard;
 #endif
         //if( *os_ == std::cout) // SA: this did not work with win32
         if( os_->rdbuf() == std::cout.rdbuf())
@@ -170,10 +170,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 78;
+	static const int NUM_TOKENS = 84;
 #else
 	enum {
-		NUM_TOKENS = 78
+		NUM_TOKENS = 84
 	};
 #endif
 	

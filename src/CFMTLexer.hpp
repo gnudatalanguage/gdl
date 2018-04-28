@@ -2,7 +2,7 @@
 #define INC_CFMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20120518): "cformat.g" -> "CFMTLexer.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "cformat.g" -> "CFMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
@@ -45,9 +45,11 @@ public:
 	antlr::RefToken nextToken();
 	public: void mALL(bool _createToken);
 	protected: void mCD(bool _createToken);
+	protected: void mCSE(bool _createToken);
 	protected: void mCE(bool _createToken);
 	protected: void mCI(bool _createToken);
 	protected: void mCF(bool _createToken);
+	protected: void mCSG(bool _createToken);
 	protected: void mCG(bool _createToken);
 	protected: void mCO(bool _createToken);
 	protected: void mCB(bool _createToken);

@@ -712,7 +712,7 @@ DStructGDL* NewResult() const
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width); 
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, char fill, BaseGDL::IOMode oM = FIXED);
+		int prec, char fill, BaseGDL::IOMode oM = FIXED, bool upper=false);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
 		int minN, char fill, BaseGDL::IOMode oM = DEC);
   

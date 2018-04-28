@@ -2,7 +2,7 @@
 #define INC_FMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20130428): "format.g" -> "FMTLexer.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
@@ -61,7 +61,9 @@ public:
 	public: void mF(bool _createToken);
 	public: void mD(bool _createToken);
 	public: void mE(bool _createToken);
+	public: void mSE(bool _createToken);
 	public: void mG(bool _createToken);
+	public: void mSG(bool _createToken);
 	public: void mI(bool _createToken);
 	public: void mO(bool _createToken);
 	public: void mB(bool _createToken);

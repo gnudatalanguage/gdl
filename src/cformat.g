@@ -21,7 +21,7 @@ header "pre_include_cpp" {
 }
 
 header {
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
     
 //    using namespace antlr;
 }
@@ -71,9 +71,11 @@ ALL
             (
                 (
                     CD { $setType(CD);}
+                |   CSE { $setType(CSE);}
                 |   CE { $setType(CE);}
                 |   CI { $setType(CI);}
                 |   CF { $setType(CF);}
+                |   CSG { $setType(CSG);}
                 |   CG { $setType(CG);}
                 |   CO { $setType(CO);}
                 |   CB { $setType(CB);}
@@ -166,13 +168,17 @@ HDIGIT: ('0'..'9'|'a'..'f'|'A'..'F');
 protected
 CD: ('d'|'D');
 protected
-CE: ('e'|'E'); 
+CSE: ('e'); 
+protected
+CE: ('E'); 
 protected
 CI: ('i'|'I');
 protected
 CF: ('f'|'F');
 protected
-CG: ('g'|'G');
+CSG: ('g');
+protected
+CG: ('G');
 protected
 CO: ('o'|'O');
 protected
