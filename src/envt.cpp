@@ -1319,7 +1319,7 @@ bool EnvBaseT::Remove(int* rindx)
 	while( ix >= 0)
 	{
 		inrem++;
-//		if(debug)	printf(" env.now.size() = %d  env[%d] = 0x%x ",
+		if(debug)	printf(" env.now.size() = %d  env[%d] = 0x%x ",
 				osz - inrem,
 				ix,static_cast <const void *>(env[ix]) );
 		if ( env[ix] != NULL) GDLDelete( env[ix]);
