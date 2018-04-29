@@ -542,7 +542,7 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
   
   if (show) RaiseWin(ix);  else LowerWin(ix);
 
-  //UnsetFocus();
+  UnsetFocus();
 
   return true;
 }
