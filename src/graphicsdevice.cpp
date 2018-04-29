@@ -34,6 +34,7 @@
 #include "color.hpp"
 
 using namespace std;
+static bool trace_me(false);
 
 bool GDLCT::Get( PLINT r_[], PLINT g_[], PLINT b_[], UInt nCol) const
 {
@@ -180,7 +181,7 @@ DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
 void GraphicsDevice::Init()
 {
   InitCT();
-
+  if( trace_me ) cerr << " (trace)GraphicsDevice::Init() ... InitCT() called. " << endl;
   DefineDStructDesc();
 
   // 4 devices types without surprise !
@@ -194,13 +195,18 @@ void GraphicsDevice::Init()
   std::string useWX=StrUpCase(GetEnvString("GDL_USE_WX"));
   if (useWX == "YES" ) {
 #ifdef HAVE_LIBWXWIDGETS
-    //start wxWidgets here instead of first call of a widget function.
-//      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
-//      GDLWidget::SetWxStarted();
-//  above moved back to objects.cpp
+	#ifdef NO_WIDGET_DRAW
+//	#undef HAVE_LIBWXWIDGETS
+		#ifdef HAVE_X
+		  deviceList.push_back( new DeviceX());
+		#endif
+		#ifdef _WIN32
+		  deviceList.push_back( new DeviceWIN());
+		#endif
+	#  else
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
-#else
+		#endif
 #ifdef _WIN32
     deviceList.push_back( new DeviceWX("WIN"));
 #endif
@@ -215,7 +221,13 @@ void GraphicsDevice::Init()
 #endif
   } else {
 #ifdef HAVE_LIBWXWIDGETS
-    deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
+  if( trace_me ) cerr << " (trace)GraphicsDevice::Init() ... new DeviceWX() " << endl;
+#  ifdef NO_WIDGET_DRAW
+	//#undef HAVE_LIBWXWIDGETS
+	  deviceList.push_back( new DeviceWX("MAC"));
+#  else
+	  deviceList.push_back( new DeviceWX());
+#  endif
 #endif
 #ifdef HAVE_X
     deviceList.push_back( new DeviceX());

@@ -84,4 +84,6 @@
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
 #cmakedefine USE_X 1
+#cmakedefine USE_WINGDI_NOT_WINGCC
+#cmakedefine NO_WIDGET_DRAW 1
 #endif

@@ -721,7 +721,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   return NULL; // avoid warning
 #else
   SizeT nParam = e->NParam( 1 );
-
+#if defined( NO_WIDGET_DRAW )
+  cout << " widget.cpp: NO_WIDGET_DRAW is set on build ... returning (-1)" << endl;
+  return new DLongGDL( -1); //return NULL;
+#endif
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget *parent = GDLWidget::GetWidget( parentID );
