@@ -168,7 +168,7 @@ namespace lib {
 	  }
 	}
       }
-    //else // default-format output
+    //else // default-format output. can be implied print (to be written: FIXME)
       {
 	int nParam = e->NParam();
 

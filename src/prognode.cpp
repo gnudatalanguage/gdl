@@ -1047,7 +1047,7 @@ RetCode  PCALLNode::Run()
   if (p->proIx == -1) {
     try {
           ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
-          ProgNode::interpreter->executeLine.str( "print," + ProgNode::interpreter->executeLine.str()); 
+          ProgNode::interpreter->executeLine.str( "print,/implied_print," + ProgNode::interpreter->executeLine.str()); 
           std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
           ProgNode::interpreter->ExecuteLine(&execute_me, 0);
           ProgNode::interpreter->SetRetTree( this->getNextSibling());

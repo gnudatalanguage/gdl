@@ -1114,7 +1114,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 // 			lexer->Parser().expr();
 	
 			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print," + executeLine.str()); // append new line
+			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
 			
 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
 			lexer->Parser().interactive();
