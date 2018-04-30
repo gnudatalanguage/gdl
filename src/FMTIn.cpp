@@ -481,7 +481,7 @@ void FMTIn::f(RefFMTNode _t) {
 				if (_t == RefFMTNode(antlr::nullAST) )
 					_t = ASTNULL;
 				if ((_tokenSet_1.member(_t->getType()))) {
-					csubcode(_t,r);
+					calendar_code(_t,r);
 					_t = _retTree;
 				}
 				else {
@@ -744,10 +744,10 @@ void FMTIn::x(RefFMTNode _t) {
 	_retTree = _t;
 }
 
-void FMTIn::csubcode(RefFMTNode _t,
+void FMTIn::calendar_code(RefFMTNode _t,
 	SizeT r
 ) {
-	RefFMTNode csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode calendar_code_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode c1 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c2 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c3 = RefFMTNode(antlr::nullAST);
@@ -986,7 +986,7 @@ const char* FMTIn::tokenNames[] = {
 	"EOF",
 	"<2>",
 	"NULL_TREE_LOOKAHEAD",
-	"ALL",
+	"CSTYLE",
 	"CSTR",
 	"CSTR1",
 	"CSTR2",
@@ -1008,6 +1008,10 @@ const char* FMTIn::tokenNames[] = {
 	"CX",
 	"CZ",
 	"CDOT",
+	"PM",
+	"MP",
+	"PLUS",
+	"MOINS",
 	"DIGITS",
 	"CNUMBER",
 	"CWS",
@@ -1054,8 +1058,6 @@ const char* FMTIn::tokenNames[] = {
 	"CMI",
 	"CSI",
 	"CSF",
-	"PM",
-	"MP",
 	"NUMBER",
 	"DOT",
 	"CSTRING",
@@ -1069,10 +1071,10 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 536870912UL, 8384508UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 0UL, 134152130UL, 0UL, 0UL };
 // FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4286579228UL, 255UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4160758208UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);

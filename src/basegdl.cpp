@@ -507,19 +507,16 @@ void BaseGDL::InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList)
 SizeT BaseGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width)
 {throw GDLException("BaseGDL::OFmtA(...) called.");}
 
-SizeT BaseGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-		      int prec, char fill, IOMode oM, bool upper) 
+SizeT BaseGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,  int prec, const int code, const BaseGDL::IOMode oM) 
 {throw GDLException("BaseGDL::OFmtF(...) called.");}
 
-SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		      int minN, char fill, BaseGDL::IOMode oM)
+SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code, BaseGDL::IOMode oM)
 {throw GDLException("BaseGDL::OFmtI(...) called.");}
 
 SizeT BaseGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)
 {throw GDLException("BaseGDL::IFmtCal(...) called.");}
 
-SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-			int minN, char *f, BaseGDL::Cal_IOMode oM)
+SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code, BaseGDL::Cal_IOMode oM)
 {throw GDLException("BaseGDL::OFmtCal(...) called.");}
 
 SizeT BaseGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)

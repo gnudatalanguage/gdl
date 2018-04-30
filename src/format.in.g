@@ -556,7 +556,7 @@ f
 
 
 (        
-(csubcode[r])+ |{
+(calendar_code[r])+ |{
             if( actPar == NULL) break;
             SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 24, BaseGDL::DEFAULT);
              }
@@ -574,7 +574,7 @@ f
 )
     ;   
 
-csubcode
+calendar_code
 [SizeT r]
         : c1:CMOA
         {

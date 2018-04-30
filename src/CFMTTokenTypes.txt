@@ -1,6 +1,6 @@
 // $ANTLR 2.7.7 (2006-11-01): cformat.g -> CFMTTokenTypes.txt$
 CFMT    // output token vocab name
-ALL=4
+CSTYLE=4
 CSTR=5
 CSTR1=6
 CSTR2=7
@@ -22,6 +22,10 @@ CS=22
 CX=23
 CZ=24
 CDOT=25
-DIGITS=26
-CNUMBER=27
-CWS=28
+PM=26
+MP=27
+PLUS=28
+MOINS=29
+DIGITS=30
+CNUMBER=31
+CWS=32

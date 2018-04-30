@@ -12,7 +12,7 @@ struct CUSTOM_API CFMTTokenTypes {
 #endif
 	enum {
 		EOF_ = 1,
-		ALL = 4,
+		CSTYLE = 4,
 		CSTR = 5,
 		CSTR1 = 6,
 		CSTR2 = 7,
@@ -34,9 +34,13 @@ struct CUSTOM_API CFMTTokenTypes {
 		CX = 23,
 		CZ = 24,
 		CDOT = 25,
-		DIGITS = 26,
-		CNUMBER = 27,
-		CWS = 28,
+		PM = 26,
+		MP = 27,
+		PLUS = 28,
+		MOINS = 29,
+		DIGITS = 30,
+		CNUMBER = 31,
+		CWS = 32,
 		NULL_TREE_LOOKAHEAD = 3
 	};
 #ifdef __cplusplus

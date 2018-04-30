@@ -711,10 +711,8 @@ DStructGDL* NewResult() const
   // formatting output functions
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width); 
-  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, char fill, BaseGDL::IOMode oM = FIXED, bool upper=false);
-  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, char fill, BaseGDL::IOMode oM = DEC);
+  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED);
+  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
   
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 
@@ -727,7 +725,7 @@ private:
   
   void OFmtAll( SizeT offs, SizeT r,
 		SizeT& firstOut, SizeT& firstOffs, SizeT& tCount, SizeT& tCountOut);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  BaseGDL::Cal_IOMode oMode);   
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT r, int w, int d, char *f,  int code, BaseGDL::Cal_IOMode oMode);   
   // inserts srcIn at ixDim
   // respects the exact structure
   // used by Assign -> old data must be freed

@@ -463,12 +463,9 @@ static	void operator delete( void *ptr);
 		      XDR *xdrs);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
-  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, char fill, BaseGDL::IOMode oM = BaseGDL::FIXED, bool upper=false);
-  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, char fill, BaseGDL::IOMode oM = BaseGDL::DEC);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-		 int minN, char *f, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
+  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = BaseGDL::FIXED);
+  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = BaseGDL::DEC);
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code=0, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   // formatting input functions
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 

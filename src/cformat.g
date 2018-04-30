@@ -65,7 +65,7 @@ options {
     
 }
 
-ALL
+CSTYLE
     : { format}?
         (
             (
@@ -192,6 +192,14 @@ CZ: ('z'|'Z');
 
 protected
 CDOT:'.';
+protected
+PM: ('+' '-');
+protected
+MP: ('-' '+');
+protected
+PLUS: '+';
+protected
+MOINS: '-';
 
 protected
 DIGITS
@@ -200,7 +208,7 @@ DIGITS
 
 protected
 CNUMBER
-    : DIGITS
+    : ((PM|MP)|PLUS|MOINS)? DIGITS
     ;
 
 protected     

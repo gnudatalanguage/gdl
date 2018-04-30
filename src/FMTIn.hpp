@@ -223,7 +223,7 @@ public:
 	public: void format_reversion(RefFMTNode _t);
 	public: void f_csubcode(RefFMTNode _t);
 	public: void x(RefFMTNode _t);
-	public: void csubcode(RefFMTNode _t,
+	public: void calendar_code(RefFMTNode _t,
 		SizeT r
 	);
 public:
@@ -238,10 +238,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 84;
+	static const int NUM_TOKENS = 86;
 #else
 	enum {
-		NUM_TOKENS = 84
+		NUM_TOKENS = 86
 	};
 #endif
 	

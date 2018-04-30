@@ -962,7 +962,6 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 6;
   const int width = 13;
-  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -973,7 +972,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, (*this)[0], width, prec, fill);
+      OutAuto( o, (*this)[0], width, prec, 0);
       return o;
     }
 
@@ -992,7 +991,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width);
-	      OutAuto( o, (*this)[eIx++], width, prec, fill);
+	      OutAuto( o, (*this)[eIx++], width, prec, 0);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -1005,7 +1004,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, (*this)[eIx++], width, prec, fill);
+	  OutAuto( o, (*this)[eIx++], width, prec, 0);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
@@ -1018,7 +1017,6 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 8;
   const int width = 16;
-  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -1029,7 +1027,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, (*this)[0], width, prec, fill);
+      OutAuto( o, (*this)[0], width, prec, 0);
       return o;
     }
 
@@ -1048,7 +1046,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width); 
-	      OutAuto( o, (*this)[eIx++], width, prec, fill);
+	      OutAuto( o, (*this)[eIx++], width, prec, 0);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -1061,7 +1059,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, (*this)[eIx++], width, prec, fill);
+	  OutAuto( o, (*this)[eIx++], width, prec, 0);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);

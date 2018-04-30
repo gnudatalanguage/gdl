@@ -43,7 +43,7 @@ public:
 	CFMTLexer(antlr::InputBuffer& ib);
 	CFMTLexer(const antlr::LexerSharedInputState& state);
 	antlr::RefToken nextToken();
-	public: void mALL(bool _createToken);
+	public: void mCSTYLE(bool _createToken);
 	protected: void mCD(bool _createToken);
 	protected: void mCSE(bool _createToken);
 	protected: void mCE(bool _createToken);
@@ -67,6 +67,10 @@ public:
 	protected: void mHEXESC(bool _createToken);
 	protected: void mODIGIT(bool _createToken);
 	protected: void mHDIGIT(bool _createToken);
+	protected: void mPM(bool _createToken);
+	protected: void mMP(bool _createToken);
+	protected: void mPLUS(bool _createToken);
+	protected: void mMOINS(bool _createToken);
 	protected: void mDIGITS(bool _createToken);
 private:
 	
