@@ -24,6 +24,12 @@
 #include <cmath>
 #include <bitset> // for binary output
 //using namespace std;
+#ifndef _MSC_VER
+  using std::isnan;
+#else
+#define isnan _isnan
+#endif
+
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
