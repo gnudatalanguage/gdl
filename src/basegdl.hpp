@@ -711,7 +711,7 @@ public:
   virtual void InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList);
 
   // virtual formatting output functions
-  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
+  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code);
   virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED); 
   virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
   virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *fill, int code=0, BaseGDL::Cal_IOMode oM = DEFAULT);

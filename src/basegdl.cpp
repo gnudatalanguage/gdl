@@ -504,7 +504,7 @@ void BaseGDL::InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList)
 }
 
 // formatting output functions
-SizeT BaseGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width)
+SizeT BaseGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code)
 {throw GDLException("BaseGDL::OFmtA(...) called.");}
 
 SizeT BaseGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,  int prec, const int code, const BaseGDL::IOMode oM) 

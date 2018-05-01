@@ -241,8 +241,9 @@ void FMTOut::f(RefFMTNode _t) {
 		
 		int r = a->getRep();
 		int w = a->getW();
+		int c = a->getCode();
 		do {
-		SizeT tCount = actPar->OFmtA( os, valIx, r, w);
+		SizeT tCount = actPar->OFmtA( os, valIx, r, w, c);
 		r -= tCount;
 		NextVal( tCount);
 		if( actPar == NULL) break;

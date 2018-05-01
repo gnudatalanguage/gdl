@@ -462,7 +462,7 @@ static	void operator delete( void *ptr);
   std::istream& Read( std::istream& os, bool swapEndian, bool compress,
 		      XDR *xdrs);
   
-  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
+  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, const int code=0);
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = BaseGDL::FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = BaseGDL::DEC);
   SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code=0, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);

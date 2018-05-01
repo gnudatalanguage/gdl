@@ -368,11 +368,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop58;
+				goto _loop59;
 			}
 			
 		}
-		_loop58:;
+		_loop59:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\"' /* charlit */ );
@@ -398,11 +398,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop61;
+				goto _loop62;
 			}
 			
 		}
-		_loop61:;
+		_loop62:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\'' /* charlit */ );
@@ -1483,18 +1483,18 @@ void FMTLexer::mWHITESPACE(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt153=0;
+	int _cnt154=0;
 	for (;;) {
 		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
-			if ( _cnt153>=1 ) { goto _loop153; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt154>=1 ) { goto _loop154; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt153++;
+		_cnt154++;
 	}
-	_loop153:;
+	_loop154:;
 	}  // ( ... )+
 	_ttype=antlr::Token::SKIP;
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1511,18 +1511,18 @@ void FMTLexer::mDIGITS(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt156=0;
+	int _cnt157=0;
 	for (;;) {
 		if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 			matchRange('0','9');
 		}
 		else {
-			if ( _cnt156>=1 ) { goto _loop156; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt157>=1 ) { goto _loop157; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt156++;
+		_cnt157++;
 	}
-	_loop156:;
+	_loop157:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1574,7 +1574,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 			mH(false);
 			text.erase(_saveIndex);
 			{ // ( ... )+
-			int _cnt163=0;
+			int _cnt164=0;
 			for (;;) {
 				// init action gets executed even in guessing mode
 				if( i == n )
@@ -1585,12 +1585,12 @@ void FMTLexer::mNUMBER(bool _createToken) {
 					mCHAR(false);
 				}
 				else {
-					if ( _cnt163>=1 ) { goto _loop163; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+					if ( _cnt164>=1 ) { goto _loop164; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 				}
 				
-				_cnt163++;
+				_cnt164++;
 			}
-			_loop163:;
+			_loop164:;
 			}  // ( ... )+
 		}
 		else {

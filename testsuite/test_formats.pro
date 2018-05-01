@@ -71,7 +71,6 @@ if FILE_TEST(filename) then begin
     FILE_COPY, filename, filename+'_old', /overwrite
     MESSAGE,/cont, 'Copy of old file <<'+filename+'_old'+'>> done.'
 endif
-; value to be written : one negative, one positive
 ;
 struct = {BYTE:0b,short:-0s,ushort:0us, $
               long:0l,ulong:0ul,long64:0ll, $
@@ -97,7 +96,19 @@ struct.cmplx=complex(a[np-1],a[np-2])
 struct.dcmplx=dcomplex(a[np-3],a[np-4])
 
 INTERNAL_FORMAT_PRINTING, lun1, struct
-;
+printf,lun1,"special case of simple (round) values that must be  shortened by the 'g0' format"
+b=10010010LL 
+printf,lun1,b,format='(g)' 
+printf,lun1,b,format='(g+)' 
+printf,lun1,b,format='(g0)' 
+printf,lun1,b,format='(g+0)' 
+printf,lun1,b,format='(g014)' 
+printf,lun1,"special case of strings"
+printf,lun1, 'zzzzzzzzzz','!', FORMAT = '(2(A0))'
+printf,lun1, 'zzzzzzzzzz','!', FORMAT = '(2(A30))'
+printf,lun1, 'zzzzzzzzzz','!', FORMAT = '(2(A-30))'
+printf,lun1,"special case of calendar format"
+printf,lun1,2.455555555D6,format='(c())'
 CLOSE, lun1
 FREE_LUN, lun1
 ;
@@ -130,8 +141,13 @@ endif
 soft=GDL_IDL_FL(/verbose)
 ;
 GENERATE_FORMATS_FILE, nb_cases, verbose=verbose
+; if we are IDL, stop, our job is done.
+if (soft eq 'IDL') then begin
+ print,"reference format file written"
+ return
+endif
 ;
-; locating then read back the reference idl.xdr:
+; locating then read back the reference:
 ;
 ; we need to add the current dir. into the path because new file(s)
 ; are writtent in it. Do we have a simple way to check whether a dir
@@ -148,7 +164,7 @@ file_fmt_idl=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
 ;
 if N_ELEMENTS(file_fmt_idl) GT 1 then print, 'multiple reference file <<'+filename+'>> found !'
 file_fmt_idl=file_fmt_idl[0]
-if (soft NE 'idl') AND (STRLEN(file_fmt_idl[0]) EQ 0) then begin
+if (soft NE 'IDL') AND (STRLEN(file_fmt_idl[0]) EQ 0) then begin
     MESSAGE, 'reference file <<'+filename+'>> not found in the !PATH', /continue
     if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
     EXIT, status=1
@@ -170,7 +186,7 @@ if N_ELEMENTS(file_fmt_fl) GT 1 then begin
     file_fmt_fl=file_fmt_fl[0]
 endif
 ;
-if (soft EQ 'idl') then begin
+if (soft EQ 'IDL') then begin
     soft=''
     if ~FILE_TEST(file_fmt_fl) then MESSAGE, /cont, "missing file <<formats.FL>>" else soft='FL'
     if ~FILE_TEST(file_fmt_gdl) then MESSAGE, /cont, "missing file <<formats.GDL>>" else soft='GDL'

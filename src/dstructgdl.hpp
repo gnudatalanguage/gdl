@@ -710,7 +710,7 @@ DStructGDL* NewResult() const
 
   // formatting output functions
   
-  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width); 
+  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code); 
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
   

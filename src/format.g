@@ -108,7 +108,7 @@ cformat
     int infos[4]={0,0,0,0};
     int d = -1;
 }
-    : (cnnf [infos] { w=infos[0]; } (CDOT! d=cnn)?)?
+    :   ( (PM!|MP!) {infos[1]=1;infos[2]=1;} | (PLUS! {infos[1]=1;}) | (MOINS! {infos[2]=1;}) )? (cnnf [infos] { w=infos[0]; } (CDOT! d=cnn)?)?
         (
            c:CD   {  if (infos[1])#c->setShowSign();  if (infos[2])#c->setALignLeft();  if (infos[3])#c->setPadding(); #c->setW( w);  #c->setD( d);  #c->setType( I); }
         |  se:CSE {  if (infos[1])#se->setShowSign(); if (infos[2])#se->setALignLeft(); if (infos[3])#se->setPadding(); #se->setW( w);  #se->setD( d);  #se->setType( SE); }
@@ -140,13 +140,7 @@ cnnf! [int *infos]  //returns[ int *infos]
          { 
             char c;
             std::istringstream s(#num->getText());
-            bool next=true;
-            do {
-              c=s.get();
-              if (c=='+') infos[1]=1;
-              else if (c=='-') infos[2]=1;
-              else next=false;
-            } while (next);
+            c=s.get();
             s.putback(c);
             s >> infos[0];
             if (c == '0') infos[3]=-1;;
@@ -172,7 +166,7 @@ rep_fmt [ int repeat]
     int n1;
 }
     : format[ repeat] 
-    | a:A (n1=nn { #a->setW( n1);})? { #a->setRep( repeat);}
+    | a:A (n1=nnf [#a] { #a->setW( n1);})? { #a->setRep( repeat);}
     | ff:F w_d  [ #ff] {#ff->setRep( repeat);} // F and D are the same -> D->F
     | d:D w_d  [ #d] { #d->setRep( repeat); #d->setText("f"); #d->setType(F);}
     | e:E w_d_e[ #e] { #e->setRep( repeat);}
@@ -224,11 +218,10 @@ nn! returns[ int n]
 { 
   int sgn=1;
 }
-    : ( ( (PM|MP)  {sgn=-1;}|PLUS|MOINS {sgn=-1;} ) )? num:NUMBER 
+    : num:NUMBER 
         { 
             std::istringstream s(#num->getText());
             s >> n;
-            n*=sgn;
         }
     ;
 

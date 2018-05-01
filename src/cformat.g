@@ -84,7 +84,11 @@ CSTYLE
                 |   CZ { $setType(CZ);}
                 ) 
                 { format = false;}
-            ) 
+            )
+        |   PM { $setType(PM);}
+        |   MP { $setType(MP);}
+        |   MOINS { $setType(MOINS);}
+        |   PLUS { $setType(PLUS);}
         |   CNUMBER { $setType(CNUMBER);}
         |   CDOT { $setType(CDOT);}
         |   CWS  { _ttype=antlr::Token::SKIP; }
@@ -208,7 +212,7 @@ DIGITS
 
 protected
 CNUMBER
-    : ((PM|MP)|PLUS|MOINS)? DIGITS
+    : DIGITS
     ;
 
 protected     

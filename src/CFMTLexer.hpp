@@ -56,6 +56,10 @@ public:
 	protected: void mCS(bool _createToken);
 	protected: void mCX(bool _createToken);
 	protected: void mCZ(bool _createToken);
+	protected: void mPM(bool _createToken);
+	protected: void mMP(bool _createToken);
+	protected: void mMOINS(bool _createToken);
+	protected: void mPLUS(bool _createToken);
 	protected: void mCNUMBER(bool _createToken);
 	protected: void mCDOT(bool _createToken);
 	protected: void mCWS(bool _createToken);
@@ -67,10 +71,6 @@ public:
 	protected: void mHEXESC(bool _createToken);
 	protected: void mODIGIT(bool _createToken);
 	protected: void mHDIGIT(bool _createToken);
-	protected: void mPM(bool _createToken);
-	protected: void mMP(bool _createToken);
-	protected: void mPLUS(bool _createToken);
-	protected: void mMOINS(bool _createToken);
 	protected: void mDIGITS(bool _createToken);
 private:
 	

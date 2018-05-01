@@ -198,8 +198,6 @@ void CFMTLexer::mCSTYLE(bool _createToken) {
 			}
 			break;
 		}
-		case 0x2b /* '+' */ :
-		case 0x2d /* '-' */ :
 		case 0x30 /* '0' */ :
 		case 0x31 /* '1' */ :
 		case 0x32 /* '2' */ :
@@ -229,7 +227,23 @@ void CFMTLexer::mCSTYLE(bool _createToken) {
 			break;
 		}
 		default:
-		{
+			if ((LA(1) == 0x2b /* '+' */ ) && (LA(2) == 0x2d /* '-' */ )) {
+				mPM(false);
+				_ttype = PM;
+			}
+			else if ((LA(1) == 0x2d /* '-' */ ) && (LA(2) == 0x2b /* '+' */ )) {
+				mMP(false);
+				_ttype = MP;
+			}
+			else if ((LA(1) == 0x2d /* '-' */ ) && (true)) {
+				mMOINS(false);
+				_ttype = MOINS;
+			}
+			else if ((LA(1) == 0x2b /* '+' */ ) && (true)) {
+				mPLUS(false);
+				_ttype = PLUS;
+			}
+		else {
 			throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
 		}
 		}
@@ -563,45 +577,73 @@ void CFMTLexer::mCZ(bool _createToken) {
 	_saveIndex=0;
 }
 
+void CFMTLexer::mPM(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = PM;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('+' /* charlit */ );
+	match('-' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void CFMTLexer::mMP(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = MP;
+	std::string::size_type _saveIndex;
+	
+	{
+	match('-' /* charlit */ );
+	match('+' /* charlit */ );
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void CFMTLexer::mMOINS(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = MOINS;
+	std::string::size_type _saveIndex;
+	
+	match('-' /* charlit */ );
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void CFMTLexer::mPLUS(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = PLUS;
+	std::string::size_type _saveIndex;
+	
+	match('+' /* charlit */ );
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
 void CFMTLexer::mCNUMBER(bool _createToken) {
 	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CNUMBER;
 	std::string::size_type _saveIndex;
 	
-	{
-	if ((LA(1) == 0x2b /* '+' */  || LA(1) == 0x2d /* '-' */ ) && (LA(2) == 0x2b /* '+' */  || LA(2) == 0x2d /* '-' */ )) {
-		{
-		switch ( LA(1)) {
-		case 0x2b /* '+' */ :
-		{
-			mPM(false);
-			break;
-		}
-		case 0x2d /* '-' */ :
-		{
-			mMP(false);
-			break;
-		}
-		default:
-		{
-			throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
-		}
-		}
-		}
-	}
-	else if ((LA(1) == 0x2b /* '+' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x39 /* '9' */ ))) {
-		mPLUS(false);
-	}
-	else if ((LA(1) == 0x2d /* '-' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x39 /* '9' */ ))) {
-		mMOINS(false);
-	}
-	else if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
-	}
-	else {
-		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
-	}
-	
-	}
 	mDIGITS(false);
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -631,7 +673,7 @@ void CFMTLexer::mCWS(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt77=0;
+	int _cnt75=0;
 	for (;;) {
 		switch ( LA(1)) {
 		case 0x20 /* ' ' */ :
@@ -646,12 +688,12 @@ void CFMTLexer::mCWS(bool _createToken) {
 		}
 		default:
 		{
-			if ( _cnt77>=1 ) { goto _loop77; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt75>=1 ) { goto _loop75; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		}
-		_cnt77++;
+		_cnt75++;
 	}
-	_loop77:;
+	_loop75:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1175,68 +1217,6 @@ void CFMTLexer::mHDIGIT(bool _createToken) {
 	}
 	}
 	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void CFMTLexer::mPM(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = PM;
-	std::string::size_type _saveIndex;
-	
-	{
-	match('+' /* charlit */ );
-	match('-' /* charlit */ );
-	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void CFMTLexer::mMP(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = MP;
-	std::string::size_type _saveIndex;
-	
-	{
-	match('-' /* charlit */ );
-	match('+' /* charlit */ );
-	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void CFMTLexer::mPLUS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = PLUS;
-	std::string::size_type _saveIndex;
-	
-	match('+' /* charlit */ );
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void CFMTLexer::mMOINS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = MOINS;
-	std::string::size_type _saveIndex;
-	
-	match('-' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));

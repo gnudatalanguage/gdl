@@ -66,6 +66,9 @@ public:
 	public: void rep_fmt(
 		 int repeat
 	);
+	public: int  nnf(
+		 RefFMTNode fNode
+	);
 	public: void w_d(
 		 RefFMTNode fNode
 	);
@@ -74,9 +77,6 @@ public:
 	);
 	public: void calendar_string();
 	public: void calendar_code();
-	public: int  nnf(
-		 RefFMTNode fNode
-	);
 public:
 	antlr::RefAST getAST()
 	{
@@ -99,6 +99,8 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_FMTParser_hpp_*/

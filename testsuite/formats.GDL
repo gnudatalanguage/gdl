@@ -31354,3 +31354,15 @@ ffffffec9b17c3c0
 (i43)
                                -83297320000
                                 95121904000
+special case of simple (round) values that must be  shortened by the 'g0' format
+        10010010.00000000
+       +10010010.00000000
+1.001e+07
++1.001e+07
+**************
+special case of strings
+zzzzzzzzzz!
+                    zzzzzzzzzz                             !
+zzzzzzzzzz                    !                             
+special case of calendar format
+Sat Dec 25 01:19:12 2010

@@ -210,17 +210,16 @@ void DStructGDL::OFmtAll( SizeT offs, SizeT r,
 // A code ****************************************************
 // other
 template<class Sp> SizeT 
-Data_<Sp>::OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
+Data_<Sp>::OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
 {
-  DStringGDL* stringVal = static_cast<DStringGDL*>
-    ( this->Convert2( GDL_STRING, BaseGDL::COPY_BYTE_AS_INT));
-  SizeT retVal = stringVal->OFmtA( os, offs, r, w);
+  DStringGDL* stringVal = static_cast<DStringGDL*> ( this->Convert2( GDL_STRING, BaseGDL::COPY_BYTE_AS_INT));
+  SizeT retVal = stringVal->OFmtA( os, offs, r, w, code);
   delete stringVal;
   return retVal;
 }
 // string
 template<> SizeT Data_<SpDString>::
-OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
+OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
 {
   SizeT nTrans = ToTransfer();
 
@@ -231,149 +230,142 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
 
 
-  if( w < 0)
+  if( w <= 0)
     {
       (*os) << left;
-      for( SizeT i=offs; i<endEl; ++i)
-	{
-	  (*os) << setw(-w) << (*this)[ i];
-	}
-    }
-  else if( w == 0)
-    {
-      (*os) << right;
-      for( SizeT i=offs; i<endEl; ++i)
-	(*os) << (*this)[ i];
+      for( SizeT i=offs; i<endEl; ++i) (*os) << (*this)[ i];
     }
   else
     {
-      (*os) << right;
-      for( SizeT i=offs; i<endEl; ++i)
-	(*os) << setw(w) << (*this)[ i].substr(0,w);
+    if (code & fmtALIGN_LEFT) (*os)<< left ; else (*os) << right;
+    for( SizeT i=offs; i<endEl; ++i) (*os) << setw(w) << (*this)[ i].substr(0,w);
     }
 
   return tCount;
 }
 // complex
 template<> SizeT Data_<SpDComplex>::
-OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
+OFmtA(ostream* os, SizeT offs, SizeT r, int w, const int code)
 {
-  const int len = 13; 	
-  
-  if( w < 0) w = 0;
-  
+
   SizeT nTrans = ToTransfer();
-  
+
   // transfer count
   SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
+  if (r < tCount) tCount = r;
   SizeT tCountOut = tCount;
-  
+
   SizeT firstEl = offs / 2;
-  
+
   (*os) << right;
 
-  if( offs & 0x01)
-    {
-      if( w <= 0)
-	(*os) << i2s( (*this)[ firstEl++].imag(), len);
-      else
-	(*os) << setw(w) << i2s( (*this)[ firstEl++].imag(), len);
-      tCount--;
+  if (offs & 0x01) {
+    if (w <= 0)
+      (*os) << float2string((*this)[ firstEl++].imag());
+    else {
+      if (code & fmtALIGN_LEFT) (*os) << left;
+      else (*os) << right;
+      (*os) << setw(w) << float2string((*this)[ firstEl++].imag()).substr(0,w);
     }
+    tCount--;
+
+  }
 
   SizeT endEl = firstEl + tCount / 2;
 
-  if( w <= 0)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << i2s( (*this)[ i].real(), len);
-	(*os) << i2s( (*this)[ i].imag(), len);
-      }
-  else
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << setw(w) << i2s( (*this)[ i].real(), len);
-	(*os) << setw(w) << i2s( (*this)[ i].imag(), len);
-      }
-  
-  if( tCount & 0x01)
-    {
-      if( w <= 0)
-	(*os) << i2s( (*this)[ endEl++].real(), len);
-      else
-	(*os) << setw(w) << i2s( (*this)[ endEl++].real(), len);
+  if (w <= 0)
+    for (SizeT i = firstEl; i < endEl; ++i) {
+      (*os) << float2string((*this)[ firstEl++].real());
+      (*os) << float2string((*this)[ firstEl++].imag());
+    } else {
+    if (code & fmtALIGN_LEFT) (*os) << left;
+    else (*os) << right;
+    for (SizeT i = firstEl; i < endEl; ++i) {
+      (*os) << setw(w) << float2string((*this)[ firstEl++].real()).substr(0,w);
+      (*os) << setw(w) << float2string((*this)[ firstEl++].imag()).substr(0,w);
     }
+  }
+
+  if (tCount & 0x01) {
+    if (w <= 0)
+      (*os) << float2string((*this)[ firstEl++].real());
+    else {
+      if (code & fmtALIGN_LEFT) (*os) << left;
+      else (*os) << right;
+      (*os) << setw(w) << float2string((*this)[ firstEl++].real()).substr(0,w);
+    }
+  }
 
   return tCountOut;
 }
 template<> SizeT Data_<SpDComplexDbl>::
-OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
+OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
 {
-  const int len = 16; 	
-  
-  if( w < 0) w = 0;
-  
   SizeT nTrans = ToTransfer();
-  
+
   // transfer count
   SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
+  if (r < tCount) tCount = r;
   SizeT tCountOut = tCount;
-  
+
   SizeT firstEl = offs / 2;
-  
+
   (*os) << right;
 
-  if( offs & 0x01)
-    {
-      if( w <= 0)
-	(*os) << i2s( (*this)[ firstEl++].imag(), len);
-      else
-	(*os) << setw(w) << i2s( (*this)[ firstEl++].imag(), len);
-      tCount--;
+  if (offs & 0x01) {
+    if (w <= 0)
+      (*os) << double2string((*this)[ firstEl++].imag());
+    else {
+      if (code & fmtALIGN_LEFT) (*os) << left;
+      else (*os) << right;
+      (*os) << setw(w) << double2string((*this)[ firstEl++].imag()).substr(0,w);
     }
+    tCount--;
+
+  }
 
   SizeT endEl = firstEl + tCount / 2;
 
-  if( w <= 0)
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << i2s( (*this)[ i].real(), len);
-	(*os) << i2s( (*this)[ i].imag(), len);
-      }
-  else
-    for( SizeT i= firstEl; i<endEl; ++i)
-      {
-	(*os) << setw(w) << i2s( (*this)[ i].real(), len);
-	(*os) << setw(w) << i2s( (*this)[ i].imag(), len);
-      }
-  
-  if( tCount & 0x01)
-    {
-      if( w <= 0)
-	(*os) << i2s( (*this)[ endEl++].real(), len);
-      else
-	(*os) << setw(w) << i2s( (*this)[ endEl++].real(), len);
+  if (w <= 0)
+    for (SizeT i = firstEl; i < endEl; ++i) {
+      (*os) << double2string((*this)[ firstEl++].real());
+      (*os) << double2string((*this)[ firstEl++].imag());
+    } else {
+    if (code & fmtALIGN_LEFT) (*os) << left;
+    else (*os) << right;
+    for (SizeT i = firstEl; i < endEl; ++i) {
+      (*os) << setw(w) << double2string((*this)[ firstEl++].real()).substr(0,w);
+      (*os) << setw(w) << double2string((*this)[ firstEl++].imag()).substr(0,w);
     }
+  }
 
+  if (tCount & 0x01) {
+    if (w <= 0)
+      (*os) << double2string((*this)[ firstEl++].real());
+    else {
+      if (code & fmtALIGN_LEFT) (*os) << left;
+      else (*os) << right;
+      (*os) << setw(w) << double2string((*this)[ firstEl++].real()).substr(0,w);
+    }
+  }
+  
   return tCountOut;
 }
 // struct
 SizeT DStructGDL::
-OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
+OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
 {
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = (*this)[ firstOut]->OFmtA( os, firstOffs, tCount, w);
+  SizeT trans = (*this)[ firstOut]->OFmtA( os, firstOffs, tCount, w, code);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = (*this)[ i]->OFmtA( os, 0, tCount, w);
+      trans = (*this)[ i]->OFmtA( os, 0, tCount, w, code);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
     }
@@ -879,20 +871,19 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
   return tCountOut;
 }
 
-void outA( ostream* os, string s, int w) 
+void outA( ostream* os, string s, int w, const int code) 
 {
-  if (w==-1) w=3;
-  if (w < 0) {
+  if (w <= 0) {
     (*os) << left;
-    (*os) << setw(-w) << s;
-  }
-  else if (w == 0) {
-    (*os) << right;
     (*os) << s;
   }
   else {
-    (*os) << right;
-    (*os) << setw(w) << s.substr(0, w);
+    if (code & fmtALIGN_LEFT) {
+      (*os) << setw(w) << s.substr(0, w);
+    } else {
+      (*os) << right;
+      (*os) << setw(w) << s.substr(0, w);
+    }
   }
 }
 // struct
@@ -996,9 +987,9 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
       break;
     case BaseGDL::DEFAULT:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theDay[dow[i]], 3 );
+      outA( local_os[i], theDay[dow[i]], 3 , code);
       (*local_os[i]) << " ";
-      outA( local_os[i], theMonth[iMonth[i]], 3 );
+      outA( local_os[i], theMonth[iMonth[i]], 3 , code);
       (*local_os[i]) << " ";
       OutInteger( *(local_os[i]), iDay[i], 2, 2, code, BaseGDL::DEC);
       (*local_os[i]) << " ";
@@ -1011,7 +1002,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
       std::ostream os (&buffer); // associate stream buffer to stream
       os.width(6);
       os << iYear[i];
-      outA( local_os[i], buffer.str().substr(buffer.str().size()-6,6), 6 ); //selects the 6 last digits of year.
+      outA( local_os[i], buffer.str().substr(buffer.str().size()-5,5), 5 , code); //selects the 5 last digits of year.
       }
       break;
     case BaseGDL::STRING:
@@ -1021,50 +1012,50 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
       break;
     case BaseGDL::CMOA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theMONTH[iMonth[i]], w );
+      outA( local_os[i], theMONTH[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CMoA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theMonth[iMonth[i]], w );
+      outA( local_os[i], theMonth[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CmoA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], themonth[iMonth[i]], w );
+      outA( local_os[i], themonth[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CDWA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theDAY[dow[i]], w );
+      outA( local_os[i], theDAY[dow[i]], w, code);
       }
       break;
     case BaseGDL::CDwA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theDay[dow[i]], w );
+      outA( local_os[i], theDay[dow[i]], w, code);
       }
       break;
     case BaseGDL::CdwA:
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], theday[dow[i]], w );
+      outA( local_os[i], theday[dow[i]], w, code );
       }
       break;
     case BaseGDL::CapA:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], capa[icap[i]], w );
+      outA( local_os[i], capa[icap[i]], w, code );
       }
       break;
     case BaseGDL::CApA:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], cApa[icap[i]], w );
+      outA( local_os[i], cApa[icap[i]], w, code );
       }
       break;
     case BaseGDL::CAPA:
       if ( w == -1 ) w = 2;
       for (SizeT i=0; i<r; i++){
-      outA( local_os[i], cAPa[icap[i]], w );
+      outA( local_os[i], cAPa[icap[i]], w, code );
       }
       break;
       //integer
@@ -1081,7 +1072,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
         std::ostream os (&buffer); // associate stream buffer to stream
         os.width(w);
         os << iYear[i];
-        outA( local_os[i], buffer.str().substr(buffer.str().size()-w,w), w ); //CYI2.2 selects the two last digits of year.
+        outA( local_os[i], buffer.str().substr(buffer.str().size()-w,w), w , code); //CYI2.2 selects the two last digits of year.
       }
       break;
     case BaseGDL::ChI:
