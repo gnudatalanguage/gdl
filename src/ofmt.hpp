@@ -23,13 +23,12 @@
 #include <ostream>
 #include <cmath>
 #include <bitset> // for binary output
-//using namespace std;
+using namespace std;
 #ifndef _MSC_VER
   using std::isnan;
 #else
 #define isnan _isnan
 #endif
-
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
@@ -158,7 +157,7 @@ inline void OutAdjustFill(std::ostream& os, const std::string &s, const int w, c
 template <typename T>
 void OutFixed(std::ostream& os, const T &val, const int w, const int d, const int code)
 {
-  if (std::isfinite(val)) {
+  if (isfinite(val)) {
    std::ostringstream oss;
   if ( code & fmtSHOWPOS ) oss << std::showpos;
    oss << std::fixed << std::setprecision(d) << val;
@@ -188,7 +187,7 @@ void OutFixed<DComplexDbl>(std::ostream& os, const DComplexDbl &val, const int w
 
 template <typename T>
 void OutScientific(std::ostream& os, const T &val, const int w, const int d, const int code) {
- if (std::isfinite(val)) {
+ if (isfinite(val)) {
   std::ostringstream oss;
   // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
   if ( code & fmtSHOWPOS ) oss << std::showpos;
@@ -218,7 +217,7 @@ void OutScientific<DComplexDbl>( std::ostream& os, const DComplexDbl &val, const
 template <typename T>
 void OutAuto(std::ostream& os, const T &val, const int w, const int d, const int code=0) {
 
- if (std::isfinite(val)) {
+ if (isfinite(val)) {
   std::ostringstream ossF;
   int fixLen=1;
   
