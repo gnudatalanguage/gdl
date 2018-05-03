@@ -29,6 +29,21 @@ using namespace std;
 #else
 #define isnan _isnan
 #endif
+// on OS X isfinite is not defined
+#if defined(__APPLE__) && defined(OLD_DARWIN) && !defined(isfinite)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#define      isfinite( x )      ( ( sizeof ( x ) == sizeof(double) ) ?       \
+                              __isfinited ( x ) :                            \
+                                ( sizeof ( x ) == sizeof( float) ) ?         \
+                              __isfinitef ( x ) :                            \
+                              __isfinite  ( x ) )
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
