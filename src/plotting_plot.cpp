@@ -457,6 +457,7 @@ private:
             actStream->stransform(gdl3dTo2dTransform, &Data3d);      
             actStream->join(t3zStart,t3yStart,t3zEnd,t3yStart);
             actStream->join(t3zEnd,t3yStart,t3zEnd,t3yEnd);
+          default:
             break;
 //          case YZ: // X->X Y->Z plane XZ
 //            cerr<<"yz"<<endl;

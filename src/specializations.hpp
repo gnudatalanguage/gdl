@@ -511,40 +511,6 @@ template<>
 DLong* Data_<SpDComplex>::Where( bool, SizeT&);
 template<> 
 DLong* Data_<SpDComplexDbl>::Where( bool, SizeT&);
-template<> 
-void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
-			      BaseGDL** minVal, BaseGDL** maxVal,
-                  bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
- 				BaseGDL** minVal, BaseGDL** maxVal,
-                bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				   BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-
-// default_io.cpp
-
-//Following bugs with gcc 6. It seems that just getting rid of the operator>> statements does the trick.
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDFloat>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDDouble>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDComplex>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDComplexDbl>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& is, Data_<SpDString>& data_); 
 
 template<>  
 std::ostream& Data_<SpDLong>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 

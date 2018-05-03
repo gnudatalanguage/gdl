@@ -40,6 +40,7 @@
 
 #include "gsl_fun.hpp"
 
+#include "where.hpp"
 #include "convol.hpp"
 #include "smooth.hpp"
 #include "brent.hpp"
@@ -304,6 +305,9 @@ void LibInit()
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
   new DLibPro(lib::heap_free,string("HEAP_FREE"),1,heap_gcKey);
+
+  const string heap_refcount[]={"DISABLE","ENABLE","IS_ENABLED",KLISTEND};
+  new DLibFunRetNew(lib::heap_refcount,string("HEAP_REFCOUNT"),1,heap_refcount);
 
 
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);

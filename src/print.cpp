@@ -164,7 +164,16 @@ namespace lib {
 	  }
 	  catch( antlr::ANTLRException& ex)
 	  {
+        //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
+      try {
+        DString fmtSTring2="(%\""+fmtString+"\")";
+	    RefFMTNode fmtAST = GetFMTAST( fmtSTring2);
+	    FMTOut Formatter( fmtAST, os, e, parOffset); 
+	    return;
+	  } 
+      catch ( antlr::ANTLRException& ex)  {
 	    e->Throw( ex.getMessage());
+       }
 	  }
 	}
       }
@@ -223,6 +232,14 @@ namespace lib {
     BaseGDL* par;
     env->SetNextPar(&par);
 
+    // printing first the title if TITLE keyword present
+    static int titleIx = e->KeywordIx("TITLE");
+    if (e->GetKW(titleIx) != NULL)
+    {
+      par = e->GetKW(titleIx);
+      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
+    }
+
     // passing on the FORMAT keyword
     static int formatIx = e->KeywordIx("FORMAT");
     if (e->GetKW(formatIx) != NULL) 
@@ -236,13 +253,7 @@ namespace lib {
 //     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
 //     GDLInterpreter::CallStack().push_back(env);
 
-    // printing the title if TITLE keyword present
-    static int titleIx = e->KeywordIx("TITLE");
-    if (e->GetKW(titleIx) != NULL)
-    {
-      par = e->GetKW(titleIx);
-      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
-    }
+
     
     // looping over the parameters
     for (SizeT i = 0; i < nParam; ++i)

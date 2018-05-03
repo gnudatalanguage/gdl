@@ -45,6 +45,7 @@ wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   if (the_units==0) return wxRealPoint(1,1);
   if (the_units==1) return wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) return wxRealPoint(sx*10.0,sy*10.0);
+  return wxRealPoint(0,0); //never reached -- pacifier.
 }
 
 void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
@@ -2229,7 +2230,8 @@ endwait:
       } else { // 3b) or 4)
         return ev;
       }
-    } while (infinity); 
+    } while (infinity);
+    return NULL; //pacifier.
 #endif
 }
 

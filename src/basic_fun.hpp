@@ -46,6 +46,9 @@ namespace lib {
 
   BaseGDL* ptr_new( EnvT* e);
   BaseGDL* obj_new( EnvT* e);
+
+  BaseGDL* heap_refcount( EnvT* e);
+
   BaseGDL* call_function( EnvT* e);
   BaseGDL* call_method_function( EnvT* e);
   
@@ -95,7 +98,6 @@ namespace lib {
   BaseGDL* strpos( EnvT* e);
   BaseGDL* strtrim( EnvT* e);
 
-  BaseGDL* where_fun( EnvT* e);
   BaseGDL* total_fun( EnvT* e);
   BaseGDL* product_fun( EnvT* e);
 

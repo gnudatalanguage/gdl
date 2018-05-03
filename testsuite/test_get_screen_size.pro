@@ -63,10 +63,10 @@ if ((pixel_aspect_ratio LT 0.95) OR (pixel_aspect_ratio GT 1.05)) then begin
    MESSAGE, /continue, 'the pixels of this screen are not square !'
 endif
 ;
-screen_aspect_ratio=taille[1]/taille[0]
+screen_aspect_ratio=float(taille[1])/float(taille[0])
 if ((screen_aspect_ratio LT 0.5) OR (screen_aspect_ratio GT 2.)) then begin
    nb_doubts=nb_doubts+1
-   MESSAGE, /continue, 'this screen has strange aspect ration !! (> 2)'
+   MESSAGE, /continue, 'this screen has strange aspect ratio !! (< 0.5 or > 2)'
 endif
 ;
 if (nb_pbs GT 0) then begin

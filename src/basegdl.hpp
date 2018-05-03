@@ -65,20 +65,20 @@ enum DType {  // Object types (IDL type numbers)
   GDL_ULONG64     // 15 unsigned 64 bit integer
 
   // not yet implemented
-  , GDL_LONG128  // 128 bit integer
-  , GDL_ULONG128 // unsigned 128 bit integer
+//  , GDL_LONG128  // 128 bit integer
+//  , GDL_ULONG128 // unsigned 128 bit integer
   
-  , GDL_LONGABI // arbitrary length int
+//  , GDL_LONGABI // arbitrary length int
   //, GDL_ULONGABI // arbitrary length unsigned int (pointless)
   
-  , GDL_LDOUBLE // long double  precision float (80 or 128bit)
-  , GDL_COMPLEXLDBL // Complex long double
-
-  , GDL_ARBITRARY // arbitrary precision float
-  , GDL_COMPLEXABI // Complex arbitrary
-
-  , GDL_RATIONAL // arbitrary length rational
-  , GDL_COMPLEXRAT // Complex arbitrary length rational
+//  , GDL_LDOUBLE // long double  precision float (80 or 128bit)
+//  , GDL_COMPLEXLDBL // Complex long double
+//
+//  , GDL_ARBITRARY // arbitrary precision float
+//  , GDL_COMPLEXABI // Complex arbitrary
+//
+//  , GDL_RATIONAL // arbitrary length rational
+//  , GDL_COMPLEXRAT // Complex arbitrary length rational
 };
 
 // order of conversion precedence if two types are the same,

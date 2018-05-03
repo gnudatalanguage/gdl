@@ -33,7 +33,7 @@ NullGDL::~NullGDL()
 // but ~BaseGDL() is called as well. And this must not be
   cerr << "Internal error: !NULL destructor called.\n"
 	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
-	  "Please report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
+	  "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
