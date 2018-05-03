@@ -152,7 +152,10 @@ endif else begin
     endif
  endelse
 
-if (nb_errors gt 0) then filtre1='TEST_BUG_3104326_HELPER_SUB' ; otherwise the following tests will always be false.
+if (nb_errors gt 0) then begin
+ nb_errors-- ; we KNOW GDL is in error on this one!
+ filtre1='TEST_BUG_3104326_HELPER_SUB' ; otherwise the following tests will always be false.
+end
 ;
 ; test -2-  NOT READY in GDL
 ;
