@@ -109,7 +109,6 @@ TESTS = \
   test_finite.pro \
   test_fix.pro \
   test_fixprint.pro \
-  test_format.pro \
   test_formats.pro \
   test_fx_root.pro \
   test_fz_roots.pro \
