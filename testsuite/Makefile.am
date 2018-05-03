@@ -102,6 +102,7 @@ TESTS = \
   test_file_copy.pro \
   test_file_delete.pro \
   test_file_dirname.pro \
+  test_file_lines.pro \
   test_file_move.pro \
   test_file_search.pro \
   test_file_test.pro \
@@ -127,6 +128,7 @@ TESTS = \
   test_interpolate.pro \
   test_isa.pro \
   test_ishft.pro \
+  test_keyword_set_but_null.pro \
   test_la_least_squares.pro \
   test_list.pro \
   test_ludc_lusol.pro \
