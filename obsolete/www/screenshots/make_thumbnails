@@ -1,4 +1,0 @@
-rm *_thumb.png
-for i in *.png; do 
-  convert $i -thumbnail 250x400 -unsharp 0x.5 `basename $i .png`_thumb.png
-done

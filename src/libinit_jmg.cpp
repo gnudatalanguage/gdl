@@ -148,11 +148,6 @@ void LibInit_jmg()
   const string macharKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::machar_fun,string("MACHAR"),0,macharKey);
 
-// crashes on my machine (GD) and is not used.  
-//  const string rk4Key[]={"DOUBLE",KLISTEND};
-//  new DLibFunRetNew(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
-
-
 #if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
   const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};  //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
   new DLibFunRetNew(lib::map_proj_forward_fun,
