@@ -57,14 +57,6 @@ namespace lib {
   using std::isnan;
 #endif
 
-#ifdef PL_HAVE_QHULL
-extern "C" {
-  //prevent qhull using its own memory tricks. Stay on the safe side.
-    #define qh_NOmem 1
-    #include <libqhull/qhull_a.h>
-}
-#endif
-
   BaseGDL* machar_fun( EnvT* e)
   {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;

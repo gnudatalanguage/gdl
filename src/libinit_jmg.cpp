@@ -198,8 +198,8 @@ void LibInit_jmg()
   const string triangulateWarnKey[]={"REPEATS", "TOLERANCE",KLISTEND};
   new DLibPro(lib::GDL_Triangulate,string("TRIANGULATE"),4,triangulateKey,triangulateWarnKey);
 
-  
-#ifdef PL_HAVE_QHULL
+//to be written and do not forget to uncomment QHULL in CMakeLists and config.h.cmake  
+#ifdef HAVE_QHULL
 
   const string qhullKey[]={"BOUNDS", "CONNECTIVITY", "DELAUNAY", "SPHERE", "VDIAGRAM" ,"VNORMALS", "VVERTICES", KLISTEND};
   new DLibPro(lib::qhull,string("QHULL"),8,qhullKey);
