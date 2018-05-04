@@ -551,12 +551,10 @@ void NullGDL::InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList)
 SizeT NullGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width)
 {throw GDLException("NullGDL::OFmtA(...) called.");}
 
-SizeT NullGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-		      int prec, char fill, IOMode oM) 
+SizeT NullGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code, const BaseGDL::IOMode oM) 
 {throw GDLException("NullGDL::OFmtF(...) called.");}
 
-SizeT NullGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		      int minN, char fill, NullGDL::IOMode oM)
+SizeT NullGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code, BaseGDL::IOMode oM)
 {throw GDLException("NullGDL::OFmtI(...) called.");}
 
 SizeT NullGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)

@@ -771,21 +771,23 @@ int getPosInStringArray(string *array, int nval, string what)
   return -1;
 }
 
- static string theMonth[12]={"January","February","March","April","May","June",
-    "July","August","September","October","November","December"};
- static string theMONTH[12]={"JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-    "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
- static string themonth[12]={"january","february","march","april","may","june",
-    "july","august","september","october","november","december"};
- static string theDAY[7]={"MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"};
- static string theDay[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
- static string theday[7]={"monday","tuesday","wednesday","thursday","friday","saturday","sunday"};
- static string capa[2]={"am","pm"};
- static string cApa[2]={"Am","Pm"};
- static string cAPa[2]={"AM","PM"};
+
    
  DDouble ReadFmtCal( string what, int w, BaseGDL::Cal_IOMode cMode)
  {
+   static string theMonth[12]={"January","February","March","April","May","June",
+      "July","August","September","October","November","December"};
+   static string theMONTH[12]={"JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+      "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
+   static string themonth[12]={"january","february","march","april","may","june",
+      "july","august","september","october","november","december"};
+   static string theDAY[7]={"MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"};
+   static string theDay[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+   static string theday[7]={"monday","tuesday","wednesday","thursday","friday","saturday","sunday"};
+   static string capa[2]={"am","pm"};
+   static string cApa[2]={"Am","Pm"};
+   static string cAPa[2]={"AM","PM"};
+ 
   static DLong iMonth=1;
   static DLong iDay=1;
   static DLong iYear=1;
