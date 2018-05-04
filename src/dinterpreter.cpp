@@ -43,9 +43,6 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-// print out an exspression entered at teh comand line
-//#define 	AUTO_PRINT_EXPR
-
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
 #endif
@@ -488,10 +485,12 @@ int GDLInterpreter::GetProIx( ProgNodeP f)
       /*bool found=*/ SearchCompilePro(subName, true);
 	  
       proIx=ProIx(subName);
+#ifndef AUTO_PRINT_EXPR
       if( proIx == -1)
 	{
 	  throw GDLException(f,"Procedure not found: "+subName,true,false);
 	}
+#endif
     }
   return proIx;
 }
@@ -1115,7 +1114,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 // 			lexer->Parser().expr();
 	
 			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print," + executeLine.str()); // append new line
+			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
 			
 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
 			lexer->Parser().interactive();

@@ -38,18 +38,18 @@ using namespace std;
 
 
 // for double -> string
-inline string double2string( DDouble d)      
+inline string double2string( const DDouble d)      
 {
   std::ostringstream os;
-  OutAuto( os, d, 16, 8, ' ');
+  OutAuto( os, d, 16, 8, 0);
   return os.str();
 }
 
 // for float -> string
-inline string float2string( DFloat f)      
+inline string float2string( const DFloat f)      
 {
   std::ostringstream os;
-  OutAuto( os, f, 13, 6, ' ');
+  OutAuto( os, f, 13, 6, 0);
   return os.str();
 }
 

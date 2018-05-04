@@ -73,7 +73,6 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [Eigen](https://eigen.tuxfamily.org/)                                                   |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [pslib](http://pslib.sourceforge.net/)                                                  |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [GRIB](https://software.ecmwf.int/wiki/display/GRIB)                                    |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [QHULL](http://www.qhull.org/)                                                          |   +    |    +       |   +    | -       |   -   |    +      |   -   |   -   |
 | [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    -       |   -    | -       |   -   |    +      |   -   |   -   |
 | [Python](https://www.python.org/) module                                                | + ([python-gdl](https://packages.debian.org/python-gdl)) | + ([python-gdl](https://packages.ubuntu.com/python-gdl)) | +    | +       |   -   |    -      |   -   |   -   |
 
