@@ -316,6 +316,11 @@ unsigned long int Str2UL( const string& s, int base)
 }
 void WordExp( std::string& s)
 {
+
+  //AC 2018-04-25 : because crash of :
+  // openr, unit, '', ERROR=error,/get_lun
+  if (s.length() == 0) return;
+
   bool trace_me =false; // lib::trace_arg();
 #if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
 //  cout << "WordExp  in: " << s ;

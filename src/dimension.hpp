@@ -401,7 +401,15 @@ public:
   {
     return rank;
   }
-
+  //returns an equivalent rank (leading and ending sizes <=1 removed)
+  SizeT EquivalentRank() const
+  {
+   char eqrank=rank;
+   char i=0;
+   for (; i<eqrank && dim[i]<=1; ++i);
+   for (; eqrank>1 && dim[eqrank-1] <= 1; --eqrank);
+   return eqrank-i;
+  }
   // throw away unused ranks (ie. ranks == 1)
   inline void Purge()
   {

@@ -460,6 +460,7 @@ public:
   inline SizeT    Stride(SizeT d) const      { return dim.Stride(d);}
   inline void     Purge()                    { dim.Purge();}
   inline SizeT    Rank()          const      { return dim.Rank();}
+  inline SizeT    EquivalentRank()          const      { return dim.EquivalentRank();}
   inline void     SetDim(const dimension& d) { dim=d;}
   inline void     MakeArrayFromScalar()      { dim.MakeArrayFromScalar();} 
 
