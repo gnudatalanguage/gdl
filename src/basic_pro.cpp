@@ -337,7 +337,7 @@ namespace lib {
       if( n_Param == 0) return;
 
 //	  for( SizeT ipar=0; ipar<n_Param; ipar++) { // Only one at a time
-		BaseGDL*& par=e->GetPar( ipar);
+		BaseGDL*& par=e->GetPar( 0);
 		if( par == NULL or
 			par->Type() != GDL_OBJ) continue;
 		DObjGDL* op= static_cast<DObjGDL*>(par);
