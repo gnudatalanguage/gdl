@@ -336,7 +336,7 @@ namespace lib {
       int n_Param=e->NParam();
       if( n_Param == 0) return;
 
-	  for( SizeT ipar=0; ipar<n_Param; ipar++) {
+//	  for( SizeT ipar=0; ipar<n_Param; ipar++) { // Only one at a time
 		BaseGDL*& par=e->GetPar( ipar);
 		if( par == NULL or
 			par->Type() != GDL_OBJ) continue;
@@ -344,7 +344,7 @@ namespace lib {
     SizeT nEl = op->N_Elements();
 		for( SizeT i=0; i<nEl; i++)	
 			e->ObjCleanup( (*op)[i]);
-    }
+  //  } remaining args are for processing in ObjCleanup
   }
 
   void call_procedure(EnvT* e) {
