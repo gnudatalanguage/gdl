@@ -189,14 +189,17 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
+#ifdef HAVE_LIBWXWIDGETS
+  GDLWidget::Init();        // initialize widget system.
+#endif
   
   //if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no ther device is defined.
   std::string useWX=StrUpCase(GetEnvString("GDL_USE_WX"));
   if (useWX == "YES" ) {
 #ifdef HAVE_LIBWXWIDGETS
+
 	#ifdef NO_WIDGET_DRAW
-//	#undef HAVE_LIBWXWIDGETS
 		#ifdef HAVE_X
 		  deviceList.push_back( new DeviceX());
 		#endif
@@ -204,38 +207,39 @@ void GraphicsDevice::Init()
 		  deviceList.push_back( new DeviceWIN());
 		#endif
 	#  else
-#ifdef HAVE_X
+		#ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
 		#endif
-#ifdef _WIN32
+		#ifdef _WIN32
     deviceList.push_back( new DeviceWX("WIN"));
-#endif
-#endif  
+		#endif
+	#endif  
 #else
-#ifdef HAVE_X
-    deviceList.push_back( new DeviceX());
-#endif
-#ifdef _WIN32
-    deviceList.push_back( new DeviceWIN());
-#endif
+	#ifdef HAVE_X
+		deviceList.push_back( new DeviceX());
+	#endif
+	#ifdef _WIN32
+		deviceList.push_back( new DeviceWIN());
+	#endif
 #endif
   } else {
 #ifdef HAVE_LIBWXWIDGETS
-  if( trace_me ) cerr << " (trace)GraphicsDevice::Init() ... new DeviceWX() " << endl;
-#  ifdef NO_WIDGET_DRAW
-	//#undef HAVE_LIBWXWIDGETS
-	  deviceList.push_back( new DeviceWX("MAC"));
-#  else
-	  deviceList.push_back( new DeviceWX());
-#  endif
+
+	#  ifdef NO_WIDGET_DRAW
+
+		  deviceList.push_back( new DeviceWX("MAC"));
+	#  else
+		  deviceList.push_back( new DeviceWX());
+	#  endif
 #endif
 #ifdef HAVE_X
-    deviceList.push_back( new DeviceX());
+	deviceList.push_back( new DeviceX());
 #endif
 #ifdef _WIN32
-    deviceList.push_back( new DeviceWIN());
+	deviceList.push_back( new DeviceWIN());
 #endif
-  }
+  }				   // (useWX == "YES" )
+
   // we try to set X, WIN or WX as default 
   // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
 #if defined(HAVE_X) // Check X11 first
@@ -299,6 +303,10 @@ void GraphicsDevice::Init()
 
 void GraphicsDevice::DestroyDevices()
 {
+	
+#ifdef HAVE_LIBWXWIDGETS
+  GDLWidget::UnInit();    // un-initialize widget system
+#endif
   PurgeContainer( deviceList);
   actDevice = NULL;
 }
