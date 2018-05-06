@@ -3,4 +3,5 @@ pro test_bug_2974380
   window,xsize=512,ysize=512
   wdelete
   window,xsize=512,ysize=512
+  wdelete
 end
