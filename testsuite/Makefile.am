@@ -103,6 +103,7 @@ TESTS = \
   test_file_copy.pro \
   test_file_delete.pro \
   test_file_dirname.pro \
+  test_file_lines.pro \
   test_file_move.pro \
   test_file_search.pro \
   test_file_test.pro \
@@ -110,13 +111,13 @@ TESTS = \
   test_finite.pro \
   test_fix.pro \
   test_fixprint.pro \
-  test_format.pro \
   test_formats.pro \
   test_fx_root.pro \
   test_fz_roots.pro \
   test_gc.pro \
   test_get_lun.pro \
   test_get_screen_size.pro \
+  test_gh00178.pro \
   test_grib.pro \
   test_hdf5.pro \
   test_heap_refcount.pro \
@@ -129,6 +130,7 @@ TESTS = \
   test_interpolate.pro \
   test_isa.pro \
   test_ishft.pro \
+  test_keyword_set_but_null.pro \
   test_l64.pro \
   test_la_least_squares.pro \
   test_list.pro \

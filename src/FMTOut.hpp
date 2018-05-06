@@ -33,7 +33,7 @@ public:
 #if (__cplusplus >= 201103L)
 std::unique_ptr<std::ostream> osLocalGuard;
 #else
-        std::auto_ptr<std::ostream> osLocalGuard;
+std::auto_ptr<std::ostream> osLocalGuard;
 #endif
         //if( *os_ == std::cout) // SA: this did not work with win32
         if( os_->rdbuf() == std::cout.rdbuf())
@@ -155,7 +155,7 @@ public:
 	public: void format_reversion(RefFMTNode _t);
 	public: void f_csubcode(RefFMTNode _t);
 	public: void x(RefFMTNode _t);
-	public: void csubcode(RefFMTNode _t,
+	public: void calendar_code(RefFMTNode _t,
 		SizeT r
 	);
 public:
@@ -170,10 +170,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 78;
+	static const int NUM_TOKENS = 86;
 #else
 	enum {
-		NUM_TOKENS = 78
+		NUM_TOKENS = 86
 	};
 #endif
 	

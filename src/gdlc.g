@@ -34,12 +34,12 @@ header {
 #include "objects.hpp"
 #include "initsysvar.hpp"
 
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
 
-#include "antlr/SemanticException.hpp"
-#include "antlr/NoViableAltForCharException.hpp"
-#include "antlr/TokenStreamIOException.hpp"
-#include "antlr/CharInputBuffer.hpp"
+#include <antlr/SemanticException.hpp>
+#include <antlr/NoViableAltForCharException.hpp>
+#include <antlr/TokenStreamIOException.hpp>
+#include <antlr/CharInputBuffer.hpp>
 
 //#include "dinterpreter.hpp"
 

@@ -98,7 +98,6 @@ namespace lib {
   BaseGDL* strpos( EnvT* e);
   BaseGDL* strtrim( EnvT* e);
 
-  BaseGDL* where_fun( EnvT* e);
   BaseGDL* total_fun( EnvT* e);
   BaseGDL* product_fun( EnvT* e);
 
