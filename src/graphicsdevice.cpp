@@ -537,11 +537,10 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
 
   if (iconic!=-1) { //iconic asked. do nothing else.
     if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
-    return true;
-  }
+  } else {
   
-  if (show) RaiseWin(ix);  else LowerWin(ix);
-
+	  if (show) RaiseWin(ix);  else LowerWin(ix);
+	}
   UnsetFocus();
 
   return true;
