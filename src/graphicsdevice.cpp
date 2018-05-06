@@ -523,12 +523,10 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
   if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
   if (iconic!=-1) { //iconic asked. do nothing else.
-    if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
-    return true;
+		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
+	} else {
+		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
-  
-  if (show) RaiseWin(ix);  else LowerWin(ix);
-
   //UnsetFocus();
 
   return true;
