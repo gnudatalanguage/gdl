@@ -333,18 +333,15 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-      int n_Param=e->NParam();
-      if( n_Param == 0) return;
+	int n_Param=e->NParam();
+	if( n_Param == 0) return;
+	BaseGDL*& par=e->GetPar( 0);
+	if( par == NULL or par->Type() != GDL_OBJ) return;
+	DObjGDL* op= static_cast<DObjGDL*>(par);
 
-//	  for( SizeT ipar=0; ipar<n_Param; ipar++) { // Only one at a time
-		BaseGDL*& par=e->GetPar( 0);
-		if( par == NULL or
-			par->Type() != GDL_OBJ) continue;
-		DObjGDL* op= static_cast<DObjGDL*>(par);
     SizeT nEl = op->N_Elements();
-		for( SizeT i=0; i<nEl; i++)	
+	for( SizeT i=0; i<nEl; i++)	
 			e->ObjCleanup( (*op)[i]);
-  //  } remaining args are for processing in ObjCleanup
   }
 
   void call_procedure(EnvT* e) {
