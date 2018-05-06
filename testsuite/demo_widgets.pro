@@ -68,15 +68,15 @@ common mycount,count
 count=0
 if ~keyword_set(block) then block=0
 if keyword_set(help) then begin
-print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
-print,"Will display some examples of currently available widgets"
-print,"if table is passed as argument and is a structure, tab 3 will show the"
-print,"elements of the structure as buttons in a scrolled panel"
-print,"options: /nocanvas removes the widget_draw"
-print,"/notree remove the tree widget"
+	print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
+	print,"Will display some examples of currently available widgets"
+	print,"if table is passed as argument and is a structure, tab 3 will show the"
+	print,"elements of the structure as buttons in a scrolled panel"
+	print,"options: /nocanvas removes the widget_draw"
+	print,"/notree remove the tree widget"
 
-return
-endif
+	return
+	endif
 
 ev = {vEv,type:'',pos:[0,0]}
 ;Create a base widget. 
@@ -85,27 +85,28 @@ base = WIDGET_BASE(MBAR=mbar,title="gdl widget examples",event_pro='event_in_bas
 menu = widget_button(mbar,VALUE="Menu")
 ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui")
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui")
+
 ;buttons as menu buttons
-        fileID = Widget_Button(mbar, Value='Complicated Menu')
-        saveID = Widget_Button(fileID, Value='submenu 1', /MENU)
-        button = Widget_Button(saveID, Value='entry 1', UNAME='POSTSCRIPT')
-        button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
-        raster = Widget_Button(saveID, Value='submenu 2', /MENU)
-        
-        button = Widget_Button(raster, Value='BMP', UNAME='RASTER_BMP')
-        button = Widget_Button(raster, Value='GIF', UNAME='RASTER_GIF')
-        button = Widget_Button(raster, Value='JPEG', UNAME='RASTER_JPEG')
-        button = Widget_Button(raster, Value='PNG', UNAME='RASTER_PNG')
-        button = Widget_Button(raster, Value='TIFF', UNAME='RASTER_TIFF')
-        imraster = Widget_Button(saveID, Value='submenu 3', /MENU)
-        button = Widget_Button(imraster, Value='BMP', UNAME='IMAGEMAGICK_BMP')
-        button = Widget_Button(imraster, Value='GIF', UNAME='IMAGEMAGICK_GIF')
-        button = Widget_Button(imraster, Value='JPEG', UNAME='IMAGEMAGICK_JPEG')
-        button = Widget_Button(imraster, Value='PNG', UNAME='IMAGEMAGICK_PNG')
-        button = Widget_Button(imraster, Value='TIFF', UNAME='IMAGEMAGICK_TIFF')
-        button = Widget_Button(fileID, Value='entry 3', /Separator, UNAME='SAVECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 4', UNAME='RESTORECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 5', /Separator, UNAME='QUIT')
+fileID = Widget_Button(mbar, Value='Complicated Menu')
+saveID = Widget_Button(fileID, Value='submenu 1', /MENU)
+button = Widget_Button(saveID, Value='entry 1', UNAME='POSTSCRIPT')
+button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
+raster = Widget_Button(saveID, Value='submenu 2', /MENU)
+
+button = Widget_Button(raster, Value='BMP', UNAME='RASTER_BMP')
+button = Widget_Button(raster, Value='GIF', UNAME='RASTER_GIF')
+button = Widget_Button(raster, Value='JPEG', UNAME='RASTER_JPEG')
+button = Widget_Button(raster, Value='PNG', UNAME='RASTER_PNG')
+button = Widget_Button(raster, Value='TIFF', UNAME='RASTER_TIFF')
+imraster = Widget_Button(saveID, Value='submenu 3', /MENU)
+button = Widget_Button(imraster, Value='BMP', UNAME='IMAGEMAGICK_BMP')
+button = Widget_Button(imraster, Value='GIF', UNAME='IMAGEMAGICK_GIF')
+button = Widget_Button(imraster, Value='JPEG', UNAME='IMAGEMAGICK_JPEG')
+button = Widget_Button(imraster, Value='PNG', UNAME='IMAGEMAGICK_PNG')
+button = Widget_Button(imraster, Value='TIFF', UNAME='IMAGEMAGICK_TIFF')
+button = Widget_Button(fileID, Value='entry 3', /Separator, UNAME='SAVECOMMANDS')
+button = Widget_Button(fileID, Value='entry 4', UNAME='RESTORECOMMANDS')
+button = Widget_Button(fileID, Value='entry 5', /Separator, UNAME='QUIT')
 
 
 ;tab = widget_base(base,/col); 
@@ -259,15 +260,26 @@ widget_control,base,notify_realize='i_am_realized'
 WIDGET_CONTROL, /REALIZE, base 
  
 ;Obtain the window index. 
+index =0  & index2 = 1
 if ~keyword_set(nocanvas) then begin
 print,"Draw widgets:",draw,draw2
  WIDGET_CONTROL, draw, GET_VALUE = index 
   WIDGET_CONTROL, draw2, GET_VALUE = index2 
 
+; 
+; 0 <= index,index2 < 32
+;
+wcheck=1+intarr(32)
+if (!d.name eq "WIN") or (!d.name eq "X") then begin
+	device,window_state=wcheck
+	if wcheck[index] eq 0 and index ne 0 then window,index
+	if wcheck[index2] eq 0 and index ne 0 then window,index2
+     endif
+
 ;Set the new widget to be the current graphics window 
  print,"window indexes",index,index2
  file='Saturn.jpg'
- image=read_image(file)
+ image=read_image(file_which(file))
  WSET,index
  plot,findgen(100)
  tv,image,10,10,/data,/true

@@ -178,11 +178,10 @@ namespace lib {
     bool show = true;
     if (nParam == 2) { 
       DIntGDL *showval = e->GetParAs<DIntGDL>(1);
-      show = (*showval)[0] != 0;
-    }
+      show = (*showval)[0] != 0;    }
 
-    int iconic = -1; //signals absent parameter
     static int ICONICIx = e->KeywordIx("ICONIC");
+    int iconic = -1; //signals absent parameter
     if( e->KeywordPresent(ICONICIx)) iconic=e->KeywordSet(ICONICIx);
 
     if (!actDevice->WShow( wIx, show, iconic)) 
