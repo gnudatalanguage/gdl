@@ -215,6 +215,7 @@ void GraphicsDevice::Init()
   } else {
 #ifdef HAVE_LIBWXWIDGETS
     deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
+  GDLWidget::Init();        // initialize widget system.
 #endif
 #ifdef HAVE_X
     deviceList.push_back( new DeviceX());

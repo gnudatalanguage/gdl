@@ -35,10 +35,6 @@
 #include <omp.h>
 #endif
 
-#ifdef HAVE_LIBWXWIDGETS
-#include "gdlwidget.hpp"
-#endif
-
 #ifdef USE_PYTHON
 #include "gdlpython.hpp"
 #endif
@@ -95,11 +91,6 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 void ResetObjects()
 {
-#ifdef HAVE_LIBWXWIDGETS
-
-  // un-initialize widget system
-  GDLWidget::UnInit();
-#endif
   
   GraphicsDevice::DestroyDevices();
 
