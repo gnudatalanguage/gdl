@@ -45,6 +45,7 @@ wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   if (the_units==0) return wxRealPoint(1,1);
   if (the_units==1) return wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) return wxRealPoint(sx*10.0,sy*10.0);
+  return wxRealPoint(0,0); //never reached -- pacifier.
 }
 
 void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
@@ -721,7 +722,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   return NULL; // avoid warning
 #else
   SizeT nParam = e->NParam( 1 );
-
+#if defined( NO_WIDGET_DRAW )
+  cout << " widget.cpp: NO_WIDGET_DRAW is set on build ... returning (-1)" << endl;
+  return new DLongGDL( -1); //return NULL;
+#endif
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget *parent = GDLWidget::GetWidget( parentID );
@@ -2230,6 +2234,7 @@ endwait:
         return ev;
       }
     } while (infinity); 
+    return NULL; //pacifier.
 #endif
 }
 
@@ -2425,6 +2430,7 @@ void widget_control( EnvT* e ) {
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
+  if(widgetID == -1) return; // for a deliberately invalid wid.
   GDLWidget *widget = GDLWidget::GetWidget( widgetID );
   if ( widget == NULL ) {
     if ( dobadid ) {
