@@ -286,6 +286,10 @@ void GraphicsDevice::Init()
 
 void GraphicsDevice::DestroyDevices()
 {
+	
+#ifdef HAVE_LIBWXWIDGETS
+  GDLWidget::UnInit();    // un-initialize widget system
+#endif
   PurgeContainer( deviceList);
   actDevice = NULL;
 }
@@ -525,9 +529,10 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
   if (iconic!=-1) { //iconic asked. do nothing else.
 		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
 	} else {
+  
 		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
-  //UnsetFocus();
+  UnsetFocus();
 
   return true;
 }
