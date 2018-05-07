@@ -65,20 +65,20 @@ enum DType {  // Object types (IDL type numbers)
   GDL_ULONG64     // 15 unsigned 64 bit integer
 
   // not yet implemented
-  , GDL_LONG128  // 128 bit integer
-  , GDL_ULONG128 // unsigned 128 bit integer
+//  , GDL_LONG128  // 128 bit integer
+//  , GDL_ULONG128 // unsigned 128 bit integer
   
-  , GDL_LONGABI // arbitrary length int
+//  , GDL_LONGABI // arbitrary length int
   //, GDL_ULONGABI // arbitrary length unsigned int (pointless)
   
-  , GDL_LDOUBLE // long double  precision float (80 or 128bit)
-  , GDL_COMPLEXLDBL // Complex long double
-
-  , GDL_ARBITRARY // arbitrary precision float
-  , GDL_COMPLEXABI // Complex arbitrary
-
-  , GDL_RATIONAL // arbitrary length rational
-  , GDL_COMPLEXRAT // Complex arbitrary length rational
+//  , GDL_LDOUBLE // long double  precision float (80 or 128bit)
+//  , GDL_COMPLEXLDBL // Complex long double
+//
+//  , GDL_ARBITRARY // arbitrary precision float
+//  , GDL_COMPLEXABI // Complex arbitrary
+//
+//  , GDL_RATIONAL // arbitrary length rational
+//  , GDL_COMPLEXRAT // Complex arbitrary length rational
 };
 
 // order of conversion precedence if two types are the same,
@@ -711,13 +711,10 @@ public:
   virtual void InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList);
 
   // virtual formatting output functions
-  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
-  virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-			int prec, char fill, IOMode oM = FIXED); 
-  virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-			int minN, char fill, BaseGDL::IOMode oM = DEC);
-  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-			 int minN, char *fill, BaseGDL::Cal_IOMode oM = DEFAULT);
+  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code);
+  virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED); 
+  virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
+  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *fill, int code=0, BaseGDL::Cal_IOMode oM = DEFAULT);
   virtual SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   virtual SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   virtual SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 

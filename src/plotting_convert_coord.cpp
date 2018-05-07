@@ -159,6 +159,8 @@ namespace lib {
           // (zSize is 1)
         }
       }
+      default:
+        break;
     }
 
     //convert to output from normalized 
@@ -205,6 +207,8 @@ namespace lib {
           //(zSize is 1)
         }
       }
+      default:
+        break;
     }
     
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
@@ -362,12 +366,11 @@ namespace lib {
 
     if (type == GDL_DOUBLE) {
       return res;
-    } else if (type == GDL_FLOAT) {
-      DFloatGDL* res1 = static_cast<DFloatGDL*>
-              (res->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      delete res;
-      return res1;
     }
+    //else return something...
+    DFloatGDL* res1 = static_cast<DFloatGDL*>(res->Convert2(GDL_FLOAT, BaseGDL::COPY));
+    delete res;
+    return res1;
   }
 
   //THE FOLLOWING ARE POSSIBLY THE WORST WAY TO DO THE JOB. At least they are to be used *only*

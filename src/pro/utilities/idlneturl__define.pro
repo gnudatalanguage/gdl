@@ -7,8 +7,8 @@
 ; (which is provided by Debian ...)
 ; Goal is to be able to run ATV 3.0b8 (with last AstroLib)
 ;
-; Please post improvments on GDL discussion forum or on 
-; https://sourceforge.net/p/gnudatalanguage/patches/
+; Please post improvments or comments on:
+; https://github.com/gnudatalanguage/gdl/issues
 ;
 ; Very very limited but working version :
 ; improvments needed (no outputs ... wget or curl ...)

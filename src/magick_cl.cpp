@@ -125,6 +125,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   BaseGDL * magick_ping(EnvT* e) {
@@ -332,6 +333,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
   
   //CLOSE, magic_id
@@ -411,6 +413,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   //MAGICK_READCOLORMAPRGB, mid, red, green, blue
@@ -572,6 +575,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   // MAGICK_WRITE, mid, gdlImageArray, rgb=rgb
@@ -706,6 +710,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   //magickNumber=MAGICK_MAGICK(mid [, "imageType"])
@@ -727,6 +732,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   //nrows=MAGICK_ROWS(mid)
@@ -740,6 +746,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 
   //ncols=MAGICK_COLUMNS(mid)
@@ -753,6 +760,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+    return NULL; //pacify -Wreturn-type
   }
 //bool=MAGICK_INDEXEDCOLOR(mid)
   BaseGDL* magick_IndexedColor(EnvT* e) {
@@ -769,7 +777,7 @@ namespace lib {
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
-
+    return NULL; //pacify -Wreturn-type
   }
 
   //MAGICK_QUALITY, mid, quality

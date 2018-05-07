@@ -2233,7 +2233,7 @@ endwait:
       } else { // 3b) or 4)
         return ev;
       }
-    } while (infinity); 
+    } while (infinity);
     return NULL; //pacifier.
 #endif
 }

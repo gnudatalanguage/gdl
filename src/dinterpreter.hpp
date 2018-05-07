@@ -84,6 +84,8 @@ extern int (*rl_event_hook)();   /* missing from editline/readline.h */
 #include <fstream>
 #include <vector>
 
+// enable to print out an expression entered at the comand line
+#define 	AUTO_PRINT_EXPR
 
 void ControlCHandler(int);
 

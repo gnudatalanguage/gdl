@@ -164,6 +164,7 @@ namespace lib {
   
   uint32_t writeEnd(XDR *xdrs) {
     uint32_t cur=writeNewRecordHeader(xdrs, 6);
+    return cur;
   }
 
   int getVersion(XDR* xdrs) {
@@ -312,7 +313,7 @@ namespace lib {
     int i=0;
     for (; i < nDims; ++i) dims[i]=var->Dim(i);
     for (; i < nmax; ++i) dims[i]=1; //yes.
-    !xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
+    xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
   }
   
   int defineCommonBlock(EnvT* e, XDR* xdrs, int verboselevel) {
@@ -1837,7 +1838,7 @@ namespace lib {
     SizeT i = 0;
     for (itheap = heapIndexMap.begin(); itheap != heapIndexMap.end(); ++itheap) indices[i++] = 
       ((*itheap).first>0)?(*itheap).first:-1*(*itheap).first;
-    !xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
+    xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
 //    {
 //      cerr << "Heap indexes, " << elementcount << " elements: ";
 //      for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
@@ -1863,7 +1864,7 @@ namespace lib {
     u_int lens[ncommonvars];
     for (int i = 0; i < ncommonvars; ++i) varnames[i] = (char*)c->VarName(i).c_str();
     for (int i = 0; i < ncommonvars; ++i) lens[i] = c->VarName(i).size();
-    for (int i = 0; i < ncommonvars; ++i) !xdr_string(xdrs, &varnames[i], lens[i]);    
+    for (int i = 0; i < ncommonvars; ++i) xdr_string(xdrs, &varnames[i], lens[i]);    
     uint32_t next = updateNewRecordHeader(xdrs, cur);
     return next;
   } 
