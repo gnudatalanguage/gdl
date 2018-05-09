@@ -653,7 +653,8 @@ namespace lib {
     objName=StrUpCase(objName);
     if( objName == "IDL_OBJECT")
       objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
-
+	else if( objName == "IDL_CONTAINER" )
+	   objName = GDL_CONTAINER_NAME;
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 
     DStructGDL* objStruct= new DStructGDL( objDesc, dimension());
@@ -6750,7 +6751,10 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     DString className;
     e->AssureScalarPar<DStringGDL>(1, className);
     className = StrUpCase(className);
-
+     if( className == "IDL_OBJECT")
+       className = GDL_OBJECT_NAME;
+	else if( className == "IDL_CONTAINER" )
+	   className = GDL_CONTAINER_NAME;
     BaseGDL* p0 = e->GetPar(0);
     //nObjects is the number of objects or strings passed in array format.
     SizeT nElem = p0->N_Elements();
