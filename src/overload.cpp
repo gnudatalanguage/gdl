@@ -541,6 +541,7 @@ void SetupOverloadSubroutines()
 // LIST::ADD
   DPro *DProLIST__ADD = new DPro("ADD","LIST",INTERNAL_LIBRARY_STR);
   DProLIST__ADD->AddKey("EXTRACT","EXTRACT")->AddKey("NO_COPY","NO_COPY");
+  DProLIST__ADD->AddKey("POSITION","POSITION");
   DProLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
   treePro = new WRAPPED_PRONode( lib::list__add);
   DProLIST__ADD->SetTree( treePro);
