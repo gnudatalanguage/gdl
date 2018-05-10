@@ -2442,7 +2442,7 @@ void list__swap( EnvUDT* e)
 			if( isaKW->Type() != GDL_STRING)
 					 ThrowFromInternalUDSub( e,
 					  "Object Classes can be referenced only with names (strings)");
-			for(SizeT i=0; i < isaKW->N_Elements(); i++)
+		for(SizeT i=0; i < isaKW->N_Elements(); ++i)
 				testisa.push_back(StrUpCase( (*static_cast<DStringGDL*>( isaKW))[i]));
 			}
 	DPtr pointer = (*static_cast<DPtrGDL*>( NodePtr))[0];
@@ -2467,7 +2467,7 @@ void list__swap( EnvUDT* e)
 				if( isaKW != NULL) {
 							accept = false;
 					DStructGDL* oStruct = e->GetObjHeap( ObjID);
-							for(SizeT i =0; i < testisa.size(); i++)
+					for(SizeT i =0; i < testisa.size(); ++i)
 									if( oStruct->Desc()->IsParent( testisa[i]))
 									  { accept = true; break;}
 						}
@@ -2521,7 +2521,7 @@ void list__swap( EnvUDT* e)
 		do {
 			if( (isPtr && e->Interpreter()->PtrValid( pointer)) ||
 				(!isPtr && e->Interpreter()->ObjValid( ObjID))  ) {
-				  for( SizeT i=0; i < nEl; i++)
+			  for( SizeT i=0; i < nEl; ++i)
 					if(inlist == (*indexLong)[i]) 
 						 pointers.push_back( pointer);
 
@@ -2548,30 +2548,29 @@ void list__swap( EnvUDT* e)
 
     if( isPtr)	
     {
+		if( nfetch ==1) {
+			e->Interpreter()->IncRef(pointers[0]);
+			return new DPtrGDL(pointers[0]);
+		}
 		DPtrGDL* ret;
 		ret = new DPtrGDL( dimension(nfetch));
 		Guard<DPtrGDL> retGuard( ret);
-		for(SizeT i=0; i < nfetch; i++) {
- 			if(trace_me) std::printf(": %d %llu",i, pointers[i]);
+		for(SizeT i=0; i < nfetch; ++i) {
 				e->Interpreter()->IncRef(pointers[i]);
 					(*ret)[i] = pointers[i];
 				}
-		if(trace_me) std::cout << std::endl;
-		if(trace_me) {
-			 std::cout << " <DPtr>pointers: ";
-			 for( SizeT k=0; k < pointers.size(); k++) 
-					std::printf("%llu :",  pointers[k]);
-			 std::cout << std::endl;
-		 }
 		retGuard.Release();
 		return ret;
 	}
 	else 
 	{
+		if( nfetch ==1) {
+			e->Interpreter()->IncRefObj(pointers[0]);
+			return new DObjGDL(pointers[0]);
+		}
 		DObjGDL* ret;
-		ret = new DObjGDL( dimension(nfetch));
 		Guard<DObjGDL> retGuard( ret);
-		for(SizeT i=0; i < nfetch; i++) {
+		for(SizeT i=0; i < nfetch; ++i) {
 				e->Interpreter()->IncRefObj(pointers[i]);
 					(*ret)[i] = pointers[i];
 				}
