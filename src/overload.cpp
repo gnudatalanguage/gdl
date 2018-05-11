@@ -591,12 +591,10 @@ void SetupOverloadSubroutines()
   listDesc->ProList().push_back(DProLIST__HELP);
   #endif
 // LIST::CLEANUP
-// 
-/*2017-Dec-23 GVJ Omit this routine and see if GDL takes care of things.
   DPro *DProLIST__CLEANUP = new DPro("CLEANUP","LIST",INTERNAL_LIBRARY_STR);
   treePro = new WRAPPED_PRONode( lib::list__cleanup);
   DProLIST__CLEANUP->SetTree( treePro);
-	  listDesc->ProList().push_back(DProLIST__CLEANUP);*/
+	  listDesc->ProList().push_back(DProLIST__CLEANUP);
 // LIST::MOVE
   DPro *DProLIST__MOVE = new DPro("MOVE","LIST",INTERNAL_LIBRARY_STR);
   DProLIST__MOVE->AddPar("SOURCE")->AddPar("DESTINATION");
@@ -794,11 +792,12 @@ void SetupOverloadSubroutines()
   #endif
 // GDL_CONTAINER::CLEANUP
 // 
-/*2017-Dec-23 GVJ Omit this routine and see if GDL takes care of things.
+//*2017-Dec-23 GVJ Omit this routine and see if GDL takes care of things.
+// 2018-May revert
   DProlist = new DPro("CLEANUP","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode( lib::list__cleanup);
+  treePro = new WRAPPED_PRONode( lib::container__cleanup);
   DProlist->SetTree( treePro);
-  listDesc->ProList().push_back(DProLIST__CLEANUP); */
+  gdlContainerDesc->ProList().push_back(DProlist);//*/
 // GDL_CONTAINER::MOVE
   DProlist = new DPro("MOVE","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
   DProlist->AddPar("SOURCE")->AddPar("DESTINATION");

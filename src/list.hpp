@@ -41,6 +41,7 @@ namespace lib {
 
    void list__add( EnvUDT* e);
    
+   void container__cleanup( EnvUDT* e);
    BaseGDL* container__iscontained( EnvUDT* e);
    BaseGDL* container__equals( EnvUDT* e);
    void container__remove( EnvUDT* e);

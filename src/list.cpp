@@ -473,9 +473,7 @@ void list_insertion( BaseGDL* theref, BaseGDL* rVal,
   
   void list__cleanup( EnvUDT* e)
   {
-    SizeT nParam = e->NParam(1); // SELF
-	
-    DStructGDL* self = GetSELF( e->GetKW( 0), e);
+    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
     
     LISTCleanup( e, self);
   }
@@ -484,7 +482,7 @@ void list_insertion( BaseGDL* theref, BaseGDL* rVal,
   {
     SizeT nParam = e->NParam(1); // SELF
 	
-    DStructGDL* self = GetSELF( e->GetKW( 0), e);
+    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
 
     // here static is fine
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
@@ -1179,7 +1177,8 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   catch( GDLException& ex)
   {
     ixList.Destruct(); // ixList is not valid afterwards, but as we throw this is ok
-    throw ex;
+	// throw ex; -<< gives a codacy error.
+	ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
   }
   
   SizeT listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];
@@ -1638,40 +1637,31 @@ BaseGDL* list__isempty( EnvUDT* e)
   if (nList > 0) return new DByteGDL(0); else return new DLongGDL(1);
 }
 
-SizeT LIST_count( DStructGDL* list) {// straight through, no checks
+SizeT LIST_count( DStructGDL* list)
+{// straight through, no checks
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
     return (*static_cast<DLongGDL*>( list->GetTag( nListTag, 0)))[0];	      
-}
 
+}
 BaseGDL* list__count( EnvUDT* e)
 {
-	static int kwSELFIx = 0;
-	static int kwVALUEIx = 1;
-	static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    static int kwSELFIx = 0; // no keywords
+    static int kwVALUEIx = 1;
+   
+//    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+    SizeT nParam = e->NParam(1);
+	if( nParam == 1)
+		return new DLongGDL( LIST_count( GetOBJ( e->GetKW( kwSELFIx), e)));
+	// nParam > 1:
+ 	BaseGDL* r = e->GetKW( kwVALUEIx);   
+	DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
 
-	SizeT nParam = e->NParam(1); // minimum SELF
+	DByteGDL* result = static_cast<DByteGDL*>(selfObj->EqOp( r));
 
-	DStructGDL* self = GetSELF( e->GetKW( kwSELFIx), e);
-
-	if( nParam > 1)
-	{
-	  BaseGDL* r = e->GetKW( kwVALUEIx);
-
-	  DObjGDL* selfObj = static_cast<DObjGDL*>(e->GetKW( kwSELFIx));
-	  
-	  DByteGDL* result = static_cast<DByteGDL*>(selfObj->EqOp( r));
-	  Guard<DByteGDL> newObjGuard( result);
-	  
-	  DLong nList = 0;
-	  for( SizeT i=0; i<result->N_Elements(); ++i)
-	  {
-	if( (*result)[i] != 0)
-	  ++nList;
-	  }
-	  return new DLongGDL( nList);
-	}
-
-	DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+	Guard<DByteGDL> newObjGuard( result);
+	DLong nList = 0;
+	for( SizeT i=0; i<result->N_Elements(); ++i)
+				if( (*result)[i] != 0) 	  ++nList;
 	return new DLongGDL( nList);
 }
   
@@ -1805,7 +1795,7 @@ void list__swap( EnvUDT* e)
   GDL_LIST_STRUCT()
   GDL_CONTAINER_NODE()
 
-		trace_me = false; // lib::trace_arg();
+//		trace_me = false; // lib::trace_arg();
 	if(trace_me) std::printf(" list__swap ");
      SizeT nParam = e->NParam(3); // minimum SELF, INDEX1, INDEX2
     
@@ -2608,7 +2598,7 @@ void list__swap( EnvUDT* e)
   GDL_CONTAINER_NODE()
 
 
-		trace_me = false; //lib::trace_arg();
+//		trace_me = false; //lib::trace_arg();
   
 	static int kwEXTRACTIx = e->GetKeywordIx("EXTRACT");
 	static int kwNO_COPYIx = e->GetKeywordIx("NO_COPY");
@@ -3008,6 +2998,60 @@ void list__swap( EnvUDT* e)
     return newObj;
   }
   
+  void container__cleanup( EnvUDT* e)
+  {
+    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
+    
+	GDL_CONTAINER_STRUCT()
+	GDL_CONTAINER_NODE()
+	enum {POINTERS=1, OBJECTS};
+
+  	if( trace_me) std::cout << " CONTAINER::CLEANUP:" ;
+
+	DInt GDLContainerVersion = 
+	   (*static_cast<DIntGDL*>( self->GetTag( GDLContainerVersionTag, 0)))[0];
+	bool isObj = (GDLContainerVersion == OBJECTS);
+
+    DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+    DPtr actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
+    if( actP == 0) ThrowFromInternalUDSub( e,
+			 " Invalid Node reference at tail end of container");
+
+    // swipe head and tail pointer, reset nlist.
+    (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = 0;
+    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = 0;	      
+    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = 0;    
+  	if( trace_me) std::cout << " Top of deallocation loop: " ;
+    for( SizeT elIx = 0; elIx < nList; ++elIx)
+      {
+  	if( trace_me) std::printf(" #%llu %llu:",elIx,actP);
+		DStructGDL* Node = GetLISTStruct(e, actP);
+		DPtr pNext = (*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0];
+		DPtr pData = (*static_cast<DPtrGDL*>( Node->GetTag( pDataTag, 0)))[0];
+  	if( trace_me) std::printf("pData=%llu.",pData);
+		if ( isObj) {
+			if (BaseGDL::interpreter->ObjValid(static_cast<DObj>(pData)) ) 
+					e->Interpreter()->DecRefObj(static_cast<DObj>(pData));
+			else
+				std::cout << "container:: cleanup finds invalid object  ID="
+							+i2s(pData)<< std::endl;
+		}
+		else {
+			if (BaseGDL::interpreter->PtrValid(pData)) 
+						e->Interpreter()->DecRef(pData);
+			else
+				std::cout << "container:: cleanup finds invalid pointer ID="
+							+i2s(pData)<< std::endl;
+		}
+			// prevent cleanup due to ref-counting  
+			(*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0] = 0;      
+		BaseGDL::interpreter->FreeHeap( actP);
+		actP = pNext;
+      }  
+      if(trace_me) std::cout << std::endl;  
+  }
+
+  
   BaseGDL* container__iscontained( EnvUDT* e)
   {
     GDL_CONTAINER_STRUCT()
@@ -3109,26 +3153,64 @@ void list__swap( EnvUDT* e)
   void container__remove( EnvUDT* e)
   {
 
+    GDL_CONTAINER_STRUCT()
+    GDL_CONTAINER_NODE()
+	enum { POINTERS=1, OBJECTS};
+    SizeT nParam = e->NParam(1);
+
   // sALL, POSITION are keyword.
 	static int kwALLIx = e->GetKeywordIx("ALL");
 	static int kwPOSITIONIx = e->GetKeywordIx("POSITION");
-
-
-		trace_me = false; // lib::trace_arg();
 	static int kwSELFIx = kwALLIx + 1;
-	SizeT nParam = e->NParam(1);      
+
 
     DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+
+	DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
+	if( nList == 0) ThrowFromInternalUDSub( e, "Container is empty.");
+	DInt GDLContainerVersion =
+		(*static_cast<DIntGDL*>( self->GetTag( GDLContainerVersionTag, 0)))[0];
+	DPtr pNext = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
 	  
-    GDL_CONTAINER_STRUCT()
-    GDL_CONTAINER_NODE()
-    bool asFunction = false;
-	if(e->KeywordSet(kwALLIx)) {
-	  LISTCleanup( e, self);
+	bool isPtr = (GDLContainerVersion == POINTERS);
+	bool allKW = e->KeywordSet(kwALLIx);
+	if(allKW) {
+// delete all nodes 
+		if(trace_me) std::printf(" ::remove,/all nLIst= %llu",nList);
+		if(isPtr)
+		for (SizeT k=0; k < nList; ++k) {
+			DPtr pRemove=pNext;
+			DStructGDL* removeNode = GetLISTStruct( e, pRemove);
+			pNext = (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];
+			// here needed to decrement references.
+			DPtr pData = (*static_cast<DPtrGDL*>( removeNode->GetTag( pDataTag, 0)))[0];
+//			if(isPtr) e->Interpreter()->DecRef( pData);
+//				else  e->Interpreter()->DecRefObj( static_cast<DObj>(pData));
+			if( e->Interpreter()->PtrValid( pData)) 
+				 e->Interpreter()->DecRef( pData);
+			// prevent cleanup due to ref-counting  
+			(*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0] = 0;      
+			e->Interpreter()->FreeHeap( pRemove); // delete	
+			}
+		else  // isPtr
+		for (SizeT k=0; k < nList; ++k) {
+			DPtr pRemove=pNext;
+			DStructGDL* removeNode = GetLISTStruct( e, pRemove);
+			pNext = (*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0];
+			// here needed to decrement references.
+			DObj pObj = (*static_cast<DObjGDL*>( removeNode->GetTag( pDataTag, 0)))[0];
+			if( e->Interpreter()->ObjValid( pObj)) 
+				 e->Interpreter()->DecRefObj( pObj);
+			// prevent cleanup due to ref-counting  
+			(*static_cast<DPtrGDL*>( removeNode->GetTag( pNextTag, 0)))[0] = 0;      
+			e->Interpreter()->FreeHeap( pRemove); // delete	
+			}
+		if(trace_me) std::printf(" done \n");			
+		(*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = 0;
+		(*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = 0;	      
+		(*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = 0;
 	  return;
 	  }
-
-  DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
   
   if( nList == 0)
     ThrowFromInternalUDSub( e, "LIST is empty.");
@@ -3195,7 +3277,7 @@ void list__swap( EnvUDT* e)
     }
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pHead); // delete
-    FreeLISTNode( e, pHead, !asFunction);
+    FreeLISTNode( e, pHead, false);
     
       return;
   }
@@ -3224,7 +3306,7 @@ void list__swap( EnvUDT* e)
     }
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pTail); // delete
-    FreeLISTNode( e, pTail, !asFunction);
+    FreeLISTNode( e, pTail, false);
     
     return;    
   }
@@ -3247,7 +3329,7 @@ void list__swap( EnvUDT* e)
 
 //     e->Interpreter()->HeapErase( pData); // no delete
 //     e->Interpreter()->FreeHeap( pRemoveNode); // no delete
-    FreeLISTNode( e, pRemoveNode, !asFunction);
+    FreeLISTNode( e, pRemoveNode, false);
     
     return;
   }
