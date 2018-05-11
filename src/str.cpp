@@ -316,16 +316,22 @@ unsigned long int Str2UL( const string& s, int base)
 }
 void WordExp( std::string& s)
 {
+
+  //AC 2018-04-25 : because crash of :
+  // openr, unit, '', ERROR=error,/get_lun
+  if (s.length() == 0) return;
+
   bool trace_me =false; // lib::trace_arg();
 #if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
 //  cout << "WordExp  in: " << s ;
 //   escape whitespace, before passing it to WordExp,
 //   which is not already escaped
   wordexp_t p;
-     string sEsc="";
-     for( int i=0; i<s.length(); ++i)
+  string sEsc="";
+
+  for( int i=0; i<s.length(); ++i)
      {
-		char achar = s[i];
+       char achar = s[i];
        if( achar == ' ')
    	sEsc += string("\\ ");
        else if( achar == '\\')
@@ -352,15 +358,18 @@ void WordExp( std::string& s)
 			} else sEsc.push_back(achar);
 	   }
      }
+
+  //cout << "WordExp  in 1: " << s << endl;
+
 #if 1
-	if(trace_me) 
-		cout << "WordExp  in: " << s 
-			<< " -(modified original)- WordExp esc: " << sEsc << endl;
+  if(trace_me) 
+    cout << "WordExp  in: " << s 
+	 << " -(modified original)- WordExp esc: " << sEsc << endl;
   int ok0 = wordexp( sEsc.c_str(), &p, 0);
   if(ok0 == 0) {
-	   s=p.we_wordv[0];
-
-	   /*
+    s=p.we_wordv[0];
+  
+    /*
 
 #elif 0
   int ok0 = wordexp( s.c_str(), &p, 0);
