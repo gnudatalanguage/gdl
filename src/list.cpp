@@ -1465,7 +1465,25 @@ BaseGDL* list__toarray( EnvUDT* e)
       else
       {
 		
-		MAKE_LONGGDL(typeKW, typeCodeKW)
+//		MAKE_LONGGDL(typeKW, typeCodeKW)
+		DLongGDL* typeCodeKW;
+		Guard<DLongGDL> typeCodeGuard;
+		if( typeKW->Type() == GDL_LONG)
+		{
+		  typeCodeKW = static_cast<DLongGDL*>(typeKW);
+		}
+		else
+		{
+		  try{
+			typeCodeKW = static_cast<DLongGDL*>(typeKW->Convert2(GDL_LONG,BaseGDL::COPY));
+			typeCodeGuard.Init(typeCodeKW);
+		  }
+		  catch( GDLException& ex)
+		  {
+			ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
+		  }
+		}  //		MAKE_LONGGDL(typeKW, typeCodeKW)
+
 		DLong typeCode = (*typeCodeKW)[0];
 		if( typeCode < GDL_BYTE || typeCode > GDL_ULONG64)
 		  ThrowFromInternalUDSub( e, "Illegal value for TYPE: " + i2s(typeCode));      	
@@ -1551,8 +1569,8 @@ BaseGDL* list__toarray( EnvUDT* e)
 			else if (resultType == GDL_COMPLEX ) continue;
 			else if (theType == GDL_DOUBLE ) resultType = GDL_DOUBLE;
 			else if (theType == GDL_COMPLEX ) resultType = GDL_COMPLEX;
-			else if ( DTypeOrder[ theType] >= DTypeOrder[ resultType] && 
-					( theType > resultType) ) resultType = theType;
+			else if ( 	( theType > resultType) && 
+				(DTypeOrder[ theType] >= DTypeOrder[ resultType]) ) resultType = theType;
 			  }
 
 		}
@@ -1690,12 +1708,11 @@ void list__move( EnvUDT* e)
     DPtr pTail = (*Tail)[0];	DPtr pHead = (*Head)[0];
 	if(trace_me or ((index1 ==0) and (index2==0))) 
 	{	DPtr p0 = (*Tail)[0];
-		DPtr pdata;
 		std::printf(" list: TAIL=%llu", p0);
 		for( int i=0; i < nList ; i++) 
 		{	DStructGDL* Node=GetLISTStruct(NULL, p0);
 			p0 = (*static_cast<DPtrGDL*>( Node->GetTag( pNextTag, 0)))[0];
-			pdata = (*static_cast<DPtrGDL*>( Node->GetTag( pDataTag, 0)))[0];
+			DPtr pdata = (*static_cast<DPtrGDL*>( Node->GetTag( pDataTag, 0)))[0];
 			std::printf("->%llu<%llu>:", p0, pdata);}
 		std::printf("->HEAD= %llu (list.move:%d,%d) \n",  pHead, index1, index2);
 	}
@@ -1814,7 +1831,7 @@ void list__swap( EnvUDT* e)
 
     DPtrGDL* Tail = static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0));
     DPtrGDL* Head = static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0));
-	DStructGDL* Node;
+	DStructGDL* Node = NULL;
 	DStructGDL* predNsrc = Node;
 	DStructGDL* Ntrg;
 	DStructGDL* predNtrg;
@@ -2393,8 +2410,8 @@ void list__swap( EnvUDT* e)
   DStructDesc* selfDesc= self->Desc();
   bool listmode = ( selfDesc == structDesc::LIST);
 	if(trace_me) {
-	  if(listmode) std::printf(" list__get -nprm= %d ", nParam);
-		else std::printf(" container::get -nprm= %d ", nParam);
+	  if(listmode) std::printf(" list__get -nprm= %llu ", nParam);
+		else std::printf(" container::get -nprm= %llu ", nParam);
 	}
 
 	DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];	      
@@ -2545,7 +2562,7 @@ void list__swap( EnvUDT* e)
 		if(nullKW) return NullGDL::GetSingleInstance();
 		else return new DLongGDL(-1);
 	}
-	if(trace_me) printf(" fetch: #%d isPtr?",nfetch,isPtr);
+	if(trace_me) printf(" fetch: #%llu isPtr? %d",nfetch,isPtr);
     if( isPtr)	
     {
 		if( nfetch ==1) {
@@ -2609,10 +2626,6 @@ void list__swap( EnvUDT* e)
 
 	DStructDesc* selfDesc= self->Desc();
 	bool listmode = ( selfDesc == structDesc::LIST);
-	if(trace_me) {
-	  if(listmode) std::printf(" list__add -nprm= %d ", nParam);
-		else std::printf(" container::add -nprm= %d ", nParam);
-	}
 
   BaseGDL* value = NULL;
 	DType valType;
@@ -2633,7 +2646,6 @@ void list__swap( EnvUDT* e)
 	bool kwNO_COPY = false;
 	BaseGDL* index = NULL;
 	if(listmode) {
-		if(trace_me) std::printf(" list__add(list) -");
 		if( nParam >= 3)  index = e->GetKW(kwINDEXIx);
 		if (e->KeywordSet(kwEXTRACTIx)) kwEXTRACT = true;
 		if (e->KeywordSet(kwNO_COPYIx)) kwNO_COPY = true;
@@ -2648,7 +2660,6 @@ void list__swap( EnvUDT* e)
 			}
 		}
 	} else {
-	if(trace_me) std::printf(" list__add(container) -");
  		if (e->KeywordPresent(kwPOSITIONIx))  index = e->GetKW( kwPOSITIONIx);
 		if (e->KeywordSet(kwEXTRACTIx)) 
 			 ThrowFromInternalUDSub( e, " EXTRACT cannot be used");
@@ -2676,7 +2687,10 @@ void list__swap( EnvUDT* e)
 //    VALUE may be singular (chain has one member) or need extraction.
 //    process may involve NO_COPY
 // 2. Attach chain to the list at insertPos
-		if(trace_me) std::printf("list.add:"); 
+	if(trace_me) {
+	  if(listmode) std::printf(" list__add ");
+		else std::printf(" container::add ");
+	}
 
     DStructGDL* cStruct = NULL;
     DPtr cID = 0;
@@ -2776,7 +2790,7 @@ void list__swap( EnvUDT* e)
       cStruct= new DStructGDL( containerDesc, dimension());
       (*static_cast<DPtrGDL*>( cStruct->GetTag( pDataTag, 0)))[0] = pID;
       cID = e->Interpreter()->NewHeap(1,cStruct);
-		if(trace_me) std::printf(" cID %d",cID); 
+		if(trace_me) std::printf(" cID %llu",cID); 
 		firstID = cID;
      }  // kwEXTRACT && value != NULL
 
