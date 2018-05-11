@@ -235,9 +235,23 @@ private:
     }
     else yValBis = yVal;
 
-    GetMinMaxValuesForSubset(xValBis, xStart, xEnd, xEl);
-    GetMinMaxValuesForSubset(yValBis, yStart, yEnd, yEl);
+#define UNDEF_RANGE_VALUE 1E-12
+    {
+      DLong minEl, maxEl;
+      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
+      xStart = (*xVal)[minEl];
+      xEnd = (*xVal)[maxEl];
+      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
+      if (isnan(xEnd)) xEnd = 1.0;
+      if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
+      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
+      yStart = (*yVal)[minEl];
+      yEnd = (*yVal)[maxEl];
+      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
+      if (isnan(yEnd)) yEnd = 1.0;
+      if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
+    }
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
     minVal = yStart; //to give a reasonable value...
     maxVal = yEnd;   //idem
@@ -278,6 +292,7 @@ private:
     }
     //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
+#undef UNDEF_RANGE_VALUE
 
      //ISOTROPIC
     iso=0;
