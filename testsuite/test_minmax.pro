@@ -1,157 +1,230 @@
 ;
 ; AC June 2007 
-; 
+; GD Apr  2018
 ; Purpose: a collection for testing Inf and Nan managing 
 ; in Min/Max procedures (up to now, Inf was not managed,
-; NaN was not well managed if present in first place)
+; NaN was not well managed if present in first place).
+; Added test for new "/ABS" option, complex values, branches
+; accelerated or not, and using the fact that random values are now
+; identical with IDL, wether there is an error or not. 
+; Call the procedure "TEST_MINMAX" and check output.
 ;
-; You can call procedure "TEST_MINMAX" which call different subroutines
-;
-pro MINMAX_BASIC, nan=nan, inf=inf, nbp=nbp, $
-                  position=position, verbose=verbose
-;
+function GET_MINMAX_ARRAY,type=type, problem=problem, nbp=nbp, $
+                  position=position
+; test Nan and Inf for MIN only or MAX only.
 if N_ELEMENTS(nbp) EQ 0 then nbp=10
+if N_ELEMENTS(type) EQ 0 then type=5 ; double
 ;
-problem=0.
-if KEYWORD_SET(nan) then problem=!values.f_nan
-if KEYWORD_SET(inf) then problem=!values.f_infinity
-if (problem EQ 0.) then begin
-    print, 'Must select /Nan or /Inf'
-    return
-endif
-;
+
 if N_ELEMENTS(position) EQ 0 then position=4
 ;
-if position GT nbp-1 then begin
-    print, 'POSITION must be below NBP !'
-    return
-endif
+if position GT nbp-1 then position=0
 ;
-if KEYWORD_SET(verbose) then begin
-    print, 'Type of Problem: ', problem
-    print, 'Position: ', position
-endif
-;
-a=findgen(nbp)
+a=randomn(66,nbp,/double) ; fixed seed.
+b=randomn(77,nbp,/double) ; fixed seed.
+;a=dindgen(nbp)
+b=a
+
+; Inf or NaN for integers is no defined and GDL does not work like IDL.
+switch (type) of
+ 1: 
+ 2: 
+ 3: problem=-1
+endswitch 
+
 a[position]=problem
-if KEYWORD_SET(verbose) then print, a
-;
-print, 'Type of problem:', STRING(problem)
-print, 'MIN         :', MIN(a)
-print, 'MIN and /NAN:', MIN(a,/nan)
-print, 'MAX         :', MAX(a)
-print, 'MAX and /NAN:', MAX(a,/nan)
-print, '--------------'
+b[position]=problem
+
+switch (type) of
+ 1: return, byte(a)
+ 2: return, fix(a)
+ 3: return, long(a)
+ 4: return, float(a)
+ 5: return, a
+ 6: return, complex(a,b)
+ 7: return, string(a)
+ 9: return, dcomplex(a,b)
+ else: return, 0
+endswitch 
+return, a
 ;
 end
 ;
-; ----------------------------
-; this procedure checks Nan and Inf when we would
-; like or not to return Max when calling Min and reverse
-; (because Branches in soft are differents)
-;
-pro MINMAX_CROSS, nan=nan, inf=inf, nbp=nbp, $
-                  position=position, verbose=verbose
-;
-if N_ELEMENTS(nbp) EQ 0 then nbp=10
-;
-problem=0.
-if KEYWORD_SET(nan) then problem=!values.f_nan
-if KEYWORD_SET(inf) then problem=!values.f_infinity
-if (problem EQ 0.) then begin
-    print, 'Must select /Nan or /Inf'
-    return
-endif
-;
-if N_ELEMENTS(position) EQ 0 then position=4
-;
-if position GT nbp-1 then begin
-    print, 'POSITION must be below NBP !'
-    return
-endif
-;
-if KEYWORD_SET(verbose) then begin
-    print, 'Type of Problem: ', problem
-    print, 'Position: ', position
-endif
-;
-;
-a=findgen(nbp)
-a[position]=problem
-if KEYWORD_SET(verbose) then print, a
-;
-print, 'Type of problem:', STRING(problem)
-;
-mini=MIN(a, max=tyty)      & print, 'MIN         :', mini, tyty
-mini=MIN(a, max=tyty,/nan) & print, 'MIN and /NAN:', mini, tyty
-maxi=MAX(a, min=tyty)      & print, 'MAX         :', maxi, tyty
-maxi=MAX(a, min=tyty,/nan) & print, 'MAX and /NAN:', maxi, tyty
-print, '--------------'
-;
+pro COMPUTE_MINMAX,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+atom=a[0]
+result=replicate(atom,16)
+minmax=replicate(atom,8)
+result[0] =MIN(a)
+result[1] =MIN(a,/nan)
+result[2] =MAX(a)
+result[3] =MAX(a,/nan)
+result[4] =MIN(a, max=toto) & minmax[0]=toto      
+result[5] =MIN(a, max=toto,/nan)  & minmax[1]=toto   
+result[6] =MAX(a, min=toto)  & minmax[2]=toto        
+result[7] =MAX(a, min=toto,/nan)  & minmax[3]=toto   
+result[8] =MIN(a,/abs)
+result[9] =MIN(a,/abs,/nan)
+result[10] =MAX(a,/abs)
+result[11] =MAX(a,/abs,/nan)
+result[12] =MIN(a,/abs, max=toto) & minmax[4]=toto      
+result[13] =MIN(a,/abs, max=toto,/nan)  & minmax[5]=toto   
+result[14] =MAX(a,/abs, min=toto)  & minmax[6]=toto        
+result[15] =MAX(a,/abs, min=toto,/nan)  & minmax[7]=toto   
+
+   printf,lun, 'Type of problem: '+string(problem)+', size: '+string(nbp)+' pos: '+string(pos)+' type= '+string(size(a,/type))
+   printf,lun, 'Min OR Max'
+   printf,lun, '--------------'
+   printf,lun, 'MIN         :', result[0]
+   printf,lun, 'MIN and /NAN:', result[1]
+   printf,lun, 'MAX         :', result[2]
+   printf,lun, 'MAX and /NAN:', result[3]
+   printf,lun, '--------------'
+   printf,lun, 'Min AND Max'
+   printf,lun, '--------------'
+   printf,lun, 'MIN         :', result[4], minmax[0]
+   printf,lun, 'MIN and /NAN:', result[5], minmax[1]
+   printf,lun, 'MAX         :', result[6], minmax[2]
+   printf,lun, 'MAX and /NAN:', result[7], minmax[3]
+   printf,lun, '--------------'
+   printf,lun, 'Min OR Max /ABS'
+   printf,lun, '--------------'
+   printf,lun, 'MIN         :', result[8]
+   printf,lun, 'MIN and /NAN:', result[9]
+   printf,lun, 'MAX         :', result[10]
+   printf,lun, 'MAX and /NAN:', result[11]
+   printf,lun, '--------------'
+   printf,lun, 'Min AND Max /ABS'
+   printf,lun, '--------------'
+   printf,lun, 'MIN         :', result[12], minmax[4]
+   printf,lun, 'MIN and /NAN:', result[13], minmax[5]
+   printf,lun, 'MAX         :', result[14], minmax[6]
+   printf,lun, 'MAX and /NAN:', result[15], minmax[7]
+   printf,lun, '--------------'
+
 end
 ;
 ; ------------------------------------------------
 ; calling differents cases (position of data to be flagged)
-; and returning only Min OR Max
+; and returning only Min OR Max, with and without using threads etc
 ;
-pro MULTI_BASIC_MINMAX
+pro MULTI_BASIC_MINMAX, lun
 ;
-MINMAX_BASIC, /nan, nbp=10, pos=4
-MINMAX_BASIC, /nan, nbp=10, pos=9
-MINMAX_BASIC, /nan, nbp=10, pos=0
+types=[1,2,3,4,5,6,9,7]
+for i=0,7 do begin
+   type=types[i]
+; small number of elements
+   nbp=10
+   
+   problem=!values.d_nan
+   pos=4
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
 ;
-MINMAX_BASIC, /inf, nbp=10, pos=4
-MINMAX_BASIC, /inf, nbp=10, pos=9
-MINMAX_BASIC, /inf, nbp=10, pos=0
+pos=9
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
 ;
+pos=0
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+
+problem=!values.d_infinity
+pos=4
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=9
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=0
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+
+; large (parallel mode) number of elements
+nbp=200000
+
+problem=!values.d_nan
+pos=4
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=9
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=0
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+
+problem=!values.d_infinity
+
+pos=4
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=9
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+;
+pos=0
+a=GET_MINMAX_ARRAY(type=type, problem=problem, nbp=nbp, pos=pos)
+compute_minmax,a,result=result,minmax=minmax,problem=problem,nbp=nbp,pos=pos,lun=lun
+endfor
 end
-;
-; ------------------------------------------------
-; calling differents cases (position of data to be flagged)
-; and returning BOTH Min AND Max
-;
-pro MULTI_CROSS_MINMAX
-;
-MINMAX_CROSS, /nan, nbp=10, pos=4
-MINMAX_CROSS, /nan, nbp=10, pos=9
-MINMAX_CROSS, /nan, nbp=10, pos=0
-;
-MINMAX_CROSS, /inf, nbp=10, pos=4
-MINMAX_CROSS, /inf, nbp=10, pos=9
-MINMAX_CROSS, /inf, nbp=10, pos=0
-;
-end
-;
+                             ;
 ; -----------------------------------
 ; basic becnhmark test for Min/Max when NaN and Inf are
 ; present (or not)
 ;
-pro BENCH_TEST_MINMAX, nbp=nbp, test=test
+pro BENCH_TEST_MINMAX, lun, nbp=nbp, test=test, verbose=verbose
 ;
-a=RANDOMN(seed,nbp)
+a=RANDOMN(33,nbp,/double) ; /double and identical seed to get IDL and GDL results identical
 b=a
 ;
-print, 'First column should always have the same value'
+printf,lun, 'First column should always have the same value except with /abs flag.'
 ;
 t0=SYSTIME(1)
-print, 'result: ', MIN(b), ' CASE: no Nan included', SYSTIME(1)-t0
+printf,lun, 'result: ', MIN(b), ' CASE: no Nan included', SYSTIME(1)-t0
 t0=SYSTIME(1)
-print, 'result: ', MIN(b,/nan), ' CASE: flag /Nan included, no Nan/inf data', SYSTIME(1)-t0
-;
-print, 'now with Nan/inf'
+printf,lun, 'result: ', MIN(b,/nan), ' CASE: flag /Nan included, no Nan/inf data', SYSTIME(1)-t0
+t0=SYSTIME(1)
+printf,lun, 'result: ', MIN(b,/abs), ' CASE: flag /ABS included, no Nan/inf data', SYSTIME(1)-t0
+
+printf,lun,''
+printf,lun,'use of max and min, with respective keywords '
+
+t0=SYSTIME(1)
+z=max(b,maxpos,min=minval,subscript_min=minpos)
+printf,lun, 'result (max): max= '+string(z)+' ('+string(maxpos)+'), min= '+string(minval)+' ('+string(minpos)+'), time:'+string(systime(1)-t0) 
+t0=SYSTIME(1)
+z=min(b,minpos,max=maxval,subscript_max=maxpos)
+printf,lun, 'result (min): max= '+string(maxval)+' ('+string(maxpos)+'), min= '+string(z)+' ('+string(minpos)+'), time:'+string(systime(1)-t0)
+t0=SYSTIME(1)
+z=max(b,maxpos,min=minval,subscript_min=minpos,/abs)
+printf,lun, 'result (max,/abs): max= '+string(z)+' ('+string(maxpos)+'), min= '+string(minval)+' ('+string(minpos)+'), time:'+string(systime(1)-t0) 
+t0=SYSTIME(1)
+z=min(b,minpos,max=maxval,subscript_max=maxpos,/abs)
+printf,lun, 'result (min,/abs): max= '+string(maxval)+' ('+string(maxpos)+'), min= '+string(z)+' ('+string(minpos)+'), time:'+string(systime(1)-t0)
+
+printf,lun, 'now with Nan/Inf'
 b=a
-ii=ROUND(RANDOMU(seed,10)*nbp)
+ii=ROUND(RANDOMU(44,100)*nbp)
 b[ii]=!values.f_nan
 t0=SYSTIME(1)
-print, 'result: ', MIN(b), ' CASE: Nan included, no flag', SYSTIME(1)-t0
+printf,lun, 'result: ', MIN(b), ' CASE: Nan included, no flag', SYSTIME(1)-t0
 t0=SYSTIME(1)
-print, 'result: ', MIN(b,/nan), ' CASE: Nan included, flag', SYSTIME(1)-t0
+printf,lun, 'result: ', MIN(b,/nan), ' CASE: Nan included, flag', SYSTIME(1)-t0
+t0=SYSTIME(1)
+printf,lun, 'result: ', MIN(b,/abs,/nan), ' CASE: Nan included, flag, /abs present', SYSTIME(1)-t0
 ;
 b[ii]=!values.f_infinity
 t0=SYSTIME(1)
-print, 'result: ', MIN(b), ' CASE: Inf included, no flag', SYSTIME(1)-t0
+printf,lun, 'result: ', MIN(b), ' CASE: Inf included, no flag', SYSTIME(1)-t0
 t0=SYSTIME(1)
-print, 'result: ', MIN(b,/nan), ' CASE: Inf included, flag', SYSTIME(1)-t0
+printf,lun, 'result: ', MIN(b,/nan), ' CASE: Inf included, flag', SYSTIME(1)-t0
+t0=SYSTIME(1)
+printf,lun, 'result: ', MIN(b,/abs,/nan), ' CASE: Inf included, flag, /abs present', SYSTIME(1)-t0
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -208,19 +281,27 @@ end
 ;
 ; calling all tests
 ;
-pro TEST_MINMAX
+pro TEST_MINMAX, verbose=verbose
 ;
+filename='minmax.'+GDL_IDL_FL()
+if FILE_TEST(filename) then begin
+    FILE_MOVE, filename, filename+'_old', /overwrite
+    MESSAGE,/cont, 'Copy of old file <<'+filename+'_old'+'>> done.'
+endif
+GET_LUN, lun
+OPENW, lun, filename
 ;
-print, '' & print, 'Basic tests'
-MULTI_BASIC_MINMAX
+printf,lun, '' & printf,lun, 'Nan/Inf tests'
+
+MULTI_BASIC_MINMAX,lun 
 ;
-print, '' & print, 'Cross tests'
-MULTI_CROSS_MINMAX
+printf,lun, '' & printf,lun, 'Test results for 500 points (unparallelized)'
+BENCH_TEST_MINMAX, lun, nbp=500
 ;
-print, '' & print, 'Benchmarking for 1e6 points'
-BENCH_TEST_MINMAX, nbp=1e6
+printf,lun, '' & printf,lun, 'Benchmarking for 1e7 points'
+BENCH_TEST_MINMAX, lun, nbp=1e7
 ;
-print, '' & print, 'Testing the DIMENSION keyword'
+printf,lun, '' & printf,lun, 'Testing the DIMENSION keyword (no output)'
 DIMENSION_TEST_MINMAX
 ;
 end

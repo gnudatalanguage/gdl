@@ -405,6 +405,7 @@ namespace lib {
 	  case GDL_STRING:f64 = (double) (*p0SS)[i]; break;
 	  case GDL_UINT:  f64 = (double) (*p0UI)[i]; break;
 	  case GDL_BYTE:  f64 = (double) (*p0B)[i]; break;
+        default: break; //not reached. pacifies compilers.
 	  }
 	  memcpy(&mat->data[i], &f64, szdbl);
 	}

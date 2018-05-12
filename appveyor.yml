@@ -1,0 +1,135 @@
+image: Visual Studio 2015
+branches:
+  only:
+    - master
+clone_folder: c:\projects\gdl
+configuration:
+  - Release
+  # - Debug
+environment:
+  matrix:
+  - platform: mingw64630i686
+  # - platform: mingw64630x8664 # 64bit unsupported yet
+matrix:
+  fast_finish: true
+  
+init:
+  - git config --global core.autocrlf input
+
+install:
+  - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
+  - ps: >-
+      if ($env:platform -Match "mingw64630i686") {
+        $env:PATH="C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
+        md c:\projects\gdl\win32libs
+        md c:\projects\gdl\win32libs\bin
+        md c:\projects\gdl\win32libs\lib
+        md c:\projects\gdl\win32libs\include
+        # Python
+        $env:PYTHON_ROOT="C:\Python27"
+        
+        # WxWidgets
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
+        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
+        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
+        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # Below 2 lines are required for wxWidgets-3.0.4, don't know why
+        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
+        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        
+        # BSD-XDR
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
+        tar zxf bsd-xdr-1.0.0.tar.gz
+        cd bsd-xdr-1.0.0
+        sed -i 's/%hh/%/g' src\test\test_data.c
+        md mingw
+        md mingw\lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
+        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
+        mv rpc c:\projects\gdl\win32libs\include
+        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
+        
+        # PLplot
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
+        tar zxf plplot-5.13.0.tar.gz
+        md plplot-5.13.0/build
+        cd plplot-5.13.0/build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
+        mingw32-make -j4
+        mingw32-make install
+        
+        # Eigen
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
+        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
+        md eigen-eigen-5a0156e40feb/build
+        cd eigen-eigen-5a0156e40feb/build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs
+        mingw32-make install
+
+        # GSL
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        tar zxf gsl-2.4.tar.gz
+        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+        
+        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        7z x readline-5.0-1-lib.zip
+        7z x zlib-1.2.3-lib.zip
+        7z x libpng-1.2.37-lib.zip
+        7z x pcre-7.0-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        7z x readline-5.0-1-bin.zip -y
+        7z x zlib-1.2.3-bin.zip -y
+        7z x libpng-1.2.37-bin.zip -y
+        7z x pcre-7.0-bin.zip -y
+      }
+  # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
+  # - if %platform%==mingw64630x8664 set PYTHON_ROOT=C:\Python27-x64
+before_build:
+  - md c:\projects\gdl\build
+  
+build_script:
+  - cd c:\projects\gdl\build
+  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
+  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
+  - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - mingw32-make -j4
+  - mingw32-make install
+
+after_build:
+  - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
+  - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - cd c:\projects\gdl\install
+  - 7z a gdl_build.zip gdl
+  # - ctest -C Release --output-on-failure
+  # - python -c "import gdl; dir(gdl)"
+
+artifacts:
+  - path: install\gdl_build.zip
+    name: GDL
+  
+deploy:
+  release: gdl-master-build$(appveyor_build_version)
+  description: 'Test release'
+  provider: GitHub
+  auth_token:
+    secure: IhTPN2ggVb/gSjAnDAGleGO8+QQJETWjbuNtAvwQcJgEzKcZK944bMDIxSuLASgw
+  draft: false
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only
