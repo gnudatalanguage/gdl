@@ -21,7 +21,7 @@ header "pre_include_cpp" {
 }
 
 header {
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
     
 //    using namespace antlr;
 }
@@ -65,15 +65,17 @@ options {
     
 }
 
-ALL
+CSTYLE
     : { format}?
         (
             (
                 (
                     CD { $setType(CD);}
+                |   CSE { $setType(CSE);}
                 |   CE { $setType(CE);}
                 |   CI { $setType(CI);}
                 |   CF { $setType(CF);}
+                |   CSG { $setType(CSG);}
                 |   CG { $setType(CG);}
                 |   CO { $setType(CO);}
                 |   CB { $setType(CB);}
@@ -82,7 +84,11 @@ ALL
                 |   CZ { $setType(CZ);}
                 ) 
                 { format = false;}
-            ) 
+            )
+        |   PM { $setType(PM);}
+        |   MP { $setType(MP);}
+        |   MOINS { $setType(MOINS);}
+        |   PLUS { $setType(PLUS);}
         |   CNUMBER { $setType(CNUMBER);}
         |   CDOT { $setType(CDOT);}
         |   CWS  { _ttype=antlr::Token::SKIP; }
@@ -166,13 +172,17 @@ HDIGIT: ('0'..'9'|'a'..'f'|'A'..'F');
 protected
 CD: ('d'|'D');
 protected
-CE: ('e'|'E'); 
+CSE: ('e'); 
+protected
+CE: ('E'); 
 protected
 CI: ('i'|'I');
 protected
 CF: ('f'|'F');
 protected
-CG: ('g'|'G');
+CSG: ('g');
+protected
+CG: ('G');
 protected
 CO: ('o'|'O');
 protected
@@ -186,6 +196,14 @@ CZ: ('z'|'Z');
 
 protected
 CDOT:'.';
+protected
+PM: ('+' '-');
+protected
+MP: ('-' '+');
+protected
+PLUS: '+';
+protected
+MOINS: '-';
 
 protected
 DIGITS

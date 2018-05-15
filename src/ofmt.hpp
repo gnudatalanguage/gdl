@@ -22,10 +22,29 @@
 #include <iomanip>
 #include <ostream>
 #include <cmath>
+#include <bitset> // for binary output
+//using namespace std;
+#ifndef _MSC_VER
+  using std::isnan;
+#else
+#define isnan _isnan
+#endif
+
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
 
+typedef enum codeFlags_
+  {
+    fmtALIGN_LEFT = 1
+   ,fmtSHOWPOS = 2
+   ,fmtPAD = 4
+   ,fmtUPPER = 8
+  } codeFlags;
+  
+
+
+  
 // for auto formatting of float types
 // code in ofmt.cpp
 template< typename T>
@@ -37,10 +56,9 @@ public: // MSC cannot handle friend template specialization properly
   T   flt;
   int width;
   int prec;
-  char fill;
-
+  int code;
 public:
-  AsComplex( const T f, const int w, const int p, const char fill): flt( f), width( w), prec( p), fill( fill) 
+  AsComplex( const T val, const int w, const int p, const int c=0): flt( val), width( w), prec( p), code( c)
   {}
 
   template< typename T2> 
@@ -69,159 +87,228 @@ public:
 std::ostream& operator<<(std::ostream& os, const CheckNL& c);
 
 // formatted output functions
-inline void OutStars( std::ostream& os, int n)
+inline void OutStars( std::ostream& os, const int n)
 {
   for( int i=0; i<n; ++i) os << "*";
 }
 
-template <typename T>
-inline void OutFixedZero( std::ostream& os, int w, int d, char f)
-{
-  bool plus=( f == '+' || f == '@' );
-  if ( (f == '0'|| f == '@')  ) f='0';
-  if ( f == '+' ) f=' ';
-   
-  if( w == 1) 
-    os << "*";
-  else if( d >= w)
-    OutStars( os, w);
-  else if( plus && d >= w-1)
-    OutStars( os, w);
-  else {
-   if (f == '0' && plus ) os << "+" << std::setw( (w-1)-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; // preventing "00+0.00"
-   else if (plus)  os << std::setw( (w-1)-(d<=0?1:d)+1) << std::setfill(f) << std::right << "+0."; 
-   else  os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; 
-   for( int i=1; i<d; ++i) os << "0";
+inline void OutFixedStringVal( std::ostream& os, const std::string &symbol, const char s, int w, const int code) {
+  int l=symbol.length();
+  bool dosign=( code & fmtSHOWPOS || s=='-');
+  bool dofill=( code & fmtPAD );
+  if (w <=0) w=(dosign?l+1:l);
+  if( w < (dosign?l+1:l)) { OutStars( os, w); return;}
+  if (code & fmtALIGN_LEFT) 
+  {
+   os << std::left;
+   if (dosign) {os << s << std::setw( w-1 ) << symbol ; return;}
+   os << std::setw( w ) << symbol;  return;
   }
-}
-
-inline void OutFixFill(std::ostream& os, std::string str, int w, char f)
-{
-  if ( (f == '0'|| f == '@')  ) f='0';
-  if ( f == '+' ) f=' ';
-  os << std::setfill(f); //which is '0' or blank at this point.
-  if (f == '0' && ( ( str.substr(0, 1) == "-" ) || ( str.substr(0, 1) == "+" ) ) ) // preventing "00-1.00" or "00+1.00"
-    os << str.substr(0, 1) << std::setw(w - 1) << str.substr(1);
-  else
-    os << std::setw(w) << str;
+  if (dofill && dosign ) { os << s << std::setw( w-1 ) << std::setfill('0') << std::right << symbol << std::setfill(' ') ; return;}
+  if (dofill) { os << std::setw( w ) << std::setfill('0') << std::right << symbol << std::setfill(' ') ; return;}
+  if (dosign)  { os << std::setw( w-l ) << std::right << s << symbol; return;}
+  os << std::setw( w ) << std::right << symbol; return;
 }
 
 template <typename T>
-void OutFixed( std::ostream& os, T val, int w, int d, char f)
+inline void OutFixedNan( std::ostream& os, const T val, const int w, const int code) //d is ignored for Nan/Inf
 {
-  if( val == T(0.0)) // handle 0.0
-    {
-      if( w == 0)
-	os << "0.000000";
-      else
-      	OutFixedZero<T>( os, w, d+1, f);
-      return;
-    }
+  static std::string symbol="NaN";
+  char s=(std::signbit(val))?'-':'+';
+  OutFixedStringVal(os, symbol, s, w, code);
+}
+
+template <typename T>
+inline void OutFixedInf( std::ostream& os, const T val, const int w, const int code) //d is ignored for Nan/Inf
+{
+  static std::string symbol="Inf";
+  char s=(std::signbit(val))?'-':'+';
+  OutFixedStringVal(os, symbol, s, w, code);
+}
+template <>
+inline void OutFixedInf<DDouble>( std::ostream& os, const DDouble val, const int w, const int code) //d is ignored for Nan/Inf
+{
+  static std::string symbol="Infinity";
+  char s=(std::signbit(val))?'-':'+';
+  OutFixedStringVal(os, symbol,s, w, code);
+}
+
+inline void OutFixFill(std::ostream& os, const std::string &s, const int w, const int code)
+{
+   if ( code & fmtPAD ) os << std::setfill('0'); 
+   if ( ( code & fmtPAD ) && ((s.substr( 0, 1) == "-" ) || ( s.substr(0, 1) == "+" )) ) {  // preventing "00-1.00" or "00+1.00"
+     os << s.substr(0, 1) << std::right << std::setw(w - 1) << s.substr(1);
+   }
+   else  
+    os << std::setw(w) << std::right << s;
+   if ( code & fmtPAD ) os << std::setfill(' '); //which is '0' or blank at this point.
+}
+
+inline void OutAdjustFill(std::ostream& os, const std::string &s, const int w, const int code)
+{
+   if ( code & fmtPAD ) os << std::setfill('0'); 
+   if ( ( code & fmtPAD ) && ((s.substr( 0, 1) == "-" ) || ( s.substr(0, 1) == "+" )) ) {  // preventing "00-1.00" or "00+1.00"
+     os << s.substr(0, 1) << std::right << std::setw(w) << s.substr(1);
+   }
+   else  
+    os << std::setw(w) << std::right << s;
+   if ( code & fmtPAD ) os << std::setfill(' '); //which is '0' or blank at this point.
+}
+
+template <typename T>
+void OutFixed(std::ostream& os, const T &val, const int w, const int d, const int code)
+{
+  if (std::isfinite(val)) {
+   std::ostringstream oss;
+  if ( code & fmtSHOWPOS ) oss << std::showpos;
+   oss << std::fixed << std::setprecision(d) << val;
+   if (d==0) oss << ".";
+   if( w <= 0)
+     os << oss.str();
+   else if( oss.tellp() > w)
+     OutStars( os, w);
+   else if (code & fmtALIGN_LEFT) 
+   {
+    os << std::left;
+    os << std::setw(w);
+    os << oss.str();
+    os << std::right;
+   }
+   else
+     OutFixFill(os, oss.str(), w, code);
+  } else if (isnan(val))    OutFixedNan<T>( os, val, w, code);
+  else OutFixedInf<T>( os, val, w, code);
+}
+
+template <>
+void OutFixed<DComplex>(std::ostream& os, const DComplex &val, const int w, const int d, const int code);
+template <>
+void OutFixed<DComplexDbl>(std::ostream& os, const DComplexDbl &val, const int w, const int d, const int code);
+
+
+template <typename T>
+void OutScientific(std::ostream& os, const T &val, const int w, const int d, const int code) {
+ if (std::isfinite(val)) {
   std::ostringstream oss;
-  if (f == '+' || f == '@') oss << std::showpos ;
-  oss << std::fixed << std::setprecision(d) << val;
-  if( w == 0)
-    os << oss.str();
-  else if( oss.tellp() > w)
-    OutStars( os, w);
-  else
-    OutFixFill(os, oss.str(), w, f);
-}
-
-template <>
-void OutFixed<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
-template <>
-void OutFixed<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
-
-
-template <typename T>
-void OutScientific( std::ostream& os, T val, int w, int d, char f)
-{
-  std::ostringstream oss; 
   // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
-  if (f == '+' || f == '@') oss << std::showpos ;
-  oss << std::scientific << std::uppercase << std::setprecision(d) << val; 
-  if( w == 0)
-    os << oss.str();
-  else if( oss.tellp() > w)
-    OutStars( os, w);
-  else
-    OutFixFill(os, oss.str(), w, f);
+  if ( code & fmtSHOWPOS ) oss << std::showpos;
+  if ( code & fmtUPPER ) oss << std::uppercase ;
+  oss << std::scientific << std::setprecision(d) << val;
+  if (w == 0 )
+   os << oss.str();
+  else if (oss.tellp() > w)
+   OutStars(os, w);
+  else if (code & fmtALIGN_LEFT) 
+  {
+   os << std::left;
+   os << std::setw(w);
+   os << oss.str();
+   os << std::right;
+  }
+  else OutFixFill(os, oss.str(), w, code);
+ } else if (isnan(val)) OutFixedNan<T>(os, val, w, code);
+ else OutFixedInf<T>(os, val, w, code);
 }
 
 template <>
-void OutScientific<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
+void OutScientific<DComplex>( std::ostream& os, const DComplex &val, const int w, const int d, const int code);
 template <>
-void OutScientific<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
+void OutScientific<DComplexDbl>( std::ostream& os, const DComplexDbl &val, const int w, const int d, const int code);
 
 template <typename T>
-void OutAuto( std::ostream& os, T val, int w, int d, char f)
-{
-  if( val == T(0.0)) // handle 0.0
-    {
-  if (f == '+' || f == '@') os << std::showpos ;
-      if( w == 0)
-	os << "0";
-      else
-	OutFixedZero<T>( os, w, d, f); 
-    return;
-    }
+void OutAuto(std::ostream& os, const T &val, const int w, const int d, const int code=0) {
 
-  int   powTen = static_cast<int>(std::floor( std::log10( std::abs( val))));
-  SizeT fixLen = powTen > 0 ? powTen+1 : 1; // number of digits before '.'
-
+ if (std::isfinite(val)) {
   std::ostringstream ossF;
-
-  // as its used now, if w == 0 -> d != 0 (SetField())
-  // static cast here is needed for OS X, without we get a *linker* error
-  // (but only if GDL is compiled with Magick)
-
-  if (f == '+' || f == '@') ossF << std::showpos ;
-
-  if( w == 0 && (powTen < d && powTen > -d) &&
-      (val - std::floor( val) < std::pow( 10.0, static_cast<double>(-d))))
-    ossF << std::fixed << std::setprecision(0) << val; 
-  else if( powTen == 0 || (powTen < d && powTen > -d+1)) //just like that.
-    {
-      //format for values between -1 and 1 adapts to the width as to show as many digits as possible
-      ossF << std::fixed << std::setprecision(d>fixLen?d-fixLen+((powTen<0)?-powTen:0):0) << val;
-      if( d <= fixLen) ossF << ".";
-    }
-  else
-    fixLen = 0; // marker to force scientific output
+  int fixLen=1;
   
+  if (val == T(0.0)) // handle 0.0
+  {
+   if (w <= 0) {
+    if ( code & fmtSHOWPOS ) os<<"+0"; else os<<"0";
+    return;
+   } //0 is FIXED
+   if (code & fmtSHOWPOS) ossF << std::showpos ;
+   if (code & fmtALIGN_LEFT) ossF << std::left; else ossF << std::right;
+   ossF << std::fixed << std::setprecision(d-1) << val;
+  } else {
+   int   powTen = static_cast<int>(std::floor( std::log10( std::abs( val))));
+   fixLen = powTen > 0 ? powTen+1 : 1; // number of digits before '.'
+
+
+   // as its used now, if w == 0 -> d != 0 (SetField())
+   // static cast here is needed for OS X, without we get a *linker* error
+   // (but only if GDL is compiled with Magick)
+
+   if (code & fmtSHOWPOS) ossF << std::showpos ;
+   if (code & fmtALIGN_LEFT) ossF << std::left; else ossF << std::right;
+   if( w == 0 && (powTen < d && powTen > -d) && (val - std::floor( val) < std::pow( 10.0, static_cast<double>(-d))))
+     ossF << std::fixed << std::setprecision(0) << val; 
+   else if( powTen == 0 || (powTen < d && powTen > -d+1)) //just like that.
+     {
+       //format for values between -1 and 1 adapts to the width as to show as many digits as possible
+       ossF << std::fixed << std::setprecision(d>fixLen?d-fixLen+((powTen<0)?-powTen:0):0) << val;
+       if( d <= fixLen && w>0) ossF << ".";
+     }
+   else
+     fixLen = 0; // marker to force scientific output
+ }
+  //get the scientific string
   std::ostringstream ossS;
-  if (f == '+' || f == '@') ossS << std::showpos ;
-  ossS << std::scientific << std::setprecision(d>0?d-1:0) << val;
-  
-  if( fixLen == 0 || ossF.tellp() > ossS.tellp())
+  if (code & fmtSHOWPOS) ossS << std::showpos ;
+  if (code & fmtALIGN_LEFT) ossS << std::left; else ossS << std::right;
+  if ( code & fmtUPPER ) ossS << std::uppercase ;
+  if (w==0) ossS << std::setprecision(d>6?d:6) << val; //Auto w=0 special format: does not use "scientific" but default field-point notation. 
+  else ossS << std::scientific << std::setprecision(d>0?d-1:0) << val;
+  // compare merits
+  if( fixLen == 0 || ossF.tellp() > ossS.tellp()) {
     if( w == 0)
       os << ossS.str();
     else if( ossS.tellp() > w)
       OutStars( os, w);
+    else if (code & fmtALIGN_LEFT) 
+    {
+     os << std::left;
+     os << std::setw(w);
+     os << ossS.str();
+     os << std::right;
+    }    
     else
-      OutFixFill(os, ossS.str(), w, f);
+      OutFixFill(os, ossS.str(), w, code);
+  }
   else
+  {
     if( w == 0)
       os << ossF.str();
     else if( ossF.tellp() > w)
       OutStars( os, w);
+    else if (code & fmtALIGN_LEFT) 
+    {
+     os << std::left;
+     os << std::setw(w);
+     os << ossF.str();
+     os << std::right;
+    }
     else
-      OutFixFill(os, ossF.str(), w, f);
+      OutFixFill(os, ossF.str(), w, code);
+  }
+ }
+ else if (isnan(val)) OutFixedNan<T>(os, val, w, code);
+ else OutFixedInf<T>(os, val, w, code);
 }
 
 template <>
-void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
+void OutAuto<DComplex>( std::ostream& os, const DComplex &val, const int w, const int d, const int code);
 template <>
-void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
+void OutAuto<DComplexDbl>( std::ostream& os, const DComplexDbl &val, const int w, const int d, const int code);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const AsComplex<T>& a) 
 {
   os << "(";
-  OutAuto( os, a.flt.real(), a.width, a.prec, a.fill);
+  OutAuto( os, a.flt.real(), a.width, a.prec, a.code);
   os << ",";
-  OutAuto( os, a.flt.imag(), a.width, a.prec, a.fill);
+  OutAuto( os, a.flt.imag(), a.width, a.prec, a.code);
   os << ")";
   return os;
 }

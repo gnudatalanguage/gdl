@@ -711,13 +711,10 @@ public:
   virtual void InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList);
 
   // virtual formatting output functions
-  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
-  virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-			int prec, char fill, IOMode oM = FIXED); 
-  virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-			int minN, char fill, BaseGDL::IOMode oM = DEC);
-  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-			 int minN, char *fill, BaseGDL::Cal_IOMode oM = DEFAULT);
+  virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code);
+  virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED); 
+  virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
+  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *fill, int code=0, BaseGDL::Cal_IOMode oM = DEFAULT);
   virtual SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   virtual SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   virtual SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 

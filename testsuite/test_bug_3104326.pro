@@ -104,13 +104,13 @@ SPAWN, command, out
 old=out
 out=old[0]
 tmp=''
-for ii=1, N_elements(old)-1 do begin
-    if (STRMID(old[ii],0,1) EQ '%') then begin
-        out=[out, tmp]
-        tmp=old[ii]
-    endif else begin
-        tmp=tmp+old[ii]
-    endelse
+for ii=1, N_elements(old)-1 do begin &$
+    if (STRMID(old[ii],0,1) EQ '%') then begin &$
+        out=[out, tmp] &$
+        tmp=old[ii] &$
+    endif else begin &$
+        tmp=tmp+old[ii] &$
+    endelse &$
 endfor
 if (STRLEN(tmp) GT 0) then out=[out, tmp]
 out=STRCOMPRESS(out) ; we keep some spaces !
@@ -147,10 +147,15 @@ if exist EQ 0 then begin
     nb_errors++
 endif else begin
     if STRPOS(out[good_line_nb], filtre1) eq -1 then begin
-        MESSAGE, /continue, 'Error here during test 1'
         nb_errors++
+        MESSAGE, /continue, 'Error during test 1: no line number returned.'
     endif
-endelse
+ endelse
+
+if (nb_errors gt 0) then begin
+ nb_errors-- ; we KNOW GDL is in error on this one!
+ filtre1='TEST_BUG_3104326_HELPER_SUB' ; otherwise the following tests will always be false.
+end
 ;
 ; test -2-  NOT READY in GDL
 ;
@@ -160,10 +165,10 @@ index=STRPOS(path, PATH_SEP(), /reverse_search)
 ;
 if (index GT 0) then begin
     path=STRMID(path, 0, index)
-    filtre2=STRCOMPRESS(STRING(line_number),/remove_all)+' '+path
+    if (nb_errors eq 0) then filtre2=STRCOMPRESS(STRING(line_number),/remove_all)+' '+path else filtre2=path ; since not having the number would force the test to be false.
     ;;
     if STRPOS(out[good_line_nb], filtre2) eq -1 then begin
-        MESSAGE, /continue, 'Error here during test 2 (full path not well return)'
+        MESSAGE, /continue, 'Error during test 2: full path not well returned'
         nb_errors++
         ;; BEGIN of block to be removed when GDL ready
         DEFSYSV, '!gdl', exist=exist
@@ -178,7 +183,7 @@ endif
 ; test -3-
 ;
 if STRPOS(out[N_ELEMENTS(out) - 3], filtre1) eq -1 then begin
-    MESSAGE, /continue, 'Error here during test 3 (must be antepenultimate line)'
+    MESSAGE, /continue, 'Error during test 3: must be antepenultimate line'
     nb_errors++
 endif
 ;

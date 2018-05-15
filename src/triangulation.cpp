@@ -1112,8 +1112,9 @@ namespace lib {
     e->Throw("Writing in progress.");
   }
 
-// see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
-#ifdef PL_HAVE_QHULL
+//to be written and do not forget to uncomment QHULL in CMakeLists and config.h.cmake  
+  // see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
+#ifdef HAVE_QHULL
   void qhull ( EnvT* e)
   {
     e->Throw("Please Write this function in GDL.");

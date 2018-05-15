@@ -2390,6 +2390,7 @@ namespace lib {
 
     BaseGDL* p0 = e->GetPar( 0);
     if( p0 == NULL) return new DIntGDL( 0);
+    if( p0->Type() == GDL_UNDEF) return new DIntGDL( 0);
     if( !p0->Scalar()) return new DIntGDL( 1);
     if( p0->Type() == GDL_STRUCT) return new DIntGDL( 1);
     if( p0->LogTrue()) return new DIntGDL( 1);

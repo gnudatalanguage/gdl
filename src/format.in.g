@@ -274,7 +274,7 @@ format
                         case TERM:
                         case NONL:
                         case Q: case T: case X: case A:
-                        case F: case D: case E: case G:
+                        case F: case D: case E: case SE: case G: case SG:
                         case I: case O: case B: case Z: case ZZ: case C:
                             {
                                 f(_t);
@@ -328,7 +328,7 @@ format_recursive // don't read in a new line
                         case TERM:
                         case NONL:
                         case Q: case T: case X: case A:
-                        case F: case D: case E: case G:
+                        case F: case D: case E: case SE: case G: case SG:
                         case I: case O: case B: case Z: case ZZ: case C:
                             {
                                 f(_t);
@@ -374,7 +374,7 @@ format_reversion
                 case TERM:
                 case NONL:
                 case Q: case T: case X: case A:
-                case F: case D: case E: case G:
+                case F: case D: case E: case SE: case G: case SG:
                 case I: case O: case B: case Z: case ZZ: case C:
                     {
                         f(_t);
@@ -465,7 +465,9 @@ f
         }
     | (   ff:F { actNode = ff;}
         | ee:E { actNode = ee;}
+        | se:SE { actNode = se;}
         | g:G { actNode = g;}
+        | sg:SG { actNode = sg;}
             //  | d:D // D is transformed to F
         )
         {
@@ -554,7 +556,7 @@ f
 
 
 (        
-(csubcode[r])+ |{
+(calendar_code[r])+ |{
             if( actPar == NULL) break;
             SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, 24, BaseGDL::DEFAULT);
              }
@@ -572,7 +574,7 @@ f
 )
     ;   
 
-csubcode
+calendar_code
 [SizeT r]
         : c1:CMOA
         {

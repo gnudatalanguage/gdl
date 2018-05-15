@@ -164,11 +164,20 @@ namespace lib {
 	  }
 	  catch( antlr::ANTLRException& ex)
 	  {
+        //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
+      try {
+        DString fmtSTring2="(%\""+fmtString+"\")";
+	    RefFMTNode fmtAST = GetFMTAST( fmtSTring2);
+	    FMTOut Formatter( fmtAST, os, e, parOffset); 
+	    return;
+	  } 
+      catch ( antlr::ANTLRException& ex)  {
 	    e->Throw( ex.getMessage());
+       }
 	  }
 	}
       }
-    //else // default-format output
+    //else // default-format output. can be implied print (to be written: FIXME)
       {
 	int nParam = e->NParam();
 

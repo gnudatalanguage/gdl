@@ -84,26 +84,48 @@ namespace lib
     {
        //look only in range x=[xmin,xmax]
        valx=(*xVal)[i];
-       if (isnan(valx)) break;
-       if(valx<xmin || valx>xmax) break;
+       if ( (valx<xmin || valx>xmax || isnan(valx))) continue;
+       else {
        //min and max of y if not NaN and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
        valy=(*yVal)[i];
-       if (isnan(valy)) break;
-       if (doMinMax &&(valy<minVal || valy>maxVal)) break;
-       if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}
+       if ((doMinMax && (valy<minVal || valy>maxVal )) || isnan(valy)) continue;
+       else {if(k==0) {min=valy; max=valy;} else {min=gdlPlot_Min(min,valy); max=gdlPlot_Max(max,valy);}}
+       }
        k++;
     }
   }
 
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal)
   {
+#define UNDEF_RANGE_VALUE 1E-12
     DLong minE, maxE;
     const bool omitNaN=true;
     val->MinMax(&minE, &maxE, NULL, NULL, omitNaN);
-    if ( minVal!=NULL ) *minVal=(*val)[ minE];
-    if ( maxVal!=NULL ) *maxVal=(*val)[ maxE];
+    if ( minVal!=NULL ) {
+       *minVal=(*val)[ minE];
+       if (isnan(*minVal)) *minVal = UNDEF_RANGE_VALUE;
+    }
+    if ( maxVal!=NULL ) {
+      *maxVal=(*val)[ maxE];
+       if (isnan(*maxVal)) *maxVal = 1.0;
+    }
+    if ((*maxVal)==(*minVal)) *maxVal=*minVal+1.0;
+#undef UNDEF_RANGE_VALUE
   }
-
+  
+  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT FinalElement)
+  {
+#define UNDEF_RANGE_VALUE 1E-12
+    DLong minE, maxE;
+    const bool omitNaN=true;
+    val->MinMax(&minE, &maxE, NULL, NULL, omitNaN, 0, FinalElement);
+    minVal=(*val)[ minE];
+    if (isnan(minVal)) minVal = UNDEF_RANGE_VALUE;
+    maxVal=(*val)[ maxE];
+    if (isnan(maxVal)) maxVal = 1.0;
+    if (maxVal==minVal) maxVal=minVal+1.0;
+#undef UNDEF_RANGE_VALUE
+  }
 
   PLFLT AutoTick(DDouble x)
   {
