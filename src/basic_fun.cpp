@@ -791,24 +791,25 @@ namespace lib {
   BaseGDL* bindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DByteGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
     /* }
        catch( GDLException& ex)
        {
        e->Throw( "BINDGEN: "+ex.getMessage());
        }
     */ }
-  // keywords not supported yet
   BaseGDL* indgen( EnvT* e)
   {
     dimension dim;
-
-    // Defaulting to GDL_INT
+    DDouble off = 0, inc = 1;
     DType type = GDL_INT;
 
     static int kwIx1 = e->KeywordIx("BYTE");
@@ -858,23 +859,26 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+
     switch(type)
       {
-      case GDL_INT:        return new DIntGDL(dim, BaseGDL::INDGEN);
-      case GDL_BYTE:       return new DByteGDL(dim, BaseGDL::INDGEN);
-      case GDL_COMPLEX:    return new DComplexGDL(dim, BaseGDL::INDGEN);
-      case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN);
-      case GDL_DOUBLE:     return new DDoubleGDL(dim, BaseGDL::INDGEN);
-      case GDL_FLOAT:      return new DFloatGDL(dim, BaseGDL::INDGEN);
-      case GDL_LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN);
-      case GDL_LONG:       return new DLongGDL(dim, BaseGDL::INDGEN);
+      case GDL_INT:        return new DIntGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_BYTE:       return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_COMPLEX:    return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_DOUBLE:     return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_FLOAT:      return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_LONG:       return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_STRING: {
-	DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
+	DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
 	return iGen->Convert2(GDL_STRING);
       }
-      case GDL_UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN);
-      case GDL_ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN);
-      case GDL_ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN);
+      case GDL_UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
       default:
 	e->Throw( "Invalid type code specified.");
 	break;
@@ -891,12 +895,15 @@ namespace lib {
   BaseGDL* uindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DUIntGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
     /* }
        catch( GDLException& ex)
        {
@@ -906,12 +913,15 @@ namespace lib {
   BaseGDL* sindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     return iGen->Convert2( GDL_STRING);
     /*    }
 	  catch( GDLException& ex)
@@ -922,9 +932,15 @@ namespace lib {
   BaseGDL* lindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
-    return new DLongGDL(dim, BaseGDL::INDGEN);
+    if (dim[0] == 0)
+      throw GDLException( "Array dimensions must be greater than 0");
+
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
 	  catch( GDLException& ex)
 	  {
@@ -934,12 +950,15 @@ namespace lib {
   BaseGDL* ulindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DULongGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
 	  catch( GDLException& ex)
 	  {
@@ -949,12 +968,15 @@ namespace lib {
   BaseGDL* l64indgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DLong64GDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -964,12 +986,15 @@ namespace lib {
   BaseGDL* ul64indgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DULong64GDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*   }
 	 catch( GDLException& ex)
 	 {
@@ -979,12 +1004,15 @@ namespace lib {
   BaseGDL* findgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DFloatGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -994,12 +1022,15 @@ namespace lib {
   BaseGDL* dindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DDoubleGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -1009,12 +1040,15 @@ namespace lib {
   BaseGDL* cindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DComplexGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -1024,12 +1058,15 @@ namespace lib {
   BaseGDL* dcindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DComplexDblGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
