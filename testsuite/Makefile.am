@@ -207,6 +207,7 @@ TESTS = \
   test_where.pro \
   test_window_background.pro \
   test_wordexp.pro \
+  test_wordexp_null_string.pro \
   test_xdr.pro \
   test_zeropoly.pro \
   test_zip.pro \
