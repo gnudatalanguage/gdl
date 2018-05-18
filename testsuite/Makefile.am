@@ -125,6 +125,7 @@ TESTS = \
   test_idl_validname.pro \
   test_idlneturl.pro \
   test_image_statistics.pro \
+  test_indgen.pro \
   test_interpol.pro \
   test_interpolate.pro \
   test_isa.pro \
