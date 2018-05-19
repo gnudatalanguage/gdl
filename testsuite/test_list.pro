@@ -288,3 +288,192 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 
+pro track_update,track,obj
+nobj = n_elements(track)
+track.ref = heap_refcount(obj)
+return
+end
+
+verbose = 1
+; Our prototype structure:
+lifecycle = { name: "", status: "unused", class: "LIST", ref: fix(0), count: fix(0)} 
+
+lc=list() & for k=5,6 do lc.add,list(indgen(k),/extract)
+lc0 = lc[0] & lc1 = lc[1]
+lout = list(indgen(5))
+
+tracklc = lifecycle
+status = "born"
+tracklc0 = tracklc
+tracklc1 = tracklc
+tracklout = tracklc
+
+track_update,tracklc,lc & tracklc.name = "lc"
+track_update,tracklc0,lc0 & tracklc0.name = "lc0"
+track_update,tracklc1,lc1 & tracklc1.name = "lc1"
+track_update,tracklout,lout & tracklout.name = "lout"
+lca = objarr(2)
+lca = [lc0,lc1]
+tracklca = replicate(tracklc,2)
+track_update,tracklca,lca & tracklca.name = ["lca[0]","lca[1]"]
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+if keyword_set(verbose) then print,format='(30x,10A8)',ahist.name
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+nhist = 5
+ntrack = n_elements(ahist)
+refhist = replicate(tracklc, nhist, ntrack)
+;
+refhist(0,*) = ahist
+;
+;
+oc = idl_container()
+status = "first contained"
+oc.add,lc & track_update,tracklc,lc
+oc.add,lc0 & track_update,tracklc0,lc0
+oc.add,lc1 & track_update,tracklc1,lc1
+oc.add,lout & track_update,tracklout,lout
+oc.add,lca & track_update,tracklca,lca
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist(1,*) = ahist
+;
+oc.remove,/all
+track_update,tracklc,lc
+track_update,tracklc0,lc0
+track_update,tracklc1,lc1
+track_update,tracklout,lout
+track_update,tracklca,lca
+;
+status = "removed, then again contained"
+oc.add,lc & track_update,tracklc,lc
+oc.add,lc0 & track_update,tracklc0,lc0
+oc.add,lc1 & track_update,tracklc1,lc1
+oc.add,lout & track_update,tracklout,lout
+oc.add,lca & track_update,tracklca,lca
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist(2,*) = ahist
+;
+status = "duplicate entry into OC"
+oc.add,lc & track_update,tracklc,lc
+oc.add,lc0 & track_update,tracklc0,lc0
+oc.add,lc1 & track_update,tracklc1,lc1
+oc.add,lout & track_update,tracklout,lout
+oc.add,lca & track_update,tracklca,lca
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist(3,*) = ahist
+;
+oc.remove,lc & track_update,tracklc,lc
+oc.remove,lc0 & track_update,tracklc0,lc0
+oc.remove,lc1 & track_update,tracklc1,lc1
+oc.remove,lout & track_update,tracklout,lout
+oc.remove,lca & track_update,tracklca,lca
+status = "removed lists"
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist(4,*) = ahist
+;
+oc.add,lc & track_update,tracklc,lc
+oc.add,lc0 & track_update,tracklc0,lc0
+oc.add,lc1 & track_update,tracklc1,lc1
+oc.add,lout & track_update,tracklout,lout
+oc.add,lca & track_update,tracklca,lca
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+
+status = "re-populated "
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
+;
+status ="ocall=oc.get(/all)"
+ocall = oc.get(/all)
+tracklc.name = "ocall[0]"
+	track_update,tracklc,ocall[0]
+	track_update,tracklc0,ocall[1]
+	track_update,tracklc1,ocall[2]
+	track_update,tracklout,ocall[3]
+	track_update,tracklca,[ocall[4],ocall[5]]
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.status = status
+ahist.name = ["ocall[0]","ocall[1]","ocall[2]","ocall[3]","ocall[4]","ocall[5]"]
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
+
+;	delvar,lc
+;	status = "lc gone (delvar)"
+;	track_update,tracklc,lc
+; == note for delvar: the above 3 lines have induced a call to track_update with status as prm1.
+lc=0 & status = ' lc = 0' & tracklc.name = '-0-'
+	track_update,tracklc,ocall[0]
+	track_update,tracklc0,ocall[1]
+	track_update,tracklc1,ocall[2]
+	track_update,tracklout,ocall[3]
+	track_update,tracklca,[ocall[4],ocall[5]]
+
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.name = ["ocall[0]","ocall[1]","ocall[2]","ocall[3]","ocall[4]","ocall[5]"]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
+;
+status ="lc0=0 & lca = 0"
+lc0=0 & lca = 0
+	track_update,tracklc,ocall[0]
+	track_update,tracklc0,ocall[1]
+	track_update,tracklc1,ocall[2]
+	track_update,tracklout,ocall[3]
+	track_update,tracklca,[ocall[4],ocall[5]]
+
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.name = ["ocall[0]","ocall[1]","ocall[2]","ocall[3]","ocall[4]","ocall[5]"]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
+;
+;
+status ="lct=oc.get(posit=[1,4,5])"
+lct=oc.get(posit=[1,4,5])
+	track_update,tracklc,ocall[0]
+	track_update,tracklc0,ocall[1]
+	track_update,tracklc1,ocall[2]
+	track_update,tracklout,ocall[3]
+	track_update,tracklca,[ocall[4],ocall[5]]
+;
+ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
+ahist.name = ["ocall[0]","ocall[1]","ocall[2]","ocall[3]","ocall[4]","ocall[5]"]
+ahist.status = status
+if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
+;
+refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
+;
+kind = indgen(nhist,ntrack)
+kk = kind(*,0)
+for k = 0,nhist-1 do begin & kindex = kk[k]  &$
+ print,format='(A10,I5,5x,A)',$
+	(refhist[kindex]).name,(refhist[kindex]).ref,(refhist[kindex]).status  &$
+	endfor
+
+end
