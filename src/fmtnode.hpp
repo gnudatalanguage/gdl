@@ -36,12 +36,12 @@ public:
 
   ~FMTNode();
 
-  FMTNode(): CommonAST(), down(), right(), w(-1), d(-1), rep(1), fill(' ')
+  FMTNode(): CommonAST(), down(), right(), w(-1), d(-1), rep(1), code(0)
   {
   }
 
   FMTNode( antlr::RefToken t) : 
-    CommonAST(t), down(), right(), w(-1), d(-1), rep(1), fill(' ')
+    CommonAST(t), down(), right(), w(-1), d(-1), rep(1), code(0)
   {
   }
 
@@ -123,15 +123,38 @@ public:
   {
     return rep;
   }
-  void setFill( const char fill_)
+  
+  typedef enum codeFlags_
   {
-    fill=fill_;
-  }
-  char getFill()
+    fmtALIGN_LEFT = 1
+   ,fmtSHOWPOS = 2
+   ,fmtPAD = 4
+   ,fmtUPPER = 8
+  } codeFlags;
+  
+  void setALignLeft()
   {
-    return fill;
+   code |= fmtALIGN_LEFT;
   }
   
+  void setShowSign()
+  {
+   code |= fmtSHOWPOS; 
+  }
+  
+  void setUpper()
+  {
+   code |= fmtUPPER; 
+  }
+  
+  void setPadding()
+  {
+    code |= fmtPAD;
+  }
+   int getCode()
+   {
+    return code;
+   }
 private:
   RefFMTNode down;
   RefFMTNode right;
@@ -140,7 +163,7 @@ private:
   int d;
 
   int rep;
-  char fill; // fill (for zero padding)
+  int code; // bitfield for alignment (bit 0 set: left-align unset: right-align) (bit 1 set: '+' code) (bit 2 set: use fill character) 
   
 // private:
 

@@ -21,24 +21,25 @@
 #include <limits>
 
 template< typename IntT, typename RealT>
-IntT Real2Int( RealT r)
+inline IntT Real2Int( const RealT r)
 {
-  if( std::numeric_limits< IntT>::max() < r)
-    {
-      //      Warning( "conversion overflow (+)");
-      return std::numeric_limits< IntT>::max();
-    }
-  if( std::numeric_limits< IntT>::min() > r)
-    {
-      //Warning( "conversion overflow (-)");
-      return std::numeric_limits< IntT>::min();
-    }
+ //NOOOOOO! IDL does not test numeric limits! its is jus a cast, and for good reasons!!!
+//  if( std::numeric_limits< IntT>::max() < r)
+//    {
+//      //      Warning( "conversion overflow (+)");
+//      return std::numeric_limits< IntT>::max();
+//    }
+//  if( std::numeric_limits< IntT>::min() > r)
+//    {
+//      //Warning( "conversion overflow (-)");
+//      return std::numeric_limits< IntT>::min();
+//    }
   return static_cast< IntT>( r);
 }
 
 
 template< typename RealT>
-DByte Real2DByte( RealT r)
+inline DByte Real2DByte( const RealT r)
 {
  return static_cast< DByte>( Real2Int<DLong, RealT>( r));
 }

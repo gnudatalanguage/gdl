@@ -20,7 +20,7 @@
 SizeT w1 = width[0] / 2;
 SizeT w2 = width[1] / 2;
 SizeT nEl = dimx*dimy;
-T tmp[nEl];
+SMOOTH_Ty tmp[nEl];
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for

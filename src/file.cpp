@@ -1807,7 +1807,7 @@ bool *tests )
     static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
     bool noExp = e->KeywordSet(noExpIx);
     
-    DLongGDL* res = new DLongGDL( nEl, BaseGDL::NOZERO);
+    DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     gzFile gfd = NULL;
     char newinput, lastchar = 0;

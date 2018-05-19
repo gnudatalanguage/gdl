@@ -27,6 +27,7 @@ GDLTreeParserTokenTypes.hpp
 datatypes.cpp
 datatypes.hpp
 datatypesref.cpp
+datatypes_minmax.cpp
 accessdesc.hpp
 allix.hpp
 allix.cpp
@@ -268,6 +269,7 @@ triangulation.cpp
 typedefs.hpp
 typetraits.cpp
 typetraits.hpp
+where.cpp
 widget.cpp
 widget.hpp
 )
@@ -283,6 +285,7 @@ if(PYTHON_MODULE) #GDL.so
 	SET_TARGET_PROPERTIES(gdl PROPERTIES PREFIX "")
 	SET_TARGET_PROPERTIES(gdl PROPERTIES OUTPUT_NAME GDL)
 	SET_TARGET_PROPERTIES(gdl PROPERTIES NO_SONAME TRUE)
+        SET_TARGET_PROPERTIES(gdl PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})

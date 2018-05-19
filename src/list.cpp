@@ -268,9 +268,8 @@ static BaseGDL* GetNodeData(DPtr &Node)
     }
     return actP;
   }
-
 // Here for the benefit of hash.cpp:
-   DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e)
+  DStructGDL* GetSELF( BaseGDL* selfP, EnvUDT* e)
   {
     // TODO remove this checks (SELF is set always internally)
     if( selfP == NULL || selfP->Type() != GDL_OBJ)
@@ -286,6 +285,7 @@ static BaseGDL* GetNodeData(DPtr &Node)
     {
       ThrowFromInternalUDSub( e, "SELF object ID <"+i2s(selfID)+"> not found.");      
     }
+    return NULL; //pacify -Wreturn-type
   }
  
   void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)

@@ -102,10 +102,8 @@ namespace lib {
 
     static int readIx=e->KeywordIx("READ");
     static int writeIx=e->KeywordIx("WRITE");
-    if (e->KeywordSet( readIx ))
-      return new DLongGDL( Vattach(hdf_id, vg_ref, "r"));
-    else if (e->KeywordSet( writeIx ))
-      return new DLongGDL( Vattach(hdf_id, vg_ref, "w"));
+    if (e->KeywordSet( readIx )) return new DLongGDL( Vattach(hdf_id, vg_ref, "r"));
+    return new DLongGDL( Vattach(hdf_id, vg_ref, "w")); //other cases.
   }
 
 

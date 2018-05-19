@@ -38,18 +38,18 @@ using namespace std;
 
 
 // for double -> string
-inline string double2string( DDouble d)      
+inline string double2string( const DDouble d)      
 {
   std::ostringstream os;
-  OutAuto( os, d, 16, 8, ' ');
+  OutAuto( os, d, 16, 8, 0);
   return os.str();
 }
 
 // for float -> string
-inline string float2string( DFloat f)      
+inline string float2string( const DFloat f)      
 {
   std::ostringstream os;
-  OutAuto( os, f, 13, 6, ' ');
+  OutAuto( os, f, 13, 6, 0);
   return os.str();
 }
 
@@ -309,10 +309,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	    return dest;
 	  }
       }
-    case GDL_PTR:
-    case GDL_OBJ:
-    case GDL_STRUCT:
-    case GDL_UNDEF: 
+    default: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -483,7 +480,8 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF: 
+    case GDL_UNDEF:
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -654,6 +652,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -827,6 +826,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1000,6 +1000,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1223,6 +1224,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1453,6 +1455,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1810,6 +1813,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2055,6 +2059,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2308,7 +2313,8 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF: 
+    case GDL_UNDEF:
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2481,7 +2487,8 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF: 
+    case GDL_UNDEF:
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2653,7 +2660,8 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF: 
+    case GDL_UNDEF:
+    default:
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }

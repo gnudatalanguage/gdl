@@ -18,9 +18,9 @@
 // to be included from datatypes.cpp
 #ifdef INCLUDE_SMOOTH_POLYD
 
-T* src=srcIn;
-T* dest=destIn;
-T* store;
+SMOOTH_Ty* src=srcIn;
+SMOOTH_Ty* dest=destIn;
+SMOOTH_Ty* store;
 
 SizeT srcDim[MAXRANK];
 for (int i = 0; i < rank; ++i) srcDim[i] = datainDim[i];
