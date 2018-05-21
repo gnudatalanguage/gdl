@@ -1217,7 +1217,7 @@ numeric_constant!//
 
 arrayindex_list
 {		
-    int rank = 1;
+    SizeT rank = 1;
 }
 	: LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
 	| { IsRelaxed()}? LBRACE! arrayindex 
@@ -1948,7 +1948,7 @@ tokens {
 {
   // Stuff for include files (@filename)
   private:
-    std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
+    std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
                                      // it when it is deleted itself
   
     antlr::TokenStreamSelector*     selector; 
@@ -2071,7 +2071,7 @@ INCLUDE!
 		std::string name = f->getText();
 
         // find comments on the same line
-        long pos = name.find_first_of(';', 0);   
+        size_t pos = name.find_first_of(';', 0);   
         if( pos != std::string::npos) // remove them  
             name = name.substr(0, pos);
 
