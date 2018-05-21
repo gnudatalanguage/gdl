@@ -2905,7 +2905,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
-	BaseGDL* res;
+	BaseGDL* res = NULL;
 	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 		switch ( _t->getType()) {
