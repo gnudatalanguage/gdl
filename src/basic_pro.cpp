@@ -56,6 +56,7 @@
 #include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
 #endif
 #include <signal.h>
+static bool trace_me(false);
 
 namespace lib {
 
@@ -2433,6 +2434,7 @@ namespace lib {
 
 void delvar_pro( EnvT* e)
     {
+      StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 	static volatile bool debug(false);
 	static bool message_needed(false);
 	static volatile SizeT numEnv;
@@ -2463,23 +2465,22 @@ void delvar_pro( EnvT* e)
 		DString parString = caller->GetString( par,true);
 		itest= caller->findvar(parString);
 		if ( itest < 0) {delcommon.push_back(ip); continue;}
-/*		if( par->Type() == GDL_OBJ) { // same procedure use in obj_destroy
-			if(trace_me) 
+		if( par->Type() == GDL_OBJ) {
+/*			if(trace_me) // deliberately skpping code unless in debug mode.
 				std::cout << " ** delvar on object "<< parString<< std::endl;
-			else {
+			else { */
 				std::cout << " ** DELVAR - object " + parString + 
-				"	skipped !! use obj_destroy for now." << std::endl;
+				"	skipped !! use obj_destroy " << std::endl;
 				continue;
 				}
-				* seems to work ok now that list::cleanup is more bullet-proof.
-*/
-/*	GDLDelete seems to be adequate for cleanup.  Problems calling this way.
- *	 		DObjGDL* op= static_cast<DObjGDL*>(par);
+/*	GDLDelete may not be adequate for cleanup.  Problems calling this way.
+// ObjCleanup wants to reference _EXTRA keyword but DELVAR does not support that.
+	 		DObjGDL* op= static_cast<DObjGDL*>(par);
 			SizeT nEl=op->N_Elements();
 			for( SizeT i=0; i<nEl; i++)	
 				e->ObjCleanup( (*op)[i]);
 
- 			} */
+ 			}*/
 		delvar.push_back(itest); ndel++;
 		if (ndel == 32) break;
 		pIndex = caller->findvar(par);
@@ -2492,10 +2493,10 @@ void delvar_pro( EnvT* e)
         	int ndel=0;
 			for (std::vector<int>::iterator ix=delvar.begin();
 			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
-//			if(trace_me) std::cout << " ** delvar x-"<< ndel;
+			if(trace_me) std::cout << " ** delvar x-"<< ndel;
 			todel[ndel] = -1;
 			caller->Remove(todel);
-//			if(trace_me) std::cout << std::endl;
+			if(trace_me) std::cout << std::endl;
 		}
 	if(delcommon.empty()) return;
 	unsigned cIx;
