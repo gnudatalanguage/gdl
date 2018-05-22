@@ -673,8 +673,8 @@ static inline void histogram_add( const uint16_t x[16], uint16_t y[16] )
 #elif defined(__ALTIVEC__)
 static inline void histogram_add( const uint16_t x[16], uint16_t y[16] )
 {
-    *(vector unsigned short*) &y[0] = vec_add( *(vector unsigned short*) &y[0], *(vector unsigned short*) &x[0] );
-    *(vector unsigned short*) &y[8] = vec_add( *(vector unsigned short*) &y[8], *(vector unsigned short*) &x[8] );
+    *(__vector unsigned short*) &y[0] = vec_add( *(__vector unsigned short*) &y[0], *(__vector unsigned short*) &x[0] );
+    *(__vector unsigned short*) &y[8] = vec_add( *(__vector unsigned short*) &y[8], *(__vector unsigned short*) &x[8] );
 }
 #else
 static inline void histogram_add( const uint16_t x[16], uint16_t y[16] )
@@ -707,8 +707,8 @@ static inline void histogram_sub( const uint16_t x[16], uint16_t y[16] )
 #elif defined(__ALTIVEC__)
 static inline void histogram_sub( const uint16_t x[16], uint16_t y[16] )
 {
-    *(vector unsigned short*) &y[0] = vec_sub( *(vector unsigned short*) &y[0], *(vector unsigned short*) &x[0] );
-    *(vector unsigned short*) &y[8] = vec_sub( *(vector unsigned short*) &y[8], *(vector unsigned short*) &x[8] );
+    *(__vector unsigned short*) &y[0] = vec_sub( *(__vector unsigned short*) &y[0], *(__vector unsigned short*) &x[0] );
+    *(__vector unsigned short*) &y[8] = vec_sub( *(__vector unsigned short*) &y[8], *(__vector unsigned short*) &x[8] );
 }
 #else
 static inline void histogram_sub( const uint16_t x[16], uint16_t y[16] )
