@@ -66,7 +66,8 @@ end
 ;
 pro GENERATE_FORMATS_FILE, nb_cases, verbose=verbose, test=test
 ;
-filename='formats.'+GDL_IDL_FL()
+identity=GDL_IDL_FL()
+filename='formats.'+identity
 if FILE_TEST(filename) then begin
     FILE_COPY, filename, filename+'_old', /overwrite
     MESSAGE,/cont, 'Copy of old file <<'+filename+'_old'+'>> done.'
@@ -80,7 +81,11 @@ struct = {BYTE:0b,short:-0s,ushort:0us, $
 GET_LUN, lun1
 OPENW, lun1, filename
 np=20 ; do not modify without recomputing save file below with idl8.
-if (!version.arch eq 'x86') then restore,filename='test_formats_random_input.sav' else a=float(randomn(33,np,/double)*1D8) ; is same only for IDL8
+a=float(randomn(33,np,/double)*1D8) ; needed: same randomn values for IDL8 and GDL only in this case (for the moment).
+if (identity eq 'IDL') then begin ; overwrite a in some rare case
+   vers=0.0 & reads,!version.release,vers
+   if (vers < 8.2) then restore,filename='test_formats_random_input.sav' ; actually it is 8.2.2
+endif
 for i=0,n_tags(struct)-1 do struct.(i)=a[i]
 struct.nand=!values.d_nan
 struct.infd=!values.d_infinity
