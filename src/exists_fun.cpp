@@ -196,6 +196,15 @@ namespace lib {
 #endif
   }
 
+  BaseGDL* tiff_exists( EnvT* e )
+  {
+#if defined(USE_TIFF)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
   BaseGDL* udunits_exists( EnvT* e )
   {
 #if defined(USE_UDUNITS)

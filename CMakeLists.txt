@@ -80,6 +80,9 @@ set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory t
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
 
+set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
+set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
+
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
 
@@ -552,6 +555,24 @@ if(WXWIDGETS)
                 "(suitable Fedora package: wxGTK-devel)")
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
+
+# libtiff
+# -DTIFF=ON|OFF
+# -DTIFFDIR=DIR
+if(TIFF)
+	set(CMAKE_PREFIX_PATH ${TIFFDIR})
+	find_package(TIFF QUIET)
+	set(USE_TIFF ${TIFF_FOUND})
+	if(TIFF_FOUND)
+		include_directories(${TIFF_INCLUDE_DIRS})
+		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
+	else(TIFF_FOUND)
+		message(STATUS
+		"libtiff is recommended for TIFF support but was not found.\n"
+		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
+		"Use -DTIFF=OFF to not use it.")
+	endif(TIFF_FOUND)
+endif(TIFF)
 
 # netCDF
 # -DNETCDF=ON|OFF
@@ -1071,6 +1092,7 @@ endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets  ")
 module(MAGICK    "ImageMagick")
+module(TIFF      "TIFF       ")
 module(NETCDF    "NetCDF     ")
 module(HDF       "HDF4       ")
 module(HDF5      "HDF5       ")

@@ -78,6 +78,7 @@
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_OPENMP 1
 #cmakedefine USE_PYTHON 1
+#cmakedefine USE_TIFF 1
 #cmakedefine USE_UDUNITS 1
 #cmakedefine USE_PSLIB 1
 #cmakedefine USE_EIGEN 1
