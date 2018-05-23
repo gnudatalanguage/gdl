@@ -264,6 +264,8 @@ str.cpp
 str.hpp
 terminfo.cpp
 terminfo.hpp
+tiff_cl.cpp
+tiff_cl.hpp
 topython.cpp
 triangulation.cpp
 typedefs.hpp
