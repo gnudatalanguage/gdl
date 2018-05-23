@@ -156,7 +156,6 @@ namespace lib
         yStart=yAxisStart;
         yEnd=yAxisEnd;
       }
-  #undef UNDEF_RANGE_VALUE
       // z range
       datamax=0.0;
       datamin=0.0;

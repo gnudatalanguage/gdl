@@ -378,11 +378,11 @@ void* Data_<SpDString>::DataAddr();//SizeT);*/
 /*template<>
 Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT);*/
 template<>
-Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
-Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
-Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 
 template<>  SizeT Data_<SpDString>::NBytes() const;
 // template<>  SizeT Data_<SpDObj>::NBytes() const;

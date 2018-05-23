@@ -125,6 +125,7 @@ TESTS = \
   test_idl_validname.pro \
   test_idlneturl.pro \
   test_image_statistics.pro \
+  test_indgen.pro \
   test_interpol.pro \
   test_interpolate.pro \
   test_isa.pro \
@@ -207,6 +208,7 @@ TESTS = \
   test_where.pro \
   test_window_background.pro \
   test_wordexp.pro \
+  test_wordexp_null_string.pro \
   test_xdr.pro \
   test_zeropoly.pro \
   test_zip.pro \

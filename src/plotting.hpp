@@ -377,6 +377,7 @@ namespace lib {
   PLFLT AutoTick(DDouble x);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
+  void GetMinMaxValuesForSubset( DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
   void CheckMargin( GDLGStream* actStream,
                     DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT,
                     PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
@@ -1203,12 +1204,12 @@ namespace lib {
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
     gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
-    PLFLT sclx=actStream->nCharLength(); //current char width
-    xML=xMarginL*sclx; //margin as percentage of subpage
-    xMR=xMarginR*sclx;
-    PLFLT scly=actStream->nLineSpacing();
-    yMB=(yMarginB)*scly;
-    yMT=(yMarginT)*scly;
+    PLFLT scl=actStream->nCharLength(); //current char width
+    xML=xMarginL*scl; //margin as percentage of subpage
+    xMR=xMarginR*scl;
+    scl=actStream->nCharHeight(); //current char height
+    yMB=(yMarginB)*scl;
+    yMT=(yMarginT)*scl;
 
     if ( xML+xMR>=1.0 )
     {
@@ -1241,9 +1242,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
-        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();//nCharHeight();
+        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
-        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();//nCharHeight();
+        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1328,9 +1329,9 @@ namespace lib {
     //compute world Charsize
     PLFLT xb, xe, yb, ye;
     xb=xmin-xMarginL*actStream->wCharLength();
-    xe=xmax+xMarginR*actStream->wLineSpacing();
+    xe=xmax+xMarginR*actStream->wCharLength();
     yb=ymin-yMarginB*actStream->wCharHeight();
-    ye=ymax-yMarginT*actStream->wLineSpacing();
+    ye=ymax-yMarginT*actStream->wCharHeight();
     actStream->wind(xb, xe, yb, ye);
 
 
