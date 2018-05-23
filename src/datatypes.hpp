@@ -124,7 +124,8 @@ static	void operator delete( void *ptr);
   Data_(const Ty& d_);
 
   // new array, no zero or indgen
-  Data_(const dimension& dim_,  BaseGDL::InitType iT);
+  Data_(const dimension& dim_,  BaseGDL::InitType iT,
+        DDouble start = 0, DDouble increment = 1);
   
   // new array, zero fields
   Data_(const dimension& dim_);

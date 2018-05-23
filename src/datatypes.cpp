@@ -386,7 +386,7 @@ template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
 // template<class Sp> Data_<Sp>::Data_(const Data_& d_): 
 // Sp(d_.dim), dd(d_.dd) {}
 
-template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT):
+template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   this->dim.Purge();
@@ -400,12 +400,12 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
 	// #pragma omp for
 	for( SizeT i=0; i<sz; i++)
 	  {
-	    (*this)[i]=i;//val;
+	    (*this)[i]=off+i*inc;
 	  }
 	// 	  val += 1; // no increment operator for floats
       }
   }
-  if (iT == BaseGDL::ZERO) {
+  else if (iT == BaseGDL::ZERO) {
     SizeT sz = dd.size();
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
@@ -484,7 +484,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well
-template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
+template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
@@ -492,7 +492,7 @@ template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
 }
-template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
+template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DDouble, DDouble):
   SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
@@ -514,7 +514,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
       // 	}
     }
 }
-template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
+template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
