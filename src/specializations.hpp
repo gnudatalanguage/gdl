@@ -378,11 +378,11 @@ void* Data_<SpDString>::DataAddr();//SizeT);*/
 /*template<>
 Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT);*/
 template<>
-Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
-Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
-Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 
 template<>  SizeT Data_<SpDString>::NBytes() const;
 // template<>  SizeT Data_<SpDObj>::NBytes() const;
@@ -511,40 +511,6 @@ template<>
 DLong* Data_<SpDComplex>::Where( bool, SizeT&);
 template<> 
 DLong* Data_<SpDComplexDbl>::Where( bool, SizeT&);
-template<> 
-void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
-			      BaseGDL** minVal, BaseGDL** maxVal,
-                  bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
- 				BaseGDL** minVal, BaseGDL** maxVal,
-                bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				   BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-template<> 
-void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal,
-                   bool omitNaN, SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs);
-
-// default_io.cpp
-
-//Following bugs with gcc 6. It seems that just getting rid of the operator>> statements does the trick.
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDFloat>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDDouble>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDComplex>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& i, Data_<SpDComplexDbl>& data_); 
-//template<>  
-//std::istream& operator>>(std::istream& is, Data_<SpDString>& data_); 
 
 template<>  
 std::ostream& Data_<SpDLong>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 
@@ -621,42 +587,29 @@ template<>  SizeT Data_<SpDComplexDbl>::
 IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode);
 
 // ofmt.cpp
-template<>  SizeT Data_<SpDString>::
-OFmtA( std::ostream* os, SizeT offs, SizeT r, int w); 
-template<>  SizeT Data_<SpDComplex>::
-OFmtA( std::ostream* os, SizeT offs, SizeT r, int w); 
-template<>  SizeT Data_<SpDComplexDbl>::
-OFmtA( std::ostream* os, SizeT offs, SizeT r, int w); 
+template<>  SizeT Data_<SpDString>::OFmtA( std::ostream* os, SizeT offs, SizeT r, int w, int code); 
+template<>  SizeT Data_<SpDComplex>::OFmtA( std::ostream* os, SizeT offs, SizeT r, int w, int code); 
+template<>  SizeT Data_<SpDComplexDbl>::OFmtA( std::ostream* os, SizeT offs, SizeT r, int w, int code); 
 template<>  SizeT Data_<SpDDouble>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDFloat>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplex>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplexDbl>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDLong>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDULong>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDLong64>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDULong64>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplex>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplexDbl>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
-       BaseGDL::IOMode oMode); 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, int code, BaseGDL::IOMode oMode); 
 
 // template<>
 // void Data_< SpDString>::Construct(); 

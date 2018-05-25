@@ -1042,7 +1042,23 @@ RetCode  PCALLNode::Run()
   _t = _t->getNextSibling();
 			
   ProgNode::interpreter->SetProIx( p);
-			
+#ifdef 	AUTO_PRINT_EXPR
+#ifndef GDL_DEBUG 
+  if (p->proIx == -1) {
+    try {
+          ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
+          ProgNode::interpreter->executeLine.str( "print,/implied_print," + ProgNode::interpreter->executeLine.str()); 
+          std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
+          ProgNode::interpreter->ExecuteLine(&execute_me, 0);
+          ProgNode::interpreter->SetRetTree( this->getNextSibling());
+          return RC_OK;
+        } catch( GDLException& e)
+		{
+			throw e;
+		}
+  }
+#endif
+#endif  
   EnvUDT* newEnv = new EnvUDT( p, proList[p->proIx]);
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);

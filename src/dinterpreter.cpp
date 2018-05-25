@@ -43,9 +43,6 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-// print out an exspression entered at teh comand line
-//#define 	AUTO_PRINT_EXPR
-
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
 #endif
@@ -143,7 +140,7 @@ DStructGDL* GDLInterpreter::ObjectStruct( DObjGDL* self, ProgNodeP mp)
   try {
     oStructGDL= GetObjHeap( o);
   }
-  catch ( HeapException)
+  catch ( HeapException&)
     {
       throw GDLException( mp, "Object not valid: "+Name(self));
     }
@@ -488,10 +485,12 @@ int GDLInterpreter::GetProIx( ProgNodeP f)
       /*bool found=*/ SearchCompilePro(subName, true);
 	  
       proIx=ProIx(subName);
+#ifndef AUTO_PRINT_EXPR
       if( proIx == -1)
 	{
 	  throw GDLException(f,"Procedure not found: "+subName,true,false);
 	}
+#endif
     }
   return proIx;
 }
@@ -578,12 +577,12 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 	return false;
       }	
   }
-  catch( GDLException e)
+  catch( GDLException& e)
     {
       ReportCompileError( e, f);
       return false;
     }
-  catch( ANTLRException e)
+  catch( ANTLRException& e)
     {
       cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
       return false;
@@ -612,13 +611,13 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 
       if( treeParser.ActiveProCompiled()) RetAll();
     }
-  catch( GDLException e)
+  catch( GDLException& e)
     {
       ReportCompileError( e, f);
       if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
-  catch( ANTLRException e)
+  catch( ANTLRException& e)
     {
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
       if( treeParser.ActiveProCompiled()) RetAll();
@@ -705,7 +704,7 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 		// default is more verbose
 		CompileFile( argstr); //, origstr); 
 	      }
-	      catch( RetAllException)
+	      catch( RetAllException&)
 		{
 		  // delay the RetAllException until finished
 		  retAll = true;
@@ -771,7 +770,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 		// default is more verbose
 		CompileFile( argstr); //, origstr); 
 	      }
-	      catch( RetAllException)
+	      catch( RetAllException&)
 		{
 		  // delay the RetAllException until finished
 		  retAll = true;
@@ -1115,7 +1114,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 // 			lexer->Parser().expr();
 	
 			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print," + executeLine.str()); // append new line
+			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
 			
 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
 			lexer->Parser().interactive();

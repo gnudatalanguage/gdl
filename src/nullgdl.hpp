@@ -303,10 +303,8 @@ class NullGDL: public BaseGDL
 
   // /*virtual*/ formatting output functions
   /*virtual*/ SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
-  /*virtual*/ SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-			int prec, char fill, IOMode oM = FIXED); 
-  /*virtual*/ SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-			int minN, char fill, BaseGDL::IOMode oM = DEC);
+  /*virtual*/ SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code, BaseGDL::IOMode oM = FIXED); 
+  /*virtual*/ SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN,  int code, BaseGDL::IOMode oM = DEC);
   /*virtual*/ SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
 			     int minN, char *fill, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   /*virtual*/ SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);

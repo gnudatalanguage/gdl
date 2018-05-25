@@ -34,7 +34,7 @@ namespace lib {
   using namespace std;
 
   template< typename T>
-  BaseGDL* hdf_sd_getdata_template( EnvT* e, dimension dim, int32 sds_id,
+  void hdf_sd_getdata_template( EnvT* e, dimension dim, int32 sds_id,
 				    int32 start[], int32 edges[], int32 stride[],
 				    DLongGDL* strideKW)
   {
@@ -622,7 +622,7 @@ namespace lib {
   }
 
   template< typename T>
-  BaseGDL* hdf_sd_getdscl_template(EnvT* e, DLong dim_size, int32 dim_id)
+  void hdf_sd_getdscl_template(EnvT* e, DLong dim_size, int32 dim_id)
   {
     T* data = new T(dimension(dim_size), BaseGDL::NOZERO);
     SDgetdimscale(dim_id, data->DataAddr());

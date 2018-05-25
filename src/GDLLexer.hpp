@@ -19,7 +19,7 @@
 #include "initsysvar.hpp"
 
 #include <antlr/TokenStreamSelector.hpp>
-	 
+
 #include <antlr/SemanticException.hpp>
 #include <antlr/NoViableAltForCharException.hpp>
 #include <antlr/TokenStreamIOException.hpp>
@@ -35,11 +35,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 
   // Stuff for include files (@filename)
   private:
-#if (__cplusplus >= 201103L)
-    std::unique_ptr<std::ifstream>    inputFile; // stores ifstream* and deletes 
-#else
-     std::auto_ptr<std::ifstream>    inputFile; // stores ifstream* and deletes 
-#endif
+    std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
                                      // it when it is deleted itself
   
     antlr::TokenStreamSelector*     selector; 

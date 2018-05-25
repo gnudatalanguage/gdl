@@ -67,8 +67,8 @@ set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 
-set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
-set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
+# set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
+# set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
 
 set(GLPK OFF CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
 set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
@@ -361,7 +361,7 @@ set(CMAKE_PREFIX_PATH ${XDRDIR})
 find_package(Xdr)
 set(HAVE_LIBXDR ${XDR_FOUND})
 if(XDR_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
+	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
 	include_directories(${XDR_INCLUDE_DIR})
 else(XDR_FOUND)
 	message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
@@ -378,7 +378,7 @@ else(PCRE_FOUND)
 	message(FATAL_ERROR "pcre library is required but was not found.\n"
 	"Use -DPCREDIR=DIR to specify the pcre directory tree.")
 endif(PCRE_FOUND)
-	LINK_LIBRARIES(shlwapi gnurx)
+LINK_LIBRARIES(shlwapi)
 endif(WIN32 AND NOT CYGWIN)
 
 # PLplot MANDATORY
@@ -896,23 +896,24 @@ if(GRIB)
 	endif(GRIB_FOUND)
 endif(GRIB)
 
-# Qhull (enable TRIANGULATE and QHULL commands)
-# -DQHULL=ON|OFF
-# -DQHULLDIR=DIR
-if(QHULL)
-	set(CMAKE_PREFIX_PATH ${QHULLDIR})
-	find_package(QHULL QUIET)
-	set(PL_HAVE_QHULL ${QHULL_FOUND})
-	if(QHULL_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
-		include_directories(${QHULL_INCLUDE_DIR})
-	else(QHULL_FOUND)
-		message(FATAL_ERROR "QHULL is required but was not found.\n"
-		"Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
-		"Use -DQHULL=OFF to not use it.\n"
-                "(suitable Fedora package: libqhull-devel)")
-	endif(QHULL_FOUND)
-endif(QHULL)
+# QHULL IS NOT NEEDED YET!
+# # Qhull (enable TRIANGULATE and QHULL commands)
+# # -DQHULL=ON|OFF
+# # -DQHULLDIR=DIR
+# if(QHULL)
+# 	set(CMAKE_PREFIX_PATH ${QHULLDIR})
+# 	find_package(QHULL QUIET)
+# 	set(PL_HAVE_QHULL ${QHULL_FOUND})
+# 	if(QHULL_FOUND)
+# 		set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
+# 		include_directories(${QHULL_INCLUDE_DIR})
+# 	else(QHULL_FOUND)
+# 		message(FATAL_ERROR "QHULL is required but was not found.\n"
+# 		"Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
+# 		"Use -DQHULL=OFF to not use it.\n"
+#                 "(suitable Fedora package: libqhull-devel)")
+# 	endif(QHULL_FOUND)
+# endif(QHULL)
 
 # GLPK for Simplex ( Linear programming )
 # GLPK (enable SIMPLEX command)
@@ -1083,8 +1084,8 @@ set(EIGEN3_LIBRARIES ${EIGEN3_INCLUDE_DIR})
 module(EIGEN3    "EIGEN3     ")
 module(GRAPHICSMAGICK "GRAPHICSMAGICK")
 module(GRIB      "GRIB       ")
-set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
-module(QHULL     "QHULL      ")
+# set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
+# module(QHULL     "QHULL      ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK       ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})

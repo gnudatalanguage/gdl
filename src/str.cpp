@@ -318,6 +318,7 @@ unsigned long int Str2UL( const string& s, int base)
 }
 void WordExp( std::string& s)
 {
+
 	bool trace_me = false; //lib::trace_arg();
 
 //  cout << "WordExp  in: " << s ;
@@ -341,7 +342,7 @@ void WordExp( std::string& s)
 #else
      for( int i=ipos; i<s.length(); ++i)
      {
-		char achar = s[i];
+       char achar = s[i];
        if( achar == ' ')
    	sEsc += string("\\ ");
        else if( achar == '\\') {
@@ -371,7 +372,6 @@ void WordExp( std::string& s)
 			} else sEsc.push_back(achar);
 	   }
      }
-
 	if(trace_me) 
 		cout << "WordExp  in: " << s 
 			<< " -(modified original)- WordExp esc: " << sEsc << endl;
@@ -379,12 +379,10 @@ void WordExp( std::string& s)
 	s = sEsc;
 #endif
 #if (!defined(__OpenBSD__) && !defined(_WIN32))
-
   wordexp_t p;
   int ok0 = wordexp( sEsc.c_str(), &p, 0);
   if(ok0 == 0) {
 	   s=p.we_wordv[0];
-      
 #  if defined(__APPLE__)
       p.we_offs = 0;
 #  endif
