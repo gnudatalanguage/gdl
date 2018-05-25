@@ -318,11 +318,14 @@ unsigned long int Str2UL( const string& s, int base)
 }
 void WordExp( std::string& s)
 {
+
 	bool trace_me = false; //lib::trace_arg();
 
-//  cout << "WordExp  in: " << s ;
-//   escape whitespace, before passing it to WordExp,
-//   which is not already escaped
+//AC 2018-04-25 : because crash of :
+// openr, unit, '', ERROR=error,/get_lun
+
+	if (s.length() == 0) return;
+
     string sEsc="";
      int ipos=0;
 #ifdef _WIN32
