@@ -328,6 +328,14 @@ public:
     delete common.back();
     common.pop_back();
   }
+    void commonPtrs( std::vector<DCommonBase *>& cptr)
+{
+	cptr.clear();
+    CommonBaseListT::iterator c = common.begin();
+    for(; c != common.end(); ++c)
+       cptr.push_back((*c));
+    return;
+	}
   
   void ResolveAllLabels();
   LabelListT& LabelList() { return labelList;}
