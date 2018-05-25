@@ -96,8 +96,9 @@ void LibInit()
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
 
-  const string hashKey[]={"NO_COPY", KLISTEND};
+  const string hashKey[]={"EXTRACT", "LOWERCASE", "NO_COPY", "FOLD_CASE", KLISTEND};
   new DLibFunRetNew(lib::hash_fun,string("HASH"),-1,hashKey);
+  new DLibFunRetNew(lib::orderedhash_fun,string("ORDEREDHASH"),-1,hashKey);
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
 
