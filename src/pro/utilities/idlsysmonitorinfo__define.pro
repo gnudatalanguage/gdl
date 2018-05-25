@@ -6,8 +6,8 @@
 ; just what is needed by some examples in Coyote lib.
 ; (which is provided by Debian ...)
 ;
-; Please post improvments on GDL discussion forum or on 
-; https://sourceforge.net/p/gnudatalanguage/patches/
+; Please post improvments or comments at:
+; https://github.com/gnudatalanguage/gdl/issues
 ;
 function idlsysmonitorinfo::GetPrimaryMonitorIndex
 return, 0

@@ -3258,6 +3258,8 @@ GDLWidgetButton::~GDLWidgetButton(){
           menuItem->GetMenu()->Remove(menuItem); //do not destroy the wxWidgets object, troubles will follow.
         }
         break;
+      default:
+        break;
     }
 }
 

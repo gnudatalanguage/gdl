@@ -97,7 +97,8 @@ namespace lib {
   DLong mapH5DatatypesToGDL(DLong h5type){
 //must be in order, from most complicated to simplest, string at end
 
-if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
+//not until LDOUBLE Is handled everywhere!!
+//    if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
 if (H5Tequal(h5type , H5T_NATIVE_DOUBLE )) return GDL_DOUBLE;
 if (H5Tequal(h5type , H5T_NATIVE_FLOAT )) return GDL_FLOAT;
 

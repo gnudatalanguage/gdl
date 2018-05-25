@@ -40,6 +40,7 @@
 
 #include "gsl_fun.hpp"
 
+#include "where.hpp"
 #include "convol.hpp"
 #include "smooth.hpp"
 #include "brent.hpp"
@@ -300,10 +301,15 @@ void LibInit()
   // as the same functions are called "FORMAT" till "MONTH"
   // must be the first four keywords. The inner print_os function is BASED on this ORDER!
   //NOTE THAT AM_PM, DAYS_OF_WEEK and MONTHS are silently ignored!!!
+  //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7)
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
   const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
-  new DLibPro(lib::print,string("PRINT"),-1,printKey);
-  new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
+  const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT",KLISTEND};
+  //At the moment, print accepts silently "IMPLIED_PRINT" as this is used in autoprint feature.
+  new DLibPro(lib::print,string("PRINT"),-1,impliedprintKey);
+  //but PRINTF issues a warning, as it is not yet supported
+  const string printfWarnKey[]={"IMPLIED_PRINT",KLISTEND};
+  new DLibPro(lib::printf,string("PRINTF"),-1,printKey,printfWarnKey);
   // allow printing (of expressions) with all keywords 
   // (easier to implement this way)
   new DLibPro(lib::stop,string("STOP"),-1,printKey); 
@@ -316,7 +322,8 @@ void LibInit()
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
 
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
+  const string stringWarnKey[]={"IMPLIED_PRINT",KLISTEND};
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,stringWarnKey);
 
   const string defsysvKey[]={"EXISTS",KLISTEND};
   new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
@@ -368,19 +375,21 @@ void LibInit()
   
   const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
 			 "DOUBLE","FLOAT","L64","LONG",
-			 "STRING","UINT","UL64","ULONG",KLISTEND};
-  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,NULL,NULL,true);
+			 "STRING","UINT","UL64","ULONG",
+			 "START", "INCREMENT", KLISTEND};
+  const string xindKey[]={"START", "INCREMENT", KLISTEND};
+  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);
   new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);
-  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,NULL,NULL,true);
+  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,xindKey,NULL,true);
 
   new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true,1);
 
@@ -446,7 +455,8 @@ void LibInit()
 */
 // that's apparently the desired bahaviour, see bug no. 3151760
   const string fixKey[]={"TYPE","PRINT",KLISTEND};
-  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,NULL);
+  const string fixWarnKey[]={"IMPLIED_PRINT",KLISTEND};
+  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,fixWarnKey);
 
   new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
   new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);

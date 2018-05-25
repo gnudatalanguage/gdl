@@ -2,7 +2,7 @@
 #define INC_FMTParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20130428): "format.g" -> "FMTParser.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "format.g" -> "FMTParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "FMTTokenTypes.hpp"
@@ -59,10 +59,15 @@ public:
 	public: void cstring();
 	public:  int  nn();
 	public: void cformat();
-	public:  int  cnnf();
+	public: void cnnf(
+		int *infos
+	);
 	public:  int  cnn();
 	public: void rep_fmt(
 		 int repeat
+	);
+	public: int  nnf(
+		 RefFMTNode fNode
 	);
 	public: void w_d(
 		 RefFMTNode fNode
@@ -70,11 +75,8 @@ public:
 	public: void w_d_e(
 		 RefFMTNode fNode
 	);
-	public: void csub();
-	public: void csubcode();
-	public:  int  nnf(
-		 RefFMTNode fNode
-	);
+	public: void calendar_string();
+	public: void calendar_code();
 public:
 	antlr::RefAST getAST()
 	{
@@ -86,15 +88,19 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 80;
+	static const int NUM_TOKENS = 86;
 #else
 	enum {
-		NUM_TOKENS = 80
+		NUM_TOKENS = 86
 	};
 #endif
 	
 	static const unsigned long _tokenSet_0_data_[];
 	static const antlr::BitSet _tokenSet_0;
+	static const unsigned long _tokenSet_1_data_[];
+	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_FMTParser_hpp_*/

@@ -146,13 +146,10 @@
 #endif
 #endif
 
+          res_a = (scale==this->zero)?missingValue:res_a/scale;
+          res_a += bias;
 #if defined(CONVOL_NAN_INVALID) || defined(CONVOL_INVALID) || defined(CONVOL_NAN)       
-          res_a /= scale;
-          res_a += bias;
           if (counter == 0) res_a = missingValue;
-#else
-          res_a /= scale;
-          res_a += bias;
 #endif
 
 #if defined(CONVOL_BYTE__) || defined (CONVOL_UINT__) || defined (CONVOL_INT__)

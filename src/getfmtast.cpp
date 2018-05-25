@@ -68,15 +68,15 @@ RefFMTNode GetFMTAST( DString fmtString)
     cout << endl;
 #endif
   }
-  catch( GDLException ex)
+  catch( GDLException& ex)
     {
       throw GDLException("Format: "+ex.getMessage());
     }
-  catch( antlr::ANTLRException ex)
+  catch( antlr::ANTLRException& ex)
     {
       throw GDLException("Format parser: "+ex.getMessage());
     }
-  catch( exception ex)
+  catch( exception& ex)
     {
       throw GDLException("Format exception: "+string(ex.what()));
     }
