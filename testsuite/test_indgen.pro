@@ -53,10 +53,47 @@ pro test_indgen, test=test, no_exit=no_exit
   if not array_equal(bindgen(6, start=5, increment=4), [5,9,13,17,21,25]) then ADD_ERROR, nerr, 'BINDGEN(START=5, INCREMENT=4) yields wrong result'
   if not array_equal(uindgen(2, start=2018), [2018, 2019]) then ADD_ERROR, nerr, 'UINDGEN(START=2018) yields wrong result'
 
+  ; Is our parallel indgen generation robust? Compare with sample.
+  restore,"indgen_sample.sav" ; defines "samplesize".
+  b_gdl=randomu(33,1000)*samplesize
+  byt_gdl=bindgen(samplesize,start=33.122,incr=0.017)
+  f_gdl=findgen(samplesize,start=33.122,incr=0.017)
+  i_gdl=indgen(samplesize,start=33.122,incr=0.017)
+  d_gdl=dindgen(samplesize,start=33.122,incr=0.017)
+  u_gdl=uindgen(samplesize,start=33.122,incr=0.017)
+  c_gdl=cindgen(samplesize,start=33.122,incr=0.017)
+  dc_gdl=dcindgen(samplesize,start=33.122,incr=0.017)
+  if (total(b-b_gdl) ne 0) then  ADD_ERROR, nerr, 'Internal logic error, radomu values not equal with IDL'
+  if (total(byt_gdl[b]-byt) ne 0)  then  ADD_ERROR, nerr, 'parallel large bindgen yields wrong results' 
+  if (total(f_gdl[b]-f) ne 0)  then  ADD_ERROR, nerr, 'parallel large findgen yields wrong results' 
+  if (total(d_gdl[b]-d) ne 0)  then  ADD_ERROR, nerr, 'parallel large dindgen yields wrong results' 
+  if (total(i_gdl[b]-i) ne 0)  then  ADD_ERROR, nerr, 'parallel large indgen yields wrong results' 
+  if (total(u_gdl[b]-u) ne 0)  then  ADD_ERROR, nerr, 'parallel large uindgen yields wrong results' 
+  if (total(c_gdl[b]-c) ne complex(0,0))  then  ADD_ERROR, nerr, 'parallel large cindgen yields wrong results' 
+  if (total(dc_gdl[b]-dc) ne dcomplex(0,0))  then  ADD_ERROR, nerr, 'parallel large dcindgen yields wrong results' 
+
   BANNER_FOR_TESTSUITE, 'test_indgen', nerr
 
   if nerr gt 0 and ~keyword_set(no_exit) then exit, status=1
   if keyword_set(test) then stop
 
 end
+; for the record: how the sample is made:
+samplesize=10000000LL
+b=randomu(33,1000)*samplesize
+b_idl=bindgen(samplesize,start=33.122,incr=0.017)
+f_idl=findgen(samplesize,start=33.122,incr=0.017)
+i_idl=indgen(samplesize,start=33.122,incr=0.017)
+d_idl=dindgen(samplesize,start=33.122,incr=0.017)
+u_idl=uindgen(samplesize,start=33.122,incr=0.017)
+c_idl=cindgen(samplesize,start=33.122,incr=0.017)
+dc_idl=dcindgen(samplesize,start=33.122,incr=0.017)
+byt=b_idl[b]
+i=i_idl[b]
+d=d_idl[b]
+f=f_idl[b]
+u=u_idl[b]
+c=c_idl[b]
+dc=dc_idl[b]
+save,samplesize,byt,f,d,i,u,c,dc,b,file="indgen_sample.sav"
 
