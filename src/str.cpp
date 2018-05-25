@@ -318,12 +318,15 @@ unsigned long int Str2UL( const string& s, int base)
 }
 void WordExp( std::string& s)
 {
+
 	bool trace_me = false; //lib::trace_arg();
 
-//  cout << "WordExp  in: " << s ;
-//   escape whitespace, before passing it to WordExp,
-//   which is not already escaped
-     string sEsc="";
+//AC 2018-04-25 : because crash of :
+// openr, unit, '', ERROR=error,/get_lun
+
+	if (s.length() == 0) return;
+
+    string sEsc="";
      int ipos=0;
 #ifdef _WIN32
      if( s[0] == '~')
@@ -347,16 +350,16 @@ void WordExp( std::string& s)
        else if( achar == '\\') {
 		if( (i+1)<s.length()){
 		  if( s[i+1] == ' ') {
-			sEsc += string("\\ ");
-			++i;
-		  }
-		}	  
+   	    sEsc += string("\\ ");
+   	    ++i;
+   	  }
+   	}	  
          }
        else
  #endif
         if( achar != '$')  sEsc.push_back(achar);
        else { // $
-		   
+   
 			string name = "";
 			for( int ind=i+1; i<s.length(); ++ind)  {
 				char tchar = s[ind];
@@ -364,21 +367,20 @@ void WordExp( std::string& s)
 						tchar == '\\' or tchar == ':') break;
 				name.push_back(tchar);
 				}
-		   char* subst = getenv(name.c_str());
-		   if( subst != NULL) {
-				sEsc += string(subst);
+			char* subst = getenv(name.c_str());
+			if( subst != NULL) {
+					sEsc += string(subst);
 						i += name.length();
-			} else sEsc.push_back(achar);
+					} else sEsc.push_back(achar);
 	   }
      }
-
 	if(trace_me) 
 		cout << "WordExp  in: " << s 
 			<< " -(modified original)- WordExp esc: " << sEsc << endl;
 #ifdef _WIN32
 	s = sEsc;
 #endif
-#if (!defined(__OpenBSD__) && !defined(_WIN32))
+#if (!defined(__OpenBSD__) && !defined(_WIN32)) 
 
   wordexp_t p;
   int ok0 = wordexp( sEsc.c_str(), &p, 0);
