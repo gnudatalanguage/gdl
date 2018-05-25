@@ -33,7 +33,7 @@ NullGDL::~NullGDL()
 // but ~BaseGDL() is called as well. And this must not be
   cerr << "Internal error: !NULL destructor called.\n"
 	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
-	  "Please report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
+	  "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
@@ -551,12 +551,10 @@ void NullGDL::InsertAt(  SizeT offset, BaseGDL* srcIn, ArrayIndexListT* ixList)
 SizeT NullGDL::OFmtA( std::ostream* os, SizeT offset, SizeT num, int width)
 {throw GDLException("NullGDL::OFmtA(...) called.");}
 
-SizeT NullGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width,
-		      int prec, char fill, IOMode oM) 
+SizeT NullGDL::OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code, const BaseGDL::IOMode oM) 
 {throw GDLException("NullGDL::OFmtF(...) called.");}
 
-SizeT NullGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		      int minN, char fill, NullGDL::IOMode oM)
+SizeT NullGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code, BaseGDL::IOMode oM)
 {throw GDLException("NullGDL::OFmtI(...) called.");}
 
 SizeT NullGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)

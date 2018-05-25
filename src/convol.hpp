@@ -2,7 +2,7 @@
                           convol.hpp  -  Convolution GDL library function
                              -------------------
     begin                : Jun 21 2013
-    copyright            : (C) 2013
+    copyright            : (C) 2013, G. Duvert 2017
     email                : 
  ***************************************************************************/
 

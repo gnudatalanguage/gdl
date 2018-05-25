@@ -28,7 +28,7 @@ header {
 
 #include "CFMTLexer.hpp"
 
-#include "antlr/TokenStreamSelector.hpp"
+#include <antlr/TokenStreamSelector.hpp>
 
 //using namespace antlr;
 }
@@ -102,27 +102,26 @@ cstring
 //    : (CSTR | cformat)+
     ;
 
-// for S code this is not 100% compatible 
-// (eg. %"%10.4s" puts out the '4' also in the original)
-// but as this is wrong syntax anyway, we go with this implementation
 cformat
 {
     int w = 0;
+    int infos[4]={0,0,0,0};
     int d = -1;
-    char f = ' ';
 }
-    : (w=cnnf { if (w<0) { w *= -1; f = '0'; } } (CDOT! d=cnn)?)?
+    :   ( (PM!|MP!) {infos[1]=1;infos[2]=1;} | (PLUS! {infos[1]=1;}) | (MOINS! {infos[2]=1;}) )? (cnnf [infos] { w=infos[0]; } (CDOT! d=cnn)?)?
         (
-           c:CD {  #c->setW( w);  #c->setD( d);  #c->setType( I);  #c->setFill( f); }
-        |  e:CE {  #e->setW( w);  #e->setD( d);  #e->setType( E);  #e->setFill( f); }
-        |  i:CI {  #i->setW( w);  #i->setD( d);  #i->setType( I);  #i->setFill( f); }
-        | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F); #ff->setFill( f); }
-        |  g:CG {  #g->setW( w);  #g->setD( d);  #g->setType( G);  #g->setFill( f); }
-        |  o:CO {  #o->setW( w);  #o->setD( d);  #o->setType( O);  #o->setFill( f); }
-        |  b:CB {  #b->setW( w);  #b->setD( d);  #b->setType( B);  #b->setFill( f); }
-        |  x:CX {  #x->setW( w);  #x->setD( d);  #x->setType( Z);  #x->setFill( f); }
-        |  z:CZ {  #z->setW( w);  #z->setD( d);  #z->setType( Z);  #z->setFill( f); }
-        |  s:CS {  #s->setW( w);  #s->setType( A);}
+           c:CD   {  if (infos[1])#c->setShowSign();  if (infos[2])#c->setALignLeft();  if (infos[3])#c->setPadding(); #c->setW( w);  #c->setD( d);  #c->setType( I); }
+        |  se:CSE {  if (infos[1])#se->setShowSign(); if (infos[2])#se->setALignLeft(); if (infos[3])#se->setPadding(); #se->setW( w);  #se->setD( d);  #se->setType( SE); }
+        |  e:CE   {  if (infos[1])#e->setShowSign();  if (infos[2])#e->setALignLeft();  if (infos[3])#e->setPadding(); #e->setW( w);  #e->setD( d);  #e->setType( E); }
+        |  i:CI   {  if (infos[1])#i->setShowSign();  if (infos[2])#i->setALignLeft();  if (infos[3])#i->setPadding(); #i->setW( w);  #i->setD( d);  #i->setType( I); }
+        | ff:CF   {  if (infos[1])#ff->setShowSign(); if (infos[2])#ff->setALignLeft(); if (infos[3])#ff->setPadding(); #ff->setW( w); #ff->setD( d); #ff->setType( F); }
+        |  sg:CSG {  if (infos[1])#sg->setShowSign(); if (infos[2])#sg->setALignLeft(); if (infos[3])#sg->setPadding(); #sg->setW( w);  #sg->setD( d);  #sg->setType( SG);}
+        |  g:CG   {  if (infos[1])#g->setShowSign();  if (infos[2])#g->setALignLeft();  if (infos[3])#g->setPadding(); #g->setW( w);  #g->setD( d);  #g->setType( G); }
+        |  o:CO   {  if (infos[1])#o->setShowSign();  if (infos[2])#o->setALignLeft();  if (infos[3])#o->setPadding(); #o->setW( w);  #o->setD( d);  #o->setType( O); }
+        |  b:CB   {  if (infos[1])#b->setShowSign();  if (infos[2])#b->setALignLeft();  if (infos[3])#b->setPadding(); #b->setW( w);  #b->setD( d);  #b->setType( B); }
+        |  x:CX   {  if (infos[1])#x->setShowSign();  if (infos[2])#x->setALignLeft();  if (infos[3])#x->setPadding(); #x->setW( w);  #x->setD( d);  #x->setType( Z); }
+        |  z:CZ   {  if (infos[1])#z->setShowSign();  if (infos[2])#z->setALignLeft();  if (infos[3])#z->setPadding(); #z->setW( w);  #z->setD( d);  #z->setType( Z); }
+        |  s:CS   {  if (infos[1])#s->setShowSign();  if (infos[2])#s->setALignLeft();  if (infos[3])#s->setPadding(); #s->setW( w);  #s->setType( A);}
         )
     ;
 
@@ -136,15 +135,16 @@ cnn! returns[ int n]
     ;
 
 // no nodes for cnumbers with zero padding
-cnnf! returns[ int n]
+cnnf! [int *infos]  //returns[ int *infos]
     : num:CNUMBER 
-        { 
+         { 
+            char c;
             std::istringstream s(#num->getText());
-            char c = s.get();
+            c=s.get();
             s.putback(c);
-            s >> n;
-            if (c == '0') n *= -1;
-        }
+            s >> infos[0];
+            if (c == '0') infos[3]=-1;;
+         }
     ;
 
 f
@@ -166,27 +166,29 @@ rep_fmt [ int repeat]
     int n1;
 }
     : format[ repeat] 
-    | a:A (n1=nn { #a->setW( n1);})? { #a->setRep( repeat);}
-    | ff:F w_d  [ #ff] { #ff->setRep( repeat);} // F and D are the same -> D->F
+    | a:A (n1=nnf [#a] { #a->setW( n1);})? { #a->setRep( repeat);}
+    | ff:F w_d  [ #ff] {#ff->setRep( repeat);} // F and D are the same -> D->F
     | d:D w_d  [ #d] { #d->setRep( repeat); #d->setText("f"); #d->setType(F);}
     | e:E w_d_e[ #e] { #e->setRep( repeat);}
+    | se:SE w_d_e[ #se] { #se->setRep( repeat);}
     | g:G w_d_e[ #g] { #g->setRep( repeat);}
+    | sg:SG w_d_e[ #sg] { #sg->setRep( repeat);}
     | i:I w_d  [ #i] { #i->setRep( repeat);}
     | o:O w_d  [ #o] { #o->setRep( repeat);}
     | b:B w_d  [ #b] { #b->setRep( repeat);}
     | z:Z w_d  [ #z] { #z->setRep( repeat);}
     | zz:ZZ w_d  [ #zz] { #zz->setRep( repeat);}
-    | c:C^ LBRACE! csub RBRACE! { #c->setRep( repeat);}
+    | c:C^ LBRACE! calendar_string RBRACE! { #c->setRep( repeat);}
     ;   
 
-csub 
+calendar_string 
     : (
-      (csubcode (COMMA! csubcode)*)
+      (calendar_code (COMMA! calendar_code)*)
       |
       )
     ;
 
-csubcode
+calendar_code
 {
     int n1;
 }
@@ -216,54 +218,55 @@ nn! returns[ int n]
 { 
   int sgn=1;
 }
-    : ( (PM|MP)  {sgn=-1;})? num:NUMBER 
+    : num:NUMBER 
         { 
             std::istringstream s(#num->getText());
             s >> n;
-            n*=sgn;
         }
     ;
 
 // no nodes for numbers with zero padding
-nnf! [ RefFMTNode fNode] returns[ int n]
-{
-    fNode->setFill(' ');
-    int sgn=1;
-}
-    : ( (PM|MP) {
-                  fNode->setFill('+');
-                   sgn=-1; //will be left-aligned
-                 } )?  num:NUMBER 
+nnf! [ RefFMTNode fNode] returns[ int n=-1]
+    : ( 
+        ( 
+          (PM|MP) {
+                  fNode->setShowSign();
+                  fNode->setALignLeft();
+                 } 
+          | PLUS {fNode->setShowSign();} 
+          | MOINS {fNode->setALignLeft();} 
+        )
+     )?  
+      (
+        num:NUMBER  //as we are left-aligned, 0 leading (padding) can be read as number since there will be no 0 padding. 
         { 
             std::istringstream s(#num->getText());
             char c = s.get();
             char next = s.peek();
             s.putback(c);
             s >> n;
-            n*=sgn;
-            if (fNode->getFill() == '+') {
-               //do nothing: ignore eventual '0' format flag.
-            } else {
-               if (c == '0') fNode->setFill('0');
-               if (c == '+') { //test if 0 is following, I.e.:+0 something
-                 if (next == '0') fNode->setFill('@'); else fNode->setFill('+');
-               }
-            }
+            if (c == '0') fNode->setPadding();
         }
+      )?
     ;
 
 w_d! [ RefFMTNode fNode]
 {
-    int n1, n2;
+    int n1=-1, n2=-1;
     fNode->setW( -1);
     fNode->setD( -1);
 }
-    // : (n1=nnf { if (n1<0) { n1 *= -1; fNode->setFill('0'); } fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
-    : (n1=nnf[ fNode] { if (n1<0) { n1 = 0;} fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
+    : (n1=nnf[ fNode] { fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
     ;
 
 w_d_e! [ RefFMTNode fNode]
-    : (options { greedy=true;}: w_d[ fNode] (E NUMBER)?)? 
+    : (options { greedy=true;}: w_d[ fNode] ((E|SE) ignored:NUMBER {
+            int n=0;
+            std::istringstream s(#ignored->getText());
+            s >> n;
+//does not work (loops probably at format_reversion)            if (n < 0 || n > 255) throw GDLException("Value is out of allowed range (0 - 255).");
+            }
+           )?)? 
     ;
 
 // the Format Lexer *********************************************
@@ -330,8 +333,10 @@ TERM:':';
 NONL:'$';
 F:('f'|'F');
 D:('d'|'D');
-E:('e'|'E');
-G:('g'|'G');
+E:('E');
+SE:('e');
+G:('G');
+SG:('g');
 
 I:('i'|'I');
 O:('o'|'O');
@@ -378,6 +383,8 @@ PERCENT:'%';
 DOT:'.';
 PM: ('+' '-');
 MP: ('-' '+');
+PLUS: '+';
+MOINS: '-';
 
 protected     
 W
@@ -395,62 +402,32 @@ DIGITS
 	: ('0'..'9')+
 	;
 
-// NUMBER // handles hollerith strings also
-// 	: DIGITS
-//         (H! 
-//             { 
-//                 string text=$getText;
-//                 int len=atoi(text.c_str());
-//                 $setText("");
-//                     for( int i=0; i<len; i++)
-//                 {
-//                     consume(); // appends char
-//                 }   
-//                 $setType(STRING);
-//             }   
-//         )?
-//     ;
-
 protected
 CHAR: ('\003'..'\377');
 
 NUMBER // handles hollerith strings also
 { 
-    SizeT n;
+    SizeT n = -1;
     SizeT i = 0;
-    bool uPlus = false;
-    bool uMinus = false;
 } 
-    : 
-      ('-' 
-       {
-       uMinus = true;
-       }
-      |'+' 
-       {
-       uPlus = true;
-       }
-      )? 
-      num:DIGITS
-      {
-      if( uMinus) num->setText( "-" + num->getText());
-      if( uPlus) num->setText( "+" + num->getText());
-      }
-        (   
-            { 
-                $setType(STRING); 
-                std::istringstream s(num->getText());
-                s >> n;
-                $setText(""); // clear string (remove number)
-            }
-            'H'! 
+    :  
+        (  num:DIGITS
             (
-                { // init action gets executed even in guessing mode
-                    if( i == n )
-                    break;
-                    i++; // count chars here so that guessing mode works
-                }: // ":" makes it an init action
-                CHAR
-            )+
+                { 
+                    $setType(STRING); 
+                    std::istringstream s(num->getText());
+                    s >> n;
+                    $setText(""); // clear string (remove number)
+                }
+                H! 
+                (
+                    { // init action gets executed even in guessing mode
+                        if( i == n )
+                        break;
+                        i++; // count chars here so that guessing mode works
+                    }: // ":" makes it an init action
+                    CHAR
+                )+
+            )?
         )?
     ;

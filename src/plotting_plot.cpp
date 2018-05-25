@@ -264,21 +264,33 @@ private:
     e->AssureDoubleScalarKWIfPresent( MAX_VALUEIx, maxVal);
     yStart=gdlPlot_Max(yStart,minVal);
     yEnd=gdlPlot_Min(yEnd,maxVal);
+    if (yEnd <= yStart) yEnd=yStart+1;
     //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
     DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
     bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
     bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
-    if (setx)
+    if(setx && sety)
     {
       xStart=xAxisStart;
       xEnd=xAxisEnd;
+      yStart=yAxisStart;
+      yEnd=yAxisEnd;
     }
-    if (sety)
+    else if (sety)
     {
       yStart=yAxisStart;
       yEnd=yAxisEnd;
     }
-    //handle Nozero option after all that!
+    else if (setx)
+    {
+      xStart=xAxisStart;
+      xEnd=xAxisEnd;
+      //must compute min-max for other axis!
+      {
+        gdlDoRangeExtrema(xVal,yVal,yStart,yEnd,xStart,xEnd,doMinMax,minVal,maxVal);
+      }
+    }
+    //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
 #undef UNDEF_RANGE_VALUE
 
@@ -320,15 +332,6 @@ private:
     // set the PLOT charsize before setting viewport (margin depend on charsize)
     gdlSetPlotCharsize(e, actStream);
     
-    //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
-    // it is important to fix simsize before!
-    gdlSetSymsize(e, actStream);
-    if (gdlSetViewPortAndWorldCoordinates(e, actStream,
-        xLog, yLog,
-        xMarginL, xMarginR, yMarginB, yMarginT,
-        xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
-    actStream->setSymbolSizeConversionFactors();
-
     if (doT3d)
     {
 
@@ -457,6 +460,7 @@ private:
             actStream->stransform(gdl3dTo2dTransform, &Data3d);      
             actStream->join(t3zStart,t3yStart,t3zEnd,t3yStart);
             actStream->join(t3zEnd,t3yStart,t3zEnd,t3yEnd);
+          default:
             break;
 //          case YZ: // X->X Y->Z plane XZ
 //            cerr<<"yz"<<endl;
@@ -511,9 +515,17 @@ private:
 
     } else
     {
-      //current pen color...
+    //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
+    // it is important to fix simsize before!
+    gdlSetSymsize(e, actStream);
+    if (gdlSetViewPortAndWorldCoordinates(e, actStream,
+        xLog, yLog,
+        xMarginL, xMarginR, yMarginB, yMarginT,
+        xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
+    actStream->setSymbolSizeConversionFactors();
+    //current pen color...
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
-//      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
     }
   } 
   
@@ -537,7 +549,7 @@ private:
 
     private: void post_call(EnvT* e, GDLGStream* actStream) 
     {
-      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+//      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       if (doT3d) actStream->stransform(NULL,NULL);
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);

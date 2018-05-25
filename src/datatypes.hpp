@@ -124,7 +124,8 @@ static	void operator delete( void *ptr);
   Data_(const Ty& d_);
 
   // new array, no zero or indgen
-  Data_(const dimension& dim_,  BaseGDL::InitType iT);
+  Data_(const dimension& dim_,  BaseGDL::InitType iT,
+        DDouble start = 0, DDouble increment = 1);
   
   // new array, zero fields
   Data_(const dimension& dim_);
@@ -462,13 +463,10 @@ static	void operator delete( void *ptr);
   std::istream& Read( std::istream& os, bool swapEndian, bool compress,
 		      XDR *xdrs);
   
-  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
-  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, char fill, BaseGDL::IOMode oM = BaseGDL::FIXED);
-  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, char fill, BaseGDL::IOMode oM = BaseGDL::DEC);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-		 int minN, char *f, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
+  SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, const int code=0);
+  SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = BaseGDL::FIXED);
+  SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = BaseGDL::DEC);
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code=0, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   // formatting input functions
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 

@@ -319,6 +319,7 @@ unsigned long int Str2UL( const string& s, int base)
 void WordExp( std::string& s)
 {
 
+
 	bool trace_me = false; //lib::trace_arg();
 
 //AC 2018-04-25 : because crash of :
@@ -343,8 +344,9 @@ void WordExp( std::string& s)
 		char achar = s[i];
 #else
      for( int i=ipos; i<s.length(); ++i)
+
      {
-		char achar = s[i];
+       char achar = s[i];
        if( achar == ' ')
    	sEsc += string("\\ ");
        else if( achar == '\\') {
