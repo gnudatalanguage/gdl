@@ -21,20 +21,22 @@
 #include <cstdlib>
 
 // that's enough with Cygwin >= 1.7.1 
-#ifdef __CYGWIN__
-extern "C" {
-#endif
-
+//#ifdef __CYGWIN__
+//extern "C" {
+//#endif
+//
+// GJ 2018 April: I believe accomodating __CYGWIN__ is no longer required.
+// although __OpenBSD__ may be.
   // quoting http://permalink.gmane.org/gmane.os.openbsd.tech/19860 :
   // 'wordexp() will never be in OpenBSD's libc' :)
   // (TODO: perhaps better to implement it using HAVE_WORDEXP_H? + once more below in WordExp())
-#if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
+#if (!defined(__OpenBSD__) && !defined(_WIN32)) //|| defined(__CYGWIN__)
 #  include <wordexp.h>
 #endif
 
-#ifdef __CYGWIN__
-}
-#endif
+//#ifdef __CYGWIN__
+//}
+//#endif
 
 #include "str.hpp"
 #include "gdlexception.hpp"
@@ -317,138 +319,75 @@ unsigned long int Str2UL( const string& s, int base)
 void WordExp( std::string& s)
 {
 
-  //AC 2018-04-25 : because crash of :
-  // openr, unit, '', ERROR=error,/get_lun
-  if (s.length() == 0) return;
 
-  bool trace_me =false; // lib::trace_arg();
-#if (!defined(__OpenBSD__) && !defined(_WIN32)) || defined(__CYGWIN__)
-//  cout << "WordExp  in: " << s ;
-//   escape whitespace, before passing it to WordExp,
-//   which is not already escaped
-  wordexp_t p;
-  string sEsc="";
+	bool trace_me = false; //lib::trace_arg();
 
-  for( int i=0; i<s.length(); ++i)
+//AC 2018-04-25 : because crash of :
+// openr, unit, '', ERROR=error,/get_lun
+
+	if (s.length() == 0) return;
+
+    string sEsc="";
+     int ipos=0;
+#ifdef _WIN32
+     if( s[0] == '~')
+       {
+ 	char* homeDir = getenv( "HOME");
+ 	ipos++;
+ 	if( homeDir == NULL) homeDir = getenv("HOMEPATH");
+
+ 	if( homeDir != NULL)
+ 	    sEsc = string( homeDir) + "/";
+       }
+     for( int i=ipos; i<s.length(); ++i)
+     {
+		char achar = s[i];
+#else
+     for( int i=ipos; i<s.length(); ++i)
+
      {
        char achar = s[i];
        if( achar == ' ')
    	sEsc += string("\\ ");
-       else if( achar == '\\')
-         {
-   	if( (i+1)<s.length())
-   	{
-   	  if( s[i+1] == ' ')
-   	  {
+       else if( achar == '\\') {
+		if( (i+1)<s.length()){
+		  if( s[i+1] == ' ') {
    	    sEsc += string("\\ ");
    	    ++i;
    	  }
    	}	  
          }
-       else if( achar != '$')  sEsc.push_back(achar);
+       else
+ #endif
+        if( achar != '$')  sEsc.push_back(achar);
        else { // $
-		   
-		   int ind = s.find(" ",i);
-		   string name = s.substr(i+1,ind-i-1);
-		if(trace_me) cout << name << i << " i, ind "<< ind << endl;
-		   char* subst = getenv(name.c_str());
-		   if( subst != NULL) {
-				sEsc += string(subst);
-				i = ind-1;
-			} else sEsc.push_back(achar);
+   
+			string name = "";
+			for( int ind=i+1; i<s.length(); ++ind)  {
+				char tchar = s[ind];
+				if(tchar == ' ' or tchar == '/' or 
+						tchar == '\\' or tchar == ':') break;
+				name.push_back(tchar);
+				}
+			char* subst = getenv(name.c_str());
+			if( subst != NULL) {
+					sEsc += string(subst);
+						i += name.length();
+					} else sEsc.push_back(achar);
 	   }
      }
+	if(trace_me) 
+		cout << "WordExp  in: " << s 
+			<< " -(modified original)- WordExp esc: " << sEsc << endl;
+#ifdef _WIN32
+	s = sEsc;
+#endif
+#if (!defined(__OpenBSD__) && !defined(_WIN32)) 
 
-  //cout << "WordExp  in 1: " << s << endl;
-
-#if 1
-  if(trace_me) 
-    cout << "WordExp  in: " << s 
-	 << " -(modified original)- WordExp esc: " << sEsc << endl;
+  wordexp_t p;
   int ok0 = wordexp( sEsc.c_str(), &p, 0);
   if(ok0 == 0) {
-    s=p.we_wordv[0];
-  
-    /*
-
-#elif 0
-  int ok0 = wordexp( s.c_str(), &p, 0);
-	if(trace_me) 
-		cout << "WordExp  in: " << s 
-			<< " -(cvs 0.9.7)-  WordExp esc: " << sEsc << endl;
-  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
-  if( ok0 == 0)
-    {
-      //        cout<< p.we_wordc<<"word count\n";
-      if( p.we_wordc > 0)
-	{
-	  //	 s="";
-	  string ss= p.we_wordv[0];
-	  for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
-	    {
-	      while(s[ind++]==' ') ss+="";
-	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp", same label
-	      ss+="|";
-	      ss+= p.we_wordv[i];
-	      ind=s.find(" ",ind);
-	      //	      cout<<"in for\n";
-	    }
-	  // s=p.we_wordv[0];
-	  s=ss;
-	}
- 
-#elif 0
-	if(trace_me) 
-		cout << "WordExp  in: " << s 
-			<< "WordExp esc: " << sEsc << endl;
-  int ok0 = wordexp( sEsc.c_str(), &p, 0);
-  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
-  if( ok0 == 0)
-    {
-      //        cout<< p.we_wordc<<"word count\n";
-      if( p.we_wordc > 0)
-	{
-	  //	 s="";
-	  string ss= p.we_wordv[0];
-	  for(int i=1,ind=s.find(" "); i<p.we_wordc; i++)
-	    {
-	      while(s[ind++]==' ') ss+="";
-	      // Ilia2015 : about "|" : see 2 places (file_test() and file_info()) in "file.cpp", same label
-	      ss+="|";
-	      ss+= p.we_wordv[i];
-	      ind=s.find(" ",ind);
-	      //	      cout<<"in for\n";
-	    }
-	  // s=p.we_wordv[0];
-	  s=ss;
-	}
-#elif 0
-  string t = "";
-  size_t start=0;
-  size_t ind = s.find(" ",start);
-  size_t slen = s.length();
-  if( ind == string::npos) 
-		t = s;
-  else {
-	  while( ind != string::npos ) {
-		t += s.substr(start,ind-start);
-		if(s[ind-1] != '\\') t.push_back('\\');
-		while(ind < slen) {		// account for multiple spaces between words.
-			t.push_back(' ');
-			if(s[++ind] != ' ') break;
-			t.push_back('\\');
-		}
-		start = ind;
-		ind = s.find(" ",start);
-		}
-		t+= s.substr(start,slen-start);
-	}
-	cout <<" WordExp: s=<" << s <<"> t=<"<<t<<">" << endl;
-  //  int ok0 = wordexp( sEsc.c_str(), &p, 0);
-  if( wordexp( t.c_str(), &p, 0) == 0)	{ 
-	  s = p.we_wordv[0];
-	   */
-#endif // 0/1
+	   s=p.we_wordv[0];
       
 #  if defined(__APPLE__)
       p.we_offs = 0;
