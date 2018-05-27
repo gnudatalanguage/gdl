@@ -18,7 +18,7 @@ if ptr_valid(p[0]) then begin
 ;
 ; clear the heaps and reset its index so that we can predictably create
 ; a new pointer in ptr_valid(/cast).
-print,' test_ptr_valid 0'
+
 heap_free,ptr_valid()
 heap_free,OBJ_valid()
 HEAP_GC
@@ -40,8 +40,10 @@ else if(keyword_set(verbose)) then message,/con,'NullPointer ok'
 ;	' working around pending change in basic_pro/heap_gc '
 ;	p = (ptr_valid())[0] ; still, p is first valid pointer which should be ab.
 ;	endif
- p = ptr_valid()
- p = p[0] ; transform to scalar
+; p = ptr_valid()
+; p = p[0] ; transform to scalar
+print,' test_ptr_valid 0' ; see if this is what wbrings the test down.
+	p = (ptr_valid())[0] 
 print,' test_ptr_valid 1:', err
 if ~ptr_valid(p) then err++ $
 else if keyword_set(verbose)  then message,/con,' p =ab ok'
