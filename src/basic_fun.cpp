@@ -570,7 +570,7 @@ namespace lib {
       }
     else {
     DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-	  pL = new DLongGDL( p->Dim());
+	  pL = new DLongGDL( dimension(nEl),  BaseGDL::ZERO);
 	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
       if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
 	    return pL; 
@@ -616,7 +616,7 @@ namespace lib {
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
           DObjGDL* pObj = static_cast<DObjGDL*>( p);
-	  pL = new DLongGDL( p->Dim());
+	  pL = new DLongGDL( dimension(nEl),  BaseGDL::ZERO);
 	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
 //	pL = static_cast<DLongGDL*>( (static_cast<DULong64GDL*>(p))->Convert2
 //		  (GDL_LONG,BaseGDL::COPY)); // this doesn't fly, so above
