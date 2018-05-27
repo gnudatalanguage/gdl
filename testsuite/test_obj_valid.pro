@@ -5,9 +5,7 @@ if ~(obj_valid(llist) and obj_valid(mlist)) then exit, status=1
 pps=ptrarr(2)
 pps[0] = ptr_new(llist)
 pps[1] = ptr_new(mlist)
-if total(ptr_valid(pps)) ne 2  then exit, status=1
-print,'SUCCESS'
-;rcbeg = heap_refcount(pps)
-;obj_destroy,llist,mlist
-;rcend = heap_refcount(pps)
+;if total(ptr_valid(pps)) ne 2  then exit, status=1
+;print,'SUCCESS'
+
 end
