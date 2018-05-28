@@ -8019,6 +8019,110 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return ret;
   }
 
+  // SA: based on the IDL parse_url function code
+  // This function was made to be compatible with IDL parse_url() function
+  // The previous parse_url function which replicate the php parse_url()
+  // was renamed parse_url_php()
+  
+BaseGDL* parse_url( EnvT* env)
+  {
+    // sanity check for number of parameters
+    SizeT nParam = env->NParam();
+
+    // 1-nd argument : the url string
+    DString url; 
+    env->AssureScalarPar<DStringGDL>(0, url); 
+
+    // creating the output anonymous structure
+    DStructDesc* urlstru_desc = new DStructDesc("$truct");
+    SpDString aString;
+    urlstru_desc->AddTag("SCHEME",   &aString);
+    urlstru_desc->AddTag("USERNAME", &aString);
+    urlstru_desc->AddTag("PASSWORD", &aString);
+    urlstru_desc->AddTag("HOST",     &aString);
+    urlstru_desc->AddTag("PORT",     &aString);
+    urlstru_desc->AddTag("PATH",     &aString);
+    urlstru_desc->AddTag("QUERY",    &aString);
+    DStructGDL* urlstru = new DStructGDL(urlstru_desc, dimension());
+    Guard<DStructGDL> urlstru_guard(urlstru);
+
+    char const *str = url.c_str();
+    size_t length = url.length();
+    char const*ptr, *pat, *ppass, *ppath, *phostend, *pport, *pquery;
+    
+    // ERROR CASE : 
+    //'https://user:password@www.google.com:?'
+    //InterpreterLoop: Exception: basic_string::_M_create
+
+    
+    // initialise PORT at 80
+    urlstru->InitTag("PORT", DStringGDL("80"));
+    
+    if (length == 0){
+        urlstru_guard.release();
+        return urlstru;
+    }
+    
+    // Search for the host component and exit if "://" is not found
+    ptr = std::strstr(str, "://");
+
+    if (ptr == NULL){
+        urlstru_guard.release();
+        return urlstru;
+    }
+
+    
+     urlstru->InitTag("SCHEME", DStringGDL(string(str, ptr - str)));
+    // move past the "://"
+    ptr += 3;
+    
+    // extract the username and passport if found
+    pat = std::strchr(ptr, '@');
+    if (pat != NULL) {
+        ppass = std::strchr(ptr, ':');
+        if (ppass && ppass + 1 <= pat){
+            urlstru->InitTag("PASSWORD", DStringGDL(string(ppass + 1, pat - (ppass + 1))));
+        }
+        else{
+            ppass = pat;
+        }
+        urlstru->InitTag("USERNAME", DStringGDL(string(ptr, ppass - ptr)));
+        ptr = pat + 1;
+    }
+    
+    // find the start of the path if the url has a path
+    ppath = std::strchr(ptr, '/');
+    if (ppath == NULL)
+        ppath = ptr + std::strlen(ptr);
+    phostend = ppath;
+    
+    // extract port number if present
+    pport = std::strchr(ptr, ':');
+    if (pport != NULL){
+        urlstru->InitTag("PORT", DStringGDL(string(pport + 1, ppath - (pport + 1))));
+        phostend = pport;
+    }
+    
+    urlstru->InitTag("HOST", DStringGDL(string(ptr, phostend - ptr)));
+    
+    //search query
+    pquery = std::strchr(phostend, '?');
+    if (pquery == NULL)
+        pquery = ptr + std::strlen(ptr);
+    
+    // assign the path and query if found
+    if (ppath != ptr + std::strlen(ptr))
+        urlstru->InitTag("PATH", DStringGDL(string(ppath + 1, pquery - (ppath + 1))));
+    else
+        urlstru->InitTag("PATH", DStringGDL(""));
+    if (pquery != ptr + std::strlen(ptr))
+        urlstru->InitTag("QUERY", DStringGDL(string(pquery + 1, std::strlen(pquery + 1))));
+    else
+        urlstru->InitTag("QUERY", DStringGDL(""));
+    urlstru_guard.release();
+    return urlstru;
+  }
+
   // SA: parse_url based on the PHP parse_url() function code
   //     by Jim Winstead / The PHP Group (PHP license v. 3.01)
   //     (http://svn.php.net/viewvc/php/php-src/trunk/ext/standard/url.c)
@@ -8036,7 +8140,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   //     ... these differences seem just rational for me but please do change
   //         it if IDL-compatibility would be beneficial for any reason here
 
-  BaseGDL* parse_url(EnvT* env)
+  BaseGDL* parse_url_php(EnvT* env)
   {
     // sanity check for number of parameters
     SizeT nParam = env->NParam();

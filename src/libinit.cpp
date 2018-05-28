@@ -957,6 +957,7 @@ void LibInit()
   //#endif
 
   new DLibFunRetNew(lib::parse_url, string("PARSE_URL"), 1);
+  new DLibFunRetNew(lib::parse_url_php, string("PARSE_URL_PHP"), 1);
   new DLibFunRetNew(lib::locale_get, string("LOCALE_GET"), 0);
   new DLibFunRetNew(lib::get_login_info, string("GET_LOGIN_INFO"), 0);
   new DLibFunRetNew(lib::idl_base64, string("IDL_BASE64"), 1);
