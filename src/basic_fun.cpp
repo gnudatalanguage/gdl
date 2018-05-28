@@ -606,7 +606,7 @@ namespace lib {
       {
 	return new DByteGDL( 0);
       } 
-
+		if(trace_me ) std::cout << " obj_valid:top ";
     DType pType = p->Type();
     bool isscalar = p->StrictScalar();
     DLongGDL* pL;
@@ -615,15 +615,16 @@ namespace lib {
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
     	DObjGDL* pObj = static_cast<DObjGDL*>( p);
-		if(trace_me and isscalar) std::cout << " obj_valid:scalar ";
+		if(trace_me) std::cout << " obj_valid:scalar ?"<< isscalar;
 		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
 				else pL = new DLongGDL( p->Dim());
+		pL_guard.Init( pL);
 		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
+		if(trace_me ) std::cout << " obj_valid:PL set ";
 		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
 			if(isscalar) return new DLongGDL( (*pL)[0] );
 				else 	return pL; 
 			}
-		pL_guard.Init( pL);
 	}
     else {			// pType == GDL_OBJ
 	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
@@ -638,8 +639,8 @@ namespace lib {
 			return ret;
 		  }
       }
+		if(trace_me) std::cout << " ov: out" << std::endl;
     if(isscalar) {
-		if(trace_me) std::cout << " ov: 1" << std::endl;
 		if(  interpreter->ObjValid( (*pL)[0] ))
 			 return new DByteGDL(1);
 		else return new DByteGDL(0);
