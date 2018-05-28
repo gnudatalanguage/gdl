@@ -123,7 +123,7 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     }
   }
 
-static bool trace_me(false);
+static bool trace_me(true);
 
 namespace lib {
   
@@ -543,19 +543,26 @@ namespace lib {
 
     if( pType == GDL_PTR){
 		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-		if(isscalar) pL = new DLongGDL( 0);
+		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
 				else pL = new DLongGDL( p->Dim());
 		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
-		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-			return pL; 
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
 		pL_guard.Init( pL);
 	} else {	// pType==GDL_PTR
 		pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
 		pL_guard.Init( pL);
 		if( e->KeywordSet( CASTIx))  {
-			DPtrGDL* ret;
-			if(isscalar) ret = new DPtrGDL( 0);
-					else ret = new DPtrGDL( p->Dim());
+			if(isscalar) {
+				DLong p0 = (*pL)[0];
+				if(  interpreter->PtrValid( p0 )) {
+					interpreter->IncRef( p0);
+					return new DPtrGDL( p0);
+				}
+			}
+			DPtrGDL* ret = new DPtrGDL( p->Dim());
 		  for( SizeT i=0; i<nEl; ++i)
 			  if( interpreter->PtrValid( (*pL)[ i])) {
 				  interpreter->IncRef((*pL)[ i]);
@@ -608,12 +615,14 @@ namespace lib {
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
     	DObjGDL* pObj = static_cast<DObjGDL*>( p);
-//		if(trace_me) std::cout << " obj_valid: 0";
-		if(isscalar) pL = new DLongGDL( 0);
+		if(trace_me and isscalar) std::cout << " obj_valid:scalar ";
+		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
 				else pL = new DLongGDL( p->Dim());
 		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
-		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-			  return pL; 
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
 		pL_guard.Init( pL);
 	}
     else {			// pType == GDL_OBJ
@@ -630,8 +639,9 @@ namespace lib {
 		  }
       }
     if(isscalar) {
-//		if(trace_me) std::cout << " ov: 1" << std::endl;
-		if(  interpreter->ObjValid( (*pL)[0] )) return new DByteGDL(1);
+		if(trace_me) std::cout << " ov: 1" << std::endl;
+		if(  interpreter->ObjValid( (*pL)[0] ))
+			 return new DByteGDL(1);
 		else return new DByteGDL(0);
 	}
     DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
