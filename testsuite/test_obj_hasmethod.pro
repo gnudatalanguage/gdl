@@ -23,7 +23,7 @@ END
 pro test_obj_hasmethod
 llist = list(fltarr(4),"hello",2.)
 mlist = list(!gdl, "goodbye",findgen(3,4))
-if ~(obj_valid(llist) and obj_valid(mlist)) then exit, status=1
+;if ~(obj_valid(llist) and obj_valid(mlist)) then exit, status=1
 
 hasadd = obj_hasmethod(mlist,'ADD')
 ; MOVE is not yet a list method.
