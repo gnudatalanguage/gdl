@@ -123,14 +123,8 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     }
   }
 
-//#if defined(__GNUC__)
-//#define GCC_VERSION (__GNUC__ * 10000 \
-//                     + __GNUC_MINOR__ * 100 \
-//                     + __GNUC_PATCHLEVEL__)
-//#if GCC_VERSION > 40600
-//#define OMP_HAS_MAX 1
-//#endif
-//#endif
+static bool trace_me(false);
+
 namespace lib {
   
   // for use in COMMAND_LINE_ARGS()
@@ -541,47 +535,44 @@ namespace lib {
       } 
 
     DType pType = p->Type();
+    bool isscalar = p->StrictScalar();
     DLongGDL* pL;
-	Guard<DLongGDL> pL_guard;
+    Guard<DLongGDL> pL_guard;
     SizeT nEl = p->N_Elements();
     GDLInterpreter* interpreter = e->Interpreter();
 
-    if( pType != GDL_PTR)
-	  {
-			    //	if( pType != GDL_LONG)
-			    //	{
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Init( pL);
-				      //	    e->Guard( pL);
-			    //	}
-			    //	else
-			    //	{
-			    //	  pL = static_cast<DLongGDL*>( p);
-			    //	}
-	if( e->KeywordSet( CASTIx))  {
-	DPtrGDL* ret = new DPtrGDL( pL->Dim()); // zero
-	for( SizeT i=0; i<nEl; ++i)
-	      if( interpreter->PtrValid( (*pL)[ i])) {
-		  interpreter->IncRef((*pL)[ i]);
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
+    if( pType == GDL_PTR){
+		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+		if(isscalar) pL = new DLongGDL( 0);
+				else pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
+			return pL; 
+		pL_guard.Init( pL);
+	} else {	// pType==GDL_PTR
+		pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+		pL_guard.Init( pL);
+		if( e->KeywordSet( CASTIx))  {
+			DPtrGDL* ret;
+			if(isscalar) ret = new DPtrGDL( 0);
+					else ret = new DPtrGDL( p->Dim());
+		  for( SizeT i=0; i<nEl; ++i)
+			  if( interpreter->PtrValid( (*pL)[ i])) {
+				  interpreter->IncRef((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+				  }
+		  return ret;
+		  }
       }
-      }
-    else {
-    DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-	  pL = new DLongGDL( dimension(nEl),  BaseGDL::ZERO);
-	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
-      if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-	    return pL; 
-      pL_guard.Init( pL);
+    if(isscalar) {
+		if(  interpreter->PtrValid( (*pL)[0] ))
+				return new DByteGDL(1);
+		else 	return new DByteGDL(0);
 	}
-
-    DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( interpreter->PtrValid( (*pL)[ i])) 
-	  (*ret)[ i] = 1;
+    DByteGDL* ret = new DByteGDL( pL->Dim());
+    for( SizeT i=0; i<nEl; ++i) {
+		if( interpreter->PtrValid( (*pL)[ i])) 
+			(*ret)[ i] = 1;
       }
     return ret;
   }
@@ -610,33 +601,39 @@ namespace lib {
       } 
 
     DType pType = p->Type();
+    bool isscalar = p->StrictScalar();
     DLongGDL* pL;
-	Guard<DLongGDL> pL_guard;
+    Guard<DLongGDL> pL_guard;
     SizeT nEl = p->N_Elements();
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
-          DObjGDL* pObj = static_cast<DObjGDL*>( p);
-	  pL = new DLongGDL( dimension(nEl),  BaseGDL::ZERO);
-	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
-//	pL = static_cast<DLongGDL*>( (static_cast<DULong64GDL*>(p))->Convert2
-//		  (GDL_LONG,BaseGDL::COPY)); // this doesn't fly, so above
-	if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-	      return pL; 
-	pL_guard.Init( pL);
+    	DObjGDL* pObj = static_cast<DObjGDL*>( p);
+//		if(trace_me) std::cout << " obj_valid: 0";
+		if(isscalar) pL = new DLongGDL( 0);
+				else pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
+			  return pL; 
+		pL_guard.Init( pL);
 	}
     else {			// pType == GDL_OBJ
 	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
 	    pL_guard.Init( pL);
-	if( e->KeywordSet( CASTIx))  {
-	DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
-	for( SizeT i=0; i<nEl; ++i)
-		if( interpreter->ObjValid( (*pL)[ i])) {
-			    interpreter->IncRefObj((*pL)[ i]);
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
+		if( e->KeywordSet( CASTIx))  {
+			DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
+			for( SizeT i=0; i<nEl; ++i)
+				if( interpreter->ObjValid( (*pL)[ i])) {
+						interpreter->IncRefObj((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+			  }
+			return ret;
+		  }
       }
-      }
+    if(isscalar) {
+//		if(trace_me) std::cout << " ov: 1" << std::endl;
+		if(  interpreter->ObjValid( (*pL)[0] )) return new DByteGDL(1);
+		else return new DByteGDL(0);
+	}
     DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
     for( SizeT i=0; i<nEl; ++i)
       {

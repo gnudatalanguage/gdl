@@ -28,33 +28,31 @@ HEAP_GC
 ab = ptr_new(fltarr(12))
 cmp = {a:ab, b:ab}
 err=0
-
+pcmp = ptr_new(cmp)
 cmp = 0
+
 if ptr_valid(ptr_valid(10001,/cast)) then err++ $
 else if(keyword_set(verbose)) then message,/con,'NullPointer ok'
 
-; p = ptr_valid(1,/cast)	; scalar
-;if keyword_set(test) then stop,'  p = ptr_valid(1,/cast)	'
-;if ~ptr_valid(p) then begin
-;	if keyword_set(verbose) then message,/con,  $
-;	' working around pending change in basic_pro/heap_gc '
-;	p = (ptr_valid())[0] ; still, p is first valid pointer which should be ab.
-;	endif
-; p = ptr_valid()
-; p = p[0] ; transform to scalar
-print,' test_ptr_valid 0' ; see if this is what wbrings the test down.
-	p = (ptr_valid())[0] 
-print,' test_ptr_valid 1:', err
-if ~ptr_valid(p) then err++ $
-else if keyword_set(verbose)  then message,/con,' p =ab ok'
 
-print,' test_ptr_valid 2:', err
+	p = (ptr_valid())[0] 
+	pval = ptr_valid(p,/get_heap)
+	if keyword_set(verbose)  then message,/con,' ptr_valid(p,/get_heap) value=',pval
+
+if ~ptr_valid(p) then err++ $
+	else if keyword_set(verbose)  then message,/con,' p =ab ok'
+	newptr = ptr_valid(pval,/cast)
+
+if newptr ne p then err++ $
+	else if keyword_set(verbose)  then message,/con,' ptr=ptr_valid(lval,/cast) passed'
+
 llist = list() & mlist = list()
 pps=ptrarr(2)
 pps[0] = ptr_new(llist)
 pps[1] = ptr_new(mlist)
 if total(ptr_valid(pps)) ne 2  then err++ $
 else if(keyword_set(verbose)) then message,/con,'2 created pointers are valid"
+
 ;
 if(keyword_set(test)) then stop,' at end of test routine'
 ;
