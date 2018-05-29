@@ -280,6 +280,7 @@ static	void operator delete( void *ptr);
   bool Equal( BaseGDL*) const;
   bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
+  bool ArrayNeverEqual( BaseGDL*);
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
