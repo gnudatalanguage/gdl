@@ -26,6 +26,7 @@
 
 #include "basic_fun.hpp"
 #include "basic_pro.hpp"
+#include "gdlhelp.hpp"
 
 #include "list.hpp"
 #include "hash.hpp"
@@ -258,13 +259,14 @@ void LibInit()
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
-  const string helpKey[]={"ALL_KEYS","BRIEF","FULL","CALLS","DEVICE","FUNCTIONS","HELP","INFO",
+  const string helpKey[]={"ALL_KEYS","BRIEF","FULL","CALLS",
+	           "DEBUG","DEVICE","FUNCTIONS","HEAP_VARIABLES","HELP","INFO","FILES",
 			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
-			  "OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
+		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
               "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", KLISTEND};
-  const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","HEAP_VARIABLES","MESSAGES",
-			      "OBJECTS","SHARED_MEMORY", KLISTEND};
+  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES",
+			      "SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
 
   new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);

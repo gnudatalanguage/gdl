@@ -1175,6 +1175,7 @@ int EnvT::KeywordIx( const std::string& k)
   assert( pro != NULL);
   int val=pro->FindKey( k);
   if( val == -1) {		//  assert( val != -1);
+
     cout << "Invalid Keyword lookup (EnvT::KeywordIx) ! "
 				" from "+pro->ObjectName() + "  Key: " + k << endl;
 //    cout << pro->ObjectName() << "  Key: " << k << endl;

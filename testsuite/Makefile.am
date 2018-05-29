@@ -120,6 +120,7 @@ TESTS = \
   test_gh00178.pro \
   test_grib.pro \
   test_hdf5.pro \
+  test_help.pro \
   test_heap_refcount.pro \
   test_hist_2d.pro \
   test_idl8.pro \

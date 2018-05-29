@@ -32,9 +32,11 @@ namespace lib {
   // (alaingdl @@ users.sourceforge.net)
   BaseGDL* recall_commands(EnvT* e);
 
-//  BaseGDL* routine_filepath( EnvT* e); this is in basic_fun
+// routine_filepath is housed in basic_fun.spp
+//  BaseGDL* routine_filepath( EnvT* e);
 
   void help_pro( EnvT* e);
+
 
   } // namespace
 
