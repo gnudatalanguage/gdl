@@ -52,7 +52,12 @@ pro test_indgen, test=test, no_exit=no_exit
   if not array_equal(findgen(6, start=5, increment=0.5), [5.0,5.5,6.0,6.5,7.0,7.5]) then ADD_ERROR, nerr, 'FINDGEN(START=5, INCREMENT=0.5) yields wrong result'
   if not array_equal(bindgen(6, start=5, increment=4), [5,9,13,17,21,25]) then ADD_ERROR, nerr, 'BINDGEN(START=5, INCREMENT=4) yields wrong result'
   if not array_equal(uindgen(2, start=2018), [2018, 2019]) then ADD_ERROR, nerr, 'UINDGEN(START=2018) yields wrong result'
-
+  ; The same with new inline syntax, a few tricks
+  a=[22:22:0.1] & if not array_equal(a, [22]) then ADD_ERROR, nerr, 'a=[22:22:0.1] yields wrong result' 
+  a=[22:32.3:0.2] & if not array_equal(a, findgen(52,start=22,increment=0.2)) then ADD_ERROR, nerr, "a=[22:32.3:0.2] yields wrong result" 
+  a=['22':32.3:0.2] & if not array_equal(a, sindgen(52,start=22,increment=0.2)) then ADD_ERROR, nerr, "a=['22':32.3:0.2] yields wrong result" 
+  a=[22:32.3:complex(0.2,0)] & if not array_equal(a, cindgen(52,start=22,increment=0.2)) then ADD_ERROR, nerr, "a=[22:32.3:complex(0.2,0)] yields wrong result"
+  a=[(3 gt 2) ? 10:20 :100:1] & if not array_equal(a, indgen(91,start=10,increment=1)) then ADD_ERROR, nerr, "a=[(3 gt 2) ? 10:20 :100:1] yields wrong result"
   ; Is our parallel indgen generation robust? Compare with sample.
   restore,"indgen_sample.sav" ; defines "samplesize".
   b_gdl=randomu(33,1000)*samplesize
@@ -63,7 +68,7 @@ pro test_indgen, test=test, no_exit=no_exit
   u_gdl=uindgen(samplesize,start=33.122,incr=0.017)
   c_gdl=cindgen(samplesize,start=33.122,incr=0.017)
   dc_gdl=dcindgen(samplesize,start=33.122,incr=0.017)
-  if (total(b-b_gdl) ne 0) then  ADD_ERROR, nerr, 'Internal logic error, radomu values not equal with IDL'
+  if (total(b-b_gdl) ne 0) then  ADD_ERROR, nerr, 'Internal logic error, randomu values not equal with IDL'
   if (total(byt_gdl[b]-byt) ne 0)  then  ADD_ERROR, nerr, 'parallel large bindgen yields wrong results' 
   if (total(f_gdl[b]-f) ne 0)  then  ADD_ERROR, nerr, 'parallel large findgen yields wrong results' 
   if (total(d_gdl[b]-d) ne 0)  then  ADD_ERROR, nerr, 'parallel large dindgen yields wrong results' 
