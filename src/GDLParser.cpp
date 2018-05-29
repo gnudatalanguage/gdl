@@ -3576,7 +3576,9 @@ std::string  GDLParser::object_name() {
 		// here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
 		{
 		if( i1_AST->getText() == "IDL_OBJECT")
-		i1_AST->setText(GDL_OBJECT_NAME);
+				i1_AST->setText(GDL_OBJECT_NAME);
+		else if( i1_AST->getText() == "IDL_CONTAINER")
+				i1_AST->setText(GDL_CONTAINER_NAME);
 		}
 		
 		object_name_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(NULL))->add(antlr::RefAST(i2_AST))->add(antlr::RefAST(m_AST))->add(antlr::RefAST(i1_AST)))); // NULL -> no root
@@ -4009,6 +4011,8 @@ void GDLParser::baseclass_method() {
 		
 		if( s_AST->getText() == "IDL_OBJECT")
 		s_AST->setText(GDL_OBJECT_NAME);
+		else if( s_AST->getText() == "IDL_CONTAINER")
+		s_AST->setText(GDL_CONTAINER_NAME);
 		
 	}
 	baseclass_method_AST = RefDNode(currentAST.root);
@@ -5519,6 +5523,8 @@ void GDLParser::struct_name() {
 		
 		if( s_AST->getText() == "IDL_OBJECT")
 		s_AST->setText(GDL_OBJECT_NAME);
+		else if( s_AST->getText() == "IDL_CONTAINER")
+		s_AST->setText(GDL_CONTAINER_NAME);
 		
 	}
 	struct_name_AST = RefDNode(currentAST.root);
@@ -7833,6 +7839,8 @@ bool  GDLParser::member_function_call() {
 			{
 			if( s_AST->getText() == "IDL_OBJECT")
 			s_AST->setText(GDL_OBJECT_NAME);
+			else if( s_AST->getText() == "IDL_CONTAINER")
+			s_AST->setText(GDL_CONTAINER_NAME);
 			}
 			parent = true;
 			
@@ -7874,6 +7882,8 @@ void GDLParser::member_function_call_dot() {
 		
 		if( s_AST->getText() == "IDL_OBJECT")
 		s_AST->setText(GDL_OBJECT_NAME);
+		else if( s_AST->getText() == "IDL_CONTAINER")
+		s_AST->setText(GDL_CONTAINER_NAME);
 		
 	}
 	}
