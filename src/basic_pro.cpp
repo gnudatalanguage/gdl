@@ -49,8 +49,6 @@
 #include "basic_pro.hpp"
 #include "semshm.hpp"
 #include "graphicsdevice.hpp"
-//#include "dcommon.hpp"
-//#include "dpro.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
@@ -60,7 +58,7 @@
 namespace lib {
 
   using namespace std;
-
+	DString GetCWD(); // From file.cpp
   // control !CPU settings
 
   void cpu(EnvT* e) {
@@ -213,6 +211,8 @@ namespace lib {
       doObj = doPtr = true;
 
     e->HeapGC(doPtr, doObj, verbose);
+      if( GDLInterpreter::HeapSize() == 0 and (GDLInterpreter::ObjHeapSize() == 0)  )
+				GDLInterpreter::ResetHeap();
   }
 
   void HeapFreeObj(EnvT* env, BaseGDL* var, bool verbose) {
@@ -231,18 +231,9 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
 
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
-        {
-              return;
-        }
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
         HeapFreeObj(env, derefPtr, verbose);
       }
     } else if (var->Type() == GDL_OBJ) {
@@ -281,29 +272,27 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
+
+
+//GJ 2016.05.12 Replaced "if (actPtrID == 0)" for a more restrictive condition:
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
+
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+	      if (verbose)
         {
-              return;
-        }
-        if (verbose) {
           help_item(cout,
             derefPtr, DString("<PtrHeapVar") +
             i2s(actPtrID) + ">",
             false);
         }
+
+	      if (derefPtr == NULL)	continue;
         HeapFreePtr(derefPtr, verbose); // recursive call
-      }
       // 2. free pointer
       DInterpreter::FreeHeap(varPtr);
     }
   }
+    }
 
   void heap_free(EnvT* e) {
     static int objIx = e->KeywordIx("OBJ");
@@ -344,22 +333,15 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-    int nParam = e->NParam();
-    if (nParam == 0) return;
-
-    BaseGDL* p = e->GetParDefined(0);
-
-    if (p->Type() != GDL_OBJ)
-      e->Throw("Parameter must be an object in"
-      " this context: " +
-      e->GetParString(0));
-    DObjGDL* op = static_cast<DObjGDL*> (p);
+	int n_Param=e->NParam();
+	if( n_Param == 0) return;
+	BaseGDL*& par=e->GetPar( 0);
+	if( par == NULL or par->Type() != GDL_OBJ) return;
+	DObjGDL* op= static_cast<DObjGDL*>(par);
 
     SizeT nEl = op->N_Elements();
-    for (SizeT i = 0; i < nEl; i++) {
-      DObj actID = (*op)[i];
-      e->ObjCleanup(actID);
-    }
+	for( SizeT i=0; i<nEl; i++)	
+			e->ObjCleanup( (*op)[i]);
   }
 
   void call_procedure(EnvT* e) {
@@ -538,6 +520,9 @@ namespace lib {
         mode |= fstream::ate;
       }
     }
+#ifdef _WIN32
+      mode |= ios::binary;
+#endif
 
     static int f77Ix = e->KeywordIx("F77_UNFORMATTED");
     bool f77 = e->KeywordSet(f77Ix);
@@ -626,27 +611,15 @@ namespace lib {
   }
 
   void openr(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::binary);
-#else
     open_lun(e, fstream::in);
-#endif
   }
 
   void openw(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::trunc | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out | fstream::trunc);
-#endif
   }
 
   void openu(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out);
-#endif
   }
 
   void socket(EnvT* e) {
@@ -1077,6 +1050,10 @@ namespace lib {
 
           DLong nRec2;
           memcpy(&nRec2, hdr, 4);
+// 2018 April 14
+// G.Jung I don't think this works right for stuctures.
+//   I have a method (RealBytes) that computes the actual byte count,
+//  it needs entries across several different files.
           SizeT nBytes = p->NBytes();
 
           // In variable length VMS files, each record is prefixed
@@ -1614,9 +1591,10 @@ namespace lib {
     }
     *pos = ptr;
   }
-
-  DWORD launch_cmd(BOOL hide, BOOL nowait, LPWSTR cmd, LPWSTR title = NULL, DWORD *pid = NULL,
-    vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL) {
+static DWORD launch_cmd(BOOL hide, BOOL nowait,
+                     const char * cmd, const char * title = NULL, DWORD *pid = NULL,
+		     vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
+    {
     DWORD status;
     CHAR outbuf[BUFSIZE];
     CHAR errbuf[BUFSIZE];
@@ -1624,6 +1602,15 @@ namespace lib {
     STARTUPINFOW si = {0,};
     PROCESS_INFORMATION pi = {0,};
 
+      WCHAR w_cmd[1000];
+      MultiByteToWideChar(CP_UTF8, 0, cmd, -1, w_cmd, 1000);
+      WCHAR w_title[100];
+      if( title != NULL)
+              MultiByteToWideChar(CP_UTF8, 0, title, -1, w_title, 100);
+      WCHAR w_cwd[MAX_PATH];
+	DString cwd = lib::GetCWD();
+             MultiByteToWideChar(CP_UTF8, 0, cwd.c_str(), -1, w_cwd, MAX_PATH);
+	
     SECURITY_ATTRIBUTES saAttr;
 
     saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
@@ -1637,9 +1624,9 @@ namespace lib {
 
     si.cb = sizeof (si);
     if (title == NULL)
-      si.lpTitle = cmd;
+        si.lpTitle = (wchar_t *) L"GDL spawned process";
     else
-      si.lpTitle = title;
+        si.lpTitle = w_title;
     int debug = 0;
 
     if (hide) {
@@ -1661,7 +1648,9 @@ namespace lib {
       }
       si.dwFlags |= STARTF_USESTDHANDLES;
       if (debug) std::printf(" CreateProcess: ");
-      CreateProcessW(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+        CreateProcessW(NULL, w_cmd, NULL, NULL, TRUE,
+						 0, NULL, w_cwd,	// start from wherever we happen to be 
+								&si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       DWORD progress;
 
@@ -1703,8 +1692,13 @@ namespace lib {
       } else
         std::printf(" error from CreateProcess: progress = 0x%x \n", progress);
 
-    } else {
-      CreateProcessW(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+      }
+      else
+	{
+          CreateProcessW(NULL, w_cmd, NULL, NULL, FALSE,
+                        CREATE_NEW_CONSOLE, 
+                        NULL, w_cwd,	// start from wherever we happen to be 
+								&si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       if (!nowait) WaitForSingleObject(pi.hProcess, INFINITE);
       GetExitCodeProcess(pi.hProcess, &status);
@@ -1759,8 +1753,10 @@ namespace lib {
        */
     }
 
-    if (nParam == 0) {
-      DWORD status = launch_cmd(hideKeyword, nowaitKeyword, (LPWSTR) L"cmd", (LPWSTR) L"Command Prompt");
+      if (nParam == 0)
+	{
+          DWORD status = launch_cmd(hideKeyword, nowaitKeyword,
+                              "cmd", " (GDL-Spawned) Command Prompt");
       if (countKeyword)
         e->SetKW(countIx, new DLongGDL(0));
       if (exit_statusKeyword)
@@ -1781,20 +1777,17 @@ namespace lib {
       ds_cmd = cmd;
     else
       ds_cmd = "cmd /c " + cmd;
-
-    WCHAR w_cmd[255];
-    MultiByteToWideChar(CP_ACP, 0, ds_cmd.c_str(), ds_cmd.length(), w_cmd, 255);
-
     vector<DString> ds_outs;
     vector<DString> ds_errs;
     int status;
     DWORD pid;
     if (nParam == 1)
-      status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid);
+        status = launch_cmd(hideKeyword, nowaitKeyword, ds_cmd.c_str(), NULL, &pid);
     else if (nParam == 2) {
-      status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid, &ds_outs);
-    } else if (nParam == 3) {
-      status = launch_cmd(hideKeyword, nowaitKeyword, w_cmd, NULL, &pid, &ds_outs, &ds_errs);
+        status = launch_cmd(hideKeyword, nowaitKeyword, ds_cmd.c_str(), NULL, &pid, &ds_outs);
+      }
+      else if (nParam == 3) {
+        status = launch_cmd(hideKeyword, nowaitKeyword, ds_cmd.c_str(), NULL, &pid, &ds_outs, &ds_errs);
     }
 
     if (pidKeyword)
