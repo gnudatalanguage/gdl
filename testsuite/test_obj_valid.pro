@@ -8,6 +8,7 @@ pro test_obj_valid
   mlist = list(!gdl)	;mlist = list("!gdl", "goodbye",findgen(3,4))
 
 if ~(obj_valid(llist) and obj_valid(mlist)) then exit, status=1
+
 print,'SUCCESS'
 
 end
