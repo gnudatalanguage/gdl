@@ -7,23 +7,15 @@ if size(p,/type) ne 10 then begin
 	message,' ptr_valid() did not return even a pointer type '
 	exit, status=1
 	endif
-if(n_elements(p) ne 1) then begin
-	message,' ptr_valid() indicates multiple pre-existing pointers'
-	exit, status=1
-	endif
-if ptr_valid(p[0]) then begin
-	message,' ptr_valid() indicates a pre-existing pointer'
-	exit, status=1
-	endif
-;
-; clear the heaps and reset its index so that we can predictably create
-; a new pointer in ptr_valid(/cast).
+if(n_elements(p) ne 1) then $
+	message,/con,' ptr_valid() indicates multiple pre-existing pointers'
 
-heap_free,ptr_valid()
-heap_free,OBJ_valid()
-HEAP_GC
-;	
- if(keyword_set(verbose)) then print, ' HEAP_GC called will reset pointer indeces'
+if ptr_valid(p[0]) then $
+	message,/con,' ptr_valid() indicates a pre-existing pointer'
+
+
+; if(keyword_set(verbose)) then print, ' HEAP_GC called will reset pointer indeces'
+
 ; closed bug 708: This didn't work.
 ab = ptr_new(fltarr(12))
 cmp = {a:ab, b:ab}
@@ -32,7 +24,7 @@ pcmp = ptr_new(cmp)
 cmp = 0
 
 if ptr_valid(ptr_valid(10001,/cast)) then err++ $
-else if(keyword_set(verbose)) then message,/con,'NullPointer ok'
+	else if(keyword_set(verbose)) then message,/con,'NullPointer ok'
 
 
 	p = (ptr_valid())[0] 

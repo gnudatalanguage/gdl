@@ -534,14 +534,13 @@ namespace lib {
     bool isscalar = p->StrictScalar();
     DLongGDL* pL;
     Guard<DLongGDL> pL_guard;
-    SizeT nEl = p->N_Elements();
+
     GDLInterpreter* interpreter = e->Interpreter();
 
     if( pType == GDL_PTR){
 		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
-				else pL = new DLongGDL( p->Dim());
-		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
+		pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pPtr)[i];
 		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
 			if(isscalar) return new DLongGDL( (*pL)[0] );
 				else 	return pL; 
@@ -554,12 +553,12 @@ namespace lib {
 			if(isscalar) {
 				DLong p0 = (*pL)[0];
 				if(  interpreter->PtrValid( p0 )) {
-					interpreter->IncRef( p0);
-					return new DPtrGDL( p0);
-				}
+						interpreter->IncRef( p0);
+						return new DPtrGDL( p0);
+				} else	return new DPtrGDL( 0);
 			}
-			DPtrGDL* ret = new DPtrGDL( p->Dim());
-		  for( SizeT i=0; i<nEl; ++i)
+			DPtrGDL* ret = new DPtrGDL( pL->Dim());
+			for( SizeT i=0; i < pL->N_Elements(); ++i)
 			  if( interpreter->PtrValid( (*pL)[ i])) {
 				  interpreter->IncRef((*pL)[ i]);
 				  (*ret)[ i] = (*pL)[ i];
@@ -567,17 +566,14 @@ namespace lib {
 		  return ret;
 		  }
       }
-    if(isscalar) {
-		if(  interpreter->PtrValid( (*pL)[0] ))
-				return new DByteGDL(1);
-		else 	return new DByteGDL(0);
-	}
     DByteGDL* ret = new DByteGDL( pL->Dim());
-    for( SizeT i=0; i<nEl; ++i) {
+    for( SizeT i=0; i < pL->N_Elements(); ++i) {
 		if( interpreter->PtrValid( (*pL)[ i])) 
 			(*ret)[ i] = 1;
       }
-    return ret;
+      
+    if(isscalar) return new DByteGDL( (*ret)[0] );
+       else return ret;
   }
 //
 // 2018 May 29 G. Jung: Note there is an inordinate separation of  scalar and non-scalar treament.
@@ -610,22 +606,17 @@ namespace lib {
       {
 	return new DByteGDL( 0);
       } 
-//		if(trace_me ) std::cout << " obj_valid:top ";
+
     DType pType = p->Type();
     bool isscalar = p->StrictScalar();
     DLongGDL* pL;
     Guard<DLongGDL> pL_guard;
-    SizeT nEl = p->N_Elements();
- //   if(trace_me ) std::cout << " obj_valid:N_Elements="<<nEl;
+
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
-    	DObjGDL* pObj = static_cast<DObjGDL*>( p);
-//		if(trace_me) std::cout << " obj_valid:scalar ?"<< isscalar;
-		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
-				else pL = new DLongGDL( p->Dim());
-		pL_guard.Init( pL);
-		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
-//		if(trace_me ) std::cout << " obj_valid:PL set ";
+ 		DObjGDL* pObj = static_cast<DObjGDL*>( p);
+		pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pObj)[i];
 		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
 			if(isscalar) return new DLongGDL( (*pL)[0] );
 				else 	return pL; 
@@ -635,28 +626,32 @@ namespace lib {
 	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
 	    pL_guard.Init( pL);
 		if( e->KeywordSet( CASTIx))  {
-			DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
-			for( SizeT i=0; i<nEl; ++i)
-				if( interpreter->ObjValid( (*pL)[ i])) {
-						interpreter->IncRefObj((*pL)[ i]);
+			if(isscalar) {
+				DLong p0 = (*pL)[0];
+				if(  interpreter->ObjValid( p0 )) {
+						interpreter->IncRefObj( p0);
+						return new DObjGDL( p0);
+				} else	return new DObjGDL( 0);
+			}
+			DObjGDL* ret = new DObjGDL( pL->Dim());
+			for( SizeT i=0; i < pL->N_Elements(); ++i)
+			  if( interpreter->ObjValid( (*pL)[ i])) {
+				  interpreter->IncRefObj((*pL)[ i]);
 				  (*ret)[ i] = (*pL)[ i];
-			  }
-			return ret;
+				  }
+		  return ret;
 		  }
       }
-//		if(trace_me) std::cout << " ov: out" << std::endl;
-    if(isscalar) {
-		if(  interpreter->ObjValid( (*pL)[0] ))
-			 return new DByteGDL(1);
-		else return new DByteGDL(0);
-	}
+
     DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
-    for( SizeT i=0; i<nEl; ++i)
+    for( SizeT i=0; i<pL->N_Elements(); ++i)
       {
 	if( interpreter->ObjValid( (*pL)[ i])) 
 	  (*ret)[ i] = 1;
       }
-    return ret;
+      
+    if(isscalar) return new DByteGDL( (*ret)[0] );
+       else return ret;
   }
 
   BaseGDL* obj_new( EnvT* e)
