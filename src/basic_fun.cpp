@@ -12,7 +12,17 @@
      Changed behavior of COMPLEX() and DCOMPLEX() called with three arguments,
      aka where type casting is the expected behavoir. 
 
+ 2017 September
+   Greg Jung mods to unbug pointer, object treatments. Also:
+     Updated with new Where(), cosmetics
+     #ifndef _WIN32 replaces #if !defined(_WIN32) || defined(__CYGWIN__)
+     Mods to array_equal() and array_never_equal (new)
+     routine_filepath moved to here.
+     command_line_args uses strings instead of char*
+
+ 2017 July gilles-duvert  New version of Where() twice as fast as previous
 ***************************************************************************/
+	  // AC 2018-feb 
 
 /***************************************************************************
  *                                                                         *
@@ -27,7 +37,7 @@
 
 // get_kbrd patch
 // http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef _WIN32
 #include <termios.h> 
 #include <unistd.h> 
 #endif
@@ -113,7 +123,8 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     }
   }
 
-static bool trace_me;
+static bool trace_me(false);
+
 namespace lib {
 	bool trace_arg();
 	bool gdlarg_present(const char* s);
@@ -210,19 +221,15 @@ namespace lib {
   BaseGDL* bytarr( EnvT* e)
   {
     dimension dim;
-    //    try{
+
     arr( e, dim);
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
     return new DByteGDL(dim);
-    //   }
-    //   catch( GDLException& ex)
-    //     {
-    //	e->Throw( ex.getMessage());
-    //      }
   }
+
   BaseGDL* intarr( EnvT* e)
   {
     dimension dim;
@@ -507,10 +514,13 @@ namespace lib {
   BaseGDL* ptr_valid( EnvT* e)
   {
     int nParam=e->NParam();
+    static int CASTIx = e->KeywordIx("CAST");
+    static int COUNTIx = e->KeywordIx("COUNT");
+    static int GET_HEAP_IDENTIFIERIx = e->KeywordIx("GET_HEAP_IDENTIFIER");
     
-    if( e->KeywordPresent( 1)) // COUNT
+    if( e->KeywordPresent( COUNTIx))
       {
-	e->SetKW( 1, new DLongGDL( e->Interpreter()->HeapSize()));
+	e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->HeapSize()));
       }
 
     if( nParam == 0)
@@ -525,58 +535,69 @@ namespace lib {
       } 
 
     DType pType = p->Type();
-    if( e->KeywordSet( 0)) // CAST
-      {
-	DLongGDL* pL;// = dynamic_cast<DLongGDL*>( p);
-	Guard<DLongGDL> pL_guard;
-	// 	if( pL == NULL)
-	if( pType != GDL_LONG)
-	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Init( pL);
-	  }
-	else
-	  {
-	    pL = static_cast<DLongGDL*>(p);
-	  }
-	SizeT nEl = pL->N_Elements();
-	DPtrGDL* ret = new DPtrGDL( pL->Dim()); // zero
-	GDLInterpreter* interpreter = e->Interpreter();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    if( interpreter->PtrValid( (*pL)[ i])) 
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
-      }
+    bool isscalar = p->StrictScalar();
+    DLongGDL* pL;
+    Guard<DLongGDL> pL_guard;
 
-    //     DPtrGDL* pPtr = dynamic_cast<DPtrGDL*>( p);
-    //     if( pPtr == NULL)
-    if( pType != GDL_PTR)
-      {
-	return new DByteGDL( p->Dim()); // zero
-      }
-
-    DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-
-    SizeT nEl = pPtr->N_Elements();
-    DByteGDL* ret = new DByteGDL( pPtr->Dim()); // zero
     GDLInterpreter* interpreter = e->Interpreter();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( interpreter->PtrValid( (*pPtr)[ i])) 
-	  (*ret)[ i] = 1;
-      }
-    return ret;
-  }
 
+    if( pType == GDL_PTR){
+		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+		pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pPtr)[i];
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
+		pL_guard.Init( pL);
+	} else {	// pType==GDL_PTR
+		pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+		pL_guard.Init( pL);
+		if( e->KeywordSet( CASTIx))  {
+			if(isscalar) {
+				DLong p0 = (*pL)[0];
+				if(  interpreter->PtrValid( p0 )) {
+						interpreter->IncRef( p0);
+						return new DPtrGDL( p0);
+				} else	return new DPtrGDL( 0);
+			}
+			DPtrGDL* ret = new DPtrGDL( pL->Dim());
+			for( SizeT i=0; i < pL->N_Elements(); ++i)
+			  if( interpreter->PtrValid( (*pL)[ i])) {
+				  interpreter->IncRef((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+				  }
+		  return ret;
+		  }
+      }
+    DByteGDL* ret = new DByteGDL( pL->Dim());
+    for( SizeT i=0; i < pL->N_Elements(); ++i) {
+		if( interpreter->PtrValid( (*pL)[ i])) 
+			(*ret)[ i] = 1;
+      }
+      
+    if(isscalar) return new DByteGDL( (*ret)[0] );
+       else return ret;
+  }
+//
+// 2018 May 29 G. Jung: Note there is an inordinate separation of  scalar and non-scalar treament.
+//  This was my last line of attempt to quash an error, due to an assert
+// in gdlarray.cpp (line 210) which obj_valid() triggered in Travis tests.
+// I am now convinced that this error is due to the incorrect hack in GDL
+// that, for "SizeT nEl = p->N_Elements();" returns instead the count() of the list
+// so in fact, a list is not a true object. 
+//  Merge "legacy_list" branch to remedy this.
+// 
   BaseGDL* obj_valid( EnvT* e)
   {
     int nParam=e->NParam();
+    static int CASTIx = e->KeywordIx("CAST");
+    static int COUNTIx = e->KeywordIx("COUNT");
+    static int GET_HEAP_IDENTIFIERIx = e->KeywordIx("GET_HEAP_IDENTIFIER");
     
-    if( e->KeywordPresent( 1)) // COUNT
+    if( e->KeywordPresent( COUNTIx)) // COUNT
       {
-	e->SetKW( 1, new DLongGDL( e->Interpreter()->ObjHeapSize()));
+	e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->ObjHeapSize()));
       }
 
     if( nParam == 0)
@@ -591,49 +612,50 @@ namespace lib {
       } 
 
     DType pType = p->Type();
-    if( e->KeywordSet( 0)) // CAST
-      {
-	DLongGDL* pL;// = dynamic_cast<DLongGDL*>( p);
-	Guard<DLongGDL> pL_guard;
-	// 	if( pL == NULL)
-	if( pType != GDL_LONG)
-	  {
+    bool isscalar = p->StrictScalar();
+    DLongGDL* pL;
+    Guard<DLongGDL> pL_guard;
+
+    GDLInterpreter* interpreter = e->Interpreter();
+    if( pType == GDL_OBJ) {
+ 		DObjGDL* pObj = static_cast<DObjGDL*>( p);
+		pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pObj)[i];
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
+	}
+    else {			// pType == GDL_OBJ
 	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
 	    pL_guard.Init( pL);
-	    //	    e->Guard( pL);
-	  }
-	else
-	  {
-	    pL = static_cast<DLongGDL*>( p);
-	  }
-	SizeT nEl = pL->N_Elements();
-	DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
-	GDLInterpreter* interpreter = e->Interpreter();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    if( interpreter->ObjValid( (*pL)[ i])) 
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
+		if( e->KeywordSet( CASTIx))  {
+			if(isscalar) {
+				DLong p0 = (*pL)[0];
+				if(  interpreter->ObjValid( p0 )) {
+						interpreter->IncRefObj( p0);
+						return new DObjGDL( p0);
+				} else	return new DObjGDL( 0);
+			}
+			DObjGDL* ret = new DObjGDL( pL->Dim());
+			for( SizeT i=0; i < pL->N_Elements(); ++i)
+			  if( interpreter->ObjValid( (*pL)[ i])) {
+				  interpreter->IncRefObj((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+				  }
+		  return ret;
+		  }
       }
 
-    //     DObjGDL* pObj = dynamic_cast<DObjGDL*>( p);
-    //     if( pObj == NULL)
-    if( pType != GDL_OBJ)
+    DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
+    for( SizeT i=0; i<pL->N_Elements(); ++i)
       {
-	return new DByteGDL( p->Dim()); // zero
-      }
-    DObjGDL* pObj = static_cast<DObjGDL*>( p);
-
-    SizeT nEl = pObj->N_Elements();
-    DByteGDL* ret = new DByteGDL( pObj->Dim()); // zero
-    GDLInterpreter* interpreter = e->Interpreter();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( interpreter->ObjValid( (*pObj)[ i])) 
+	if( interpreter->ObjValid( (*pL)[ i])) 
 	  (*ret)[ i] = 1;
       }
-    return ret;
+      
+    if(isscalar) return new DByteGDL( (*ret)[0] );
+       else return ret;
   }
 
   BaseGDL* obj_new( EnvT* e)
@@ -1080,13 +1102,9 @@ namespace lib {
       return new DLong64GDL( p0->N_Elements()); 
     else 
       return new DLongGDL( p0->N_Elements()); 
-
-    //     assert( 0);
-    //     e->Throw("Internal error: lib::n_elements called.");
-    //     return NULL; // get rid of compiler warning
   }
 
-  // JAdZ 20150506: This is now only for nParsm=2, complex_fun_template redefined several lines below instead
+  // JAdZ 20150506: This is now only for nParam=2, complex_fun_template redefined several lines below instead
   template< typename ComplexGDL, typename Complex, typename Float>
   BaseGDL* complex_fun_template_twopar( EnvT* e)
   {
@@ -2622,7 +2640,6 @@ namespace lib {
               (static_cast<DULong64GDL*> (p0), nan);
           }
 
-	  // cout << "hello /int" << endl;
           // Conver to Long64
           DLong64GDL* p0L64 = static_cast<DLong64GDL*>
             (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
@@ -7239,6 +7256,65 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       e->SetKW( lengthIx, len);    
 
     return result;
+  }
+
+BaseGDL* routine_filepath( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+    DStringGDL* p0S;
+	Guard<DStringGDL> p0S_guard;
+    if (nParam > 1) e->Throw("Incorrect number of arguments.");
+	if( nParam > 0)  {
+		BaseGDL* p0 = e->GetParDefined( 0);
+		if( p0->Type() != GDL_STRING)
+		  e->Throw("String expression required in this context: " + e->GetParString(0));
+		p0S = static_cast<DStringGDL*>( p0);
+      } else {			// routine_filepath()
+		p0S = new DStringGDL(
+			dynamic_cast<DSubUD*>((e->Caller())->GetPro())->Name());
+		p0S_guard.Init(p0S);
+		}
+
+    static int is_functionIx = e->KeywordIx( "IS_FUNCTION" );
+    bool is_functionKW = e->KeywordSet( is_functionIx );
+    static int eitherIx = e->KeywordIx( "EITHER" );
+    bool eitherKW = e->KeywordSet( eitherIx );
+	
+	SizeT nPath = p0S->N_Elements();
+    DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+    Guard<DStringGDL> res_guard(res);
+
+    DString name;
+    string FullFileName;
+	for(int i = 0; i < nPath; i ++) {
+
+		name = StrUpCase((*p0S)[i]);      
+		bool found=false;
+		FullFileName = "";
+
+		if( eitherKW || !is_functionKW) {
+			for(ProListT::iterator i=proList.begin();
+									i != proList.end(); ++i)
+			  if ((*i)->ObjectName() == name) {
+				found=true;
+				FullFileName=(*i)->GetFilename();
+				break;
+			  }
+		  }
+		  
+		if (!found && (is_functionKW || eitherKW)) {
+			for(FunListT::iterator i=funList.begin();
+									i != funList.end(); ++i)
+			  if ((*i)->ObjectName() == name) {
+				found=true;
+				FullFileName=(*i)->GetFilename();
+				break;
+			  }
+		  } 
+		(*res)[i] = FullFileName;
+	}
+//    if(nParam == 0) return new DStringGDL(FullFileName);
+    return res_guard.release();
   }
 
   BaseGDL* routine_info( EnvT* e)

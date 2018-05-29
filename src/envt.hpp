@@ -120,6 +120,11 @@ public:
   // and used by WRAPPED subroutines
   int GetKeywordIx( const std::string& k);
 
+	
+  int findvar(const std::string& s);
+  int findvar(BaseGDL* delP);
+  bool Remove(int* rindx);
+  bool Removeall();
   
   bool StealLocalKW( SizeT ix) 
   { 

@@ -266,6 +266,10 @@ void LibInit()
   const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","HEAP_VARIABLES","MESSAGES",
 			      "OBJECTS","SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
+
+  new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
+  DLibPro* hide = new DLibPro(lib::findvar_pro,string("FINDVAR"),-1,NULL,NULL);
+  hide->SetHideHelp(true);
   
   //stub to avoid setting errors on pref_set. One may want to really write pref_set,
   // but this function is just here to prevent setting !ERR=-1 when stumbling on a pref_set command,
@@ -340,7 +344,7 @@ void LibInit()
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
 
-  const string obj_validKey[]={"CAST","COUNT",KLISTEND};
+  const string obj_validKey[]={"CAST","COUNT","GET_HEAP_IDENTIFIER",KLISTEND};
   new DLibFunRetNew(lib::ptr_valid,string("PTR_VALID"),1,obj_validKey);
   new DLibFunRetNew(lib::obj_valid,string("OBJ_VALID"),1,obj_validKey);
   
@@ -414,6 +418,10 @@ void LibInit()
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      resolve_routineKey,resolve_routineWarnKey);
+
+  const string routine_filepathKey[]={"EITHER","IS_FUNCTION", KLISTEND};
+  new DLibFunRetNew(lib::routine_filepath,string("ROUTINE_FILEPATH"),1,
+				routine_filepathKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);

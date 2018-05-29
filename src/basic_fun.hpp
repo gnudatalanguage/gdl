@@ -134,7 +134,9 @@ namespace lib {
   BaseGDL* rebin_fun( EnvT* e);
 
   BaseGDL* obj_class( EnvT* e);
+
   BaseGDL* obj_hasmethod( EnvT* e);
+
   BaseGDL* obj_isa( EnvT* e);
 
   BaseGDL* n_tags( EnvT* e);
@@ -159,6 +161,8 @@ namespace lib {
   BaseGDL* create_struct( EnvT* e);
 
   BaseGDL* rotate( EnvT* e);
+
+  BaseGDL* routine_filepath( EnvT* e);
 
   // the following by Sylwester Arabas 
   // (slayoo@users.sourceforge.net)
