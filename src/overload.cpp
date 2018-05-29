@@ -428,6 +428,7 @@ void SetupOverloadSubroutines()
   DStructDesc* hashDesc = FindInStructList(structList, "HASH");
   assert( hashDesc != NULL);
   
+  WRAPPED_FUNNode *tree;
   WRAPPED_FUNNode *treeFun;
   WRAPPED_PRONode *treePro;
   
@@ -724,8 +725,10 @@ void SetupOverloadSubroutines()
   hashDesc->FunList().push_back(DFunHASH__VALUES);
 // HASH::TOSTRUCT()
   DFun *DFunHASH__TOSTRUCT = new DFun("TOSTRUCT","HASH",INTERNAL_LIBRARY_STR);
-  DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED");
-  DFunHASH__TOSTRUCT->AddKey("MISSING","MISSING");
+
+  DFunHASH__TOSTRUCT->AddKey("SKIPPED","SKIPPED")->AddKey("MISSING","MISSING");
+  DFunHASH__TOSTRUCT->AddKey("NO_COPY","NO_COPY")->AddKey("RECURSIVE","RECURSIVE");
+
   treeFun = new WRAPPED_FUNNode( lib::hash__tostruct);
   DFunHASH__TOSTRUCT->SetTree( treeFun);
   hashDesc->FunList().push_back(DFunHASH__TOSTRUCT);
@@ -740,6 +743,16 @@ void SetupOverloadSubroutines()
   treeFun = new WRAPPED_FUNNode( lib::hash__isempty);
   DFunHASH__ISEMPTY->SetTree( treeFun);
   hashDesc->FunList().push_back(DFunHASH__ISEMPTY);
+// HASH::ISORDERED()
+  DFun *DFunHASH__ISORDERED = new DFun("ISORDERED","HASH",INTERNAL_LIBRARY_STR);
+  treeFun = new WRAPPED_FUNNode( lib::hash__isordered);
+  DFunHASH__ISORDERED->SetTree( treeFun);
+  hashDesc->FunList().push_back(DFunHASH__ISORDERED);
+// HASH::ISFOLDCASE()
+  DFun *DFunHASH__ISFOLDCASE = new DFun("ISFOLDCASE","HASH",INTERNAL_LIBRARY_STR);
+  treeFun = new WRAPPED_FUNNode( lib::hash__isfoldcase);
+  DFunHASH__ISFOLDCASE->SetTree( treeFun);
+  hashDesc->FunList().push_back(DFunHASH__ISFOLDCASE);
 // HASH::WHERE()
   DFun *DFunHASH__WHERE = new DFun("WHERE","HASH",INTERNAL_LIBRARY_STR);
   DFunHASH__WHERE->AddKey("COMPLEMENT","COMPLEMENT");

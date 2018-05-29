@@ -119,6 +119,7 @@ TESTS = \
   test_get_screen_size.pro \
   test_gh00178.pro \
   test_grib.pro \
+  test_hash.pro \
   test_hdf5.pro \
   test_help.pro \
   test_heap_refcount.pro \
