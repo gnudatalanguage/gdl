@@ -208,7 +208,7 @@ public:
   {
       if( ix >= sz) std::cout << "GDLArray line 210 ix=" << ix
 				<<", sz = " << sz << std::endl;
-      // debug      assert( ix < sz);
+// debug      assert( ix < sz);  // see note in basic_fun.cpp at obj_valid()
     return buf[ ix];
   }
   const T& operator[]( SizeT ix) const throw()

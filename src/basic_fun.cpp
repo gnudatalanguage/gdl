@@ -123,7 +123,7 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     }
   }
 
-static bool trace_me(true);
+static bool trace_me(false);
 
 namespace lib {
   
@@ -224,12 +224,8 @@ namespace lib {
 
     if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
     return new DByteGDL(dim);
-    //   }
-    //   catch( GDLException& ex)
-    //     {
-    //	e->Throw( ex.getMessage());
-    //      }
   }
+
   BaseGDL* intarr( EnvT* e)
   {
     dimension dim;
@@ -583,7 +579,17 @@ namespace lib {
       }
     return ret;
   }
-
+//
+// 2018 May 28 G. Jung: Note there is an inordinate separation of 
+// scalar and non-scalar treament.  This is probably unnecessary 
+// but it was my last line of attempt to quash an error, due to an assert
+// in gdlarray.cpp (line 210) which obj_valid() triggered in Travis tests.
+// (Not an error that would show up under any other circumstance).
+//   In order that we have these functions, then, I have converted the 
+// assertion into a message to std::cout;  the fact that certain compiler/system
+// combos allow the condition to materialize may be investigated when this
+// message is observed.
+// 
   BaseGDL* obj_valid( EnvT* e)
   {
     int nParam=e->NParam();
@@ -606,7 +612,7 @@ namespace lib {
       {
 	return new DByteGDL( 0);
       } 
-		if(trace_me ) std::cout << " obj_valid:top ";
+//		if(trace_me ) std::cout << " obj_valid:top ";
     DType pType = p->Type();
     bool isscalar = p->StrictScalar();
     DLongGDL* pL;
@@ -615,12 +621,12 @@ namespace lib {
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
     	DObjGDL* pObj = static_cast<DObjGDL*>( p);
-		if(trace_me) std::cout << " obj_valid:scalar ?"<< isscalar;
+//		if(trace_me) std::cout << " obj_valid:scalar ?"<< isscalar;
 		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
 				else pL = new DLongGDL( p->Dim());
 		pL_guard.Init( pL);
 		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
-		if(trace_me ) std::cout << " obj_valid:PL set ";
+//		if(trace_me ) std::cout << " obj_valid:PL set ";
 		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
 			if(isscalar) return new DLongGDL( (*pL)[0] );
 				else 	return pL; 
@@ -639,7 +645,7 @@ namespace lib {
 			return ret;
 		  }
       }
-		if(trace_me) std::cout << " ov: out" << std::endl;
+//		if(trace_me) std::cout << " ov: out" << std::endl;
     if(isscalar) {
 		if(  interpreter->ObjValid( (*pL)[0] ))
 			 return new DByteGDL(1);
@@ -1091,7 +1097,7 @@ namespace lib {
       return new DLongGDL( p0->N_Elements()); 
   }
 
-  // JAdZ 20150506: This is now only for nParsm=2, complex_fun_template redefined several lines below instead
+  // JAdZ 20150506: This is now only for nParam=2, complex_fun_template redefined several lines below instead
   template< typename ComplexGDL, typename Complex, typename Float>
   BaseGDL* complex_fun_template_twopar( EnvT* e)
   {
