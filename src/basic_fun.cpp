@@ -123,14 +123,8 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     }
   }
 
-//#if defined(__GNUC__)
-//#define GCC_VERSION (__GNUC__ * 10000 \
-//                     + __GNUC_MINOR__ * 100 \
-//                     + __GNUC_PATCHLEVEL__)
-//#if GCC_VERSION > 40600
-//#define OMP_HAS_MAX 1
-//#endif
-//#endif
+static bool trace_me(false);
+
 namespace lib {
   
   // for use in COMMAND_LINE_ARGS()
@@ -230,12 +224,8 @@ namespace lib {
 
     if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
     return new DByteGDL(dim);
-    //   }
-    //   catch( GDLException& ex)
-    //     {
-    //	e->Throw( ex.getMessage());
-    //      }
   }
+
   BaseGDL* intarr( EnvT* e)
   {
     dimension dim;
@@ -541,51 +531,63 @@ namespace lib {
       } 
 
     DType pType = p->Type();
+    bool isscalar = p->StrictScalar();
     DLongGDL* pL;
-	Guard<DLongGDL> pL_guard;
+    Guard<DLongGDL> pL_guard;
     SizeT nEl = p->N_Elements();
     GDLInterpreter* interpreter = e->Interpreter();
 
-    if( pType != GDL_PTR)
-	  {
-			    //	if( pType != GDL_LONG)
-			    //	{
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Init( pL);
-				      //	    e->Guard( pL);
-			    //	}
-			    //	else
-			    //	{
-			    //	  pL = static_cast<DLongGDL*>( p);
-			    //	}
-	if( e->KeywordSet( CASTIx))  {
-	DPtrGDL* ret = new DPtrGDL( pL->Dim()); // zero
-	for( SizeT i=0; i<nEl; ++i)
-	      if( interpreter->PtrValid( (*pL)[ i])) {
-		  interpreter->IncRef((*pL)[ i]);
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
+    if( pType == GDL_PTR){
+		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
+				else pL = new DLongGDL( p->Dim());
+		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
+		pL_guard.Init( pL);
+	} else {	// pType==GDL_PTR
+		pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+		pL_guard.Init( pL);
+		if( e->KeywordSet( CASTIx))  {
+			if(isscalar) {
+				DLong p0 = (*pL)[0];
+				if(  interpreter->PtrValid( p0 )) {
+					interpreter->IncRef( p0);
+					return new DPtrGDL( p0);
+				}
+			}
+			DPtrGDL* ret = new DPtrGDL( p->Dim());
+		  for( SizeT i=0; i<nEl; ++i)
+			  if( interpreter->PtrValid( (*pL)[ i])) {
+				  interpreter->IncRef((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+				  }
+		  return ret;
+		  }
       }
-      }
-    else {
-    DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-	  pL = new DLongGDL( p->Dim());
-	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pPtr)[i];
-      if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-	    return pL; 
-      pL_guard.Init( pL);
+    if(isscalar) {
+		if(  interpreter->PtrValid( (*pL)[0] ))
+				return new DByteGDL(1);
+		else 	return new DByteGDL(0);
 	}
-
-    DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( interpreter->PtrValid( (*pL)[ i])) 
-	  (*ret)[ i] = 1;
+    DByteGDL* ret = new DByteGDL( pL->Dim());
+    for( SizeT i=0; i<nEl; ++i) {
+		if( interpreter->PtrValid( (*pL)[ i])) 
+			(*ret)[ i] = 1;
       }
     return ret;
   }
-
+//
+// 2018 May 29 G. Jung: Note there is an inordinate separation of  scalar and non-scalar treament.
+//  This was my last line of attempt to quash an error, due to an assert
+// in gdlarray.cpp (line 210) which obj_valid() triggered in Travis tests.
+// I am now convinced that this error is due to the incorrect hack in GDL
+// that, for "SizeT nEl = p->N_Elements();" returns instead the count() of the list
+// so in fact, a list is not a true object. 
+//  Merge "legacy_list" branch to remedy this.
+// 
   BaseGDL* obj_valid( EnvT* e)
   {
     int nParam=e->NParam();
@@ -608,35 +610,46 @@ namespace lib {
       {
 	return new DByteGDL( 0);
       } 
-
+//		if(trace_me ) std::cout << " obj_valid:top ";
     DType pType = p->Type();
+    bool isscalar = p->StrictScalar();
     DLongGDL* pL;
-	Guard<DLongGDL> pL_guard;
+    Guard<DLongGDL> pL_guard;
     SizeT nEl = p->N_Elements();
+ //   if(trace_me ) std::cout << " obj_valid:N_Elements="<<nEl;
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
-          DObjGDL* pObj = static_cast<DObjGDL*>( p);
-	  pL = new DLongGDL( p->Dim());
-	  for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
-//	pL = static_cast<DLongGDL*>( (static_cast<DULong64GDL*>(p))->Convert2
-//		  (GDL_LONG,BaseGDL::COPY)); // this doesn't fly, so above
-	if( e->KeywordSet( GET_HEAP_IDENTIFIERIx))
-	      return pL; 
-	pL_guard.Init( pL);
+    	DObjGDL* pObj = static_cast<DObjGDL*>( p);
+//		if(trace_me) std::cout << " obj_valid:scalar ?"<< isscalar;
+		if(isscalar) pL = new DLongGDL( 1, BaseGDL::NOZERO);
+				else pL = new DLongGDL( p->Dim());
+		pL_guard.Init( pL);
+		for( SizeT i=0; i<nEl; ++i) (*pL) [i] = (*pObj)[i];
+//		if(trace_me ) std::cout << " obj_valid:PL set ";
+		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+			if(isscalar) return new DLongGDL( (*pL)[0] );
+				else 	return pL; 
+			}
 	}
     else {			// pType == GDL_OBJ
 	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
 	    pL_guard.Init( pL);
-	if( e->KeywordSet( CASTIx))  {
-	DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
-	for( SizeT i=0; i<nEl; ++i)
-		if( interpreter->ObjValid( (*pL)[ i])) {
-			    interpreter->IncRefObj((*pL)[ i]);
-	      (*ret)[ i] = (*pL)[ i];
-	  }
-	return ret;
+		if( e->KeywordSet( CASTIx))  {
+			DObjGDL* ret = new DObjGDL( pL->Dim()); // zero
+			for( SizeT i=0; i<nEl; ++i)
+				if( interpreter->ObjValid( (*pL)[ i])) {
+						interpreter->IncRefObj((*pL)[ i]);
+				  (*ret)[ i] = (*pL)[ i];
+			  }
+			return ret;
+		  }
       }
-      }
+//		if(trace_me) std::cout << " ov: out" << std::endl;
+    if(isscalar) {
+		if(  interpreter->ObjValid( (*pL)[0] ))
+			 return new DByteGDL(1);
+		else return new DByteGDL(0);
+	}
     DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
     for( SizeT i=0; i<nEl; ++i)
       {
@@ -1083,7 +1096,7 @@ namespace lib {
       return new DLongGDL( p0->N_Elements()); 
   }
 
-  // JAdZ 20150506: This is now only for nParsm=2, complex_fun_template redefined several lines below instead
+  // JAdZ 20150506: This is now only for nParam=2, complex_fun_template redefined several lines below instead
   template< typename ComplexGDL, typename Complex, typename Float>
   BaseGDL* complex_fun_template_twopar( EnvT* e)
   {

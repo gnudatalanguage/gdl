@@ -18,6 +18,7 @@ if ptr_valid(p[0]) then begin
 ;
 ; clear the heaps and reset its index so that we can predictably create
 ; a new pointer in ptr_valid(/cast).
+
 heap_free,ptr_valid()
 heap_free,OBJ_valid()
 HEAP_GC
@@ -27,31 +28,31 @@ HEAP_GC
 ab = ptr_new(fltarr(12))
 cmp = {a:ab, b:ab}
 err=0
-
+pcmp = ptr_new(cmp)
 cmp = 0
+
 if ptr_valid(ptr_valid(10001,/cast)) then err++ $
 else if(keyword_set(verbose)) then message,/con,'NullPointer ok'
 
- p = ptr_valid(1,/cast)	; scalar
-if keyword_set(test) then stop,'  p = ptr_valid(1,/cast)	'
-if ~ptr_valid(p) then begin
-	if keyword_set(verbose) then message,/con,  $
-	' working around pending change in basic_pro/heap_gc '
-	p = (ptr_valid())[0] ; still, p is first valid pointer which should be ab.
-	endif
+
+	p = (ptr_valid())[0] 
+	pval = ptr_valid(p,/get_heap)
+	if keyword_set(verbose)  then message,/con,' ptr_valid(p,/get_heap) value=',pval
 
 if ~ptr_valid(p) then err++ $
-else if keyword_set(verbose)  then message,/con,' p =ab ok'
+	else if keyword_set(verbose)  then message,/con,' p =ab ok'
+	newptr = ptr_valid(pval,/cast)
 
-llist = list(fltarr(4),"hello",2.)
-mlist = list(!gdl, "goodbye",findgen(3,4))
-if ~(obj_valid(llist) and obj_valid(mlist)) then err++ $
-else if(keyword_set(verbose)) then message,/con,'2 created list objects are valid"
+if newptr ne p then err++ $
+	else if keyword_set(verbose)  then message,/con,' ptr=ptr_valid(lval,/cast) passed'
+
+llist = list() & mlist = list()
 pps=ptrarr(2)
 pps[0] = ptr_new(llist)
 pps[1] = ptr_new(mlist)
 if total(ptr_valid(pps)) ne 2  then err++ $
 else if(keyword_set(verbose)) then message,/con,'2 created pointers are valid"
+
 ;
 if(keyword_set(test)) then stop,' at end of test routine'
 ;
