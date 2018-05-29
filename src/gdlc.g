@@ -67,7 +67,8 @@ options {
 }
 
 // if something is changed here
-// identifier below needs to change as well
+// identifier below probably needs to change as well
+// also, imperative to change values of _TokenSet_xxx farther on in the file.
 tokens {
 	ALL;		// arrayindex (*, e.g. [1:*])
 	ASSIGN;
