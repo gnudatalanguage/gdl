@@ -8062,7 +8062,6 @@ BaseGDL* parse_url( EnvT* env)
         urlstru_guard.release();
         return urlstru;
     }
-    
     // Search for the host component and exit if "://" is not found
     ptr = std::strstr(str, "://");
 
@@ -8075,7 +8074,6 @@ BaseGDL* parse_url( EnvT* env)
      urlstru->InitTag("SCHEME", DStringGDL(string(str, ptr - str)));
     // move past the "://"
     ptr += 3;
-    
     // extract the username and passport if found
     pat = std::strchr(ptr, '@');
     if (pat != NULL) {
@@ -8099,7 +8097,10 @@ BaseGDL* parse_url( EnvT* env)
     // extract port number if present
     pport = std::strchr(ptr, ':');
     if (pport != NULL){
-        urlstru->InitTag("PORT", DStringGDL(string(pport + 1, ppath - (pport + 1))));
+		if (*(pport + 1))	
+        	urlstru->InitTag("PORT", DStringGDL(string(pport + 1, ppath - (pport + 1))));
+		else
+        	urlstru->InitTag("PORT", DStringGDL(""));
         phostend = pport;
     }
     
@@ -8111,14 +8112,16 @@ BaseGDL* parse_url( EnvT* env)
         pquery = ptr + std::strlen(ptr);
     
     // assign the path and query if found
-    if (ppath != ptr + std::strlen(ptr))
+    if (*ppath && *(ppath + 1))
         urlstru->InitTag("PATH", DStringGDL(string(ppath + 1, pquery - (ppath + 1))));
     else
         urlstru->InitTag("PATH", DStringGDL(""));
-    if (pquery != ptr + std::strlen(ptr))
+	
+    if (*pquery && *(pquery + 1))
         urlstru->InitTag("QUERY", DStringGDL(string(pquery + 1, std::strlen(pquery + 1))));
     else
         urlstru->InitTag("QUERY", DStringGDL(""));
+	
     urlstru_guard.release();
     return urlstru;
   }

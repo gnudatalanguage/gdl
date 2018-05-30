@@ -153,6 +153,7 @@ TESTS = \
   test_obj_isa.pro \
   test_obj_new.pro \
   test_parse_url.pro \
+  test_parse_url_php.pro \
   test_plot_oo.pro \
   test_plot_ranges.pro \
   test_plotting_ranges.pro \
