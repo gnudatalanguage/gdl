@@ -83,6 +83,11 @@ set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
 set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
 set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
 
+if(TIFF)
+	set(GEOTIFF ON CACHE BOOL "GDL: Enable libgeotiff ?")
+	set(GEOTIFFDIR "" CACHE PATH "GDL: Specify the libgeotiff directory tree")
+endif(TIFF)
+
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
 
@@ -564,7 +569,7 @@ if(TIFF)
 	find_package(TIFF QUIET)
 	set(USE_TIFF ${TIFF_FOUND})
 	if(TIFF_FOUND)
-		include_directories(${TIFF_INCLUDE_DIRS})
+		include_directories(${TIFF_INCLUDE_DIR})
 		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
 	else(TIFF_FOUND)
 		message(STATUS
@@ -573,6 +578,24 @@ if(TIFF)
 		"Use -DTIFF=OFF to not use it.")
 	endif(TIFF_FOUND)
 endif(TIFF)
+
+# libgeotiff
+# -DGEOTIFF=ON|OFF
+# -DGEOTIFFDIR=DIR
+if(GEOTIFF AND USE_TIFF)
+    set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
+    find_package(GeoTIFF QUIET)
+    set(USE_GEOTIFF ${GEOTIFF_FOUND})
+    if(GEOTIFF_FOUND)
+        include_directories(${GEOTIFF_INCLUDE_DIR})
+        set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
+    else(GEOTIFF_FOUND)
+        message(STATUS
+        "libgeotiff is required for GeoTIFF support but was not found.\n"
+        "Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
+        "Use -DGEOTIFF=OFF to not use it.")
+    endif(GEOTIFF_FOUND)
+endif(GEOTIFF AND USE_TIFF)
 
 # netCDF
 # -DNETCDF=ON|OFF
@@ -1093,6 +1116,7 @@ set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets  ")
 module(MAGICK    "ImageMagick")
 module(TIFF      "TIFF       ")
+module(GEOTIFF   "GeoTIFF    ")
 module(NETCDF    "NetCDF     ")
 module(HDF       "HDF4       ")
 module(HDF5      "HDF5       ")

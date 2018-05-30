@@ -67,6 +67,7 @@ void LibInit_exists()
   new DLibFunRetNew(lib::pslib_exists,string("PSLIB_EXISTS"));
   new DLibFunRetNew(lib::python_exists,string("PYTHON_EXISTS"));
   new DLibFunRetNew(lib::tiff_exists,string("TIFF_EXISTS"));
+  new DLibFunRetNew(lib::geotiff_exists,string("GEOTIFF_EXISTS"));
   new DLibFunRetNew(lib::udunits_exists,string("UDUNITS_EXISTS"));
   new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
   new DLibFunRetNew(lib::x11_exists, string("X11_EXISTS"));
