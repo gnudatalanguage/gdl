@@ -1962,8 +1962,11 @@ tokens {
 {
   // Stuff for include files (@filename)
   private:
+#if (__cplusplus >= 201103L)
+    std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
+#else
     std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
-                                     // it when it is deleted itself
+#endif                                     // it when it is deleted itself
   
     antlr::TokenStreamSelector*     selector; 
     GDLLexer*                       mainLexerPtr;
