@@ -48,6 +48,7 @@ private:
     friend class BaseGDL;
     friend class ProgNode;
     friend class ARRAYDEFNode;
+    friend class ARRAYDEF_GENERALIZED_INDGENNode;
     friend class STRUCNode;
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
@@ -997,10 +998,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 237;
+	static const int NUM_TOKENS = 238;
 #else
 	enum {
-		NUM_TOKENS = 237
+		NUM_TOKENS = 238
 	};
 #endif
 	

@@ -698,7 +698,23 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
   
 	return new CONSTANTNode( refNode);
       }
-    case GDLTokenTypes::ARRAYDEF:
+    case GDLTokenTypes::ARRAYDEF_GENERALIZED_INDGEN:
+      {
+	ARRAYDEF_GENERALIZED_INDGENNode* c = new ARRAYDEF_GENERALIZED_INDGENNode( refNode);
+	if( !c->ConstantArray()) return c;
+
+	Guard< ARRAYDEF_GENERALIZED_INDGENNode> guard( c);
+
+	BaseGDL* cData = c->Eval();
+
+	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
+	cN->lineNumber = refNode->getLine();
+        cN->setText( "[c1:c2:c3]");
+
+	return cN;
+
+      }
+  case GDLTokenTypes::ARRAYDEF:
       {
 	ARRAYDEFNode* c = new ARRAYDEFNode( refNode);
 	if( !c->ConstantArray()) return c;

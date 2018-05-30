@@ -367,7 +367,114 @@ BaseGDL* ARRAYDEFNode::Eval()
   return res;
 }
 
+BaseGDL* ARRAYDEF_GENERALIZED_INDGENNode::Eval()
+{
+  // GDLInterpreter::
+  DType cType = GDL_UNDEF; // conversion type
+  SizeT maxRank = 0;
+  BaseGDL* cTypeData;
+  BaseGDL * val[3];
+  DDouble off, endval, inc;
+  SizeT sz;
+  int i = 0;
 
+  ProgNodeP _t = this->getFirstChild();
+  //start,end,incr coded on 3 nodes. No more no less
+  while (_t != NULL && i < 3) {
+
+    val[i] = _t->Eval(); //expr(_t);
+    _t = _t->getNextSibling();
+
+    // add first (this way it will get cleaned up anyway)
+    if (val[i] == NullGDL::GetSingleInstance())
+      continue;
+
+    DType ty = val[i]->Type();
+    if (ty == GDL_UNDEF) {
+      throw GDLException(_t, "Variable is undefined: " +
+          ProgNode::interpreter->Name(val[i]), true, false);
+    }
+
+    if (cType == GDL_UNDEF) {
+      cType = ty;
+      cTypeData = val[i];
+    } else {
+      if (cType != ty) {
+        // update order if larger type (or types are equal)
+        if (DTypeOrder[ty] >= DTypeOrder[cType]) {
+          if (DTypeOrder[ty] >= 100) // struct, ptr, object
+          {
+            throw
+            GDLException(_t, val[i]->TypeStr() +
+                " is not allowed in this context.", true, false);
+          }
+
+          cType = (cType==GDL_STRING)?GDL_STRING:ty; //particularity: a string in creation  (a=['22':32.3:0.5]) makes a string array.
+          cTypeData = val[i];
+        } else if (DTypeOrder[cType] >= 100) // struct, ptr, object
+        {
+          throw
+          GDLException(_t, cTypeData->TypeStr() +
+              " is not allowed in this context.", true, false);
+        }
+      }
+      if (ty == GDL_STRUCT) {
+        // check for struct compatibility
+        DStructDesc* newS =
+            static_cast<DStructGDL*> (val[i])->Desc();
+        DStructDesc* oldS =
+            static_cast<DStructGDL*> (cTypeData)->Desc();
+
+        // *** here (*newS) != (*oldS) must be set when
+        // unnamed structs not in struct list anymore
+        // WRONG! This speeds up things for named structs
+        // unnamed structs all have their own desc
+        // and thus the next is always true for them
+        if (newS != oldS) {
+
+          if ((*newS) != (*oldS))
+            throw GDLException(_t,
+              "Conflicting data structures: " +
+              ProgNode::interpreter->Name(cTypeData) + ", " + ProgNode::interpreter->Name(val[i]), true, false);
+        }
+      }
+
+    }
+    // memorize maximum Rank
+    SizeT rank = val[i]->Rank();
+    if (rank > maxRank) maxRank = rank;
+    if (i == 0) off = (*(static_cast<DDoubleGDL*> (val[i]->Convert2(GDL_DOUBLE))))[0];
+    else if (i == 1) endval = (*(static_cast<DDoubleGDL*> (val[i]->Convert2(GDL_DOUBLE))))[0];
+    else if (i == 2) inc = (*(static_cast<DDoubleGDL*> (val[i]->Convert2(GDL_DOUBLE))))[0];
+    i++;
+  }
+  _t = this->getNextSibling();
+  if (i != 3) return NullGDL::GetSingleInstance();
+  if (inc == 0) throw GDLException("Array creation stride must not be 0.");
+  if ((endval - off) / inc < 0) throw GDLException("Number of elements must be greater than 0.");
+  sz = (endval - off) / inc + 1;
+  dimension dim(sz);
+  switch (cType) {
+  case GDL_INT: return new DIntGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_BYTE: return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_COMPLEX: return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_DOUBLE: return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_FLOAT: return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_LONG64: return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_LONG: return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_STRING:
+  {
+    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
+    return iGen->Convert2(GDL_STRING);
+  }
+  case GDL_UINT: return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_ULONG64: return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_ULONG: return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
+  default: break;
+  }
+  return NullGDL::GetSingleInstance();
+}
 
 BaseGDL* STRUCNode::Eval()
 {

@@ -101,6 +101,7 @@ private:
     friend class BaseGDL;
     friend class ProgNode;
     friend class ARRAYDEFNode;
+    friend class ARRAYDEF_GENERALIZED_INDGENNode;
     friend class STRUCNode;
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
@@ -2066,6 +2067,7 @@ r_expr returns [BaseGDL* res]
 }
     : EXPR
     | ARRAYDEF
+    | ARRAYDEF_GENERALIZED_INDGEN
     | STRUC
     | NSTRUC
     | NSTRUC_REF
