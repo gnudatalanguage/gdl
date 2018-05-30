@@ -1,16 +1,10 @@
-; .pro needed :
-;.compile testsuite2/gdl_idl_fl.pro
-;.compile testsuite2/banner_for_testsuite.pro
-;.compile testsuite2/errors_add.pro
-;.compile testsuite2/errors_cumul.pro
+;By Sylvain Flinois
 ;
 ;The tests bellow are made to test the PARSE_URL function 
 ;
+; The PARSE_URL function is based on IDL PARSE_URL
 ; You can find the IDL PARSE_URL function documentation at :
 ; http://www.harrisgeospatial.com/docs/PARSE_URL.html
-;
-;
-;
 ;
 
 pro TEST_PARSE_URL_BASIC, cumul_errors, verbose=verbose, test=test
@@ -88,7 +82,6 @@ pro TEST_PARSE_URL, help=help, test=test, no_exit=no_exit
 cumul_errors=0
 ;
 TEST_PARSE_URL_BASIC, cumul_errors, test=test
-;TEST_PARSE_URL_SCHEMES, cumul_errors, test=test
 ;
 ; ----------------- final message ----------
 ;

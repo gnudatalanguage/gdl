@@ -8049,12 +8049,7 @@ BaseGDL* parse_url( EnvT* env)
     char const *str = url.c_str();
     size_t length = url.length();
     char const*ptr, *pat, *ppass, *ppath, *phostend, *pport, *pquery;
-    
-    // ERROR CASE : 
-    //'https://user:password@www.google.com:?'
-    //InterpreterLoop: Exception: basic_string::_M_create
 
-    
     // initialise PORT at 80
     urlstru->InitTag("PORT", DStringGDL("80"));
     
@@ -8064,17 +8059,16 @@ BaseGDL* parse_url( EnvT* env)
     }
     // Search for the host component and exit if "://" is not found
     ptr = std::strstr(str, "://");
-
     if (ptr == NULL){
         urlstru_guard.release();
         return urlstru;
     }
 
-    
-     urlstru->InitTag("SCHEME", DStringGDL(string(str, ptr - str)));
+	 urlstru->InitTag("SCHEME", DStringGDL(string(str, ptr - str)));
     // move past the "://"
     ptr += 3;
-    // extract the username and passport if found
+
+    // extract the username and password if found
     pat = std::strchr(ptr, '@');
     if (pat != NULL) {
         ppass = std::strchr(ptr, ':');
