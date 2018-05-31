@@ -74,6 +74,8 @@ dpro.cpp
 dpro.hpp
 dstructdesc.cpp
 dstructdesc.hpp
+dstructfactory.cxx
+dstructfactory.hxx
 dstructgdl.cpp
 dstructgdl.hpp
 dvar.cpp
