@@ -1,5 +1,5 @@
 /***************************************************************************
-                          tiff_cl.hpp - GDL TIFF library functions
+                          tiff_cl.hxx - GDL TIFF library functions
                              -------------------
     begin                : May 22 2018
     copyright            : (C) 2018 by Remi A. Solås
@@ -15,8 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef TIFF_HPP_CL
-#define TIFF_HPP_CL
+#ifndef TIFF_HXX_CL
+#define TIFF_HXX_CL
 
 #include "includefirst.hpp"
 #include "datatypes.hpp"

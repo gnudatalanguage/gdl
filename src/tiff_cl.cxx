@@ -1,5 +1,5 @@
 /***************************************************************************
-                          tiff_cl.cpp - GDL TIFF library functions
+                          tiff_cl.cxx - GDL TIFF library functions
                              -------------------
     begin                : May 22 2018
     copyright            : (C) 2018 by Remi A. Solås
@@ -23,7 +23,7 @@
 
 #ifdef USE_TIFF
 
-#include "tiff_cl.hpp"
+#include "tiff_cl.hxx"
 #include "dstructfactory.hxx"
 
 namespace lib

@@ -42,7 +42,7 @@
 #endif
 
 #ifdef USE_TIFF
-#  include "tiff_cl.hpp"
+#  include "tiff_cl.hxx"
 #endif
 
 using namespace std;
