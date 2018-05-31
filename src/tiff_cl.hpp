@@ -18,15 +18,21 @@
 #ifndef TIFF_HPP_CL
 #define TIFF_HPP_CL
 
-#include <tiffio.h>
+#include "includefirst.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+
+#ifdef USE_GEOTIFF
+#   include <xtiffio.h>
+#   include <geotiff.h>
+#else
+#   include <tiffio.h>
+#endif
 
 namespace lib
 {
     namespace TIFF
     {
-        // Maximum number of tags combined into a single GDL key
-        static constexpr size_t N = 2;
-
         struct Directory
         {
             uint32 width                = 0;
@@ -106,32 +112,68 @@ namespace lib
             const char* dateTime        = "";
         };
 
+        struct GeoKey
+        {
+            ~GeoKey();
+
+            union
+            {
+                int8_t*     b;
+                int16_t*    i;
+                int32_t*    l;
+                uint8_t*    ub;
+                uint16_t*   ui;
+                uint32_t*   ul;
+                float*      f;
+                double*     d;
+                char*       str;
+                void*       ptr;
+            } value             = { 0 };
+
+            tagtype_t   type    = TYPE_UNKNOWN;
+            size_t      count   = 0;
+        };
+
         class Handler
         {
         public:
              Handler();
             ~Handler();
 
-            bool      Open(const char* file, const char* mode);
-            bool      GetDirectory(tdir_t, Directory&);
-            size_t    DirectoryCount() const;
-            uint16    FileVersion() const;
+            bool    Open(const char* file, const char* mode);
+            void    Close();
+            bool    GetDirectory(tdir_t, Directory&);
+            size_t  DirectoryCount() const;
+            uint16  FileVersion() const;
 
-            template<typename T>
-            bool GetField(ttag_t tag, T& var, bool req = false) {
-                if(tif_ && !TIFFGetField(tif_, tag, &var)) {
-                    if(!req) return false;
-                    if(auto field = TIFFFieldWithTag(tif_, tag))
-                    throw TIFFFieldName(field); else throw tag;
-                } else return (tif_ != nullptr);
+            template<typename... Ts>
+            bool GetField(ttag_t tag, Ts&... vars)
+            {
+                return (tiff_ && TIFFGetField(tiff_, tag, &vars...));
             }
 
+            template<typename T>
+            void GetRequiredField(ttag_t tag, T& var)
+            {
+                if(tiff_ && !TIFFGetField(tiff_, tag, &var)) {
+                    if(auto field = TIFFFieldWithTag(tiff_, tag))
+                    throw TIFFFieldName(field); else throw tag;
+                }
+            }
+
+            #ifdef USE_GEOTIFF
+            bool GetGeoKey(geokey_t, GeoKey&);
+            #endif
+
         private:
-            ::TIFF*             tif_    = nullptr;
+            ::TIFF*             tiff_   = nullptr;
+            #ifdef USE_GEOTIFF
+            GTIF*               gtif_   = nullptr;
+            #endif
             TIFFErrorHandler    defEH_  = nullptr;
             TIFFErrorHandler    defWH_  = nullptr;
-            TIFFHeaderCommon    header_ = { 0 };
             size_t              nDirs_  = 1;
+            uint16              verNum_ = 0;
         };
     }
 

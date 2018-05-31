@@ -23,17 +23,21 @@
 
 #ifdef USE_TIFF
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "tiff_cl.hpp"
-#include <map>
+#include "dstructfactory.hxx"
 
 namespace lib
 {
     namespace TIFF
     {
-        Handler::Handler() {
+        GeoKey::~GeoKey()
+        {
+            if(value.ptr)
+                free(value.ptr);
+        }
+
+        Handler::Handler()
+        {
             defEH_ = TIFFSetErrorHandler([](const char* mod, const char* fmt, va_list args) {
                 // Ignore TIFFSetDirectory errors
                 if(!strcmp(mod, "TIFFSetDirectory")) return;
@@ -49,51 +53,100 @@ namespace lib
             });
         }
 
-        Handler::~Handler() {
+        Handler::~Handler()
+        {
+            Close();
+
             if(defEH_) TIFFSetErrorHandler(defEH_);
             if(defWH_) TIFFSetWarningHandler(defWH_);
-            if(tif_) TIFFClose(tif_);
         }
 
-        bool Handler::Open(const char* file, const char* mode) {
-            if(FILE* f = fopen(file, "r")) {
-                if(!fread(&header_, sizeof(header_), 1, f))
-                    fprintf(stderr, "%s: could not read TIFF header\n", file);
-                fclose(f);
+        bool Handler::Open(const char* file, const char* mode)
+        {
+            TIFFHeaderCommon head;
+            FILE* fptr;
+
+            if(!(fptr = fopen(file, "r"))) {
+                fprintf(stderr, "%s: could not open file for reading\n", file);
+                return false;
             }
 
-            if((tif_ = TIFFOpen(file, mode))) {
-                while(TIFFReadDirectory(tif_)) nDirs_++;
-                TIFFSetDirectory(tif_, 0);
-                return true;
+            if(!fread(&head, sizeof(head), 1, fptr)) {
+                fprintf(stderr, "%s: could not read TIFF header\n", file);
+                fclose(fptr);
+                return false;
             }
 
-            return false;
+            fclose(fptr);
+            verNum_ = head.tiff_version;
+
+            union { uint16_t w; uint8_t b[2]; } u = { 0xBEEF };
+            static bool big = (u.b[0] == 0xBE && u.b[1] == 0xEF);
+
+            if(head.tiff_magic == TIFF_BIGENDIAN && !big)
+                TIFFSwabShort(&verNum_);
+
+            #ifdef USE_GEOTIFF
+            if(!(tiff_ = XTIFFOpen(file, mode)))
+                return (Close(), false);
+
+            if(!(gtif_ = GTIFNew(tiff_)))
+                return (Close(), false);
+            #else
+            if(!(tiff_ = TIFFOpen(file, mode)))
+                return (Close(), false);
+            #endif
+
+            while(TIFFReadDirectory(tiff_)) nDirs_++;
+            TIFFSetDirectory(tiff_, 0);
+            return true;
         }
 
-        bool Handler::GetDirectory(tdir_t index, Directory& dir) {
-            if(!tif_ || !TIFFSetDirectory(tif_, index))
+        void Handler::Close()
+        {
+            #ifdef USE_GEOTIFF
+            if(gtif_)
+            {
+                GTIFFree(gtif_);
+                gtif_ = nullptr;
+            }
+            #endif
+
+            if(tiff_)
+            {
+                TIFFClose(tiff_);
+                tiff_ = nullptr;
+            }
+
+            nDirs_ = 1;
+            verNum_ = 0;
+        }
+
+        bool Handler::GetDirectory(tdir_t index, Directory& dir)
+        {
+            if(!tiff_ || !TIFFSetDirectory(tiff_, index))
                 return false;
 
             try {
-                GetField(TIFFTAG_IMAGEWIDTH,        dir.width,              true);
-                GetField(TIFFTAG_IMAGELENGTH,       dir.height,             true);
-                GetField(TIFFTAG_TILEWIDTH,         dir.tileWidth,          false);
-                GetField(TIFFTAG_TILELENGTH,        dir.tileHeight,         false);
-                GetField(TIFFTAG_SAMPLESPERPIXEL,   dir.samplesPerPixel,    true);
-                GetField(TIFFTAG_BITSPERSAMPLE,     dir.bitsPerSample,      true);
-                GetField(TIFFTAG_XPOSITION,         dir.position.x,         false);
-                GetField(TIFFTAG_YPOSITION,         dir.position.y,         false);
-                GetField(TIFFTAG_RESOLUTIONUNIT,    dir.resolution.unit,    false);
-                GetField(TIFFTAG_XRESOLUTION,       dir.resolution.x,       true);
-                GetField(TIFFTAG_YRESOLUTION,       dir.resolution.y,       true);
-                GetField(TIFFTAG_ORIENTATION,       dir.orientation,        false);
-                GetField(TIFFTAG_SAMPLEFORMAT,      dir.sampleFormat,       true);
-                GetField(TIFFTAG_PLANARCONFIG,      dir.planarConfig,       true);
-                GetField(TIFFTAG_PHOTOMETRIC,       dir.photometric,        true);
-                GetField(TIFFTAG_IMAGEDESCRIPTION,  dir.description,        false);
-                GetField(TIFFTAG_DOCUMENTNAME,      dir.name,               false);
-                GetField(TIFFTAG_DATETIME,          dir.dateTime,           false);
+                GetRequiredField(TIFFTAG_IMAGEWIDTH,        dir.width);
+                GetRequiredField(TIFFTAG_IMAGELENGTH,       dir.height);
+                GetRequiredField(TIFFTAG_SAMPLESPERPIXEL,   dir.samplesPerPixel);
+                GetRequiredField(TIFFTAG_BITSPERSAMPLE,     dir.bitsPerSample);
+                GetRequiredField(TIFFTAG_XRESOLUTION,       dir.resolution.x);
+                GetRequiredField(TIFFTAG_YRESOLUTION,       dir.resolution.y);
+                GetRequiredField(TIFFTAG_SAMPLEFORMAT,      dir.sampleFormat);
+                GetRequiredField(TIFFTAG_PLANARCONFIG,      dir.planarConfig);
+                GetRequiredField(TIFFTAG_PHOTOMETRIC,       dir.photometric);
+
+                GetField(TIFFTAG_TILEWIDTH,                 dir.tileWidth);
+                GetField(TIFFTAG_TILELENGTH,                dir.tileHeight);
+                GetField(TIFFTAG_XPOSITION,                 dir.position.x);
+                GetField(TIFFTAG_YPOSITION,                 dir.position.y);
+                GetField(TIFFTAG_RESOLUTIONUNIT,            dir.resolution.unit);
+                GetField(TIFFTAG_ORIENTATION,               dir.orientation);
+                GetField(TIFFTAG_IMAGEDESCRIPTION,          dir.description);
+                GetField(TIFFTAG_DOCUMENTNAME,              dir.name);
+                GetField(TIFFTAG_DATETIME,                  dir.dateTime);
             }
             catch(const char* tag) {
                 fprintf(stderr, "missing tag: %s\n", tag);
@@ -107,48 +160,38 @@ namespace lib
             return true;
         }
 
-        size_t Handler::DirectoryCount() const {
-            return (tif_ ? nDirs_ : 0);
+        size_t Handler::DirectoryCount() const
+        {
+            return (tiff_ ? nDirs_ : 0);
         }
 
-        uint16 Handler::FileVersion() const {
-            // Byte-order dependent
-            return (tif_ ? header_.tiff_version : 0);
-        }
-    }
-
-    class DStructFactory
-    {
-    public:
-        ~DStructFactory() {
-            for(auto& pair : vals_)
-                delete pair.second;
+        uint16 Handler::FileVersion() const
+        {
+            return (tiff_ ? verNum_ : 0);
         }
 
-        template<class T, typename... Vs>
-        void Add(const char* name, const Vs&... vals) {
-            constexpr auto N = sizeof...(Vs);
-            auto proto = new typename T::Traits(dimension(N));
-            typename T::Ty arr[] = { static_cast<typename T::Ty>(vals)... };
-            desc_->AddTag(name, proto);
-            vals_[name] = (N > 1 ? new T(arr, N) : new T(arr[0]));
-            delete proto;
-        }
+        #ifdef USE_GEOTIFF
+        bool Handler::GetGeoKey(geokey_t key, GeoKey& res)
+        {
+            int size;
 
-        DStructGDL* Create() {
-            auto res = new DStructGDL(desc_, dimension());
-            for(auto& pair : vals_) {
-                res->InitTag(pair.first, *pair.second);
-                delete pair.second;
+            if((gtif_ && (res.count = GTIFKeyInfo(gtif_, key, &size, &res.type)))) {
+                if(res.value.ptr)
+                    free(res.value.ptr);
+
+                if((res.value.ptr = malloc(size * res.count))) {
+                    if(GTIFKeyGet(gtif_, key, res.value.ptr, 0, res.count))
+                        return true;
+
+                    free(res.value.ptr);
+                }
             }
-            vals_.clear();
-            return res;
-        }
 
-    private:
-        DStructDesc* desc_ = new DStructDesc("$truct");
-        std::map<const char*, BaseGDL*> vals_;
-    };
+            res = { 0 };
+            return false;
+        }
+        #endif
+    }
 
     BaseGDL* tiff_query(EnvT* e) {
         // ref: https://www.harrisgeospatial.com/docs/query___routines.html
@@ -246,6 +289,116 @@ namespace lib
 
                 e->SetKW(infoIx, info.Create());
             }
+
+            #ifdef USE_GEOTIFF
+            static int gtifIx = e->KeywordIx("GEOTIFF");
+            if(e->KeywordPresent(gtifIx)) {
+                DStructFactory gtif;
+                TIFF::GeoKey gk;
+                int16 nvals;
+                double* val;
+
+                // TIFF geo fields
+                if(tiff.GetField(TIFFTAG_GEOPIXELSCALE, nvals, val))
+                    gtif.AddArr<DDoubleGDL>("MODELPIXELSCALETAG", nvals, val);
+                if(tiff.GetField(TIFFTAG_GEOTRANSMATRIX, nvals, val))
+                    gtif.AddArr<DDoubleGDL>("MODELTRANSFORMATIONTAG", nvals, val);
+                if(tiff.GetField(TIFFTAG_GEOTIEPOINTS, nvals, val))
+                    gtif.AddMat<DDoubleGDL>("MODELTIEPOINTTAG", 6, nvals / 6, val);
+
+                // GeoTIFF keys
+                if(tiff.GetGeoKey(GTModelTypeGeoKey, gk))
+                    gtif.Add<DIntGDL>("GTMODELTYPEGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GTModelTypeGeoKey, gk))
+                    gtif.Add<DIntGDL>("GTRASTERTYPEGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GTCitationGeoKey, gk))
+                    gtif.Add<DStringGDL>("GTCITATIONGEOKEY", gk.value.str);
+                if(tiff.GetGeoKey(GeographicTypeGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGRAPHICTYPEGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogCitationGeoKey, gk))
+                    gtif.Add<DStringGDL>("GEOGCITATIONGEOKEY", gk.value.str);
+                if(tiff.GetGeoKey(GeogGeodeticDatumGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGGEODETICDATUMGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogPrimeMeridianGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGPRIMEMERIDIANGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogLinearUnitsGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGLINEARUNITSGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogLinearUnitSizeGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGLINEARUNITSIZEGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(GeogAngularUnitsGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGANGULARUNITSGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogAngularUnitSizeGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGANGULARUNITSIZEGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(GeogEllipsoidGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGELLIPSOIDGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogSemiMajorAxisGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGSEMIMAJORAXISGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(GeogSemiMinorAxisGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGSEMIMINORAXISGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(GeogInvFlatteningGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGINVFLATTENINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(GeogAzimuthUnitsGeoKey, gk))
+                    gtif.Add<DIntGDL>("GEOGAZIMUTHUNITSGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(GeogPrimeMeridianLongGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("GEOGPRIMEMERIDIANLONGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjectedCSTypeGeoKey, gk))
+                    gtif.Add<DIntGDL>("PROJECTEDCSTYPEGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(PCSCitationGeoKey, gk))
+                    gtif.Add<DStringGDL>("PCSCITATIONGEOKEY", gk.value.str);
+                if(tiff.GetGeoKey(ProjectionGeoKey, gk))
+                    gtif.Add<DIntGDL>("PROJECTIONGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(ProjCoordTransGeoKey, gk))
+                    gtif.Add<DIntGDL>("PROJCOORDTRANSGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(ProjLinearUnitsGeoKey, gk))
+                    gtif.Add<DIntGDL>("PROJLINEARUNITSGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(ProjLinearUnitSizeGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJLINEARUNITSIZEGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjStdParallel1GeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJSTDPARALLEL1GEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjStdParallel2GeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJSTDPARALLEL2GEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjNatOriginLongGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJNATORIGINLONGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjNatOriginLatGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJNATORIGINLATGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseEastingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSEEASTINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseNorthingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSENORTHINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseOriginLongGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINLONGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseOriginLatGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINLATGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseOriginEastingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINEASTINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjFalseOriginNorthingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINNORTHINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjCenterLongGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJCENTERLONGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjCenterEastingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJCENTEREASTINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjCenterNorthingGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJCENTERNORTHINGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjScaleAtNatOriginGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJSCALEATNATORIGINGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjScaleAtCenterGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJSCALEATCENTERGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjAzimuthAngleGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJAZIMUTHANGLEGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(ProjStraightVertPoleLongGeoKey, gk))
+                    gtif.Add<DDoubleGDL>("PROJSTRAIGHTVERTPOLELONGGEOKEY", *gk.value.d);
+                if(tiff.GetGeoKey(VerticalCSTypeGeoKey, gk))
+                    gtif.Add<DIntGDL>("VERTICALCSTYPEGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(VerticalCitationGeoKey, gk))
+                    gtif.Add<DStringGDL>("VERTICALCITATIONGEOKEY", gk.value.str);
+                if(tiff.GetGeoKey(VerticalDatumGeoKey, gk))
+                    gtif.Add<DIntGDL>("VERTICALDATUMGEOKEY", *gk.value.i);
+                if(tiff.GetGeoKey(VerticalUnitsGeoKey, gk))
+                    gtif.Add<DIntGDL>("VERTICALUNITSGEOKEY", *gk.value.i);
+
+                e->SetKW(gtifIx, gtif.Create());
+            }
+            #endif
 
             return new DLongGDL(1);
         }
