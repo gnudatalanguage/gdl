@@ -158,7 +158,6 @@ namespace lib {
   // (slayoo@users.sourceforge.net)
   BaseGDL* reverse( EnvT* e);
   BaseGDL* parse_url( EnvT* e);
-  BaseGDL* parse_url_php( EnvT* e);
   BaseGDL* locale_get( EnvT* e);
   BaseGDL* get_login_info( EnvT* e);
   BaseGDL* command_line_args_fun(EnvT* e);
