@@ -2461,11 +2461,20 @@ void delvar_pro( EnvT* e)
 		if( par->Type() == GDL_OBJ) {
 /*			if(trace_me) // deliberately skpping code unless in debug mode.
 				std::cout << " ** delvar on object "<< parString<< std::endl;
-			else { */
+			else {	// */
+			bool skip = false;
+			DObjGDL* pObj = static_cast<DObjGDL*>( par);
+			for( SizeT i=0; i < pObj->N_Elements(); ++i) 
+				if( e->Interpreter()->ObjValid( (*pObj)[i]) ){
+				skip = true;
+				continue;
+				}
+			if( skip) {
 				std::cout << " ** DELVAR - object " + parString + 
 				"	skipped !! use obj_destroy " << std::endl;
 				continue;
 				}
+		}
 /*	GDLDelete may not be adequate for cleanup.  Problems calling this way.
 // ObjCleanup wants to reference _EXTRA keyword but DELVAR does not support that.
 	 		DObjGDL* op= static_cast<DObjGDL*>(par);
