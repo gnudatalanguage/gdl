@@ -30,11 +30,58 @@ namespace lib
 {
     namespace TIFF
     {
+        DType Directory::PixelType() const
+        {
+            static const char BPS_ERR_FMT[] = "unsupported value of BITSPERSAMPLE for SAMPLEFORMAT %s: %u\n";
+            DType pixelType = GDL_UNDEF;
+
+            // NOTE: IDL seems to support 1 and 4 bits per sample values, however,
+            // the PIXEL_TYPE value is not clearly stated in the documentation.
+            // For now, just assume GDL_BYTE for these values.
+
+            switch(sampleFormat) {
+            case TIFF::Directory::SampleFormat::UnsignedInteger:
+                switch(bitsPerSample) {
+                case  1:
+                case  4:
+                case  8: pixelType = GDL_BYTE;  break;
+                case 16: pixelType = GDL_UINT;  break;
+                case 32: pixelType = GDL_ULONG; break;
+                default: printf(BPS_ERR_FMT, "UINT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::SignedInteger:
+                switch(bitsPerSample) {
+                case 16: pixelType = GDL_INT;   break;
+                case 32: pixelType = GDL_LONG;  break;
+                default: printf(BPS_ERR_FMT, "INT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::FloatingPoint:
+                switch(bitsPerSample) {
+                case 32: pixelType = GDL_FLOAT; break;
+                default: printf(BPS_ERR_FMT, "FLOAT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::Untyped:
+            case TIFF::Directory::SampleFormat::ComplexInteger:
+            case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
+            default:;
+            }
+
+            // The TIFF standard support SAMPLEFORMAT of complex numbers (of both integers and floating points),
+            // but according to the documentation, there is no explicit support for 64 and 128 bits per sample.
+            // Though we could support such images in GDL, this would be an non-compliant extension of IDL.
+            // In the future, we might add improved TIFF support using some custom input parameter, thus also
+            // allowing us to support both half- and double-precision floating points, as well as 64-bit integers.
+
+            return pixelType;
+        }
+
+        #ifdef USE_GEOTIFF
         GeoKey::~GeoKey()
         {
             if(value.ptr)
                 free(value.ptr);
         }
+        #endif
 
         Handler::Handler()
         {
@@ -122,7 +169,7 @@ namespace lib
             verNum_ = 0;
         }
 
-        bool Handler::GetDirectory(tdir_t index, Directory& dir)
+        bool Handler::GetDirectory(tdir_t index, Directory& dir) const
         {
             if(!tiff_ || !TIFFSetDirectory(tiff_, index))
                 return false;
@@ -171,7 +218,118 @@ namespace lib
         }
 
         #ifdef USE_GEOTIFF
-        bool Handler::GetGeoKey(geokey_t key, GeoKey& res)
+        DStructGDL* Handler::CreateGeoStruct(tdir_t index) const
+        {
+            if(!tiff_ || !TIFFSetDirectory(tiff_, index))
+                return nullptr;
+
+            DStructFactory gtif;
+            TIFF::GeoKey gk;
+            int16 nvals;
+            double* val;
+
+            // TIFF geo fields
+            if(GetField(TIFFTAG_GEOPIXELSCALE, nvals, val))
+                gtif.AddArr<DDoubleGDL>("MODELPIXELSCALETAG", nvals, val);
+            if(GetField(TIFFTAG_GEOTRANSMATRIX, nvals, val))
+                gtif.AddArr<DDoubleGDL>("MODELTRANSFORMATIONTAG", nvals, val);
+            if(GetField(TIFFTAG_GEOTIEPOINTS, nvals, val))
+                gtif.AddMat<DDoubleGDL>("MODELTIEPOINTTAG", 6, nvals / 6, val);
+
+            // GeoTIFF keys
+            if(GetGeoKey(GTModelTypeGeoKey, gk))
+                gtif.Add<DIntGDL>("GTMODELTYPEGEOKEY", *gk.value.i);
+            if(GetGeoKey(GTModelTypeGeoKey, gk))
+                gtif.Add<DIntGDL>("GTRASTERTYPEGEOKEY", *gk.value.i);
+            if(GetGeoKey(GTCitationGeoKey, gk))
+                gtif.Add<DStringGDL>("GTCITATIONGEOKEY", gk.value.str);
+            if(GetGeoKey(GeographicTypeGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGRAPHICTYPEGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogCitationGeoKey, gk))
+                gtif.Add<DStringGDL>("GEOGCITATIONGEOKEY", gk.value.str);
+            if(GetGeoKey(GeogGeodeticDatumGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGGEODETICDATUMGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogPrimeMeridianGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGPRIMEMERIDIANGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogLinearUnitsGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGLINEARUNITSGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogLinearUnitSizeGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGLINEARUNITSIZEGEOKEY", *gk.value.d);
+            if(GetGeoKey(GeogAngularUnitsGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGANGULARUNITSGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogAngularUnitSizeGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGANGULARUNITSIZEGEOKEY", *gk.value.d);
+            if(GetGeoKey(GeogEllipsoidGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGELLIPSOIDGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogSemiMajorAxisGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGSEMIMAJORAXISGEOKEY", *gk.value.d);
+            if(GetGeoKey(GeogSemiMinorAxisGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGSEMIMINORAXISGEOKEY", *gk.value.d);
+            if(GetGeoKey(GeogInvFlatteningGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGINVFLATTENINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(GeogAzimuthUnitsGeoKey, gk))
+                gtif.Add<DIntGDL>("GEOGAZIMUTHUNITSGEOKEY", *gk.value.i);
+            if(GetGeoKey(GeogPrimeMeridianLongGeoKey, gk))
+                gtif.Add<DDoubleGDL>("GEOGPRIMEMERIDIANLONGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjectedCSTypeGeoKey, gk))
+                gtif.Add<DIntGDL>("PROJECTEDCSTYPEGEOKEY", *gk.value.i);
+            if(GetGeoKey(PCSCitationGeoKey, gk))
+                gtif.Add<DStringGDL>("PCSCITATIONGEOKEY", gk.value.str);
+            if(GetGeoKey(ProjectionGeoKey, gk))
+                gtif.Add<DIntGDL>("PROJECTIONGEOKEY", *gk.value.i);
+            if(GetGeoKey(ProjCoordTransGeoKey, gk))
+                gtif.Add<DIntGDL>("PROJCOORDTRANSGEOKEY", *gk.value.i);
+            if(GetGeoKey(ProjLinearUnitsGeoKey, gk))
+                gtif.Add<DIntGDL>("PROJLINEARUNITSGEOKEY", *gk.value.i);
+            if(GetGeoKey(ProjLinearUnitSizeGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJLINEARUNITSIZEGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjStdParallel1GeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJSTDPARALLEL1GEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjStdParallel2GeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJSTDPARALLEL2GEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjNatOriginLongGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJNATORIGINLONGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjNatOriginLatGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJNATORIGINLATGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseEastingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSEEASTINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseNorthingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSENORTHINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseOriginLongGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSEORIGINLONGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseOriginLatGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSEORIGINLATGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseOriginEastingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSEORIGINEASTINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjFalseOriginNorthingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJFALSEORIGINNORTHINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjCenterLongGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJCENTERLONGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjCenterEastingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJCENTEREASTINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjCenterNorthingGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJCENTERNORTHINGGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjScaleAtNatOriginGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJSCALEATNATORIGINGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjScaleAtCenterGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJSCALEATCENTERGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjAzimuthAngleGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJAZIMUTHANGLEGEOKEY", *gk.value.d);
+            if(GetGeoKey(ProjStraightVertPoleLongGeoKey, gk))
+                gtif.Add<DDoubleGDL>("PROJSTRAIGHTVERTPOLELONGGEOKEY", *gk.value.d);
+            if(GetGeoKey(VerticalCSTypeGeoKey, gk))
+                gtif.Add<DIntGDL>("VERTICALCSTYPEGEOKEY", *gk.value.i);
+            if(GetGeoKey(VerticalCitationGeoKey, gk))
+                gtif.Add<DStringGDL>("VERTICALCITATIONGEOKEY", gk.value.str);
+            if(GetGeoKey(VerticalDatumGeoKey, gk))
+                gtif.Add<DIntGDL>("VERTICALDATUMGEOKEY", *gk.value.i);
+            if(GetGeoKey(VerticalUnitsGeoKey, gk))
+                gtif.Add<DIntGDL>("VERTICALUNITSGEOKEY", *gk.value.i);
+
+            return gtif.Create();
+        }
+
+        bool Handler::GetGeoKey(geokey_t key, GeoKey& res) const
         {
             int size;
 
@@ -193,7 +351,8 @@ namespace lib
         #endif
     }
 
-    BaseGDL* tiff_query(EnvT* e) {
+    BaseGDL* tiff_query(EnvT* e)
+    {
         // ref: https://www.harrisgeospatial.com/docs/query___routines.html
         // ref: https://www.harrisgeospatial.com/docs/QUERY_TIFF.html
         // ref: https://www.adobe.io/open/standards/TIFF.html
@@ -210,7 +369,6 @@ namespace lib
 
         TIFF::Handler tiff;
         TIFF::Directory dir;
-        DInt pixelType = GDL_UNDEF;
 
         if(tiff.Open(filename.c_str(), "r")) {
             if(!tiff.GetDirectory(imageIndex, dir)) {
@@ -218,46 +376,8 @@ namespace lib
                 return new DLongGDL(0);
             }
 
-            DInt pixelType = GDL_UNDEF;
             DInt hasPalette = (dir.photometric == TIFF::Directory::Photometric::Palette);
-            static const char BPS_ERR_FMT[] = "unsupported value of BITSPERSAMPLE for SAMPLEFORMAT %s: %u\n";
-
-            // NOTE: IDL seems to support 1 and 4 bits per sample values, however,
-            // the PIXEL_TYPE value is not clearly stated in the documentation.
-            // For now, just assume GDL_BYTE for these values.
-
-            switch(dir.sampleFormat) {
-            case TIFF::Directory::SampleFormat::UnsignedInteger:
-                switch(dir.bitsPerSample) {
-                case  1:
-                case  4:
-                case  8: pixelType = GDL_BYTE;  break;
-                case 16: pixelType = GDL_UINT;  break;
-                case 32: pixelType = GDL_ULONG; break;
-                default: printf(BPS_ERR_FMT, "UINT", dir.bitsPerSample);
-                } break;
-            case TIFF::Directory::SampleFormat::SignedInteger:
-                switch(dir.bitsPerSample) {
-                case 16: pixelType = GDL_INT;   break;
-                case 32: pixelType = GDL_LONG;  break;
-                default: printf(BPS_ERR_FMT, "INT", dir.bitsPerSample);
-                } break;
-            case TIFF::Directory::SampleFormat::FloatingPoint:
-                switch(dir.bitsPerSample) {
-                case 32: pixelType = GDL_FLOAT; break;
-                default: printf(BPS_ERR_FMT, "FLOAT", dir.bitsPerSample);
-                } break;
-            case TIFF::Directory::SampleFormat::Untyped:
-            case TIFF::Directory::SampleFormat::ComplexInteger:
-            case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
-            default:;
-            }
-
-            // The TIFF standard support SAMPLEFORMAT of complex numbers (of both integers and floating points),
-            // but according to the documentation, there is no explicit support for 64 and 128 bits per sample.
-            // Though we could support such images in GDL, this would be an non-compliant extension of IDL.
-            // In the future, we might add improved TIFF support using some custom input parameter, thus also
-            // allowing us to support both half- and double-precision floating points, as well as 64-bit integers.
+            DType pixelType = dir.PixelType();
 
             if(pixelType == GDL_UNDEF)
                 return new DLongGDL(0);
@@ -293,110 +413,7 @@ namespace lib
             #ifdef USE_GEOTIFF
             static int gtifIx = e->KeywordIx("GEOTIFF");
             if(e->KeywordPresent(gtifIx)) {
-                DStructFactory gtif;
-                TIFF::GeoKey gk;
-                int16 nvals;
-                double* val;
-
-                // TIFF geo fields
-                if(tiff.GetField(TIFFTAG_GEOPIXELSCALE, nvals, val))
-                    gtif.AddArr<DDoubleGDL>("MODELPIXELSCALETAG", nvals, val);
-                if(tiff.GetField(TIFFTAG_GEOTRANSMATRIX, nvals, val))
-                    gtif.AddArr<DDoubleGDL>("MODELTRANSFORMATIONTAG", nvals, val);
-                if(tiff.GetField(TIFFTAG_GEOTIEPOINTS, nvals, val))
-                    gtif.AddMat<DDoubleGDL>("MODELTIEPOINTTAG", 6, nvals / 6, val);
-
-                // GeoTIFF keys
-                if(tiff.GetGeoKey(GTModelTypeGeoKey, gk))
-                    gtif.Add<DIntGDL>("GTMODELTYPEGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GTModelTypeGeoKey, gk))
-                    gtif.Add<DIntGDL>("GTRASTERTYPEGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GTCitationGeoKey, gk))
-                    gtif.Add<DStringGDL>("GTCITATIONGEOKEY", gk.value.str);
-                if(tiff.GetGeoKey(GeographicTypeGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGRAPHICTYPEGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogCitationGeoKey, gk))
-                    gtif.Add<DStringGDL>("GEOGCITATIONGEOKEY", gk.value.str);
-                if(tiff.GetGeoKey(GeogGeodeticDatumGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGGEODETICDATUMGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogPrimeMeridianGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGPRIMEMERIDIANGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogLinearUnitsGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGLINEARUNITSGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogLinearUnitSizeGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGLINEARUNITSIZEGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(GeogAngularUnitsGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGANGULARUNITSGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogAngularUnitSizeGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGANGULARUNITSIZEGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(GeogEllipsoidGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGELLIPSOIDGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogSemiMajorAxisGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGSEMIMAJORAXISGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(GeogSemiMinorAxisGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGSEMIMINORAXISGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(GeogInvFlatteningGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGINVFLATTENINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(GeogAzimuthUnitsGeoKey, gk))
-                    gtif.Add<DIntGDL>("GEOGAZIMUTHUNITSGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(GeogPrimeMeridianLongGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("GEOGPRIMEMERIDIANLONGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjectedCSTypeGeoKey, gk))
-                    gtif.Add<DIntGDL>("PROJECTEDCSTYPEGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(PCSCitationGeoKey, gk))
-                    gtif.Add<DStringGDL>("PCSCITATIONGEOKEY", gk.value.str);
-                if(tiff.GetGeoKey(ProjectionGeoKey, gk))
-                    gtif.Add<DIntGDL>("PROJECTIONGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(ProjCoordTransGeoKey, gk))
-                    gtif.Add<DIntGDL>("PROJCOORDTRANSGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(ProjLinearUnitsGeoKey, gk))
-                    gtif.Add<DIntGDL>("PROJLINEARUNITSGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(ProjLinearUnitSizeGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJLINEARUNITSIZEGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjStdParallel1GeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJSTDPARALLEL1GEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjStdParallel2GeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJSTDPARALLEL2GEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjNatOriginLongGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJNATORIGINLONGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjNatOriginLatGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJNATORIGINLATGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseEastingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSEEASTINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseNorthingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSENORTHINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseOriginLongGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINLONGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseOriginLatGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINLATGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseOriginEastingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINEASTINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjFalseOriginNorthingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJFALSEORIGINNORTHINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjCenterLongGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJCENTERLONGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjCenterEastingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJCENTEREASTINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjCenterNorthingGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJCENTERNORTHINGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjScaleAtNatOriginGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJSCALEATNATORIGINGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjScaleAtCenterGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJSCALEATCENTERGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjAzimuthAngleGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJAZIMUTHANGLEGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(ProjStraightVertPoleLongGeoKey, gk))
-                    gtif.Add<DDoubleGDL>("PROJSTRAIGHTVERTPOLELONGGEOKEY", *gk.value.d);
-                if(tiff.GetGeoKey(VerticalCSTypeGeoKey, gk))
-                    gtif.Add<DIntGDL>("VERTICALCSTYPEGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(VerticalCitationGeoKey, gk))
-                    gtif.Add<DStringGDL>("VERTICALCITATIONGEOKEY", gk.value.str);
-                if(tiff.GetGeoKey(VerticalDatumGeoKey, gk))
-                    gtif.Add<DIntGDL>("VERTICALDATUMGEOKEY", *gk.value.i);
-                if(tiff.GetGeoKey(VerticalUnitsGeoKey, gk))
-                    gtif.Add<DIntGDL>("VERTICALUNITSGEOKEY", *gk.value.i);
-
-                e->SetKW(gtifIx, gtif.Create());
+                e->SetKW(gtifIx, tiff.CreateGeoStruct(imageIndex));
             }
             #endif
 

@@ -110,8 +110,11 @@ namespace lib
             const char* description     = "";
             const char* name            = "";
             const char* dateTime        = "";
-        };
 
+            DType PixelType() const;
+       };
+
+        #ifdef USE_GEOTIFF
         struct GeoKey
         {
             ~GeoKey();
@@ -133,6 +136,7 @@ namespace lib
             tagtype_t   type    = TYPE_UNKNOWN;
             size_t      count   = 0;
         };
+        #endif
 
         class Handler
         {
@@ -142,18 +146,18 @@ namespace lib
 
             bool    Open(const char* file, const char* mode);
             void    Close();
-            bool    GetDirectory(tdir_t, Directory&);
+            bool    GetDirectory(tdir_t, Directory&) const;
             size_t  DirectoryCount() const;
             uint16  FileVersion() const;
 
             template<typename... Ts>
-            bool GetField(ttag_t tag, Ts&... vars)
+            bool GetField(ttag_t tag, Ts&... vars) const
             {
                 return (tiff_ && TIFFGetField(tiff_, tag, &vars...));
             }
 
             template<typename T>
-            void GetRequiredField(ttag_t tag, T& var)
+            void GetRequiredField(ttag_t tag, T& var) const
             {
                 if(tiff_ && !TIFFGetField(tiff_, tag, &var)) {
                     if(auto field = TIFFFieldWithTag(tiff_, tag))
@@ -162,7 +166,8 @@ namespace lib
             }
 
             #ifdef USE_GEOTIFF
-            bool GetGeoKey(geokey_t, GeoKey&);
+            DStructGDL* CreateGeoStruct(tdir_t) const;
+            bool        GetGeoKey(geokey_t, GeoKey&) const;
             #endif
 
         private:
