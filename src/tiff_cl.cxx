@@ -199,7 +199,7 @@ namespace lib
                 fprintf(stderr, "missing tag: %s\n", tag);
                 return false;
             }
-            catch(ttag_t tag) {
+            catch(ttag_t& tag) {
                 fprintf(stderr, "missing unknown tag: %u\n", tag);
                 return false;
             }
