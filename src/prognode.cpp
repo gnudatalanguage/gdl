@@ -28,6 +28,16 @@ email                : m_schellens@users.sf.net
 
 using namespace std;
 
+static bool trace_me(false);
+
+namespace lib {
+//	bool trace_arg();
+  void help_item( std::ostream& os,
+		  BaseGDL* par, DString parString, bool doIndentation);
+	SizeT HASH_count( DStructGDL* oStructGDL);
+	SizeT LIST_count( DStructGDL* oStructGDL);
+}
+
 bool* GetNonCopyNodeLookupArray()
 {
 static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
@@ -1488,13 +1498,21 @@ RetCode   FOREACHNode::Run()
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
   ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
-
+	trace_me = false; //lib::trace_arg();
   BaseGDL** v=vP->LEval(); // ProgNode::interpreter->l_simple_var(vP);
 
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->Eval();
 //	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
+//   	if(trace_me) lib::help_item( std::cout, loopInfo.endLoopVar, "endLoopVar",false);
   if( nEl == 0)
   {
     GDLDelete(loopInfo.endLoopVar);
@@ -1533,6 +1551,13 @@ RetCode   FOREACH_LOOPNode::Run()
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
 
   if( loopInfo.foreachIx < nEl)
   {
@@ -1568,6 +1593,14 @@ RetCode FOREACH_INDEXNode::Run()
   loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
   // loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
+
   if( nEl == 0)
   {
     GDLDelete(loopInfo.endLoopVar);
@@ -1633,6 +1666,13 @@ RetCode FOREACH_INDEX_LOOPNode::Run()
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
 
   if( loopInfo.foreachIx < nEl)
   {

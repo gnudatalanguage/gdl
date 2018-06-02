@@ -1099,13 +1099,18 @@ void EnvBaseT::AssureGlobalKW( SizeT ix)
   }
 }
 
-DStructGDL* EnvT::GetObjectPar( SizeT pIx) {
+DStructGDL* EnvT::GetObjectPar( SizeT pIx)
+{
   BaseGDL* p1 = GetParDefined(pIx);
 
-  if (p1->Type() != GDL_OBJ) {
-    Throw("Parameter must be an object reference in this context: " +
+  if( p1->Type() != GDL_OBJ)
+    {
+      Throw( "Parameter must be an object reference"
+	     " in this context: "+
       GetParString(pIx));
-  } else {
+    }
+  else
+    {
     DObjGDL* oRef = static_cast<DObjGDL*> (p1);
     DObj objIx;
     if (!oRef->Scalar(objIx))
@@ -1117,7 +1122,9 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx) {
 
     try {
       return GetObjHeap(objIx);
-    } catch (GDLInterpreter::HeapException) {
+      }
+      catch ( GDLInterpreter::HeapException)
+	{
       Throw("Object not valid: " + GetParString(pIx));
     }
   }
@@ -1167,7 +1174,15 @@ int EnvT::KeywordIx( const std::string& k)
   //  cout << pro->ObjectName() << "  Key: " << k << endl;
   assert( pro != NULL);
   int val=pro->FindKey( k);
-  assert( val != -1);
+  if( val == -1) {		//  assert( val != -1);
+
+    cout << "Invalid Keyword lookup (EnvT::KeywordIx) ! "
+				" from "+pro->ObjectName() + "  Key: " + k << endl;
+//    cout << pro->ObjectName() << "  Key: " << k << endl;
+//		<< " Returning the wrong (but a valid) key index of zero" << endl;
+//		val = 0; // too lax - may allow most tests to pass
+  	assert( val != -1);
+	}
   return val;
 }
 
@@ -1228,7 +1243,9 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   SizeT ix = i + pro->key.size();
 
   // cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-  if( ix >= env.size() || env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
+  if( ix >= env.size())
+    Throw("Incorrect number of arguments.");
+  if( env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
     Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
@@ -1274,6 +1291,75 @@ SizeT EnvBaseT::NParam( SizeT minPar)
 SizeT EnvT::NParam( SizeT minPar)
 {
   return EnvBaseT::NParam( minPar);
+}
+
+bool EnvBaseT::Removeall() 
+{
+	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+	int osz = env.size();
+	for( SizeT ix=0; ix < osz; ix++) {
+		if( env[ix] != NULL) GDLDelete( env[ix]);
+		env.pop_back();
+	}
+	proD->Resize(0);
+	return true;
+}
+	
+bool EnvBaseT::Remove(int* rindx)
+{
+	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+
+	static volatile bool debug( false);  // switch off/on
+	static int ix, osz, inrem;
+
+	osz = env.size();
+	inrem = 0;
+	int itrg = rindx[0];
+	ix=itrg;
+		if(debug)	printf(" env.size() = %d", osz);	
+	while( ix >= 0)
+	{
+		inrem++;
+		if(debug)	printf(" env.now.size() = %d  env[%d] = 0x%x ",
+				osz - inrem,
+				ix,static_cast <const void *>(env[ix]) );
+		if ( env[ix] != NULL) GDLDelete( env[ix]);
+		int esrc = rindx[inrem];
+		if(esrc < 0) esrc = osz;
+		if(debug) cout << " limit:"<< esrc ;
+		while( ++ix < esrc) {
+			if(debug) cout << ", @:"<<itrg<<"<"<<ix;
+				env.Set( itrg, env.Loc(ix));
+				proD->ReName(itrg++, proD->GetVarName(ix));
+			}
+		ix=rindx[inrem];
+		if(debug) cout << " inrem:"<<inrem <<" ix:" << ix << endl; 
+		}				 // zero all with GDLDelete
+	if(inrem <= 0) return false;
+	
+	osz = osz - inrem;
+    while(inrem-- > 0) env.pop_back();
+
+	env.resize(osz);
+	proD->Resize(osz);
+	return true;
+ }
+ 
+int EnvBaseT::findvar(const std::string& s)
+{
+	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+	int kIx = proD->FindVar(s);
+	return kIx;
+}
+
+int EnvBaseT::findvar(BaseGDL* delP)
+{
+//  static BaseGDL* null=NULL;
+	for(int Ix=0; Ix < env.size(); Ix++) {
+		if(delP != env[ Ix] ) continue;
+	return Ix;
+	}
+	return -1;
 }
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
@@ -1350,7 +1436,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 				       pro->warnKey.end(),
 				       strAbbrefEq_k);
       if( wf == pro->warnKey.end()) 
-	Throw(  "Keyword parameter "+k+" not allowed in call "
+	Throw(  "Keyword parameter -"+k+"- not allowed in call "
 		"to: "+pro->Name());
       // 	throw GDLException(callingNode,
       // 			   "Keyword parameter "+k+" not allowed in call "
@@ -1379,7 +1465,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 					   pro->warnKey.end(),
 					   strAbbrefEq_k);
 	  if( wf == pro->warnKey.end()) 
-	    Throw( "Keyword parameter "+k+" not allowed in call "
+	    Throw( "Keyword parameter <"+k+"> not allowed in call "
 		   "to: "+pro->Name());
 	  /*	    throw GDLException(callingNode,
 	    "Keyword parameter "+k+" not allowed in call "
@@ -1411,10 +1497,12 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 
   // already set? -> Warning 
   // (move to Throw by AC on June 25, 2014, bug found by Levan.)
-  if( KeywordPresent(varIx)) // just a message in the original
-    {
-      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
-    }
+// Removed G. Jung 2016:
+// mungs things up.  Could not determine 2014 bug.
+//  if( KeywordPresent(varIx)) // just a message in the original
+//    {
+//      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
+//    }
 
   return varIx;
 }

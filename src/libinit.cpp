@@ -26,6 +26,7 @@
 
 #include "basic_fun.hpp"
 #include "basic_pro.hpp"
+#include "gdlhelp.hpp"
 
 #include "list.hpp"
 #include "hash.hpp"
@@ -96,8 +97,9 @@ void LibInit()
   const string listKey[]={"EXTRACT", "LENGTH", "NO_COPY", KLISTEND};
   new DLibFunRetNew(lib::list_fun,string("LIST"),-1,listKey);
 
-  const string hashKey[]={"NO_COPY", KLISTEND};
+  const string hashKey[]={"EXTRACT", "LOWERCASE", "NO_COPY", "FOLD_CASE", KLISTEND};
   new DLibFunRetNew(lib::hash_fun,string("HASH"),-1,hashKey);
+  new DLibFunRetNew(lib::orderedhash_fun,string("ORDEREDHASH"),-1,hashKey);
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
 
@@ -152,6 +154,7 @@ void LibInit()
   new DLibFunRetNew(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
 
   new DLibFunRetNew(lib::obj_isa,string("OBJ_ISA"),2,NULL,NULL,false,2);
+  new DLibFunRetNew(lib::obj_hasmethod,string("OBJ_HASMETHOD"),2);
 
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
@@ -257,14 +260,19 @@ void LibInit()
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
-  const string helpKey[]={"ALL_KEYS","BRIEF","FULL","CALLS","DEVICE","FUNCTIONS","HELP","INFO",
+  const string helpKey[]={"ALL_KEYS","BRIEF","FULL","CALLS",
+	           "DEBUG","DEVICE","FUNCTIONS","HEAP_VARIABLES","HELP","INFO","FILES",
 			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
-			  "OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
+		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
               "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", KLISTEND};
-  const string helpWarnKey[]={"BREAKPOINTS","DLM","FILES","HEAP_VARIABLES","MESSAGES",
-			      "OBJECTS","SHARED_MEMORY", KLISTEND};
+  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES",
+			      "SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
+
+  new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
+  DLibPro* hide = new DLibPro(lib::findvar_pro,string("FINDVAR"),-1,NULL,NULL);
+  hide->SetHideHelp(true);
   
   //stub to avoid setting errors on pref_set. One may want to really write pref_set,
   // but this function is just here to prevent setting !ERR=-1 when stumbling on a pref_set command,
@@ -339,7 +347,7 @@ void LibInit()
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
 
-  const string obj_validKey[]={"CAST","COUNT",KLISTEND};
+  const string obj_validKey[]={"CAST","COUNT","GET_HEAP_IDENTIFIER",KLISTEND};
   new DLibFunRetNew(lib::ptr_valid,string("PTR_VALID"),1,obj_validKey);
   new DLibFunRetNew(lib::obj_valid,string("OBJ_VALID"),1,obj_validKey);
   
@@ -415,6 +423,10 @@ void LibInit()
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      resolve_routineKey,resolve_routineWarnKey);
+
+  const string routine_filepathKey[]={"EITHER","IS_FUNCTION", KLISTEND};
+  new DLibFunRetNew(lib::routine_filepath,string("ROUTINE_FILEPATH"),1,
+				routine_filepathKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
@@ -518,7 +530,7 @@ void LibInit()
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
-  const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
+  const string array_equalKey[]={"NO_TYPECONV","NOT_EQUAL","QUIET",KLISTEND};
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
   const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION","ABSOLUTE",KLISTEND};
@@ -963,7 +975,7 @@ void LibInit()
 
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFunRetNew(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
-
+//  const string command_line_argsKey[] = {"COUNT","RESET","SET", KLISTEND };
   const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 

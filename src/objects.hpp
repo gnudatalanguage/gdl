@@ -37,6 +37,7 @@
 // extern DInterpreter* interpreter;
 
 const std::string GDL_OBJECT_NAME("GDL_OBJECT");
+const std::string GDL_CONTAINER_NAME("GDL_CONTAINER");
 
 extern VarListT      sysVarList;
 extern VarListT      sysVarRdOnlyList;
@@ -164,6 +165,7 @@ namespace structDesc {
   // one can still use these as they get updated on every new creation in InitStructs()
   extern DStructDesc* LIST;
   extern DStructDesc* HASH;
+  extern DStructDesc* GDL_CONTAINER;
   extern DStructDesc* GDL_CONTAINER_NODE;
   extern DStructDesc* GDL_HASHTABLEENTRY;
   
