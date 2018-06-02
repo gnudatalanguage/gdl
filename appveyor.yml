@@ -60,13 +60,7 @@ install:
         md plplot-5.13.0/build
         cd plplot-5.13.0/build
 # insert patches here; in wingcc.c and in windgdi.c        
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
-        -DCMAKE_INSTALL_PREFIX=c:\projects\gdlwin\mingw32 `
-        -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll `
-        -DwxWidgets_CONFIGURATION=mswu `
-        -DENABLE_MIX_CXX=ON -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON `
-        -DENABLE_cxx=ON -DWITH_FREETYPE=OFF `
-        -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdlwin\mingw32 -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
         mingw32-make -j4
         mingw32-make install
         
