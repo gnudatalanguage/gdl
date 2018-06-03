@@ -34,6 +34,12 @@
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
 
+#ifdef _MSC_VER
+#  define finite _finite
+#else
+  using std::isnan;
+#endif
+
 typedef enum codeFlags_
   {
     fmtALIGN_LEFT = 1
