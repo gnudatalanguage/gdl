@@ -75,9 +75,13 @@ namespace lib
 
       if ( nParam ( )==1 )
       {
-        if ( (e->GetNumericArrayParDefined ( 0 ))->Rank ( )!=2 )
-          e->Throw ( "Array must have 2 dimensions: "
-                     +e->GetParString ( 0 ) );
+// AC 2018/04/24
+// an sub-array like: a=RADOMU(seed, 3,4,5) & SURFACE, a[1,*,*]
+// should be OK ...
+// 
+//        if ( (e->GetNumericArrayParDefined ( 0 ))->Rank ( )!=2 )
+// e->Throw ( "Array must have 2 dimensions: "
+//            +e->GetParString ( 0 ) );
 
         BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
         zVal=static_cast<DDoubleGDL*>
