@@ -106,21 +106,21 @@ build_script:
   - cd c:\projects\gdl\build
   - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
-  - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
-  - mingw32-make -j4
-  - mingw32-make install
+  #- cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  #- mingw32-make -j4
+  #- mingw32-make install
 
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - robocopy /move /e $env:WXWIDGETS_ROOT\bin\wx*.dll c:\projects\gdl\install\gdl\bin || exit 0
+  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4\bin\wx*.dll c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  - 7z a gdlwinlibs.zip gdl
   # - ctest -C Release --output-on-failure
   # - python -c "import gdl; dir(gdl)"
 
 artifacts:
-  - path: install\gdl_build.zip
+  - path: install\gdlwinlibs.zip
     name: GDL
   
 deploy:
