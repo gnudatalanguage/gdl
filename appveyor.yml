@@ -112,7 +112,7 @@ build_script:
 
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4\bin\wx*.dll c:\projects\gdl\install\gdl\bin || exit 0
+  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl\install
   - 7z a gdlwinlibs.zip gdl
