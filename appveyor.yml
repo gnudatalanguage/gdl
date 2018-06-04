@@ -39,6 +39,8 @@ install:
         copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
         mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
         $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        #        cd C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1
+
         
         # BSD-XDR
         cd c:\projects\gdl\win32libs
@@ -75,27 +77,31 @@ install:
         mingw32-make install
 
         # GSL
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        tar zxf gsl-2.4.tar.gz
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+        #cd c:\projects\gdl\win32libs
+        #appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        #tar zxf gsl-2.4.tar.gz
+        #c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
         cd C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1
+        appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw-w64-i686-gsl-2.4-1-any.pkg.tar.xz
+        7z x mingw-w64-i686-gsl-2.4-1-any.pkg.tar.xz
+        appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw-w64-i686-pdcurses-3.6-2-any.pkg.tar.xz
+        7z x mingw-w64-i686-pdcurses-3.6-2-any.pkg.tar.xz
         appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw-w64-i686-ncurses-6.1.20180407-1-any.pkg.tar.xz
         appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw64-64-i686-readline-6.3.008-1-any.pkg.tar.xz
         appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw-w64-i686-libsystre-1.0.1-4-any.pkg.tar.xz
         appveyor DownloadFile https://repo.msys2.org/mingw/i686/mingw-w64-i686-termcap-1.3.1-3-any.pkg.tar.xz
-        tar xf mingw-w64-i686-ncurses-6.1.20180407-1-any.pkg.tar.xz
-        tar xf mingw64-64-i686-readline-6.3.008-1-any.pkg.tar.xz
-        tar xf mingw-w64-i686-libsystre-1.0.1-4-any.pkg.tar.xz
-        tar xf mingw-w64-i686-termcap-1.3.1-3-any.pkg.tar.xz
+        7z x mingw-w64-i686-ncurses-6.1.20180407-1-any.pkg.tar.xz
+        7z x mingw64-64-i686-readline-6.3.008-1-any.pkg.tar.xz
+        7z x mingw-w64-i686-libsystre-1.0.1-4-any.pkg.tar.xz
+        7z x mingw-w64-i686-termcap-1.3.1-3-any.pkg.tar.xz
 
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        7z x readline-5.0-1-lib.zip
+        #7z x readline-5.0-1-lib.zip
         7z x zlib-1.2.3-lib.zip
         7z x libpng-1.2.37-lib.zip
         7z x pcre-7.0-lib.zip
@@ -118,7 +124,7 @@ build_script:
   - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
   - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
-  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4 c:\projects\gdl\install\gdl\build
+  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4\lib\gcc_dll c:\projects\gdl\install\gdl\bin || exit 0
   - sed -e 's;cblas;cblas -lgnurx;' -i  src/CMakeFiles/gdl.dir/linklibs.rsp
   - robocopy /move /e c:\projects\gdl\build c:\projects\gdl\install\gdl\build || exit 0
   #- mingw32-make -j4
