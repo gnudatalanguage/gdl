@@ -177,23 +177,32 @@ namespace lib
             try {
                 GetRequiredField(TIFFTAG_IMAGEWIDTH,        dir.width);
                 GetRequiredField(TIFFTAG_IMAGELENGTH,       dir.height);
-                GetRequiredField(TIFFTAG_SAMPLESPERPIXEL,   dir.samplesPerPixel);
-                GetRequiredField(TIFFTAG_BITSPERSAMPLE,     dir.bitsPerSample);
-                GetRequiredField(TIFFTAG_XRESOLUTION,       dir.resolution.x);
-                GetRequiredField(TIFFTAG_YRESOLUTION,       dir.resolution.y);
-                GetRequiredField(TIFFTAG_SAMPLEFORMAT,      dir.sampleFormat);
-                GetRequiredField(TIFFTAG_PLANARCONFIG,      dir.planarConfig);
                 GetRequiredField(TIFFTAG_PHOTOMETRIC,       dir.photometric);
 
+                GetField(TIFFTAG_SAMPLESPERPIXEL,           dir.samplesPerPixel);
+                GetField(TIFFTAG_BITSPERSAMPLE,             dir.bitsPerSample);
+                GetField(TIFFTAG_SAMPLEFORMAT,              dir.sampleFormat);
                 GetField(TIFFTAG_TILEWIDTH,                 dir.tileWidth);
                 GetField(TIFFTAG_TILELENGTH,                dir.tileHeight);
                 GetField(TIFFTAG_XPOSITION,                 dir.position.x);
                 GetField(TIFFTAG_YPOSITION,                 dir.position.y);
+                GetField(TIFFTAG_XRESOLUTION,               dir.resolution.x);
+                GetField(TIFFTAG_YRESOLUTION,               dir.resolution.y);
                 GetField(TIFFTAG_RESOLUTIONUNIT,            dir.resolution.unit);
+                GetField(TIFFTAG_PLANARCONFIG,              dir.planarConfig);
                 GetField(TIFFTAG_ORIENTATION,               dir.orientation);
                 GetField(TIFFTAG_IMAGEDESCRIPTION,          dir.description);
                 GetField(TIFFTAG_DOCUMENTNAME,              dir.name);
                 GetField(TIFFTAG_DATETIME,                  dir.dateTime);
+
+                // IDL/GDL specific values for non-tiled images
+                if(!(dir.tileWidth && dir.tileHeight)) {
+                    dir.tileWidth = dir.width;
+                    dir.tileHeight = 1;
+                }
+
+                if(!(dir.resolution.x && dir.resolution.y))
+                    dir.resolution.unit = Directory::Resolution::Unit::None;
             }
             catch(const char* tag) {
                 fprintf(stderr, "missing tag: %s\n", tag);

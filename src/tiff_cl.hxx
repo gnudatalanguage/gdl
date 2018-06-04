@@ -44,22 +44,21 @@ namespace lib
 
             struct Position
             {
-                float                   x = 0.f;
-                float                   y = 0.f;
+                float x                 = 0.f;
+                float y                 = 0.f;
             } position;
 
             struct Resolution
             {
+                float x                 = 0.f;
+                float y                 = 0.f;
+
                 enum class Unit : uint16
                 {
                     None                = 1,
                     Inches              = 2,
                     Centimeters         = 3,
-                };
-
-                float x                 = 0.f;
-                float y                 = 0.f;
-                Unit unit               = Unit::Inches;
+                } unit                  = Unit::Inches;
             } resolution;
 
             enum class Orientation : uint16
@@ -82,13 +81,13 @@ namespace lib
                 Untyped                 = 4,
                 ComplexInteger          = 5,
                 ComplexFloatingPoint    = 6,
-            } sampleFormat              = SampleFormat::Untyped;
+            } sampleFormat              = SampleFormat::UnsignedInteger;
 
             enum class PlanarConfig : uint16
             {
                 Contiguous              = 1,
                 Separate                = 2,
-            } planarConfig;
+            } planarConfig              = PlanarConfig::Contiguous;
 
             enum class Photometric : uint16
             {
@@ -105,7 +104,7 @@ namespace lib
                 ColorFilterArray        = 32803,
                 CIELog2L                = 32844,
                 CIELog2Luv              = 32845,
-            } photometric;
+            } photometric               = Photometric::MinIsWhite;
 
             const char* description     = "";
             const char* name            = "";
