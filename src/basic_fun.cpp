@@ -8019,10 +8019,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return ret;
   }
 
-  // SA: based on the IDL parse_url function code
-  // This function was made to be compatible with IDL parse_url() function
-  // The previous parse_url function which replicate the php parse_url()
-  // was renamed parse_url_php()
+  // PARSE_URL based on the IDL parse_url function behaviour and documentation
   
 BaseGDL* parse_url( EnvT* env)
   {
@@ -8048,74 +8045,61 @@ BaseGDL* parse_url( EnvT* env)
 
     char const *str = url.c_str();
     size_t length = url.length();
-    char const*ptr, *pat, *ppass, *ppath, *phostend, *pport, *pquery;
+    char const*pStart, *pMid, *pEnd;
 
     // initialise PORT at 80
     urlstru->InitTag("PORT", DStringGDL("80"));
-    
-    if (length == 0){
-        urlstru_guard.release();
-        return urlstru;
-    }
-    // Search for the host component and exit if "://" is not found
-    ptr = std::strstr(str, "://");
-    if (ptr == NULL){
-        urlstru_guard.release();
-        return urlstru;
-    }
+   
+	//searching for the scheme and exciting if not found
+	pStart = str;
+	if (!(pEnd = std::strstr(str, "://"))){
+    	urlstru_guard.release();
+		return (urlstru);
+	}
+	urlstru->InitTag("SCHEME", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));
 
-	 urlstru->InitTag("SCHEME", DStringGDL(string(str, ptr - str)));
-    // move past the "://"
-    ptr += 3;
+	// setting pStart after "://"
+	pEnd += 3;
+	pStart = pEnd;
 
-    // extract the username and password if found
-    pat = std::strchr(ptr, '@');
-    if (pat != NULL) {
-        ppass = std::strchr(ptr, ':');
-        if (ppass && ppass + 1 <= pat){
-            urlstru->InitTag("PASSWORD", DStringGDL(string(ppass + 1, pat - (ppass + 1))));
-        }
-        else{
-            ppass = pat;
-        }
-        urlstru->InitTag("USERNAME", DStringGDL(string(ptr, ppass - ptr)));
-        ptr = pat + 1;
-    }
-    
-    // find the start of the path if the url has a path
-    ppath = std::strchr(ptr, '/');
-    if (ppath == NULL)
-        ppath = ptr + std::strlen(ptr);
-    phostend = ppath;
-    
-    // extract port number if present
-    pport = std::strchr(ptr, ':');
-    if (pport != NULL){
-		if (*(pport + 1))	
-        	urlstru->InitTag("PORT", DStringGDL(string(pport + 1, ppath - (pport + 1))));
-		else
-        	urlstru->InitTag("PORT", DStringGDL(""));
-        phostend = pport;
-    }
-    
-    urlstru->InitTag("HOST", DStringGDL(string(ptr, phostend - ptr)));
-    
-    //search query
-    pquery = std::strchr(phostend, '?');
-    if (pquery == NULL)
-        pquery = ptr + std::strlen(ptr);
-    
-    // assign the path and query if found
-    if (*ppath && *(ppath + 1))
-        urlstru->InitTag("PATH", DStringGDL(string(ppath + 1, pquery - (ppath + 1))));
-    else
-        urlstru->InitTag("PATH", DStringGDL(""));
+	//searching for the username and password (':' & '@')
+	if (std::strchr(pStart, '@')){
+		pEnd = std::strchr(pStart, '@');
+		if (!(pMid = std::strchr(pStart, ':')))
+			pMid = pEnd;
+		if (pMid && pMid < pEnd)
+			urlstru->InitTag("PASSWORD", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+		urlstru->InitTag("USERNAME", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+		pStart = pEnd + 1;
+	}
 	
-    if (*pquery && *(pquery + 1))
-        urlstru->InitTag("QUERY", DStringGDL(string(pquery + 1, std::strlen(pquery + 1))));
-    else
-        urlstru->InitTag("QUERY", DStringGDL(""));
+	// setting pEnd at the first '/' found or at the end if not found
+	if (std::strchr(pStart, '/')){
+		pEnd = std::strchr(pStart, '/');
+	} else {
+		pEnd = pStart + std::strlen(pStart);
+	}
 	
+	// setting pMid at the first ':' found or at the end if not found
+	// if found : InitTag "PORT" from pMid + 1 (after ':') to pEnd ('/' or END)
+	if (std::strchr(pStart, ':')){
+		pMid = std::strchr(pStart, ':');
+		urlstru->InitTag("PORT", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+	} else {
+		pMid = pEnd;
+	}
+	// InitTag "PORT" from pStart(after "://" or '@') to pMid (':' or '/' or END)
+	urlstru->InitTag("HOST", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+	pStart = pEnd + 1;
+	// Searching for a query ('?')
+	// if found : InitTag "QUERY" from pEnd + 1 (after '?') to the end
+	if ((pEnd = strchr(pMid, '?'))){
+		urlstru->InitTag("QUERY", DStringGDL(std::strlen(pEnd + 1) > 0 ? string(pEnd + 1, std::strlen(pEnd + 1)) : ""));
+	} else {
+		pEnd = pMid + std::strlen(pMid);
+	}
+	// InitTag "PATH" from pStart (after '/') to the end
+	urlstru->InitTag("PATH", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));	
     urlstru_guard.release();
     return urlstru;
   }

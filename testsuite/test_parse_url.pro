@@ -60,9 +60,7 @@ expected=[$
 ]
 
 for ii=0, N_elements(samples_urls)-1 do begin
-	print, "debug ", samples_urls[ii]
     res=STRING(PARSE_URL(samples_urls[ii]),/print)
-	print, "debug", ii
    if res NE expected[ii] then begin
       ERRORS_ADD, nb_errors, expected[ii]
       print, 'Case : ', samples_urls[ii]
