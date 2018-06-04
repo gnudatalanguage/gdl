@@ -2,7 +2,7 @@
 # -----------
 # Find the GeoTIFF library (libgeotiff)
 
-find_path(GEOTIFF_INCLUDE_DIR geotiff.h)
+find_path(GEOTIFF_INCLUDE_DIR geotiff.h PATH_SUFFIXES geotiff)
 find_library(GEOTIFF_LIBRARY NAMES geotiff libgeotiff)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GEOTIFF DEFAULT_MSG GEOTIFF_LIBRARY GEOTIFF_INCLUDE_DIR)
