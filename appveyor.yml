@@ -114,10 +114,11 @@ before_build:
   
 build_script:
   - cd c:\projects\gdl\build
-  - copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\bin\wx* c:\projects\gdl\install\gdl\bin
   - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
   - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - robocopy /move /e c:\projects\gdl\win32libs\wxWidgets-3.0.4 c:\projects\gdl\install\gdl\build
+  - sed -e 's;cblas;cblas -lgnurx;' -i  src/CMakeFiles/gdl.dir/linklibs.rsp
   - robocopy /move /e c:\projects\gdl\build c:\projects\gdl\install\gdl\build || exit 0
   #- mingw32-make -j4
   #- mingw32-make install
