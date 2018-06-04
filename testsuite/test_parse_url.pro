@@ -33,6 +33,18 @@ samples_urls=[$
     'https://www.google.com/path',$ 
     'https://www.google.com/path?query=myquery',$
     'foo+bar://baz@bang/bla',$
+    'http://www.example.com:port/path?query',$
+    'http://www.example.com:port?query/path',$
+    'http://www.example.com/path:port?query',$
+    'http://www.example.com/path?query:port',$
+    'http://www.example.com?query:port/path',$
+    'http://www.example.com?query/path:port',$
+	'http://example:port/path',$
+	'http://example:port?query',$
+	'http://example/path:port',$
+	'http://example/path?query',$
+	'http://example?query:port',$
+	'http://example?query/path',$
     'http://www.google.com/' + string(9b)$
 ]
 
@@ -56,6 +68,18 @@ expected=[$
     '{ https   www.google.com 80 path }',$
     '{ https   www.google.com 80 path query=myquery}',$
     '{ foo+bar baz  bang 80 bla }',$
+    '{ http   www.example.com port path query}',$
+    '{ http   www.example.com port?query  query/path}',$
+    '{ http   www.example.com/path  path:port query}',$
+    '{ http   www.example.com/path?query  path?query:port }',$
+    '{ http   www.example.com?query port path }',$
+    '{ http   www.example.com?query/path  path:port }',$
+    '{ http   example port path }',$
+    '{ http   example port?query  query}',$
+    '{ http   example/path  path:port }',$
+    '{ http   example 80 path query}',$
+    '{ http   example?query port  }',$
+    '{ http   example?query 80 path }',$
     '{ http   www.google.com 80 	 }'$
 ]
 
