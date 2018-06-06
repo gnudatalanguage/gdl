@@ -411,8 +411,8 @@ void LibInit()
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
-  const string resolve_routineWarnKey[]={"COMPILE_FULL_FILE","SKIP_EXISTING",KLISTEND};
-  const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","QUIET",KLISTEND};
+  const string resolve_routineWarnKey[]={"SKIP_EXISTING",KLISTEND};
+  const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","COMPILE_FULL_FILE","QUIET",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      resolve_routineKey,resolve_routineWarnKey);
 

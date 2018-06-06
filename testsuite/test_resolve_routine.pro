@@ -39,7 +39,7 @@ quote="'"
 pbs=''
 ;
 for ii=0, N_ELEMENTS(files)-1 do begin
-   res=EXECUTE('RESOLVE_ROUTINE, '+quote+files[ii]+quote)
+   res=EXECUTE('RESOLVE_ROUTINE, '+quote+files[ii]+quote+",/EITHER")
    if (res NE 1) then begin
       errors++
       pbs=[pbs,files[ii]]
@@ -49,8 +49,10 @@ endfor
 if (N_ELEMENTS(pbs) GT 1) then begin
    pbs=pbs[1:*]
    for jj=0, N_ELEMENTS(pbs)-1 do print, 'Problem in : ', pbs[jj]
+   print, 'Due to problem, will skip next test.'
 endif else begin
-   print, 'No problem encoutered !'
+   print, 'No problem encoutered, starting again but all at once'
+   resolve_routine,files,/either
 endelse
 ;
 BANNER_FOR_TESTSUITE, 'TEST_ALL_TEST_ROUTINES', errors, /short
