@@ -28,7 +28,7 @@ GDL supports several data formats such as netCDF, HDF4, HDF5, GRIB, PNG, TIFF, D
 Graphical output is handled by X11, PostScript, SVG or z-buffer terminals, the last one allowing 
   output graphics (plots) to be saved in a variety of raster graphics formats. 
 GDL features integrated debugging facilities. 
-Build-in widget functionality enables development of GUI-based software.
+The built-in widget functionality enables development of GUI-based software.
 GDL has also a Python bridge (Python code can be called from GDL; GDL can be compiled as a Python module). 
 Development and maintenance of GDL is carried out targeting Linux, BSD, OSX and Windows (MinGW, Cygwin).
 
@@ -59,7 +59,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [GSL](https://www.gnu.org/software/gsl/)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [plplot](https://plplot.sourceforge.net)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [OpenMP](http://www.openmp.org/)                                                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| \[[Image](https://imagemagick.org/)/[Graphics](http://graphicsmagick.org/)\] Magick     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
+| [Magick++](https://imagemagick.org/) / [GraphicsMagick](http://graphicsmagick.org/)     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
 | [wxWidgets](https://www.wxwidgets.org/)                                                 |   +    |    +       |   +    | +       |   +   |    +      |   -   |   -   |
 | [netCDF](https://www.unidata.ucar.edu/software/netcdf/)                                 |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [HDF4](https://support.hdfgroup.org/products/hdf4/)                                     |   +    |    +       |   +    | +       |   -   |    -      |   -   |   +   |
@@ -74,7 +74,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [pslib](http://pslib.sourceforge.net/)                                                  |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [GRIB](https://software.ecmwf.int/wiki/display/GRIB)                                    |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    -       |   -    | -       |   -   |    +      |   -   |   -   |
-| [Python](https://www.python.org/) module                                                | + ([python-gdl](https://packages.debian.org/python-gdl)) | + ([python-gdl](https://packages.ubuntu.com/python-gdl)) | +    | +       |   -   |    -      |   -   |   -   |
+| [Python](https://www.python.org/) module                                                | + (gdl-python) | + ([python-gdl](https://packages.debian.org/python-gdl)) | + ([python-gdl](https://packages.ubuntu.com/python-gdl)) | +       |   -   |    -      |   -   |   -   |
 
 Build-time dependencies
 -----------------------

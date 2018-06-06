@@ -791,24 +791,25 @@ namespace lib {
   BaseGDL* bindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DByteGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
     /* }
        catch( GDLException& ex)
        {
        e->Throw( "BINDGEN: "+ex.getMessage());
        }
     */ }
-  // keywords not supported yet
   BaseGDL* indgen( EnvT* e)
   {
     dimension dim;
-
-    // Defaulting to GDL_INT
+    DDouble off = 0, inc = 1;
     DType type = GDL_INT;
 
     static int kwIx1 = e->KeywordIx("BYTE");
@@ -858,23 +859,26 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+
     switch(type)
       {
-      case GDL_INT:        return new DIntGDL(dim, BaseGDL::INDGEN);
-      case GDL_BYTE:       return new DByteGDL(dim, BaseGDL::INDGEN);
-      case GDL_COMPLEX:    return new DComplexGDL(dim, BaseGDL::INDGEN);
-      case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN);
-      case GDL_DOUBLE:     return new DDoubleGDL(dim, BaseGDL::INDGEN);
-      case GDL_FLOAT:      return new DFloatGDL(dim, BaseGDL::INDGEN);
-      case GDL_LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN);
-      case GDL_LONG:       return new DLongGDL(dim, BaseGDL::INDGEN);
+      case GDL_INT:        return new DIntGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_BYTE:       return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_COMPLEX:    return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_DOUBLE:     return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_FLOAT:      return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_LONG:       return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_STRING: {
-	DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
+	DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
 	return iGen->Convert2(GDL_STRING);
       }
-      case GDL_UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN);
-      case GDL_ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN);
-      case GDL_ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN);
+      case GDL_UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
+      case GDL_ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
       default:
 	e->Throw( "Invalid type code specified.");
 	break;
@@ -891,12 +895,15 @@ namespace lib {
   BaseGDL* uindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DUIntGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
     /* }
        catch( GDLException& ex)
        {
@@ -906,12 +913,15 @@ namespace lib {
   BaseGDL* sindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     return iGen->Convert2( GDL_STRING);
     /*    }
 	  catch( GDLException& ex)
@@ -922,9 +932,15 @@ namespace lib {
   BaseGDL* lindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
-    return new DLongGDL(dim, BaseGDL::INDGEN);
+    if (dim[0] == 0)
+      throw GDLException( "Array dimensions must be greater than 0");
+
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
 	  catch( GDLException& ex)
 	  {
@@ -934,12 +950,15 @@ namespace lib {
   BaseGDL* ulindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DULongGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
 	  catch( GDLException& ex)
 	  {
@@ -949,12 +968,15 @@ namespace lib {
   BaseGDL* l64indgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DLong64GDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -964,12 +986,15 @@ namespace lib {
   BaseGDL* ul64indgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DULong64GDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*   }
 	 catch( GDLException& ex)
 	 {
@@ -979,12 +1004,15 @@ namespace lib {
   BaseGDL* findgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DFloatGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -994,12 +1022,15 @@ namespace lib {
   BaseGDL* dindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DDoubleGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -1009,12 +1040,15 @@ namespace lib {
   BaseGDL* cindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DComplexGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -1024,12 +1058,15 @@ namespace lib {
   BaseGDL* dcindgen( EnvT* e)
   {
     dimension dim;
+    DDouble off = 0, inc = 1;
     //     try{
     arr( e, dim); 
     if (dim[0] == 0)
       throw GDLException( "Array dimensions must be greater than 0");
 
-    return new DComplexDblGDL(dim, BaseGDL::INDGEN);
+    e->AssureDoubleScalarKWIfPresent("START", off);
+    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
 	catch( GDLException& ex)
 	{
@@ -7982,24 +8019,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return ret;
   }
 
-  // SA: parse_url based on the PHP parse_url() function code
-  //     by Jim Winstead / The PHP Group (PHP license v. 3.01)
-  //     (http://svn.php.net/viewvc/php/php-src/trunk/ext/standard/url.c)
-  //     PHP is free software available at http://www.php.net/software/
-  //
-  //     notes: 
-  //     - IDL does not support IPv6 URLs, GDL does 
-  //     - IDL includes characters after '#' in the QUERY part, GDL
-  //       just skips them and issues a warning (perhaps not needed)
-  //     - IDL preserves controll characters in URLs, GDL preserves
-  //       them as well but a warning is issued
-  //     - IDL sets 80 as a default value for PORT, even if the url has 
-  //       an ftp:// schema indicated - GDL does not have any default value
-  //     - IDL excludes the leading "/" from the path, GDL preserves it
-  //     ... these differences seem just rational for me but please do change
-  //         it if IDL-compatibility would be beneficial for any reason here
-
-  BaseGDL* parse_url(EnvT* env)
+  // PARSE_URL based on the IDL parse_url function behaviour and documentation
+  
+BaseGDL* parse_url( EnvT* env)
   {
     // sanity check for number of parameters
     SizeT nParam = env->NParam();
@@ -8008,206 +8030,76 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     DString url; 
     env->AssureScalarPar<DStringGDL>(0, url); 
 
-    // sanity check for controll characters
-    string::iterator it;
-    for (it = url.begin(); it < url.end(); ++it) if (iscntrl(*it))
-						   {
-						     Warning("PARSE_URL: URL contains a control character");
-						     break;
-						   }
-
     // creating the output anonymous structure
     DStructDesc* urlstru_desc = new DStructDesc("$truct");
     SpDString aString;
     urlstru_desc->AddTag("SCHEME",   &aString);
-    static size_t ixSCHEME = 0;
     urlstru_desc->AddTag("USERNAME", &aString);
     urlstru_desc->AddTag("PASSWORD", &aString);
     urlstru_desc->AddTag("HOST",     &aString);
     urlstru_desc->AddTag("PORT",     &aString);
-    static size_t ixPORT = 4;
     urlstru_desc->AddTag("PATH",     &aString);
     urlstru_desc->AddTag("QUERY",    &aString);
     DStructGDL* urlstru = new DStructGDL(urlstru_desc, dimension());
     Guard<DStructGDL> urlstru_guard(urlstru);
-          
-    // parsing the URL
+
     char const *str = url.c_str();
     size_t length = url.length();
-    char port_buf[6];
-    char const *s, *e, *p, *pp, *ue;
-		
-    s = str;
-    ue = s + length;
+    char const*pStart, *pMid, *pEnd;
 
-    // parsing scheme 
-    if ((e = (const char*)memchr(s, ':', length)) && (e - s)) 
-      {
-	// validating scheme 
-	p = s;
-	while (p < e) 
-	  {
-	    // scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-	    if (!(std::isalpha(*p)) && !(std::isdigit(*p)) && (*p != '+') && (*p != '.') && (*p != '-')) 
-	      {
-		if (e + 1 < ue) goto parse_port;
-		else goto just_path;
-	      }
-	    p++;
-	  }
-	if (*(e + 1) == '\0') 
-	  { 
-	    // only scheme is available 
-	    urlstru->InitTag("SCHEME", DStringGDL(string(s, (e - s))));
-	    goto end;
-	  }
-	// schemas without '/' (like mailto: and zlib:) 
-	if (*(e+1) != '/') 
-	  {
-	    // check if the data we get is a port this allows us to correctly parse things like a.com:80
-	    p = e + 1;
-	    while (isdigit(*p)) p++;
-	    if ((*p == '\0' || *p == '/') && (p - e) < 7) goto parse_port;
-	    urlstru->InitTag("SCHEME", DStringGDL(string(s, (e - s))));
-	    length -= ++e - s;
-	    s = e;
-	    goto just_path;
-	  } 
-	else 
-	  {
-	    urlstru->InitTag("SCHEME", DStringGDL(string(s, (e - s))));
-	    if (*(e+2) == '/') 
-	      {
-		s = e + 3;
-		if (!strncasecmp("file", 
-				 (*static_cast<DStringGDL*>(urlstru->GetTag(ixSCHEME)))[0].c_str(), 
-				 sizeof("file")
-				 )) 
-		  {
-		    if (*(e + 3) == '/') 
-		      {
-			// support windows drive letters as in: file:///c:/somedir/file.txt
-			if (*(e + 5) == ':') s = e + 4;
-			goto nohost;
-		      }
-		  }
-	      } 
-	    else 
-	      {
-		if (!strncasecmp("file", 
-				 (*static_cast<DStringGDL*>(urlstru->GetTag(ixSCHEME)))[0].c_str(), 
-				 sizeof("file"))
-		    ) 
-		  {
-		    s = e + 1;
-		    goto nohost;
-		  } 
-		else 
-		  {
-		    length -= ++e - s;
-		    s = e;
-		    goto just_path;
-		  }	
-	      }
-	  }	
-      } 
-    else if (e) 
-      { 
-	// no scheme, look for port 
-      parse_port:
-	p = e + 1;
-	pp = p;
-	while (pp-p < 6 && isdigit(*pp)) pp++;
-	if (pp-p < 6 && (*pp == '/' || *pp == '\0')) 
-	  {
-	    memcpy(port_buf, p, (pp-p));
-	    port_buf[pp-p] = '\0';
-	    urlstru->InitTag("PORT", DStringGDL(port_buf));
-	  } 
-	else goto just_path;
-      } 
-    else 
-      {
-      just_path:
-	ue = s + length;
-	goto nohost;
-      }
-    e = ue;
-    if (!(p = (const char*)memchr(s, '/', (ue - s)))) 
-      {
-	if ((p = (const char*)memchr(s, '?', (ue - s)))) e = p;
-	else if ((p = (const char*)memchr(s, '#', (ue - s)))) e = p;
-      } 
-    else e = p;
-    // check for login and password 
-    {
-      size_t pos;
-      if ((pos = string(s, e - s).find_last_of("@")) != string::npos)
-	{
-	  p = s + pos;
-	  if ((pp = (const char*)memchr(s, ':', (p-s)))) 
-	    {
-	      if ((pp-s) > 0) urlstru->InitTag("USERNAME", DStringGDL(string(s, (pp - s))));
-	      pp++;
-	      if (p-pp > 0) urlstru->InitTag("PASSWORD", DStringGDL(string(pp, (p - pp))));
-	    } 
-	  else urlstru->InitTag("USERNAME", DStringGDL(string(s, (p - s))));
-	  s = p + 1;
+    // initialise PORT at 80
+    urlstru->InitTag("PORT", DStringGDL("80"));
+   
+	//searching for the scheme and exciting if not found
+	pStart = str;
+	if (!(pEnd = std::strstr(str, "://"))){
+    	urlstru_guard.release();
+		return (urlstru);
 	}
-    }
-    // check for port 
-    if (*s == '[' && *(e-1) == ']') p = s;     // IPv6 embedded address 
-    else for(p = e; *p != ':' && p >= s; p--); // memrchr is a GNU extension 
-    if (p >= s && *p == ':') 
-      {
-	if ((*static_cast<DStringGDL*>(urlstru->GetTag(ixPORT)))[0].length() == 0) 
-	  {
-	    p++;
-	    if (e-p > 5) env->Throw("port cannot be longer then 5 characters");
-	    else if (e - p > 0) 
-	      {
-		memcpy(port_buf, p, (e-p));
-		port_buf[e-p] = '\0';
-		urlstru->InitTag("PORT", DStringGDL(port_buf));
-	      }
-	    p--;
-	  }	
-      } 
-    else p = e;
-    // check if we have a valid host, if we don't reject the string as url 
-    if ((p-s) < 1) env->Throw("invalid host");
-    urlstru->InitTag("HOST", DStringGDL(string(s, (p - s))));
-    if (e == ue) goto end;
-    s = e;
-  nohost:
-    if ((p = (const char*)memchr(s, '?', (ue - s)))) 
-      {
-	pp = strchr(s, '#');
-	if (pp && pp < p) 
-	  {
-	    p = pp;
-	    pp = strchr(pp+2, '#');
-	  }
-	if (p - s) urlstru->InitTag("PATH", DStringGDL(string(s, (p - s))));
-	if (pp) 
-	  {
-	    if (pp - ++p) urlstru->InitTag("QUERY", DStringGDL(string(p, (pp - p))));
-	    p = pp;
-	    goto label_parse;
-	  } 
-	else if (++p - ue) urlstru->InitTag("QUERY", DStringGDL(string(p, (ue - p))));
-      } 
-    else if ((p = (const char*)memchr(s, '#', (ue - s)))) 
-      {
-	if (p - s) urlstru->InitTag("PATH", DStringGDL(string(s, (p - s))));
-      label_parse:
-	p++;
-	if (ue - p) Warning("PARSE_URL: URL fragment left out: #" + string(p, (ue-p)));
-      } 
-    else urlstru->InitTag("PATH", DStringGDL(string(s, (ue - s))));
-  end:
+	urlstru->InitTag("SCHEME", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));
 
-    // returning the result
+	// setting pStart after "://"
+	pEnd += 3;
+	pStart = pEnd;
+
+	//searching for the username and password (':' & '@')
+	if (std::strchr(pStart, '@')){
+		pEnd = std::strchr(pStart, '@');
+		if (!(pMid = std::strchr(pStart, ':')))
+			pMid = pEnd;
+		if (pMid && pMid < pEnd)
+			urlstru->InitTag("PASSWORD", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+		urlstru->InitTag("USERNAME", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+		pStart = pEnd + 1;
+	}
+	
+	// setting pEnd at the first '/' found or at the end if not found
+	if (std::strchr(pStart, '/')){
+		pEnd = std::strchr(pStart, '/');
+	} else {
+		pEnd = pStart + std::strlen(pStart);
+	}
+	
+	// setting pMid at the first ':' found or at the end if not found
+	// if found : InitTag "PORT" from pMid + 1 (after ':') to pEnd ('/' or END)
+	if (std::strchr(pStart, ':')){
+		pMid = std::strchr(pStart, ':');
+		urlstru->InitTag("PORT", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+	} else {
+		pMid = pEnd;
+	}
+	// InitTag "PORT" from pStart(after "://" or '@') to pMid (':' or '/' or END)
+	urlstru->InitTag("HOST", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+	pStart = pEnd + 1;
+	// Searching for a query ('?')
+	// if found : InitTag "QUERY" from pEnd + 1 (after '?') to the end
+	if ((pEnd = strchr(pMid, '?'))){
+		urlstru->InitTag("QUERY", DStringGDL(std::strlen(pEnd + 1) > 0 ? string(pEnd + 1, std::strlen(pEnd + 1)) : ""));
+	} else {
+		pEnd = pMid + std::strlen(pMid);
+	}
+	// InitTag "PATH" from pStart (after '/') to the end
+	urlstru->InitTag("PATH", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));	
     urlstru_guard.release();
     return urlstru;
   }

@@ -327,10 +327,11 @@ void WordExp( std::string& s)
 //   escape whitespace, before passing it to WordExp,
 //   which is not already escaped
   wordexp_t p;
-     string sEsc="";
-     for( int i=0; i<s.length(); ++i)
+  string sEsc="";
+
+  for( int i=0; i<s.length(); ++i)
      {
-		char achar = s[i];
+       char achar = s[i];
        if( achar == ' ')
    	sEsc += string("\\ ");
        else if( achar == '\\')
@@ -357,15 +358,18 @@ void WordExp( std::string& s)
 			} else sEsc.push_back(achar);
 	   }
      }
+
+  //cout << "WordExp  in 1: " << s << endl;
+
 #if 1
-	if(trace_me) 
-		cout << "WordExp  in: " << s 
-			<< " -(modified original)- WordExp esc: " << sEsc << endl;
+  if(trace_me) 
+    cout << "WordExp  in: " << s 
+	 << " -(modified original)- WordExp esc: " << sEsc << endl;
   int ok0 = wordexp( sEsc.c_str(), &p, 0);
   if(ok0 == 0) {
-	   s=p.we_wordv[0];
-
-	   /*
+    s=p.we_wordv[0];
+  
+    /*
 
 #elif 0
   int ok0 = wordexp( s.c_str(), &p, 0);
