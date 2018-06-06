@@ -51,7 +51,6 @@ before_install:
     - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_parse_url.pro/d'        testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
