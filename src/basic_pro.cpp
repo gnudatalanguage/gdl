@@ -2204,7 +2204,6 @@ namespace lib {
       // file already opened?
       bool open = false;
       for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
-        cout << *j << endl;
         if (proFile == *j) {
           open = true;
           break;
@@ -2228,7 +2227,6 @@ namespace lib {
 
       // append file to list
       openFiles.push_back(proFile);
-      cerr<<proFile<<","<<pro<<endl;
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 
       //is func NATCHKEBIA Ilia 25.06.2015
