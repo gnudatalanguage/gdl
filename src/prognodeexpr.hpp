@@ -317,6 +317,15 @@ class ARRAYDEFNode: public DefaultNode
   }
 
 };
+class ARRAYDEF_GENERALIZED_INDGENNode: public ARRAYDEFNode
+{
+public:
+  ARRAYDEF_GENERALIZED_INDGENNode( const RefDNode& refNode): ARRAYDEFNode( refNode)
+  {}
+  
+  BaseGDL* Eval();
+};
+
 class STRUCNode: public DefaultNode
 { public:
   STRUCNode( const RefDNode& refNode): DefaultNode( refNode){}

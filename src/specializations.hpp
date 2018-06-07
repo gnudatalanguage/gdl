@@ -375,8 +375,10 @@ bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const;
 /*template<> 
 void* Data_<SpDString>::DataAddr();//SizeT);*/
 // patch [1561592]
-/*template<>
-Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT);*/
+template<>
+Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
+template<>
+Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
 Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
 template<>
