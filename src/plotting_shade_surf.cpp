@@ -28,7 +28,7 @@ namespace lib
   class shade_surf_call: public plotting_routine_call
   {
     DDoubleGDL *zVal, *yVal, *xVal;
-    Guard<BaseGDL> xval_guard, yval_guard, p0_guard;
+    Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool nodata;
@@ -43,6 +43,11 @@ namespace lib
  private:
     bool handle_args (EnvT* e)
     {
+     // in all cases, we have to exit here
+      if ( nParam()==2 || nParam()>3 )
+	{
+	  e->Throw ( "Incorrect number of arguments." );
+	}
 
     // handle Log options passing via Keywords
     // note: undocumented keywords [xyz]type still exist and
@@ -74,53 +79,50 @@ namespace lib
       zLog = FALSE;
     }
 
+    if ( nParam ( ) > 0 )
+    {
+	// By testing here using EquivalentRank() we avoid computing zval if there was a problem.
+	// AC 2018/04/24
+	// a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
+	// should be OK ...
+	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
+    }
       if ( nParam ( )==1 )
       {
-        if ( (e->GetNumericArrayParDefined ( 0 ))->Rank ( )!=2 )
-          e->Throw ( "Array must have 2 dimensions: "
-                     +e->GetParString ( 0 ) );
+       BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
+        p0_guard.Init ( p0 ); // delete upon exit
 
-        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-        zVal=static_cast<DDoubleGDL*>
-        ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        p0_guard.reset ( p0 ); // delete upon exit
-
-        if ( zVal->Rank ( )!=2 )
-          e->Throw ( "Array must have 2 dimensions: "
-                     +e->GetParString ( 0 ) );
+        zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        zval_guard.Init ( zVal ); // delete upon exit
 
         xEl=zVal->Dim ( 1 );
         yEl=zVal->Dim ( 0 );
 
         xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
-        xval_guard.reset ( xVal ); // delete upon exit
+        xval_guard.Init ( xVal ); // delete upon exit
         if (xLog) xVal->Inc();
         yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
-        yval_guard.reset ( yVal ); // delete upon exit
+        yval_guard.Init ( yVal ); // delete upon exit
         if (yLog) yVal->Inc();
-      }
-      else if ( nParam ( )==2||nParam ( )>3 )
-      {
-        e->Throw ( "Incorrect number of arguments." );
       }
       else
       {
         BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-        zVal=static_cast<DDoubleGDL*>
-        ( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        p0_guard.reset ( p0 ); // delete upon exit
+        p0_guard.Init ( p0 ); // delete upon exit
+        
+        zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
+        zval_guard.Init ( zVal ); // delete upon exit
 
-        if ( zVal->Rank ( )!=2 )
-          e->Throw ( "Array must have 2 dimensions: "
-                     +e->GetParString ( 0 ) );
         xVal=e->GetParAs< DDoubleGDL>( 1 );
         yVal=e->GetParAs< DDoubleGDL>( 2 );
 
-        if ( xVal->Rank ( )!=1 )
-          e->Throw ( "Unable to handle non-vectorial array "+e->GetParString ( 1 )+" (FIXME!)" );
+	    if ( xVal->Rank ( )>2 )
+	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
 
-        if ( yVal->Rank ( )!=1 )
-          e->Throw ( "Unable to handle non-vectorial array "+e->GetParString ( 1 )+" (FIXME!)" );
+	    if ( yVal->Rank ( )>2 )
+	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+	    if ( xVal->Rank ( )==0 || yVal->Rank ( )==0 )
+	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
 
         if ( xVal->Rank ( )==1 )
         {
@@ -138,21 +140,32 @@ namespace lib
             e->Throw ( "X, Y, or Z array dimensions are incompatible." );
         }
 
+	    if ( xVal->Rank ( )==2 )
+	      {
+		xEl=xVal->Dim ( 0 );
+		if ( ( xVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( xVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
+		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
       }
 
+	    if ( yVal->Rank ( )==2 )
+	      {
+		yEl=yVal->Dim ( 1 );
+		if ( ( yVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( yVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
+		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+	      }
+	  }
+      
       GetMinMaxVal ( xVal, &xStart, &xEnd );
       GetMinMaxVal ( yVal, &yStart, &yEnd );
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
       bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
       bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
-      if (setx)
-      {
+      if (setx) {
         xStart=xAxisStart;
         xEnd=xAxisEnd;
       }
-      if (sety)
-      {
+      if (sety) {
         yStart=yAxisStart;
         yEnd=yAxisEnd;
       }

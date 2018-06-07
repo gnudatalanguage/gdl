@@ -19,7 +19,7 @@
 #include "includefirst.hpp"
 
 #ifdef _OPENMP
-#  include <omp.h>
+#include <omp.h>
 #endif
 
 #include "nullgdl.hpp"

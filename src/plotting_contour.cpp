@@ -88,6 +88,14 @@ namespace lib
 	{
 	  e->Throw ( "Incorrect number of arguments." );
 	}
+    if ( nParam ( ) > 0 )
+    {
+	// By testing here using EquivalentRank() we avoid computing zval if there was a problem.
+	// AC 2018/04/24
+	// a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
+	// should be OK ...
+	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
+    }
                 
       if (nParam()==1) {
 	if (irregular)
@@ -104,10 +112,6 @@ namespace lib
 	    
 	    xEl=zVal->Dim ( 1 );
 	    yEl=zVal->Dim ( 0 );
-	  
-	    if ( zVal->Rank ( )!=2 )
-	      e->Throw ( "Array must have 2 dimensions: "
-			 +e->GetParString ( 0 ) );
 	  
 	    xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
 	    xval_guard.Init ( xVal ); // delete upon exit
@@ -145,10 +149,6 @@ namespace lib
         
 	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
         zval_guard.Init ( zVal ); // delete upon exit
-
-	    if ( zVal->Dim ( 0 )==1 )
-	      e->Throw ( "Array must have 2 dimensions: "
-			 +e->GetParString ( 0 ) );
 
 	    xVal=e->GetParAs< DDoubleGDL>( 1 );
 	    yVal=e->GetParAs< DDoubleGDL>( 2 );
