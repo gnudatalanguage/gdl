@@ -1155,7 +1155,6 @@ arrayindex! [ArrayIndexVectorT* ixList]
 
 arrayindex_list
 {
-//std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
 ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
 PtrGuard< ArrayIndexVectorT> guard( ixList);
 }

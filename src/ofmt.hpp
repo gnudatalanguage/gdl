@@ -24,20 +24,13 @@
 #include <cmath>
 #include <bitset> // for binary output
 //using namespace std;
-#ifndef _MSC_VER
-  using std::isnan;
-#else
-#define isnan _isnan
-#endif
-
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
 
 #ifdef _MSC_VER
 #  define finite _finite
-#else
-  using std::isnan;
+#define isnan _isnan
 #endif
 
 typedef enum codeFlags_
