@@ -648,7 +648,7 @@ namespace lib
                 DLong interleaveVal;
                 e->AssureLongScalarKW(interleaveIx, interleaveVal);
 
-                if(interleaveVal > 0 || interleaveVal < 2)
+                if(interleaveVal < 0 || interleaveVal > 2)
                     e->Throw("Invalid INTERLEAVE value (expected 0, 1 or 2)");
 
                 interleave = static_cast<TIFF::Interleaving>(interleaveVal);
