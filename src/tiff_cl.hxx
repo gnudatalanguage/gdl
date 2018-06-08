@@ -117,6 +117,7 @@ namespace lib
         #ifdef USE_GEOTIFF
         struct GeoKey
         {
+             GeoKey() = default;
             ~GeoKey();
 
             union
