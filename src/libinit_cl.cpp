@@ -239,8 +239,12 @@ void LibInit_cl()
 #endif
 
 #ifdef USE_TIFF
-  const string tiff_pingKey[] = {"INFO", "GEOTIFF", "IMAGE_INDEX"};
-  new DLibFunRetNew(lib::tiff_query, string("TIFF_QUERY"), 1, tiff_pingKey);
+  const string tiff_queryKey[] = {"INFO", "GEOTIFF", "IMAGE_INDEX", KLISTEND};
+  new DLibFunRetNew(lib::tiff_query, string("TIFF_QUERY"), 1, tiff_queryKey);
+
+  const string tiff_readKey[] = {"RED", "GREEN", "BLUE", "CHANNELS", "DOT_RANGE", "GEOTIFF", "ICC_PROFILE", "IMAGE_INDEX",
+                                 "INTERLEAVE", "ORIENTATION", "PHOTOSHOP", "PLANARCONFIG", "SUB_RECT", "VERBOSE", KLISTEND};
+  new DLibFunRetNew(lib::tiff_read, string("TIFF_READ"), 1, tiff_readKey);
 #endif // USE_TIFF
 }
 
