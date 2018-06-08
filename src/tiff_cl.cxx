@@ -28,7 +28,7 @@
 #include <type_traits>
 
 template<typename E>
-auto enumIntegralValue(E e)
+typename std::underlying_type<E>::type enumIntegralValue(E e)
 {
     return static_cast<typename std::underlying_type<E>::type>(e);
 }
@@ -493,7 +493,7 @@ namespace lib
                 }
             }
 
-            res = { 0 };
+            res = GeoKey();
             return false;
         }
         #endif

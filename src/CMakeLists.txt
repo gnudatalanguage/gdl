@@ -278,6 +278,13 @@ widget.cpp
 widget.hpp
 )
 
+set_source_files_properties(
+dstructfactory.cxx
+dstructfactory.hxx
+tiff_cl.cxx
+tiff_cl.hxx
+PROPERTIES COMPILE_FLAGS "-std=c++11")
+
 add_subdirectory(antlr)
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
