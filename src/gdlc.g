@@ -1953,7 +1953,7 @@ tokens {
 {
   // Stuff for include files (@filename)
   private:
-    std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
+    std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
                                      // it when it is deleted itself
   
     antlr::TokenStreamSelector*     selector; 
