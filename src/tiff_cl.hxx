@@ -35,6 +35,7 @@ namespace lib
     {
         struct Directory
         {
+            tdir_t index                = 0;
             uint32 width                = 0;
             uint32 height               = 0;
             uint32 tileWidth            = 0;
@@ -137,17 +138,33 @@ namespace lib
         };
         #endif
 
+        enum class Interleaving : DLong
+        {
+            Pixel       =  0,   // [channel, column, row]
+            Scanline    =  1,   // [column, channel, row]
+            Planar      =  2,   // [column, row, channel]
+        };
+
+        struct Rectangle
+        {
+            uint32 x, y;
+            uint32 w, h;
+        };
+
         class Handler
         {
         public:
              Handler();
             ~Handler();
 
-            bool    Open(const char* file, const char* mode);
-            void    Close();
-            bool    GetDirectory(tdir_t, Directory&) const;
-            size_t  DirectoryCount() const;
-            uint16  FileVersion() const;
+            bool        Open(const char* file, const char* mode);
+            void        Close();
+            bool        GetDirectory(tdir_t, Directory&) const;
+            uint16      DirectoryCount() const;
+            uint16      FileVersion() const;
+            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 },
+                                  const Interleaving = Interleaving::Pixel,
+                                  const uint8 channelMask = 0xFF);
 
             template<typename... Ts>
             bool GetField(ttag_t tag, Ts&... vars) const
@@ -176,12 +193,13 @@ namespace lib
             #endif
             TIFFErrorHandler    defEH_  = nullptr;
             TIFFErrorHandler    defWH_  = nullptr;
-            size_t              nDirs_  = 1;
+            uint16              nDirs_  = 1;
             uint16              verNum_ = 0;
         };
     }
 
     BaseGDL* tiff_query(EnvT*);
+    BaseGDL* tiff_read(EnvT*);
 }
 
 #endif

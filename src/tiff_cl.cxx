@@ -25,6 +25,20 @@
 
 #include "tiff_cl.hxx"
 #include "dstructfactory.hxx"
+#include <type_traits>
+
+template<typename E>
+auto enumIntegralValue(E e)
+{
+    return static_cast<typename std::underlying_type<E>::type>(e);
+}
+
+uint8 popCount8(uint8 x)
+{
+    x = x - ((x >> 1) & 0x55);
+    x = (x & 0x33) + ((x >> 2) & 0x33);
+    return ((x + (x >> 4)) & 0x0F);
+}
 
 namespace lib
 {
@@ -44,20 +58,23 @@ namespace lib
                 switch(bitsPerSample) {
                 case  1:
                 case  4:
-                case  8: pixelType = GDL_BYTE;  break;
-                case 16: pixelType = GDL_UINT;  break;
-                case 32: pixelType = GDL_ULONG; break;
+                case  8: pixelType = GDL_BYTE;      break;
+                case 16: pixelType = GDL_UINT;      break;
+                case 32: pixelType = GDL_ULONG;     break;
+                case 64: pixelType = GDL_ULONG64;   break;
                 default: printf(BPS_ERR_FMT, "UINT", bitsPerSample);
                 } break;
             case TIFF::Directory::SampleFormat::SignedInteger:
                 switch(bitsPerSample) {
-                case 16: pixelType = GDL_INT;   break;
-                case 32: pixelType = GDL_LONG;  break;
+                case 16: pixelType = GDL_INT;       break;
+                case 32: pixelType = GDL_LONG;      break;
+                case 64: pixelType = GDL_LONG64;    break;
                 default: printf(BPS_ERR_FMT, "INT", bitsPerSample);
                 } break;
             case TIFF::Directory::SampleFormat::FloatingPoint:
                 switch(bitsPerSample) {
-                case 32: pixelType = GDL_FLOAT; break;
+                case 32: pixelType = GDL_FLOAT;     break;
+                case 64: pixelType = GDL_DOUBLE;    break;
                 default: printf(BPS_ERR_FMT, "FLOAT", bitsPerSample);
                 } break;
             case TIFF::Directory::SampleFormat::Untyped:
@@ -65,12 +82,6 @@ namespace lib
             case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
             default:;
             }
-
-            // The TIFF standard support SAMPLEFORMAT of complex numbers (of both integers and floating points),
-            // but according to the documentation, there is no explicit support for 64 and 128 bits per sample.
-            // Though we could support such images in GDL, this would be an non-compliant extension of IDL.
-            // In the future, we might add improved TIFF support using some custom input parameter, thus also
-            // allowing us to support both half- and double-precision floating points, as well as 64-bit integers.
 
             return pixelType;
         }
@@ -213,10 +224,11 @@ namespace lib
                 return false;
             }
 
+            dir.index = index;
             return true;
         }
 
-        size_t Handler::DirectoryCount() const
+        uint16 Handler::DirectoryCount() const
         {
             return (tiff_ ? nDirs_ : 0);
         }
@@ -224,6 +236,146 @@ namespace lib
         uint16 Handler::FileVersion() const
         {
             return (tiff_ ? verNum_ : 0);
+        }
+
+        typedef void (*ScanlineFn)(BaseGDL*, uint32, uint32, const void*, size_t);
+        template<typename T>
+        ScanlineFn createScanlineFn(BaseGDL*& var, T* val, const uint32 channels)
+        {
+            if(!(var = val))
+                return nullptr;
+
+            return [](BaseGDL* image, uint32 x, uint32 y, const void* buf, size_t bytes) {
+                auto img = static_cast<T*>(image);
+                auto ptr = reinterpret_cast<typename T::Ty*>(img->DataAddr());
+                auto dim = img->Dim();
+                memcpy(ptr + (y * dim[0] + x), buf, bytes);
+            };
+        }
+
+        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect, const Interleaving interleave, const uint8 channelMask)
+        {
+            uint32 c = popCount8(channelMask);
+            uint32 w = (rect.w ? rect.w : dir.width - rect.x);
+            uint32 h = (rect.h ? rect.h : dir.height - rect.y);
+
+            if(c > dir.samplesPerPixel)
+                c = dir.samplesPerPixel;
+
+            /* TODO: Add support for channel masking */
+            if(c != dir.samplesPerPixel) {
+                fprintf(stderr, "Channel masking currently not supported\n");
+                return nullptr;
+            }
+
+            ScanlineFn addScanline;
+            BaseGDL* image = nullptr;
+            dimension dim(w, h);
+
+            if(c > 1) {
+                SizeT ndim[3];
+
+                switch(interleave) {
+                case Interleaving::Pixel:       ndim[0] = c; ndim[1] = w; ndim[2] = h; break;
+
+                /* TODO: Add support for forced interleaving
+                case Interleaving::Scanline:    ndim[0] = w; ndim[1] = c; ndim[2] = h; break;
+                case Interleaving::Planar:      ndim[0] = w; ndim[1] = h; ndim[2] = c; break;
+                */
+                default:
+                    fprintf(stderr, "Forced image interleaving currently not supported\n");
+                    return nullptr;
+                }
+
+                if(dir.planarConfig != TIFF::Directory::PlanarConfig::Contiguous) {
+                    fprintf(stderr, "Non-contiguous planar configurations currently not supported\n");
+                    return nullptr;
+                }
+
+                dim = dimension(ndim, 3);
+            }
+
+            switch(dir.PixelType()) {
+            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim),    c); break;
+            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim),    c); break;
+            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim),   c); break;
+            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim), c); break;
+            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim),     c); break;
+            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim),    c); break;
+            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim),  c); break;
+            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim),   c); break;
+            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim),  c); break;
+
+            default:
+                fprintf(stderr, "Unsupported PIXEL_TYPE: %d\n", dir.PixelType());
+                return nullptr;
+            }
+
+            char *buffer = nullptr, *start;
+            ptrdiff_t sampOff = (dir.samplesPerPixel * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
+
+            // Scanline-based images
+            if(!TIFFIsTiled(tiff_)) {
+                auto scanSize = TIFFScanlineSize(tiff_);
+
+                if(!(buffer = static_cast<char*>(_TIFFmalloc(scanSize)))) {
+                    fprintf(stderr, "Could not allocate %lu bytes for TIFF scanline buffer\n", scanSize);
+                    goto error;
+                }
+
+                for(uint32 y = 0; y < h; ++y) {
+                    if(TIFFReadScanline(tiff_, buffer, rect.y + y, 0) == -1)
+                        goto error;
+
+                    start = buffer + (sampOff * rect.x);
+                    addScanline(image, 0, y, start, sampOff * w);
+                }
+            }
+
+            // Tile-based images
+            else {
+                auto tileSize = TIFFTileSize(tiff_);
+
+                if(!(buffer = static_cast<char*>(_TIFFmalloc(tileSize)))) {
+                    fprintf(stderr, "Could not allocate %lu bytes for TIFF tile buffer\n", tileSize);
+                    goto error;
+                }
+
+                for(uint32 y = 0, yrem, yoff; y < h; y += yrem) {
+                    yoff = (rect.y + y) % dir.tileHeight;
+
+                    if(((yrem = dir.tileHeight - yoff) + y) > h)
+                        yrem = h - y;
+
+                    for(uint32 x = 0, xrem, xoff; x < w; x += xrem) {
+                        if(TIFFReadTile(tiff_, buffer, rect.x + x, rect.y + y, 0, 0) == -1)
+                            goto error;
+
+                        xoff = (rect.x + x) % dir.tileWidth;
+                        start = buffer + (sampOff * ((yoff * dir.tileWidth) + xoff));
+
+                        if(((xrem = dir.tileWidth - xoff) + x) > w)
+                            xrem = w - x;
+
+                        for(uint32 ty = 0; ty < yrem; ++ty, start += (sampOff * dir.tileWidth))
+                            addScanline(image, x, y + ty, start, sampOff * xrem);
+                    }
+                }
+            }
+
+            if(buffer)
+                _TIFFfree(buffer);
+
+            return image;
+
+        error:
+            if(buffer)
+                _TIFFfree(buffer);
+
+            if(image)
+                delete image;
+
+            return nullptr;
         }
 
         #ifdef USE_GEOTIFF
@@ -431,6 +583,161 @@ namespace lib
 
         return new DLongGDL(0);
     }
+
+    BaseGDL* tiff_read(EnvT* e)
+    {
+        // ref: https://www.harrisgeospatial.com/docs/READ_TIFF.html
+        // https://www.adobe.io/open/standards/TIFF.html
+
+        SizeT nParam = e->NParam(1);
+
+        DString filename;
+        e->AssureScalarPar<DStringGDL>(0, filename);
+        if(filename.length()) WordExp(filename);
+        else e->Throw("Zero-length filename");
+
+        DLong imageIndex = 0;
+        e->AssureLongScalarKWIfPresent("IMAGE_INDEX", imageIndex);
+        bool verbose = e->KeywordPresent("VERBOSE");
+
+        TIFF::Handler tiff;
+        TIFF::Directory dir;
+        BaseGDL* image = nullptr;
+
+        if(tiff.Open(filename.c_str(), "r")) {
+            if(!tiff.GetDirectory(imageIndex, dir))
+                e->Throw("Invalid IMAGE_INDEX value");
+
+            TIFF::Rectangle rect = { 0, 0, dir.width, dir.height };
+            TIFF::Interleaving interleave = TIFF::Interleaving::Pixel;
+            uint8 channels = 0; // Up to 8 channels supported
+
+            // TODO: Handle three-channel images with color separated planar configuration
+            if((dir.planarConfig == TIFF::Directory::PlanarConfig::Separate)
+            && (dir.samplesPerPixel == 3)) {
+                /* TODO: R, G, B arguments
+                Named variables that will contain the Red, Green, and Blue color vectors of the color table from the file if one exists.
+                If the TIFF file is written as a three-channel image, interleaved by plane, and the R, G, and B parameters are present,
+                the three channels of the image are returned in the R, G, and B variables.
+
+                As a special case, for three-channel TIFF image files that are stored in planar interleave format,
+                and if four parameters are provided, READ_TIFF returns the integer value zero,
+                and returns three separate images in the variables defined by the R, G, and B arguments.
+                */
+
+                return new DLongGDL(0);
+            }
+
+            // Include explicitly defined channels if available, otherwise all (up to 8)
+            static int channelsIx = e->KeywordIx("CHANNELS");
+            if(e->KeywordSet(channelsIx)) {
+                auto chanArr = e->GetKW(channelsIx);
+                int n = chanArr->N_Elements(), i;
+
+                if(n > 8)
+                    e->Throw("Invalid number of elements in CHANNELS array (maximum 8 supported)");
+
+                for(i = 0; i < n; ++i)
+                    channels |= (1 << i);
+            }
+            else channels = 0xFF;
+
+            // Use explicitly defined interleaving if present, otherwise pixel interleaving
+            static int interleaveIx = e->KeywordIx("INTERLEAVE");
+            if(e->KeywordSet(interleaveIx)) {
+                DLong interleaveVal;
+                e->AssureLongScalarKW(interleaveIx, interleaveVal);
+
+                if(interleaveVal > 0 || interleaveVal < 2)
+                    e->Throw("Invalid INTERLEAVE value (expected 0, 1 or 2)");
+
+                interleave = static_cast<TIFF::Interleaving>(interleaveVal);
+
+                // TODO: Implement support for forced interleaving
+                if(interleave != TIFF::Interleaving::Pixel)
+                    e->Throw("Unsupported INTERLEAVE value (only 0 is currently implemented)");
+            }
+
+            // Use exclicitly defined sub rectangle if present
+            static int subRectIx = e->KeywordIx("SUB_RECT");
+            if(e->KeywordSet(subRectIx)) {
+                auto subRect = static_cast<DULongGDL*>(e->GetKW(subRectIx)->Convert2(GDL_ULONG, BaseGDL::COPY));
+
+                if(subRect->N_Elements() != 4)
+                    e->Throw("Invalid number of elements in SUB_RECT array (4 expected)");
+
+                rect.x = (*subRect)[0];
+                rect.y = (*subRect)[1];
+                rect.w = (*subRect)[2];
+                rect.h = (*subRect)[3];
+
+                if((rect.x + rect.w > dir.width) || (rect.y + rect.h > dir.height))
+                    e->Throw("Invalid SUB_RECT value exeeds image dimensions");
+            }
+
+            if(!(image = tiff.ReadImage(dir, rect, interleave, channels)))
+                e->Throw("Failed to read TIFF image with defined parameters");
+
+            static int dotRangeIx = e->KeywordIx("DOT_RANGE");
+            if(e->KeywordPresent(dotRangeIx)) {
+                /* TODO: DOT_RANGE keyword
+                Set this keyword to a named variable in which to return a two-element integer array containing the TIFF DotRange tag value.
+                If DotRange is not defined in the TIFF file, then a scalar zero will be returned instead.
+                The DotRange tag is typically only present in CMYK TIFF files. DOT_RANGE[0] gives the image value that corresponds to a 0% dot,
+                while DOT_RANGE[1] gives the image value that corresponds to a 100% dot.
+                */
+
+                e->SetKW(dotRangeIx, new DLongGDL(0));
+            }
+
+            #ifdef USE_GEOTIFF
+            static int gtifIx = e->KeywordIx("GEOTIFF");
+            if(e->KeywordPresent(gtifIx)) {
+                e->SetKW(gtifIx, tiff.CreateGeoStruct(imageIndex));
+            }
+            #endif
+
+            static int iccProfileIx = e->KeywordIx("ICC_PROFILE");
+            if(e->KeywordPresent(iccProfileIx)) {
+                /* TODO: ICC_PROFILE keyword
+                Set this keyword to a named variable in which to return a byte array containing the TIFF ICC_PROFILE tag value.
+                If the ICC_PROFILE tag is not contained in the TIFF file then a scalar zero will be returned instead.
+                The ICC_PROFILE array is returned as an opaque array of byte values which the user can then pass to the WRITE_TIFF routine.
+
+                Note: The ICC_PROFILE tag is returned as an opaque array of byte values.
+                It is assumed that the tag will be read from an existing file, and written out to a new file without modification.
+                */
+
+                e->SetKW(iccProfileIx, new DLongGDL(0));
+            }
+
+            static int orientIx = e->KeywordIx("ORIENTATION");
+            if(e->KeywordPresent(orientIx)) {
+                e->SetKW(orientIx, new DLongGDL(enumIntegralValue(dir.orientation)));
+            }
+
+            static int photoshopIx = e->KeywordIx("PHOTOSHOP");
+            if(e->KeywordPresent(photoshopIx)) {
+                /* TODO: PHOTOSHOP keyword
+                Set this keyword to a named variable in which to return a byte array containing the TIFF PHOTOSHOP tag value.
+                If the PHOTOSHOP tag is not contained in the TIFF file, then a scalar zero will be returned instead.
+                The PHOTOSHOP array is returned as an opaque array of byte values which the user can then pass to the WRITE_TIFF routine.
+
+                Note: The PHOTOSHOP tag is returned as an opaque array of byte values.
+                It is assumed that the tag will be read from an existing file, and written out to a new file without modification.
+                */
+
+                e->SetKW(photoshopIx, new DLongGDL(0));
+            }
+
+            static int planarConfigIx = e->KeywordIx("PLANARCONFIG");
+            if(e->KeywordPresent(planarConfigIx)) {
+                e->SetKW(planarConfigIx, new DLongGDL(enumIntegralValue(dir.planarConfig)));
+            }
+       }
+
+       return image;
+   }
 }
 
 #endif
