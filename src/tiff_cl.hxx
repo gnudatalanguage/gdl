@@ -167,8 +167,9 @@ namespace lib
             template<typename T>
             void GetRequiredField(ttag_t tag, T& var) const
             {
+                const TIFFField* field;
                 if(tiff_ && !TIFFGetField(tiff_, tag, &var)) {
-                    if(auto field = TIFFFieldWithTag(tiff_, tag))
+                    if((field = TIFFFieldWithTag(tiff_, tag)))
                     throw TIFFFieldName(field); else throw tag;
                 }
             }
