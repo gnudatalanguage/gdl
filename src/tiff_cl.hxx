@@ -138,13 +138,6 @@ namespace lib
         };
         #endif
 
-        enum class Interleaving : DLong
-        {
-            Pixel       =  0,   // [channel, column, row]
-            Scanline    =  1,   // [column, channel, row]
-            Planar      =  2,   // [column, row, channel]
-        };
-
         struct Rectangle
         {
             uint32 x, y;
@@ -162,9 +155,7 @@ namespace lib
             bool        GetDirectory(tdir_t, Directory&) const;
             uint16      DirectoryCount() const;
             uint16      FileVersion() const;
-            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 },
-                                  const Interleaving = Interleaving::Pixel,
-                                  const uint8 channelMask = 0xFF);
+            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 }, const uint8 channelMask = 0xFF);
 
             template<typename... Ts>
             bool GetField(ttag_t tag, Ts&... vars) const
