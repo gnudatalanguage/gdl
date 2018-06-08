@@ -24,7 +24,7 @@ end
 pro event_in_base, id
   print,"event in base"
   help,id
-  print,"event in "+string(id)
+  print,"event in "+string(id.id)
 end
 pro slider_killed,id
   print,"slider "+string(id)+" was killed"
