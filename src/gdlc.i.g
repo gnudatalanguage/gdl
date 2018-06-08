@@ -2150,6 +2150,7 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 
 r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 {
+    res=NULL;
 	switch ( _t->getType()) {
 	case EXPR:
 	{
@@ -2360,6 +2361,7 @@ lib_function_call_retnew_internal returns[ BaseGDL* res]
 
 
 unused_function_call returns[ BaseGDL* res]
+{res=NULL;}
     : MFCALL 
     | MFCALL_PARENT 
     | FCALL 

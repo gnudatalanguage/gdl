@@ -6827,7 +6827,7 @@ void GDLParser::arrayindex_list() {
 	antlr::ASTPair currentAST;
 	RefDNode arrayindex_list_AST = RefDNode(antlr::nullAST);
 			
-	int rank = 1;
+	SizeT rank = 1;
 	
 	
 	if ((LA(1) == LSQUARE)) {
