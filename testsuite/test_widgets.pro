@@ -24,7 +24,7 @@ end
 pro event_in_base, id
   print,"event in base"
   help,id
-  print,"event in "+string(id)
+  print,"event in "+string(id.id)
 end
 pro slider_killed,id
   print,"slider "+string(id)+" was killed"
@@ -206,10 +206,22 @@ nrows=n_elements(table); check...
 bg=widget_base(tab4,/ROW)
 values = ['One', 'Two', 'Three', 'Four', 'Five','Six'] 
 
-bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
-  LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) 
-bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
-  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1]) 
+    CATCH,cw_bgroup_error
+    if cw_bgroup_error eq 0 then bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
+            LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) else $
+        message,/contin," can't make a CW_Bgroup widget"
+        CATCH,/CANCEL
+;bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
+;  LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) 
+;bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
+;  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1]) 
+
+    CATCH,cw_bgroup_error
+    if cw_bgroup_error eq 0 then bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
+  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1])  else $
+        message,/contin," can't make a CW_Bgroup widget"
+        CATCH,/CANCEL
+
 
 ; tab5 
 label1=widget_label(tab5,VALUE="Text on the left (/align_left)",/align_left,uvalue={vEv,'lll',[1,-1]},/sunken_frame)
@@ -237,24 +249,30 @@ mytable1=widget_table(tab6,value=dist(7),xsize=5,ysize=5,/editable,/all_events)
 ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
 widget_control,mytable1,edit_cell=[0,0]
 widget_control,mytable1,background_color=[255,255,0],use_table_sel=[1,1,4,4]
-mytable2=widget_table(tab6,value=table[0:5],/row_major,row_labels='',column_labels=tags,column_width=50,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events)
+
+ntable = min([5,nrows-1])
+mytable2=widget_table(tab6,value=table[0:ntable],$
+    /row_major,row_labels='',column_labels=tags,column_width=50,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events)
 ;
 ;tab7: a tree table
 if ~keyword_set(notree) then begin
   racine = widget_tree(tab7)
   wtRoot = widget_tree(racine, VALUE='GDL', /folder, /draggable, /drop_events)
   feuille_11 = WIDGET_TREE(wtRoot, VALUE='is', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
   branche_12 = WIDGET_TREE(wtRoot, VALUE='...', $
     /FOLDER, /EXPANDED)
   feuille_121 = WIDGET_TREE(branche_12, VALUE='with', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_122 = WIDGET_TREE(branche_12, VALUE='a lot of', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_13 = WIDGET_TREE(wtRoot, VALUE='widgets', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_14 = WIDGET_TREE(wtRoot, VALUE='now', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
 
 end
 ; overwrite buttons;
@@ -267,15 +285,34 @@ widget_control,base,notify_realize='i_am_realized'
 ;Realize the widgets. 
 WIDGET_CONTROL, /REALIZE, base 
  
-;Obtain the window index. 
 if ~keyword_set(nocanvas) then begin
+;Obtain the window index. 
+    index =0  & index2 = 1
     print,"Draw widgets:",draw,draw2
     WIDGET_CONTROL, draw, GET_VALUE = index 
     WIDGET_CONTROL, draw2, GET_VALUE = index2 
+; 
+;  Accomodate the "NO_WIDGET_DRAW" crowd:
+;
+; 0 <= index,index2 < 32
+
+    if (!d.name eq "WIN") or (!d.name eq "X") $
+            and (index lt 32) and (index2 lt 32) then begin
+        device,window_state=wcheck
+        if wcheck[index] eq 0  then window,index
+        if wcheck[index2] eq 0  then window,index2
+         endif
     ;;
     ;; Set the new widget to be the current graphics window 
     print,"window indexes",index,index2
-    WSET,index
+    ; for window index 32 or greater we cannot call WINDOW to create but
+    ; it may be "closed and unavailable" when WX is not the plot device.
+
+    CATCH,wset_error
+    if wset_error eq 0 then WSET,index else $
+        message,/contin," can't plot to, or image on, the draw widget"
+        CATCH,/CANCEL
+
     PLOT, FINDGEN(100)
     ;; we try to TV an image, skipped if not found ...
     ;; Read "Saturn.jpg" and return content in "image"
@@ -286,7 +323,13 @@ if ~keyword_set(nocanvas) then begin
         TV, image,10,10, /data, /true    
     endelse
     ;;
-    WSET, index2 
+    if wset_error ne 0 then wait,2
+    
+    CATCH,wset_error
+    if wset_error eq 0 then WSET,index2 else $
+        message,/contin," can't plot to, or image on, the draw widget"
+        CATCH,/CANCEL
+
     f=FINDGEN(1000)/100.
     CONTOUR, COS(DIST(100,100)/10.)
 end
