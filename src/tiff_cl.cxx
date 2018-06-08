@@ -253,7 +253,7 @@ namespace lib
             };
         }
 
-        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect, const Interleaving interleave, const uint8 channelMask)
+        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect, const uint8 channelMask)
         {
             uint32 c = popCount8(channelMask);
             uint32 w = (rect.w ? rect.w : dir.width - rect.x);
@@ -273,26 +273,13 @@ namespace lib
             dimension dim(w, h);
 
             if(c > 1) {
-                SizeT ndim[3];
-
-                switch(interleave) {
-                case Interleaving::Pixel:       ndim[0] = c; ndim[1] = w; ndim[2] = h; break;
-
-                /* TODO: Add support for forced interleaving
-                case Interleaving::Scanline:    ndim[0] = w; ndim[1] = c; ndim[2] = h; break;
-                case Interleaving::Planar:      ndim[0] = w; ndim[1] = h; ndim[2] = c; break;
-                */
-                default:
-                    fprintf(stderr, "Forced image interleaving currently not supported\n");
-                    return nullptr;
-                }
+                SizeT ndim[3] = { c, w, h };
+                dim = dimension(ndim, 3);
 
                 if(dir.planarConfig != TIFF::Directory::PlanarConfig::Contiguous) {
                     fprintf(stderr, "Non-contiguous planar configurations currently not supported\n");
                     return nullptr;
                 }
-
-                dim = dimension(ndim, 3);
             }
 
             switch(dir.PixelType()) {
@@ -609,7 +596,6 @@ namespace lib
                 e->Throw("Invalid IMAGE_INDEX value");
 
             TIFF::Rectangle rect = { 0, 0, dir.width, dir.height };
-            TIFF::Interleaving interleave = TIFF::Interleaving::Pixel;
             uint8 channels = 0; // Up to 8 channels supported
 
             // TODO: Handle three-channel images with color separated planar configuration
@@ -642,22 +628,6 @@ namespace lib
             }
             else channels = 0xFF;
 
-            // Use explicitly defined interleaving if present, otherwise pixel interleaving
-            static int interleaveIx = e->KeywordIx("INTERLEAVE");
-            if(e->KeywordSet(interleaveIx)) {
-                DLong interleaveVal;
-                e->AssureLongScalarKW(interleaveIx, interleaveVal);
-
-                if(interleaveVal < 0 || interleaveVal > 2)
-                    e->Throw("Invalid INTERLEAVE value (expected 0, 1 or 2)");
-
-                interleave = static_cast<TIFF::Interleaving>(interleaveVal);
-
-                // TODO: Implement support for forced interleaving
-                if(interleave != TIFF::Interleaving::Pixel)
-                    e->Throw("Unsupported INTERLEAVE value (only 0 is currently implemented)");
-            }
-
             // Use exclicitly defined sub rectangle if present
             static int subRectIx = e->KeywordIx("SUB_RECT");
             if(e->KeywordSet(subRectIx)) {
@@ -675,7 +645,7 @@ namespace lib
                     e->Throw("Invalid SUB_RECT value exeeds image dimensions");
             }
 
-            if(!(image = tiff.ReadImage(dir, rect, interleave, channels)))
+            if(!(image = tiff.ReadImage(dir, rect, channels)))
                 e->Throw("Failed to read TIFF image with defined parameters");
 
             static int dotRangeIx = e->KeywordIx("DOT_RANGE");
