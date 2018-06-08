@@ -24,20 +24,13 @@
 #include <cmath>
 #include <bitset> // for binary output
 //using namespace std;
-#ifndef _MSC_VER
-  using std::isnan;
-#else
-#define isnan _isnan
-#endif
-
 
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
 
 #ifdef _MSC_VER
-#  define finite _finite
-#else
-  using std::isnan;
+#define finite _finite
+#define isnan _isnan
 #endif
 
 typedef enum codeFlags_
@@ -182,7 +175,7 @@ void OutFixed(std::ostream& os, const T &val, const int w, const int d, const in
    }
    else
      OutFixFill(os, oss.str(), w, code);
-  } else if (isnan(val))    OutFixedNan<T>( os, val, w, code);
+  } else if (std::isnan(val))    OutFixedNan<T>( os, val, w, code);
   else OutFixedInf<T>( os, val, w, code);
 }
 
@@ -212,7 +205,7 @@ void OutScientific(std::ostream& os, const T &val, const int w, const int d, con
    os << std::right;
   }
   else OutFixFill(os, oss.str(), w, code);
- } else if (isnan(val)) OutFixedNan<T>(os, val, w, code);
+ } else if (std::isnan(val)) OutFixedNan<T>(os, val, w, code);
  else OutFixedInf<T>(os, val, w, code);
 }
 
@@ -299,7 +292,7 @@ void OutAuto(std::ostream& os, const T &val, const int w, const int d, const int
       OutFixFill(os, ossF.str(), w, code);
   }
  }
- else if (isnan(val)) OutFixedNan<T>(os, val, w, code);
+ else if (std::isnan(val)) OutFixedNan<T>(os, val, w, code);
  else OutFixedInf<T>(os, val, w, code);
 }
 
