@@ -2923,6 +2923,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	BaseGDL* res;
 	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	res=NULL;
 		switch ( _t->getType()) {
 		case EXPR:
 		{
@@ -3107,6 +3108,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
  BaseGDL*  GDLInterpreter::unused_function_call(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP unused_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	res=NULL;
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;

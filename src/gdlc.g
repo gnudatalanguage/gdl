@@ -1222,7 +1222,7 @@ numeric_constant!//
 
 arrayindex_list
 {		
-    SizeT rank = 1;
+    int rank = 1;
 }
 	: LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
 	| { IsRelaxed()}? LBRACE! arrayindex 
