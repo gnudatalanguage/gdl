@@ -7,11 +7,12 @@
 #  (at your option) any later version.
 #
 
-# tested with 2.4 and doesn't seem to run.
-# SA: 2.6 supports simplified if constructs, e.g. endif()
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+# SA: 3.1 (Dec 2014) required for CMAKE_CXX_STANDARD
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
+set(CMAKE_CXX_STANDARD 11)
 
 # X.X.X CVS becomes release X.X.X+1
 set(VERSION "0.9.8 git")
