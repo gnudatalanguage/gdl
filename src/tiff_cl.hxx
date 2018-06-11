@@ -163,7 +163,7 @@ namespace lib
             bool        GetDirectory(tdir_t, Directory&) const;
             uint16      DirectoryCount() const;
             uint16      FileVersion() const;
-            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 }, const uint8 channelMask = 0xFF);
+            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 });
 
             template<typename... Ts>
             bool GetField(ttag_t tag, Ts&... vars) const
