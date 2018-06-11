@@ -350,7 +350,6 @@ TEST_FINITE_TYPE, cumul_errors
 ;
 TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
 ;
-TEST_FINITE_TYPE, cumul_errors
 print, 'Running this test with various numbers of points ...'
 print, 'Please wait ...'
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=10000L
