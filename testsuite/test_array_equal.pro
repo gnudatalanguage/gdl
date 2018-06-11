@@ -173,6 +173,7 @@ TEST_ARRAY_EQUAL_DIFF_TYPE, nb_errors, verbose=verbose, test=test, help=help
 BANNER_FOR_TESTSUITE, "TEST_ARRAY_EQUAL", nb_errors
 ;
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+if ~ARRAY_EQUAL(findgen(20), findgen(20)+20.,/not_equal) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

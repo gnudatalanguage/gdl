@@ -210,7 +210,7 @@ void InitStructs()
   structList.push_back(gdlContainerNode);
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
-  DStructDesc* gdlContainer = new DStructDesc( "GDL_CONTAINER");
+  DStructDesc* gdlContainer = new DStructDesc( GDL_CONTAINER_NAME);
   gdlContainer->AddTag("GDL_CONTAINER_TOP", &aLong64);
   gdlContainer->AddTag("GDLCONTAINERVERSION", &aInt);
   gdlContainer->AddTag("PHEAD", &aPtrRef);

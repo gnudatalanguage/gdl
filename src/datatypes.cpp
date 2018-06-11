@@ -1860,7 +1860,9 @@ SizeT Data_<SpDObj>::N_Elements() const
 { 
   if( !this->StrictScalar())
     return dd.size();
-  
+#if 1  // GJ change this and see how many problems it solves, creates. 2016/5/5 
+  else return 1;
+#elif 0
   DObj s = dd[0]; // is StrictScalar()
   if( s == 0)  // no overloads for null object
     return 1;
@@ -1887,6 +1889,7 @@ SizeT Data_<SpDObj>::N_Elements() const
   }
 
   return 1;
+#endif  
 }
 
 
@@ -2859,6 +2862,38 @@ bool DStructGDL::ArrayEqual( BaseGDL* r)
   throw GDLException("Struct expression not allowed in this context.");
   return false;
 }
+
+// For array_equal r must be of same type
+template<class Sp>
+bool Data_<Sp>::ArrayNeverEqual( BaseGDL* rIn)
+{
+  Data_<Sp>* r = static_cast< Data_<Sp>*>( rIn);
+  SizeT nEl = N_Elements();
+  SizeT rEl = r->N_Elements();
+  if( rEl == 1)
+    {
+      for( SizeT i=0; i<nEl; ++i)
+	if( (*this)[i] == (*r)[0]) return false;
+      return true;
+    }
+  if( nEl == 1)
+    {
+      for( SizeT i=0; i<rEl; ++i)
+	if( (*this)[0] == (*r)[i]) return false;
+      return true;
+    }
+  if( nEl != rEl) return true;
+  for( SizeT i=0; i<nEl; ++i)
+    if( (*this)[i] == (*r)[i]) return false;
+  return true;
+}
+
+bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
+{
+  throw GDLException("Struct expression not allowed in this context.");
+  return false;
+}
+
 
 
 template<class Sp>
