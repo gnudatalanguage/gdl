@@ -88,6 +88,99 @@ ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_set(test) then STOP
 ;
 end
+;
+; -------------------------------------------------
+;
+pro TEST_FINITE_TYPE, cumul_errors
+;
+nb_errors=0
+;
+arra= BYTARR(10)
+arrb= COMPLEXARR(10)
+arrc= DBLARR(10)
+arrd= DCOMPLEXARR(10)
+arre= FLTARR(10)
+arrf= INTARR(10)
+arrg= LON64ARR(10)
+arrh= LONARR(10)
+arri= STRARR(10)
+arrj= UINTARR(10)
+arrk= ULON64ARR(10)
+arrl= ULONARR(10)
+; You can only assign infinite and NaN values to :
+; COMPLEX, DCOMPLEX, DOUBLE, FLOAT and STR
+arrb[0] = !VALUES.F_NAN
+arrb[1] = -!VALUES.F_NAN
+arrb[2] = !VALUES.F_INFINITY
+arrb[3] = -!VALUES.F_INFINITY
+arrc[0] = !VALUES.F_NAN
+arrc[1] = -!VALUES.F_NAN
+arrc[2] = !VALUES.F_INFINITY
+arrc[3] = -!VALUES.F_INFINITY
+arrd[0] = !VALUES.F_NAN
+arrd[1] = -!VALUES.F_NAN
+arrd[2] = !VALUES.F_INFINITY
+arrd[3] = -!VALUES.F_INFINITY
+arre[0] = !VALUES.F_NAN
+arre[1] = -!VALUES.F_NAN
+arre[2] = !VALUES.F_INFINITY
+arre[3] = -!VALUES.F_INFINITY
+arri[0] = !VALUES.F_NAN
+arri[1] = -!VALUES.F_NAN
+arri[2] = !VALUES.F_INFINITY
+arri[3] = -!VALUES.F_INFINITY
+;
+nb_cases=12
+;
+exp=BYTARR(nb_cases,10)
+;
+;expected results (general)
+;
+exp[0,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[1,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[2,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[3,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[4,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[5,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[6,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[7,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[8,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[9,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[10,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[11,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;
+; computations
+;
+res=BYTARR(12,10)
+;
+res[0,*]=FINITE(arra)
+res[1,*]=FINITE(arrb)
+res[2,*]=FINITE(arrc)
+res[3,*]=FINITE(arrd)
+res[4,*]=FINITE(arre)
+res[5,*]=FINITE(arrf)
+res[6,*]=FINITE(arrg)
+res[7,*]=FINITE(arrh)
+res[8,*]=FINITE(arri)
+res[9,*]=FINITE(arrj)
+res[10,*]=FINITE(arrk)
+res[11,*]=FINITE(arrl)
+;
+for ii=0, nb_cases-1 do begin
+   if ~ARRAY_EQUAL(exp[ii,*],res[ii,*]) then begin
+      ADD_ERROR, nb_errors, 'problem with Case '+STRING(ii)
+      
+   endif
+endfor
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_FINITE_TYPE', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
 ; -------------------------------------------------
 ;
 pro TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
@@ -253,8 +346,11 @@ TEST_FINITE_BASIC, cumul_errors, type=5
 TEST_FINITE_BASIC, cumul_errors, type=6
 TEST_FINITE_BASIC, cumul_errors, type=9
 ;
+TEST_FINITE_TYPE, cumul_errors
+;
 TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
 ;
+TEST_FINITE_TYPE, cumul_errors
 print, 'Running this test with various numbers of points ...'
 print, 'Please wait ...'
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=10000L
