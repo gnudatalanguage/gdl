@@ -363,19 +363,21 @@ void LibInit()
   
   const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
 			 "DOUBLE","FLOAT","L64","LONG",
-			 "STRING","UINT","UL64","ULONG",KLISTEND};
-  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,NULL,NULL,true);
+			 "STRING","UINT","UL64","ULONG",
+			 "START", "INCREMENT", KLISTEND};
+  const string xindKey[]={"START", "INCREMENT", KLISTEND};
+  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);
   new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);
-  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,NULL,NULL,true);
-  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,NULL,NULL,true);
+  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,xindKey,NULL,true);
 
   new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true,1);
 
@@ -417,8 +419,8 @@ void LibInit()
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
-  const string resolve_routineWarnKey[]={"COMPILE_FULL_FILE",KLISTEND};
-  const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER",KLISTEND};
+  const string resolve_routineWarnKey[]={"SKIP_EXISTING",KLISTEND};
+  const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","COMPILE_FULL_FILE","QUIET",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      resolve_routineKey,resolve_routineWarnKey);
 

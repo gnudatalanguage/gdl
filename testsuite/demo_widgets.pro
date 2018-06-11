@@ -63,20 +63,21 @@ help,ev,/str
   endif
 end
 
-pro demo_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block
+pro demo_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block, test=test
 common mycount,count
+
 count=0
 if ~keyword_set(block) then block=0
 if keyword_set(help) then begin
-print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
-print,"Will display some examples of currently available widgets"
-print,"if table is passed as argument and is a structure, tab 3 will show the"
-print,"elements of the structure as buttons in a scrolled panel"
-print,"options: /nocanvas removes the widget_draw"
-print,"/notree remove the tree widget"
+    print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
+    print,"Will display some examples of currently available widgets"
+    print,"if table is passed as argument and is a structure, tab 3 will show the"
+    print,"elements of the structure as buttons in a scrolled panel"
+    print,"options: /nocanvas removes the widget_draw"
+    print,"/notree remove the tree widget"
 
-return
-endif
+    return
+    endif
 
 ev = {vEv,type:'',pos:[0,0]}
 ;Create a base widget. 
@@ -85,27 +86,28 @@ base = WIDGET_BASE(MBAR=mbar,title="gdl widget examples",event_pro='event_in_bas
 menu = widget_button(mbar,VALUE="Menu")
 ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui")
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui")
+
 ;buttons as menu buttons
-        fileID = Widget_Button(mbar, Value='Complicated Menu')
-        saveID = Widget_Button(fileID, Value='submenu 1', /MENU)
-        button = Widget_Button(saveID, Value='entry 1', UNAME='POSTSCRIPT')
-        button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
-        raster = Widget_Button(saveID, Value='submenu 2', /MENU)
-        
-        button = Widget_Button(raster, Value='BMP', UNAME='RASTER_BMP')
-        button = Widget_Button(raster, Value='GIF', UNAME='RASTER_GIF')
-        button = Widget_Button(raster, Value='JPEG', UNAME='RASTER_JPEG')
-        button = Widget_Button(raster, Value='PNG', UNAME='RASTER_PNG')
-        button = Widget_Button(raster, Value='TIFF', UNAME='RASTER_TIFF')
-        imraster = Widget_Button(saveID, Value='submenu 3', /MENU)
-        button = Widget_Button(imraster, Value='BMP', UNAME='IMAGEMAGICK_BMP')
-        button = Widget_Button(imraster, Value='GIF', UNAME='IMAGEMAGICK_GIF')
-        button = Widget_Button(imraster, Value='JPEG', UNAME='IMAGEMAGICK_JPEG')
-        button = Widget_Button(imraster, Value='PNG', UNAME='IMAGEMAGICK_PNG')
-        button = Widget_Button(imraster, Value='TIFF', UNAME='IMAGEMAGICK_TIFF')
-        button = Widget_Button(fileID, Value='entry 3', /Separator, UNAME='SAVECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 4', UNAME='RESTORECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 5', /Separator, UNAME='QUIT')
+fileID = Widget_Button(mbar, Value='Complicated Menu')
+saveID = Widget_Button(fileID, Value='submenu 1', /MENU)
+button = Widget_Button(saveID, Value='entry 1', UNAME='POSTSCRIPT')
+button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
+raster = Widget_Button(saveID, Value='submenu 2', /MENU)
+
+button = Widget_Button(raster, Value='BMP', UNAME='RASTER_BMP')
+button = Widget_Button(raster, Value='GIF', UNAME='RASTER_GIF')
+button = Widget_Button(raster, Value='JPEG', UNAME='RASTER_JPEG')
+button = Widget_Button(raster, Value='PNG', UNAME='RASTER_PNG')
+button = Widget_Button(raster, Value='TIFF', UNAME='RASTER_TIFF')
+imraster = Widget_Button(saveID, Value='submenu 3', /MENU)
+button = Widget_Button(imraster, Value='BMP', UNAME='IMAGEMAGICK_BMP')
+button = Widget_Button(imraster, Value='GIF', UNAME='IMAGEMAGICK_GIF')
+button = Widget_Button(imraster, Value='JPEG', UNAME='IMAGEMAGICK_JPEG')
+button = Widget_Button(imraster, Value='PNG', UNAME='IMAGEMAGICK_PNG')
+button = Widget_Button(imraster, Value='TIFF', UNAME='IMAGEMAGICK_TIFF')
+button = Widget_Button(fileID, Value='entry 3', /Separator, UNAME='SAVECOMMANDS')
+button = Widget_Button(fileID, Value='entry 4', UNAME='RESTORECOMMANDS')
+button = Widget_Button(fileID, Value='entry 5', /Separator, UNAME='QUIT')
 
 
 ;tab = widget_base(base,/col); 
@@ -155,14 +157,15 @@ selectBase=widget_base(tab3,/ROW)
    ;pass label to top (avoid using a common)
    widget_control,base,set_uvalue=[statusLabel,labeltoupdate]
 ;base for listing contents of tables and to show selected files
-nrows=n_elements(table) ; passed table
-if ( n_elements(table) eq 0 or size(table,/type) ne 8 ) then begin
-tbltemplate={table2,string:'a very very very long string ',real:33.33,double:8.0080808D,another:'another',yanother:'very long string'} 
-; make a long table of nrows
-nrows=50
-table=replicate(tbltemplate,nrows)
-endif
-
+    nrows=n_elements(table) ; passed table
+    if ( n_elements(table) eq 0 or size(table,/type) ne 8 ) then begin
+        tbltemplate= $
+        {table2,string:'a very very very long string ',real:33.33,double:8.0080808D,another:'another',yanother:'very long string'} 
+        ; make a long table of nrows
+        nrows=50
+        table=replicate(tbltemplate,nrows)
+        endif
+if keyword_set(test) then stop,' table, nrows'
 ;names of columns
 tags = tag_names(table)
 ; nb of colums=nb tags
@@ -200,10 +203,22 @@ print,"label to update id="+string(labeltoupdate)
 bg=widget_base(tab4,/ROW)
 values = ['One', 'Two', 'Three', 'Four', 'Five','Six'] 
 
-bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
-  LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) 
-bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
-  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1]) 
+    CATCH,cw_bgroup_error
+    if cw_bgroup_error eq 0 then bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
+            LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) else $
+        message,/contin," can't make a CW_Bgroup widget"
+        CATCH,/CANCEL
+;bgroup1 = CW_BGROUP(bg, values, /COLUMN, /EXCLUSIVE, $ 
+;  LABEL_TOP='Exclusive', /FRAME, SET_VALUE=3) 
+;bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
+;  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1]) 
+
+    CATCH,cw_bgroup_error
+    if cw_bgroup_error eq 0 then bgroup2 = CW_BGROUP(bg, values, /COLUMN, /NONEXCLUSIVE, $ 
+  LABEL_TOP='Nonexclusive', /FRAME, SET_VALUE=[1,0,1,0,1])  else $
+        message,/contin," can't make a CW_Bgroup widget"
+        CATCH,/CANCEL
+
 
 ; tab5 
 label1=widget_label(tab5,VALUE="Text on the left (/align_left)",/align_left,uvalue={vEv,'lll',[1,-1]})
@@ -226,24 +241,37 @@ mytable1=widget_table(tab6,value=dist(7),xsize=5,ysize=5,/editable,/all_events)
 ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
 widget_control,mytable1,edit_cell=[0,0]
 widget_control,mytable1,background_color=[255,255,0],use_table_sel=[1,1,4,4]
-mytable2=widget_table(tab6,value=table[0:5],/row_major,row_labels='',column_labels=tags,column_width=50,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events)
+
+ntable = min([5,nrows-1])
+    CATCH,mytable2_error
+    if mytable2_error eq 0 then mytable2=widget_table(tab6,value=table[0:ntable],$
+            /row_major,row_labels='',$
+            column_labels=tags,column_width=50,/resizeable_columns,$
+            y_scroll_size=40,/disjoint,/all_events) else $
+        message,/contin," can't make mytable2"
+        CATCH,/CANCEL
 ;
+if keyword_set(test) then stop,' mytable2?'
 ;tab7: a tree table
 if ~keyword_set(notree) then begin
   racine = widget_tree(tab7)
   wtRoot = widget_tree(racine, VALUE='GDL', /folder, /draggable, /drop_events)
   feuille_11 = WIDGET_TREE(wtRoot, VALUE='is', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
   branche_12 = WIDGET_TREE(wtRoot, VALUE='...', $
     /FOLDER, /EXPANDED)
   feuille_121 = WIDGET_TREE(branche_12, VALUE='with', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_122 = WIDGET_TREE(branche_12, VALUE='a lot of', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_13 = WIDGET_TREE(wtRoot, VALUE='widgets', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
   feuille_14 = WIDGET_TREE(wtRoot, VALUE='now', $
-    UVALUE='LEAF')
+    UVALUE={vEv,'LEAF',[0,0]})
+
 end
 ; overwrite buttons;
    for iRow=0,nRows-1 do widget_control,fileButtons(iRow) , set_value="Y"
@@ -258,24 +286,49 @@ widget_control,base,notify_realize='i_am_realized'
 ;Realize the widgets. 
 WIDGET_CONTROL, /REALIZE, base 
  
-;Obtain the window index. 
 if ~keyword_set(nocanvas) then begin
-print,"Draw widgets:",draw,draw2
- WIDGET_CONTROL, draw, GET_VALUE = index 
-  WIDGET_CONTROL, draw2, GET_VALUE = index2 
+    ;Obtain the window index. 
+    index =0  & index2 = 1
+    print,"Draw widgets:",draw,draw2
+    WIDGET_CONTROL, draw, GET_VALUE = index 
+    WIDGET_CONTROL, draw2, GET_VALUE = index2 
+; 
+;  Accomodate the "NO_WIDGET_DRAW" crowd:
+;
+; 0 <= index,index2 < 32
 
+    if (!d.name eq "WIN") or (!d.name eq "X") $
+            and (index lt 32) and (index2 lt 32) then begin
+        device,window_state=wcheck
+        if wcheck[index] eq 0  then window,index
+        if wcheck[index2] eq 0  then window,index2
+         endif
 ;Set the new widget to be the current graphics window 
- print,"window indexes",index,index2
- file='Saturn.jpg'
- image=read_image(file)
- WSET,index
- plot,findgen(100)
- tv,image,10,10,/data,/true
+;
+if keyword_set(test) then stop,' checked graphics windows.',index,index2
+;
+    file='Saturn.jpg'
+    image=read_image(file_which(file))
+    ; for window index 32 or greater we cannot call WINDOW to create but
+    ; it may be "closed and unavailable" when WX is not the plot device.
 
- WSET, index2 
- f=findgen(1000)/100.
- contour,cos(dist(100,100)/10.)
+    CATCH,wset_error
+    if wset_error eq 0 then WSET,index else $
+        message,/contin," can't plot to, or image on, the draw widget"
+        CATCH,/CANCEL
+        
+    plot,findgen(100)
+    tv,image,10,10,/data,/true
+    if wset_error ne 0 then wait,2
+    
+    CATCH,wset_error
+    if wset_error eq 0 then WSET,index2 else $
+        message,/contin," can't plot to, or image on, the draw widget"
+        CATCH,/CANCEL
+    
+    f=findgen(1000)/100.
+    contour,cos(dist(100,100)/10.)
 
-end
+    endif
 xmanager,"demo_widgets",base,cleanup="cleanup_xmanager",no_block=~block
 end

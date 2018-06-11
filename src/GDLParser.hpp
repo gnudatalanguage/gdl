@@ -183,7 +183,7 @@ public:
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
-	public: void all();
+	public: void all_elements();
 	public: void sysvar();
 	public: void var();
 	public: void brace_expr();
@@ -222,10 +222,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 237;
+	static const int NUM_TOKENS = 238;
 #else
 	enum {
-		NUM_TOKENS = 237
+		NUM_TOKENS = 238
 	};
 #endif
 	

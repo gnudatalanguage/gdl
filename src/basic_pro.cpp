@@ -2161,17 +2161,21 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     //Warning("and keywords are not managed ...");
     //Warning("If you need this code, please ask or contribute !");
 
-    SizeT nParam = e->NParam(1);
-
     static int eitherIx = e->KeywordIx("EITHER");
-    bool eitherKeyword = e->KeywordPresent(eitherIx);
+    bool eitherKeyword = e->KeywordSet(eitherIx);
 
     static int is_functionIx = e->KeywordIx("IS_FUNCTION");
-    bool isfunctionKeyword = e->KeywordPresent(is_functionIx);
+    bool isfunctionKeyword = e->KeywordSet(is_functionIx);
 
     static int no_recompileIx = e->KeywordIx("NO_RECOMPILE");
-    bool norecompileKeyword = e->KeywordPresent(no_recompileIx);
+    bool norecompileKeyword = e->KeywordSet(no_recompileIx);
 
+    static int quietIx = e->KeywordIx("QUIET");
+    bool quiet = e->KeywordSet(quietIx);
+    
+    static int cffIx = e->KeywordIx("COMPILE_FULL_FILE");
+    bool cff = e->KeywordSet(cffIx);
+    
     BaseGDL* p0 = e->GetParDefined(0);
     if (p0->Type() != GDL_STRING)
       e->Throw("Expression must be a string in this context: " +
@@ -2188,13 +2192,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       AppendIfNeeded(proFile, ".pro");
 
       bool found = CompleteFileName(proFile);
-      if (!found)
-        e->Throw("Not found: " + proFile);
+      if (!found )
+        if (!quiet) e->Throw("Not found: " + proFile); else return;
 
       // file already opened?
       bool open = false;
       for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
-        cout << *j << endl;
         if (proFile == *j) {
           open = true;
           break;
@@ -2218,8 +2221,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       // append file to list
       openFiles.push_back(proFile);
-
-      bool success = GDLInterpreter::CompileFile(proFile); // this might trigger recursion
+      bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
@@ -2232,12 +2234,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       }
       if ((!isFunc && isfunctionKeyword && !eitherKeyword) ||
         (isFunc && !isfunctionKeyword && !eitherKeyword && !exists))
-        e->Throw("Attempt to call undefined : " + proFile);
+        if (!quiet) e->Throw("Attempt to call undefined : " + proFile);
 
       if (success) {
-        Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
+        // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        e->Throw("Failed to compiled file: " + proFile);
+        if (!quiet) e->Throw("Failed to compiled file: " + proFile); //please check this is the good behaviour
     }
   }
 

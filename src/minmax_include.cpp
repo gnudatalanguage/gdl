@@ -105,6 +105,8 @@
     {
       Ty* maxVArray= new Ty[CpuTPOOL_NTHREADS];
       SizeT maxElArray[CpuTPOOL_NTHREADS];
+//precaution:initialize to something realistic:
+      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
 
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
@@ -216,6 +218,8 @@
     {
       Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
       SizeT minElArray[CpuTPOOL_NTHREADS];
+//precaution:initialize to something realistic:
+      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
       
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
@@ -335,7 +339,10 @@
       SizeT maxElArray[CpuTPOOL_NTHREADS];
       Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
       SizeT minElArray[CpuTPOOL_NTHREADS];
-
+//precaution:initialize to something realistic:
+      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
+      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
+      
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
