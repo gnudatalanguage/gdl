@@ -21,13 +21,24 @@ if GEOTIFF_EXISTS() eq 0 and keyword_set(GEOTIFF) then begin
     MESSAGE, "libgeotiff is required in order to use the GEOTIFF keyword."
 endif
 
-image = TIFF_READ(filename, red=r, green=g, blue=b, channels=channels, $
+image = TIFF_READ(filename, red=r, green=g, blue=b, image_index=image_index, $
                   dot_range=dot_range, geotiff=geotiff, icc_profile=icc_profile, $
-                  image_index=image_index, orientation=orientation, photoshop=photoshop, $
+                  orientation=orientation, photoshop=photoshop, $
                   planarconfig=planarconfig, sub_rect=sub_rect, verbose=verbose)
 
+dims = size(image, /dimensions)
+ndims = size(dims, /n_elements)
+chans = 1
+
+if ndims gt 2 then chans = dims[0]
+
+if keyword_set(channels) then begin
+    if chans gt 1 then image = image[channels,*,*] $
+    else MESSAGE, /information, "CHANNELS keyword ignored for images wheren CHANNELS is 1"
+endif
+
 if keyword_set(interleave) then begin
-    if size(image, /n_dimensions) eq 3 then begin
+    if chans eq 3 then begin
         if interleave eq 0 then image = transpose(image, [0, 1, 2])
         if interleave eq 1 then image = transpose(image, [1, 0, 2])
         if interleave eq 2 then image = transpose(image, [1, 2, 0])

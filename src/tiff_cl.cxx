@@ -33,13 +33,6 @@ typename std::underlying_type<E>::type enumIntegralValue(E e)
     return static_cast<typename std::underlying_type<E>::type>(e);
 }
 
-uint8 popCount8(uint8 x)
-{
-    x = x - ((x >> 1) & 0x55);
-    x = (x & 0x33) + ((x >> 2) & 0x33);
-    return ((x + (x >> 4)) & 0x0F);
-}
-
 namespace lib
 {
     namespace TIFF
@@ -241,7 +234,7 @@ namespace lib
 
         typedef void (*ScanlineFn)(BaseGDL*, uint32, uint32, const void*, size_t);
         template<typename T>
-        ScanlineFn createScanlineFn(BaseGDL*& var, T* val, const uint32 channels)
+        ScanlineFn createScanlineFn(BaseGDL*& var, T* val)
         {
             if(!(var = val))
                 return nullptr;
@@ -254,20 +247,11 @@ namespace lib
             };
         }
 
-        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect, const uint8 channelMask)
+        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect)
         {
-            uint32 c = popCount8(channelMask);
+            uint32 c = dir.samplesPerPixel;
             uint32 w = (rect.w ? rect.w : dir.width - rect.x);
             uint32 h = (rect.h ? rect.h : dir.height - rect.y);
-
-            if(c > dir.samplesPerPixel)
-                c = dir.samplesPerPixel;
-
-            /* TODO: Add support for channel masking */
-            if(c != dir.samplesPerPixel) {
-                fprintf(stderr, "Channel masking currently not supported\n");
-                return nullptr;
-            }
 
             ScanlineFn addScanline;
             BaseGDL* image = nullptr;
@@ -279,15 +263,15 @@ namespace lib
             }
 
             switch(dir.PixelType()) {
-            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim),    c); break;
-            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim),    c); break;
-            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim),   c); break;
-            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim), c); break;
-            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim),     c); break;
-            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim),    c); break;
-            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim),  c); break;
-            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim),   c); break;
-            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim),  c); break;
+            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim));       break;
+            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim));       break;
+            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim));      break;
+            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim));    break;
+            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim));        break;
+            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim));       break;
+            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim));     break;
+            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim));      break;
+            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim));     break;
 
             default:
                 fprintf(stderr, "Unsupported PIXEL_TYPE: %d\n", dir.PixelType());
@@ -592,7 +576,6 @@ namespace lib
                 e->Throw("Invalid IMAGE_INDEX value");
 
             TIFF::Rectangle rect = { 0, 0, dir.width, dir.height };
-            uint8 channels = 0; // Up to 8 channels supported
 
             // TODO: Plane interleaved images
             if(dir.planarConfig == TIFF::Directory::PlanarConfig::Separate) {
@@ -636,20 +619,6 @@ namespace lib
                 }
             }
 
-            // Include explicitly defined channels if available, otherwise all (up to 8)
-            static int channelsIx = e->KeywordIx("CHANNELS");
-            if(e->KeywordSet(channelsIx)) {
-                auto chanArr = e->GetKW(channelsIx);
-                int n = chanArr->N_Elements(), i;
-
-                if(n > 8)
-                    e->Throw("Invalid number of elements in CHANNELS array (maximum 8 supported)");
-
-                for(i = 0; i < n; ++i)
-                    channels |= (1 << i);
-            }
-            else channels = 0xFF;
-
             // Use exclicitly defined sub rectangle if present
             static int subRectIx = e->KeywordIx("SUB_RECT");
             if(e->KeywordSet(subRectIx)) {
@@ -667,7 +636,7 @@ namespace lib
                     e->Throw("Invalid SUB_RECT value exeeds image dimensions");
             }
 
-            if(!(image = tiff.ReadImage(dir, rect, channels)))
+            if(!(image = tiff.ReadImage(dir, rect)))
                 e->Throw("Failed to read TIFF image with defined parameters");
 
             static int dotRangeIx = e->KeywordIx("DOT_RANGE");
