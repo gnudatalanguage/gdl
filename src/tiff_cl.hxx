@@ -107,6 +107,13 @@ namespace lib
                 CIELog2Luv              = 32845,
             } photometric               = Photometric::MinIsWhite;
 
+            struct ColorMap
+            {
+                uint16* red;
+                uint16* green;
+                uint16* blue;
+            } colorMap                  = { 0 };
+
             const char* description     = "";
             const char* name            = "";
             const char* dateTime        = "";

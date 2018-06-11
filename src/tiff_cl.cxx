@@ -202,6 +202,7 @@ namespace lib
                 GetField(TIFFTAG_RESOLUTIONUNIT,            dir.resolution.unit);
                 GetField(TIFFTAG_PLANARCONFIG,              dir.planarConfig);
                 GetField(TIFFTAG_ORIENTATION,               dir.orientation);
+                GetField(TIFFTAG_COLORMAP,                  dir.colorMap.red, dir.colorMap.green, dir.colorMap.blue);
                 GetField(TIFFTAG_IMAGEDESCRIPTION,          dir.description);
                 GetField(TIFFTAG_DOCUMENTNAME,              dir.name);
                 GetField(TIFFTAG_DATETIME,                  dir.dateTime);
@@ -275,11 +276,6 @@ namespace lib
             if(c > 1) {
                 SizeT ndim[3] = { c, w, h };
                 dim = dimension(ndim, 3);
-
-                if(dir.planarConfig != TIFF::Directory::PlanarConfig::Contiguous) {
-                    fprintf(stderr, "Non-contiguous planar configurations currently not supported\n");
-                    return nullptr;
-                }
             }
 
             switch(dir.PixelType()) {
@@ -598,11 +594,11 @@ namespace lib
             TIFF::Rectangle rect = { 0, 0, dir.width, dir.height };
             uint8 channels = 0; // Up to 8 channels supported
 
-            // TODO: Handle three-channel images with color separated planar configuration
-            if((dir.planarConfig == TIFF::Directory::PlanarConfig::Separate)
-            && (dir.samplesPerPixel == 3)) {
-                /* TODO: R, G, B arguments
-                Named variables that will contain the Red, Green, and Blue color vectors of the color table from the file if one exists.
+            // TODO: Plane interleaved images
+            if(dir.planarConfig == TIFF::Directory::PlanarConfig::Separate) {
+                e->Throw("Plane interleaved images not yet supported");
+
+                /*
                 If the TIFF file is written as a three-channel image, interleaved by plane, and the R, G, and B parameters are present,
                 the three channels of the image are returned in the R, G, and B variables.
 
@@ -612,6 +608,32 @@ namespace lib
                 */
 
                 return new DLongGDL(0);
+            }
+
+            // Palette coloured images
+            else if(dir.photometric == TIFF::Directory::Photometric::Palette) {
+                if(!(dir.bitsPerSample == 16 && dir.samplesPerPixel == 3))
+                    e->Throw("Palettes only supported for 3 channel images with 16 bits per pixel");
+
+                size_t count = (2 << (dir.bitsPerSample - 1));
+
+                static int rIx = e->KeywordIx("RED");
+                if(e->KeywordSet(rIx)) {
+                    if(dir.colorMap.red) e->SetKW(rIx, new DUIntGDL(dir.colorMap.red, count));
+                    else e->Throw("RED colormap missing in TIFF file");
+                }
+
+                static int gIx = e->KeywordIx("GREEN");
+                if(e->KeywordSet(gIx)) {
+                    if(dir.colorMap.green) e->SetKW(gIx, new DUIntGDL(dir.colorMap.green, count));
+                    else e->Throw("GREEN colormap missing in TIFF file");
+                }
+
+                static int bIx = e->KeywordIx("BLUE");
+                if(e->KeywordSet(bIx)) {
+                    if(dir.colorMap.blue) e->SetKW(bIx, new DUIntGDL(dir.colorMap.blue, count));
+                    else e->Throw("BLUE colormap missing in TIFF file");
+                }
             }
 
             // Include explicitly defined channels if available, otherwise all (up to 8)
