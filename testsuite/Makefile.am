@@ -135,6 +135,7 @@ TESTS = \
   test_la_least_squares.pro \
   test_list.pro \
   test_ludc_lusol.pro \
+  test_make_array.pro \
   test_make_dll.pro \
   test_math_function_dim.pro \
   test_matrix_multiply.pro \
