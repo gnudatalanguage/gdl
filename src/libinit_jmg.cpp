@@ -211,11 +211,11 @@ void LibInit_jmg()
   const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
   new DLibFunRetNew(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);
 
-  const string make_arrayKey[]={"NOZERO","DIMENSION","INDEX","SIZE",
-				"TYPE","VALUE","BYTE","INTEGER",
-				"UINT","LONG","ULONG","L64","UL64",
-				"FLOAT","DOUBLE","COMPLEX",
-				"DCOMPLEX","STRING","PTR","OBJ",KLISTEND};
+  const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",
+                                 "SIZE", "START", "TYPE", "VALUE", "BOOLEAN",
+                                 "BYTE", "COMPLEX", "DCOMPLEX", "DOUBLE",
+                                 "FLOAT", "INTEGER", "L64", "LONG", "OBJ",
+                                 "PTR", "STRING", "UINT", "UL64", "ULONG", KLISTEND};
   new DLibFunRetNew(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);
 
   const string reformKey[]={"OVERWRITE",KLISTEND};
