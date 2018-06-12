@@ -95,40 +95,31 @@ pro TEST_FINITE_TYPE, cumul_errors
 ;
 nb_errors=0
 ;
-arra= BYTARR(10)
-arrb= COMPLEXARR(10)
-arrc= DBLARR(10)
-arrd= DCOMPLEXARR(10)
-arre= FLTARR(10)
-arrf= INTARR(10)
-arrg= LON64ARR(10)
-arrh= LONARR(10)
-arri= STRARR(10)
-arrj= UINTARR(10)
-arrk= ULON64ARR(10)
-arrl= ULONARR(10)
+byt_arr= BYTARR(10)
+int_arr = INTARR(10)
+uint_arr = UINTARR(10)
+lon_arr = LONARR(10)
+ulon_arr = ULONARR(10)
+lon64_arr = LON64ARR(10)
+ulon64_arr = ULON64ARR(10)
+flt_arr = FLTARR(10)
+dbl_arr = DBLARR(10)
+comp_arr = COMPLEXARR(10)
+dcomp_arr = DCOMPLEXARR(10)
+str_arr = STRARR(10)
+;struct_var = {name, tag:1}
+;ptr_var = PTR_NEW(struct_var)
+;list_var = LIST(1, 2)
+;hash_var =HASH('id', 1664)
+;
 ; You can only assign infinite and NaN values to :
 ; COMPLEX, DCOMPLEX, DOUBLE, FLOAT and STR
-arrb[0] = !VALUES.F_NAN
-arrb[1] = -!VALUES.F_NAN
-arrb[2] = !VALUES.F_INFINITY
-arrb[3] = -!VALUES.F_INFINITY
-arrc[0] = !VALUES.F_NAN
-arrc[1] = -!VALUES.F_NAN
-arrc[2] = !VALUES.F_INFINITY
-arrc[3] = -!VALUES.F_INFINITY
-arrd[0] = !VALUES.F_NAN
-arrd[1] = -!VALUES.F_NAN
-arrd[2] = !VALUES.F_INFINITY
-arrd[3] = -!VALUES.F_INFINITY
-arre[0] = !VALUES.F_NAN
-arre[1] = -!VALUES.F_NAN
-arre[2] = !VALUES.F_INFINITY
-arre[3] = -!VALUES.F_INFINITY
-arri[0] = !VALUES.F_NAN
-arri[1] = -!VALUES.F_NAN
-arri[2] = !VALUES.F_INFINITY
-arri[3] = -!VALUES.F_INFINITY
+;
+comp_arr[0] = !VALUES.F_NAN
+dcomp_arr[1] = !VALUES.F_NAN
+dbl_arr[2] = -!VALUES.F_NAN
+flt_arr[3] = !VALUES.F_INFINITY
+str_arr[4] = -!VALUES.F_INFINITY
 ;
 nb_cases=12
 ;
@@ -137,34 +128,42 @@ exp=BYTARR(nb_cases,10)
 ;expected results (general)
 ;
 exp[0,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
-exp[1,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
-exp[2,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
-exp[3,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
-exp[4,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
+exp[1,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[2,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[3,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[4,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
 exp[5,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
 exp[6,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
-exp[7,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
-exp[8,*]=BYTE([0,0,0,0,1,1,1,1,1,1])
-exp[9,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
-exp[10,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
-exp[11,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[7,*]=BYTE([1,1,1,0,1,1,1,1,1,1])
+exp[8,*]=BYTE([1,1,0,1,1,1,1,1,1,1])
+exp[9,*]=BYTE([0,1,1,1,1,1,1,1,1,1])
+exp[10,*]=BYTE([1,0,1,1,1,1,1,1,1,1])
+exp[11,*]=BYTE([1,1,1,1,0,1,1,1,1,1])
+;exp[12,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[13,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[14,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[15,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
 ;
 ; computations
 ;
 res=BYTARR(12,10)
 ;
-res[0,*]=FINITE(arra)
-res[1,*]=FINITE(arrb)
-res[2,*]=FINITE(arrc)
-res[3,*]=FINITE(arrd)
-res[4,*]=FINITE(arre)
-res[5,*]=FINITE(arrf)
-res[6,*]=FINITE(arrg)
-res[7,*]=FINITE(arrh)
-res[8,*]=FINITE(arri)
-res[9,*]=FINITE(arrj)
-res[10,*]=FINITE(arrk)
-res[11,*]=FINITE(arrl)
+res[0,*]=FINITE(byt_arr)
+res[1,*]=FINITE(int_arr)
+res[2,*]=FINITE(uint_arr)
+res[3,*]=FINITE(lon_arr)
+res[4,*]=FINITE(ulon_arr)
+res[5,*]=FINITE(lon64_arr)
+res[6,*]=FINITE(ulon64_arr)
+res[7,*]=FINITE(flt_arr)
+res[8,*]=FINITE(dbl_arr)
+res[9,*]=FINITE(comp_arr)
+res[10,*]=FINITE(dcomp_arr)
+res[11,*]=FINITE(str_arr)
+;res[12,*]=FINITE(struct_var)
+;res[13,*]=FINITE(ptr_var)
+;res[14,*]=FINITE(list_var)
+;res[15,*]=FINITE(hash_var)
 ;
 for ii=0, nb_cases-1 do begin
    if ~ARRAY_EQUAL(exp[ii,*],res[ii,*]) then begin
