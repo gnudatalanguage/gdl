@@ -88,6 +88,98 @@ ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_set(test) then STOP
 ;
 end
+;
+; -------------------------------------------------
+;
+pro TEST_FINITE_TYPE, cumul_errors
+;
+nb_errors=0
+;
+byt_arr= BYTARR(10)
+int_arr = INTARR(10)
+uint_arr = UINTARR(10)
+lon_arr = LONARR(10)
+ulon_arr = ULONARR(10)
+lon64_arr = LON64ARR(10)
+ulon64_arr = ULON64ARR(10)
+flt_arr = FLTARR(10)
+dbl_arr = DBLARR(10)
+comp_arr = COMPLEXARR(10)
+dcomp_arr = DCOMPLEXARR(10)
+str_arr = STRARR(10)
+;struct_var = {name, tag:1}
+;ptr_var = PTR_NEW(struct_var)
+;list_var = LIST(1, 2)
+;hash_var =HASH('id', 1664)
+;
+; You can only assign infinite and NaN values to :
+; COMPLEX, DCOMPLEX, DOUBLE, FLOAT and STR
+;
+comp_arr[0] = !VALUES.F_NAN
+dcomp_arr[1] = !VALUES.F_NAN
+dbl_arr[2] = -!VALUES.F_NAN
+flt_arr[3] = !VALUES.F_INFINITY
+str_arr[4] = -!VALUES.F_INFINITY
+;
+nb_cases=12
+;
+exp=BYTARR(nb_cases,10)
+;
+;expected results (general)
+;
+exp[0,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[1,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[2,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[3,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[4,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[5,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[6,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+exp[7,*]=BYTE([1,1,1,0,1,1,1,1,1,1])
+exp[8,*]=BYTE([1,1,0,1,1,1,1,1,1,1])
+exp[9,*]=BYTE([0,1,1,1,1,1,1,1,1,1])
+exp[10,*]=BYTE([1,0,1,1,1,1,1,1,1,1])
+exp[11,*]=BYTE([1,1,1,1,0,1,1,1,1,1])
+;exp[12,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[13,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[14,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;exp[15,*]=BYTE([1,1,1,1,1,1,1,1,1,1])
+;
+; computations
+;
+res=BYTARR(12,10)
+;
+res[0,*]=FINITE(byt_arr)
+res[1,*]=FINITE(int_arr)
+res[2,*]=FINITE(uint_arr)
+res[3,*]=FINITE(lon_arr)
+res[4,*]=FINITE(ulon_arr)
+res[5,*]=FINITE(lon64_arr)
+res[6,*]=FINITE(ulon64_arr)
+res[7,*]=FINITE(flt_arr)
+res[8,*]=FINITE(dbl_arr)
+res[9,*]=FINITE(comp_arr)
+res[10,*]=FINITE(dcomp_arr)
+res[11,*]=FINITE(str_arr)
+;res[12,*]=FINITE(struct_var)
+;res[13,*]=FINITE(ptr_var)
+;res[14,*]=FINITE(list_var)
+;res[15,*]=FINITE(hash_var)
+;
+for ii=0, nb_cases-1 do begin
+   if ~ARRAY_EQUAL(exp[ii,*],res[ii,*]) then begin
+      ADD_ERROR, nb_errors, 'problem with Case '+STRING(ii)
+      
+   endif
+endfor
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_FINITE_TYPE', nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
 ; -------------------------------------------------
 ;
 pro TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
@@ -252,6 +344,8 @@ TEST_FINITE_BASIC, cumul_errors, type=4
 TEST_FINITE_BASIC, cumul_errors, type=5
 TEST_FINITE_BASIC, cumul_errors, type=6
 TEST_FINITE_BASIC, cumul_errors, type=9
+;
+TEST_FINITE_TYPE, cumul_errors
 ;
 TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
 ;
