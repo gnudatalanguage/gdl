@@ -323,7 +323,7 @@ if(OPENMP)
       set(LIBRARIES ${LIBRARIES} gomp pthread)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
-endif()
+    endif()
   else(OPENMP_FOUND)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found\n"
     "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
