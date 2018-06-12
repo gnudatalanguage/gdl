@@ -975,8 +975,8 @@ void LibInit()
 
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFunRetNew(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
-//  const string command_line_argsKey[] = {"COUNT","RESET","SET", KLISTEND };
-  const string command_line_argsKey[] = {"COUNT", KLISTEND };
+  const string command_line_argsKey[] = {"COUNT","RESET","SET", KLISTEND }; //note: reset and set are unsupported extensions.
+// originally:  const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 
   const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
