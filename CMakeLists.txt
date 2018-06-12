@@ -324,7 +324,14 @@ if(OPENMP)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
     endif()
-  endif(OPENMP_FOUND)
+  else(OPENMP_FOUND)
+    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found\n"
+    "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
+	"(find_package(OpenMP) will find OpenMP only if both are set !)\n"
+    "Use -DOPENMP=OFF to not use it.\n"
+    "(suitable Debian/Ubuntu compiler package: clang)\n"
+    "(suitable Homebrew compiler package: llvm)")
+  endif(OPENMP_FOUND) 
 else(OPENMP)
   # we need to define those semaphore posix symbols, do it with threads libs
   find_package(Threads)
