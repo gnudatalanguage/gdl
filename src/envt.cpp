@@ -1436,7 +1436,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 				       pro->warnKey.end(),
 				       strAbbrefEq_k);
       if( wf == pro->warnKey.end()) 
-	Throw(  "Keyword parameter "+k+" not allowed in call "
+	Throw(  "Keyword parameter -"+k+"- not allowed in call "
 		"to: "+pro->Name());
       // 	throw GDLException(callingNode,
       // 			   "Keyword parameter "+k+" not allowed in call "
@@ -1465,7 +1465,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 					   pro->warnKey.end(),
 					   strAbbrefEq_k);
 	  if( wf == pro->warnKey.end()) 
-	    Throw( "Keyword parameter "+k+" not allowed in call "
+	    Throw( "Keyword parameter <"+k+"> not allowed in call "
 		   "to: "+pro->Name());
 	  /*	    throw GDLException(callingNode,
 	    "Keyword parameter "+k+" not allowed in call "
