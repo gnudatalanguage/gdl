@@ -110,6 +110,12 @@ build_script:
   - mingw32-make -j4
   - mingw32-make install
 
+  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib
+  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin
+  - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+  - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
+  - mingw32-make check
+
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
@@ -133,3 +139,6 @@ deploy:
   on:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
+
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
