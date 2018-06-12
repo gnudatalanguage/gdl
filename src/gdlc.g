@@ -171,7 +171,9 @@ tokens {
         STRICTARR=8,
         LOGICAL_PREDICATE=16, // *** functionality not implemeted yet
         IDL2=DEFINT32 | STRICTARR,
-        STRICTARRSUBS=32
+        STRICTARRSUBS=32,
+        STATIC=64,
+        NOSAVE=128
     };
 
     void SetCompileOpt( unsigned int cOpt)
@@ -189,6 +191,8 @@ tokens {
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
         else if( opt == "IDL2")              compileOpt |= IDL2;
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
+        else if( opt == "STATIC")            compileOpt |= STATIC;
+        else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
 //        SetActualCompileOpt( compileOpt);
     }
@@ -478,6 +482,8 @@ object_name! returns [std::string name] // !//
         {
             if( #i1->getText() == "IDL_OBJECT")
                 #i1->setText(GDL_OBJECT_NAME);
+            else if( #i1->getText() == "IDL_CONTAINER")
+                #i1->setText(GDL_CONTAINER_NAME);
         }
 
             #object_name = #(NULL, i2, m, i1); // NULL -> no root
@@ -623,6 +629,8 @@ baseclass_method
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
 	;
 
@@ -954,6 +962,8 @@ struct_name
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
     ;
 
@@ -1449,6 +1459,8 @@ member_function_call returns [bool parent]
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
                 parent = true;
             } )? formal_function_call
@@ -1459,6 +1471,8 @@ member_function_call_dot
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
         ) formal_function_call
   	;
@@ -1958,8 +1972,7 @@ tokens {
 #else
     std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
 #endif
-                                     // it when it is deleted itself
-  
+                                     // it when it is deleted itself 
     antlr::TokenStreamSelector*     selector; 
     GDLLexer*                       mainLexerPtr;
     GDLParser*                      parserPtr;

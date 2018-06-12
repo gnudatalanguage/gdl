@@ -3128,7 +3128,25 @@ BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
 
         if( param->IsAssoc())
             return new DLongGDL( 1);
+		if(param->Type() == GDL_OBJ and param->Scalar()) 
+		{
+			DObj ID = (*static_cast<DObjGDL*>( param))[0];
 
+			DStructGDL* s = NULL;
+			Guard<BaseGDL> guard(s);
+		   try {
+				  s= BaseGDL::interpreter->GetObjHeap( ID);
+				}
+				catch( GDLInterpreter::HeapException& hEx)
+				{
+				  throw GDLException(this, "Object ID <"+i2s(ID)+"> not found.");      
+				}
+        	if( s->Desc()->IsParent("LIST"))
+			  return new DLongGDL( lib::LIST_count(s));
+			else
+			if( s->Desc()->IsParent("HASH"))
+			  return new DLongGDL( lib::HASH_count(s));
+		}
 	if (param->N_Elements() > 2147483647UL) 
 	  return new DLong64GDL( param->N_Elements()); 
 	else 
@@ -3530,7 +3548,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
 {
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
-
+	if( this->funIx < -1) throw GDLException(this," FCALLNode::EvalRefcheck - AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
@@ -3598,7 +3616,7 @@ BaseGDL** FCALLNode::LEval()
     ProgNodeP	_t = this->getFirstChild();
 
     ProgNode::interpreter->SetFunIx( this);
-
+	if( this->funIx < -1) throw GDLException(this," FCALLNode::LEval- AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LFUNCTION);
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
@@ -3665,7 +3683,7 @@ BaseGDL* FCALLNode::Eval()
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
-
+	if( this->funIx < -1) throw GDLException(this," FCALLNode::Eval - AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);

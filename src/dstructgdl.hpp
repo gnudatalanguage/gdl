@@ -567,6 +567,7 @@ DStructGDL* NewResult() const
   bool Equal( BaseGDL*) const;
   bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
+  bool ArrayNeverEqual( BaseGDL*);
   // 'for' statement compliance (int types , float types scalar only)
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);

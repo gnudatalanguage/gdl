@@ -552,6 +552,8 @@ public:
   virtual bool Equal( BaseGDL*) const;
   virtual bool EqualNoDelete( const BaseGDL*) const;
   virtual bool ArrayEqual( BaseGDL*);
+  virtual bool ArrayNeverEqual( BaseGDL*);
+  
   // for statement compliance (int types , float types scalar only)
   virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);
   virtual bool ForCondUp( BaseGDL*);
