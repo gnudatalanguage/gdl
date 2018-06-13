@@ -22,6 +22,7 @@
 // #include <envt.hpp>
 void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr);
 
+DStructGDL*GetOBJ( BaseGDL* selfP, EnvUDT* e);
 DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e);
 
 namespace lib {
@@ -40,17 +41,27 @@ namespace lib {
 
    void list__add( EnvUDT* e);
    
+   void container__cleanup( EnvUDT* e);
+   BaseGDL* container__iscontained( EnvUDT* e);
+   BaseGDL* container__equals( EnvUDT* e);
+   void container__remove( EnvUDT* e);
    void list__remove_pro( EnvUDT* e);
 
    void list__reverse( EnvUDT* e);
+   void list__swap( EnvUDT* e);
+   void list__move( EnvUDT* e);
    
    BaseGDL* list__remove_fun( EnvUDT* e);
 
    BaseGDL* list__toarray( EnvUDT* e);
 
    BaseGDL* list__isempty( EnvUDT* e);
+   SizeT LIST_count( DStructGDL* oStructGDL);
    BaseGDL* list__count( EnvUDT* e);
    BaseGDL* list__where( EnvUDT* e);
+// these added in order to accomodate being an IDL_CONTAINER:  
+	BaseGDL* list__get( EnvUDT* e);
+	BaseGDL* list__init( EnvUDT* e);
 }
 
 #endif

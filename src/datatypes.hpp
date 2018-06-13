@@ -280,6 +280,7 @@ static	void operator delete( void *ptr);
   bool Equal( BaseGDL*) const;
   bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
+  bool ArrayNeverEqual( BaseGDL*);
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
@@ -426,6 +427,9 @@ static	void operator delete( void *ptr);
   // used by interpreter, calls CatInsert
   Data_* CatArray( ExprListT& exprList, const SizeT catRank, 
 		   const SizeT rank);
+  // used for concatenation, called from CatArray
+  // assumes that everything is checked (see CatInfo)
+  void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);
 
   // assigns srcIn to this at ixList, if ixList is NULL does linear copy
   // assumes: ixList has this already set as variable
@@ -485,9 +489,6 @@ private:
   // inserts srcIn at ixDim, used by AssignAt(...)
   // respects the exact structure
   void InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset = 0);
-  // used for concatenation, called from CatArray
-  // assumes that everything is checked (see CatInfo)
-  void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);
 
   // only to be used here
 #undef GDL_DECLARE_FUNCTION
