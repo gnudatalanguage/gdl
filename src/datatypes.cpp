@@ -390,22 +390,8 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   this->dim.Purge();
-
-  if( iT == BaseGDL::INDGEN)
-    {
-      SizeT sz=dd.size();
-      //       Ty val=Sp::zero;
-      // #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-	// #pragma omp for
-	for( SizeT i=0; i<sz; i++)
-	  {
-	    (*this)[i]=off+i*inc;
-	  }
-	// 	  val += 1; // no increment operator for floats
-      }
-  }
-  else if (iT == BaseGDL::ZERO) {
+  if (iT == BaseGDL::NOZERO) return;  //very frequent
+  else if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
@@ -415,75 +401,106 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
       }
     }
   }
+  else if (iT == BaseGDL::INDGEN) { //less frequent
+    SizeT sz = dd.size();
+    if (off==0 && inc==1) { 
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=i;
+        }
+      }
+    } else {
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=off+i*inc;
+        }
+      }
+    }
+  }
 }
-/*// INDGEN seems to be more precise for large arrays
-  template<> Data_<SpDFloat>::Data_(const dimension& dim_,
-  BaseGDL::InitType iT): 
-  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-  {
+//IDL uses floats increments and offset for floats and complex (normal) .
+template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
+  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
+{
   this->dim.Purge();
+  if (iT == BaseGDL::NOZERO) return;  //very frequent
+  else if (iT == BaseGDL::ZERO) { //rather frequent
+    SizeT sz = dd.size();
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for
+      for (int i = 0; i < sz; ++i) {
+        (*this)[i] = 0;
+      }
+    }
+  }
+  else if (iT == BaseGDL::INDGEN) { //less frequent
+    SizeT sz = dd.size();
+    if (off==0 && inc==1) { 
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=i;
+        }
+      }
+    } else {
+      DFloat f_off=off;
+      DFloat f_inc=inc;
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=f_off+i*f_inc;
+        }
+      }
+    }
+  }
+}
 
-  if( iT == BaseGDL::INDGEN)
-  {
-  SizeT sz=dd.size();
-
-  for( SizeT i=0; i<sz; ++i)
-  {
-  (*this)[i] = i;
-  }
-  }
-  }
-  template<> Data_<SpDComplex>::Data_(const dimension& dim_,
-  BaseGDL::InitType iT): 
-  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-  {
+template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
+  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
+{
   this->dim.Purge();
+  if (iT == BaseGDL::NOZERO) return;  //very frequent
+  else if (iT == BaseGDL::ZERO) { //rather frequent
+    SizeT sz = dd.size();
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    {
+#pragma omp for
+      for (int i = 0; i < sz; ++i) {
+        (*this)[i] = 0;
+      }
+    }
+  }
+  else if (iT == BaseGDL::INDGEN) { //less frequent
+    SizeT sz = dd.size();
+    if (off==0 && inc==1) { 
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=i;
+        }
+      }
+    } else {
+      DFloat f_off=off;
+      DFloat f_inc=inc;
+      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+        #pragma omp for
+        for (SizeT i = 0; i < sz; ++i) {
+          (*this)[i]=f_off+i*f_inc;
+        }
+      }
+    }
+  }
+}
 
-  if( iT == BaseGDL::INDGEN)
-  {
-  SizeT sz=dd.size();
-
-  for( SizeT i=0; i<sz; ++i)
-  {
-  (*this)[i] = i;
-  }
-  }
-  }
-  template<> Data_<SpDDouble>::Data_(const dimension& dim_,
-  BaseGDL::InitType iT): 
-  SpDDouble( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-  {
-  this->dim.Purge();
-
-  if( iT == BaseGDL::INDGEN)
-  {
-  SizeT sz=dd.size();
-
-  for( SizeT i=0; i<sz; ++i)
-  {
-  (*this)[i] = i;
-  }
-  }
-  }
-  template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
-  BaseGDL::InitType iT): 
-  SpDComplexDbl( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-  {
-  this->dim.Purge();
-
-  if( iT == BaseGDL::INDGEN)
-  {
-  SizeT sz=dd.size();
-
-  for( SizeT i=0; i<sz; ++i)
-  {
-  (*this)[i] = i;
-  }
-  }
-  }*/
-// string, ptr, obj (cannot be INDGEN, 
-// need not to be zeroed if all intialized later)
-// struct (as a separate class) as well
 template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
@@ -1843,7 +1860,9 @@ SizeT Data_<SpDObj>::N_Elements() const
 { 
   if( !this->StrictScalar())
     return dd.size();
-  
+#if 1  // GJ change this and see how many problems it solves, creates. 2016/5/5 
+  else return 1;
+#elif 0
   DObj s = dd[0]; // is StrictScalar()
   if( s == 0)  // no overloads for null object
     return 1;
@@ -1870,6 +1889,7 @@ SizeT Data_<SpDObj>::N_Elements() const
   }
 
   return 1;
+#endif  
 }
 
 
@@ -2842,6 +2862,38 @@ bool DStructGDL::ArrayEqual( BaseGDL* r)
   throw GDLException("Struct expression not allowed in this context.");
   return false;
 }
+
+// For array_equal r must be of same type
+template<class Sp>
+bool Data_<Sp>::ArrayNeverEqual( BaseGDL* rIn)
+{
+  Data_<Sp>* r = static_cast< Data_<Sp>*>( rIn);
+  SizeT nEl = N_Elements();
+  SizeT rEl = r->N_Elements();
+  if( rEl == 1)
+    {
+      for( SizeT i=0; i<nEl; ++i)
+	if( (*this)[i] == (*r)[0]) return false;
+      return true;
+    }
+  if( nEl == 1)
+    {
+      for( SizeT i=0; i<rEl; ++i)
+	if( (*this)[0] == (*r)[i]) return false;
+      return true;
+    }
+  if( nEl != rEl) return true;
+  for( SizeT i=0; i<nEl; ++i)
+    if( (*this)[i] == (*r)[i]) return false;
+  return true;
+}
+
+bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
+{
+  throw GDLException("Struct expression not allowed in this context.");
+  return false;
+}
+
 
 
 template<class Sp>

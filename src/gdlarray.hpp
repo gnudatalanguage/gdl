@@ -206,8 +206,9 @@ public:
 
   T& operator[]( SizeT ix) throw()
   {
-      if( ix >= sz) // debug
-      assert( ix < sz);
+      if( ix >= sz) std::cout << "GDLArray line 210 ix=" << ix
+				<<", sz = " << sz << " indexing overflow" << std::endl;
+    assert( ix < sz);  // see note in basic_fun.cpp at obj_valid()
     return buf[ ix];
   }
   const T& operator[]( SizeT ix) const throw()

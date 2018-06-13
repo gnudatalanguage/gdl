@@ -28,6 +28,16 @@ email                : m_schellens@users.sf.net
 
 using namespace std;
 
+static bool trace_me(false);
+
+namespace lib {
+//	bool trace_arg();
+  void help_item( std::ostream& os,
+		  BaseGDL* par, DString parString, bool doIndentation);
+	SizeT HASH_count( DStructGDL* oStructGDL);
+	SizeT LIST_count( DStructGDL* oStructGDL);
+}
+
 bool* GetNonCopyNodeLookupArray()
 {
 static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
@@ -367,7 +377,127 @@ BaseGDL* ARRAYDEFNode::Eval()
   return res;
 }
 
+BaseGDL* ARRAYDEF_GENERALIZED_INDGENNode::Eval()
+{
+  // GDLInterpreter::
+  DType cType = GDL_UNDEF; // conversion type
+  SizeT maxRank = 0;
+  BaseGDL* cTypeData;
+  BaseGDL * val[3];
+  DDouble off, endval, inc;
+  DLong64 sz; //must be signed fo further tests
+  int i = 0;
 
+  ProgNodeP _t = this->getFirstChild();
+  //start,end,incr coded on 3 nodes. No more no less
+  while (_t != NULL && i < 3) {
+
+    val[i] = _t->Eval(); //expr(_t);
+    _t = _t->getNextSibling();
+
+    DType ty = val[i]->Type();
+    if (ty == GDL_UNDEF) {
+      throw GDLException(_t, "Variable is undefined: " +
+          ProgNode::interpreter->Name(val[i]), true, false);
+    } else if (ty == GDL_STRUCT) { //never reached as language does not permit?
+      throw GDLException(_t,
+          "Struct expression not allowed in this context: " +
+          ProgNode::interpreter->Name(val[i]), true, false);
+    }
+    if (cType == GDL_UNDEF) {
+      cType = ty;
+      cTypeData = val[i];
+    } else {
+      if (cType != ty) {
+        // update order if larger type (or types are equal)
+        if (DTypeOrder[ty] >= DTypeOrder[cType]) {
+          if (DTypeOrder[ty] >= 100) // struct, ptr, object
+          {
+            throw
+            GDLException(_t, val[i]->TypeStr() +
+                " is not allowed in this context.", true, false);
+          }
+
+          cType = (cType == GDL_STRING) ? GDL_STRING : ty; //particularity: a string in creation  (a=['22':32.3:0.5]) makes a string array.
+          cTypeData = val[i];
+        } else if (DTypeOrder[cType] >= 100) // struct, ptr, object
+        {
+          throw
+          GDLException(_t, cTypeData->TypeStr() +
+              " is not allowed in this context.", true, false);
+        }
+      }
+    }
+    // memorize maximum Rank
+    SizeT rank = val[i]->Rank();
+    
+    if (rank > 1 || (rank==1 && val[i]->N_Elements() > 1)) throw GDLException(_t, "Expression must be a scalar or 1 element array in this context: " +
+          ProgNode::interpreter->Name(val[i]), true, false);
+    i++;
+  }
+  _t = this->getNextSibling();
+  if (i != 3) return NullGDL::GetSingleInstance();
+
+  //compute n using type arith, not doubles, even if off & inc will be passed as doubles:
+  // behaviour could be simpler and *safer* if we created a specialized template like in:
+  // "new DxxxGDL(dim, BaseGDL::SELF_INDGEN, off, inc);"
+  switch (cType) {
+  case GDL_COMPLEX:
+  case GDL_FLOAT:
+  {
+    DFloat    f_off = (*(static_cast<DFloatGDL*> (val[0]->Convert2(GDL_FLOAT))))[0]; off=f_off;
+    DFloat    f_inc = (*(static_cast<DFloatGDL*> (val[2]->Convert2(GDL_FLOAT))))[0]; inc=f_inc;
+    if (f_inc == 0) throw GDLException("Array creation stride must not be 0."); //test must be done here...
+    DFloat f_endval = (*(static_cast<DFloatGDL*> (val[1]->Convert2(GDL_FLOAT))))[0];
+    DFloat n_f = (f_endval - f_off) / f_inc +1.0;
+    sz = n_f;
+  }
+    break;
+  case GDL_COMPLEXDBL:
+  case GDL_DOUBLE:
+  case GDL_STRING:
+  {
+    DDouble    d_off = (*(static_cast<DDoubleGDL*> (val[0]->Convert2(GDL_DOUBLE))))[0]; off=d_off;
+    DDouble    d_inc = (*(static_cast<DDoubleGDL*> (val[2]->Convert2(GDL_DOUBLE))))[0]; inc=d_inc;
+    if (d_inc == 0) throw GDLException("Array creation stride must not be 0.");
+    DDouble d_endval = (*(static_cast<DDoubleGDL*> (val[1]->Convert2(GDL_DOUBLE))))[0];
+    DFloat n_d = (d_endval - d_off) / d_inc +1.0;
+    sz = n_d;
+  }
+    break;
+  default:
+  {
+    DLong64    i_off = (*(static_cast<DLong64GDL*> (val[0]->Convert2(GDL_LONG64))))[0]; off=i_off;
+    DLong64    i_inc = (*(static_cast<DLong64GDL*> (val[2]->Convert2(GDL_LONG64))))[0]; inc=i_inc;
+    if (i_inc == 0) throw GDLException("Array creation stride must not be 0.");
+    DLong64 i_endval = (*(static_cast<DLong64GDL*> (val[1]->Convert2(GDL_LONG64))))[0];
+    sz = (i_endval - i_off) / i_inc +1;
+  }
+    break;
+  }
+  if ( sz < 0) throw GDLException("Number of elements must be greater than 0.");
+  dimension dim(sz);
+  switch (cType) {
+  case GDL_INT: return new DIntGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_BYTE: return new DByteGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_COMPLEX: return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_DOUBLE: return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_FLOAT: return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_LONG64: return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_LONG: return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_STRING:
+  {
+    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
+    return iGen->Convert2(GDL_STRING);
+  }
+  case GDL_UINT: return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_ULONG64: return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
+  case GDL_ULONG: return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
+  default: break;
+  }
+  return NullGDL::GetSingleInstance();
+}
 
 BaseGDL* STRUCNode::Eval()
 {
@@ -1381,13 +1511,21 @@ RetCode   FOREACHNode::Run()
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
   ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
-
+	trace_me = false; //lib::trace_arg();
   BaseGDL** v=vP->LEval(); // ProgNode::interpreter->l_simple_var(vP);
 
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->Eval();
 //	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
+//   	if(trace_me) lib::help_item( std::cout, loopInfo.endLoopVar, "endLoopVar",false);
   if( nEl == 0)
   {
     GDLDelete(loopInfo.endLoopVar);
@@ -1426,6 +1564,13 @@ RetCode   FOREACH_LOOPNode::Run()
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
 
   if( loopInfo.foreachIx < nEl)
   {
@@ -1461,6 +1606,14 @@ RetCode FOREACH_INDEXNode::Run()
   loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
   // loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
+
   if( nEl == 0)
   {
     GDLDelete(loopInfo.endLoopVar);
@@ -1526,6 +1679,13 @@ RetCode FOREACH_INDEX_LOOPNode::Run()
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
+    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
+    {
+        DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
+		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
+		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
+		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+	}
 
   if( loopInfo.foreachIx < nEl)
   {

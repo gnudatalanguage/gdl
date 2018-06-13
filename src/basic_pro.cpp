@@ -49,18 +49,17 @@
 #include "basic_pro.hpp"
 #include "semshm.hpp"
 #include "graphicsdevice.hpp"
-//#include "dcommon.hpp"
-//#include "dpro.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
 #endif
 #include <signal.h>
+static bool trace_me(false);
 
 namespace lib {
 
   using namespace std;
-
+	DString GetCWD(); // From file.cpp
   // control !CPU settings
 
   void cpu(EnvT* e) {
@@ -213,6 +212,8 @@ namespace lib {
       doObj = doPtr = true;
 
     e->HeapGC(doPtr, doObj, verbose);
+      if( GDLInterpreter::HeapSize() == 0 and (GDLInterpreter::ObjHeapSize() == 0)  )
+				GDLInterpreter::ResetHeap();
   }
 
   void HeapFreeObj(EnvT* env, BaseGDL* var, bool verbose) {
@@ -231,18 +232,9 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
 
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
-        {
-              return;
-        }
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
         HeapFreeObj(env, derefPtr, verbose);
       }
     } else if (var->Type() == GDL_OBJ) {
@@ -281,29 +273,27 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-        if (actPtrID == 0)
-          continue;
-        //correct bug #708. Avoid exiting on HeapException.
-        BaseGDL* derefPtr;
-        try{
-          derefPtr = DInterpreter::GetHeap(actPtrID);
-        }
-            catch(DInterpreter::HeapException)
+
+
+//GJ 2016.05.12 Replaced "if (actPtrID == 0)" for a more restrictive condition:
+		  if( !DInterpreter::PtrValid(actPtrID)) continue;
+
+	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+	      if (verbose)
         {
-              return;
-        }
-        if (verbose) {
           help_item(cout,
             derefPtr, DString("<PtrHeapVar") +
             i2s(actPtrID) + ">",
             false);
         }
+
+	      if (derefPtr == NULL)	continue;
         HeapFreePtr(derefPtr, verbose); // recursive call
-      }
       // 2. free pointer
       DInterpreter::FreeHeap(varPtr);
     }
   }
+    }
 
   void heap_free(EnvT* e) {
     static int objIx = e->KeywordIx("OBJ");
@@ -344,22 +334,15 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-    int nParam = e->NParam();
-    if (nParam == 0) return;
-
-    BaseGDL* p = e->GetParDefined(0);
-
-    if (p->Type() != GDL_OBJ)
-      e->Throw("Parameter must be an object in"
-      " this context: " +
-      e->GetParString(0));
-    DObjGDL* op = static_cast<DObjGDL*> (p);
+	int n_Param=e->NParam();
+	if( n_Param == 0) return;
+	BaseGDL*& par=e->GetPar( 0);
+	if( par == NULL or par->Type() != GDL_OBJ) return;
+	DObjGDL* op= static_cast<DObjGDL*>(par);
 
     SizeT nEl = op->N_Elements();
-    for (SizeT i = 0; i < nEl; i++) {
-      DObj actID = (*op)[i];
-      e->ObjCleanup(actID);
-    }
+	for( SizeT i=0; i<nEl; i++)	
+			e->ObjCleanup( (*op)[i]);
   }
 
   void call_procedure(EnvT* e) {
@@ -538,6 +521,9 @@ namespace lib {
         mode |= fstream::ate;
       }
     }
+#ifdef _WIN32
+      mode |= ios::binary;
+#endif
 
     static int f77Ix = e->KeywordIx("F77_UNFORMATTED");
     bool f77 = e->KeywordSet(f77Ix);
@@ -626,27 +612,15 @@ namespace lib {
   }
 
   void openr(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::binary);
-#else
     open_lun(e, fstream::in);
-#endif
   }
 
   void openw(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::trunc | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out | fstream::trunc);
-#endif
   }
 
   void openu(EnvT* e) {
-#ifdef _WIN32
-    open_lun(e, fstream::in | fstream::out | fstream::binary);
-#else
     open_lun(e, fstream::in | fstream::out);
-#endif
   }
 
   void socket(EnvT* e) {
@@ -1077,6 +1051,10 @@ namespace lib {
 
           DLong nRec2;
           memcpy(&nRec2, hdr, 4);
+// 2018 April 14
+// G.Jung I don't think this works right for stuctures.
+//   I have a method (RealBytes) that computes the actual byte count,
+//  it needs entries across several different files.
           SizeT nBytes = p->NBytes();
 
           // In variable length VMS files, each record is prefixed
@@ -1630,7 +1608,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       WCHAR w_title[100];
       if( title != NULL)
               MultiByteToWideChar(CP_UTF8, 0, title, -1, w_title, 100);
-
+      WCHAR w_cwd[MAX_PATH];
+	DString cwd = lib::GetCWD();
+             MultiByteToWideChar(CP_UTF8, 0, cwd.c_str(), -1, w_cwd, MAX_PATH);
     SECURITY_ATTRIBUTES saAttr;
 
     saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
@@ -1668,7 +1648,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       }
       si.dwFlags |= STARTF_USESTDHANDLES;
       if (debug) std::printf(" CreateProcess: ");
-        CreateProcessW(NULL, w_cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+        CreateProcessW(NULL, w_cmd, NULL, NULL, TRUE,
+						 0, NULL, w_cwd,	// start from wherever we happen to be 
+								&si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       DWORD progress;
 
@@ -1714,7 +1696,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       else
 	{
           CreateProcessW(NULL, w_cmd, NULL, NULL, FALSE,
-                        CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+                        CREATE_NEW_CONSOLE, 
+                        NULL, w_cwd,	// start from wherever we happen to be 
+								&si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       if (!nowait) WaitForSingleObject(pi.hProcess, INFINITE);
       GetExitCodeProcess(pi.hProcess, &status);
@@ -2176,17 +2160,21 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     //Warning("and keywords are not managed ...");
     //Warning("If you need this code, please ask or contribute !");
 
-    SizeT nParam = e->NParam(1);
-
     static int eitherIx = e->KeywordIx("EITHER");
-    bool eitherKeyword = e->KeywordPresent(eitherIx);
+    bool eitherKeyword = e->KeywordSet(eitherIx);
 
     static int is_functionIx = e->KeywordIx("IS_FUNCTION");
-    bool isfunctionKeyword = e->KeywordPresent(is_functionIx);
+    bool isfunctionKeyword = e->KeywordSet(is_functionIx);
 
     static int no_recompileIx = e->KeywordIx("NO_RECOMPILE");
-    bool norecompileKeyword = e->KeywordPresent(no_recompileIx);
+    bool norecompileKeyword = e->KeywordSet(no_recompileIx);
 
+    static int quietIx = e->KeywordIx("QUIET");
+    bool quiet = e->KeywordSet(quietIx);
+    
+    static int cffIx = e->KeywordIx("COMPILE_FULL_FILE");
+    bool cff = e->KeywordSet(cffIx);
+    
     BaseGDL* p0 = e->GetParDefined(0);
     if (p0->Type() != GDL_STRING)
       e->Throw("Expression must be a string in this context: " +
@@ -2203,13 +2191,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       AppendIfNeeded(proFile, ".pro");
 
       bool found = CompleteFileName(proFile);
-      if (!found)
-        e->Throw("Not found: " + proFile);
+      if (!found )
+        if (!quiet) e->Throw("Not found: " + proFile); else return;
 
       // file already opened?
       bool open = false;
       for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
-        cout << *j << endl;
         if (proFile == *j) {
           open = true;
           break;
@@ -2233,8 +2220,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       // append file to list
       openFiles.push_back(proFile);
-
-      bool success = GDLInterpreter::CompileFile(proFile); // this might trigger recursion
+      bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
@@ -2247,12 +2233,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       }
       if ((!isFunc && isfunctionKeyword && !eitherKeyword) ||
         (isFunc && !isfunctionKeyword && !eitherKeyword && !exists))
-        e->Throw("Attempt to call undefined : " + proFile);
+        if (!quiet) e->Throw("Attempt to call undefined : " + proFile);
 
       if (success) {
-        Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
+        // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        e->Throw("Failed to compiled file: " + proFile);
+        if (!quiet) e->Throw("Failed to compiled file: " + proFile); //please check this is the good behaviour
     }
   }
 
@@ -2438,4 +2424,149 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     DStringGDL* p0 = e->GetParAs<DStringGDL>(0);
     cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
   }
+// delvar_pro used to live in gdlhelp.cpp
+
+void delvar_pro( EnvT* e)
+    {
+      StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+	static volatile bool debug(false);
+	static bool message_needed(false);
+	static volatile SizeT numEnv;
+	std::vector<int>  delvar, delcommon;
+//	  trace_me = trace_arg(); 
+	SizeT n_Param = e->NParam();
+	set<string> showStr;  // "Sorted List" 
+// 2016.05.16: message is taken down since errors have been attributed to 
+// other aspects, not delvar specifically.
+	if(message_needed) {
+		std::cout << " ** DELVAR - Warning -- experimental routine !! " << std::endl
+		<< "  o- Not 100 % robust: should NOT be used for objects"   << std::endl;
+		message_needed = false;
+	}
+	EnvBaseT* caller = e->Caller();
+	if(caller->CallingNode() != 0) return;
+//			e->Throw(" DELVAR may only  be called from $MAIN$");
+			
+    SizeT pIndex;
+	int todel[33];
+	static int itest,ndel;
+    ndel=0;
+	delvar.clear();  delcommon.clear();
+	for( SizeT ip=0; ip<n_Param; ip++)
+		{
+		BaseGDL*& par=e->GetPar( ip);
+		if(par == 0) continue;
+		DString parString = caller->GetString( par,true);
+		itest= caller->findvar(parString);
+		if ( itest < 0) {delcommon.push_back(ip); continue;}
+		if( par->Type() == GDL_OBJ) {
+/*			if(trace_me) // deliberately skpping code unless in debug mode.
+				std::cout << " ** delvar on object "<< parString<< std::endl;
+			else { */
+				std::cout << " ** DELVAR - object " + parString + 
+				"	skipped !! use obj_destroy " << std::endl;
+				continue;
+				}
+/*	GDLDelete may not be adequate for cleanup.  Problems calling this way.
+// ObjCleanup wants to reference _EXTRA keyword but DELVAR does not support that.
+	 		DObjGDL* op= static_cast<DObjGDL*>(par);
+			SizeT nEl=op->N_Elements();
+			for( SizeT i=0; i<nEl; i++)	
+				e->ObjCleanup( (*op)[i]);
+
+ 			}*/
+		delvar.push_back(itest); ndel++;
+		if (ndel == 32) break;
+		pIndex = caller->findvar(par);
+		if(debug) cout << " delvar_pro: "+parString+" pro.var, .env= "
+		  <<itest << " : "<< pIndex <<endl;
+			  
+		}
+	if(!delvar.empty()) {
+			sort(delvar.begin(), delvar.end());
+        	int ndel=0;
+			for (std::vector<int>::iterator ix=delvar.begin();
+			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
+			if(trace_me) std::cout << " ** delvar x-"<< ndel;
+			todel[ndel] = -1;
+			caller->Remove(todel);
+			if(trace_me) std::cout << std::endl;
+		}
+	if(delcommon.empty()) return;
+	unsigned cIx;
+	int ncmnfound=0;
+	std::vector<DCommonBase*> c;
+	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
+	proUD->commonPtrs(c);
+	for (std::vector<int>::iterator ix=delcommon.begin();
+			                           ix< delcommon.end(); ix++) {
+		int i;
+		BaseGDL*& par=e->GetPar(*ix);
+		for( i=0; i < c.size(); i++) {
+			cIx = c[i]->Find(par);
+			if(cIx >= 0) break;
+		  }
+		if(cIx >= 0) {
+		    DString parString = c[i]->VarName( cIx) +" ("+c[i]->Name()+')';
+		    help_item( cout , par, parString, false);
+ 		    c[i]->Var(cIx)->Delete(); // this would delete the variable. 
+		    ncmnfound++;			// but 
+			} else {
+				cout << " lost variable" << endl;
+			}
+		}
+//	if(ncmnfound > 0) 
+//		    cout << "( delvar will not handle common-block variables)"<< endl;
+	if(ncmnfound != delcommon.size())
+			cout << "( delvar did not find common block variables that it should have!"<<endl;
+    }
+#if 1
+void findvar_pro( EnvT* e) { cout << " debugger routine: edit/recompile to use" << endl; return;}
+#elif 0   
+void findvar_pro( EnvT* e)
+    {
+      static volatile bool debug(true);
+      static volatile SizeT numEnv;
+      
+	  SizeT n_Param = e->NParam();
+	  //bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
+	bool isKWSetStructures = (n_Param == 0);
+	  static EnvBaseT* caller = e->Caller();
+
+	  bool foundit=false;
+	  int sIndex,pIndex;
+	  for( SizeT i=0; i<n_Param; i++)
+	    {
+	      BaseGDL*& par=e->GetPar( i);
+		DString parString = caller->GetString( par,true);
+	      if(debug) {
+			help_item(cout, par, parString, false);
+			}
+		sIndex = caller->findvar(parString);
+		pIndex = caller->findvar(par);
+		cout << " findvar: "+parString+" pro.var, .env= "
+			  <<sIndex << " : "<< pIndex <<endl;
+		
+		foundit = (sIndex >= 0);
+	  
+//	  if(foundit) continue;
+		  
+	    }
+	if(!isKWSetStructures) return;
+	std::string name;
+	bool started = false;
+	for(StructListT::iterator is = structList.begin(); 
+		is != structList.end(); is++) {
+		name = (*is)->Name();
+		if(started) {
+			if((*is)->IsUnnamed()) name ="Anonymous";
+			cout << "{"+name+"} (" << (*is)->NTags() <<" tags) " ;
+			}
+			else started = (name.compare("!DEVICE") == 0);
+			}
+		cout << endl;
+
+    }
+#endif
+
 } // namespace

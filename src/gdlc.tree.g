@@ -863,7 +863,7 @@ array_def returns [int depth]
 //                 if( e->getType() != CONSTANT)
 //                     constant = false;
 //                 if( !depth0)
-                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST))
+                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST) && (e->getType() != ARRAYDEF_GENERALIZED_INDGEN))
                 {
                     depth=0;
                     break;
@@ -892,7 +892,7 @@ array_def returns [int depth]
                 e != static_cast<RefDNode>(antlr::nullAST);
                 e=e->getNextSibling())
             {
-                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST))
+                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST) && (e->getType() != ARRAYDEF_GENERALIZED_INDGEN))
                 {
                     depth=0;
                     break;
@@ -912,6 +912,34 @@ array_def returns [int depth]
                 }   
             }
             #aa->SetArrayDepth(depth);
+        }
+	| #(aaa:ARRAYDEF_GENERALIZED_INDGEN {sPos=_t;} (expr)*)
+        {
+            depth=0;
+            for( RefDNode e=sPos; 
+                e != static_cast<RefDNode>(antlr::nullAST);
+                e=e->getNextSibling())
+            {
+                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST) && (e->getType() != ARRAYDEF_GENERALIZED_INDGEN))
+                {
+                    depth=0;
+                    break;
+                }
+                else
+                {
+                    int act=array_def(e); // recursive call
+                    act=act+1;
+                    if( depth == 0)
+                    {
+                        depth=act; std::cerr<<act<<std::endl;
+                    }
+                    else
+                    {
+                        if( depth > act) depth=act;
+                    }
+                }   
+            }
+            #aaa->SetArrayDepth(depth);
         }
 	;
 
@@ -1127,7 +1155,6 @@ arrayindex! [ArrayIndexVectorT* ixList]
 
 arrayindex_list
 {
-//std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
 ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
 PtrGuard< ArrayIndexVectorT> guard( ixList);
 }

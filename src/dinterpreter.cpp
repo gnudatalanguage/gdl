@@ -665,7 +665,7 @@ DInterpreter::CommandCode DInterpreter::CmdFullReset()
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 {
   string cmdstr = command;
-  int sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ",0);
   if (sppos == string::npos) 
     {
       cout << "Interactive COMPILE not implemented yet." << endl;
@@ -675,7 +675,7 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
   bool retAll = false; // Remember if Retall is needed
 
   // Parse each file name
-  int pos = sppos + 1;
+  size_t pos = sppos + 1;
   while (pos < command.length()) 
     {
       sppos = command.find(" ",pos);
@@ -736,7 +736,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
   bool retAll = false; // Remember if Retall is needed
 
   // Parse each file name
-  int pos = sppos + 1;
+  size_t pos = sppos + 1;
   while (pos < command.length()) 
     {
       sppos = command.find(" ",pos);
@@ -798,7 +798,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 {
   string cmdstr = command;
   string args;
-  int sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ",0);
   if (sppos != string::npos) {
     args = cmdstr.substr(sppos+1);
     cmdstr = cmdstr.substr(0, sppos);
@@ -851,8 +851,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RNEW"))
     {
-      cout << "RNEW not implemented yet." << endl;
-      return CC_OK;
+	    EnvUDT* mainEnv = 
+		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
+			  SizeT nEnv = mainEnv->EnvSize();
+
+		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
+		if(!mainEnv->Removeall()) 
+			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+
+      return CmdRun( command);
     }
   // GD:Here to have ".s" giving ".step"
   if( cmd( "STEP"))

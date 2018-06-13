@@ -323,11 +323,19 @@ public:
   void SetTree( ProgNodeP t) { tree = t;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
-  void DeleteLastAddedCommon()
+  void DeleteLastAddedCommon(bool kill=true)
   {
-    delete common.back();
+    if(kill) delete common.back();
     common.pop_back();
   }
+    void commonPtrs( std::vector<DCommonBase *>& cptr)
+{
+	cptr.clear();
+    CommonBaseListT::iterator c = common.begin();
+    for(; c != common.end(); ++c)
+       cptr.push_back((*c));
+    return;
+	}
   
   void ResolveAllLabels();
   LabelListT& LabelList() { return labelList;}
@@ -352,6 +360,7 @@ public:
 
   void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 
+   void Resize( SizeT s) { var.resize( s);}
   SizeT Size() {return var.size();}
   SizeT CommonsSize() {
    SizeT commonsize=0;
@@ -393,6 +402,11 @@ public:
     return (c != common.end())? *c : NULL;
   }
 
+void ReName( SizeT ix, const std::string& s)
+  {
+    var[ix] = s;
+    return;
+  }
   const std::string& GetVarName( SizeT ix)
   {
     return var[ix];
@@ -485,6 +499,7 @@ public:
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }
   bool isObsolete();
   bool isHidden();
+  bool isStatic();
 
   friend class EnvUDT;
 };

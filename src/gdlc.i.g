@@ -68,6 +68,7 @@ header {
 //#define GDL_DEBUG_HEAP
 bool IsEnabledGC(); // defined in GDLInterpreter.hpp with EnableGC(bool);
 void EnableGC(bool);
+
 }
 
 options {
@@ -101,6 +102,7 @@ private:
     friend class BaseGDL;
     friend class ProgNode;
     friend class ARRAYDEFNode;
+    friend class ARRAYDEF_GENERALIZED_INDGENNode;
     friend class STRUCNode;
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
@@ -2066,6 +2068,7 @@ r_expr returns [BaseGDL* res]
 }
     : EXPR
     | ARRAYDEF
+    | ARRAYDEF_GENERALIZED_INDGEN
     | STRUC
     | NSTRUC
     | NSTRUC_REF
@@ -2148,6 +2151,7 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 
 r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 {
+    res=NULL;
 	switch ( _t->getType()) {
 	case EXPR:
 	{
@@ -2358,6 +2362,7 @@ lib_function_call_retnew_internal returns[ BaseGDL* res]
 
 
 unused_function_call returns[ BaseGDL* res]
+{res=NULL;}
     : MFCALL 
     | MFCALL_PARENT 
     | FCALL 

@@ -67,7 +67,8 @@ options {
 }
 
 // if something is changed here
-// identifier below needs to change as well
+// identifier below probably needs to change as well
+// also, imperative to change values of _TokenSet_xxx farther on in the file.
 tokens {
 	ALL;		// arrayindex (*, e.g. [1:*])
 	ASSIGN;
@@ -76,6 +77,7 @@ tokens {
     ASSIGN_ARRAYEXPR_MFCALL;
 	ARRAYDEF;
 	ARRAYDEF_CONST;
+    ARRAYDEF_GENERALIZED_INDGEN;
 	ARRAYIX;
 	ARRAYIX_ALL;
 	ARRAYIX_ORANGE;
@@ -169,7 +171,9 @@ tokens {
         STRICTARR=8,
         LOGICAL_PREDICATE=16, // *** functionality not implemeted yet
         IDL2=DEFINT32 | STRICTARR,
-        STRICTARRSUBS=32
+        STRICTARRSUBS=32,
+        STATIC=64,
+        NOSAVE=128
     };
 
     void SetCompileOpt( unsigned int cOpt)
@@ -187,6 +191,8 @@ tokens {
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
         else if( opt == "IDL2")              compileOpt |= IDL2;
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
+        else if( opt == "STATIC")            compileOpt |= STATIC;
+        else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
 //        SetActualCompileOpt( compileOpt);
     }
@@ -476,6 +482,8 @@ object_name! returns [std::string name] // !//
         {
             if( #i1->getText() == "IDL_OBJECT")
                 #i1->setText(GDL_OBJECT_NAME);
+            else if( #i1->getText() == "IDL_CONTAINER")
+                #i1->setText(GDL_CONTAINER_NAME);
         }
 
             #object_name = #(NULL, i2, m, i1); // NULL -> no root
@@ -621,6 +629,8 @@ baseclass_method
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
 	;
 
@@ -916,20 +926,23 @@ parameter_def_list
 array_def
 {
 bool constant = true;
+int flexible_array_def_count=1;
 }
-	: LSQUARE! e:expr 
-        {if( !ConstantExprNode( #e->getType())) 
-            constant = false;}
-        (COMMA! ee:expr
-        {if( !ConstantExprNode( #ee->getType())) 
-            constant = false;}
-        )* RSQUARE!
-		{ 
-            if( constant)
-            #array_def = #([ARRAYDEF_CONST, "array_def_const"], #array_def);
-            else
-            #array_def = #([ARRAYDEF, "array_def"], #array_def);
-        }
+	: LSQUARE! e:expr {if( !ConstantExprNode( #e->getType())) constant = false;}
+      (
+        (COMMA! ee:expr {if( !ConstantExprNode( #ee->getType())) constant = false;} )* RSQUARE!
+            { 
+              if( constant)
+              #array_def = #([ARRAYDEF_CONST, "array_def_const"], #array_def);
+              else
+              #array_def = #([ARRAYDEF, "array_def"], #array_def);
+            }
+        | (COLON! eee:expr {flexible_array_def_count++;})+ RSQUARE!
+          {
+            if (flexible_array_def_count!=3) throw GDLException( "Illegal array creation syntax.");
+            #array_def = #([ARRAYDEF_GENERALIZED_INDGEN, "array_def_generalized_indgen"], #array_def);
+          } 
+      )
 	;
 
 struct_identifier
@@ -949,6 +962,8 @@ struct_name
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
     ;
 
@@ -1225,17 +1240,17 @@ arrayindex_list
         )* RBRACE!
 	;	
 
-all!
-	: ASTERIX { #all = #([ALL,"*"]);}
+all_elements!
+	: ASTERIX { #all_elements = #([ALL,"*"]);}
 	;
 
 // used only from arrayindex_list
 arrayindex
-  : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all
+  : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all_elements
 	| expr
 	  (COLON! 
 		(
-		  (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE|COLON))=> all
+		  (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE|COLON))=> all_elements
 		| expr
 		)
                 (COLON! 
@@ -1444,6 +1459,8 @@ member_function_call returns [bool parent]
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
                 parent = true;
             } )? formal_function_call
@@ -1454,6 +1471,8 @@ member_function_call_dot
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
+            else if( #s->getText() == "IDL_CONTAINER")
+                #s->setText(GDL_CONTAINER_NAME);
         }
         ) formal_function_call
   	;
@@ -1584,10 +1603,10 @@ primary_expr_deref
 {
 // the following needs to be updated if the symbols are rearranged (e. g. a symbol is inserted)
 // (it is taken from GDLParser.cpp: const antlr::BitSet GDLParser::_tokenSet_XX)
-const unsigned long _tokenSet_4_data_[] = { 0UL, 0UL, 134217728UL, 524288UL, 268435456UL, 2UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long _tokenSet_4_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 4UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet _tokenSet_4(_tokenSet_4_data_,16);
-const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 134217728UL, 17301504UL, 2415919296UL, 4294967274UL, 2506751UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 268435456UL, 34603008UL, 536871296UL, 4294967253UL, 5013503UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
 // CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
 // CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
@@ -1600,10 +1619,10 @@ const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 134217728UL, 17301504UL, 2
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL 
 // PLUS MINUS LOG_NEG 
 const antlr::BitSet _tokenSet_5(_tokenSet_5_data_,16);
-const unsigned long _tokenSet_23_data_[] = { 0UL, 0UL, 134217728UL, 524288UL, 2415919104UL, 10UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long _tokenSet_23_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 21UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" LBRACE LSQUARE SYSVARNAME LCURLY ASTERIX 
 const antlr::BitSet _tokenSet_23(_tokenSet_23_data_,16);
-const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 402653184UL, 3422195718UL, 4160749789UL, 4294967295UL, 33554431UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL, 4026532283UL, 4294967295UL, 67108863UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
 // "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
 // INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME EXCLAMATION 
@@ -1948,9 +1967,12 @@ tokens {
 {
   // Stuff for include files (@filename)
   private:
+#if (__cplusplus >= 201103L)
+    std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
+#else
     std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
-                                     // it when it is deleted itself
-  
+#endif
+                                     // it when it is deleted itself 
     antlr::TokenStreamSelector*     selector; 
     GDLLexer*                       mainLexerPtr;
     GDLParser*                      parserPtr;
@@ -2071,7 +2093,7 @@ INCLUDE!
 		std::string name = f->getText();
 
         // find comments on the same line
-        long pos = name.find_first_of(';', 0);   
+        size_t pos = name.find_first_of(';', 0);   
         if( pos != std::string::npos) // remove them  
             name = name.substr(0, pos);
 

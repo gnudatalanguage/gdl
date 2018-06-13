@@ -42,7 +42,9 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         STRICTARR=8,
         LOGICAL_PREDICATE=16, // *** functionality not implemeted yet
         IDL2=DEFINT32 | STRICTARR,
-        STRICTARRSUBS=32
+        STRICTARRSUBS=32,
+	STATIC=64,
+	NOSAVE=128
     };
 
     void SetCompileOpt( unsigned int cOpt)
@@ -60,6 +62,8 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
         else if( opt == "IDL2")              compileOpt |= IDL2;
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
+        else if( opt == "STATIC")	     compileOpt |= STATIC;
+        else if( opt == "NOSAVE")	     compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
 //        SetActualCompileOpt( compileOpt);
     }
@@ -179,7 +183,7 @@ public:
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
-	public: void all();
+	public: void all_elements();
 	public: void sysvar();
 	public: void var();
 	public: void brace_expr();
@@ -218,10 +222,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 237;
+	static const int NUM_TOKENS = 238;
 #else
 	enum {
-		NUM_TOKENS = 237
+		NUM_TOKENS = 238
 	};
 #endif
 	

@@ -156,7 +156,7 @@ extern GDLFileListT  fileUnits;
 // gdlhelper.hpp
 static void help_files(ostream& os,
 					EnvT* e) {
-  for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); lun++)
+  for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); ++lun)
     if( fileUnits[ lun-1].InUse() || fileUnits[ lun-1].GetGetLunLock())
     {
 		os << 
@@ -165,37 +165,77 @@ static void help_files(ostream& os,
      return;
 }
 
-static void help_keys()
+static void help_keys(ostream& ostr)
   { 
-	cout << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
-	cout << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
-	cout << endl;
-	cout << "Moving in the command line :"<< endl;
-	cout << "  Ctrl-a          : going to the beginning of the line"<< endl;
-	cout << "  Ctrl-e          : going to the end of the line"<< endl;
-	cout << "  Ctrl-u          : removing from here to the beginning of the line"<< endl;
-	cout << "  Ctrl-k          : removing from here to the end of the line"<< endl;
-	cout << "  Ctrl-RightArrow : jumping one word on the right"<< endl;
-	cout << "  Ctrl-LeftArrow  : jumping one word on the left"<< endl;
-	cout << endl;
-	cout << "Moving in the history :"<< endl;
-	cout << "  HELP, /recall       : listing the whole history" << endl;
-	cout << "  Ctrl-p or UpArrow   : previous entry in history"  << endl;
-	cout << "  Ctrl-n or DownArrow : next entry in history"  << endl;
-	cout << endl;    
+	ostr << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
+	ostr << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
+	ostr << endl;
+	ostr << "Moving in the command line :"<< endl;
+	ostr << "  Ctrl-a          : going to the beginning of the line"<< endl;
+	ostr << "  Ctrl-e          : going to the end of the line"<< endl;
+	ostr << "  Ctrl-u          : removing from here to the beginning of the line"<< endl;
+	ostr << "  Ctrl-k          : removing from here to the end of the line"<< endl;
+	ostr << "  Ctrl-RightArrow : jumping one word on the right"<< endl;
+	ostr << "  Ctrl-LeftArrow  : jumping one word on the left"<< endl;
+	ostr << endl;
+	ostr << "Moving in the history :"<< endl;
+	ostr << "  HELP, /recall       : listing the whole history" << endl;
+	ostr << "  Ctrl-p or UpArrow   : previous entry in history"  << endl;
+	ostr << "  Ctrl-n or DownArrow : next entry in history"  << endl;
+	ostr << endl;    
 	return;
   }
 
 static void help_info()
   { 
 
+	  cout << "* Homepage: http://gnudatalanguage.sf.net" << endl;
+	  cout << endl;
+	  cout << "* #NameOfRoutine for list of params and keywords" 
+	    " for a given NameOfRoutine (internal or compiled pro/func)" << endl;
+	  cout << endl;
+	  cout << "* ?NameOfRoutine for starting a browser to access online doc"
+	    " for a given routine (if exists ! internal or compiled pro/func)" ;
+	  cout << endl; cout << endl;
+	  cout << "* HELP, /INTERNAL_LIB_GDL for a list of all internal library "
+	    "functions/procedures." << endl;
+	  cout << "* HELP, /LIB Additional subroutines are written in GDL language, "
+	    "look for *.pro files (e.g. in CVS in src/pro/)." << endl;
+	  cout << endl;
+	  cout << "* HELP, /KEYS for useful CLI keys shortcuts." << endl;
+	  cout << endl;
+		return;
 }
 static void help_sysvar(ostream& os , bool briefKW=true)
   {
+	  if (briefKW) {
+	    string tmp_line="", tmp_word="";
+	    for( SizeT v=0; v<sysVarList.size(); ++v)
+	      {
+	      DVar* var = sysVarList[ v];
+	      tmp_word=" !"+var->Name();
+	      if (tmp_line.length()+tmp_word.length() >= 80) {
+		    os << tmp_line <<endl;
+			tmp_line=tmp_word;
+			}
+			else {
+			tmp_line=tmp_line+tmp_word;
+	        }
+	      }
+	      if (tmp_line.length() > 0) os << tmp_line <<endl;
+		}
+		else {
+	      for( SizeT v=0; v<sysVarList.size(); ++v) {
+			DVar* var = sysVarList[ v];
+			DStructGDL* tmp= tmp=static_cast<DStructGDL*>(var->Data());
+			lib::help_item(os, tmp, "!"+var->Name(), false);	    
+		  }
+		}
+	return;
   }
 
 static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, bool doOutput=true)
-  {      static volatile bool debug(false);
+  {
 	// Setup output return variable ostream& os, int &lines_count
 
 	std::string s = ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length(),1);
@@ -205,7 +245,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 	if(doOutput) {
 
 	  do {
-		nOut++;
+		++nOut;
 		found=s.find( delimiter,found);
 	     }   while( (found++ != std::string::npos) );
 
@@ -221,48 +261,48 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 		token = s.substr(pos, found-pos);
 		if( doOutput and (nOut not_eq nlines)) (*(DStringGDL *) *outputKW)[nOut] = token;
 		else cout << token << endl;
-		nOut++;
+		++nOut;
 		pos = found+1;
 		}
 	    ostr.str("");
-	    if( nOut  not_eq nlines and debug) cout << 
-			" help_Output: Error counting lines -" <<
-			" nOut: "<<nOut<<" OutputLines:"<<nlines<<endl;
+//	    if( nOut  not_eq nlines and debug) cout << 
+//			" help_Output: Error counting lines -" <<
+//			" nOut: "<<nOut<<" OutputLines:"<<nlines<<endl;
 	}
 
     // showing HELP, /path_cache
-  void help_path_cached(ostream& os, SizeT &lines_count) {
-    DIR *dirp;
+  void help_path_cached(ostream& ostr, SizeT &lines_count) {
+
     struct dirent *dp;
     const char *ProSuffix = ".pro";
     int ProSuffixLen = strlen(ProSuffix);
-    int NbProFilesInCurrentDir;
+
     string tmp_fname;
     size_t found;
 
     StrArr path = SysVar::GDLPath();
 
-    os << "!PATH (no cache management --now-- in GDL, ";
-    os << path.size() << " directories)" << endl;
+    ostr << "!PATH (no cache management --now-- in GDL, ";
+    ostr << path.size() << " directories)" << endl;
     lines_count = 1;
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
       //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
-      NbProFilesInCurrentDir = 0;
-      dirp = opendir((*CurrentDir).c_str());
+      DIR* dirp = opendir((*CurrentDir).c_str());
       //cout << "2>>" << dirp << "<<" <<endl;
       if (dirp != NULL) {
+		int NbProFilesInCurrentDir = 0;
         while ((dp = readdir(dirp)) != NULL) {
           tmp_fname = dp->d_name;
           found = tmp_fname.rfind(ProSuffix);
           if (found != std::string::npos) {
             if ((found + ProSuffixLen) == tmp_fname.length())
-              NbProFilesInCurrentDir++;
+              ++NbProFilesInCurrentDir;
           }
         }
         closedir(dirp);
-        lines_count++;
-        os << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
+        ++lines_count;
+        ostr << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
       }
     }
   }
@@ -304,26 +344,115 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     }
 	  return;
   }
-static void help_ListMethods(DString names, ostream& os, FunListT& funlist, ProListT& prolist)
+static void help_ListMethods(DString names, ostream& ostr, FunListT& funlist, ProListT& prolist)
 {
+	bool searchbyname;
+	searchbyname = (names != "");
+	vector<DString> subList;
+	DString proname;
+	for( SizeT i = 0; i<prolist.size(); ++i)  {
+	  proname = prolist[i]->Name();
+		 if(searchbyname and not 
+			CompareWithJokers(names, proname)) continue;
+		  subList.push_back(proname);
+		}
+	sort( subList.begin(), subList.end());
+	ostr << "Method procedures (" 
+			<< subList.size() <<"):" << endl;
+	for( SizeT i = 0; i<subList.size(); ++i)
+		ostr << " "<< subList[ i] ;
+	ostr << endl;
+
+	subList.clear();
+
+	for( SizeT i = 0; i<funlist.size(); ++i)  {
+	  proname = funlist[i]->Name();
+		 if(searchbyname and not 
+			CompareWithJokers(names, proname)) continue;
+		  subList.push_back(proname);
+		}
+	sort( subList.begin(), subList.end());
+	ostr << "Method functions (" 
+			<< subList.size() <<"):" << endl;
+	for( SizeT i = 0; i<subList.size(); ++i)
+		ostr << " "<< subList[ i] ;
+	ostr << endl;
+	  subList.clear();
 }
 
-static void help_object( ostream& os, DString parString, bool verbose=true )
+static void help_object( ostream& ostr, DString parString, bool verbose=true )
   {
+	const string objectnotfound = ": Object not found";
+	const string objectdefined = ": Object defined";
+	StrUpCaseInplace( parString);
+	DStructDesc* desc = FindInStructList(structList, parString);
+	ostr.width(20);
+	ostr << right << parString;
+	if(desc == NULL) {
+		ostr << objectnotfound << endl;
+	} else {
+		ostr << objectdefined  << endl;
+		if(not verbose) return;
+      DStructGDL* dumm = new DStructGDL( desc, dimension());
+	Guard<DStructGDL> guard(dumm);
+	  lib::help_struct(ostr, dumm , 0 , false);
+	  FunListT& funlist = desc->FunList();
+	  ProListT& prolist = desc->ProList();
+	  help_ListMethods("", ostr, funlist, prolist);
+	}
 }
-static void help_ListLib(DString names, ostream& os, bool internal=true)
+static void help_ListLib(DString names, ostream& ostr, bool internal=true)
   {
+	bool searchbyname;
+	  searchbyname = (names != "");
+	  vector<DString> subList;
+//	  for( libProListT::iterator i=libProList.begin(); i != libProList.end(); i++)
+	  for( SizeT i = 0; i<libProList.size(); ++i)  {
+	      if( internal == libProList[ i]->GetHideHelp()) {
+	         if(searchbyname and not 
+				CompareWithJokers(names, libProList[i]->Name())) continue;
+		      subList.push_back(libProList[ i]->ToString());
+			}
+	    }
+	  sort( subList.begin(), subList.end());
+	  if(internal) ostr << "Internal l";
+	  else ostr << "L";
+	  ostr << "ibrary procedures (" 
+				<< subList.size() <<"):" << endl;
+	  for( SizeT i = 0; i<subList.size(); ++i)
+			ostr << subList[ i] << endl;
+
+	  subList.clear();
+
+//	  for( libFunListT::iterator i=libFunList.begin(); i != libFunList.end(); i++)
+	  for( SizeT i = 0; i<libFunList.size(); ++i)
+	    {
+	      if(  internal == libFunList[ i]->GetHideHelp()) {
+	         if(searchbyname and not 
+				CompareWithJokers(names, libFunList[i]->Name())) continue;
+			  subList.push_back(libFunList[ i]->ToString());
+			}
+	    }
+	  sort( subList.begin(), subList.end());
+
+	  if(internal) ostr << "Internal l";
+	  else ostr << "L";
+	  ostr << "ibrary functions (" 
+				<< subList.size() <<"):" << endl;
+	  for( SizeT i = 0; i<subList.size(); ++i)
+	    ostr << subList[ i] << endl;
+	  subList.clear();
 
   }
 
-static void help_heap(EnvT* e, ostream& os, bool verbose=true)
+static void help_heap(EnvT* e, ostream& ostr, bool verbose=true)
   {
 // GJ 16-04-10
 	SizeT numPtr = e->Interpreter()->HeapSize();
 	SizeT numObj = e->Interpreter()->ObjHeapSize();
-	os << "Heap Variables:" << std::endl;
-	os << "    # Pointer: " << numPtr	 << std::endl;
-	os << "    # Object : " << numObj	 << std::endl<< std::endl;
+	ostr << "Heap Variables:" << std::endl;
+	ostr << "    # Pointer: " << numPtr	 << std::endl;
+	ostr << "    # Object : " << numObj	 << std::endl<< std::endl;
 	if( ! verbose) return;
 	std::vector<DPtr>* heap = e->Interpreter()->GetAllHeapSTL();
 	Guard< std::vector<DPtr> > heap_guard( heap);
@@ -338,13 +467,13 @@ static void help_heap(EnvT* e, ostream& os, bool verbose=true)
 //	  if( ptrAccessible.find( p) == ptrAccessible.end())
 		{
 		  BaseGDL* hV = BaseGDL::interpreter->GetHeap( p);
-		  lib::help_item( os, 
+		  lib::help_item( ostr, 
 				  hV, DString( "<PtrHeapVar")+
 				  i2s(p)+">",
 				  false);
 		}
 	}
-	if(nH > nDisp) os << nH << " pointers in total"<< endl;
+	if(nH > nDisp) ostr << nH << " pointers in total"<< endl;
 	return;
 }
 
@@ -391,7 +520,7 @@ static void help_lastmsg(EnvT* e)
 
     if (the_list) {
       DStringGDL* retVal = new DStringGDL(history_length - 1, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < history_length - 1; i++)
+      for (SizeT i = 0; i < history_length - 1; ++i)
         (*retVal)[i] = the_list[i]->line;
       return retVal;
     } else return new DStringGDL("");
@@ -415,61 +544,63 @@ BaseGDL* recall_commands( EnvT* e)
 
   // display help for one variable or one structure tag
 
-  void help_item(ostream& os,
-    BaseGDL* par, DString parString, bool doIndentation) {
-    int debug = 0;
-    if (debug) {
-      cout << par->Type() << endl;
-      cout << par->TypeStr() << endl;
-      cout << &par->TypeStr() << endl;
-      //	cout << par->Name() << endl;
+  void help_item(ostream& ostr,
+		    BaseGDL* par, DString parString,
+		     bool doIndentation = false)
+    {
+      static volatile bool debug(false);
+      if (debug and (par not_eq NULL)) {
+		cout << par->Type() << " :"
+		<< par->TypeStr() << " :"
+//		<< &par->TypeStr() << ": "
+		<< parString << endl;
     }
 
-    if (doIndentation) os << "   ";
+    if (doIndentation) ostr << "   ";
 
     // Name display
-    os.width(16);
-    os << left << parString;
+    ostr.width(16);
+    ostr << left << parString;
     if (parString.length() >= 16) {
-      os << " " << endl; // for cmsv compatible output (uses help,OUTPUT)
-      os.width(doIndentation ? 19 : 16);
-      os << "";
+      ostr << " " << endl; // for cmsv compatible output (uses help,OUTPUT)
+      ostr.width(doIndentation ? 19 : 16);
+      ostr << "";
     }
 
     // Type display (we have two "null" : defined !null and undefined variables ...
     if (par == NULL) {
-      os << "UNDEFINED = <Undefined>" << endl;
+      ostr << "UNDEFINED = <Undefined>" << endl;
       return;
     }
     if (!par) {
-      os << "UNDEFINED = !NULL" << endl;
+      ostr << "UNDEFINED = !NULL" << endl;
       return;
     }
-    os.width(10);
+    ostr.width(10);
     bool doTypeString = true;
 
     // Data display
     if (par->Type() == GDL_STRUCT) {
-      os << par->TypeStr() << right;
-      if (!doIndentation) os << "= ";
+      ostr << par->TypeStr() << right;
+      if (!doIndentation) ostr << "= ";
       doTypeString = false;
 
       DStructGDL* s = static_cast<DStructGDL*> (par);
-      os << "-> ";
-      os << (s->Desc()->IsUnnamed() ? "<Anonymous>" : s->Desc()->Name());
-      os << " ";
+      ostr << "-> ";
+      ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" : s->Desc()->Name());
+      ostr << " ";
 	}
       else if( par->Dim( 0) == 0)
 	{
       if (par->Type() == GDL_STRING) {
-        os << par->TypeStr() << right;
-        if (!doIndentation) os << "= ";
+        ostr << par->TypeStr() << right;
+        if (!doIndentation) ostr << "= ";
         doTypeString = false;
 
         // trim string larger than 45 characters
         DString dataString = (*static_cast<DStringGDL*> (par))[0];
-        os << "'" << StrMid(dataString, 0, 45, 0) << "'";
-        if (dataString.length() > 45) os << "...";
+        ostr << "'" << StrMid(dataString, 0, 45, 0) << "'";
+        if (dataString.length() > 45) ostr << "...";
       } else if (par->Type() == GDL_OBJ && par->StrictScalar()) {
         DObj s = (*static_cast<DObjGDL*> (par))[0]; // is StrictScalar()
         if (s != 0) // no overloads for null object
@@ -480,25 +611,25 @@ BaseGDL* recall_commands( EnvT* e)
             DStructDesc* desc = oStructGDL->Desc();
             static DString listName("LIST");
             if (desc->IsParent(listName)) {
-              os << desc->Name();
+              ostr << desc->Name();
 
               unsigned nListTag = desc->TagIndex("NLIST");
               DLong nList = (*static_cast<DLongGDL*> (oStructGDL->GetTag(nListTag, 0)))[0];
-              os << left;
-              os << "<ID=";
-              os << i2s(s) << "  N_ELEMENTS=" << i2s(nList) << ">";
+              ostr << left;
+              ostr << "<ID=";
+              ostr << i2s(s) << "  N_ELEMENTS=" << i2s(nList) << ">";
 
               doTypeString = false;
             }
             static DString hashName("HASH");
             if (desc->IsParent(hashName)) {
-              os << desc->Name();
+              ostr << desc->Name();
 
               unsigned nListTag = desc->TagIndex("TABLE_COUNT");
               DLong nList = (*static_cast<DLongGDL*> (oStructGDL->GetTag(nListTag, 0)))[0];
-              os << left;
-              os << "<ID=";
-              os << i2s(s) << "  N_ELEMENTS=" << i2s(nList) << ">";
+              ostr << left;
+              ostr << "<ID=";
+              ostr << i2s(s) << "  N_ELEMENTS=" << i2s(nList) << ">";
 
               doTypeString = false;
             }
@@ -506,26 +637,85 @@ BaseGDL* recall_commands( EnvT* e)
         }
       }
       if (doTypeString) {
-        os << par->TypeStr() << right;
-        if (!doIndentation) os << "= ";
+        ostr << par->TypeStr() << right;
+        if (!doIndentation) ostr << "= ";
         doTypeString = false;
 
-        par->ToStream(os);
+        par->ToStream(ostr);
       }
     }
 
     if (doTypeString) {
-      os << par->TypeStr() << right;
-      if (!doIndentation) os << "= ";
+      ostr << par->TypeStr() << right;
+      if (!doIndentation) ostr << "= ";
       if (par->IsAssoc())
-        par->ToStream(os);
+        par->ToStream(ostr);
     }
 
     // Dimension display
-    if (par->Dim(0) != 0) os << par->Dim();
+    if (par->Dim(0) != 0) ostr << par->Dim();
 
     // End of line
-    os << endl;
+    ostr << endl;
+  }
+
+void help_struct(ostream& ostr,  BaseGDL* par, int indent=0, bool debug=false)
+  {
+	   // STRUCTURES
+	   DStructGDL* s = static_cast<DStructGDL*>( par);
+	   SizeT nTags = s->Desc()->NTags();
+
+		for(int i=0; i < indent; ++i) ostr <<"   ";
+		ostr << "** Structure ";
+		ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" : s->Desc()->Name());
+		ostr << ", " << nTags << " tags";
+		if(indent == 0) {
+			ostr << ",memsize =" << s->Sizeof();
+			ostr << ", data length=" << s->NBytesToTransfer()
+//			<< "/" << s->RealBytes() ; GJ has this but only applied here.
+			<< "/" << s->SizeofTags() ;
+		}
+		ostr << ":" << endl;
+
+		for (SizeT t=0; t < nTags; ++t) {
+			for(int i=0; i < indent; ++i) ostr <<"   ";
+			if(debug) ostr.width(18);
+			if(debug) ostr <<"dbg: OFFSET="<<s->Desc()->Offset(t);
+		    help_item( ostr, s->GetTag(t), s->Desc()->TagName(t), true);
+		    if(s->GetTag(t)->Type() == GDL_STRUCT) 
+				help_struct(ostr, s->GetTag(t), indent+1);
+		}
+//		lines_count += nTags;
+  }
+#if 0
+void help_struct(ostream& ostr,  DStructDesc* dsc)
+  {
+
+	   SizeT nTags = dsc->NTags();
+		ostr << "** Structure ";
+		ostr << (dsc->IsUnnamed() ? "<Anonymous>" : dsc->Name());
+		ostr << ", " << nTags << " tags";
+		ostr << ",length =" << dsc->NBytes();
+		for (SizeT t=0; t < nTags; ++t) {
+		    help_item( ostr, dsc->GetTag(t), dsc->TagName(t), true);
+		    if(dsc->GetTag(t)->Type() == GDL_STRUCT) 
+				help_struct(ostr, dsc->GetTag(t)->Desc());
+			}
+		ostr << ":" << endl;
+}
+#endif
+
+void help_help(EnvT* e)
+  {
+	string inline_help[]={"Usage: "+e->GetProName()+", expr1, ..., exprN,", 
+			      "          /ALL_KEYS, /BRIEF, /CALLS, /FUNCTIONS, /HELP, /INFO,",
+			      "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
+			      "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE, /FILES, ",
+			      "          /PREFERENCES, /PROCEDURES, /RECALL_COMMANDS, /ROUTINES,",
+			      "          /SOURCE_FILES, /STRUCTURES, /SYSTEM_VARIABLES, /TRACEBACK"};
+	int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
+	e->Help(inline_help, size_of_s);
+	return;
   }
 
   void SortAndPrintStream(ostringstream& oss) {
@@ -560,7 +750,7 @@ BaseGDL* recall_commands( EnvT* e)
     int nlines = 0;
     size_t pos = 0;
     while ((pos = oss.str().find(delimiter, pos + 1)) != std::string::npos) {
-      nlines++;
+      ++nlines;
     }
     if (!nlines) return new DStringGDL("");
 
@@ -590,73 +780,53 @@ BaseGDL* recall_commands( EnvT* e)
     bool kw = false;
     static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
     bool lastmKW = e->KeywordPresent(lastmKWIx);
+	if( lastmKW) {
+		help_lastmsg(e); return;}
+	SizeT nParam=e->NParam();
+
     BaseGDL** outputKW = NULL;
     static int outputIx = e->KeywordIx("OUTPUT");
-    bool doOutput = (e->KeywordPresent(outputIx));
+    bool doOutput = e->KeywordPresent( outputIx);
     
     if (doOutput) { // Setup output return variable
       outputKW = &e->GetKW(outputIx);
       GDLDelete((*outputKW));
     }
+	static SizeT OutputLines;
+	OutputLines = 0;
 
     std::ostringstream ostr;
+// Use mostly ostrp* << from here on and then push onto outputKW if need be.
+      std::ostream* ostrp = (doOutput) ? &ostr : &cout;
 
-    // if LAST_MESSAGE is present, it is the only output.
-    // All other kw are ignored *EXCEPT 'output'*.
-    if (lastmKW) {
-      DStructGDL* errorState = SysVar::Error_State();
-      static unsigned msgTag = errorState->Desc()->TagIndex("MSG");
-      ostr << (*static_cast<DStringGDL*> (errorState->GetTag(msgTag)))[0] << endl;
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else std::cout << ostr.str();
-      return;
-    }
-
-    static int helpKWIx = e->KeywordIx("HELP");
-    bool helpKW = e->KeywordPresent(helpKWIx);
-    if (helpKW) {
-      string inline_help[] = {"Usage: " + e->GetProName() + ", expr1, ..., exprN,",
-        "          /ALL_KEYS, /BRIEF, /CALLS, /COMMON, /FUNCTIONS, /HELP, /INFO,",
-        "          /INTERNAL_LIB_GDL, /KEYS, /LAST_MESSAGE, /LIB, /MEMORY,",
-        "          NAMES=string_filter, OUTPUT=res, /PATH_CACHE,",
-        "          /PREFERENCES, /PROCEDURES, /RECALL_COMMANDS, /ROUTINES,",
-        "          /SOURCE_FILES, /STRUCTURES, /SYSTEM_VARIABLES, /TRACEBACK"};
-      int size_of_s = sizeof (inline_help) / sizeof (inline_help[0]);
-      e->Help(inline_help, size_of_s);
-      return;
-    }
+	static int helpIx = e->KeywordIx( "HELP");
+	if( e->KeywordSet( helpIx)) {help_help(e); return;}
 
     static int allkeysIx=e->KeywordIx("ALL_KEYS");
     static int keysIx=e->KeywordIx("KEYS");
-    if (e->KeywordSet(allkeysIx) || e->KeywordSet(keysIx)) { // ALL_KEYS is an obsolete keyword
-      ostr << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
-      ostr << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
-      ostr << endl;
-      ostr << "Moving in the command line :" << endl;
-      ostr << "  Ctrl-a          : going to the beginning of the line" << endl;
-      ostr << "  Ctrl-e          : going to the end of the line" << endl;
-      ostr << "  Ctrl-u          : removing from here to the beginning of the line" << endl;
-      ostr << "  Ctrl-k          : removing from here to the end of the line" << endl;
-      ostr << "  Ctrl-RightArrow : jumping one word on the right" << endl;
-      ostr << "  Ctrl-LeftArrow  : jumping one word on the left" << endl;
-      ostr << endl;
-      ostr << "Moving in the history :" << endl;
-      ostr << "  HELP, /recall       : listing the whole history" << endl;
-      ostr << "  Ctrl-p or UpArrow   : previous entry in history" << endl;
-      ostr << "  Ctrl-n or DownArrow : next entry in history" << endl;
+    if (e->KeywordSet(allkeysIx) || e->KeywordSet(keysIx)) // ALL_KEYS is an obsolete keyword
+			{help_keys(ostr);
       if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout << ostr.str();
-      return;
-    }
+			 return;}
 
-    static int pathKWIx = e->KeywordIx("PATH_CACHE");
-    bool pathKW = e->KeywordPresent(pathKWIx);
-    if (pathKW) {
-      int debug = 0;
-      SizeT lines_count = 0;
-      help_path_cached(ostr, lines_count);
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout << ostr.str();
-      return;
-    }
+	static volatile bool debugKW(false);
+    static int debugIx = e->KeywordIx( "DEBUG");     
+    if(e->KeywordSet(debugIx)) {
+		debugKW = !debugKW;
+		cout << " Help debug option set/reset: "<< debugKW << endl;
+		return;
+		}
 
+	static int pathIx = e->KeywordIx( "PATH_CACHE");
+	if( e->KeywordSet( pathIx)) {   // exercising two methods
+	    help_path_cached( ostr, OutputLines);
+	    if (debugKW) {
+	      cout << OutputLines << endl;
+	      cout << "begin" << ostr.rdbuf()->str() << "end"<<endl;
+		  }
+		help_Output(outputKW, ostr, OutputLines, doOutput);
+		return;		
+	    }
     // if keyword /TraceBack then we return
     static int tracebackKWIx = e->KeywordIx("TRACEBACK");
     bool tracebackKW = e->KeywordSet(tracebackKWIx);
@@ -669,34 +839,10 @@ BaseGDL* recall_commands( EnvT* e)
 
     static int briefKWIx = e->KeywordIx("BRIEF");
     bool briefKW = e->KeywordSet(briefKWIx);
-    // briefKw should be used with DLM HEAP_VARIABLES MESSAGES OBJECTS ROUTINES SOURCE_FILES STRUCTURES SYSTEM_VARIABLES
+    // briefKw should be default usage with DLM HEAP_VARIABLES
+	// also MESSAGES OBJECTS ROUTINES SOURCE_FILES STRUCTURES SYSTEM_VARIABLES
     static int fullKWIx = e->KeywordIx("FULL");
     bool fullKW = e->KeywordSet(fullKWIx);
-    static int sysvarKWIx = e->KeywordIx("SYSTEM_VARIABLES");
-    bool sysvarKW = e->KeywordPresent(sysvarKWIx);
-
-    // AC 14-08-11 : I don't know how to copy the list in a String Array
-    // then sorting is ... SysVar at not ordered ...
-    // help,/sys  and help,/brief,/sys are ok
-    if (sysvarKW) {
-      SizeT nVar = sysVarList.size();
-      if (briefKW) {
-        for (SizeT v = 0; v < nVar; ++v) {
-          DVar* var = sysVarList[v];
-          ostr.width(12);
-          ostr.flags(std::ios::left);
-          ostr << "!"+var->Name() << std::endl;
-        }
-      } else {
-        for (SizeT v = 0; v < nVar; ++v) {
-          DVar* var = sysVarList[v];
-          DStructGDL* tmp = static_cast<DStructGDL*> (var->Data());
-          help_item(ostr, tmp, "!" + var->Name(), false);
-        }
-      }
-       if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  SortAndPrintStream(ostr);
-      return;
-    }
 
     // AC 14-08-11 : detailed info (display size, deep ...) are missing
     static int deviceKWIx = e->KeywordIx("DEVICE");
@@ -709,11 +855,46 @@ BaseGDL* recall_commands( EnvT* e)
       return;
     }
 
-    static int namesKWIx = e->KeywordIx("NAMES");
-    bool isKWSetNames = e->KeywordPresent(namesKWIx);
+	static int heapIx = e->KeywordIx( "HEAP");
+	if(  e->KeywordSet( heapIx)) {
+		help_heap(e, *ostrp, fullKW);
+       if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  SortAndPrintStream(ostr);
+		return;}
+
+	static int namesIx = e->KeywordIx( "NAMES");
+	bool isKWSetNames= e->KeywordPresent( namesIx);
+
+	static int sysvarIx = e->KeywordIx( "SYSTEM_VARIABLES");
+	if( e->KeywordSet( sysvarIx)) { 
+		help_sysvar(*ostrp, briefKW);
+       if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  SortAndPrintStream(ostr);
+		 return;}
+/*
+OBJECTS
+Set this keyword to display information on defined object classes.
+*  If no arguments are provided, all currently-defined object classes are shown. 
+*  If arguments are provided, the definition of the object class
+*  for the heap variables referred to is displayed.
+	
+ */
+	static int objectsIx = e->KeywordIx( "OBJECTS");
+	if( e->KeywordSet( objectsIx) and (nParam ==0)) {
+		SizeT nObj = structList.size();
+		for( SizeT i=0; i<nObj; ++i)
+		  {
+			int num_methods = structList[i]->FunList().size() +
+								structList[i]->ProList().size();
+			if( num_methods == 0) continue;
+			ostrp->width(20);
+			*ostrp << right << structList[i]->Name() << endl;
+		  }
+		help_Output(outputKW, ostr, OutputLines);
+		return;
+	  	}
+	
     DString names = "";
     if (isKWSetNames) {
-      e->AssureStringScalarKWIfPresent(namesKWIx, names);
+      e->AssureStringScalarKWIfPresent(namesIx, names);
       // since routines and var. are stored in Maj, we convert ...
       names = StrUpCase(names);
     }
@@ -730,25 +911,9 @@ BaseGDL* recall_commands( EnvT* e)
     static int FunctionsIx = e->KeywordIx("FUNCTIONS");
     bool isKWSetFunctions = e->KeywordSet(FunctionsIx);
 
-    bool do_pro = isKWSetProcedures;
-    bool do_fun = isKWSetFunctions;
-    
-    if (sourceFilesKW && routinesKW) e->Throw("Conflicting keywords.");
-    
-    if (sourceFilesKW) {
-      do_pro = true;
-      do_fun = true;
-      if (isKWSetProcedures && !isKWSetFunctions) do_fun = false;
-      if (!isKWSetProcedures && isKWSetFunctions) do_pro = false;
-    } else if (routinesKW) {
-      do_pro = true;
-      do_fun = true;
-      if (isKWSetProcedures && !isKWSetFunctions) do_fun = false;
-      if (!isKWSetProcedures && isKWSetFunctions) do_pro = false;
-    }
 
     if (sourceFilesKW) {
-      if (do_pro) {
+	  if (!isKWSetFunctions) {
 	// AC 2018-01-09 : Duplicating the pro list to avoid messing up the order of "proList"
 	// otherwise, a call to HELP,/source created in future calls
 	// e.g. of crashing sequence : TEST_TV & HELP, /source & TEST_TV
@@ -756,59 +921,58 @@ BaseGDL* recall_commands( EnvT* e)
 	ProListT proList_tmp;
 	proList_tmp=proList;
         sort(proList_tmp.begin(), proList_tmp.end(), CompProName());
-
-        ostr << "Compiled Procedures:" << endl;
-        if (briefKW) {
-          ostr << "$MAIN$" << endl;
-          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
-            ostr << setw(25) << left << (*i)->ObjectName() << setw(0) <<endl;
-          }
-        } else if (isKWSetNames) {
-          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
-            if (CompareWithJokers(names, (*i)->ObjectName())) {
-              ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
-              ostr << (*i)->GetFilename() << endl;
-            }
-          }
-        } else {
-          ostr << "$MAIN$" << endl;
-          for (ProListT::iterator i = proList_tmp.begin(); i != proList_tmp.end(); ++i) {
-            ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
-            ostr << (*i)->GetFilename() << endl;
-          }
+	    *ostrp << "Compiled Procedures:" << endl;
+	    *ostrp << "$MAIN$" << endl;	  OutputLines += 2;
+		for( SizeT i = 0; i < proList_tmp.size(); ++i)
+		  {
+		  if( proList_tmp[i]->isHidden()  and !fullKW  )  continue;
+		  if (isKWSetNames and 
+				!(CompareWithJokers(names,proList_tmp[i]->ObjectName()))) continue;
+			*ostrp << setw(25) << left << proList_tmp[i]->ObjectName() << setw(0);
+			*ostrp << proList_tmp[i]->GetFilename() << endl;
         }
       }
 
-      if (do_fun) {
+	  if (!isKWSetProcedures) {
+	    if (!isKWSetFunctions) *ostrp << endl;
 	// AC 2018-01-09 : Duplicating the fun list to avoid messing up the order of "funList"
 	// see above in (do_pro).
 	FunListT funList_tmp;
 	funList_tmp=funList;
         sort(funList_tmp.begin(), funList_tmp.end(), CompFunName());
-
-	if (do_pro) ostr << endl;
-	ostr << "Compiled Functions:" << endl;
-        if (briefKW) {
-          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i) {
-            ostr << setw(25) << left << (*i)->ObjectName() << setw(0) <<endl;
+	    *ostrp << "Compiled Functions:" << endl; ++OutputLines;
+		for( SizeT i = 0; i < funList_tmp.size(); ++i)
+		  {
+		  if( funList_tmp[i]->isHidden()  and !fullKW  )  continue;
+		  if (isKWSetNames and 
+				!(CompareWithJokers(names,funList_tmp[i]->ObjectName()))) continue;
+			*ostrp << setw(25) << left << funList_tmp[i]->ObjectName() << setw(0);
+			*ostrp << funList_tmp[i]->GetFilename() << endl;  ++OutputLines;
           }
-        } else if (isKWSetNames) {
-          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i)
-            if (CompareWithJokers(names, (*i)->ObjectName())) {
-              ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
-              ostr << (*i)->GetFilename() << endl;
             }
-        } else {
-          for (FunListT::iterator i = funList_tmp.begin(); i != funList_tmp.end(); ++i) {
-            ostr << setw(25) << left << (*i)->ObjectName() << setw(0);
-            ostr << (*i)->GetFilename() << endl;
-          }
-        }
-      }
       if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  cout<<ostr.str();
-      return;
-    }
+	   return;
+          }
 
+// Compiled Procedures & Functions
+
+	vector<DString> fList;
+	static  volatile int npro = 0, nfun =0;
+	for( FunListT::iterator i=funList.begin(); i != funList.end(); ++i)
+		if( fullKW  or  !((*i)->isHidden() ) ) {
+		  	  fList.push_back((*i)->ObjectName()); ++nfun; }
+	sort( fList.begin(), fList.end());
+	  if(debugKW) cout << " #functions=" << nfun; 
+
+	vector<DString> pList;
+	pList.push_back("$MAIN$");
+	for( ProListT::iterator i=proList.begin(); i != proList.end(); ++i)
+		if( fullKW  or  !((*i)->isHidden() ) ) {
+		  	  pList.push_back((*i)->ObjectName()); ++npro; }
+	sort( pList.begin(), pList.end());
+	  if(debugKW) cout << " #procedures=" << npro;
+	  if(debugKW) cout << " #env:" << e->Caller()->EnvSize() << endl;
+	  
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent(callsKWIx);
 
@@ -833,139 +997,54 @@ BaseGDL* recall_commands( EnvT* e)
       e->SetKW(callsKWIx, retVal);
       return;
     }
+	static int filesIx = e->KeywordIx("FILES");
+	if(e->KeywordPresent( filesIx)) {
+		help_files( ostr, e); 
+      if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  cout<<ostr.str();
+	   return;
+	}
 
-    static int infoIx=e->KeywordIx("INFO");
-    if (e->KeywordSet(infoIx)) {
+	static int infoIx = e->KeywordIx("INFO");
+	if( e->KeywordSet( infoIx)){  kw = true; help_info(); }
 
-      cout << "* Homepage: http://gnudatalanguage.sf.net" << endl;
-      cout << endl;
-      cout << "* #NameOfRoutine for list of params and keywords"
-        " for a given NameOfRoutine (internal or compiled pro/func)" << endl;
-      cout << endl;
-      cout << "* ?NameOfRoutine for starting a browser to access online doc"
-        " for a given routine (if exists ! internal or compiled pro/func)";
-      cout << endl;
-      cout << endl;
-      cout << "* HELP, /LIB for a list of all internal library "
-        "functions/procedures." << endl;
-      cout << "Additional subroutines are written in GDL language, "
-        "look for *.pro files (e.g. in CVS in src/pro/)." << endl;
-      cout << endl;
-      cout << "* HELP, /ALL_KEYS for useful CLI keys shortcuts." << endl;
-      cout << endl;
-      return;
-    }
-
-    static int kwlibIx=e->KeywordIx("LIB");
-    bool kwLib = e->KeywordSet(kwlibIx);
-    if (kwLib) {
-
-      vector<DString> subList;
-      SizeT nPro = libProList.size();
-      for (SizeT i = 0; i < nPro; ++i) {
-        if (!libProList[i]->GetHideHelp())
-          subList.push_back(libProList[i]->ToString());
-      }
-      sort(subList.begin(), subList.end());
-
-      SizeT nProList = subList.size();
-      cout << "Library procedures (" << nProList << "):" << endl;
-      for (SizeT i = 0; i < nProList; ++i)
-        cout << subList[i] << endl;
-
-      subList.clear();
-
-      SizeT nFun = libFunList.size();
-      for (SizeT i = 0; i < nFun; ++i) {
-        if (!libFunList[i]->GetHideHelp())
-          subList.push_back(libFunList[i]->ToString());
-      }
-      sort(subList.begin(), subList.end());
-
-      SizeT nFunList = subList.size();
-      cout << "Library functions (" << nFunList << "):" << endl;
-      for (SizeT i = 0; i < nFunList; ++i)
-        cout << subList[i] << endl;
-      
-      return;
-
-    }
-
+	static int libIx = e->KeywordIx("LIB");
     // internal library functions
     static int INTERNAL_LIB_GDLIx=e->KeywordIx("INTERNAL_LIB_GDL");
     bool kwLibInternal = e->KeywordSet(INTERNAL_LIB_GDLIx);
     if (kwLibInternal) {
-
-      vector<DString> subList;
-      SizeT nPro = libProList.size();
-      for (SizeT i = 0; i < nPro; ++i) {
-        if (libProList[i]->GetHideHelp()) // difference here
-          subList.push_back(libProList[i]->ToString());
-      }
-      sort(subList.begin(), subList.end());
-
-      SizeT nProList = subList.size();
       cout << "NOTE: Internal subroutines are subject to change without notice." << endl;
       cout << "They should never be called directly from a GDL program." << endl;
-      cout << "Internal library procedures (" << nProList << "):" << endl;
-      for (SizeT i = 0; i < nProList; ++i)
-        cout << subList[i] << endl;
-
-      subList.clear();
-
-      SizeT nFun = libFunList.size();
-      for (SizeT i = 0; i < nFun; ++i) {
-        if (libFunList[i]->GetHideHelp()) // difference here
-          subList.push_back(libFunList[i]->ToString());
-      }
-      sort(subList.begin(), subList.end());
-
-      SizeT nFunList = subList.size();
-      cout << "Internal library functions (" << nFunList << "):" << endl;
-      for (SizeT i = 0; i < nFunList; ++i) cout << subList[i] << endl;
-      
-      return;
     }
-
-    static int MEMORYIx  = e->KeywordIx("MEMORY");
-    bool isKWSetMemory = e->KeywordSet(MEMORYIx);
-    static int RECALL_COMMANDSIx = e->KeywordIx("RECALL_COMMANDS");
-    bool isKWSetRecall = e->KeywordSet(RECALL_COMMANDSIx);
+	if( e->KeywordSet( libIx)) { kw = true;  help_ListLib(names, *ostrp, kwLibInternal);	}
 
     static int STRUCTURESIx = e->KeywordIx("STRUCTURES");
     bool isKWSetStructures = e->KeywordSet(STRUCTURESIx);
+    static int RECALL_COMMANDSIx = e->KeywordIx("RECALL_COMMANDS");
+    bool isKWSetRecall = e->KeywordSet(RECALL_COMMANDSIx);
+    static int MEMORYIx  = e->KeywordIx("MEMORY");
+    bool isKWSetMemory = e->KeywordSet(MEMORYIx);
+    static int PREFERENCESIx = e->KeywordIx("PREFERENCES");
+	bool isKWSetPreferences  = e->KeywordSet( "PREFERENCES");
     if (isKWSetStructures) kw = true;
     
-    if (isKWSetStructures && isKWSetMemory) isKWSetMemory=false; //just like that
-    if (isKWSetStructures && isKWSetRecall) isKWSetRecall=false; //actually prints sysvars!
-      
-    if (isKWSetMemory && (isKWSetProcedures || isKWSetFunctions))
+	if ( (isKWSetStructures or isKWSetRecall or isKWSetMemory or 
+			isKWSetPreferences) and (isKWSetProcedures or isKWSetFunctions))
       e->Throw("Conflicting keywords.");
 
-    if (isKWSetStructures && (isKWSetProcedures || isKWSetFunctions))
-      e->Throw("Conflicting keywords.");
-
-    if (isKWSetRecall && (isKWSetProcedures || isKWSetFunctions))
-      e->Throw("Conflicting keywords.");
-
-    static int PREFERENCESIx = e->KeywordIx("PREFERENCES");
-    bool isKWSetPreferences = e->KeywordSet(PREFERENCESIx);
-    if (isKWSetPreferences && (isKWSetProcedures || isKWSetFunctions))
-      e->Throw("Conflicting keywords.");
-
-    // using this way, we don't need to manage HAVE_READLINE at this level ...
     if (isKWSetRecall) {
       DStringGDL *previous_commands;
       previous_commands = recall_commands_internal();
       SizeT nEl2 = previous_commands->N_Elements();
       cout << "Recall buffer length: " << nEl2 << endl;
-      for (SizeT i = 0; i < nEl2; ++i)
-        ostr << i + 1 << "  " << (*previous_commands)[i] << endl;
+      for (SizeT i = 0; i < nEl2; ++i) {
+			if (isKWSetNames and 
+				!CompareWithJokers(names, (*previous_commands)[i])) continue;
+	       *ostrp << i+1 << "  " <<(*previous_commands)[i] << endl;
+			}
       GDLDelete(previous_commands);
       if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout<<ostr.str();
       return;
     }
-    
     if (isKWSetMemory) {
       ostr << "heap memory used: ";
       ostr << MemStats::GetCurrent();
@@ -978,208 +1057,327 @@ BaseGDL* recall_commands( EnvT* e)
       if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout<<ostr.str();
       return;
     }
+	if (isKWSetPreferences)  {	
+	  //cout << "ici 1 " << isKWSetPreferences << endl;
+	  *ostrp << "Preferences: this is not ready ..."<<endl;
+	  //*ostrp << GDL_GR_X_QSCREEN::GetValue();
+	  if(doOutput) help_Output(outputKW, ostr, OutputLines);
 
-    // Excluding keywords which are exclusive is not finished ...
-    if (isKWSetPreferences) {
-      ostr << "Preferences" <<endl;
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr,true); else  cout<<ostr.str();
-      return;
-    }
+	  return;
+	  }
+      // switch to dec output (might be changed from formatted output)
+
+	if(!doOutput)			cout << dec;
     
-    SizeT nParam = e->NParam();
+	if ((nParam == 0 and !isKWSetMemory) or
+			isKWSetFunctions or isKWSetProcedures) {
     
-    bool allOutputs=false;
-    if (nParam==0 && !isKWSetProcedures && !isKWSetFunctions  && !routinesKW) {allOutputs=true; briefKW=true;} //see below
+	    if (nParam == 0 and !isKWSetFunctions and
+		    !isKWSetProcedures and !routinesKW) 
+		    		SimpleDumpStack(e, *ostrp);	
 
-    // Compiled Procedures & Functions
-    vector<DString> pList;
-    vector<DString> fList;
-
-    int npro = 0, nfun = 0;
-    pList.push_back("$MAIN$");
-    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i)
-      if (fullKW || !((*i)->isHidden())) {
-        pList.push_back((*i)->ObjectName());
-        npro++;
-      }
-    sort(pList.begin(), pList.end());
-
-    // Get list of user functions
-    for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i)
-      if (fullKW || !((*i)->isHidden())) {
-        fList.push_back((*i)->ObjectName());
-        nfun++;
-      }
-    sort(fList.begin(), fList.end());
-
-
-      // PROCEDURES keyword
-    if (isKWSetProcedures || routinesKW || allOutputs) {
-      ostr << "Compiled Procedures:" << endl;
-      // Loop through procedures
-      for (SizeT i = 0; i < pList.size(); i++) {
-        // Add $MAIN$
-        if (i == 0) ostr << "$MAIN$ ";
-        bool do_output = true;
+	    if (isKWSetProcedures or routinesKW) {
+			*ostrp << "Compiled Procedures:" << endl << "$MAIN$" << endl;
+			OutputLines += 2;
+			for( SizeT i=1; i<pList.size(); ++i) {
 
         // Find DPro pointer for pList[i]
-        ProListT::iterator p = std::find_if(proList.begin(), proList.end(), Is_eq<DPro>(pList[i]));
-        if (p != proList.end()) {
+		        ProListT::iterator p=std::find_if(proList.begin(),proList.end(),
+					      Is_eq<DPro>(pList[i]));
+		        if( p == proList.end()) continue;
           DPro *pro = *p;
 
-          if (isKWSetNames) {
-            if (!CompareWithJokers(names, pro->ObjectName())) do_output = false;
+		        if (isKWSetNames and 
+				!CompareWithJokers(names, pro->ObjectName())) continue;
+		        *ostrp << setw(25) << left << pro->ObjectName() << setw(0);
+	   
+		        int nPar = pro->NPar();
+		        int nKey = pro->NKey();
+// Loop through parameters and keywords
+		        for( SizeT j=0; j<pro->NPar(); ++j)
+				    *ostrp << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+				for( SizeT j=0; j<pro->NKey(); ++j)
+					*ostrp << StrUpCase(pro->GetVarName(j)) << " ";
+				*ostrp << endl; ++OutputLines;
+				}
           }
 
-          if (do_output) {
+	    if (isKWSetFunctions or routinesKW) {	
+		    *ostrp << "Compiled Functions:" << endl;
+			++OutputLines;
+	  // Loop through functions
+			for( SizeT i=0; i<fList.size(); ++i) {	  
+	    // Find DFun pointer for fList[i]
+				FunListT::iterator p=std::find_if(funList.begin(),funList.end(),
+					      Is_eq<DFun>(fList[i]));
+				if( p == funList.end()) continue;
+				DFun *pro = *p;
+				if (isKWSetNames and
+					!CompareWithJokers(names, pro->ObjectName())) continue;
             int nPar = pro->NPar();
             int nKey = pro->NKey();
+		    *ostrp << setw(25) << left << pro->ObjectName() << setw(0);
 
-            // Loop through parameters
-            ostr << setw(briefKW?12:24) << left << pro->ObjectName() << " " << setw(0);
-            if (!briefKW) {
-              for (SizeT j = 0; j < nPar; j++)
-                ostr << StrLowCase(pro->GetVarName(nKey + j)) << " ";
-              for (SizeT j = 0; j < nKey; j++)
-                ostr << StrUpCase(pro->GetVarName(j)) << " ";
+              for (SizeT j = 0; j < nPar; ++j)
+		      *ostrp << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+              for (SizeT j = 0; j < nKey; ++j)
+		      *ostrp << StrUpCase(pro->GetVarName(j)) << " ";
+		    *ostrp << endl; OutputLines++;
             }
           }
-        }
-        if (do_output && !briefKW) ostr << endl;
+	    if( isKWSetProcedures or isKWSetFunctions)  {
+		if(doOutput) help_Output(outputKW, ostr, OutputLines);
+		return;
       }
     }
 
-    if (isKWSetFunctions || routinesKW || allOutputs ) {
-        if (isKWSetProcedures || routinesKW || allOutputs ) ostr << endl;
-        ostr << "Compiled Functions:" << endl;
+      // Excluding keywords which are exclusive is not finished ...
 
-      // Loop through functions
-      for (SizeT i = 0; i < fList.size(); i++) {
-        bool do_output = true;
+	if (isKWSetPreferences)  {	
+	  //cout << "ici 1 " << isKWSetPreferences << endl;
+	  *ostrp << "Preferences: this is not ready ..."<<endl;
+	  //*ostrp << GDL_GR_X_QSCREEN::GetValue();
+	  if(doOutput) help_Output(outputKW, ostr, OutputLines);
 
-        // Find DFun pointer for fList[i]
-        FunListT::iterator p = std::find_if(funList.begin(), funList.end(), Is_eq<DFun>(fList[i]));
-        if (p != funList.end()) {
-          DFun *pro = *p;
+	  return;
+	  }
+    static int commonIx = e->KeywordIx( "COMMON");
+  	if(e->KeywordSet( commonIx)) {  // list in internal order
+		CommonListT::iterator it;
+		for( it=commonList.begin(); it != commonList.end(); ++it)
+		{
+		    SizeT nVar = (*it)->NVar(); if(nVar == 0) continue;
+		    *ostrp << " Common block (" << (*it)->Name() << 
+			") listed in internal order:" <<endl;
+		    for( SizeT vIx = 0; vIx < nVar; ++vIx)	{
+			    DString parString = (*it)->VarName( vIx) +" ("+(*it)->Name()+')';
+			    DVar* var = (*it)->Var( vIx);
+			    if( var->Data() not_eq NULL || fullKW)  
+				help_item( *ostrp , var->Data(), parString, false);
+			}
+		    }
+     if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout << ostr.str();
+		if(nParam == 0) return;
+ 	    }
 
-          if (isKWSetNames) {
-            if (!CompareWithJokers(names, pro->ObjectName())) do_output = false;
+	if(debugKW) std::cout << " help_pro: nParam=" << nParam ;
+	const string objectnotfound = ": Object not found";
+	bool objectsKW = e->KeywordSet(objectsIx);
+	for( SizeT i=0; i<nParam; ++i)  {
+	  BaseGDL*& par=e->GetPar( i);
+		DString parString = e->Caller()->GetString( par, true);//= string(" ??? ");
+	if(debugKW) std::cout << ". " ;
+ 	  if(par == NULL) {
+			if(debugKW) std::cout << " par ==(NULL)" << endl;
+		  if( objectsKW) {
+			help_object( ostr, parString, !briefKW);
+				 continue;
+			  }
+			if(!briefKW) help_item( ostr, par, parString, false);
+			continue;
           }
-
-          if (do_output) {
-            int nPar = pro->NPar();
-            int nKey = pro->NKey();
-
-            // Loop through parameters
-              ostr << setw(briefKW?12:24) << left << pro->ObjectName() << " " << setw(0);
-            if (!briefKW) {
-              for (SizeT j = 0; j < nPar; j++)
-                ostr << StrLowCase(pro->GetVarName(nKey + j)) << " ";
-              for (SizeT j = 0; j < nKey; j++)
-                ostr << StrUpCase(pro->GetVarName(j)) << " ";
+		if(objectsKW && par->Type() != GDL_OBJ) {
+			if(par->Type() == GDL_STRING) {
+				for( SizeT kobj=0; kobj < par->N_Elements(); ++kobj) 
+					help_object( ostr,
+						(*static_cast<DStringGDL*>(par))[kobj], !briefKW);
+				continue;}
+			else {
+				cout << parString+
+				":error (help,prm,/OBJECTS - prm is not object nor string) " << endl;
+				continue;
+			;}
             }
+	 help_item( ostr, par, parString, false);
+// NON-STRUCTURES except if one and only one param is a Struct.
+	  if(par->Type() == GDL_STRUCT and (nParam == 1 or isKWSetStructures )
+			and !briefKW)
+			help_struct(ostr, par, 0, debugKW);
+	  else if ( nParam != 1) continue;
+	  else if (par->Type() == GDL_OBJ and par->StrictScalar())
+	  {
+		  bool isKWSetMethods = e->KeywordSet( "METHODS");
+		  DObj s = (*static_cast<DObjGDL*>(par))[0];
+		  DStructGDL* oStructGDL;
+		  if(s != 0) oStructGDL =  GDLInterpreter::GetObjHeapNoThrow( s);
+		  if( s!= 0  and (isKWSetStructures or fullKW))
+			  help_struct(ostr, oStructGDL, 0, debugKW);
+		  if( s!= 0  and (isKWSetMethods or fullKW)){
+		      DStructDesc* desc = oStructGDL->Desc();
+		      FunListT& funlist = desc->FunList();
+		      ProListT& prolist = desc->ProList();
+		      help_ListMethods(names, ostr, funlist, prolist);
           }
         }
-        if (do_output && !briefKW) ostr << endl;
+		else if (par->Type() == GDL_OBJ) 
+		{
+			SizeT nObj = par->N_Elements();
+			if(debugKW) std::cout << "nObj="<<nObj;
+			for( SizeT iobj=0; iobj<nObj; ++iobj)
+			  {
+				if(debugKW) std::cout << "-";
+				DObj s = (*static_cast<DObjGDL*>( par))[iobj];
+//				object_help( ostr, s, false);
+		  DStructGDL* oStructGDL;
+		  DString classname;
+		  DString nameobj="  ["+i2s(iobj)+"] ";
+		  if(s != 0) {
+			  // Name display
+				if(debugKW) std::cout << "-";
+				std::vector< std::string> pNames;
+				ostr.width(16);
+				ostr << left << nameobj;
+				oStructGDL =  GDLInterpreter::GetObjHeapNoThrow( s);
+				if(oStructGDL == NULL) continue;
+				if(debugKW) std::cout << ".";
+				classname  = oStructGDL->Desc()->Name() ;
+				oStructGDL->Desc()->GetParentNames(pNames);
+				ostr.width(10);
+				ostr << classname << right;
+				ostr << left << "<ID=" << i2s(s) << "> " << right;
+				DString parents;
+				if(pNames.size() == 0) parents = "";
+				else if( pNames.size() == 1) parents = "  parent:";
+				else  						 parents = " parents:";
+				ostr << left << parents;
+				for (SizeT i=0; i < pNames.size(); ++i)  ostr << " " << pNames[i];
+				ostr << endl;
+			  }  else 
+					help_item( ostr,  NULL, nameobj, false);  
       }
     }
-    if (briefKW) ostr <<endl;
     
-    std::ostringstream routines_ostringstream;
-    if ( isKWSetProcedures || isKWSetFunctions || routinesKW ) {
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr,false); else  cout<<ostr.str();
+	}
+	if(debugKW) std::cout << " :=:" << std::endl;
+	if(nParam > 0) {
+      if (doOutput)  (*outputKW)=StreamToGDLString(ostr); else  cout<<ostr.str();
       return;
-    } else { //save ostr into end_of_ostr to add at end of below output if needed:
-      routines_ostringstream << ostr.str();
-      ostr.str("");
     }
+ 
 
-    std::ostringstream parameters_ostringstream;
     static int levelIx = e->KeywordIx("LEVEL");
-    DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
+	if(e->KeywordPresent(levelIx) ) {
+		std::ostringstream parameters_ostringstream;
+		 DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
 
-    //will list (all) variables, incl. common defined, at desired level.
-    EnvStackT& callStack = e->Interpreter()->CallStack();
-    DLong curlevnum = callStack.size();
-    DLong desiredlevnum = curlevnum;
-    if (level != NULL) {
-      desiredlevnum = (*level)[0];
-      if (desiredlevnum <= 0) desiredlevnum += curlevnum;
-      if (desiredlevnum < 1) desiredlevnum = 0;
-      if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
-    }
+		//will list (all) variables, incl. common defined, at desired level.
+		EnvStackT& callStack = e->Interpreter()->CallStack();
+		DLong curlevnum = callStack.size();
+		DLong desiredlevnum = curlevnum;
+		if (level != NULL) {
+		  desiredlevnum = (*level)[0];
+		  if (desiredlevnum <= 0) desiredlevnum += curlevnum;
+		  if (desiredlevnum < 1) desiredlevnum = 0;
+		  if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+		}
+		  
+		DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum-1]->GetPro());
+
+		SizeT nVar = pro->Size(); // # var in GDL for desired level 
+		SizeT nComm = pro->CommonsSize(); // # has commons?
+		SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
+		if(debugKW)	cout << " Level section: nTotVar=" << nTotVar << endl;
+		if (nTotVar > 0) {
+		  set<string> helpStr;  // "Sorted List" 
+		  if (nVar > 0) {
+			for (SizeT i = 0; i < nVar; ++i) {
+			  BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetKW(i);
+			  if (par != NULL) {
+				stringstream ss;
+				string parName = pro->GetVarName(i);
+				help_item(ss, par, parName, false);
+				helpStr.insert(ss.str());
+			  }
+			}
+		  }
+
+		  if (nComm > 0) {
+			DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
+			for (SizeT i = 0; i < list->N_Elements(); ++i) {
+			  BaseGDL** par =  pro->GetCommonVarPtr((*list)[i]);
+			  DCommonBase* common = pro->FindCommon((*list)[i]);
+			  DString parName =  (*list)[i] + " (" + common->Name() + ')';
+			  stringstream ss;
+			  help_item(ss, (*par), parName, false);
+			  helpStr.insert(ss.str());
+			}
+		  }
+		  copy(helpStr.begin(), helpStr.end(),ostream_iterator<string>(parameters_ostringstream));
+		}
+	}
+//					 if /brief and /routines then no var. to be shown
+	if( routinesKW and briefKW) kw = true;
+
+	if( nParam == 0  and !kw)
+	    {
+	    routinesKW = true;
+	    briefKW = true;
+
+	  // list all variables of caller
+	    EnvBaseT* caller = e->Caller();
       
-    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum-1]->GetPro());
+	    SizeT nEnv = caller->EnvSize();
 
-    SizeT nVar = pro->Size(); // # var in GDL for desired level 
-    SizeT nComm = pro->CommonsSize(); // # has commons?
-    SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
+	  //cout << "EnvSize() " << nEnv << endl;
 
-    if (nTotVar > 0) {
       set<string> helpStr;  // "Sorted List" 
-      if (nVar > 0) {
-        for (SizeT i = 0; i < nVar; ++i) {
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(i);
-          if (par != NULL) {
             stringstream ss;
-            string parName = pro->GetVarName(i);
-            help_item(ss, par, parName, false);
+
+	    for ( int i = 0; i < nEnv; ++i )  {
+		    BaseGDL*& par=caller->GetKW( i);
+		    
+		if(par == NULL && !fullKW) continue;
+	      // if( par == NULL) continue;
+
+		    DString parString = caller->GetString( par,true);
+		if(debugKW ) cout << " GetKW(i)->GetString(par) "<<parString ;
+		    if (isKWSetNames and
+				!CompareWithJokers(names, parString)) continue;
+	 	help_item( ss, par, parString, false);	    
             helpStr.insert(ss.str());
+		ss.str("");
           }
-        }
-      }
-      if (nComm > 0) {
-        DStringGDL* list=static_cast<DStringGDL*>(pro->GetCommonVarNameList());
-        for (SizeT i = 0; i < list->N_Elements(); ++i) {
-          BaseGDL** par =  pro->GetCommonVarPtr((*list)[i]);
-          DCommonBase* common = pro->FindCommon((*list)[i]);
-          DString parName =  (*list)[i] + " (" + common->Name() + ')';
-          stringstream ss;
-          help_item(ss, (*par), parName, false);
+		if (debugKW) cout << endl;
+	  std::vector<DCommonBase*> cptr;
+	  DSubUD* proUD = dynamic_cast<DSubUD*>(caller->GetPro());
+	  proUD->commonPtrs(cptr);
+	  std::vector<DCommonBase*>::iterator ic;
+	  for( ic=cptr.begin(); ic != cptr.end(); ++ic)
+		{
+		    SizeT nVar = (*ic)->NVar();
+		    for( SizeT vIx = 0; vIx < nVar; ++vIx)	{
+				DString parString = (*ic)->VarName( vIx) +" ("+(*ic)->Name()+')';
+				if (isKWSetNames and
+					!CompareWithJokers(names, parString)) continue;
+				DVar* var = (*ic)->Var( vIx);
+				if( (var->Data() not_eq NULL) || fullKW)  {
+					help_item( ss, var->Data(), parString, false);	    
           helpStr.insert(ss.str());
+					ss.str("");
         }
       }
-      copy(helpStr.begin(), helpStr.end(),ostream_iterator<string>(parameters_ostringstream));
     }
       
-    if ( nParam == 0) {
-      SimpleDumpStack(e, ostr);
-      // list all variables at level 'lev'
-      ostr << parameters_ostringstream.str();
-      ostr << routines_ostringstream.str();
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr,false); else  cout<<ostr.str();
-      return;
-    } else {
-      for (SizeT i = 0; i < nParam; i++) {
-        BaseGDL*& par = e->GetPar(i);
-        DString parString = e->Caller()->GetString(par, true);
-        // NON-STRUCTURES except if one and only one param is a Struct of 1 element. (and /struct was not given)
-        if (!isKWSetStructures && nParam == 1 && par && par->Type() == GDL_STRUCT) {
-            isKWSetStructures = (par->N_Elements() == 1);
-        }
+	    copy( helpStr.begin(), helpStr.end(),
+			ostream_iterator<string>( *ostrp) );
+		OutputLines += helpStr.size();
 
-        if (!par || !isKWSetStructures || par->Type() != GDL_STRUCT) {
-          // If no OUTPUT keyword send to stdout
-          help_item(ostr, par, parString, false);
-        } else {
-          // STRUCTURES
-          DStructGDL* s = static_cast<DStructGDL*> (par);
-          SizeT nTags = s->Desc()->NTags();
-          ostr << "** Structure ";
-          ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" :
-            s->Desc()->Name());
-          ostr << ", " << nTags << " tags";
-          ostr << ", length=" << s->Sizeof();
-          ostr << ", data length=" << s->SizeofTags();
-          ostr << ":" << endl;
-          for (SizeT t = 0; t < nTags; ++t) {
-            DString tagString = s->Desc()->TagName(t);
-            help_item(ostr, s->GetTag(t), tagString, true);
-          }
+	} // if( nParam == 0  and !kw)
+	if( routinesKW and briefKW) {
+		// Display compiled procedures & functions
+	    if (!isKWSetProcedures and !isKWSetFunctions) {
+
+		*ostrp << "Compiled Procedures:" << endl;
+		for( SizeT i=0; i<pList.size(); ++i) *ostrp << pList[i] << " ";
+		*ostrp << endl << endl; 
+		*ostrp << "Compiled Functions:" << endl;
+		for( SizeT i=0; i<fList.size(); ++i) *ostrp << fList[i] << " ";
+		*ostrp << endl;  
+		OutputLines += 4;
         }
       }
-      if (doOutput)  (*outputKW)=StreamToGDLString(ostr,false); else  cout<<ostr.str();
-    }
+	if(doOutput) help_Output(outputKW, ostr, OutputLines);
+	return;
   }
 
   } // namespace
