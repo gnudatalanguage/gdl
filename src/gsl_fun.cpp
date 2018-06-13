@@ -91,6 +91,7 @@
 #include <gsl/gsl_errno.h>
 
 #include "interp_multid.h"
+#include "nullgdl.hpp"
 
 //#include "gsl_errorhandler.hpp"
 
@@ -954,11 +955,10 @@ namespace lib {
         if (test_n > 0.0) n = 1;
       }
       if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
+      if (res->Type()==GDL_FLOAT && n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
 
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (T2) gsl_ran_gamma_int(r, n); //probably need to be rewritten for floats
-                                      //as formula seems valid only with precision of doubles.
-                                      //also, differs from IDL for n > 6.
+        (T2) gsl_ran_gamma_knuth(r, 1.0*n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
       return 0;
     }
 
@@ -1037,55 +1037,72 @@ namespace lib {
 
     gsl_rng *r;
     GDLGuard<gsl_rng> rGuard(gsl_rng_free);
+    bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
 
-    if (e->GlobalPar(0)) {
-      DLongGDL* p0L = e->IfDefGetParAs< DLongGDL>(0);
-      if (p0L != NULL) // defined global -> use and update
-      {
-        seed0 = (*p0L)[ 0];
-
-        r = gsl_rng_alloc(gsl_rng_mt19937);
-        rGuard.Init(r);
-        gsl_rng_set(r, seed0);
-
-        seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-        // if called with undefined global
-
-        seed = new DLongGDL(seed0);
-        e->SetPar(0, seed);
-      } else // undefined global -> init
-      {
-        if (seed0 == 0) // first time
-        {
-          time_t t1;
-          time(&t1);
-          seed0 = static_cast<DLong> (t1);
-        }
-
-        r = gsl_rng_alloc(gsl_rng_mt19937);
-        rGuard.Init(r);
-        gsl_rng_set(r, seed0);
-
-        seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-        // which would be defined global if used in a loop
-
-        seed = new DLongGDL(seed0);
-        e->SetPar(0, seed);
-      }
-    }
-    else // local (always defined) -> just use it
+  if (!isAnull && e->GlobalPar(0)) {
+    DLongGDL* p0L = e->IfDefGetParAs< DLongGDL>(0);
+    if (p0L != NULL) // defined global -> use and update
     {
-      seed = e->GetParAs< DLongGDL>(0);
-      seed0 = (*seed)[0];
+      seed0 = (*p0L)[ 0];
 
       r = gsl_rng_alloc(gsl_rng_mt19937);
       rGuard.Init(r);
-
       gsl_rng_set(r, seed0);
 
       seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
       // if called with undefined global
+
+      seed = new DLongGDL(seed0);
+      e->SetPar(0, seed);
+    } else // undefined global -> init
+    {
+      if (seed0 == 0) // first time
+      {
+        time_t t1;
+        time(&t1);
+        seed0 = static_cast<DLong> (t1);
+      }
+
+      r = gsl_rng_alloc(gsl_rng_mt19937);
+      rGuard.Init(r);
+      gsl_rng_set(r, seed0);
+
+      seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
+      // which would be defined global if used in a loop
+
+      seed = new DLongGDL(seed0);
+      e->SetPar(0, seed);
     }
+  } else if (isAnull) // new NULL type!
+  {
+    if (seed0 == 0) // first time
+    {
+      time_t t1;
+      time(&t1);
+      seed0 = static_cast<DLong> (t1);
+    }
+
+    r = gsl_rng_alloc(gsl_rng_mt19937);
+    rGuard.Init(r);
+    gsl_rng_set(r, seed0);
+
+    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
+    // which would be defined global if used in a loop
+
+    seed = new DLongGDL(seed0);
+    e->SetPar(0, seed);
+  } else { //"defined" local
+    seed = e->GetParAs< DLongGDL>(0);
+    seed0 = (*seed)[0];
+
+    r = gsl_rng_alloc(gsl_rng_mt19937);
+    rGuard.Init(r);
+
+    gsl_rng_set(r, seed0);
+
+    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
+    // if called with undefined global
+  }
 
     if (e->KeywordSet(2)) { // GDL_LONG
 
