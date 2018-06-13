@@ -863,10 +863,10 @@ namespace lib {
     static int available = 0;
     if (reset) {
       available = 0;
-      return std::numeric_limits<double>::quiet_NaN(); //ensure not used.
+      return std::numeric_limits<float>::quiet_NaN(); //ensure not used.
     }
     static float other;
-    double x, y, r2;
+    float x, y, r2;
     if (available == 0) {
       do {
         /* choose x,y in uniform square (-1,-1) to (+1,+1) */
