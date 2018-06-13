@@ -39,6 +39,8 @@ namespace lib {
 
   using namespace std;
   using namespace antlr;
+  SizeT HASH_count( DStructGDL* oStructGDL);
+  SizeT LIST_count( DStructGDL* oStructGDL);
  
   BaseGDL* isa_fun( EnvT* e) 
   {
@@ -448,11 +450,11 @@ namespace lib {
 
 		if( desc->IsParent("LIST"))
 		  {
-		    isObjectContainer = true;
+				isObjectContainer = true; nEl = LIST_count(oStructGDL);
 		  }
 		if( desc->IsParent("HASH"))
 		  {
-		    isObjectContainer = true;
+				isObjectContainer = true; nEl = HASH_count(oStructGDL);
 		  }
 	      }
 	  }
