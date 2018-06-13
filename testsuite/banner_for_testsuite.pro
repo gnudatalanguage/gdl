@@ -14,6 +14,10 @@
 ;
 ; AC 2018-feb-07 : for old IDL and GDL, ISA() not existing or too limited
 ;
+; AC 2018-Jun-13 : AC: adding a status keyword : if "nb_pbs == 0",
+; just a line, if  "nb_pbs > 0", a normal block. Not enforced if 
+; "nb_pbs" is not a number of other keywords set ...
+;
 ; ----------------------------------------------------
 ;
 function ISA_IDL, var, string=string, number=number, complex=complex
@@ -76,7 +80,7 @@ end
 ;
 ;------------------------------------------------
 ;
-pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, $
+pro BANNER_FOR_TESTSUITE, case_name, nb_pbs, prefix=prefix, status=status, $
                           short=short, wide=wide, line=line, noline=noline, $
                           help=help, test=test, verbose=verbose
 ;
@@ -155,6 +159,12 @@ message=indent+message+indent
 isWide=1
 isVerbose=0
 isShort=0
+;
+if KEYWORD_SET(status) then begin
+   if ISA_INTERNAL(nb_pbs,/number) then begin
+      if nb_pbs EQ 0 then isShort=1 else isWide=1
+   endif
+endif
 ;
 if ~KEYWORD_SET(wide) then begin
     if KEYWORD_SET(verbose) then begin
