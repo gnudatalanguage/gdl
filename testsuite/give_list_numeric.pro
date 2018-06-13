@@ -16,17 +16,21 @@
 ; 1/ typo in name/names keyword
 ; 2/ /verb --> /test to stop at the end !
 ;
+; 2018-Jun-11 : AC.
+; 1/ adding "list_numeric_keyword" to be able to provide name of
+; keywords for various pro. and functions (e.g. : MAKE_ARRAY())
+; 
 ; -----------------------------------------------
 ;
 pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $
-                       list_numeric_size, names=names, $
-                       integer=integer, lowercase=lowercase, $
+                       list_numeric_size, list_numeric_keywords, $
+                       names=names, integer=integer, lowercase=lowercase, $
                        verbose=verbose, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names, $'
-   print, '                       list_numeric_size, names=names, $'
-   print, '                       integer=integer, lowercase=lowercase, $'
+   print, '                       list_numeric_size, list_numeric_keywords, $'
+   print, '                       names=namesinteger=integer, lowercase=lowercase, $'
    print, '                       verbose=verbose, help=help, test=test'
    return
 endif
@@ -44,6 +48,9 @@ list_numeric_size =[1,2,4,4,8,8,16,2,4,8,8]
 list_numeric_names=['byte','int','long',$
                     'float','double','complex','dcomplex', $
                     'uint','ulong','long64','ulong64']
+list_numeric_keywords=['byte','int','long',$
+                    'float','double','complex','dcomplex', $
+                    'uint','ulong','l64','ul64']
 ;
 if KEYWORD_SET(integer) then begin
    if KEYWORD_SET(verbose) then print, 'Only INTEGER types selected'
