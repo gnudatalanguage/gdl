@@ -7,17 +7,8 @@
 #  (at your option) any later version.
 #
 
-<<<<<<< HEAD
-# SA: 3.1 (Dec 2014) required for CMAKE_CXX_STANDARD
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0026 OLD) # LOCATION property
-=======
-# tested with 2.4 and doesn't seem to run.
-# SA: 2.6 supports simplified if constructs, e.g. endif()
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-cmake_policy(SET CMP0026 OLD) # LOCATION property
-set(CMAKE_CXX_STANDARD 98)
->>>>>>> 76b4746dc11347dfed8f96e799fef875ac84ad12
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
