@@ -722,7 +722,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   return NULL; // avoid warning
 #else
   SizeT nParam = e->NParam( 1 );
-
+#if defined( NO_WIDGET_DRAW )
+  cout << " widget.cpp: NO_WIDGET_DRAW is set on build ... returning (-1)" << endl;
+  return new DLongGDL( -1); //return NULL;
+#endif
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget *parent = GDLWidget::GetWidget( parentID );
@@ -2427,6 +2430,7 @@ void widget_control( EnvT* e ) {
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
+  if(widgetID == -1) return; // for a deliberately invalid wid.
   GDLWidget *widget = GDLWidget::GetWidget( widgetID );
   if ( widget == NULL ) {
     if ( dobadid ) {
@@ -2481,7 +2485,7 @@ void widget_control( EnvT* e ) {
     } else if ( wType == "LABEL" ) {
       DString value = "";
       e->AssureStringScalarKWIfPresent( setvalueIx, value );
-	//	std::cout << "setlabelvalue: " << value.c_str() << std::endl;
+    //  std::cout << "setlabelvalue: " << value.c_str() << std::endl;
       GDLWidgetLabel *labelWidget = (GDLWidgetLabel *) widget;
       labelWidget->SetLabelValue( value );
       if (labelWidget->IsDynamicResize()) labelWidget->RefreshWidget();

@@ -412,11 +412,10 @@ bool DeviceWIN::WShow(int ix, bool show, int iconic)
 	if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
   if (iconic!=-1) { //iconic asked. do nothing else.
-    if (iconic==1) winList[ix]->Iconic();  else winList[ix]->DeIconic();
-    return true;
+		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
+	} else {
+		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
-	if (show) winList[ix]->Raise();      else winList[ix]->Lower();
-
 	UnsetFocus();
 
 	return true;
