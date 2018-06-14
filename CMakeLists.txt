@@ -356,6 +356,22 @@ else(GSL_FOUND)
         "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
 
+# RPC MANDATORY
+# -DRPCDIR=DIR
+set(CMAKE_PREFIX_PATH ${RPCDIR})
+find_package(RPC QUIET)
+set(HAVE_RPC ${RPC_FOUND})
+if(RPC_FOUND)
+	set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
+	include_directories(${RPC_INCLUDE_DIR})
+else(RPC_FOUND)
+	message(FATAL_ERROR "RPC support is mandatory.\n"
+	"Note that SunRPC has been removed in glibc-2.26 and later, "
+	"while being optional in earlier versions. Consider using the "
+	"recommended and more modern libtirpc instead.\n"
+	"Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
+endif(RPC_FOUND)
+
 if(WIN32 AND NOT CYGWIN)
 set(CMAKE_PREFIX_PATH ${XDRDIR})
 find_package(Xdr)
