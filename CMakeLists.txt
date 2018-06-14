@@ -327,7 +327,8 @@ if(OPENMP)
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
     endif()
   else(OPENMP_FOUND)
-    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found\n"
+    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
+    "note that disabling OpenMP will incur significant performance penalty !\n"
     "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
 	"(find_package(OpenMP) will find OpenMP only if both are set !)\n"
     "Use -DOPENMP=OFF to not use it.\n"
