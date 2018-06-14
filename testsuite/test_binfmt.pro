@@ -1,9 +1,6 @@
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
 pro test_binfmt
 
-  if (!version.memory_bits eq 32) then begin
-    exit, status=77
-  endif
   err = 0
 
   ; testing the '...'b syntax
