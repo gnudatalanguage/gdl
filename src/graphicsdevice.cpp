@@ -199,7 +199,7 @@ void GraphicsDevice::Init()
   std::string useWX=StrUpCase(GetEnvString("GDL_USE_WX"));
   if (useWX == "YES" ) {
 #ifdef HAVE_LIBWXWIDGETS
-
+	GDLWidget::Init();  // Hide this here from the OSX/CLang travis tests.
 	#ifdef NO_WIDGET_DRAW
 		#ifdef HAVE_X
 		  deviceList.push_back( new DeviceX());
@@ -227,6 +227,7 @@ void GraphicsDevice::Init()
 #ifdef HAVE_LIBWXWIDGETS
 
 	#  ifdef NO_WIDGET_DRAW
+	GDLWidget::Init();  // Hide this here from the OSX/CLang travis tests.
 		  deviceList.push_back( new DeviceWX("MAC"));
 	#  else
 		  deviceList.push_back( new DeviceWX());
