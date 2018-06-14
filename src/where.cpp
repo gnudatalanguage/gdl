@@ -443,7 +443,7 @@ namespace lib {
     SizeT districount[2] = {0, 0};
 
     //distribute accordingly! 
-    register DByte tmp;
+    DByte tmp;
     for (SizeT i = 0; i < nEl; ++i)
     {
       tmp = p0[i];
