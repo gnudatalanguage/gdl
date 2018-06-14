@@ -7,9 +7,17 @@
 #  (at your option) any later version.
 #
 
+<<<<<<< HEAD
 # SA: 3.1 (Dec 2014) required for CMAKE_CXX_STANDARD
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0026 OLD) # LOCATION property
+=======
+# tested with 2.4 and doesn't seem to run.
+# SA: 2.6 supports simplified if constructs, e.g. endif()
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_policy(SET CMP0026 OLD) # LOCATION property
+set(CMAKE_CXX_STANDARD 98)
+>>>>>>> 76b4746dc11347dfed8f96e799fef875ac84ad12
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
@@ -325,7 +333,15 @@ if(OPENMP)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
     endif()
-  endif(OPENMP_FOUND)
+  else(OPENMP_FOUND)
+    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
+    "note that disabling OpenMP will incur significant performance penalty !\n"
+    "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
+	"(find_package(OpenMP) will find OpenMP only if both are set !)\n"
+    "Use -DOPENMP=OFF to not use it.\n"
+    "(suitable Homebrew compiler package: llvm)"
+    "(suitable Homebrew library package: libomp)")
+  endif(OPENMP_FOUND) 
 else(OPENMP)
   # we need to define those semaphore posix symbols, do it with threads libs
   find_package(Threads)
