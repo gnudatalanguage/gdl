@@ -110,6 +110,9 @@ build_script:
   - mingw32-make -j4
   - mingw32-make install
 
+on_failure:
+  - ps: cat c:\projects\gdl\build\Testing\Temporary\LastTest.log
+
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
