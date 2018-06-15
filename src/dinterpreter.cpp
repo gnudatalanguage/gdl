@@ -1291,7 +1291,11 @@ char* DInterpreter::NoReadline( const string& prompt)
     {
         GDLEventHandler();
         if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
-        if (feof(stdin)) return NULL;
+        if (feof(stdin)) 
+        {
+          th.join();
+          return NULL;
+        }
 #ifdef WIN32
         Sleep(10);
 #else
