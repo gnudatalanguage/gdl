@@ -8,7 +8,7 @@
 ;
 ; ----------------------------------------------------
 ;
-pro TEST_INDGEN_by_name, test=test, no_exit=no_exit
+pro TEST_INDGEN_BY_NAME, cumul_errors, test=test
 ;
 nerr=0
 ;
@@ -26,11 +26,19 @@ if TYPENAME(SINDGEN(5)) ne "STRING" then ERRORS_ADD, nerr, 'SINDGEN does not yie
 if TYPENAME(UINDGEN(5)) ne "UINT" then ERRORS_ADD, nerr, 'UINDGEN does not yield an UINT array'
 if TYPENAME(ULINDGEN(5)) ne "ULONG" then ERRORS_ADD, nerr, 'ULINDGEN does not yield an ULONG array'
 if TYPENAME(UL64INDGEN(5)) ne "ULONG64" then ERRORS_ADD, nerr, 'UL64INDGEN does not yield an ULONG64 array'
-
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_BY_NAME', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
 end
 ;;
-pro TEST_INDGEN_by_KEYWORD, test=test, no_exit=no_exit
-
+pro TEST_INDGEN_BY_KEYWORD, cumul_errors, test=test
+;
+nerr=0
+;
 ;; INDGEN with explicit type keywords
 ;;
 if TYPENAME(INDGEN(5, /BYTE)) ne "BYTE" then ERRORS_ADD, nerr, 'INDGEN(/BYTE) does not yield a BYTE array'
@@ -44,7 +52,19 @@ if TYPENAME(INDGEN(5, /STRING)) ne "STRING" then ERRORS_ADD, nerr, 'INDGEN(/STRI
 if TYPENAME(INDGEN(5, /UINT)) ne "UINT" then ERRORS_ADD, nerr, 'INDGEN(/UINT) does not yield an UINT array'
 if TYPENAME(INDGEN(5, /UL64)) ne "ULONG64" then ERRORS_ADD, nerr, 'INDGEN(/UL64) does not yield an ULONG64 array'
 if TYPENAME(INDGEN(5, /ULONG)) ne "ULONG" then ERRORS_ADD, nerr, 'INDGEN(/ULONG) does not yield an ULONG array'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_BY_KEYWORD', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
+end
+;
+pro TEST_INDGEN_N_ELEMENTS, cumul_errors, test=test
 ;;
+nerr=0
+;
 ;; Check correct number of elements in 1-dimensional arrays
 ;;
 if SIZE(BINDGEN(5), /N_ELEMENTS) ne 5 then ERRORS_ADD, nerr, 'BINDGEN(5) does not yield a 5-element array'
@@ -59,7 +79,19 @@ if SIZE(SINDGEN(5), /N_ELEMENTS) ne 5 then ERRORS_ADD, nerr, 'SINDGEN(5) does no
 if SIZE(UINDGEN(5), /N_ELEMENTS) ne 5 then ERRORS_ADD, nerr, 'UINDGEN(5) does not yield a 5-element array'
 if SIZE(ULINDGEN(5), /N_ELEMENTS) ne 5 then ERRORS_ADD, nerr, 'ULINDGEN(5) does not yield a 5-element array'
 if SIZE(UL64INDGEN(5), /N_ELEMENTS) ne 5 then ERRORS_ADD, nerr, 'UL64INDGEN(5) does not yield a 5-element array'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_N_ELEMENTS', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
+end
 ;;
+pro TEST_INDGEN_INCREMENT, cumul_errors, test=test
+;
+nerr=0
+;
 ;; Various IDL 8.2.1 START and IDL 8.3 INCREMENT tests
 ;;
 if not ARRAY_EQUAL(INDGEN(6, start=5, increment=0.5), [5,5,6,6,7,7]) then ERRORS_ADD, nerr, 'INDGEN(START=5, INCREMENT=0.5) yields wrong result' 
@@ -67,12 +99,51 @@ if not ARRAY_EQUAL(FINDGEN(6, start=5, increment=0.5), [5.0,5.5,6.0,6.5,7.0,7.5]
 if not ARRAY_EQUAL(BINDGEN(6, start=5, increment=4), [5,9,13,17,21,25]) then ERRORS_ADD, nerr, 'BINDGEN(START=5, INCREMENT=4) yields wrong result'
 if not ARRAY_EQUAL(UINDGEN(2, start=2018), [2018, 2019]) then ERRORS_ADD, nerr, 'UINDGEN(START=2018) yields wrong result'
 ;;
-;; The same with new inline syntax, a few tricks
-a=[22:22:0.1] & if not ARRAY_EQUAL(a, [22]) then ERRORS_ADD, nerr, 'a=[22:22:0.1] yields wrong result' 
-a=[22:32.3:0.2] & if not ARRAY_EQUAL(a, FINDGEN(52,start=22,increment=0.2)) then ERRORS_ADD, nerr, "a=[22:32.3:0.2] yields wrong result" 
-a=['22':32.3:0.2] & if not ARRAY_EQUAL(a, SINDGEN(52,start=22,increment=0.2)) then ERRORS_ADD, nerr, "a=['22':32.3:0.2] yields wrong result" 
-a=[22:32.3:complex(0.2,0)] & if not ARRAY_EQUAL(a, CINDGEN(52,start=22,increment=0.2)) then ERRORS_ADD, nerr, "a=[22:32.3:complex(0.2,0)] yields wrong result"
-a=[(3 gt 2) ? 10:20 :100:1] & if not ARRAY_EQUAL(a, INDGEN(91,start=10,increment=1)) then ERRORS_ADD, nerr, "a=[(3 gt 2) ? 10:20 :100:1] yields wrong result"
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_INCREMENT', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
+end
+
+pro TEST_INDGEN_INLINE, cumul_errors, test=test
+;
+nerr=0
+; The same with new inline syntax, a few tricks
+;
+a=[22:22:0.1]
+if not ARRAY_EQUAL(a, [22]) then $
+   ERRORS_ADD, nerr, 'a=[22:22:0.1] yields wrong result' 
+;
+a=[22:32.3:0.2]
+if not ARRAY_EQUAL(a, FINDGEN(52,start=22,increment=0.2)) then $
+   ERRORS_ADD, nerr, "a=[22:32.3:0.2] yields wrong result" 
+;
+a=['22':32.3:0.2]
+if not ARRAY_EQUAL(a, SINDGEN(52,start=22,increment=0.2)) then $
+   ERRORS_ADD, nerr, "a=['22':32.3:0.2] yields wrong result" 
+;
+a=[22:32.3:complex(0.2,0)]
+if not ARRAY_EQUAL(a, CINDGEN(52,start=22,increment=0.2)) then $
+   ERRORS_ADD, nerr, "a=[22:32.3:complex(0.2,0)] yields wrong result"
+;
+a=[(3 gt 2) ? 10:20 :100:1] 
+if not ARRAY_EQUAL(a, INDGEN(91,start=10,increment=1)) then $
+   ERRORS_ADD, nerr, "a=[(3 gt 2) ? 10:20 :100:1] yields wrong result"
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_INLINE', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
+end
+;
+pro TEST_INDGEN_SAMPLE_CHECK, cumul_errors, test=test
+;
+nerr=0
 ;
 ;; Is our parallel indgen generation robust? Compare with sample.
 RESTORE, "indgen_sample.sav"   ; defines "sampleSIZE".
@@ -93,12 +164,13 @@ if (TOTAL(i_gdl[b]-i) ne 0) then ERRORS_ADD, nerr, 'parallel large indgen yields
 if (TOTAL(u_gdl[b]-u) ne 0) then ERRORS_ADD, nerr, 'parallel large uindgen yields wrong results' 
 if (TOTAL(c_gdl[b]-c) ne COMPLEX(0,0)) then ERRORS_ADD, nerr, 'parallel large CINDGEN yields wrong results' 
 if (TOTAL(dc_gdl[b]-dc) ne DCOMPLEX(0,0)) then ERRORS_ADD, nerr, 'parallel large dCINDGEN yields wrong results' 
-
-BANNER_FOR_TESTSUITE, 'test_indgen', nerr, /status
-
-if nerr gt 0 and ~KEYWORD_SET(no_exit) then exit, status=1
-if KEYWORD_SET(test) then stop
-
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN_SAMPLE_CHECK', nerr, /status
+ERRORS_CUMUL, cumul_errors, nerr
+if KEYWORD_set(test) then STOP
+;
 end
 
 pro TEST_INDGEN_SAMPLE_GENERATE, test=test
@@ -132,5 +204,24 @@ end
 
 pro TEST_INDGEN, help=help, test=test, no_exit=no_exit
 ;
+cumul_errors=0
+;
+TEST_INDGEN_BY_KEYWORD, cumul_errors
+TEST_INDGEN_BY_NAME, cumul_errors
+TEST_INDGEN_N_ELEMENTS, cumul_errors
+TEST_INDGEN_INCREMENT, cumul_errors
+TEST_INDGEN_INLINE, cumul_errors
+TEST_INDGEN_SAMPLE_CHECK, cumul_errors
+;
+;TEST_INDGEN_SAMPLE_GENERATE, cumul_errors
+;
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_INDGEN', cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
