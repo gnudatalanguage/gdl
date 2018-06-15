@@ -36,7 +36,9 @@ namespace lib {
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 #pragma optimize("", off)
-#pragma clang optimize off  
+#if defined(__clang__)
+#  pragma clang optimize off  
+#endif
   void machar_s ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, float *eps, float *epsneg, float *xmin, float *xmax ) 
@@ -469,12 +471,16 @@ namespace lib {
 
   }
 #pragma GCC pop_options
-#pragma clang optimize on 
+#if defined(__clang__)
+#  pragma clang optimize on 
+#endif
 // special pragma to prevent optimization by the zealous compiler icc. (when optimized, loops forever on the 'while')
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 #pragma optimize("", off) 
-#pragma clang optimize off  
+#if defined(__clang__)
+#  pragma clang optimize off  
+#endif
   void machar_d ( long int *ibeta, long int *it, long int *irnd, long int *ngrd,
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, double *eps, double *epsneg, double *xmin, double *xmax ) 
@@ -787,7 +793,9 @@ namespace lib {
 
   }
 #pragma GCC pop_options
- #pragma clang optimize on 
+#if defined(__clang__)
+#  pragma clang optimize on 
+#endif
 } // namespace
 
 

@@ -197,6 +197,9 @@ static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
 			  throw GDLException(  "Object ID <"+i2s(ID)+"> not found.");
 		else ThrowFromInternalUDSub( e, "Object ID <"+i2s(ID)+"> not found.");      
     }
+
+    assert(false);
+    return NULL;
   }
 
 // if not found returns -(pos +1)

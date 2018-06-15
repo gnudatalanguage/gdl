@@ -4,11 +4,9 @@
 ; 
 PRO ObjTEST::Cleanup, prm1, prm2, prm3
   COMPILE_OPT IDL2 ,HIDDEN
-  ; Call our superclass Cleanup method
-  ; self->IDL_Object::Cleanup ; (there is no GDL_OBJECT::cleanup)
 
 nprm = N_PARAMS()
-print,' ObjTEST::Cleanup, #params=',nprm
+if nprm gt 0 then print,' ObjTEST::Cleanup, #params=',nprm
 ;
 END
  
@@ -33,9 +31,9 @@ track.ref = heap_refcount(obj)
 return
 end
 ;
-	pro TEST_CONTAINER, help=help, verbose=verbose, short=short, $
+   pro TEST_CONTAINER, help=help, verbose=verbose, short=short, $
                no_exit=no_exit, test=test
-;verbose=1
+; verbose=1
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_CONTAINER, help=help, verbose=verbose, short=short, $'
@@ -61,9 +59,9 @@ if(oc.count() ne 0) then MYMESS, nb_errors,txt
 objtest=obj_new('OBJTEST')
 
 for k=5,6 do pc.add,ptr_new(indgen(k))
-	ptrall = ptr_valid()
-	ptrv = ptr_valid(1+indgen(3))
-	ptrpc = ptrall[indgen(3)]
+    ptrall = ptr_valid()
+    ptrv = ptr_valid(1+indgen(3))
+    ptrpc = ptrall[indgen(3)]
 for k=5,6 do oc.add,objtest
 
 if KEYWORD_SET(test) then STOP,' stop 0',ptrv
@@ -80,15 +78,15 @@ txt=' pointers contained in pc at ppall=PTRARR(2)'
 
 ; Our prototype structure:
 lifecycle = { name: "", status: "unused", class: "LIST", ref: fix(0)} 
-	ppall = pc.get(/all)
-	hash_ppref = hash("pc",heap_refcount(pc),"ppall=pc.get(/all)",heap_refcount(ppall))
+    ppall = pc.get(/all)
+    hash_ppref = hash("pc",heap_refcount(pc),"ppall=pc.get(/all)",heap_refcount(ppall))
 
-	hrppall = heap_refcount(ppall)
-	if keyword_set(verbose) then $
-		print,' heap_refcount of extracted pointers:',hrppall[0]
+    hrppall = heap_refcount(ppall)
+    if keyword_set(verbose) then $
+        print,' heap_refcount of extracted pointers:',hrppall[0]
 ;  Checkpoint:
-;	 ::add called for all three types. 
-;		get() called once for ALL pointers in pc.
+;    ::add called for all three types. 
+;       get() called once for ALL pointers in pc.
 
 txt=' pp1 = pc.get(posit=1)'
 
@@ -101,9 +99,9 @@ ppnew = pc.get(/all)
 if ~array_equal(heap_refcount(ppnew), heap_refcount(ppall)) then $
               MYMESS, nb_errors," ppnew=pc.get(/all) not right'
 
-	ptrall = ptr_valid()
-	ptrv = ptr_valid(1+indgen(3))
-	ptrpc = ptrall[indgen(3)]
+    ptrall = ptr_valid()
+    ptrv = ptr_valid(1+indgen(3))
+    ptrpc = ptrall[indgen(3)]
 pc.remove,pp1
 
 if ~array_equal(heap_refcount(ppnew), heap_refcount(ppall)) then $
@@ -113,7 +111,7 @@ if KEYWORD_SET(test) then STOP,' stop 1: testing ::GET(/ALL,POSITION)'
 ; 
 heap_free,ppall
 if keyword_set(verbose) then message,/continue,$
-	" pointers of PC are invalid but still retrievable pc.count()=",pc.count()
+    " pointers of PC are invalid but still retrievable pc.count()=",pc.count()
 
 txt = ' create 4 objects from compiled-in {OBJTEST} testobj OBJARR(4)'
 
@@ -123,12 +121,12 @@ for k=0,3 do testobj[k] = obj_new('OBJTEST')
 
 txt = ' just kill oc and restart it - too heavy for now.
 
-;	collect the lists in OC, and remove them
-	LOC = oc.get(isa='LIST',/all) & 	oc.remove,lc
+;   collect the lists in OC, and remove them
+    LOC = oc.get(isa='LIST',/all) &     oc.remove,lc
 ; Notice we have used ::GET and ::REMOVE methods
 
-	oc.add,pc		; add the pointer container (ppall, pp1)
-	oc.add,testobj[0]
+    oc.add,pc       ; add the pointer container (ppall, pp1)
+    oc.add,testobj[0]
 
 ; Our prototype structure:
 lifecycle = { name: "", ID: obj_new(), status: "unused", class: "LIST", ref: fix(0)} 
@@ -144,46 +142,44 @@ LOC[1]=testobj[0]
 ; LOC is OBJARR[2] containing two 'objtest' objects.
 ; lout is another list all by itself
 ; memorialize their status:
-	lchist = replicate(lifecycle,5)
-	lchist.name = ["lc0", "lc1", "loc[0]", "loc[1]", "lout"]
-	lchist.status = "BORN"
-	lchist[0:1].ref = heap_refcount([lc0,lc1])
-	lchist[2:3].ref = heap_refcount(loc)
-	lchist[4].ref = heap_refcount(lout)
-	lchist.ID = [lc0, lc1, loc, lout]
+    lchist = replicate(lifecycle,5)
+    lchist.name = ["lc0", "lc1", "loc[0]", "loc[1]", "lout"]
+    lchist.status = "BORN"
+    lchist[0:1].ref = heap_refcount([lc0,lc1])
+    lchist[2:3].ref = heap_refcount(loc)
+    lchist[4].ref = heap_refcount(lout)
+    lchist.ID = [lc0, lc1, loc, lout]
 if keyword_set(verbose) then $
-	print,format='(A8, 5(A6,4x),/,8x,10(4x,I6))',"  BORN",lchist.name,lchist.ref
-hrclc = heap_refcount(lc) 	; a list containing two lists.
-	oc.add,lc[0]
-	oc.add,testobj[1]
-	oc.add,lc[1]
-	oc.add,testobj[2]
+    print,format='(A8, 5(A6,4x),/,8x,10(4x,I6))',"  BORN",lchist.name,lchist.ref
+hrclc = heap_refcount(lc)   ; a list containing two lists.
+    oc.add,lc[0]
+    oc.add,testobj[1]
+    oc.add,lc[1]
+    oc.add,testobj[2]
 if heap_refcount(lc) ne hrclc then $
-	mymess, nb_errors," lc reference count was incremented incorrectly"
+    mymess, nb_errors," lc reference count was incremented incorrectly"
 ;
-	oc.add,list(["gdl1","gdl2"])
-	oc.add,testobj[3]
+    oc.add,list(["gdl1","gdl2"])
+    oc.add,testobj[3]
 
 txt = ' Container OC is stuffed. pc, {testobj}/{list}'
 
 ; lists are objects with overloaded bracket properties
 ;
 numoc = oc.count()
-	oc.add,lc & numoc++;
-	if oc.count() ne numoc then $  ;	Check it one last time.
-		MYMESS, nb_errors,' object container count is off'
-	if heap_refcount(lc)-hrclc ne 1 then $
-	mymess, nb_errors," lc reference count was not incremented correctly"
-	hrclccont = intarr(2)
-	for k=0,1 do hrclccont[k] = heap_refcount(lc[k])
+    oc.add,lc & numoc++;
+    if oc.count() ne numoc then $  ;    Check it one last time.
+        MYMESS, nb_errors,' object container count is off'
+    if heap_refcount(lc)-hrclc ne 1 then $
+    mymess, nb_errors," lc reference count was not incremented correctly"
+    hrclccont = intarr(2)
+    for k=0,1 do hrclccont[k] = heap_refcount(lc[k])
 ;
 ; take the two lists contained in LC and put them into an OBJARR(2)(=lca)
 lca = objarr(2) & lca[0] = lc[0] & lca[1]=lc[1]
-	oc.add,lca
-	if oc.count() ne numoc+2 then $
-		MYMESS, nb_errors,' object container count is off'
-;	if ~array_equal(heap_refcount(lca)-hrclccont,2) then $
-;		MYMESS, nb_errors," lca reference count was not incremented correctly"
+    oc.add,lca
+    if oc.count() ne numoc+2 then $
+        MYMESS, nb_errors,' object container count is off'
 
 octest=oc.get(/all,isa='OBJTEST')
 oclist = oc.get(/all,isa='LIST')
@@ -192,23 +188,15 @@ ocpc = oc.get(/all,isa='IDL_CONTAINER')
 if KEYWORD_SET(test) then STOP,' stop 2: '+txt
 ;
 ocall=oc.get(/all) & hrcoc=heap_refcount(ocall)
-	oc.remove,/all
-;	if ~array_equal(hrcoc - heap_refcount(ocall),1) then $
-;		 MYMESS, nb_errors, " refcount for removed objects didn't decrement correctly"
-	hrctest = heap_refcount(octest) & oc.add,octest
-	hrclist = heap_refcount(oclist) & oc.add,oclist
-	hrccont = heap_refcount(occont) & oc.add,occont
-;	if ~array_equal(heap_refcount(octest) - hrctest,1) then $
-;		 MYMESS, nb_errors, " refcount didn't decrement correctly (OCTEST)"
-;	if ~array_equal(heap_refcount(occont) - hrccont,1) then $
-;		 MYMESS, nb_errors, " refcount didn't decrement correctly (OCCONT)"
-;	if ~array_equal(heap_refcount(oclist) - hrclist,1) then $
-;		 MYMESS, nb_errors, " refcount didn't decrement correctly (OCLIST)"
+    oc.remove,/all
+    hrctest = heap_refcount(octest) & oc.add,octest
+    hrclist = heap_refcount(oclist) & oc.add,oclist
+    hrccont = heap_refcount(occont) & oc.add,occont
 
 txt = ' OC has beem unloaded (.remove,/all) and reloaded (octest, oclist, occont) '
 
 ocall=oc.get(/all)
-;			if ~is_compiled_in then oc.add,ocpc
+;           if ~is_compiled_in then oc.add,ocpc
 ;
 ;  try to stuff pointers into oc, generating an error:
 ;
@@ -216,11 +204,67 @@ catch, ocerr
 if ocerr ne 0 then $
   catch,/cancel $
   else $
-	oc.add,ppall	; error message "Mixed pointers/Objects attempted"
+    oc.add,ppall    ; error message "Mixed pointers/Objects attempted"
 if(ocerr eq 0) then MYMESS, nb_errors,' no error is an error' $
 else  if KEYWORD_SET(verbose) then print,!error_state.msg
 
 oc.remove,/all
+
+ocid = obj_valid(octest,/get_heap) & oc.add,octest
+ocid = [ocid,obj_valid(oclist,/get_heap)] & oc.add,oclist
+chk = obj_valid(oc.get(/all),/get_heap)
+if n_elements(chk) lt 5 then $
+        MYMESS, nb_errors,' testing CONTAINER::MOVE not enough room ...'
+if ~array_equal(chk, ocid) then $
+        MYMESS, nb_errors,' testing CONTAINER::MOVE not starting well ...'
+movea = [2,4] & moveb = [0,4]
+ltrack = list(chk,/extract)
+im = movea & oc.move,im[0],im[1] & ltrack.move,im[0],im[1]
+im = moveb & oc.move,im[0],im[1] & ltrack.move,im[0],im[1]
+listmove = ltrack.toarray()
+chk = obj_valid(oc.get(/all),/get_heap)
+if ~array_equal(chk, listmove) then $
+        MYMESS, nb_errors," testing CONTAINER::MOVE wasn't tracked by LIST::MOVE ..."
+p = IDL_Container()
+; Add pointers to 100 random numbers between 0 and 9.
+FOR i=0,99 DO p.Add, PTR_NEW(FIX(RANDOMU(seed)*10))
+ 
+; Locate which items are equal to the value 5.
+match = p.Equals(5)
+jj=WHERE(match,n5)
+if n5 eq 0 then $
+  MYMESS, nb_errors,' testing CONTAINER::EQUALS unlikely ...'
+;
+; reset p
+;
+p.remove,/all
+FOR i=0,99 DO p.Add, PTR_NEW(indgen(1+FIX(RANDOMU(seed)*10)))
+ndgen = indgen(1+FIX(RANDOMU(seed)*10))
+jj=where(p.equals(ndgen),n6)
+szchk = size(ndgen)
+for k=0,n6-1 do begin
+  if ~array_equal(szchk,size(*(p.get(position=jj[k]))) ) then $
+  MYMESS, nb_errors,' testing CONTAINER::EQUALS unlikely ...'
+  endfor
+; Now get an array of positions
+ppgen = p.get(position=jj-100)
+for k=0,n6-1 do begin
+  if ~array_equal(szchk,size(*ppgen[k]) ) then $
+  MYMESS, nb_errors,' testing CONTAINER::EQUALS unlikely ...'
+  endfor
+;
+; reset p
+;
+p.remove,/all
+FOR i=0,99 DO p.Add, PTR_NEW(indgen(1+FIX(RANDOMU(seed)*10)))
+ndgen = indgen(1+FIX(RANDOMU(seed)*10))
+jj=where(p.equals(ndgen),n6)
+for k=0,n6-1 do p.move,jj[k]-100,0
+jj=where(p.equals(ndgen),n6)
+itest = where(jj ne indgen(n6),n0)
+if n0 ne 0 then $
+  MYMESS, nb_errors,' testing CONTAINER::MOVE failed ...'
+
 ;
 
 if KEYWORD_SET(verbose) then print,' heap_refcount(oc):',heap_refcount(oc)
@@ -228,7 +272,7 @@ if KEYWORD_SET(verbose) then print,' heap_refcount(oc):',heap_refcount(oc)
 ;
 BANNER_FOR_TESTSUITE, 'TEST_CONTAINER', nb_errors, short=short
 ;
-;	if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;   if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP,' final stop'
 ;
