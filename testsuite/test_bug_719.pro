@@ -23,19 +23,19 @@ expected=2
 for loop=0, 9 do begin
    result=m3x4(ii, jj)
    if ~ARRAY_EQUAL(result,expected) then $
-      ADD_ERROR, nb_errors, 'case 3x4 Findgen + loop : '+STRING(loop)
+      ERRORS_ADD, nb_errors, 'case 3x4 Findgen + loop : '+STRING(loop)
 endfor
 ;
 ; the same, using EXECUTE !
 ;
 exe=EXECUTE('result_exe=m3x4(ii, jj)')
 if ~ARRAY_EQUAL(result_exe,expected) then $
-   ADD_ERROR, nb_errors, 'case 3x4 Findgen EXECUTE'
+   ERRORS_ADD, nb_errors, 'case 3x4 Findgen EXECUTE'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_719_FINDGEN', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BUG_719_FINDGEN', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -53,18 +53,18 @@ resu=REFORM(input[xx,yy])
 ;
 expected=2
 ;
-if ~ARRAY_EQUAL(resu,expected) then ADD_ERROR, nb_errors, 'case 3x4 Reform'
+if ~ARRAY_EQUAL(resu,expected) then ERRORS_ADD, nb_errors, 'case 3x4 Reform'
 ;
 ; the same, using EXECUTE !
 ;
 exe=EXECUTE('result_exe=REFORM(input[xx,yy])')
 if ~ARRAY_EQUAL(result_exe,expected) then $
-   ADD_ERROR, nb_errors, 'case 3x4 Findgen EXECUTE'
+   ERRORS_ADD, nb_errors, 'case 3x4 Findgen EXECUTE'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_719_REFORM', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BUG_719_REFORM', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end

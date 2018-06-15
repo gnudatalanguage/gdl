@@ -9,7 +9,8 @@
 ;
 ; -----------------------------------------------
 ;
-pro TEST_RESTORE_NUMERIC, cumul_errors, file=file, dim1ref=dim1ref, dim2ref=dim2ref, $
+pro TEST_RESTORE_NUMERIC, cumul_errors, file=file, $
+                          dim1ref=dim1ref, dim2ref=dim2ref, $
                           help=help, verbose=verbose, test=test
 ;
 if KEYWORD_SET(help) then begin
@@ -29,11 +30,11 @@ GIVE_LIST_NUMERIC, list_numeric_types, list_numeric_names
 ;
 if KEYWORD_SET(dim1ref) then begin
    if ~ARRAY_EQUAL(dim1ref, dim1, /no_typeconv) then $
-      ADD_ERROR, errors, 'bad dim for DIM1'
+      ERRORS_ADD, errors, 'bad dim for DIM1'
 endif
 if KEYWORD_SET(dim2ref) then begin
    if ~ARRAY_EQUAL(dim2ref, dim2, /no_typeconv) then $
-      ADD_ERROR, errors, 'bad dim for DIM2'
+      ERRORS_ADD, errors, 'bad dim for DIM2'
 endif
 ;
 for ii=0,N_ELEMENTS(list_numeric_names)-1 do begin
@@ -51,21 +52,21 @@ for ii=0,N_ELEMENTS(list_numeric_names)-1 do begin
    ;; associating the restored values
    ;;
    ok0=EXECUTE('d0d='+type_name+'_s')
-   if ~ok0 then ADD_ERROR, errors, 'data "'+type_name+'_s" not found in SAVE file'
+   if ~ok0 then ERRORS_ADD, errors, 'data "'+type_name+'_s" not found in SAVE file'
    ok1=EXECUTE('d1d='+type_name+'_s_a1d')
-   if ~ok1 then ADD_ERROR, errors, 'data "'+type_name+'_s_a1d" not found in SAVE file'
+   if ~ok1 then ERRORS_ADD, errors, 'data "'+type_name+'_s_a1d" not found in SAVE file'
    ok2=EXECUTE('d2d='+type_name+'_s_a2d')
-   if ~ok2 then ADD_ERROR, errors, 'data "'+type_name+'_s_a2d" not found in SAVE file'
+   if ~ok2 then ERRORS_ADD, errors, 'data "'+type_name+'_s_a2d" not found in SAVE file'
    ;;
    if ~ARRAY_EQUAL(tmp0d, d0d, /no_typeconv) then $
-      ADD_ERROR, errors, 'type '+STRUPCASE(type_name)+' Singleton'
+      ERRORS_ADD, errors, 'type '+STRUPCASE(type_name)+' Singleton'
    if ~ARRAY_EQUAL(tmp1d, d1d, /no_typeconv) then $
-      ADD_ERROR, errors, 'type '+STRUPCASE(type_name)+' Array 1D'
+      ERRORS_ADD, errors, 'type '+STRUPCASE(type_name)+' Array 1D'
    if ~ARRAY_EQUAL(tmp2d, d2d, /no_typeconv) then $
-      ADD_ERROR, errors, 'type '+STRUPCASE(type_name)+' Array 2D'
+      ERRORS_ADD, errors, 'type '+STRUPCASE(type_name)+' Array 2D'
 endfor
 ;
-BANNER_FOR_TESTSUITE, "TEST_RESTORE_NUMERIC", errors, /short, verb=verbose
+BANNER_FOR_TESTSUITE, "TEST_RESTORE_NUMERIC", errors, /status, verb=verbose
 ;
 ERRORS_CUMUL, cumul_errors, errors
 ;

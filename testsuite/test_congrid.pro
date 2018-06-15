@@ -28,7 +28,7 @@ if (isbyte) then in=BINDGEN(3,3) else in=DINDGEN(3,3)
 out_rs=REBIN(in,9,9, /sample)
 out_c=CONGRID(in,9,9)
 resu=SQRT(TOTAL((out_rs-out_c)^2))
-if (resu GT tolerance) then ADD_ERROR, errors, 'case /sample'
+if (resu GT tolerance) then ERRORS_ADD, errors, 'case /sample'
 ;
 ; test /interpol
 ; IDL gives identical results as GDL (just try).
@@ -36,7 +36,7 @@ if (resu GT tolerance) then ADD_ERROR, errors, 'case /sample'
 out_r=REBIN(in,9,9)
 out_ci=CONGRID(in,9,9,/interp)
 resu=SQRT(TOTAL((out_r-out_ci)^2))
-if (resu GT tolerance) then ADD_ERROR, errors, 'case /interp'
+if (resu GT tolerance) then ERRORS_ADD, errors, 'case /interp'
 ;
 ; ----- final ----
 ;

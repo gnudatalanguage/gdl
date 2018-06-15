@@ -40,14 +40,14 @@ for ii=0, N_ELEMENTS(top_list)-1 do begin
    ;;
    if ARRAY_EQUAL(expected, result) NE 1 then begin
       mess=', min/max : '+STRING(FIX(result[0]))+', '+STRING(FIX(result[1]))
-      ADD_ERROR, nb_errors, 'Pb with top= '+STRING(top_list[ii])+mess
+      ERRORS_ADD, nb_errors, 'Pb with top= '+STRING(top_list[ii])+mess
    endif
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -67,16 +67,16 @@ for itype=1, 15 do begin
          ramp=INDGEN(10, type=itype)
          resu=BYTSCL(ramp)
          if ARRAY_EQUAL(expected, resu) NE 1 then begin
-            ADD_ERROR, nb_errors, 'TYPE : '+STRING(itype)
+            ERRORS_ADD, nb_errors, 'TYPE : '+STRING(itype)
          endif
       endif
    endif
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -109,20 +109,20 @@ FOREACH itype, no_int do begin
    ;; without /nan flag
    resu_nan=BYTSCL(ramp_nan_inf)
    if ARRAY_EQUAL(expected_nan, resu_nan) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE : '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE : '+STRING(itype)
    endif
    ;; 
    ;; with /nan flag
    resu_nan_flag=BYTSCL(ramp_nan_inf,/nan)
    if ARRAY_EQUAL(expected_nan_flag, resu_nan_flag) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + /NAN flag: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + /NAN flag: '+STRING(itype)
    endif
 ENDFOREACH
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS_NAN', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_RAMPS_NAN', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -187,38 +187,38 @@ FOREACH itype, no_int do begin
    endif
    ;;
    if ARRAY_EQUAL(BYTSCL(used_nan), exp_nan) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + NAN + no flag: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + NAN + no flag: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_nan, exp_nan, BYTSCL(used_nan)
    endif
    if ARRAY_EQUAL(BYTSCL(used_inf), exp_inf) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + Inf + no flag: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + Inf + no flag: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_inf, exp_inf, BYTSCL(used_inf)
    endif
    if ARRAY_EQUAL(BYTSCL(used_mix), exp_mix) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + MIX + no flag: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + MIX + no flag: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_mix, exp_mix, BYTSCL(used_mix)
    endif
    ;;
    ;; with the /NAN flag on
    ;;
    if ARRAY_EQUAL(BYTSCL(used_nan, /NAN), exp_nan_flag) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + NAN + /NAN flag ON: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + NAN + /NAN flag ON: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_nan, exp_nan_flag, BYTSCL(used_nan,/nan)
    endif
    if ARRAY_EQUAL(BYTSCL(used_inf, /NAN), exp_inf_flag) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + Inf + /NAN flag ON: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + Inf + /NAN flag ON: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_inf, exp_inf_flag, BYTSCL(used_inf,/nan)
    endif
    if ARRAY_EQUAL(BYTSCL(used_mix, /NAN), exp_mix_flag) NE 1 then begin
-      ADD_ERROR, nb_errors, 'pb in TYPE + MIX + /NAN flag ON: '+STRING(itype)
+      ERRORS_ADD, nb_errors, 'pb in TYPE + MIX + /NAN flag ON: '+STRING(itype)
       if debug then TEST_BYTSCL_PRINT, used_mix, exp_mix_flag, BYTSCL(used_mix,/nan)
    endif
 ENDFOREACH
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_IDL_PROBLEM', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_BYTSCL_IDL_PROBLEM', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end

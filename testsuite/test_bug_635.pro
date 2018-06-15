@@ -78,7 +78,7 @@ nb_errors=0
 ; first, verifying the "data"
 ;
 if ARRAY_EQUAL(expected_data, data) NE 1 then begin
-   ADD_ERROR, nb_errors, 'Problem in read back DATA array'
+   ERRORS_ADD, nb_errors, 'Problem in read back DATA array'
    ;;
    ;; can we detail the problem ?
    ;;
@@ -102,7 +102,7 @@ endif
 ; second, verifying the "structure"
 ;
 if ARRAY_EQUAL(SIZE(expected_group),SIZE(group)) NE 1 then begin
-   ADD_ERROR, nb_errors, 'Problem in read back GROUP structure'
+   ERRORS_ADD, nb_errors, 'Problem in read back GROUP structure'
    BANNER_FOR_TESTSUITE, 'TEST_BUG_635', /short, verb=verbose, $
                          'SIZE() of read back GROUP structure wrong'
 endif else begin
@@ -116,7 +116,7 @@ endif else begin
          eg=expected_group[ii].(jj)
          txt=STRCOMPRESS(' ('+STRING(ii)+','+STRING(jj)+')')
          if (g NE eg) then begin
-            ADD_ERROR, nb_errors, 'Bad value for field'+txt
+            ERRORS_ADD, nb_errors, 'Bad value for field'+txt
             if KEYWORD_SET(verbose) then begin
                print, 'field name : ', (TAG_NAMES(expected_group[ii]))[jj]
                print, 'expected value  :', expected_group[ii].(jj)
@@ -126,7 +126,7 @@ endif else begin
             endelse
          endif
          if ARRAY_EQUAL(SIZE(g),SIZE(eg)) NE 1 then begin
-            ADD_ERROR, nb_errors, 'Type of field'+txt
+            ERRORS_ADD, nb_errors, 'Type of field'+txt
          endif
       endfor
    endfor   

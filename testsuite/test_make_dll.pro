@@ -52,17 +52,17 @@ MAKE_DLL, radical, tmp, '',$
 ; were ok or not ...
 ;
 result=CALL_EXTERNAL(out_dir+so_file, 'add_int', 5, 6)
-if (result NE 11) then ADD_ERROR, errors, "error in ADD_INT case"
+if (result NE 11) then ERRORS_ADD, errors, "error in ADD_INT case"
 ;
 result=CALL_EXTERNAL(out_dir+so_file, 'add_long', 123456, 123000)
-if (result NE 246456) then ADD_ERROR, errors, "error in ADD_LONG case"
+if (result NE 246456) then ERRORS_ADD, errors, "error in ADD_LONG case"
 ;
 result=CALL_EXTERNAL(out_dir+so_file, 'add_float', 5, 6)
-if (result NE 11) then ADD_ERROR, errors, "error in ADD_FLOAT case 11"
+if (result NE 11) then ERRORS_ADD, errors, "error in ADD_FLOAT case 11"
 ;
 ; not ready now, see also "test_call_external.pro"
 ;result=CALL_EXTERNAL(out_dir+so_file, 'add_float', 5.5, 6.6)
-;if ABS(result-12.1) GT 1e-5 then ADD_ERROR, errors, "error in ADD_FLOAT case 12.1"
+;if ABS(result-12.1) GT 1e-5 then ERRORS_ADD, errors, "error in ADD_FLOAT case 12.1"
 ;print, result
 ;
 ; not working for IDL < 8.4 :(
