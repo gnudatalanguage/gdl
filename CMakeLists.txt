@@ -366,30 +366,44 @@ else(GSL_FOUND)
         "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
 
-if(WIN32 AND NOT CYGWIN)
-set(CMAKE_PREFIX_PATH ${XDRDIR})
-find_package(Xdr)
-set(HAVE_LIBXDR ${XDR_FOUND})
-if(XDR_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
-	include_directories(${XDR_INCLUDE_DIR})
-else(XDR_FOUND)
-	message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
-	"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
-endif(XDR_FOUND)
+if(UNIX)
+	set(CMAKE_PREFIX_PATH ${RPCDIR})
+	find_package(RPC QUIET)
+	set(HAVE_RPC ${RPC_FOUND})
+	if(RPC_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
+		include_directories(${RPC_INCLUDE_DIR})
+	else(RPC_FOUND)
+		message(FATAL_ERROR "RPC support is mandatory.\n"
+		"Note that SunRPC has been removed in glibc-2.26 and later, "
+		"while being optional in earlier versions. Consider using the "
+		"recommended and more modern libtirpc instead.\n"
+		"Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
+	endif(RPC_FOUND)
+elseif (WIN32 AND NOT CYGWIN)
+	set(CMAKE_PREFIX_PATH ${XDRDIR})
+	find_package(Xdr)
+	set(HAVE_LIBXDR ${XDR_FOUND})
+	if(XDR_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
+		include_directories(${XDR_INCLUDE_DIR})
+	else(XDR_FOUND)
+		message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
+		"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
+	endif(XDR_FOUND)
 
-set(CMAKE_PREFIX_PATH ${PCREDIR})
-find_package(PCRE)
-set(HAVE_LIBPCRE ${PCRE_FOUND})
-if(PCRE_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
-	include_directories(${PCRE_INCLUDE_DIR})
-else(PCRE_FOUND)
-	message(FATAL_ERROR "pcre library is required but was not found.\n"
-	"Use -DPCREDIR=DIR to specify the pcre directory tree.")
-endif(PCRE_FOUND)
-LINK_LIBRARIES(shlwapi)
-endif(WIN32 AND NOT CYGWIN)
+	set(CMAKE_PREFIX_PATH ${PCREDIR})
+	find_package(PCRE)
+	set(HAVE_LIBPCRE ${PCRE_FOUND})
+	if(PCRE_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
+		include_directories(${PCRE_INCLUDE_DIR})
+	else(PCRE_FOUND)
+		message(FATAL_ERROR "pcre library is required but was not found.\n"
+		"Use -DPCREDIR=DIR to specify the pcre directory tree.")
+	endif(PCRE_FOUND)
+	LINK_LIBRARIES(shlwapi)
+endif()
 
 # PLplot MANDATORY
 # -DOLDPLPLOT=ON|OFF
