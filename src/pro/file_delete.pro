@@ -80,7 +80,7 @@ pro FILE_DELETE, files0,  files1,  files2,  files3,  files4,  files5,  files6,  
                  allow_nonexistent=allow_nonexistent, noexpand_path=noexpand_path, recursive=recursive, $
                  quiet=quiet, verbose=verbose
 
-  if ( strupcase(!version.os_family) eq 'WINDOWS') then  message,"Sorry, FILE_DELETE is not available on Windows (FixMe!)"  
+;  if ( strupcase(!version.os_family) eq 'WINDOWS') then  message,"Sorry, FILE_DELETE is not available on Windows (FixMe!)"  
 
   if (N_PARAMS() LT 1) then begin
      print, '% FILE_DELETE: Incorrect number of arguments.'

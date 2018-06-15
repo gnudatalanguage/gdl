@@ -68,7 +68,7 @@ if (nbe2 NE known_nbe) then MYMESS, nb_errors, txt+'(LIST.COUNT())'
 if KEYWORD_SET(verbose) then print, 'counting still OK after remove()'
 jj=where(lastin ne gdlstr, nc)
 if nc ne 0 then $
-	MYMESS, nb_errors,' list.remove() did not work (item not the same)'
+    MYMESS, nb_errors,' list.remove() did not work (item not the same)'
 ;
 ;
 ; Empty List ?
@@ -86,17 +86,17 @@ if (alist.IsEmpty() NE 0) then MYMESS, nb_errors, txt+'(not LIST.IsEmpty())'
 ;
 luppers = list(6+findgen(5),/extract)
 if luppers.count() ne 5 then $
-		mymess,nb_errors,txt0+' list(/extract)'
+        mymess,nb_errors,txt0+' list(/extract)'
 ;
 nalist = alist.count()
 ; Add two lists.
 lcombo = alist + luppers & nlcombo = lcombo.count()
 if(nlcombo ne 5+nalist) then $
-		mymess,nb_errors,txt0+' lcombo' 
+        mymess,nb_errors,txt0+' lcombo' 
 iscvs = 0
 defsysv,"!GDL",exists=isgdl
 if isgdl then $
-	isgit = strpos(!GDL.release,'svn') gt 0
+    isgit = strpos(!GDL.release,'svn') gt 0 or strpos(!GDL.release,'git') gt 0 
 
 if(isgit and keyword_set(verbose)) then begin
   print,' TEST_HASH: GDL/svn is detected so some tests of LIST will be excused,'
@@ -106,7 +106,7 @@ if(isgit and keyword_set(verbose)) then begin
 endif
 
 if KEYWORD_SET(verbose) then $
-	print, 'WARNING: There are more complicated pitfalls in <LIST>.toarray()'
+    print, 'WARNING: There are more complicated pitfalls in <LIST>.toarray()'
 ; if KEYWORD_SET(test) then stop,' stop 0'
 
 ;
@@ -117,20 +117,20 @@ if KEYWORD_SET(verbose) then message,/continue,' Checking '+txt
 ;
 alist[2:4]= 3 + indgen(3)
 igen=1+indgen(5)
-tg=igen[2:3] & tl = intarr(2) & for k=0,1 do tl[k]= alist[2+k]	
+tg=igen[2:3] & tl = intarr(2) & for k=0,1 do tl[k]= alist[2+k]  
 txt0=' right index extraction'
 if tg[0] ne tl[0] or tg[1] ne tl[1] then MYMESS, nb_errors, txt0+'- simple [2:3]'
 
 nl = nalist
 alist.add,igen
 if(~isgit) then begin
-	tl = alist[nl,2:4]
-	jj = where(tl ne igen[2:4],nc)
-	if(nc ne 0) then MYMESS, nb_errors, txt0+'- simple [nl,2:4]'
-	endif else begin
-		if keyword_set(verbose) then $
-			message,/continue,' git: legacylist not expected to left insert correctly'
-	endelse
+    tl = alist[nl,2:4]
+    jj = where(tl ne igen[2:4],nc)
+    if(nc ne 0) then MYMESS, nb_errors, txt0+'- simple [nl,2:4]'
+    endif else begin
+        if keyword_set(verbose) then $
+            message,/continue,' git: legacylist not expected to left insert correctly'
+    endelse
 if KEYWORD_SET(test) then stop,' stop 1'
 ;alist=0
 empty_list = 0
@@ -140,15 +140,15 @@ stab=ll.remove()
 if(stab.a ne 'a' or stab.b ne 'b') then $
   mymess, nb_errors," ::remove() didn't get the structure."
 if(~isgit) then begin
-	ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
-	ll[1,2,1:4] = 11+indgen(6) 		& ii1[2,1:4] = 11+indgen(6) 
-	ll[2,2:3,1:3] = 21 - indgen(6)	& ii2[2:3,1:3]=21 - indgen(6)
-	ll[3,1,*,*] = 2*indgen(40)		& ii3[3,1,*,*]=2*indgen(40)
-	jj=where(ii1[2,1:4]   ne ll[1,2,1:4], nc1)
-	jj=where(ii2[2:3,1:3] ne ll[2,2:3,1:3], nc2)
-	jj=where(ii3[3,1,*,*] ne ll[3,1,*,*], nc3)
-	if nc1+nc2+nc3 ne 0 then MYMESS, nb_errors, txt
-	endif
+    ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
+    ll[1,2,1:4] = 11+indgen(6)      & ii1[2,1:4] = 11+indgen(6) 
+    ll[2,2:3,1:3] = 21 - indgen(6)  & ii2[2:3,1:3]=21 - indgen(6)
+    ll[3,1,*,*] = 2*indgen(40)      & ii3[3,1,*,*]=2*indgen(40)
+    jj=where(ii1[2,1:4]   ne ll[1,2,1:4], nc1)
+    jj=where(ii2[2:3,1:3] ne ll[2,2:3,1:3], nc2)
+    jj=where(ii3[3,1,*,*] ne ll[3,1,*,*], nc3)
+    if nc1+nc2+nc3 ne 0 then MYMESS, nb_errors, txt
+    endif
 stab.a = 'This is line of text for A'
 stab.b = 'This is, of course, B'
 ll.add,stab
@@ -157,7 +157,7 @@ lines=ll[0]
 if KEYWORD_SET(test) then stop,' stop 2'
 ll=0
 if lines.a ne stab.a or lines.b ne stab.b then $
-	MYMESS, nb_errors, ' moving a structure item'
+    MYMESS, nb_errors, ' moving a structure item'
 ;
 aa=strsplit(['This is an example',$
 ' of a string array that will go','for a test'],/extract,length=len)
@@ -208,38 +208,38 @@ for k=0,nalist-1 do ta(*,k) = alist[k]
 ;
 jj = where( ta ne findgen(nalist,10), nc)
 if nc ne 0 then $
-	MYMESS, nb_errors,' alist[k] = a did not work '
+    MYMESS, nb_errors,' alist[k] = a did not work '
 
 list1 = LIST('zero', 1, 2.0)
 list2 = LIST(!PI, COMPLEX(4,4), [5,5,5,5,5])
 list3 = list1 + list2
 if KEYWORD_SET(test) then stop,' stop 2b'
 ll3=list()
-;	if KEYWORD_SET(test) then stop,' stop 2b.'
+;   if KEYWORD_SET(test) then stop,' stop 2b.'
 ;for k=0,list1.count()-1 do ll3.add,list1[k]
 ;for k=0,list2.count()-1 do ll3.add,list2[k]
 ll3.add,list1,/extract ; <<< === Offensive statement(s)
 ll3.add,list2,/extract
-	if KEYWORD_SET(test) then stop,' stop 2b..'
+    if KEYWORD_SET(test) then stop,' stop 2b..'
 req = ll3 eq list3
 jj=where(req,nj)
 if nj ne ll3.count() or total(req) ne nj then $
-	MYMESS, nb_errors, ' comparing list3 eq ll3'
+    MYMESS, nb_errors, ' comparing list3 eq ll3'
 if( total(ll3 ne list3) ne 0)  then $
-	MYMESS, nb_errors, ' comparing list3 ne ll3'
+    MYMESS, nb_errors, ' comparing list3 ne ll3'
  if KEYWORD_SET(test) then stop,' stop 2c'
 ll3=list()
 ll3.add,list2,/extract
 ll3.add,list1,/extract,0
 if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
-	MYMESS, nb_errors, ' list.add, <list to insert>,/extract , 0 "'
+    MYMESS, nb_errors, ' list.add, <list to insert>,/extract , 0 "'
 ll3=list()
 ll3.add,list2,/extract
 ll3.add,list1,/extract,1
 for k=0,list1.count()-1 do ll3.swap,k,k+1
 if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
 
-	MYMESS, nb_errors, ' list1,list2 swapping'
+    MYMESS, nb_errors, ' list1,list2 swapping'
 if KEYWORD_SET(verbose) then $
   foreach el,ll3 do print,el
 if KEYWORD_SET(test) then stop,' stop 3'
@@ -250,7 +250,7 @@ for k=0,14 do ll.add,-1
 for k=0,14 do ll[k]=k+1
 igen = 1+indgen(15)
 jj=where((ll.toarray()) ne igen, nj) & if(nj ne 0) then $
-	MYMESS, nb_errors, ' for k=0,14 do ll[k]=k+1'
+    MYMESS, nb_errors, ' for k=0,14 do ll[k]=k+1'
 
 if KEYWORD_SET(verbose) then $
    print,' ll.Add, subList, 0, /EXTRACT & print, sublist eq ll >>', alttst
@@ -260,11 +260,11 @@ ll=list(indgen(20),/extract)
 vv=[2,3,6,8]
 dd=ll[vv]
 jj=where(dd.toarray() ne vv, nj) & if(nj ne 0) then $
-	MYMESS, nb_errors, ' dd=ll[[2,3,6,8]]'
-	; remove at a position, then insert an array at pos, then 
-	; check for equality using "=" OP.
+    MYMESS, nb_errors, ' dd=ll[[2,3,6,8]]'
+    ; remove at a position, then insert an array at pos, then 
+    ; check for equality using "=" OP.
 if KEYWORD_SET(test) then stop,' testing list: dd=0'
-	dd=0
+    dd=0
 listin = list()
 if KEYWORD_SET(verbose) then $
   print,' testing list'
@@ -272,10 +272,10 @@ for k=0,3 do listin.add,findgen(5)
 ;
 for k=0,3 do begin & devnull=ll.remove(vv[k]) & ll.add,listin[k],vv[k] & endfor
 listin=0
-;	if KEYWORD_SET(test) then stop,' testing list'
+;   if KEYWORD_SET(test) then stop,' testing list'
 jj=where(ll eq findgen(5),nj)
 if(nj ne n_elements(vv) ) then $
-	MYMESS, nb_errors, ' ll[vv]= findgen(5)'
+    MYMESS, nb_errors, ' ll[vv]= findgen(5)'
 ll = 0
    
 ; ----------------- final messages ----------
@@ -405,11 +405,11 @@ refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
 status ="ocall=oc.get(/all)"
 ocall = oc.get(/all)
 tracklc.name = "ocall[0]"
-	track_update,tracklc,ocall[0]
-	track_update,tracklc0,ocall[1]
-	track_update,tracklc1,ocall[2]
-	track_update,tracklout,ocall[3]
-	track_update,tracklca,[ocall[4],ocall[5]]
+    track_update,tracklc,ocall[0]
+    track_update,tracklc0,ocall[1]
+    track_update,tracklc1,ocall[2]
+    track_update,tracklout,ocall[3]
+    track_update,tracklca,[ocall[4],ocall[5]]
 ;
 ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
 ahist.status = status
@@ -418,16 +418,16 @@ if keyword_set(verbose) then print,format='(5x,A25,10I8)',status,ahist.ref
 ;
 refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
 
-;	delvar,lc
-;	status = "lc gone (delvar)"
-;	track_update,tracklc,lc
+;   delvar,lc
+;   status = "lc gone (delvar)"
+;   track_update,tracklc,lc
 ; == note for delvar: the above 3 lines have induced a call to track_update with status as prm1.
 lc=0 & status = ' lc = 0' & tracklc.name = '-0-'
-	track_update,tracklc,ocall[0]
-	track_update,tracklc0,ocall[1]
-	track_update,tracklc1,ocall[2]
-	track_update,tracklout,ocall[3]
-	track_update,tracklca,[ocall[4],ocall[5]]
+    track_update,tracklc,ocall[0]
+    track_update,tracklc0,ocall[1]
+    track_update,tracklc1,ocall[2]
+    track_update,tracklout,ocall[3]
+    track_update,tracklca,[ocall[4],ocall[5]]
 
 ;
 ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
@@ -439,11 +439,11 @@ refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
 ;
 status ="lc0=0 & lca = 0"
 lc0=0 & lca = 0
-	track_update,tracklc,ocall[0]
-	track_update,tracklc0,ocall[1]
-	track_update,tracklc1,ocall[2]
-	track_update,tracklout,ocall[3]
-	track_update,tracklca,[ocall[4],ocall[5]]
+    track_update,tracklc,ocall[0]
+    track_update,tracklc0,ocall[1]
+    track_update,tracklc1,ocall[2]
+    track_update,tracklout,ocall[3]
+    track_update,tracklca,[ocall[4],ocall[5]]
 
 ;
 ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
@@ -456,11 +456,11 @@ refhist=reform([refhist,reform(ahist,1,ntrack)],++nhist,ntrack)
 ;
 status ="lct=oc.get(posit=[1,4,5])"
 lct=oc.get(posit=[1,4,5])
-	track_update,tracklc,ocall[0]
-	track_update,tracklc0,ocall[1]
-	track_update,tracklc1,ocall[2]
-	track_update,tracklout,ocall[3]
-	track_update,tracklca,[ocall[4],ocall[5]]
+    track_update,tracklc,ocall[0]
+    track_update,tracklc0,ocall[1]
+    track_update,tracklc1,ocall[2]
+    track_update,tracklout,ocall[3]
+    track_update,tracklca,[ocall[4],ocall[5]]
 ;
 ahist = [tracklc, tracklc0, tracklc1, tracklout,tracklca]
 ahist.name = ["ocall[0]","ocall[1]","ocall[2]","ocall[3]","ocall[4]","ocall[5]"]
@@ -473,7 +473,7 @@ kind = indgen(nhist,ntrack)
 kk = kind(*,0)
 for k = 0,nhist-1 do begin & kindex = kk[k]  &$
  print,format='(A10,I5,5x,A)',$
-	(refhist[kindex]).name,(refhist[kindex]).ref,(refhist[kindex]).status  &$
-	endfor
+    (refhist[kindex]).name,(refhist[kindex]).ref,(refhist[kindex]).status  &$
+    endfor
 
 end

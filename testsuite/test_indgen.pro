@@ -59,7 +59,10 @@ pro test_indgen, test=test, no_exit=no_exit
   a=[22:32.3:complex(0.2,0)] & if not array_equal(a, cindgen(52,start=22,increment=0.2)) then ADD_ERROR, nerr, "a=[22:32.3:complex(0.2,0)] yields wrong result"
   a=[(3 gt 2) ? 10:20 :100:1] & if not array_equal(a, indgen(91,start=10,increment=1)) then ADD_ERROR, nerr, "a=[(3 gt 2) ? 10:20 :100:1] yields wrong result"
   ; Is our parallel indgen generation robust? Compare with sample.
-  restore,"indgen_sample.sav" ; defines "samplesize".
+  
+  savefile = file_which("indgen_sample.sav",/include_current)
+  restore,savefile ; defines "samplesize".
+
   b_gdl=randomu(33,1000)*samplesize
   byt_gdl=bindgen(samplesize,start=33.122,incr=0.017)
   f_gdl=findgen(samplesize,start=33.122,incr=0.017)
