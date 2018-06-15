@@ -14,46 +14,46 @@ nb_errors=0
 m3x4=REFORM(INDGEN(12),3,4)
 ;
 res=DIAG_MATRIX(m3x4)
-if ~ARRAY_EQUAL(res, [0,4, 8]) then ADD_ERROR, nb_errors, 'case 3x4 0'
+if ~ARRAY_EQUAL(res, [0,4, 8]) then ERRORS_ADD, nb_errors, 'case 3x4 0'
 res=DIAG_MATRIX(m3x4,0)
-if ~ARRAY_EQUAL(res, [0,4, 8]) then ADD_ERROR, nb_errors, 'case 3x4 0b'
+if ~ARRAY_EQUAL(res, [0,4, 8]) then ERRORS_ADD, nb_errors, 'case 3x4 0b'
 ;
 res=DIAG_MATRIX(m3x4, 1)
-if ~ARRAY_EQUAL(res, [1,5]) then ADD_ERROR, nb_errors, 'case 3x4 1'
+if ~ARRAY_EQUAL(res, [1,5]) then ERRORS_ADD, nb_errors, 'case 3x4 1'
 res=DIAG_MATRIX(m3x4, 2)
-if ~ARRAY_EQUAL(res, [2]) then ADD_ERROR, nb_errors, 'case 3x4 2'
+if ~ARRAY_EQUAL(res, [2]) then ERRORS_ADD, nb_errors, 'case 3x4 2'
 ;
 res=DIAG_MATRIX(m3x4, -1)
-if ~ARRAY_EQUAL(res, [3,7,11]) then ADD_ERROR, nb_errors, 'case 3x4 -1'
+if ~ARRAY_EQUAL(res, [3,7,11]) then ERRORS_ADD, nb_errors, 'case 3x4 -1'
 res=DIAG_MATRIX(m3x4, -2)
-if ~ARRAY_EQUAL(res, [6,10]) then ADD_ERROR, nb_errors, 'case 3x4 -2'
+if ~ARRAY_EQUAL(res, [6,10]) then ERRORS_ADD, nb_errors, 'case 3x4 -2'
 res=DIAG_MATRIX(m3x4, -3)
-if ~ARRAY_EQUAL(res, [9]) then ADD_ERROR, nb_errors, 'case 3x4 -3'
+if ~ARRAY_EQUAL(res, [9]) then ERRORS_ADD, nb_errors, 'case 3x4 -3'
 ;
 ; transposed
 m4x3=REFORM(INDGEN(12),4,3)
 ;
 res=DIAG_MATRIX(m4x3)
-if ~ARRAY_EQUAL(res, [0,5,10]) then ADD_ERROR, nb_errors, 'case 4x3 0'
+if ~ARRAY_EQUAL(res, [0,5,10]) then ERRORS_ADD, nb_errors, 'case 4x3 0'
 res=DIAG_MATRIX(m4x3,0)
-if ~ARRAY_EQUAL(res, [0,5,10]) then ADD_ERROR, nb_errors, 'case 4x3 0b'
+if ~ARRAY_EQUAL(res, [0,5,10]) then ERRORS_ADD, nb_errors, 'case 4x3 0b'
 ;
 res=DIAG_MATRIX(m4x3, 1)
-if ~ARRAY_EQUAL(res, [1,6,11]) then ADD_ERROR, nb_errors, 'case 4x3 1'
+if ~ARRAY_EQUAL(res, [1,6,11]) then ERRORS_ADD, nb_errors, 'case 4x3 1'
 res=DIAG_MATRIX(m4x3, 2)
-if ~ARRAY_EQUAL(res, [2,7]) then ADD_ERROR, nb_errors, 'case 4x3 2'
+if ~ARRAY_EQUAL(res, [2,7]) then ERRORS_ADD, nb_errors, 'case 4x3 2'
 res=DIAG_MATRIX(m4x3, 3)
-if ~ARRAY_EQUAL(res, [3]) then ADD_ERROR, nb_errors, 'case 4x3 3'
+if ~ARRAY_EQUAL(res, [3]) then ERRORS_ADD, nb_errors, 'case 4x3 3'
 ;
 res=DIAG_MATRIX(m4x3, -1)
-if ~ARRAY_EQUAL(res, [4,9]) then ADD_ERROR, nb_errors, 'case 4x3 -1'
+if ~ARRAY_EQUAL(res, [4,9]) then ERRORS_ADD, nb_errors, 'case 4x3 -1'
 res=DIAG_MATRIX(m4x3, -2)
-if ~ARRAY_EQUAL(res, [8]) then ADD_ERROR, nb_errors, 'case 4x3 -2'
+if ~ARRAY_EQUAL(res, [8]) then ERRORS_ADD, nb_errors, 'case 4x3 -2'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_DIAG_MATRIX_EXTRACT', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_DIAG_MATRIX_EXTRACT', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -73,19 +73,19 @@ a0=DIAG_MATRIX(diag0)
 a1p=DIAG_MATRIX(REVERSE(diag1), 1)
 a1m=DIAG_MATRIX(-REVERSE(diag1), -1)
 ;
-if ~ARRAY_EQUAL(SIZE(a0),expected_size) then ADD_ERROR, nb_errors, 'case A0'
-if ~ARRAY_EQUAL(SIZE(a1p),expected_size) then ADD_ERROR, nb_errors, 'case A1p'
-if ~ARRAY_EQUAL(SIZE(a1m),expected_size) then ADD_ERROR, nb_errors, 'case A1m'
+if ~ARRAY_EQUAL(SIZE(a0),expected_size) then ERRORS_ADD, nb_errors, 'case A0'
+if ~ARRAY_EQUAL(SIZE(a1p),expected_size) then ERRORS_ADD, nb_errors, 'case A1p'
+if ~ARRAY_EQUAL(SIZE(a1m),expected_size) then ERRORS_ADD, nb_errors, 'case A1m'
 ;
 exp=[0,13,12,11,10] & exp=-1.*(exp^2)
-if ~ARRAY_EQUAL(DIAG_MATRIX(a1p#a1m),exp) then ADD_ERROR, nb_errors, 'case p#m'
+if ~ARRAY_EQUAL(DIAG_MATRIX(a1p#a1m),exp) then ERRORS_ADD, nb_errors, 'case p#m'
 exp=SHIFT(exp,-1)
-if ~ARRAY_EQUAL(DIAG_MATRIX(a1m#a1p),exp) then ADD_ERROR, nb_errors, 'case m#p'
+if ~ARRAY_EQUAL(DIAG_MATRIX(a1m#a1p),exp) then ERRORS_ADD, nb_errors, 'case m#p'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_DIAG_MATRIX_INSERT', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_DIAG_MATRIX_INSERT', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end

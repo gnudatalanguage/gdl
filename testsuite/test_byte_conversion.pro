@@ -59,11 +59,11 @@ vs=replicate('',5)
 vs[1]=v
 ;
 if ARRAY_EQUAL(expected_lenghts, STRLEN(vs)) NE 1 then begin
-   ADD_ERROR, nb_errors, 'bad lenght of converted output (BYTE)'
+   ERRORS_ADD, nb_errors, 'bad lenght of converted output (BYTE)'
 endif
 ;
 if ARRAY_EQUAL(expected_strings, vs) NE 1 then begin
-   ADD_ERROR, nb_errors, 'bad content of converted output (BYTE)'
+   ERRORS_ADD, nb_errors, 'bad content of converted output (BYTE)'
 endif
 ;
 ; the same but for LONG ...
@@ -74,18 +74,18 @@ expected_strings[1]='          22'
 v=22L
 vs[1]=v
 ;
-if ARRAY_EQUAL(expected_lenghts, STRLEN(vs)) NE 1 then begin
-   ADD_ERROR, nb_errors, 'bad lenght of converted output (LONG)'
+if ~ARRAY_EQUAL(expected_lenghts, STRLEN(vs)) then begin
+   ERRORS_ADD, nb_errors, 'bad lenght of converted output (LONG)'
 endif
 ;
-if ARRAY_EQUAL(expected_strings, vs) NE 1 then begin
-   ADD_ERROR, nb_errors, 'bad content of converted output (LONG)'
+; ----- final ----
+;
+if ~ARRAY_EQUAL(expected_strings, vs) then begin
+   ERRORS_ADD, nb_errors, 'bad content of converted output (LONG)'
 endif
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTE_BUG_586', nb_errors, /short, verb=verbose
-;
+BANNER_FOR_TESTSUITE, 'TEST_BYTE_BUG_586', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -112,14 +112,14 @@ for jj=32765L, 32770 do begin
    input_as_long=LONG(input)
    result_as_long=BYTE(input_as_long)
    if ARRAY_EQUAL(expected, result_as_long) NE 1 then begin
-      ADD_ERROR, nb_errors, 'input as Long for : '+STRING(input)
+      ERRORS_ADD, nb_errors, 'input as Long for : '+STRING(input)
    endif
    ;;
    ;; this one does fail in GDL now
    input_as_float=FLOAT(input)
    result_as_float=BYTE(input_as_float)
    if ARRAY_EQUAL(expected, result_as_float) NE 1 then begin
-      ADD_ERROR, nb_errors, 'input as Long for : '+STRING(input)
+      ERRORS_ADD, nb_errors, 'input as Long for : '+STRING(input)
    endif
    ;;
    if KEYWORD_SET(debug) then begin
@@ -127,7 +127,9 @@ for jj=32765L, 32770 do begin
    endif
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BYTE_BASIC_32768', nb_errors, /short, verb=verbose
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_BYTE_BASIC_32768', nb_errors, /status
 ;
 if ~KEYWORD_SET(debug) AND (nb_errors GT 0) then begin
    message='For details, run it again with /DEBUG !!'
@@ -169,7 +171,7 @@ for iloop=0, max_loop do begin
             ;;  print, base[0], expected, result, input
             if ARRAY_EQUAL(expected, result) NE 1 then begin
                if (nb_errors GT 15) then begin
-                  ADD_ERROR, nb_errors, 'loop :'+STRING(iloop)+', TYPE : '+STRING(itype)
+                  ERRORS_ADD, nb_errors, 'loop :'+STRING(iloop)+', TYPE : '+STRING(itype)
                endif else begin
                   if (stop_report EQ 0) then begin
                      BANNER_FOR_TESTSUITE, 'TEST_BYTE_WITH_LOOP', /wide, $
@@ -202,7 +204,7 @@ expected=[48b+BINDGEN(4),65b+BINDGEN(4), 97b+BINDGEN(4)]
 result=BYTE(input)
 ;
 if ARRAY_EQUAL(expected, result) NE 1 then begin
-   ADD_ERROR, nb_errors, 'conversion from a STRING to BYTE failed'
+   ERRORS_ADD, nb_errors, 'conversion from a STRING to BYTE failed'
 endif
 ;
 BANNER_FOR_TESTSUITE, 'TEST_BYTE_STRING2BYTE', nb_errors, /short, verb=verbose
