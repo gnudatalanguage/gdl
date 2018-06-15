@@ -89,18 +89,19 @@
 #define MAKE_LONGGDL(X, XLong) \
         DLongGDL* XLong=0; \
         Guard<DLongGDL> XLongGuard; \
-        if( X != 0) \
-          if( X->Type() == GDL_LONG) \
+        if(X != 0) { \
+          if(X->Type() == GDL_LONG) \
             XLong = static_cast<DLongGDL*>( X); \
-          else  { \
-            try{ \
+          else { \
+            try { \
               XLong = static_cast<DLongGDL*>( X->Convert2( GDL_LONG, BaseGDL::COPY)); \
-                } \
-                catch( GDLException& ex) { \
-                  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage()); \
-                } \
+            } \
+            catch( GDLException& ex) { \
+              ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage()); \
+            } \
             XLongGuard.Init( XLong); \
-          }
+          } \
+	}
 
 #include "includefirst.hpp"
 
@@ -176,6 +177,9 @@ namespace lib {
     {
       ThrowFromInternalUDSub( e, "Object ID <"+i2s(ID)+"> not found.");      
     }
+
+    assert(false);
+    return NULL;
   }
  
   DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP)
@@ -1716,8 +1720,8 @@ BaseGDL* list__toarray( EnvUDT* e)
             {
             if ( theType == GDL_COMPLEXDBL) resultType = GDL_COMPLEXDBL;
             else if (resultType == GDL_COMPLEXDBL) continue;
-            else if (( theType == GDL_COMPLEX) && (resultType == GDL_DOUBLE)
-              || ( theType == GDL_DOUBLE) && (resultType == GDL_COMPLEX) )
+            else if ((theType == GDL_COMPLEX && resultType == GDL_DOUBLE)
+                 || (theType == GDL_DOUBLE && resultType == GDL_COMPLEX))
                 resultType = GDL_COMPLEXDBL;
             else if (resultType == GDL_COMPLEX ) continue;
             else if (theType == GDL_DOUBLE ) resultType = GDL_DOUBLE;

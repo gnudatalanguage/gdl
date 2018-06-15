@@ -4057,7 +4057,7 @@ namespace lib {
  *  Modified by G. Duvert, 2017, for NaN/INF handling and correction of Nicolas's code
  *  which gave erroneous results when two or more elements were identical. 
  */
-#define ELEM_SWAP(a,b) { register DDouble t=(a);(a)=(b);(b)=t; }
+#define ELEM_SWAP(a,b) { DDouble t=(a);(a)=(b);(b)=t; }
   
   DDouble quick_select_d(DDouble array[], SizeT arraySize, int even) {
 
@@ -4066,7 +4066,7 @@ namespace lib {
     SizeT high, low, middle;
     SizeT median=(arraySize)/2; 
     SizeT ll, hh;
-    register DDouble pivot;
+    DDouble pivot;
     low = 0;
     high = arraySize-1;
     for (;;) {
@@ -4106,7 +4106,7 @@ namespace lib {
   }
 
 #undef ELEM_SWAP
-#define ELEM_SWAP(a,b) { register DFloat t=(a);(a)=(b);(b)=t; }
+#define ELEM_SWAP(a,b) { DFloat t=(a);(a)=(b);(b)=t; }
   
   DFloat quick_select_f(DFloat array[], SizeT arraySize, int even) {
 
@@ -4115,7 +4115,7 @@ namespace lib {
     SizeT high, low, middle;
     SizeT median=(arraySize)/2; 
     SizeT ll, hh;
-    register DFloat pivot;
+    DFloat pivot;
     low = 0;
     high = arraySize-1;
     for (;;) {
