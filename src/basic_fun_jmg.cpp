@@ -868,6 +868,7 @@ namespace lib {
       else return make_array_template<DULongGDL>(e, dimKey, value, off, inc)->Convert2(GDL_STRING);
     case GDL_STRUCT:
       e->Throw("Invalid type specified for result.");
+    default:; // Default to FLOAT to emulate IDL
     }
 
     return make_array_template<DFloatGDL>(e, dimKey, value, off, inc);
