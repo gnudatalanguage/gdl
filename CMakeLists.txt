@@ -7,7 +7,13 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+# requirement for CMAKE_CXX_STANDARD
+if (APPLE)
+  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+else()
+  cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR) # undocumented but works, https://github.com/gnudatalanguage/gdl/pull/365
+endif()
+
 cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
