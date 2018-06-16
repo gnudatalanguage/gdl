@@ -47,30 +47,30 @@ key_can_change=123
 ; Testing for PROCEDURE the 4 cases (0,0,0,1)
 ;
 MYPROC, value
-if (value NE 0) then ADD_ERROR, errors, 'first PRO case'
+if (value NE 0) then ERRORS_ADD, errors, 'first PRO case'
 ;
 MYPROC, value, /key
-if (value NE 0) then ADD_ERROR, errors, 'second PRO case'
+if (value NE 0) then ERRORS_ADD, errors, 'second PRO case'
 ;
 MYPROC, value, key=123
-if (value NE 0) then ADD_ERROR, errors, 'third PRO case'
+if (value NE 0) then ERRORS_ADD, errors, 'third PRO case'
 
 MYPROC, value, key=key_can_change
-if (value NE 1) then ADD_ERROR, errors, 'fourth PRO case (the ONE !)'
+if (value NE 1) then ERRORS_ADD, errors, 'fourth PRO case (the ONE !)'
 ;
 ; Now testing for FUNCTION the 4 cases (0,0,0,1)
 ;
 value=MYFUNCTION()
-if (value NE 0) then ADD_ERROR, errors, 'first FUN case'
+if (value NE 0) then ERRORS_ADD, errors, 'first FUN case'
 ;
 value=MYFUNCTION(/key)
-if (value NE 0) then ADD_ERROR, errors, 'second FUN case'
+if (value NE 0) then ERRORS_ADD, errors, 'second FUN case'
 ;
 value=MYFUNCTION( key=123)
-if (value NE 0) then ADD_ERROR, errors, 'third FUN case'
+if (value NE 0) then ERRORS_ADD, errors, 'third FUN case'
 ;
 value=MYFUNCTION(key=key_can_change)
-if (value NE 1) then ADD_ERROR, errors, 'fourth FUN case (the ONE !)'
+if (value NE 1) then ERRORS_ADD, errors, 'fourth FUN case (the ONE !)'
 ;
 ;
 ; ----------------- final message ----------

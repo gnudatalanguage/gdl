@@ -3,13 +3,6 @@
 ;
 ; very preliminary tests for ISHFT, to be extended 
 ;
-pro ADD_ERRORS, nb_errors, message
-;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
-;
-end
-;
 pro TEST_ISHFT, test=test, help=help, no_exit=no_exit
 ;
 if KEYWORD_SET(test) then begin
@@ -25,13 +18,13 @@ tableau=BINDGEN(8)
 ;
 expected=tableau*2^3
 result=ISHFT(tableau, 3)  
-if ~ARRAY_EQUAL(expected, result) then ADD_ERRORS, nb_errors, 'error 1 2^3'
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADDS, nb_errors, 'error 1 2^3'
 ;
 ; bug reported by Bill D., Mai 30, 2015 
 ;
 expected=2^tableau
 result=ISHFT(1b, tableau)
-if ~ARRAY_EQUAL(expected, result) then ADD_ERRORS, nb_errors, 'error 2 BD'
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADDS, nb_errors, 'error 2 BD'
 ;
 ; ----------------- final message ----------
 ;

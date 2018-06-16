@@ -27,22 +27,23 @@ array2d=REPLICATE(1d,[3,3])
 arraynotreally2d=REFORM(REPLICATE(1d,9),[9,1]); is equivalent to a 1-dim array
 ;
 res=EXECUTE('array1d[0,0]=arraynotreally2d')
-if ~res then ADD_ERROR, nb_errors, 'bad assigantion [0,0] not really 2D'
+if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [0,0] not really 2D'
 ;
 ; this one should never work !
 ;
-;res=EXECUTE('array1d[0,0]=array2d')
-;if ~res then ADD_ERROR, nb_errors, 'bad assigantion [0,0]'
+print, 'The following message is OK'
+res=EXECUTE('array1d[0,0]=array2d')
+if res then ERRORS_ADD, nb_errors, 'bad assigantion [0,0]'
 ;
 res=EXECUTE('array1d[1,0,0]=array1d[1:8]')
-if ~res then ADD_ERROR, nb_errors, 'bad assigantion [1,0,0]'
+if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [1,0,0]'
 
 res=EXECUTE('array1d[0]=arraynotreally2d')
-if ~res then ADD_ERROR, nb_errors, 'bad assigantion [0]'
+if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [0]'
 ;
 ; -----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_675', nb_errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_BUG_675', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_SET(test) then STOP
 ;
@@ -95,7 +96,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    size_expected=[N_ELEMENTS(clean_dims),clean_dims,type,PRODUCT(clean_dims,/pre)]
    ;;
    if ~ARRAY_EQUAL(size_effective,size_expected) then begin
-      ADD_ERROR, nb_errors, 'bad SIZE for case :'+ii
+      ERRORS_ADD, nb_errors, 'bad SIZE for case :'+ii
       print, 'current dims :', current_dims
       print, 'correct (clean) dims :', clean_dims
    endif
@@ -107,7 +108,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    endif
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_SIZE_ARRAY', nb_errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_SIZE_ARRAY', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_SET(test) then STOP
 ;

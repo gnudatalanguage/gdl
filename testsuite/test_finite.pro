@@ -22,7 +22,7 @@ all_types=[4,5,6,9]
 ;
 ok=WHERE(all_types EQ type, nb_ok)
 if (nb_ok NE 1) then begin
-   ADD_ERROR, nb_errors, 'bad input type'
+   ERRORS_ADD, nb_errors, 'bad input type'
    print, 'Allow input types are : ', all_types
    ERRORS_CUMUL, cumul_errors, nb_errors
    return
@@ -76,7 +76,7 @@ res[9,*]=FINITE(data,/inf, sign=0)
 ;
 for ii=0, nb_cases-1 do begin
    if ~ARRAY_EQUAL(exp[ii,*],res[ii,*]) then begin
-      ADD_ERROR, nb_errors, 'problem with Case '+STRING(ii)
+      ERRORS_ADD, nb_errors, 'problem with Case '+STRING(ii)
       
    endif
 endfor
@@ -101,25 +101,25 @@ tab=[[1.,!VALUES.F_INFINITY,1],$
      [-!VALUES.F_INFINITY,-!VALUES.F_NAN,100]]
 ;
 a=FINITE(tab) 
-if a[1,0] NE 0 then ADD_ERROR, nb_errors, 'case 1a'
+if a[1,0] NE 0 then ERRORS_ADD, nb_errors, 'case 1a'
 ;
 a=FINITE(tab, /INF) 
-if a[1,0] NE 1 then ADD_ERROR, nb_errors, 'case 1b'
+if a[1,0] NE 1 then ERRORS_ADD, nb_errors, 'case 1b'
 ;
 a=FINITE(tab, /NAN) 
-if a[1,1] NE 1 then ADD_ERROR, nb_errors, 'case 1c'
+if a[1,1] NE 1 then ERRORS_ADD, nb_errors, 'case 1c'
 ;
 a=FINITE(tab, /INF, SIGN=1) 
-if a[1,0] NE 1 then ADD_ERROR, nb_errors, 'case 1d'
+if a[1,0] NE 1 then ERRORS_ADD, nb_errors, 'case 1d'
 ;
 a=FINITE(tab, /INF, SIGN=-1) 
-if a[0,2] NE 1 then ADD_ERROR, nb_errors, 'case 1e'
+if a[0,2] NE 1 then ERRORS_ADD, nb_errors, 'case 1e'
 ;
 a=FINITE(tab, /NAN, SIGN=1) 
-if a[1,1] NE 1 then ADD_ERROR, nb_errors, 'case 1f'
+if a[1,1] NE 1 then ERRORS_ADD, nb_errors, 'case 1f'
 ;
 a=FINITE(tab, /NAN, SIGN=-1) 
-if a[1,2] NE 1 then ADD_ERROR, nb_errors, 'case 1g'
+if a[1,2] NE 1 then ERRORS_ADD, nb_errors, 'case 1g'
 ;
 ; ------------ testing NaN & Sign ----
 ;
@@ -128,14 +128,14 @@ b[10:19]=-!VALUES.F_NAN
 b[110:119]=!VALUES.F_NAN
 ;
 a=WHERE(FINITE(b, /NAN, SIGN=-1) EQ 1, count)
-if count NE 10 then ADD_ERROR, nb_errors, 'case 2 (NaN & Sign)'
+if count NE 10 then ERRORS_ADD, nb_errors, 'case 2 (NaN & Sign)'
 ;
 if count EQ 20 then MESSAGE, /continue, txt+" +Nan and -Nan"
 ;
 ; cross-check ! do we wrongly detect Inf ?
 ;
 a=WHERE(FINITE(b, /inf, SIGN=-1) EQ 1, count)
-if count NE 0 then ADD_ERROR, nb_errors, 'case 2 (Inf & Sign)'
+if count NE 0 then ERRORS_ADD, nb_errors, 'case 2 (Inf & Sign)'
 ;
 ; ------------ testing Inf & Sign ----
 ;
@@ -143,12 +143,12 @@ b[210:219]=!VALUES.F_infinity
 b[410:419]=-!VALUES.F_infinity
 ;
 a=WHERE(FINITE(b, /inf, SIGN=1) EQ 1, count)
-if count NE 10 then ADD_ERROR, nb_errors, 'case 1'
+if count NE 10 then ERRORS_ADD, nb_errors, 'case 1'
 if count EQ 20 then MESSAGE, /continue, txt+" +Inf and -Inf"
 ;
 ; now we have +-Nan and +inf, do we still know how to count ?
 a=WHERE(FINITE(b, /NAN, SIGN=-1) EQ 1, count)
-if count NE 10 then ADD_ERROR, nb_errors, 'case 1'
+if count NE 10 then ERRORS_ADD, nb_errors, 'case 1'
 ;
 ; ----- final ----
 ;

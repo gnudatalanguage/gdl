@@ -6,16 +6,7 @@
 ; Then, it may be broken if WINDOW, ERASE or TVRD became broken !!
 ;
 ; Note: the tests clearly show problems for old GDL on
-; device, /decomposed, but no warning for device, decomposed=0
-;
-; -----------------------------------------------
-;
-pro ADD_ERROR, nb_errors, message
-;
-print, 'Error on operation : '+message
-nb_errors=nb_errors+1
-;
-end
+; DEVICE, /decomposed, but no warning for DEVICE, decomposed=0
 ;
 ; -----------------------------------------------
 ;
@@ -48,12 +39,12 @@ WINDOW, 0, xsize=100, ysize=100
 ;
 resu=TVRD(/true)
 mm=MINIMAXI(resu,0)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(1) more than one value in plane RED !'
-if mm[0] NE back_ref then ADD_ERROR, errors, '(1) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(1) more than one value in plane RED !'
+if mm[0] NE back_ref then ERRORS_ADD, errors, '(1) read value not EQ to back'
 mm=MINIMAXI(resu,1)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(1) more than one value in plane GREEN !'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(1) more than one value in plane GREEN !'
 mm=MINIMAXI(resu,2)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(1) more than one value in plane BLUE !'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(1) more than one value in plane BLUE !'
 ;
 ; Since Background color not change,
 ; result should be the same after an ERASE !!
@@ -61,8 +52,8 @@ if mm[0] NE mm[1] then ADD_ERROR, errors, '(1) more than one value in plane BLUE
 erase
 resu=TVRD(/true)
 mm=MINIMAXI(resu,0)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(2) more than one value !'
-if mm[0] NE back_ref then ADD_ERROR, errors, '(2) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(2) more than one value !'
+if mm[0] NE back_ref then ERRORS_ADD, errors, '(2) read value not EQ to back'
 ;
 ; changing the back via ERASE
 ;
@@ -71,8 +62,8 @@ back_new_mod=back_new/256
 erase, color=back_new
 resu=TVRD(/true)
 mm=MINIMAXI(resu, 1)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(3) more than one value !'
-if mm[0] NE back_new_mod then ADD_ERROR, errors, '(3) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(3) more than one value !'
+if mm[0] NE back_new_mod then ERRORS_ADD, errors, '(3) read value not EQ to back'
 ;
 ; change the back via !p.back
 ;
@@ -80,8 +71,8 @@ if mm[0] NE back_new_mod then ADD_ERROR, errors, '(3) read value not EQ to back'
 WINDOW, xsize=100, ysize=100
 resu=TVRD(/true)
 mm=MINIMAXI(resu,1)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(4) more than one value !'
-if mm[0] NE back_new_mod then ADD_ERROR, errors, '(4) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(4) more than one value !'
+if mm[0] NE back_new_mod then ERRORS_ADD, errors, '(4) read value not EQ to back'
 ;
 ; one more window
 ;
@@ -89,8 +80,8 @@ if mm[0] NE back_new_mod then ADD_ERROR, errors, '(4) read value not EQ to back'
 WINDOW, /free, xsize=100, ysize=100
 resu=TVRD(/true)
 mm=MINIMAXI(resu,1)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(5) more than one value !'
-if mm[0] NE back_new_mod then ADD_ERROR, errors, '(5) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(5) more than one value !'
+if mm[0] NE back_new_mod then ERRORS_ADD, errors, '(5) read value not EQ to back'
 ;
 ; one more window
 ;
@@ -98,8 +89,8 @@ if mm[0] NE back_new_mod then ADD_ERROR, errors, '(5) read value not EQ to back'
 WINDOW, /free, xsize=100, ysize=100
 resu=TVRD(/true)
 mm=MINIMAXI(resu,0)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(6) more than one value !'
-if mm[0] NE back_ref_mod then ADD_ERROR, errors, '(6) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(6) more than one value !'
+if mm[0] NE back_ref_mod then ERRORS_ADD, errors, '(6) read value not EQ to back'
 ;
 ; back to first window
 ;
@@ -109,18 +100,15 @@ ERASE
 ;WINDOW, /free, xsize=100, ysize=100
 RESU=TVRD(/true)
 mm=MINIMAXI(resu,0)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(7) more than one value !'
-if mm[0] NE back_ref_mod then ADD_ERROR, errors, '(7) read value not EQ to back'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(7) more than one value !'
+if mm[0] NE back_ref_mod then ERRORS_ADD, errors, '(7) read value not EQ to back'
 ;
 ; final message
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, 'TEST_WIN_BACK_DECOMPOSED', errors, short=short
-;
-if ~ISA(cumul_errors) then cumul_errors=0
-cumul_errors=cumul_errors+errors
-;
-if KEYWORD_SET(test) then STOP
+;if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, 'TEST_WIN_BACK_DECOMPOSED', errors, short=short, /status
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
@@ -150,21 +138,20 @@ PLOT, FINDGEN(10), back=255, col=0, title='RED on WHITE'
 ;
 resu=TVRD()
 mm=MINIMAXI(resu)
-if mm[0] NE mm[1] then ADD_ERROR, errors, '(RW) more than one value for plane 0 !'
-if mm[0] NE back then ADD_ERROR, errors, '(RW) wrong value for Back !'
+if mm[0] NE mm[1] then ERRORS_ADD, errors, '(RW) more than one value for plane 0 !'
+if mm[0] NE back then ERRORS_ADD, errors, '(RW) wrong value for Back !'
 ;
 resu=TVRD(/true)
 ;
 max_diff=MAX(ABS(resu(1,*,*)-resu(2,*,*)))
-if (max_diff GT 0) then ADD_ERROR, errors, 'something''s wrong in planes 1-2'
+if (max_diff GT 0) then ERRORS_ADD, errors, 'something''s wrong in planes 1-2'
 ;
 ; final message
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, 'TEST_RED_WHITE_NO_DECOMPOSED', errors, short=short
-;
-if ~ISA(cumul_errors) then cumul_errors=0
-cumul_errors=cumul_errors+errors
+;if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, 'TEST_RED_WHITE_NO_DECOMPOSED', errors, short=short, /status
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
@@ -173,6 +160,7 @@ end
 pro TEST_WIN_BACK_NO_DECOMPOSED, cumul_errors, test=test, verbose=verbose
 ;
 print, 'this case is not finished'
+BANNER_FOR_TESTSUITE, 'TEST_WIN_BACK_NO_DECOMPOSED',  'this case is not finished'
 ;
 errors=0
 ;
@@ -185,24 +173,26 @@ plot, findgen(10)
 ;
 ; final message
 ;
-if ~KEYWORD_SET(verbose) then short=1 else short=0
-BANNER_FOR_TESTSUITE, 'TEST_RED_WHITE_NO_DECOMPOSED', errors, short=short
-;
-if ~ISA(cumul_errors) then cumul_errors=0
-cumul_errors=cumul_errors+errors
+;if ~KEYWORD_SET(verbose) then short=1 else short=0
+BANNER_FOR_TESTSUITE, 'TEST_WIN_BACK_NO_DECOMPOSED', errors, short=short, /status
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_WINDOW_BACKGROUND, short=short, verbose=verbose, debug=debug, $
+pro TEST_WINDOW_BACKGROUND, help=help, verbose=verbose, debug=debug, $
                             test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_WINDOW_BACKGROUND, short=short, verbose=verbose, debug=debug, $'
+    print, 'pro TEST_WINDOW_BACKGROUND, verbose=verbose, debug=debug, $'
     print, '                            test=test, no_exit=no_exit'
     return
 endif
+;
+init_device_mode=!d.name
+DEVICE, get_dec=init_get_dec
 ;
 cumul_errors=0
 ;
@@ -210,11 +200,15 @@ TEST_WIN_BACK_DECOMPOSED, cumul_errors, test=test, verbose=verbose
 TEST_WIN_BACK_NO_DECOMPOSED, cumul_errors, test=test, verbose=verbose
 TEST_RED_WHITE_NO_DECOMPOSED, cumul_errors, test=test, verbose=verbose
 ;
-BANNER_FOR_TESTSUITE, 'TEST_WINDOW_BACKGROUND', cumul_errors, short=short
+BANNER_FOR_TESTSUITE, 'TEST_WINDOW_BACKGROUND', cumul_errors, /status
 ;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
+;
+; restoring device properties
+SET_PLOT, init_device_mode
+DEVICE, dec=init_get_dec
 ;
 end
 
