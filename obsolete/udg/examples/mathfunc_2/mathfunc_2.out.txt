@@ -1,2 +1,0 @@
-<Expression>    LONG      =  -2147483648
-<Expression>    LONG64    =            10000000000

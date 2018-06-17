@@ -1,3 +1,0 @@
-** Structure <Anonymous>, 2 tags, data length=16:
-   MACHINE_NAME    STRING    'eyrie.prac.igf'
-   USER_NAME       STRING    'slayoo'

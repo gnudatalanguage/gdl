@@ -1,9 +1,0 @@
-pro a_procedure
-  print, 'Hello world!'
-end
-function a_function
-  return, 'Hello world!'
-end
-% Compiled module: A_PROCEDURE.
-% Compiled module: A_FUNCTION.
-$MAIN$ A_FUNCTION A_PROCEDURE
