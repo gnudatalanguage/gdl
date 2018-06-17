@@ -1,8 +1,0 @@
-** Structure <Anonymous>, 7 tags, data length=56:
-   SCHEME          STRING    'http'
-   USERNAME        STRING    'root'
-   PASSWORD        STRING    'qwerty'
-   HOST            STRING    'kgb.ru'
-   PORT            STRING    '666'
-   PATH            STRING    '/'
-   QUERY           STRING    'hack'

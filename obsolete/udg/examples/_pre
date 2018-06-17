@@ -1,2 +1,0 @@
-print, '' ; work-around for readline garbage (BOM?)
-set_plot, 'ps'

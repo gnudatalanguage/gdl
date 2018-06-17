@@ -1,5 +1,0 @@
-help, string(55b)
-help, string(55b, /print)
-help, string(findgen(2,2))
-help, string(findgen(2,2), /print)
-help, string(findgen(2), /print)

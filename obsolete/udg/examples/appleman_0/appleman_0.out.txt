@@ -1,4 +1,0 @@
-% Compiled module: APPLEMAN.
-% Compiled module: LOADCT.
-% LOADCT: Loading table BOW SPECIAL
-% Compiled module: TVSCL.

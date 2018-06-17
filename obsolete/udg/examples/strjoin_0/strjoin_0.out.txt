@@ -1,2 +1,0 @@
-ARR             STRING    = Array[3]
-STR             STRING    = 'abc'
