@@ -21,19 +21,19 @@ i = [10,55]
 ;
 a = BYTARR(2,28)
 if ~ARRAY_EQUAL(ARRAY_INDICES(a,i),s) then begin
-      ADD_ERROR, nb_errors, 'pb in case 1 (no /dim) '
+      ERRORS_ADD, nb_errors, 'pb in case 1 (no /dim) '
 endif
 ;
 ;; array containing dimensions
 a = [2,28]
 if ~array_equal(array_indices(a,i,/dimensions),s) then begin
-      ADD_ERROR, nb_errors, 'pb in case 2 (with /dim) '
+      ERRORS_ADD, nb_errors, 'pb in case 2 (with /dim) '
 endif
 ;
-BANNER_FOR_TESTSUITE, 'TEST_ARRAY_INDICES_REKO', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_ARRAY_INDICES_REKO', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -63,7 +63,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    if KEYWORD_SET(debug) then print, dims[ii], indices_max
    ;;
    if ~ARRAY_EQUAL(indices_max,expected) then begin
-      ADD_ERROR, nb_errors, 'pb in case 1 (square), no /dim'
+      ERRORS_ADD, nb_errors, 'pb in case 1 (square), no /dim'
    endif
    ;;
    ;; with /Dim
@@ -71,7 +71,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    indices_max_dims=ARRAY_INDICES(cur_dims, location,/dimensions)
    ;;
    if ~ARRAY_EQUAL(indices_max_dims,expected) then begin
-      ADD_ERROR, nb_errors, 'pb in case 1 (square) with /Dimensions'
+      ERRORS_ADD, nb_errors, 'pb in case 1 (square) with /Dimensions'
    endif   
 endfor
 ;
@@ -88,7 +88,7 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    if KEYWORD_SET(debug) then print, dims[ii], indices_max
    ;;
    if ~ARRAY_EQUAL(indices_max,expected) then begin
-      ADD_ERROR, nb_errors, 'pb in case 2 (rectangular), no /Dim'
+      ERRORS_ADD, nb_errors, 'pb in case 2 (rectangular), no /Dim'
    endif
    ;;
    ;; with /Dim
@@ -96,14 +96,14 @@ for ii=0, N_ELEMENTS(dims)-1 do begin
    indices_max_dims=ARRAY_INDICES(cur_dims, location,/dimensions)
    ;;
    if ~ARRAY_EQUAL(indices_max_dims,expected) then begin
-      ADD_ERROR, nb_errors, 'pb in case 2 (rectangular) with /Dimensions'
+      ERRORS_ADD, nb_errors, 'pb in case 2 (rectangular) with /Dimensions'
    endif   
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_ARRAY_INDICES_DIST', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_ARRAY_INDICES_DIST', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-;
 if KEYWORD_SET(test) then STOP
 ;
 end

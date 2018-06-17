@@ -39,6 +39,35 @@ nb_pbs=0
 ;ERRORS_CUMUL, cumul_errors, nb_pbs
 ;
 end
+; --------------------------------------------
+;
+pro TEST_ARRAY_EQUAL_NOT_EQUAL, cumul_errors, verbose=verbose, $
+                                test=test, help=help
+;
+case_name='TEST_ARRAY_EQUAL_NOT_EQUAL'
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro '+case_name+', cumul_errors, verbose=verbose, test=test, help=help'
+   return
+endif
+;
+line="======================================="
+MESSAGE, /Continue, line
+MESSAGE, /Continue, "this case suite TEST_ARRAY_EQUAL_NOT_EQUAL is not finished !"
+MESSAGE, /Continue, "please contribute"
+MESSAGE, /Continue, line
+;
+nb_pbs=0
+if ~ARRAY_EQUAL(findgen(20), findgen(20)+20.,/not_equal) then $
+   ERRORS_ADD, nb_pbs, 'keyword /not_equal'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, case_name, nb_pbs, /status
+ERRORS_CUMUL, cumul_errors, nb_pbs
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; --------------------------------------------
 ;
@@ -59,49 +88,50 @@ a_array=[1]
 a_full_array=REPLICATE(1, 5)
 ;
 if ARRAY_EQUAL(a_singleton, a_singleton) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_singleton)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_singleton)'
 endif
 if ARRAY_EQUAL(a_array, a_array) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_array, a_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_full_array) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_full_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_full_array)'
 endif
 ;
 if ARRAY_EQUAL(a_singleton, a_array) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_array)'
 endif
 if ARRAY_EQUAL(a_array, a_singleton) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_array, a_singleton)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_singleton)'
 endif
 ;
 if ARRAY_EQUAL(a_singleton, a_full_array) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_full_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_singleton) NE 1 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_singleton)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_singleton)'
 endif
 ;
 ; When both inputs are arrays, if n_elements differents, should return ZERO
 ;
 if ARRAY_EQUAL(a_array, a_full_array) NE 0 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_array, a_full_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_array) NE 0 then begin
-   ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_array)'
+   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_array)'
 endif
 ;
-BANNER_FOR_TESTSUITE, case_name, nb_pbs, /short
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, case_name, nb_pbs, /status
 ERRORS_CUMUL, cumul_errors, nb_pbs
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; --------------------------------------------
 ;
-pro TEST_ARRAY_EQUAL_SAME_TYPE, cumul_errors, verbose=verbose, test=test, help=help
+pro TEST_ARRAY_EQUAL_SAME_TYPE, cumul_errors, verbose=verbose, $
+                                test=test, help=help
 ;
 case_name='TEST_ARRAY_EQUAL_SAME_TYPE'
 ;
@@ -122,33 +152,31 @@ b_array=[10]
 b_full_array=REPLICATE(10, 5)
 ;
 if ARRAY_EQUAL(a_singleton, b_array) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_array)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_array)'
 endif
 if ARRAY_EQUAL(a_array, b_singleton) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_array, b_singleton)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, b_singleton)'
 endif
 ;
 ;
 if ARRAY_EQUAL(a_singleton, b_full_array) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_full_array)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, b_singleton) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_singleton)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_singleton)'
 endif
 ;
 ; When both inputs are arrays, if n_elements differents, should return ZERO
 ;
 if ARRAY_EQUAL(a_array, b_full_array) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_array, b_full_array)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, b_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, b_array) NE 0 then begin
-    ADD_ERRORS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_array)'
+    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_array)'
 endif
 ;
-BANNER_FOR_TESTSUITE, case_name, nb_pbs, /short
-;
+BANNER_FOR_TESTSUITE, case_name, nb_pbs, /status
 ERRORS_CUMUL, cumul_errors, nb_pbs
-;
 if KEYWORD_SET(test) then STOP
 ;
 end
@@ -164,16 +192,21 @@ endif
 ;
 nb_errors=0
 ;
+; TB continue
+;
+TEST_ARRAY_EQUAL_DIFF_TYPE, nb_errors, verbose=verbose, test=test, help=help
+TEST_ARRAY_EQUAL_NOT_EQUAL, nb_errors, verbose=verbose, test=test, help=help
+;
+; ready
+;
 TEST_ARRAY_EQUAL_CHECK_DIM, nb_errors, verbose=verbose, test=test, help=help
 TEST_ARRAY_EQUAL_SAME_TYPE, nb_errors, verbose=verbose, test=test, help=help
-TEST_ARRAY_EQUAL_DIFF_TYPE, nb_errors, verbose=verbose, test=test, help=help
 ;
 ; ----------------- final message ----------
 ;
 BANNER_FOR_TESTSUITE, "TEST_ARRAY_EQUAL", nb_errors
 ;
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
-if ~ARRAY_EQUAL(findgen(20), findgen(20)+20.,/not_equal) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

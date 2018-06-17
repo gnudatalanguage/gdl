@@ -47,12 +47,12 @@ for ii=0,N_ELEMENTS(list_num_names)-1 do begin
    res=EXECUTE('res_dl=N_TAGS('+name+',/data_length)')
    ;;
    if (res_l NE factor*list_num_size[ii]) then begin
-      ADD_ERROR, errors, '/length case <<'+type_name+'>>'
+      ERRORS_ADD, errors, '/length case <<'+type_name+'>>'
       if KEYWORD_SET(verbose) then $
          print, 'expected : ', factor*list_num_size[ii], '; effective : ', res_l
    endif
    if (res_dl NE factor*list_num_size[ii]) then begin
-      ADD_ERROR, errors, '/dat_length case <<'+type_name+'>>'
+      ERRORS_ADD, errors, '/dat_length case <<'+type_name+'>>'
       if KEYWORD_SET(verbose) then $
          print, 'expected : ', factor*list_num_size[ii], '; effective : ', res_dl
    endif
@@ -65,8 +65,7 @@ endfor
 ;
 ; --------------
 ;
-BANNER_FOR_TESTSUITE, "TEST_NTAGS_BY_TYPE", errors, /short, verb=verbose
-;
+BANNER_FOR_TESTSUITE, "TEST_NTAGS_BY_TYPE", errors, /status, verb=verbose
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -90,13 +89,12 @@ if KEYWORD_SET(verbose) then begin
    print,"length, data_length :", N_TAGS(tmp47,/length), N_TAGS(tmp47,/data_length)
 endif
 ;
-if N_TAGS(tmp47,/data_length) NE exp47[0] then ADD_ERROR, errors, '/data_length case 47'
-if N_TAGS(tmp47,/length) NE exp47[1] then ADD_ERROR, errors, '/length case 47'
+if N_TAGS(tmp47,/data_length) NE exp47[0] then ERRORS_ADD, errors, '/data_length case 47'
+if N_TAGS(tmp47,/length) NE exp47[1] then ERRORS_ADD, errors, '/length case 47'
 ;
 ; --------------
 ;
-BANNER_FOR_TESTSUITE, "TEST_NTAGS_MIXING_TYPE,", errors, /short, verb=verbose
-;
+BANNER_FOR_TESTSUITE, "TEST_NTAGS_MIXING_TYPE,", errors, /status, verb=verbose
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP

@@ -53,61 +53,59 @@ end
 ;
 ; --------------------------------------
 ;
-pro TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
+pro TEST_FILE_SEARCH_GLOB, cumul_errors, no_erase=no_erase, test=test
 ;
 errors=0
 ;
 TEST_FILE_SEARCH_CREATE, list_luns
 ;
 if FILE_SEARCH(']foo.txt') ne ']foo.txt' then begin 
-    ADD_ERROR, errors, 'Fail with ]foo.txt'
+    ERRORS_ADD, errors, 'Fail with ]foo.txt'
 endif
 
 if FILE_SEARCH('[]]foo.txt') ne ']foo.txt' then begin 
-    ADD_ERROR, errors, 'Fail with []]foo.txt'
+    ERRORS_ADD, errors, 'Fail with []]foo.txt'
 endif
 
 f=FILE_SEARCH('foo*.txt')
 if WHERE(f eq 'foo*.txt') eq -1 or WHERE(f eq 'foobar.txt') eq -1 then begin 
-    ADD_ERROR, errors, 'Fail with foo*.txt'
+    ERRORS_ADD, errors, 'Fail with foo*.txt'
 endif
 
 if FILE_SEARCH('foo[*].txt') ne 'foo*.txt' then begin 
-    ADD_ERROR, errors, 'Fail with foo[*].txt'
+    ERRORS_ADD, errors, 'Fail with foo[*].txt'
 endif
 
 f=FILE_SEARCH('[]a]foo*')
 if WHERE(f eq ']foo.txt') eq -1 or WHERE(f eq 'afoo.txt') eq -1 then begin 
-    ADD_ERROR, errors, 'Fail with []a]foo*'
+    ERRORS_ADD, errors, 'Fail with []a]foo*'
 endif
 
 f=FILE_SEARCH('afoo.txt', /fold_case)
 if WHERE(f eq 'AfoO.txt') eq -1 or WHERE(f eq 'Afoo.txt') eq -1 then begin
-    ADD_ERROR, errors, 'Fail with afoo.txt,  /fold_case'
+    ERRORS_ADD, errors, 'Fail with afoo.txt,  /fold_case'
 endif
 
 f=FILE_SEARCH('[]a]foo*', /fold_case)
 if WHERE(f eq 'Afoo.txt') eq -1 or WHERE(f eq ']foo.txt') eq -1 or WHERE(f eq 'afoo.txt') eq -1 or WHERE(f eq 'AfoO.txt') then begin 
-    ADD_ERROR, errors, 'Fail with []a]foo*,  /fold_case'
+    ERRORS_ADD, errors, 'Fail with []a]foo*,  /fold_case'
 endif
 
 if FILE_SEARCH('[foo', /fold_case) ne '[Foo' then begin
-    ADD_ERROR, errors, 'Fail with [foo,  /fold_case'
+    ERRORS_ADD, errors, 'Fail with [foo,  /fold_case'
 endif
 ;
 if ~KEYWORD_SET(no_erase) then TEST_FILE_SEARCH_REMOVE, list_luns
 ;
-BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH_GLOB", errors, /short
-;
-nb_errors=nb_errors+errors
-;
+BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH_GLOB", errors, /status
+ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; --------------------------------------------
 ;
-pro TEST_FULLY_QUALIFY_PATH, nb_errors, no_erase=no_erase, test=test
+pro TEST_FULLY_QUALIFY_PATH, cumul_errors, no_erase=no_erase, test=test
 ;
 errors=0
 ;
@@ -134,46 +132,44 @@ res0=res0[SORT(res0)]
 ;
 if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)) then begin
     if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)+nbadlinks) then begin
-      ADD_ERROR, errors, 'pb with N_elements RES1'
+      ERRORS_ADD, errors, 'pb with N_elements RES1'
    endif else print,"Dangling symlinks in a directory prevent one test."
 endif else begin
     res1=res1[SORT(res1)]
     if ~ARRAY_EQUAL(path+res0, res1) then begin
-        ADD_ERROR, errors, 'pb with content of RES1 vs RES0'
+        ERRORS_ADD, errors, 'pb with content of RES1 vs RES0'
     endif
 endelse
 ;
 if (N_ELEMENTS(res1) NE N_ELEMENTS(res2)) then begin
-    ADD_ERROR, errors, 'pb with N_elements RES2'
+    ERRORS_ADD, errors, 'pb with N_elements RES2'
 endif else begin
     res2=res2[SORT(res2)]
     if ~ARRAY_EQUAL(res1, res2) then begin
-        ADD_ERROR, errors, 'pb with content of RES2 vs RES1'
+        ERRORS_ADD, errors, 'pb with content of RES2 vs RES1'
     endif
 endelse
 ;
 if (N_ELEMENTS(res2) NE N_ELEMENTS(res3)) then begin
-    ADD_ERROR, errors, 'pb with N_elements RES3'
+    ERRORS_ADD, errors, 'pb with N_elements RES3'
 endif else begin
     res3=res3[SORT(res3)]
     if ~ARRAY_EQUAL(res2, res3) then begin
-        ADD_ERROR, errors, 'pb with content of RES3 vs RES2'
+        ERRORS_ADD, errors, 'pb with content of RES3 vs RES2'
     endif
 endelse
 ;
 if ~KEYWORD_SET(no_erase) then TEST_FILE_SEARCH_REMOVE, list_luns
 ;
-BANNER_FOR_TESTSUITE, "TEST_FULLY_QUALIFY_PATH", errors, /short
-;
-nb_errors=nb_errors+errors
-;
+BANNER_FOR_TESTSUITE, "TEST_FULLY_QUALIFY_PATH", errors, /status
+ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; --------------------------------------------
 ;
-pro TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
+pro TEST_SPECIAL_PATHS, cumul_errors, no_erase=no_erase, test=test
 ;
 errors=0
 ;
@@ -186,7 +182,7 @@ res2=FILE_SEARCH('..',/FULLY_QUALIFY_PATH)
 res3=FILE_SEARCH('~',/FULLY_QUALIFY_PATH)
 ;
 if ~ARRAY_EQUAL(current, res1) then begin
-    ADD_ERROR, errors, 'pb with .'
+    ERRORS_ADD, errors, 'pb with .'
     print, 'input  : ', current
     print, 'output : ', res1
 endif
@@ -207,44 +203,45 @@ BANNER_FOR_TESTSUITE, "TEST_SPECIAL_PATHS", errors, /short
 ;
 if ISA(nb_errors) then nb_errors=nb_errors+errors else nb_errors=errors
 ;
+BANNER_FOR_TESTSUITE, "TEST_SPECIAL_PATHS", errors, /status
+ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
 ;
 end
 ; --------------------------------------------
 ;
-pro TEST_FILE_SEARCH, help=help, test=test, short=short, $
-                      verbose=verbose, $
+pro TEST_FILE_SEARCH, help=help, test=test, verbose=verbose, $
                       no_exit=no_exit, no_erase=no_erase
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_FILE_SEARCH, help=help, test=test, short=short, $'
-    print, '                      verbose=verbose, $'
+    print, 'pro TEST_FILE_SEARCH, help=help, test=test, verbose=verbose, $'
     print, '                      no_exit=no_exit, no_erase=no_erase'
     return
 endif
 ;
-nb_errors=0
+cumul_errors=0
 ;
 tmp_dir='TMPDIR_FILE_SEARCH'
 FILE_MKDIR, tmp_dir
 CD, tmp_dir, cur=cur
 ;
-;
 if(!version.OS_FAMILY eq "Windows") then $
 	message,' Windows System: no glob test done ',/continue $
-   else TEST_FILE_SEARCH_GLOB, nb_errors, no_erase=no_erase, test=test
+   else TEST_FILE_SEARCH_GLOB, cumul_errors, no_erase=no_erase, test=test
 ;
-TEST_FULLY_QUALIFY_PATH, nb_errors, no_erase=no_erase, test=test
+TEST_FULLY_QUALIFY_PATH, cumul_errors, no_erase=no_erase, test=test
 ;
- TEST_SPECIAL_PATHS, nb_errors, no_erase=no_erase, test=test
+TEST_SPECIAL_PATHS, cumul_errors, no_erase=no_erase, test=test
 ;
 
 CD, cur
 if ~KEYWORD_SET(no_erase) then FILE_DELETE, tmp_dir, /recursive
 ;
-BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH", nb_errors, short=short
+; ----------------- final message ----------
 ;
-if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+BANNER_FOR_TESTSUITE, "TEST_FILE_SEARCH", cumul_errors
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
 ;

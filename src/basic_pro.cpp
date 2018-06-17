@@ -2191,8 +2191,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       AppendIfNeeded(proFile, ".pro");
 
       bool found = CompleteFileName(proFile);
-      if (!found )
-        if (!quiet) e->Throw("Not found: " + proFile); else return;
+      if (!found ) {
+        if (!quiet)
+          e->Throw("Not found: " + proFile);
+        else return;
+      }
 
       // file already opened?
       bool open = false;
