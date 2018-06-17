@@ -1,2 +1,0 @@
-$ cat listct.pro
-listct
