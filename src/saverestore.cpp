@@ -249,37 +249,58 @@ namespace lib {
     uint32_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
+  
+  dimension* getArrDesc64(XDR* xdrs) {
+    int64_t UnknownLong;
+    if (!xdr_int64_t(xdrs, &UnknownLong)) return NULL;
+    int64_t nbytes;
+    if (!xdr_int64_t(xdrs, &nbytes)) return NULL;
+    int64_t nEl;
+    if (!xdr_int64_t(xdrs, &nEl)) return NULL;
+    int32_t nDims;
+    if (!xdr_int32_t(xdrs, &nDims)) return NULL; //on 32 bits
+    if (!xdr_int64_t(xdrs, &UnknownLong)) return NULL; //ignored as we ignore the 2x32 bits integers in the other version.
+    //cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
+    int64_t dims[8];
+    if (!xdr_vector(xdrs, (char*) dims, 8, sizeof (int64_t), (xdrproc_t) xdr_int64_t)) return NULL;
+    SizeT k = dims[0];
+    dimension* theDim = new dimension(k);
+    for (int i = 1; i < 8; ++i)
+    {
+      k = dims[i];
+      *theDim << k;
+    }
+    theDim->Purge();
+    cerr<<*theDim<<endl;
+    return theDim;
+  }
 
   dimension* getArrDesc(XDR* xdrs) {
     int32_t arrstart;
     int32_t UnknownLong;
     if (!xdr_int32_t(xdrs, &arrstart)) return NULL;
-    if (arrstart != 8)
+    cerr<<arrstart<<endl;
+    if (arrstart != 8 && arrstart !=18) //'10'o and '22'o
     {
       cerr << "array is not a array! abort." << endl;
       return 0;
     }
+    if (arrstart == 18) return getArrDesc64(xdrs); //as the rest is specially coded on 8 bytes.
+    
     if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
-    ;
     int32_t nbytes;
     if (!xdr_int32_t(xdrs, &nbytes)) return NULL;
-    ;
     int32_t nEl;
     if (!xdr_int32_t(xdrs, &nEl)) return NULL;
-    ;
     int32_t nDims;
     if (!xdr_int32_t(xdrs, &nDims)) return NULL;
-    ;
     if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
     if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
-    ;
     int32_t nmax;
     if (!xdr_int32_t(xdrs, &nmax)) return NULL;
-    ;
     //    cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
     int32_t dims[nmax];
     if (!xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) return NULL;
-    ;
     SizeT k = dims[0];
     dimension* theDim = new dimension(k);
     for (int i = 1; i < nmax; ++i)
@@ -292,7 +313,31 @@ namespace lib {
     return theDim;
   }
 
-  void writeArrDesc(XDR* xdrs, BaseGDL* var) {
+  void writeArrDesc64(XDR* xdrs, BaseGDL* var) {
+    int32_t arrstart=18;
+    xdr_int32_t(xdrs, &arrstart);
+    //very important:
+    int64_t typeLength=sizeOfType[var->Type()];if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    xdr_int64_t(xdrs, &typeLength);
+    int64_t nbytes=var->NBytes();
+    xdr_int64_t(xdrs, &nbytes);
+    int64_t nEl=var->N_Elements();
+    xdr_int64_t(xdrs, &nEl);
+    int32_t nDims=var->Rank();
+    xdr_int32_t(xdrs, &nDims);
+    int32_t UnknownLong=0;
+    xdr_int32_t(xdrs, &UnknownLong);
+    xdr_int32_t(xdrs, &UnknownLong);
+    int32_t nmax=8;
+    // not written xdr_int32_t(xdrs, &nmax);
+    int64_t dims[nmax];
+    int i=0;
+    for (; i < nDims; ++i) dims[i]=var->Dim(i);
+    for (; i < nmax; ++i) dims[i]=1; //yes.
+    xdr_vector(xdrs, (char*) dims, nmax, sizeof (int64_t), (xdrproc_t) xdr_int64_t);
+  }
+
+  void writeArrDesc32(XDR* xdrs, BaseGDL* var) {
     int32_t arrstart=8;
     xdr_int32_t(xdrs, &arrstart);
     //very important:
@@ -314,6 +359,13 @@ namespace lib {
     for (; i < nDims; ++i) dims[i]=var->Dim(i);
     for (; i < nmax; ++i) dims[i]=1; //yes.
     xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
+  }
+  
+  void writeArrDesc(XDR* xdrs, BaseGDL* var) {
+    //very important check total size and switch if size is >2GO
+    SizeT typeLength=sizeOfType[var->Type()];if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    SizeT nEl=var->N_Elements();
+    if (nEl*typeLength > 2000000000ULL) writeArrDesc64(xdrs,var); else writeArrDesc32(xdrs,var);
   }
   
   int defineCommonBlock(EnvT* e, XDR* xdrs, int verboselevel) {
