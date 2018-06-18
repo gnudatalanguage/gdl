@@ -43,10 +43,11 @@ namespace lib {
 	void writeu(EnvT* e);
 	void readu(EnvT* e);
 
+  
 	// help_item is used by EnvT::HeapGC
 	void help_item(std::ostream& os,
 		BaseGDL* par, DString parString, bool doIndentation);
-	void help_pro(EnvT* e);
+  void help_struct( std::ostream& os,  BaseGDL* par, int indent , bool debug );
 	void exitgdl(EnvT* e);
 
 	// in print.cpp
@@ -92,8 +93,6 @@ namespace lib {
 	// the following by Alain Coulais
 	// (alaingdl @@ users.sourceforge.net)
 
-	// Sorry to put a Function with Procedure but I need it for HELP proc.
-	BaseGDL* recall_commands(EnvT* e);
 
 	void resolve_routine(EnvT* e);
 
@@ -104,6 +103,9 @@ namespace lib {
 	void pm(EnvT* e);
 	//dummy stub preventing !err and other !error_state to be set!
 	void pref_set_pro(EnvT* e);
+
+	void delvar_pro( EnvT* e);
+	void findvar_pro( EnvT* e);
 } // namespace
 
 #endif

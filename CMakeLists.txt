@@ -7,14 +7,20 @@
 #  (at your option) any later version.
 #
 
-# tested with 2.4 and doesn't seem to run.
-# SA: 2.6 supports simplified if constructs, e.g. endif()
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+# requirement for CMAKE_CXX_STANDARD
+if (APPLE)
+  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+else()
+  cmake_minimum_required(VERSION 3.1 FATAL_ERROR) 
+endif()
+
+cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
+set(CMAKE_CXX_STANDARD 11)
 
 # X.X.X CVS becomes release X.X.X+1
-set(VERSION "0.9.8 svn")
+set(VERSION "0.9.8 git")
 enable_testing()
 
 include(CheckIncludeFile)
@@ -332,7 +338,15 @@ if(OPENMP)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
     endif()
-  endif(OPENMP_FOUND)
+  else(OPENMP_FOUND)
+    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
+    "note that disabling OpenMP will incur significant performance penalty !\n"
+    "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
+	"(find_package(OpenMP) will find OpenMP only if both are set !)\n"
+    "Use -DOPENMP=OFF to not use it.\n"
+    "(suitable Homebrew compiler package: llvm)"
+    "(suitable Homebrew library package: libomp)")
+  endif(OPENMP_FOUND) 
 else(OPENMP)
   # we need to define those semaphore posix symbols, do it with threads libs
   find_package(Threads)
@@ -364,30 +378,44 @@ else(GSL_FOUND)
         "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
 
-if(WIN32 AND NOT CYGWIN)
-set(CMAKE_PREFIX_PATH ${XDRDIR})
-find_package(Xdr)
-set(HAVE_LIBXDR ${XDR_FOUND})
-if(XDR_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
-	include_directories(${XDR_INCLUDE_DIR})
-else(XDR_FOUND)
-	message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
-	"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
-endif(XDR_FOUND)
+if(UNIX)
+	set(CMAKE_PREFIX_PATH ${RPCDIR})
+	find_package(RPC QUIET)
+	set(HAVE_RPC ${RPC_FOUND})
+	if(RPC_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
+		include_directories(${RPC_INCLUDE_DIR})
+	else(RPC_FOUND)
+		message(FATAL_ERROR "RPC support is mandatory.\n"
+		"Note that SunRPC has been removed in glibc-2.26 and later, "
+		"while being optional in earlier versions. Consider using the "
+		"recommended and more modern libtirpc instead.\n"
+		"Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
+	endif(RPC_FOUND)
+elseif (WIN32 AND NOT CYGWIN)
+	set(CMAKE_PREFIX_PATH ${XDRDIR})
+	find_package(Xdr)
+	set(HAVE_LIBXDR ${XDR_FOUND})
+	if(XDR_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
+		include_directories(${XDR_INCLUDE_DIR})
+	else(XDR_FOUND)
+		message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
+		"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
+	endif(XDR_FOUND)
 
-set(CMAKE_PREFIX_PATH ${PCREDIR})
-find_package(PCRE)
-set(HAVE_LIBPCRE ${PCRE_FOUND})
-if(PCRE_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
-	include_directories(${PCRE_INCLUDE_DIR})
-else(PCRE_FOUND)
-	message(FATAL_ERROR "pcre library is required but was not found.\n"
-	"Use -DPCREDIR=DIR to specify the pcre directory tree.")
-endif(PCRE_FOUND)
-LINK_LIBRARIES(shlwapi)
-endif(WIN32 AND NOT CYGWIN)
+	set(CMAKE_PREFIX_PATH ${PCREDIR})
+	find_package(PCRE)
+	set(HAVE_LIBPCRE ${PCRE_FOUND})
+	if(PCRE_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
+		include_directories(${PCRE_INCLUDE_DIR})
+	else(PCRE_FOUND)
+		message(FATAL_ERROR "pcre library is required but was not found.\n"
+		"Use -DPCREDIR=DIR to specify the pcre directory tree.")
+	endif(PCRE_FOUND)
+	LINK_LIBRARIES(shlwapi)
+endif()
 
 # PLplot MANDATORY
 # -DOLDPLPLOT=ON|OFF

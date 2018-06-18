@@ -5253,7 +5253,6 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	antlr::ASTPair currentAST;
 	RefDNode arrayindex_list_AST = RefDNode(antlr::nullAST);
 	
-	//std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
 	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
 	PtrGuard< ArrayIndexVectorT> guard( ixList);
 	

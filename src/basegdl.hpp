@@ -460,6 +460,7 @@ public:
   inline SizeT    Stride(SizeT d) const      { return dim.Stride(d);}
   inline void     Purge()                    { dim.Purge();}
   inline SizeT    Rank()          const      { return dim.Rank();}
+  inline SizeT    EquivalentRank()          const      { return dim.EquivalentRank();}
   inline void     SetDim(const dimension& d) { dim=d;}
   inline void     MakeArrayFromScalar()      { dim.MakeArrayFromScalar();} 
 
@@ -551,6 +552,8 @@ public:
   virtual bool Equal( BaseGDL*) const;
   virtual bool EqualNoDelete( const BaseGDL*) const;
   virtual bool ArrayEqual( BaseGDL*);
+  virtual bool ArrayNeverEqual( BaseGDL*);
+  
   // for statement compliance (int types , float types scalar only)
   virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);
   virtual bool ForCondUp( BaseGDL*);

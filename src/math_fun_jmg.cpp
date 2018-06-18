@@ -197,39 +197,58 @@ namespace lib {
   // general template
    template< typename T, bool> struct finite_helper
    {
-     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
-     {
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
+    {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
-       if (kwNaN)
+
+	 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 {
+       if (kwNaN){
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
-       else if (kwInfinity)
+       }
+       else if (kwInfinity){
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
-       else
+       }
+       else{
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
-       return res;
+       }
      }
+     return res;
+    }
    };
 
    // partial specialization for GDL_COMPLEX, DCOMPLEX
    template< typename T> struct finite_helper<T, true>
    {
-     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
-     {
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
+    {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
-       if (kwNaN)
+	 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 {
+       if (kwNaN){
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i) 
      	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
-       else if (kwInfinity)
+	   }
+       else if (kwInfinity){
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
-       else
+	   }
+       else{
+		#pragma omp for
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isfinite((*src)[ i].real()) && 
                         isfinite((*src)[ i].imag());
-       return res;
+	   }
      }
+     return res;
+    }
    };
 
    template< typename T, bool IS_COMPLEX>
@@ -239,67 +258,73 @@ namespace lib {
        do_it(static_cast<T*>(src), kwNaN, kwInfinity);
    };
 
+   //general signed template
    template< typename T, bool> struct finite_helper_sign
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
      {
 
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO); // ::ZERO is not working
        SizeT nEl = src->N_Elements();
-
-       //       for ( SizeT i=0; i<nEl; ++i) (*res)[i]=0;
-
-       if (kwInfinity) {
-	 if (kwSign > 0) {
-// #pragma omp for
-	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
-	   }
-	 } else {
-// #pragma omp for
-	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
-	   }
-	 }
-	 return res;	 
-       }
-       if (kwNaN) {
-	 if (kwSign > 0) {
-// #pragma omp for
-	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
-	   }
-	 } else {
-// #pragma omp for
-	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
-	   }
+	if (kwInfinity || kwNaN)
+	{
+	 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 {
+		if (kwInfinity) {
+			if (kwSign > 0) {
+				#pragma omp for
+				for ( SizeT i=0; i<nEl; ++i) {
+					if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
+				}
+			} else {
+				#pragma omp for
+				for ( SizeT i=0; i<nEl; ++i) {
+					if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
+				}
+			}
+		}
+		if (kwNaN) {
+			if (kwSign > 0) {
+				#pragma omp for
+				for ( SizeT i=0; i<nEl; ++i) {
+					if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; 
+				}
+			} else {
+				#pragma omp for
+				for ( SizeT i=0; i<nEl; ++i) {
+					if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; 
+				}
+			}
+		}
 	 }
 	 return res;
-       }
-      assert( false);
+	}
+		assert( false);
      }
    };
 
    // partial specialization for GDL_COMPLEX, DCOMPLEX
    template< typename T> struct finite_helper_sign<T, true>
    {
-     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
-     {
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
+    {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
        SizeT nEl = src->N_Elements();
        
-       for ( SizeT i=0; i<nEl; ++i)
+	 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	 {
+	  #pragma omp for
+       for ( SizeT i=0; i<nEl; ++i)
+	  {
 	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
 	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
 	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
 	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
-	 }
-       return res;
-     }
+	  }
+     } 
+     return res;
+    } 
    };
 
    template< typename T, bool IS_COMPLEX>

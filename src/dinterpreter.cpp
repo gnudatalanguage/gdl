@@ -47,12 +47,7 @@
 #include "print_tree.hpp"
 #endif
 
-#if (__cplusplus >= 201103L || _MSC_VER >= 1800) && !defined(__MINGW32__)
-#   include <thread> // C++11
-#   define HAVE_CXX11THREAD
-#else
-#   include <pthread.h>
-#endif
+#include <thread> // C++11
 
 using namespace std;
 using namespace antlr;
@@ -665,7 +660,7 @@ DInterpreter::CommandCode DInterpreter::CmdFullReset()
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 {
   string cmdstr = command;
-  int sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ",0);
   if (sppos == string::npos) 
     {
       cout << "Interactive COMPILE not implemented yet." << endl;
@@ -675,7 +670,7 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
   bool retAll = false; // Remember if Retall is needed
 
   // Parse each file name
-  int pos = sppos + 1;
+  size_t pos = sppos + 1;
   while (pos < command.length()) 
     {
       sppos = command.find(" ",pos);
@@ -736,7 +731,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
   bool retAll = false; // Remember if Retall is needed
 
   // Parse each file name
-  int pos = sppos + 1;
+  size_t pos = sppos + 1;
   while (pos < command.length()) 
     {
       sppos = command.find(" ",pos);
@@ -798,7 +793,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 {
   string cmdstr = command;
   string args;
-  int sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ",0);
   if (sppos != string::npos) {
     args = cmdstr.substr(sppos+1);
     cmdstr = cmdstr.substr(0, sppos);
@@ -851,8 +846,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RNEW"))
     {
-      cout << "RNEW not implemented yet." << endl;
-      return CC_OK;
+	    EnvUDT* mainEnv = 
+		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
+			  SizeT nEnv = mainEnv->EnvSize();
+
+		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
+		if(!mainEnv->Removeall()) 
+			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+
+      return CmdRun( command);
     }
   // GD:Here to have ".s" giving ".step"
   if( cmd( "STEP"))
@@ -1263,29 +1265,18 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   return CC_OK;
 }
 
-#ifdef HAVE_CXX11THREAD
 void inputThread() {
-#else
-void *inputThread(void*) {
-#endif
     while (1) {
       // patch by Ole, 2017-01-06
       //char ch = getchar(); if (ch==EOF) return NULL;
       char ch = getchar();
       if (ch==EOF) {
-#ifdef HAVE_CXX11THREAD
 	return;
-#else
-	return NULL;
-#endif
       }        
       inputstr += ch;
       if (ch == '\n')
 	break;
     }
-#ifndef HAVE_CXX11THREAD
-    return NULL;
-#endif
 }
 
 // if readline is not available or !EDIT_INPUT set to zero
@@ -1294,18 +1285,17 @@ char* DInterpreter::NoReadline( const string& prompt)
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
-#ifdef HAVE_CXX11THREAD
   thread th(inputThread);
-#else
-  pthread_t th;
-  pthread_create(&th, NULL, inputThread, NULL);
-#endif
 
   for (;;)
     {
         GDLEventHandler();
         if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
-        if (feof(stdin)) return NULL;
+        if (feof(stdin)) 
+        {
+          th.join();
+          return NULL;
+        }
 #ifdef WIN32
         Sleep(10);
 #else
@@ -1319,11 +1309,7 @@ char* DInterpreter::NoReadline( const string& prompt)
   strcpy(result, inputstr.c_str()); // copies including terminating '\0'
   inputstr.clear();
 
-#ifdef HAVE_CXX11THREAD
   th.join();
-#else
-  pthread_join(th, NULL);
-#endif
 
   return result;
 }

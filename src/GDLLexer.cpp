@@ -434,7 +434,7 @@ void GDLLexer::mINCLUDE(bool _createToken) {
 				std::string name = f->getText();
 		
 		// find comments on the same line
-		long pos = name.find_first_of(';', 0);   
+		size_t pos = name.find_first_of(';', 0);   
 		if( pos != std::string::npos) // remove them  
 		name = name.substr(0, pos);
 		
