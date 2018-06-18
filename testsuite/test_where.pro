@@ -14,15 +14,14 @@ nb_errors=0
 a=REPLICATE(1,10)
 ;
 null1=WHERE(a GT 1,complement=c1,/null)
-if ~ISA(null1,/null) then ADD_ERROR, nb_errors, 'bad value for : null1'
-if ISA(c1,/null) then ADD_ERROR, nb_errors, 'bad value for : c1'
+if ~ISA(null1,/null) then ERRORS_ADD, nb_errors, 'bad value for : null1'
+if ISA(c1,/null) then ERRORS_ADD, nb_errors, 'bad value for : c1'
 ;
 ok=WHERE(a EQ 1,complement=null2,/null)
-if ISA(ok,/null) then ADD_ERROR, nb_errors, 'bad value for : ok'
-if ~ISA(null2,/null) then ADD_ERROR, nb_errors, 'bad value for : null2'
+if ISA(ok,/null) then ERRORS_ADD, nb_errors, 'bad value for : ok'
+if ~ISA(null2,/null) then ERRORS_ADD, nb_errors, 'bad value for : null2'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_WHERE_NULL', nb_errors, /short
-;
+BANNER_FOR_TESTSUITE, 'TEST_WHERE_NULL', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -54,8 +53,7 @@ if (100.*ABS(nbp_in/2-nbp_ok)/FLOAT(nbp_ok) GT 1) then begin
     nb_errors++
 endif
 ;
-BANNER_FOR_TESTSUITE, 'TEST_WHERE_WITH_RANDOM', nb_errors, /short
-;
+BANNER_FOR_TESTSUITE, 'TEST_WHERE_WITH_RANDOM', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -87,8 +85,7 @@ endif
 ;
 if (nbp NE 2*size_of_interest) then nb_errors++
 ;
-BANNER_FOR_TESTSUITE, 'TEST_WHERE_OVER_TPOOL_MIN_ELTS', nb_errors, /short
-;
+BANNER_FOR_TESTSUITE, 'TEST_WHERE_OVER_TPOOL_MIN_ELTS', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP

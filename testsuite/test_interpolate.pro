@@ -36,12 +36,12 @@ b[4,*,*]=DIST(17,6)
 c1= INTERPOLATE(b, [0,1,2], [1,2,3,4],[1,2,3,4],/gri)
 c2= INTERPOLATE(b, [3.3,5.255],[4.2,2.55],/gri,cubic=-0.3)
 ;
-if (TOTAL(c1-good1)/4/4/3 ge 1E-4) then ADD_ERROR, errors, 'problem within C1'
-if (TOTAL(c2-good2)/5/2/2 ge 1E-4) then ADD_ERROR, errors, 'problem within C2'
+if (TOTAL(c1-good1)/4/4/3 ge 1E-4) then ERRORS_ADD, errors, 'problem within C1'
+if (TOTAL(c2-good2)/5/2/2 ge 1E-4) then ERRORS_ADD, errors, 'problem within C2'
 ;
 ; ----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_3483402', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_BUG_3483402', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
@@ -68,11 +68,11 @@ result=INTERPOLATE(b, [0,1,2], [1,2,3,4], [1,2,3,4],/gri)
 ;
 tol=1e-6
 ;
-if (TOTAL(ABS(result-expected)) GT tol) then ADD_ERROR, errors, 'pb 3D'
+if (TOTAL(ABS(result-expected)) GT tol) then ERRORS_ADD, errors, 'pb 3D'
 ;
 ; ----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_458', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_BUG_458', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
@@ -97,15 +97,15 @@ exp2=[2.5, 7.5, 12.5]
 exp3=FINDGEN(4,3)+2.
 ;
 tol=1e-6
-if (TOTAL(ABS(res1-exp1)) GT tol) then ADD_ERROR, errors, 'pb res1 (value)'
-if (TOTAL(ABS(res2-exp2)) GT tol) then ADD_ERROR, errors, 'pb res2 (value)'
-if (TOTAL(ABS(res2-exp2)) GT tol) then ADD_ERROR, errors, 'pb res3 (value)'
+if (TOTAL(ABS(res1-exp1)) GT tol) then ERRORS_ADD, errors, 'pb res1 (value)'
+if (TOTAL(ABS(res2-exp2)) GT tol) then ERRORS_ADD, errors, 'pb res2 (value)'
+if (TOTAL(ABS(res2-exp2)) GT tol) then ERRORS_ADD, errors, 'pb res3 (value)'
 ;
-if ~ARRAY_EQUAL(SIZE(res1),SIZE(exp1)) then ADD_ERROR, errors, 'pb res1 (dim)'
-if ~ARRAY_EQUAL(SIZE(res2),SIZE(exp2)) then ADD_ERROR, errors, 'pb res2 (dim)'
-if ~ARRAY_EQUAL(SIZE(res3),SIZE(exp3)) then ADD_ERROR, errors, 'pb res3 (din)'
+if ~ARRAY_EQUAL(SIZE(res1),SIZE(exp1)) then ERRORS_ADD, errors, 'pb res1 (dim)'
+if ~ARRAY_EQUAL(SIZE(res2),SIZE(exp2)) then ERRORS_ADD, errors, 'pb res2 (dim)'
+if ~ARRAY_EQUAL(SIZE(res3),SIZE(exp3)) then ERRORS_ADD, errors, 'pb res3 (din)'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_BUG_223', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_BUG_223', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
@@ -119,12 +119,12 @@ pro TEST_INTERPOLATE_MISSING, cumul_errors, test=test
 errors=0
 ;
 a = INTERPOLATE([1,3],[-1,0,1,2], missing=-10)
-if ((a[0] ne -10) || (a[3] ne -10)) then ADD_ERROR, errors, 'Case 1'
+if ((a[0] ne -10) || (a[3] ne -10)) then ERRORS_ADD, errors, 'Case 1'
 ;
 a = INTERPOLATE([1,3,4],[-1,0,1,3], missing=-10, /cubic)
-if ((a[0] ne -10) || (a[3] ne -10)) then ADD_ERROR, errors, 'Case 2'
+if ((a[0] ne -10) || (a[3] ne -10)) then ERRORS_ADD, errors, 'Case 2'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE_MISSING', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE_MISSING', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
@@ -152,10 +152,10 @@ for ii=0,N_ELEMENTS(list_num_names)-1 do begin
    res=INTERPOLATE(INDGEN(5, type=type_value), the_value)
    exp=FIX(the_value, type=type_value)
    ;;
-   if ~ARRAY_EQUAL(exp, res,/no_typeconv) then ADD_ERROR, errors, 'bad for type '+type_name
+   if ~ARRAY_EQUAL(exp, res,/no_typeconv) then ERRORS_ADD, errors, 'bad for type '+type_name
 endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE_TYPE', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE_TYPE', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
@@ -180,7 +180,7 @@ TEST_INTERPOLATE_TYPE, cumul_errors
 TEST_INTERPOLATE_MISSING, cumul_errors
 ;
 ; ----------------- final message ----------
-BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE', cumul_errors, short=short
+BANNER_FOR_TESTSUITE, 'TEST_INTERPOLATE', cumul_errors
 ;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
