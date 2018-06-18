@@ -1,4 +1,5 @@
-Be sure that you have at least CMake 2.6 (cmake --version)
+Be sure that you have at least CMake 3.1 (cmake --version)
+(CMake 3.2 required for OSX)
 
 Create a new directory where the objects and executables 
 will be built, e.g.
