@@ -266,8 +266,8 @@ str.cpp
 str.hpp
 terminfo.cpp
 terminfo.hpp
-tiff_cl.cxx
-tiff_cl.hxx
+tiff.cxx
+tiff.hxx
 topython.cpp
 triangulation.cpp
 typedefs.hpp
@@ -277,13 +277,6 @@ where.cpp
 widget.cpp
 widget.hpp
 )
-
-set_source_files_properties(
-dstructfactory.cxx
-dstructfactory.hxx
-tiff_cl.cxx
-tiff_cl.hxx
-PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 add_subdirectory(antlr)
 
