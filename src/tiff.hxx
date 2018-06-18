@@ -1,5 +1,5 @@
 /***************************************************************************
-                          tiff_cl.hxx - GDL TIFF library functions
+                          tiff.hxx - GDL TIFF library functions
                              -------------------
     begin                : May 22 2018
     copyright            : (C) 2018 by Remi A. Solås
