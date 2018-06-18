@@ -1611,6 +1611,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       WCHAR w_cwd[MAX_PATH];
 	DString cwd = lib::GetCWD();
              MultiByteToWideChar(CP_UTF8, 0, cwd.c_str(), -1, w_cwd, MAX_PATH);
+	
     SECURITY_ATTRIBUTES saAttr;
 
     saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);

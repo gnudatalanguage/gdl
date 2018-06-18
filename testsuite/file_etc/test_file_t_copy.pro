@@ -45,7 +45,7 @@ end
 ;
 ; --------------------------------
 ;
-pro TEST_FILE_COPY, test=test, verbose=verbose
+pro TEST_FILE_T_COPY, test=test, verbose=verbose
 ;
 
 ; Clean up any residue and create test directory

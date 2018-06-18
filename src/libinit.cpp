@@ -244,10 +244,8 @@ void LibInit()
   const string file_infoKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_info,string("FILE_INFO"),2,file_infoKey);
 
-// GVJ: routine exists and compiles in file.cpp, file.hpp;
-// insert when test_file_lines.pro has been contributed
-  //const string file_linesKey[]={"NOEXPAND_PATH","COMPRESS",KLISTEND};
-  //new DLibFunRetNew(lib::file_lines,string("FILE_LINES"),1,file_linesKey);
+  const string file_linesKey[]={"NOEXPAND_PATH","COMPRESS",KLISTEND};
+  new DLibFunRetNew(lib::file_lines,string("FILE_LINES"),1,file_linesKey);
 
   const string file_mkdirKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_mkdir,string("FILE_MKDIR"),-1,file_mkdirKey);

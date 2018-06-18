@@ -1,6 +1,10 @@
 ;
 ; Greg Jung October 2017
 ;	 make compatible with windows, use openw and file_mkdir.
+;   Rename the procedure/filename to file_t_delete so that 
+;   the script version file_t_delete is used in place of the 
+;	C++ compiled-in version - named file_delete and tested 
+;	with a similar and separate test routine.
 ;
 ; Lea Noreskal, June 2010
 ; under GNU GPL 2 or later
@@ -34,11 +38,11 @@ end
 ;
 ; -------------------------------------------------------------
 ;
-pro TEST_FILE_DELETE, full_test=full_test, test=test, help=help
+pro TEST_FILE_T_DELETE, full_test=full_test, test=test, help=help
 ;
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FILE_DELETE, full_test=full_test, test=test, help=help'
+   print, 'pro TEST_FILE_T_DELETE, full_test=full_test, test=test, help=help'
    return
 endif
 ;
@@ -133,6 +137,7 @@ endif
 
 if(!version.OS_FAMILY eq "Windows") then begin &$
 	print, 'Windows-restricted tests done (SUCCESS)'  &$
+BANNER_FOR_TESTSUITE, 'TEST_FILE_T_DELETE',0 &$
 	return & endif
 
 ;
@@ -146,7 +151,7 @@ for ii=0,N_ELEMENTS(file_exp)-1 do begin
    if FILE_TEST(file_exp[ii],/noexpand) EQ 0 then SPAWN, 'touch '+escape_special_char(file_exp[ii])
 endfor
 
-
+total_errors = 0
 
 ;	SPAWN , 'ls'
 
@@ -156,6 +161,7 @@ all_files_and_directories=[all_files_and_directories,file_exp]
 FILE_T_DELETE , file_exp[2] , /noexpand
 
 if (FILE_TEST(file_exp[2], /noexpand) EQ 1) then begin
+	total_errors++
    MESSAGE, 'file_exp[2] has not been deleted', /continue
    del_test_files , all_files_and_directories
    EXIT, status=1
@@ -164,6 +170,7 @@ endif
 file_to_supp=FILE_INFO('ti*')
 FILE_T_DELETE , 'ti*'
 if (FILE_TEST(file_to_supp.name) EQ 1) then begin
+	total_errors++
    MESSAGE, 'file has not been deleted , error expand', /continue
    del_test_files , all_files_and_directories
    EXIT, status=1
@@ -172,13 +179,16 @@ endif
 file_to_supp=FILE_INFO('ti*')
 FILE_T_DELETE , 'ti*'
 if (FILE_TEST(file_to_supp.name) EQ 1) then begin
+	total_errors++
    MESSAGE, 'file has not been deleted , error expand', /continue
    del_test_files , all_files_and_directories
    EXIT, status=1
 endif
 
-
-print, 'All tests done'
+; final message
+;
+BANNER_FOR_TESTSUITE, 'TEST_FILE_T_DELETE', total_errors
+;
 ;
 if KEYWORD_SET(test) then STOP
 ;
