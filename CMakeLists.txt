@@ -626,7 +626,7 @@ if(HDF)
 	if(HDF_FOUND)
 		if(NETCDF)
 			set(CMAKE_REQUIRED_LIBRARIES ${HDF_EXTRA_LIBRARIES})
-                        check_library_exists("${HDF_LIBRARIES}" sd_nccreate "" SD_NCCREATE)
+                        check_library_exists("${HDF_LIBRARIES};${RPC_LIBRARIES}" sd_nccreate "" SD_NCCREATE)
 			if(NOT SD_NCCREATE)
 				message(FATAL_ERROR "HDF4 needs to be configured with the --disable-netcdf option "
 				"in order to be used with the original netCDF library.")
