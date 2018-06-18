@@ -279,7 +279,6 @@ namespace lib {
     int32_t arrstart;
     int32_t UnknownLong;
     if (!xdr_int32_t(xdrs, &arrstart)) return NULL;
-    cerr<<arrstart<<endl;
     if (arrstart != 8 && arrstart !=18) //'10'o and '22'o
     {
       cerr << "array is not a array! abort." << endl;
