@@ -173,9 +173,24 @@ void InitGDL()
   lib::SetGDLGenericGSLErrorHandler();
 }
 
+static bool trace_me;
+
 // SA: for use in COMMAND_LINE_ARGS()
 namespace lib {
-  extern std::vector<char*> command_line_args;
+  extern std::vector<std::string> command_line_args;
+  bool gdlarg_present(const char* s)
+  {
+		for (size_t i = 0; i < command_line_args.size(); i++)
+			  if( command_line_args[i] == s )  return true;
+		return false;
+		  }
+  bool trace_arg()
+  {
+		for (size_t i = 0; i < command_line_args.size(); i++) 
+			  if( command_line_args[i] == "trace" )  return true;
+		return false;
+   }
+
 }
 
 int main(int argc, char *argv[])
@@ -238,11 +253,11 @@ int main(int argc, char *argv[])
           cerr << "gdl: -arg must be followed by a user argument." << endl;
           return 0;
         } 
-        lib::command_line_args.push_back(argv[++a]);
+        lib::command_line_args.push_back(string(argv[++a]));
       }
       else if( string( argv[a]) == "-args")
       {
-        for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(argv[i]);
+        for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(string(argv[i]));
         break;
       }
       else if (string(argv[a])=="-quiet" | string(argv[a])=="--quiet" | string(argv[a])=="-q") 

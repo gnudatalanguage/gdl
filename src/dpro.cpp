@@ -443,6 +443,11 @@ bool DSubUD::isObsolete()
   return compileOpt & GDLParser::OBSOLETE;
 }
 
+bool DSubUD::isStatic()
+{
+  return compileOpt & GDLParser::STATIC;
+}
+
 bool DSubUD::isHidden()
 {
   return compileOpt & GDLParser::HIDDEN;

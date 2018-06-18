@@ -18,6 +18,9 @@
 
 #include "includefirst.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "nullgdl.hpp"
 #include "dstructgdl.hpp"
