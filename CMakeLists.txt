@@ -7,13 +7,17 @@
 #  (at your option) any later version.
 #
 
-# tested with 2.4 and doesn't seem to run.
-# SA: 2.6 supports simplified if constructs, e.g. endif()
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+# requirement for CMAKE_CXX_STANDARD
+if (APPLE)
+  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+else()
+  cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR) # undocumented but works, https://github.com/gnudatalanguage/gdl/pull/365
+endif()
+
 cmake_policy(SET CMP0026 OLD) # LOCATION property
-set(CMAKE_CXX_STANDARD 98)
 
 project(GDL)
+set(CMAKE_CXX_STANDARD 11)
 
 # X.X.X CVS becomes release X.X.X+1
 set(VERSION "0.9.8 git")
@@ -81,6 +85,14 @@ set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory t
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
+
+set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
+set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
+
+if(TIFF)
+	set(GEOTIFF ON CACHE BOOL "GDL: Enable libgeotiff ?")
+	set(GEOTIFFDIR "" CACHE PATH "GDL: Specify the libgeotiff directory tree")
+endif(TIFF)
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
@@ -576,6 +588,42 @@ if(WXWIDGETS)
                 "(suitable Fedora package: wxGTK-devel)")
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
+
+# libtiff
+# -DTIFF=ON|OFF
+# -DTIFFDIR=DIR
+if(TIFF)
+	set(CMAKE_PREFIX_PATH ${TIFFDIR})
+	find_package(TIFF QUIET)
+	set(USE_TIFF ${TIFF_FOUND})
+	if(TIFF_FOUND)
+		include_directories(${TIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
+	else(TIFF_FOUND)
+		message(STATUS
+		"libtiff is recommended for TIFF support but was not found.\n"
+		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
+		"Use -DTIFF=OFF to not use it.")
+	endif(TIFF_FOUND)
+endif(TIFF)
+
+# libgeotiff
+# -DGEOTIFF=ON|OFF
+# -DGEOTIFFDIR=DIR
+if(GEOTIFF AND USE_TIFF)
+    set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
+    find_package(GeoTIFF QUIET)
+    set(USE_GEOTIFF ${GEOTIFF_FOUND})
+    if(GEOTIFF_FOUND)
+        include_directories(${GEOTIFF_INCLUDE_DIR})
+        set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
+    else(GEOTIFF_FOUND)
+        message(STATUS
+        "libgeotiff is required for GeoTIFF support but was not found.\n"
+        "Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
+        "Use -DGEOTIFF=OFF to not use it.")
+    endif(GEOTIFF_FOUND)
+endif(GEOTIFF AND USE_TIFF)
 
 # netCDF
 # -DNETCDF=ON|OFF
@@ -1095,6 +1143,8 @@ endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets  ")
 module(MAGICK    "ImageMagick")
+module(TIFF      "TIFF       ")
+module(GEOTIFF   "GeoTIFF    ")
 module(NETCDF    "NetCDF     ")
 module(HDF       "HDF4       ")
 module(HDF5      "HDF5       ")

@@ -1232,7 +1232,7 @@ numeric_constant!//
 
 arrayindex_list
 {		
-    int rank = 1;
+    SizeT rank = 1;
 }
 	: LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
 	| { IsRelaxed()}? LBRACE! arrayindex 
@@ -1967,12 +1967,8 @@ tokens {
 {
   // Stuff for include files (@filename)
   private:
-#if (__cplusplus >= 201103L)
     std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
-#else
-    std::auto_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
-#endif
-                                     // it when it is deleted itself 
+                                     // it when it is deleted itself
     antlr::TokenStreamSelector*     selector; 
     GDLLexer*                       mainLexerPtr;
     GDLParser*                      parserPtr;
