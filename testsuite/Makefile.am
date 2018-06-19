@@ -205,6 +205,7 @@ TESTS = \
   test_suite.pro \
   test_systime.pro \
   test_tic_toc.pro \
+  test_tiff.pro \
   test_total.pro \
   test_trisol.pro \
   test_tv.pro \

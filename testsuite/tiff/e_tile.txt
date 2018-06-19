@@ -1,0 +1,4 @@
+e_tile.tif:
+
+This file has no geotiff information.  It is really just around to 
+test TIFF tile support. 
