@@ -21,7 +21,7 @@ pro test_query_tiff, ntoterr, test=test, verbose=verbose
   if ~tiff_exists() then return
 
   ; Regular TIFF, tiled
-  file='tiff/e_tile.tif'
+  file=file_search_for_testsuite('tiff/e_tile.tif')
   if query_tiff(file, info) eq 1 then begin
     if info.channels ne 1 then $
       errors_add, nerr, 'Unexpected number of CHANNELS in ' + file
@@ -68,7 +68,7 @@ pro test_query_tiff, ntoterr, test=test, verbose=verbose
   if ~geotiff_exists() then return
 
   ; GeoTIFF, untiled
-  file='tiff/bogota.tif'
+  file=file_search_for_testsuite('tiff/bogota.tif')
   if query_tiff(file, info, geotiff=geo) eq 1 then begin
     if ~array_equal(info.tile_size, [info.dimensions[0], 1]) then $
       errors_add, nerr, 'Unexpected value of TILE_SIZE in ' + file
