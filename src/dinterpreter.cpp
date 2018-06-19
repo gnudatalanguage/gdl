@@ -47,12 +47,7 @@
 #include "print_tree.hpp"
 #endif
 
-#if (__cplusplus >= 201103L || _MSC_VER >= 1800) && !defined(__MINGW32__)
-#   include <thread> // C++11
-#   define HAVE_CXX11THREAD
-#else
-#   include <pthread.h>
-#endif
+#include <thread> // C++11
 
 using namespace std;
 using namespace antlr;
@@ -1270,29 +1265,18 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   return CC_OK;
 }
 
-#ifdef HAVE_CXX11THREAD
 void inputThread() {
-#else
-void *inputThread(void*) {
-#endif
     while (1) {
       // patch by Ole, 2017-01-06
       //char ch = getchar(); if (ch==EOF) return NULL;
       char ch = getchar();
       if (ch==EOF) {
-#ifdef HAVE_CXX11THREAD
 	return;
-#else
-	return NULL;
-#endif
       }        
       inputstr += ch;
       if (ch == '\n')
 	break;
     }
-#ifndef HAVE_CXX11THREAD
-    return NULL;
-#endif
 }
 
 // if readline is not available or !EDIT_INPUT set to zero
@@ -1301,18 +1285,17 @@ char* DInterpreter::NoReadline( const string& prompt)
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
-#ifdef HAVE_CXX11THREAD
   thread th(inputThread);
-#else
-  pthread_t th;
-  pthread_create(&th, NULL, inputThread, NULL);
-#endif
 
   for (;;)
     {
         GDLEventHandler();
         if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
-        if (feof(stdin)) return NULL;
+        if (feof(stdin)) 
+        {
+          th.join();
+          return NULL;
+        }
 #ifdef WIN32
         Sleep(10);
 #else
@@ -1326,11 +1309,7 @@ char* DInterpreter::NoReadline( const string& prompt)
   strcpy(result, inputstr.c_str()); // copies including terminating '\0'
   inputstr.clear();
 
-#ifdef HAVE_CXX11THREAD
   th.join();
-#else
-  pthread_join(th, NULL);
-#endif
 
   return result;
 }

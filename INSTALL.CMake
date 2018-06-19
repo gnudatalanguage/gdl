@@ -1,4 +1,5 @@
-Be sure that you have at least CMake 2.6 (cmake --version)
+Be sure that you have at least CMake 3.1 (cmake --version)
+(CMake 3.2 required for OSX) (but: see note at end)
 
 Create a new directory where the objects and executables 
 will be built, e.g.
@@ -79,5 +80,10 @@ cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON=YES -DCMAKE_CXX_FLAGS_RELEASE=" -Wno-r
 make -j 4
 sudo make install
 
-For a special compilation with all the options for fast code, including targeting the machine's processor type, use:
--DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -march=native -DNDEBUG"
+For a special compilation with all the options for fast code, including targeting the machine's processor type, use for example:
+-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -fno-math-errno -fno-signaling-nans -msse2 -march=native -DNDEBUG"
+more aggressive optimisations may invalidate tests about NaNs for example.
+
+Note: CMakeLists.txt enforces use of CMAKE > 3.1 (3.2 for OsX) because some parts of our code needs a c++11 compliant compiler.
+It is sometimes possible to remove this requirement from the CMakeLists.txt ("cmake_minimum_required(VERSION 3.1 FATAL_ERROR)")
+provided one adds " -DCMAKE_CXX_FLAGS='-std=c++11' " to the cmake command.
