@@ -174,8 +174,9 @@ void LibInit()
                                 "TEST_DIRECTORY", "TEST_EXECUTABLE", "TEST_READ",
                                  "TEST_REGULAR", "TEST_WRITE", "TEST_ZERO_LENGTH",
                                  "TEST_SYMLINK",
+                                 "DIRECTORY","SYMLINK","REGULAR","ZERO_LENGTH",
                                  KLISTEND};
-  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
+  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),3,file_searchKey);
 
   const string file_expand_pathKey[]={KLISTEND};
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
@@ -218,6 +219,23 @@ void LibInit()
 
   const string file_dirnameKey[]={"MARK_DIRECTORY",KLISTEND};
   new DLibFunRetNew(lib::file_dirname,string("FILE_DIRNAME"),1,file_dirnameKey);
+
+
+  const string file_moveKey[]={"ALLOW_SAME", "OVERWRITE", "REQUIRE_DIRECTORY", 
+			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+  new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
+  
+  const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
+			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+  new DLibPro(lib::file_link,string("FILE_LINK"),2,file_linkKey);
+  
+  const string file_copyKey[]={"ALLOW_SAME", "OVERWRITE","FORCE", "REQUIRE_DIRECTORY", 
+			"VERBOSE", "NOEXPAND_PATH","RECURSIVE","COPY_SYMLINK",KLISTEND};
+  new DLibPro(lib::file_copy,string("FILE_COPY"),2,file_copyKey);
+
+  const string file_deleteKey[]={"ALLOW_NONEXISTENT","NOEXPAND_PATH","RECURSIVE",
+			"QUIET","VERBOSE",KLISTEND};
+  new DLibPro(lib::file_delete,string("FILE_DELETE"),-1,file_deleteKey);
 
 
   const string file_sameKey[]={"NOEXPAND_PATH",KLISTEND};
