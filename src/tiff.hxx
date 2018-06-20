@@ -51,8 +51,8 @@ namespace lib
 
             struct Resolution
             {
-                float x                 = 0.f;
-                float y                 = 0.f;
+                float x                 = 1.f;
+                float y                 = 1.f;
 
                 enum class Unit : uint16
                 {

@@ -205,9 +205,6 @@ namespace lib
                     dir.tileWidth = dir.width;
                     dir.tileHeight = 1;
                 }
-
-                if(!(dir.resolution.x && dir.resolution.y))
-                    dir.resolution.unit = Directory::Resolution::Unit::None;
             }
             catch(const char* tag) {
                 fprintf(stderr, "missing tag: %s\n", tag);

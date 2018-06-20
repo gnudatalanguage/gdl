@@ -53,10 +53,10 @@ pro test_query_tiff, ntoterr, test=test, verbose=verbose
     if info.planar_config ne 1 then $
       errors_add, nerr, 'Unexpected value of PLANAR_CONFIG in ' + file
 
-    if ~array_equal(info.resolution, [0, 0]) then $
+    if ~array_equal(info.resolution, [1, 1]) then $
       errors_add, nerr, 'Unexpected value of RESOLUTION in ' + file
 
-    if info.units ne 1 then $
+    if info.units ne 2 then $
       errors_add, nerr, 'Unexpected value of UNITS in ' + file
 
     if ~array_equal(info.tile_size, [256, 112]) then $
