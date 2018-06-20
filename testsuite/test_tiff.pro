@@ -21,9 +21,6 @@
 pro test_query_tiff, ntoterr, test=test, verbose=verbose
   nerr=0
 
-  ; TIFF tests ignored if built without TIFF support
-  if ~tiff_exists() then return
-
   ; Regular TIFF, tiled
   file=file_search_for_testsuite('tiff/8bit_gray_tiled.tif')
   if query_tiff(file, info) eq 1 then begin
@@ -101,9 +98,6 @@ end
 pro test_read_tiff, ntoterr, test=test, verbose=verbose
   nerr=0
 
-  ; TIFF tests ignored if built without TIFF support
-  if ~tiff_exists() then return
-
   ; 8-bit grayscale with SUB_RECT
   file=file_search_for_testsuite('tiff/8bit_gray_geo.tif')
   image=tiff_read(file, sub_rect=[5, 15, 30, 90])
@@ -128,8 +122,10 @@ pro test_tiff, help=help, test=test, no_exit=no_exit, verbose=verbose
     return
   endif
 
-  test_query_tiff, ntoterr, test=test, verbose=verbose
-  test_read_tiff, ntoterr, test=test, verbose=verbose
+  if tiff_exists() then begin
+    test_query_tiff, ntoterr, test=test, verbose=verbose
+    test_read_tiff, ntoterr, test=test, verbose=verbose
+  endif
 
   banner_for_testsuite, 'test_tiff', ntoterr
   if ntoterr gt 0 && ~keyword_set(no_exit) then exit, status=1
