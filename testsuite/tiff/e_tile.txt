@@ -1,4 +1,15 @@
-e_tile.tif:
+Magic: 0x4949 <little-endian> Version: 0x2a <ClassicTIFF>
+Directory 0: offset 1146888 (0x118008) next 0 (0)
 
-This file has no geotiff information.  It is really just around to 
-test TIFF tile support. 
+ImageWidth (256)        SHORT (3)   1<1024>
+ImageLength (257)       SHORT (3)   1<1024>
+BitsPerSample (258)     SHORT (3)   1<8>
+Compression (259)       SHORT (3)   1<1>
+Photometric (262)       SHORT (3)   1<1>
+SamplesPerPixel (277)   SHORT (3)   1<1>
+PlanarConfig (284)      SHORT (3)   1<1>
+TileWidth (322)         SHORT (3)   1<256>
+TileLength (323)        SHORT (3)   1<112>
+TileOffsets (324)       LONG (4)    40<...>
+TileByteCounts (325)    LONG (4)    40<...>
+

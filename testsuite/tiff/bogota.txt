@@ -1,37 +1,18 @@
+Magic: 0x4949 <little-endian> Version: 0x2a <ClassicTIFF>
+Directory 0: offset 262152 (0x40008) next 0 (0)
 
-Bogota Colombia
+ImageWidth (256)        SHORT (3)   1<512>
+ImageLength (257)       SHORT (3)   1<512>
+BitsPerSample (258)     SHORT (3)   1<8>
+Compression (259)       SHORT (3)   1<1>
+Photometric (262)       SHORT (3)   1<1>
+StripOffsets (273)      LONG (4)    32<...>
+SamplesPerPixel (277)   SHORT (3)   1<1>
+RowsPerStrip (278)      SHORT (3)   1<16>
+StripByteCounts (279)   LONG (4)    32<...>
+PlanarConfig (284)      SHORT (3)   1<1>
 
-This image shows use of an unusual PCS, but it is otherwise normal. 
-The image isn't really from Bogota of course.
+33550 (0x830e)          DOUBLE (12) 3<60 60 0>
+33922 (0x8482)          DOUBLE (12) 6<0 0 0 440720 100000 0>
+34735 (0x87af)          SHORT (3)   16<1 1 0 3 1024 0 1 1 1025 0 1 1 3072 0 1 21892>
 
-Frank Warmerdam
-warmerda@home.com
-
-
-
-Geotiff_Information:
-   Version: 1
-   Key_Revision: 1.0
-   Tagged_Information:
-      ModelTiepointTag (2,3):
-         0                0                0                
-         440720           100000           0                
-      ModelPixelScaleTag (1,3):
-         60               60               0                
-      End_Of_Tags.
-   Keyed_Information:
-      GTModelTypeGeoKey (Short,1): ModelTypeProjected
-      GTRasterTypeGeoKey (Short,1): RasterPixelIsArea
-      ProjectedCSTypeGeoKey (Short,1): PCS_Bogota_Colombia_Bogota
-      End_Of_Keys.
-   End_Of_Geotiff.
-
-
-In GXF terms:
-
-#MAP_PROJECTION
-"Bogota / Colombia Bogota zone"
-"International 1924",6378388,0.08199189,0.0000000
-"Transverse Mercator",6.1547222,-74.2091667,1,1000000,1000000
-#UNIT_LENGTH
-"m",1
