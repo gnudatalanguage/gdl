@@ -40,7 +40,6 @@ before_install:
     - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_finite.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
