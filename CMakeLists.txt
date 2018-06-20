@@ -600,8 +600,8 @@ if(TIFF)
 		include_directories(${TIFF_INCLUDE_DIR})
 		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
 	else(TIFF_FOUND)
-		message(STATUS
-		"libtiff is recommended for TIFF support but was not found.\n"
+		message(FATAL_ERROR
+		"libtiff is required for TIFF support but was not found.\n"
 		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
 		"Use -DTIFF=OFF to not use it.")
 	endif(TIFF_FOUND)
@@ -611,18 +611,18 @@ endif(TIFF)
 # -DGEOTIFF=ON|OFF
 # -DGEOTIFFDIR=DIR
 if(GEOTIFF AND USE_TIFF)
-    set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
-    find_package(GeoTIFF QUIET)
-    set(USE_GEOTIFF ${GEOTIFF_FOUND})
-    if(GEOTIFF_FOUND)
-        include_directories(${GEOTIFF_INCLUDE_DIR})
-        set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
-    else(GEOTIFF_FOUND)
-        message(STATUS
-        "libgeotiff is required for GeoTIFF support but was not found.\n"
-        "Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
-        "Use -DGEOTIFF=OFF to not use it.")
-    endif(GEOTIFF_FOUND)
+	set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
+	find_package(GeoTIFF QUIET)
+	set(USE_GEOTIFF ${GEOTIFF_FOUND})
+	if(GEOTIFF_FOUND)
+		include_directories(${GEOTIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
+	else(GEOTIFF_FOUND)
+		message(FATAL_ERROR
+		"libgeotiff is required for GeoTIFF support but was not found.\n"
+		"Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
+		"Use -DGEOTIFF=OFF to not use it.")
+	endif(GEOTIFF_FOUND)
 endif(GEOTIFF AND USE_TIFF)
 
 # netCDF
