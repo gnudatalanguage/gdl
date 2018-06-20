@@ -7,6 +7,10 @@
 ; ---------------------
 ; Modification history:
 ; 
+; 2018-06-20 : Remi A. Solås <remi.solaas (at) edinsights (dot) no>
+; - Updated sample image names
+; - Added basic READ_TIFF tests for 8-bit grayscale images
+;
 ; 2018-06-19 : Remi A. Solås <remi.solaas (at) edinsights (dot) no>
 ; - Initial version
 ; - Basic QUERY_TIFF tests for both tiff and geotiff
@@ -64,33 +68,56 @@ pro test_query_tiff, ntoterr, test=test, verbose=verbose
 
   endif else errors_add, nerr, 'QUERY_TIFF failed to query ' + file
 
-  ; GeoTIFF tests ignored if built without GeoTIFF support
-  if ~geotiff_exists() then return
+  if geotiff_exists() then begin
+    ; GeoTIFF, untiled
+    file=file_search_for_testsuite('tiff/8bit_gray_geo.tif')
+    if query_tiff(file, info, geotiff=geo) eq 1 then begin
+      if ~array_equal(info.tile_size, [info.dimensions[0], 1]) then $
+        errors_add, nerr, 'Unexpected value of TILE_SIZE in ' + file
 
-  ; GeoTIFF, untiled
-  file=file_search_for_testsuite('tiff/8bit_gray_geo.tif')
-  if query_tiff(file, info, geotiff=geo) eq 1 then begin
-    if ~array_equal(info.tile_size, [info.dimensions[0], 1]) then $
-      errors_add, nerr, 'Unexpected value of TILE_SIZE in ' + file
+      if ~array_equal(geo.modelPixelScaleTag, [60, 60, 0]) then $
+        errors_add, nerr, 'Unexpected value of MODELPIXELSCALETAG in ' + file
 
-    if ~array_equal(geo.modelPixelScaleTag, [60, 60, 0]) then $
-      errors_add, nerr, 'Unexpected value of MODELPIXELSCALETAG in ' + file
+      if ~array_equal(geo.modelTiePointTag, [0, 0, 0, 440720, 100000, 0]) then $
+        errors_add, nerr, 'Unexpected value of MODELTIEPOINTTAG in ' + file
 
-    if ~array_equal(geo.modelTiePointTag, [0, 0, 0, 440720, 100000, 0]) then $
-      errors_add, nerr, 'Unexpected value of MODELTIEPOINTTAG in ' + file
+      if geo.gtModelTypeGeoKey ne 1 then $
+        errors_add, nerr, 'Unexpected value of GTMODELTYPEGEOKEY in ' + file
 
-    if geo.gtModelTypeGeoKey ne 1 then $
-      errors_add, nerr, 'Unexpected value of GTMODELTYPEGEOKEY in ' + file
+      if geo.gtRasterTypeGeoKey ne 1 then $
+        errors_add, nerr, 'Unexpected value of GTRASTERTYPEGEOKEY in ' + file
 
-    if geo.gtRasterTypeGeoKey ne 1 then $
-      errors_add, nerr, 'Unexpected value of GTRASTERTYPEGEOKEY in ' + file
+      if geo.projectedCsTypeGeoKey ne 21892 then $
+        errors_add, nerr, 'Unexpected value of PROJECTEDCRTYPEGEOKEY in ' + file
 
-    if geo.projectedCsTypeGeoKey ne 21892 then $
-      errors_add, nerr, 'Unexpected value of PROJECTEDCRTYPEGEOKEY in ' + file
-
-  endif else errors_add, nerr, 'QUERY_TIFF failed to query ' + file
+    endif else errors_add, nerr, 'QUERY_TIFF failed to query ' + file
+  endif
 
   banner_for_testsuite, 'test_query_tiff', nerr, /status
+  errors_cumul, ntoterr, nerr
+  if keyword_set(test) then STOP
+end
+
+pro test_read_tiff, ntoterr, test=test, verbose=verbose
+  nerr=0
+
+  ; TIFF tests ignored if built without TIFF support
+  if ~tiff_exists() then return
+
+  ; 8-bit grayscale with SUB_RECT
+  file=file_search_for_testsuite('tiff/8bit_gray_geo.tif')
+  image=tiff_read(file, sub_rect=[5, 15, 30, 90])
+
+  if ~array_equal(size(image, /dimensions), [30, 90]) then $
+    errors_add, nerr, 'Unexpected return value of SUB_RECT of ' + file
+
+  if ~array_equal(image[0:5], [107, 107, 115, 140, 99, 115]) then $
+    errors_add, nerr, 'Unexpected pixel values in tested range of ' + file
+
+  if ((image[0, 0] ne 107) || (image[0, 89] ne 0) || (image[29, 0] ne 107) || (image[29, 89] ne 41)) then $
+    errors_add, nerr, 'Unexpected pixel values in corners of ' + file
+
+  banner_for_testsuite, 'test_read_tiff', nerr, /status
   errors_cumul, ntoterr, nerr
   if keyword_set(test) then STOP
 end
@@ -102,6 +129,7 @@ pro test_tiff, help=help, test=test, no_exit=no_exit, verbose=verbose
   endif
 
   test_query_tiff, ntoterr, test=test, verbose=verbose
+  test_read_tiff, ntoterr, test=test, verbose=verbose
 
   banner_for_testsuite, 'test_tiff', ntoterr
   if ntoterr gt 0 && ~keyword_set(no_exit) then exit, status=1
