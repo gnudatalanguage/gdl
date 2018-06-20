@@ -594,14 +594,14 @@ endif(WXWIDGETS)
 # -DTIFFDIR=DIR
 if(TIFF)
 	set(CMAKE_PREFIX_PATH ${TIFFDIR})
-	find_package(TIFF QUIET)
+	find_package(TIFF 4.0.3 QUIET)
 	set(USE_TIFF ${TIFF_FOUND})
 	if(TIFF_FOUND)
 		include_directories(${TIFF_INCLUDE_DIR})
 		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
 	else(TIFF_FOUND)
 		message(FATAL_ERROR
-		"libtiff is required for TIFF support but was not found.\n"
+		"libtiff v4.0.3 or newer is required for TIFF support but was not found.\n"
 		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
 		"Use -DTIFF=OFF to not use it.")
 	endif(TIFF_FOUND)
