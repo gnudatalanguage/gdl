@@ -8,42 +8,55 @@
 ;
 pro TEST_FILE_DIRNAME, test=test
 
-;print, FILE_DIRNAME('GDLTokenTy\*') ; .
-if (FILE_DIRNAME('GDLTokenTy\*') NE '.') then begin
-   MESSAGE, /continue, ' FILE_DIRNAME(GDLTokenTy\*) NE .'
-   EXIT, status=1
-endif
+fr = FILE_DIRNAME('GDLTokenTy\*') & expect = '.'
+if(!Version.OS_family) eq 'Windows' then expect='GDLTokenTy'
+if (fr NE expect) then $
+   MESSAGE, /continue, ' FILE_DIRNAME(GDLTokenTy\*) NE '+expect
+numerror = 0;
 ;
-;print, FILE_DIRNAME('GDLTokenTy*') ; .
-if (FILE_DIRNAME('GDLTokenTy*') NE '.') then begin
-   MESSAGE, /continue, 'FILE_DIRNAME : FILE_DIRNAME(GDLTokenTy\*) NE .'
-   EXIT, status=1
-endif
+fr = FILE_DIRNAME('GDLTokenTy*') & expect = '.'
+if (fr NE expect) then $
+   MESSAGE, /continue, ' FILE_DIRNAME(GDLTokenTy\*) NE '+expect
+if (fr NE expect) then numerror++;
+
+fr =  FILE_DIRNAME('GDLTokenTy*/*') & expect = 'GDLTokenTy*'
+
+if (fr NE expect) then $
+   MESSAGE, /continue, 'FILE_DIRNAME(GDLTokenTy*/*) NE '+expect
+if (fr NE expect) then numerror++;
+
 ;
-;print, FILE_DIRNAME('GDLTokenTy*/*') ; GDLTokenTy*
-if (FILE_DIRNAME('GDLTokenTy*/*') NE 'GDLTokenTy*') then begin
-   MESSAGE, /continue, 'FILE_DIRNAME(GDLTokenTy*/*) NE GDLTokenTy*'
-   EXIT, status=1
-endif
-;
-;print, FILE_DIRNAME('GDLTokenTy/*') ; GDLTokenTy*
-if (FILE_DIRNAME('GDLTokenTy/*') NE 'GDLTokenTy') then begin
-   MESSAGE, /continue, 'FILE_DIRNAME(GDLTokenTy/*) NE GDLTokenTy'
-   EXIT, status=1
-endif
-;
-;print, FILE_DIRNAME('/home/GDL/test/of/dir/name/*/*') ;
-;/home/GDL/test/of/dir/name/*
+fr = FILE_DIRNAME('GDLTokenTy/*') & expect = 'GDLTokenTy'
+
+if (fr NE expect) then $
+   MESSAGE, /continue, 'FILE_DIRNAME(GDLTokenTy/*) NE '+expect
+if (fr NE expect) then numerror++;
+
 ; 
-my_path='/home/GDL/test/of/dir/name/*/*'
-if (FILE_DIRNAME(my_path) NE '/home/GDL/test/of/dir/name/*') then begin
-   MESSAGE, /continue, 'FILE_DIRNAME(/home/GDL/test/of/dir/name/*/*) NE /home/GDL/test/of/dir/name/*'
-   EXIT, status=1
-endif
+fr = FILE_DIRNAME('/home/GDL/test/of/dir/name/*/*')
+expect= '/home/GDL/test/of/dir/name/*'
+
+if (fr NE expect) then $
+   MESSAGE, /continue, 'FILE_DIRNAME(/home/GDL/test/of/dir/name/*/*) NE '+expect
+if (fr NE expect) then numerror++;
+
 ;
-MESSAGE, /continue, 'All tests done with success'
+if(numerror eq 0) then $
+	MESSAGE, /continue, 'All tests done with success' $
+	else $
+	MESSAGE, /continue, 'NOT ALL tests were successful #'+string( numerror)
+	
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
+print, FILE_DIRNAME('GDLTokenTy\*') ; .
+print, FILE_DIRNAME('GDLTokenTy*') ; .
+print, FILE_DIRNAME('GDLTokenTy*/*') ; GDLTokenTy*
+print, FILE_DIRNAME('GDLTokenTy/*') ; GDLTokenTy*
+print, FILE_DIRNAME('GDLTokenTy/*') ; GDLTokenTy*
+print, FILE_DIRNAME('GDLTokenTy*/*') ; GDLTokenTy*
+print, FILE_DIRNAME('/home/GDL/test/of/dir/name/*/*') ;
+;/home/GDL/test/of/dir/name/*
+end

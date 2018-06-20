@@ -1,3 +1,0 @@
-% Compiled module: CORRELATE.
-% Compiled module: MEAN.
-     -1.00000

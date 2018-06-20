@@ -21,7 +21,6 @@
 ;
 ; - 2017-12-13 : AC. adding TEST_RANDOM_POISSON, num. tests found.
 ;
-;
 ; ----------------------------------------------
 ;
 function STATUS_VERSION_OF_RANDOM, verbose=verbose, test=test
@@ -114,30 +113,28 @@ exptd_n_d=[1.3315865, 0.62133597, 0.0042914309, -0.96506567, -1.1366022]
 ;
 fseed=seed
 res=RANDOMU(fseed, nbp) & res=res[indices]
-if (MAX(ABS(exptd_u_f-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand U & Float'
+if (MAX(ABS(exptd_u_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Float'
 ;
 fseed=seed
 res=RANDOMU(fseed, nbp, /double) & res=res[indices]
-if (MAX(ABS(exptd_u_d-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand U & Double'
+if (MAX(ABS(exptd_u_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Double'
 ;
 fseed=seed
 res=RANDOMN(fseed, nbp) & res=res[indices]
-if (MAX(ABS(exptd_n_f-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand N & Float'
+if (MAX(ABS(exptd_n_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Float'
 ;
 fseed=seed
 res=RANDOMN(fseed, nbp, /double) & res=res[indices]
-if (MAX(ABS(exptd_n_d-res)) GT eps) then ADD_ERROR, nb_errors, 'Rand N & Double'
+if (MAX(ABS(exptd_n_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Double'
 ;
-; ------
+; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, 'TEST_RANDOM_MERSENNE', nb_errors, /short, verb=verbose
-;
+BANNER_FOR_TESTSUITE, 'TEST_RANDOM_MERSENNE', nb_errors, /status, verb=verbose
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
-;
 ;
 ; ---------------------------------------
 ; ULONG keyword appeared in IDL 8.2.2
@@ -160,13 +157,14 @@ seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong)
 seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong)
 seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong)
 ;
-if ~ARRAY_EQUAL(res_ul10uf, exp_ul10) then ADD_ERROR, nb_errors, txt+'U Float'
-if ~ARRAY_EQUAL(res_ul10ud, exp_ul10) then ADD_ERROR, nb_errors, txt+'U Double'
-if ~ARRAY_EQUAL(res_ul10nf, exp_ul10) then ADD_ERROR, nb_errors, txt+'N Float'
-if ~ARRAY_EQUAL(res_ul10nd, exp_ul10) then ADD_ERROR, nb_errors, txt+'n Double'
+if ~ARRAY_EQUAL(res_ul10uf, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Float'
+if ~ARRAY_EQUAL(res_ul10ud, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Double'
+if ~ARRAY_EQUAL(res_ul10nf, exp_ul10) then ERRORS_ADD, nb_errors, txt+'N Float'
+if ~ARRAY_EQUAL(res_ul10nd, exp_ul10) then ERRORS_ADD, nb_errors, txt+'n Double'
 ;
-BANNER_FOR_TESTSUITE, 'TEST_RANDOM_ULONG', nb_errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, 'TEST_RANDOM_ULONG', nb_errors, /status, verb=verbose
 ERRORS_CUMUL, cumul_errors, nb_errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -241,9 +239,9 @@ PLOT_BATONS, res_l10, off=0.1, col='ffffff'x, psym=psym, line=2
 ;
 eps=(MACHAR()).eps
 txt='Case Poisson Sum '
-if (ABS(TOTAL(res_l1)-1.0) GT 5.*eps) then ADD_ERROR, nb_pbs, txt+'1'
-if (ABS(TOTAL(res_l4)-1.0) GT 5.*eps) then ADD_ERROR, nb_pbs, txt+'1' 
-if (ABS(TOTAL(res_l10)-1.0) GT 5.*eps) then ADD_ERROR, nb_pbs, txt+'1' 
+if (ABS(TOTAL(res_l1)-1.0) GT 5.*eps) then ERRORS_ADD, nb_pbs, txt+'1'
+if (ABS(TOTAL(res_l4)-1.0) GT 5.*eps) then ERRORS_ADD, nb_pbs, txt+'1' 
+if (ABS(TOTAL(res_l10)-1.0) GT 5.*eps) then ERRORS_ADD, nb_pbs, txt+'1' 
 ;
 ; Are the Max in the expected range ?
 ; if nbps == 10000, you have 1 over 10 calls to fail
@@ -251,12 +249,13 @@ if (ABS(TOTAL(res_l10)-1.0) GT 5.*eps) then ADD_ERROR, nb_pbs, txt+'1'
 vals=[0.369090,0.196335,0.125015]
 tol=0.01
 txt='Case Poisson Max '
-if (ABS(MAX(res_l1-vals[0])) GT tol) then ADD_ERROR, nb_pbs, txt+'1'
-if (ABS(MAX(res_l4)-vals[1]) GT tol) then ADD_ERROR, nb_pbs, txt+'4'
-if (ABS(MAX(res_l10)-vals[2]) GT tol) then ADD_ERROR, nb_pbs, txt+'10'
+if (ABS(MAX(res_l1-vals[0])) GT tol) then ERRORS_ADD, nb_pbs, txt+'1'
+if (ABS(MAX(res_l4)-vals[1]) GT tol) then ERRORS_ADD, nb_pbs, txt+'4'
+if (ABS(MAX(res_l10)-vals[2]) GT tol) then ERRORS_ADD, nb_pbs, txt+'10'
 ;
-BANNER_FOR_TESTSUITE, "TEST_RANDOM_POISSON", nb_pbs, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, "TEST_RANDOM_POISSON", nb_pbs, /status, verb=verbose
 ERRORS_CUMUL, errors, nb_pbs
 ;
 if KEYWORD_SET(test) then STOP
@@ -364,7 +363,7 @@ for ii=0, N_ELEMENTS(values)-1 do begin
    dispersion=ABS(MEAN(resu)-amplitude*values[ii])
    if (dispersion GT amplitude/ratio) then begin
       txt='bad result for (amplitude, value) : ('+string(amplitude)+','+string(values)+')'
-      ADD_ERRORS, errors, txt
+      ERRORS_ADDS, errors, txt
    endif
    if KEYWORD_SET(verbose) then begin
       print, format='(i12,4f12,6x,I1.1)', amplitude, values[ii], $
@@ -373,8 +372,9 @@ for ii=0, N_ELEMENTS(values)-1 do begin
    ;;
 endfor
 ;
-BANNER_FOR_TESTSUITE, "TEST_RANDOM_BINOMIAL", errors, /short, verb=verbose
+; ----- final ----
 ;
+BANNER_FOR_TESTSUITE, "TEST_RANDOM_BINOMIAL", errors, /status, verb=verbose
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP

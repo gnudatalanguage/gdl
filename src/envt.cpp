@@ -743,7 +743,7 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	  (p != NULL && env.Loc( ix) == p) 
 	  )
 	{
-	  if( subUD != NULL) {return subUD->GetVarName(ix);break;}
+	  if( subUD != NULL) {return subUD->GetVarName(ix);}
 
 	  string callerName = Default;
 	  if( this->Caller() != NULL)

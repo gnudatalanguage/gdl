@@ -53,7 +53,7 @@ if KEYWORD_SET(help) then begin
    print, 'function CHISQR_CVF, prob, n_dof, test=test, help=help'
    return, -1
 endif
-print, 'gdl'
+;print, 'gdl'
 ;
 if ((prob LT 0.) or (prob GT 1.)) then begin
    MESSAGE, 'Chisqr_cvf_ds: the specified probability must lie between 0. and 1.'

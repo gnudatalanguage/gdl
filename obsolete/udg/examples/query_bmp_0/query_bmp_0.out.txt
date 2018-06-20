@@ -1,9 +1,0 @@
-% Compiled module: QUERY_BMP.
-** Structure <Anonymous>, 7 tags, data length=32:
-   CHANNELS        LONG                 4
-   DIMENSIONS      LONG      Array[2]
-   HAS_PALETTE     INT              0
-   IMAGE_INDEX     LONG                 0
-   NUM_IMAGES      LONG                 1
-   PIXEL_TYPE      INT              1
-   TYPE            STRING    'BMP'

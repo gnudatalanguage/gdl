@@ -74,7 +74,7 @@ for ii=0,N_ELEMENTS(list_num_names)-1 do begin
    OK=EXECUTE('exp=exp_'+type_name)
    if OK then begin
       if ~ARRAY_EQUAL(res, exp) then begin
-         ADD_ERROR,  nb_errors, 'pb with type : '+type_name
+         ERRORS_ADD,  nb_errors, 'pb with type : '+type_name
          print, 'exp :', exp
          print, 'res :', res
       endif

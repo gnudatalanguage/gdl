@@ -30,15 +30,15 @@ res_01=FLTARR(5)
 ;
 start=1
 for ii=start,4 do res_01[ii]=CHISQR_CVF(0.1,ii)
-if (MAX(ABS(expected_01-res_01)) GT eps) then ADD_ERROR, nb_errors, 'prob 0.1'
+if (MAX(ABS(expected_01-res_01)) GT eps) then ERRORS_ADD, nb_errors, 'prob 0.1'
 ;
 res_05=FLTARR(5)
 for ii=start,4 do res_05[ii]=CHISQR_CVF(0.5,ii)
-if (MAX(ABS(expected_05-res_05)) GT eps) then ADD_ERROR, nb_errors, 'prob 0.5'
+if (MAX(ABS(expected_05-res_05)) GT eps) then ERRORS_ADD, nb_errors, 'prob 0.5'
 ;
 res_09=FLTARR(5)
 for ii=start,4 do res_09[ii]=CHISQR_CVF(0.9,ii)
-if (MAX(ABS(expected_09-res_09)) GT eps) then ADD_ERROR, nb_errors, 'prob 0.9'
+if (MAX(ABS(expected_09-res_09)) GT eps) then ERRORS_ADD, nb_errors, 'prob 0.9'
 ;
 ; ----------------- final message ----------
 ;

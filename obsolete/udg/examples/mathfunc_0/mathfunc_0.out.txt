@@ -1,2 +1,0 @@
-<Expression>    LONG      =            1
-<Expression>    FLOAT     = Array[3]
