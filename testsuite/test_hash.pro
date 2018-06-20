@@ -1,5 +1,5 @@
 ;
-pro MYMESS, errors, message
+pro ERRORS_ADD, errors, message
 errors=errors+1
 MESSAGE, /continue, message
 end
@@ -8,9 +8,9 @@ pro test_HASH,debug=debug, verbose=verbose
 isgit = 0
 defsysv,"!GDL",exists=isgdl
 if isgdl then $
-	isgit = strpos(!GDL.release,'svn') gt 0
+	isgit = strpos(!GDL.release,'git') gt 0
 if isgit then $
-  message,/cont,' GDL/SVN is detected so some tests will be excused,'
+  message,/cont,' GDL/git is detected so some tests will be excused,'
 
 if(isgit and keyword_set(verbose)) then begin
   print,' Principally, those that traverse beyond a 1-Dimensional hash access'
@@ -30,7 +30,7 @@ if keyword_set(verbose) then begin
 	print,struchash
 	help,/st,struchash
 	endif
-; cvs cannot make a hash from a structure
+
 nb_errors = 0
 if ~isgit then begin
 	; make a comparison hash from the structure.
@@ -39,7 +39,7 @@ if ~isgit then begin
 		else hcomp = hash(struchash)
 	nstash = n_tags(struchash)
 	if(hcomp.count() ne nstash) then $
-	MYMESS, nb_errors,$
+	ERRORS_ADD, nb_errors,$
 	   ' structure was not properly stashed into the hash <hcomp = hash(struchash,/lower)> '
 	   
 	hhtest =  hcomp eq hash1
@@ -74,14 +74,14 @@ if( ~isgit) then begin
 	hnew = hash2[*]
 	keq = (hnew eq hash1).toarray()
 	if n_elements(keq) ne hash1.count() then $
-		MYMESS, nb_errors,' error (hash1[*] eq hash1).toarray() '
+		ERRORS_ADD, nb_errors,' error (hash1[*] eq hash1).toarray() '
 endif
 
 keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 values = LIST('one', 2.0, 3, 4l, PTR_NEW(5), {n:6}, COMPLEX(7,0))
 htest = HASH(keys, values)
 IF N_ELEMENTS(htest) ne 7 then $
-	MYMESS, nb_errors,$
+	ERRORS_ADD, nb_errors,$
 	' N_ELEMENTS(htest) ne 7  .. fail '
 	
 ; cvs does not take a scalar in value position where #elements(key) > 1/
@@ -89,12 +89,17 @@ if ~isgit then begin
 	 keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 	 scalars=hash(keys,0)
 	 eq7 = scalars.count(0)
-	scalars[keys[1:4]] = 4
+CATCH,OL_left_error
+  if OL_left_error eq 0 then $
+	scalars[keys[1:4]] = 4 else $
+        ERRORS_ADD, nb_errors," Left-side insertion error: Fix coming soon!"
+  isgit =  OL_left_error ne 0 
+CATCH,/CANCEL
 	eq4 = scalars.count(4)
 if eq7 ne 7 then $
-	MYMESS, nb_errors,$
+	ERRORS_ADD, nb_errors,$
 		' eq7 = scalars.count(0) is not 7'
-if eq4 ne 4 then 	MYMESS, nb_errors,$
+if eq4 ne 4 then 	ERRORS_ADD, nb_errors,$
 		' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'
 endif
 
@@ -110,21 +115,21 @@ if ~isgit then begin
 	if keyword_set(verbose) then $
 		print,' htest = HASH(struct, /EXTRACT,/fold,/lower) ',htest
 
-	if htest['FIELD2','SUBFIELD2'] ne 3.14 then 	MYMESS, nb_errors,$
+	if htest['FIELD2','SUBFIELD2'] ne 3.14 then 	ERRORS_ADD, nb_errors,$
 				" hash['FIELD2','SUBFIELD2'] ne 3.14"
 	htest['FIELD2','SUBFIELD2'] = chk
 
-	if htest['FIELD2','SUBFIELD2',2] ne 5 then 	MYMESS, nb_errors,$
+	if htest['FIELD2','SUBFIELD2',2] ne 5 then 	ERRORS_ADD, nb_errors,$
 				" htest['FIELD2','SUBFIELD2',2] ne 3" 
 	htest['field2','subfield2',3] = 101
-	if htest['FIELD2','SUBFIELD2',3] ne 101 then 	MYMESS, nb_errors,$
+	if htest['FIELD2','SUBFIELD2',3] ne 101 then 	ERRORS_ADD, nb_errors,$
 				" htest['FIELD2','SUBFIELD2',3] ne 101"
 
 	htest = hash('field1', 4.0, 'field2', hash(/fold),/fold)
 	htest['field2','subfield1'] = "hello"
 	htest['field2','subfield2'] = chk
 	if htest['FIELD2','SUBFIELD2',3] ne chk[3] then $
-			MYMESS, nb_errors,$
+			ERRORS_ADD, nb_errors,$
 				" htest['FIELD2','SUBFIELD2',3] ne chk[3]"
 	rt = htest['field2']
 	if keyword_set(verbose) then begin 
