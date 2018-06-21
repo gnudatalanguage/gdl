@@ -376,7 +376,7 @@ if(UNIX)
 	set(HAVE_RPC ${RPC_FOUND})
 	if(RPC_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
-		include_directories(${RPC_INCLUDE_DIR})
+		include_directories(BEFORE ${RPC_INCLUDE_DIR})
 	else(RPC_FOUND)
 		message(FATAL_ERROR "RPC support is mandatory.\n"
 		"Note that SunRPC has been removed in glibc-2.26 and later, "
