@@ -85,7 +85,7 @@ szchk = [1, nel, 11, nel]
 if (nel ne count) or ~array_equal(szchk, size(h)) then $
     ERRORS_ADD, cumul_errors,' size(<hash>)  wrong'
 strucobj = size(h,/struct)
-if(strucobj.n_elements ne 1) then $
+if(strucobj.n_elements ne count ) then $
     ERRORS_ADD, cumul_errors,' size(object array)  wrong'
 
 if keyword_set(test) then stop,' at end of test_size_hash'
@@ -101,7 +101,7 @@ szchk = [1, nel, 11, nel]
 if (nel ne count) or ~array_equal(szchk, size(h)) then $
     ERRORS_ADD, cumul_errors,' size(<list>)  wrong'
 strucobj = size(h,/struct)
-if(strucobj.n_elements ne 1) then $
+if(strucobj.n_elements ne count ) then $
     ERRORS_ADD, cumul_errors,' size(object array)  wrong'
 
 if keyword_set(test) then stop,' at end of test_size_list'
