@@ -243,10 +243,10 @@ install:
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
 
-    # tirpc
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
-    - if [[ $DEPS == 'MINI' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/"; fi
+    # tirpc - TODO!
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
+#    - if [[ $DEPS == 'MINI' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/"; fi
 
     # diagnostics
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then echo APT_PACKAGES $APT_PACKAGES; fi
