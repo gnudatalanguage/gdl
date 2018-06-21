@@ -226,9 +226,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	int xSize, int ySize, int xPos, int yPos, bool hide)
 {
 
-	int debug = 0;
-	if (debug) cout << " DeviceWIN::WOpen : xsize=" << xSize << " y:" << ySize
-		<< " Xposition=" << xPos << " Y:" << yPos << endl;
 	TidyWindowsList();
 
 	int wLSize = winList.size();
@@ -259,11 +256,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	PLINT xoff; PLINT yoff;
 	winList[wIx]->plstream::gpage(xp, yp, xleng, yleng, xoff, yoff);
 
-	if (debug) cout << "WOpen.gpage xp=" << xp << ", yp=" << yp
-		<< ", xleng=" << xleng << ", yleng=" << yleng
-		<< ", xoff=" << xoff << ", yoff=" << yoff << endl;
-
-	
 	DLong xMaxSize, yMaxSize;
 	//DeviceWIN::MaxXYSize(&xMaxSize, &yMaxSize);
 	RECT rt;
@@ -307,7 +299,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 
 	// no pause on win destruction
 	winList[wIx]->spause(false);
-	if (debug) cout << " WOpen: ->fontld( 1) WOpen: ->scolor( ";
 
 	// extended fonts
 	winList[wIx]->fontld(1);
@@ -319,7 +310,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	static char buf[256];
 	strncpy(buf, title.c_str(), 255);
 	buf[255] = 0;
-	if (debug) cout << "1) WOpen: ->setopt(plwindow,buf)";
 	winList[wIx]->setopt("plwindow", buf);
 
 	// we want color (and the driver options need to be overwritten)
@@ -331,13 +321,7 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	// winList[ wIx]->scmap0( r, g, b, actCT.size());
 	winList[wIx]->SetColorMap1(r, g, b, ctSize);
 
-	if (debug) cout << "; WOpen:winList[ wIx]->Init(";
-
 	winList[wIx]->Init();
-	//          if(debug) cout << " ) WOpen:winList[ wIx]->ssub(1,1)" 
-	//                        << "adv(0) font(1) vpor(0,1,0,1) wind(0,1,0,1";
-	//----------------------
-	//----------------------
 	// need to be called initially. permit to fix things
 	winList[wIx]->ssub(1, 1);
 	winList[wIx]->adv(0);
@@ -347,7 +331,6 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	winList[wIx]->wind(0, 1, 0, 1);
 	winList[wIx]->DefaultCharSize();
 	//in case these are not initalized, here is a good place to do it.
-	if (debug) cout << ")... DefaultCharSize(); " << endl;
 	if (winList[wIx]->updatePageInfo() == true)
 	{
 		winList[wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
