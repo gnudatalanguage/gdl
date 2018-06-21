@@ -319,12 +319,12 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	static char buf[256];
 	strncpy(buf, title.c_str(), 255);
 	buf[255] = 0;
-	if (debug) cout << "1) WOpen: ->SETOPT(plwindow,buf)";
-	winList[wIx]->SETOPT("plwindow", buf);
+	if (debug) cout << "1) WOpen: ->setopt(plwindow,buf)";
+	winList[wIx]->setopt("plwindow", buf);
 
 	// we want color (and the driver options need to be overwritten)
-	// winList[ wIx]->SETOPT( "drvopt","color=1");
-	// ---- alternate SETOPT in devicex.hpp
+	// winList[ wIx]->setopt( "drvopt","color=1");
+	// ---- alternate setopt in devicex.hpp
 	// set color map
 	PLINT r[256], g[256], b[256];
 	actCT.Get(r, g, b);
