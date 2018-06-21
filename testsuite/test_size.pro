@@ -76,6 +76,38 @@ return, input
 ;
 end
 ;
+pro TEST_SIZE_HASH, cumul_errors, dims=dims, verbose=verbose, $
+                     help=help, test=test, debug=debug
+h = hash('a',1,'b',2,'c',3)
+count = h.count()
+nel = size(h, /N_elements)
+szchk = [1, nel, 11, nel]
+if (nel ne count) or ~array_equal(szchk, size(h)) then $
+    ERRORS_ADD, cumul_errors,' size(<hash>)  wrong'
+strucobj = size(h,/struct)
+if(strucobj.n_elements ne 1) then $
+    ERRORS_ADD, cumul_errors,' size(object array)  wrong'
+
+if keyword_set(test) then stop,' at end of test_size_hash'
+return
+end
+;
+pro TEST_SIZE_LIST, cumul_errors, dims=dims, verbose=verbose, $
+                     help=help, test=test, debug=debug
+h = list('a',1,'b',2,'c',3)
+count = h.count()
+nel = size(h, /N_elements)
+szchk = [1, nel, 11, nel]
+if (nel ne count) or ~array_equal(szchk, size(h)) then $
+    ERRORS_ADD, cumul_errors,' size(<list>)  wrong'
+strucobj = size(h,/struct)
+if(strucobj.n_elements ne 1) then $
+    ERRORS_ADD, cumul_errors,' size(object array)  wrong'
+
+if keyword_set(test) then stop,' at end of test_size_list'
+return
+end
+;
 pro TEST_SIZE_ARRAY, cumul_errors, dims=dims, verbose=verbose, $
                      help=help, test=test, debug=debug
 ;
@@ -135,6 +167,10 @@ TEST_SIZE_ARRAY, nb_errors, verbose=verbose
 TEST_SIZE_ARRAY, nb_errors, dims=[1,1,1,1,1], verbose=verbose
 TEST_SIZE_ARRAY, nb_errors, dims=[1,10,1,10,1], verbose=verbose
 ;
+TEST_SIZE_HASH, nb_errors, verbose=verbose, $
+               help=help, test=test, debug=debug
+TEST_SIZE_LIST, nb_errors,  verbose=verbose, $
+               help=help, test=test, debug=debug
 ; ----------------- final message ----------
 ;
 BANNER_FOR_TESTSUITE, 'TEST_SIZE', nb_errors
