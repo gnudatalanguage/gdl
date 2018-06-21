@@ -427,7 +427,7 @@ if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
 	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
 	if(NOT HAVE_PLPLOT_SLABELFUNC)
-	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc)")
+	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
 	endif()
 
 	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
@@ -458,9 +458,9 @@ if(PLPLOT_FOUND)
 	endif(PLPLOT_PRIVATE_NOT_HIDDEN)
 	check_cxx_source_compiles("#include <plplot/plstream.h>
 				   int main(){PLINT n; PLFLT x,y;plcallback::fill(n,&x,&y);}" PLPLOT_HAS_PLCALLBACK)
-	if(NOT PLPLOT_HAS_PLCALLBACK)
-	  message(FATAL_ERROR "please upgrade plplot (missing plcallback)")
-	endif()
+	if(PLPLOT_HAS_PLCALLBACK)
+	  set(PLPLOT_HAS_PLCALLBACK 1)
+	endif(PLPLOT_HAS_PLCALLBACK)
 endif(PLPLOT_FOUND)
 	
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
