@@ -34,12 +34,6 @@
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 //#define MAX_WIN 32  //IDL free and widgets start at 32 ...
 //#define MAX_WIN_RESERVE 256
 

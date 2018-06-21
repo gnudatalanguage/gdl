@@ -32,12 +32,6 @@
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 //defined in graphicsdevice.hpp
 //#define MAX_WIN 32  //IDL free and widgets start at 32 ...
 //#define MAX_WIN_RESERVE 256
@@ -178,13 +172,13 @@ public:
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
 //    winList[ wIx]->setopt( "db", 0); //handled elsewhere
-//    winList[ wIx]->SETOPT( "debug", "1"); //useful for debugging plplot!
-    winList[ wIx]->SETOPT( "plwindow", buf);
+//    winList[ wIx]->setopt( "debug", "1"); //useful for debugging plplot!
+    winList[ wIx]->setopt( "plwindow", buf);
 // Do not init colors --- we handle colors ourseves, very much faster!
-    winList[ wIx]->SETOPT( "drvopt","noinitcolors=1");
+    winList[ wIx]->setopt( "drvopt","noinitcolors=1");
 
 // Please no threads, no gain especially in remote X11 
-   winList[ wIx]->SETOPT( "drvopt","usepth=0");
+   winList[ wIx]->setopt( "drvopt","usepth=0");
 
 //all the options must be passed BEFORE INIT=plinit.
     winList[ wIx]->Init();
