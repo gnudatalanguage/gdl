@@ -55,7 +55,7 @@ before_install:
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
 #    - $SEDCMD '/test_tic_toc/d'              testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
+#    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
 #    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
