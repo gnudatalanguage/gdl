@@ -1022,94 +1022,87 @@ namespace lib {
     return 0;
   }
 
+#define MERSENNE_GSL_N 624   /* Period parameters */
+typedef struct
+    {
+    unsigned long mt[MERSENNE_GSL_N];
+    int mti;
+  } mt_state_t;
+
+unsigned long int* get_mt19937_state(const gsl_rng* r, int& pos){
+  mt_state_t *state = (mt_state_t *) (r->state);
+  pos = state->mti;
+  return state->mt;
+}  
+void set_mt19937_state(gsl_rng* r, const unsigned long int* seed, const int pos, const int n ){
+  assert (n == MERSENNE_GSL_N);
+  mt_state_t *state = (mt_state_t *) (r->state);
+  unsigned long * mt = state->mt;
+  for (int i=0; i< n; ++i) mt[i]=seed[i];
+  state->mti=pos;
+}
+
+void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
+  if (e->GlobalPar(0)) {
+    int pos;
+    unsigned long int* seq = get_mt19937_state(r, pos);
+    DULongGDL* ret = new DULongGDL(dimension(MERSENNE_GSL_N+4),BaseGDL::ZERO);
+    DULong* seed= (DULong*)(ret->DataAddr());
+    seed[0] = seed0;
+    seed[1] = pos;
+    for (int i = 0; i < MERSENNE_GSL_N; ++i) seed[i + 2] = seq[i];
+    e->SetPar(0, ret);
+  }
+}
+
   BaseGDL* random_fun(EnvT* e) {
-//TODO: check that GDLGuard of r does not cause any harm.
-    const unsigned long seedMul = 65535;
+
+    // the generator structure
+    static DULong *seed0=NULL;
+    static gsl_rng *r=NULL;
+    if (seed0==NULL) { //initialize pool with systime
+      r = gsl_rng_alloc(gsl_rng_mt19937);
+      struct timeval tval;
+      struct timezone tzone;
+      gettimeofday(&tval,&tzone);
+      long long int tt = tval.tv_sec*1e6+tval.tv_usec; // time in UTC microseconds
+      seed0=new DULong(tt); 
+      gsl_rng_set(r, (*seed0)); 
+    }
 
     SizeT nParam = e->NParam(1);
 
     dimension dim;
-    if (nParam > 1)
-      arr(e, dim, 1);
+    if (nParam > 1) arr(e, dim, 1);
 
-    DLongGDL* seed;
-    static DLong seed0 = 0;
+    DULongGDL* seed;
 
-    gsl_rng *r;
-    GDLGuard<gsl_rng> rGuard(gsl_rng_free);
     bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
-
-  if (!isAnull && e->GlobalPar(0)) {
-    DLongGDL* p0L = e->IfDefGetParAs< DLongGDL>(0);
-    if (p0L != NULL) // defined global -> use and update
+  if (!isAnull) {
+    DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
+    if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
     {
-      seed0 = (*p0L)[ 0];
-
-      r = gsl_rng_alloc(gsl_rng_mt19937);
-      rGuard.Init(r);
-      gsl_rng_set(r, seed0);
-
-      seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-      // if called with undefined global
-
-      seed = new DLongGDL(seed0);
-      e->SetPar(0, seed);
-    } else // undefined global -> init
-    {
-      if (seed0 == 0) // first time
-      {
-        time_t t1;
-        time(&t1);
-        seed0 = static_cast<DLong> (t1);
-      }
-
-      r = gsl_rng_alloc(gsl_rng_mt19937);
-      rGuard.Init(r);
-      gsl_rng_set(r, seed0);
-
-      seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-      // which would be defined global if used in a loop
-
-      seed = new DLongGDL(seed0);
-      e->SetPar(0, seed);
-    }
-  } else if (isAnull) // new NULL type!
-  {
-    if (seed0 == 0) // first time
-    {
-      time_t t1;
-      time(&t1);
-      seed0 = static_cast<DLong> (t1);
-    }
-
-    r = gsl_rng_alloc(gsl_rng_mt19937);
-    rGuard.Init(r);
-    gsl_rng_set(r, seed0);
-
-    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-    // which would be defined global if used in a loop
-
-    seed = new DLongGDL(seed0);
-    e->SetPar(0, seed);
-  } else { //"defined" local
-    seed = e->GetParAs< DLongGDL>(0);
-    seed0 = (*seed)[0];
-
-    r = gsl_rng_alloc(gsl_rng_mt19937);
-    rGuard.Init(r);
-
-    gsl_rng_set(r, seed0);
-
-    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
-    // if called with undefined global
+      if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && (*p0L)[MERSENNE_GSL_N + 2] == 0 && (*p0L)[MERSENNE_GSL_N + 3] == 0) { //a (valid?) seed sequence
+        int pos = (*p0L)[1];
+        int n = MERSENNE_GSL_N;
+        unsigned long int sequence[MERSENNE_GSL_N];
+        for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
+        set_mt19937_state(r, sequence, pos, n); //the seed 
+      } else { // not a seed sequence: take first (IDL does more than this...)
+        if (p0L->N_Elements() == 1) {
+          (*seed0) = (*p0L)[0];
+          gsl_rng_set(r, (*seed0));
+        } // else use current sequence
   }
-
+    }
+  } 
     if (e->KeywordSet(2)) { // GDL_LONG
 
       DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
       SizeT nEl = res->N_Elements();
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
         (DLong) (gsl_rng_uniform(r) * 2147483646) + 1; //apparently IDL rounds up.
+      update_seed(e,r,(*seed0));
       return res;
     }
 
@@ -1119,6 +1112,7 @@ namespace lib {
       SizeT nEl = res->N_Elements();
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
         (DULong) (gsl_rng_uniform(r) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
+      update_seed(e,r,(*seed0));
       return res;
     }
 
@@ -1143,12 +1137,14 @@ namespace lib {
 
       random_template< DDoubleGDL, double>(e, res, r, dim,
         binomialKey, poissonKey);
+      update_seed(e,r,(*seed0));
       return res;
     } else {
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 
       random_template< DFloatGDL, float>(e, res, r, dim,
         binomialKey, poissonKey);
+      update_seed(e,r,(*seed0));
       return res;
     }
   }
