@@ -1,5 +1,5 @@
 ;
-; Testing  FILE_COPY function
+; Testing FILE_COPY function
 ;
 ; Lea Noreskal, June 2010
 ; under GNU GPL 2 or later
@@ -45,7 +45,7 @@ end
 ;
 ; --------------------------------
 ;
-pro TEST_FILE_COPY, test=test, verbose=verbose
+pro TEST_FILE_T_COPY, test=test, verbose=verbose
 ;
 
 ; Clean up any residue and create test directory
@@ -82,7 +82,7 @@ for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 print , 'COPY N1'
 ; Copy files1 into tdir
- FILE_COPY, files1 , tdir, verbose=verbose
+FILE_T_COPY, files1 , tdir, verbose=verbose
 ;
 sce=FILE_INFO(files1)
 dest=FILE_INFO(f1) 
@@ -99,7 +99,7 @@ for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 print , 'COPY N2'
 ; Copy files1 into tdir again
- FILE_COPY, files1 , tdir, verbose=verbose
+FILE_T_COPY, files1 , tdir, verbose=verbose
 ;
 sce=FILE_INFO(files1)
 dest=FILE_INFO(f1) 
@@ -117,7 +117,7 @@ for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 ; Overwrite - 
 print , '/OVERWRITE test' 
- FILE_COPY, files1 , tdir , /overwrite , verbose=verbose
+FILE_T_COPY, files1 , tdir , /overwrite , verbose=verbose
 dest=FILE_INFO(f1) 
 sce=FILE_INFO(files1)
 if ~array_equal(sce.size, dest.size) then begin &$
@@ -131,7 +131,7 @@ for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
 ;
 print , 'Require_dir (but not a dir)' 
 
- FILE_COPY, files1 , files2 , /require_dir, verbose=verbose
+FILE_T_COPY, files1 , files2 , /require_dir, verbose=verbose
 ; if files2 exist : error
 ;
 ;	print,file_test(files2)
@@ -141,7 +141,7 @@ if(total(file_test(files2)) ne 0)  then begin &$
 ;
 ;
 print , 'files1 to files2' 
- FILE_COPY, files1 , files2, verbose=verbose
+FILE_T_COPY, files1 , files2, verbose=verbose
 ;
 dest=FILE_INFO(files2) 
 sce=FILE_INFO(files1)
@@ -157,12 +157,12 @@ if ~array_equal(sce.size, dest.size) then begin &$
 ; Without allow_same
 print , 'WITHOUT ALLOW_SAME: files1 , files1'
 ;'
- FILE_COPY, files1 , files1, verbose=verbose
+FILE_T_COPY, files1 , files1, verbose=verbose
 ;
 ; With Allow_same
 print , 'WITH ALLOW_SAME  :files1 , files1'
 ; 
- FILE_COPY, files1 , files1 , /allow_same, verbose=verbose
+FILE_T_COPY, files1 , files1 , /allow_same, verbose=verbose
 ;
 ;;;;;;;;;;;;;;;;;;;;;
 ;recursive
@@ -183,8 +183,8 @@ for ii=0,N_ELEMENTS(tdir2)-1 do $
       CREATE_DUMMYFILE,tdir2[ii]+'/'+strname[jj]
 ;
 print , 'WITHOUT RECURSIVE'
-;	if KEYWORD_SET(test) then STOP
- FILE_COPY, tdir2 , tdir , verbose=verbose
+if KEYWORD_SET(test) then STOP
+FILE_T_COPY, tdir2 , tdir , verbose=verbose
 ;
 ;tdir/tdir2 : copy not allowed
 ;
@@ -196,7 +196,7 @@ if ~array_equal( FILE_TEST(td2cp), 0 ) then begin &$
 
 ;
 print , 'WITH RECURSIVE'
- FILE_COPY, tdir2 , tdir , /recursive, verbose=verbose
+FILE_T_COPY, tdir2 , tdir , /recursive, verbose=verbose
 ;copy ok
 ;
 if ~array_equal(FILE_TEST(td2cp),1) then begin  &$
