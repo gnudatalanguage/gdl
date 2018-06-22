@@ -4,6 +4,7 @@
 ; under GNU GPL v2 or any later
 ;
 ; 2018 G. Jung Use FILE_LINK, FILE_MKDIR, and FILE_DELETE instead of SPAWN.
+;   bypass link test unless UNIX or MSYS 
 ;
 ; -----------------------------------------------
 ;
@@ -16,10 +17,10 @@ end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_FILE_TEST, test=test, no_exit=no_exit, help=help
+pro TEST_FILE_TEST, test=test, verbose=verbose,  no_exit=no_exit, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FILE_TEST, test=test, no_exit=no_exit, help=help'
+   print, 'pro TEST_FILE_TEST,  verbose=verbose, test=test, no_exit=no_exit, help=help'
    return
 endif
 ;
@@ -36,6 +37,7 @@ if FILE_TEST(tdir,/dir) eq 0 then ERRORS_ADD, total_errors, 'Dir. not considered
 ;Test if it is symlink
 if FILE_TEST(tdir,/sym) eq 1 then ERRORS_ADD, total_errors, 'Dir. is considered as symlink'
 ;
+if keyword_set(verbose) then print,' FILE_TEST: completed simple directory tests on '+tdir
     symlink = 'UNIX'
     if (!version.os_family eq 'Windows') then $
     if (getenv('MSYS') eq 'winsymlinks:nativestrict') then symlink = 'MSYS' else $
@@ -43,10 +45,12 @@ if FILE_TEST(tdir,/sym) eq 1 then ERRORS_ADD, total_errors, 'Dir. is considered 
 ;
 ;Create test folder symlink
 if (symlink ne 'NO') then begin
+if keyword_set(verbose) then print,' FILE_TEST: symlink directory tests using '+symlink
 tdirsym='testSymlinkDirectory_for_FILE_TEST'
-    if (symlink ne 'NO') then FILE_DELETE,tdirsym
+    if FILE_TEST(tdirsym) then FILE_DELETE,tdirsym
     if symlink eq 'UNIX' then     FILE_LINK,tdir,tdirsym else $
         spawn,'ln -s '+tdir+" "+tdirsym
+
 ;Test if it exists
 if FILE_TEST(tdirsym) eq 0 then ERRORS_ADD, total_errors, 'symlink of Dir. not detected'
 ;Test if it is symlink of directory
@@ -63,7 +67,7 @@ if (symlink ne 'NO') then FILE_DELETE,tdirsym
 tfile='tfile_for_FILE_TEST'
 get_lun,flun
 if file_test(tfile) eq 0 then openw,flun,tfile else $
-	message,/continue," tfile already existed!"
+    message,/continue," tfile already existed!"
 free_lun,flun
 ;
 ;Test if it exists
@@ -73,10 +77,13 @@ if FILE_TEST(tfile,/dir) eq 1 then ERRORS_ADD, total_errors, 'file is considered
 ;Test if it is symlink
 if FILE_TEST(tfile,/sym) eq 1 then ERRORS_ADD, total_errors, 'file is considered as symlink'
 ;
+if keyword_set(verbose) then print,' FILE_TEST: completed simple file tests on '+tfile
+;
 if (symlink ne 'NO') then begin
+if keyword_set(verbose) then print,' FILE_TEST: symlink file tests using '+symlink
 ;Create test file symlink
 tfilesym='testSymlinkFile_for_FILE_TEST'
-    if (symlink ne 'NO') then FILE_DELETE,tfilesym
+    if FILE_TEST(tfilesym)  then FILE_DELETE,tfilesym
     if symlink eq 'UNIX' then     FILE_LINK,tfile,tfilesym else $
         spawn,'ln -s '+tfile+" "+tfilesym
 ;Test if it exists
