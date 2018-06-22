@@ -31,6 +31,9 @@
 #include "gsl_fun.hpp"
 #include "dinterpreter.hpp"
 
+#ifdef _MSC_VER
+#include "gtdhelper.hpp" //for gettimeofday()
+#endif
 // ms: must not be inlcuded here
 //#include "libinit_ac.cpp"
 
