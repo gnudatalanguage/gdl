@@ -25,6 +25,7 @@ install:
         md c:\projects\gdl\win32libs\bin
         md c:\projects\gdl\win32libs\lib
         md c:\projects\gdl\win32libs\include
+  	md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
         
@@ -60,7 +61,7 @@ install:
         md plplot-5.13.0/build
         # cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         cd plplot-5.13.0/build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
         # Previous version of the cmake qualifications:
         # -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         # Reduce the universe of PLPLOT applications:
@@ -74,7 +75,6 @@ install:
         # 
         #-DWITH_FREETYPE=OFF \
         #-DPLD_pdf=OFF -DPLD_psttf=OFF 
-
         mingw32-make -j4
         mingw32-make install
         
@@ -87,6 +87,9 @@ install:
         cd eigen-eigen-5a0156e40feb/build
         mingw32-make install
 
+        # scripts/XXX.msys
+        cd c:\projects\gdl
+        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         # GSL
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
@@ -232,20 +235,24 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
-  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
+  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib;c:\projects\gdl\mingw\mingw32\lib
+  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include;c:\projects\gdl\mingw\mingw32\include
   # - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip build testsuite
+  - md install
+  - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc
   - cd c:\projects\gdl\build
+  # work on an alternative library support
   - mingw32-make -j4
   - mingw32-make install
+  - cd c:\projects\gdl\mingw
 
+  - 7z a install\gdl_build.zip c:\projects\gdl\mingw\mingw32
   # tests
   # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin
+  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib;c:\projects\gdl\mingw\mingw32\lib
+  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin;c:\projects\gdl\mingw\mingw32\bin
   # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
   - mingw32-make check

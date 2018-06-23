@@ -1,0 +1,15 @@
+#!bin/bash.exe
+#
+# script to download some files needed for mingw32
+#
+mkdir -p ./mingw
+cd ./mingw
+touch afile
+curl -O http://repo.msys2.org/mingw/i686/mingw-w64-i686-cmake-3.9.6-1-any.pkg.tar.xz
+curl -O http://repo.msys2.org/mingw/i686/mingw-w64-i686-gsl-2.5-1-any.pkg.tar.xz
+curl -O http://repo.msys2.org/mingw/i686/mingw-w64-i686-readline-6.3.008-1-any.pkg.tar.xz
+path=`cygpath -u . -a`
+echo $path
+tar xf mingw-w64-i686-cmake-3.9.6-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-gsl-2.5-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-readline-6.3.008-1-any.pkg.tar.xz
