@@ -25,7 +25,7 @@ install:
         md c:\projects\gdl\win32libs\bin
         md c:\projects\gdl\win32libs\lib
         md c:\projects\gdl\win32libs\include
-  	md c:\projects\gdl\mingw
+        md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
         
