@@ -58,10 +58,12 @@ install:
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         tar zxf plplot-5.13.0.tar.gz
+        # apply scripts/patches
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch_plplot.sh'
         md plplot-5.13.0/build
         # cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         cd plplot-5.13.0/build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
         # Previous version of the cmake qualifications:
         # -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         # Reduce the universe of PLPLOT applications:
@@ -78,39 +80,39 @@ install:
         mingw32-make -j4
         mingw32-make install
         
-        # Eigen
+        # Eigen now installing to mingw\mingw32
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
         tar jxf eigen-eigen-5a0156e40feb.tar.bz2
         md eigen-eigen-5a0156e40feb/build
-        cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs
+        cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
         cd eigen-eigen-5a0156e40feb/build
         mingw32-make install
 
         # scripts/XXX.msys
         cd c:\projects\gdl
         c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
-        # GSL
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        tar zxf gsl-2.4.tar.gz
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+        # # GSL build replaced in appveryor_1.msys with a download/unpack to mingw/mingw32
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        # tar zxf gsl-2.4.tar.gz
+        # c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
         
-        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
+        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE) Readline 5.0 -> readline 6.3/termcap/libsystre
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        7z x readline-5.0-1-lib.zip
+        #7z x readline-5.0-1-lib.zip
         7z x zlib-1.2.3-lib.zip
         7z x libpng-1.2.37-lib.zip
         7z x pcre-7.0-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        7z x readline-5.0-1-bin.zip -y
+        #7z x readline-5.0-1-bin.zip -y
         7z x zlib-1.2.3-bin.zip -y
         7z x libpng-1.2.37-bin.zip -y
         7z x pcre-7.0-bin.zip -y
