@@ -1,5 +1,5 @@
---- F:/plplot/plplot-5.13.0/drivers/wingdi.c	Fri Aug 25 19:43:25 2017
-+++ F:/tarball/plplot-5.13.0/drivers/wingdi.c	Sat Jun 09 12:41:24 2018
+--- /f//plplot/plplot-5.13.0/drivers/wingdi.c	Fri Aug 25 19:43:25 2017
++++ /f//tarball/plplot-5.13.0/drivers/wingdi.c	Sat Jun 09 12:41:24 2018
 @@ -84,6 +84,16 @@
  struct wingdi_Dev
  {
