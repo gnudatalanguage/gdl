@@ -66,7 +66,8 @@ install:
         md plplot-5.13.0/build
         # cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         cd plplot-5.13.0/build
-        c:\projects\gdl\mingw\mingw32\bin\cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
+        #c:\projects\gdl\mingw\mingw32\bin\cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
         # Previous version of the cmake qualifications:
         # -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         # Reduce the universe of PLPLOT applications:
