@@ -250,19 +250,20 @@ build_script:
   # build0.zip
   # - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc 
   # build1
-  # - 7z a install\gdl_build.zip build mingw
+  - 7z a install\gdl_build.zip build mingw
   - cd c:\projects\gdl\build
   # work on an alternative library support
   - mingw32-make -j4
-  - mingw32-make install
+  - mingw32-make install > makeinstall.out
+  - 7z a install\gdl_build.zip build mingw
   - cd c:\projects\gdl\mingw
 
   # tests
-  # TODO: copy those to the artefact dir
+  # TODO: copy those to the artifact dir
   # - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/lib
   # - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
-   - mingw32-make check
+  - mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -273,9 +274,9 @@ after_build:
   # driver dll's need to be in path;
   - copy C:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
   # Get plplot info placed:
-  # .driver_info files need to be ...
-  - copy C:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\gdl\bin
-  - copy C:\projects\gdl\mingw\mingw32\share c:\projects\gdl\install\gdl
+  # .driver_info files need to be ... but this copy doesn't work
+  # - copy C:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\gdl\bin
+  - copy C:\projects\gdl\mingw\mingw32\share c:\projects\gdl\install\gdl\share
   - copy C:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
 
   # When widgets comes in:
