@@ -406,7 +406,7 @@ elseif (WIN32 AND NOT CYGWIN)
         message(FATAL_ERROR "pcre library is required but was not found.\n"
         "Use -DPCREDIR=DIR to specify the pcre directory tree.")
     endif(PCRE_FOUND)
-    LINK_LIBRARIES(shlwapi regex)
+    LINK_LIBRARIES(shlwapi systre)
 endif()
 
 # PLplot MANDATORY
