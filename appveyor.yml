@@ -244,6 +244,8 @@ build_script:
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_SYSTEM_PREFIX_PATH:PATH=c:\projects\gdl\mingw\mingw32 -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cd c:\projects\gdl
   - md install
+  - md install\gdl
+  - md install\gdl\bin
   - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc
   - cd c:\projects\gdl\build
   # work on an alternative library support
@@ -264,13 +266,13 @@ on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin || exit 0
+  # - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
-  - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  # - cd c:\projects\gdl\install
+  # - 7z a gdl_build.zip gdl
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
