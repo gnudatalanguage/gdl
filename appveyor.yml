@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -246,7 +246,8 @@ build_script:
   - md install
   - md install\gdl
   - md install\gdl\bin
-  - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc
+  # - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc
+  - 7z a install\gdl_build.zip build mingw
   - cd c:\projects\gdl\build
   # work on an alternative library support
   #  - mingw32-make -j4
