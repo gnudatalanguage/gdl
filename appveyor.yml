@@ -22,9 +22,9 @@ install:
       if ($env:platform -Match "mingw64630i686") {
         $env:PATH="C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
-        md c:\projects\gdl\win32libs\bin
-        md c:\projects\gdl\win32libs\lib
-        md c:\projects\gdl\win32libs\include
+        md c:\projects\gdl\mingw\mingw32\bin
+        md c:\projects\gdl\mingw\mingw32\lib
+        md c:\projects\gdl\mingw\mingw32\include
         md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
@@ -53,9 +53,9 @@ install:
         md mingw
         md mingw\lib
         mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
+        mv mingw\libxdr.dll.a c:\projects\gdl\mingw\mingw32\lib
+        mv rpc c:\projects\gdl\mingw\mingw32\include
+        mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
         
         # PLplot
         cd c:\projects\gdl\win32libs
@@ -254,9 +254,9 @@ build_script:
   - 7z a install\gdl_build.zip c:\projects\gdl\mingw\mingw32
   # tests
   # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib;c:\projects\gdl\mingw\mingw32\lib
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin;c:\projects\gdl\mingw\mingw32\bin
-  # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+  - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/lib
+  - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/bin
+  # - set PATH=%PATH%;C:/projects/gdl/mingw/mingw\mingw32mingw32/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
   - mingw32-make check
 
@@ -264,7 +264,7 @@ on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
+  - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # Get plplot info placed:
   # When widgets comes in:
