@@ -28,6 +28,9 @@ install:
         md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
+        # scripts/XXX.msys
+        cd c:\projects\gdl
+        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         
         # WxWidgets is just comments now to save time: no wxwidgets tests are done, in any case.
         # cd c:\projects\gdl\win32libs
@@ -89,9 +92,6 @@ install:
         # cd eigen-eigen-5a0156e40feb/build
         # mingw32-make install
 
-        # scripts/XXX.msys
-        cd c:\projects\gdl
-        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         # # GSL build replaced in appveryor_1.msys with a download/unpack to mingw/mingw32
         # cd c:\projects\gdl\win32libs
         # appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
