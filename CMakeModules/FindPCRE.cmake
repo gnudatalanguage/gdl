@@ -9,7 +9,7 @@
 #  (at your option) any later version.
 #
 
-find_library(PCRE_LIBRARY NAMES pcre)
+find_library(PCRE_LIBRARY NAMES systre)
 set(PCRE_LIBRARIES ${PCRE_LIBRARY})
 find_path(PCRE_INCLUDE_DIR NAMES regex.h)
 include(FindPackageHandleStandardArgs)
