@@ -98,7 +98,7 @@ install:
 
     # pytest
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip2 install pytest; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python2 -m pip install pytest; fi 
 
     # CMake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
