@@ -102,13 +102,13 @@ install:
         cd c:\projects\gdl\mingw
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
         cd c:\projects\gdl\mingw\mingw32
         7z x ..\readline-5.0-1-lib.zip
         7z x ..\readline-5.0-1-bin.zip -y
-        #7z x ..\pcre-7.0-lib.zip
-        #7z x ..\pcre-7.0-bin.zip -y
+        7z x ..\pcre-7.0-lib.zip
+        7z x ..\pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
@@ -259,7 +259,7 @@ after_build:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip build install
+  - 7z a gdl_build.zip build install mingw
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
