@@ -218,11 +218,11 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
  
-    # GRIB API (only Linux - TODO!)
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
-    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} grib-api"; fi
-    #- if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    # ECCODES API 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeccodes-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eccodes"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=OFF"; fi 
 
     # QHULL - TODO: disabled for icc (see https://github.com/gnudatalanguage/gdl/issues/229)
