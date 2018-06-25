@@ -69,7 +69,10 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages; fi 
 
     # to prevent "/usr/local/lib/python2.7/site-packages/numpy/__config__.py already exists. You may want to remove it..."
-    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | pip2 uninstall numpy; fi
+    # - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | pip2 uninstall numpy; fi
+
+    # https://github.com/Homebrew/homebrew-core/issues/26358
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew uninstall python; fi
 
 install:
     ##
