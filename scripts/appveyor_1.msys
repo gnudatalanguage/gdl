@@ -12,7 +12,7 @@ curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-gsl-2.5-1-any.pkg.tar
 #curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-eigen3-3.3.4-1-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-zlib-1.2.8-9-any.pkg.tar.xz
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libpng-1.6.24-1-any.pkg.tar.xz
+curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
 #curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-pcre-8.42-1-any.pkg.tar.xz
 path=`cygpath -u . -a`
 echo $path
@@ -24,5 +24,5 @@ tar xf mingw-w64-i686-gsl-2.5-1-any.pkg.tar.xz
 #tar xf mingw-w64-i686-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 tar xf mingw-w64-i686-eigen3-3.3.4-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-zlib-1.2.8-9-any.pkg.tar.xz
-tar xf mingw-w64-i686-libpng-1.6.24-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
 #tar xf mingw-w64-i686-pcre-8.42-1-any.pkg.tar.xz
