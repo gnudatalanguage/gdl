@@ -68,6 +68,9 @@ before_install:
     # https://stackoverflow.com/questions/25276329/cant-load-python-modules-installed-via-pip-from-site-packages-directory
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages; fi 
 
+    # to prevent "/usr/local/lib/python2.7/site-packages/numpy/__config__.py already exists. You may want to remove it..."
+    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | pip2 uninstall numpy; fi
+
 install:
     ##
     ## BUILD DEPENDENCIES
@@ -219,7 +222,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
  
     # ECCODES API 
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeccodes-dev"; fi
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeccodes-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eccodes"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
     #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
