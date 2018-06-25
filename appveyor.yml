@@ -101,19 +101,19 @@ install:
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
         7z x readline-5.0-1-lib.zip
-        7z x zlib-1.2.3-lib.zip
+        #7z x zlib-1.2.3-lib.zip
         7z x libpng-1.2.37-lib.zip
         7z x pcre-7.0-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
         7z x readline-5.0-1-bin.zip -y
-        7z x zlib-1.2.3-bin.zip -y
+        #7z x zlib-1.2.3-bin.zip -y
         7z x libpng-1.2.37-bin.zip -y
         7z x pcre-7.0-bin.zip -y
       }
