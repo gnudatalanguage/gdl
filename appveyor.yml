@@ -41,19 +41,6 @@ install:
         # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
         # $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
         
-        # BSD-XDR
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
-        tar zxf bsd-xdr-1.0.0.tar.gz
-        cd bsd-xdr-1.0.0
-        sed -i 's/%hh/%/g' src\test\test_data.c
-        md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
-        
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
@@ -97,7 +84,20 @@ install:
         # appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
         # tar zxf gsl-2.4.tar.gz
         # c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-        
+         
+        # BSD-XDR
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
+        tar zxf bsd-xdr-1.0.0.tar.gz
+        cd bsd-xdr-1.0.0
+        sed -i 's/%hh/%/g' src\test\test_data.c
+        md mingw
+        md mingw\lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
+        mv mingw\libxdr.dll.a c:\projects\gdl\mingw\mingw32\lib
+        mv rpc c:\projects\gdl\mingw\mingw32\include
+        mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
+       
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\mingw
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
@@ -107,8 +107,8 @@ install:
         cd c:\projects\gdl\mingw\mingw32
         7z x ..\readline-5.0-1-lib.zip
         7z x ..\readline-5.0-1-bin.zip -y
-        #7z x pcre-7.0-lib.zip
-        #7z x pcre-7.0-bin.zip -y
+        #7z x ..\pcre-7.0-lib.zip
+        #7z x ..\pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
