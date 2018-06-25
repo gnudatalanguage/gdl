@@ -238,8 +238,6 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  #- set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
-  #- set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
   # - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - set PATH=C:/projects/gdl/mingw/mingw32/bin;%PATH%
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_SYSTEM_PREFIX_PATH:PATH=c:\projects\gdl\mingw\mingw32 -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
@@ -250,13 +248,15 @@ build_script:
   # build0.zip
   # - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc 
   # build1
-  - 7z a install\gdl_build.zip build mingw
+  # - 7z a install\gdl_build.zip build mingw
   - cd c:\projects\gdl\build
   # work on an alternative library support
   - mingw32-make -j4
-  - mingw32-make install > makeinstall.out
-  - 7z a install\gdl_build.zip build mingw
-  - cd c:\projects\gdl\mingw
+  #- mingw32-make install > makeinstall.out
+  - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\build\src
+  # driver dll's need to be in path;
+  - copy C:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\build\src
+  - copy C:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\build\src
 
   # tests
   # TODO: copy those to the artifact dir
@@ -276,13 +276,14 @@ after_build:
   # Get plplot info placed:
   # .driver_info files need to be ... but this copy doesn't work
   # - copy C:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\gdl\bin
-  - copy C:\projects\gdl\mingw\mingw32\share c:\projects\gdl\install\gdl\share
-  - copy C:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  #- copy C:\projects\gdl\mingw\mingw32\share c:\projects\gdl\install\gdl\share
+  #- copy C:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
 
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
   # - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  - cd c:\projects\gdl
+  - 7z a gdl_build.zip build
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
