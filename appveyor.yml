@@ -260,9 +260,11 @@ build_script:
 
   # tests
   # TODO: copy those to the artifact dir
-  # - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/lib
+  - ps: echo $env:PATH
+  - ps: $env:PATH=$env:PATH;C:/projects/gdl/mingw/mingw32/lib
   # - set PATH=%PATH%;C:/projects/gdl/mingw/mingw32/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
+  - ps: echo $env:PATH
   - mingw32-make check
 
 on_failure:
