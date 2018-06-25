@@ -243,7 +243,6 @@ build_script:
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cd c:\projects\gdl
   - md install
-  - 7z a install\gdl_build.zip build testsuite c:\msys64\usr\bin c:\msys64\etc
   - cd c:\projects\gdl\build
   # work on an alternative library support
   - mingw32-make -j4
@@ -266,14 +265,14 @@ after_build:
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
-  - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  - cd c:\projects\gdl
+  - 7z a gdl_build.zip build install
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
 
 artifacts:
-  - path: install\gdl_build.zip
+  - path: gdl_build.zip
     name: GDL
   
 deploy:
