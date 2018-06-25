@@ -248,15 +248,13 @@ build_script:
   # work on an alternative library support
   - mingw32-make -j4
   - mingw32-make install
-  - cd c:\projects\gdl\mingw
-
-  - 7z a install\gdl_build.zip c:\projects\gdl\mingw\mingw32
   # tests
   # TODO: copy those to the artefact dir
   - set PATH=%PATH%;C:/projects/gdl/win32libs/lib;c:\projects\gdl\mingw\mingw32\lib
   - set PATH=%PATH%;C:/projects/gdl/win32libs/bin;c:\projects\gdl\mingw\mingw32\bin
   # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
+  - cd c:\projects\gdl\build
   - mingw32-make check
 
 on_failure:
