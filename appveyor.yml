@@ -81,13 +81,13 @@ install:
         mingw32-make install > plplotinstall.out
         
         # Eigen
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        md eigen-eigen-5a0156e40feb/build
-        cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
-        cd eigen-eigen-5a0156e40feb/build
-        mingw32-make install > eigeninstall.out
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
+        # tar jxf eigen-eigen-5a0156e40feb.tar.bz2
+        # md eigen-eigen-5a0156e40feb/build
+        # cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
+        # cd eigen-eigen-5a0156e40feb/build
+        # mingw32-make install > eigeninstall.out
 
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
         cd c:\projects\gdl
