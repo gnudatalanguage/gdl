@@ -100,22 +100,22 @@ install:
         
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
         #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
         #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        7z x readline-5.0-1-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        #7z x readline-5.0-1-lib.zip
         #7z x zlib-1.2.3-lib.zip
         #7z x libpng-1.2.37-lib.zip
-        7z x pcre-7.0-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
+        #7z x pcre-7.0-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
         #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
         #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        7z x readline-5.0-1-bin.zip -y
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        #7z x readline-5.0-1-bin.zip -y
         #7z x zlib-1.2.3-bin.zip -y
         #7z x libpng-1.2.37-bin.zip -y
-        7z x pcre-7.0-bin.zip -y
+        #7z x pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
