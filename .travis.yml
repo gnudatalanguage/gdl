@@ -70,7 +70,7 @@ before_install:
     - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew link --force python@2; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then CMAKE_ARGS="${CMAKE_ARGS} -DPYTHONDIR=/usr/local"; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/bin/python -m pip uninstall numpy; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
 
 install:
     ##
