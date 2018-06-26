@@ -65,12 +65,12 @@ before_install:
     # https://github.com/Homebrew/brew/issues/1742#issuecomment-277308817
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
 
-    # using system Python on OSX
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then CMAKE_ARGS="${CMAKE_ARGS} -DPYTHONDIR=/usr/"; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then sudo easy_install pip; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/bin/python -m pip install numpy; fi
+    # homebrew Python stuff...
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew link --force python@2; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then CMAKE_ARGS="${CMAKE_ARGS} -DPYTHONDIR=/usr/local"; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/bin/python -m pip uninstall numpy; fi
 
 install:
     ##
