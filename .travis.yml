@@ -65,11 +65,11 @@ before_install:
     # https://github.com/Homebrew/brew/issues/1742#issuecomment-277308817
     - if [ $TRAVIS_OS_NAME == osx ]; then rm /usr/local/include/c++; fi 
 
-    # https://github.com/Homebrew/homebrew-core/issues/26358
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then CMAKE_ARGS="${CMAKE_ARGS} -DPYTHONDIR=/usr/local/"; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
+    # using system Python on OSX
+#    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
+#    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then CMAKE_ARGS="${CMAKE_ARGS} -DPYTHONDIR=/usr/"; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/bin/python -m pip install numpy; fi
 
 install:
     ##
@@ -198,7 +198,7 @@ install:
 
     # Python & NumPy (installing always as needed for the Python module build)
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-dev python-numpy-dev"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
 
