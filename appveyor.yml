@@ -117,6 +117,7 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_n000608.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_n000720.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
+  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_call_external.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_chisqr_cvf.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_clip.pro' -NotMatch)
