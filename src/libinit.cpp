@@ -225,10 +225,11 @@ void LibInit()
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
   
+#ifndef _WIN32
   const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_link,string("FILE_LINK"),2,file_linkKey);
-  
+#endif  
   const string file_copyKey[]={"ALLOW_SAME", "OVERWRITE","FORCE", "REQUIRE_DIRECTORY", 
 			"VERBOSE", "NOEXPAND_PATH","RECURSIVE","COPY_SYMLINK",KLISTEND};
   new DLibPro(lib::file_copy,string("FILE_COPY"),2,file_copyKey);
