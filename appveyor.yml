@@ -22,9 +22,6 @@ install:
       if ($env:platform -Match "mingw64630i686") {
         $env:PATH="C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
-        md c:\projects\gdl\win32libs\bin
-        md c:\projects\gdl\win32libs\lib
-        md c:\projects\gdl\win32libs\include
         md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
@@ -48,26 +45,12 @@ install:
         # apply scripts/patches
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
         md plplot-5.13.0/build
-        # cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
         cd plplot-5.13.0/build
         cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
-        # Previous version of the cmake qualifications:
-        # -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
-        # Reduce the universe of PLPLOT applications:
-        #-DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON
-        # So there is no fortran attempts producing error output:
-        #-DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON
-        #----------------------
-        # the following is needed when widgets are to be included:
-        # 
-        # -DENABLE_wxwidgets=ON -DOLD_WXWIDGETS=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu 
-        # 
-        #-DWITH_FREETYPE=OFF \
-        #-DPLD_pdf=OFF -DPLD_psttf=OFF 
         mingw32-make -j4
         mingw32-make install > plplotinstall.out
         
-        # Eigen
+        # Eigen is downloaded from mrepository via scripts/appveyor_1.msys
         # cd c:\projects\gdl\win32libs
         # appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
         # tar jxf eigen-eigen-5a0156e40feb.tar.bz2
@@ -143,13 +126,13 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_basename.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_leak.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_dirname.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fix.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_finite.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
@@ -174,7 +157,7 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_message.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
@@ -230,10 +213,7 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib;c:\projects\gdl\mingw\mingw32\lib
-  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include;c:\projects\gdl\mingw\mingw32\include
-  # - cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-std=gnu++11" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DPLD_wingdi=ON
   - cd c:\projects\gdl
   - md install
   - cd c:\projects\gdl\build
@@ -242,8 +222,8 @@ build_script:
   - mingw32-make install > gdlinstall.out
   # tests
   # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib;c:\projects\gdl\mingw\mingw32\lib
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin;c:\projects\gdl\mingw\mingw32\bin
+  - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\lib
+  - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\bin
   # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
   - cd c:\projects\gdl\build
@@ -253,8 +233,12 @@ on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
+  - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  # bring in the driver's dll to the installation directory.
+  # there are also .driver_info files here the plplot needs to find.
+  # also in share/plplot-5.13.0 there are mapping and color files.
+  - copy c:\projects\gdl\mingw\mingw32\lib\plplot5-13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
