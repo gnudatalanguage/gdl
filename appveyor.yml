@@ -46,7 +46,7 @@ install:
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
         md plplot-5.13.0/build
         cd plplot-5.13.0/build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
         mingw32-make -j4
         mingw32-make install > plplotinstall.out
         
@@ -213,7 +213,7 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DPLD_wingdi=ON
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cd c:\projects\gdl
   - md install
   - cd c:\projects\gdl\build
@@ -238,7 +238,7 @@ after_build:
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
-  - copy c:\projects\gdl\mingw\mingw32\lib\plplot5-13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
+  - copy c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
