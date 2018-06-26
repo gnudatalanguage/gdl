@@ -35,7 +35,7 @@ before_install:
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
     - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
     - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
-#    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
@@ -45,17 +45,14 @@ before_install:
     - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_modulo.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_tic_toc/d'              testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
