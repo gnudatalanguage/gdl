@@ -74,6 +74,11 @@ namespace lib {
   void help_item( std::ostream& os,
 		  BaseGDL* par, DString parString, bool doIndentation);
 //  void help_struct( std::ostream& os,  BaseGDL* par, int indent , bool debug );
+  SizeT HASH_count( DStructGDL* hash)
+  {
+    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    return (*static_cast<DLongGDL*>( hash->GetTag( TableCountTag, 0)))[0];        
+  }
 } 
 
 std::string ValidTagName( const std::string& in) // (performance) Function parameter 'in' should be passed by reference.
@@ -678,8 +683,6 @@ DLong GetInitialTableSize( DLong nEntries)
   return initialTableSize;
 }
  
- 
-//DStructGDL* create_hashStruct(  DLong initialTableSize, DStructGDL*& hashTable,
 DObj new_hashStruct(  DLong initialTableSize, DStructGDL*& hashTable,
 						bool foldcasekw=false, bool isordered=false)
 {
@@ -714,17 +717,13 @@ DObj new_hashStruct(  DLong initialTableSize, DStructGDL*& hashTable,
 static BaseGDL* struct_tohash( EnvT* e,DStructGDL* parStruct,
 						bool foldcasekw, bool extractkw, bool isordered=false)
 {
-//		bool lib::trace_arg();
+
     static int kwLOWERCASEIx = e->KeywordIx("LOWERCASE");
- 	if( trace_me) std::cout << " hash(struct) " << std::endl;
 
 	bool keytolower = e->KeywordSet(kwLOWERCASEIx);
 	DStructDesc* desc = parStruct->Desc();
 	DStructGDL* hashTable;
 	DLong initialTableSize = GetInitialTableSize( desc->NTags());
-//	DStructGDL* hashStruct = 
-//		create_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);   
-//	DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
 	DObj objID= 
 		new_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);
 	BaseGDL* newObj = new DObjGDL( objID); // the hash object
@@ -771,7 +770,6 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
     DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
 
     DLong nSize = hashTable->N_Elements();
-    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
   
 	GDL_LIST_STRUCT()
 	GDL_CONTAINER_NODE()
@@ -804,8 +802,7 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
     for( SizeT el=0; el<nSize; ++el)
     {
       DPtr pKey = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, el)))[0];
-      if( pKey == 0)
-	continue;
+      if( pKey == 0)     continue;
 
       DPtr pValue = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, el)))[0];
       assert( pValue != 0);
@@ -821,22 +818,30 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
       // we are not owner of value here
       
       bool added = false;
-      if( key->Type() == GDL_STRING && value != NULL)
-      {
+      if( key->Type() == GDL_STRING && value != NULL) {
 	assert( key->N_Elements() == 1);
 	DString keyString = (*static_cast<DStringGDL*>(key))[0];
 	
 	DString tagString = ValidTagName( keyString);
-	
-	if( nStructDesc->TagIndex( tagString) == -1)
-	{
-		if(recursive && value->Type() == GDL_OBJ)
-		{
-		std::cout << " recursive hashing called for here. Passed over.";
+        if( nStructDesc->TagIndex( tagString) == -1) {
+            if(value->Type() == GDL_OBJ and value->StrictScalar()) {
+                if(recursive) {
+                    DStructGDL* theStruct = GetOBJ( value, NULL);
+                    if( (theStruct->Desc())->IsParent("HASH") ) {
+                        SizeT nhash = lib::HASH_count(theStruct);
+                        if( nhash > 0) {
+                             value = hash_tostruct( theStruct ,
+                                    missing, skipped, recursive, no_copy);
+                            }
+                        }
 			}
+            } //else if(trace_me) std::cout<<" value->Type() or StrictScalar()" << std::endl;
+            //if(trace_me) lib::help_item(std::cout,value,tagString, false);
+
           instance->NewTag( tagString, value->Dup());
 	  added = true;
-	}	
+
+         } //else if(trace_me) std::cout<<" TagIndex != -1" << std::endl;
       }
       
       if( !added && listStruct != NULL) // add key to skipped
@@ -866,10 +871,9 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
       *skipped = newObj;
     }
 
+    instance_guard.Release();
     if( instance->NTags() == 0)
       return NullGDL::GetSingleInstance();
-    
-    instance_guard.Release();
     return instance;
   }
 
@@ -1773,11 +1777,6 @@ namespace lib {
      else return new DByteGDL(0);
   }
 
-  SizeT HASH_count( DStructGDL* hash)
-  {
-    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
-    return (*static_cast<DLongGDL*>( hash->GetTag( TableCountTag, 0)))[0];	      
-  }
   BaseGDL* hash__count( EnvUDT* e)
   {
     static int kwSELFIx = 0;
@@ -2290,7 +2289,9 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     }
 
     DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
-    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->
+                GetHeap( thisTableID));
+    bool isfoldcase = Hashisfoldcase( self);
 
     // non-range (keyed)
     SizeT par1N_Elements = parX->N_Elements();
@@ -2304,7 +2305,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
 	    ThrowFromInternalUDSub( e, "For struct access (OBJREF is !NULL), RVALUE must be !NULL as well.");      
 	  }
 
-	  DLong hashIndex = HashIndex( thisHashTable, parX);
+      DLong hashIndex = HashIndex( thisHashTable, parX, isfoldcase);
 	  if( hashIndex < 0)
 	    ThrowFromInternalUDSub( e, "Key not found.");
 
@@ -2434,21 +2435,14 @@ BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
     const unsigned par1Ix = 2;
     
     SizeT nParam = e->NParam(1); // number of parameters actually given
-  //   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
+
     if( nParam < 3) // consider implicit SELF
       ThrowFromInternalUDSub( e, "Two parameters are needed: ISRANGE, SUB1 [, ...].");
     if( nParam > 3) // consider implicit SELF
       ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
     BaseGDL* selfP = e->GetKW( 0);
-//     if( selfP->Type() != GDL_OBJ)
-//       ThrowFromInternalUDSub( e, "SELF is not of type OBJECT.");
-//     if( !selfP->Scalar())
-//       ThrowFromInternalUDSub( e, "SELF must be a scalar OBJECT.");
-// 
-//     DObjGDL* selfObj = static_cast<DObjGDL*>( selfP);
-//     DObj selfID = (*selfObj)[0];
-//     DStructGDL* self = e->Interpreter()->GetObjHeap( selfID);
+
     DStructGDL* self = GetOBJ( selfP, e);
     bool isfoldcase = Hashisfoldcase( self);
     DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
@@ -2558,7 +2552,7 @@ BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
     // one element -> return value
     if( index->N_Elements() == 1)
     {
-      DLong hashIndex = HashIndex( thisHashTable, index);
+      DLong hashIndex = HashIndex( thisHashTable, index, isfoldcase);
 //      if( hashIndex < 0) ThrowFromInternalUDSub( e, "Key is not present.");
      if( hashIndex < 0) return NullGDL::GetSingleInstance();
 
