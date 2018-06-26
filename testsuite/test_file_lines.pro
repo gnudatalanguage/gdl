@@ -1,6 +1,8 @@
 PRO test_file_lines, no_exit=no_exit
 total_errors=0
-if file_lines("./test_file_lines.pro") ne 13 then total_errors++
+filesw = file_which("swap_endian.pro")
+if file_lines(filesw) ne 96 then total_errors++
+if file_lines(filesw,/compress) ne 96 then total_errors++
 ;
 ; final message
 ;

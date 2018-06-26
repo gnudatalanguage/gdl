@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -22,24 +22,52 @@ install:
       if ($env:platform -Match "mingw64630i686") {
         $env:PATH="C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
-        md c:\projects\gdl\win32libs\bin
-        md c:\projects\gdl\win32libs\lib
-        md c:\projects\gdl\win32libs\include
-        # Python
+        md c:\projects\gdl\mingw
+        # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
         
-        # WxWidgets
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
-        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
-        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
-        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        # Below 2 lines are required for wxWidgets-3.0.4, don't know why
-        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        # WxWidgets is just comments now to save time: no wxwidgets tests are done, in any case.
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
+        # 7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
+        # cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
+        # mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # # Below 2 lines are required for wxWidgets-3.0.4, don't know why
+        # copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
+        # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
         
+        # PLplot
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
+        tar zxf plplot-5.13.0.tar.gz
+        # apply scripts/patches
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
+        md plplot-5.13.0/build
+        cd plplot-5.13.0/build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF 
+        mingw32-make -j4
+        mingw32-make install > plplotinstall.out
+        
+        # Eigen is downloaded from mrepository via scripts/appveyor_1.msys
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
+        # tar jxf eigen-eigen-5a0156e40feb.tar.bz2
+        # md eigen-eigen-5a0156e40feb/build
+        # cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
+        # cd eigen-eigen-5a0156e40feb/build
+        # mingw32-make install > eigeninstall.out
+
+        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
+        cd c:\projects\gdl
+        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
+        # GSL loaded from scripts/appveyor_1.msys
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        # tar zxf gsl-2.4.tar.gz
+        # c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+         
         # BSD-XDR
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
@@ -49,55 +77,24 @@ install:
         md mingw
         md mingw\lib
         mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
-        
-        # PLplot
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        tar zxf plplot-5.13.0.tar.gz
-        md plplot-5.13.0/build
-        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
-        cd plplot-5.13.0/build
-        mingw32-make -j4
-        mingw32-make install
-        
-        # Eigen
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        md eigen-eigen-5a0156e40feb/build
-        cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs
-        cd eigen-eigen-5a0156e40feb/build
-        mingw32-make install
-
-        # GSL
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        tar zxf gsl-2.4.tar.gz
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-        
+        mv mingw\libxdr.dll.a c:\projects\gdl\mingw\mingw32\lib
+        mv rpc c:\projects\gdl\mingw\mingw32\include
+        mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
+       
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
-        cd c:\projects\gdl\win32libs
+        cd c:\projects\gdl\mingw
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        7z x readline-5.0-1-lib.zip
-        7z x zlib-1.2.3-lib.zip
-        7z x libpng-1.2.37-lib.zip
-        7z x pcre-7.0-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        7z x readline-5.0-1-bin.zip -y
-        7z x zlib-1.2.3-bin.zip -y
-        7z x libpng-1.2.37-bin.zip -y
-        7z x pcre-7.0-bin.zip -y
+        cd c:\projects\gdl\mingw\mingw32
+        7z x ..\readline-5.0-1-lib.zip
+        7z x ..\readline-5.0-1-bin.zip -y
+        7z x ..\pcre-7.0-lib.zip
+        7z x ..\pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
+  # python needs to be python built in mingw, not the python for windows.
   # - if %platform%==mingw64630x8664 set PYTHON_ROOT=C:\Python27-x64
 
 before_build:
@@ -129,13 +126,13 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_basename.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_leak.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_dirname.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fix.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_finite.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
@@ -160,7 +157,7 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_message.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
+  # - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
@@ -216,32 +213,43 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
-  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
-  - cmake gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DPLD_wingdi=ON
+  - cd c:\projects\gdl
+  - md install
   - cd c:\projects\gdl\build
+  # work on an alternative library support
   - mingw32-make -j4
-  - mingw32-make install
-
+  - mingw32-make install > gdlinstall.out
   # tests
   # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+  - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\lib
+  - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\bin
+  # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
+  - cd c:\projects\gdl\build
   - mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
+  - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin c:\projects\gdl\install\gdl\bin || exit 0
   - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  # bring in the driver's dll to the installation directory.
+  # there are also .driver_info files here the plplot needs to find.
+  # also in share/plplot-5.13.0 there are mapping and color files.
+  - copy c:\projects\gdl\mingw\mingw32\lib\plplot5-13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
+  # Get plplot info placed:
+  # When widgets comes in:
+  # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
+  - cd c:\projects\gdl
+  - 7z a gdl_build.zip build install mingw
+  # - ctest -C Release --output-on-failure
+  # python needs to be python built in mingw, not the python for windows.
+  # - python -c "import gdl; dir(gdl)"
 
 artifacts:
-  - path: install\gdl_build.zip
+  - path: gdl_build.zip
     name: GDL
   
 deploy:

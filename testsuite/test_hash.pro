@@ -106,7 +106,6 @@ if eq7 ne 7 then $
 if eq4 ne 4 then    ERRORS_ADD, nb_errors,$
         ' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'
 
-
 ; cvs does not do most of this:
 if ~isgit then begin
 

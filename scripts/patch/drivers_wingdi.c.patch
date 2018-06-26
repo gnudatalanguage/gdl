@@ -1,0 +1,81 @@
+--- /f//plplot/plplot-5.13.0/drivers/wingdi.c	Fri Aug 25 19:43:25 2017
++++ /f//tarball/plplot-5.13.0/drivers/wingdi.c	Sat Jun 09 12:41:24 2018
+@@ -84,6 +84,16 @@
+ struct wingdi_Dev
+ {
+     //
++    // WIN32 API variables
++    //
++	HWND     		  plot;       // Handle for the plot area
++	HDC               hdc;        // Plot window device context
++	HPEN              pen;        // Current pen used for drawing
++	COLORREF		  color;      // Current color
++	HDC               hdc_bmp;    // Bitmap device context
++    HBITMAP           bitmap;     // Bitmap of current display
++    HWND              frame;      // Handle for the main window.
++	HWND			  status_bar; // Handle for the status bar
+     // Members that are common to interactive GUI devices
+     //
+     PLFLT            xdpmm;  // Device x pixel per mm
+@@ -98,23 +108,12 @@
+     enum _dev_state  state;             // Current state of the device
+     enum _dev_state  prev_state;        // Previous state of the device
+     // Used to restore after redraw
+-    union
+-    {
++	union {
+         unsigned int status_bar : 1;
+         unsigned int menu_bar   : 1;
+     } feature;
+ 
+-    //
+-    // WIN32 API variables
+-    //
+-    HDC      hdc;                 // Plot window device context
+-    HPEN     pen;                 // Current pen used for drawing
+-    COLORREF color;               // Current color
+-    HDC      hdc_bmp;             // Bitmap device context
+-    HBITMAP  bitmap;              // Bitmap of current display
+-    HWND     frame;               // Handle for the main window.
+-    HWND     plot;                // Handle for the plot area
+-    HWND     status_bar;          // Handle for the status bar
++
+ 
+     //
+     // Image rasterization variables
+@@ -1111,6 +1111,8 @@
+         return;
+ 
+     pldebug( "wingdi", "module init\n" );
++//#ifdef _WIN64
++#if 0
+ 
+     // Initialize common controls
+     init_controls.dwSize = sizeof ( INITCOMMONCONTROLSEX );
+@@ -1119,7 +1121,7 @@
+     {
+         plwarn( "wingdi:  Failed to initialize common Window controls\n" );
+     }
+-
++#endif
+     //
+     // Initialize the frame window class
+     //
+@@ -1278,7 +1280,7 @@
+     int    programlength;
+ #endif
+ 
+-    pls->debug = 1;
++//   pls->debug = 1;
+     pldebug( "wingdi", "Device Init\n" );
+ 
+     // Initialize the module
+@@ -1437,7 +1439,7 @@
+     else
+     {
+         ShowWindow( dev->plot, SW_SHOWDEFAULT );
+-        SetForegroundWindow( dev->plot );
++		BringWindowToTop( dev->plot );		
+     }
+ 
+     if ( dev->feature.status_bar )
