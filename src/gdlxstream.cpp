@@ -432,6 +432,8 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
   XSelectInput(xwd->display, dev->window, event_mask);
   XSync(xwd->display, true);  //useful?
   while (1) {
+    if ( sigControlC ) return false;
+
     XWindowEvent(xwd->display, dev->window, event_mask, &event);
 
     switch (event.type) {
