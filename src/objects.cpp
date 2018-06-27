@@ -93,6 +93,9 @@ const DLong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 //_DNodeFactory DNodeFactory;
 antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
+//do we use WxWidgets for graphics?
+volatile bool useWxWidgetsForGraphics;
+
 void ResetObjects()
 {
 #ifdef HAVE_LIBWXWIDGETS
