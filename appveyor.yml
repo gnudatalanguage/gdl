@@ -214,7 +214,7 @@ build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON 
   - cd c:\projects\gdl
   - md install
   - cd c:\projects\gdl\build
@@ -242,7 +242,12 @@ after_build:
   - ps: copy c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy -r c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\plplot5.13
   - ps: copy -r c:\projects\gdl\mingw\mingw32\share\plplot5.13.0 c:\projects\gdl\install\plplot5.13\lib
-  - ps: rm -r c:\projects\gdl\install\plplot5.13\lib\examples
+  - ps: move  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib
+  - ps: >-
+  {
+  rm -r c:\projects\gdl\install\plplot5.13\lib\examples
+  copy c:\projects\gdl\INSTALL.plplot c:\projects\gdl\install
+  }
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
