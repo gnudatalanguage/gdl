@@ -213,7 +213,8 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=OFF -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
+  # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF
   - cd c:\projects\gdl
   - md install
   - cd c:\projects\gdl\build
@@ -233,12 +234,15 @@ on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\mingw\mingw32\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
-  - copy c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy -r c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\plplot5.13
+  - ps: copy -r c:\projects\gdl\mingw\mingw32\share\plplot5.13.0 c:\projects\gdl\install\plplot5.13\lib
+  - ps: rm -r c:\projects\gdl\install\plplot5.13\lib\examples
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin

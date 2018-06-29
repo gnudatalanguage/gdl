@@ -64,7 +64,7 @@ set(UDUNITSDIR "" CACHE PATH "GDL: Specify the UDUNITS-2 directory tree")
 set(EIGEN3 ON CACHE BOOL "GDL: Enable Eigen3 ?")
 set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
 
-set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
+set(PSLIB OFF CACHE BOOL "GDL: Enable pslib ?")
 set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
@@ -527,24 +527,15 @@ if(MAGICK)
     include_directories(${ImageMagick_INCLUDE_DIRS})
     set(MAGICK_LIBRARIES ${ImageMagick_LIBRARIES})
   else(ImageMagick_FOUND)
-    message(FATAL_ERROR "ImageMagick is required but was not found.\n"
+        message(STATUS "ImageMagick is required but was not found."
       "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-      "Use -DMAGICK=OFF to not use it.\n"
       "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
       "(suitable Fedora package: ImageMagick-c++-devel)")
+        message(STATUS  "Use -DMAGICK=OFF to not use it.\n" 
+            " MAGICK set to OFF ")
+        set(MAGICK OFF)
   endif(ImageMagick_FOUND)
 endif(MAGICK)
-
-# if GM or IM activated, we check whether Plplot is OK for that
-if(USE_MAGICK AND NOT WIN32)
-  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-  if(HAVE_PLGETDRVDIR)
-    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-      "To make plplot work with ImageMagick:\n"
-      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-  endif(HAVE_PLGETDRVDIR)
-endif(USE_MAGICK AND NOT WIN32)
 
 # wxWidgets
 # -DWXWIDGETS=ON|OFF
@@ -573,11 +564,13 @@ if(WXWIDGETS)
 		endforeach(WXDEF ${wxWidgets_DEFINITIONS})
 		include_directories(${wxWidgets_INCLUDE_DIRS})
 	else(wxWidgets_FOUND)
-		message(FATAL_ERROR "wxWidgets are required but were not found.\n"
+        message(STATUS "wxWidgets are requested but were not found.\n"
 		"Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-		"Use -DWXWIDGETS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
                 "(suitable Fedora package: wxGTK-devel)")
+        message(STATUS  "Use -DWXWIDGETS=OFF to not use it.\n"
+            " proceeding with WXWIDGETS=OFF ")
+        set(WXWIDGETS OFF)
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
