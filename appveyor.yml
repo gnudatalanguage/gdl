@@ -244,10 +244,10 @@ after_build:
   - ps: copy -r c:\projects\gdl\mingw\mingw32\share\plplot5.13.0 c:\projects\gdl\install\plplot5.13\lib
   - ps: move  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib
   - ps: >-
-  {
-  rm -r c:\projects\gdl\install\plplot5.13\lib\examples
-  copy c:\projects\gdl\INSTALL.plplot c:\projects\gdl\install
-  }
+    {
+      rm -r c:\projects\gdl\install\plplot5.13\lib\examples
+      copy c:\projects\gdl\INSTALL.plplot c:\projects\gdl\install
+    }
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
