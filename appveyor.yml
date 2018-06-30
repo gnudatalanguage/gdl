@@ -29,7 +29,8 @@ install:
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
         cd c:/projects/gdl
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
-        
+        cd c:/projects/gdl/mingw
+        rm mingw-w64-i686-*tar.xz
         # Wx needs to be in place to build plplot, if it gets used.
         # WxWidgets3.0.4 can be downloded from repo.msys2 (as built by msys)
         #   in that case, its files will be differently distributed than if built as below.
@@ -77,13 +78,14 @@ install:
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
 
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        # maybe an upgraded pcre can be used. mingw-w64-i686-pcre-8.37-2-any.pkg.tar.xz
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
         cd c:\projects\gdl\mingw\mingw32
         7z x ..\readline-5.0-1-lib.zip
         7z x ..\readline-5.0-1-bin.zip -y
-        7z x ..\pcre-7.0-lib.zip
-        7z x ..\pcre-7.0-bin.zip -y
+        #7z x ..\pcre-7.0-lib.zip
+        #7z x ..\pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
