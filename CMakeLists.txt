@@ -680,11 +680,12 @@ if(FFTW)
         set(LIBRARIES ${LIBRARIES} ${FFTW_LIBRARIES})
         include_directories(${FFTW_INCLUDE_DIR})
     else(FFTW_FOUND)
-        message(FATAL_ERROR "FFTW3 is required but was not found.\n"
+        message(STATUS "FFTW3 is requested but was not found.\n"
         "Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
-        "Use -DFFTW=OFF to not use it.\n"
+        "Use -DFFTW=OFF to not use it. (set for this build)\n"
                 "(suitable Debian/Ubuntu package: libfftw3-dev)\n"
                 "(suitable Fedora package: fftw-devel)")
+        set(FFTW OFF)
     endif(FFTW_FOUND)
 endif(FFTW)
 
