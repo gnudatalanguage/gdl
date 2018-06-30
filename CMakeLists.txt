@@ -126,7 +126,7 @@ set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relati
 
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-	set(HAVE_64BIT_OS 1)
+    set(HAVE_64BIT_OS 1)
 endif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 
 #### check headers and libraries
@@ -134,7 +134,7 @@ endif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 # dl
 check_library_exists(dl dlopen "" HAVE_DL)
 if(HAVE_DL)
-	set(LIBRARIES ${LIBRARIES} dl)
+    set(LIBRARIES ${LIBRARIES} dl)
 endif(HAVE_DL)
 
 # malloc stats
@@ -162,7 +162,7 @@ check_include_file(unistd.h HAVE_UNISTD_H)
 # would be silly not to use this functionality if present, so recheck:
 if (HAVE_EXT_STDIO_FILEBUF_H)
 else (HAVE_EXT_STDIO_FILEBUF_H)
-	check_cxx_source_compiles("
+    check_cxx_source_compiles("
 #include <ext/stdio_filebuf.h>
 int main(int argc, char **argv) {
     int i=0;
@@ -190,30 +190,30 @@ check_include_file(mpi.h HAVE_MPI_H)
 include_directories(src)
 
 if (NOT WIN32)
-	# Ncurses MANDATORY for readline on POSIX
-	# -DNCURSESDIR=DIR
-	set(CMAKE_PREFIX_PATH ${NCURSESDIR})	
-	set(CURSES_NEED_NCURSES TRUE)
-	find_package(Curses QUIET COMPONENTS initscr)
-	mark_as_advanced(CURSES_CURSES_H_PATH CURSES_FORM_LIBRARY CURSES_HAVE_CURSES_H)
-	if(CURSES_FOUND)
-		set(HAVE_LIBNCURSES 1)
-		set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
-		include_directories(${CURSES_INCLUDE_DIR})
-	else(CURSES_FOUND)
-		# search for curses
-		set(CURSES_NEED_NCURSES FALSE)
-		find_package(Curses COMPONENTS initscr)
-		set(HAVE_LIBCURSES ${CURSES_FOUND})
-		if(CURSES_FOUND)
-			set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
-			include_directories(${CURSES_INCLUDE_DIR})
-		else(CURSES_FOUND)
-			message(FATAL_ERROR "(N)Curses was not found.\n"
-				"Use -DNCURSESDIR=DIR to specify the curses directory tree.\n"
-				"(suitable Debian/Ubuntu package: libncurses-dev)\n")
-		endif(CURSES_FOUND)
-	endif(CURSES_FOUND)
+    # Ncurses MANDATORY for readline on POSIX
+    # -DNCURSESDIR=DIR
+    set(CMAKE_PREFIX_PATH ${NCURSESDIR})    
+    set(CURSES_NEED_NCURSES TRUE)
+    find_package(Curses QUIET COMPONENTS initscr)
+    mark_as_advanced(CURSES_CURSES_H_PATH CURSES_FORM_LIBRARY CURSES_HAVE_CURSES_H)
+    if(CURSES_FOUND)
+        set(HAVE_LIBNCURSES 1)
+        set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
+        include_directories(${CURSES_INCLUDE_DIR})
+    else(CURSES_FOUND)
+        # search for curses
+        set(CURSES_NEED_NCURSES FALSE)
+        find_package(Curses COMPONENTS initscr)
+        set(HAVE_LIBCURSES ${CURSES_FOUND})
+        if(CURSES_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${CURSES_LIBRARIES})
+            include_directories(${CURSES_INCLUDE_DIR})
+        else(CURSES_FOUND)
+            message(FATAL_ERROR "(N)Curses was not found.\n"
+                "Use -DNCURSESDIR=DIR to specify the curses directory tree.\n"
+                "(suitable Debian/Ubuntu package: libncurses-dev)\n")
+        endif(CURSES_FOUND)
+    endif(CURSES_FOUND)
 endif (NOT WIN32)
 
 # GNU Readline (GNU/Linux or OSX) or BSD Editline (OSX)
@@ -232,8 +232,8 @@ if(READLINE)
     check_library_exists("${READLINE_LIBRARIES}" rl_get_screen_size "" RL_GET_SCREEN_SIZE)
     if(NOT RL_GET_SCREEN_SIZE)
       message(STATUS "WARNING: Older GNU readline without rl_get_screen_size was found.\n"
-	"For resized terminals the size might not be updated correctly.\n"
-	"If this is a problem please install a recent version of readline.")
+    "For resized terminals the size might not be updated correctly.\n"
+    "If this is a problem please install a recent version of readline.")
     endif(NOT RL_GET_SCREEN_SIZE)
     set(LIBRARIES ${LIBRARIES} ${READLINE_LIBRARIES})
     include_directories(${READLINE_INCLUDE_DIR})
@@ -243,9 +243,9 @@ if(READLINE)
       message(STATUS "WARNING: GNU readline was not found, now looking for BSD Editline.\n")
     else(EDITLINE)
       message(FATAL_ERROR "GNU readline was not found.\n"
-	"Use -DREADLINEDIR=no to explicitely disable it.\n"
-	"(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
-	"(suitable Fedora package: readline-devel)")
+    "Use -DREADLINEDIR=no to explicitely disable it.\n"
+    "(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
+    "(suitable Fedora package: readline-devel)")
     endif(EDITLINE)    
   endif(READLINE_FOUND)
 endif(READLINE)
@@ -287,11 +287,11 @@ set(CMAKE_PREFIX_PATH ${ZLIBDIR})
 find_package(ZLIB QUIET)
 set(HAVE_LIBZ ${ZLIB_FOUND})
 if(ZLIB_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
-	include_directories(${ZLIB_INCLUDE_DIR})
+    set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
+    include_directories(${ZLIB_INCLUDE_DIR})
 else(ZLIB_FOUND)
-	message(FATAL_ERROR "ZLib library is required but was not found.\n"
-	"Use -DZLIBDIR=DIR to specify the zlib directory tree.\n"
+    message(FATAL_ERROR "ZLib library is required but was not found.\n"
+    "Use -DZLIBDIR=DIR to specify the zlib directory tree.\n"
         "(suitable Debian/Ubuntu package: zlib1g-dev)\n"
         "(suitable Fedora package: zlib-devel)")
 endif(ZLIB_FOUND)
@@ -300,20 +300,20 @@ endif(ZLIB_FOUND)
 # -DPNGLIB=ON|OFF
 # -DPNGLIBDIR=DIR
 if(PNGLIB)
-	set(CMAKE_PREFIX_PATH ${PNGLIBDIR})
-	find_package(PNG QUIET)
-	set(USE_PNGLIB ${PNG_FOUND})
-	if(PNG_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PNG_LIBRARIES})
-		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PNG_LIBRARY_DIRS})
-		include_directories(${PNG_INCLUDE_DIRS})
-	else(PNG_FOUND)
-		message(FATAL_ERROR "libpng is required but was not found.\n"
-		"Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
-		"Use -DPNGLIB=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${PNGLIBDIR})
+    find_package(PNG QUIET)
+    set(USE_PNGLIB ${PNG_FOUND})
+    if(PNG_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PNG_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PNG_LIBRARY_DIRS})
+        include_directories(${PNG_INCLUDE_DIRS})
+    else(PNG_FOUND)
+        message(FATAL_ERROR "libpng is required but was not found.\n"
+        "Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
+        "Use -DPNGLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libpng-dev)\n"
                 "(suitable Fedora package: libpng-devel)")
-	endif(PNG_FOUND)
+    endif(PNG_FOUND)
 endif(PNGLIB)
 
 # openmp
@@ -334,7 +334,7 @@ if(OPENMP)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
     "note that disabling OpenMP will incur significant performance penalty !\n"
     "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
-	"(find_package(OpenMP) will find OpenMP only if both are set !)\n"
+    "(find_package(OpenMP) will find OpenMP only if both are set !)\n"
     "Use -DOPENMP=OFF to not use it.\n"
     "(suitable Homebrew compiler package: llvm)"
     "(suitable Homebrew library package: libomp)")
@@ -361,52 +361,52 @@ find_package(GSL QUIET)
 set(HAVE_LIBGSL ${GSL_FOUND})
 set(HAVE_LIBGSLCBLAS ${GSL_FOUND})
 if(GSL_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${GSL_LIBRARIES})
-	include_directories(${GSL_INCLUDE_DIR})
+    set(LIBRARIES ${LIBRARIES} ${GSL_LIBRARIES})
+    include_directories(${GSL_INCLUDE_DIR})
 else(GSL_FOUND)
-	message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
-	"Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
+    message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
+    "Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
         "(suitable Debian/Ubuntu package: libgsl0-dev)\n"
         "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
 
 if(UNIX)
-	set(CMAKE_PREFIX_PATH ${RPCDIR})
-	find_package(RPC QUIET)
-	set(HAVE_RPC ${RPC_FOUND})
-	if(RPC_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
-		include_directories(${RPC_INCLUDE_DIR})
-	else(RPC_FOUND)
-		message(FATAL_ERROR "RPC support is mandatory.\n"
-		"Note that SunRPC has been removed in glibc-2.26 and later, "
-		"while being optional in earlier versions. Consider using the "
-		"recommended and more modern libtirpc instead.\n"
-		"Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
-	endif(RPC_FOUND)
+    set(CMAKE_PREFIX_PATH ${RPCDIR})
+    find_package(RPC QUIET)
+    set(HAVE_RPC ${RPC_FOUND})
+    if(RPC_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
+        include_directories(${RPC_INCLUDE_DIR})
+    else(RPC_FOUND)
+        message(FATAL_ERROR "RPC support is mandatory.\n"
+        "Note that SunRPC has been removed in glibc-2.26 and later, "
+        "while being optional in earlier versions. Consider using the "
+        "recommended and more modern libtirpc instead.\n"
+        "Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
+    endif(RPC_FOUND)
 elseif (WIN32 AND NOT CYGWIN)
-	set(CMAKE_PREFIX_PATH ${XDRDIR})
-	find_package(Xdr)
-	set(HAVE_LIBXDR ${XDR_FOUND})
-	if(XDR_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
-		include_directories(${XDR_INCLUDE_DIR})
-	else(XDR_FOUND)
-		message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
-		"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
-	endif(XDR_FOUND)
+    set(CMAKE_PREFIX_PATH ${XDRDIR})
+    find_package(Xdr)
+    set(HAVE_LIBXDR ${XDR_FOUND})
+    if(XDR_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
+        include_directories(${XDR_INCLUDE_DIR})
+    else(XDR_FOUND)
+        message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
+        "Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
+    endif(XDR_FOUND)
 
-	set(CMAKE_PREFIX_PATH ${PCREDIR})
-	find_package(PCRE)
-	set(HAVE_LIBPCRE ${PCRE_FOUND})
-	if(PCRE_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
-		include_directories(${PCRE_INCLUDE_DIR})
-	else(PCRE_FOUND)
-		message(FATAL_ERROR "pcre library is required but was not found.\n"
-		"Use -DPCREDIR=DIR to specify the pcre directory tree.")
-	endif(PCRE_FOUND)
-	LINK_LIBRARIES(shlwapi)
+    set(CMAKE_PREFIX_PATH ${PCREDIR})
+    find_package(PCRE)
+    set(HAVE_LIBPCRE ${PCRE_FOUND})
+    if(PCRE_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
+        include_directories(${PCRE_INCLUDE_DIR})
+    else(PCRE_FOUND)
+        message(FATAL_ERROR "pcre library is required but was not found.\n"
+        "Use -DPCREDIR=DIR to specify the pcre directory tree.")
+    endif(PCRE_FOUND)
+    LINK_LIBRARIES(shlwapi)
 endif()
 
 # PLplot MANDATORY
@@ -417,34 +417,34 @@ set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
 set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
 if(PLPLOT_FOUND)
-	set(LIBRARIES ${LIBRARIES} ${PLPLOT_LIBRARIES})
-	include_directories(${PLPLOT_INCLUDE_DIR})
+    set(LIBRARIES ${LIBRARIES} ${PLPLOT_LIBRARIES})
+    include_directories(${PLPLOT_INCLUDE_DIR})
 else(PLPLOT_FOUND)
-	message(FATAL_ERROR "plplot library is required but was not found.\n"
-	"Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
+    message(FATAL_ERROR "plplot library is required but was not found.\n"
+    "Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
         "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
         "(suitable Fedora package: plplot-devel)")
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
-	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-	if(HAVE_PLPLOT_SLABELFUNC)
-	  set(HAVE_PLPLOT_SLABELFUNC 1)
-	else(HAVE_PLPLOT_SLABELFUNC)
-	  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
-	    "you should upgrade to plplot version > 5.9.6")
-	endif(HAVE_PLPLOT_SLABELFUNC)
-	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+    if(HAVE_PLPLOT_SLABELFUNC)
+      set(HAVE_PLPLOT_SLABELFUNC 1)
+    else(HAVE_PLPLOT_SLABELFUNC)
+      message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
+        "you should upgrade to plplot version > 5.9.6")
+    endif(HAVE_PLPLOT_SLABELFUNC)
+    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
 #the following does not work with clang (???)
-	check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
+    check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
 
 
 #give it a 2nd try...
         if(NOT HAVE_PLPLOT_WIDTH)
-	check_cxx_source_compiles("#include <plplot/plstream.h>
+    check_cxx_source_compiles("#include <plplot/plstream.h>
                                     int main(int argc, char **argv) {
                                       plstream *p = new plstream();
                                       PLFLT w = 0.5;
@@ -455,19 +455,19 @@ if(PLPLOT_FOUND)
               set(HAVE_PLPLOT_WIDTH 1)
             endif(HAVE_PLPLOT_WIDTH)
         endif(NOT HAVE_PLPLOT_WIDTH)
-	check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
-	if(PLPLOT_PRIVATE_NOT_HIDDEN)
-	  set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
-	else(PLPLOT_PRIVATE_NOT_HIDDEN)
-	  message(STATUS "Using a plplot library without private functions - workarounds will be used.")
-	endif(PLPLOT_PRIVATE_NOT_HIDDEN)
-	check_cxx_source_compiles("#include <plplot/plstream.h>
-				   int main(){PLINT n; PLFLT x,y;plcallback::fill(n,&x,&y);}" PLPLOT_HAS_PLCALLBACK)
-	if(PLPLOT_HAS_PLCALLBACK)
-	  set(PLPLOT_HAS_PLCALLBACK 1)
-	endif(PLPLOT_HAS_PLCALLBACK)
+    check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
+    if(PLPLOT_PRIVATE_NOT_HIDDEN)
+      set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
+    else(PLPLOT_PRIVATE_NOT_HIDDEN)
+      message(STATUS "Using a plplot library without private functions - workarounds will be used.")
+    endif(PLPLOT_PRIVATE_NOT_HIDDEN)
+    check_cxx_source_compiles("#include <plplot/plstream.h>
+                   int main(){PLINT n; PLFLT x,y;plcallback::fill(n,&x,&y);}" PLPLOT_HAS_PLCALLBACK)
+    if(PLPLOT_HAS_PLCALLBACK)
+      set(PLPLOT_HAS_PLCALLBACK 1)
+    endif(PLPLOT_HAS_PLCALLBACK)
 endif(PLPLOT_FOUND)
-	
+    
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM
 #
@@ -475,30 +475,31 @@ endif(PLPLOT_FOUND)
 # -DGRAPHICSMAGICKDIR=DIR
 #
 if(GRAPHICSMAGICK)
-	set(CMAKE_PREFIX_PATH ${GRAPHICSMAGICKDIR})
-	find_package(GraphicsMagick QUIET)
-	set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
-	if(GRAPHICSMAGICK_FOUND)
-		include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})	
-		set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})		
-	else(GRAPHICSMAGICK_FOUND)
-		message( STATUS
-		"GRAPHICSMAGICK is strongly suggested but was not found.
-		Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
-		Use -DGRAPHICSMAGICK=OFF to not use it.
+    set(CMAKE_PREFIX_PATH ${GRAPHICSMAGICKDIR})
+    find_package(GraphicsMagick QUIET)
+    set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
+    if(GRAPHICSMAGICK_FOUND)
+        include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})  
+        set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})     
+    else(GRAPHICSMAGICK_FOUND)
+        message( STATUS
+        "GRAPHICSMAGICK was requested but was not found. MAGICK=OFF set.
+        Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
+        Use -DGRAPHICSMAGICK=OFF to not use it.
                 (suitable Fedora package: GraphicsMagick-c++-devel
-		   Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
-		message( STATUS 
-		"Looking for ImageMagick")
-	endif(GRAPHICSMAGICK_FOUND)
+           Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
+#       message( STATUS 
+#       "Looking for ImageMagick")
+        set(MAGICK OFF)
+    endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
 #
 # if GM found, we do not look for IM
 #
 if(GRAPHICSMAGICK_FOUND)
-	if (MAGICK)
-	   message(STATUS "INFO: We prefer to use GraphicsMagick than ImageMagick")
-	   set(MAGICK OFF)
+    if (MAGICK)
+       message(STATUS "INFO: We prefer to use GraphicsMagick than ImageMagick")
+       set(MAGICK OFF)
         endif(MAGICK)
 endif(GRAPHICSMAGICK_FOUND)
 
@@ -515,11 +516,11 @@ if(MAGICK)
     find_program(MAGICKXXCONFIG Magick++-config)
     if(MAGICKXXCONFIG)
       execute_process(COMMAND ${MAGICKXXCONFIG} "--libs" OUTPUT_VARIABLE MAGICKXXCONFIGLIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-      set(LIBRARIES ${LIBRARIES} ${MAGICKXXCONFIGLIBS})		
+      set(LIBRARIES ${LIBRARIES} ${MAGICKXXCONFIGLIBS})     
     else(MAGICKXXCONFIG)
       message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
-	"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-	"Use -DMAGICK=OFF to not use it.\n"
+    "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
+    "Use -DMAGICK=OFF to not use it.\n"
         "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
         "(suitable Fedora package: ImageMagick-c++-devel)")
     endif(MAGICKXXCONFIG)
@@ -542,214 +543,214 @@ endif(MAGICK)
 # -DWXWIDGETSDIR=DIR
 set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
-	#
-	# we check whether plplot was compiled within wxwidgets
-	#
+    #
+    # we check whether plplot was compiled within wxwidgets
+    #
 # AC 2015/04/07 this is not working well, just on few cases :( 
-#	check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
-#	if(NOT HAVE_PLPLOT_WXWIDGETS)
-#	       message(FATAL_ERROR  "wxWidgets are required but PLplot wxWidgets NOT found.\n"
-#	       "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
-#	       "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
+#   check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
+#   if(NOT HAVE_PLPLOT_WXWIDGETS)
+#          message(FATAL_ERROR  "wxWidgets are required but PLplot wxWidgets NOT found.\n"
+#          "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
+#          "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
 #        endif(NOT HAVE_PLPLOT_WXWIDGETS)
-	#
-	set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-	find_package(wxWidgets COMPONENTS base core adv)
-	set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-	if(wxWidgets_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
-		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
-		foreach(WXDEF ${wxWidgets_DEFINITIONS})
-			add_definitions(-D${WXDEF})
-		endforeach(WXDEF ${wxWidgets_DEFINITIONS})
-		include_directories(${wxWidgets_INCLUDE_DIRS})
-	else(wxWidgets_FOUND)
+    #
+    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
+    find_package(wxWidgets COMPONENTS base core adv)
+    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
+    if(wxWidgets_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
+        foreach(WXDEF ${wxWidgets_DEFINITIONS})
+            add_definitions(-D${WXDEF})
+        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
+        include_directories(${wxWidgets_INCLUDE_DIRS})
+    else(wxWidgets_FOUND)
         message(STATUS "wxWidgets are requested but were not found.\n"
-		"Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
                 "(suitable Fedora package: wxGTK-devel)")
         message(STATUS  "Use -DWXWIDGETS=OFF to not use it.\n"
             " proceeding with WXWIDGETS=OFF ")
         set(WXWIDGETS OFF)
-	endif(wxWidgets_FOUND)
+    endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
 # netCDF
 # -DNETCDF=ON|OFF
 # -DNETCDFDIR=DIR
 if(NETCDF)
-	set(CMAKE_PREFIX_PATH ${NETCDFDIR})
-	find_package(NetCDF QUIET)
-	if(NETCDF_FOUND)
-		set(CMAKE_REQUIRED_INCLUDES ${NETCDF_INCLUDE_DIRS})
-		check_include_file_cxx(netcdf.h HAVE_NETCDF_H)
-		if(HAVE_NETCDF_H)
-			set(LIBRARIES ${LIBRARIES} ${NETCDF_LIBRARIES})
-			set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${NETCDF_LIBRARY_DIRS})
-			include_directories(${NETCDF_INCLUDE_DIRS})
-			set(USE_NETCDF 1)
-		else(HAVE_NETCDF_H)
-			message(FATAL_ERROR "NetCDF installation seems not to be usable.\n"
-			"This suggests a conflicting netCDF-HDF4 installation e.g.\n"
-			"- Uninstalling HDF4 after installation of NetCDF.\n"
-			"- Installing NetCDF before HDF4.")
-		endif(HAVE_NETCDF_H)
-		set(CMAKE_REQUIRED_INCLUDES)
-		#
-		# are extensions NetCDF-4 available ??
-		check_library_exists("${NETCDF_LIBRARIES}" nc_inq_grps "" HAVE_NETCDF4)
-		if(HAVE_NETCDF4)
-		  set(USE_NETCDF4 1)
-		else(HAVE_NETCDF4)
-		  message(STATUS "warning, you don't have NetCDF-4 version"
-		    "some new NetCDF capabilities in NetCDF-4 (related to Groups) will not be usable")
-		endif(HAVE_NETCDF4)
-	else(NETCDF_FOUND)
-		message(FATAL_ERROR "NetCDF version 3.5.1 or later is required but was not found.\n"
-		"Use -DNETCDFDIR=DIR to specify the netcdf directory tree.\n"
-		"Use -DNETCDF=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${NETCDFDIR})
+    find_package(NetCDF QUIET)
+    if(NETCDF_FOUND)
+        set(CMAKE_REQUIRED_INCLUDES ${NETCDF_INCLUDE_DIRS})
+        check_include_file_cxx(netcdf.h HAVE_NETCDF_H)
+        if(HAVE_NETCDF_H)
+            set(LIBRARIES ${LIBRARIES} ${NETCDF_LIBRARIES})
+            set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${NETCDF_LIBRARY_DIRS})
+            include_directories(${NETCDF_INCLUDE_DIRS})
+            set(USE_NETCDF 1)
+        else(HAVE_NETCDF_H)
+            message(FATAL_ERROR "NetCDF installation seems not to be usable.\n"
+            "This suggests a conflicting netCDF-HDF4 installation e.g.\n"
+            "- Uninstalling HDF4 after installation of NetCDF.\n"
+            "- Installing NetCDF before HDF4.")
+        endif(HAVE_NETCDF_H)
+        set(CMAKE_REQUIRED_INCLUDES)
+        #
+        # are extensions NetCDF-4 available ??
+        check_library_exists("${NETCDF_LIBRARIES}" nc_inq_grps "" HAVE_NETCDF4)
+        if(HAVE_NETCDF4)
+          set(USE_NETCDF4 1)
+        else(HAVE_NETCDF4)
+          message(STATUS "warning, you don't have NetCDF-4 version"
+            "some new NetCDF capabilities in NetCDF-4 (related to Groups) will not be usable")
+        endif(HAVE_NETCDF4)
+    else(NETCDF_FOUND)
+        message(FATAL_ERROR "NetCDF version 3.5.1 or later is required but was not found.\n"
+        "Use -DNETCDFDIR=DIR to specify the netcdf directory tree.\n"
+        "Use -DNETCDF=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libnetcdf-dev)\n"
                 "(suitable Fedora package: netcdf-devel)")
-	endif(NETCDF_FOUND)
+    endif(NETCDF_FOUND)
 endif(NETCDF)
 
 # hdf4
 # -DHDF=ON|OFF
 # -DHDFDIR=DIR
 if(HDF)
-	set(CMAKE_PREFIX_PATH ${HDFDIR} ${JPEGDIR} ${SZIPDIR})
-	find_package(HDF QUIET)
-	set(USE_HDF ${HDF_FOUND})
-	if(HDF_FOUND)
-		if(NETCDF)
-			set(CMAKE_REQUIRED_LIBRARIES ${HDF_EXTRA_LIBRARIES})
+    set(CMAKE_PREFIX_PATH ${HDFDIR} ${JPEGDIR} ${SZIPDIR})
+    find_package(HDF QUIET)
+    set(USE_HDF ${HDF_FOUND})
+    if(HDF_FOUND)
+        if(NETCDF)
+            set(CMAKE_REQUIRED_LIBRARIES ${HDF_EXTRA_LIBRARIES})
                         check_library_exists("${HDF_LIBRARIES};${RPC_LIBRARIES}" sd_nccreate "" SD_NCCREATE)
-			if(NOT SD_NCCREATE)
-				message(FATAL_ERROR "HDF4 needs to be configured with the --disable-netcdf option "
-				"in order to be used with the original netCDF library.")
-			endif(NOT SD_NCCREATE)
-			set(CMAKE_REQUIRED_LIBRARIES)
-		endif(NETCDF)
-		set(HDF_LIBRARIES ${HDF_LIBRARIES} ${HDF_EXTRA_LIBRARIES})
-		set(LIBRARIES ${LIBRARIES} ${HDF_LIBRARIES})
-		include_directories(${HDF_INCLUDE_DIR})
-	else(HDF_FOUND)
-		message(FATAL_ERROR "HDF4 libraries were not found.\n"
-		"Use -DHDFDIR=DIR to specify the HDF directory tree.\n"
-		"Use -DHDF=OFF to not use it.\n"
+            if(NOT SD_NCCREATE)
+                message(FATAL_ERROR "HDF4 needs to be configured with the --disable-netcdf option "
+                "in order to be used with the original netCDF library.")
+            endif(NOT SD_NCCREATE)
+            set(CMAKE_REQUIRED_LIBRARIES)
+        endif(NETCDF)
+        set(HDF_LIBRARIES ${HDF_LIBRARIES} ${HDF_EXTRA_LIBRARIES})
+        set(LIBRARIES ${LIBRARIES} ${HDF_LIBRARIES})
+        include_directories(${HDF_INCLUDE_DIR})
+    else(HDF_FOUND)
+        message(FATAL_ERROR "HDF4 libraries were not found.\n"
+        "Use -DHDFDIR=DIR to specify the HDF directory tree.\n"
+        "Use -DHDF=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libhdf4-alt-dev)\n"
-		"You can use -DJPEGDIR=DIR to specify the JPEG directory tree. "
-		"You can also use -DSZIPDIR=DIR to specify SZip directory tree if "
-		"HDF was compiled with SZip support.")
-	endif(HDF_FOUND)
+        "You can use -DJPEGDIR=DIR to specify the JPEG directory tree. "
+        "You can also use -DSZIPDIR=DIR to specify SZip directory tree if "
+        "HDF was compiled with SZip support.")
+    endif(HDF_FOUND)
 endif(HDF)
 
 # hdf5
 # -DHDF5=ON|OFF
 # -DHDF5DIR=DIR
 if(HDF5)
-	set(CMAKE_PREFIX_PATH ${HDF5DIR} ${SZIPDIR})
-	find_package(HDF5 QUIET)
-	set(USE_HDF5 ${HDF5_FOUND})
-	if(HDF5_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${HDF5_LIBRARIES})
-		include_directories(${HDF5_INCLUDE_DIRS})
-		find_package(MPI QUIET)
-		if(MPI_FOUND)
-			include_directories(${MPI_INCLUDE_PATH})
-			set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})	
-		endif(MPI_FOUND)
-	else(HDF5_FOUND)
-		message(FATAL_ERROR "HDF version 5 is required but was not found.\n"
-		"Use -DHDF5DIR=DIR to specify the HDF5 directory tree.\n"
-		"Use -DHDF5=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${HDF5DIR} ${SZIPDIR})
+    find_package(HDF5 QUIET)
+    set(USE_HDF5 ${HDF5_FOUND})
+    if(HDF5_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${HDF5_LIBRARIES})
+        include_directories(${HDF5_INCLUDE_DIRS})
+        find_package(MPI QUIET)
+        if(MPI_FOUND)
+            include_directories(${MPI_INCLUDE_PATH})
+            set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})    
+        endif(MPI_FOUND)
+    else(HDF5_FOUND)
+        message(FATAL_ERROR "HDF version 5 is required but was not found.\n"
+        "Use -DHDF5DIR=DIR to specify the HDF5 directory tree.\n"
+        "Use -DHDF5=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libhdf5-serial-dev)\n"
                 "(suitable Fedora package: hdf5-devel)")
-	endif(HDF5_FOUND)
+    endif(HDF5_FOUND)
 endif(HDF5)
 
 # fftw
 # -DFFTW=ON|OFF
 # -DFFTWDIR=DIR
 if(FFTW)
-	set(CMAKE_PREFIX_PATH ${FFTWDIR})
-	find_package(FFTW QUIET)
-	set(USE_FFTW ${FFTW_FOUND})
-	if(FFTW_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${FFTW_LIBRARIES})
-		include_directories(${FFTW_INCLUDE_DIR})
-	else(FFTW_FOUND)
-		message(FATAL_ERROR "FFTW3 is required but was not found.\n"
-		"Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
-		"Use -DFFTW=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${FFTWDIR})
+    find_package(FFTW QUIET)
+    set(USE_FFTW ${FFTW_FOUND})
+    if(FFTW_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${FFTW_LIBRARIES})
+        include_directories(${FFTW_INCLUDE_DIR})
+    else(FFTW_FOUND)
+        message(FATAL_ERROR "FFTW3 is required but was not found.\n"
+        "Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
+        "Use -DFFTW=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libfftw3-dev)\n"
                 "(suitable Fedora package: fftw-devel)")
-	endif(FFTW_FOUND)
+    endif(FFTW_FOUND)
 endif(FFTW)
 
 # libproj4
 # -DLIBPROJ4=ON|OFF
 # -DLIBPROJ4DIR=DIR
 if(LIBPROJ4)
-	set(CMAKE_PREFIX_PATH ${LIBPROJ4DIR})
-	find_package(Libproj4)
-	if(LIBPROJ4_FOUND)	
-	else(LIBPROJ4_FOUND)
-	find_package(Libproj4new)
-	endif(LIBPROJ4_FOUND)	
+    set(CMAKE_PREFIX_PATH ${LIBPROJ4DIR})
+    find_package(Libproj4)
+    if(LIBPROJ4_FOUND)  
+    else(LIBPROJ4_FOUND)
+    find_package(Libproj4new)
+    endif(LIBPROJ4_FOUND)   
 
-	if(LIBPROJ4_FOUND)	
-		set(CMAKE_REQUIRED_LIBRARIES ${LIBPROJ4_LIBRARIES} ${GSL_LIBRARIES} m)
+    if(LIBPROJ4_FOUND)  
+        set(CMAKE_REQUIRED_LIBRARIES ${LIBPROJ4_LIBRARIES} ${GSL_LIBRARIES} m)
 
-		check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
-		if(USE_LIBPROJ4_NEW)
-#		check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
-#		if(USE_LIBPROJ4)
+        check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
+        if(USE_LIBPROJ4_NEW)
+#       check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
+#       if(USE_LIBPROJ4)
 
                         # define USE_LIB_PROJ4 in any case
-			set(USE_LIBPROJ4 1)
+            set(USE_LIBPROJ4 1)
 
-		else(USE_LIBPROJ4_NEW)
-			check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
-			if(NOT USE_LIBPROJ4)
-#		else(USE_LIBPROJ4)
-#			check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
-#			if(NOT USE_LIBPROJ4_NEW)
+        else(USE_LIBPROJ4_NEW)
+            check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
+            if(NOT USE_LIBPROJ4)
+#       else(USE_LIBPROJ4)
+#           check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
+#           if(NOT USE_LIBPROJ4_NEW)
 
-				message(FATAL_ERROR "Libproj4 is required but was not found.\n"
-				"Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-				"Use -DLIBPRJ4=OFF to not use it.")
+                message(FATAL_ERROR "Libproj4 is required but was not found.\n"
+                "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
+                "Use -DLIBPRJ4=OFF to not use it.")
 
-			endif(NOT USE_LIBPROJ4)
-		endif(USE_LIBPROJ4_NEW)
-#			endif(NOT USE_LIBPROJ4_NEW)
-#		endif(USE_LIBPROJ4)
+            endif(NOT USE_LIBPROJ4)
+        endif(USE_LIBPROJ4_NEW)
+#           endif(NOT USE_LIBPROJ4_NEW)
+#       endif(USE_LIBPROJ4)
 
-		include_directories(${LIBPROJ4_INCLUDE_DIR})
-		set(LIBRARIES ${LIBRARIES} ${LIBPROJ4_LIBRARIES})
-		set(CMAKE_REQUIRED_LIBRARIES)
-	else(LIBPROJ4_FOUND)
-		message(FATAL_ERROR "Libproj4 is required but was not found.\n"
-		"Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-		"Use -DLIBPRJ4=OFF to not use it.")
-	endif(LIBPROJ4_FOUND)	
+        include_directories(${LIBPROJ4_INCLUDE_DIR})
+        set(LIBRARIES ${LIBRARIES} ${LIBPROJ4_LIBRARIES})
+        set(CMAKE_REQUIRED_LIBRARIES)
+    else(LIBPROJ4_FOUND)
+        message(FATAL_ERROR "Libproj4 is required but was not found.\n"
+        "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
+        "Use -DLIBPRJ4=OFF to not use it.")
+    endif(LIBPROJ4_FOUND)   
 endif(LIBPROJ4)
 
 # mpich (experimental)
 # -DMPICH=ON|OFF
 # -DMPICHDIR=DIR
 if(MPICH)
-	set(CMAKE_PREFIX_PATH ${MPICHDIR})
-	find_package(MPI QUIET)
-	set(USE_MPI ${MPI_FOUND})
-	if(MPI_FOUND)
-		include_directories(${MPI_INCLUDE_PATH})	
-		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
-	else(MPI_FOUND)
-		message(FATAL_ERROR "MPICH is required but was not found.\n"
-		"Use -DMPICHDIR=DIR to specify the MPICH directory tree.\n"
-		"Use -DMPICH=OFF to not use it.")
-	endif(MPI_FOUND)	
+    set(CMAKE_PREFIX_PATH ${MPICHDIR})
+    find_package(MPI QUIET)
+    set(USE_MPI ${MPI_FOUND})
+    if(MPI_FOUND)
+        include_directories(${MPI_INCLUDE_PATH})    
+        set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
+    else(MPI_FOUND)
+        message(FATAL_ERROR "MPICH is required but was not found.\n"
+        "Use -DMPICHDIR=DIR to specify the MPICH directory tree.\n"
+        "Use -DMPICH=OFF to not use it.")
+    endif(MPI_FOUND)    
 endif(MPICH)
 
 # python
@@ -758,14 +759,14 @@ endif(MPICH)
 # -DPYTHONDIR=DIR
 # -DPYTHONVERSION=VERSION
 if(PYTHON OR PYTHON_MODULE)
-	if(PYTHON)
-		set(PYTHONMSG "Use -DPYTHON=OFF to disable Python support.\n")
-	endif(PYTHON)
-	if(PYTHON_MODULE)
-		set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
-	endif(PYTHON_MODULE)
-	if(PYTHONDIR)
-		find_library(PYTHONLIBS 
+    if(PYTHON)
+        set(PYTHONMSG "Use -DPYTHON=OFF to disable Python support.\n")
+    endif(PYTHON)
+    if(PYTHON_MODULE)
+        set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
+    endif(PYTHON_MODULE)
+    if(PYTHONDIR)
+        find_library(PYTHONLIBS 
                   NAMES python${PYTHONVERSION}
                   PATHS ${PYTHONDIR} 
                   PATH_SUFFIXES lib lib/python${PYTHONVERSION}/config 
@@ -798,56 +799,56 @@ if(PYTHON OR PYTHON_MODULE)
                 else()
                   message("-- Found Python executable: ${PYTHON_EXECUTABLE}")
                 endif()
-	else()
-		if(NOT PYTHONVERSION)
-			set(PYTHONVERSION 2)
-		endif()
-		find_package(PythonInterp)
-		find_package(PythonLibs ${PYTHONVERSION})
-		if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
-  			message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
-  			message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
-  			message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
-  			message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
-  			message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
-		endif()
-	endif()
-	set(USE_PYTHON ${PYTHONLIBS_FOUND})
-	if(PYTHONLIBS_FOUND)
-		find_package(Numpy QUIET)
-		if(NOT PYTHON_NUMPY_FOUND)
-			message(FATAL_ERROR "Python numpy package was not found.\n"
-			"${PYTHONMSG} ${PYTHON_MODULEMSG}")
-		endif(NOT PYTHON_NUMPY_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-		include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR})	
-	else(PYTHONLIBS_FOUND)
-		message(FATAL_ERROR "Python is required but was not found.\n"
-		"Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
+    else()
+        if(NOT PYTHONVERSION)
+            set(PYTHONVERSION 2)
+        endif()
+        find_package(PythonInterp)
+        find_package(PythonLibs ${PYTHONVERSION})
+        if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
+            message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
+            message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
+            message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
+            message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
+            message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
+        endif()
+    endif()
+    set(USE_PYTHON ${PYTHONLIBS_FOUND})
+    if(PYTHONLIBS_FOUND)
+        find_package(Numpy QUIET)
+        if(NOT PYTHON_NUMPY_FOUND)
+            message(FATAL_ERROR "Python numpy package was not found.\n"
+            "${PYTHONMSG} ${PYTHON_MODULEMSG}")
+        endif(NOT PYTHON_NUMPY_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
+        include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR}) 
+    else(PYTHONLIBS_FOUND)
+        message(FATAL_ERROR "Python is required but was not found.\n"
+        "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
                 "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
                 "(suitable Debian/Ubuntu package: python-dev)\n"
                 "(suitable Fedora package: python-devel)\n"
-		"${PYTHONMSG} ${PYTHON_MODULEMSG}")
-	endif(PYTHONLIBS_FOUND)
+        "${PYTHONMSG} ${PYTHON_MODULEMSG}")
+    endif(PYTHONLIBS_FOUND)
 endif(PYTHON OR PYTHON_MODULE)
 
 # udunits
 # -DUDUNITS=ON|OFF
 # -DUDUNITSDIR=DIR
 if(UDUNITS)
-	set(CMAKE_PREFIX_PATH ${UDUNITSDIR})
-	find_package(Udunits QUIET)
-	set(USE_UDUNITS ${UDUNITS_FOUND})
-	if(UDUNITS_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${UDUNITS_LIBRARIES})
-		include_directories(${UDUNITS_INCLUDE_DIR})	
-	else(UDUNITS_FOUND)
-		message(FATAL_ERROR "UDUNITS-2 is required but was not found.\n"
-		"Use -DUDUNITSDIR=DIR to specify the Udunits directory tree.\n"
-		"Use -DUDUNITS=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${UDUNITSDIR})
+    find_package(Udunits QUIET)
+    set(USE_UDUNITS ${UDUNITS_FOUND})
+    if(UDUNITS_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${UDUNITS_LIBRARIES})
+        include_directories(${UDUNITS_INCLUDE_DIR}) 
+    else(UDUNITS_FOUND)
+        message(FATAL_ERROR "UDUNITS-2 is required but was not found.\n"
+        "Use -DUDUNITSDIR=DIR to specify the Udunits directory tree.\n"
+        "Use -DUDUNITS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libudunits2-dev)\n"
                 "(suitable Fedora package: udunits2-devel)")
-	endif(UDUNITS_FOUND)
+    endif(UDUNITS_FOUND)
 endif(UDUNITS)
 
 # eigen3
@@ -865,21 +866,21 @@ if(EIGEN3)
     # on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
     message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
           " Please download a recent version (>=3.2.4) in a local directory."
-	  " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n")
-      else(EIGEN3_TOO_OLD)	 
-	set(USE_EIGEN ${EIGEN3_FOUND})
-	if(EIGEN3_FOUND)
-	  include_directories(${EIGEN3_INCLUDE_DIR})
-	  if(MINGW)
-	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
-	  endif(MINGW)
-	else(EIGEN3_FOUND)
-	  message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
-	    "Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
-	    "Use -DEIGEN3=OFF to not use it.\n"
+      " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n")
+      else(EIGEN3_TOO_OLD)   
+    set(USE_EIGEN ${EIGEN3_FOUND})
+    if(EIGEN3_FOUND)
+      include_directories(${EIGEN3_INCLUDE_DIR})
+      if(MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
+      endif(MINGW)
+    else(EIGEN3_FOUND)
+      message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
+        "Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
+        "Use -DEIGEN3=OFF to not use it.\n"
             "(suitable Fedora package: eigen3-devel)\n"
             "(suitable Debian/Ubuntu package: libeigen3-dev)")
-	endif(EIGEN3_FOUND)
+    endif(EIGEN3_FOUND)
       endif(EIGEN3_TOO_OLD)
 endif(EIGEN3)
 
@@ -887,42 +888,42 @@ endif(EIGEN3)
 # -DPSLIB=ON|OFF
 # -DPSLIBDIR=DIR
 if(PSLIB)
-	set(CMAKE_PREFIX_PATH ${PSLIBDIR})
-	find_package(libps QUIET)
-	set(USE_PSLIB ${PSLIB_FOUND})
-	if(PSLIB_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PSLIB_LIBRARIES})
-		#set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PSLIB_LIBRARY_DIRS})
-		include_directories(${PSLIB_INCLUDE_DIR})
-	else(PSLIB_FOUND)
-		message(FATAL_ERROR "pslib is required but was not found.\n"
-		"Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
-		"Use -DPSLIB=OFF to not use it.\n"
+    set(CMAKE_PREFIX_PATH ${PSLIBDIR})
+    find_package(libps QUIET)
+    set(USE_PSLIB ${PSLIB_FOUND})
+    if(PSLIB_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PSLIB_LIBRARIES})
+        #set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PSLIB_LIBRARY_DIRS})
+        include_directories(${PSLIB_INCLUDE_DIR})
+    else(PSLIB_FOUND)
+        message(FATAL_ERROR "pslib is required but was not found.\n"
+        "Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
+        "Use -DPSLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: pslib-dev)\n"
                 "(suitable Fedora package: pslib-devel)")
-	endif(PSLIB_FOUND)
+    endif(PSLIB_FOUND)
 endif(PSLIB)
 
 # grib
 # -DGRIB=ON|OFF
 # -DGRIBDIR=DIR
 if(GRIB)
-	set(CMAKE_PREFIX_PATH ${GRIBDIR} ${JASPERDIR} ${JPEGDIR})
-	find_package(Grib QUIET)
-	set(USE_GRIB ${GRIB_FOUND})
-	if(GRIB_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
-		include_directories(${GRIB_INCLUDE_DIR})
-	else(GRIB_FOUND)
-		message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
-		"Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
-		"Use -DGRIB=OFF to not use it.\n"
-		"Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
-		"the directory trees of JasPer and openJPEG libraries.\n"
+    set(CMAKE_PREFIX_PATH ${GRIBDIR} ${JASPERDIR} ${JPEGDIR})
+    find_package(Grib QUIET)
+    set(USE_GRIB ${GRIB_FOUND})
+    if(GRIB_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
+        include_directories(${GRIB_INCLUDE_DIR})
+    else(GRIB_FOUND)
+        message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
+        "Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
+        "Use -DGRIB=OFF to not use it.\n"
+        "Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
+        "the directory trees of JasPer and openJPEG libraries.\n"
                 "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
                 "(suitable Fedora package: grib_api-devel)\n"
-		"(suitable Homebrew package: eccodes)\n")
-	endif(GRIB_FOUND)
+        "(suitable Homebrew package: eccodes)\n")
+    endif(GRIB_FOUND)
 endif(GRIB)
 
 # QHULL IS NOT NEEDED YET!
@@ -930,18 +931,18 @@ endif(GRIB)
 # # -DQHULL=ON|OFF
 # # -DQHULLDIR=DIR
 # if(QHULL)
-# 	set(CMAKE_PREFIX_PATH ${QHULLDIR})
-# 	find_package(QHULL QUIET)
-# 	set(PL_HAVE_QHULL ${QHULL_FOUND})
-# 	if(QHULL_FOUND)
-# 		set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
-# 		include_directories(${QHULL_INCLUDE_DIR})
-# 	else(QHULL_FOUND)
-# 		message(FATAL_ERROR "QHULL is required but was not found.\n"
-# 		"Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
-# 		"Use -DQHULL=OFF to not use it.\n"
+#   set(CMAKE_PREFIX_PATH ${QHULLDIR})
+#   find_package(QHULL QUIET)
+#   set(PL_HAVE_QHULL ${QHULL_FOUND})
+#   if(QHULL_FOUND)
+#       set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
+#       include_directories(${QHULL_INCLUDE_DIR})
+#   else(QHULL_FOUND)
+#       message(FATAL_ERROR "QHULL is required but was not found.\n"
+#       "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
+#       "Use -DQHULL=OFF to not use it.\n"
 #                 "(suitable Fedora package: libqhull-devel)")
-# 	endif(QHULL_FOUND)
+#   endif(QHULL_FOUND)
 # endif(QHULL)
 
 # GLPK for Simplex ( Linear programming )
@@ -965,55 +966,55 @@ endif(GLPK)
 
 # gshhs
 # -DGSHHS=ON|OFF
-if(GSHHS) 	
+if(GSHHS)   
     set(USE_GSHHS 1)
 endif(GSHHS)
 # -DGSHHSDIR=DIR
 #not needed anymore, gshhs include is in src/
-#	set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
-#	find_path(GSHHS_INCLUDE_DIR gshhs.h)
-#	mark_as_advanced(GSHHS_INCLUDE_DIR)
-#	set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
-#	if(USE_GSHHS)
-#		include_directories(${GSHHS_INCLUDE_DIR})
-#	else(USE_GSHHS)
-#		message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
-#		"Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
-#		"Use -DGSHHS=OFF to not use it.")
-#	endif(USE_GSHHS)
+#   set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
+#   find_path(GSHHS_INCLUDE_DIR gshhs.h)
+#   mark_as_advanced(GSHHS_INCLUDE_DIR)
+#   set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
+#   if(USE_GSHHS)
+#       include_directories(${GSHHS_INCLUDE_DIR})
+#   else(USE_GSHHS)
+#       message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
+#       "Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
+#       "Use -DGSHHS=OFF to not use it.")
+#   endif(USE_GSHHS)
 #endif(GSHHS)
 #
 # X11
 if(X11)
-	set(CMAKE_PREFIX_PATH ${X11DIR})
-	if(WIN32 AND NOT CYGWIN)
-		find_package(Xportmingw QUIET)
-		set(HAVE_X ${XPORTMINGW_FOUND})
-		set(USE_X ${XPORTMINGW_FOUND})
-		if(XPORTMINGW_FOUND)
-			set(LIBRARIES ${LIBRARIES} ${XPORTMINGW_LIBRARIES})
-			include_directories(${XPORTMINGW_INCLUDE_DIR})
-		else(XPORTMINGW_FOUND)
-			message("X11 was not found.\n"
-			"Use -DX11DIR=DIR to specify the X11 directory tree.")
-		endif(XPORTMINGW_FOUND)
-	else(WIN32 AND NOT CYGWIN)
-		find_package(X11 QUIET)
-		set(HAVE_X ${X11_FOUND})
-		set(USE_X ${X11_FOUND})
-		if(X11_FOUND)
-			set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
-			include_directories(${X11_INCLUDE_DIR})
-		else(X11_FOUND)
-			message(FATAL_ERROR "X11 is required but was not found.\n"
-			"Use -DX11DIR=DIR to specify the X11 directory tree.\n"
-			"Use -DX11=OFF to not use it.")
-		endif(X11_FOUND)
-	endif(WIN32 AND NOT CYGWIN)
+    set(CMAKE_PREFIX_PATH ${X11DIR})
+    if(WIN32 AND NOT CYGWIN)
+        find_package(Xportmingw QUIET)
+        set(HAVE_X ${XPORTMINGW_FOUND})
+        set(USE_X ${XPORTMINGW_FOUND})
+        if(XPORTMINGW_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${XPORTMINGW_LIBRARIES})
+            include_directories(${XPORTMINGW_INCLUDE_DIR})
+        else(XPORTMINGW_FOUND)
+            message("X11 was not found.\n"
+            "Use -DX11DIR=DIR to specify the X11 directory tree.")
+        endif(XPORTMINGW_FOUND)
+    else(WIN32 AND NOT CYGWIN)
+        find_package(X11 QUIET)
+        set(HAVE_X ${X11_FOUND})
+        set(USE_X ${X11_FOUND})
+        if(X11_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
+            include_directories(${X11_INCLUDE_DIR})
+        else(X11_FOUND)
+            message(FATAL_ERROR "X11 is required but was not found.\n"
+            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
+            "Use -DX11=OFF to not use it.")
+        endif(X11_FOUND)
+    endif(WIN32 AND NOT CYGWIN)
 endif(X11)
 add_subdirectory(src)
 if(NOT PYTHON_MODULE)
-	add_subdirectory(testsuite)
+    add_subdirectory(testsuite)
 endif(NOT PYTHON_MODULE)
 
 install(FILES ${CMAKE_SOURCE_DIR}/AUTHORS ${CMAKE_SOURCE_DIR}/README DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR})
@@ -1025,28 +1026,28 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-	get_target_property(GDLLOCATION gdl LOCATION)
-	if(WIN32)
-	add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
-	else(WIN32)
-	add_custom_target(symlink_gdl ALL ${CMAKE_COMMAND} -E create_symlink ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
-	endif(WIN32)
+    get_target_property(GDLLOCATION gdl LOCATION)
+    if(WIN32)
+    add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
+    else(WIN32)
+    add_custom_target(symlink_gdl ALL ${CMAKE_COMMAND} -E create_symlink ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
+    endif(WIN32)
 endif(NOT PYTHON_MODULE)
 
 # display macro
 macro(MODULE MOD NAME)
-	if(${MOD})
-		message("${NAME}         ON (libs:${${MOD}_LIBRARIES}; headers:${${MOD}_INCLUDE_DIR})")
-	else(${MOD})
-		message("${NAME}         OFF")
-	endif(${MOD})
+    if(${MOD})
+        message("${NAME}         ON (libs:${${MOD}_LIBRARIES}; headers:${${MOD}_INCLUDE_DIR})")
+    else(${MOD})
+        message("${NAME}         OFF")
+    endif(${MOD})
 endmacro(MODULE)
 
 # python
 if(PYTHON_MODULE)
-	set(BUILDTYPE "Python Module")
+    set(BUILDTYPE "Python Module")
 else(PYTHON_MODULE)
-	set(BUILDTYPE "Standalone")
+    set(BUILDTYPE "Standalone")
 endif(PYTHON_MODULE)
 
 
@@ -1058,11 +1059,11 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 if(MSVC)
-	SET(MACHINE_ARCH ${MSVC_C_ARCHITECTURE_ID})
-	IF(NOT MACHINE_ARCH)
+    SET(MACHINE_ARCH ${MSVC_C_ARCHITECTURE_ID})
+    IF(NOT MACHINE_ARCH)
   SET(MACHINE_ARCH ${MSVC_CXX_ARCHITECTURE_ID})
-	ENDIF(NOT MACHINE_ARCH)
-	set_target_properties(gdl PROPERTIES LINK_FLAGS "/machine:${MACHINE_ARCH}")
+    ENDIF(NOT MACHINE_ARCH)
+    set_target_properties(gdl PROPERTIES LINK_FLAGS "/machine:${MACHINE_ARCH}")
 endif(MSVC)
 
 # AC, 12-oct-2011, solved by Marc 
@@ -1070,15 +1071,15 @@ endif(MSVC)
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
 #
 if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
-	set(FLAGS ${CMAKE_CXX_FLAGS})
+    set(FLAGS ${CMAKE_CXX_FLAGS})
 elseif(CMAKE_BUILD_TYPE STREQUAL Debug)
-	set(FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+    set(FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
 elseif(CMAKE_BUILD_TYPE STREQUAL Release)
-	set(FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
+    set(FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
-	set(FLAGS ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+    set(FLAGS ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
 elseif(CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
-	set(FLAGS ${CMAKE_CXX_FLAGS_MINSIZEREL})
+    set(FLAGS ${CMAKE_CXX_FLAGS_MINSIZEREL})
 endif(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
 
 message(STATUS
@@ -1093,9 +1094,9 @@ C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
 message(STATUS "Options")
 if(OPENMP AND OPENMP_FOUND)
-	message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
+    message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
 else(OPENMP AND OPENMP_FOUND)
-	message("OpenMP support         OFF")
+    message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets     ")
@@ -1118,11 +1119,11 @@ set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS         ")
-module(PSLIB	 "pslib         ")
+module(PSLIB     "pslib         ")
 if(WIN32 AND NOT CYGWIN)
-  module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")
+  module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)
-  module(X11	 "Xlib          ")
+  module(X11     "Xlib          ")
 endif(WIN32 AND NOT CYGWIN)
 module(PNGLIB    "libpng        ")
 message("")

@@ -25,8 +25,15 @@ install:
         md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
         $env:PYTHON_ROOT="C:\Python27"
+
+        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
+        cd c:/projects/gdl
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         
-        # WxWidgets is just comments now to save time: no wxwidgets tests are done, in any case.
+        # Wx needs to be in place to build plplot, if it gets used.
+        # WxWidgets3.0.4 can be downloded from repo.msys2 (as built by msys)
+        #   in that case, its files will be differently distributed than if built as below.
+        # old_appveyor.yml:
         # cd c:\projects\gdl\win32libs
         # appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
         # 7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
@@ -51,25 +58,9 @@ install:
         mingw32-make install > plplotinstall.out
         
         # Eigen is downloaded from mrepository via scripts/appveyor_1.msys
-        # cd c:\projects\gdl\win32libs
-        # appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        # tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        # md eigen-eigen-5a0156e40feb/build
-        # cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
-        # cd eigen-eigen-5a0156e40feb/build
-        # mingw32-make install > eigeninstall.out
-
-        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
-        cd c:\projects\gdl
-        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         # GSL loaded from scripts/appveyor_1.msys
-        # cd c:\projects\gdl\win32libs
-        # appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        # tar zxf gsl-2.4.tar.gz
-        # c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-         
         # BSD-XDR
-        cd c:\projects\gdl\win32libs
+        cd c:/projects/gdl/win32libs
         appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
@@ -234,17 +225,18 @@ on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
+  - cd c:\projects\gdl
   - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
-  - ps: copy c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0\drivers\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy -r c:\projects\gdl\mingw\mingw32\lib\plplot5.13.0 c:\projects\gdl\install\plplot5.13
-  - ps: copy -r c:\projects\gdl\mingw\mingw32\share\plplot5.13.0 c:\projects\gdl\install\plplot5.13\lib
-  - ps: move  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib
-  - ps: rm -r c:\projects\gdl\install\plplot5.13\lib\examples
-  - ps: copy c:\projects\gdl\INSTALL.plplot c:\projects\gdl\install
+  - ps: copy c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin
+  - ps: copy -r c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
+  - ps: copy -r c:/projects/gdl/mingw/mingw32/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
+  - ps: move  ./install/gdl/share/gnudatalanguage/lib ./install/gdl/gdllib
+  - ps: rm -r ./install/plplot5.13/lib/examples
+  - ps: copy INSTALL.plplot c:/projects/gdl/install
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
