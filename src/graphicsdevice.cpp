@@ -189,10 +189,9 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-  //if GDL_USE_WX, and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
-  // no ther device is defined.
-  std::string useWX=StrUpCase(GetEnvString("GDL_USE_WX"));
-  if (useWX == "YES" ) {
+  // if GDL_USE_WX (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
+  // no other device is defined.
+  if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
     //start wxWidgets here instead of first call of a widget function.
       if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");

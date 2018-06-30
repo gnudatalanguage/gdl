@@ -86,6 +86,14 @@ set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory t
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
 
+set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
+set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
+
+if(TIFF)
+	set(GEOTIFF ON CACHE BOOL "GDL: Enable libgeotiff ?")
+	set(GEOTIFFDIR "" CACHE PATH "GDL: Specify the libgeotiff directory tree")
+endif(TIFF)
+
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
 
@@ -574,6 +582,42 @@ if(WXWIDGETS)
         set(WXWIDGETS OFF)
     endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
+
+# libtiff
+# -DTIFF=ON|OFF
+# -DTIFFDIR=DIR
+if(TIFF)
+	set(CMAKE_PREFIX_PATH ${TIFFDIR})
+	find_package(TIFF 4.0.3 QUIET)
+	set(USE_TIFF ${TIFF_FOUND})
+	if(TIFF_FOUND)
+		include_directories(${TIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
+	else(TIFF_FOUND)
+		message(FATAL_ERROR
+		"libtiff v4.0.3 or newer is required for TIFF support but was not found.\n"
+		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
+		"Use -DTIFF=OFF to not use it.")
+	endif(TIFF_FOUND)
+endif(TIFF)
+
+# libgeotiff
+# -DGEOTIFF=ON|OFF
+# -DGEOTIFFDIR=DIR
+if(GEOTIFF AND USE_TIFF)
+	set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
+	find_package(GeoTIFF QUIET)
+	set(USE_GEOTIFF ${GEOTIFF_FOUND})
+	if(GEOTIFF_FOUND)
+		include_directories(${GEOTIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
+	else(GEOTIFF_FOUND)
+		message(FATAL_ERROR
+		"libgeotiff is required for GeoTIFF support but was not found.\n"
+		"Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
+		"Use -DGEOTIFF=OFF to not use it.")
+	endif(GEOTIFF_FOUND)
+endif(GEOTIFF AND USE_TIFF)
 
 # netCDF
 # -DNETCDF=ON|OFF
@@ -1100,13 +1144,15 @@ else(OPENMP AND OPENMP_FOUND)
     message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
-module(WXWIDGETS "WxWidgets     ")
-module(MAGICK    "ImageMagick   ")
-module(NETCDF    "NetCDF        ")
-module(HDF       "HDF4          ")
-module(HDF5      "HDF5          ")
-module(FFTW      "FFTW          ")
-module(LIBPROJ4  "Libproj4      ")
+module(WXWIDGETS "WxWidgets  ")
+module(MAGICK    "ImageMagick")
+module(TIFF      "TIFF       ")
+module(GEOTIFF   "GeoTIFF    ")
+module(NETCDF    "NetCDF     ")
+module(HDF       "HDF4       ")
+module(HDF5      "HDF5       ")
+module(FFTW      "FFTW       ")
+module(LIBPROJ4  "Libproj4   ")
 set(MPICH_LIBRARIES ${MPI_LIBRARIES})
 module(MPICH     "MPICH         ")
 module(PYTHON    "Python        ")

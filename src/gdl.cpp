@@ -210,6 +210,10 @@ int main(int argc, char *argv[])
   bool strict_syntax=false;
   bool syntaxOptionSet=false;
 
+  //start with a default value:
+  useWxWidgetsForGraphics = false;
+  bool force_no_wxgraphics = false;
+
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
@@ -227,6 +231,8 @@ int main(int argc, char *argv[])
       cout << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
 	  cout << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cout << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
+      cout << "  --use-wx           Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
+      cout << "  --no-use-wx        Tells GDL no to use WxWidgets graphics, even if env. var. \"GDL_USE_WX\" is set." << endl;
           cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -293,7 +299,7 @@ int main(int argc, char *argv[])
 	  // (e.g. $ gdl -e "")
 	}
       else if (
-	       string(argv[a]) == "-demo" || 
+	    string(argv[a]) == "-demo" || 
         string(argv[a]) == "-em" || 
         string(argv[a]) == "-novm" ||
         string(argv[a]) == "-queue" ||
@@ -315,7 +321,15 @@ int main(int argc, char *argv[])
       {
           strict_syntax = false;
           syntaxOptionSet = true;
+      }
+      else if (string(argv[a]) == "--use-wx")
+      {
+          useWxWidgetsForGraphics = true;
       }      
+      else if (string(argv[a]) == "--no-use-wx")
+      {
+           force_no_wxgraphics = true;
+      }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -341,7 +355,14 @@ int main(int argc, char *argv[])
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;
   }
-
+  
+  //before InitGDL() as InitGDL() starts graphic!
+  std::string useWX=GetEnvString("GDL_USE_WX");
+  if ( useWX.length() > 0) useWxWidgetsForGraphics=true; //not necessary "YES".
+  if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
+  if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." <<endl;
+  
+  
   InitGDL();
 
   // must be after !cpu initialisation
@@ -361,8 +382,8 @@ int main(int argc, char *argv[])
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;
     }
-  std::string useWX=GetEnvString("GDL_USE_WX");
-  if (useWX == "YES" || useWX == "yes") cerr << "- Using WxWidgets as graphics library (windows and widgets)." <<endl;
+
+  
   SysVar::SetGDLPath( gdlPath);
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
