@@ -1,0 +1,18 @@
+Magic: 0x4949 <little-endian> Version: 0x2a <ClassicTIFF>
+Directory 0: offset 262152 (0x40008) next 0 (0)
+
+ImageWidth (256)        SHORT (3)   1<512>
+ImageLength (257)       SHORT (3)   1<512>
+BitsPerSample (258)     SHORT (3)   1<8>
+Compression (259)       SHORT (3)   1<1>
+Photometric (262)       SHORT (3)   1<1>
+StripOffsets (273)      LONG (4)    32<...>
+SamplesPerPixel (277)   SHORT (3)   1<1>
+RowsPerStrip (278)      SHORT (3)   1<16>
+StripByteCounts (279)   LONG (4)    32<...>
+PlanarConfig (284)      SHORT (3)   1<1>
+
+33550 (0x830e)          DOUBLE (12) 3<60 60 0>
+33922 (0x8482)          DOUBLE (12) 6<0 0 0 440720 100000 0>
+34735 (0x87af)          SHORT (3)   16<1 1 0 3 1024 0 1 1 1025 0 1 1 3072 0 1 21892>
+

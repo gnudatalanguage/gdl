@@ -247,10 +247,18 @@ install:
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
 
+
+    # TIFF/GeoTIFF - TODO: find appropriate libgeotiff package for linux
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgeotiff-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=ON -DGEOTIFF=ON"; fi
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=OFF -DGEOTIFF=OFF"; fi
+
     # tirpc - TODO!
 #    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
 #    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
 #    - if [[ $DEPS == 'MINI' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/"; fi
+
 
     # diagnostics
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then echo APT_PACKAGES $APT_PACKAGES; fi
