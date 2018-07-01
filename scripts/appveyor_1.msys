@@ -27,16 +27,16 @@ tar xf mingw-w64-i686-eigen3-3.3.4-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-zlib-1.2.8-9-any.pkg.tar.xz
 tar xf mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
-#curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-#tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
 #19-Jan-2017: mingw-w64-i686-wxPython-3.0.2.0-6-any.pkg.tar.xz
 #27 Jan 2018: mingw-w64-i686-wxPython-3.0.2.0-7-any.pkg.tar.xz
 #graphicsmagick distro generally has bits set=16:
 #curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-graphicsmagick-1.3.29-1-any.pkg.tar.xz
 #tar xf mingw-w64-i686-graphicsmagick-1.3.29-1-any.pkg.tar.xz
 # fftw-3.3.8 from 29-May-2018 (gcc 7.2)
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
-tar xf mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
+#curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
+#tar xf mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
 # graphicsmagick-1.3.27 from 14-Dec-2017
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-graphicsmagick-1.3.27-1-any.pkg.tar.xz
-tar xf mingw-w64-i686-graphicsmagick-1.3.27-1-any.pkg.tar.xz
+#curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-graphicsmagick-1.3.27-1-any.pkg.tar.xz
+#tar xf mingw-w64-i686-graphicsmagick-1.3.27-1-any.pkg.tar.xz
