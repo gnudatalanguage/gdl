@@ -16,9 +16,15 @@ if ~KEYWORD_SET(filter) then filter='test_*pro'
 ;
 files=FILE_SEARCH(filter)
 ;
+name='test_resolve_routine'
+info=ROUTINE_INFO(name,/source)
+path=STRMID(info.path, 0, STRLEN(info.path)-(STRLEN(name)+4))
+;
+if (files EQ '') then files=FILE_SEARCH(path+path_sep()+filter)
+;
 ; we need to remove "TEST_RESOLVE_ROUTINE" in the list
 ;
-index=STRPOS(files, 'test_resolve_routine')
+index=STRPOS(files, name)
 ok=WHERE(index LT 0, nbp_ok)
 if (nbp_ok GT 0) then files=files[ok]
 ;

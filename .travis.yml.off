@@ -44,7 +44,6 @@ before_install:
     - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_modulo.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
@@ -53,8 +52,6 @@ before_install:
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_tic_toc/d'              testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_total.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
