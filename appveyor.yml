@@ -80,10 +80,10 @@ install:
 
         appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
         # maybe an upgraded pcre can be used. mingw-w64-i686-pcre-8.37-2-any.pkg.tar.xz
-        #https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        appveyor DownloadFile https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0-lib.zip/download
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        appveyor DownloadFile https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0-bin.zip/download
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        #appveyor DownloadFile https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0-lib.zip/download
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        #appveyor DownloadFile https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0-bin.zip/download
         cd c:\projects\gdl\mingw\mingw32
         7z x ..\readline-5.0-1-lib.zip
         7z x ..\readline-5.0-1-bin.zip -y
