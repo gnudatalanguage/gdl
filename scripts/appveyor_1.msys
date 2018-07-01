@@ -16,7 +16,9 @@ curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libtre-git-r128.6fb72
 # later versions of libpng were found to link badly.
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-eigen3-3.3.4-1-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-zlib-1.2.8-9-any.pkg.tar.xz
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
+#curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
+# 1.6.26-1 ok for 6.3. for 5.3 try 1.6.18-1
+curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libpng-1.6.18-1-any.pkg.tar.xz
 path=`cygpath -u . -a`
 echo $path
 tar xf mingw-w64-i686-gsl-2.5-1-any.pkg.tar.xz
@@ -26,7 +28,8 @@ tar xf mingw-w64-i686-libsystre-1.0.1-4-any.pkg.tar.xz
 tar xf mingw-w64-i686-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 tar xf mingw-w64-i686-eigen3-3.3.4-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-zlib-1.2.8-9-any.pkg.tar.xz
-tar xf mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
+#tar xf mingw-w64-i686-libpng-1.6.26-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-libpng-1.6.18-1-any.pkg.tar.xz
 # that is the minimum set of libraries to build GDL
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
 #curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
