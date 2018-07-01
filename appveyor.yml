@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -214,7 +214,7 @@ build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF
+  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC
   - cd c:\projects\gdl
   - md install
   #- set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
