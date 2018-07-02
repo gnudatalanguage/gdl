@@ -7,17 +7,13 @@
 #  (at your option) any later version.
 #
 
-# requirement for CMAKE_CXX_STANDARD
-if (APPLE)
-  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
-else()
-  cmake_minimum_required(VERSION 3.1 FATAL_ERROR) 
-endif()
-
+# tested with 2.4 and doesn't seem to run.
+# SA: 2.6 supports simplified if constructs, e.g. endif()
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0026 OLD) # LOCATION property
+set(CMAKE_CXX_STANDARD 98)
 
 project(GDL)
-set(CMAKE_CXX_STANDARD 11)
 
 # X.X.X CVS becomes release X.X.X+1
 set(VERSION "0.9.8 git")
@@ -70,8 +66,8 @@ set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
-set(GRIB OFF CACHE BOOL "GDL: Enable GRIB ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specifiy the ECMWF ecCodes or GRIB API directory tree")
+set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
+set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 # set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
@@ -85,14 +81,6 @@ set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory t
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
-
-set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
-set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
-
-if(TIFF)
-	set(GEOTIFF ON CACHE BOOL "GDL: Enable libgeotiff ?")
-	set(GEOTIFFDIR "" CACHE PATH "GDL: Specify the libgeotiff directory tree")
-endif(TIFF)
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
@@ -272,8 +260,11 @@ endif(READLINE_FOUND)
 # -DEDITLINE=ON|OFF
 # -DEDITLINEDIR=DIR
 if(EDITLINE)
-  set(CMAKE_PREFIX_PATH ${EDITLINEDIR})
-  find_package(Editline QUIET)
+	set(CMAKE_PREFIX_PATH ${EDITLINEDIR})
+	find_package(Editline CONFIG)
+	if(NOT EDITLINE_FOUND)
+	  find_package(Editline QUIET)
+	endif(NOT EDITLINE_FOUND)
   set(HAVE_LIBEDITLINE ${EDITLINE_FOUND})
   if(EDITLINE_FOUND)
     if(NOT WIN32)
@@ -589,42 +580,6 @@ if(WXWIDGETS)
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
-# libtiff
-# -DTIFF=ON|OFF
-# -DTIFFDIR=DIR
-if(TIFF)
-	set(CMAKE_PREFIX_PATH ${TIFFDIR})
-	find_package(TIFF 4.0.3 QUIET)
-	set(USE_TIFF ${TIFF_FOUND})
-	if(TIFF_FOUND)
-		include_directories(${TIFF_INCLUDE_DIR})
-		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
-	else(TIFF_FOUND)
-		message(FATAL_ERROR
-		"libtiff v4.0.3 or newer is required for TIFF support but was not found.\n"
-		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
-		"Use -DTIFF=OFF to not use it.")
-	endif(TIFF_FOUND)
-endif(TIFF)
-
-# libgeotiff
-# -DGEOTIFF=ON|OFF
-# -DGEOTIFFDIR=DIR
-if(GEOTIFF AND USE_TIFF)
-	set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
-	find_package(GeoTIFF QUIET)
-	set(USE_GEOTIFF ${GEOTIFF_FOUND})
-	if(GEOTIFF_FOUND)
-		include_directories(${GEOTIFF_INCLUDE_DIR})
-		set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
-	else(GEOTIFF_FOUND)
-		message(FATAL_ERROR
-		"libgeotiff is required for GeoTIFF support but was not found.\n"
-		"Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
-		"Use -DGEOTIFF=OFF to not use it.")
-	endif(GEOTIFF_FOUND)
-endif(GEOTIFF AND USE_TIFF)
-
 # netCDF
 # -DNETCDF=ON|OFF
 # -DNETCDFDIR=DIR
@@ -674,7 +629,7 @@ if(HDF)
 	if(HDF_FOUND)
 		if(NETCDF)
 			set(CMAKE_REQUIRED_LIBRARIES ${HDF_EXTRA_LIBRARIES})
-                        check_library_exists("${HDF_LIBRARIES};${RPC_LIBRARIES}" sd_nccreate "" SD_NCCREATE)
+                        check_library_exists("${HDF_LIBRARIES}" sd_nccreate "" SD_NCCREATE)
 			if(NOT SD_NCCREATE)
 				message(FATAL_ERROR "HDF4 needs to be configured with the --disable-netcdf option "
 				"in order to be used with the original netCDF library.")
@@ -855,13 +810,6 @@ if(PYTHON OR PYTHON_MODULE)
 		endif()
 		find_package(PythonInterp)
 		find_package(PythonLibs ${PYTHONVERSION})
-		if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
-  			message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
-  			message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
-  			message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
-  			message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
-  			message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
-		endif()
 	endif()
 	set(USE_PYTHON ${PYTHONLIBS_FOUND})
 	if(PYTHONLIBS_FOUND)
@@ -940,18 +888,18 @@ endif(EIGEN3)
 if(PSLIB)
 	set(CMAKE_PREFIX_PATH ${PSLIBDIR})
 	find_package(libps QUIET)
-	set(USE_PSLIB ${PSLIB_FOUND})
-	if(PSLIB_FOUND)
-		set(LIBRARIES ${LIBRARIES} ${PSLIB_LIBRARIES})
-		#set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PSLIB_LIBRARY_DIRS})
-		include_directories(${PSLIB_INCLUDE_DIR})
-	else(PSLIB_FOUND)
+	set(USE_PSLIB ${LIBPS_FOUND})
+	if(LIBPS_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${LIBPS_LIBRARIES})
+		set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${LIBPS_LIBRARY_DIRS})
+		include_directories(${LIBPS_INCLUDE_DIRS})
+	else(LIBPS_FOUND)
 		message(FATAL_ERROR "pslib is required but was not found.\n"
 		"Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
 		"Use -DPSLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: pslib-dev)\n"
                 "(suitable Fedora package: pslib-devel)")
-	endif(PSLIB_FOUND)
+	endif(LIBPS_FOUND)
 endif(PSLIB)
 
 # grib
@@ -965,14 +913,13 @@ if(GRIB)
 		set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
 		include_directories(${GRIB_INCLUDE_DIR})
 	else(GRIB_FOUND)
-		message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
-		"Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
+		message(FATAL_ERROR "GRIB is required but was not found.\n"
+		"Use -DGRIBDIR=DIR to specify the GRIB directory tree.\n"
 		"Use -DGRIB=OFF to not use it.\n"
 		"Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
 		"the directory trees of JasPer and openJPEG libraries.\n"
-                "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
-                "(suitable Fedora package: grib_api-devel)\n"
-		"(suitable Homebrew package: eccodes)\n")
+                "(suitable Debian/Ubuntu package: libgrib-api-dev)\n"
+                "(suitable Fedora package: grib_api-devel)")
 	endif(GRIB_FOUND)
 endif(GRIB)
 
@@ -1087,7 +1034,7 @@ endif(NOT PYTHON_MODULE)
 # display macro
 macro(MODULE MOD NAME)
 	if(${MOD})
-		message("${NAME}         ON (libs:${${MOD}_LIBRARIES}; headers:${${MOD}_INCLUDE_DIR})")
+		message("${NAME}         ON ${${MOD}_LIBRARIES}")
 	else(${MOD})
 		message("${NAME}         OFF")
 	endif(${MOD})
@@ -1136,66 +1083,63 @@ message(STATUS
 "Summary
 
 GDL - GNU DATA LANGUAGE [${BUILDTYPE}]
-System                 ${CMAKE_HOST_SYSTEM}
-Files generated        ${CMAKE_GENERATOR}
-GDL output             ${GDLLOCATION}
-Installation prefix    ${CMAKE_INSTALL_PREFIX}
-C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
+System              ${CMAKE_HOST_SYSTEM}
+Files generated     ${CMAKE_GENERATOR}
+GDL output          ${GDLLOCATION}
+Installation prefix ${CMAKE_INSTALL_PREFIX}
+C++ compiler        ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
 message(STATUS "Options")
 if(OPENMP AND OPENMP_FOUND)
-	message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
+	message("OpenMP support      ON ${OpenMP_CXX_FLAGS}")
 else(OPENMP AND OPENMP_FOUND)
-	message("OpenMP support         OFF")
+	message("OpenMP support      OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets  ")
 module(MAGICK    "ImageMagick")
-module(TIFF      "TIFF       ")
-module(GEOTIFF   "GeoTIFF    ")
 module(NETCDF    "NetCDF     ")
 module(HDF       "HDF4       ")
 module(HDF5      "HDF5       ")
 module(FFTW      "FFTW       ")
 module(LIBPROJ4  "Libproj4   ")
 set(MPICH_LIBRARIES ${MPI_LIBRARIES})
-module(MPICH     "MPICH         ")
-module(PYTHON    "Python        ")
-module(UDUNITS   "UDUNITS-2     ")
-module(EIGEN3    "EIGEN3        ")
+module(MPICH     "MPICH      ")
+module(PYTHON    "Python     ")
+module(UDUNITS   "UDUNITS-2  ")
+set(EIGEN3_LIBRARIES ${EIGEN3_INCLUDE_DIR})
+module(EIGEN3    "EIGEN3     ")
 module(GRAPHICSMAGICK "GRAPHICSMAGICK")
-module(GRIB      "GRIB          ")
+module(GRIB      "GRIB       ")
 # set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
-# module(QHULL     "QHULL         ")
+# module(QHULL     "QHULL      ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
-module(GLPK      "GLPK          ")
+module(GLPK      "GLPK       ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
-module(GSHHS     "GSHHS         ")
-module(PSLIB	 "pslib         ")
+module(GSHHS     "GSHHS      ")
+module(PSLIB	 "pslib      ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)
-  module(X11	 "Xlib          ")
+  module(X11	 "Xlib       ")
 endif(WIN32 AND NOT CYGWIN)
-module(PNGLIB    "libpng        ")
+module(PNGLIB    "libpng     ")
 message("")
 message(STATUS "Mandatory modules")
 set(PLPLOT ON)
 set(READLINE ON)
 set(GSL ON)
 set(ZLIB ON)
-set(RPC ON)
 if(NOT WIN32)
   set(CURSES ON)
 endif(NOT WIN32)
-module(PLPLOT    "Plplot        ")
-module(OLDPLPLOT "Old Plplot    ")
-module(READLINE  "GNU Readline  ")
-module(EDITLINE  "BSD Editline  ")
-module(GSL       "GSL           ")
-module(ZLIB      "Zlib          ")
-module(RPC       "RPC           ")
+module(PLPLOT    "Plplot     ")
+module(OLDPLPLOT "Old Plplot ")
+module(READLINE  "GNU Readline   ")
+module(EDITLINE  "BSD Editline   ")
+module(GSL       "GSL        ")
+module(ZLIB      "Zlib       ")
 if(NOT WIN32)
-  module(CURSES    "(N)curses     ")
+  module(CURSES    "(N)curses    ")
 endif(NOT WIN32)
 message("")
