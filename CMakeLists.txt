@@ -106,7 +106,7 @@ set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
 set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 
-set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
+set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
 set(MPICH OFF CACHE BOOL "GDL: Enable MPICH ?")
@@ -777,9 +777,10 @@ if(LIBPROJ4)
         set(LIBRARIES ${LIBRARIES} ${LIBPROJ4_LIBRARIES})
         set(CMAKE_REQUIRED_LIBRARIES)
     else(LIBPROJ4_FOUND)
-        message(FATAL_ERROR "Libproj4 is required but was not found.\n"
+        message(STATUS "Libproj4 is requested but was not found.\n"
         "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
         "Use -DLIBPRJ4=OFF to not use it.")
+        set(LIBPROJ4 OFF)
     endif(LIBPROJ4_FOUND)   
 endif(LIBPROJ4)
 

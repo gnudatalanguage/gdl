@@ -71,5 +71,7 @@ tar xf mingw-w64-i686-pcre-8.42-1-any.pkg.tar.xz
 # libtiff
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libgeotiff-1.4.2-2-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libtiff-4.0.9-1-any.pkg.tar.xz
+curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-proj-5.1.0-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-libtiff-4.0.9-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-libgeotiff-1.4.2-2-any.pkg.tar.xz
+tar xf mingw-w64-i686-proj-5.1.0-1-any.pkg.tar.xz
