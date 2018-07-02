@@ -230,7 +230,7 @@ build_script:
   # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
   - cd c:\projects\gdl\build
-  - #mingw32-make check
+  - mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -248,6 +248,17 @@ after_build:
   - ps: move  ./install/gdl/share/gnudatalanguage/lib ./install/gdl/gdllib
   - ps: rm -r ./install/plplot5.13/lib/examples
   - ps: copy INSTALL.plplot c:/projects/gdl/install
+  
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libpcre-1.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libglib-2.0-0.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libharfbuzz-0.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libfontconfig-1.dll
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\liblzma-5.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libltdl-7.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\liblcms2-2.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libfreetype-6.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libjpeg-8.dll ./install/gdl/bin
+  - ps: copy c:\projects\gdl\mingw\mingw32\bin\libbz2-1.dll ./install/gdl/bin
   # Get plplot info placed:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
