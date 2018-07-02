@@ -447,6 +447,7 @@ DIntGDL* 	DeviceWIN::GetScreenSize(char *disp)
 	MaxXYSize(&xsize, &ysize);
 	DIntGDL* res;
 	res = new DIntGDL(2, BaseGDL::NOZERO);
+    std::cout << ">>HERE<<" << std::endl
 	(*res)[0] = xsize;
 	(*res)[1] = ysize;
 	return res;
