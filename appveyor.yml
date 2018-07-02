@@ -228,9 +228,9 @@ build_script:
   - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\lib
   - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\bin
   # - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
-  - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
+  - set PATH=%PATH%;C:/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0/mingw32/i686-w64-mingw32/lib
   - cd c:\projects\gdl\build
-  - mingw32-make check
+  #- mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -238,7 +238,7 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
@@ -263,7 +263,7 @@ after_build:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip build install mingw
+  - 7z a gdl_build.zip build install
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
