@@ -59,7 +59,7 @@ install:
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
         md plplot-5.13.0/build
         cd plplot-5.13.0/build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32
         mingw32-make -j4
         mingw32-make install > plplotinstall.out
         
@@ -213,6 +213,8 @@ before_build:
 build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
+  - md c:\projects\gdl\build\msys
+  - cmake  gdl -Bc:\projects\gdl\build\msys -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON
   - cd c:\projects\gdl
@@ -252,7 +254,7 @@ after_build:
   # When widgets comes in:
   # - copy C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip build install
+  - 7z a gdl_build.zip build install mingw
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
