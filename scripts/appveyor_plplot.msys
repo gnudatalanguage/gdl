@@ -14,7 +14,7 @@ MSYSTEM=MINGW32
 cd c:/projects/gdl/win32libs
 mkdir -p  plplot-5.13.0/build
 cd plplot-5.13.0/build
-cmake c:/projects/gdl/win32libs -G "MSYS Makefiles" \
+cmake .. -G "MSYS Makefiles" \
  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
  -DCMAKE_INSTALL_PREFIX=c:/projects/gdl/mingw/mingw32 \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
