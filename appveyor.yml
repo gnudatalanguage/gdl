@@ -33,29 +33,33 @@ install:
         cd c:/projects/gdl/mingw
         rm mingw-w64-i686-*tar.xz
         rm -r mingw32/share
-        # Wx needs to be in place to build plplot, if it gets used.
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
-        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
-        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
-        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        # Below 2 lines are required for wxWidgets-3.0.4, don't know why
-        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        #Wx needs to be in place to build plplot, if it gets used.
+        # cd c:\projects\gdl\win32libs
+        # appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
+        # 7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
+        # cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
+        # mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # #Below 2 lines are required for wxWidgets-3.0.4, don't know why
+        # copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
+        # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        $env:WXWIDGETS_ROOT="c:\projects\gdl\mingw\mingw32"
         
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         tar zxf plplot-5.13.0.tar.gz
-        # apply scripts/patches
-        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
-        md plplot-5.13.0/build
-        cd plplot-5.13.0/build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll
-        mingw32-make -j4
-        mingw32-make install > plplotinstall.out
+        # #apply scripts/patches - note this does not work for the wxwidgets driver so MSYS script is used.
+        # c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
+        # md plplot-5.13.0/build
+        # cd plplot-5.13.0/build
+        # cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll
+        # mingw32-make -j4
+        # mingw32-make install > plplotinstall.out
+        cd c:/projects/gdl
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
+        
         
         # Eigen is downloaded from mrepository via scripts/appveyor_1.msys
         # GSL loaded from scripts/appveyor_1.msys
@@ -223,10 +227,11 @@ build_script:
   # TODO: copy those to the artefact dir
   - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\lib
   - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\bin
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+  # widgets is kept in mingw/mingw32 here.
+  #- set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0/mingw32/i686-w64-mingw32/lib
   - cd c:\projects\gdl\build
-  #- mingw32-make check
+  - mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -245,10 +250,12 @@ after_build:
   - ps: rm -r ./install/plplot5.13/lib/examples
   - ps: copy INSTALL.plplot c:/projects/gdl/install
   # Get plplot info placed:
-  # When widgets comes in:
-  - ps: copy -r C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
+  # When widgets is homemade:
+  # - ps: copy -r C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
+  # - ps: move  ./install/gdl/bin/gcc_dll/*.dll ./install/gdl/bin
+  # - ps: rm -r ./install/gdl/bin/gcc_dll
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip build install win32libs mingw
+  - 7z a gdl_build.zip install
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"

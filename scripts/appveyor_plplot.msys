@@ -1,0 +1,28 @@
+#!bin/bash.exe
+#
+# script to download some files needed for mingw32
+# reversion: readline, zlibl, libpng, libpcre from win32libs (gl and eigen from repo)
+cd c:/projects/gdl
+mkdir -p ./mingw
+cd ./mingw
+# wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
+# tuned for use by MSYS compiler
+curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+MSYSTEM=MINGW32
+. /etc/profile
+cd c:/projects/gdl/win32libs
+mkdir -p  plplot-5.13.0/build
+cd plplot-5.13.0/build
+cmake c:/projects/gdl/win32libs -G "MSYS Makefiles" \
+ -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
+ -DCMAKE_INSTALL_PREFIX=c:/projects/gdl/mingw/mingw32 \
+ -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
+ -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
+ -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF \
+ -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 
+ 
+make -j4
+make install > plplotinstall.out
+echo WXWIDGETS_ROOT=$WXWIDGETS_ROOT
+echo " that was scripts/appveyor-plplot.msys "
