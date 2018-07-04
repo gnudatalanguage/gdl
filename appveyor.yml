@@ -246,7 +246,7 @@ after_build:
   - ps: copy INSTALL.plplot c:/projects/gdl/install
   # Get plplot info placed:
   # When widgets comes in:
-  - copy -r C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
+  - ps: copy -r C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
   - cd c:\projects\gdl
   - 7z a gdl_build.zip build install win32libs mingw
   # - ctest -C Release --output-on-failure
