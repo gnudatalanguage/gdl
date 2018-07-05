@@ -255,14 +255,18 @@ public:
   
     DIntGDL* GetScreenSize(char* disp) { 
       Display* display = XOpenDisplay(disp);
-      if (display == NULL) ThrowGDLException("Cannot connect to X server");
       int screen_num, screen_width, screen_height;
-      screen_num = DefaultScreen(display);
-      screen_width = DisplayWidth(display, screen_num);
-      screen_height = DisplayHeight(display, screen_num);
-      XCloseDisplay(display);
-
       DIntGDL* res;
+
+      if (display == NULL) {
+         screen_width = 0;
+         screen_height = 0;
+      } else {
+         screen_num = DefaultScreen(display);
+         screen_width = DisplayWidth(display, screen_num);
+         screen_height = DisplayHeight(display, screen_num);
+         XCloseDisplay(display);
+      }
       res = new DIntGDL(2, BaseGDL::NOZERO);
       (*res)[0]= screen_width;
       (*res)[1]= screen_height;
