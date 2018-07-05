@@ -7,11 +7,18 @@
 #  (at your option) any later version.
 #
 
-# requirement for CMAKE_CXX_STANDARD
-if (APPLE)
-  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+option(GDL_ACCEPT_CMAKE_3_0 "Relax CMake version requirement check (override at your own risk!)" OFF)
+if (GDL_ACCEPT_CMAKE_3_0)
+  cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 else()
-  cmake_minimum_required(VERSION 3.1 FATAL_ERROR) 
+  cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+endif()
+unset(GDL_ACCEPT_CMAKE_3_0 CACHE) 
+
+# requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.2")
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 cmake_policy(SET CMP0026 OLD) # LOCATION property
