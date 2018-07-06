@@ -20,10 +20,12 @@ echo $PATH
 # $ wx-config --cxxflags
 # -IC:/msys64/mingw32/lib/wx/include/msw-unicode-3.0 -IC:/msys64/mingw32/include/wx-3.0 
 # -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXMSW__ -mthreads -fpermissive
-#mkdir -p C:/msys64/mingw32/include C:/msys64/mingw32/lib
-#cp -r C:/projects/gdl/mingw/mingw32/lib/wx C:/msys64/mingw32/lib
-#cp -r  C:/projects/gdl/mingw/mingw32/include/wx-3.0   C:/msys64/mingw32/include
-# -> wxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32
+# this is brute force movement of files to satisfy the search procedure. 
+mkdir -p C:/msys64/mingw32/include C:/msys64/mingw32/lib
+cp -r C:/projects/gdl/mingw/mingw32/lib/wx C:/msys64/mingw32/lib
+cp -r  C:/projects/gdl/mingw/mingw32/include/wx-3.0   C:/msys64/mingw32/include
+#
+# -> wxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 isn't working even with patch
 # evidently -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 was not convincing.
 cd c:/projects/gdl/win32libs
 mkdir -p  plplot-5.13.0/build
