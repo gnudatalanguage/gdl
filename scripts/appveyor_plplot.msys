@@ -11,6 +11,8 @@ curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any
 tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
 MSYSTEM=MINGW32
 . /etc/profile
+export PATH=C:/projects/gdl/mingw/mingw32/bin:$PATH
+# evidently -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 was not convincing.
 cd c:/projects/gdl/win32libs
 mkdir -p  plplot-5.13.0/build
 cd plplot-5.13.0/build
