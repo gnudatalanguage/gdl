@@ -12,6 +12,15 @@ tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
 MSYSTEM=MINGW32
 . /etc/profile
 export PATH=C:/projects/gdl/mingw/mingw32/bin:$PATH
+# that was ineffective. check out what wx-config --cxxflags results:
+# Findwx line 774:
+# $ wx-config --cxxflags
+# -IC:/msys64/mingw32/lib/wx/include/msw-unicode-3.0 -IC:/msys64/mingw32/include/wx-3.0 
+# -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXMSW__ -mthreads -fpermissive
+#mkdir -p C:/msys64/mingw32/include C:/msys64/mingw32/lib
+#cp -r C:/projects/gdl/mingw/mingw32/lib/wx C:/msys64/mingw32/lib
+#cp -r  C:/projects/gdl/mingw/mingw32/include/wx-3.0   C:/msys64/mingw32/include
+# -> wxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32
 # evidently -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 was not convincing.
 cd c:/projects/gdl/win32libs
 mkdir -p  plplot-5.13.0/build
@@ -22,9 +31,11 @@ cmake .. -G "MSYS Makefiles" \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
  -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
  -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF \
- -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 
+ -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 \
+ -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32
  
 make -j4
 make install > plplotinstall.out
+echo $PATH
 echo WXWIDGETS_ROOT=$WXWIDGETS_ROOT
 echo " that was scripts/appveyor-plplot.msys "
