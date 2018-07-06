@@ -2,6 +2,8 @@
 #
 # script to download some files needed for mingw32
 # reversion: readline, zlibl, libpng, libpcre from win32libs (gl and eigen from repo)
+cd c:/projects/gdl/win32libs
+. ../scripts/patch/patch_plplot.sh
 cd c:/projects/gdl
 mkdir -p ./mingw
 cd ./mingw
@@ -12,6 +14,7 @@ tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
 MSYSTEM=MINGW32
 . /etc/profile
 export PATH=C:/projects/gdl/mingw/mingw32/bin:$PATH
+echo $PATH
 # that was ineffective. check out what wx-config --cxxflags results:
 # Findwx line 774:
 # $ wx-config --cxxflags
