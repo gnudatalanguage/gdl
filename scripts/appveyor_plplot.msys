@@ -36,8 +36,7 @@ cmake .. -G "MSYS Makefiles" \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
  -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
  -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF \
- -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 \
- -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32
+ -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32
  
 make -j4
 make install > plplotinstall.out
