@@ -76,18 +76,6 @@ install:
         mv rpc c:\projects\gdl\mingw\mingw32\include
         mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
        
-        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE)
-        cd c:\projects\gdl\mingw
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        # an upgraded pcre (mingw-w64-i686-pcre-8.37-2-any.pkg.tar.xz) will not provide the regex.h needed.
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        cd c:\projects\gdl\mingw\mingw32
-        #7z x ..\readline-5.0-1-lib.zip
-        #7z x ..\readline-5.0-1-bin.zip -y
-        #7z x ..\pcre-7.0-lib.zip
-        #7z x ..\pcre-7.0-bin.zip -y
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
@@ -212,7 +200,6 @@ build_script:
   - cd c:\projects
   - md c:\projects\gdl\build
   - md c:\projects\gdl\build\msys
-  #- cmake  gdl -Bc:\projects\gdl\build\msys -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
   - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON
   - cd c:\projects\gdl

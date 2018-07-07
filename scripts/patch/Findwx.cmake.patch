@@ -1,11 +1,12 @@
 --- /f/tarball/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
 +++ /f/plplot/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
-@@ -730,7 +730,7 @@ else()
-     #
-     macro(WX_CONFIG_SELECT_SET_OPTIONS)
-       set(wxWidgets_SELECT_OPTIONS ${wxWidgets_CONFIG_OPTIONS})
--      foreach(_opt_name debug static unicode universal)
-+      foreach(_opt_name debug static unicode universal prefix)
-         string(TOUPPER ${_opt_name} _upper_opt_name)
-         if(DEFINED wxWidgets_USE_${_upper_opt_name})
-           if(wxWidgets_USE_${_upper_opt_name})
+@@ -766,6 +766,9 @@ else()
+ 
+       # process selection to set wxWidgets_SELECT_OPTIONS
+       WX_CONFIG_SELECT_SET_OPTIONS()
++      if(DEFINED wxWidgets_USE_PREFIX)
++        list(APPEND wxWidgets_SELECT_OPTIONS --prefix=${wxWidgets_USE_PREFIX})
++      endif()
+       DBG_MSG("wxWidgets_SELECT_OPTIONS=${wxWidgets_SELECT_OPTIONS}")
+ 
+       # run the wx-config program to get cxxflags
