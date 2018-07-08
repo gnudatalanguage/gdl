@@ -11,12 +11,27 @@ cd ./mingw
 # tuned for use by MSYS compiler
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+LOCALM32=c:/projects/gdl/mingw/mingw32
+# make a copy where cmake wants to find it.
+cd C:/msys64/
+tar xf $OLDPWD/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+cd $OLDPWD
 MSYSTEM=MINGW32
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
 export PATH=C:/projects/gdl/mingw/mingw32/bin:$PATH
 echo $PATH
+echo " appveyor_plplot.msys: copy MSYS style wxwidgets-3.0.4 to MinGW-style"
+
+LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+mkdir -p $LIB_DIR
+cd c:/projects/gdl/win32libs/wxWidgets-3.0.4
+mkdir ./bin
+cp $LOCALM32/bin/wx*.dll ./bin
+cp -r $LOCALM32/include/wx-3.0 ./include
+cp -r $LOCALM32/lib/wx/include/msw-unicode-3.0 $LIB_DIR/mswu
+cp -r $LOCALM32/lib/libwx*.dll.a $LIB_DIR
 # check out what wx-config --cxxflags results:
 # Findwx line 774:
 # $ wx-config --cxxflags
@@ -35,7 +50,8 @@ echo $PATH
 #
 # wxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 
 # so that wx-config is called with wx-config --prefix=${wxWidgets_USE_PREFIX}
-#
+#   -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \ (works this way)
+# prefix is = C:/msys64/mingw32 which is a path we have, so it is done that way, this time.
 # Alternatively, we could have just unpacked the archive from C:/msys64 directory.
 cd c:/projects/gdl/win32libs
 mkdir -p  plplot-5.13.0/build
@@ -46,13 +62,12 @@ cmake .. -G "MSYS Makefiles" \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
  -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
  -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF \
- -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 \
- -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \
+ -DPLD_wingdi=ON -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \
  -DCMAKE_CXX_FLAGS='-std=c++11'
  
-make -j4
+make -j2
 make install > plplotinstall.out
 
-echo WXWIDGETS_ROOT=$WXWIDGETS_ROOT
+echo wxWidgets_ROOT=$wxWidgets_ROOT
 echo " that was scripts/appveyor-plplot.msys "
 echo " Notice gcc 7.3.0 was used to compile plplot!"
