@@ -251,7 +251,7 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy $env:wxWidgets_ROOT\lib\gc_dll\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy $env:wxWidgets_ROOT\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy C:\mingw-w64\$env:GCC\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
