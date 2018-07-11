@@ -1,5 +1,18 @@
 --- /f/tarball/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
 +++ /f/plplot/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
+@@ -429,11 +429,11 @@ if(wxWidgets_FIND_STYLE STREQUAL "win32")
+   #-------------------------------------------------------------------
+   # WIN32: Start actual work.
+   #-------------------------------------------------------------------
+-
+   # Look for an installation tree.
+   find_path(wxWidgets_ROOT_DIR
+     NAMES include/wx/wx.h
+     PATHS
++      ENV wxWidgets_ROOT
+       ENV wxWidgets_ROOT_DIR
+       ENV WXWIN
+       "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\wxWidgets_is1;Inno Setup: App Path]"  # WX 2.6.x
 @@ -441,7 +441,11 @@ if(wxWidgets_FIND_STYLE STREQUAL "win32")
        D:/
        ENV ProgramFiles

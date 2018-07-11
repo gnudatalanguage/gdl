@@ -22,6 +22,7 @@ install:
       if ($env:platform -Match "mingw64630i686") {
         #C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
         $env:GCC="i686-5.3.0-posix-dwarf-rt_v4-rev0"
+        #$env:GCC="i686-5.4.0-release-posix-dwarf-rt_v5-rev0"
         #$env:PATH="C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin;$env:PATH"
         $env:PATH="C:\mingw-w64\$env:GCC\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
@@ -34,7 +35,7 @@ install:
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
         rm mingw-w64-i686-*tar.xz
-        rm -r mingw32/share
+
         #Wx needs to be in place to build plplot, if it gets used.
         # cd c:\projects\gdl\win32libs
         # appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
@@ -45,22 +46,48 @@ install:
         # #Below 2 lines are required for wxWidgets-3.0.4, don't know why
         # copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
         # mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
-        # https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxMSW-3.0.4_gcc720_Dev.7z       
+        $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        mkdir $env:wxWidgets_ROOT
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        tar zxf plplot-5.13.0.tar.gz
-        # #apply scripts/patches - note this does not work for the wxwidgets driver so MSYS script is used.
-        # c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
-        # md plplot-5.13.0/build
-        # cd plplot-5.13.0/build
-        # cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll
-        # mingw32-make -j4
-        # mingw32-make install > plplotinstall.out
-        cd c:/projects/gdl
+        # leave the file there, to be uncompressed and patched from appveyor_plplot.msys script.
+        # apply scripts/patches - note this does not work for the wxwidgets driver so MSYS script is used.
+        #
+        echo " plplot building.  we make an MSYS build (from build/msys) and then a MINGW build"
+        echo "the only difference should be, the MSYS build uses "
+        $env:LOCALM32="c:/projects/gdl/mingw/mingw32"
+
+        cd c:/projects/gdl        
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
-        
+        # the above script attempts to make a viable plplot using msys.
+        copy c:/projects/gdl/mingw/plplot-5.13/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/mingw/plplot-5.13/bin
+        copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/mingw32/  -Recurse -Force
+
+        cd c:\projects\gdl
+        mkdir build/plplot
+        cd build/plplot
+        cmake c:\projects\gdl\win32libs\plplot-5.13.0 -G "MinGW Makefiles" `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
+            -DCMAKE_INSTALL_PREFIX="$env:LOCALM32/../plplot5.13.0" `
+            -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON `
+            -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON -DWITH_FREETYPE=OFF `
+            -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON `
+            -DCMAKE_SYSTEM_PREFIX_PATH=$env:LOCALM32  `
+            -DCMAKE_CXX_FLAGS='-std=c++11' > cmakeMingW.out
+        #
+        # plplot/FindwxWidgets doesn't do enough work to allow WIN32 mode to work out.
+        # So mingw-make build is skipped. 
+        # msys/unix find works ok, see scripts/patch/Findwx.cmake.patch
+        #  the windows-style wx lib directory is created and is left here:
+        #-DwxWidgets_LIB_DIR=$env:wxWidgets_ROOT\lib\gcc_dll
+        # cmake (MinGW) gets _LIB_DIR and has configurationlist (mswu),
+        #    but doesn't get the available libraries.  So, wxwidgets stays on and 
+        # a mega-dump of compile errors comes out.  If it were working, the following lines
+        # would do the build:
+        #$env:PATH="$env:wxWidgets_ROOT\lib\gcc_dll;$env:PATH"
+        #        mingw32-make -j4
+        #        mingw32-make install > plplotinstall.out
         
         # Eigen is downloaded from mrepository via scripts/appveyor_1.msys
         # GSL loaded from scripts/appveyor_1.msys
@@ -198,19 +225,21 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
   
 build_script:
-  - cd c:\projects
+
   - md c:\projects\gdl\build
+  - cd c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
-  - cmake  gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DWXWIDGETS=ON -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=ON -DMAGICK=ON -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF -DUSE_WINGDI_NOT_WINGCC=ON
+  - cmake  .. -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
+      -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 ^
+      -DNDEBUG" -DWXWIDGETS=ON -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
+      -DPLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13 ^
+      -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF ^
+      -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
+      -DUSE_WINGDI_NOT_WINGCC=ON
   - cd c:\projects\gdl
   - md install
   - md install/gdl
-  #- set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
-  #- set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
   - cd c:\projects\gdl\build
-  # work on an alternative library support
-  #- mingw32-make -j2
-  #- mingw32-make install > gdlinstall.out
   # tests
   # TODO: copy those to the artefact dir
   - set PATH=%PATH%;C:\projects\gdl\mingw\mingw32\lib
@@ -218,7 +247,9 @@ build_script:
   # widgets is kept in mingw/mingw32 here.
   #- set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
   - set PATH=%PATH%;C:/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0/mingw32/i686-w64-mingw32/lib
-  - cd c:\projects\gdl\build
+  - mingw32-make -j2
+  - mingw32-make install > gdlinstall.out
+
   #- mingw32-make check
 
 on_failure:
@@ -227,10 +258,12 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - copy %WXWIDGETS_ROOT%\lib\gc_dll\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
+
   - ps: copy c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin
   - ps: copy -r c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
   - ps: copy -r c:/projects/gdl/mingw/mingw32/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
@@ -238,12 +271,9 @@ after_build:
   - ps: rm -r ./install/plplot5.13/lib/examples
   - ps: copy INSTALL.plplot c:/projects/gdl/install
   # Get plplot info placed:
-  # When widgets is homemade:
-  # - ps: copy -r C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll c:\projects\gdl\install\gdl\bin
-  # - ps: move  ./install/gdl/bin/gcc_dll/*.dll ./install/gdl/bin
-  # - ps: rm -r ./install/gdl/bin/gcc_dll
+
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip install build win32libs
+  - 7z a gdl_build.zip install build mingw
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"

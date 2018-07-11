@@ -1,48 +1,80 @@
 #!bin/bash.exe
 #
 # script to download some files needed for mingw32
-# reversion: readline, zlibl, libpng, libpcre from win32libs (gl and eigen from repo)
-cd c:/projects/gdl/win32libs
-. ../scripts/patch/patch_plplot.sh
-cd c:/projects/gdl
+# plplot is already supplied in compressed form, before this script runs.
+cd /c/projects/gdl/win32libs
+if [[ -f plplot-5.13.0.tar.gz ]] ; then
+    tar xf plplot-5.13.0.tar.gz
+echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ )"
+    . ../scripts/patch/patch_plplot.sh
+    else
+    echo " /c/projects/gdl/win32libs needs a copy of plplot-5.13.0.tar.gz"
+    fi
+cd /c/projects/gdl
 mkdir -p ./mingw
 cd ./mingw
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
 # tuned for use by MSYS compiler
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-tar xf mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-LOCALM32=c:/projects/gdl/mingw/mingw32
-# make a copy where cmake wants to find it.
-cd C:/msys64/
-tar xf $OLDPWD/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-cd $OLDPWD
+if [[ -f mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz ]] ; then
+    echo " wxWidgets distro has been loaded"
+    else
+    curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+    echo " mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
+    fi
+if [[ -d wxWidgets-3.0.4 ]] ; then
+    echo " mingw/wxWidgets directory already prepped "
+    else
+    mkdir temp
+    cd temp
+    tar xf ../mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
+    cd .. && mv temp/mingw32 ./wxWidgets-3.0.4 && rm -r temp
+    fi
+WXROOT=/c/projects/gdl/mingw/wxWidgets-3.0.4
+
 MSYSTEM=MINGW32
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
-export PATH=C:/projects/gdl/mingw/mingw32/bin:$PATH
+export PATH=/c/projects/gdl/mingw/mingw32/bin:$PATH
+#
+# any hints on how to switch compilers, insert here.
+#
+echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
+echo $LOCALM32
 echo " appveyor_plplot.msys: copy MSYS style wxwidgets-3.0.4 to MinGW-style"
-
+LOCALM32=/c/projects/gdl/mingw/mingw32
 LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
+echo "LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll holding windows-style wx."
 mkdir -p $LIB_DIR
 cd c:/projects/gdl/win32libs/wxWidgets-3.0.4
+# make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
+
 mkdir ./bin
-cp $LOCALM32/bin/wx*.dll ./bin
-cp -r $LOCALM32/include/wx-3.0 ./include
-cp -r $LOCALM32/lib/wx/include/msw-unicode-3.0 $LIB_DIR/mswu
-cp -r $LOCALM32/lib/libwx*.dll.a $LIB_DIR
+cp $WXROOT/bin/wxbase*.dll ./bin
+cp $WXROOT/bin/*_adv*.dll  ./bin
+cp $WXROOT/bin/*_core*.dll ./bin
+cp -r $WXROOT/include/wx-3.0 ./include
+if [[ -d $LIB_DIR/mswu ]] ; then
+    echo " $LIB_DIR/mswu has already been created "
+    else
+cp -r $WXROOT/lib/wx/include/msw-unicode-3.0 $LIB_DIR/mswu
+    fi
+cp -r $WXROOT/lib/libwx*.dll.a $LIB_DIR
+cp $WXROOT/bin/wxbase*.dll $LIB_DIR
+cp $WXROOT/bin/*_adv*.dll  $LIB_DIR
+cp $WXROOT/bin/*_core_*.dll $LIB_DIR
+cp $WXROOT/lib/libwx_base*.a $LIB_DIR
+cp $WXROOT/lib/libwx*_adv*.a  $LIB_DIR
+cp $WXROOT/lib/libwx*_core*.a $LIB_DIR
+
 # check out what wx-config --cxxflags results:
 # Findwx line 774:
 # $ wx-config --cxxflags
 # -IC:/msys64/mingw32/lib/wx/include/msw-unicode-3.0 -IC:/msys64/mingw32/include/wx-3.0 
 # -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXMSW__ -mthreads -fpermissive
 # this is brute force movement of files to satisfy the search procedure. 
-#mkdir -p C:/msys64/mingw32/include C:/msys64/mingw32/lib
-#cp -r C:/projects/gdl/mingw/mingw32/lib/wx C:/msys64/mingw32/lib
-#cp -r  C:/projects/gdl/mingw/mingw32/include/wx-3.0   C:/msys64/mingw32/include
-#
-# evidently -DCMAKE_SYSTEM_PREFIX_PATH=C:/projects/gdl/mingw/mingw32 is not convincing.
 #
 # Patch to cmake/modules/FindwxWidgets.cmake:
 #
@@ -52,22 +84,44 @@ cp -r $LOCALM32/lib/libwx*.dll.a $LIB_DIR
 # so that wx-config is called with wx-config --prefix=${wxWidgets_USE_PREFIX}
 #   -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \ (works this way)
 # prefix is = C:/msys64/mingw32 which is a path we have, so it is done that way, this time.
-# Alternatively, we could have just unpacked the archive from C:/msys64 directory.
-cd c:/projects/gdl/win32libs
-mkdir -p  plplot-5.13.0/build
-cd plplot-5.13.0/build
-cmake .. -G "MSYS Makefiles" \
+
+cd /c/projects/gdl
+mkdir -p build/plplot/msys
+cd /c/projects/gdl/win32libs
+
+# none of this works to swap out compiler
+# -DCMAKE_C_COMPILER=/d/mingw-w64/USE_GCC7.3/gcc  \
+# -DCMAKE_CXX_COMPILER=/d/mingw-w64/USE_GCC7.3/g++  \
+#  export PATH=/d/mingw-w64/USE_GCC7.3:$PATH
+#  CC=/d/mingw-w64/USE_GCC7.3/gcc  && CXX=/d/mingw-w64/USE_GCC7.3/g++
+plplot=/c/projects/gdl/mingw/plplot-5.13
+cd /c/projects/gdl/build/plplot/msys 
+rm -r *
+cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
- -DCMAKE_INSTALL_PREFIX=c:/projects/gdl/mingw/mingw32 \
+ -DCMAKE_INSTALL_PREFIX=$plplot \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
  -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
- -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF \
- -DPLD_wingdi=ON -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \
- -DCMAKE_CXX_FLAGS='-std=c++11'
+ -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
+ -DwxWidgets_USE_PREFIX=$WXROOT \
+ -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 \
+ -DCMAKE_CXX_FLAGS='-std=c++11' | tee cmake.out
  
+export PATH=$WXROOT/bin:$PATH
+cd /c/projects/gdl/build/plplot/msys
 make -j2
 make install > plplotinstall.out
 
+if [[ -d $plplot/share/plplot5.13.0/examples ]] ; then
+    rm -r $plplot/share/plplot5.13.0/examples
+    else
+       echo "Msys make appears not to have succeeded."
+    fi
+if [[ -d $plplot/share/plplot5.13.0/ss ]] ; then 
+    rm -r $plplot/share/plplot5.13.0/ss
+    fi
+
+cd /c/projects/gdl
 echo wxWidgets_ROOT=$wxWidgets_ROOT
 echo " that was scripts/appveyor-plplot.msys "
-echo " Notice gcc 7.3.0 was used to compile plplot!"
+echo " Notice gcc 7.3.0 may have been used to compile plplot!"
