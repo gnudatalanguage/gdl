@@ -65,7 +65,6 @@ install:
         copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/mingw32/  -Recurse -Force
 
         cd c:\projects\gdl
-        mkdir build/plplot
         cd build/plplot
         cmake c:\projects\gdl\win32libs\plplot-5.13.0 -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
@@ -226,7 +225,7 @@ before_build:
   
 build_script:
 
-  - md c:\projects\gdl\build
+  - ps: mkdir c:\projects\gdl\build
   - cd c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
   - cmake  .. -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
@@ -237,8 +236,8 @@ build_script:
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
       -DUSE_WINGDI_NOT_WINGCC=ON
   - cd c:\projects\gdl
-  - md install
-  - md install/gdl
+  - ps: mkdir install
+  - ps: mkdir install/gdl
   - cd c:\projects\gdl\build
   # tests
   # TODO: copy those to the artefact dir
