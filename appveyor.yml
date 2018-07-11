@@ -260,8 +260,8 @@ after_build:
   - ps: copy c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin
   - ps: copy -r c:/projects/gdl/mingw/mingw32/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
   - ps: copy -r c:/projects/gdl/mingw/mingw32/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
-  - ps: move  ./install/gdl/share/gnudatalanguage/lib ./install/gdl/gdllib
-  - ps: rm -r ./install/plplot5.13/lib/examples
+  #- ps: move  ./install/gdl/share/gnudatalanguage/lib ./install/gdl/gdllib
+  #- ps: rm -r ./install/plplot5.13/lib/examples
   - ps: copy INSTALL.plplot c:/projects/gdl/install
   # Get plplot info placed:
 
