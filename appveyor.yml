@@ -225,7 +225,6 @@ before_build:
   
 build_script:
 
-  - ps: mkdir c:\projects\gdl\build
   - cd c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
   - cmake  .. -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
