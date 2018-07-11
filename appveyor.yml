@@ -22,8 +22,10 @@ install:
       if ($env:platform -Match "mingw64630i686") {
         #C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
         $env:GCC="i686-5.3.0-posix-dwarf-rt_v4-rev0"
+        
         #$env:GCC="i686-5.4.0-release-posix-dwarf-rt_v5-rev0"
         #$env:PATH="C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin;$env:PATH"
+
         $env:PATH="C:\mingw-w64\$env:GCC\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
         md c:\projects\gdl\mingw
@@ -227,7 +229,7 @@ build_script:
 
   - cd c:\projects\gdl\build
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
-  - cmake  .. -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
+  - cmake  .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 -DCMAKE_CXX_FLAGS_RELEASE="-O3 ^
       -DNDEBUG" -DWXWIDGETS=ON -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
       -DPLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13 ^
@@ -238,8 +240,8 @@ build_script:
   - ps: mkdir install
   - ps: mkdir install/gdl
   - cd c:\projects\gdl\build
-  - mingw32-make -j4
-  - mingw32-make install > gdlinstall.out
+  #- mingw32-make -j4
+  #- mingw32-make install > gdlinstall.out
 
   #- mingw32-make check
 
@@ -250,7 +252,7 @@ after_build:
   - cd c:\projects\gdl
   - ps: copy c:\projects\gdl\mingw\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - copy %WXWIDGETS_ROOT%\lib\gc_dll\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\$env:GCC\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
