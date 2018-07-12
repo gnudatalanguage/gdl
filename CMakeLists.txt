@@ -7,11 +7,16 @@
 #  (at your option) any later version.
 #
 
-# requirement for CMAKE_CXX_STANDARD
-if (APPLE)
-  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+# requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
+if (${CMAKE_VERSION} VERSION_LESS "3.2")
+  string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
+  if(tmp LESS 0)
+    message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+  endif()
 else()
-  cmake_minimum_required(VERSION 3.1 FATAL_ERROR) 
+  set(CMAKE_CXX_STANDARD 11)
 endif()
 
 cmake_policy(SET CMP0026 OLD) # LOCATION property
@@ -19,7 +24,7 @@ cmake_policy(SET CMP0026 OLD) # LOCATION property
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
-# X.X.X CVS becomes release X.X.X+1
+# X.X.X git becomes release X.X.X+1
 set(VERSION "0.9.8 git")
 enable_testing()
 
@@ -64,7 +69,7 @@ set(UDUNITSDIR "" CACHE PATH "GDL: Specify the UDUNITS-2 directory tree")
 set(EIGEN3 ON CACHE BOOL "GDL: Enable Eigen3 ?")
 set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
 
-set(PSLIB OFF CACHE BOOL "GDL: Enable pslib ?")
+set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
 set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
@@ -106,7 +111,7 @@ set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
 set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 
-set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
+set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
 set(MPICH OFF CACHE BOOL "GDL: Enable MPICH ?")
@@ -491,14 +496,13 @@ if(GRAPHICSMAGICK)
         set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})     
     else(GRAPHICSMAGICK_FOUND)
         message( STATUS
-        "GRAPHICSMAGICK was requested but was not found. MAGICK=OFF set.
+        "GRAPHICSMAGICK is strongly suggested but was not found.
         Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
         Use -DGRAPHICSMAGICK=OFF to not use it.
                 (suitable Fedora package: GraphicsMagick-c++-devel
            Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
-#       message( STATUS 
-#       "Looking for ImageMagick")
-        set(MAGICK OFF)
+        message( STATUS 
+        "Looking for ImageMagick")
     endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
 #
@@ -536,15 +540,24 @@ if(MAGICK)
     include_directories(${ImageMagick_INCLUDE_DIRS})
     set(MAGICK_LIBRARIES ${ImageMagick_LIBRARIES})
   else(ImageMagick_FOUND)
-        message(STATUS "ImageMagick is required but was not found."
+    message(FATAL_ERROR "ImageMagick is required but was not found.\n"
       "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
+      "Use -DMAGICK=OFF to not use it.\n"
       "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
       "(suitable Fedora package: ImageMagick-c++-devel)")
-        message(STATUS  "Use -DMAGICK=OFF to not use it.\n" 
-            " MAGICK set to OFF ")
-        set(MAGICK OFF)
   endif(ImageMagick_FOUND)
 endif(MAGICK)
+
+# if GM or IM activated, we check whether Plplot is OK for that
+if(USE_MAGICK AND NOT WIN32)
+  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
+  if(HAVE_PLGETDRVDIR)
+    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
+      "To make plplot work with ImageMagick:\n"
+      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
+      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
+  endif(HAVE_PLGETDRVDIR)
+endif(USE_MAGICK AND NOT WIN32)
 
 # wxWidgets
 # -DWXWIDGETS=ON|OFF
@@ -573,13 +586,11 @@ if(WXWIDGETS)
         endforeach(WXDEF ${wxWidgets_DEFINITIONS})
         include_directories(${wxWidgets_INCLUDE_DIRS})
     else(wxWidgets_FOUND)
-        message(STATUS "wxWidgets are requested but were not found.\n"
+        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+        "Use -DWXWIDGETS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
                 "(suitable Fedora package: wxGTK-devel)")
-        message(STATUS  "Use -DWXWIDGETS=OFF to not use it.\n"
-            " proceeding with WXWIDGETS=OFF ")
-        set(WXWIDGETS OFF)
     endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
@@ -594,11 +605,10 @@ if(TIFF)
         include_directories(${TIFF_INCLUDE_DIR})
         set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
     else(TIFF_FOUND)
-        message(STATUS
+        message(FATAL_ERROR
         "libtiff v4.0.3 or newer is required for TIFF support but was not found.\n"
         "Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
         "Use -DTIFF=OFF to not use it.")
-        set(TIFF OFF)
     endif(TIFF_FOUND)
 endif(TIFF)
 
@@ -613,11 +623,10 @@ if(GEOTIFF AND USE_TIFF)
         include_directories(${GEOTIFF_INCLUDE_DIR})
         set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
     else(GEOTIFF_FOUND)
-        message(STATUS
+        message(FATAL_ERROR
         "libgeotiff is required for GeoTIFF support but was not found.\n"
         "Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
         "Use -DGEOTIFF=OFF to not use it.")
-       set(TIFF OFF)
     endif(GEOTIFF_FOUND)
 endif(GEOTIFF AND USE_TIFF)
 
@@ -726,12 +735,11 @@ if(FFTW)
         set(LIBRARIES ${LIBRARIES} ${FFTW_LIBRARIES})
         include_directories(${FFTW_INCLUDE_DIR})
     else(FFTW_FOUND)
-        message(STATUS "FFTW3 is requested but was not found.\n"
+        message(FATAL_ERROR "FFTW3 is required but was not found.\n"
         "Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
-        "Use -DFFTW=OFF to not use it. (set for this build)\n"
+        "Use -DFFTW=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libfftw3-dev)\n"
                 "(suitable Fedora package: fftw-devel)")
-        set(FFTW OFF)
     endif(FFTW_FOUND)
 endif(FFTW)
 
@@ -766,7 +774,7 @@ if(LIBPROJ4)
 
                 message(FATAL_ERROR "Libproj4 is required but was not found.\n"
                 "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-                "Use -DLIBPRJ4=OFF to not use it.")
+                "Use -DLIBPROJ4=OFF to not use it.")
 
             endif(NOT USE_LIBPROJ4)
         endif(USE_LIBPROJ4_NEW)
@@ -777,10 +785,9 @@ if(LIBPROJ4)
         set(LIBRARIES ${LIBRARIES} ${LIBPROJ4_LIBRARIES})
         set(CMAKE_REQUIRED_LIBRARIES)
     else(LIBPROJ4_FOUND)
-        message(STATUS "Libproj4 is requested but was not found.\n"
+        message(FATAL_ERROR "Libproj4 is required but was not found.\n"
         "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-        "Use -DLIBPRJ4=OFF to not use it.")
-        set(LIBPROJ4 OFF)
+        "Use -DLIBPROJ4=OFF to not use it.")
     endif(LIBPROJ4_FOUND)   
 endif(LIBPROJ4)
 

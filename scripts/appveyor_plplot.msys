@@ -21,7 +21,7 @@ if [[ -f mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz ]] ; then
     curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
     echo " mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
-if [[ -d wxWidgets-3.0.4 ]] ; then
+if [[ -d $WXNAME ]] ; then
     echo " mingw/wxWidgets directory already prepped "
     else
     mkdir temp
@@ -29,7 +29,7 @@ if [[ -d wxWidgets-3.0.4 ]] ; then
     tar xf ../mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
     cd .. && mv temp/mingw32 ./wxWidgets-3.0.4 && rm -r temp
     fi
-WXROOT=/c/projects/gdl/mingw/wxWidgets-3.0.4
+WXROOT=/c/projects/gdl/mingw/$WXNAME
 
 MSYSTEM=MINGW32
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
@@ -42,13 +42,13 @@ export PATH=/c/projects/gdl/mingw/mingw32/bin:$PATH
 echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
 echo $LOCALM32
-echo " appveyor_plplot.msys: copy MSYS style wxwidgets-3.0.4 to MinGW-style"
+echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
 LOCALM32=/c/projects/gdl/mingw/mingw32
-LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
 echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
-echo "LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll holding windows-style wx."
+echo "LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll holding windows-style wx."
 mkdir -p $LIB_DIR
-cd c:/projects/gdl/win32libs/wxWidgets-3.0.4
+cd c:/projects/gdl/win32libs/$WXNAME
 # make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
 
 mkdir ./bin
@@ -87,7 +87,6 @@ cp $WXROOT/lib/libwx*_core*.a $LIB_DIR
 
 cd /c/projects/gdl
 mkdir -p build/plplot/msys
-cd /c/projects/gdl/win32libs
 
 # none of this works to swap out compiler
 # -DCMAKE_C_COMPILER=/d/mingw-w64/USE_GCC7.3/gcc  \
@@ -111,7 +110,7 @@ export PATH=$WXROOT/bin:$PATH
 cd /c/projects/gdl/build/plplot/msys
 make -j2
 make install > plplotinstall.out
-
+rm src/CMakeFiles/plplot.dir/*.obj
 if [[ -d $plplot/share/plplot5.13.0/examples ]] ; then
     rm -r $plplot/share/plplot5.13.0/examples
     else
@@ -120,7 +119,7 @@ if [[ -d $plplot/share/plplot5.13.0/examples ]] ; then
 if [[ -d $plplot/share/plplot5.13.0/ss ]] ; then 
     rm -r $plplot/share/plplot5.13.0/ss
     fi
-
+cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
 cd /c/projects/gdl
 echo wxWidgets_ROOT=$wxWidgets_ROOT
 echo " that was scripts/appveyor-plplot.msys "
