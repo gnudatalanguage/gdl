@@ -40,13 +40,13 @@ install:
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        echo " plplot building.  we make an MSYS build (from build/plplot/msys)
+        echo " plplot building.  we make an MSYS build (from build/plplot/msys)"
 
         cd c:/projects/gdl
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
         # the above script attempts to make a viable plplot using msys.
         # it also populates the mingw/wxwidgets directory with MSYS-compatible and also
-        $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME
+        $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME"
         mkdir $env:wxWidgets_ROOT
         # $env:wxWidgets_ROOT is an attempt to make a WIN32-compatible wxwidget.
         #  It doesn't work.
