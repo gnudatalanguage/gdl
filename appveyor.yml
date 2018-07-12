@@ -214,9 +214,10 @@ build_script:
       -DUSE_WINGDI_NOT_WINGCC=ON
   - mingw32-make -j4
   - mingw32-make install > gdlinstall.out
+  - mingw32-make check
+
   - cd c:\projects\gdl
   - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
-  - mingw32-make check
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
