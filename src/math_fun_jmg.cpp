@@ -45,10 +45,6 @@
 #define isfinite _finite
 #define signbit(d) (d < 0.0)? 1:0
 #endif
-//dirty patch to circumvent icc v.14.0.0 fatal error ("__builtin_signbit not found")
-#ifdef __INTEL_COMPILER
-#define signbit(d) (d < 0.0)? 1:0
-#endif
 namespace lib {
 
   using namespace std;

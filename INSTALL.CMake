@@ -1,5 +1,5 @@
-Be sure that you have at least CMake 3.1 (cmake --version)
-(CMake 3.2 required for OSX) (but: see note at end)
+Be sure that you have at least CMake 3.0 (cmake --version)
+(with CMake <=3.2, an additional flag is needed, see below)
 
 Create a new directory where the objects and executables 
 will be built, e.g.
@@ -7,6 +7,9 @@ $ mkdir build; cd !$
 
 Then run cmake pointing it to the root directory of gdl:
 $ cmake ..
+
+If using CMake <=3.2, you will be prompted to include
+"-std=c++11" in the -DCMAKE_CXX_FLAGS argument value
 
 You can optionally specify a custom install prefix, e.g.:
 $ cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../install
@@ -83,7 +86,3 @@ sudo make install
 For a special compilation with all the options for fast code, including targeting the machine's processor type, use for example:
 -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -fno-math-errno -fno-signaling-nans -msse2 -march=native -DNDEBUG"
 more aggressive optimisations may invalidate tests about NaNs for example.
-
-Note: CMakeLists.txt enforces use of CMAKE > 3.1 (3.2 for OsX) because some parts of our code needs a c++11 compliant compiler.
-It is sometimes possible to remove this requirement from the CMakeLists.txt ("cmake_minimum_required(VERSION 3.1 FATAL_ERROR)")
-provided one adds " -DCMAKE_CXX_FLAGS='-std=c++11' " to the cmake command.

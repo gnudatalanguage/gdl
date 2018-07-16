@@ -248,6 +248,8 @@ TEST_BYTSCL_RAMPS_NAN, nb_errors, test=test
 ;
 TEST_BYTSCL_IDL_PROBLEM, nb_errors, test=test, verbose=verbose
 ;
+ERRORS_ADD, nb_errors, 'IDL does not pass this test, please re-write the test before removing this error'
+;
 ; ----------------- final message ----------
 ;
 BANNER_FOR_TESTSUITE, 'TEST_BYTSCL', nb_errors
