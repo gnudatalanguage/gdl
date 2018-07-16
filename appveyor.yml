@@ -198,7 +198,7 @@ build_script:
   #-DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 ^
   - set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
   - set WXWIDGETS_ROOT_DIR=%WXWIDGETS_ROOT%
-  - set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13 
+  - set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
   # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
   # I haven't found the magic that will make wxwidgets_root compatible for Win32
   # usage from the msys distribution.
