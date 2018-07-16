@@ -87,7 +87,7 @@ install:
     - if [ -v CODECOV ]; then echo "INCLUDE(CodeCoverage)" >> $TMPFILE; fi
     - if [ -v CODECOV ]; then tac $TMPFILE > src/CMakeLists.txt; fi
     - if [ -v CODECOV ]; then rm $TMPFILE; fi
-    - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
+    - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
 
     # pytest
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
