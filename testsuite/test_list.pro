@@ -69,6 +69,7 @@ if KEYWORD_SET(verbose) then print, 'counting still OK after remove()'
 jj=where(lastin ne gdlstr, nc)
 if nc ne 0 then $
     ERRORS_ADD, nb_errors,' list.remove() did not work (item not the same)'
+
 ;
 ;
 ; Empty List ?
@@ -87,6 +88,7 @@ if (alist.IsEmpty() NE 0) then ERRORS_ADD, nb_errors, txt+'(not LIST.IsEmpty())'
 luppers = list(6+findgen(5),/extract)
 if luppers.count() ne 5 then $
         ERRORS_ADD,nb_errors,txt0+' list(/extract)'
+
 ;
 nalist = alist.count()
 ; Add two lists.
@@ -99,10 +101,10 @@ if isgdl then $
     isgit = strpos(!GDL.release,'git') gt 0
 
 if(isgit and keyword_set(verbose)) then begin
-  print,' TEST_HASH: GDL/svn is detected so some tests of LIST will be excused,'
+  print,' TEST_HASH: GDL/git is detected so some tests of LIST will be excused,'
   print,' GIT list will only make simple 1-D arrays with TOARRAY'
   print,'  (the new version is nearly full-featured)'
-  print,"  direct access to data contained in a list is also lacking in CVS"
+  print,"  direct access to data contained in a list is also lacking in git"
 endif
 
 if KEYWORD_SET(verbose) then $
@@ -124,13 +126,18 @@ if tg[0] ne tl[0] or tg[1] ne tl[1] then ERRORS_ADD, nb_errors, txt0+'- simple [
 nl = nalist
 alist.add,igen
 if(~isgit) then begin
-    tl = alist[nl,2:4]
-    jj = where(tl ne igen[2:4],nc)
-    if(nc ne 0) then ERRORS_ADD, nb_errors, txt0+'- simple [nl,2:4]'
-    endif else begin
-        if keyword_set(verbose) then $
-            message,/continue,' git: legacylist not expected to left insert correctly'
-    endelse
+	catch, OL_right_error
+	if OL_right_error then 	tl = alist[nl,2:4] else begin
+		ERRORS_ADD, nb_errors,' multi-D access is coming soon.'
+		isgit = 1
+		endelse
+	catch,/cancel
+	jj = where(tl ne igen[2:4],nc)
+	if(nc ne 0) then ERRORS_ADD, nb_errors, txt0+'- simple [nl,2:4]'
+	endif else begin
+		if keyword_set(verbose) then $
+			message,/continue,' git: legacylist not expected to left insert correctly'
+	endelse
 if KEYWORD_SET(test) then stop,' stop 1'
 ;alist=0
 empty_list = 0
@@ -196,6 +203,27 @@ for k=0,sublist.count()-1 do itst[k] = (sublist[k] eq ll[k])
 ;alttst = sublist eq ll
 
 if KEYWORD_SET(verbose) then print,' Done checking '+txt
+;
+if KEYWORD_SET(verbose) then $
+  print,' testing list::add,/extract "+" Op and "=" Op'
+if(isgit) then begin
+    print,' Git/git version early return (move this out as more methods are added)'
+BANNER_FOR_TESTSUITE, 'TEST_LIST(legacy)', nb_errors, short=short
+    return
+    endif
+; ~isgit can handle this:
+alttst = sublist eq ll
+
+; Change the values in the list
+nalist = alist.count()
+;
+for k=0,nalist-1 do alist[k] = 10*k + indgen(10)
+ta = intarr(10,nalist)
+for k=0,nalist-1 do ta(*,k) = alist[k]
+;
+jj = where( ta ne findgen(nalist,10), nc)
+if nc ne 0 then $
+	ERRORS_ADD, nb_errors,' alist[k] = a did not work '
 list1 = LIST('zero', 1, 2.0)
 list2 = LIST(!PI, COMPLEX(4,4), [5,5,5,5,5])
 list3 = list1 + list2

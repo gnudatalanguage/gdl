@@ -59,6 +59,34 @@ nb_errors = 0
         message,/continue,' End verbose block'
         endif
 if ~isgit then begin
+	; make a comparison hash from the structure.
+	if ~isgit then $
+		hcomp = hash(struchash,/lower,/fold) $
+		else hcomp = hash(struchash)
+	nstash = n_tags(struchash)
+	if(hcomp.count() ne nstash) then $
+	ERRORS_ADD, nb_errors,$
+	   ' structure was not properly stashed into the hash <hcomp = hash(struchash,/lower)> '
+	   
+	hhtest =  hcomp eq hash1
+
+	if keyword_set(verbose) then begin
+		print,' hcomp = hash(struchash,/lower)'
+		hhtest =  hcomp eq hash1
+		help,hhtest & print, hhtest
+		endif
+	hcomp = hash(struchash,/fold)
+
+	if keyword_set(verbose) then begin
+		print,' hcomp = hash(struchash,/FOLD_CASE) & help, hcomp eq hash1 '
+		hcomp = hash(struchash,/FOLD_CASE)
+		complist = hcomp eq hash1
+		help,complist[*]
+		print," keys = [ 'key1', 'key3' ] & print, hash1[keys] "
+		keys = [ 'key1', 'key3' ]
+		print,hash1[keys]
+		message,/continue,' End verbose block'
+		endif
 endif
 ; COPY a hash:
     if keyword_set(verbose) then $
@@ -79,33 +107,27 @@ keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 values = LIST('one', 2.0, 3, 4l, PTR_NEW(5), {n:6}, COMPLEX(7,0))
 htest = HASH(keys, values)
 IF N_ELEMENTS(htest) ne 7 then $
-    ERRORS_ADD, nb_errors,$
-    ' N_ELEMENTS(htest) ne 7  .. fail '
-
-; Tostruct(/recursive)
-struct = {FIELD1: 4.0, FIELD2: {SUBFIELD1: "hello", SUBFIELD2: 3.14, subfield3: 6.28}}
-hash = HASH(struct, /EXTRACT)
-sback = hash.toStruct(/recursive)
-if ~ISA(sback.FIELD2,'STRUCT')  then $
-    ERRORS_ADD, nb_errors,$
-        ' HASH.ToStruct(/recursive)  failed' $
-    else if keyword_set(verbose) and ~isgit then $
-        message,/cont, ' HASH.ToStruct(/recursive)  succeeded'
-        
-    
-
-     keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-     scalars=hash(keys,0)
-     eq7 = scalars.count(0)
-    if isgit then scalars[keys[1:4]] = 4+intarr(4) else $
-        scalars[keys[1:4]] = 4
-    eq4 = scalars.count(4)
+	ERRORS_ADD, nb_errors,$
+	' N_ELEMENTS(htest) ne 7  .. fail '
+	
+; cvs does not take a scalar in value position where #elements(key) > 1/
+if ~isgit then begin
+	 keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+	 scalars=hash(keys,0)
+	 eq7 = scalars.count(0)
+CATCH,OL_left_error
+  if OL_left_error eq 0 then $
+	scalars[keys[1:4]] = 4 else $
+        ERRORS_ADD, nb_errors," Left-side insertion error: Fix coming soon!"
+  isgit =  OL_left_error ne 0 
+CATCH,/CANCEL
+	eq4 = scalars.count(4)
 if eq7 ne 7 then $
-    ERRORS_ADD, nb_errors,$
-        ' eq7 = scalars.count(0) is not 7'
-if eq4 ne 4 then    ERRORS_ADD, nb_errors,$
-        ' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'
-
+	ERRORS_ADD, nb_errors,$
+		' eq7 = scalars.count(0) is not 7'
+if eq4 ne 4 then 	ERRORS_ADD, nb_errors,$
+		' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'
+endif
 
 ; cvs does not do most of this:
 if ~isgit then begin
@@ -119,25 +141,25 @@ if ~isgit then begin
     if keyword_set(verbose) then $
         print,' htest = HASH(struct, /EXTRACT,/fold,/lower) ',htest
 
-    if htest['FIELD2','SUBFIELD2'] ne 3.14 then     ERRORS_ADD, nb_errors,$
-                " hash['FIELD2','SUBFIELD2'] ne 3.14"
-    htest['FIELD2','SUBFIELD2'] = chk
+	if htest['FIELD2','SUBFIELD2'] ne 3.14 then 	ERRORS_ADD, nb_errors,$
+				" hash['FIELD2','SUBFIELD2'] ne 3.14"
+	htest['FIELD2','SUBFIELD2'] = chk
 
-    if htest['FIELD2','SUBFIELD2',2] ne 5 then  ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',2] ne 3" 
-    htest['field2','subfield2',3] = 101
-    if htest['FIELD2','SUBFIELD2',3] ne 101 then    ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',3] ne 101"
+	if htest['FIELD2','SUBFIELD2',2] ne 5 then 	ERRORS_ADD, nb_errors,$
+				" htest['FIELD2','SUBFIELD2',2] ne 3" 
+	htest['field2','subfield2',3] = 101
+	if htest['FIELD2','SUBFIELD2',3] ne 101 then 	ERRORS_ADD, nb_errors,$
+				" htest['FIELD2','SUBFIELD2',3] ne 101"
 
-    htest = hash('field1', 4.0, 'field2', hash(/fold),/fold)
-    htest['field2','subfield1'] = "hello"
-    htest['field2','subfield2'] = chk
-    if htest['FIELD2','SUBFIELD2',3] ne chk[3] then $
-            ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',3] ne chk[3]"
-    rt = htest['field2']
-    if keyword_set(verbose) then begin 
-        help,rt & print,rt & endif
+	htest = hash('field1', 4.0, 'field2', hash(/fold),/fold)
+	htest['field2','subfield1'] = "hello"
+	htest['field2','subfield2'] = chk
+	if htest['FIELD2','SUBFIELD2',3] ne chk[3] then $
+			ERRORS_ADD, nb_errors,$
+				" htest['FIELD2','SUBFIELD2',3] ne chk[3]"
+	rt = htest['field2']
+	if keyword_set(verbose) then begin 
+		help,rt & print,rt & endif
 
     endif else $
     print,' Limited tests for legacy HASH in git'
