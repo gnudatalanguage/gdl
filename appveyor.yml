@@ -41,57 +41,57 @@ install:
         
         # PLplot Cannot find the WIN32 Wx created above and so no wxwidgets, anyways.
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http:\\downloads.sourceforge.net\project\plplot\plplot\5.13.0%20Source\plplot-5.13.0.tar.gz
+        appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         tar zxf plplot-5.13.0.tar.gz
-        # apply scripts\patches
-        c:\msys64\usr\bin\bash.exe -lc 'cd \c\projects\gdl\win32libs &&. ..\scripts\patch\patch_plplot.sh'
-        md plplot-5.13.0\build
-        cd plplot-5.13.0\build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
+        # apply scripts/patches
+        c:/msys64/usr/bin/bash.exe -lc 'cd /c/projects/gdl/win32libs &&. ../scripts/patch/patch_plplot.sh'
+        md plplot-5.13.0/build
+        cd plplot-5.13.0/build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:/projects/gdl/mingw/mingw32 -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON -DWITH_FREETYPE=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON
         mingw32-make -j4
         mingw32-make install > plplotinstall.out
         
-        # Eigen is downloaded from repository via scripts\appveyor_1.msys
-        # cd c:\projects\gdl\win32libs
-        # appveyor DownloadFile https:\\bitbucket.org\eigen\eigen\get\3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
+        # Eigen is downloaded from repository via scripts/appveyor_1.msys
+        # cd c:/projects/gdl/win32libs
+        # appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
         # tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        # md eigen-eigen-5a0156e40feb\build
-        # cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb\build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\mingw\mingw32
-        # cd eigen-eigen-5a0156e40feb\build
+        # md eigen-eigen-5a0156e40feb/build
+        # cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:/projects/gdl/mingw/mingw32
+        # cd eigen-eigen-5a0156e40feb/build
         # mingw32-make install > eigeninstall.out
 
-        # scripts\XXX.msys make gdl\mingw\mingw32 and load it.
-        cd c:\projects\gdl
-        c:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. .\scripts\appveyor_1.msys'
-        # GSL, ZLIB, LIBPNG are loaded from scripts\appveyor_1.msys
+        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
+        cd c:/projects/gdl
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
+        # GSL, ZLIB, LIBPNG are loaded from scripts/appveyor_1.msys
         # BSD-XDR
-        cd c:\projects\gdl\win32libs
+        cd c:/projects/gdl/win32libs
 
-        appveyor DownloadFile https:\\storage.googleapis.com\google-code-archive-downloads\v2\code.google.com\bsd-xdr\bsd-xdr-1.0.0.tar.gz
+        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
-        sed -i 's\%hh\%\g' src\test\test_data.c
+        sed -i 's/%hh/%/g' src/test/test_data.c
         md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\mingw\mingw32\lib
-        mv rpc c:\projects\gdl\mingw\mingw32\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
+        md mingw/lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/mingw32/lib
+        mv rpc c:/projects/gdl/mingw/mingw32/include
+        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/mingw32/bin
        
         # GNUWin32 (GNU Readline, PCRE) - plz don't add any more, this is an old collection.
         # After readline 5, a whole different set of dependencies is needed.
-        cd c:\projects\gdl\mingw
-        appveyor DownloadFile https:\\downloads.sourceforge.net\project\gnuwin32\readline\5.0-1\readline-5.0-1-lib.zip
-        appveyor DownloadFile https:\\downloads.sourceforge.net\project\gnuwin32\readline\5.0-1\readline-5.0-1-bin.zip
-        appveyor DownloadFile https:\\downloads.sourceforge.net\project\gnuwin32\pcre\7.0\pcre-7.0-lib.zip
-        appveyor DownloadFile https:\\downloads.sourceforge.net\project\gnuwin32\pcre\7.0\pcre-7.0-bin.zip
-        cd c:\projects\gdl\mingw\mingw32
-        7z x ..\readline-5.0-1-lib.zip
-        7z x ..\readline-5.0-1-bin.zip -y
-        7z x ..\pcre-7.0-lib.zip
-        7z x ..\pcre-7.0-bin.zip -y
+        cd c:/projects/gdl/mingw
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
+        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
+        cd c:/projects/gdl/mingw/mingw32
+        7z x ../readline-5.0-1-lib.zip
+        7z x ../readline-5.0-1-bin.zip -y
+        7z x ../pcre-7.0-lib.zip
+        7z x ../pcre-7.0-bin.zip -y
       }
-  # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
+  # - if %platform%==mingw64630x8664 set PATH=C:/mingw-w64/x86_64-6.3.0-posix-seh-rt_v5-rev1/mingw32/bin;%PATH%
   # python needs to be python built in mingw, not the python for windows.
   # - if %platform%==mingw64630x8664 set PYTHON_ROOT=C:\Python27-x64
 
