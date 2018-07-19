@@ -192,7 +192,6 @@ before_build:
 build_script:
 
   - cd c:\projects\gdl
-  - mkdir build\gdl
   - cd build
   - C:
   #-DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 ^
@@ -212,9 +211,13 @@ build_script:
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
       -DUSE_WINGDI_NOT_WINGCC=ON
-  - Xcopy  .\CM* .\gdl\  /I /Y /E /Q
-  - ps copy -r src ./gdl/src
-  - ps copy -r testsuite ./gdl/testsuite
+  - cd c:\projects\gdl
+  - move .\build\plplot .\plplot || echo "There was no plplot directory to move !!"
+  - mkdir .\gdl
+  - Xcopy  .\build .\gdl\  /I /Y /E /Q
+  - move gdl build\gdl
+  - move plplot build\plplot
+  - cd c:\projects\gdl\build
   - mingw32-make -j4
   - mingw32-make install > gdlinstall.out
   - set PATH=%PLPLOTDIR%\bin;%PATH%
