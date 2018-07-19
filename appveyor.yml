@@ -212,7 +212,9 @@ build_script:
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
       -DUSE_WINGDI_NOT_WINGCC=ON
-  - ps: copy -r * ./gdl/
+  - Xcopy  .\CM* .\gdl\  /I /Y /E /Q
+  - ps copy -r src ./gdl/src
+  - ps copy -r testsuite ./gdl/testsuite
   - mingw32-make -j4
   - mingw32-make install > gdlinstall.out
   - set PATH=%PLPLOTDIR%\bin;%PATH%
