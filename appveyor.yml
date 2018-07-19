@@ -61,13 +61,13 @@ install:
         appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
-        sed -i 's/%hh/%/g' src\test\test_data.c
+        sed -i 's/%hh/%/g' src/test/test_data.c
         md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\mingw\mingw32\lib
-        mv rpc c:\projects\gdl\mingw\mingw32\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\mingw\mingw32\bin
+        md mingw/lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/mingw32/lib
+        mv rpc c:/projects/gdl/mingw/mingw32/include
+        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/mingw32/bin
        
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
@@ -193,7 +193,7 @@ build_script:
 
   - cd c:\projects\gdl
   - mkdir build\gdl
-  - cd build\gdl
+  - cd build
   - C:
   #-DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 ^
   - set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
@@ -212,12 +212,13 @@ build_script:
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
       -DUSE_WINGDI_NOT_WINGCC=ON
+  - ps: copy -r * ./gdl/
   - mingw32-make -j4
   - mingw32-make install > gdlinstall.out
   - set PATH=%PLPLOTDIR%\bin;%PATH%
   - set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
   - set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
-  #- mingw32-make check
+  - mingw32-make check
 
   - cd c:\projects\gdl
   - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
