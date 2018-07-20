@@ -78,9 +78,9 @@ before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
+  # ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
+  # ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_1779553.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
@@ -206,9 +206,9 @@ build_script:
       -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
       -DPLPLOTDIR=%PLPLOTDIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl ^
-      -DGRAPHICSMAGICK=ON -DMAGICK=ON ^
+      -DGRAPHICSMAGICK=OFF -DMAGICK=OFF ^
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF ^
-      -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON ^
+      -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
       -DUSE_WINGDI_NOT_WINGCC=ON
   - cd c:\projects\gdl
@@ -220,20 +220,19 @@ build_script:
   - cd c:\projects\gdl\build
   - mingw32-make -j4
   - mingw32-make install > gdlinstall.out
-  - del src\CMakeFiles\gdl.dir\*.obj
   - set PATH=%PLPLOTDIR%\bin;%PATH%
   - set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
   - set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
   - mingw32-make check
-
-  - cd c:\projects\gdl
-  - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
   - cd c:\projects\gdl
+  - del /Q build\src\CMakeFiles\gdl.dir\*.obj
+  - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
+  # The following is available in scripts/installgdl.ps1  
   - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
   # ps: copy $env:wxWidgets_ROOT\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
