@@ -44,4 +44,4 @@ echo %PATH%
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
-set PATH=%OLDPATH%
+exit
