@@ -192,39 +192,8 @@ before_build:
   - ps: cd  C:\projects\gdl
 build_script:
 
-  - cd c:\projects\gdl
-  - cd build
-  - C:
-  #-DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32 ^
-  - set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
-  - set WXWIDGETS_ROOT_DIR=%WXWIDGETS_ROOT%
-  - set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
-  # CMakeLists.txt will unset MAGICK and WXWIDGETS if they cannot find the files for them.
-  # I haven't found the magic that will make wxwidgets_root compatible for Win32
-  # usage from the msys distribution.
-  - cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
-      -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" ^
-      -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
-      -DPLPLOTDIR=%PLPLOTDIR% ^
-      -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl ^
-      -DGRAPHICSMAGICK=ON -DMAGICK=ON ^
-      -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF ^
-      -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=ON ^
-      -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
-      -DUSE_WINGDI_NOT_WINGCC=ON
-  - cd c:\projects\gdl
-  - move .\build\plplot .\plplot || echo "There was no plplot directory to move !!"
-  - mkdir .\gdl
-  - Xcopy  .\build .\gdl\  /I /Y /E /Q
-  - move gdl build\gdl
-  - move plplot build\plplot
-  - cd c:\projects\gdl\build
-  - mingw32-make -j4
-  - mingw32-make install > gdlinstall.out
-  - set PATH=%PLPLOTDIR%\bin;%PATH%
-  - set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
-  - set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
-  # mingw32-make check
+  #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
+  - call scripts\mingw-bldgdl
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -254,9 +223,6 @@ after_build:
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"
   # get the check in after the artifact is completed. - doesn't work if check fails.
-  - cd c:\projects\gdl\build
-  - echo %PATH%
-  - mingw32-make check
 
 
 artifacts:
