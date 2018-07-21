@@ -22,7 +22,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
       -DPLPLOTDIR=%PLPLOTDIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl ^
-      -DGRAPHICSMAGICK=OFF -DMAGICK=OFF ^
+      -DGRAPHICSMAGICK=ON -DMAGICK=ON ^
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF ^
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=ON ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
@@ -42,5 +42,6 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
 echo %PATH%
  mingw32-make check
  cd c:\projects\gdl
+ del build\src\CMakeFiles\gdl.dir\*.obj /Q
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
 set PATH=%OLDPATH%

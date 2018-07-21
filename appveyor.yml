@@ -77,14 +77,15 @@ install:
 before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
   - ps: cd C:\projects\gdl\testsuite
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_1779553.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3376577.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_635.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_709.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_719.pro' -NotMatch)
@@ -191,9 +192,9 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
   - ps: cd  C:\projects\gdl
 build_script:
-
+  
   #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
-  - call scripts\mingw-bldgdl
+  - cmd /K scripts\mingw-bldgdl
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
