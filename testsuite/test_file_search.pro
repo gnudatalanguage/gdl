@@ -135,6 +135,8 @@ exclude_test = 0 ; If windows, don't do the test requiring "spawn,'ls', res0"
 if !version.os_family eq 'Windows' then begin
     spawn,'ps',stdps
     exclude_test = n_elements(stdps) lt 4
+;  For appveyor, 'ps' does not result in error, stdps has something
+    exclude_test = 1
 endif
 if ~exclude_test then begin
     if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)) then begin

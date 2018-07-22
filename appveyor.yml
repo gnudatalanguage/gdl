@@ -193,7 +193,7 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
   - ps: cd  C:\projects\gdl
 build_script:
-  #- C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
+  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
   #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
   - cmd /K scripts\mingw-bldgdl
 
