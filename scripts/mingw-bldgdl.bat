@@ -14,8 +14,8 @@ set GCC=i686-6.3.0-posix-dwarf-rt_v5-rev1
 set PATH=C:\mingw-w64\%GCC%\mingw32\bin;%PATH%
 rem GMname=graphicsmagick-1.3.27
 set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
-if exists C:\projects\gdl\mingw\GM-Q32 set GMDIR=C:\projects\gdl\mingw\GM-Q32
-if exists %GMDIR% copy /Q %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
+#   set GMDIR=C:\projects\gdl\mingw\GM-Q32
+copy %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
  set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
  set WXWIDGETS_ROOT=C:\projects\gdl\win32libs\wxwidgets-3.0.4
  set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
