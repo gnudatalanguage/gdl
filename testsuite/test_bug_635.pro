@@ -45,14 +45,14 @@ expected_group=REPLICATE(expected_city,2)
 ;necessary so that IDL will know that the file contains unformatted
 ;data produced by a UNIX FORTRAN program.
 ;
-input_file='test_bug_635.dat'
+input_file=file_which('test_bug_635.dat',/include_current_dir)
 ;
 if ~FILE_TEST(input_file) then begin
    MESSAGE, /CONTINUE, 'MISSING file : '+input_file
    if KEYWORD_SET(no_exit) then STOP else EXIT, status=77
 endif
 ;
-OPENR, lun, 'test_bug_635.dat', /GET_LUN, /F77_UNFORMATTED
+OPENR, lun, input_file, /GET_LUN, /F77_UNFORMATTED
 ;
 ;Read the data in a single input operation.
 ;
