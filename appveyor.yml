@@ -202,7 +202,7 @@ on_failure:
 
 after_build:
   - cd c:\projects\gdl
-
+  - C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
   # The following is available in scripts/installgdl.ps1  
   - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
