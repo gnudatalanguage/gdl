@@ -47,8 +47,10 @@ sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./mingw32/bin/wx-config
 mv mingw32 ../mingw/${wxname}
 # graphicsmagick-1.3.27 from 14-Dec-2017
 GMname=graphicsmagick-1.3.27
+cd /c/projects/gdl/win32libs
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-${GMname}-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-${GMname}-1-any.pkg.tar.xz
+#cp -r ./mingw32/* ../mingw/mingw32
 mv mingw32 ../mingw/${GMname}-Q8
 cd ../mingw
 

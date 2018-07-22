@@ -36,12 +36,13 @@ install:
         rm mingw-w64-i686-*tar.xz
         $env:LOCALM32="c:/projects/gdl/mingw/mingw32"
         $env:WXNAME="wxWidgets-3.0.4"
+        $env:GMNAME="GraphicsMagick-1.3.30"
 
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         echo " plplot building.  we make an MSYS build (from build/plplot/msys)"
-
+        appveyor DownloadFile http://downloads.sourceforge.net/project/graphicsmagick/graphicsmagick/1.3.30/GraphicsMagick-1.3.30.tar.xz
         cd c:/projects/gdl
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
         # the above script attempts to make a viable plplot using msys.
@@ -192,7 +193,7 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
   - ps: cd  C:\projects\gdl
 build_script:
-  
+  #- C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
   #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
   - cmd /K scripts\mingw-bldgdl
 

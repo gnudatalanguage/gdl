@@ -1,0 +1,38 @@
+#!bin/bash.exe
+#
+
+MSYSTEM=MINGW32
+export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
+. /etc/profile
+# this is needed to find bin/wx-config
+#
+# any hints on how to switch compilers, insert here.
+#
+echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
+echo $PATH
+echo $LOCALM32
+echo " appveyor_gdl.msys: build gdl with msys script"
+LOCALM32=/c/projects/gdl/mingw/mingw32
+export PATH=$LOCALM32/bin:$PATH
+
+GMname=graphicsmagick-1.3.30
+#
+which cmake
+cd /c/projects/gdl/win32libs
+if [[ -f ${GMname}.tar.xz ]] ; then
+    tar xf ${GMname}.tar.xz
+    mkdir ./${GMname}/bldmingw32
+    cd ./${GMname}/bldmingw32
+    ../configure --prefix=/c/projects/gdl/mingw/GM-Q32 \
+  --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
+   --host=i686-w64-mingw32 --build=i686-w64-mingw32 --disable-static \
+  --with-modules --with-wmf --with-xml --with-lcms2 --with-jp2 \
+  --with-webp --with-gslib --with-jbig --without-fpx --without-dps \
+  --without-perl --without-x >& configure.out
+  make -j4 >& make.out
+  make install >& gminstall.out
+  cp *.out /c/projects/gdl/mingw/GM-Q32/
+  cp config.status /c/projects/gdl/mingw/GM-Q32/
+  else
+  echo " no ${GMname}.tar.xz present to build "
+fi

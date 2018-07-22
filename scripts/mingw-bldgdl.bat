@@ -12,7 +12,10 @@ set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
 echo %PATH%
 set GCC=i686-6.3.0-posix-dwarf-rt_v5-rev1
 set PATH=C:\mingw-w64\%GCC%\mingw32\bin;%PATH%
-
+rem GMname=graphicsmagick-1.3.27
+set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
+if exists C:\projects\gdl\mingw\GM-Q32 set GMDIR=C:\projects\gdl\mingw\GM-Q32
+if exists %GMDIR% copy /Q %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
  set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
  set WXWIDGETS_ROOT=C:\projects\gdl\win32libs\wxwidgets-3.0.4
  set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
@@ -22,7 +25,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
       -DPLPLOTDIR=%PLPLOTDIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl ^
-      -DGRAPHICSMAGICK=ON -DMAGICK=ON ^
+      -DGRAPHICSMAGICK=ON -DMAGICK=ON -DGRAPHICSMAGICKDIR=%GMDIR% ^
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF ^
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=ON ^
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF ^
