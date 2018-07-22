@@ -195,7 +195,7 @@ before_build:
 build_script:
   - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
   #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
-  - cmd /K scripts\mingw-bldgdl
+  #- cmd /K scripts\mingw-bldgdl
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
@@ -220,7 +220,7 @@ after_build:
   # Get plplot info placed:
 
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip install build
+  - 7z a gdl_build.zip install build win32libs
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"

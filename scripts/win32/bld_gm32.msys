@@ -11,7 +11,7 @@ export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
 echo $LOCALM32
-echo " appveyor_gdl.msys: build gdl with msys script"
+echo " bld_gm32.msys:  with msys script"
 LOCALM32=/c/projects/gdl/mingw/mingw32
 export PATH=$LOCALM32/bin:$PATH
 
@@ -31,8 +31,9 @@ if [[ -f ${GMname}.tar.xz ]] ; then
   --without-perl --without-x >& configure.out
   make -j4 >& make.out
   make install >& gminstall.out
-  cp *.out /c/projects/gdl/mingw/GM-Q32/
-  cp config.status /c/projects/gdl/mingw/GM-Q32/
+  pwd
+  #cp *.out /c/projects/gdl/mingw/GM-Q32/
+  #cp config.status /c/projects/gdl/mingw/GM-Q32/
   else
   echo " no ${GMname}.tar.xz present to build "
 fi
