@@ -203,7 +203,6 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
 
-  - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
   # The following is available in scripts/installgdl.ps1  
   - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
@@ -220,7 +219,7 @@ after_build:
   # Get plplot info placed:
 
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip install build win32libs
+  - 7z a gdl_build.zip install build win32libs mingw
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"

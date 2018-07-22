@@ -43,7 +43,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
 echo %PATH%
- mingw32-make check
+ rem mingw32-make check
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
