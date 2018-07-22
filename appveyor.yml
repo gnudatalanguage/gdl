@@ -202,7 +202,7 @@ on_failure:
 
 after_build:
   - cd c:\projects\gdl
-  - del /Q build\src\CMakeFiles\gdl.dir\*.obj
+
   - Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
   # The following is available in scripts/installgdl.ps1  
   - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
