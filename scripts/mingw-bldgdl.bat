@@ -49,4 +49,4 @@ echo %PATH%
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy
-exit
+exit /B 0
