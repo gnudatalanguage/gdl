@@ -48,11 +48,12 @@ install:
         # the above script attempts to make a viable plplot using msys.
         # it also populates the mingw/wxwidgets directory with MSYS-compatible and also
         $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME"
+        $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
         #           mkdir $env:wxWidgets_ROOT
         # $env:wxWidgets_ROOT is an attempt to make a WIN32-compatible wxwidget.
         #  It doesn't work.
 
-        copy c:/projects/gdl/mingw/plplot-5.13/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/mingw/plplot-5.13/bin
+        copy c:/projects/gdl/mingw/plplot-5.13/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/mingw/plplot-5.13/bin -ErrorAction silentlycontinue
         copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/mingw32/  -Recurse -Force
         
         # Eigen is downloaded from pre-built repository via scripts/appveyor_1.msys
@@ -212,7 +213,7 @@ after_build:
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
 
-  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin
+  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
   - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
   - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
   - ps: copy INSTALL.plplot c:/projects/gdl/install
