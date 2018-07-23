@@ -14,12 +14,14 @@ set GCC=i686-6.3.0-posix-dwarf-rt_v5-rev1
 set PATH=C:\mingw-w64\%GCC%\mingw32\bin;%PATH%
 rem GMname=graphicsmagick-1.3.27
 set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
-#   set GMDIR=C:\projects\gdl\mingw\GM-Q32
+rem #   set GMDIR=C:\projects\gdl\mingw\GM-Q32
 copy %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
  set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
  set WXWIDGETS_ROOT=C:\projects\gdl\win32libs\wxwidgets-3.0.4
  set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
  cd c:\projects\gdl\build
+echo %PATH%
+cmake --version
 cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" ^
       -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
@@ -45,6 +47,6 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
 echo %PATH%
  rem mingw32-make check
  cd c:\projects\gdl
- del build\src\CMakeFiles\gdl.dir\*.obj /Q
- Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q
+ del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
+ Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy
 exit
