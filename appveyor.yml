@@ -220,7 +220,7 @@ after_build:
   # Get plplot info placed:
 
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip install build win32libs
+  - 7z a gdl_build.zip install build
   # - ctest -C Release --output-on-failure
   # python needs to be python built in mingw, not the python for windows.
   # - python -c "import gdl; dir(gdl)"

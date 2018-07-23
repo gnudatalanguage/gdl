@@ -16,7 +16,7 @@ rem GMname=graphicsmagick-1.3.27
 set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
 rem #   set GMDIR=C:\projects\gdl\mingw\GM-Q32
 copy %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
- set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
+rem set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
  set WXWIDGETS_ROOT=C:\projects\gdl\win32libs\wxwidgets-3.0.4
  set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
  cd c:\projects\gdl\build
@@ -27,6 +27,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DWXWIDGETS=OFF -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
       -DPLPLOTDIR=%PLPLOTDIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl ^
+      -DCMAKE_SYSTEM_PREFIX_PATH=%LOCALM32% ^
       -DGRAPHICSMAGICK=ON -DMAGICK=ON -DGRAPHICSMAGICKDIR=%GMDIR% ^
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF ^
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=ON ^
@@ -41,6 +42,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
  cd c:\projects\gdl\build
  mingw32-make -j4
  mingw32-make install > gdlinstall.out
+ set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
  set PATH=%PLPLOTDIR%\bin;%PATH%
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
@@ -49,4 +51,4 @@ echo %PATH%
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy
-exit /B 0
+exit 0
