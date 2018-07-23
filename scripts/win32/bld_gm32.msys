@@ -1,6 +1,6 @@
 #!bin/bash.exe
 #
-
+topdir=`pwd`
 MSYSTEM=MINGW32
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
@@ -15,15 +15,15 @@ echo " bld_gm32.msys:  with msys script"
 LOCALM32=/c/projects/gdl/mingw/mingw32
 export PATH=$LOCALM32/bin:$PATH
 
-GMname=graphicsmagick-1.3.30
+GMname=GraphicsMagick-1.3.30
 #
 which cmake
-cd /c/projects/gdl/win32libs
+cd $topdir/win32libs
 if [[ -f ${GMname}.tar.xz ]] ; then
     tar xf ${GMname}.tar.xz
     mkdir ./${GMname}/bldmingw32
     cd ./${GMname}/bldmingw32
-    ../configure --prefix=/c/projects/gdl/mingw/GM-Q32 \
+    ../configure --prefix=$topdir/mingw/GM-Q32 \
   --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
    --host=i686-w64-mingw32 --build=i686-w64-mingw32 --disable-static \
   --with-modules --with-wmf --with-xml --with-lcms2 --with-jp2 \
