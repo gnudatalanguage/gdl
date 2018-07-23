@@ -55,8 +55,8 @@ mv mingw32 ../mingw/${GMname}-Q8
 cd ../mingw
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-libtool-2.4.6-9-any.pkg.tar.xz
 tar xf mingw-w64-i686-libtool-2.4.6-9-any.pkg.tar.xz
-curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-cmake-3.12.0-1-any.pkg.tar.xz
-tar xf mingw-w64-i686-cmake-3.12.0-1-any.pkg.tar.xz
+#curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-cmake-3.12.0-1-any.pkg.tar.xz
+#tar xf mingw-w64-i686-cmake-3.12.0-1-any.pkg.tar.xz
 # fftw-3.3.8 from 29-May-2018 (gcc 7.2)
 curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
 tar xf mingw-w64-i686-fftw-3.3.8-1-any.pkg.tar.xz
