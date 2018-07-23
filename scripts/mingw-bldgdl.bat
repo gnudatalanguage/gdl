@@ -3,13 +3,13 @@ cd c:\projects\gdl || echo c:\projects\gdl does not exist
 C:
 mkdir build
 cd c:\projects\gdl\build
-set OLDPATH=%PATH%
+
 rem C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl/build && rm -rf CM* src testsuite"
 rem -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32
 set LOCALM32=C:\projects\gdl\mingw\mingw32
-set PATH=%systemroot%\system32;%systemroot%;%systemroot%\System32\Wbem
-set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
-echo %PATH%
+rem set PATH=%systemroot%\system32;%systemroot%;%systemroot%\System32\Wbem
+rem set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
+rem echo %PATH%
 set GCC=i686-6.3.0-posix-dwarf-rt_v5-rev1
 set PATH=C:\mingw-w64\%GCC%\mingw32\bin;%PATH%
 rem GMname=graphicsmagick-1.3.27
