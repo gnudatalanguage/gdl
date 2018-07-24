@@ -1300,10 +1300,12 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 		#endif
 	}
 		}
+#ifndef _WIN32
 	if( fold_case)
 	  dir = BeautifyPath(makeInsensitive(dir));
 	else
 	  dir = BeautifyPath(dir);
+#endif
 	DString dirsearch = "";
 
 // Look for the last dir-separator at end of string.  i.e. file_search('/d/bld/gdl*')
