@@ -16,7 +16,7 @@ endif()
 unset(GDL_ACCEPT_CMAKE_3_0 CACHE) 
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
-if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.2")
+if (${CMAKE_VERSION} VERSION_GREATER "3.2" OR ${CMAKE_VERSION} VERSION_EQUAL "3.2")
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
