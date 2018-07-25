@@ -921,9 +921,9 @@ bool PtrDerefEqual( DPtrGDL* l, DPtrGDL* r)
 
 
 namespace lib {
-  
-  
-  
+    SizeT LIST_count( DStructGDL* list);
+BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  );
+void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   BaseGDL* HASH___OverloadIsTrue( EnvUDT* e)
   {
 	GDL_HASH_STRUCT()
@@ -2177,7 +2177,151 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     return newObj;
 
 }
-  
+
+    void hash_leftinsertion( EnvUDT* e, DStructGDL* theStruct, int iprm  )
+{
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
+    static unsigned isRangeIx = 3;
+    static unsigned prmbeg = isRangeIx+1;
+
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+    
+    // handle DOT access
+    bool dotAccess = false;
+    
+    BaseGDL** objRef = &e->GetKW(1);
+    if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
+    {
+      if( !e->GlobalKW(1))
+    ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
+      dotAccess = true;
+    }
+    BaseGDL* rValue = e->GetKW(2);
+    if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
+
+    BaseGDL* parX = e->GetKW(iprm + prmbeg);
+    if( parX == 0)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
+                            + e->Caller()->GetString(e->GetKW( iprm + prmbeg )));
+    bool stolen = e->StealLocalKW(iprm + prmbeg);
+    if( !stolen) parX = parX->Dup(); // if called explicitely
+    DType theType = parX->Type();
+    if(trace_me) {
+        std::cout << " parX->Type() " << theType ;
+        help_item(std::cout, parX, " hash-leftinsert ",false);
+    }
+    DStructGDL* ListHead;
+    SizeT listSize = 0;
+    DPtr keyNode;
+    bool iskeylist = false;;
+    if(theType == GDL_OBJ && parX->Rank() == 0) {
+          DObj p=(*static_cast<DObjGDL*>( parX))[0];
+          if(p != 0) {
+          ListHead = GetOBJ( parX, e);
+          DStructDesc* desc = ListHead->Desc();
+          iskeylist = desc->IsParent("LIST");
+            }
+    if(iskeylist) {
+        listSize = (*static_cast<DLongGDL*>(ListHead->GetTag( nListTag, 0)))[0];
+        keyNode = GetLISTNode(e, ListHead, 0);
+        if( listSize == 1) { 
+// accidentally this will pass through an array embedded in a single-element list.
+            parX = GetNodeData( keyNode);
+            iskeylist = false;
+                }
+//
+                }
+      }
+
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( theStruct->GetTag( pTableTag, 0)))[0];
+    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->
+                GetHeap( thisTableID));
+    bool isfoldcase = Hashisfoldcase( theStruct);
+
+    // non-range (keyed)
+    SizeT nKey = parX->N_Elements();
+    if(iskeylist) nKey = listSize;
+
+    if( nKey == 1) // single key
+    { 
+    if( dotAccess) // -> objRef is NULL (or !NULL)
+    {
+      if( rValue != NullGDL::GetSingleInstance())
+      {
+        ThrowFromInternalUDSub( e, "For struct access (OBJREF is !NULL), RVALUE must be !NULL as well.");      
+      }
+
+      DLong hashIndex = HashIndex( thisHashTable, parX, isfoldcase);
+      if( hashIndex < 0)
+        ThrowFromInternalUDSub( e, "Key not found.");
+
+      *objRef = thisHashTable->GetTag( pValueTag, hashIndex)->Dup();
+      return;
+    }    
+    
+    InsertIntoHashTable( theStruct, thisHashTable, parX, rValue->Dup());
+    return;
+    }
+    if( dotAccess)
+        ThrowFromInternalUDSub( e, "Only single value struct access is allowed.");
+    
+    bool isvalscalar = false;
+    bool isvallist = false;
+    if( rValue == NULL || rValue == NullGDL::GetSingleInstance())
+        isvalscalar = true;
+    else if( rValue->StrictScalar() ) isvalscalar = true;
+    if(trace_me) std::cout << " isvalscalar/ iskeylist? nKey:"<<
+                isvalscalar<< iskeylist << nKey << std::endl;
+    if( !isvalscalar &&
+             rValue->N_Elements() != nKey )
+    ThrowFromInternalUDSub( e, "Key and Value must have the same number of elements.");
+    
+    if( isvalscalar){
+        if( rValue->Type() == GDL_OBJ) {
+          DObj p=(*static_cast<DObjGDL*>( rValue))[0];
+          if(p != 0) {
+          ListHead = GetOBJ( rValue, e);
+          DStructDesc* desc = ListHead->Desc();
+          isvallist = desc->IsParent("LIST");
+            }
+        }
+        if(isvallist) {
+            listSize = (*static_cast<DLongGDL*>(ListHead->GetTag( nListTag, 0)))[0];
+            if(listSize != nKey)
+    ThrowFromInternalUDSub( e, "Key and Value must have the same number of elements.");
+            DPtr valNode = GetLISTNode(e, ListHead, 0);
+            if(iskeylist) 
+                for( SizeT kIx=0; kIx<nKey; ++kIx)
+              InsertIntoHashTable( theStruct, thisHashTable,
+                    GetNodeData(keyNode), (GetNodeData(valNode))->Dup());
+            else     
+                for( SizeT kIx=0; kIx<nKey; ++kIx)
+              InsertIntoHashTable( theStruct, thisHashTable,
+                        parX->NewIx(kIx), (GetNodeData(valNode))->Dup());
+        } else {
+        if(iskeylist) 
+            for( SizeT kIx=0; kIx<nKey; ++kIx)
+          InsertIntoHashTable( theStruct, thisHashTable, 
+                        GetNodeData(keyNode), rValue->Dup());
+        else     
+            for( SizeT kIx=0; kIx<nKey; ++kIx)
+          InsertIntoHashTable( theStruct, thisHashTable,
+                        parX->NewIx(kIx), rValue->Dup());
+      }
+    } else  {           // rValue not a scalar.
+        if(iskeylist) {
+            for( SizeT kIx=0; kIx<nKey; ++kIx)
+            InsertIntoHashTable( theStruct, thisHashTable, 
+                    GetNodeData(keyNode), rValue->NewIx(kIx));
+        } else {
+            for( SizeT kIx=0; kIx<nKey; ++kIx)
+            InsertIntoHashTable( theStruct, thisHashTable,
+                    parX->NewIx(kIx), rValue->NewIx(kIx));
+            }
+        }
+    }
+ 
   void HASH___OverloadBracketsLeftSide( EnvUDT* e)
   {
     // SELF
@@ -2421,6 +2565,66 @@ BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
     return newObj;
   }
   
+
+BaseGDL* hash_duplicate(DStructGDL* self) {
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
+
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
+    DStructGDL* thisHashTable = 
+        static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( thisTableID));
+
+      DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
+      SizeT nEntries = nCount;
+
+      DLong initialTableSize = GetInitialTableSize( nEntries);
+    
+      // new hash
+      DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
+//    unsigned long bitmask;
+            (*static_cast<DLongGDL*>( hashStruct->GetTag( TableBitsTag, 0)))[0] = 
+            (*static_cast<DLongGDL*>( self->GetTag( TableBitsTag , 0)))[0];
+
+      DObj objID=BaseGDL::interpreter->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
+      BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
+      Guard<BaseGDL> newObjGuard( newObj);
+      // the return hash table
+      DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
+      DPtr hashTableID= BaseGDL::interpreter->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+      (*static_cast<DPtrGDL*>( hashStruct->GetTag( pTableTag, 0)))[0] = hashTableID;
+      (*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
+      if(trace_me) 
+            std::cout << "hash_duplicate:  nCount= " << nCount <<
+            " nEntries= " << nEntries ;    
+      SizeT sourceIx = 0;
+      for( SizeT eIx=0; eIx<nEntries; ++eIx)
+      {
+        DPtr kID = (*static_cast<DPtrGDL*>( thisHashTable->GetTag( pKeyTag, sourceIx)))[0];
+        while( kID == 0)
+          kID = (*static_cast<DPtrGDL*>( thisHashTable->GetTag( pKeyTag, ++sourceIx)))[0];
+
+        DPtr vID = (*static_cast<DPtrGDL*>(thisHashTable->GetTag( pValueTag, sourceIx++)))[0];
+
+        BaseGDL* key = BaseGDL::interpreter->GetHeap( kID);
+        assert( key != NULL);
+        BaseGDL* value = BaseGDL::interpreter->GetHeap( vID);
+        if( value != NULL)   {
+            if( value->Type() == GDL_OBJ && value->Rank() == 0) {
+                  DObj p=(*static_cast<DObjGDL*>( value))[0];
+                  if(p != 0) {
+                      DStructGDL* theStruct = GetOBJ( value, 0);
+                      DStructDesc* desc = theStruct->Desc();
+                      if( desc->IsParent("HASH")) value = hash_duplicate(theStruct);
+                  }
+               }
+           }
+        InsertIntoHashTable( hashStruct, hashTable, key->Dup(), value->Dup());
+
+      }
+        
+       newObjGuard.Release();
+      return newObj;
+}
   
   BaseGDL* HASH___OverloadBracketsRightSide( EnvUDT* e)
   {
