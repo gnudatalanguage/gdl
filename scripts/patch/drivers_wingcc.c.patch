@@ -1,0 +1,11 @@
+--- /f/plplot/plplot-5.13.0/drivers/wingcc.c	Fri Aug 25 19:43:25 2017
++++ /f/tarball/plplot-5.13.0/drivers/wingcc.c	Sat Jun 09 12:44:28 2018
+@@ -636,7 +634,7 @@
+     // sort of thing).
+     //
+     ShowWindow( dev->hwnd, SW_SHOWDEFAULT );
+-    SetForegroundWindow( dev->hwnd );
++    BringWindowToTop( dev->hwnd );
+ 
+     //
+     // Set up the DPI etc...
