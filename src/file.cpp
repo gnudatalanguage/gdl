@@ -1305,8 +1305,9 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	  dir = BeautifyPath(makeInsensitive(dir));
 	else
 	  dir = BeautifyPath(dir);
+#endif  
 	DString dirsearch = "";
-#endif
+
 // Look for the last dir-separator at end of string.  i.e. file_search('/d/bld/gdl*')
 	char PS0 = '/';
 	char PS1 = '/';
