@@ -2324,26 +2324,18 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
  
   void HASH___OverloadBracketsLeftSide( EnvUDT* e)
   {
-    // SELF
-    //->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
-    //->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-    //->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-    static DString hashName("HASH");
-    static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
-    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
-    const unsigned par1Ix = 4;
+//    static unsigned par1Ix = 4;
+    static unsigned isRangeIx = 3;
+    static unsigned prmbeg = isRangeIx+1;
+//    trace_me = lib::trace_arg();
+      std::string trcn = trace_me? "\n;" :";";
     
-    
-    SizeT nParam = e->NParam(1); // number of parameters actually given
-    if( nParam < 5) // consider implicit SELF
-      ThrowFromInternalUDSub( e, "Four parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1.");
-    if( nParam > 5) // consider implicit SELF
-      ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
+    SizeT nParam = e->NParam(1);
+    if( nParam < 5)      ThrowFromInternalUDSub( e, 
+        "Four parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1.");
 
     // handle DOT access
     bool dotAccess = false;
@@ -2358,137 +2350,204 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     BaseGDL* rValue = e->GetKW(2);
     if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
     
-    BaseGDL* selfP = e->GetKW( 0);
-    DStructGDL* self = GetOBJ( selfP, e);
+   DLongGDL* isRange = static_cast<DLongGDL*>( e->GetKW(isRangeIx));
+   SizeT nIsRange = isRange->N_Elements();
 
-    BaseGDL* isRange = e->GetKW(3);
-    if( isRange == NULL)
-      ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) is undefined.");
-    SizeT nIsRange = isRange->N_Elements();
-    if( nIsRange > (nParam - 4)) //- SELF and ISRANGE
-      ThrowFromInternalUDSub( e, "Parameter 2 (ISRANGE) must have "+i2s(nParam-4)+" elements.");
-    Guard<DLongGDL> isRangeLongGuard;
-    DLongGDL* isRangeLong;
-    if( isRange->Type() == GDL_LONG)
-      isRangeLong = static_cast<DLongGDL*>( isRange);
-    else
-    {
-      try{
-	isRangeLong = static_cast<DLongGDL*>( isRange->Convert2( GDL_LONG, BaseGDL::COPY));
+   if(nIsRange == 0)  {
+      nIsRange = nParam - isRangeIx - 1;
+       for (int i=0; i < nIsRange; i++) (*isRange)[i] = 0;
+        if(trace_me) std::cout << " nIsRange was 0!" ;
       }
-      catch( GDLException& ex)
-      {
-	ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-      }
-      isRangeLongGuard.Reset( isRangeLong);
-    }
-    
-    BaseGDL* parX = e->GetKW( par1Ix); // implicit SELF, ISRANGE, par1..par8
-    if( parX == NULL)
-      ThrowFromInternalUDSub( e, "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( par1Ix)));
+// isRange is a series of 0 or 1 indicating if a range is present.
+// more comments in list__]/
+  if(trace_me) {
+    std::cout << "Hash-OL left:nIsRange " << nIsRange << ",nParam " << nParam
+        << " ,isRange:";
+      for (int i=0; i < nIsRange; i++)
+        std::cout << " "<<(*isRange)[i];
+          std::cout << std::endl;
+        }
+// hash[*] = ... (Decline the attempt.)
+    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    if( parX == NULL) ThrowFromInternalUDSub( e,
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
 
-    DLong isRangeX = (*isRangeLong)[0];
-    if( isRangeX != 0 && isRangeX != 1)
-    {
-//       if( (isRangeX == 2 || isRangeX == 3) && rValue == NullGDL::GetSingleInstance())
-//       {
-// 	dotAccess = true;
-// 	isRangeX -= 2;
-//       }
-//       else
-	ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(0)+"]) is out of allowed range.");
-    }
-    if( isRangeX == 1)
-    {
+    if( (*isRange)[0]== 1) {  
       if( parX->N_Elements() != 3)
-      {
-	ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( par1Ix)));
-      }
+            ThrowFromInternalUDSub( e,
+            "Range vector must have 3 elements: " + 
+            e->Caller()->GetString(e->GetKW(prmbeg)));
       
-      DLongGDL* parXLong;
-      Guard<DLongGDL> parXLongGuard;
-      if( parX->Type() != GDL_LONG)
-      {
-	try{
-	  parXLong = static_cast<DLongGDL*>( parX->Convert2( GDL_LONG, BaseGDL::COPY));
-	  parXLongGuard.Reset( parXLong);
-	}
-	catch( GDLException& ex)
-	{
-	  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-	}
-      }
-      else
-      {
-	parXLong = static_cast<DLongGDL*>( parX);
-      }
-      if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || (*parXLong)[2] != 1)
-	ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
-	i2s((*parXLong)[0])+":"+	i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
-	
-      ThrowFromInternalUDSub( e, "Due to compatibility, setting all [*] to one value is not allowed. "
+        MAKE_LONGGDL(parX, parXLong)
+
+        if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || 
+            (*parXLong)[2] != 1) ThrowFromInternalUDSub( e,
+             "Subscript range is not allowed: [" + i2s((*parXLong)[0])+
+             ":"+   i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
+
+//          (Dead End)
+        ThrowFromInternalUDSub( e, 
+        "Setting all [*] for hash is not allowed in GDL. \n"
+        " (in IDL, kl=hash.keys(). for i=0,n_elements(kl)-1 do hash[kl[i]]= ...)\n"
       "Please report if you would appreciate this functionality.");
-
-      // full access [*]
     }
+// Generalize from  self to theStruct
+    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
+    DStructGDL* theStruct = self;       
 
-    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
-    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->
-                GetHeap( thisTableID));
-    bool isfoldcase = Hashisfoldcase( self);
+    DPtr Ptr = (*static_cast<DPtrGDL*>( 
+            theStruct->GetTag( pTableTag, 0)    ))[0];
+    DStructGDL* hashTable = static_cast<DStructGDL*>(
+            BaseGDL::interpreter->GetHeap( Ptr));
+    bool isfoldcase = Hashisfoldcase( theStruct);
 
-    // non-range (keyed)
-    SizeT par1N_Elements = parX->N_Elements();
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+// This section copied and slightly adapted from LIST_OVERLOADLEFT
+    BaseGDL* theref = NULL; 
+    int iprm = 0;
 
-    if( par1N_Elements == 1) // single key
-    {
-	if( dotAccess) // -> objRef is NULL (or !NULL)
-	{
-	  if( rValue != NullGDL::GetSingleInstance())
-	  {
-	    ThrowFromInternalUDSub( e, "For struct access (OBJREF is !NULL), RVALUE must be !NULL as well.");      
+    SizeT listSize = 0;
+
+    bool islist= false;
+    bool ishash = true;
+    bool isstruct = false;
+    bool finalprm = false;
+
+    while(  (*isRange)[iprm] == 0) { //  && (iprm+3 < nParam)
+ 
+        finalprm = (iprm+prmbeg+1 == nParam);
+        BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX->Rank() != 0 ) break; // must be a scalar
+
+        if( islist) {
+            MAKE_LONGGDL( XX, XXLong) 
+            DLong Ixref = (*XXLong)[0];
+            listSize = (*static_cast<DLongGDL*>(theStruct->GetTag( nListTag, 0)))[0];
+            if(Ixref >= listSize) // this is certainly common.
+                ThrowFromInternalUDSub( e, "direct access index is too high"
+                + i2s(Ixref) + " >= nList:"+i2s(listSize));
+            DStructGDL* Node = GetLISTStruct( e, 
+                                 GetLISTNode( e, theStruct, Ixref));
+            DPtr Ptr = 
+                (*static_cast<DPtrGDL*>( Node->GetTag( pListDataTag, 0)))[0];
+            if(trace_me) std::cout << " islist iprm="<<iprm;
+            if( finalprm ) { // last parameter, in a list.
+// list[ix]=<expression>    or list[ix,iy] = <expression>
+                if(trace_me) std::cout<<" - immediate Dup()"<<std::endl;
+                BaseGDL::interpreter->GetHeap( Ptr) = rValue->Dup();
+                return;
 	  }
+            theref = BaseGDL::interpreter->GetHeap( Ptr);
+            if( theref == 0)
+                ThrowFromInternalUDSub( e, " No data in list at index "+i2s(Ixref));
+        } else if( ishash ) {
+            DPtr Ptr = (*static_cast<DPtrGDL*>( 
+                    theStruct->GetTag( pTableTag, 0)    ))[0];
 
-      DLong hashIndex = HashIndex( thisHashTable, parX, isfoldcase);
-	  if( hashIndex < 0)
-	    ThrowFromInternalUDSub( e, "Key not found.");
-
-	  *objRef = thisHashTable->GetTag( pValueTag, hashIndex)->Dup();
+            hashTable = static_cast<DStructGDL*>(
+                    BaseGDL::interpreter->GetHeap( Ptr));
+            if(trace_me) std::cout<< iprm << " =iprm, " ;
+            isfoldcase = Hashisfoldcase( theStruct);
+            DLong hashIndex = HashIndex( hashTable , XX, isfoldcase);
+            if(trace_me) std::cout << " hashindex= "<<hashIndex;
+            if(hashIndex >= 0) {
+                DPtr pValue = (*static_cast<DPtrGDL*>( 
+                        hashTable->GetTag( pValueTag, hashIndex)    ))[0];
+                if( finalprm ) {
+                    if(trace_me) std::cout<<" - immediate Dup()"<<std::endl;
+                    BaseGDL::interpreter->GetHeap( pValue) = rValue->Dup();
 	  return;
+                    } else {
+                    theref = BaseGDL::interpreter->GetHeap( pValue);
 	}    
-	
-	bool stolen = e->StealLocalKW( par1Ix);
-	if( !stolen) parX = parX->Dup(); // if called explicitely
-	InsertIntoHashTable( self, thisHashTable, parX, rValue->Dup());
+            } else { // hashIndex >= 0
+                if( finalprm ) {
+                    if(trace_me) std::cout<<" - insert rVal->Dup()";
+                    hash_leftinsertion( e,  theStruct, iprm);
 	return;
     }
-    if( dotAccess)
-    {
-      ThrowFromInternalUDSub( e, "Only single value struct access is allowed.");
+                 else{
+                    if(trace_me) std::cout<<" newhash(0)";
+                    theref = 
+                        hash_subset( hashTable, 0, isfoldcase);
+//                  theref = hash_newhash( 0, isfoldcase);
+// Now we must insert this new hash before proceeding down the nest.                    
+                    bool stolen = e->StealLocalKW(iprm + prmbeg);
+                    if( !stolen) XX = XX->Dup();
+                    InsertIntoHashTable( theStruct, hashTable, XX, theref->Dup());
     }
-
-    if( rValue != NULL && rValue != NullGDL::GetSingleInstance())
-    {
-      if( rValue->N_Elements() != par1N_Elements)
-      {
-	ThrowFromInternalUDSub( e, "Key and Value must have the same number of elements.");
       }
+        } else if( isstruct ) {
+// use XX to access struct. GDL extension, IDL doesn't do this.
+            int ptagindex = 0;
+            if(XX->Type() != GDL_STRING) {
+                MAKE_LONGGDL( XX, XXLong)
+                ptagindex = (*XXLong)[0];
+                if(ptagindex >= theStruct->Desc()->NTags() ) 
+                    ptagindex = -1;
+                }
+            else {
+                DString tag = (*static_cast<DStringGDL*>( XX))[0];
+                StrUpCaseInplace(tag);
+                ptagindex = theStruct->Desc()->TagIndex(tag);
+            }
+            if(ptagindex < 0) 
+                ThrowFromInternalUDSub( e, " struct tag not found ");
+            theref = theStruct->Get( ptagindex);    
+        } else {break;}
+        DType theType = theref->Type();
+// Enhance (?) it by allowing pointers to lists to represent lists.
+// in order to turn this off, a ptr scalar must go in as a ptrarr[1];
+// This is probably not IDL behavior.
+        if( theType == GDL_PTR && theref->Rank() == 0) {
+              theref = BaseGDL::interpreter->GetHeap(
+                (*static_cast<DPtrGDL*>( theref))[0] );
+              theType = theref->Type();
+              // this is probably so odd itshould be advertised when it happens:
+              std::cout<<" **p= "<<std::endl;
+          }
+//      if( iprm + prmbeg  == nParam) break;//( no prms left)
+        if(trace_me) help_item(std::cout, theref, trcn+"theref ",false);
+        islist = false;
+        ishash = false;
+        isstruct = false;
+        if(theType == GDL_OBJ && theref->Rank() == 0) {
+              theStruct = GetOBJ( theref, e);
+              DStructDesc* desc = theStruct->Desc();
+              islist = desc->IsParent("LIST");
+              ishash = desc->IsParent("HASH");
+              isstruct = !(islist or ishash);
+            }
+        else if( theType == GDL_STRUCT and theref->N_Elements() == 1) {
+            theStruct = static_cast<DStructGDL*>( theref);
+             isstruct = true;
+         }
+        iprm++;
+        if( gdl_type_lookup::IsConvertableType[theType] ) break;
+         } // while
+    if(trace_me) {
+        std::cout << " HASH_OL[L]: iprm="<< i2s(iprm);
+//
+        if(theref == NULL || theref == NullGDL::GetSingleInstance() )
+                std::cout <<" (theref == 0) "<< std::endl;
+                else lib::help_item(std::cout, theref," theref",false);//
     }
     
-    if( rValue != NULL && rValue != NullGDL::GetSingleInstance())
-    {
-      for( SizeT k=0; k<par1N_Elements; ++k)
-      {    
-	InsertIntoHashTable( self, thisHashTable, parX->NewIx(k), rValue->NewIx(k));    
-      }
-    }
-    else
-    {
-      for( SizeT k=0; k<par1N_Elements; ++k)
-      {    
-	InsertIntoHashTable( self, thisHashTable, parX->NewIx(k), NULL);    
-      }    
-    }
+    if(ishash) { // if we finish on a hash, make insertion and leave.
+//      BaseGDL* parX = e->GetKW( iprm + prmbeg );
+//      if( parX == 0)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
+//                          + e->Caller()->GetString(e->GetKW( iprm + prmbeg )));
+        hash_leftinsertion( e, theStruct, iprm);
+        return;
+    } else if(islist || gdl_type_lookup::IsConvertableType[theref->Type()] ) {
+        list_leftinsertion( e, theref, iprm);
+        return;
+    } else 
+        ThrowFromInternalUDSub( e, 
+        "Logic error in hash_overloadleft."
+        "Please report this Occurence.");
+    
   }
 
 BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
@@ -2628,130 +2687,204 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
   
   BaseGDL* HASH___OverloadBracketsRightSide( EnvUDT* e)
   {
-    static DString hashName("HASH");
-    static DString entryName("GDL_HASHTABLEENTRY");
-    static unsigned pDataTag = structDesc::HASH->TagIndex( "TABLE_DATA");
-    static unsigned nSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");
-    static unsigned nCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
-    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY");
-    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
-    const unsigned par1Ix = 2;
+    static unsigned fold_case_mask = 0x00000001;
+    static unsigned isRangeIx = 1;
+    static unsigned prmbeg = isRangeIx+1;
+//    trace_me = lib::trace_arg();
     
-    SizeT nParam = e->NParam(1); // number of parameters actually given
+    SizeT nParam = e->NParam(1); 
+    
+    if( nParam < 3) ThrowFromInternalUDSub( e,
+        "Two parameters are needed: ISRANGE, SUB1 [, ...].");
 
-    if( nParam < 3) // consider implicit SELF
-      ThrowFromInternalUDSub( e, "Two parameters are needed: ISRANGE, SUB1 [, ...].");
-    if( nParam > 3) // consider implicit SELF
-      ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
+    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
 
-    BaseGDL* selfP = e->GetKW( 0);
+    DLongGDL* isRange = static_cast<DLongGDL*>( e->GetKW(isRangeIx));
+    SizeT nIsRange = isRange->N_Elements();
 
-    DStructGDL* self = GetOBJ( selfP, e);
+    if(nIsRange == 0)  { // sometimes this comes in wrong - fix it.
+       nIsRange = nParam - isRangeIx - 1;
+       for (int i=0; i < nIsRange; i++) (*isRange)[i] = 0;
+     }
+// isRange is a series of 0 or 1 indicating if a range is present.
+// more comments in list__]/
+      if(trace_me) {
+        std::cout << "Hash-OL right:nIsRange " << nIsRange << ",nParam " << nParam
+            << " ,isRange:";
+          for (int i=0; i < nIsRange; i++)
+            std::cout << " "<<(*isRange)[i];
+              std::cout << std::endl;
+            }
     bool isfoldcase = Hashisfoldcase( self);
-    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pDataTag, 0)))[0];
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
     DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
     
-    // default behavior: Exact like scalar indexing
-    BaseGDL* isRange = e->GetKW(1);
-    if( isRange == NULL)
-      ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) is undefined.");
-    SizeT nIsRange = isRange->N_Elements();
-    if( nIsRange > (nParam - 2)) //- SELF and ISRANGE
-      ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must have "+i2s(nParam-2)+" elements.");
-    Guard<DLongGDL> isRangeLongGuard;
-    DLongGDL* isRangeLong;
-    if( isRange->Type() == GDL_LONG)
-      isRangeLong = static_cast<DLongGDL*>( isRange);
-    else
-    {
-      try{
-	isRangeLong = static_cast<DLongGDL*>( isRange->Convert2( GDL_LONG, BaseGDL::COPY));
-      }
-      catch( GDLException& ex)
-      {
-	ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-      }
-      isRangeLongGuard.Reset( isRangeLong);
-    }
-    
-    BaseGDL* index = NULL;
-    BaseGDL* parX = e->GetKW( par1Ix); // implicit SELF, ISRANGE, par1..par8
-    if( parX == NULL)
-      ThrowFromInternalUDSub( e, "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( par1Ix)));
+    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    if( parX == NULL) ThrowFromInternalUDSub( e,
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
 
-    DLong isRangeX = (*isRangeLong)[0];
-    if( isRangeX != 0 && isRangeX != 1)
-    {
-      ThrowFromInternalUDSub( e, "Value of parameter 1 (ISRANGE["+i2s(0)+"]) is out of allowed range.");
-    }
-    if( isRangeX == 1)
-    {
-      if( parX->N_Elements() != 3)
+    if( (*isRange)[0] == 1)  // r = hash[*]
       {
-	ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( par1Ix)));
-      }
-      DLongGDL* parXLong;
-      Guard<DLongGDL> parXLongGuard;
-      if( parX->Type() != GDL_LONG)
-      {
-	try{
-	  parXLong = static_cast<DLongGDL*>( parX->Convert2( GDL_LONG, BaseGDL::COPY));
-	  parXLongGuard.Reset( parXLong);
-	}
-	catch( GDLException& ex)
-	{
-	  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage());
-	}
-      }
-      else
-      {
-	parXLong = static_cast<DLongGDL*>( parX);
-      }
+      if( parX->N_Elements() != 3) ThrowFromInternalUDSub( e, 
+        "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( prmbeg)));
+    
+        MAKE_LONGGDL(parX, parXLong)
+
       if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || (*parXLong)[2] != 1)
 	ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
 	i2s((*parXLong)[0])+":"+i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
+        BaseGDL* cloned = hash_duplicate(self); 
+        if(trace_me) std::cout << " cloned " <<std::endl;
+            return cloned;
+    } // (*isRange)[0] == 1
       
-      // full range -> clone ===================================================
-      DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( nCountTag, 0)))[0];
-      SizeT nEntries = nCount;
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
     
-      DLong initialTableSize = GetInitialTableSize( nEntries);
-    
-      // new hash
-      DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
-      DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
-      BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
-      Guard<BaseGDL> newObjGuard( newObj);
-      // the return hash table
-      DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
-      DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
-      (*static_cast<DPtrGDL*>( hashStruct->GetTag( pDataTag, 0)))[0] = hashTableID;
-      (*static_cast<DLongGDL*>( hashStruct->GetTag( nSizeTag, 0)))[0] = initialTableSize;
-    
-      SizeT sourceIx = 0;
-      for( SizeT eIx=0; eIx<nEntries; ++eIx)
-      {
-	DPtr kID = (*static_cast<DPtrGDL*>( thisHashTable->GetTag( pKeyTag, sourceIx)))[0];
-	while( kID == 0)
-	  kID = (*static_cast<DPtrGDL*>( thisHashTable->GetTag( pKeyTag, ++sourceIx)))[0];
+// Generalize from  self to theStruct
+    BaseGDL* theref = parX;
+    DStructGDL* theStruct = self;       
+    int iprm = 0;
+  
+    SizeT listSize = 0;
 
-	DPtr vID = (*static_cast<DPtrGDL*>(thisHashTable->GetTag( pValueTag, sourceIx)))[0];
+    bool islist=false;
+    bool ishash = true;
+    bool isstruct = false;
+    bool finalprm = false;
+    
+    while(  (*isRange)[iprm] == 0) { //  && (iprm+3 < nParam)
+    
+        finalprm = (iprm+prmbeg+1 == nParam);
+        BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX->Rank() != 0 ) break; // must be a scalar
 
-	BaseGDL* key = e->Interpreter()->GetHeap( kID);
-	assert( key != NULL);
-	BaseGDL* value = e->Interpreter()->GetHeap( vID);
-	if( value != NULL)
-	  value = value->Dup();
+        if( islist) {
+            MAKE_LONGGDL( XX, XXLong) 
+            DLong Ixref = (*XXLong)[0];
+            listSize = (*static_cast<DLongGDL*>(theStruct->GetTag( nListTag, 0)))[0];
+            if(Ixref >= listSize) // this is certainly common.
+                ThrowFromInternalUDSub( e, "direct access index is too high"
+                + i2s(Ixref) + " >= nList:"+i2s(listSize));
+            DStructGDL* Node = GetLISTStruct( e, GetLISTNode( e, theStruct, Ixref));
+            DPtr Ptr = 
+                (*static_cast<DPtrGDL*>( Node->GetTag( pListDataTag, 0)))[0];
+            theref = BaseGDL::interpreter->GetHeap( Ptr);
+            if(trace_me) std::cout << " islist iprm="<<iprm;
+            if( theref == 0){
+                if(trace_me)  std::cout << " theref==0 ";
+                 return NullGDL::GetSingleInstance();
+                }// return NullGDL::GetSingleInstance();
+            // ok to return a null ptr
+        } else if( ishash ) {
+                if(trace_me) std::cout << " ishash iprm="<<iprm;
+            DPtr Ptr = (*static_cast<DPtrGDL*>( 
+                    theStruct->GetTag( pTableTag, 0)    ))[0];
+            DStructGDL* hashTable = static_cast<DStructGDL*>(
+                    BaseGDL::interpreter->GetHeap( Ptr));
+                if(trace_me) std::cout << " . ";
+            bool isfoldcase = Hashisfoldcase( theStruct); 
+            if(XX->Type() == GDL_OBJ) {
+                DObj p=(*static_cast<DObjGDL*>( XX))[0];
+                if(p != 0) {
+                    DStructGDL* ListHead = GetOBJ( XX, e);
+    //                      DStructDesc* desc = ListHead->Desc();
+                    if(ListHead->Desc()->IsParent("LIST")) {
+                        theref = hash_subset(hashTable, XX, isfoldcase);
+                        if( finalprm ) return theref;
+                        if(trace_me) std::cout << " ...[XX...]" ;
+                        }
+                    else
+                    ThrowFromInternalUDSub( e, " -XX- hash key an object not LIST");
+                } else
+                    ThrowFromInternalUDSub( e, " -XX- hash key an invalid object");
+            } else {
+                DLong hashIndex = HashIndex( hashTable , XX, isfoldcase);
+
+                if(trace_me) std::cout <<" pData:"<<i2s(Ptr) ;
+            if(trace_me) help_item(std::cout,XX, "XX",false);
+                if(hashIndex < 0) 
+                    ThrowFromInternalUDSub( e, " -XX- hash key not found ");
+                DPtr pValue = (*static_cast<DPtrGDL*>( 
+                        hashTable->GetTag( pValueTag, hashIndex)    ))[0];
+                theref = BaseGDL::interpreter->GetHeap( pValue);
+            }
+        } else if( isstruct ) {
+// use XX to access struct by naming the tag, or by its numerical index.
+            int ptagindex = 0;
+            if(XX->Type() != GDL_STRING) {
+                MAKE_LONGGDL( XX, XXLong)
+                ptagindex = (*XXLong)[0];
+                if(ptagindex >= theStruct->Desc()->NTags() ) 
+                    ptagindex = -1;
+                }
+            else {
+                DString tag = (*static_cast<DStringGDL*>( XX))[0];
+                StrUpCaseInplace(tag);
+                ptagindex = theStruct->Desc()->TagIndex(tag);
+            }
+            if(ptagindex < 0) 
+                ThrowFromInternalUDSub( e, " struct tag not found ");
+            theref = theStruct->Get( ptagindex);
 	
-	InsertIntoHashTable( hashStruct, hashTable, key->Dup(), value);
+        } else {
+            if(trace_me) std::cout << "isstruct || ishash || islist "<< iprm <<std::endl;
+            break;} // isstruct || ishash || islist
+// We've gotten past any list, hash,or struct/
+        DType theType = theref->Type();
+            if(trace_me) std::cout << " theType="<<theType;
+// de-reference any pointers we find. (// This is probably not IDL behavior.)
+// in order to turn this off, a ptr scalar must go in as a ptrarr[1];
+//
+        if( theType == GDL_PTR && theref->Rank() == 0) {
+            DPtr p=(*static_cast<DPtrGDL*>( theref))[0];
+              if( p != 0) theref = BaseGDL::interpreter->GetHeap( p);
+              theType = theref->Type();
+          }
+// right bracket, we are done if only 3 parameters left (?).
+        if(finalprm) {
+            if(trace_me) help_item(std::cout, theref, " ->Dup():",false);
+            return theref->Dup();
       }
-      newObjGuard.Release();
-      return newObj;
+        if(trace_me) help_item(std::cout, theref, " \n theref ",false);
+// otherwise, another dimension is involved and we need to process again.
+        islist = false;
+        ishash = false;
+        isstruct = false;
+        if(theType == GDL_OBJ && theref->Rank() == 0) {
+              DObj p=(*static_cast<DObjGDL*>( theref))[0];
+              if(p == 0) break;
+              theStruct = GetOBJ( theref, e);
+              DStructDesc* desc = theStruct->Desc();
+              islist = desc->IsParent("LIST");
+              ishash = desc->IsParent("HASH");
+              isstruct = !(islist or ishash);
+            }
+        else if( theType == GDL_STRUCT and
+                theref->N_Elements() == 1) {
+            theStruct = static_cast<DStructGDL*>( theref);
+            isstruct = true;
     }
+        iprm++;
+        if( gdl_type_lookup::IsConvertableType[theType] ) break;
+         } // while
+  /*
+ 
+ */
+    if(trace_me) std::cout << " HASH_OL[R]: iprm="<< i2s(iprm);
+    if(trace_me) lib::help_item(std::cout, theref," theref",false);
+
+    if(!ishash) return list_rightextraction( e, theref, iprm);
+
+// rewind to a simpler time ... hashnew=hashold[ keys ]
+     if( nParam > 3)
+      ThrowFromInternalUDSub( e, "Only one dimensional access allowed.");
 
     // non-range
-    index = parX;
+        BaseGDL* index = parX;
 
     // one element -> return value
     if( index->N_Elements() == 1)
@@ -2759,9 +2892,9 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
       DLong hashIndex = HashIndex( thisHashTable, index, isfoldcase);
 //      if( hashIndex < 0) ThrowFromInternalUDSub( e, "Key is not present.");
      if( hashIndex < 0) return NullGDL::GetSingleInstance();
-
       DPtr vID = (*static_cast<DPtrGDL*>(thisHashTable->GetTag( pValueTag, hashIndex)))[0];
       BaseGDL* value = e->Interpreter()->GetHeap( vID);
+    if(trace_me) lib::help_item(std::cout, value," value",false);
       if( value == NULL)
 	return NullGDL::GetSingleInstance();
       else  return value->Dup();

@@ -97,7 +97,7 @@ isgit = 0
 defsysv,"!GDL",exists=isgdl
 if isgdl then $
     isgit = strpos(!GDL.release,'git') gt 0
-
+isgit = 0 ; no more excuses.
 if(isgit and keyword_set(verbose)) then begin
   print,' TEST_HASH: GDL/svn is detected so some tests of LIST will be excused,'
   print,' GIT list will only make simple 1-D arrays with TOARRAY'
