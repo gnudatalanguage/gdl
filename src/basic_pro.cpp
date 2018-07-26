@@ -2497,7 +2497,7 @@ void delvar_pro( EnvT* e)
 			if(trace_me) std::cout << std::endl;
 		}
 	if(delcommon.empty()) return;
-	unsigned cIx;
+	int cIx;
 	int ncmnfound=0;
 	std::vector<DCommonBase*> c;
 	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());

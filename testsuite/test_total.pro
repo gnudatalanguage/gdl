@@ -84,7 +84,7 @@ pro TEST_TOTAL_NAN_INF, cumul_errors, test=test, verbose=verbose
 ;
 print, 'AC 2018 March : this part of the test should be recycle ... TODO !!!'
 
-BANNER_FOR_TESTSUITE, pref='TEST_TOTAL_NAN_INF', 'unfinished !', 1000
+;BANNER_FOR_TESTSUITE, pref='TEST_TOTAL_NAN_INF', 'unfinished !', 1000
 ; unfinished !
 return
 
@@ -220,12 +220,6 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ---------------------------------------
-; this code fails in IDL : 
-; * Long64 & ULong64 should be converted to double in default case
-; this code fails in GDL : 
-; * Long64 & ULong64 should be converted to double in default case
-;
 pro TEST_TOTAL_INT, cumul_errors, test=test, verbose=verbose, debug=debug
 ;
 offset=201b
@@ -241,6 +235,18 @@ GIVE_LIST_NUMERIC, list_num_types, list_num_names, /integer
 exp1f_ref=FLOAT(muldims)*FLOAT(offset)
 exp1int_ref=muldims*LONG64(offset)
 ;
+exp1intc = [$
+        [ [201.,402.,603.], [804.,1005.,1206.], [1407.,1608.,1809.], [2010.,2211.,2412.] ], $
+	    [ [2613.,2814.,3015.], [3216.,3417.,3618.], [3819.,4020.,4221.], [4422.,4623.,4824.] ], $
+        [ [5025.,5226.,5427.], [5628.,5829.,6030.], [6231.,6432.,6633.], [6834.,7035.,7236.] ], $
+        [ [7437.,7638.,7839.], [8040.,8241.,8442.], [8643.,8844.,9045.], [9246.,9447.,9648.] ], $
+	    [ [9849.,10050.,10251.], [10452.,10653.,10854.], [11055,11256,11457.], [11658.,11859.,12060.] ]$
+      ] 
+;exp1intc = LON64ARR(dims)
+
+exp1fc = FIX(exp1intc, type=FLOAT)
+exp1intc = FIX(exp1intc, type=LONG64)
+
 for ii=0, N_ELEMENTS(list_num_types)-1 do begin
    ;;
    internal=nbps
@@ -249,15 +255,24 @@ for ii=0, N_ELEMENTS(list_num_types)-1 do begin
    name=list_num_names[ii]
    input=FIX(in, type=type)
    exp1pres=FIX(exp1int_ref, type=type)
+   exp1presc=FIX(exp1intc, type=type)
    res1f=TOTAL(input)
    res1int=TOTAL(input,/int)
    res1pres=TOTAL(input,/preserve)
+   res1fc=TOTAL(input,/cumulative)
+   res1intc=TOTAL(input,/int,/cumulative)
+   res1presc=TOTAL(input,/preserve,/cumulative)
+
+   exp1fc = FLOAT(exp1intc)
+   exp1intc = LONG64(exp1intc)
    ;;
    ;; few special cases
    exp1f=exp1f_ref
-   if type GE 14 then exp1f=DOUBLE(exp1f_ref)
    exp1int=exp1int_ref
+   if type GE 14 then exp1f=DOUBLE(exp1f_ref)
    if type EQ 15 then exp1int=ULONG64(exp1int_ref)
+   if type GE 14 then exp1fc=DOUBLE(exp1fc)
+   if type EQ 15 then exp1intc=ULONG64(exp1intc)
    ;;
    if KEYWORD_SET(verbose) then begin
       print, 'Exp: ', name, exp1f, exp1int, exp1pres
@@ -269,6 +284,12 @@ for ii=0, N_ELEMENTS(list_num_types)-1 do begin
       ERRORS_ADD, nbps, 'res 1 /Int Type='+name
    if ~ARRAY_EQUAL(res1pres, exp1pres, /no_type) then $
       ERRORS_ADD, nbps, 'res 1 /Pres Type='+name
+   if ~ARRAY_EQUAL(res1fc, exp1fc, /no_type) then $
+      ERRORS_ADD, nbps, 'res 1 /cumulative Type='+name
+   if ~ARRAY_EQUAL(res1intc, exp1intc, /no_type) then $
+      ERRORS_ADD, nbps, 'res 1 /int /cumulative Type='+name
+   if ~ARRAY_EQUAL(res1presc, exp1presc, /no_type) then $
+      ERRORS_ADD, nbps, 'res 1 /preserve /cumulative Type='+name
    ;;
    if KEYWORD_SET(debug) then if nbps GT internal then stop  
 endfor
@@ -281,6 +302,20 @@ if KEYWORD_set(test) then STOP
 ;
 end
 ;
+pro TEST_TOTAL_COMPLEX, cumul_errors, test=test, verbose=verbose
+
+nbps=0
+
+r = [1,2,3]
+i = [4,5,6]
+c = COMPLEX(r, i)
+tot = total(c, /cumulative)
+
+BANNER_FOR_TESTSUITE, 'TEST_TOTAL_COMPLEX', nbps, /short
+ERRORS_CUMUL, cumul_errors, nbps
+if KEYWORD_set(test) then STOP
+;
+end
 ; -----------------------------------------------------------------
 ;
 pro TEST_TOTAL, help=help, test=test, verbose=verbose, no_exit=no_exit

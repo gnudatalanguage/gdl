@@ -1,4 +1,5 @@
-pro test_bug_1779553 
+pro test_bug_1779553 ,$
+                      verbose=verbose, test=test, no_exit=no_exit, help=help
 
   err = 0
   i = 0
@@ -100,15 +101,18 @@ pro test_bug_1779553
 
   ; struct
   v[i] = ptr_new({a:1}) & f[i] = '(I05)' & a[i] = '00001' & ++i
+  ;
+  if keyword_set(test) then stop,' before messages'
+  ;
+  ndone = i
+  badmatch=bytarr(ndone)
+  for k=0,ndone-1 do badmatch[k] = string(*v[k], format=f[k]) ne a[k]
+  inv = where(badmatch, err)
+  for i = 0, err-1 do begin & k=inv[i] &$
+        message, /conti , $
+        'string(' + strtrim(string(*v[k]), 2) + ', format=''' + f[k] + ''') = ''' + string(*v[k], format=f[k]) + ''' != ''' + a[k] + '''' &$    
+        endfor
 
-  n = i
-  for i = 0, n - 1 do begin
-    if string(*v[i], format=f[i]) ne a[i] then begin
-      message, 'string(' + strtrim(string(*v[i]), 2) + ', format=''' + f[i] + ''') = ''' + string(*v[i], format=f[i]) + ''' != ''' + a[i] + '''', /conti
-      ++err
-    endif
-  endfor
-
-  if err ne 0 then exit, status=1
+  if err ne 0 and not keyword_set(no_exit) then exit, status=1
   
 end

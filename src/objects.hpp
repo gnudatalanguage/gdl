@@ -64,6 +64,8 @@ extern DLong64 CpuTPOOL_MAX_ELTS;
 
 // signals if control-c was pressed
 extern volatile bool sigControlC;
+// tells if wxwidgets backend for graphics is to be used...
+extern volatile bool useWxWidgetsForGraphics;
 extern          int  debugMode;
 
 enum DebugCode {

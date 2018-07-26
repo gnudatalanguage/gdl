@@ -349,7 +349,7 @@ void GDLXStream::Flush() {
 //  XFlush(xwd->display);
 }
 void GDLXStream::Update() {
-//  XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
+  XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
 }
 void GDLXStream::WarpPointer(DLong x, DLong y) {
   XwDev *dev = (XwDev *) pls->dev;
@@ -432,6 +432,8 @@ bool GDLXStream::GetGin(PLGraphicsIn *gin, int mode) {
   XSelectInput(xwd->display, dev->window, event_mask);
   XSync(xwd->display, true);  //useful?
   while (1) {
+    if ( sigControlC ) return false;
+
     XWindowEvent(xwd->display, dev->window, event_mask, &event);
 
     switch (event.type) {

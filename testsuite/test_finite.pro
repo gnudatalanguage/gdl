@@ -257,8 +257,6 @@ TEST_FINITE_VALUES, cumul_errors, test=test, verbose=verbose
 ;
 print, 'Running this test with various numbers of points ...'
 print, 'Please wait ...'
-TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=10000L
-TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=100000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=1000000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=10000000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=100000000L
@@ -266,8 +264,6 @@ TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, nbp=100000000L
 ; with the /Infinity Keyword
 ;
 print, 'Same test with various numbers of points and /Inf...'
-TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, /infi, nbp=10000L
-TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, /infi, nbp=100000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, /infi, nbp=1000000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, /infi, nbp=10000000L
 TEST_FINITE_TIMETEST, cumul_errors, verbose=verbose, /infi, nbp=100000000L

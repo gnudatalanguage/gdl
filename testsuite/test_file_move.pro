@@ -14,9 +14,9 @@ endif
 ;
 chkfiles = file_search('titi*',count=nf)
 if nf ne 0 then begin
-	print," leftover 'titi*' files in directory.  TEST_FILE_MOVE won't proceed"
-	return
-	endif
+    print," leftover 'titi*' files in directory.  TEST_FILE_MOVE won't proceed"
+    return
+    endif
 ;Errors count is 0 at the beginning
 total_errors = 0
 ;
@@ -31,12 +31,15 @@ tfile1to='titii'
 tfile2to='titis'
 tfile3to='tititi'
 tfile4to='titifgf'
-SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
-
+tfiles=[tfile,tfile1,tfile2,tfile3,tfile4]
+;SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
+get_lun,lun
+for k=0,4 do begin & openw,lun, tfiles(k) & close,lun & endfor
+free_lun,lun
 ;move files
 file_move,tfile,tfileto
 file_move,[tfile1,tfile2],[tfile1to,tfile2to]
-;	file_move,"toto*",[tfile3to,tfile4to]		; this is illegal
+;   file_move,"toto*",[tfile3to,tfile4to]       ; this is illegal
 file_move,file_search("toto*"),[tfile3to,tfile4to]
 ;Test if exists new files and old is removed
 

@@ -203,6 +203,8 @@ bool GDLWINStream::GetGin(PLGraphicsIn *gin, int mode) {
 
 	previous = SetCursor(CrosshairCursor);
 	SetClassLongPtr(window, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(CrosshairCursor));
+    SetWindowPos(window, HWND_BOTTOM,               // DeIconic()
+        0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW));
     BringWindowToTop(window);
 
 

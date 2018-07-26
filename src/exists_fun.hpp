@@ -36,6 +36,8 @@ namespace lib {
  BaseGDL* proj4new_exists(EnvT *e);
  BaseGDL* pslib_exists(EnvT *e);
  BaseGDL* python_exists(EnvT *e);
+ BaseGDL* tiff_exists(EnvT *e);
+ BaseGDL* geotiff_exists(EnvT *e);
  BaseGDL* udunits_exists(EnvT *e);
   // only exception wxwidgets_exists in "dialop.hpp"
  BaseGDL* x11_exists(EnvT *e);

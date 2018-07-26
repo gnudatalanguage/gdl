@@ -74,6 +74,8 @@ dpro.cpp
 dpro.hpp
 dstructdesc.cpp
 dstructdesc.hpp
+dstructfactory.cxx
+dstructfactory.hxx
 dstructgdl.cpp
 dstructgdl.hpp
 dvar.cpp
@@ -264,6 +266,8 @@ str.cpp
 str.hpp
 terminfo.cpp
 terminfo.hpp
+tiff.cxx
+tiff.hxx
 topython.cpp
 triangulation.cpp
 typedefs.hpp

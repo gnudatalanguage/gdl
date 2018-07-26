@@ -36,6 +36,14 @@ if KEYWORD_SET(help) then begin
     print, '                      verbose=verbose, test=test, no_exit=no_exit, help=help'
     return
 endif
+if !version.os_family eq 'Windows' then begin
+    spawn,'ps',stdps
+    if n_elements(stdps) lt 4 then begin
+        message,/continue," Windows' invocation without a shell: fake result: immediate return"
+        return
+        endif
+    message,/continue," Windows' invocation: via shell? going for it"
+    endif
 ;
 ; since the routine was compiled, we can know where it is !
 ;
