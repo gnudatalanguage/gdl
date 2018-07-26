@@ -1,0 +1,47 @@
+#!bin/bash.exe
+#
+
+WXROOT=/c/projects/gdl/mingw/wxWidgets-3.0.4
+
+MSYSTEM=MINGW32
+export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
+. /etc/profile
+# this is needed to find bin/wx-config
+export PATH=/c/projects/gdl/mingw/mingw32/bin:$PATH
+#
+# any hints on how to switch compilers, insert here.
+#
+echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
+echo $PATH
+echo $LOCALM32
+echo " appveyor_gdl.msys: build gdl with msys script"
+LOCALM32=/c/projects/gdl/mingw/mingw32
+#LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
+echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
+#
+
+cd /c/projects/gdl
+mkdir -p build/gdl/msys
+
+plplot=/c/projects/gdl/mingw/plplot-5.13
+cd /c/projects/gdl/build/gdl/msys 
+
+cmake  -G"MSYS Makefiles" c:\projects\gdl \
+      -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
+      -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+      -DWXWIDGETS=ON -DWXWIDGETSDIR=$WXROOT \
+      -DPLPLOTDIR=$plplot \
+      -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl \
+      -DGRAPHICSMAGICK=OFF -DMAGICK=OFF \
+      -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF \
+      -DTIFF=OFF -DGEOTIFF=OFF -DLIBPRJ4=OFF \
+      -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
+      -DUSE_WINGDI_NOT_WINGCC=ON | tee &1 >& cmake.out
+  make -j4 > make.out
+  make install > gdlinstall.out
+  rm src/CMakeFiles/gdl.dir/*.obj
+export PATH=$plplot/bin:$WXROOT/bin:$PATH
+export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
+export PLPLOT_LIB=$plplot/share/plplot5.13.0
+make check
+

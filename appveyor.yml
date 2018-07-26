@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -20,236 +20,215 @@ install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
   - ps: >-
       if ($env:platform -Match "mingw64630i686") {
-        $env:PATH="C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;$env:PATH"
+        #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
+        #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
+        $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
+        $env:PATH="C:\mingw-w64\$env:GCC\mingw32\bin;$env:PATH"
         md c:\projects\gdl\win32libs
-        md c:\projects\gdl\win32libs\bin
-        md c:\projects\gdl\win32libs\lib
-        md c:\projects\gdl\win32libs\include
-        # Python
-        $env:PYTHON_ROOT="C:\Python27"
-        
-        # WxWidgets
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
-        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
-        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
-        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        # Below 2 lines are required for wxWidgets-3.0.4, don't know why
-        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
-        
-        # BSD-XDR
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
-        tar zxf bsd-xdr-1.0.0.tar.gz
-        cd bsd-xdr-1.0.0
-        sed -i 's/%hh/%/g' src\test\test_data.c
-        md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
-        
+        md c:\projects\gdl\mingw
+        # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
+        #$env:PYTHON_ROOT="C:\Python27"
+
+        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
+        cd c:/projects/gdl
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
+        cd c:/projects/gdl/mingw
+        rm mingw-w64-i686-*tar.xz
+        $env:LOCALM32="c:/projects/gdl/mingw/mingw32"
+        $env:WXNAME="wxWidgets-3.0.4"
+        $env:GMNAME="GraphicsMagick-1.3.30"
+
         # PLplot
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        tar zxf plplot-5.13.0.tar.gz
-        md plplot-5.13.0/build
-        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
-        cd plplot-5.13.0/build
-        mingw32-make -j4
-        mingw32-make install
-        
-        # Eigen
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        md eigen-eigen-5a0156e40feb/build
-        cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs
-        cd eigen-eigen-5a0156e40feb/build
-        mingw32-make install
+        echo " plplot building.  we make an MSYS build (from build/plplot/msys)"
+        appveyor DownloadFile http://downloads.sourceforge.net/project/graphicsmagick/graphicsmagick/1.3.30/GraphicsMagick-1.3.30.tar.xz
+        cd c:/projects/gdl
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
+        # the above script attempts to make a viable plplot using msys.
+        # it also populates the mingw/wxwidgets directory with MSYS-compatible and also
+        $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME"
+        $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
+        #           mkdir $env:wxWidgets_ROOT
+        # $env:wxWidgets_ROOT is an attempt to make a WIN32-compatible wxwidget.
+        #  It doesn't work.
 
-        # GSL
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        tar zxf gsl-2.4.tar.gz
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+        copy c:/projects/gdl/mingw/plplot-5.13/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/mingw/plplot-5.13/bin -ErrorAction silentlycontinue
+        copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/mingw32/  -Recurse -Force
         
-        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
-        # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
-        #       (Remember to remove -DTIFF=OFF -DGEOTIFF=OFF from build_script when done)
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/tiff/3.8.2-1/tiff-3.8.2-1-lib.zip
-        7z x readline-5.0-1-lib.zip
-        7z x zlib-1.2.3-lib.zip
-        7z x libpng-1.2.37-lib.zip
-        7z x pcre-7.0-lib.zip
-        #7z x tiff-3.8.2-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/tiff/3.8.2-1/tiff-3.8.2-1-bin.zip
-        7z x readline-5.0-1-bin.zip -y
-        7z x zlib-1.2.3-bin.zip -y
-        7z x libpng-1.2.37-bin.zip -y
-        7z x pcre-7.0-bin.zip -y
-        #7z x tiff-3.8.2-1-bin.zip -y
+        # Eigen is downloaded from pre-built repository via scripts/appveyor_1.msys
+        # GSL loaded from scripts/appveyor_1.msys
+        # BSD-XDR
+        cd c:/projects/gdl/win32libs
+        appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
+        tar zxf bsd-xdr-1.0.0.tar.gz
+        cd bsd-xdr-1.0.0
+        sed -i 's/%hh/%/g' src/test/test_data.c
+        md mingw
+        md mingw/lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/mingw32/lib
+        mv rpc c:/projects/gdl/mingw/mingw32/include
+        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/mingw32/bin
+       
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
+  # python needs to be python built in mingw, not the python for windows.
   # - if %platform%==mingw64630x8664 set PYTHON_ROOT=C:\Python27-x64
 
 before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_1779553.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_635.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_709.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_719.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_n000587.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_n000608.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bug_n000720.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_call_external.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_chisqr_cvf.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_clip.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_congrid.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_constants.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_device.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_dicom.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_execute.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_basename.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fft_leak.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_dirname.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fix.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_finite.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_formats.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_gc.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_get_lun.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_get_screen_size.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_gh00178.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_idlneturl.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_indgen.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_l64.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_la_least_squares.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_ludc_lusol.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_make_dll.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_math_function_dim.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_matrix_multiply.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_memory.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_message.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plotting_ranges.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_pmulti.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_point_lun.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_postscript.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_product.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_ps_decomposed.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_python.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_image_statistics.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_n_tags.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_nans_in_sort_and_median.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_nestedloop.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_parse_url.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_python_module_0.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_python_module_1.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_python_module_2.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_qhull.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_random.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_readf.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_resolve_routine.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_same_name.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_spawn_unit.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_spher_harm.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_spl_init.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_step.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_str_sep.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_stregex.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_strmatch.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_strsplit.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_structures.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_systime.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_tic_toc.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_total.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_rounding.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_tv.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_typename.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_zip.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_list.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_obj_valid.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_make_array.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_ptr_valid.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
-  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
-  
+  - ps: cd C:\projects\gdl\testsuite
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_1779553.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3376577.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_635.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_709.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_719.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_n000587.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_n000608.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_n000720.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_call_external.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_chisqr_cvf.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_clip.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_congrid.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_constants.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_device.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_dicom.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_execute.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_basename.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fft_leak.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_dirname.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_lines.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_test.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_which.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fix.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_finite.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_formats.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_gc.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_get_lun.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_get_screen_size.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_gh00178.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_idlneturl.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_indgen.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_l64.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_la_least_squares.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_ludc_lusol.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_make_dll.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_math_function_dim.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_matrix_multiply.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_memory.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_message.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plotting_ranges.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_pmulti.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_point_lun.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_postscript.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_product.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_ps_decomposed.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_image_statistics.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_n_tags.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_nans_in_sort_and_median.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_nestedloop.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_parse_url.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_0.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_1.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_2.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_qhull.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_random.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_readf.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_resolve_routine.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_same_name.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_spawn_unit.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_spher_harm.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_spl_init.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_step.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_str_sep.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_stregex.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_strmatch.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_strsplit.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_structures.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_systime.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tic_toc.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_total.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_rounding.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tv.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_typename.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zip.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
+  # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_list.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_valid.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_make_array.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_ptr_valid.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
+  - ps: cd  C:\projects\gdl
 build_script:
-  - cd c:\projects
-  - md c:\projects\gdl\build
-  - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
-  - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
-  - cmake gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DTIFF=OFF -DGEOTIFF=OFF
-  - cd c:\projects\gdl\build
-  - mingw32-make -j4
-  - mingw32-make install
-
-  # tests
-  # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/lib
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/bin
-  - set PATH=%PATH%;C:/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
-  - set PATH=%PATH%;C:/mingw-w64/i686-6.3.0-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib
-  - mingw32-make check
+  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
+  #- C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
+  - cmd /K scripts\mingw-bldgdl
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - copy C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - cd c:\projects\gdl\install
-  - 7z a gdl_build.zip gdl
+  - cd c:\projects\gdl
+  - C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
+  # The following is available in scripts/installgdl.ps1  
+  - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
+  # ps: copy $env:wxWidgets_ROOT\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\$env:GCC\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  # bring in the driver's dll to the installation directory.
+  # there are also .driver_info files here the plplot needs to find.
+  # also in share/plplot-5.13.0 there are mapping and color files.
+
+  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
+  - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
+  - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
+  - ps: copy INSTALL.plplot c:/projects/gdl/install
+  # Get plplot info placed:
+
+  - cd c:\projects\gdl
+  - 7z a gdl_build.zip install build
+  # - ctest -C Release --output-on-failure
+  # python needs to be python built in mingw, not the python for windows.
+  # - python -c "import gdl; dir(gdl)"
+  # get the check in after the artifact is completed. - doesn't work if check fails.
+
 
 artifacts:
-  - path: install\gdl_build.zip
+  - path: gdl_build.zip
     name: GDL
   
 deploy:
