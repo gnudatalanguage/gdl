@@ -52,5 +52,5 @@ mingw32-make check
  del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy
  echo %CONFIGURATION%
- if %CONFIGURATION%=Debug exit 0
+ if %CONFIGURATION%==Debug exit 0
 exit
