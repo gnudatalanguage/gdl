@@ -41,10 +41,10 @@
 #include <shlwapi.h>
 #endif
 
-#include <dirent.h>
-#ifdef _WIN32
 
-	
+#ifndef _MSC_VER
+#	include <dirent.h>
+#else
 // MSC workaround implementation in file.cpp
 /*
   Declaration of POSIX directory browsing functions and types for Win32.
@@ -55,11 +55,11 @@
 */
 extern "C" {
   
- /* typedef struct DIR DIR;
+  typedef struct DIR DIR;
   
   struct dirent {
     char *d_name;
-  };*/
+  };
   
   DIR           *opendir(const char *);
   int           closedir(DIR *);
