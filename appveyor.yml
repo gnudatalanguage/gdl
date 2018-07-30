@@ -30,6 +30,7 @@ install:
         $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
         $env:msystem="MINGW64"
         $env:mname="mingw64"}
+  - ps: >-
       {
         $env:mingwmake="$env:mname-make"
         $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
