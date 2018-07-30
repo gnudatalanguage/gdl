@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -23,7 +23,16 @@ install:
         #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
         #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
         $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
-        $env:PATH="C:\mingw-w64\$env:GCC\mingw32\bin;$env:PATH"
+        $env:msystem="MINGW32"
+        $env:mname="mingw32"}
+      elseif ($env:platform -Match "mingw64630x8664") {
+        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
+        $env:msystem="MINGW64"
+        $env:mname="mingw64"}
+      {
+        $env:mingwmake="$env:mname-make"
+        $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
         md c:\projects\gdl\win32libs
         md c:\projects\gdl\mingw
         # Python #This is the Windows' python which will do Python but is unsuitable to link with GDL
@@ -33,8 +42,8 @@ install:
         cd c:/projects/gdl
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
-        rm mingw-w64-i686-*tar.xz
-        $env:LOCALM32="c:/projects/gdl/mingw/mingw32"
+        rm mingw-w64-*tar.xz
+        $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
         $env:WXNAME="wxWidgets-3.0.4"
         $env:GMNAME="GraphicsMagick-1.3.30"
 
@@ -54,7 +63,7 @@ install:
         #  It doesn't work.
 
         copy c:/projects/gdl/mingw/plplot-5.13/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/mingw/plplot-5.13/bin -ErrorAction silentlycontinue
-        copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/mingw32/  -Recurse -Force
+        copy c:/projects/gdl/mingw/plplot-5.13/* c:/projects/gdl/mingw/$env:mname/  -Recurse -Force
         
         # Eigen is downloaded from pre-built repository via scripts/appveyor_1.msys
         # GSL loaded from scripts/appveyor_1.msys
@@ -67,9 +76,9 @@ install:
         md mingw
         md mingw/lib
         mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
-        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/mingw32/lib
-        mv rpc c:/projects/gdl/mingw/mingw32/include
-        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/mingw32/bin
+        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
+        mv rpc c:/projects/gdl/mingw/$env:mname/include
+        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$env:mname/bin
        
       }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
@@ -208,7 +217,7 @@ after_build:
   - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
   - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
   # ps: copy $env:wxWidgets_ROOT\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy C:\mingw-w64\$env:GCC\mingw32\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.

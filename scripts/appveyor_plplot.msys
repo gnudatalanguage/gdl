@@ -13,25 +13,33 @@ echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ 
 cd /c/projects/gdl
 mkdir -p ./mingw
 cd ./mingw
+arch = "i686"
+if [ -n "$MSYSTEM" ] ; then
+  if [ "$MSYSTEM" eq "MINGW64" ] ; then
+    arch="x86_64"
+    fi
+  fi
+echo "appveyor_plplot: Architecture =  ${arch}"
+
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
 # tuned for use by MSYS compiler
-if [[ -f mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz ]] ; then
+if [[ -f mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz ]] ; then
     echo " wxWidgets distro has been loaded"
     else
-    curl -O -s http://repo.msys2.org/mingw/i686/mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-    echo " mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
+    curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
+    echo " mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
 if [[ -d $WXNAME ]] ; then
     echo " mingw/wxWidgets directory already prepped "
     else
     mkdir temp
     cd temp
-    tar xf ../mingw-w64-i686-wxWidgets-3.0.4-1-any.pkg.tar.xz
-    cd .. && mv temp/mingw32 ./wxWidgets-3.0.4 && rm -r temp
+    tar xf ../mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
+    cd .. && mv temp/$MNAME ./wxWidgets-3.0.4 && rm -r temp
     fi
 WXROOT=/c/projects/gdl/mingw/$WXNAME
 
-MSYSTEM=MINGW32
+
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
@@ -43,7 +51,7 @@ echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
 echo $LOCALM32
 echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
-LOCALM32=/c/projects/gdl/mingw/mingw32
+LOCALM32=/c/projects/gdl/mingw/$MNAME
 LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
 echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
 echo "LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll holding windows-style wx."
