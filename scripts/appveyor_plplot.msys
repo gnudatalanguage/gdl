@@ -13,7 +13,7 @@ echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ 
 cd /c/projects/gdl
 mkdir -p ./mingw
 cd ./mingw
-arch = "i686"
+arch="i686"
 if [ -n "$MSYSTEM" ] ; then
   if [ "$MSYSTEM" eq "MINGW64" ] ; then
     arch="x86_64"

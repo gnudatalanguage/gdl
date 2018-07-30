@@ -5,12 +5,12 @@
 mkdir -p ./mingw
 cd ./mingw
 
-arch = "i686"
+arch="i686"
 if [ -n "$MSYSTEM" ] ; then
   if [ "$MSYSTEM" eq "MINGW64" ] ; then
     arch="x86_64"
-    fi
   fi
+fi
 echo "Appveyor_1: Architecture =  ${arch}"
 
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
