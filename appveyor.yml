@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  #- Debug
+  - Debug
 environment:
   matrix:
   - platform: mingw64630i686
