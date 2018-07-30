@@ -3,7 +3,7 @@
 topdir=`pwd`
 arch="i686"
 if [ -n "$MSYSTEM" ] ; then
-  if [ "$MSYSTEM" eq "MINGW64" ] ; then
+  if [ "$MSYSTEM" = "MINGW64" ] ; then
     arch="x86_64"
     fi
   fi
