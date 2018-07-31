@@ -39,7 +39,7 @@ if [ -d "$WXNAME" ] ; then
     mkdir temp
     cd temp
     tar xf ../mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
-    cd .. && mv temp/$MNAME ./wxWidgets-3.0.4 && rm -r temp
+    cd .. && mv temp/$mname ./wxWidgets-3.0.4 && rm -r temp
     fi
 WXROOT=/c/projects/gdl/mingw/$WXNAME
 
@@ -55,7 +55,7 @@ echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
 echo $LOCALM32
 echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
-LOCALM32=/c/projects/gdl/mingw/$MNAME
+LOCALM32=/c/projects/gdl/mingw/$mname
 LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
 echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
 echo "LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll holding windows-style wx."
