@@ -60,9 +60,8 @@ endif else if N_PARAMS() eq 1 then begin
             cov[i, j] = total((x[i, *] - tmp[i]) * (x[j, *] - tmp[j])) 
         endfor
     endfor
-    cov /= (dims[1]-1)
     ;;
-    if KEYWORD_SET(covariance) then return, cov
+    if KEYWORD_SET(covariance) then return, cov / (dims[1]-1)
     ;;
     for i = 0, nx - 1 do tmp[i, *] = SQRT(TOTAL((x[i, *] - tmp[i])^2, double=double) / (nx - 1.))
     for i = 0, nx - 1 do begin
