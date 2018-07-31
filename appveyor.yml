@@ -23,7 +23,7 @@ install:
         #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
         #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
         $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
-        $env:msystem="MINGW32"
+        $env:MSYSTEM="MINGW32"
         $env:mname="mingw32"
           #  }
           #elseif ($env:platform -Match "mingw64630x8664") {

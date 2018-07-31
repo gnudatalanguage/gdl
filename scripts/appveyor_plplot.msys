@@ -23,14 +23,18 @@ echo "appveyor_plplot: Architecture =  ${arch}"
 
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
 # tuned for use by MSYS compiler
-if [[ -f mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz ]] ; then
+if [ -f "mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz" ] ; then
     echo " wxWidgets distro has been loaded"
     else
     curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
     echo " mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
-if [[ -d $WXNAME ]] ; then
-    echo " mingw/wxWidgets directory already prepped "
+    
+    echo "mname = "$mname "MNAME="$MNAME ", WXNAME="$WXNAME
+    
+if [ -d "$WXNAME" ] ; then
+    echo " mingw/wxWidgets directory already prepped :"$WXNAME
+    pwd
     else
     mkdir temp
     cd temp
@@ -120,12 +124,12 @@ cd /c/projects/gdl/build/plplot/msys
 make -j2
 make install > plplotinstall.out
 rm src/CMakeFiles/plplot.dir/*.obj
-if [[ -d $plplot/share/plplot5.13.0/examples ]] ; then
+if [ -d "$plplot/share/plplot5.13.0/examples" ] ; then
     rm -r $plplot/share/plplot5.13.0/examples
     else
        echo "Msys make appears not to have succeeded."
     fi
-if [[ -d $plplot/share/plplot5.13.0/ss ]] ; then 
+if [ -d "$plplot/share/plplot5.13.0/ss" ] ; then 
     rm -r $plplot/share/plplot5.13.0/ss
     fi
 cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
