@@ -18,7 +18,7 @@ curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.p
 #curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-readline-6.3.008-1-any.pkg.tar.xz
 readline=readline-6.3.008
 # A later version of readline, under suspicion but so far vindicated:
-readline=readline-7.0.005
+#readline=readline-7.0.005 This was used in build 593. back to 6.3
 gettext=gettext-0.19.6
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${readline}-1-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${gettext}-1-any.pkg.tar.xz
