@@ -20,6 +20,7 @@
 
 #include <string>
 #include <fstream>
+#include <limits>
 
 #include "envt.hpp"
 #include "dinterpreter.hpp"
@@ -63,7 +64,14 @@ namespace lib {
       BaseGDL** retPos = &e->GetPar( 1);
 
       GDLDelete(*retPos);
-      *retPos = new DLongGDL( actUnit.Tell());
+
+      // see https://github.com/gnudatalanguage/gdl/issues/441
+      DLong64 pos = actUnit.Tell();
+      if (pos > std::numeric_limits<DLong>::max()) {
+        *retPos = new DLong64GDL( pos);
+      } else {
+        *retPos = new DLongGDL( pos);
+      }
       return;
 
     } else {
@@ -73,7 +81,6 @@ namespace lib {
     }
   }
 
-   
   void linkimage( EnvT* e) 
   {
 
