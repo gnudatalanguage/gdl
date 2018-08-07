@@ -84,10 +84,10 @@ check_md5sum(){
 #
 READLINE_URL="ftp://ftp.gnu.org/gnu/readline/readline-6.3.tar.gz"
 GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
-#CMAKE_URL="https://cmake.org/files/v2.8/cmake-2.8.12.tar.gz"
-CMAKE_URL323="https://cmake.org/files/v3.2/cmake-3.2.3.tar.gz"
+#
 PLPLOT_URL512="https://sourceforge.net/projects/plplot/files/plplot/5.12.0%20Source/plplot-5.12.0.tar.gz/download?use_mirror=autoselect"
 PLPLOT_URL513="https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download?use_mirror=autoselect"
+#
 GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.8/gdl-0.9.8.tgz"
 GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
 GDL_SVN_URL="https://svn.code.sf.net/p/gnudatalanguage/svn/trunk/gdl"
@@ -238,7 +238,7 @@ if [ -x $CmakeEXE ] ; then
 fi
 #
 if [[ $do_cmake_compil -eq 1 ]] ; then
-    CMAKE_URL=$CMAKE_URL523
+    CMAKE_URL="https://cmake.org/files/v3.2/cmake-3.2.3.tar.gz"
     CMAKE_MD5="d51c92bf66b1e9d4fe2b7aaedd51377c"
     CMAKE_NAME=cmake-3.2.3.tar.gz
     CMAKE_DIR=cmake-3.2.3
