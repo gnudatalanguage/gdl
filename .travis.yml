@@ -65,7 +65,7 @@ before_install:
     - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
 
 install:
