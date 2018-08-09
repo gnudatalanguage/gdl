@@ -83,7 +83,7 @@ install:
         sed -i 's/%hh/%/g' src/test/test_data.c
         md mingw
         md mingw/lib
-        %MINGWMAKE% -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        $env:MINGWMAKE -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
         mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
         mv rpc c:/projects/gdl/mingw/$env:mname/include
         mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$env:mname/bin
