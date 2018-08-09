@@ -5,7 +5,7 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  #- Debug
+  - Debug
 environment:
   matrix:
   - platform: mingw64630i686
@@ -18,22 +18,26 @@ init:
 
 install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
-  - ps: >-
-      if ($env:platform -Match "mingw64630i686") {
+  - ps: |
+      if ($env:platform -Match "mingw64630i686") 
+      {
         #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
         #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
         $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
         $env:MSYSTEM="MINGW32"
         $env:mname="mingw32"
-          #  }
-          #elseif ($env:platform -Match "mingw64630x8664") {
-          #  #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-          #  $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
-          #  $env:MSYSTEM="MINGW64"
-          #  $env:mname="mingw64"
-          #  }
-           #- ps: >-
-           #   {
+      }
+      elseif ($env:platform -Match "mingw64630x8664") 
+      {
+        "x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
+        $env:MSYSTEM="MINGW64"
+        $env:mname="mingw64"
+      }
+      
+  - ps: |
+      if ($true)
+      {
         $env:MINGWMAKE="$env:mname-make"
         $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
         md c:\projects\gdl\win32libs
