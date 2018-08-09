@@ -9,7 +9,8 @@ configuration:
 environment:
   matrix:
   - platform: mingw64630i686
-  # - platform: mingw64630x8664 # 64bit unsupported yet
+  - platform: mingw64630x8664
+   # 64bit unsupported yet
 matrix:
   fast_finish: true
   
@@ -82,7 +83,7 @@ install:
         sed -i 's/%hh/%/g' src/test/test_data.c
         md mingw
         md mingw/lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        %MINGWMAKE% -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
         mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
         mv rpc c:/projects/gdl/mingw/$env:mname/include
         mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$env:mname/bin

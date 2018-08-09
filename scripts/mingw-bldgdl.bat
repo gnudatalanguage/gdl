@@ -5,18 +5,18 @@ mkdir build
 cd c:\projects\gdl\build
 
 rem C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl/build && rm -rf CM* src testsuite"
-rem -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\mingw32
-set LOCALM32=C:\projects\gdl\mingw\mingw32
+rem -DCMAKE_SYSTEM_PREFIX_PATH=C:\projects\gdl\mingw\%MNAME%
+set LOCALM32=C:\projects\gdl\mingw\%MNAME%
 rem set PATH=%systemroot%\system32;%systemroot%;%systemroot%\System32\Wbem
 rem set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
 rem echo %PATH%
 rem GCC=i686-6.3.0-posix-dwarf-rt_v5-rev1
-set PATH=C:\mingw-w64\%GCC%\mingw32\bin;%PATH%
+set PATH=C:\mingw-w64\%GCC%\%MNAME%\bin;%PATH%
 rem GMname=graphicsmagick-1.3.27
 set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
 rem #   set GMDIR=C:\projects\gdl\mingw\GM-Q32
-copy %GMDIR%\bin\*.dll C:\projects\gdl\mingw\mingw32\bin
-rem set PATH=C:\projects\gdl\mingw\mingw32\bin;%PATH%
+copy %GMDIR%\bin\*.dll C:\projects\gdl\mingw\%MNAME%\bin
+rem set PATH=C:\projects\gdl\mingw\%MNAME%\bin;%PATH%
  set WXWIDGETS_ROOT=C:\projects\gdl\win32libs\wxwidgets-3.0.4
  set PLPLOTDIR=C:\projects\gdl\mingw\plplot-5.13
  cd c:\projects\gdl\build

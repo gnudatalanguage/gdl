@@ -13,10 +13,12 @@ echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ 
 cd /c/projects/gdl
 mkdir -p ./mingw
 cd ./mingw
+mname="mingw32"
 arch="i686"
 if [[ -n "$MSYSTEM" ]] ; then
   if [ "$MSYSTEM" = "MINGW64" ] ; then
     arch="x86_64"
+    mname="mingw64"
     fi
   fi
 echo "appveyor_plplot: Architecture =  ${arch}"
@@ -48,21 +50,19 @@ WXROOT=/c/projects/gdl/mingw/$WXNAME
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
-export PATH=/c/projects/gdl/mingw/mingw32/bin:$PATH
+export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
 #
 # any hints on how to switch compilers, insert here.
 #
-echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
-echo $PATH
-echo $LOCALM32
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
 echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
 LOCALM32=/c/projects/gdl/mingw/$mname
 LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
-echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
-echo "LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll holding windows-style wx."
+echo "LOCALM32=$LOCALM32 occupied by wxWidgets alone (for now)"
+echo "LIB_DIR=$LIB_DIR holding windows-style wx."
 mkdir -p $LIB_DIR
 cd c:/projects/gdl/win32libs/$WXNAME
-# make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
+# (try to) make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
 
 mkdir ./bin
 cp $WXROOT/bin/wxbase*.dll ./bin

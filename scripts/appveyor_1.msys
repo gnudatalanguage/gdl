@@ -5,10 +5,12 @@
 mkdir -p ./mingw
 cd ./mingw
 
+mname="mingw32"
 arch="i686"
 if [ -n "$MSYSTEM" ] ; then
   if [ "$MSYSTEM" = "MINGW64" ] ; then
     arch="x86_64"
+    mname="mingw64"
   fi
 fi
 echo "Appveyor_1: Architecture =  ${arch}"
@@ -52,8 +54,8 @@ cd /c/projects/gdl/win32libs
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${wxname}-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${wxname}-1-any.pkg.tar.xz
 # this is magic sauce that allows wxwidgets to meld into GDL:
-sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./mingw32/bin/wx-config
-mv mingw32 ../mingw/${wxname}
+sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
+mv $ ../mingw/${wxname}
 # graphicsmagick-1.3.27 from 14-Dec-2017
 GMname=graphicsmagick-1.3.27
 cd /c/projects/gdl/win32libs
@@ -61,11 +63,10 @@ cd /c/projects/gdl/win32libs
 
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${GMname}-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${GMname}-1-any.pkg.tar.xz
-#cp -r ./mingw32/* ../mingw/mingw32
-mv mingw32 ../mingw/${GMname}-Q8
+#cp -r ./$mname/* ../mingw/$mname
+mv $mname ../mingw/${GMname}-Q8
 cd ../mingw
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libtool-2.4.6-9-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-libtool-2.4.6-9-any.pkg.tar.xz
+
 #curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-cmake-3.12.0-1-any.pkg.tar.xz
 #tar xf mingw-w64-${arch}-cmake-3.12.0-1-any.pkg.tar.xz
 # fftw-3.3.8 from 29-May-2018 (gcc 7.2)

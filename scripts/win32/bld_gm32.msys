@@ -15,7 +15,7 @@ export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 #
 # any hints on how to switch compilers, insert here.
 #
-echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
 echo $PATH
 echo $LOCALM32
 echo " bld_gm32.msys:  with msys script"
