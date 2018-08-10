@@ -29,20 +29,20 @@ cd $topdir/win32libs
 if [[ -f ${GMname}.tar.xz ]] ; then
     tar xf ${GMname}.tar.xz
     mkdir -p $topdir/build/${GMname}
-    cd $topdir/build/${GMname}
-    echo listing /c/mingw-w64/${GCC}/${mname}/opt/lib
-    
-    ls /c/mingw-w64/${GCC}/${mname}/opt/lib
-
-    $topdir/win32libs/${GMname}/configure --prefix=$topdir/mingw/GM-Q32 \
+    bldout=$topdir/build/${GMname}
+    cd $topdir/win32libs/${GMname}
+    mkdir -p bld${mname}
+    cd bld${mname}
+    ../configure --prefix=$topdir/mingw/GM-Q32 \
   --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
    --host=${arch}-w64-mingw32 --build=${arch}-w64-mingw32 --disable-static \
   --with-modules --with-wmf --with-xml --with-lcms2 --with-jp2 \
   --with-webp --with-gslib --with-jbig --without-fpx --without-dps \
-  --without-perl --without-x >& configure.out
-  make -j4 >& make.out
-  make install >& gminstall.out
-  make clean >& clean.out
+  --without-perl --without-x >& $bldout/configure.out
+  make -j4 >& $bldout/make.out
+  make install >& $bldout/gminstall.out
+  make clean >& $bldout/clean.out
+  cp config.status $bldout/config.status
   pwd
   #cp *.out /c/projects/gdl/mingw/GM-${arch}-Q32/
   #cp config.status /c/projects/gdl/mingw/GM-${arch}-Q32/

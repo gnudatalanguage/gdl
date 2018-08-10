@@ -8,9 +8,10 @@ configuration:
   - Debug
 environment:
   matrix:
+  # 64bit unsupported yet- platform: mingw64630x8664 
+  # see build 620 https://ci.appveyor.com/project/slayoo/gdl/build/1.0.620/job
   - platform: mingw64630i686
-  - platform: mingw64630x8664
-   # 64bit unsupported yet
+   
 matrix:
   fast_finish: true
   
@@ -30,11 +31,19 @@ install:
       }
       elseif ($env:platform -Match "mingw64630x8664") 
       {
-        "x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
         $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
         $env:MSYSTEM="MINGW64"
         $env:mname="mingw64"
       }
+      elseif ($env:platform -Match "mingw64730x8664") 
+      {
+        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        $env:GCC="x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        $env:MSYSTEM="MINGW64"
+        $env:mname="mingw64"
+      }
+      #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
       
   - ps: |
       if ($true)
