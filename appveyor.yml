@@ -8,8 +8,8 @@ configuration:
   - Debug
 environment:
   matrix:
-  - platform: mingw64630x8664 
-  # see build 620 https://ci.appveyor.com/project/slayoo/gdl/build/1.0.620/job
+  #- platform: mingw64630x8664 Errors building bsdxdr
+  # see build 622 https://ci.appveyor.com/project/slayoo/gdl/build/1.0.622/job
   - platform: mingw64630i686
    
 matrix:
