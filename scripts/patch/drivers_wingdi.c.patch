@@ -1,29 +1,29 @@
---- /f//plplot/plplot-5.13.0/drivers/wingdi.c	Fri Aug 25 19:43:25 2017
-+++ /f//tarball/plplot-5.13.0/drivers/wingdi.c	Sat Jun 09 12:41:24 2018
-@@ -84,6 +84,16 @@
+--- /f//plplot/plplot-5.13.0/drivers/wingdi.c
++++ /f//tarball/plplot-5.13.0/drivers/wingdi.c
+@@ -84,6 +84,16 @@ struct _font_entry
  struct wingdi_Dev
  {
      //
 +    // WIN32 API variables
 +    //
-+	HWND     		  plot;       // Handle for the plot area
-+	HDC               hdc;        // Plot window device context
-+	HPEN              pen;        // Current pen used for drawing
-+	COLORREF		  color;      // Current color
-+	HDC               hdc_bmp;    // Bitmap device context
++   HWND              plot;       // Handle for the plot area
++   HDC               hdc;        // Plot window device context
++   HPEN              pen;        // Current pen used for drawing
++   COLORREF          color;      // Current color
++   HDC               hdc_bmp;    // Bitmap device context
 +    HBITMAP           bitmap;     // Bitmap of current display
 +    HWND              frame;      // Handle for the main window.
-+	HWND			  status_bar; // Handle for the status bar
++   HWND              status_bar; // Handle for the status bar
      // Members that are common to interactive GUI devices
      //
      PLFLT            xdpmm;  // Device x pixel per mm
-@@ -98,23 +108,12 @@
+@@ -98,23 +108,12 @@ struct wingdi_Dev
      enum _dev_state  state;             // Current state of the device
      enum _dev_state  prev_state;        // Previous state of the device
      // Used to restore after redraw
 -    union
 -    {
-+	union {
++   union {
          unsigned int status_bar : 1;
          unsigned int menu_bar   : 1;
      } feature;
@@ -43,7 +43,34 @@
  
      //
      // Image rasterization variables
-@@ -1111,6 +1111,8 @@
+@@ -198,7 +197,7 @@ CrossHairCursor( struct wingdi_Dev * dev )
+     HCURSOR cursor;
+ 
+     cursor = LoadCursor( NULL, IDC_CROSS );
+-    SetClassLongPtr( dev->plot, GCL_HCURSOR, (long) cursor );
++    SetClassLongPtr( dev->plot, GCLP_HCURSOR, (LONG_PTR) cursor ); \
+     return SetCursor( cursor );
+ }
+ 
+@@ -208,7 +207,7 @@ NormalCursor( struct wingdi_Dev * dev )
+     HCURSOR cursor;
+ 
+     cursor = LoadCursor( NULL, IDC_ARROW );
+-    SetClassLongPtr( dev->plot, GCL_HCURSOR, (LONG_PTR) cursor );
++    SetClassLongPtr( dev->plot, GCLP_HCURSOR, (LONG_PTR) cursor );
+     SetCursor( cursor );
+ }
+ 
+@@ -218,7 +217,7 @@ BusyCursor( struct wingdi_Dev * dev )
+     HCURSOR cursor;
+ 
+     cursor = LoadCursor( NULL, IDC_WAIT );
+-    SetClassLongPtr( dev->plot, GCL_HCURSOR, (LONG_PTR) cursor );
++    SetClassLongPtr( dev->plot, GCLP_HCURSOR, (LONG_PTR) cursor );
+     SetCursor( cursor );
+ }
+ 
+@@ -1111,6 +1110,8 @@ wingdi_module_initialize( void )
          return;
  
      pldebug( "wingdi", "module init\n" );
@@ -52,7 +79,7 @@
  
      // Initialize common controls
      init_controls.dwSize = sizeof ( INITCOMMONCONTROLSEX );
-@@ -1119,7 +1121,7 @@
+@@ -1119,7 +1120,7 @@ wingdi_module_initialize( void )
      {
          plwarn( "wingdi:  Failed to initialize common Window controls\n" );
      }
@@ -61,7 +88,7 @@
      //
      // Initialize the frame window class
      //
-@@ -1278,7 +1280,7 @@
+@@ -1278,7 +1279,7 @@ plD_init_wingdi( PLStream *pls )
      int    programlength;
  #endif
  
@@ -70,12 +97,21 @@
      pldebug( "wingdi", "Device Init\n" );
  
      // Initialize the module
-@@ -1437,7 +1439,7 @@
+@@ -1437,7 +1438,7 @@ plD_init_wingdi( PLStream *pls )
      else
      {
          ShowWindow( dev->plot, SW_SHOWDEFAULT );
 -        SetForegroundWindow( dev->plot );
-+		BringWindowToTop( dev->plot );		
++       BringWindowToTop( dev->plot );      
      }
  
      if ( dev->feature.status_bar )
+@@ -1996,7 +1997,7 @@ plD_text_wingdi( PLStream * pls, EscText * args )
+     if ( args->unicode_array_len == 0 )
+     {
+         // Non unicode string
+-        size_t i, j, len;
++        int i, j, len;
+         char   * buffer;
+         int    height = 0, width = 0;
+ 
