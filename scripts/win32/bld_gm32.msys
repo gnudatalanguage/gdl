@@ -30,6 +30,10 @@ if [[ -f ${GMname}.tar.xz ]] ; then
     tar xf ${GMname}.tar.xz
     mkdir -p $topdir/build/${GMname}
     cd $topdir/build/${GMname}
+    echo listing /c/mingw-w64/${GCC}/${mname}/opt/lib
+    
+    ls /c/mingw-w64/${GCC}/${mname}/opt/lib
+
     $topdir/win32libs/${GMname}/configure --prefix=$topdir/mingw/GM-Q32 \
   --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
    --host=${arch}-w64-mingw32 --build=${arch}-w64-mingw32 --disable-static \

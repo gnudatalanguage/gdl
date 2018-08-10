@@ -55,7 +55,7 @@ curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${wxname}-1-any
 tar xf mingw-w64-${arch}-${wxname}-1-any.pkg.tar.xz
 # this is magic sauce that allows wxwidgets to meld into GDL:
 sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
-mv $ ../mingw/${wxname}
+mv $mname ../mingw/${wxname}
 # graphicsmagick-1.3.27 from 14-Dec-2017
 GMname=graphicsmagick-1.3.27
 cd /c/projects/gdl/win32libs

@@ -39,8 +39,6 @@ install:
   - ps: |
       if ($true)
       {
-        $env:MINGWMAKE="$env:mname-make"
-        new-alias -Name MINGWMAKE -value $env:mname-make
         $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
         md c:\projects\gdl\win32libs
         md c:\projects\gdl\mingw
@@ -84,7 +82,7 @@ install:
         sed -i 's/%hh/%/g' src/test/test_data.c
         md mingw
         md mingw/lib
-        MINGWMAKE -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
         mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
         mv rpc c:/projects/gdl/mingw/$env:mname/include
         mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$env:mname/bin

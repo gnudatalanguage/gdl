@@ -40,14 +40,14 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
  move gdl build\gdl
  move plplot build\plplot
  cd c:\projects\gdl\build
- %MINGWMAKE% -j4
- %MINGWMAKE% install > gdlinstall.out
+ mingw32-make -j4
+mingw32-make install > gdlinstall.out
  set PATH=C:\projects\gdl\mingw\%MNAME%\bin;%PATH%
  set PATH=%PLPLOTDIR%\bin;%PATH%
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
 
-%MINGWMAKE% check
+mingw32-make check
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy
