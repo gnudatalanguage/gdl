@@ -8,7 +8,7 @@ configuration:
   - Debug
 environment:
   matrix:
-  #- platform: mingw64630x8664 Errors building bsdxdr
+  - platform: mingw64630x8664
   # see build 622 https://ci.appveyor.com/project/slayoo/gdl/build/1.0.622/job
   - platform: mingw64630i686
    
@@ -88,7 +88,8 @@ install:
         appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
-        sed -i 's/%hh/%/g' src/test/test_data.c
+        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
+        sed -e 's/%hh/%/g' -i src/test/test_data.c
         md mingw
         md mingw/lib
         mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:/projects/gdl/win32libs/bsd-xdr-1.0.0" recursive-all
