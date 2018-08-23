@@ -38,7 +38,9 @@ end
 ;
 ; ---------------------------------------------------
 ;
-pro TESTING_GET_SCREEN_SIZE, test=test, exit_on_error=exit_on_error
+pro TESTING_GET_SCREEN_SIZE, cumul_errors, test=test
+;
+nb_errors=0
 ;
 print, 'basic test (call without Display name)'
 taille=GET_SCREEN_SIZE(resolution=resolution)
@@ -52,50 +54,55 @@ print, 'Pixel Size (in mm) :', resolution
 ;
 nb_doubts=0
 nb_pbs=0
-if (taille[0] LE 0) then nb_pbs=nb_pbs+1
-if (taille[1] LE 0) then nb_pbs=nb_pbs+1
-if (resolution[0] LE 0) then nb_pbs=nb_pbs+1
-if (resolution[1] LE 0) then nb_pbs=nb_pbs+1
+if (taille[0] LE 0) then $
+   ERROTS_ADD, nb_errors, 'Error, screen length < 0'
+if (taille[1] LE 0) then $
+   ERROTS_ADD, nb_errors, 'Error, screen height < 0'
+if (resolution[0] LE 0) then $
+   ERROTS_ADD, nb_errors, 'Error, length resolution < 0'
+if (resolution[1] LE 0) then $
+   ERROTS_ADD, nb_errors, 'Error, height resolution < 0'
 ;
 pixel_aspect_ratio=resolution[1]/resolution[0]
 if ((pixel_aspect_ratio LT 0.95) OR (pixel_aspect_ratio GT 1.05)) then begin
-   nb_doubts=nb_doubts+1
-   MESSAGE, /continue, 'the pixels of this screen are not square !'
+   ERROTS_ADD, nb_errors, 'the pixels of this screen are not square !'
 endif
 ;
 screen_aspect_ratio=float(taille[1])/float(taille[0])
 if ((screen_aspect_ratio LT 0.5) OR (screen_aspect_ratio GT 2.)) then begin
-   nb_doubts=nb_doubts+1
-   MESSAGE, /continue, 'this screen has strange aspect ratio !! (< 0.5 or > 2)'
+   ERROTS_ADD, nb_errors, 'this screen has strange aspect ratio !! (< 0.5 or > 2)'
 endif
 ;
-if (nb_pbs GT 0) then begin
-   MESSAGE, STRING(nb_pbs)+' problem(s) found (size(s) <= 0 !!)', /continue
-   if KEYWORD_SET(exit_on_error) then EXIT, status=1
-endif else begin
-   MESSAGE, 'No problem found', /continue
-endelse
-;
-if (nb_doubts GT 0) then begin
-   MESSAGE, STRING(nb_doubts)+' doubt(s) found (see the values)', /continue
-endif else begin
-   MESSAGE, 'No doubt found', /continue
-endelse
-;
+if (ISA(taille, 'Long')) then begin
+   ERROTS_ADD, nb_errors, 'The return value is not a "Long" type !'
+endif
+;	
+BANNER_FOR_TESTSUITE, 'TESTING_GET_SCREEN_SIZE', nb_errors, /status
+ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; ---------------------------------------------------
 ;
-pro TEST_GET_SCREEN_SIZE
-;;
+pro TEST_GET_SCREEN_SIZE, help=help, no_exit=no_exit, test=test
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_GET_SCREEN_SIZE, help=help, no_exit=no_exit, test=test'
+    return
+endif
+;
 if GETENV('DISPLAY') eq '' then begin
-    MESSAGE, /continue, $
-      'apparently no X connection is available (DISPLAY env. var. not set)'
+    ERRORS_ADD, nb_errors, 'apparently no X connection is available (DISPLAY env. var. not set)'
     EXIT, status=77
 endif 
-;;
-TESTING_GET_SCREEN_SIZE, /exit_on_error
-;;
+;
+TESTING_GET_SCREEN_SIZE, nb_errors, test=test
+;
+BANNER_FOR_TESTSUITE, 'TEST_GET_SCREEN_SIZE', nb_errors
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end
