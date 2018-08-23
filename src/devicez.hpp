@@ -21,12 +21,6 @@
 //#include "dstructgdl.hpp"
 #include "gdlzstream.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 #if defined (_MSC_VER) && (_MSC_VER < 1800)
 /* replacement of Unix rint() for Windows */
 static int rint (double x)
@@ -114,7 +108,7 @@ class DeviceZ: public GraphicsDevice
     actStream->SetColorMap0( r, g, b, ctSize); 
     actStream->SetColorMap1( r, g, b, ctSize); 
 
-    actStream->SETOPT( "drvopt","text=0"); // clear drvopt
+    actStream->setopt( "drvopt","text=0"); // clear drvopt
 
     actStream->Init();
    // need to be called initially. permit to fix things

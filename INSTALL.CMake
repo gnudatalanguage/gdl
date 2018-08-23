@@ -38,8 +38,6 @@ $ cmake .. -DFFTWDIR=/opt/local/   # alternative FFTW path
 Other options include:
 - PYTHONVERSION to chose a particular Python version if 
   multiple are installed on the system,
-- OLDPLPLOT to switch off features requiring newer plplot
-  versions,
 - GDL_DATA_DIR (default: /share/gnudatalanguage) to specify
   a custom installation location for GDL files 
   (a subdirectory of the main installation prefix)
