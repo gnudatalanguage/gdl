@@ -441,12 +441,12 @@ int DeviceWIN::WAdd()
 
 
 
-DIntGDL* 	DeviceWIN::GetScreenSize(char *disp)
+DLongGDL* 	DeviceWIN::GetScreenSize(char *disp)
 {
 	DLong xsize, ysize;
 	MaxXYSize(&xsize, &ysize);
-	DIntGDL* res;
-	res = new DIntGDL(2, BaseGDL::NOZERO);
+	DLongGDL* res;
+	res = new DLongGDL(2, BaseGDL::NOZERO);
 	(*res)[0] = xsize;
 	(*res)[1] = ysize;
 	return res;

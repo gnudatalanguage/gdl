@@ -82,7 +82,7 @@ private:
 	int ActWin();
 	void DefaultXYSize(DLong *xSize, DLong  *ySize);
 	void MaxXYSize(DLong *xSize, DLong *ySize);
-	DIntGDL* GetScreenSize(char* disp = NULL);
+	DLongGDL* GetScreenSize(char* disp = NULL);
 	DDoubleGDL* GetScreenResolution(char* disp = NULL);
 
 	void SetActWin(int wIx)
