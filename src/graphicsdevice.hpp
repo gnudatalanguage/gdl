@@ -237,10 +237,10 @@ public:
     return res;
   }
 //  virtual DFloatGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
-  virtual DIntGDL* GetScreenSize(char* disp=NULL) //fake a basic screen if not implemented:
+  virtual DLongGDL* GetScreenSize(char* disp=NULL) //fake a basic screen if not implemented:
   {
-    DIntGDL* res;
-    res = new DIntGDL(2, BaseGDL::NOZERO);
+    DLongGDL* res;
+    res = new DLongGDL(2, BaseGDL::NOZERO);
     (*res)[0]=640;
     (*res)[1]=480;
     return res;
