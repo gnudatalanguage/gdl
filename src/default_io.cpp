@@ -1829,7 +1829,7 @@ ostream& Data_<SpDFloat>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr)
 template<> 
 ostream& Data_<SpDDouble>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
-  const int prec = 16;
+  const int prec = 17;
   const int width = 25;
 
   SizeT nElem=N_Elements();
