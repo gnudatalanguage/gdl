@@ -1016,7 +1016,7 @@ template<>
 ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
   const int prec = 8;
-  const int width = 15;
+  const int width = 16;
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
