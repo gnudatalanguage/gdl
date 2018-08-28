@@ -534,6 +534,26 @@ template<>
 std::ostream& Data_<SpDByte>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 
 template<>  
 std::ostream& Data_<SpDString>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDLong>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDULong>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDPtr>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDObj>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDFloat>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDDouble>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDComplex>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDComplexDbl>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDByte>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
+template<>  
+std::ostream& Data_<SpDString>::ToStreamImplied(std::ostream& o, SizeT w, SizeT* actPosPtr); 
 template<> 
 std::ostream& Data_<SpDString>::Write( std::ostream& os, bool swapEndian, 
 				       bool compress, XDR *xdrs);

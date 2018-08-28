@@ -508,6 +508,8 @@ public:
 
   virtual std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
 			    SizeT* actPosPtr = NULL);
+  virtual std::ostream& ToStreamImplied(std::ostream& o, SizeT width = 0, 
+			    SizeT* actPosPtr = NULL);
   virtual std::istream& FromStream(std::istream& i);
 
   virtual bool Greater(SizeT i1, SizeT i2) const; // comp 2 elements

@@ -136,6 +136,11 @@ std::ostream& BaseGDL::ToStream(std::ostream& o, SizeT width,
 {
   throw GDLException("BaseGDL::ToStream(...) called.");
 }
+std::ostream& BaseGDL::ToStreamImplied(std::ostream& o, SizeT width, 
+				SizeT* actPosPtr )
+{
+  throw GDLException("BaseGDL::ToStreamImplied(...) called.");
+}
 std::istream& BaseGDL::FromStream(std::istream& i)
 {
   i >> *this;

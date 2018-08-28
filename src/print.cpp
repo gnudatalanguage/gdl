@@ -174,12 +174,14 @@ namespace lib {
       catch ( antlr::ANTLRException& ex)  {
 	    e->Throw( ex.getMessage());
        }
+;
 	  }
 	}
       }
     //else // default-format output. can be implied print (to be written: FIXME)
       {
 	int nParam = e->NParam();
+	int IMPLIED = e->KeywordIx("IMPLIED_PRINT");
 
 	if( nParam == parOffset) 
 	  {
@@ -203,7 +205,10 @@ namespace lib {
 	      e->Throw("Variable is undefined: "+e->GetParString( i));
             if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << endl; // e.g. print,[1],1,[1] 
             anyArrayBefore |= par->Rank() != 0;
-	    par->ToStream( *os, width, &actPos);
+		if (e->GetKW(IMPLIED))
+	    	par->ToStreamImplied( *os, width, &actPos);
+		else
+	    	par->ToStream( *os, width, &actPos);
 // debug	  
 // 		(*os) << flush;
 	  }

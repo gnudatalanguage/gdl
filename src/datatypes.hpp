@@ -204,6 +204,8 @@ static	void operator delete( void *ptr);
 
   std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
 			 SizeT* actPosPtr = NULL);
+  std::ostream& ToStreamImplied(std::ostream& o, SizeT width = 0, 
+			 SizeT* actPosPtr = NULL);
   std::istream& FromStream(std::istream& i);
  
   // used by the interpreter

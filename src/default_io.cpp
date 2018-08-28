@@ -1016,7 +1016,7 @@ template<>
 ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
   const int prec = 8;
-  const int width = 16;
+  const int width = 15;
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -1334,13 +1334,14 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  if( actEl->Type() == GDL_STRING)
 	    o << CheckNL( w, actPosPtr, 1) << " ";
 	    
+      o << std::endl <<this->Desc()->TagName(tIx);
 	  bool isArr = (actEl->Dim().Rank() != 0);
 
 	  if( isArr && arrOut && *actPosPtr != 0)
 	    InsNL( o, actPosPtr);
 
 	  actEl->ToStream( o, w, actPosPtr);
-	  
+
 	  if( isArr)
 	    {
 	      arrOut = true;
@@ -1357,6 +1358,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       if( actEl->Type() == GDL_STRING)
 	o << CheckNL( w, actPosPtr, 1) << " ";
       
+      o << std::endl << this->Desc()->TagName(nTags-1);
       actEl->ToStream( o, w, actPosPtr);
 
       o << CheckNL( w, actPosPtr, 1) << "}";
@@ -1388,6 +1390,796 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
   }
   return o;
 }
+
+// the default output functions for IMPLIED_PRINT
+template<class Sp> 
+ostream& Data_<Sp>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem / this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[eIx++];
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[eIx++];
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// Long
+template<> 
+ostream& Data_<SpDLong>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem / this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// ULong
+template<> 
+ostream& Data_<SpDULong>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// Long64
+template<> 
+ostream& Data_<SpDLong64>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// ULong64
+template<> 
+ostream& Data_<SpDULong64>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+template<> 
+ostream& Data_<SpDPtr>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << left;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 15);
+      HeapVarString( o, (*this)[0]);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	  {
+	    o << CheckNL( w, actPosPtr, 15);
+	    HeapVarString( o, (*this)[eIx++]);
+	  }
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+      {
+	o << CheckNL( w, actPosPtr, 15);
+	HeapVarString( o, (*this)[eIx++]);
+      }
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+template<> 
+ostream& Data_<SpDObj>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  static bool recursive = false;
+  if( this->StrictScalar() && !recursive)
+  {
+    DObj s = dd[0]; // is StrictScalar()
+    if( s != 0)  // no overloads for null object
+    {
+      DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+      if( oStructGDL != NULL) // if object not valid -> default behaviour
+      {  
+	DStructDesc* desc = oStructGDL->Desc();
+
+	if( desc->IsParent("LIST"))
+	{
+	  recursive = true;
+	  try{
+	    LIST__ToStream(oStructGDL,o,w,actPosPtr);
+	    recursive = false;
+	  } catch( ...)
+	  {
+	    recursive = false;
+	    throw;
+	  }
+	  
+	  return o;
+	}
+	if( desc->IsParent("HASH"))
+	{
+	  recursive = true;
+	  try{
+	    HASH__ToStream(oStructGDL,o,w,actPosPtr);
+	    recursive = false;
+	  } catch( ...)
+	  {
+	    recursive = false;
+	    throw;
+	  }
+	  
+	  return o;
+	}
+      }
+    }
+  }
+
+  SizeT nElem=this->Size();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << left;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 15);
+      ObjHeapVarString( o, (*this)[0]);
+//       o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[0] << ">";
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	  {
+	    o << CheckNL( w, actPosPtr, 15);
+	    ObjHeapVarString( o, (*this)[eIx++]);
+// 	    o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+	  }
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+      {
+	o << CheckNL( w, actPosPtr, 15);
+	ObjHeapVarString( o, (*this)[eIx++]);
+// 	o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+      }
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+// float
+template<> 
+ostream& Data_<SpDFloat>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  const int prec = 8;
+  const int width = 16;
+
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, width); 
+      OutAuto( o, (*this)[0], width, prec, 0);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    {
+	      o << CheckNL( w, actPosPtr, width);
+	      OutAuto( o, (*this)[eIx++], width, prec, 0);
+	    }
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	{
+	  o << CheckNL( w, actPosPtr, width); 
+	  OutAuto( o, (*this)[eIx++], width, prec, 0);
+	}
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+// double
+template<> 
+ostream& Data_<SpDDouble>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  const int prec = 16;
+  const int width = 25;
+
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, width); 
+      OutAuto( o, (*this)[0], width, prec, 0);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    {
+	      o << CheckNL( w, actPosPtr, width); 
+	      OutAuto( o, (*this)[eIx++], width, prec, 0);
+	    }
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	{
+	  o << CheckNL( w, actPosPtr, width); 
+	  OutAuto( o, (*this)[eIx++], width, prec, 0);
+	}
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+template<> 
+ostream& Data_<SpDComplex>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  const int prec = 6;
+  const int width = 13;
+  const char fill = ' ';
+
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[0], width, prec, fill);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec, fill);
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec, fill);
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+template<> 
+ostream& Data_<SpDComplexDbl>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  const int prec = 8;
+  const int width = 16;
+  const char fill = ' ';
+
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[0], width, prec, fill);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec, fill);
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec, fill);
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// byte (c++ does output as characters)
+template<> 
+ostream& Data_<SpDByte>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  const int width = 4;
+
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << right;
+
+  if( this->dim.Rank() == 0)
+    {
+      o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[0]);
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=0; i1<d1; i1++)
+	{
+	  for( SizeT i0=0; i0<d0; i0++)
+	    o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[eIx++]);
+	  InsNL( o, actPosPtr);
+	}
+      InsNL( o, actPosPtr);
+    }
+
+  // last block (no '\n' at the end)
+  for( SizeT i1=0; i1<d1; i1++)
+    {
+      for( SizeT i0=0; i0<d0; i0++)
+	o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[eIx++]);
+      //      if( (i1+1) < d1) InsNL( o, actPosPtr);
+      InsNL( o, actPosPtr);
+    }
+  return o;
+}
+
+// strings
+template<> 
+ostream& Data_<SpDString>::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  bool someCharacterSeen=false;
+  SizeT nElem=N_Elements();
+  if( nElem == 0)
+    throw GDLException("Variable is undefined.");
+
+  o << left;
+
+  SizeT length;
+  if( this->dim.Rank() == 0)
+    {
+      length = (*this)[0].length();
+      o << CheckNL( w, actPosPtr, length) << (*this)[0];
+      return o;
+    }
+
+  SizeT nLoop=nElem/this->dim.Stride(2);
+  SizeT eIx=0; // linear counter
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
+
+  // d0 cannot be 0
+  if( d1 == 0) d1 = 1;
+
+  for( SizeT l=1; l<nLoop; l++)
+    {
+      for( SizeT i1=1; i1<d1; i1++)
+	{
+	  for( SizeT i0=1; i0<d0; i0++)
+	    {
+	      length = (*this)[eIx].length() + 1;
+	      if( length > 1)
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
+	      else eIx++;
+	    }
+	  length = (*this)[eIx].length();
+	  if( length > 0)
+	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
+	  else eIx++;
+	  InsNL( o, actPosPtr);
+	}
+
+      for( SizeT i0=1; i0<d0; i0++)
+	{
+	  length = (*this)[eIx].length() + 1;
+	  if( length > 1)
+	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
+	  else eIx++;
+	}
+      length = (*this)[eIx].length();
+      if( length > 0)
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
+      else eIx++;
+      InsNL( o, actPosPtr);
+      
+      InsNL( o, actPosPtr);
+    }
+
+  for ( SizeT i1 = 1; i1 < d1; i1++ ) {
+    someCharacterSeen=false;
+    for ( SizeT i0 = 1; i0 < d0; i0++ ) {
+	  length = (*this)[eIx].length() + 1;
+      if( length > 1)  someCharacterSeen=true;
+      // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
+      // actually, blanks are inserted only between the first non-null character and the last non-null character. 
+      //see a=strarr(9)&a[6]=':'&a[1]='>'&aa=[[a],[a]]&print,aa
+      if (someCharacterSeen) o << CheckNL( w, actPosPtr, length ) << (*this)[eIx++] << " ";
+      else eIx++;
+	}
+      length = (*this)[eIx].length();
+      if( length > 0)
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
+      else eIx++;
+      InsNL( o, actPosPtr);
+    }
+  someCharacterSeen=false;
+  for ( SizeT i0 = 1; i0 < d0; i0++ ) {
+      length = (*this)[eIx].length() + 1;
+    // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
+    // actually, blanks are inserted only between the first non-null character and the last non-null character. 
+    //see a=strarr(9)&a[6]=':'&a[1]='>'&aa=[[a],[a]]&print,aa
+    if( length > 1)  someCharacterSeen=true;
+    if (someCharacterSeen) o << CheckNL( w, actPosPtr, length ) << (*this)[eIx++] << " ";
+    else eIx++;
+    }
+  length = (*this)[eIx].length();
+  if( length > 0)
+    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++];
+  else eIx++;
+  InsNL( o, actPosPtr);
+  
+  return o;
+}
+
+ostream& DStructGDL::ToStreamImplied(ostream& o, SizeT w, SizeT* actPosPtr) 
+{
+  // avoid checking actPosPtr
+  SizeT dummyPos = 0;
+  if( actPosPtr == NULL) actPosPtr = &dummyPos;
+
+  SizeT nTags = NTags();
+  SizeT nEl   = N_Elements();
+  
+  bool arrOut = false; // remember if an array was already put out
+
+  for( SizeT e=0; e<nEl; ++e)
+    {
+      o << CheckNL( w, actPosPtr, 2) << "{";
+      for( SizeT tIx=0; tIx<nTags-1; ++tIx)
+	{
+	  BaseGDL* actEl = GetTag( tIx, e);
+
+	  assert( actEl != NULL);
+// 	  if( actEl == NULL)
+// 	    throw 
+// 	      GDLException("Internal error: Output of UNDEF struct element.");
+	  if( actEl->Type() == GDL_STRING)
+	    o << CheckNL( w, actPosPtr, 1) << " ";
+	    
+      o << std::endl <<this->Desc()->TagName(tIx);
+	  bool isArr = (actEl->Dim().Rank() != 0);
+
+	  if( isArr && arrOut && *actPosPtr != 0)
+	    InsNL( o, actPosPtr);
+
+	  actEl->ToStream( o, w, actPosPtr);
+
+	  if( isArr)
+	    {
+	      arrOut = true;
+	      if( *actPosPtr != 0)
+		InsNL( o, actPosPtr);
+	    }
+	}
+
+      BaseGDL* actEl = GetTag( nTags-1, e);
+      assert( actEl != NULL);
+//    if( actEl == NULL)
+//      throw 
+//        GDLException("Internal error: Output of UNDEF struct element.");
+      if( actEl->Type() == GDL_STRING)
+	o << CheckNL( w, actPosPtr, 1) << " ";
+      
+      o << std::endl << this->Desc()->TagName(nTags-1);
+      actEl->ToStream( o, w, actPosPtr);
+
+      o << CheckNL( w, actPosPtr, 1) << "}";
+    }
+  return o;
+}
+
 //this is the routined used by IDL as per the documentation.
 bool_t xdr_complex( XDR *xdrs, DComplex *p)  
 { 

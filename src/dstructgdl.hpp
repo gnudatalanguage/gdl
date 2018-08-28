@@ -419,6 +419,7 @@ public:
   friend std::istream& operator>>(std::istream& i, DStructGDL& data_);
   
   std::ostream& ToStream(std::ostream& o, SizeT width = 0, SizeT* actPosPtr = NULL);
+  std::ostream& ToStreamImplied(std::ostream& o, SizeT width = 0, SizeT* actPosPtr = NULL);
   //  std::ostream& ToStream(std::ostream& o)
   //  { o << *this; return o;}
   std::ostream& ToStreamRaw(std::ostream& o);
