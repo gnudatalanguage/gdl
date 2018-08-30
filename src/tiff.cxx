@@ -240,7 +240,9 @@ namespace lib
                 auto img = static_cast<T*>(image);
                 auto ptr = reinterpret_cast<typename T::Ty*>(img->DataAddr());
                 auto dim = img->Dim();
-                memcpy(ptr + (y * dim[0] + x), buf, bytes);
+                auto w = dim[dim.Rank() - 2];
+                auto c = dim.Rank() > 2 ? dim[0] : 1;
+                memcpy(ptr + (y * w + x) * c, buf, bytes);
             };
         }
 
@@ -276,7 +278,7 @@ namespace lib
             }
 
             char *buffer = nullptr, *start;
-            ptrdiff_t sampOff = (dir.samplesPerPixel * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
+            ptrdiff_t sampOff = (c * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
 
             // Scanline-based images
             if(!TIFFIsTiled(tiff_)) {
