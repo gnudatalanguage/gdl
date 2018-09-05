@@ -93,7 +93,9 @@ TESTS = \
   test_device.pro \
   test_diag_matrix.pro \
   test_dicom.pro \
+  test_dilate.pro \
   test_erfinv.pro \
+  test_erode.pro \
   test_execute.pro \
   test_extra_keywords.pro \
   test_fft.pro \
