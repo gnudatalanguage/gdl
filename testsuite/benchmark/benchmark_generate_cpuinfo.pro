@@ -7,6 +7,8 @@
 ; -- bogomips   <<-- does not exist on OSX
 ; -- cpu MHz
 ;
+
+
 function BENCHMARK_GENERATE_CPUINFO, test=test, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -14,7 +16,7 @@ if KEYWORD_SET(help) then begin
    return, -1
 endif
 ;
-os_name=STRLOWCASE(!version.os_name)
+os_name=STRLOWCASE(!version.os)
 ;
 if (os_name EQ 'linux') then begin
    ;;
@@ -34,7 +36,7 @@ endif
 if (os_name EQ 'darwin') then begin
    ;;
    SPAWN, 'sysctl -n hw.cpufrequency', resu_Hz
-   resu_Mhz=resu_Hz*1.e6
+   resu_Mhz=resu_Hz/1.e6
    ;;
    ;; no known equivalent of BogoMIPS on OSX :(
    resu_bogo=-1
