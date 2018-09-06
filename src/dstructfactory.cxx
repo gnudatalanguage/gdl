@@ -30,6 +30,9 @@ DStructFactory::~DStructFactory()
 
 DStructGDL* DStructFactory::Create()
 {
+    if(vals_.empty())
+        return nullptr;
+
     auto res = new DStructGDL(desc_, dimension());
     for(auto& pair : vals_) {
         res->InitTag(pair.first, *pair.second);
