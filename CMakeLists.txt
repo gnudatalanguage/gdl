@@ -24,6 +24,9 @@ cmake_policy(SET CMP0026 OLD) # LOCATION property
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
+# advice by Orion, mandatory for FC 28
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # X.X.X git becomes release X.X.X+1
 set(VERSION "0.9.8 git")
 enable_testing()
