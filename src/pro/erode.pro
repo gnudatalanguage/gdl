@@ -4,30 +4,30 @@
 ;  Aug. 2018
 ;
 ;  Arguments (from IDL): Image Structure X0 Y0 Z0
-;  Keywords (from IDL): 
+;  Keywords (from IDL):
 ;	GRAY (a boolean keyword)
-;		Set this keyword to perform grayscale, rather than binary, erosion. Nonzero 
-;		elements of the Structure parameter determine the shape of the structuring element 
-;		(neighborhood). If VALUES is not present, all elements of the structuring element 
+;		Set this keyword to perform grayscale, rather than binary, erosion. Nonzero
+;		elements of the Structure parameter determine the shape of the structuring element
+;		(neighborhood). If VALUES is not present, all elements of the structuring element
 ;		are 0, yielding the neighborhood minimum operator.
 ;	PRESERVE_TYPE (a boolean keyword)
-;		Set this keyword to return the same type as the input array. This keyword only 
-;		applies if the GRAY keyword is set. 
+;		Set this keyword to return the same type as the input array. This keyword only
+;		applies if the GRAY keyword is set.
 ;	UINT (a boolean keyword)
-;		Set this keyword to return an unsigned integer array. This keyword only applies if 
+;		Set this keyword to return an unsigned integer array. This keyword only applies if
 ;		the GRAY keyword is set.
 ;	ULONG (a boolean keyword)
-;		Set this keyword to return an unsigned longword integer array. This keyword only 
+;		Set this keyword to return an unsigned longword integer array. This keyword only
 ;		applies if the GRAY keyword is set.
 ;	VALUES
-;		An array of the same dimensions as Structure providing the values of the 
-;		structuring element. The presence of this keyword implies grayscale erosion. Each 
-;		pixel of the result is the minimum of Image less the corresponding elements of 
-;		VALUE. If the resulting difference is less than zero, the return value will be 
+;		An array of the same dimensions as Structure providing the values of the
+;		structuring element. The presence of this keyword implies grayscale erosion. Each
+;		pixel of the result is the minimum of Image less the corresponding elements of
+;		VALUE. If the resulting difference is less than zero, the return value will be
 ;		zero.
 ;  Return (from IDL): the erosion of image
-;  Syntax (from IDL): 
-;	Result = ERODE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /GRAY [, /PRESERVE_TYPE | , /UINT 
+;  Syntax (from IDL):
+;	Result = ERODE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /GRAY [, /PRESERVE_TYPE | , /UINT
 ;		 | , /ULONG]] [, VALUES=array] )
 ;  Ref: http://www.harrisgeospatial.com/docs/ERODE.html
 ;
@@ -36,15 +36,15 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
                 UINT=UINT, ULONG=ULONG, VALUES=VALUES
 ; Return the caller of a procedure in the event of an error.
   ON_ERROR, 2
-  
+
 ; At least Image and Structure are needed.
   IF (N_PARAMS() LE 1) THEN BEGIN
      MESSAGE, 'Incorrect number of arguments.'
   ENDIF
-  
+
 ; Get the Structure size.
   dimStt = SIZE(Structure)
-  
+
 ; Get the image size.
   dims = SIZE(Image)
 
@@ -76,7 +76,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      ENDCASE
      dimStt=SIZE(Structure)
   ENDIF
-  
+
 ; Get the coordinate of the origin of Structure.
   CASE dimStt[0] OF
      1: IF (N_ELEMENTS(X0) EQ 0) THEN X0 = dimStt[1]/2
@@ -91,7 +91,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      END
      ELSE: PRINT, 'The input is an invalid image, considering only 1D, 2D, and 3D at the moment.'
   ENDCASE
-  
+
 ; Gray: a boolean keyword.
   IF (KEYWORD_SET(GRAY) OR KEYWORD_SET(VALUES)) THEN BEGIN
 ; Gray image;
@@ -165,7 +165,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
            ELSE: BEGIN
               MESSAGE, 'The input is an invalid image, considering only 1D, 2D, and 3D at the moment.'
            END
-        ENDCASE	
+        ENDCASE
      ENDIF
 ;
      erodeImg = Image
@@ -237,7 +237,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
         ELSE: BEGIN
            MESSAGE, 'The input is an invalid image, considering only 1D, 2D, and 3D at the moment.'
         END
-     ENDCASE	
+     ENDCASE
      erodeImg = tmpImg
   ENDIF ELSE BEGIN
 ; Binary image otherwise.
@@ -312,7 +312,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
         ELSE: BEGIN
            MESSAGE, 'The input is an invalid image, considering only 1D, 2D, and 3D at the moment.'
         END
-     ENDCASE	
+     ENDCASE
 ;
      erodeImg = erodeImg AND tmpImg
   ENDELSE
@@ -322,14 +322,15 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
 ; Gray image;
 ;
 ; Give the type of the returned array.
-     IF KEYWORD_SET(PRESERVE_TYPE) THEN BEGIN 
+     IF KEYWORD_SET(PRESERVE_TYPE) THEN BEGIN
         tp = TYPENAME(Image)
         erodeImg = CALL_FUNCTION(tp,erodeImg)
      ENDIF
      IF KEYWORD_SET(UINT) THEN erodeImg = UINT(erodeImg)
      IF KEYWORD_SET(ULONG) THEN erodeImg = ULONG(erodeImg)
   ENDIF
-  
+
   RETURN, erodeImg
-  
+
 END
+

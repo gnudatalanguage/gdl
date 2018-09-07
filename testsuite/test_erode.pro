@@ -6,7 +6,7 @@
 ;
 ; ---------------------
 ; Modification history:
-; 
+;
 ; 2018-08-30 : Bin Wu <bin.wu (at) edinsights (dot) no>
 ; - Initial version
 ; - Basic ERODE tests
