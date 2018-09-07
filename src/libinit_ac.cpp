@@ -85,12 +85,20 @@ void LibInit_ac()
   new DLibFunRetNew(lib::sobel_fun,string("SOBEL"),1,helpKey);
   new DLibFunRetNew(lib::prewitt_fun,string("PREWITT"),1,helpKey);
 
+  /* NOTE: 2018-09-07 by rexso (remi.solaas at edinsights dot no)
+   *
+   * ERODE and DILATE currently implemented in IDL,
+   * available in pro/erode.pro and pro/dilate.pro
+   * with grayscale support. Uncomment when the C++
+   * implementation is complete.
+   *
   const string erodeKey[]={"HELP","GRAY","PRESERVE_TYPE","UINT","ULONG","VALUES",KLISTEND};
   new DLibFunRetNew(lib::erode_fun,string("ERODE"),5,erodeKey);
 
   const string dilateKey[]={"HELP","GRAY","PRESERVE_TYPE","UINT","ULONG","VALUES",
 			    "CONSTRAINED","BACKGROUND",KLISTEND};
   new DLibFunRetNew(lib::dilate_fun,string("DILATE"),5,dilateKey);
+  */
 
   const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
   new DLibFunRetNew(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);
