@@ -96,8 +96,6 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
   IF (KEYWORD_SET(GRAY) OR KEYWORD_SET(VALUES)) THEN BEGIN
 ; Gray image;
 ;
-;	MESSAGE, 'A gray image is in processing.'
-;
 ; Make sure VALUES has the same dimension as Image.
      IF KEYWORD_SET(VALUES) THEN BEGIN
         dimVal = SIZE(VALUES)
@@ -171,69 +169,30 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      erodeImg = Image
 ;
 ; An auxiliary variable.
-     tmpImg = erodeImg
-; An auxiliary PARAMETER.
-     tmpMin = 0
-; An auxiliary PARAMETER.
-     tmpMax = MAX(erodeImg)
+     tmpImg = erodeImg - erodeImg
 ; 1D-3D.
      CASE dimStt[0] OF
         1: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              IF ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) THEN BEGIN
-                 tmpImg[I] = tmpMax
-                 FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                    IF (Structure[II - I + X0] EQ 1) THEN $
-                       tmpImg[I] = MAX([0,MIN([tmpImg[I], erodeImg[II] - VALUES[II - I + X0]])])
-                 ENDFOR
-              ENDIF ELSE BEGIN
-                 tmpImg[I] = tmpMin
-              ENDELSE
-           ENDFOR
-        END
+              FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+                 	tmpImg[I] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0] - VALUES) * Structure)])
+              ENDFOR
+           END
         2: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              FOR J = 0, dims[2]-1 DO BEGIN
-                 IF ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) AND $
-                    ((J - Y0) GE 0) AND ((J + dimStt[2]-1 - Y0) LE dims[2]-1) THEN BEGIN
-                    tmpImg[I,J] = tmpMax
-                    FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                       FOR  JJ = (J - Y0),(J + dimStt[2]-1 - Y0) DO BEGIN
-                          IF (Structure[II - I + X0,JJ - J + Y0] EQ 1) THEN $
-                             tmpImg[I,J] =  MAX([0, MIN([tmpImg[I,J], erodeImg[II,JJ] - VALUES[II - I + X0,JJ - J + Y0]])])
-                       ENDFOR
-                    ENDFOR
-                 ENDIF ELSE BEGIN
-                    tmpImg[I,J] = tmpMin
-                 ENDELSE
-              ENDFOR
-           ENDFOR
-        END
-        3: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              FOR J = 0, dims[2]-1 DO BEGIN
-                 FOR K = 0, dims[3]-1 DO BEGIN
-                    IF ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) AND $
-                       ((J - Y0) GE 0) AND ((J + dimStt[2]-1 - Y0) LE dims[2]-1) AND $
-                       ((K - Z0) GE 0) AND ((K + dimStt[3]-1 - Z0) LE dims[3]-1) THEN BEGIN
-                       tmpImg[I,J,K] = tmpMax
-                       FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                          FOR JJ = (J - Y0),(J + dimStt[2]-1 - Y0) DO BEGIN
-                             FOR KK = (K - Z0),(K + dimStt[3]-1 - Z0) DO BEGIN
-                                IF (Structure[II - I + X0,JJ - J + Y0,KK - K + Z0] EQ 1) THEN $
-                                   tmpImg[I,J,K] = $
-                                   MAX([0, MIN([tmpImg[I,J,K], erodeImg[II,JJ,KK] - $
-                                                VALUES[II - I + X0,JJ - J + Y0,KK - K + Z0]])])
-                             ENDFOR
-                          ENDFOR
-                       ENDFOR
-                    ENDIF ELSE BEGIN
-                       tmpImg[I,J,K] = tmpMin
-                    ENDELSE
+              FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+                 FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                 	tmpImg[I,J] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] - VALUES) * Structure)])
                  ENDFOR
               ENDFOR
-           ENDFOR
-        END
+           END
+        3: BEGIN
+              FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+                 FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                    FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
+                 	tmpImg[I,J,K] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] - VALUES) * Structure)])
+                    ENDFOR
+                 ENDFOR
+              ENDFOR
+           END
         ELSE: BEGIN
            MESSAGE, 'The input is an invalid image, considering only 1D, 2D, and 3D at the moment.'
         END
@@ -244,69 +203,42 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      erodeImg = Image GT 0
 ;
 ; An auxiliary variable.
-     tmpImg = erodeImg
+     tmpImg = erodeImg - erodeImg
+     tmpS = TOTAL(Structure)
 ;
 ; 1D-3D.
      CASE dimStt[0] OF
         1: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              IF (erodeImg[I] EQ 1) AND ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) THEN BEGIN
-               idtStt = 1
-               FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                  IF (Structure[II - I + X0] EQ 1) THEN idtStt = idtStt AND erodeImg[II]
-               ENDFOR
-               IF idtStt NE 1 THEN BEGIN
-                  tmpImg[I] = 0
-               ENDIF
-            ENDIF ELSE BEGIN
-               tmpImg[I] = 0
-            ENDELSE
-         ENDFOR
+           FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+           		IF erodeImg[I] EQ 1 THEN BEGIN
+           			tmpImg[I] = $
+           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0] * $
+           			Structure) EQ tmpS
+           		ENDIF
+           ENDFOR
         END
         2: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              FOR J = 0, dims[2]-1 DO BEGIN
-                 IF (erodeImg[I,J] EQ 1) AND ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) $
-                    AND ((J - Y0) GE 0) AND ((J + dimStt[2]-1 - Y0) LE dims[2]-1) THEN BEGIN
-                    idtStt = 1
-                    FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                       FOR JJ = (J - Y0),(J + dimStt[2]-1 - Y0) DO BEGIN
-                          IF (Structure[II - I + X0,JJ - J + Y0] EQ 1) THEN idtStt = (idtStt AND erodeImg[II,JJ])
-                       ENDFOR
-                    ENDFOR
-                    IF idtStt NE 1 THEN BEGIN
-                       tmpImg[I,J] = 0
-                    ENDIF
-                 ENDIF ELSE BEGIN
-                    tmpImg[I,J] = 0
-                 ENDELSE
-              ENDFOR
+           FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+           		IF erodeImg[I,J] EQ 1 THEN BEGIN
+           			tmpImg[I,J] = $
+           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] * $
+           			Structure) EQ tmpS
+           		ENDIF
+           	ENDFOR
            ENDFOR
         END
         3: BEGIN
-           FOR I = 0, dims[1]-1 DO BEGIN
-              FOR J = 0, dims[2]-1 DO BEGIN
-                 FOR K = 0, dims[3]-1 DO BEGIN
-                    IF (erodeImg[I,J,K] EQ 1) AND ((I - X0) GE 0) AND ((I + dimStt[1]-1 - X0) LE dims[1]-1) $
-                       AND ((J - Y0) GE 0) AND ((J + dimStt[2]-1 - Y0) LE dims[2]-1) $
-                       AND ((K - Z0) GE 0) AND ((K + dimStt[3]-1 - Z0) LE dims[3]-1) THEN BEGIN
-                       idtStt = 1
-                       FOR II = (I - X0),(I + dimStt[1]-1 - X0) DO BEGIN
-                          FOR JJ = (J - Y0),(J + dimStt[2]-1 - Y0) DO BEGIN
-                             FOR KK = (K - Z0),(K + dimStt[3]-1 - Z0) DO BEGIN
-                                IF (Structure[II - I + X0,JJ - J + Y0,KK - K + Z0] $
-                                    EQ 1) THEN idtStt = idtStt AND erodeImg[II,JJ,KK]
-                             ENDFOR
-                          ENDFOR
-                       ENDFOR
-                       IF idtStt NE 1 THEN BEGIN
-                          tmpImg[I,J,K] = 0
-                       ENDIF
-                    ENDIF ELSE BEGIN
-                       tmpImg[I,J,Z] = 0
-                    ENDELSE
-                 ENDFOR
-              ENDFOR
+           FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+           	   FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
+           		IF erodeImg[I,J,K] EQ 1 THEN BEGIN
+           			tmpImg[I,J,K] = $
+           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] * $
+           			Structure) EQ tmpS
+           		ENDIF
+           	   ENDFOR
+           	ENDFOR
            ENDFOR
         END
         ELSE: BEGIN
@@ -314,7 +246,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
         END
      ENDCASE
 ;
-     erodeImg = erodeImg AND tmpImg
+     erodeImg = tmpImg
   ENDELSE
 
 ; Gray: a boolean keyword.
