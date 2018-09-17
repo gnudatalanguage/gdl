@@ -91,14 +91,14 @@ void LibInit_ac()
    * available in pro/erode.pro and pro/dilate.pro
    * with grayscale support. Uncomment when the C++
    * implementation is complete.
-   *
+   */
   const string erodeKey[]={"HELP","GRAY","PRESERVE_TYPE","UINT","ULONG","VALUES",KLISTEND};
-  new DLibFunRetNew(lib::erode_fun,string("ERODE"),5,erodeKey);
+  new DLibFunRetNew(lib::erode_fun,string("ERODE_INTERNALGDL"),5,erodeKey);
 
   const string dilateKey[]={"HELP","GRAY","PRESERVE_TYPE","UINT","ULONG","VALUES",
 			    "CONSTRAINED","BACKGROUND",KLISTEND};
-  new DLibFunRetNew(lib::dilate_fun,string("DILATE"),5,dilateKey);
-  */
+  new DLibFunRetNew(lib::dilate_fun,string("DILATE_INTERNALGDL"),5,dilateKey);
+
 
   const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
   new DLibFunRetNew(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);
