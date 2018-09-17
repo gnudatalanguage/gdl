@@ -5,30 +5,30 @@
 ;
 ;  Arguments (from IDL): Image Structure X0 Y0 Z0
 ;  Keywords (from IDL):
-;	GRAY (a boolean keyword)
-;		Set this keyword to perform grayscale, rather than binary, erosion. Nonzero
-;		elements of the Structure parameter determine the shape of the structuring element
-;		(neighborhood). If VALUES is not present, all elements of the structuring element
-;		are 0, yielding the neighborhood minimum operator.
-;	PRESERVE_TYPE (a boolean keyword)
-;		Set this keyword to return the same type as the input array. This keyword only
-;		applies if the GRAY keyword is set.
-;	UINT (a boolean keyword)
-;		Set this keyword to return an unsigned integer array. This keyword only applies if
-;		the GRAY keyword is set.
-;	ULONG (a boolean keyword)
-;		Set this keyword to return an unsigned longword integer array. This keyword only
-;		applies if the GRAY keyword is set.
-;	VALUES
-;		An array of the same dimensions as Structure providing the values of the
-;		structuring element. The presence of this keyword implies grayscale erosion. Each
-;		pixel of the result is the minimum of Image less the corresponding elements of
-;		VALUE. If the resulting difference is less than zero, the return value will be
-;		zero.
+;    GRAY (a boolean keyword)
+;        Set this keyword to perform grayscale, rather than binary, erosion. Nonzero
+;        elements of the Structure parameter determine the shape of the structuring element
+;        (neighborhood). If VALUES is not present, all elements of the structuring element
+;        are 0, yielding the neighborhood minimum operator.
+;    PRESERVE_TYPE (a boolean keyword)
+;        Set this keyword to return the same type as the input array. This keyword only
+;        applies if the GRAY keyword is set.
+;    UINT (a boolean keyword)
+;        Set this keyword to return an unsigned integer array. This keyword only applies if
+;        the GRAY keyword is set.
+;    ULONG (a boolean keyword)
+;        Set this keyword to return an unsigned longword integer array. This keyword only
+;        applies if the GRAY keyword is set.
+;    VALUES
+;        An array of the same dimensions as Structure providing the values of the
+;        structuring element. The presence of this keyword implies grayscale erosion. Each
+;        pixel of the result is the minimum of Image less the corresponding elements of
+;        VALUE. If the resulting difference is less than zero, the return value will be
+;        zero.
 ;  Return (from IDL): the erosion of image
 ;  Syntax (from IDL):
-;	Result = ERODE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /GRAY [, /PRESERVE_TYPE | , /UINT
-;		 | , /ULONG]] [, VALUES=array] )
+;    Result = ERODE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /GRAY [, /PRESERVE_TYPE | , /UINT
+;         | , /ULONG]] [, VALUES=array] )
 ;  Ref: http://www.harrisgeospatial.com/docs/ERODE.html
 ;
 FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
@@ -174,13 +174,13 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      CASE dimStt[0] OF
         1: BEGIN
               FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-                 	tmpImg[I] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0] - VALUES) * Structure)])
+                     tmpImg[I] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0] - VALUES) * Structure)])
               ENDFOR
            END
         2: BEGIN
               FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
                  FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
-                 	tmpImg[I,J] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] - VALUES) * Structure)])
+                     tmpImg[I,J] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] - VALUES) * Structure)])
                  ENDFOR
               ENDFOR
            END
@@ -188,7 +188,7 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
               FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
                  FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
                     FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
-                 	tmpImg[I,J,K] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] - VALUES) * Structure)])
+                       tmpImg[I,J,K] = MAX([0,MIN((erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] - VALUES) * Structure)])
                     ENDFOR
                  ENDFOR
               ENDFOR
@@ -210,35 +210,35 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
      CASE dimStt[0] OF
         1: BEGIN
            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           		IF erodeImg[I] EQ 1 THEN BEGIN
-           			tmpImg[I] = $
-           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0] * $
-           			Structure) EQ tmpS
-           		ENDIF
+                   IF erodeImg[I] EQ 1 THEN BEGIN
+                       tmpImg[I] = $
+                       TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0] * $
+                       Structure) EQ tmpS
+                   ENDIF
            ENDFOR
         END
         2: BEGIN
            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
-           		IF erodeImg[I,J] EQ 1 THEN BEGIN
-           			tmpImg[I,J] = $
-           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] * $
-           			Structure) EQ tmpS
-           		ENDIF
-           	ENDFOR
+               FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                   IF erodeImg[I,J] EQ 1 THEN BEGIN
+                       tmpImg[I,J] = $
+                       TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] * $
+                       Structure) EQ tmpS
+                   ENDIF
+               ENDFOR
            ENDFOR
         END
         3: BEGIN
            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
-           	   FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
-           		IF erodeImg[I,J,K] EQ 1 THEN BEGIN
-           			tmpImg[I,J,K] = $
-           			TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] * $
-           			Structure) EQ tmpS
-           		ENDIF
-           	   ENDFOR
-           	ENDFOR
+               FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                  FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
+                     IF erodeImg[I,J,K] EQ 1 THEN BEGIN
+                       tmpImg[I,J,K] = $
+                       TOTAL(erodeImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] * $
+                       Structure) EQ tmpS
+                     ENDIF
+                  ENDFOR
+               ENDFOR
            ENDFOR
         END
         ELSE: BEGIN

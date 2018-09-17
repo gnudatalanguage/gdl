@@ -5,41 +5,41 @@
 ;
 ;  Arguments (from IDL): Image Structure X0 Y0 Z0
 ;  Keywords (from IDL):
-;  	BACKGROUND
-;		Set this keyword to the pixel value that is to be considered the background when
-;		dilation is being performed in constrained mode. The default value is 0.
-; 	CONSTRAINED (a boolean keyword)
-;		If this keyword is set and grayscale dilation has been selected, the dilation
-;		algorithm will operate in constrained mode. In this mode, a pixel is set to the
-;		value determined by normal grayscale dilation rules in the output image only if
-;		the current value destination pixel value matches the BACKGROUND pixel value. Once
-;		a pixel in the output image has been set to a value other than the BACKGROUND
-;		value, it cannot change.
-;	GRAY (a boolean keyword)
-;		Set this keyword to perform grayscale, rather than binary, dilation. The nonzero
-;		elements of the Structure parameter determine the shape of the structuring element
-;		(neighborhood). If VALUES is not present, all elements of the structuring element
-;		are 0, yielding the neighborhood maximum operator.
-; 	PRESERVE_TYPE (a boolean keyword)
-;		Set this keyword to return the same type as the input array. This keyword only
-;		applies if the GRAY keyword is set.
-;	UINT (a boolean keyword)
-;		Set this keyword to return an unsigned integer array. This keyword only applies if
-;		the GRAY keyword is set.
-; 	ULONG (a boolean keyword)
-;		Set this keyword to return an unsigned longword integer array. This keyword only
-;		applies if the GRAY keyword is set.
-;	VALUES
-;		An array with the same dimensions as Structure providing the values of the
-;		structuring element. The presence of this parameter implies grayscale dilation.
-;		Each pixel of the result is the maximum of the sum of the corresponding elements
-;		of VALUE and the Image pixel value. If the resulting sum is greater than 255, the
-;		return value is 255.
+;     BACKGROUND
+;        Set this keyword to the pixel value that is to be considered the background when
+;        dilation is being performed in constrained mode. The default value is 0.
+;     CONSTRAINED (a boolean keyword)
+;        If this keyword is set and grayscale dilation has been selected, the dilation
+;        algorithm will operate in constrained mode. In this mode, a pixel is set to the
+;        value determined by normal grayscale dilation rules in the output image only if
+;        the current value destination pixel value matches the BACKGROUND pixel value. Once
+;        a pixel in the output image has been set to a value other than the BACKGROUND
+;        value, it cannot change.
+;     GRAY (a boolean keyword)
+;        Set this keyword to perform grayscale, rather than binary, dilation. The nonzero
+;        elements of the Structure parameter determine the shape of the structuring element
+;        (neighborhood). If VALUES is not present, all elements of the structuring element
+;        are 0, yielding the neighborhood maximum operator.
+;     PRESERVE_TYPE (a boolean keyword)
+;        Set this keyword to return the same type as the input array. This keyword only
+;        applies if the GRAY keyword is set.
+;     UINT (a boolean keyword)
+;        Set this keyword to return an unsigned integer array. This keyword only applies if
+;        the GRAY keyword is set.
+;     ULONG (a boolean keyword)
+;        Set this keyword to return an unsigned longword integer array. This keyword only
+;        applies if the GRAY keyword is set.
+;     VALUES
+;        An array with the same dimensions as Structure providing the values of the
+;        structuring element. The presence of this parameter implies grayscale dilation.
+;        Each pixel of the result is the maximum of the sum of the corresponding elements
+;        of VALUE and the Image pixel value. If the resulting sum is greater than 255, the
+;        return value is 255.
 ;  Return (from IDL): the dilation of image
 ;  Syntax (from IDL):
-;	Result = DILATE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /CONSTRAINED [,
-;		 BACKGROUND=value]] [, /GRAY [, /PRESERVE_TYPE | , /UINT | , /ULONG]] [,
-;		 VALUES=array] )
+;    Result = DILATE( Image, Structure [, X0 [, Y0 [, Z0]]] [, /CONSTRAINED [,
+;         BACKGROUND=value]] [, /GRAY [, /PRESERVE_TYPE | , /UINT | , /ULONG]] [,
+;         VALUES=array] )
 ;  Ref: http://www.harrisgeospatial.com/docs/DILATE.html
 ;
 FUNCTION DILATE, Image, Structure, X0, Y0, Z0, $
@@ -193,75 +193,75 @@ FUNCTION DILATE, Image, Structure, X0, Y0, Z0, $
 ; 1D-3D.
         CASE dimStt[0] OF
            1: BEGIN
-           		tmpS = REVERSE(Structure)
-           		tmpV = REVERSE(VALUES)
-                 	tmpValue = INTARR(dims[1])
-                 	tmpValue[X0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0]
+                   tmpS = REVERSE(Structure)
+                   tmpV = REVERSE(VALUES)
+                   tmpValue = INTARR(dims[1])
+                   tmpValue[X0] = $
+                     dilateImg[X0:dims[1]-dimStt[1]+X0]
               FOR I = 0, dims[1]-1 DO BEGIN
-              	IF dilateImg[I] EQ BACKGROUND THEN BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpImg[I] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2] + $
-                 		tmpV[tmpSM1:tmpSM2]) * $
-                 		tmpS[tmpSM1:tmpSM2])])
+                  IF dilateImg[I] EQ BACKGROUND THEN BEGIN
+                     tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                     tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                     tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                     tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                     tmpImg[I] = MIN([255,MAX($
+                         (tmpValue[tmpM1:tmpM2] + $
+                         tmpV[tmpSM1:tmpSM2]) * $
+                         tmpS[tmpSM1:tmpSM2])])
                 ENDIF
               ENDFOR
            END
            2: BEGIN
-           		tmpS = REVERSE(REVERSE(Structure),2)
-           		tmpV = REVERSE(REVERSE(VALUES),2)
-                 	tmpValue = INTARR(dims[1],dims[2])
-                 	tmpValue[X0,Y0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0]
+                   tmpS = REVERSE(REVERSE(Structure),2)
+                   tmpV = REVERSE(REVERSE(VALUES),2)
+                   tmpValue = INTARR(dims[1],dims[2])
+                   tmpValue[X0,Y0] = $
+                     adilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0]
               FOR I = 0, dims[1]-1 DO BEGIN
                  FOR J = 0, dims[2]-1 DO BEGIN
                    IF dilateImg[I,J] EQ BACKGROUND THEN BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
-                 	tmpImg[I,J] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2,tmpN1:tmpN2] + $
-                 		tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2]) * $
-                 		tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2])])
+                     tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                     tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
+                     tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                     tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
+                     tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                     tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
+                     tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                     tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
+                     tmpImg[I,J] = MIN([255,MAX($
+                         (tmpValue[tmpM1:tmpM2,tmpN1:tmpN2] + $
+                         tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2]) * $
+                         tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2])])
                    ENDIF
                  ENDFOR
               ENDFOR
            END
            3: BEGIN
-           		tmpS = REVERSE(REVERSE(REVERSE(Structure),2),3)
-           		tmpV = REVERSE(REVERSE(REVERSE(VALUES),2),3)
-                 	tmpValue = INTARR(dims[1],dims[2],dims[3])
-                 	tmpValue[X0,Y0,Z0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0,Z0:dims[3]-dimStt[3]+Z0]
+                   tmpS = REVERSE(REVERSE(REVERSE(Structure),2),3)
+                   tmpV = REVERSE(REVERSE(REVERSE(VALUES),2),3)
+                   tmpValue = INTARR(dims[1],dims[2],dims[3])
+                   tmpValue[X0,Y0,Z0] = $
+                     dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0,Z0:dims[3]-dimStt[3]+Z0]
               FOR I = 0, dims[1]-1 DO BEGIN
                  FOR J = 0, dims[2]-1 DO BEGIN
                     FOR K = 0, dims[3]-1 DO BEGIN
                       IF dilateImg[I,J,K] EQ BACKGROUND THEN BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
-                 	tmpL1 = (K-dimStt[3]+1+Z0 LT 0) ? 0:K-dimStt[3]+1+Z0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
-                 	tmpL2 = (K+Z0 GT dims[3]-1) ? dims[3]-1:K+Z0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
-                 	tmpSL1 = (K-dimStt[3]+1+Z0 LT 0) ? -K+dimStt[3]-1-Z0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
-                 	tmpSL2 = (K+Z0 GT dims[3]-1) ? dimStt[3]-1-K-Z0+dims[3]-1:dimStt[3]-1
-                 	tmpImg[I,J,K] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2,tmpN1:tmpN2,tmpL1:tmpL2] + $
-                 		tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2]) * $
-                 		tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2])])
+                        tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                        tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
+                        tmpL1 = (K-dimStt[3]+1+Z0 LT 0) ? 0:K-dimStt[3]+1+Z0
+                        tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                        tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
+                        tmpL2 = (K+Z0 GT dims[3]-1) ? dims[3]-1:K+Z0
+                        tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                        tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
+                        tmpSL1 = (K-dimStt[3]+1+Z0 LT 0) ? -K+dimStt[3]-1-Z0:0
+                        tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                        tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
+                        tmpSL2 = (K+Z0 GT dims[3]-1) ? dimStt[3]-1-K-Z0+dims[3]-1:dimStt[3]-1
+                        tmpImg[I,J,K] = MIN([255,MAX($
+                            (tmpValue[tmpM1:tmpM2,tmpN1:tmpN2,tmpL1:tmpL2] + $
+                            tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2]) * $
+                            tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2])])
                       ENDIF
                     ENDFOR
                  ENDFOR
@@ -281,70 +281,70 @@ FUNCTION DILATE, Image, Structure, X0, Y0, Z0, $
 ; 1D-3D.
         CASE dimStt[0] OF
            1: BEGIN
-           		tmpS = REVERSE(Structure)
-           		tmpV = REVERSE(VALUES)
-                 	tmpValue = INTARR(dims[1])
-                 	tmpValue[X0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0]
+                   tmpS = REVERSE(Structure)
+                   tmpV = REVERSE(VALUES)
+                   tmpValue = INTARR(dims[1])
+                   tmpValue[X0] = $
+                     dilateImg[X0:dims[1]-dimStt[1]+X0]
               FOR I = 0, dims[1]-1 DO BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpImg[I] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2] + $
-                 		tmpV[tmpSM1:tmpSM2]) * $
-                 		tmpS[tmpSM1:tmpSM2])])
+                     tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                     tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                     tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                     tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                     tmpImg[I] = MIN([255,MAX($
+                         (tmpValue[tmpM1:tmpM2] + $
+                         tmpV[tmpSM1:tmpSM2]) * $
+                         tmpS[tmpSM1:tmpSM2])])
               ENDFOR
            END
            2: BEGIN
-           		tmpS = REVERSE(REVERSE(Structure),2)
-           		tmpV = REVERSE(REVERSE(VALUES),2)
-                 	tmpValue = INTARR(dims[1],dims[2])
-                 	tmpValue[X0,Y0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0]
+                   tmpS = REVERSE(REVERSE(Structure),2)
+                   tmpV = REVERSE(REVERSE(VALUES),2)
+                   tmpValue = INTARR(dims[1],dims[2])
+                   tmpValue[X0,Y0] = $
+                     dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0]
               FOR I = 0, dims[1]-1 DO BEGIN
                  FOR J = 0, dims[2]-1 DO BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
-                 	tmpImg[I,J] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2,tmpN1:tmpN2] + $
-                 		tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2]) * $
-                 		tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2])])
+                     tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                     tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
+                     tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                     tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
+                     tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                     tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
+                     tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                     tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
+                     tmpImg[I,J] = MIN([255,MAX($
+                         (tmpValue[tmpM1:tmpM2,tmpN1:tmpN2] + $
+                         tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2]) * $
+                         tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2])])
                  ENDFOR
               ENDFOR
            END
            3: BEGIN
-           		tmpS = REVERSE(REVERSE(REVERSE(Structure),2),3)
-           		tmpV = REVERSE(REVERSE(REVERSE(VALUES),2),3)
-                 	tmpValue = INTARR(dims[1],dims[2],dims[3])
-                 	tmpValue[X0,Y0,Z0] = $
-                 	dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0,Z0:dims[3]-dimStt[3]+Z0]
+                   tmpS = REVERSE(REVERSE(REVERSE(Structure),2),3)
+                   tmpV = REVERSE(REVERSE(REVERSE(VALUES),2),3)
+                   tmpValue = INTARR(dims[1],dims[2],dims[3])
+                   tmpValue[X0,Y0,Z0] = $
+                     dilateImg[X0:dims[1]-dimStt[1]+X0,Y0:dims[2]-dimStt[2]+Y0,Z0:dims[3]-dimStt[3]+Z0]
               FOR I = 0, dims[1]-1 DO BEGIN
                  FOR J = 0, dims[2]-1 DO BEGIN
                     FOR K = 0, dims[3]-1 DO BEGIN
-                 	tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
-                 	tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
-                 	tmpL1 = (K-dimStt[3]+1+Z0 LT 0) ? 0:K-dimStt[3]+1+Z0
-                 	tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
-                 	tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
-                 	tmpL2 = (K+Z0 GT dims[3]-1) ? dims[3]-1:K+Z0
-                 	tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
-                 	tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
-                 	tmpSL1 = (K-dimStt[3]+1+Z0 LT 0) ? -K+dimStt[3]-1-Z0:0
-                 	tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
-                 	tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
-                 	tmpSL2 = (K+Z0 GT dims[3]-1) ? dimStt[3]-1-K-Z0+dims[3]-1:dimStt[3]-1
-                 	tmpImg[I,J,K] = MIN([255,MAX($
-                 		(tmpValue[tmpM1:tmpM2,tmpN1:tmpN2,tmpL1:tmpL2] + $
-                 		tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2]) * $
-                 		tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2])])
+                     tmpM1 = (I-dimStt[1]+1+X0 LT 0) ? 0:I-dimStt[1]+1+X0
+                     tmpN1 = (J-dimStt[2]+1+Y0 LT 0) ? 0:J-dimStt[2]+1+Y0
+                     tmpL1 = (K-dimStt[3]+1+Z0 LT 0) ? 0:K-dimStt[3]+1+Z0
+                     tmpM2 = (I+X0 GT dims[1]-1) ? dims[1]-1:I+X0
+                     tmpN2 = (J+Y0 GT dims[2]-1) ? dims[2]-1:J+Y0
+                     tmpL2 = (K+Z0 GT dims[3]-1) ? dims[3]-1:K+Z0
+                     tmpSM1 = (I-dimStt[1]+1+X0 LT 0) ? -I+dimStt[1]-1-X0:0
+                     tmpSN1 = (J-dimStt[2]+1+Y0 LT 0) ? -J+dimStt[2]-1-Y0:0
+                     tmpSL1 = (K-dimStt[3]+1+Z0 LT 0) ? -K+dimStt[3]-1-Z0:0
+                     tmpSM2 = (I+X0 GT dims[1]-1) ? dimStt[1]-1-I-X0+dims[1]-1:dimStt[1]-1
+                     tmpSN2 = (J+Y0 GT dims[2]-1) ? dimStt[2]-1-J-Y0+dims[2]-1:dimStt[2]-1
+                     tmpSL2 = (K+Z0 GT dims[3]-1) ? dimStt[3]-1-K-Z0+dims[3]-1:dimStt[3]-1
+                     tmpImg[I,J,K] = MIN([255,MAX($
+                         (tmpValue[tmpM1:tmpM2,tmpN1:tmpN2,tmpL1:tmpL2] + $
+                         tmpV[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2]) * $
+                         tmpS[tmpSM1:tmpSM2,tmpSN1:tmpSN2,tmpSL1:tmpSL2])])
                     ENDFOR
                  ENDFOR
               ENDFOR
@@ -366,36 +366,36 @@ FUNCTION DILATE, Image, Structure, X0, Y0, Z0, $
 ; 1D-3D.
      CASE dimStt[0] OF
         1: BEGIN
-        	FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           		IF dilateImg[I] EQ 1 THEN BEGIN
-           			tmpImg[I-X0:I+dimStt[1]-1-X0] = $
-           			tmpImg[I-X0:I+dimStt[1]-1-X0] OR $
-           			Structure
-           		ENDIF
-           	ENDFOR
+            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
+                   IF dilateImg[I] EQ 1 THEN BEGIN
+                       tmpImg[I-X0:I+dimStt[1]-1-X0] = $
+                       tmpImg[I-X0:I+dimStt[1]-1-X0] OR $
+                       Structure
+                   ENDIF
+               ENDFOR
         END
         2: BEGIN
            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
-           		IF dilateImg[I,J] EQ 1 THEN BEGIN
-           			tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] = $
-           			tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] OR $
-           			Structure
-           		ENDIF
-           	ENDFOR
+               FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                   IF dilateImg[I,J] EQ 1 THEN BEGIN
+                       tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] = $
+                       tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0] OR $
+                       Structure
+                   ENDIF
+               ENDFOR
            ENDFOR
         END
         3: BEGIN
            FOR I = X0, dims[1]-dimStt[1]+X0 DO BEGIN
-           	FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
-           	    FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
-           		IF dilateImg[I,J] EQ 1 THEN BEGIN
-           			tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] = $
-           			tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] OR $
-           			Structure
-           		ENDIF
-           	    ENDFOR
-           	ENDFOR
+               FOR J = Y0, dims[2]-dimStt[2]+Y0 DO BEGIN
+                   FOR K = Z0, dims[3]-dimStt[3]+Z0 DO BEGIN
+                   IF dilateImg[I,J] EQ 1 THEN BEGIN
+                       tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] = $
+                       tmpImg[I-X0:I+dimStt[1]-1-X0,J-Y0:J+dimStt[2]-1-Y0,K-Z0:K+dimStt[3]-1-Z0] OR $
+                       Structure
+                   ENDIF
+                   ENDFOR
+               ENDFOR
            ENDFOR
         END
         ELSE: BEGIN
