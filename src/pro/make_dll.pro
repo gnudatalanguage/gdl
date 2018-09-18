@@ -14,7 +14,10 @@
 ; - 2018-JAN-25 : completely rewritten by Gilles Duvert, using most of
 ;   the parameters. Tested on Nika pipeline.
 ;
-; - 2018-JAN-26 : AC : trying to improve & simplify the default interface.
+; - 2018-JAN-26 : AC : trying to improve & simplify the default
+;   interface.
+;
+; - 2018-SEP-18 : AC : Change a test for OSX
 ;
 ; ---------------------------------------
 ;
@@ -182,7 +185,7 @@ if KEYWORD_set(debug) then STOP
 ;link
 ld=ref_ld
 ;
-if (!version.os_name EQ 'darwin') then begin
+if (!version.os EQ 'darwin') then begin
    step1=STRSPLIT(ld, '-shared ', /extract, /regex)
    ld=step1[0]+' -dylib '+step1[1]
 endif

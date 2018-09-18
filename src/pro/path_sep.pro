@@ -40,7 +40,7 @@
 
 function PATH_SEP, parent_directory=parent_directory, $
                    search_path=search_path, test=test
-on_error, 2
+ON_ERROR, 2
 
 if KEYWORD_SET(search_path) then begin
    if KEYWORD_SET(parent_directory) then begin
@@ -57,6 +57,8 @@ endelse
 
 OS = ['unix', 'Windows']
 iOS = WHERE(OS eq !version.os_family)
+
+if iOS LT 0 then MESSAGE, 'bad detection of OS_Family'
 
 if KEYWORD_SET(test) then STOP
 
