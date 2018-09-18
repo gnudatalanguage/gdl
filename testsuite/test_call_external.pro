@@ -19,7 +19,7 @@ if KEYWORD_SET(path) then print, 'no used now ...'
 ;
 if KEYWORD_SET(name) then radical=name else radical='libtest_ce'
 if ~KEYWORD_SET(suffix) then begin
-   suffix=(STRlowCase(!VERSION.OS_NAME) eq 'darwin' ? ".dylib" : ".so")
+   suffix=(STRlowCase(!VERSION.OS) eq 'darwin' ? ".dylib" : ".so")
 endif
 ;
 image=radical+suffix
