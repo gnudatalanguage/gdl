@@ -15,12 +15,52 @@
 ; WARNING ! in idlwave 6.1, indentation problems !!
 ; ForEach/EndForEach loops indentation are not managed
 ;
-; ------------------------
+; WARNING ! 15-Sept-2018 : FL don't manage as IDL & GDL:
+; Fatal if top below 0, refuse to process on Complex.
 ;
-; AC 2017-03-13
+; ------------------------------------------------
+; Modifications history :
+;
+; * AC 2017-03-13 :
 ; testing the TOP keyword, no clear idea now ...
 ; how to solve the differences between IDL & GDL
 ;
+; * AC 2018-09-15 : after discutions & tests with Sylvain,
+; it is now clear that, in IDL, BYTSCL() does not work "well"
+; on complex input. But usually IDL enforces a simple rule :
+; applying the operation on the REAL part. Not here, eg :
+; (tested on IDL 7.0, 7.1, 8.2, 8.4, 8.5, 8.7)
+; We wrote a simple code to see it directly (pro TEST_BYTSCL_DIFF_GDL_IDL)
+;
+; ------------------------------------------------
+;
+pro TEST_BYTSCL_DIFF_GDL_IDL
+;
+input=FINDGEN(10)
+input[5]=!values.f_nan
+input[6]=!values.f_infinity
+input=COMPLEX(input)
+;
+;print, format='(10f4.0)', input
+;print, input
+print, '1 Real Part Input     : ', format='(A,10f4.0)', REAL_PART(input)
+print, '2 BYTSCL(input)       : ', BYTSCL(input)
+print, '3 BYTSCL(input, /nan) : ', BYTSCL(input, /nan)
+;
+end
+;
+; in GDL : 
+;1 Real Part Input     :   0.  1.  2.  3.  4. NaN Inf  7.  8.  9.
+;2 BYTSCL(input)       :    0   0   0   0   0   0 255   0   0   0
+;3 BYTSCL(input, /nan) :    0  28  56  85 113   0   0 199 227 255
+;
+; in IDL : 
+;1 Real Part Input     :   0.  1.  2.  3.  4. NaN Inf  7.  8.  9.
+;2 BYTSCL(input)       :    0   0   0   0   0   0   0   0   0   0
+;3 BYTSCL(input, /nan) :    0  28  56  85   0   0 255 199 227 255
+;
+; ------------------------------------------------
+; 
 pro TEST_BYTSCL_TOP, cumul_errors, test=test, verbose=verbose
 ;
 nb_errors=0
@@ -52,8 +92,9 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ------------------------
-;
+; ------------------------------------------------
+; basic tests on TYPE & value, without Nan or Inf
+; 
 pro TEST_BYTSCL_RAMPS, cumul_errors, test=test, verbose=verbose
 ;
 nb_errors=0
@@ -81,7 +122,7 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ------------------------
+; ------------------------------------------------
 ;
 pro TEST_BYTSCL_RAMPS_NAN, cumul_errors, test=test, verbose=verbose
 ;
@@ -127,7 +168,7 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ------------------------
+; ------------------------------------------------
 ; convenience procedure used below
 pro TEST_BYTSCL_PRINT, input, expected, outpout
 print, 'Real Part Input    : ', REAL_PART(input)
@@ -223,7 +264,7 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ------------------------
+; ------------------------------------------------
 ;
 pro TEST_BYTSCL, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
@@ -246,9 +287,10 @@ TEST_BYTSCL_RAMPS_NAN, nb_errors, test=test
 ; for types Float, Double, Complex and DComplex with NaN and Inf ...
 ; In IDL, the outputs for Complex and DComplex are not understanded.
 ;
-TEST_BYTSCL_IDL_PROBLEM, nb_errors, test=test, verbose=verbose
+; IDL don't pass this test for COMPLEX & DCOMPLEX
+; FL don't pass this test for COMPLEX & DCOMPLEX + top below zero
 ;
-ERRORS_ADD, nb_errors, 'IDL does not pass this test, please re-write the test before removing this error'
+TEST_BYTSCL_IDL_PROBLEM, nb_errors, test=test, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;
