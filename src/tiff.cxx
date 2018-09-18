@@ -240,7 +240,9 @@ namespace lib
                 auto img = static_cast<T*>(image);
                 auto ptr = reinterpret_cast<typename T::Ty*>(img->DataAddr());
                 auto dim = img->Dim();
-                memcpy(ptr + (y * dim[0] + x), buf, bytes);
+                auto w = dim[dim.Rank() - 2];
+                auto c = dim.Rank() > 2 ? dim[0] : 1;
+                memcpy(ptr + (y * w + x) * c, buf, bytes);
             };
         }
 
@@ -276,7 +278,7 @@ namespace lib
             }
 
             char *buffer = nullptr, *start;
-            ptrdiff_t sampOff = (dir.samplesPerPixel * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
+            ptrdiff_t sampOff = (c * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
 
             // Scanline-based images
             if(!TIFFIsTiled(tiff_)) {
@@ -343,7 +345,7 @@ namespace lib
         }
 
         #ifdef USE_GEOTIFF
-        DStructGDL* Handler::CreateGeoStruct(tdir_t index) const
+        BaseGDL* Handler::CreateGeoStructOrZero(tdir_t index) const
         {
             if(!tiff_ || !TIFFSetDirectory(tiff_, index))
                 return nullptr;
@@ -451,7 +453,10 @@ namespace lib
             if(GetGeoKey(VerticalUnitsGeoKey, gk))
                 gtif.Add<DIntGDL>("VERTICALUNITSGEOKEY", *gk.value.i);
 
-            return gtif.Create();
+            if(auto geoStruct = gtif.Create())
+	        return geoStruct;
+
+            return new DLongGDL(0);
         }
 
         bool Handler::GetGeoKey(geokey_t key, GeoKey& res) const
@@ -538,7 +543,7 @@ namespace lib
             #ifdef USE_GEOTIFF
             static int gtifIx = e->KeywordIx("GEOTIFF");
             if(e->KeywordPresent(gtifIx)) {
-                e->SetKW(gtifIx, tiff.CreateGeoStruct(imageIndex));
+                e->SetKW(gtifIx, tiff.CreateGeoStructOrZero(imageIndex));
             }
             #endif
 
@@ -651,7 +656,7 @@ namespace lib
             #ifdef USE_GEOTIFF
             static int gtifIx = e->KeywordIx("GEOTIFF");
             if(e->KeywordPresent(gtifIx)) {
-                e->SetKW(gtifIx, tiff.CreateGeoStruct(imageIndex));
+                e->SetKW(gtifIx, tiff.CreateGeoStructOrZero(imageIndex));
             }
             #endif
 

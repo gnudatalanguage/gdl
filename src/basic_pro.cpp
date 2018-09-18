@@ -155,6 +155,9 @@ namespace lib {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
       char *homeDir = getenv("HOME");
+	  
+	  if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
+	  
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
         AppendIfNeeded(pathToGDL_history, "/");

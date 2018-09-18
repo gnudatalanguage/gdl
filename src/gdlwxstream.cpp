@@ -21,11 +21,6 @@
 
 #include "gdlwxstream.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
 
 
 GDLWXStream::GDLWXStream( int width, int height )
@@ -47,11 +42,11 @@ GDLWXStream::GDLWXStream( int width, int height )
   }
 #if ( (PLPLOT_VERSION_MAJOR < 6) && (PLPLOT_VERSION_MINOR < 10) )
 //  if ( GetEnvString("GDL_WX_BACKEND") == "2" )  
-    SETOPT("drvopt", "hrshsym=1,backend=2,text=0" );
-//  else if ( GetEnvString("GDL_WX_BACKEND") == "1") SETOPT("drvopt", "hrshsym=1,backend=1,text=0" ); 
-//  else  SETOPT("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
+    setopt("drvopt", "hrshsym=1,backend=2,text=0" );
+//  else if ( GetEnvString("GDL_WX_BACKEND") == "1") setopt("drvopt", "hrshsym=1,backend=1,text=0" ); 
+//  else  setopt("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
 #else
-  else  SETOPT("drvopt", "hrshsym=1,text=0" ); //
+  else  setopt("drvopt", "hrshsym=1,text=0" ); //
 #endif
     PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
     PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;

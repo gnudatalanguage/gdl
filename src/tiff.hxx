@@ -182,7 +182,7 @@ namespace lib
             }
 
             #ifdef USE_GEOTIFF
-            DStructGDL* CreateGeoStruct(tdir_t) const;
+            BaseGDL*    CreateGeoStructOrZero(tdir_t) const;
             bool        GetGeoKey(geokey_t, GeoKey&) const;
             #endif
 

@@ -71,7 +71,7 @@ if STRLOWCASE(!version.os_name) eq 'windows' then begin
    message, /continue, 'This code is not design for MSwin plateform'
    message, /continue, 'not sure this code can survive on MS-window OS'
    message, /continue, 'Please report any problem (or success) and improvments'
-   message, /continue, 'please report bugs on SF GDL site'
+   message, /continue, 'please report bugs on GitHub GDL site'
 endif
 ;
 nb_errors=0

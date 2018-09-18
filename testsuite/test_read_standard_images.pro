@@ -82,12 +82,12 @@ list_of_names=images.name
 list_of_md5=images.md5
 ;
 md5cmd=''
-if STRLOWCASE(!version.os_name) eq 'linux' then md5cmd='md5sum '
-if STRLOWCASE(!version.os_name) eq 'darwin' then  md5cmd='md5 -r '
+if STRLOWCASE(!version.os) eq 'linux' then md5cmd='md5sum '
+if STRLOWCASE(!version.os) eq 'darwin' then  md5cmd='md5 -r '
 ;
 if (STRLEN(md5cmd) EQ 0) then begin
    MESSAGE, /cont, 'MD5 command not known for your system: '+!version.os_name
-   MESSAGE, /cont, 'please contribute, no test done.'
+   MESSAGE, /cont, 'please contribute, no test done. (!fixme!)'
    return
 endif
 ;

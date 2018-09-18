@@ -24,6 +24,9 @@ cmake_policy(SET CMP0026 OLD) # LOCATION property
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
+# advice by Orion, mandatory for FC 28
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # X.X.X git becomes release X.X.X+1
 set(VERSION "0.9.8 git")
 enable_testing()
@@ -53,7 +56,6 @@ set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
 set(EDITLINE ON CACHE BOOL "GDL: Enable BSD Editline ?")
 set(EDITLINEDIR "" CACHE PATH "GDL: Specify the BSD Editline directory tree")
 
-set(OLDPLPLOT OFF CACHE BOOL "GDL: Enable old plplot ?")
 set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
 
 set(GSLDIR "" CACHE PATH "GDL: Specify the GSL directory tree")
@@ -423,9 +425,7 @@ elseif (WIN32 AND NOT CYGWIN)
 endif()
 
 # PLplot MANDATORY
-# -DOLDPLPLOT=ON|OFF
 # -DPLPLOTDIR=DIR
-set(HAVE_OLDPLPLOT ${OLDPLPLOT})
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
 set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
@@ -441,15 +441,13 @@ endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
-    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-    if(HAVE_PLPLOT_SLABELFUNC)
-      set(HAVE_PLPLOT_SLABELFUNC 1)
-    else(HAVE_PLPLOT_SLABELFUNC)
-      message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
-        "you should upgrade to plplot version > 5.9.6")
-    endif(HAVE_PLPLOT_SLABELFUNC)
-    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+	if(NOT HAVE_PLPLOT_SLABELFUNC)
+	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
+	endif()
+
+	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
 #the following does not work with clang (???)
     check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
@@ -1194,7 +1192,6 @@ if(NOT WIN32)
   set(CURSES ON)
 endif(NOT WIN32)
 module(PLPLOT    "Plplot        ")
-module(OLDPLPLOT "Old Plplot    ")
 module(READLINE  "GNU Readline  ")
 module(EDITLINE  "BSD Editline  ")
 module(GSL       "GSL           ")
