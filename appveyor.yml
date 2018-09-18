@@ -8,9 +8,8 @@ configuration:
   - Debug
 environment:
   matrix:
-  - platform: mingw64630x8664
-  # see build 622 https://ci.appveyor.com/project/slayoo/gdl/build/1.0.622/job
   - platform: mingw64630i686
+  - platform: mingw64630x8664
    
 matrix:
   fast_finish: true
