@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <patchlevel.h>
 #include <numpy/arrayobject.h>
 #endif
 
