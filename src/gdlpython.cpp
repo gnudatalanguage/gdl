@@ -45,7 +45,7 @@ void PythonInit()
   
   static int argc = 1;
 #if PY_MAJOR_VERSION >= 3
-  static wchar_t* arg0 = (wchar_t*)"./py/python.exe";
+  static wchar_t* arg0 = Py_DecodeLocale("./py/python.exe",NULL);
   static wchar_t* argv[] = {arg0};
 #else
   static char* arg0 = (char*)"./py/python.exe";
