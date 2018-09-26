@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=GNU Data Language
+Comment=Free IDL compatible incremental compiler
+Exec=gdl
+Icon=gdl
+Terminal=true
+Type=Application
+Categories=Science;
+Keywords=gdl;idl;
