@@ -1,6 +1,12 @@
 ;+
 ; NAME: RESTORE
 ;
+; -----------------------------------------------------------------------------
+; AC 2018-Sept-15
+; OBSOLETE ! Since GDL 0.9.8, SAVE & RESTORE are internaly managed
+; Neverteless these codes can be use to test the CMSV lib.
+; -----------------------------------------------------------------------------
+;
 ; PURPOSE:
 ;       Serves as a wrapper around CMSAVE from Craig B. Markwardt CMVSLIB
 ;       library. You must download and install yourself this CMVSLIB library
@@ -31,7 +37,7 @@
 ; (at your option) any later version.
 ;
 ;-
-pro RESTORE, filename0, filename=filename1, $
+pro RESTORE_OLD, filename0, filename=filename1, $
              RELAXED_STRUCTURE_ASSIGNMENT=RELAXED_STRUCTURE_ASSIGNMENT, $
              DESCRIPTION=DESCRIPTION, RESTORED_OBJECTS=RESTORED_OBJECTS, $
              help=help, verbose=verbose, test=test

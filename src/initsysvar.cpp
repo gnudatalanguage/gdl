@@ -699,53 +699,55 @@ namespace SysVar
     DStructGDL*  ver = new DStructGDL( "!VERSION");
 #ifdef _WIN32
 #ifdef __MINGW32__
-	typedef void (WINAPI *GetNativeSystemInfoFunc)(LPSYSTEM_INFO);
-	HMODULE hModule = LoadLibraryW(L"kernel32.dll");
-	GetNativeSystemInfoFunc GetNativeSystemInfo =(GetNativeSystemInfoFunc) 
-            GetProcAddress(hModule, "GetNativeSystemInfo");
+    typedef void (WINAPI *GetNativeSystemInfoFunc)(LPSYSTEM_INFO);
+    HMODULE hModule = LoadLibraryW(L"kernel32.dll");
+    GetNativeSystemInfoFunc GetNativeSystemInfo =(GetNativeSystemInfoFunc) 
+      GetProcAddress(hModule, "GetNativeSystemInfo");
 #endif
-	const char* SysName = "Windows";
-	SYSTEM_INFO stInfo;
-	GetNativeSystemInfo( &stInfo );
-	DStringGDL *arch;
-	switch(stInfo.wProcessorArchitecture) {
-	case PROCESSOR_ARCHITECTURE_AMD64:
-		arch = new DStringGDL("x64");
-		break;
-	case PROCESSOR_ARCHITECTURE_INTEL:
-		arch = new DStringGDL("x86");
-		break;
-	case PROCESSOR_ARCHITECTURE_ARM:
-		arch = new DStringGDL("ARM");
-		break;
-	default:
-		arch = new DStringGDL("unknown");
-	}
-	ver->NewTag("ARCH", arch); 
-    ver->NewTag("OS", new DStringGDL(SysName));    
-    ver->NewTag("OS_FAMILY", new DStringGDL(SysName)); 
-    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
+    const char* SysName = "Windows";
+    SYSTEM_INFO stInfo;
+    GetNativeSystemInfo( &stInfo );
+    DStringGDL *arch;
+    switch(stInfo.wProcessorArchitecture) {
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      arch = new DStringGDL("x64");
+      break;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      arch = new DStringGDL("x86");
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM:
+      arch = new DStringGDL("ARM");
+      break;
+    default:
+      arch = new DStringGDL("unknown");
+    }
+    ver->NewTag("ARCH", arch); 
+    ver->NewTag("OS", new DStringGDL(SysName));
+    ver->NewTag("OS_FAMILY", new DStringGDL(SysName));
+    ver->NewTag("OS_NAME", new DStringGDL(SysName));
 #else
     struct utsname uts;
     uname(&uts);
-    ver->NewTag("ARCH", new DStringGDL( uts.machine)); 
+    ver->NewTag("ARCH", new DStringGDL( uts.machine));
     const char *SysName=uts.sysname;
     if (strcmp(SysName,"Linux") ==0) SysName="linux";
     if (strcmp(SysName,"Darwin") ==0) SysName="darwin";
     ver->NewTag("OS", new DStringGDL(SysName));    //correct IDL order
-    ver->NewTag("OS_FAMILY", new DStringGDL( "unix")); 
-    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
+    ver->NewTag("OS_FAMILY", new DStringGDL( "unix"));
+    // AC 2018-sep-07
+    if (strcmp(SysName,"darwin") ==0) SysName="Mac OS X";
+    ver->NewTag("OS_NAME", new DStringGDL(SysName));
 #endif
 
     ver->NewTag("RELEASE", new DStringGDL( "8.2")); //we are at least 6.4
-    ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE)); 
-    ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
-    ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8)); 
+    ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
+    ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8));
+    ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8));
     DVar *v            = new DVar( "VERSION", ver);
     vIx                = sysVarList.size();
     sysVarList.push_back(v);
     sysVarRdOnlyList.push_back(v);
-    
+
     // !Mouse
     DStructGDL*  MouseData = new DStructGDL( "!MOUSE");
     MouseData->NewTag("X", new DLongGDL( 0));
@@ -768,14 +770,14 @@ namespace SysVar
 
     // !ERROR_STATE
     DStructGDL*  eStateData = new DStructGDL( "!ERROR_STATE");
-    eStateData->NewTag("NAME", new DStringGDL( "IDL_M_SUCCESS")); 
-    eStateData->NewTag("BLOCK", new DStringGDL( "IDL_MBLK_CORE")); 
-    eStateData->NewTag("CODE", new DLongGDL( 0)); 
+    eStateData->NewTag("NAME", new DStringGDL( "IDL_M_SUCCESS"));
+    eStateData->NewTag("BLOCK", new DStringGDL( "IDL_MBLK_CORE"));
+    eStateData->NewTag("CODE", new DLongGDL( 0));
     eStateData->NewTag("SYS_CODE", new DLongGDL( dimension( &dim2,one))); //idl 8
-    eStateData->NewTag("SYS_CODE_TYPE", new DStringGDL( "")); 
-    eStateData->NewTag("MSG", new DStringGDL( "")); 
-    eStateData->NewTag("SYS_MSG", new DStringGDL( "")); 
-    eStateData->NewTag("MSG_PREFIX", new DStringGDL( "% ")); 
+    eStateData->NewTag("SYS_CODE_TYPE", new DStringGDL( ""));
+    eStateData->NewTag("MSG", new DStringGDL( ""));
+    eStateData->NewTag("SYS_MSG", new DStringGDL( ""));
+    eStateData->NewTag("MSG_PREFIX", new DStringGDL( "% "));
     DVar *eState       = new DVar( "ERROR_STATE", eStateData);
     errorStateIx       = sysVarList.size();
     sysVarList.push_back(eState);

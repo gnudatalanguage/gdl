@@ -21,7 +21,9 @@ end
 ; vectors of data. Extracting extremal ranges.
 ;
 pro BENCHMARK_COMPUTE_RANGE, liste_xdr_files, xrange, yrange, x_name, y_name, $
-                         xmax=xmax, ymax=ymax, verbose=verbose, test=test, debug=debug
+                             xmax=xmax, ymax=ymax, $
+                             xelems=xelems, yelems=yelems, $
+                             verbose=verbose, test=test, debug=debug
 ;
 xrange=[0.,0.]
 yrange=[0.,0.]
@@ -59,6 +61,8 @@ for ii=0, N_ELEMENTS(liste_xdr_files)-1 do begin
       endif  else update_flag=0
       ;;print,nbpy,  y_data
    endif
+   xelems=N_ELEMENTS(x_data)
+   yelems=N_ELEMENTS(y_data)
    ;;
    ;; do we still have one point ?!
    ;;

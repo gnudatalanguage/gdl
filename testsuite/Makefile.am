@@ -93,7 +93,9 @@ TESTS = \
   test_device.pro \
   test_diag_matrix.pro \
   test_dicom.pro \
+  test_dilate.pro \
   test_erfinv.pro \
+  test_erode.pro \
   test_execute.pro \
   test_extra_keywords.pro \
   test_fft.pro \
@@ -205,6 +207,7 @@ TESTS = \
   test_suite.pro \
   test_systime.pro \
   test_tic_toc.pro \
+  test_tiff.pro \
   test_total.pro \
   test_trisol.pro \
   test_tv.pro \

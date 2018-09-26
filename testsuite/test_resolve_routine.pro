@@ -8,6 +8,14 @@
 ; an opportunity to test also that no bugs or typo introduced
 ; in the PRO files ! (two discovered in testsuite files when tested !)
 ;
+; ---------------------------------------
+; Modifications history :
+;
+; - 2018-JUL-10 : AC. not ok when more than one file :(
+;
+; ---------------------------------------
+; 
+;
 pro TEST_ALL_TEST_ROUTINES, cumul_errors, filter=filter, test=test
 ;
 errors=0
@@ -16,9 +24,15 @@ if ~KEYWORD_SET(filter) then filter='test_*pro'
 ;
 files=FILE_SEARCH(filter)
 ;
+name='test_resolve_routine'
+info=ROUTINE_INFO(name,/source)
+path=STRMID(info.path, 0, STRLEN(info.path)-(STRLEN(name)+4))
+;
+if (files[0] EQ '') then files=FILE_SEARCH(path+path_sep()+filter)
+;
 ; we need to remove "TEST_RESOLVE_ROUTINE" in the list
 ;
-index=STRPOS(files, 'test_resolve_routine')
+index=STRPOS(files, name)
 ok=WHERE(index LT 0, nbp_ok)
 if (nbp_ok GT 0) then files=files[ok]
 ;
@@ -48,6 +62,7 @@ endfor
 ;
 if (N_ELEMENTS(pbs) GT 1) then begin
    pbs=pbs[1:*]
+   BANNER_FOR_TESTSUITE, 'TEST_ALL_TEST_ROUTINES', 0, /line
    for jj=0, N_ELEMENTS(pbs)-1 do print, 'Problem in : ', pbs[jj]
    print, 'Due to problem, will skip next test.'
 endif else begin
@@ -55,7 +70,7 @@ endif else begin
    resolve_routine,files,/either
 endelse
 ;
-BANNER_FOR_TESTSUITE, 'TEST_ALL_TEST_ROUTINES', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_ALL_TEST_ROUTINES', errors, /status
 ;
 ERRORS_CUMUL, cumul_errors, errors
 ;
