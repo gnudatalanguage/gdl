@@ -86,6 +86,8 @@ TESTS = \
   test_common.pro \
   test_congrid.pro \
   test_constants.pro \
+  test_container.pro \
+  test_contour.pro \
   test_convert_coord.pro \
   test_correlate.pro \
   test_delvarrnew.pro \
