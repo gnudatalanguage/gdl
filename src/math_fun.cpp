@@ -1196,26 +1196,26 @@ namespace lib {
 	(*res)[ 0] = sqrt((*p0C)[ 0]); 
 	return res;	      
       }
-
-#ifdef USE_EIGEN
-
-    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
-    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
-    mRes = mP0C.sqrt();
-    return res;
-#else
+// eigen is not faster here
+//#ifdef USE_EIGEN
+//
+//    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
+//    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+//    mRes = mP0C.sqrt();
+//    return res;
+//#else
 
     TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma intel omp forthis
+#pragma omp for
 	for( OMPInt i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = sqrt((*p0C)[ i]); 
 	  }
       }
     return res;
-#endif
+//#endif
     
   }
 
@@ -1229,12 +1229,13 @@ namespace lib {
 	(*p0C)[ 0] = sqrt((*p0C)[ 0]); 
 	return p0C;	      
       }
-#ifdef USE_EIGEN
-
-    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
-    mP0C = mP0C.sqrt();
-    return p0C;
-#else
+// eigen is not faster here
+//#ifdef USE_EIGEN
+//
+//    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
+//    mP0C = mP0C.sqrt();
+//    return p0C;
+//#else
     TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
@@ -1245,7 +1246,7 @@ namespace lib {
 	  }
       }
     return p0C;
-#endif
+//#endif
   }
 
   BaseGDL* sqrt_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
@@ -1285,12 +1286,13 @@ namespace lib {
 	  (*res)[ 0] = sqrt( (*res)[ 0]); 
 	  return res;	      
 	}
-#ifdef USE_EIGEN
-
-      Eigen::Map<Eigen::Array<DFloat,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
-      mRes = mRes.sqrt();
-      return res;
-#else
+// eigen is not faster here
+//#ifdef USE_EIGEN
+//
+//      Eigen::Map<Eigen::Array<DFloat,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
+//      mRes = mRes.sqrt();
+//      return res;
+//#else
       TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1301,7 +1303,7 @@ namespace lib {
 	    }
 	}
       return res;
-#endif  
+//#endif  
     }
   }
 
