@@ -121,6 +121,14 @@ a=[22:32.3:0.2]
 if not ARRAY_EQUAL(a, FINDGEN(52,start=22,increment=0.2)) then $
    ERRORS_ADD, nerr, "a=[22:32.3:0.2] yields wrong result" 
 ;
+a=[22:32]
+if not ARRAY_EQUAL(a, FINDGEN(11,start=22,increment=1)) then $
+   ERRORS_ADD, nerr, "a=[22:32] yields wrong result" 
+;
+a=[32:22]
+if not ARRAY_EQUAL(a, FINDGEN(11,start=32,increment=-1)) then $
+   ERRORS_ADD, nerr, "a=[32:22] yields wrong result" 
+;
 a=['22':32.3:0.2]
 if not ARRAY_EQUAL(a, SINDGEN(52,start=22,increment=0.2)) then $
    ERRORS_ADD, nerr, "a=['22':32.3:0.2] yields wrong result" 
