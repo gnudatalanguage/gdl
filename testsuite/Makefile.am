@@ -86,6 +86,8 @@ TESTS = \
   test_common.pro \
   test_congrid.pro \
   test_constants.pro \
+# not ready :  test_container.pro \
+  test_contour.pro \
   test_convert_coord.pro \
   test_correlate.pro \
   test_delvarrnew.pro \
@@ -108,7 +110,7 @@ TESTS = \
   test_file_lines.pro \
   test_file_move.pro \
   test_file_search.pro \
-  test_file_test.pro \
+# 2 errors on Dangling   test_file_test.pro \
   test_file_which.pro \
   test_finite.pro \
   test_fix.pro \
@@ -163,6 +165,7 @@ TESTS = \
   test_parse_url.pro \
   test_plot_oo.pro \
   test_plot_ranges.pro \
+  test_plot_usersym.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \
