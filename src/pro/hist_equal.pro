@@ -81,10 +81,11 @@
 ;       xyouts, 0.5795328, 0.0200364, 'Red = Equalised', /normal, charSIZE=2
 ;
 ; MODIFICATION HISTORY:
-;   01-May-2012 Written by:     Josh Sixsmith
-;   07-May-2012 Fixed percent keyword argument
-;   22-May-2012 Alain Coulais: Details (/help,/test), initial import in GDL
-;   25-May-2012 Alain: typo in LINEAR_PERCENT :( , formatting
+;  2012-May-01 Written by:     Josh Sixsmith
+;  2012-May-07 Fixed percent keyword argument
+;  2012-May-22 Alain Coulais: Details (/help,/test), initial import in GDL
+;  2012-May-25 Alain: typo in LINEAR_PERCENT :( , formatting
+;  218-Sept-27 Alain: better message when max==min !
 ;
 ;-
 ; LICENCE:
@@ -108,8 +109,8 @@ while cumuhist[x1] eq cumuhist[x1 + 1] do begin
     x1 = x1 + 1
 endwhile
 ;
-close1 = abs(low - cumuhist[x1]/n)
-close2 = abs(low - cumuhist[x1 + 1]/n)
+close1 = ABS(low - cumuhist[x1]/n)
+close2 = ABS(low - cumuhist[x1 + 1]/n)
 x1 = (close1 le close2) ? x1 : x1 + 1
 minDN = x1 * binSIZE + min
 ;
@@ -147,20 +148,22 @@ if KEYWORD_SET(fcn) then MESSAGE, txt
 ;
 ;    if (percent le 0) or (percent ge 100) then MESSAGE, 'Percent must be between 0 and 100'
 ;
-if N_ELEMENTS(maxv) eq 0 then maxv = max(img, min=min_)
+if N_ELEMENTS(maxv) eq 0 then maxv = MAX(img, min=min_)
 if N_ELEMENTS(minv) eq 0 then minv = min_
+;
+if minv GE maxv then MESSAGE, 'MINV must be less than MAXV.'
 ;
 if N_ELEMENTS(top_) eq 1 then top = top_[0] else top = 255
 ;
 type = SIZE(img, /type)
 ;
 if N_ELEMENTS(bs) eq 0 then begin
-    if type eq 1 then begin
-        bs = 1
-    endif else begin
-        ;; Calculate as double. Precision needed for very small values. 
-        bs = (maxv - minv)/5000d 
-    endelse
+   if type eq 1 then begin
+      bs = 1
+   endif else begin
+      ;; Calculate as double. Precision needed for very small values. 
+      bs = (maxv - minv)/5000d 
+   endelse
 endif
 ;
 hist = HISTOGRAM(img, binSIZE=bs, omax=omax_, omin=omin_, max=maxv, min=minv)
@@ -171,23 +174,23 @@ cumu = TOTAL(hist, /cumulative, /double)
 if KEYWORD_SET(ho) then return, long(cumu)
 ;
 if N_ELEMENTS(percent) gt 0 then begin
-    if (percent le 0) or (percent ge 100) then MESSAGE, 'Percent must be between 0 and 100'
-    LINEAR_PERCENT, cumu, percent, minv, bs, maxDN, minDN
-    scl = BYTSCL(img, max=maxDN, min=minDN, top=top)
-    ;;
-    if KEYWORD_SET(test) then STOP
-    return, scl
+   if (percent le 0) or (percent ge 100) then MESSAGE, 'Percent must be between 0 and 100'
+   LINEAR_PERCENT, cumu, percent, minv, bs, maxDN, minDN
+   scl = BYTSCL(img, max=maxDN, min=minDN, top=top)
+   ;;
+   if KEYWORD_SET(test) then STOP
+   return, scl
 endif
 ;
 bytsc = BYTSCL(cumu, top=top)
 ;
 if SIZE(img, /type) eq 1 then begin
-    ;; Check for minv. Clip to zero if non zero
-    scl = (minv eq 0) ? bytsc[img] : bytsc[(img > minv) - minv]
+   ;; Check for minv. Clip to zero if non zero
+   scl = (minv eq 0) ? bytsc[img] : bytsc[(img > minv) - minv]
 endif else begin
     ;; Scale by the binSIZE to in order to get the bin position
     ;; Check for minv. Clip to zero if non zero
-    scl = (minv eq 0) ? bytsc[img/bs] : bytsc[((img > minv) - minv)/bs]    
+   scl = (minv eq 0) ? bytsc[img/bs] : bytsc[((img > minv) - minv)/bs]    
 endelse
 ;
 if KEYWORD_SET(test) then STOP
