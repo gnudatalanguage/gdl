@@ -25,7 +25,7 @@ project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
 # advice by Orion, mandatory for FC 28
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
 set(VERSION "0.9.8 git")
@@ -441,13 +441,13 @@ endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
-	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-	if(NOT HAVE_PLPLOT_SLABELFUNC)
-	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
-	endif()
+    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+    if(NOT HAVE_PLPLOT_SLABELFUNC)
+      message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
+    endif()
 
-	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
 #the following does not work with clang (???)
     check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
