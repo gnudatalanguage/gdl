@@ -132,15 +132,11 @@ LINE EDITING:
   
 GRAPHICS AND DEPENDENCIES:
 --------------------------
-  For the graphics support of GDL, the plplot library version 5.9
-  is necessary. PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
-  See below if you have an older version of plplot.
+  For the graphics support of GDL, the plplot library version >5.9.6 is necessary. 
+  PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
   To download plplot please look here:
   http://plplot.sourceforge.net/source/index.html
   
-  If you have plplot older than 5.9.6 use the configure
-  option --enable-oldplplot (configure) or -DOLDPLPLOT=on (CMake)
-  With this option, plplot down to 5.9 should work.
   A possible problem was reported:
   On opening more than one window, plplot causes a segmentation fault
   if GDL is compiled with ImageMagick. This happens if plplot uses 

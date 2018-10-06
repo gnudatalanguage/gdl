@@ -10,11 +10,11 @@
 ;
 pro TEST_FILE_WHICH, test=test
 ;
-if STRLOWCASE(!version.os_name) eq 'windows' then begin
+if STRLOWCASE(!version.os_family) eq 'windows' then begin
     MEssage, /continue, 'This code might be not working on MSwin OS'
     message, /continue, 'Please help us and report improvment !'
 endif
-if STRLOWCASE(!version.os_name) eq 'darwin' then begin
+if STRLOWCASE(!version.os) eq 'darwin' then begin
     MEssage, /continue, 'This code might be not working on OSX (darwin)'
     message, /continue, 'depending you use a HPFS+ with Case Sensitive or not ...'    
 endif

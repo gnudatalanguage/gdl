@@ -1827,18 +1827,14 @@ namespace lib {
         data.nchars=0;
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
-#endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=data.nchars;
         if (axis=="Y") title_position=nchars+2.5; else title_position=3.5;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
       //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
       else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
@@ -1853,10 +1849,8 @@ namespace lib {
         }
         muaxdata.TickUnits=TickUnits;
         muaxdata.nTickUnits=tickUnitArraySize;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";otherOpt+="o"; //use external func custom labeling
-#endif
         if (modifierCode==2) {Opt+="m"; otherOpt+="m";} else {Opt+="n"; otherOpt+="n";} //m: write numerical/right above, n: below/left (normal)
         PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
         a->getCurrentNormBox(un,deux,trois,quatre);
@@ -1888,9 +1882,7 @@ namespace lib {
         }
         a->vpor(un,deux,trois,quatre);
         a->wind(xun,xdeux,xtrois,xquatre);
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
       else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
       {
@@ -1899,34 +1891,26 @@ namespace lib {
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
         muaxdata.nTickFormat=1;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
-#endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=muaxdata.nchars;
         if (axis=="Y") title_position=nchars+2; else title_position=3.5;
-#if (HAVE_PLPLOT_SLABELFUNC)        
         a->slabelfunc( NULL, NULL );
-#endif
       }
       else
       {
-#if (HAVE_PLPLOT_SLABELFUNC)
         tdata.nchars=0;
         a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
-#endif
         if (modifierCode==2) Opt+="m"; else Opt+="n";
         if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=tdata.nchars;
         if (axis=="Y") title_position=nchars+2; else title_position=3.5;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
 
       if (modifierCode==0 ||modifierCode==1)
@@ -2114,16 +2098,12 @@ namespace lib {
         data.counter=0;
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
-#endif
         if      (axis=="X") a->box3(Opt.c_str(), "" , TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
       //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
       else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
@@ -2138,10 +2118,8 @@ namespace lib {
         }
         muaxdata.TickUnits=TickUnits;
         muaxdata.nTickUnits=tickUnitArraySize;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
-#endif
         for (SizeT i=0; i< muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
         {
 // no equivalent in 3d yet...
@@ -2155,9 +2133,7 @@ namespace lib {
 //          a->plstream::wind(xun,xdeux,xtrois,xquatre);
             muaxdata.counter++;
         }
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
       else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
       {
@@ -2165,30 +2141,22 @@ namespace lib {
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
         muaxdata.nTickFormat=1;
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
-#endif
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         
-#if (HAVE_PLPLOT_SLABELFUNC)        
         a->slabelfunc( NULL, NULL );
-#endif
       }
       else
       {
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
-#endif
         if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-#if (HAVE_PLPLOT_SLABELFUNC)
         a->slabelfunc( NULL, NULL );
-#endif
       }
 
       if (TickLayout==0)
