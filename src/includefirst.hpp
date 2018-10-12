@@ -84,11 +84,12 @@ inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_
 #endif
 }
 
-inline void gdlAlignedFree(void* ptr) {
-#if defined(USE_EIGEN)
- return Eigen::internal::aligned_free(ptr);
-#else
- return std::free(ptr);
-#endif
-}
+// removed as clang does know std::free
+//inline void gdlAlignedFree(void* ptr) {
+//#if defined(USE_EIGEN)
+// return Eigen::internal::aligned_free(ptr);
+//#else
+// return std::free(ptr);
+//#endif
+//}
 #endif
