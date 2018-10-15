@@ -21,7 +21,7 @@ echo $LOCALM32
 echo " bld_gm32.msys:  with msys script"
 
 export PATH=$LOCALM32/bin:$PATH
-
+g++ -v
 GMname=GraphicsMagick-1.3.30
 #
 which cmake

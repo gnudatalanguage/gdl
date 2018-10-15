@@ -8,8 +8,10 @@ configuration:
   #- Debug
 environment:
   matrix:
+  - platform: mingw64720x8664
   - platform: mingw64630i686
-  - platform: mingw64730x8664
+  #- platform: mingw64730x8664
+  #- platform: mingw64630x8664
    
 matrix:
   fast_finish: true
@@ -32,6 +34,13 @@ install:
       {
         #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
         $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
+        $env:MSYSTEM="MINGW64"
+        $env:mname="mingw64"
+      }
+      elseif ($env:platform -Match "mingw64720x8664") 
+      {
+        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
+        $env:GCC="x86_64-7.2.0-posix-seh-rt_v5-rev1"
         $env:MSYSTEM="MINGW64"
         $env:mname="mingw64"
       }
