@@ -54,6 +54,9 @@
 
 #endif
 
+#include <cstddef>
+#include <cstdlib>
+
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
 #endif
@@ -80,7 +83,7 @@ inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_
 #if defined(USE_EIGEN)
  return Eigen::internal::aligned_realloc(ptr,new_size,old_size);
 #else
- return std::realloc(ptr, newsize);
+ return std::realloc(ptr, new_size);
 #endif
 }
 
