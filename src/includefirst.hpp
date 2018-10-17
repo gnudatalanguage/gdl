@@ -54,6 +54,9 @@
 
 #endif
 
+#include <cstddef>
+#include <cstdlib>
+
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
 #endif
@@ -65,4 +68,31 @@
 #  undef GS
 #endif
 
+//define globally a gdl method for allocating/deallocating/freeing data compatible with alignment needed by EIGEN.
+//This permits to create unallocated data varibale (BaseGDL* objects) and have them point to some
+// data adress that has been allocated in a c or c++ function.
+inline void* gdlAlignedMalloc(std::size_t size) {
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_malloc(size);
+#else
+ return std::malloc(size);
+#endif
+}
+
+inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_size=0) { //apparently Eigen does not use old_size anymore. Pfewh.
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_realloc(ptr,new_size,old_size);
+#else
+ return std::realloc(ptr, new_size);
+#endif
+}
+
+// removed as clang does know std::free
+//inline void gdlAlignedFree(void* ptr) {
+//#if defined(USE_EIGEN)
+// return Eigen::internal::aligned_free(ptr);
+//#else
+// return std::free(ptr);
+//#endif
+//}
 #endif
