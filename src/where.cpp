@@ -21,6 +21,12 @@
 #include "dstructgdl.hpp"
 #include "dinterpreter.hpp" //for sysVarList() 
 
+#ifdef _OPENMP
+#define MINMAX_THREAD_NUM omp_get_thread_num()
+#else
+#define MINMAX_THREAD_NUM 0
+#endif
+
 //We create 'on the spot' arrays that must be aligned. this is the purpose of the gdl..lloc functions.
 #define MALLOC gdlAlignedMalloc
 #define REALLOC gdlAlignedRealloc 
@@ -92,7 +98,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
+        int thread_id = MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -170,7 +176,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
+        int thread_id = MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
