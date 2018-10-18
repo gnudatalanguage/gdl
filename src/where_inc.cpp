@@ -17,10 +17,14 @@
 template<>
 void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
- //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+ //code below is optimized for 1 thread (no thread) and for presence or absence of complement. Also to use without OPENMP
+#ifdef _OPENMP
   int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+#endif
   if (comp) {
+#ifdef _OPENMP    
     if (nchunk==1) {
+#endif
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
       DLong64* no = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
       // computational magic of 0 and 1 to keep ony 'good' indexes. 
@@ -37,6 +41,7 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
       if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {std::free(no); comp_ret=NULL;}
       return;
+#ifdef _OPENMP    
     } else {
       SizeT chunksize = nEl / nchunk;
       DLong64* partyes[nchunk];
@@ -45,7 +50,7 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -104,8 +109,11 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
         free(partno[iloop]);
       }
     }
+#endif
   } else {
+#ifdef _OPENMP    
     if (nchunk==1) {
+#endif
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
       // computational magic of 0 and 1 to keep ony 'good' indexes. 
       SizeT count=0;
@@ -117,13 +125,14 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       passed_count=count;
       if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
       return;
+#ifdef _OPENMP    
     } else {
       SizeT chunksize = nEl / nchunk;
       DLong64* part[nchunk];
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -166,15 +175,20 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
         free(part[iloop]);
       }
     }
+#endif
   }
 }
 template<>
 void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+#ifdef _OPENMP    
   int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+#endif
   if (comp) {
+#ifdef _OPENMP    
     if (nchunk==1) {
+#endif
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
       DLong* no = (DLong*)MALLOC(nEl*sizeof(DLong)); 
       // computational magic of 0 and 1 to keep ony 'good' indexes. 
@@ -191,6 +205,7 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
       if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {std::free(yes); ret=NULL;}
       if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {std::free(no); comp_ret=NULL;}
       return;
+#ifdef _OPENMP    
     } else {
       SizeT chunksize = nEl / nchunk;
       DLong* partyes[nchunk];
@@ -199,7 +214,7 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -258,8 +273,11 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         free(partno[iloop]);
       }
     }
+#endif
   } else {
+#ifdef _OPENMP    
     if (nchunk==1) {
+#endif
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
       // computational magic of 0 and 1 to keep ony 'good' indexes. 
       SizeT count=0;
@@ -271,13 +289,14 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
       passed_count=count;
       if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {std::free(yes); ret=NULL;}
       return;
+#ifdef _OPENMP    
     } else {
       SizeT chunksize = nEl / nchunk;
       DLong* part[nchunk];
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = omp_get_thread_num(); //MINMAX_THREAD_NUM;
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -320,5 +339,6 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         free(part[iloop]);
       }
     }
+#endif
   }
 }
