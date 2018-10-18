@@ -86,6 +86,8 @@ TESTS = \
   test_common.pro \
   test_congrid.pro \
   test_constants.pro \
+  test_container.pro \
+  test_contour.pro \
   test_convert_coord.pro \
   test_correlate.pro \
   test_delvarrnew.pro \
@@ -138,6 +140,7 @@ TESTS = \
   test_keyword_set_but_null.pro \
   test_l64.pro \
   test_la_least_squares.pro \
+  test_linfit.pro \
   test_list.pro \
   test_ludc_lusol.pro \
   test_make_array.pro \
@@ -163,6 +166,7 @@ TESTS = \
   test_parse_url.pro \
   test_plot_oo.pro \
   test_plot_ranges.pro \
+  test_plot_usersym.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \

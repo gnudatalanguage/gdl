@@ -557,9 +557,9 @@ DStructGDL* NewResult() const
   { throw GDLException("Struct expression not allowed in this context.");}
   bool LogTrue( SizeT ix)
   { throw GDLException("Struct expression not allowed in this context.");}
-  DLong* Where( bool, SizeT&)
+  void Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret)
   { throw GDLException("Struct expression not allowed in this context.");}
-  DByte* TagWhere( SizeT&)
+  void Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret)
   { throw GDLException("Struct expression not allowed in this context.");}
   Data_<SpDByte>* LogNeg()
   { throw GDLException("Struct expression not allowed in this context.");}

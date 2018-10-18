@@ -33,8 +33,9 @@ end
 function idlneturl::Get, filename=filename, string_array=string_array, $
                          test=test, verbose=verbose
 ;
-tmpIDLDir = GETENV('IDL_TMPDIR')
-if STRLEN(tmpIDLDir) EQ 0 then tmpIDLDir='/tmp/'
+;; AC 2018-spet-27 : no more useful ?!
+;; tmpIDLDir = GETENV('IDL_TMPDIR')
+;; if STRLEN(tmpIDLDir) EQ 0 then tmpIDLDir='/tmp/'
 ;
 id_cmd=''
 ;
@@ -49,17 +50,24 @@ if STRLEN(self.URL_QUERY) GT 0 then id_cmd=id_cmd+'?'+self.URL_QUERY
 ; in vizier, the /viz-bin was moved into a /cgi-bin ...
 ;
 curl_cmd='curl -L '
-if KEYWORD_SET(filename) then begin
-   curl_cmd=curl_cmd+'-o '+filename+' '
-endif else begin
-   ;; when Query, not going through a file ...
-   if STRLEN(self.URL_QUERY) EQ 0 then curl_cmd=curl_cmd+'-O '
-endelse
+;
+if ~KEYWORD_SET(string_array) then begin
+   if (STRLEN(self.URL_QUERY) GT 0) then begin
+      curl_cmd=curl_cmd+'-O '
+   endif else begin
+      if ~KEYWORD_SET(filename) then filename='idl.dat'
+      curl_cmd=curl_cmd+'-o '+filename+' '
+   endelse
+endif
 ;
 cmd=curl_cmd+id_cmd
 if KEYWORD_SET(verbose) then print, cmd
 ;
 SPAWN, cmd, result, blahblah
+if KEYWORD_SET(verbose) then begin
+   print, 'Result : ', result
+   print, 'blahblah : ', blahblah
+endif
 ;
 if KEYWORD_SET(test) then STOP
 ;

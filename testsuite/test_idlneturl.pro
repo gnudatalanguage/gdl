@@ -9,7 +9,7 @@
 ; Very very limited but working version :
 ; improvments needed (no outputs ...)
 ;
-pro TEST_IDLNETURL, help=help, test=test, no_exit=no_exit
+pro TEST_IDLNETURL, help=help, test=test, no_exit=no_exit, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_IDLNETURL, help=help, test=test, no_exit=no_exit'
@@ -22,12 +22,17 @@ url='aramis.obspm.fr/~coulais/'
 FileName='idlneturl4gdl.txt'
 remoteFileName='GDL/Extra/'+FileName
 ;
+expected_content='AC 22 Feb 2017'
+;
 localPaths=['','','SubDirNetUrl/','../testsuite/SubDirNetUrl/']
 ;
 for ii=0, N_ELEMENTS(localPaths)-1 do begin
    localFullPath=localPaths[ii]+FileName
    ;;
-   if ii GT 0 then localFullPath=localFullPath+'_'+GDL_IDL_FL()+'_'+STRCOMPRESS(STRING(ii),/remove)
+   if ii GT 0 then begin
+      localFullPath=localFullPath+'_'+GDL_IDL_FL()+'_'+STRING(ii)
+      localFullPath=STRCOMPRESS(localFullPath,/remove_all)
+   endif
    ;; cleaning local file
    if FILE_TEST(localFullPath) then begin
       print, 'Removing pre-existing file : '+localFullPath
@@ -37,7 +42,8 @@ for ii=0, N_ELEMENTS(localPaths)-1 do begin
       if ~FILE_TEST(localPaths[ii],/dir) then begin
          print, 'Path not found : ', localPaths[ii]
          FILE_MKDIR, localPaths[ii]
-         print, 'Path created : ', localPaths[ii]        
+         if ~FILE_TEST(localPaths[ii],/dir) then break
+         print, 'Path created : ', localPaths[ii]
       endif
    endif
    ;;
@@ -52,8 +58,12 @@ for ii=0, N_ELEMENTS(localPaths)-1 do begin
    endif else begin
       retrievedFilePath = oUrl->Get() ;; only the basic one
       ;;
-      ;; AC 2018-sep-20 : somthing is not clear here :((
-      retrievedFilePath2 = oUrl->Get(string_array=content)
+      ;; AC 2018-sep-20 : something is not clear here :((
+      ;; IDL return undocumented "idl.dat" if we use:
+      ;; string=content
+      retrieved_content = oUrl->Get(/string_array)
+      if (expected_content NE retrieved_content) then $
+         ERRORS_ADD, error, 'Bad content with /string_array'
    endelse
    oUrl->CloseConnections
    OBJ_DESTROY, oUrl
@@ -66,21 +76,23 @@ for ii=0, N_ELEMENTS(localPaths)-1 do begin
       print, "Full retrieved file :", retrievedFilePath
    endif
    ;;
-   if FILE_TEST(localFullPath) then begin
+   if FILE_TEST(retrievedFilePath) then begin
       ;;
       ;; reading back the file
       ;;
       tmp=''
-      OPENR, lun, localFullPath, /get_lun
+      OPENR, lun, retrievedFilePath, /get_lun
       READF, lun, tmp
       CLOSE, lun
       FREE_lun, lun
       ;;
       ;; is the content as expected ?
-      expected_content='AC 22 Feb 2017'
       if (expected_content NE tmp) then ERRORS_ADD, error, 'Bad content in file'
+      ;;
+      ;; final cleaning
+      ;;
    endif else begin
-      ERRORS_ADD, error, 'Missing file : '+localFullPath
+      ERRORS_ADD, error, 'Missing file : '+retrievedFilePath
    endelse
 endfor
 ;

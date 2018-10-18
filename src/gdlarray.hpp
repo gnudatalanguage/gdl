@@ -211,7 +211,7 @@ public:
   }
   const T& operator[]( SizeT ix) const throw()
   {
-      assert( ix < sz);
+    assert( ix < sz);
     return buf[ ix];
   }
 

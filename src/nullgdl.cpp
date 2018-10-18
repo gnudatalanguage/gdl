@@ -252,13 +252,11 @@ bool NullGDL::LogTrue( SizeT ix)
 {
   throw GDLException("Operation not defined for !NULL 4b.");
 }
-
-DLong* NullGDL::Where( bool, SizeT&)
+void NullGDL::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret)
 {
   throw GDLException("Operation not defined for !NULL 4b.");
 }
-
-DByte* NullGDL::TagWhere(SizeT&)
+void NullGDL::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret)
 {
   throw GDLException("Operation not defined for !NULL 4b.");
 }
