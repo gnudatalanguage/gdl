@@ -91,7 +91,7 @@ inline void gdlAlignedFree(void* ptr) {
 #if defined(USE_EIGEN)
  return Eigen::internal::aligned_free(ptr);
 #else
- return std::free(ptr);
+ return free(ptr);
 #endif
 }
 #endif
