@@ -325,7 +325,7 @@ cd $RACINE
 #    svn checkout $GDL_SVN_URL $gdl_path
 if [ "$gdl_git" -eq 1 ] ; then
     echo "preparing to compiled GDL 0.9.8 Git version"
-    gdl_path='gdl-0.9.8git'
+    gdl_path='gdl-0.9.8git'`date +%y%m%d`
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_GIT_URL $gdl_name
