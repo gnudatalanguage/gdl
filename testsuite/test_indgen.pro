@@ -155,7 +155,11 @@ nerr=0
 ;
 ;; Is our parallel indgen generation robust? Compare with sample.
 RESTORE, "indgen_sample.sav"   ; defines "sampleSIZE".
-b_gdl=RANDOMU(33,1000)*sampleSIZE
+;
+;IMPORTANT!!!
+; Option /RAN1 Below is NECESSARY to insure identity of random numbers
+; with IDL !
+b_gdl=RANDOMU(33,1000,/RAN1)*sampleSIZE
 byt_gdl=BINDGEN(sampleSIZE,start=33.122,incr=0.017)
 f_gdl=FINDGEN(sampleSIZE,start=33.122,incr=0.017)
 i_gdl=INDGEN(sampleSIZE,start=33.122,incr=0.017)

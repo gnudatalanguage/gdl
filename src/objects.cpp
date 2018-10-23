@@ -96,6 +96,9 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 //do we use WxWidgets for graphics?
 volatile bool useWxWidgetsForGraphics;
 
+//do we favor SIMD-accelerated random number generation?
+volatile bool useDSFMTAcceleration;
+
 void ResetObjects()
 {
 #ifdef HAVE_LIBWXWIDGETS

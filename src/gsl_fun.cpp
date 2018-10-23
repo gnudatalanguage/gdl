@@ -930,102 +930,168 @@ namespace lib {
       return other;
     }
   }
+#include "dSFMT/dSFMT.h"
+#include "dSFMT/dSFMT-params.h"
+#include "dSFMT/dSFMT-common.h"
 
-  template< typename T1, typename T2>
-  int random_template( EnvT* e, T1* res, gsl_rng *r, 
-		       dimension dim, 
-		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey) 
-  {
-    //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
-    static int GAMMAIx = e->KeywordIx("GAMMA");
-    static int NORMALIx = e->KeywordIx("NORMAL");
-    static int POISSONIx = e->KeywordIx("POISSON");
-    static int UNIFORMIx = e->KeywordIx("UNIFORM");
-    // testing Exclusive Keywords ...
-    int exclusiveKW = e->KeywordPresent(GAMMAIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
-
-    if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
-
-    SizeT nEl = res->N_Elements();
-
-    if (e->KeywordPresent(GAMMAIx)) {
-      DLong n=-1; //please initialize everything!
-      e->AssureLongScalarKW(GAMMAIx, n);
-      if (n == 0) {
-        DDouble test_n;
-        e->AssureDoubleScalarKW(GAMMAIx, test_n);
-        if (test_n > 0.0) n = 1;
-      }
-      if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-      if (res->Type()==GDL_FLOAT && n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
-
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (T2) gsl_ran_gamma_knuth(r, 1.0*n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
-      return 0;
+void modified_dsfmt_ran_gaussian_d(dsfmt_t *dsfmt_mem, double *ret, const SizeT nEl, const double sigma)
+{
+  //As in modified_gsl_ran_gaussian_d above, but using the fast mersenne twister dSFMT 
+  // create an aligned array of random values 1.5 time larger than the necessary.
+  SizeT n = (nEl % 2) ? nEl + 1 : nEl;
+  double* xx=(double*)gdlAlignedMalloc(2*n*sizeof(double));
+  dsfmt_fill_array_open_close(dsfmt_mem, xx, 2*n);
+  double x,y,r2;
+  SizeT i=0;
+  SizeT index=0;
+  do {
+    do {
+      x=-1+2*xx[i];
+      y=-1+2*xx[i+n];
+      /* see if it is in the unit circle */
+      r2 = x * x + y * y;
+      i++;
+    } while (r2 > 1.0 || r2 == 0); 
+    /* Box-Muller transform */
+    double fct = sqrt(-2.0 * log(r2) / r2);
+    double current = sigma * y * fct;
+    ret[index++]=current;
+    if (index < nEl) {
+     double other = sigma * x * fct;
+     ret[index++]=other;
     }
+  } while (index < nEl);
+  gdlAlignedFree((void*)xx);
+}
 
-//Note: Binomial values are not same IDL.    
-    static int BINOMIALIx=e->KeywordIx("BINOMIAL");
-    if (e->KeywordPresent(BINOMIALIx)) {
-      if (binomialKey != NULL) {
-        DULong n = (DULong) (*binomialKey)[0];
-          DDouble p = (DDouble) (*binomialKey)[1];
-          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-            (T2) gsl_ran_binomial(r, p, n);
-          }
-      return 0;
-    }
-//Note: Poisson values are not same as IDL. 
-//Removed old code that would return non-integer values for high mu values.
-    if (e->KeywordSet(POISSONIx)) { // POISSON
-      if (poissonKey != NULL) {
-        DDouble mu = (DDouble) (*poissonKey)[0];
-          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-            (T2) gsl_ran_poisson(r, mu);
-      }
-      return 0;
-    }
-    
-//Note: in all the following code, we get the same returns as IDL8+ providing we use the same seed.
+template< typename T1, typename T2>
+int random_template(EnvT* e, T1* res, gsl_rng *gsl_rng_mem,
+    dimension dim,
+    DDoubleGDL* binomialKey, DDoubleGDL* poissonKey, dsfmt_t *dsfmt_mem)
+{
+  //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
+  static int GAMMAIx = e->KeywordIx("GAMMA");
+  static int NORMALIx = e->KeywordIx("NORMAL");
+  static int POISSONIx = e->KeywordIx("POISSON");
+  static int UNIFORMIx = e->KeywordIx("UNIFORM");
+  // testing Exclusive Keywords ...
+  int exclusiveKW = e->KeywordPresent(GAMMAIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
 
-    if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-      if (sizeof (T2) == sizeof (float)) {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =  (T2) gsl_rng_uniform(r);
-        return 0;
-      } else {
-        //as for IDL, make a more precise random number from 2 successive ones:
-        unsigned long A,B;
-        long double C;
-         for (SizeT i = 0; i < nEl; ++i) {
-          A = gsl_rng_uniform(r)*0xFFFFFFFFUL;
-          B = gsl_rng_uniform(r)*0xFFFFFFFFUL;
-          A = (A>>5);
-          B = (B>>6);
-          C = A*pow(2,26)+B;
-          C = C*pow(2,-53);
-          (*res)[ i] =  (T2) C; //gives the same as IDL 8
-        }
-        return 0;
-      }
-    }
+  if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
-    if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-      if (sizeof (T2) == sizeof (float)) {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(r, 1.0); //does reproduct IDL values.
-        modified_gsl_ran_gaussian_f(r, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-        return 0;
-      } else {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(r, 1.0); //does reproduct IDL values.
-        modified_gsl_ran_gaussian_d(r, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-        return 0;
-      }
+  SizeT nEl = res->N_Elements();
+
+  if (e->KeywordPresent(GAMMAIx)) {
+    DLong n = -1; //please initialize everything!
+    e->AssureLongScalarKW(GAMMAIx, n);
+    if (n == 0) {
+      DDouble test_n;
+      e->AssureDoubleScalarKW(GAMMAIx, test_n);
+      if (test_n > 0.0) n = 1;
     }
-    assert(false);
+    if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
+    if (res->Type() == GDL_FLOAT && n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
+
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
+        (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
     return 0;
   }
+
+  //Note: Binomial values are not same IDL.    
+  static int BINOMIALIx = e->KeywordIx("BINOMIAL");
+  if (e->KeywordPresent(BINOMIALIx)) {
+    if (binomialKey != NULL) {
+      DULong n = (DULong) (*binomialKey)[0];
+      DDouble p = (DDouble) (*binomialKey)[1];
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
+          (T2) gsl_ran_binomial(gsl_rng_mem, p, n);
+    }
+    return 0;
+  }
+  //Note: Poisson values are not same as IDL. 
+  //Removed old code that would return non-integer values for high mu values.
+  if (e->KeywordSet(POISSONIx)) { // POISSON
+    if (poissonKey != NULL) {
+      DDouble mu = (DDouble) (*poissonKey)[0];
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
+          (T2) gsl_ran_poisson(gsl_rng_mem, mu);
+    }
+    return 0;
+  }
+
+  //Note: in all the following code, we get the same returns as IDL8+ providing we use the same seed and have not asked for fast parallell dSFMT.
+  //default is to have dSFMT if possible (useDSFMTAcceleration=true) unless explicitly asked, with --no-parallell-random switch or /RAN1 option
+  //See discussion at beginning of random() function below.
+
+  if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
+    if (useDSFMTAcceleration && nEl >= dsfmt_get_min_array_size() + 1) {
+      if (sizeof (T2) == sizeof (double)) {
+        SizeT n = (nEl % 2) ? nEl - 1 : nEl;
+        dsfmt_fill_array_close_open(dsfmt_mem, (double*) &(*res)[0], n);
+        if (!(n == nEl)) (*res)[n] = dsfmt_genrand_open_close(dsfmt_mem);
+        return 0;
+      } else if (sizeof (T2) == sizeof (float)) {
+        SizeT n = (nEl % 2) ? nEl + 1 : nEl;
+        double* temp = (double*) gdlAlignedMalloc(n * sizeof (double));
+        dsfmt_fill_array_close_open(dsfmt_mem, temp, n);
+        for (SizeT i = 0; i < nEl; ++i) (*res)[i] = temp[i];
+        gdlAlignedFree((void*)temp);
+        return 0;
+      }
+    }
+
+    // if no above condition satisfied, continue below:
+
+    if (sizeof (T2) == sizeof (float)) {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_rng_uniform(gsl_rng_mem);
+      return 0;
+    } else {
+      //as for IDL, make a more precise random number from 2 successive ones:
+      unsigned long A, B;
+      long double C;
+      for (SizeT i = 0; i < nEl; ++i) {
+        A = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+        B = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+        A = (A >> 5);
+        B = (B >> 6);
+        C = A * pow(2, 26) + B;
+        C = C * pow(2, -53);
+        (*res)[ i] = (T2) C; //gives the same as IDL 8
+      }
+      return 0;
+    }
+  }
+
+  if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
+    if (useDSFMTAcceleration && nEl >= dsfmt_get_min_array_size() + 1) {
+      if (sizeof (T2) == sizeof (double)) {
+        modified_dsfmt_ran_gaussian_d(dsfmt_mem, (double*) (&(*res)[0]), nEl, 1.0);
+      } else {
+        SizeT n = (nEl % 2) ? nEl + 1 : nEl;
+        double* temp = (double*) gdlAlignedMalloc(n * sizeof (double));
+        modified_dsfmt_ran_gaussian_d(dsfmt_mem, temp, n, 1.0);
+        for (SizeT i = 0; i < nEl; ++i) (*res)[i] = temp[i];
+        gdlAlignedFree((void*)temp);
+      }
+      return 0;
+    }
+    // if no above condition satisfied, continue below:
+    if (sizeof (T2) == sizeof (float)) {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0); //does reproduct IDL values.
+      modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+      return 0;
+    } else {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0); //does reproduct IDL values.
+      modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+    }
+    return 0;
+  }
+  assert(false);
+  return 0;
+}
 
 #define MERSENNE_GSL_N 624   /* Period parameters */
 typedef struct
@@ -1064,15 +1130,32 @@ void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
 
     // the generator structure
     static DULong *seed0=NULL;
-    static gsl_rng *r=NULL;
+    static gsl_rng *gsl_rng_mem=NULL;
+    static dsfmt_t dsfmt_mem;
     if (seed0==NULL) { //initialize pool with systime
-      r = gsl_rng_alloc(gsl_rng_mt19937);
+      gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
       struct timeval tval;
       struct timezone tzone;
       gettimeofday(&tval,&tzone);
       long long int tt = tval.tv_sec*1e6+tval.tv_usec; // time in UTC microseconds
       seed0=new DULong(tt); 
-      gsl_rng_set(r, (*seed0)); 
+      gsl_rng_set(gsl_rng_mem, (*seed0)); 
+//GDL uses now by default the hardware accelerated mersenne twister (dSFMT) two to four times faster than IDL's.
+//This depends on the presence of switches, environment variable and if Eigen:: is used
+// (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
+//However the produced random numbers are not the same. Moreover, the seed array produced
+// by calls to the gsl library is not updated by calls to the dSFMT library. This is normally
+// NOT A PROBLEM as people strive for speed. 
+// Anyway, to get comparable results, it is advisable to set /RAN1. 
+// Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
+// we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
+// results, not with IDL6.
+#if defined(USE_EIGEN)
+      static int RAN1 = e->KeywordIx( "RAN1");
+      bool beCompatible = e->KeywordSet(RAN1);
+      if (beCompatible) useDSFMTAcceleration=false;
+      if (useDSFMTAcceleration)  dsfmt_init_gen_rand(&dsfmt_mem,(*seed0));
+#endif
     }
 
     SizeT nParam = e->NParam(1);
@@ -1092,13 +1175,13 @@ void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
         int n = MERSENNE_GSL_N;
         unsigned long int sequence[MERSENNE_GSL_N];
         for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-        set_mt19937_state(r, sequence, pos, n); //the seed 
+        set_mt19937_state(gsl_rng_mem, sequence, pos, n); //the seed 
       } else { // not a seed sequence: take first (IDL does more than this...)
         if (p0L->N_Elements() == 1) {
           (*seed0) = (*p0L)[0];
-          gsl_rng_set(r, (*seed0));
+          gsl_rng_set(gsl_rng_mem, (*seed0));
         } // else use current sequence
-  }
+      }
     }
   } 
     if (e->KeywordSet(2)) { // GDL_LONG
@@ -1106,8 +1189,8 @@ void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
       DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
       SizeT nEl = res->N_Elements();
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (DLong) (gsl_rng_uniform(r) * 2147483646) + 1; //apparently IDL rounds up.
-      update_seed(e,r,(*seed0));
+        (DLong) (gsl_rng_uniform(gsl_rng_mem) * 2147483646) + 1; //apparently IDL rounds up.
+      update_seed(e,gsl_rng_mem,(*seed0));
       return res;
     }
 
@@ -1116,8 +1199,8 @@ void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
       DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
       SizeT nEl = res->N_Elements();
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (DULong) (gsl_rng_uniform(r) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
-      update_seed(e,r,(*seed0));
+        (DULong) (gsl_rng_uniform(gsl_rng_mem) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
+      update_seed(e,gsl_rng_mem,(*seed0));
       return res;
     }
 
@@ -1139,17 +1222,16 @@ void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
 
     if (e->KeywordSet(0)) { // GDL_DOUBLE
       DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-
-      random_template< DDoubleGDL, double>(e, res, r, dim,
-        binomialKey, poissonKey);
-      update_seed(e,r,(*seed0));
+//TODO separate code between dSFMT and gsl (probably at some point gsl will use dSFMT?) AND make a "seed" array
+// mechanism for dSFMT equivalent to the gsl one.
+      random_template< DDoubleGDL, double>(e, res, gsl_rng_mem, dim, binomialKey, poissonKey, &dsfmt_mem);
+      if (~useDSFMTAcceleration) update_seed(e,gsl_rng_mem,(*seed0));
       return res;
     } else {
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
 
-      random_template< DFloatGDL, float>(e, res, r, dim,
-        binomialKey, poissonKey);
-      update_seed(e,r,(*seed0));
+      random_template< DFloatGDL, float>(e, res, gsl_rng_mem, dim, binomialKey, poissonKey, &dsfmt_mem);
+      if (~useDSFMTAcceleration) update_seed(e,gsl_rng_mem,(*seed0));
       return res;
     }
   }

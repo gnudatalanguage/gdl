@@ -214,6 +214,8 @@ int main(int argc, char *argv[])
   useWxWidgetsForGraphics = false;
   bool force_no_wxgraphics = false;
 
+  useDSFMTAcceleration = true;
+
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
@@ -232,8 +234,11 @@ int main(int argc, char *argv[])
 	  cout << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cout << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
       cout << "  --use-wx           Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
+      cout << "                     Also enabled by setting the environment variable GDL_USE_WX to a non-null value." << endl;
       cout << "  --no-use-wx        Tells GDL no to use WxWidgets graphics, even if env. var. \"GDL_USE_WX\" is set." << endl;
-          cout << endl;
+      cout << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
+      cout << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+      cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
           cout << "             the following argument (may be specified more than once)" << endl;
@@ -322,6 +327,10 @@ int main(int argc, char *argv[])
           strict_syntax = false;
           syntaxOptionSet = true;
       }
+      else if (string(argv[a]) == "--no-dSFMT")
+      {
+           useDSFMTAcceleration = false;
+      }
       else if (string(argv[a]) == "--use-wx")
       {
           useWxWidgetsForGraphics = true;
@@ -384,6 +393,8 @@ int main(int argc, char *argv[])
     }
 
   
+  if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
+
   SysVar::SetGDLPath( gdlPath);
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
