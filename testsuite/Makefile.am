@@ -140,6 +140,7 @@ TESTS = \
   test_keyword_set_but_null.pro \
   test_l64.pro \
   test_la_least_squares.pro \
+  test_linfit.pro \
   test_list.pro \
   test_ludc_lusol.pro \
   test_make_array.pro \
