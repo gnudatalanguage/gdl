@@ -35,6 +35,15 @@ if KEYWORD_SET(help) then begin
    return
 end
 ;
+if STRLOWCASE(!version.os_family) eq 'windows' then begin
+   MESSAGE, 'We are not ready for MSwin, please help (!fixme!)'
+endif
+if STRLOWCASE(!version.os_family) eq 'unix' then begin
+   if ((STRLOWCASE(!version.os) ne 'linux') and (STRLOWCASE(!version.os) ne 'darwin')) then begin
+      MESSAGE, 'We are not ready for this UNIX case, please help (!fixme!)'
+   endif
+endif
+;
 nb_pbs=0
 ;
 file='test_zip.gz'
@@ -47,7 +56,9 @@ SPAWN, 'printf '+txt+' | gzip > '+file
 OPENR, fd, file, /get, /compress, /delete
 ;
 ; Size test (FSTAT)
-if STRLOWCASE(!version.os_name) eq 'linux' then begin
+;
+; tested for Linux
+if STRLOWCASE(!version.os) eq 'linux' then begin
    commande='stat --printf=%s '+file
    if KEYWORD_SET(verbose) then print, 'commande: ', commande
    SPAWN, commande, size, error_mess, exit_status=exit_status
@@ -56,12 +67,15 @@ if STRLOWCASE(!version.os_name) eq 'linux' then begin
       if KEYWORD_SET(verbose) then print, 'commande: ', commande
       SPAWN, 'stat -c %s '+file, size, error_mess, exit_status=exit_status
    endif
-endif else begin
-   ;; this is OK on OSX
+endif
+;
+; tested for OSX 
+;
+if STRLOWCASE(!version.os) eq 'darwin' then begin
    commande='stat -f%z '+file
    if KEYWORD_SET(verbose) then print, 'commande: ', commande
    SPAWN, commande, size, error_mess, exit_status=exit_status
-endelse
+endif
 ;
 if (exit_status GT 0) then begin
    ;; we skip the test if no result received !

@@ -34,12 +34,6 @@
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 //#define MAX_WIN 32  //IDL free and widgets start at 32 ...
 //#define MAX_WIN_RESERVE 256
 
@@ -167,9 +161,9 @@ public:
         return gcFunction;
     }
 
-    DIntGDL* GetScreenSize(char* disp) {
-        DIntGDL* res;
-        res = new DIntGDL(2, BaseGDL::NOZERO);
+    DLongGDL* GetScreenSize(char* disp) {
+        DLongGDL* res;
+        res = new DLongGDL(2, BaseGDL::NOZERO);
         (*res)[0] = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
         (*res)[1] = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
         return res;
