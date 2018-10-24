@@ -10,7 +10,7 @@ export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
 #
 # any hints on how to switch compilers, insert here.
 #
-echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for $mname:"
 echo $PATH
 echo $LOCALM32
 echo " appveyor_gdl.msys: build gdl with msys script"
@@ -24,13 +24,13 @@ mkdir -p build/gdl/msys
 
 plplot=/c/projects/gdl/mingw/plplot-5.13
 cd /c/projects/gdl/build/gdl/msys 
-
-cmake  -G"MSYS Makefiles" c:\projects\gdl \
+which cmake
+cmake  /c/projects/gdl -G"MSYS Makefiles" \
       -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
       -DWXWIDGETS=ON -DWXWIDGETSDIR=$WXROOT \
       -DPLPLOTDIR=$plplot \
-      -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl \
+      -DCMAKE_INSTALL_PREFIX:PATH=/c/projects/gdl/install/gdl \
       -DGRAPHICSMAGICK=OFF -DMAGICK=OFF \
       -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF \
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPRJ4=OFF \
