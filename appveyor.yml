@@ -81,7 +81,7 @@ install:
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
         # the above script attempts to make a viable plplot using msys.
         # it also populates the mingw/wxwidgets directory with MSYS-compatible and also
-        $env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME"
+        #$env:wxWidgets_ROOT="c:\projects\gdl\win32libs\$env:WXNAME"
         $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
         #           mkdir $env:wxWidgets_ROOT
         # $env:wxWidgets_ROOT is an attempt to make a WIN32-compatible wxwidget.
