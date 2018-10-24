@@ -36,9 +36,9 @@ cmake  /c/projects/gdl -G"MSYS Makefiles" \
       -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF \
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON
-make -j4 > make.out
+make -j4
 make install > gdlinstall.out
-  rm src/CMakeFiles/gdl.dir/*.obj
+rm src/CMakeFiles/gdl.dir/*.obj
 export PATH=$plplot/bin:$WXROOT/bin:$PATH
 export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
 export PLPLOT_LIB=$plplot/share/plplot5.13.0
