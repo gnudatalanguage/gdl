@@ -234,7 +234,7 @@ before_build:
 
 build_script:
   - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&.  ./scripts/win32/bld_gm32.msys"
-  - C:\msys64\usr\bin\bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_gdl.msys'
+  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. ./scripts/appveyor_gdl.msys"
   #- cmd /K scripts\mingw-bldgdl
 
 on_failure:
