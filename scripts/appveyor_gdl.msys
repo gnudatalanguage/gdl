@@ -28,7 +28,7 @@ which cmake
 cmake  /c/projects/gdl -G"MSYS Makefiles" \
       -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-      -DWXWIDGETS=ON -DWXWIDGETSDIR=$WXROOT/$mname \
+      -DWXWIDGETS=OFF -DWXWIDGETSDIR=$WXROOT/$mname \
       -DPLPLOTDIR=$plplot \
       -DCMAKE_INSTALL_PREFIX:PATH=/c/projects/gdl/install/gdl \
       -DGRAPHICSMAGICK=OFF -DMAGICK=OFF \
