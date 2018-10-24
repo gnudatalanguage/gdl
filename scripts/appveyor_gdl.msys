@@ -3,11 +3,10 @@
 
 WXROOT=/c/projects/gdl/mingw/wxWidgets-3.0.4
 
-MSYSTEM=MINGW32
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
-export PATH=/c/projects/gdl/mingw/mingw32/bin:$PATH
+export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
 #
 # any hints on how to switch compilers, insert here.
 #
@@ -15,9 +14,9 @@ echo "MSYSTEM=MINGW32 && . /etc/profile: now ready to compile for 32-bit mingw:"
 echo $PATH
 echo $LOCALM32
 echo " appveyor_gdl.msys: build gdl with msys script"
-LOCALM32=/c/projects/gdl/mingw/mingw32
+LOCALM32=/c/projects/gdl/mingw/$mname
 #LIB_DIR=/c/projects/gdl/win32libs/wxWidgets-3.0.4/lib/gcc_dll
-echo "LOCALM32=c:/projects/gdl/mingw/mingw32 occupied by wxWidgets alone (for now)"
+echo "LOCALM32=c:/projects/gdl/mingw/$mname occupied by wxWidgets alone (for now)"
 #
 
 cd /c/projects/gdl
