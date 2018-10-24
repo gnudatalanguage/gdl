@@ -441,13 +441,13 @@ endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
-	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-	if(NOT HAVE_PLPLOT_SLABELFUNC)
-	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
-	endif()
+    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+    if(NOT HAVE_PLPLOT_SLABELFUNC)
+      message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
+    endif()
 
-	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
 #the following does not work with clang (???)
     check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
@@ -572,7 +572,7 @@ if(WXWIDGETS)
 #          "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
 #          "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
 #        endif(NOT HAVE_PLPLOT_WXWIDGETS)
-    #
+    
     set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
     find_package(wxWidgets COMPONENTS base core adv)
     set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
