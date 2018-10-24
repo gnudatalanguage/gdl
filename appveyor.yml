@@ -1,32 +1,3 @@
-
-Skip to content
-
-    Pull requests
-    Issues
-    Marketplace
-    Explore
-
-    @GillesDuvert
-
-11
-24
-
-    23
-
-gnudatalanguage/gdl
-Code
-Issues 219
-Pull requests 12
-Insights
-Settings
-gdl/appveyor.yml
-e071e80 10 days ago
-@slayoo slayoo disabling test_contour, test_conteiner and test_plot_usersym in appveyor
-@slayoo
-@GillesDuvert
-@sflinois
-@rexso
-272 lines (255 sloc) 29.7 KB
 image: Visual Studio 2015
 branches:
   only:
@@ -297,19 +268,3 @@ deploy:
 
 #on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
-    © 2018 GitHub, Inc.
-    Terms
-    Privacy
-    Security
-    Status
-    Help
-
-    Contact GitHub
-    Pricing
-    API
-    Training
-    Blog
-    About
-
-Press h to open a hovercard with more details.
