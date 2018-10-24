@@ -2406,41 +2406,49 @@ void list__swap( EnvUDT* e)
     Guard<BaseGDL> resultGuard( result);
 
     DLong nEl = result->N_Elements();
-    
+
     SizeT count;
-    DLong* ixList = result->Where( e->KeywordPresent( kwCOMPLEMENTIx), count);
-    
-    if( e->KeywordPresent( kwNCOMPLEMENTIx)) // NCOMPLEMENT
+    DLong* ret=NULL;
+    DLong* comp_ret=NULL;
+
+    result->Where(ret, count, e->KeywordPresent(kwCOMPLEMENTIx), comp_ret);
+
+    SizeT nCount = nEl - count;
+
+    if (e->KeywordPresent(kwCOMPLEMENTIx)) // COMPLEMENT
     {
-    e->SetKW( kwNCOMPLEMENTIx, new DLongGDL( nEl - count));
+      if (nCount == 0) {
+          e->SetKW(kwCOMPLEMENTIx, NullGDL::GetSingleInstance());
+      } else {
+        DLongGDL* cRet=new DLongGDL(dimension(nCount),BaseGDL::NOALLOC);
+        cRet->SetBuffer((void*)comp_ret);
+        cRet->SetBufferSize(nCount);
+        cRet->SetDim(dimension(nCount));
+        e->SetKW(kwCOMPLEMENTIx, cRet);
+      }
     }
-    if( e->KeywordPresent( kwCOUNTIx)) // COUNT
+
+    if (e->KeywordPresent(kwNCOMPLEMENTIx)) // NCOMPLEMENT
     {
-    e->SetKW( kwCOUNTIx, new DLongGDL( count));
+      e->SetKW(kwCOMPLEMENTIx, new DLongGDL(nCount));
     }
-    if( e->KeywordPresent( kwCOMPLEMENTIx)) // COMPLEMENT
-    {
-        SizeT nCount = nEl - count;
-    if( nCount == 0)
-    {
-      e->SetKW( kwCOMPLEMENTIx, NullGDL::GetSingleInstance());
+
+    if( e->KeywordPresent( kwCOUNTIx)) { // COUNT
+      e->SetKW(kwCOUNTIx, new DLongGDL(count));
     }
-    else
-    {
-      DLongGDL* cIxList = new DLongGDL( dimension( &nCount, 1), BaseGDL::NOZERO);     
-      SizeT cIx = nEl;
-      for( SizeT i=0; i<nCount; ++i)
-          (*cIxList)[ i] = ixList[ --cIx];
-      e->SetKW( kwCOMPLEMENTIx, cIxList);
-    }
-    }
-    
-    if( count == 0)
+//    The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
+    DVar *err = FindInVarList(sysVarList, "ERR");
+    (static_cast<DLongGDL*> (err->Data()))[0] = count;
+
+    if (count == 0) {
       return NullGDL::GetSingleInstance();
-    else
-      return new DLongGDL( ixList, count);
+    }
+    DLongGDL* res=new DLongGDL(dimension(count),BaseGDL::NOALLOC);
+    res->SetBuffer((void*)ret);
+    res->SetBufferSize(count);
+    res->SetDim(dimension(count));
+    return res;
   }
-  
   
   BaseGDL* list__remove( EnvUDT* e, bool asFunction);
 
