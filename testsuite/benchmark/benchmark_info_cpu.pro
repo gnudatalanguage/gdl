@@ -7,10 +7,12 @@
 ; -- bogomips   <<-- does not exist on OSX
 ; -- cpu MHz
 ;
-function BENCHMARK_GENERATE_CPUINFO, test=test, verbose=verbose, help=help
+; Help welcome (MSwin ... BSD ...)
+;
+function BENCHMARK_INFO_CPU, test=test, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'function BENCHMARK_GENERATE_CPUINFO, test=test, verbose=verbose, help=help'
+   print, 'function BENCHMARK_INFO_CPU, test=test, verbose=verbose, help=help'
    return, -1
 endif
 ;
@@ -43,16 +45,16 @@ if (os_name EQ 'darwin') then begin
    ;;
 endif
 ;
-cpu_info={MHz : resu_Mhz, $
+info_cpu={MHz : resu_Mhz, $
           Bogo : resu_bogo, $
           model : model_name, $
-          used_cores : !cpu.TPOOL_NTHREADS, $
-          nb_cores : !cpu.HW_NCPU} ; not fully clear ...
+          used_cores : !cpu.tpool_nthreads, $
+          nb_cores : !cpu.hw_ncpu} ; not fully clear ...
 ;
-if KEYWORD_SET(verbose) then HELP,/struct, cpu_info
+if KEYWORD_SET(verbose) then HELP,/struct, info_cpu
 if KEYWORD_SET(test) then STOP
 ;
-return, cpu_info
+return, info_cpu
 ;
 end
 ;
