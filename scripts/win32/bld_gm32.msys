@@ -8,7 +8,7 @@ if [ -n "$MSYSTEM" ] ; then
     fi
   fi
 echo "bld_gm32: Architecture =  ${arch}"
-
+echo ' $PATH  on entry:' $PATH
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
@@ -16,7 +16,7 @@ export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 # any hints on how to switch compilers, insert here.
 #
 echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
-echo $PATH
+echo ' $PATH  after . /etc/profile :' $PATH
 echo $LOCALM32
 echo " bld_gm32.msys:  with msys script"
 

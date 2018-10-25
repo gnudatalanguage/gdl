@@ -52,7 +52,7 @@ mingw32-make install > gdlinstall.out
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
 
-mingw32-make check
+rem mingw32-make check
  cd c:\projects\gdl
  del build\src\CMakeFiles\gdl.dir\*.obj /Q || echo "error del build"
  Xcopy  .\install\gdl\share\gnudatalanguage\lib .\install\gdl\gdllib /I /Y /E /Q || echo error Xcopy

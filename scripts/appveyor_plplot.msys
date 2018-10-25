@@ -139,4 +139,4 @@ echo wxWidgets_ROOT=$wxWidgets_ROOT
 which cmake
 echo PATH=$PATH
 echo " that was scripts/appveyor-plplot.msys "
-echo " Notice gcc 7.3.0 may have been used to compile plplot!"
+echo " Notice which gcc was used to compile plplot!"
