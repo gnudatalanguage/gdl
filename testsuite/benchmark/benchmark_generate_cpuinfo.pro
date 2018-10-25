@@ -7,6 +7,8 @@
 ; -- bogomips   <<-- does not exist on OSX
 ; -- cpu MHz
 ;
+
+
 function BENCHMARK_GENERATE_CPUINFO, test=test, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -46,7 +48,6 @@ endif
 cpu_info={MHz : resu_Mhz, $
           Bogo : resu_bogo, $
           model : model_name, $
-          used_cores : !cpu.TPOOL_NTHREADS, $
           nb_cores : !cpu.HW_NCPU} ; not fully clear ...
 ;
 if KEYWORD_SET(verbose) then HELP,/struct, cpu_info

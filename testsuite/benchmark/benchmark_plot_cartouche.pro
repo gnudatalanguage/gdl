@@ -428,7 +428,7 @@ plot, data, /nodata, xlog=xlog, ylog=ylog;, yrange=[0.1,100]
 ;endelse
 for ii=0,3 do OPLOT, data+ii, col=colors[ii], psym=psyms[ii], lines=lines[ii]
 ;
-BENCHMARK_PLOT_CARTOUCHE, pos=100.*[0.5,0.5,0.9,0.9], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=100.*[0.5,0.9,0.5,0.9], messages, /box, $
             colors=colors, lines=lines, thick=1.5, title='coucou', $
             psym=psyms
 ;
@@ -446,7 +446,7 @@ ymax=50
 pref=!p
 !p.thick=3.
 !p.charsize=2.
-BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,ymin,xmax,ymax], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,xmax,ymin,ymax], messages, /box, $
   colors=colors, lines=lines, charsize=0.75
 !p=pref
 ;
@@ -455,7 +455,7 @@ xmax=50
 ymin=5
 ymax=50
 ;
-BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,ymin,xmax,ymax], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,xmax,ymin,ymax], messages, /box, $
             colors=colors, lines=lines, thick=1.5, title='coucou'
 ;
 if KEYWORD_SET(test) then STOP

@@ -23,6 +23,8 @@ endif else begin
 endelse
 SPAWN, commande_date, result, status
 ;
+name=result
+;
 machine=GET_LOGIN_INFO()
 ;
 name=machine.machine_name+'_'+result
