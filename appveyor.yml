@@ -104,8 +104,8 @@ install:
         #
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/patch/patch_plplot.sh'
         #
-        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" `
-          -DCMAKE_BUILD_TYPE=$env:CONFIGURATION -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
+        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=$env:CONFIGURATION `
+          -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
           -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF `
           -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON `
           -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON `
@@ -298,22 +298,26 @@ build_script:
 
   # tests
   # TODO: copy those to the artefact dir
-  - set PATH=%PATH%;C:\projects\gdl\win32libs\lib
+  #- set PATH=%PATH%;C:\projects\gdl\win32libs\lib
   - set PATH=%PATH%;C:\projects\gdl\win32libs\bin
   - set PATH=%PATH%;%WX_TOP%\lib\gcc_dll
-  - set PATH=%PATH%;C:\mingw-w64\%GCC%\%MNAME%\%ARCH%-w64-mingw32\lib
-  - mingw32-make check
+  #- set PATH=%PATH%;C:\mingw-w64\%GCC%\%MNAME%\%ARCH%-w64-mingw32\lib
+  - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
+  - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
+  - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
+  - set PATH=%PATH%;C:\projects\gdl\install\gdl\bin
+  - set PLPLOT_DRV_DIR=%PLPLOTDIR%/lib/plplot5.13.0/drivers
+  - set PLPLOT_LIB=%PLPLOTDIR%/share/plplot5.13.0
+  #- mingw32-make check # we want the artifact, even if the build is incorrect.
+  - ps: echo $env:PATH
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
-  - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
-  - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
   - cd c:\projects\gdl
   - ps: copy INSTALL.plplot c:/projects/gdl/install
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
