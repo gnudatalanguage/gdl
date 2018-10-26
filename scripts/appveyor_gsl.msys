@@ -1,0 +1,8 @@
+export PATH=$PATH:/c/mingw-w64/$GCC/$mname/bin
+export LDFLAGS=-L/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/lib
+export CPPFLAGS=-I/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/include
+
+./configure --build=$arch-w64-mingw32 --host=$arch-w64-mingw32 \
+  --prefix /c/projects/gdl/win32libs 
+make -j4  > $BLDDIR/makewx.out
+make install

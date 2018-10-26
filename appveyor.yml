@@ -76,7 +76,7 @@ install:
           USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 `
           USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
           
-        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
         
         # BSD-XDR
         cd c:\projects\gdl\win32libs
@@ -84,6 +84,7 @@ install:
           https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
+        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
         sed -i 's/%hh/%/g' src\test\test_data.c
         md mingw
         md mingw\lib
@@ -101,17 +102,30 @@ install:
           http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         tar zxf plplot-5.13.0.tar.gz
         md plplot-5.13.0/build
+        #
+        C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/mingw/plplot-5.13.0"
+        $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
+        # plplot failed to bring in the wxwidgets build because the version is not recognized in the
+        # cmake module findwxwidgets.cmake (customized in plplot)
+        #
+        # Patch to cmake/modules/FindwxWidgets.cmake:
+        #
+        # Findwx.cmake.patch:
+        #
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/patch/patch_plplot.sh'
+        #
         cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" `
-          "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
-          -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON `
-          -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll `
-          -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
+          -DCMAKE_BUILD_TYPE=$env:CONFIGURATION -DCMAKE_CXX_FLAGS_RELEASE='-O3' `
+          -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF `
+          -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON `
+          -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON `
+          -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON `
+          -DCMAKE_INSTALL_PREFIX=$env:PLPLOTDIR -DOLD_WXWIDGETS=ON `
+          -DENABLE_wxwidgets=ON -DwxWidgets_LIB_DIR=$env:WX_TOP\lib\gcc_dll 
         cd plplot-5.13.0/build
         mingw32-make -j4
         mingw32-make install
         
-        # plplot fails to bring in the wxwidgets build because the version is not recognized in the
-        # cmake module findwxwidgets.cmake (customized in plplot)
         # Eigen
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile `
@@ -126,13 +140,7 @@ install:
         appveyor DownloadFile `
           http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
         tar zxf gsl-2.4.tar.gz
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/$env:GCC/$env:mname/bin `
-          && export LDFLAGS=-L/c/mingw-w64/$env:GCC/$env:mname/$env:arch-w64-mingw32/lib `
-          && export CPPFLAGS=-I/c/mingw-w64/$env:GCC/$env:mname/$env:arch-w64-mingw32/include `
-          && cd /c/projects/gdl/win32libs/gsl-2.4 `
-          && ./configure --build=$env:arch-w64-mingw32 --host=$env:arch-w64-mingw32 `
-            --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-        
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs/gsl-2.4 && . /c/projects/gdl/scripts/appveyor_gsl.msys'
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
         # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
         #       (Remember to remove -DTIFF=OFF -DGEOTIFF=OFF from build_script when done)
@@ -286,7 +294,8 @@ build_script:
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
   - cmake gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" ^
     -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" ^
-    -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% ^
+    -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WX_TOP% ^
+      -DPLPLOTDIR=%PLPLOTDIR% ^
     -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF ^
     -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF ^
     -DPYTHON=OFF -DTIFF=OFF -DGEOTIFF=OFF
@@ -298,7 +307,7 @@ build_script:
   # TODO: copy those to the artefact dir
   - set PATH=%PATH%;C:\projects\gdl\win32libs\lib
   - set PATH=%PATH%;C:\projects\gdl\win32libs\bin
-  - set PATH=%PATH%;%WXWIDGETS_ROOT%\lib\gcc_dll
+  - set PATH=%PATH%;%WX_TOP%\lib\gcc_dll
   - set PATH=%PATH%;C:\mingw-w64\%GCC%\%MNAME%\%ARCH%-w64-mingw32\lib
   - mingw32-make check
 
@@ -307,9 +316,15 @@ on_failure:
 
 after_build:
   - robocopy /move /e c:\projects\gdl\win32libs\bin c:\projects\gdl\install\gdl\bin || exit 0
-  - copy C:\mingw-w64\%GCC%\%MNAME%\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
+  - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
+  - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
   - cd c:\projects\gdl
-  - 7z a gdl_build.zip install build
+  - ps: copy INSTALL.plplot c:/projects/gdl/install
+  - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
+  - 7z a gdl_build.zip install build %WX_TOP%
 
 artifacts:
   - path: install\gdl_build.zip
