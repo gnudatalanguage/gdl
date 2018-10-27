@@ -131,8 +131,8 @@ install:
         appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
         tar zxf gsl-2.4.tar.gz
         echo 'export PATH=$PATH:/c/mingw-w64/$env:GCC/$env:mname/bin && export LDFLAGS=-L/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/$env:GCC/$env:mname/bin && export LDFLAGS=-L/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
-        # c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs/gsl-2.4 && . /c/projects/gdl/scripts/appveyor_gsl.msys'
+        #c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/$env:GCC/$env:mname/bin && export LDFLAGS=-L/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/$env:GCC/$env:mname/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs/gsl-2.4 && . /c/projects/gdl/scripts/appveyor_gsl.msys'
  
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
         # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
@@ -289,6 +289,7 @@ build_script:
     -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" ^
     -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WX_TOP% ^
       -DPLPLOTDIR=%PLPLOTDIR% ^
+      -DCMAKE_SYSTEM_PREFIX_PATH=c:\projects\gdl\mingw\%mname% ^
     -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF ^
     -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF ^
     -DPYTHON=OFF -DTIFF=OFF -DGEOTIFF=OFF
@@ -324,7 +325,7 @@ after_build:
   - 7z a gdl_build.zip install build %WX_TOP%
 
 artifacts:
-  - path: install\gdl_build.zip
+  - path: gdl_build.zip
     name: GDL
   
 deploy:
