@@ -32,7 +32,7 @@ if [[ -f "mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz" ]] ; then
     echo " mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
     
-    echo "mname = "$mname "MNAME="$MNAME ", WXNAME="$WXNAME
+    echo "mname = "$mname "MSYSTEM="$MSYSTEM ", WXNAME="$WXNAME
     
 if [[ -d "$WXNAME" ]] ; then
     echo " mingw/wxWidgets directory already prepped :"$WXNAME
@@ -57,30 +57,7 @@ export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
 echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
 echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
 LOCALM32=/c/projects/gdl/mingw/$mname
-LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
 echo "LOCALM32=$LOCALM32 occupied by wxWidgets alone (for now)"
-echo "LIB_DIR=$LIB_DIR holding windows-style wx."
-mkdir -p $LIB_DIR
-cd c:/projects/gdl/win32libs/$WXNAME
-# (try to) make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
-
-mkdir ./bin
-cp $WXROOT/bin/wxbase*.dll ./bin
-cp $WXROOT/bin/*_adv*.dll  ./bin
-cp $WXROOT/bin/*_core*.dll ./bin
-cp -r $WXROOT/include/wx-3.0 ./include
-if [[ -d $LIB_DIR/mswu ]] ; then
-    echo " $LIB_DIR/mswu has already been created "
-    else
-cp -r $WXROOT/lib/wx/include/msw-unicode-3.0 $LIB_DIR/mswu
-    fi
-cp -r $WXROOT/lib/libwx*.dll.a $LIB_DIR
-cp $WXROOT/bin/wxbase*.dll $LIB_DIR
-cp $WXROOT/bin/*_adv*.dll  $LIB_DIR
-cp $WXROOT/bin/*_core_*.dll $LIB_DIR
-cp $WXROOT/lib/libwx_base*.a $LIB_DIR
-cp $WXROOT/lib/libwx*_adv*.a  $LIB_DIR
-cp $WXROOT/lib/libwx*_core*.a $LIB_DIR
 
 # check out what wx-config --cxxflags results:
 # Findwx line 774:
@@ -105,7 +82,6 @@ mkdir -p build/plplot/msys
 # -DCMAKE_C_COMPILER=/d/mingw-w64/USE_GCC7.3/gcc  \
 # -DCMAKE_CXX_COMPILER=/d/mingw-w64/USE_GCC7.3/g++  \
 #  export PATH=/d/mingw-w64/USE_GCC7.3:$PATH
-#  CC=/d/mingw-w64/USE_GCC7.3/gcc  && CXX=/d/mingw-w64/USE_GCC7.3/g++
 plplot=/c/projects/gdl/mingw/plplot-5.13
 cd /c/projects/gdl/build/plplot/msys 
 rm -r *

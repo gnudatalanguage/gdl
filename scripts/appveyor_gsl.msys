@@ -10,14 +10,16 @@ cd ./mingw
 echo "Appveyor_gsl: Architecture =  ${arch} mname=${mname}"
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
-echo "mingw/$mname has gsl-2.5; also attempting a build at  /c/projects/gdl/win32libs"
+echo "mingw/$mname has gsl-2.5"
+
+# also attempting a build at  /c/projects/gdl/win32libs"
 
 cd  $gsl24
-export PATH=$PATH:/c/mingw-w64/$GCC/$mname/bin
-export LDFLAGS=-L/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/lib
-export CPPFLAGS=-I/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/include
-echo $arch
-./configure --build=$arch-w64-mingw32 --host=$arch-w64-mingw32 \
-  --prefix /c/projects/gdl/win32libs 
-make -j4  > $BLDDIR/makewx.out
-make install
+# export PATH=$PATH:/c/mingw-w64/$GCC/$mname/bin
+# export LDFLAGS=-L/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/lib
+# export CPPFLAGS=-I/c/mingw-w64/$GCC/$mname/$arch-w64-mingw32/include
+# echo $arch
+# ./configure --build=$arch-w64-mingw32 --host=$arch-w64-mingw32 \
+#   --prefix /c/projects/gdl/win32libs 
+# make -j4  > $BLDDIR/makewx.out
+# make install
