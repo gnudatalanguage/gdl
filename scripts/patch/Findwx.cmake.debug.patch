@@ -1,5 +1,5 @@
---- /f/a/b/cmake/modules/FindwxWidgets.cmake
-+++ /f/b/a/cmake/modules/FindwxWidgets.cmake
+--- /f/tarball/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
++++ /f/tarball/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
 @@ -213,7 +213,8 @@ if(WIN32 AND NOT CYGWIN AND NOT MSYS AND NOT CMAKE_CROSSCOMPILING)
  else()
    set(wxWidgets_FIND_STYLE "unix")
