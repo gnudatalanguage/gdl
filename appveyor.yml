@@ -123,7 +123,9 @@ install:
         }
       else 
       {
-        cd c:/projects/gdl
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile `
+          http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_plplot.msys'
       }
         #- cmd /K ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!
