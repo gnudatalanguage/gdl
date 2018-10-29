@@ -57,6 +57,8 @@ install:
         $env:WXNAME="wxWidgets-3.0.4"
         $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
         cd c:\projects\gdl\win32libs
+        $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
+        $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
        }
   - ps: |
       if ($true)
@@ -93,7 +95,7 @@ install:
         sed -i 's/%hh/%/g' src\test\test_data.c
         md mingw
         md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
+        mingw32-make -f Makefile -j4 PLATFORM=mingw TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
         mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
         mv rpc c:\projects\gdl\win32libs\include
         mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
