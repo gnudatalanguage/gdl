@@ -72,19 +72,20 @@ namespace lib {
   {
     //As in modified_gsl_ran_gaussian_d above, but using the fast mersenne twister dSFMT 
     // create an aligned array of random values 1.5 time larger than the necessary. (excess is $\simeq 1-\frac{\pi]{4}$)
-    SizeT n = (nEl % 2) ? nEl + 1 : nEl;
-    double* xx = (double*) gdlAlignedMalloc(1.5 * n * sizeof (double));
-    dsfmt_fill_array_open_close(dsfmt_mem, xx, 2 * n);
+#define safety_factor 1.3
+    SizeT n = safety_factor*nEl; //something sufficiently large... 
+    n=(n % 2) ? (n + 1) : n;
+    double* xx = (double*) gdlAlignedMalloc(n * sizeof (double));
+    dsfmt_fill_array_open_close(dsfmt_mem, xx, n);
     double x, y, r2;
     SizeT i = 0;
     SizeT index = 0;
     do {
       do {
-        x = -1 + 2 * xx[i];
-        y = -1 + 2 * xx[i + n];
+        x = -1 + 2 * xx[i++];
+        y = -1 + 2 * xx[i++];
         /* see if it is in the unit circle */
         r2 = x * x + y * y;
-        i++;
       } while (r2 > 1.0 || r2 == 0);
       /* Box-Muller transform */
       double fct = sqrt(-2.0 * log(r2) / r2);
@@ -412,7 +413,6 @@ namespace lib {
 
   void set_random_state(dsfmt_t *dsfmt_mem, const unsigned long int* seed, const int pos, const int n)
   {
-    assert(n == DSFMT_N);
     uint32_t *psfmt32 = &dsfmt_mem->status[0].u32[0];
     for (int k = 0; k < n; ++k) psfmt32[k] = seed[k];
     dsfmt_mem->idx = pos;
@@ -421,12 +421,12 @@ namespace lib {
   void get_random_state(EnvT* e, dsfmt_t *dsfmt_mem, const DULong seed)
   {
     if (e->GlobalPar(0)) {
-      DULongGDL* ret = new DULongGDL(dimension(DSFMT_N + 4), BaseGDL::ZERO); //ZERO as not all elements are initialized here
+      DULongGDL* ret = new DULongGDL(dimension(DSFMT_N32 + 2), BaseGDL::ZERO); //ZERO as not all elements are initialized here
       DULong* newstate = (DULong*) (ret->DataAddr());
       newstate[0] = seed;
       newstate[1] = dsfmt_mem->idx;
       uint32_t *psfmt32 = &dsfmt_mem->status[0].u32[0];
-      for (int k = 0; k < DSFMT_N; ++k) newstate[k + 2] = psfmt32[k];
+      for (int k = 0; k < DSFMT_N32; ++k) newstate[k + 2] = psfmt32[k];
       e->SetPar(0, ret);
     }
   }
@@ -507,10 +507,10 @@ namespace lib {
       {
         // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
         // and use it as the current sequence (try with "all zeroes").
-        if (p0L->N_Elements() == DSFMT_N + 4 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
+        if (p0L->N_Elements() == DSFMT_N32 + 2 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
           seed = (*p0L)[0];
           int pos = (*p0L)[1];
-          int n = DSFMT_N;
+          int n = DSFMT_N32;
           unsigned long int sequence[n];
           for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
           set_random_state(&dsfmt_mem, sequence, pos, n); //the seed 
