@@ -47,7 +47,7 @@ if [[ -d "$WXNAME" ]] ; then
 WXROOT=/c/projects/gdl/mingw/$WXNAME
 # replicate the compiled wxWidgets distribution so that the USE_PREFIX problem doesn't hold it all up.
 cd /c/projects/gdl/mingw
-tar xf ../mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz
 LOCALM32=/c/projects/gdl/mingw/$mname
 #echo "LOCALM32=$LOCALM32 occupied by wxWidgets alone (for now)"
 for f in aui gl html propgrid qa ribbon richtext stc webview xrc ; do
