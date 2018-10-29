@@ -52,7 +52,7 @@
  #=====================================================================
  else()
    if(wxWidgets_FIND_STYLE STREQUAL "unix")
-+	message(STATUS "Findwx: wxWidgets_USE_PREFIX= ${wxWidgets_USE_PREFIX}"
++   message(STATUS "Findwx: wxWidgets_USE_PREFIX= ${wxWidgets_USE_PREFIX}")
 +
      #-----------------------------------------------------------------
      # UNIX: Helper MACROS
