@@ -111,20 +111,24 @@ exptd_u_d=[0.77132064, 0.49850701, 0.16911084, 0.0039482663, 0.72175532]
 exptd_n_f=[-0.746100, -0.872054, 2.67669, -0.797426, 1.13531]
 exptd_n_d=[1.3315865, 0.62133597, 0.0042914309, -0.96506567, -1.1366022]
 ;
+; /RAN1 insures the values returned are with the non-parallel old mersenne twister,
+; that gives values identical to IDL. The test needs to be rewritten to actually test
+; regressions using the new dSFMT library.
+;
 fseed=seed
-res=RANDOMU(fseed, nbp) & res=res[indices]
+res=RANDOMU(fseed, nbp, /RAN1) & res=res[indices]
 if (MAX(ABS(exptd_u_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Float'
 ;
 fseed=seed
-res=RANDOMU(fseed, nbp, /double) & res=res[indices]
+res=RANDOMU(fseed, nbp, /double, /RAN1) & res=res[indices]
 if (MAX(ABS(exptd_u_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Double'
 ;
 fseed=seed
-res=RANDOMN(fseed, nbp) & res=res[indices]
+res=RANDOMN(fseed, nbp, /RAN1) & res=res[indices]
 if (MAX(ABS(exptd_n_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Float'
 ;
 fseed=seed
-res=RANDOMN(fseed, nbp, /double) & res=res[indices]
+res=RANDOMN(fseed, nbp, /double, /RAN1) & res=res[indices]
 if (MAX(ABS(exptd_n_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Double'
 ;
 ; ----- final ----
@@ -152,10 +156,10 @@ txt='case ULong '
 ;
 ; we need to reset "seed" to avoid it to be changed
 ;
-seed=10 & res_ul10uf=RANDOMU(seed, nbp, /ULong)
-seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong)
-seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong)
-seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong)
+seed=10 & res_ul10uf=RANDOMU(seed, nbp, /ULong, /RAN1)
+seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong,/RAN1)
+seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong, /RAN1)
+seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong, /RAN1)
 ;
 if ~ARRAY_EQUAL(res_ul10uf, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Float'
 if ~ARRAY_EQUAL(res_ul10ud, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Double'
@@ -219,6 +223,8 @@ if KEYWORD_SET(nb_points) then nbps=nb_points else nbps=100000
 nbps_f=FLOAT(nbps)
 ;
 if KEYWORD_SET(verbose) then print, 'We use : ', nbps, ' points'
+;
+; statistical test, will be OK whether dSFMT is used or not.
 ;
 res_l1=HISTOGRAM(RANDOMN(seed, nbps, poisson=1))/nbps_f
 res_l4=HISTOGRAM(RANDOMN(seed, nbps, poisson=4))/nbps_f
