@@ -48,3 +48,12 @@
          # Add necessary definitions for unicode builds
          if("${UCD}" STREQUAL "u")
            list(APPEND wxWidgets_DEFINITIONS UNICODE _UNICODE)
+@@ -662,6 +665,8 @@ if(wxWidgets_FIND_STYLE STREQUAL "win32")
+ #=====================================================================
+ else()
+   if(wxWidgets_FIND_STYLE STREQUAL "unix")
++	message(STATUS "Findwx: wxWidgets_USE_PREFIX= ${wxWidgets_USE_PREFIX}"
++
+     #-----------------------------------------------------------------
+     # UNIX: Helper MACROS
+     #-----------------------------------------------------------------
