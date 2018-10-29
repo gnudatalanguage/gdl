@@ -15,7 +15,7 @@
        WX_CLEAR_ALL_DBG_LIBS()
        WX_CLEAR_ALL_REL_LIBS()
 -    endif()
-+        message( STATUS " Here we are, found ? ${WX_ROOT_DIR}/lib/${_WX_TOOL}${_WX_ARCH}_dll ?\n"
++        message(STATUS " Here we are, found ? ${WX_ROOT_DIR}/lib/${_WX_TOOL}${_WX_ARCH}_dll ?\n"
 +                      " wxWidgets_LIB_DIR= ?${wxWidgets_LIB_DIR}?")
 +   endif()
  
@@ -26,7 +26,7 @@
        endforeach()
        DBG_MSG_V("WX_CONFIGURATION_LIST=${WX_CONFIGURATION_LIST}")
 -
-+        message( STATUS "WX_CONFIGURATION_LIST=${WX_CONFIGURATION_LIST}")
++        message(STATUS "WX_CONFIGURATION_LIST=${WX_CONFIGURATION_LIST}")
        if(WX_CONFIGURATION)
          set(wxWidgets_FOUND TRUE)
  
@@ -35,7 +35,7 @@
          # Get configuration parameters from the name.
          WX_GET_NAME_COMPONENTS(${wxWidgets_CONFIGURATION} UNV UCD DBG)
 -
-+        message( STATUS "WX_CONFIGURATION=${WX_CONFIGURATION}")
++        message(STATUS "WX_CONFIGURATION=${WX_CONFIGURATION}")
          # Set wxWidgets lib setup include directory.
          if(EXISTS ${WX_LIB_DIR}/${wxWidgets_CONFIGURATION}/wx/setup.h)
            set(wxWidgets_INCLUDE_DIRS
@@ -44,7 +44,7 @@
          # Settings for requested libs (i.e., include dir, libraries, etc.).
          WX_SET_LIBRARIES(wxWidgets_FIND_COMPONENTS "${DBG}")
 -
-+        message( STATUS "wxWidgets_FIND_COMPONENTS=${wxWidgets_FIND_COMPONENTS}")
++        message(STATUS "wxWidgets_FIND_COMPONENTS=${wxWidgets_FIND_COMPONENTS}")
          # Add necessary definitions for unicode builds
          if("${UCD}" STREQUAL "u")
            list(APPEND wxWidgets_DEFINITIONS UNICODE _UNICODE)
