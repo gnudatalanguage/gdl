@@ -13,14 +13,17 @@
 ; ----------------------------------------------------
 ; Modifications history :
 ;
+; 2017-JUL-27 : AC. adding /uppercase
+; 2017-JUL-27 : AC. adding /prefix
 ; 2018-Feb-05 : AC. Default return now UpperCase
 ; 2018-Sep-06 : AC. new test for FL (mail from Lajos)
 ;               using undocument trick in FL
+; 2018-Sep-06 : AC. adding /title 
 ;
 ; ----------------------------------------------------
 ;
 function GDL_IDL_FL, uppercase=uppercase, prefix=prefix, $
-                     lowercase=lowercase, $
+                     lowercase=lowercase, title=title, $
                      verbose=verbose, test=test
 ;
 DEFSYSV, '!gdl', exists=isGDL
@@ -54,6 +57,8 @@ endelse
 suffix=STRUPCASE(suffix)
 ;
 if KEYWORD_SET(prefix) then suffix=suffix+'_'
+;
+if KEYWORD_SET(title) then suffix=suffix+' : '
 ;
 if KEYWORD_SET(lowercase) then suffix=STRLOWCASE(suffix)
 ;
