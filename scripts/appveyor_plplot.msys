@@ -1,6 +1,5 @@
 #!bin/bash.exe
 #
-# script to download some files needed for mingw32
 # plplot is already supplied in compressed form, before this script runs.
 cd /c/projects/gdl/win32libs
 if [[ -f plplot-5.13.0.tar.gz ]] ; then
@@ -10,9 +9,6 @@ echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ 
     else
     echo " /c/projects/gdl/win32libs needs a copy of plplot-5.13.0.tar.gz"
     fi
-cd /c/projects/gdl
-mkdir -p ./mingw
-cd ./mingw
 mname="mingw32"
 arch="i686"
 if [[ -n "$MSYSTEM" ]] ; then
@@ -25,9 +21,11 @@ if [[ -n "$MSYSTEM" ]] ; then
 echo "appveyor_plplot: Architecture =  ${arch}"
 LOCALM32=/c/projects/gdl/mingw/$mname
 WXNAME=wxWidgets-3.0.4
-
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
-# tuned for use by MSYS compiler
+
+cd /c/projects/gdl
+mkdir -p ./mingw/$mname/bin
+cd ./mingw
 if [[ -f "mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz" ]] ; then
     echo " wxWidgets distro has been loaded"
     else
@@ -35,7 +33,7 @@ if [[ -f "mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz" ]] ; then
     echo " mingw-w64-${arch}-wxWidgets-3.0.4-1-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
     
-    echo "mname = "$mname "MSYSTEM="$MSYSTEM ", WXNAME="$WXNAME
+echo "mname = "$mname "MSYSTEM="$MSYSTEM ", WXNAME="$WXNAME
     
 if [[ -d "$WXNAME" ]] ; then
     echo " mingw/wxWidgets directory already prepped :"$WXNAME
@@ -53,27 +51,16 @@ if [[ -d "$WXNAME" ]] ; then
        done
     fi
 WXROOT=/c/projects/gdl/mingw/$WXNAME
-# replicate the compiled wxWidgets distribution so that the USE_PREFIX problem doesn't hold it all up.
-cd /c/projects/gdl/mingw
-
-# redundant wxWidgets distro 
-#   tar xf mingw-w64-${arch}-${WXNAME}-1-any.pkg.tar.xz
-#   trim out the dll collection
-#   for f in aui gl html propgrid qa ribbon richtext stc webview xrc ; do
-#      rm $LOCALM32/bin/*$f*.dll
-#      done
-# wxWidgets_USE_PREFIX did not take when there was no wx-config to execute.
+# this is magic sauce that allows wxwidgets to meld into GDL:
+sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
+# locate wx-config so that wxWidgets_USE_PREFIX can work.
 cp ${WXNAME}/bin/wx-config /c/projects/gdl/mingw/$mname/bin/
 
-#export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
-# this is needed to find bin/wx-config
+
 export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
-#
-# any hints on how to switch compilers, insert here.
-#
+
 echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
-#echo " appveyor_plplot.msys: copy MSYS style $WXNAME to MinGW-style"
 
 # check out what wx-config --cxxflags results:
 # Findwx line 774:
