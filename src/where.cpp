@@ -30,6 +30,7 @@
 //We create 'on the spot' arrays that must be aligned. this is the purpose of the gdl..lloc functions.
 #define MALLOC gdlAlignedMalloc
 #define REALLOC gdlAlignedRealloc 
+#define FREE gdlAlignedFree
 
 #define Sp SpDByte
 #include "where_inc.cpp"
@@ -87,8 +88,8 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -168,7 +169,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -242,8 +243,8 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -323,7 +324,7 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -397,8 +398,8 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -478,7 +479,7 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -552,8 +553,8 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -633,7 +634,7 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -707,8 +708,8 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -788,7 +789,7 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -862,8 +863,8 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {std::free(no); comp_ret=NULL;}
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -943,7 +944,7 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {std::free(yes); ret=NULL;}
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
