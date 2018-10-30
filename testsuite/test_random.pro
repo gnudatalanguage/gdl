@@ -105,30 +105,36 @@ seed=10
 ;
 nbp=20
 indices=4*INDGEN(5)
+;;
+; /RAN1 could be used to insure that the values returned are equal with the non-parallel old mersenne twister,
+; as /RAN1 gives values identical to IDL. However it would be necessary to modify the logic below.
 ;
-exptd_u_f=[0.771321, 0.633648, 0.498507, 0.198063, 0.169111]
-exptd_u_d=[0.77132064, 0.49850701, 0.16911084, 0.0039482663, 0.72175532]
-exptd_n_f=[-0.746100, -0.872054, 2.67669, -0.797426, 1.13531]
-exptd_n_d=[1.3315865, 0.62133597, 0.0042914309, -0.96506567, -1.1366022]
-;
-; /RAN1 insures the values returned are with the non-parallel old mersenne twister,
-; that gives values identical to IDL. The test needs to be rewritten to actually test
-; regressions using the new dSFMT library.
-;
+if dsfmt_exists() then begin
+  exptd_u_f=[0.683328,0.511748,0.712392,0.974657,0.267097]
+  exptd_u_d=[       0.6833279104279921,       0.5117476599880262,       0.7123919069196021,       0.9746571081546436, 0.2670968079969038]
+  exptd_n_f=[     -1.0257840,     -0.8902389,      0.2266469,      0.2755476,      0.9339375]
+  exptd_n_d=[      -1.0257840075947602,      -0.8902389633612189,       0.2266468876086417,       0.2755475765848067,       0.9339375254286939]
+endif else begin
+  exptd_u_f=[0.771321, 0.633648, 0.498507, 0.198063, 0.169111]
+  exptd_u_d=[0.77132064, 0.49850701, 0.16911084, 0.0039482663, 0.72175532]
+  exptd_n_f=[-0.746100, -0.872054, 2.67669, -0.797426, 1.13531]
+  exptd_n_d=[1.3315865, 0.62133597, 0.0042914309, -0.96506567, -1.1366022]
+endelse
+
 fseed=seed
-res=RANDOMU(fseed, nbp, /RAN1) & res=res[indices]
+res=RANDOMU(fseed, nbp) & res=res[indices]
 if (MAX(ABS(exptd_u_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Float'
 ;
 fseed=seed
-res=RANDOMU(fseed, nbp, /double, /RAN1) & res=res[indices]
+res=RANDOMU(fseed, nbp, /double) & res=res[indices]
 if (MAX(ABS(exptd_u_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand U & Double'
 ;
 fseed=seed
-res=RANDOMN(fseed, nbp, /RAN1) & res=res[indices]
+res=RANDOMN(fseed, nbp) & res=res[indices]
 if (MAX(ABS(exptd_n_f-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Float'
 ;
 fseed=seed
-res=RANDOMN(fseed, nbp, /double, /RAN1) & res=res[indices]
+res=RANDOMN(fseed, nbp, /double) & res=res[indices]
 if (MAX(ABS(exptd_n_d-res)) GT eps) then ERRORS_ADD, nb_errors, 'Rand N & Double'
 ;
 ; ----- final ----
@@ -150,16 +156,20 @@ seed=10
 nbp=5
 ;
 ; these values are the same for all 4 cases ...
+if dsfmt_exists() then begin
+exp_ul10=[  1060878149,  1956351291,  1923111058,  1181360106,  1349992422]
+endif else begin
 exp_ul10=[3312796937, 1283169405, 89128932, 2124247567, 2721498432]
+endelse
 ;
 txt='case ULong '
 ;
 ; we need to reset "seed" to avoid it to be changed
 ;
-seed=10 & res_ul10uf=RANDOMU(seed, nbp, /ULong, /RAN1)
-seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong,/RAN1)
-seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong, /RAN1)
-seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong, /RAN1)
+seed=10 & res_ul10uf=RANDOMU(seed, nbp, /ULong)
+seed=10 & res_ul10ud=RANDOMU(seed, nbp, /double, /ULong)
+seed=10 & res_ul10nf=RANDOMN(seed, nbp, /ULong)
+seed=10 & res_ul10nd=RANDOMN(seed, nbp, /double, /ULong)
 ;
 if ~ARRAY_EQUAL(res_ul10uf, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Float'
 if ~ARRAY_EQUAL(res_ul10ud, exp_ul10) then ERRORS_ADD, nb_errors, txt+'U Double'

@@ -26,21 +26,17 @@
 
 #include "gsl_fun.hpp"
 
-
-
 #ifdef _MSC_VER
-#define isnan _isnan
-#define isfinite _finite
+#include "gtdhelper.hpp" //for gettimeofday()
+#else
+#include <sys/time.h>
 #endif
+
 
 namespace lib {
 
   using namespace std;
-
-#ifndef _MSC_VER
-  using std::isnan;
-#endif
-
+#ifdef USE_EIGEN
   /* following are some modified codes taken from the GNU Scientific Library.
    * 
    * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2006, 2007 James Theiler, Brian Gough
@@ -66,45 +62,88 @@ namespace lib {
 #include "dSFMT/dSFMT.h"
 #include "dSFMT/dSFMT-params.h"
 #include "dSFMT/dSFMT-common.h"
+//for jumps and parallelism
+#include "dSFMT/dSFMT-jump.h"
+#include "dSFMT/dSFMT-poly.h"
+
 #define GSL_M_E  2.7182818284590452354 /* e */
 
-  void modified_dsfmt_ran_gaussian_d(dsfmt_t *dsfmt_mem, double *ret, const SizeT nEl, const double sigma)
+#define MAX_ALLOWED_THREADS 32
+  //our own struct to keep up things related to parallel seeds
+  /** the 128-bit internal state array */
+  struct DSFMT_STATE {
+    dsfmt_t *r[MAX_ALLOWED_THREADS];
+ };
+ typedef struct DSFMT_STATE dsfmt_state;
+ 
+
+// This function could prove to be way faster than the function below, provided the parallelization insures
+// an alignment on _align16 , i.e., 2 doubles = 128 bits = address%16==0
+//
+//  int random_uniform(double* res, dsfmt_state state, SizeT nEl)
+//  {
+//    if (nEl >= dsfmt_get_min_array_size() + 1) {
+//      SizeT n = (nEl % 2) ? nEl - 1 : nEl;
+//      dsfmt_fill_array_close_open(state.r[0], res, n);
+//      if (!(n == nEl)) res[nEl - 1] = dsfmt_genrand_close_open(state.r[0]);
+//    } else {
+//      for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_genrand_close_open(state.r[0]);
+//    }
+//    return 0;
+//  }
+  
+  int random_uniform(double* res, dsfmt_state state, SizeT nEl)
   {
-    //As in modified_gsl_ran_gaussian_d above, but using the fast mersenne twister dSFMT 
-    // create an aligned array of random values 1.5 time larger than the necessary. (excess is $\simeq 1-\frac{\pi]{4}$)
-#define safety_factor 1.3
-    SizeT n = safety_factor*nEl; //something sufficiently large... 
-    n=(n % 2) ? (n + 1) : n;
-    double* xx = (double*) gdlAlignedMalloc(n * sizeof (double));
-    dsfmt_fill_array_open_close(dsfmt_mem, xx, n);
-    double x, y, r2;
-    SizeT i = 0;
-    SizeT index = 0;
-    do {
-      do {
-        x = -1 + 2 * xx[i++];
-        y = -1 + 2 * xx[i++];
-        /* see if it is in the unit circle */
-        r2 = x * x + y * y;
-      } while (r2 > 1.0 || r2 == 0);
-      /* Box-Muller transform */
-      double fct = sqrt(-2.0 * log(r2) / r2);
-      double current = sigma * y * fct;
-      ret[index++] = current;
-      if (index < nEl) {
-        double other = sigma * x * fct;
-        ret[index++] = other;
+    //no difficulty as we do not use aligned functions here.
+    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    SizeT chunksize = nEl / nchunk;
+
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
       }
-    } while (index < nEl);
-    gdlAlignedFree((void*) xx);
+      SizeT i;
+      for (i=start_index; i<stop_index; ++i) res[i] = dsfmt_genrand_close_open(state.r[thread_id]);
+    }
+    return 0;
   }
 
-  double modified_dsfmt_ran_gaussian_d_singlevalue(dsfmt_t *dsfmt_mem, const double sigma)
+  int random_uniform(float* res, dsfmt_state state, SizeT nEl)
+  {
+    //no difficulty as we do not use aligned functions here.
+    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    SizeT chunksize = nEl / nchunk;
+
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_genrand_close_open(state.r[thread_id]);
+    }
+    return 0;
+  }
+
+  double dsfmt_gauss(dsfmt_t *r, const double sigma)
   {
     double x, y, r2;
     do {
-      x = -1 + 2 * dsfmt_genrand_close_open(dsfmt_mem);
-      y = -1 + 2 * dsfmt_genrand_close_open(dsfmt_mem);
+      x = -3 + 2 * dsfmt_genrand_close1_open2(r);//belongs to [1,2): faster
+      y = -3 + 2 * dsfmt_genrand_close1_open2(r);
       /* see if it is in the unit circle */
       r2 = x * x + y * y;
     } while (r2 > 1.0 || r2 == 0);
@@ -113,53 +152,100 @@ namespace lib {
     double current = sigma * y * fct;
     return current;
   }
+  
+//  //unused, but could prove useful, see comment sbelow.
+//  void dsfmt_gauss_array(dsfmt_t *r, double *ret, const SizeT n, const double sigma)
+//  {
+//    //populate array with random doubles (fastest mode)
+//    //use these randoms to make them gaussian until no more available.
+//    //complete then with singular entries.
+//    //nEl must be even and greater than 382. Only this permits the following code. 
+//    //assert(n%2==0); //There is an assert already in dSFMT!
+//    
+//    dsfmt_fill_array_close1_open2(r, ret, n); //belongs to [1,2): faster
+//    for (SizeT i=0; i< n; ++i) ret[i]=-3.+2*ret[i]; //hopefully optimized by compiler!
+//    double x, y, r2;
+//    SizeT i = 0;
+//    SizeT MARGIN=(n/5 > 512)? 512:n/5; //huge safety margin, at least 76. Probability is thus always much less than (1-PI/4)^76=210^-51
+//    SizeT index = 0;
+//    /* choose x,y in uniform square (-1,-1) to (+1,+1) */
+//    do {
+//      do {
+//        x = ret[i++];
+//        y = ret[i++];
+//        /* see if it is in the unit circle */
+//        r2 = x * x + y * y;
+//      } while (r2 > 1.0 || r2 == 0);
+//      /* Box-Muller transform */
+//      double fct = sqrt(-2.0 * log(r2) / r2);
+//      double current = sigma * y * fct;
+//      ret[index++] = current;
+//      if (index < n-1) {
+//        double other = sigma * x * fct;
+//        ret[index++] = other;
+//      }
+//    } while (i < n-MARGIN); //i always > index
+//    //finish the few last values
+//    for (SizeT k = index; k < n; ++k) ret[k] = dsfmt_gauss(r, sigma);
+//  }
+  
+// see comment about random_uniform (double) above for optimzation possibilities.
+//  int random_normal( double* res, dsfmt_state state, SizeT nEl)
+//  {
+//      if (nEl >= dsfmt_get_min_array_size() + 1) {
+//          SizeT n = (nEl % 2) ? nEl - 1 : nEl;
+//          dsfmt_gauss_array(state.r[0], res, n, 1.0);
+//          if (!(n == nEl)) res[nEl-1] = dsfmt_gauss(state.r[0], 1.0);
+//      } else {
+//        for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_gauss(state.r[0], 1.0);
+//      }
+//    return 0;
+//  }
 
-  template< typename T1, typename T2>
-  int random_uniform(T1* res, dsfmt_t *dsfmt_mem, dimension dim)
+  int random_normal(double* res, dsfmt_state state, SizeT nEl)
   {
-    SizeT nEl = res->N_Elements();
-
-    if (nEl >= dsfmt_get_min_array_size() + 1) {
-      if (sizeof (T2) == sizeof (double)) {
-        SizeT n = (nEl % 2) ? nEl - 1 : nEl;
-        dsfmt_fill_array_close_open(dsfmt_mem, (double*) &(*res)[0], n);
-        if (!(n == nEl)) (*res)[n] = dsfmt_genrand_open_close(dsfmt_mem);
-      } else if (sizeof (T2) == sizeof (float)) {
-        SizeT n = (nEl % 2) ? nEl + 1 : nEl;
-        double* temp = (double*) gdlAlignedMalloc(n * sizeof (double));
-        dsfmt_fill_array_close_open(dsfmt_mem, temp, n);
-        for (SizeT i = 0; i < nEl; ++i) (*res)[i] = temp[i];
-        gdlAlignedFree((void*) temp);
-      }
-      return 0;
-    } else {
-      for (SizeT i = 0; i < nEl; ++i) (*res)[i] = (T2) dsfmt_genrand_close_open(dsfmt_mem);
-      return 0;
-    }
-    return 1;
-  }
-
-  template< typename T1, typename T2>
-  int random_normal(T1* res, dsfmt_t *dsfmt_mem, dimension dim)
-  {
-    SizeT nEl = res->N_Elements();
-    if (nEl >= dsfmt_get_min_array_size() + 1) {
-      if (sizeof (T2) == sizeof (double)) {
-        modified_dsfmt_ran_gaussian_d(dsfmt_mem, (double*) (&(*res)[0]), nEl, 1.0);
+    //no difficulty as we do not use aligned functions here.
+    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
       } else {
-        SizeT n = (nEl % 2) ? nEl + 1 : nEl;
-        double* temp = (double*) gdlAlignedMalloc(n * sizeof (double));
-        modified_dsfmt_ran_gaussian_d(dsfmt_mem, temp, n, 1.0);
-        for (SizeT i = 0; i < nEl; ++i) (*res)[i] = temp[i];
-        gdlAlignedFree((void*) temp);
+        stop_index = nEl;
       }
-      return 0;
-    } else {
-      for (SizeT i = 0; i < nEl; ++i) (*res)[i] = (T2) modified_dsfmt_ran_gaussian_d_singlevalue(dsfmt_mem, 1.0);
+      SizeT i;
+      for (i=start_index; i<stop_index; ++i) res[i] = dsfmt_gauss(state.r[thread_id],1.0);
     }
-    return 1;
+    return 0;
   }
-
+  
+  int random_normal( float* res, dsfmt_state state, SizeT nEl)
+  {
+    //no difficulty as we do not use aligned functions here.
+    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_gauss(state.r[thread_id],1.0);
+    }
+    return 0;
+  }
+ 
   //gamma, poisson and binomial distributions code taken from GSL and updated to use dSFMT generator.
 
   static double
@@ -269,7 +355,7 @@ namespace lib {
 
       while (1) {
         do {
-          x = modified_dsfmt_ran_gaussian_d_singlevalue(r, 1.0); //GSL's method uses gaussian_ziggurat but intent is the same!
+          x = dsfmt_gauss(r, 1.0); //GSL's method uses gaussian_ziggurat but intent is the same!
           v = 1.0 + c * x;
         }        while (v <= 0);
 
@@ -381,36 +467,190 @@ namespace lib {
 
   }
 
-  template< typename T1, typename T2>
-  int random_gamma(T1* res, dsfmt_t *dsfmt_mem, dimension dim, DLong n)
+  int random_gamma(double* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    SizeT nEl = res->N_Elements();
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (T2) dsfmt_ran_gamma_knuth(dsfmt_mem, 1.0 * n, 1.0);
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_gamma_knuth(state.r[thread_id], 1.0 * n, 1.0);
+    }
     return 0;
   }
 
-  template< typename T1, typename T2>
-  int random_binomial(T1* res, dsfmt_t *dsfmt_mem, dimension dim, DDoubleGDL* binomialKey)
+  int random_gamma(float* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    SizeT nEl = res->N_Elements();
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = (float) dsfmt_ran_gamma_knuth(state.r[thread_id], 1.0 * n, 1.0);
+    }
+    return 0;
+  }
+  
+  int random_binomial(double* res, dsfmt_state state, SizeT nEl, DDoubleGDL* binomialKey)
+  {
     //Note: Binomial values are not same IDL.    
     DULong n = (DULong) (*binomialKey)[0];
     DDouble p = (DDouble) (*binomialKey)[1];
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) dsfmt_ran_binomial_knuth(dsfmt_mem, p, n);
-    return 0;
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_binomial_knuth(state.r[thread_id], p, n);
+    }
+    return 0;    
   }
-
-  template< typename T1, typename T2>
-  int random_poisson(T1* res, dsfmt_t *dsfmt_mem, dimension dim, DDoubleGDL* poissonKey)
+  
+  int random_binomial(float* res, dsfmt_state state, SizeT nEl, DDoubleGDL* binomialKey)
   {
-    SizeT nEl = res->N_Elements();
-    //Removed old code that would return non-integer values for high mu values.
+    //Note: Binomial values are not same IDL.    
+    DULong n = (DULong) (*binomialKey)[0];
+    DDouble p = (DDouble) (*binomialKey)[1];
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = (float) dsfmt_ran_binomial_knuth(state.r[thread_id], p, n);
+    }
+    return 0;    
+  }
+  
+  int random_poisson(double* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
+  {
     DDouble mu = (DDouble) (*poissonKey)[0];
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) dsfmt_ran_poisson(dsfmt_mem, mu);
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_poisson(state.r[thread_id], mu);
+    }
     return 0;
   }
 
+  int random_poisson(float* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
+  {
+    DDouble mu = (DDouble) (*poissonKey)[0];
+    //no difficulty as we do not use aligned functions here.
+    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_ran_poisson(state.r[thread_id], mu);
+    }
+    return 0;
+  }
+
+  int random_dlong(DLong* res, dsfmt_state state, SizeT nEl)
+  {
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_genrand_int31(state.r[thread_id]); //int31 as in [0..2^31-1] 
+    }
+    return 0;
+  }
+
+  int random_dulong(DULong* res, dsfmt_state state, SizeT nEl)
+  {
+    //no difficulty as we do not use aligned functions here.
+    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    SizeT chunksize = nEl / nchunk;
+    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    {
+      int thread_id = currentThreadNumber();
+      SizeT start_index, stop_index;
+      start_index = thread_id * chunksize;
+      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
+      {
+        stop_index = start_index + chunksize;
+      } else {
+        stop_index = nEl;
+      }
+      SizeT i;
+      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_genrand_uint32(state.r[thread_id]); //int31 as in [0..2^31-1] 
+    }
+    return 0;
+  }  
+  
   void set_random_state(dsfmt_t *dsfmt_mem, const unsigned long int* seed, const int pos, const int n)
   {
     uint32_t *psfmt32 = &dsfmt_mem->status[0].u32[0];
@@ -446,12 +686,30 @@ namespace lib {
   //***IMPORTANT*** It is possible, even desirable, to further speed up random number generation for a very large number of
   // values by parallelizing the code. This is possible with dSFMT, provided one use the dsfmt-jump() function written
   // by  Mutsuo Saito (Hiroshima University) and Makoto Matsumoto (The University of Tokyo).
-  // It permits to "jump" the seed 2^xxxx times (in a random series with a period of 2^19937 !). The implementation would "just"
-  // create MAX_NUM_THREADS seed states, separated by a 2^XXX state, and run NUM_THREADS in parallell, each continuing with its own seed.
+  // It permits to "jump" the seed to a new state as if 2^{128} random numbers have been generated.
+  // (This in a random series with a period of 2^19937 !). The implementation would "just"
+  // create MAX_NUM_THREADS seed states, separated by a 2^{128} state jump, and run NUM_THREADS in parallell, each continuing with its own seed.
   // The problem is, how to store these MAX_NUM_THREADS seed states? Especially if some non-threaded calls are made to the dsfmt library
   // in-beteween, because of, say, a single "a=randomu(seed)" statement somewhere: seeds would not be in sync. This may not be a problem,
   // comments welcome on Github.
- 
+  
+#include "dSFMT/dSFMT-jump.c"
+
+ //this initializes parallel states up to min of max_allowed_threads and omp_max_threads.
+ //independently of the fact that only a subset of theses thtreads will be used in loops.
+ void init_seeds(dsfmt_state state, DULong seed) {
+   
+   int maxthreads=min(maxNumberOfThreads(),MAX_ALLOWED_THREADS);
+   //populate with seed template state 'temp'
+   dsfmt_t temp;   
+   dsfmt_init_gen_rand(&temp, seed);
+   //sucessively push by 2^128 and copy to next place
+   memcpy((void*)(state.r[0]),(void*)&temp,sizeof(temp));
+   for (int i=1; i<maxthreads; ++i) {
+     dSFMT_jump(&temp, poly_128);
+     memcpy((void*)(state.r[i]),(void*)&temp,sizeof(temp));
+   }
+ }
   
   BaseGDL* random_fun_dsfmt(EnvT* e)
   {
@@ -480,8 +738,11 @@ namespace lib {
 
     // the generator structure
     static DULong *seed0 = NULL;
-    static dsfmt_t dsfmt_mem;
-
+    
+    static dsfmt_state dsfmt_mem;
+    //initialize only once!
+    if (dsfmt_mem.r[0]==NULL) {for (int i=0; i< MAX_ALLOWED_THREADS ; ++i) dsfmt_mem.r[i]=(dsfmt_t*)malloc(sizeof(dsfmt_t));}
+    
     //initialise pool. As gsl is still used, we initiate seed0 for both. 
     if (seed0 == NULL) { //initialize pool with systime
       struct timeval tval;
@@ -489,8 +750,9 @@ namespace lib {
       gettimeofday(&tval, &tzone);
       long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
       seed0 = new DULong(tt);
-      dsfmt_init_gen_rand(&dsfmt_mem, (*seed0));
-
+      
+      //this initialize all the MAX_ALLOWED_THREADS parallel states.
+      init_seeds(dsfmt_mem, (*seed0));
     }
 
     SizeT nParam = e->NParam(1);
@@ -513,11 +775,14 @@ namespace lib {
           int n = DSFMT_N32;
           unsigned long int sequence[n];
           for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-          set_random_state(&dsfmt_mem, sequence, pos, n); //the seed 
+      //this DOES NOT initialize all the MAX_ALLOWED_THREADS parallel states, as IDL does notprovide a mechanism to do so also (not being
+      // parallel inthe first place). It is assumed HERE IN GDL that if one wants to sarts a new sequence (s)he does it using a new seed.
+          set_random_state(dsfmt_mem.r[0], sequence, pos, n); //the seed 
         } else { // not a seed sequence: take first (IDL does more than this...)
           if (p0L->N_Elements() > 0) {
             seed = (*p0L)[0];
-            dsfmt_init_gen_rand(&dsfmt_mem, seed);
+      //this initialize all the MAX_ALLOWED_THREADS parallel states, as a new seed has been given.
+            init_seeds(dsfmt_mem, seed);
           }
         }
       }
@@ -525,20 +790,16 @@ namespace lib {
 
     if (e->KeywordSet(LONGIx)) {
       DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
-      SizeT nEl = res->N_Elements();
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = dsfmt_genrand_int31(&dsfmt_mem); //int31 as in [0..2^31-1]
-      get_random_state(e, &dsfmt_mem, seed);
+      random_dlong((DLong*)res->DataAddr(), dsfmt_mem,res->N_Elements());
+      get_random_state(e, dsfmt_mem.r[0], seed);
       return res;
     }
-
     if (e->KeywordSet(ULONGIx)) {
       DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
-      SizeT nEl = res->N_Elements();
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = dsfmt_genrand_uint32(&dsfmt_mem);
-      get_random_state(e, &dsfmt_mem, seed);
+      random_dulong((DULong*)res->DataAddr(), dsfmt_mem,res->N_Elements());
+      get_random_state(e, dsfmt_mem.r[0], seed);
       return res;
     }
-
 
     if (e->KeywordPresent(GAMMAIx)) {
       DLong n = -1; //please initialize everything!
@@ -554,13 +815,13 @@ namespace lib {
       }
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-        random_gamma< DDoubleGDL, double>(res, &dsfmt_mem, dim, n);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_gamma((double*)res->DataAddr(), dsfmt_mem,res->N_Elements(), n);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-        random_gamma< DFloatGDL, float>(res, &dsfmt_mem, dim, n);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_gamma((float*)res->DataAddr(), dsfmt_mem,res->N_Elements(), n);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       }
     }
@@ -579,13 +840,13 @@ namespace lib {
 
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-        random_binomial< DDoubleGDL, double>(res, &dsfmt_mem, dim, binomialKey);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_binomial((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), binomialKey);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-        random_binomial< DFloatGDL, float>(res, &dsfmt_mem, dim, binomialKey);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_binomial((float*)res->DataAddr(), dsfmt_mem, res->N_Elements(), binomialKey);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       }
     }
@@ -598,13 +859,13 @@ namespace lib {
 
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-        random_poisson< DDoubleGDL, double>(res, &dsfmt_mem, dim, poissonKey);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_poisson((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), poissonKey);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-        random_poisson< DFloatGDL, float>(res, &dsfmt_mem, dim, poissonKey);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_poisson((float*)res->DataAddr(), dsfmt_mem, res->N_Elements(), poissonKey);
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       }
     }
@@ -612,37 +873,41 @@ namespace lib {
     if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-        random_uniform< DDoubleGDL, double>(res, &dsfmt_mem, dim);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_uniform((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-        random_uniform< DFloatGDL, float>(res, &dsfmt_mem, dim);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_uniform((float*)res->DataAddr(), dsfmt_mem, res->N_Elements());
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
-      }
+      }      
     }
 
     if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
-        DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-        random_normal< DDoubleGDL, double>(res, &dsfmt_mem, dim);
-        get_random_state(e, &dsfmt_mem, seed);
+       DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+        random_normal((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-        random_normal< DFloatGDL, float>(res, &dsfmt_mem, dim);
-        get_random_state(e, &dsfmt_mem, seed);
+        random_normal((float*)res->DataAddr(), dsfmt_mem, res->N_Elements());
+        get_random_state(e, dsfmt_mem.r[0], seed);
         return res;
       }
     }
+    assert(false);
+    return NULL;
   }
-
+#endif
   BaseGDL* random_fun(EnvT* e)
   {
     //switches between gsl-based and parallelized version depending on enviromnent and RAN1 switch.
     //Probably the gsl version could be dropped at some point as the speed gain is more important that everything.
-
+    //USE_EIGEN as long as we have not our own alignment malloc procedure and rely on Eigen:: only.
+    
+#ifdef USE_EIGEN
     static int RAN1Ix = e->KeywordIx("RAN1");
     static bool warning_about_ran1 = false;
     if (useDSFMTAcceleration && e->KeywordSet(RAN1Ix) && !warning_about_ran1) {
@@ -653,6 +918,8 @@ namespace lib {
     bool use_dsfmt = (!e->KeywordSet(RAN1Ix) && useDSFMTAcceleration == true);
 
     if (use_dsfmt) return random_fun_dsfmt(e);
-    else return random_fun_gsl(e);
+    else
+#endif      
+      return random_fun_gsl(e);
   }
 } //namespace lib

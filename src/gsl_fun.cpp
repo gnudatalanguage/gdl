@@ -1219,6 +1219,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
       return res;
     }
   }
+  assert(false);
+  return NULL;
 }
 
 #ifndef HAVE_NEXTTOWARD

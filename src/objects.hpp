@@ -109,6 +109,8 @@ void SetStrict(bool value);
 bool BigEndian();
 
 int get_suggested_omp_num_threads();
+int currentNumberOfThreads();
+int currentThreadNumber();
 
 template <typename T> class RefHeap {
   private:

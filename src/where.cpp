@@ -22,6 +22,7 @@
 #include "dinterpreter.hpp" //for sysVarList() 
 
 #ifdef _OPENMP
+#include "omp.h"
 #define MINMAX_THREAD_NUM omp_get_thread_num()
 #else
 #define MINMAX_THREAD_NUM 0
