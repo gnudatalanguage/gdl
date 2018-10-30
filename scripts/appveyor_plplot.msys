@@ -108,10 +108,8 @@ if [[ -d "$plplot/share/plplot5.13.0/examples" ]] ; then
 if [[ -d "$plplot/share/plplot5.13.0/ss" ]] ; then 
     rm -r $plplot/share/plplot5.13.0/ss
     fi
-cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
+if [[ -d "$plplot/lib/plplot5.13.0/drivers" ]] ; then
+    cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
+    fi
 cd /c/projects/gdl
-echo wxWidgets_ROOT=$wxWidgets_ROOT
-which cmake
-echo PATH=$PATH
 echo " that was scripts/appveyor-plplot.msys "
-echo " Notice gcc 7.3.0 may have been used to compile plplot!"
