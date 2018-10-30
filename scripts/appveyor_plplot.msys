@@ -89,11 +89,12 @@ cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
  -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
  -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=OFF \
- -DENABLE_DYNDRIVERS=OFF \
- -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
- -DwxWidgets_USE_PREFIX=$WXROOT \
+ -DENABLE_DYNDRIVERS=ON \
+ -DWITH_FREETYPE=OFF -DPLD_wxwidgets=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
  -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 \
  -DCMAKE_CXX_FLAGS='-std=c++11' | tee cmake.out
+
+# -DwxWidgets_USE_PREFIX=$WXROOT \
  
 export PATH=$WXROOT/bin:$PATH
 cd /c/projects/gdl/build/plplot/msys
@@ -108,8 +109,8 @@ if [[ -d "$plplot/share/plplot5.13.0/examples" ]] ; then
 if [[ -d "$plplot/share/plplot5.13.0/ss" ]] ; then 
     rm -r $plplot/share/plplot5.13.0/ss
     fi
-# if [[ -d "$plplot/lib/plplot5.13.0/drivers" ]] ; then
-#    cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
-#    fi
+if [[ -d "$plplot/lib/plplot5.13.0/drivers" ]] ; then
+   cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
+   fi
 cd /c/projects/gdl
 echo " that was scripts/appveyor-plplot.msys "
