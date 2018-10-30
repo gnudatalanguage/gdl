@@ -783,6 +783,12 @@ namespace lib {
   {
     BaseGDL* p0 = e->GetParDefined(0);
 
+    string txt=" expression not allowed in this context: ";
+    if (p0->Type() == GDL_STRING) e->Throw("String"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_PTR) e->Throw("Pointer"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_STRUCT) e->Throw("Structure"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_OBJ) e->Throw("Object"+txt+ e->GetParString(0));
+
     if( p0->Rank() != 2)
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
 
@@ -824,20 +830,29 @@ namespace lib {
 	return Sobel_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
 
-    default:{
-      string s=to_string(p0->Type());
-      e->Throw( "Invalide Type: "+ s+" : "+ p0->TypeStr());
-      break;
-    }
+    default: e->Throw( "Should not reach this point, please report");
+
     }
     return NULL;
   }
 
   BaseGDL* roberts_fun( EnvT* e){
 
-    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-    if( p0->Rank() != 2)
+    //    BaseGDL* p0 = e->GetParDefined(0);
+
+    int type=e->GetParDefined(0)->Type();
+
+    string txt=" expression not allowed in this context: ";
+    if (type == GDL_STRING) e->Throw("String"+txt+ e->GetParString(0));
+    if (type == GDL_PTR) e->Throw("Pointer"+txt+ e->GetParString(0));
+    if (type == GDL_STRUCT) e->Throw("Structure"+txt+ e->GetParString(0));
+    if (type == GDL_OBJ) e->Throw("Object"+txt+ e->GetParString(0));
+
+    //    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    if (e->GetParDefined(0)->Rank()  != 2)
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
+    
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 
     DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
     SizeT nbX = p0->Dim(0);
@@ -916,6 +931,12 @@ namespace lib {
   {
     BaseGDL* p0 = e->GetParDefined(0);
 
+    string txt=" expression not allowed in this context: ";
+    if (p0->Type() == GDL_STRING) e->Throw("String"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_PTR) e->Throw("Pointer"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_STRUCT) e->Throw("Structure"+txt+ e->GetParString(0));
+    if (p0->Type() == GDL_OBJ) e->Throw("Object"+txt+ e->GetParString(0));
+
     if( p0->Rank() != 2)
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
 
@@ -957,11 +978,7 @@ namespace lib {
 	return Prewitt_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
 
-    default:{
-      string s=to_string(p0->Type());
-      e->Throw( "Invalide Type: "+ s+" : "+ p0->TypeStr());
-      break;
-    }
+    default: e->Throw( "Should not reach this point, please report");
     }
     return NULL;
   }

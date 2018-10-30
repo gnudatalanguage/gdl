@@ -1,6 +1,6 @@
 
 if [[ -z /etc/issue ]] ; then
-    line=`sed "/^[ \t]*$/d" /etc/issue | head -1`
+    line=`sed "/^[ \t]*$/d" /etc/issue | cut -d' ' -f1 | head -1`
 fi
 #lower case
 line=${line,,}
