@@ -52,7 +52,7 @@ if [[ -d "$WXNAME" ]] ; then
     fi
 WXROOT=/c/projects/gdl/mingw/$WXNAME
 # this is magic sauce that allows wxwidgets to meld into GDL:
-#### sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
+sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
 # locate wx-config so that wxWidgets_USE_PREFIX can work.
 cp ${WXNAME}/bin/wx-config /c/projects/gdl/mingw/$mname/bin/
 
@@ -88,7 +88,7 @@ cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
  -DCMAKE_INSTALL_PREFIX=$plplot \
  -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
- -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets:BOOL=ON \
+ -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=OFF \
  -DENABLE_DYNDRIVERS=OFF \
  -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
  -DwxWidgets_USE_PREFIX=$WXROOT \

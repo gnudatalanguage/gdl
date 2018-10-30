@@ -29,7 +29,7 @@ cd /c/projects/gdl/build/gdl/msys
 cmake  -G"MSYS Makefiles" c:\projects\gdl \
       -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-      -DWXWIDGETS=ON -DWXWIDGETSDIR=$WXROOT \
+      -DWXWIDGETS=OFF -DWXWIDGETSDIR=$WXROOT \
       -DPLPLOTDIR=$plplot \
       -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl \
       -DGRAPHICSMAGICK=OFF -DMAGICK=OFF \
