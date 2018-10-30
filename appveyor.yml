@@ -178,7 +178,7 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
 #AC 2018 : should be OK now
-#  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_usersym.pro' -NotMatch)
+  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plot_usersym.pro' -NotMatch)
 
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_plotting_ranges.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_pmulti.pro' -NotMatch)
