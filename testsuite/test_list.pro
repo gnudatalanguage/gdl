@@ -121,10 +121,11 @@ igen=1+indgen(5)
 tg=igen[2:3] & tl = intarr(2) & for k=0,1 do tl[k]= alist[2+k]  
 txt0=' right index extraction'
 if tg[0] ne tl[0] or tg[1] ne tl[1] then ERRORS_ADD, nb_errors, txt0+'- simple [2:3]'
-
 nl = nalist
 alist.add,igen
-if(~isgit) then begin
+
+; the following gives and error ALSO with IDL. PLEASE CORRECT THE TEST! 
+if(0) then begin
 	catch, OL_right_error
 	if OL_right_error then 	tl = alist[nl,2:4] else begin
 		ERRORS_ADD, nb_errors,' multi-D access is coming soon.'
@@ -145,7 +146,11 @@ ii1 = 1+indgen(3,10) & ii2 = 10*indgen(4,5)+11
 stab=ll.remove()
 if(stab.a ne 'a' or stab.b ne 'b') then $
   ERRORS_ADD, nb_errors," ::remove() didn't get the structure."
-if(~isgit) then begin
+; following give AN ERROR WITH IDL:
+;% Attempt to subscript LIST element within LL is out of range.
+;% Execution halted at: TEST_LIST         151 /home/gildas/gdl/testsuite/test_list.pro
+; TEST REMOVED.
+if(0) then begin
 	ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
 	ll[1,2,1:4] = 11+indgen(6) 		& ii1[2,1:4] = 11+indgen(6) 
 	ll[2,2:3,1:3] = 21 - indgen(6)	& ii2[2:3,1:3]=21 - indgen(6)
