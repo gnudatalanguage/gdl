@@ -1,5 +1,5 @@
 --- /f/f/wxWidgets-3.0.2-17/include/wx-3.0/wx/msw/winundef.h
-+++ /f/f/mingw32/include/wx-3.0/wx/msw/winundef.h
++++ /f/f/wxWidgets-3.0.2-17/include/wx-3.0/wx/msw/winundef.h
 @@ -14,7 +14,13 @@
  #ifndef _WX_WINUNDEF_H_
  #define _WX_WINUNDEF_H_

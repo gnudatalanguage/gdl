@@ -46,9 +46,11 @@ if [[ -d "$WXNAME" ]] ; then
     mkdir temp
     cd temp
     tar xf ../mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz
-sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
-patch -p3 -i /c/projects/gdl/scripts/patch/wxWidgets-3.0.2.patch    
-    cd .. && mv temp/$mname ./${WXNAME} && rm -r temp
+    sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
+    cd $mname 
+    patch -p4 -i /c/projects/gdl/scripts/patch/wxWidgets-3.0.2.patch    
+    cd ../..
+    mv temp/$mname ./${WXNAME} && rm -r temp
     #   trim out the dll collection
     for f in aui gl html propgrid qa ribbon richtext stc webview xrc ; do
        rm ./${WXNAME}/bin/*$f*.dll

@@ -353,14 +353,11 @@ after_build:
   
   - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
   - ps: copy INSTALL.plplot c:/projects/gdl/install
-  # Get plplot info placed:
-  - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
+
   - cd c:\projects\gdl
+  - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
+  - ps: copy -r src/pro install/gdl/gdllib
   - 7z a gdl_build.zip install build
-  # - ctest -C Release --output-on-failure
-  # python needs to be python built in mingw, not the python for windows.
-  # - python -c "import gdl; dir(gdl)"
-  # get the check in after the artifact is completed. - doesn't work if check fails.
 
 
 artifacts:
