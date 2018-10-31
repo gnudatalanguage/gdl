@@ -62,24 +62,6 @@ install:
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
        }
   - ps: |
-      if ($true)
-      {
-        # BSD-XDR
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile `
-          https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
-        tar zxf bsd-xdr-1.0.0.tar.gz
-        cd bsd-xdr-1.0.0
-        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
-        sed -i 's/%hh/%/g' src\test\test_data.c
-        md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
-      }
-  - ps: |
       if ($true)   # MSYS mode
       {
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
@@ -141,30 +123,28 @@ install:
         }
   #
   #- cmd /K ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!  - ps: |
-  - ps: |
-      if ($false)  # MINGW mode
+   - ps: |
+      if ($true)
       {
-       # Eigen
+        # BSD-XDR
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile `
-          https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        md eigen-eigen-5a0156e40feb/build
-        # cmake is generating PS error, plain make seems to do alright.
-        #cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs > $env:BLDDIR/eigen3.out
-        cd eigen-eigen-5a0156e40feb/build
-        echo " eigen3 (eigen-eigen-5a0156e40feb) to be made " 
-        #echo " eigen3 (eigen-eigen-5a0156e40feb) to be made "  >> $env:BLDDIR/eigen3.out
-        mingw32-make install >> $env:BLDDIR/eigen3.out
-        }
-  - ps: |
-      if  ($false)  # MINGW mode # gsl is downloaded in appveyor_1.msys
+          https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
+        tar zxf bsd-xdr-1.0.0.tar.gz
+        cd bsd-xdr-1.0.0
+        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
+        sed -i 's/%hh/%/g' src\test\test_data.c
+        md mingw
+        md mingw\lib
+        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
+      }
+      if ($true)
       {
-        # GSL
-        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/appveyor_gsl.msys'
-        }
-  - ps: |
-      if  ($false)  # MINGW mode
+        mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
+        mv rpc c:/projects/gdl/mingw/$env:mname/include
+        mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$env:mname/bin
+       }
+      else  # MINGW mode
       { 
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
         # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
@@ -190,7 +170,32 @@ install:
         7z x libpng-1.2.37-bin.zip -y
         7z x pcre-7.0-bin.zip -y
         #7z x tiff-3.8.2-1-bin.zip -y
-      }
+        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
+        mv rpc c:\projects\gdl\win32libs\include
+        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
+       }
+  - ps: |
+      if ($false)  # MINGW mode
+      {
+       # Eigen
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile `
+          https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
+        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
+        md eigen-eigen-5a0156e40feb/build
+        # cmake is generating PS error, plain make seems to do alright.
+        #cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs > $env:BLDDIR/eigen3.out
+        cd eigen-eigen-5a0156e40feb/build
+        echo " eigen3 (eigen-eigen-5a0156e40feb) to be made " 
+        #echo " eigen3 (eigen-eigen-5a0156e40feb) to be made "  >> $env:BLDDIR/eigen3.out
+        mingw32-make install >> $env:BLDDIR/eigen3.out
+        }
+  - ps: |
+      if  ($false)  # MINGW mode # gsl is downloaded in appveyor_1.msys
+      {
+        # GSL
+        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/appveyor_gsl.msys'
+        }
   # - if %platform%==mingw64630x8664 set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw32\bin;%PATH%
 
 before_build:
