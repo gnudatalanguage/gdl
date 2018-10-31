@@ -79,6 +79,7 @@ install:
         $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
+  - ps: |
       if ($false)  # MINGW mode
       {
         # wxWidgets
@@ -123,7 +124,7 @@ install:
         }
   #
   #- cmd /K ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!  - ps: |
-   - ps: |
+  - ps: |
       if ($true)
       {
         # BSD-XDR
@@ -138,6 +139,7 @@ install:
         md mingw\lib
         mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
       }
+  - ps: |
       if ($true)
       {
         mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$env:mname/lib
