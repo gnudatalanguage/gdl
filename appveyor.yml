@@ -220,6 +220,7 @@ before_build:
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_typename.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
   - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
+  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_where.pro' -NotMatch)
 
 #AC 2018 : should be OK now
 #  - ps: Set-Content -Path "C:\projects\gdl\testsuite\Makefile.am" -Value (get-content -Path "C:\projects\gdl\testsuite\Makefile.am" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
