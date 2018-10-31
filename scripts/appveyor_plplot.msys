@@ -59,6 +59,8 @@ WXROOT=/c/projects/gdl/mingw/$WXNAME
 sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
 # locate wx-config so that wxWidgets_USE_PREFIX can work.
 cp ${WXNAME}/bin/wx-config /c/projects/gdl/mingw/$mname/bin/
+# Copy over the shareable images for the test runs and installation.
+cp ${WXNAME}/bin/*.dll /c/projects/gdl/mingw/$mname/bin/
 
 . /etc/profile
 
