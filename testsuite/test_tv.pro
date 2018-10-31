@@ -9,6 +9,7 @@
 ; are too slow)
 ; * AC 2017-08-17 : details when files missing, errors count, banner ...
 ; * AC 2018-01-09 : clarifying details, should extendable easily for bench
+; * AC 2018-10-24 : should work now with X11, Win & Mac ...
 ;
 function TITLE4TEST_TV, data, debug=debug
 ;
@@ -265,18 +266,17 @@ end
 ;
 ; -------------------------------------
 ;
-pro TEST_TV, help=help, no_close=no_close, test=test, no_exit=no_exit
+pro TEST_TV, help=help, test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_TV, help=help, no_close=no_close, test=test, no_exit=no_exit'
+    print, 'pro TEST_TV, help=help, test=test, no_exit=no_exit'
     return
 endif
 ;
-if (!d.name EQ 'NULL') then begin
-   is_X11_ok=EXECUTE('set_plot, "X"')
-   if (is_X11_ok EQ 0) then begin
-      if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
-   endif
+rname=ROUTINE_NAME()
+;
+if ~CHECK_IF_DEVICE_IS_OK(rname, /force) then begin
+   if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
 endif
 ;
 TEST_TV_REFORM
@@ -290,8 +290,8 @@ TEST_TV_OVER_BOX
 TEST_TV_WSET, errors
 ;
 ;stop
-if ~KEYWORD_SET(noclose) then while !d.window GE 0 do WDELETE
-print, 'You can use keyword /No_Close to de-activate auto closing'
+if ~KEYWORD_SET(no_exit) then while !d.window GE 0 do WDELETE
+print, 'You can use keyword /No_Exit to de-activate auto closing'
 ;
 ; ----------------- final message ----------
 ;

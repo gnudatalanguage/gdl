@@ -849,310 +849,379 @@ namespace lib {
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-  
-  inline double high_prec_gsl_rng_uniform_pos_d(const gsl_rng * r) {
-    unsigned long A, B;
-    long double C;
-    A = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
-    B = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
-    A = (A >> 5);
-    B = (B >> 6);
-    C = A * pow(2, 26) + B;
-    return C * pow(2, -53);
-  }
-  
-  float modified_gsl_ran_gaussian_f(const gsl_rng * r, const double sigma, bool reset = false) {
-    //modified from GSL code to use the trick described in NumRec, that is,
-    //use also the angle of the 'draw" as a no-cost random variable.
-    //This trick is used by IDL.
-    //The reset is used to start a new sequence (could probably be done looking at r contents)
-    static int available = 0;
-    if (reset) {
-      available = 0;
-      return std::numeric_limits<float>::quiet_NaN(); //ensure not used.
-    }
-    static float other;
-    float x, y, r2;
-    if (available == 0) {
-      do {
-        /* choose x,y in uniform square (-1,-1) to (+1,+1) */
-        x = -1 + 2 * gsl_rng_uniform_pos(r);
-        y = -1 + 2 * gsl_rng_uniform_pos(r);
-
-        /* see if it is in the unit circle */
-        r2 = x * x + y * y;
-      } while (r2 > 1.0 || r2 == 0);
-
-      /* Box-Muller transform */
-      double fct = sqrt(-2.0 * log(r2) / r2);
-      float current = sigma * y * fct;
-      other = sigma * x * fct;
-      available = 1;
-      return current;
-    } else {
-      available = 0;
-      return other;
-    }
-  }
-
-  double modified_gsl_ran_gaussian_d(const gsl_rng * r, const double sigma, bool reset = false) {
-    //modified from GSL code to use the trick described in NumRec, that is,
-    //use also the angle of the 'draw" as a no-cost random variable.
-    //This trick is used by IDL.
-    //Moreover, IDL for doubles eats 2 single-precision numbers so that the result is
-    // randomn_double = [(A >> 5)*226 + (B >> 6)]*2-53 where A and B are
-    // 2 integer 32 bits random numbers.
-    //The reset is used to start a new sequence (could probably be done looking at r contents)
-    static int available = 0;
-    if (reset) {
-      available = 0;
-      return std::numeric_limits<double>::quiet_NaN(); //ensure not used.
-    }
-    static double other;
-    double x, y, r2;
-    if (available == 0) {
-    do {
-      /* choose x,y in uniform square (-1,-1) to (+1,+1) */
-        x = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
-        y = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
-        /* see if it is in the unit circle */
-        r2 = x * x + y * y;
-    } while (r2 > 1.0 || r2 == 0);
-
-      /* Box-Muller transform */
-      double fct = sqrt(-2.0 * log(r2) / r2);
-      double current = sigma * y * fct;
-      other = sigma * x * fct;
-      available = 1;
-      return current;
-    } else {
-      available = 0;
-      return other;
-    }
-  }
-
-  template< typename T1, typename T2>
-  int random_template( EnvT* e, T1* res, gsl_rng *r, 
-		       dimension dim, 
-		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey) 
-  {
-    //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
-    static int GAMMAIx = e->KeywordIx("GAMMA");
-    static int NORMALIx = e->KeywordIx("NORMAL");
-    static int POISSONIx = e->KeywordIx("POISSON");
-    static int UNIFORMIx = e->KeywordIx("UNIFORM");
-    // testing Exclusive Keywords ...
-    int exclusiveKW = e->KeywordPresent(GAMMAIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
-    exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
-
-    if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
-
-    SizeT nEl = res->N_Elements();
-
-    if (e->KeywordPresent(GAMMAIx)) {
-      DLong n=-1; //please initialize everything!
-      e->AssureLongScalarKW(GAMMAIx, n);
-      if (n == 0) {
-        DDouble test_n;
-        e->AssureDoubleScalarKW(GAMMAIx, test_n);
-        if (test_n > 0.0) n = 1;
-      }
-      if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-      if (res->Type()==GDL_FLOAT && n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
-
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (T2) gsl_ran_gamma_knuth(r, 1.0*n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
-      return 0;
-    }
-
-//Note: Binomial values are not same IDL.    
-    static int BINOMIALIx=e->KeywordIx("BINOMIAL");
-    if (e->KeywordPresent(BINOMIALIx)) {
-      if (binomialKey != NULL) {
-        DULong n = (DULong) (*binomialKey)[0];
-          DDouble p = (DDouble) (*binomialKey)[1];
-          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-            (T2) gsl_ran_binomial(r, p, n);
-          }
-      return 0;
-    }
-//Note: Poisson values are not same as IDL. 
-//Removed old code that would return non-integer values for high mu values.
-    if (e->KeywordSet(POISSONIx)) { // POISSON
-      if (poissonKey != NULL) {
-        DDouble mu = (DDouble) (*poissonKey)[0];
-          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-            (T2) gsl_ran_poisson(r, mu);
-      }
-      return 0;
-    }
-    
-//Note: in all the following code, we get the same returns as IDL8+ providing we use the same seed.
-
-    if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-      if (sizeof (T2) == sizeof (float)) {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =  (T2) gsl_rng_uniform(r);
-        return 0;
-      } else {
-        //as for IDL, make a more precise random number from 2 successive ones:
-        unsigned long A,B;
-        long double C;
-         for (SizeT i = 0; i < nEl; ++i) {
-          A = gsl_rng_uniform(r)*0xFFFFFFFFUL;
-          B = gsl_rng_uniform(r)*0xFFFFFFFFUL;
-          A = (A>>5);
-          B = (B>>6);
-          C = A*pow(2,26)+B;
-          C = C*pow(2,-53);
-          (*res)[ i] =  (T2) C; //gives the same as IDL 8
-        }
-        return 0;
-      }
-    }
-
-    if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-      if (sizeof (T2) == sizeof (float)) {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(r, 1.0); //does reproduct IDL values.
-        modified_gsl_ran_gaussian_f(r, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-        return 0;
-      } else {
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(r, 1.0); //does reproduct IDL values.
-        modified_gsl_ran_gaussian_d(r, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-        return 0;
-      }
-    }
-    assert(false);
-    return 0;
-  }
-
-#define MERSENNE_GSL_N 624   /* Period parameters */
-typedef struct
-    {
-    unsigned long mt[MERSENNE_GSL_N];
-    int mti;
-  } mt_state_t;
-
-unsigned long int* get_mt19937_state(const gsl_rng* r, int& pos){
-  mt_state_t *state = (mt_state_t *) (r->state);
-  pos = state->mti;
-  return state->mt;
-}  
-void set_mt19937_state(gsl_rng* r, const unsigned long int* seed, const int pos, const int n ){
-  assert (n == MERSENNE_GSL_N);
-  mt_state_t *state = (mt_state_t *) (r->state);
-  unsigned long * mt = state->mt;
-  for (int i=0; i< n; ++i) mt[i]=seed[i];
-  state->mti=pos;
+inline double high_prec_gsl_rng_uniform_pos_d(const gsl_rng * r)
+{
+  unsigned long A, B;
+  long double C;
+  A = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
+  B = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
+  A = (A >> 5);
+  B = (B >> 6);
+  C = A * pow(2, 26) + B;
+  return C * pow(2, -53);
 }
 
-void update_seed(EnvT* e, const gsl_rng* r, const DULong seed0) {
+float modified_gsl_ran_gaussian_f(const gsl_rng * r, const double sigma, bool reset = false)
+{
+  //modified from GSL code to use the trick described in NumRec, that is,
+  //use also the angle of the 'draw" as a no-cost random variable.
+  //This trick is used by IDL.
+  //The reset is used to start a new sequence (could probably be done looking at r contents)
+  static int available = 0;
+  if (reset) {
+    available = 0;
+    return std::numeric_limits<float>::quiet_NaN(); //ensure not used.
+  }
+  static float other;
+  float x, y, r2;
+  if (available == 0) {
+    do {
+      /* choose x,y in uniform square (-1,-1) to (+1,+1) */
+      x = -1 + 2 * gsl_rng_uniform_pos(r);
+      y = -1 + 2 * gsl_rng_uniform_pos(r);
+
+      /* see if it is in the unit circle */
+      r2 = x * x + y * y;
+    } while (r2 > 1.0 || r2 == 0);
+
+    /* Box-Muller transform */
+    double fct = sqrt(-2.0 * log(r2) / r2);
+    float current = sigma * y * fct;
+    other = sigma * x * fct;
+    available = 1;
+    return current;
+  } else {
+    available = 0;
+    return other;
+  }
+}
+
+double modified_gsl_ran_gaussian_d(const gsl_rng * r, const double sigma, bool reset = false)
+{
+  //modified from GSL code to use the trick described in NumRec, that is,
+  //use also the angle of the 'draw" as a no-cost random variable.
+  //This trick is used by IDL.
+  //Moreover, IDL for doubles eats 2 single-precision numbers so that the result is
+  // randomn_double = [(A >> 5)*226 + (B >> 6)]*2-53 where A and B are
+  // 2 integer 32 bits random numbers.
+  //The reset is used to start a new sequence (could probably be done looking at r contents)
+  //GSL uses uniform_pos but the algo should permit x==0 or y==0 ?
+  static int available = 0;
+  if (reset) {
+    available = 0;
+    return std::numeric_limits<double>::quiet_NaN(); //ensure not used.
+  }
+  static double other;
+  double x, y, r2;
+  if (available == 0) {
+    do {
+      /* choose x,y in uniform square (-1,-1) to (+1,+1) */
+      x = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
+      y = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
+      /* see if it is in the unit circle */
+      r2 = x * x + y * y;
+    } while (r2 > 1.0 || r2 == 0);
+
+    /* Box-Muller transform */
+    double fct = sqrt(-2.0 * log(r2) / r2);
+    double current = sigma * y * fct;
+    other = sigma * x * fct;
+    available = 1;
+    return current;
+  } else {
+    available = 0;
+    return other;
+  }
+}
+
+//template uses gsl, certified to give identical results to IDL8+. This is SLOW and not the default.
+
+template< typename T1, typename T2>
+int random_gamma(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DLong n)
+{
+  SizeT nEl = res->N_Elements();
+  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
+      (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
+  return 0;
+}
+
+template< typename T1, typename T2>
+int random_binomial(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* binomialKey)
+{
+  SizeT nEl = res->N_Elements();
+  //Note: Binomial values are not same IDL.    
+  DULong n = (DULong) (*binomialKey)[0];
+  DDouble p = (DDouble) (*binomialKey)[1];
+  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_binomial_knuth(gsl_rng_mem, p, n);
+  return 0;
+}
+
+template< typename T1, typename T2>
+int random_poisson(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* poissonKey)
+{
+  SizeT nEl = res->N_Elements();
+  //Removed old code that would return non-integer values for high mu values.
+  DDouble mu = (DDouble) (*poissonKey)[0];
+  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_poisson(gsl_rng_mem, mu);
+  return 0;
+}
+
+template< typename T1, typename T2>
+int random_uniform(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
+{
+  SizeT nEl = res->N_Elements();
+
+  if (sizeof (T2) == sizeof (float)) {
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_rng_uniform(gsl_rng_mem);
+    return 0;
+  } else {
+    //as for IDL, make a more precise random number from 2 successive ones:
+    unsigned long A, B;
+    long double C;
+    for (SizeT i = 0; i < nEl; ++i) {
+      A = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+      B = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+      A = (A >> 5);
+      B = (B >> 6);
+      C = A * pow(2, 26) + B;
+      C = C * pow(2, -53);
+      (*res)[ i] = (T2) C; //gives the same as IDL 8
+    }
+    return 0;
+  }
+}
+
+template< typename T1, typename T2>
+int random_normal(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
+{
+  SizeT nEl = res->N_Elements();
+  if (sizeof (T2) == sizeof (float)) {
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0); //does reproduct IDL values.
+    modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+    return 0;
+  } else {
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0); //does reproduct IDL values.
+    modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+  }
+  return 0;
+}
+#define MERSENNE_GSL_N 624   /* Period parameters */
+
+typedef struct {
+  unsigned long mt[MERSENNE_GSL_N];
+  int mti;
+} mt_state_t;
+
+void set_random_state(gsl_rng* r, const unsigned long int* seed, const int pos, const int n)
+{
+  assert(n == MERSENNE_GSL_N);
+  mt_state_t *state = (mt_state_t *) (r->state);
+  unsigned long * mt = state->mt;
+  for (int i = 0; i < n; ++i) mt[i] = seed[i];
+  state->mti = pos;
+}
+
+void get_random_state(EnvT* e, const gsl_rng* r, const DULong seed)
+{
   if (e->GlobalPar(0)) {
     int pos;
-    unsigned long int* seq = get_mt19937_state(r, pos);
-    DULongGDL* ret = new DULongGDL(dimension(MERSENNE_GSL_N+4),BaseGDL::ZERO);
-    DULong* seed= (DULong*)(ret->DataAddr());
-    seed[0] = seed0;
-    seed[1] = pos;
-    for (int i = 0; i < MERSENNE_GSL_N; ++i) seed[i + 2] = seq[i];
+    mt_state_t *mt_state = (mt_state_t *) (r->state);
+    pos = mt_state->mti;
+    unsigned long int* state= mt_state->mt;
+    DULongGDL* ret = new DULongGDL(dimension(MERSENNE_GSL_N + 4), BaseGDL::ZERO); //ZERO as not all elements are initialized here
+    DULong* newstate = (DULong*) (ret->DataAddr());
+    newstate[0] = seed;
+    newstate[1] = pos;
+    for (int i = 0; i < MERSENNE_GSL_N; ++i) newstate[i + 2] = state[i];
     e->SetPar(0, ret);
   }
 }
 
-  BaseGDL* random_fun(EnvT* e) {
+//GSL version of random_fun. See randomgenerators.cpp
+BaseGDL* random_fun_gsl(EnvT* e)
+{
 
-    // the generator structure
-    static DULong *seed0=NULL;
-    static gsl_rng *r=NULL;
-    if (seed0==NULL) { //initialize pool with systime
-      r = gsl_rng_alloc(gsl_rng_mt19937);
-      struct timeval tval;
-      struct timezone tzone;
-      gettimeofday(&tval,&tzone);
-      long long int tt = tval.tv_sec*1e6+tval.tv_usec; // time in UTC microseconds
-      seed0=new DULong(tt); 
-      gsl_rng_set(r, (*seed0)); 
-    }
+  //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
+  //Note: LONG or ULONG are obeyed irrespectively of the presence of GAMMA etc which are ignored.
+  static int LONGIx = e->KeywordIx("LONG");
+  static int ULONGIx = e->KeywordIx("ULONG");
+  static int GAMMAIx = e->KeywordIx("GAMMA");
+  static int BINOMIALIx = e->KeywordIx("BINOMIAL");
+  static int NORMALIx = e->KeywordIx("NORMAL");
+  static int POISSONIx = e->KeywordIx("POISSON");
+  static int UNIFORMIx = e->KeywordIx("UNIFORM");
+  // testing Exclusive Keywords ...
+  int exclusiveKW = e->KeywordPresent(GAMMAIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(BINOMIALIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
 
-    SizeT nParam = e->NParam(1);
+  if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
+  //idem for LONG and ULONG at the same time!
+  exclusiveKW = e->KeywordPresent(LONGIx);
+  exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
+  if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
-    dimension dim;
-    if (nParam > 1) arr(e, dim, 1);
+  // the generator structure
+  static DULong *seed0 = NULL;
+  static gsl_rng *gsl_rng_mem = NULL;
 
-    DULongGDL* seed;
+  //initialise pool. As gsl is still used, we initiate seed0 for both. 
+  if (seed0 == NULL) { //initialize pool with systime
+    gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
+    struct timeval tval;
+    struct timezone tzone;
+    gettimeofday(&tval, &tzone);
+    long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
+    seed0 = new DULong(tt);
+    gsl_rng_set(gsl_rng_mem, (*seed0));
+  }
 
-    bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
+  SizeT nParam = e->NParam(1);
+
+  dimension dim;
+  if (nParam > 1) arr(e, dim, 1);
+
+  DULong seed=*seed0;
+
+  bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
   if (!isAnull) {
     DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
     if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
     {
-      if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && (*p0L)[MERSENNE_GSL_N + 2] == 0 && (*p0L)[MERSENNE_GSL_N + 3] == 0) { //a (valid?) seed sequence
+    // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
+    // and use it as the current sequence (try with "all zeroes").
+      if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && p0L->Type() == GDL_ULONG ) { //a (valid?) seed sequence
+        seed = (*p0L)[0];
         int pos = (*p0L)[1];
         int n = MERSENNE_GSL_N;
-        unsigned long int sequence[MERSENNE_GSL_N];
+        unsigned long int sequence[n];
         for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-        set_mt19937_state(r, sequence, pos, n); //the seed 
+        set_random_state(gsl_rng_mem, sequence, pos, n); //the seed 
       } else { // not a seed sequence: take first (IDL does more than this...)
-        if (p0L->N_Elements() == 1) {
-          (*seed0) = (*p0L)[0];
-          gsl_rng_set(r, (*seed0));
-        } // else use current sequence
+        if (p0L->N_Elements() >= 1) {
+          seed = (*p0L)[0];
+          gsl_rng_set(gsl_rng_mem, seed);
+        }
+      }
+    }
   }
+
+  if (e->KeywordSet(LONGIx)) { 
+    DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
+    SizeT nEl = res->N_Elements();
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DLong) (gsl_rng_uniform(gsl_rng_mem) * 2147483646) + 1; //apparently IDL rounds up.
+    get_random_state(e, gsl_rng_mem, seed);
+    return res;
+  }
+
+  if (e->KeywordSet(ULONGIx)) { 
+    DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
+    SizeT nEl = res->N_Elements();
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DULong) (gsl_rng_uniform(gsl_rng_mem) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
+    get_random_state(e, gsl_rng_mem, seed);
+    return res;
+  }
+  
+  
+  if (e->KeywordPresent(GAMMAIx)) {
+    DLong n = -1; //please initialize everything!
+    e->AssureLongScalarKW(GAMMAIx, n);
+    if (n == 0) {
+      DDouble test_n;
+      e->AssureDoubleScalarKW(GAMMAIx, test_n);
+      if (test_n > 0.0) n = 1;
     }
-  } 
-    if (e->KeywordSet(2)) { // GDL_LONG
-
-      DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
-      SizeT nEl = res->N_Elements();
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (DLong) (gsl_rng_uniform(r) * 2147483646) + 1; //apparently IDL rounds up.
-      update_seed(e,r,(*seed0));
-      return res;
+    if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
+    if (!e->KeywordSet(0)) { //hence:float
+      if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
     }
-
-    if (e->KeywordSet(7)) { // ULONG
-
-      DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
-      SizeT nEl = res->N_Elements();
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-        (DULong) (gsl_rng_uniform(r) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
-      update_seed(e,r,(*seed0));
-      return res;
-    }
-
-    DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>(4);
-
-    if (binomialKey != NULL) {
-      SizeT nBinomialKey = binomialKey->N_Elements();
-      if (nBinomialKey != 2)
-        e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
-
-      if ((*binomialKey)[0] < 1.0)
-        e->Throw(" Value of BINOMIAL[0] is out of allowed range: n = 1, 2, 3, ...");
-
-      if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
-        e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
-    }
-
-    DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>(5);
-
     if (e->KeywordSet(0)) { // GDL_DOUBLE
       DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-
-      random_template< DDoubleGDL, double>(e, res, r, dim,
-        binomialKey, poissonKey);
-      update_seed(e,r,(*seed0));
+      random_gamma< DDoubleGDL, double>(res, gsl_rng_mem, dim, n);
+      get_random_state(e, gsl_rng_mem, seed);
       return res;
     } else {
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-
-      random_template< DFloatGDL, float>(e, res, r, dim,
-        binomialKey, poissonKey);
-      update_seed(e,r,(*seed0));
+      random_gamma< DFloatGDL, float>(res, gsl_rng_mem, dim, n);
+      get_random_state(e, gsl_rng_mem, seed);
       return res;
     }
   }
+  
+  DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>(BINOMIALIx);
+  if (binomialKey != NULL) {
+    SizeT nBinomialKey = binomialKey->N_Elements();
+    if (nBinomialKey != 2)
+      e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
+
+    if ((*binomialKey)[0] < 1.0)
+      e->Throw(" Value of BINOMIAL[0] is out of allowed range: n = 1, 2, 3, ...");
+
+    if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
+      e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
+    if (e->KeywordSet(0)) { // GDL_DOUBLE
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      random_binomial< DDoubleGDL, double>(res, gsl_rng_mem, dim, binomialKey);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+      random_binomial< DFloatGDL, float>(res, gsl_rng_mem, dim, binomialKey);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+  }
+
+  DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>(POISSONIx);
+  if (poissonKey != NULL) {
+    SizeT nPoissonKey = poissonKey->N_Elements();
+    if (nPoissonKey != 1)
+      e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(POISSONIx));
+    if (e->KeywordSet(0)) { // GDL_DOUBLE
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      random_poisson< DDoubleGDL, double>(res, gsl_rng_mem, dim, poissonKey);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+      random_poisson< DFloatGDL, float>(res, gsl_rng_mem, dim, poissonKey);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+  }
+
+  if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
+    if (e->KeywordSet(0)) { // GDL_DOUBLE
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      random_uniform< DDoubleGDL, double>(res, gsl_rng_mem, dim);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+      random_uniform< DFloatGDL, float>(res, gsl_rng_mem, dim);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+  }
+  
+  if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
+    if (e->KeywordSet(0)) { // GDL_DOUBLE
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      random_normal< DDoubleGDL, double>(res, gsl_rng_mem, dim);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+      random_normal< DFloatGDL, float>(res, gsl_rng_mem, dim);
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+  }
+  assert(false);
+  return NULL;
+}
 
 #ifndef HAVE_NEXTTOWARD
   // SA: in C99 / C++TR1 / Boost there is the nextafter() function

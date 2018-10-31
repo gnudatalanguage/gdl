@@ -191,6 +191,12 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
+rname=ROUTINE_NAME()
+;
+if ~CHECK_IF_DEVICE_IS_OK(rname, /force) then begin
+   if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
+endif
+;
 init_device_mode=!d.name
 DEVICE, get_dec=init_get_dec
 ;

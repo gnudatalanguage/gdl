@@ -104,6 +104,7 @@ gdlexception.cpp
 gdlexception.hpp
 gdlgstream.cpp
 gdlgstream.hpp
+dSFMT/dSFMT.c
 )
 if(WIN32)
 set(SOURCES
@@ -252,6 +253,7 @@ print_tree.hpp
 prognode.cpp
 prognode_lexpr.cpp
 prognodeexpr.cpp
+randomgenerators.cpp
 read.cpp
 real2int.hpp
 saverestore.cpp
