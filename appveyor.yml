@@ -340,7 +340,11 @@ after_build:
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
 
-  - ps: copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
+  - ps: |
+    if (Test-path "$env:PLPLOTDIR/lib/plplot5.13.0/drivers")
+    {
+    copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin -ErrorAction silentlycontinue
+    }               # evidently, the -erroraction wasn't sufficient to protect this.
   - ps: copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
   - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
   - ps: copy INSTALL.plplot c:/projects/gdl/install
