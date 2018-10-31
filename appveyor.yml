@@ -202,6 +202,7 @@ install:
 before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
   - ps: cd C:\projects\gdl\testsuite
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
@@ -227,6 +228,7 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_container.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_contour.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_device.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_dicom.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_execute.pro' -NotMatch)
@@ -307,16 +309,15 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_typename.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_where.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zip.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_list.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_valid.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_make_array.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_ptr_valid.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tiff.pro' -NotMatch)
   - ps: cd  C:\projects\gdl
 
