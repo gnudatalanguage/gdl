@@ -49,7 +49,7 @@ install:
         $env:MSYSTEM="MINGW64" ; $env:mname="mingw64" ; $env:arch="x86_64"
       }
       #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-  - ps: $env:allmsys=$true ; $env:domingw=$false      
+  #- ps: $env:allmsys=$true ; $env:domingw=$false  ineffective!     
   - ps: |
       if ($true)
       {
@@ -80,7 +80,7 @@ install:
         mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
       }
   - ps: |
-      if ($env:allmsys)
+      if ($true)   # MSYS mode
       {
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
         cd c:/projects/gdl
@@ -97,7 +97,7 @@ install:
         $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
-      if ($env:domingw)
+      if ($false)  # MINGW mode
       {
         # wxWidgets
         $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
@@ -142,7 +142,7 @@ install:
   #
   #- cmd /K ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!  - ps: |
   - ps: |
-      if ($false)
+      if ($false)  # MINGW mode
       {
        # Eigen
         cd c:\projects\gdl\win32libs
@@ -158,13 +158,13 @@ install:
         mingw32-make install >> $env:BLDDIR/eigen3.out
         }
   - ps: |
-      if ($env:domingw) # gsl is downloaded in appveyor_1.msys
+      if  ($false)  # MINGW mode # gsl is downloaded in appveyor_1.msys
       {
         # GSL
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/appveyor_gsl.msys'
         }
   - ps: |
-      if ($env:domingw)
+      if  ($false)  # MINGW mode
       { 
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
         # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
