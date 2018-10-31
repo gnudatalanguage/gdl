@@ -87,12 +87,37 @@ inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_
 #endif
 }
 
-// removed as clang does know std::free
-//inline void gdlAlignedFree(void* ptr) {
-//#if defined(USE_EIGEN)
-// return Eigen::internal::aligned_free(ptr);
-//#else
-// return std::free(ptr);
-//#endif
-//}
+inline void gdlAlignedFree(void* ptr) {
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_free(ptr);
+#else
+ return free(ptr);
+#endif
+}
+
+
+#if defined _OPENMP
+inline int currentNumberOfThreads() {
+  return omp_get_num_threads();
+}
+inline int maxNumberOfThreads() {
+  return omp_get_num_procs();
+}
+inline int currentThreadNumber() {
+return omp_get_thread_num();
+}
+#else
+inline int currentNumberOfThreads() {
+  return 1;
+}
+
+inline int maxNumberOfThreads() {
+  return 1;
+}
+
+inline int currentThreadNumber() {
+return 0;
+}
+#endif
+
 #endif
