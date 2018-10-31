@@ -134,11 +134,10 @@ install:
         tar zxf bsd-xdr-1.0.0.tar.gz
         cd bsd-xdr-1.0.0
         sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
-        sed -i 's/%hh/%/g' src\test\test_data.c
-        md mingw
-        md mingw\lib
-        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
+        sed -i 's/%hh/%/g' src/test/test_data.c
       }
+  #        mingw32-make -f Makefile -j4 PLATFORM=mingw STAMP=clean TEST_PROGS="" top_srcdir="c:\projects\gdl\win32libs\bsd-xdr-1.0.0" recursive-all >  $env:BLDDIR/makexdr.out
+  - C:\msys64\usr\bin\bash.exe -lc "oldpwd=$OLDPWD &&. /etc/profile && cd $oldpwd && make -j4"
   - ps: |
       if ($true)
       {
