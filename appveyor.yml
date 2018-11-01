@@ -27,23 +27,23 @@ install:
         md c:\projects\gdl\win32libs\include
         # Python
         $env:PYTHON_ROOT="C:\Python27"
-        # ploplot does not fins wxwidgets - remove it for test        
-        #        # WxWidgets
-        #        cd c:\projects\gdl\win32libs
-        #        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
-        #        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
-        #        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
-        #        #GD : try to add UNICODE=1 as this is reported as useful.
-        #        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        #        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        #        # a strange problem when building wxWidgets is that some characters mysterioulsy disappear from the make-generated commands.
-        #        #inserting lines as below is not a solution as the characters disappearing are changing!
-        #        # let's however make it find the silly 'coredll_headerctrlgo' file :
-        #        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
-        #        #and try to finsih build:
-        #        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        #        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
-        #        
+        
+        # WxWidgets
+        cd c:\projects\gdl\win32libs
+        appveyor DownloadFile https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
+        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
+        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
+        #GD : try to add UNICODE=1 as this is reported as useful.
+        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        # a strange problem when building wxWidgets is that some characters mysterioulsy disappear from the make-generated commands.
+        #inserting lines as below is not a solution as the characters disappearing are changing!
+        # let's however make it find the silly 'coredll_headerctrlgo' file :
+        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
+        #and try to finsih build:
+        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release UNICODE=1 SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
+        $env:WXWIDGETS_ROOT="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
+        
         # BSD-XDR
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
@@ -231,7 +231,7 @@ build_script:
   - md c:\projects\gdl\build
   - set CMAKE_LIBRARY_PATH=c:\projects\gdl\win32libs\lib
   - set CMAKE_INCLUDE_PATH=c:\projects\gdl\win32libs\include
-  - cmake gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DWXWIDGETS=OFF -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DTIFF=OFF -DGEOTIFF=OFF
+  - cmake gdl -Bc:\projects\gdl\build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_CXX_FLAGS="-Werror" -DWXWIDGETSDIR=%WXWIDGETS_ROOT% -DCMAKE_INSTALL_PREFIX:PATH=c:\projects\gdl\install\gdl -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF -DGSHHS=OFF -DPYTHON=OFF -DTIFF=OFF -DGEOTIFF=OFF
   - cd c:\projects\gdl\build
   - mingw32-make -j4
   - mingw32-make install
