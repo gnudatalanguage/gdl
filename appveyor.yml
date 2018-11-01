@@ -64,7 +64,7 @@ install:
         md plplot-5.13.0/build
         #test of simpler configuration
         #        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs -DOLD_WXWIDGETS:BOOL=ON -DENABLE_wxwidgets:BOOL=ON -DwxWidgets_LIB_DIR=$env:WXWIDGETS_ROOT\lib\gcc_dll -DwxWidgets_CONFIGURATION=mswu -DENABLE_MIX_CXX=ON
-        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs  -DDEFAULT_NO_DEVICES:BOOL=ON -DDEFAULT_NO_BINDINGS=ON -DPLD_ps=ON -DPLD_svg=ON -DPLD_mem=ON -DPLD_null=ON -DENABLE_DYNDRIVERS=OFF -DBUILD_TEST=OFF -DENABLE_wxwidgets:BOOL=OFF -DENABLE_MIX_CXX=ON
+        cmake "plplot-5.13.0" "-Bplplot-5.13.0/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_CXX_FLAGS_RELEASE='-O3' -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs  -DDEFAULT_NO_DEVICES:BOOL=ON -DDEFAULT_NO_BINDINGS=ON -DPLD_ps=ON -DPLD_svg=ON -DPLD_mem=ON -DPLD_null=ON -DENABLE_DYNDRIVERS=OFF -DBUILD_TEST=OFF -DENABLE_wxwidgets:BOOL=OFF -DENABLE_CXX=ON
         cd plplot-5.13.0/build
         mingw32-make -j4
         mingw32-make install
