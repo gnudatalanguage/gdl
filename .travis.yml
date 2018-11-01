@@ -1,22 +1,17 @@
 language: cpp
 
-# TODO: investigate why MINI builds timeout on icc, while FULL ones not?!
-matrix:
-  include:
+#####SUPRESSED TRAVIS FOR TESTS!
+#
+## TODO: investigate why MINI builds timeout on icc, while FULL ones not?!
+#matrix:
+#  include:
+##    - os: linux
+##      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
 #    - os: linux
-#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-    - os: linux
-      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-    - os: osx
-      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-
-    - os: linux
-      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL
-    - os: linux
-      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
-    - os: osx
-      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
-
+#      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+#    - os: osx
+#      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+#
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
     - os: linux
