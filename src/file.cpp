@@ -2786,6 +2786,8 @@ void file_copy( EnvT* e)
 		return;
   }
 
+//exists as stub procedure for _WIN32 -- no need to compile here (and get errors) for WIN32.
+#ifndef _WIN32
 void file_link( EnvT* e)
 { // code mostly originates in file_move (rename)
     SizeT nParam=e->NParam( 2); 
@@ -2800,9 +2802,6 @@ void file_link( EnvT* e)
     string srctmp, dsttmp, dstdir;
     struct stat64 statStruct;
 
-    #ifdef _WIN32
-    if(nParam == 2) e->Throw(" FILE_LINK is not featured for windows systems");
-    #endif
     bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
     bool allow_same = e->KeywordSet( "ALLOW_SAME");
     bool hardlink = e->KeywordSet( "HARDLINK");
@@ -2905,6 +2904,7 @@ void file_link( EnvT* e)
 		return;
 //
 }
+#endif
 	
 void file_move( EnvT* e)
 {

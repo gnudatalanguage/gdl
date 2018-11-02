@@ -130,16 +130,26 @@ res3=FILE_SEARCH('*',/FULLY_QUALIFY_PATH)
 ;
 res0=res0[SORT(res0)]
 ;
-if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)) then begin
-    if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)+nbadlinks) then begin
-      ERRORS_ADD, errors, 'pb with N_elements RES1'
-   endif else print,"Dangling symlinks in a directory prevent one test."
-endif else begin
-    res1=res1[SORT(res1)]
-    if ~ARRAY_EQUAL(path+res0, res1) then begin
-        ERRORS_ADD, errors, 'pb with content of RES1 vs RES0'
-    endif
-endelse
+exclude_test = 0 ; If windows, don't do the test requiring "spawn,'ls', res0"
+
+if !version.os_family eq 'Windows' then begin
+    spawn,'ps',stdps
+    exclude_test = n_elements(stdps) lt 4
+;  For appveyor, 'ps' does not result in error, stdps has something
+    exclude_test = 1
+endif
+if ~exclude_test then begin
+    if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)) then begin
+        if (N_ELEMENTS(res0) NE N_ELEMENTS(res1)+nbadlinks) then begin
+          ERRORS_ADD, errors, 'pb with N_elements RES1'
+       endif else print,"Dangling symlinks in a directory prevent one test."
+    endif else begin
+        res1=res1[SORT(res1)]
+        if ~ARRAY_EQUAL(path+res0, res1) then begin
+            ERRORS_ADD, errors, 'pb with content of RES1 vs RES0'
+        endif
+    endelse
+endif
 ;
 if (N_ELEMENTS(res1) NE N_ELEMENTS(res2)) then begin
     ERRORS_ADD, errors, 'pb with N_elements RES2'
