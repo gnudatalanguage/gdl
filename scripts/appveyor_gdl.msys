@@ -49,5 +49,5 @@ rm src/CMakeFiles/gdl.dir/*.obj
 export PATH=$plplot/bin:$WXROOT/bin:$PATH
 export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
 export PLPLOT_LIB=$plplot/share/plplot5.13.0
-make check
+#make check
 
