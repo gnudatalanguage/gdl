@@ -3,7 +3,6 @@
 ; written by NATCHKEBIA Ilia, May 2015
 ; under GNU GPL v2 or any later
 ;
-
 ; -----------------------------------------------
 ; 
 ; Modifications history :
@@ -130,7 +129,6 @@ FILE_DELETE, tdirsym
 ;
 ; ----- final ----
 ;
-
 BANNER_FOR_TESTSUITE, 'TEST_FILE_TEST_DIR_SYMLINK', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_SET(test) then STOP
