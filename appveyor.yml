@@ -9,8 +9,8 @@ configuration:
 environment:
   matrix:
   #- platform: mingw64720x8664
-  - platform: mingw64630i686
   - platform: mingw64630x8664
+  - platform: mingw64630i686
   #- platform: mingw64730x8664
   #- platform: mingw64630x8664
    
