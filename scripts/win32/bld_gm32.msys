@@ -8,7 +8,7 @@ if [ -n "$MSYSTEM" ] ; then
     fi
   fi
 echo "bld_gm32: Architecture =  ${arch}"
-
+echo ' $PATH  on entry:' $PATH
 export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 . /etc/profile
 # this is needed to find bin/wx-config
@@ -16,12 +16,12 @@ export PATH=/c/Windows:/c/Windows/system32:/c/Windows/system32/Wbem
 # any hints on how to switch compilers, insert here.
 #
 echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
-echo $PATH
+echo ' $PATH  after . /etc/profile :' $PATH
 echo $LOCALM32
 echo " bld_gm32.msys:  with msys script"
 
 export PATH=$LOCALM32/bin:$PATH
-
+g++ -v
 GMname=GraphicsMagick-1.3.30
 #
 which cmake
@@ -42,8 +42,11 @@ if [[ -f ${GMname}.tar.xz ]] ; then
   make -j4 >& $bldout/make.out
   make install >& $bldout/gminstall.out
   make clean >& $bldout/clean.out
-  cp config.status $bldout/config.status
+  ls
+ # cp config.status $bldout/config.status
+ #cp: cannot stat 'config.status': No such file or directory
   pwd
+ #/c/projects/gdl/win32libs/GraphicsMagick-1.3.30/bldmingw64
   #cp *.out /c/projects/gdl/mingw/GM-${arch}-Q32/
   #cp config.status /c/projects/gdl/mingw/GM-${arch}-Q32/
   else

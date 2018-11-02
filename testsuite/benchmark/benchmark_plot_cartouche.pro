@@ -4,6 +4,11 @@
 ;
 ; Modification history :
 ;
+; * AC 2018-09-04 :
+;  - change of definition for Pos (before : xmin, xmax,
+;    ymin, ymax; now : xmin, ymin, xmax, ymax)
+;  - new keyword /Absolute
+;
 ; * AC 2017-08-07 : first public release
 ; - all the positionning is now done using /Normal
 ; - all the Xlog/Ylog mess is now processed easily
@@ -111,18 +116,20 @@ end
 ; -----------------------------------------
 ;
 pro BENCHMARK_PLOT_CARTOUCHE, messages, positions=positions, title=title, $
-                          colors_list=colors_list, $
-                          linestyle_list=linestyle_list, $
-                          psym_list=psym_list, epsilon_margin=epsilon_margin, $
-                          allow_extendscale=allow_extendscale, $
-                          ratio=ratio, box=box, _extra=_extra, $
-                          verbose=verbose, debug=debug, test=test, help=help
+                              colors_list=colors_list, $
+                              linestyle_list=linestyle_list, $
+                              psym_list=psym_list, $
+                              absolute=absolute, $
+                              epsilon_margin=epsilon_margin, $
+                              allow_extendscale=allow_extendscale, $
+                              ratio=ratio, box=box, _extra=_extra, $
+                              verbose=verbose, debug=debug, test=test, help=help
 ;
 mess=AC_SETMESSAGES('BENCHMARK_PLOT_CARTOUCHE')
 ;
 if (N_PARAMS() lt 1) then begin
-    print, mess.fatal+'missing mandatory "messages list" arguments'
-    help=1
+   print, mess.fatal+'missing mandatory "messages list" arguments'
+   help=1
 endif
 ;
 if KEYWORD_SET(help) then begin
@@ -131,7 +138,7 @@ if KEYWORD_SET(help) then begin
    print, '                linestyle_list=linestyle_list, $'
    print, '                psym_list=psym_list, epsilon_margin=epsilon_margin, $'
    print, '                allow_extendscale=allow_extendscale, $'
-   print, '                ratio=ratio, box=box, _extra=_extra, $'
+   print, '                ratio=ratio, box=box, _extra=_extra, absolute=absolute, $'
    print, '                verbose=verbose, debug=debug, test=test, help=help'
    print, ''
    return
@@ -233,72 +240,82 @@ if (N_ELEMENTS(positions) EQ 1) then begin
    xy_pos=[xmin,xmax,ymin,ymax]
    ;;
    set_normal=1
-   if KEYWORD_SET(debug) then print, xy_pos
 endif
 ;
-; ---------------------
 if (N_ELEMENTS(positions) EQ 4) then begin
-   ;;
-   ;; What are the limits on the plot ?
-   ;; managing Xlog and Ylog too :(
-   if (!x.type EQ 1) then begin
-      xdata_min=10^!x.crange[0]
-      xdata_max=10^!x.crange[1]
+   if KEYWORD_SET(absolute) then begin
+      PLOT, [0,1], [0,1],/nodata, /noerase, pos=positions, xstyle=5, ystyle=5
+      xmin=0.
+      xmax=1.
+      ymin=0.
+      ymax=1.
+      xy_pos=[xmin,xmax,ymin,ymax]
+      set_normal=0
    endif else begin
-      xdata_min=!x.crange[0]
-      xdata_max=!x.crange[1]
+      ;;
+      ;; What are the limits on the plot ?
+      ;; managing Xlog and Ylog too :(
+      if (!x.type EQ 1) then begin
+         xdata_min=10^!x.crange[0]
+         xdata_max=10^!x.crange[1]
+      endif else begin
+         xdata_min=!x.crange[0]
+         xdata_max=!x.crange[1]
+      endelse
+      ;; managing Ylog 
+      if (!y.type EQ 1) then begin
+         ydata_min=10^!y.crange[0]
+         ydata_max=10^!y.crange[1]
+      endif else begin
+         ydata_min=!y.crange[0]
+         ydata_max=!y.crange[1]
+      endelse
+      ;;
+      ;; managing X range
+      xmin=positions[0]
+      xmax=positions[2]
+      ;;
+      ;; checking X bondaries
+      if (xmin LT xdata_min) then begin
+         print, mess.warning+'X min position below Xmin scale ...'
+         if ~KEYWORD_SET(allow_extendscale) then xmin=xdata_min
+      endif
+      if (xmax GT xdata_max) then begin
+         print, mess.warning+'Y max position above Xmax scale ...'
+         if ~KEYWORD_SET(allow_extendscale) then xmax=xdata_max
+      endif
+      ;;
+      ;; managing Y range
+      ymin=positions[1]
+      ymax=positions[3]
+      ;; checking Y bondaries
+      if (ymin LT ydata_min) then begin
+         print, mess.warning+'Y min position below Ymin scale ...'
+         if ~KEYWORD_SET(allow_extendscale) then ymin=ydata_min
+      endif
+      if (ymax GT ydata_max) then begin
+         print, mess.warning+'Y max position above Ymax scale ...'
+         if ~KEYWORD_SET(allow_extendscale) then ymax=ydata_max
+      endif
+      ;;
+      xy_pos=[xmin,xmax,ymin,ymax]
+      ;;
+      ;; if KEYWORD_SET(debug) then print, !x.crange, !y.crange
+      ;; if KEYWORD_SET(debug) then print, xy_pos
+      ;;
+      ;; transforming in Normal coordinates the XY positions
+      xy_pos=RESCALE4CARTOUCHE(xy_pos, debug=debug)
+      ;;if KEYWORD_SET(debug) then print, 'revisited :', xy_pos
+      xmin=xy_pos[0]
+      xmax=xy_pos[1]
+      ymin=xy_pos[2]
+      ymax=xy_pos[3]
+      ;;
+      set_normal=1
    endelse
-   ;; managing Ylog 
-   if (!y.type EQ 1) then begin
-      ydata_min=10^!y.crange[0]
-      ydata_max=10^!y.crange[1]
-   endif else begin
-      ydata_min=!y.crange[0]
-      ydata_max=!y.crange[1]
-   endelse
-   ;;
-   ;; managing X range
-   xmin=positions[0]
-   xmax=positions[1]
-   ;;
-   ;; checking X bondaries
-   if (xmin LT xdata_min) then begin
-      print, mess.warning+'X min position below Xmin scale ...'
-      if ~KEYWORD_SET(allow_extendscale) then xmin=xdata_min
-   endif
-   if (xmax GT xdata_max) then begin
-      print, mess.warning+'Y max position above Xmax scale ...'
-      if ~KEYWORD_SET(allow_extendscale) then xmax=xdata_max
-   endif
-   ;;
-   ;; managing Y range
-   ymin=positions[2]
-   ymax=positions[3]
-   ;; checking Y bondaries
-   if (ymin LT ydata_min) then begin
-      print, mess.warning+'Y min position below Ymin scale ...'
-      if ~KEYWORD_SET(allow_extendscale) then ymin=ydata_min
-   endif
-   if (ymax GT ydata_max) then begin
-      print, mess.warning+'Y max position above Ymax scale ...'
-      if ~KEYWORD_SET(allow_extendscale) then ymax=ydata_max
-   endif
-   ;;
-   xy_pos=[xmin,xmax,ymin,ymax]
-   ;;
-   ;; if KEYWORD_SET(debug) then print, !x.crange, !y.crange
-   ;; if KEYWORD_SET(debug) then print, xy_pos
-   ;;
-   ;; transforming in Normal coordinates the XY positions
-   xy_pos=RESCALE4CARTOUCHE(xy_pos, debug=debug)
-   ;;if KEYWORD_SET(debug) then print, 'revisited :', xy_pos
-   xmin=xy_pos[0]
-   xmax=xy_pos[1]
-   ymin=xy_pos[2]
-   ymax=xy_pos[3]
-   ;;
-   set_normal=1
 endif
+;
+if KEYWORD_SET(debug) then print, xy_pos
 ;
 if N_ELEMENTS(ratio) EQ 0 then ratio=0.5
 ;
@@ -311,11 +328,11 @@ xdx=(xmax-xmin)/20.
 ;
 sysvar_modified=0
 if (SIZE(_extra))(0) GT 0 then begin
-    sysvar_modified=1
-    copy_p=!p
-    if IS_FIELD_IN_STRUCT(_extra, 'thick') then !p.thick=_extra.thick
-    if IS_FIELD_IN_STRUCT(_extra, 'charthick') then !p.charthick=_extra.charthick
-    if IS_FIELD_IN_STRUCT(_extra, 'charsize') then !p.charsize=_extra.charsize
+   sysvar_modified=1
+   copy_p=!p
+   if IS_FIELD_IN_STRUCT(_extra, 'thick') then !p.thick=_extra.thick
+   if IS_FIELD_IN_STRUCT(_extra, 'charthick') then !p.charthick=_extra.charthick
+   if IS_FIELD_IN_STRUCT(_extra, 'charsize') then !p.charsize=_extra.charsize
 endif
 ;
 ; il n'y a qu'un titre (a ce jour)
@@ -411,7 +428,7 @@ plot, data, /nodata, xlog=xlog, ylog=ylog;, yrange=[0.1,100]
 ;endelse
 for ii=0,3 do OPLOT, data+ii, col=colors[ii], psym=psyms[ii], lines=lines[ii]
 ;
-BENCHMARK_PLOT_CARTOUCHE, pos=100.*[0.5,0.9,0.5,0.9], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=100.*[0.5,0.5,0.9,0.9], messages, /box, $
             colors=colors, lines=lines, thick=1.5, title='coucou', $
             psym=psyms
 ;
@@ -429,7 +446,7 @@ ymax=50
 pref=!p
 !p.thick=3.
 !p.charsize=2.
-BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,xmax,ymin,ymax], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,ymin,xmax,ymax], messages, /box, $
   colors=colors, lines=lines, charsize=0.75
 !p=pref
 ;
@@ -438,7 +455,7 @@ xmax=50
 ymin=5
 ymax=50
 ;
-BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,xmax,ymin,ymax], messages, /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=[xmin,ymin,xmax,ymax], messages, /box, $
             colors=colors, lines=lines, thick=1.5, title='coucou'
 ;
 if KEYWORD_SET(test) then STOP
@@ -477,5 +494,24 @@ window, 2
 BENCHMARK_PLOT_CARTOUCHE_DEMO, /ylog
 window, 3
 BENCHMARK_PLOT_CARTOUCHE_DEMO, /xlog, /ylog
+;
+end
+;
+; -----------------------------------------------
+;
+pro BENCHMARK_PLOT_CARTOUCHE_DEMO_OUTSIDE
+;
+window, 0
+PLOT, findgen(1000)+1000, /nodata, pos=[0.05,0.05, 0.66, 0.9]
+;
+BENCHMARK_PLOT_CARTOUCHE, /box, REVERSE(FINDGEN(10)), $
+                          pos=[0.7,0.05, 0.95, 0.9], /absolute
+window, 2
+PLOT, findgen(1000)+1000, /nodata, pos=[0.25,0.05, 0.75, 0.9]
+;
+BENCHMARK_PLOT_CARTOUCHE, /box, REVERSE(FINDGEN(10)), $
+                          pos=[0.05,0.05, 0.2, 0.7], /absolute
+BENCHMARK_PLOT_CARTOUCHE, /box, REVERSE(FINDGEN(5)), $
+                          pos=[0.77,0.5, 0.98, 0.9], /absolute
 ;
 end

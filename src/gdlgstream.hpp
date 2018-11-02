@@ -230,13 +230,8 @@ public:
   static bool checkPlplotDriver(const char *driver)
   {
     int numdevs_plus_one = 64;
-#ifdef HAVE_OLDPLPLOT
-    char **devlongnames = NULL;
-    char **devnames = NULL;
-#else
     const char **devlongnames = NULL;
     const char **devnames = NULL;
-#endif
 
     static std::vector<std::string> devNames;
 
@@ -246,19 +241,11 @@ public:
       // acquireing a list of drivers from plPlot
       for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
       {
-#ifdef HAVE_OLDPLPLOT
-        //handles gracefully the improbable failure of realloc
-        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<char**>(tmp); else return false;
-        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<char**>(tmp); else return false;
-#else
         //handles gracefully the improbable failure of realloc
         void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
         if (tmp) devlongnames = static_cast<const char**>(tmp); else return false;
         tmp = realloc(devnames, maxnumdevs * sizeof(char*));
         if (tmp) devnames = static_cast<const char**>(tmp); else return false;
-#endif
         plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
         numdevs_plus_one++;
         if (numdevs_plus_one < maxnumdevs) break;

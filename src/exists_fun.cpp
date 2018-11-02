@@ -231,6 +231,15 @@ namespace lib {
     return new DIntGDL(0);
 #endif
   }
-
+  
+  BaseGDL* dsfmt_exists(EnvT* e)
+  {
+    //dSFMT (random generator) is used AT THE MOMENT only if Eigen is present, and only if useDSFMTAcceleration == true
+#ifdef USE_EIGEN
+    return new DIntGDL(useDSFMTAcceleration == true);
+#else
+    return new DIntGDL(0);
+#endif
+  }
 }
  // namespace

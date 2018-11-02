@@ -34,12 +34,6 @@
 #    include <libps/pslib.h>
 #  endif
 
-#  ifdef HAVE_OLDPLPLOT
-#    define SETOPT SetOpt
-#  else
-#    define SETOPT setopt
-#  endif
-
 #ifdef _MSC_VER
 #define CM2IN (.01 / GSL_CONST_MKSA_INCH) // This is not good, but works
 #define in2cm ( GSL_CONST_MKSA_INCH * 100)
@@ -102,7 +96,7 @@ class DevicePS: public GraphicsDevice
     // patch 3611949 by Joanna, 29 Avril 2013
     PLFLT pageRatio=XPageSize/YPageSize;
     std::string as = i2s( pageRatio);
-    actStream->SETOPT( "a", as.c_str());
+    actStream->setopt( "a", as.c_str());
     
     // plot orientation
     //std::cout  << "orientation : " << orient_portrait<< std::endl;
@@ -122,7 +116,7 @@ class DevicePS: public GraphicsDevice
     // default: black+white (IDL behaviour)
     short font=((int)SysVar::GetPFont()>-1)?1:0;
     string what="text="+i2s(font)+",color="+i2s(color);
-    actStream->SETOPT( "drvopt",what.c_str());
+    actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();

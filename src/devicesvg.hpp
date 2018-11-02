@@ -20,12 +20,6 @@
 
 #include "gdlsvgstream.hpp"
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 static const float SVG_CM2IN = (1.0 / 2.54) ;
 static const float SVG_RESOL = 1000.0; // per cm
 static const PLFLT SVG_DPI = 72; 

@@ -54,6 +54,9 @@
 
 #endif
 
+#include <cstddef>
+#include <cstdlib>
+
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
 #endif
@@ -63,6 +66,58 @@
 #  include <sys/regset.h>
 #  undef CS
 #  undef GS
+#endif
+
+//define globally a gdl method for allocating/deallocating/freeing data compatible with alignment needed by EIGEN.
+//This permits to create unallocated data varibale (BaseGDL* objects) and have them point to some
+// data adress that has been allocated in a c or c++ function.
+inline void* gdlAlignedMalloc(std::size_t size) {
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_malloc(size);
+#else
+ return std::malloc(size);
+#endif
+}
+
+inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_size=0) { //apparently Eigen does not use old_size anymore. Pfewh.
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_realloc(ptr,new_size,old_size);
+#else
+ return std::realloc(ptr, new_size);
+#endif
+}
+
+inline void gdlAlignedFree(void* ptr) {
+#if defined(USE_EIGEN)
+ return Eigen::internal::aligned_free(ptr);
+#else
+ return free(ptr);
+#endif
+}
+
+
+#if defined _OPENMP
+inline int currentNumberOfThreads() {
+  return omp_get_num_threads();
+}
+inline int maxNumberOfThreads() {
+  return omp_get_num_procs();
+}
+inline int currentThreadNumber() {
+return omp_get_thread_num();
+}
+#else
+inline int currentNumberOfThreads() {
+  return 1;
+}
+
+inline int maxNumberOfThreads() {
+  return 1;
+}
+
+inline int currentThreadNumber() {
+return 0;
+}
 #endif
 
 #endif

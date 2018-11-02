@@ -250,12 +250,13 @@ bool BaseGDL::LogTrue( SizeT ix)
   throw GDLException("Operation not defined for UNDEF 4b.");
 }
 
-DLong* BaseGDL::Where( bool, SizeT&)
+void BaseGDL::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret)
 {
   throw GDLException("Operation not defined for UNDEF 4b.");
 }
 
-DByte* BaseGDL::TagWhere(SizeT&) {
+void BaseGDL::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret)
+{
   throw GDLException("Operation not defined for UNDEF 4b.");
 }
 

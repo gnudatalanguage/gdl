@@ -19,343 +19,1004 @@
 
 #include "nullgdl.hpp"
 #include "dstructgdl.hpp"
-#include "dinterpreter.hpp"
+#include "dinterpreter.hpp" //for sysVarList() 
+
+#ifdef _OPENMP
+#include "omp.h"
+#define MINMAX_THREAD_NUM omp_get_thread_num()
+#else
+#define MINMAX_THREAD_NUM 0
+#endif
+
+//We create 'on the spot' arrays that must be aligned. this is the purpose of the gdl..lloc functions.
+#define MALLOC gdlAlignedMalloc
+#define REALLOC gdlAlignedRealloc 
+#define FREE gdlAlignedFree
 
 #define Sp SpDByte
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDInt
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDUInt
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDLong
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDULong
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDLong64
-#include "tagwhere_inc.cpp"
 #include "where_inc.cpp"
 #undef Sp
 
 #define Sp SpDULong64
-#include "tagwhere_inc.cpp"
+#include "where_inc.cpp"
+#undef Sp
+
+#define Sp SpDFloat
+#include "where_inc.cpp"
+#undef Sp
+
+#define Sp SpDDouble
 #include "where_inc.cpp"
 #undef Sp
 
 template<>
-DByte* Data_<SpDPtr>::TagWhere(SizeT& n) {
+void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      DLong* no = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i]!="");
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* partyes[nchunk];
+      DLong* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        partno[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i]!="");
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong*)MALLOC(countyes * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong*)MALLOC(countno * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i]!="");
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i]!="");
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong*)MALLOC(count * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      DLong64* no = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i]!="");
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* partyes[nchunk];
+      DLong64* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        partno[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i]!="");
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong64*)MALLOC(countyes * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong64*)MALLOC(countno * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i]!="");
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i]!="");
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong64*)MALLOC(count * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      DLong* no = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* partyes[nchunk];
+      DLong* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        partno[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong*)MALLOC(countyes * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong*)MALLOC(countno * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong*)MALLOC(count * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      DLong64* no = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* partyes[nchunk];
+      DLong64* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        partno[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong64*)MALLOC(countyes * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong64*)MALLOC(countno * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong64*)MALLOC(count * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      DLong* no = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* partyes[nchunk];
+      DLong* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        partno[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong*)MALLOC(countyes * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong*)MALLOC(countno * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong*)MALLOC(space*sizeof(DLong)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong*)MALLOC(count * sizeof (DLong)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
+  SizeT nEl=this->N_Elements();
+ //code is optimized for 1 thread (no thread) and for presence or absence of complement.
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  if (comp) {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      DLong64* no = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[countyes]=i;
+        no[countno]=i;
+        countyes+=tmp;
+        countno+=(!tmp);
+      }
+      passed_count=countyes;
+      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* partyes[nchunk];
+      DLong64* partno[nchunk];
+      SizeT partialCountYes[nchunk];
+      SizeT partialCountNo[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        partyes[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        partno[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count_yes=0;
+        SizeT local_count_no=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          partyes[thread_id][local_count_yes]=i;
+          partno[thread_id][local_count_no]=i;
+          local_count_yes+=tmp;
+          local_count_no+=(!tmp);
+        }
+        partialCountYes[thread_id]=local_count_yes;
+        partialCountNo[thread_id]=local_count_no;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT countyes=0;
+      SizeT countno=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) countyes+=partialCountYes[iloop];
+      for (int iloop=0; iloop<nchunk; ++iloop) countno+=partialCountNo[iloop];
+      // allocate final result
+      if (countyes>0) {
+        ret=(DLong64*)MALLOC(countyes * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountYes[iloop]; ++jj) ret[running_index++]=partyes[iloop][jj];
+        }
+      }
+      if (countno>0) {
+        comp_ret=(DLong64*)MALLOC(countno * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCountNo[iloop]; ++jj) comp_ret[running_index++]=partno[iloop][jj];
+        }
+      }
+      passed_count=countyes;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(partyes[iloop]);
+        free(partno[iloop]);
+      }
+    }
+  } else {
+    if (nchunk==1) {
+      DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
+      // computational magic of 0 and 1 to keep ony 'good' indexes. 
+      SizeT count=0;
+      for (SizeT i=0; i<nEl; ++i) {
+        bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+        yes[count]=i;
+        count+=tmp;
+      }
+      passed_count=count;
+      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      return;
+    } else {
+      SizeT chunksize = nEl / nchunk;
+      DLong64* part[nchunk];
+      SizeT partialCount[nchunk];
+      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        int thread_id = MINMAX_THREAD_NUM;
+        SizeT start_index, stop_index;
+        start_index = thread_id * chunksize;
+        if (thread_id != nchunk-1) //robust wrt. use of threads or not.
+        {
+          stop_index = start_index + chunksize;
+        } else
+        {
+          stop_index = nEl;
+        }
+
+        SizeT space=(stop_index-start_index)*sizeof (DLong64);
+        SizeT i=0;
+        //compute a [0] or [1] serie
+        // allocate thread's subset of final result
+        part[thread_id] = (DLong64*)MALLOC(space*sizeof(DLong64)); 
+        // computational magic of 0 and 1 to keep ony 'good' indexes. 
+        SizeT local_count=0;
+        for (i=start_index; i<stop_index; ++i) {
+          bool tmp=((*this)[i].real() && (*this)[i].imag()); //both needed
+          part[thread_id][local_count]=i;
+          local_count+=tmp;
+        }
+        partialCount[thread_id]=local_count;
+      } //end parallel section
+      //total count is sum of partial counts:
+      SizeT count=0;
+      for (int iloop=0; iloop<nchunk; ++iloop) count+=partialCount[iloop];
+      // allocate final result
+      if (count > 0) {
+        ret=(DLong64*)MALLOC(count * sizeof (DLong64)); //allocate, nozero
+        //fill in
+        SizeT running_index=0;
+        for (int iloop=0; iloop<nchunk; ++iloop) {
+          for (SizeT jj=0; jj<partialCount[iloop]; ++jj) ret[running_index++]=part[iloop][jj];
+        }
+      }
+      passed_count=count;
+      //free temporary arrays.
+      for (int iloop=0; iloop<nchunk; ++iloop) {
+        free(part[iloop]);
+      }
+    }
+  }
+}
+
+template<>
+void Data_<SpDPtr>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret){
+  throw GDLException("Pointer expression not allowed in this context.");
+}
+template<>
+void Data_<SpDPtr>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret){
   throw GDLException("Pointer expression not allowed in this context.");
 }
 
 template<>
-DByte* Data_<SpDObj>::TagWhere(SizeT& n) {
+void Data_<SpDObj>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret){
+  throw GDLException("Object expression not allowed in this context.");
+}
+template<>
+void Data_<SpDObj>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret){
   throw GDLException("Object expression not allowed in this context.");
 }
 
-template<>
-DLong* Data_<SpDPtr>::Where(bool comp, SizeT& n) {
-  throw GDLException("Pointer expression not allowed in this context.");
-}
-
-template<>
-DLong* Data_<SpDObj>::Where(bool comp, SizeT& n) {
-  throw GDLException("Object expression not allowed in this context.");
-}
-
-template<>
-DByte* Data_<SpDFloat>::TagWhere(SizeT& n) {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      DByte tmp = (dd[i] != 0.0f);
-      ixList[i] = tmp;
-      count += tmp;
-    }
-  }
-  n = count;
-  return ixList;
-}
-
-template<>
-DByte* Data_<SpDDouble>::TagWhere(SizeT& n) {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      DByte tmp = (dd[i] != 0.0);
-      ixList[i] = tmp;
-      count += tmp;
-    }
-  }
-  n = count;
-  return ixList;
-}
-
-template<>
-DByte* Data_<SpDString>::TagWhere(SizeT& n) {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      DByte tmp = ((*this)[i] != "");
-      ixList[i] = tmp;
-      count += tmp;
-    }
-  }
-  n = count;
-  return ixList;
-}
-
-template<>
-DByte* Data_<SpDComplex>::TagWhere(SizeT& n) {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      DFloat re = (*this)[i].real();
-      DFloat im = (*this)[i].imag();
-      DByte tmp = (re != 0.0f || im != 0.0f);
-      ixList[i] = tmp;
-      count += tmp;
-    }
-  }
-  n = count;
-  return ixList;
-}
-
-template<>
-DByte* Data_<SpDComplexDbl>::TagWhere(SizeT& n) {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      DDouble re = (*this)[i].real();
-      DDouble im = (*this)[i].imag();
-      DByte tmp = (re != 0.0 || im != 0.0);
-      ixList[i] = tmp;
-      count += tmp;
-    }
-  }
-  n = count;
-  return ixList;
-}
-
-// for WHERE, integers, also ptr and object
-
-template<>
-DLong* Data_<SpDFloat>::Where(bool comp, SizeT& n) {
-  SizeT nEl = N_Elements();
-  DLong* ixList = new DLong[ nEl];
-  SizeT count = 0;
-  if (comp)
-  {
-    SizeT nIx = nEl;
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      //#pragma omp for
-      for (SizeT i = 0; i < nEl; ++i)
-      {
-        if ((*this)[i] != 0.0f)
-        {
-          ixList[ count++] = i;
-        } else
-        {
-          ixList[ --nIx] = i;
-        }
-      }
-    } // omp
-  } else
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-    //#pragma omp for
-    for (SizeT i = 0; i < nEl; ++i)
-      if ((*this)[i] != 0.0f)
-      {
-        ixList[ count++] = i;
-      }
-  } // omp
-  n = count;
-  return ixList;
-}
-
-template<>
-DLong* Data_<SpDDouble>::Where(bool comp, SizeT& n) {
-  SizeT nEl = N_Elements();
-  DLong* ixList = new DLong[ nEl];
-  SizeT count = 0;
-  if (comp)
-  {
-    SizeT nIx = nEl;
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      //#pragma omp for
-      for (SizeT i = 0; i < nEl; ++i)
-      {
-        if ((*this)[i] != 0.0)
-        {
-          ixList[ count++] = i;
-        } else
-        {
-          ixList[ --nIx] = i;
-        }
-      }
-    } // omp
-  } else
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-    //#pragma omp for
-    for (SizeT i = 0; i < nEl; ++i)
-      if ((*this)[i] != 0.0)
-      {
-        ixList[ count++] = i;
-      }
-  } // omp
-  n = count;
-  return ixList;
-}
-
-template<>
-DLong* Data_<SpDString>::Where(bool comp, SizeT& n) {
-  SizeT nEl = N_Elements();
-  DLong* ixList = new DLong[ nEl];
-  SizeT count = 0;
-  if (comp)
-  {
-    SizeT nIx = nEl;
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      //#pragma omp for
-      for (SizeT i = 0; i < nEl; ++i)
-      {
-        if ((*this)[i] != "")
-        {
-          ixList[ count++] = i;
-        } else
-        {
-          ixList[ --nIx] = i;
-        }
-      }
-    } // omp
-  } else
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-    //#pragma omp for
-    for (SizeT i = 0; i < nEl; ++i)
-      if ((*this)[i] != "")
-      {
-        ixList[ count++] = i;
-      }
-  } // omp
-  n = count;
-  return ixList;
-}
-
-template<>
-DLong* Data_<SpDComplex>::Where(bool comp, SizeT& n) {
-  SizeT nEl = N_Elements();
-  DLong* ixList = new DLong[ nEl];
-  SizeT count = 0;
-  if (comp)
-  {
-    SizeT nIx = nEl;
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      //#pragma omp for
-      for (SizeT i = 0; i < nEl; ++i)
-      {
-        if ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
-        {
-          ixList[ count++] = i;
-        } else
-        {
-          ixList[ --nIx] = i;
-        }
-      }
-    } // omp
-  } else
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-    //#pragma omp for
-    for (SizeT i = 0; i < nEl; ++i)
-      if ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
-      {
-        ixList[ count++] = i;
-      }
-  } // omp
-  n = count;
-  return ixList;
-}
-
-template<>
-DLong* Data_<SpDComplexDbl>::Where(bool comp, SizeT& n) {
-  SizeT nEl = N_Elements();
-  DLong* ixList = new DLong[ nEl];
-  SizeT count = 0;
-  if (comp)
-  {
-    SizeT nIx = nEl;
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      //#pragma omp for
-      for (SizeT i = 0; i < nEl; ++i)
-      {
-        if ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
-        {
-          ixList[ count++] = i;
-        } else
-        {
-          ixList[ --nIx] = i;
-        }
-      }
-    } // omp
-  } else
-    //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-    //#pragma omp for
-    for (SizeT i = 0; i < nEl; ++i)
-      if ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
-      {
-        ixList[ count++] = i;
-      }
-  } // omp
-  n = count;
-  return ixList;
-}
 
 #include "where.hpp"
 namespace lib {
@@ -363,130 +1024,112 @@ namespace lib {
   BaseGDL* where_fun(EnvT* e) {
     SizeT nParam = e->NParam(1); //, "WHERE");
 
-    BaseGDL* p0p = e->GetParDefined(0); //, "WHERE");
+    BaseGDL* p0 = e->GetParDefined( 0);//, "WHERE");
 
-    SizeT nEl = p0p->N_Elements();
+    SizeT nEl = p0->N_Elements();
 
-    SizeT count = 0;
-
-    DByte* p0 = p0p->TagWhere(count);
-    ArrayGuard<DByte> guardp0(p0); //delete on exit
-    SizeT nCount = nEl - count;
+    SizeT count;
 
     static int nullIx = e->KeywordIx("NULL");
     bool nullKW = e->KeywordSet(nullIx);
+    
+    static int l64Ix = e->KeywordIx("L64");
+    bool doL64 = e->KeywordSet(l64Ix);
+    doL64 = ( doL64 || nEl > std::numeric_limits<DLong>::max() ); //not tested!
+    if (!doL64) {
+      DLong* ret=NULL;
+      DLong* comp_ret=NULL;
 
-    // the following is a tentative to parallelize the loop below.
-    // It is not effeicient because cache misses when adressing portions of 'yes' or 'no'
-    // non openmp code is better optimised by compiler.
+      p0->Where(ret, count, e->KeywordPresent(0), comp_ret);
 
-    //    int nchunk=CpuTPOOL_NTHREADS*4;
-    //    SizeT countyes[nchunk]={0};
-    //    SizeT countno[nchunk]={0};
-    //    SizeT startyes[nchunk]={0};
-    //    SizeT startno[nchunk]={0};
-    //    SizeT chunksize=nEl/nchunk;
-    //    for (int iloop=0; iloop<nchunk; ++iloop) {
-    //      for (SizeT j=iloop*chunksize; j<(iloop+1)*chunksize; ++j) {
-    //        countyes[iloop]+=p0[j];
-    //      }
-    //      countno[iloop]=chunksize-countyes[iloop];
-    //    }
-    //    for (int iloop=1; iloop<nchunk; ++iloop) {
-    //      startyes[iloop]=startyes[iloop-1]+countyes[iloop-1];
-    //      startno[iloop]=startno[iloop-1]+countno[iloop-1];
-    //    }
-    //    
-    //    DLong* distributed[nchunk][2];
-    //    DLongGDL* yes;
-    //    DLong* zyes;
-    //    if (count > 0) {
-    //      yes = new DLongGDL(dimension(count),BaseGDL::NOZERO);
-    //      zyes=(DLong*)yes->DataAddr();
-    //      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][1] = &(zyes[startyes[iloop]]);
-    //    }
-    //    DLongGDL* no;
-    //    DLong* zno;
-    //    if (nCount > 0) {
-    //      no = new DLongGDL(dimension(nCount),BaseGDL::NOZERO);
-    //      zno=(DLong*)no->DataAddr();
-    //      for (int iloop=0; iloop<nchunk; ++iloop) distributed[iloop][0] = &(zno[startno[iloop]]);
-    //    }
-    //    SizeT districount[nchunk][2]={0};
-    //    
-    //    //distribute accordingly! removing the if clause makes the loop 2 times faster.
-    //#pragma omp parallel num_threads(nchunk) firstprivate(nchunk,chunksize) shared(districount,distributed,p0) 
-    //  {
-    //#pragma omp for schedule (static)
-    //    for (int iloop=0; iloop<nchunk; ++iloop) {
-    //      SizeT j=iloop*chunksize;
-    //      for (; j<(iloop+1)*chunksize;) {
-    //         distributed[iloop][p0[j]][districount[iloop][p0[j]]++] = j++;
-    //      }
-    //    }
-    //  }
+      SizeT nCount = nEl - count;
 
-    DLong * distributed[2];
-    DLongGDL* yes;
-    if (count > 0)
-    {
-      yes = new DLongGDL(dimension(count), BaseGDL::NOZERO);
-      distributed[1] = (DLong*) yes->DataAddr();
-    }
-    DLongGDL* no;
-    if (nCount > 0)
-    {
-      no = new DLongGDL(dimension(nCount), BaseGDL::NOZERO);
-      distributed[0] = (DLong*) no->DataAddr();
-    }
-
-    SizeT districount[2] = {0, 0};
-
-    //distribute accordingly! 
-    DByte tmp;
-    for (SizeT i = 0; i < nEl; ++i)
-    {
-      tmp = p0[i];
-      distributed[tmp][districount[tmp]] = i;
-      districount[tmp]++;
-    }
-
-    if (e->KeywordPresent(0)) // COMPLEMENT
-    {
-      if (nCount == 0)
-      { //'no' is not malloc'ed. 
-        if (nullKW)
-          e->SetKW(0, NullGDL::GetSingleInstance());
-        else
-          e->SetKW(0, new DLongGDL(-1));
-      } else
+      if (e->KeywordPresent(0)) // COMPLEMENT
       {
-        e->SetKW(0, no);
+        if (nCount == 0) {
+          if (nullKW)
+            e->SetKW(0, NullGDL::GetSingleInstance());
+          else
+            e->SetKW(0, new DLongGDL(-1));
+        } else {
+          DLongGDL* cRet=new DLongGDL(dimension(nCount),BaseGDL::NOALLOC); //danger!!
+          cRet->SetBuffer((void*)comp_ret);
+          cRet->SetBufferSize(nCount);
+          cRet->SetDim(dimension(nCount));
+          e->SetKW(0, cRet);
+        }
       }
-    } else
-    {
-      if (nCount > 0) GDLDelete(no); //tidy!
-    }
 
-    if (e->KeywordPresent(1)) // NCOMPLEMENT
-    {
-      e->SetKW(1, new DLongGDL(nCount));
-    }
+      if (e->KeywordPresent(1)) // NCOMPLEMENT
+      {
+        e->SetKW(1, new DLongGDL(nCount));
+      }
 
-    if (nParam == 2)
-    {
-      e->SetPar(1, new DLongGDL(count));
-    }
-    //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-    DVar *err = FindInVarList(sysVarList, "ERR");
-    (static_cast<DLongGDL*> (err->Data()))[0] = count;
-    if (count == 0)
-    {
-      if (nullKW)
-        return NullGDL::GetSingleInstance();
-      return new DLongGDL(-1);
-    }
+      if (nParam == 2) {
+        e->SetPar(1, new DLongGDL(count));
+      }
+      //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
+      DVar *err = FindInVarList(sysVarList, "ERR");
+      (static_cast<DLongGDL*> (err->Data()))[0] = count;
 
-    return yes;
+      if (count == 0) {
+        if (nullKW) {
+          return NullGDL::GetSingleInstance();
+        }
+        return new DLongGDL(-1);
+      }
+      DLongGDL* res=new DLongGDL(dimension(count),BaseGDL::NOALLOC);
+      res->SetBuffer((void*)ret);
+      res->SetBufferSize(count);
+      res->SetDim(dimension(count));
+      return res;
+    } else {
+      DLong64* ret=NULL;
+      DLong64* comp_ret=NULL;
+
+      p0->Where(ret, count, e->KeywordPresent(0), comp_ret);
+
+      SizeT nCount = nEl - count;
+
+      if (e->KeywordPresent(0)) // COMPLEMENT
+      {
+        if (nCount == 0) {
+          if (nullKW)
+            e->SetKW(0, NullGDL::GetSingleInstance());
+          else
+            e->SetKW(0, new DLongGDL(-1));
+        } else {
+          DLong64GDL* cRet=new DLong64GDL(dimension(nCount),BaseGDL::NOALLOC); //danger!!
+          cRet->SetBuffer((void*)comp_ret);
+          cRet->SetBufferSize(nCount);
+          cRet->SetDim(dimension(nCount));
+          e->SetKW(0, cRet);
+        }
+      }
+
+      if (e->KeywordPresent(1)) // NCOMPLEMENT
+      {
+        e->SetKW(1, new DLong64GDL(nCount));
+      }
+
+      if (nParam == 2) {
+        e->SetPar(1, new DLong64GDL(count));
+      }
+      //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
+      DVar *err = FindInVarList(sysVarList, "ERR");
+      (static_cast<DLongGDL*> (err->Data()))[0] = count; //thus, not a DLong64!
+
+      if (count == 0) {
+        if (nullKW) {
+          return NullGDL::GetSingleInstance();
+        }
+        return new DLongGDL(-1);
+      }
+      DLong64GDL* res=new DLong64GDL(dimension(count),BaseGDL::NOALLOC);
+      res->SetBuffer((void*)ret);
+      res->SetBufferSize(count);
+      res->SetDim(dimension(count));
+      return res;
+    }
   }
 }
