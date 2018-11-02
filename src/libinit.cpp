@@ -225,6 +225,7 @@ void LibInit()
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
   
+  //exists as stub procedure for _WIN32
 #ifndef _WIN32
   const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
