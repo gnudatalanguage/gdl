@@ -67,9 +67,7 @@ template<>
 void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -224,9 +222,7 @@ template<>
 void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -381,9 +377,7 @@ template<>
 void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -538,9 +532,7 @@ template<>
 void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -695,9 +687,7 @@ template<>
 void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -852,9 +842,7 @@ template<>
 void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-//  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
-//test
-  int nchunk=1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
