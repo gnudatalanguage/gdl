@@ -98,11 +98,11 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
         }
       }
       passed_count=countyes;
-      //free temporary arrays.
-      for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
-      }
+//      //free temporary arrays.
+//      for (int iloop=0; iloop<nchunk; ++iloop) {
+//        free(partyes[iloop]);
+//        free(partno[iloop]);
+//      }
     }
   } else {
     if (nchunk==1) {
@@ -162,9 +162,9 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       }
       passed_count=count;
       //free temporary arrays.
-      for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
-      }
+//      for (int iloop=0; iloop<nchunk; ++iloop) {
+//        free(part[iloop]);
+//      }
     }
   }
 }
@@ -252,11 +252,11 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         }
       }
       passed_count=countyes;
-      //free temporary arrays.
-      for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
-      }
+//      //free temporary arrays.
+//      for (int iloop=0; iloop<nchunk; ++iloop) {
+//        free(partyes[iloop]);
+//        free(partno[iloop]);
+//      }
     }
   } else {
     if (nchunk==1) {
@@ -315,10 +315,10 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         }
       }
       passed_count=count;
-      //free temporary arrays.
-      for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
-      }
+//      //free temporary arrays.
+//      for (int iloop=0; iloop<nchunk; ++iloop) {
+//        free(part[iloop]);
+//      }
     }
   }
 }
