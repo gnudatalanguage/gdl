@@ -9,7 +9,7 @@ configuration:
 environment:
   matrix:
   #- platform: mingw64720x8664
-  - platform: mingw64630x8664
+  #- platform: mingw64630x8664
   - platform: mingw64630i686
   #- platform: mingw64730x8664
   #- platform: mingw64630x8664
@@ -67,8 +67,8 @@ install:
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
         cd c:/projects/gdl
         # $env:GMNAME="GraphicsMagick-1.3.30"
-        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         $env:WXNAME="wxWidgets-3.0.2-17"
+        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
         rm mingw-w64-*tar.xz
         $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
@@ -80,7 +80,7 @@ install:
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
   - ps: |
-      if ($false)  # MINGW mode
+      if ($false)  # MINGW mode build wxWidgets 3.0.4
       {
         # wxWidgets
         $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
@@ -112,15 +112,16 @@ install:
         #
         C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/mingw/plplot-5.13"
         $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
-        # plplot failed to bring in the wxwidgets build because the version is not recognized in the
-        # cmake module findwxwidgets.cmake (customized in plplot)
         #
-        # Patch to cmake/modules/FindwxWidgets.cmake: scripts/patch/Findwx.cmake.patch:
+        # previously, plplot failed to bring in the wxwidgets build because the version is not recognized in the
+        # cmake module findwxwidgets.cmake (customized in plplot). The "win32" portion of the patch
+        # scripts/patch/Findwx.cmake.patch corrects this
         #
         c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/patch/patch_plplot.sh'
         echo "mingw build of plplot is done via dos commands scripts/appveyor_plplot.bat"
         #
-        # (to do that, activate the line below the next block.)
+        # Yet still, the plplot test does not work 'cause wxwidgets.dll is not loaded.
+        # Same situation occurs when msys is used to compile.
         }
   #
   #- cmd /K ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!  - ps: |
@@ -128,7 +129,7 @@ install:
       if ($true)
       {
         # BSD-XDR
-        cd c:\projects\gdl\win32libs
+        cd c:/projects/gdl/win32libs
         appveyor DownloadFile `
           https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
         tar zxf bsd-xdr-1.0.0.tar.gz
@@ -357,7 +358,7 @@ after_build:
   - cd c:\projects\gdl
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
   - ps: copy -r src/pro install/gdl/gdllib
-  - 7z a gdl_build.zip install build
+  - 7z a gdl_build.zip install build mingw
 
 
 artifacts:

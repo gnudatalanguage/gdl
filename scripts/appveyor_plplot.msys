@@ -9,6 +9,7 @@ echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ 
     else
     echo " /c/projects/gdl/win32libs needs a copy of plplot-5.13.0.tar.gz"
     fi
+cp plplot-5.13.0/cmake/modules/FindwxWidgets.cmake /c/projects/gdl/CMakeModules/
 mname="mingw32"
 arch="i686"
 if [[ -n "$MSYSTEM" ]] ; then
@@ -37,7 +38,7 @@ if [[ -f "mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz" ]] ; then
     fi
     
 echo "mname = "$mname "MSYSTEM="$MSYSTEM ", WXNAME="$WXNAME
-    
+  
 if [[ -d "$WXNAME" ]] ; then
     echo " mingw/wxWidgets directory already prepped :"$WXNAME
     pwd
@@ -97,11 +98,12 @@ cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
  -DCMAKE_INSTALL_PREFIX=$plplot \
  -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
- -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=OFF \
- -DENABLE_DYNDRIVERS=OFF \
- -DWITH_FREETYPE=OFF -DPLD_wxwidgets=OFF -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
- -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 \
- -DCMAKE_CXX_FLAGS='-std=c++11' | tee cmake.out
+ -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=ON \
+ -DENABLE_DYNDRIVERS=ON -DwxWidgets_USE_PREFIX=$WXROOT \
+ -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
+ -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 | tee cmake.out
+
+ # -DCMAKE_CXX_FLAGS='-std=c++11' Cannot be used
  
 export PATH=$WXROOT/bin:$PATH
 cd /c/projects/gdl/build/plplot/msys

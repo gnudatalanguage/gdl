@@ -1,0 +1,23 @@
+#!bin/bash.exe
+#
+cd /c/projects/gdl/win32libs
+tar zxf "bsd-xdr-1.0.0.tar.gz"
+cd bsd-xdr-1.0.0
+sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -i Makefile
+sed -i 's/%hh/%/g' src/test/test_data.c
+# because tar, sed will not always be available to PowerShell
+mname="mingw32"
+arch="i686"
+if [[ -n "$MSYSTEM" ]] ; then
+  if [ "$MSYSTEM" = "MINGW64" ] ; then
+    arch="x86_64"
+    mname="mingw64"
+    fi
+  fi
+. /etc/profile 
+cd /c/projects/gdl/win32libs/bsd-xdr-1.0.0
+make
+mv mingw/libxdr.dll.a c:/projects/gdl/mingw/$mname/lib
+mv rpc c:/projects/gdl/mingw/$mname/include
+mv mingw/mgwxdr-0.dll c:/projects/gdl/mingw/$mname/bin
+cd /c/projects/gdl

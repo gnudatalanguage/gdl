@@ -104,9 +104,8 @@ gdlexception.cpp
 gdlexception.hpp
 gdlgstream.cpp
 gdlgstream.hpp
-dSFMT/dSFMT.c
 )
-if(WIN32)
+if(WIN32 OR CYGWIN)
 set(SOURCES
 ${SOURCES}
 gdlwinstream.cpp
@@ -253,7 +252,6 @@ print_tree.hpp
 prognode.cpp
 prognode_lexpr.cpp
 prognodeexpr.cpp
-randomgenerators.cpp
 read.cpp
 real2int.hpp
 saverestore.cpp
