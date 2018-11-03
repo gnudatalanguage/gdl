@@ -46,7 +46,6 @@ SET_PLOT, device_mode
     if !version.os_family eq 'Windows' then $
         message,/continue,' TVRD not working for windows. fake success'
     if !version.os_family eq 'Windows' then return
-
 TV, TVRD()
 ;
 end
