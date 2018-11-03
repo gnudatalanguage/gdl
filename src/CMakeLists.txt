@@ -104,6 +104,7 @@ gdlexception.cpp
 gdlexception.hpp
 gdlgstream.cpp
 gdlgstream.hpp
+dSFMT/dSFMT.c
 )
 if(WIN32)
 set(SOURCES
