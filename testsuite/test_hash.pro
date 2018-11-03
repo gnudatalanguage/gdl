@@ -9,6 +9,9 @@ isgit = 0
 defsysv,"!GDL",exists=isgdl
 if isgdl then $
     isgit = strpos(!GDL.release,'git') gt 0
+
+isgit = 0 ; no more excuses.
+
 if isgit then $
   message,/cont,' GDL/git is detected so some tests will be excused,'
 isgit = 0 ; no more excuses.

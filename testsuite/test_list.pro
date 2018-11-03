@@ -145,7 +145,11 @@ ii1 = 1+indgen(3,10) & ii2 = 10*indgen(4,5)+11
 stab=ll.remove()
 if(stab.a ne 'a' or stab.b ne 'b') then $
   ERRORS_ADD, nb_errors," ::remove() didn't get the structure."
-if(~isgit) then begin
+; following give AN ERROR WITH IDL:
+;% Attempt to subscript LIST element within LL is out of range.
+;% Execution halted at: TEST_LIST         151 /home/gildas/gdl/testsuite/test_list.pro
+; TEST REMOVED.
+if(0) then begin
 	ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
 	ll[1,2,1:4] = 11+indgen(6) 		& ii1[2,1:4] = 11+indgen(6) 
 	ll[2,2:3,1:3] = 21 - indgen(6)	& ii2[2:3,1:3]=21 - indgen(6)

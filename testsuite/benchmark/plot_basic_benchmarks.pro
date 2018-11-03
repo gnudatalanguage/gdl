@@ -80,7 +80,7 @@ DEVICE, decompose=1
 BENCHMARK_GRAPHIC_STYLE, liste, colors, mypsym, myline, flags, $
                          languages, select=select
 ;
-PLOT, FINDGEN(10), /nodata, xstyle=4, /ystyle, ylog=ylog, $
+PLOT, FINDGEN(xelems), /nodata, xstyle=5, /ystyle, ylog=ylog, $
       xrange=xrange, yrange=yrange, $
       xtitle='Operations', ytitle='time [s]', $
       title='Basic Benchmark', pos=[0.05,0.05, 0.75, 0.9]
@@ -98,7 +98,7 @@ for ii=0, N_ELEMENTS(liste)-1 do begin
    ;;
    ;; at the end, plotting missing Xaxis !
    if ii EQ 0 then $
-      AXIS, xtickname=['',op_name], xticks=N_ELEMENTS(op_name)+1
+      AXIS, xtickname=['',op_name,''], xticks=N_ELEMENTS(op_name)+1
    ;;
    ;; type ?
    if (used_type EQ 'FLOAT') then psymb=4
