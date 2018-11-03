@@ -75,6 +75,10 @@ tab_val=[0.]
 ; ------------ need to chnage the type if needed ---
 ;
 a=TIC()
+input=RANDOMN(seed, nbps/4, double=double)
+printb, 'Time for RANDOMN (1/4) : ', TOC(a), tab_name, tab_val
+;
+a=TIC()
 input=RANDOMU(1, nbps, double=double)
 b=TOC(a)
 ;
@@ -105,10 +109,12 @@ printb, 'Time for SQRT : ', TOC(a), tab_name, tab_val
 a=TIC() & res=EXP(input)
 printb, 'Time for EXP : ', TOC(a), tab_name, tab_val
 ;
-a=TIC() & res=WHERE(input GT 0.5)
+val=input GT 0.5
+a=TIC() & res=WHERE(val)
 printb, 'Time for WHERE : ', TOC(a), tab_name, tab_val
 ;
-a=TIC() & res=SORT(input[0:nbps/30])
+sub=input[0:nbps/30]
+a=TIC() & res=SORT(sub)
 printb, 'Time for SORT (1/30) : ', TOC(a), tab_name, tab_val
 ;
 a=TIC() & res=FINITE(input)

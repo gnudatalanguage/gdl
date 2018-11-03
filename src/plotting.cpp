@@ -847,6 +847,7 @@ namespace lib
           }
           if (psym_>0&&psym_<8)
           {
+            a->styl(0, NULL, NULL); //symbols drawn in continuous lines
             for ( int j=0; j<i_buff; ++j )
             {
               for ( int kk=0; kk < *userSymArrayDim; kk++ )
@@ -871,6 +872,7 @@ namespace lib
           }
         else if ( psym_==8 )
         {
+          a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           if (*usersymhascolor)
           {
             a->Color(*usymColor, decomposed);
@@ -924,6 +926,7 @@ namespace lib
         }
         if ( psym_>0&&psym_<8 )
         {
+          a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           for ( int j=0; j<i_buff; ++j )
           {
             for ( int kk=0; kk < *userSymArrayDim; kk++ )
@@ -949,6 +952,7 @@ namespace lib
         }
         else if ( psym_==8 )
         {
+          a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           if (*usersymhascolor)
           {
             a->Color(*usymColor, decomposed);

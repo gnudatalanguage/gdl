@@ -31,7 +31,12 @@ tfile1to='titii'
 tfile2to='titis'
 tfile3to='tititi'
 tfile4to='titifgf'
-SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
+; replaced SPAWN for Win32 compatibility
+tfiles=[tfile,tfile1,tfile2,tfile3,tfile4]
+;SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
+get_lun,lun
+for k=0,4 do begin & openw,lun, tfiles(k) & close,lun & endfor
+free_lun,lun
 
 ;move files
 file_move,tfile,tfileto
