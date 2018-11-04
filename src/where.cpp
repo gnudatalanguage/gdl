@@ -21,12 +21,6 @@
 #include "dstructgdl.hpp"
 #include "dinterpreter.hpp" //for sysVarList() 
 
-#ifdef _OPENMP
-#include "omp.h"
-#define MINMAX_THREAD_NUM omp_get_thread_num()
-#else
-#define MINMAX_THREAD_NUM 0
-#endif
 
 //We create 'on the spot' arrays that must be aligned. this is the purpose of the gdl..lloc functions.
 #define MALLOC gdlAlignedMalloc
@@ -100,7 +94,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -155,8 +149,8 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -178,7 +172,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -218,7 +212,7 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
@@ -255,7 +249,7 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -310,8 +304,8 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -333,7 +327,7 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -373,7 +367,7 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
@@ -410,7 +404,7 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -465,8 +459,8 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -488,7 +482,7 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -528,7 +522,7 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
@@ -565,7 +559,7 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -620,8 +614,8 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -643,7 +637,7 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -683,7 +677,7 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
@@ -720,7 +714,7 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -775,8 +769,8 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -798,7 +792,7 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -838,7 +832,7 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
@@ -875,7 +869,7 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       SizeT partialCountNo[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -930,8 +924,8 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       passed_count=countyes;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(partyes[iloop]);
-        free(partno[iloop]);
+        FREE(partyes[iloop]);
+        FREE(partno[iloop]);
       }
     }
   } else {
@@ -953,7 +947,7 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       SizeT partialCount[nchunk];
       #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-        int thread_id = MINMAX_THREAD_NUM;
+        int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
         start_index = thread_id * chunksize;
         if (thread_id != nchunk-1) //robust wrt. use of threads or not.
@@ -993,7 +987,7 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       passed_count=count;
       //free temporary arrays.
       for (int iloop=0; iloop<nchunk; ++iloop) {
-        free(part[iloop]);
+        FREE(part[iloop]);
       }
     }
   }
