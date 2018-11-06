@@ -181,7 +181,7 @@ public:
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
   virtual BaseGDL* EvalNCNull(); // non-copy might return NULL
-  virtual RetCode    Run();
+  virtual RetCode    Run(bool b=false);
 
   //   RetCode  (*RunP)();
 
@@ -355,7 +355,7 @@ public:
 class RETPNode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 public:
   RETPNode(): DefaultNode()  {}
@@ -366,7 +366,7 @@ public:
 class RETFNode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 public:
   RETFNode(): DefaultNode()  {}
@@ -377,7 +377,7 @@ public:
 class GOTONode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void SetAllBreak( ProgNodeP target)
   {
@@ -397,7 +397,7 @@ public:
 class CONTINUENode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 
   void SetAllContinue( ProgNodeP target)
@@ -422,7 +422,7 @@ private:
   bool breakTargetSet;
 
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 
   void SetAllBreak( ProgNodeP target)
@@ -444,7 +444,7 @@ public:
 class LABELNode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 
 public:
@@ -456,7 +456,7 @@ public:
 class ON_IOERROR_NULLNode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 
 public:
@@ -468,7 +468,7 @@ public:
 class ON_IOERRORNode: public DefaultNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
 
 public:
@@ -523,7 +523,7 @@ public:
 class FOR_LOOPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 
   ProgNodeP statementList;
 	
@@ -591,7 +591,7 @@ public:
 class FORNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r);
 	
@@ -634,7 +634,7 @@ public:
 class FOR_STEP_LOOPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   ProgNodeP GetStatementList()
   {
@@ -699,7 +699,7 @@ public:
 class FOR_STEPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r);
 	
@@ -741,7 +741,7 @@ public:
 class FOREACH_LOOPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   ProgNodeP GetStatementList()
   {
@@ -803,7 +803,7 @@ public:
 class FOREACHNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r);
 	
@@ -844,7 +844,7 @@ public:
 class FOREACH_INDEX_LOOPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   ProgNodeP GetStatementList()
   {
@@ -906,7 +906,7 @@ public:
 class FOREACH_INDEXNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r);
 	
@@ -952,7 +952,7 @@ public:
 class WHILENode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   ProgNodeP GetStatementList()
   {
@@ -993,7 +993,7 @@ public:
 class REPEAT_LOOPNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   ProgNodeP GetStatementList()
   {
@@ -1035,7 +1035,7 @@ public:
 class REPEATNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r)
   {
@@ -1062,7 +1062,7 @@ public:
 class CASENode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
   
   ProgNodeP GetStatementList()
   {
@@ -1149,7 +1149,7 @@ public:
 class SWITCHNode: public BreakableNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
   
   ProgNodeP GetStatementList()
   {
@@ -1245,7 +1245,7 @@ public:
 class BLOCKNode: public ProgNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
 	
   void KeepRight( ProgNodeP r)
   {
@@ -1286,7 +1286,7 @@ public:
 class IFNode: public ProgNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
   
   void KeepRight( ProgNodeP r)
   {
@@ -1325,7 +1325,7 @@ public:
 class IF_ELSENode: public ProgNode
 {
 public:
-  RetCode      Run();
+  RetCode      Run(bool b=false);
   
   void KeepRight( ProgNodeP r)
   {
@@ -1517,7 +1517,7 @@ class WRAPPED_FUNNode: public CommandNode
 public:
   bool IsWrappedNode() { return true;}
   explicit WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 // call C++ function as GDL PRO
 class WRAPPED_PRONode: public CommandNode
@@ -1526,14 +1526,14 @@ class WRAPPED_PRONode: public CommandNode
 public:
   bool IsWrappedNode() { return true;}
   explicit WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 
 class ASSIGNNode: public CommandNode
 {
 public:
   explicit ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
@@ -1542,7 +1542,7 @@ class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
 {
 public:
   explicit ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
@@ -1551,7 +1551,7 @@ class ASSIGN_REPLACENode: public CommandNode
 {
 public:
   explicit ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
   BaseGDL** LExpr( BaseGDL* right);
   //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
@@ -1561,25 +1561,25 @@ class PCALL_LIBNode: public CommandNode
 {
 public:
   explicit PCALL_LIBNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 class MPCALLNode: public CommandNode
 {
 public:
   explicit MPCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 class MPCALL_PARENTNode: public CommandNode
 {
 public:
   explicit MPCALL_PARENTNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 class PCALLNode: public CommandNode
 {
 public:
   explicit PCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  RetCode Run();
+  RetCode Run(bool throwImmediately=false);
 };
 class DECNode: public CommandNode
 { public:
@@ -1587,7 +1587,7 @@ class DECNode: public CommandNode
   BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 class INCNode: public CommandNode
 { public:
@@ -1595,7 +1595,7 @@ class INCNode: public CommandNode
   BaseGDL** EvalRefCheck( BaseGDL*& res);
   BaseGDL** LEval();
   BaseGDL* Eval();
-  RetCode Run();
+  RetCode Run(bool b=false);
 };
 class POSTDECNode: public CommandNode
 { public:

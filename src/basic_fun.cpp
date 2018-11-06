@@ -1742,7 +1742,7 @@ namespace lib {
 	// AC 2016-02-26 : bug report #692 always verbose in EXECUTE()
 	// Do we have a way not to *always* issue a message here 
 	// in case of problem ???
-	RetCode retCode = caller->Interpreter()->execute( progAST);
+	RetCode retCode = caller->Interpreter()->execute( progAST, true); //throwImmediately=true as we must avoid "implied print" infinite loop.
 
 	caller->ResizeForLoops( nForLoopsIn);
 
