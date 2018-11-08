@@ -62,7 +62,6 @@ if [ $DOWX = ":BOOL=ON" ]; then
   fi
 make -j4
 make install > gdlinstall.out
-rm src/CMakeFiles/gdl.dir/*.obj
 export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
 export PLPLOT_LIB=$plplot/share/plplot5.13.0
 if [ -d $GMDIR ] ; then
@@ -79,8 +78,8 @@ if [ -d $PLPLOT_DRV_DIR ]; then
   cp $PLPLOT_DRV_DIR/*.dll /c/projects/gdl/install/gdl/bin
   fi
 cp $LOCALM32/bin/*.dll /c/projects/gdl/install/gdl/bin
-cp $PLPLOTDIR/bin/lib*.dll /c/projects/gdl/install/gdl/bin
+cp $plplot/bin/lib*.dll /c/projects/gdl/install/gdl/bin
 cp /c/mingw-w64/$GCC/$mname/bin/*.dll /c/projects/gdl/install/gdl/bin
 export PATH=/c/projects/gdl/install/gdl/bin:$PATH
 make check
-
+rm src/CMakeFiles/gdl.dir/*.obj
