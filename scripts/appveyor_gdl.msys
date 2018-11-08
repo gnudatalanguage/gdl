@@ -71,6 +71,13 @@ if [ -d $GMDIR ] ; then
 if [ -d $WXROOT ] ; then
   cp -pr $WXROOT/bin/*.dll $LOCALM32/bin
   fi
-export PATH=$plplot/bin:$PATH
+mkdir -p /c/projects/gdl/install/gdl/bin
+#  GDL is built with GCC 6.3 but the underlying MSYS2/mingw support libraries are
+# at the GCC=8.2 level.  So much of the segfaulting could be the MSYS2 environment creeping
+# into the CTEST process and being incompatible with how it was built.  
+cp $LOCALM32/bin/*.dll /c/projects/gdl/install/gdl/bin
+cp $PLPLOTDIR/bin/lib*.dll /c/projects/gdl/install/gdl/bin
+cp /c/mingw-w64/$GCC/$mname/bin/*.dll /c/projects/gdl/install/gdl/bin
+export PATH=/c/projects/gdl/install/gdl/bin:$PATH
 make check
 

@@ -341,12 +341,14 @@ on_failure:
 
 after_build:
   - cd c:\projects\gdl
-  - C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
-  # The following is available in scripts/installgdl.ps1  
-  - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
-  # ps: copy $env:wxWidgets_ROOT\lib\gcc_dll\*.dll c:\projects\gdl\install\gdl\bin
-  - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
+  - ps: |
+     if ( $env:platform -Match "mingw64630x8664") # in make_gdl.ps1, this is done before make check.
+     {
+      - C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
+      - ps: copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
+      - ps: copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
+      - ps: copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
+     }
   # bring in the driver's dll to the installation directory.
   # there are also .driver_info files here the plplot needs to find.
   # also in share/plplot-5.13.0 there are mapping and color files.
