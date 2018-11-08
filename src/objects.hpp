@@ -64,6 +64,13 @@ extern DLong64 CpuTPOOL_MAX_ELTS;
 
 // signals if control-c was pressed
 extern volatile bool sigControlC;
+
+// tells if wxwidgets backend for graphics is to be used...
+extern volatile bool useWxWidgetsForGraphics;
+
+//do we favor SIMD-accelerated random number generation?
+extern volatile bool useDSFMTAcceleration;
+
 extern          int  debugMode;
 
 enum DebugCode {
@@ -102,6 +109,8 @@ void SetStrict(bool value);
 bool BigEndian();
 
 int get_suggested_omp_num_threads();
+int currentNumberOfThreads();
+int currentThreadNumber();
 
 template <typename T> class RefHeap {
   private:

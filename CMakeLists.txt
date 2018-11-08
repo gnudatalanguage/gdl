@@ -7,11 +7,16 @@
 #  (at your option) any later version.
 #
 
-# requirement for CMAKE_CXX_STANDARD
-if (APPLE)
-  cmake_minimum_required(VERSION 3.2 FATAL_ERROR) # https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+# requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
+if (${CMAKE_VERSION} VERSION_LESS "3.2")
+  string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
+  if(tmp LESS 0)
+    message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+  endif()
 else()
-  cmake_minimum_required(VERSION 3.1 FATAL_ERROR) 
+  set(CMAKE_CXX_STANDARD 11)
 endif()
 
 cmake_policy(SET CMP0026 OLD) # LOCATION property
@@ -19,7 +24,10 @@ cmake_policy(SET CMP0026 OLD) # LOCATION property
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
-# X.X.X CVS becomes release X.X.X+1
+# advice by Orion, mandatory for FC 28
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# X.X.X git becomes release X.X.X+1
 set(VERSION "0.9.8 git")
 enable_testing()
 
@@ -48,7 +56,6 @@ set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
 set(EDITLINE ON CACHE BOOL "GDL: Enable BSD Editline ?")
 set(EDITLINEDIR "" CACHE PATH "GDL: Specify the BSD Editline directory tree")
 
-set(OLDPLPLOT OFF CACHE BOOL "GDL: Enable old plplot ?")
 set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
 
 set(GSLDIR "" CACHE PATH "GDL: Specify the GSL directory tree")
@@ -70,8 +77,8 @@ set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
-set(GRIB OFF CACHE BOOL "GDL: Enable Grib ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specifiy the GRIB directory tree")
+set(GRIB OFF CACHE BOOL "GDL: Enable GRIB ?")
+set(GRIBDIR "" CACHE PATH "GDL: Specifiy the ECMWF ecCodes or GRIB API directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 # set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
@@ -85,6 +92,14 @@ set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory t
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
 set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
+
+set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
+set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
+
+if(TIFF)
+	set(GEOTIFF ON CACHE BOOL "GDL: Enable libgeotiff ?")
+	set(GEOTIFFDIR "" CACHE PATH "GDL: Specify the libgeotiff directory tree")
+endif(TIFF)
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
 set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
@@ -265,7 +280,10 @@ endif(READLINE_FOUND)
 # -DEDITLINEDIR=DIR
 if(EDITLINE)
   set(CMAKE_PREFIX_PATH ${EDITLINEDIR})
-  find_package(Editline QUIET)
+  find_package(Editline CONFIG)
+	if(NOT EDITLINE_FOUND)
+	  find_package(Editline QUIET)
+	endif(NOT EDITLINE_FOUND)
   set(HAVE_LIBEDITLINE ${EDITLINE_FOUND})
   if(EDITLINE_FOUND)
     if(NOT WIN32)
@@ -410,9 +428,7 @@ elseif (WIN32 AND NOT CYGWIN)
 endif()
 
 # PLplot MANDATORY
-# -DOLDPLPLOT=ON|OFF
 # -DPLPLOTDIR=DIR
-set(HAVE_OLDPLPLOT ${OLDPLPLOT})
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
 set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
@@ -429,12 +445,10 @@ endif(PLPLOT_FOUND)
 if(PLPLOT_FOUND)
     message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
 	check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-	if(HAVE_PLPLOT_SLABELFUNC)
-	  set(HAVE_PLPLOT_SLABELFUNC 1)
-	else(HAVE_PLPLOT_SLABELFUNC)
-	  message(STATUS "warning, due to old plplot library, [XYZ]TICKFORMAT option for plot axis will not be supported.\n"
-	    "you should upgrade to plplot version > 5.9.6")
-	endif(HAVE_PLPLOT_SLABELFUNC)
+	if(NOT HAVE_PLPLOT_SLABELFUNC)
+	  message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
+	endif()
+
 	set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
 	set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
@@ -580,6 +594,42 @@ if(WXWIDGETS)
                 "(suitable Fedora package: wxGTK-devel)")
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
+
+# libtiff
+# -DTIFF=ON|OFF
+# -DTIFFDIR=DIR
+if(TIFF)
+	set(CMAKE_PREFIX_PATH ${TIFFDIR})
+	find_package(TIFF 4.0.3 QUIET)
+	set(USE_TIFF ${TIFF_FOUND})
+	if(TIFF_FOUND)
+		include_directories(${TIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${TIFF_LIBRARIES})
+	else(TIFF_FOUND)
+		message(FATAL_ERROR
+		"libtiff v4.0.3 or newer is required for TIFF support but was not found.\n"
+		"Use -DTIFFDIR=DIR to specify the libtiff directory tree.\n"
+		"Use -DTIFF=OFF to not use it.")
+	endif(TIFF_FOUND)
+endif(TIFF)
+
+# libgeotiff
+# -DGEOTIFF=ON|OFF
+# -DGEOTIFFDIR=DIR
+if(GEOTIFF AND USE_TIFF)
+	set(CMAKE_PREFIX_PATH ${GEOTIFFDIR})
+	find_package(GeoTIFF QUIET)
+	set(USE_GEOTIFF ${GEOTIFF_FOUND})
+	if(GEOTIFF_FOUND)
+		include_directories(${GEOTIFF_INCLUDE_DIR})
+		set(LIBRARIES ${LIBRARIES} ${GEOTIFF_LIBRARIES})
+	else(GEOTIFF_FOUND)
+		message(FATAL_ERROR
+		"libgeotiff is required for GeoTIFF support but was not found.\n"
+		"Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
+		"Use -DGEOTIFF=OFF to not use it.")
+	endif(GEOTIFF_FOUND)
+endif(GEOTIFF AND USE_TIFF)
 
 # netCDF
 # -DNETCDF=ON|OFF
@@ -811,6 +861,13 @@ if(PYTHON OR PYTHON_MODULE)
 		endif()
 		find_package(PythonInterp)
 		find_package(PythonLibs ${PYTHONVERSION})
+		if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
+  			message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
+  			message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
+  			message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
+  			message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
+  			message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
+		endif()
 	endif()
 	set(USE_PYTHON ${PYTHONLIBS_FOUND})
 	if(PYTHONLIBS_FOUND)
@@ -914,13 +971,14 @@ if(GRIB)
 		set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
 		include_directories(${GRIB_INCLUDE_DIR})
 	else(GRIB_FOUND)
-		message(FATAL_ERROR "GRIB is required but was not found.\n"
-		"Use -DGRIBDIR=DIR to specify the GRIB directory tree.\n"
+		message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
+		"Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
 		"Use -DGRIB=OFF to not use it.\n"
 		"Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
 		"the directory trees of JasPer and openJPEG libraries.\n"
-                "(suitable Debian/Ubuntu package: libgrib-api-dev)\n"
-                "(suitable Fedora package: grib_api-devel)")
+                "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
+                "(suitable Fedora package: grib_api-devel)\n"
+		"(suitable Homebrew package: eccodes)\n")
 	endif(GRIB_FOUND)
 endif(GRIB)
 
@@ -1097,13 +1155,15 @@ else(OPENMP AND OPENMP_FOUND)
 	message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
-module(WXWIDGETS "WxWidgets     ")
-module(MAGICK    "ImageMagick   ")
-module(NETCDF    "NetCDF        ")
-module(HDF       "HDF4          ")
-module(HDF5      "HDF5          ")
-module(FFTW      "FFTW          ")
-module(LIBPROJ4  "Libproj4      ")
+module(WXWIDGETS "WxWidgets  ")
+module(MAGICK    "ImageMagick")
+module(TIFF      "TIFF       ")
+module(GEOTIFF   "GeoTIFF    ")
+module(NETCDF    "NetCDF     ")
+module(HDF       "HDF4       ")
+module(HDF5      "HDF5       ")
+module(FFTW      "FFTW       ")
+module(LIBPROJ4  "Libproj4   ")
 set(MPICH_LIBRARIES ${MPI_LIBRARIES})
 module(MPICH     "MPICH         ")
 module(PYTHON    "Python        ")
@@ -1135,7 +1195,6 @@ if(NOT WIN32)
   set(CURSES ON)
 endif(NOT WIN32)
 module(PLPLOT    "Plplot        ")
-module(OLDPLPLOT "Old Plplot    ")
 module(READLINE  "GNU Readline  ")
 module(EDITLINE  "BSD Editline  ")
 module(GSL       "GSL           ")

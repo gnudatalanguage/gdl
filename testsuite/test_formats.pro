@@ -81,7 +81,10 @@ struct = {BYTE:0b,short:-0s,ushort:0us, $
 GET_LUN, lun1
 OPENW, lun1, filename
 np=20 ; do not modify without recomputing save file below with idl8.
-a=float(randomn(33,np,/double)*1D8) ; needed: same randomn values for IDL8 and GDL only in this case (for the moment).
+; IMPORTANT!
+; Option /RAN1 is NECESSARY to insure identity of random values with
+; IDL -- hence the possibility of comparison.
+a=float(randomn(33,np,/double,/RAN1)*1D8) ; needed: same randomn values for IDL8 and GDL only in this case (for the moment).
 if (identity eq 'IDL') then begin ; overwrite a in some rare case
    vers=0.0 & reads,!version.release,vers
    if (vers < 8.2) then restore,filename='test_formats_random_input.sav' ; actually it is 8.2.2

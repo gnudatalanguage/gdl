@@ -32,26 +32,124 @@ end
 ;
 ; statistical approach : the initial way to find it !
 ;
-pro TEST_WHERE_WITH_RANDOM, cumul_errors, verbose=verbose, test=test
+pro TEST_WHERE_WITH_RANDOM, nbp_in, cumul_errors, verbose=verbose, test=test
 ;
 nb_errors=0
-;
-size_of_interest=!cpu.TPOOL_MIN_ELTS
-;
-nbp_in=6*size_of_interest
+; nbp_in should normally been of small size as we are just interested in threaded vs. unthreaded behaviour.
+; for very large nbp_in Total() may be a problem.
 input=RANDOMU(seed, nbp_in)
 ;
-ok=WHERE(input GE 0.5, nbp_ok)
+; we force threads by using a small value for CPU,TPOOL_MIN_ELTS
+SAVECPU=!CPU
+CPU,TPOOL_MIN_ELTS=nbp_in/10
+CPU,TPOOL_NTHREADS=!CPU.HW_NCPU
 ;
-if KEYWORD_SET(verbose) then begin
-    print, '!cpu.TPOOL_MIN_ELTS : ', LONG(size_of_interest)
-    print, ' expected :           ', LONG(nbp_in/2)
-    print, ' result   :           ', LONG(nbp_ok)
-endif
+; what where() sees is an array, mostly of zeros and ones. But any array can be passed to where().
+logical_value=input GE 0.5 ; this will be our template
 ;
-if (100.*ABS(nbp_in/2-nbp_ok)/FLOAT(nbp_ok) GT 1) then begin
-    nb_errors++
-endif
+;loop on types that are accepted by WHERE. the total of 'ok' location should be count, the total of 'nok' location must be zero.
+; special care for complex values is needed.
+; strings cannot be tested this way because of TOTAL() function
+itype=[1,2,3,4,5,12,13,14,15,6,9]
+stype=['Byte','Integer','Longword integer','Floating point','Double-precision floating','Unsigned Integer','Unsigned Longword Integer',$
+'64-bit Integer','Unsigned 64-bit Integer','Complex floating','Double-precision complex']
+
+if KEYWORD_SET(verbose) then print,'First pass, threaded, n_threads=',!CPU.TPOOL_NTHREADS
+
+for i=0,n_elements(itype)-1 do begin
+  type=itype[i]
+  typename=stype[i]
+  case type of
+  6: begin & x=fix(logical_value,type=4) & y=x & val=complex(x,y) & end
+  9: begin & x=fix(logical_value,type=9) & y=x & val=dcomplex(x,y) & end
+  else: val=fix(logical_value,type=type)
+  endcase
+
+  ok=WHERE(val, nbp_ok)
+  ; test ok is... ok
+  if nbp_ok gt 0 then begin
+     if total(val[ok],/integer) ne nbp_ok then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where() wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,"unexpected error occured, please investigate." ; as this gonna be worrying
+  endelse
+;
+  ok=WHERE(val, nbp_ok, comp=nok, ncomp=nbp_nok)
+ ; test ok is...(same as before, but remember: we DO NOT pass in the same lines of code as before!)
+  if nbp_ok gt 0 then begin
+     if total(val[ok],/integer) ne nbp_ok then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where() wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,'unexpected error occured for where(), type '+typename+', please investigate.' ; as this gonna be worrying
+  endelse
+  if nbp_nok gt 0 then begin
+     if total(val[nok],/integer) ne 0 then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where(comp=xxx) wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,'unexpected error occured for where(comp=xxx), type '+typename+', please investigate.' ; as this gonna be worrying
+  endelse
+
+endfor
+
+if KEYWORD_SET(verbose) then print,'Second pass, unthreaded (one thread)'
+
+CPU,TPOOL_NTHREADS=1
+
+for i=0,n_elements(itype)-1 do begin
+  type=itype[i]
+  typename=stype[i]
+  case type of
+  6: begin & x=fix(logical_value,type=4) & y=x & val=complex(x,y) & end
+  9: begin & x=fix(logical_value,type=9) & y=x & val=dcomplex(x,y) & end
+  else: val=fix(logical_value,type=type)
+  endcase
+
+  ok=WHERE(val, nbp_ok)
+  ; test ok is... ok
+  if nbp_ok gt 0 then begin
+     if total(val[ok],/integer) ne nbp_ok then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where() wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,"unexpected error occured, please investigate." ; as this gonna be worrying
+  endelse
+;
+  ok=WHERE(val, nbp_ok, comp=nok, ncomp=nbp_nok)
+ ; test ok is...(same as before, but remember: we DO NOT pass in the same lines of code as before!)
+  if nbp_ok gt 0 then begin
+     if total(val[ok],/integer) ne nbp_ok then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where() wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,'unexpected error occured for where(), type '+typename+', please investigate.' ; as this gonna be worrying
+  endelse
+  if nbp_nok gt 0 then begin
+     if total(val[nok],/integer) ne 0 then begin
+       nb_errors++
+       if KEYWORD_SET(verbose) then print,'where(comp=xxx) wrong for type '+typename
+     endif
+  endif else begin
+     nb_errors++ ; as most probably there should be some values gt 0.5!
+     print,'unexpected error occured for where(comp=xxx), type '+typename+', please investigate.' ; as this gonna be worrying
+  endelse
+
+endfor
+
+CPU,RESTORE=SAVECPU
+
 ;
 BANNER_FOR_TESTSUITE, 'TEST_WHERE_WITH_RANDOM', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
@@ -62,63 +160,22 @@ end
 ;
 ; ------------------------
 ;
-pro TEST_WHERE_OVER_TPOOL_MIN_ELTS, cumul_errors, verbose=verbose, test=test
-;
-nb_errors=0
-;
-size_of_interest=!cpu.TPOOL_MIN_ELTS
-;
-; we are not fully ready for very big numbers !
-if (size_of_interest GT 2L^28) then MESSAGE, 'Not ready for L64 range !'
-;
-input=LINDGEN(4*size_of_interest)
-;
-ok=WHERE(input GE 2*size_of_interest)
-;
-nbp=N_ELEMENTS(ok)
-;
-if KEYWORD_SET(verbose) then begin
-    print, '!cpu.TPOOL_MIN_ELTS : ', LONG(size_of_interest)
-    print, ' expected :           ', LONG(2*size_of_interest)
-    print, ' result   :           ', LONG(nbp)
-endif
-;
-if (nbp NE 2*size_of_interest) then nb_errors++
-;
-BANNER_FOR_TESTSUITE, 'TEST_WHERE_OVER_TPOOL_MIN_ELTS', nb_errors, /status
-ERRORS_CUMUL, cumul_errors, nb_errors
-;
-if KEYWORD_SET(test) then STOP
-;
-end
-;
-; ------------------------
-;
-pro TEST_WHERE, help=help, verbose=verbose, no_exit=no_exit, test=test
+pro TEST_WHERE, size, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_WHERE, help=help, verbose=verbose, $'
+    print, 'pro TEST_WHERE, [size_of_test,] $'
+    print, '                help=help, verbose=verbose, $'
     print, '                no_exit=no_exit, test=test'
+    print, '...default size is 1000000 normally sufficient'
     return
 endif
 ;
+if (n_elements(size) le 0) then size=1E6 
 nb_errors=0
 ;
 TEST_WHERE_NULL, nb_errors, verbose=verbose 
 ;
-CPU, /reset
-TEST_WHERE_OVER_TPOOL_MIN_ELTS, nb_errors, verbose=verbose
-;
-CPU, TPOOL_MIN_ELTS=!cpu.TPOOL_MIN_ELTS/4
-TEST_WHERE_OVER_TPOOL_MIN_ELTS, nb_errors, verbose=verbose
-;
-CPU, /reset
-TEST_WHERE_WITH_RANDOM, nb_errors, verbose=verbose
-;
-CPU, TPOOL_MIN_ELTS=!cpu.TPOOL_MIN_ELTS/4
-TEST_WHERE_WITH_RANDOM, nb_errors, verbose=verbose
-;
-CPU, /reset
+TEST_WHERE_WITH_RANDOM, size, nb_errors, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;

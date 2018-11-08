@@ -72,6 +72,7 @@ namespace lib {
   int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
 			SizeT offset, SizeT stride_in, SizeT stride_out);
 
+  BaseGDL* random_fun_gsl(EnvT* e);
 } // namespace
 
 #endif

@@ -31,12 +31,6 @@
 #include "gdlexception.hpp"
 
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
-
 //defined in graphicsdevice.hpp
 //#define MAX_WIN 32  //IDL free and widgets start at 33 ...
 //#define MAX_WIN_RESERVE 256 
@@ -82,7 +76,7 @@ private:
 	int ActWin();
 	void DefaultXYSize(DLong *xSize, DLong  *ySize);
 	void MaxXYSize(DLong *xSize, DLong *ySize);
-	DIntGDL* GetScreenSize(char* disp = NULL);
+	DLongGDL* GetScreenSize(char* disp = NULL);
 	DDoubleGDL* GetScreenResolution(char* disp = NULL);
 
 	void SetActWin(int wIx)

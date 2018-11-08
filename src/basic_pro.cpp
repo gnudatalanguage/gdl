@@ -155,6 +155,9 @@ namespace lib {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
       char *homeDir = getenv("HOME");
+	  
+	  if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
+	  
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
         AppendIfNeeded(pathToGDL_history, "/");
@@ -2497,7 +2500,7 @@ void delvar_pro( EnvT* e)
 			if(trace_me) std::cout << std::endl;
 		}
 	if(delcommon.empty()) return;
-	unsigned cIx;
+	int cIx;
 	int ncmnfound=0;
 	std::vector<DCommonBase*> c;
 	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());

@@ -503,17 +503,6 @@ template<>
 bool Data_<SpDPtr>::LogTrue(SizeT i);
 template<> 
 bool Data_<SpDObj>::LogTrue(SizeT i);
-template<> 
-DLong* Data_<SpDFloat>::Where( bool, SizeT&);
-template<> 
-DLong* Data_<SpDDouble>::Where( bool, SizeT&);
-template<> 
-DLong* Data_<SpDString>::Where( bool, SizeT&);
-template<> 
-DLong* Data_<SpDComplex>::Where( bool, SizeT&);
-template<> 
-DLong* Data_<SpDComplexDbl>::Where( bool, SizeT&);
-
 template<>  
 std::ostream& Data_<SpDLong>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 
 template<>  

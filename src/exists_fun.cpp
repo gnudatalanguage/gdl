@@ -196,6 +196,24 @@ namespace lib {
 #endif
   }
 
+  BaseGDL* tiff_exists( EnvT* e )
+  {
+#if defined(USE_TIFF)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
+  BaseGDL* geotiff_exists( EnvT* e )
+  {
+#if defined(USE_GEOTIFF)
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+
   BaseGDL* udunits_exists( EnvT* e )
   {
 #if defined(USE_UDUNITS)
@@ -213,6 +231,15 @@ namespace lib {
     return new DIntGDL(0);
 #endif
   }
-
+  
+  BaseGDL* dsfmt_exists(EnvT* e)
+  {
+    //dSFMT (random generator) is used AT THE MOMENT only if Eigen is present, and only if useDSFMTAcceleration == true
+#ifdef USE_EIGEN
+    return new DIntGDL(useDSFMTAcceleration == true);
+#else
+    return new DIntGDL(0);
+#endif
+  }
 }
  // namespace

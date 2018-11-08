@@ -1,9 +1,9 @@
 /***************************************************************************
-                          tagwhere_inc.cpp  -  include for where.cpp
+                  dstructfactory.cxx  -  DStructGDL creation helper
                              -------------------
-    begin                : Apr 7 2018
-    copyright            : (C) 2002 by Marc Schellens, G. Duvert
-    email                : m_schellens@users.sf.net
+    begin                : May 28 2018
+    copyright            : (C) 2018 by Remi A. Solås
+    email                : remi.solaas (at) edinsights.no
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,21 +15,30 @@
  *                                                                         *
  ***************************************************************************/
 
-template<>
-DByte* Data_<Sp>::TagWhere(SizeT& n)
+#include "dstructfactory.hxx"
+
+DStructFactory::DStructFactory() :
+    desc_(new DStructDesc("$truct"))
 {
-  SizeT nEl = N_Elements();
-  DByte* ixList = new DByte[ nEl];
-  SizeT count = 0;
-#pragma omp parallel reduction(+:count) if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for 
-    for (SizeT i = 0; i < nEl; ++i) {
-      DByte tmp=(dd[i]!=0);
-      ixList[i]=tmp;
-      count +=tmp;
-    }
-    }
-  n = count;
-  return ixList;    
 }
+
+DStructFactory::~DStructFactory()
+{
+    for(auto& pair : vals_)
+        delete pair.second;
+}
+
+DStructGDL* DStructFactory::Create()
+{
+    if(vals_.empty())
+        return nullptr;
+
+    auto res = new DStructGDL(desc_, dimension());
+    for(auto& pair : vals_) {
+        res->InitTag(pair.first, *pair.second);
+        delete pair.second;
+    }
+    vals_.clear();
+    return res;
+}
+

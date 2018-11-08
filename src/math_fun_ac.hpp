@@ -36,6 +36,10 @@ namespace lib {
   BaseGDL* sobel_fun( EnvT* e);
   BaseGDL* roberts_fun( EnvT* e);
   BaseGDL* prewitt_fun( EnvT* e);
+
+  BaseGDL* erode_fun( EnvT* e);
+  BaseGDL* dilate_fun( EnvT* e);
+
   BaseGDL* matrix_multiply( EnvT* e);
 
 } // namespace

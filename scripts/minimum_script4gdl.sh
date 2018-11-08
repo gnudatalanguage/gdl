@@ -2,6 +2,8 @@
 #
 # Alain Coulais, 3 Mars 2015, script under GNU GPL v3
 #
+# option "5" --> Vanilla; option "6" --> Git Master
+#
 # Changes:
 # 2015-11-06 : cmake is now in httpS, allow to jump to a given step via $1
 # 2016-01-04 : move to 0.9.6
@@ -12,11 +14,15 @@
 #              --> if CMake 3.2 around (OSX), use plplot 5.11.1
 #              (different policy on Linux)
 # 2018-01-19 : move from CVS (deprecated at SF) to SVN
+# 2018-08-01 : move from SVN to GIThub
+#              change plplot to 5.13.0 (OSX) or 5.12 (other)
+#              flag for OpenMP (OSX)
+# 2018-08-07 : force cmake 3+, force plplot 5.12 or 5.13
 #
 # The purpose of this shell script is to automaticaly compile a minimum GDL
 # as a basic user even if mandatory packages are not available
 #
-# Since FFTw and Eigen3 are not used, it does not reflect
+# Since FFTw and Eigen3 are not used here, it does not reflect
 # the best performances you can have with GDL.
 #
 # To do that, the TGZ of useful dependancies are downloaded then compiled
@@ -34,9 +40,8 @@
 # step 2 : GSL
 # step 3 : CMake
 # step 4 : Plplot
-# step 5 : GDL 0.9.7 vanilla
-# step 6 : GDL 0.9.7 SVN
-#
+# step 5 : GDL 0.9.8 vanilla
+# step 6 : GDL 0.9.8 Git
 #
 # $1 == $use_curl, $2 = $URL, $3 = $filename
 run_wget_or_curl(){
@@ -75,16 +80,18 @@ check_md5sum(){
     fi
 }
 
-# URL we use (resived on 2016 Oct. 19)
+# URL we use (revised on 2018 Aug. 7)
 #
 READLINE_URL="ftp://ftp.gnu.org/gnu/readline/readline-6.3.tar.gz"
 GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
-CMAKE_URL="https://cmake.org/files/v2.8/cmake-2.8.12.tar.gz"
-PLPLOT_URL59="https://sourceforge.net/projects/plplot/files/plplot/5.9.11%20Source/plplot-5.9.11.tar.gz/download?use_mirror=autoselect"
-PLPLOT_URL511="https://sourceforge.net/projects/plplot/files/plplot/5.11.1%20Source/plplot-5.11.1.tar.gz/download?use_mirror=autoselect"
-GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.7/gdl-0.9.7.tgz"
+#
+PLPLOT_URL512="https://sourceforge.net/projects/plplot/files/plplot/5.12.0%20Source/plplot-5.12.0.tar.gz/download?use_mirror=autoselect"
+PLPLOT_URL513="https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download?use_mirror=autoselect"
+#
+GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.8/gdl-0.9.8.tgz"
 GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
 GDL_SVN_URL="https://svn.code.sf.net/p/gnudatalanguage/svn/trunk/gdl"
+GDL_GIT_URL="https://codeload.github.com/gnudatalanguage/gdl/zip/master"
 #
 step=$1
 if [ -z "$1" ] ; then
@@ -94,11 +101,18 @@ fi
 #
 export RACINE=$PWD
 #
+# AC 2018-08-01 : obsolete : no more SVN
+#
 # switch it to 1 to have the SVN snapshot
-gdl_svn=0
+#gdl_svn=0
+#if [[ $step == 6 ]] ; then
+#    command -v svn >/dev/null 2>&1 || { echo >&2 "SVN (Subversion) not found." #; exit;}
+#    gdl_svn=1
+#fi
+gdl_git=0
 if [[ $step == 6 ]] ; then
-    command -v svn >/dev/null 2>&1 || { echo >&2 "SVN (Subversion) not found." ; exit;}
-    gdl_svn=1
+    # we don't need "git" program, just "unzip"
+    gdl_git=1
 fi
 
 # switch it to 1 to have the final checks for GDL
@@ -207,8 +221,7 @@ if [[ $step -le 2 && -z $GSL_PATH ]] ; then
 fi
 
 # ----------------------------------- CMAKE -----------------------
-# starting CMAKE : if the sytem is using an old version of CMake
-# we want to use 2.8.12 ... but 2.8.9 is OK too
+# starting CMAKE : since mid-2018, we force Cmake to be > 3.0.2
 echo "** preparing CMAKE"
 cd $RACINE
 #
@@ -217,14 +230,22 @@ CmakeEXE=`which -a cmake`
 #echo "CMake exe : " $CmakeEXE
 if [ -x $CmakeEXE ] ; then 
     cmake_version=`cmake --version | head -1 | awk -F " " '{print $3}'`
-    if [[ $cmake_version < "2.8" ]] ; then
+    if [[ ${cmake_version:0:1} < "3" ]] ; then
 	echo "old CMake version ("$cmake_version") found, a new one must be used"
     else
 	do_cmake_compil=0
     fi
 fi
-if [[ $do_cmake_compil -eq 1 && -x $RACINE/cmake-2.8.12/bin/cmake ]] ; then
-    CmakeEXE=$RACINE/cmake-2.8.12/bin/cmake
+#
+if [[ $do_cmake_compil -eq 1 ]] ; then
+    CMAKE_URL="https://cmake.org/files/v3.2/cmake-3.2.3.tar.gz"
+    CMAKE_MD5="d51c92bf66b1e9d4fe2b7aaedd51377c"
+    CMAKE_NAME=cmake-3.2.3.tar.gz
+    CMAKE_DIR=cmake-3.2.3
+fi
+#
+if [[ $do_cmake_compil -eq 1 && -x $RACINE/$CMAKE_DIR/bin/cmake ]] ; then
+    CmakeEXE=$RACINE/$CMAKE_DIR/bin/cmake
     cmake_version=`$CmakeEXE --version | head -1 | awk -F " " '{print $3}'`
     do_cmake_compil=0
 fi
@@ -235,38 +256,38 @@ if [ -n $CmakeEXE ] ; then
 fi
 #
 if [[ $step -le 3 && $do_cmake_compil -eq 1 ]] ; then
-    if [ ! -e cmake-2.8.12.tar.gz ] ; then
+    if [ ! -e $CMAKE_NAME ] ; then
 	## since Nov. 6, we do have a problem with KitWare certificate ...
-	run_wget_or_curl_no_check $use_curl $CMAKE_URL cmake-2.8.12.tar.gz
+	run_wget_or_curl_no_check $use_curl $CMAKE_URL $CMAKE_NAME
     fi
-    check_md5sum cmake-2.8.12.tar.gz "105bc6d21cc2e9b6aff901e43c53afea"
+    check_md5sum $CMAKE_NAME $CMAKE_MD5
     #
-    tar -zxf cmake-2.8.12.tar.gz
-    cd cmake-2.8.12
+    tar -zxf $CMAKE_NAME
+    cd $CMAKE_DIR
     ./bootstrap
     make -s
-    echo "CMake compilation done, version 2.8.12"
+    echo "CMake compilation done, version $CMAKE_DIR"
     CmakeEXE=$PWD/bin/cmake
     cmake_version=`$CmakeEXE --version | head -1 | awk -F " " '{print $3}'`
 fi
-
 # ----------------------------------- PLPLOT -----------------------
 # starting PLPLOT : we don't want to use packaged PLplot version
 # because of various issues. The options used here ensure stable results.
 echo "** preparing PLPLOT"
 cd $RACINE
 #
-if [[ ${cmake_version:0:3} < "3.2" ]] ; then
-    PLPLOT_URL=$PLPLOT_URL59
-    PLPLOT_MD5="153782509a13938230f740ee446389d0"
-    PLPLOT_NAME=plplot-5.9.11.tar.gz
-    PLPLOT_DIR=plplot-5.9.11
+# AC 2018-08-07 : succesfully tested on OSX 10.11, 10.12 & 10.13 
+# with cmake 3.11.3 from Brew
+if [ $os_type == Darwin ] ; then
+    PLPLOT_URL=$PLPLOT_URL513
+    PLPLOT_MD5="bfefeae7fb9a23377c6dc37b44a7da8a"
+    PLPLOT_NAME=plplot-5.13.0.tar.gz
+    PLPLOT_DIR=plplot-5.13.0
 else
-    PLPLOT_URL=$PLPLOT_URL511
-    PLPLOT_MD5="7a3dbbe49a00f925b095bc06cadbaf63"
-    # for 5.12.0 : PLPLOT_MD5="998a05be218e5de8f2faf988b8dbdc51"
-    PLPLOT_NAME=plplot-5.11.1.tar.gz    
-    PLPLOT_DIR=plplot-5.11.1
+    PLPLOT_URL=$PLPLOT_URL512
+    PLPLOT_MD5="998a05be218e5de8f2faf988b8dbdc51"
+    PLPLOT_NAME=plplot-5.12.0.tar.gz
+    PLPLOT_DIR=plplot-5.12.0
 fi
 #
 if [[ $step -le 4 ]] ; then 
@@ -279,7 +300,8 @@ if [[ $step -le 4 ]] ; then
     cd $PLPLOT_DIR
     mkdir Compilation
     cd Compilation
-    $CmakeEXE .. -DCMAKE_INSTALL_PREFIX=. \
+    $CmakeEXE .. -DCMAKE_INSTALL_PREFIX=.  -DENABLE_ADA=off \
+	-DENABLE_f95=off -DENABLE_fortran=off \
 	-DENABLE_python=OFF -DENABLE_java=off -DENABLE_qt=off \
 	-DENABLE_tk=off -DENABLE_tcl=off -DPLD_aqt=off \
 	-DPLD_psttf=off -DPLD_wxwidgets=OFF -DDEFAULT_NO_CAIRO_DEVICES=ON
@@ -296,18 +318,35 @@ fi
 echo "** preparing GDL"
 cd $RACINE
 #
-if [ "$gdl_svn" -eq 1 ] ; then
-    echo "preparing to compiled GDL 0.9.7 SVN version"
-    gdl_path='gdl-0.9.7svn'`date +%y%m%d`
-    svn checkout $GDL_SVN_URL $gdl_path
+# SVN Obsolete
+#if [ "$gdl_svn" -eq 1 ] ; then
+#    echo "preparing to compiled GDL 0.9.7 SVN version"
+#    gdl_path='gdl-0.9.7svn'`date +%y%m%d`
+#    svn checkout $GDL_SVN_URL $gdl_path
+if [ "$gdl_git" -eq 1 ] ; then
+    echo "preparing to compiled GDL 0.9.8 Git version"
+    gdl_path='gdl-0.9.8git'`date +%y%m%d`
+    gdl_name=${gdl_path}'.tgz'
+    if [ ! -e $gdl_name ] ; then
+	run_wget_or_curl_v2 $use_curl $GDL_GIT_URL $gdl_name
+    fi
+    unzip $gdl_name
+    mv gdl-master $gdl_path
 else 
-    echo "preparing to compiled GDL 0.9.7 VANILLA version"
-    gdl_path='gdl-0.9.7'
+    echo "preparing to compiled GDL 0.9.8 VANILLA version"
+    gdl_path='gdl-0.9.8'
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_VANILLA_URL $gdl_name
     fi
     tar -zxf $gdl_name
+fi
+#
+# 2018-08-01 The default OSX CLang version does not support OpenMP 
+if [ $os_type == Darwin ] ; then
+    flag_openmp=OFF
+else
+    flag_openmp=ON
 fi
 #
 cd $gdl_path
@@ -318,8 +357,8 @@ else
 fi
 cd build
 $CmakeEXE .. \
-   -DREADLINEDIR=$READLINE_PATH \
-   -DGSLDIR=$GSL_PATH \
+   -DREADLINEDIR=$READLINE_PATH -DGEOTIFF=off \
+   -DGSLDIR=$GSL_PATH -DOPENMP=$flag_openmp \
    -DPLPLOTDIR=$RACINE/$PLPLOT_DIR/Compilation/ \
    -DWXWIDGETS=off -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF \
    -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPSLIB=OFF -DPYTHON=OFF
@@ -330,7 +369,7 @@ if [ "$gdl_check" -eq 1 ] ; then
 fi
 #
 cd $RACINE
-
+#
 if [ -x $gdl_path/src/gdl ] ; then
     echo -e "\nCompilation of GDL is finished"
     echo "Please remember it does not reflect the full capabilities of GDL"

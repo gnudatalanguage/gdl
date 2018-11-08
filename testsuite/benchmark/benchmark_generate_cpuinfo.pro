@@ -14,7 +14,7 @@ if KEYWORD_SET(help) then begin
    return, -1
 endif
 ;
-os_name=STRLOWCASE(!version.os_name)
+os_name=STRLOWCASE(!version.os)
 ;
 if (os_name EQ 'linux') then begin
    ;;
@@ -34,7 +34,7 @@ endif
 if (os_name EQ 'darwin') then begin
    ;;
    SPAWN, 'sysctl -n hw.cpufrequency', resu_Hz
-   resu_Mhz=resu_Hz*1.e6
+   resu_Mhz=resu_Hz/1.e6
    ;;
    ;; no known equivalent of BogoMIPS on OSX :(
    resu_bogo=-1
@@ -46,6 +46,7 @@ endif
 cpu_info={MHz : resu_Mhz, $
           Bogo : resu_bogo, $
           model : model_name, $
+          used_cores : !cpu.TPOOL_NTHREADS, $
           nb_cores : !cpu.HW_NCPU} ; not fully clear ...
 ;
 if KEYWORD_SET(verbose) then HELP,/struct, cpu_info

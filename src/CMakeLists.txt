@@ -74,6 +74,8 @@ dpro.cpp
 dpro.hpp
 dstructdesc.cpp
 dstructdesc.hpp
+dstructfactory.cxx
+dstructfactory.hxx
 dstructgdl.cpp
 dstructgdl.hpp
 dvar.cpp
@@ -102,6 +104,7 @@ gdlexception.cpp
 gdlexception.hpp
 gdlgstream.cpp
 gdlgstream.hpp
+dSFMT/dSFMT.c
 )
 if(WIN32)
 set(SOURCES
@@ -250,6 +253,7 @@ print_tree.hpp
 prognode.cpp
 prognode_lexpr.cpp
 prognodeexpr.cpp
+randomgenerators.cpp
 read.cpp
 real2int.hpp
 saverestore.cpp
@@ -264,6 +268,8 @@ str.cpp
 str.hpp
 terminfo.cpp
 terminfo.hpp
+tiff.cxx
+tiff.hxx
 topython.cpp
 triangulation.cpp
 typedefs.hpp

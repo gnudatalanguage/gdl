@@ -93,6 +93,12 @@ const DLong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 //_DNodeFactory DNodeFactory;
 antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
+//do we use WxWidgets for graphics?
+volatile bool useWxWidgetsForGraphics;
+
+//do we favor SIMD-accelerated random number generation?
+volatile bool useDSFMTAcceleration;
+
 void ResetObjects()
 {
 #ifdef HAVE_LIBWXWIDGETS
@@ -936,6 +942,7 @@ int get_suggested_omp_num_threads() {
   //set number of threads for appropriate OS
   int avload = 0;
   int nbofproc = omp_get_num_procs();
+  default_num_threads = nbofproc; //must be the default!!! 
   FILE *iff;
     
 #if defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)
@@ -1017,10 +1024,11 @@ int get_suggested_omp_num_threads() {
     {
       return default_num_threads;
     }
-  //   cout<<buffer[0]<<" "<<buffer[1]<<endl;
-  avload=(buffer[0]-'0')+((buffer[2]-'0')>5?1:0);
-
-  suggested_num_threads=nbofproc-avload;
+  float la;
+  if (sscanf(buffer, "%f", &la)!=1) return default_num_threads;
+//  cout<<la<<endl;
+  suggested_num_threads=max(1,nbofproc-int(la));
+//  cout<<suggested_num_threads<<endl;
 #endif  
   return suggested_num_threads;
 }

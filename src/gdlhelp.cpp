@@ -42,7 +42,7 @@
 #endif
 
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 #	include <dirent.h>
 #else
 // MSC workaround implementation in file.cpp

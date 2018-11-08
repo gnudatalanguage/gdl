@@ -16,11 +16,10 @@
  *                                                                         *
  ***************************************************************************/
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #else
-// default: assume we have netCDF
-#define USE_NETCDF 1
-#define USE_MAGICK 1
+#  define USE_NETCDF 1
+#  define USE_MAGICK 1
 #endif
 
 
@@ -33,11 +32,17 @@
 #include "dpro.hpp"
 #include "gdljournal.hpp"
 #include "basic_fun_cl.hpp"
+
 #ifdef USE_MAGICK 
-#include "magick_cl.hpp"
+#  include "magick_cl.hpp"
 #endif
+
 #ifdef USE_NETCDF
-#include "ncdf_cl.hpp"
+#  include "ncdf_cl.hpp"
+#endif
+
+#ifdef USE_TIFF
+#  include "tiff.hxx"
 #endif
 
 using namespace std;
@@ -232,4 +237,14 @@ void LibInit_cl()
   // see bug no. 3376577
 //  Magick::InitializeMagick(NULL); 
 #endif
+
+#ifdef USE_TIFF
+  const string tiff_queryKey[] = {"INFO", "GEOTIFF", "IMAGE_INDEX", KLISTEND};
+  new DLibFunRetNew(lib::tiff_query, string("TIFF_QUERY"), 1, tiff_queryKey);
+
+  const string tiff_readKey[] = {"RED", "GREEN", "BLUE", "CHANNELS", "DOT_RANGE", "GEOTIFF", "ICC_PROFILE", "IMAGE_INDEX",
+                                 "INTERLEAVE", "ORIENTATION", "PHOTOSHOP", "PLANARCONFIG", "SUB_RECT", "VERBOSE", KLISTEND};
+  new DLibFunRetNew(lib::tiff_read, string("TIFF_READ"), 1, tiff_readKey);
+#endif // USE_TIFF
 }
+

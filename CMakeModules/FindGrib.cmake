@@ -9,7 +9,7 @@
 #
 
 
-find_library(GRIB_LIBRARIES NAMES grib_api)
+find_library(GRIB_LIBRARIES NAMES eccodes grib_api)
 find_path(GRIB_INCLUDE_DIR NAMES grib_api.h)
 include(FindPackageHandleStandardArgs)
 # since there's no grib_api.pc let's check if this installation of grib required jasper and jpeg

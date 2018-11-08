@@ -86,6 +86,8 @@ TESTS = \
   test_common.pro \
   test_congrid.pro \
   test_constants.pro \
+  test_container.pro \
+  test_contour.pro \
   test_convert_coord.pro \
   test_correlate.pro \
   test_delvarrnew.pro \
@@ -93,7 +95,9 @@ TESTS = \
   test_device.pro \
   test_diag_matrix.pro \
   test_dicom.pro \
+  test_dilate.pro \
   test_erfinv.pro \
+  test_erode.pro \
   test_execute.pro \
   test_extra_keywords.pro \
   test_fft.pro \
@@ -136,6 +140,7 @@ TESTS = \
   test_keyword_set_but_null.pro \
   test_l64.pro \
   test_la_least_squares.pro \
+  test_linfit.pro \
   test_list.pro \
   test_ludc_lusol.pro \
   test_make_array.pro \
@@ -161,6 +166,7 @@ TESTS = \
   test_parse_url.pro \
   test_plot_oo.pro \
   test_plot_ranges.pro \
+  test_plot_usersym.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
   test_pmulti_basic.pro \
@@ -205,6 +211,7 @@ TESTS = \
   test_suite.pro \
   test_systime.pro \
   test_tic_toc.pro \
+  test_tiff.pro \
   test_total.pro \
   test_trisol.pro \
   test_tv.pro \

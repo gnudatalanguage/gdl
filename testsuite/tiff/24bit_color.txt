@@ -1,0 +1,13 @@
+Magic: 0x4d4d <big-endian> Version: 0x2a <ClassicTIFF>
+Directory 0: offset 786440 (0xc0008) next 0 (0)
+
+SubFileType (254)       LONG (4)    1<0>
+ImageWidth (256)        SHORT (3)   1<512>
+ImageLength (257)       SHORT (3)   1<512>
+BitsPerSample (258)     SHORT (3)   3<8 8 8>
+Compression (259)       SHORT (3)   1<1>
+Photometric (262)       SHORT (3)   1<2>
+StripOffsets (273)      LONG (4)    1<8>
+SamplesPerPixel (277)   SHORT (3)   1<3>
+StripByteCounts (279)   LONG (4)    1<786432>
+PlanarConfig (284)      SHORT (3)   1<1>

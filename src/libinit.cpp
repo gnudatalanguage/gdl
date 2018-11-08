@@ -225,6 +225,7 @@ void LibInit()
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
   
+  //exists as stub procedure for _WIN32
 #ifndef _WIN32
   const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
 			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
@@ -537,7 +538,7 @@ void LibInit()
   new DLibFunRetNew(lib::strpos,string("STRPOS"),3,strposKey,NULL,true,2);
   new DLibPro(lib::strput,string("STRPUT"),3,NULL,NULL,2);
   
-  const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL",KLISTEND};
+  const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL","L64",KLISTEND};
   new DLibFunRetNew(lib::where_fun,string("WHERE"),2,whereKey);
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
@@ -598,14 +599,9 @@ void LibInit()
   const string set_plotKey[]={"COPY","INTERPOLATE",KLISTEND};
   new DLibPro(lib::set_plot,string("SET_PLOT"),1,set_plotKey);
 
-#ifdef HAVE_X  
   const string get_screen_sizeKey[]={"RESOLUTION","DISPLAY_NAME",KLISTEND};
   new DLibFunRetNew(lib::get_screen_size,string("GET_SCREEN_SIZE"),1,get_screen_sizeKey);
-#else
-  const string get_screen_sizeKey[]={"RESOLUTION",KLISTEND};
-  // DisplayName option or parameter only with X11.
-  new DLibFunRetNew(lib::get_screen_size,string("GET_SCREEN_SIZE"),0,get_screen_sizeKey);
-#endif
+
   const string tvlctKey[]={"GET","HLS","HSV",KLISTEND};
   new DLibPro(lib::tvlct,string("TVLCT"),4,tvlctKey);
 

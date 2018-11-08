@@ -2718,6 +2718,8 @@ namespace lib {
 	    Guard<DLong64GDL> guard(p0L64);
 	    BaseGDL* tmp;
 	    tmp= total_template<DLong64GDL>(p0L64, nan);
+		if (p0->Type() == GDL_LONG64)
+	    	return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
 	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
 	  }
           if (p0->Type() == GDL_ULONG || p0->Type() == GDL_ULONG64) {
@@ -2727,6 +2729,8 @@ namespace lib {
 	    Guard<DULong64GDL> guard(p0UL64);
 	    BaseGDL* tmp;
 	    tmp= total_template<DULong64GDL>(p0UL64, nan);
+		if (p0->Type() == GDL_ULONG64)
+	    	return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
 	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
 	  }
 	  
@@ -2796,9 +2800,7 @@ namespace lib {
             (static_cast<DComplexDblGDL*> (p0->Dup()), nan);
         }
 
-
-
-        if (!doubleRes) {
+        if (!doubleRes && p0->Type() != GDL_LONG64 && p0->Type() != GDL_ULONG64) {
           // special case for GDL_FLOAT has no advantage here
           if (p0->Type() == GDL_COMPLEX) {
             return total_cu_template< DComplexGDL>

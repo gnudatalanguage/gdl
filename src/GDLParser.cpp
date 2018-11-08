@@ -3576,9 +3576,9 @@ std::string  GDLParser::object_name() {
 		// here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
 		{
 		if( i1_AST->getText() == "IDL_OBJECT")
-				i1_AST->setText(GDL_OBJECT_NAME);
+		i1_AST->setText(GDL_OBJECT_NAME);
 		else if( i1_AST->getText() == "IDL_CONTAINER")
-				i1_AST->setText(GDL_CONTAINER_NAME);
+		i1_AST->setText(GDL_CONTAINER_NAME);
 		}
 		
 		object_name_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(NULL))->add(antlr::RefAST(i2_AST))->add(antlr::RefAST(m_AST))->add(antlr::RefAST(i1_AST)))); // NULL -> no root
@@ -5467,7 +5467,7 @@ void GDLParser::array_def() {
 		if ( inputState->guessing==0 ) {
 			array_def_AST = RefDNode(currentAST.root);
 			
-			if (flexible_array_def_count!=3) throw GDLException( "Illegal array creation syntax.");
+			if (flexible_array_def_count>3 || flexible_array_def_count<2) throw GDLException( "Illegal array creation syntax.");
 			array_def_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYDEF_GENERALIZED_INDGEN,"array_def_generalized_indgen")))->add(antlr::RefAST(array_def_AST))));
 			
 			currentAST.root = array_def_AST;
