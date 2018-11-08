@@ -8,8 +8,10 @@
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
 #
-
-find_library(PCRE_LIBRARY NAMES pcre)
+# 2018 G Jung: For GDL, Linux is fine with pcre but may require
+# ncurses with its readline.  Windows needs another library for its regex stuff.
+# gnurx/regex are all derived from libsystre and libtre
+    find_library(PCRE_LIBRARY NAMES systre pcre)
 set(PCRE_LIBRARIES ${PCRE_LIBRARY})
 find_path(PCRE_INCLUDE_DIR NAMES regex.h)
 include(FindPackageHandleStandardArgs)
