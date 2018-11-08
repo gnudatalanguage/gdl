@@ -123,22 +123,16 @@ txt0=' right index extraction'
 if tg[0] ne tl[0] or tg[1] ne tl[1] then ERRORS_ADD, nb_errors, txt0+'- simple [2:3]'
 nl = nalist
 alist.add,igen
-
-; the following gives and error ALSO with IDL. PLEASE CORRECT THE TEST! 
-if(0) then begin
-	catch, OL_right_error
-	if OL_right_error then 	tl = alist[nl,2:4] else begin
-		ERRORS_ADD, nb_errors,' multi-D access is coming soon.'
-		isgit = 0
-		endelse
-	catch,/cancel
-	jj = where(tl ne igen[2:4],nc)
-	if(nc ne 0) then ERRORS_ADD, nb_errors, txt0+'- simple [nl,2:4]'
-	endif else begin
-		if keyword_set(verbose) then $
-			message,/continue,' git: legacylist not expected to left insert correctly'
-	endelse
 if KEYWORD_SET(test) then stop,' stop 1'
+    catch, OL_right_error
+    if OL_right_error then begin &$
+        if(~isgit) then ERRORS_ADD, nb_errors,' multi-D access failed. update!' $
+        else  if keyword_set(verbose) then $
+            message,/continue,' git: legacylist not expected to left insert correctly' &$
+        endif else tl = alist[nl,2:4]
+    catch,/cancel
+jj = where(tl ne igen[2:4],nc)
+if(nc ne 0) then ERRORS_ADD, nb_errors, txt0+'- simple [nl,2:4]'
 ;alist=0
 empty_list = 0
 ll = list(igen,1+indgen(3,10), 10*indgen(4,5)+11,{a: 'a', b: 'b'})
@@ -149,17 +143,17 @@ if(stab.a ne 'a' or stab.b ne 'b') then $
 ; following give AN ERROR WITH IDL:
 ;% Attempt to subscript LIST element within LL is out of range.
 ;% Execution halted at: TEST_LIST         151 /home/gildas/gdl/testsuite/test_list.pro
-; TEST REMOVED.
-if(0) then begin
-	ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
-	ll[1,2,1:4] = 11+indgen(6) 		& ii1[2,1:4] = 11+indgen(6) 
-	ll[2,2:3,1:3] = 21 - indgen(6)	& ii2[2:3,1:3]=21 - indgen(6)
-	ll[3,1,*,*] = 2*indgen(40)		& ii3[3,1,*,*]=2*indgen(40)
-	jj=where(ii1[2,1:4]   ne ll[1,2,1:4], nc1)
-	jj=where(ii2[2:3,1:3] ne ll[2,2:3,1:3], nc2)
-	jj=where(ii3[3,1,*,*] ne ll[3,1,*,*], nc3)
-	if nc1+nc2+nc3 ne 0 then ERRORS_ADD, nb_errors, txt
-	endif
+; TEST REMOVED. WORKS FOR GDL AS IT SHOULD.
+if(isgdl) then begin
+    ll.add,10*indgen(5,5,8)+2 & ii3 = 10*indgen(5,5,8)+2
+    ll[1,2,1:4] = 11+indgen(6)      & ii1[2,1:4] = 11+indgen(6) 
+    ll[2,2:3,1:3] = 21 - indgen(6)  & ii2[2:3,1:3]=21 - indgen(6)
+    ll[3,1,*,*] = 2*indgen(40)      & ii3[3,1,*,*]=2*indgen(40)
+    jj=where(ii1[2,1:4]   ne ll[1,2,1:4], nc1)
+    jj=where(ii2[2:3,1:3] ne ll[2,2:3,1:3], nc2)
+    jj=where(ii3[3,1,*,*] ne ll[3,1,*,*], nc3)
+    if nc1+nc2+nc3 ne 0 then ERRORS_ADD, nb_errors, txt
+    endif
 stab.a = 'This is line of text for A'
 stab.b = 'This is, of course, B'
 ll.add,stab
@@ -168,7 +162,7 @@ lines=ll[0]
 if KEYWORD_SET(test) then stop,' stop 2'
 ll=0
 if lines.a ne stab.a or lines.b ne stab.b then $
-	ERRORS_ADD, nb_errors, ' moving a structure item'
+    ERRORS_ADD, nb_errors, ' moving a structure item'
 ;
 aa=strsplit(['This is an example',$
 ' of a string array that will go','for a test'],/extract,length=len)
@@ -224,7 +218,7 @@ for k=0,nalist-1 do ta(*,k) = alist[k]
 ;
 jj = where( ta ne findgen(nalist,10), nc)
 if nc ne 0 then $
-	ERRORS_ADD, nb_errors,' alist[k] = a did not work '
+    ERRORS_ADD, nb_errors,' alist[k] = a did not work '
 
 list1 = LIST('zero', 1, 2.0)
 list2 = LIST(!PI, COMPLEX(4,4), [5,5,5,5,5])
@@ -265,7 +259,7 @@ for k=0,14 do ll.add,-1
 for k=0,14 do ll[k]=k+1
 igen = 1+indgen(15)
 jj=where((ll.toarray()) ne igen, nj) & if(nj ne 0) then $
-	ERRORS_ADD, nb_errors, ' for k=0,14 do ll[k]=k+1'
+    ERRORS_ADD, nb_errors, ' for k=0,14 do ll[k]=k+1'
 
 if KEYWORD_SET(verbose) then $
    print,' ll.Add, subList, 0, /EXTRACT & print, sublist eq ll >>', alttst
@@ -297,9 +291,9 @@ ll=list(indgen(20),/extract)
 vv=[2,3,6,8]
 dd=ll[vv]
 jj=where(dd.toarray() ne vv, nj) & if(nj ne 0) then $
-	ERRORS_ADD, nb_errors, ' dd=ll[[2,3,6,8]]'
-	; remove at a position, then insert an array at pos, then 
-	; check for equality using "=" OP.
+    ERRORS_ADD, nb_errors, ' dd=ll[[2,3,6,8]]'
+    ; remove at a position, then insert an array at pos, then 
+    ; check for equality using "=" OP.
 if KEYWORD_SET(test) then stop,' testing list: dd=0'
     dd=0
 listin = list()
