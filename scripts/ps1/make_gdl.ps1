@@ -7,7 +7,7 @@
       if ( $env:platform -Match "mingw64630x8664") 
       {
       $env:WXNAME=""
-      $env:GMNAME=""
+      #$env:GMNAME=""
       cd c:\projects\gdl
       cmd /E:ON /K scripts\mingw-bldgdl
       }

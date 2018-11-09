@@ -18,6 +18,10 @@ LOCALM32=/c/projects/gdl/mingw/$mname
 # this is needed to find bin/wx-config
 export PATH=$LOCALM32/bin:$PATH
 #
+if [ "x${DOCDF}" = "x" ] ; then doCDF=OFF; else doCDF=$DOCDF; fi
+
+if [ "x${DOTIFF}" = "x" ] ; then doTIFF=OFF; else doTIFF=$DOTIFF; fi
+#
 if [ "x${GMNAME}" = "x" ] ; then
     doGM=OFF
     else
@@ -51,8 +55,8 @@ cmake  -G"MSYS Makefiles" /c/projects/gdl \
       -DCMAKE_INSTALL_PREFIX:PATH=/c/projects/gdl/install/gdl \
       -DGRAPHICSMAGICK=$doGM -DMAGICK=$doGM \
       -DGRAPHICSMAGICKDIR=$GMDIR \
-      -DPSLIB=OFF -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF \
-      -DTIFF=OFF -DGEOTIFF=OFF -DLIBPROJ4=OFF \
+      -DPSLIB=OFF -DNETCDF=$doCDF -DHDF=OFF -DHDF5=$doCDF \
+      -DTIFF=$doTIFF -DGEOTIFF=OFF -DLIBPROJ4=$doTIFF \
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON | tee cmake.out
 
