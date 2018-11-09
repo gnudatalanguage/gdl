@@ -9,7 +9,7 @@ configuration:
 environment:
   matrix:
   # #- platform: mingw64720x8664
-  #- platform: mingw64630i686
+  - platform: mingw64630i686
   - platform: mingw64630x8664
   # #- platform: mingw64730x8664
    
@@ -60,7 +60,6 @@ install:
         cd c:\projects\gdl\win32libs
         $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
-        $env:platform=""
        }
   - ps: |
       if ($true)   # MSYS mode
@@ -81,7 +80,7 @@ install:
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
   - ps: |
-      if ($env:platform -Match "mingw64630x8664")  # MINGW mode build wxWidgets 3.0.4
+       if($false) # if ($env:platform -Match "mingw64630x8664")  # MINGW mode build wxWidgets 3.0.4
       {
         # wxWidgets
         $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
