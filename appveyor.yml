@@ -79,8 +79,10 @@ install:
         $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
+   # MINGW mode build wxWidgets 3.0.4
+   # if ($env:platform -Match "mingw64630x8664")
   - ps: |
-       if($false) # if ($env:platform -Match "mingw64630x8664")  # MINGW mode build wxWidgets 3.0.4
+      if ($false)
       {
         # wxWidgets
         $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
