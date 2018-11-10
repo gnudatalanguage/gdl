@@ -464,13 +464,13 @@ int GDLInterpreter::GetFunIx( const string& subName)
   return funIx;
 }
 
-void GDLInterpreter::SetProIx( ProgNodeP f)
+void GDLInterpreter::SetProIx( ProgNodeP f, bool throwImmediately)
 {
   if( f->proIx == -1)
-    f->proIx=GetProIx(f);//->getText());
+    f->proIx=GetProIx(f, throwImmediately);//->getText());
 }
 
-int GDLInterpreter::GetProIx( ProgNodeP f)
+int GDLInterpreter::GetProIx( ProgNodeP f, bool throwImmediately)
 {
   string subName = f->getText();
   int proIx=ProIx(subName);
@@ -480,12 +480,12 @@ int GDLInterpreter::GetProIx( ProgNodeP f)
       /*bool found=*/ SearchCompilePro(subName, true);
 	  
       proIx=ProIx(subName);
-#ifndef AUTO_PRINT_EXPR
+    if (throwImmediately){  
       if( proIx == -1)
 	{
 	  throw GDLException(f,"Procedure not found: "+subName,true,false);
 	}
-#endif
+    }
     }
   return proIx;
 }
