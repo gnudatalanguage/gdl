@@ -106,7 +106,7 @@ tar xf mingw-w64-${arch}-graphite2-1.3.11-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-glib2-2.56.1-2-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-pcre-8.42-1-any.pkg.tar.xz
 
-if [ "x${DOTIFF}" = "x" ] ; then
+if [ ! "x${DOTIFF}" = "x" ] ; then
 # libtiff
 #curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
 #tar xf mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
