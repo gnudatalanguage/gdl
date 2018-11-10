@@ -374,7 +374,7 @@ after_build:
   - cd c:\projects\gdl
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
   - ps: copy -r src/pro install/gdl/gdllib
-  - 7z a gdl_build.zip install build mingw
+  - 7z a gdl_build.zip install build
 
 
 artifacts:

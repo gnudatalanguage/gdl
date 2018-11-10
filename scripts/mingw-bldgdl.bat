@@ -81,7 +81,7 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
  cd c:\projects\gdl\build
  mingw32-make -j4
 mingw32-make install > gdlinstall.out
- set PATH=%LOCALM32%\bin;%PATH%
+ set PATH=%GMDIR%\bin;%LOCALM32%\bin;%PATH%
  set PATH=%PLPLOTDIR%\bin;%PATH%
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
