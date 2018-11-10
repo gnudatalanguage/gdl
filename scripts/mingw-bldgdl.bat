@@ -36,7 +36,7 @@ if not exist %GMDIR% (
   set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
   )
 if exist %GMDIR% ^
-     copy /Y %GMDIR%\bin\*.dll C:\projects\gdl\mingw\%MNAME%\bin
+     copy /Y %GMDIR%\bin\*.dll %LOCALM32%\bin
 set PATH=C:\projects\gdl\mingw\%MNAME%\bin;%PATH%
 echo "  mingw-bldgdl.bat:-DGRAPHICSMAGICK%DOGM% -DMAGICK%DOGM% -DGRAPHICSMAGICKDIR=%GMDIR% "
 
@@ -81,10 +81,11 @@ cmake  c:\projects\gdl -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
  cd c:\projects\gdl\build
  mingw32-make -j4
 mingw32-make install > gdlinstall.out
- set PATH=C:\projects\gdl\mingw\%MNAME%\bin;%PATH%
+ set PATH=%LOCALM32%\bin;%PATH%
  set PATH=%PLPLOTDIR%\bin;%PATH%
  set PLPLOT_DRV_DIR=%PLPLOTDIR%\lib\plplot5.13.0\drivers
  set PLPLOT_LIB=%PLPLOTDIR%\share\plplot5.13.0
+if exist %GMDIR% copy /Y %GMDIR%\bin\*.dll c:\projects\gdl\install\gdl\bin
 
  mingw32-make check
  cd c:\projects\gdl
