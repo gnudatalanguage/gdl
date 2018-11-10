@@ -28,20 +28,18 @@ if defined GMNAME (
   echo " mingw-bldgdl.bat: GraphicsMagickdir build is ON !!"
   set GMDIR=C:\projects\gdl\mingw\GM-Q32
   set DOGM=:BOOL=ON
-  if exist %GMDIR% ^
-     copy /Y %GMDIR%\bin\*.dll C:\projects\gdl\mingw\%MNAME%\bin
   ) else (
   echo " mingw-bldgdl.bat: GraphicsMagickdir build is OFF !!"
   )
 if not exist %GMDIR% (
   echo " GMDIR does not exist: %GMDIR% "
   set GMDIR=C:\projects\gdl\mingw\graphicsmagick-1.3.27-Q8
-     copy /Y %GMDIR%\bin\*.dll C:\projects\gdl\mingw\%MNAME%\bin
-  echo " GMDIR has been defaulted to %GMDIR% "
   )
+if exist %GMDIR% ^
+     copy /Y %GMDIR%\bin\*.dll C:\projects\gdl\mingw\%MNAME%\bin
 set PATH=C:\projects\gdl\mingw\%MNAME%\bin;%PATH%
 echo "  mingw-bldgdl.bat:-DGRAPHICSMAGICK%DOGM% -DMAGICK%DOGM% -DGRAPHICSMAGICKDIR=%GMDIR% "
-rem cmake-12 is issuing a warning about the use of <package>_ROOT logicals.
+
 set wxWidgets_ROOT_DIR=
 set WX_TOP=
 if %HOMEPATH%==\Users\greg (

@@ -12,6 +12,7 @@
 
 find_library(LIBPROJ4_LIBRARIES NAMES proj)
 find_path(LIBPROJ4_INCLUDE_DIR NAMES proj_api.h)
+message(STATUS " FindLibproj4new find_library: ${LIBPROJ4_LIBRARIES} ")
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LIBPROJ4 DEFAULT_MSG LIBPROJ4_LIBRARIES LIBPROJ4_INCLUDE_DIR)
 
