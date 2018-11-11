@@ -60,7 +60,7 @@ install:
         cd c:\projects\gdl\win32libs
         $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
-        $env:DOTIFF=""
+        $env:DOTIFF="ON"
         $env:platform=""
        }
   - ps: |
