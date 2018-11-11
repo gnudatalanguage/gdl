@@ -425,6 +425,10 @@ elseif (WIN32 AND NOT CYGWIN)
         "Use -DPCREDIR=DIR to specify the pcre directory tree.")
     endif(PCRE_FOUND)
     LINK_LIBRARIES(shlwapi)
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+      add_compile_options(-Wa,-mbig-obj)
+      message(STATUS "-Wa,-mbig-obj added to compiler options ")
+    endif() 
 endif()
 
 # PLplot MANDATORY
