@@ -15,14 +15,14 @@ if (${CMAKE_VERSION} VERSION_LESS "3.2")
   if(tmp LESS 0)
     message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
   endif()
-#else()
-#  set(CMAKE_CXX_STANDARD 11)
+else()
+  set(CMAKE_CXX_STANDARD 11)
 endif()
 
 cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
-#set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 # advice by Orion, mandatory for FC 28
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
