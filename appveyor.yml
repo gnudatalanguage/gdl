@@ -9,7 +9,7 @@ configuration:
 environment:
   matrix:
   # #- platform: mingw64720x8664
-  - platform: mingw64630i686
+  #- platform: mingw64630i686
   - platform: mingw64630x8664
   # #- platform: mingw64730x8664
    
@@ -60,7 +60,8 @@ install:
         cd c:\projects\gdl\win32libs
         $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
-        $env:DOTIFF="ON"
+        $env:DOTIFF=""
+        $env:platform=""
        }
   - ps: |
       if ($true)   # MSYS mode
