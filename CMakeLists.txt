@@ -31,6 +31,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(VERSION "0.9.8 git")
 enable_testing()
 
+# cf issue 511, managing MultiArch on Debian ...
+include(GNUInstallDirs)
+
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
