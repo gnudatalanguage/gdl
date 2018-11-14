@@ -670,28 +670,30 @@ namespace lib {
       e->SetPar(0, ret);
     }
   }
-
-    // GDL uses now by default the hardware accelerated mersenne twister (dSFMT) two to four times faster than IDL's.
-    // This depends on the presence of switches, environment variable and if Eigen:: is used
-    // (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
-    // However the produced random numbers are not the same.
-    // To get values comparable with IDL, but slowly, use the /RAN1 switch (1).  
-    // Moreover, the seed arrays are different. Switching from one to another is possible. 
-    // If one keeps two different seed arrays, say, "seed_mersenne" and "seed_dsfmt", it is possible to use them both,
-    // one with the /RAN1 option, the other without. Neat and simple.
-    // (1) Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
-    // we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
-    // results, not with IDL6.
   
-  //***IMPORTANT*** It is possible, even desirable, to further speed up random number generation for a very large number of
-  // values by parallelizing the code. This is possible with dSFMT, provided one use the dsfmt-jump() function written
-  // by  Mutsuo Saito (Hiroshima University) and Makoto Matsumoto (The University of Tokyo).
-  // It permits to "jump" the seed to a new state as if 2^{128} random numbers have been generated.
-  // (This in a random series with a period of 2^19937 !). The implementation would "just"
-  // create MAX_NUM_THREADS seed states, separated by a 2^{128} state jump, and run NUM_THREADS in parallell, each continuing with its own seed.
-  // The problem is, how to store these MAX_NUM_THREADS seed states? Especially if some non-threaded calls are made to the dsfmt library
-  // in-beteween, because of, say, a single "a=randomu(seed)" statement somewhere: seeds would not be in sync. This may not be a problem,
-  // comments welcome on Github.
+  // GDL uses now by default the hardware accelerated mersenne twister (dSFMT) written
+  // by  Mutsuo Saito (Hiroshima University) and Makoto Matsumoto (The University of Tokyo). 
+  // This is already two to four times faster than IDL.
+  // Use of dSFMT depends on the presence of switches (--no-dSFMT), environment variable (GDL_USE_DSFMT)
+  // and if Eigen:: is used (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
+
+  // We moreover definitely speed up random number generation for a very large number of
+  // values by parallelizing the code. This is possible within dSFMT, provided one use the dsfmt-jump() function 
+  // written by the authors above. It permits to "jump" the seed to a new state as if 2^{128} 
+  // random numbers had been generated in the meantime. (This in a random series with a period of 2^19937 !).
+  // Note: 2^128 is already way larger than the number of particles in the Universe.
+  // The implementation creates maxNumberOfThreads() seed states, separated by a 2^{128} state jump,
+  // and run TPOOL_NTHREADS in parallell, each continuing with its own seed.
+  
+  // The price to pay is that **the produced random numbers are not the same as IDL**.
+  // To get values comparable with IDL, but slowly, use the /RAN1 switch (1) (or do not enable dSFMT).  
+  // Moreover, the seed arrays are different. Switching from one to another is *NOT* possible as the
+  // types and seed lengths are different. Besides, our dSFMT seed is, because of the use of parallel threads
+  // to speed up the random generator, approx NTHREADS larger than the IDL one (not a big deal!).
+  
+  // (1) Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
+  // we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
+  // results, not with IDL6.
   
 #include "dSFMT/dSFMT-jump.c"
 
@@ -760,32 +762,55 @@ namespace lib {
     dimension dim;
     if (nParam > 1) arr(e, dim, 1);
 
-    DULong seed = *seed0;
-
-    bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
-    if (!isAnull) {
-      DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
-      if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
-      {
-        // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
-        // and use it as the current sequence (try with "all zeroes").
-        if (p0L->N_Elements() == DSFMT_N32 + 2 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
-          seed = (*p0L)[0];
-          int pos = (*p0L)[1];
-          int n = DSFMT_N32;
-          unsigned long int sequence[n];
-          for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-      //this DOES NOT initialize all the MAX_ALLOWED_THREADS parallel states, as IDL does notprovide a mechanism to do so also (not being
-      // parallel inthe first place). It is assumed HERE IN GDL that if one wants to sarts a new sequence (s)he does it using a new seed.
-          set_random_state(dsfmt_mem.r[0], sequence, pos, n); //the seed 
-        } else { // not a seed sequence: take first (IDL does more than this...)
-          if (p0L->N_Elements() > 0) {
-            seed = (*p0L)[0];
-      //this initialize all the MAX_ALLOWED_THREADS parallel states, as a new seed has been given.
+    DULong seed;
+    bool initialized=false;
+  
+    BaseGDL* p0 = e->GetPar(0);
+    bool isAnull = NullGDL::IsNULLorNullGDL(p0);
+    if (!isAnull) { //something is passed
+      // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
+      // and use it as the current sequence (try with "all zeroes").
+      // for us, a valid seed sequence is the content of dsfmt_mem.r, i.e, (DSFMT_N64+1)*maxNumberOfThreads(), 
+      // plus the memory of the initial seed value.
+      if (p0->Type() == GDL_ULONG64) { //good chances we have here a genuine dSFMT seed!
+        DULong64GDL* p0L = e->IfDefGetParAs< DULong64GDL>(0);
+        if (p0L->N_Elements() == 1 + (DSFMT_N64 + 1) * maxNumberOfThreads()) {
+          long k = 0;
+          seed = (*p0L)[k++]; //hopefully it is always compatible with an unisgned int32 as reslut of a saved previous seed.
+          for (int ithread = 0; ithread < maxNumberOfThreads(); ++ithread) {
+            int pos = (*p0L)[k++];
+            DULong64 sequence[DSFMT_N64];
+            for (int i = 0; i < DSFMT_N64; ++i) sequence[i] = (*p0L)[k++];
+            set_random_state(dsfmt_mem.r[ithread], sequence, pos); //initialize each thread seed 
+          }
+          initialized=true;
+        } else { // not a seed sequence: take first value as 32 bit UNsigned integer (for dSFMT compatibility).
+          DULongGDL* p02L = e->IfDefGetParAs< DULongGDL>(0);
+          if (p02L->N_Elements() > 0) {
+            seed = (*p02L)[0];
+            //this initialize all the maxNumberOfThreads() parallel states, as a new seed has been given.
             init_seeds(dsfmt_mem, seed);
+            initialized=true;
           }
         }
+      } else { // not a seed sequence: take first value as 32 bit UNsigned integer (for dSFMT compatibility).
+        DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
+        if (p0L->N_Elements() > 0) {
+          seed = (*p0L)[0];
+          //this initialize all the maxNumberOfThreads() parallel states, as a new seed has been given.
+          init_seeds(dsfmt_mem, seed);
+          initialized=true;
+        }
       }
+    }
+    if (!initialized) { //initialze with something (/dev/urandom? no: idl uses systime:
+      struct timeval tval;
+      struct timezone tzone;
+      gettimeofday(&tval, &tzone);
+      long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
+      seed = (tt);
+      init_seeds(dsfmt_mem, seed);
+      initialized=true;
     }
 
     if (e->KeywordSet(LONGIx)) {
