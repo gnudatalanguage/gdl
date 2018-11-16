@@ -66,10 +66,6 @@ tar xf mingw-w64-${arch}-eigen3-3.3.5-1-any.pkg.tar.xz
     # sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
     # mv $mname ../mingw/${wxname}
    
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libjpeg-turbo-1.5.3-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-libjpeg-turbo-1.5.3-1-any.pkg.tar.xz
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-xz-5.2.4-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-xz-5.2.4-1-any.pkg.tar.xz
 
@@ -77,6 +73,10 @@ if [ "x${GMNAME}" = "x" ] ; then
    echo "appveyor_1.msys: no GraphicsMagick distro to be supported"
    exit
    fi
+curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libjpeg-turbo-1.5.3-1-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-libjpeg-turbo-1.5.3-1-any.pkg.tar.xz
+curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
 # graphicsmagick-1.3.27 from 14-Dec-2017
 GMname=graphicsmagick-1.3.27
 cd /c/projects/gdl/win32libs
@@ -108,8 +108,10 @@ tar xf mingw-w64-${arch}-pcre-8.42-1-any.pkg.tar.xz
 
 if [ ! "x${DOTIFF}" = "x" ] ; then
 # libtiff
-#curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
-#tar xf mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
     curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-proj-5.1.0-1-any.pkg.tar.xz
     tar xf mingw-w64-${arch}-proj-5.1.0-1-any.pkg.tar.xz
+    if [ ! "x${DOGEOTIFF}" = "x" ] ; then
+        curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
+        tar xf mingw-w64-${arch}-libgeotiff-1.4.2-2-any.pkg.tar.xz
+        fi
     fi

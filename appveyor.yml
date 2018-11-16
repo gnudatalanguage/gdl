@@ -61,6 +61,7 @@ install:
         $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
         $env:DOTIFF="ON"
+        $env:DOGEOTIFF="ON"
         $env:platform=""
        }
   - ps: |

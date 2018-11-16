@@ -22,6 +22,8 @@ if [ "x${DOCDF}" = "x" ] ; then doCDF=OFF; else doCDF=$DOCDF; fi
 
 if [ "x${DOTIFF}" = "x" ] ; then doTIFF=OFF; else doTIFF=$DOTIFF; fi
 #
+if [ $doTIFF = "ON" ] ; then doGEO=$DOGEOTIFF; fi
+
 if [ "x${GMNAME}" = "x" ] ; then
     doGM=OFF
     else
@@ -56,7 +58,7 @@ cmake  -G"MSYS Makefiles" /c/projects/gdl \
       -DGRAPHICSMAGICK=$doGM -DMAGICK=$doGM \
       -DGRAPHICSMAGICKDIR=$GMDIR \
       -DPSLIB=OFF -DNETCDF=$doCDF -DHDF=OFF -DHDF5=$doCDF \
-      -DTIFF=$doTIFF -DGEOTIFF=OFF -DLIBPROJ4=$doTIFF \
+      -DTIFF=$doTIFF -DGEOTIFF=$doGEO -DLIBPROJ4=$doTIFF \
       -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON | tee cmake.out
 
