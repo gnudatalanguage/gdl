@@ -37,15 +37,12 @@ FILE_LINK, tdirsym1, tdirsym2
 FILE_DELETE, tdirsym1
 ;
 ; if "tdirsym1" fully removed ? dir, symlink & dangling_symlink ?
-if FILE_TEST(tdirsym1) then ERRORS_ADD, nb_errors, 'dir 1 not removed' 
-if FILE_TEST(tdirsym1, /regular) then ERRORS_ADD, nb_errors, 'dir. 1 still regular'
-if FILE_TEST(tdirsym1, /symlink) then ERRORS_ADD, nb_errors, 'dir. 1 still symlink' 
-if FILE_TEST(tdirsym1, /dangling) then ERRORS_ADD, nb_errors, 'dir. 1 see as dangling'
+if FILE_TEST(tdirsym1) then ERRORS_ADD, nb_errors, 'dir 1 not removed !!' 
 ;
-if FILE_TEST(tdirsym2) then ERRORS_ADD, nb_errors, 'dir. 2 not removed' 
-if FILE_TEST(tdirsym2, /regular) then ERRORS_ADD, nb_errors, 'dir. 2 still regular'
-if FILE_TEST(tdirsym2, /symlink) then ERRORS_ADD, nb_errors, 'dir. 2 still symlink' 
-if ~FILE_TEST(tdirsym2, /dangling) then ERRORS_ADD, nb_errors, 'dir. 2 NOT see as dangling'
+if ~FILE_TEST(tdirsym2) then ERRORS_ADD, nb_errors, 'dir. 2 (a symlink) was removed' 
+if FILE_TEST(tdirsym2, /regular) then ERRORS_ADD, nb_errors, 'dir. 2 is now regular'
+if ~FILE_TEST(tdirsym2, /symlink) then ERRORS_ADD, nb_errors, 'dir. 2 is not a symlink' 
+if ~FILE_TEST(tdirsym2, /dangling) then ERRORS_ADD, nb_errors, 'dir. 2 NOT seen as dangling'
 ;
 ; removing dangling file 2
 FILE_DELETE, tdirsym2
@@ -53,9 +50,6 @@ FILE_DELETE, tdirsym2
 ; we redo all the test because something wrong may happen 
 ; on dangling symlink ! (not being well done as expected !)
 if FILE_TEST(tdirsym2) then ERRORS_ADD, nb_errors, 'dir. 2 not removed (after)' 
-if FILE_TEST(tdirsym2, /regular) then ERRORS_ADD, nb_errors, 'dir. 2 still regular (after)'
-if FILE_TEST(tdirsym2, /symlink) then ERRORS_ADD, nb_errors, 'dir. 2 still symlink (after)' 
-if FILE_TEST(tdirsym2, /dangling) then ERRORS_ADD, nb_errors, 'dir. 2 still see as dangling (after)' 
 ;
 ; ----- final ----
 ;
@@ -291,9 +285,9 @@ end
 ;
 pro TEST_FILE_TEST_GET_MODE, cumul_errors, test=test
 ;
-if (!version.os_family NE 'unix') then begin
-   MESSAGE, /continue, 'This code is ready now only Unix-like OS'
-   MESSAGE, /continue, 'Please contribute ! FixMe'
+Notunix = !version.os_family NE 'unix'
+if (Notunix) then begin
+   MESSAGE, /continue, 'This code applies only to Unix-like OS'
    return
 endif
 ;
@@ -301,22 +295,27 @@ nb_errors=0
 ;
 file=FILE_WHICH('Saturn.jpg')
 mess='This file '+file+' '
-extected_mode=436L
-if ~FILE_TEST(file, get_mode=mode) then begin
+expected_mode=511L
+alternative_mode=436L
+exist=FILE_TEST(file, get_mode=mode)
+if ~exist then begin
    ERRORS_ADD, nb_errors, mess+'should exist !'
 endif else begin
-   if ~ARRAY_EQUAL(extected_mode, mode) then ERRORS_ADD, nb_errors, mess+'has a bad mode !'
+   if (mode ne expected_mode) and (mode ne alternative_mode) then $
+        ERRORS_ADD, nb_errors, mess+'has a bad mode !'
 endelse
 ;
 ; testing /char file
 ;
 file_char='/dev/urandom'
 mess='This file '+file_char+' '
-extected_mode=438L
-if ~FILE_TEST(file_char, get_mode=mode) then begin
+expected_mode=438L
+exist=FILE_TEST(file_char, get_mode=mode)
+if ~exist then begin
    ERRORS_ADD, nb_errors, mess+'should exist !'
 endif else begin
-   if ~ARRAY_EQUAL(extected_mode, mode) then ERRORS_ADD, nb_errors, mess+'has a bad mode !'
+   if (mode ne expected_mode)  then $
+        ERRORS_ADD, nb_errors, mess+'has a bad mode !'
 endelse
 ;
 ; testing /block file
@@ -329,11 +328,13 @@ if (STRLEN(file_block) EQ 0) then begin
    MESSAGE, /continue, 'Please contribute !! FixMe'
 endif else begin
    mess='This file '+file_block+' '
-   extected_mode=432L
-   if ~FILE_TEST(file_block, get_mode=mode) then begin
+   expected_mode=432L
+   exist=FILE_TEST(file_block, get_mode=mode)
+   if ~exist then begin
       ERRORS_ADD, nb_errors, mess+'should exist !'
    endif else begin
-      if ~ARRAY_EQUAL(extected_mode, mode) then ERRORS_ADD, nb_errors, mess+'has a bad mode !'
+      if (mode ne expected_mode)  then $
+        ERRORS_ADD, nb_errors, mess+'has a bad mode !'
    endelse
 endelse
 ;
