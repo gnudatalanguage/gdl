@@ -1,0 +1,25 @@
+  GDL creates graphical content using the support libraries of plplot, which relies on the use of 
+some ascii files.  Under many circumstances, these files are located successfully from the
+information built into the program.  However other situations require a small extra step to
+incorporate these.  For the windows' distribution a directory has been created to hold the files,
+ and environment variables need to be set to point to these directories.
+
+These directories are created when plplot is installed, located as follows:
+<install prefix>/lib/plplot5.13.0/drivers for PLPLOT_DRV_DIR
+<install prefix>/share/plplot5.13.0       for PLPLOT_LIB
+
+the PLPLOT_LIB directory contains font info cand color map info; the PLPLOT_DRV_DIR
+directory provides the <driver>.driver_info used in dynamically linking the drivers.
+For GDL distribution, where the plplot install directory may be absent or in an unknown location,
+it is convenient to separately place these directories in a visible spot.  So a directory
+named "plplot5.13" is created and the useful data copied into its subdirectories:
+
+PLPLOT_LIB=plplot5.13/lib
+PLPLOT_DRV_DIR=plplot5.13/drivers
+
+Generally the driver shareable images (.dll) file are also found in the drivers directory;
+ they file used is the one found in the PATH, so either PATH is modified or the drivers can
+be copied to an active PATH directory.
+
+
+

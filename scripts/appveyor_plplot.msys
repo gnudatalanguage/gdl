@@ -1,0 +1,128 @@
+#!bin/bash.exe
+#
+# plplot is already supplied in compressed form, before this script runs.
+cd /c/projects/gdl/win32libs
+if [[ -f plplot-5.13.0.tar.gz ]] ; then
+    tar xf plplot-5.13.0.tar.gz
+echo " win32libs/plplot-5.13.0.tar.gz decompressed (to win32libs/plplot-5.13.0/ )"
+    . ../scripts/patch/patch_plplot.sh
+    else
+    echo " /c/projects/gdl/win32libs needs a copy of plplot-5.13.0.tar.gz"
+    fi
+cp plplot-5.13.0/cmake/modules/FindwxWidgets.cmake /c/projects/gdl/CMakeModules/
+mname="mingw32"
+arch="i686"
+if [[ -n "$MSYSTEM" ]] ; then
+  if [ "$MSYSTEM" = "MINGW64" ] ; then
+    arch="x86_64"
+    mname="mingw64"
+    fi
+  fi
+
+echo "appveyor_plplot: Architecture =  ${arch}"
+LOCALM32=/c/projects/gdl/mingw/$mname
+if [ "x${WXNAME}" = "x" ] ; then
+   WXNAME=wxWidgets-3.0.2-17
+   fi
+# wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
+# there are a few changes in wx/msw/winundef.h since 3.0.2, which has a patch.
+
+cd /c/projects/gdl
+mkdir -p ./mingw/$mname/bin
+cd ./mingw
+if [[ -f "mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz" ]] ; then
+    echo " wxWidgets distro has been loaded"
+    else
+    curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz
+    echo " mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz downloaded to <>/mingw. "
+    fi
+    
+echo "mname = "$mname "MSYSTEM="$MSYSTEM ", WXNAME="$WXNAME
+  
+if [[ -d "$WXNAME" ]] ; then
+    echo " mingw/wxWidgets directory already prepped :"$WXNAME
+    pwd
+    ls ./$WXNAME
+    else
+    mkdir temp
+    cd temp
+    tar xf ../mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz
+    sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
+    cd $mname 
+    patch -p4 -i /c/projects/gdl/scripts/patch/wxWidgets-3.0.2.patch    
+    cd ../..
+    mv temp/$mname ./${WXNAME} && rm -r temp
+    #   trim out the dll collection
+    for f in aui gl html propgrid qa ribbon richtext stc webview xrc ; do
+       rm ./${WXNAME}/bin/*$f*.dll
+       rm ./${WXNAME}/lib/*$f-3.0*
+       done
+    fi
+WXROOT=/c/projects/gdl/mingw/$WXNAME
+# this is magic sauce that allows wxwidgets to meld into GDL:
+sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
+# locate wx-config so that wxWidgets_USE_PREFIX can work.
+cp ${WXNAME}/bin/wx-config /c/projects/gdl/mingw/$mname/bin/
+# Copy over the shareable images for the test runs and installation.
+cp ${WXNAME}/bin/*.dll /c/projects/gdl/mingw/$mname/bin/
+
+. /etc/profile
+
+export PATH=/c/projects/gdl/mingw/$mname/bin:$PATH
+
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
+
+# check out what wx-config --cxxflags results:
+# Findwx line 774:
+# $ wx-config --cxxflags
+# -IC:/msys64/mingw32/lib/wx/include/msw-unicode-3.0 -IC:/msys64/mingw32/include/wx-3.0 
+# -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXMSW__ -mthreads -fpermissive
+# this is brute force movement of files to satisfy the search procedure. 
+#
+# Patch to cmake/modules/FindwxWidgets.cmake:
+#
+# Findwx.cmake.patch:
+#
+# -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/$WXNAME is used to patch in a movable wxWidgets.
+# so that wx-config is called with wx-config --prefix=${wxWidgets_USE_PREFIX}
+#   -DwxWidgets_USE_PREFIX=C:/projects/gdl/mingw/mingw32 \ (works this way)
+# prefix is = C:/msys64/mingw32 which is a path we have, so it is done that way, this time.
+
+cd /c/projects/gdl
+mkdir -p build/plplot/msys
+# $env:CC and $env:CXX are defined in appveyor.yml to swap out compiler
+plplot=/c/projects/gdl/mingw/plplot-5.13
+cd /c/projects/gdl/build/plplot/msys 
+
+cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
+ -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
+ -DCMAKE_INSTALL_PREFIX=$plplot \
+ -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
+ -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
+ -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=ON \
+ -DENABLE_DYNDRIVERS=ON -DwxWidgets_USE_PREFIX=$WXROOT \
+ -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
+ -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 | tee cmake.out
+
+ # -DCMAKE_CXX_FLAGS='-std=c++11' Cannot be used
+ 
+export PATH=$WXROOT/bin:$PATH
+cd /c/projects/gdl/build/plplot/msys
+make -j2
+make install > plplotinstall.out
+rm src/CMakeFiles/plplot.dir/*.obj
+if [[ -d "$plplot/share/plplot5.13.0/examples" ]] ; then
+    rm -r $plplot/share/plplot5.13.0/examples
+    else
+       echo "Msys make appears not to have succeeded."
+    fi
+if [[ -d "$plplot/share/plplot5.13.0/ss" ]] ; then 
+    rm -r $plplot/share/plplot5.13.0/ss
+    fi
+if [[ -d "$plplot/lib/plplot5.13.0/drivers" ]] ; then
+   cp $plplot/lib/plplot5.13.0/drivers/*.dll $plplot/bin
+    else
+       echo "plplot5.13.0/drivers is not present"
+   fi
+cd /c/projects/gdl
+echo " that was scripts/appveyor-plplot.msys "
