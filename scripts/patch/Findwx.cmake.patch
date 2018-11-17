@@ -1,0 +1,37 @@
+--- /f/tarball/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
++++ /f/plplot/plplot-5.13.0/cmake/modules/FindwxWidgets.cmake
+@@ -429,11 +429,11 @@ if(wxWidgets_FIND_STYLE STREQUAL "win32")
+   #-------------------------------------------------------------------
+   # WIN32: Start actual work.
+   #-------------------------------------------------------------------
+-
+   # Look for an installation tree.
+   find_path(wxWidgets_ROOT_DIR
+     NAMES include/wx/wx.h
+     PATHS
++      ENV wxWidgets_ROOT
+       ENV wxWidgets_ROOT_DIR
+       ENV WXWIN
+       "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\wxWidgets_is1;Inno Setup: App Path]"  # WX 2.6.x
+@@ -441,7 +441,11 @@ if(wxWidgets_FIND_STYLE STREQUAL "win32")
+       D:/
+       ENV ProgramFiles
+     PATH_SUFFIXES
++      wxWidgets-3.1.1
+       wxWidgets-3.1.0
++      wxWidgets-3.0.5
++      wxWidgets-3.0.4
++      wxWidgets-3.0.3
+       wxWidgets-3.0.2
+       wxWidgets-3.0.1
+       wxWidgets-3.0.0
+@@ -766,6 +770,9 @@ else()
+ 
+       # process selection to set wxWidgets_SELECT_OPTIONS
+       WX_CONFIG_SELECT_SET_OPTIONS()
++      if(DEFINED wxWidgets_USE_PREFIX)
++        list(APPEND wxWidgets_SELECT_OPTIONS --prefix=${wxWidgets_USE_PREFIX})
++      endif()
+       DBG_MSG("wxWidgets_SELECT_OPTIONS=${wxWidgets_SELECT_OPTIONS}")
+ 
+       # run the wx-config program to get cxxflags
