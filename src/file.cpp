@@ -1242,10 +1242,10 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 		bool onlyDir=false,   bool *tests = NULL)
 {               
 	string dir = pathSpec;
+    size_t dlen = dir.length();
 
 
     if( forceAbsPath ) {
-		size_t dlen = dir.length();
 		if( dlen > 0) {
 		  if( dir[0] == '.' ) {
 			if(dlen == 1) dir = GetCWD();
@@ -1278,17 +1278,18 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	size_t pp =  dir.rfind( " ");
 	if (pp!=string::npos && pp== dir.size()-1)  dir.erase(pp);
 	
-//		if(trace_me) std::cout << "PathSearch, dir=" << dir ;
-	if(!noexpand_path) WordExp(dir);
-	
+//		if(trace_me) std::cout << "PathSearch, dir=" << dir ;	
 // always expanding tilde in same manner, WIN32 or not, ignoring "noexpand"
     if( dir[0] == '~') {
 		char* homeDir = getenv( "HOME");
 		if( homeDir == NULL) homeDir = getenv("HOMEPATH");
 
 		if( homeDir != NULL) {
-				dir = string( homeDir) + "/" + dir.substr(1);
+//                dir = string( homeDir) + "/" + dir.substr(1);
+            if(dlen == 1) dir = string( homeDir);
+            else if (dir[1] == '/') dir = string( homeDir) + dir.substr(1);
 		#ifdef _WIN32
+				else if (dir[1] == '\\') dir = string( homeDir) + dir.substr(1);
 			  size_t pp;  // This is to make path names uniform w.r.t. Unix
 						//			 and compliant with posix shell.
 			  pp=0;
@@ -1298,8 +1299,8 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 				dir[pp]='/';
 			  }
 		#endif
-	}
-		}
+	    }
+    } // dir[0] == '~'
 #ifndef _WIN32
 	if( fold_case)
 	  dir = BeautifyPath(makeInsensitive(dir));
@@ -1321,12 +1322,16 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	do {
 		if((dir[ii] == PS0) || (dir[ii] == PS1)) dirsep=ii;
 	   } while( ii++ < lenpath );
-	if( dirsep != lenpath) {
+    if(dirsep == -1) {
+        dir = ".";
+        dirsearch = pathSpec;
+		}
+	else if( dirsep != lenpath) {
 		struct stat64    statStruct;
 		int dirStat = lstat64( dir.c_str(), &statStruct);
+//        if(trace_me) cout << " <1>PathSearch:"<<  "quicky "
+//                << pathSpec <<" -simple? "<< dirStat<<" dir="<<dir<< endl ;
 		if( dirStat == 0) {
-//		if(trace_me) cout << "PathSearch:"<<  "quicky "
-//				<< pathSpec <<" -simple? "<< dirStat<<dir<< endl ;
 		fileList.push_back(dir);
 		return;
 		} else {
@@ -1335,10 +1340,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 			}
 		}
 	  
-	if(dirsep == -1) {
-		dir = ".";
-		dirsearch = pathSpec;
-	}
 
 //	if(trace_me) std::cout << "PathSearch:"<<pathSpec <<
 //		" dir:" << dir << ",search:" <<  dirsearch  << std::endl;
@@ -1424,30 +1425,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
   BaseGDL* file_search( EnvT* e)
   {
        enum { testregular=3, testdir, testzero, testsymlink };
-    SizeT nParam=e->NParam(); // 0 -> "*"
-    
-    DStringGDL* pathSpec;
-    SizeT nPath = 0;
-	bool recursive_dirsearch = true;
-    DString     Pattern = "";
-    if( nParam > 0)
-      {
-	BaseGDL* p0 = e->GetParDefined( 0);
-	pathSpec = dynamic_cast<DStringGDL*>( p0);
-	if( pathSpec == NULL)
-	  e->Throw( "String expression required in this context.");
-
-	nPath = pathSpec->N_Elements();
-		bool leading_nullst = ((*pathSpec)[0] == "");
-		if( leading_nullst ) Pattern = "*";
-// If Path_Specification is not supplied, or if it is supplied as an empty string, FILE_SEARCH uses a 
-// default pattern of '*', which matches all files in the current directory       
-		if( nParam > 1)  {
-			 e->AssureScalarPar< DStringGDL>( 1, Pattern);
-// 'If Dir_Specification is supplied as an empty string, FILE_SEARCH searches the current directory.'
-			if( (nPath == 1) && leading_nullst ) recursive_dirsearch = false;
-			} 
-      } 
+//    trace_me = trace_arg(); // set trace
       static int TEST_READIx = e->KeywordIx("TEST_READ");
       static int TEST_WRITEIx = e->KeywordIx("TEST_WRITE");
       static int TEST_EXECUTABLEIx = e->KeywordIx("TEST_EXECUTABLE");
@@ -1463,11 +1441,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       TEST_READIx, TEST_WRITEIx, TEST_EXECUTABLEIx,
       TEST_REGULARIx, TEST_DIRECTORYIx, TEST_ZERO_LENGTHIx,
       TEST_SYMLINKIx};
-    
-//    const string test_kw[]={
-//      "TEST_READ", "TEST_WRITE",  "TEST_EXECUTABLE",
-//      "TEST_REGULAR", "TEST_DIRECTORY", "TEST_ZERO_LENGTH",
-//      "TEST_SYMLINK"};
     bool tests[NTEST_SEARCH];
     static int keyindex;
     for( SizeT i=0; i < NTEST_SEARCH; i++) {
@@ -1486,7 +1459,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     static int tildeIx = e->KeywordIx( "EXPAND_TILDE");
     bool tildeKW = e->KeywordPresent( tildeIx);
     if( tildeKW) tilde = e->KeywordSet( tildeIx);
-
 
     bool environment = true;
     static int environmentIx = e->KeywordIx( "EXPAND_ENVIRONMENT");
@@ -1532,6 +1504,40 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
     if( match_all_dot)
       Warning( "FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
+// SYNTAX:
+//	Result = FILE_SEARCH(Path_Specification)
+//		or for recursive searching,
+//	Result = FILE_SEARCH(Dir_Specification, Recur_Pattern)
+    SizeT nParam=e->NParam(); // 0 -> "*"
+
+    DStringGDL* pathSpec;
+    SizeT nPath = 0;
+    bool recursive_dirsearch = true;
+        bool leading_nullst = true;
+    DString     Pattern = "";
+    if( nParam > 0)
+      {
+        BaseGDL* p0 = e->GetParDefined( 0);
+        pathSpec = dynamic_cast<DStringGDL*>( p0);
+        if( pathSpec == NULL)
+            e->Throw( "String expression required in this context.");
+
+        nPath = pathSpec->N_Elements();
+        leading_nullst = ((*pathSpec)[0] == "");
+        if( leading_nullst ) Pattern = "*";
+// Path_Specification A scalar or array variable of string type, containing file paths to match.
+// If Path_Specification is not supplied, or if it is supplied as an empty string, 
+// FILE_SEARCH uses a default pattern of '*', which matches all files in the current directory       
+        if( nParam > 1)  {
+             e->AssureScalarPar< DStringGDL>( 1, Pattern);
+// Dir_Specification A scalar or array variable of string type, containing directory paths
+// within which FILE_SEARCH will perform recursive searching for files matching the 
+// Recur_Pattern argument. FILE_SEARCH examines Dir_Specification, and any directory found below it,
+// and returns the paths of any files in those directories that match Recur_Pattern.
+// 'If Dir_Specification is supplied as an empty string, FILE_SEARCH searches the current directory.'
+            if( (nPath == 1) && leading_nullst ) recursive_dirsearch = false;
+            } 
+      } 
 
     bool onlyDir = nParam > 1;
 
@@ -1559,18 +1565,18 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 		    match_dot, forceAbsPath, fold_case,
 				onlyDir, tests);
 #else
-	//	if(trace_me) std::cout << "file_search: fileList.size()="
-	//		<< fileList.size() << std::endl;
-
-    if(nPath == 0)
-			PathSearch(  fileList, "./*",   noexpand_path, false,
+//       if(trace_me) std::cout << "file_search: nPath=" << nPath <<" nParam="
+//           << nParam << std::endl;
+ 	if(nPath == 0 or (leading_nullst and nParam==1))
+//		PathSearch(  fileList, "./*",   true, false,
+		PatternSearch(  fileList, "./", "*",  false,
 					  accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
 							onlyDir,   tests);
       else if( !recursive_dirsearch ) fileList.push_back(string("./"));
     else
-
       for( SizeT f=0; f < nPath; ++f) {
-			PathSearch(  fileList, (*pathSpec)[f],   noexpand_path, false,
+		PathSearch(  fileList, (*pathSpec)[f],   true, false,
+//		PatternSearch(  fileList, "", (*pathSpec)[f],  false,
 					  accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
 							onlyDir,   tests);
       }
@@ -2133,8 +2139,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	      tRegular =          res->Desc()->TagIndex("REGULAR"); 
 	      tDirectory =        res->Desc()->TagIndex("DIRECTORY");
 
-	      //#ifndef _MSC_VER
-
 	      tBlockSpecial =     res->Desc()->TagIndex("BLOCK_SPECIAL");
 	      tCharacterSpecial = res->Desc()->TagIndex("CHARACTER_SPECIAL");
 	      tNamedPipe =        res->Desc()->TagIndex("NAMED_PIPE");
@@ -2151,8 +2155,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	      tSymlink =          res->Desc()->TagIndex("SYMLINK");
 	      tDanglingSymlink =  res->Desc()->TagIndex("DANGLING_SYMLINK");
 	      tMode =             res->Desc()->TagIndex("MODE");
-
-	      //#endif
 
 	      tAtime =            res->Desc()->TagIndex("ATIME");
 	      tCtime =            res->Desc()->TagIndex("CTIME");
