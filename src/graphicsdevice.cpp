@@ -189,13 +189,13 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
+#ifdef HAVE_LIBWXWIDGETS
+    GDLWidget::Init();        // initialize widget system.
+#endif
   // if GDL_USE_WX (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-    //start wxWidgets here instead of first call of a widget function.
-      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
 #else
@@ -285,6 +285,10 @@ void GraphicsDevice::Init()
 
 void GraphicsDevice::DestroyDevices()
 {
+    
+#ifdef HAVE_LIBWXWIDGETS
+  GDLWidget::UnInit();    // un-initialize widget system
+#endif
   PurgeContainer( deviceList);
   actDevice = NULL;
 }
@@ -523,12 +527,11 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
 
   if (iconic!=-1) { //iconic asked. do nothing else.
     if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
-    return true;
-  }
+    } else {
   
   if (show) RaiseWin(ix);  else LowerWin(ix);
-
-  //UnsetFocus();
+  }
+  UnsetFocus();
 
   return true;
 }
