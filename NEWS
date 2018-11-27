@@ -683,5 +683,47 @@
           - revisited MAKE_DLL & CALL_EXTERNAL
           - MIN, MAX /ABSOLUTE.
           - support of DEVICE,SET_CHARACTER_SIZE, and consequently a better positioning and sizes of plots.
-          - TRIANGULATE and TRIGRID complete (including spherical triangulation) using Renka's legacy algorithms.   
-	  
+          - TRIANGULATE and TRIGRID complete (including spherical triangulation) using Renka's legacy algorithms.
+  
+0.9.9
+          - build requirements and development hosting changes:
+            - development hosting moved from SourceForge to Github
+            - introduction of continuous integration services with Linux, OSX and Windows builds
+            - C++11 and CMake 3 requirements
+            - OpenMP required by default
+            - dropped support for OLDPLPLOT
+            - support for using eccodes instead of grib_api
+          - language/interpretter:
+            - auto-print feature
+            - implicit array generation, ex: array=[0.1:3.5:0.33]
+            - many HASH and LIST handling improvements
+            - DELVAR and .RNEW
+            - STATIC and NOSAVE compile options
+          - new functionalities:
+            - major TIFF improvement and GEOTIFF support
+            - LINFIT, DILATE, ERODE, SOBEL, PREWITT, ROBERTS
+            - NCDF4_EXISTS and H5F_CREATE
+            - HELP improvements for objects, structures, etc
+          - performance improvements:
+            - WHERE speedup
+            - parallelized FINITE, MIN and MAX
+            - RANDOM functions (RANDOMUn RANDOMN etc) rewritten using dSFMT, both simd-accelerated and parallelized
+            - FILE_LINES, FILE_LINK, FILE_COPY, FILE_MOVE reimplemented in C++
+          - other enhancements:
+            - reimplemented PARSEL_URL
+            - added support for START and INCREMENT to MAKE_ARRAY
+            - /ABSOLUTE keyword for MAX and MIN
+            - /L64 keyword for WHERE	 
+            - CONTOUR, SURFACE and SHADE_SURF accept degenerated N-D equivalents to 2D arrays
+            - preservation of types by TOTAL
+            - FIX & ROUND improvements 
+            - colormap initialisation fix 
+            - corrected os_name reporting in !version for OSX
+            - fixed behaviour with no X-server connection available 
+            - several files cleaned up or moved to obsolete folder
+            - Windows fixes for STRTRIM and SYSTIME
+            - FreeBSD fixes for sincos 
+            - improvements in idlneturl class
+            - numerous compiler warnings addressed  
+            - pytest-based Python module testsuite
+            - new tests, test cleanups
