@@ -6,7 +6,7 @@
 #ifndef CUSTOM_API
 # define CUSTOM_API
 #endif
-
+#undef NOP
 #ifdef __cplusplus
 struct CUSTOM_API GDLTokenTypes {
 #endif

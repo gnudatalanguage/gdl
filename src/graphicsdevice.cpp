@@ -140,10 +140,10 @@ bool GraphicsDevice::ExistDevice( const string& device, int &index)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  index=i;
-	  return true;
-	}
+    {
+      index=i;
+      return true;
+    }
     }
   return false;
 }
@@ -154,13 +154,13 @@ bool GraphicsDevice::SetDevice( const string& device)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  actDevice=deviceList[ i];
-	  // update !D
-	  SysVar::SetD( actDevice->DStruct());
-	  
-	  return true;
-	}
+    {
+      actDevice=deviceList[ i];
+      // update !D
+      SysVar::SetD( actDevice->DStruct());
+      
+      return true;
+    }
     }
   return false;
 }
@@ -171,9 +171,9 @@ DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  return deviceList[ i]->DStruct();
-	}
+    {
+      return deviceList[ i]->DStruct();
+    }
     }
   return NULL;
 }
@@ -189,7 +189,7 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-#ifdef HAVE_LIBWXWIDGETS
+#if defined(HAVE_LIBWXWIDGETS) && defined( _WIN32)
     GDLWidget::Init();        // initialize widget system.
 #endif
   // if GDL_USE_WX (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
@@ -231,11 +231,11 @@ void GraphicsDevice::Init()
 #elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
       if (!SetDevice("MAC"))
 #else
-	if( !SetDevice( "NULL")) 
+    if( !SetDevice( "NULL")) 
 #  endif
 #  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
-	  {
-	  }
+      {
+      }
 #  else
   {
     cerr << "Error initializing graphics." << endl;
