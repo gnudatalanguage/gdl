@@ -189,9 +189,13 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-#if defined(HAVE_LIBWXWIDGETS) && defined( _WIN32)
-    GDLWidget::Init();        // initialize widget system.
+#ifdef HAVE_LIBWXWIDGETS
+    DStructGDL* version = SysVar::Version();
+    static unsigned osTag = version->Desc()->TagIndex( "OS");
+    DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
+    if( os != "darwin")  GDLWidget::Init();
 #endif
+ //*/
   // if GDL_USE_WX (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
