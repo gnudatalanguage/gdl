@@ -306,7 +306,8 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
   //make one loop for wxWidgets Events...
-  if ( ! wxIsStarted() ) Init();
+  //	if ( ! wxIsStarted() ) Init();
+  // This kills OSX gdl; Instead call init() from graphicsdevice.cpp
   if ( wxTheApp) {
       wxTheApp->OnRun(); //wxTheApp may not be started
   //treat our GDL events...
