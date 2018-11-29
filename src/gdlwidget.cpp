@@ -306,7 +306,8 @@ void GDLWidget::RefreshWidget( )
 int GDLWidget::HandleEvents()
 {
   //make one loop for wxWidgets Events...
-  if (wxIsStarted() && wxTheApp) {
+  if ( ! wxIsStarted() ) Init();
+  if ( wxTheApp) {
       wxTheApp->OnRun(); //wxTheApp may not be started
   //treat our GDL events...
     DStructGDL* ev = NULL;
@@ -1205,9 +1206,9 @@ GDLWidgetBase::~GDLWidgetBase()
 
   // delete all children (in reverse order ?)
   while (children.size()) {
-	  GDLWidget* child = GetWidget( children[children.size()-1]);
-	  if (child) delete child;
-	  else children.pop_back(); // Maybe should not be reachable
+      GDLWidget* child = GetWidget( children[children.size()-1]);
+      if (child) delete child;
+      else children.pop_back(); // Maybe should not be reachable
   }
   
   // remove all widgets still in the queue for current TLB
@@ -4147,7 +4148,7 @@ GDLDrawPanel::~GDLDrawPanel()
 }
 
 GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex, DLong special_xsize, DLong special_ysize,
-			      DLong x_scroll_size_, DLong y_scroll_size_, bool app_scroll, DULong eventFlags_, DStringGDL* drawToolTip)
+                  DLong x_scroll_size_, DLong y_scroll_size_, bool app_scroll, DULong eventFlags_, DStringGDL* drawToolTip)
   : GDLWidget( p, e, NULL, eventFlags_)
   , pstreamIx(windowIndex)
   , x_scroll_size(x_scroll_size_)
