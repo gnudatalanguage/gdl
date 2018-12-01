@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "0.9.9")
+set(VERSION "0.9.9 git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
