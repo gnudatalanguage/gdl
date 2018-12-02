@@ -32,7 +32,7 @@
 ;     Original: 14/03/2005; SJT
 ;     Modifications:
 ; 2010-04-14: Alain Coulais.
-;        -- better managment of inputs
+;        -- better management of inputs
 ;        -- no use of "locs" if no /NaN !
 ; 2012-06-12: Alain Coulais. When first field in array is NaN,
 ; we don't known how the range will be compute --> we decide

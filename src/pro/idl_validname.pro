@@ -12,7 +12,7 @@
 ;         /CONVERT_SPACES for test with HealPix lib.
 ;   - 2011-Aug-20: Alain: implement draft of CONVERT_SPACES
 ;   - 2011-Aug: Hong Xu : implement "reserved words"
-;   - 2013-July: Tim : better managment of "\" and "$" (patch 66)
+;   - 2013-July: Tim : better management of "\" and "$" (patch 66)
 ;                Alain : "!" at first place only OK; multi inputs loop
 ;
 ; LICENCE:

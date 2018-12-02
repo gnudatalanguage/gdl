@@ -377,7 +377,7 @@ namespace lib {
           {
             DStructGDL* oStructGDL = GDLInterpreter::GetObjHeapNoThrow(s);
             if (oStructGDL->Desc()->IsUnnamed())
-              e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide exemple !");
+              e->Throw("We don't know how to be here (unnamed Obj/List/Hash), please provide example !");
 
             type = oStructGDL->Desc()->Name();
           } else {
