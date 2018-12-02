@@ -16,7 +16,7 @@
 ;      Jun-2010 : Lea Noreskal : /preserve_null and other improvments
 ;   15-Oct-2010 : Alain Coulais : bug in COUNT, 
 ;                 activating no exclusive keywords,
-;                 better managment of (missing/void) inputs
+;                 better management of (missing/void) inputs
 ;   11-Aug-2011 : Alain Coulais : solving conflits due to
 ;                 /preserve_null and /regex; curing bugs in special cases
 ;   11-Jul-2012 : When /extract, we must return STRARR even for 1-element
