@@ -35,7 +35,6 @@
 
 namespace lib {
 
-  using namespace std;
 #ifdef USE_EIGEN
   /* following are some modified codes taken from the GNU Scientific Library.
    * 
