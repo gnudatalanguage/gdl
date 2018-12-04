@@ -19,6 +19,5 @@ namespace lib {
 
   BaseGDL* sort_fun( EnvT* e);
   BaseGDL* gdl_sort_fun( EnvT* e);
-  template< typename IndexT> void MergeSort(BaseGDL* p0, IndexT* arr, IndexT* auxLeft, IndexT* auxRight, SizeT N);
 } // namespace
 
