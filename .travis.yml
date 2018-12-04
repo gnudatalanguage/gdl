@@ -15,7 +15,7 @@ matrix:
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
     - os: osx
-      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL  ANTLR=yes
 
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
@@ -89,6 +89,9 @@ install:
     - if [ -v CODECOV ]; then tac $TMPFILE > src/CMakeLists.txt; fi
     - if [ -v CODECOV ]; then rm $TMPFILE; fi
     - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
+
+    # antlr
+    - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
 
     # pytest
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
@@ -268,6 +271,13 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
 
 script:
+    # antlr
+    - if [ -v ANTLR ]; then cd src; fi
+    - if [ -v ANTLR ]; for i in *.g; do runantlr $i; done;
+    - if [ -v ANTLR ]; git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log; fi
+    - if [ -v ANTLR -a `cat diff.log | wc -l` -gt 0 ]; then echo exit 1; fi;
+    - if [ -v ANTLR ]; then cd ..; fi
+
     - mkdir build
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
