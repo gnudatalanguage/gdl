@@ -263,6 +263,7 @@ sigfpehandler.cpp
 sigfpehandler.hpp
 smooth.cpp
 smooth.hpp
+sorting.cpp
 specializations.hpp
 str.cpp
 str.hpp

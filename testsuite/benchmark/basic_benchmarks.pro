@@ -7,8 +7,6 @@
 ; ...) can be separeted for
 ; more high level functionnalities (WHERE, SORT, FINITE, ...)
 ;
-; Please not that from now, RANDOMU in GDL is related to the GSL
-;
 ; ---------------------------------
 ; 
 ; Modifications history :
@@ -24,7 +22,7 @@
 ; just a convenience code for smart print ...
 pro PRINTB, str, flt, tab_name, tab_val
 vide='              '
-print, format='(A20, f7.2)', str+vide, flt
+print, format='(A20, g12.6e3)', str+vide, flt
 ;
 tmp=STRMID(STRMID(str,9),STRLEN(str), STRLEN(str)-9-2, /REV)
 tab_name=[tab_name, tmp]
@@ -69,20 +67,23 @@ if KEYWORD_SET(set_cpu_nb) then begin
 endif
 ;
 if ~KEYWORD_SET(nbps) then nbps=1e8
+if nbps lt 10LL then message,"nbps must be > 10."
+; compute ntrials such as 1 is for 10^8 and 10^8 for one
+log_ntrials=floor(6-alog10(nbps)) > 0
+ntrials=10.^log_ntrials > 1
+
 tab_name=['']
 tab_val=[0.]
 ;
 ; ------------ need to change the type if needed ---
 ;
-; note by AC : we are not ready to add a input now 
-; side effect in "plot_basic_benchmarks.pro"
-; a=TIC()
-;input=RANDOMN(seed, nbps/4, double=double)
-;printb, 'Time for RANDOMN (1/4) : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do input=RANDOMN(seed, nbps/4, double=double)
+printb, 'Time for RANDOMN (1/4) : ', TOC(a)/ntrials, tab_name, tab_val
 ;
 a=TIC()
-input=RANDOMU(1, nbps, double=double)
-b=TOC(a)
+for i=1,ntrials do input=RANDOMU(seed, nbps, double=double)
+printb, 'Time for RANDOMU : ', TOC(a)/ntrials, tab_name, tab_val
 ;
 ; do we want to convert the type ?
 if KEYWORD_SET(type) then input=FIX(input, type=type)
@@ -91,39 +92,47 @@ print, 'Working on type : ', used_type
 ;
 ; ------------ starting other computation ! ----
 ;
-printb, 'Time for RANDOMU : ', b, tab_name, tab_val
+a=TIC() 
+for i=1,ntrials do res=COS(input)
+printb, 'Time for COS : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=COS(input)
-printb, 'Time for COS : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=SIN(input)
+printb, 'Time for SIN : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=SIN(input)
-printb, 'Time for SIN : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=TAN(input)
+printb, 'Time for TAN : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=TAN(input)
-printb, 'Time for TAN : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=ALOG(input)
+printb, 'Time for ALOG : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=ALOG(input)
-printb, 'Time for ALOG : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=SQRT(input)
+printb, 'Time for SQRT : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=SQRT(input)
-printb, 'Time for SQRT : ', TOC(a), tab_name, tab_val
-;
-a=TIC() & res=EXP(input)
-printb, 'Time for EXP : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=EXP(input)
+printb, 'Time for EXP : ', TOC(a)/ntrials, tab_name, tab_val
 ;
 val=input GT 0.5
-a=TIC() & res=WHERE(val)
-printb, 'Time for WHERE : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=WHERE(val)
+printb, 'Time for WHERE : ', TOC(a)/ntrials, tab_name, tab_val
 ;
 sub=input[0:nbps/30]
-a=TIC() & res=SORT(sub)
-printb, 'Time for SORT (1/30) : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=SORT(sub)
+printb, 'Time for SORT (1/30) : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=FINITE(input)
-printb, 'Time for FINITE : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=FINITE(input)
+printb, 'Time for FINITE : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-a=TIC() & res=FIX(input)
-printb, 'Time for FIX : ', TOC(a), tab_name, tab_val
+a=TIC()
+for i=1,ntrials do res=FIX(input)
+printb, 'Time for FIX : ', TOC(a)/ntrials, tab_name, tab_val
 ;
 ; save file ...
 ;
