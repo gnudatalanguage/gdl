@@ -249,7 +249,7 @@ script:
     - if [ -v ANTLR ]; then cd src; fi
     - if [ -v ANTLR ]; then for i in *.g; do runantlr $i; done; fi;
     - if [ -v ANTLR ]; then git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log; fi
-    - if [ -v ANTLR -a `cat diff.log | wc -l` -gt 0 ]; then echo exit 1; fi;
+    - if [ -v ANTLR -a `cat diff.log | wc -l` -gt 0 ]; then travis_terminate; fi;
     - if [ -v ANTLR ]; then cd ..; fi
 
     # TEMPORARILY disabling tests some tests
