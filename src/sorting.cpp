@@ -67,6 +67,8 @@ namespace lib {
 	#define BYTES_INC8	j
 #endif
 
+#include <string.h> //for memset (Windows)
+  
 template<typename IndexT>
 inline void ZeroMemory(void* addr, IndexT size){memset(addr, 0, size);}
 
