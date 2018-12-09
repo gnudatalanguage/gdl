@@ -1742,7 +1742,7 @@ namespace lib {
 	// AC 2016-02-26 : bug report #692 always verbose in EXECUTE()
 	// Do we have a way not to *always* issue a message here 
 	// in case of problem ???
-	RetCode retCode = caller->Interpreter()->execute( progAST);
+	RetCode retCode = caller->Interpreter()->execute( progAST, true); //throwImmediately=true as we must avoid "implied print" infinite loop.
 
 	caller->ResizeForLoops( nForLoopsIn);
 
@@ -7427,17 +7427,20 @@ BaseGDL* routine_filepath( EnvT* e)
         stru_desc->AddTag( "NAME", &aString );
         stru_desc->AddTag( "PATH", &aString );
         
-        stru = new DStructGDL( stru_desc, dimension(  (functionsKW)?funList.size():proList.size()) );
+//always starts with $MAIN$
+        SizeT N=(functionsKW)?funList.size()+1:proList.size()+1;
+        stru = new DStructGDL( stru_desc, dimension(N) );
+	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, 0)))[0]="$MAIN$";
 
         if ( functionsKW ) {
-          SizeT ii=0;
+          SizeT ii=1;
           for ( FunListT::iterator i = funList.begin( ); i != funList.end( ); ++i ) {
 	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
 	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
 	    ii++;
 	  }
         } else {
-          SizeT ii=0;
+          SizeT ii=1;
           for ( ProListT::iterator i = proList.begin( ); i != proList.end( ); ++i ) {
 	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
 	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );

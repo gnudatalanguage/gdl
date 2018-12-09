@@ -88,7 +88,7 @@ BaseGDL** ProgNode::EvalRefCheck( BaseGDL*& rEval) // default like Eval()
   return NULL;
 }
 
-RetCode   ProgNode::Run()
+RetCode   ProgNode::Run(bool b)
 { 
   throw GDLException( this,
 		      "Internal error. ProgNode::Run() called.",true,false);

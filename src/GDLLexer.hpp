@@ -37,7 +37,6 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
   private:
     std::unique_ptr<std::ifstream>    inputFile; // stores ifsteam* and deletes 
                                      // it when it is deleted itself
-  
     antlr::TokenStreamSelector*     selector; 
     GDLLexer*                       mainLexerPtr;
     GDLParser*                      parserPtr;

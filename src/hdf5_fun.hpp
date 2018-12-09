@@ -33,6 +33,9 @@ namespace lib {
    * wrapper routines for hdf5 function calls. Only minimal set currently
    * implemented in order to get things going. The rest is bare-bones work
    */
+
+  BaseGDL* h5f_create_fun( EnvT* e);
+
   BaseGDL* h5f_open_fun( EnvT* e);
   BaseGDL* h5d_open_fun( EnvT* e);
   BaseGDL* h5d_read_fun( EnvT* e);

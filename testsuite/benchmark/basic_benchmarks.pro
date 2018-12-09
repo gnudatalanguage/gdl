@@ -72,11 +72,13 @@ if ~KEYWORD_SET(nbps) then nbps=1e8
 tab_name=['']
 tab_val=[0.]
 ;
-; ------------ need to chnage the type if needed ---
+; ------------ need to change the type if needed ---
 ;
-a=TIC()
-input=RANDOMN(seed, nbps/4, double=double)
-printb, 'Time for RANDOMN (1/4) : ', TOC(a), tab_name, tab_val
+; note by AC : we are not ready to add a input now 
+; side effect in "plot_basic_benchmarks.pro"
+; a=TIC()
+;input=RANDOMN(seed, nbps/4, double=double)
+;printb, 'Time for RANDOMN (1/4) : ', TOC(a), tab_name, tab_val
 ;
 a=TIC()
 input=RANDOMU(1, nbps, double=double)
