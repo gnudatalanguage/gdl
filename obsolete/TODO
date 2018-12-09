@@ -47,7 +47,7 @@ ToDo list of incomplete Function/Procedure, missing keywords ...
 * ON_ERROR and CATCH procedures
 Category: system
 Langage: C++
-Difficulty: unknow
+Difficulty: unknown
 Contact: Marc
 Comments: ON_ERROR and CATCH are not fully implemented (GDL recognizes them,
 but does not perform any action, ie. in case of error, the data is not used).
@@ -55,7 +55,7 @@ but does not perform any action, ie. in case of error, the data is not used).
 * HELP
 Category: system
 Langage: C++
-Difficulty: unknow
+Difficulty: unknown
 Contact:
 Comments: some useful keywords are not handle
 
@@ -76,7 +76,7 @@ Comments:
 * TVRD : keyword !order
 Category: display
 Langage: C++ (in devicex.hpp)
-Difficulty: unknow.
+Difficulty: unknown.
 Contact: Alain
 Comments: to be complete for !order keyword (managed in TV).
 A priori, the method p->Rotate(7) cannot be used on Byte arrays.
@@ -129,7 +129,7 @@ DONE and revisited
 * BESELI/BESELJ/BESELK
 Category: numeric
 Langage: C++ (in math_fun_ac.cpp)
-Difficulty: unknow.
+Difficulty: unknown.
 Contact: Alain
 Comments: 1/ some details need to be fix when the arrays
 are not commensurable. It is highly probable that other

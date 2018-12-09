@@ -1064,26 +1064,15 @@ BaseGDL* random_fun_gsl(EnvT* e)
   if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
   // the generator structure
-  static DULong *seed0 = NULL;
-  static gsl_rng *gsl_rng_mem = NULL;
-
-  //initialise pool. As gsl is still used, we initiate seed0 for both. 
-  if (seed0 == NULL) { //initialize pool with systime
-    gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
-    struct timeval tval;
-    struct timezone tzone;
-    gettimeofday(&tval, &tzone);
-    long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
-    seed0 = new DULong(tt);
-    gsl_rng_set(gsl_rng_mem, (*seed0));
-  }
+  static gsl_rng *gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
 
   SizeT nParam = e->NParam(1);
 
   dimension dim;
   if (nParam > 1) arr(e, dim, 1);
 
-  DULong seed=*seed0;
+  DULong seed;
+  bool initialized=false;
 
   bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
   if (!isAnull) {
@@ -1099,13 +1088,25 @@ BaseGDL* random_fun_gsl(EnvT* e)
         unsigned long int sequence[n];
         for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
         set_random_state(gsl_rng_mem, sequence, pos, n); //the seed 
+        initialized=true;
       } else { // not a seed sequence: take first (IDL does more than this...)
         if (p0L->N_Elements() >= 1) {
           seed = (*p0L)[0];
           gsl_rng_set(gsl_rng_mem, seed);
-        }
+          initialized=true;
+       }
       }
     }
+  }
+  
+  if (!initialized) {
+    struct timeval tval;
+    struct timezone tzone;
+    gettimeofday(&tval, &tzone);
+    long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
+    seed = tt;
+    gsl_rng_set(gsl_rng_mem, seed);
+    initialized=true;
   }
 
   if (e->KeywordSet(LONGIx)) { 

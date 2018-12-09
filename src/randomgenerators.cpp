@@ -35,7 +35,6 @@
 
 namespace lib {
 
-  using namespace std;
 #ifdef USE_EIGEN
   /* following are some modified codes taken from the GNU Scientific Library.
    * 
@@ -68,13 +67,14 @@ namespace lib {
 
 #define GSL_M_E  2.7182818284590452354 /* e */
 
-#define MAX_ALLOWED_THREADS 32
   //our own struct to keep up things related to parallel seeds
-  /** the 128-bit internal state array */
+  //it will contain all 128-bit internal state arrays, one per thread.
+  //as the number of threads is not known, it will be initialized at start.
   struct DSFMT_STATE {
-    dsfmt_t *r[MAX_ALLOWED_THREADS];
+    dsfmt_t **r; 
  };
  typedef struct DSFMT_STATE dsfmt_state;
+#define DEFINE_NCHUNK_FOR_dSFMT  int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
  
 
 // This function could prove to be way faster than the function below, provided the parallelization insures
@@ -95,7 +95,7 @@ namespace lib {
   int random_uniform(double* res, dsfmt_state state, SizeT nEl)
   {
     //no difficulty as we do not use aligned functions here.
-    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
@@ -117,8 +117,7 @@ namespace lib {
 
   int random_uniform(float* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
@@ -204,8 +203,7 @@ namespace lib {
 
   int random_normal(double* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -226,8 +224,7 @@ namespace lib {
   
   int random_normal( float* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -469,8 +466,7 @@ namespace lib {
 
   int random_gamma(double* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -491,8 +487,7 @@ namespace lib {
 
   int random_gamma(float* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -516,8 +511,7 @@ namespace lib {
     //Note: Binomial values are not same IDL.    
     DULong n = (DULong) (*binomialKey)[0];
     DDouble p = (DDouble) (*binomialKey)[1];
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -541,8 +535,7 @@ namespace lib {
     //Note: Binomial values are not same IDL.    
     DULong n = (DULong) (*binomialKey)[0];
     DDouble p = (DDouble) (*binomialKey)[1];
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -564,8 +557,7 @@ namespace lib {
   int random_poisson(double* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
   {
     DDouble mu = (DDouble) (*poissonKey)[0];
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -587,8 +579,7 @@ namespace lib {
   int random_poisson(float* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
   {
     DDouble mu = (DDouble) (*poissonKey)[0];
-    //no difficulty as we do not use aligned functions here.
-    int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -609,8 +600,7 @@ namespace lib {
 
   int random_dlong(DLong* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -631,8 +621,7 @@ namespace lib {
 
   int random_dulong(DULong* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
+    DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
     #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
@@ -651,61 +640,66 @@ namespace lib {
     return 0;
   }  
   
-  void set_random_state(dsfmt_t *dsfmt_mem, const unsigned long int* seed, const int pos, const int n)
+  void set_random_state(dsfmt_t *dsfmt_mem, const DULong64* seedState, const int pos)
   {
-    uint32_t *psfmt32 = &dsfmt_mem->status[0].u32[0];
-    for (int k = 0; k < n; ++k) psfmt32[k] = seed[k];
+    uint64_t *psfmt64 = (uint64_t*) &(dsfmt_mem->status[0].u[0]);
+    for (int k = 0; k < DSFMT_N64; ++k) psfmt64[k] = seedState[k];
     dsfmt_mem->idx = pos;
   }
 
-  void get_random_state(EnvT* e, dsfmt_t *dsfmt_mem, const DULong seed)
+  void get_random_state(EnvT* e, dsfmt_state state, const DULong seed)
   {
     if (e->GlobalPar(0)) {
-      DULongGDL* ret = new DULongGDL(dimension(DSFMT_N32 + 2), BaseGDL::ZERO); //ZERO as not all elements are initialized here
-      DULong* newstate = (DULong*) (ret->DataAddr());
-      newstate[0] = seed;
-      newstate[1] = dsfmt_mem->idx;
-      uint32_t *psfmt32 = &dsfmt_mem->status[0].u32[0];
-      for (int k = 0; k < DSFMT_N32; ++k) newstate[k + 2] = psfmt32[k];
+      DULong64GDL* ret = new DULong64GDL(dimension(1+(DSFMT_N64+1)*maxNumberOfThreads()), BaseGDL::NOZERO);
+      DULong64* newstate = (DULong64*) (ret->DataAddr());
+      long k=0;
+      newstate[k++] = seed;
+      for (int ithread=0; ithread < maxNumberOfThreads() ; ++ithread) {
+        newstate[k++] = state.r[ithread]->idx;
+        uint64_t *psfmt64 = &(state.r[ithread]->status[0].u[0]);
+        for (int j = 0; j < DSFMT_N64; ++j) newstate[k++] = psfmt64[j];
+      }
       e->SetPar(0, ret);
     }
   }
 
-    // GDL uses now by default the hardware accelerated mersenne twister (dSFMT) two to four times faster than IDL's.
-    // This depends on the presence of switches, environment variable and if Eigen:: is used
-    // (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
-    // However the produced random numbers are not the same.
-    // To get values comparable with IDL, but slowly, use the /RAN1 switch (1).  
-    // Moreover, the seed arrays are different. Switching from one to another is possible. 
-    // If one keeps two different seed arrays, say, "seed_mersenne" and "seed_dsfmt", it is possible to use them both,
-    // one with the /RAN1 option, the other without. Neat and simple.
-    // (1) Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
-    // we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
-    // results, not with IDL6.
-  
-  //***IMPORTANT*** It is possible, even desirable, to further speed up random number generation for a very large number of
-  // values by parallelizing the code. This is possible with dSFMT, provided one use the dsfmt-jump() function written
+  // GDL uses now by default the hardware accelerated mersenne twister (dSFMT) written
   // by  Mutsuo Saito (Hiroshima University) and Makoto Matsumoto (The University of Tokyo).
-  // It permits to "jump" the seed to a new state as if 2^{128} random numbers have been generated.
-  // (This in a random series with a period of 2^19937 !). The implementation would "just"
-  // create MAX_NUM_THREADS seed states, separated by a 2^{128} state jump, and run NUM_THREADS in parallell, each continuing with its own seed.
-  // The problem is, how to store these MAX_NUM_THREADS seed states? Especially if some non-threaded calls are made to the dsfmt library
-  // in-beteween, because of, say, a single "a=randomu(seed)" statement somewhere: seeds would not be in sync. This may not be a problem,
-  // comments welcome on Github.
+  // This is already two to four times faster than IDL.
+  // Use of dSFMT depends on the presence of switches (--no-dSFMT), environment variable (GDL_USE_DSFMT)
+  // and if Eigen:: is used (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
+
+  // We moreover definitely speed up random number generation for a very large number of
+  // values by parallelizing the code. This is possible within dSFMT, provided one use the dsfmt-jump() function 
+  // written by the authors above. It permits to "jump" the seed to a new state as if 2^{128} 
+  // random numbers had been generated in the meantime. (This in a random series with a period of 2^19937 !).
+  // Note: 2^128 is already way larger than the number of particles in the Universe.
+  // The implementation creates maxNumberOfThreads() seed states, separated by a 2^{128} state jump,
+  // and run TPOOL_NTHREADS in parallell, each continuing with its own seed.
+  
+  // The price to pay is that **the produced random numbers are not the same as IDL**.
+  // To get values comparable with IDL, but slowly, use the /RAN1 switch (1) (or do not enable dSFMT).  
+  // Moreover, the seed arrays are different. Switching from one to another is *NOT* possible as the
+  // types and seed lengths are different. Besides, our dSFMT seed is, because of the use of parallel threads
+  // to speed up the random generator, approx NTHREADS larger than the IDL one (not a big deal!).
+  
+  // (1) Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
+  // we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
+  // results, not with IDL6.
   
 #include "dSFMT/dSFMT-jump.c"
 
  //this initializes parallel states up to min of max_allowed_threads and omp_max_threads.
  //independently of the fact that only a subset of theses thtreads will be used in loops.
  void init_seeds(dsfmt_state state, DULong seed) {
-   
-   int maxthreads=min(maxNumberOfThreads(),MAX_ALLOWED_THREADS);
    //populate with seed template state 'temp'
    dsfmt_t temp;   
    dsfmt_init_gen_rand(&temp, seed);
    //sucessively push by 2^128 and copy to next place
+   //Note: we use the maximum number of threads allowed as this seed can be replayed
+   //after changing the number of threads to be used.
    memcpy((void*)(state.r[0]),(void*)&temp,sizeof(temp));
-   for (int i=1; i<maxthreads; ++i) {
+   for (int i=1; i<maxNumberOfThreads(); ++i) {
      dSFMT_jump(&temp, poly_128);
      memcpy((void*)(state.r[i]),(void*)&temp,sizeof(temp));
    }
@@ -735,24 +729,12 @@ namespace lib {
     exclusiveKW = e->KeywordPresent(LONGIx);
     exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
-
-    // the generator structure
-    static DULong *seed0 = NULL;
     
     static dsfmt_state dsfmt_mem;
     //initialize only once!
-    if (dsfmt_mem.r[0]==NULL) {for (int i=0; i< MAX_ALLOWED_THREADS ; ++i) dsfmt_mem.r[i]=(dsfmt_t*)malloc(sizeof(dsfmt_t));}
-    
-    //initialise pool. As gsl is still used, we initiate seed0 for both. 
-    if (seed0 == NULL) { //initialize pool with systime
-      struct timeval tval;
-      struct timezone tzone;
-      gettimeofday(&tval, &tzone);
-      long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
-      seed0 = new DULong(tt);
-      
-      //this initialize all the MAX_ALLOWED_THREADS parallel states.
-      init_seeds(dsfmt_mem, (*seed0));
+    if (dsfmt_mem.r==NULL) {
+      dsfmt_mem.r=(dsfmt_t**)malloc(maxNumberOfThreads()*sizeof(dsfmt_t*));
+      {for (int i=0; i< maxNumberOfThreads() ; ++i) dsfmt_mem.r[i]=(dsfmt_t*)malloc(sizeof(dsfmt_t));}
     }
 
     SizeT nParam = e->NParam(1);
@@ -760,44 +742,67 @@ namespace lib {
     dimension dim;
     if (nParam > 1) arr(e, dim, 1);
 
-    DULong seed = *seed0;
+    DULong seed;
+    bool initialized=false;
 
-    bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
-    if (!isAnull) {
-      DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
-      if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
-      {
-        // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
-        // and use it as the current sequence (try with "all zeroes").
-        if (p0L->N_Elements() == DSFMT_N32 + 2 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
-          seed = (*p0L)[0];
-          int pos = (*p0L)[1];
-          int n = DSFMT_N32;
-          unsigned long int sequence[n];
-          for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-      //this DOES NOT initialize all the MAX_ALLOWED_THREADS parallel states, as IDL does notprovide a mechanism to do so also (not being
-      // parallel inthe first place). It is assumed HERE IN GDL that if one wants to sarts a new sequence (s)he does it using a new seed.
-          set_random_state(dsfmt_mem.r[0], sequence, pos, n); //the seed 
-        } else { // not a seed sequence: take first (IDL does more than this...)
-          if (p0L->N_Elements() > 0) {
-            seed = (*p0L)[0];
-      //this initialize all the MAX_ALLOWED_THREADS parallel states, as a new seed has been given.
+    BaseGDL* p0 = e->GetPar(0);
+    bool isAnull = NullGDL::IsNULLorNullGDL(p0);
+    if (!isAnull) { //something is passed
+      // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
+      // and use it as the current sequence (try with "all zeroes").
+      // for us, a valid seed sequence is the content of dsfmt_mem.r, i.e, (DSFMT_N64+1)*maxNumberOfThreads(), 
+      // plus the memory of the initial seed value.
+      if (p0->Type() == GDL_ULONG64) { //good chances we have here a genuine dSFMT seed!
+        DULong64GDL* p0L = e->IfDefGetParAs< DULong64GDL>(0);
+        if (p0L->N_Elements() == 1 + (DSFMT_N64 + 1) * maxNumberOfThreads()) {
+          long k = 0;
+          seed = (*p0L)[k++]; //hopefully it is always compatible with an unisgned int32 as reslut of a saved previous seed.
+          for (int ithread = 0; ithread < maxNumberOfThreads(); ++ithread) {
+            int pos = (*p0L)[k++];
+            DULong64 sequence[DSFMT_N64];
+            for (int i = 0; i < DSFMT_N64; ++i) sequence[i] = (*p0L)[k++];
+            set_random_state(dsfmt_mem.r[ithread], sequence, pos); //initialize each thread seed 
+          }
+          initialized=true;
+        } else { // not a seed sequence: take first value as 32 bit UNsigned integer (for dSFMT compatibility).
+          DULongGDL* p02L = e->IfDefGetParAs< DULongGDL>(0);
+          if (p02L->N_Elements() > 0) {
+            seed = (*p02L)[0];
+            //this initialize all the maxNumberOfThreads() parallel states, as a new seed has been given.
             init_seeds(dsfmt_mem, seed);
+            initialized=true;
           }
         }
+      } else { // not a seed sequence: take first value as 32 bit UNsigned integer (for dSFMT compatibility).
+        DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
+        if (p0L->N_Elements() > 0) {
+          seed = (*p0L)[0];
+          //this initialize all the maxNumberOfThreads() parallel states, as a new seed has been given.
+          init_seeds(dsfmt_mem, seed);
+          initialized=true;
+        }
       }
+    }
+    if (!initialized) { //initialze with something (/dev/urandom? no: idl uses systime:
+      struct timeval tval;
+      struct timezone tzone;
+      gettimeofday(&tval, &tzone);
+      long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
+      seed = (tt);
+      init_seeds(dsfmt_mem, seed);
+      initialized=true;
     }
 
     if (e->KeywordSet(LONGIx)) {
       DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
       random_dlong((DLong*)res->DataAddr(), dsfmt_mem,res->N_Elements());
-      get_random_state(e, dsfmt_mem.r[0], seed);
+      get_random_state(e, dsfmt_mem, seed);
       return res;
     }
     if (e->KeywordSet(ULONGIx)) {
       DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
       random_dulong((DULong*)res->DataAddr(), dsfmt_mem,res->N_Elements());
-      get_random_state(e, dsfmt_mem.r[0], seed);
+      get_random_state(e, dsfmt_mem, seed);
       return res;
     }
 
@@ -816,12 +821,12 @@ namespace lib {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_gamma((double*)res->DataAddr(), dsfmt_mem,res->N_Elements(), n);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
         random_gamma((float*)res->DataAddr(), dsfmt_mem,res->N_Elements(), n);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       }
     }
@@ -841,12 +846,12 @@ namespace lib {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_binomial((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), binomialKey);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
         random_binomial((float*)res->DataAddr(), dsfmt_mem, res->N_Elements(), binomialKey);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       }
     }
@@ -860,12 +865,12 @@ namespace lib {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_poisson((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), poissonKey);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
         random_poisson((float*)res->DataAddr(), dsfmt_mem, res->N_Elements(), poissonKey);
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       }
     }
@@ -874,12 +879,12 @@ namespace lib {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_uniform((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
         random_uniform((float*)res->DataAddr(), dsfmt_mem, res->N_Elements());
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       }      
     }
@@ -888,12 +893,12 @@ namespace lib {
       if (e->KeywordSet(0)) { // GDL_DOUBLE
        DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_normal((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       } else {
         DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
         random_normal((float*)res->DataAddr(), dsfmt_mem, res->N_Elements());
-        get_random_state(e, dsfmt_mem.r[0], seed);
+        get_random_state(e, dsfmt_mem, seed);
         return res;
       }
     }

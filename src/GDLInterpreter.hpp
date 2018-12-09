@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (20171109): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -36,6 +36,7 @@
 //#define GDL_DEBUG_HEAP
 bool IsEnabledGC(); // defined in GDLInterpreter.hpp with EnableGC(bool);
 void EnableGC(bool);
+
 
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
 {
@@ -116,7 +117,7 @@ public:
     static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
-    static int GetProIx( ProgNodeP);//const std::string& subName);
+    static int GetProIx( ProgNodeP, bool throwImmediately=false);//const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
     void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL);
@@ -130,7 +131,7 @@ public:
 
 private: 
 
-    static void SetProIx( ProgNodeP f); // triggers read/compile
+    static void SetProIx( ProgNodeP f, bool throwImmediately=false); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
 
@@ -908,12 +909,18 @@ public:
 		return GDLInterpreter::tokenNames;
 	}
 	public:  RetCode  interactive(ProgNodeP _t);
-	public:  RetCode  statement(ProgNodeP _t);
-	public:  RetCode  execute(ProgNodeP _t);
-	public:  RetCode  statement_list(ProgNodeP _t);
+	public:  RetCode  statement(ProgNodeP _t,
+		bool throwImmediately=false
+	);
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
+	public:  RetCode  statement_list(ProgNodeP _t,
+		bool throwImmediately=false
+	);
+	public:  RetCode  execute(ProgNodeP _t,
+		bool throwImmediately=false
+	);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public: BaseGDL**  l_decinc_indexable_expr(ProgNodeP _t,
 		 BaseGDL*& res

@@ -2006,7 +2006,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         fileUnits[unit_lun - 1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
         fileUnits[unit_lun - 1].set_fd_close_on_close(coutP[0]);
 #else
-        e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not availble during compilation?)");
+        e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
 
       } else {

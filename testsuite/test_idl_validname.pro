@@ -77,7 +77,7 @@ INTERNAL_TEST, '$ 3 a b c', '_$_3_a_b_c', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '$4a b c ', '_$4a_b_c_', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '$5 a b c ', '_$5_a_b_c_', kwverb, nb_pbs, /convert_all
 ;
-; exemple gived by Tim, patch 66
+; example given by Tim, patch 66
 ;
 a = '`~!@#$%^&*()_+-={} []|\";;/?.>,<123456789'
 res='_____$__________________________123456789'

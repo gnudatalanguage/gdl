@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.7 (20171109): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -69,7 +69,9 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- RetCode  GDLInterpreter::statement(ProgNodeP _t) {
+ RetCode  GDLInterpreter::statement(ProgNodeP _t,
+	bool throwImmediately
+) {
 	 RetCode retCode;
 	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -93,7 +95,7 @@ GDLInterpreter::GDLInterpreter()
 		// track actual line number
 		callStack.back()->SetLineNumber( last->getLine());
 		
-		retCode = last->Run(); // Run() sets _retTree
+		retCode = last->Run(throwImmediately); // Run() sets _retTree
 		
 		}
 		while( 
@@ -632,59 +634,6 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- RetCode  GDLInterpreter::execute(ProgNodeP _t) {
-	 RetCode retCode;
-	ProgNodeP execute_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	//    RetCode retCode;
-	ValueGuard<bool> guard( interruptEnable);
-	interruptEnable = false;
-	
-		return statement_list(_t);
-	
-	
-	retCode=statement_list(_t);
-	_t = _retTree;
-	_retTree = _t;
-	return retCode;
-}
-
- RetCode  GDLInterpreter::statement_list(ProgNodeP _t) {
-	 RetCode retCode;
-	ProgNodeP statement_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	
-		for (; _t != NULL;) {
-	
-			retCode=statement(_t);
-			_t = _retTree;
-				
-			if( retCode != RC_OK) break; // break out if non-regular
-		}
-		_retTree = _t;
-		return retCode;
-	
-	
-	{ // ( ... )+
-	int _cnt16=0;
-	for (;;) {
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		if ((_tokenSet_0.member(_t->getType()))) {
-			retCode=statement(_t);
-			_t = _retTree;
-		}
-		else {
-			if ( _cnt16>=1 ) { goto _loop16; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-		}
-		
-		_cnt16++;
-	}
-	_loop16:;
-	}  // ( ... )+
-	_retTree = _t;
-	return retCode;
-}
-
  BaseGDL*  GDLInterpreter::call_fun(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP call_fun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -730,11 +679,11 @@ GDLInterpreter::GDLInterpreter()
 			_t = _retTree;
 		}
 		else {
-			goto _loop7;
+			goto _loop6;
 		}
 		
 	}
-	_loop7:;
+	_loop6:;
 	} // ( ... )*
 	_retTree = _t;
 	return res;
@@ -781,11 +730,11 @@ GDLInterpreter::GDLInterpreter()
 			_t = _retTree;
 		}
 		else {
-			goto _loop10;
+			goto _loop9;
 		}
 		
 	}
-	_loop10:;
+	_loop9:;
 	} // ( ... )*
 	_retTree = _t;
 	return res;
@@ -816,13 +765,70 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 			_t = _retTree;
 		}
 		else {
-			goto _loop13;
+			goto _loop12;
 		}
 		
 	}
-	_loop13:;
+	_loop12:;
 	} // ( ... )*
 	_retTree = _t;
+}
+
+ RetCode  GDLInterpreter::statement_list(ProgNodeP _t,
+	bool throwImmediately
+) {
+	 RetCode retCode;
+	ProgNodeP statement_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+		for (; _t != NULL;) {
+	
+			retCode=statement(_t, throwImmediately);
+			_t = _retTree;
+				
+			if( retCode != RC_OK) break; // break out if non-regular
+		}
+		_retTree = _t;
+		return retCode;
+	
+	
+	{ // ( ... )+
+	int _cnt17=0;
+	for (;;) {
+		if (_t == ProgNodeP(antlr::nullAST) )
+			_t = ASTNULL;
+		if ((_tokenSet_0.member(_t->getType()))) {
+			retCode=statement(_t,throwImmediately);
+			_t = _retTree;
+		}
+		else {
+			if ( _cnt17>=1 ) { goto _loop17; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+		}
+		
+		_cnt17++;
+	}
+	_loop17:;
+	}  // ( ... )+
+	_retTree = _t;
+	return retCode;
+}
+
+ RetCode  GDLInterpreter::execute(ProgNodeP _t,
+	bool throwImmediately
+) {
+	 RetCode retCode;
+	ProgNodeP execute_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+	//    RetCode retCode;
+	ValueGuard<bool> guard( interruptEnable);
+	interruptEnable = false;
+	
+	//	return statement_list(_t, throwImmediately);
+	
+	
+	retCode=statement_list(_t,throwImmediately);
+	_t = _retTree;
+	_retTree = _t;
+	return retCode;
 }
 
 BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {

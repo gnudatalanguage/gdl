@@ -6,8 +6,8 @@
 ;
 function GET_LOGIN_INFO
 ;
-machine_name='Unknow'
-user_name='Unknow'
+machine_name='Unknown'
+user_name='Unknown'
 ;
 ; it seems that it is better to use 'hostname' insteed 'hostname -s'
 ;
