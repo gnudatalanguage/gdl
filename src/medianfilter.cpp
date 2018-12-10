@@ -1,3 +1,28 @@
+/***************************************************************************
+                          medianfilter.cpp  - some fast 1D and 2D median filters.
+                             -------------------
+    begin                : Nov 2018
+    copyright            : (C) 2018 by Marc Schellens & G. Duvert
+    email                : m_schellens@users.sf.net
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+// GDL now uses Jukka Suomela's mf2d https://github.com/suomela/mf2d sliding median filter, plus
+// S. Perreault et al algo for byte specialisation.
+// Copyrights are reported below.
+// Jukka's code has been slightly edited to follow GDL's requirements for IDL compatibility regarding the
+// use of the /EVEN switch and how IDL thinks the median is computed for even-sized arrays.
+// Incidentally, Jukka's code permits to use different sliding widths for 2D data, this is an improvement over IDL
+// that has been retained also.
+
 // Copyright (c) 2014, Jukka Suomela.
 //
 // You can distribute and use this software under the MIT license: http://opensource.org/licenses/MIT
@@ -13,7 +38,6 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // To contact the author, see http://users.ics.aalto.fi/suomela/
 
-// modified by GD to mimic the /EVEN switch of IDL. Note that modifying these optimized algorithms for non-odd sizes is tricky.
 
 namespace fastmedian{  //make it apart from the rest...
 
@@ -62,7 +86,7 @@ inline int popcnt64(uint64_t x) {
 
 class Dim {
 public:
-    Dim(int b_, int size_, int h_)
+    Dim(int b_, int size_, float h_)
         : size(size_),
           h(h_),
           step(calc_step(b_, h_)),
@@ -75,16 +99,16 @@ public:
     }
 
     const int size;
-    const int h;
+    const float h;
     const int step;
     const int count;
 
 private:
-    inline static int calc_step(int b, int h) {
+    inline static int calc_step(int b, float h) {
         return b - 2*h;
     }
 
-    inline static int calc_count(int b, int size, int h) {
+    inline static int calc_count(int b, int size, float h) {
         if (size <= b) {
             return 1;
         } else {
@@ -123,13 +147,13 @@ struct BDim {
     inline int w0(int v) const {
         assert(b0 <= v);
         assert(v < b1);
-        return std::max(0, v - dim.h);
+        return std::max(0, v - (int)dim.h);
     }
 
     inline int w1(int v) const {
         assert(b0 <= v);
         assert(v < b1);
-        return std::min(v + 1 + dim.h, size);
+        return std::min(v + 1 + (int)dim.h, size);
     }
 
     // Block i is located at coordinates [start, end) in the image.
@@ -226,10 +250,11 @@ private:
 template <typename T>
 class WindowRank {
 public:
-    WindowRank(int bb_)
+    WindowRank(int bb_, bool even)
         : sorted(new std::pair<T,int>[bb_]),
           rank(new int[bb_]),
           window(bb_),
+          iseven(even),
           bb(bb_)
     {}
 
@@ -270,23 +295,29 @@ public:
         }
     }
 
-    inline T get_med() {
-        int total = window.size();
-        if (total == 0) {
-            return std::numeric_limits<T>::quiet_NaN();
-        } else {
-            int goal1 = (total - 1) / 2;
-            int goal2 = (total - 0) / 2;
-            int med1 = window.find(goal1);
-            T value = sorted[med1].first;
-            if (goal2 != goal1) {
-                int med2 = window.find(goal2);
-                assert(med2 > med1);
-                value += sorted[med2].first;
-                value /= 2;
-            }
-            return value;
+    inline T get_med()
+    {
+      int total = window.size();
+      if (total == 0) {
+        return std::numeric_limits<T>::quiet_NaN();
+      } else {
+        int goal1 = (total - 1) / 2;
+        int goal2 = (total - 0) / 2;
+        int med1 = window.find(goal1);
+        T value = sorted[med1].first;
+        if (goal2 != goal1) { //== should force even. But IDL forces eve only if (iseven!) and takes goal2 if not (?)
+          if (iseven) {
+            int med2 = window.find(goal2);
+            assert(med2 > med1);
+            value += sorted[med2].first;
+            value /= 2;
+          } else {
+            int med2 = window.find(goal2);
+            value = sorted[med2].first;
+          }
         }
+        return value;
+      }
     }
 
 private:
@@ -295,6 +326,7 @@ private:
     Window window;
     const int bb;
     int size;
+    bool iseven;
     static const int NAN_MARKER = -1;
 };
 
@@ -304,8 +336,8 @@ private:
 template <typename T>
 class MedCalc2D {
 public:
-    MedCalc2D(int b_, Dim dimx_, Dim dimy_, const T* in_, T* out_)
-        : wr(b_ * b_), bx(dimx_), by(dimy_), in(in_), out(out_)
+    MedCalc2D(int b_, Dim dimx_, Dim dimy_, const T* in_, T* out_, bool even)
+        : wr(b_ * b_ ,even), bx(dimx_), by(dimy_), in(in_), out(out_)
     {}
 
     void run(int bx_, int by_)
@@ -411,8 +443,8 @@ private:
 template <typename T>
 class MedCalc1D {
 public:
-    MedCalc1D(int b_, Dim dimx_, const T* in_, T* out_)
-        : wr(b_), bx(dimx_), in(in_), out(out_)
+    MedCalc1D(int b_, Dim dimx_, const T* in_, T* out_, bool even)
+        : wr(b_,even), bx(dimx_), in(in_), out(out_)
     {}
 
     void run(int bx_)
@@ -482,7 +514,7 @@ private:
 
 
 template <typename T>
-void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* out) {
+void median_filter_impl_2d(int x, int y, float hx, float hy, int b, const T* in, T* out, bool even) {
     if (2 * hx + 1 > b || 2 * hy + 1 > b) {
         throw std::invalid_argument("window too large for this block size");
     }
@@ -490,7 +522,7 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
     Dim dimy(b, y, hy);
     #pragma omp parallel
     {
-        MedCalc2D<T> mc(b, dimx, dimy, in, out);
+        MedCalc2D<T> mc(b, dimx, dimy, in, out, even);
         #pragma omp for collapse(2)
         for (int by = 0; by < dimy.count; ++by) {
             for (int bx = 0; bx < dimx.count; ++bx) {
@@ -502,14 +534,14 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
 
 
 template <typename T>
-void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
+void median_filter_impl_1d(int x, float hx, int b, const T* in, T* out, bool even) {
     if (2 * hx + 1 > b) {
         throw std::invalid_argument("window too large for this block size");
     }
     Dim dimx(b, x, hx);
     #pragma omp parallel
     {
-        MedCalc1D<T> mc(b, dimx, in, out);
+        MedCalc1D<T> mc(b, dimx, in, out, even);
         #pragma omp for
         for (int bx = 0; bx < dimx.count; ++bx) {
             mc.run(bx);
@@ -519,23 +551,23 @@ void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
 
 
 template <typename T>
-void median_filter_2d(int x, int y, int hx, int hy, int blockhint, const T* in, T* out) {
+void median_filter_2d(int x, int y, float hx, float hy, int blockhint, const T* in, T* out, bool even) {
     int h = std::max(hx, hy);
     int blocksize = blockhint ? blockhint : choose_blocksize_2d(h);
-    median_filter_impl_2d<T>(x, y, hx, hy, blocksize, in, out);
+    median_filter_impl_2d<T>(x, y, hx, hy, blocksize, in, out, even);
 }
 
 template <typename T>
-void median_filter_1d(int x, int hx, int blockhint, const T* in, T* out) {
+void median_filter_1d(int x, float hx, int blockhint, const T* in, T* out, bool even) {
     int blocksize = blockhint ? blockhint : choose_blocksize_1d(hx);
-    median_filter_impl_1d<T>(x, hx, blocksize, in, out);
+    median_filter_impl_1d<T>(x, hx, blocksize, in, out, even);
 }
 
-template void median_filter_2d<float>(int x, int y, int hx, int hy, int blockhint, const float* in, float* out);
-template void median_filter_2d<double>(int x, int y, int hx, int hy, int blockhint, const double* in, double* out);
+template void median_filter_2d<float>(int x, int y, float hx, float hy, int blockhint, const float* in, float* out, bool even);
+template void median_filter_2d<double>(int x, int y, float hx, float hy, int blockhint, const double* in, double* out, bool even);
 
-template void median_filter_1d<float>(int x, int hx, int blockhint, const float* in, float* out);
-template void median_filter_1d<double>(int x, int hx, int blockhint, const double* in, double* out);
+template void median_filter_1d<float>(int x, float hx, int blockhint, const float* in, float* out, bool even);
+template void median_filter_1d<double>(int x, float hx, int blockhint, const double* in, double* out, bool even);
 
 /*
  * ctmf.c - Constant-time median filtering
@@ -970,266 +1002,5 @@ void ctmf(
         }
     }
 }
-
-//unused for the time being:
-#if 1
-
-#ifndef SIMPLE_H
-#define SIMPLE_H
-
-// Sliding median filter
-// Created 2012 by Colin Raffel
-// Portions Copyright (c) 2011 ashelly.myopenid.com under <http://www.opensource.org/licenses/mit-license>
-// see https://github.com/craffel/median-filter
-
-#ifndef MEDIATOR_H
-#define MEDIATOR_H
-
-template <typename Item> class Mediator
-{
-public:
-  
-  Mediator(int nItems, bool iseven):N(nItems),even(iseven)
-  {
-    data = new Item[nItems];
-    pos = new int[nItems];
-    allocatedHeap = new int[nItems]; 
-    heap = allocatedHeap + (nItems/2);
-    minCt = maxCt = idx = 0;
-    // Set up initial heap fill pattern: median, max, min, max, ...
-    while (nItems--)
-    {  
-      pos[nItems] = ((nItems + 1)/2)*((nItems & 1) ? -1 : 1);
-      heap[pos[nItems]] = nItems;
-    }
-  };
-  
-  ~Mediator()
-  {
-    delete[] data;
-    delete[] pos;
-    delete[] allocatedHeap;
-  };
-  
-  // Inserts item, maintains median in O(lg nItems)
-  void insert(const Item& v )
-  {
-    const int p = pos[idx];
-    const Item old = data[idx];
-    data[idx] = v;
-    idx = (idx+1) % N;
-    // New item is in minheap
-    if (p>0)
-    {  
-      if (minCt < (N-1)/2)
-      {
-        ++minCt;
-      }
-      else if (v > old)
-      { 
-        minSortDown( p );
-        return;
-      }
-      if (minSortUp( p ) && mmCmpExch( 0, -1 ))
-      {
-        maxSortDown( -1 );
-      }
-    }
-    // New item is in maxheap
-    else if (p<0)
-    {  
-      if (maxCt < N/2)
-      {
-        ++maxCt;
-      }
-      else if (v < old)
-      {
-        maxSortDown( p );
-        return;
-      }
-      if (maxSortUp( p ) && minCt && mmCmpExch( 1, 0 ))
-      {
-        minSortDown( 1 );
-      }
-    }
-    // New item is at median
-    else
-    {  
-      if (maxCt && maxSortUp( -1 ))
-      {
-        maxSortDown( -1 );
-      }
-      if (minCt && minSortUp( 1 ))
-      { 
-        minSortDown( 1 );
-      }
-    }
-  };
-  
-  // Returns median item (or average of 2 when item count is even)
-  Item getMedian()
-  {
-    Item v = data[heap[0]];
-    if (even && (minCt<maxCt))
-    { 
-      v = (v + data[heap[-1]])/2;
-    }
-    return v;
-  };
-  
-private:
-  
-  // Swaps items i&j in heap, maintains indexes
-  int mmexchange(const int i,const int j )
-  {
-    int t = heap[i];
-    heap[i] = heap[j];
-    heap[j] = t;
-    pos[heap[i]] = i;
-    pos[heap[j]] = j;
-    return 1;
-  };
-  
-  // Maintains minheap property for all items below i.
-  void minSortDown( int i )
-  {
-    for (i*=2; i <= minCt; i*=2)
-    {
-      if (i < minCt && mmless( i+1, i ))
-      {
-        ++i;
-      }
-      if (!mmCmpExch( i, i/2 ))
-      {
-        break;
-      }
-    }
-  };
-
-  // Maintains maxheap property for all items below i. (negative indexes)
-  void maxSortDown( int i )
-  {
-    for (i*=2; i >= -maxCt; i*=2)
-    {  
-      if (i > -maxCt && mmless( i, i-1 )) 
-      { 
-        --i;
-      }
-      if (!mmCmpExch( i/2, i ))
-      {
-        break;
-      }
-    }
-  };
-  
-  // Returns 1 if heap[i] < heap[j]
-  inline int mmless(const int i,const int j )
-  {
-    return (data[heap[i]] < data[heap[j]]);
-  };
-  
-  // Swaps items i&j if i<j; returns true if swapped
-  inline int mmCmpExch(const int i,const int j )
-  {
-    return (mmless( i, j ) && mmexchange( i, j ));
-  };
-  
-  // Maintains minheap property for all items above i, including median
-  // Returns true if median changed
-  inline int minSortUp( int i )
-  {
-    while (i > 0 && mmCmpExch( i, i/2 ))
-    {
-      i /= 2;
-    }
-    return (i == 0);
-  };
-  
-  // Maintains maxheap property for all items above i, including median
-  // Returns true if median changed
-  inline int maxSortUp( int i )
-  {
-    while (i < 0 && mmCmpExch( i/2, i ))
-    {
-      i /= 2;
-    }
-    return ( i==0 );
-  }; 
-  // Allocated size
-  const int N;
-  // even /odd correction
-  const bool even;
-  // Circular queue of values
-  Item* data;
-  // Index into `heap` for each value
-  int* pos;
-  // Max/median/min heap holding indexes into `data`.
-  int* heap;
-  // heap holds a pointer to the middle of its data; this is where the data is allocated.
-  int* allocatedHeap;
-  // Position in circular queue
-  int idx; 
-  // Count of items in min heap
-  int minCt;
-  // Count of items in max heap
-  int maxCt;
-};
-
-#endif
-void filter( double* array, int n, int filterSize, bool even=false );
-void filter( float* array, int n, int filterSize, bool even=false );
-
-#endif
-void filter( double* array, int n, int filterSize , bool even)
-{
-  Mediator<double> mediator( filterSize, even );
-  for (int i = 0; i < filterSize/2; ++i)
-  {
-    mediator.insert( array[0] );
-    array[i] = mediator.getMedian();
-  }
-  int offset = filterSize/2 + (filterSize % 2);
-  for (int i = 0; i < offset; ++i)
-  {
-    mediator.insert( array[i] );
-  }
-  for (int i = 0; i < n - offset; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[i + offset] );
-  }
-  for (int i = n - offset; i < n; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[n - 1] );
-  }
-}
-
-void filter( float* array, int n, int filterSize, bool even )
-{ 
-  Mediator<float> mediator( filterSize, even );
-  for (int i = 0; i < filterSize/2; ++i)
-  {
-    mediator.insert( array[0] );
-    array[i] = mediator.getMedian();
-  }
-  int offset = filterSize/2 + (filterSize % 2);
-  for (int i = 0; i < offset; ++i)
-  {
-    mediator.insert( array[i] );
-  }
-  for (int i = 0; i < n - offset; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[i + offset] );
-  }
-  for (int i = n - offset; i < n; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[n - 1] );
-  }
-}
-#endif
-
 
 } //namespace
