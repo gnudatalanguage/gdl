@@ -96,7 +96,9 @@ inline void gdlAlignedFree(void* ptr) {
 }
 
 
-#if defined _OPENMP
+#ifdef _OPENMP
+#include <omp.h>
+
 inline int currentNumberOfThreads() {
   return omp_get_num_threads();
 }
