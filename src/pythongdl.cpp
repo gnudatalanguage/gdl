@@ -564,7 +564,11 @@ extern "C" {
 #endif
 
   // python GDL module init function
-  PyMODINIT_FUNC initGDL()
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_GDL(void)
+#else
+  PyMODINIT_FUNC initGDL(void)
+#endif
   { 
     // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
     import_array();
@@ -604,6 +608,9 @@ extern "C" {
     // GDL event handling
     oldInputHook = PyOS_InputHook;
     PyOS_InputHook = GDLEventHandlerPy;
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
   }
   
 } // extern "C" 
