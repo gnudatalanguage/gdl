@@ -188,28 +188,28 @@ print, 'Starting CHECK_GSHHG_DATA'
 files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
 nb_files=N_ELEMENTS(files)
 ;
-final_path_sep=STRPOS(!GSHHS_DATA_DIR,PATH_SEP(),/reverse_search)
-if (STRLEN(!GSHHS_DATA_DIR) GT 0) then begin
+final_path_sep=STRPOS(!GSHHG_DATA_DIR,PATH_SEP(),/reverse_search)
+if (STRLEN(!GSHHG_DATA_DIR) GT 0) then begin
    if (final_path_sep EQ -1) then begin
-      !GSHHS_DATA_DIR=!GSHHS_DATA_DIR+PATH_SEP()
+      !GSHHG_DATA_DIR=!GSHHG_DATA_DIR+PATH_SEP()
    endif else begin
-      if (STRLEN(!GSHHS_DATA_DIR) GT final_path_sep+1) then begin
-         !GSHHS_DATA_DIR=!GSHHS_DATA_DIR+PATH_SEP()
+      if (STRLEN(!GSHHG_DATA_DIR) GT final_path_sep+1) then begin
+         !GSHHG_DATA_DIR=!GSHHG_DATA_DIR+PATH_SEP()
       endif  
    endelse
-   if ~FILE_TEST(!GSHHS_DATA_DIR) then begin
-      print, 'the !GSHHS_DATA_DIR does not exist !'
+   if ~FILE_TEST(!GSHHG_DATA_DIR) then begin
+      print, 'the !GSHHG_DATA_DIR does not exist !'
       return, -1
    endif
 endif else begin
-   print, 'You must provide a valid !GSHHS_DATA_DIR path'
+   print, 'You must provide a valid !GSHHG_DATA_DIR path'
    return, -1
 endelse
 ;
 files_ok=nb_files
 ;
 for ii=0, nb_files-1 do begin
-   Result=FILE_SEARCH(!GSHHS_DATA_DIR+files[ii])
+   Result=FILE_SEARCH(!GSHHG_DATA_DIR+files[ii])
    if (STRLEN(Result) EQ 0) then begin
       print, 'GSHHG data file <<'+files[ii]+'>> not found'
       files_ok--
@@ -217,7 +217,7 @@ for ii=0, nb_files-1 do begin
 endfor
 ;
 if (files_ok NE nb_files) then begin
-   MESSAGE, /continue, 'Some GSHHG data files are missing ... please check !GSHHS_DATA_DIR'
+   MESSAGE, /continue, 'Some GSHHG data files are missing ... please check !GSHHG_DATA_DIR'
    return, -2
 endif else begin
    MESSAGE, /continue, 'GSHHG data files found'
@@ -280,7 +280,7 @@ if (status_gshhg_data LT 0) then begin
    if (reponse EQ 'Y' or reponse EQ 'O') then begin
       GET_GSHHG_DATA
    endif else begin
-      MESSAGE, "GSHHS data are missing, you can set up !GSHHS_DATA_DIR if you have a local copy"
+      MESSAGE, "GSHHS data are missing, you can set up !GSHHG_DATA_DIR if you have a local copy"
    endelse
    ;;
    ;; now we can check again
@@ -300,7 +300,7 @@ pro GET_GSHHG_DATA, test=test
 ;
 tmp_gshhg_data_dir='tmp_gshhg_data_dir'
 ;
-!GSHHS_DATA_DIR=tmp_gshhg_data_dir
+!GSHHG_DATA_DIR=tmp_gshhg_data_dir
 ;
 CD, current=old_current
 ;
