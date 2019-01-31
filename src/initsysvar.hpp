@@ -39,7 +39,7 @@ namespace SysVar
 
   // returns !DIR
   const DString& Dir();
-  const DString& GshhsDir();
+  const DString& GshhgDir();
 
   // updates !STIME
   void UpdateSTime();
@@ -68,6 +68,9 @@ namespace SysVar
 
   // returns !MAP
   DStructGDL* Map();
+
+  // returns !GDL
+  DStructGDL* GDLconfig();
 
   // returns !CPU
   DStructGDL* Cpu();
