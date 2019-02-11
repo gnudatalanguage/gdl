@@ -128,6 +128,10 @@ void LibInit()
 				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
+  new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
+  new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);
+
+
 #ifdef _WIN32
 //Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.
   const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
