@@ -10,7 +10,7 @@ pro MAP_GSHHG_PATH_SET, a_path, current=current, $
                         verbose=verbose, help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro MAP_GSHHG_PATH_SET, a_path_to_gsshg_data, current=current, $ '
+   print, 'pro MAP_GSHHG_PATH_SET, a_path_to_gshhg_data, current=current, $ '
    print, '                        verbose=verbose, help=help, test=test'
    return
 endif

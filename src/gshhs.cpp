@@ -20,8 +20,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
-// default: assume we have GSHHS
-#define USE_GSHHS 1
+// default: assume we have GSHHG
+#define USE_GSHHG 1
 #endif
 
 #if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
@@ -33,7 +33,8 @@
 
 #include "initsysvar.hpp"
 
-#ifdef USE_GSHHS
+// AC 2019 we keep the old name for include, may be clarify
+#ifdef USE_GSHHG
 #include "gshhs.h"
 #endif
 
@@ -64,8 +65,8 @@ namespace lib {
   private:
 
     void old_body( EnvT* e, GDLGStream * actStream ) {
-#ifndef USE_GSHHS
-      e->Throw( "GDL was compiled without support for GSHHS" );
+#ifndef USE_GSHHG
+      e->Throw( "GDL was compiled without support for GSHHG" );
 #else
       static struct GSHHS_POINT p;
       bool externalMap;

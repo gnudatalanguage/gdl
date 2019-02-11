@@ -76,7 +76,9 @@ if ~gshhg_dir_status then begin
    print, 'We cannnot check whether some map data are available'
    print, 'since the !GSHHG_DATA_DIR is not OK'
 endif else begin
-   MAP_GSHHG_DATA_CHECK, /verbose
+   ;;
+   print, 'TODO ! sorry, not ready now'
+;;   MAP_GSHHG_DATA_CHECK, /verbose
 endelse
 ;
 if KEYWORD_SET(test) then STOP
