@@ -88,7 +88,7 @@ namespace lib {
 
   BaseGDL* gshhg_exists( EnvT* e )
   {
-#ifdef USE_GSHHS
+#ifdef USE_GSHHG
     //    e->Message( "GDL was compiled with support for GSHHG" );
     return new DIntGDL(1);
 #else

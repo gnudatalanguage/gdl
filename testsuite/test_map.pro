@@ -280,13 +280,13 @@ if (status_gshhg_data LT 0) then begin
    if (reponse EQ 'Y' or reponse EQ 'O') then begin
       GET_GSHHG_DATA
    endif else begin
-      MESSAGE, "GSHHS data are missing, you can set up !GSHHG_DATA_DIR if you have a local copy"
+      MESSAGE, "GSHHG data are missing, you can set up !GSHHG_DATA_DIR if you have a local copy"
    endelse
    ;;
    ;; now we can check again
    status_gshhg_data=CHECK_GSHHG_DATA()
    if (status_gshhg_data LT 0) then begin
-      MESSAGE, "GSHHS data still missing"
+      MESSAGE, "GSHHG data still missing"
    endif
 endif
 ;
