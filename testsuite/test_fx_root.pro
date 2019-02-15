@@ -13,6 +13,8 @@
 ; for Astro-F FTS (the so called Fouks-Schubert model).
 ; I re-implemented the fx_root and clean-up the test
 ;
+; 2019-Feb-14 : AC. adding complex roots of second order polynom
+; 
 ; -------------------------------------------------
 ;
 ; AC 06/07/2012 the example in IDL doc is stupid !
@@ -129,6 +131,43 @@ if KEYWORD_set(test) then STOP
 end
 ;
 ; -------------------------------------------------
+; FX_ROOT can be used to search for complex roots of polynomes.
+; Take care of the region where starting search.
+;
+; Here roots are : -1/2 +- i* SQRT(3)/2
+function POLY111, x
+  return, X^2 + X +1.
+end
+;
+pro COMPLEX_ROOT_OF_POLYNOM, cumul_errors, test=test
+;
+eps=1e-4
+nb_errors=0
+;
+rootp=COMPLEX(-1,SQRT(3))/2.
+rootm=COMPLEX(-1,-SQRT(3))/2.
+;
+r1=FX_ROOT([-2,-1,0],'poly111')
+r1b=FX_ROOT([-20,-10,0],'poly111')
+;
+r2=FX_ROOT([-2,-1,4],'poly111')
+r2b=FX_ROOT([-20,-10,10],'poly111')
+;
+if ABS(rootp-r1) GT eps then ERRORS_ADD, nb_errors, 'bad root1'
+if ABS(rootp-r1b) GT eps then ERRORS_ADD, nb_errors, 'bad root1 bis'
+;
+if ABS(rootm-r2) GT eps then ERRORS_ADD, nb_errors, 'bad root2'
+if ABS(rootm-r2b) GT eps then ERRORS_ADD, nb_errors, 'bad root2 bis'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, ROUTINE_NAME(), nb_errors, /status
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------------------------
 ;
 pro TEST_FX_ROOT, help=help, test=test, no_exit=no_exit, verbose=verbose
 ;
@@ -163,6 +202,9 @@ TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, $
 ;
 ; another test on FUNC3
 WHERE_DO_WE_CONVERGE, cumul_errors
+;
+; search of complex roots in polynoms ...
+COMPLEX_ROOT_OF_POLYNOM, cumul_errors
 ;
 ; ----- final ----
 ;
