@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "0.9.8 git")
+set(VERSION "0.9.9 git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
@@ -126,8 +126,8 @@ set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(GSHHS ON CACHE BOOL "GDL: Enable GSHHS ?")
-set(GSHHSDIR "" CACHE PATH "GDL: Specifiy the GSHHS directory tree")
+set(GSHHG ON CACHE BOOL "GDL: Enable GSHHG ?")
+#set(GSHHGDIR "" CACHE PATH "GDL: Specifiy the GSHHG directory tree")
 
 if(NOT WIN32)
   set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
@@ -1023,25 +1023,14 @@ if(GLPK)
 endif(GLPK)
 #check_include_file(glpk.h HAVE_GLPK)
 
-# gshhs
+# gshhs/gshhg (renamed
 # -DGSHHS=ON|OFF
-if(GSHHS) 	
-    set(USE_GSHHS 1)
-endif(GSHHS)
-# -DGSHHSDIR=DIR
-#not needed anymore, gshhs include is in src/
-#	set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
-#	find_path(GSHHS_INCLUDE_DIR gshhs.h)
-#	mark_as_advanced(GSHHS_INCLUDE_DIR)
-#	set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
-#	if(USE_GSHHS)
-#		include_directories(${GSHHS_INCLUDE_DIR})
-#	else(USE_GSHHS)
-#		message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
-#		"Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
-#		"Use -DGSHHS=OFF to not use it.")
-#	endif(USE_GSHHS)
-#endif(GSHHS)
+if(GSHHG)
+  set(USE_GSHHG 1)
+endif(GSHHG)
+# -DGSHHSDIR=DIR 
+# AC 2019 not needed anymore, gshhs include is in src/
+# see in revision history if needed
 #
 # X11
 if(X11)
@@ -1178,8 +1167,8 @@ module(GRIB      "GRIB          ")
 # module(QHULL     "QHULL         ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
-set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
-module(GSHHS     "GSHHS         ")
+#set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
+module(GSHHG     "GSHHG         ")
 module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")

@@ -191,7 +191,7 @@ namespace lib {
             : 3; // RGB
        */
 
-      // AC 2012-May-10 this is OK (reliable), see exemple "589 Lavandula mono"
+      // AC 2012-May-10 this is OK (reliable), see example "589 Lavandula mono"
       if (a.matte()) channels += 1;
 
       // TODO! multiple images (using the Magick++ STL interface)
@@ -482,7 +482,7 @@ namespace lib {
           if (nParam > 2) e->SetPar(2, G);
           if (nParam > 3) e->SetPar(3, B);
         } else {
-          e->Throw("Uknown Image type, too many colors");
+          e->Throw("Unknown Image type, too many colors");
         }
       } else {
         e->Throw("Not an indexed image: " + e->GetParString(0));

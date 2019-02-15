@@ -182,8 +182,8 @@ if (flag_x EQ 1) then begin
     x_hig=x_new+x_err
 endif
 ;
-; ---------------------
-; managment of plot type
+; -----------------------
+; management of plot type
 ; if !{x|y}.type EQ 0 --> Lin
 ; if !{x|y}.type EQ 1 --> Log
 ;

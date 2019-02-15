@@ -25,7 +25,7 @@
   #define DSFMT_MEXP 19937
 #endif
 
-#include "dSFMT/dSFMT.h"
+#include "dSFMT.h"
 
 #if defined(HAVE_SSE2)
 #  include <emmintrin.h>

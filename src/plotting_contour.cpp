@@ -360,8 +360,7 @@ namespace lib
 	  gdlGetAxisType("Y", yLog);
 	  gdlGetAxisType("Z", zLog);
 	  GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
-	  gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
-
+      
 	  if (!doT3d) {
 	    restorelayout=true;
 	    actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
@@ -377,7 +376,8 @@ namespace lib
 
 	    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
 	    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
-	  }
+	  } else gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
+
 	}
 
       static DDouble x0,y0,xs,ys; //conversion to normalized coords
@@ -906,12 +906,12 @@ namespace lib
 	  if (stopClip) stopClipping(actStream);
 	  actStream->Free2dGrid(map, xEl, yEl);
 	}
-      //finished? Store Zrange and Loginess unless we are overplot:
-      if ( make2dBox || make3dBox )
-	{
+////      finished? Store Zrange and Loginess unless we are overplot:
+//      if ( make2dBox || make3dBox )
+//	{
 	  gdlStoreAxisCRANGE("Z", zStart, zEnd, zLog);
 	  gdlStoreAxisType("Z",zLog);
-	}
+//	}
 
       if (doT3d) {
         actStream->stransform(NULL,NULL); //remove transform BEFORE writing axes, ticks..

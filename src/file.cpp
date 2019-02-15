@@ -36,6 +36,9 @@
 #include "file.hpp"
 #include "objects.hpp"
 
+#include "dinterpreter.hpp"
+
+
 #include <zlib.h>
 
 #include <climits> // PATH_MAX
@@ -692,8 +695,7 @@ static void ExpandPathN( FileListT& result,
     DString cat = sArr[0];
     for( SizeT i=1; i<nArr; ++i)
       cat += pathsep + sArr[i];
-    return new DStringGDL( cat);
-  }
+    return new DStringGDL( cat);  }
 
 #ifdef _WIN32
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
@@ -1169,6 +1171,7 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
   }
 
 #endif
+
 
 static std::string Dirname(const string& tmp,
 	bool mark_dir = false)
@@ -3039,6 +3042,16 @@ void file_move( EnvT* e)
 			}
 		}
 		return;
+  }
+
+  BaseGDL* routine_dir_fun( EnvT* e)
+  {
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+
+    string path=callStack.back()->GetFilename();
+    string toto=Dirname(path, true);
+
+    return new DStringGDL(toto);
   }
 
 } // namespace lib

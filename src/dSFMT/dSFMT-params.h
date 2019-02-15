@@ -5,7 +5,7 @@
   #define DSFMT_MEXP 19937
 #endif
 
-#include "dSFMT/dSFMT.h"
+#include "dSFMT.h"
 
 /*----------------------
   the parameters of DSFMT
@@ -69,7 +69,7 @@
 #elif DSFMT_MEXP == 11213
   #include "dSFMT-params11213.h"
 #elif DSFMT_MEXP == 19937
-  #include "dSFMT/dSFMT-params19937.h"
+  #include "dSFMT-params19937.h"
 #elif DSFMT_MEXP == 44497
   #include "dSFMT-params44497.h"
 #elif DSFMT_MEXP == 86243

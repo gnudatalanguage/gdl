@@ -1,4 +1,5 @@
 Revised version by Gilles Duvert on July 2014
+Small revision by Alain on Jan. 2019 (mostly GSHHS --> GSHHG)
 
 To provide map projections support your first need to make sure the
 proj.4 library is installed. There are two libraries, the 'classic
@@ -51,35 +52,43 @@ that do not need the above procedures...
 
 ===========================================================================
 
-MAP_CONTINENTS is implemented in GDL using the GSHHSG (Global 
+MAP_CONTINENTS is implemented in GDL using the GSHHG (Global 
 Self-consistent, Hierarchical, High-resolution Geography Database) 
 available under the GNU GPL. To provide support for MAP_CONTINENTS the 
 database files and one header file (gshhs.h) need to be downloaded e.g. from:
 
-ftp://ftp.soest.hawaii.edu/pwessel/gshhsg
+http://www.soest.hawaii.edu/pwessel/gshhg/
 
-see file ftp://ftp.soest.hawaii.edu/pwessel/gshhg/README.TXT for
-complete description.
+Current version is : Version 2.3.7 Released June 15, 2017
 
 The header file for the 2.0 dataset is in the gshhs_1.12_src.zip file.
 The datafiles (*.b) are in the gshhs_2.0.tbz file.
 
-When compiling GDL, the "-DGSHHS=YES" option must be given (not
-enabled by default), optionally with an argument pointing to the GSHHS
-installation prefix: -DGSHHSDIR="DIR"
+When compiling GDL, GSHHG is enable by default (the optional with an
+argument pointing to the GSHHG installation prefix: -DGSHHGDIR="DIR"
+is currently disable (no need anymore)). Can be disable with :
+"-DGSHHG=no"
  
-Warning: At execution time, GDL will look for the GSHHS datafiles
-(gshhs_f.b, gshhs_l.b, etc...) in the $GSHHS_DATA_DIR. Before running
-GDL you can setup this variable (e.g. in bash : 
-export GSHHS_DATA_DIR=/my/path/to/gshhs/). 
-When GDL is compiled, if $GSHHS_DATA_DIR unknown, if $GDLDATADIR
-exists and if $GDLDATADIR/../gshhs/ exist too, this path is used as a
-defaut directory for gshhs data. So the files can/must be put there. 
+Warning: At execution time, GDL will look for the GSHHG datafiles
+(gshhs_XX.b, wdb_borders_XX.b, wdb_rivers_XX.b) (XX in : c, l, i, h, f, 
+see below) in the $GSHHG_DATA_DIR. Before running GDL you can setup
+this variable (e.g. in bash : export GSHHG_DATA_DIR=/my/path/to/gshhg/).
+When GDL is compiled, if $GSHHG_DATA_DIR unknown, if $GDLDATADIR
+exists and if $GDLDATADIR/../gshhg/ exist too, this path is used as a
+defaut directory for gshhg data. So the files can/must be put there.
 (we need a more flexible solution - FIXME!)
+
+Since Jan 2019 (0.9.9 git), is is possible to set !GSHHG_DATA_DIR directly
+!GSHHG_DATA_DIR=/a/path/to/GSHHG/gshhg_2.3.7/ (absolute or relative)
+or using MAP_GSHHG_PATH_SET procedure (in pro/gshhg_map/). The quality
+of the maps (_c : CRUDE, _l : LOW, _i : INTERMEDIATE, _h : HIGH, _f: FULL)
+is now stored in !GDL.map_quality and can be change with
+procedure MAP_GSHHG_QUALITY_SET
 
 Reference:
 Wessel, P. and Smith, W.H.F., 1996. A global, self-consistent, hierarchical, 
   high-resolution shoreline database. J. Geophys. Res., 101(B4): 8741--8743.
+http://www.soest.hawaii.edu/pwessel/gshhg/Wessel+Smith_1996_JGR.pdf
 
 ===========================================================================
 NOTE ON PROJECTION-RELATED PROCEDURES IN GDL (and IDL)

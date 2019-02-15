@@ -52,7 +52,7 @@ if SIZE(cube, /N_dim) NE 3 then begin
    EXIT, status=1
 endif
 ;
-; exemple of introducing fake error:
+; example of introducing fake error:
 if KEYWORD_SET(fake_error) then cube[0,0,1]=234
 ;
 ; computation of various numbers ...
