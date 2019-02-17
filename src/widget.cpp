@@ -1919,7 +1919,8 @@ BaseGDL* widget_info( EnvT* e ) {
       if ( widget == NULL) {
 	      if (valid || managed) return new DLongGDL( 0 ); 
 	      else e->Throw("Invalid widget identifier:"+i2s(widgetID));
-      } //note: /display is not currently in gdl      bool result=false;
+      } //note: /display is not currently in gdl      
+      bool result=false;
       if (valid) result=( widget != NULL );
       else if (managed) result=( widget->GetManaged( ) == true );
       else if (realized) result=( widget->GetRealized( ) == true );
