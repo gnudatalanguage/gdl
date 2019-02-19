@@ -6,25 +6,77 @@
 ;
 ; The IM/GM Magick flag need to be clarify
 ;
-pro GDL_STATUS
+; ----------------------------------------------------
+; Modifications history :
 ;
-print, 'Eigen3 ? : ', EIGEN_EXISTS()
-print, 'FFTw ?   : ', FFTW_EXISTS()
-print, 'GRIB ?   : ', GRIB_EXISTS()
-print, 'GLPK ?   : ', GLPK_EXISTS()
-print, 'GSHHG ?  : ', GSHHG_EXISTS()
-print, 'HDF ?    : ', HDF_EXISTS()
-print, 'HDF5 ?   : ', HDF5_EXISTS()
-print, 'Magick ? : ', MAGICK_EXISTS()
-print, 'NetCDF ? : ', NCDF_EXISTS()
-print, 'NetCDF4 ?: ', NCDF4_EXISTS()
-print, 'OpenMP ? : ', OPENMP_EXISTS()
-print, 'Proj4 ?  : ', PROJ4_EXISTS()
-print, 'Proj4 new: ', PROJ4NEW_EXISTS()
-print, 'PSlib ?  : ', PSLIB_EXISTS()
-print, 'Python ? : ', PYTHON_EXISTS()
-print, 'UDUNITS  : ', UDUNITS_EXISTS()
-print, 'wxwidgets: ', WXWIDGETS_EXISTS()
-print, 'x11      : ', X11_EXISTS()
+; 2019-Feb-15 : AC. revision 
+; -- we can display only the non active options
+; -- we cross check with the internal list ...
+;
+; ---------------------------------------------------
+;
+pro IPRINT, ii, txt, status, only_off=only_off
+;
+if KEYWORD_SET(only_off) then begin
+   if status EQ 1 then begin
+      ii++
+      return
+   endif
+endif
+print, STRING(ii, ' ',format='(i2, A1)'), txt, status
+ii++
+end
+;
+; ---------------------------------------------------
+;
+pro GDL_STATUS, test=test, verbose=verbose, only_off=only_off
+;
+if GDL_IDL_FL() NE 'GDL' then MESSAGE, 'This code can be run only under GDL !'
+;
+; counting ...
+i=1
+;
+IPRINT, i, 'DSFMT ?  : ', DSFMT_EXISTS(), only_off=only_off
+IPRINT, i, 'Eigen3 ? : ', EIGEN_EXISTS(), only_off=only_off
+IPRINT, i, 'FFTw ?   : ', FFTW_EXISTS(), only_off=only_off
+IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), only_off=only_off
+IPRINT, i, 'GLPK ?   : ', GLPK_EXISTS(), only_off=only_off
+IPRINT, i, 'GRIB ?   : ', GRIB_EXISTS(), only_off=only_off
+IPRINT, i, 'GSHHG ?  : ', GSHHG_EXISTS(), only_off=only_off
+IPRINT, i, 'HDF ?    : ', HDF_EXISTS(), only_off=only_off
+IPRINT, i, 'HDF5 ?   : ', HDF5_EXISTS(), only_off=only_off
+IPRINT, i, 'Magick ? : ', MAGICK_EXISTS(), only_off=only_off
+IPRINT, i, 'NetCDF ? : ', NCDF_EXISTS(), only_off=only_off
+IPRINT, i, 'NetCDF4 ?: ', NCDF4_EXISTS(), only_off=only_off
+IPRINT, i, 'OpenMP ? : ', OPENMP_EXISTS(), only_off=only_off
+IPRINT, i, 'PNGLIB ? : ', PNGLIB_EXISTS(), only_off=only_off
+IPRINT, i, 'Proj4 ?  : ', PROJ4_EXISTS(), only_off=only_off
+IPRINT, i, 'Proj4 new: ', PROJ4NEW_EXISTS(), only_off=only_off
+IPRINT, i, 'PSlib ?  : ', PSLIB_EXISTS(), only_off=only_off
+IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), only_off=only_off
+IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), only_off=only_off
+IPRINT, i, 'UDUNITS  : ', UDUNITS_EXISTS(), only_off=only_off
+IPRINT, i, 'wxwidgets: ', WXWIDGETS_EXISTS(), only_off=only_off
+IPRINT, i, 'x11      : ', X11_EXISTS(), only_off=only_off
+;
+; How many _EXISTS() founctions should we have ?
+;
+HELP, /lib, out=out
+ii_list=STRPOS(out, '_EXISTS')
+list=out[WHERE(ii_list GE 0)]
+;
+i--
+if (i EQ N_ELEMENTS(list)) then begin
+   print, 'All _EXISTS() functions have been detected !'
+endif else begin
+   print, 'Some _EXISTS() functions are missing !'
+   print, format='(A18, i3)', 'Expected      : ', N_ELEMENTS(list)
+   print, format='(A18, i3)', 'Really tested : ', i
+   if KEYWORD_SET(verbose) then begin
+      print, 'Expected list : ', list
+   endif
+endelse
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
