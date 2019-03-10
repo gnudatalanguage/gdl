@@ -1141,14 +1141,7 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 			break;}
 		DType theType = theref->Type();
 			if(trace_me) std::cout << " theType="<<theType;
-// Enhance (?) it by allowing pointers to lists to represent lists.
-// in order to turn this off, a ptr scalar must go in as a ptrarr[1];
-// This is probably not IDL behavior.
-		if( theType == GDL_PTR && theref->Rank() == 0) {
-			DPtr p=(*static_cast<DPtrGDL*>( theref))[0];
-			  if( p != 0) theref = BaseGDL::interpreter->GetHeap( p);
-			  theType = theref->Type();
-		  }
+
 		if(trace_me) help_item(std::cout, theref, trcn+"theref ",false);
 		islist = false;
 		ishash = false;
@@ -1698,16 +1691,7 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
 			ThrowFromInternalUDSub( e, " struct tags inaccessible");
 		} else {break;}
 		DType theType = theref->Type();
-// Enhance (?) it by allowing pointers to lists to represent lists.
-// in order to turn this off, a ptr scalar must go in as a ptrarr[1];
-// This is probably not IDL behavior.
-		if( theType == GDL_PTR && theref->Rank() == 0) {
-			  theref = BaseGDL::interpreter->GetHeap(
-				(*static_cast<DPtrGDL*>( theref))[0] );
-			  theType = theref->Type();
-			  // this is probably so odd itshould be advertised when it happens:
-			  std::cout<<" **p= "<<std::endl;
-		  }
+
 //		if(iprm+isRangeIx+1 == nParam) return theref->Dup(); 
 		if( iprm + prmbeg  == nParam) break;//( no prms left)
 		if(trace_me) help_item(std::cout, theref, trcn+"theref ",false);
