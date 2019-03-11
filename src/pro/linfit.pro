@@ -27,7 +27,7 @@ FUNCTION LINFIT,X,Y,$
 
 ;  To give a vector containing standard measurement errors for each
 ;  point Y[i]. SDEV is an old name for MEASURE_ERRORS.
-stop
+
     hasSdev = n_elements(sdev) gt 0
     hasME = n_elements(measure_errors) gt 0
     if (hasSdev and hasME) then message, 'Conflicting keywords SDEV and MEASURE_ERRORS.'
