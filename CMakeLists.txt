@@ -119,8 +119,8 @@ set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
-set(MPICH OFF CACHE BOOL "GDL: Enable MPICH ?")
-set(MPICHDIR "" CACHE PATH "GDL: Specify the MPICH (experimental) directory tree")
+set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
+set(MPIDIR "" CACHE PATH "GDL: Specify the MPI (experimental) directory tree")
 
 set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
@@ -795,22 +795,22 @@ if(LIBPROJ4)
 	endif(LIBPROJ4_FOUND)	
 endif(LIBPROJ4)
 
-# mpich (experimental)
-# -DMPICH=ON|OFF
-# -DMPICHDIR=DIR
-if(MPICH)
-	set(CMAKE_PREFIX_PATH ${MPICHDIR})
+# MPI (experimental)
+# -DMPI=ON|OFF
+# -DMPIDIR=DIR
+if(MPI)
+	set(CMAKE_PREFIX_PATH ${MPIDIR})
 	find_package(MPI QUIET)
 	set(USE_MPI ${MPI_FOUND})
 	if(MPI_FOUND)
 		include_directories(${MPI_INCLUDE_PATH})	
 		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
 	else(MPI_FOUND)
-		message(FATAL_ERROR "MPICH is required but was not found.\n"
-		"Use -DMPICHDIR=DIR to specify the MPICH directory tree.\n"
-		"Use -DMPICH=OFF to not use it.")
+		message(FATAL_ERROR "MPI is required but was not found.\n"
+		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
+		"Use -DMPI=OFF to not use it.")
 	endif(MPI_FOUND)	
-endif(MPICH)
+endif(MPI)
 
 # python
 # -DPYTHON=ON|OFF
@@ -1147,17 +1147,17 @@ else(OPENMP AND OPENMP_FOUND)
 	message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
-module(WXWIDGETS "WxWidgets  ")
-module(MAGICK    "ImageMagick")
-module(TIFF      "TIFF       ")
-module(GEOTIFF   "GeoTIFF    ")
-module(NETCDF    "NetCDF     ")
-module(HDF       "HDF4       ")
-module(HDF5      "HDF5       ")
-module(FFTW      "FFTW       ")
-module(LIBPROJ4  "Libproj4   ")
-set(MPICH_LIBRARIES ${MPI_LIBRARIES})
-module(MPICH     "MPICH         ")
+module(WXWIDGETS "WxWidgets     ")
+module(MAGICK    "ImageMagick   ")
+module(TIFF      "TIFF          ")
+module(GEOTIFF   "GeoTIFF       ")
+module(NETCDF    "NetCDF        ")
+module(HDF       "HDF4          ")
+module(HDF5      "HDF5          ")
+module(FFTW      "FFTW          ")
+module(LIBPROJ4  "Libproj4      ")
+set(MPI_LIBRARIES ${MPI_LIBRARIES})
+module(MPI       "MPI           ")
 module(PYTHON    "Python        ")
 module(UDUNITS   "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")
