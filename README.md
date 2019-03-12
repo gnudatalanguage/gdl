@@ -66,7 +66,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [HDF5](https://support.hdfgroup.org/HDF5/)                                              |   +    |    +       |   +    | +       |   -   |    +      |   +   |   +   |
 | [FFTW](http://www.fftw.org/)                                                            |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [PROJ.4](http://proj4.org/)                                                             |   -    |    -       |   -    | +       |   -   |    +      |   -   |   +   |
-| [Shapelib](http://shapelib.maptools.org/)                                      |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
+| [Shapelib](http://shapelib.maptools.org/)                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [MPICH](https://www.mpich.org/)                                                         |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
 | [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/)                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [udunits](https://www.unidata.ucar.edu/software/udunits/)                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
