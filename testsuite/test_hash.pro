@@ -5,6 +5,36 @@ MESSAGE, /continue, message
 end
 ;
 pro test_HASH,debug=debug, verbose=verbose
+nb_errors = 0
+
+; below a few simple tests on HASH before the more internal tests provided originally
+;
+; define two hashtables, with pointers and check Where()
+a=33L
+p=ptr_new(a)
+hsh = HASH('key1', 1.414, 'key2', 3.14, 'key3', ptr_new(a)) ;
+hshp = HASH('key1', 1.414, 'key2', 3.14, 'key3', p) ;
+
+c=hsh.where(ptr_new(a)) ; c must be a 0 element list  IS NOT AT THE MOMENT. Issued 
+; SUPRESSED UNTIL issue  #578 has been closed.
+;if ~c.IsEmpty() then ERRORS_ADD, nb_errors,' error where() on different pointers to same value '
+
+c=hsh.where(1.414) ; c must be a LIST of 1 element and c[0]='key1'
+if c ne 'key1' then ERRORS_ADD, nb_errors,' error where() on key=Float '
+
+c=hshp.where(p) ; 
+if c ne 'key3' then ERRORS_ADD, nb_errors,' error where() on key=ptr '
+
+; now check EQ (I suppose NEQ will work)
+
+result = hsh EQ 1.414
+if result.count() ne 1 and result[0] ne 'key1' then ERRORS_ADD, nb_errors,' error EQ Float for HASH ' 
+
+result = hshp EQ p
+if result.count() ne 1 and result[0] ne 'key3' then ERRORS_ADD, nb_errors,' error EQ pointer for HASH ' 
+
+; "more internal" tests - to de bedited and made more undertsandable to maintainers.
+;
 isgit = 0
 defsysv,"!GDL",exists=isgdl
 if isgdl then $
@@ -34,7 +64,6 @@ if keyword_set(verbose) then begin
     help,/st,struchash
     endif
 ; 
-nb_errors = 0
     ; make a comparison hash from the structure.
         hcomp = hash(struchash,/lower,/fold)
     nstash = n_tags(struchash)
