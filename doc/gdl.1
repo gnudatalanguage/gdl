@@ -175,8 +175,9 @@ Sets the preference for the default width of an X11 graphic window
 .B GDL_WX_BACKEND
 can be set to [0,1,2] which will select, respectively, the backends 0,1 or 2 of plplot's old wxWidgets driver (plplot versions < 5.10). Backend 2 has antialiasing enabled.
 .TP
-.B GSHHS_DATA_DIR
-If not automatically found, tells GDL where the gshhs files (coasts rivers, etc) are located.
+.B GDL_MAPS_DIR
+If not automatically found, tells GDL where the maps files (coasts rivers, etc, used by MAPS_CONTINENTS) are located. 
+These are in Shapefile format and newer versions can possibly be present on naturalearthdata.com
 .SH BUGS
 Please report bugs, comments, patches or feature requests at
 http://sf.net/projects/gnudatalanguage/

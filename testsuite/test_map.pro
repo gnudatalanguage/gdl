@@ -1,9 +1,7 @@
 ;
 ; A visual way to check some projections and Earth cartography.
 ;
-; Also a way to check whether GDL was compiled with GSHHG support,
-; with GSHHG somewhere in GSHHG_DATA_DIR,
-; and if GDL is compiled or not with LibProj4 or LibProj4New
+; Also a way to check whether GDL was compiled or not with LibProj4 or LibProj4New
 ;
 ; --------------------------------------------
 ; This code is under GNU GPL v2 or later.
@@ -25,41 +23,25 @@
 ;
 ; AC 2019-02-12 : few revisions,  better search for MAP_INSTALL
 ;
+; GD 2019-03-10 : replaced all gshh* code with shapelib and 
+;                 naturalearthdata.com shapefiles so removed any
+;                 gshhsg related procedures and code. Added however
+;                 new procedures to build a shapefile from the gshhsg data,
+;                 in case it helps.
 ; --------------------------------------------
 ;
 function INTERNAL_GDL_MAP_LIBS
 ;
-FORWARD_FUNCTION GSHHG_EXISTS, PROJ4_EXISTS, PROJ4NEW_EXISTS
-;
-print, 'Stating INTERNAL_GDL_MAP_LIBS'
+FORWARD_FUNCTION PROJ4_EXISTS, PROJ4NEW_EXISTS
 ;
 status=0
 ;
-if GSHHG_EXISTS() then begin
-   print, 'GDL was compiled with GSHHG support !'
-   status=1
-endif else begin
-   print, 'Unfortunalty, GDL was compiled without GSHHG support !'
-   print, 'This is mandatory for Earth Cartography'
-   status=-100
-endelse
 ;
-if PROJ4_EXISTS()  then begin
-   print, 'GDL was compiled with LibProj4 support !'
-   status=status+10
-endif else begin
-   print, 'Unfortunalty, GDL was compiled without LibProj4 support !'
-endelse
-;
-if PROJ4NEW_EXISTS()  then begin
-   print, 'GDL was compiled with LibProj4New support !'
-   status=status+10
-endif else begin
-   print, 'Unfortunalty, GDL was compiled without LibProj4New support !'
-endelse
-;
-return, status
-;
+if PROJ4_EXISTS() or PROJ4NEW_EXISTS() then return, 10
+
+print, 'Unfortunalty, GDL was compiled without LibProj4 or libProj4New support !'
+return,0
+
 end
 ;
 ; -------------------------------------------------
@@ -185,48 +167,6 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; -------------------------------------------------
-;
-function CHECK_GSHHG_DATA, test=test
-;
-FORWARD_FUNCTION GSHHG_DATA_DIR_EXISTS
-;
-print, 'Starting CHECK_GSHHG_DATA'
-;
-files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
-nb_files=N_ELEMENTS(files)
-;
-if ~GSHHG_DATA_DIR_EXISTS() then begin
-   ;; creating a local sub-dir
-   tmp_gshhg_data_dir='tmp_gshhg_data_dir'
-   if ~FILE_TEST(tmp_gshhg_data_dir) then FILE_MKDIR, tmp_gshhg_data_dir
-   MAP_GSHHG_PATH_SET, tmp_gshhg_data_dir
-endif
-;
-files_ok=nb_files
-;
-for ii=0, nb_files-1 do begin
-   Result=FILE_SEARCH(!GSHHG_DATA_DIR+PATH_SEP()+files[ii])
-   if (STRLEN(Result) EQ 0) then begin
-      print, 'GSHHG data file <<'+files[ii]+'>> not found'
-      files_ok--
-   endif
-endfor
-;
-if (files_ok NE nb_files) then begin
-   MESSAGE, /continue, 'Some GSHHG data files are missing ... please check !GSHHG_DATA_DIR'
-   return, -2
-endif else begin
-   MESSAGE, /continue, 'GSHHG data files found'
-   return, 1
-endelse
-;
-if KEYWORD_SET(test) then STOP
-;
-end
-;
-; ------------------------------------
-;
 function TEST_MAP_PROCEDURES
 ;
 ; do we have this procedure in GDL syntax in the PATH ?
@@ -243,15 +183,11 @@ pro INTERNAL_GDL_MAP_CHECK, test=test
 ;
 ON_ERROR, 2
 ;
-; Checking if GDL is compiled with mandatory libraries: 
-; GSHHG and one in the 2 projections libraries
+; Checking if GDL is compiled with one of the 2 projections libraries
 ;
 status=INTERNAL_GDL_MAP_LIBS()
 ;
-if (status LT 0) then begin
-   MESSAGE, /continue, 'GSHHG missing, no Earth maps in GDL !'
-endif
-if (status LE 10)  then begin
+if (status Lt 10)  then begin
    MESSAGE, /continue, 'GDL without Projection support !'
    status=-1
 endif
@@ -268,68 +204,6 @@ status_map_pro=TEST_MAP_PROCEDURES()
 ;
 if status_map_pro EQ 0 then GET_MAP_PROCEDURES
 ;
-; Checking we have data file around
-;
-status_gshhg_data=CHECK_GSHHG_DATA()
-if (status_gshhg_data LT 0) then begin
-   reponse=''
-   print, 'GSHHG/S data are missing on local computer,'
-   read, 'Are you OK to download the three missing data files (y/n) ?', reponse
-   reponse=STRMID(STRupCASE(reponse),0,1)
-   if (reponse EQ 'Y' or reponse EQ 'O') then begin
-      GET_GSHHG_DATA
-   endif else begin
-      MESSAGE, "GSHHG data are missing, you can set up !GSHHG_DATA_DIR if you have a local copy"
-   endelse
-   ;;
-   ;; now we can check again
-   status_gshhg_data=CHECK_GSHHG_DATA()
-   if (status_gshhg_data LT 0) then begin
-      MESSAGE, "GSHHG data still missing"
-   endif
-endif
-;
-if KEYWORD_SET(test) then STOP
-;
-end
-;
-; ------------------------------------
-; We already check !GSHHG_DATA_DIR is set and OK (does exist)
-;
-pro GET_GSHHG_DATA, test=test
-;
-FORWARD_FUNCTION GRAB_ON_INTERNET
-;
-if ~GSHHG_DATA_DIR_EXISTS() then MESSAGE, '!GSHHG_DATA_DIR is supposed to exist !'
-;
-CD, current=old_current
-CD, !GSHHG_DATA_DIR
-;
-files=['gshhs_c.b','wdb_borders_c.b','wdb_rivers_c.b']
-md5sum=['b87b875e8b8c89c1314be5ff6da3a300', $
-        '2df949e98ef93455bfa9fabba53f6e5e', $
-        'b4c834981036e4c740d980bd91258844']
-;
-; the three files we need are store here:
-http="http://aramis.obspm.fr/~coulais/IDL_et_GDL/GSHHS_2.3.1/"
-;
-; downloading the files
-;
-GRAB_ON_INTERNET, http+files, /quiet, /count
-;
-; check the files integrity
-;
-for ii=0, N_ELEMENTS(files)-1 do begin
-   SPAWN, "md5sum "+files[ii], result
-   extract_result=STRMID(result,0,32)
-   if (extract_result NE md5sum[ii]) then begin
-      MESSAGE, /cont, "Warning : md5sum NOT OK for file : "+files[ii]
-   endif else begin
-       MESSAGE, /cont, "md5sum OK for file : "+files[ii]
-    endelse
-endfor
-;
-CD, old_current
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -369,10 +243,6 @@ end
 ; ------------------------------------
 ;
 pro TEST_MAP, dir=dir, tictac=tictac, fill=fill
-;
-DEFSYSV, '!gdl', exists=is_it_gdl
-;
-if (is_it_gdl) then INTERNAL_GDL_MAP_CHECK
 ;
 print, 'Exemple 1: Should plot the whole world centered on the Japan time line'
 MAP_SET, 0, 139, /continent, title='Continents'

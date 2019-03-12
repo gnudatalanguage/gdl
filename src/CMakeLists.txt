@@ -153,8 +153,6 @@ basic_pro_jmg.hpp
 brent.cpp
 grib.cpp
 grib.hpp
-gshhs.cpp
-gshhs.hpp
 gsl_fun.cpp
 gsl_fun.hpp
 gsl_matrix.cpp
@@ -279,6 +277,12 @@ where.cpp
 widget.cpp
 widget.hpp
 )
+if(USE_SHAPELIB)
+set(SOURCES
+${SOURCES}
+Shapefiles.cpp
+)
+endif(USE_SHAPELIB)
 
 add_subdirectory(antlr)
 
@@ -329,3 +333,8 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}
+	PATTERN CVS EXCLUDE
+	PATTERN checks EXCLUDE
+	PATTERN Makefile* EXCLUDE
+	PATTERN UrgentNeed.txt EXCLUDE)

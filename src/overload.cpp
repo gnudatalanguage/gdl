@@ -26,6 +26,10 @@
 #include "list.hpp"
 #include "hash.hpp"
 
+#ifdef USE_SHAPELIB
+#include "Shapefiles.hpp"
+#endif
+
 using namespace std;
 
 std::string overloadOperatorNames[] = 
@@ -427,6 +431,11 @@ void SetupOverloadSubroutines()
   assert( listDesc != NULL);
   DStructDesc* hashDesc = FindInStructList(structList, "HASH");
   assert( hashDesc != NULL);
+
+#ifdef USE_SHAPELIB
+  DStructDesc* GDLffShapeDesc = FindInStructList(structList, "IDLFFSHAPE");
+  assert( GDLffShapeDesc != NULL);
+#endif
   
   WRAPPED_FUNNode *tree;
   WRAPPED_FUNNode *treeFun;
@@ -833,5 +842,93 @@ void SetupOverloadSubroutines()
   treeFun = new WRAPPED_FUNNode( lib::container__iscontained);
   DFunlist->SetTree( treeFun);
   gdlContainerDesc->FunList().push_back( DFunlist);
-  
+#ifdef USE_SHAPELIB  
+  //=============GDLffShape========================
+//IDLFFSHAPE::GETATTRIBUTES
+  DFunlist = new DFun("GETATTRIBUTES","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("INDEX");
+  DFunlist->AddKey("ATTRIBUTE_STRUCTURE","ATTRIBUTE_STRUCTURE");
+  DFunlist->AddKey("ALL","ALL"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___GetAttributes);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+//IDLFFSHAPE::GETENTITY
+  DFunlist = new DFun("GETENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("INDEX");
+  DFunlist->AddKey("ATTRIBUTES","ATTRIBUTES");
+  DFunlist->AddKey("ALL","ALL"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___GetEntity);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+//IDLFFSHAPE::INIT
+  DFunlist = new DFun("INIT","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("FILENAME");
+  DFunlist->AddKey("DBF_ONLY","DBF_ONLY");
+  DFunlist->AddKey("ENTITY_TYPE","ENTITY_TYPE");
+  DFunlist->AddKey("UPDATE","UPDATE");
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___Init);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+  //IDLFFSHAPE::OPEN
+  DFunlist = new DFun("OPEN","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("FILENAME");
+  DFunlist->AddKey("DBF_ONLY","DBF_ONLY");
+  DFunlist->AddKey("ENTITY_TYPE","ENTITY_TYPE"); 
+  DFunlist->AddKey("UPDATE","UPDATE"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___Open);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+ //IDLFFSHAPE::ADDATTRIBUTE
+  DProlist = new DPro("ADDATTRIBUTE","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("NAME");
+  DProlist->AddPar("TYPE");
+  DProlist->AddPar("WIDTH");
+  DProlist->AddKey("PRECISION","PRECISION");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___AddAttribute);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::CLEANUP
+  DProlist = new DPro("CLEANUP","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___Cleanup);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::CLOSE
+  DProlist = new DPro("CLOSE","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___Close);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::DESTROYENTITY
+  DProlist = new DPro("DESTROYENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Entity");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___DestroyEntity);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::GETPROPERTY
+  DProlist = new DPro("GETPROPERTY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddKey("ATTRIBUTE_INFO","ATTRIBUTE_INFO");
+  DProlist->AddKey("ATTRIBUTE_NAMES","ATTRIBUTE_NAMES");
+  DProlist->AddKey("ENTITY_TYPE","ENTITY_TYPE");
+  DProlist->AddKey("FILENAME","FILENAME");
+  DProlist->AddKey("IS_OPEN","IS_OPEN");
+  DProlist->AddKey("N_ATTRIBUTES","N_ATTRIBUTES");
+  DProlist->AddKey("N_ENTITIES","N_ENTITIES");
+  DProlist->AddKey("N_RECORDS","N_RECORDS");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___GetProperty);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::PUTENTITY
+  DProlist = new DPro("PUTENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("DATA");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___PutEntity);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::SETATTRIBUTES
+  DProlist = new DPro("SETATTRIBUTES","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("INDEX");
+  DProlist->AddPar("ATTRIBUTES_NUM");
+  DProlist->AddPar("Value"); 
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___SetAttributes);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+#endif
 }

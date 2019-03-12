@@ -126,8 +126,8 @@ set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(GSHHG ON CACHE BOOL "GDL: Enable GSHHG ?")
-#set(GSHHGDIR "" CACHE PATH "GDL: Specifiy the GSHHG directory tree")
+set(SHAPELIB ON CACHE BOOL "GDL: Enable SHAPELIB (for IDLffShape, MAP_CONTINENTS and all geographic data?")
+set(SHAPELIBDIR "" CACHE PATH "GDL: Specify the SHAPELIB directory tree")
 
 if(NOT WIN32)
   set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
@@ -1023,15 +1023,23 @@ if(GLPK)
 endif(GLPK)
 #check_include_file(glpk.h HAVE_GLPK)
 
-# gshhs/gshhg (renamed
-# -DGSHHS=ON|OFF
-if(GSHHG)
-  set(USE_GSHHG 1)
-endif(GSHHG)
-# -DGSHHSDIR=DIR 
-# AC 2019 not needed anymore, gshhs include is in src/
-# see in revision history if needed
-#
+# SHAPELIB for all geo/gra/phy/sical data (shapelib format, IDLffShape
+# -DSHAPELIB=ON|OFF
+# -DSHAPELIBDIR=DIR
+if(SHAPELIB)
+  set(CMAKE_PREFIX_PATH ${SHAPELIBDIR})
+  find_package(SHAPELIB QUIET)
+  set(USE_SHAPELIB ${SHAPELIB_FOUND})
+  if(SHAPELIB_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${SHAPELIB_LIBRARIES})
+    include_directories(${SHAPELIB_INCLUDE_DIR})
+  else(SHAPELIB_FOUND)
+    message(FATAL_ERROR "SHAPELIB (http://shapelib.maptools.org/)  is required but was not found.\n"
+      "Use -DSHAPELIBDIR=DIR to specify the SHAPELIB-devel directory tree.\n"
+      "Use -DSHAPELIB=OFF to not use it.\n"
+      "shapelib is often in package libshp-devel.")
+  endif(SHAPELIB_FOUND)
+endif(SHAPELIB)
 # X11
 if(X11)
 	set(CMAKE_PREFIX_PATH ${X11DIR})
@@ -1167,8 +1175,8 @@ module(GRIB      "GRIB          ")
 # module(QHULL     "QHULL         ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
-#set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
-module(GSHHG     "GSHHG         ")
+set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
+module(SHAPELIB      "SHAPELIB          ")
 module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW	 "XPortMinGW (Win32 Xlib)       ")
