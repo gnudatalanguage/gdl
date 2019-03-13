@@ -52,19 +52,20 @@ that do not need the above procedures...
 
 ===========================================================================
 
-MAP_CONTINENTS is now implemented in GDL using the Natural Earth 
-(http://www.naturalearthdata.com/) shapefiles and our new support for reading
+MAP_CONTINENTS is now implemented in GDL as a procedure using the Natural Earth 
+(http://www.naturalearthdata.com/, hereafter NE) shapefiles and our new support for reading
 the ESRI Shapefile format in which one can find any number of geospatial informations.
 Since we added support for IDLffShape (meaning IDL f[ile] f[ormat] Shape[file] tool)
 one can now use toold like coyote's http://www.idlcoyote.com/idldoc/maps/cgdrawshapes.html
 to do more useful work than just MAP_CONTINENTS.
 
-The necessary shapefiles for MAP_CONTINENTS are now shipped with GDL,
-but the user may use a more recent version  by setting the variable
-!GEOSPATIAL_DATA_DIR directly such as
-GDL> !GEOSPATIAL_DATA_DIR="/a/path/to/the/data" ;  (absolute or relative)
+The necessary shapefiles for MAP_CONTINENTS are now shipped with GDL (in !DIR+"/share/gnudatalanguage/maps")
+However a knowledgeable user may use a more recent version by setting the variable
+!GDL_MAPS_DIR directly such as
+GDL> !GDL_MAPS_DIR="/a/path/to/the/data"
 
-The FILLing of MAP_CONTINENTS is erratical. Help welcome.
+The FILLing of NE shapefiles is not always possibla as these are not closed, oriented, shapes.
+We'll be happy to hear about free equivalents without this restriction.
 
 ===========================================================================
 NOTE ON PROJECTION-RELATED PROCEDURES IN GDL (and IDL)
