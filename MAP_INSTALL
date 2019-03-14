@@ -64,7 +64,7 @@ However a knowledgeable user may use a more recent version by setting the variab
 !GDL_MAPS_DIR directly such as
 GDL> !GDL_MAPS_DIR="/a/path/to/the/data"
 
-The FILLing of NE shapefiles is not always possibla as these are not closed, oriented, shapes.
+The FILLing of NE shapefiles is not always possible as these are not closed, oriented, shapes.
 We'll be happy to hear about free equivalents without this restriction.
 
 ===========================================================================
