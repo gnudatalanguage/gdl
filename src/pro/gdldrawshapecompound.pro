@@ -52,7 +52,7 @@ PRO gdlDrawSingleshape, shape, zvalue, extra, polyfill=poly, MAPSTRUCT=mapStruct
                n = N_ELEMENTS(xy)/2 
 
                if (n lt minpts[poly]) then break  ; not drawable/fillable either!
-
+               index = 0L
                while (index lt n) do begin
                   ipoly = polyconn[index + 1 : index + polyconn[index]]
                   if (poly) then polyfill, xy[0,ipoly], xy[1,ipoly],zvalue, NOCLIP=0, _EXTRA=extra else plots, xy[0,ipoly], xy[1,ipoly], zvalue, NOCLIP=0, _EXTRA=extra
