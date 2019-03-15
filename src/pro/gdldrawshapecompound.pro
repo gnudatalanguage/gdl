@@ -22,7 +22,7 @@ PRO gdlDrawSingleshape, shape, zvalue, extra, polyfill=poly, MAPSTRUCT=mapStruct
    minpts=[1,3] ; for [poly=0,1]
    ; Drawing is going to be done based on the shape type.
    SWITCH 1 OF
-      
+
       ; Polyline shapes. Not closed nor oriented. 
       ; Probably filling is irrelevant. Probably for RIVERS.
       shape.shape_type EQ  3 OR $   ; PolyLine
@@ -90,7 +90,7 @@ PRO gdlDrawSingleshape, shape, zvalue, extra, polyfill=poly, MAPSTRUCT=mapStruct
         BREAK                   ; we are in SWITCH
      END
 
-     ELSE: Message, 'Not currently handling shape type: ' + StrTrim(shape.shape_type,2)
+     ELSE: return ; like: shapetype 0 = placeholder.
 
   ENDSWITCH
 
