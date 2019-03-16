@@ -25,7 +25,15 @@
  * needs the hdf5 library, obtainable from http://hdf.ncsa.uiuc.edu/HDF5/
  */
 #define H5_USE_16_API 1
+#include <H5version.h>
 #include "hdf5.h"
+
+/*
+// We stay in 1.8 version, using the "1" old interface
+#define H5Dopen H5Dopen1
+#define H5Gopen H5Gopen1
+#define H5Ewalk H5Ewalk1
+*/
 
 namespace lib {
 

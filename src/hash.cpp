@@ -878,7 +878,7 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
   }
 
   
-// checks wether referenced values are equal (recursively) 
+// checks wether referenced values are equal (recursively). This is IDL behaviour.
 bool PtrDerefEqual( DPtrGDL* l, DPtrGDL* r)
 {
   SizeT nEl = l->N_Elements();
@@ -2836,14 +2836,14 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
 // We've gotten past any list, hash,or struct/
         DType theType = theref->Type();
             if(trace_me) std::cout << " theType="<<theType;
-// de-reference any pointers we find. (// This is probably not IDL behavior.)
+// DO NOT EVER de-reference any pointers we find. This is *not* IDL behavior.
 // in order to turn this off, a ptr scalar must go in as a ptrarr[1];
 //
-        if( theType == GDL_PTR && theref->Rank() == 0) {
-            DPtr p=(*static_cast<DPtrGDL*>( theref))[0];
-              if( p != 0) theref = BaseGDL::interpreter->GetHeap( p);
-              theType = theref->Type();
-          }
+//        if( theType == GDL_PTR && theref->Rank() == 0) {
+//            DPtr p=(*static_cast<DPtrGDL*>( theref))[0];
+//              if( p != 0) theref = BaseGDL::interpreter->GetHeap( p);
+//              theType = theref->Type();
+//          }
 // right bracket, we are done if only 3 parameters left (?).
         if(finalprm) {
             if(trace_me) help_item(std::cout, theref, " ->Dup():",false);

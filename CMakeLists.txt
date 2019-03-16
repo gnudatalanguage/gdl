@@ -119,15 +119,15 @@ set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
-set(MPICH OFF CACHE BOOL "GDL: Enable MPICH ?")
-set(MPICHDIR "" CACHE PATH "GDL: Specify the MPICH (experimental) directory tree")
+set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
+set(MPIDIR "" CACHE PATH "GDL: Specify the MPI (experimental) directory tree")
 
 set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(GSHHS ON CACHE BOOL "GDL: Enable GSHHS ?")
-set(GSHHSDIR "" CACHE PATH "GDL: Specifiy the GSHHS directory tree")
+set(GSHHG ON CACHE BOOL "GDL: Enable GSHHG ?")
+#set(GSHHGDIR "" CACHE PATH "GDL: Specifiy the GSHHG directory tree")
 
 if(NOT WIN32)
   set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
@@ -799,23 +799,22 @@ if(LIBPROJ4)
     endif(LIBPROJ4_FOUND)   
 endif(LIBPROJ4)
 
-# mpich (experimental)
-# -DMPICH=ON|OFF
-# -DMPICHDIR=DIR
-if(MPICH)
-    set(CMAKE_PREFIX_PATH ${MPICHDIR})
-    find_package(MPI QUIET)
-    set(USE_MPI ${MPI_FOUND})
-    if(MPI_FOUND)
-        include_directories(${MPI_INCLUDE_PATH})    
-        set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
-    else(MPI_FOUND)
-        message(FATAL_ERROR "MPICH is required but was not found.\n"
-        "Use -DMPICHDIR=DIR to specify the MPICH directory tree.\n"
-        "Use -DMPICH=OFF to not use it.")
-    endif(MPI_FOUND)    
-endif(MPICH)
-
+# MPI (experimental)
+# -DMPI=ON|OFF
+# -DMPIDIR=DIR
+if(MPI)
+	set(CMAKE_PREFIX_PATH ${MPIDIR})
+	find_package(MPI QUIET)
+	set(USE_MPI ${MPI_FOUND})
+	if(MPI_FOUND)
+		include_directories(${MPI_INCLUDE_PATH})	
+		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
+	else(MPI_FOUND)
+		message(FATAL_ERROR "MPI is required but was not found.\n"
+		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
+		"Use -DMPI=OFF to not use it.")
+	endif(MPI_FOUND)	
+endif(MPI)
 # python
 # -DPYTHON=ON|OFF
 # -DPYTHON_MODULE
@@ -1027,25 +1026,14 @@ if(GLPK)
 endif(GLPK)
 #check_include_file(glpk.h HAVE_GLPK)
 
-# gshhs
+# gshhs/gshhg (renamed
 # -DGSHHS=ON|OFF
-if(GSHHS)   
-    set(USE_GSHHS 1)
-endif(GSHHS)
-# -DGSHHSDIR=DIR
-#not needed anymore, gshhs include is in src/
-#   set(CMAKE_PREFIX_PATH ${GSHHSDIR} src/)
-#   find_path(GSHHS_INCLUDE_DIR gshhs.h)
-#   mark_as_advanced(GSHHS_INCLUDE_DIR)
-#   set(USE_GSHHS ${GSHHS_INCLUDE_DIR})
-#   if(USE_GSHHS)
-#       include_directories(${GSHHS_INCLUDE_DIR})
-#   else(USE_GSHHS)
-#       message(FATAL_ERROR "GSHHS is required but gshhs.h was not found.\n"
-#       "Use -DGSHHSDIR=DIR to specify the GSHHS directory tree.\n"
-#       "Use -DGSHHS=OFF to not use it.")
-#   endif(USE_GSHHS)
-#endif(GSHHS)
+if(GSHHG)
+  set(USE_GSHHG 1)
+endif(GSHHG)
+# -DGSHHSDIR=DIR 
+# AC 2019 not needed anymore, gshhs include is in src/
+# see in revision history if needed
 #
 # X11
 if(X11)
@@ -1162,17 +1150,17 @@ else(OPENMP AND OPENMP_FOUND)
     message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
-module(WXWIDGETS "WxWidgets  ")
-module(MAGICK    "ImageMagick")
-module(TIFF      "TIFF       ")
-module(GEOTIFF   "GeoTIFF    ")
-module(NETCDF    "NetCDF     ")
-module(HDF       "HDF4       ")
-module(HDF5      "HDF5       ")
-module(FFTW      "FFTW       ")
-module(LIBPROJ4  "Libproj4   ")
-set(MPICH_LIBRARIES ${MPI_LIBRARIES})
-module(MPICH     "MPICH         ")
+module(WXWIDGETS "WxWidgets     ")
+module(MAGICK    "ImageMagick   ")
+module(TIFF      "TIFF          ")
+module(GEOTIFF   "GeoTIFF       ")
+module(NETCDF    "NetCDF        ")
+module(HDF       "HDF4          ")
+module(HDF5      "HDF5          ")
+module(FFTW      "FFTW          ")
+module(LIBPROJ4  "Libproj4      ")
+set(MPI_LIBRARIES ${MPI_LIBRARIES})
+module(MPI       "MPI           ")
 module(PYTHON    "Python        ")
 module(UDUNITS   "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")
@@ -1182,9 +1170,9 @@ module(GRIB      "GRIB          ")
 # module(QHULL     "QHULL         ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
-set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
-module(GSHHS     "GSHHS         ")
-module(PSLIB     "pslib         ")
+#set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
+module(GSHHG     "GSHHG         ")
+module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)

@@ -6,9 +6,15 @@
 ; 06-July-2012: we change Func1 to a better one !
 ; 
 ; -------------------------------------------------
-; usage: in GDL CLI:
-; GDL> test_fx_root
+; Modifications history :
 ;
+; 2019-Feb-14 : AC. in fact, the implemented version of FX_ROOT
+; was not able to invert Ricati equation as used in a simulator
+; for Astro-F FTS (the so called Fouks-Schubert model).
+; I re-implemented the fx_root and clean-up the test
+;
+; 2019-Feb-14 : AC. adding complex roots of second order polynom
+; 
 ; -------------------------------------------------
 ;
 ; AC 06/07/2012 the example in IDL doc is stupid !
@@ -33,12 +39,16 @@ end
 ;
 ; -------------------------------------------------
 ;
-pro TEST_FX_ROOT_ON_FUNC, init=init, function_name=function_name, $
-                          iter=iter, eps=eps, help=help, test=test
-  
+pro TEST_FX_ROOT_ON_FUNC, cumul_errors, init, expected, $
+                          iter=iter, eps=eps, tolerance=tolerance, $
+                          function_name=function_name, $
+                          verbose=verbose, help=help, test=test
+;
+name=ROUTINE_NAME()
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_FX_ROOT_ON_FUNC, init=init, function_name=function_name, $'
-    print, '                          iter=iter, eps=eps, help=help, test=test'
+    print, 'pro '+name+' , cumul_errors, init, expected, iter=iter, $'
+    print, '           eps=eps, function_name=function_name, $'
+    print, '           verbose=verbose, help=help, test=test'
     return
 endif
 ;
@@ -47,81 +57,162 @@ if (N_ELEMENTS(eps) EQ 0) then eps=1e-4
 ;
 if N_ELEMENTS(function_name) EQ 0 then function_name='FUNC1'
 ;
-nb_errors=0
-;
 ;return one root
-resuFX=FX_ROOT(init,function_name,ITMAX=iter,/DOUBLE,STOP=1,TOL=0.00001)
+resuFX=FX_ROOT(init,function_name, ITMAX=iter, /DOUBLE,STOP=1, TOL=tolerance)
 resuNW=NEWTON(4.,function_name) 
-;;  
-print, 'FX_ROOT : ',  resuFX
-print, 'FX_NEWTON : ', resuNW
+;
+if KEYWORD_SET(verbose) then begin
+   print, 'Tol., Eps, iter, init : ', tolerance, eps, iter, init
+   print, 'expected : ', expected
+   print, 'FX_ROOT : ',  resuFX
+   print, 'FX_NEWTON : ', resuNW
+endif
 ;
 ; comparing
 ;
-if ABS(CALL_FUNCTION(function_name,resuFX)) GT eps then nb_errors=nb_errors+1
+nb_errors=0
 ;
-if ABS(resuFX-resuNW) GT eps then nb_errors=nb_errors+1
+if ABS(CALL_FUNCTION(function_name,resuFX)) GT eps then $
+   ERRORS_ADD, nb_errors, 'bad direct calculation'
 ;
-if (nb_errors GT 0) then begin
-    MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
-    if ~KEYWORD_SET(test) then EXIT, status=1
-endif else begin
-    MESSAGE, /continue, 'Function '+function_name+' : No Errors founded'
-endelse
-  
-if KEYWORD_SET(test) then STOP
-
+if ABS(resuFX-resuNW) GT eps then $
+   ERRORS_ADD, nb_errors, 'bad comparison with Newton method'
+;
+if ABS(resuFX-expected) GT eps then $
+   ERRORS_ADD, nb_errors, 'bad comparison with expected value'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, name, nb_errors, /status
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
 end
+;
+; -------------------------------------------------
 ;
 ; depending the [x0,x1,x2] values, we can converge to different roots
 ;
-pro WHERE_DO_WE_CONVERGE
+pro WHERE_DO_WE_CONVERGE, cumul_errors, test=test, verbose=verbose
+;
+name=ROUTINE_NAME()
 ;
 tol=1.e-5
 expected_module=2.
 re_r1=-1
 ;
 root1=FX_ROOT([-10,0,.5], 'FUNC3')
-root2=FX_ROOT([0,.5,3], 'FUNC3')    
+root2=FX_ROOT([0,.5,3], 'FUNC3')
 ;
-errors=0
+nb_errors=0
 ; checking module values
-if ABS(ABS(root1)-expected_module) GT tol then begin
-   errors=errors+1
-   MESSAGE,/continue, 'root1 inaccurate'
-endif
-if ABS(ABS(root2)-expected_module) GT tol then begin
-   errors=errors+1
-   MESSAGE,/continue, 'root2 inaccurate'
-endif
+if ABS(ABS(root1)-expected_module) GT tol then $
+   ERRORS_ADD, nb_errors, 'root1 inaccurate'
+;
+if ABS(ABS(root2)-expected_module) GT tol then $
+   ERRORS_ADD, nb_errors, 'root2 inaccurate'
 ;
 ; checking roots values
-if ABS(real_part(root1)-re_r1) GT tol then begin
-   errors=errors+1
-   MESSAGE,/continue, 'unexpected root1'
-endif
-if ABS(real_part(root2)-expected_module) GT tol then begin
-   errors=errors+1
-   MESSAGE,/continue, 'unexpected root2'
-endif
+if ABS(real_part(root1)-re_r1) GT tol then $
+   ERRORS_ADD, nb_errors, 'unexpected root1'
 ;
-if errors EQ 0 then MESSAGE,/continue, 'convergence on expected roots well done'
+if ABS(real_part(root2)-expected_module) GT tol then $
+   ERRORS_ADD, nb_errors, 'unexpected root21'
+;
+if nb_errors EQ 0 then $
+   MESSAGE, /continue, 'convergence on expected roots well done'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, name, nb_errors, /status
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------------------------
+; FX_ROOT can be used to search for complex roots of polynomes.
+; Take care of the region where starting search.
+;
+; Here roots are : -1/2 +- i* SQRT(3)/2
+function POLY111, x
+  return, X^2 + X +1.
+end
+;
+pro COMPLEX_ROOT_OF_POLYNOM, cumul_errors, test=test
+;
+eps=1e-4
+nb_errors=0
+;
+rootp=COMPLEX(-1,SQRT(3))/2.
+rootm=COMPLEX(-1,-SQRT(3))/2.
+;
+r1=FX_ROOT([-2,-1,0],'poly111')
+r1b=FX_ROOT([-20,-10,0],'poly111')
+;
+r2=FX_ROOT([-2,-1,4],'poly111')
+r2b=FX_ROOT([-20,-10,10],'poly111')
+;
+if ABS(rootp-r1) GT eps then ERRORS_ADD, nb_errors, 'bad root1'
+if ABS(rootp-r1b) GT eps then ERRORS_ADD, nb_errors, 'bad root1 bis'
+;
+if ABS(rootm-r2) GT eps then ERRORS_ADD, nb_errors, 'bad root2'
+if ABS(rootm-r2b) GT eps then ERRORS_ADD, nb_errors, 'bad root2 bis'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, ROUTINE_NAME(), nb_errors, /status
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
-pro TEST_FX_ROOT
+; -------------------------------------------------
 ;
-;float precision for double DCOMPLEXARR
-C = COMPLEXARR(1,3)
-C[0] = complex(1,0)
-C[1] = complex(2,0)
-C[2] = complex(3,0)
-c=reform(c)
+pro TEST_FX_ROOT, help=help, test=test, no_exit=no_exit, verbose=verbose
 ;
-TEST_FX_ROOT_ON_FUNC, init=C, function_name='FUNC1', iter=100
-TEST_FX_ROOT_ON_FUNC, init=C, function_name='FUNC2', iter=100
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FX_ROOT, help=help, test=test, $'
+   print, '              no_exit=no_exit, verbose=verbose'
+   return
+endif
 ;
-; informational test
-WHERE_DO_WE_CONVERGE
+init = 1.+ CINDGEN(3)
+;
+expected=0.73908514
+TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, $
+                      verbose=verbose, function_name='FUNC1', iter=100
+TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, eps=0.001, $
+                      verbose=verbose, function_name='FUNC1', iter=10
+TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, eps=0.001, $
+                      verbose=verbose, function_name='FUNC1', tol=0.01
+
+TEST_FX_ROOT_ON_FUNC, cumul_errors, init, expected, eps=0.001, $
+                      verbose=verbose, function_name='FUNC1', iter=100
+TEST_FX_ROOT_ON_FUNC, cumul_errors, init, expected, eps=0.001, $
+                      verbose=verbose, function_name='FUNC1', iter=10
+TEST_FX_ROOT_ON_FUNC, cumul_errors, init, expected, eps=0.001, $
+                      verbose=verbose, function_name='FUNC1', tol=0.01
+;
+expected=2.2360680
+TEST_FX_ROOT_ON_FUNC, cumul_errors, init, expected, $
+                      verbose=verbose, function_name='FUNC2', tol=0.0001
+TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, $
+                      verbose=verbose, function_name='FUNC2', tol=0.0001
+;
+; another test on FUNC3
+WHERE_DO_WE_CONVERGE, cumul_errors
+;
+; search of complex roots in polynoms ...
+COMPLEX_ROOT_OF_POLYNOM, cumul_errors
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, ROUTINE_NAME(), cumul_errors, short=short
+;
+if (cumul_errors NE 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
+;

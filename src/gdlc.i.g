@@ -170,7 +170,7 @@ public:
     static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
-    static int GetProIx( ProgNodeP, bool throwImmediately=false);//const std::string& subName);
+    static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
     void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL);
@@ -184,7 +184,7 @@ public:
 
 private: 
 
-    static void SetProIx( ProgNodeP f, bool throwImmediately=false); // triggers read/compile
+    static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
 
@@ -979,6 +979,18 @@ interactive returns[ RetCode retCode]
         )+
     ;
 
+// execute statement
+execute returns[ RetCode retCode]
+{
+//    RetCode retCode;
+    ValueGuard<bool> guard( interruptEnable);
+    interruptEnable = false;
+
+	return statement_list(_t);
+}
+    : retCode=statement_list
+    ;
+
 // used to call functions
 // same as statement list, but different behaviour for returncodes
 call_fun returns[ BaseGDL* res]
@@ -1071,7 +1083,24 @@ call_pro
     ;
 
 
-statement [bool throwImmediately=false] returns[ RetCode retCode]
+// used on many occasions
+statement_list returns[ RetCode retCode]
+{
+	for (; _t != NULL;) {
+
+		retCode=statement(_t);
+		_t = _retTree;
+			
+		if( retCode != RC_OK) break; // break out if non-regular
+	}
+	_retTree = _t;
+	return retCode;
+}
+    : (retCode=statement
+        )+
+    ;
+
+statement returns[ RetCode retCode]
 {
 //    ProgNodeP& actPos = statement_AST_in;
     assert( _t != NULL);
@@ -1092,7 +1121,7 @@ statement [bool throwImmediately=false] returns[ RetCode retCode]
                 // track actual line number
                 callStack.back()->SetLineNumber( last->getLine());
 
-                retCode = last->Run(throwImmediately); // Run() sets _retTree
+                retCode = last->Run(); // Run() sets _retTree
                         
             }
             while( 
@@ -1426,35 +1455,6 @@ statement [bool throwImmediately=false] returns[ RetCode retCode]
         return retCode;
     } // catch [ GDLException& e] 
 
-
-// used on many occasions
-statement_list [bool throwImmediately=false] returns[ RetCode retCode]
-{
-	for (; _t != NULL;) {
-
-		retCode=statement(_t, throwImmediately);
-		_t = _retTree;
-			
-		if( retCode != RC_OK) break; // break out if non-regular
-	}
-	_retTree = _t;
-	return retCode;
-}
-    : (retCode=statement[throwImmediately]
-        )+
-    ;
-
-// execute statement
-execute [bool throwImmediately=false] returns[ RetCode retCode]
-{
-//    RetCode retCode;
-    ValueGuard<bool> guard( interruptEnable);
-    interruptEnable = false;
-
-//	return statement_list(_t, throwImmediately);
-}
-    : retCode=statement_list[throwImmediately]
-    ;
 
 
 

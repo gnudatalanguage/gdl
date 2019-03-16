@@ -359,11 +359,11 @@ namespace lib {
 	resGuard.Reset( res);
       } 
     else
-    {
-      res = (T*) p0;
-      if( e->GlobalPar(0))
-	e->SetPtrToReturnValue(&e->GetPar(0));
-    }
+      {
+	res = (T*) p0;
+	if( e->GlobalPar(0))
+	  e->SetPtrToReturnValue(&e->GetPar(0));
+      }
     
     DComplexGDL* tabfft = new DComplexGDL(p0->Dim());
     Guard<DComplexGDL> tabfftGuard( tabfft);
@@ -541,7 +541,7 @@ namespace lib {
 	      offset++;
 	    }
 	  }
-// 	  delete used;
+	  // 	  delete used;
 	}
       }
     
@@ -727,8 +727,8 @@ namespace lib {
 	}
 
 	complex_fft_transform_template<float, 
-	  gsl_fft_complex_wavetable_float,
-	  gsl_fft_complex_workspace_float> 
+				       gsl_fft_complex_wavetable_float,
+				       gsl_fft_complex_workspace_float> 
 	  (p0, dptr, nEl, direct, offset, stride, radix2,
 	   gsl_fft_complex_float_radix2_forward,
 	   gsl_fft_complex_float_radix2_backward,
@@ -766,8 +766,8 @@ namespace lib {
 	}
 	
 	complex_fft_transform_template<double, 
-	  gsl_fft_complex_wavetable,
-	  gsl_fft_complex_workspace> 
+				       gsl_fft_complex_wavetable,
+				       gsl_fft_complex_workspace> 
 	  (p0, dptr, nEl, direct, offset, stride, radix2,
 	   gsl_fft_complex_radix2_forward,
 	   gsl_fft_complex_radix2_backward,
@@ -786,8 +786,8 @@ namespace lib {
 	dptr = (double*) data;
 
 	real_fft_transform_template<double, 
-	  gsl_fft_real_wavetable,
-	  gsl_fft_real_workspace> 
+				    gsl_fft_real_wavetable,
+				    gsl_fft_real_workspace> 
 	  (p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
 	   gsl_fft_complex_radix2_forward,
 	   gsl_fft_complex_radix2_backward,
@@ -812,8 +812,8 @@ namespace lib {
 	dptr   = (float*) data;
 
 	real_fft_transform_template<float, 
-	  gsl_fft_real_wavetable_float,
-	  gsl_fft_real_workspace_float> 
+				    gsl_fft_real_wavetable_float,
+				    gsl_fft_real_workspace_float> 
 	  (p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
 	   gsl_fft_complex_float_radix2_forward,
 	   gsl_fft_complex_float_radix2_backward,
@@ -830,399 +830,399 @@ namespace lib {
     assert(false);
     return 0;
   }
-/* following are modified codes taken from the GNU Scientific Library (gauss.c)
- * 
- * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2006, 2007 James Theiler, Brian Gough
- * Copyright (C) 2006 Charles Karney
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
-inline double high_prec_gsl_rng_uniform_pos_d(const gsl_rng * r)
-{
-  unsigned long A, B;
-  long double C;
-  A = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
-  B = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
-  A = (A >> 5);
-  B = (B >> 6);
-  C = A * pow(2, 26) + B;
-  return C * pow(2, -53);
-}
-
-float modified_gsl_ran_gaussian_f(const gsl_rng * r, const double sigma, bool reset = false)
-{
-  //modified from GSL code to use the trick described in NumRec, that is,
-  //use also the angle of the 'draw" as a no-cost random variable.
-  //This trick is used by IDL.
-  //The reset is used to start a new sequence (could probably be done looking at r contents)
-  static int available = 0;
-  if (reset) {
-    available = 0;
-    return std::numeric_limits<float>::quiet_NaN(); //ensure not used.
-  }
-  static float other;
-  float x, y, r2;
-  if (available == 0) {
-    do {
-      /* choose x,y in uniform square (-1,-1) to (+1,+1) */
-      x = -1 + 2 * gsl_rng_uniform_pos(r);
-      y = -1 + 2 * gsl_rng_uniform_pos(r);
-
-      /* see if it is in the unit circle */
-      r2 = x * x + y * y;
-    } while (r2 > 1.0 || r2 == 0);
-
-    /* Box-Muller transform */
-    double fct = sqrt(-2.0 * log(r2) / r2);
-    float current = sigma * y * fct;
-    other = sigma * x * fct;
-    available = 1;
-    return current;
-  } else {
-    available = 0;
-    return other;
-  }
-}
-
-double modified_gsl_ran_gaussian_d(const gsl_rng * r, const double sigma, bool reset = false)
-{
-  //modified from GSL code to use the trick described in NumRec, that is,
-  //use also the angle of the 'draw" as a no-cost random variable.
-  //This trick is used by IDL.
-  //Moreover, IDL for doubles eats 2 single-precision numbers so that the result is
-  // randomn_double = [(A >> 5)*226 + (B >> 6)]*2-53 where A and B are
-  // 2 integer 32 bits random numbers.
-  //The reset is used to start a new sequence (could probably be done looking at r contents)
-  //GSL uses uniform_pos but the algo should permit x==0 or y==0 ?
-  static int available = 0;
-  if (reset) {
-    available = 0;
-    return std::numeric_limits<double>::quiet_NaN(); //ensure not used.
-  }
-  static double other;
-  double x, y, r2;
-  if (available == 0) {
-    do {
-      /* choose x,y in uniform square (-1,-1) to (+1,+1) */
-      x = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
-      y = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
-      /* see if it is in the unit circle */
-      r2 = x * x + y * y;
-    } while (r2 > 1.0 || r2 == 0);
-
-    /* Box-Muller transform */
-    double fct = sqrt(-2.0 * log(r2) / r2);
-    double current = sigma * y * fct;
-    other = sigma * x * fct;
-    available = 1;
-    return current;
-  } else {
-    available = 0;
-    return other;
-  }
-}
-
-//template uses gsl, certified to give identical results to IDL8+. This is SLOW and not the default.
-
-template< typename T1, typename T2>
-int random_gamma(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DLong n)
-{
-  SizeT nEl = res->N_Elements();
-  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-      (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
-  return 0;
-}
-
-template< typename T1, typename T2>
-int random_binomial(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* binomialKey)
-{
-  SizeT nEl = res->N_Elements();
-  //Note: Binomial values are not same IDL.    
-  DULong n = (DULong) (*binomialKey)[0];
-  DDouble p = (DDouble) (*binomialKey)[1];
-  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_binomial_knuth(gsl_rng_mem, p, n);
-  return 0;
-}
-
-template< typename T1, typename T2>
-int random_poisson(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* poissonKey)
-{
-  SizeT nEl = res->N_Elements();
-  //Removed old code that would return non-integer values for high mu values.
-  DDouble mu = (DDouble) (*poissonKey)[0];
-  for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_poisson(gsl_rng_mem, mu);
-  return 0;
-}
-
-template< typename T1, typename T2>
-int random_uniform(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
-{
-  SizeT nEl = res->N_Elements();
-
-  if (sizeof (T2) == sizeof (float)) {
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_rng_uniform(gsl_rng_mem);
-    return 0;
-  } else {
-    //as for IDL, make a more precise random number from 2 successive ones:
+  /* following are modified codes taken from the GNU Scientific Library (gauss.c)
+   * 
+   * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2006, 2007 James Theiler, Brian Gough
+   * Copyright (C) 2006 Charles Karney
+   * 
+   * This program is free software; you can redistribute it and/or modify
+   * it under the terms of the GNU General Public License as published by
+   * the Free Software Foundation; either version 3 of the License, or (at
+   * your option) any later version.
+   * 
+   * This program is distributed in the hope that it will be useful, but
+   * WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   * General Public License for more details.
+   * 
+   * You should have received a copy of the GNU General Public License
+   * along with this program; if not, write to the Free Software
+   * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   */
+  inline double high_prec_gsl_rng_uniform_pos_d(const gsl_rng * r)
+  {
     unsigned long A, B;
     long double C;
-    for (SizeT i = 0; i < nEl; ++i) {
-      A = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
-      B = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
-      A = (A >> 5);
-      B = (B >> 6);
-      C = A * pow(2, 26) + B;
-      C = C * pow(2, -53);
-      (*res)[ i] = (T2) C; //gives the same as IDL 8
+    A = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
+    B = gsl_rng_uniform_pos(r)*0xFFFFFFFFUL;
+    A = (A >> 5);
+    B = (B >> 6);
+    C = A * pow(2, 26) + B;
+    return C * pow(2, -53);
+  }
+
+  float modified_gsl_ran_gaussian_f(const gsl_rng * r, const double sigma, bool reset = false)
+  {
+    //modified from GSL code to use the trick described in NumRec, that is,
+    //use also the angle of the 'draw" as a no-cost random variable.
+    //This trick is used by IDL.
+    //The reset is used to start a new sequence (could probably be done looking at r contents)
+    static int available = 0;
+    if (reset) {
+      available = 0;
+      return std::numeric_limits<float>::quiet_NaN(); //ensure not used.
+    }
+    static float other;
+    float x, y, r2;
+    if (available == 0) {
+      do {
+	/* choose x,y in uniform square (-1,-1) to (+1,+1) */
+	x = -1 + 2 * gsl_rng_uniform_pos(r);
+	y = -1 + 2 * gsl_rng_uniform_pos(r);
+
+	/* see if it is in the unit circle */
+	r2 = x * x + y * y;
+      } while (r2 > 1.0 || r2 == 0);
+
+      /* Box-Muller transform */
+      double fct = sqrt(-2.0 * log(r2) / r2);
+      float current = sigma * y * fct;
+      other = sigma * x * fct;
+      available = 1;
+      return current;
+    } else {
+      available = 0;
+      return other;
+    }
+  }
+
+  double modified_gsl_ran_gaussian_d(const gsl_rng * r, const double sigma, bool reset = false)
+  {
+    //modified from GSL code to use the trick described in NumRec, that is,
+    //use also the angle of the 'draw" as a no-cost random variable.
+    //This trick is used by IDL.
+    //Moreover, IDL for doubles eats 2 single-precision numbers so that the result is
+    // randomn_double = [(A >> 5)*226 + (B >> 6)]*2-53 where A and B are
+    // 2 integer 32 bits random numbers.
+    //The reset is used to start a new sequence (could probably be done looking at r contents)
+    //GSL uses uniform_pos but the algo should permit x==0 or y==0 ?
+    static int available = 0;
+    if (reset) {
+      available = 0;
+      return std::numeric_limits<double>::quiet_NaN(); //ensure not used.
+    }
+    static double other;
+    double x, y, r2;
+    if (available == 0) {
+      do {
+	/* choose x,y in uniform square (-1,-1) to (+1,+1) */
+	x = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
+	y = -1 + 2 * high_prec_gsl_rng_uniform_pos_d(r);
+	/* see if it is in the unit circle */
+	r2 = x * x + y * y;
+      } while (r2 > 1.0 || r2 == 0);
+
+      /* Box-Muller transform */
+      double fct = sqrt(-2.0 * log(r2) / r2);
+      double current = sigma * y * fct;
+      other = sigma * x * fct;
+      available = 1;
+      return current;
+    } else {
+      available = 0;
+      return other;
+    }
+  }
+
+  //template uses gsl, certified to give identical results to IDL8+. This is SLOW and not the default.
+
+  template< typename T1, typename T2>
+  int random_gamma(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DLong n)
+  {
+    SizeT nEl = res->N_Elements();
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
+				      (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
+    return 0;
+  }
+
+  template< typename T1, typename T2>
+  int random_binomial(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* binomialKey)
+  {
+    SizeT nEl = res->N_Elements();
+    //Note: Binomial values are not same IDL.    
+    DULong n = (DULong) (*binomialKey)[0];
+    DDouble p = (DDouble) (*binomialKey)[1];
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_binomial_knuth(gsl_rng_mem, p, n);
+    return 0;
+  }
+
+  template< typename T1, typename T2>
+  int random_poisson(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* poissonKey)
+  {
+    SizeT nEl = res->N_Elements();
+    //Removed old code that would return non-integer values for high mu values.
+    DDouble mu = (DDouble) (*poissonKey)[0];
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_poisson(gsl_rng_mem, mu);
+    return 0;
+  }
+
+  template< typename T1, typename T2>
+  int random_uniform(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
+  {
+    SizeT nEl = res->N_Elements();
+
+    if (sizeof (T2) == sizeof (float)) {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_rng_uniform(gsl_rng_mem);
+      return 0;
+    } else {
+      //as for IDL, make a more precise random number from 2 successive ones:
+      unsigned long A, B;
+      long double C;
+      for (SizeT i = 0; i < nEl; ++i) {
+	A = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+	B = gsl_rng_uniform(gsl_rng_mem)*0xFFFFFFFFUL;
+	A = (A >> 5);
+	B = (B >> 6);
+	C = A * pow(2, 26) + B;
+	C = C * pow(2, -53);
+	(*res)[ i] = (T2) C; //gives the same as IDL 8
+      }
+      return 0;
+    }
+  }
+
+  template< typename T1, typename T2>
+  int random_normal(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
+  {
+    SizeT nEl = res->N_Elements();
+    if (sizeof (T2) == sizeof (float)) {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0); //does reproduct IDL values.
+      modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
+      return 0;
+    } else {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0); //does reproduct IDL values.
+      modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
     }
     return 0;
   }
-}
-
-template< typename T1, typename T2>
-int random_normal(T1* res, gsl_rng *gsl_rng_mem, dimension dim)
-{
-  SizeT nEl = res->N_Elements();
-  if (sizeof (T2) == sizeof (float)) {
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0); //does reproduct IDL values.
-    modified_gsl_ran_gaussian_f(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-    return 0;
-  } else {
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0); //does reproduct IDL values.
-    modified_gsl_ran_gaussian_d(gsl_rng_mem, 1.0, true); //reset use of internal cache in the modified_gsl_ran_gaussian function.
-  }
-  return 0;
-}
 #define MERSENNE_GSL_N 624   /* Period parameters */
 
-typedef struct {
-  unsigned long mt[MERSENNE_GSL_N];
-  int mti;
-} mt_state_t;
+  typedef struct {
+    unsigned long mt[MERSENNE_GSL_N];
+    int mti;
+  } mt_state_t;
 
-void set_random_state(gsl_rng* r, const unsigned long int* seed, const int pos, const int n)
-{
-  assert(n == MERSENNE_GSL_N);
-  mt_state_t *state = (mt_state_t *) (r->state);
-  unsigned long * mt = state->mt;
-  for (int i = 0; i < n; ++i) mt[i] = seed[i];
-  state->mti = pos;
-}
-
-void get_random_state(EnvT* e, const gsl_rng* r, const DULong seed)
-{
-  if (e->GlobalPar(0)) {
-    int pos;
-    mt_state_t *mt_state = (mt_state_t *) (r->state);
-    pos = mt_state->mti;
-    unsigned long int* state= mt_state->mt;
-    DULongGDL* ret = new DULongGDL(dimension(MERSENNE_GSL_N + 4), BaseGDL::ZERO); //ZERO as not all elements are initialized here
-    DULong* newstate = (DULong*) (ret->DataAddr());
-    newstate[0] = seed;
-    newstate[1] = pos;
-    for (int i = 0; i < MERSENNE_GSL_N; ++i) newstate[i + 2] = state[i];
-    e->SetPar(0, ret);
+  void set_random_state(gsl_rng* r, const unsigned long int* seed, const int pos, const int n)
+  {
+    assert(n == MERSENNE_GSL_N);
+    mt_state_t *state = (mt_state_t *) (r->state);
+    unsigned long * mt = state->mt;
+    for (int i = 0; i < n; ++i) mt[i] = seed[i];
+    state->mti = pos;
   }
-}
 
-//GSL version of random_fun. See randomgenerators.cpp
-BaseGDL* random_fun_gsl(EnvT* e)
-{
+  void get_random_state(EnvT* e, const gsl_rng* r, const DULong seed)
+  {
+    if (e->GlobalPar(0)) {
+      int pos;
+      mt_state_t *mt_state = (mt_state_t *) (r->state);
+      pos = mt_state->mti;
+      unsigned long int* state= mt_state->mt;
+      DULongGDL* ret = new DULongGDL(dimension(MERSENNE_GSL_N + 4), BaseGDL::ZERO); //ZERO as not all elements are initialized here
+      DULong* newstate = (DULong*) (ret->DataAddr());
+      newstate[0] = seed;
+      newstate[1] = pos;
+      for (int i = 0; i < MERSENNE_GSL_N; ++i) newstate[i + 2] = state[i];
+      e->SetPar(0, ret);
+    }
+  }
 
-  //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
-  //Note: LONG or ULONG are obeyed irrespectively of the presence of GAMMA etc which are ignored.
-  static int LONGIx = e->KeywordIx("LONG");
-  static int ULONGIx = e->KeywordIx("ULONG");
-  static int GAMMAIx = e->KeywordIx("GAMMA");
-  static int BINOMIALIx = e->KeywordIx("BINOMIAL");
-  static int NORMALIx = e->KeywordIx("NORMAL");
-  static int POISSONIx = e->KeywordIx("POISSON");
-  static int UNIFORMIx = e->KeywordIx("UNIFORM");
-  // testing Exclusive Keywords ...
-  int exclusiveKW = e->KeywordPresent(GAMMAIx);
-  exclusiveKW = exclusiveKW + e->KeywordPresent(BINOMIALIx);
-  exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
-  exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
-  exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
+  //GSL version of random_fun. See randomgenerators.cpp
+  BaseGDL* random_fun_gsl(EnvT* e)
+  {
 
-  if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
-  //idem for LONG and ULONG at the same time!
-  exclusiveKW = e->KeywordPresent(LONGIx);
-  exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
-  if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
+    //used in RANDOMU and RANDOMN, which share the SAME KEYLIST. It is safe to speed up by using static ints KeywordIx.
+    //Note: LONG or ULONG are obeyed irrespectively of the presence of GAMMA etc which are ignored.
+    static int LONGIx = e->KeywordIx("LONG");
+    static int ULONGIx = e->KeywordIx("ULONG");
+    static int GAMMAIx = e->KeywordIx("GAMMA");
+    static int BINOMIALIx = e->KeywordIx("BINOMIAL");
+    static int NORMALIx = e->KeywordIx("NORMAL");
+    static int POISSONIx = e->KeywordIx("POISSON");
+    static int UNIFORMIx = e->KeywordIx("UNIFORM");
+    // testing Exclusive Keywords ...
+    int exclusiveKW = e->KeywordPresent(GAMMAIx);
+    exclusiveKW = exclusiveKW + e->KeywordPresent(BINOMIALIx);
+    exclusiveKW = exclusiveKW + e->KeywordPresent(NORMALIx);
+    exclusiveKW = exclusiveKW + e->KeywordPresent(POISSONIx);
+    exclusiveKW = exclusiveKW + e->KeywordPresent(UNIFORMIx);
 
-  // the generator structure
-  static gsl_rng *gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
+    if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
+    //idem for LONG and ULONG at the same time!
+    exclusiveKW = e->KeywordPresent(LONGIx);
+    exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
+    if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
-  SizeT nParam = e->NParam(1);
+    // the generator structure
+    static gsl_rng *gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
 
-  dimension dim;
-  if (nParam > 1) arr(e, dim, 1);
+    SizeT nParam = e->NParam(1);
 
-  DULong seed;
-  bool initialized=false;
+    dimension dim;
+    if (nParam > 1) arr(e, dim, 1);
 
-  bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
-  if (!isAnull) {
-    DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
-    if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
-    {
-    // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
-    // and use it as the current sequence (try with "all zeroes").
-      if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && p0L->Type() == GDL_ULONG ) { //a (valid?) seed sequence
-        seed = (*p0L)[0];
-        int pos = (*p0L)[1];
-        int n = MERSENNE_GSL_N;
-        unsigned long int sequence[n];
-        for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-        set_random_state(gsl_rng_mem, sequence, pos, n); //the seed 
-        initialized=true;
-      } else { // not a seed sequence: take first (IDL does more than this...)
-        if (p0L->N_Elements() >= 1) {
-          seed = (*p0L)[0];
-          gsl_rng_set(gsl_rng_mem, seed);
-          initialized=true;
-       }
+    DULong seed;
+    bool initialized=false;
+
+    bool isAnull = NullGDL::IsNULLorNullGDL(e->GetPar(0));
+    if (!isAnull) {
+      DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
+      if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
+	{
+	  // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
+	  // and use it as the current sequence (try with "all zeroes").
+	  if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && p0L->Type() == GDL_ULONG ) { //a (valid?) seed sequence
+	    seed = (*p0L)[0];
+	    int pos = (*p0L)[1];
+	    int n = MERSENNE_GSL_N;
+	    unsigned long int sequence[n];
+	    for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
+	    set_random_state(gsl_rng_mem, sequence, pos, n); //the seed 
+	    initialized=true;
+	  } else { // not a seed sequence: take first (IDL does more than this...)
+	    if (p0L->N_Elements() >= 1) {
+	      seed = (*p0L)[0];
+	      gsl_rng_set(gsl_rng_mem, seed);
+	      initialized=true;
+	    }
+	  }
+	}
+    }
+  
+    if (!initialized) {
+      struct timeval tval;
+      struct timezone tzone;
+      gettimeofday(&tval, &tzone);
+      long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
+      seed = tt;
+      gsl_rng_set(gsl_rng_mem, seed);
+      initialized=true;
+    }
+
+    if (e->KeywordSet(LONGIx)) { 
+      DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
+      SizeT nEl = res->N_Elements();
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DLong) (gsl_rng_uniform(gsl_rng_mem) * 2147483646) + 1; //apparently IDL rounds up.
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+
+    if (e->KeywordSet(ULONGIx)) { 
+      DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
+      SizeT nEl = res->N_Elements();
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DULong) (gsl_rng_uniform(gsl_rng_mem) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
+      get_random_state(e, gsl_rng_mem, seed);
+      return res;
+    }
+  
+  
+    if (e->KeywordPresent(GAMMAIx)) {
+      DLong n = -1; //please initialize everything!
+      e->AssureLongScalarKW(GAMMAIx, n);
+      if (n == 0) {
+	DDouble test_n;
+	e->AssureDoubleScalarKW(GAMMAIx, test_n);
+	if (test_n > 0.0) n = 1;
+      }
+      if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
+      if (!e->KeywordSet(0)) { //hence:float
+	if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
+      }
+      if (e->KeywordSet(0)) { // GDL_DOUBLE
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	random_gamma< DDoubleGDL, double>(res, gsl_rng_mem, dim, n);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      } else {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	random_gamma< DFloatGDL, float>(res, gsl_rng_mem, dim, n);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
       }
     }
-  }
   
-  if (!initialized) {
-    struct timeval tval;
-    struct timezone tzone;
-    gettimeofday(&tval, &tzone);
-    long long int tt = tval.tv_sec * 1e6 + tval.tv_usec; // time in UTC microseconds
-    seed = tt;
-    gsl_rng_set(gsl_rng_mem, seed);
-    initialized=true;
-  }
+    DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>(BINOMIALIx);
+    if (binomialKey != NULL) {
+      SizeT nBinomialKey = binomialKey->N_Elements();
+      if (nBinomialKey != 2)
+	e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
 
-  if (e->KeywordSet(LONGIx)) { 
-    DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
-    SizeT nEl = res->N_Elements();
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DLong) (gsl_rng_uniform(gsl_rng_mem) * 2147483646) + 1; //apparently IDL rounds up.
-    get_random_state(e, gsl_rng_mem, seed);
-    return res;
-  }
+      if ((*binomialKey)[0] < 1.0)
+	e->Throw(" Value of BINOMIAL[0] is out of allowed range: n = 1, 2, 3, ...");
 
-  if (e->KeywordSet(ULONGIx)) { 
-    DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
-    SizeT nEl = res->N_Elements();
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (DULong) (gsl_rng_uniform(gsl_rng_mem) * 0xFFFFFFFFUL) + 1; //apparently IDL rounds up.
-    get_random_state(e, gsl_rng_mem, seed);
-    return res;
-  }
+      if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
+	e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
+      if (e->KeywordSet(0)) { // GDL_DOUBLE
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	random_binomial< DDoubleGDL, double>(res, gsl_rng_mem, dim, binomialKey);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      } else {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	random_binomial< DFloatGDL, float>(res, gsl_rng_mem, dim, binomialKey);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      }
+    }
+
+    DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>(POISSONIx);
+    if (poissonKey != NULL) {
+      SizeT nPoissonKey = poissonKey->N_Elements();
+      if (nPoissonKey != 1)
+	e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(POISSONIx));
+      if (e->KeywordSet(0)) { // GDL_DOUBLE
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	random_poisson< DDoubleGDL, double>(res, gsl_rng_mem, dim, poissonKey);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      } else {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	random_poisson< DFloatGDL, float>(res, gsl_rng_mem, dim, poissonKey);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      }
+    }
+
+    if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
+      if (e->KeywordSet(0)) { // GDL_DOUBLE
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	random_uniform< DDoubleGDL, double>(res, gsl_rng_mem, dim);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      } else {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	random_uniform< DFloatGDL, float>(res, gsl_rng_mem, dim);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      }
+    }
   
-  
-  if (e->KeywordPresent(GAMMAIx)) {
-    DLong n = -1; //please initialize everything!
-    e->AssureLongScalarKW(GAMMAIx, n);
-    if (n == 0) {
-      DDouble test_n;
-      e->AssureDoubleScalarKW(GAMMAIx, test_n);
-      if (test_n > 0.0) n = 1;
+    if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
+      if (e->KeywordSet(0)) { // GDL_DOUBLE
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	random_normal< DDoubleGDL, double>(res, gsl_rng_mem, dim);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      } else {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	random_normal< DFloatGDL, float>(res, gsl_rng_mem, dim);
+	get_random_state(e, gsl_rng_mem, seed);
+	return res;
+      }
     }
-    if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-    if (!e->KeywordSet(0)) { //hence:float
-      if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
-    }
-    if (e->KeywordSet(0)) { // GDL_DOUBLE
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      random_gamma< DDoubleGDL, double>(res, gsl_rng_mem, dim, n);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    } else {
-      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-      random_gamma< DFloatGDL, float>(res, gsl_rng_mem, dim, n);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    }
+    assert(false);
+    return NULL;
   }
-  
-  DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>(BINOMIALIx);
-  if (binomialKey != NULL) {
-    SizeT nBinomialKey = binomialKey->N_Elements();
-    if (nBinomialKey != 2)
-      e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
-
-    if ((*binomialKey)[0] < 1.0)
-      e->Throw(" Value of BINOMIAL[0] is out of allowed range: n = 1, 2, 3, ...");
-
-    if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
-      e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
-    if (e->KeywordSet(0)) { // GDL_DOUBLE
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      random_binomial< DDoubleGDL, double>(res, gsl_rng_mem, dim, binomialKey);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    } else {
-      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-      random_binomial< DFloatGDL, float>(res, gsl_rng_mem, dim, binomialKey);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    }
-  }
-
-  DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>(POISSONIx);
-  if (poissonKey != NULL) {
-    SizeT nPoissonKey = poissonKey->N_Elements();
-    if (nPoissonKey != 1)
-      e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(POISSONIx));
-    if (e->KeywordSet(0)) { // GDL_DOUBLE
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      random_poisson< DDoubleGDL, double>(res, gsl_rng_mem, dim, poissonKey);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    } else {
-      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-      random_poisson< DFloatGDL, float>(res, gsl_rng_mem, dim, poissonKey);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    }
-  }
-
-  if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-    if (e->KeywordSet(0)) { // GDL_DOUBLE
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      random_uniform< DDoubleGDL, double>(res, gsl_rng_mem, dim);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    } else {
-      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-      random_uniform< DFloatGDL, float>(res, gsl_rng_mem, dim);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    }
-  }
-  
-  if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-    if (e->KeywordSet(0)) { // GDL_DOUBLE
-      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      random_normal< DDoubleGDL, double>(res, gsl_rng_mem, dim);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    } else {
-      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-      random_normal< DFloatGDL, float>(res, gsl_rng_mem, dim);
-      get_random_state(e, gsl_rng_mem, seed);
-      return res;
-    }
-  }
-  assert(false);
-  return NULL;
-}
 
 #ifndef HAVE_NEXTTOWARD
   // SA: in C99 / C++TR1 / Boost there is the nextafter() function
@@ -1337,9 +1337,9 @@ BaseGDL* random_fun_gsl(EnvT* e)
 	guard.Init( p0D);
       }
     else
-    {
-      p0D = static_cast<DDoubleGDL*>(p0);
-    }
+      {
+	p0D = static_cast<DDoubleGDL*>(p0);
+      }
     // get min max
     // use MinMax here when NAN will be supported
 
@@ -1434,7 +1434,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
     if ( 
 	binsizeKW != NULL 
 	|| (binsizeKW == NULL && maxKW == NULL && nbinsKW != NULL)
-	) b = a + nbins * bsize;
+	 ) b = a + nbins * bsize;
  
     // GSL error handling
     SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GDLGenericGSLErrorHandler);
@@ -1469,20 +1469,20 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // SA: using aOri/bOri instead of gsl_histogram_min(hh) (as in calculation of LOCATIONS) 
     //     otherwise, when converting e.g. to GDL_INT the conversion might give bad results
     // OMAX
-      static int omaxIx=e->KeywordIx("OMAX");
+    static int omaxIx=e->KeywordIx("OMAX");
     if( e->KeywordPresent(omaxIx)) {
       // e->SetKW( 5, (new DDoubleGDL( gsl_histogram_max(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
       e->SetKW(omaxIx, (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
     // OMIN
-      static int ominIx=e->KeywordIx("OMIN");
-      if( e->KeywordPresent(ominIx)) {
+    static int ominIx=e->KeywordIx("OMIN");
+    if( e->KeywordPresent(ominIx)) {
       // e->SetKW( 6, (new DDoubleGDL( gsl_histogram_min(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
       e->SetKW(ominIx, (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
 
     // REVERSE_INDICES
-      static int reverse_indicesIx=e->KeywordIx("REVERSE_INDICES");
+    static int reverse_indicesIx=e->KeywordIx("REVERSE_INDICES");
     if( e->KeywordPresent(reverse_indicesIx)) {
 
       if (input != NULL)
@@ -1557,7 +1557,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
     }
     
     // LOCATIONS
-      static int locationsIx=e->KeywordIx("LOCATIONS");
+    static int locationsIx=e->KeywordIx("LOCATIONS");
     if( e->KeywordPresent(locationsIx)) {
       BaseGDL** locationsKW = &e->GetKW(locationsIx);
       GDLDelete((*locationsKW));
@@ -1755,22 +1755,22 @@ BaseGDL* random_fun_gsl(EnvT* e)
     SizeT resRank = rankLeft;
     SizeT chunksize;
     if (grid)
-    {
-      dims[resRank++] = nx;
-      if (resRank > MAXRANK - 1)
-        e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
-      dims[resRank++] = ny;
-      chunksize = nx*ny;
-    } else
-    {
-      for (SizeT i = 0; i < x->Rank(); ++i)
       {
-        dims[resRank++] = x->Dim(i);
-        if (resRank > MAXRANK)
-          e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+	dims[resRank++] = nx;
+	if (resRank > MAXRANK - 1)
+	  e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+	dims[resRank++] = ny;
+	chunksize = nx*ny;
+      } else
+      {
+	for (SizeT i = 0; i < x->Rank(); ++i)
+	  {
+	    dims[resRank++] = x->Dim(i);
+	    if (resRank > MAXRANK)
+	      e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+	  }
+	chunksize = nx;
       }
-      chunksize = nx;
-    }
     dimension dim((DLong *)dims, resRank);
     DDoubleGDL *res;
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);
@@ -1802,45 +1802,45 @@ BaseGDL* random_fun_gsl(EnvT* e)
     double *yval = new double[chunksize];
     ArrayGuard<double> yvalGuard( yval);
     if (grid)
-    {
-      for (SizeT j = 0, count=0; j < ny; j++)
       {
-        for (SizeT i = 0, count = 0; i < nx; i++)
-        {
-          count = INDEX_2D(i, j, nx, ny);
-          xval[count] = (*x)[i];
-          yval[count] = (*y)[j];
-        }
-      }
-    } else
-    {
-      for (SizeT count = 0; count < chunksize; ++count)
+	for (SizeT j = 0, count=0; j < ny; j++)
+	  {
+	    for (SizeT i = 0, count = 0; i < nx; i++)
+	      {
+		count = INDEX_2D(i, j, nx, ny);
+		xval[count] = (*x)[i];
+		yval[count] = (*y)[j];
+	      }
+	  }
+      } else
       {
-        xval[count] = (*x)[count];
-        yval[count] = (*y)[count];
+	for (SizeT count = 0; count < chunksize; ++count)
+	  {
+	    xval[count] = (*x)[count];
+	    yval[count] = (*y)[count];
+	  }
       }
-    }
     //construct 2d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya];
     ArrayGuard<double> tempGuard( temp);
     // Interpolate iteratively ninterp times:
     // loop could be multihreaded easily
     for (SizeT iterate = 0; iterate < ninterp; ++iterate)
-    {
+      {
 
-      for (SizeT k = 0; k < nxa * nya; ++k) temp[k] = (*array)[k * ninterp + iterate];
-      gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing ? missing_GIVEN : missing_NEAREST, missing, gamma);
+	for (SizeT k = 0; k < nxa * nya; ++k) temp[k] = (*array)[k * ninterp + iterate];
+	gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing ? missing_GIVEN : missing_NEAREST, missing, gamma);
 #ifndef __PATHCC__
 #pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 #pragma omp for
 #endif
-      for (OMPInt i = 0; i < chunksize; ++i)
-      {
-        double x = xval[i];
-        double y = yval[i];
-        (*res)[i * ninterp + iterate] = gdl_interp2d_eval(interpolant, xa, ya, temp, x, y, accx, accy);
+	for (OMPInt i = 0; i < chunksize; ++i)
+	  {
+	    double x = xval[i];
+	    double y = yval[i];
+	    (*res)[i * ninterp + iterate] = gdl_interp2d_eval(interpolant, xa, ya, temp, x, y, accx, accy);
+	  }
       }
-    }
 
     //     gsl_interp_accel_free(accx);
     //     gsl_interp_accel_free(accy);
@@ -1943,29 +1943,29 @@ BaseGDL* random_fun_gsl(EnvT* e)
     double *zval = new double[chunksize];
     ArrayGuard<double> zvalGuard( zval);
     if (grid)
-    {
-      for (SizeT k = 0, count = 0; k < nz; ++k)
       {
-        for (SizeT j = 0; j < ny; ++j)
-        {
-          for (SizeT i = 0; i < nx; ++i)
-          {
-            count = INDEX_3D(i, j, k, nx, ny, nz);
-            xval[count] = (*x)[i];
-            yval[count] = (*y)[j];
-            zval[count] = (*z)[k];
-          }
-        }
-      }
-    } else
-    {
-      for (SizeT count = 0; count < chunksize; ++count)
+	for (SizeT k = 0, count = 0; k < nz; ++k)
+	  {
+	    for (SizeT j = 0; j < ny; ++j)
+	      {
+		for (SizeT i = 0; i < nx; ++i)
+		  {
+		    count = INDEX_3D(i, j, k, nx, ny, nz);
+		    xval[count] = (*x)[i];
+		    yval[count] = (*y)[j];
+		    zval[count] = (*z)[k];
+		  }
+	      }
+	  }
+      } else
       {
-        xval[count] = (*x)[count];
-        yval[count] = (*y)[count];
-        zval[count] = (*z)[count];
+	for (SizeT count = 0; count < chunksize; ++count)
+	  {
+	    xval[count] = (*x)[count];
+	    yval[count] = (*y)[count];
+	    zval[count] = (*z)[count];
+	  }
       }
-    }
     //construct 3d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya*nza];
     ArrayGuard<double> tempGuard( temp);
@@ -2064,34 +2064,34 @@ BaseGDL* random_fun_gsl(EnvT* e)
         if (lastDim > 1) needsLastDims=true; //correct behaviour: last dim=1 is trimmed anyway.
         resDimInit[iAddRank]=(lastDim==0)?1:lastDim;
         iAddRank++;
-        }
+      }
       nParam-=RankDiff;
     }
 
     
     if (p0->Type() == GDL_COMPLEX) {
-        complexity=2;
-        DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
-        p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
-        p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
+      complexity=2;
+      DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
+      p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
+      p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
-            (*p0D[0])[i] = (*c0)[i].real();
-            (*p0D[1])[i] = (*c0)[i].imag();
-        }
+      for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
+	(*p0D[0])[i] = (*c0)[i].real();
+	(*p0D[1])[i] = (*c0)[i].imag();
+      }
     }
     else if( p0->Type() == GDL_COMPLEXDBL) {
-        complexity=2;
-        DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
-        p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
-        p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
+      complexity=2;
+      DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
+      p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
+      p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
-            (*p0D[0])[i] = (*c0)[i].real();
-            (*p0D[1])[i] = (*c0)[i].imag();
-        }
+      for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
+	(*p0D[0])[i] = (*c0)[i].real();
+	(*p0D[1])[i] = (*c0)[i].imag();
+      }
     }
     else if (p0->Type() == GDL_DOUBLE) p0D[0] = static_cast<DDoubleGDL*>(p0);
     else
@@ -2132,7 +2132,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
 
     DDoubleGDL* res[2];
     for (int iloop=0; iloop<complexity; ++iloop)
-    {
+      {
         // 0D Interpolation (special case with needLastDims=true)
         if (nParam < 2) res[iloop]=p0D[iloop]->Dup();
         // 1D Interpolation
@@ -2152,16 +2152,16 @@ BaseGDL* random_fun_gsl(EnvT* e)
         if (nParam == 4) {
           res[iloop]=interpolate_3dim(e,gdl_interp3d_trilinear,p0D[iloop],p1D,p2D,p3D,grid,use_missing,missing);
         }
-      //special case where last dimension of input was 1
-      if (needsLastDims){
-        dimension dim=(res[iloop])->Dim();
-        for (SizeT i=0; i<(res[iloop])->Rank(); ++i){
-          resDimInit[i]=dim[i]; //put back first dimensions of interpolated result
-        }
-        dimension resDim( resDimInit, iAddRank); //change as Dimension...
-        res[iloop]= static_cast<DDoubleGDL*>(res[iloop]->Rebin(resDim, true)); //Rebin to the extra number of dims.
+	//special case where last dimension of input was 1
+	if (needsLastDims){
+	  dimension dim=(res[iloop])->Dim();
+	  for (SizeT i=0; i<(res[iloop])->Rank(); ++i){
+	    resDimInit[i]=dim[i]; //put back first dimensions of interpolated result
+	  }
+	  dimension resDim( resDimInit, iAddRank); //change as Dimension...
+	  res[iloop]= static_cast<DDoubleGDL*>(res[iloop]->Rebin(resDim, true)); //Rebin to the extra number of dims.
+	}
       }
-    }
 
     // AC 2018-feb-01 : don't put here a conversion with /Double : not need !!
     // in IDL since 8.2.3, /Double is related to grid keyword
@@ -2227,28 +2227,28 @@ BaseGDL* random_fun_gsl(EnvT* e)
 	return res1;
       }
     else if (p0->Type() == GDL_COMPLEX) {
-	DComplexGDL* res1 = new DComplexGDL(res[0]->Dim(), BaseGDL::NOZERO);
+      DComplexGDL* res1 = new DComplexGDL(res[0]->Dim(), BaseGDL::NOZERO);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
-	    (*res1)[ i] = DComplex((*res[0])[i],(*res[1])[i]);
-//             (*res1)[i].real() = (*res[0])[i];
-//             (*res1)[i].imag() = (*res[1])[i];
-        }
- 	delete res[0]; delete res[1];
-	return res1;       
+      for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
+	(*res1)[ i] = DComplex((*res[0])[i],(*res[1])[i]);
+	//             (*res1)[i].real() = (*res[0])[i];
+	//             (*res1)[i].imag() = (*res[1])[i];
+      }
+      delete res[0]; delete res[1];
+      return res1;       
     }
     else if (p0->Type() == GDL_COMPLEXDBL) {
-	DComplexDblGDL* res1 = new DComplexDblGDL(res[0]->Dim(), BaseGDL::NOZERO);
+      DComplexDblGDL* res1 = new DComplexDblGDL(res[0]->Dim(), BaseGDL::NOZERO);
 #pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
 #pragma omp for
-        for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
-	    (*res1)[ i] = DComplexDbl((*res[0])[i],(*res[1])[i]);
-// 	    (*res1)[i].real() = (*res[0])[i];
-//             (*res1)[i].imag() = (*res[1])[i];
-        }
- 	delete res[0]; delete res[1];
-	return res1;       
+      for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
+	(*res1)[ i] = DComplexDbl((*res[0])[i],(*res[1])[i]);
+	// 	    (*res1)[i].real() = (*res[0])[i];
+	//             (*res1)[i].imag() = (*res[1])[i];
+      }
+      delete res[0]; delete res[1];
+      return res1;       
     }
     else //?
       {
@@ -2489,7 +2489,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
 	  case GDL_INT:   f64 = (double) (*p0I)[i]; break;
 	  case GDL_UINT:  f64 = (double) (*p0UI)[i]; break;
 	  case GDL_BYTE:  f64 = (double) (*p0B)[i]; break;
-        default: break; //pacify -Wswitch.
+	  default: break; //pacify -Wswitch.
 	  }
 	  memcpy(&mat->data[i], &f64, szdbl);
 	}
@@ -2565,8 +2565,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // executing GDL code
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
-      );
+					   static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -2576,29 +2576,29 @@ BaseGDL* random_fun_gsl(EnvT* e)
     //   if (res->Rank() != 1 || res->N_Elements() != x->size) 
     //AC for iCosmo
     if (res->N_Elements() != x->size)
-    {
-      p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
-      return GSL_EBADFUNC;
-    }
+      {
+	p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
+	return GSL_EBADFUNC;
+      }
     DDoubleGDL* dres;
     try
-    {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL*> (
-        res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
-        );
-    }    
+      {
+	// BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
+	dres = static_cast<DDoubleGDL*> (
+					 res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
+					 );
+      }    
     catch (GDLIOException& ex)
-    {
-      p->errmsg = "failed to convert the result of the user-defined function to double";
-      return GSL_EBADFUNC;
-    }
+      {
+	p->errmsg = "failed to convert the result of the user-defined function to double";
+	return GSL_EBADFUNC;
+      }
     if (res != dres)
-    {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
-    }
+      {
+	// prevent 'res' from being deleted again
+	res_guard.Release();
+	res_guard.Init(dres);
+      }
     // copying from GDL to GSL
     for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
     return GSL_SUCCESS;
@@ -2751,10 +2751,10 @@ BaseGDL* random_fun_gsl(EnvT* e)
     return par->Convert2(   // converting to float if neccesarry
 			 e->KeywordSet(doubleIx) || p0->Type() == GDL_DOUBLE ? GDL_DOUBLE : GDL_FLOAT, 
 			 BaseGDL::CONVERT
-			 );
+			    );
   }
   
-    // gsl_multiroot_function-compatible function serving as a wrapper to the 
+  // gsl_multiroot_function-compatible function serving as a wrapper to the 
   // user-defined function passed (by name) as the second arg. to NEWTON or BROYDEN
   class param_for_minim 
   { 
@@ -2775,8 +2775,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // executing GDL code
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
-      );
+					   static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -2839,8 +2839,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
       if (test != NULL) hasSimplex=true;
     }
     
-//scale implies p0 and fails reading p0 if it is not present
-//if p0 is present, and scale is not present, use Simplex if present, silently else throw.
+    //scale implies p0 and fails reading p0 if it is not present
+    //if p0 is present, and scale is not present, use Simplex if present, silently else throw.
     bool useSimplex=false;
     
     BaseGDL* par0;
@@ -2881,12 +2881,12 @@ BaseGDL* random_fun_gsl(EnvT* e)
       //populate simplex as p0, p0 + [1,0,...,0] * scale, p0 + [0,1,0,...,0] * scale, ...
       for (SizeT j = 0; j < dims[0]; ++j) (*(DDoubleGDL*)simplex)[j] = (*(DDoubleGDL*)p0)[j]; //p0
       for (SizeT i = 1; i < dims[1]; ++i)
-      {
-        DDouble sc=(*(DDoubleGDL*)scale)[i-1];
-        for (SizeT j = 0; j < dims[0]; ++j) {
-        (*(DDoubleGDL*)simplex)[j+i*dims[0]] = (*(DDoubleGDL*)p0)[j]+((j==(i-1))?sc:0.0); //warnings about operator precedence solved.
-        }
-      }
+	{
+	  DDouble sc=(*(DDoubleGDL*)scale)[i-1];
+	  for (SizeT j = 0; j < dims[0]; ++j) {
+	    (*(DDoubleGDL*)simplex)[j+i*dims[0]] = (*(DDoubleGDL*)p0)[j]+((j==(i-1))?sc:0.0); //warnings about operator precedence solved.
+	  }
+	}
     } else {
       if (hasSimplex) useSimplex=true;
       else e->Throw("Either (SCALE,P0) or SIMPLEX must be initialized");
@@ -3024,11 +3024,11 @@ BaseGDL* random_fun_gsl(EnvT* e)
       SizeT p = simplex->Dim(1);
       for (SizeT j = 0; j < n; ++j) (*(DDoubleGDL*)simplex)[j] = gsl_vector_get(s->x, j);
       for (SizeT i = 1; i < p; ++i)
-      {
-        for (SizeT j = 0; j < n; ++j) {
-        (*(DDoubleGDL*)simplex)[j+i*n] = (*(DDoubleGDL*)simplex)[j]+((j==(i-1))?size:0.0); //warning about operator precedence solved.
-        }
-      }
+	{
+	  for (SizeT j = 0; j < n; ++j) {
+	    (*(DDoubleGDL*)simplex)[j+i*n] = (*(DDoubleGDL*)simplex)[j]+((j==(i-1))?size:0.0); //warning about operator precedence solved.
+	  }
+	}
       if (isDouble) e->SetKW(SIMPLEXIx, simplex);
       else {
         simplex_guard.Reset(simplex);
@@ -3038,31 +3038,31 @@ BaseGDL* random_fun_gsl(EnvT* e)
     
     // function_value for each simplex. Warning: Destroys ss.
     if (doFunVal) 
-    {
-      gsl_vector_set_all(ss, 0.0);
-      BaseGDL* funval;
-      SizeT n = simplex->Dim(0); //simplex always exist
-      SizeT p = simplex->Dim(1);
-      if (isDouble)
       {
-        funval = new DDoubleGDL(dimension(p), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < p; ++i)
-        {
-          for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
-          gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
-          (*(DDoubleGDL*) funval)[i] = s->fval;
-        }
-      } else {
-        funval = new DFloatGDL(dimension(p), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < p; ++i)
-        {
-          for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
-          gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
-          (*(DFloatGDL*) funval)[i] = s->fval;
-        }
+	gsl_vector_set_all(ss, 0.0);
+	BaseGDL* funval;
+	SizeT n = simplex->Dim(0); //simplex always exist
+	SizeT p = simplex->Dim(1);
+	if (isDouble)
+	  {
+	    funval = new DDoubleGDL(dimension(p), BaseGDL::NOZERO);
+	    for (SizeT i = 0; i < p; ++i)
+	      {
+		for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
+		gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+		(*(DDoubleGDL*) funval)[i] = s->fval;
+	      }
+	  } else {
+	  funval = new DFloatGDL(dimension(p), BaseGDL::NOZERO);
+	  for (SizeT i = 0; i < p; ++i)
+	    {
+	      for (SizeT j = 0; j < n; ++j) gsl_vector_set(x, j, (*(DDoubleGDL*) simplex)[j + i * n]);
+	      gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+	      (*(DFloatGDL*) funval)[i] = s->fval;
+	    }
+	}
+	e->SetKW(FUNVALIx, funval);
       }
-      e->SetKW(FUNVALIx, funval);
-    }
 
     gsl_multimin_fminimizer_free(s);
     return ret;
@@ -3089,8 +3089,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // executing our wrapper function with code 0
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
-      );
+					   static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -3128,8 +3128,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // executing our wrapper function with code 0
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
-      );
+					   static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -3166,8 +3166,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
     // executing our wrapper function with code 0
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(
-      static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
-      );
+					   static_cast<DSubUD*> (p->nenvt->GetPro())->GetTree()
+					   );
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
     // From 0.9.4 on, call_fun can return left and right values dependent on the call context
@@ -3333,9 +3333,9 @@ BaseGDL* random_fun_gsl(EnvT* e)
     res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
     
     // res can be of any type!
-//     return (*static_cast<DDoubleGDL*>(res))[0]; 
+    //     return (*static_cast<DDoubleGDL*>(res))[0]; 
     DDoubleGDL* resDouble = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT));
-//    Guard<DDoubleGDL> guard(resDouble);
+    //    Guard<DDoubleGDL> guard(resDouble);
     double retRes = (*resDouble)[0];
     delete resDouble; // direct delete should be faster than setting up a guard
     return retRes;
@@ -3420,7 +3420,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
         wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
       }
     
-     // eps value:
+    // eps value:
     double eps, eps_default;
     
     static int doubleIx=e->KeywordIx("DOUBLE"); //same place in both functions.
@@ -3727,7 +3727,7 @@ BaseGDL* random_fun_gsl(EnvT* e)
     }
     DComplexDblGDL* result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
     for (SizeT i = 0; i < resultSize; ++i) 
-     {
+      {
 	(*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
       }
       
@@ -3757,13 +3757,17 @@ BaseGDL* random_fun_gsl(EnvT* e)
     return (*static_cast<DComplexDblGDL*>(res))[0]; 
   }
  
+  // AC 2019-Feb
+  // A new version. The previous one failed on a complex example 
+  // (Ricati equation in Fouks Schubert equation for Si:Ga)
+
   BaseGDL* fx_root_fun(EnvT* e)
   {       
     //Sanity check
     //SizeT nParam = e->NParam();
     //cout << nParam << endl;
   
-    //1-st argument: a 2-element real or complex initial guess array
+    //1-st argument: a 3-element real or complex initial guess array
     BaseGDL* p0 = e->GetNumericArrayParDefined(0);
     DComplexDblGDL* init = e->GetParAs<DComplexDblGDL>(0);
     BaseGDL* par0 = p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
@@ -3784,7 +3788,8 @@ BaseGDL* random_fun_gsl(EnvT* e)
   
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (DObjGDL**)NULL);
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), 
+				funList[GDLInterpreter::GetFunIx(fun)], (DObjGDL**)NULL);
     newEnv->SetNextPar(&par0);
     e->Interpreter()->CallStack().push_back(newEnv);
   
@@ -3849,76 +3854,49 @@ BaseGDL* random_fun_gsl(EnvT* e)
 	e->Throw("Not a number and Infinity are not supported");
       }
 
-    complex<double> fx0 = fx_root_function(x0,&param);
-    complex<double> fx1 = fx_root_function(x1,&param);
-    complex<double> fx2 = fx_root_function(x2,&param);
-    complex<double> den = (x0-x2)*(x1-x2)*(x0-x1);
-    complex<double> a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
-    complex<double> b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
-    complex<double> c = fx2;
-    complex<double> op;
-  
-    int iter = 0;
-    double stopcri;
+    complex<double> fx0, fx1, fx2;
+    complex<double> a,b,c,q,q1,disc;
+    complex<double> discm, discp, div, root;    
+    int cond=0;
+    bool debug=false;
+
+    for (int iter=0;iter<max_iter ;iter++) {
+      
+      fx0 = fx_root_function(x0,&param);
+      fx1 = fx_root_function(x1,&param);
+      fx2 = fx_root_function(x2,&param);
+      
+      if (debug) {
+	cout << "x0 :" <<  x0 << x1 << x2 << endl;
+	cout <<  abs(fx0) << " "<< abs(fx1) << " "<< abs(fx2) << endl;
+      }
+      
+      q=(x2-x1)/(x1-x0);
+      q1=q+1.;
+      a=q*fx2-q*q1*fx1+q*q*fx0;
+      b=(2.*q+1.)*fx2-q1*q1*fx1+q*q*fx0;
+      c=q1*fx2;
+      disc=b*b-4.*a*c;
+      discm=b-sqrt(disc);
+      discp=b+sqrt(disc);
+      if (abs(discp) > abs(discm)) div=discp ; else div=discm ;
+      root=x2-(x2-x1)*2.*c/div;
+      
+      if ((stop == 0) && (abs(root-x2) < tol)) {cond=1;
+      }
+      else {
+	if (abs(fx_root_function(root,&param)) < tol) cond=1;
+      }
+
+      if (cond == 1) break;
+      x0=x1;
+      x1=x2;
+      x2=root;
+    }
+
     DComplexDblGDL* res;
     res=new DComplexDblGDL(1, BaseGDL::NOZERO);
-
-    // before going further, we check whether the "x_i" are roots ?!
-
-    int done=0;
-    if (abs(fx0) < tol) {(*res)[0] = x0; done=1;}
-    if (abs(fx1) < tol) {(*res)[0] = x1; done=1;}
-    if (abs(fx2) < tol) {(*res)[0] = x2; done=1;}
-
-    if (done ==0) {
-      complex<double> tmpdisc;
-      complex<double> discm;
-      complex<double> discp;    
-      int debug=0;
-    
-      do
-	{
-	  iter++;
-	
-	  if (stop == 1) {
-	    stopcri =abs(fx_root_function(x2,&param));
-	  } else {
-	    stopcri = abs(x1-x2);
-	  }
-	
-	  tmpdisc=sqrt(pow(b,2)-4.*a*c);
-	
-	  if (debug) {
-	    cout << "Iteration " << iter << endl;
-	    cout << "x0: " << setprecision(15) << x0 << endl;
-	    cout << "x1: " << setprecision(15) << x1 << endl;
-	    cout << "x2: " << setprecision(15) << x2 << endl;
-	    cout << "tmpdisc "<< tmpdisc << endl;
-	  }
-
-	  discm=b-tmpdisc;
-	  discp=b+tmpdisc;
-	
-	  if (abs(discm) < abs(discp)) {op = 2.*c/discp;} else {op = 2.*c/discm;}
-	
-	  x0 = x1;
-	  x1 = x2;
-	  x2 = x2 - op;
-	  fx0 = fx1;
-	  fx1 = fx2;
-	  fx2 = fx_root_function(x2,&param);
-	  den = (x0-x2)*(x1-x2)*(x0-x1);
-	  a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
-	  b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
-	  c = fx2;
-	  (*res)[0] = x1;
-	}
-      while (stopcri >= tol &&
-	     (isfinite(x2.real()) == 1 &&
-	      isfinite(x2.imag()) == 1) &&
-	     iter < max_iter);
-    }
-    
+    (*res)[0]=root;
 
     static int DOUBLEIx=e->KeywordIx("DOUBLE");
     bool isdouble=e->KeywordSet(DOUBLEIx);
@@ -3929,16 +3907,16 @@ BaseGDL* random_fun_gsl(EnvT* e)
       (*resreal)[0] = (*res)[0].real();
 
       if (isdouble ||  p0->Type() == GDL_COMPLEXDBL ||
-        p0->Type() == GDL_DOUBLE) {
-          return resreal->Convert2(GDL_DOUBLE, BaseGDL::CONVERT);
-        } else {
+	  p0->Type() == GDL_DOUBLE) {
+	return resreal->Convert2(GDL_DOUBLE, BaseGDL::CONVERT);
+      } else {
         return resreal->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
       }
     }
 
     if (isdouble ||  p0->Type() == GDL_COMPLEXDBL) {
-        return res->Convert2(GDL_COMPLEXDBL, BaseGDL::CONVERT);
-      } else {
+      return res->Convert2(GDL_COMPLEXDBL, BaseGDL::CONVERT);
+    } else {
       return res->Convert2(GDL_COMPLEX, BaseGDL::CONVERT);
     }
   }
@@ -4296,58 +4274,58 @@ BaseGDL* random_fun_gsl(EnvT* e)
     DDoubleGDL* ret;
     Guard<DDoubleGDL> ret_guard;
     if( !e->KeywordSet(overwriteIx))
-    {
+      {
 	bool stolen = e->StealLocalPar(0);
 	if( inputType == GDL_DOUBLE &&  stolen)
-	{
-	  ret = static_cast<DDoubleGDL*>(p0);
-	  ret_guard.Init(ret);
-	}
+	  {
+	    ret = static_cast<DDoubleGDL*>(p0);
+	    ret_guard.Init(ret);
+	  }
 	else
-	{
-	  if( stolen)
+	  {
+	    if( stolen)
+	      ret = static_cast<DDoubleGDL*>(p0->Convert2(
+							  GDL_DOUBLE, 
+							  BaseGDL::CONVERT
+							  ));
+	    else
+	      ret = static_cast<DDoubleGDL*>(p0->Convert2(
+							  GDL_DOUBLE, 
+							  BaseGDL::COPY
+							  ));
+	    ret_guard.Init(ret);
+	  }      
+      }
+    else
+      {
+	bool stolen = e->StealLocalPar(0);
+	if( stolen)
+	  {
+	    // was local par
 	    ret = static_cast<DDoubleGDL*>(p0->Convert2(
 							GDL_DOUBLE, 
 							BaseGDL::CONVERT
 							));
-	  else
-	    ret = static_cast<DDoubleGDL*>(p0->Convert2(
-							GDL_DOUBLE, 
-							BaseGDL::COPY
-							));
-	  ret_guard.Init(ret);
-	}      
-    }
-    else
-    {
-      bool stolen = e->StealLocalPar(0);
-      if( stolen)
-      {
-	// was local par
-	ret = static_cast<DDoubleGDL*>(p0->Convert2(
-						  GDL_DOUBLE, 
-						  BaseGDL::CONVERT
-						  ));
-	ret_guard.Init(ret);
-      }
-      else
-      {
-	assert( e->GlobalPar(0));
-	if( inputType == GDL_DOUBLE)
-	{
-	  ret = static_cast<DDoubleGDL*>(p0);
-	  e->SetPtrToReturnValue( &e->GetPar(0));	  
-	}
+	    ret_guard.Init(ret);
+	  }
 	else
-	{
-	  ret = static_cast<DDoubleGDL*>(p0->Convert2(
-						    GDL_DOUBLE, 
-						    BaseGDL::COPY
-						    ));
-	  ret_guard.Init(ret);
-	}
+	  {
+	    assert( e->GlobalPar(0));
+	    if( inputType == GDL_DOUBLE)
+	      {
+		ret = static_cast<DDoubleGDL*>(p0);
+		e->SetPtrToReturnValue( &e->GetPar(0));	  
+	      }
+	    else
+	      {
+		ret = static_cast<DDoubleGDL*>(p0->Convert2(
+							    GDL_DOUBLE, 
+							    BaseGDL::COPY
+							    ));
+		ret_guard.Init(ret);
+	      }
+	  }
       }
-    }
 
     // GSL error handling
     gsl_error_handler_t* old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
