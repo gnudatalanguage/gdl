@@ -419,7 +419,9 @@ namespace lib {
 
     void GDLffShape___Cleanup(EnvUDT * e)
     {
-      std::cerr << "TODO Cleanup" << std::endl;
+      // we are supposed here to write the contents of the shapefiles if they were opened in RW mode and something
+      // has changed --- perhaps the file was not existing previously and has been created with this objetc.
+      // As we do not write shapefiles yet we do nothing instead.
     }
 
     void GDLffShape___Close(EnvUDT * e)
