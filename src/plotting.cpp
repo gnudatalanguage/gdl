@@ -2541,8 +2541,12 @@ struct Polygon {
           (*lats)[i] = v->lat;
           (*currentConn)[j++] = i;
         }
+        //delete vertexlist
+        (*p).VertexList.clear();
       }
     }
+    //finally, delete polygon list.
+    PolygonList.clear();
 
     nEl = lons->N_Elements();
     DLong odims[2];
@@ -2565,6 +2569,7 @@ struct Polygon {
       if (doGons) gonsOut = currentConn;
       else linesOut = currentConn;
     } else GDLDelete(currentConn);
+
     return res;
   }
   
