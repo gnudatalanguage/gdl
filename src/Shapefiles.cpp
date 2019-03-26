@@ -1,9 +1,9 @@
 /***************************************************************************
-                          |FILENAME|  -  description
+                          Shapefiles.cpp  -  all stuff for IDLffShape
                              -------------------
-    begin                : |DATE|
-    copyright            : (C) |YEAR| by |AUTHOR|
-    email                : |EMAIL|
+    begin                : March 2019
+    copyright            : (C) 2019 by G.Duvert
+    email                : gilles dot duvert at free dot fr
  ***************************************************************************/
 
 /***************************************************************************
@@ -17,8 +17,6 @@
 
 #include "includefirst.hpp"
 
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_cdf.h>
 #include "shapefil.h"
 
 #include "datatypes.hpp"

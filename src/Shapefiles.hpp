@@ -1,9 +1,9 @@
 /***************************************************************************
-                          |FILENAME|  -  description
+                          Shapefiles.hpp  -  all stuff for IDLffShape
                              -------------------
-    begin                : |DATE|
-    copyright            : (C) |YEAR| by |AUTHOR|
-    email                : |EMAIL|
+    begin                : March 2019
+    copyright            : (C) 2019 by G.Duvert
+    email                : gilles dot duvert at free dot fr
  ***************************************************************************/
 
 /***************************************************************************
