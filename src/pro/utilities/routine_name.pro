@@ -5,6 +5,10 @@
 ; in which routine (pro or funct) we are ...
 ; It would be useful for various messages !
 ;
+; This code can be use in IDL and FL too
+;
+; In GDL, since Feb. 2019, we also have a ROUTINE_NAME_GDLINTERNAL()
+;
 function ROUTINE_NAME, lowercase=lowercase, test=test, verbose=verbose
 ;
 callStack = SCOPE_TRACEBACK()

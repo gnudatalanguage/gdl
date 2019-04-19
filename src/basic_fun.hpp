@@ -144,6 +144,8 @@ namespace lib {
   BaseGDL* bytscl( EnvT* e);
 
   BaseGDL* routine_info( EnvT* e);
+  //AC 2019
+  BaseGDL* routine_name_fun( EnvT* e);
 
   BaseGDL* temporary( EnvT* e);
 

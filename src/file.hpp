@@ -24,6 +24,8 @@ namespace lib {
   BaseGDL* file_test( EnvT* e);
   BaseGDL* file_lines( EnvT* e);
 
+  BaseGDL* routine_dir_fun( EnvT* e);
+
   std::string PathSeparator();
   void cd_pro( EnvT* e);
 
