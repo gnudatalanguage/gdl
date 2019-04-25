@@ -49,14 +49,16 @@
 ; PROCEDURE:
 ;
 ; We use shape (see http://shapelib.maptools.org/) files provided by naturalEarthData
-; (https://www.naturalearthdata.com/). ShapeFiles are read with our
-; implementation of IDLffShape(). MAP_Continents is just a way to call
-; the more general gdlMapShapefile procedure, passing the good
-; shapefile(s).
+; (https://www.naturalearthdata.com/). NaturalEarth contours are not of the "fillable" type.
+; This is one of the reasons why continents are derived for the gshhs 
+; (https://www.ngdc.noaa.gov/mgg/shorelines/gshhs.html) shapefiles
+; slightly edited (L6 added to L1, some errors removed --- thanks to qgis https://www.qgis.org).
+; ShapeFiles are read with our implementation of IDLffShape(). MAP_Continents is just a way to call
+; the more general gdlMapShapefile procedure, passing the good shapefile(s).
 ;
 ; EXAMPLE:
 ;
-; map_set,0,33,/goode & map_continents,/coas & map_horizon
+; map_set,0,33,/goode & map_continents,/coast & map_horizon
 ;
 ; MODIFICATION HISTORY:
 ;       Written by: G. Duvert, March 2019
@@ -112,29 +114,40 @@ PRO Map_Continents ,COASTS=_COASTS , COLOR=colorindex,$
                      MLINESTYLE=mlinestyle, MLINETHICK=mlinethick, $
                      RIVERS=_Rivers, SPACING=spacing, USA=_USA,$
                      T3D=t3d, ZVALUE=zValue, AUTODRAW=AUTODRAW, $
-                     CANADA=CANADA,$ ; GDL but also MAPCONTINENTS function
-                     FRANCE=FRANCE,$ ; GDL 
                     _EXTRA=extra
+
+; to be added if needed:
+;                     CANADA=_CANADA,$ ; in MAPCONTINENTS function
+;                     FRANCE=_FRANCE,$ ; GDL expansion example.
 
 ; note: fillvalue =1 -> solid fill
 ;       fillvalue =2 -> line fill (SPACING etc)
 ;
 common gdl_map_continents_compound, gdl_map_continents_maps
 
-;ON_ERROR, 2
+ON_ERROR, 2
 
 autodraw=n_elements(autodraw) gt 0
 if ~autodraw then if (!x.type NE 3) and (N_TAGS(mapStruct) eq 0) then message,'Map transform not established.'
-ATTRNAME = '*' ; by default
+
+; by playing on attrname/attrvaluesone can plot selected subsets.
+ATTRNAME = "*" ; by default
 ATTRVALUES=""
 
-doContinents = keyword_set(_continents)
-doUsa = keyword_set(_usa)
-doCa = keyword_set(canada)
-doFr = keyword_set(france)
-doAdministrative=(doUsa or doCa or doFr)
-doRivers = keyword_set(_rivers)
+; Coastlines and land shapes in NE are (apparently) identical, no
+; need to have both. doContinents=continents, doCoasts=continents+lakes. 
+doContinents = keyword_set(_continents) or keyword_set(_coasts)
 doCoasts = keyword_set(_coasts)
+; IDL's USA is only at low resolution. We *can* do better.  
+doUsa = keyword_set(_usa) & if doUsa then begin  ATTRNAME="ADM0_A3" & ATTRVALUES="USA" & end
+; this to show how it would be easy to have other countries than
+; USA. The admin boundary of NE at 10m contains oodles of
+; boundaries.
+;doCa = 0 ;keyword_set(_canada)& if doCa then ATTRVALUES=[ATTRVALUES,"CA"] 
+;doFr = 0 ;keyword_set(_france)& if doFr then ATTRVALUES=[ATTRVALUES,"FR"] 
+;doAdministrative=(doUsa or doCa or doFr) & if doAdministrative then ATTRNAME="ISO_A2" 
+
+doRivers = keyword_set(_rivers)
 doCountries = keyword_set(_countries)
 doHires = keyword_set(_hires)
 
@@ -145,8 +158,9 @@ if n_elements(fillvalue) gt 0 then begin
   poly=1
 endif
 
-if (~doCountries and ~doUsa and ~doRivers and ~doCoasts) and ~doContinents then doContinents=1 
-if (doCoasts) then doContinents=1
+; nothing=doContinents;
+;if (~doCountries and ~doAdministrative and ~doRivers) and ~doContinents then doContinents=1 
+if (~doCountries and ~doUsa and ~doRivers) and ~doContinents then doContinents=1 
 
 if n_elements(zvalue) eq 0 then zvalue=0.0
 
@@ -174,43 +188,36 @@ if n_elements(ori) and (fill eq 2) then map_struct_append, extra, 'ORIENTATION',
 if n_elements(t3d) then map_struct_append, extra,'t3d',t3d,/supercede
 if fill eq 2 then map_struct_append, extra, 'LINE_FILL', 1,/supercede
 
-; rivers are just rivers. No lakes. Lakes are added in
-; /Coasts. Coastlines and land shapes are (apparently) identical, no
-; need to have both.
+if (doUsa) then begin	; could be doAdministrative + selection of attrvalues	;States in USA,FR,CA, a different file
+   if (doContinents) then begin ; use the states without external borders. 
+      compound = map_getcompound ( ['ne_110m_admin_1_states_provinces_lines', 'ne_10m_admin_1_states_provinces_lines'], 'Usa', doHires)
+   endif else begin
+      compound = map_getcompound ( ['ne_110m_admin_1_states_provinces', 'ne_10m_admin_1_states_provinces'], 'Usa', doHires)
+   endelse
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, attrname=attrname , attrval=attrvalues
+endif
+
+; rivers are just rivers. No lakes. Lakes are added in /Coasts. 110m rivers are just too few.
 if (doRivers) then begin
    compound = map_getcompound( ['ne_50m_rivers_lake_centerlines', 'ne_10m_rivers_lake_centerlines'], 'Rivers', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, /force
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct 
 endif
 
-if (doCountries) then begin ; only lines.
+if (doCountries) then begin ; only lines. continents or coasts are already there.
    compound = map_getcompound( ['ne_110m_admin_0_boundary_lines_land', 'ne_10m_admin_0_boundary_lines_land'], 'Boundaries', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct ;, attrname=attrname, attrval=attrval
 endif
 
-if (doContinents) then begin ; coasts = continents + lakes. coasts may be more complicated depending on scale.
-   compound = map_getcompound( ['ne_110m_coastline', 'ne_10m_coastline'], 'Coasts', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, /force ;, attrname=attrname, attrval=attrval
+if (doContinents) then begin ; coasts = continents + lakes. coasts may be more complicated depending on scale.  NaturalEarth contours are not of the "fillable" type.
+   compound = map_getcompound( ['continents', 'continents_med'], 'Continents', doHires)
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct  ;, attrname=attrname, attrval=attrval
 endif
 
 if (doCoasts) then begin ; coasts = continents + lakes. coasts may be more complicated depending on scale.
-   compound = map_getcompound( ['ne_110m_lakes', 'ne_50m_lakes'], 'Lakes', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, /force ;, attrname=attrname, attrval=attrval
+   compound = map_getcompound( ['ne_110m_lakes', 'ne_10m_lakes'], 'Lakes', doHires)
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct  ;, attrname=attrname, attrval=attrval
 endif
 
-if (doUsa) then begin		;States in USA, a different file
-   compound = map_getcompound ( ['ne_50m_admin_1_states_provinces', 'ne_10m_admin_1_states_provinces'], 'Usa', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, attrname="ISO_A2" , attrval="US"
-endif
-
-if (doCa) then begin		;
-   compound = map_getcompound ( ['ne_50m_admin_1_states_provinces', 'ne_10m_admin_1_states_provinces'], 'Usa', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, attrname="ISO_A2" , attrval="CA" 
-endif
-
-if (doFr) then begin		;
-   compound = map_getcompound ( ['ne_50m_admin_1_states_provinces', 'ne_10m_admin_1_states_provinces'], 'Usa', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct,    attrname="ISO_A2" , attrval="FR"
-endif
 
 
 end

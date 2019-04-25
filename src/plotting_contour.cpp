@@ -669,6 +669,9 @@ namespace lib
             }
           }
 	      //apply projection transformations:
+          //This is going to work in a very restricted case.
+          //One MUST instead plot the contours as for map_continents, i.e., using gdlPolygonPlot.
+          //this will be feasible as soon as we use our  own contour-making algorithm, not plplot's.
 #ifdef USE_LIBPROJ4
 	      if ( mapSet )
 		{

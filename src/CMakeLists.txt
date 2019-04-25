@@ -233,7 +233,6 @@ plotting_cursor.cpp
 plotting_device.cpp
 plotting_erase.cpp
 plotting_image.cpp
-plotting_map_proj.cpp
 plotting_misc.cpp
 plotting_oplot.cpp
 plotting_plot.cpp
@@ -251,6 +250,7 @@ print_tree.hpp
 prognode.cpp
 prognode_lexpr.cpp
 prognodeexpr.cpp
+projections.cpp
 randomgenerators.cpp
 read.cpp
 real2int.hpp

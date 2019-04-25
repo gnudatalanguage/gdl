@@ -38,6 +38,7 @@
 #include "gsl_fun.hpp"
 #include "image.hpp"
 #include "plotting.hpp"
+#include "projections.hpp"
 
 #include "widget.hpp"
 
