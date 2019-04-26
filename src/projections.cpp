@@ -986,6 +986,13 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   };
 #endif
 
+//our implementation of sincos(), test if generic sincos() is faster than compiler optimzation of sin() and cos()
+  inline void gdl_sincos(DDouble angle, DDouble *s, DDouble *c){
+//    sincos(angle,s,c); //apparently compilers are clever, time is identical. No use to call an unsupported feature on clang for example.
+    *s=sin(angle);
+    *c=cos(angle);
+  }
+  
 #define GDL_PI     double(3.1415926535897932384626433832795)
 #define GDL_HALFPI 0.5*GDL_PI  
   //epsilon is the size of the "trouble ahead" region around splits. Mostly due to projection numerical errors?
@@ -1026,14 +1033,14 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   void rotate3d(Point3d &p1, const Point3d a, DDouble theta)
   {
     DDouble st,ct;
-    sincos(theta,&st,&ct);
+    gdl_sincos(theta,&st,&ct);
     // quaternion-derived rotation matrix
     DDouble matrix[3][3] = {
       { a.x * a.x * (1 - ct) + ct, a.x * a.y * (1 - ct) - a.z*st, a.x * a.z * (1 - ct) + a.y * st},
       { a.y * a.x * (1 - ct) + a.z*st, a.y * a.y * (1 - ct) + ct, a.y * a.z * (1 - ct) - a.x * st},
     { a.z * a.x * (1 - ct) - a.y*st, a.z * a.y * (1 - ct) + a.x*st, a.z * a.z * (1 - ct) + ct },
      };
-    // multiply matrix × vector
+    // multiply matrix Ã vector
     DDouble vector[3]={p1.x, p1.y, p1.z};
     DDouble rotated[3] = {0, 0, 0};
     for (int i = 0; i < 3; i++) {
@@ -1089,15 +1096,15 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
 
     //the 2 points are on the split
     DDouble x1, y1, z1;
-    sincos(v1.lon,&slon,&clon);
-    sincos(v1.lat,&slat,&clat);
+    gdl_sincos(v1.lon,&slon,&clon);
+    gdl_sincos(v1.lat,&slat,&clat);
     x1 = clon * clat;
     y1 = slon * clat;
     z1 = slat;
     
     DDouble x2, y2, z2;
-    sincos(v2.lon,&slon,&clon);
-    sincos(v2.lat,&slat,&clat);
+    gdl_sincos(v2.lon,&slon,&clon);
+    gdl_sincos(v2.lat,&slat,&clat);
     x2 = clon * clat;
     y2 = slon * clat;
     z2 = slat;
@@ -1229,8 +1236,8 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   {
     DDouble x, y, z;
     DDouble clon,slon,clat,slat;
-    sincos(vertex->lon,&slon,&clon);
-    sincos(vertex->lat,&slat,&clat);
+    gdl_sincos(vertex->lon,&slon,&clon);
+    gdl_sincos(vertex->lat,&slat,&clat);
     x = clon * clat;
     y = slon * clat;
     z = slat;
@@ -1251,16 +1258,16 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     DDouble clon,slon,clat,slat;
 
     std::list<Vertex>::iterator vertex = p.VertexList.begin();
-    sincos(vertex->lon,&slon,&clon);
-    sincos(vertex->lat,&slat,&clat);
+    gdl_sincos(vertex->lon,&slon,&clon);
+    gdl_sincos(vertex->lat,&slat,&clat);
     x = clon * clat;
     y = slon * clat;
     z = slat;
     DDouble indicator = u * x + v * y + w * z; 
     ++vertex;
     while (abs(indicator) < avoidance && vertex != p.VertexList.end()) {
-      sincos(vertex->lon,&slon,&clon);
-      sincos(vertex->lat,&slat,&clat);
+      gdl_sincos(vertex->lon,&slon,&clon);
+      gdl_sincos(vertex->lat,&slat,&clat);
       x = clon * clat;
       y = slon * clat;
       z = slat;
@@ -1373,8 +1380,8 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
       Point3d v;
       DDouble clon,slon,clat,slat;
 
-      sincos(endOfP.lon,&slon,&clon);
-      sincos(endOfP.lat,&slat,&clat);
+      gdl_sincos(endOfP.lon,&slon,&clon);
+      gdl_sincos(endOfP.lat,&slat,&clat);
       v.x = clon * clat;
       v.y = slon * clat;
       v.z = slat;
@@ -1600,8 +1607,8 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
           //all the previous points towards it. This is the reason of the "sign" parameter in avoidSplits(). Sign is the sign of "before" when 
           //the point giving "before" is not on the split. If every vertexes are on the split (MAP_GRID values for example), sign is 0 and the result
           //is "somewhere" but consistent. In summary: once "sign" is defined and followed, nothing should go wrong.
-          sincos(v->lon,&slon,&clon);
-          sincos(v->lat,&slat,&clat);
+          gdl_sincos(v->lon,&slon,&clon);
+          gdl_sincos(v->lat,&slat,&clat);
           xs = clon * clat;
           ys = slon * clat;
           zs = slat;
@@ -1610,8 +1617,8 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
           else sign = getSign(before);
           avoidSplits(v, a, b, c, sign);
           // xs etc may have changed due to avoidSplits(), recompute.
-          sincos(v->lon,&slon,&clon);
-          sincos(v->lat,&slat,&clat);
+          gdl_sincos(v->lon,&slon,&clon);
+          gdl_sincos(v->lat,&slat,&clat);
           xs = clon * clat;
           ys = slon * clat;
           zs = slat;
@@ -1626,8 +1633,8 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
           for (++v; v != p->VertexList.end(); ++v) {
 
             avoidSplits(v, a, b, c, sign);
-            sincos(v->lon,&slon,&clon);
-            sincos(v->lat,&slat,&clat);
+            gdl_sincos(v->lon,&slon,&clon);
+            gdl_sincos(v->lat,&slat,&clat);
             xe = clon * clat;
             ye = slon * clat;
             ze = slat;
@@ -1808,8 +1815,8 @@ done:             aliasList->remove_if(isInvalid);
           Vertex curr;
 
           std::list<Vertex>::iterator v = p->VertexList.begin();
-          sincos(v->lon,&slon,&clon);
-          sincos(v->lat,&slat,&clat);
+          gdl_sincos(v->lon,&slon,&clon);
+          gdl_sincos(v->lat,&slat,&clat);
           xs = clon * clat;
           ys = slon * clat;
           zs = slat;
@@ -1821,8 +1828,8 @@ done:             aliasList->remove_if(isInvalid);
             currentVertexList.push_back(curr);
           }
           for (++v; v != p->VertexList.end(); ++v) {
-            sincos(v->lon,&slon,&clon);
-            sincos(v->lat,&slat,&clat);
+            gdl_sincos(v->lon,&slon,&clon);
+            gdl_sincos(v->lat,&slat,&clat);
             xe = clon * clat;
             ye = slon * clat;
             ze = slat;
