@@ -77,13 +77,10 @@ install:
         mingw32-make install
 
         # GSL
-        #cd c:\projects\gdl\win32libs
-        #appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
-        #tar zxf gsl-2.4.tar.gz
-        #c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
         cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://sourceforge.net/projects/gnuwin32/files/gsl/1.8/gsl-1.8-lib.zip
-        7z x gsl-1.8-lib.zip
+        appveyor DownloadFile http://ftpmirror.gnu.org/gsl/gsl-2.4.tar.gz
+        tar zxf gsl-2.4.tar.gz
+        c:\msys64\usr\bin\bash.exe -lc 'export PATH=$PATH:/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/bin && export LDFLAGS=-L/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/lib && export CPPFLAGS=-I/c/mingw-w64/i686-6.3.0-release-posix-dwarf-rt_v5-rev1/mingw32/i686-w64-mingw32/include && cd /c/projects/gdl/win32libs/gsl-2.4 && ./configure --build=i686-w64-mingw32 --host=i686-w64-mingw32 --prefix /c/projects/gdl/win32libs && make -j4 && make install'
         
         # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
         # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
