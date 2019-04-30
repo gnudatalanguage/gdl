@@ -152,6 +152,7 @@ TESTS = \
   test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
+  test_mpi.pro \
   test_multiroots.pro \
   test_n_tags.pro \
   test_nans_in_sort_and_median.pro \

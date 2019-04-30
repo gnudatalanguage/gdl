@@ -67,7 +67,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [FFTW](http://www.fftw.org/)                                                            |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [PROJ.4](http://proj4.org/)                                                             |   -    |    -       |   -    | +       |   -   |    +      |   -   |   +   |
 | [GSHHG](http://www.soest.hawaii.edu/wessel/gshhg/)                                      |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
-| [MPICH](https://www.mpich.org/)                                                         |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
+| [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface)                                                         |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
 | [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/)                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [udunits](https://www.unidata.ucar.edu/software/udunits/)                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [Eigen](https://eigen.tuxfamily.org/)                                                   |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
