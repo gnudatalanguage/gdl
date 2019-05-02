@@ -177,6 +177,14 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
+function pathtounix,strin
+; convert path to unix-style (switch '\' to '/')
+bs = byte(strin)
+jj = where(bs eq 92,nj)
+if nj gt 0 then bs[jj] = 47
+return,string(bs)
+end
+;
 ; --------------------------------------------
 ;
 pro TEST_SPECIAL_PATHS, cumul_errors, no_erase=no_erase, test=test
@@ -185,7 +193,7 @@ errors=0
 ;
 CD,'..', current=current
 CD, current, current=updir
-home=GETENV('HOME')
+home=pathtounix(GETENV('HOME'))
 ;
 res1=FILE_SEARCH('.', /FULLY_QUALIFY_PATH)
 res2=FILE_SEARCH('..',/FULLY_QUALIFY_PATH)
@@ -197,17 +205,17 @@ if ~ARRAY_EQUAL(current, res1) then begin
     print, 'output : ', res1
 endif
 if ARRAY_EQUAL(current+PATH_SEP()+'..', res2) then begin
-    ADD_ERROR, errors, 'pb with .. has wrong path'
+    ERRORS_ADD, errors, 'pb with .. has wrong path'
     print, 'input :  ', current+PATH_SEP()+'..'
     print, 'output : ', res2
 endif
 if ~ARRAY_EQUAL(updir, res2) then begin
-    ADD_ERROR, errors, 'pb with ..'
+    ERRORS_ADD, errors, 'pb with ..'
     print, 'input  : ', updir
     print, 'output : ', res2
 endif
 
-if ~ARRAY_EQUAL(home, res3) then ADD_ERROR, errors, 'pb with ~'
+if ~ARRAY_EQUAL(home, res3) then ERRORS_ADD, errors, 'pb with ~'
 ;
 BANNER_FOR_TESTSUITE, "TEST_SPECIAL_PATHS", errors, /short
 ;

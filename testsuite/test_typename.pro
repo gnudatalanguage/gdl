@@ -42,12 +42,13 @@ if (TYPENAME(LIST(1,2,3)) NE "LIST") then ERRORS_ADD, nb_errors, 'bad type with 
 ;
 ; this class should be in the GDL_PATH, or in src/pro/dicom
 ;
-res=EXECUTE("tmp=OBJ_NEW('gdlffdicom')")
+res=EXECUTE("tmp=OBJ_NEW('idlsysmonitorinfo')")
 if res EQ 0 then begin
    MESSAGE, /continue, 'skipping test on OBJ_NEW'
-   MESSAGE, /continue, 'please check whether "gdlffdicom" class is in the path ...'
+   MESSAGE, /continue, 'please check whether "idlsysmonitorinfo" class is in the path ...'
 endif else  begin
-   if (TYPENAME(tmp) NE "GDLFFDICOM") then ERRORS_ADD, nb_errors, 'bad type with Dicom Obj'
+   if (TYPENAME(tmp) NE "IDLSYSMONITORINFO") then $
+        ERRORS_ADD, nb_errors, 'bad type with "idlsysmonitorinfo" Obj'
 endelse
 ;
 ; structures : 4 cases to be tested : array or not, ANONYMOUS or NAMED

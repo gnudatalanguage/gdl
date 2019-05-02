@@ -1,0 +1,366 @@
+--- /f/f/wxWidgets-3.0.2-17/include/wx-3.0/wx/msw/winundef.h
++++ /f/f/wxWidgets-3.0.2-17/include/wx-3.0/wx/msw/winundef.h
+@@ -14,7 +14,13 @@
+ #ifndef _WX_WINUNDEF_H_
+ #define _WX_WINUNDEF_H_
+  */
+-
++// ----------------------------------------------------------------------------
++// 2015-08-01 Greg Jung: explicitly call out LPCWSTR and other "W" types
++//  in the inline function declarations, in the _UNICODE case, avoiding a silly
++//  commpilation error in c++;  a user may be using a unicode-enabled wx library
++//  without creating the TCHAR=WCHAR typedefs by simply including <windows.h>
++//  without setting UNICODE.
++//
+ // ----------------------------------------------------------------------------
+ // windows.h #defines the following identifiers which are also used in wxWin so
+ // we replace these symbols with the corresponding inline functions and
+@@ -26,27 +32,39 @@
+ 
+ // CreateDialog
+ 
++#if defined(CreateDialog) || defined(CreateFont) || defined(CreateWindow) || \
++    defined(LoadMenu) || defined(FindText) || defined(GetCharWidth) || \
++    defined(FindWindow) || defined(PlaySound)  || defined(GetClassName) || \
++    defined(GetClassInfo) || defined(LoadAccelerators) || defined(DrawText)
++
+ #if defined(CreateDialog)
+     #undef CreateDialog
+ 
++        #ifdef _UNICODE
+     inline HWND CreateDialog(HINSTANCE hInstance,
+-                             LPCTSTR pTemplate,
++                             LPCWSTR pTemplate,
+                              HWND hwndParent,
+                              DLGPROC pDlgProc)
+     {
+-        #ifdef _UNICODE
+             return CreateDialogW(hInstance, pTemplate, hwndParent, pDlgProc);
++    }
+         #else
++    inline HWND CreateDialog(HINSTANCE hInstance,
++                             LPCTSTR pTemplate,
++                             HWND hwndParent,
++                             DLGPROC pDlgProc)
++    {
+             return CreateDialogA(hInstance, pTemplate, hwndParent, pDlgProc);
+-        #endif
+     }
+ #endif
++#endif
+ 
+ // CreateFont
+ 
+ #ifdef CreateFont
+     #undef CreateFont
+ 
++        #ifdef _UNICODE
+     inline HFONT CreateFont(int height,
+                             int width,
+                             int escapement,
+@@ -60,20 +78,36 @@
+                             DWORD clipprecision,
+                             DWORD quality,
+                             DWORD family,
+-                            LPCTSTR facename)
++                            LPCWSTR facename)
+     {
+-        #ifdef _UNICODE
+             return CreateFontW(height, width, escapement, orientation,
+                                weight, italic, underline, strikeout, charset,
+                                outprecision, clipprecision, quality,
+                                family, facename);
++	        }
++
+         #else
++    inline HFONT CreateFont(int height,
++                            int width,
++                            int escapement,
++                            int orientation,
++                            int weight,
++                            DWORD italic,
++                            DWORD underline,
++                            DWORD strikeout,
++                            DWORD charset,
++                            DWORD outprecision,
++                            DWORD clipprecision,
++                            DWORD quality,
++                            DWORD family,
++                            LPCTSTR facename)
++   {
+             return CreateFontA(height, width, escapement, orientation,
+                                weight, italic, underline, strikeout, charset,
+                                outprecision, clipprecision, quality,
+                                family, facename);
+-        #endif
+     }
++        #endif
+ #endif // CreateFont
+ 
+ // CreateWindow
+@@ -81,8 +115,9 @@
+ #if defined(CreateWindow)
+     #undef CreateWindow
+ 
+-    inline HWND CreateWindow(LPCTSTR lpClassName,
+-                             LPCTSTR lpWndClass,
++        #ifdef _UNICODE
++    inline HWND CreateWindow(LPCWSTR lpClassName,
++                             LPCWSTR lpWndClass,
+                              DWORD dwStyle,
+                              int x, int y, int w, int h,
+                              HWND hWndParent,
+@@ -90,45 +125,60 @@
+                              HINSTANCE hInstance,
+                              LPVOID lpParam)
+     {
+-        #ifdef _UNICODE
+             return CreateWindowW(lpClassName, lpWndClass, dwStyle, x, y, w, h,
+                                  hWndParent, hMenu, hInstance, lpParam);
++    }
+         #else
++    inline HWND CreateWindow(LPCTSTR lpClassName,
++                             LPCTSTR lpWndClass,
++                             DWORD dwStyle,
++                             int x, int y, int w, int h,
++                             HWND hWndParent,
++                             HMENU hMenu,
++                             HINSTANCE hInstance,
++                             LPVOID lpParam)
++    {
+             return CreateWindowA(lpClassName, lpWndClass, dwStyle, x, y, w, h,
+                                  hWndParent, hMenu, hInstance, lpParam);
+-        #endif
+     }
+ #endif
++#endif
+ 
+ // LoadMenu
+ 
+ #ifdef LoadMenu
+     #undef LoadMenu
+ 
+-    inline HMENU LoadMenu(HINSTANCE instance, LPCTSTR name)
+-    {
+         #ifdef _UNICODE
++    inline HMENU LoadMenu(HINSTANCE instance, LPCWSTR name)
++    {
+             return LoadMenuW(instance, name);
++    }
+         #else
++    inline HMENU LoadMenu(HINSTANCE instance, LPCTSTR name)
++    {
+             return LoadMenuA(instance, name);
+-        #endif
+     }
+ #endif
++#endif
+ 
+ // FindText
+ 
+ #ifdef FindText
+     #undef FindText
+ 
+-    inline HWND APIENTRY FindText(LPFINDREPLACE lpfindreplace)
+-    {
+         #ifdef _UNICODE
++    inline HWND APIENTRY FindText(LPFINDREPLACEW lpfindreplace)
++    {
+             return FindTextW(lpfindreplace);
++    }
+         #else
++    inline HWND APIENTRY FindText(LPFINDREPLACE lpfindreplace)
++    {
+             return FindTextA(lpfindreplace);
+-        #endif
+     }
+ #endif
++#endif
+ 
+ // GetCharWidth
+ 
+@@ -154,7 +204,7 @@
+       return FindWindowW(classname, windowname);
+    }
+    #else
+-   inline HWND FindWindow(LPCSTR classname, LPCSTR windowname)
++   inline HWND FindWindow(LPCTSTR classname, LPCTSTR windowname)
+    {
+       return FindWindowA(classname, windowname);
+    }
+@@ -205,7 +255,7 @@
+       return GetClassInfoW(h, name, winclass);
+    }
+    #else
+-   inline BOOL GetClassInfo(HINSTANCE h, LPCSTR name, LPWNDCLASSA winclass)
++   inline BOOL GetClassInfo(HINSTANCE h, LPCTSTR name, LPWNDCLASSA winclass)
+    {
+       return GetClassInfoA(h, name, winclass);
+    }
+@@ -222,7 +272,7 @@
+       return LoadAcceleratorsW(h, name);
+    }
+    #else
+-   inline HACCEL LoadAccelerators(HINSTANCE h, LPCSTR name)
++   inline HACCEL LoadAccelerators(HINSTANCE h, LPCTSTR name)
+    {
+       return LoadAcceleratorsA(h, name);
+    }
+@@ -239,28 +289,38 @@
+       return DrawTextW(h, str, count, rect, format);
+    }
+    #else
+-   inline int DrawText(HDC h, LPCSTR str, int count, LPRECT rect, UINT format)
++   inline int DrawText(HDC h, LPCTSTR str, int count, LPRECT rect, UINT format)
+    {
+       return DrawTextA(h, str, count, rect, format);
+    }
+    #endif
+ #endif
+ 
++#endif
++
++/*
++  When this file is included, sometimes the wxCHECK_W32API_VERSION macro
++  is undefined. With for example CodeWarrior this gives problems with
++  the following code:
++  #if 0 && wxCHECK_W32API_VERSION( 0, 5 )
++  Because CodeWarrior does macro expansion before test evaluation.
++  We define wxCHECK_W32API_VERSION here if it's undefined.
++*/
++#if !defined(__GNUG__) && !defined(wxCHECK_W32API_VERSION)
++    #define wxCHECK_W32API_VERSION(maj, min) (0)
++#endif
++#if defined(StartDoc) || defined(GetObject) || \
++    defined(GetMessage) || defined(LoadIcon) || defined(LoadBitmap) || \
++    defined(LoadLibrary) || defined(FindResource)
+ 
+ // StartDoc
+ 
+ #ifdef StartDoc
+    #undef StartDoc
+-
+-   // Work around a bug in very old MinGW headers that didn't define DOCINFOW
+-   // and DOCINFOA but only DOCINFO in both ANSI and Unicode.
+-   #if defined( __GNUG__ )
+-      #if !wxCHECK_W32API_VERSION( 0, 5 )
+-        #define DOCINFOW DOCINFO
+-        #define DOCINFOA DOCINFO
+-      #endif
++   #if defined( __GNUG__ ) && !wxCHECK_W32API_VERSION( 0, 5 )
++      #define DOCINFOW DOCINFO
++      #define DOCINFOA DOCINFO
+    #endif
+-
+    #ifdef _UNICODE
+    inline int StartDoc(HDC h, CONST DOCINFOW* info)
+    {
+@@ -305,27 +365,33 @@
+ // LoadIcon
+ #ifdef LoadIcon
+     #undef LoadIcon
+-    inline HICON LoadIcon(HINSTANCE hInstance, LPCTSTR lpIconName)
+-    {
+         #ifdef _UNICODE
++    inline HICON LoadIcon(HINSTANCE hInstance, LPCWSTR lpIconName)
++    {
+             return LoadIconW(hInstance, lpIconName);
++    }
+         #else // ANSI
++    inline HICON LoadIcon(HINSTANCE hInstance, LPCTSTR lpIconName)
++    {
+             return LoadIconA(hInstance, lpIconName);
+-        #endif // Unicode/ANSI
+     }
++        #endif // Unicode/ANSI
+ #endif // LoadIcon
+ 
+ // LoadBitmap
+ #ifdef LoadBitmap
+     #undef LoadBitmap
+-    inline HBITMAP LoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName)
+-    {
+         #ifdef _UNICODE
++    inline HBITMAP LoadBitmap(HINSTANCE hInstance, LPCWSTR lpBitmapName)
++    {
+             return LoadBitmapW(hInstance, lpBitmapName);
++    }
+         #else // ANSI
++    inline HBITMAP LoadBitmap(HINSTANCE hInstance, LPCTSTR lpBitmapName)
++    {
+             return LoadBitmapA(hInstance, lpBitmapName);
+-        #endif // Unicode/ANSI
+     }
++        #endif // Unicode/ANSI
+ #endif // LoadBitmap
+ 
+ // LoadLibrary
+@@ -338,7 +404,7 @@
+         return LoadLibraryW(lpLibFileName);
+     }
+     #else
+-    inline HINSTANCE LoadLibrary(LPCSTR lpLibFileName)
++    inline HINSTANCE LoadLibrary(LPCTSTR lpLibFileName)
+     {
+         return LoadLibraryA(lpLibFileName);
+     }
+@@ -354,24 +420,22 @@
+         return FindResourceW(hModule, lpName, lpType);
+     }
+     #else
+-    inline HRSRC FindResource(HMODULE hModule, LPCSTR lpName, LPCSTR lpType)
++    inline HRSRC FindResource(HMODULE hModule, LPCTSTR lpName, LPCTSTR lpType)
+     {
+         return FindResourceA(hModule, lpName, lpType);
+     }
+     #endif
+ #endif
+ 
++#endif
++
+ // IsMaximized
+ 
+ #ifdef IsMaximized
+     #undef IsMaximized
+-    inline BOOL IsMaximized(HWND WXUNUSED_IN_WINCE(hwnd))
++    inline BOOL IsMaximized(HWND hwnd)
+     {
+-#ifdef __WXWINCE__
+-        return FALSE;
+-#else
+         return IsZoomed(hwnd);
+-#endif
+     }
+ #endif
+ 
+@@ -379,13 +443,9 @@
+ 
+ #ifdef GetFirstChild
+     #undef GetFirstChild
+-    inline HWND GetFirstChild(HWND WXUNUSED_IN_WINCE(hwnd))
++    inline HWND GetFirstChild(HWND hwnd)
+     {
+-#ifdef __WXWINCE__
+-        return 0;
+-#else
+         return GetTopWindow(hwnd);
+-#endif
+     }
+ #endif
+ 
+@@ -462,15 +522,6 @@
+ #endif
+ 
+ 
+-#if defined(__WXWINCE__) && defined(DrawIcon) //#ifdef DrawIcon
+-    #undef DrawIcon
+-    inline BOOL DrawIcon(HDC hdc, int x, int y, HICON hicon)
+-    {
+-        return DrawIconEx(hdc,x,y,hicon,0,0,0,NULL, DI_NORMAL) ;
+-    }
+-#endif
+-
+-
+ // GetWindowProc
+ //ifdef GetWindowProc
+ //   #undef GetWindowProc
