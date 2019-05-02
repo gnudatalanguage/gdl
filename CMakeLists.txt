@@ -815,7 +815,6 @@ if(MPI)
 		"Use -DMPI=OFF to not use it.")
 	endif(MPI_FOUND)	
 endif(MPI)
-
 # python
 # -DPYTHON=ON|OFF
 # -DPYTHON_MODULE
