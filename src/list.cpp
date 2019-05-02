@@ -1064,6 +1064,12 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 	while(  (*isRange)[iprm] == 0) { //  && (iprm+3 < nParam)
  
 		BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) {
+            if(ishash) {
+                std::cout << " attempt to access embedded hash :";
+            }
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
+            }
 
 		if( islist) {
 			MAKE_LONGGDL( XX, XXLong) 
@@ -1617,6 +1623,12 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
 	while(  (*isRange)[iprm] == 0) { //  && (iprm+3 < nParam)
           
 		BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) {
+            if(ishash) {
+                std::cout << " attempt to access embedded hash :";
+            }
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
+            }
 		if( XX->Rank() != 0 ) break; // must be a scalar
   
 		if( islist) {
