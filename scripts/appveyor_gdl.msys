@@ -1,0 +1,91 @@
+#!bin/bash.exe
+#
+if [ "x${WXNAME}" = "x" ] ; then
+   WXNAME=wxWidgets-3.0.2-17
+   fi
+# wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
+# there are a few changes in wx/msw/winundef.h since 3.0.2, which has a patch.
+
+WXROOT=/c/projects/gdl/mingw/${WXNAME}
+
+. /etc/profile
+#
+# any hints on how to switch compilers, insert here.
+#
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for $mname:"
+echo " appveyor_gdl.msys: build gdl with msys script"
+LOCALM32=/c/projects/gdl/mingw/$mname
+# this is needed to find bin/wx-config
+export PATH=$LOCALM32/bin:$PATH
+#
+if [ "x${DOCDF}" = "x" ] ; then doCDF=OFF; else doCDF=$DOCDF; fi
+
+if [ "x${DOTIFF}" = "x" ] ; then doTIFF=OFF; else doTIFF=$DOTIFF; fi
+#
+if [ $doTIFF = "ON" ] ; then doGEO=$DOGEOTIFF; fi
+
+if [ "x${GMNAME}" = "x" ] ; then
+    doGM=OFF
+    else
+    doGM=ON
+    GMDIR="/c/projects/gdl/mingw/GM-Q32"
+    if [ -d $GMDIR ] ; then
+          echo " GraphicsMagick library topdir=GMDIR= $GMDIR"
+        else 
+          GMDIR="/c/projects/gdl/mingw/graphicsmagick-1.3.27-Q8"
+        fi
+    fi
+DOWX=":BOOL=ON"
+if [ "x${WXNAME}" = "x" ] ; then
+   echo " appveyor_gdl.msys: wxWidgets build is OFF !!"
+   DOWX=":BOOL=OFF"
+  else
+   echo " appveyor_gdl.msys: wxWidgets build is ON !! WXROOT= $WXROOT"
+  fi
+
+cd /c/projects/gdl
+mkdir -p build/gdl/msys
+
+plplot=/c/projects/gdl/mingw/plplot-5.13
+cd /c/projects/gdl/build/gdl/msys 
+echo " GRAPHICSMAGICK: do? $doGM DIR? $GMDIR "
+cmake  -G"MSYS Makefiles" /c/projects/gdl \
+      -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
+      -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+      -DWXWIDGETS$DOWX -DwxWidgets_USE_PREFIX=$WXROOT -DWXWIDGETSDIR=$WXROOT \
+      -DPLPLOTDIR=$plplot \
+      -DCMAKE_INSTALL_PREFIX:PATH=/c/projects/gdl/install/gdl \
+      -DGRAPHICSMAGICK=$doGM -DMAGICK=$doGM \
+      -DGRAPHICSMAGICKDIR=$GMDIR \
+      -DPSLIB=OFF -DNETCDF=$doCDF -DHDF=OFF -DHDF5=$doCDF \
+      -DTIFF=$doTIFF -DGEOTIFF=$doGEO -DLIBPROJ4=$doTIFF \
+      -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
+      -DUSE_WINGDI_NOT_WINGCC=ON | tee cmake.out
+
+echo "CONTINUE FROM CMAKE"
+if [ $DOWX = ":BOOL=ON" ]; then
+  sed -e "s;-D__WXMSW__;-D__WXMSW__ -Wno-attributes;" -i ./src/CMakeFiles/gdl.dir/flags.make
+  fi
+make -j4
+make install > gdlinstall.out
+export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
+export PLPLOT_LIB=$plplot/share/plplot5.13.0
+if [ -d $GMDIR ] ; then
+  cp -pr $GMDIR/bin/*.dll $LOCALM32/bin
+  fi
+if [ -d $WXROOT ] ; then
+  cp -pr $WXROOT/bin/*.dll $LOCALM32/bin
+  fi
+mkdir -p /c/projects/gdl/install/gdl/bin
+#  GDL is built with GCC 6.3 but the underlying MSYS2/mingw support libraries are
+# at the GCC=8.2 level.  So much of the segfaulting could be the MSYS2 environment creeping
+# into the CTEST process and being incompatible with how it was built. 
+if [ -d $PLPLOT_DRV_DIR ]; then
+  cp $PLPLOT_DRV_DIR/*.dll /c/projects/gdl/install/gdl/bin
+  fi
+cp $LOCALM32/bin/*.dll /c/projects/gdl/install/gdl/bin
+cp $plplot/bin/lib*.dll /c/projects/gdl/install/gdl/bin
+cp /c/mingw-w64/$GCC/$mname/bin/*.dll /c/projects/gdl/install/gdl/bin
+export PATH=/c/projects/gdl/install/gdl/bin:$PATH
+make check
+rm src/CMakeFiles/gdl.dir/*.obj

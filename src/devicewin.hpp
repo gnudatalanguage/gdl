@@ -75,6 +75,8 @@ private:
 	int MaxWin();
 	int ActWin();
 	void DefaultXYSize(DLong *xSize, DLong  *ySize);
+  bool Decomposed(bool value);
+  DLong GetDecomposed();
 	void MaxXYSize(DLong *xSize, DLong *ySize);
 	DLongGDL* GetScreenSize(char* disp = NULL);
 	DDoubleGDL* GetScreenResolution(char* disp = NULL);
@@ -178,11 +180,6 @@ public:
 #ifdef HAVE_LIBWXWIDGETS
 	bool GUIOpen(int wIx, int xSize, int ySize);
 #endif
-	bool Decomposed(bool value)
-	{
-		decomposed = value;
-		return true;
-	}
 
 	void RaiseWin(int wIx)
 	{

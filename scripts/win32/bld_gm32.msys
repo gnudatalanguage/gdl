@@ -1,0 +1,82 @@
+#!/usr/bin/bash.exe
+#
+topdir=`pwd`
+arch="i686"
+if [ -n "$MSYSTEM" ] ; then
+  if [ "$MSYSTEM" = "MINGW64" ] ; then
+    arch="x86_64"
+    fi
+  fi
+echo "bld_gm32: Architecture =  ${arch}"
+export PATH=$Begin_path
+export -n CC
+export -n  CXX
+echo "bld_gm32: going into MSYS initialization. Cleared CC, CXX, PATH=Begin_path"
+  if [ ! $PATH = $Begin_path ]; then
+     echo " Bash comparison disagrees with PATH=Begin_path"
+     else
+     echo " Looks like we attained PATH=Begin_path"
+     fi
+echo "CC = $CC CXX = $CXX"
+echo $PATH
+. /etc/profile
+# this is needed to find bin/wx-config
+#
+echo "LDFLAGS = $LDFLAGS" "CPPFLAGS = $CPPFLAGS"
+
+function errorhandler ()  { 
+      echo "Unexpected error: $1 - $2"
+      pwd
+      tail $bldout/*.out
+       exit 0
+        }
+
+# try-start - capture errors
+trap "errorhandler $LINENO $BASH_COMMAND" ERR
+
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to compile for mingw:"
+echo ' $PATH  after . /etc/profile :' $PATH
+echo $LOCALM32
+echo " bld_gm32.msys:  with msys script"
+# configure: error: in `/c/projects/gdl/win32libs/GraphicsMagick-1.3.30/bldmingw32':
+# configure: error: libltdl is required by modules build
+export -n CC CXX
+export PATH=$LOCALM32:$PATH
+export LDFLAGS="-L${LOCALM32}/lib"
+export CPPFLAGS="-I${LOCALM32}/include -I${LOCALM32}/include/freetype2 -I${LOCALM32}/include/libxml"
+echo "CC = $CC CXX = $CXX"
+echo "LDFLAGS = $LDFLAGS" "CPPFLAGS = $CPPFLAGS "
+echo " PATH :  $PATH"
+echo ""
+echo " gcc -v :"
+gcc -v
+GMname=GraphicsMagick-1.3.30
+cd $topdir/win32libs
+curl -O -s https://cytranet.dl.sourceforge.net/project/graphicsmagick/graphicsmagick/1.3.30/GraphicsMagick-1.3.30.tar.xz
+if [ -f ${GMname}.tar.xz ]; then
+  echo " $GMname if here "
+    tar xf ${GMname}.tar.xz
+    mkdir -p $topdir/build/${GMname}
+    bldout=$topdir/build/${GMname}
+    cd $topdir/win32libs/${GMname}
+    mkdir -p bld${mname}
+    cd bld${mname}
+    ../configure --prefix=$topdir/mingw/GM-Q32 \
+  --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
+   --host=${arch}-w64-mingw32 --build=${arch}-w64-mingw32 --disable-static \
+  --with-modules --with-wmf --with-xml --with-lcms2 --with-jp2 \
+  --with-webp --with-gslib --with-jbig --without-fpx --without-dps \
+  --without-perl --without-x >& $bldout/configure.out
+  tail -40 $bldout/configure.out &&  echo "That was tail end of configure.out"
+  make -j4 >& $bldout/make.out
+  tail $bldout/make.out &&  echo "That was tail end of make.out"
+  make install >& $bldout/gminstall.out
+  make clean >& $bldout/clean.out
+  ls ./ &&   pwd
+  else
+  echo " no ${GMname}.tar.xz present to build "
+fi
+cd $topdir
+# try-end - stop capturing errors
+# trap - ERR
+exit 0 

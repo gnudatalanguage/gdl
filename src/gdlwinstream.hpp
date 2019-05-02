@@ -173,6 +173,7 @@ public:
 	HDC GetHdc(void);
     void Load_gin(HWND window);
 	void RedrawTV();
+  DByteGDL* GetBitmapData();
 
     void CALLBACK GinCallback(UINT message, WPARAM wParam, LPARAM lParam);
 };

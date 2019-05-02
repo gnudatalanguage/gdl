@@ -433,7 +433,12 @@ void GDLWINStream::Flush() {
 }
 
 DLong GDLWINStream::GetVisualDepth(){
-  return GetDeviceCaps(GetHdc(),PLANES);
+//  return GetDeviceCaps(GetHdc(),PLANES); // This doesn't work (returns 1)
+    HDC hscreenDC = GetWindowDC(GetDesktopWindow());
+    int bitsperpixel = GetDeviceCaps(hscreenDC, BITSPIXEL);
+    ReleaseDC(NULL, hscreenDC);
+    return bitsperpixel;
+// This code is repeated in devicewin.cpp; do windo need be opened
 }
 
 unsigned long  GDLWINStream::GetWindowDepth(){
@@ -492,7 +497,92 @@ HDC GDLWINStream::GetHdc()
 	}
     return NULL;
 }
+DByteGDL* GDLWINStream::GetBitmapData() {
+    // Get the client area for size calculation
+    HDC hdc=GetHdc();
+    HGDIOBJ           previous;
+    HBITMAP hbitmap = NULL;
+    BITMAP wbitmap;
+    RECT rt;
+    HDC hdc_bmp = CreateCompatibleDC( hdc );
+    if( ! hdc_bmp ) {
+        cout << " GDLwinstream::CreateCompatibleDC() failed !! " << endl;
+        return NULL;
+    }
 
+    GetClientRect( GetHwnd(), &rt);
+
+    hbitmap = CreateCompatibleBitmap( hdc, rt.right, rt.bottom );
+    if ( ! hbitmap) {
+        cout << " GDLwinstream::CreateCompatibleBitmap() failed !! " << endl;
+        return NULL;
+    }
+//    previous = SelectObject( hdc_bmp, hbitmap );
+    SelectObject( hdc_bmp, hbitmap );
+    if ( !BitBlt( hdc_bmp, 0, 0, rt.right, rt.bottom, hdc, 0, 0, SRCCOPY )) {
+        cout << " winstream::GetBitmap() Bit blt failed !! " << endl;
+        DeleteObject( hbitmap );
+        DeleteDC (hdc_bmp);
+        return NULL;
+        }
+// from example code https://docs.microsoft.com/en-us/windows/desktop/gdi/capturing-an-image
+
+    GetObject( hbitmap, sizeof(BITMAP), &wbitmap);
+    BITMAPFILEHEADER   bmfHeader;    
+    BITMAPINFOHEADER   bi;
+     
+    bi.biSize = sizeof(BITMAPINFOHEADER);    
+    bi.biWidth = wbitmap.bmWidth;    
+    bi.biHeight = wbitmap.bmHeight;  
+    bi.biPlanes = 1;    
+    bi.biBitCount = 32;    
+    bi.biCompression = BI_RGB;    
+    bi.biSizeImage = 0;  
+    bi.biXPelsPerMeter = 0;    
+    bi.biYPelsPerMeter = 0;    
+    bi.biClrUsed = 0;    
+    bi.biClrImportant = 0;
+    DWORD dwBmpSize = ((wbitmap.bmWidth * bi.biBitCount + 31) / 32) * 4 * wbitmap.bmHeight;
+    HANDLE hDIB = GlobalAlloc(GHND,dwBmpSize); 
+    char *lpbitmap = (char *)GlobalLock(hDIB);    
+
+    // Gets the "bits" from the bitmap and copies them into a buffer 
+    // which is pointed to by lpbitmap.
+    GetDIBits(hdc_bmp, hbitmap, 0,
+        (UINT)wbitmap.bmHeight,
+        lpbitmap,
+        (BITMAPINFO *)&bi, DIB_RGB_COLORS);
+
+// Now convert the data in bitmap to bytes for GDL.
+    int nx, ny;
+    nx = rt.right;
+    ny = rt.bottom;
+//    cout << " nx="<<nx<<" ny="<<ny<<" rank:";
+    SizeT datadims[3];
+    datadims[0] = rt.right; //nx;
+    datadims[1] = rt.bottom; //ny;
+    datadims[2] = 3;
+    dimension datadim(datadims, (SizeT) 3);
+    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
+    cout << static_cast<BaseGDL*>(bitmap)->Rank() << endl;
+    SizeT kpad = 0;
+    for ( SizeT iy = 0; iy < ny ; ++iy ) {
+      for ( SizeT ix = 0; ix < nx ; ++ix ) {
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] = lpbitmap[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] = lpbitmap[kpad++];
+        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] = lpbitmap[kpad++];
+        kpad++; //pad to 4
+      }
+    }
+    //Unlock and Free the DIB from the heap
+    GlobalUnlock(hDIB);    
+    GlobalFree(hDIB);
+    DeleteObject( hbitmap );
+    DeleteDC( hdc_bmp );
+    
+    return bitmap;
+
+ }
 void GDLWINStream::RedrawTV()
 {
 	RECT rt;

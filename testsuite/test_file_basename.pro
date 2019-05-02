@@ -16,7 +16,8 @@ endif
 ;
 
 ;print, FILE_BASENAME('GDLTokenTy\*') ; GDLTokenTy\*
-if (FILE_BASENAME('GDLTokenTy\*') NE 'GDLTokenTy\*') then begin
+Win32 = !version.OS_family eq 'Windows'
+if (FILE_BASENAME('GDLTokenTy\*') NE 'GDLTokenTy\*' and ~Win32) then begin
     MESSAGE, /continue, 'FILE_BASENAME(GDLTokenTy\*) NE GDLTokenTy\* '
     EXIT, status=1
 endif
